@@ -23,8 +23,39 @@ export interface ActionContextReturn<T extends ActionPayloadMap = ActionPayloadM
 }
 
 /**
- * ActionRegister를 Context로 공유할 수 있는 헬퍼 함수
- * @returns Provider, hooks를 포함한 객체
+ * Create a React Context for sharing ActionRegister instance across components
+ * @template T - The action payload map type
+ * @returns Object containing Provider component and hooks for action management
+ * @example
+ * ```typescript
+ * interface AppActions extends ActionPayloadMap {
+ *   increment: void;
+ *   setCount: number;
+ * }
+ * 
+ * const { Provider, useAction, useActionHandler } = createActionContext<AppActions>();
+ * 
+ * function App() {
+ *   return (
+ *     <Provider>
+ *       <Counter />
+ *     </Provider>
+ *   );
+ * }
+ * 
+ * function Counter() {
+ *   const [count, setCount] = useState(0);
+ *   const action = useAction();
+ *   
+ *   useActionHandler('increment', () => setCount(prev => prev + 1));
+ *   
+ *   return (
+ *     <button onClick={() => action.dispatch('increment')}>
+ *       Count: {count}
+ *     </button>
+ *   );
+ * }
+ * ```
  */
 export function createActionContext<T extends ActionPayloadMap = ActionPayloadMap>(): ActionContextReturn<T> {
 
