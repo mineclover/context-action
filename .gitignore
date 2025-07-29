@@ -44,7 +44,7 @@ Thumbs.db
 .pnpm-store/
 .yarn/
 .yarnrc.yml
-pnpm-lock.yaml
+# pnpm-lock.yaml (commented out for CI/CD)
 
 # Temporary files
 *.tmp
