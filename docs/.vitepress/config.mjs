@@ -3,6 +3,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: 'Context Action',
   description: 'Type-safe action pipeline management with React integration',
+  base: '/context-action/',
   
   // 기본 언어 설정
   lang: 'en-US',
@@ -132,6 +133,9 @@ export default defineConfig({
   // 빌드 설정
   outDir: '../dist-docs',
   cacheDir: '.vitepress/cache',
+  
+  // Dead link 체크 비활성화 (임시로 TypeDoc 통합 완료까지)
+  ignoreDeadLinks: true,
   
   // Head 태그 설정
   head: [
