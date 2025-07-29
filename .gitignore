@@ -54,3 +54,12 @@ pnpm-lock.yaml
 # Test app specific
 packages/test-app/dist/
 packages/test-app/.vite/
+
+# Documentation
+docs/.vitepress/cache/
+docs/.vitepress/dist/
+dist-docs/
+docs/api/generated/
+
+# TypeDoc
+typedoc-out/

@@ -24,11 +24,21 @@
     "publish:all": "pnpm --filter @context-action/core publish --access public && pnpm --filter @context-action/react publish --access public",
     "publish:core": "pnpm --filter @context-action/core publish --access public",
     "publish:react": "pnpm --filter @context-action/react publish --access public",
-    "postrelease": "git push origin main --tags"
+    "postrelease": "git push origin main --tags",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "docs:api": "typedoc",
+    "docs:full": "pnpm docs:api && pnpm docs:build"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
+    "mermaid": "^11.9.0",
+    "shiki": "^3.8.1",
+    "typedoc": "^0.28.8",
+    "typedoc-plugin-markdown": "^4.7.1",
     "typescript": "^5.3.0",
-    "@types/node": "^20.0.0"
+    "vitepress": "^1.6.3"
   },
   "engines": {
     "node": ">=18.0.0",

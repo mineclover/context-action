@@ -1,0 +1,70 @@
+{
+  "entryPoints": [
+    "./packages/core/src/index.ts",
+    "./packages/react/src/index.ts"
+  ],
+  "tsconfig": "./packages/core/tsconfig.json",
+  "out": "./docs/api/generated",
+  "plugin": ["typedoc-plugin-markdown"],
+  "theme": "markdown",
+  "readme": "none",
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeInternal": true,
+  "hideGenerator": true,
+  "disableSources": false,
+  "includeVersion": true,
+  "categorizeByGroup": false,
+  "categoryOrder": [
+    "Core",
+    "React",
+    "*"
+  ],
+  "groupOrder": [
+    "Classes",
+    "Interfaces", 
+    "Type Aliases",
+    "Functions",
+    "Variables"
+  ],
+  "sort": ["source-order"],
+  "kindSortOrder": [
+    "Project",
+    "Module",
+    "Namespace",
+    "Enum",
+    "EnumMember",
+    "Class",
+    "Interface",
+    "TypeAlias",
+    "Constructor",
+    "Property",
+    "Variable",
+    "Function",
+    "Accessor",
+    "Method",
+    "Parameter",
+    "TypeParameter",
+    "TypeLiteral",
+    "CallSignature",
+    "ConstructorSignature",
+    "IndexSignature",
+    "GetSignature",
+    "SetSignature"
+  ],
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/test/**/*",
+    "**/tests/**/*"
+  ],
+  "validation": {
+    "notExported": true,
+    "invalidLink": true,
+    "notDocumented": false
+  },
+  "treatWarningsAsErrors": false,
+  "basePath": ".",
+  "excludeExternals": true,
+  "githubPages": false
+}
