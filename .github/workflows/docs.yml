@@ -34,9 +34,9 @@ jobs:
           node-version: '18'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
           run_install: false
 
       - name: Get pnpm store directory
@@ -61,6 +61,10 @@ jobs:
           ls -la pnpm-lock.yaml || echo "pnpm-lock.yaml not found"
           echo "Checking pnpm version:"
           pnpm --version
+          echo "Checking lockfile version:"
+          head -n 5 pnpm-lock.yaml || echo "Cannot read pnpm-lock.yaml"
+          echo "Workspace configuration:"
+          cat pnpm-workspace.yaml || echo "No pnpm-workspace.yaml found"
 
       - name: Install dependencies
         run: |
