@@ -29,7 +29,8 @@
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
     "docs:api": "typedoc",
-    "docs:full": "pnpm docs:api && pnpm docs:build"
+    "docs:full": "pnpm docs:api && pnpm docs:build",
+    "docs:deploy": "pnpm build:all && pnpm docs:build"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
