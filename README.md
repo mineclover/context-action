@@ -159,7 +159,9 @@ Apache-2.0 © [mineclover](https://github.com/mineclover)
 
 ## 🔗 Links
 
-- [Library Package](./packages/context-action) - Main @context-action/core package
+- [Core Package](./packages/core) - @context-action/core (Pure TypeScript)
+- [React Package](./packages/react) - @context-action/react (React integration)
 - [Test App](./packages/test-app) - Development environment
+- [Release Guide](./RELEASE.md) - Publishing documentation
 - [Issues](https://github.com/mineclover/context-action/issues) - Bug reports and feature requests
 - [한국어 README](./README.ko.md) - Korean version
