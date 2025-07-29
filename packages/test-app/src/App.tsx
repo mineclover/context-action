@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { createActionContext, ActionPayloadMap } from '@context-action/core'
+import { createActionContext, ActionPayloadMap } from '@context-action/react'
 
 // 액션 타입 정의
 interface AppActionMap extends ActionPayloadMap {

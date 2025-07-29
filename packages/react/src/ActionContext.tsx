@@ -1,5 +1,5 @@
 import React, { createContext, ReactNode, useContext, useRef, useEffect, useId } from 'react';
-import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig } from '../core';
+import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig } from '@context-action/core';
 
 /**
  * Context type for ActionRegister

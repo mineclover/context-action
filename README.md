@@ -162,3 +162,4 @@ Apache-2.0 © [mineclover](https://github.com/mineclover)
 - [Library Package](./packages/context-action) - Main @context-action/core package
 - [Test App](./packages/test-app) - Development environment
 - [Issues](https://github.com/mineclover/context-action/issues) - Bug reports and feature requests
+- [한국어 README](./README.ko.md) - Korean version
