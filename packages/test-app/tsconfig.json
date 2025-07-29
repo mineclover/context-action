@@ -6,6 +6,7 @@
   },
   "include": ["src/**/*"],
   "references": [
-    { "path": "../context-action" }
+    { "path": "../core" },
+    { "path": "../react" }
   ]
 }
