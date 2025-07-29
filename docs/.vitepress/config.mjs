@@ -1,4 +1,8 @@
 import { defineConfig } from 'vitepress'
+import { getLatestVersion } from './utils/version.mjs'
+
+// 현재 패키지 버전 가져오기
+const currentVersion = getLatestVersion()
 
 export default defineConfig({
   title: 'Context Action',
@@ -31,7 +35,7 @@ export default defineConfig({
       { text: 'API Reference', link: '/api/' },
       { text: 'Examples', link: '/examples/' },
       {
-        text: 'v1.0.0',
+        text: `v${currentVersion}`,
         items: [
           { text: 'Changelog', link: 'https://github.com/mineclover/context-action/releases' },
           { text: 'Contributing', link: '/contributing' }
