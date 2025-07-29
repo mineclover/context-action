@@ -239,8 +239,10 @@ Apache-2.0 © [mineclover](https://github.com/mineclover)
 
 ## 🔗 링크
 
-- [라이브러리 패키지](./packages/context-action) - 메인 @context-action/core 패키지
+- [Core 패키지](./packages/core) - @context-action/core (순수 TypeScript)
+- [React 패키지](./packages/react) - @context-action/react (React 통합)
 - [테스트 앱](./packages/test-app) - 개발 환경
+- [배포 가이드](./RELEASE.md) - 배포 문서
 - [이슈 트래커](https://github.com/mineclover/context-action/issues) - 버그 리포트 및 기능 요청
 - [English README](./README.md) - English version
 

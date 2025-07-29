@@ -13,7 +13,18 @@
     "test:all": "pnpm -r test",
     "lint": "pnpm -r lint",
     "type-check": "pnpm -r type-check",
-    "clean": "pnpm -r clean"
+    "clean": "pnpm -r clean",
+    "version:patch": "pnpm -r --filter '@context-action/*' exec npm version patch",
+    "version:minor": "pnpm -r --filter '@context-action/*' exec npm version minor",
+    "version:major": "pnpm -r --filter '@context-action/*' exec npm version major",
+    "prerelease": "pnpm build:all && pnpm lint && pnpm type-check",
+    "release:patch": "pnpm version:patch && pnpm prerelease && pnpm publish:all",
+    "release:minor": "pnpm version:minor && pnpm prerelease && pnpm publish:all",
+    "release:major": "pnpm version:major && pnpm prerelease && pnpm publish:all",
+    "publish:all": "pnpm --filter @context-action/core publish --access public && pnpm --filter @context-action/react publish --access public",
+    "publish:core": "pnpm --filter @context-action/core publish --access public",
+    "publish:react": "pnpm --filter @context-action/react publish --access public",
+    "postrelease": "git push origin main --tags"
   },
   "devDependencies": {
     "typescript": "^5.3.0",
