@@ -8,7 +8,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@context-action/core': '../context-action/src/index.ts'
+      '@context-action/core': '../core/src/index.ts',
+      '@context-action/react': '../react/src/index.ts'
     }
   }
 })
