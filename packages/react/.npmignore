@@ -1,0 +1,39 @@
+# Source files
+src/
+*.ts
+*.tsx
+!dist/**/*.d.ts
+
+# Build configs
+tsconfig.json
+tsdown.config.ts
+.eslintrc.cjs
+
+# Development
+node_modules/
+.pnpm-debug.log*
+
+# Testing
+__tests__/
+*.test.*
+*.spec.*
+coverage/
+jest.config.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temporary
+*.tmp
+.cache/
