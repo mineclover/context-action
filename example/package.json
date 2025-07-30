@@ -1,13 +1,13 @@
 {
-  "name": "test-app",
+  "name": "example",
   "version": "1.0.0",
   "private": true,
-  "description": "Test application for @context-action/core library",
+  "description": "Example application for @context-action/core library",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "echo 'No tests for test-app'",
+    "test": "echo 'No tests for example app'",
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "type-check": "tsc --noEmit",
