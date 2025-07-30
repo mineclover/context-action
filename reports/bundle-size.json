@@ -1,0 +1,136 @@
+{
+  "timestamp": "2025-07-30T07:11:43.602Z",
+  "totalSize": 40806,
+  "totalSizeFormatted": "39.85 KB",
+  "packages": {
+    "core": {
+      "version": "0.0.2",
+      "size": 24673,
+      "sizeFormatted": "24.09 KB",
+      "sizeKB": 24.09,
+      "files": {
+        "index.cjs": {
+          "size": 7829,
+          "sizeFormatted": "7.65 KB",
+          "type": "CommonJS"
+        },
+        "index.d.cts": {
+          "size": 4521,
+          "sizeFormatted": "4.42 KB",
+          "type": "Unknown"
+        },
+        "index.d.cts.map": {
+          "size": 1840,
+          "sizeFormatted": "1.8 KB",
+          "type": "Source Map"
+        },
+        "index.d.ts": {
+          "size": 4520,
+          "sizeFormatted": "4.41 KB",
+          "type": "Unknown"
+        },
+        "index.d.ts.map": {
+          "size": 1839,
+          "sizeFormatted": "1.8 KB",
+          "type": "Source Map"
+        },
+        "index.js": {
+          "size": 7803,
+          "sizeFormatted": "7.62 KB",
+          "type": "JavaScript"
+        },
+        "index.js.map": {
+          "size": 13015,
+          "sizeFormatted": "12.71 KB",
+          "type": "Source Map"
+        }
+      }
+    },
+    "react": {
+      "version": "0.0.2",
+      "size": 9920,
+      "sizeFormatted": "9.69 KB",
+      "sizeKB": 9.69,
+      "files": {
+        "index.cjs": {
+          "size": 3374,
+          "sizeFormatted": "3.29 KB",
+          "type": "CommonJS"
+        },
+        "index.d.cts": {
+          "size": 2164,
+          "sizeFormatted": "2.11 KB",
+          "type": "Unknown"
+        },
+        "index.d.cts.map": {
+          "size": 724,
+          "sizeFormatted": "724 B",
+          "type": "Source Map"
+        },
+        "index.d.ts": {
+          "size": 2163,
+          "sizeFormatted": "2.11 KB",
+          "type": "Unknown"
+        },
+        "index.d.ts.map": {
+          "size": 723,
+          "sizeFormatted": "723 B",
+          "type": "Source Map"
+        },
+        "index.js": {
+          "size": 2219,
+          "sizeFormatted": "2.17 KB",
+          "type": "JavaScript"
+        },
+        "index.js.map": {
+          "size": 4128,
+          "sizeFormatted": "4.03 KB",
+          "type": "Source Map"
+        }
+      }
+    },
+    "jotai": {
+      "version": "0.0.1",
+      "size": 6213,
+      "sizeFormatted": "6.07 KB",
+      "sizeKB": 6.07,
+      "files": {
+        "index.cjs": {
+          "size": 2696,
+          "sizeFormatted": "2.63 KB",
+          "type": "CommonJS"
+        },
+        "index.d.cts": {
+          "size": 964,
+          "sizeFormatted": "964 B",
+          "type": "Unknown"
+        },
+        "index.d.cts.map": {
+          "size": 778,
+          "sizeFormatted": "778 B",
+          "type": "Source Map"
+        },
+        "index.d.ts": {
+          "size": 963,
+          "sizeFormatted": "963 B",
+          "type": "Unknown"
+        },
+        "index.d.ts.map": {
+          "size": 777,
+          "sizeFormatted": "777 B",
+          "type": "Source Map"
+        },
+        "index.js": {
+          "size": 1590,
+          "sizeFormatted": "1.55 KB",
+          "type": "JavaScript"
+        },
+        "index.js.map": {
+          "size": 2971,
+          "sizeFormatted": "2.9 KB",
+          "type": "Source Map"
+        }
+      }
+    }
+  }
+}

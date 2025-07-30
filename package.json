@@ -1,6 +1,7 @@
 {
   "name": "context-action-monorepo",
   "version": "1.0.0",
+  "type": "module",
   "private": true,
   "description": "Monorepo for context-action library and test environment",
   "scripts": {
@@ -33,7 +34,10 @@
     "docs:preview": "vitepress preview docs",
     "docs:api": "typedoc",
     "docs:full": "pnpm docs:api && pnpm docs:build",
-    "docs:deploy": "pnpm build:all && pnpm docs:build"
+    "docs:deploy": "pnpm build:all && pnpm docs:build",
+    "check:size": "node scripts/check-bundle-size.js",
+    "build:check": "pnpm build:all && pnpm check:size",
+    "ci:check": "pnpm lint && pnpm type-check && pnpm test:all && pnpm build:check"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
