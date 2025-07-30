@@ -39,7 +39,7 @@ features:
 
 ## 빠른 예제
 
-```typescript
+```tsx
 import { createActionContext } from '@context-action/react';
 
 // 액션 타입 정의
@@ -54,7 +54,7 @@ const { Provider, useAction, useActionHandler } = createActionContext<AppActions
 
 function Counter() {
   const [count, setCount] = useState(0);
-  const action = useAction();
+  const dispatch = useAction();
 
   // 액션 핸들러 등록
   useActionHandler('increment', () => setCount(prev => prev + 1));
@@ -64,38 +64,13 @@ function Counter() {
   return (
     <div>
       <p>카운트: {count}</p>
-      <button onClick={() => action.dispatch('increment')}>+1</button>
-      <button onClick={() => action.dispatch('setCount', 10)}>10으로 설정</button>
-      <button onClick={() => action.dispatch('reset')}>리셋</button>
+      <button onClick={() => dispatch('increment')}>+1</button>
+      <button onClick={() => dispatch('setCount', 10)}>10으로 설정</button>
+      <button onClick={() => dispatch('reset')}>리셋</button>
     </div>
   );
 }
 ```
 
-## 설치
-
-::: code-group
-
-```bash [npm]
-npm install @context-action/core @context-action/react
-```
-
-```bash [pnpm]
-pnpm add @context-action/core @context-action/react
-```
-
-```bash [yarn]
-yarn add @context-action/core @context-action/react
-```
-
-:::
-
-## 왜 Context Action인가?
-
-- **🎯 예측 가능**: 명확한 순서로 예측 가능한 파이프라인을 통해 액션이 흐릅니다
-- **🔧 유연함**: 우선순위 기반 핸들러 시스템이 애플리케이션 요구사항에 적응합니다
-- **⚡ 성능**: 최소한의 오버헤드와 최대 처리량을 위해 최적화되었습니다
-- **🧪 테스트 가능**: 관심사의 명확한 분리로 테스트가 간단합니다
-- **📚 개발자 친화적**: 뛰어난 TypeScript 지원과 포괄적인 문서화
 
 [시작하기 →](/ko/guide/getting-started)

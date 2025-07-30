@@ -20,7 +20,7 @@ const { Provider, useAction, useActionHandler } = createActionContext<ApiActions
 function UserComponent() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
-  const action = useAction();
+  const dispatch = useAction();
 
   // 비동기 액션 핸들러
   useActionHandler('fetchUser', async ({ id }) => {
@@ -51,7 +51,7 @@ function UserComponent() {
     <div>
       {loading && <p>로딩 중...</p>}
       {user && <UserProfile user={user} />}
-      <button onClick={() => action.dispatch('fetchUser', { id: 1 })}>
+      <button onClick={() => dispatch('fetchUser', { id: 1 })}>
         사용자 정보 가져오기
       </button>
     </div>
@@ -66,7 +66,7 @@ function UserComponent() {
 ```typescript
 async function handleSubmit() {
   try {
-    await action.dispatch('saveUser', { user: formData });
+    await dispatch('saveUser', { user: formData });
     // 저장 성공 후 실행될 코드
     navigate('/user-list');
   } catch (error) {
@@ -82,7 +82,7 @@ async function handleSubmit() {
 
 ```typescript
 function LoggingComponent() {
-  const action = useAction();
+  const dispatch = useAction();
 
   // 높은 우선순위 (먼저 실행됨)
   useActionHandler('increment', () => {
@@ -99,7 +99,7 @@ function LoggingComponent() {
     console.log('증가 액션 완료');
   }, { priority: -100 });
 
-  return <button onClick={() => action.dispatch('increment')}>클릭</button>;
+  return <button onClick={() => dispatch('increment')}>클릭</button>;
 }
 ```
 
@@ -111,7 +111,7 @@ function LoggingComponent() {
 
 ```typescript
 function ValidationComponent() {
-  const action = useAction();
+  const dispatch = useAction();
 
   useActionHandler('submitForm', async (data) => {
     // 유효성 검사
@@ -129,7 +129,7 @@ function ValidationComponent() {
 
   const handleSubmit = async (formData: FormData) => {
     try {
-      await action.dispatch('submitForm', formData);
+      await dispatch('submitForm', formData);
       setSuccess('양식이 성공적으로 제출되었습니다.');
     } catch (error) {
       setError(error.message);
@@ -149,7 +149,7 @@ function ValidationComponent() {
 ```typescript
 function ConditionalComponent() {
   const [isEnabled, setIsEnabled] = useState(true);
-  const action = useAction();
+  const dispatch = useAction();
 
   useActionHandler('conditionalAction', (data) => {
     if (!isEnabled) {
@@ -171,7 +171,7 @@ function ConditionalComponent() {
         />
         액션 활성화
       </label>
-      <button onClick={() => action.dispatch('conditionalAction', { data: 'test' })}>
+      <button onClick={() => dispatch('conditionalAction', { data: 'test' })}>
         조건부 액션 실행
       </button>
     </div>
@@ -272,7 +272,7 @@ function App() {
 
 ```typescript
 function DebugComponent() {
-  const action = useAction();
+  const dispatch = useAction();
 
   // 개발 환경에서만 로깅
   if (process.env.NODE_ENV === 'development') {
@@ -326,14 +326,14 @@ describe('Counter Component', () => {
     
     function TestCounter() {
       const [count, setCount] = useState(0);
-      const action = useAction();
+      const dispatch = useAction();
       
       useActionHandler('increment', () => setCount(prev => prev + 1));
       
       return (
         <div>
           <span data-testid="count">{count}</span>
-          <button onClick={() => action.dispatch('increment')}>증가</button>
+          <button onClick={() => dispatch('increment')}>증가</button>
         </div>
       );
     }
@@ -382,7 +382,7 @@ function App() {
 
 ```typescript
 const MemoizedComponent = React.memo(function ExpensiveComponent() {
-  const action = useAction();
+  const dispatch = useAction();
   
   useActionHandler('expensiveAction', useCallback((data) => {
     // 비용이 큰 연산

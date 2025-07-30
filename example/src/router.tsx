@@ -13,7 +13,7 @@ import { JotaiPersistencePage } from './pages/jotai/JotaiPersistencePage';
 // React library pages
 import { ReactBasicsPage } from './pages/react/ReactBasicsPage';
 import { ReactContextPage } from './pages/react/ReactContextPage';
-import { ReactFormPage } from './pages/react/ReactFormPage';
+import { ReactFormsPage } from './pages/react/ReactFormsPage';
 import { ReactHooksPage } from './pages/react/ReactHooksPage';
 
 export const router = createBrowserRouter([
@@ -61,7 +61,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'forms',
-            element: <ReactFormPage />,
+            element: <ReactFormsPage />,
           },
         ],
       },

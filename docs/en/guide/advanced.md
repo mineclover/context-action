@@ -84,11 +84,11 @@ function DataFetcher() {
     }
   });
 
-  const action = useAction();
+  const dispatch = useAction();
 
   const handleFetch = async () => {
     try {
-      const result = await action.dispatch('fetchData', {});
+      const result = await dispatch('fetchData', {});
       console.log('Data:', result);
     } catch (error) {
       console.error('Failed to fetch:', error);
@@ -131,13 +131,13 @@ function ErrorBoundaryProvider({ children }: { children: ReactNode }) {
 
 // Usage in components
 function SomeComponent() {
-  const action = useAction();
+  const dispatch = useAction();
 
   const handleRiskyOperation = async () => {
     try {
       await riskyApiCall();
     } catch (error) {
-      action.dispatch('globalError', { 
+      dispatch('globalError', { 
         error, 
         context: 'SomeComponent.handleRiskyOperation' 
       });
@@ -279,10 +279,10 @@ function SearchComponent() {
 
   useActionHandler('search', debouncedSearch);
 
-  const action = useAction();
+  const dispatch = useAction();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    action.dispatch('search', e.target.value);
+    dispatch('search', e.target.value);
   };
 }
 ```

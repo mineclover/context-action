@@ -105,9 +105,9 @@ useActionHandler('increment', () => {
 const action = useAction()
 
 // Dispatch actions
-action.dispatch('increment')
-action.dispatch('setCount', 42)
-action.dispatch('reset')
+dispatch('increment')
+dispatch('setCount', 42)
+dispatch('reset')
 ```
 
 ## 🔧 Development Workflow
@@ -213,7 +213,7 @@ useActionHandler('newAction', (payload) => {
 });
 
 // 3. Add UI
-<button onClick={() => action.dispatch('newAction', { data: 'test' })}>
+<button onClick={() => dispatch('newAction', { data: 'test' })}>
   Test New Action
 </button>
 ```

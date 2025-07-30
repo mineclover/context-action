@@ -16,7 +16,7 @@ export function JotaiPersistencePage() {
         }}
       >
         <h3>🚧 Coming Soon</h3>
-        <p>이 페이지는 현재 개발 중입니다. 다음 기능들이 추가될 예정입니다:</p>
+        <p>이 페이지는 현재 개발 중입니다. jotai 패키지가 완성되면 다음 기능들이 추가될 예정입니다:</p>
         <ul>
           <li>localStorage 연동</li>
           <li>sessionStorage 활용</li>

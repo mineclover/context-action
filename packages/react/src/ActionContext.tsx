@@ -61,7 +61,10 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
 
   const ActionContext = createContext<ActionContextType<T> | null>(null);
 
-  // Provider 컴포넌트
+  /**
+   * Provider 컴포넌트
+   * ActionRegister 인스턴스를 Context로 제공합니다
+   */
   const Provider = ({ children }: { children: ReactNode }) => {
     const actionRegisterRef = useRef(new ActionRegister<T>());
     return (
@@ -71,7 +74,11 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
     );
   };
 
-  // Context 접근 hook
+  /**
+   * Context 접근 hook
+   * @returns ActionContextType - ActionRegister 참조를 포함한 컨텍스트
+   * @throws Error - Provider 외부에서 사용될 경우
+   */
   const useActionContext = () => {
     const context = useContext(ActionContext);
     if (!context) {
@@ -80,12 +87,19 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
     return context;
   };
 
-  // dispatch 함수 반환 hook
+  /**
+   * dispatch 함수 반환 hook
+   * @returns ActionRegister의 dispatch 함수
+   * @throws Error - Provider 외부에서 사용될 경우
+   */
   const useAction = (): ActionRegister<T>['dispatch'] => {
     const context = useContext(ActionContext);
     
     if (!context || !context.actionRegisterRef.current) {
-      // Provider 외부에서 사용되거나 actionRegister가 없는 경우
+      /**
+       * Provider 외부에서 사용되거나 actionRegister가 없는 경우
+       * 에러를 던지는 함수를 반환합니다
+       */
       return (...args: any[]) => {
         throw new Error(
           `useAction dispatch called outside of Provider context. ` +
@@ -95,10 +109,17 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
       } 
     }
     
-    return context.actionRegisterRef.current.dispatch.bind(context.actionRegisterRef.current);
+    return context.actionRegisterRef.current.dispatch;
   };
 
-  // Action Handler 등록 hook
+  /**
+   * Action Handler 등록 hook
+   * @template K - 액션 키 타입
+   * @param action - 등록할 액션 이름
+   * @param handler - 액션 처리 함수
+   * @param config - 핸들러 설정 (선택사항)
+   * @description 성능 최적화를 위해 handler는 useCallback으로 메모이제이션하는 것을 권장합니다
+   */
   const useActionHandler = <K extends keyof T>(
     action: K,
     handler: ActionHandler<T[K]>,
@@ -106,6 +127,8 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
   ) => {
     const { actionRegisterRef } = useActionContext();
     const componentId = useId();
+
+    console.log('useActionHandler:',action, handler, config);
     
     useEffect(() => {
       const actionRegister = actionRegisterRef.current!;

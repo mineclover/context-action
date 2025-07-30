@@ -21,7 +21,7 @@ const { Provider, useAction, useActionHandler } = createActionContext<CounterAct
 
 function Counter() {
   const [count, setCount] = useState(0);
-  const action = useAction();
+  const dispatch = useAction();
 
   // Register action handlers
   useActionHandler('increment', () => setCount(prev => prev + 1));
@@ -32,10 +32,10 @@ function Counter() {
   return (
     <div>
       <h2>Count: {count}</h2>
-      <button onClick={() => action.dispatch('increment')}>+1</button>
-      <button onClick={() => action.dispatch('decrement')}>-1</button>
-      <button onClick={() => action.dispatch('setCount', 10)}>Set to 10</button>
-      <button onClick={() => action.dispatch('reset')}>Reset</button>
+      <button onClick={() => dispatch('increment')}>+1</button>
+      <button onClick={() => dispatch('decrement')}>-1</button>
+      <button onClick={() => dispatch('setCount', 10)}>Set to 10</button>
+      <button onClick={() => dispatch('reset')}>Reset</button>
     </div>
   );
 }
@@ -78,7 +78,7 @@ const { Provider, useAction, useActionHandler } = createActionContext<TodoAction
 function TodoApp() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
-  const action = useAction();
+  const dispatch = useAction();
 
   // Action handlers
   useActionHandler('addTodo', ({ text }) => {
@@ -134,7 +134,7 @@ function TodoApp() {
       
       {todos.length > 0 && (
         <div>
-          <button onClick={() => action.dispatch('toggleAll')}>
+          <button onClick={() => dispatch('toggleAll')}>
             {activeCount === 0 ? 'Mark all incomplete' : 'Mark all complete'}
           </button>
         </div>
@@ -170,7 +170,7 @@ function TodoApp() {
           </div>
 
           {completedCount > 0 && (
-            <button onClick={() => action.dispatch('clearCompleted')}>
+            <button onClick={() => dispatch('clearCompleted')}>
               Clear completed ({completedCount})
             </button>
           )}
@@ -182,12 +182,12 @@ function TodoApp() {
 
 function TodoInput() {
   const [text, setText] = useState('');
-  const action = useAction();
+  const dispatch = useAction();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (text.trim()) {
-      action.dispatch('addTodo', { text });
+      dispatch('addTodo', { text });
       setText('');
     }
   };
@@ -219,11 +219,11 @@ function TodoList({ todos }: { todos: Todo[] }) {
 function TodoItem({ todo }: { todo: Todo }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(todo.text);
-  const action = useAction();
+  const dispatch = useAction();
 
   const handleEdit = () => {
     if (editText.trim() && editText !== todo.text) {
-      action.dispatch('editTodo', { id: todo.id, text: editText });
+      dispatch('editTodo', { id: todo.id, text: editText });
     }
     setIsEditing(false);
   };
@@ -242,7 +242,7 @@ function TodoItem({ todo }: { todo: Todo }) {
       <input
         type="checkbox"
         checked={todo.completed}
-        onChange={() => action.dispatch('toggleTodo', { id: todo.id })}
+        onChange={() => dispatch('toggleTodo', { id: todo.id })}
       />
       
       {isEditing ? (
@@ -266,7 +266,7 @@ function TodoItem({ todo }: { todo: Todo }) {
         </span>
       )}
       
-      <button onClick={() => action.dispatch('deleteTodo', { id: todo.id })}>
+      <button onClick={() => dispatch('deleteTodo', { id: todo.id })}>
         Delete
       </button>
     </li>
@@ -451,12 +451,12 @@ function useAuth() {
 function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const action = useAction();
+  const dispatch = useAction();
   const { isLoading, error } = useAuth();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    action.dispatch('login', { email, password });
+    dispatch('login', { email, password });
   };
 
   return (
@@ -466,7 +466,7 @@ function LoginForm() {
       {error && (
         <div style={{ color: 'red' }}>
           {error}
-          <button onClick={() => action.dispatch('clearError')}>×</button>
+          <button onClick={() => dispatch('clearError')}>×</button>
         </div>
       )}
       
@@ -507,12 +507,12 @@ function RegisterForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const action = useAction();
+  const dispatch = useAction();
   const { isLoading, error } = useAuth();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    action.dispatch('register', { email, password, name });
+    dispatch('register', { email, password, name });
   };
 
   return (
@@ -522,7 +522,7 @@ function RegisterForm() {
       {error && (
         <div style={{ color: 'red' }}>
           {error}
-          <button onClick={() => action.dispatch('clearError')}>×</button>
+          <button onClick={() => dispatch('clearError')}>×</button>
         </div>
       )}
       
@@ -573,7 +573,7 @@ function UserProfile() {
   const { user, isLoading, error } = useAuth();
   const [name, setName] = useState(user?.name || '');
   const [isEditing, setIsEditing] = useState(false);
-  const action = useAction();
+  const dispatch = useAction();
 
   useEffect(() => {
     if (user) {
@@ -583,12 +583,12 @@ function UserProfile() {
 
   const handleUpdate = (e: React.FormEvent) => {
     e.preventDefault();
-    action.dispatch('updateProfile', { name });
+    dispatch('updateProfile', { name });
     setIsEditing(false);
   };
 
   const handleLogout = () => {
-    action.dispatch('logout');
+    dispatch('logout');
   };
 
   if (!user) return null;
@@ -600,7 +600,7 @@ function UserProfile() {
       {error && (
         <div style={{ color: 'red' }}>
           {error}
-          <button onClick={() => action.dispatch('clearError')}>×</button>
+          <button onClick={() => dispatch('clearError')}>×</button>
         </div>
       )}
       
@@ -896,10 +896,10 @@ function useCart() {
 
 function ProductList() {
   const { products, loading, error } = useCart();
-  const action = useAction();
+  const dispatch = useAction();
 
   useEffect(() => {
-    action.dispatch('loadProducts');
+    dispatch('loadProducts');
   }, []);
 
   if (loading) return <div>Loading products...</div>;
@@ -918,12 +918,12 @@ function ProductList() {
 }
 
 function ProductCard({ product }: { product: Product }) {
-  const action = useAction();
+  const dispatch = useAction();
   const { error, clearError } = useCart();
 
   const handleAddToCart = () => {
     clearError();
-    action.dispatch('addToCart', { productId: product.id });
+    dispatch('addToCart', { productId: product.id });
   };
 
   return (
@@ -946,13 +946,13 @@ function ProductCard({ product }: { product: Product }) {
 function Cart() {
   const { cart, error, checkoutLoading, clearError } = useCart();
   const [paymentMethod, setPaymentMethod] = useState('credit-card');
-  const action = useAction();
+  const dispatch = useAction();
 
   const total = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
 
   const handleCheckout = () => {
     clearError();
-    action.dispatch('checkout', { paymentMethod });
+    dispatch('checkout', { paymentMethod });
   };
 
   return (
@@ -1001,7 +1001,7 @@ function Cart() {
                 {checkoutLoading ? 'Processing...' : `Checkout ($${total.toFixed(2)})`}
               </button>
               
-              <button onClick={() => action.dispatch('clearCart')}>
+              <button onClick={() => dispatch('clearCart')}>
                 Clear Cart
               </button>
             </div>
@@ -1013,14 +1013,14 @@ function Cart() {
 }
 
 function CartItem({ item }: { item: CartItem }) {
-  const action = useAction();
+  const dispatch = useAction();
 
   const handleQuantityChange = (quantity: number) => {
-    action.dispatch('updateQuantity', { productId: item.product.id, quantity });
+    dispatch('updateQuantity', { productId: item.product.id, quantity });
   };
 
   const handleRemove = () => {
-    action.dispatch('removeFromCart', { productId: item.product.id });
+    dispatch('removeFromCart', { productId: item.product.id });
   };
 
   return (
@@ -1305,11 +1305,11 @@ function useForm() {
 
 function RegistrationForm() {
   const { formData, errors, isSubmitting, submitError, submitSuccess } = useForm();
-  const action = useAction();
+  const dispatch = useAction();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    action.dispatch('submitForm');
+    dispatch('submitForm');
   };
 
   const handleFieldChange = (field: keyof FormData) => (
@@ -1321,11 +1321,11 @@ function RegistrationForm() {
       ? Number(e.target.value)
       : e.target.value;
       
-    action.dispatch('updateField', { field, value });
+    dispatch('updateField', { field, value });
   };
 
   const handleFieldBlur = (field: keyof FormData) => () => {
-    action.dispatch('validateField', { field });
+    dispatch('validateField', { field });
   };
 
   if (submitSuccess) {
@@ -1535,7 +1535,7 @@ function RegistrationForm() {
         
         <button 
           type="button"
-          onClick={() => action.dispatch('resetForm')}
+          onClick={() => dispatch('resetForm')}
           disabled={isSubmitting}
           style={{ 
             padding: '0.75rem 1.5rem',

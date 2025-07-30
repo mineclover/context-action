@@ -23,7 +23,7 @@ const { Provider, useAction, useActionHandler } = createActionContext<CounterAct
 
 function Counter() {
   const [count, setCount] = useState(0);
-  const action = useAction();
+  const dispatch = useAction();
 
   useActionHandler('increment', () => setCount(prev => prev + 1));
   useActionHandler('decrement', () => setCount(prev => prev - 1));
@@ -34,10 +34,10 @@ function Counter() {
     <div>
       <h2>카운터: {count}</h2>
       <div>
-        <button onClick={() => action.dispatch('increment')}>+1</button>
-        <button onClick={() => action.dispatch('decrement')}>-1</button>
-        <button onClick={() => action.dispatch('setCount', 10)}>10으로 설정</button>
-        <button onClick={() => action.dispatch('reset')}>리셋</button>
+        <button onClick={() => dispatch('increment')}>+1</button>
+        <button onClick={() => dispatch('decrement')}>-1</button>
+        <button onClick={() => dispatch('setCount', 10)}>10으로 설정</button>
+        <button onClick={() => dispatch('reset')}>리셋</button>
       </div>
     </div>
   );
@@ -95,11 +95,11 @@ const TodoStorage = {
 function TodoApp() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [inputText, setInputText] = useState('');
-  const action = useAction();
+  const dispatch = useAction();
 
   // 컴포넌트 마운트 시 데이터 로드
   useEffect(() => {
-    action.dispatch('loadTodos');
+    dispatch('loadTodos');
   }, [action]);
 
   // 액션 핸들러 등록
@@ -153,7 +153,7 @@ function TodoApp() {
   // 자동 저장
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      action.dispatch('saveTodos');
+      dispatch('saveTodos');
     }, 500);
 
     return () => clearTimeout(timeoutId);
@@ -161,7 +161,7 @@ function TodoApp() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    action.dispatch('addTodo', { text: inputText });
+    dispatch('addTodo', { text: inputText });
   };
 
   const completedCount = todos.filter(todo => todo.completed).length;
@@ -186,7 +186,7 @@ function TodoApp() {
         <span>전체: {totalCount}, 완료: {completedCount}</span>
         {completedCount > 0 && (
           <button
-            onClick={() => action.dispatch('clearCompleted')}
+            onClick={() => dispatch('clearCompleted')}
             style={{ marginLeft: '10px' }}
           >
             완료된 항목 삭제
@@ -212,11 +212,11 @@ function TodoList({ todos }: { todos: Todo[] }) {
 function TodoItem({ todo }: { todo: Todo }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(todo.text);
-  const action = useAction();
+  const dispatch = useAction();
 
   const handleSave = () => {
     if (editText.trim() && editText !== todo.text) {
-      action.dispatch('editTodo', { id: todo.id, text: editText.trim() });
+      dispatch('editTodo', { id: todo.id, text: editText.trim() });
     }
     setIsEditing(false);
   };
@@ -236,7 +236,7 @@ function TodoItem({ todo }: { todo: Todo }) {
       <input
         type="checkbox"
         checked={todo.completed}
-        onChange={() => action.dispatch('toggleTodo', { id: todo.id })}
+        onChange={() => dispatch('toggleTodo', { id: todo.id })}
         style={{ marginRight: '10px' }}
       />
       
@@ -274,7 +274,7 @@ function TodoItem({ todo }: { todo: Todo }) {
             >
               수정
             </button>
-            <button onClick={() => action.dispatch('deleteTodo', { id: todo.id })}>
+            <button onClick={() => dispatch('deleteTodo', { id: todo.id })}>
               삭제
             </button>
           </div>
@@ -377,11 +377,11 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     error: null
   });
 
-  const action = useAction();
+  const dispatch = useAction();
 
   // 앱 시작 시 인증 상태 확인
   useEffect(() => {
-    action.dispatch('checkAuth');
+    dispatch('checkAuth');
   }, [action]);
 
   // 액션 핸들러 등록
@@ -477,11 +477,11 @@ function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { loading, error } = useAuth();
-  const action = useAction();
+  const dispatch = useAction();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    action.dispatch('login', { email, password });
+    dispatch('login', { email, password });
   };
 
   return (
@@ -493,7 +493,7 @@ function LoginForm() {
           {error}
           <button 
             type="button" 
-            onClick={() => action.dispatch('clearError')}
+            onClick={() => dispatch('clearError')}
             style={{ marginLeft: '10px' }}
           >
             ✕
@@ -540,7 +540,7 @@ function LoginForm() {
 
 function UserProfile() {
   const { user } = useAuth();
-  const action = useAction();
+  const dispatch = useAction();
 
   if (!user) return null;
 
@@ -559,7 +559,7 @@ function UserProfile() {
       <h3>{user.name}</h3>
       <p>{user.email}</p>
       
-      <button onClick={() => action.dispatch('logout')}>
+      <button onClick={() => dispatch('logout')}>
         로그아웃
       </button>
     </div>

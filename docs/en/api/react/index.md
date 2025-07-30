@@ -65,14 +65,14 @@ function Counter() {
 }
 
 function Controls() {
-  const action = useAction();
+  const dispatch = useAction();
 
   return (
     <div>
-      <button onClick={() => action.dispatch('increment')}>+</button>
-      <button onClick={() => action.dispatch('decrement')}>-</button>
-      <button onClick={() => action.dispatch('setCount', 10)}>Set 10</button>
-      <button onClick={() => action.dispatch('reset')}>Reset</button>
+      <button onClick={() => dispatch('increment')}>+</button>
+      <button onClick={() => dispatch('decrement')}>-</button>
+      <button onClick={() => dispatch('setCount', 10)}>Set 10</button>
+      <button onClick={() => dispatch('reset')}>Reset</button>
     </div>
   );
 }
@@ -101,10 +101,10 @@ Get the ActionRegister instance to dispatch actions:
 
 ```typescript
 function MyComponent() {
-  const action = useAction();
+  const dispatch = useAction();
   
   const handleClick = () => {
-    action.dispatch('myAction', { data: 'example' });
+    dispatch('myAction', { data: 'example' });
   };
   
   return <button onClick={handleClick}>Dispatch Action</button>;
@@ -194,7 +194,7 @@ Handlers are automatically cleaned up when components unmount, but you can also 
 
 ```typescript
 function ManualHandler() {
-  const action = useAction();
+  const dispatch = useAction();
   
   useEffect(() => {
     const unregister = action.register('manualAction', (payload) => {
@@ -268,7 +268,7 @@ Keep different responsibilities in separate components:
 function DataManager() {
   useActionHandler('loadUsers', async () => {
     const users = await api.getUsers();
-    action.dispatch('usersLoaded', users);
+    dispatch('usersLoaded', users);
   });
   
   return null;
@@ -327,12 +327,12 @@ interface AppActions extends ActionPayloadMap {
 
 function Counter() {
   const [count, setCount] = useState(0);
-  const action = useAction();
+  const dispatch = useAction();
   
   useActionHandler('increment', () => setCount(prev => prev + 1));
   
   return (
-    <button onClick={() => action.dispatch('increment')}>
+    <button onClick={() => dispatch('increment')}>
       Count: {count}
     </button>
   );

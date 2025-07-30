@@ -316,10 +316,10 @@ function MyComponent() {
 
 // 3. 액션 디스패치
 function AnotherComponent() {
-  const action = useAction();
+  const dispatch = useAction();
   
   return (
-    <button onClick={() => action.dispatch('increment')}>
+    <button onClick={() => dispatch('increment')}>
       Increment
     </button>
   );

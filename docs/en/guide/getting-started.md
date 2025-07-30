@@ -76,7 +76,7 @@ function App() {
 
 function Counter() {
   const [count, setCount] = useState(0);
-  const action = useAction();
+  const dispatch = useAction();
 
   // Register action handlers
   useActionHandler('increment', () => {
@@ -94,13 +94,13 @@ function Counter() {
   return (
     <div>
       <p>Count: {count}</p>
-      <button onClick={() => action.dispatch('increment')}>
+      <button onClick={() => dispatch('increment')}>
         Increment
       </button>
-      <button onClick={() => action.dispatch('setCount', 42)}>
+      <button onClick={() => dispatch('setCount', 42)}>
         Set to 42
       </button>
-      <button onClick={() => action.dispatch('reset')}>
+      <button onClick={() => dispatch('reset')}>
         Reset
       </button>
     </div>

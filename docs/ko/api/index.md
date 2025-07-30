@@ -43,10 +43,10 @@ import { createActionContext } from '@context-action/react';
 const { Provider, useAction, useActionHandler } = createActionContext<MyActions>();
 
 function MyComponent() {
-  const action = useAction();
+  const dispatch = useAction();
   useActionHandler('increment', () => setCount(prev => prev + 1));
   
-  return <button onClick={() => action.dispatch('increment')}>클릭</button>;
+  return <button onClick={() => dispatch('increment')}>클릭</button>;
 }
 ```
 
@@ -154,7 +154,7 @@ interface UserActions extends CrudActions<User> {
 
 ```typescript
 try {
-  await action.dispatch('asyncAction', payload);
+  await dispatch('asyncAction', payload);
 } catch (error) {
   if (error instanceof ActionError) {
     console.error('액션 에러:', error.message);

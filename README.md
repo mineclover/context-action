@@ -95,7 +95,7 @@ pnpm clean
    ```typescript
    function Counter() {
      const [count, setCount] = useState(0);
-     const action = useAction();
+     const dispatch = useAction();
 
      useActionHandler('increment', () => setCount(prev => prev + 1));
      useActionHandler('setCount', (value) => setCount(value));
@@ -103,8 +103,8 @@ pnpm clean
      return (
        <div>
          <p>Count: {count}</p>
-         <button onClick={() => action.dispatch('increment')}>+1</button>
-         <button onClick={() => action.dispatch('setCount', 10)}>Set to 10</button>
+         <button onClick={() => dispatch('increment')}>+1</button>
+         <button onClick={() => dispatch('setCount', 10)}>Set to 10</button>
        </div>
      );
    }
