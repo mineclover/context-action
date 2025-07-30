@@ -1,13 +1,13 @@
 {
-  "timestamp": "2025-07-30T07:14:36.485Z",
-  "totalSize": 40809,
+  "timestamp": "2025-07-30T07:44:20.218Z",
+  "totalSize": 40806,
   "totalSizeFormatted": "39.85 KB",
   "packages": {
     "core": {
       "version": "0.0.2",
-      "size": 24676,
-      "sizeFormatted": "24.1 KB",
-      "sizeKB": 24.1,
+      "size": 24673,
+      "sizeFormatted": "24.09 KB",
+      "sizeKB": 24.09,
       "files": {
         "index.cjs": {
           "size": 7829,
@@ -35,7 +35,7 @@
           "type": "Source Map"
         },
         "index.js": {
-          "size": 7806,
+          "size": 7803,
           "sizeFormatted": "7.62 KB",
           "type": "JavaScript"
         },
