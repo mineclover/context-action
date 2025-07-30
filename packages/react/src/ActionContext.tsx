@@ -14,7 +14,7 @@ export interface ActionContextType<T extends ActionPayloadMap = ActionPayloadMap
 export interface ActionContextReturn<T extends ActionPayloadMap = ActionPayloadMap> {
   Provider: React.FC<{ children: ReactNode }>;
   useActionContext: () => ActionContextType<T>;
-  useAction: () => { dispatch: ActionRegister<T>['dispatch'] };
+  useAction: () => ActionRegister<T>['dispatch'];
   useActionHandler: <K extends keyof T>(
     action: K,
     handler: ActionHandler<T[K]>,
@@ -45,12 +45,12 @@ export interface ActionContextReturn<T extends ActionPayloadMap = ActionPayloadM
  * 
  * function Counter() {
  *   const [count, setCount] = useState(0);
- *   const action = useAction();
+ *   const dispatch = useAction();
  *   
  *   useActionHandler('increment', () => setCount(prev => prev + 1));
  *   
  *   return (
- *     <button onClick={() => action.dispatch('increment')}>
+ *     <button onClick={() => dispatch('increment')}>
  *       Count: {count}
  *     </button>
  *   );
@@ -81,25 +81,21 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
   };
 
   // dispatch 함수 반환 hook
-  const useAction = () => {
+  const useAction = (): ActionRegister<T>['dispatch'] => {
     const context = useContext(ActionContext);
     
     if (!context || !context.actionRegisterRef.current) {
       // Provider 외부에서 사용되거나 actionRegister가 없는 경우
-      return {
-        dispatch: (...args: any[]) => {
-          throw new Error(
-            `useAction dispatch called outside of Provider context. ` +
-            `Action: ${args[0]}, Payload: ${JSON.stringify(args[1] || 'undefined')}. ` +
-            `Make sure your component is wrapped with the ActionContext Provider.`
-          );
-        }
-      };
+      return (...args: any[]) => {
+        throw new Error(
+          `useAction dispatch called outside of Provider context. ` +
+          `Action: ${args[0]}, Payload: ${JSON.stringify(args[1] || 'undefined')}. ` +
+          `Make sure your component is wrapped with the ActionContext Provider.`
+        );
+      } 
     }
     
-    return {
-      dispatch: context.actionRegisterRef.current.dispatch.bind(context.actionRegisterRef.current)
-    };
+    return context.actionRegisterRef.current.dispatch.bind(context.actionRegisterRef.current);
   };
 
   // Action Handler 등록 hook

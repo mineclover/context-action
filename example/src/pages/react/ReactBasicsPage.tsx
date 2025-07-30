@@ -19,7 +19,7 @@ const { Provider, useAction, useActionHandler } =
 
 function Counter() {
   const [count, setCount] = useState(0);
-  const action = useAction();
+  const dispatch = useAction();
 
   // 액션 핸들러 등록
   useActionHandler(
@@ -70,7 +70,7 @@ function Counter() {
       <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
         <button
           type="button"
-          onClick={() => action.dispatch('increment')}
+          onClick={() => dispatch('increment')}
           style={{
             padding: '8px 16px',
             backgroundColor: '#28a745',
@@ -84,7 +84,7 @@ function Counter() {
 
         <button
           type="button"
-          onClick={() => action.dispatch('decrement')}
+          onClick={() => dispatch('decrement')}
           style={{
             padding: '8px 16px',
             backgroundColor: '#dc3545',
@@ -98,7 +98,7 @@ function Counter() {
 
         <button
           type="button"
-          onClick={() => action.dispatch('setCount', 10)}
+          onClick={() => dispatch('setCount', 10)}
           style={{
             padding: '8px 16px',
             backgroundColor: '#007bff',
@@ -112,7 +112,7 @@ function Counter() {
 
         <button
           type="button"
-          onClick={() => action.dispatch('reset')}
+          onClick={() => dispatch('reset')}
           style={{
             padding: '8px 16px',
             backgroundColor: '#6c757d',
@@ -216,11 +216,11 @@ function Logger() {
 
 function MessageSender() {
   const [message, setMessage] = useState('');
-  const action = useAction();
+  const dispatch = useAction();
 
   const handleSend = () => {
     if (message.trim()) {
-      action.dispatch('updateMessage', message);
+      dispatch('updateMessage', message);
       setMessage('');
     }
   };
