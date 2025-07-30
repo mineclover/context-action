@@ -18,7 +18,7 @@ const { Provider, useAction, useActionHandler } =
 
 function Counter() {
   const [count, setCount] = useState(0);
-  const action = useAction();
+  const dispatch = useAction();
 
   // 액션 핸들러 등록
   useActionHandler(
@@ -60,16 +60,16 @@ function Counter() {
   return (
     <div style={{ padding: '20px', border: '1px solid #ccc', margin: '10px' }}>
       <h3>Counter: {count}</h3>
-      <button type="button" onClick={() => action.dispatch('increment')}>
+      <button type="button" onClick={() => dispatch('increment')}>
         +1
       </button>
-      <button type="button" onClick={() => action.dispatch('decrement')}>
+      <button type="button" onClick={() => dispatch('decrement')}>
         -1
       </button>
-      <button type="button" onClick={() => action.dispatch('setCount', 10)}>
+      <button type="button" onClick={() => dispatch('setCount', 10)}>
         Set to 10
       </button>
-      <button type="button" onClick={() => action.dispatch('reset')}>
+      <button type="button" onClick={() => dispatch('reset')}>
         Reset
       </button>
     </div>
