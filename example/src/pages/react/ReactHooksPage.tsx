@@ -138,9 +138,9 @@ function useCounterActions() {
   const dispatch = useAction();
 
   return {
-    handleIncrement: useCallback(() => dispatch('increment'), [dispatch]),
-    handleDecrement: useCallback(() => dispatch('decrement'), [dispatch]),
-    handleReset: useCallback(() => dispatch('reset'), [dispatch]),
+    handleIncrement: () => dispatch('increment'),
+    handleDecrement: () => dispatch('decrement'),
+    handleReset: () => dispatch('reset'),
   };
 }
 
@@ -170,8 +170,8 @@ function useConditionalActions() {
   const dispatch = useAction();
 
   return {
-    toggleEnabled: useCallback(() => dispatch('toggleEnabled'), [dispatch]),
-    sendLogMessage: useCallback((message: string) => dispatch('logMessage', message), [dispatch]),
+    toggleEnabled: () => dispatch('toggleEnabled'),
+    sendLogMessage: (message: string) => dispatch('logMessage', message),
   };
 }
 
@@ -198,7 +198,7 @@ function useDynamicActions() {
   const dispatch = useAction();
 
   return {
-    sendMessage: useCallback((message: string) => dispatch('logMessage', message), [dispatch]),
+    sendMessage: (message: string) => dispatch('logMessage', message),
   };
 }
 

@@ -17,6 +17,8 @@ interface ReactActionMap extends ActionPayloadMap {
 const { Provider, useAction, useActionHandler } =
   createActionContext<ReactActionMap>();
 
+
+
 // === 스타일 객체 (컴포넌트 외부) ===
 const styles = {
   container: {
@@ -101,7 +103,6 @@ const styles = {
   },
 } as const;
 
-const priority1 ={ priority: 1 };
 
 
 // === 커스텀 훅 ===
@@ -125,10 +126,10 @@ function useCounter() {
   }, []);
 
   // 액션 핸들러 등록
-  useActionHandler('increment', incrementHandler, priority1);
-  useActionHandler('decrement', decrementHandler, priority1);
-  useActionHandler('setCount', setCountHandler, priority1);
-  useActionHandler('reset', resetHandler, priority1);
+  useActionHandler('increment', incrementHandler, { priority: 1 });
+  useActionHandler('decrement', decrementHandler, { priority: 1 });
+  useActionHandler('setCount', setCountHandler, { priority: 1 });
+  useActionHandler('reset', resetHandler, { priority: 1 });
 
   return { count };
 }
@@ -192,10 +193,10 @@ function useCounterActions() {
   const dispatch = useAction();
 
   return {
-    increment: useCallback(() => dispatch('increment'), [dispatch]),
-    decrement: useCallback(() => dispatch('decrement'), [dispatch]),
-    setCount: useCallback((value: number) => dispatch('setCount', value), [dispatch]),
-    reset: useCallback(() => dispatch('reset'), [dispatch]),
+    increment: () => dispatch('increment'),
+    decrement: () => dispatch('decrement'),
+    setCount: (value: number) => dispatch('setCount', value),
+    reset: () => dispatch('reset'),
   };
 }
 
@@ -203,7 +204,7 @@ function useMessageActions() {
   const dispatch = useAction();
 
   return {
-    sendMessage: useCallback((message: string) => dispatch('updateMessage', message), [dispatch]),
+    sendMessage: (message: string) => dispatch('updateMessage', message),
   };
 }
 

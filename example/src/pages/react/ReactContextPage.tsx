@@ -212,10 +212,10 @@ function useGlobalActions() {
   const globalDispatch = useGlobalAction();
 
   return {
-    incrementGlobal: useCallback(() => globalDispatch('globalIncrement'), [globalDispatch]),
-    setGlobalMessage: useCallback((message: string) => globalDispatch('setGlobalMessage', message), [globalDispatch]),
-    broadcastMessage: useCallback((message: string) => globalDispatch('broadcastMessage', message), [globalDispatch]),
-    resetGlobal: useCallback(() => globalDispatch('globalReset'), [globalDispatch]),
+    incrementGlobal: () => globalDispatch('globalIncrement'),
+    setGlobalMessage: (message: string) => globalDispatch('setGlobalMessage', message),
+    broadcastMessage: (message: string) => globalDispatch('broadcastMessage', message),
+    resetGlobal: () => globalDispatch('globalReset'),
   };
 }
 
@@ -264,11 +264,11 @@ function useLocalActions() {
   const localDispatch = useLocalAction();
 
   return {
-    incrementLocal: useCallback(() => localDispatch('localIncrement'), [localDispatch]),
-    decrementLocal: useCallback(() => localDispatch('localDecrement'), [localDispatch]),
-    resetLocal: useCallback(() => localDispatch('localReset'), [localDispatch]),
-    updateLocalData: useCallback((id: string, value: string) => 
-      localDispatch('updateLocalData', { id, value }), [localDispatch]),
+    incrementLocal: () => localDispatch('localIncrement'),
+    decrementLocal: () => localDispatch('localDecrement'),
+    resetLocal: () => localDispatch('localReset'),
+    updateLocalData: (id: string, value: string) => 
+      localDispatch('updateLocalData', { id, value }),
   };
 }
 

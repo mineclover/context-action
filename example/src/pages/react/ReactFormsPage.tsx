@@ -296,16 +296,16 @@ function useFormActions() {
   const dispatch = useAction();
 
   return {
-    updateField: useCallback((field: string, value: string) => {
+    updateField: (field: string, value: string) => {
       dispatch('updateField', { field, value });
       dispatch('validateField', { field, value });
-    }, [dispatch]),
-    submitForm: useCallback((formData: Record<string, string>) => 
-      dispatch('submitForm', { formData }), [dispatch]),
-    resetForm: useCallback(() => dispatch('resetForm'), [dispatch]),
-    setFieldError: useCallback((field: string, error: string | null) => 
-      dispatch('setFieldError', { field, error }), [dispatch]),
-    clearAllErrors: useCallback(() => dispatch('clearAllErrors'), [dispatch]),
+    },
+    submitForm: (formData: Record<string, string>) => 
+      dispatch('submitForm', { formData }),
+    resetForm: () => dispatch('resetForm'),
+    setFieldError: (field: string, error: string | null) => 
+      dispatch('setFieldError', { field, error }),
+    clearAllErrors: () => dispatch('clearAllErrors'),
   };
 }
 
