@@ -22,6 +22,8 @@ export default defineConfig({
               text: 'Guide',
               items: [
                 { text: 'Getting Started', link: '/guide/getting-started' },
+                { text: 'Action Pipeline', link: '/guide/action-pipeline' },
+                { text: 'Handler Configuration', link: '/guide/handler-configuration' },
                 { text: 'Advanced Usage', link: '/guide/advanced' }
               ]
             }
@@ -63,6 +65,8 @@ export default defineConfig({
               text: '가이드',
               items: [
                 { text: '시작하기', link: '/ko/guide/getting-started' },
+                { text: '액션 파이프라인', link: '/ko/guide/action-pipeline' },
+                { text: '핸들러 설정', link: '/ko/guide/handler-configuration' },
                 { text: '고급 사용법', link: '/ko/guide/advanced' }
               ]
             }
@@ -127,8 +131,6 @@ export default defineConfig({
   ignoreDeadLinks: [
     // API generated 링크들
     /\/api\/generated\//,
-    /\/guide\/action-pipeline/,
-    /\/guide\/handler-configuration/,
     // 생성될 예정인 링크들
     /\.\.\//,
   ],
