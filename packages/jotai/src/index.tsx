@@ -2,7 +2,7 @@ import { atom, PrimitiveAtom } from 'jotai'
 import React, { createContext, ReactNode, useContext, useMemo, useRef } from 'react'
 
 import { useAtom, useAtomValue, useSetAtom } from 'jotai/react'
-import { Logger, LogLevel, ConsoleLogger, OtelConsoleLogger, OtelContext, getLogLevelFromEnv } from '@context-action/core'
+import { Logger, LogLevel, ConsoleLogger, getLogLevelFromEnv } from '@context-action/core'
 
 type AtomType<T> = PrimitiveAtom<T>
 
@@ -19,36 +19,17 @@ export interface AtomContextConfig {
   logger?: Logger
   /** Log level for the logger. Defaults to ERROR if not provided */
   logLevel?: LogLevel
-  /** OpenTelemetry context for tracing */
-  otelContext?: OtelContext
-  /** Whether to use OTEL-aware logger. Defaults to false */
-  useOtel?: boolean
 }
 
 /**
  * Jotai atom을 Context로 공유할 수 있는 헬퍼 함수
  * @param initialValue atom의 초기값
- * @param config 로거 설정 (선택사항)
  * @returns Provider, hooks를 포함한 객체
  */
-export function createAtomContext<T>(initialValue: T, config?: AtomContextConfig) {
-  // 로거 설정
+export function createAtomContext<T>(initialValue: T) {
+  // 기본 로거 설정
   const envLogLevel = getLogLevelFromEnv()
-  const configLogLevel = config?.logLevel ?? envLogLevel
-  
-  let logger: Logger
-  if (config?.logger) {
-    logger = config.logger
-  } else if (config?.useOtel) {
-    logger = new OtelConsoleLogger(configLogLevel)
-  } else {
-    logger = new ConsoleLogger(configLogLevel)
-  }
-  
-  // OTEL 컨텍스트 설정
-  if (config?.otelContext && logger instanceof OtelConsoleLogger) {
-    logger.setContext(config.otelContext)
-  }
+  const logger = new ConsoleLogger(envLogLevel)
 
   const AtomContext = createContext<AtomContextType<T> | null>(null)
 
@@ -58,8 +39,7 @@ export function createAtomContext<T>(initialValue: T, config?: AtomContextConfig
     
     logger.debug('AtomContext Provider initialized', { 
       initialValue,
-      logLevel: configLogLevel,
-      useOtel: config?.useOtel ?? false
+      logLevel: envLogLevel
     })
     
     return (
@@ -139,6 +119,3 @@ export function createAtomContext<T>(initialValue: T, config?: AtomContextConfig
   }
 }
 
-// 로거 관련 타입들 export
-export type { Logger, LogLevel, OtelContext } from '@context-action/core'
-export { ConsoleLogger, OtelConsoleLogger, getLogLevelFromEnv } from '@context-action/core'

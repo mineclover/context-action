@@ -2,6 +2,7 @@ import {
   type ActionPayloadMap,
   createActionContext,
 } from '@context-action/react';
+import { LogLevel } from '@context-action/core';
 import { useCallback, useState } from 'react';
 
 // === 타입 정의 ===
@@ -13,9 +14,11 @@ interface ReactActionMap extends ActionPayloadMap {
   updateMessage: string;
 }
 
-// === 컨텍스트 생성 ===
+// === 컨텍스트 생성 - TRACE 레벨로 설정 ===
 const { Provider, useAction, useActionHandler } =
-  createActionContext<ReactActionMap>();
+  createActionContext<ReactActionMap>({
+    logLevel: LogLevel.TRACE
+  });
 
 // === 스타일 객체 (컴포넌트 외부) ===
 const styles = {
@@ -134,6 +137,7 @@ function useLogger() {
   const [logs, setLogs] = useState<string[]>([]);
 
   const addLog = useCallback((message: string) => {
+    console.log('[TRACE] Logger: Adding log entry:', message);
     setLogs((prev) => [
       ...prev,
       `${new Date().toLocaleTimeString()}: ${message}`,
@@ -141,27 +145,42 @@ function useLogger() {
   }, []);
 
   const incrementLogHandler = useCallback(() => {
+    console.log('[TRACE] Logger: Increment action detected with detailed tracing');
+    console.log('[TRACE] Logger: Action timestamp:', new Date().toISOString());
+    console.log('[TRACE] Logger: Action type: increment');
     addLog('Increment action detected');
   }, [addLog]);
 
   const decrementLogHandler = useCallback(() => {
+    console.log('[TRACE] Logger: Decrement action detected with detailed tracing');
+    console.log('[TRACE] Logger: Action timestamp:', new Date().toISOString());
+    console.log('[TRACE] Logger: Action type: decrement');
     addLog('Decrement action detected');
   }, [addLog]);
 
   const setCountLogHandler = useCallback(
     (payload: number) => {
+      console.log('[TRACE] Logger: SetCount action detected with payload:', payload);
+      console.log('[TRACE] Logger: Action timestamp:', new Date().toISOString());
+      console.log('[TRACE] Logger: Action type: setCount');
       addLog(`SetCount action detected: ${payload}`);
     },
     [addLog]
   );
 
   const resetLogHandler = useCallback(() => {
+    console.log('[TRACE] Logger: Reset action detected with detailed tracing');
+    console.log('[TRACE] Logger: Action timestamp:', new Date().toISOString());
+    console.log('[TRACE] Logger: Action type: reset');
     addLog('Reset action detected');
     setLogs([]);
   }, [addLog]);
 
   const updateMessageHandler = useCallback(
     (message: string) => {
+      console.log('[TRACE] Logger: UpdateMessage action detected with message:', message);
+      console.log('[TRACE] Logger: Action timestamp:', new Date().toISOString());
+      console.log('[TRACE] Logger: Action type: updateMessage');
       addLog(`Custom message: ${message}`);
     },
     [addLog]
@@ -269,7 +288,15 @@ function CounterView({
 function LoggerView({ logs }: { logs: string[] }) {
   return (
     <div style={styles.container}>
-      <h3>Logger Component</h3>
+      <h3>Logger Component (TRACE level)</h3>
+      <p>TRACE 레벨에서는 다음 정보가 로깅됩니다:</p>
+      <ul style={{ fontSize: '12px', marginBottom: '10px' }}>
+        <li>액션 디스패치 시작/완료</li>
+        <li>핸들러 실행 시작/완료</li>
+        <li>타임스탬프 정보</li>
+        <li>페이로드 정보</li>
+        <li>성능 메트릭</li>
+      </ul>
       <div style={styles.logContainer}>
         {logs.length === 0 ? (
           <div style={styles.emptyLog}>No logs yet...</div>
@@ -372,6 +399,8 @@ function MessageSender() {
 }
 
 function ReactBasicsContent() {
+  console.log('[TRACE] ReactBasicsContent component mounted with TRACE level logging');
+  
   return (
     <div>
       <h1>React Integration - Basics</h1>
@@ -379,6 +408,7 @@ function ReactBasicsContent() {
         React 통합의 기본적인 사용법을 보여줍니다. createActionContext를 사용해
         컨텍스트를 생성하고, useAction과 useActionHandler 훅을 활용합니다.
       </p>
+      <p><strong>TRACE 레벨 로깅이 활성화되어 있습니다.</strong></p>
 
       <div style={styles.grid}>
         <Counter />
@@ -390,15 +420,18 @@ function ReactBasicsContent() {
       <div style={styles.codeExample}>
         <h3>Code Example</h3>
         <pre style={styles.pre}>
-          {`// 1. 액션 컨텍스트 생성
+          {`// 1. 액션 컨텍스트 생성 (TRACE 레벨)
 const { Provider, useAction, useActionHandler } = 
-  createActionContext<ActionMap>();
+  createActionContext<ActionMap>({
+    logLevel: LogLevel.TRACE
+  });
 
 // 2. 컴포넌트에서 액션 핸들러 등록
 function MyComponent() {
   const [count, setCount] = useState(0);
   
   useActionHandler('increment', () => {
+    console.log('[TRACE] Increment handler executed');
     setCount(prev => prev + 1);
   }, { priority: 1 });
   
@@ -428,6 +461,8 @@ function AnotherComponent() {
 }
 
 export function ReactBasicsPage() {
+  console.log('[TRACE] ReactBasicsPage component mounted with TRACE level logging');
+  
   return (
     <Provider>
       <ReactBasicsContent />
