@@ -2,9 +2,23 @@ name: Deploy Documentation
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
+    paths:
+      - 'docs/**'
+      - 'packages/*/src/**'
+      - '.github/workflows/docs.yml'
+      - 'typedoc.json'
+      - 'package.json'
+      - 'docs/.vitepress/config.ts'
   pull_request:
-    branches: [main]
+    branches: [ main ]
+    paths:
+      - 'docs/**'
+      - 'packages/*/src/**'
+      - '.github/workflows/docs.yml'
+      - 'typedoc.json'
+      - 'package.json'
+      - 'docs/.vitepress/config.ts'
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
@@ -36,7 +50,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 8
           run_install: false
 
       - name: Get pnpm store directory
@@ -89,10 +103,27 @@ jobs:
       - name: Build documentation
         run: pnpm docs:build
 
+      - name: Check built documentation
+        run: |
+          echo "📁 Documentation structure:"
+          ls -la docs/.vitepress/dist/ || echo "Build directory not found"
+          if [ -f "docs/.vitepress/dist/index.html" ]; then
+            echo "✅ Main index.html found"
+          else
+            echo "❌ Main index.html not found"
+            exit 1
+          fi
+          if [ -f "docs/.vitepress/dist/ko/index.html" ]; then
+            echo "✅ Korean index.html found"
+          else
+            echo "❌ Korean index.html not found"
+            exit 1
+          fi
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist-docs
+          path: docs/.vitepress/dist
 
   # Deployment job
   deploy:

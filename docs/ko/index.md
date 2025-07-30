@@ -37,7 +37,7 @@ features:
     details: 최적의 성능을 위한 제로 의존성의 최소 번들 크기
 ---
 
-## 간단한 예제
+## 빠른 예제
 
 ```typescript
 import { createActionContext } from '@context-action/react';
