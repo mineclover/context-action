@@ -87,7 +87,7 @@ export default defineConfig({
 
   // 전역 테마 설정
   themeConfig: {
-    logo: '/logo.svg',
+    // logo: '/logo.svg', // 로고 비활성화
     
     // 사이드바 설정
     sidebarMenuLabel: 'Menu',
