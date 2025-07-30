@@ -1,95 +1,85 @@
 import { defineConfig } from 'vitepress'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
+// 모듈 imports
+import { navRoot, navKo, navEn } from './config/nav'
+import { 
+  sidebarGuideKo, 
+  sidebarGuideEn,
+  sidebarApiSpecKo,
+  sidebarApiSpecEn,
+  sidebarReferenceKo,
+  sidebarReferenceEn,
+  sidebarPackagesKo,
+  sidebarPackagesEn,
+  sidebarExamplesKo,
+  sidebarExamplesEn,
+  sidebarLlmsKo,
+  sidebarLlmsEn
+} from './config/sidebar'
+
+// 패키지 정보 로드
+const packageJson = JSON.parse(
+  readFileSync(resolve(__dirname, '../../package.json'), 'utf-8')
+)
 
 export default defineConfig({
   title: 'Context Action',
   description: 'Type-safe action pipeline management for React',
   base: '/context-action/',
   
-  // 다국어 설정
+  // Source Directory
+  srcDir: '.',
+  
+  // 죽은 링크 무시
+  ignoreDeadLinks: true,
+  
+  // Markdown 설정
+  markdown: {
+    theme: {
+      light: 'github-light',
+      dark: 'github-dark'
+    },
+    lineNumbers: true
+  },
+  
+  // 다국어 설정 - 한국어, 영어 독립 경로
   locales: {
     root: {
-      label: 'English',
-      lang: 'en',
+      label: 'Languages',
+      lang: 'en', // 기본 fallback
       themeConfig: {
-        nav: [
-          { text: 'Guide', link: '/guide/getting-started' },
-          { text: 'API Reference', link: '/api/' },
-          { text: 'Examples', link: '/examples/' }
-        ],
-        sidebar: {
-          '/guide/': [
-            {
-              text: 'Guide',
-              items: [
-                { text: 'Getting Started', link: '/guide/getting-started' },
-                { text: 'Action Pipeline', link: '/guide/action-pipeline' },
-                { text: 'Handler Configuration', link: '/guide/handler-configuration' },
-                { text: 'Advanced Usage', link: '/guide/advanced' }
-              ]
-            }
-          ],
-          '/api/': [
-            {
-              text: 'API Reference',
-              items: [
-                { text: 'Overview', link: '/api/' },
-                { text: 'Core', link: '/api/core/' },
-                { text: 'React', link: '/api/react/' },
-                { text: 'Jotai', link: '/api/jotai/' }
-              ]
-            }
-          ],
-          '/examples/': [
-            {
-              text: 'Examples',
-              items: [
-                { text: 'Code Examples', link: '/examples/' }
-              ]
-            }
-          ]
-        }
+        nav: navRoot()
       }
     },
     ko: {
       label: '한국어',
       lang: 'ko',
       themeConfig: {
-        nav: [
-          { text: '가이드', link: '/ko/guide/getting-started' },
-          { text: 'API 레퍼런스', link: '/ko/api/' },
-          { text: '예제', link: '/ko/examples/' }
-        ],
+        nav: navKo(),
         sidebar: {
-          '/ko/guide/': [
-            {
-              text: '가이드',
-              items: [
-                { text: '시작하기', link: '/ko/guide/getting-started' },
-                { text: '액션 파이프라인', link: '/ko/guide/action-pipeline' },
-                { text: '핸들러 설정', link: '/ko/guide/handler-configuration' },
-                { text: '고급 사용법', link: '/ko/guide/advanced' }
-              ]
-            }
-          ],
-          '/ko/api/': [
-            {
-              text: 'API 레퍼런스',
-              items: [
-                { text: '개요', link: '/ko/api/' },
-                { text: 'Core', link: '/ko/api/core/' },
-                { text: 'React', link: '/ko/api/react/' },
-                { text: 'Jotai', link: '/ko/api/jotai/' }
-              ]
-            }
-          ],
-          '/ko/examples/': [
-            {
-              text: '예제',
-              items: [
-                { text: '코드 예제', link: '/ko/examples/' }
-              ]
-            }
-          ]
+          '/ko/guide/': sidebarGuideKo(),
+          '/ko/api-spec/': sidebarApiSpecKo(),
+          '/ko/api/': sidebarReferenceKo(),
+          '/ko/packages/': sidebarPackagesKo(),
+          '/ko/examples/': sidebarExamplesKo(),
+          '/ko/llms/': sidebarLlmsKo()
+        }
+      }
+    },
+    en: {
+      label: 'English',
+      lang: 'en',
+      themeConfig: {
+        nav: navEn(),
+        sidebar: {
+          '/en/guide/': sidebarGuideEn(),
+          '/en/api-spec/': sidebarApiSpecEn(),
+          '/en/api/': sidebarReferenceEn(),
+          '/en/packages/': sidebarPackagesEn(),
+          '/en/examples/': sidebarExamplesEn(),
+          '/en/llms/': sidebarLlmsEn()
         }
       }
     }
@@ -98,6 +88,13 @@ export default defineConfig({
   // 전역 테마 설정
   themeConfig: {
     logo: '/logo.svg',
+    
+    // 사이드바 설정
+    sidebarMenuLabel: 'Menu',
+    returnToTopLabel: 'Return to top',
+    outline: {
+      label: 'On this page'
+    },
     
     socialLinks: [
       { icon: 'github', link: 'https://github.com/mineclover/context-action' }
@@ -113,37 +110,16 @@ export default defineConfig({
       text: 'Edit this page on GitHub'
     },
 
+    lastUpdated: {
+      text: 'Updated at',
+      formatOptions: {
+        dateStyle: 'short',
+        timeStyle: 'medium'
+      }
+    },
+
     search: {
       provider: 'local'
     }
-  },
-
-  // Markdown 설정
-  markdown: {
-    theme: {
-      light: 'github-light',
-      dark: 'github-dark'
-    },
-    lineNumbers: true
-  },
-
-  // 죽은 링크 무시 (개발 중에는 일부 링크가 아직 생성되지 않을 수 있음)
-  ignoreDeadLinks: [
-    // API generated 링크들
-    /\/api\/generated\//,
-    // 생성될 예정인 링크들
-    /\.\.\//,
-  ],
-
-  // Head 설정
-  head: [
-    ['link', { rel: 'icon', href: '/favicon.ico' }],
-    ['meta', { name: 'theme-color', content: '#646cff' }],
-    ['meta', { property: 'og:type', content: 'website' }],
-    ['meta', { property: 'og:locale', content: 'en' }],
-    ['meta', { property: 'og:title', content: 'Context Action | Type-safe action pipeline management' }],
-    ['meta', { property: 'og:site_name', content: 'Context Action' }],
-    ['meta', { property: 'og:image', content: 'https://context-action.dev/og-image.png' }],
-    ['meta', { property: 'og:url', content: 'https://context-action.dev/' }]
-  ]
+  }
 })

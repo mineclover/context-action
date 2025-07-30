@@ -1,101 +1,72 @@
 ---
 layout: home
+title: Context Action
+titleTemplate: Language Selection
 
 hero:
-  name: "Context Action"
-  text: "Type-safe action pipeline management"
-  tagline: "Build powerful React applications with predictable action handling"
+  name: Context Action
+  text: Language Selection
+  tagline: Choose your preferred language / 원하는 언어를 선택하세요
   image:
     src: /logo.svg
     alt: Context Action
-  actions:
-    - theme: brand
-      text: Get Started
-      link: /guide/getting-started
-    - theme: alt
-      text: View on GitHub
-      link: https://github.com/mineclover/context-action
-
+  
 features:
-  - icon: 🔒
-    title: Type-safe
-    details: Full TypeScript support with strict type checking for actions and payloads
-  - icon: ⚡
-    title: Pipeline System
-    details: Chain multiple handlers with priority control and async support
-  - icon: 🎯
-    title: React Integration
-    details: Seamless React Context integration with hooks for easy state management
-  - icon: 🔄
-    title: Async Support
-    details: Handle both synchronous and asynchronous operations with built-in error handling
-  - icon: 🛡️
-    title: Error Handling
-    details: Built-in error handling and abort mechanisms for robust applications
-  - icon: 📦
-    title: Lightweight
-    details: Minimal bundle size with zero dependencies for optimal performance
+  - icon: 🇰🇷
+    title: 한국어
+    details: 한국어로 문서를 확인하세요
+    link: /ko/guide/getting-started
+    linkText: 한국어 문서 보기
+  - icon: 🇺🇸  
+    title: English
+    details: View documentation in English
+    link: /en/guide/getting-started
+    linkText: View English Documentation
 ---
 
-## Quick Example
-
-```typescript
-import { createActionContext } from '@context-action/react';
-
-// Define your action types
-interface AppActions {
-  increment: void;
-  setCount: number;
-  reset: void;
+<style>
+.VPFeature .link {
+  color: var(--vp-c-brand-1);
+  text-decoration: none;
+  font-weight: 600;
 }
 
-// Create action context
-const { Provider, useAction, useActionHandler } = createActionContext<AppActions>();
-
-function Counter() {
-  const [count, setCount] = useState(0);
-  const action = useAction();
-
-  // Register action handlers
-  useActionHandler('increment', () => setCount(prev => prev + 1));
-  useActionHandler('setCount', (value) => setCount(value));
-  useActionHandler('reset', () => setCount(0));
-
-  return (
-    <div>
-      <p>Count: {count}</p>
-      <button onClick={() => action.dispatch('increment')}>+1</button>
-      <button onClick={() => action.dispatch('setCount', 10)}>Set to 10</button>
-      <button onClick={() => action.dispatch('reset')}>Reset</button>
-    </div>
-  );
+.VPFeature .link:hover {
+  color: var(--vp-c-brand-2);
 }
-```
 
-## Installation
+.VPFeatures .VPFeature {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
 
-::: code-group
+.VPFeatures .VPFeature:hover {
+  transform: translateY(-2px);
+}
+</style>
 
-```bash [npm]
-npm install @context-action/core @context-action/react
-```
+<script setup>
+import { onMounted } from 'vue'
 
-```bash [pnpm]
-pnpm add @context-action/core @context-action/react
-```
-
-```bash [yarn]
-yarn add @context-action/core @context-action/react
-```
-
-:::
-
-## Why Context Action?
-
-- **🎯 Predictable**: Actions flow through a predictable pipeline with clear ordering
-- **🔧 Flexible**: Priority-based handler system adapts to your application needs  
-- **⚡ Performance**: Optimized for minimal overhead and maximum throughput
-- **🧪 Testable**: Clean separation of concerns makes testing straightforward
-- **📚 Developer-friendly**: Excellent TypeScript support and comprehensive documentation
-
-[Get Started →](/guide/getting-started)
+onMounted(() => {
+  // 자동 리다이렉트 옵션 (필요시 true로 변경)
+  const autoRedirect = false
+  
+  if (autoRedirect) {
+    const userLang = navigator.language || navigator.languages[0]
+    if (userLang.startsWith('ko')) {
+      window.location.href = '/context-action/ko/guide/getting-started'
+    } else {
+      window.location.href = '/context-action/en/guide/getting-started'
+    }
+  }
+  
+  // 언어 선택 클릭 이벤트 처리
+  document.querySelectorAll('.VPFeature').forEach((feature, index) => {
+    feature.addEventListener('click', () => {
+      const links = ['/context-action/ko/guide/getting-started', '/context-action/en/guide/getting-started']
+      window.location.href = links[index]
+    })
+  })
+})
+</script>
