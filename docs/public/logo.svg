@@ -1,0 +1,19 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="32" cy="32" r="30" fill="#3B82F6" stroke="#1D4ED8" stroke-width="2"/>
+  
+  <!-- Action Arrow -->
+  <path d="M20 32 L44 32 M38 26 L44 32 L38 38" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Context Dots -->
+  <circle cx="15" cy="20" r="2" fill="white" opacity="0.8"/>
+  <circle cx="49" cy="20" r="2" fill="white" opacity="0.8"/>
+  <circle cx="15" cy="44" r="2" fill="white" opacity="0.8"/>
+  <circle cx="49" cy="44" r="2" fill="white" opacity="0.8"/>
+  
+  <!-- Pipeline Lines -->
+  <line x1="17" y1="20" x2="21" y2="28" stroke="white" stroke-width="1.5" opacity="0.6"/>
+  <line x1="47" y1="20" x2="43" y2="28" stroke="white" stroke-width="1.5" opacity="0.6"/>
+  <line x1="17" y1="44" x2="21" y2="36" stroke="white" stroke-width="1.5" opacity="0.6"/>
+  <line x1="47" y1="44" x2="43" y2="36" stroke="white" stroke-width="1.5" opacity="0.6"/>
+</svg>
