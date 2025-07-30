@@ -9,11 +9,11 @@ const { useAction } = createActionContext<TestActionMap>();
 
 // Provider 외부에서 사용하는 컴포넌트
 function TestComponent() {
-  const action = useAction();
+  const dispatch = useAction();
   
   const handleClick = () => {
     try {
-      action.dispatch('test', 'Hello World');
+      dispatch('test', 'Hello World');
     } catch (error) {
       console.error(error.message);
     }

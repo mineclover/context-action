@@ -68,7 +68,7 @@ function App() {
 ```typescript
 function Counter() {
   const [count, setCount] = useState(0);
-  const action = useAction();
+  const dispatch = useAction();
 
   // 액션 핸들러 등록
   useActionHandler('increment', () => {
@@ -90,10 +90,10 @@ function Counter() {
   return (
     <div>
       <h1>카운터: {count}</h1>
-      <button onClick={() => action.dispatch('increment')}>증가</button>
-      <button onClick={() => action.dispatch('decrement')}>감소</button>
-      <button onClick={() => action.dispatch('setCount', 10)}>10으로 설정</button>
-      <button onClick={() => action.dispatch('reset')}>리셋</button>
+      <button onClick={() => dispatch('increment')}>증가</button>
+      <button onClick={() => dispatch('decrement')}>감소</button>
+      <button onClick={() => dispatch('setCount', 10)}>10으로 설정</button>
+      <button onClick={() => dispatch('reset')}>리셋</button>
     </div>
   );
 }
@@ -120,7 +120,7 @@ const { Provider, useAction, useActionHandler } = createActionContext<CounterAct
 
 function Counter() {
   const [count, setCount] = useState(0);
-  const action = useAction();
+  const dispatch = useAction();
 
   // 액션 핸들러 등록
   useActionHandler('increment', () => setCount(prev => prev + 1));
@@ -132,10 +132,10 @@ function Counter() {
     <div>
       <h1>카운터: {count}</h1>
       <div>
-        <button onClick={() => action.dispatch('increment')}>증가</button>
-        <button onClick={() => action.dispatch('decrement')}>감소</button>
-        <button onClick={() => action.dispatch('setCount', 10)}>10으로 설정</button>
-        <button onClick={() => action.dispatch('reset')}>리셋</button>
+        <button onClick={() => dispatch('increment')}>증가</button>
+        <button onClick={() => dispatch('decrement')}>감소</button>
+        <button onClick={() => dispatch('setCount', 10)}>10으로 설정</button>
+        <button onClick={() => dispatch('reset')}>리셋</button>
       </div>
     </div>
   );

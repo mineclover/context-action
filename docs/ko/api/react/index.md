@@ -56,14 +56,14 @@ function App() {
 
 ```typescript
 function MyComponent() {
-  const action = useAction();
+  const dispatch = useAction();
 
   const handleClick = () => {
-    action.dispatch('increment');
+    dispatch('increment');
   };
 
   const handleSetCount = (value: number) => {
-    action.dispatch('setCount', value);
+    dispatch('setCount', value);
   };
 
   return (
@@ -169,11 +169,11 @@ function Dashboard() {
 
   // 각각의 컨텍스트에서 액션 사용
   const handleLogin = () => {
-    userAction.dispatch('login', { credentials });
+    userdispatch('login', { credentials });
   };
 
   const handleShowModal = () => {
-    uiAction.dispatch('showModal', { modalType: 'settings' });
+    uidispatch('showModal', { modalType: 'settings' });
   };
 
   return (
@@ -205,13 +205,13 @@ function CounterState() {
 
 // UI만 담당하는 컴포넌트
 function CounterButtons() {
-  const action = useAction();
+  const dispatch = useAction();
 
   return (
     <div>
-      <button onClick={() => action.dispatch('increment')}>+</button>
-      <button onClick={() => action.dispatch('decrement')}>-</button>
-      <button onClick={() => action.dispatch('reset')}>리셋</button>
+      <button onClick={() => dispatch('increment')}>+</button>
+      <button onClick={() => dispatch('decrement')}>-</button>
+      <button onClick={() => dispatch('reset')}>리셋</button>
     </div>
   );
 }
@@ -241,7 +241,7 @@ function UserManager() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const action = useAction();
+  const dispatch = useAction();
 
   // 비동기 액션 핸들러
   useActionHandler('fetchUser', async ({ id }) => {
@@ -276,7 +276,7 @@ function UserManager() {
 
   const handleFetch = async (id: number) => {
     try {
-      await action.dispatch('fetchUser', { id });
+      await dispatch('fetchUser', { id });
     } catch (err) {
       // 이미 핸들러에서 처리되었지만, 추가 처리가 필요한 경우
       console.error('액션 디스패치 실패:', err);
@@ -368,7 +368,7 @@ function App() {
 
 ```typescript
 function ExpensiveComponent() {
-  const action = useAction();
+  const dispatch = useAction();
 
   // 비용이 큰 연산을 메모이제이션
   const expensiveHandler = useCallback(async (data) => {
@@ -400,7 +400,7 @@ describe('Counter Component', () => {
 
   function TestCounter() {
     const [count, setCount] = useState(0);
-    const action = useAction();
+    const dispatch = useAction();
 
     useActionHandler('increment', () => setCount(prev => prev + 1));
     useActionHandler('setCount', (value) => setCount(value));
@@ -408,8 +408,8 @@ describe('Counter Component', () => {
     return (
       <div>
         <span data-testid="count">{count}</span>
-        <button onClick={() => action.dispatch('increment')}>증가</button>
-        <button onClick={() => action.dispatch('setCount', 10)}>10으로 설정</button>
+        <button onClick={() => dispatch('increment')}>증가</button>
+        <button onClick={() => dispatch('setCount', 10)}>10으로 설정</button>
       </div>
     );
   }

@@ -95,7 +95,7 @@ pnpm clean
    ```typescript
    function Counter() {
      const [count, setCount] = useState(0);
-     const action = useAction();
+     const dispatch = useAction();
 
      useActionHandler('increment', () => setCount(prev => prev + 1));
      useActionHandler('setCount', (value) => setCount(value));
@@ -103,8 +103,8 @@ pnpm clean
      return (
        <div>
          <p>카운트: {count}</p>
-         <button onClick={() => action.dispatch('increment')}>+1</button>
-         <button onClick={() => action.dispatch('setCount', 10)}>10으로 설정</button>
+         <button onClick={() => dispatch('increment')}>+1</button>
+         <button onClick={() => dispatch('setCount', 10)}>10으로 설정</button>
        </div>
      );
    }
@@ -186,10 +186,10 @@ function NotificationManager() {
 
 // 4. 사용자 컴포넌트
 function UserProfile() {
-  const action = useAction();
+  const dispatch = useAction();
   
   const handleSave = () => {
-    action.dispatch('showNotification', { 
+    dispatch('showNotification', { 
       message: '저장되었습니다!', 
       type: 'success' 
     });

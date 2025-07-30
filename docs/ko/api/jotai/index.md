@@ -68,9 +68,9 @@ function Counter() {
   return (
     <div>
       <p>카운트: {count}</p>
-      <button onClick={() => action.dispatch('increment')}>증가</button>
-      <button onClick={() => action.dispatch('setCount', 10)}>10으로 설정</button>
-      <button onClick={() => action.dispatch('reset')}>리셋</button>
+      <button onClick={() => dispatch('increment')}>증가</button>
+      <button onClick={() => dispatch('setCount', 10)}>10으로 설정</button>
+      <button onClick={() => dispatch('reset')}>리셋</button>
     </div>
   );
 }
