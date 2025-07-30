@@ -21,7 +21,8 @@
   "references": [
     { "path": "./packages/core" },
     { "path": "./packages/react" },
-    { "path": "./packages/test-app" }
+    { "path": "./packages/jotai" },
+    { "path": "./example" }
   ],
   "files": []
 }
