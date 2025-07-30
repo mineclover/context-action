@@ -1,4 +1,4 @@
-import React, { createContext, ReactNode, useContext, useRef, useEffect, useId } from 'react';
+import React, { createContext, ReactNode, useContext, useRef, useEffect, useId, useMemo } from 'react';
 import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig } from '@context-action/core';
 
 /**
@@ -102,14 +102,31 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
       );
     }
 
-    if (!context.actionRegisterRef.current) {
+    /** strict mode */
+    if (!(context.actionRegisterRef.current instanceof ActionRegister)) {
       throw new Error(
         'ActionRegister is not initialized. ' +
         'Make sure the ActionContext Provider is properly set up.'
       );
     }
 
-    return context.actionRegisterRef.current.dispatch.bind(context.actionRegisterRef.current);
+    
+
+    const dispatch = useMemo(() => {
+      if (context.actionRegisterRef.current instanceof ActionRegister) {
+        return context.actionRegisterRef.current.dispatch.bind(context.actionRegisterRef.current);
+      }
+
+      return (...args: any[]) => {
+        console.log('args:', args);
+        throw new Error(
+          'ActionRegister is not initialized. ' +
+          'Make sure the ActionContext Provider is properly set up.'
+        );
+      }
+    }, [context.actionRegisterRef.current]);
+
+    return dispatch;
   };
 
   /**
