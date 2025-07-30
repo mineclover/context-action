@@ -2,6 +2,11 @@ import { createBrowserRouter } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { CoreAdvancedPage } from './pages/core/CoreAdvancedPage';
 
+// Index pages
+import { CoreIndexPage } from './pages/CoreIndexPage';
+import { JotaiIndexPage } from './pages/JotaiIndexPage';
+import { ReactIndexPage } from './pages/ReactIndexPage';
+
 // Core library pages
 import { CoreBasicsPage } from './pages/core/CoreBasicsPage';
 import { CorePerformancePage } from './pages/core/CorePerformancePage';
@@ -16,7 +21,9 @@ import { ReactContextPage } from './pages/react/ReactContextPage';
 import { ReactFormsPage } from './pages/react/ReactFormsPage';
 import { ReactHooksPage } from './pages/react/ReactHooksPage';
 
-export const router = createBrowserRouter([
+import type { RouteObject } from 'react-router-dom';
+
+export const router: ReturnType<typeof createBrowserRouter> = createBrowserRouter([
   {
     path: '/',
     element: <Layout />,
@@ -28,6 +35,7 @@ export const router = createBrowserRouter([
       // Core library routes
       {
         path: 'core',
+        element: <CoreIndexPage />,
         children: [
           {
             path: 'basics',
@@ -46,6 +54,7 @@ export const router = createBrowserRouter([
       // React library routes
       {
         path: 'react',
+        element: <ReactIndexPage />,
         children: [
           {
             path: 'basics',
@@ -68,6 +77,7 @@ export const router = createBrowserRouter([
       // Jotai library routes
       {
         path: 'jotai',
+        element: <JotaiIndexPage />,
         children: [
           {
             path: 'basics',

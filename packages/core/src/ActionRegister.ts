@@ -79,6 +79,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   }>>();
   
   private atomSetters = new Map<string, Function>();
+  private handlerCounter = 0;
 
   /**
    * Register a handler for an action in the pipeline
@@ -106,7 +107,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     }
     
     const pipeline = this.pipelines.get(action)!;
-    const handlerId = config.id || `handler_${Date.now()}_${Math.random()}`;
+    const handlerId = config.id || `handler_${++this.handlerCounter}`;
     
     // 중복 등록 방지
     if (pipeline.has(handlerId)) {
@@ -165,9 +166,10 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     
     let modifiedPayload = payload as T[K];
     const handlers = Array.from(pipeline.values());
+    let shouldContinue = true;
     
     for (const { handler, config } of handlers) {
-      let shouldContinue = true;
+      if (!shouldContinue) break;
       
       const controller: PipelineController<T[K]> = {
         next: () => { shouldContinue = true; },
@@ -186,8 +188,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         } else {
           handler(modifiedPayload, controller);
         }
-        
-        if (!shouldContinue) break;
       } catch (error) {
         console.error(`Error in pipeline handler:`, error);
         if (config.blocking) throw error;
