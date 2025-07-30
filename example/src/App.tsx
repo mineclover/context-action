@@ -1,6 +1,6 @@
-import React, { useCallback, useState } from 'react';
+import { type ActionPayloadMap, LogLevel } from '@context-action/core';
 import { createActionContext } from '@context-action/react';
-import { LogLevel, type ActionPayloadMap } from '@context-action/core';
+import React, { useCallback, useState } from 'react';
 
 // 액션 타입 정의
 interface AppActionMap extends ActionPayloadMap {
@@ -15,7 +15,7 @@ const priority1 = { priority: 1 };
 // 컨텍스트 생성 - TRACE 레벨로 설정
 const { Provider, useAction, useActionHandler } =
   createActionContext<AppActionMap>({
-    logLevel: LogLevel.TRACE
+    logLevel: LogLevel.TRACE,
   });
 
 function Counter() {
@@ -36,7 +36,10 @@ function Counter() {
   }, [count]);
 
   const setCountHandler = useCallback((payload: number) => {
-    console.log('[TRACE] Counter setCount handler started with payload:', payload);
+    console.log(
+      '[TRACE] Counter setCount handler started with payload:',
+      payload
+    );
     setCount(payload);
     console.log('[TRACE] Counter set to:', payload);
   }, []);
@@ -75,19 +78,26 @@ function Counter() {
 function Logger() {
   // Logger 핸들러들도 메모이제이션
   const logIncrementHandler = useCallback(() => {
-    console.log('[TRACE] Logger: Increment action detected with detailed tracing');
+    console.log(
+      '[TRACE] Logger: Increment action detected with detailed tracing'
+    );
     console.log('[TRACE] Logger: Action timestamp:', new Date().toISOString());
     console.log('[TRACE] Logger: Action type: increment');
   }, []);
 
   const logDecrementHandler = useCallback(() => {
-    console.log('[TRACE] Logger: Decrement action detected with detailed tracing');
+    console.log(
+      '[TRACE] Logger: Decrement action detected with detailed tracing'
+    );
     console.log('[TRACE] Logger: Action timestamp:', new Date().toISOString());
     console.log('[TRACE] Logger: Action type: decrement');
   }, []);
 
   const logSetCountHandler = useCallback((payload: number) => {
-    console.log('[TRACE] Logger: SetCount action detected with payload:', payload);
+    console.log(
+      '[TRACE] Logger: SetCount action detected with payload:',
+      payload
+    );
     console.log('[TRACE] Logger: Action timestamp:', new Date().toISOString());
     console.log('[TRACE] Logger: Action type: setCount');
   }, []);
@@ -121,12 +131,15 @@ function Logger() {
 
 function App() {
   console.log('[TRACE] App component mounted with TRACE level logging');
-  
+
   return (
     <Provider>
       <div style={{ padding: '20px' }}>
         <h1>Context Action Test App</h1>
-        <p>This app demonstrates the usage of @context-action/core library with TRACE level logging</p>
+        <p>
+          This app demonstrates the usage of @context-action/core library with
+          TRACE level logging
+        </p>
         <Counter />
         <Logger />
       </div>

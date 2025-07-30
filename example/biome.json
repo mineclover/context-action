@@ -8,10 +8,19 @@
         "noNonNullAssertion": "off"
       },
       "a11y": {
-        "recommended": true
+        "recommended": true,
+        "useButtonType": "warn",
+        "noLabelWithoutControl": "warn"
       },
       "correctness": {
         "useExhaustiveDependencies": "warn"
+      },
+      "suspicious": {
+        "noExplicitAny": "warn",
+        "noArrayIndexKey": "warn"
+      },
+      "complexity": {
+        "noExcessiveCognitiveComplexity": "off"
       }
     }
   },

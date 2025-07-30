@@ -1,4 +1,4 @@
-import type { RouteObject } from 'react-router-dom';
+
 import { createBrowserRouter } from 'react-router-dom';
 import { Layout } from './components/Layout';
 

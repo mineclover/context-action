@@ -1,6 +1,6 @@
 {
   "name": "@context-action/react",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "type": "module",
   "description": "React integration for @context-action/core - Context and hooks for type-safe action management",
   "main": "dist/index.cjs",
