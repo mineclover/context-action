@@ -14,7 +14,7 @@ export interface ActionContextType<T extends ActionPayloadMap = ActionPayloadMap
 export interface ActionContextReturn<T extends ActionPayloadMap = ActionPayloadMap> {
   Provider: React.FC<{ children: ReactNode }>;
   useActionContext: () => ActionContextType<T>;
-  useAction: () => ActionRegister<T>;
+  useAction: () => { dispatch: ActionRegister<T>['dispatch'] };
   useActionHandler: <K extends keyof T>(
     action: K,
     handler: ActionHandler<T[K]>,
@@ -80,10 +80,26 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
     return context;
   };
 
-  // ActionRegister 인스턴스 반환 hook
+  // dispatch 함수 반환 hook
   const useAction = () => {
-    const { actionRegisterRef } = useActionContext();
-    return actionRegisterRef.current!;
+    const context = useContext(ActionContext);
+    
+    if (!context || !context.actionRegisterRef.current) {
+      // Provider 외부에서 사용되거나 actionRegister가 없는 경우
+      return {
+        dispatch: (...args: any[]) => {
+          throw new Error(
+            `useAction dispatch called outside of Provider context. ` +
+            `Action: ${args[0]}, Payload: ${JSON.stringify(args[1] || 'undefined')}. ` +
+            `Make sure your component is wrapped with the ActionContext Provider.`
+          );
+        }
+      };
+    }
+    
+    return {
+      dispatch: context.actionRegisterRef.current.dispatch.bind(context.actionRegisterRef.current)
+    };
   };
 
   // Action Handler 등록 hook
@@ -92,10 +108,11 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
     handler: ActionHandler<T[K]>,
     config?: HandlerConfig
   ) => {
-    const actionRegister = useAction();
+    const { actionRegisterRef } = useActionContext();
     const componentId = useId();
     
     useEffect(() => {
+      const actionRegister = actionRegisterRef.current!;
       const unregister = actionRegister.register(
         action,
         handler,
@@ -103,7 +120,7 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
       );
       
       return unregister;
-    }, [action, handler, config, componentId, actionRegister]);
+    }, [action, handler, config, componentId, actionRegisterRef]);
   };
 
   return {
