@@ -1,8 +1,8 @@
+import { LogLevel } from '@context-action/core';
 import {
   type ActionPayloadMap,
   createActionContext,
 } from '@context-action/react';
-import { LogLevel } from '@context-action/core';
 import { useCallback, useState } from 'react';
 
 // === 타입 정의 ===
@@ -17,7 +17,7 @@ interface ReactActionMap extends ActionPayloadMap {
 // === 컨텍스트 생성 - TRACE 레벨로 설정 ===
 const { Provider, useAction, useActionHandler } =
   createActionContext<ReactActionMap>({
-    logLevel: LogLevel.TRACE
+    logLevel: LogLevel.TRACE,
   });
 
 // === 스타일 객체 (컴포넌트 외부) ===
@@ -145,14 +145,18 @@ function useLogger() {
   }, []);
 
   const incrementLogHandler = useCallback(() => {
-    console.log('[TRACE] Logger: Increment action detected with detailed tracing');
+    console.log(
+      '[TRACE] Logger: Increment action detected with detailed tracing'
+    );
     console.log('[TRACE] Logger: Action timestamp:', new Date().toISOString());
     console.log('[TRACE] Logger: Action type: increment');
     addLog('Increment action detected');
   }, [addLog]);
 
   const decrementLogHandler = useCallback(() => {
-    console.log('[TRACE] Logger: Decrement action detected with detailed tracing');
+    console.log(
+      '[TRACE] Logger: Decrement action detected with detailed tracing'
+    );
     console.log('[TRACE] Logger: Action timestamp:', new Date().toISOString());
     console.log('[TRACE] Logger: Action type: decrement');
     addLog('Decrement action detected');
@@ -160,8 +164,14 @@ function useLogger() {
 
   const setCountLogHandler = useCallback(
     (payload: number) => {
-      console.log('[TRACE] Logger: SetCount action detected with payload:', payload);
-      console.log('[TRACE] Logger: Action timestamp:', new Date().toISOString());
+      console.log(
+        '[TRACE] Logger: SetCount action detected with payload:',
+        payload
+      );
+      console.log(
+        '[TRACE] Logger: Action timestamp:',
+        new Date().toISOString()
+      );
       console.log('[TRACE] Logger: Action type: setCount');
       addLog(`SetCount action detected: ${payload}`);
     },
@@ -178,8 +188,14 @@ function useLogger() {
 
   const updateMessageHandler = useCallback(
     (message: string) => {
-      console.log('[TRACE] Logger: UpdateMessage action detected with message:', message);
-      console.log('[TRACE] Logger: Action timestamp:', new Date().toISOString());
+      console.log(
+        '[TRACE] Logger: UpdateMessage action detected with message:',
+        message
+      );
+      console.log(
+        '[TRACE] Logger: Action timestamp:',
+        new Date().toISOString()
+      );
       console.log('[TRACE] Logger: Action type: updateMessage');
       addLog(`Custom message: ${message}`);
     },
@@ -399,8 +415,10 @@ function MessageSender() {
 }
 
 function ReactBasicsContent() {
-  console.log('[TRACE] ReactBasicsContent component mounted with TRACE level logging');
-  
+  console.log(
+    '[TRACE] ReactBasicsContent component mounted with TRACE level logging'
+  );
+
   return (
     <div>
       <h1>React Integration - Basics</h1>
@@ -408,7 +426,9 @@ function ReactBasicsContent() {
         React 통합의 기본적인 사용법을 보여줍니다. createActionContext를 사용해
         컨텍스트를 생성하고, useAction과 useActionHandler 훅을 활용합니다.
       </p>
-      <p><strong>TRACE 레벨 로깅이 활성화되어 있습니다.</strong></p>
+      <p>
+        <strong>TRACE 레벨 로깅이 활성화되어 있습니다.</strong>
+      </p>
 
       <div style={styles.grid}>
         <Counter />
@@ -461,8 +481,10 @@ function AnotherComponent() {
 }
 
 export function ReactBasicsPage() {
-  console.log('[TRACE] ReactBasicsPage component mounted with TRACE level logging');
-  
+  console.log(
+    '[TRACE] ReactBasicsPage component mounted with TRACE level logging'
+  );
+
   return (
     <Provider>
       <ReactBasicsContent />
