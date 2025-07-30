@@ -110,7 +110,7 @@ export function getLogLevelFromEnv(): LogLevel {
       return parseLogLevel(envLevel);
     }
   }
-  return LogLevel.ERROR;
+  return LogLevel.TRACE;
 }
 
 /**
