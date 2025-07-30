@@ -2,26 +2,71 @@ import { atom, PrimitiveAtom } from 'jotai'
 import React, { createContext, ReactNode, useContext, useMemo, useRef } from 'react'
 
 import { useAtom, useAtomValue, useSetAtom } from 'jotai/react'
+import { Logger, LogLevel, ConsoleLogger, OtelConsoleLogger, OtelContext, getLogLevelFromEnv } from '@context-action/core'
 
 type AtomType<T> = PrimitiveAtom<T>
 
 interface AtomContextType<T> {
   atomRef: React.MutableRefObject<AtomType<T>>
+  logger: Logger
+}
+
+/**
+ * Configuration options for createAtomContext
+ */
+export interface AtomContextConfig {
+  /** Custom logger implementation. Defaults to ConsoleLogger */
+  logger?: Logger
+  /** Log level for the logger. Defaults to ERROR if not provided */
+  logLevel?: LogLevel
+  /** OpenTelemetry context for tracing */
+  otelContext?: OtelContext
+  /** Whether to use OTEL-aware logger. Defaults to false */
+  useOtel?: boolean
 }
 
 /**
  * Jotai atom을 Context로 공유할 수 있는 헬퍼 함수
  * @param initialValue atom의 초기값
+ * @param config 로거 설정 (선택사항)
  * @returns Provider, hooks를 포함한 객체
  */
-export function createAtomContext<T>(initialValue: T) {
+export function createAtomContext<T>(initialValue: T, config?: AtomContextConfig) {
+  // 로거 설정
+  const envLogLevel = getLogLevelFromEnv()
+  const configLogLevel = config?.logLevel ?? envLogLevel
+  
+  let logger: Logger
+  if (config?.logger) {
+    logger = config.logger
+  } else if (config?.useOtel) {
+    logger = new OtelConsoleLogger(configLogLevel)
+  } else {
+    logger = new ConsoleLogger(configLogLevel)
+  }
+  
+  // OTEL 컨텍스트 설정
+  if (config?.otelContext && logger instanceof OtelConsoleLogger) {
+    logger.setContext(config.otelContext)
+  }
 
   const AtomContext = createContext<AtomContextType<T> | null>(null)
 
   // Provider 컴포넌트
   const Provider = ({ children }: { children: ReactNode }) => {
     const atomRef = useRef(atom(initialValue)) as React.MutableRefObject<AtomType<T>>
-    return <AtomContext.Provider value={{ atomRef }}>{children}</AtomContext.Provider>
+    
+    logger.debug('AtomContext Provider initialized', { 
+      initialValue,
+      logLevel: configLogLevel,
+      useOtel: config?.useOtel ?? false
+    })
+    
+    return (
+      <AtomContext.Provider value={{ atomRef, logger }}>
+        {children}
+      </AtomContext.Provider>
+    )
   }
 
   // Context 접근 hook
@@ -35,30 +80,53 @@ export function createAtomContext<T>(initialValue: T) {
 
   // atom 값과 setter를 모두 반환하는 hook
   const useAtomState = () => {
-    const { atomRef } = useAtomContext()
-    return useAtom(atomRef.current)
+    const { atomRef, logger } = useAtomContext()
+    const [value, setValue] = useAtom(atomRef.current)
+    
+    logger.trace('useAtomState called', { 
+      atomValue: value,
+      hasSetter: !!setValue 
+    })
+    
+    return [value, setValue] as const
   }
 
   // atom 값만 반환하는 hook
   const useAtomReadOnly = () => {
-    const { atomRef } = useAtomContext()
-    return useAtomValue(atomRef.current)
+    const { atomRef, logger } = useAtomContext()
+    const value = useAtomValue(atomRef.current)
+    
+    logger.trace('useAtomReadOnly called', { atomValue: value })
+    
+    return value
   }
 
   const useAtomSelect = <R,>(callback: (item: T) => R) => {
-    const { atomRef } = useAtomContext()
+    const { atomRef, logger } = useAtomContext()
     const derivedAtom = useMemo(
       () => atom((get) => callback(get(atomRef.current))),
       [atomRef, callback]
     )
-    return useAtomValue(derivedAtom)
+    const value = useAtomValue(derivedAtom)
+    
+    logger.trace('useAtomSelect called', { 
+      originalValue: atomRef.current,
+      derivedValue: value 
+    })
+    
+    return value
   }
-
 
   // atom setter만 반환하는 hook
   const useAtomSetter = () => {
-    const { atomRef } = useAtomContext()
-    return useSetAtom(atomRef.current)
+    const { atomRef, logger } = useAtomContext()
+    const setValue = useSetAtom(atomRef.current)
+    
+    logger.trace('useAtomSetter called', { 
+      hasSetter: !!setValue 
+    })
+    
+    return setValue
   }
 
   return {
@@ -70,3 +138,7 @@ export function createAtomContext<T>(initialValue: T) {
     useAtomSetter,
   }
 }
+
+// 로거 관련 타입들 export
+export type { Logger, LogLevel, OtelContext } from '@context-action/core'
+export { ConsoleLogger, OtelConsoleLogger, getLogLevelFromEnv } from '@context-action/core'

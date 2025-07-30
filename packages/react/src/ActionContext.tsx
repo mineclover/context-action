@@ -1,11 +1,26 @@
 import React, { createContext, ReactNode, useContext, useRef, useEffect, useId, useMemo } from 'react';
-import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig } from '@context-action/core';
+import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig, Logger, LogLevel, ConsoleLogger, OtelConsoleLogger, OtelContext, getLogLevelFromEnv } from '@context-action/core';
+
+/**
+ * Configuration options for createActionContext
+ */
+export interface ActionContextConfig {
+  /** Custom logger implementation. Defaults to ConsoleLogger */
+  logger?: Logger
+  /** Log level for the logger. Defaults to ERROR if not provided */
+  logLevel?: LogLevel
+  /** OpenTelemetry context for tracing */
+  otelContext?: OtelContext
+  /** Whether to use OTEL-aware logger. Defaults to false */
+  useOtel?: boolean
+}
 
 /**
  * Context type for ActionRegister
  */
 export interface ActionContextType<T extends ActionPayloadMap = ActionPayloadMap> {
   actionRegisterRef: React.RefObject<ActionRegister<T>>;
+  logger: Logger;
 }
 
 /**
@@ -25,6 +40,7 @@ export interface ActionContextReturn<T extends ActionPayloadMap = ActionPayloadM
 /**
  * Create a React Context for sharing ActionRegister instance across components
  * @template T - The action payload map type
+ * @param config 로거 설정 (선택사항)
  * @returns Object containing Provider component and hooks for action management
  * @example
  * ```typescript
@@ -33,7 +49,10 @@ export interface ActionContextReturn<T extends ActionPayloadMap = ActionPayloadM
  *   setCount: number;
  * }
  * 
- * const { Provider, useAction, useActionHandler } = createActionContext<AppActions>();
+ * const { Provider, useAction, useActionHandler } = createActionContext<AppActions>({
+ *   logLevel: LogLevel.DEBUG,
+ *   useOtel: true
+ * });
  * 
  * function App() {
  *   return (
@@ -57,7 +76,7 @@ export interface ActionContextReturn<T extends ActionPayloadMap = ActionPayloadM
  * }
  * ```
  */
-export function createActionContext<T extends ActionPayloadMap = ActionPayloadMap>(): ActionContextReturn<T> {
+export function createActionContext<T extends ActionPayloadMap = ActionPayloadMap>(config?: ActionContextConfig): ActionContextReturn<T> {
 
   const ActionContext = createContext<ActionContextType<T> | null>(null);
 
@@ -66,9 +85,39 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
    * ActionRegister 인스턴스를 Context로 제공합니다
    */
   const Provider = ({ children }: { children: ReactNode }) => {
-    const actionRegisterRef = useRef(new ActionRegister<T>());
+    // 로거 설정
+    const envLogLevel = getLogLevelFromEnv()
+    const configLogLevel = config?.logLevel ?? envLogLevel
+    
+    let logger: Logger
+    if (config?.logger) {
+      logger = config.logger
+    } else if (config?.useOtel) {
+      logger = new OtelConsoleLogger(configLogLevel)
+    } else {
+      logger = new ConsoleLogger(configLogLevel)
+    }
+    
+    // OTEL 컨텍스트 설정
+    if (config?.otelContext && logger instanceof OtelConsoleLogger) {
+      logger.setContext(config.otelContext)
+    }
+    
+    const actionRegisterRef = useRef(new ActionRegister<T>({
+      logger,
+      logLevel: configLogLevel,
+      useOtel: config?.useOtel,
+      otelContext: config?.otelContext
+    }));
+    
+    logger.debug('ActionContext Provider initialized', { 
+      logLevel: configLogLevel,
+      useOtel: config?.useOtel ?? false,
+      hasOtelContext: !!config?.otelContext
+    })
+    
     return (
-      <ActionContext.Provider value={{ actionRegisterRef }}>
+      <ActionContext.Provider value={{ actionRegisterRef, logger }}>
         {children}
       </ActionContext.Provider>
     );
@@ -110,21 +159,25 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
       );
     }
 
-    
-
     const dispatch = useMemo(() => {
       if (context.actionRegisterRef.current instanceof ActionRegister) {
-        return context.actionRegisterRef.current.dispatch.bind(context.actionRegisterRef.current);
+        const boundDispatch = context.actionRegisterRef.current.dispatch.bind(context.actionRegisterRef.current);
+        
+        // 로거를 포함한 dispatch 래퍼
+        return ((action: any, payload?: any) => {
+          context.logger.trace('useAction dispatch called', { action, payload });
+          return boundDispatch(action, payload);
+        }) as ActionRegister<T>['dispatch'];
       }
 
       return (...args: any[]) => {
-        console.log('args:', args);
+        context.logger.error('ActionRegister is not initialized', { args });
         throw new Error(
           'ActionRegister is not initialized. ' +
           'Make sure the ActionContext Provider is properly set up.'
         );
       }
-    }, [context.actionRegisterRef.current]);
+    }, [context.actionRegisterRef.current, context.logger]);
 
     return dispatch;
   };
@@ -142,19 +195,25 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
     handler: ActionHandler<T[K]>,
     config?: HandlerConfig
   ) => {
-    const { actionRegisterRef } = useActionContext();
+    const { actionRegisterRef, logger } = useActionContext();
     const componentId = useId();
 
     useEffect(() => {
       if (!actionRegisterRef.current) {
+        logger.error('ActionRegister is not initialized in useActionHandler');
         throw new Error(
           'ActionRegister is not initialized. ' +
           'Make sure the ActionContext Provider is properly set up.'
         );
       }
 
-      console.log('useActionHandler:',action, handler, config);
-      console.count(action as string);
+      logger.debug('useActionHandler registering', {
+        action: String(action),
+        componentId,
+        priority: config?.priority ?? 0,
+        blocking: config?.blocking ?? false
+      });
+      
       const actionRegister = actionRegisterRef.current;
       const unregister = actionRegister.register(
         action,
@@ -162,8 +221,14 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
         { ...config, id: config?.id || componentId }
       );
       
-      return unregister;
-    }, [action, handler, config?.id , config?.priority ,config?.blocking, componentId, actionRegisterRef.current]);
+      return () => {
+        logger.debug('useActionHandler unregistering', {
+          action: String(action),
+          componentId
+        });
+        unregister();
+      };
+    }, [action, handler, config?.id, config?.priority, config?.blocking, componentId, actionRegisterRef.current, logger]);
   };
 
   return {
