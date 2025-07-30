@@ -101,6 +101,9 @@ const styles = {
   },
 } as const;
 
+const priority1 ={ priority: 1 };
+
+
 // === 커스텀 훅 ===
 function useCounter() {
   const [count, setCount] = useState(0);
@@ -122,10 +125,10 @@ function useCounter() {
   }, []);
 
   // 액션 핸들러 등록
-  useActionHandler('increment', incrementHandler, { priority: 1 });
-  useActionHandler('decrement', decrementHandler, { priority: 1 });
-  useActionHandler('setCount', setCountHandler, { priority: 1 });
-  useActionHandler('reset', resetHandler, { priority: 1 });
+  useActionHandler('increment', incrementHandler, priority1);
+  useActionHandler('decrement', decrementHandler, priority1);
+  useActionHandler('setCount', setCountHandler, priority1);
+  useActionHandler('reset', resetHandler, priority1);
 
   return { count };
 }
