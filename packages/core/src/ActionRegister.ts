@@ -1,3 +1,5 @@
+import { Logger, LogLevel, ConsoleLogger, OtelConsoleLogger, OtelContext, getLogLevelFromEnv, createOtelContextFromPayload } from './logger';
+
 /**
  * Controller object provided to action handlers for pipeline management
  * @template T - The type of the payload being processed
@@ -52,6 +54,20 @@ export interface ActionPayloadMap {
 }
 
 /**
+ * Configuration options for ActionRegister
+ */
+export interface ActionRegisterConfig {
+  /** Custom logger implementation. Defaults to ConsoleLogger */
+  logger?: Logger;
+  /** Log level for the logger. Defaults to ERROR if not provided */
+  logLevel?: LogLevel;
+  /** OpenTelemetry context for tracing */
+  otelContext?: OtelContext;
+  /** Whether to use OTEL-aware logger. Defaults to false */
+  useOtel?: boolean;
+}
+
+/**
  * Core action pipeline management system
  * @template T - Action payload map defining available actions and their payload types
  * @example
@@ -80,6 +96,35 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   
   private atomSetters = new Map<string, Function>();
   private handlerCounter = 0;
+  public readonly logger: Logger;
+
+  constructor(config?: ActionRegisterConfig) {
+    // 환경변수에서 로그 레벨 가져오기
+    const envLogLevel = getLogLevelFromEnv();
+    
+    // 설정에서 로그 레벨 가져오기 (환경변수보다 우선)
+    const configLogLevel = config?.logLevel ?? envLogLevel;
+    
+    // 커스텀 로거가 있으면 사용, OTEL 사용 설정이 있으면 OTEL 로거 사용, 없으면 기본 콘솔 로거 사용
+    if (config?.logger) {
+      this.logger = config.logger;
+    } else if (config?.useOtel) {
+      this.logger = new OtelConsoleLogger(configLogLevel);
+    } else {
+      this.logger = new ConsoleLogger(configLogLevel);
+    }
+    
+    // OTEL 컨텍스트 설정
+    if (config?.otelContext && this.logger instanceof OtelConsoleLogger) {
+      this.logger.setContext(config.otelContext);
+    }
+    
+    this.logger.debug('ActionRegister initialized', { 
+      logLevel: configLogLevel,
+      useOtel: config?.useOtel ?? false,
+      hasOtelContext: !!config?.otelContext
+    });
+  }
 
   /**
    * Register a handler for an action in the pipeline
@@ -104,6 +149,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   ): () => void {
     if (!this.pipelines.has(action)) {
       this.pipelines.set(action, new Map());
+      this.logger.debug(`Created new pipeline for action: ${String(action)}`);
     }
     
     const pipeline = this.pipelines.get(action)!;
@@ -111,11 +157,16 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     
     // 중복 등록 방지
     if (pipeline.has(handlerId)) {
-      console.warn(`Handler with id ${handlerId} already exists`);
+      this.logger.warn(`Handler with id ${handlerId} already exists for action: ${String(action)}`);
       return () => {};
     }
     
     pipeline.set(handlerId, { handler, config });
+    this.logger.debug(`Registered handler for action: ${String(action)}`, { 
+      handlerId, 
+      priority: config.priority ?? 0,
+      blocking: config.blocking ?? false 
+    });
     
     // 우선순위로 정렬
     this.sortPipeline(action);
@@ -123,12 +174,14 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     // unregister 함수 반환
     return () => {
       pipeline.delete(handlerId);
+      this.logger.debug(`Unregistered handler: ${handlerId} for action: ${String(action)}`);
     };
   }
 
   // Atom setter 등록
   registerAtomSetter(name: string, setter: Function) {
     this.atomSetters.set(name, setter);
+    this.logger.debug(`Registered atom setter: ${name}`);
   }
 
   /**
@@ -159,14 +212,28 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   ): Promise<void> {
     const pipeline = this.pipelines.get(action);
     
+    // OTEL 컨텍스트 자동 감지 및 설정
+    if (this.logger instanceof OtelConsoleLogger && payload) {
+      const otelContext = createOtelContextFromPayload(payload);
+      if (otelContext.traceId || otelContext.sessionId) {
+        this.logger.setContext(otelContext);
+      }
+    }
+    
+    this.logger.debug(`Dispatching action: ${String(action)}`, { payload });
+    
     if (!pipeline || pipeline.size === 0) {
-      console.warn(`No handlers registered for action: ${String(action)}`);
+      this.logger.warn(`No handlers registered for action: ${String(action)}`);
       return;
     }
     
     let modifiedPayload = payload as T[K];
     const handlers = Array.from(pipeline.values());
     let shouldContinue = true;
+    
+    this.logger.trace(`Executing pipeline for action: ${String(action)}`, { 
+      handlerCount: handlers.length 
+    });
     
     for (const { handler, config } of handlers) {
       if (!shouldContinue) break;
@@ -175,10 +242,11 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         next: () => { shouldContinue = true; },
         abort: (reason) => {
           shouldContinue = false;
-          console.log(`Pipeline aborted: ${reason}`);
+          this.logger.warn(`Pipeline aborted: ${reason}`);
         },
         modifyPayload: (modifier) => {
           modifiedPayload = modifier(modifiedPayload);
+          this.logger.trace(`Payload modified for action: ${String(action)}`);
         }
       };
       
@@ -189,10 +257,12 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
           handler(modifiedPayload, controller);
         }
       } catch (error) {
-        console.error(`Error in pipeline handler:`, error);
+        this.logger.error(`Error in pipeline handler for action: ${String(action)}`, error);
         if (config.blocking) throw error;
       }
     }
+    
+    this.logger.debug(`Completed dispatching action: ${String(action)}`);
   }
 
   private sortPipeline<K extends keyof T>(action: K) {
@@ -208,5 +278,10 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     
     pipeline.clear();
     sorted.forEach(([id, data]) => pipeline.set(id, data));
+    
+    this.logger.trace(`Sorted pipeline for action: ${String(action)}`, {
+      handlerCount: sorted.length,
+      priorities: sorted.map(([, data]) => data.config.priority ?? 0)
+    });
   }
 }
