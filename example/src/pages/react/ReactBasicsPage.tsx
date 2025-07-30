@@ -2,9 +2,9 @@ import {
   type ActionPayloadMap,
   createActionContext,
 } from '@context-action/react';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
-// 액션 타입 정의
+// === 타입 정의 ===
 interface ReactActionMap extends ActionPayloadMap {
   increment: undefined;
   decrement: undefined;
@@ -13,113 +13,247 @@ interface ReactActionMap extends ActionPayloadMap {
   updateMessage: string;
 }
 
-// 컨텍스트 생성
+// === 컨텍스트 생성 ===
 const { Provider, useAction, useActionHandler } =
   createActionContext<ReactActionMap>();
 
-function Counter() {
+// === 스타일 객체 (컴포넌트 외부) ===
+const styles = {
+  container: {
+    padding: '20px',
+    border: '1px solid #e9ecef',
+    borderRadius: '8px',
+  },
+  countDisplay: {
+    fontSize: '24px',
+    fontWeight: 'bold' as const,
+    margin: '20px 0',
+  },
+  buttonGroup: {
+    display: 'flex',
+    gap: '10px',
+    flexWrap: 'wrap' as const,
+  },
+  button: {
+    padding: '8px 16px',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer' as const,
+  },
+  incrementButton: {
+    backgroundColor: '#28a745',
+  },
+  decrementButton: {
+    backgroundColor: '#dc3545',
+  },
+  setCountButton: {
+    backgroundColor: '#007bff',
+  },
+  resetButton: {
+    backgroundColor: '#6c757d',
+  },
+  sendButton: {
+    backgroundColor: '#17a2b8',
+  },
+  logContainer: {
+    height: '200px',
+    overflow: 'auto' as const,
+    backgroundColor: '#f8f9fa',
+    padding: '10px',
+    borderRadius: '4px',
+    fontSize: '14px',
+    fontFamily: 'monospace',
+    marginBottom: '10px',
+  },
+  emptyLog: {
+    color: '#6c757d',
+  },
+  logEntry: {
+    marginBottom: '5px',
+  },
+  inputGroup: {
+    display: 'flex',
+    gap: '10px',
+    alignItems: 'center',
+  },
+  input: {
+    flex: 1,
+    padding: '8px 12px',
+    border: '1px solid #ced4da',
+    borderRadius: '4px',
+  },
+  grid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+    gap: '20px',
+    marginTop: '30px',
+  },
+  codeExample: {
+    marginTop: '30px',
+    padding: '20px',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '8px',
+  },
+  pre: {
+    overflow: 'auto' as const,
+    fontSize: '14px',
+  },
+} as const;
+
+// === 커스텀 훅 ===
+function useCounter() {
   const [count, setCount] = useState(0);
-  const dispatch = useAction();
+
+  const incrementHandler = useCallback(() => {
+    setCount(prev => prev + 1);
+  }, []);
+
+  const decrementHandler = useCallback(() => {
+    setCount(prev => prev - 1);
+  }, []);
+
+  const setCountHandler = useCallback((payload: number) => {
+    setCount(payload);
+  }, []);
+
+  const resetHandler = useCallback(() => {
+    setCount(0);
+  }, []);
 
   // 액션 핸들러 등록
-  useActionHandler(
-    'increment',
-    () => {
-      setCount(prev => prev + 1);
-    },
-    { priority: 1 }
-  );
+  useActionHandler('increment', incrementHandler, { priority: 1 });
+  useActionHandler('decrement', decrementHandler, { priority: 1 });
+  useActionHandler('setCount', setCountHandler, { priority: 1 });
+  useActionHandler('reset', resetHandler, { priority: 1 });
 
-  useActionHandler(
-    'decrement',
-    () => {
-      setCount(prev => prev - 1);
-    },
-    { priority: 1 }
-  );
+  return { count };
+}
 
-  useActionHandler(
-    'setCount',
-    payload => {
-      setCount(payload);
-    },
-    { priority: 1 }
-  );
+function useLogger() {
+  const [logs, setLogs] = useState<string[]>([]);
 
-  useActionHandler(
-    'reset',
-    () => {
-      setCount(0);
-    },
-    { priority: 1 }
-  );
+  const addLog = useCallback((message: string) => {
+    setLogs(prev => [
+      ...prev,
+      `${new Date().toLocaleTimeString()}: ${message}`,
+    ]);
+  }, []);
 
+  const incrementLogHandler = useCallback(() => {
+    addLog('Increment action detected');
+  }, [addLog]);
+
+  const decrementLogHandler = useCallback(() => {
+    addLog('Decrement action detected');
+  }, [addLog]);
+
+  const setCountLogHandler = useCallback((payload: number) => {
+    addLog(`SetCount action detected: ${payload}`);
+  }, [addLog]);
+
+  const resetLogHandler = useCallback(() => {
+    addLog('Reset action detected');
+    setLogs([]);
+  }, [addLog]);
+
+  const updateMessageHandler = useCallback((message: string) => {
+    addLog(`Custom message: ${message}`);
+  }, [addLog]);
+
+  // 액션 핸들러 등록
+  useActionHandler('increment', incrementLogHandler, { priority: 0 });
+  useActionHandler('decrement', decrementLogHandler, { priority: 0 });
+  useActionHandler('setCount', setCountLogHandler, { priority: 0 });
+  useActionHandler('reset', resetLogHandler, { priority: 0 });
+  useActionHandler('updateMessage', updateMessageHandler, { priority: 0 });
+
+  return { logs };
+}
+
+function useMessageSender() {
+  const [message, setMessage] = useState('');
+  
+  const clearMessage = useCallback(() => {
+    setMessage('');
+  }, []);
+
+  return {
+    message,
+    setMessage,
+    clearMessage,
+  };
+}
+
+function useCounterActions() {
+  const dispatch = useAction();
+
+  return {
+    increment: useCallback(() => dispatch('increment'), [dispatch]),
+    decrement: useCallback(() => dispatch('decrement'), [dispatch]),
+    setCount: useCallback((value: number) => dispatch('setCount', value), [dispatch]),
+    reset: useCallback(() => dispatch('reset'), [dispatch]),
+  };
+}
+
+function useMessageActions() {
+  const dispatch = useAction();
+
+  return {
+    sendMessage: useCallback((message: string) => dispatch('updateMessage', message), [dispatch]),
+  };
+}
+
+// === 순수 뷰 컴포넌트 ===
+function CounterView({ 
+  count, 
+  onIncrement, 
+  onDecrement, 
+  onSetCount, 
+  onReset 
+}: {
+  count: number;
+  onIncrement: () => void;
+  onDecrement: () => void;
+  onSetCount: () => void;
+  onReset: () => void;
+}) {
   return (
-    <div
-      style={{
-        padding: '20px',
-        border: '1px solid #e9ecef',
-        borderRadius: '8px',
-      }}
-    >
+    <div style={styles.container}>
       <h3>Counter Component</h3>
-      <div style={{ fontSize: '24px', fontWeight: 'bold', margin: '20px 0' }}>
+      <div style={styles.countDisplay}>
         Count: {count}
       </div>
 
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+      <div style={styles.buttonGroup}>
         <button
           type="button"
-          onClick={() => dispatch('increment')}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#28a745',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-          }}
+          onClick={onIncrement}
+          style={{ ...styles.button, ...styles.incrementButton }}
         >
           +1
         </button>
 
         <button
           type="button"
-          onClick={() => dispatch('decrement')}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#dc3545',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-          }}
+          onClick={onDecrement}
+          style={{ ...styles.button, ...styles.decrementButton }}
         >
           -1
         </button>
 
         <button
           type="button"
-          onClick={() => dispatch('setCount', 10)}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-          }}
+          onClick={onSetCount}
+          style={{ ...styles.button, ...styles.setCountButton }}
         >
           Set to 10
         </button>
 
         <button
           type="button"
-          onClick={() => dispatch('reset')}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#6c757d',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-          }}
+          onClick={onReset}
+          style={{ ...styles.button, ...styles.resetButton }}
         >
           Reset
         </button>
@@ -128,83 +262,16 @@ function Counter() {
   );
 }
 
-function Logger() {
-  const [logs, setLogs] = useState<string[]>([]);
-
-  const addLog = (message: string) => {
-    setLogs(prev => [
-      ...prev,
-      `${new Date().toLocaleTimeString()}: ${message}`,
-    ]);
-  };
-
-  useActionHandler(
-    'increment',
-    () => {
-      addLog('Increment action detected');
-    },
-    { priority: 0 }
-  );
-
-  useActionHandler(
-    'decrement',
-    () => {
-      addLog('Decrement action detected');
-    },
-    { priority: 0 }
-  );
-
-  useActionHandler(
-    'setCount',
-    payload => {
-      addLog(`SetCount action detected: ${payload}`);
-    },
-    { priority: 0 }
-  );
-
-  useActionHandler(
-    'reset',
-    () => {
-      addLog('Reset action detected');
-      setLogs([]);
-    },
-    { priority: 0 }
-  );
-
-  useActionHandler(
-    'updateMessage',
-    message => {
-      addLog(`Custom message: ${message}`);
-    },
-    { priority: 0 }
-  );
-
+function LoggerView({ logs }: { logs: string[] }) {
   return (
-    <div
-      style={{
-        padding: '20px',
-        border: '1px solid #e9ecef',
-        borderRadius: '8px',
-      }}
-    >
+    <div style={styles.container}>
       <h3>Logger Component</h3>
-      <div
-        style={{
-          height: '200px',
-          overflow: 'auto',
-          backgroundColor: '#f8f9fa',
-          padding: '10px',
-          borderRadius: '4px',
-          fontSize: '14px',
-          fontFamily: 'monospace',
-          marginBottom: '10px',
-        }}
-      >
+      <div style={styles.logContainer}>
         {logs.length === 0 ? (
-          <div style={{ color: '#6c757d' }}>No logs yet...</div>
+          <div style={styles.emptyLog}>No logs yet...</div>
         ) : (
           logs.map((log, index) => (
-            <div key={index} style={{ marginBottom: '5px' }}>
+            <div key={index} style={styles.logEntry}>
               {log}
             </div>
           ))
@@ -214,55 +281,86 @@ function Logger() {
   );
 }
 
-function MessageSender() {
-  const [message, setMessage] = useState('');
-  const dispatch = useAction();
-
-  const handleSend = () => {
-    if (message.trim()) {
-      dispatch('updateMessage', message);
-      setMessage('');
-    }
-  };
-
+function MessageSenderView({
+  message,
+  onMessageChange,
+  onSend,
+  onKeyDown,
+}: {
+  message: string;
+  onMessageChange: (value: string) => void;
+  onSend: () => void;
+  onKeyDown: (e: React.KeyboardEvent) => void;
+}) {
   return (
-    <div
-      style={{
-        padding: '20px',
-        border: '1px solid #e9ecef',
-        borderRadius: '8px',
-      }}
-    >
+    <div style={styles.container}>
       <h3>Message Sender</h3>
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+      <div style={styles.inputGroup}>
         <input
           type="text"
           value={message}
-          onChange={e => setMessage(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleSend()}
+          onChange={e => onMessageChange(e.target.value)}
+          onKeyDown={onKeyDown}
           placeholder="Enter a message..."
-          style={{
-            flex: 1,
-            padding: '8px 12px',
-            border: '1px solid #ced4da',
-            borderRadius: '4px',
-          }}
+          style={styles.input}
         />
         <button
           type="button"
-          onClick={handleSend}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#17a2b8',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-          }}
+          onClick={onSend}
+          style={{ ...styles.button, ...styles.sendButton }}
         >
           Send
         </button>
       </div>
     </div>
+  );
+}
+
+// === 컨테이너 컴포넌트 ===
+function Counter() {
+  const { count } = useCounter();
+  const { increment, decrement, setCount, reset } = useCounterActions();
+
+  return (
+    <CounterView
+      count={count}
+      onIncrement={increment}
+      onDecrement={decrement}
+      onSetCount={() => setCount(10)}
+      onReset={reset}
+    />
+  );
+}
+
+function Logger() {
+  const { logs } = useLogger();
+  return <LoggerView logs={logs} />;
+}
+
+function MessageSender() {
+  const { message, setMessage, clearMessage } = useMessageSender();
+  const { sendMessage } = useMessageActions();
+
+  const handleSend = useCallback(() => {
+    if (message.trim()) {
+      sendMessage(message);
+      clearMessage();
+    }
+  }, [message, sendMessage, clearMessage]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSend();
+    }
+  }, [handleSend]);
+
+  return (
+    <MessageSenderView
+      message={message}
+      onMessageChange={setMessage}
+      onSend={handleSend}
+      onKeyDown={handleKeyDown}
+    />
   );
 }
 
@@ -275,30 +373,16 @@ function ReactBasicsContent() {
         컨텍스트를 생성하고, useAction과 useActionHandler 훅을 활용합니다.
       </p>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-          gap: '20px',
-          marginTop: '30px',
-        }}
-      >
+      <div style={styles.grid}>
         <Counter />
         <Logger />
         <MessageSender />
       </div>
 
       {/* Code Example */}
-      <div
-        style={{
-          marginTop: '30px',
-          padding: '20px',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '8px',
-        }}
-      >
+      <div style={styles.codeExample}>
         <h3>Code Example</h3>
-        <pre style={{ overflow: 'auto', fontSize: '14px' }}>
+        <pre style={styles.pre}>
           {`// 1. 액션 컨텍스트 생성
 const { Provider, useAction, useActionHandler } = 
   createActionContext<ActionMap>();

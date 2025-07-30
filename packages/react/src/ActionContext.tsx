@@ -95,21 +95,21 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
   const useAction = (): ActionRegister<T>['dispatch'] => {
     const context = useContext(ActionContext);
     
-    if (!context || !context.actionRegisterRef.current) {
-      /**
-       * Provider 외부에서 사용되거나 actionRegister가 없는 경우
-       * 에러를 던지는 함수를 반환합니다
-       */
-      return (...args: any[]) => {
-        throw new Error(
-          `useAction dispatch called outside of Provider context. ` +
-          `Action: ${args[0]}, Payload: ${JSON.stringify(args[1] || 'undefined')}. ` +
-          `Make sure your component is wrapped with the ActionContext Provider.`
-        );
-      } 
+    if (!context) {
+      throw new Error(
+        'useAction must be used within Provider. ' +
+        'Make sure your component is wrapped with the ActionContext Provider.'
+      );
     }
-    
-    return context.actionRegisterRef.current.dispatch;
+
+    if (!context.actionRegisterRef.current) {
+      throw new Error(
+        'ActionRegister is not initialized. ' +
+        'Make sure the ActionContext Provider is properly set up.'
+      );
+    }
+
+    return context.actionRegisterRef.current.dispatch.bind(context.actionRegisterRef.current);
   };
 
   /**
@@ -128,10 +128,17 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
     const { actionRegisterRef } = useActionContext();
     const componentId = useId();
 
-    console.log('useActionHandler:',action, handler, config);
-    
     useEffect(() => {
-      const actionRegister = actionRegisterRef.current!;
+      if (!actionRegisterRef.current) {
+        throw new Error(
+          'ActionRegister is not initialized. ' +
+          'Make sure the ActionContext Provider is properly set up.'
+        );
+      }
+
+      console.log('useActionHandler:',action, handler, config);
+      console.count(action as string);
+      const actionRegister = actionRegisterRef.current;
       const unregister = actionRegister.register(
         action,
         handler,
@@ -139,7 +146,7 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
       );
       
       return unregister;
-    }, [action, handler, config, componentId, actionRegisterRef]);
+    }, [action, handler, config?.id , config?.priority ,config?.blocking, componentId, actionRegisterRef.current]);
   };
 
   return {

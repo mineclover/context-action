@@ -4,7 +4,7 @@ import {
   createActionContext,
 } from '@context-action/react';
 
-// 폼 액션 타입 정의
+// === 타입 정의 ===
 interface FormActionMap extends ActionPayloadMap {
   updateField: { field: string; value: string };
   validateField: { field: string; value: string };
@@ -15,7 +15,6 @@ interface FormActionMap extends ActionPayloadMap {
   setFormSubmitting: boolean;
 }
 
-// 유효성 검사 규칙
 interface ValidationRule {
   required?: boolean;
   minLength?: number;
@@ -28,7 +27,6 @@ interface ValidationRules {
   [key: string]: ValidationRule;
 }
 
-// 폼 상태 타입
 interface FormState {
   values: Record<string, string>;
   errors: Record<string, string | null>;
@@ -37,10 +35,137 @@ interface FormState {
   isValid: boolean;
 }
 
-// 컨텍스트 생성
+// === 컨텍스트 생성 ===
 const { Provider, useAction, useActionHandler } = createActionContext<FormActionMap>();
 
-// 커스텀 훅: 폼 관리
+// === 스타일 객체 (컴포넌트 외부) ===
+const styles = {
+  container: {
+    padding: '20px',
+    border: '1px solid #e9ecef',
+    borderRadius: '8px',
+  },
+  grid: {
+    display: 'grid',
+    gridTemplateColumns: '1fr',
+    gap: '30px',
+    marginTop: '30px',
+  },
+  fieldContainer: {
+    marginBottom: '20px',
+  },
+  label: {
+    display: 'block',
+    marginBottom: '5px',
+    fontWeight: 'bold' as const,
+  },
+  labelError: {
+    color: '#dc3545',
+  },
+  labelNormal: {
+    color: '#495057',
+  },
+  input: {
+    width: '100%',
+    padding: '8px 12px',
+    borderRadius: '4px',
+    fontSize: '14px',
+  },
+  inputNormal: {
+    border: '1px solid #ced4da',
+  },
+  inputError: {
+    border: '1px solid #dc3545',
+  },
+  textarea: {
+    width: '100%',
+    padding: '8px 12px',
+    borderRadius: '4px',
+    fontSize: '14px',
+    resize: 'vertical' as const,
+  },
+  errorMessage: {
+    color: '#dc3545',
+    fontSize: '12px',
+    marginTop: '5px',
+  },
+  buttonGroup: {
+    display: 'flex',
+    gap: '10px',
+    marginTop: '20px',
+  },
+  button: {
+    padding: '10px 20px',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer' as const,
+  },
+  submitButton: {
+    backgroundColor: '#28a745',
+  },
+  submitButtonDisabled: {
+    backgroundColor: '#6c757d',
+    cursor: 'not-allowed' as const,
+  },
+  resetButton: {
+    backgroundColor: '#6c757d',
+  },
+  warningButton: {
+    backgroundColor: '#ffc107',
+    color: 'black',
+  },
+  primaryButton: {
+    backgroundColor: '#007bff',
+  },
+  dangerButton: {
+    backgroundColor: '#dc3545',
+  },
+  formStatus: {
+    marginTop: '20px',
+    padding: '15px',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '4px',
+  },
+  statusText: {
+    fontSize: '12px',
+    fontFamily: 'monospace',
+  },
+  fieldRow: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '10px',
+    marginBottom: '15px',
+  },
+  fieldFlex: {
+    flex: 1,
+  },
+  removeButton: {
+    padding: '8px',
+    backgroundColor: '#dc3545',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    marginTop: '25px',
+    cursor: 'pointer' as const,
+  },
+  fieldCounter: {
+    fontSize: '14px',
+    color: '#6c757d',
+  },
+  codeExample: {
+    marginTop: '30px',
+    padding: '20px',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '8px',
+  },
+  pre: {
+    overflow: 'auto' as const,
+    fontSize: '14px',
+  },
+} as const;
+
+// === 커스텀 훅 ===
 function useFormManager(initialValues: Record<string, string>, validationRules: ValidationRules) {
   const [formState, setFormState] = useState<FormState>({
     values: initialValues,
@@ -50,22 +175,15 @@ function useFormManager(initialValues: Record<string, string>, validationRules: 
     isValid: false,
   });
 
-  const dispatch = useAction();
-
-  // 필드 업데이트 핸들러
-  useActionHandler('updateField', ({ field, value }) => {
+  const updateFieldHandler = useCallback(({ field, value }: { field: string; value: string }) => {
     setFormState(prev => ({
       ...prev,
       values: { ...prev.values, [field]: value },
       touched: { ...prev.touched, [field]: true },
     }));
-    
-    // 자동 유효성 검사
-    dispatch('validateField', { field, value });
-  });
+  }, []);
 
-  // 유효성 검사 핸들러
-  useActionHandler('validateField', ({ field, value }) => {
+  const validateFieldHandler = useCallback(({ field, value }: { field: string; value: string }) => {
     const rule = validationRules[field];
     let error: string | null = null;
 
@@ -83,11 +201,6 @@ function useFormManager(initialValues: Record<string, string>, validationRules: 
       }
     }
 
-    dispatch('setFieldError', { field, error });
-  });
-
-  // 에러 설정 핸들러
-  useActionHandler('setFieldError', ({ field, error }) => {
     setFormState(prev => {
       const newErrors = { ...prev.errors, [field]: error };
       const isValid = Object.values(newErrors).every(err => !err);
@@ -98,14 +211,12 @@ function useFormManager(initialValues: Record<string, string>, validationRules: 
         isValid,
       };
     });
-  });
+  }, [validationRules]);
 
-  // 폼 제출 핸들러
-  useActionHandler('submitForm', async ({ formData }) => {
+  const submitFormHandler = useCallback(async ({ formData }: { formData: Record<string, string> }) => {
     setFormState(prev => ({ ...prev, isSubmitting: true }));
     
     try {
-      // 모든 필드 유효성 검사
       const errors: Record<string, string | null> = {};
       let hasErrors = false;
 
@@ -126,7 +237,6 @@ function useFormManager(initialValues: Record<string, string>, validationRules: 
         return;
       }
 
-      // 시뮬레이션: API 호출
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       console.log('Form submitted successfully:', formData);
@@ -138,10 +248,9 @@ function useFormManager(initialValues: Record<string, string>, validationRules: 
     } finally {
       setFormState(prev => ({ ...prev, isSubmitting: false }));
     }
-  });
+  }, [validationRules]);
 
-  // 폼 리셋 핸들러
-  useActionHandler('resetForm', () => {
+  const resetFormHandler = useCallback(() => {
     setFormState({
       values: initialValues,
       errors: {},
@@ -149,51 +258,107 @@ function useFormManager(initialValues: Record<string, string>, validationRules: 
       isSubmitting: false,
       isValid: false,
     });
-  });
+  }, [initialValues]);
 
-  // 모든 에러 지우기
-  useActionHandler('clearAllErrors', () => {
+  const setFieldErrorHandler = useCallback(({ field, error }: { field: string; error: string | null }) => {
+    setFormState(prev => {
+      const newErrors = { ...prev.errors, [field]: error };
+      const isValid = Object.values(newErrors).every(err => !err);
+      
+      return {
+        ...prev,
+        errors: newErrors,
+        isValid,
+      };
+    });
+  }, []);
+
+  const clearAllErrorsHandler = useCallback(() => {
     setFormState(prev => ({
       ...prev,
       errors: {},
       isValid: true,
     }));
-  });
+  }, []);
+
+  // 액션 핸들러 등록
+  useActionHandler('updateField', updateFieldHandler);
+  useActionHandler('validateField', validateFieldHandler);
+  useActionHandler('submitForm', submitFormHandler);
+  useActionHandler('resetForm', resetFormHandler);
+  useActionHandler('setFieldError', setFieldErrorHandler);
+  useActionHandler('clearAllErrors', clearAllErrorsHandler);
 
   return formState;
 }
 
-// 입력 필드 컴포넌트
-function FormField({ 
-  name, 
-  label, 
-  type = 'text', 
-  placeholder,
-  formState 
-}: { 
-  name: string; 
-  label: string; 
-  type?: string; 
-  placeholder?: string;
-  formState: FormState;
-}) {
+function useFormActions() {
   const dispatch = useAction();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    dispatch('updateField', { field: name, value: e.target.value });
+  return {
+    updateField: useCallback((field: string, value: string) => {
+      dispatch('updateField', { field, value });
+      dispatch('validateField', { field, value });
+    }, [dispatch]),
+    submitForm: useCallback((formData: Record<string, string>) => 
+      dispatch('submitForm', { formData }), [dispatch]),
+    resetForm: useCallback(() => dispatch('resetForm'), [dispatch]),
+    setFieldError: useCallback((field: string, error: string | null) => 
+      dispatch('setFieldError', { field, error }), [dispatch]),
+    clearAllErrors: useCallback(() => dispatch('clearAllErrors'), [dispatch]),
   };
+}
 
-  const value = formState.values[name] || '';
-  const error = formState.errors[name];
-  const touched = formState.touched[name];
+function useDynamicFields() {
+  const [fields, setFields] = useState([
+    { id: '1', name: 'item1', label: '항목 1' },
+  ]);
 
+  const addField = useCallback(() => {
+    const newField = {
+      id: Date.now().toString(),
+      name: `item${fields.length + 1}`,
+      label: `항목 ${fields.length + 1}`,
+    };
+    setFields(prev => [...prev, newField]);
+  }, [fields.length]);
+
+  const removeField = useCallback((id: string) => {
+    setFields(prev => prev.filter(field => field.id !== id));
+  }, []);
+
+  return {
+    fields,
+    addField,
+    removeField,
+  };
+}
+
+// === 순수 뷰 컴포넌트 ===
+function FormFieldView({
+  name,
+  label,
+  type = 'text',
+  placeholder,
+  value,
+  error,
+  touched,
+  onChange,
+}: {
+  name: string;
+  label: string;
+  type?: string;
+  placeholder?: string;
+  value: string;
+  error: string | null;
+  touched: boolean;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+}) {
   return (
-    <div style={{ marginBottom: '20px' }}>
-      <label style={{ 
-        display: 'block', 
-        marginBottom: '5px', 
-        fontWeight: 'bold',
-        color: error && touched ? '#dc3545' : '#495057'
+    <div style={styles.fieldContainer}>
+      <label style={{
+        ...styles.label,
+        ...(error && touched ? styles.labelError : styles.labelNormal)
       }}>
         {label}
       </label>
@@ -202,16 +367,12 @@ function FormField({
         <textarea
           name={name}
           value={value}
-          onChange={handleChange}
+          onChange={onChange}
           placeholder={placeholder}
           rows={4}
           style={{
-            width: '100%',
-            padding: '8px 12px',
-            border: `1px solid ${error && touched ? '#dc3545' : '#ced4da'}`,
-            borderRadius: '4px',
-            fontSize: '14px',
-            resize: 'vertical',
+            ...styles.textarea,
+            ...(error && touched ? styles.inputError : styles.inputNormal)
           }}
         />
       ) : (
@@ -219,24 +380,17 @@ function FormField({
           type={type}
           name={name}
           value={value}
-          onChange={handleChange}
+          onChange={onChange}
           placeholder={placeholder}
           style={{
-            width: '100%',
-            padding: '8px 12px',
-            border: `1px solid ${error && touched ? '#dc3545' : '#ced4da'}`,
-            borderRadius: '4px',
-            fontSize: '14px',
+            ...styles.input,
+            ...(error && touched ? styles.inputError : styles.inputNormal)
           }}
         />
       )}
       
       {error && touched && (
-        <div style={{ 
-          color: '#dc3545', 
-          fontSize: '12px', 
-          marginTop: '5px' 
-        }}>
+        <div style={styles.errorMessage}>
           {error}
         </div>
       )}
@@ -244,83 +398,44 @@ function FormField({
   );
 }
 
-// 기본 폼 예시
-function BasicForm() {
-  const validationRules: ValidationRules = {
-    name: { 
-      required: true, 
-      minLength: 2, 
-      maxLength: 50 
-    },
-    email: { 
-      required: true, 
-      pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ 
-    },
-    age: { 
-      required: true,
-      custom: (value) => {
-        const num = parseInt(value);
-        if (isNaN(num)) return '숫자를 입력해주세요.';
-        if (num < 1 || num > 120) return '나이는 1-120 사이여야 합니다.';
-        return null;
-      }
-    },
-  };
-
-  const formState = useFormManager(
-    { name: '', email: '', age: '' }, 
-    validationRules
-  );
-
-  const dispatch = useAction();
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    dispatch('submitForm', { formData: formState.values });
-  };
-
-  const handleReset = () => {
-    dispatch('resetForm');
-  };
-
+function FormStatusView({ formState }: { formState: FormState }) {
   return (
-    <div style={{ padding: '20px', border: '1px solid #e9ecef', borderRadius: '8px' }}>
-      <h3>📝 기본 폼 예시</h3>
-      <form onSubmit={handleSubmit}>
-        <FormField
-          name="name"
-          label="이름"
-          placeholder="이름을 입력하세요"
-          formState={formState}
-        />
-        
-        <FormField
-          name="email"
-          label="이메일"
-          type="email"
-          placeholder="example@email.com"
-          formState={formState}
-        />
-        
-        <FormField
-          name="age"
-          label="나이"
-          type="number"
-          placeholder="나이를 입력하세요"
-          formState={formState}
-        />
+    <div style={styles.formStatus}>
+      <h4>폼 상태</h4>
+      <div style={styles.statusText}>
+        <div>유효성: {formState.isValid ? '✅ 유효함' : '❌ 유효하지 않음'}</div>
+        <div>제출 중: {formState.isSubmitting ? '⏳ 진행 중' : '⏸️ 대기 중'}</div>
+        <div>에러 개수: {Object.values(formState.errors).filter(Boolean).length}</div>
+        <div>터치된 필드: {Object.keys(formState.touched).filter(field => formState.touched[field]).length}</div>
+      </div>
+    </div>
+  );
+}
 
-        <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+function BasicFormView({
+  formState,
+  onSubmit,
+  onReset,
+}: {
+  formState: FormState;
+  onSubmit: (e: React.FormEvent) => void;
+  onReset: () => void;
+}) {
+  return (
+    <div style={styles.container}>
+      <h3>📝 기본 폼 예시</h3>
+      <form onSubmit={onSubmit}>
+        <FormField name="name" label="이름" placeholder="이름을 입력하세요" formState={formState} />
+        <FormField name="email" label="이메일" type="email" placeholder="example@email.com" formState={formState} />
+        <FormField name="age" label="나이" type="number" placeholder="나이를 입력하세요" formState={formState} />
+
+        <div style={styles.buttonGroup}>
           <button
             type="submit"
             disabled={!formState.isValid || formState.isSubmitting}
             style={{
-              padding: '10px 20px',
-              backgroundColor: formState.isValid && !formState.isSubmitting ? '#28a745' : '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: formState.isValid && !formState.isSubmitting ? 'pointer' : 'not-allowed',
+              ...styles.button,
+              ...(formState.isValid && !formState.isSubmitting ? styles.submitButton : styles.submitButtonDisabled)
             }}
           >
             {formState.isSubmitting ? '제출 중...' : '제출'}
@@ -328,101 +443,54 @@ function BasicForm() {
           
           <button
             type="button"
-            onClick={handleReset}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-            }}
+            onClick={onReset}
+            style={{ ...styles.button, ...styles.resetButton }}
           >
             리셋
           </button>
         </div>
       </form>
 
-      {/* 폼 상태 표시 */}
-      <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '4px' }}>
-        <h4>폼 상태</h4>
-        <div style={{ fontSize: '12px', fontFamily: 'monospace' }}>
-          <div>유효성: {formState.isValid ? '✅ 유효함' : '❌ 유효하지 않음'}</div>
-          <div>제출 중: {formState.isSubmitting ? '⏳ 진행 중' : '⏸️ 대기 중'}</div>
-          <div>에러 개수: {Object.values(formState.errors).filter(Boolean).length}</div>
-          <div>터치된 필드: {Object.keys(formState.touched).filter(field => formState.touched[field]).length}</div>
-        </div>
-      </div>
+      <FormStatusView formState={formState} />
     </div>
   );
 }
 
-// 동적 폼 예시
-function DynamicForm() {
-  const [fields, setFields] = useState([
-    { id: '1', name: 'item1', label: '항목 1' },
-  ]);
-
-  const dispatch = useAction();
-
-  const addField = () => {
-    const newField = {
-      id: Date.now().toString(),
-      name: `item${fields.length + 1}`,
-      label: `항목 ${fields.length + 1}`,
-    };
-    setFields(prev => [...prev, newField]);
-  };
-
-  const removeField = (id: string) => {
-    setFields(prev => prev.filter(field => field.id !== id));
-  };
-
-  const validationRules: ValidationRules = fields.reduce((rules, field) => {
-    rules[field.name] = { required: true, minLength: 2 };
-    return rules;
-  }, {} as ValidationRules);
-
-  const initialValues = fields.reduce((values, field) => {
-    values[field.name] = '';
-    return values;
-  }, {} as Record<string, string>);
-
-  const formState = useFormManager(initialValues, validationRules);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    dispatch('submitForm', { formData: formState.values });
-  };
-
+function DynamicFormView({
+  fields,
+  formState,
+  onSubmit,
+  onAddField,
+  onRemoveField,
+}: {
+  fields: Array<{ id: string; name: string; label: string }>;
+  formState: FormState;
+  onSubmit: (e: React.FormEvent) => void;
+  onAddField: () => void;
+  onRemoveField: (id: string) => void;
+}) {
   return (
-    <div style={{ padding: '20px', border: '1px solid #e9ecef', borderRadius: '8px' }}>
+    <div style={styles.container}>
       <h3>🔄 동적 폼 예시</h3>
       
       <div style={{ marginBottom: '20px' }}>
         <button
           type="button"
-          onClick={addField}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            marginRight: '10px',
-          }}
+          onClick={onAddField}
+          style={{ ...styles.button, ...styles.primaryButton, marginRight: '10px' }}
         >
           + 필드 추가
         </button>
         
-        <span style={{ fontSize: '14px', color: '#6c757d' }}>
+        <span style={styles.fieldCounter}>
           현재 {fields.length}개 필드
         </span>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={onSubmit}>
         {fields.map((field) => (
-          <div key={field.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '15px' }}>
-            <div style={{ flex: 1 }}>
+          <div key={field.id} style={styles.fieldRow}>
+            <div style={styles.fieldFlex}>
               <FormField
                 name={field.name}
                 label={field.label}
@@ -434,15 +502,8 @@ function DynamicForm() {
             {fields.length > 1 && (
               <button
                 type="button"
-                onClick={() => removeField(field.id)}
-                style={{
-                  padding: '8px',
-                  backgroundColor: '#dc3545',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  marginTop: '25px',
-                }}
+                onClick={() => onRemoveField(field.id)}
+                style={styles.removeButton}
               >
                 ✕
               </button>
@@ -455,12 +516,8 @@ function DynamicForm() {
             type="submit"
             disabled={!formState.isValid || formState.isSubmitting}
             style={{
-              padding: '10px 20px',
-              backgroundColor: formState.isValid && !formState.isSubmitting ? '#28a745' : '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: formState.isValid && !formState.isSubmitting ? 'pointer' : 'not-allowed',
+              ...styles.button,
+              ...(formState.isValid && !formState.isSubmitting ? styles.submitButton : styles.submitButtonDisabled)
             }}
           >
             {formState.isSubmitting ? '제출 중...' : '동적 폼 제출'}
@@ -471,62 +528,20 @@ function DynamicForm() {
   );
 }
 
-// 실시간 검증 폼 예시
-function RealtimeValidationForm() {
-  const validationRules: ValidationRules = {
-    username: {
-      required: true,
-      minLength: 3,
-      maxLength: 20,
-      pattern: /^[a-zA-Z0-9_]+$/,
-    },
-    password: {
-      required: true,
-      minLength: 8,
-      custom: (value) => {
-        if (!/(?=.*[a-z])/.test(value)) return '소문자를 포함해야 합니다.';
-        if (!/(?=.*[A-Z])/.test(value)) return '대문자를 포함해야 합니다.';
-        if (!/(?=.*\d)/.test(value)) return '숫자를 포함해야 합니다.';
-        if (!/(?=.*[@$!%*?&])/.test(value)) return '특수문자를 포함해야 합니다.';
-        return null;
-      },
-    },
-    confirmPassword: {
-      required: true,
-      custom: (value) => {
-        // Note: 실제로는 password 값과 비교해야 하지만, 여기서는 간단히 구현
-        return value.length < 8 ? '비밀번호 확인을 입력해주세요.' : null;
-      },
-    },
-  };
-
-  const formState = useFormManager(
-    { username: '', password: '', confirmPassword: '' },
-    validationRules
-  );
-
-  const dispatch = useAction();
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // 비밀번호 확인 체크
-    if (formState.values.password !== formState.values.confirmPassword) {
-      dispatch('setFieldError', { 
-        field: 'confirmPassword', 
-        error: '비밀번호가 일치하지 않습니다.' 
-      });
-      return;
-    }
-    
-    dispatch('submitForm', { formData: formState.values });
-  };
-
+function RealtimeValidationFormView({
+  formState,
+  onSubmit,
+  onClearErrors,
+}: {
+  formState: FormState;
+  onSubmit: (e: React.FormEvent) => void;
+  onClearErrors: () => void;
+}) {
   return (
-    <div style={{ padding: '20px', border: '1px solid #e9ecef', borderRadius: '8px' }}>
+    <div style={styles.container}>
       <h3>⚡ 실시간 검증 폼</h3>
       
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={onSubmit}>
         <FormField
           name="username"
           label="사용자명 (영문, 숫자, _ 만 허용)"
@@ -550,17 +565,13 @@ function RealtimeValidationForm() {
           formState={formState}
         />
 
-        <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+        <div style={styles.buttonGroup}>
           <button
             type="submit"
             disabled={!formState.isValid || formState.isSubmitting}
             style={{
-              padding: '10px 20px',
-              backgroundColor: formState.isValid && !formState.isSubmitting ? '#28a745' : '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: formState.isValid && !formState.isSubmitting ? 'pointer' : 'not-allowed',
+              ...styles.button,
+              ...(formState.isValid && !formState.isSubmitting ? styles.submitButton : styles.submitButtonDisabled)
             }}
           >
             회원가입
@@ -568,20 +579,182 @@ function RealtimeValidationForm() {
           
           <button
             type="button"
-            onClick={() => dispatch('clearAllErrors')}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#ffc107',
-              color: 'black',
-              border: 'none',
-              borderRadius: '4px',
-            }}
+            onClick={onClearErrors}
+            style={{ ...styles.button, ...styles.warningButton }}
           >
             에러 지우기
           </button>
         </div>
       </form>
     </div>
+  );
+}
+
+// === 컨테이너 컴포넌트 ===
+function FormField({ 
+  name, 
+  label, 
+  type = 'text', 
+  placeholder,
+  formState 
+}: { 
+  name: string; 
+  label: string; 
+  type?: string; 
+  placeholder?: string;
+  formState: FormState;
+}) {
+  const { updateField } = useFormActions();
+
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    updateField(name, e.target.value);
+  }, [name, updateField]);
+
+  const value = formState.values[name] || '';
+  const error = formState.errors[name];
+  const touched = formState.touched[name];
+
+  return (
+    <FormFieldView
+      name={name}
+      label={label}
+      type={type}
+      placeholder={placeholder}
+      value={value}
+      error={error}
+      touched={touched}
+      onChange={handleChange}
+    />
+  );
+}
+
+function BasicForm() {
+  const validationRules: ValidationRules = {
+    name: { required: true, minLength: 2, maxLength: 50 },
+    email: { required: true, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
+    age: { 
+      required: true,
+      custom: (value) => {
+        const num = parseInt(value);
+        if (isNaN(num)) return '숫자를 입력해주세요.';
+        if (num < 1 || num > 120) return '나이는 1-120 사이여야 합니다.';
+        return null;
+      }
+    },
+  };
+
+  const formState = useFormManager(
+    { name: '', email: '', age: '' }, 
+    validationRules
+  );
+
+  const { submitForm, resetForm } = useFormActions();
+
+  const handleSubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    submitForm(formState.values);
+  }, [submitForm, formState.values]);
+
+  const handleReset = useCallback(() => {
+    resetForm();
+  }, [resetForm]);
+
+  return (
+    <BasicFormView
+      formState={formState}
+      onSubmit={handleSubmit}
+      onReset={handleReset}
+    />
+  );
+}
+
+function DynamicForm() {
+  const { fields, addField, removeField } = useDynamicFields();
+
+  const validationRules: ValidationRules = fields.reduce((rules, field) => {
+    rules[field.name] = { required: true, minLength: 2 };
+    return rules;
+  }, {} as ValidationRules);
+
+  const initialValues = fields.reduce((values, field) => {
+    values[field.name] = '';
+    return values;
+  }, {} as Record<string, string>);
+
+  const formState = useFormManager(initialValues, validationRules);
+  const { submitForm } = useFormActions();
+
+  const handleSubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    submitForm(formState.values);
+  }, [submitForm, formState.values]);
+
+  return (
+    <DynamicFormView
+      fields={fields}
+      formState={formState}
+      onSubmit={handleSubmit}
+      onAddField={addField}
+      onRemoveField={removeField}
+    />
+  );
+}
+
+function RealtimeValidationForm() {
+  const validationRules: ValidationRules = {
+    username: {
+      required: true,
+      minLength: 3,
+      maxLength: 20,
+      pattern: /^[a-zA-Z0-9_]+$/,
+    },
+    password: {
+      required: true,
+      minLength: 8,
+      custom: (value) => {
+        if (!/(?=.*[a-z])/.test(value)) return '소문자를 포함해야 합니다.';
+        if (!/(?=.*[A-Z])/.test(value)) return '대문자를 포함해야 합니다.';
+        if (!/(?=.*\d)/.test(value)) return '숫자를 포함해야 합니다.';
+        if (!/(?=.*[@$!%*?&])/.test(value)) return '특수문자를 포함해야 합니다.';
+        return null;
+      },
+    },
+    confirmPassword: {
+      required: true,
+      custom: (value) => {
+        return value.length < 8 ? '비밀번호 확인을 입력해주세요.' : null;
+      },
+    },
+  };
+
+  const formState = useFormManager(
+    { username: '', password: '', confirmPassword: '' },
+    validationRules
+  );
+
+  const { submitForm, setFieldError, clearAllErrors } = useFormActions();
+
+  const handleSubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (formState.values.password !== formState.values.confirmPassword) {
+      setFieldError('confirmPassword', '비밀번호가 일치하지 않습니다.');
+      return;
+    }
+    
+    submitForm(formState.values);
+  }, [formState.values, submitForm, setFieldError]);
+
+  const handleClearErrors = useCallback(() => {
+    clearAllErrors();
+  }, [clearAllErrors]);
+
+  return (
+    <RealtimeValidationFormView
+      formState={formState}
+      onSubmit={handleSubmit}
+      onClearErrors={handleClearErrors}
+    />
   );
 }
 
@@ -594,16 +767,15 @@ function ReactFormsContent() {
         실시간 유효성 검사, 동적 필드 관리, 폼 상태 추적 등을 다룹니다.
       </p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '30px', marginTop: '30px' }}>
+      <div style={styles.grid}>
         <BasicForm />
         <RealtimeValidationForm />
         <DynamicForm />
       </div>
 
-      {/* Code Example */}
-      <div style={{ marginTop: '30px', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+      <div style={styles.codeExample}>
         <h3>폼 관리 패턴 예시</h3>
-        <pre style={{ overflow: 'auto', fontSize: '14px' }}>
+        <pre style={styles.pre}>
 {`// 1. 폼 액션 정의
 interface FormActionMap extends ActionPayloadMap {
   updateField: { field: string; value: string };
@@ -630,13 +802,6 @@ function useFormManager(initialValues, validationRules) {
       touched: { ...prev.touched, [field]: true },
     }));
     dispatch('validateField', { field, value });
-  });
-
-  // 유효성 검사 로직
-  useActionHandler('validateField', ({ field, value }) => {
-    const rule = validationRules[field];
-    let error = validateValue(value, rule);
-    dispatch('setFieldError', { field, error });
   });
 
   return formState;

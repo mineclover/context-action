@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   type ActionPayloadMap,
   createActionContext,
 } from '@context-action/react';
 
+// === 타입 정의 ===
 // 전역 액션 타입 (애플리케이션 전역에서 사용)
 interface GlobalActionMap extends ActionPayloadMap {
   globalIncrement: undefined;
@@ -20,6 +21,7 @@ interface LocalActionMap extends ActionPayloadMap {
   updateLocalData: { id: string; value: string };
 }
 
+// === 컨텍스트 생성 ===
 // 글로벌 컨텍스트 생성
 const {
   Provider: GlobalProvider,
@@ -34,33 +36,268 @@ const {
   useActionHandler: useLocalActionHandler,
 } = createActionContext<LocalActionMap>();
 
-// 글로벌 상태 관리 컴포넌트
-function GlobalStateManager() {
+// === 스타일 객체 (컴포넌트 외부) ===
+const styles = {
+  globalContainer: {
+    padding: '20px',
+    border: '2px solid #007bff',
+    borderRadius: '8px',
+    marginBottom: '20px',
+  },
+  localContainer: {
+    padding: '20px',
+    border: '2px solid #28a745',
+    borderRadius: '8px',
+    marginBottom: '20px',
+  },
+  actionTriggerContainer: {
+    padding: '15px',
+    border: '1px solid #17a2b8',
+    borderRadius: '8px',
+    marginBottom: '10px',
+  },
+  localStateContainer: {
+    padding: '15px',
+    border: '1px solid #28a745',
+    borderRadius: '8px',
+    marginBottom: '10px',
+  },
+  boundaryContainer: {
+    padding: '20px',
+    border: '2px solid #ffc107',
+    borderRadius: '8px',
+    marginBottom: '20px',
+  },
+  actionButtonGroup: {
+    display: 'flex',
+    gap: '10px',
+    flexWrap: 'wrap' as const,
+  },
+  localButtonGroup: {
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap' as const,
+    marginBottom: '10px',
+  },
+  button: {
+    padding: '6px 12px',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer' as const,
+  },
+  incrementButton: {
+    backgroundColor: '#28a745',
+  },
+  messageButton: {
+    backgroundColor: '#ffc107',
+    color: 'black',
+  },
+  broadcastButton: {
+    backgroundColor: '#17a2b8',
+  },
+  decrementButton: {
+    backgroundColor: '#dc3545',
+  },
+  resetButton: {
+    backgroundColor: '#6c757d',
+  },
+  dataButton: {
+    backgroundColor: '#fd7e14',
+  },
+  globalResetButton: {
+    backgroundColor: '#dc3545',
+    fontSize: '16px',
+    fontWeight: 'bold' as const,
+    padding: '12px 24px',
+  },
+  boundaryTestButton: {
+    backgroundColor: '#ffc107',
+    color: 'black',
+    padding: '8px 16px',
+    marginBottom: '10px',
+  },
+  smallButton: {
+    padding: '4px 8px',
+    fontSize: '12px',
+    borderRadius: '3px',
+  },
+  broadcastList: {
+    maxHeight: '100px',
+    overflow: 'auto' as const,
+    backgroundColor: '#f8f9fa',
+    padding: '10px',
+    borderRadius: '4px',
+    fontSize: '12px',
+    fontFamily: 'monospace',
+  },
+  errorMessage: {
+    padding: '10px',
+    backgroundColor: '#f8d7da',
+    border: '1px solid #f5c6cb',
+    borderRadius: '4px',
+    color: '#721c24',
+    fontSize: '14px',
+  },
+  grid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+    gap: '15px',
+  },
+  actionGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+    gap: '10px',
+  },
+  description: {
+    fontSize: '14px',
+    color: '#6c757d',
+    marginBottom: '15px',
+  },
+  textCenter: {
+    textAlign: 'center' as const,
+    marginTop: '20px',
+  },
+  codeExample: {
+    marginTop: '30px',
+    padding: '20px',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '8px',
+  },
+  pre: {
+    overflow: 'auto' as const,
+    fontSize: '14px',
+  },
+} as const;
+
+// === 커스텀 훅 ===
+function useGlobalStateManager() {
   const [globalCount, setGlobalCount] = useState(0);
   const [globalMessage, setGlobalMessage] = useState('Global context initialized');
   const [broadcasts, setBroadcasts] = useState<string[]>([]);
 
-  useGlobalActionHandler('globalIncrement', () => {
+  const globalIncrementHandler = useCallback(() => {
     setGlobalCount(prev => prev + 1);
-  });
+  }, []);
 
-  useGlobalActionHandler('globalReset', () => {
+  const globalResetHandler = useCallback(() => {
     setGlobalCount(0);
     setGlobalMessage('Global context reset');
     setBroadcasts([]);
-  });
+  }, []);
 
-  useGlobalActionHandler('setGlobalMessage', (message) => {
+  const setGlobalMessageHandler = useCallback((message: string) => {
     setGlobalMessage(message);
-  });
+  }, []);
 
-  useGlobalActionHandler('broadcastMessage', (message) => {
+  const broadcastMessageHandler = useCallback((message: string) => {
     const timestamp = new Date().toLocaleTimeString();
     setBroadcasts(prev => [...prev, `[${timestamp}] ${message}`]);
-  });
+  }, []);
 
+  // 액션 핸들러 등록
+  useGlobalActionHandler('globalIncrement', globalIncrementHandler);
+  useGlobalActionHandler('globalReset', globalResetHandler);
+  useGlobalActionHandler('setGlobalMessage', setGlobalMessageHandler);
+  useGlobalActionHandler('broadcastMessage', broadcastMessageHandler);
+
+  return {
+    globalCount,
+    globalMessage,
+    broadcasts,
+  };
+}
+
+function useGlobalActions() {
+  const globalDispatch = useGlobalAction();
+
+  return {
+    incrementGlobal: useCallback(() => globalDispatch('globalIncrement'), [globalDispatch]),
+    setGlobalMessage: useCallback((message: string) => globalDispatch('setGlobalMessage', message), [globalDispatch]),
+    broadcastMessage: useCallback((message: string) => globalDispatch('broadcastMessage', message), [globalDispatch]),
+    resetGlobal: useCallback(() => globalDispatch('globalReset'), [globalDispatch]),
+  };
+}
+
+function useLocalStateManager(name: string) {
+  const [localCount, setLocalCount] = useState(0);
+  const [localData, setLocalData] = useState<Record<string, string>>({});
+  const globalDispatch = useGlobalAction();
+
+  const localIncrementHandler = useCallback(() => {
+    setLocalCount(prev => prev + 1);
+  }, []);
+
+  const localDecrementHandler = useCallback(() => {
+    setLocalCount(prev => prev - 1);
+  }, []);
+
+  const localResetHandler = useCallback(() => {
+    setLocalCount(0);
+    setLocalData({});
+  }, []);
+
+  const updateLocalDataHandler = useCallback(({ id, value }: { id: string; value: string }) => {
+    setLocalData(prev => ({ ...prev, [id]: value }));
+  }, []);
+
+  // 액션 핸들러 등록
+  useLocalActionHandler('localIncrement', localIncrementHandler);
+  useLocalActionHandler('localDecrement', localDecrementHandler);
+  useLocalActionHandler('localReset', localResetHandler);
+  useLocalActionHandler('updateLocalData', updateLocalDataHandler);
+
+  // 로컬 → 글로벌 통신 예시
+  useEffect(() => {
+    if (localCount > 0 && localCount % 5 === 0) {
+      globalDispatch('broadcastMessage', `${name} local count reached ${localCount}!`);
+    }
+  }, [localCount, name, globalDispatch]);
+
+  return {
+    localCount,
+    localData,
+  };
+}
+
+function useLocalActions() {
+  const localDispatch = useLocalAction();
+
+  return {
+    incrementLocal: useCallback(() => localDispatch('localIncrement'), [localDispatch]),
+    decrementLocal: useCallback(() => localDispatch('localDecrement'), [localDispatch]),
+    resetLocal: useCallback(() => localDispatch('localReset'), [localDispatch]),
+    updateLocalData: useCallback((id: string, value: string) => 
+      localDispatch('updateLocalData', { id, value }), [localDispatch]),
+  };
+}
+
+function useBoundaryError() {
+  const [showError, setShowError] = useState(false);
+
+  const testOutsideContext = useCallback(() => {
+    setShowError(true);
+    setTimeout(() => setShowError(false), 3000);
+  }, []);
+
+  return {
+    showError,
+    testOutsideContext,
+  };
+}
+
+// === 순수 뷰 컴포넌트 ===
+function GlobalStateManagerView({
+  globalCount,
+  globalMessage,
+  broadcasts,
+}: {
+  globalCount: number;
+  globalMessage: string;
+  broadcasts: string[];
+}) {
   return (
-    <div style={{ padding: '20px', border: '2px solid #007bff', borderRadius: '8px', marginBottom: '20px' }}>
+    <div style={styles.globalContainer}>
       <h3>🌍 Global State Manager</h3>
       <div style={{ marginBottom: '15px' }}>
         <strong>Global Count:</strong> {globalCount}
@@ -72,15 +309,7 @@ function GlobalStateManager() {
       {broadcasts.length > 0 && (
         <div style={{ marginTop: '15px' }}>
           <strong>Broadcast Messages:</strong>
-          <div style={{
-            maxHeight: '100px',
-            overflow: 'auto',
-            backgroundColor: '#f8f9fa',
-            padding: '10px',
-            borderRadius: '4px',
-            fontSize: '12px',
-            fontFamily: 'monospace',
-          }}>
+          <div style={styles.broadcastList}>
             {broadcasts.map((broadcast, index) => (
               <div key={index}>{broadcast}</div>
             ))}
@@ -91,50 +320,39 @@ function GlobalStateManager() {
   );
 }
 
-// 글로벌 액션을 트리거하는 컴포넌트
-function GlobalActionTrigger({ id }: { id: string }) {
-  const globalDispatch = useGlobalAction();
-
+function GlobalActionTriggerView({
+  id,
+  onIncrement,
+  onSetMessage,
+  onBroadcast,
+}: {
+  id: string;
+  onIncrement: () => void;
+  onSetMessage: () => void;
+  onBroadcast: () => void;
+}) {
   return (
-    <div style={{ padding: '15px', border: '1px solid #17a2b8', borderRadius: '8px', marginBottom: '10px' }}>
+    <div style={styles.actionTriggerContainer}>
       <h4>Global Action Trigger #{id}</h4>
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+      <div style={styles.actionButtonGroup}>
         <button
           type="button"
-          onClick={() => globalDispatch('globalIncrement')}
-          style={{
-            padding: '6px 12px',
-            backgroundColor: '#28a745',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-          }}
+          onClick={onIncrement}
+          style={{ ...styles.button, ...styles.incrementButton }}
         >
           +1 Global
         </button>
         <button
           type="button"
-          onClick={() => globalDispatch('setGlobalMessage', `Updated by trigger ${id}`)}
-          style={{
-            padding: '6px 12px',
-            backgroundColor: '#ffc107',
-            color: 'black',
-            border: 'none',
-            borderRadius: '4px',
-          }}
+          onClick={onSetMessage}
+          style={{ ...styles.button, ...styles.messageButton }}
         >
           Set Message
         </button>
         <button
           type="button"
-          onClick={() => globalDispatch('broadcastMessage', `Hello from trigger ${id}!`)}
-          style={{
-            padding: '6px 12px',
-            backgroundColor: '#17a2b8',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-          }}
+          onClick={onBroadcast}
+          style={{ ...styles.button, ...styles.broadcastButton }}
         >
           Broadcast
         </button>
@@ -143,101 +361,56 @@ function GlobalActionTrigger({ id }: { id: string }) {
   );
 }
 
-// 로컬 상태를 관리하는 컴포넌트
-function LocalStateComponent({ name }: { name: string }) {
-  const [localCount, setLocalCount] = useState(0);
-  const [localData, setLocalData] = useState<Record<string, string>>({});
-  const localDispatch = useLocalAction();
-  const globalDispatch = useGlobalAction();
-
-  useLocalActionHandler('localIncrement', () => {
-    setLocalCount(prev => prev + 1);
-  });
-
-  useLocalActionHandler('localDecrement', () => {
-    setLocalCount(prev => prev - 1);
-  });
-
-  useLocalActionHandler('localReset', () => {
-    setLocalCount(0);
-    setLocalData({});
-  });
-
-  useLocalActionHandler('updateLocalData', ({ id, value }) => {
-    setLocalData(prev => ({ ...prev, [id]: value }));
-  });
-
-  // 로컬 → 글로벌 통신 예시
-  useEffect(() => {
-    if (localCount > 0 && localCount % 5 === 0) {
-      globalDispatch('broadcastMessage', `${name} local count reached ${localCount}!`);
-    }
-  }, [localCount, name, globalDispatch]);
-
+function LocalStateView({
+  name,
+  localCount,
+  localData,
+  onIncrement,
+  onDecrement,
+  onReset,
+  onAddData,
+}: {
+  name: string;
+  localCount: number;
+  localData: Record<string, string>;
+  onIncrement: () => void;
+  onDecrement: () => void;
+  onReset: () => void;
+  onAddData: () => void;
+}) {
   return (
-    <div style={{ padding: '15px', border: '1px solid #28a745', borderRadius: '8px', marginBottom: '10px' }}>
+    <div style={styles.localStateContainer}>
       <h4>📍 Local State: {name}</h4>
       <div style={{ marginBottom: '10px' }}>
         <strong>Local Count:</strong> {localCount}
       </div>
       
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '10px' }}>
+      <div style={styles.localButtonGroup}>
         <button
           type="button"
-          onClick={() => localDispatch('localIncrement')}
-          style={{
-            padding: '4px 8px',
-            backgroundColor: '#28a745',
-            color: 'white',
-            border: 'none',
-            borderRadius: '3px',
-            fontSize: '12px',
-          }}
+          onClick={onIncrement}
+          style={{ ...styles.button, ...styles.smallButton, ...styles.incrementButton }}
         >
           +1
         </button>
         <button
           type="button"
-          onClick={() => localDispatch('localDecrement')}
-          style={{
-            padding: '4px 8px',
-            backgroundColor: '#dc3545',
-            color: 'white',
-            border: 'none',
-            borderRadius: '3px',
-            fontSize: '12px',
-          }}
+          onClick={onDecrement}
+          style={{ ...styles.button, ...styles.smallButton, ...styles.decrementButton }}
         >
           -1
         </button>
         <button
           type="button"
-          onClick={() => localDispatch('localReset')}
-          style={{
-            padding: '4px 8px',
-            backgroundColor: '#6c757d',
-            color: 'white',
-            border: 'none',
-            borderRadius: '3px',
-            fontSize: '12px',
-          }}
+          onClick={onReset}
+          style={{ ...styles.button, ...styles.smallButton, ...styles.resetButton }}
         >
           Reset
         </button>
         <button
           type="button"
-          onClick={() => localDispatch('updateLocalData', { 
-            id: Date.now().toString(), 
-            value: `Data from ${name}` 
-          })}
-          style={{
-            padding: '4px 8px',
-            backgroundColor: '#fd7e14',
-            color: 'white',
-            border: 'none',
-            borderRadius: '3px',
-            fontSize: '12px',
-          }}
+          onClick={onAddData}
+          style={{ ...styles.button, ...styles.smallButton, ...styles.dataButton }}
         >
           Add Data
         </button>
@@ -252,73 +425,163 @@ function LocalStateComponent({ name }: { name: string }) {
   );
 }
 
-// 중첩 컨텍스트를 보여주는 영역
-function NestedContextArea() {
+function NestedContextAreaView({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <LocalProvider>
-      <div style={{ padding: '20px', border: '2px solid #28a745', borderRadius: '8px', marginBottom: '20px' }}>
+      <div style={styles.localContainer}>
         <h3>🔄 Nested Context Area (Local Context)</h3>
-        <p style={{ fontSize: '14px', color: '#6c757d', marginBottom: '15px' }}>
+        <p style={styles.description}>
           이 영역은 로컬 컨텍스트로 감싸져 있어 전역 컨텍스트와 독립적으로 동작합니다.
           로컬 컨텍스트는 전역 컨텍스트에 접근할 수 있지만, 전역 컨텍스트는 로컬 컨텍스트에 접근할 수 없습니다.
         </p>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px' }}>
-          <LocalStateComponent name="Area A" />
-          <LocalStateComponent name="Area B" />
-          <LocalStateComponent name="Area C" />
+        <div style={styles.grid}>
+          {children}
         </div>
       </div>
     </LocalProvider>
   );
 }
 
-// 컨텍스트 경계를 보여주는 컴포넌트
-function ContextBoundaryDemo() {
-  const [showError, setShowError] = useState(false);
-
-  const testOutsideContext = () => {
-    setShowError(true);
-    setTimeout(() => setShowError(false), 3000);
-  };
-
+function ContextBoundaryView({
+  showError,
+  onTestBoundary,
+}: {
+  showError: boolean;
+  onTestBoundary: () => void;
+}) {
   return (
-    <div style={{ padding: '20px', border: '2px solid #ffc107', borderRadius: '8px', marginBottom: '20px' }}>
+    <div style={styles.boundaryContainer}>
       <h3>⚠️ Context Boundary Demo</h3>
-      <p style={{ fontSize: '14px', color: '#6c757d', marginBottom: '15px' }}>
+      <p style={styles.description}>
         컨텍스트 외부에서 액션을 호출할 때의 에러 처리를 확인할 수 있습니다.
       </p>
 
       <button
         type="button"
-        onClick={testOutsideContext}
-        style={{
-          padding: '8px 16px',
-          backgroundColor: '#ffc107',
-          color: 'black',
-          border: 'none',
-          borderRadius: '4px',
-          marginBottom: '10px',
-        }}
+        onClick={onTestBoundary}
+        style={{ ...styles.button, ...styles.boundaryTestButton }}
       >
         Test Context Boundary Error
       </button>
 
       {showError && (
-        <div style={{
-          padding: '10px',
-          backgroundColor: '#f8d7da',
-          border: '1px solid #f5c6cb',
-          borderRadius: '4px',
-          color: '#721c24',
-          fontSize: '14px',
-        }}>
+        <div style={styles.errorMessage}>
           💡 실제 에러는 콘솔에서 확인하세요. Context 외부에서 useAction을 호출할 때 발생하는 에러 메시지를 볼 수 있습니다.
         </div>
       )}
     </div>
   );
 }
+
+function GlobalResetButtonView({
+  onReset,
+}: {
+  onReset: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onReset}
+      style={{ ...styles.button, ...styles.globalResetButton }}
+    >
+      🔄 Reset All Global State
+    </button>
+  );
+}
+
+// === 컨테이너 컴포넌트 ===
+function GlobalStateManager() {
+  const { globalCount, globalMessage, broadcasts } = useGlobalStateManager();
+
+  return (
+    <GlobalStateManagerView
+      globalCount={globalCount}
+      globalMessage={globalMessage}
+      broadcasts={broadcasts}
+    />
+  );
+}
+
+function GlobalActionTrigger({ id }: { id: string }) {
+  const { incrementGlobal, setGlobalMessage, broadcastMessage } = useGlobalActions();
+
+  const handleIncrement = useCallback(() => {
+    incrementGlobal();
+  }, [incrementGlobal]);
+
+  const handleSetMessage = useCallback(() => {
+    setGlobalMessage(`Updated by trigger ${id}`);
+  }, [setGlobalMessage, id]);
+
+  const handleBroadcast = useCallback(() => {
+    broadcastMessage(`Hello from trigger ${id}!`);
+  }, [broadcastMessage, id]);
+
+  return (
+    <GlobalActionTriggerView
+      id={id}
+      onIncrement={handleIncrement}
+      onSetMessage={handleSetMessage}
+      onBroadcast={handleBroadcast}
+    />
+  );
+}
+
+function LocalStateComponent({ name }: { name: string }) {
+  const { localCount, localData } = useLocalStateManager(name);
+  const { incrementLocal, decrementLocal, resetLocal, updateLocalData } = useLocalActions();
+
+  const handleAddData = useCallback(() => {
+    updateLocalData(Date.now().toString(), `Data from ${name}`);
+  }, [updateLocalData, name]);
+
+  return (
+    <LocalStateView
+      name={name}
+      localCount={localCount}
+      localData={localData}
+      onIncrement={incrementLocal}
+      onDecrement={decrementLocal}
+      onReset={resetLocal}
+      onAddData={handleAddData}
+    />
+  );
+}
+
+function NestedContextArea() {
+  return (
+    <NestedContextAreaView>
+      <LocalStateComponent name="Area A" />
+      <LocalStateComponent name="Area B" />
+      <LocalStateComponent name="Area C" />
+    </NestedContextAreaView>
+  );
+}
+
+function ContextBoundaryDemo() {
+  const { showError, testOutsideContext } = useBoundaryError();
+
+  return (
+    <ContextBoundaryView
+      showError={showError}
+      onTestBoundary={testOutsideContext}
+    />
+  );
+}
+
+function GlobalResetButton() {
+  const { resetGlobal } = useGlobalActions();
+
+  return (
+    <GlobalResetButtonView onReset={resetGlobal} />
+  );
+}
+
 
 function ReactContextContent() {
   return (
@@ -335,10 +598,10 @@ function ReactContextContent() {
       {/* Global Action Triggers */}
       <div style={{ marginBottom: '20px' }}>
         <h3>🎯 Global Action Triggers</h3>
-        <p style={{ fontSize: '14px', color: '#6c757d', marginBottom: '15px' }}>
+        <p style={styles.description}>
           여러 컴포넌트에서 동일한 글로벌 액션을 트리거할 수 있습니다.
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '10px' }}>
+        <div style={styles.actionGrid}>
           <GlobalActionTrigger id="1" />
           <GlobalActionTrigger id="2" />
         </div>
@@ -351,14 +614,14 @@ function ReactContextContent() {
       <ContextBoundaryDemo />
 
       {/* Global Reset Button */}
-      <div style={{ textAlign: 'center', marginTop: '20px' }}>
+      <div style={styles.textCenter}>
         <GlobalResetButton />
       </div>
 
       {/* Code Example */}
-      <div style={{ marginTop: '30px', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+      <div style={styles.codeExample}>
         <h3>중첩 컨텍스트 예시</h3>
-        <pre style={{ overflow: 'auto', fontSize: '14px' }}>
+        <pre style={styles.pre}>
 {`// 1. 글로벌 및 로컬 컨텍스트 생성
 const { Provider: GlobalProvider, useAction: useGlobalAction } = 
   createActionContext<GlobalActionMap>();
@@ -393,27 +656,6 @@ function LocalComponent() {
   );
 }
 
-function GlobalResetButton() {
-  const globalDispatch = useGlobalAction();
-
-  return (
-    <button
-      type="button"
-      onClick={() => globalDispatch('globalReset')}
-      style={{
-        padding: '12px 24px',
-        backgroundColor: '#dc3545',
-        color: 'white',
-        border: 'none',
-        borderRadius: '6px',
-        fontSize: '16px',
-        fontWeight: 'bold',
-      }}
-    >
-      🔄 Reset All Global State
-    </button>
-  );
-}
 
 export function ReactContextPage() {
   return (
