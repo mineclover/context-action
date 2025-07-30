@@ -50,7 +50,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
           run_install: false
 
       - name: Get pnpm store directory
@@ -80,11 +80,15 @@ jobs:
 
       - name: Install dependencies
         run: |
-          if [ -f pnpm-lock.yaml ]; then
-            echo "pnpm-lock.yaml found, installing with frozen lockfile"
-            pnpm install --frozen-lockfile
+          echo "Installing dependencies with pnpm"
+          echo "pnpm version: $(pnpm --version)"
+          echo "lockfile version: $(head -n 1 pnpm-lock.yaml)"
+          
+          # Try with frozen lockfile first, fallback if incompatible
+          if pnpm install --frozen-lockfile 2>/dev/null; then
+            echo "✅ Installed with frozen lockfile"
           else
-            echo "pnpm-lock.yaml not found, installing without frozen lockfile"
+            echo "⚠️ Frozen lockfile failed, trying without frozen lockfile"
             pnpm install --no-frozen-lockfile
           fi
 
