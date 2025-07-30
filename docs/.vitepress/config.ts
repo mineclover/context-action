@@ -3,6 +3,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: 'Context Action',
   description: 'Type-safe action pipeline management for React',
+  base: '/context-action/',
   
   // 다국어 설정
   locales: {
@@ -33,6 +34,14 @@ export default defineConfig({
                 { text: 'Core', link: '/api/core/' },
                 { text: 'React', link: '/api/react/' },
                 { text: 'Jotai', link: '/api/jotai/' }
+              ]
+            }
+          ],
+          '/examples/': [
+            {
+              text: 'Examples',
+              items: [
+                { text: 'Code Examples', link: '/examples/' }
               ]
             }
           ]
@@ -66,6 +75,14 @@ export default defineConfig({
                 { text: 'Core', link: '/ko/api/core/' },
                 { text: 'React', link: '/ko/api/react/' },
                 { text: 'Jotai', link: '/ko/api/jotai/' }
+              ]
+            }
+          ],
+          '/ko/examples/': [
+            {
+              text: '예제',
+              items: [
+                { text: '코드 예제', link: '/ko/examples/' }
               ]
             }
           ]
@@ -110,8 +127,6 @@ export default defineConfig({
   ignoreDeadLinks: [
     // API generated 링크들
     /\/api\/generated\//,
-    /\/ko\/guide\/advanced\/index/,
-    /\/examples\/index/,
     /\/guide\/action-pipeline/,
     /\/guide\/handler-configuration/,
     // 생성될 예정인 링크들
