@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   type ActionPayloadMap,
   createActionContext,
 } from '@context-action/react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 // === 타입 정의 ===
 interface HooksActionMap extends ActionPayloadMap {
@@ -110,11 +110,11 @@ function useCounter(initialValue = 0) {
   const [count, setCount] = useState(initialValue);
 
   const incrementHandler = useCallback(() => {
-    setCount(prev => prev + 1);
+    setCount((prev) => prev + 1);
   }, []);
 
   const decrementHandler = useCallback(() => {
-    setCount(prev => prev - 1);
+    setCount((prev) => prev - 1);
   }, []);
 
   const setCountHandler = useCallback((payload: number) => {
@@ -148,16 +148,19 @@ function useConditionalHandler() {
   const [isEnabled, setIsEnabled] = useState(true);
 
   const toggleHandler = useCallback(() => {
-    setIsEnabled(prev => !prev);
+    setIsEnabled((prev) => !prev);
   }, []);
 
-  const logMessageHandler = useCallback((message: string) => {
-    if (isEnabled) {
-      console.log(`[ENABLED] ${message}`);
-    } else {
-      console.log(`[DISABLED] Message ignored: ${message}`);
-    }
-  }, [isEnabled]);
+  const logMessageHandler = useCallback(
+    (message: string) => {
+      if (isEnabled) {
+        console.log(`[ENABLED] ${message}`);
+      } else {
+        console.log(`[DISABLED] Message ignored: ${message}`);
+      }
+    },
+    [isEnabled]
+  );
 
   // 액션 핸들러 등록
   useActionHandler('toggleEnabled', toggleHandler, { priority: 1 });
@@ -180,11 +183,11 @@ function useDynamicHandlers() {
 
   const addHandler = useCallback(() => {
     const handlerId = `handler_${Date.now()}`;
-    setHandlers(prev => [...prev, handlerId]);
+    setHandlers((prev) => [...prev, handlerId]);
   }, []);
 
   const removeHandler = useCallback((id: string) => {
-    setHandlers(prev => prev.filter(h => h !== id));
+    setHandlers((prev) => prev.filter((h) => h !== id));
   }, []);
 
   return {
@@ -221,13 +224,11 @@ function OptimizedCounterView({
   return (
     <div style={styles.container}>
       <h3>최적화된 카운터 (커스텀 훅 사용)</h3>
-      <div style={countStyle}>
-        Count: {count}
-      </div>
+      <div style={countStyle}>Count: {count}</div>
       <div style={styles.expensiveValue}>
         Expensive calculation (count³): {expensiveValue}
       </div>
-      
+
       <div style={styles.buttonGroup}>
         <button
           type="button"
@@ -236,7 +237,7 @@ function OptimizedCounterView({
         >
           +1
         </button>
-        
+
         <button
           type="button"
           onClick={onDecrement}
@@ -244,7 +245,7 @@ function OptimizedCounterView({
         >
           -1
         </button>
-        
+
         <button
           type="button"
           onClick={onReset}
@@ -270,7 +271,7 @@ function ConditionalHandlerView({
     <div style={styles.container}>
       <h3>조건부 액션 핸들러</h3>
       <p>상태: {isEnabled ? '활성화됨' : '비활성화됨'}</p>
-      
+
       <div style={styles.buttonGroup}>
         <button
           type="button"
@@ -282,7 +283,7 @@ function ConditionalHandlerView({
         >
           {isEnabled ? '비활성화' : '활성화'}
         </button>
-        
+
         <button
           type="button"
           onClick={onSendMessage}
@@ -310,7 +311,7 @@ function DynamicHandlerView({
     <div style={styles.container}>
       <h3>동적 핸들러 관리</h3>
       <p>런타임에 핸들러를 추가하고 제거할 수 있습니다.</p>
-      
+
       <div style={styles.buttonGroup}>
         <button
           type="button"
@@ -319,7 +320,7 @@ function DynamicHandlerView({
         >
           핸들러 추가
         </button>
-        
+
         <button
           type="button"
           onClick={onSendMessage}
@@ -335,7 +336,7 @@ function DynamicHandlerView({
           <p style={styles.emptyState}>등록된 핸들러가 없습니다.</p>
         ) : (
           <ul style={styles.handlerList}>
-            {handlers.map(id => (
+            {handlers.map((id) => (
               <HandlerItemView
                 key={id}
                 id={id}
@@ -359,11 +360,7 @@ function HandlerItemView({
   return (
     <li style={styles.handlerItem}>
       <span>{id}</span>
-      <button
-        type="button"
-        onClick={onRemove}
-        style={styles.removeButton}
-      >
+      <button type="button" onClick={onRemove} style={styles.removeButton}>
         제거
       </button>
     </li>
@@ -382,10 +379,13 @@ function OptimizedCounter() {
   }, [count]);
 
   // 조건부 스타일 메모이제이션
-  const countStyle = useMemo(() => ({
-    ...styles.countDisplay,
-    color: count > 10 ? '#dc3545' : count < 0 ? '#ffc107' : '#28a745',
-  }), [count]);
+  const countStyle = useMemo(
+    () => ({
+      ...styles.countDisplay,
+      color: count > 10 ? '#dc3545' : count < 0 ? '#ffc107' : '#28a745',
+    }),
+    [count]
+  );
 
   return (
     <OptimizedCounterView
@@ -434,16 +434,23 @@ function DynamicHandlerDemo() {
   );
 }
 
-function DynamicHandler({ id, onRemove }: { id: string; onRemove: () => void }) {
-  const logMessageHandler = useCallback((message: string) => {
-    console.log(`[${id}] Received: ${message}`);
-  }, [id]);
+function DynamicHandler({
+  id,
+  onRemove,
+}: {
+  id: string;
+  onRemove: () => void;
+}) {
+  const logMessageHandler = useCallback(
+    (message: string) => {
+      console.log(`[${id}] Received: ${message}`);
+    },
+    [id]
+  );
 
   useActionHandler('logMessage', logMessageHandler);
 
-  return (
-    <HandlerItemView id={id} onRemove={onRemove} />
-  );
+  return <HandlerItemView id={id} onRemove={onRemove} />;
 }
 
 function ReactHooksContent() {
@@ -451,8 +458,8 @@ function ReactHooksContent() {
     <div>
       <h1>React Integration - Hooks</h1>
       <p>
-        커스텀 훅과 고급 상태 관리 패턴을 다룹니다. 
-        액션 핸들러의 조건부 등록, 메모이제이션 최적화, 동적 핸들러 관리 등을 보여줍니다.
+        커스텀 훅과 고급 상태 관리 패턴을 다룹니다. 액션 핸들러의 조건부 등록,
+        메모이제이션 최적화, 동적 핸들러 관리 등을 보여줍니다.
       </p>
 
       <div style={styles.grid}>
@@ -465,7 +472,7 @@ function ReactHooksContent() {
       <div style={styles.codeExample}>
         <h3>커스텀 훅 예시</h3>
         <pre style={styles.pre}>
-{`// 1. 커스텀 훅 정의
+          {`// 1. 커스텀 훅 정의
 function useCounter(initialValue = 0) {
   const [count, setCount] = useState(initialValue);
   const dispatch = useAction();

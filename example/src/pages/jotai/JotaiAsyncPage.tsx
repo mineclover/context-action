@@ -13,7 +13,10 @@ export function JotaiAsyncPage() {
         }}
       >
         <h3>🚧 Coming Soon</h3>
-        <p>이 페이지는 현재 개발 중입니다. jotai 패키지가 완성되면 다음 기능들이 추가될 예정입니다:</p>
+        <p>
+          이 페이지는 현재 개발 중입니다. jotai 패키지가 완성되면 다음 기능들이
+          추가될 예정입니다:
+        </p>
         <ul>
           <li>비동기 아톰 처리</li>
           <li>로딩 상태 관리</li>

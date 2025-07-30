@@ -2,7 +2,7 @@ import {
   type ActionPayloadMap,
   createActionContext,
 } from '@context-action/react';
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 // 액션 타입 정의
 interface AppActionMap extends ActionPayloadMap {
@@ -12,7 +12,7 @@ interface AppActionMap extends ActionPayloadMap {
   reset: undefined;
 }
 
-const priority1 ={ priority: 1 };
+const priority1 = { priority: 1 };
 
 // 컨텍스트 생성
 const { Provider, useAction, useActionHandler } =
@@ -24,12 +24,12 @@ function Counter() {
 
   // useCallback으로 핸들러 메모이제이션
   const incrementHandler = useCallback(() => {
-    setCount(prev => prev + 1);
+    setCount((prev) => prev + 1);
     console.log('Counter incremented');
   }, []);
 
   const decrementHandler = useCallback(() => {
-    setCount(prev => prev - 1);
+    setCount((prev) => prev - 1);
     console.log('Counter decremented');
   }, []);
 
