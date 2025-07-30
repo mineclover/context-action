@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
 import {
   type ActionPayloadMap,
   createActionContext,
 } from '@context-action/react';
+import { useCallback, useEffect, useState } from 'react';
 
 // === 타입 정의 ===
 // 전역 액션 타입 (애플리케이션 전역에서 사용)
@@ -173,11 +173,13 @@ const styles = {
 // === 커스텀 훅 ===
 function useGlobalStateManager() {
   const [globalCount, setGlobalCount] = useState(0);
-  const [globalMessage, setGlobalMessage] = useState('Global context initialized');
+  const [globalMessage, setGlobalMessage] = useState(
+    'Global context initialized'
+  );
   const [broadcasts, setBroadcasts] = useState<string[]>([]);
 
   const globalIncrementHandler = useCallback(() => {
-    setGlobalCount(prev => prev + 1);
+    setGlobalCount((prev) => prev + 1);
   }, []);
 
   const globalResetHandler = useCallback(() => {
@@ -192,7 +194,7 @@ function useGlobalStateManager() {
 
   const broadcastMessageHandler = useCallback((message: string) => {
     const timestamp = new Date().toLocaleTimeString();
-    setBroadcasts(prev => [...prev, `[${timestamp}] ${message}`]);
+    setBroadcasts((prev) => [...prev, `[${timestamp}] ${message}`]);
   }, []);
 
   // 액션 핸들러 등록
@@ -213,8 +215,10 @@ function useGlobalActions() {
 
   return {
     incrementGlobal: () => globalDispatch('globalIncrement'),
-    setGlobalMessage: (message: string) => globalDispatch('setGlobalMessage', message),
-    broadcastMessage: (message: string) => globalDispatch('broadcastMessage', message),
+    setGlobalMessage: (message: string) =>
+      globalDispatch('setGlobalMessage', message),
+    broadcastMessage: (message: string) =>
+      globalDispatch('broadcastMessage', message),
     resetGlobal: () => globalDispatch('globalReset'),
   };
 }
@@ -225,11 +229,11 @@ function useLocalStateManager(name: string) {
   const globalDispatch = useGlobalAction();
 
   const localIncrementHandler = useCallback(() => {
-    setLocalCount(prev => prev + 1);
+    setLocalCount((prev) => prev + 1);
   }, []);
 
   const localDecrementHandler = useCallback(() => {
-    setLocalCount(prev => prev - 1);
+    setLocalCount((prev) => prev - 1);
   }, []);
 
   const localResetHandler = useCallback(() => {
@@ -237,9 +241,12 @@ function useLocalStateManager(name: string) {
     setLocalData({});
   }, []);
 
-  const updateLocalDataHandler = useCallback(({ id, value }: { id: string; value: string }) => {
-    setLocalData(prev => ({ ...prev, [id]: value }));
-  }, []);
+  const updateLocalDataHandler = useCallback(
+    ({ id, value }: { id: string; value: string }) => {
+      setLocalData((prev) => ({ ...prev, [id]: value }));
+    },
+    []
+  );
 
   // 액션 핸들러 등록
   useLocalActionHandler('localIncrement', localIncrementHandler);
@@ -250,7 +257,10 @@ function useLocalStateManager(name: string) {
   // 로컬 → 글로벌 통신 예시
   useEffect(() => {
     if (localCount > 0 && localCount % 5 === 0) {
-      globalDispatch('broadcastMessage', `${name} local count reached ${localCount}!`);
+      globalDispatch(
+        'broadcastMessage',
+        `${name} local count reached ${localCount}!`
+      );
     }
   }, [localCount, name, globalDispatch]);
 
@@ -267,7 +277,7 @@ function useLocalActions() {
     incrementLocal: () => localDispatch('localIncrement'),
     decrementLocal: () => localDispatch('localDecrement'),
     resetLocal: () => localDispatch('localReset'),
-    updateLocalData: (id: string, value: string) => 
+    updateLocalData: (id: string, value: string) =>
       localDispatch('updateLocalData', { id, value }),
   };
 }
@@ -305,7 +315,7 @@ function GlobalStateManagerView({
       <div style={{ marginBottom: '15px' }}>
         <strong>Global Message:</strong> {globalMessage}
       </div>
-      
+
       {broadcasts.length > 0 && (
         <div style={{ marginTop: '15px' }}>
           <strong>Broadcast Messages:</strong>
@@ -384,33 +394,49 @@ function LocalStateView({
       <div style={{ marginBottom: '10px' }}>
         <strong>Local Count:</strong> {localCount}
       </div>
-      
+
       <div style={styles.localButtonGroup}>
         <button
           type="button"
           onClick={onIncrement}
-          style={{ ...styles.button, ...styles.smallButton, ...styles.incrementButton }}
+          style={{
+            ...styles.button,
+            ...styles.smallButton,
+            ...styles.incrementButton,
+          }}
         >
           +1
         </button>
         <button
           type="button"
           onClick={onDecrement}
-          style={{ ...styles.button, ...styles.smallButton, ...styles.decrementButton }}
+          style={{
+            ...styles.button,
+            ...styles.smallButton,
+            ...styles.decrementButton,
+          }}
         >
           -1
         </button>
         <button
           type="button"
           onClick={onReset}
-          style={{ ...styles.button, ...styles.smallButton, ...styles.resetButton }}
+          style={{
+            ...styles.button,
+            ...styles.smallButton,
+            ...styles.resetButton,
+          }}
         >
           Reset
         </button>
         <button
           type="button"
           onClick={onAddData}
-          style={{ ...styles.button, ...styles.smallButton, ...styles.dataButton }}
+          style={{
+            ...styles.button,
+            ...styles.smallButton,
+            ...styles.dataButton,
+          }}
         >
           Add Data
         </button>
@@ -425,23 +451,18 @@ function LocalStateView({
   );
 }
 
-function NestedContextAreaView({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function NestedContextAreaView({ children }: { children: React.ReactNode }) {
   return (
     <LocalProvider>
       <div style={styles.localContainer}>
         <h3>🔄 Nested Context Area (Local Context)</h3>
         <p style={styles.description}>
-          이 영역은 로컬 컨텍스트로 감싸져 있어 전역 컨텍스트와 독립적으로 동작합니다.
-          로컬 컨텍스트는 전역 컨텍스트에 접근할 수 있지만, 전역 컨텍스트는 로컬 컨텍스트에 접근할 수 없습니다.
+          이 영역은 로컬 컨텍스트로 감싸져 있어 전역 컨텍스트와 독립적으로
+          동작합니다. 로컬 컨텍스트는 전역 컨텍스트에 접근할 수 있지만, 전역
+          컨텍스트는 로컬 컨텍스트에 접근할 수 없습니다.
         </p>
-        
-        <div style={styles.grid}>
-          {children}
-        </div>
+
+        <div style={styles.grid}>{children}</div>
       </div>
     </LocalProvider>
   );
@@ -471,18 +492,15 @@ function ContextBoundaryView({
 
       {showError && (
         <div style={styles.errorMessage}>
-          💡 실제 에러는 콘솔에서 확인하세요. Context 외부에서 useAction을 호출할 때 발생하는 에러 메시지를 볼 수 있습니다.
+          💡 실제 에러는 콘솔에서 확인하세요. Context 외부에서 useAction을
+          호출할 때 발생하는 에러 메시지를 볼 수 있습니다.
         </div>
       )}
     </div>
   );
 }
 
-function GlobalResetButtonView({
-  onReset,
-}: {
-  onReset: () => void;
-}) {
+function GlobalResetButtonView({ onReset }: { onReset: () => void }) {
   return (
     <button
       type="button"
@@ -508,7 +526,8 @@ function GlobalStateManager() {
 }
 
 function GlobalActionTrigger({ id }: { id: string }) {
-  const { incrementGlobal, setGlobalMessage, broadcastMessage } = useGlobalActions();
+  const { incrementGlobal, setGlobalMessage, broadcastMessage } =
+    useGlobalActions();
 
   const handleIncrement = useCallback(() => {
     incrementGlobal();
@@ -534,7 +553,8 @@ function GlobalActionTrigger({ id }: { id: string }) {
 
 function LocalStateComponent({ name }: { name: string }) {
   const { localCount, localData } = useLocalStateManager(name);
-  const { incrementLocal, decrementLocal, resetLocal, updateLocalData } = useLocalActions();
+  const { incrementLocal, decrementLocal, resetLocal, updateLocalData } =
+    useLocalActions();
 
   const handleAddData = useCallback(() => {
     updateLocalData(Date.now().toString(), `Data from ${name}`);
@@ -577,18 +597,15 @@ function ContextBoundaryDemo() {
 function GlobalResetButton() {
   const { resetGlobal } = useGlobalActions();
 
-  return (
-    <GlobalResetButtonView onReset={resetGlobal} />
-  );
+  return <GlobalResetButtonView onReset={resetGlobal} />;
 }
-
 
 function ReactContextContent() {
   return (
     <div>
       <h1>React Integration - Context</h1>
       <p>
-        복잡한 컨텍스트 시나리오를 다룹니다: 중첩 컨텍스트, 전역/지역 상태 분리, 
+        복잡한 컨텍스트 시나리오를 다룹니다: 중첩 컨텍스트, 전역/지역 상태 분리,
         다중 컨텍스트 통신, 컨텍스트 경계 처리 등을 보여줍니다.
       </p>
 
@@ -622,7 +639,7 @@ function ReactContextContent() {
       <div style={styles.codeExample}>
         <h3>중첩 컨텍스트 예시</h3>
         <pre style={styles.pre}>
-{`// 1. 글로벌 및 로컬 컨텍스트 생성
+          {`// 1. 글로벌 및 로컬 컨텍스트 생성
 const { Provider: GlobalProvider, useAction: useGlobalAction } = 
   createActionContext<GlobalActionMap>();
 
@@ -655,7 +672,6 @@ function LocalComponent() {
     </div>
   );
 }
-
 
 export function ReactContextPage() {
   return (

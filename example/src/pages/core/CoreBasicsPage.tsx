@@ -1,5 +1,5 @@
 import { type ActionPayloadMap, ActionRegister } from '@context-action/core';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 // 액션 타입 정의
 interface CoreActionMap extends ActionPayloadMap {
@@ -10,24 +10,31 @@ interface CoreActionMap extends ActionPayloadMap {
   log: string;
 }
 
+// 로그 엔트리 타입 정의
+interface LogEntry {
+  id: string;
+  message: string;
+}
+
 export function CoreBasicsPage() {
   const [count, setCount] = useState(0);
-  const [logs, setLogs] = useState<string[]>([]);
+  const [logs, setLogs] = useState<LogEntry[]>([]);
   const [actionRegister] = useState(() => new ActionRegister<CoreActionMap>());
 
-  const addLog = (message: string) => {
-    setLogs(prev => [
-      ...prev,
-      `${new Date().toLocaleTimeString()}: ${message}`,
-    ]);
-  };
+  const addLog = useCallback((message: string) => {
+    const newLog: LogEntry = {
+      id: `${Date.now()}-${Math.random()}`,
+      message: `${new Date().toLocaleTimeString()}: ${message}`,
+    };
+    setLogs((prev) => [...prev, newLog]);
+  }, []);
 
   useEffect(() => {
     // 액션 핸들러 등록
     const unsubscribeIncrement = actionRegister.register(
       'increment',
       (_, controller) => {
-        setCount(prev => prev + 1);
+        setCount((prev) => prev + 1);
         addLog('Increment action executed');
         controller.next();
       }
@@ -36,7 +43,7 @@ export function CoreBasicsPage() {
     const unsubscribeDecrement = actionRegister.register(
       'decrement',
       (_, controller) => {
-        setCount(prev => prev - 1);
+        setCount((prev) => prev - 1);
         addLog('Decrement action executed');
         controller.next();
       }
@@ -228,9 +235,9 @@ export function CoreBasicsPage() {
             {logs.length === 0 ? (
               <div style={{ color: '#6c757d' }}>No logs yet...</div>
             ) : (
-              logs.map((log, index) => (
-                <div key={index} style={{ marginBottom: '5px' }}>
-                  {log}
+              logs.map((log) => (
+                <div key={log.id} style={{ marginBottom: '5px' }}>
+                  {log.message}
                 </div>
               ))
             )}

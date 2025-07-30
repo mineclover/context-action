@@ -2,7 +2,7 @@ import {
   type ActionPayloadMap,
   createActionContext,
 } from '@context-action/react';
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 // === 타입 정의 ===
 interface ReactActionMap extends ActionPayloadMap {
@@ -16,8 +16,6 @@ interface ReactActionMap extends ActionPayloadMap {
 // === 컨텍스트 생성 ===
 const { Provider, useAction, useActionHandler } =
   createActionContext<ReactActionMap>();
-
-
 
 // === 스타일 객체 (컴포넌트 외부) ===
 const styles = {
@@ -103,18 +101,16 @@ const styles = {
   },
 } as const;
 
-
-
 // === 커스텀 훅 ===
 function useCounter() {
   const [count, setCount] = useState(0);
 
   const incrementHandler = useCallback(() => {
-    setCount(prev => prev + 1);
+    setCount((prev) => prev + 1);
   }, []);
 
   const decrementHandler = useCallback(() => {
-    setCount(prev => prev - 1);
+    setCount((prev) => prev - 1);
   }, []);
 
   const setCountHandler = useCallback((payload: number) => {
@@ -138,7 +134,7 @@ function useLogger() {
   const [logs, setLogs] = useState<string[]>([]);
 
   const addLog = useCallback((message: string) => {
-    setLogs(prev => [
+    setLogs((prev) => [
       ...prev,
       `${new Date().toLocaleTimeString()}: ${message}`,
     ]);
@@ -152,18 +148,24 @@ function useLogger() {
     addLog('Decrement action detected');
   }, [addLog]);
 
-  const setCountLogHandler = useCallback((payload: number) => {
-    addLog(`SetCount action detected: ${payload}`);
-  }, [addLog]);
+  const setCountLogHandler = useCallback(
+    (payload: number) => {
+      addLog(`SetCount action detected: ${payload}`);
+    },
+    [addLog]
+  );
 
   const resetLogHandler = useCallback(() => {
     addLog('Reset action detected');
     setLogs([]);
   }, [addLog]);
 
-  const updateMessageHandler = useCallback((message: string) => {
-    addLog(`Custom message: ${message}`);
-  }, [addLog]);
+  const updateMessageHandler = useCallback(
+    (message: string) => {
+      addLog(`Custom message: ${message}`);
+    },
+    [addLog]
+  );
 
   // 액션 핸들러 등록
   useActionHandler('increment', incrementLogHandler, { priority: 0 });
@@ -177,7 +179,7 @@ function useLogger() {
 
 function useMessageSender() {
   const [message, setMessage] = useState('');
-  
+
   const clearMessage = useCallback(() => {
     setMessage('');
   }, []);
@@ -209,12 +211,12 @@ function useMessageActions() {
 }
 
 // === 순수 뷰 컴포넌트 ===
-function CounterView({ 
-  count, 
-  onIncrement, 
-  onDecrement, 
-  onSetCount, 
-  onReset 
+function CounterView({
+  count,
+  onIncrement,
+  onDecrement,
+  onSetCount,
+  onReset,
 }: {
   count: number;
   onIncrement: () => void;
@@ -225,9 +227,7 @@ function CounterView({
   return (
     <div style={styles.container}>
       <h3>Counter Component</h3>
-      <div style={styles.countDisplay}>
-        Count: {count}
-      </div>
+      <div style={styles.countDisplay}>Count: {count}</div>
 
       <div style={styles.buttonGroup}>
         <button
@@ -303,7 +303,7 @@ function MessageSenderView({
         <input
           type="text"
           value={message}
-          onChange={e => onMessageChange(e.target.value)}
+          onChange={(e) => onMessageChange(e.target.value)}
           onKeyDown={onKeyDown}
           placeholder="Enter a message..."
           style={styles.input}
@@ -352,11 +352,14 @@ function MessageSender() {
     }
   }, [message, sendMessage, clearMessage]);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSend();
-    }
-  }, [handleSend]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        handleSend();
+      }
+    },
+    [handleSend]
+  );
 
   return (
     <MessageSenderView

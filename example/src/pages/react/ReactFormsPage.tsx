@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react';
 import {
   type ActionPayloadMap,
   createActionContext,
 } from '@context-action/react';
+import { useCallback, useState } from 'react';
 
 // === 타입 정의 ===
 interface FormActionMap extends ActionPayloadMap {
@@ -36,7 +36,8 @@ interface FormState {
 }
 
 // === 컨텍스트 생성 ===
-const { Provider, useAction, useActionHandler } = createActionContext<FormActionMap>();
+const { Provider, useAction, useActionHandler } =
+  createActionContext<FormActionMap>();
 
 // === 스타일 객체 (컴포넌트 외부) ===
 const styles = {
@@ -166,7 +167,10 @@ const styles = {
 } as const;
 
 // === 커스텀 훅 ===
-function useFormManager(initialValues: Record<string, string>, validationRules: ValidationRules) {
+function useFormManager(
+  initialValues: Record<string, string>,
+  validationRules: ValidationRules
+) {
   const [formState, setFormState] = useState<FormState>({
     values: initialValues,
     errors: {},
@@ -175,80 +179,88 @@ function useFormManager(initialValues: Record<string, string>, validationRules: 
     isValid: false,
   });
 
-  const updateFieldHandler = useCallback(({ field, value }: { field: string; value: string }) => {
-    setFormState(prev => ({
-      ...prev,
-      values: { ...prev.values, [field]: value },
-      touched: { ...prev.touched, [field]: true },
-    }));
-  }, []);
-
-  const validateFieldHandler = useCallback(({ field, value }: { field: string; value: string }) => {
-    const rule = validationRules[field];
-    let error: string | null = null;
-
-    if (rule) {
-      if (rule.required && !value.trim()) {
-        error = `${field}는 필수 입력 항목입니다.`;
-      } else if (rule.minLength && value.length < rule.minLength) {
-        error = `${field}는 최소 ${rule.minLength}자 이상이어야 합니다.`;
-      } else if (rule.maxLength && value.length > rule.maxLength) {
-        error = `${field}는 최대 ${rule.maxLength}자까지 입력 가능합니다.`;
-      } else if (rule.pattern && !rule.pattern.test(value)) {
-        error = `${field} 형식이 올바르지 않습니다.`;
-      } else if (rule.custom) {
-        error = rule.custom(value);
-      }
-    }
-
-    setFormState(prev => {
-      const newErrors = { ...prev.errors, [field]: error };
-      const isValid = Object.values(newErrors).every(err => !err);
-      
-      return {
+  const updateFieldHandler = useCallback(
+    ({ field, value }: { field: string; value: string }) => {
+      setFormState((prev) => ({
         ...prev,
-        errors: newErrors,
-        isValid,
-      };
-    });
-  }, [validationRules]);
+        values: { ...prev.values, [field]: value },
+        touched: { ...prev.touched, [field]: true },
+      }));
+    },
+    []
+  );
 
-  const submitFormHandler = useCallback(async ({ formData }: { formData: Record<string, string> }) => {
-    setFormState(prev => ({ ...prev, isSubmitting: true }));
-    
-    try {
-      const errors: Record<string, string | null> = {};
-      let hasErrors = false;
+  const validateFieldHandler = useCallback(
+    ({ field, value }: { field: string; value: string }) => {
+      const rule = validationRules[field];
+      let error: string | null = null;
 
-      for (const [field, value] of Object.entries(formData)) {
-        const rule = validationRules[field];
-        if (rule?.required && !value.trim()) {
-          errors[field] = `${field}는 필수 입력 항목입니다.`;
-          hasErrors = true;
+      if (rule) {
+        if (rule.required && !value.trim()) {
+          error = `${field}는 필수 입력 항목입니다.`;
+        } else if (rule.minLength && value.length < rule.minLength) {
+          error = `${field}는 최소 ${rule.minLength}자 이상이어야 합니다.`;
+        } else if (rule.maxLength && value.length > rule.maxLength) {
+          error = `${field}는 최대 ${rule.maxLength}자까지 입력 가능합니다.`;
+        } else if (rule.pattern && !rule.pattern.test(value)) {
+          error = `${field} 형식이 올바르지 않습니다.`;
+        } else if (rule.custom) {
+          error = rule.custom(value);
         }
       }
 
-      if (hasErrors) {
-        setFormState(prev => ({
-          ...prev,
-          errors,
-          isSubmitting: false,
-        }));
-        return;
-      }
+      setFormState((prev) => {
+        const newErrors = { ...prev.errors, [field]: error };
+        const isValid = Object.values(newErrors).every((err) => !err);
 
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      console.log('Form submitted successfully:', formData);
-      alert('폼이 성공적으로 제출되었습니다!');
-      
-    } catch (error) {
-      console.error('Form submission error:', error);
-      alert('폼 제출 중 오류가 발생했습니다.');
-    } finally {
-      setFormState(prev => ({ ...prev, isSubmitting: false }));
-    }
-  }, [validationRules]);
+        return {
+          ...prev,
+          errors: newErrors,
+          isValid,
+        };
+      });
+    },
+    [validationRules]
+  );
+
+  const submitFormHandler = useCallback(
+    async ({ formData }: { formData: Record<string, string> }) => {
+      setFormState((prev) => ({ ...prev, isSubmitting: true }));
+
+      try {
+        const errors: Record<string, string | null> = {};
+        let hasErrors = false;
+
+        for (const [field, value] of Object.entries(formData)) {
+          const rule = validationRules[field];
+          if (rule?.required && !value.trim()) {
+            errors[field] = `${field}는 필수 입력 항목입니다.`;
+            hasErrors = true;
+          }
+        }
+
+        if (hasErrors) {
+          setFormState((prev) => ({
+            ...prev,
+            errors,
+            isSubmitting: false,
+          }));
+          return;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        console.log('Form submitted successfully:', formData);
+        alert('폼이 성공적으로 제출되었습니다!');
+      } catch (error) {
+        console.error('Form submission error:', error);
+        alert('폼 제출 중 오류가 발생했습니다.');
+      } finally {
+        setFormState((prev) => ({ ...prev, isSubmitting: false }));
+      }
+    },
+    [validationRules]
+  );
 
   const resetFormHandler = useCallback(() => {
     setFormState({
@@ -260,21 +272,24 @@ function useFormManager(initialValues: Record<string, string>, validationRules: 
     });
   }, [initialValues]);
 
-  const setFieldErrorHandler = useCallback(({ field, error }: { field: string; error: string | null }) => {
-    setFormState(prev => {
-      const newErrors = { ...prev.errors, [field]: error };
-      const isValid = Object.values(newErrors).every(err => !err);
-      
-      return {
-        ...prev,
-        errors: newErrors,
-        isValid,
-      };
-    });
-  }, []);
+  const setFieldErrorHandler = useCallback(
+    ({ field, error }: { field: string; error: string | null }) => {
+      setFormState((prev) => {
+        const newErrors = { ...prev.errors, [field]: error };
+        const isValid = Object.values(newErrors).every((err) => !err);
+
+        return {
+          ...prev,
+          errors: newErrors,
+          isValid,
+        };
+      });
+    },
+    []
+  );
 
   const clearAllErrorsHandler = useCallback(() => {
-    setFormState(prev => ({
+    setFormState((prev) => ({
       ...prev,
       errors: {},
       isValid: true,
@@ -300,10 +315,10 @@ function useFormActions() {
       dispatch('updateField', { field, value });
       dispatch('validateField', { field, value });
     },
-    submitForm: (formData: Record<string, string>) => 
+    submitForm: (formData: Record<string, string>) =>
       dispatch('submitForm', { formData }),
     resetForm: () => dispatch('resetForm'),
-    setFieldError: (field: string, error: string | null) => 
+    setFieldError: (field: string, error: string | null) =>
       dispatch('setFieldError', { field, error }),
     clearAllErrors: () => dispatch('clearAllErrors'),
   };
@@ -320,11 +335,11 @@ function useDynamicFields() {
       name: `item${fields.length + 1}`,
       label: `항목 ${fields.length + 1}`,
     };
-    setFields(prev => [...prev, newField]);
+    setFields((prev) => [...prev, newField]);
   }, [fields.length]);
 
   const removeField = useCallback((id: string) => {
-    setFields(prev => prev.filter(field => field.id !== id));
+    setFields((prev) => prev.filter((field) => field.id !== id));
   }, []);
 
   return {
@@ -352,17 +367,21 @@ function FormFieldView({
   value: string;
   error: string | null;
   touched: boolean;
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
 }) {
   return (
     <div style={styles.fieldContainer}>
-      <label style={{
-        ...styles.label,
-        ...(error && touched ? styles.labelError : styles.labelNormal)
-      }}>
+      <label
+        style={{
+          ...styles.label,
+          ...(error && touched ? styles.labelError : styles.labelNormal),
+        }}
+      >
         {label}
       </label>
-      
+
       {type === 'textarea' ? (
         <textarea
           name={name}
@@ -372,7 +391,7 @@ function FormFieldView({
           rows={4}
           style={{
             ...styles.textarea,
-            ...(error && touched ? styles.inputError : styles.inputNormal)
+            ...(error && touched ? styles.inputError : styles.inputNormal),
           }}
         />
       ) : (
@@ -384,16 +403,12 @@ function FormFieldView({
           placeholder={placeholder}
           style={{
             ...styles.input,
-            ...(error && touched ? styles.inputError : styles.inputNormal)
+            ...(error && touched ? styles.inputError : styles.inputNormal),
           }}
         />
       )}
-      
-      {error && touched && (
-        <div style={styles.errorMessage}>
-          {error}
-        </div>
-      )}
+
+      {error && touched && <div style={styles.errorMessage}>{error}</div>}
     </div>
   );
 }
@@ -403,10 +418,23 @@ function FormStatusView({ formState }: { formState: FormState }) {
     <div style={styles.formStatus}>
       <h4>폼 상태</h4>
       <div style={styles.statusText}>
-        <div>유효성: {formState.isValid ? '✅ 유효함' : '❌ 유효하지 않음'}</div>
-        <div>제출 중: {formState.isSubmitting ? '⏳ 진행 중' : '⏸️ 대기 중'}</div>
-        <div>에러 개수: {Object.values(formState.errors).filter(Boolean).length}</div>
-        <div>터치된 필드: {Object.keys(formState.touched).filter(field => formState.touched[field]).length}</div>
+        <div>
+          유효성: {formState.isValid ? '✅ 유효함' : '❌ 유효하지 않음'}
+        </div>
+        <div>
+          제출 중: {formState.isSubmitting ? '⏳ 진행 중' : '⏸️ 대기 중'}
+        </div>
+        <div>
+          에러 개수: {Object.values(formState.errors).filter(Boolean).length}
+        </div>
+        <div>
+          터치된 필드:{' '}
+          {
+            Object.keys(formState.touched).filter(
+              (field) => formState.touched[field]
+            ).length
+          }
+        </div>
       </div>
     </div>
   );
@@ -425,9 +453,26 @@ function BasicFormView({
     <div style={styles.container}>
       <h3>📝 기본 폼 예시</h3>
       <form onSubmit={onSubmit}>
-        <FormField name="name" label="이름" placeholder="이름을 입력하세요" formState={formState} />
-        <FormField name="email" label="이메일" type="email" placeholder="example@email.com" formState={formState} />
-        <FormField name="age" label="나이" type="number" placeholder="나이를 입력하세요" formState={formState} />
+        <FormField
+          name="name"
+          label="이름"
+          placeholder="이름을 입력하세요"
+          formState={formState}
+        />
+        <FormField
+          name="email"
+          label="이메일"
+          type="email"
+          placeholder="example@email.com"
+          formState={formState}
+        />
+        <FormField
+          name="age"
+          label="나이"
+          type="number"
+          placeholder="나이를 입력하세요"
+          formState={formState}
+        />
 
         <div style={styles.buttonGroup}>
           <button
@@ -435,12 +480,14 @@ function BasicFormView({
             disabled={!formState.isValid || formState.isSubmitting}
             style={{
               ...styles.button,
-              ...(formState.isValid && !formState.isSubmitting ? styles.submitButton : styles.submitButtonDisabled)
+              ...(formState.isValid && !formState.isSubmitting
+                ? styles.submitButton
+                : styles.submitButtonDisabled),
             }}
           >
             {formState.isSubmitting ? '제출 중...' : '제출'}
           </button>
-          
+
           <button
             type="button"
             onClick={onReset}
@@ -472,19 +519,21 @@ function DynamicFormView({
   return (
     <div style={styles.container}>
       <h3>🔄 동적 폼 예시</h3>
-      
+
       <div style={{ marginBottom: '20px' }}>
         <button
           type="button"
           onClick={onAddField}
-          style={{ ...styles.button, ...styles.primaryButton, marginRight: '10px' }}
+          style={{
+            ...styles.button,
+            ...styles.primaryButton,
+            marginRight: '10px',
+          }}
         >
           + 필드 추가
         </button>
-        
-        <span style={styles.fieldCounter}>
-          현재 {fields.length}개 필드
-        </span>
+
+        <span style={styles.fieldCounter}>현재 {fields.length}개 필드</span>
       </div>
 
       <form onSubmit={onSubmit}>
@@ -498,7 +547,7 @@ function DynamicFormView({
                 formState={formState}
               />
             </div>
-            
+
             {fields.length > 1 && (
               <button
                 type="button"
@@ -517,7 +566,9 @@ function DynamicFormView({
             disabled={!formState.isValid || formState.isSubmitting}
             style={{
               ...styles.button,
-              ...(formState.isValid && !formState.isSubmitting ? styles.submitButton : styles.submitButtonDisabled)
+              ...(formState.isValid && !formState.isSubmitting
+                ? styles.submitButton
+                : styles.submitButtonDisabled),
             }}
           >
             {formState.isSubmitting ? '제출 중...' : '동적 폼 제출'}
@@ -540,7 +591,7 @@ function RealtimeValidationFormView({
   return (
     <div style={styles.container}>
       <h3>⚡ 실시간 검증 폼</h3>
-      
+
       <form onSubmit={onSubmit}>
         <FormField
           name="username"
@@ -548,7 +599,7 @@ function RealtimeValidationFormView({
           placeholder="username"
           formState={formState}
         />
-        
+
         <FormField
           name="password"
           label="비밀번호 (8자 이상, 대소문자, 숫자, 특수문자 포함)"
@@ -556,7 +607,7 @@ function RealtimeValidationFormView({
           placeholder="********"
           formState={formState}
         />
-        
+
         <FormField
           name="confirmPassword"
           label="비밀번호 확인"
@@ -571,12 +622,14 @@ function RealtimeValidationFormView({
             disabled={!formState.isValid || formState.isSubmitting}
             style={{
               ...styles.button,
-              ...(formState.isValid && !formState.isSubmitting ? styles.submitButton : styles.submitButtonDisabled)
+              ...(formState.isValid && !formState.isSubmitting
+                ? styles.submitButton
+                : styles.submitButtonDisabled),
             }}
           >
             회원가입
           </button>
-          
+
           <button
             type="button"
             onClick={onClearErrors}
@@ -591,24 +644,27 @@ function RealtimeValidationFormView({
 }
 
 // === 컨테이너 컴포넌트 ===
-function FormField({ 
-  name, 
-  label, 
-  type = 'text', 
+function FormField({
+  name,
+  label,
+  type = 'text',
   placeholder,
-  formState 
-}: { 
-  name: string; 
-  label: string; 
-  type?: string; 
+  formState,
+}: {
+  name: string;
+  label: string;
+  type?: string;
   placeholder?: string;
   formState: FormState;
 }) {
   const { updateField } = useFormActions();
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    updateField(name, e.target.value);
-  }, [name, updateField]);
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      updateField(name, e.target.value);
+    },
+    [name, updateField]
+  );
 
   const value = formState.values[name] || '';
   const error = formState.errors[name];
@@ -632,28 +688,31 @@ function BasicForm() {
   const validationRules: ValidationRules = {
     name: { required: true, minLength: 2, maxLength: 50 },
     email: { required: true, pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
-    age: { 
+    age: {
       required: true,
       custom: (value) => {
         const num = parseInt(value);
         if (isNaN(num)) return '숫자를 입력해주세요.';
         if (num < 1 || num > 120) return '나이는 1-120 사이여야 합니다.';
         return null;
-      }
+      },
     },
   };
 
   const formState = useFormManager(
-    { name: '', email: '', age: '' }, 
+    { name: '', email: '', age: '' },
     validationRules
   );
 
   const { submitForm, resetForm } = useFormActions();
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    submitForm(formState.values);
-  }, [submitForm, formState.values]);
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      submitForm(formState.values);
+    },
+    [submitForm, formState.values]
+  );
 
   const handleReset = useCallback(() => {
     resetForm();
@@ -676,18 +735,24 @@ function DynamicForm() {
     return rules;
   }, {} as ValidationRules);
 
-  const initialValues = fields.reduce((values, field) => {
-    values[field.name] = '';
-    return values;
-  }, {} as Record<string, string>);
+  const initialValues = fields.reduce(
+    (values, field) => {
+      values[field.name] = '';
+      return values;
+    },
+    {} as Record<string, string>
+  );
 
   const formState = useFormManager(initialValues, validationRules);
   const { submitForm } = useFormActions();
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    submitForm(formState.values);
-  }, [submitForm, formState.values]);
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      submitForm(formState.values);
+    },
+    [submitForm, formState.values]
+  );
 
   return (
     <DynamicFormView
@@ -715,7 +780,8 @@ function RealtimeValidationForm() {
         if (!/(?=.*[a-z])/.test(value)) return '소문자를 포함해야 합니다.';
         if (!/(?=.*[A-Z])/.test(value)) return '대문자를 포함해야 합니다.';
         if (!/(?=.*\d)/.test(value)) return '숫자를 포함해야 합니다.';
-        if (!/(?=.*[@$!%*?&])/.test(value)) return '특수문자를 포함해야 합니다.';
+        if (!/(?=.*[@$!%*?&])/.test(value))
+          return '특수문자를 포함해야 합니다.';
         return null;
       },
     },
@@ -734,16 +800,19 @@ function RealtimeValidationForm() {
 
   const { submitForm, setFieldError, clearAllErrors } = useFormActions();
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (formState.values.password !== formState.values.confirmPassword) {
-      setFieldError('confirmPassword', '비밀번호가 일치하지 않습니다.');
-      return;
-    }
-    
-    submitForm(formState.values);
-  }, [formState.values, submitForm, setFieldError]);
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+
+      if (formState.values.password !== formState.values.confirmPassword) {
+        setFieldError('confirmPassword', '비밀번호가 일치하지 않습니다.');
+        return;
+      }
+
+      submitForm(formState.values);
+    },
+    [formState.values, submitForm, setFieldError]
+  );
 
   const handleClearErrors = useCallback(() => {
     clearAllErrors();
@@ -763,8 +832,8 @@ function ReactFormsContent() {
     <div>
       <h1>React Integration - Forms</h1>
       <p>
-        복잡한 폼 처리를 위한 액션 기반 패턴을 보여줍니다. 
-        실시간 유효성 검사, 동적 필드 관리, 폼 상태 추적 등을 다룹니다.
+        복잡한 폼 처리를 위한 액션 기반 패턴을 보여줍니다. 실시간 유효성 검사,
+        동적 필드 관리, 폼 상태 추적 등을 다룹니다.
       </p>
 
       <div style={styles.grid}>
@@ -776,7 +845,7 @@ function ReactFormsContent() {
       <div style={styles.codeExample}>
         <h3>폼 관리 패턴 예시</h3>
         <pre style={styles.pre}>
-{`// 1. 폼 액션 정의
+          {`// 1. 폼 액션 정의
 interface FormActionMap extends ActionPayloadMap {
   updateField: { field: string; value: string };
   validateField: { field: string; value: string };

@@ -75,7 +75,7 @@ export function Navigation() {
       </h2>
 
       <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-        {navItems.map(item => (
+        {navItems.map((item) => (
           <li key={item.path} style={{ marginBottom: '8px' }}>
             <Link
               to={item.path}
@@ -105,7 +105,7 @@ export function Navigation() {
                   marginLeft: '12px',
                 }}
               >
-                {item.children.map(child => (
+                {item.children.map((child) => (
                   <li key={child.path} style={{ marginBottom: '4px' }}>
                     <Link
                       to={child.path}

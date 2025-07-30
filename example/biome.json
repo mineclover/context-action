@@ -30,7 +30,7 @@
       "quoteStyle": "single",
       "trailingCommas": "es5",
       "semicolons": "always",
-      "arrowParentheses": "asNeeded"
+      "arrowParentheses": "always"
     }
   },
   "json": {
