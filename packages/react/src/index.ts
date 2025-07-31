@@ -1,26 +1,69 @@
-// Re-export core types for convenience
+/**
+ * @context-action/react - React integration for context-action
+ * Provides React hooks and components for action management and state stores
+ */
+
+// === CORE ACTION SYSTEM ===
+// Re-export core types and classes for convenience
 export type {
 	ActionPayloadMap,
 	ActionHandler,
 	HandlerConfig,
 	PipelineController,
+	Logger,
 } from "@context-action/core";
-export { ActionRegister } from "@context-action/core";
 
-// React-specific exports
+export { 
+	ActionRegister,
+	ConsoleLogger,
+	LogLevel,
+	createLogger,
+	getLogLevelFromEnv,
+} from "@context-action/core";
+
+// === REACT ACTION CONTEXT ===
 export * from "./ActionContext";
 
-// Store exports (tree-shakeable)
+// === ACTION PROVIDER (ARCHITECTURE.md Pattern) ===
 export {
-	// Core store classes
+	ActionProvider,
+	useActionDispatch,
+	useActionRegister,
+	createTypedActionProvider,
+} from "./ActionProvider";
+
+export type {
+	ActionContextType,
+	ActionProviderProps,
+} from "./ActionProvider";
+
+// === STORE PROVIDER (ARCHITECTURE.md Pattern) ===
+export {
+	StoreProvider,
+	useStoreRegistry,
+	createTypedStoreProvider,
+} from "./StoreProvider";
+
+export type {
+	StoreContextType as StoreProviderContextType,
+	StoreProviderProps,
+} from "./StoreProvider";
+
+// === STORE SYSTEM ===
+// Core store classes and interfaces
+export {
 	Store,
 	NumericStore,
 	StoreRegistry,
 	EventBus,
 	ScopedEventBus,
-	// Store utilities
 	StoreUtils,
-	// React hooks
+	createStore,
+	createComputedStore,
+} from "./store";
+
+// React hooks for store management
+export {
 	useStore,
 	useStoreValue,
 	useRegistry,
@@ -31,27 +74,35 @@ export {
 	useStoreSync,
 	useComputedStore,
 	usePersistedStore,
-	// Store Context API
+	// MVVM Architecture hooks
+	useMultiStoreAction,
+	useTransactionAction,
+	useActionWithStores,
+} from "./store";
+
+// Context API for store management
+export {
 	createStoreContext,
 	StoreProvider,
 	useStoreContext,
 	useStoreRegistry,
-	// Store Sync Utilities
-	useStoreSyncUtil,
+} from "./store";
+
+// Advanced sync utilities
+export {
 	createStoreSync,
 	createTypedStoreHooks,
 	useBatchStoreSync,
-	// Registry Sync Utilities
 	createRegistrySync,
 	RegistryUtils,
-	useDynamicStoreFromRegistry,
 	useDynamicStoreWithDefault,
 	useDynamicStoreSnapshot,
 	useDynamicStores,
 } from "./store";
 
-// Store types
+// === TYPE DEFINITIONS ===
 export type {
+	// Store core types
 	Snapshot,
 	Listener,
 	Unsubscribe,
@@ -60,16 +111,16 @@ export type {
 	IStoreRegistry,
 	EventHandler,
 	IEventBus,
+	
+	// Hook configuration types
+	StoreSyncConfig,
+	HookOptions,
+	
+	// Context types
 	StoreContextType,
 	StoreContextReturn,
-	StoreSyncConfig,
+	
+	// Registry types
+	RegistryStoreMap,
+	DynamicStoreOptions,
 } from "./store";
-
-// 로거 관련 타입들 export
-export type { Logger, OtelContext } from "@context-action/core";
-export {
-	ConsoleLogger,
-	LogLevel,
-	OtelConsoleLogger,
-	getLogLevelFromEnv,
-} from "@context-action/core";

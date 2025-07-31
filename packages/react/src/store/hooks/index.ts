@@ -8,3 +8,10 @@ export { useStoreActions } from './useStoreActions';
 export { useStoreSync } from './useStoreSync';
 export { useComputedStore } from './useComputedStore';
 export { usePersistedStore } from './usePersistedStore';
+
+// MVVM Architecture hooks for multi-store coordination
+export { 
+  useMultiStoreAction, 
+  useTransactionAction, 
+  useActionWithStores 
+} from './useMultiStoreAction';
