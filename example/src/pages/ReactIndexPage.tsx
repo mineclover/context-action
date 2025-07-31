@@ -6,8 +6,8 @@ export function ReactIndexPage() {
       <div>
         <h1>React Integration</h1>
         <p>
-          Context Action 라이브러리의 React 통합 기능을 탐색해보세요. 타입
-          안전한 액션 파이프라인 관리와 React 컴포넌트를 완벽하게 통합합니다.
+          Context Action 라이브러리의 React 통합 기능을 탐색해보세요. 타입 안전한 액션 파이프라인 관리와
+          혁신적인 스토어 시스템으로 React 컴포넌트를 완벽하게 통합합니다.
         </p>
 
         <div
@@ -134,6 +134,35 @@ export function ReactIndexPage() {
               Forms 마스터하기 →
             </a>
           </div>
+
+          <div
+            style={{
+              padding: '20px',
+              border: '1px solid #e9ecef',
+              borderRadius: '8px',
+              backgroundColor: '#f8f9fa',
+            }}
+          >
+            <h3>🏪 Store Management</h3>
+            <p>
+              강력한 스토어 관리 시스템을 탐험하세요. Context API, WeakMap 메타데이터,
+              동기화 유틸리티로 확장 가능한 상태 관리를 구현합니다.
+            </p>
+            <a
+              href="/react/store"
+              style={{
+                display: 'inline-block',
+                marginTop: '10px',
+                padding: '8px 16px',
+                backgroundColor: '#6f42c1',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '4px',
+              }}
+            >
+              Store 시스템 체험하기 →
+            </a>
+          </div>
         </div>
 
         <div
@@ -145,42 +174,63 @@ export function ReactIndexPage() {
           }}
         >
           <h3>💡 Quick Start</h3>
-          <pre style={{ overflow: 'auto', fontSize: '14px' }}>
-            {`// 1. 액션 타입 정의
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div>
+              <h4>Action System</h4>
+              <pre style={{ overflow: 'auto', fontSize: '12px' }}>
+                {`// Actions 패턴
 interface MyActions extends ActionPayloadMap {
   increment: undefined;
   setCount: number;
-  reset: undefined;
 }
 
-// 2. 컨텍스트 생성
 const { Provider, useAction, useActionHandler } = 
   createActionContext<MyActions>();
 
-// 3. 컴포넌트에서 사용
 function Counter() {
   const [count, setCount] = useState(0);
   const dispatch = useAction();
 
-  useActionHandler('increment', () => setCount(prev => prev + 1));
-  useActionHandler('setCount', (value) => setCount(value));
-  useActionHandler('reset', () => setCount(0));
+  useActionHandler('increment', 
+    () => setCount(prev => prev + 1));
 
   return (
-    <div>
-      <p>Count: {count}</p>
-      <button onClick={() => dispatch('increment')}>+1</button>
-      <button onClick={() => dispatch('setCount', 42)}>Set 42</button>
-      <button onClick={() => dispatch('reset')}>Reset</button>
-    </div>
+    <button onClick={() => dispatch('increment')}>
+      Count: {count}
+    </button>
+  );
+}`}
+              </pre>
+            </div>
+            <div>
+              <h4>Store System</h4>
+              <pre style={{ overflow: 'auto', fontSize: '12px' }}>
+                {`// Store 패턴
+import { StoreProvider, useStoreRegistry, 
+         Store, useStoreValue } from '@context-action/react';
+
+function App() {
+  return (
+    <StoreProvider>
+      <Counter />
+    </StoreProvider>
   );
 }
 
-// 4. Provider로 감싸기
-<Provider>
-  <Counter />
-</Provider>`}
-          </pre>
+function Counter() {
+  const registry = useStoreRegistry();
+  const store = registry.getStore('counter');
+  const count = useStoreValue(store);
+  
+  useEffect(() => {
+    registry.register('counter', new Store('counter', 0));
+  }, []);
+
+  return <p>Count: {count}</p>;
+}`}
+              </pre>
+            </div>
+          </div>
         </div>
       </div>
       <Outlet />

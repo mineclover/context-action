@@ -20,6 +20,12 @@ import { ReactBasicsPage } from './pages/react/ReactBasicsPage';
 import { ReactContextPage } from './pages/react/ReactContextPage';
 import { ReactFormsPage } from './pages/react/ReactFormsPage';
 import { ReactHooksPage } from './pages/react/ReactHooksPage';
+import { StoreIndexPage } from './pages/react/store/StoreIndexPage';
+import { StoreBasicsPage } from './pages/react/store/StoreBasicsPage';
+import { StoreRegistryPage } from './pages/react/store/StoreRegistryPage';
+import { StoreContextPage } from './pages/react/store/StoreContextPage';
+import { StoreSyncPage } from './pages/react/store/StoreSyncPage';
+import { StoreFullDemoPage } from './pages/react/store/StoreFullDemoPage';
 
 export const router: ReturnType<typeof createBrowserRouter> =
   createBrowserRouter([
@@ -70,6 +76,32 @@ export const router: ReturnType<typeof createBrowserRouter> =
             {
               path: 'forms',
               element: <ReactFormsPage />,
+            },
+            {
+              path: 'store',
+              element: <StoreIndexPage />,
+              children: [
+                {
+                  path: 'basics',
+                  element: <StoreBasicsPage />,
+                },
+                {
+                  path: 'registry',
+                  element: <StoreRegistryPage />,
+                },
+                {
+                  path: 'context',
+                  element: <StoreContextPage />,
+                },
+                {
+                  path: 'sync',
+                  element: <StoreSyncPage />,
+                },
+                {
+                  path: 'demo',
+                  element: <StoreFullDemoPage />,
+                },
+              ],
             },
           ],
         },
