@@ -17,7 +17,7 @@ interface ReactActionMap extends ActionPayloadMap {
 // === 컨텍스트 생성 - TRACE 레벨로 설정 ===
 const { Provider, useAction, useActionHandler } =
   createActionContext<ReactActionMap>({
-    logLevel: LogLevel.TRACE,
+    logLevel: LogLevel.DEBUG,
   });
 
 // === 스타일 객체 (컴포넌트 외부) ===
@@ -443,7 +443,7 @@ function ReactBasicsContent() {
           {`// 1. 액션 컨텍스트 생성 (TRACE 레벨)
 const { Provider, useAction, useActionHandler } = 
   createActionContext<ActionMap>({
-    logLevel: LogLevel.TRACE
+    logLevel: LogLevel.DEBUG
   });
 
 // 2. 컴포넌트에서 액션 핸들러 등록

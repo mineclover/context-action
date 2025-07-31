@@ -8,6 +8,7 @@ import { CoreAdvancedPage } from './pages/core/CoreAdvancedPage';
 // Core library pages
 import { CoreBasicsPage } from './pages/core/CoreBasicsPage';
 import { CorePerformancePage } from './pages/core/CorePerformancePage';
+import { CoreIntegrationPage } from './pages/core/CoreIntegrationPage';
 import { HomePage } from './pages/HomePage';
 import { JotaiIndexPage } from './pages/JotaiIndexPage';
 import { JotaiAsyncPage } from './pages/jotai/JotaiAsyncPage';
@@ -53,6 +54,10 @@ export const router: ReturnType<typeof createBrowserRouter> =
             {
               path: 'performance',
               element: <CorePerformancePage />,
+            },
+            {
+              path: 'integration',
+              element: <CoreIntegrationPage />,
             },
           ],
         },

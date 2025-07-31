@@ -63,7 +63,7 @@ export function createAtomContext<T>(initialValue: T) {
     const { atomRef, logger } = useAtomContext()
     const [value, setValue] = useAtom(atomRef.current)
     
-    logger.trace('useAtomState called', { 
+    logger.debug('useAtomState called', { 
       atomValue: value,
       hasSetter: !!setValue 
     })
@@ -76,7 +76,7 @@ export function createAtomContext<T>(initialValue: T) {
     const { atomRef, logger } = useAtomContext()
     const value = useAtomValue(atomRef.current)
     
-    logger.trace('useAtomReadOnly called', { atomValue: value })
+    logger.debug('useAtomReadOnly called', { atomValue: value })
     
     return value
   }
@@ -89,7 +89,7 @@ export function createAtomContext<T>(initialValue: T) {
     )
     const value = useAtomValue(derivedAtom)
     
-    logger.trace('useAtomSelect called', { 
+    logger.debug('useAtomSelect called', { 
       originalValue: atomRef.current,
       derivedValue: value 
     })
@@ -102,7 +102,7 @@ export function createAtomContext<T>(initialValue: T) {
     const { atomRef, logger } = useAtomContext()
     const setValue = useSetAtom(atomRef.current)
     
-    logger.trace('useAtomSetter called', { 
+    logger.debug('useAtomSetter called', { 
       hasSetter: !!setValue 
     })
     

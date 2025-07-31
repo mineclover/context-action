@@ -1,5 +1,5 @@
 import React, { createContext, ReactNode, useContext, useRef, useEffect, useId, useMemo } from 'react';
-import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig, Logger, LogLevel, ConsoleLogger, OtelConsoleLogger, OtelContext, getLogLevelFromEnv } from '@context-action/core';
+import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig, Logger, LogLevel, createLogger } from '@context-action/core';
 
 /**
  * Configuration options for createActionContext
@@ -9,10 +9,10 @@ export interface ActionContextConfig {
   logger?: Logger
   /** Log level for the logger. Defaults to ERROR if not provided */
   logLevel?: LogLevel
-  /** OpenTelemetry context for tracing */
-  otelContext?: OtelContext
-  /** Whether to use OTEL-aware logger. Defaults to false */
-  useOtel?: boolean
+  /** Name identifier for this ActionRegister instance */
+  name?: string
+  /** Whether to enable debug mode with additional logging */
+  debug?: boolean
 }
 
 /**
@@ -51,7 +51,7 @@ export interface ActionContextReturn<T extends ActionPayloadMap = ActionPayloadM
  * 
  * const { Provider, useAction, useActionHandler } = createActionContext<AppActions>({
  *   logLevel: LogLevel.DEBUG,
- *   useOtel: true
+ *   debug: true
  * });
  * 
  * function App() {
@@ -85,36 +85,23 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
    * ActionRegister 인스턴스를 Context로 제공합니다
    */
   const Provider = ({ children }: { children: ReactNode }) => {
-    // 로거 설정
-    const envLogLevel = getLogLevelFromEnv()
-    const configLogLevel = config?.logLevel ?? envLogLevel
-    
-    let logger: Logger
-    if (config?.logger) {
-      logger = config.logger
-    } else if (config?.useOtel) {
-      logger = new OtelConsoleLogger(configLogLevel)
-    } else {
-      logger = new ConsoleLogger(configLogLevel)
-    }
-    
-    // OTEL 컨텍스트 설정
-    if (config?.otelContext && logger instanceof OtelConsoleLogger) {
-      logger.setContext(config.otelContext)
-    }
+    // Create logger with configuration
+    const logger = config?.logger || createLogger(config?.logLevel);
     
     const actionRegisterRef = useRef(new ActionRegister<T>({
       logger,
-      logLevel: configLogLevel,
-      useOtel: config?.useOtel,
-      otelContext: config?.otelContext
+      logLevel: config?.logLevel,
+      name: config?.name || 'ActionContext',
+      debug: config?.debug
     }));
     
-    logger.debug('ActionContext Provider initialized', { 
-      logLevel: configLogLevel,
-      useOtel: config?.useOtel ?? false,
-      hasOtelContext: !!config?.otelContext
-    })
+    if (config?.debug) {
+      logger.info('ActionContext Provider initialized', { 
+        logLevel: config?.logLevel,
+        name: config?.name,
+        debug: config?.debug
+      });
+    }
     
     return (
       <ActionContext.Provider value={{ actionRegisterRef, logger }}>
@@ -165,7 +152,7 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
         
         // 로거를 포함한 dispatch 래퍼
         return ((action: any, payload?: any) => {
-          context.logger.trace('useAction dispatch called', { action, payload });
+          context.logger.debug('useAction dispatch called', { action, payload });
           return boundDispatch(action, payload);
         }) as ActionRegister<T>['dispatch'];
       }

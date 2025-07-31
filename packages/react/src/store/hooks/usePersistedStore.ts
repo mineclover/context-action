@@ -45,7 +45,8 @@ export function usePersistedStore<T>(
   }
   
   const store = storeRef.current;
-  const snapshot = useStoreSync(store);
+  // Subscribe to changes to keep the hook reactive
+  useStoreSync(store);
   
   // Persist changes
   useEffect(() => {

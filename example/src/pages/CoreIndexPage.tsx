@@ -1,9 +1,12 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 
 export function CoreIndexPage() {
+  const location = useLocation();
+  const isIndex = location.pathname === '/core';
+
   return (
     <>
-      <div>
+      {isIndex && <div>
         <h1>Core Library</h1>
         <p>
           Context Action의 핵심 라이브러리를 탐색해보세요. 순수
@@ -106,6 +109,36 @@ export function CoreIndexPage() {
               }}
             >
               Performance 최적화하기 →
+            </a>
+          </div>
+
+          <div
+            style={{
+              padding: '20px',
+              border: '1px solid #e9ecef',
+              borderRadius: '8px',
+              backgroundColor: '#f8f9fa',
+            }}
+          >
+            <h3>🔗 Integration</h3>
+            <p>
+              ActionRegister와 Store 시스템의 통합을 배워보세요. Action handler에서
+              Store의 getter/setter를 활용하여 복잡한 비즈니스 로직을 구현하는
+              MVVM 패턴을 실습합니다.
+            </p>
+            <a
+              href="/core/integration"
+              style={{
+                display: 'inline-block',
+                marginTop: '10px',
+                padding: '8px 16px',
+                backgroundColor: '#6f42c1',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '4px',
+              }}
+            >
+              Integration 실습하기 →
             </a>
           </div>
         </div>
@@ -212,7 +245,7 @@ await actionRegister.dispatch('setCount', 42);`}
             </li>
           </ul>
         </div>
-      </div>
+      </div>}
       <Outlet />
     </>
   );

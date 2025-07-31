@@ -90,9 +90,7 @@ export {
 // Context API for store management
 export {
 	createStoreContext,
-	StoreProvider,
 	useStoreContext,
-	useStoreRegistry,
 } from "./store";
 
 // Advanced sync utilities

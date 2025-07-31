@@ -15,7 +15,7 @@ const priority1 = { priority: 1 };
 // 컨텍스트 생성 - TRACE 레벨로 설정
 const { Provider, useAction, useActionHandler } =
   createActionContext<AppActionMap>({
-    logLevel: LogLevel.TRACE,
+    logLevel: LogLevel.DEBUG,
   });
 
 function Counter() {

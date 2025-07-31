@@ -44,9 +44,9 @@ class ComputedStore extends Store<StatisticsData> {
 
   updateStatistics(counter: CounterState | null, cart: Cart | null) {
     const stats: StatisticsData = {
-      totalActions: counter ? counter.history.length : 0,
-      cartItemCount: cart ? cart.items.reduce((sum, item) => sum + item.quantity, 0) : 0,
-      cartValue: cart ? cart.total : 0,
+      totalActions: counter?.history?.length || 0,
+      cartItemCount: cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0,
+      cartValue: cart?.total || 0,
       lastActivity: Date.now()
     };
     this.setValue(stats);
@@ -195,7 +195,7 @@ const ComputedStoreDemo: React.FC = () => {
             </div>
             <div style={dependencyInfoStyle}>
               Current Value: <code>{counterValue.value}</code> | 
-              History Length: <code>{counterValue.history.length}</code>
+              History Length: <code>{counterValue.history?.length || 0}</code>
             </div>
           </div>
 
@@ -205,8 +205,8 @@ const ComputedStoreDemo: React.FC = () => {
               <span style={dependencyStatusStyle}>Connected</span>
             </div>
             <div style={dependencyInfoStyle}>
-              Items: <code>{cartValue.items.length}</code> | 
-              Total: <code>{formatPrice(cartValue.total)}</code>
+              Items: <code>{cartValue.items?.length || 0}</code> | 
+              Total: <code>{formatPrice(cartValue.total || 0)}</code>
             </div>
           </div>
         </div>

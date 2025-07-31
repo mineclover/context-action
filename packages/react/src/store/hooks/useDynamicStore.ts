@@ -1,5 +1,5 @@
 import { useDynamicStore as useRegistryDynamicStore } from '../registry-sync';
-import type { IStoreRegistry, Snapshot } from '../types';
+import type { IStoreRegistry } from '../types';
 
 /**
  * Dynamically subscribe to a store in the registry by name
