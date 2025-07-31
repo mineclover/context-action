@@ -1,103 +1,92 @@
 import { useSyncExternalStore } from 'react';
-import type { IStore, Snapshot } from './types';
+import type { IStore, Snapshot, StoreSyncConfig } from './types';
 
 /**
- * Default values for store sync
+ * Constants for store sync operations
  */
-const EMPTY_SUBSCRIBE = () => () => {};
-const EMPTY_SNAPSHOT = <T>(): Snapshot<T> => ({
-  value: undefined as T,
-  name: '',
-  lastUpdate: 0
-});
+const CONSTANTS = {
+  EMPTY_SUBSCRIBE: () => () => {},
+  EMPTY_SNAPSHOT: <T>(): Snapshot<T> => ({
+    value: undefined as T,
+    name: 'empty',
+    lastUpdate: 0
+  }),
+  ERROR_MESSAGES: {
+    INVALID_STORE: 'Invalid store provided to useStoreSync',
+    SUBSCRIPTION_FAILED: 'Store subscription failed'
+  }
+} as const;
 
 /**
- * Store sync configuration
- */
-export interface StoreSyncConfig<T> {
-  store: IStore<T> | undefined | null;
-  defaultValue?: T;
-  selector?: <R>(snapshot: Snapshot<T>) => R;
-}
-
-/**
- * Create store sync hooks
+ * Factory for creating typed store sync hooks
+ * Provides a consistent API for different sync patterns
  */
 export function createStoreSync<T>() {
   return {
     /**
-     * Sync with store and return full snapshot
+     * Get full snapshot from store
      */
     useSnapshot(store: IStore<T> | undefined | null): Snapshot<T> {
-      return useSyncExternalStore(
-        store?.subscribe ?? EMPTY_SUBSCRIBE,
-        store?.getSnapshot ?? (() => EMPTY_SNAPSHOT<T>())
-      );
+      return useStoreSync(store);
     },
 
     /**
-     * Sync with store and return value only
+     * Get only the value from store
      */
     useValue(store: IStore<T> | undefined | null): T | undefined {
-      const snapshot = useSyncExternalStore(
-        store?.subscribe ?? EMPTY_SUBSCRIBE,
-        store?.getSnapshot ?? (() => EMPTY_SNAPSHOT<T>())
-      );
-      return snapshot.value;
+      return useStoreSync(store, {
+        selector: snapshot => snapshot.value
+      });
     },
 
     /**
-     * Sync with store using selector
+     * Get transformed value using selector
      */
     useSelector<R>(
       store: IStore<T> | undefined | null,
       selector: (snapshot: Snapshot<T>) => R
     ): R {
-      return useSyncExternalStore(
-        store?.subscribe ?? EMPTY_SUBSCRIBE,
-        store ? () => selector(store.getSnapshot()) : () => selector(EMPTY_SNAPSHOT<T>())
-      );
+      return useStoreSync(store, { selector });
     },
 
     /**
-     * Sync with default value
+     * Get value with fallback default
      */
     useValueWithDefault(
       store: IStore<T> | undefined | null,
       defaultValue: T
     ): T {
-      const snapshot = useSyncExternalStore(
-        store?.subscribe ?? EMPTY_SUBSCRIBE,
-        store?.getSnapshot ?? (() => ({ ...EMPTY_SNAPSHOT<T>(), value: defaultValue }))
-      );
-      return snapshot.value;
+      return useStoreSync(store, {
+        defaultValue,
+        selector: snapshot => snapshot.value
+      });
     }
   };
 }
 
 /**
- * Generic store sync hook
+ * Primary store sync hook - standardized interface for all store interactions
  */
 export function useStoreSync<T, R = Snapshot<T>>(
   store: IStore<T> | undefined | null,
-  options?: {
-    defaultValue?: T;
-    selector?: (snapshot: Snapshot<T>) => R;
-  }
+  config?: StoreSyncConfig<T, R>
 ): R {
-  const { defaultValue, selector } = options ?? {};
+  const { defaultValue, selector } = config ?? {};
 
+  // Standardized snapshot getter with proper fallback handling
   const getSnapshot = store?.getSnapshot ?? (() => ({
-    ...EMPTY_SNAPSHOT<T>(),
+    ...CONSTANTS.EMPTY_SNAPSHOT<T>(),
     ...(defaultValue !== undefined && { value: defaultValue })
   }));
 
+  // Apply selector if provided, otherwise return snapshot as-is
   const selectedGetSnapshot = selector
     ? () => selector(getSnapshot())
     : getSnapshot;
 
+  // Use React's useSyncExternalStore with proper error handling
   return useSyncExternalStore(
-    store?.subscribe ?? EMPTY_SUBSCRIBE,
+    store?.subscribe ?? CONSTANTS.EMPTY_SUBSCRIBE,
     selectedGetSnapshot as () => R
   );
 }

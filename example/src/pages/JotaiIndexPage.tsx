@@ -1,9 +1,12 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 
 export function JotaiIndexPage() {
+  const location = useLocation();
+  const isIndex = location.pathname === '/jotai';
+
   return (
     <>
-      <div>
+      {isIndex && <div>
         <h1>Jotai Integration</h1>
         <p>
           Context Action과 Jotai의 강력한 통합을 탐색해보세요. 아톰 기반 상태
@@ -249,7 +252,7 @@ function Counter() {
             페이지에서 권장 사용 패턴과 예시 코드를 참고해보세요.
           </p>
         </div>
-      </div>
+      </div>}
       <Outlet />
     </>
   );

@@ -1,26 +1,35 @@
 import { useStoreSync } from './store-sync';
-import type { IStoreRegistry, IStore } from './types';
+import type { IStoreRegistry, IStore, DynamicStoreOptions } from './types';
 
 /**
- * Create registry sync hooks
+ * Factory for creating standardized registry sync hooks
+ * Provides consistent API for dynamic store access patterns
  */
 export function createRegistrySync<T = any>() {
   return {
     /**
-     * Get a store value dynamically from registry
+     * Get store value dynamically from registry by name
      */
     useDynamicStore(
       registry: IStoreRegistry | undefined | null,
-      storeName: string
+      storeName: string,
+      options?: DynamicStoreOptions<T>
     ): T | undefined {
       const store = registry?.getStore(storeName);
+      
+      // Handle store not found case
+      if (!store && options?.onNotFound) {
+        options.onNotFound(storeName);
+      }
+      
       return useStoreSync(store, {
-        selector: s => s.value as T
+        defaultValue: options?.defaultValue,
+        selector: snapshot => snapshot.value as T
       });
     },
 
     /**
-     * Get a store value with default from registry
+     * Get store value with guaranteed default from registry
      */
     useDynamicStoreWithDefault<U extends T>(
       registry: IStoreRegistry | undefined | null,
@@ -30,14 +39,14 @@ export function createRegistrySync<T = any>() {
       const store = registry?.getStore(storeName);
       return useStoreSync(store, {
         defaultValue,
-        selector: s => s.value as U
+        selector: snapshot => snapshot.value as U
       });
     },
 
     /**
-     * Get store snapshot dynamically from registry
+     * Get complete store snapshot dynamically from registry
      */
-    useDynamicStoreSnapshot<U = T>(
+    useDynamicStoreSnapshot(
       registry: IStoreRegistry | undefined | null,
       storeName: string
     ) {
@@ -46,7 +55,7 @@ export function createRegistrySync<T = any>() {
     },
 
     /**
-     * Get multiple stores from registry
+     * Get multiple store values from registry
      */
     useDynamicStores<K extends string>(
       registry: IStoreRegistry | undefined | null,
@@ -54,10 +63,11 @@ export function createRegistrySync<T = any>() {
     ): Record<K, any> {
       const results = {} as Record<K, any>;
       
+      // Consistent iteration pattern
       for (const name of storeNames) {
         const store = registry?.getStore(name);
         results[name] = useStoreSync(store, {
-          selector: s => s.value
+          selector: snapshot => snapshot.value
         });
       }
       

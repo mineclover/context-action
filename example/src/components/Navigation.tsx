@@ -18,6 +18,7 @@ const navItems: NavItem[] = [
       { label: 'Basics', path: '/core/basics' },
       { label: 'Advanced', path: '/core/advanced' },
       { label: 'Performance', path: '/core/performance' },
+      { label: 'Integration', path: '/core/integration' },
     ],
   },
   {
@@ -28,7 +29,17 @@ const navItems: NavItem[] = [
       { label: 'Hooks', path: '/react/hooks' },
       { label: 'Context', path: '/react/context' },
       { label: 'Forms', path: '/react/forms' },
-      { label: 'Store System', path: '/react/store' },
+      { 
+        label: 'Store System', 
+        path: '/react/store',
+        children: [
+          { label: 'Store Basics', path: '/react/store/basics' },
+          { label: 'Registry', path: '/react/store/registry' },
+          { label: 'Context', path: '/react/store/context' },
+          { label: 'Sync', path: '/react/store/sync' },
+          { label: 'Full Demo', path: '/react/store/demo' },
+        ]
+      },
     ],
   },
   {
@@ -59,6 +70,48 @@ export function Navigation() {
     );
   };
 
+  const renderNavItem = (item: NavItem, level: number = 0): JSX.Element => {
+    const hasChildren = item.children && item.children.length > 0;
+    const isItemActive = isActive(item.path);
+    const shouldShowChildren = hasChildren && (isItemActive || isChildActive(item.path));
+
+    return (
+      <li key={item.path} style={{ marginBottom: level === 0 ? '8px' : '4px' }}>
+        <Link
+          to={item.path}
+          style={{
+            display: 'block',
+            padding: level === 0 ? '8px 12px' : level === 1 ? '6px 12px' : '4px 8px',
+            textDecoration: 'none',
+            color: location.pathname === item.path ? '#0066cc' : level === 0 ? '#333' : '#666',
+            backgroundColor: location.pathname === item.path ? '#e3f2fd' : 'transparent',
+            borderRadius: '4px',
+            fontSize: level === 0 ? '16px' : level === 1 ? '14px' : '13px',
+            fontWeight: location.pathname === item.path ? 'bold' : 'normal',
+            transition: 'all 0.2s',
+            marginLeft: level > 1 ? `${(level - 1) * 8}px` : '0',
+          }}
+        >
+          {item.label}
+        </Link>
+
+        {shouldShowChildren && (
+          <ul
+            style={{
+              listStyle: 'none',
+              padding: '8px 0 0 16px',
+              margin: 0,
+              borderLeft: level < 2 ? '2px solid #e9ecef' : '1px solid #f0f0f0',
+              marginLeft: '12px',
+            }}
+          >
+            {item.children!.map((child) => renderNavItem(child, level + 1))}
+          </ul>
+        )}
+      </li>
+    );
+  };
+
   return (
     <nav
       style={{
@@ -76,65 +129,7 @@ export function Navigation() {
       </h2>
 
       <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-        {navItems.map((item) => (
-          <li key={item.path} style={{ marginBottom: '8px' }}>
-            <Link
-              to={item.path}
-              style={{
-                display: 'block',
-                padding: '8px 12px',
-                textDecoration: 'none',
-                color: isActive(item.path) ? '#0066cc' : '#333',
-                backgroundColor: isActive(item.path)
-                  ? '#e3f2fd'
-                  : 'transparent',
-                borderRadius: '4px',
-                fontWeight: isActive(item.path) ? 'bold' : 'normal',
-                transition: 'all 0.2s',
-              }}
-            >
-              {item.label}
-            </Link>
-
-            {item.children && isChildActive(item.path) && (
-              <ul
-                style={{
-                  listStyle: 'none',
-                  padding: '8px 0 0 16px',
-                  margin: 0,
-                  borderLeft: '2px solid #e9ecef',
-                  marginLeft: '12px',
-                }}
-              >
-                {item.children.map((child) => (
-                  <li key={child.path} style={{ marginBottom: '4px' }}>
-                    <Link
-                      to={child.path}
-                      style={{
-                        display: 'block',
-                        padding: '6px 12px',
-                        textDecoration: 'none',
-                        color:
-                          location.pathname === child.path ? '#0066cc' : '#666',
-                        backgroundColor:
-                          location.pathname === child.path
-                            ? '#e3f2fd'
-                            : 'transparent',
-                        borderRadius: '4px',
-                        fontSize: '14px',
-                        fontWeight:
-                          location.pathname === child.path ? 'bold' : 'normal',
-                        transition: 'all 0.2s',
-                      }}
-                    >
-                      {child.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </li>
-        ))}
+        {navItems.map((item) => renderNavItem(item))}
       </ul>
     </nav>
   );

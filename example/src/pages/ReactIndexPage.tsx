@@ -1,9 +1,12 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 
 export function ReactIndexPage() {
+  const location = useLocation();
+  const isIndex = location.pathname === '/react';
+
   return (
     <>
-      <div>
+      {isIndex && <div>
         <h1>React Integration</h1>
         <p>
           Context Action 라이브러리의 React 통합 기능을 탐색해보세요. 타입 안전한 액션 파이프라인 관리와
@@ -232,7 +235,7 @@ function Counter() {
             </div>
           </div>
         </div>
-      </div>
+      </div>}
       <Outlet />
     </>
   );
