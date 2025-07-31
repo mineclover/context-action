@@ -64,20 +64,27 @@ export {
 
 // React hooks for store management
 export {
+	// Basic store hooks
 	useStore,
 	useStoreValue,
+	useStoreValues,
 	useRegistry,
 	useRegistryStore,
 	useDynamicStore,
 	useLocalStore,
+	useLocalState,
 	useStoreActions,
 	useStoreSync,
 	useComputedStore,
+	useComputedValue,
 	usePersistedStore,
 	// MVVM Architecture hooks
 	useMultiStoreAction,
 	useTransactionAction,
 	useActionWithStores,
+	useMVVMStore,
+	useMultiMVVMStore,
+	useStoreQuery,
 } from "./store";
 
 // Context API for store management

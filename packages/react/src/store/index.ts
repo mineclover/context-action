@@ -57,20 +57,27 @@ export type {
 // === REACT HOOKS ===
 // Primary hooks
 export {
+  // Basic store hooks
   useStore,
   useStoreValue,
+  useStoreValues,
   useRegistry,
   useRegistryStore,
   useDynamicStore,
   useLocalStore,
+  useLocalState,
   useStoreActions,
   useStoreSync,
   useComputedStore,
+  useComputedValue,
   usePersistedStore,
   // MVVM Architecture hooks
   useMultiStoreAction,
   useTransactionAction,
-  useActionWithStores
+  useActionWithStores,
+  useMVVMStore,
+  useMultiMVVMStore,
+  useStoreQuery
 } from './hooks';
 
 // === CONTEXT API ===
