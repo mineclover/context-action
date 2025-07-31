@@ -27,6 +27,8 @@ const navItems: NavItem[] = [
     children: [
       { label: 'Basics', path: '/react/basics' },
       { label: 'Hooks', path: '/react/hooks' },
+      { label: 'Action Guard', path: '/react/action-guard' },
+      { label: 'Guard Config', path: '/react/action-guard-config' },
       { label: 'Context', path: '/react/context' },
       { label: 'Forms', path: '/react/forms' },
       { 

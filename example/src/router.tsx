@@ -20,7 +20,9 @@ import { ReactIndexPage } from './pages/ReactIndexPage';
 import { ReactBasicsPage } from './pages/react/ReactBasicsPage';
 import { ReactContextPage } from './pages/react/ReactContextPage';
 import { ReactFormsPage } from './pages/react/ReactFormsPage';
-import { ReactHooksPage } from './pages/react/ReactHooksPage';
+import { ReactHooksPage } from './pages/react/ReactHooksPage';  
+import { ReactActionGuardPage } from './pages/react/ReactActionGuardPage';
+import { ReactActionGuardConfigPage } from './pages/react/ReactActionGuardConfigPage';
 import { StoreIndexPage } from './pages/react/store/StoreIndexPage';
 import { StoreBasicsPage } from './pages/react/store/StoreBasicsPage';
 import { StoreRegistryPage } from './pages/react/store/StoreRegistryPage';
@@ -73,6 +75,14 @@ export const router: ReturnType<typeof createBrowserRouter> =
             {
               path: 'hooks',
               element: <ReactHooksPage />,
+            },
+            {
+              path: 'action-guard',
+              element: <ReactActionGuardPage />,
+            },
+            {
+              path: 'action-guard-config',
+              element: <ReactActionGuardConfigPage />,
             },
             {
               path: 'context',
