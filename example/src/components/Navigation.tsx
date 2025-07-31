@@ -28,6 +28,7 @@ const navItems: NavItem[] = [
       { label: 'Hooks', path: '/react/hooks' },
       { label: 'Context', path: '/react/context' },
       { label: 'Forms', path: '/react/forms' },
+      { label: 'Store System', path: '/react/store' },
     ],
   },
   {
