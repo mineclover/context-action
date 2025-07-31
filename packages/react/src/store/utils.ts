@@ -2,6 +2,100 @@ import type { IStore, IStoreRegistry } from "./types";
 import { Store } from ".";
 
 /**
+ * Create a new store with the given initial value
+ * Following ARCHITECTURE.md pattern for store creation
+ * 
+ * @template T - Type of the store value
+ * @param initialValue - Initial value for the store
+ * @param name - Optional name for the store (auto-generated if not provided)
+ * @returns New Store instance
+ * 
+ * @example
+ * ```typescript
+ * // Simple store creation
+ * const userStore = createStore<User>({
+ *   id: '', 
+ *   name: '', 
+ *   email: '',
+ *   updatedAt: 0
+ * });
+ * 
+ * // Store with custom name
+ * const counterStore = createStore(0, 'counter');
+ * ```
+ */
+export function createStore<T>(initialValue: T, name?: string): Store<T> {
+  const storeName = name || `store_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return new Store(storeName, initialValue);
+}
+
+/**
+ * Create a computed store that derives its value from other stores
+ * Following ARCHITECTURE.md pattern for computed stores
+ * 
+ * @template T - Type of the computed store value  
+ * @template D - Array type of dependency stores
+ * @param dependencies - Array of stores to depend on
+ * @param compute - Function to compute the derived value
+ * @param name - Optional name for the computed store
+ * @returns New computed Store instance
+ * 
+ * @example
+ * ```typescript
+ * const cartSummaryStore = createComputedStore(
+ *   [cartStore, inventoryStore, userStore],
+ *   (cart, inventory, user) => {
+ *     const validItems = cart.items.filter(item => 
+ *       inventory[item.productId] && inventory[item.productId].stock >= item.quantity
+ *     );
+ *     const subtotal = validItems.reduce((sum, item) => 
+ *       sum + (item.price * item.quantity), 0
+ *     );
+ *     const discount = calculateDiscount(user.membershipLevel, subtotal);
+ *     const tax = calculateTax(subtotal - discount, user.location);
+ *     
+ *     return {
+ *       itemCount: validItems.length,
+ *       subtotal,
+ *       discount,
+ *       tax,
+ *       total: subtotal - discount + tax
+ *     };
+ *   }
+ * );
+ * ```
+ */
+export function createComputedStore<T, D extends readonly IStore[]>(
+  dependencies: D,
+  compute: (...values: { [K in keyof D]: D[K] extends IStore<infer V> ? V : never }) => T,
+  name?: string
+): Store<T> {
+  const storeName = name || `computed_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  
+  // Initial computation
+  const initialValues = dependencies.map(store => store.getValue()) as any;
+  const initialValue = compute(...initialValues);
+  
+  const computedStore = new Store(storeName, initialValue);
+  
+  // Subscribe to all dependencies
+  const unsubscribes = dependencies.map(store => 
+    store.subscribe(() => {
+      const currentValues = dependencies.map(dep => dep.getValue()) as any;
+      const newValue = compute(...currentValues);
+      computedStore.setValue(newValue);
+    })
+  );
+  
+  // Store cleanup function for proper resource management
+  (computedStore as any)._cleanup = () => {
+    unsubscribes.forEach(unsub => unsub());
+  };
+  
+  return computedStore;
+}
+
+/**
  * Utility functions for store operations
  */
 export class StoreUtils {

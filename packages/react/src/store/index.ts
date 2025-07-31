@@ -1,28 +1,61 @@
 /**
- * Core store system exports
+ * Store system exports - centralized and standardized
+ * Organized by category for better tree-shaking and clarity
  */
 
-// Types
+// === CORE TYPES ===
 export type {
+  // Base types
   Snapshot,
   Listener,
   Unsubscribe,
   Subscribe,
+  
+  // Store interfaces
   IStore,
   IStoreRegistry,
+  
+  // Event system
   EventHandler,
-  IEventBus
+  IEventBus,
+  
+  // Hook configuration
+  StoreSyncConfig,
+  HookOptions,
+  
+  // Context types
+  StoreContextType,
+  StoreContextReturn,
+  
+  // Registry types
+  RegistryStoreMap,
+  DynamicStoreOptions
 } from './types';
 
-// Classes
+// === CORE CLASSES ===
 export { Store, NumericStore } from './Store';
 export { StoreRegistry } from './StoreRegistry';
 export { EventBus, ScopedEventBus } from './EventBus';
 
-// Utilities
-export { StoreUtils } from './utils';
+// === UTILITIES ===
+export { StoreUtils, createStore, createComputedStore } from './utils';
 
-// React Hooks
+// === MVVM ARCHITECTURE UTILITIES ===
+export { 
+  createMultiStoreHandler, 
+  createTransactionHandler, 
+  createValidatedHandler,
+  ActionHandlerUtils 
+} from './ActionHandlerUtils';
+
+export type {
+  StoreSnapshot,
+  MultiStoreContext,
+  TransactionContext
+} from './ActionHandlerUtils';
+
+// === REACT HOOKS ===
+// Primary hooks
 export {
   useStore,
   useStoreValue,
@@ -33,19 +66,37 @@ export {
   useStoreActions,
   useStoreSync,
   useComputedStore,
-  usePersistedStore
+  usePersistedStore,
+  // MVVM Architecture hooks
+  useMultiStoreAction,
+  useTransactionAction,
+  useActionWithStores
 } from './hooks';
 
-// Store Context API
-export { createStoreContext, StoreProvider, useStoreContext, useStoreRegistry } from './StoreContext';
-export type { StoreContextType, StoreContextReturn } from './StoreContext';
+// === CONTEXT API ===
+export { 
+  createStoreContext, 
+  StoreProvider, 
+  useStoreContext, 
+  useStoreRegistry 
+} from './StoreContext';
 
-// Store Sync Utilities
-export { useStoreSync as useStoreSyncUtil, createStoreSync, createTypedStoreHooks, useBatchStoreSync } from './store-sync';
-export type { StoreSyncConfig } from './store-sync';
+// === SYNC UTILITIES ===
+// Store sync
+export { 
+  createStoreSync, 
+  createTypedStoreHooks, 
+  useBatchStoreSync 
+} from './store-sync';
 
-// Registry Sync Utilities
-export { createRegistrySync, RegistryUtils, useDynamicStore as useDynamicStoreFromRegistry, useDynamicStoreWithDefault, useDynamicStoreSnapshot, useDynamicStores } from './registry-sync';
+// Registry sync
+export { 
+  createRegistrySync, 
+  RegistryUtils,
+  useDynamicStoreWithDefault,
+  useDynamicStoreSnapshot,
+  useDynamicStores
+} from './registry-sync';
 
-// Version
+// === METADATA ===
 export const VERSION = '1.0.0';
