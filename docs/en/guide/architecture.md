@@ -2,37 +2,37 @@
 
 ## Overview
 
-The Context-Action framework implements a clean separation of concerns through an MVVM-inspired pattern where:
-- **Actions** handle business logic (ViewModel layer)
-- **Stores** manage state (Model layer)  
-- **Components** render UI (View layer)
+The Context-Action framework implements a clean separation of concerns through an [MVVM-inspired pattern][mvvm-pattern] where:
+- **[Actions][action-handler]** handle business logic ([ViewModel layer][viewmodel-layer])
+- **[Stores][model-layer]** manage state ([Model layer][model-layer])  
+- **[Components][view-layer]** render UI ([View layer][view-layer])
 
 This architectural approach ensures maintainable, testable, and scalable applications with clear boundaries between different responsibilities.
 
 ## Core Architecture
 
-### 1. Action Pipeline System
+### 1. [Action Pipeline System][action-pipeline-system]
 
-Actions are registered to a central pipeline that processes dispatched events:
+[Actions][action-handler] are registered to a central pipeline that processes dispatched events:
 
 ```typescript
 // Action definition
-interface AppActions extends ActionPayloadMap {
+interface AppActions extends [ActionPayloadMap][action-payload-map] {
   updateUser: { id: string; name: string };
   calculateTotal: { items: CartItem[] };
 }
 
 // Register action handler
-actionRegister.register('updateUser', async (payload, controller) => {
+[actionRegister][actionregister].register('updateUser', async (payload, [controller][pipeline-controller]) => {
   // Business logic here
 });
 ```
 
-### 2. Store Integration Pattern
+### 2. [Store Integration Pattern][store-integration-pattern]
 
-Action handlers receive payload and use store getters/setters to:
-1. Read current state values via getters
-2. Execute business logic with payload + current state
+[Action handlers][action-handler] receive payload and use store getters/setters to:
+1. Read current state values via getters ([Lazy Evaluation][lazy-evaluation])
+2. Execute [business logic][business-logic] with payload + current state
 3. Update stores via setters
 
 ```typescript
@@ -89,36 +89,36 @@ actionRegister.register('updateUser', async (payload, controller) => {
 
 ## Key Design Principles
 
-### 1. Lazy Evaluation
+### 1. [Lazy Evaluation][lazy-evaluation]
 - Store getters are called at execution time, ensuring fresh values
 - No stale closure issues - handlers always get current state
 
-### 2. Decoupled Architecture
-- Actions don't know about components
-- Stores don't know about actions
-- Components only know action names and payloads
+### 2. [Decoupled Architecture][decoupled-architecture]
+- [Actions][action-handler] don't know about [components][view-layer]
+- [Stores][model-layer] don't know about [actions][action-handler]
+- [Components][view-layer] only know action names and payloads
 
-### 3. Type Safety
+### 3. [Type Safety][type-safety]
 - Full TypeScript support throughout
-- Actions and payloads are strongly typed
+- [Actions][action-handler] and payloads are strongly typed
 - Store values maintain type integrity
 
 ### 4. Testability
-- Actions can be tested independently with mock stores
-- Stores can be tested without action pipeline
-- Components can be tested with mock dispatch
+- [Actions][action-handler] can be tested independently with mock stores
+- [Stores][model-layer] can be tested without [action pipeline][action-pipeline-system]
+- [Components][view-layer] can be tested with mock dispatch
 
 ## Integration with React
 
-### StoreProvider Setup
+### [StoreProvider][storeprovider] Setup
 ```typescript
 function App() {
   return (
-    <StoreProvider>
-      <ActionProvider>
+    <[StoreProvider][storeprovider]>
+      <[ActionProvider][actionprovider]>
         <Application />
-      </ActionProvider>
-    </StoreProvider>
+      </[ActionProvider][actionprovider]>
+    </[StoreProvider][storeprovider]>
   );
 }
 ```
@@ -126,8 +126,8 @@ function App() {
 ### Component Usage
 ```typescript
 function UserProfile() {
-  const dispatch = useActionDispatch();
-  const user = useStoreValue(userStore);
+  const dispatch = [useActionDispatch][action-dispatcher]();
+  const user = [useStoreValue][store-hooks](userStore);
   
   const updateName = (name: string) => {
     dispatch('updateUser', { id: user.id, name });
@@ -181,7 +181,7 @@ function useUserActions() {
 
 ## Advanced Patterns
 
-### 1. Cross-Store Coordination
+### 1. [Cross-Store Coordination][cross-store-coordination]
 ```typescript
 actionRegister.register('checkout', async (payload, controller) => {
   const cart = cartStore.getValue();
@@ -226,7 +226,7 @@ actionRegister.register('calculateTotals', async (payload, controller) => {
 });
 ```
 
-### 3. Async Operations with State Updates
+### 3. [Async Operations][async-operations] with State Updates
 ```typescript
 actionRegister.register('fetchUserData', async (payload, controller) => {
   // Set loading state
@@ -280,3 +280,25 @@ actionRegister.register('fetchUserData', async (payload, controller) => {
 - [Store Integration](./store-integration.md) - Advanced store integration patterns
 - [Action Pipeline](./action-pipeline.md) - Understanding the action execution system
 - [Best Practices](./best-practices.md) - Development best practices and guidelines
+
+<!-- Glossary Reference Links -->
+[mvvm-pattern]: ../glossary/architecture-terms.md#mvvm-pattern
+[action-handler]: ../glossary/core-concepts.md#action-handler
+[viewmodel-layer]: ../glossary/architecture-terms.md#viewmodel-layer
+[model-layer]: ../glossary/architecture-terms.md#model-layer
+[view-layer]: ../glossary/architecture-terms.md#view-layer
+[action-pipeline-system]: ../glossary/core-concepts.md#action-pipeline-system
+[action-payload-map]: ../glossary/core-concepts.md#action-payload-map
+[actionregister]: ../glossary/api-terms.md#actionregister
+[pipeline-controller]: ../glossary/core-concepts.md#pipeline-controller
+[store-integration-pattern]: ../glossary/core-concepts.md#store-integration-pattern
+[lazy-evaluation]: ../glossary/architecture-terms.md#lazy-evaluation
+[business-logic]: ../glossary/architecture-terms.md#business-logic
+[decoupled-architecture]: ../glossary/architecture-terms.md#decoupled-architecture
+[type-safety]: ../glossary/architecture-terms.md#type-safety
+[storeprovider]: ../glossary/api-terms.md#storeprovider
+[actionprovider]: ../glossary/api-terms.md#actionprovider
+[action-dispatcher]: ../glossary/api-terms.md#action-dispatcher
+[store-hooks]: ../glossary/api-terms.md#store-hooks
+[cross-store-coordination]: ../glossary/api-terms.md#cross-store-coordination
+[async-operations]: ../glossary/api-terms.md#async-operations
