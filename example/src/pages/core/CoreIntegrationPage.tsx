@@ -3,7 +3,7 @@
  * Action-Store 통합 데모: MVVM 패턴 구현
  */
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { 
   Store, 
   StoreProvider, 
@@ -14,6 +14,7 @@ import {
   useActionRegister,
   ActionPayloadMap,
 } from '@context-action/react';
+import { useActionGuard, ACTION_PATTERNS, GUARD_PRESETS } from '../../hooks';
 
 // ============================================
 // Type Definitions (Following ARCHITECTURE.md)
@@ -92,9 +93,19 @@ interface AppActions extends ActionPayloadMap {
 
 function useStoreSetup() {
   const registry = useStoreRegistry();
+  const [initialized, setInitialized] = useState(false);
   
   useEffect(() => {
+    let isMounted = true;
+    
+    // 이미 초기화되었거나 store가 이미 존재하면 건너뛰기
+    if (initialized || registry.getStore('user')) {
+      console.log('🏪 Stores already initialized, skipping...');
+      return;
+    }
+
     console.log('🏪 Starting store initialization...');
+    
     // Initialize all stores
     registry.register('user', new Store<User | null>('user', {
       id: '1',
@@ -122,25 +133,32 @@ function useStoreSetup() {
     }));
     
     registry.register('ui', new Store<UIState>('ui', {
-      loading: true, // ✅ 초기 로딩 상태로 시작
+      loading: false, // ✅ 로딩 상태를 false로 변경
       error: undefined
     }));
 
     registry.register('activities', new Store<Activity[]>('activities', []));
     
-    console.log('✅ Store initialization completed!');
-    // ✅ Store 등록은 완료되었으므로 Action Handler에서 loading을 해제
+    if (isMounted) {
+      setInitialized(true);
+      console.log('✅ Store initialization completed!');
+    }
     
     return () => {
-      // Cleanup stores
-      registry.unregister('user');
-      registry.unregister('cart');
-      registry.unregister('totals');
-      registry.unregister('inventory');
-      registry.unregister('ui');
-      registry.unregister('activities');
+      isMounted = false;
+      // StrictMode에서 클린업하지 않도록 조건부 클린업
+      if (process.env.NODE_ENV !== 'development') {
+        setInitialized(false);
+        console.log('🧹 Cleaning up stores...');
+        registry.unregister('user');
+        registry.unregister('cart');
+        registry.unregister('totals');
+        registry.unregister('inventory');
+        registry.unregister('ui');
+        registry.unregister('activities');
+      }
     };
-  }, [registry]);
+  }, []); // 의존성 배열에서 registry 제거하여 중복 실행 방지
 }
 
 // ============================================
@@ -150,8 +168,25 @@ function useStoreSetup() {
 function useActionHandlers() {
   const actionRegister = useActionRegister<AppActions>();
   const registry = useStoreRegistry();
+  const [actionsRegistered, setActionsRegistered] = useState(false);
+  const registeredRef = useRef(false);
+  
+  // ActionGuard 설정 - 쇼핑 관련 액션들에 최적화된 가드 적용
+  const guard = useActionGuard<AppActions>({
+    ...ACTION_PATTERNS.shopping,
+    debug: true // 개발 환경에서 디버깅 로그 출력
+  });
   
   useEffect(() => {
+    // 이미 등록되었거나 actions가 등록되어 있으면 건너뛰기
+    if (actionsRegistered || registeredRef.current) {
+      console.log('🎯 Actions already registered, skipping...');
+      return;
+    }
+    
+    // 등록 시작 시 바로 플래그 설정하여 중복 방지
+    registeredRef.current = true;
+
     // ✅ Store 등록이 완료될 때까지 대기
     const checkStores = () => {
       const userStore = registry.getStore('user') as Store<User | null>;
@@ -242,70 +277,86 @@ function useActionHandlers() {
     const unregisterAddToCart = actionRegister.register(
       'addToCart',
       async (payload, controller) => {
-        // Get current state from multiple stores (Lazy evaluation)
-        const inventory = inventoryStore.getValue();
-        const user = userStore.getValue();
-        const availableQty = inventory[payload.productId] || 0;
-        
-        // Business rule: Check inventory
-        if (availableQty < payload.quantity) {
-          uiStore.update(ui => ({ 
-            ...ui, 
-            error: `Only ${availableQty} items available` 
-          }));
-          controller.abort('Insufficient inventory');
+        // ✅ ActionGuard를 사용한 중복 실행 방지
+        if (!guard.canExecute('addToCart', payload)) {
+          console.log('🛑 addToCart execution prevented by ActionGuard');
+          controller.abort('Duplicate operation prevented by guard');
           return;
         }
         
-        // Business rule: User must be logged in
-        if (!user) {
-          uiStore.update(ui => ({ 
-            ...ui, 
-            error: 'Please login to add items to cart' 
-          }));
-          controller.abort('User not logged in');
-          return;
-        }
-        
-        // Update cart (Complex state logic)
-        cartStore.update(cart => {
-          const existingItem = cart.items.find(
-            item => item.productId === payload.productId
-          );
+        try {
+          // Get current state from multiple stores (Lazy evaluation)
+          const inventory = inventoryStore.getValue();
+          const user = userStore.getValue();
+          const availableQty = inventory[payload.productId] || 0;
           
-          if (existingItem) {
-            return {
-              ...cart,
-              items: cart.items.map(item =>
-                item.productId === payload.productId
-                  ? { ...item, quantity: item.quantity + payload.quantity }
-                  : item
-              )
-            };
-          } else {
-            return {
-              ...cart,
-              items: [...cart.items, payload]
-            };
+          // Business rule: Check inventory
+          if (availableQty < payload.quantity) {
+            uiStore.update(ui => ({ 
+              ...ui, 
+              error: `Only ${availableQty} items available` 
+            }));
+            controller.abort('Insufficient inventory');
+            return;
           }
-        });
-        
-        // Update inventory (Atomic state updates)
-        inventoryStore.update(inv => ({
-          ...inv,
-          [payload.productId]: inv[payload.productId] - payload.quantity
-        }));
-        
-        // Log activity
-        activitiesStore.update(activities => [...activities, {
-          type: 'item_added_to_cart',
-          timestamp: Date.now(),
-          userId: user.id,
-          data: payload
-        }]);
-        
-        // Trigger totals recalculation (Action chaining)
-        await actionRegister.dispatch('calculateTotals');
+          
+          // Business rule: User must be logged in
+          if (!user) {
+            uiStore.update(ui => ({ 
+              ...ui, 
+              error: 'Please login to add items to cart' 
+            }));
+            controller.abort('User not logged in');
+            return;
+          }
+          
+          // Update cart (Complex state logic)
+          cartStore.update(cart => {
+            const existingItem = cart.items.find(
+              item => item.productId === payload.productId
+            );
+            
+            if (existingItem) {
+              return {
+                ...cart,
+                items: cart.items.map(item =>
+                  item.productId === payload.productId
+                    ? { ...item, quantity: item.quantity + payload.quantity }
+                    : item
+                )
+              };
+            } else {
+              return {
+                ...cart,
+                items: [...cart.items, payload]
+              };
+            }
+          });
+          
+          // Update inventory (Atomic state updates)
+          inventoryStore.update(inv => ({
+            ...inv,
+            [payload.productId]: inv[payload.productId] - payload.quantity
+          }));
+          
+          // Log activity
+          activitiesStore.update(activities => [...activities, {
+            type: 'item_added_to_cart',
+            timestamp: Date.now(),
+            userId: user.id,
+            data: payload
+          }]);
+          
+          // Trigger totals recalculation (Action chaining)
+          await actionRegister.dispatch('calculateTotals');
+          
+          // ✅ ActionGuard에 실행 완료 기록
+          guard.markExecuted('addToCart', payload);
+        } catch (error) {
+          // 에러 발생 시에도 가드 상태 초기화 (선택사항)
+          console.error('addToCart error:', error);
+          throw error;
+        }
       },
       { priority: 15, blocking: true }
     );
@@ -402,50 +453,66 @@ function useActionHandlers() {
     const unregisterApplyCoupon = actionRegister.register(
       'applyCoupon',
       async (payload, controller) => {
-        // Validate coupon (Business rules)
-        const validCoupons = ['SAVE10', 'SAVE20', 'ADMIN'];
-        
-        if (!validCoupons.includes(payload.code)) {
-          uiStore.update(ui => ({ 
-            ...ui, 
-            error: 'Invalid coupon code' 
-          }));
-          controller.abort('Invalid coupon');
+        // ✅ ActionGuard를 사용한 중복 실행 방지
+        if (!guard.canExecute('applyCoupon', payload)) {
+          console.log('🛑 applyCoupon execution prevented by ActionGuard');
+          controller.abort('Duplicate operation prevented by guard');
           return;
         }
         
-        // Check if ADMIN coupon is used by non-admin (Authorization logic)
-        const user = userStore.getValue();
-        if (payload.code === 'ADMIN' && user?.role !== 'admin') {
-          uiStore.update(ui => ({ 
-            ...ui, 
-            error: 'This coupon is for admin users only' 
+        try {
+          // Validate coupon (Business rules)
+          const validCoupons = ['SAVE10', 'SAVE20', 'ADMIN'];
+          
+          if (!validCoupons.includes(payload.code)) {
+            uiStore.update(ui => ({ 
+              ...ui, 
+              error: 'Invalid coupon code' 
+            }));
+            controller.abort('Invalid coupon');
+            return;
+          }
+          
+          // Check if ADMIN coupon is used by non-admin (Authorization logic)
+          const user = userStore.getValue();
+          if (payload.code === 'ADMIN' && user?.role !== 'admin') {
+            uiStore.update(ui => ({ 
+              ...ui, 
+              error: 'This coupon is for admin users only' 
+            }));
+            controller.abort('Unauthorized coupon');
+            return;
+          }
+          
+          // Apply coupon
+          cartStore.update(cart => ({
+            ...cart,
+            couponCode: payload.code
           }));
-          controller.abort('Unauthorized coupon');
-          return;
+          
+          // Log activity
+          if (user) {
+            activitiesStore.update(activities => [...activities, {
+              type: 'coupon_applied',
+              timestamp: Date.now(),
+              userId: user.id,
+              data: payload
+            }]);
+          }
+          
+          // Clear errors
+          uiStore.update(ui => ({ ...ui, error: undefined }));
+          
+          // Recalculate totals
+          await actionRegister.dispatch('calculateTotals');
+          
+          // ✅ ActionGuard에 실행 완료 기록
+          guard.markExecuted('applyCoupon', payload);
+        } catch (error) {
+          // 에러 발생 시에도 가드 상태 처리
+          console.error('applyCoupon error:', error);
+          throw error;
         }
-        
-        // Apply coupon
-        cartStore.update(cart => ({
-          ...cart,
-          couponCode: payload.code
-        }));
-        
-        // Log activity
-        if (user) {
-          activitiesStore.update(activities => [...activities, {
-            type: 'coupon_applied',
-            timestamp: Date.now(),
-            userId: user.id,
-            data: payload
-          }]);
-        }
-        
-        // Clear errors
-        uiStore.update(ui => ({ ...ui, error: undefined }));
-        
-        // Recalculate totals
-        await actionRegister.dispatch('calculateTotals');
       },
       { priority: 10, blocking: true }
     );
@@ -528,8 +595,8 @@ function useActionHandlers() {
       { priority: 1 }
     );
     
-      // Action 등록 완료 후 로딩 상태 해제
-      uiStore.setValue({ loading: false, error: undefined });
+      // Action 등록 완료
+      setActionsRegistered(true);
       console.log('🎉 Action registration completed!');
       
       // ✅ 초기 totals 계산 실행 (데모 데이터가 있는 경우)
@@ -539,14 +606,19 @@ function useActionHandlers() {
       
       // Cleanup function
       return () => {
-        console.log('🧹 Cleaning up actions...');
-        unregisterUpdateUser();
-        unregisterAddToCart();
-        unregisterRemoveFromCart();
-        unregisterCalculateTotals();
-        unregisterApplyCoupon();
-        unregisterCheckout();
-        unregisterLogActivity();
+        // StrictMode에서 클린업하지 않도록 조건부 클린업
+        if (process.env.NODE_ENV !== 'development') {
+          console.log('🧹 Cleaning up actions...');
+          registeredRef.current = false;
+          setActionsRegistered(false);
+          unregisterUpdateUser();
+          unregisterAddToCart();
+          unregisterRemoveFromCart();
+          unregisterCalculateTotals();
+          unregisterApplyCoupon();
+          unregisterCheckout();
+          unregisterLogActivity();
+        }
       };
     };
     
@@ -569,7 +641,7 @@ function useActionHandlers() {
         });
       }
     };
-  }, [registry, actionRegister]);
+  }, []); // 의존성 배열을 빈 배열로 변경하여 중복 실행 방지
 }
 
 // ============================================
@@ -579,7 +651,13 @@ function useActionHandlers() {
 function UserProfile() {
   const dispatch = useActionDispatch<AppActions>();
   const registry = useStoreRegistry();
-  const userStore = useMemo(() => registry.getStore('user') as Store<User | null>, [registry]);
+  const userStore = useMemo(() => {
+    try {
+      return registry.getStore('user') as Store<User | null>;
+    } catch (error) {
+      return null;
+    }
+  }, [registry]);
   const user = useStoreValue(userStore);
   
   if (!userStore) return <div style={{ padding: '15px', textAlign: 'center' }}>⏳ Loading user store...</div>;
@@ -613,9 +691,27 @@ function ShoppingCart() {
   const [couponInput, setCouponInput] = useState('');
   
   // Memoize stores to prevent re-creation on every render
-  const cartStore = useMemo(() => registry.getStore('cart') as Store<Cart>, [registry]);
-  const totalsStore = useMemo(() => registry.getStore('totals') as Store<Totals>, [registry]);
-  const uiStore = useMemo(() => registry.getStore('ui') as Store<UIState>, [registry]);
+  const cartStore = useMemo(() => {
+    try {
+      return registry.getStore('cart') as Store<Cart>;
+    } catch (error) {
+      return null;
+    }
+  }, [registry]);
+  const totalsStore = useMemo(() => {
+    try {
+      return registry.getStore('totals') as Store<Totals>;
+    } catch (error) {
+      return null;
+    }
+  }, [registry]);
+  const uiStore = useMemo(() => {
+    try {
+      return registry.getStore('ui') as Store<UIState>;
+    } catch (error) {
+      return null;
+    }
+  }, [registry]);
   
   const cart = useStoreValue(cartStore) || { items: [], couponCode: undefined };
   const totals = useStoreValue(totalsStore) || { subtotal: 0, discount: 0, tax: 0, total: 0 };
@@ -723,8 +819,20 @@ function ShoppingCart() {
 function ProductList() {
   const dispatch = useActionDispatch<AppActions>();
   const registry = useStoreRegistry();
-  const inventoryStore = useMemo(() => registry.getStore('inventory') as Store<Inventory>, [registry]);
+  const inventoryStore = useMemo(() => {
+    try {
+      return registry.getStore('inventory') as Store<Inventory>;
+    } catch (error) {
+      return null;
+    }
+  }, [registry]);
   const inventory = useStoreValue(inventoryStore) || {};
+  
+  // ✅ UI 컴포넌트에서도 ActionGuard 상태 확인 가능
+  const guard = useActionGuard<AppActions>({
+    ...ACTION_PATTERNS.shopping,
+    debug: false // UI에서는 로그 줄임
+  });
   
   if (!inventoryStore) return <div style={{ padding: '15px', textAlign: 'center' }}>⏳ Loading inventory...</div>;
   
@@ -748,13 +856,33 @@ function ProductList() {
             </div>
             <button 
               className="btn btn-primary btn-sm"
-              onClick={() => dispatch('addToCart', {
-                productId: product.id,
-                name: product.name,
-                price: product.price,
-                quantity: 1
-              })}
+              onClick={() => {
+                const payload = {
+                  productId: product.id,
+                  name: product.name,
+                  price: product.price,
+                  quantity: 1
+                };
+                
+                // ✅ ActionGuard와 함께 실행
+                if (guard.canExecute('addToCart', payload)) {
+                  dispatch('addToCart', payload);
+                  // 실행 기록은 액션 핸들러에서 처리됨
+                } else {
+                  // UI에서 사용자에게 피드백 제공
+                  const state = guard.getGuardState('addToCart', payload);
+                  console.log('🛡️ Action blocked:', state);
+                }
+              }}
               disabled={(inventory?.[product.id] || 0) === 0}
+              style={{
+                opacity: guard.canExecute('addToCart', { 
+                  productId: product.id, 
+                  name: product.name, 
+                  price: product.price, 
+                  quantity: 1 
+                }) ? 1 : 0.7
+              }}
             >
               Add to Cart
             </button>
@@ -767,7 +895,13 @@ function ProductList() {
 
 function ActivityLog() {
   const registry = useStoreRegistry();
-  const activitiesStore = useMemo(() => registry.getStore('activities') as Store<Activity[]>, [registry]);
+  const activitiesStore = useMemo(() => {
+    try {
+      return registry.getStore('activities') as Store<Activity[]>;
+    } catch (error) {
+      return null;
+    }
+  }, [registry]);
   const activities = useStoreValue(activitiesStore) || [];
   
   if (!activitiesStore) return <div style={{ padding: '15px', textAlign: 'center' }}>⏳ Loading activities...</div>;
@@ -800,11 +934,49 @@ function ActivityLog() {
 // ============================================
 
 function IntegrationDemo() {
+  const registry = useStoreRegistry();
+  const [isReady, setIsReady] = useState(false);
+  
   // Setup stores
   useStoreSetup();
   
   // Register action handlers
   useActionHandlers();
+  
+  // 모든 store가 준비되었는지 확인
+  useEffect(() => {
+    const checkStoresReady = () => {
+      const stores = ['user', 'cart', 'totals', 'inventory', 'ui', 'activities'];
+      const allReady = stores.every(storeName => {
+        const store = registry.getStore(storeName);
+        return !!store;
+      });
+      
+      if (allReady && !isReady) {
+        console.log('🎉 All stores ready for rendering!');
+        setIsReady(true);
+      }
+    };
+    
+    checkStoresReady();
+    
+    // 주기적으로 확인 (필요한 경우)
+    const interval = setInterval(checkStoresReady, 100);
+    
+    return () => clearInterval(interval);
+  }, [registry, isReady]);
+  
+  if (!isReady) {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center' }}>
+        <h2>Action-Store Integration Demo (ARCHITECTURE.md Pattern)</h2>
+        <p>🔄 Initializing stores and actions...</p>
+        <div style={{ marginTop: '20px', fontSize: '0.9em', color: '#666' }}>
+          Please wait while we set up the demo environment.
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div>
