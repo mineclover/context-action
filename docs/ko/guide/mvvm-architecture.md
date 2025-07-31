@@ -18,6 +18,90 @@ Context-Action 프레임워크는 전통적인 Model-View-ViewModel 아키텍처
 - **타입 안전성**: 모든 레이어에 걸쳐 완전한 TypeScript 지원
 - **성능**: 선택적 스토어 구독을 통한 최적화된 리렌더링
 
+## 아키텍처 다이어그램
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                                  VIEW LAYER                              │
+│                             (React Components)                           │
+│                                                                         │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐               │
+│  │  Component A │    │  Component B │    │  Component C │               │
+│  │             │    │             │    │             │               │
+│  │  dispatch() │    │  dispatch() │    │  dispatch() │               │
+│  │  useStore() │    │  useStore() │    │  useStore() │               │
+│  └──────┬──────┘    └──────┬──────┘    └──────┬──────┘               │
+│         │ dispatch          │ dispatch          │ dispatch              │
+│         │ subscribe         │ subscribe         │ subscribe             │
+└─────────┼───────────────────┼───────────────────┼──────────────────────┘
+          │                   │                   │
+          ▼                   ▼                   ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                            VIEWMODEL LAYER                               │
+│                          (Action Pipeline)                               │
+│                                                                         │
+│  ┌─────────────────────────────────────────────────────────────────┐  │
+│  │                      ActionRegister<T>                           │  │
+│  │  ┌────────────┐  ┌────────────┐  ┌────────────┐               │  │
+│  │  │  Handler 1 │  │  Handler 2 │  │  Handler 3 │               │  │
+│  │  │ priority:10│  │ priority:5 │  │ priority:0 │               │  │
+│  │  └────────────┘  └────────────┘  └────────────┘               │  │
+│  │                                                                 │  │
+│  │  Pipeline Execution: payload → handler → store updates         │  │
+│  └─────────────────────────────────────────────────────────────────┘  │
+│                            │                                            │
+│                            │ get/set at execution time                  │
+│                            ▼                                            │
+└─────────────────────────────────────────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                              MODEL LAYER                                 │
+│                               (Stores)                                   │
+│                                                                         │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐               │
+│  │   Store A   │    │   Store B   │    │   Store C   │               │
+│  │             │    │             │    │             │               │
+│  │  getValue() │    │  getValue() │    │  getValue() │               │
+│  │  setValue() │    │  setValue() │    │  setValue() │               │
+│  │  update()   │    │  update()   │    │  update()   │               │
+│  │  subscribe()│    │  subscribe()│    │  subscribe()│               │
+│  └─────────────┘    └─────────────┘    └─────────────┘               │
+│                                                                         │
+│  ┌─────────────────────────────────────────────────────────────────┐  │
+│  │                        StoreRegistry                             │  │
+│  │                 Centralized store management                     │  │
+│  └─────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+## 데이터 플로우 시퀀스
+
+```
+사용자 상호작용
+       │
+       ▼
+Component.dispatch('action', payload)
+       │
+       ▼
+ActionPipeline.execute(payload)
+       │
+       ▼
+Handler.process(payload, controller)
+       │
+       ├─→ Store.getValue() [현재 상태 읽기]
+       │
+       ├─→ Business Logic [페이로드 + 상태로 처리]
+       │
+       ├─→ Store.setValue() [상태 업데이트]
+       │
+       ▼
+Store.notifySubscribers()
+       │
+       ▼
+Component.reRender() [React hooks를 통해]
+```
+
 ## 핵심 개념
 
 ### 1. 🎨 View 레이어 (React 컴포넌트)
@@ -287,6 +371,99 @@ const shoppingCartSummary = createComputedStore(
     };
   }
 );
+```
+
+## 주요 아키텍처 개념
+
+### 1. 지연 평가 패턴
+
+Context-Action은 액션 핸들러가 항상 최신 상태 값을 받도록 지연 평가를 구현합니다:
+
+```typescript
+// 핸들러는 실행 시점에 최신 스토어 값을 가져옴
+actionRegister.register('updateCart', (payload, controller) => {
+  // getValue()는 등록 시점이 아닌 핸들러 실행 시점에 호출됨
+  const currentCart = cartStore.getValue();  // 항상 최신
+  const userPrefs = prefsStore.getValue();   // 항상 최신
+  
+  // 최신 값으로 처리
+  const updatedCart = processCart(currentCart, payload, userPrefs);
+  cartStore.setValue(updatedCart);
+});
+```
+
+이 패턴은 이벤트 기반 아키텍처에서 흔한 오래된 클로저 문제를 제거합니다.
+
+### 2. 액션 컨텍스트 등록
+
+액션은 컴포넌트 마운트 시 파이프라인 컨텍스트에 등록되어 적절한 생명주기 관리를 가능하게 합니다:
+
+```typescript
+// 액션은 컴포넌트 마운트 시 파이프라인 컨텍스트에 등록됨
+function CartFeature() {
+  const registry = useStoreRegistry();
+  const dispatch = useActionDispatch();
+  
+  useEffect(() => {
+    // 레지스트리에서 스토어 가져오기
+    const cartStore = registry.getStore('cart');
+    const inventoryStore = registry.getStore('inventory');
+    
+    // 스토어 접근을 가진 액션 핸들러 등록
+    const unregister = actionRegister.register('addToCart', 
+      (payload, controller) => {
+        // 스토어 접근을 가진 비즈니스 로직
+        const cart = cartStore.getValue();
+        const inventory = inventoryStore.getValue();
+        
+        if (inventory[payload.productId] < payload.quantity) {
+          controller.abort('재고가 부족합니다');
+          return;
+        }
+        
+        cartStore.update(cart => ({
+          ...cart,
+          items: [...cart.items, payload]
+        }));
+        
+        inventoryStore.update(inv => ({
+          ...inv,
+          [payload.productId]: inv[payload.productId] - payload.quantity
+        }));
+      },
+      { priority: 10, blocking: true }
+    );
+    
+    return unregister; // 언마운트 시 정리
+  }, [registry]);
+  
+  return <CartUI onAddItem={(item) => dispatch('addToCart', item)} />;
+}
+```
+
+### 3. 파이프라인 실행 제어
+
+파이프라인 컨트롤러는 액션 핸들러 내에서 정교한 플로우 제어를 가능하게 합니다:
+
+```typescript
+// 파이프라인 컨트롤러로 플로우 제어 가능
+actionRegister.register('processOrder', async (payload, controller) => {
+  // 유효성 검사 단계
+  if (!validateOrder(payload)) {
+    controller.abort('유효하지 않은 주문 데이터');
+    return;
+  }
+  
+  // 다음 핸들러를 위한 페이로드 수정
+  controller.modifyPayload(order => ({
+    ...order,
+    processedAt: Date.now(),
+    status: 'processing'
+  }));
+  
+  // 다음 핸들러로 계속
+  controller.next();
+});
 ```
 
 ## 설계 원칙
@@ -591,6 +768,39 @@ actionRegister.register('updateUserProfile', async (payload, controller) => {
   }));
 });
 ```
+
+## 전통적인 MVVM과의 비교
+
+Context-Action의 MVVM이 전통적인 구현과 어떻게 다른지 이해하기:
+
+| 측면 | 전통적인 MVVM | Context-Action MVVM |
+|--------|-----------------|-------------------|
+| 데이터 바인딩 | 양방향 바인딩 | 액션을 통한 단방향 플로우 |
+| ViewModel | 클래스 인스턴스 | 함수형 핸들러 |
+| 커맨드 | 커맨드 객체 | 액션 디스패치 |
+| 상태 업데이트 | 프로퍼티 세터 | 스토어 세터 |
+| 타입 안전성 | 런타임 검사 | 컴파일 타임 타입 |
+| 테스팅 | 의존성 모킹 | 스토어 모킹 |
+| 디버깅 | 복잡한 바인딩 체인 | 선형 액션 플로우 |
+
+### 주요 장점
+
+1. **예측 가능한 데이터 플로우**: 양방향 데이터 바인딩과 달리 Context-Action은 단방향 플로우를 강제합니다
+2. **더 나은 성능**: 복잡한 바인딩 오버헤드 없음, 최적화된 리렌더링
+3. **향상된 디버깅**: 선형 액션 플로우로 상태 변경을 쉽게 추적
+4. **타입 안전성**: 완전한 TypeScript 지원으로 컴파일 타임 보장 제공
+5. **함수형 접근**: 클래스 상속의 복잡성 없음, 순수 함수
+
+## 요약
+
+Context-Action의 MVVM 구현은 다음을 제공합니다:
+- UI, 비즈니스 로직, 상태 간의 **명확한 분리**
+- **타입 안전한** 액션 디스패치와 상태 관리
+- 최신 상태 값을 보장하는 **지연 평가**
+- 모킹 가능한 의존성을 가진 **테스트 가능한** 아키텍처
+- 복잡한 애플리케이션을 위한 **확장 가능한** 패턴
+
+이 프레임워크는 MVVM 아키텍처 원칙의 장점을 현대적인 React 패턴 및 TypeScript 기능과 결합하여, 정교한 웹 애플리케이션 구축을 위한 유지보수 가능하고 성능이 뛰어난 아키텍처를 제공합니다.
 
 ## 관련 자료
 
