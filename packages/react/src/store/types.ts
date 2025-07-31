@@ -18,6 +18,7 @@ export interface IStore<T = any> {
   getSnapshot: () => Snapshot<T>;
   setValue: (value: T) => void;
   getValue: () => T;
+  getListenerCount?: () => number;
 }
 
 export interface IStoreRegistry {
