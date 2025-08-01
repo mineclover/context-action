@@ -21,12 +21,10 @@ export type {
   ActionRegisterEvents,
   EventHandler,
   EventEmitter,
-  Logger,
 } from './types.js';
 
-export { LogLevel } from './types.js';
-
-// Logger utilities
+// Logger types and utilities from separate logger package
+export type { Logger, LogLevel } from '@context-action/logger';
 export {
   ConsoleLogger,
   NoopLogger,
@@ -34,4 +32,4 @@ export {
   getLogLevelFromEnv,
   getLoggerNameFromEnv,
   getDebugFromEnv,
-} from './logger.js';
+} from '@context-action/logger';

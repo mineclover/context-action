@@ -1,8 +1,8 @@
 {
-  "name": "@context-action/core",
-  "version": "0.0.3",
+  "name": "@context-action/logger",
+  "version": "0.0.1",
   "type": "module",
-  "description": "Type-safe action pipeline management library for JavaScript/TypeScript",
+  "description": "Logging utility for the context-action framework",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -20,9 +20,7 @@
   },
   "files": [
     "dist",
-    "README.md",
-    "README.ko.md",
-    "LICENSE"
+    "README.md"
   ],
   "scripts": {
     "build": "tsdown",
@@ -39,23 +37,21 @@
     "typescript",
     "javascript",
     "action",
-    "pipeline",
-    "state-management",
-    "event-system"
+    "logger"
   ],
   "author": "mineclover",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mineclover/context-action.git",
-    "directory": "packages/core"
+    "directory": "packages/logger"
   },
   "bugs": {
     "url": "https://github.com/mineclover/context-action/issues"
   },
   "homepage": "https://github.com/mineclover/context-action#readme",
   "dependencies": {
-    "@context-action/logger": "workspace:*"
+    "dotenv": "^16.4.5"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",

@@ -3,4 +3,5 @@ packages:
   - 'packages/react'
   - 'packages/jotai'
   - 'packages/glossary'
+  - 'packages/logger'
   - 'example'

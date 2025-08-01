@@ -3,6 +3,8 @@
  * Provides type-safe action pipeline management with Store integration
  */
 
+import type { Logger, LogLevel } from '@context-action/logger';
+
 /**
  * Base interface for defining action payload mappings
  * 
@@ -100,29 +102,6 @@ export interface PipelineContext<T = any> {
   aborted: boolean;
   abortReason?: string;
   currentIndex: number;
-}
-
-/**
- * Logger interface for customizable logging
- */
-export interface Logger {
-  trace(message: string, data?: any): void;
-  debug(message: string, data?: any): void;
-  info(message: string, data?: any): void;
-  warn(message: string, data?: any): void;
-  error(message: string, error?: any): void;
-}
-
-/**
- * Log levels for filtering log output
- */
-export enum LogLevel {
-  TRACE = 0,
-  DEBUG = 1,
-  INFO = 2,
-  WARN = 3,
-  ERROR = 4,
-  NONE = 5
 }
 
 /**

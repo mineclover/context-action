@@ -5,6 +5,9 @@
 
 import { Logger, LogLevel } from './types.js';
 
+// Export types
+export type { Logger, LogLevel };
+
 // Note: .env loading should be done by the application
 // Import dotenv in your application entry point:
 // import 'dotenv/config';
@@ -86,11 +89,21 @@ export class ConsoleLogger implements Logger {
  * No-op logger that discards all log messages
  */
 export class NoopLogger implements Logger {
+  private level: LogLevel = LogLevel.NONE;
+  
   trace(): void {}
   debug(): void {}
   info(): void {}
   warn(): void {}
   error(): void {}
+  
+  setLevel(level: LogLevel): void {
+    this.level = level;
+  }
+  
+  getLevel(): LogLevel {
+    return this.level;
+  }
 }
 
 /**
