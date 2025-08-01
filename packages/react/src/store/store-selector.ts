@@ -17,8 +17,8 @@ const CONSTANTS = {
 } as const;
 
 /**
- * 핵심 Store 동기화 훅
- * 핵심 기능: React의 useSyncExternalStore를 사용하여 Store 상태를 React 컴포넌트와 동기화
+ * Store Selector Hook - 선택적 데이터 구독
+ * 핵심 기능: selector를 사용하여 Store의 특정 부분만 구독하고 반환
  * 
  * @template T - Store 값 타입
  * @template R - 반환 타입 (기본값: Snapshot<T>)
@@ -30,8 +30,21 @@ const CONSTANTS = {
  * 1. store.getSnapshot() - 현재 상태 가져오기
  * 2. selector 적용 (있을 경우) - 필요한 부분만 추출
  * 3. useSyncExternalStore() - React와 동기화
+ * 
+ * @example
+ * ```typescript
+ * // 사용자 이름만 구독
+ * const userName = useStoreSelector(userStore, { 
+ *   selector: snapshot => snapshot.value.name 
+ * });
+ * 
+ * // 계산된 값 구독
+ * const totalPrice = useStoreSelector(cartStore, {
+ *   selector: snapshot => snapshot.value.items.reduce((sum, item) => sum + item.price, 0)
+ * });
+ * ```
  */
-export function useStoreSync<T, R = Snapshot<T>>(
+export function useStoreSelector<T, R = Snapshot<T>>(
   store: IStore<T> | undefined | null,
   config?: StoreSyncConfig<T, R>
 ): R {
@@ -70,7 +83,7 @@ export function useStoreSync<T, R = Snapshot<T>>(
  * ```
  */
 export function useStore<T>(store: IStore<T> | undefined | null): Snapshot<T> {
-  return useStoreSync(store);
+  return useStoreSelector(store);
 }
 
 /**
@@ -83,7 +96,7 @@ export function createTypedStoreHooks<T>() {
      * 타입 안전한 Store 값 가져오기
      */
     useStoreValue(store: IStore<T> | undefined | null): T | undefined {
-      return useStoreSync(store, {
+      return useStoreSelector(store, {
         selector: snapshot => snapshot.value
       });
     },
@@ -92,7 +105,7 @@ export function createTypedStoreHooks<T>() {
      * 타입 안전한 Store 스냅샷 가져오기
      */
     useStoreSnapshot(store: IStore<T> | undefined | null): Snapshot<T> {
-      return useStoreSync(store);
+      return useStoreSelector(store);
     }
   };
 }

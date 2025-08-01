@@ -1,4 +1,4 @@
-import { useStoreSync } from '../store-sync';
+import { useStoreSelector } from '../store-selector';
 import type { IStore, IStoreRegistry } from '../types';
 
 /**
@@ -27,9 +27,9 @@ import type { IStore, IStoreRegistry } from '../types';
  * ```
  */
 export function useRegistry(registry: IStoreRegistry | undefined | null): Array<[string, IStore]> {
-  // Registry를 Store처럼 취급하여 useStoreSync 사용
+  // Registry를 Store처럼 취급하여 useStoreSelector 사용
   // Registry도 subscribe/getSnapshot 인터페이스를 구현하므로 가능
-  return useStoreSync(registry as any, {
+  return useStoreSelector(registry as any, {
     selector: () => registry?.getSnapshot() ?? [],
     defaultValue: [] as Array<[string, IStore]>
   });

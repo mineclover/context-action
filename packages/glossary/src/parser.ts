@@ -139,6 +139,40 @@ export class GlossaryParser {
   }
 
   /**
+   * Debug helper to log all tags found in a comment
+   * @param {Block} block - Parsed comment block
+   * @param {boolean} verbose - Whether to show detailed tag content
+   */
+  debugTags(block: Block, verbose: boolean = false): void {
+    console.log('\n🏷️  JSDoc Tags Debug:');
+    console.log(`Total tags found: ${block.tags.length}`);
+    
+    if (block.tags.length === 0) {
+      console.log('   No tags found in this comment');
+      return;
+    }
+
+    // Group tags by type
+    const tagGroups: Record<string, any[]> = {};
+    for (const tag of block.tags) {
+      if (!tagGroups[tag.tag]) {
+        tagGroups[tag.tag] = [];
+      }
+      tagGroups[tag.tag].push(tag);
+    }
+
+    // Display grouped tags
+    for (const [tagType, tags] of Object.entries(tagGroups)) {
+      console.log(`   @${tagType} (${tags.length}):`, 
+        tags.map(t => verbose ? 
+          `{name: "${t.name}", type: "${t.type}", desc: "${t.description}"}` : 
+          (t.type || t.name || t.description)
+        ).join(', ')
+      );
+    }
+  }
+
+  /**
    * Normalize a term name to kebab-case
    * @private
    */
@@ -190,16 +224,46 @@ export class GlossaryParser {
   /**
    * Parse all comments in a source file
    * @param {string} source - Source code content
+   * @param {boolean} debugMode - Enable debug output for all JSDoc tags
    * @returns {ParsedComment[]} Array of parsed comments
    */
-  parseFile(source: string): ParsedComment[] {
+  parseFile(source: string, debugMode: boolean = false): ParsedComment[] {
     const comments = this.extractComments(source);
     const parsed: ParsedComment[] = [];
+    const allTagStats: Record<string, number> = {};
 
-    for (const comment of comments) {
+    if (debugMode) {
+      console.log(`\n📄 Parsing ${comments.length} JSDoc comments...`);
+    }
+
+    for (let i = 0; i < comments.length; i++) {
+      const comment = comments[i];
       const result = this.parseComment(comment);
-      if (result && (result.implements.length > 0 || result.memberOf.length > 0)) {
-        parsed.push(result);
+      
+      if (result) {
+        if (debugMode) {
+          console.log(`\n--- Comment ${i + 1} ---`);
+          this.debugTags(result.source);
+          
+          // Collect tag statistics
+          for (const tag of result.source.tags) {
+            allTagStats[tag.tag] = (allTagStats[tag.tag] || 0) + 1;
+          }
+        }
+
+        if (result.implements.length > 0 || result.memberOf.length > 0) {
+          parsed.push(result);
+        }
+      }
+    }
+
+    if (debugMode && Object.keys(allTagStats).length > 0) {
+      console.log('\n📊 JSDoc Tag Statistics:');
+      const sortedStats = Object.entries(allTagStats)
+        .sort(([,a], [,b]) => b - a);
+      
+      for (const [tag, count] of sortedStats) {
+        console.log(`   @${tag}: ${count} occurrences`);
       }
     }
 

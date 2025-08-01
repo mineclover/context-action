@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { Store } from '../Store';
-import { useStoreSync } from '../store-sync';
+import { useStoreSelector } from '../store-selector';
 import { createStore } from '../utils';
 import type { Snapshot } from '../types';
 import { createLogger } from '@context-action/logger';
@@ -50,7 +50,7 @@ export function useLocalStore<T>(
     });
   }
   
-  const snapshot = useStoreSync(storeRef.current);
+  const snapshot = useStoreSelector(storeRef.current);
   
   return {
     ...snapshot,

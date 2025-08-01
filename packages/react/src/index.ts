@@ -100,7 +100,7 @@ export {
 
 // Advanced sync utilities
 export {
-	useStoreSync,
+	useStoreSelector,
 	createTypedStoreHooks,
 	createRegistrySync,
 	RegistryUtils,

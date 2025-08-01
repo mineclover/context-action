@@ -95,9 +95,9 @@ export {
 // === SYNC UTILITIES ===
 // Store sync
 export { 
-  useStoreSync,
+  useStoreSelector,
   createTypedStoreHooks
-} from './store-sync';
+} from './store-selector';
 
 // Registry sync
 export { 

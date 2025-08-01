@@ -5,7 +5,7 @@ import {
 	useBatchStoreSync,
 	createRegistrySync,
 	StoreRegistry,
-	useStoreSyncWithSelector,
+	useStoreSelector,
 } from "@context-action/react";
 
 // Create typed hooks for a User type
@@ -28,17 +28,17 @@ function BasicSyncDemo() {
 			}),
 	);
 
-	// Different ways to use useStoreSyncWithSelector with proper typing
-	const snapshot = useStoreSyncWithSelector<User, User>(store, { selector: (s) => s.value });
-	const userName = useStoreSyncWithSelector<User, string>(store, { selector: (s) => s.value.name });
-	const userWithDefault = useStoreSyncWithSelector<User, User>(store, {
+	// Different ways to use useStoreSelector with proper typing
+	const snapshot = useStoreSelector<User, User>(store, { selector: (s) => s.value });
+	const userName = useStoreSelector<User, string>(store, { selector: (s) => s.value.name });
+	const userWithDefault = useStoreSelector<User, User>(store, {
 		defaultValue: { name: "Guest", age: 0, email: "" },
 		selector: (s) => s.value
 	});
 
 	return (
 		<div className="sync-demo">
-			<h5>Basic useStoreSync</h5>
+			<h5>Basic useStoreSelector</h5>
 			<div className="demo-grid">
 				<div className="demo-item">
 					<strong>Full Snapshot:</strong>
@@ -189,26 +189,26 @@ export function StoreSyncPage() {
 		<div className="page-content">
 			<h3>Store Sync Utilities</h3>
 			<p className="text-gray-600 mb-6">
-				Advanced store synchronization with useStoreSync and typed hook
+				Advanced store synchronization with useStoreSelector and typed hook
 				factories.
 			</p>
 
 			<div className="example-section">
-				<h4>useStoreSync API</h4>
+				<h4>useStoreSelector API</h4>
 				<div className="example-card">
 					<pre className="code-block">
-						{`import { useStoreSync } from '@context-action/react';
+						{`import { useStoreSelector } from '@context-action/react';
 
 // Basic usage - handles null/undefined stores
-const snapshot = useStoreSync(store);
+const snapshot = useStoreSelector(store);
 
-// With selector
-const userName = useStoreSync(store, {
+// With selector (main use case)
+const userName = useStoreSelector(store, {
   selector: s => s.value?.name
 });
 
 // With default value
-const userWithDefault = useStoreSync(store, {
+const userWithDefault = useStoreSelector(store, {
   defaultValue: { name: 'Guest', age: 0 }
 });
 

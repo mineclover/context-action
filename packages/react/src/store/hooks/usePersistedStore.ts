@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react';
 import { Store } from '../Store';
-import { useStoreSync } from '../store-sync';
+import { useStoreSelector } from '../store-selector';
 
 /**
  * 지속성 옵션 인터페이스
@@ -59,7 +59,7 @@ export function usePersistedStore<T>(
   
   const store = storeRef.current;
   // 반응형 구독 - Store 변경 시 React 컴포넌트 재렌더링
-  useStoreSync(store);
+  useStoreSelector(store);
   
   // 자동 지속성 - Store 변경 시 Storage에 자동 저장
   useEffect(() => {
