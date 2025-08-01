@@ -5,7 +5,7 @@
 
 import React, { useMemo } from 'react';
 import { Store, createStore, ManagedStore, createManagedStore, StoreConfig } from './Store';
-import { useStoreValue } from './hooks/useStoreValue';
+
 import { useStoreRegistry } from '../StoreProvider';
 
 /**

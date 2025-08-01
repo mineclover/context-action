@@ -257,9 +257,13 @@ export function useActionWithStores<
       let store = registry.getStore(storeName);
       if (!store) {
         store = storeFactory();
-        registry.register(storeName, store);
+        if (store) {
+          registry.register(storeName, store);
+        }
       }
-      stores[storeName as keyof S] = store;
+      if (store) {
+        stores[storeName as keyof S] = store as ReturnType<S[keyof S]>;
+      }
     }
 
     const wrappedHandler = async (
