@@ -70,13 +70,11 @@ export {
 	createComputedStore,
 } from "./store";
 
-// HOC patterns for stores
-export {
-	withStore,
-	withManagedStore,
-	withRegistryStores,
-	withStoreData,
-} from "./store";
+// HOC patterns for stores - REMOVED
+// Use hooks instead:
+// - withStore → useLocalStore + useStoreValue  
+// - withManagedStore → useRegistryStore + useStoreValue
+// - withStoreData → useStoreValue with multiple stores
 
 // React hooks for store management
 export {
