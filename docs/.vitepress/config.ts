@@ -11,6 +11,8 @@ import {
   sidebarApiSpecEn,
   sidebarReferenceKo,
   sidebarReferenceEn,
+  sidebarGlossaryKo,
+  sidebarGlossaryEn,
   sidebarPackagesKo,
   sidebarPackagesEn,
   sidebarExamplesKo,
@@ -62,6 +64,7 @@ export default defineConfig({
           '/ko/guide/': sidebarGuideKo(),
           '/ko/api-spec/': sidebarApiSpecKo(),
           '/ko/api/': sidebarReferenceKo(),
+          '/ko/glossary/': sidebarGlossaryKo(),
           '/ko/packages/': sidebarPackagesKo(),
           '/ko/examples/': sidebarExamplesKo(),
           '/ko/llms/': sidebarLlmsKo()
@@ -77,6 +80,7 @@ export default defineConfig({
           '/en/guide/': sidebarGuideEn(),
           '/en/api-spec/': sidebarApiSpecEn(),
           '/en/api/': sidebarReferenceEn(),
+          '/en/glossary/': sidebarGlossaryEn(),
           '/en/packages/': sidebarPackagesEn(),
           '/en/examples/': sidebarExamplesEn(),
           '/en/llms/': sidebarLlmsEn()
