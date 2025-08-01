@@ -3,6 +3,7 @@ import { Store } from '../Store';
 import { useStoreSync } from '../store-sync';
 import { createStore } from '../utils';
 import type { Snapshot } from '../types';
+import { createLogger } from '@context-action/logger';
 
 /**
  * Create a component-local store that persists across renders
@@ -37,9 +38,15 @@ export function useLocalStore<T>(
   name?: string
 ): Snapshot<T> & { store: Store<T> } {
   const storeRef = useRef<Store<T>>();
+  const loggerRef = useRef<ReturnType<typeof createLogger>>();
   
   if (!storeRef.current) {
     storeRef.current = createStore(initialValue, name);
+    loggerRef.current = createLogger();
+    loggerRef.current.debug(`Local store created via useLocalStore`, { 
+      name: storeRef.current.name,
+      initialValue 
+    });
   }
   
   const snapshot = useStoreSync(storeRef.current);

@@ -1,4 +1,5 @@
 import type { IStore, IStoreRegistry, Listener, Unsubscribe } from './types';
+import { createLogger } from '@context-action/logger';
 
 /**
  * Store metadata interface
@@ -24,9 +25,11 @@ export class StoreRegistry implements IStoreRegistry {
   private listeners = new Set<Listener>();
   private _snapshot: Array<[string, IStore]> = [];
   public readonly name: string;
+  private logger = createLogger();
 
   constructor(name: string = 'default') {
     this.name = name;
+    this.logger.debug(`StoreRegistry created: ${name}`);
   }
 
   /**
@@ -36,9 +39,15 @@ export class StoreRegistry implements IStoreRegistry {
    */
   subscribe = (listener: Listener): Unsubscribe => {
     this.listeners.add(listener);
+    this.logger.trace(`Registry subscriber added: ${this.name}`, { 
+      listenerCount: this.listeners.size 
+    });
     
     return () => {
       this.listeners.delete(listener);
+      this.logger.trace(`Registry subscriber removed: ${this.name}`, { 
+        listenerCount: this.listeners.size 
+      });
     };
   };
 
@@ -56,7 +65,7 @@ export class StoreRegistry implements IStoreRegistry {
    */
   register(name: string, store: IStore, metadata?: Partial<StoreMetadata>): void {
     if (this.stores.has(name)) {
-      console.warn(`Store "${name}" already exists in registry "${this.name}". Overwriting.`);
+      this.logger.warn(`Store "${name}" already exists in registry "${this.name}". Overwriting.`);
     }
     
     this.stores.set(name, store);
@@ -66,6 +75,11 @@ export class StoreRegistry implements IStoreRegistry {
       registeredAt: Date.now(),
       name,
       ...metadata
+    });
+    
+    this.logger.debug(`Store registered: ${name} in registry ${this.name}`, { 
+      storeCount: this.stores.size,
+      metadata: metadata || {} 
     });
     
     this._updateSnapshot();
@@ -86,10 +100,15 @@ export class StoreRegistry implements IStoreRegistry {
       this.stores.delete(name);
       // Metadata will be automatically GC'd when store is no longer referenced
       
+      this.logger.debug(`Store unregistered: ${name} from registry ${this.name}`, { 
+        storeCount: this.stores.size 
+      });
+      
       this._updateSnapshot();
       return true;
     }
     
+    this.logger.warn(`Attempted to unregister non-existent store: ${name} from registry ${this.name}`);
     return false;
   }
 
@@ -101,7 +120,13 @@ export class StoreRegistry implements IStoreRegistry {
    * Enables lazy evaluation of store values in action handlers
    */
   getStore(name: string): IStore | undefined {
-    return this.stores.get(name);
+    const store = this.stores.get(name);
+    if (store) {
+      this.logger.trace(`Store retrieved: ${name} from registry ${this.name}`);
+    } else {
+      this.logger.trace(`Store not found: ${name} in registry ${this.name}`);
+    }
+    return store;
   }
 
   /**

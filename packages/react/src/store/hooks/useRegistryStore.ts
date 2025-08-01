@@ -1,5 +1,8 @@
 import { useRegistry } from './useRegistry';
 import type { IStore, IStoreRegistry } from '../types';
+import { createLogger } from '@context-action/logger';
+
+const logger = createLogger();
 
 /**
  * Get a specific store from the registry by name
@@ -27,5 +30,12 @@ import type { IStore, IStoreRegistry } from '../types';
 export function useRegistryStore(registry: IStoreRegistry, name: string): IStore | undefined {
   const stores = useRegistry(registry);
   const store = stores.find(([storeName]) => storeName === name)?.[1];
+  
+  if (store) {
+    logger.trace(`Registry store retrieved: ${name} from registry ${registry.name}`);
+  } else {
+    logger.trace(`Registry store not found: ${name} in registry ${registry.name}`);
+  }
+  
   return store;
 }

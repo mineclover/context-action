@@ -1,4 +1,5 @@
 import type { IStore, Listener, Snapshot, Unsubscribe } from './types';
+import { createLogger, LogLevel } from '@context-action/logger';
 
 /**
  * @implements store-integration-pattern
@@ -10,11 +11,13 @@ export class Store<T = any> implements IStore<T> {
   private _value: T;
   private _snapshot: Snapshot<T>;
   public readonly name: string;
+  private logger = createLogger();
 
   constructor(name: string, initialValue: T) {
     this.name = name;
     this._value = initialValue;
     this._snapshot = this._createSnapshot();
+    this.logger.debug(`Store created: ${name}`, { initialValue });
   }
 
   /**
@@ -24,9 +27,15 @@ export class Store<T = any> implements IStore<T> {
    */
   subscribe = (listener: Listener): Unsubscribe => {
     this.listeners.add(listener);
+    this.logger.trace(`Subscriber added to store: ${this.name}`, { 
+      listenerCount: this.listeners.size 
+    });
     
     return () => {
       this.listeners.delete(listener);
+      this.logger.trace(`Subscriber removed from store: ${this.name}`, { 
+        listenerCount: this.listeners.size 
+      });
     };
   };
 
@@ -56,10 +65,18 @@ export class Store<T = any> implements IStore<T> {
    * Updates store state and triggers reactive updates in subscribed components
    */
   setValue(value: T): void {
+    const oldValue = this._value;
     if (!Object.is(this._value, value)) {
       this._value = value;
       this._snapshot = this._createSnapshot();
+      this.logger.debug(`Store value updated: ${this.name}`, { 
+        oldValue, 
+        newValue: value,
+        listenerCount: this.listeners.size 
+      });
       this._notifyListeners();
+    } else {
+      this.logger.trace(`Store value unchanged: ${this.name}`, { value });
     }
   }
 
@@ -67,6 +84,7 @@ export class Store<T = any> implements IStore<T> {
    * Update value using updater function
    */
   update(updater: (current: T) => T): void {
+    this.logger.trace(`Store update called: ${this.name}`, { currentValue: this._value });
     this.setValue(updater(this._value));
   }
 
@@ -81,7 +99,9 @@ export class Store<T = any> implements IStore<T> {
    * Clear all listeners
    */
   clearListeners(): void {
+    const count = this.listeners.size;
     this.listeners.clear();
+    this.logger.debug(`Cleared all listeners from store: ${this.name}`, { clearedCount: count });
   }
 
   private _createSnapshot(): Snapshot<T> {
@@ -93,11 +113,15 @@ export class Store<T = any> implements IStore<T> {
   }
 
   private _notifyListeners(): void {
+    this.logger.trace(`Notifying listeners for store: ${this.name}`, { 
+      listenerCount: this.listeners.size 
+    });
+    
     this.listeners.forEach(listener => {
       try {
         listener();
       } catch (error) {
-        console.error(`Error in store listener for "${this.name}":`, error);
+        this.logger.error(`Error in store listener for "${this.name}"`, error);
       }
     });
   }
@@ -108,25 +132,45 @@ export class Store<T = any> implements IStore<T> {
  */
 export class NumericStore extends Store<number> {
   increment = (amount: number = 1): void => {
-    this.setValue(this.getValue() + amount);
+    const oldValue = this.getValue();
+    this.setValue(oldValue + amount);
+    this.logger.debug(`NumericStore increment: ${this.name}`, { 
+      amount, oldValue, newValue: this.getValue() 
+    });
   };
 
   decrement = (amount: number = 1): void => {
-    this.setValue(this.getValue() - amount);
+    const oldValue = this.getValue();
+    this.setValue(oldValue - amount);
+    this.logger.debug(`NumericStore decrement: ${this.name}`, { 
+      amount, oldValue, newValue: this.getValue() 
+    });
   };
 
   multiply = (factor: number): void => {
-    this.setValue(this.getValue() * factor);
+    const oldValue = this.getValue();
+    this.setValue(oldValue * factor);
+    this.logger.debug(`NumericStore multiply: ${this.name}`, { 
+      factor, oldValue, newValue: this.getValue() 
+    });
   };
 
   divide = (divisor: number): void => {
     if (divisor !== 0) {
-      this.setValue(this.getValue() / divisor);
+      const oldValue = this.getValue();
+      this.setValue(oldValue / divisor);
+      this.logger.debug(`NumericStore divide: ${this.name}`, { 
+        divisor, oldValue, newValue: this.getValue() 
+      });
+    } else {
+      this.logger.warn(`NumericStore divide by zero prevented: ${this.name}`, { divisor });
     }
   };
 
   reset = (): void => {
+    const oldValue = this.getValue();
     this.setValue(0);
+    this.logger.debug(`NumericStore reset: ${this.name}`, { oldValue });
   };
 }
 
