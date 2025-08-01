@@ -30,6 +30,15 @@ type Middleware<T extends ActionPayloadMap> = (
   next: () => void | Promise<void>
 ) => void | Promise<void>;
 
+/**
+ * Advanced core functionality demonstration with priority-based execution
+ * @implements priority-based-execution
+ * @memberof api-terms
+ * @implements async-operations
+ * @memberof api-terms
+ * @implements business-logic
+ * @memberof core-concepts
+ */
 function CoreAdvancedContent() {
   const [count, setCount] = useState(0);
   const [logs, setLogs] = useState<LogEntry[]>([]);

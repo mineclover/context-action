@@ -27,9 +27,10 @@ export interface StoreProviderProps {
 }
 
 /**
+ * React context provider for store system
  * @implements storeprovider
  * @memberof api-terms
- */
+ * @example
  * ```typescript
  * function App() {
  *   return (

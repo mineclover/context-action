@@ -414,6 +414,15 @@ function MessageSender() {
   );
 }
 
+/**
+ * React basics demonstration with unidirectional data flow and decoupled architecture
+ * @implements unidirectional-data-flow
+ * @memberof architecture-terms
+ * @implements decoupled-architecture
+ * @memberof architecture-terms
+ * @implements type-safety
+ * @memberof architecture-terms
+ */
 function ReactBasicsContent() {
   console.log(
     '[TRACE] ReactBasicsContent component mounted with TRACE level logging'

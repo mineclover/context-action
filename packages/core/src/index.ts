@@ -23,13 +23,5 @@ export type {
   EventEmitter,
 } from './types.js';
 
-// Logger types and utilities from separate logger package
-export type { Logger, LogLevel } from '@context-action/logger';
-export {
-  ConsoleLogger,
-  NoopLogger,
-  createLogger,
-  getLogLevelFromEnv,
-  getLoggerNameFromEnv,
-  getDebugFromEnv,
-} from '@context-action/logger';
+// Note: Logger utilities are now available from @context-action/logger package
+// Applications should import logger functionality directly from @context-action/logger

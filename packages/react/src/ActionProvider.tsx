@@ -28,9 +28,10 @@ export interface ActionProviderProps {
 }
 
 /**
+ * React context provider for action system
  * @implements actionprovider
  * @memberof api-terms
- */
+ * @example
  * ```typescript
  * interface AppActions extends ActionPayloadMap {
  *   updateUser: { id: string; name: string };
@@ -40,7 +41,7 @@ export interface ActionProviderProps {
  * function App() {
  *   return (
  *     <StoreProvider>
- *       <ActionProvider>
+ *       <ActionProvider config={{ logLevel: LogLevel.DEBUG }}>
  *         <UserProfile />
  *       </ActionProvider>
  *     </StoreProvider>
