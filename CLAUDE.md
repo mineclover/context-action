@@ -110,11 +110,11 @@ pnpm type-check    # TypeScript check
 ### Glossary System
 ```bash
 # Glossary management tools
-pnpm glossary:scan       # Scan codebase for terms
-pnpm glossary:validate   # Validate glossary definitions
-pnpm glossary:missing    # Analyze missing terms
-pnpm glossary:dashboard  # Generate implementation dashboard
-pnpm glossary:update     # Full glossary update pipeline
+pnpm glossary:scan -w       # Scan codebase for terms
+pnpm glossary:validate -w   # Validate glossary definitions
+pnpm glossary:missing -w    # Analyze missing terms
+pnpm glossary:dashboard -w  # Generate implementation dashboard
+pnpm glossary:update -w     # Full glossary update pipeline
 ```
 
 ## Testing Strategy
@@ -127,7 +127,7 @@ pnpm glossary:update     # Full glossary update pipeline
 ### Running Tests
 ```bash
 # Run single test file
-pnpm test:core -- --testNamePattern="ActionRegister"
+pnpm test:core -w -- --testNamePattern="ActionRegister"
 
 # Watch mode for development
 cd packages/core && pnpm test:watch
@@ -203,11 +203,11 @@ register('riskyAction', async (payload, controller) => {
 
 ## Development Workflow
 
-1. **Setup**: `pnpm install` from root
-2. **Development**: Use `pnpm dev` for live example app
+1. **Setup**: `pnpm install -w` from root
+2. **Development**: Use `pnpm dev -w` for live example app
 3. **Changes**: Make changes in respective `packages/*/src/` directories  
-4. **Testing**: Run `pnpm test` and `pnpm type-check`
-5. **Building**: Run `pnpm build` before committing
+4. **Testing**: Run `pnpm test -w` and `pnpm type-check -w`
+5. **Building**: Run `pnpm build -w` before committing
 6. **Documentation**: Update docs if changing public APIs
 
 ### Monorepo Dependencies
