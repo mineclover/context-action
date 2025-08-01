@@ -95,9 +95,10 @@ jobs:
       - name: Build packages
         run: pnpm build:all
 
-# TODO: Fix TypeDoc markdown compatibility with VitePress
-      # - name: Generate API documentation
-      #   run: pnpm docs:api
+      - name: Generate API documentation
+        run: |
+          pnpm docs:api
+          pnpm docs:sync
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
