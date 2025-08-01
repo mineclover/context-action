@@ -58,39 +58,21 @@ Coding standards and naming rules:
 ### For Developers
 1. **Follow naming conventions** specified in the glossary
 2. **Use canonical terms** in code comments and documentation
-3. **Validate alignment** between code and glossary definitions
-4. **Suggest updates** when implementing new concepts
+3. **Add JSDoc @implements tags** to link code to glossary terms
+4. **Validate alignment** between code and glossary definitions
 
-### For Translators
-1. **Maintain consistency** between English and translated terms
-2. **Preserve technical accuracy** while adapting for cultural context
-3. **Update all language versions** simultaneously
-4. **Cross-reference related terms** in all languages
+### For System Understanding
+- **Dashboard**: Real-time implementation status and progress tracking
+- **Terms Index**: Abstract conceptual definitions without implementation details
+- **Clear Separation**: Glossary maintains conceptual abstraction, code provides concrete implementation
 
-## Maintenance Process
+## Implementation Tracking
 
-### Adding New Terms
-1. Identify the need for a new term
-2. Define it clearly with examples
-3. Add to appropriate category file
-4. Update cross-references
-5. Create translations for all supported languages
-6. Validate links and references
-
-### Modifying Existing Terms
-1. Assess impact across documentation and code
-2. Update definition and examples
-3. Update all occurrences in documentation
-4. Create deprecation notices if needed
-5. Update translations
-6. Validate all references
-
-### Quality Assurance
-- Monthly glossary review for consistency
-- Automated link validation
-- Cross-reference integrity checks
-- User feedback integration
-- Translation synchronization verification
+The glossary system automatically tracks implementation status:
+- **JSDoc @implements tags** link code to glossary terms
+- **Dashboard reports** show real-time progress and gaps
+- **Validation tools** ensure consistency between concepts and code
+- **Missing analysis** identifies unimplemented terms and undefined references
 
 ## Contributing
 
@@ -98,10 +80,10 @@ To contribute to the glossary:
 
 1. **Review existing terms** to avoid duplication
 2. **Follow the established format** for new entries
-3. **Include code examples** where applicable
+3. **Keep definitions abstract** - avoid specific code examples
 4. **Add cross-references** to related terms
 5. **Update all relevant categories**
-6. **Test all links** before submitting
+6. **Use @implements tags** in code to link implementations
 
 ## Feedback
 
