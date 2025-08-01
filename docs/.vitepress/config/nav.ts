@@ -15,7 +15,6 @@ export function navKo() {
     { 
       text: 'API',
       items: [
-        { text: 'API 명세', link: '/ko/api-spec/' },
         { text: 'API 레퍼런스', link: '/ko/api/' }
       ]
     },
@@ -33,7 +32,6 @@ export function navEn() {
     { 
       text: 'API',
       items: [
-        { text: 'API Specification', link: '/en/api-spec/' },
         { text: 'API Reference', link: '/en/api/' }
       ]
     },
