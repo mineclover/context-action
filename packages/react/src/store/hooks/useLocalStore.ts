@@ -6,8 +6,11 @@ import type { Snapshot } from '../types';
 
 /**
  * Create a component-local store that persists across renders
+ * Replaces deprecated withStore HOC pattern with modern hook approach
  * Following ARCHITECTURE.md pattern for local store creation
  * 
+ * @implements store-hooks
+ * @memberof api-terms
  * @template T - Type of the store value
  * @param initialValue - The initial value for the local store
  * @param name - Optional name for the store (auto-generated if not provided)

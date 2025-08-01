@@ -138,3 +138,6 @@ export function createTypedStoreHooks<T>() {
     }
   };
 }
+
+// Export alias for the snapshot-based useStoreSync to avoid naming conflicts
+export { useStoreSync as useStoreSyncWithSelector };

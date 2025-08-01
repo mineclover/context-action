@@ -101,11 +101,11 @@ const CartDemo: React.FC = () => {
 
   const cart = useStoreValue(cartStore);
 
-  if (!cartStore) {
+  if (!cartStore || !cart) {
     return (
       <div style={cardStyle}>
         <h3>Cart Demo</h3>
-        <p>Cart store not found</p>
+        <p>Cart store not found or cart data not available</p>
       </div>
     );
   }

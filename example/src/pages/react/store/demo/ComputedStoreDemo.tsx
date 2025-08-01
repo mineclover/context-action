@@ -102,7 +102,7 @@ const ComputedStoreDemo: React.FC = () => {
         <div style={loadingStyle}>
           <div>Counter Store: {counterStore ? '✅' : '❌'}</div>
           <div>Cart Store: {cartStore ? '✅' : '❌'}</div>
-          <div>Statistics Store: {statisticsStore ? '✅' : '❌'}</div>
+          <div>Statistics Store: {computedStore ? '✅' : '❌'}</div>
         </div>
       </div>
     );
@@ -123,6 +123,15 @@ const ComputedStoreDemo: React.FC = () => {
     if (diff < 30000) return { level: 'Medium', color: '#f59e0b', icon: '⚡' };
     return { level: 'Low', color: '#64748b', icon: '😴' };
   };
+
+  if (!statisticsValue) {
+    return (
+      <div style={cardStyle}>
+        <h3 style={titleStyle}>📊 Computed Store Demo</h3>
+        <p style={descriptionStyle}>Loading statistics...</p>
+      </div>
+    );
+  }
 
   const activity = getActivityLevel(statisticsValue.lastActivity);
 
@@ -194,8 +203,8 @@ const ComputedStoreDemo: React.FC = () => {
               <span style={dependencyStatusStyle}>Connected</span>
             </div>
             <div style={dependencyInfoStyle}>
-              Current Value: <code>{counterValue.value}</code> | 
-              History Length: <code>{counterValue.history?.length || 0}</code>
+              Current Value: <code>{counterValue?.value || 'N/A'}</code> | 
+              History Length: <code>{counterValue?.history?.length || 0}</code>
             </div>
           </div>
 
@@ -205,8 +214,8 @@ const ComputedStoreDemo: React.FC = () => {
               <span style={dependencyStatusStyle}>Connected</span>
             </div>
             <div style={dependencyInfoStyle}>
-              Items: <code>{cartValue.items?.length || 0}</code> | 
-              Total: <code>{formatPrice(cartValue.total || 0)}</code>
+              Items: <code>{cartValue?.items?.length || 0}</code> | 
+              Total: <code>{formatPrice(cartValue?.total || 0)}</code>
             </div>
           </div>
         </div>

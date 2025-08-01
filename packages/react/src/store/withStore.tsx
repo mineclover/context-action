@@ -1,7 +1,15 @@
 /**
  * @fileoverview Deprecated Store HOCs - Use hooks instead
  * 
- * Store-related HOCs have been removed in favor of more flexible hook-based patterns:
+ * Store-related HOCs have been removed in favor of more flexible hook-based patterns.
+ * This migration improves type safety, reduces bundle size, and aligns with modern React patterns.
+ * 
+ * @implements deprecated-hoc-patterns
+ * @memberof architecture-terms
+ * @since 1.0.0
+ * 
+ * @migration
+ * Store-related HOCs have been replaced with hook-based patterns:
  * 
  * // Instead of withStore:
  * // const MyComponent = withStore({ name: 'user', initialValue: {} })(Component);

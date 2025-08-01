@@ -112,6 +112,7 @@ export {
 	createStoreSync,
 	createTypedStoreHooks,
 	useBatchStoreSync,
+	useStoreSyncWithSelector,
 	createRegistrySync,
 	RegistryUtils,
 	useDynamicStoreWithDefault,
