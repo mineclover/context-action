@@ -2,21 +2,35 @@ import { useStoreSync } from '../store-sync';
 import type { IStore, IStoreRegistry } from '../types';
 
 /**
- * Hook to subscribe to registry changes and get all registered stores
- * Standardized implementation using useStoreSync with registry snapshot selector
+ * Registry 변경사항을 구독하고 등록된 모든 Store 목록 반환
+ * 핵심 기능: Registry의 Store 목록 변경을 감지하여 React 컴포넌트 업데이트
  * 
- * @param registry - The store registry to subscribe to
- * @returns Array of [name, store] tuples representing all registered stores
- *
+ * @implements store-hooks
+ * @memberof api-terms
+ * @param registry - 구독할 Store Registry 인스턴스
+ * @returns [이름, Store] 튜플 배열
+ * 
  * @example
  * ```typescript
- * const registry = new StoreRegistry('app');
- * const stores = useRegistry(registry); // Array<[string, IStore]>
+ * function StoreList() {
+ *   const registry = useStoreRegistry();
+ *   const stores = useRegistry(registry);
+ *   
+ *   return (
+ *     <ul>
+ *       {stores.map(([name, store]) => (
+ *         <li key={name}>{name}: {store.getListenerCount()} 구독자</li>
+ *       ))}
+ *     </ul>
+ *   );
+ * }
  * ```
  */
 export function useRegistry(registry: IStoreRegistry | undefined | null): Array<[string, IStore]> {
+  // Registry를 Store처럼 취급하여 useStoreSync 사용
+  // Registry도 subscribe/getSnapshot 인터페이스를 구현하므로 가능
   return useStoreSync(registry as any, {
     selector: () => registry?.getSnapshot() ?? [],
-    defaultValue: [] as any
+    defaultValue: [] as Array<[string, IStore]>
   });
 }

@@ -33,13 +33,13 @@ export function useStoreValue<T, R>(
 ): T | R | undefined {
   if (selector) {
     return useStoreSync(store, {
-      selector: snapshot => selector(snapshot.value)
+      selector: snapshot => snapshot?.value ? selector(snapshot.value) : undefined
     });
   }
   
   return useStoreSync(store, {
-    selector: snapshot => snapshot.value
-  }) as R | undefined;
+    selector: snapshot => snapshot?.value
+  });
 }
 
 /**

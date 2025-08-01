@@ -12,32 +12,29 @@ const CONTEXT_ERRORS = {
 } as const;
 
 /**
- * Create a React Context for sharing StoreRegistry instance across components
- * @param name - Optional name for the StoreRegistry instance
- * @returns Object containing Provider component and hooks for store management
+ * Store Context 팩토리 함수 - 고급 사용 시나리오용
+ * 
+ * 핵심 기능: 독립적인 StoreRegistry 인스턴스를 가진 Context 생성
+ * 사용 시나리오: 
+ * - 여러 독립적인 Store 영역이 필요한 경우
+ * - 라이브러리에서 격리된 Store 컨텍스트가 필요한 경우
+ * 
+ * 참고: 일반적인 사용에는 StoreProvider를 권장
+ * 
+ * @param name - StoreRegistry 인스턴스 이름
+ * @returns Provider 컴포넌트와 훅들을 포함한 객체
+ * 
  * @example
  * ```typescript
- * // Create context with a named registry
- * const { Provider, useStoreRegistry } = createStoreContext('app');
+ * // 독립적인 Store 영역 생성
+ * const FeatureContext = createStoreContext('feature');
  * 
- * function App() {
+ * function FeatureApp() {
  *   return (
- *     <Provider>
- *       <StoreManager />
- *     </Provider>
+ *     <FeatureContext.Provider>
+ *       <FeatureComponent />
+ *     </FeatureContext.Provider>
  *   );
- * }
- * 
- * function StoreManager() {
- *   const registry = useStoreRegistry();
- *   
- *   // Register stores
- *   useEffect(() => {
- *     registry.register('user', new Store('user', { name: 'John' }));
- *     registry.register('theme', new Store('theme', 'dark'));
- *   }, [registry]);
- *   
- *   return <div>Stores registered</div>;
  * }
  * ```
  */

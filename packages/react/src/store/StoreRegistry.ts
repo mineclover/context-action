@@ -12,17 +12,25 @@ interface StoreMetadata {
 }
 
 /**
- * Registry for managing multiple stores with metadata separation
+ * Store Registry - 여러 Store 인스턴스를 중앙 관리
+ * 
+ * 핵심 기능:
+ * 1. Store 등록/해제 (register/unregister) - 이름으로 Store 관리
+ * 2. Store 조회 (getStore) - 이름으로 Store 인스턴스 반환
+ * 3. Registry 구독 (subscribe) - Store 목록 변경 감지
+ * 4. 메타데이터 관리 - Store별 추가 정보 저장
+ * 
  * @implements store-registry
  * @memberof core-concepts
- * 
- * Centralized registry that manages store instances and provides access to stores
- * within the application context
  */
 export class StoreRegistry implements IStoreRegistry {
+  // Store 인스턴스들을 이름으로 매핑 - 핵심 저장소
   private stores = new Map<string, IStore>();
+  // Store별 메타데이터 - WeakMap으로 메모리 누수 방지
   private metadata = new WeakMap<IStore, StoreMetadata>();
+  // Registry 변경 구독자들
   private listeners = new Set<Listener>();
+  // 현재 Store 목록의 스냅샷 - React와의 동기화용
   private _snapshot: Array<[string, IStore]> = [];
   public readonly name: string;
   private logger = createLogger();

@@ -59,7 +59,6 @@ export type {
 // Core store classes and interfaces
 export {
 	Store,
-	NumericStore,
 	ManagedStore,
 	StoreRegistry,
 	EventBus,
@@ -78,27 +77,19 @@ export {
 
 // React hooks for store management
 export {
-	// Basic store hooks
+	// Core store hooks
 	useStore,
 	useStoreValue,
 	useStoreValues,
+	useStoreActions,
+	// Registry hooks
 	useRegistry,
 	useRegistryStore,
-	useDynamicStore,
+	// Specialized hooks
 	useLocalStore,
-	useLocalState,
-	useStoreActions,
-	useStoreSync,
 	useComputedStore,
 	useComputedValue,
 	usePersistedStore,
-	// MVVM Architecture hooks
-	useMultiStoreAction,
-	useTransactionAction,
-	useActionWithStores,
-	useMVVMStore,
-	useMultiMVVMStore,
-	useStoreQuery,
 } from "./store";
 
 // Context API for store management
@@ -109,15 +100,10 @@ export {
 
 // Advanced sync utilities
 export {
-	createStoreSync,
+	useStoreSync,
 	createTypedStoreHooks,
-	useBatchStoreSync,
-	useStoreSyncWithSelector,
 	createRegistrySync,
 	RegistryUtils,
-	useDynamicStoreWithDefault,
-	useDynamicStoreSnapshot,
-	useDynamicStores,
 } from "./store";
 
 // === TYPE DEFINITIONS ===

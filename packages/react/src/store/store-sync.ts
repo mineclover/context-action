@@ -2,70 +2,34 @@ import { useSyncExternalStore } from 'react';
 import type { IStore, Snapshot, StoreSyncConfig } from './types';
 
 /**
- * Constants for store sync operations
+ * Store sync 상수 정의
+ * 핵심 기능: 안전한 기본값과 에러 처리를 위한 상수 제공
  */
 const CONSTANTS = {
+  // store가 없을 때 사용하는 빈 구독 함수
   EMPTY_SUBSCRIBE: () => () => {},
+  // store가 없을 때 사용하는 빈 스냅샷 생성
   EMPTY_SNAPSHOT: <T>(): Snapshot<T> => ({
     value: undefined as T,
     name: 'empty',
     lastUpdate: 0
-  }),
-  ERROR_MESSAGES: {
-    INVALID_STORE: 'Invalid store provided to useStoreSync',
-    SUBSCRIPTION_FAILED: 'Store subscription failed'
-  }
+  })
 } as const;
 
 /**
- * Factory for creating typed store sync hooks
- * Provides a consistent API for different sync patterns
- */
-export function createStoreSync<T>() {
-  return {
-    /**
-     * Get full snapshot from store
-     */
-    useSnapshot(store: IStore<T> | undefined | null): Snapshot<T> {
-      return useStoreSync(store);
-    },
-
-    /**
-     * Get only the value from store
-     */
-    useValue(store: IStore<T> | undefined | null): T | undefined {
-      return useStoreSync(store, {
-        selector: snapshot => snapshot.value
-      });
-    },
-
-    /**
-     * Get transformed value using selector
-     */
-    useSelector<R>(
-      store: IStore<T> | undefined | null,
-      selector: (snapshot: Snapshot<T>) => R
-    ): R {
-      return useStoreSync(store, { selector });
-    },
-
-    /**
-     * Get value with fallback default
-     */
-    useValueWithDefault(
-      store: IStore<T> | undefined | null,
-      defaultValue: T
-    ): T {
-      return useStoreSync(store, {
-        defaultValue,
-        selector: snapshot => snapshot.value
-      });
-    }
-  };
-}
-
-/**
- * Primary store sync hook - standardized interface for all store interactions
+ * 핵심 Store 동기화 훅
+ * 핵심 기능: React의 useSyncExternalStore를 사용하여 Store 상태를 React 컴포넌트와 동기화
+ * 
+ * @template T - Store 값 타입
+ * @template R - 반환 타입 (기본값: Snapshot<T>)
+ * @param store - 구독할 Store 인스턴스
+ * @param config - 선택적 설정 (selector, defaultValue)
+ * @returns 선택된 값 또는 스냅샷
+ * 
+ * 핵심 로직 흐름:
+ * 1. store.getSnapshot() - 현재 상태 가져오기
+ * 2. selector 적용 (있을 경우) - 필요한 부분만 추출
+ * 3. useSyncExternalStore() - React와 동기화
  */
 export function useStoreSync<T, R = Snapshot<T>>(
   store: IStore<T> | undefined | null,
@@ -73,18 +37,18 @@ export function useStoreSync<T, R = Snapshot<T>>(
 ): R {
   const { defaultValue, selector } = config ?? {};
 
-  // Standardized snapshot getter with proper fallback handling
+  // Store 스냅샷 가져오기 함수 (fallback 포함)
   const getSnapshot = store?.getSnapshot ?? (() => ({
     ...CONSTANTS.EMPTY_SNAPSHOT<T>(),
     ...(defaultValue !== undefined && { value: defaultValue })
   }));
 
-  // Apply selector if provided, otherwise return snapshot as-is
+  // Selector 적용하여 필요한 데이터만 추출
   const selectedGetSnapshot = selector
     ? () => selector(getSnapshot())
     : getSnapshot;
 
-  // Use React's useSyncExternalStore with proper error handling
+  // React의 useSyncExternalStore로 동기화
   return useSyncExternalStore(
     store?.subscribe ?? CONSTANTS.EMPTY_SUBSCRIBE,
     selectedGetSnapshot as () => R
@@ -92,52 +56,25 @@ export function useStoreSync<T, R = Snapshot<T>>(
 }
 
 /**
- * Batch store sync
- */
-export function useBatchStoreSync<T extends Record<string, IStore | undefined | null>>(
-  stores: T
-): { [K in keyof T]: T[K] extends IStore<infer U> ? U : undefined } {
-  const results = {} as { [K in keyof T]: T[K] extends IStore<infer U> ? U : undefined };
-
-  // Note: This is not ideal as it creates multiple subscriptions
-  // But it's a trade-off for simplicity
-  for (const [key, store] of Object.entries(stores)) {
-    results[key as keyof T] = useStoreSync(store, {
-      selector: snapshot => snapshot?.value
-    });
-  }
-
-  return results;
-}
-
-/**
- * Create a typed store hook factory
+ * 타입 안전한 Store Hook 팩토리
+ * 핵심 기능: 특정 타입에 대한 타입 안전한 훅 생성
  */
 export function createTypedStoreHooks<T>() {
-  const sync = createStoreSync<T>();
-
   return {
-    useStore: sync.useSnapshot,
-    useStoreValue: sync.useValue,
-    useStoreSelector: sync.useSelector,
-    useStoreWithDefault: sync.useValueWithDefault,
+    /**
+     * 타입 안전한 Store 값 가져오기
+     */
+    useStoreValue(store: IStore<T> | undefined | null): T | undefined {
+      return useStoreSync(store, {
+        selector: snapshot => snapshot.value
+      });
+    },
     
     /**
-     * Additional typed utilities
+     * 타입 안전한 Store 스냅샷 가져오기
      */
-    useStoreState(store: IStore<T> | undefined | null) {
-      const value = sync.useValue(store);
-      const setValue = (newValue: T) => store?.setValue(newValue);
-      const update = (updater: (current: T) => T) => {
-        if (store && value !== undefined) {
-          store.setValue(updater(value));
-        }
-      };
-      
-      return [value, { setValue, update }] as const;
+    useStoreSnapshot(store: IStore<T> | undefined | null): Snapshot<T> {
+      return useStoreSync(store);
     }
   };
 }
-
-// Export alias for the snapshot-based useStoreSync to avoid naming conflicts
-export { useStoreSync as useStoreSyncWithSelector };

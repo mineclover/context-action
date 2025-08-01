@@ -33,7 +33,7 @@ export type {
 } from './types';
 
 // === CORE CLASSES ===
-export { Store, NumericStore, ManagedStore } from './Store';
+export { Store, ManagedStore } from './Store';
 export { StoreRegistry } from './StoreRegistry';
 export { EventBus, ScopedEventBus } from './EventBus';
 
@@ -62,29 +62,20 @@ export type {
 } from './ActionHandlerUtils';
 
 // === REACT HOOKS ===
-// Primary hooks
 export {
-  // Basic store hooks
+  // Core store hooks
   useStore,
   useStoreValue,
   useStoreValues,
+  useStoreActions,
+  // Registry hooks
   useRegistry,
   useRegistryStore,
-  useDynamicStore,
+  // Specialized hooks
   useLocalStore,
-  useLocalState,
-  useStoreActions,
-  useStoreSync,
   useComputedStore,
   useComputedValue,
-  usePersistedStore,
-  // MVVM Architecture hooks
-  useMultiStoreAction,
-  useTransactionAction,
-  useActionWithStores,
-  useMVVMStore,
-  useMultiMVVMStore,
-  useStoreQuery
+  usePersistedStore
 } from './hooks';
 
 // === CONTEXT API ===
@@ -104,19 +95,14 @@ export {
 // === SYNC UTILITIES ===
 // Store sync
 export { 
-  createStoreSync, 
-  createTypedStoreHooks, 
-  useBatchStoreSync,
-  useStoreSyncWithSelector
+  useStoreSync,
+  createTypedStoreHooks
 } from './store-sync';
 
 // Registry sync
 export { 
   createRegistrySync, 
-  RegistryUtils,
-  useDynamicStoreWithDefault,
-  useDynamicStoreSnapshot,
-  useDynamicStores
+  RegistryUtils
 } from './registry-sync';
 
 // === METADATA ===
