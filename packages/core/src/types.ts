@@ -24,7 +24,7 @@ import type { Logger, LogLevel } from '@context-action/logger';
  * ```
  */
 export interface ActionPayloadMap {
-  [actionName: string]: any;
+  [actionName: string]: unknown;
 }
 
 /**
