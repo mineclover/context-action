@@ -1,20 +1,22 @@
 name: Glossary Mapping Sync
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'example/src/**/*.{ts,tsx,js,jsx}'
-      - 'packages/*/src/**/*.{ts,tsx,js,jsx}'
-      - 'glossary/terms/**/*.md'
-      - 'glossary/tools/**/*.js'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'example/src/**/*.{ts,tsx,js,jsx}'
-      - 'packages/*/src/**/*.{ts,tsx,js,jsx}'
-      - 'glossary/terms/**/*.md'
-      - 'glossary/tools/**/*.js'
+  # Temporarily disabled - enable when needed
+  # push:
+  #   branches: [ main ]
+  #   paths:
+  #     - 'example/src/**/*.{ts,tsx,js,jsx}'
+  #     - 'packages/*/src/**/*.{ts,tsx,js,jsx}'
+  #     - 'glossary/terms/**/*.md'
+  #     - 'glossary/tools/**/*.js'
+  # pull_request:
+  #   branches: [ main ]
+  #   paths:
+  #     - 'example/src/**/*.{ts,tsx,js,jsx}'
+  #     - 'packages/*/src/**/*.{ts,tsx,js,jsx}'
+  #     - 'glossary/terms/**/*.md'
+  #     - 'glossary/tools/**/*.js'
+  workflow_dispatch: # Manual trigger only
 
 jobs:
   glossary-sync:
