@@ -1,11 +1,11 @@
 import { useState } from "react";
 import {
 	Store,
-	useStoreSync,
 	createTypedStoreHooks,
 	useBatchStoreSync,
 	createRegistrySync,
 	StoreRegistry,
+	useStoreSyncWithSelector,
 } from "@context-action/react";
 
 // Create typed hooks for a User type
@@ -19,7 +19,7 @@ const userHooks = createTypedStoreHooks<User>();
 
 // Demo component showing basic useStoreSync
 function BasicSyncDemo() {
-	const [store] = useState(
+	const [store] = useState<Store<User>>(
 		() =>
 			new Store<User>("user", {
 				name: "John",
@@ -28,11 +28,12 @@ function BasicSyncDemo() {
 			}),
 	);
 
-	// Different ways to use useStoreSync
-	const snapshot = useStoreSync(store, { selector: (s) => s.value });
-	const userName = useStoreSync(store, { selector: (s) => s.value.name });
-	const userWithDefault = useStoreSync(store, {
+	// Different ways to use useStoreSyncWithSelector with proper typing
+	const snapshot = useStoreSyncWithSelector<User, User>(store, { selector: (s) => s.value });
+	const userName = useStoreSyncWithSelector<User, string>(store, { selector: (s) => s.value.name });
+	const userWithDefault = useStoreSyncWithSelector<User, User>(store, {
 		defaultValue: { name: "Guest", age: 0, email: "" },
+		selector: (s) => s.value
 	});
 
 	return (
@@ -46,7 +47,7 @@ function BasicSyncDemo() {
 
 				<div className="demo-item">
 					<strong>Selected Value (name):</strong>
-					<p>{userName}</p>
+					<p>{typeof userName === 'string' ? userName : 'Loading...'}</p>
 				</div>
 
 				<div className="demo-item">

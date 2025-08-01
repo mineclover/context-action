@@ -78,13 +78,12 @@ const PersistedStoreDemo: React.FC = () => {
   const appState = useStoreValue(appStateStore);
   const [customNote, setCustomNote] = useState('');
 
-  if (!appStateStore) {
+  if (!appStateStore || !appState) {
     return (
       <div style={cardStyle}>
         <h3 style={titleStyle}>💾 Persisted Store Demo</h3>
         <p style={descriptionStyle}>
-          App state store not found. The persisted store should be automatically 
-          registered when the app starts.
+          {!appStateStore ? 'App state store not found.' : 'Loading app state...'}
         </p>
       </div>
     );

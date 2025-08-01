@@ -311,154 +311,295 @@ function CoreAdvancedContent() {
   };
 
   return (
-    <div>
-      <h1>Core Library - Advanced</h1>
-      <p>
-        고급 기능들을 다룹니다: 미들웨어 시스템, 우선순위 기반 실행, 액션
-        체이닝, 조건부 실행, 에러 핸들링, 인터셉터 등의 복잡한 패턴을
-        보여줍니다.
-      </p>
+    <div style={{ padding: '20px' }}>
+      <div style={{ marginBottom: '32px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+          <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '700' }}>
+            🚀 Core Library - Advanced
+          </h1>
+          <span style={{
+            marginLeft: '12px',
+            padding: '4px 12px',
+            fontSize: '12px',
+            fontWeight: '500',
+            backgroundColor: '#fce4ec',
+            color: '#c2185b',
+            borderRadius: '12px'
+          }}>
+            고급
+          </span>
+        </div>
+        <p style={{ 
+          fontSize: '16px', 
+          color: '#64748b', 
+          lineHeight: '1.6',
+          marginBottom: '20px'
+        }}>
+          복잡한 액션 파이프라인과 고급 패턴으로 엔터프라이즈급 시스템 구현을 데모로 체험해보세요.
+        </p>
 
-      {/* Control Panel */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: '20px',
-          marginTop: '30px',
-        }}
-      >
+        <div style={{
+          backgroundColor: '#f8fafc',
+          padding: '20px',
+          borderRadius: '12px',
+          border: '1px solid #e2e8f0'
+        }}>
+          <h3 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: '600', color: '#1e293b' }}>
+            🎯 이 데모에서 배우는 핵심 개념
+          </h3>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+            gap: '16px',
+            fontSize: '14px'
+          }}>
+            <div>
+              <strong style={{ color: '#0f172a' }}>우선순위 실행:</strong>
+              <div style={{ color: '#64748b', marginTop: '4px' }}>
+                priority 옵션으로 핸들러 실행 순서 정밀 제어
+              </div>
+            </div>
+            <div>
+              <strong style={{ color: '#0f172a' }}>미들웨어 패턴:</strong>
+              <div style={{ color: '#64748b', marginTop: '4px' }}>
+                인증, 로깅, 검증 등 횡단 관심사 분리
+              </div>
+            </div>
+            <div>
+              <strong style={{ color: '#0f172a' }}>액션 체이닝:</strong>
+              <div style={{ color: '#64748b', marginTop: '4px' }}>
+                비동기 액션 연결로 복잡한 워크플로우 구현
+              </div>
+            </div>
+            <div>
+              <strong style={{ color: '#0f172a' }}>에러 핸들링:</strong>
+              <div style={{ color: '#64748b', marginTop: '4px' }}>
+                예외 상황 처리와 복구 패턴
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))',
+        gap: '24px',
+        marginBottom: '32px'
+      }}>
         {/* Counter Display */}
-        <div
-          style={{
-            padding: '20px',
-            border: '2px solid #007bff',
-            borderRadius: '8px',
-          }}
-        >
-          <h3>📊 Counter: {count}</h3>
+        <div style={{
+          padding: '24px',
+          border: '1px solid #e2e8f0',
+          borderRadius: '12px',
+          backgroundColor: 'white',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>
+              🎮 인터랙티브 데모
+            </h3>
+          </div>
+          <p style={{ 
+            color: '#64748b', 
+            fontSize: '14px', 
+            marginBottom: '20px',
+            lineHeight: '1.5'
+          }}>
+            우선순위 기반 실행과 미들웨어 패턴을 실시간으로 체험해보세요.
+          </p>
+          
+          <div style={{
+            fontSize: '28px',
+            fontWeight: 'bold',
+            margin: '20px 0',
+            color: '#1e293b',
+            textAlign: 'center',
+            padding: '16px',
+            backgroundColor: '#f1f5f9',
+            borderRadius: '8px'
+          }}>
+            <div style={{ fontSize: '16px', fontWeight: 'normal', marginBottom: '8px', color: '#64748b' }}>
+              현재 카운트
+            </div>
+            {count}
+          </div>
 
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '8px',
-              marginBottom: '15px',
-            }}
-          >
+          <div style={{
+            display: 'flex',
+            gap: '12px',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            marginBottom: '20px'
+          }}>
             <button
+              type="button"
               onClick={() => dispatch('increment')}
               style={{
-                padding: '6px 12px',
-                backgroundColor: '#28a745',
+                padding: '10px 18px',
+                backgroundColor: '#10b981',
                 color: 'white',
                 border: 'none',
-                borderRadius: '4px',
-                fontSize: '12px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500',
+                transition: 'all 0.2s ease'
               }}
             >
-              +1
+              ➕ +1
             </button>
 
             <button
+              type="button"
               onClick={() => dispatch('decrement')}
               style={{
-                padding: '6px 12px',
-                backgroundColor: '#dc3545',
+                padding: '10px 18px',
+                backgroundColor: '#ef4444',
                 color: 'white',
                 border: 'none',
-                borderRadius: '4px',
-                fontSize: '12px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500',
+                transition: 'all 0.2s ease'
               }}
             >
-              -1
+              ➖ -1
             </button>
 
             <button
+              type="button"
               onClick={() => dispatch('multiply', 2)}
               style={{
-                padding: '6px 12px',
-                backgroundColor: '#fd7e14',
+                padding: '10px 18px',
+                backgroundColor: '#f59e0b',
                 color: 'white',
                 border: 'none',
-                borderRadius: '4px',
-                fontSize: '12px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500',
+                transition: 'all 0.2s ease'
               }}
             >
-              ×2
+              ✖️ ×2
             </button>
 
             <button
+              type="button"
               onClick={() => dispatch('reset')}
               style={{
-                padding: '6px 12px',
-                backgroundColor: '#6c757d',
+                padding: '10px 18px',
+                backgroundColor: '#6b7280',
                 color: 'white',
                 border: 'none',
-                borderRadius: '4px',
-                fontSize: '12px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500',
+                transition: 'all 0.2s ease'
               }}
             >
-              Reset
+              🔄 Reset
             </button>
           </div>
 
-          <div style={{ marginBottom: '10px' }}>
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                fontSize: '14px',
-              }}
-            >
+          <div style={{
+            backgroundColor: '#f1f5f9',
+            padding: '16px',
+            borderRadius: '8px',
+            marginBottom: '16px'
+          }}>
+            <label style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              fontSize: '14px',
+              fontWeight: '500',
+              color: '#1e293b'
+            }}>
               <input
                 type="checkbox"
                 checked={isMiddlewareEnabled}
                 onChange={(e) => setIsMiddlewareEnabled(e.target.checked)}
+                style={{ transform: 'scale(1.2)' }}
               />
-              미들웨어 활성화
+              🛡️ 미들웨어 시뮬레이션 활성화
             </label>
+            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '8px', paddingLeft: '28px' }}>
+              인증, 로깅, 검증 미들웨어 동작을 시뮬레이션합니다
+            </div>
           </div>
         </div>
 
         {/* Advanced Actions */}
-        <div
-          style={{
-            padding: '20px',
-            border: '2px solid #28a745',
-            borderRadius: '8px',
-          }}
-        >
-          <h3>🚀 Advanced Actions</h3>
+        <div style={{
+          padding: '24px',
+          border: '1px solid #e2e8f0',
+          borderRadius: '12px',
+          backgroundColor: 'white',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>
+              🚀 고급 액션 패턴
+            </h3>
+          </div>
+          <p style={{ 
+            color: '#64748b', 
+            fontSize: '14px', 
+            marginBottom: '20px',
+            lineHeight: '1.5'
+          }}>
+            체이닝, 조건부 실행, 비동기 처리, 에러 핸들링 등 복잡한 패턴을 체험해보세요.
+          </p>
 
-          <div
-            style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}
-          >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <button
+              type="button"
               onClick={() =>
                 dispatch('chainedAction', { step: 1, data: 'Start' })
               }
               style={{
-                padding: '8px 12px',
-                backgroundColor: '#17a2b8',
+                padding: '12px 20px',
+                backgroundColor: '#06b6d4',
                 color: 'white',
                 border: 'none',
-                borderRadius: '4px',
-                fontSize: '12px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500',
+                transition: 'all 0.2s ease'
               }}
             >
-              🔗 Start Chain Action
+              🔗 액션 체이닝 시작
             </button>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <label style={{ fontSize: '12px' }}>조건:</label>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '12px 16px',
+              backgroundColor: '#fffbeb',
+              borderRadius: '8px',
+              border: '1px solid #fbbf24'
+            }}>
+              <label style={{
+                fontSize: '14px',
+                fontWeight: '500',
+                color: '#92400e'
+              }}>
+                조건 설정:
+              </label>
               <input
                 type="checkbox"
                 checked={conditionValue}
                 onChange={(e) => setConditionValue(e.target.checked)}
+                style={{ transform: 'scale(1.2)' }}
               />
               <button
+                type="button"
                 onClick={() =>
                   dispatch('conditionalAction', {
                     condition: conditionValue,
@@ -466,19 +607,22 @@ function CoreAdvancedContent() {
                   })
                 }
                 style={{
-                  padding: '6px 12px',
-                  backgroundColor: '#ffc107',
-                  color: 'black',
+                  padding: '8px 16px',
+                  backgroundColor: '#f59e0b',
+                  color: 'white',
                   border: 'none',
-                  borderRadius: '4px',
-                  fontSize: '12px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontWeight: '500'
                 }}
               >
-                🔀 Conditional (+5)
+                🔀 조건부 실행 (+5)
               </button>
             </div>
 
             <button
+              type="button"
               onClick={() =>
                 dispatch('delayedAction', {
                   delay: 2000,
@@ -486,184 +630,455 @@ function CoreAdvancedContent() {
                 })
               }
               style={{
-                padding: '8px 12px',
-                backgroundColor: '#9c27b0',
+                padding: '12px 20px',
+                backgroundColor: '#8b5cf6',
                 color: 'white',
                 border: 'none',
-                borderRadius: '4px',
-                fontSize: '12px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500',
+                transition: 'all 0.2s ease'
               }}
             >
-              ⏱️ Delayed Action (2s)
+              ⏱️ 지연 액션 (2초)
             </button>
 
             <button
+              type="button"
               onClick={() => dispatch('logAction', 'Custom message from user')}
               style={{
-                padding: '8px 12px',
-                backgroundColor: '#795548',
+                padding: '12px 20px',
+                backgroundColor: '#64748b',
                 color: 'white',
                 border: 'none',
-                borderRadius: '4px',
-                fontSize: '12px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500',
+                transition: 'all 0.2s ease'
               }}
             >
-              📝 Log Message
+              📝 커스텀 로그
             </button>
 
             <button
+              type="button"
               onClick={() => dispatch('errorAction')}
               style={{
-                padding: '8px 12px',
-                backgroundColor: '#e91e63',
+                padding: '12px 20px',
+                backgroundColor: '#ef4444',
                 color: 'white',
                 border: 'none',
-                borderRadius: '4px',
-                fontSize: '12px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500',
+                transition: 'all 0.2s ease'
               }}
             >
-              💥 Trigger Error
+              💥 에러 발생 테스트
             </button>
           </div>
         </div>
       </div>
 
       {/* Logs Display */}
-      <div
-        style={{
-          marginTop: '30px',
-          padding: '20px',
-          border: '1px solid #e9ecef',
-          borderRadius: '8px',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '15px',
-          }}
-        >
-          <h3>📋 Action Logs ({logs.length})</h3>
+      <div style={{
+        padding: '24px',
+        border: '1px solid #e2e8f0',
+        borderRadius: '12px',
+        backgroundColor: 'white',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+        marginBottom: '32px'
+      }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '20px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>
+              📊 실시간 액션 로그
+            </h3>
+            <span style={{
+              marginLeft: '8px',
+              padding: '2px 8px',
+              fontSize: '12px',
+              backgroundColor: '#f1f5f9',
+              color: '#475569',
+              borderRadius: '6px',
+              fontWeight: '500'
+            }}>
+              {logs.length}개 항목
+            </span>
+          </div>
           <button
             type="button"
             onClick={clearLogs}
             style={{
-              padding: '6px 12px',
-              backgroundColor: '#6c757d',
+              padding: '8px 16px',
+              backgroundColor: '#6b7280',
               color: 'white',
               border: 'none',
-              borderRadius: '4px',
-              fontSize: '12px',
+              borderRadius: '8px',
+              fontSize: '13px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
             }}
           >
-            Clear Logs
+            🗑️ 로그 지우기
           </button>
         </div>
 
-        <div
-          style={{
-            maxHeight: '300px',
-            overflow: 'auto',
-            backgroundColor: '#f8f9fa',
-            padding: '15px',
-            borderRadius: '4px',
-            fontSize: '12px',
-            fontFamily: 'monospace',
-          }}
-        >
+        <div style={{
+          backgroundColor: '#1e293b',
+          color: '#e2e8f0',
+          padding: '16px',
+          borderRadius: '8px',
+          fontSize: '13px',
+          fontFamily: '"JetBrains Mono", "Fira Code", Consolas, monospace',
+          marginBottom: '16px',
+          border: '1px solid #334155',
+          maxHeight: '340px',
+          overflow: 'auto'
+        }}>
           {logs.length === 0 ? (
-            <div style={{ color: '#6c757d', textAlign: 'center' }}>
-              No logs yet. Try some actions!
+            <div style={{ color: '#64748b', fontStyle: 'italic' }}>
+              {'>'} 액션을 실행하면 로그가 표시됩니다...
             </div>
           ) : (
             logs.map((log) => (
               <div
                 key={log.id}
                 style={{
-                  marginBottom: '5px',
-                  padding: '4px 8px',
-                  borderRadius: '3px',
-                  backgroundColor:
-                    log.type === 'error'
-                      ? '#f8d7da'
-                      : log.type === 'middleware'
-                        ? '#d1ecf1'
-                        : log.type === 'interceptor'
-                          ? '#fff3cd'
-                          : 'transparent',
-                  color:
-                    log.type === 'error'
-                      ? '#721c24'
-                      : log.type === 'middleware'
-                        ? '#0c5460'
-                        : log.type === 'interceptor'
-                          ? '#856404'
-                          : '#495057',
+                  marginBottom: '6px',
+                  lineHeight: '1.4'
                 }}
               >
-                <span style={{ color: '#6c757d' }}>[{log.timestamp}]</span>
+                <span style={{ color: '#64748b' }}>[{log.timestamp}]</span>
                 {log.priority !== undefined && (
-                  <span style={{ color: '#007bff', marginLeft: '8px' }}>
+                  <span style={{ color: '#3b82f6', marginLeft: '8px' }}>
                     [P{log.priority}]
                   </span>
                 )}
-                <span style={{ marginLeft: '8px' }}>{log.message}</span>
+                <span style={{
+                  marginLeft: '8px',
+                  color: log.type === 'error' ? '#ef4444' : 
+                        log.type === 'middleware' ? '#06b6d4' : 
+                        log.type === 'interceptor' ? '#f59e0b' : '#10b981'
+                }}>
+                  <span style={{ color: '#10b981' }}>{'>'}</span> {log.message}
+                </span>
               </div>
             ))
           )}
         </div>
+
+        <div style={{
+          backgroundColor: '#f1f5f9',
+          padding: '12px',
+          borderRadius: '8px',
+          fontSize: '13px'
+        }}>
+          <div style={{ fontWeight: '600', marginBottom: '8px', color: '#1e293b' }}>
+            🔍 로그 색상 가이드:
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', color: '#475569' }}>
+            <div><span style={{ color: '#10b981' }}>●</span> 액션 실행</div>
+            <div><span style={{ color: '#06b6d4' }}>●</span> 미들웨어</div>
+            <div><span style={{ color: '#f59e0b' }}>●</span> 인터셉터</div>
+            <div><span style={{ color: '#ef4444' }}>●</span> 에러</div>
+          </div>
+        </div>
       </div>
 
-      {/* Code Example */}
-      <div
-        style={{
-          marginTop: '30px',
-          padding: '20px',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '8px',
-        }}
-      >
-        <h3>미들웨어 시스템 예시</h3>
-        <pre style={{ overflow: 'auto', fontSize: '14px' }}>
-          {`// 1. 미들웨어 정의
-const loggingMiddleware = (action, payload, next) => {
-  console.log(\`Before: \${action}\`);
-  next(); // 다음 미들웨어 또는 핸들러 실행
-  console.log(\`After: \${action}\`);
+      {/* 동작 원리 설명 */}
+      <div style={{
+        padding: '32px',
+        backgroundColor: '#f8fafc',
+        borderRadius: '16px',
+        border: '1px solid #e2e8f0'
+      }}>
+        <h2 style={{ 
+          margin: '0 0 24px 0', 
+          fontSize: '24px', 
+          fontWeight: '700',
+          color: '#1e293b'
+        }}>
+          🔍 고급 패턴 동작 원리
+        </h2>
+        
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))',
+          gap: '24px',
+          marginBottom: '32px'
+        }}>
+          {/* 1단계: 우선순위 시스템 */}
+          <div style={{
+            padding: '24px',
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            border: '1px solid #e2e8f0'
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              marginBottom: '16px' 
+            }}>
+              <span style={{ 
+                fontSize: '20px',
+                marginRight: '8px'
+              }}>1️⃣</span>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600' }}>
+                우선순위 기반 핸들러 실행
+              </h3>
+            </div>
+            <p style={{ 
+              color: '#64748b', 
+              fontSize: '14px', 
+              marginBottom: '12px',
+              lineHeight: '1.5'
+            }}>
+              priority 옵션으로 핸들러 실행 순서를 정밀하게 제어할 수 있습니다.
+            </p>
+            <pre style={{
+              backgroundColor: '#f1f5f9',
+              padding: '16px',
+              borderRadius: '8px',
+              fontSize: '12px',
+              overflow: 'auto',
+              color: '#1e293b'
+            }}>
+{`// 낮은 숫자일수록 먼저 실행
+actionRegister.register('increment', 
+  logHandler, { priority: 0 }    // 먼저 실행
+);
+
+actionRegister.register('increment', 
+  countHandler, { priority: 1 }  // 나중에 실행
+);
+
+// 실행 순서: log → count → UI 업데이트`}
+            </pre>
+          </div>
+
+          {/* 2단계: 미들웨어 패턴 */}
+          <div style={{
+            padding: '24px',
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            border: '1px solid #e2e8f0'
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              marginBottom: '16px' 
+            }}>
+              <span style={{ 
+                fontSize: '20px',
+                marginRight: '8px'
+              }}>2️⃣</span>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600' }}>
+                미들웨어 시뮬레이션 패턴
+              </h3>
+            </div>
+            <p style={{ 
+              color: '#64748b', 
+              fontSize: '14px', 
+              marginBottom: '12px',
+              lineHeight: '1.5'
+            }}>
+              인증, 로깅, 검증 등의 횡단 관심사를 분리하여 처리합니다.
+            </p>
+            <pre style={{
+              backgroundColor: '#f1f5f9',
+              padding: '16px',
+              borderRadius: '8px',
+              fontSize: '12px',
+              overflow: 'auto',
+              color: '#1e293b'
+            }}>
+{`// 미들웨어 체인 (미래 구현 예정)
+const middleware = (action, payload, next) => {
+  console.log('Before:', action);
+  next(); // 다음 단계로 진행
+  console.log('After:', action);
 };
 
-const authMiddleware = (action, payload, next) => {
-  if (protectedActions.includes(action)) {
-    if (isAuthenticated()) {
-      next();
-    } else {
-      throw new Error('Authentication required');
-    }
-  } else {
-    next();
+// 현재는 시뮬레이션으로 구현
+if (isMiddlewareEnabled) {
+  // 인증 → 검증 → 로깅 → 실행
+}`}
+            </pre>
+          </div>
+
+          {/* 3단계: 액션 체이닝 */}
+          <div style={{
+            padding: '24px',
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            border: '1px solid #e2e8f0'
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              marginBottom: '16px' 
+            }}>
+              <span style={{ 
+                fontSize: '20px',
+                marginRight: '8px'
+              }}>3️⃣</span>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600' }}>
+                비동기 액션 체이닝
+              </h3>
+            </div>
+            <p style={{ 
+              color: '#64748b', 
+              fontSize: '14px', 
+              marginBottom: '12px',
+              lineHeight: '1.5'
+            }}>
+              한 액션이 다른 액션을 트리거하여 복잡한 워크플로우를 구현합니다.
+            </p>
+            <pre style={{
+              backgroundColor: '#f1f5f9',
+              padding: '16px',
+              borderRadius: '8px',
+              fontSize: '12px',
+              overflow: 'auto',
+              color: '#1e293b'
+            }}>
+{`// 체인 액션 핸들러
+register('chainedAction', async ({ step, data }) => {
+  console.log(\`Step \${step}: \${data}\`);
+  
+  if (step < 3) {
+    await delay(500);
+    // 다음 단계 자동 트리거
+    dispatch('chainedAction', {
+      step: step + 1,
+      data: \`\${data} -> Step \${step + 1}\`
+    });
   }
-};
+});`}
+            </pre>
+          </div>
 
-// 2. ActionRegister에 미들웨어 등록
-const actionRegister = new ActionRegister();
-actionRegister.use(authMiddleware);     // 먼저 인증 확인
-actionRegister.use(loggingMiddleware);  // 그 다음 로깅
-
-// 3. 핸들러 등록 (우선순위 지원)
-actionRegister.register('increment', () => {
-  setCount(prev => prev + 1);
-}, { priority: 1 });
-
-// 4. 에러 핸들링
-actionRegister.onError((error, action, payload) => {
-  console.error(\`Error in \${action}:\`, error);
+          {/* 4단계: 에러 핸들링 */}
+          <div style={{
+            padding: '24px',
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            border: '1px solid #e2e8f0'
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              marginBottom: '16px' 
+            }}>
+              <span style={{ 
+                fontSize: '20px',
+                marginRight: '8px'
+              }}>4️⃣</span>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600' }}>
+                에러 처리와 복구 패턴
+              </h3>
+            </div>
+            <p style={{ 
+              color: '#64748b', 
+              fontSize: '14px', 
+              marginBottom: '12px',
+              lineHeight: '1.5'
+            }}>
+              예외 상황을 graceful하게 처리하고 적절한 복구 메커니즘을 제공합니다.
+            </p>
+            <pre style={{
+              backgroundColor: '#f1f5f9',
+              padding: '16px',
+              borderRadius: '8px',
+              fontSize: '12px',
+              overflow: 'auto',
+              color: '#1e293b'
+            }}>
+{`// 에러 발생 핸들러
+register('errorAction', () => {
+  throw new Error('Intentional error');
 });
 
-// 5. 액션 디스패치 (미들웨어 파이프라인 통과)
-actionRegister.dispatch('increment');`}
-        </pre>
+// dispatch 레벨에서 에러 캐치
+try {
+  actionRegister.dispatch('errorAction');
+} catch (error) {
+  addLog('error', \`Error: \${error.message}\`);
+}`}
+            </pre>
+          </div>
+        </div>
+
+        {/* 아키텍처 특징 */}
+        <div style={{
+          padding: '24px',
+          backgroundColor: '#fef3c7',
+          borderRadius: '12px',
+          border: '1px solid #fbbf24'
+        }}>
+          <h4 style={{ 
+            margin: '0 0 16px 0', 
+            fontSize: '18px', 
+            fontWeight: '600',
+            color: '#92400e'
+          }}>
+            🏗️ 엔터프라이즈급 아키텍처 특징
+          </h4>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '16px',
+            color: '#92400e',
+            fontSize: '14px'
+          }}>
+            <div>
+              <strong>우선순위 제어:</strong>
+              <div style={{ marginTop: '4px' }}>
+                핸들러 실행 순서를 세밀하게 제어
+              </div>
+            </div>
+            <div>
+              <strong>미들웨어 아키텍처:</strong>
+              <div style={{ marginTop: '4px' }}>
+                횡단 관심사의 완벽한 분리
+              </div>
+            </div>
+            <div>
+              <strong>비동기 체이닝:</strong>
+              <div style={{ marginTop: '4px' }}>
+                복잡한 워크플로우의 우아한 구현
+              </div>
+            </div>
+            <div>
+              <strong>에러 격리:</strong>
+              <div style={{ marginTop: '4px' }}>
+                시스템 안정성을 위한 에러 경계
+              </div>
+            </div>
+            <div>
+              <strong>조건부 실행:</strong>
+              <div style={{ marginTop: '4px' }}>
+                비즈니스 로직 기반 동적 제어
+              </div>
+            </div>
+            <div>
+              <strong>성능 최적화:</strong>
+              <div style={{ marginTop: '4px' }}>
+                지연 실행과 효율적인 리소스 관리
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -119,6 +119,12 @@ export class NumericStore extends Store<number> {
     this.setValue(this.getValue() * factor);
   };
 
+  divide = (divisor: number): void => {
+    if (divisor !== 0) {
+      this.setValue(this.getValue() / divisor);
+    }
+  };
+
   reset = (): void => {
     this.setValue(0);
   };

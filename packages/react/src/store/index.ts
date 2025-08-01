@@ -106,7 +106,8 @@ export {
 export { 
   createStoreSync, 
   createTypedStoreHooks, 
-  useBatchStoreSync 
+  useBatchStoreSync,
+  useStoreSyncWithSelector
 } from './store-sync';
 
 // Registry sync

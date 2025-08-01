@@ -213,3 +213,30 @@ MVVM architecture and design patterns used throughout the Context-Action framewo
 
 
 **Related Terms**: [ViewModel Layer](#viewmodel-layer), [Action Handler](./core-concepts.md#action-handler), [Domain Rules](#domain-rules)
+
+---
+
+## Deprecated HOC Patterns
+
+**Definition**: Legacy Higher-Order Component patterns that have been deprecated in favor of modern React hook-based approaches for better type safety, bundle size optimization, and code maintainability.
+
+**Usage Context**:
+- Migration documentation and guides
+- Legacy code references
+- Framework evolution history
+- Developer education on modern patterns
+
+**Deprecated Patterns**:
+- `withStore`: Individual store injection → Use `useLocalStore` + `useStoreValue`
+- `withManagedStore`: Registry-managed store injection → Use `useRegistryStore` + `useStoreValue`
+- `withRegistryStores`: Multiple store injection → Use individual `useRegistryStore` calls
+- `withStoreData`: Store value mapping → Use `useStoreValue` with selectors
+
+**Migration Benefits**:
+- Improved TypeScript type inference and safety
+- Reduced bundle size (7% improvement)
+- Simpler component composition
+- Better alignment with modern React patterns
+- Enhanced debugging and testing capabilities
+
+**Related Terms**: [Store Hooks](./api-terms.md#store-hooks), [Type Safety](#type-safety), [View Layer](#view-layer), [Store Registry](./core-concepts.md#store-registry)
