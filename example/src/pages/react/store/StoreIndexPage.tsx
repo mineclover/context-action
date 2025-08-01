@@ -44,6 +44,12 @@ export function StoreIndexPage() {
         >
           Full Demo
         </Link>
+        <Link 
+          to="/react/store/hoc-patterns" 
+          className={`nav-link ${location.pathname === '/react/store/hoc-patterns' ? 'active' : ''}`}
+        >
+          HOC Patterns
+        </Link>
       </nav>
 
       {isIndex ? (
@@ -86,6 +92,14 @@ export function StoreIndexPage() {
               <p>See everything in action with a complete interactive demonstration.</p>
               <Link to="/react/store/demo" className="feature-link">
                 Launch Demo →
+              </Link>
+            </div>
+
+            <div className="feature-card">
+              <h3>⚡ HOC Patterns</h3>
+              <p>Higher-Order Component patterns for Store and Action providers with function composition.</p>
+              <Link to="/react/store/hoc-patterns" className="feature-link">
+                Explore HOC →
               </Link>
             </div>
           </div>

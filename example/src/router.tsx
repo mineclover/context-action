@@ -29,6 +29,7 @@ import { StoreRegistryPage } from './pages/react/store/StoreRegistryPage';
 import { StoreContextPage } from './pages/react/store/StoreContextPage';
 import { StoreSyncPage } from './pages/react/store/StoreSyncPage';
 import { StoreFullDemoPage } from './pages/react/store/StoreFullDemoPage';
+import HOCPatternsPage from './pages/react/store/HOCPatternsPage';
 
 export const router: ReturnType<typeof createBrowserRouter> =
   createBrowserRouter([
@@ -115,6 +116,10 @@ export const router: ReturnType<typeof createBrowserRouter> =
                 {
                   path: 'demo',
                   element: <StoreFullDemoPage />,
+                },
+                {
+                  path: 'hoc-patterns',
+                  element: <HOCPatternsPage />,
                 },
               ],
             },
