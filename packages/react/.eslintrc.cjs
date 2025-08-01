@@ -15,6 +15,7 @@ module.exports = {
     'no-unused-vars': 'off',
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     'no-undef': 'off', // TypeScript handles this
+    'no-redeclare': 'off',
   },
   env: {
     browser: true,

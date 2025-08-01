@@ -39,7 +39,7 @@ export function useStoreValue<T, R>(
   
   return useStoreSync(store, {
     selector: snapshot => snapshot.value
-  });
+  }) as R | undefined;
 }
 
 /**

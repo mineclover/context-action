@@ -248,7 +248,7 @@ export function useStoreQuery<T>(
     // Update query store with computed result
     const newResult = computeResult();
     if (JSON.stringify(queryStore.value) !== JSON.stringify(newResult)) {
-      queryStore.setValue(newResult);
+      queryStore.setValue(newResult as { data: T | undefined; loading: boolean; error: null });
     }
     
     return queryStore.value || { data: undefined, loading: true, error: null };

@@ -66,3 +66,6 @@ typedoc-out/
 
 # Glossary auto-generated data
 glossary/implementations/_data/
+
+# history
+.history/
