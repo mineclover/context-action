@@ -1,0 +1,39 @@
+{
+  "$schema": "node_modules/lerna/schemas/lerna-schema.json",
+  "version": "0.0.3",
+  "npmClient": "pnpm",
+  "packages": [
+    "packages/core",
+    "packages/react", 
+    "packages/jotai",
+    "packages/glossary",
+    "packages/logger"
+  ],
+  "command": {
+    "version": {
+      "allowBranch": ["main", "master"],
+      "conventionalCommits": true,
+      "message": "chore(release): publish %v",
+      "push": true,
+      "createRelease": "github"
+    },
+    "publish": {
+      "npmClient": "pnpm",
+      "registry": "https://registry.npmjs.org/",
+      "verifyAccess": false
+    },
+    "bootstrap": {
+      "npmClientArgs": ["--frozen-lockfile"]
+    },
+    "run": {
+      "stream": true
+    }
+  },
+  "ignoreChanges": [
+    "**/*.md",
+    "**/test/**",
+    "**/__tests__/**",
+    "**/*.test.ts",
+    "**/*.test.tsx"
+  ]
+}
