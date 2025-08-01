@@ -124,19 +124,27 @@ export function useMVVMStore<T, R>(
  */
 export function useMultiMVVMStore<
   S extends Record<string, {
-    initialValue: any;
-    selector?: (value: any) => any;
+    initialValue: unknown;
+    selector?: (value: unknown) => unknown;
   }>
 >(storeSpecs: S): {
   [K in keyof S]: {
-    value: S[K]['selector'] extends (value: any) => infer R ? R | undefined : S[K]['initialValue'] | undefined;
+    value: S[K]['selector'] extends (value: unknown) => infer R ? R | undefined : S[K]['initialValue'] | undefined;
     setValue: (value: S[K]['initialValue']) => void;
     update: (updater: (current: S[K]['initialValue']) => S[K]['initialValue']) => void;
     store: IStore<S[K]['initialValue']>;
   }
 } {
   const registry = useStoreRegistry();
-  const result = {} as any;
+  type ResultType = {
+    [K in keyof S]: {
+      value: S[K]['selector'] extends (value: unknown) => infer R ? R | undefined : S[K]['initialValue'] | undefined;
+      setValue: (value: S[K]['initialValue']) => void;
+      update: (updater: (current: S[K]['initialValue']) => S[K]['initialValue']) => void;
+      store: IStore<S[K]['initialValue']>;
+    }
+  };
+  const result = {} as ResultType;
   
   for (const [storeName, spec] of Object.entries(storeSpecs)) {
     // Get or create store
@@ -195,7 +203,7 @@ export function useMultiMVVMStore<
  */
 export function useStoreQuery<T>(
   queryKey: string,
-  queryFn: (...storeValues: any[]) => T,
+  queryFn: (...storeValues: unknown[]) => T,
   dependencies: string[]
 ): {
   data: T | undefined;
@@ -208,7 +216,7 @@ export function useStoreQuery<T>(
   const stores = dependencies.map(name => registry.getStore(name)).filter(Boolean);
   
   // Create query function with error handling
-  const safeQueryFn = useCallback((...values: any[]) => {
+  const safeQueryFn = useCallback((...values: unknown[]) => {
     try {
       return queryFn(...values);
     } catch (error) {

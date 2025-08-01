@@ -97,12 +97,12 @@ export function useStoreSync<T, R = Snapshot<T>>(
 export function useBatchStoreSync<T extends Record<string, IStore | undefined | null>>(
   stores: T
 ): { [K in keyof T]: T[K] extends IStore<infer U> ? U : undefined } {
-  const results = {} as any;
+  const results = {} as { [K in keyof T]: T[K] extends IStore<infer U> ? U : undefined };
 
   // Note: This is not ideal as it creates multiple subscriptions
   // But it's a trade-off for simplicity
   for (const [key, store] of Object.entries(stores)) {
-    results[key] = useStoreSync(store, {
+    results[key as keyof T] = useStoreSync(store, {
       selector: snapshot => snapshot?.value
     });
   }
