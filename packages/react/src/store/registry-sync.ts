@@ -1,87 +1,45 @@
 import { useStoreSync } from './store-sync';
-import type { IStoreRegistry, IStore, DynamicStoreOptions } from './types';
+import type { IStoreRegistry, IStore } from './types';
 
 /**
- * Factory for creating standardized registry sync hooks
- * Provides consistent API for dynamic store access patterns
+ * Factory for creating registry sync hooks
+ * 핵심 기능: Registry에서 동적으로 store에 접근하는 표준화된 인터페이스 제공
+ * 
+ * @template T - Store value type
+ * @returns Registry sync methods
+ * 
+ * @example
+ * ```typescript
+ * const sync = createRegistrySync<UserData>();
+ * const userData = sync.useDynamicStore(registry, 'user');
+ * ```
  */
 export function createRegistrySync<T = any>() {
   return {
     /**
-     * Get store value dynamically from registry by name
+     * Registry에서 이름으로 store 값을 동적으로 가져오기
+     * 핵심 로직: registry.getStore() → useStoreSync() → value 추출
      */
     useDynamicStore(
       registry: IStoreRegistry | undefined | null,
-      storeName: string,
-      options?: DynamicStoreOptions<T>
+      storeName: string
     ): T | undefined {
       const store = registry?.getStore(storeName);
-      
-      // Handle store not found case
-      if (!store && options?.onNotFound) {
-        options.onNotFound(storeName);
-      }
-      
       return useStoreSync(store, {
-        defaultValue: options?.defaultValue,
         selector: snapshot => snapshot.value as T
       });
-    },
-
-    /**
-     * Get store value with guaranteed default from registry
-     */
-    useDynamicStoreWithDefault<U extends T>(
-      registry: IStoreRegistry | undefined | null,
-      storeName: string,
-      defaultValue: U
-    ): U {
-      const store = registry?.getStore(storeName);
-      return useStoreSync(store, {
-        defaultValue,
-        selector: snapshot => snapshot.value as U
-      });
-    },
-
-    /**
-     * Get complete store snapshot dynamically from registry
-     */
-    useDynamicStoreSnapshot(
-      registry: IStoreRegistry | undefined | null,
-      storeName: string
-    ) {
-      const store = registry?.getStore(storeName);
-      return useStoreSync(store);
-    },
-
-    /**
-     * Get multiple store values from registry
-     */
-    useDynamicStores<K extends string>(
-      registry: IStoreRegistry | undefined | null,
-      storeNames: K[]
-    ): Record<K, any> {
-      const results = {} as Record<K, any>;
-      
-      // Consistent iteration pattern
-      for (const name of storeNames) {
-        const store = registry?.getStore(name);
-        results[name] = useStoreSync(store, {
-          selector: snapshot => snapshot.value
-        });
-      }
-      
-      return results;
     }
   };
 }
 
 /**
- * Registry utilities for working with store registries
+ * Registry 유틸리티 클래스
+ * 핵심 기능: Registry 상태 조회 및 검색을 위한 정적 메서드 제공
  */
 export class RegistryUtils {
   /**
-   * Get a typed store from registry
+   * Registry에서 타입 안전한 store 가져오기
+   * 핵심 로직: 타입 캐스팅을 통한 타입 안전성 보장
    */
   static getTypedStore<T>(
     registry: IStoreRegistry | undefined | null,
@@ -91,7 +49,8 @@ export class RegistryUtils {
   }
 
   /**
-   * Check if store exists in registry
+   * Registry에 store가 존재하는지 확인
+   * 핵심 로직: null-safe 체이닝으로 안전한 존재 여부 확인
    */
   static hasStore(
     registry: IStoreRegistry | undefined | null,
@@ -99,38 +58,4 @@ export class RegistryUtils {
   ): boolean {
     return registry?.hasStore(name) ?? false;
   }
-
-  /**
-   * Get all store names from registry
-   */
-  static getStoreNames(
-    registry: IStoreRegistry | undefined | null
-  ): string[] {
-    if (!registry) return [];
-    return registry.getSnapshot().map(([name]) => name);
-  }
-
-  /**
-   * Get stores by pattern
-   */
-  static getStoresByPattern(
-    registry: IStoreRegistry | undefined | null,
-    pattern: RegExp
-  ): Array<[string, IStore]> {
-    if (!registry) return [];
-    return registry.getSnapshot().filter(([name]) => pattern.test(name));
-  }
 }
-
-/**
- * Default registry sync instance
- */
-export const registrySync = createRegistrySync();
-
-/**
- * Convenience hooks using default registry sync
- */
-export const useDynamicStore = registrySync.useDynamicStore;
-export const useDynamicStoreWithDefault = registrySync.useDynamicStoreWithDefault;
-export const useDynamicStoreSnapshot = registrySync.useDynamicStoreSnapshot;
-export const useDynamicStores = registrySync.useDynamicStores;

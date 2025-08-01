@@ -5,6 +5,9 @@ import { createStore } from '../utils';
 import type { Snapshot } from '../types';
 import { createLogger } from '@context-action/logger';
 
+// Create logger once at module level
+const logger = createLogger();
+
 /**
  * Create a component-local store that persists across renders
  * Replaces deprecated withStore HOC pattern with modern hook approach
@@ -38,12 +41,10 @@ export function useLocalStore<T>(
   name?: string
 ): Snapshot<T> & { store: Store<T> } {
   const storeRef = useRef<Store<T>>();
-  const loggerRef = useRef<ReturnType<typeof createLogger>>();
   
   if (!storeRef.current) {
     storeRef.current = createStore(initialValue, name);
-    loggerRef.current = createLogger();
-    loggerRef.current.debug(`Local store created via useLocalStore`, { 
+    logger.debug(`Local store created via useLocalStore`, { 
       name: storeRef.current.name,
       initialValue 
     });
@@ -57,32 +58,3 @@ export function useLocalStore<T>(
   };
 }
 
-/**
- * Create a component-local store and return only the value and setter
- * Convenience wrapper for simple local state management
- * 
- * @template T - Type of the store value
- * @param initialValue - The initial value for the local store
- * @param name - Optional name for the store
- * @returns Tuple of [value, setValue, updateValue]
- * 
- * @example
- * ```typescript
- * const [count, setCount, updateCount] = useLocalState(0);
- * 
- * const handleIncrement = () => updateCount(prev => prev + 1);
- * const handleReset = () => setCount(0);
- * ```
- */
-export function useLocalState<T>(
-  initialValue: T,
-  name?: string
-): [T | undefined, (value: T) => void, (updater: (current: T) => T) => void] {
-  const { value, store } = useLocalStore(initialValue, name);
-  
-  return [
-    value,
-    store.setValue.bind(store),
-    store.update.bind(store)
-  ];
-}
