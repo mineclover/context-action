@@ -1,5 +1,5 @@
 import type { IStore, Listener, Snapshot, Unsubscribe } from './types';
-import { createLogger, LogLevel } from '@context-action/logger';
+import { createLogger } from '@context-action/logger';
 
 /**
  * @implements store-integration-pattern
