@@ -55,13 +55,13 @@ import { useStoreRegistry } from '../StoreProvider';
  * <EnhancedUserProfile title="User Info" />
  * ```
  */
-export function withStore<T>(
-  storeConfig: { name: string; initialValue: T }
+export function withStore<T, StoreName extends string>(
+  storeConfig: { name: StoreName; initialValue: T }
 ) {
-  return function <P extends { [K in keyof P]: P[K] }>(
-    WrappedComponent: React.ComponentType<P & { [storeName: string]: Store<T> }>
-  ): React.FC<Omit<P, keyof { [storeName: string]: Store<T> }>> {
-    const WithStore = (props: Omit<P, keyof { [storeName: string]: Store<T> }>) => {
+  return function <P extends Record<string, any>>(
+    WrappedComponent: React.ComponentType<P & Record<`${StoreName}Store`, Store<T>>>
+  ): React.FC<Omit<P, `${StoreName}Store`>> {
+    const WithStore = (props: Omit<P, `${StoreName}Store`>) => {
       const store = useMemo(
         () => createStore(storeConfig.name, storeConfig.initialValue),
         [storeConfig.name]
@@ -69,7 +69,7 @@ export function withStore<T>(
 
       const storeProps = {
         [`${storeConfig.name}Store`]: store,
-      } as { [storeName: string]: Store<T> };
+      } as Record<`${StoreName}Store`, Store<T>>;
 
       return <WrappedComponent {...(props as P)} {...storeProps} />;
     };
@@ -111,13 +111,13 @@ export function withStore<T>(
  * </StoreProvider>
  * ```
  */
-export function withManagedStore<T>(
-  storeConfig: Omit<StoreConfig<T>, 'registry'>
+export function withManagedStore<T, StoreName extends string>(
+  storeConfig: Omit<StoreConfig<T>, 'registry'> & { name: StoreName }
 ) {
-  return function <P extends { [K in keyof P]: P[K] }>(
-    WrappedComponent: React.ComponentType<P & { [storeName: string]: ManagedStore<T> }>
-  ): React.FC<Omit<P, keyof { [storeName: string]: ManagedStore<T> }>> {
-    const WithManagedStore = (props: Omit<P, keyof { [storeName: string]: ManagedStore<T> }>) => {
+  return function <P extends Record<string, any>>(
+    WrappedComponent: React.ComponentType<P & Record<`${StoreName}Store`, ManagedStore<T>>>
+  ): React.FC<Omit<P, `${StoreName}Store`>> {
+    const WithManagedStore = (props: Omit<P, `${StoreName}Store`>) => {
       const registry = useStoreRegistry();
       
       const store = useMemo(() => {
@@ -129,7 +129,7 @@ export function withManagedStore<T>(
 
       const storeProps = {
         [`${storeConfig.name}Store`]: store,
-      } as { [storeName: string]: ManagedStore<T> };
+      } as Record<`${StoreName}Store`, ManagedStore<T>>;
 
       return <WrappedComponent {...(props as P)} {...storeProps} />;
     };
@@ -179,25 +179,29 @@ export function withManagedStore<T>(
  * </StoreProvider>
  * ```
  */
-export function withRegistryStores(storeNames: string[]) {
-  return function <P extends { [K in keyof P]: P[K] }>(
-    WrappedComponent: React.ComponentType<P>
-  ): React.FC<P> {
-    const WithRegistryStores = (props: P) => {
+export function withRegistryStores<StoreNames extends readonly string[]>(
+  storeNames: StoreNames
+) {
+  type StoreProps = {
+    [K in StoreNames[number] as `${K}Store`]: Store<any> | undefined;
+  };
+  
+  return function <P extends Record<string, any>>(
+    WrappedComponent: React.ComponentType<P & StoreProps>
+  ): React.FC<Omit<P, keyof StoreProps>> {
+    const WithRegistryStores = (props: Omit<P, keyof StoreProps>) => {
       const registry = useStoreRegistry();
       
       const storeProps = useMemo(() => {
-        const stores: any = {};
+        const stores: Record<string, Store<any> | undefined> = {};
         storeNames.forEach(name => {
           const store = registry.getStore(name);
-          if (store) {
-            stores[`${name}Store`] = store;
-          }
+          stores[`${name}Store`] = store;
         });
-        return stores;
-      }, [registry, storeNames]);
+        return stores as StoreProps;
+      }, [registry]);
 
-      return <WrappedComponent {...props} {...storeProps} />;
+      return <WrappedComponent {...(props as P)} {...storeProps} />;
     };
 
     WithRegistryStores.displayName = `withRegistryStores([${storeNames.join(', ')}])(${WrappedComponent.displayName || WrappedComponent.name})`;
@@ -264,7 +268,7 @@ export function withStoreData<T extends Record<string, any>>(
     [K in keyof T]: (stores: Record<string, any>) => T[K];
   }
 ) {
-  return function <P extends { [K in keyof P]: P[K] }>(
+  return function <P extends Record<string, any>>(
     WrappedComponent: React.ComponentType<P & T>
   ): React.FC<Omit<P, keyof T>> {
     const WithStoreData = (props: Omit<P, keyof T>) => {
@@ -285,9 +289,9 @@ export function withStoreData<T extends Record<string, any>>(
 
       // Apply selectors to get final props
       const derivedProps = useMemo(() => {
-        const result: any = {};
+        const result: Partial<T> = {};
         Object.entries(storeConfig).forEach(([key, selector]) => {
-          result[key] = selector(storeValues);
+          result[key as keyof T] = selector(storeValues);
         });
         return result as T;
       }, [storeValues]);

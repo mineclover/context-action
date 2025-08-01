@@ -2,7 +2,7 @@ import { useRef, useMemo } from 'react';
 import { Store } from '../Store';
 import { useStoreSync } from '../store-sync';
 import { createComputedStore } from '../utils';
-import type { IStore, Snapshot } from '../types';
+import type { IStore } from '../types';
 
 /**
  * Hook for creating computed stores with dependencies
