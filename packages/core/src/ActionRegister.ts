@@ -422,7 +422,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     }
 
     // Clean up one-time handlers after execution
-    this.cleanupOneTimeHandlers(context.action as keyof T, context.handlers);
+    this.cleanupOneTimeHandlers(context.action as K, context.handlers);
   }
 
   /**
