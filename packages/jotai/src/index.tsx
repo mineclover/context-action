@@ -2,7 +2,7 @@ import { atom, PrimitiveAtom } from 'jotai'
 import React, { createContext, ReactNode, useContext, useMemo, useRef } from 'react'
 
 import { useAtom, useAtomValue, useSetAtom } from 'jotai/react'
-import { Logger, LogLevel, ConsoleLogger, getLogLevelFromEnv } from '@context-action/core'
+import { Logger, LogLevel, ConsoleLogger, getLogLevelFromEnv } from '@context-action/logger'
 
 type AtomType<T> = PrimitiveAtom<T>
 

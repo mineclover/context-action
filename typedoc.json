@@ -1,13 +1,14 @@
 {
   "entryPoints": [
     "./packages/core/src/index.ts",
-    "./packages/react/src/index.ts"
+    "./packages/logger/src/index.ts",
+    "./packages/react/src/index.ts",
+    "./packages/jotai/src/index.tsx"
   ],
-  "tsconfig": "./packages/core/tsconfig.json",
+  "tsconfig": "./tsconfig.json",
   "out": "./docs/api/generated",
   "plugin": ["typedoc-plugin-markdown"],
   "theme": "markdown",
-  "markdownItLoader": false,
   "readme": "none",
   "excludePrivate": true,
   "excludeProtected": true,
@@ -65,6 +66,7 @@
     "notDocumented": false
   },
   "treatWarningsAsErrors": false,
+  "skipErrorChecking": true,
   "basePath": ".",
   "excludeExternals": true,
   "githubPages": false
