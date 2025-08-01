@@ -162,7 +162,7 @@ export function useMultiMVVMStore<
     // Get actions
     const { setValue, update } = useStoreActions(store as any);
     
-    result[storeName] = {
+    (result as any)[storeName] = {
       value,
       setValue,
       update,

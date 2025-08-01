@@ -127,7 +127,7 @@ export async function executeParallel<T>(
 
   // Create promises for all handlers
   const handlerPromises = runnableHandlers.map(async (registration, _index) => {
-    const controller = createController(registration, index);
+    const controller = createController(registration, _index);
     
     try {
       logger.trace(`Starting parallel handler '${registration.id}'`);
@@ -214,7 +214,7 @@ export async function executeRace<T>(
 
   // Create promises for all handlers
   const handlerPromises = runnableHandlers.map(async (registration, _index) => {
-    const controller = createController(registration, index);
+    const controller = createController(registration, _index);
     
     try {
       logger.trace(`Starting race handler '${registration.id}'`);

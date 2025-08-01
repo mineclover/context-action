@@ -11,7 +11,7 @@ export class Store<T = any> implements IStore<T> {
   private _value: T;
   private _snapshot: Snapshot<T>;
   public readonly name: string;
-  private logger = createLogger();
+  protected logger = createLogger();
 
   constructor(name: string, initialValue: T) {
     this.name = name;
