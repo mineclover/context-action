@@ -6,6 +6,7 @@
 
 - `DEVELOPMENT_WORKFLOW.md` - 전체 개발 워크플로우 가이드
 - `API_DOCUMENTATION_GENERATION.md` - TypeDoc 기반 API 문서 자동 생성 시스템
+- `CI_CD_API_DOCUMENTATION.md` - CI/CD 파이프라인에서 API 문서 자동 생성 처리
 - `GLOSSARY_GUIDE.md` - 용어집 시스템 사용법, 태그, 도구 가이드
 - `GLOSSARY_CONFIGURATION_GUIDE.md` - 용어집 시스템 설정 가이드
 - `GLOSSARY_MAPPING_SYSTEM.md` - JSDoc 기반 매핑 시스템 개요

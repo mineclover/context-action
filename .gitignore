@@ -64,6 +64,11 @@ docs/api/generated/
 # TypeDoc
 typedoc-out/
 
+# Auto-generated API documentation
+docs/.vitepress/config/api-spec.ts
+docs/en/api/
+docs/ko/api/
+
 # Glossary auto-generated data
 glossary/implementations/_data/
 
