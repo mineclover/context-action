@@ -7,8 +7,8 @@ import { navRoot, navKo, navEn } from './config/nav'
 import { 
   sidebarGuideKo, 
   sidebarGuideEn,
-  sidebarApiSpecKo,
-  sidebarApiSpecEn,
+  sidebarApiKo,
+  sidebarApiEn,
   sidebarReferenceKo,
   sidebarReferenceEn,
   sidebarGlossaryKo,
@@ -62,8 +62,7 @@ export default defineConfig({
         nav: navKo(),
         sidebar: {
           '/ko/guide/': sidebarGuideKo(),
-          '/ko/api-spec/': sidebarApiSpecKo(),
-          '/ko/api/': sidebarReferenceKo(),
+          '/ko/api/': sidebarApiKo(),
           '/ko/glossary/': sidebarGlossaryKo(),
           '/ko/packages/': sidebarPackagesKo(),
           '/ko/examples/': sidebarExamplesKo(),
@@ -78,8 +77,7 @@ export default defineConfig({
         nav: navEn(),
         sidebar: {
           '/en/guide/': sidebarGuideEn(),
-          '/en/api-spec/': sidebarApiSpecEn(),
-          '/en/api/': sidebarReferenceEn(),
+          '/en/api/': sidebarApiEn(),
           '/en/glossary/': sidebarGlossaryEn(),
           '/en/packages/': sidebarPackagesEn(),
           '/en/examples/': sidebarExamplesEn(),

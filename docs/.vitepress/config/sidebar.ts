@@ -6,8 +6,8 @@ export {
   // 사이드바 생성 함수들
   sidebarGuideEn,
   sidebarGuideKo,
-  sidebarApiSpecEn,
-  sidebarApiSpecKo,
+  sidebarApiEn,
+  sidebarApiKo,
   sidebarReferenceEn,
   sidebarReferenceKo,
   sidebarGlossaryEn,
@@ -21,7 +21,6 @@ export {
   
   // 구조 객체들
   GUIDE_STRUCTURE,
-  API_SPEC_STRUCTURE,
   REFERENCE_STRUCTURE,
   GLOSSARY_STRUCTURE,
   PACKAGES_STRUCTURE,
