@@ -1,0 +1,253 @@
+{
+  "success": true,
+  "summary": {
+    "errors": 0,
+    "warnings": 39,
+    "totalIssues": 39,
+    "glossaryTerms": 40,
+    "mappedTerms": 3,
+    "implementationRate": 8
+  },
+  "details": {
+    "errors": [],
+    "warnings": [
+      {
+        "type": "DUPLICATE_MAPPING",
+        "severity": "warning",
+        "file": "example/src/hooks/useActionGuard.ts",
+        "method": "DebounceOptions",
+        "message": "DebounceOptions in example/src/hooks/useActionGuard.ts implements multiple terms: action-handler, pipeline-controller"
+      },
+      {
+        "type": "DUPLICATE_MAPPING",
+        "severity": "warning",
+        "file": "packages/core/src/types.ts",
+        "method": "definitions",
+        "message": "definitions in packages/core/src/types.ts implements multiple terms: pipeline-controller, action-payload-map"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "action-pipeline-system",
+        "message": "Glossary term 'Action Pipeline System' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "store-integration-pattern",
+        "message": "Glossary term 'Store Integration Pattern' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "store-registry",
+        "message": "Glossary term 'Store Registry' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "handler-configuration",
+        "message": "Glossary term 'Handler Configuration' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "mvvm-pattern",
+        "message": "Glossary term 'MVVM Pattern' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "view-layer",
+        "message": "Glossary term 'View Layer' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "viewmodel-layer",
+        "message": "Glossary term 'ViewModel Layer' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "model-layer",
+        "message": "Glossary term 'Model Layer' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "lazy-evaluation",
+        "message": "Glossary term 'Lazy Evaluation' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "decoupled-architecture",
+        "message": "Glossary term 'Decoupled Architecture' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "unidirectional-data-flow",
+        "message": "Glossary term 'Unidirectional Data Flow' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "type-safety",
+        "message": "Glossary term 'Type Safety' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "business-logic",
+        "message": "Glossary term 'Business Logic' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "actionregister",
+        "message": "Glossary term 'ActionRegister' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "storeprovider",
+        "message": "Glossary term 'StoreProvider' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "actionprovider",
+        "message": "Glossary term 'ActionProvider' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "store-hooks",
+        "message": "Glossary term 'Store Hooks' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "cross-store-coordination",
+        "message": "Glossary term 'Cross-Store Coordination' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "async-operations",
+        "message": "Glossary term 'Async Operations' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "action-dispatcher",
+        "message": "Glossary term 'Action Dispatcher' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "priority-based-execution",
+        "message": "Glossary term 'Priority-based Execution' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "computed-store",
+        "message": "Glossary term 'Computed Store' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "pipeline-context",
+        "message": "Glossary term 'Pipeline Context' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "overview",
+        "message": "Glossary term 'Overview' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "general-principles",
+        "message": "Glossary term 'General Principles' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "class-naming",
+        "message": "Glossary term 'Class Naming' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "interface-naming",
+        "message": "Glossary term 'Interface Naming' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "function-naming",
+        "message": "Glossary term 'Function Naming' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "constant-naming",
+        "message": "Glossary term 'Constant Naming' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "file-naming",
+        "message": "Glossary term 'File Naming' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "variable-naming",
+        "message": "Glossary term 'Variable Naming' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "generic-type-parameters",
+        "message": "Glossary term 'Generic Type Parameters' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "documentation-naming",
+        "message": "Glossary term 'Documentation Naming' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "major-section-h2---main-sections",
+        "message": "Glossary term 'Major Section (H2 - Main sections)' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "core-concepts",
+        "message": "Glossary term 'Core Concepts' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "core-concepts--should-be-title-case",
+        "message": "Glossary term 'core concepts                       # Should be Title Case' has no implementations"
+      },
+      {
+        "type": "ORPHANED_TERM",
+        "severity": "info",
+        "term": "validation-rules",
+        "message": "Glossary term 'Validation Rules' has no implementations"
+      }
+    ]
+  },
+  "timestamp": "2025-08-01T06:07:56.561Z"
+}

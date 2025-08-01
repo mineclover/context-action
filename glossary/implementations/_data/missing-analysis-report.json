@@ -1,0 +1,532 @@
+{
+  "glossaryToCode": {
+    "missing": [
+      {
+        "term": "action-pipeline-system",
+        "name": "Action Pipeline System",
+        "category": "core-concepts",
+        "reason": "no_implementation",
+        "suggestions": [
+          "action-pipeline-system을 구현하는 함수/클래스/인터페이스에 @implements action-pipeline-system 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "store-integration-pattern",
+        "name": "Store Integration Pattern",
+        "category": "core-concepts",
+        "reason": "no_implementation",
+        "suggestions": [
+          "store-integration-pattern을 구현하는 함수/클래스/인터페이스에 @implements store-integration-pattern 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "store-registry",
+        "name": "Store Registry",
+        "category": "core-concepts",
+        "reason": "no_implementation",
+        "suggestions": [
+          "store-registry을 구현하는 함수/클래스/인터페이스에 @implements store-registry 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "handler-configuration",
+        "name": "Handler Configuration",
+        "category": "core-concepts",
+        "reason": "no_implementation",
+        "suggestions": [
+          "handler-configuration을 구현하는 함수/클래스/인터페이스에 @implements handler-configuration 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "mvvm-pattern",
+        "name": "MVVM Pattern",
+        "category": "architecture-terms",
+        "reason": "no_implementation",
+        "suggestions": [
+          "mvvm-pattern을 구현하는 함수/클래스/인터페이스에 @implements mvvm-pattern 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "view-layer",
+        "name": "View Layer",
+        "category": "architecture-terms",
+        "reason": "no_implementation",
+        "suggestions": [
+          "view-layer을 구현하는 함수/클래스/인터페이스에 @implements view-layer 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "viewmodel-layer",
+        "name": "ViewModel Layer",
+        "category": "architecture-terms",
+        "reason": "no_implementation",
+        "suggestions": [
+          "viewmodel-layer을 구현하는 함수/클래스/인터페이스에 @implements viewmodel-layer 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "model-layer",
+        "name": "Model Layer",
+        "category": "architecture-terms",
+        "reason": "no_implementation",
+        "suggestions": [
+          "model-layer을 구현하는 함수/클래스/인터페이스에 @implements model-layer 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "lazy-evaluation",
+        "name": "Lazy Evaluation",
+        "category": "unknown",
+        "reason": "no_implementation",
+        "suggestions": [
+          "lazy-evaluation을 구현하는 함수/클래스/인터페이스에 @implements lazy-evaluation 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "decoupled-architecture",
+        "name": "Decoupled Architecture",
+        "category": "architecture-terms",
+        "reason": "no_implementation",
+        "suggestions": [
+          "decoupled-architecture을 구현하는 함수/클래스/인터페이스에 @implements decoupled-architecture 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "unidirectional-data-flow",
+        "name": "Unidirectional Data Flow",
+        "category": "architecture-terms",
+        "reason": "no_implementation",
+        "suggestions": [
+          "unidirectional-data-flow을 구현하는 함수/클래스/인터페이스에 @implements unidirectional-data-flow 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "type-safety",
+        "name": "Type Safety",
+        "category": "unknown",
+        "reason": "no_implementation",
+        "suggestions": [
+          "type-safety을 구현하는 함수/클래스/인터페이스에 @implements type-safety 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "business-logic",
+        "name": "Business Logic",
+        "category": "unknown",
+        "reason": "no_implementation",
+        "suggestions": [
+          "business-logic을 구현하는 함수/클래스/인터페이스에 @implements business-logic 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "actionregister",
+        "name": "ActionRegister",
+        "category": "core-concepts",
+        "reason": "no_implementation",
+        "suggestions": [
+          "ActionRegister 클래스에 @implements actionregister 태그 추가",
+          "createActionRegister 팩토리 함수 구현"
+        ]
+      },
+      {
+        "term": "storeprovider",
+        "name": "StoreProvider",
+        "category": "core-concepts",
+        "reason": "no_implementation",
+        "suggestions": [
+          "StoreProvider 컴포넌트에 @implements storeprovider 태그 추가",
+          "useStoreRegistry 훅 구현"
+        ]
+      },
+      {
+        "term": "actionprovider",
+        "name": "ActionProvider",
+        "category": "core-concepts",
+        "reason": "no_implementation",
+        "suggestions": [
+          "actionprovider을 구현하는 함수/클래스/인터페이스에 @implements actionprovider 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "store-hooks",
+        "name": "Store Hooks",
+        "category": "core-concepts",
+        "reason": "no_implementation",
+        "suggestions": [
+          "useStoreValue 훅에 @implements store-hooks 태그 추가",
+          "useStore 훅 구현",
+          "useComputedStore 훅 구현"
+        ]
+      },
+      {
+        "term": "cross-store-coordination",
+        "name": "Cross-Store Coordination",
+        "category": "core-concepts",
+        "reason": "no_implementation",
+        "suggestions": [
+          "cross-store-coordination을 구현하는 함수/클래스/인터페이스에 @implements cross-store-coordination 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "async-operations",
+        "name": "Async Operations",
+        "category": "unknown",
+        "reason": "no_implementation",
+        "suggestions": [
+          "async-operations을 구현하는 함수/클래스/인터페이스에 @implements async-operations 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "action-dispatcher",
+        "name": "Action Dispatcher",
+        "category": "core-concepts",
+        "reason": "no_implementation",
+        "suggestions": [
+          "action-dispatcher을 구현하는 함수/클래스/인터페이스에 @implements action-dispatcher 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "priority-based-execution",
+        "name": "Priority-based Execution",
+        "category": "unknown",
+        "reason": "no_implementation",
+        "suggestions": [
+          "priority-based-execution을 구현하는 함수/클래스/인터페이스에 @implements priority-based-execution 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "computed-store",
+        "name": "Computed Store",
+        "category": "core-concepts",
+        "reason": "no_implementation",
+        "suggestions": [
+          "computed-store을 구현하는 함수/클래스/인터페이스에 @implements computed-store 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "pipeline-context",
+        "name": "Pipeline Context",
+        "category": "core-concepts",
+        "reason": "no_implementation",
+        "suggestions": [
+          "pipeline-context을 구현하는 함수/클래스/인터페이스에 @implements pipeline-context 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "overview",
+        "name": "Overview",
+        "category": "unknown",
+        "reason": "no_implementation",
+        "suggestions": [
+          "overview을 구현하는 함수/클래스/인터페이스에 @implements overview 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "general-principles",
+        "name": "General Principles",
+        "category": "unknown",
+        "reason": "no_implementation",
+        "suggestions": [
+          "general-principles을 구현하는 함수/클래스/인터페이스에 @implements general-principles 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "class-naming",
+        "name": "Class Naming",
+        "category": "naming-conventions",
+        "reason": "no_implementation",
+        "suggestions": [
+          "class-naming을 구현하는 함수/클래스/인터페이스에 @implements class-naming 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "interface-naming",
+        "name": "Interface Naming",
+        "category": "naming-conventions",
+        "reason": "no_implementation",
+        "suggestions": [
+          "interface-naming을 구현하는 함수/클래스/인터페이스에 @implements interface-naming 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "function-naming",
+        "name": "Function Naming",
+        "category": "naming-conventions",
+        "reason": "no_implementation",
+        "suggestions": [
+          "function-naming을 구현하는 함수/클래스/인터페이스에 @implements function-naming 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "constant-naming",
+        "name": "Constant Naming",
+        "category": "naming-conventions",
+        "reason": "no_implementation",
+        "suggestions": [
+          "constant-naming을 구현하는 함수/클래스/인터페이스에 @implements constant-naming 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "file-naming",
+        "name": "File Naming",
+        "category": "naming-conventions",
+        "reason": "no_implementation",
+        "suggestions": [
+          "file-naming을 구현하는 함수/클래스/인터페이스에 @implements file-naming 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "variable-naming",
+        "name": "Variable Naming",
+        "category": "naming-conventions",
+        "reason": "no_implementation",
+        "suggestions": [
+          "variable-naming을 구현하는 함수/클래스/인터페이스에 @implements variable-naming 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "generic-type-parameters",
+        "name": "Generic Type Parameters",
+        "category": "unknown",
+        "reason": "no_implementation",
+        "suggestions": [
+          "generic-type-parameters을 구현하는 함수/클래스/인터페이스에 @implements generic-type-parameters 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "documentation-naming",
+        "name": "Documentation Naming",
+        "category": "naming-conventions",
+        "reason": "no_implementation",
+        "suggestions": [
+          "documentation-naming을 구현하는 함수/클래스/인터페이스에 @implements documentation-naming 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "major-section-h2---main-sections",
+        "name": "Major Section (H2 - Main sections)",
+        "category": "unknown",
+        "reason": "no_implementation",
+        "suggestions": [
+          "major-section-h2---main-sections을 구현하는 함수/클래스/인터페이스에 @implements major-section-h2---main-sections 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "core-concepts",
+        "name": "Core Concepts",
+        "category": "unknown",
+        "reason": "no_implementation",
+        "suggestions": [
+          "core-concepts을 구현하는 함수/클래스/인터페이스에 @implements core-concepts 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "core-concepts--should-be-title-case",
+        "name": "core concepts                       # Should be Title Case",
+        "category": "unknown",
+        "reason": "no_implementation",
+        "suggestions": [
+          "core-concepts--should-be-title-case을 구현하는 함수/클래스/인터페이스에 @implements core-concepts--should-be-title-case 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      },
+      {
+        "term": "validation-rules",
+        "name": "Validation Rules",
+        "category": "unknown",
+        "reason": "no_implementation",
+        "suggestions": [
+          "validation-rules을 구현하는 함수/클래스/인터페이스에 @implements validation-rules 태그 추가",
+          "용어집 정의에 맞는 구체적인 구현 작성"
+        ]
+      }
+    ],
+    "partial": [],
+    "categories": {
+      "core-concepts": {
+        "total_terms": 12,
+        "implemented_terms": 2,
+        "missing_terms": [
+          "action-pipeline-system",
+          "store-integration-pattern",
+          "store-registry",
+          "handler-configuration",
+          "actionregister",
+          "storeprovider",
+          "actionprovider",
+          "store-hooks",
+          "cross-store-coordination",
+          "action-dispatcher",
+          "computed-store",
+          "pipeline-context"
+        ],
+        "implementation_rate": 17,
+        "priority_suggestions": [
+          "store-registry - core-concepts의 핵심 용어",
+          "actionregister - core-concepts의 핵심 용어",
+          "action-dispatcher - core-concepts의 핵심 용어"
+        ]
+      },
+      "architecture-terms": {
+        "total_terms": 6,
+        "implemented_terms": 0,
+        "missing_terms": [
+          "mvvm-pattern",
+          "view-layer",
+          "viewmodel-layer",
+          "model-layer",
+          "decoupled-architecture",
+          "unidirectional-data-flow"
+        ],
+        "implementation_rate": 0,
+        "priority_suggestions": [
+          "mvvm-pattern - architecture-terms의 핵심 용어",
+          "view-layer - architecture-terms의 핵심 용어",
+          "model-layer - architecture-terms의 핵심 용어"
+        ]
+      },
+      "api-terms": {
+        "total_terms": 0,
+        "implemented_terms": 1,
+        "missing_terms": [],
+        "implementation_rate": 0,
+        "priority_suggestions": []
+      },
+      "naming-conventions": {
+        "total_terms": 7,
+        "implemented_terms": 0,
+        "missing_terms": [
+          "class-naming",
+          "interface-naming",
+          "function-naming",
+          "constant-naming",
+          "file-naming",
+          "variable-naming",
+          "documentation-naming"
+        ],
+        "implementation_rate": 0,
+        "priority_suggestions": [
+          "class-naming - naming-conventions의 핵심 용어",
+          "interface-naming - naming-conventions의 핵심 용어",
+          "function-naming - naming-conventions의 핵심 용어"
+        ]
+      }
+    }
+  },
+  "codeToGlossary": {
+    "undefined": [],
+    "outdated": [],
+    "suggestions": []
+  },
+  "statistics": {
+    "totalGlossaryTerms": 40,
+    "totalMappedTerms": 3,
+    "implementationRate": 8,
+    "missingFromCode": 37,
+    "missingFromGlossary": 0,
+    "partialImplementations": 0
+  },
+  "categoryAnalysis": {
+    "core-concepts": {
+      "total_terms": 12,
+      "implemented_terms": 2,
+      "missing_terms": [
+        "action-pipeline-system",
+        "store-integration-pattern",
+        "store-registry",
+        "handler-configuration",
+        "actionregister",
+        "storeprovider",
+        "actionprovider",
+        "store-hooks",
+        "cross-store-coordination",
+        "action-dispatcher",
+        "computed-store",
+        "pipeline-context"
+      ],
+      "implementation_rate": 17,
+      "priority_suggestions": [
+        "store-registry - core-concepts의 핵심 용어",
+        "actionregister - core-concepts의 핵심 용어",
+        "action-dispatcher - core-concepts의 핵심 용어"
+      ]
+    },
+    "architecture-terms": {
+      "total_terms": 6,
+      "implemented_terms": 0,
+      "missing_terms": [
+        "mvvm-pattern",
+        "view-layer",
+        "viewmodel-layer",
+        "model-layer",
+        "decoupled-architecture",
+        "unidirectional-data-flow"
+      ],
+      "implementation_rate": 0,
+      "priority_suggestions": [
+        "mvvm-pattern - architecture-terms의 핵심 용어",
+        "view-layer - architecture-terms의 핵심 용어",
+        "model-layer - architecture-terms의 핵심 용어"
+      ]
+    },
+    "api-terms": {
+      "total_terms": 0,
+      "implemented_terms": 1,
+      "missing_terms": [],
+      "implementation_rate": 0,
+      "priority_suggestions": []
+    },
+    "naming-conventions": {
+      "total_terms": 7,
+      "implemented_terms": 0,
+      "missing_terms": [
+        "class-naming",
+        "interface-naming",
+        "function-naming",
+        "constant-naming",
+        "file-naming",
+        "variable-naming",
+        "documentation-naming"
+      ],
+      "implementation_rate": 0,
+      "priority_suggestions": [
+        "class-naming - naming-conventions의 핵심 용어",
+        "interface-naming - naming-conventions의 핵심 용어",
+        "function-naming - naming-conventions의 핵심 용어"
+      ]
+    }
+  },
+  "timestamp": "2025-08-01T06:07:56.851Z"
+}

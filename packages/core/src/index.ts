@@ -32,4 +32,6 @@ export {
   NoopLogger,
   createLogger,
   getLogLevelFromEnv,
+  getLoggerNameFromEnv,
+  getDebugFromEnv,
 } from './logger.js';

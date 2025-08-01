@@ -9,6 +9,11 @@
  * - 스로틀링: 지정된 간격으로만 실행을 허용
  * - 블로킹: 특정 조건에서 실행을 완전히 차단
  * - 통합 가드: 위 기능들을 조합하여 사용
+ * 
+ * @implements {ActionPatterns}
+ * @implements {GuardPresets}
+ * @memberof CoreConcepts
+ * @since 1.0.0
  */
 
 // 환경 설정

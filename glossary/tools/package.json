@@ -1,0 +1,26 @@
+{
+  "name": "context-action-glossary-tools",
+  "version": "1.0.0",
+  "description": "Tools for mapping glossary terms to code implementations",
+  "type": "module",
+  "scripts": {
+    "scan": "node glossary-scanner.js",
+    "generate": "node mapping-generator.js",
+    "validate": "node link-validator.js",
+    "update": "npm run scan && npm run generate",
+    "check": "npm run validate"
+  },
+  "dependencies": {
+    "@typescript-eslint/parser": "^6.0.0",
+    "glob": "^10.0.0",
+    "handlebars": "^4.7.8",
+    "gray-matter": "^4.0.3",
+    "typescript": "^5.3.0",
+    "chalk": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "Context-Action Framework Team",
+  "license": "MIT"
+}

@@ -37,6 +37,11 @@ interface ActionGuardOptions {
  * 통합 액션 가드 훅
  * 디바운싱, 스로틀링, 블로킹을 하나의 인터페이스로 관리합니다.
  * 
+ * @implements {ActionHandler}
+ * @implements {PipelineController}
+ * @memberof CoreConcepts
+ * @since 1.0.0
+ * 
  * @example
  * ```typescript
  * // 기본 디바운싱 모드
