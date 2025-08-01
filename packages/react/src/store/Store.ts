@@ -123,3 +123,91 @@ export class NumericStore extends Store<number> {
     this.setValue(0);
   };
 }
+
+/**
+ * Store factory function for easier creation
+ * @template T - The store value type
+ * @param name - Store identifier name
+ * @param initialValue - Initial value for the store
+ * @returns Store instance
+ * 
+ * @example
+ * ```typescript
+ * // Basic store creation
+ * const userStore = createStore('user', { id: '', name: '', email: '' });
+ * const countStore = createStore('count', 0);
+ * 
+ * // Using the stores
+ * userStore.setValue({ id: '1', name: 'John', email: 'john@example.com' });
+ * countStore.increment(); // if NumericStore
+ * ```
+ */
+export function createStore<T>(name: string, initialValue: T): Store<T> {
+  if (typeof initialValue === 'number') {
+    return new NumericStore(name, initialValue as any) as any;
+  }
+  return new Store<T>(name, initialValue);
+}
+
+/**
+ * Store configuration options for HOC patterns
+ */
+export interface StoreConfig<T = any> {
+  name: string;
+  initialValue: T;
+  registry?: import('./StoreRegistry').StoreRegistry;
+  autoRegister?: boolean;
+}
+
+/**
+ * Enhanced store with auto-registration capability
+ */
+export class ManagedStore<T> extends Store<T> {
+  private registry?: import('./StoreRegistry').StoreRegistry;
+  private autoRegister: boolean;
+
+  constructor(config: StoreConfig<T>) {
+    super(config.name, config.initialValue);
+    this.registry = config.registry;
+    this.autoRegister = config.autoRegister ?? true;
+    
+    if (this.autoRegister && this.registry) {
+      this.registry.register(this.name, this);
+    }
+  }
+
+  /**
+   * Dispose store and unregister from registry
+   */
+  dispose(): void {
+    if (this.registry) {
+      this.registry.unregister(this.name);
+    }
+    this.clearListeners();
+  }
+}
+
+/**
+ * Create a managed store with auto-registration
+ * @template T - The store value type
+ * @param config - Store configuration
+ * @returns ManagedStore instance
+ * 
+ * @example
+ * ```typescript
+ * const registry = new StoreRegistry();
+ * 
+ * // Auto-registered store
+ * const userStore = createManagedStore({
+ *   name: 'user',
+ *   initialValue: { id: '', name: '' },
+ *   registry,
+ *   autoRegister: true
+ * });
+ * 
+ * // The store is automatically available via registry.getStore('user')
+ * ```
+ */
+export function createManagedStore<T>(config: StoreConfig<T>): ManagedStore<T> {
+  return new ManagedStore<T>(config);
+}

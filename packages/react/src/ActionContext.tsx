@@ -1,5 +1,6 @@
 import React, { createContext, ReactNode, useContext, useRef, useEffect, useId, useMemo } from 'react';
-import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig, Logger, LogLevel, createLogger } from '@context-action/core';
+import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig } from '@context-action/core';
+import { Logger, LogLevel, createLogger  } from '@context-action/logger';
 
 /**
  * Configuration options for createActionContext

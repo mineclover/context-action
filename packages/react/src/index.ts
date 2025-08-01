@@ -33,6 +33,8 @@ export {
 	useActionDispatch,
 	useActionRegister,
 	createTypedActionProvider,
+	withActionProvider,
+	withStoreAndActionProvider,
 } from "./ActionProvider";
 
 export type {
@@ -45,6 +47,7 @@ export {
 	StoreProvider,
 	useStoreRegistry,
 	createTypedStoreProvider,
+	withStoreProvider,
 } from "./StoreProvider";
 
 export type {
@@ -57,12 +60,22 @@ export type {
 export {
 	Store,
 	NumericStore,
+	ManagedStore,
 	StoreRegistry,
 	EventBus,
 	ScopedEventBus,
 	StoreUtils,
-	createStore,
+	createBasicStore,
+	createManagedStore,
 	createComputedStore,
+} from "./store";
+
+// HOC patterns for stores
+export {
+	withStore,
+	withManagedStore,
+	withRegistryStores,
+	withStoreData,
 } from "./store";
 
 // React hooks for store management
@@ -119,6 +132,9 @@ export type {
 	IStoreRegistry,
 	EventHandler,
 	IEventBus,
+	
+	// Store configuration types
+	StoreConfig,
 	
 	// Hook configuration types
 	StoreSyncConfig,
