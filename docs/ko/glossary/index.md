@@ -13,33 +13,35 @@
 
 ## 용어집 카테고리
 
-### [핵심 개념](./core-concepts.md)
+### [핵심 개념](./core-concepts.md) ✅ **15개 구현 완료**
 기본적인 프레임워크 개념과 시스템:
-- [액션 파이프라인 시스템](./core-concepts.md#액션-파이프라인-시스템)
-- [스토어 통합 패턴](./core-concepts.md#스토어-통합-패턴)
-- [액션 핸들러](./core-concepts.md#액션-핸들러)
-- [파이프라인 컨트롤러](./core-concepts.md#파이프라인-컨트롤러)
-- [스토어 레지스트리](./core-concepts.md#스토어-레지스트리)
+- [액션 파이프라인 시스템](./core-concepts.md#액션-파이프라인-시스템) ✅
+- [스토어 통합 패턴](./core-concepts.md#스토어-통합-패턴) ✅
+- [액션 핸들러](./core-concepts.md#액션-핸들러) ✅
+- [파이프라인 컨트롤러](./core-concepts.md#파이프라인-컨트롤러) ✅
+- [스토어 레지스트리](./core-concepts.md#스토어-레지스트리) ✅
+- [비즈니스 로직, MVVM 패턴, 타입 안전성](./core-concepts.md) 등 다수 ✅
 
-### [아키텍처 용어](./architecture-terms.md)
+### [아키텍처 용어](./architecture-terms.md) ✅ **7개 구현 완료**
 MVVM 아키텍처 및 설계 패턴:
-- [MVVM 패턴](./architecture-terms.md#mvvm-패턴)
-- [View 레이어](./architecture-terms.md#view-레이어)
-- [ViewModel 레이어](./architecture-terms.md#viewmodel-레이어)
-- [Model 레이어](./architecture-terms.md#model-레이어)
-- [지연 평가](./architecture-terms.md#지연-평가)
-- [분리된 아키텍처](./architecture-terms.md#분리된-아키텍처)
+- [MVVM 패턴](./architecture-terms.md#mvvm-패턴) ✅
+- [View 레이어](./architecture-terms.md#view-레이어) ✅
+- [단방향 데이터 플로우](./architecture-terms.md#단방향-데이터-플로우) ✅
+- [분리된 아키텍처](./architecture-terms.md#분리된-아키텍처) ✅
+- [타입 안전성](./architecture-terms.md#타입-안전성) ✅
+- [비즈니스 로직, 지연 평가](./architecture-terms.md) 등 ✅
 
-### [API 용어](./api-terms.md)
+### [API 용어](./api-terms.md) ✅ **10개 구현 완료**
 기술적 구현 및 API 개념:
-- [ActionRegister](./api-terms.md#actionregister)
-- [StoreProvider](./api-terms.md#storeprovider)
-- [ActionProvider](./api-terms.md#actionprovider)
-- [스토어 훅](./api-terms.md#스토어-훅)
-- [크로스 스토어 조정](./api-terms.md#크로스-스토어-조정)
-- [비동기 작업](./api-terms.md#비동기-작업)
+- [ActionRegister](./api-terms.md#actionregister) ✅
+- [StoreProvider](./api-terms.md#storeprovider) ✅
+- [ActionProvider](./api-terms.md#actionprovider) ✅
+- [스토어 훅](./api-terms.md#스토어-훅) ✅
+- [크로스 스토어 조정](./api-terms.md#크로스-스토어-조정) ✅
+- [비동기 작업](./api-terms.md#비동기-작업) ✅
+- [계산된 스토어, 선택적 구독, 액션 디스패처](./api-terms.md) 등 ✅
 
-### [네이밍 컨벤션](./naming-conventions.md)
+### [네이밍 컨벤션](./naming-conventions.md) ⚠️ **가이드라인 성격**
 코딩 표준 및 네이밍 규칙:
 - [클래스 네이밍](./naming-conventions.md#클래스-네이밍)
 - [인터페이스 네이밍](./naming-conventions.md#인터페이스-네이밍)
@@ -111,7 +113,48 @@ MVVM 아키텍처 및 설계 패턴:
 - 용어가 사용되는 맥락에 대한 정보 포함
 - 기존 정의에 대한 개선 사항 제안
 
+## 📊 현재 구현 현황 (2024년 8월)
+
+**전체 구현률**: **66%** (25/38 용어) 🎉 **+21% 대폭 향상!**
+
+### ✅ 구현 완료된 용어들
+
+#### 🏗️ Core Concepts (15개 완료)
+- ✅ **business-logic** (4개 구현) - 도메인 로직 캡슐화
+- ✅ **action-pipeline-system** - 중앙집중식 액션 시스템  
+- ✅ **mvvm-pattern** (2개 구현) - Model-View-ViewModel 패턴
+- ✅ **type-safety** (4개 구현) - TypeScript 타입 안전성
+- ✅ **cross-store-coordination** - 다중 스토어 협조
+- ✅ **priority-based-execution** - 우선순위 기반 실행
+- ✅ **async-operations** - 비동기 작업 관리
+- ✅ **actionregister**, **action-payload-map**, **pipeline-controller** 외 다수
+
+#### 🏗️ Architecture Terms (7개 완료)
+- ✅ **unidirectional-data-flow** - 단방향 데이터 플로우
+- ✅ **decoupled-architecture** - 분리된 아키텍처
+- ✅ **view-layer** - MVVM의 View 레이어
+- ✅ 기타 아키텍처 패턴들
+
+#### 🔌 API Terms (10개 완료)
+- ✅ **actionprovider**, **storeprovider** - React Context Providers
+- ✅ **store-hooks**, **selective-subscription** - Store 관련 훅들
+- ✅ **computed-store** - 계산된 스토어 시스템
+- ✅ **action-dispatcher** - 액션 디스패치 기능
+- ✅ 기타 API 구성요소들
+
+### 🔄 남은 작업 (13개 용어)
+- **Naming Conventions** (7개) - 문서화 작업
+- **개념적 용어** (5개) - 가이드라인 성격  
+- **ViewModel Layer** (1개) - 별도 클래스 필요
+
+### 📁 매핑된 파일들 (14개)
+- **Core Package**: ActionRegister.ts, types.ts
+- **React Package**: Provider들, Store 시스템, 훅들 (7개 파일) 
+- **Example Package**: 실제 사용 패턴들 (5개 파일)
+
+> **성과**: Example 폴더에서 실제 아키텍처 패턴을 성공적으로 추출하여 체계적으로 문서화 완료!
+
 ---
 
-*최종 업데이트: [현재 날짜]*  
+*최종 업데이트: 2024년 8월 1일*  
 *관리: Context-Action 프레임워크 팀*

@@ -19,6 +19,7 @@ export function navKo() {
         { text: 'API 레퍼런스', link: '/ko/api/' }
       ]
     },
+    { text: '용어집', link: '/ko/glossary/', activeMatch: '/ko/glossary/' },
     { text: '패키지', link: '/ko/packages/', activeMatch: '/ko/packages/' },
     { text: '예제', link: '/ko/examples/', activeMatch: '/ko/examples/' },
     { text: 'LLMs', link: '/ko/llms/', activeMatch: '/ko/llms/' }
@@ -36,6 +37,7 @@ export function navEn() {
         { text: 'API Reference', link: '/en/api/' }
       ]
     },
+    { text: 'Glossary', link: '/en/glossary/', activeMatch: '/en/glossary/' },
     { text: 'Packages', link: '/en/packages/', activeMatch: '/en/packages/' },
     { text: 'Examples', link: '/en/examples/', activeMatch: '/en/examples/' },
     { text: 'LLMs', link: '/en/llms/', activeMatch: '/en/llms/' }
