@@ -17,9 +17,11 @@ import {
   ActionRegisterEvents,
   EventEmitter,
   EventHandler,
+  ExecutionMode,
 } from './types.js';
-import type { Logger } from '@context-action/logger';
-import { createLogger, getLoggerNameFromEnv, getDebugFromEnv } from '@context-action/logger';
+import { Logger, createLogger, getLoggerNameFromEnv, getDebugFromEnv } from '@context-action/logger';
+import { executeSequential, executeParallel, executeRace } from './execution-modes.js';
+import { ActionGuard } from './action-guard.js';
 
 /**
  * Simple event emitter implementation for ActionRegister events
@@ -110,6 +112,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   private readonly logger: Logger;
   private readonly events = new SimpleEventEmitter<ActionRegisterEvents<T>>();
   private readonly config: Required<ActionRegisterConfig>;
+  private readonly actionGuard: ActionGuard;
+  private executionMode: ExecutionMode = 'sequential';
+  private actionExecutionModes = new Map<keyof T, ExecutionMode>();
 
   constructor(config: ActionRegisterConfig = {}) {
     // Set defaults for configuration with .env support
@@ -118,9 +123,12 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       logLevel: config.logLevel ?? 3, // ERROR level as default
       name: config.name || getLoggerNameFromEnv(),
       debug: config.debug ?? getDebugFromEnv(),
-    };
+      defaultExecutionMode: config.defaultExecutionMode ?? 'sequential',
+    } as Required<ActionRegisterConfig>;
 
     this.logger = this.config.logger;
+    this.actionGuard = new ActionGuard(this.logger);
+    this.executionMode = this.config.defaultExecutionMode;
     
     this.logger.trace(`${this.config.name} constructor called`, { config });
 
@@ -128,6 +136,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       this.logger.info(`${this.config.name} initialized`, {
         logLevel: this.config.logLevel,
         debug: this.config.debug,
+        defaultExecutionMode: this.executionMode,
       });
     }
     
@@ -186,7 +195,11 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         blocking: config.blocking ?? false,
         once: config.once ?? false,
         condition: config.condition || (() => true),
-      },
+        debounce: config.debounce,
+        throttle: config.throttle,
+        validation: config.validation,
+        middleware: config.middleware ?? false,
+      } as Required<HandlerConfig>,
       id: handlerId,
     };
     
@@ -288,6 +301,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       handlerIds: pipeline.map(reg => reg.id)
     });
 
+    // Determine execution mode for this action
+    const currentExecutionMode = this.actionExecutionModes.get(action) || this.executionMode;
+
     // Create pipeline execution context
     const context: PipelineContext<T[K]> = {
       action: String(action),
@@ -296,6 +312,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       aborted: false,
       abortReason: undefined,
       currentIndex: 0,
+      jumpToPriority: undefined,
+      executionMode: currentExecutionMode,
     };
 
     try {
@@ -357,35 +375,13 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     this.logger.trace(`Starting pipeline execution`, {
       action: context.action,
       handlerCount: context.handlers.length,
+      executionMode: context.executionMode,
       payload: context.payload
     });
-    
-    for (let i = 0; i < context.handlers.length; i++) {
-      if (context.aborted) {
-        this.logger.trace(`Pipeline execution aborted at handler ${i}`, { reason: context.abortReason });
-        break;
-      }
 
-      const registration = context.handlers[i];
-      context.currentIndex = i;
-      
-      this.logger.trace(`Executing handler ${i + 1}/${context.handlers.length}`, {
-        handlerId: registration.id,
-        priority: registration.config.priority,
-        blocking: registration.config.blocking,
-        once: registration.config.once
-      });
-
-      // Check condition if provided
-      if (registration.config.condition && !registration.config.condition()) {
-        this.logger.debug(`Skipping handler '${registration.id}' - condition not met`);
-        this.logger.trace(`Handler condition returned false`);
-        continue;
-      }
-
-      // Create controller for this handler
-      // @implements pipeline-controller
-      const controller: PipelineController<T[K]> = {
+    // Create controller factory for handlers
+    const createController = (registration: HandlerRegistration<T[K]>, _index: number): PipelineController<T[K]> => {
+      return {
         next: () => {
           // Next is called automatically after handler completion
         },
@@ -403,61 +399,54 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
           this.logger.trace(`Payload change`, { oldPayload, newPayload: context.payload });
         },
         getPayload: () => context.payload,
+        jumpToPriority: (priority: number) => {
+          this.logger.trace(`Handler '${registration.id}' jumping to priority ${priority}`);
+          context.jumpToPriority = priority;
+        },
       };
+    };
 
-      try {
-        this.logger.trace(`Calling handler '${registration.id}'`);
-        
-        // Execute handler
-        const result = registration.handler(context.payload, controller);
-        
-        this.logger.trace(`Handler '${registration.id}' returned`, { 
-          isPromise: result instanceof Promise,
-          blocking: registration.config.blocking
-        });
-        
-        // Wait for async handlers if they're blocking
-        if (registration.config.blocking && result instanceof Promise) {
-          this.logger.trace(`Waiting for blocking handler '${registration.id}' to complete`);
-          await result;
-          this.logger.trace(`Blocking handler '${registration.id}' completed`);
-        }
-
-        // Remove one-time handlers after execution
-        if (registration.config.once) {
-          this.logger.trace(`Removing one-time handler '${registration.id}'`);
-          const pipeline = this.pipelines.get(context.action as keyof T);
-          if (pipeline) {
-            const index = pipeline.findIndex(reg => reg.id === registration.id);
-            if (index !== -1) {
-              pipeline.splice(index, 1);
-              this.logger.debug(`Removed one-time handler '${registration.id}'`);
-              this.logger.trace(`Pipeline now has ${pipeline.length} handlers`);
-            }
-          }
-        }
-        
-        this.logger.trace(`Handler '${registration.id}' completed successfully`);
-
-      } catch (error: any) {
-        this.logger.error(`Handler '${registration.id}' threw an error`, error);
-        this.logger.trace(`Handler error details`, {
-          handlerId: registration.id,
-          blocking: registration.config.blocking,
-          error: error.message || error
-        });
-        
-        // For blocking handlers, propagate the error
-        if (registration.config.blocking) {
-          this.logger.trace(`Propagating error from blocking handler '${registration.id}'`);
-          throw error;
-        }
-        
-        // For non-blocking handlers, continue execution
-        this.logger.trace(`Continuing execution after non-blocking handler error`);
-        continue;
-      }
+    // Execute based on execution mode
+    switch (context.executionMode) {
+      case 'sequential':
+        await executeSequential(context, createController, this.logger);
+        break;
+      case 'parallel':
+        await executeParallel(context, createController, this.logger);
+        break;
+      case 'race':
+        await executeRace(context, createController, this.logger);
+        break;
+      default:
+        throw new Error(`Unknown execution mode: ${context.executionMode}`);
     }
+
+    // Clean up one-time handlers after execution
+    this.cleanupOneTimeHandlers(context.action as keyof T, context.handlers);
+  }
+
+  /**
+   * Clean up one-time handlers after pipeline execution
+   * @internal
+   */
+  private cleanupOneTimeHandlers<K extends keyof T>(action: K, executedHandlers: HandlerRegistration<T[K]>[]): void {
+    const pipeline = this.pipelines.get(action);
+    if (!pipeline) return;
+
+    const oneTimeHandlers = executedHandlers.filter(reg => reg.config.once);
+    if (oneTimeHandlers.length === 0) return;
+
+    this.logger.trace(`Cleaning up ${oneTimeHandlers.length} one-time handlers`);
+
+    oneTimeHandlers.forEach(registration => {
+      const index = pipeline.findIndex(reg => reg.id === registration.id);
+      if (index !== -1) {
+        pipeline.splice(index, 1);
+        this.logger.debug(`Removed one-time handler '${registration.id}'`);
+      }
+    });
+
+    this.logger.trace(`Pipeline now has ${pipeline.length} handlers`);
   }
 
   /**

@@ -49,6 +49,9 @@ export interface PipelineController<T = any> {
   
   /** Get the current payload */
   getPayload(): T;
+  
+  /** Jump to a specific priority level in the pipeline */
+  jumpToPriority(priority: number): void;
 }
 
 /**
@@ -79,6 +82,18 @@ export interface HandlerConfig {
   
   /** Condition function to determine if handler should run */
   condition?: () => boolean;
+  
+  /** Debounce delay in milliseconds */
+  debounce?: number;
+  
+  /** Throttle delay in milliseconds */
+  throttle?: number;
+  
+  /** Validation function that must return true for handler to execute */
+  validation?: (payload: any) => boolean;
+  
+  /** Mark this handler as middleware */
+  middleware?: boolean;
 }
 
 /**
@@ -92,6 +107,11 @@ export interface HandlerRegistration<T = any> {
 }
 
 /**
+ * Execution modes for action pipeline
+ */
+export type ExecutionMode = 'sequential' | 'parallel' | 'race';
+
+/**
  * @implements pipeline-context
  * @memberof api-terms
  * @internal
@@ -103,6 +123,8 @@ export interface PipelineContext<T = any> {
   aborted: boolean;
   abortReason?: string;
   currentIndex: number;
+  jumpToPriority?: number;
+  executionMode: ExecutionMode;
 }
 
 /**
@@ -120,6 +142,9 @@ export interface ActionRegisterConfig {
   
   /** Whether to enable debug mode with additional logging */
   debug?: boolean;
+  
+  /** Default execution mode for actions. Defaults to 'sequential' */
+  defaultExecutionMode?: ExecutionMode;
 }
 
 /**

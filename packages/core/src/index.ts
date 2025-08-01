@@ -21,6 +21,7 @@ export type {
   ActionRegisterEvents,
   EventHandler,
   EventEmitter,
+  ExecutionMode,
 } from './types.js';
 
 // Note: Logger utilities are now available from @context-action/logger package
