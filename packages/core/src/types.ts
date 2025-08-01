@@ -7,10 +7,11 @@ import type { Logger, LogLevel } from '@context-action/logger';
 
 /**
  * Base interface for defining action payload mappings
- * 
- * @implements {ActionPayloadMap}
- * @memberof ApiTerms
+ * @implements action-payload-map
+ * @memberof core-concepts
  * @since 1.0.0
+ * 
+ * Maps action names to their corresponding payload types for type-safe dispatch
  * 
  * @example
  * ```typescript
@@ -28,10 +29,11 @@ export interface ActionPayloadMap {
 
 /**
  * Controller object provided to action handlers for pipeline management
- * 
- * @implements {PipelineController}
+ * @implements pipeline-controller
  * @memberof core-concepts
  * @since 1.0.0
+ * 
+ * Provides methods for controlling pipeline flow and payload modification
  * 
  * @template T - The type of the payload being processed
  */
@@ -50,11 +52,8 @@ export interface PipelineController<T = any> {
 }
 
 /**
- * Action handler function that processes actions in the pipeline
- * @template T - The type of the payload
- * @param payload - The data passed to the handler
- * @param controller - Pipeline controller for flow management
- * @returns void or Promise<void> for async handlers
+ * @implements action-handler
+ * @memberof core-concepts
  */
 export type ActionHandler<T = any> = (
   payload: T,
@@ -62,7 +61,8 @@ export type ActionHandler<T = any> = (
 ) => void | Promise<void>;
 
 /**
- * Configuration options for action handlers
+ * @implements handler-configuration
+ * @memberof core-concepts
  */
 export interface HandlerConfig {
   /** Priority level (higher numbers execute first). Default: 0 */
@@ -92,7 +92,8 @@ export interface HandlerRegistration<T = any> {
 }
 
 /**
- * Pipeline execution context
+ * @implements pipeline-context
+ * @memberof api-terms
  * @internal
  */
 export interface PipelineContext<T = any> {
@@ -127,7 +128,8 @@ export interface ActionRegisterConfig {
 export type UnregisterFunction = () => void;
 
 /**
- * Action dispatch overloads for type safety
+ * @implements action-dispatcher
+ * @memberof api-terms
  */
 export interface ActionDispatcher<T extends ActionPayloadMap> {
   /** Dispatch an action without payload */

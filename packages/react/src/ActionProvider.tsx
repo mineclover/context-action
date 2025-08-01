@@ -28,9 +28,9 @@ export interface ActionProviderProps {
 }
 
 /**
- * ActionProvider - provides centralized action dispatch to child components
- * 
- * @example
+ * @implements actionprovider
+ * @memberof api-terms
+ */
  * ```typescript
  * interface AppActions extends ActionPayloadMap {
  *   updateUser: { id: string; name: string };
@@ -87,6 +87,9 @@ function useActionContext<T extends ActionPayloadMap = ActionPayloadMap>(): Acti
 
 /**
  * Hook to get action dispatch function
+ * @implements action-dispatcher
+ * @memberof api-terms
+ * 
  * Following ARCHITECTURE.md pattern for component usage
  * 
  * @example

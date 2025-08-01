@@ -70,6 +70,11 @@ class SimpleEventEmitter<T extends Record<string, any>> implements EventEmitter<
 }
 
 /**
+ * Central action registration and dispatch system
+ * @implements action-pipeline-system
+ * @implements actionregister  
+ * @memberof core-concepts
+ * 
  * Core action pipeline management system with type-safe action dispatch
  * @template T - Action payload map defining available actions and their payload types
  * 
@@ -130,6 +135,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   }
 
   /**
+   * Register action handler with pipeline
+   * @implements action-handler
+   * 
    * Register a handler for an action in the pipeline
    * @param action - The action name to handle
    * @param handler - The handler function to execute
@@ -246,6 +254,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   }
 
   /**
+   * Dispatch action through pipeline
+   * @implements action-dispatcher
+   * 
    * Dispatch an action through the pipeline
    * Overloaded to provide type safety for actions with and without payloads
    */
@@ -373,6 +384,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       }
 
       // Create controller for this handler
+      // @implements pipeline-controller
       const controller: PipelineController<T[K]> = {
         next: () => {
           // Next is called automatically after handler completion

@@ -27,10 +27,9 @@ export interface StoreProviderProps {
 }
 
 /**
- * StoreProvider - provides centralized store registry to child components
- * Following ARCHITECTURE.md pattern for Model layer access
- * 
- * @example
+ * @implements storeprovider
+ * @memberof api-terms
+ */
  * ```typescript
  * function App() {
  *   return (

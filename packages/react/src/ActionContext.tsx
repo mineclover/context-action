@@ -39,6 +39,9 @@ export interface ActionContextReturn<T extends ActionPayloadMap = ActionPayloadM
 
 /**
  * Create a React Context for sharing ActionRegister instance across components
+ * @implements view-layer
+ * @memberof architecture-terms
+ * 
  * @template T - The action payload map type
  * @param config 로거 설정 (선택사항)
  * @returns Object containing Provider component and hooks for action management
