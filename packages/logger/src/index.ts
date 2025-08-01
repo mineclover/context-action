@@ -39,11 +39,30 @@ function getEnvVar(name: string, vitePrefix: string = 'VITE_'): string | undefin
 
 /**
  * Simple console-based logger implementation
+ * @implements logger-implementation
+ * @implements console-logger
+ * @memberof core-concepts
+ * @since 0.0.1
  * 
  * Provides configurable logging with level filtering for debugging and monitoring
- * action pipeline execution and store operations
+ * action pipeline execution and store operations. Uses browser console methods
+ * with proper level filtering and formatting.
  * 
- * @since 0.0.1
+ * @example
+ * ```typescript
+ * // Create logger with specific level
+ * const logger = new ConsoleLogger(LogLevel.DEBUG);
+ * 
+ * // Use logger methods
+ * logger.trace('Execution step', { step: 1, data: payload });
+ * logger.debug('Debug info', { state: 'processing' });
+ * logger.info('Operation complete');
+ * logger.warn('Performance issue detected');
+ * logger.error('Critical error', error);
+ * 
+ * // Change level at runtime
+ * logger.setLevel(LogLevel.WARN);
+ * ```
  */
 export class ConsoleLogger implements Logger {
   constructor(private level: LogLevel = LogLevel.ERROR) {}

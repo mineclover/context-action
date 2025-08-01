@@ -178,3 +178,159 @@ These conventions ensure consistency across all framework components, making cod
 5. **Future-Proofing**: Names should accommodate framework evolution
 
 **Related Terms**: [Code Quality](#code-quality), [Framework Consistency](#framework-consistency)
+
+---
+
+## Logger System Naming
+
+**Convention**: 로깅 시스템을 위한 일관된 명명 규칙
+
+**Class Patterns**:
+- **Logger Implementations**: `ConsoleLogger`, `NoopLogger`, `FileLogger`
+- **Logger Factory**: `createLogger(level?: LogLevel)`
+- **Environment Functions**: `getLogLevelFromEnv()`, `getDebugFromEnv()`, `getLoggerNameFromEnv()`
+
+**Log Level Naming**:
+- **Enum**: `LogLevel.TRACE`, `LogLevel.DEBUG`, `LogLevel.INFO`, `LogLevel.WARN`, `LogLevel.ERROR`, `LogLevel.NONE`
+- **Environment Variables**: `CONTEXT_ACTION_LOG_LEVEL`, `CONTEXT_ACTION_DEBUG`, `CONTEXT_ACTION_TRACE`
+
+**Related Terms**: [Logger Interface](./core-concepts.md#logger-interface), [Environment Configuration](#environment-configuration)
+
+---
+
+## Store System Naming
+
+**Convention**: Store와 상태 관리를 위한 명명 규칙
+
+**Store Class Patterns**:
+- **Base Store**: `Store<T>`, `ManagedStore<T>`
+- **Store Registry**: `StoreRegistry`, `RegistryUtils`
+- **Store Factory**: `createStore()`, `createManagedStore()`, `createBasicStore()`
+
+**Hook Naming Patterns**:
+- **Value Access**: `useStoreValue()`, `useStoreValues()`
+- **Store Access**: `useStore()`, `useLocalStore()`, `useRegistryStore()`
+- **Specialized**: `usePersistedStore()`, `useComputedStore()`, `useDynamicStore()`
+
+**Interface Naming**:
+- **Core Interfaces**: `IStore<T>`, `IStoreRegistry`, `Snapshot<T>`
+- **Configuration**: `StoreConfig`, `DynamicStoreOptions`, `StoreSyncConfig`
+- **Type Definitions**: `Listener`, `Unsubscribe`, `Subscribe`
+
+**Related Terms**: [Store Integration Pattern](./architecture-terms.md#store-integration-pattern), [Store Hooks](./api-terms.md#store-hooks)
+
+---
+
+## React Integration Naming
+
+**Convention**: React 통합을 위한 컴포넌트 및 Hook 명명
+
+**Provider Patterns**:
+- **Context Providers**: `ActionProvider`, `StoreProvider`
+- **HOC Functions**: `withActionProvider()`, `withStoreProvider()`, `withStoreAndActionProvider()`
+- **Typed Creators**: `createTypedActionProvider()`, `createTypedStoreProvider()`
+
+**Hook Patterns**:
+- **Action Hooks**: `useActionDispatch()`, `useActionRegister()`
+- **Store Hooks**: `useStoreValue()`, `useStoreActions()`, `useRegistry()`
+- **Context Hooks**: `useActionContext()`, `useStoreContext()`
+
+**Context Type Naming**:
+- **Action Context**: `ActionContextType`, `ActionProviderProps`
+- **Store Context**: `StoreContextType`, `StoreProviderProps`
+- **Return Types**: `ActionContextReturn`, `StoreContextReturn`
+
+**Related Terms**: [ActionProvider](./api-terms.md#actionprovider), [StoreProvider](./api-terms.md#storeprovider), [React Hooks](./api-terms.md#store-hooks)
+
+---
+
+## Jotai Integration Naming
+
+**Convention**: Jotai 통합을 위한 명명 규칙
+
+**Context Creation**:
+- **Factory Function**: `createAtomContext<T>(initialValue: T)`
+- **Provider Component**: `Provider`
+- **Context Type**: `AtomContextType<T>`
+
+**Hook Patterns**:
+- **State Hooks**: `useAtomState()`, `useAtomReadOnly()`, `useAtomSetter()`
+- **Derived Hooks**: `useAtomSelect()`, `useAtomContext()`
+- **Type Definitions**: `AtomType<T>`, `AtomContextConfig`
+
+**Configuration Naming**:
+- **Config Interface**: `AtomContextConfig`
+- **Config Properties**: `logger`, `logLevel`
+
+**Related Terms**: [Jotai Integration](./api-terms.md#jotai-integration), [Context Integration](#context-integration)
+
+---
+
+## Core Framework Naming
+
+**Convention**: 프레임워크 핵심 구성요소의 명명 규칙
+
+**Action System**:
+- **Core Class**: `ActionRegister<T extends ActionPayloadMap>`
+- **Handler Types**: `ActionHandler<T>`, `HandlerRegistration<T>`
+- **Dispatcher Type**: `ActionDispatcher<T>`
+- **Configuration**: `ActionRegisterConfig`, `HandlerConfig`
+
+**Pipeline Components**:
+- **Controllers**: `PipelineController<T>`, `PipelineContext<T>`
+- **Execution Modes**: `ExecutionMode` ('sequential' | 'parallel' | 'race')
+- **Guard System**: `ActionGuard`, `GuardState`
+
+**Event System**:
+- **Event Emitter**: `SimpleEventEmitter<T>`, `EventEmitter<T>`
+- **Event Types**: `ActionRegisterEvents<T>`, `EventHandler<T>`
+- **Event Names**: `'action:start'`, `'action:complete'`, `'action:abort'`, `'action:error'`
+
+**Related Terms**: [ActionRegister](./core-concepts.md#actionregister), [Action Pipeline System](./core-concepts.md#action-pipeline-system)
+
+---
+
+## Error and Utility Naming
+
+**Convention**: 에러 처리 및 유틸리티 함수 명명
+
+**Utility Functions**:
+- **Environment Access**: `getEnvVar()`, `getLogLevelFromEnv()`, `getDebugFromEnv()`
+- **Logger Utilities**: `createLogger()`, `getLoggerNameFromEnv()`
+- **Store Utilities**: `StoreUtils`, `RegistryUtils`
+
+**Error Handling**:
+- **Error Types**: `ActionError`, `PipelineError`, `StoreError`
+- **Error Methods**: `abort()`, `handleError()`, `rollback()`
+- **Validation Functions**: `validate()`, `isValid()`, `checkCondition()`
+
+**Performance and Metrics**:
+- **Metrics Types**: `ActionMetrics`, `PerformanceMetrics`
+- **Monitoring Functions**: `trackExecution()`, `measurePerformance()`
+- **Optimization Utilities**: `debounce()`, `throttle()`, `memoize()`
+
+**Related Terms**: [Action Guard](./core-concepts.md#action-guard), [Performance Optimization](./api-terms.md#performance-optimization)
+
+---
+
+## Environment Configuration
+
+**Convention**: 환경 변수 및 설정을 위한 명명 규칙
+
+**Environment Variable Patterns**:
+- **Framework Prefix**: `CONTEXT_ACTION_*`
+- **Log Configuration**: `CONTEXT_ACTION_LOG_LEVEL`, `CONTEXT_ACTION_DEBUG`, `CONTEXT_ACTION_TRACE`
+- **Logger Settings**: `CONTEXT_ACTION_LOGGER_NAME`
+- **Vite Environment**: `VITE_CONTEXT_ACTION_*` (브라우저 환경)
+
+**Configuration Object Naming**:
+- **Logger Config**: `LoggerConfig`, `ConsoleLoggerConfig`
+- **Action Config**: `ActionRegisterConfig`
+- **Store Config**: `StoreConfig`, `StoreRegistryConfig`
+
+**Environment Detection**:
+- **Node.js**: `process.env.*`
+- **Vite/Browser**: `import.meta.env.VITE_*`
+- **Cross-Platform**: `getEnvVar()` helper function
+
+**Related Terms**: [Logger System Naming](#logger-system-naming), [Cross-Platform Support](#cross-platform-support)

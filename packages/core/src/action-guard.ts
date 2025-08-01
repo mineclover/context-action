@@ -18,7 +18,37 @@ interface GuardState {
 
 /**
  * Action Guard system for managing action execution timing
+ * @implements action-guard
+ * @implements performance-optimization  
+ * @implements user-experience-optimization
+ * @memberof core-concepts
  * @internal
+ * @since 1.0.0
+ * 
+ * Provides debouncing, throttling, and blocking mechanisms for action execution
+ * to optimize performance and enhance user experience. Manages timing state
+ * per action to prevent unnecessary or excessive action invocations.
+ * 
+ * Key Features:
+ * - Debouncing: Delay execution until activity stops
+ * - Throttling: Limit execution frequency to intervals
+ * - Per-action state management with automatic cleanup
+ * - Memory leak prevention through proper timer management
+ * 
+ * @example
+ * ```typescript
+ * const guard = new ActionGuard(logger);
+ * 
+ * // Debounce search input (wait 300ms after typing stops)
+ * if (await guard.debounce('search', 300)) {
+ *   executeSearch();  
+ * }
+ * 
+ * // Throttle scroll handler (max once per 100ms)
+ * if (guard.throttle('scroll', 100)) {
+ *   updateScrollPosition();
+ * }
+ * ```
  */
 export class ActionGuard {
   private guards = new Map<string, GuardState>();
