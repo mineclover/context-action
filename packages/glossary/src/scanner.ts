@@ -21,6 +21,7 @@ export class GlossaryScanner {
   private parser: GlossaryParser;
   private options: GlossaryParserOptions;
   private mappings: GlossaryMappings;
+  private globalTagStats: Record<string, number> = {};
 
   constructor(options: GlossaryParserOptions) {
     this.parser = new GlossaryParser();
@@ -43,7 +44,8 @@ export class GlossaryScanner {
         unmappedTerms: 0,
         totalFiles: 0,
         taggedFiles: 0,
-        lastUpdate: new Date().toISOString()
+        lastUpdate: new Date().toISOString(),
+        tagStatistics: {}
       }
     };
   }
@@ -106,8 +108,19 @@ export class GlossaryScanner {
       const content = fs.readFileSync(filePath, 'utf8');
       const relativePath = path.relative(this.options.rootDir, filePath);
       
-      // Parse the file
-      const parsedComments = this.parser.parseFile(content, this.options.debug);
+      // Parse the file with tag statistics collection
+      const parseResult = this.parser.parseFile(
+        content, 
+        this.options.debug || false,
+        this.options.collectTagStats !== false // Default to true unless explicitly disabled
+      );
+      
+      const parsedComments = parseResult.comments;
+      
+      // Merge tag statistics
+      for (const [tag, count] of Object.entries(parseResult.tagStats)) {
+        this.globalTagStats[tag] = (this.globalTagStats[tag] || 0) + count;
+      }
       
       
       // Extract declarations (simplified - in real implementation would use AST)
@@ -381,6 +394,7 @@ export class GlossaryScanner {
   private calculateStatistics(): void {
     this.mappings.statistics.mappedTerms = Object.keys(this.mappings.terms).length;
     this.mappings.statistics.lastUpdate = new Date().toISOString();
+    this.mappings.statistics.tagStatistics = this.globalTagStats;
   }
 
   /**
@@ -394,5 +408,16 @@ export class GlossaryScanner {
     console.log(`Files with mappings: ${stats.taggedFiles}`);
     console.log(`Terms mapped: ${stats.mappedTerms}`);
     console.log(`Categories: ${Object.keys(this.mappings.categories).length}`);
+    
+    // Print JSDoc tag statistics if available
+    if (stats.tagStatistics && Object.keys(stats.tagStatistics).length > 0) {
+      console.log('\n🏷️ JSDoc Tag Statistics:');
+      const sortedStats = Object.entries(stats.tagStatistics)
+        .sort(([,a], [,b]) => b - a);
+      
+      for (const [tag, count] of sortedStats) {
+        console.log(`   @${tag}: ${count} occurrences`);
+      }
+    }
   }
 }

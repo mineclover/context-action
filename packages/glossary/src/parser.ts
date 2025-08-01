@@ -225,9 +225,13 @@ export class GlossaryParser {
    * Parse all comments in a source file
    * @param {string} source - Source code content
    * @param {boolean} debugMode - Enable debug output for all JSDoc tags
-   * @returns {ParsedComment[]} Array of parsed comments
+   * @param {boolean} collectStats - Collect tag statistics even without debug mode
+   * @returns {object} Object containing parsed comments and tag statistics
    */
-  parseFile(source: string, debugMode: boolean = false): ParsedComment[] {
+  parseFile(source: string, debugMode: boolean = false, collectStats: boolean = false): {
+    comments: ParsedComment[];
+    tagStats: Record<string, number>;
+  } {
     const comments = this.extractComments(source);
     const parsed: ParsedComment[] = [];
     const allTagStats: Record<string, number> = {};
@@ -244,8 +248,10 @@ export class GlossaryParser {
         if (debugMode) {
           console.log(`\n--- Comment ${i + 1} ---`);
           this.debugTags(result.source);
-          
-          // Collect tag statistics
+        }
+        
+        // Always collect tag statistics when requested
+        if (debugMode || collectStats) {
           for (const tag of result.source.tags) {
             allTagStats[tag.tag] = (allTagStats[tag.tag] || 0) + 1;
           }
@@ -267,6 +273,9 @@ export class GlossaryParser {
       }
     }
 
-    return parsed;
+    return {
+      comments: parsed,
+      tagStats: allTagStats
+    };
   }
 }

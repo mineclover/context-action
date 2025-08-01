@@ -38,7 +38,7 @@ export { StoreRegistry } from './StoreRegistry';
 export { EventBus, ScopedEventBus } from './EventBus';
 
 // === UTILITIES ===
-export { StoreUtils, createComputedStore } from './utils';
+export { StoreUtils } from './utils';
 
 // === STORE FACTORIES ===
 export { 
@@ -73,8 +73,6 @@ export {
   useRegistryStore,
   // Specialized hooks
   useLocalStore,
-  useComputedStore,
-  useComputedValue,
   usePersistedStore
 } from './hooks';
 

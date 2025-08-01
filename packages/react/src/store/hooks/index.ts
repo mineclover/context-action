@@ -12,5 +12,4 @@ export { useRegistryStore } from './useRegistryStore';
 // === SPECIALIZED HOOKS ===
 // Optional but useful patterns
 export { useLocalStore } from './useLocalStore';
-export { useComputedStore, useComputedValue } from './useComputedStore';
 export { usePersistedStore } from './usePersistedStore';

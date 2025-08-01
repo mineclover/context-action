@@ -29,63 +29,6 @@ export function createStore<T>(initialValue: T, name?: string): Store<T> {
   return new Store(storeName, initialValue);
 }
 
-/**
- * Computed Store 생성 함수
- * 핵심 기능: 여러 Store의 값을 조합하여 파생된 값을 가지는 반응형 Store 생성
- * 
- * @template T - 계산된 Store 값의 타입
- * @template D - 의존성 Store 배열 타입
- * @param dependencies - 의존할 Store 배열
- * @param compute - 파생 값을 계산할 함수
- * @param name - Store 이름 (선택적)
- * @returns 새로운 계산된 Store 인스턴스
- * 
- * 핵심 로직:
- * 1. 초기 계산 - 모든 의존성 Store의 현재 값으로 초기값 계산
- * 2. 구독 설정 - 각 의존성 Store 변경 시 재계산
- * 3. 정리 함수 - 메모리 누수 방지를 위한 구독 해제
- * 
- * @example
- * ```typescript
- * const cartSummaryStore = createComputedStore(
- *   [cartStore, inventoryStore, userStore],
- *   (cart, inventory, user) => ({
- *     itemCount: cart.items.length,
- *     total: cart.items.reduce((sum, item) => sum + item.price, 0),
- *     canCheckout: cart.items.every(item => inventory[item.id] > 0)
- *   })
- * );
- * ```
- */
-export function createComputedStore<T, D extends readonly IStore[]>(
-  dependencies: D,
-  compute: (...values: { [K in keyof D]: D[K] extends IStore<infer V> ? V : never }) => T,
-  name?: string
-): Store<T> {
-  const storeName = name || `computed_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
-  // 초기 계산 - 모든 의존성의 현재 값으로 초기값 생성
-  const initialValues = dependencies.map(store => store.getValue()) as any;
-  const initialValue = compute(...initialValues);
-  
-  const computedStore = new Store(storeName, initialValue);
-  
-  // 의존성 구독 - 각 Store 변경 시 재계산
-  const unsubscribes = dependencies.map(store => 
-    store.subscribe(() => {
-      const currentValues = dependencies.map(dep => dep.getValue()) as any;
-      const newValue = compute(...currentValues);
-      computedStore.setValue(newValue);
-    })
-  );
-  
-  // 정리 함수 저장 - 메모리 누수 방지
-  (computedStore as any)._cleanup = () => {
-    unsubscribes.forEach(unsub => unsub());
-  };
-  
-  return computedStore;
-}
 
 /**
  * Store 유틸리티 클래스
@@ -95,7 +38,6 @@ export function createComputedStore<T, D extends readonly IStore[]>(
  * 1. Store 복사 및 동기화
  * 2. Registry 간 동기화 및 병합
  * 3. 양방향 동기화 및 디바운스
- * 4. Computed Store 생성 (deprecated - 함수형 API 사용 권장)
  */
 export class StoreUtils {
 	/**
@@ -260,7 +202,6 @@ export class StoreUtils {
 		});
 	}
 
-	// createComputedStore 메서드 제거됨 - 대신 utils/createComputedStore() 함수 사용
 
 	/**
 	 * 디바운스 Store 생성

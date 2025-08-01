@@ -66,7 +66,6 @@ export {
 	StoreUtils,
 	createStore,
 	createManagedStore,
-	createComputedStore,
 } from "./store";
 
 // HOC patterns for stores - REMOVED
@@ -87,8 +86,6 @@ export {
 	useRegistryStore,
 	// Specialized hooks
 	useLocalStore,
-	useComputedStore,
-	useComputedValue,
 	usePersistedStore,
 } from "./store";
 
