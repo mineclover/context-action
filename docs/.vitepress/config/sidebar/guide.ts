@@ -51,7 +51,8 @@ export const GUIDE_STRUCTURE = {
       { text: 'Jotai Integration', path: '/guide/api-spec/jotai/integration-spec' },
       { text: 'Plugin System', path: '/guide/api-spec/plugin-system' }
     ]
-  }
+  },
+
 }
 
 // 사이드바 섹션 생성 함수
