@@ -12,7 +12,27 @@ import type { Logger } from '@context-action/logger';
 
 /**
  * Execute handlers in sequential mode (one after another)
+ * @implements execution-modes
+ * @implements sequential-execution
+ * @memberof core-concepts
  * @internal
+ * @since 1.0.0
+ * 
+ * Executes action handlers sequentially in priority order, supporting flow control,
+ * conditional execution, and priority jumping within the pipeline.
+ * 
+ * @template T - The type of the payload being processed
+ * @param context - Pipeline execution context with handlers and state
+ * @param createController - Factory function for creating pipeline controllers
+ * @param logger - Logger instance for tracing execution
+ * @returns Promise that resolves when all handlers complete or pipeline aborts
+ * 
+ * Features:
+ * - Priority-based execution order (higher priority first)
+ * - Support for priority jumping within execution
+ * - Conditional handler execution (condition/validation checks)
+ * - Blocking/non-blocking handler support
+ * - Comprehensive error handling and recovery
  */
 export async function executeSequential<T>(
   context: PipelineContext<T>,

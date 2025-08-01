@@ -55,8 +55,34 @@ export interface PipelineController<T = any> {
 }
 
 /**
+ * Action handler function type for processing actions in the pipeline
  * @implements action-handler
  * @memberof core-concepts
+ * @since 1.0.0
+ * 
+ * Function signature for handlers that process specific actions within the pipeline.
+ * Handlers receive the action payload and a controller for managing pipeline flow.
+ * 
+ * @template T - The type of the payload this handler processes
+ * @param payload - The action payload data
+ * @param controller - Pipeline controller for flow management
+ * @returns void or Promise<void> for async operations
+ * 
+ * @example
+ * ```typescript
+ * const userUpdateHandler: ActionHandler<{id: string, name: string}> = 
+ *   async (payload, controller) => {
+ *     // Validate payload
+ *     if (!payload.id) {
+ *       controller.abort('User ID is required');
+ *       return;
+ *     }
+ *     
+ *     // Update user store
+ *     const user = userStore.getValue();
+ *     userStore.setValue({ ...user, ...payload });
+ *   };
+ * ```
  */
 export type ActionHandler<T = any> = (
   payload: T,
@@ -64,8 +90,27 @@ export type ActionHandler<T = any> = (
 ) => void | Promise<void>;
 
 /**
+ * Configuration options for action handlers
  * @implements handler-configuration
  * @memberof core-concepts
+ * @since 1.0.0
+ * 
+ * Defines behavior and execution characteristics for action handlers in the pipeline.
+ * Supports priority-based execution, conditional execution, and performance optimizations.
+ * 
+ * @example
+ * ```typescript
+ * const config: HandlerConfig = {
+ *   priority: 10,        // Higher priority runs first
+ *   id: 'userValidator', // Unique identifier
+ *   blocking: true,      // Wait for async completion
+ *   once: false,         // Run multiple times
+ *   condition: () => isLoggedIn(), // Conditional execution
+ *   debounce: 500,       // Debounce delay in ms
+ *   throttle: 1000,      // Throttle interval in ms
+ *   validation: (payload) => payload?.id != null
+ * };
+ * ```
  */
 export interface HandlerConfig {
   /** Priority level (higher numbers execute first). Default: 0 */
@@ -108,13 +153,54 @@ export interface HandlerRegistration<T = any> {
 
 /**
  * Execution modes for action pipeline
+ * @implements execution-mode
+ * @memberof core-concepts
+ * @since 1.0.0
+ * 
+ * Defines how handlers are executed within the action pipeline.
+ * Each mode provides different execution strategies for various use cases.
+ * 
+ * - `sequential`: Execute handlers one after another (default)
+ * - `parallel`: Execute all handlers simultaneously 
+ * - `race`: Execute handlers simultaneously, use first completed result
+ * 
+ * @example
+ * ```typescript
+ * const register = new ActionRegister({ 
+ *   defaultExecutionMode: 'parallel' 
+ * });
+ * 
+ * // Or set per action
+ * register.setExecutionMode('validateUser', 'sequential');
+ * register.setExecutionMode('fetchData', 'race');
+ * ```
  */
 export type ExecutionMode = 'sequential' | 'parallel' | 'race';
 
 /**
+ * Internal execution context for action pipeline processing
  * @implements pipeline-context
  * @memberof api-terms
  * @internal
+ * @since 1.0.0
+ * 
+ * Maintains state during action pipeline execution including current payload,
+ * handler queue, execution status, and flow control information.
+ * 
+ * @template T - The type of the payload being processed
+ * 
+ * @example
+ * ```typescript
+ * // Internal usage in ActionRegister
+ * const context: PipelineContext<UserPayload> = {
+ *   action: 'updateUser',
+ *   payload: { id: '123', name: 'John' },
+ *   handlers: registeredHandlers,
+ *   aborted: false,
+ *   currentIndex: 0,
+ *   executionMode: 'sequential'
+ * };
+ * ```
  */
 export interface PipelineContext<T = any> {
   action: string;
@@ -153,8 +239,31 @@ export interface ActionRegisterConfig {
 export type UnregisterFunction = () => void;
 
 /**
+ * Type-safe action dispatcher interface
  * @implements action-dispatcher
  * @memberof api-terms
+ * @since 1.0.0
+ * 
+ * Provides overloaded function signatures for dispatching actions with proper
+ * type checking. Supports both actions with payloads and void actions.
+ * 
+ * @template T - Action payload map defining available actions
+ * 
+ * @example
+ * ```typescript
+ * interface AppActions extends ActionPayloadMap {
+ *   increment: void;
+ *   setCount: number;
+ *   updateUser: { id: string; name: string };
+ * }
+ * 
+ * const dispatch: ActionDispatcher<AppActions> = actionRegister.dispatch;
+ * 
+ * // Type-safe dispatching
+ * await dispatch('increment');              // No payload required
+ * await dispatch('setCount', 42);          // Number payload required
+ * await dispatch('updateUser', { id: '1', name: 'John' }); // Object payload
+ * ```
  */
 export interface ActionDispatcher<T extends ActionPayloadMap> {
   /** Dispatch an action without payload */

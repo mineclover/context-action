@@ -6,9 +6,14 @@ import type { Store } from '../Store';
  * 핵심 기능: Store의 메서드들을 안전하게 바인딩하고 메모이제이션으로 성능 최적화
  * 
  * @implements store-hooks
+ * @implements performance-optimization
  * @memberof api-terms
+ * @since 1.0.0
  * @param store - Store 인스턴스 (null/undefined 허용)
  * @returns Store 액션 메서드들 (setValue, update, getValue)
+ * 
+ * Provides memoized access to store methods, preventing unnecessary re-renders
+ * when store instance remains the same. Safely handles null/undefined stores.
  * 
  * @example
  * ```typescript
