@@ -12,6 +12,11 @@ interface StoreMetadata {
 
 /**
  * Registry for managing multiple stores with metadata separation
+ * @implements store-registry
+ * @memberof core-concepts
+ * 
+ * Centralized registry that manages store instances and provides access to stores
+ * within the application context
  */
 export class StoreRegistry implements IStoreRegistry {
   private stores = new Map<string, IStore>();
@@ -26,6 +31,8 @@ export class StoreRegistry implements IStoreRegistry {
 
   /**
    * Subscribe to registry changes (store additions/removals)
+   * @implements store-hooks
+   * @memberof api-terms
    */
   subscribe = (listener: Listener): Unsubscribe => {
     this.listeners.add(listener);
@@ -44,6 +51,8 @@ export class StoreRegistry implements IStoreRegistry {
 
   /**
    * Register a store with optional metadata
+   * @implements store-integration-pattern
+   * @memberof core-concepts
    */
   register(name: string, store: IStore, metadata?: Partial<StoreMetadata>): void {
     if (this.stores.has(name)) {
@@ -86,6 +95,10 @@ export class StoreRegistry implements IStoreRegistry {
 
   /**
    * Get a specific store
+   * @implements lazy-evaluation
+   * @memberof architecture-terms
+   * 
+   * Enables lazy evaluation of store values in action handlers
    */
   getStore(name: string): IStore | undefined {
     return this.stores.get(name);

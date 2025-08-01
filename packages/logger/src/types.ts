@@ -4,6 +4,9 @@
 
 /**
  * Logger interface for customizable logging
+ * 
+ * Provides structured logging capability for monitoring and debugging
+ * the Context-Action framework operations
  */
 export interface Logger {
   trace(message: string, data?: any): void;
@@ -17,6 +20,8 @@ export interface Logger {
 
 /**
  * Log levels for filtering log output
+ * 
+ * Hierarchical log levels for controlling verbosity of debug output
  */
 export enum LogLevel {
   TRACE = 0,

@@ -39,8 +39,9 @@ function getEnvVar(name: string, vitePrefix: string = 'VITE_'): string | undefin
 /**
  * Simple console-based logger implementation
  * 
- * @implements {Logger}
- * @memberof ApiTerms
+ * Provides configurable logging with level filtering for debugging and monitoring
+ * action pipeline execution and store operations
+ * 
  * @since 0.0.1
  */
 export class ConsoleLogger implements Logger {
@@ -87,6 +88,8 @@ export class ConsoleLogger implements Logger {
 
 /**
  * No-op logger that discards all log messages
+ * 
+ * Used for production environments or when logging is disabled
  */
 export class NoopLogger implements Logger {
   private level: LogLevel = LogLevel.NONE;
@@ -175,6 +178,8 @@ export function getDebugFromEnv(): boolean {
 
 /**
  * Create a logger instance with the specified level
+ * 
+ * Factory function for creating configured logger instances
  */
 export function createLogger(level?: LogLevel): Logger {
   const logLevel = level ?? getLogLevelFromEnv();

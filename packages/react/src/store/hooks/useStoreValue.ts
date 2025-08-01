@@ -2,16 +2,9 @@ import { useStoreSync } from '../store-sync';
 import type { IStore } from '../types';
 
 /**
- * Hook to subscribe to store changes and get only the value
- * Following ARCHITECTURE.md pattern for selective store subscriptions
- * 
- * @template T - Type of the store value
- * @template R - Type of the selected value
- * @param store - The store to subscribe to
- * @param selector - Optional selector function for partial subscriptions
- * @returns The current value of the store, or undefined if store is null/undefined
- * 
- * @example
+ * @implements store-hooks
+ * @memberof api-terms
+ */
  * ```typescript
  * // Basic store subscription
  * const counterStore = createStore(0);
@@ -50,6 +43,9 @@ export function useStoreValue<T, R>(
 
 /**
  * Hook to get multiple values from a store using selectors
+ * @implements selective-subscription
+ * @memberof api-terms
+ * 
  * Optimizes re-renders by only updating when selected values change
  * 
  * @template T - Type of the store value

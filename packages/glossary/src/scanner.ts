@@ -109,8 +109,10 @@ export class GlossaryScanner {
       // Parse the file
       const parsedComments = this.parser.parseFile(content);
       
+      
       // Extract declarations (simplified - in real implementation would use AST)
       const declarations = this.extractDeclarations(content, parsedComments);
+      
       
       if (declarations.length > 0) {
         this.addFileMappings(relativePath, declarations);
@@ -141,8 +143,56 @@ export class GlossaryScanner {
     const lines = content.split('\n');
 
     for (const comment of comments) {
-      // Find the declaration after the comment
-      const commentEndLine = this.getCommentEndLine(content, comment.source.source);
+      let commentEndLine = 0;
+      
+      // Find the comment end by searching for the exact comment block
+      const block = comment.source as any;
+      
+      // Get the raw comment text to match it in the file
+      let commentText = '';
+      if (block && typeof block.source === 'string') {
+        commentText = block.source;
+      } else if (block && Array.isArray(block.source)) {
+        commentText = block.source.map((line: any) => line.source || line).join('\n');
+      }
+      
+      // If we have the comment text, find where it appears in the file
+      if (commentText) {
+        // Find all @implements tags in this comment to locate it precisely
+        const implementsTags = comment.implements || [];
+        if (implementsTags.length > 0) {
+          // Look for lines containing these specific @implements tags
+          let foundCommentBlock = false;
+          let blockStartLine = -1;
+          
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            
+            // Look for the start of a comment block that contains our @implements tags
+            if (line.includes('/**') || (line.includes('/*') && line.includes('*'))) {
+              blockStartLine = i;
+            }
+            
+            // Check if this line contains one of our @implements tags
+            const hasOurTag = implementsTags.some(tag => 
+              line.includes(`@implements ${tag}`) || line.includes(`@implements {${tag}}`)
+            );
+            
+            if (hasOurTag && blockStartLine >= 0) {
+              // We found our comment block, now find where it ends
+              for (let j = i; j < lines.length; j++) {
+                if (lines[j].includes('*/')) {
+                  commentEndLine = j;
+                  foundCommentBlock = true;
+                  break;
+                }
+              }
+              if (foundCommentBlock) break;
+            }
+          }
+        }
+      }
+      
       const declaration = this.findDeclarationAfterLine(lines, commentEndLine);
       
       if (declaration) {
@@ -190,6 +240,30 @@ export class GlossaryScanner {
     
     if (!sourceText) return 0;
     
+    // Find the closing */ in the content
+    const commentEndPattern = /\*\//;
+    let searchStartIndex = 0;
+    
+    // Find all occurrences of */ in the content
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (commentEndPattern.test(line)) {
+        // Check if this is likely the end of our comment by looking for @implements
+        // in the previous few lines
+        let foundImplements = false;
+        for (let j = Math.max(0, i - 10); j <= i; j++) {
+          if (lines[j].includes('@implements')) {
+            foundImplements = true;
+            break;
+          }
+        }
+        if (foundImplements) {
+          return i + 1;
+        }
+      }
+    }
+    
+    // Fallback to original logic
     const commentLines = sourceText.split('\n');
     const lastCommentLine = commentLines[commentLines.length - 1];
     
@@ -212,34 +286,48 @@ export class GlossaryScanner {
   ): { name: string; type: CodeImplementation['type']; line: number; signature?: string } | null {
     // Simple regex-based detection (in real implementation would use AST)
     const patterns = [
+      { regex: /export\s+class\s+(\w+)/, type: 'class' as const },
       { regex: /export\s+function\s+(\w+)/, type: 'function' as const },
       { regex: /export\s+const\s+(\w+)/, type: 'const' as const },
-      { regex: /export\s+class\s+(\w+)/, type: 'class' as const },
       { regex: /export\s+interface\s+(\w+)/, type: 'interface' as const },
       { regex: /export\s+type\s+(\w+)/, type: 'type' as const },
       { regex: /export\s+enum\s+(\w+)/, type: 'enum' as const },
+      { regex: /class\s+(\w+)/, type: 'class' as const },
       { regex: /function\s+(\w+)/, type: 'function' as const },
       { regex: /const\s+(\w+)/, type: 'const' as const },
-      { regex: /class\s+(\w+)/, type: 'class' as const },
       { regex: /interface\s+(\w+)/, type: 'interface' as const },
+      { regex: /type\s+(\w+)\s*=/, type: 'type' as const },
       { regex: /type\s+(\w+)/, type: 'type' as const },
       { regex: /enum\s+(\w+)/, type: 'enum' as const }
     ];
 
-    for (let i = startLine; i < Math.min(startLine + 10, lines.length); i++) {
-      const line = lines[i];
+    // Start searching immediately after the comment end (zero-indexed, so startLine is already 1-based)
+    let searchLine = startLine;
+    const maxSearchLines = 5; // Reduce search range - declarations should be right after comments
+    
+    while (searchLine < lines.length && searchLine < startLine + maxSearchLines) {
+      const line = lines[searchLine].trim();
       
+      // Skip empty lines and comment lines
+      if (!line || line.startsWith('//') || line.startsWith('*') || line.startsWith('/*')) {
+        searchLine++;
+        continue;
+      }
+      
+      // Check patterns on this line
       for (const { regex, type } of patterns) {
         const match = line.match(regex);
         if (match) {
           return {
             name: match[1],
             type,
-            line: i + 1,
-            signature: this.options.parseSignatures ? line.trim() : undefined
+            line: searchLine + 1, // Convert to 1-based line number
+            signature: this.options.parseSignatures ? line : undefined
           };
         }
       }
+      
+      searchLine++;
     }
 
     return null;

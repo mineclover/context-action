@@ -5,17 +5,9 @@ import { createComputedStore } from '../utils';
 import type { IStore, Snapshot } from '../types';
 
 /**
- * Create a computed store that derives its value from other stores
- * Following ARCHITECTURE.md pattern for computed stores
- * 
- * @template T - Type of the computed store value  
- * @template D - Array type of dependency stores
- * @param dependencies - Array of stores to depend on
- * @param compute - Function to compute the derived value
- * @param name - Optional name for the computed store
- * @returns The computed store instance
- * 
- * @example
+ * @implements computed-store
+ * @memberof api-terms
+ */
  * ```typescript
  * // Basic computed store
  * const totalPriceStore = useComputedStore(

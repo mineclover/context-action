@@ -1,7 +1,9 @@
 import type { IStore, Listener, Snapshot, Unsubscribe } from './types';
 
 /**
- * Core Store implementation for managing state with subscription support
+ * @implements store-integration-pattern
+ * @implements model-layer
+ * @memberof core-concepts
  */
 export class Store<T = any> implements IStore<T> {
   private listeners = new Set<Listener>();
@@ -17,6 +19,8 @@ export class Store<T = any> implements IStore<T> {
 
   /**
    * Subscribe to store changes
+   * @implements store-hooks
+   * @memberof api-terms
    */
   subscribe = (listener: Listener): Unsubscribe => {
     this.listeners.add(listener);
@@ -35,6 +39,10 @@ export class Store<T = any> implements IStore<T> {
 
   /**
    * Get current value directly (without snapshot wrapper)
+   * @implements lazy-evaluation
+   * @memberof architecture-terms
+   * 
+   * Supports lazy evaluation pattern for fresh state access in action handlers
    */
   getValue(): T {
     return this._value;
@@ -42,6 +50,10 @@ export class Store<T = any> implements IStore<T> {
 
   /**
    * Set store value and notify all listeners
+   * @implements unidirectional-data-flow
+   * @memberof architecture-terms
+   * 
+   * Updates store state and triggers reactive updates in subscribed components
    */
   setValue(value: T): void {
     if (!Object.is(this._value, value)) {
