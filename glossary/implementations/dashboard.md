@@ -1,6 +1,6 @@
 # 용어집 구현 현황 대시보드
 
-> 🕒 최종 업데이트: 2025. 8. 1. 오후 3:07:57
+> 🕒 최종 업데이트: 2025. 8. 1. 오후 3:11:41
 > 
 > 📊 자동 생성된 구현 현황 리포트입니다.
 
@@ -148,18 +148,18 @@ useStoreValue 훅에 @implements store-hooks 태그 추가
   - 📅 2025. 8. 1.
 
 
-- **action-handler** `DebounceOptions` (interface)
-  - 📁 `example/src/hooks/useActionDebouncer.ts`
-  - 📅 2025. 8. 1.
-
-
-- **action-handler** `BlockOptions` (interface)
-  - 📁 `example/src/hooks/useActionBlock.ts`
-  - 📅 2025. 8. 1.
-
-
 - **action-handler** `ThrottleOptions` (interface)
   - 📁 `example/src/hooks/useActionThrottle.ts`
+  - 📅 2025. 8. 1.
+
+
+- **action-handler** `DebounceOptions` (type)
+  - 📁 `example/src/hooks/useActionGuard.ts`
+  - 📅 2025. 8. 1.
+
+
+- **action-handler** `DebounceOptions` (interface)
+  - 📁 `example/src/hooks/useActionDebouncer.ts`
   - 📅 2025. 8. 1.
 
 
@@ -193,4 +193,4 @@ useStoreValue 훅에 @implements store-hooks 태그 추가
 *이 대시보드는 `node implementation-dashboard.js` 명령어로 자동 생성됩니다.*
 *문제가 있거나 개선사항이 있다면 이슈를 생성해주세요.*
 
-<!-- Dashboard generated at 2025-08-01T06:07:57.098Z -->
+<!-- Dashboard generated at 2025-08-01T06:11:41.444Z -->

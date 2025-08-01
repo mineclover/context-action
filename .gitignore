@@ -63,3 +63,6 @@ docs/api/generated/
 
 # TypeDoc
 typedoc-out/
+
+# Glossary auto-generated data
+glossary/implementations/_data/
