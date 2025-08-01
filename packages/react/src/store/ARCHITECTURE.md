@@ -7,6 +7,8 @@ The Context-Action framework implements a clean separation of concerns through a
 - **Stores** manage state (Model layer)  
 - **Components** render UI (View layer)
 
+> **🚨 CRITICAL PRINCIPLE**: Business logic and data processing MUST happen in Action handlers, NOT in components. Components should only subscribe to stores and dispatch actions. This ensures testable, maintainable, and scalable architecture.
+
 ## Core Architecture
 
 ### 1. Action Pipeline System
@@ -60,19 +62,22 @@ actionRegister.register('updateUser', async (payload, controller) => {
 
 ## Data Flow
 
+> **⚠️ IMPORTANT**: Data should flow in ONE direction only. Never bypass the action layer by doing calculations in components.
+
 ```
 ┌──────────────┐     dispatch      ┌──────────────┐
 │              │ -----------------> │              │
 │   Component  │                    │    Action    │
-│              │ <----------------- │   Pipeline   │
-└──────────────┘     subscribe      └──────────────┘
+│   (UI ONLY)  │ <----------------- │   Pipeline   │
+│              │     subscribe      │ (LOGIC HERE) │
+└──────────────┘                    └──────────────┘
        │                                    │
        │ useStore                          │ get/set
        ▼                                    ▼
 ┌──────────────┐                    ┌──────────────┐
 │              │                    │              │
 │ Store Hooks  │ <----------------- │    Stores    │
-│              │      observe       │              │
+│ (READ ONLY)  │      observe       │ (FINAL DATA) │
 └──────────────┘                    └──────────────┘
 ```
 
@@ -132,21 +137,53 @@ function App() {
 ```
 
 ### Component Usage
+
+> **🚨 CRITICAL**: Components should NEVER contain business logic. Only UI and event handlers.
+
 ```typescript
+// ✅ CORRECT: Clean component with no business logic
 function UserProfile() {
   const dispatch = useActionDispatch();
   const user = useStoreValue(userStore);
+  const settings = useStoreValue(settingsStore);
   
+  // Simple event handler - just dispatch action
   const updateName = (name: string) => {
     dispatch('updateUser', { id: user.id, name });
   };
   
   return (
-    <div>
+    <div className={settings.theme}>
       <h1>{user.name}</h1>
+      <p>Last updated: {user.lastModified}</p>
       <button onClick={() => updateName('New Name')}>
         Update Name
       </button>
+    </div>
+  );
+}
+
+// ❌ WRONG: Component with business logic
+function BadUserProfile() {
+  const dispatch = useActionDispatch();
+  const user = useStoreValue(userStore);
+  const settings = useStoreValue(settingsStore);
+  
+  // DON'T DO THIS - calculation in component
+  const displayName = user.firstName && user.lastName 
+    ? `${user.firstName} ${user.lastName}`
+    : user.username || 'Unknown User';
+    
+  const isVip = user.points > 1000 && user.membershipLevel === 'premium';
+  
+  // This should be in an action handler!
+  const formattedDate = new Date(user.lastModified).toLocaleDateString();
+  
+  return (
+    <div>
+      <h1>{displayName}</h1>
+      {isVip && <span>VIP Member</span>}
+      <p>Last updated: {formattedDate}</p>
     </div>
   );
 }
@@ -467,7 +504,11 @@ flowchart LR
 9. **Centralized Logic**: All data processing and business rules concentrated in action handlers
 10. **Predictable State**: Stores contain only final, processed data - no intermediate computations
 
-## Best Practices
+## ⭐ Best Practices - Critical Architecture Guidelines
+
+> **IMPORTANT**: These practices are essential for maintaining clean MVVM architecture and preventing common anti-patterns.
+
+### 🚀 Core Architectural Rules
 
 1. **Keep Actions Focused**: One action should do one thing well
 2. **Use Priority**: Higher priority handlers run first for dependent operations
@@ -475,5 +516,94 @@ flowchart LR
 4. **Avoid Side Effects**: Keep store updates predictable and traceable
 5. **Type Everything**: Leverage TypeScript for safety and documentation
 6. **Test Handlers**: Write unit tests for action handlers with mock stores
-7. **Data Integration in Actions**: Instead of computed stores, process and combine data in action handlers, then store results in dedicated stores
-8. **Component Simplicity**: Components should only subscribe to stores and dispatch actions - no business logic in components
+
+### 🎯 Data Processing Rules (CRITICAL)
+
+7. **⚠️ Data Integration in Actions**: 
+   - **DO**: Process and combine data in action handlers, then store results in dedicated stores
+   - **DON'T**: Use computed stores or reactive patterns in components
+   - **WHY**: Centralizes business logic and maintains predictable state flow
+
+8. **⚠️ Component Simplicity**: 
+   - **DO**: Components should only subscribe to stores and dispatch actions
+   - **DON'T**: Put business logic, calculations, or data transformations in components  
+   - **WHY**: Keeps components testable and maintains separation of concerns
+
+### 📊 Data Flow Anti-Patterns to Avoid
+
+```typescript
+// ❌ WRONG: Business logic in component
+function ProductList() {
+  const products = useStoreValue(productsStore);
+  const user = useStoreValue(userStore);
+  
+  // DON'T DO THIS - calculation in component
+  const discountedProducts = products.map(p => ({
+    ...p,
+    price: user.isPremium ? p.price * 0.9 : p.price
+  }));
+  
+  return <div>{/* render discountedProducts */}</div>;
+}
+
+// ✅ CORRECT: Business logic in action handler
+actionRegister.register('calculateDiscounts', async (payload, controller) => {
+  const products = productsStore.getValue();
+  const user = userStore.getValue();
+  
+  // Business logic here
+  const discountedProducts = products.map(p => ({
+    ...p,
+    price: user.isPremium ? p.price * 0.9 : p.price
+  }));
+  
+  // Store final result
+  discountedProductsStore.setValue(discountedProducts);
+});
+
+function ProductList() {
+  // Component just subscribes and dispatches
+  const discountedProducts = useStoreValue(discountedProductsStore);
+  
+  useEffect(() => {
+    dispatch('calculateDiscounts', {});
+  }, []);
+  
+  return <div>{/* render discountedProducts */}</div>;
+}
+```
+
+### 🔄 Data Integration Pattern (MUST FOLLOW)
+
+```typescript
+// ✅ PATTERN: Multi-store data integration in actions
+actionRegister.register('updateOrderSummary', async (payload, controller) => {
+  // 1. Read from multiple stores
+  const cart = cartStore.getValue();
+  const user = userStore.getValue();
+  const promos = promoStore.getValue();
+  const shipping = shippingStore.getValue();
+  
+  // 2. Process business logic
+  const subtotal = calculateSubtotal(cart.items);
+  const discount = calculateDiscount(user, promos, subtotal);
+  const tax = calculateTax(user.location, subtotal - discount);
+  const shippingCost = calculateShipping(shipping, cart.weight);
+  
+  // 3. Store final, processed data
+  orderSummaryStore.setValue({
+    subtotal,
+    discount,
+    tax,
+    shipping: shippingCost,
+    total: subtotal - discount + tax + shippingCost,
+    lastUpdated: Date.now()
+  });
+});
+
+// Components just consume final data
+function OrderSummary() {
+  const summary = useStoreValue(orderSummaryStore);
+  return <div>Total: ${summary.total}</div>;
+}
+```
