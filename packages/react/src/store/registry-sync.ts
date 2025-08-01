@@ -1,4 +1,4 @@
-import { useStoreSync } from './store-sync';
+import { useStoreSelector } from './store-selector';
 import type { IStoreRegistry, IStore } from './types';
 
 /**
@@ -18,14 +18,14 @@ export function createRegistrySync<T = any>() {
   return {
     /**
      * Registry에서 이름으로 store 값을 동적으로 가져오기
-     * 핵심 로직: registry.getStore() → useStoreSync() → value 추출
+     * 핵심 로직: registry.getStore() → useStoreSelector() → value 추출
      */
     useDynamicStore(
       registry: IStoreRegistry | undefined | null,
       storeName: string
     ): T | undefined {
       const store = registry?.getStore(storeName);
-      return useStoreSync(store, {
+      return useStoreSelector(store, {
         selector: snapshot => snapshot.value as T
       });
     }

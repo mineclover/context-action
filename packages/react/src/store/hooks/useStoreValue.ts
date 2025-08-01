@@ -1,4 +1,4 @@
-import { useStoreSync } from '../store-sync';
+import { useStoreSelector } from '../store-selector';
 import type { IStore } from '../types';
 
 /**
@@ -32,12 +32,12 @@ export function useStoreValue<T, R>(
   selector?: (value: T) => R
 ): T | R | undefined {
   if (selector) {
-    return useStoreSync(store, {
+    return useStoreSelector(store, {
       selector: snapshot => snapshot?.value ? selector(snapshot.value) : undefined
     });
   }
   
-  return useStoreSync(store, {
+  return useStoreSelector(store, {
     selector: snapshot => snapshot?.value
   });
 }
@@ -75,7 +75,7 @@ export function useStoreValues<T, S extends Record<string, (value: T) => any>>(
   store: IStore<T> | undefined | null,
   selectors: S
 ): { [K in keyof S]: ReturnType<S[K]> } | undefined {
-  return useStoreSync(store, {
+  return useStoreSelector(store, {
     selector: snapshot => {
       if (!snapshot?.value) return undefined;
       

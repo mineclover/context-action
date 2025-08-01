@@ -1,6 +1,6 @@
 import { useRef, useMemo } from 'react';
 import { Store } from '../Store';
-import { useStoreSync } from '../store-sync';
+import { useStoreSelector } from '../store-selector';
 import { createComputedStore } from '../utils';
 import type { IStore } from '../types';
 
@@ -51,7 +51,7 @@ export function useComputedStore<T, D extends readonly IStore[]>(
   }, [compute, name, ...dependencies]);
   
   // 반응형 구독 - Store 변경 시 React 컴포넌트 재렌더링 유지
-  useStoreSync(storeRef.current);
+  useStoreSelector(storeRef.current);
   
   return storeRef.current;
 }
@@ -85,6 +85,6 @@ export function useComputedValue<T, D extends readonly IStore[]>(
   // Computed Store 생성 및 관리
   const store = useComputedStore(dependencies, compute, name);
   // 스냅샷에서 값만 추출
-  const snapshot = useStoreSync(store);
+  const snapshot = useStoreSelector(store);
   return snapshot.value;
 }

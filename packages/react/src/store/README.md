@@ -345,12 +345,12 @@ The library follows React's Context API pattern similar to other context-based s
 
 The library provides powerful abstractions over `useSyncExternalStore` to simplify store integration:
 
-#### useStoreSync - Universal Store Hook
+#### useStoreSelector - Selective Store Hook
 
 ```typescript
-import { useStoreSync } from '@context-action/react';
+import { useStoreSelector } from '@context-action/react';
 
-// Basic usage
+// Basic usage (equivalent to useStore)
 function MyComponent({ store }: { store?: IStore<User> }) {
   // Before: Complex useSyncExternalStore setup
   const snapshot = useSyncExternalStore(
@@ -358,16 +358,16 @@ function MyComponent({ store }: { store?: IStore<User> }) {
     store ? () => store.getSnapshot() : () => ({ value: undefined, name: '', lastUpdate: 0 })
   );
 
-  // After: Simplified with useStoreSync
-  const snapshot = useStoreSync(store);
+  // After: Simplified with useStoreSelector
+  const snapshot = useStoreSelector(store);
   
-  // With selector for specific data
-  const userName = useStoreSync(store, {
+  // With selector for specific data (main use case)
+  const userName = useStoreSelector(store, {
     selector: s => s.value?.name
   });
   
   // With default value
-  const userWithDefault = useStoreSync(store, {
+  const userWithDefault = useStoreSelector(store, {
     defaultValue: { name: 'Guest', age: 0 }
   });
 }
@@ -542,8 +542,8 @@ interface StoreMetadata {
 ### Store Sync API
 
 ```typescript
-// Universal sync hook
-function useStoreSync<T, R = Snapshot<T>>(
+// Selective sync hook
+function useStoreSelector<T, R = Snapshot<T>>(
   store: IStore<T> | undefined | null,
   options?: {
     defaultValue?: T;
@@ -686,13 +686,13 @@ function App() {
 const registry = new StoreRegistry('app'); // Not recommended
 ```
 
-### 2. Use Store Sync Utilities for Better Performance
+### 2. Use Store Selector for Optimized Subscriptions
 
 ```typescript
-// ✅ Recommended: Use store sync utilities
+// ✅ Recommended: Use useStoreSelector for selective subscriptions
 function UserComponent({ userStore }: Props) {
   // Clean, type-safe, handles null/undefined
-  const user = useStoreSync(userStore, {
+  const user = useStoreSelector(userStore, {
     selector: s => s.value,
     defaultValue: { name: 'Guest' }
   });

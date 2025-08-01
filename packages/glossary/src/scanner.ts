@@ -107,7 +107,7 @@ export class GlossaryScanner {
       const relativePath = path.relative(this.options.rootDir, filePath);
       
       // Parse the file
-      const parsedComments = this.parser.parseFile(content);
+      const parsedComments = this.parser.parseFile(content, this.options.debug);
       
       
       // Extract declarations (simplified - in real implementation would use AST)
