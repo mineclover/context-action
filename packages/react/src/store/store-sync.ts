@@ -56,6 +56,24 @@ export function useStoreSync<T, R = Snapshot<T>>(
 }
 
 /**
+ * Store Hook - 스냅샷 구독
+ * 핵심 기능: Store 변경사항을 구독하고 현재 스냅샷 반환
+ * 
+ * @template T - Store 값 타입
+ * @param store - 구독할 Store 인스턴스  
+ * @returns Store의 현재 스냅샷 (value, name, lastUpdate 포함)
+ * 
+ * @example
+ * ```typescript
+ * const counterStore = new Store('counter', 0);
+ * const snapshot = useStore(counterStore); // { value: 0, name: 'counter', lastUpdate: timestamp }
+ * ```
+ */
+export function useStore<T>(store: IStore<T> | undefined | null): Snapshot<T> {
+  return useStoreSync(store);
+}
+
+/**
  * 타입 안전한 Store Hook 팩토리
  * 핵심 기능: 특정 타입에 대한 타입 안전한 훅 생성
  */
