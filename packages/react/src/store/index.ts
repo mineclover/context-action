@@ -96,12 +96,10 @@ export {
 } from './StoreContext';
 
 // === HOC PATTERNS ===
-export {
-  withStore,
-  withManagedStore,
-  withRegistryStores,
-  withStoreData
-} from './withStore';
+// Store HOCs have been removed - use hooks instead:
+// - withStore → useLocalStore + useStoreValue  
+// - withManagedStore → useRegistryStore + useStoreValue
+// - withStoreData → useStoreValue with multiple stores
 
 // === SYNC UTILITIES ===
 // Store sync

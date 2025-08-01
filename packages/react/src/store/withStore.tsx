@@ -1,306 +1,57 @@
 /**
- * @fileoverview Store HOC patterns for enhanced component composition
- * Higher-Order Components for connecting React components with stores
- */
-
-import React, { useMemo } from 'react';
-import { Store, createStore, ManagedStore, createManagedStore, StoreConfig } from './Store';
-
-import { useStoreRegistry } from '../StoreProvider';
-
-/**
- * HOC that provides a specific store to a component
- * Creates a store instance and injects it as props
+ * @fileoverview Deprecated Store HOCs - Use hooks instead
  * 
- * @template T - Store value type
- * @template P - Component props type
- * @param storeConfig - Store configuration
- * @returns HOC function
+ * Store-related HOCs have been removed in favor of more flexible hook-based patterns:
  * 
- * @example
- * ```typescript
- * interface User {
- *   id: string;
- *   name: string;
- *   email: string;
- * }
+ * // Instead of withStore:
+ * // const MyComponent = withStore({ name: 'user', initialValue: {} })(Component);
  * 
- * interface UserProfileProps {
- *   userStore: Store<User>;
- *   title: string;
- * }
- * 
- * // Create HOC with store
- * const withUserStore = withStore<User>({
- *   name: 'user',
- *   initialValue: { id: '', name: '', email: '' }
- * });
- * 
- * // Original component expects store as prop
- * const UserProfile = ({ userStore, title }: UserProfileProps) => {
- *   const user = useStoreValue(userStore);
- *   
- *   return (
- *     <div>
- *       <h1>{title}</h1>
- *       <p>{user.name}</p>
- *     </div>
- *   );
- * };
- * 
- * // Enhanced component with store injected
- * const EnhancedUserProfile = withUserStore(UserProfile);
- * 
- * // Usage - no need to pass store manually
- * <EnhancedUserProfile title="User Info" />
- * ```
- */
-export function withStore<T, StoreName extends string>(
-  storeConfig: { name: StoreName; initialValue: T }
-) {
-  return function <P extends Record<string, any>>(
-    WrappedComponent: React.ComponentType<P & Record<`${StoreName}Store`, Store<T>>>
-  ): React.FC<Omit<P, `${StoreName}Store`>> {
-    const WithStore = (props: Omit<P, `${StoreName}Store`>) => {
-      const store = useMemo(
-        () => createStore(storeConfig.name, storeConfig.initialValue),
-        [storeConfig.name]
-      );
-
-      const storeProps = {
-        [`${storeConfig.name}Store`]: store,
-      } as Record<`${StoreName}Store`, Store<T>>;
-
-      return <WrappedComponent {...(props as P)} {...storeProps} />;
-    };
-
-    WithStore.displayName = `withStore(${storeConfig.name})(${WrappedComponent.displayName || WrappedComponent.name})`;
-
-    return WithStore;
-  };
-}
-
-/**
- * HOC that provides a managed store (auto-registered) to a component
- * Uses StoreRegistry for automatic registration and cleanup
- * 
- * @template T - Store value type
- * @template P - Component props type
- * @param storeConfig - Managed store configuration
- * @returns HOC function
- * 
- * @example
- * ```typescript
- * // Create HOC with managed store
- * const withManagedUserStore = withManagedStore<User>({
- *   name: 'user',
- *   initialValue: { id: '', name: '', email: '' },
- *   autoRegister: true
- * });
- * 
- * const UserProfile = ({ userStore }: { userStore: ManagedStore<User> }) => {
+ * // Use hooks:
+ * const MyComponent = () => {
+ *   const userStore = useLocalStore('user', {});
  *   const user = useStoreValue(userStore);
  *   return <div>{user.name}</div>;
  * };
  * 
- * const EnhancedUserProfile = withManagedUserStore(UserProfile);
+ * // Instead of withManagedStore:
+ * // const MyComponent = withManagedStore({ name: 'user', initialValue: {} })(Component);
  * 
- * // Usage within StoreProvider context
- * <StoreProvider>
- *   <EnhancedUserProfile />
- * </StoreProvider>
- * ```
- */
-export function withManagedStore<T, StoreName extends string>(
-  storeConfig: Omit<StoreConfig<T>, 'registry'> & { name: StoreName }
-) {
-  return function <P extends Record<string, any>>(
-    WrappedComponent: React.ComponentType<P & Record<`${StoreName}Store`, ManagedStore<T>>>
-  ): React.FC<Omit<P, `${StoreName}Store`>> {
-    const WithManagedStore = (props: Omit<P, `${StoreName}Store`>) => {
-      const registry = useStoreRegistry();
-      
-      const store = useMemo(() => {
-        return createManagedStore({
-          ...storeConfig,
-          registry,
-        });
-      }, [registry, storeConfig.name]);
-
-      const storeProps = {
-        [`${storeConfig.name}Store`]: store,
-      } as Record<`${StoreName}Store`, ManagedStore<T>>;
-
-      return <WrappedComponent {...(props as P)} {...storeProps} />;
-    };
-
-    WithManagedStore.displayName = `withManagedStore(${storeConfig.name})(${WrappedComponent.displayName || WrappedComponent.name})`;
-
-    return WithManagedStore;
-  };
-}
-
-/**
- * HOC that connects a component to specific stores by name from registry
- * Retrieves stores from the registry and injects them as props
- * 
- * @param storeNames - Array of store names to connect
- * @returns HOC function
- * 
- * @example
- * ```typescript
- * interface ComponentProps {
- *   userStore: Store<User>;
- *   settingsStore: Store<Settings>;
- *   title: string;
- * }
- * 
- * // Create HOC that connects to multiple stores
- * const withStores = withRegistryStores(['user', 'settings']);
- * 
- * const Dashboard = ({ userStore, settingsStore, title }: ComponentProps) => {
+ * // Use hooks:
+ * const MyComponent = () => {
+ *   const registry = useStoreRegistry();
+ *   const userStore = useRegistryStore('user') || registry.register('user', createStore('user', {}));
  *   const user = useStoreValue(userStore);
- *   const settings = useStoreValue(settingsStore);
- *   
- *   return (
- *     <div>
- *       <h1>{title}</h1>
- *       <p>Hello {user.name}</p>
- *       <p>Theme: {settings.theme}</p>
- *     </div>
- *   );
+ *   return <div>{user.name}</div>;
  * };
  * 
- * const ConnectedDashboard = withStores(Dashboard);
+ * // Instead of withStoreData:
+ * // const MyComponent = withStoreData({ name: (stores) => stores.user?.name })(Component);
  * 
- * // Usage - stores automatically injected
- * <StoreProvider registry={myRegistry}>
- *   <ConnectedDashboard title="My Dashboard" />
- * </StoreProvider>
- * ```
+ * // Use hooks:
+ * const MyComponent = () => {
+ *   const userStore = useRegistryStore('user');
+ *   const user = useStoreValue(userStore);
+ *   return <div>{user?.name}</div>;
+ * };
  */
-export function withRegistryStores<StoreNames extends readonly string[]>(
-  storeNames: StoreNames
-) {
-  type StoreProps = {
-    [K in StoreNames[number] as `${K}Store`]: Store<any> | undefined;
-  };
-  
-  return function <P extends Record<string, any>>(
-    WrappedComponent: React.ComponentType<P & StoreProps>
-  ): React.FC<Omit<P, keyof StoreProps>> {
-    const WithRegistryStores = (props: Omit<P, keyof StoreProps>) => {
-      const registry = useStoreRegistry();
-      
-      const storeProps = useMemo(() => {
-        const stores: Record<string, Store<any> | undefined> = {};
-        storeNames.forEach(name => {
-          const store = registry.getStore(name);
-          stores[`${name}Store`] = store;
-        });
-        return stores as StoreProps;
-      }, [registry]);
 
-      return <WrappedComponent {...(props as P)} {...storeProps} />;
-    };
 
-    WithRegistryStores.displayName = `withRegistryStores([${storeNames.join(', ')}])(${WrappedComponent.displayName || WrappedComponent.name})`;
+// withRegistryStores has been removed as it had complex type issues and limited usefulness.
+// Use useRegistryStore hook instead for better type safety and simpler code:
+//
+// // Instead of:
+// // const MyComponent = withRegistryStores(['user', 'settings'])(({ userStore, settingsStore }) => {
+// //   const user = userStore?.getValue();
+// //   const settings = settingsStore?.getValue();
+// //   return <div>{user?.name} - {settings?.theme}</div>;
+// // });
+//
+// // Use this pattern:
+// const MyComponent = () => {
+//   const userStore = useRegistryStore('user');
+//   const settingsStore = useRegistryStore('settings');
+//   const user = useStoreValue(userStore);
+//   const settings = useStoreValue(settingsStore);
+//   return <div>{user?.name} - {settings?.theme}</div>;
+// };
 
-    return WithRegistryStores;
-  };
-}
-
-/**
- * HOC that provides store values directly as props (not store instances)
- * Automatically subscribes to stores and passes values as props
- * 
- * @template T - Store value type mapping
- * @param storeConfig - Configuration mapping store names to selectors
- * @returns HOC function
- * 
- * @example
- * ```typescript
- * interface User {
- *   id: string;
- *   name: string;
- *   email: string;
- * }
- * 
- * interface Settings {
- *   theme: string;
- *   notifications: boolean;
- * }
- * 
- * interface ComponentProps {
- *   userName: string;
- *   userEmail: string;
- *   theme: string;
- *   title: string;
- * }
- * 
- * // Create HOC that maps store values to props
- * const withStoreValues = withStoreData<{
- *   userName: string;
- *   userEmail: string;
- *   theme: string;
- * }>({
- *   userName: (stores) => stores.user?.name || '',
- *   userEmail: (stores) => stores.user?.email || '',
- *   theme: (stores) => stores.settings?.theme || 'light',
- * });
- * 
- * const UserInfo = ({ userName, userEmail, theme, title }: ComponentProps) => (
- *   <div className={`theme-${theme}`}>
- *     <h1>{title}</h1>
- *     <p>Name: {userName}</p>
- *     <p>Email: {userEmail}</p>
- *   </div>
- * );
- * 
- * const ConnectedUserInfo = withStoreValues(UserInfo);
- * 
- * // Usage - values automatically derived from stores
- * <ConnectedUserInfo title="User Information" />
- * ```
- */
-export function withStoreData<T extends Record<string, any>>(
-  storeConfig: {
-    [K in keyof T]: (stores: Record<string, any>) => T[K];
-  }
-) {
-  return function <P extends Record<string, any>>(
-    WrappedComponent: React.ComponentType<P & T>
-  ): React.FC<Omit<P, keyof T>> {
-    const WithStoreData = (props: Omit<P, keyof T>) => {
-      const registry = useStoreRegistry();
-      
-      // Get all store values
-      const storeValues = useMemo(() => {
-        const stores: Record<string, any> = {};
-        const storeNames = Object.keys(registry['stores'] || {});
-        
-        storeNames.forEach(name => {
-          const store = registry.getStore(name);
-          stores[name] = store?.getValue();
-        });
-        
-        return stores;
-      }, [registry]);
-
-      // Apply selectors to get final props
-      const derivedProps = useMemo(() => {
-        const result: Partial<T> = {};
-        Object.entries(storeConfig).forEach(([key, selector]) => {
-          result[key as keyof T] = selector(storeValues);
-        });
-        return result as T;
-      }, [storeValues]);
-
-      return <WrappedComponent {...(props as P)} {...derivedProps} />;
-    };
-
-    WithStoreData.displayName = `withStoreData(${WrappedComponent.displayName || WrappedComponent.name})`;
-
-    return WithStoreData;
-  };
-}

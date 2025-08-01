@@ -11,10 +11,11 @@ import {
   withStoreAndActionProvider,
   withStore,
   withManagedStore,
-  withRegistryStores,
   withStoreData,
   createBasicStore,
   ActionRegister,
+  useRegistryStore,
+  useStoreValue,
   type ActionPayloadMap
 } from '@context-action/react';
 
@@ -115,22 +116,22 @@ function SingleRegistryDemo() {
     );
   };
 
-  const UserInfo = withRegistryStores(['user', 'settings'])(
-    ({ userStore, settingsStore }: any) => {
-      const user = userStore?.getValue();
-      const settings = settingsStore?.getValue();
-      
-      return (
-        <div className="space-y-2 text-sm">
-          <p><strong>Name:</strong> {user?.name}</p>
-          <p><strong>Email:</strong> {user?.email}</p>
-          <p><strong>Role:</strong> {user?.role}</p>
-          <p><strong>Theme:</strong> {settings?.theme}</p>
-          <p><strong>Language:</strong> {settings?.language}</p>
-        </div>
-      );
-    }
-  );
+  const UserInfo = () => {
+    const userStore = useRegistryStore('user');
+    const settingsStore = useRegistryStore('settings');
+    const user = useStoreValue(userStore);
+    const settings = useStoreValue(settingsStore);
+    
+    return (
+      <div className="space-y-2 text-sm">
+        <p><strong>Name:</strong> {user?.name}</p>
+        <p><strong>Email:</strong> {user?.email}</p>
+        <p><strong>Role:</strong> {user?.role}</p>
+        <p><strong>Theme:</strong> {settings?.theme}</p>
+        <p><strong>Language:</strong> {settings?.language}</p>
+      </div>
+    );
+  };
 
   const UserActions = withStoreAndActionProvider<AppActions>()(
     () => {
@@ -188,8 +189,14 @@ globalRegistry.register('user', userStore);
 // 2. 앱 전체를 Provider로 감싸기
 const AppWithStores = withStoreProvider(globalRegistry)(App);
 
-// 3. 컴포넌트에서 Registry stores 사용
-const UserInfo = withRegistryStores(['user', 'settings'])(Component);`}
+// 3. 컴포넌트에서 Registry stores 사용 (Hook 기반)
+const UserInfo = () => {
+  const userStore = useRegistryStore('user');
+  const settingsStore = useRegistryStore('settings');
+  const user = useStoreValue(userStore);
+  const settings = useStoreValue(settingsStore);
+  return <div>{user?.name} - {settings?.theme}</div>;
+};`}
         </pre>
       </div>
     </div>
@@ -264,12 +271,10 @@ function ComponentStoresDemo() {
         <h4 className="font-medium mb-2">Pattern Usage:</h4>
         <pre className="text-xs text-gray-700 overflow-x-auto">
 {`// 각 컴포넌트 인스턴스마다 독립적인 store 생성
-const IndependentCounter = withStore<number>({ 
-  name: 'counter', 
-  initialValue: 0 
-})(({ counterStore, label }) => {
-  // 이 counterStore는 컴포넌트 인스턴스마다 완전히 독립적
-  const [count, setCount] = useState(counterStore.getValue());
+const IndependentCounter = ({ label, color }) => {
+  // useLocalStore로 컴포넌트 인스턴스마다 완전히 독립적인 스토어 생성
+  const counterStore = useLocalStore('counter', 0);
+  const count = useStoreValue(counterStore);
   
   useEffect(() => {
     return counterStore.subscribe(() => setCount(counterStore.getValue()));
@@ -355,44 +360,34 @@ function MixedPatternDemo() {
     }
   );
 
-  // Registry stores를 사용한 컴포넌트
-  const UserSettingsComponent = withRegistryStores(['user', 'settings'])(
-    ({ userStore, settingsStore }: any) => {
-      const [user, setUser] = useState(userStore?.getValue());
-      const [settings, setSettings] = useState(settingsStore?.getValue());
+  // Registry stores를 사용한 컴포넌트 (Hook 기반)
+  const UserSettingsComponent = () => {
+    const userStore = useRegistryStore('user');
+    const settingsStore = useRegistryStore('settings');
+    const user = useStoreValue(userStore);
+    const settings = useStoreValue(settingsStore);
 
-      React.useEffect(() => {
-        const unsubUser = userStore?.subscribe(() => setUser(userStore.getValue()));
-        const unsubSettings = settingsStore?.subscribe(() => setSettings(settingsStore.getValue()));
-        
-        return () => {
-          unsubUser?.();
-          unsubSettings?.();
-        };
-      }, [userStore, settingsStore]);
-
-      return (
-        <div className="p-4 border rounded bg-white">
-          <h4 className="font-medium mb-3">User Settings (Registry Stores)</h4>
-          <div className="space-y-2 text-sm">
-            <p><strong>User:</strong> {user?.name}</p>
-            <p><strong>Theme:</strong> {settings?.theme}</p>
-            <button 
-              className="px-3 py-1 bg-purple-500 text-white rounded text-sm"
-              onClick={() => {
-                settingsStore?.setValue({
-                  ...settings,
-                  theme: settings?.theme === 'light' ? 'dark' : 'light'
-                });
-              }}
-            >
-              Toggle Theme
-            </button>
-          </div>
+    return (
+      <div className="p-4 border rounded bg-white">
+        <h4 className="font-medium mb-3">User Settings (Registry Stores)</h4>
+        <div className="space-y-2 text-sm">
+          <p><strong>User:</strong> {user?.name}</p>
+          <p><strong>Theme:</strong> {settings?.theme}</p>
+          <button 
+            className="px-3 py-1 bg-purple-500 text-white rounded text-sm"
+            onClick={() => {
+              settingsStore?.setValue({
+                ...settings,
+                theme: settings?.theme === 'light' ? 'dark' : 'light'
+              });
+            }}
+          >
+            Toggle Theme
+          </button>
         </div>
-      );
-    }
-  );
+      </div>
+    );
+  };
 
   // 전체를 StoreProvider로 감싸기
   const MixedPatternApp = withStoreProvider(globalRegistry)(() => (
@@ -420,8 +415,14 @@ const TodoComponent = withManagedStore({
   initialValue: [] 
 })(Component);
 
-// 2. Registry stores - 기존 stores 사용
-const UserSettings = withRegistryStores(['user', 'settings'])(Component);
+// 2. Registry stores - 기존 stores 사용 (Hook 기반)
+const UserSettings = () => {
+  const userStore = useRegistryStore('user');
+  const settingsStore = useRegistryStore('settings');
+  const user = useStoreValue(userStore);
+  const settings = useStoreValue(settingsStore);
+  return <div>{user?.name} - {settings?.theme}</div>;
+};
 
 // 3. StoreProvider로 전체 감싸기
 const App = withStoreProvider(globalRegistry)(AppComponent);`}
