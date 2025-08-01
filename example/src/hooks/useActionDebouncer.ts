@@ -26,6 +26,10 @@ const globalDebounceMap = new Map<string, DebounceState>();
 /**
  * 액션 중복 실행을 방지하는 디바운싱 훅
  * 
+ * @implements {ActionHandler}
+ * @memberof CoreConcepts
+ * @since 1.0.0
+ * 
  * @example
  * ```typescript
  * const debouncedAction = useActionDebouncer('addToCart', { delay: 1000 });

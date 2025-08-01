@@ -1,9 +1,9 @@
 {
-  "name": "@context-action/core",
-  "version": "0.0.3",
+  "name": "@context-action/glossary",
+  "version": "0.0.1",
   "type": "module",
-  "description": "Type-safe action pipeline management library for JavaScript/TypeScript",
-  "main": "dist/index.cjs",
+  "description": "Glossary mapping system for Context-Action framework using standard JSDoc",
+  "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -11,19 +11,18 @@
       "import": {
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
-      },
-      "require": {
-        "types": "./dist/index.d.cts",
-        "default": "./dist/index.cjs"
       }
     }
   },
   "files": [
     "dist",
+    "bin",
     "README.md",
-    "README.ko.md",
     "LICENSE"
   ],
+  "bin": {
+    "glossary": "./bin/glossary-cli.js"
+  },
   "scripts": {
     "build": "tsdown",
     "build:watch": "tsdown --watch",
@@ -36,29 +35,36 @@
     "prepublishOnly": "pnpm run build"
   },
   "keywords": [
-    "typescript",
-    "javascript",
-    "action",
-    "pipeline",
-    "state-management",
-    "event-system"
+    "context-action",
+    "glossary",
+    "jsdoc",
+    "documentation",
+    "mapping",
+    "parser"
   ],
   "author": "mineclover",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mineclover/context-action.git",
-    "directory": "packages/core"
+    "directory": "packages/glossary"
   },
   "bugs": {
     "url": "https://github.com/mineclover/context-action/issues"
   },
   "homepage": "https://github.com/mineclover/context-action#readme",
   "dependencies": {
-    "dotenv": "^16.4.5"
+    "comment-parser": "^1.4.1",
+    "commander": "^12.0.0",
+    "glob": "^10.0.0",
+    "gray-matter": "^4.0.3"
+  },
+  "peerDependencies": {
+    "@context-action/core": "workspace:*"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "eslint": "^8.0.0",

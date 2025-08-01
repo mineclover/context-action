@@ -19,7 +19,7 @@ import {
   EventHandler,
   Logger,
 } from './types.js';
-import { createLogger } from './logger.js';
+import { createLogger, getLoggerNameFromEnv, getDebugFromEnv } from './logger.js';
 
 /**
  * Simple event emitter implementation for ActionRegister events
@@ -107,15 +107,17 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   private readonly config: Required<ActionRegisterConfig>;
 
   constructor(config: ActionRegisterConfig = {}) {
-    // Set defaults for configuration
+    // Set defaults for configuration with .env support
     this.config = {
       logger: config.logger || createLogger(config.logLevel),
       logLevel: config.logLevel ?? 3, // ERROR level as default
-      name: config.name || 'ActionRegister',
-      debug: config.debug ?? false,
+      name: config.name || getLoggerNameFromEnv(),
+      debug: config.debug ?? getDebugFromEnv(),
     };
 
     this.logger = this.config.logger;
+    
+    this.logger.trace(`${this.config.name} constructor called`, { config });
 
     if (this.config.debug) {
       this.logger.info(`${this.config.name} initialized`, {
@@ -123,6 +125,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         debug: this.config.debug,
       });
     }
+    
+    this.logger.trace(`${this.config.name} constructor completed`);
   }
 
   /**
@@ -158,8 +162,12 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     handler: ActionHandler<T[K]>,
     config: HandlerConfig = {}
   ): UnregisterFunction {
+    this.logger.trace(`Registering handler for action '${String(action)}'`, { config });
+    
     // Generate unique handler ID
     const handlerId = config.id || `handler_${++this.handlerCounter}`;
+    
+    this.logger.trace(`Generated handler ID: ${handlerId}`);
     
     // Create handler registration with defaults
     const registration: HandlerRegistration<T[K]> = {
@@ -173,26 +181,35 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       },
       id: handlerId,
     };
+    
+    this.logger.trace(`Created handler registration`, { registration: { id: handlerId, config: registration.config } });
 
     // Initialize pipeline if it doesn't exist
     if (!this.pipelines.has(action)) {
+      this.logger.trace(`Creating new pipeline for action: ${String(action)}`);
       this.pipelines.set(action, []);
       this.logger.debug(`Created pipeline for action: ${String(action)}`);
     }
 
     const pipeline = this.pipelines.get(action)!;
+    this.logger.trace(`Current pipeline for '${String(action)}' has ${pipeline.length} handlers`);
     
     // Check for duplicate handler IDs
     if (pipeline.some(reg => reg.id === handlerId)) {
       this.logger.warn(`Handler with ID '${handlerId}' already exists for action '${String(action)}'`);
+      this.logger.trace(`Duplicate handler registration aborted`);
       return () => {}; // Return no-op unregister function
     }
 
     // Add handler to pipeline
     pipeline.push(registration);
+    this.logger.trace(`Added handler to pipeline, current length: ${pipeline.length}`);
     
     // Sort pipeline by priority (highest first)
     pipeline.sort((a, b) => b.config.priority - a.config.priority);
+    this.logger.trace(`Pipeline sorted by priority`, { 
+      priorities: pipeline.map(reg => ({ id: reg.id, priority: reg.config.priority })) 
+    });
 
     this.logger.debug(`Registered handler for action '${String(action)}'`, {
       handlerId,
@@ -210,16 +227,20 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
 
     // Return unregister function
     return () => {
+      this.logger.trace(`Unregistering handler '${handlerId}' from action '${String(action)}'`);
       const index = pipeline.findIndex(reg => reg.id === handlerId);
       if (index !== -1) {
         pipeline.splice(index, 1);
         this.logger.debug(`Unregistered handler '${handlerId}' from action '${String(action)}'`);
+        this.logger.trace(`Pipeline now has ${pipeline.length} handlers`);
         
         // Emit unregistration event
         this.events.emit('handler:unregister', {
           action,
           handlerId,
         });
+      } else {
+        this.logger.trace(`Handler '${handlerId}' not found in pipeline for unregistration`);
       }
     };
   }
@@ -233,17 +254,28 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     payload?: T[K]
   ): Promise<void> => {
     const startTime = Date.now();
+    this.logger.trace(`Starting dispatch for action '${String(action)}'`, { 
+      action, 
+      payload, 
+      startTime 
+    });
     
     // Emit action start event
     this.events.emit('action:start', { action, payload });
+    this.logger.trace(`Emitted 'action:start' event`);
 
     this.logger.debug(`Dispatching action '${String(action)}'`, { payload });
 
     const pipeline = this.pipelines.get(action);
     if (!pipeline || pipeline.length === 0) {
       this.logger.warn(`No handlers registered for action '${String(action)}'`);
+      this.logger.trace(`Dispatch completed early - no handlers`);
       return;
     }
+    
+    this.logger.trace(`Found ${pipeline.length} handlers for action '${String(action)}'`, {
+      handlerIds: pipeline.map(reg => reg.id)
+    });
 
     // Create pipeline execution context
     const context: PipelineContext<T[K]> = {
@@ -311,15 +343,32 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * @internal
    */
   private async executePipeline<K extends keyof T>(context: PipelineContext<T[K]>): Promise<void> {
+    this.logger.trace(`Starting pipeline execution`, {
+      action: context.action,
+      handlerCount: context.handlers.length,
+      payload: context.payload
+    });
+    
     for (let i = 0; i < context.handlers.length; i++) {
-      if (context.aborted) break;
+      if (context.aborted) {
+        this.logger.trace(`Pipeline execution aborted at handler ${i}`, { reason: context.abortReason });
+        break;
+      }
 
       const registration = context.handlers[i];
       context.currentIndex = i;
+      
+      this.logger.trace(`Executing handler ${i + 1}/${context.handlers.length}`, {
+        handlerId: registration.id,
+        priority: registration.config.priority,
+        blocking: registration.config.blocking,
+        once: registration.config.once
+      });
 
       // Check condition if provided
       if (registration.config.condition && !registration.config.condition()) {
         this.logger.debug(`Skipping handler '${registration.id}' - condition not met`);
+        this.logger.trace(`Handler condition returned false`);
         continue;
       }
 
@@ -329,47 +378,71 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
           // Next is called automatically after handler completion
         },
         abort: (reason?: string) => {
+          this.logger.trace(`Handler '${registration.id}' is aborting pipeline`, { reason });
           context.aborted = true;
           context.abortReason = reason;
           this.logger.warn(`Pipeline aborted by handler '${registration.id}'`, { reason });
         },
         modifyPayload: (modifier: (payload: T[K]) => T[K]) => {
+          this.logger.trace(`Handler '${registration.id}' is modifying payload`);
+          const oldPayload = context.payload;
           context.payload = modifier(context.payload);
           this.logger.debug(`Payload modified by handler '${registration.id}'`);
+          this.logger.trace(`Payload change`, { oldPayload, newPayload: context.payload });
         },
         getPayload: () => context.payload,
       };
 
       try {
+        this.logger.trace(`Calling handler '${registration.id}'`);
+        
         // Execute handler
         const result = registration.handler(context.payload, controller);
         
+        this.logger.trace(`Handler '${registration.id}' returned`, { 
+          isPromise: result instanceof Promise,
+          blocking: registration.config.blocking
+        });
+        
         // Wait for async handlers if they're blocking
         if (registration.config.blocking && result instanceof Promise) {
+          this.logger.trace(`Waiting for blocking handler '${registration.id}' to complete`);
           await result;
+          this.logger.trace(`Blocking handler '${registration.id}' completed`);
         }
 
         // Remove one-time handlers after execution
         if (registration.config.once) {
+          this.logger.trace(`Removing one-time handler '${registration.id}'`);
           const pipeline = this.pipelines.get(context.action as keyof T);
           if (pipeline) {
             const index = pipeline.findIndex(reg => reg.id === registration.id);
             if (index !== -1) {
               pipeline.splice(index, 1);
               this.logger.debug(`Removed one-time handler '${registration.id}'`);
+              this.logger.trace(`Pipeline now has ${pipeline.length} handlers`);
             }
           }
         }
+        
+        this.logger.trace(`Handler '${registration.id}' completed successfully`);
 
       } catch (error: any) {
         this.logger.error(`Handler '${registration.id}' threw an error`, error);
+        this.logger.trace(`Handler error details`, {
+          handlerId: registration.id,
+          blocking: registration.config.blocking,
+          error: error.message || error
+        });
         
         // For blocking handlers, propagate the error
         if (registration.config.blocking) {
+          this.logger.trace(`Propagating error from blocking handler '${registration.id}'`);
           throw error;
         }
         
         // For non-blocking handlers, continue execution
+        this.logger.trace(`Continuing execution after non-blocking handler error`);
         continue;
       }
     }
@@ -382,7 +455,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    */
   getHandlerCount<K extends keyof T>(action: K): number {
     const pipeline = this.pipelines.get(action);
-    return pipeline ? pipeline.length : 0;
+    const count = pipeline ? pipeline.length : 0;
+    this.logger.trace(`Handler count for '${String(action)}': ${count}`);
+    return count;
   }
 
   /**
@@ -391,7 +466,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * @returns True if handlers are registered
    */
   hasHandlers<K extends keyof T>(action: K): boolean {
-    return this.getHandlerCount(action) > 0;
+    const hasHandlers = this.getHandlerCount(action) > 0;
+    this.logger.trace(`Has handlers for '${String(action)}': ${hasHandlers}`);
+    return hasHandlers;
   }
 
   /**
@@ -399,7 +476,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * @returns Array of action names
    */
   getRegisteredActions(): (keyof T)[] {
-    return Array.from(this.pipelines.keys());
+    const actions = Array.from(this.pipelines.keys());
+    this.logger.trace(`Registered actions`, { actions, count: actions.length });
+    return actions;
   }
 
   /**
@@ -407,11 +486,15 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * @param action - The action to clear
    */
   clearAction<K extends keyof T>(action: K): void {
+    this.logger.trace(`Clearing handlers for action '${String(action)}'`);
     const pipeline = this.pipelines.get(action);
     if (pipeline) {
       const handlerCount = pipeline.length;
       this.pipelines.delete(action);
       this.logger.debug(`Cleared ${handlerCount} handlers for action '${String(action)}'`);
+      this.logger.trace(`Action '${String(action)}' pipeline removed`);
+    } else {
+      this.logger.trace(`No pipeline found for action '${String(action)}' to clear`);
     }
   }
 
@@ -419,9 +502,12 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * Clear all handlers for all actions
    */
   clearAll(): void {
+    this.logger.trace(`Clearing all handlers and pipelines`);
     const actionCount = this.pipelines.size;
     const totalHandlers = Array.from(this.pipelines.values())
       .reduce((sum, pipeline) => sum + pipeline.length, 0);
+    
+    this.logger.trace(`Before clear`, { actionCount, totalHandlers });
     
     this.pipelines.clear();
     this.events.removeAllListeners();
@@ -430,6 +516,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       actionCount,
       totalHandlers,
     });
+    
+    this.logger.trace(`All pipelines and event listeners cleared`);
   }
 
   /**

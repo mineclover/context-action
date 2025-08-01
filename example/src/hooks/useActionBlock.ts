@@ -31,6 +31,10 @@ const globalBlockMap = new Map<string, BlockState>();
  * 액션 실행 차단 훅
  * 특정 조건이나 상태에서 액션 실행을 완전히 차단합니다.
  * 
+ * @implements {ActionHandler}
+ * @memberof CoreConcepts
+ * @since 1.0.0
+ * 
  * @example
  * ```typescript
  * const [isLoading, setIsLoading] = useState(false);

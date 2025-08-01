@@ -5,6 +5,11 @@
 
 /**
  * Base interface for defining action payload mappings
+ * 
+ * @implements {ActionPayloadMap}
+ * @memberof ApiTerms
+ * @since 0.0.1
+ * 
  * @example
  * ```typescript
  * interface MyActions extends ActionPayloadMap {
@@ -21,6 +26,11 @@ export interface ActionPayloadMap {
 
 /**
  * Controller object provided to action handlers for pipeline management
+ * 
+ * @implements {PipelineController}
+ * @memberof CoreConcepts
+ * @since 0.0.1
+ * 
  * @template T - The type of the payload being processed
  */
 export interface PipelineController<T = any> {
@@ -96,6 +106,7 @@ export interface PipelineContext<T = any> {
  * Logger interface for customizable logging
  */
 export interface Logger {
+  trace(message: string, data?: any): void;
   debug(message: string, data?: any): void;
   info(message: string, data?: any): void;
   warn(message: string, data?: any): void;
@@ -106,11 +117,12 @@ export interface Logger {
  * Log levels for filtering log output
  */
 export enum LogLevel {
-  DEBUG = 0,
-  INFO = 1,
-  WARN = 2,
-  ERROR = 3,
-  NONE = 4
+  TRACE = 0,
+  DEBUG = 1,
+  INFO = 2,
+  WARN = 3,
+  ERROR = 4,
+  NONE = 5
 }
 
 /**
