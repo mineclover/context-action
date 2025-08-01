@@ -33,12 +33,19 @@ export type {
 } from './types';
 
 // === CORE CLASSES ===
-export { Store, NumericStore } from './Store';
+export { Store, NumericStore, ManagedStore } from './Store';
 export { StoreRegistry } from './StoreRegistry';
 export { EventBus, ScopedEventBus } from './EventBus';
 
 // === UTILITIES ===
-export { StoreUtils, createStore, createComputedStore } from './utils';
+export { StoreUtils, createComputedStore } from './utils';
+
+// === STORE FACTORIES ===
+export { 
+  createStore as createBasicStore, 
+  createManagedStore,
+  type StoreConfig 
+} from './Store';
 
 // === MVVM ARCHITECTURE UTILITIES ===
 export { 
@@ -87,6 +94,14 @@ export {
   useStoreContext, 
   useStoreRegistry 
 } from './StoreContext';
+
+// === HOC PATTERNS ===
+export {
+  withStore,
+  withManagedStore,
+  withRegistryStores,
+  withStoreData
+} from './withStore';
 
 // === SYNC UTILITIES ===
 // Store sync

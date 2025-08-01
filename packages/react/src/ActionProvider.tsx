@@ -5,6 +5,8 @@
 
 import React, { createContext, useContext, useRef, ReactNode } from 'react';
 import { ActionRegister, ActionPayloadMap, ActionRegisterConfig } from '@context-action/core';
+import { StoreRegistry } from './store/StoreRegistry';
+import { StoreProvider } from './StoreProvider';
 
 /**
  * Context type for Action dispatch system
@@ -174,5 +176,97 @@ export function createTypedActionProvider<T extends ActionPayloadMap>() {
     ),
     useDispatch: () => useActionDispatch<T>(),
     useRegister: () => useActionRegister<T>(),
+  };
+}
+
+/**
+ * HOC pattern for ActionProvider
+ * Higher-Order Component that wraps any component with ActionProvider
+ * 
+ * @example
+ * ```typescript
+ * interface AppActions extends ActionPayloadMap {
+ *   updateUser: { id: string; name: string };
+ *   calculateTotal: void;
+ * }
+ * 
+ * // Create HOC with specific config
+ * const withActions = withActionProvider<AppActions>({
+ *   logLevel: LogLevel.DEBUG
+ * });
+ * 
+ * // Use as decorator/wrapper
+ * const App = withActions(() => (
+ *   <div>
+ *     <UserProfile />
+ *     <Calculator />
+ *   </div>
+ * ));
+ * 
+ * // Or wrap existing component
+ * const EnhancedUserProfile = withActions(UserProfile);
+ * ```
+ */
+export function withActionProvider<T extends ActionPayloadMap = ActionPayloadMap>(
+  config?: ActionRegisterConfig
+) {
+  return function <P extends {}>(
+    WrappedComponent: React.ComponentType<P>
+  ): React.FC<P> {
+    const WithActionProvider = (props: P) => (
+      <ActionProvider config={config}>
+        <WrappedComponent {...props} />
+      </ActionProvider>
+    );
+    
+    WithActionProvider.displayName = `withActionProvider(${WrappedComponent.displayName || WrappedComponent.name})`;
+    
+    return WithActionProvider;
+  };
+}
+
+/**
+ * Combined HOC for both Store and Action providers
+ * Wraps component with both StoreProvider and ActionProvider
+ * 
+ * @example
+ * ```typescript
+ * interface AppActions extends ActionPayloadMap {
+ *   updateUser: { id: string; name: string };
+ * }
+ * 
+ * const withProviders = withStoreAndActionProvider<AppActions>({
+ *   action: { logLevel: LogLevel.DEBUG },
+ *   store: { registry: customRegistry }
+ * });
+ * 
+ * const App = withProviders(() => (
+ *   <div>
+ *     <UserProfile />
+ *     <ShoppingCart />
+ *   </div>
+ * ));
+ * ```
+ */
+export function withStoreAndActionProvider<T extends ActionPayloadMap = ActionPayloadMap>(
+  config?: {
+    action?: ActionRegisterConfig;
+    store?: { registry?: StoreRegistry };
+  }
+) {
+  return function <P extends {}>(
+    WrappedComponent: React.ComponentType<P>
+  ): React.FC<P> {
+    const WithBothProviders = (props: P) => (
+      <StoreProvider registry={config?.store?.registry}>
+        <ActionProvider config={config?.action}>
+          <WrappedComponent {...props} />
+        </ActionProvider>
+      </StoreProvider>
+    );
+    
+    WithBothProviders.displayName = `withStoreAndActionProvider(${WrappedComponent.displayName || WrappedComponent.name})`;
+    
+    return WithBothProviders;
   };
 }

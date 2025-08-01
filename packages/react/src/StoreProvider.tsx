@@ -165,3 +165,45 @@ export function createTypedStoreProvider() {
     useRegistry: () => useStoreRegistry(),
   };
 }
+
+/**
+ * HOC pattern for StoreProvider
+ * Higher-Order Component that wraps any component with StoreProvider
+ * 
+ * @example
+ * ```typescript
+ * // Create HOC with custom registry
+ * const customRegistry = new StoreRegistry();
+ * const withStores = withStoreProvider(customRegistry);
+ * 
+ * // Use as decorator/wrapper
+ * const App = withStores(() => (
+ *   <div>
+ *     <UserProfile />
+ *     <ShoppingCart />
+ *   </div>
+ * ));
+ * 
+ * // Or wrap existing component
+ * const EnhancedUserProfile = withStores(UserProfile);
+ * 
+ * // Use without custom registry (creates default one)
+ * const withDefaultStores = withStoreProvider();
+ * const SimpleApp = withDefaultStores(MyComponent);
+ * ```
+ */
+export function withStoreProvider(registry?: StoreRegistry) {
+  return function <P extends {}>(
+    WrappedComponent: React.ComponentType<P>
+  ): React.FC<P> {
+    const WithStoreProvider = (props: P) => (
+      <StoreProvider registry={registry}>
+        <WrappedComponent {...props} />
+      </StoreProvider>
+    );
+    
+    WithStoreProvider.displayName = `withStoreProvider(${WrappedComponent.displayName || WrappedComponent.name})`;
+    
+    return WithStoreProvider;
+  };
+}
