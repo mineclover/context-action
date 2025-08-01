@@ -1,6 +1,6 @@
 // === CORE STORE HOOKS ===
 // Essential hooks for store management
-export { useStore } from './useStore';
+export { useStore } from '../store-sync';
 export { useStoreValue, useStoreValues } from './useStoreValue';
 export { useStoreActions } from './useStoreActions';
 
