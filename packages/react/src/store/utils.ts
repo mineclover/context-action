@@ -30,38 +30,30 @@ export function createStore<T>(initialValue: T, name?: string): Store<T> {
 }
 
 /**
- * Create a computed store that derives its value from other stores
- * Following ARCHITECTURE.md pattern for computed stores
+ * Computed Store 생성 함수
+ * 핵심 기능: 여러 Store의 값을 조합하여 파생된 값을 가지는 반응형 Store 생성
  * 
- * @template T - Type of the computed store value  
- * @template D - Array type of dependency stores
- * @param dependencies - Array of stores to depend on
- * @param compute - Function to compute the derived value
- * @param name - Optional name for the computed store
- * @returns New computed Store instance
+ * @template T - 계산된 Store 값의 타입
+ * @template D - 의존성 Store 배열 타입
+ * @param dependencies - 의존할 Store 배열
+ * @param compute - 파생 값을 계산할 함수
+ * @param name - Store 이름 (선택적)
+ * @returns 새로운 계산된 Store 인스턴스
+ * 
+ * 핵심 로직:
+ * 1. 초기 계산 - 모든 의존성 Store의 현재 값으로 초기값 계산
+ * 2. 구독 설정 - 각 의존성 Store 변경 시 재계산
+ * 3. 정리 함수 - 메모리 누수 방지를 위한 구독 해제
  * 
  * @example
  * ```typescript
  * const cartSummaryStore = createComputedStore(
  *   [cartStore, inventoryStore, userStore],
- *   (cart, inventory, user) => {
- *     const validItems = cart.items.filter(item => 
- *       inventory[item.productId] && inventory[item.productId].stock >= item.quantity
- *     );
- *     const subtotal = validItems.reduce((sum, item) => 
- *       sum + (item.price * item.quantity), 0
- *     );
- *     const discount = calculateDiscount(user.membershipLevel, subtotal);
- *     const tax = calculateTax(subtotal - discount, user.location);
- *     
- *     return {
- *       itemCount: validItems.length,
- *       subtotal,
- *       discount,
- *       tax,
- *       total: subtotal - discount + tax
- *     };
- *   }
+ *   (cart, inventory, user) => ({
+ *     itemCount: cart.items.length,
+ *     total: cart.items.reduce((sum, item) => sum + item.price, 0),
+ *     canCheckout: cart.items.every(item => inventory[item.id] > 0)
+ *   })
  * );
  * ```
  */
@@ -72,13 +64,13 @@ export function createComputedStore<T, D extends readonly IStore[]>(
 ): Store<T> {
   const storeName = name || `computed_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   
-  // Initial computation
+  // 초기 계산 - 모든 의존성의 현재 값으로 초기값 생성
   const initialValues = dependencies.map(store => store.getValue()) as any;
   const initialValue = compute(...initialValues);
   
   const computedStore = new Store(storeName, initialValue);
   
-  // Subscribe to all dependencies
+  // 의존성 구독 - 각 Store 변경 시 재계산
   const unsubscribes = dependencies.map(store => 
     store.subscribe(() => {
       const currentValues = dependencies.map(dep => dep.getValue()) as any;
@@ -87,7 +79,7 @@ export function createComputedStore<T, D extends readonly IStore[]>(
     })
   );
   
-  // Store cleanup function for proper resource management
+  // 정리 함수 저장 - 메모리 누수 방지
   (computedStore as any)._cleanup = () => {
     unsubscribes.forEach(unsub => unsub());
   };
@@ -96,11 +88,19 @@ export function createComputedStore<T, D extends readonly IStore[]>(
 }
 
 /**
- * Utility functions for store operations
+ * Store 유틸리티 클래스
+ * 핵심 기능: Store 간 동기화, 복사, Registry 조작 등의 고급 작업
+ * 
+ * 주요 기능:
+ * 1. Store 복사 및 동기화
+ * 2. Registry 간 동기화 및 병합
+ * 3. 양방향 동기화 및 디바운스
+ * 4. Computed Store 생성 (deprecated - 함수형 API 사용 권장)
  */
 export class StoreUtils {
 	/**
-	 * Copy value from source store to target store
+	 * Store 값 복사
+	 * 핵심 기능: 소스 Store의 현재 값을 타겟 Store에 복사
 	 */
 	static copyStore(sourceStore: IStore, targetStore: IStore): void {
 		const { value } = sourceStore.getSnapshot();
@@ -108,7 +108,12 @@ export class StoreUtils {
 	}
 
 	/**
-	 * Sync all matching stores between registries
+	 * Registry 간 Store 동기화
+	 * 핵심 기능: 소스 Registry의 Store들을 타겟 Registry로 동기화
+	 * 
+	 * @param sourceRegistry 소스 Registry
+	 * @param targetRegistry 타겟 Registry  
+	 * @param options 필터링 및 생성 옵션
 	 */
 	static syncRegistries(
 		sourceRegistry: IStoreRegistry,
@@ -139,7 +144,8 @@ export class StoreUtils {
 	}
 
 	/**
-	 * Create a clone of a store
+	 * Store 복제
+	 * 핵심 기능: 기존 Store와 동일한 값과 이름을 가진 새로운 Store 생성
 	 */
 	static cloneStore<T = any>(store: IStore<T>): Store<T> {
 		const { value, name } = store.getSnapshot();
@@ -147,7 +153,13 @@ export class StoreUtils {
 	}
 
 	/**
-	 * Create auto-sync between two stores
+	 * 자동 동기화 설정
+	 * 핵심 기능: 소스 Store 변경 시 자동으로 타겟 Store 업데이트
+	 * 
+	 * @param sourceStore 소스 Store
+	 * @param targetStore 타겟 Store
+	 * @param options 즉시 동기화 및 변환 함수 옵션
+	 * @returns 동기화 해제 함수
 	 */
 	static createAutoSync(
 		sourceStore: IStore,
@@ -248,36 +260,16 @@ export class StoreUtils {
 		});
 	}
 
-	/**
-	 * Create a computed store that derives its value from other stores
-	 */
-	static createComputedStore<T>(
-		name: string,
-		dependencies: IStore[],
-		compute: (...values: any[]) => T,
-	): Store<T> {
-		// Get initial values
-		const initialValues = dependencies.map(
-			(store) => store.getSnapshot().value,
-		);
-		const computedStore = new Store(name, compute(...initialValues));
-
-		// Update when any dependency changes
-		const update = () => {
-			const values = dependencies.map((store) => store.getSnapshot().value);
-			computedStore.setValue(compute(...values));
-		};
-
-		// Subscribe to all dependencies
-		dependencies.forEach((store) => {
-			store.subscribe(update);
-		});
-
-		return computedStore;
-	}
+	// createComputedStore 메서드 제거됨 - 대신 utils/createComputedStore() 함수 사용
 
 	/**
-	 * Create a debounced store that delays updates
+	 * 디바운스 Store 생성
+	 * 핵심 기능: 소스 Store 변경을 지연시켜 과도한 업데이트 방지
+	 * 
+	 * @param name Store 이름
+	 * @param sourceStore 소스 Store
+	 * @param delay 지연 시간 (밀리초)
+	 * @returns 디바운스된 Store
 	 */
 	static createDebouncedStore<T>(
 		name: string,
@@ -287,6 +279,7 @@ export class StoreUtils {
 		const debouncedStore = new Store(name, sourceStore.getSnapshot().value);
 		let timeoutId: any;
 
+		// 디바운스 로직 - 마지막 변경 후 delay 시간 대기
 		sourceStore.subscribe(() => {
 			clearTimeout(timeoutId);
 			timeoutId = setTimeout(() => {

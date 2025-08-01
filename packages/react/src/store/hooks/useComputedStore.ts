@@ -5,25 +5,23 @@ import { createComputedStore } from '../utils';
 import type { IStore } from '../types';
 
 /**
- * Hook for creating computed stores with dependencies
+ * Computed Store Hook
+ * 핵심 기능: 여러 Store의 값을 조합하여 파생된 값을 계산하는 반응형 Store 생성
+ * 
+ * 핵심 로직:
+ * 1. 컴포넌트 마운트 시 Computed Store 생성 (한 번만)
+ * 2. compute 함수 변경 시 Store 재생성 및 이전 Store 정리
+ * 3. 의존성 Store 변경 시 자동 재계산
+ * 4. React 컴포넌트와 반응형 동기화
+ * 
  * @implements computed-store
  * @memberof api-terms
+ * 
  * @example
  * ```typescript
- * // Basic computed store
  * const totalPriceStore = useComputedStore(
  *   [cartStore, taxStore],
- *   (cart, tax) => cart.items.reduce((sum, item) => sum + item.price, 0) * (1 + tax.rate)
- * );
- * 
- * // Named computed store
- * const userDisplayStore = useComputedStore(
- *   [userStore, settingsStore],
- *   (user, settings) => ({
- *     displayName: settings.showFullName ? user.name : user.name.split(' ')[0],
- *     avatar: generateAvatar(user.id, settings.theme)
- *   }),
- *   'userDisplay'
+ *   (cart, tax) => cart.total * (1 + tax.rate)
  * );
  * ```
  */
@@ -34,17 +32,17 @@ export function useComputedStore<T, D extends readonly IStore[]>(
 ): Store<T> {
   const storeRef = useRef<Store<T>>();
   
-  // Create the computed store if it doesn't exist
+  // 생성 옵티마이제이션 - 컴포넌트 마운트 시 한 번만 생성
   if (!storeRef.current) {
     storeRef.current = createComputedStore(dependencies, compute, name);
   }
   
-  // Update the compute function if it changes
+  // compute 함수 변경 감지 및 Store 재생성
   useMemo(() => {
     if (storeRef.current) {
-      // Re-create the computed store with new compute function
+      // 새로운 compute 함수로 Computed Store 재생성
       const newStore = createComputedStore(dependencies, compute, name);
-      // Clean up old store if it has cleanup method
+      // 이전 Store 정리 - 메모리 누수 방지
       if ((storeRef.current as any)._cleanup) {
         (storeRef.current as any)._cleanup();
       }
@@ -52,27 +50,30 @@ export function useComputedStore<T, D extends readonly IStore[]>(
     }
   }, [compute, name, ...dependencies]);
   
-  // Subscribe to changes to keep the store reactive
+  // 반응형 구독 - Store 변경 시 React 컴포넌트 재렌더링 유지
   useStoreSync(storeRef.current);
   
   return storeRef.current;
 }
 
 /**
- * Hook to get the computed value directly (convenience wrapper)
+ * Computed Value Hook (편의 래퍼)
+ * 핵심 기능: Computed Store의 값만 직접 반환 (저장소 인스턴스 없이)
  * 
- * @template T - Type of the computed store value  
- * @template D - Array type of dependency stores
- * @param dependencies - Array of stores to depend on
- * @param compute - Function to compute the derived value
- * @param name - Optional name for the computed store
- * @returns The current computed value
+ * @template T - 계산된 Store 값의 타입
+ * @template D - 의존성 Store 배열 타입
+ * @param dependencies - 의존할 Store 배열
+ * @param compute - 파생 값을 계산할 함수
+ * @param name - Store 이름 (선택적)
+ * @returns 현재 계산된 값
+ * 
+ * 사용 시나리오: Store 인스턴스가 필요 없고 계산된 값만 사용하는 경우
  * 
  * @example
  * ```typescript
  * const totalPrice = useComputedValue(
  *   [cartStore, taxStore],
- *   (cart, tax) => cart.items.reduce((sum, item) => sum + item.price, 0) * (1 + tax.rate)
+ *   (cart, tax) => cart.total * (1 + tax.rate)
  * );
  * ```
  */
@@ -81,7 +82,9 @@ export function useComputedValue<T, D extends readonly IStore[]>(
   compute: (...values: { [K in keyof D]: D[K] extends IStore<infer V> ? V : never }) => T,
   name?: string
 ): T | undefined {
+  // Computed Store 생성 및 관리
   const store = useComputedStore(dependencies, compute, name);
+  // 스냅샷에서 값만 추출
   const snapshot = useStoreSync(store);
   return snapshot.value;
 }

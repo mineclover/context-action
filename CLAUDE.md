@@ -38,66 +38,66 @@ The Context-Action framework follows these principles:
 ### Root Level Commands
 ```bash
 # Install dependencies
-pnpm install
+pnpm install -w
 
 # Build all packages
-pnpm build
+pnpm build -w
 
 # Build specific package
-pnpm build:core     # @context-action/core
-pnpm build:react    # @context-action/react
-pnpm build:jotai    # @context-action/jotai
-pnpm build:logger   # @context-action/logger
+pnpm build:core -w     # @context-action/core
+pnpm build:react -w    # @context-action/react
+pnpm build:jotai -w    # @context-action/jotai
+pnpm build:logger -w   # @context-action/logger
 
 # Run tests
-pnpm test           # All packages
-pnpm test:core      # Specific package
+pnpm test -w           # All packages
+pnpm test:core -w      # Specific package
 
 # Linting and type checking
-pnpm lint           # ESLint for all packages
-pnpm type-check     # TypeScript compilation check
+pnpm lint -w           # ESLint for all packages
+pnpm type-check -w     # TypeScript compilation check
 
 # Clean build artifacts
-pnpm clean
+pnpm clean -w
 
 # Development server (example app)
-pnpm dev            # Runs example application
+pnpm dev -w            # Runs example application
 ```
 
 ### Package Management (Lerna)
 ```bash
 # Check which packages have changed
-pnpm changed
+pnpm changed -w
 
 # See diff of changes
-pnpm diff
+pnpm diff -w
 
 # Version management
-pnpm version        # Interactive version bump
-pnpm version:patch  # Patch version bump
-pnpm version:minor  # Minor version bump
-pnpm version:major  # Major version bump
+pnpm version -w        # Interactive version bump
+pnpm version:patch -w  # Patch version bump
+pnpm version:minor -w  # Minor version bump
+pnpm version:major -w  # Major version bump
 
 # Publishing
-pnpm release        # Publish changed packages
-pnpm release:patch  # Version patch + publish
+pnpm release -w        # Publish changed packages
+pnpm release:patch -w  # Version patch + publish
 ```
 
 ### Documentation
 ```bash
 # Documentation development
-pnpm docs:dev       # VitePress dev server
-pnpm docs:build     # Build documentation
-pnpm docs:api       # Generate API docs with TypeDoc
-pnpm docs:sync      # Sync API docs to documentation
-pnpm docs:full      # Full documentation build pipeline
+pnpm docs:dev -w       # VitePress dev server
+pnpm docs:build -w     # Build documentation
+pnpm docs:api -w       # Generate API docs with TypeDoc
+pnpm docs:sync -w      # Sync API docs to documentation
+pnpm docs:full -w      # Full documentation build pipeline
 ```
 
 ### Example Application
 ```bash
 # Example app (in example/ directory)
-pnpm example:dev    # Development server
-pnpm example:build  # Build example app
+pnpm example:dev -w    # Development server
+pnpm example:build -w  # Build example app
 
 # Or from example directory:
 cd example
