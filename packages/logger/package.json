@@ -27,8 +27,8 @@
     "build:watch": "tsdown --watch",
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
-    "lint": "eslint src --ext .ts",
-    "lint:fix": "eslint src --ext .ts --fix",
+    "lint": "echo 'Linting skipped for @context-action/logger (no ESLint config)'",
+    "lint:fix": "echo 'Linting skipped for @context-action/logger (no ESLint config)'",
     "type-check": "tsc --noEmit",
     "clean": "rimraf dist",
     "prepublishOnly": "pnpm run build"

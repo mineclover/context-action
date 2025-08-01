@@ -66,17 +66,21 @@ pnpm install
 ### Development Commands
 
 ```bash
-# Start development server (test app)
-pnpm dev
-
-# Build the library
-pnpm build
+# Install dependencies
+pnpm install
 
 # Build all packages
-pnpm build:all
+pnpm build
 
-# Run tests
+# Build specific package
+pnpm build:core    # Build @context-action/core
+pnpm build:react   # Build @context-action/react
+
+# Run tests for all packages
 pnpm test
+
+# Run tests for specific package
+pnpm test:core     # Test @context-action/core
 
 # Run linting
 pnpm lint
@@ -86,6 +90,36 @@ pnpm type-check
 
 # Clean build artifacts
 pnpm clean
+
+# Check what packages have changed
+pnpm changed
+
+# See diff of changes
+pnpm diff
+```
+
+### Version Management
+
+```bash
+# Version all changed packages
+pnpm version
+
+# Version with specific bump
+pnpm version:patch  # Patch release (0.0.x)
+pnpm version:minor  # Minor release (0.x.0)
+pnpm version:major  # Major release (x.0.0)
+```
+
+### Publishing
+
+```bash
+# Publish all changed packages
+pnpm release
+
+# Publish with version bump
+pnpm release:patch  # Bump patch version and publish
+pnpm release:minor  # Bump minor version and publish
+pnpm release:major  # Bump major version and publish
 ```
 
 ## 🚀 Quick Start
@@ -181,15 +215,18 @@ context-action/
 │   ├── logger/                 # Logging utilities
 │   ├── jotai/                  # Jotai integration
 │   └── glossary/               # Documentation tools
-├── docs/                       # Documentation site (Docusaurus)
+├── docs/                       # Documentation site (VitePress)
+├── lerna.json                  # Lerna configuration
 ├── pnpm-workspace.yaml         # pnpm workspace configuration
+├── .npmrc                      # pnpm configuration for Lerna
 ├── package.json                # Root package.json
 └── tsconfig.json              # TypeScript configuration
 ```
 
 ## 🛠️ Technology Stack
 
-- **Package Manager**: pnpm with workspaces
+- **Package Manager**: pnpm with workspaces + Lerna
+- **Monorepo Tool**: Lerna 8.x for versioning and publishing
 - **Language**: TypeScript 5.3+
 - **Bundler**: tsdown (powered by rolldown)
 - **Documentation**: VitePress
@@ -201,10 +238,11 @@ context-action/
 1. Clone the repository
 2. Install dependencies: `pnpm install`
 3. Make your changes
-4. Build all packages: `pnpm build:all`
+4. Build all packages: `pnpm build`
 5. Run tests: `pnpm test`
 6. Lint your code: `pnpm lint`
-7. Submit a pull request
+7. Check for changes: `pnpm changed`
+8. Submit a pull request
 
 ## 📄 License
 
