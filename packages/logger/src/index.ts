@@ -5,8 +5,9 @@
 
 import { Logger, LogLevel } from './types.js';
 
-// Export types
-export type { Logger, LogLevel };
+// Export types and values
+export type { Logger };
+export { LogLevel };
 
 // Note: .env loading should be done by the application
 // Import dotenv in your application entry point:

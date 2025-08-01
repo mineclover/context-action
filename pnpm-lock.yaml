@@ -41,6 +41,9 @@ importers:
       '@context-action/jotai':
         specifier: workspace:*
         version: link:../packages/jotai
+      '@context-action/logger':
+        specifier: workspace:*
+        version: link:../packages/logger
       '@context-action/react':
         specifier: workspace:*
         version: link:../packages/react
@@ -173,6 +176,9 @@ importers:
       '@context-action/core':
         specifier: workspace:*
         version: link:../core
+      '@context-action/logger':
+        specifier: workspace:*
+        version: link:../logger
     devDependencies:
       '@types/jest':
         specifier: ^29.5.0

@@ -1,5 +1,6 @@
 import React from 'react'
-import { createAtomContext, LogLevel, ConsoleLogger } from '../packages/jotai/src'
+import { createAtomContext } from '../packages/jotai/src'
+import { LogLevel, ConsoleLogger } from '../packages/logger/src'
 
 // 1. 기본 사용법 (환경변수나 기본 ERROR 레벨 사용)
 const { Provider: BasicProvider, useAtomState, useAtomSetter } = createAtomContext(0)

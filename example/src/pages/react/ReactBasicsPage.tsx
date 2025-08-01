@@ -1,4 +1,4 @@
-import { LogLevel } from '@context-action/core';
+import { LogLevel } from '@context-action/logger';
 import {
   type ActionPayloadMap,
   createActionContext,

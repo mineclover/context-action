@@ -20,6 +20,7 @@
   },
   "references": [
     { "path": "./packages/core" },
+    { "path": "./packages/logger" },
     { "path": "./packages/react" },
     { "path": "./packages/jotai" },
     { "path": "./example" }

@@ -1,9 +1,6 @@
 import React, { useState, useCallback } from "react";
-import {
-	createActionContext,
-	LogLevel,
-	ConsoleLogger,
-} from "../packages/react/src";
+import { createActionContext } from "../packages/react/src";
+import { LogLevel, ConsoleLogger } from "../packages/logger/src";
 
 // 액션 타입 정의
 interface AppActions {

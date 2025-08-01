@@ -1,4 +1,5 @@
-import { type ActionPayloadMap, LogLevel } from '@context-action/core';
+import { type ActionPayloadMap } from '@context-action/core';
+import { LogLevel } from '@context-action/logger';
 import { createActionContext } from '@context-action/react';
 import React, { useCallback, useState } from 'react';
 
