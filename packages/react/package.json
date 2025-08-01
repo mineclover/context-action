@@ -59,7 +59,8 @@
     "react": ">=16.8.0"
   },
   "dependencies": {
-    "@context-action/core": "workspace:*"
+    "@context-action/core": "workspace:*",
+    "@context-action/logger": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",

@@ -10,16 +10,19 @@ export type {
 	ActionHandler,
 	HandlerConfig,
 	PipelineController,
-	Logger,
 } from "@context-action/core";
 
 export { 
 	ActionRegister,
+} from "@context-action/core";
+
+// === LOGGER SYSTEM ===
+export type { Logger, LogLevel } from "@context-action/logger";
+export {
 	ConsoleLogger,
-	LogLevel,
 	createLogger,
 	getLogLevelFromEnv,
-} from "@context-action/core";
+} from "@context-action/logger";
 
 // === REACT ACTION CONTEXT ===
 export * from "./ActionContext";

@@ -17,9 +17,9 @@ import {
   ActionRegisterEvents,
   EventEmitter,
   EventHandler,
-  Logger,
 } from './types.js';
-import { createLogger, getLoggerNameFromEnv, getDebugFromEnv } from './logger.js';
+import type { Logger } from '@context-action/logger';
+import { createLogger, getLoggerNameFromEnv, getDebugFromEnv } from '@context-action/logger';
 
 /**
  * Simple event emitter implementation for ActionRegister events
