@@ -106,6 +106,16 @@ actionRegister.register('updateUser', async (payload, controller) => {
 - Stores can be tested without action pipeline
 - Components can be tested with mock dispatch
 
+### 5. Single Responsibility
+- **Components**: Only render UI and dispatch actions
+- **Actions**: Handle all business logic and data processing
+- **Stores**: Pure state containers with no computation logic
+
+### 6. Data Flow Clarity
+- Unidirectional data flow: Component → Action → Store → Component
+- No computed stores - all data integration happens in action handlers
+- Stores contain final, processed data ready for display
+
 ## Integration with React
 
 ### StoreProvider Setup
@@ -203,7 +213,10 @@ actionRegister.register('checkout', async (payload, controller) => {
 });
 ```
 
-### 2. Computed Values in Actions
+### 2. Data Integration Pattern (Recommended over Computed Stores)
+
+Instead of computed stores, use action handlers to integrate data from multiple stores:
+
 ```typescript
 actionRegister.register('calculateTotals', async (payload, controller) => {
   const cart = cartStore.getValue();
@@ -215,12 +228,21 @@ actionRegister.register('calculateTotals', async (payload, controller) => {
   const discount = calculateDiscount(user, promos, subtotal);
   const tax = calculateTax(user.location, subtotal - discount);
   
+  // Store computed result in dedicated store
   totalsStore.setValue({
     subtotal,
     discount,
     tax,
     total: subtotal - discount + tax
   });
+});
+
+// Trigger calculation when dependencies change
+actionRegister.register('updateCart', async (payload, controller) => {
+  cartStore.setValue(payload.cart);
+  
+  // Automatically recalculate totals
+  dispatch('calculateTotals', {});
 });
 ```
 
@@ -441,6 +463,9 @@ flowchart LR
 5. **Performance**: Only components using changed stores re-render
 6. **Debugging**: Clear action flow with pipeline tracing
 7. **Scalability**: Easy to add new actions and stores as app grows
+8. **Simplified Components**: Components focus solely on UI rendering and user interaction
+9. **Centralized Logic**: All data processing and business rules concentrated in action handlers
+10. **Predictable State**: Stores contain only final, processed data - no intermediate computations
 
 ## Best Practices
 
@@ -450,3 +475,5 @@ flowchart LR
 4. **Avoid Side Effects**: Keep store updates predictable and traceable
 5. **Type Everything**: Leverage TypeScript for safety and documentation
 6. **Test Handlers**: Write unit tests for action handlers with mock stores
+7. **Data Integration in Actions**: Instead of computed stores, process and combine data in action handlers, then store results in dedicated stores
+8. **Component Simplicity**: Components should only subscribe to stores and dispatch actions - no business logic in components
