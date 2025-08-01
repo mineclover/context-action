@@ -2,9 +2,10 @@ import { useStoreSync } from '../store-sync';
 import type { IStore } from '../types';
 
 /**
+ * Hook to get current value from store with optional selector
  * @implements store-hooks
  * @memberof api-terms
- */
+ * @example
  * ```typescript
  * // Basic store subscription
  * const counterStore = createStore(0);

@@ -1,5 +1,18 @@
 /**
- * Shopping cart component demonstrating cart store usage
+ * Shopping cart component demonstrating MVVM pattern and business logic
+ * @implements mvvm-pattern
+ * @memberof architecture-terms
+ * @implements cross-store-coordination
+ * @memberof core-concepts
+ * @example
+ * ```typescript
+ * // MVVM: CartStore (ViewModel) + React Component (View)
+ * function CartDemo() {
+ *   const cartStore = new CartStore('cart');    // ViewModel with business logic
+ *   const cart = useStoreValue(cartStore);      // Data binding
+ *   return <div>Items: {cart.items.length}</div>; // View presentation
+ * }
+ * ```
  */
 
 import type React from 'react';
@@ -20,6 +33,13 @@ interface Cart {
   currency: string;
 }
 
+/**
+ * Shopping cart ViewModel implementing complex business logic
+ * @implements business-logic
+ * @memberof core-concepts
+ * @implements type-safety
+ * @memberof architecture-terms
+ */
 class CartStore extends Store<Cart> {
   constructor(name: string) {
     super(name, { items: [], total: 0, currency: 'USD' });

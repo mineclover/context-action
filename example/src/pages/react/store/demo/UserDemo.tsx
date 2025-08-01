@@ -1,5 +1,16 @@
 /**
- * User profile component demonstrating user store usage
+ * User profile component demonstrating MVVM pattern and user store usage
+ * @implements mvvm-pattern
+ * @memberof architecture-terms
+ * @example
+ * ```typescript
+ * // View (React Component) + ViewModel (UserStore) separation
+ * function UserDemo() {
+ *   const userStore = new UserStore('user'); // ViewModel
+ *   const user = useStoreValue(userStore);   // Data binding
+ *   return <div>{user.name}</div>;           // View
+ * }
+ * ```
  */
 
 import type React from 'react';
@@ -18,6 +29,13 @@ interface User {
   };
 }
 
+/**
+ * User ViewModel implementing business logic for user management
+ * @implements business-logic
+ * @memberof core-concepts
+ * @implements type-safety
+ * @memberof architecture-terms
+ */
 class UserStore extends Store<User | null> {
   constructor(name: string) {
     super(name, null);

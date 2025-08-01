@@ -1,80 +1,74 @@
 # 용어집 구현 현황 대시보드
 
-> 🕒 최종 업데이트: 2025. 8. 1. 오후 6:33:56
+> 🕒 최종 업데이트: 2025. 8. 1. 오후 6:56:29
 > 
 > 📊 자동 생성된 구현 현황 리포트입니다.
 
 ## 📈 전체 현황
 
 ### 구현 통계
-- **전체 용어집 용어**: 37개
-- **구현된 용어**: 13개
-- **구현률**: **35%**
+- **전체 용어집 용어**: 38개
+- **구현된 용어**: 25개
+- **구현률**: **66%**
 - **스캔된 파일**: 83개
-- **태그가 있는 파일**: 7개
+- **태그가 있는 파일**: 14개
 
 ### 품질 현황
-- **검증 상태**: ❌ 실패
-- **에러**: 1개
-- **경고**: 27개
+- **검증 상태**: ✅ 통과
+- **에러**: 0개
+- **경고**: 21개
 
 ## 📊 카테고리별 현황
 
 
 ### 🎯 핵심 개념
 
-🟠 **개선필요** (35%)
+🟡 **보통** (50%)
 
-- 구현 완료: 9/26개
-- 미구현: 13개
-
-
-**우선순위 구현 대상:**
-- Action Pipeline System
-- Store Integration Pattern
-- Action Handler
-
-
-
-**최근 구현:**
-- action-payload-map
-- pipeline-controller
-
-
-
-### 🏗️ 아키텍처
-
-🔴 **시작단계** (6%)
-
-- 구현 완료: 1/17개
-- 미구현: 6개
-
-
-**우선순위 구현 대상:**
-- MVVM Pattern
-- View Layer
-- ViewModel Layer
-
-
-
-**최근 구현:**
-- view-layer
-
-
-
-### 🔌 API 용어
-
-🟠 **개선필요** (21%)
-
-- 구현 완료: 3/14개
+- 구현 완료: 15/30개
 - 미구현: 0개
 
 **✅ 모든 핵심 용어 구현 완료**
 
 
 **최근 구현:**
-- action-dispatcher
-- pipeline-context
+- business-logic
+- type-safety
+
+
+
+### 🏗️ 아키텍처
+
+🟠 **개선필요** (27%)
+
+- 구현 완료: 7/26개
+- 미구현: 1개
+
+
+**우선순위 구현 대상:**
+- ViewModel Layer
+
+
+
+**최근 구현:**
+- business-logic
+- type-safety
+
+
+
+### 🔌 API 용어
+
+🟠 **개선필요** (40%)
+
+- 구현 완료: 10/25개
+- 미구현: 0개
+
+**✅ 모든 핵심 용어 구현 완료**
+
+
+**최근 구현:**
+- priority-based-execution
+- async-operations
 
 
 
@@ -82,7 +76,7 @@
 
 🔴 **시작단계** (0%)
 
-- 구현 완료: 0/20개
+- 구현 완료: 0/32개
 - 미구현: 7개
 
 
@@ -98,52 +92,52 @@
 ## 🎯 우선순위 TODO
 
 
-### 1. "ActionRegister" 구현
+### 1. "action-handler" 추가 구현
 
-- **우선순위**: 🔴 높음
-- **카테고리**: core-concepts
-- **예상 작업량**: High
+- **우선순위**: 🟡 보통
+- **카테고리**: 구현 확장
+- **예상 작업량**: Medium
+- **영향 파일 수**: 4개
+
+현재 1개 구현, 5개 필요
+
+
+### 2. "actionregister" 추가 구현
+
+- **우선순위**: 🟡 보통
+- **카테고리**: 구현 확장
+- **예상 작업량**: Medium
 - **영향 파일 수**: 1개
 
-ActionRegister 클래스에 @implements actionregister 태그 추가
+현재 1개 구현, 2개 필요
 
 
-### 2. "StoreProvider" 구현
+### 3. "store-hooks" 추가 구현
 
-- **우선순위**: 🔴 높음
-- **카테고리**: core-concepts
-- **예상 작업량**: High
-- **영향 파일 수**: 1개
+- **우선순위**: 🟡 보통
+- **카테고리**: 구현 확장
+- **예상 작업량**: Medium
+- **영향 파일 수**: 2개
 
-StoreProvider 컴포넌트에 @implements storeprovider 태그 추가
-
-
-### 3. "ActionProvider" 구현
-
-- **우선순위**: 🔴 높음
-- **카테고리**: core-concepts
-- **예상 작업량**: High
-- **영향 파일 수**: 1개
-
-actionprovider을 구현하는 함수/클래스/인터페이스에 @implements actionprovider 태그 추가
-
-
-### 4. "Store Hooks" 구현
-
-- **우선순위**: 🔴 높음
-- **카테고리**: core-concepts
-- **예상 작업량**: High
-- **영향 파일 수**: 1개
-
-useStoreValue 훅에 @implements store-hooks 태그 추가
+현재 1개 구현, 3개 필요
 
 
 ## 📊 최근 구현 현황
 
 
 
-- **store-registry** `StoreRegistry` (class)
-  - 📁 `packages/react/src/store/StoreRegistry.ts`
+- **computed-store** `useComputedStore` (function)
+  - 📁 `packages/react/src/store/hooks/useComputedStore.ts`
+  - 📅 2025. 8. 1.
+
+
+- **store-hooks** `useStoreValue` (function)
+  - 📁 `packages/react/src/store/hooks/useStoreValue.ts`
+  - 📅 2025. 8. 1.
+
+
+- **selective-subscription** `useStoreValues` (function)
+  - 📁 `packages/react/src/store/hooks/useStoreValue.ts`
   - 📅 2025. 8. 1.
 
 
@@ -157,22 +151,12 @@ useStoreValue 훅에 @implements store-hooks 태그 추가
   - 📅 2025. 8. 1.
 
 
-- **selective-subscription** `useStoreValues` (function)
-  - 📁 `packages/react/src/store/hooks/useStoreValue.ts`
-  - 📅 2025. 8. 1.
-
-
-- **action-dispatcher** `ActionDispatcher` (interface)
-  - 📁 `packages/core/src/types.ts`
-  - 📅 2025. 8. 1.
-
-
 
 ## 📈 진행 트렌드
 
 - **구현 속도**: + 3 용어/주
 - **가장 활발한 카테고리**: core-concepts
-- **완료 예상 시기**: 3-6개월
+- **완료 예상 시기**: 2-3개월
 
 ## 🔄 다음 단계
 
@@ -197,4 +181,4 @@ useStoreValue 훅에 @implements store-hooks 태그 추가
 *이 대시보드는 `node implementation-dashboard.js` 명령어로 자동 생성됩니다.*
 *문제가 있거나 개선사항이 있다면 이슈를 생성해주세요.*
 
-<!-- Dashboard generated at 2025-08-01T09:33:56.915Z -->
+<!-- Dashboard generated at 2025-08-01T09:56:29.102Z -->

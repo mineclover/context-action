@@ -5,9 +5,10 @@ import { createComputedStore } from '../utils';
 import type { IStore, Snapshot } from '../types';
 
 /**
+ * Hook for creating computed stores with dependencies
  * @implements computed-store
  * @memberof api-terms
- */
+ * @example
  * ```typescript
  * // Basic computed store
  * const totalPriceStore = useComputedStore(

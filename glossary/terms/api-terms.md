@@ -223,3 +223,28 @@ Technical implementation and API concepts for the Context-Action framework.
 
 
 **Related Terms**: [Pipeline Controller](./core-concepts.md#pipeline-controller), [Action Pipeline System](./core-concepts.md#action-pipeline-system), [Handler Execution](#handler-execution)
+
+---
+
+## Selective Subscription
+
+**Definition**: A pattern that allows components to subscribe to specific parts of store state, enabling optimized re-rendering by only updating when the selected values change.
+
+**Usage Context**:
+- Performance optimization in React components
+- Minimizing unnecessary re-renders
+- Fine-grained state subscription
+- Efficient data access patterns
+
+**Key Features**:
+- Selector functions for specific data extraction
+- Automatic dependency tracking
+- Shallow comparison of selected values
+- Multiple selector support for complex data needs
+
+**Implementation Examples**:
+- `useStoreValue(store, selector)` - Single value selection
+- `useStoreValues(store, selectorMap)` - Multiple value selection
+- Computed stores with selective dependencies
+
+**Related Terms**: [Store Hooks](#store-hooks), [Performance Optimization](#performance-optimization), [Reactive Updates](#reactive-updates)
