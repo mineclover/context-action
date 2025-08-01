@@ -1,12 +1,12 @@
 # Context Action Monorepo
 
-A TypeScript library for type-safe action pipeline management with React integration, organized as a pnpm monorepo.
+A TypeScript library ecosystem for type-safe action pipeline management with React integration and enhanced state management capabilities.
 
 ## 📦 Packages
 
-### [@context-action/core](./packages/context-action)
+### [@context-action/core](./packages/core)
 
-The main library package providing type-safe action pipeline management with React integration.
+The foundational library providing type-safe action pipeline management.
 
 ```bash
 npm install @context-action/core
@@ -15,14 +15,36 @@ npm install @context-action/core
 **Features:**
 - 🔒 **Type-safe**: Full TypeScript support with strict type checking
 - ⚡ **Pipeline System**: Chain multiple handlers with priority control
-- 🎯 **Context Integration**: Seamless React Context integration
 - 🔄 **Async Support**: Handle both sync and async operations
 - 🛡️ **Error Handling**: Built-in error handling and abort mechanisms
-- 📦 **Lightweight**: Minimal bundle size with zero dependencies
+- 📊 **Trace Logging**: Advanced debugging with configurable trace logging
 
-### [test-app](./packages/test-app)
+### [@context-action/react](./packages/react)
 
-Development and testing environment for the library using Vite + React.
+React integration with Context API and hooks for seamless state management.
+
+```bash
+npm install @context-action/react
+```
+
+**Features:**
+- 🎯 **Context Integration**: Seamless React Context integration
+- 🪝 **Advanced Hooks**: Comprehensive hook collection for state management
+- 🏪 **Store System**: Flexible store architecture with MVVM pattern support
+- 🔄 **State Synchronization**: Multi-store synchronization capabilities
+- 💾 **Persistence**: Built-in state persistence with customizable strategies
+
+### [@context-action/logger](./packages/logger)
+
+Lightweight logging utility with trace capabilities for debugging.
+
+### [@context-action/jotai](./packages/jotai)
+
+Jotai integration for atom-based state management with action pipelines.
+
+### [@context-action/glossary](./packages/glossary)
+
+TypeScript glossary tool for documentation generation and term management.
 
 ## 🏗️ Development Setup
 
@@ -68,9 +90,13 @@ pnpm clean
 
 ## 🚀 Quick Start
 
-1. **Install the library:**
+1. **Install the packages:**
    ```bash
+   # Core package only
    npm install @context-action/core
+   
+   # With React integration
+   npm install @context-action/core @context-action/react
    ```
 
 2. **Define your action types:**
@@ -84,9 +110,9 @@ pnpm clean
    }
    ```
 
-3. **Create action context:**
+3. **Create action context with React:**
    ```typescript
-   import { createActionContext } from '@context-action/core';
+   import { createActionContext } from '@context-action/react';
 
    const { Provider, useAction, useActionHandler } = createActionContext<AppActions>();
    ```
@@ -110,26 +136,52 @@ pnpm clean
    }
    ```
 
+5. **Advanced: Use with Store System:**
+   ```typescript
+   import { createStore, StoreProvider, useStore } from '@context-action/react/store';
+
+   const counterStore = createStore({
+     state: { count: 0 },
+     actions: {
+       increment: (state) => ({ count: state.count + 1 }),
+       setCount: (state, payload: number) => ({ count: payload })
+     }
+   });
+
+   function App() {
+     return (
+       <StoreProvider stores={{ counter: counterStore }}>
+         <Counter />
+       </StoreProvider>
+     );
+   }
+   ```
+
 ## 📁 Project Structure
 
 ```
 context-action/
 ├── packages/
-│   ├── context-action/          # Main library package
+│   ├── core/                   # Core action pipeline management
 │   │   ├── src/
-│   │   │   ├── core/           # Core ActionRegister logic
-│   │   │   ├── react/          # React integration
-│   │   │   └── index.ts        # Main entry point
-│   │   ├── dist/               # Built files
-│   │   ├── README.md           # Library documentation
-│   │   ├── package.json
-│   │   └── tsdown.config.ts    # Build configuration
-│   └── test-app/               # Development test environment
-│       ├── src/
-│       │   ├── App.tsx         # Test application
-│       │   └── main.tsx
-│       ├── package.json
-│       └── vite.config.ts
+│   │   │   ├── ActionRegister.ts
+│   │   │   ├── types.ts
+│   │   │   └── index.ts
+│   │   └── tsdown.config.ts
+│   ├── react/                  # React integration and store system
+│   │   ├── src/
+│   │   │   ├── ActionContext.tsx
+│   │   │   ├── ActionProvider.tsx
+│   │   │   ├── store/          # Advanced store management
+│   │   │   │   ├── Store.ts
+│   │   │   │   ├── hooks/
+│   │   │   │   └── utils.ts
+│   │   │   └── index.ts
+│   │   └── tsdown.config.ts
+│   ├── logger/                 # Logging utilities
+│   ├── jotai/                  # Jotai integration
+│   └── glossary/               # Documentation tools
+├── docs/                       # Documentation site (Docusaurus)
 ├── pnpm-workspace.yaml         # pnpm workspace configuration
 ├── package.json                # Root package.json
 └── tsconfig.json              # TypeScript configuration
@@ -140,17 +192,18 @@ context-action/
 - **Package Manager**: pnpm with workspaces
 - **Language**: TypeScript 5.3+
 - **Bundler**: tsdown (powered by rolldown)
-- **Test Environment**: Vite + React 18
+- **Documentation**: VitePress
 - **Code Quality**: ESLint + TypeScript strict mode
+- **Testing**: Jest + TypeScript
 
 ## 📝 Contributing
 
 1. Clone the repository
 2. Install dependencies: `pnpm install`
-3. Start development: `pnpm dev`
-4. Make your changes
-5. Test your changes in the test app
-6. Build the library: `pnpm build`
+3. Make your changes
+4. Build all packages: `pnpm build:all`
+5. Run tests: `pnpm test`
+6. Lint your code: `pnpm lint`
 7. Submit a pull request
 
 ## 📄 License
@@ -162,7 +215,9 @@ Apache-2.0 © [mineclover](https://github.com/mineclover)
 - [📚 Documentation](https://mineclover.github.io/context-action/) - Complete documentation and API reference
 - [Core Package](./packages/core) - @context-action/core (Pure TypeScript)
 - [React Package](./packages/react) - @context-action/react (React integration)
-- [Test App](./packages/test-app) - Development environment
+- [Logger Package](./packages/logger) - @context-action/logger (Logging utilities)
+- [Jotai Package](./packages/jotai) - @context-action/jotai (Jotai integration)
+- [Glossary Package](./packages/glossary) - @context-action/glossary (Documentation tools)
 - [Release Guide](./RELEASE.md) - Publishing documentation
 - [Issues](https://github.com/mineclover/context-action/issues) - Bug reports and feature requests
 - [한국어 README](./README.ko.md) - Korean version
