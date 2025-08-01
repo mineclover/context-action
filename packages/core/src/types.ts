@@ -8,7 +8,7 @@
  * 
  * @implements {ActionPayloadMap}
  * @memberof ApiTerms
- * @since 0.0.1
+ * @since 1.0.0
  * 
  * @example
  * ```typescript
@@ -28,8 +28,8 @@ export interface ActionPayloadMap {
  * Controller object provided to action handlers for pipeline management
  * 
  * @implements {PipelineController}
- * @memberof CoreConcepts
- * @since 0.0.1
+ * @memberof core-concepts
+ * @since 1.0.0
  * 
  * @template T - The type of the payload being processed
  */

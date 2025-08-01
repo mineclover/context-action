@@ -32,8 +32,7 @@ const globalThrottleMap = new Map<string, ThrottleState>();
  * 액션 스로틀링 훅
  * 지정된 간격으로만 액션 실행을 허용하여 고빈도 호출을 제어합니다.
  * 
- * @implements {ActionHandler}
- * @memberof CoreConcepts
+ * @memberof core-concepts
  * @since 1.0.0
  * 
  * @example

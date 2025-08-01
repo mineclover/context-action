@@ -26,8 +26,7 @@ const globalDebounceMap = new Map<string, DebounceState>();
 /**
  * 액션 중복 실행을 방지하는 디바운싱 훅
  * 
- * @implements {ActionHandler}
- * @memberof CoreConcepts
+ * @memberof core-concepts
  * @since 1.0.0
  * 
  * @example

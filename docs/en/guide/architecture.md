@@ -1,56 +1,98 @@
-# Context-Action Store Integration Architecture
+# System Architecture: MVVM and Store Integration
 
 ## Overview
 
-The Context-Action framework implements a clean separation of concerns through an [MVVM-inspired pattern][mvvm-pattern] where:
-- **[Actions][action-handler]** handle business logic ([ViewModel layer][viewmodel-layer])
-- **[Stores][model-layer]** manage state ([Model layer][model-layer])  
-- **[Components][view-layer]** render UI ([View layer][view-layer])
+The Context-Action framework implements a clean, [MVVM-inspired pattern][mvvm-pattern] optimized for modern web applications. It establishes a clear separation of concerns:
 
-This architectural approach ensures maintainable, testable, and scalable applications with clear boundaries between different responsibilities.
+- **View Layer (Components)**: Renders UI and captures user interactions.
+- **ViewModel Layer (Action Pipeline)**: Contains all business logic, processing actions and orchestrating data flow.
+- **Model Layer (Stores)**: Manages application state and data persistence.
 
-## Core Architecture
+This architecture ensures a maintainable, testable, and scalable application with clear boundaries.
+
+### High-Level Architecture Diagram
+
+```mermaid
+graph TB
+    subgraph "View Layer (React Components)"
+        direction LR
+        ComponentA[Component A]
+        ComponentB[Component B]
+        ComponentC[Component C]
+    end
+    
+    subgraph "ViewModel Layer (Action Pipeline)"
+        ActionPipeline[ActionRegister<T>]
+    end
+    
+    subgraph "Model Layer (Stores)"
+        direction LR
+        StoreA[Store A]
+        StoreB[Store B]
+        StoreC[Store C]
+    end
+
+    ComponentA -- "dispatch('action', payload)" --> ActionPipeline
+    ComponentB -- "dispatch('action', payload)" --> ActionPipeline
+    ComponentC -- "dispatch('action', payload)" --> ActionPipeline
+
+    ActionPipeline -- "Processes Handlers" --> ModelLayer
+    
+    subgraph ModelLayer
+        ActionPipeline -- "getValue() / setValue()" --> StoreA
+        ActionPipeline -- "getValue() / setValue()" --> StoreB
+        ActionPipeline -- "getValue() / setValue()" --> StoreC
+    end
+
+    StoreA -.->|"subscribe via useStoreValue()"| ComponentA
+    StoreB -.->|"subscribe via useStoreValue()"| ComponentB
+    StoreC -.->|"subscribe via useStoreValue()"| ComponentC
+```
+
+---
+
+## Core Systems
 
 ### 1. [Action Pipeline System][action-pipeline-system]
 
-[Actions][action-handler] are registered to a central pipeline that processes dispatched events:
+All [actions][action-handler] are registered to a central pipeline that processes dispatched events based on priority.
 
 ```typescript
-// Action definition
+// Define action types and payloads
 interface AppActions extends [ActionPayloadMap][action-payload-map] {
   updateUser: { id: string; name: string };
   calculateTotal: { items: CartItem[] };
 }
 
-// Register action handler
+// Register a handler for the 'updateUser' action
 [actionRegister][actionregister].register('updateUser', async (payload, [controller][pipeline-controller]) => {
-  // Business logic here
+  // Business logic for updating a user resides here
 });
 ```
 
 ### 2. [Store Integration Pattern][store-integration-pattern]
 
-[Action handlers][action-handler] receive payload and use store getters/setters to:
-1. Read current state values via getters ([Lazy Evaluation][lazy-evaluation])
-2. Execute [business logic][business-logic] with payload + current state
-3. Update stores via setters
+[Action handlers][action-handler] are designed to interact with stores in a decoupled manner:
+1.  Read the current state from one or more stores using `store.getValue()`.
+2.  Execute [business logic][business-logic] using the action's payload and the current state.
+3.  Update the stores with new state using `store.setValue()` or `store.update()`.
 
 ```typescript
-// Action handler with store integration
+// An action handler demonstrating store integration
 actionRegister.register('updateUser', async (payload, controller) => {
-  // Get current state
+  // 1. Read current state from multiple stores
   const currentUser = userStore.getValue();
   const settings = settingsStore.getValue();
   
-  // Business logic
+  // 2. Execute business logic
   const updatedUser = {
     ...currentUser,
     ...payload,
     lastModified: Date.now(),
-    theme: settings.theme // Cross-store logic
+    theme: settings.theme // Example of cross-store logic
   };
   
-  // Update stores
+  // 3. Update stores
   userStore.setValue(updatedUser);
   activityStore.update(activities => [...activities, {
     type: 'user_updated',
@@ -60,194 +102,135 @@ actionRegister.register('updateUser', async (payload, controller) => {
 });
 ```
 
+---
+
 ## Data Flow
 
-```
-┌──────────────┐     dispatch      ┌──────────────┐
-│              │ -----------------> │              │
-│   Component  │                    │    Action    │
-│              │ <----------------- │   Pipeline   │
-└──────────────┘     subscribe      └──────────────┘
-       │                                    │
-       │ useStore                          │ get/set
-       ▼                                    ▼
-┌──────────────┐                    ┌──────────────┐
-│              │                    │              │
-│ Store Hooks  │ <----------------- │    Stores    │
-│              │      observe       │              │
-└──────────────┘                    └──────────────┘
+The data flow is unidirectional and predictable, making it easy to trace and debug.
+
+### Data Flow Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant User as User Interaction
+    participant Component as View Component
+    participant Dispatch as useActionDispatch
+    participant Pipeline as Action Pipeline
+    participant Handler as Action Handler
+    participant Store as Data Store
+    
+    User->>Component: Triggers event (e.g., click)
+    Component->>Dispatch: dispatch('actionName', payload)
+    Dispatch->>Pipeline: Executes action
+    Pipeline->>Handler: Runs handler with payload
+    
+    Handler->>Store: getValue()
+    Store-->>Handler: Returns current state
+    
+    Note over Handler: Executes business logic
+    
+    Handler->>Store: setValue(newState)
+    Store-->>Component: Notifies subscribed components
+    Component->>User: Re-renders with updated UI
 ```
 
-### Execution Flow:
+### Execution Flow Steps:
 
-1. **Component Dispatch**: Component calls `dispatch('actionName', payload)`
-2. **Pipeline Processing**: Action pipeline executes registered handlers in priority order
-3. **Store Access**: Handlers use store getters to read current state
-4. **Business Logic**: Handlers process payload with current state values
-5. **Store Updates**: Handlers call store setters to update state
-6. **Component Re-render**: Components subscribed to updated stores automatically re-render
+1.  **Component Dispatch**: A component calls `dispatch('actionName', payload)` in response to a user interaction.
+2.  **Pipeline Processing**: The action pipeline finds and executes the registered handlers for the action in priority order.
+3.  **Store Access**: The handler reads the current state from stores using `getValue()`.
+4.  **Business Logic**: The handler processes the payload along with the current state.
+5.  **Store Updates**: The handler calls `setValue()` or `update()` to modify the state in the stores.
+6.  **Component Re-render**: Components subscribed to the changed stores automatically re-render to reflect the new state.
+
+---
 
 ## Key Design Principles
 
 ### 1. [Lazy Evaluation][lazy-evaluation]
-- Store getters are called at execution time, ensuring fresh values
-- No stale closure issues - handlers always get current state
+Store getters (`getValue()`) are called at the moment of execution, not registration. This ensures that handlers always operate on the most recent state, eliminating stale closure issues.
 
 ### 2. [Decoupled Architecture][decoupled-architecture]
-- [Actions][action-handler] don't know about [components][view-layer]
-- [Stores][model-layer] don't know about [actions][action-handler]
-- [Components][view-layer] only know action names and payloads
+-   **Actions** are unaware of the components that trigger them.
+-   **Stores** are unaware of the actions that modify them.
+-   **Components** only need to know action names and payloads, not the underlying business logic.
 
 ### 3. [Type Safety][type-safety]
-- Full TypeScript support throughout
-- [Actions][action-handler] and payloads are strongly typed
-- Store values maintain type integrity
+The framework is built with TypeScript from the ground up. Actions, payloads, and store values are all strongly typed, providing compile-time safety and improved developer experience.
+
+```mermaid
+graph TD
+    subgraph "Type Definitions"
+        ActionPayloadMap[ActionPayloadMap Interface]
+        StoreTypes[Store Type Definitions]
+    end
+    
+    subgraph "Implementation"
+        ActionHandlers[Action Handlers<br/>Strongly Typed Payloads]
+        StoreValues[Store Values<br/>Type-safe getValue/setValue]
+        ComponentHooks[Component Hooks<br/>Type-safe useStoreValue]
+    end
+    
+    ActionPayloadMap --> ActionHandlers
+    StoreTypes --> StoreValues
+    
+    ActionHandlers <--> StoreValues
+    StoreValues <--> ComponentHooks
+    ComponentHooks --> ActionHandlers
+```
 
 ### 4. Testability
-- [Actions][action-handler] can be tested independently with mock stores
-- [Stores][model-layer] can be tested without [action pipeline][action-pipeline-system]
-- [Components][view-layer] can be tested with mock dispatch
+Each layer of the architecture can be tested in isolation:
+-   **Actions** can be tested with mock stores, independent of the UI.
+-   **Stores** can be tested as standalone state containers.
+-   **Components** can be tested with a mock `dispatch` function.
 
-## Integration with React
+---
 
-### [StoreProvider][storeprovider] Setup
-```typescript
-function App() {
-  return (
-    <[StoreProvider][storeprovider]>
-      <[ActionProvider][actionprovider]>
-        <Application />
-      </[ActionProvider][actionprovider]>
-    </[StoreProvider][storeprovider]>
-  );
-}
-```
-
-### Component Usage
-```typescript
-function UserProfile() {
-  const dispatch = [useActionDispatch][action-dispatcher]();
-  const user = [useStoreValue][store-hooks](userStore);
-  
-  const updateName = (name: string) => {
-    dispatch('updateUser', { id: user.id, name });
-  };
-  
-  return (
-    <div>
-      <h1>{user.name}</h1>
-      <button onClick={() => updateName('New Name')}>
-        Update Name
-      </button>
-    </div>
-  );
-}
-```
-
-### Action Handler Registration
-```typescript
-function useUserActions() {
-  const dispatch = useActionDispatch();
-  const registry = useStoreRegistry();
-  
-  useEffect(() => {
-    const userStore = registry.getStore('user');
-    const settingsStore = registry.getStore('settings');
-    
-    const unregister = actionRegister.register('updateUser', 
-      async (payload, controller) => {
-        const user = userStore.getValue();
-        const settings = settingsStore.getValue();
-        
-        // Complex business logic
-        if (settings.validateNames && !isValidName(payload.name)) {
-          controller.abort('Invalid name');
-          return;
-        }
-        
-        userStore.setValue({
-          ...user,
-          ...payload,
-          updatedAt: Date.now()
-        });
-      },
-      { priority: 10, blocking: true }
-    );
-    
-    return unregister;
-  }, [registry]);
-}
-```
-
-## Advanced Patterns
+## Advanced Patterns & Examples
 
 ### 1. [Cross-Store Coordination][cross-store-coordination]
-```typescript
-actionRegister.register('checkout', async (payload, controller) => {
-  const cart = cartStore.getValue();
-  const user = userStore.getValue();
-  const inventory = inventoryStore.getValue();
-  
-  // Validate inventory
-  const unavailable = cart.items.filter(item => 
-    inventory[item.id] < item.quantity
-  );
-  
-  if (unavailable.length > 0) {
-    controller.abort('Items unavailable');
-    return;
-  }
-  
-  // Update multiple stores atomically
-  orderStore.setValue({ ...payload, status: 'processing' });
-  cartStore.setValue({ items: [] });
-  inventoryStore.update(inv => updateInventory(inv, cart.items));
-});
+A single action can orchestrate updates across multiple stores, ensuring data consistency.
+
+```mermaid
+graph LR
+    subgraph "Checkout Action Handler"
+        CheckoutAction[checkout Handler]
+        CheckoutAction --> ValidateInventory{Validate Inventory}
+        ValidateInventory -->|Valid| ProcessOrder[Process Order]
+        ValidateInventory -->|Invalid| AbortAction[Abort Action]
+        ProcessOrder --> UpdateStores[Update Multiple Stores]
+    end
+    
+    subgraph "Store Operations"
+        UpdateStores --> ClearCart[Clear Cart Store]
+        UpdateStores --> CreateOrder[Create Order Store Entry]
+        UpdateStores --> UpdateInventory[Update Inventory Store]
+    end
+    
+    subgraph "Store Layer"
+        CartStore[Cart Store]
+        OrderStore[Order Store]
+        InventoryStore[Inventory Store]
+    end
+    
+    ClearCart -.-> CartStore
+    CreateOrder -.-> OrderStore
+    UpdateInventory -.-> InventoryStore
 ```
 
-### 2. Computed Values in Actions
-```typescript
-actionRegister.register('calculateTotals', async (payload, controller) => {
-  const cart = cartStore.getValue();
-  const user = userStore.getValue();
-  const promos = promoStore.getValue();
-  
-  // Complex calculation with multiple store values
-  const subtotal = calculateSubtotal(cart.items);
-  const discount = calculateDiscount(user, promos, subtotal);
-  const tax = calculateTax(user.location, subtotal - discount);
-  
-  totalsStore.setValue({
-    subtotal,
-    discount,
-    tax,
-    total: subtotal - discount + tax
-  });
-});
-```
+### 2. [Async Operations][async-operations] with State Updates
+Handlers can easily manage loading states for asynchronous operations like API calls.
 
-### 3. [Async Operations][async-operations] with State Updates
 ```typescript
 actionRegister.register('fetchUserData', async (payload, controller) => {
-  // Set loading state
   uiStore.update(ui => ({ ...ui, loading: true }));
   
   try {
-    const response = await api.getUser(payload.userId);
-    
-    // Update user store
-    userStore.setValue(response.user);
-    
-    // Update related stores
-    if (response.preferences) {
-      preferencesStore.setValue(response.preferences);
-    }
-    
+    const user = await api.getUser(payload.userId);
+    userStore.setValue(user);
   } catch (error) {
-    errorStore.setValue({ 
-      message: 'Failed to fetch user',
-      error 
-    });
+    errorStore.setValue({ message: 'Failed to fetch user', error });
     controller.abort('API error');
   } finally {
     uiStore.update(ui => ({ ...ui, loading: false }));
@@ -255,28 +238,21 @@ actionRegister.register('fetchUserData', async (payload, controller) => {
 });
 ```
 
-## Benefits
+---
 
-1. **Clear Separation**: Business logic in actions, state in stores, UI in components
-2. **Reusability**: Actions can be reused across components
-3. **Testability**: Each layer can be tested independently
-4. **Type Safety**: Full TypeScript support with compile-time checking
-5. **Performance**: Only components using changed stores re-render
-6. **Debugging**: Clear action flow with pipeline tracing
-7. **Scalability**: Easy to add new actions and stores as app grows
+## Comparison with Traditional MVVM
 
-## Best Practices
-
-1. **Keep Actions Focused**: One action should do one thing well
-2. **Use Priority**: Higher priority handlers run first for dependent operations
-3. **Handle Errors**: Use try-catch in async handlers and controller.abort()
-4. **Avoid Side Effects**: Keep store updates predictable and traceable
-5. **Type Everything**: Leverage TypeScript for safety and documentation
-6. **Test Handlers**: Write unit tests for action handlers with mock stores
+| Aspect | Traditional MVVM | Context-Action MVVM |
+|---|---|---|
+| Data Binding | Often two-way binding | Unidirectional flow via actions |
+| ViewModel | Typically class instances | Functional, composable handlers |
+| Commands | Command objects (e.g., `ICommand`) | Simple `dispatch('action', payload)` calls |
+| State Updates | Direct property setters | Decoupled store setters |
+| Type Safety | Can be runtime-dependent | Compile-time safety is central |
+| Debugging | Can involve complex binding chains | Linear, traceable action flow |
 
 ## See Also
 
-- [MVVM Architecture](./mvvm-architecture.md) - Deep dive into the MVVM pattern
 - [Store Integration](./store-integration.md) - Advanced store integration patterns
 - [Action Pipeline](./action-pipeline.md) - Understanding the action execution system
 - [Best Practices](./best-practices.md) - Development best practices and guidelines
