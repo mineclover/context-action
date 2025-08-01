@@ -67,6 +67,8 @@ export interface GlossaryMappings {
     totalFiles: number;
     taggedFiles: number;
     lastUpdate: string;
+    /** JSDoc tag statistics collected during scan */
+    tagStatistics?: Record<string, number>;
   };
 }
 
@@ -88,6 +90,8 @@ export interface GlossaryParserOptions {
   parseSignatures?: boolean;
   /** Enable debug logging */
   debug?: boolean;
+  /** Whether to collect all JSDoc tag statistics */
+  collectTagStats?: boolean;
 }
 
 /**

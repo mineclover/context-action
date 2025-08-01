@@ -593,7 +593,6 @@ class RegistryUtils {
 - `useRegistry(registry)` - Subscribe to registry changes
 - `useDynamicStore(registry, name)` - Use store by name from registry
 - `useLocalStore(name, initial)` - Create component-local store
-- `useComputedStore(name, deps, compute)` - Create computed store
 - `usePersistedStore(name, initial, options)` - Create persisted store
 
 ### Utilities
@@ -601,7 +600,6 @@ class RegistryUtils {
 - `StoreUtils.copyStore(source, target)` - Copy store values
 - `StoreUtils.syncRegistries(source, target)` - Sync registries
 - `StoreUtils.createAutoSync(source, target)` - Auto-sync stores
-- `StoreUtils.createComputedStore(name, deps, compute)` - Computed store
 
 ## Examples
 
@@ -647,24 +645,30 @@ function Settings() {
 }
 ```
 
-### Computed Store
+### Data Integration Pattern
+
+Instead of computed stores, use your middle layer (ActionHandlers) to process and combine data:
 
 ```typescript
-import { Store, useComputedStore } from '@context-action/react';
+import { Store, useStoreValue } from '@context-action/react';
 
 const priceStore = new Store('price', 100);
 const taxStore = new Store('tax', 0.08);
+const totalStore = new Store('total', 108); // Managed by action handlers
+
+// In your action handler
+register('updatePrice', (payload, controller) => {
+  const price = payload.price;
+  const tax = taxStore.getValue();
+  const total = price * (1 + tax);
+  
+  priceStore.setValue(price);
+  totalStore.setValue(total);
+});
 
 function Checkout() {
-  const totalStore = useComputedStore(
-    'total',
-    [priceStore, taxStore],
-    (price, tax) => price * (1 + tax)
-  );
-  
   const total = useStoreValue(totalStore);
-  
-  return <div>Total: ${total.toFixed(2)}</div>;
+  return <div>Total: ${total?.toFixed(2)}</div>;
 }
 ```
 
