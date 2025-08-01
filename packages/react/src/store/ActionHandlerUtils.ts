@@ -1,6 +1,12 @@
 /**
- * @fileoverview ActionHandler utilities for MVVM architecture
- * Provides helpers for multi-store coordination patterns
+ * @fileoverview Action Handler 유틸리티
+ * MVVM 아키텍처를 위한 멀티 Store 조정 패턴 제공
+ * 
+ * 핵심 기능:
+ * 1. 멀티 Store 핸들러 - 자동 롤백 지원
+ * 2. 트랜잭션 핸들러 - 명시적 commit/rollback
+ * 3. 유효성 검사 핸들러 - 비즈니스 로직 검증
+ * 4. 공통 조정 패턴 - master-detail, cache invalidation
  */
 
 import { ActionHandler, HandlerConfig } from '@context-action/core';
@@ -8,7 +14,8 @@ import { StoreRegistry } from './StoreRegistry';
 import type { IStore } from './types';
 
 /**
- * Store snapshot interface for rollback strategies
+ * Store 스냅샷 인터페이스
+ * 핵심 기능: 롤백 전략을 위한 Store 상태 저장
  */
 export interface StoreSnapshot {
   name: string;
@@ -16,12 +23,13 @@ export interface StoreSnapshot {
 }
 
 /**
- * Multi-store operation context
+ * 멀티 Store 작업 컨텍스트
+ * 핵심 기능: 여러 Store에 대한 접근과 스냅샷 관리
  */
 export interface MultiStoreContext {
-  stores: Record<string, IStore>;
-  snapshots: Record<string, any>;
-  registry: StoreRegistry;
+  stores: Record<string, IStore>;    // 이름별 Store 맵핑
+  snapshots: Record<string, any>;   // 롤백용 스냅샷
+  registry: StoreRegistry;          // Store Registry 인스턴스
 }
 
 /**
