@@ -42,7 +42,7 @@ export { StoreUtils, createComputedStore } from './utils';
 
 // === STORE FACTORIES ===
 export { 
-  createStore as createBasicStore, 
+  createStore, 
   createManagedStore,
   type StoreConfig 
 } from './Store';

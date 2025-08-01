@@ -65,7 +65,7 @@ export {
 	EventBus,
 	ScopedEventBus,
 	StoreUtils,
-	createBasicStore,
+	createStore,
 	createManagedStore,
 	createComputedStore,
 } from "./store";

@@ -210,13 +210,15 @@ export function createTypedActionProvider<T extends ActionPayloadMap>() {
 export function withActionProvider<T extends ActionPayloadMap = ActionPayloadMap>(
   config?: ActionRegisterConfig
 ) {
+  const { Provider } = createTypedActionProvider<T>();
+  
   return function <P extends {}>(
     WrappedComponent: React.ComponentType<P>
   ): React.FC<P> {
     const WithActionProvider = (props: P) => (
-      <ActionProvider config={config}>
+      <Provider config={config}>
         <WrappedComponent {...props} />
-      </ActionProvider>
+      </Provider>
     );
     
     WithActionProvider.displayName = `withActionProvider(${WrappedComponent.displayName || WrappedComponent.name})`;
@@ -254,14 +256,16 @@ export function withStoreAndActionProvider<T extends ActionPayloadMap = ActionPa
     store?: { registry?: StoreRegistry };
   }
 ) {
+  const { Provider: ActionProviderTyped } = createTypedActionProvider<T>();
+  
   return function <P extends {}>(
     WrappedComponent: React.ComponentType<P>
   ): React.FC<P> {
     const WithBothProviders = (props: P) => (
       <StoreProvider registry={config?.store?.registry}>
-        <ActionProvider config={config?.action}>
+        <ActionProviderTyped config={config?.action}>
           <WrappedComponent {...props} />
-        </ActionProvider>
+        </ActionProviderTyped>
       </StoreProvider>
     );
     

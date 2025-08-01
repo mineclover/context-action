@@ -3,7 +3,7 @@
  * Provides helpers for multi-store coordination patterns
  */
 
-import { ActionRegister, ActionHandler, HandlerConfig } from '@context-action/core';
+import { ActionHandler, HandlerConfig } from '@context-action/core';
 import { StoreRegistry } from './StoreRegistry';
 import type { IStore } from './types';
 
@@ -95,7 +95,7 @@ export function createMultiStoreHandler<T>(
     controller: Parameters<ActionHandler<T>>[1],
     context: MultiStoreContext
   ) => void | Promise<void>,
-  config?: HandlerConfig
+  _config?: HandlerConfig
 ): ActionHandler<T> {
   return async (payload, controller) => {
     // This will be filled when used with useMultiStoreAction hook
@@ -219,7 +219,7 @@ export function createTransactionHandler<T>(
     controller: Parameters<ActionHandler<T>>[1],
     context: TransactionContext
   ) => void | Promise<void>,
-  config?: HandlerConfig
+  _config?: HandlerConfig
 ): ActionHandler<T> {
   return async (payload, controller) => {
     const registry = (global as any).__contextActionRegistry as StoreRegistry;
@@ -326,7 +326,7 @@ export function createTransactionHandler<T>(
 export function createValidatedHandler<T>(
   validators: Array<(payload: T, context: MultiStoreContext) => string | null>,
   handler: ActionHandler<T>,
-  config?: HandlerConfig
+  _config?: HandlerConfig
 ): ActionHandler<T> {
   return async (payload, controller) => {
     const registry = (global as any).__contextActionRegistry as StoreRegistry;
