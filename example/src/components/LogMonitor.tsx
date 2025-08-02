@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, createContext, useContext, useMemo } from 'react';
 import { createLogger, Logger, createStore, useStoreValue, Store, ActionRegister, ActionPayloadMap } from '@context-action/react';
 import { LogLevel } from '@context-action/logger';
-import { useActionToast } from './ToastSystem/useActionToast';
+import { toastActionRegister } from './ToastSystem/actions';
 
 // 로그 엔트리 타입
 interface LogEntry {
@@ -102,21 +102,18 @@ export function LogMonitorProvider({
     return pageLogger;
   }, [initialLogLevel]);
 
-  // 내부 라우팅용 ActionRegister (외부에 노출되지 않음)
-  const internalActionRegister = useMemo(() => {
-    return new ActionRegister<InternalLogActionMap>();
-  }, []);
+
 
   // 완전히 안정적인 API 생성 - 한 번만 생성되고 내부에서 최신 상태 접근
   const stableProviderAPI = useMemo(() => {
     return {
       addLog: (entry: Omit<LogEntry, 'id' | 'timestamp'>) => {
-        const logEntry: LogEntry = {
-          ...entry,
-          id: `${pageId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          timestamp: new Date().toLocaleTimeString()
-        };
-        
+    const logEntry: LogEntry = {
+      ...entry,
+      id: `${pageId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: new Date().toLocaleTimeString()
+    };
+    
         // 스토어 업데이트 - 최대 50개 로그 유지
         stores.logs.update(prev => [...prev.slice(-49), logEntry]);
       },
@@ -136,12 +133,22 @@ export function LogMonitorProvider({
     logger.setLevel?.(logLevel);
   }, [logger, logLevel]);
 
-  // 내부 ActionRegister 핸들러 등록 (라우팅 처리)
-  useEffect(() => {
-    const toast = useActionToast();
+  // Toast 기능을 직접 ActionRegister를 통해 처리
+  const showToast = useCallback((type: 'success' | 'error' | 'info' | 'system', title: string, message: string) => {
+    toastActionRegister.dispatch('addToast', {
+      type,
+      title,
+      message,
+    });
+  }, []);
 
-    // '_internal.log.action' 핸들러
-    const unsubscribeLogAction = internalActionRegister.register('_internal.log.action', ({ actionType, payload, options = {} }, controller) => {
+  // 내부 라우팅용 ActionRegister (외부에 노출되지 않음)  
+  const internalActionRegister = useMemo(() => {
+    const register = new ActionRegister<InternalLogActionMap>();
+    
+    // 즉시 핸들러 등록하여 경고 방지
+    register.register('_internal.log.action', ({ actionType, payload, options = {} }, controller) => {
+      // 실제 로직 실행
       stableProviderAPI.addLog({
         level: LogLevel.INFO,
         type: 'action',
@@ -157,23 +164,22 @@ export function LogMonitorProvider({
         const actionMsg = actionMessages[actionType];
         
         if (typeof options.toast === 'object') {
-          toast.showToast(
+          showToast(
             options.toast.type || 'info',
             options.toast.title || actionType,
             options.toast.message || `${actionType} 액션이 실행되었습니다`
           );
         } else if (actionMsg) {
-          toast.showToast(actionMsg.type, actionMsg.title, actionMsg.message);
+          showToast(actionMsg.type, actionMsg.title, actionMsg.message);
         } else {
-          toast.showToast('success', actionType, `${actionType} 액션이 실행되었습니다`);
+          showToast('success', actionType, `${actionType} 액션이 실행되었습니다`);
         }
       }
 
       controller.next();
     });
-
-    // '_internal.log.error' 핸들러  
-    const unsubscribeLogError = internalActionRegister.register('_internal.log.error', ({ message, error, options = {} }, controller) => {
+    
+    register.register('_internal.log.error', ({ message, error, options = {} }, controller) => {
       stableProviderAPI.addLog({
         level: LogLevel.ERROR,
         type: 'error',
@@ -186,21 +192,20 @@ export function LogMonitorProvider({
       // 에러 토스트 자동 표시
       if (options.toast !== false) {
         if (typeof options.toast === 'object') {
-          toast.showToast(
+          showToast(
             'error',
             options.toast.title || '오류 발생',
             options.toast.message || message
           );
         } else {
-          toast.showToast('error', '오류 발생', message);
+          showToast('error', '오류 발생', message);
         }
       }
 
       controller.next();
     });
-
-    // '_internal.log.system' 핸들러
-    const unsubscribeLogSystem = internalActionRegister.register('_internal.log.system', ({ message, options = {} }, controller) => {
+    
+    register.register('_internal.log.system', ({ message, options = {} }, controller) => {
       stableProviderAPI.addLog({
         level: LogLevel.INFO,
         type: 'system',
@@ -213,25 +218,23 @@ export function LogMonitorProvider({
       // 시스템 토스트 (기본적으로 비활성화, 명시적 요청시만)
       if (options.toast === true || typeof options.toast === 'object') {
         if (typeof options.toast === 'object') {
-          toast.showToast(
+          showToast(
             options.toast.type || 'system',
             options.toast.title || '시스템',
             options.toast.message || message
           );
         } else {
-          toast.showToast('system', '시스템', message);
+          showToast('system', '시스템', message);
         }
       }
 
       controller.next();
     });
+    
+    return register;
+  }, [stableProviderAPI, logger, showToast]);
 
-    return () => {
-      unsubscribeLogAction();
-      unsubscribeLogError();
-      unsubscribeLogSystem();
-    };
-  }, [internalActionRegister, stableProviderAPI, logger]);
+
 
   // 페이지 초기화 및 정리 로그
   useEffect(() => {
@@ -346,8 +349,9 @@ export function LogMonitor({
         {logs.length === 0 ? (
           <div className="log-empty">No logs recorded yet...</div>
         ) : (
-          logs.map((log) => (
+          [...logs].reverse().map((log) => (
             <div key={log.id} className={`log-entry log-${log.type}`}>
+              <span className="log-id" title={log.id}>{log.id.split('-').slice(-1)[0]}</span>
               <span className="log-time">{log.timestamp}</span>
               <span 
                 className="log-level" 

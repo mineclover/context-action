@@ -340,6 +340,17 @@ body {
   border-bottom: none;
 }
 
+.log-id {
+  color: #9ca3af;
+  font-size: 0.6rem;
+  font-family: 'Monaco', 'Menlo', monospace;
+  min-width: 50px;
+  background: #f3f4f6;
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  cursor: help;
+}
+
 .log-time {
   color: #6b7280;
   font-size: 0.7rem;
