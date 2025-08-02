@@ -1,5 +1,6 @@
 import { ActionRegister, createLogger } from '@context-action/react';
 import { LogLevel } from '@context-action/logger';
+import { setupSelectiveActionToast } from '../../../components/ToastSystem';
 import type { StoreFullActionMap, TodoItem, ChatMessage, NotificationItem } from '../types';
 import { 
   userStore, 
@@ -18,6 +19,14 @@ export const storeActionRegister = new ActionRegister<StoreFullActionMap>({ logg
 
 // 액션 핸들러 등록 함수
 export const registerStoreActions = () => {
+  // 토스트 시스템과 연동 - 주요 액션들만 추적
+  const trackedActions = [
+    'updateProfile', 'toggleTheme', 'addToCart', 'removeFromCart',
+    'addTodo', 'toggleTodo', 'deleteTodo', 'sendMessage', 'deleteMessage',
+    'clearChat', 'updateFormField', 'nextStep', 'resetSettings'
+  ];
+  
+  setupSelectiveActionToast(storeActionRegister, trackedActions);
   const unsubscribers: (() => void)[] = [];
 
   // 1. User Profile Actions

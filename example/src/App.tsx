@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
+import { ToastContainer, ToastControlPanel } from './components/ToastSystem';
 import HomePage from './pages/HomePage';
 import CoreBasicsPage from './pages/core/CoreBasicsPage';
 import CoreAdvancedPage from './pages/core/CoreAdvancedPage';
@@ -29,6 +30,10 @@ function App() {
           <Route path="/actionguard/demo" element={<ActionGuardPage />} />
         </Routes>
       </Layout>
+      
+      {/* 글로벌 토스트 시스템 */}
+      <ToastContainer />
+      <ToastControlPanel />
     </Router>
   );
 }
