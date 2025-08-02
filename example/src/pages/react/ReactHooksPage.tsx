@@ -6,7 +6,7 @@ import {
   StoreProvider,
   useActionDispatch,
   useActionRegister,
-  createStore,
+  createContextStorePattern,
   useStoreValue,
 
 } from '@context-action/react';
@@ -24,12 +24,8 @@ interface HooksOptimizationMap extends ActionPayloadMap {
   rerenderTrigger: void;
 }
 
-// 스토어들
-const counterStore = createStore('hooks-counter', 0);
-const listStore = createStore('hooks-list', [] as string[]);
-const calculationStore = createStore('hooks-calculation', { result: 0, computeTime: 0 });
-const optimizationStore = createStore('hooks-optimization', { enabled: true });
-const memoryStore = createStore('hooks-memory', { allocatedMB: 0, objects: 0 });
+// Context Store 패턴 생성
+const HooksStores = createContextStorePattern('ReactHooks');
 
 // 무거운 계산 시뮬레이션
 const heavyComputation = (numbers: number[]): { result: number; computeTime: number } => {
@@ -51,6 +47,8 @@ const heavyComputation = (numbers: number[]): { result: number; computeTime: num
 function MemoizationDemo() {
   const [trigger, setTrigger] = useState(0);
   const [inputSize, setInputSize] = useState(100);
+  
+  const calculationStore = HooksStores.useStore('calculation', { result: 0, computeTime: 0 });
   const calculationResult = useStoreValue(calculationStore);
   
   // useMemo를 사용한 무거운 계산 최적화
@@ -287,6 +285,8 @@ function DynamicHandlerDemo() {
 function MemoryOptimizationDemo() {
   const [objectSize, setObjectSize] = useState(1000);
   const [autoCleanup, setAutoCleanup] = useState(true);
+  
+  const memoryStore = HooksStores.useStore('memory', { allocatedMB: 0, objects: 0 });
   const memoryInfo = useStoreValue(memoryStore);
   const objectsRef = useRef<any[]>([]);
   
@@ -460,13 +460,14 @@ function ReactHooksPage() {
 
         <ActionProvider>
           <StoreProvider>
-            <ReactHooksSetup />
-            
-            <div className="demo-grid">
-              <MemoizationDemo />
-              <ConditionalHandlerDemo />
-              <DynamicHandlerDemo />
-              <MemoryOptimizationDemo />
+            <HooksStores.Provider registryId="react-hooks-demo">
+              <ReactHooksSetup />
+              
+              <div className="demo-grid">
+                <MemoizationDemo />
+                <ConditionalHandlerDemo />
+                <DynamicHandlerDemo />
+                <MemoryOptimizationDemo />
               
               {/* 최적화 개념 */}
               <div className="demo-card info-card">
@@ -548,7 +549,8 @@ useEffect(() => {
   return () => clearInterval(cleanup);
 }, []);`}
               </pre>
-            </div>
+              </div>
+            </HooksStores.Provider>
           </StoreProvider>
         </ActionProvider>
       </div>

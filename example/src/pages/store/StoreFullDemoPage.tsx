@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
 import { registerStoreActions } from '../../demos/store-scenarios/actions';
+import { StoreScenarios } from '../../demos/store-scenarios/stores';
 import { 
   UserProfileDemo,
   ShoppingCartDemo,
@@ -88,26 +89,27 @@ function StoreFullDemoPage() {
         </div>
 
         {/* Demo Content */}
-        {showAllDemos ? (
-          <div className="demo-grid full-demo-grid">
-            <UserProfileDemo />
-            <ShoppingCartDemo />
-            <TodoListDemo />
-            <ChatDemo />
-            <FormWizardDemo />
-            <SettingsDemo />
-            <ProductCatalogDemo />
-            <NotificationDemo />
-          </div>
-        ) : (
-          <div className="focused-demo">
-            <div className="demo-header">
-              <h2>{currentDemo?.title}</h2>
-              <p>{currentDemo?.description}</p>
+        <StoreScenarios.Provider registryId="store-full-demo">
+          {showAllDemos ? (
+            <div className="demo-grid full-demo-grid">
+              <UserProfileDemo />
+              <ShoppingCartDemo />
+              <TodoListDemo />
+              <ChatDemo />
+              <FormWizardDemo />
+              <SettingsDemo />
+              <ProductCatalogDemo />
+              <NotificationDemo />
             </div>
-            <div className="demo-content">
-              {currentDemo?.component}
-            </div>
+          ) : (
+            <div className="focused-demo">
+              <div className="demo-header">
+                <h2>{currentDemo?.title}</h2>
+                <p>{currentDemo?.description}</p>
+              </div>
+              <div className="demo-content">
+                {currentDemo?.component}
+              </div>
             
             {/* Demo Navigator */}
             <div className="demo-navigator">
@@ -138,7 +140,8 @@ function StoreFullDemoPage() {
               </button>
             </div>
           </div>
-        )}
+          )}
+        </StoreScenarios.Provider>
 
         {/* Modular Architecture Overview */}
         <div className="architecture-overview">

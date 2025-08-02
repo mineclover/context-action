@@ -1,11 +1,12 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useStoreValue } from '@context-action/react';
 import { useActionLoggerWithToast } from '../../../components/LogMonitor/';
-import { todosStore } from '../stores';
+import { StoreScenarios, initialTodos } from '../stores';
 import { storeActionRegister } from '../actions';
 import type { TodoItem } from '../types';
 
 export function TodoListDemo() {
+  const todosStore = StoreScenarios.useStore('todos', initialTodos);
   const todos = useStoreValue(todosStore);
   const [newTodo, setNewTodo] = useState('');
   const [priority, setPriority] = useState<TodoItem['priority']>('medium');
