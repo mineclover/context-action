@@ -12,6 +12,36 @@ export function UserProfileDemo() {
   const [editForm, setEditForm] = useState(user);
   const logger = useActionLoggerWithToast();
 
+  // 필요한 액션 핸들러들을 등록
+  useEffect(() => {
+    const unsubscribers = [
+      storeActionRegister.register('updateUser', ({ user }, controller) => {
+        userStore.setValue(user);
+        controller.next();
+      }),
+
+      storeActionRegister.register('updateUserTheme', ({ theme }, controller) => {
+        userStore.update(prev => ({
+          ...prev,
+          preferences: { ...prev.preferences, theme }
+        }));
+        controller.next();
+      }),
+
+      storeActionRegister.register('toggleNotifications', ({ enabled }, controller) => {
+        userStore.update(prev => ({
+          ...prev,
+          preferences: { ...prev.preferences, notifications: enabled }
+        }));
+        controller.next();
+      })
+    ];
+
+    return () => {
+      unsubscribers.forEach(unsubscribe => unsubscribe());
+    };
+  }, [userStore]);
+
   useEffect(() => {
     setEditForm(user);
   }, [user]);

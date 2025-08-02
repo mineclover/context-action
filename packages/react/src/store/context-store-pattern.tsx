@@ -14,6 +14,7 @@ import { useStoreValue } from './hooks';
 import { generateStoreName, getOrCreateRegistryStore, type RegistryStoreOptions } from './isolation-utils';
 import { createStore } from './Store';
 import type { ComparisonOptions } from './comparison';
+import type { ActionPayloadMap, ActionRegisterConfig } from '@context-action/core';
 
 /**
  * Context Store 패턴 팩토리 함수
@@ -231,6 +232,120 @@ export function createContextStorePattern(contextName: string) {
     }), [registry]);
   }
   
+  /**
+   * HOC that wraps a component with this Context Store Provider
+   * 
+   * Automatically wraps any component with the Provider, making it easy to
+   * isolate stores for specific components or component trees.
+   * 
+   * @param registryId - Optional registry ID for the Provider
+   * @returns HOC function that wraps components with the Provider
+   * 
+   * @example
+   * ```typescript
+   * const UserStores = createContextStorePattern('User');
+   * 
+   * // Create HOC with specific registry ID
+   * const withUserStores = UserStores.withProvider('user-management');
+   * 
+   * // Wrap component automatically
+   * const UserDashboard = withUserStores(() => {
+   *   const userStore = UserStores.useStore('current-user', { name: '', email: '' });
+   *   const user = useStoreValue(userStore);
+   *   
+   *   return <div>Welcome, {user.name}!</div>;
+   * });
+   * 
+   * // Or wrap existing component
+   * const EnhancedUserProfile = withUserStores(UserProfile);
+   * 
+   * // Usage - no need to manually wrap with Provider
+   * function App() {
+   *   return (
+   *     <div>
+   *       <UserDashboard />
+   *       <EnhancedUserProfile />
+   *     </div>
+   *   );
+   * }
+   * ```
+   */
+  function withProvider(registryId?: string) {
+    return function <P extends {}>(
+      WrappedComponent: React.ComponentType<P>
+    ): React.FC<P> {
+      const WithContextStoreProvider = (props: P) => (
+        <Provider registryId={registryId}>
+          <WrappedComponent {...props} />
+        </Provider>
+      );
+      
+      WithContextStoreProvider.displayName = `with${contextName}StoreProvider(${WrappedComponent.displayName || WrappedComponent.name})`;
+      
+      return WithContextStoreProvider;
+    };
+  }
+
+  /**
+   * Create a HOC factory that can combine Context Store Provider with other providers
+   * 
+   * This is a flexible factory that allows you to create HOCs that combine
+   * the Context Store Provider with any other provider (like ActionProvider).
+   * 
+   * @param wrapperComponent - A component that will wrap the Context Store Provider
+   * @param registryId - Optional registry ID for the Provider
+   * @returns HOC function that wraps components with both providers
+   * 
+   * @example
+   * ```typescript
+   * const FeatureStores = createContextStorePattern('Feature');
+   * 
+   * // Create a HOC that combines with ActionProvider
+   * const withFeatureAndAction = FeatureStores.withCustomProvider(
+   *   ({ children }) => (
+   *     <ActionProvider config={{ logLevel: LogLevel.DEBUG }}>
+   *       {children}
+   *     </ActionProvider>
+   *   ),
+   *   'feature-module'
+   * );
+   * 
+   * const FeatureModule = withFeatureAndAction(() => {
+   *   const dataStore = FeatureStores.useStore('feature-data', {});
+   *   const data = useStoreValue(dataStore);
+   *   
+   *   return <div>Feature: {data}</div>;
+   * });
+   * 
+   * // Usage - completely self-contained
+   * function App() {
+   *   return <FeatureModule />;
+   * }
+   * ```
+   */
+  function withCustomProvider(
+    wrapperComponent: React.ComponentType<{ children: ReactNode }>,
+    registryId?: string
+  ) {
+    return function <P extends {}>(
+      WrappedComponent: React.ComponentType<P>
+    ): React.FC<P> {
+      const WrapperComponent = wrapperComponent;
+      
+      const WithCustomProvider = (props: P) => (
+        <Provider registryId={registryId}>
+          <WrapperComponent>
+            <WrappedComponent {...props} />
+          </WrapperComponent>
+        </Provider>
+      );
+      
+      WithCustomProvider.displayName = `with${contextName}CustomProvider(${WrappedComponent.displayName || WrappedComponent.name})`;
+      
+      return WithCustomProvider;
+    };
+  }
+
   // 패턴 객체 반환
   return {
     // Provider 컴포넌트
@@ -246,6 +361,10 @@ export function createContextStorePattern(contextName: string) {
     // 유틸리티 Hooks
     useRegistryInfo,
     useClearRegistry,
+    
+    // HOC 패턴 (새로 추가)
+    withProvider,
+    withCustomProvider,
     
     // Context 정보 (디버깅용)
     contextName,

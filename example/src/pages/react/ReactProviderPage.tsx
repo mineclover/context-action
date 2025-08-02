@@ -4,7 +4,7 @@ import {
   ActionProvider,
   StoreProvider,
   useStoreRegistry,
-  createStore,
+  createContextStorePattern,
   useStoreValue,
   ActionPayloadMap
 } from '@context-action/react';
@@ -19,14 +19,12 @@ interface AppActions extends ActionPayloadMap {
   logActivity: { activity: string };
 }
 
-// 로거는 useActionLoggerWithToast 훅에서 자동 생성됨
-
-// 스토어 인스턴스들
-const counterStore = createStore('provider-counter', 0);
-const messageStore = createStore('provider-message', 'Hello from Provider!');
+// Context Store 패턴 생성
+const ProviderStores = createContextStorePattern('ReactProvider');
 
 // 카운터 컴포넌트
 function CounterComponent() {
+  const counterStore = ProviderStores.useStore('counter', 0);
   const count = useStoreValue(counterStore);
   const logger = useActionLoggerWithToast();
 
@@ -69,6 +67,7 @@ function CounterComponent() {
 
 // 메시지 컴포넌트
 function MessageComponent() {
+  const messageStore = ProviderStores.useStore('message', 'Hello from Provider!');
   const message = useStoreValue(messageStore);
   const [inputValue, setInputValue] = useState('');
   const logger = useActionLoggerWithToast();
@@ -305,7 +304,9 @@ function ReactProviderPage() {
         {/* Provider 래핑 */}
         <ActionProvider>
           <StoreProvider>
-            <ProviderApp />
+            <ProviderStores.Provider registryId="react-provider-demo">
+              <ProviderApp />
+            </ProviderStores.Provider>
           </StoreProvider>
         </ActionProvider>
 

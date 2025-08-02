@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useStoreValue } from '@context-action/react';
 import { useActionLoggerWithToast } from '../../../components/LogMonitor/';
 import { StoreScenarios, initialTodos } from '../stores';
@@ -13,6 +13,51 @@ export function TodoListDemo() {
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [sortBy, setSortBy] = useState<'created' | 'priority' | 'title'>('created');
   const logger = useActionLoggerWithToast();
+
+  // 필요한 액션 핸들러들을 등록
+  useEffect(() => {
+    const unsubscribers = [
+      storeActionRegister.register('addTodo', ({ title, priority }, controller) => {
+        const newTodo: TodoItem = {
+          id: `todo-${Date.now()}`,
+          title,
+          completed: false,
+          priority,
+          createdAt: new Date(),
+          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7일 후
+        };
+        todosStore.update(prev => [...prev, newTodo]);
+        controller.next();
+      }),
+
+      storeActionRegister.register('toggleTodo', ({ todoId }, controller) => {
+        todosStore.update(prev =>
+          prev.map(todo =>
+            todo.id === todoId ? { ...todo, completed: !todo.completed } : todo
+          )
+        );
+        controller.next();
+      }),
+
+      storeActionRegister.register('deleteTodo', ({ todoId }, controller) => {
+        todosStore.update(prev => prev.filter(todo => todo.id !== todoId));
+        controller.next();
+      }),
+
+      storeActionRegister.register('updateTodoPriority', ({ todoId, priority }, controller) => {
+        todosStore.update(prev =>
+          prev.map(todo =>
+            todo.id === todoId ? { ...todo, priority } : todo
+          )
+        );
+        controller.next();
+      })
+    ];
+
+    return () => {
+      unsubscribers.forEach(unsubscribe => unsubscribe());
+    };
+  }, [todosStore]);
 
   const filteredAndSortedTodos = useMemo(() => {
     if (!todos) return [];

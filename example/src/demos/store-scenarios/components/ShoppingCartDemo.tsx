@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import { useStoreValue } from '@context-action/react';
 import { useActionLoggerWithToast } from '../../../components/LogMonitor/';
 import { StoreScenarios, initialProducts } from '../stores';
@@ -12,6 +12,49 @@ export function ShoppingCartDemo() {
   const products = useStoreValue(productsStore);
   const cart = useStoreValue(cartStore);
   const logger = useActionLoggerWithToast();
+
+  // 필요한 액션 핸들러들을 등록
+  useEffect(() => {
+    const unsubscribers = [
+      storeActionRegister.register('addToCart', ({ productId, quantity }, controller) => {
+        cartStore.update(prev => {
+          const existingItem = prev.find(item => item.productId === productId);
+          if (existingItem) {
+            return prev.map(item =>
+              item.productId === productId
+                ? { ...item, quantity: item.quantity + quantity }
+                : item
+            );
+          }
+          return [...prev, { productId, quantity, addedAt: new Date() }];
+        });
+        controller.next();
+      }),
+
+      storeActionRegister.register('removeFromCart', ({ productId }, controller) => {
+        cartStore.update(prev => prev.filter(item => item.productId !== productId));
+        controller.next();
+      }),
+
+      storeActionRegister.register('updateCartQuantity', ({ productId, quantity }, controller) => {
+        cartStore.update(prev =>
+          prev.map(item =>
+            item.productId === productId ? { ...item, quantity } : item
+          )
+        );
+        controller.next();
+      }),
+
+      storeActionRegister.register('clearCart', (_, controller) => {
+        cartStore.setValue([]);
+        controller.next();
+      })
+    ];
+
+    return () => {
+      unsubscribers.forEach(unsubscribe => unsubscribe());
+    };
+  }, [cartStore]);
 
   const totalAmount = useMemo(() => {
     if (!cart || !products) return 0;

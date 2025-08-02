@@ -1,11 +1,21 @@
 import React, { createContext, ReactNode, useContext, useRef, useEffect, useId, useMemo } from 'react';
-import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig } from '@context-action/core';
+import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig, ActionRegisterConfig } from '@context-action/core';
 import { Logger, LogLevel, createLogger  } from '@context-action/logger';
 
 /**
- * Configuration options for createActionContext
+ * @deprecated Use ActionProvider from './ActionProvider' instead.
+ * This createActionContext will be removed in future versions.
+ * 
+ * Migration guide:
+ * Before: const { Provider, useAction } = createActionContext<MyActions>();
+ * After: Use <ActionProvider> and useActionDispatch() from ActionProvider
  */
-export interface ActionContextConfig {
+
+/**
+ * Configuration options for createActionContext
+ * @deprecated Use ActionRegisterConfig from ActionProvider instead
+ */
+export interface ActionContextConfig extends ActionRegisterConfig {
   /** Custom logger implementation. Defaults to ConsoleLogger */
   logger?: Logger
   /** Log level for the logger. Defaults to ERROR if not provided */
@@ -18,6 +28,7 @@ export interface ActionContextConfig {
 
 /**
  * Context type for ActionRegister
+ * @deprecated Use ActionContextType from ActionProvider instead
  */
 export interface ActionContextType<T extends ActionPayloadMap = ActionPayloadMap> {
   actionRegisterRef: React.RefObject<ActionRegister<T>>;
@@ -26,6 +37,7 @@ export interface ActionContextType<T extends ActionPayloadMap = ActionPayloadMap
 
 /**
  * Return type for createActionContext
+ * @deprecated This pattern is deprecated in favor of ActionProvider
  */
 export interface ActionContextReturn<T extends ActionPayloadMap = ActionPayloadMap> {
   Provider: React.FC<{ children: ReactNode }>;
@@ -40,72 +52,60 @@ export interface ActionContextReturn<T extends ActionPayloadMap = ActionPayloadM
 
 /**
  * Create a React Context for sharing ActionRegister instance across components
- * @implements view-layer
- * @memberof architecture-terms
  * 
- * @template T - The action payload map type
- * @param config 로거 설정 (선택사항)
- * @returns Object containing Provider component and hooks for action management
- * @example
+ * @deprecated This function is deprecated and will be removed in future versions.
+ * Use ActionProvider from './ActionProvider' instead for better integration with Context Store Pattern.
+ * 
+ * Migration Guide:
  * ```typescript
- * interface AppActions extends ActionPayloadMap {
- *   increment: void;
- *   setCount: number;
- * }
+ * // Before (deprecated)
+ * const { Provider, useAction } = createActionContext<AppActions>();
  * 
- * const { Provider, useAction, useActionHandler } = createActionContext<AppActions>({
- *   logLevel: LogLevel.DEBUG,
- *   debug: true
- * });
+ * // After (recommended)
+ * import { ActionProvider, useActionDispatch } from '@context-action/react';
  * 
  * function App() {
  *   return (
- *     <Provider>
+ *     <ActionProvider config={{ logLevel: LogLevel.DEBUG }}>
  *       <Counter />
- *     </Provider>
+ *     </ActionProvider>
  *   );
  * }
  * 
  * function Counter() {
- *   const [count, setCount] = useState(0);
- *   const dispatch = useAction();
- *   
- *   useActionHandler('increment', () => setCount(prev => prev + 1));
- *   
- *   return (
- *     <button onClick={() => dispatch('increment')}>
- *       Count: {count}
- *     </button>
- *   );
+ *   const dispatch = useActionDispatch<AppActions>();
+ *   // rest of component logic
  * }
  * ```
+ * 
+ * @template T - The action payload map type
+ * @param config Configuration for ActionRegister
+ * @returns Object containing Provider component and hooks (deprecated)
  */
 export function createActionContext<T extends ActionPayloadMap = ActionPayloadMap>(config?: ActionContextConfig): ActionContextReturn<T> {
+
+  if (process.env.NODE_ENV === 'development') {
+    console.warn(
+      '⚠️ createActionContext is deprecated. Use ActionProvider instead.\n' +
+      'Migration: Replace createActionContext() with <ActionProvider> + useActionDispatch()'
+    );
+  }
 
   const ActionContext = createContext<ActionContextType<T> | null>(null);
 
   /**
-   * Provider 컴포넌트
-   * ActionRegister 인스턴스를 Context로 제공합니다
+   * Provider 컴포넌트 (deprecated)
+   * @deprecated Use ActionProvider instead
    */
   const Provider = ({ children }: { children: ReactNode }) => {
-    // Create logger with configuration
     const logger = config?.logger || createLogger(config?.logLevel);
     
     const actionRegisterRef = useRef(new ActionRegister<T>({
       logger,
       logLevel: config?.logLevel,
-      name: config?.name || 'ActionContext',
+      name: config?.name || 'DeprecatedActionContext',
       debug: config?.debug
     }));
-    
-    if (config?.debug) {
-      logger.info('ActionContext Provider initialized', { 
-        logLevel: config?.logLevel,
-        name: config?.name,
-        debug: config?.debug
-      });
-    }
     
     return (
       <ActionContext.Provider value={{ actionRegisterRef, logger }}>

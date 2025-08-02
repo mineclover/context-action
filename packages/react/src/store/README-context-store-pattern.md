@@ -236,6 +236,115 @@ function AdvancedComponent() {
 }
 ```
 
+## HOC 패턴 (Higher-Order Components)
+
+Context Store Pattern은 HOC를 통해 컴포넌트를 자동으로 Provider로 감쌀 수 있습니다.
+
+### withProvider(registryId?)
+
+특정 컴포넌트를 Context Store Provider로 자동 래핑합니다.
+
+```typescript
+const UserStores = createContextStorePattern('User');
+
+// HOC 생성
+const withUserStores = UserStores.withProvider('user-dashboard');
+
+// 컴포넌트 래핑
+const UserDashboard = withUserStores(() => {
+  const userStore = UserStores.useStore('current-user', { name: 'John', email: 'john@example.com' });
+  const user = useStoreValue(userStore);
+  
+  return (
+    <div>
+      <h2>User Dashboard</h2>
+      <p>Welcome, {user.name}!</p>
+      <p>Email: {user.email}</p>
+    </div>
+  );
+});
+
+// 사용 - Provider 래핑이 자동으로 처리됨
+function App() {
+  return (
+    <div>
+      <UserDashboard />
+    </div>
+  );
+}
+```
+
+### withCustomProvider(wrapperComponent, registryId?)
+
+Context Store Provider와 다른 Provider를 조합하여 래핑합니다.
+
+```typescript
+const FeatureStores = createContextStorePattern('Feature');
+
+// ActionProvider와 함께 래핑하는 HOC 생성
+const withFeatureAndAction = FeatureStores.withCustomProvider(
+  ({ children }) => (
+    <ActionProvider config={{ logLevel: LogLevel.DEBUG }}>
+      {children}
+    </ActionProvider>
+  ),
+  'feature-module'
+);
+
+// 완전히 격리된 기능 모듈
+const FeatureModule = withFeatureAndAction(() => {
+  const dispatch = useActionDispatch<FeatureActions>();
+  const dataStore = FeatureStores.useStore('feature-data', { status: 'idle' });
+  const data = useStoreValue(dataStore);
+  
+  const handleUpdate = () => {
+    dispatch('updateFeature', { status: 'active' });
+  };
+  
+  return (
+    <div>
+      <h3>Feature Module</h3>
+      <p>Status: {data.status}</p>
+      <button onClick={handleUpdate}>Activate Feature</button>
+    </div>
+  );
+});
+
+// 완전히 자급자족하는 컴포넌트
+function App() {
+  return <FeatureModule />;
+}
+```
+
+### HOC vs Provider 패턴 비교
+
+```typescript
+// 기존 Provider 패턴
+function App() {
+  return (
+    <UserStores.Provider registryId="user-section">
+      <ActionProvider config={{ logLevel: LogLevel.DEBUG }}>
+        <UserDashboard />
+      </ActionProvider>
+    </UserStores.Provider>
+  );
+}
+
+// HOC 패턴 (더 간결)
+const UserDashboard = UserStores.withCustomProvider(
+  ({ children }) => (
+    <ActionProvider config={{ logLevel: LogLevel.DEBUG }}>
+      {children}
+    </ActionProvider>
+  ),
+  'user-section'
+)(UserDashboardComponent);
+
+function App() {
+  return <UserDashboard />;
+}
+```
+
 ## 주의사항
 
 1. **Provider 외부에서 사용 불가**: Store 훅들은 반드시 해당 Provider 내부에서만 사용해야 합니다.
@@ -243,6 +352,8 @@ function AdvancedComponent() {
 2. **Registry ID 충돌**: 같은 `registryId`를 가진 Provider들은 같은 Registry를 공유합니다.
 
 3. **초기값 일관성**: 같은 이름의 Store를 여러 곳에서 생성할 때는 초기값이 일관되어야 합니다.
+
+4. **HOC displayName**: HOC로 생성된 컴포넌트는 자동으로 displayName이 설정되어 디버깅이 용이합니다.
 
 ## 마이그레이션 가이드
 

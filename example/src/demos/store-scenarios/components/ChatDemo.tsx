@@ -17,6 +17,37 @@ export function ChatDemo() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const logger = useActionLoggerWithToast();
 
+  // 필요한 액션 핸들러들을 등록
+  useEffect(() => {
+    const unsubscribers = [
+      storeActionRegister.register('sendMessage', ({ message, sender, type }, controller) => {
+        const newMessage: ChatMessage = {
+          id: `msg-${Date.now()}`,
+          sender,
+          message,
+          timestamp: new Date(),
+          type
+        };
+        chatStore.update(prev => [...prev, newMessage]);
+        controller.next();
+      }),
+
+      storeActionRegister.register('deleteMessage', ({ messageId }, controller) => {
+        chatStore.update(prev => prev.filter(msg => msg.id !== messageId));
+        controller.next();
+      }),
+
+      storeActionRegister.register('clearChat', (_, controller) => {
+        chatStore.setValue([]);
+        controller.next();
+      })
+    ];
+
+    return () => {
+      unsubscribers.forEach(unsubscribe => unsubscribe());
+    };
+  }, [chatStore]);
+
   // 자동 스크롤
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

@@ -24,7 +24,9 @@ export {
 	getLogLevelFromEnv,
 } from "@context-action/logger";
 
-// === REACT ACTION CONTEXT ===
+// === REACT ACTION CONTEXT (DEPRECATED) ===
+// @deprecated ActionContext is deprecated in favor of ActionProvider
+// Use ActionProvider and related hooks for new development
 export * from "./ActionContext";
 
 // === ACTION PROVIDER (ARCHITECTURE.md Pattern) ===
@@ -93,6 +95,7 @@ export {
 export {
 	createStoreContext,
 	useStoreContext,
+	createContextStorePattern,
 } from "./store";
 
 // Advanced sync utilities
