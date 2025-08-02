@@ -1,0 +1,173 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom base styles */
+@layer base {
+  body {
+    @apply font-sans text-gray-900 bg-gray-50 antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold text-gray-900;
+  }
+  
+  h1 { @apply text-3xl; }
+  h2 { @apply text-2xl; }
+  h3 { @apply text-xl; }
+  h4 { @apply text-lg; }
+  h5 { @apply text-base; }
+  h6 { @apply text-sm; }
+}
+
+/* Custom components */
+@layer components {
+  /* Layout Components */
+  .app-layout {
+    @apply flex min-h-screen;
+  }
+  
+  .sidebar {
+    @apply w-72 bg-white border-r border-gray-200 p-8 fixed h-screen overflow-y-auto;
+  }
+  
+  .main-content {
+    @apply flex-1 ml-72 p-8 max-w-[calc(100vw-18rem)];
+  }
+
+  /* Navigation Components */
+  .nav-section h3 {
+    @apply text-xs font-semibold text-gray-700 mb-4 uppercase tracking-wider;
+  }
+  
+  .nav-list {
+    @apply space-y-2;
+  }
+  
+  .nav-item a {
+    @apply block px-4 py-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200 font-medium;
+  }
+  
+  .nav-item a.active {
+    @apply bg-primary-600 text-white hover:bg-primary-700 hover:text-white;
+  }
+  
+  /* Category specific active states */
+  .nav-item.core a.active { @apply bg-danger-600 hover:bg-danger-700; }
+  .nav-item.store a.active { @apply bg-success-600 hover:bg-success-700; }
+  .nav-item.react a.active { @apply bg-purple-600 hover:bg-purple-700; }
+  .nav-item.logger a.active { @apply bg-warning-600 hover:bg-warning-700; }
+  .nav-item.actionguard a.active { @apply bg-pink-600 hover:bg-pink-700; }
+  .nav-item.debug a.active { @apply bg-indigo-600 hover:bg-indigo-700; }
+
+  /* Page Components */
+  .page-header {
+    @apply mb-12;
+  }
+  
+  .page-header h1 {
+    @apply text-4xl font-bold text-gray-900 mb-4;
+  }
+  
+  .page-description {
+    @apply text-lg text-gray-600 leading-relaxed;
+  }
+
+  /* Demo Components */
+  .demo-display {
+    @apply p-6 bg-gray-50 border border-gray-200 rounded-lg;
+  }
+  
+  .demo-value {
+    @apply text-2xl font-bold text-primary-600 text-center block;
+  }
+  
+  /* Log Components */
+  .log-container {
+    @apply max-h-80 overflow-y-auto border border-gray-200 rounded-lg p-4 bg-gray-50 font-mono text-sm;
+  }
+  
+  .log-entry {
+    @apply flex items-center gap-2 py-1 border-b border-gray-200 last:border-b-0;
+  }
+  
+  .log-id {
+    @apply text-gray-500 text-xs font-mono min-w-[50px] bg-gray-200 px-2 py-1 rounded text-center;
+  }
+  
+  .log-time {
+    @apply text-gray-500 text-xs min-w-[80px] font-mono;
+  }
+  
+  .log-type {
+    @apply font-semibold min-w-[80px] text-sm;
+  }
+  
+  .log-action .log-type { @apply text-primary-600; }
+  .log-system .log-type { @apply text-success-600; }
+  .log-error .log-type { @apply text-danger-600; }
+  
+  .log-message {
+    @apply flex-1 text-gray-700;
+  }
+
+  /* Counter Components */
+  .counter-display {
+    @apply text-center my-8;
+  }
+  
+  .count-value {
+    @apply text-5xl font-bold text-primary-600 block mb-4;
+  }
+
+  /* Toast Components - keeping existing styles for compatibility */
+  .toast-container {
+    @apply fixed z-[9999] pointer-events-none max-w-sm p-4;
+  }
+  
+  .toast-item {
+    @apply relative w-full bg-white rounded-xl shadow-lg mb-3 pointer-events-auto border border-gray-100 overflow-hidden;
+  }
+  
+  .toast-header {
+    @apply flex items-center gap-3 p-4 pb-2;
+  }
+  
+  .toast-icon {
+    @apply text-xl leading-none p-2 text-white rounded-lg flex items-center justify-center min-w-[2.5rem] h-10;
+  }
+  
+  .toast-title {
+    @apply font-semibold text-gray-800 text-sm leading-tight mb-1;
+  }
+  
+  .toast-timestamp {
+    @apply text-xs text-gray-500 font-mono;
+  }
+  
+  .toast-message {
+    @apply px-4 pb-3 text-gray-600 text-sm leading-relaxed;
+  }
+  
+  .toast-close {
+    @apply bg-transparent border-0 text-gray-400 cursor-pointer text-sm p-1 rounded hover:bg-gray-100 hover:text-gray-600 transition-all;
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .main-content {
+      @apply ml-0 max-w-full;
+    }
+    
+    .sidebar {
+      @apply -translate-x-full transition-transform;
+    }
+  }
+}
+
+/* Custom utilities */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

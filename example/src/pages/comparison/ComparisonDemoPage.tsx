@@ -203,15 +203,7 @@ function ComparisonTestComponent({
     testStore.setValue(newData);
   }, [testStore, dataPattern, stopped]);
   
-  // 전략별 색상
-  const getColors = () => {
-    switch (strategy) {
-      case 'reference': return 'border-orange-400 bg-orange-50 text-orange-700';
-      case 'shallow': return 'border-blue-400 bg-blue-50 text-blue-700';
-      case 'deep': return 'border-purple-400 bg-purple-50 text-purple-700';
-      default: return 'border-gray-400 bg-gray-50 text-gray-700';
-    }
-  };
+
   
   // 위험도 표시
   const getRenderStatus = () => {
@@ -223,61 +215,44 @@ function ComparisonTestComponent({
   
   const status = getRenderStatus();
   
-  // ✅ JSX에서 조건부 렌더링 (Hook 규칙 준수)
   return (
-    <div className={`border-2 p-4 rounded-lg ${stopped ? 'border-red-500 bg-red-50' : getColors()}`}>
-      {stopped ? (
-        // 🚨 중단된 상태
-        <>
-          <h3 className="text-red-700 font-bold mb-2">🚨 STOPPED - Too Many Renders</h3>
-          <div className="text-sm text-red-600">
-            안전을 위해 컴포넌트가 중단되었습니다. (렌더링: {renderCount}회)
-          </div>
-          <div className="text-xs text-red-500 mt-2">
-            무한 루프가 감지되어 자동으로 중단되었습니다. Reset All을 클릭하여 다시 시도하세요.
-          </div>
-        </>
-      ) : (
-        // ✅ 정상 상태
-        <>
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="font-bold text-sm uppercase">{strategy}</h3>
-            <div className={`font-bold ${status.color}`}>
-              {status.icon} {renderCount} ({status.text})
-            </div>
-          </div>
-          
-          <div className="text-xs space-y-2">
-            <div className="bg-white p-2 rounded border">
-              <strong>Data Preview:</strong><br/>
-              <code className="text-xs">
-                {storeValue && typeof storeValue === 'object' 
-                  ? JSON.stringify(storeValue, null, 1).slice(0, 100) + '...'
-                  : String(storeValue ?? 'empty')
-                }
-              </code>
-            </div>
-            
-            <div className="flex gap-1">
-              <button 
-                onClick={updateData}
-                disabled={stopped}
-                className="bg-white border px-2 py-1 rounded text-xs hover:bg-gray-50 disabled:opacity-50"
-              >
-                Update Data
-              </button>
-              <button 
-                onClick={setStoreValue}
-                disabled={stopped}
-                className="bg-white border px-2 py-1 rounded text-xs hover:bg-gray-50 disabled:opacity-50"
-              >
-                Set Store
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-    </div>
+    <ComparisonCard
+      strategy={strategy}
+      title={strategy.toUpperCase()}
+      renderCount={renderCount}
+      stopped={stopped}
+    >
+      <div className="text-xs space-y-2">
+        <div className="bg-white p-2 rounded border">
+          <strong>Data Preview:</strong><br/>
+          <code className="text-xs">
+            {storeValue && typeof storeValue === 'object' 
+              ? JSON.stringify(storeValue, null, 1).slice(0, 100) + '...'
+              : String(storeValue ?? 'empty')
+            }
+          </code>
+        </div>
+        
+        <div className="flex gap-1">
+          <Button 
+            onClick={updateData}
+            disabled={stopped}
+            size="xs"
+            variant="primary"
+          >
+            Update Data
+          </Button>
+          <Button 
+            onClick={setStoreValue}
+            disabled={stopped}
+            size="xs"
+            variant="success"
+          >
+            Set Store
+          </Button>
+        </div>
+      </div>
+    </ComparisonCard>
   );
 }
 
@@ -319,85 +294,75 @@ function ComparisonDemoContent() {
   const patternInfo = DATA_PATTERN_INFO[selectedPattern];
   
   return (
-      <div className="max-w-6xl mx-auto p-6 space-y-6">
-        {/* 헤더 */}
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
-          <h1 className="text-2xl font-bold text-blue-800 mb-2">
-            ⚡ Store Comparison Logic Demo (Isolated)
-          </h1>
+    <Container size="xl">
+      {/* 헤더 */}
+      <PerformanceCard type="info" title="Store Comparison Logic Demo (Isolated)" icon="⚡" className="mb-6">
         <p className="text-blue-700 text-sm mb-2">
           완전히 격리된 환경에서 다양한 데이터 패턴의 Store 비교 전략 성능 차이를 실시간으로 확인해보세요.
         </p>
-        <div className="text-xs text-blue-600 mb-1">
-          🔒 각 컴포넌트는 독립적인 Store와 설정을 사용하여 상호 영향 없음
+        <div className="flex flex-wrap gap-4 text-xs text-blue-600">
+          <span>🔒 각 컴포넌트는 독립적인 Store와 설정을 사용하여 상호 영향 없음</span>
+          <span>🔄 Page Renders: <strong>{pageRenderCount.renderCount}</strong></span>
+          {pageRenderCount.stopped && <span className="text-red-600">🚨 Page Stopped</span>}
         </div>
-        <div className="text-xs text-blue-600">
-          🔄 Page Renders: <strong>{pageRenderCount.renderCount}</strong>
-          {pageRenderCount.stopped && <span className="ml-2 text-red-600">🚨 Page Stopped</span>}
-        </div>
-      </div>
+      </PerformanceCard>
       
       {/* 컨트롤 패널 */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-          <div className="flex-1">
-            <label className="block text-sm font-medium mb-2">Data Pattern</label>
-            <select 
-              value={selectedPattern}
-              onChange={(e) => changePattern(e.target.value as DataPattern)}
-              className="w-full p-2 border rounded-lg"
-            >
-              {Object.entries(DATA_PATTERN_INFO).map(([key, info]) => (
-                <option key={key} value={key}>
-                  {info.name} - {info.desc}
-                </option>
-              ))}
-            </select>
+      <Card className="mb-6">
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+            <div className="flex-1">
+              <label className="block text-sm font-medium mb-2 text-gray-700">Data Pattern</label>
+              <select 
+                value={selectedPattern}
+                onChange={(e) => changePattern(e.target.value as DataPattern)}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              >
+                {Object.entries(DATA_PATTERN_INFO).map(([key, info]) => (
+                  <option key={key} value={key}>
+                    {info.name} - {info.desc}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="flex gap-2">
+              <Button onClick={resetAll} variant="primary">
+                🔄 Reset All
+              </Button>
+              <Button onClick={() => window.location.reload()} variant="secondary">
+                🔃 Reload Page
+              </Button>
+            </div>
           </div>
           
-          <div className="flex gap-2">
-            <button 
-              onClick={resetAll}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-            >
-              🔄 Reset All
-            </button>
-            <button 
-              onClick={() => window.location.reload()}
-              className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
-            >
-              🔃 Reload Page
-            </button>
+          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+            <div className="text-sm text-gray-700 space-y-1">
+              <div><strong>선택된 패턴:</strong> {patternInfo.name}</div>
+              <div><strong>설명:</strong> {patternInfo.desc}</div>
+              <div><strong>권장 전략:</strong> <Badge variant="primary">{patternInfo.strategy}</Badge></div>
+            </div>
           </div>
-        </div>
-        
-        <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-          <div className="text-sm">
-            <strong>선택된 패턴:</strong> {patternInfo.name}<br/>
-            <strong>설명:</strong> {patternInfo.desc}<br/>
-            <strong>권장 전략:</strong> <span className="font-mono text-blue-600">{patternInfo.strategy}</span>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
       
       {/* 안전 경고 */}
       {Object.values(renderStats).some(stat => stat.count > RENDER_LIMIT) && (
-        <div className="bg-red-50 border border-red-300 rounded-lg p-4">
-          <h3 className="text-red-800 font-bold mb-2">⚠️ High Render Count Detected</h3>
-          <p className="text-red-700 text-sm">
+        <PerformanceCard type="error" title="High Render Count Detected" icon="⚠️" className="mb-6">
+          <p className="text-red-700 text-sm mb-3">
             일부 컴포넌트가 {RENDER_LIMIT}회 이상 렌더링되었습니다. 
             이는 비교 전략이 적절하지 않을 수 있음을 의미합니다.
           </p>
-          <ul className="text-red-600 text-xs mt-2 list-disc list-inside">
+          <ul className="text-red-600 text-xs space-y-1 list-disc list-inside">
             <li>Reference 전략: 매번 새로운 객체를 "다름"으로 판단</li>
             <li>Shallow 전략: 1레벨 프로퍼티만 비교</li>
             <li>Deep 전략: 모든 중첩 프로퍼티 비교</li>
           </ul>
-        </div>
+        </PerformanceCard>
       )}
       
       {/* 완전히 격리된 비교 테스트 컴포넌트들 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <Grid cols={3} className="mb-6">
         {(['reference', 'shallow', 'deep'] as const).map((strategy) => {
           const uniqueTestId = `${strategy}-${testKey}-${isolationId}`;
           
@@ -422,35 +387,44 @@ function ComparisonDemoContent() {
       </div>
       
       {/* 결과 분석 */}
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h3 className="text-lg font-semibold mb-3">📊 Performance Analysis</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {(['reference', 'shallow', 'deep'] as const).map((strategy) => {
-            const stats = renderStats[`${strategy}-${testKey}`] || { count: 0, stopped: false };
-            const efficiency = stats.count <= 3 ? '매우 효율적' : 
-                              stats.count <= 8 ? '보통' : 
-                              stats.count <= RENDER_LIMIT ? '비효율적' : '위험';
-            
-            return (
-              <div key={strategy} className="text-sm">
-                <h4 className="font-medium mb-1 capitalize">{strategy}</h4>
-                <div className="space-y-1 text-xs">
-                  <div>렌더링: <strong>{stats.count}회</strong></div>
-                  <div>효율성: <strong>{efficiency}</strong></div>
-                  <div>상태: {stats.stopped ? '🚨 중단됨' : '✅ 정상'}</div>
+      <Card className="mb-6">
+        <CardContent>
+          <h3 className="text-lg font-semibold mb-3">📊 Performance Analysis</h3>
+          <Grid cols={3}>
+            {(['reference', 'shallow', 'deep'] as const).map((strategy) => {
+              const stats = renderStats[`${strategy}-${testKey}`] || { count: 0, stopped: false };
+              const efficiency = stats.count <= 3 ? '매우 효율적' : 
+                                stats.count <= 8 ? '보통' : 
+                                stats.count <= RENDER_LIMIT ? '비효율적' : '위험';
+              
+              const efficiencyVariant = stats.count <= 3 ? 'success' : 
+                                       stats.count <= 8 ? 'default' : 
+                                       stats.count <= RENDER_LIMIT ? 'warning' : 'danger';
+              
+              return (
+                <div key={strategy} className="bg-gray-50 p-3 rounded-lg">
+                  <h4 className="font-medium mb-2 capitalize text-gray-900">{strategy}</h4>
+                  <div className="space-y-2">
+                    <div className="text-xs text-gray-600">
+                      렌더링: <strong>{stats.count}회</strong>
+                    </div>
+                    <Badge variant={efficiencyVariant}>{efficiency}</Badge>
+                    <div className="text-xs">
+                      상태: {stats.stopped ? '🚨 중단됨' : '✅ 정상'}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+              );
+            })}
+          </Grid>
+        </CardContent>
+      </Card>
       
       {/* 가이드라인 */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="text-blue-800 font-bold mb-2">💡 Best Practice Guidelines</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-700">
+      <PerformanceCard type="success" title="Best Practice Guidelines" icon="💡">
+        <Grid cols={2} className="text-sm text-blue-700">
           <div>
-            <h4 className="font-medium mb-1">언제 어떤 전략을 사용할까?</h4>
+            <h4 className="font-medium mb-2">언제 어떤 전략을 사용할까?</h4>
             <ul className="space-y-1 list-disc list-inside text-xs">
               <li><strong>Reference:</strong> 원시 값, 안정적인 참조</li>
               <li><strong>Shallow:</strong> 대부분의 객체, 배열 (권장)</li>
@@ -458,7 +432,7 @@ function ComparisonDemoContent() {
             </ul>
           </div>
           <div>
-            <h4 className="font-medium mb-1">성능 최적화 팁</h4>
+            <h4 className="font-medium mb-2">성능 최적화 팁</h4>
             <ul className="space-y-1 list-disc list-inside text-xs">
               <li>데이터 구조에 맞는 전략 선택</li>
               <li>불필요한 중첩 최소화</li>
@@ -466,9 +440,9 @@ function ComparisonDemoContent() {
               <li>렌더링 카운트 모니터링</li>
             </ul>
           </div>
-        </div>
-      </div>
-    </div>
+        </Grid>
+      </PerformanceCard>
+    </Container>
   );
 }
 
