@@ -171,6 +171,8 @@ function ActivityLogger() {
 // 스토어 모니터 컴포넌트
 function StoreMonitor() {
   const registry = useStoreRegistry();
+  const counterStore = ProviderStores.useStore('counter', 0);
+  const messageStore = ProviderStores.useStore('message', 'Welcome to React Provider Demo');
   const counter = useStoreValue(counterStore);
   const message = useStoreValue(messageStore);
   
@@ -205,12 +207,12 @@ const actionRegister = new ActionRegister<AppActions>();
 
 // 액션 핸들러 설정 컴포넌트
 function ActionHandlerSetup() {
+  const counterStore = ProviderStores.useStore('counter', 0);
+  const messageStore = ProviderStores.useStore('message', 'Welcome to React Provider Demo');
+  
   React.useEffect(() => {
-
-    
     // 카운터 업데이트 핸들러
     const unsubscribeUpdateCounter = actionRegister.register('updateCounter', ({ value }, controller) => {
-
       counterStore.setValue(value);
       controller.next();
     });
@@ -246,7 +248,7 @@ function ActionHandlerSetup() {
       unsubscribeResetMessage();
       unsubscribeLogActivity();
     };
-  }, []);
+  }, [counterStore, messageStore]);
   
   return null; // 이 컴포넌트는 UI를 렌더링하지 않음
 }

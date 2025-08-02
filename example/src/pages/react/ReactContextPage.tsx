@@ -36,7 +36,27 @@ interface NestedActions extends ActionPayloadMap {
   bubbleUp: { data: any };
 }
 
-// Context Store 패턴 생성
+/**
+ * React 다중 컨텍스트 시스템용 Context Store 패턴
+ * 계층적 컨텍스트에서 Store Registry 격리를 제공
+ * 
+ * @implements store-registry
+ * @implements store-integration-pattern
+ * @memberof core-concepts
+ * @example
+ * // 전역 스토어들을 위한 Context Store 패턴
+ * const GlobalStores = createContextStorePattern('ReactContextGlobal');
+ * 
+ * // Provider 계층 구조
+ * <GlobalStores.Provider>
+ *   <LocalContextProvider contextId="local-A">
+ *     <NestedContextProvider level={1}>
+ *       <InteractiveControls />
+ *     </NestedContextProvider>
+ *   </LocalContextProvider>
+ * </GlobalStores.Provider>
+ * @since 1.0.0
+ */
 const GlobalStores = createContextStorePattern('ReactContextGlobal');
 
   // 로거는 useActionLoggerWithToast 훅에서 자동 생성됨

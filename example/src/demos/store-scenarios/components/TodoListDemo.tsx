@@ -5,6 +5,19 @@ import { StoreScenarios, initialTodos } from '../stores';
 import { storeActionRegister } from '../actions';
 import type { TodoItem } from '../types';
 
+/**
+ * 할일 목록 관리 데모 컴포넌트
+ * CRUD 작업과 필터링, 정렬 기능을 보여주는 Context Store 패턴 예제
+ * 
+ * @implements store-integration-pattern
+ * @implements action-handler
+ * @memberof core-concepts
+ * @example
+ * // 할일 목록 관리를 위한 Context Store 패턴
+ * const todosStore = StoreScenarios.useStore('todos', initialTodos);
+ * const todos = useStoreValue(todosStore);
+ * @since 1.0.0
+ */
 export function TodoListDemo() {
   const todosStore = StoreScenarios.useStore('todos', initialTodos);
   const todos = useStoreValue(todosStore);
