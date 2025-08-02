@@ -1,4 +1,4 @@
-import React, { useState, useCallback, createContext, useContext, useRef, useEffect } from 'react';
+import React, { useState, useCallback, createContext, useContext, useRef, useEffect, useId } from 'react';
 import {
   ActionRegister,
   ActionPayloadMap,
@@ -6,7 +6,7 @@ import {
   StoreProvider,
   useActionDispatch,
   useActionRegister,
-  createStore,
+  createContextStorePattern,
   useStoreValue
 } from '@context-action/react';
 import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
@@ -36,10 +36,8 @@ interface NestedActions extends ActionPayloadMap {
   bubbleUp: { data: any };
 }
 
-// 전역 스토어들
-const globalMessageStore = createStore('global-message', 'Welcome to Multi-Context Demo');
-const globalEventStore = createStore<EventEntry[]>('global-events', []);
-const contextCountStore = createStore('context-count', 0);
+// Context Store 패턴 생성
+const GlobalStores = createContextStorePattern('ReactContextGlobal');
 
   // 로거는 useActionLoggerWithToast 훅에서 자동 생성됨
 
@@ -52,46 +50,48 @@ const ContextInfoContext = createContext<{
 
 // 전역 컨텍스트 컴포넌트
 function GlobalContextProvider({ children }: { children: React.ReactNode }) {
+  const componentId = useId();
   const [globalEvents, setGlobalEvents] = useState<Array<{ id: string; event: string; data: any; timestamp: string }>>([]);
   
   const handleGlobalEvent = useCallback((event: string, data: any) => {
     const eventEntry = {
-      id: Date.now().toString(),
+      id: `${componentId}-${Date.now()}`,
       event,
       data,
       timestamp: new Date().toLocaleTimeString()
     };
     setGlobalEvents(prev => [...prev, eventEntry]);
-    globalEventStore.update((prev: EventEntry[]) => [...prev, eventEntry]);
-  }, []);
+  }, [componentId]);
   
   return (
     <ContextInfoContext.Provider value={{ level: 'Global', id: 'global-1', onContextEvent: handleGlobalEvent }}>
       <ActionProvider >
         <StoreProvider>
-          <GlobalContextSetup />
-          <div className="context-wrapper global-context">
-            <div className="context-header">
-              <h3>🌍 Global Context</h3>
-              <div className="context-info">
-                <span>Level: Global</span>
-                <span>ID: global-1</span>
+          <GlobalStores.Provider>
+            <GlobalContextSetup />
+            <div className="context-wrapper global-context">
+              <div className="context-header">
+                <h3>🌍 Global Context</h3>
+                <div className="context-info">
+                  <span>Level: Global</span>
+                  <span>ID: global-1</span>
+                </div>
+              </div>
+              {children}
+              
+              <div className="global-events">
+                <h4>Global Events:</h4>
+                <div className="event-list">
+                  {globalEvents.slice(-3).map((event) => (
+                    <div key={event.id} className="event-entry">
+                      <span className="event-name">{event.event}</span>
+                      <span className="event-time">{event.timestamp}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-            {children}
-            
-            <div className="global-events">
-              <h4>Global Events:</h4>
-              <div className="event-list">
-                {globalEvents.slice(-3).map((event) => (
-                  <div key={event.id} className="event-entry">
-                    <span className="event-name">{event.event}</span>
-                    <span className="event-time">{event.timestamp}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          </GlobalStores.Provider>
         </StoreProvider>
       </ActionProvider>
     </ContextInfoContext.Provider>
@@ -104,6 +104,8 @@ const globalActionRegister = new ActionRegister<GlobalActions>({});
 // 전역 컨텍스트 설정
 function GlobalContextSetup() {
   const contextInfo = useContext(ContextInfoContext);
+  const globalMessageStore = GlobalStores.useStore('global-message', 'Welcome to Multi-Context Demo');
+  const globalEventStore = GlobalStores.useStore<EventEntry[]>('global-events', []);
   
   React.useEffect(() => {
     const unsubscribe1 = globalActionRegister.register('globalMessage', ({ message }, controller) => {
@@ -113,6 +115,13 @@ function GlobalContextSetup() {
     });
     
     const unsubscribe2 = globalActionRegister.register('broadcastEvent', ({ event, data }, controller) => {
+      const eventEntry = {
+        id: `global-${Date.now()}`,
+        event,
+        data,
+        timestamp: new Date().toLocaleTimeString()
+      };
+      globalEventStore.update(prev => [...prev, eventEntry]);
       contextInfo.onContextEvent('broadcastEvent', { event, data });
       controller.next();
     });
@@ -121,7 +130,7 @@ function GlobalContextSetup() {
       unsubscribe1();
       unsubscribe2();
     };
-  }, [contextInfo]);
+  }, [contextInfo, globalMessageStore, globalEventStore]);
   
   return null;
 }
@@ -298,6 +307,10 @@ function NestedContextSetup({ nestedValue, setNestedValue, level }: { nestedValu
 
 // 컨텍스트 상태 모니터
 function ContextMonitor() {
+  const globalMessageStore = GlobalStores.useStore('global-message', 'Welcome to Multi-Context Demo');
+  const globalEventStore = GlobalStores.useStore<EventEntry[]>('global-events', []);
+  const contextCountStore = GlobalStores.useStore('context-count', 0);
+  
   const globalMessage = useStoreValue(globalMessageStore);
   const globalEvents = useStoreValue(globalEventStore);
   const contextCount = useStoreValue(contextCountStore);

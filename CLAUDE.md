@@ -166,6 +166,47 @@ function ActionSetup({ children }) {
 }
 ```
 
+### Context Store Pattern (Primary Pattern)
+The Context-Action framework uses **Context Store Pattern** as the primary state management pattern. This provides automatic Store isolation and component-level encapsulation:
+
+```typescript
+// 1. Create Context Store Pattern
+const UserStores = createContextStorePattern('User');
+
+// 2. Use Provider pattern
+function App() {
+  return (
+    <UserStores.Provider registryId="user-app">
+      <ActionProvider>
+        <UserProfile />
+      </ActionProvider>
+    </UserStores.Provider>
+  );
+}
+
+// 3. Use HOC pattern for automatic wrapping
+const withUserStores = UserStores.withProvider('user-section');
+
+const UserProfile = withUserStores(() => {
+  const userStore = UserStores.useStore('current-user', { name: '', email: '' });
+  const user = useStoreValue(userStore);
+  
+  return <div>Welcome, {user.name}!</div>;
+});
+
+// 4. Combine with ActionProvider using withCustomProvider
+const withUserAndActions = UserStores.withCustomProvider(
+  ({ children }) => (
+    <ActionProvider config={{ logLevel: LogLevel.DEBUG }}>
+      {children}
+    </ActionProvider>
+  ),
+  'user-with-actions'
+);
+
+const FullUserModule = withUserAndActions(UserComponent);
+```
+
 ### Store Subscription Pattern
 Always use `useStoreValue()` for reactive subscriptions, not direct store access:
 
@@ -210,6 +251,51 @@ register('riskyAction', async (payload, controller) => {
 5. **Building**: Run `pnpm build` before committing
 6. **Documentation**: Update docs if changing public APIs
 
+### Recommended Development Patterns
+
+#### For New Components (HOC Pattern)
+```typescript
+// 1. Create isolated component module
+const FeatureStores = createContextStorePattern('Feature');
+
+// 2. Create self-contained component with HOC
+const withFeatureProviders = FeatureStores.withCustomProvider(
+  ({ children }) => (
+    <ActionProvider config={{ logLevel: LogLevel.DEBUG }}>
+      {children}
+    </ActionProvider>
+  ),
+  'feature-module'
+);
+
+const FeatureComponent = withFeatureProviders(() => {
+  const featureStore = FeatureStores.useStore('feature-data', initialData);
+  const dispatch = useActionDispatch<FeatureActions>();
+  
+  // Component logic with complete isolation
+  return <div>Feature UI</div>;
+});
+
+// 3. Use anywhere without manual Provider wrapping
+function App() {
+  return <FeatureComponent />;
+}
+```
+
+#### For Existing Components (Provider Pattern)
+```typescript
+// Traditional approach - still fully supported
+function App() {
+  return (
+    <StoreProvider>
+      <ActionProvider>
+        <ExistingComponent />
+      </ActionProvider>
+    </StoreProvider>
+  );
+}
+```
+
 ### Monorepo Dependencies
 - Workspace packages use `workspace:*` for internal dependencies
 - External dependencies are managed at package level
@@ -220,7 +306,17 @@ register('riskyAction', async (payload, controller) => {
 - `packages/core/src/ActionRegister.ts` - Core action pipeline implementation
 - `packages/react/src/store/` - Store system implementation
 - `packages/react/src/ActionProvider.tsx` - React context integration
+- `packages/react/src/store/context-store-pattern.tsx` - Context Store Pattern with HOC support
+- `packages/react/src/store/README-context-store-pattern.md` - Context Store Pattern documentation
+- `packages/react/examples/hoc-pattern-example.tsx` - HOC pattern usage examples
 - `example/src/` - Comprehensive example application
 - `docs/` - VitePress documentation source
 - `glossary/` - Term management and documentation tools
 - `scripts/` - Build and utility scripts
+
+### Architecture Patterns
+
+- **Context Store Pattern**: `createContextStorePattern()` for isolated store management
+- **HOC Pattern**: `withProvider()` and `withCustomProvider()` for automatic component wrapping
+- **Action Provider Pattern**: `ActionProvider` + `useActionDispatch()` for action management
+- **Traditional Provider Pattern**: Manual Provider composition (legacy support)

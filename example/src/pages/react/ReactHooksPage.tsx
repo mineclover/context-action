@@ -57,6 +57,17 @@ function MemoizationDemo() {
     return Array.from({ length: inputSize }, (_, i) => i + 1);
   }, [inputSize]);
   
+  // 액션 핸들러 등록
+  useEffect(() => {
+    const unsubscribe = hooksActionRegister.register('heavyCalculation', ({ numbers }, controller) => {
+      const result = heavyComputation(numbers);
+      calculationStore.setValue(result);
+      controller.next();
+    });
+    
+    return unsubscribe;
+  }, [calculationStore]);
+
   // useCallback을 사용한 함수 최적화
   const handleCalculation = useCallback(() => {
     hooksActionRegister.dispatch('heavyCalculation', { numbers: expensiveNumbers });
@@ -397,30 +408,8 @@ function ReactHooksSetup() {
   useEffect(() => {
     const unsubscribers: (() => void)[] = [];
     
-    // 카운터 업데이트 핸들러
-    unsubscribers.push(
-      hooksActionRegister.register('updateCounter', ({ increment }, controller) => {
-        counterStore.update((prev: number) => prev + increment);
-        controller.next();
-      })
-    );
-    
-    // 리스트 업데이트 핸들러
-    unsubscribers.push(
-      hooksActionRegister.register('updateList', ({ items }, controller) => {
-        listStore.setValue(items);
-        controller.next();
-      })
-    );
-    
-    // 무거운 계산 핸들러
-    unsubscribers.push(
-      hooksActionRegister.register('heavyCalculation', ({ numbers }, controller) => {
-        const result = heavyComputation(numbers);
-        calculationStore.setValue(result);
-        controller.next();
-      })
-    );
+    // 카운터, 리스트, 계산 핸들러는 이제 각 컴포넌트에서 개별적으로 등록됩니다.
+    // 이 핸들러들은 Context Store 패턴을 사용하는 컴포넌트 내부에서 처리됩니다.
     
     // 메모리 집약적 작업 핸들러
     unsubscribers.push(

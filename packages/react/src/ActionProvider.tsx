@@ -41,6 +41,7 @@ export interface ActionProviderProps {
  * @memberof api-terms
  * @example
  * ```typescript
+ * // Basic usage with StoreProvider
  * interface AppActions extends ActionPayloadMap {
  *   updateUser: { id: string; name: string };
  *   calculateTotal: void;
@@ -53,6 +54,34 @@ export interface ActionProviderProps {
  *         <UserProfile />
  *       </ActionProvider>
  *     </StoreProvider>
+ *   );
+ * }
+ * 
+ * // Advanced usage with Context Store Pattern
+ * const AppStores = createContextStorePattern('App');
+ * 
+ * function App() {
+ *   return (
+ *     <AppStores.Provider>
+ *       <ActionProvider config={{ logLevel: LogLevel.DEBUG }}>
+ *         <UserProfile />
+ *       </ActionProvider>
+ *     </AppStores.Provider>
+ *   );
+ * }
+ * 
+ * function UserProfile() {
+ *   const dispatch = useActionDispatch<AppActions>();
+ *   const userStore = AppStores.useStore('user', { name: '', email: '' });
+ *   const user = useStoreValue(userStore);
+ *   
+ *   return (
+ *     <div>
+ *       <h1>{user.name}</h1>
+ *       <button onClick={() => dispatch('updateUser', { id: '1', name: 'John' })}>
+ *         Update User
+ *       </button>
+ *     </div>
  *   );
  * }
  * ```
@@ -241,8 +270,13 @@ export function withActionProvider<T extends ActionPayloadMap = ActionPayloadMap
  * Combined HOC for both Store and Action providers
  * Wraps component with both StoreProvider and ActionProvider
  * 
+ * @deprecated Consider using Context Store Pattern instead:
+ * const AppStores = createContextStorePattern('App');
+ * <AppStores.Provider><ActionProvider>...</ActionProvider></AppStores.Provider>
+ * 
  * @example
  * ```typescript
+ * // Legacy HOC approach (still supported)
  * interface AppActions extends ActionPayloadMap {
  *   updateUser: { id: string; name: string };
  * }
@@ -258,6 +292,20 @@ export function withActionProvider<T extends ActionPayloadMap = ActionPayloadMap
  *     <ShoppingCart />
  *   </div>
  * ));
+ * 
+ * // Recommended Context Store Pattern approach
+ * const AppStores = createContextStorePattern('App');
+ * 
+ * function App() {
+ *   return (
+ *     <AppStores.Provider>
+ *       <ActionProvider config={{ logLevel: LogLevel.DEBUG }}>
+ *         <UserProfile />
+ *         <ShoppingCart />
+ *       </ActionProvider>
+ *     </AppStores.Provider>
+ *   );
+ * }
  * ```
  */
 export function withStoreAndActionProvider<T extends ActionPayloadMap = ActionPayloadMap>(

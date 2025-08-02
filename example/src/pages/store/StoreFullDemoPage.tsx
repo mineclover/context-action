@@ -198,19 +198,43 @@ export interface UserProfileActions {
   updateUserTheme: { theme: 'light' | 'dark' };
 }
 
-// 2. 스토어 생성 (/stores/index.ts)
-export const userStore = createStore<User>('demo-user', defaultUser);
+// 2. Context Store 패턴 생성 (/stores/index.ts)
+export const StoreScenarios = createContextStorePattern('StoreScenarios');
 
-// 3. 액션 핸들러 (/actions/index.ts)
-storeActionRegister.register('updateUser', ({ user }, controller) => {
-  userStore.setValue(user);
-  controller.next();
-});
+// 3. 컴포넌트에서 Store 사용
+const userStore = StoreScenarios.useStore('user', defaultUser);
+const user = useStoreValue(userStore);
 
-// 4. 컴포넌트 사용 (/components/UserProfileDemo.tsx)
+// 4. 액션 핸들러 (컴포넌트 내부)
+useEffect(() => {
+  const unsubscribe = storeActionRegister.register('updateUser', ({ user }, controller) => {
+    userStore.setValue(user);
+    controller.next();
+  });
+  return unsubscribe;
+}, [userStore]);
+
+// 5. Provider로 감싸기 (/pages/StoreFullDemoPage.tsx)
+<StoreScenarios.Provider registryId="store-full-demo">
+  <UserProfileDemo />
+  <ShoppingCartDemo />
+  <TodoListDemo />
+</StoreScenarios.Provider>
+
+// 6. 컴포넌트 구현 (/components/UserProfileDemo.tsx)
 export function UserProfileDemo() {
+  const userStore = StoreScenarios.useStore('user', defaultUser);
   const user = useStoreValue(userStore);
   const logger = useActionLoggerWithToast();
+  
+  // 액션 핸들러 등록
+  useEffect(() => {
+    const unsubscribe = storeActionRegister.register('updateUser', ({ user }, controller) => {
+      userStore.setValue(user);
+      controller.next();
+    });
+    return unsubscribe;
+  }, [userStore]);
   
   const handleSave = useCallback(() => {
     logger.logAction('saveUserProfile', { oldUser: user, newUser: editForm });
