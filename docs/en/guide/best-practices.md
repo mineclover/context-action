@@ -452,6 +452,185 @@ actionRegister.register('updateUserIfChanged', async (payload, controller) => {
 });
 ```
 
+## React Integration Infinite Loop Prevention
+
+> 🚨 **Critical**: This section is based on actual infinite loop problems encountered in production and their solutions.
+
+One of the most common and critical issues when integrating React with Context-Action is **infinite rendering loops**. This section covers key patterns to prevent infinite loops based on real-world experience.
+
+### 1. ✅ Stabilizing useCallback Dependency Arrays
+
+#### Problem: Using objects/arrays as dependencies
+
+```typescript
+// ❌ Bad: New object created every render, causing infinite loops
+export function useActionLogger() {
+  const { addLog, logger } = useLogMonitor();
+  const toast = useActionToast();
+  
+  // New object created every render!
+  const actionMessages = {
+    'increment': { title: 'Increase', message: 'Value increased', type: 'success' },
+    'decrement': { title: 'Decrease', message: 'Value decreased', type: 'info' },
+    // ...
+  };
+
+  const logAction = useCallback((actionType: string, payload?: any) => {
+    const actionMsg = actionMessages[actionType];
+    // ...
+  }, [addLog, logger, toast, actionMessages]); // ❌ actionMessages recreated every render
+  
+  return { logAction };
+}
+```
+
+```typescript
+// ✅ Good: Move object outside component for stable reference
+const actionMessages: Record<string, { title: string; message: string; type: 'success' | 'error' | 'info' | 'system' }> = {
+  'increment': { title: 'Increase', message: 'Value increased', type: 'success' },
+  'decrement': { title: 'Decrease', message: 'Value decreased', type: 'info' },
+  'setCount': { title: 'Set', message: 'Value set', type: 'success' },
+  // ...
+};
+
+export function useActionLogger() {
+  const { addLog, logger } = useLogMonitor();
+  const toast = useActionToast();
+
+  const logAction = useCallback((actionType: string, payload?: any) => {
+    const actionMsg = actionMessages[actionType];
+    // ...
+  }, [addLog, logger, toast]); // ✅ actionMessages excluded (stable reference)
+  
+  return { logAction };
+}
+```
+
+### 2. ✅ Removing Unstable Functions from useEffect Dependencies
+
+#### Problem: Using useCallback-generated functions as useEffect dependencies
+
+```typescript
+// ❌ Bad: Unstable functions cause infinite useEffect re-runs
+function CoreBasicsDemo() {
+  const [actionRegister] = useState(() => new ActionRegister<CoreActionMap>());
+  const { logAction, logSystem } = useActionLogger(); // These functions might be unstable
+
+  useEffect(() => {
+    logSystem('ActionRegister initialized');
+    
+    const unsubscribe = actionRegister.register('increment', (_, controller) => {
+      setCount(prev => prev + 1);
+      logAction('increment', undefined);
+      controller.next();
+    });
+
+    return () => {
+      unsubscribe();
+      logSystem('Handlers unregistered');
+    };
+  }, [actionRegister, logAction, logSystem]); // ❌ Infinite loop if logAction/logSystem unstable
+}
+```
+
+```typescript
+// ✅ Good: useRef pattern for stable references
+function CoreBasicsDemo() {
+  const [actionRegister] = useState(() => new ActionRegister<CoreActionMap>());
+  const { logAction, logSystem } = useActionLogger();
+  
+  // Stable references for logger functions
+  const logActionRef = useRef(logAction);
+  const logSystemRef = useRef(logSystem);
+  
+  // Update refs when logger functions change
+  useEffect(() => {
+    logActionRef.current = logAction;
+    logSystemRef.current = logSystem;
+  }, [logAction, logSystem]);
+
+  useEffect(() => {
+    logSystemRef.current('ActionRegister initialized');
+    
+    const unsubscribe = actionRegister.register('increment', (_, controller) => {
+      setCount(prev => prev + 1);
+      logActionRef.current('increment', undefined); // Use ref for latest function
+      controller.next();
+    });
+
+    return () => {
+      unsubscribe();
+      logSystemRef.current('Handlers unregistered');
+    };
+  }, [actionRegister]); // ✅ Only stable dependencies
+}
+```
+
+### 3. ✅ Key Principles from Real Experience
+
+1. **Define objects/arrays outside components**: Avoid recreated references every render.
+2. **Use useRef for latest values**: Access current values without adding to dependencies.
+3. **Prefer functional state updates**: Use `setState(prev => ...)` to avoid stale closures.
+4. **Minimize dependency arrays**: Include only truly necessary dependencies.
+5. **Custom hooks provide stable APIs**: Wrap returned functions with useCallback.
+
+### 4. ✅ Integrated Logging System Best Practices
+
+#### Production-verified logging patterns
+
+```typescript
+// ✅ Good: Integrated action and toast logging system
+const actionMessages: Record<string, ToastConfig> = {
+  'increment': { title: 'Increase', message: 'Value increased', type: 'success' },
+  'decrement': { title: 'Decrease', message: 'Value decreased', type: 'info' },
+  'setCount': { title: 'Set', message: 'Value set', type: 'success' },
+  'reset': { title: 'Reset', message: 'Value reset', type: 'system' },
+  'error': { title: 'Error', message: 'An error occurred', type: 'error' }
+};
+
+export function useActionLogger() {
+  const { addLog, logger } = useLogMonitor();
+  const toast = useActionToast();
+
+  const logAction = useCallback((
+    actionType: string,
+    payload?: any,
+    options: ActionLogOptions = {}
+  ) => {
+    // 1. Structured log recording
+    addLog({
+      level: LogLevel.INFO,
+      type: 'action',
+      message: `Action dispatched: ${actionType}`,
+      priority: options.priority,
+      details: { payload, context: options.context }
+    });
+    
+    // 2. Console log (development)
+    logger.info(`Action: ${actionType}`, payload);
+
+    // 3. Automatic toast display (user feedback)
+    if (options.toast !== false) {
+      const actionMsg = actionMessages[actionType];
+      
+      if (typeof options.toast === 'object') {
+        toast.showToast(
+          options.toast.type || 'info',
+          options.toast.title || actionType,
+          options.toast.message || `${actionType} action executed`
+        );
+      } else if (actionMsg) {
+        toast.showToast(actionMsg.type, actionMsg.title, actionMsg.message);
+      } else {
+        toast.showToast('success', actionType, `${actionType} action executed`);
+      }
+    }
+  }, [addLog, logger, toast]); // Only stable dependencies
+
+  return { logAction, logSystem, logError };
+}
+```
+
 ## Component Integration Best Practices
 
 ### 1. ✅ Hook Usage Patterns
@@ -1260,6 +1439,18 @@ Following these best practices ensures your Context-Action applications are:
 - **🛡️ Robust**: Proper error handling and recovery mechanisms
 - **📚 Documented**: Clear documentation for complex business logic
 - **🔐 Secure**: Proper input validation and sensitive data handling
+- **🚫 Infinite Loop Free**: Stable React integration and dependency management
+- **📊 Integrated Logging**: Unified action, log, and toast system for consistent UX
+
+### 🔥 Key Lessons from Real Experience
+
+The "React Integration Infinite Loop Prevention" section in this guide was written based on actual production problems and their solutions:
+
+1. **Infinite loops strike without warning**: Small code changes can trigger infinite loops.
+2. **Dependency arrays are critical**: Managing useCallback and useEffect dependency arrays is paramount.
+3. **useRef pattern is powerful**: Access latest values while maintaining stable references.
+4. **Integrated logging adds value**: Combining logs, toasts, and action tracking in one system dramatically improves DX.
+5. **Component-external definitions matter**: Defining objects/arrays outside components prevents many issues.
 
 ## Related Resources
 

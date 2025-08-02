@@ -6,11 +6,9 @@ import {
   useStoreRegistry,
   createStore,
   useStoreValue,
-  ActionPayloadMap,
-  createLogger
+  ActionPayloadMap
 } from '@context-action/react';
-import { LogLevel } from '@context-action/logger';
-import { PageWithLogMonitor } from '../../components/LogMonitor';
+import { PageWithLogMonitor, useActionLogger } from '../../components/LogMonitor';
 
 // 액션 타입 정의
 interface AppActions extends ActionPayloadMap {
@@ -21,8 +19,7 @@ interface AppActions extends ActionPayloadMap {
   logActivity: { activity: string };
 }
 
-// 로거 인스턴스 생성
-const logger = createLogger(LogLevel.DEBUG);
+// 로거는 useActionLogger 훅에서 자동 생성됨
 
 // 스토어 인스턴스들
 const counterStore = createStore('provider-counter', 0);
@@ -31,22 +28,23 @@ const messageStore = createStore('provider-message', 'Hello from Provider!');
 // 카운터 컴포넌트
 function CounterComponent() {
   const count = useStoreValue(counterStore);
+  const logger = useActionLogger();
 
   const handleIncrement = useCallback(() => {
     if (typeof count === 'number') {
       actionRegister.dispatch('updateCounter', { value: count + 1 });
     }
-  }, [count]);
+  }, [count, logger]);
 
   const handleDecrement = useCallback(() => {
     if (typeof count === 'number') {
       actionRegister.dispatch('updateCounter', { value: count - 1 });
     }
-  }, [count]);
+  }, [count, logger]);
   
   const handleReset = useCallback(() => {
     actionRegister.dispatch('resetCounter');
-  }, []);
+  }, [logger]);
   
   return (
     <div className="demo-card">
@@ -73,6 +71,7 @@ function CounterComponent() {
 function MessageComponent() {
   const message = useStoreValue(messageStore);
   const [inputValue, setInputValue] = useState('');
+  const logger = useActionLogger();
   
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -80,11 +79,11 @@ function MessageComponent() {
       actionRegister.dispatch('updateMessage', { text: inputValue.trim() });
       setInputValue('');
     }
-  }, [inputValue]);
+  }, [inputValue, logger]);
   
   const handleReset = useCallback(() => {
     actionRegister.dispatch('resetMessage');
-  }, []);
+  }, [logger]);
   
   return (
     <div className="demo-card">
@@ -202,49 +201,44 @@ function StoreMonitor() {
   );
 }
 
-// ActionRegister 인스턴스 생성
-const actionRegister = new ActionRegister<AppActions>({ logger });
+// ActionRegister 인스턴스 생성 (로거 없이)
+const actionRegister = new ActionRegister<AppActions>();
 
 // 액션 핸들러 설정 컴포넌트
 function ActionHandlerSetup() {
   React.useEffect(() => {
-    logger.info('Setting up action handlers');
+
     
     // 카운터 업데이트 핸들러
     const unsubscribeUpdateCounter = actionRegister.register('updateCounter', ({ value }, controller) => {
-      logger.debug(`Updating counter to: ${value}`);
+
       counterStore.setValue(value);
       controller.next();
     });
     
     // 카운터 리셋 핸들러
     const unsubscribeResetCounter = actionRegister.register('resetCounter', (_, controller) => {
-      logger.debug('Resetting counter');
       counterStore.setValue(0);
       controller.next();
     });
     
     // 메시지 업데이트 핸들러
     const unsubscribeUpdateMessage = actionRegister.register('updateMessage', ({ text }, controller) => {
-      logger.debug(`Updating message to: ${text}`);
       messageStore.setValue(text);
       controller.next();
     });
     
     // 메시지 리셋 핸들러
     const unsubscribeResetMessage = actionRegister.register('resetMessage', (_, controller) => {
-      logger.debug('Resetting message');
       messageStore.setValue('Hello from Provider!');
       controller.next();
     });
     
     // 액티비티 로깅 핸들러
     const unsubscribeLogActivity = actionRegister.register('logActivity', ({ activity }, controller) => {
-      logger.info(`Activity logged: ${activity}`);
       controller.next();
     });
     
-    logger.info('Action handlers registered successfully');
     
     return () => {
       unsubscribeUpdateCounter();
@@ -252,7 +246,6 @@ function ActionHandlerSetup() {
       unsubscribeUpdateMessage();
       unsubscribeResetMessage();
       unsubscribeLogActivity();
-      logger.info('Action handlers unregistered');
     };
   }, []);
   
@@ -310,7 +303,7 @@ function ReactProviderPage() {
         </header>
 
         {/* Provider 래핑 */}
-        <ActionProvider config={{ logger }}>
+        <ActionProvider>
           <StoreProvider>
             <ProviderApp />
           </StoreProvider>

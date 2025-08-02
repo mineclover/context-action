@@ -1,4 +1,4 @@
-import React, { useState, useCallback, createContext, useContext } from 'react';
+import React, { useState, useCallback, createContext, useContext, useRef, useEffect } from 'react';
 import {
   ActionRegister,
   ActionPayloadMap,
@@ -7,11 +7,9 @@ import {
   useActionDispatch,
   useActionRegister,
   createStore,
-  useStoreValue,
-  createLogger
+  useStoreValue
 } from '@context-action/react';
-import { LogLevel } from '@context-action/logger';
-import { PageWithLogMonitor } from '../../components/LogMonitor';
+import { PageWithLogMonitor, useActionLogger } from '../../components/LogMonitor';
 
 // 이벤트 엔트리 타입 정의
 interface EventEntry {
@@ -43,10 +41,7 @@ const globalMessageStore = createStore('global-message', 'Welcome to Multi-Conte
 const globalEventStore = createStore<EventEntry[]>('global-events', []);
 const contextCountStore = createStore('context-count', 0);
 
-// 로거 인스턴스들
-const globalLogger = createLogger(LogLevel.INFO);
-const localLogger = createLogger(LogLevel.DEBUG);
-const nestedLogger = createLogger(LogLevel.DEBUG);
+// 로거는 useActionLogger 훅에서 자동 생성됨
 
 // 컨텍스트 정보를 전달하기 위한 Context
 const ContextInfoContext = createContext<{
@@ -72,7 +67,7 @@ function GlobalContextProvider({ children }: { children: React.ReactNode }) {
   
   return (
     <ContextInfoContext.Provider value={{ level: 'Global', id: 'global-1', onContextEvent: handleGlobalEvent }}>
-      <ActionProvider config={{ logger: globalLogger }}>
+      <ActionProvider >
         <StoreProvider>
           <GlobalContextSetup />
           <div className="context-wrapper global-context">
@@ -104,7 +99,7 @@ function GlobalContextProvider({ children }: { children: React.ReactNode }) {
 }
 
 // ActionRegister 인스턴스들
-const globalActionRegister = new ActionRegister<GlobalActions>({ logger: globalLogger });
+const globalActionRegister = new ActionRegister<GlobalActions>({});
 
 // 전역 컨텍스트 설정
 function GlobalContextSetup() {
@@ -136,7 +131,7 @@ function GlobalContextSetup() {
 const localActionRegisters = new Map<string, ActionRegister<LocalActions>>();
 
 function LocalContextProvider({ children, contextId }: { children: React.ReactNode; contextId: string }) {
-  const [localCount, setLocalCount] = useState(0);
+  const [localCount, setLocalCount] = useState<number>(0);
   const [localMessage, setLocalMessage] = useState(`Local context ${contextId}`);
   const parentContext = useContext(ContextInfoContext);
   
@@ -152,7 +147,7 @@ function LocalContextProvider({ children, contextId }: { children: React.ReactNo
   
   return (
     <ContextInfoContext.Provider value={contextValue}>
-      <ActionProvider config={{ logger: localLogger }}>
+      <ActionProvider >
         <LocalContextSetup localCount={localCount} setLocalCount={setLocalCount} localMessage={localMessage} setLocalMessage={setLocalMessage} contextId={contextId} />
         <div className="context-wrapper local-context">
           <div className="context-header">
@@ -189,16 +184,22 @@ function LocalContextSetup({
   contextId: string;
 }) {
   const contextInfo = useContext(ContextInfoContext);
+  const localCountRef = useRef(localCount);
+  
+  // localCount가 변경될 때 ref도 업데이트
+  useEffect(() => {
+    localCountRef.current = localCount;
+  }, [localCount]);
   
   React.useEffect(() => {
     // 컨텍스트별 ActionRegister 생성
     if (!localActionRegisters.has(contextId)) {
-      localActionRegisters.set(contextId, new ActionRegister<LocalActions>({ logger: localLogger }));
+      localActionRegisters.set(contextId, new ActionRegister<LocalActions>({}));
     }
     const localRegister = localActionRegisters.get(contextId)!;
     
     const unsubscribe1 = localRegister.register('localCounter', ({ increment }, controller) => {
-      const newCount = localCount + increment;
+      const newCount = localCountRef.current + increment;
       setLocalCount(newCount);
       contextInfo.onContextEvent('localCounter', { increment, newCount });
       controller.next();
@@ -222,7 +223,7 @@ function LocalContextSetup({
       unsubscribe2();
       unsubscribe3();
     };
-  }, [contextInfo, localCount, setLocalCount, setLocalMessage, contextId]);
+  }, [contextInfo, setLocalCount, setLocalMessage, contextId]);
   
   return null;
 }
@@ -244,7 +245,7 @@ function NestedContextProvider({ children, level }: { children: React.ReactNode;
   
   return (
     <ContextInfoContext.Provider value={contextValue}>
-      <ActionProvider config={{ logger: nestedLogger }}>
+      <ActionProvider >
         <NestedContextSetup nestedValue={nestedValue} setNestedValue={setNestedValue} level={level} />
         <div className={`context-wrapper nested-context level-${level}`}>
           <div className="context-header">
@@ -271,7 +272,7 @@ function NestedContextSetup({ nestedValue, setNestedValue, level }: { nestedValu
   React.useEffect(() => {
     // 레벨별 ActionRegister 생성
     if (!nestedActionRegisters.has(level)) {
-      nestedActionRegisters.set(level, new ActionRegister<NestedActions>({ logger: nestedLogger }));
+      nestedActionRegisters.set(level, new ActionRegister<NestedActions>({}));
     }
     const nestedRegister = nestedActionRegisters.get(level)!;
     
@@ -511,7 +512,7 @@ function ReactContextPage() {
 {`// 1. 계층적 컨텍스트 구조
 function GlobalContextProvider({ children }) {
   return (
-    <ActionProvider logger={globalLogger}>
+    <ActionProvider logger={null}>
       <StoreProvider>
         {children}
       </StoreProvider>
@@ -521,7 +522,7 @@ function GlobalContextProvider({ children }) {
 
 function LocalContextProvider({ children, contextId }) {
   return (
-    <ActionProvider logger={localLogger}>
+    <ActionProvider logger={null}>
       {children}
     </ActionProvider>
   );

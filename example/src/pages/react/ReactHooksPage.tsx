@@ -8,10 +8,10 @@ import {
   useActionRegister,
   createStore,
   useStoreValue,
-  createLogger
+
 } from '@context-action/react';
 import { LogLevel } from '@context-action/logger';
-import { PageWithLogMonitor } from '../../components/LogMonitor';
+import { PageWithLogMonitor, useActionLogger } from '../../components/LogMonitor';
 
 // React Hooks 최적화 액션 맵
 interface HooksOptimizationMap extends ActionPayloadMap {
@@ -390,7 +390,7 @@ function MemoryOptimizationDemo() {
 }
 
 // ActionRegister 인스턴스 생성
-const hooksActionRegister = new ActionRegister<HooksOptimizationMap>({ logger: createLogger(LogLevel.DEBUG) });
+const hooksActionRegister = new ActionRegister<HooksOptimizationMap>();
 
 // React Hooks 설정
 function ReactHooksSetup() {
@@ -458,7 +458,7 @@ function ReactHooksPage() {
           </p>
         </header>
 
-        <ActionProvider config={{ logger: createLogger(LogLevel.DEBUG) }}>
+        <ActionProvider>
           <StoreProvider>
             <ReactHooksSetup />
             

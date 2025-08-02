@@ -17,19 +17,21 @@ export function UserProfileDemo() {
 
   const handleSave = useCallback(() => {
     if (editForm) {
-      logger.logAction('saveUserProfile', { 
+      logger.logAction('updateUser', { 
         oldUser: user,
         newUser: editForm,
         changes: Object.keys(editForm).filter(key => user?.[key as keyof User] !== editForm[key as keyof User])
       });
       storeActionRegister.dispatch('updateUser', { user: editForm });
-      logger.logSystem('프로필 업데이트 성공', { userId: editForm.id });
+      logger.logSystem('프로필 업데이트 성공', { context: { userId: editForm.id } });
     }
     setIsEditing(false);
   }, [editForm, user, logger]);
 
   const handleCancel = useCallback(() => {
-    logger.logAction('cancelProfileEdit', { discardedChanges: editForm });
+    logger.logAction('cancelProfileEdit', { discardedChanges: editForm }, {
+      toast: { type: 'info', title: '편집 취소', message: '변경사항이 취소되었습니다' }
+    });
     setEditForm(user);
     setIsEditing(false);
   }, [user, editForm, logger]);
@@ -37,7 +39,7 @@ export function UserProfileDemo() {
   const toggleTheme = useCallback(() => {
     if (user?.preferences) {
       const newTheme = user.preferences.theme === 'light' ? 'dark' : 'light';
-      logger.logAction('toggleTheme', { 
+      logger.logAction('updateUserTheme', { 
         fromTheme: user.preferences.theme, 
         toTheme: newTheme 
       });
@@ -48,7 +50,9 @@ export function UserProfileDemo() {
   const updateLastLogin = useCallback(() => {
     if (user) {
       const now = new Date();
-      logger.logAction('updateLastLogin', { previousLogin: user.lastLogin, newLogin: now });
+      logger.logAction('updateLastLogin', { previousLogin: user.lastLogin, newLogin: now }, {
+        toast: { type: 'info', title: '로그인 시간 업데이트', message: '마지막 로그인 시간이 현재 시간으로 업데이트되었습니다' }
+      });
       storeActionRegister.dispatch('updateUser', { 
         user: { ...user, lastLogin: now }
       });
