@@ -1,6 +1,13 @@
 import type { IStore, Listener, Snapshot, Unsubscribe } from './types';
 import { createLogger } from '@context-action/logger';
 import { safeGet, safeSet, getGlobalImmutabilityOptions, performantSafeGet } from './immutable';
+import { 
+  compareValues, 
+  fastCompare, 
+  ComparisonOptions, 
+  createStoreComparator,
+  getGlobalComparisonOptions 
+} from './comparison';
 
 /**
  * Store 클래스 - 중앙화된 상태 관리의 핵심
@@ -24,6 +31,10 @@ export class Store<T = any> implements IStore<T> {
   private _snapshot: Snapshot<T>;
   public readonly name: string;
   protected logger = createLogger();
+  // Store별 커스텀 비교 함수
+  private customComparator?: (oldValue: T, newValue: T) => boolean;
+  // Store별 비교 옵션
+  private comparisonOptions?: Partial<ComparisonOptions<T>>;
 
   constructor(name: string, initialValue: T) {
     this.name = name;
@@ -93,7 +104,7 @@ export class Store<T = any> implements IStore<T> {
    * Store 값 설정 및 구독자 알림
    * 핵심 로직: 
    * 1. 입력값의 불변성 보장을 위한 깊은 복사
-   * 2. Object.is()로 참조 동등성 검사 (불필요한 리렌더링 방지)
+   * 2. 강화된 값 비교 시스템으로 불필요한 리렌더링 방지
    * 3. 값 변경 시에만 스냅샷 재생성 및 알림
    * 
    * @implements unidirectional-data-flow
@@ -101,14 +112,17 @@ export class Store<T = any> implements IStore<T> {
    * @memberof architecture-terms
    * 
    * 보안 강화: 입력값을 복사하여 Store 내부 상태가 외부 참조에 의해 변경되지 않도록 보호
+   * 성능 강화: 다층 비교 시스템으로 정확한 변경 감지 및 렌더링 최적화
    */
   setValue(value: T): void {
     const options = getGlobalImmutabilityOptions();
     const safeValue = safeSet(value, options.enableCloning);
     const oldValue = this._value;
     
-    // 참조 동등성 검사 - 성능 최적화의 핵심
-    if (!Object.is(this._value, safeValue)) {
+    // 강화된 값 비교 시스템
+    const hasChanged = this._compareValues(this._value, safeValue);
+    
+    if (hasChanged) {
       this._value = safeValue;
       // 새 스냅샷 생성 - 불변성 보장
       this._snapshot = this._createSnapshot();
@@ -116,7 +130,8 @@ export class Store<T = any> implements IStore<T> {
         oldValue, 
         newValue: safeValue,
         cloned: options.enableCloning,
-        listenerCount: this.listeners.size 
+        listenerCount: this.listeners.size,
+        comparisonStrategy: this.comparisonOptions?.strategy || 'global'
       });
       // 모든 구독자에게 변경 알림
       this._notifyListeners();
@@ -161,6 +176,154 @@ export class Store<T = any> implements IStore<T> {
     const count = this.listeners.size;
     this.listeners.clear();
     this.logger.debug(`Cleared all listeners from store: ${this.name}`, { clearedCount: count });
+  }
+
+  /**
+   * Store별 커스텀 비교 함수 설정
+   * 이 Store에만 적용되는 특별한 비교 로직 설정
+   * 
+   * @param comparator - 커스텀 비교 함수 (oldValue, newValue) => boolean
+   * @example
+   * ```typescript
+   * userStore.setCustomComparator((oldUser, newUser) => 
+   *   oldUser.id === newUser.id && oldUser.lastModified === newUser.lastModified
+   * );
+   * ```
+   */
+  setCustomComparator(comparator: (oldValue: T, newValue: T) => boolean): void {
+    this.customComparator = comparator;
+    this.logger.debug(`Custom comparator set for store: ${this.name}`);
+  }
+
+  /**
+   * Store별 비교 옵션 설정
+   * 이 Store에만 적용되는 비교 전략 설정
+   * 
+   * @param options - 비교 옵션
+   * @example
+   * ```typescript
+   * // 깊은 비교 사용
+   * userStore.setComparisonOptions({ strategy: 'deep', maxDepth: 3 });
+   * 
+   * // 얕은 비교 사용하되 특정 키 무시
+   * stateStore.setComparisonOptions({ 
+   *   strategy: 'shallow', 
+   *   ignoreKeys: ['timestamp', 'lastAccess'] 
+   * });
+   * ```
+   */
+  setComparisonOptions(options: Partial<ComparisonOptions<T>>): void {
+    this.comparisonOptions = options;
+    this.logger.debug(`Comparison options set for store: ${this.name}`, options);
+  }
+
+  /**
+   * 현재 비교 설정 조회
+   */
+  getComparisonOptions(): Partial<ComparisonOptions<T>> | undefined {
+    return this.comparisonOptions ? { ...this.comparisonOptions } : undefined;
+  }
+
+  /**
+   * 커스텀 비교 함수 해제
+   */
+  clearCustomComparator(): void {
+    this.customComparator = undefined;
+    this.logger.debug(`Custom comparator cleared for store: ${this.name}`);
+  }
+
+  /**
+   * 비교 옵션 해제 (전역 설정 사용)
+   */
+  clearComparisonOptions(): void {
+    this.comparisonOptions = undefined;
+    this.logger.debug(`Comparison options cleared for store: ${this.name}`);
+  }
+
+  /**
+   * 강화된 값 비교 시스템
+   * 1. 커스텀 비교 함수 우선 사용
+   * 2. Store별 비교 옵션 적용
+   * 3. 성능 최적화된 빠른 비교 fallback
+   * 4. 전역 비교 설정 사용
+   * 
+   * @param oldValue - 이전 값
+   * @param newValue - 새로운 값
+   * @returns true if values are different (change detected), false if same
+   * @private
+   */
+  private _compareValues(oldValue: T, newValue: T): boolean {
+    const startTime = performance.now();
+    let result: boolean;
+    let strategy: string;
+
+    try {
+      // 1. 커스텀 비교 함수가 설정된 경우 우선 사용
+      if (this.customComparator) {
+        strategy = 'custom';
+        const areEqual = this.customComparator(oldValue, newValue);
+        result = !areEqual; // 같으면 false (변경 없음), 다르면 true (변경 있음)
+        
+        this.logger.trace(`Custom comparison for store: ${this.name}`, {
+          oldValue,
+          newValue,
+          areEqual,
+          hasChanged: result
+        });
+      }
+      // 2. Store별 비교 옵션이 설정된 경우
+      else if (this.comparisonOptions) {
+        strategy = this.comparisonOptions.strategy || 'reference';
+        const areEqual = compareValues(oldValue, newValue, this.comparisonOptions);
+        result = !areEqual;
+        
+        this.logger.trace(`Store-specific comparison for store: ${this.name}`, {
+          strategy,
+          options: this.comparisonOptions,
+          areEqual,
+          hasChanged: result
+        });
+      }
+      // 3. 성능 최적화된 빠른 비교 (대부분의 일반적인 케이스)
+      else {
+        strategy = 'fast';
+        const areEqual = fastCompare(oldValue, newValue);
+        result = !areEqual;
+        
+        this.logger.trace(`Fast comparison for store: ${this.name}`, {
+          oldValue,
+          newValue,
+          areEqual,
+          hasChanged: result
+        });
+      }
+    } catch (error) {
+      // 비교 중 에러 발생 시 안전한 fallback (참조 비교)
+      this.logger.warn(`Error during value comparison in store: ${this.name}, falling back to reference comparison`, error);
+      strategy = 'reference-fallback';
+      result = !Object.is(oldValue, newValue);
+    }
+
+    const duration = performance.now() - startTime;
+
+    // 성능 모니터링 (느린 비교 감지)
+    if (duration > 1) { // 1ms 이상 걸린 경우 경고
+      this.logger.warn(`Slow comparison detected in store: ${this.name}`, {
+        strategy,
+        duration: `${duration.toFixed(3)}ms`,
+        oldValueType: typeof oldValue,
+        newValueType: typeof newValue,
+        suggestion: 'Consider using simpler comparison strategy or custom comparator'
+      });
+    }
+
+    this.logger.trace(`Value comparison completed for store: ${this.name}`, {
+      strategy,
+      hasChanged: result,
+      duration: `${duration.toFixed(3)}ms`
+    });
+
+    return result;
   }
 
   private _createSnapshot(): Snapshot<T> {

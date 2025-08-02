@@ -103,6 +103,19 @@ export {
 	RegistryUtils,
 } from "./store";
 
+// Comparison utilities for enhanced Store performance
+export {
+	compareValues,
+	fastCompare,
+	referenceEquals,
+	shallowEquals,
+	deepEquals,
+	createStoreComparator,
+	measureComparison,
+	setGlobalComparisonOptions,
+	getGlobalComparisonOptions,
+} from "./store";
+
 // === TYPE DEFINITIONS ===
 export type {
 	// Store core types
@@ -129,4 +142,10 @@ export type {
 	// Registry types
 	RegistryStoreMap,
 	DynamicStoreOptions,
+	
+	// Comparison system types
+	ComparisonStrategy,
+	ComparisonOptions,
+	CustomComparator,
+	ComparisonMetrics,
 } from "./store";

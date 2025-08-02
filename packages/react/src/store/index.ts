@@ -124,5 +124,29 @@ export {
   type PerformanceProfile
 } from './immutable';
 
+// === COMPARISON UTILITIES ===
+export {
+  // Core comparison functions
+  compareValues,
+  fastCompare,
+  referenceEquals,
+  shallowEquals,
+  deepEquals,
+  
+  // Utilities
+  createStoreComparator,
+  measureComparison,
+  
+  // Configuration
+  setGlobalComparisonOptions,
+  getGlobalComparisonOptions,
+  
+  // Types
+  type ComparisonStrategy,
+  type ComparisonOptions,
+  type CustomComparator,
+  type ComparisonMetrics
+} from './comparison';
+
 // === METADATA ===
 export const VERSION = '1.0.0';
