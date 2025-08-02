@@ -717,6 +717,67 @@ body {
   background: white;
 }
 
+/* Log Monitor Component Styles */
+.page-with-log-monitor {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.log-details {
+  margin-top: 0.5rem;
+  margin-left: 1rem;
+}
+
+.log-details summary {
+  cursor: pointer;
+  color: #6b7280;
+  font-size: 0.8rem;
+  margin-bottom: 0.25rem;
+}
+
+.log-details pre {
+  background: #1f2937;
+  color: #f3f4f6;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.7rem;
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 0;
+}
+
+.log-stats {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.log-stats .stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.log-stats .stat-label {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.log-stats .stat-value {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.log-level {
+  font-weight: 600;
+  min-width: 60px;
+  text-align: center;
+}
+
 .memory-log-container {
   max-height: 250px;
   overflow-y: auto;
