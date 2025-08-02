@@ -123,7 +123,40 @@ actionRegister.register('updateUser', async (payload, controller) => {
 
 ## Integration with React
 
-### StoreProvider Setup
+### Modern Context Store Pattern (Recommended)
+```typescript
+// 1. Create Context Store Pattern
+const AppStores = createContextStorePattern('App');
+
+// 2. HOC Pattern for automatic Provider wrapping
+const withAppStores = AppStores.withProvider('main-app');
+
+const Application = withAppStores(() => {
+  const userStore = AppStores.useStore('user', { name: '', email: '' });
+  const dispatch = useActionDispatch<AppActions>();
+  
+  return <div>Application with isolated stores</div>;
+});
+
+// 3. Combined HOC Pattern (Store + Action isolation)
+const withAppAndActions = AppStores.withCustomProvider(
+  ({ children }) => (
+    <ActionProvider config={{ logLevel: LogLevel.DEBUG }}>
+      {children}
+    </ActionProvider>
+  ),
+  'app-with-actions'
+);
+
+const FullApplication = withAppAndActions(ApplicationComponent);
+
+// Usage - completely self-contained
+function App() {
+  return <FullApplication />;
+}
+```
+
+### Traditional StoreProvider Setup (Legacy Support)
 ```typescript
 function App() {
   return (
@@ -140,6 +173,51 @@ function App() {
 
 > **🚨 CRITICAL**: Components should NEVER contain business logic. Only UI and event handlers.
 
+#### Modern HOC Pattern (Recommended for New Components)
+```typescript
+// 1. Create isolated component with HOC
+const UserStores = createContextStorePattern('User');
+
+const withUserModule = UserStores.withCustomProvider(
+  ({ children }) => (
+    <ActionProvider config={{ logLevel: LogLevel.DEBUG }}>
+      {children}
+    </ActionProvider>
+  ),
+  'user-profile'
+);
+
+const UserProfile = withUserModule(() => {
+  const dispatch = useActionDispatch<UserActions>();
+  const userStore = UserStores.useStore('user', { name: '', email: '' });
+  const settingsStore = UserStores.useStore('settings', { theme: 'light' });
+  
+  const user = useStoreValue(userStore);
+  const settings = useStoreValue(settingsStore);
+  
+  // Simple event handler - just dispatch action
+  const updateName = (name: string) => {
+    dispatch('updateUser', { id: user.id, name });
+  };
+  
+  return (
+    <div className={settings.theme}>
+      <h1>{user.name}</h1>
+      <p>Last updated: {user.lastModified}</p>
+      <button onClick={() => updateName('New Name')}>
+        Update Name
+      </button>
+    </div>
+  );
+});
+
+// Usage - completely self-contained
+function App() {
+  return <UserProfile />;
+}
+```
+
+#### Traditional Pattern (Still Supported)
 ```typescript
 // ✅ CORRECT: Clean component with no business logic
 function UserProfile() {
@@ -493,6 +571,7 @@ flowchart LR
 
 ## Benefits
 
+### Core Architecture Benefits
 1. **Clear Separation**: Business logic in actions, state in stores, UI in components
 2. **Reusability**: Actions can be reused across components
 3. **Testability**: Each layer can be tested independently
@@ -503,6 +582,16 @@ flowchart LR
 8. **Simplified Components**: Components focus solely on UI rendering and user interaction
 9. **Centralized Logic**: All data processing and business rules concentrated in action handlers
 10. **Predictable State**: Stores contain only final, processed data - no intermediate computations
+
+### HOC Pattern Benefits
+11. **Automatic Isolation**: Components automatically get their own Store namespace
+12. **Zero Configuration**: No manual Provider wrapping required
+13. **Self-Contained Modules**: Components include all their dependencies
+14. **Effortless Composition**: Easy to combine multiple providers with `withCustomProvider`
+15. **Developer Experience**: Cleaner component trees and reduced boilerplate
+16. **Component Portability**: HOC-wrapped components work anywhere without setup
+17. **Testing Simplicity**: Each component is fully isolated for testing
+18. **Reusable Patterns**: HOC configurations can be shared across similar components
 
 ## ⭐ Best Practices - Critical Architecture Guidelines
 
@@ -517,14 +606,23 @@ flowchart LR
 5. **Type Everything**: Leverage TypeScript for safety and documentation
 6. **Test Handlers**: Write unit tests for action handlers with mock stores
 
+### 🎯 HOC Pattern Guidelines
+
+7. **Prefer HOC for New Components**: Use `withProvider()` or `withCustomProvider()` for new components
+8. **Use Descriptive Registry IDs**: Choose meaningful registry IDs for better debugging
+9. **Combine Providers Wisely**: Use `withCustomProvider()` to combine Store + Action providers
+10. **Component Isolation**: Each HOC-wrapped component should be completely self-contained
+11. **Reuse HOC Configurations**: Share common HOC patterns across similar components
+12. **Test HOC Components**: Test HOC-wrapped components as complete units
+
 ### 🎯 Data Processing Rules (CRITICAL)
 
-7. **⚠️ Data Integration in Actions**: 
+13. **⚠️ Data Integration in Actions**: 
    - **DO**: Process and combine data in action handlers, then store results in dedicated stores
    - **DON'T**: Use computed stores or reactive patterns in components
    - **WHY**: Centralizes business logic and maintains predictable state flow
 
-8. **⚠️ Component Simplicity**: 
+14. **⚠️ Component Simplicity**: 
    - **DO**: Components should only subscribe to stores and dispatch actions
    - **DON'T**: Put business logic, calculations, or data transformations in components  
    - **WHY**: Keeps components testable and maintains separation of concerns
