@@ -1,4 +1,4 @@
-import { createStore } from '@context-action/react';
+import { createContextStorePattern } from '@context-action/react';
 import type { 
   User, 
   Product, 
@@ -10,8 +10,11 @@ import type {
   NotificationItem 
 } from '../types';
 
-// 초기 데이터
-const defaultUser: User = {
+// Store-scenarios용 Context Store 패턴 생성
+export const StoreScenarios = createContextStorePattern('StoreScenarios');
+
+// 초기 데이터 export
+export const defaultUser: User = {
   id: 'user-1',
   name: '김개발',
   email: 'dev@example.com',
@@ -23,7 +26,7 @@ const defaultUser: User = {
   }
 };
 
-const initialProducts: Product[] = [
+export const initialProducts: Product[] = [
   {
     id: 'prod-1',
     name: 'MacBook Pro M3',
@@ -58,7 +61,7 @@ const initialProducts: Product[] = [
   }
 ];
 
-const initialTodos: TodoItem[] = [
+export const initialTodos: TodoItem[] = [
   {
     id: 'todo-1',
     title: 'Store 시스템 문서 작성',
@@ -76,7 +79,7 @@ const initialTodos: TodoItem[] = [
   }
 ];
 
-const initialMessages: ChatMessage[] = [
+export const initialMessages: ChatMessage[] = [
   {
     id: 'msg-1',
     sender: '시스템',
@@ -93,7 +96,7 @@ const initialMessages: ChatMessage[] = [
   }
 ];
 
-const defaultFormData: FormData = {
+export const defaultFormData: FormData = {
   personalInfo: {
     firstName: '',
     lastName: '',
@@ -113,7 +116,7 @@ const defaultFormData: FormData = {
   }
 };
 
-const defaultSettings: AppSettings = {
+export const defaultSettings: AppSettings = {
   general: {
     autoSave: true,
     confirmOnExit: false,
@@ -131,7 +134,7 @@ const defaultSettings: AppSettings = {
   }
 };
 
-const initialNotifications: NotificationItem[] = [
+export const initialNotifications: NotificationItem[] = [
   {
     id: 'notif-1',
     title: '환영합니다!',
@@ -150,31 +153,7 @@ const initialNotifications: NotificationItem[] = [
   }
 ];
 
-// 스토어 생성
-export const userStore = createStore<User>('demo-user', defaultUser);
-export const productsStore = createStore<Product[]>('demo-products', initialProducts);
-export const cartStore = createStore<CartItem[]>('demo-cart', []);
-export const todosStore = createStore<TodoItem[]>('demo-todos', initialTodos);
-export const chatStore = createStore<ChatMessage[]>('demo-chat', initialMessages);
-export const formStore = createStore<FormData>('demo-form', defaultFormData);
-export const settingsStore = createStore<AppSettings>('demo-settings', defaultSettings);
-export const notificationsStore = createStore<NotificationItem[]>('demo-notifications', initialNotifications);
-
-// 스토어 리셋 함수들
-export const resetAllStores = () => {
-  userStore.setValue(defaultUser);
-  cartStore.setValue([]);
-  todosStore.setValue(initialTodos);
-  chatStore.setValue(initialMessages);
-  formStore.setValue(defaultFormData);
-  settingsStore.setValue(defaultSettings);
-  notificationsStore.setValue(initialNotifications);
-};
-
-export const resetUserStore = () => userStore.setValue(defaultUser);
-export const resetCartStore = () => cartStore.setValue([]);
-export const resetTodosStore = () => todosStore.setValue(initialTodos);
-export const resetChatStore = () => chatStore.setValue(initialMessages);
-export const resetFormStore = () => formStore.setValue(defaultFormData);
-export const resetSettingsStore = () => settingsStore.setValue(defaultSettings);
-export const resetNotificationsStore = () => notificationsStore.setValue(initialNotifications);
+// Context Store 패턴을 사용하여 각 컴포넌트에서 필요한 스토어를 생성하고 관리합니다.
+// 예시:
+// const userStore = StoreScenarios.useStore('user', defaultUser);
+// const cartStore = StoreScenarios.useStore('cart', [] as CartItem[]);

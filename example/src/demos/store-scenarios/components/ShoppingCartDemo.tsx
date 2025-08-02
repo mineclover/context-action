@@ -1,10 +1,14 @@
 import React, { useCallback, useMemo } from 'react';
 import { useStoreValue } from '@context-action/react';
 import { useActionLoggerWithToast } from '../../../components/LogMonitor/';
-import { productsStore, cartStore } from '../stores';
+import { StoreScenarios, initialProducts } from '../stores';
 import { storeActionRegister } from '../actions';
+import type { CartItem } from '../types';
 
 export function ShoppingCartDemo() {
+  const productsStore = StoreScenarios.useStore('products', initialProducts);
+  const cartStore = StoreScenarios.useStore('cart', [] as CartItem[]);
+  
   const products = useStoreValue(productsStore);
   const cart = useStoreValue(cartStore);
   const logger = useActionLoggerWithToast();

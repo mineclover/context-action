@@ -1,13 +1,14 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useStoreValue } from '@context-action/react';
 import { useActionLoggerWithToast } from '../../../components/LogMonitor/';
-import { chatStore } from '../stores';
+import { StoreScenarios, initialMessages } from '../stores';
 import { storeActionRegister } from '../actions';
 import type { ChatMessage } from '../types';
 
 const CHAT_USERS = ['김개발', '이디자인', '박매니저', '최기획'];
 
 export function ChatDemo() {
+  const chatStore = StoreScenarios.useStore('chat', initialMessages);
   const messages = useStoreValue(chatStore);
   const [newMessage, setNewMessage] = useState('');
   const [currentUser, setCurrentUser] = useState('김개발');
