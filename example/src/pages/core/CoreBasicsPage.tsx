@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ActionRegister, ActionPayloadMap } from '@context-action/react';
 import { LogMonitorProvider, LogMonitor, useActionLogger } from '../../components/LogMonitor';
 
@@ -16,26 +16,16 @@ function CoreBasicsDemo() {
   const [count, setCount] = useState(0);
   const [actionRegister] = useState(() => new ActionRegister<CoreActionMap>());
   const { logAction, logSystem } = useActionLogger();
-  
-  // 로거 함수들의 안정적인 참조를 위한 ref
-  const logActionRef = useRef(logAction);
-  const logSystemRef = useRef(logSystem);
-  
-  // 로거 함수들이 변경될 때 ref 업데이트
-  useEffect(() => {
-    logActionRef.current = logAction;
-    logSystemRef.current = logSystem;
-  }, [logAction, logSystem]);
 
   useEffect(() => {
-    logSystemRef.current('ActionRegister initialized');
+    logSystem('ActionRegister initialized');
     
     // 핸들러 등록
     const unsubscribeIncrement = actionRegister.register(
       'increment',
       (_, controller) => {
         setCount((prev) => prev + 1);
-        logActionRef.current('increment', undefined);
+        logAction('increment', undefined);
         controller.next();
       }
     );
@@ -44,7 +34,7 @@ function CoreBasicsDemo() {
       'decrement',
       (_, controller) => {
         setCount((prev) => prev - 1);
-        logActionRef.current('decrement', undefined);
+        logAction('decrement', undefined);
         controller.next();
       }
     );
@@ -53,7 +43,7 @@ function CoreBasicsDemo() {
       'setCount',
       (payload, controller) => {
         setCount(payload);
-        logActionRef.current('setCount', payload);
+        logAction('setCount', payload);
         controller.next();
       }
     );
@@ -62,7 +52,7 @@ function CoreBasicsDemo() {
       'reset',
       (_, controller) => {
         setCount(0);
-        logActionRef.current('reset', undefined);
+        logAction('reset', undefined);
         controller.next();
       }
     );
@@ -70,12 +60,12 @@ function CoreBasicsDemo() {
     const unsubscribeLog = actionRegister.register(
       'log',
       (payload, controller) => {
-        logActionRef.current('log', payload);
+        logAction('log', payload);
         controller.next();
       }
     );
 
-    logSystemRef.current('All action handlers registered');
+    logSystem('All action handlers registered');
 
     // 정리 함수
     return () => {
@@ -84,9 +74,9 @@ function CoreBasicsDemo() {
       unsubscribeSetCount();
       unsubscribeReset();
       unsubscribeLog();
-      logSystemRef.current('All handlers unregistered');
+      logSystem('All handlers unregistered');
     };
-  }, [actionRegister]);
+  }, [actionRegister, logAction, logSystem]);
 
   // 액션 디스패치 함수들
   const handleIncrement = useCallback(() => {

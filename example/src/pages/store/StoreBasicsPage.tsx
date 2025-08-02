@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createStore, useStoreValue } from '@context-action/react';
 import { PageWithLogMonitor, useActionLogger } from '../../components/LogMonitor';
 
@@ -12,25 +12,15 @@ function useMessageDemo() {
   const message = useStoreValue(messageStore);
   const { logAction } = useActionLogger();
   
-  // 안정적인 참조를 위한 ref
-  const logActionRef = useRef(logAction);
-  const messageRef = useRef(message);
-  
-  // ref 업데이트
-  useEffect(() => {
-    logActionRef.current = logAction;
-    messageRef.current = message;
+  const updateMessage = useCallback((newMessage: string) => {
+    logAction('updateMessage', { oldMessage: message, newMessage });
+    messageStore.setValue(newMessage);
   }, [logAction, message]);
   
-  const updateMessage = useCallback((newMessage: string) => {
-    logActionRef.current('updateMessage', { oldMessage: messageRef.current, newMessage });
-    messageStore.setValue(newMessage);
-  }, []);
-  
   const resetMessage = useCallback(() => {
-    logActionRef.current('resetMessage', { message: messageRef.current });
+    logAction('resetMessage', { message });
     messageStore.setValue('Hello, Context-Action!');
-  }, []);
+  }, [logAction, message]);
   
   return { message, updateMessage, resetMessage };
 }
@@ -39,36 +29,27 @@ function useMessageDemo() {
 function useCounterDemo() {
   const count = useStoreValue(counterStore);
   const { logAction } = useActionLogger();
-  
-  // 안정적인 참조를 위한 ref
-  const logActionRef = useRef(logAction);
-  const countRef = useRef(count);
-  
-  // ref 업데이트
-  useEffect(() => {
-    logActionRef.current = logAction;
-    countRef.current = count;
-  }, [logAction, count]);
+
   
   const increment = useCallback(() => {
-    logActionRef.current('increment', { currentCount: countRef.current });
+    logAction('increment', { currentCount: count });
     counterStore.update(prev => prev + 1);
-  }, []);
+  }, [logAction, count]);
   
   const decrement = useCallback(() => {
-    logActionRef.current('decrement', { currentCount: countRef.current });
+    logAction('decrement', { currentCount: count });
     counterStore.update(prev => prev - 1);
-  }, []);
+  }, [logAction, count]);
   
   const addValue = useCallback((value: number) => {
-    logActionRef.current('addValue', { currentCount: countRef.current, addedValue: value });
+    logAction('addValue', { currentCount: count, addedValue: value });
     counterStore.update(prev => prev + value);
-  }, []);
+  }, [logAction, count]);
   
   const reset = useCallback(() => {
-    logActionRef.current('resetCounter', { currentCount: countRef.current });
+    logAction('resetCounter', { currentCount: count });
     counterStore.setValue(0);
-  }, []);
+  }, [logAction, count]);
   
   return { count, increment, decrement, addValue, reset };
 }
@@ -77,31 +58,22 @@ function useCounterDemo() {
 function useUserDemo() {
   const user = useStoreValue(userStore);
   const { logAction } = useActionLogger();
-  
-  // 안정적인 참조를 위한 ref
-  const logActionRef = useRef(logAction);
-  const userRef = useRef(user);
-  
-  // ref 업데이트
-  useEffect(() => {
-    logActionRef.current = logAction;
-    userRef.current = user;
-  }, [logAction, user]);
+
   
   const updateName = useCallback((name: string) => {
-    logActionRef.current('updateUserName', { oldName: userRef.current?.name, newName: name });
+    logAction('updateUserName', { oldName: user?.name, newName: name });
     userStore.update(prev => ({ ...prev, name }));
-  }, []);
+  }, [logAction, user]);
   
   const updateEmail = useCallback((email: string) => {
-    logActionRef.current('updateUserEmail', { oldEmail: userRef.current?.email, newEmail: email });
+    logAction('updateUserEmail', { oldEmail: user?.email, newEmail: email });
     userStore.update(prev => ({ ...prev, email }));
-  }, []);
+  }, [logAction, user]);
   
   const resetUser = useCallback(() => {
-    logActionRef.current('resetUser', { currentUser: userRef.current });
+    logAction('resetUser', { currentUser: user });
     userStore.setValue({ name: 'John Doe', email: 'john@example.com' });
-  }, []);
+  }, [logAction, user]);
   
   return { user, updateName, updateEmail, resetUser };
 }
