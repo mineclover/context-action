@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ActionRegister, ActionPayloadMap } from '@context-action/react';
 import { LogMonitorProvider, LogMonitor, useActionLogger } from '../../components/LogMonitor';
 
@@ -30,53 +30,39 @@ function CoreAdvancedDemo() {
   const [chainStep, setChainStep] = useState(0);
   const { logAction, logSystem, logError } = useActionLogger();
 
-  // 안정적인 참조를 위한 ref들
-  const logActionRef = useRef(logAction);
-  const logSystemRef = useRef(logSystem);
-  const logErrorRef = useRef(logError);
-  const isMiddlewareEnabledRef = useRef(isMiddlewareEnabled);
-
-  // ref 업데이트
-  useEffect(() => {
-    logActionRef.current = logAction;
-    logSystemRef.current = logSystem;
-    logErrorRef.current = logError;
-    isMiddlewareEnabledRef.current = isMiddlewareEnabled;
-  }, [logAction, logSystem, logError, isMiddlewareEnabled]);
-
   // 로깅 미들웨어 (안정적인 참조)
   const loggingMiddleware: Middleware<AdvancedActionMap> = useCallback(
     async (action, payload, next) => {
-      logSystemRef.current(`Middleware intercepted: ${String(action)}`, { context: { action, payload }, priority: 1 });
+      logSystem(`Middleware intercepted: ${String(action)}`, { context: { action, payload }, priority: 1 });
       await next();
-      logSystemRef.current(`Middleware completed: ${String(action)}`, { priority: 1 });
+      logSystem(`Middleware completed: ${String(action)}`, { priority: 1 });
     },
-    []
+    [logSystem]
   );
 
   // 인증 미들웨어 (예시, 안정적인 참조)
   const authMiddleware: Middleware<AdvancedActionMap> = useCallback(
     async (action, payload, next) => {
       if (action === 'sensitiveAction') {
-        logSystemRef.current('Auth check required', { priority: 2 });
+        logSystem('Auth check required', { priority: 2 });
         // 실제로는 인증 체크 로직
         const isAuthenticated = true;
         if (!isAuthenticated) {
-          logErrorRef.current('Authentication failed');
+          logError('Authentication failed');
           return;
         }
       }
       await next();
     },
-    []
+    [logSystem, logError]
   );
 
   useEffect(() => {
-    logSystemRef.current('ActionRegister with middlewares initialized');
+    logSystem('ActionRegister with middlewares initialized');
     
     // 미들웨어 시뮬레이션 (실제 미들웨어는 ActionRegister에서 지원되지 않음)
-    if (isMiddlewareEnabledRef.current) {
-      logSystemRef.current('Middleware simulation enabled');
+    if (isMiddlewareEnabled) {
+      logSystem('Middleware simulation enabled');
     }
 
     // 기본 액션 핸들러
@@ -84,7 +70,7 @@ function CoreAdvancedDemo() {
       'increment',
       (_, controller) => {
         setCount(prev => prev + 1);
-        logActionRef.current('increment', undefined);
+        logAction('increment', undefined);
         controller.next();
       },
       { priority: 1 }
@@ -95,7 +81,7 @@ function CoreAdvancedDemo() {
       'multiply',
       (factor, controller) => {
         setCount(prev => prev * factor);
-        logActionRef.current('multiply', factor, { priority: 2 });
+        logAction('multiply', factor, { priority: 2 });
         controller.next();
       },
       { priority: 2 }
@@ -106,7 +92,7 @@ function CoreAdvancedDemo() {
       'chainedAction',
       ({ step, data }, controller) => {
         setChainStep(step);
-        logActionRef.current('chainedAction', { step, data });
+        logAction('chainedAction', { step, data });
         
         // 다음 체인 액션 자동 실행
         if (step < 3) {
@@ -126,7 +112,7 @@ function CoreAdvancedDemo() {
     const unsubscribeConditional = actionRegister.register(
       'conditionalAction',
       ({ condition, value }, controller) => {
-        logActionRef.current('conditionalAction', { condition, value });
+        logAction('conditionalAction', { condition, value });
         
         if (condition) {
           setCount(value);
@@ -141,11 +127,11 @@ function CoreAdvancedDemo() {
     const unsubscribeDelayed = actionRegister.register(
       'delayedAction',
       async ({ delay, message }, controller) => {
-        logActionRef.current('delayedAction', { delay, message });
+        logAction('delayedAction', { delay, message });
         
         await new Promise(resolve => setTimeout(resolve, delay));
         
-        logSystemRef.current(`Delayed action completed: ${message}`);
+        logSystem(`Delayed action completed: ${message}`);
         controller.next();
       }
     );
@@ -154,11 +140,11 @@ function CoreAdvancedDemo() {
     const unsubscribeError = actionRegister.register(
       'errorAction',
       (_, controller) => {
-        logActionRef.current('errorAction', undefined);
+        logAction('errorAction', undefined);
         try {
           throw new Error('Intentional error for testing');
         } catch (error) {
-          logErrorRef.current('Action handler error', error);
+          logError('Action handler error', error);
           controller.abort('Handler error occurred');
         }
       }
@@ -168,12 +154,12 @@ function CoreAdvancedDemo() {
     const unsubscribeMiddlewareTest = actionRegister.register(
       'middlewareTest',
       async ({ type, payload }, controller) => {
-        if (isMiddlewareEnabledRef.current) {
+        if (isMiddlewareEnabled) {
           await loggingMiddleware('middlewareTest', { type, payload }, async () => {
-            logActionRef.current('middlewareTest', { type, payload });
+            logAction('middlewareTest', { type, payload });
           });
         } else {
-          logActionRef.current('middlewareTest', { type, payload });
+          logAction('middlewareTest', { type, payload });
         }
         controller.next();
       }
@@ -183,7 +169,7 @@ function CoreAdvancedDemo() {
     const unsubscribePriority1 = actionRegister.register(
       'priorityTest',
       ({ level }, controller) => {
-        logActionRef.current('priorityTest (Priority 1)', { level }, { priority: 1 });
+        logAction('priorityTest (Priority 1)', { level }, { priority: 1 });
         controller.next();
       },
       { priority: 1 }
@@ -192,7 +178,7 @@ function CoreAdvancedDemo() {
     const unsubscribePriority2 = actionRegister.register(
       'priorityTest',
       ({ level }, controller) => {
-        logActionRef.current('priorityTest (Priority 3)', { level }, { priority: 3 });
+        logAction('priorityTest (Priority 3)', { level }, { priority: 3 });
         controller.next();
       },
       { priority: 3 }
@@ -201,7 +187,7 @@ function CoreAdvancedDemo() {
     const unsubscribePriority3 = actionRegister.register(
       'priorityTest',
       ({ level }, controller) => {
-        logActionRef.current('priorityTest (Priority 2)', { level }, { priority: 2 });
+        logAction('priorityTest (Priority 2)', { level }, { priority: 2 });
         controller.next();
       },
       { priority: 2 }
@@ -211,12 +197,12 @@ function CoreAdvancedDemo() {
     const unsubscribeAbort = actionRegister.register(
       'abortTest',
       (_, controller) => {
-        logActionRef.current('abortTest', undefined);
+        logAction('abortTest', undefined);
         controller.abort('Action intentionally aborted for testing');
       }
     );
 
-    logSystemRef.current('All advanced handlers registered');
+    logSystem('All advanced handlers registered');
 
     return () => {
       unsubscribeIncrement();
@@ -230,9 +216,9 @@ function CoreAdvancedDemo() {
       unsubscribePriority2();
       unsubscribePriority3();
       unsubscribeAbort();
-      logSystemRef.current('All handlers unregistered');
+      logSystem('All handlers unregistered');
     };
-  }, [actionRegister, loggingMiddleware, authMiddleware]); // 안정화된 의존성 배열
+  }, [actionRegister, isMiddlewareEnabled, logAction, logSystem, logError, loggingMiddleware, authMiddleware]);
 
   // 액션 디스패치 함수들
   const handleIncrement = useCallback(() => {
@@ -277,12 +263,9 @@ function CoreAdvancedDemo() {
   }, [actionRegister]);
 
   const toggleMiddleware = useCallback(() => {
-    setIsMiddlewareEnabled(prev => {
-      const newValue = !prev;
-      logSystemRef.current(`Middleware ${newValue ? 'enabled' : 'disabled'}`);
-      return newValue;
-    });
-  }, []);
+    setIsMiddlewareEnabled(prev => !prev);
+    logSystem(`Middleware ${!isMiddlewareEnabled ? 'enabled' : 'disabled'}`);
+  }, [isMiddlewareEnabled, logSystem]);
 
   return (
     <div className="demo-grid">
