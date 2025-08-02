@@ -1,6 +1,21 @@
 /**
  * @fileoverview Core type definitions for Context-Action framework
- * Provides type-safe action pipeline management with Store integration
+ * @implements type-safety
+ * @implements compile-time-validation 
+ * @implements architecture-terms
+ * @memberof core-concepts
+ * @version 1.0.0
+ * 
+ * Provides comprehensive type definitions for the Context-Action framework's
+ * action pipeline management and Store integration systems. Ensures type safety
+ * across all framework components and enables compile-time validation.
+ * 
+ * Key Type Categories:
+ * - Action payload mappings for type-safe dispatch
+ * - Pipeline control interfaces for handler flow management
+ * - Execution modes and configuration types
+ * - Event system types for reactive programming
+ * - Performance and metrics types for monitoring
  */
 
 import type { Logger, LogLevel } from '@context-action/logger';
@@ -217,6 +232,25 @@ export interface PipelineContext<T = any> {
 
 /**
  * Configuration options for ActionRegister
+ * @implements actionregister-configuration
+ * @memberof api-terms
+ * @since 1.0.0
+ * 
+ * Defines configuration options for ActionRegister instances, including
+ * logging setup, debugging options, and default execution behavior.
+ * 
+ * @example
+ * ```typescript
+ * const config: ActionRegisterConfig = {
+ *   logger: createLogger(LogLevel.DEBUG),
+ *   logLevel: LogLevel.INFO,
+ *   name: 'UserActions',
+ *   debug: true,
+ *   defaultExecutionMode: 'sequential'
+ * };
+ * 
+ * const actionRegister = new ActionRegister(config);
+ * ```
  */
 export interface ActionRegisterConfig {
   /** Custom logger implementation. Defaults to ConsoleLogger */
@@ -237,6 +271,20 @@ export interface ActionRegisterConfig {
 
 /**
  * Unregister function returned by register method
+ * @implements cleanup-function
+ * @memberof api-terms
+ * @since 1.0.0
+ * 
+ * Function type for unregistering action handlers from the pipeline.
+ * Returned by the register method to provide cleanup capability.
+ * 
+ * @example
+ * ```typescript
+ * const unregister = actionRegister.register('updateUser', handler);
+ * 
+ * // Later, remove the handler
+ * unregister();
+ * ```
  */
 export type UnregisterFunction = () => void;
 
@@ -277,6 +325,21 @@ export interface ActionDispatcher<T extends ActionPayloadMap> {
 
 /**
  * Performance metrics for action execution
+ * @implements action-metrics
+ * @implements performance-monitoring
+ * @memberof api-terms
+ * @since 1.0.0
+ * 
+ * Provides detailed metrics for action execution performance and status.
+ * Used for monitoring, debugging, and performance optimization.
+ * 
+ * @example
+ * ```typescript
+ * actionRegister.on('action:complete', ({ metrics }) => {
+ *   console.log(`Action ${metrics.action} took ${metrics.executionTime}ms`);
+ *   console.log(`Success: ${metrics.success}, Handlers: ${metrics.handlerCount}`);
+ * });
+ * ```
  */
 export interface ActionMetrics {
   action: string;
@@ -289,6 +352,32 @@ export interface ActionMetrics {
 
 /**
  * Event types emitted by ActionRegister
+ * @implements action-events
+ * @implements event-driven-architecture
+ * @memberof api-terms
+ * @since 1.0.0
+ * 
+ * Defines all event types that can be emitted by ActionRegister instances.
+ * Enables reactive programming and monitoring of action lifecycle events.
+ * 
+ * @template T - Action payload map defining available actions
+ * 
+ * @example
+ * ```typescript
+ * interface AppActions extends ActionPayloadMap {
+ *   updateUser: { id: string; name: string };
+ * }
+ * 
+ * const actionRegister = new ActionRegister<AppActions>();
+ * 
+ * actionRegister.on('action:start', ({ action, payload }) => {
+ *   console.log(`Starting action: ${action}`, payload);
+ * });
+ * 
+ * actionRegister.on('action:complete', ({ action, metrics }) => {
+ *   console.log(`Completed: ${action} in ${metrics.executionTime}ms`);
+ * });
+ * ```
  */
 export interface ActionRegisterEvents<T extends ActionPayloadMap = ActionPayloadMap> {
   /** Emitted before action dispatch */
@@ -312,11 +401,26 @@ export interface ActionRegisterEvents<T extends ActionPayloadMap = ActionPayload
 
 /**
  * Event handler type for ActionRegister events
+ * @implements event-handler
+ * @memberof api-terms
+ * @since 1.0.0
+ * 
+ * Function type for handling events emitted by ActionRegister.
+ * 
+ * @template T - The type of event data
  */
 export type EventHandler<T = any> = (data: T) => void;
 
 /**
  * Simple event emitter interface
+ * @implements event-emitter
+ * @memberof api-terms
+ * @since 1.0.0
+ * 
+ * Basic event emitter interface for ActionRegister event system.
+ * Provides methods for subscribing, emitting, and unsubscribing from events.
+ * 
+ * @template T - Record type defining available events and their data types
  */
 export interface EventEmitter<T extends Record<string, any> = Record<string, any>> {
   on<K extends keyof T>(event: K, handler: EventHandler<T[K]>): UnregisterFunction;
