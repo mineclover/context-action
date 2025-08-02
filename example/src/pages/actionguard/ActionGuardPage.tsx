@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { ActionRegister, ActionPayloadMap } from '@context-action/react';
+import { PageWithLogMonitor, useActionLogger } from '../../components/LogMonitor';
 
 // Action Guard 액션 맵
 interface ActionGuardMap extends ActionPayloadMap {
@@ -79,58 +80,55 @@ function SearchDemo() {
   const [searchResults, setSearchResults] = useState<string[]>([]);
   const [searchCount, setSearchCount] = useState(0);
   const [actionRegister] = useState(() => new ActionRegister<ActionGuardMap>());
+  const { logAction, logSystem } = useActionLogger();
   
   // 실제 검색 함수 (모의)
   const performSearch = useCallback((term: string) => {
     setSearchCount(prev => prev + 1);
+    logAction('performSearch', { term, count: searchCount + 1 });
     // 모의 검색 결과
     const mockResults = term
       ? [`Result 1 for "${term}"`, `Result 2 for "${term}"`, `Result 3 for "${term}"`]
       : [];
     setSearchResults(mockResults);
-  }, []);
+  }, [searchCount, logAction]);
   
   // 디바운스된 검색
   const debouncedSearch = useDebounce(performSearch, 500);
   
   useEffect(() => {
     const unsubscribe = actionRegister.register('searchInput', (term, controller) => {
+      logAction('searchInput', { term, debounced: true });
       debouncedSearch(term);
       controller.next();
     });
     
     return unsubscribe;
-  }, [actionRegister, debouncedSearch]);
-  
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  }, [actionRegister, debouncedSearch, logAction]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchTerm(value);
     actionRegister.dispatch('searchInput', value);
-  }, [actionRegister]);
-  
+  };
+
   return (
     <div className="demo-card">
       <h3>Search with Debouncing</h3>
-      <p>Search input is debounced by 500ms to prevent excessive API calls.</p>
-      
-      <div className="search-demo">
+      <div className="search-container">
         <input
           type="text"
           value={searchTerm}
           onChange={handleSearchChange}
-          placeholder="Type to search..."
-          className="text-input"
+          placeholder="Type to search (debounced)"
+          className="search-input"
         />
-        
         <div className="search-stats">
-          <span>Search calls: {searchCount}</span>
+          <span>Search count: {searchCount}</span>
         </div>
-        
         <div className="search-results">
           {searchResults.map((result, index) => (
-            <div key={index} className="search-result">
-              {result}
-            </div>
+            <div key={index} className="search-result">{result}</div>
           ))}
         </div>
       </div>
@@ -140,50 +138,45 @@ function SearchDemo() {
 
 // 스크롤 데모
 function ScrollDemo() {
-  const [scrollEvents, setScrollEvents] = useState(0);
-  const [throttledEvents, setThrottledEvents] = useState(0);
-  const [scrollPosition, setScrollPosition] = useState(0);
+  const [scrollTop, setScrollTop] = useState(0);
+  const [scrollCount, setScrollCount] = useState(0);
   const [actionRegister] = useState(() => new ActionRegister<ActionGuardMap>());
+  const { logAction } = useActionLogger();
   
-  const handleScrollEvent = useCallback((scrollTop: number) => {
-    setThrottledEvents(prev => prev + 1);
-    setScrollPosition(scrollTop);
-  }, []);
-  
-  const throttledScrollHandler = useThrottle(handleScrollEvent, 100);
+  const throttledScrollHandler = useThrottle((scrollTop: number) => {
+    setScrollCount(prev => prev + 1);
+    logAction('scrollEvent', { scrollTop, count: scrollCount + 1 });
+  }, 100);
   
   useEffect(() => {
-    const unsubscribe = actionRegister.register('scrollEvent', ({ scrollTop }, controller) => {
-      throttledScrollHandler(scrollTop);
+    const unsubscribe = actionRegister.register('scrollEvent', (data, controller) => {
+      throttledScrollHandler(data.scrollTop);
       controller.next();
     });
     
     return unsubscribe;
-  }, [actionRegister, throttledScrollHandler]);
-  
-  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+  }, [actionRegister, throttledScrollHandler, logAction]);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const scrollTop = e.currentTarget.scrollTop;
-    setScrollEvents(prev => prev + 1);
+    setScrollTop(scrollTop);
     actionRegister.dispatch('scrollEvent', { scrollTop });
-  }, [actionRegister]);
-  
+  };
+
   return (
     <div className="demo-card">
       <h3>Scroll with Throttling</h3>
-      <p>Scroll events are throttled to fire at most once every 100ms.</p>
-      
-      <div className="scroll-stats">
-        <div>Raw scroll events: {scrollEvents}</div>
-        <div>Throttled events: {throttledEvents}</div>
-        <div>Scroll position: {scrollPosition}px</div>
-      </div>
-      
-      <div className="scroll-container" onScroll={handleScroll}>
-        <div className="scroll-content">
-          {Array.from({ length: 50 }, (_, i) => (
-            <div key={i} className="scroll-item">
-              Scroll item {i + 1}
-            </div>
+      <div 
+        className="scroll-container"
+        onScroll={handleScroll}
+        style={{ height: '200px', overflow: 'auto', border: '1px solid #ccc' }}
+      >
+        <div style={{ height: '1000px', padding: '20px' }}>
+          <p>Scroll this container to see throttling in action</p>
+          <p>Current scroll position: {scrollTop}px</p>
+          <p>Scroll events processed: {scrollCount}</p>
+          {Array.from({ length: 20 }, (_, i) => (
+            <p key={i}>Scroll content line {i + 1}</p>
           ))}
         </div>
       </div>
@@ -191,82 +184,68 @@ function ScrollDemo() {
   );
 }
 
-// API 호출 블로킹 데모
+// API 블로킹 데모
 function ApiBlockingDemo() {
-  const [apiCalls, setApiCalls] = useState<Array<{ endpoint: string; timestamp: string }>>([]);
-  const { isBlocked, lastAction, blockAction } = useActionBlock(2000);
+  const [apiCalls, setApiCalls] = useState<string[]>([]);
   const [actionRegister] = useState(() => new ActionRegister<ActionGuardMap>());
+  const { isBlocked, lastAction, blockAction } = useActionBlock(2000);
+  const { logAction, logSystem } = useActionLogger();
   
   useEffect(() => {
-    const unsubscribe = actionRegister.register('apiCall', ({ endpoint }, controller) => {
-      if (!blockAction(`API: ${endpoint}`)) {
-        controller.abort('API call blocked - too frequent');
-        return;
+    const unsubscribe = actionRegister.register('apiCall', (data, controller) => {
+      if (blockAction('apiCall')) {
+        logAction('apiCall', { endpoint: data.endpoint, blocked: false });
+        setApiCalls(prev => [...prev, `API Call to ${data.endpoint} at ${new Date().toLocaleTimeString()}`]);
+        controller.next();
+      } else {
+        logAction('apiCall', { endpoint: data.endpoint, blocked: true });
+        logSystem('API call blocked due to rate limiting');
       }
-      
-      // 모의 API 호출
-      setApiCalls(prev => [...prev, {
-        endpoint,
-        timestamp: new Date().toLocaleTimeString()
-      }]);
-      
-      controller.next();
     });
     
     return unsubscribe;
-  }, [actionRegister, blockAction]);
-  
-  const handleApiCall = useCallback((endpoint: string) => {
+  }, [actionRegister, blockAction, logAction, logSystem]);
+
+  const handleApiCall = (endpoint: string) => {
     actionRegister.dispatch('apiCall', { endpoint });
-  }, [actionRegister]);
-  
+  };
+
   return (
     <div className="demo-card">
       <h3>API Call Blocking</h3>
-      <p>API calls are blocked for 2 seconds after each successful call.</p>
-      
       <div className="api-controls">
         <button 
-          onClick={() => handleApiCall('/users')} 
-          className={`btn ${isBlocked ? 'btn-secondary' : 'btn-primary'}`}
+          onClick={() => handleApiCall('/api/users')}
           disabled={isBlocked}
+          className="btn btn-primary"
         >
-          Call /users API
+          Call /api/users
         </button>
         <button 
-          onClick={() => handleApiCall('/posts')} 
-          className={`btn ${isBlocked ? 'btn-secondary' : 'btn-primary'}`}
+          onClick={() => handleApiCall('/api/posts')}
           disabled={isBlocked}
+          className="btn btn-primary"
         >
-          Call /posts API
+          Call /api/posts
         </button>
         <button 
-          onClick={() => handleApiCall('/comments')} 
-          className={`btn ${isBlocked ? 'btn-secondary' : 'btn-primary'}`}
+          onClick={() => handleApiCall('/api/comments')}
           disabled={isBlocked}
+          className="btn btn-primary"
         >
-          Call /comments API
+          Call /api/comments
         </button>
       </div>
-      
       {isBlocked && (
-        <div className="blocking-status">
-          🚫 Blocked: {lastAction} (cooling down...)
+        <div className="block-status">
+          <span>Blocked for 2 seconds (Last action: {lastAction})</span>
         </div>
       )}
-      
-      <div className="api-log">
-        <h4>API Call Log:</h4>
-        {apiCalls.length === 0 ? (
-          <div className="log-empty">No API calls made yet</div>
-        ) : (
-          apiCalls.slice(-5).map((call, index) => (
-            <div key={index} className="api-call-entry">
-              <span className="api-endpoint">{call.endpoint}</span>
-              <span className="api-timestamp">{call.timestamp}</span>
-            </div>
-          ))
-        )}
+      <div className="api-calls">
+        <h4>Recent API Calls:</h4>
+        {apiCalls.map((call, index) => (
+          <div key={index} className="api-call">{call}</div>
+        ))}
       </div>
     </div>
   );
@@ -274,58 +253,63 @@ function ApiBlockingDemo() {
 
 // 마우스 이벤트 데모
 function MouseEventDemo() {
-  const [mouseEvents, setMouseEvents] = useState(0);
-  const [throttledEvents, setThrottledEvents] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [moveCount, setMoveCount] = useState(0);
   const [actionRegister] = useState(() => new ActionRegister<ActionGuardMap>());
+  const { logAction } = useActionLogger();
   
-  const handleMouseMove = useCallback((x: number, y: number) => {
-    setThrottledEvents(prev => prev + 1);
-    setMousePosition({ x, y });
-  }, []);
-  
-  const throttledMouseHandler = useThrottle(handleMouseMove, 50);
+  const throttledMouseHandler = useThrottle((x: number, y: number) => {
+    setMoveCount(prev => prev + 1);
+    logAction('mouseMove', { x, y, count: moveCount + 1 });
+  }, 50);
   
   useEffect(() => {
-    const unsubscribe = actionRegister.register('mouseMove', ({ x, y }, controller) => {
-      throttledMouseHandler(x, y);
+    const unsubscribe = actionRegister.register('mouseMove', (data, controller) => {
+      throttledMouseHandler(data.x, data.y);
       controller.next();
     });
     
     return unsubscribe;
-  }, [actionRegister, throttledMouseHandler]);
-  
-  const handleMouseMoveEvent = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+  }, [actionRegister, throttledMouseHandler, logAction]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    
-    setMouseEvents(prev => prev + 1);
+    setMousePosition({ x, y });
     actionRegister.dispatch('mouseMove', { x, y });
-  }, [actionRegister]);
-  
+  };
+
   return (
     <div className="demo-card">
       <h3>Mouse Events with Throttling</h3>
-      <p>Mouse move events are throttled to fire at most once every 50ms.</p>
-      
-      <div className="mouse-stats">
-        <div>Raw mouse events: {mouseEvents}</div>
-        <div>Throttled events: {throttledEvents}</div>
-        <div>Position: ({mousePosition.x}, {mousePosition.y})</div>
-      </div>
-      
-      <div className="mouse-area" onMouseMove={handleMouseMoveEvent}>
+      <div 
+        className="mouse-area"
+        onMouseMove={handleMouseMove}
+        style={{ 
+          height: '200px', 
+          border: '2px solid #ccc', 
+          position: 'relative',
+          backgroundColor: '#f5f5f5'
+        }}
+      >
+        <div className="mouse-info">
+          <p>Mouse Position: ({mousePosition.x}, {mousePosition.y})</p>
+          <p>Move events processed: {moveCount}</p>
+        </div>
         <div 
-          className="mouse-cursor" 
-          style={{ 
-            left: mousePosition.x - 5, 
-            top: mousePosition.y - 5 
+          className="mouse-pointer"
+          style={{
+            position: 'absolute',
+            left: mousePosition.x - 5,
+            top: mousePosition.y - 5,
+            width: '10px',
+            height: '10px',
+            backgroundColor: 'red',
+            borderRadius: '50%',
+            pointerEvents: 'none'
           }}
         />
-        <div className="mouse-instructions">
-          Move your mouse in this area
-        </div>
       </div>
     </div>
   );
@@ -333,58 +317,59 @@ function MouseEventDemo() {
 
 function ActionGuardPage() {
   return (
-    <div className="page-container">
-      <header className="page-header">
-        <h1>Action Guard System</h1>
-        <p className="page-description">
-          Learn how to implement debouncing, throttling, and action blocking patterns
-          to optimize user experience and prevent excessive action execution.
-        </p>
-      </header>
+    <PageWithLogMonitor pageId="action-guard" title="Action Guard System">
+      <div className="page-container">
+        <header className="page-header">
+          <h1>Action Guard System</h1>
+          <p className="page-description">
+            Learn how to implement debouncing, throttling, and action blocking patterns
+            to optimize user experience and prevent excessive action execution.
+          </p>
+        </header>
 
-      <div className="demo-grid">
-        <SearchDemo />
-        <ScrollDemo />
-        <ApiBlockingDemo />
-        <MouseEventDemo />
-        
-        {/* Action Guard 개념 */}
-        <div className="demo-card info-card">
-          <h3>Action Guard Patterns</h3>
-          <ul className="guard-pattern-list">
-            <li>
-              <strong>Debouncing:</strong> 연속된 이벤트에서 마지막 이벤트만 처리 (검색, 입력 유효성 검사)
-            </li>
-            <li>
-              <strong>Throttling:</strong> 지정된 주기마다 이벤트 처리 (스크롤, 마우스 이벤트)
-            </li>
-            <li>
-              <strong>Blocking:</strong> 일정 시간 동안 중복 실행 방지 (API 호출, 폼 제출)
-            </li>
-            <li>
-              <strong>Rate Limiting:</strong> 시간당 최대 실행 횟수 제한
-            </li>
-          </ul>
+        <div className="demo-grid">
+          <SearchDemo />
+          <ScrollDemo />
+          <ApiBlockingDemo />
+          <MouseEventDemo />
+          
+          {/* Action Guard 개념 */}
+          <div className="demo-card info-card">
+            <h3>Action Guard Patterns</h3>
+            <ul className="guard-pattern-list">
+              <li>
+                <strong>Debouncing:</strong> 연속된 이벤트에서 마지막 이벤트만 처리 (검색, 입력 유효성 검사)
+              </li>
+              <li>
+                <strong>Throttling:</strong> 지정된 주기마다 이벤트 처리 (스크롤, 마우스 이벤트)
+              </li>
+              <li>
+                <strong>Blocking:</strong> 일정 시간 동안 중복 실행 방지 (API 호출, 폼 제출)
+              </li>
+              <li>
+                <strong>Rate Limiting:</strong> 시간당 최대 실행 횟수 제한
+              </li>
+            </ul>
+          </div>
+          
+          {/* 사용 사례 */}
+          <div className="demo-card info-card">
+            <h3>Use Cases</h3>
+            <ul className="use-case-list">
+              <li>✓ 검색 입력 최적화</li>
+              <li>✓ API 호출 빈도 제어</li>
+              <li>✓ 스크롤 성능 개선</li>
+              <li>✓ 버튼 연행 클릭 방지</li>
+              <li>✓ 마우스 이벤트 최적화</li>
+              <li>✓ 리사이징 이벤트 제어</li>
+            </ul>
+          </div>
         </div>
-        
-        {/* 사용 사례 */}
-        <div className="demo-card info-card">
-          <h3>Use Cases</h3>
-          <ul className="use-case-list">
-            <li>✓ 검색 입력 최적화</li>
-            <li>✓ API 호출 빈도 제어</li>
-            <li>✓ 스크롤 성능 개선</li>
-            <li>✓ 버튼 연행 클릭 방지</li>
-            <li>✓ 마우스 이벤트 최적화</li>
-            <li>✓ 리사이징 이벤트 제어</li>
-          </ul>
-        </div>
-      </div>
 
-      {/* 코드 예제 */}
-      <div className="code-example">
-        <h3>Action Guard Implementation</h3>
-        <pre className="code-block">
+        {/* 코드 예제 */}
+        <div className="code-example">
+          <h3>Action Guard Implementation</h3>
+          <pre className="code-block">
 {`// 1. 디바운스 훅
 const useDebounce = (callback, delay) => {
   const timeoutRef = useRef();
@@ -425,9 +410,10 @@ actionRegister.register('searchInput', (term, controller) => {
   debouncedSearch(term);
   controller.next();
 });`}
-        </pre>
+          </pre>
+        </div>
       </div>
-    </div>
+    </PageWithLogMonitor>
   );
 }
 

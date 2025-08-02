@@ -11,6 +11,7 @@ import {
   createLogger
 } from '@context-action/react';
 import { LogLevel } from '@context-action/logger';
+import { PageWithLogMonitor } from '../../components/LogMonitor';
 
 // React Hooks 최적화 액션 맵
 interface HooksOptimizationMap extends ActionPayloadMap {
@@ -99,10 +100,10 @@ function MemoizationDemo() {
       
       <div className="calculation-result">
         <div className="result-item">
-          <strong>Result:</strong> {calculationResult.result.toLocaleString()}
+          <strong>Result:</strong> {calculationResult?.result.toLocaleString() ?? 'Computing...'}
         </div>
         <div className="result-item">
-          <strong>Compute Time:</strong> {calculationResult.computeTime.toFixed(2)}ms
+          <strong>Compute Time:</strong> {calculationResult?.computeTime.toFixed(2) ?? '0'}ms
         </div>
       </div>
     </div>
@@ -368,11 +369,11 @@ function MemoryOptimizationDemo() {
       <div className="memory-stats">
         <div className="stat-item">
           <strong>Objects:</strong>
-          <span>{memoryInfo.objects}</span>
+          <span>{memoryInfo?.objects ?? 0}</span>
         </div>
         <div className="stat-item">
           <strong>Estimated Memory:</strong>
-          <span>{memoryInfo.allocatedMB} MB</span>
+          <span>{memoryInfo?.allocatedMB ?? 0} MB</span>
         </div>
       </div>
       
@@ -399,7 +400,7 @@ function ReactHooksSetup() {
     // 카운터 업데이트 핸들러
     unsubscribers.push(
       hooksActionRegister.register('updateCounter', ({ increment }, controller) => {
-        counterStore.setValue(prev => prev + increment);
+        counterStore.update((prev: number) => prev + increment);
         controller.next();
       })
     );
@@ -447,65 +448,66 @@ function ReactHooksSetup() {
 
 function ReactHooksPage() {
   return (
-    <div className="page-container">
-      <header className="page-header">
-        <h1>React Hooks Performance Optimization</h1>
-        <p className="page-description">
-          Learn advanced React hooks patterns for optimizing performance in Context-Action applications.
-          Discover memoization, conditional handler registration, and memory management techniques.
-        </p>
-      </header>
+    <PageWithLogMonitor pageId="react-hooks" title="React Hooks Performance Optimization">
+      <div className="page-container">
+        <header className="page-header">
+          <h1>React Hooks Performance Optimization</h1>
+          <p className="page-description">
+            Learn advanced React hooks patterns for optimizing performance in Context-Action applications.
+            Discover memoization, conditional handler registration, and memory management techniques.
+          </p>
+        </header>
 
-      <ActionProvider config={{ logger: createLogger(LogLevel.DEBUG) }}>
-        <StoreProvider>
-          <ReactHooksSetup />
-          
-          <div className="demo-grid">
-            <MemoizationDemo />
-            <ConditionalHandlerDemo />
-            <DynamicHandlerDemo />
-            <MemoryOptimizationDemo />
+        <ActionProvider config={{ logger: createLogger(LogLevel.DEBUG) }}>
+          <StoreProvider>
+            <ReactHooksSetup />
             
-            {/* 최적화 개념 */}
-            <div className="demo-card info-card">
-              <h3>Performance Optimization Concepts</h3>
-              <ul className="concept-list">
-                <li>
-                  <strong>useMemo:</strong> 비용이 많이 드는 계산 결과를 메모이제이션
-                </li>
-                <li>
-                  <strong>useCallback:</strong> 함수 참조를 안정화하여 불필요한 리렌더 방지
-                </li>
-                <li>
-                  <strong>조건부 등록:</strong> 필요할 때만 핸들러를 등록하여 메모리 절약
-                </li>
-                <li>
-                  <strong>동적 관리:</strong> 런타임에 핸들러를 추가/제거하여 리소스 최적화
-                </li>
-                <li>
-                  <strong>메모리 관리:</strong> 자동 정리 시스템으로 메모리 누수 방지
-                </li>
-              </ul>
+            <div className="demo-grid">
+              <MemoizationDemo />
+              <ConditionalHandlerDemo />
+              <DynamicHandlerDemo />
+              <MemoryOptimizationDemo />
+              
+              {/* 최적화 개념 */}
+              <div className="demo-card info-card">
+                <h3>Performance Optimization Concepts</h3>
+                <ul className="concept-list">
+                  <li>
+                    <strong>useMemo:</strong> 비용이 많이 드는 계산 결과를 메모이제이션
+                  </li>
+                  <li>
+                    <strong>useCallback:</strong> 함수 참조를 안정화하여 불필요한 리렌더 방지
+                  </li>
+                  <li>
+                    <strong>조건부 등록:</strong> 필요할 때만 핸들러를 등록하여 메모리 절약
+                  </li>
+                  <li>
+                    <strong>동적 관리:</strong> 런타임에 핸들러를 추가/제거하여 리소스 최적화
+                  </li>
+                  <li>
+                    <strong>메모리 관리:</strong> 자동 정리 시스템으로 메모리 누수 방지
+                  </li>
+                </ul>
+              </div>
+              
+              {/* 모범 사례 */}
+              <div className="demo-card info-card">
+                <h3>Best Practices</h3>
+                <ul className="best-practices-list">
+                  <li>✓ 의존성 배열을 정확히 지정하여 불필요한 재실행 방지</li>
+                  <li>✓ 핸들러 등록/해제를 조건부로 수행하여 메모리 효율성 향상</li>
+                  <li>✓ 무거운 계산은 useMemo로 캐싱</li>
+                  <li>✓ 이벤트 핸들러는 useCallback으로 최적화</li>
+                  <li>✓ 메모리 정리 로직을 useEffect cleanup에서 수행</li>
+                  <li>✓ 개발자 도구를 활용한 성능 모니터링</li>
+                </ul>
+              </div>
             </div>
-            
-            {/* 모범 사례 */}
-            <div className="demo-card info-card">
-              <h3>Best Practices</h3>
-              <ul className="best-practices-list">
-                <li>✓ 의존성 배열을 정확히 지정하여 불필요한 재실행 방지</li>
-                <li>✓ 핸들러 등록/해제를 조건부로 수행하여 메모리 효율성 향상</li>
-                <li>✓ 무거운 계산은 useMemo로 캐싱</li>
-                <li>✓ 이벤트 핸들러는 useCallback으로 최적화</li>
-                <li>✓ 메모리 정리 로직을 useEffect cleanup에서 수행</li>
-                <li>✓ 개발자 도구를 활용한 성능 모니터링</li>
-              </ul>
-            </div>
-          </div>
 
-          {/* 코드 예제 */}
-          <div className="code-example">
-            <h3>React Hooks Optimization Patterns</h3>
-            <pre className="code-block">
+            {/* 코드 예제 */}
+            <div className="code-example">
+              <h3>React Hooks Optimization Patterns</h3>
+              <pre className="code-block">
 {`// 1. useMemo로 무거운 계산 최적화
 const expensiveValue = useMemo(() => {
   return heavyComputation(data);
@@ -545,11 +547,12 @@ useEffect(() => {
   
   return () => clearInterval(cleanup);
 }, []);`}
-            </pre>
-          </div>
-        </StoreProvider>
-      </ActionProvider>
-    </div>
+              </pre>
+            </div>
+          </StoreProvider>
+        </ActionProvider>
+      </div>
+    </PageWithLogMonitor>
   );
 }
 
