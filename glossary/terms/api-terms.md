@@ -406,3 +406,463 @@ Technical implementation and API concepts for the Context-Action framework.
 - useMemo를 통한 파생 atom 최적화
 
 **Related Terms**: [Store Integration Pattern](#store-integration-pattern), [Selective Subscription](#selective-subscription), [Context Integration](#context-integration)
+
+---
+
+## Logger Factory
+
+**Definition**: Factory function for creating appropriately configured logger instances with automatic environment detection and optimal logger selection.
+
+**Usage Context**:
+- Logger instance creation
+- Environment-based configuration
+- Development and production optimization
+- Cross-platform logging setup
+
+**Key Features**:
+- Environment variable detection
+- Automatic log level configuration
+- Smart logger selection (Console vs NoOp)
+- Cross-platform compatibility
+
+**Related Terms**: [Logger System](./core-concepts.md#logger-system), [Environment Configuration](#environment-configuration)
+
+---
+
+## Smart Logger Creation
+
+**Definition**: Intelligent logger creation process that automatically detects appropriate configuration from environment variables and application context.
+
+**Usage Context**:
+- Automatic logger configuration
+- Environment-aware logging
+- Development vs production setup
+- Framework initialization
+
+**Key Features**:
+- NODE_ENV detection
+- Environment variable parsing
+- Fallback configuration
+- Performance optimization
+
+**Related Terms**: [Logger Factory](#logger-factory), [Environment Configuration](#environment-configuration)
+
+---
+
+## Atom Context Config
+
+**Definition**: Configuration options for Jotai atom context creation with logging support and behavior customization.
+
+**Usage Context**:
+- Atom context customization
+- Logger configuration for atoms
+- Development debugging
+- Performance tuning
+
+**Key Features**:
+- Custom logger implementation
+- Log level configuration
+- Atom behavior customization
+- TypeScript type safety
+
+**Related Terms**: [Jotai Integration](#jotai-integration), [Logger System](./core-concepts.md#logger-system)
+
+---
+
+## Atom Provider
+
+**Definition**: React Context Provider component for Jotai atoms that provides atom instance and logger to child components within the context tree.
+
+**Usage Context**:
+- Atom context sharing
+- Component tree isolation
+- Atom lifecycle management
+- Context-based dependency injection
+
+**Key Features**:
+- Isolated atom instances per provider
+- Automatic cleanup
+- Logger integration
+- TypeScript support
+
+**Related Terms**: [Jotai Integration](#jotai-integration), [Context Integration](#context-integration)
+
+---
+
+## useAtomState
+
+**Definition**: Primary hook for full Jotai atom state management, returning both current value and setter function for state updates.
+
+**Usage Context**:
+- Full atom state control
+- Component state management
+- User input handling
+- State updates with validation
+
+**Key Features**:
+- Read and write access
+- TypeScript type safety
+- Logger integration
+- Performance optimization
+
+**Related Terms**: [Jotai Integration](#jotai-integration), [useAtomReadOnly](#useatomreadonly)
+
+---
+
+## useAtomReadOnly
+
+**Definition**: Performance-optimized hook for read-only access to Jotai atom value, ideal for display components that don't need to update state.
+
+**Usage Context**:
+- Display components
+- Read-only data access
+- Performance optimization
+- Component isolation
+
+**Key Features**:
+- Read-only access
+- No re-render on setter changes
+- Performance optimized
+- TypeScript support
+
+**Related Terms**: [useAtomState](#useatomstate), [useAtomSelect](#useatomselect)
+
+---
+
+## useAtomSelect
+
+**Definition**: Performance optimization hook that creates derived atoms for selective subscriptions, minimizing re-renders by subscribing only to specific parts of the atom state.
+
+**Usage Context**:
+- Selective subscriptions
+- Performance optimization
+- Derived state management
+- Component re-render minimization
+
+**Key Features**:
+- Derived atom creation
+- Selective subscriptions
+- Memoization
+- TypeScript support
+
+**Related Terms**: [Selective Subscription](#selective-subscription), [useAtomState](#useatomstate)
+
+---
+
+## useAtomSetter
+
+**Definition**: Write-only hook for Jotai atoms that returns only the setter function, avoiding unnecessary re-renders for components that update state but don't need to subscribe to value changes.
+
+**Usage Context**:
+- Write-only operations
+- Action buttons
+- Form submissions
+- Performance optimization
+
+**Key Features**:
+- Write-only access
+- No value subscriptions
+- Performance optimized
+- TypeScript support
+
+**Related Terms**: [useAtomState](#useatomstate), [Performance Optimization](#performance-optimization)
+
+---
+
+## ActionRegister Configuration
+
+**Definition**: Configuration options for ActionRegister instances, including logging setup, debugging options, and default execution behavior.
+
+**Usage Context**:
+- ActionRegister initialization
+- Framework configuration
+- Development debugging
+- Production optimization
+
+**Key Features**:
+- Logger configuration
+- Debug mode settings
+- Execution mode defaults
+- Environment integration
+
+**Related Terms**: [ActionRegister](./core-concepts.md#actionregister), [Logger System](./core-concepts.md#logger-system)
+
+---
+
+## Cleanup Function
+
+**Definition**: Function type for unregistering action handlers from the pipeline, returned by the register method to provide cleanup capability.
+
+**Usage Context**:
+- Handler cleanup
+- Memory management
+- Component unmounting
+- Lifecycle management
+
+**Key Features**:
+- Automatic cleanup
+- Memory leak prevention
+- TypeScript support
+- Simple invocation
+
+**Related Terms**: [Action Handler](./core-concepts.md#action-handler), [ActionRegister](./core-concepts.md#actionregister)
+
+---
+
+## Action Metrics
+
+**Definition**: Performance metrics interface for action execution performance and status, used for monitoring, debugging, and performance optimization.
+
+**Usage Context**:
+- Performance monitoring
+- Debugging assistance
+- Metrics collection
+- Optimization analysis
+
+**Key Features**:
+- Execution time tracking
+- Success/failure status
+- Handler count information
+- Timestamp recording
+
+**Related Terms**: [Performance Monitoring](#performance-monitoring), [ActionRegister](./core-concepts.md#actionregister)
+
+---
+
+## Performance Monitoring
+
+**Definition**: Comprehensive system for tracking and analyzing performance metrics across the Context-Action framework components.
+
+**Usage Context**:
+- Performance analysis
+- Bottleneck identification
+- Optimization guidance
+- Production monitoring
+
+**Key Features**:
+- Action execution metrics
+- Store operation timing
+- Handler performance tracking
+- Memory usage monitoring
+
+**Related Terms**: [Action Metrics](#action-metrics), [Performance Optimization](#performance-optimization)
+
+---
+
+## Action Events
+
+**Definition**: Event types emitted by ActionRegister instances that enable reactive programming and monitoring of action lifecycle events.
+
+**Usage Context**:
+- Action monitoring
+- Debugging assistance
+- Analytics collection
+- Custom tooling
+
+**Key Features**:
+- Lifecycle event emission
+- Type-safe event handling
+- Async event support
+- Custom event data
+
+**Related Terms**: [Event Driven Architecture](#event-driven-architecture), [ActionRegister](./core-concepts.md#actionregister)
+
+---
+
+## Event Driven Architecture
+
+**Definition**: Architectural pattern that enables reactive programming and monitoring through event emission and handling across framework components.
+
+**Usage Context**:
+- Component decoupling
+- Reactive programming
+- System monitoring
+- Custom integrations
+
+**Key Features**:
+- Loose coupling
+- Event propagation
+- Async event handling
+- Type safety
+
+**Related Terms**: [Action Events](#action-events), [Event Handler](#event-handler)
+
+---
+
+## Event Handler
+
+**Definition**: Function type for handling events emitted by ActionRegister and other framework components.
+
+**Usage Context**:
+- Event processing
+- Custom monitoring
+- Debugging tools
+- Analytics integration
+
+**Key Features**:
+- Type-safe event data
+- Async support
+- Error handling
+- Performance optimization
+
+**Related Terms**: [Event Driven Architecture](#event-driven-architecture), [Event Emitter](#event-emitter)
+
+---
+
+## Event Emitter
+
+**Definition**: Basic event emitter interface for ActionRegister event system, providing methods for subscribing, emitting, and unsubscribing from events.
+
+**Usage Context**:
+- Event system implementation
+- Custom event handling
+- Framework integration
+- Monitoring tools
+
+**Key Features**:
+- Subscribe/unsubscribe methods
+- Type-safe event emission
+- Cleanup functions
+- Performance optimized
+
+**Related Terms**: [Event Handler](#event-handler), [Event Driven Architecture](#event-driven-architecture)
+
+---
+
+## Observer Pattern
+
+**Definition**: Design pattern implementation for reactive state management where Store instances notify subscribed components of state changes.
+
+**Usage Context**:
+- Reactive UI updates
+- State change notifications
+- Component subscriptions
+- Data binding
+
+**Key Features**:
+- Automatic notifications
+- Subscription management
+- Memory leak prevention
+- Performance optimization
+
+**Related Terms**: [Store Integration Pattern](#store-integration-pattern), [Reactive Updates](#reactive-updates)
+
+---
+
+## Store Snapshot
+
+**Definition**: Immutable snapshot interface for Store state representation, used for optimization and debugging, compatible with React's useSyncExternalStore pattern.
+
+**Usage Context**:
+- React integration
+- State debugging
+- Performance optimization
+- Time travel debugging
+
+**Key Features**:
+- Immutable state representation
+- Timestamp tracking
+- React compatibility
+- Memory efficient
+
+**Related Terms**: [Immutable State](#immutable-state), [Store Integration Pattern](#store-integration-pattern)
+
+---
+
+## Immutable State
+
+**Definition**: State management principle ensuring that state objects cannot be modified after creation, instead requiring new objects for updates.
+
+**Usage Context**:
+- Predictable updates
+- React optimization
+- Debugging assistance
+- State consistency
+
+**Key Features**:
+- Immutable objects
+- Predictable updates
+- Performance optimization
+- Debug assistance
+
+**Related Terms**: [Store Snapshot](#store-snapshot), [Observer Pattern](#observer-pattern)
+
+---
+
+## Store Interface
+
+**Definition**: Core interface defining the contract for Store instances, including subscription methods, value access, and React integration compatibility.
+
+**Usage Context**:
+- Store implementation
+- Type definitions
+- Framework contracts
+- Custom store creation
+
+**Key Features**:
+- Subscription methods
+- Value access patterns
+- React compatibility
+- TypeScript support
+
+**Related Terms**: [useSyncExternalStore Compatible](#usesyncexternalstore-compatible), [Observer Pattern](#observer-pattern)
+
+---
+
+## useSyncExternalStore Compatible
+
+**Definition**: Compatibility with React's useSyncExternalStore hook, ensuring proper integration with React's concurrent features and state management.
+
+**Usage Context**:
+- React integration
+- Concurrent features
+- State synchronization
+- Performance optimization
+
+**Key Features**:
+- React compatibility
+- Concurrent support
+- State synchronization
+- Performance benefits
+
+**Related Terms**: [Store Interface](#store-interface), [React Integration](#react-integration)
+
+---
+
+## Registry Pattern
+
+**Definition**: Design pattern for centralized management of Store instances with dynamic access and lifecycle management capabilities.
+
+**Usage Context**:
+- Store management
+- Dynamic access
+- Lifecycle control
+- Dependency injection
+
+**Key Features**:
+- Centralized management
+- Dynamic registration
+- Lifecycle hooks
+- Type safety
+
+**Related Terms**: [Store Registry](./core-concepts.md#store-registry), [Store Integration Pattern](#store-integration-pattern)
+
+---
+
+## Environment Configuration
+
+**Definition**: System for configuring framework behavior through environment variables with cross-platform support and intelligent defaults.
+
+**Usage Context**:
+- Development setup
+- Production configuration
+- Cross-platform deployment
+- Automatic configuration
+
+**Key Features**:
+- Environment variable support
+- Cross-platform compatibility
+- Intelligent defaults
+- Runtime configuration
+
+**Related Terms**: [Logger Factory](#logger-factory), [Smart Logger Creation](#smart-logger-creation)

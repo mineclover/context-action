@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { createStore, useStoreValue } from '@context-action/react';
 import { LogLevel } from '@context-action/logger';
 import ComparisonStrategyDemo from './ImprovedComparisonComponent';
+import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
 
 // 로그 엔트리 타입 정의
 interface LogEntry {
@@ -24,6 +25,7 @@ function useRenderCounter(name: string) {
 
 // 무한 루프를 유발하는 나쁜 컴포넌트
 function BadInfiniteLoopComponent({ pageId }: { pageId: string }) {
+  const { logAction, logSystem, logError } = useActionLoggerWithToast();
   const renderCount = useRenderCounter('BadComponent');
   
   // ❌ 나쁨: 매번 새로운 스토어 생성
@@ -48,7 +50,7 @@ function BadInfiniteLoopComponent({ pageId }: { pageId: string }) {
   
   // ❌ 위험: useEffect에서 직접 store 조작
   useEffect(() => {
-    console.log(`🚨 BadComponent: useEffect triggered (render #${renderCount})`);
+    logSystem(`🚨 BadComponent: useEffect triggered (render #${renderCount})`);
     
     // ❌ 직접 store 조작이 무한 루프 유발
     const initLog = { 
@@ -86,6 +88,7 @@ function BadInfiniteLoopComponent({ pageId }: { pageId: string }) {
 
 // 무한 루프가 없는 좋은 컴포넌트
 function GoodStableComponent({ pageId }: { pageId: string }) {
+  const { logAction, logSystem, logError } = useActionLoggerWithToast();
   const renderCount = useRenderCounter('GoodComponent');
   
   // ✅ 좋음: 안정적인 스토어 생성
@@ -117,13 +120,13 @@ function GoodStableComponent({ pageId }: { pageId: string }) {
   
   // ✅ 안전: useEffect에서 직접 store 조작 피하기
   useEffect(() => {
-    console.log(`✅ GoodComponent: useEffect triggered (render #${renderCount})`);
+    logSystem(`✅ GoodComponent: useEffect triggered (render #${renderCount})`);
     
     // ✅ 안전: API를 통한 로그 추가
     stableAPI.addLog(`페이지 초기화: ${pageId}`);
     
     return () => {
-      console.log(`✅ GoodComponent: cleanup (render #${renderCount})`);
+      logSystem(`✅ GoodComponent: cleanup (render #${renderCount})`);
     };
   }, [pageId, stableAPI]); // ✅ 안정적인 의존성만
   
@@ -154,6 +157,7 @@ function GoodStableComponent({ pageId }: { pageId: string }) {
 
 // 메인 테스트 페이지
 export default function InfiniteLoopTestPage() {
+  const { logAction, logSystem, logError } = useActionLoggerWithToast();
   const [mounted, setMounted] = useState(false);
   const [componentType, setComponentType] = useState<'bad' | 'good' | 'improved'>('good');
   const [pageId, setPageId] = useState('test-page-1');
@@ -173,15 +177,16 @@ export default function InfiniteLoopTestPage() {
   
   const clearConsole = useCallback(() => {
     console.clear();
-    console.log('🧹 Console cleared - Starting fresh test');
-  }, []);
+    logAction('clearConsole', { pageId }, { toast: true });
+  }, [logAction, pageId]);
   
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h1 className="text-2xl font-bold text-blue-800 mb-2">
-          🧪 Infinite Loop Test Environment
-        </h1>
+    <PageWithLogMonitor pageId="infinite-loop-test" title="Infinite Loop Test Environment">
+      <div className="max-w-4xl mx-auto p-6 space-y-6">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h1 className="text-2xl font-bold text-blue-800 mb-2">
+            🧪 Infinite Loop Test Environment
+          </h1>
         <p className="text-blue-700">
           이 페이지는 React + Store 통합에서 발생할 수 있는 무한 루프 패턴을 테스트하고 비교할 수 있는 환경입니다.
         </p>
@@ -323,6 +328,7 @@ export default function InfiniteLoopTestPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </PageWithLogMonitor>
   );
 }

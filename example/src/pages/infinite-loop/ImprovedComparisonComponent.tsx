@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { createStore, useStoreValue } from '@context-action/react';
 import { setGlobalComparisonOptions } from '@context-action/react';
+import { useActionLoggerWithToast } from '../../components/LogMonitor/';
 
 // 렌더링 카운터 훅
 function useRenderCounter(name: string) {
@@ -29,6 +30,7 @@ function ImprovedComparisonComponent({
   pageId: string; 
   comparisonStrategy: 'reference' | 'shallow' | 'deep';
 }) {
+  const { logAction, logSystem, logError } = useActionLoggerWithToast();
   const renderCount = useRenderCounter(`ImprovedComponent-${comparisonStrategy}`);
   
   // 스토어 생성 (전역 비교 전략 적용)
@@ -77,7 +79,7 @@ function ImprovedComparisonComponent({
   
   // useEffect에서 config 사용 (이제 안전함)
   useEffect(() => {
-    console.log(`🚀 ImprovedComponent (${comparisonStrategy}): useEffect triggered (render #${renderCount})`);
+    logSystem(`🚀 ImprovedComponent (${comparisonStrategy}): useEffect triggered (render #${renderCount})`);
     
     // 이제 이 패턴도 안전함
     if (config.enableAutoCleanup) {
@@ -143,13 +145,14 @@ function ImprovedComparisonComponent({
 
 // 비교 전략 데모 페이지
 export default function ComparisonStrategyDemo({ pageId }: { pageId: string }) {
+  const { logAction, logSystem, logError } = useActionLoggerWithToast();
   const [remountKey, setRemountKey] = useState(0);
   const pageRenderCount = useRenderCounter('ComparisonDemo');
   
   const remountAll = () => {
     setRemountKey(prev => prev + 1);
     console.clear();
-    console.log('🔄 All components remounted - observing comparison strategies');
+    logAction('remountAllComponents', { pageId }, { toast: true });
   };
   
   return (
