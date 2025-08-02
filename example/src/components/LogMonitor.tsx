@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, createContext, useContext, useMemo } from 'react';
-import { createLogger, Logger, createStore, useStoreValue, IStore } from '@context-action/react';
+import { createLogger, Logger, createStore, useStoreValue, Store } from '@context-action/react';
 import { LogLevel } from '@context-action/logger';
 import { useActionToast } from './ToastSystem/useActionToast';
 
@@ -16,8 +16,8 @@ interface LogEntry {
 
 // 로그 모니터 스토어 타입
 interface LogMonitorStores {
-  logs: IStore<LogEntry[]>;
-  logLevel: IStore<LogLevel>;
+  logs: Store<LogEntry[]>;
+  logLevel: Store<LogLevel>;
 }
 
 // 스토어 레지스트리 - 페이지별로 독립적인 스토어 관리
@@ -91,8 +91,8 @@ export function LogMonitorProvider({
   }, [pageId, initialLogLevel]);
 
   // 스토어 값들을 구독
-  const logs = useStoreValue(stores.logs);
-  const logLevel = useStoreValue(stores.logLevel);
+  const logs = useStoreValue(stores.logs) ?? [];
+  const logLevel = useStoreValue(stores.logLevel) ?? initialLogLevel;
 
   // 로거 인스턴스 생성 (안정적인 참조)
   const logger = useMemo(() => {
