@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { createStore, useStoreValue } from '@context-action/react';
 import { ErrorBoundary } from './ErrorBoundary';
+import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
 
 // 안전 장치 설정
 const RENDER_LIMIT = 15; // 렌더링 임계치
@@ -154,6 +155,7 @@ function ComparisonTestComponent({
   testId: string;
   onRenderUpdate: (testId: string, count: number, stopped: boolean) => void;
 }) {
+  const { logAction, logSystem, logError } = useActionLoggerWithToast();
   const { renderCount, stopped } = useRenderCounter(`${strategy}-${dataPattern}`);
   const [iteration, setIteration] = useState(0);
   
@@ -169,9 +171,13 @@ function ComparisonTestComponent({
     const store = createStore<any>(uniqueStoreName, initialData);
     store.setComparisonOptions({ strategy }); // 전역 설정 대신 Store별 설정
     
-    console.log(`🔧 Created isolated demo store: ${uniqueStoreName} with ${strategy} strategy`);
     return store;
   }, [strategy, dataPattern, testId]); // stopped 의존성 제거
+  
+  // Store 생성 로깅 (useMemo 외부에서)
+  useEffect(() => {
+    logSystem(`🔧 Created isolated demo store: demo-${strategy}-${dataPattern} with ${strategy} strategy`);
+  }, [logSystem, strategy, dataPattern, testId]);
   
   // Store 값 구독 - fallback 로직 제거로 무한 루프 방지
   const storeValue = useStoreValue(testStore);
@@ -277,6 +283,7 @@ function ComparisonTestComponent({
 
 // 메인 페이지 컴포넌트
 export default function ComparisonDemoPage() {
+  const { logAction, logSystem, logError } = useActionLoggerWithToast();
   const [selectedPattern, setSelectedPattern] = useState<DataPattern>('primitive');
   const [testKey, setTestKey] = useState(0);
   const [renderStats, setRenderStats] = useState<Record<string, { count: number; stopped: boolean }>>({});
@@ -299,7 +306,7 @@ export default function ComparisonDemoPage() {
     setTestKey(prev => prev + 1);
     setRenderStats({});
     console.clear();
-    console.log('🔄 All demo components reset with complete isolation');
+    logAction('resetAllDemos', { isolationId }, { toast: true });
   }, []);
   
   // 패턴 변경
@@ -312,12 +319,13 @@ export default function ComparisonDemoPage() {
   const patternInfo = DATA_PATTERN_INFO[selectedPattern];
   
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
-      {/* 헤더 */}
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
-        <h1 className="text-2xl font-bold text-blue-800 mb-2">
-          ⚡ Store Comparison Logic Demo (Isolated)
-        </h1>
+    <PageWithLogMonitor pageId="comparison-demo" title="Store Comparison Logic Demo">
+      <div className="max-w-6xl mx-auto p-6 space-y-6">
+        {/* 헤더 */}
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
+          <h1 className="text-2xl font-bold text-blue-800 mb-2">
+            ⚡ Store Comparison Logic Demo (Isolated)
+          </h1>
         <p className="text-blue-700 text-sm mb-2">
           완전히 격리된 환경에서 다양한 데이터 패턴의 Store 비교 전략 성능 차이를 실시간으로 확인해보세요.
         </p>
@@ -398,8 +406,8 @@ export default function ComparisonDemoPage() {
             <div key={uniqueTestId}>
               <ErrorBoundary 
                 onError={(error, errorInfo) => {
-                  console.error(`🚨 Error in ${strategy} strategy (${uniqueTestId}):`, error);
-                  console.error('Component Info:', errorInfo);
+                          logError(`🚨 Error in ${strategy} strategy (${uniqueTestId})`, error);
+        logError('Component Error Info', new Error(JSON.stringify(errorInfo)));
                 }}
               >
                 <ComparisonTestComponent
@@ -461,6 +469,7 @@ export default function ComparisonDemoPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </PageWithLogMonitor>
   );
 }

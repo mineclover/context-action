@@ -693,62 +693,11 @@ function CoreBasicsDemo() {
 4. **Minimize dependency arrays**: Include only truly necessary dependencies.
 5. **Custom hooks provide stable APIs**: Wrap returned functions with useCallback.
 
-### 4. ✅ Integrated Logging System Best Practices
+### 4. ✅ Logging & Toast System
 
-#### Production-verified logging patterns
+For integrated logging and toast system usage, please refer to the dedicated convention document:
 
-```typescript
-// ✅ Good: Integrated action and toast logging system
-const actionMessages: Record<string, ToastConfig> = {
-  'increment': { title: 'Increase', message: 'Value increased', type: 'success' },
-  'decrement': { title: 'Decrease', message: 'Value decreased', type: 'info' },
-  'setCount': { title: 'Set', message: 'Value set', type: 'success' },
-  'reset': { title: 'Reset', message: 'Value reset', type: 'system' },
-  'error': { title: 'Error', message: 'An error occurred', type: 'error' }
-};
-
-export function useActionLogger() {
-  const { addLog, logger } = useLogMonitor();
-  const toast = useActionToast();
-
-  const logAction = useCallback((
-    actionType: string,
-    payload?: any,
-    options: ActionLogOptions = {}
-  ) => {
-    // 1. Structured log recording
-    addLog({
-      level: LogLevel.INFO,
-      type: 'action',
-      message: `Action dispatched: ${actionType}`,
-      priority: options.priority,
-      details: { payload, context: options.context }
-    });
-    
-    // 2. Console log (development)
-    logger.info(`Action: ${actionType}`, payload);
-
-    // 3. Automatic toast display (user feedback)
-    if (options.toast !== false) {
-      const actionMsg = actionMessages[actionType];
-      
-      if (typeof options.toast === 'object') {
-        toast.showToast(
-          options.toast.type || 'info',
-          options.toast.title || actionType,
-          options.toast.message || `${actionType} action executed`
-        );
-      } else if (actionMsg) {
-        toast.showToast(actionMsg.type, actionMsg.title, actionMsg.message);
-      } else {
-        toast.showToast('success', actionType, `${actionType} action executed`);
-      }
-    }
-  }, [addLog, logger, toast]); // Only stable dependencies
-
-  return { logAction, logSystem, logError };
-}
-```
+👉 **[Logging & Toast Integration Convention](./logging-toast-convention.md)**
 
 ## Component Integration Best Practices
 

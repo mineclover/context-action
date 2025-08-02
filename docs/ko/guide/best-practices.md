@@ -857,89 +857,11 @@ function MyComponent() {
 4. **의존성 배열은 최소화**: 정말 필요한 의존성만 포함합니다.
 5. **커스텀 훅은 안정적인 API 제공**: useCallback으로 반환 함수들을 감쌉니다.
 
-### 9. ✅ 통합 로깅 시스템 모범 사례
+### 9. ✅ 로깅 & 토스트 시스템
 
-#### 실제 프로덕션에서 검증된 로깅 패턴
+로깅과 토스트 시스템의 통합 사용법에 대해서는 전용 컨벤션 문서를 참고하세요:
 
-```typescript
-// ✅ 좋음: 액션과 토스트가 통합된 로깅 시스템
-const actionMessages: Record<string, ToastConfig> = {
-  'increment': { title: '증가', message: '값이 증가되었습니다', type: 'success' },
-  'decrement': { title: '감소', message: '값이 감소되었습니다', type: 'info' },
-  'setCount': { title: '설정', message: '값이 설정되었습니다', type: 'success' },
-  'reset': { title: '초기화', message: '값이 초기화되었습니다', type: 'system' },
-  'error': { title: '오류', message: '작업 중 오류가 발생했습니다', type: 'error' }
-};
-
-export function useActionLogger() {
-  const { addLog, logger } = useLogMonitor();
-  const toast = useActionToast();
-
-  const logAction = useCallback((
-    actionType: string,
-    payload?: any,
-    options: ActionLogOptions = {}
-  ) => {
-    // 1. 구조화된 로그 기록
-    addLog({
-      level: LogLevel.INFO,
-      type: 'action',
-      message: `Action dispatched: ${actionType}`,
-      priority: options.priority,
-      details: { payload, context: options.context }
-    });
-    
-    // 2. 콘솔 로그 (개발용)
-    logger.info(`Action: ${actionType}`, payload);
-
-    // 3. 자동 토스트 표시 (사용자 피드백)
-    if (options.toast !== false) {
-      const actionMsg = actionMessages[actionType];
-      
-      if (typeof options.toast === 'object') {
-        // 커스텀 토스트 설정
-        toast.showToast(
-          options.toast.type || 'info',
-          options.toast.title || actionType,
-          options.toast.message || `${actionType} 액션이 실행되었습니다`
-        );
-      } else if (actionMsg) {
-        // 미리 정의된 메시지 사용
-        toast.showToast(actionMsg.type, actionMsg.title, actionMsg.message);
-      } else {
-        // 기본 메시지
-        toast.showToast('success', actionType, `${actionType} 액션이 실행되었습니다`);
-      }
-    }
-  }, [addLog, logger, toast]); // 안정적인 의존성만
-
-  return { logAction, logSystem, logError };
-}
-```
-
-#### 컴포넌트에서의 통합 사용
-
-```typescript
-// ✅ 좋음: 간단하고 일관된 로깅 API
-function UserProfile() {
-  const logger = useActionLogger();
-  
-  const handleUpdateName = useCallback((name: string) => {
-    // 액션 로깅 + 자동 토스트
-    logger.logAction('updateUserName', { name });
-    
-    // 실제 비즈니스 로직
-    dispatch('updateUserName', { name });
-  }, [logger, dispatch]);
-  
-  const handleError = useCallback((error: Error) => {
-    // 에러 로깅 + 에러 토스트
-    logger.logError('사용자 프로필 업데이트 실패', error);
-  }, [logger]);
-  
-  // ...
-}
-```
+👉 **[로깅 & 토스트 통합 컨벤션](./logging-toast-convention.md)**
 
 ## 컴포넌트 통합 모범 사례
 

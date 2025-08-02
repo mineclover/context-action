@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { createStore, useStoreValue } from '@context-action/react';
 import { setGlobalComparisonOptions } from '@context-action/react';
 import { ErrorBoundary } from './ErrorBoundary';
+import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
 
 // 메모리 효율적인 무한 루프 제어 설정
 const THROTTLE_INTERVAL = 100; // 100ms마다 렌더링 허용
@@ -192,6 +193,7 @@ function ThrottledTestComponent({
   testId: string;
   onStatsUpdate: (testId: string, stats: any) => void;
 }) {
+  const { logAction, logSystem, logError } = useActionLoggerWithToast();
   const { actualCount, displayCount, renderRate, memoryUsage, isThrottled } = useThrottledRenderCounter(`${strategy}-${dataPattern}`);
   const [iteration, setIteration] = useState(0);
   
@@ -206,9 +208,13 @@ function ThrottledTestComponent({
     // ✅ 전역 설정 대신 Store별 독립적 설정 사용
     store.setComparisonOptions({ strategy });
     
-    console.log(`🔧 Created isolated store: ${uniqueStoreName} with ${strategy} strategy`);
     return store;
   }, [strategy, dataPattern, testId]); // initialData 의존성 제거
+  
+  // Store 생성 로깅 (useMemo 외부에서)
+  useEffect(() => {
+    logSystem(`🔧 Created isolated store: throttled-${strategy}-${dataPattern} with ${strategy} strategy`);
+  }, [logSystem, strategy, dataPattern, testId]);
   
   // Store 값 구독 - fallback 로직 제거로 무한 루프 방지
   const storeValue = useStoreValue(testStore);
@@ -266,12 +272,12 @@ function ThrottledTestComponent({
         });
       }, uniqueInterval);
       
-      console.log(`▶️ Auto update started for ${strategy}: ${uniqueInterval}ms interval`);
+      logAction('startAutoUpdate', { strategy, interval: uniqueInterval });
     } else {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = undefined;
-        console.log(`⏹️ Auto update stopped for ${strategy}`);
+        logAction('stopAutoUpdate', { strategy });
       }
     }
     
@@ -355,6 +361,7 @@ function ThrottledTestComponent({
 
 // 메인 페이지 컴포넌트
 export default function ThrottledComparisonPage() {
+  const { logAction, logSystem, logError } = useActionLoggerWithToast();
   const [selectedPattern, setSelectedPattern] = useState<DataPattern>('primitive');
   const [testKey, setTestKey] = useState(0);
   const [componentStats, setComponentStats] = useState<Record<string, any>>({});
@@ -376,8 +383,7 @@ export default function ThrottledComparisonPage() {
     setGlobalAutoUpdate(false);
     
     console.clear();
-    console.log('🔄 All components reset - memory cleaned');
-    console.log('🔒 Each component uses isolated stores and settings');
+    logAction('resetAllComponents', { isolationId }, { toast: true });
   }, []);
   
   // 패턴 변경
@@ -391,9 +397,9 @@ export default function ThrottledComparisonPage() {
   const forceGarbageCollection = useCallback(() => {
     if ('gc' in window) {
       (window as any).gc();
-      console.log('🗑️ Manual garbage collection triggered');
+      logAction('triggerGarbageCollection', {});
     } else {
-      console.log('⚠️ Manual GC not available - creating temporary memory pressure');
+      logSystem('⚠️ Manual GC not available - creating temporary memory pressure');
       // 메모리 압박을 만들어 GC 유도
       const temp = new Array(1000000).fill(0);
       temp.length = 0;
@@ -405,12 +411,13 @@ export default function ThrottledComparisonPage() {
   const avgMemoryUsage = Object.values(componentStats).reduce((sum: number, stat: any) => sum + (stat?.memoryUsage || 0), 0) / 3;
   
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
-      {/* 헤더 */}
-      <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-4">
-        <h1 className="text-2xl font-bold text-green-800 mb-2">
-          ⏱️ Throttled Infinite Loop Demo
-        </h1>
+    <PageWithLogMonitor pageId="throttled-comparison" title="Throttled Infinite Loop Demo">
+      <div className="max-w-6xl mx-auto p-6 space-y-6">
+        {/* 헤더 */}
+        <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-4">
+          <h1 className="text-2xl font-bold text-green-800 mb-2">
+            ⏱️ Throttled Infinite Loop Demo
+          </h1>
         <p className="text-green-700 text-sm mb-2">
           무한 루프를 메모리 효율적으로 제어하면서 적절한 갱신 주기로 렌더링을 관리합니다.
         </p>
@@ -508,7 +515,7 @@ export default function ThrottledComparisonPage() {
             <div key={uniqueTestId}>
               <ErrorBoundary 
                 onError={(error, errorInfo) => {
-                  console.error(`🚨 Error in ${strategy} strategy (${uniqueTestId}):`, error);
+                  logError(`🚨 Error in ${strategy} strategy (${uniqueTestId})`, error);
                 }}
               >
                 <ThrottledTestComponent
@@ -570,6 +577,7 @@ export default function ThrottledComparisonPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </PageWithLogMonitor>
   );
 }
