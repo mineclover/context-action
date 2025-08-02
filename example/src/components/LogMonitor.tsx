@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, createContext, useContext } from 'react';
-import { createLogger, Logger } from '@context-action/react';
+import React, { useState, useEffect, useCallback, createContext, useContext, useMemo } from 'react';
+import { createLogger, Logger, createStore, useStoreValue, IStore } from '@context-action/react';
 import { LogLevel } from '@context-action/logger';
 import { useActionToast } from './ToastSystem/useActionToast';
 
@@ -12,6 +12,44 @@ interface LogEntry {
   message: string;
   details?: any;
   priority?: number;
+}
+
+// 로그 모니터 스토어 타입
+interface LogMonitorStores {
+  logs: IStore<LogEntry[]>;
+  logLevel: IStore<LogLevel>;
+}
+
+// 스토어 레지스트리 - 페이지별로 독립적인 스토어 관리
+class LogMonitorStoreRegistry {
+  private static instance: LogMonitorStoreRegistry;
+  private storeMap = new Map<string, LogMonitorStores>();
+
+  static getInstance(): LogMonitorStoreRegistry {
+    if (!LogMonitorStoreRegistry.instance) {
+      LogMonitorStoreRegistry.instance = new LogMonitorStoreRegistry();
+    }
+    return LogMonitorStoreRegistry.instance;
+  }
+
+  getStores(pageId: string, initialLogLevel: LogLevel): LogMonitorStores {
+    if (!this.storeMap.has(pageId)) {
+      const stores: LogMonitorStores = {
+        logs: createStore(`logs-${pageId}`, [] as LogEntry[]),
+        logLevel: createStore(`logLevel-${pageId}`, initialLogLevel)
+      };
+      this.storeMap.set(pageId, stores);
+    }
+    return this.storeMap.get(pageId)!;
+  }
+
+  clearStores(pageId: string): void {
+    this.storeMap.delete(pageId);
+  }
+
+  getAllPageIds(): string[] {
+    return Array.from(this.storeMap.keys());
+  }
 }
 
 // 로그 컨텍스트 타입
@@ -46,23 +84,23 @@ export function LogMonitorProvider({
   pageId: string;
   initialLogLevel?: LogLevel;
 }) {
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [logLevel, setLogLevel] = useState<LogLevel>(initialLogLevel);
-  const [logger] = useState(() => {
+  // 스토어 레지스트리에서 페이지별 스토어 가져오기
+  const stores = useMemo(() => {
+    const registry = LogMonitorStoreRegistry.getInstance();
+    return registry.getStores(pageId, initialLogLevel);
+  }, [pageId, initialLogLevel]);
+
+  // 스토어 값들을 구독
+  const logs = useStoreValue(stores.logs);
+  const logLevel = useStoreValue(stores.logLevel);
+
+  // 로거 인스턴스 생성 (안정적인 참조)
+  const logger = useMemo(() => {
     const pageLogger = createLogger(initialLogLevel);
-    
-    // 로거 메서드 래핑하여 자동으로 로그 엔트리 추가
-    const originalMethods = {
-      trace: pageLogger.trace.bind(pageLogger),
-      debug: pageLogger.debug.bind(pageLogger),
-      info: pageLogger.info.bind(pageLogger),
-      warn: pageLogger.warn.bind(pageLogger),
-      error: pageLogger.error.bind(pageLogger)
-    };
-
     return pageLogger;
-  });
+  }, [initialLogLevel]);
 
+  // 안정적인 addLog 함수 - 스토어 업데이트 사용
   const addLog = useCallback((entry: Omit<LogEntry, 'id' | 'timestamp'>) => {
     const logEntry: LogEntry = {
       ...entry,
@@ -70,19 +108,26 @@ export function LogMonitorProvider({
       timestamp: new Date().toLocaleTimeString()
     };
     
-    setLogs(prev => [...prev.slice(-49), logEntry]); // 최대 50개 로그 유지
-  }, [pageId]);
+    // 스토어 업데이트 - 최대 50개 로그 유지
+    stores.logs.update(prev => [...prev.slice(-49), logEntry]);
+  }, [pageId, stores.logs]);
 
+  // 안정적인 clearLogs 함수
   const clearLogs = useCallback(() => {
-    setLogs([]);
-  }, []);
+    stores.logs.setValue([]);
+  }, [stores.logs]);
+
+  // 안정적인 setLogLevel 함수
+  const setLogLevel = useCallback((level: LogLevel) => {
+    stores.logLevel.setValue(level);
+  }, [stores.logLevel]);
 
   // 로그 레벨 변경 시 로거 업데이트
   useEffect(() => {
     logger.setLevel?.(logLevel);
   }, [logger, logLevel]);
 
-  // 페이지 초기화 로그
+  // 페이지 초기화 및 정리 로그
   useEffect(() => {
     addLog({
       level: LogLevel.INFO,
@@ -97,6 +142,9 @@ export function LogMonitorProvider({
         type: 'system',
         message: `Page cleanup: ${pageId}`
       });
+      
+      // 페이지 언마운트 시 스토어 정리 (선택적)
+      // LogMonitorStoreRegistry.getInstance().clearStores(pageId);
     };
   }, [pageId, addLog, initialLogLevel]);
 
