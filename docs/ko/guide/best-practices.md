@@ -508,7 +508,126 @@ export function useActionLogger() {
 }
 ```
 
-### 2. ✅ useEffect 의존성에서 불안정한 함수 제거
+### 2. ✅ useEffect에서 Store 직접 조작 방지
+
+#### 문제: useEffect에서 setValue 직접 호출로 인한 무한 루프
+
+```typescript
+// ❌ 나쁨: useEffect에서 Store 직접 조작
+function LogMonitorProvider({ children, pageId, initialConfig }) {
+  const stores = useMemo(() => getStores(pageId), [pageId]);
+  const config = useStoreValue(stores.config) ?? { 
+    maxLogs: 50, 
+    enableAutoCleanup: true,
+    ...initialConfig  // ❌ 매 렌더링마다 새로운 객체 생성
+  };
+
+  useEffect(() => {
+    // ❌ 위험: Store 직접 조작이 무한 루프 유발
+    const logEntry = createLogEntry(pageId, {
+      level: LogLevel.INFO,
+      type: 'system',
+      message: `페이지 초기화: ${pageId}`
+    });
+    stores.logs.setValue([logEntry]); // ❌ _notifyListeners → React 리렌더 → useEffect 트리거
+  }, [pageId, stores.logs, config]); // ❌ config 의존성이 불안정
+
+  return <LogMonitorContext.Provider value={{ /* ... */ }}>{children}</LogMonitorContext.Provider>;
+}
+```
+
+```typescript
+// ✅ 좋음: fallbackConfig 패턴 사용 및 Store 직접 조작 회피
+function LogMonitorProvider({ children, pageId, initialConfig }) {
+  const stores = useMemo(() => getStores(pageId), [pageId]);
+  
+  // ✅ 안정적인 fallback config로 무한 의존성 업데이트 방지
+  const fallbackConfig = useMemo(() => ({ 
+    maxLogs: 50, 
+    enableAutoCleanup: true,
+    ...initialConfig 
+  }), [initialConfig]);
+  
+  const config = useStoreValue(stores.config) ?? fallbackConfig;
+
+  // ✅ Store 직접 조작 대신 안정적인 API 사용
+  const stableAPI = useMemo(() => ({
+    addLog: (entry) => {
+      const logEntry = createLogEntry(pageId, entry);
+      const currentLogs = stores.logs.getValue();
+      const updatedLogs = maintainMaxLogs(currentLogs, logEntry, fallbackConfig.maxLogs);
+      stores.logs.setValue(updatedLogs);
+    }
+  }), [pageId, stores, fallbackConfig.maxLogs]); // ✅ fallbackConfig.maxLogs는 안정적
+
+  useEffect(() => {
+    // ✅ 안전: 정리 작업만 수행, Store 직접 조작 없음
+    return () => {
+      if (fallbackConfig.enableAutoCleanup) {
+        setTimeout(() => clearStores(pageId), 1000);
+      }
+    };
+  }, [pageId, fallbackConfig.enableAutoCleanup]); // ✅ 안정적인 의존성
+
+  return <LogMonitorContext.Provider value={{ addLog: stableAPI.addLog, /* ... */ }}>{children}</LogMonitorContext.Provider>;
+}
+```
+
+#### 🎯 핵심 요점: Store 직접 조작 방지
+
+| ❌ **위험한 패턴** | ✅ **안전한 패턴** | 🔍 **이유** |
+|-------------------|-------------------|-------------|
+| `useEffect`에서 `stores.logs.setValue()` | 안정적인 API 함수 사용 | 직접 조작은 `_notifyListeners` → React 리렌더 → 무한 루프 유발 |
+| `config ?? { maxLogs: 50, ... }` | `useMemo(() => ({ maxLogs: 50, ... }), [deps])` | 새로운 객체 참조로 인한 의존성 불안정 |
+| `[pageId, stores, config.property]` | `[pageId, stores, fallbackConfig.property]` | `fallbackConfig`는 `useMemo`로 안정적인 참조 보장 |
+
+#### 📋 Store 통합 체크리스트
+
+- [ ] **`useEffect`에서 절대 `setValue()` 직접 호출 금지**
+- [ ] **fallback config 객체에 항상 `useMemo` 사용**
+- [ ] **Store 직접 조작보다 안정적인 API 함수 선호**
+- [ ] **`useStoreValue` fallback에 `fallbackConfig` 패턴 사용**
+- [ ] **`useEffect` 의존성을 최소화하고 안정적으로 유지**
+
+#### ⚡ 새로운 기능: 개선된 Store 비교 로직 (2024)
+
+**좋은 소식!** Context-Action Store가 이제 고급 비교 전략을 지원하여 `{ key: 'value' }` 패턴이 훨씬 안전해졌습니다:
+
+```typescript
+import { setGlobalComparisonOptions } from '@context-action/react';
+
+// 전역적으로 스마트 비교 활성화
+setGlobalComparisonOptions({ strategy: 'shallow' });
+
+// 이제 이 패턴이 안전합니다 - 무한 루프 없음!
+function MyComponent({ pageId }) {
+  const config = useStoreValue(configStore) ?? { 
+    maxLogs: 50, 
+    enableAutoCleanup: true,
+    pageId // ✅ 매 렌더링마다 새 객체지만 shallow 비교가 루프 방지
+  };
+  
+  useEffect(() => {
+    // ✅ shallow/deep 비교로 이제 안전함
+    stableAPI.addLog(`페이지: ${pageId}`);
+  }, [pageId, config, stableAPI]); // ✅ config 의존성이 이제 안전!
+}
+```
+
+**비교 전략들:**
+- **`'reference'`** (기본값): Object.is() - 가장 빠르지만 엄격함
+- **`'shallow'`**: 1레벨 프로퍼티 비교 - **대부분의 경우에 권장**
+- **`'deep'`**: 완전한 깊은 비교 - 복잡한 중첩 객체용
+- **`'custom'`**: 사용자 정의 비교 함수
+
+**성능 vs 안전성 균형:**
+| 전략 | 성능 | 안전성 | 사용 사례 |
+|------|------|--------|----------|
+| `reference` | ⚡⚡⚡ 최고속 | ⚠️ 엄격함 | 원시값, 안정적 참조 |
+| `shallow` | ⚡⚡ 빠름 | ✅ 안전함 | 객체, 배열 (권장) |
+| `deep` | ⚡ 보통 | ✅✅ 최고 안전 | 중첩 객체, 복잡한 데이터 |
+
+### 3. ✅ useEffect 의존성에서 불안정한 함수 제거
 
 #### 문제: useCallback으로 생성된 함수를 useEffect 의존성으로 사용
 

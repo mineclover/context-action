@@ -506,7 +506,126 @@ export function useActionLogger() {
 }
 ```
 
-### 2. ✅ Removing Unstable Functions from useEffect Dependencies
+### 2. ✅ Preventing Direct Store Manipulation in useEffect
+
+#### Problem: Directly calling setValue in useEffect causes infinite loops
+
+```typescript
+// ❌ Bad: Direct store manipulation in useEffect
+function LogMonitorProvider({ children, pageId, initialConfig }) {
+  const stores = useMemo(() => getStores(pageId), [pageId]);
+  const config = useStoreValue(stores.config) ?? { 
+    maxLogs: 50, 
+    enableAutoCleanup: true,
+    ...initialConfig  // ❌ New object created every render
+  };
+
+  useEffect(() => {
+    // ❌ DANGEROUS: Direct store manipulation triggers infinite loop
+    const logEntry = createLogEntry(pageId, {
+      level: LogLevel.INFO,
+      type: 'system',
+      message: `Page initialized: ${pageId}`
+    });
+    stores.logs.setValue([logEntry]); // ❌ Triggers _notifyListeners → React rerender → useEffect
+  }, [pageId, stores.logs, config]); // ❌ config dependency is unstable
+
+  return <LogMonitorContext.Provider value={{ /* ... */ }}>{children}</LogMonitorContext.Provider>;
+}
+```
+
+```typescript
+// ✅ Good: Use fallbackConfig pattern and avoid direct store manipulation
+function LogMonitorProvider({ children, pageId, initialConfig }) {
+  const stores = useMemo(() => getStores(pageId), [pageId]);
+  
+  // ✅ Stable fallback config prevents infinite dependency updates
+  const fallbackConfig = useMemo(() => ({ 
+    maxLogs: 50, 
+    enableAutoCleanup: true,
+    ...initialConfig 
+  }), [initialConfig]);
+  
+  const config = useStoreValue(stores.config) ?? fallbackConfig;
+
+  // ✅ Use stable API instead of direct store manipulation
+  const stableAPI = useMemo(() => ({
+    addLog: (entry) => {
+      const logEntry = createLogEntry(pageId, entry);
+      const currentLogs = stores.logs.getValue();
+      const updatedLogs = maintainMaxLogs(currentLogs, logEntry, fallbackConfig.maxLogs);
+      stores.logs.setValue(updatedLogs);
+    }
+  }), [pageId, stores, fallbackConfig.maxLogs]); // ✅ fallbackConfig.maxLogs is stable
+
+  useEffect(() => {
+    // ✅ Safe: Only cleanup, no direct store manipulation
+    return () => {
+      if (fallbackConfig.enableAutoCleanup) {
+        setTimeout(() => clearStores(pageId), 1000);
+      }
+    };
+  }, [pageId, fallbackConfig.enableAutoCleanup]); // ✅ Stable dependencies
+
+  return <LogMonitorContext.Provider value={{ addLog: stableAPI.addLog, /* ... */ }}>{children}</LogMonitorContext.Provider>;
+}
+```
+
+#### 🎯 Key Takeaways: Store Direct Manipulation Prevention
+
+| ❌ **Dangerous Pattern** | ✅ **Safe Pattern** | 🔍 **Why** |
+|---------------------------|---------------------|-------------|
+| `stores.logs.setValue()` in `useEffect` | Use stable API functions | Direct manipulation triggers `_notifyListeners` → React rerender → infinite loop |
+| `config ?? { maxLogs: 50, ... }` | `useMemo(() => ({ maxLogs: 50, ... }), [deps])` | New object reference causes dependency instability |
+| `[pageId, stores, config.property]` | `[pageId, stores, fallbackConfig.property]` | `fallbackConfig` has stable reference from `useMemo` |
+
+#### 📋 Store Integration Checklist
+
+- [ ] **Never call `setValue()` directly in `useEffect`**
+- [ ] **Always use `useMemo` for fallback config objects**
+- [ ] **Prefer stable API functions over direct store manipulation**
+- [ ] **Use `fallbackConfig` pattern for `useStoreValue` fallbacks**
+- [ ] **Keep `useEffect` dependencies minimal and stable**
+
+#### ⚡ NEW: Improved Store Comparison Logic (2024)
+
+**Good News!** Context-Action Store now supports advanced comparison strategies that make `{ key: 'value' }` patterns much safer:
+
+```typescript
+import { setGlobalComparisonOptions } from '@context-action/react';
+
+// Enable smart comparison globally
+setGlobalComparisonOptions({ strategy: 'shallow' });
+
+// Now this pattern is SAFE - no infinite loops!
+function MyComponent({ pageId }) {
+  const config = useStoreValue(configStore) ?? { 
+    maxLogs: 50, 
+    enableAutoCleanup: true,
+    pageId // ✅ New object every render, but shallow comparison prevents loops
+  };
+  
+  useEffect(() => {
+    // ✅ This is now safe with shallow/deep comparison
+    stableAPI.addLog(`Page: ${pageId}`);
+  }, [pageId, config, stableAPI]); // ✅ config dependency is now safe!
+}
+```
+
+**Comparison Strategies:**
+- **`'reference'`** (default): Object.is() - fastest but strictest
+- **`'shallow'`**: Compares 1-level properties - **recommended for most cases**
+- **`'deep'`**: Full deep comparison - for complex nested objects
+- **`'custom'`**: Your own comparison function
+
+**Performance vs Safety Balance:**
+| Strategy | Performance | Safety | Use Case |
+|----------|-------------|---------|----------|
+| `reference` | ⚡⚡⚡ Fastest | ⚠️ Strict | Primitive values, stable refs |
+| `shallow` | ⚡⚡ Fast | ✅ Safe | Objects, arrays (recommended) |
+| `deep` | ⚡ Moderate | ✅✅ Safest | Nested objects, complex data |
+
+### 3. ✅ Removing Unstable Functions from useEffect Dependencies
 
 #### Problem: Using useCallback-generated functions as useEffect dependencies
 
