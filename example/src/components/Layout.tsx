@@ -11,8 +11,14 @@ function Layout({ children }: LayoutProps) {
   const navItems = [
     { path: '/', label: 'Home', category: 'main' },
     { path: '/core/basics', label: 'Core Basics', category: 'core' },
+    { path: '/core/advanced', label: 'Core Advanced', category: 'core' },
     { path: '/store/basics', label: 'Store Basics', category: 'store' },
+    { path: '/store/full-demo', label: 'Store Full Demo', category: 'store' },
     { path: '/react/provider', label: 'React Provider', category: 'react' },
+    { path: '/react/context', label: 'React Context', category: 'react' },
+    { path: '/react/hooks', label: 'React Hooks', category: 'react' },
+    { path: '/logger/demo', label: 'Logger System', category: 'logger' },
+    { path: '/actionguard/demo', label: 'Action Guard', category: 'actionguard' },
   ];
 
   return (
