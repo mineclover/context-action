@@ -452,6 +452,376 @@ actionRegister.register('updateUserIfChanged', async (payload, controller) => {
 });
 ```
 
+## React 통합 무한 루프 방지
+
+> 🚨 **중요**: 실제 프로덕션에서 발생한 무한 루프 문제와 해결 방법을 기반으로 작성된 섹션입니다.
+
+React와 Context-Action을 통합할 때 가장 흔하고 치명적인 문제 중 하나는 **무한 렌더링 루프**입니다. 이 섹션에서는 실제 경험을 바탕으로 무한 루프를 방지하는 핵심 패턴들을 다룹니다.
+
+### 1. ✅ useCallback 의존성 배열 안정화
+
+#### 문제: 객체/배열을 의존성으로 사용
+
+```typescript
+// ❌ 나쁨: 매번 새로운 객체가 생성되어 무한 루프 유발
+export function useActionLogger() {
+  const { addLog, logger } = useLogMonitor();
+  const toast = useActionToast();
+  
+  // 매 렌더링마다 새로운 객체 생성!
+  const actionMessages = {
+    'increment': { title: '증가', message: '값이 증가되었습니다', type: 'success' },
+    'decrement': { title: '감소', message: '값이 감소되었습니다', type: 'info' },
+    // ...
+  };
+
+  const logAction = useCallback((actionType: string, payload?: any) => {
+    // actionMessages 사용
+    const actionMsg = actionMessages[actionType];
+    // ...
+  }, [addLog, logger, toast, actionMessages]); // ❌ actionMessages가 매번 새로 생성됨
+  
+  return { logAction };
+}
+```
+
+```typescript
+// ✅ 좋음: 객체를 컴포넌트 외부로 이동하여 안정적인 참조 보장
+const actionMessages: Record<string, { title: string; message: string; type: 'success' | 'error' | 'info' | 'system' }> = {
+  'increment': { title: '증가', message: '값이 증가되었습니다', type: 'success' },
+  'decrement': { title: '감소', message: '값이 감소되었습니다', type: 'info' },
+  'setCount': { title: '설정', message: '값이 설정되었습니다', type: 'success' },
+  // ...
+};
+
+export function useActionLogger() {
+  const { addLog, logger } = useLogMonitor();
+  const toast = useActionToast();
+
+  const logAction = useCallback((actionType: string, payload?: any) => {
+    // 안정적인 actionMessages 참조 사용
+    const actionMsg = actionMessages[actionType];
+    // ...
+  }, [addLog, logger, toast]); // ✅ actionMessages는 의존성에서 제외 (안정적이므로)
+  
+  return { logAction };
+}
+```
+
+### 2. ✅ useEffect 의존성에서 불안정한 함수 제거
+
+#### 문제: useCallback으로 생성된 함수를 useEffect 의존성으로 사용
+
+```typescript
+// ❌ 나쁨: 불안정한 함수들이 useEffect를 무한 재실행
+function CoreBasicsDemo() {
+  const [actionRegister] = useState(() => new ActionRegister<CoreActionMap>());
+  const { logAction, logSystem } = useActionLogger(); // 이 함수들이 불안정할 수 있음
+
+  useEffect(() => {
+    logSystem('ActionRegister initialized');
+    
+    const unsubscribe = actionRegister.register('increment', (_, controller) => {
+      setCount(prev => prev + 1);
+      logAction('increment', undefined); // 핸들러 내에서 logAction 사용
+      controller.next();
+    });
+
+    return () => {
+      unsubscribe();
+      logSystem('Handlers unregistered');
+    };
+  }, [actionRegister, logAction, logSystem]); // ❌ logAction, logSystem이 불안정하면 무한 루프
+}
+```
+
+```typescript
+// ✅ 좋음: useRef 패턴으로 안정적인 참조 제공
+function CoreBasicsDemo() {
+  const [actionRegister] = useState(() => new ActionRegister<CoreActionMap>());
+  const { logAction, logSystem } = useActionLogger();
+  
+  // 로거 함수들의 안정적인 참조를 위한 ref
+  const logActionRef = useRef(logAction);
+  const logSystemRef = useRef(logSystem);
+  
+  // 로거 함수들이 변경될 때 ref 업데이트
+  useEffect(() => {
+    logActionRef.current = logAction;
+    logSystemRef.current = logSystem;
+  }, [logAction, logSystem]);
+
+  useEffect(() => {
+    logSystemRef.current('ActionRegister initialized');
+    
+    const unsubscribe = actionRegister.register('increment', (_, controller) => {
+      setCount(prev => prev + 1);
+      logActionRef.current('increment', undefined); // ref를 통해 최신 함수 호출
+      controller.next();
+    });
+
+    return () => {
+      unsubscribe();
+      logSystemRef.current('Handlers unregistered');
+    };
+  }, [actionRegister]); // ✅ 안정적인 의존성만 포함
+}
+```
+
+### 3. ✅ 상태 업데이트로 인한 무한 루프 방지
+
+#### 문제: useEffect 내에서 상태 업데이트가 다시 useEffect를 트리거
+
+```typescript
+// ❌ 나쁨: localCount 상태 업데이트가 useEffect를 재실행하여 무한 루프
+function LocalContextSetup({ localCount, setLocalCount, contextId }) {
+  useEffect(() => {
+    const unsubscribe = actionRegister.register('localCounter', ({ increment }) => {
+      const newCount = localCount + increment; // 클로저의 stale 값 사용
+      setLocalCount(newCount);
+    });
+
+    return unsubscribe;
+  }, [localCount, setLocalCount, contextId]); // ❌ localCount 변경 → useEffect 재실행 → 핸들러 재등록
+}
+```
+
+```typescript
+// ✅ 좋음: useRef로 최신 상태를 추적하되 의존성은 안정하게 유지
+function LocalContextSetup({ localCount, setLocalCount, contextId }) {
+  const localCountRef = useRef(localCount);
+
+  // localCount가 변경될 때 ref도 업데이트
+  useEffect(() => {
+    localCountRef.current = localCount;
+  }, [localCount]);
+
+  useEffect(() => {
+    const unsubscribe = actionRegister.register('localCounter', ({ increment }) => {
+      const newCount = localCountRef.current + increment; // 최신 값 사용
+      setLocalCount(newCount);
+    });
+
+    return unsubscribe;
+  }, [setLocalCount, contextId]); // ✅ localCount 제거, 안정적인 의존성만 유지
+}
+```
+
+### 4. ✅ 함수형 상태 업데이트 활용
+
+#### 최신 상태에 의존하는 업데이트 시 함수형 패턴 사용
+
+```typescript
+// ✅ 좋음: 함수형 업데이트로 stale closure 문제 해결
+useEffect(() => {
+  const unsubscribe = actionRegister.register('increment', (_, controller) => {
+    setCount(prev => prev + 1); // 함수형 업데이트 - 최신 값 보장
+    controller.next();
+  });
+
+  return unsubscribe;
+}, [actionRegister]); // count를 의존성에 포함할 필요 없음
+```
+
+### 5. ✅ 커스텀 훅에서 안정적인 API 제공
+
+#### 문제: 커스텀 훅이 불안정한 함수들을 반환
+
+```typescript
+// ❌ 나쁨: 매번 새로운 함수 객체 반환
+function useActionLogger() {
+  return {
+    logAction: (type: string, payload?: any) => { /* ... */ }, // 매번 새 함수
+    logSystem: (message: string) => { /* ... */ },              // 매번 새 함수
+    logError: (error: Error) => { /* ... */ }                   // 매번 새 함수
+  };
+}
+```
+
+```typescript
+// ✅ 좋음: useCallback으로 함수 안정화
+function useActionLogger() {
+  const { addLog, logger } = useLogMonitor();
+  const toast = useActionToast();
+
+  const logAction = useCallback((
+    actionType: string,
+    payload?: any,
+    options: ActionLogOptions = {}
+  ) => {
+    // 구현...
+  }, [addLog, logger, toast]); // 모든 의존성을 명시적으로 관리
+
+  const logSystem = useCallback((
+    message: string,
+    options: ActionLogOptions = {}
+  ) => {
+    // 구현...
+  }, [addLog, logger, toast]);
+
+  const logError = useCallback((
+    message: string,
+    error?: Error | any,
+    options: ActionLogOptions = {}
+  ) => {
+    // 구현...
+  }, [addLog, logger, toast]);
+
+  return { logAction, logSystem, logError }; // 안정적인 함수들 반환
+}
+```
+
+### 6. ✅ 무한 루프 디버깅 체크리스트
+
+무한 루프가 발생했을 때 확인해야 할 항목들:
+
+```typescript
+// 🔍 체크포인트 1: useCallback 의존성 배열 확인
+const myFunction = useCallback(() => {
+  // ...
+}, [dep1, dep2, dep3]); // 이 중에 매번 새로 생성되는 객체/배열이 있는가?
+
+// 🔍 체크포인트 2: useEffect 의존성 배열 확인  
+useEffect(() => {
+  // ...
+}, [actionRegister, someFunction]); // someFunction이 매번 새로 생성되는가?
+
+// 🔍 체크포인트 3: 상태 업데이트 패턴 확인
+useEffect(() => {
+  const handler = () => {
+    setState(currentState); // currentState를 직접 참조하고 있는가?
+  };
+}, [currentState]); // currentState가 의존성에 포함되어 있는가?
+
+// 🔍 체크포인트 4: 객체/배열 생성 위치 확인
+function MyComponent() {
+  const config = { key: 'value' }; // 매번 새 객체 생성!
+  
+  useEffect(() => {
+    // config 사용
+  }, [config]); // 무한 루프 발생!
+}
+```
+
+### 7. ✅ React DevTools 활용한 디버깅
+
+```typescript
+// 개발 모드에서 리렌더링 추적
+function useRenderTracker(componentName: string) {
+  const renderCount = useRef(0);
+  
+  useEffect(() => {
+    renderCount.current += 1;
+    console.log(`${componentName} rendered ${renderCount.current} times`);
+  });
+  
+  return renderCount.current;
+}
+
+// 사용 예시
+function MyComponent() {
+  const renderCount = useRenderTracker('MyComponent');
+  
+  if (renderCount > 10) {
+    console.warn('⚠️ 무한 렌더링 의심! 의존성 배열을 확인하세요.');
+  }
+  
+  // 컴포넌트 로직...
+}
+```
+
+### 8. ✅ 실제 경험에서 얻은 핵심 원칙
+
+1. **객체/배열은 컴포넌트 외부에 정의**: 매번 새로 생성되는 참조를 피합니다.
+2. **useRef로 최신 값 추적**: 의존성 배열에 포함하지 않고도 최신 값에 접근할 수 있습니다.
+3. **함수형 상태 업데이트 우선 사용**: `setState(prev => ...)` 패턴으로 stale closure를 방지합니다.
+4. **의존성 배열은 최소화**: 정말 필요한 의존성만 포함합니다.
+5. **커스텀 훅은 안정적인 API 제공**: useCallback으로 반환 함수들을 감쌉니다.
+
+### 9. ✅ 통합 로깅 시스템 모범 사례
+
+#### 실제 프로덕션에서 검증된 로깅 패턴
+
+```typescript
+// ✅ 좋음: 액션과 토스트가 통합된 로깅 시스템
+const actionMessages: Record<string, ToastConfig> = {
+  'increment': { title: '증가', message: '값이 증가되었습니다', type: 'success' },
+  'decrement': { title: '감소', message: '값이 감소되었습니다', type: 'info' },
+  'setCount': { title: '설정', message: '값이 설정되었습니다', type: 'success' },
+  'reset': { title: '초기화', message: '값이 초기화되었습니다', type: 'system' },
+  'error': { title: '오류', message: '작업 중 오류가 발생했습니다', type: 'error' }
+};
+
+export function useActionLogger() {
+  const { addLog, logger } = useLogMonitor();
+  const toast = useActionToast();
+
+  const logAction = useCallback((
+    actionType: string,
+    payload?: any,
+    options: ActionLogOptions = {}
+  ) => {
+    // 1. 구조화된 로그 기록
+    addLog({
+      level: LogLevel.INFO,
+      type: 'action',
+      message: `Action dispatched: ${actionType}`,
+      priority: options.priority,
+      details: { payload, context: options.context }
+    });
+    
+    // 2. 콘솔 로그 (개발용)
+    logger.info(`Action: ${actionType}`, payload);
+
+    // 3. 자동 토스트 표시 (사용자 피드백)
+    if (options.toast !== false) {
+      const actionMsg = actionMessages[actionType];
+      
+      if (typeof options.toast === 'object') {
+        // 커스텀 토스트 설정
+        toast.showToast(
+          options.toast.type || 'info',
+          options.toast.title || actionType,
+          options.toast.message || `${actionType} 액션이 실행되었습니다`
+        );
+      } else if (actionMsg) {
+        // 미리 정의된 메시지 사용
+        toast.showToast(actionMsg.type, actionMsg.title, actionMsg.message);
+      } else {
+        // 기본 메시지
+        toast.showToast('success', actionType, `${actionType} 액션이 실행되었습니다`);
+      }
+    }
+  }, [addLog, logger, toast]); // 안정적인 의존성만
+
+  return { logAction, logSystem, logError };
+}
+```
+
+#### 컴포넌트에서의 통합 사용
+
+```typescript
+// ✅ 좋음: 간단하고 일관된 로깅 API
+function UserProfile() {
+  const logger = useActionLogger();
+  
+  const handleUpdateName = useCallback((name: string) => {
+    // 액션 로깅 + 자동 토스트
+    logger.logAction('updateUserName', { name });
+    
+    // 실제 비즈니스 로직
+    dispatch('updateUserName', { name });
+  }, [logger, dispatch]);
+  
+  const handleError = useCallback((error: Error) => {
+    // 에러 로깅 + 에러 토스트
+    logger.logError('사용자 프로필 업데이트 실패', error);
+  }, [logger]);
+  
+  // ...
+}
+```
+
 ## 컴포넌트 통합 모범 사례
 
 ### 1. ✅ 훅 사용 패턴
@@ -1260,6 +1630,18 @@ actionRegister.register('updatePassword', async (
 - **🛡️ 견고함**: 적절한 에러 처리와 복구 메커니즘
 - **📚 문서화됨**: 복잡한 비즈니스 로직에 명확한 문서
 - **🔐 보안**: 적절한 입력 검증과 민감한 데이터 처리
+- **🚫 무한 루프 방지**: 안정적인 React 통합과 의존성 관리
+- **📊 통합 로깅**: 액션, 로그, 토스트가 하나로 통합된 일관된 사용자 경험
+
+### 🔥 실제 경험에서 얻은 핵심 교훈
+
+본 가이드의 "React 통합 무한 루프 방지" 섹션은 실제 프로덕션 환경에서 발생한 문제와 해결 과정을 통해 작성되었습니다:
+
+1. **무한 루프는 예고 없이 발생**: 작은 코드 변경도 무한 루프를 유발할 수 있습니다.
+2. **의존성 배열이 핵심**: useCallback과 useEffect의 의존성 배열 관리가 가장 중요합니다.
+3. **useRef 패턴의 강력함**: 최신 값에 접근하면서도 안정적인 참조를 유지할 수 있습니다.
+4. **통합 로깅의 가치**: 로그, 토스트, 액션 추적을 하나의 시스템으로 통합하면 개발 경험이 크게 향상됩니다.
+5. **컴포넌트 외부 정의의 중요성**: 객체와 배열을 컴포넌트 외부에 정의하는 것만으로도 많은 문제를 예방할 수 있습니다.
 
 ## 관련 자료
 

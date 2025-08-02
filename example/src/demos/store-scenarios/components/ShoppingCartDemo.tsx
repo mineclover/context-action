@@ -16,8 +16,7 @@ export function ShoppingCartDemo() {
       return total + (product ? product.price * item.quantity : 0);
     }, 0);
     logger.logSystem('장바구니 총액 계산', { 
-      itemCount: cart?.length ?? 0, 
-      totalAmount: total 
+      context: { itemCount: cart?.length ?? 0, totalAmount: total }
     });
     return total;
   }, [cart, products, logger]);

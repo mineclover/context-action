@@ -39,10 +39,7 @@ export function TodoListDemo() {
     });
 
     logger.logSystem('할일 목록 필터링/정렬', { 
-      filter, 
-      sortBy, 
-      totalCount: todos.length, 
-      filteredCount: sorted.length 
+      context: { filter, sortBy, totalCount: todos.length, filteredCount: sorted.length }
     });
 
     return sorted;
@@ -102,6 +99,7 @@ export function TodoListDemo() {
 
   const updatePriority = useCallback((todoId: string, newPriority: TodoItem['priority']) => {
     const todo = todos?.find(t => t.id === todoId);
+    const priorityLabels = { high: '높음', medium: '보통', low: '낮음' };
     logger.logAction('updateTodoPriority', { 
       todoId, 
       oldPriority: todo?.priority,

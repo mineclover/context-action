@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, createContext, useContext } from 'react';
 import { createLogger, Logger } from '@context-action/react';
 import { LogLevel } from '@context-action/logger';
+import { useActionToast } from './ToastSystem/useActionToast';
 
 // 로그 엔트리 타입
 interface LogEntry {
@@ -233,80 +234,179 @@ export function LogMonitor({
   );
 }
 
-// 액션 로그 헬퍼 훅
+// 간소화된 로거 옵션
+interface ActionLogOptions {
+  toast?: boolean | {
+    type?: 'success' | 'error' | 'info' | 'system';
+    title?: string;
+    message?: string;
+  };
+  priority?: number;
+  context?: any;
+}
+
+// 액션명 → 한국어 메시지 매핑 (컴포넌트 외부로 이동)
+const actionMessages: Record<string, { title: string; message: string; type: 'success' | 'error' | 'info' | 'system' }> = {
+    // Store 시나리오 액션들
+    updateUser: { title: '프로필 저장', message: '사용자 프로필이 업데이트되었습니다', type: 'success' },
+    updateUserTheme: { title: '테마 변경', message: '테마가 변경되었습니다', type: 'success' },
+    updateUserLanguage: { title: '언어 변경', message: '언어가 변경되었습니다', type: 'success' },
+    toggleNotifications: { title: '알림 설정', message: '알림 설정이 변경되었습니다', type: 'success' },
+    addToCart: { title: '장바구니 추가', message: '상품이 장바구니에 추가되었습니다', type: 'success' },
+    removeFromCart: { title: '장바구니 제거', message: '상품이 장바구니에서 제거되었습니다', type: 'info' },
+    updateCartQuantity: { title: '수량 변경', message: '상품 수량이 변경되었습니다', type: 'success' },
+    clearCart: { title: '장바구니 비우기', message: '장바구니가 비워졌습니다', type: 'info' },
+    addTodo: { title: '할일 추가', message: '새로운 할일이 추가되었습니다', type: 'success' },
+    toggleTodo: { title: '할일 상태 변경', message: '할일 상태가 변경되었습니다', type: 'success' },
+    deleteTodo: { title: '할일 삭제', message: '할일이 삭제되었습니다', type: 'info' },
+    updateTodoPriority: { title: '우선순위 변경', message: '할일 우선순위가 변경되었습니다', type: 'success' },
+    sendChatMessage: { title: '메시지 전송', message: '메시지가 전송되었습니다', type: 'success' },
+    deleteChatMessage: { title: '메시지 삭제', message: '메시지가 삭제되었습니다', type: 'info' },
+    clearChat: { title: '채팅 초기화', message: '채팅이 초기화되었습니다', type: 'info' },
+    
+    // React Provider 액션들
+    updateCounter: { title: '카운터 변경', message: '카운터 값이 변경되었습니다', type: 'success' },
+    resetCounter: { title: '카운터 리셋', message: '카운터가 초기화되었습니다', type: 'info' },
+    updateMessage: { title: '메시지 변경', message: '메시지가 업데이트되었습니다', type: 'success' },
+    resetMessage: { title: '메시지 리셋', message: '메시지가 초기화되었습니다', type: 'info' },
+    
+    // Core Basic 액션들
+    increment: { title: '증가', message: '값이 증가되었습니다', type: 'success' },
+    decrement: { title: '감소', message: '값이 감소되었습니다', type: 'success' },
+    reset: { title: '리셋', message: '값이 초기화되었습니다', type: 'info' },
+    updateValue: { title: '값 변경', message: '값이 업데이트되었습니다', type: 'success' },
+    
+    // Core Advanced 액션들
+    multiply: { title: '곱하기', message: '값이 곱해졌습니다', type: 'success' },
+    divide: { title: '나누기', message: '값이 나누어졌습니다', type: 'success' },
+    priorityTest: { title: '우선순위 테스트', message: '우선순위 테스트가 실행되었습니다', type: 'info' },
+    
+    // Store Basic 액션들
+    updateUserName: { title: '이름 변경', message: '사용자 이름이 변경되었습니다', type: 'success' },
+    updateUserEmail: { title: '이메일 변경', message: '사용자 이메일이 변경되었습니다', type: 'success' },
+    
+    // React Hooks 액션들
+    updateList: { title: '리스트 업데이트', message: '리스트가 업데이트되었습니다', type: 'success' },
+    heavyCalculation: { title: '연산 실행', message: '무거운 연산이 실행되었습니다', type: 'info' },
+    conditionalHandler: { title: '조건부 핸들러', message: '조건부 핸들러가 실행되었습니다', type: 'info' },
+    dynamicHandler: { title: '동적 핸들러', message: '동적 핸들러가 실행되었습니다', type: 'info' },
+    memoryIntensive: { title: '메모리 집약 작업', message: '메모리 집약적인 작업이 실행되었습니다', type: 'info' },
+    rerenderTrigger: { title: '리렌더 트리거', message: '리렌더가 트리거되었습니다', type: 'info' },
+    
+    // 컨텍스트 액션들
+    globalMessage: { title: '전역 메시지', message: '전역 메시지가 전송되었습니다', type: 'success' },
+    broadcastEvent: { title: '이벤트 브로드캐스트', message: '이벤트가 브로드캐스트되었습니다', type: 'info' },
+    localAction: { title: '로컬 액션', message: '로컬 액션이 실행되었습니다', type: 'success' },
+    nestedUpdate: { title: '중첩 업데이트', message: '중첩된 업데이트가 실행되었습니다', type: 'success' }
+};
+
+// 통합 액션 로거 훅 (토스트 자동 주입)
 export function useActionLogger() {
   const { addLog, logger } = useLogMonitor();
+  const toast = useActionToast();
 
   const logAction = useCallback((
-    actionType: string, 
-    payload?: any, 
-    priority?: number,
-    additionalDetails?: any
+    actionType: string,
+    payload?: any,
+    options: ActionLogOptions = {}
   ) => {
+    // 로그 기록
     addLog({
       level: LogLevel.INFO,
       type: 'action',
       message: `Action dispatched: ${actionType}`,
-      priority,
-      details: { payload, ...additionalDetails }
+      priority: options.priority,
+      details: { payload, context: options.context }
     });
     
     logger.info(`Action: ${actionType}`, payload);
-  }, [addLog, logger]);
+
+    // 토스트 자동 주입
+    if (options.toast !== false) {
+      const actionMsg = actionMessages[actionType];
+      
+      if (typeof options.toast === 'object') {
+        // 커스텀 토스트 설정
+        toast.showToast(
+          options.toast.type || 'info',
+          options.toast.title || actionType,
+          options.toast.message || `${actionType} 액션이 실행되었습니다`
+        );
+      } else if (actionMsg) {
+        // 자동 매핑된 토스트
+        toast.showToast(actionMsg.type, actionMsg.title, actionMsg.message);
+      } else {
+        // 기본 토스트
+        toast.showToast('success', actionType, `${actionType} 액션이 실행되었습니다`);
+      }
+    }
+  }, [addLog, logger, toast]);
 
   const logError = useCallback((
-    message: string, 
+    message: string,
     error?: Error | any,
-    context?: any
+    options: ActionLogOptions = {}
   ) => {
     addLog({
       level: LogLevel.ERROR,
       type: 'error',
       message,
-      details: { error: error?.message || error, stack: error?.stack, context }
+      details: { error: error?.message || error, stack: error?.stack, context: options.context }
     });
     
     logger.error(message, error);
-  }, [addLog, logger]);
+
+    // 에러 토스트 자동 표시
+    if (options.toast !== false) {
+      if (typeof options.toast === 'object') {
+        toast.showToast(
+          'error',
+          options.toast.title || '오류 발생',
+          options.toast.message || message
+        );
+      } else {
+        toast.showToast('error', '오류 발생', message);
+      }
+    }
+  }, [addLog, logger, toast]);
 
   const logSystem = useCallback((
-    message: string, 
-    details?: any
+    message: string,
+    options: ActionLogOptions = {}
   ) => {
     addLog({
       level: LogLevel.INFO,
       type: 'system',
       message,
-      details
+      details: options.context
     });
     
-    logger.info(`System: ${message}`, details);
-  }, [addLog, logger]);
+    logger.info(`System: ${message}`, options.context);
 
-  const logMiddleware = useCallback((
-    message: string, 
-    priority?: number,
-    details?: any
-  ) => {
-    addLog({
-      level: LogLevel.DEBUG,
-      type: 'middleware',
-      message,
-      priority,
-      details
-    });
-    
-    logger.debug(`Middleware: ${message}`, details);
-  }, [addLog, logger]);
+    // 시스템 토스트 (기본적으로 비활성화, 명시적 요청시만)
+    if (options.toast === true || typeof options.toast === 'object') {
+      if (typeof options.toast === 'object') {
+        toast.showToast(
+          options.toast.type || 'system',
+          options.toast.title || '시스템',
+          options.toast.message || message
+        );
+      } else {
+        toast.showToast('system', '시스템', message);
+      }
+    }
+  }, [addLog, logger, toast]);
 
   return {
     logAction,
     logError,
     logSystem,
-    logMiddleware,
     logger
   };
 }
+
+// 간소화된 로거 별칭 (하위 호환성)
+export const useActionLoggerWithToast = useActionLogger;
 
 // 페이지 래퍼 컴포넌트 (선택적 사용)
 export function PageWithLogMonitor({ 

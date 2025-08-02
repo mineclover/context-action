@@ -28,23 +28,23 @@ function CoreAdvancedDemo() {
   const [actionRegister] = useState(() => new ActionRegister<AdvancedActionMap>());
   const [isMiddlewareEnabled, setIsMiddlewareEnabled] = useState(true);
   const [chainStep, setChainStep] = useState(0);
-  const { logAction, logSystem, logMiddleware, logError } = useActionLogger();
+  const { logAction, logSystem, logError } = useActionLogger();
 
   // 로깅 미들웨어
   const loggingMiddleware: Middleware<AdvancedActionMap> = useCallback(
     async (action, payload, next) => {
-      logMiddleware(`Middleware intercepted: ${String(action)}`, 1, { action, payload });
+      logSystem(`Middleware intercepted: ${String(action)}`, { context: { action, payload }, priority: 1 });
       await next();
-      logMiddleware(`Middleware completed: ${String(action)}`, 1);
+      logSystem(`Middleware completed: ${String(action)}`, { priority: 1 });
     },
-    [logMiddleware]
+    [logSystem]
   );
 
   // 인증 미들웨어 (예시)
   const authMiddleware: Middleware<AdvancedActionMap> = useCallback(
     async (action, payload, next) => {
       if (action === 'sensitiveAction') {
-        logMiddleware('Auth check required', 2);
+        logSystem('Auth check required', { priority: 2 });
         // 실제로는 인증 체크 로직
         const isAuthenticated = true;
         if (!isAuthenticated) {
@@ -54,7 +54,7 @@ function CoreAdvancedDemo() {
       }
       await next();
     },
-    [logMiddleware, logError]
+    [logSystem, logError]
   );
 
   useEffect(() => {
@@ -81,7 +81,7 @@ function CoreAdvancedDemo() {
       'multiply',
       (factor, controller) => {
         setCount(prev => prev * factor);
-        logAction('multiply', factor, 2);
+        logAction('multiply', factor, { priority: 2 });
         controller.next();
       },
       { priority: 2 }
@@ -169,7 +169,7 @@ function CoreAdvancedDemo() {
     const unsubscribePriority1 = actionRegister.register(
       'priorityTest',
       ({ level }, controller) => {
-        logAction('priorityTest (Priority 1)', { level }, 1);
+        logAction('priorityTest (Priority 1)', { level }, { priority: 1 });
         controller.next();
       },
       { priority: 1 }
@@ -178,7 +178,7 @@ function CoreAdvancedDemo() {
     const unsubscribePriority2 = actionRegister.register(
       'priorityTest',
       ({ level }, controller) => {
-        logAction('priorityTest (Priority 3)', { level }, 3);
+        logAction('priorityTest (Priority 3)', { level }, { priority: 3 });
         controller.next();
       },
       { priority: 3 }
@@ -187,7 +187,7 @@ function CoreAdvancedDemo() {
     const unsubscribePriority3 = actionRegister.register(
       'priorityTest',
       ({ level }, controller) => {
-        logAction('priorityTest (Priority 2)', { level }, 2);
+        logAction('priorityTest (Priority 2)', { level }, { priority: 2 });
         controller.next();
       },
       { priority: 2 }
@@ -218,7 +218,7 @@ function CoreAdvancedDemo() {
       unsubscribeAbort();
       logSystem('All handlers unregistered');
     };
-  }, [actionRegister, isMiddlewareEnabled, logAction, logSystem, logMiddleware, logError, loggingMiddleware, authMiddleware]);
+  }, [actionRegister, isMiddlewareEnabled, logAction, logSystem, logError, loggingMiddleware, authMiddleware]);
 
   // 액션 디스패치 함수들
   const handleIncrement = useCallback(() => {
