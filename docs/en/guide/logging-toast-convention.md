@@ -165,6 +165,55 @@ logError('Validation failed', new Error('Invalid input'));
    <PageWithLogMonitor pageId="demo"> // "demo" used in other pages too
    ```
 
+### 🔄 Allowed Exception Cases
+
+Specific cases where direct `console` usage is permitted:
+
+1. **Development-only debugging tools**
+   ```tsx
+   // ✅ Allowed - Render counters and dev tools
+   function useRenderCounter(name: string) {
+     useEffect(() => {
+       console.log(`🔄 ${name} rendered: ${count} times`);
+     });
+   }
+   ```
+
+2. **Example code strings**
+   ```tsx
+   // ✅ Allowed - Non-executable example code display
+   const exampleCode = `
+     console.log('Counter incremented');
+     controller.next();
+   `;
+   ```
+
+3. **Error handling systems**
+   ```tsx
+   // ✅ Allowed - ErrorBoundary and error handling
+   componentDidCatch(error: Error, errorInfo: any) {
+     console.error('ErrorBoundary caught an error:', error);
+   }
+   ```
+
+4. **Educational logging**
+   ```tsx
+   // ✅ Allowed - Performance optimization education
+   const expensiveData = useMemo(() => {
+     console.log('🔄 Expensive calculation triggered');
+     return computeHeavyData();
+   }, [dependency]);
+   ```
+
+5. **Development convenience features**
+   ```tsx
+   // ✅ Allowed - Log clearing etc. (but use with logging convention)
+   const resetAll = () => {
+     console.clear();
+     logAction('resetAll', data, { toast: true });
+   };
+   ```
+
 ## Benefits
 
 ### Development Efficiency

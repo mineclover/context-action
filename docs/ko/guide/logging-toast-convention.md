@@ -165,6 +165,55 @@ logError('Validation failed', new Error('Invalid input'));
    <PageWithLogMonitor pageId="demo"> // 다른 페이지에서도 "demo" 사용
    ```
 
+### 🔄 허용되는 예외 케이스
+
+특정 목적에 따라 `console` 직접 사용이 허용되는 경우들:
+
+1. **개발 전용 디버깅 도구**
+   ```tsx
+   // ✅ 허용 - 렌더링 카운터 등 개발 도구
+   function useRenderCounter(name: string) {
+     useEffect(() => {
+       console.log(`🔄 ${name} rendered: ${count} times`);
+     });
+   }
+   ```
+
+2. **예제 코드 문자열**
+   ```tsx
+   // ✅ 허용 - 실행되지 않는 예제 코드 표시
+   const exampleCode = `
+     console.log('Counter incremented');
+     controller.next();
+   `;
+   ```
+
+3. **에러 처리 시스템**
+   ```tsx
+   // ✅ 허용 - ErrorBoundary 등 에러 처리
+   componentDidCatch(error: Error, errorInfo: any) {
+     console.error('ErrorBoundary caught an error:', error);
+   }
+   ```
+
+4. **교육 목적 로깅**
+   ```tsx
+   // ✅ 허용 - 성능 최적화 등 교육 목적
+   const expensiveData = useMemo(() => {
+     console.log('🔄 Expensive calculation triggered');
+     return computeHeavyData();
+   }, [dependency]);
+   ```
+
+5. **개발 편의 기능**
+   ```tsx
+   // ✅ 허용 - 로그 클리어 등 개발 편의 (단, 로깅 컨벤션과 함께 사용)
+   const resetAll = () => {
+     console.clear();
+     logAction('resetAll', data, { toast: true });
+   };
+   ```
+
 ## 장점
 
 ### 개발 효율성
