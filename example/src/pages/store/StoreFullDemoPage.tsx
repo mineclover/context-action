@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { createStore, useStoreValue, ActionRegister, ActionPayloadMap, createLogger } from '@context-action/react';
 import { LogLevel } from '@context-action/logger';
+import { PageWithLogMonitor } from '../../components/LogMonitor';
 
 // 8가지 실제 시나리오 타입들
 interface User {
@@ -248,7 +249,9 @@ function UserProfileDemo() {
   const [editForm, setEditForm] = useState(user);
 
   const handleSave = useCallback(() => {
-    storeActionRegister.dispatch('updateUser', { user: editForm });
+    if (editForm) {
+      storeActionRegister.dispatch('updateUser', { user: editForm });
+    }
     setIsEditing(false);
   }, [editForm]);
 
@@ -258,11 +261,13 @@ function UserProfileDemo() {
   }, [user]);
 
   const toggleTheme = useCallback(() => {
-    const newTheme = user.preferences.theme === 'light' ? 'dark' : 'light';
-    storeActionRegister.dispatch('updateUser', { 
-      user: { preferences: { ...user.preferences, theme: newTheme } }
-    });
-  }, [user.preferences]);
+    if (user?.preferences) {
+      const newTheme = user.preferences.theme === 'light' ? 'dark' : 'light';
+      storeActionRegister.dispatch('updateUser', { 
+        user: { ...user, preferences: { ...user.preferences, theme: newTheme } }
+      });
+    }
+  }, [user]);
 
   return (
     <div className="demo-card">
@@ -272,19 +277,19 @@ function UserProfileDemo() {
         <div className="user-profile-view">
           <div className="profile-info">
             <div className="profile-field">
-              <strong>Name:</strong> {user.name}
+              <strong>Name:</strong> {user?.name ?? 'Unknown'}
             </div>
             <div className="profile-field">
-              <strong>Email:</strong> {user.email}
+              <strong>Email:</strong> {user?.email ?? 'Unknown'}
             </div>
             <div className="profile-field">
               <strong>Theme:</strong> 
-              <span className={`theme-badge ${user.preferences.theme}`}>
-                {user.preferences.theme}
+              <span className={`theme-badge ${user?.preferences?.theme ?? 'light'}`}>
+                {user?.preferences?.theme ?? 'light'}
               </span>
             </div>
             <div className="profile-field">
-              <strong>Last Login:</strong> {user.lastLogin.toLocaleString()}
+              <strong>Last Login:</strong> {user?.lastLogin?.toLocaleString() ?? 'Never'}
             </div>
           </div>
           
@@ -303,8 +308,8 @@ function UserProfileDemo() {
             <label>Name:</label>
             <input
               type="text"
-              value={editForm.name}
-              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+              value={editForm?.name ?? ''}
+              onChange={(e) => editForm && setEditForm({ ...editForm, name: e.target.value })}
               className="text-input"
             />
           </div>
@@ -312,8 +317,8 @@ function UserProfileDemo() {
             <label>Email:</label>
             <input
               type="email"
-              value={editForm.email}
-              onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+              value={editForm?.email ?? ''}
+              onChange={(e) => editForm && setEditForm({ ...editForm, email: e.target.value })}
               className="text-input"
             />
           </div>
@@ -338,8 +343,9 @@ function ShoppingCartDemo() {
   const cart = useStoreValue(cartStore);
 
   const totalAmount = useMemo(() => {
-    return cart.reduce((total, item) => {
-      const product = products.find(p => p.id === item.productId);
+    if (!cart || !products) return 0;
+    return cart?.reduce((total, item) => {
+      const product = products?.find(p => p.id === item.productId);
       return total + (product ? product.price * item.quantity : 0);
     }, 0);
   }, [cart, products]);
@@ -367,7 +373,7 @@ function ShoppingCartDemo() {
       <div className="cart-products">
         <h4>Available Products:</h4>
         <div className="product-list">
-          {products.map(product => (
+          {products?.map(product => (
             <div key={product.id} className="product-item">
               <div className="product-info">
                 <span className="product-name">{product.name}</span>
@@ -386,21 +392,21 @@ function ShoppingCartDemo() {
 
       <div className="cart-items">
         <div className="cart-header">
-          <h4>Cart ({cart.length} items)</h4>
-          {cart.length > 0 && (
+          <h4>Cart ({cart?.length ?? 0} items)</h4>
+          {(cart?.length ?? 0) > 0 && (
             <button onClick={clearCart} className="btn btn-small btn-danger">
               Clear Cart
             </button>
           )}
         </div>
         
-        {cart.length === 0 ? (
+        {cart?.length ?? 0 === 0 ? (
           <div className="cart-empty">Your cart is empty</div>
         ) : (
           <>
             <div className="cart-list">
-              {cart.map(item => {
-                const product = products.find(p => p.id === item.productId);
+              {cart?.map(item => {
+                const product = products?.find(p => p.id === item.productId);
                 return product ? (
                   <div key={item.productId} className="cart-item">
                     <div className="item-info">
@@ -462,16 +468,16 @@ function TodoListDemo() {
     storeActionRegister.dispatch('deleteTodo', { todoId });
   }, []);
 
-  const completedCount = todos.filter(todo => todo.completed).length;
+  const completedCount = todos?.filter(todo => todo.completed).length ?? 0;
 
   return (
     <div className="demo-card">
       <h3>✅ Todo List Manager</h3>
       
       <div className="todo-stats">
-        <span className="todo-total">Total: {todos.length}</span>
+        <span className="todo-total">Total: {todos?.length ?? 0}</span>
         <span className="todo-completed">Completed: {completedCount}</span>
-        <span className="todo-pending">Pending: {todos.length - completedCount}</span>
+        <span className="todo-pending">Pending: {(todos?.length ?? 0) - completedCount}</span>
       </div>
 
       <div className="todo-input">
@@ -498,7 +504,7 @@ function TodoListDemo() {
       </div>
 
       <div className="todo-list">
-        {todos.map(todo => (
+        {todos?.map(todo => (
           <div key={todo.id} className={`todo-item ${todo.completed ? 'completed' : ''}`}>
             <div className="todo-content">
               <input
@@ -530,7 +536,7 @@ function TodoListDemo() {
           </div>
         ))}
         
-        {todos.length === 0 && (
+        {(todos?.length ?? 0) === 0 && (
           <div className="todo-empty">No todos yet. Add one above!</div>
         )}
       </div>
@@ -570,11 +576,11 @@ function ChatDemo() {
       
       <div className="chat-info">
         <span>Connected as: <strong>{sender}</strong></span>
-        <span>Messages: {messages.length}</span>
+        <span>Messages: {messages?.length ?? 0}</span>
       </div>
 
       <div className="chat-messages">
-        {messages.map(message => (
+        {messages?.map(message => (
           <div key={message.id} className={`message ${message.sender === sender ? 'own' : 'other'}`}>
             <div className="message-header">
               <span className="message-sender">{message.sender}</span>
@@ -663,7 +669,7 @@ function FormWizardDemo() {
               <label>First Name:</label>
               <input
                 type="text"
-                value={formData.personalInfo.firstName}
+                value={formData?.personalInfo?.firstName ?? ''}
                 onChange={(e) => updatePersonalInfo({ firstName: e.target.value })}
                 className="text-input"
               />
@@ -672,7 +678,7 @@ function FormWizardDemo() {
               <label>Last Name:</label>
               <input
                 type="text"
-                value={formData.personalInfo.lastName}
+                value={formData?.personalInfo?.lastName ?? ''}
                 onChange={(e) => updatePersonalInfo({ lastName: e.target.value })}
                 className="text-input"
               />
@@ -681,7 +687,7 @@ function FormWizardDemo() {
               <label>Email:</label>
               <input
                 type="email"
-                value={formData.personalInfo.email}
+                value={formData?.personalInfo?.email ?? ''}
                 onChange={(e) => updatePersonalInfo({ email: e.target.value })}
                 className="text-input"
               />
@@ -690,7 +696,7 @@ function FormWizardDemo() {
               <label>Phone:</label>
               <input
                 type="tel"
-                value={formData.personalInfo.phone}
+                value={formData?.personalInfo?.phone ?? ''}
                 onChange={(e) => updatePersonalInfo({ phone: e.target.value })}
                 className="text-input"
               />
@@ -705,7 +711,7 @@ function FormWizardDemo() {
               <label>Street:</label>
               <input
                 type="text"
-                value={formData.address.street}
+                value={formData?.address?.street ?? ''}
                 onChange={(e) => updateAddress({ street: e.target.value })}
                 className="text-input"
               />
@@ -714,7 +720,7 @@ function FormWizardDemo() {
               <label>City:</label>
               <input
                 type="text"
-                value={formData.address.city}
+                value={formData?.address?.city ?? ''}
                 onChange={(e) => updateAddress({ city: e.target.value })}
                 className="text-input"
               />
@@ -723,7 +729,7 @@ function FormWizardDemo() {
               <label>Zip Code:</label>
               <input
                 type="text"
-                value={formData.address.zipCode}
+                value={formData?.address?.zipCode ?? ''}
                 onChange={(e) => updateAddress({ zipCode: e.target.value })}
                 className="text-input"
               />
@@ -731,7 +737,7 @@ function FormWizardDemo() {
             <div className="form-group">
               <label>Country:</label>
               <select
-                value={formData.address.country}
+                value={formData?.address?.country ?? ''}
                 onChange={(e) => updateAddress({ country: e.target.value })}
                 className="select-input"
               >
@@ -751,7 +757,7 @@ function FormWizardDemo() {
               <label className="checkbox-label">
                 <input
                   type="checkbox"
-                  checked={formData.preferences.newsletter}
+                  checked={formData?.preferences?.newsletter ?? false}
                   onChange={(e) => updatePreferences({ newsletter: e.target.checked })}
                 />
                 Subscribe to newsletter
@@ -761,7 +767,7 @@ function FormWizardDemo() {
               <label className="checkbox-label">
                 <input
                   type="checkbox"
-                  checked={formData.preferences.marketing}
+                  checked={formData?.preferences?.marketing ?? false}
                   onChange={(e) => updatePreferences({ marketing: e.target.checked })}
                 />
                 Receive marketing emails
@@ -771,7 +777,7 @@ function FormWizardDemo() {
               <label className="checkbox-label">
                 <input
                   type="checkbox"
-                  checked={formData.preferences.analytics}
+                  checked={formData?.preferences?.analytics ?? false}
                   onChange={(e) => updatePreferences({ analytics: e.target.checked })}
                 />
                 Allow analytics tracking
@@ -837,7 +843,7 @@ function SettingsDemo() {
             <label className="checkbox-label">
               <input
                 type="checkbox"
-                checked={settings.general.autoSave}
+                checked={settings?.general?.autoSave ?? false}
                 onChange={(e) => updateGeneral({ autoSave: e.target.checked })}
               />
               Auto Save
@@ -847,7 +853,7 @@ function SettingsDemo() {
             <label className="checkbox-label">
               <input
                 type="checkbox"
-                checked={settings.general.confirmOnExit}
+                checked={settings?.general?.confirmOnExit ?? false}
                 onChange={(e) => updateGeneral({ confirmOnExit: e.target.checked })}
               />
               Confirm on Exit
@@ -856,7 +862,7 @@ function SettingsDemo() {
           <div className="setting-item">
             <label>Default View:</label>
             <select
-              value={settings.general.defaultView}
+              value={settings?.general?.defaultView ?? 'list'}
               onChange={(e) => updateGeneral({ defaultView: e.target.value as any })}
               className="select-input small"
             >
@@ -870,12 +876,12 @@ function SettingsDemo() {
         <div className="settings-section">
           <h4>Performance</h4>
           <div className="setting-item">
-            <label>Cache Size: {settings.performance.cacheSize}MB</label>
+            <label>Cache Size: {settings?.performance?.cacheSize ?? 100}MB</label>
             <input
               type="range"
               min="10"
               max="500"
-              value={settings.performance.cacheSize}
+              value={settings?.performance?.cacheSize ?? 100}
               onChange={(e) => updatePerformance({ cacheSize: Number(e.target.value) })}
               className="range-input"
             />
@@ -884,19 +890,19 @@ function SettingsDemo() {
             <label className="checkbox-label">
               <input
                 type="checkbox"
-                checked={settings.performance.lazyLoading}
+                checked={settings?.performance?.lazyLoading ?? false}
                 onChange={(e) => updatePerformance({ lazyLoading: e.target.checked })}
               />
               Lazy Loading
             </label>
           </div>
           <div className="setting-item">
-            <label>Compression Level: {settings.performance.compressionLevel}</label>
+            <label>Compression Level: {settings?.performance?.compressionLevel ?? 5}</label>
             <input
               type="range"
               min="1"
               max="9"
-              value={settings.performance.compressionLevel}
+              value={settings?.performance?.compressionLevel ?? 5}
               onChange={(e) => updatePerformance({ compressionLevel: Number(e.target.value) })}
               className="range-input"
             />
@@ -906,12 +912,12 @@ function SettingsDemo() {
         <div className="settings-section">
           <h4>Security</h4>
           <div className="setting-item">
-            <label>Session Timeout: {settings.security.sessionTimeout} min</label>
+            <label>Session Timeout: {settings?.security?.sessionTimeout ?? 30} min</label>
             <input
               type="range"
               min="5"
               max="120"
-              value={settings.security.sessionTimeout}
+              value={settings?.security?.sessionTimeout ?? 30}
               onChange={(e) => updateSecurity({ sessionTimeout: Number(e.target.value) })}
               className="range-input"
             />
@@ -920,19 +926,19 @@ function SettingsDemo() {
             <label className="checkbox-label">
               <input
                 type="checkbox"
-                checked={settings.security.twoFactorAuth}
+                checked={settings?.security?.twoFactorAuth ?? false}
                 onChange={(e) => updateSecurity({ twoFactorAuth: e.target.checked })}
               />
               Two-Factor Authentication
             </label>
           </div>
           <div className="setting-item">
-            <label>Password Expiry: {settings.security.passwordExpiry} days</label>
+            <label>Password Expiry: {settings?.security?.passwordExpiry ?? 90} days</label>
             <input
               type="range"
               min="30"
               max="365"
-              value={settings.security.passwordExpiry}
+              value={settings?.security?.passwordExpiry ?? 90}
               onChange={(e) => updateSecurity({ passwordExpiry: Number(e.target.value) })}
               className="range-input"
             />
@@ -987,8 +993,8 @@ function ProductCatalogDemo() {
       
       <div className="catalog-header">
         <div className="catalog-stats">
-          <span>Total Products: {products.length}</span>
-          <span>Categories: {new Set(products.map(p => p.category)).size}</span>
+          <span>Total Products: {products?.length ?? 0}</span>
+          <span>Categories: {new Set(products?.map(p => p.category)).size}</span>
         </div>
         <button 
           onClick={() => setShowAddForm(!showAddForm)}
@@ -1052,7 +1058,7 @@ function ProductCatalogDemo() {
       )}
 
       <div className="product-catalog">
-        {products.map(product => (
+        {products?.map(product => (
           <div key={product.id} className="catalog-product">
             <div className="product-header">
               <h4>{product.name}</h4>
@@ -1079,7 +1085,7 @@ function ProductCatalogDemo() {
 // 8. Notification System Demo
 function NotificationDemo() {
   const notifications = useStoreValue(notificationsStore);
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications?.filter(n => !n.read).length ?? 0;
 
   const addNotification = useCallback(() => {
     const types: NotificationItem['type'][] = ['info', 'success', 'warning', 'error'];
@@ -1112,14 +1118,14 @@ function NotificationDemo() {
       
       <div className="notification-header">
         <div className="notification-stats">
-          <span>Total: {notifications.length}</span>
+          <span>Total: {notifications?.length ?? 0}</span>
           <span>Unread: {unreadCount}</span>
         </div>
         <div className="notification-actions">
           <button onClick={addNotification} className="btn btn-primary">
             Add Random
           </button>
-          {notifications.length > 0 && (
+          {(notifications?.length ?? 0) > 0 && (
             <button onClick={clearAll} className="btn btn-danger">
               Clear All
             </button>
@@ -1128,10 +1134,10 @@ function NotificationDemo() {
       </div>
 
       <div className="notification-list">
-        {notifications.length === 0 ? (
+        {(notifications?.length ?? 0) === 0 ? (
           <div className="notification-empty">No notifications</div>
         ) : (
-          notifications.map(notification => (
+          notifications?.map(notification => (
             <div 
               key={notification.id} 
               className={`notification-item ${notification.type} ${notification.read ? 'read' : 'unread'}`}
@@ -1405,72 +1411,73 @@ function StoreFullActionSetup() {
 
 function StoreFullDemoPage() {
   return (
-    <div className="page-container">
-      <header className="page-header">
-        <h1>Store System - 8 Real-world Scenarios</h1>
-        <p className="page-description">
-          Explore comprehensive store management patterns through 8 practical scenarios:
-          user profiles, shopping carts, todo lists, real-time chat, form wizards,
-          settings management, product catalogs, and notification systems.
-        </p>
-      </header>
+    <PageWithLogMonitor pageId="store-full-demo" title="Store System - 8 Real-world Scenarios">
+      <div className="page-container">
+        <header className="page-header">
+          <h1>Store System - 8 Real-world Scenarios</h1>
+          <p className="page-description">
+            Explore comprehensive store management patterns through 8 practical scenarios:
+            user profiles, shopping carts, todo lists, real-time chat, form wizards,
+            settings management, product catalogs, and notification systems.
+          </p>
+        </header>
 
-      <StoreFullActionSetup />
+        <StoreFullActionSetup />
 
-      <div className="demo-grid full-demo-grid">
-        <UserProfileDemo />
-        <ShoppingCartDemo />
-        <TodoListDemo />
-        <ChatDemo />
-        <FormWizardDemo />
-        <SettingsDemo />
-        <ProductCatalogDemo />
-        <NotificationDemo />
-        
-        {/* Store Patterns Summary */}
-        <div className="demo-card info-card full-width">
-          <h3>Store Management Patterns</h3>
-          <div className="patterns-grid">
-            <div className="pattern-item">
-              <h4>1. User Profile</h4>
-              <p>Complex object updates with nested properties and real-time sync</p>
-            </div>
-            <div className="pattern-item">
-              <h4>2. Shopping Cart</h4>
-              <p>Array manipulation with quantity tracking and calculated totals</p>
-            </div>
-            <div className="pattern-item">
-              <h4>3. Todo List</h4>
-              <p>CRUD operations with filtering, sorting, and status management</p>
-            </div>
-            <div className="pattern-item">
-              <h4>4. Real-time Chat</h4>
-              <p>Message streaming with auto-scroll and user-specific actions</p>
-            </div>
-            <div className="pattern-item">
-              <h4>5. Form Wizard</h4>
-              <p>Multi-step form data with validation and progress tracking</p>
-            </div>
-            <div className="pattern-item">
-              <h4>6. Settings</h4>
-              <p>Hierarchical configuration with defaults and reset functionality</p>
-            </div>
-            <div className="pattern-item">
-              <h4>7. Product Catalog</h4>
-              <p>Dynamic inventory with category filtering and stock management</p>
-            </div>
-            <div className="pattern-item">
-              <h4>8. Notifications</h4>
-              <p>Event-driven alerts with read status and batch operations</p>
+        <div className="demo-grid full-demo-grid">
+          <UserProfileDemo />
+          <ShoppingCartDemo />
+          <TodoListDemo />
+          <ChatDemo />
+          <FormWizardDemo />
+          <SettingsDemo />
+          <ProductCatalogDemo />
+          <NotificationDemo />
+          
+          {/* Store Patterns Summary */}
+          <div className="demo-card info-card full-width">
+            <h3>Store Management Patterns</h3>
+            <div className="patterns-grid">
+              <div className="pattern-item">
+                <h4>1. User Profile</h4>
+                <p>Complex object updates with nested properties and real-time sync</p>
+              </div>
+              <div className="pattern-item">
+                <h4>2. Shopping Cart</h4>
+                <p>Array manipulation with quantity tracking and calculated totals</p>
+              </div>
+              <div className="pattern-item">
+                <h4>3. Todo List</h4>
+                <p>CRUD operations with filtering, sorting, and status management</p>
+              </div>
+              <div className="pattern-item">
+                <h4>4. Real-time Chat</h4>
+                <p>Message streaming with auto-scroll and user-specific actions</p>
+              </div>
+              <div className="pattern-item">
+                <h4>5. Form Wizard</h4>
+                <p>Multi-step form data with validation and progress tracking</p>
+              </div>
+              <div className="pattern-item">
+                <h4>6. Settings</h4>
+                <p>Hierarchical configuration with defaults and reset functionality</p>
+              </div>
+              <div className="pattern-item">
+                <h4>7. Product Catalog</h4>
+                <p>Dynamic inventory with category filtering and stock management</p>
+              </div>
+              <div className="pattern-item">
+                <h4>8. Notifications</h4>
+                <p>Event-driven alerts with read status and batch operations</p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Code Example */}
-      <div className="code-example">
-        <h3>Advanced Store Patterns</h3>
-        <pre className="code-block">
+        {/* Code Example */}
+        <div className="code-example">
+          <h3>Advanced Store Patterns</h3>
+          <pre className="code-block">
 {`// 1. Complex Object Updates
 const userStore = createStore<User>('user', defaultUser);
 
@@ -1510,9 +1517,10 @@ formStore.update(prev => ({
   ...prev,
   personalInfo: { ...prev.personalInfo, ...updates }
 }));`}
-        </pre>
+          </pre>
+        </div>
       </div>
-    </div>
+    </PageWithLogMonitor>
   );
 }
 

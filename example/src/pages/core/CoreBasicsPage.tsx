@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ActionRegister, ActionPayloadMap } from '@context-action/react';
+import { LogMonitorProvider, LogMonitor, useActionLogger } from '../../components/LogMonitor';
 
 // 액션 타입 정의
 interface CoreActionMap extends ActionPayloadMap {
@@ -10,38 +11,21 @@ interface CoreActionMap extends ActionPayloadMap {
   log: string;
 }
 
-// 로그 엔트리 인터페이스
-interface LogEntry {
-  id: string;
-  timestamp: string;
-  type: 'action' | 'system';
-  message: string;
-}
-
-function CoreBasicsPage() {
+// 데모 컴포넌트
+function CoreBasicsDemo() {
   const [count, setCount] = useState(0);
-  const [logs, setLogs] = useState<LogEntry[]>([]);
   const [actionRegister] = useState(() => new ActionRegister<CoreActionMap>());
-
-  const addLog = useCallback((type: 'action' | 'system', message: string) => {
-    const entry: LogEntry = {
-      id: `${Date.now()}-${Math.random()}`,
-      timestamp: new Date().toLocaleTimeString(),
-      type,
-      message,
-    };
-    setLogs(prev => [...prev, entry]);
-  }, []);
+  const { logAction, logSystem } = useActionLogger();
 
   useEffect(() => {
-    addLog('system', 'ActionRegister initialized');
+    logSystem('ActionRegister initialized');
     
     // 핸들러 등록
     const unsubscribeIncrement = actionRegister.register(
       'increment',
       (_, controller) => {
         setCount((prev) => prev + 1);
-        addLog('action', 'Increment action executed');
+        logAction('increment', undefined);
         controller.next();
       }
     );
@@ -50,7 +34,7 @@ function CoreBasicsPage() {
       'decrement',
       (_, controller) => {
         setCount((prev) => prev - 1);
-        addLog('action', 'Decrement action executed');
+        logAction('decrement', undefined);
         controller.next();
       }
     );
@@ -59,7 +43,7 @@ function CoreBasicsPage() {
       'setCount',
       (payload, controller) => {
         setCount(payload);
-        addLog('action', `Count set to: ${payload}`);
+        logAction('setCount', payload);
         controller.next();
       }
     );
@@ -68,7 +52,7 @@ function CoreBasicsPage() {
       'reset',
       (_, controller) => {
         setCount(0);
-        addLog('action', 'Counter reset to 0');
+        logAction('reset', undefined);
         controller.next();
       }
     );
@@ -76,12 +60,12 @@ function CoreBasicsPage() {
     const unsubscribeLog = actionRegister.register(
       'log',
       (payload, controller) => {
-        addLog('action', `Custom log: ${payload}`);
+        logAction('log', payload);
         controller.next();
       }
     );
 
-    addLog('system', 'All action handlers registered');
+    logSystem('All action handlers registered');
 
     // 정리 함수
     return () => {
@@ -90,9 +74,9 @@ function CoreBasicsPage() {
       unsubscribeSetCount();
       unsubscribeReset();
       unsubscribeLog();
-      addLog('system', 'All handlers unregistered');
+      logSystem('All handlers unregistered');
     };
-  }, [actionRegister, addLog]);
+  }, [actionRegister, logAction, logSystem]);
 
   // 액션 디스패치 함수들
   const handleIncrement = useCallback(() => {
@@ -118,122 +102,121 @@ function CoreBasicsPage() {
     }
   }, [actionRegister]);
 
-  const clearLogs = useCallback(() => {
-    setLogs([]);
-    addLog('system', 'Logs cleared');
-  }, [addLog]);
-
   return (
-    <div className="page-container">
-      <header className="page-header">
-        <h1>Core ActionRegister Basics</h1>
-        <p className="page-description">
-          Learn the fundamentals of the ActionRegister system - type-safe action dispatching,
-          handler registration, and pipeline control.
-        </p>
-      </header>
-
-      <div className="demo-grid">
-        {/* Counter Demo */}
-        <div className="demo-card">
-          <h3>Interactive Counter</h3>
-          <div className="counter-display">
-            <span className="count-value">{count}</span>
-          </div>
-          <div className="button-group">
-            <button onClick={handleIncrement} className="btn btn-primary">
-              +1
-            </button>
-            <button onClick={handleDecrement} className="btn btn-primary">
-              -1
-            </button>
-            <button onClick={handleSetCount} className="btn btn-secondary">
-              Set to 10
-            </button>
-            <button onClick={handleReset} className="btn btn-danger">
-              Reset
-            </button>
-          </div>
+    <div className="demo-grid">
+      {/* 카운터 데모 */}
+      <div className="demo-card">
+        <h3>Basic Counter</h3>
+        <div className="counter-display">
+          <span className="count-value">{count}</span>
         </div>
-
-        {/* Action Logger */}
-        <div className="demo-card logger-card">
-          <div className="card-header">
-            <h3>Action Logger</h3>
-            <button onClick={clearLogs} className="btn btn-small btn-secondary">
-              Clear
-            </button>
-          </div>
-          <div className="log-container">
-            {logs.length === 0 ? (
-              <div className="log-empty">No logs yet...</div>
-            ) : (
-              logs.map((log) => (
-                <div key={log.id} className={`log-entry log-${log.type}`}>
-                  <span className="log-time">{log.timestamp}</span>
-                  <span className="log-type">[{log.type.toUpperCase()}]</span>
-                  <span className="log-message">{log.message}</span>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Custom Actions */}
-        <div className="demo-card">
-          <h3>Custom Actions</h3>
-          <p>Test custom action dispatching with user input.</p>
-          <button onClick={handleCustomLog} className="btn btn-primary">
-            Add Custom Log
+        <div className="button-group">
+          <button onClick={handleIncrement} className="btn btn-primary">
+            +1
+          </button>
+          <button onClick={handleDecrement} className="btn btn-primary">
+            -1
+          </button>
+          <button onClick={handleSetCount} className="btn btn-secondary">
+            Set to 10
+          </button>
+          <button onClick={handleReset} className="btn btn-danger">
+            Reset
           </button>
         </div>
-
-        {/* How It Works */}
-        <div className="demo-card info-card">
-          <h3>How It Works</h3>
-          <ol className="how-it-works-list">
-            <li>
-              <strong>Action Types:</strong> Define a type-safe action map extending ActionPayloadMap
-            </li>
-            <li>
-              <strong>Register Handlers:</strong> Use register() to attach handlers to specific actions
-            </li>
-            <li>
-              <strong>Dispatch Actions:</strong> Call dispatch() with action name and optional payload
-            </li>
-            <li>
-              <strong>Pipeline Control:</strong> Handlers receive a controller to manage execution flow
-            </li>
-          </ol>
-        </div>
       </div>
 
-      {/* Code Example */}
-      <div className="code-example">
-        <h3>Code Example</h3>
-        <pre className="code-block">
-{`// 1. Define action types
-interface CoreActionMap extends ActionPayloadMap {
-  increment: undefined;
-  setCount: number;
-  log: string;
+      {/* 사용자 정의 로그 */}
+      <div className="demo-card">
+        <h3>Custom Logging</h3>
+        <p>Test custom action logging with user input</p>
+        <button onClick={handleCustomLog} className="btn btn-info">
+          Custom Log
+        </button>
+      </div>
+
+      {/* 액션 시스템 설명 */}
+      <div className="demo-card info-card">
+        <h3>How ActionRegister Works</h3>
+        <ol className="how-it-works-list">
+          <li>
+            <strong>Create ActionRegister:</strong> Instantiate with action type map
+          </li>
+          <li>
+            <strong>Register Handlers:</strong> Define what happens for each action
+          </li>
+          <li>
+            <strong>Dispatch Actions:</strong> Trigger actions from UI components
+          </li>
+          <li>
+            <strong>Handle Results:</strong> Use controller.next() or controller.abort()
+          </li>
+        </ol>
+      </div>
+
+      {/* 주요 특징 */}
+      <div className="demo-card info-card">
+        <h3>Key Features</h3>
+        <ul className="feature-list">
+          <li>✓ Type-safe action dispatching</li>
+          <li>✓ Centralized action handling</li>
+          <li>✓ Automatic logging integration</li>
+          <li>✓ Clean unsubscribe mechanism</li>
+          <li>✓ Middleware support</li>
+        </ul>
+      </div>
+
+      {/* 로그 모니터 */}
+      <LogMonitor title="Core Basics - Action Log" />
+    </div>
+  );
 }
 
-// 2. Create ActionRegister
-const actionRegister = new ActionRegister<CoreActionMap>();
+function CoreBasicsPage() {
+  return (
+    <LogMonitorProvider pageId="core-basics">
+      <div className="page-container">
+        <header className="page-header">
+          <h1>Core ActionRegister Basics</h1>
+          <p className="page-description">
+            Learn the fundamentals of the ActionRegister system - creating, registering handlers,
+            and dispatching type-safe actions in your application.
+          </p>
+        </header>
 
-// 3. Register handlers
-actionRegister.register('increment', (_, controller) => {
+        <CoreBasicsDemo />
+
+        {/* 코드 예제 */}
+        <div className="code-example">
+          <h3>ActionRegister Implementation</h3>
+          <pre className="code-block">
+{`// 1. 액션 타입 정의
+interface AppActions extends ActionPayloadMap {
+  increment: undefined;
+  setCount: number;
+  reset: undefined;
+}
+
+// 2. ActionRegister 생성
+const actionRegister = new ActionRegister<AppActions>();
+
+// 3. 핸들러 등록
+const unsubscribe = actionRegister.register('increment', (_, controller) => {
   setCount(prev => prev + 1);
-  controller.next();
+  console.log('Counter incremented');
+  controller.next(); // 성공적으로 완료
 });
 
-// 4. Dispatch actions
+// 4. 액션 디스패치
 actionRegister.dispatch('increment');
-actionRegister.dispatch('setCount', 10);`}
-        </pre>
+actionRegister.dispatch('setCount', 42);
+
+// 5. 정리
+unsubscribe();`}
+          </pre>
+        </div>
       </div>
-    </div>
+    </LogMonitorProvider>
   );
 }
 

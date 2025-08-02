@@ -1,4 +1,4 @@
-import React, { useState, useCallback, createContext, useContext, useRef } from 'react';
+import React, { useState, useCallback, createContext, useContext } from 'react';
 import {
   ActionRegister,
   ActionPayloadMap,
@@ -11,6 +11,15 @@ import {
   createLogger
 } from '@context-action/react';
 import { LogLevel } from '@context-action/logger';
+import { PageWithLogMonitor } from '../../components/LogMonitor';
+
+// 이벤트 엔트리 타입 정의
+interface EventEntry {
+  id: string;
+  event: string;
+  data: unknown;
+  timestamp: string;
+}
 
 // 다양한 컨텍스트 레벨에서 사용할 액션 타입들
 interface GlobalActions extends ActionPayloadMap {
@@ -31,7 +40,7 @@ interface NestedActions extends ActionPayloadMap {
 
 // 전역 스토어들
 const globalMessageStore = createStore('global-message', 'Welcome to Multi-Context Demo');
-const globalEventStore = createStore('global-events', []);
+const globalEventStore = createStore<EventEntry[]>('global-events', []);
 const contextCountStore = createStore('context-count', 0);
 
 // 로거 인스턴스들
@@ -58,7 +67,7 @@ function GlobalContextProvider({ children }: { children: React.ReactNode }) {
       timestamp: new Date().toLocaleTimeString()
     };
     setGlobalEvents(prev => [...prev, eventEntry]);
-    globalEventStore.setValue(prev => Array.isArray(prev) ? [...prev, eventEntry] : [eventEntry]);
+    globalEventStore.update((prev: EventEntry[]) => [...prev, eventEntry]);
   }, []);
   
   return (
@@ -416,88 +425,89 @@ function ContextMonitor() {
 
 function ReactContextPage() {
   return (
-    <div className="page-container">
-      <header className="page-header">
-        <h1>React Multi-Context System</h1>
-        <p className="page-description">
-          Learn how to manage multiple nested contexts, handle context boundaries,
-          and implement communication patterns between different context levels.
-        </p>
-      </header>
+    <PageWithLogMonitor pageId="react-context" title="React Multi-Context System">
+      <div className="page-container">
+        <header className="page-header">
+          <h1>React Multi-Context System</h1>
+          <p className="page-description">
+            Learn how to manage multiple nested contexts, handle context boundaries,
+            and implement communication patterns between different context levels.
+          </p>
+        </header>
 
-      <GlobalContextProvider>
-        <div className="context-demo-grid">
-          <ContextMonitor />
-          
-          {/* 첫 번째 로컬 컨텍스트 */}
-          <LocalContextProvider contextId="local-A">
-            <InteractiveControls />
+        <GlobalContextProvider>
+          <div className="context-demo-grid">
+            <ContextMonitor />
             
-            {/* 중첩된 컨텍스트 1 */}
-            <NestedContextProvider level={1}>
+            {/* 첫 번째 로컬 컨텍스트 */}
+            <LocalContextProvider contextId="local-A">
               <InteractiveControls />
               
-              {/* 중첩된 컨텍스트 2 */}
-              <NestedContextProvider level={2}>
+              {/* 중첩된 컨텍스트 1 */}
+              <NestedContextProvider level={1}>
                 <InteractiveControls />
+                
+                {/* 중첩된 컨텍스트 2 */}
+                <NestedContextProvider level={2}>
+                  <InteractiveControls />
+                </NestedContextProvider>
               </NestedContextProvider>
-            </NestedContextProvider>
-          </LocalContextProvider>
-          
-          {/* 두 번째 로컬 컨텍스트 */}
-          <LocalContextProvider contextId="local-B">
-            <InteractiveControls />
-          </LocalContextProvider>
-          
-          {/* 컨텍스트 설명 */}
-          <div className="demo-card info-card">
-            <h3>Context Hierarchy</h3>
-            <ul className="context-hierarchy">
-              <li>
-                <strong>🌍 Global Context</strong>
-                <ul>
-                  <li>
-                    🏠 Local Context A
-                    <ul>
-                      <li>
-                        🧩 Nested Level 1
-                        <ul>
-                          <li>🧩 Nested Level 2</li>
-                        </ul>
-                      </li>
-                    </ul>
-                  </li>
-                  <li>🏠 Local Context B</li>
-                </ul>
-              </li>
-            </ul>
+            </LocalContextProvider>
+            
+            {/* 두 번째 로컬 컨텍스트 */}
+            <LocalContextProvider contextId="local-B">
+              <InteractiveControls />
+            </LocalContextProvider>
+            
+            {/* 컨텍스트 설명 */}
+            <div className="demo-card info-card">
+              <h3>Context Hierarchy</h3>
+              <ul className="context-hierarchy">
+                <li>
+                  <strong>🌍 Global Context</strong>
+                  <ul>
+                    <li>
+                      🏠 Local Context A
+                      <ul>
+                        <li>
+                          🧩 Nested Level 1
+                          <ul>
+                            <li>🧩 Nested Level 2</li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </li>
+                    <li>🏠 Local Context B</li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+            
+            {/* 컨텍스트 패턴들 */}
+            <div className="demo-card info-card">
+              <h3>Context Patterns</h3>
+              <ul className="pattern-list">
+                <li>
+                  <strong>Context Isolation:</strong> 각 컨텍스트는 독립적인 ActionRegister를 가짐
+                </li>
+                <li>
+                  <strong>Event Bubbling:</strong> 하위 컨텍스트에서 상위로 이벤트 전파
+                </li>
+                <li>
+                  <strong>Cross-Context Communication:</strong> 다른 컨텍스트에 메시지 전송
+                </li>
+                <li>
+                  <strong>Context Boundaries:</strong> 명확한 책임 범위와 데이터 경계
+                </li>
+              </ul>
+            </div>
           </div>
-          
-          {/* 컨텍스트 패턴들 */}
-          <div className="demo-card info-card">
-            <h3>Context Patterns</h3>
-            <ul className="pattern-list">
-              <li>
-                <strong>Context Isolation:</strong> 각 컨텍스트는 독립적인 ActionRegister를 가짐
-              </li>
-              <li>
-                <strong>Event Bubbling:</strong> 하위 컨텍스트에서 상위로 이벤트 전파
-              </li>
-              <li>
-                <strong>Cross-Context Communication:</strong> 다른 컨텍스트에 메시지 전송
-              </li>
-              <li>
-                <strong>Context Boundaries:</strong> 명확한 책임 범위와 데이터 경계
-              </li>
-            </ul>
-          </div>
-        </div>
-      </GlobalContextProvider>
+        </GlobalContextProvider>
 
-      {/* 코드 예제 */}
-      <div className="code-example">
-        <h3>Multi-Context Implementation</h3>
-        <pre className="code-block">
+        {/* 코드 예제 */}
+        <div className="code-example">
+          <h3>Multi-Context Implementation</h3>
+          <pre className="code-block">
 {`// 1. 계층적 컨텍스트 구조
 function GlobalContextProvider({ children }) {
   return (
@@ -530,9 +540,10 @@ localDispatch('requestGlobal', { request: 'Hello' });
 
 // 로컬 컨텍스트에서 전역 컨텍스트로 전송
 globalDispatch('globalMessage', { message: 'From local' });`}
-        </pre>
+          </pre>
+        </div>
       </div>
-    </div>
+    </PageWithLogMonitor>
   );
 }
 

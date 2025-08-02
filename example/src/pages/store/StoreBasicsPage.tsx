@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Store, createStore, useStoreValue, useStore } from '@context-action/react';
+import { createStore, useStoreValue } from '@context-action/react';
+import { PageWithLogMonitor, useActionLogger } from '../../components/LogMonitor';
 
 // Store 인스턴스 생성
 const messageStore = createStore('message', 'Hello, Context-Action!');
@@ -9,14 +10,17 @@ const userStore = createStore('user', { name: 'John Doe', email: 'john@example.c
 // 커스텀 훅 - 메시지 스토어 관리
 function useMessageDemo() {
   const message = useStoreValue(messageStore);
+  const { logAction } = useActionLogger();
   
   const updateMessage = useCallback((newMessage: string) => {
+    logAction('updateMessage', { oldMessage: message, newMessage });
     messageStore.setValue(newMessage);
-  }, []);
+  }, [message, logAction]);
   
   const resetMessage = useCallback(() => {
+    logAction('resetMessage', { message });
     messageStore.setValue('Hello, Context-Action!');
-  }, []);
+  }, [message, logAction]);
   
   return { message, updateMessage, resetMessage };
 }
@@ -24,22 +28,27 @@ function useMessageDemo() {
 // 커스텀 훅 - 카운터 스토어 관리
 function useCounterDemo() {
   const count = useStoreValue(counterStore);
+  const { logAction } = useActionLogger();
   
   const increment = useCallback(() => {
+    logAction('increment', { currentCount: count });
     counterStore.update(prev => prev + 1);
-  }, []);
+  }, [count, logAction]);
   
   const decrement = useCallback(() => {
+    logAction('decrement', { currentCount: count });
     counterStore.update(prev => prev - 1);
-  }, []);
+  }, [count, logAction]);
   
   const addValue = useCallback((value: number) => {
+    logAction('addValue', { currentCount: count, addedValue: value });
     counterStore.update(prev => prev + value);
-  }, []);
+  }, [count, logAction]);
   
   const reset = useCallback(() => {
+    logAction('resetCounter', { currentCount: count });
     counterStore.setValue(0);
-  }, []);
+  }, [count, logAction]);
   
   return { count, increment, decrement, addValue, reset };
 }
@@ -47,18 +56,22 @@ function useCounterDemo() {
 // 커스텀 훅 - 사용자 스토어 관리
 function useUserDemo() {
   const user = useStoreValue(userStore);
+  const { logAction } = useActionLogger();
   
   const updateName = useCallback((name: string) => {
+    logAction('updateUserName', { oldName: user?.name, newName: name });
     userStore.update(prev => ({ ...prev, name }));
-  }, []);
+  }, [user?.name, logAction]);
   
   const updateEmail = useCallback((email: string) => {
+    logAction('updateUserEmail', { oldEmail: user?.email, newEmail: email });
     userStore.update(prev => ({ ...prev, email }));
-  }, []);
+  }, [user?.email, logAction]);
   
   const resetUser = useCallback(() => {
+    logAction('resetUser', { currentUser: user });
     userStore.setValue({ name: 'John Doe', email: 'john@example.com' });
-  }, []);
+  }, [user, logAction]);
   
   return { user, updateName, updateEmail, resetUser };
 }
@@ -104,12 +117,21 @@ function MessageDemo() {
 // 카운터 데모 컴포넌트
 function CounterDemo() {
   const { count, increment, decrement, addValue, reset } = useCounterDemo();
-  
+  const [addValueInput, setAddValueInput] = useState('');
+
+  const handleAddValue = () => {
+    const value = parseInt(addValueInput);
+    if (!isNaN(value)) {
+      addValue(value);
+      setAddValueInput('');
+    }
+  };
+
   return (
     <div className="demo-card">
       <h3>Number Store Demo</h3>
-      <div className="counter-display">
-        <span className="count-value">{count}</span>
+      <div className="store-display">
+        <div className="store-value">{count}</div>
       </div>
       <div className="button-group">
         <button onClick={increment} className="btn btn-primary">
@@ -118,16 +140,22 @@ function CounterDemo() {
         <button onClick={decrement} className="btn btn-primary">
           -1
         </button>
-        <button onClick={() => addValue(5)} className="btn btn-secondary">
-          +5
-        </button>
-        <button onClick={() => addValue(10)} className="btn btn-secondary">
-          +10
-        </button>
-        <button onClick={reset} className="btn btn-danger">
-          Reset
+      </div>
+      <div className="add-value-form">
+        <input
+          type="number"
+          value={addValueInput}
+          onChange={(e) => setAddValueInput(e.target.value)}
+          placeholder="Enter value to add"
+          className="number-input"
+        />
+        <button onClick={handleAddValue} className="btn btn-secondary">
+          Add
         </button>
       </div>
+      <button onClick={reset} className="btn btn-secondary">
+        Reset
+      </button>
     </div>
   );
 }
@@ -137,153 +165,119 @@ function UserDemo() {
   const { user, updateName, updateEmail, resetUser } = useUserDemo();
   const [nameInput, setNameInput] = useState('');
   const [emailInput, setEmailInput] = useState('');
-  
+
   const handleUpdateName = () => {
     if (nameInput.trim()) {
       updateName(nameInput.trim());
       setNameInput('');
     }
   };
-  
+
   const handleUpdateEmail = () => {
     if (emailInput.trim()) {
       updateEmail(emailInput.trim());
       setEmailInput('');
     }
   };
-  
+
   return (
     <div className="demo-card">
       <h3>Object Store Demo</h3>
-      <div className="user-display">
-        <div className="user-field">
-          <strong>Name:</strong> {user.name}
+              <div className="store-display">
+          <div className="user-info">
+            <div><strong>Name:</strong> {user?.name ?? 'Unknown'}</div>
+            <div><strong>Email:</strong> {user?.email ?? 'Unknown'}</div>
+          </div>
         </div>
-        <div className="user-field">
-          <strong>Email:</strong> {user.email}
-        </div>
-      </div>
-      
-      <div className="user-controls">
-        <div className="control-group">
+      <div className="user-form">
+        <div className="form-group">
           <input
             type="text"
             value={nameInput}
             onChange={(e) => setNameInput(e.target.value)}
-            placeholder="New name"
-            className="text-input small"
+            placeholder="Enter new name"
+            className="text-input"
           />
-          <button onClick={handleUpdateName} className="btn btn-primary btn-small">
+          <button onClick={handleUpdateName} className="btn btn-primary">
             Update Name
           </button>
         </div>
-        
-        <div className="control-group">
+        <div className="form-group">
           <input
             type="email"
             value={emailInput}
             onChange={(e) => setEmailInput(e.target.value)}
-            placeholder="New email"
-            className="text-input small"
+            placeholder="Enter new email"
+            className="text-input"
           />
-          <button onClick={handleUpdateEmail} className="btn btn-primary btn-small">
+          <button onClick={handleUpdateEmail} className="btn btn-primary">
             Update Email
           </button>
         </div>
-        
-        <button onClick={resetUser} className="btn btn-danger">
-          Reset User
-        </button>
       </div>
-    </div>
-  );
-}
-
-// 라이브 스토어 모니터
-function StoreMonitor() {
-  const message = useStoreValue(messageStore);
-  const count = useStoreValue(counterStore);
-  const user = useStoreValue(userStore);
-  
-  return (
-    <div className="demo-card monitor-card">
-      <h3>Live Store Monitor</h3>
-      <div className="monitor-grid">
-        <div className="monitor-item">
-          <div className="monitor-label">Message Store:</div>
-          <div className="monitor-value">"{message}"</div>
-        </div>
-        <div className="monitor-item">
-          <div className="monitor-label">Counter Store:</div>
-          <div className="monitor-value">{count}</div>
-        </div>
-        <div className="monitor-item">
-          <div className="monitor-label">User Store:</div>
-          <div className="monitor-value">
-            {JSON.stringify(user, null, 2)}
-          </div>
-        </div>
-      </div>
+      <button onClick={resetUser} className="btn btn-secondary">
+        Reset User
+      </button>
     </div>
   );
 }
 
 function StoreBasicsPage() {
   return (
-    <div className="page-container">
-      <header className="page-header">
-        <h1>Store System Basics</h1>
-        <p className="page-description">
-          Learn the fundamentals of the Store system - reactive state management,
-          subscriptions, and React integration with hooks.
-        </p>
-      </header>
+    <PageWithLogMonitor pageId="store-basics" title="Store System Basics">
+      <div className="page-container">
+        <header className="page-header">
+          <h1>Store System Basics</h1>
+          <p className="page-description">
+            Learn the fundamentals of the Store system - reactive state management,
+            subscriptions, and React integration with hooks.
+          </p>
+        </header>
 
-      <div className="demo-grid">
-        <MessageDemo />
-        <CounterDemo />
-        <UserDemo />
-        <StoreMonitor />
-        
-        {/* Store Concepts */}
-        <div className="demo-card info-card">
-          <h3>Key Store Concepts</h3>
-          <ul className="concept-list">
-            <li>
-              <strong>createStore():</strong> Factory function to create new store instances
-            </li>
-            <li>
-              <strong>useStoreValue():</strong> React hook for reactive subscriptions
-            </li>
-            <li>
-              <strong>setValue():</strong> Replace the entire store value
-            </li>
-            <li>
-              <strong>update():</strong> Update using a callback function
-            </li>
-            <li>
-              <strong>getSnapshot():</strong> Get current value without subscription
-            </li>
-          </ul>
+        <div className="demo-grid">
+          <MessageDemo />
+          <CounterDemo />
+          <UserDemo />
+          
+          {/* Store Concepts */}
+          <div className="demo-card info-card">
+            <h3>Key Store Concepts</h3>
+            <ul className="concept-list">
+              <li>
+                <strong>createStore():</strong> Factory function to create new store instances
+              </li>
+              <li>
+                <strong>useStoreValue():</strong> React hook for reactive subscriptions
+              </li>
+              <li>
+                <strong>setValue():</strong> Replace the entire store value
+              </li>
+              <li>
+                <strong>update():</strong> Update using a callback function
+              </li>
+              <li>
+                <strong>getSnapshot():</strong> Get current value without subscription
+              </li>
+            </ul>
+          </div>
+          
+          {/* Store Features */}
+          <div className="demo-card info-card">
+            <h3>Store Features</h3>
+            <ul className="feature-list">
+              <li>✓ Type-safe operations</li>
+              <li>✓ Automatic React re-renders</li>
+              <li>✓ Immutable updates</li>
+              <li>✓ Memory efficient</li>
+              <li>✓ Cross-component state sharing</li>
+            </ul>
+          </div>
         </div>
-        
-        {/* Store Features */}
-        <div className="demo-card info-card">
-          <h3>Store Features</h3>
-          <ul className="feature-list">
-            <li>✓ Type-safe operations</li>
-            <li>✓ Automatic React re-renders</li>
-            <li>✓ Immutable updates</li>
-            <li>✓ Memory efficient</li>
-            <li>✓ Cross-component state sharing</li>
-          </ul>
-        </div>
-      </div>
 
-      {/* Code Example */}
-      <div className="code-example">
-        <h3>Code Example</h3>
-        <pre className="code-block">
+        {/* Code Example */}
+        <div className="code-example">
+          <h3>Code Example</h3>
+          <pre className="code-block">
 {`// 1. Create stores
 const messageStore = createStore('message', 'Hello!');
 const counterStore = createStore('counter', 0);
@@ -309,9 +303,10 @@ function MyComponent() {
     </div>
   );
 }`}
-        </pre>
+          </pre>
+        </div>
       </div>
-    </div>
+    </PageWithLogMonitor>
   );
 }
 

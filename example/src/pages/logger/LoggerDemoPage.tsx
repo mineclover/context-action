@@ -8,6 +8,7 @@ import {
   getLogLevelFromEnv
 } from '@context-action/react';
 import { LogLevel } from '@context-action/logger';
+import { PageWithLogMonitor } from '../../components/LogMonitor';
 
 // 액션 타입 정의
 interface LoggerActionMap extends ActionPayloadMap {
@@ -23,10 +24,10 @@ class MemoryLogger implements Logger {
   
   constructor(private level: LogLevel, private onLog?: (log: any) => void) {}
   setLevel(level: LogLevel): void {
-    throw new Error('Method not implemented.');
+    this.level = level;
   }
   getLevel(): LogLevel {
-    throw new Error('Method not implemented.');
+    return this.level;
   }
   
   private shouldLog(level: LogLevel): boolean {
@@ -348,51 +349,52 @@ function LoggerFactoryDemo() {
 
 function LoggerDemoPage() {
   return (
-    <div className="page-container">
-      <header className="page-header">
-        <h1>Logger System Integration</h1>
-        <p className="page-description">
-          Explore the flexible logging system with different log levels, custom loggers,
-          and integration with the action pipeline for comprehensive debugging.
-        </p>
-      </header>
+    <PageWithLogMonitor pageId="logger-demo" title="Logger System Integration">
+      <div className="page-container">
+        <header className="page-header">
+          <h1>Logger System Integration</h1>
+          <p className="page-description">
+            Explore the flexible logging system with different log levels, custom loggers,
+            and integration with the action pipeline for comprehensive debugging.
+          </p>
+        </header>
 
-      <div className="demo-grid">
-        <ConsoleLoggerDemo />
-        <MemoryLoggerDemo />
-        <LoggerFactoryDemo />
-        
-        {/* Logger 개념 설명 */}
-        <div className="demo-card info-card">
-          <h3>Log Levels</h3>
-          <ul className="log-level-list">
-            <li><strong>TRACE (0)</strong> - 매우 상세한 디버깅 정보</li>
-            <li><strong>DEBUG (1)</strong> - 디버깅에 유용한 정보</li>
-            <li><strong>INFO (2)</strong> - 일반적인 정보성 메시지</li>
-            <li><strong>WARN (3)</strong> - 경고 메시지</li>
-            <li><strong>ERROR (4)</strong> - 오류 메시지</li>
-            <li><strong>NONE (5)</strong> - 로깅 비활성화</li>
-          </ul>
+        <div className="demo-grid">
+          <ConsoleLoggerDemo />
+          <MemoryLoggerDemo />
+          <LoggerFactoryDemo />
+          
+          {/* Logger 개념 설명 */}
+          <div className="demo-card info-card">
+            <h3>Log Levels</h3>
+            <ul className="log-level-list">
+              <li><strong>TRACE (0)</strong> - 매우 상세한 디버깅 정보</li>
+              <li><strong>DEBUG (1)</strong> - 디버깅에 유용한 정보</li>
+              <li><strong>INFO (2)</strong> - 일반적인 정보성 메시지</li>
+              <li><strong>WARN (3)</strong> - 경고 메시지</li>
+              <li><strong>ERROR (4)</strong> - 오류 메시지</li>
+              <li><strong>NONE (5)</strong> - 로깅 비활성화</li>
+            </ul>
+          </div>
+          
+          {/* Logger 기능 */}
+          <div className="demo-card info-card">
+            <h3>Logger Features</h3>
+            <ul className="feature-list">
+              <li>✓ 계층적 로그 레벨 시스템</li>
+              <li>✓ 커스텀 로거 구현 가능</li>
+              <li>✓ ActionRegister와 완전 통합</li>
+              <li>✓ 환경 변수 기반 설정</li>
+              <li>✓ 프리픽스 지원</li>
+              <li>✓ TypeScript 타입 안전성</li>
+            </ul>
+          </div>
         </div>
-        
-        {/* Logger 기능 */}
-        <div className="demo-card info-card">
-          <h3>Logger Features</h3>
-          <ul className="feature-list">
-            <li>✓ 계층적 로그 레벨 시스템</li>
-            <li>✓ 커스텀 로거 구현 가능</li>
-            <li>✓ ActionRegister와 완전 통합</li>
-            <li>✓ 환경 변수 기반 설정</li>
-            <li>✓ 프리픽스 지원</li>
-            <li>✓ TypeScript 타입 안전성</li>
-          </ul>
-        </div>
-      </div>
 
-      {/* 코드 예제 */}
-      <div className="code-example">
-        <h3>Logger Usage Example</h3>
-        <pre className="code-block">
+        {/* 코드 예제 */}
+        <div className="code-example">
+          <h3>Logger Usage Example</h3>
+          <pre className="code-block">
 {`// 1. 기본 ConsoleLogger 사용
 const logger = new ConsoleLogger(LogLevel.DEBUG, '[MyApp]');
 logger.info('Application started');
@@ -416,9 +418,10 @@ class CustomLogger implements Logger {
   }
   // ... 다른 메서드들
 }`}
-        </pre>
+          </pre>
+        </div>
       </div>
-    </div>
+    </PageWithLogMonitor>
   );
 }
 

@@ -3,8 +3,6 @@ import {
   ActionRegister,
   ActionProvider,
   StoreProvider,
-  useActionDispatch,
-  useActionRegister,
   useStoreRegistry,
   createStore,
   useStoreValue,
@@ -12,6 +10,7 @@ import {
   createLogger
 } from '@context-action/react';
 import { LogLevel } from '@context-action/logger';
+import { PageWithLogMonitor } from '../../components/LogMonitor';
 
 // 액션 타입 정의
 interface AppActions extends ActionPayloadMap {
@@ -32,8 +31,6 @@ const messageStore = createStore('provider-message', 'Hello from Provider!');
 // 카운터 컴포넌트
 function CounterComponent() {
   const count = useStoreValue(counterStore);
-
-  
 
   const handleIncrement = useCallback(() => {
     if (typeof count === 'number') {
@@ -302,26 +299,27 @@ function ProviderApp() {
 
 function ReactProviderPage() {
   return (
-    <div className="page-container">
-      <header className="page-header">
-        <h1>React Provider Pattern</h1>
-        <p className="page-description">
-          Learn how to integrate the Context-Action framework with React using the Provider pattern.
-          This enables global state management and centralized action dispatching across your application.
-        </p>
-      </header>
+    <PageWithLogMonitor pageId="react-provider" title="React Provider Pattern">
+      <div className="page-container">
+        <header className="page-header">
+          <h1>React Provider Pattern</h1>
+          <p className="page-description">
+            Learn how to integrate the Context-Action framework with React using the Provider pattern.
+            This enables global state management and centralized action dispatching across your application.
+          </p>
+        </header>
 
-      {/* Provider 래핑 */}
-      <ActionProvider config={{ logger }}>
-        <StoreProvider>
-          <ProviderApp />
-        </StoreProvider>
-      </ActionProvider>
+        {/* Provider 래핑 */}
+        <ActionProvider config={{ logger }}>
+          <StoreProvider>
+            <ProviderApp />
+          </StoreProvider>
+        </ActionProvider>
 
-      {/* 코드 예제 */}
-      <div className="code-example">
-        <h3>Provider Setup Code</h3>
-        <pre className="code-block">
+        {/* 코드 예제 */}
+        <div className="code-example">
+          <h3>Provider Setup Code</h3>
+          <pre className="code-block">
 {`// 1. App 래핑
 function App() {
   return (
@@ -349,9 +347,10 @@ function MyComponent() {
     </div>
   );
 }`}
-        </pre>
+          </pre>
+        </div>
       </div>
-    </div>
+    </PageWithLogMonitor>
   );
 }
 
