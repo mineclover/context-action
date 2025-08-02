@@ -10,7 +10,26 @@ import type {
   NotificationItem 
 } from '../types';
 
-// Store-scenarios용 Context Store 패턴 생성
+/**
+ * Store-scenarios용 Context Store 패턴 팩토리
+ * Provider별 독립적인 Registry 영역을 생성하여 Store 격리를 제공
+ * 
+ * @implements store-registry
+ * @implements store-integration-pattern
+ * @memberof core-concepts
+ * @example
+ * // Context Store 패턴 사용법
+ * export const StoreScenarios = createContextStorePattern('StoreScenarios');
+ * 
+ * // Provider로 감싸기
+ * <StoreScenarios.Provider registryId="demo">
+ *   <UserProfileDemo />
+ * </StoreScenarios.Provider>
+ * 
+ * // 컴포넌트에서 Store 사용
+ * const userStore = StoreScenarios.useStore('user', defaultUser);
+ * @since 1.0.0
+ */
 export const StoreScenarios = createContextStorePattern('StoreScenarios');
 
 // 초기 데이터 export

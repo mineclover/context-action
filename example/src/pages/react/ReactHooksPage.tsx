@@ -24,7 +24,23 @@ interface HooksOptimizationMap extends ActionPayloadMap {
   rerenderTrigger: void;
 }
 
-// Context Store 패턴 생성
+/**
+ * React Hooks 최적화 데모용 Context Store 패턴
+ * 메모이제이션과 성능 최적화 예제를 위한 Store 격리 시스템
+ * 
+ * @implements store-registry
+ * @implements performance-optimization
+ * @implements store-integration-pattern
+ * @memberof core-concepts
+ * @example
+ * // React Hooks 최적화를 위한 Context Store 패턴
+ * const HooksStores = createContextStorePattern('ReactHooks');
+ * 
+ * // 컴포넌트에서 Store 사용
+ * const calculationStore = HooksStores.useStore('calculation', { result: 0, computeTime: 0 });
+ * const memoryStore = HooksStores.useStore('memory', { objects: 0, allocatedMB: 0 });
+ * @since 1.0.0
+ */
 const HooksStores = createContextStorePattern('ReactHooks');
 
 // 무거운 계산 시뮬레이션

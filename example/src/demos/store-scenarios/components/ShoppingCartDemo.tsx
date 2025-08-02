@@ -5,6 +5,19 @@ import { StoreScenarios, initialProducts } from '../stores';
 import { storeActionRegister } from '../actions';
 import type { CartItem } from '../types';
 
+/**
+ * 쇼핑카트 시스템 데모 컴포넌트
+ * 배열 조작과 수량 추적, 계산된 총합을 관리하는 Context Store 패턴 예제
+ * 
+ * @implements store-integration-pattern
+ * @implements action-handler
+ * @memberof core-concepts
+ * @example
+ * // 쇼핑카트 관리를 위한 Context Store 패턴
+ * const productsStore = StoreScenarios.useStore('products', initialProducts);
+ * const cartStore = StoreScenarios.useStore('cart', [] as CartItem[]);
+ * @since 1.0.0
+ */
 export function ShoppingCartDemo() {
   const productsStore = StoreScenarios.useStore('products', initialProducts);
   const cartStore = StoreScenarios.useStore('cart', [] as CartItem[]);

@@ -3,6 +3,25 @@ import { LogLevel } from '@context-action/logger';
 import { setupSelectiveActionToast } from '../../../components/ToastSystem';
 import type { StoreFullActionMap, TodoItem, ChatMessage, NotificationItem } from '../types';
 
+/**
+ * Store scenarios 데모용 액션 시스템 설정
+ * ActionRegister를 중심으로 하는 액션 파이프라인과 로깅 시스템을 구성
+ * 
+ * @implements actionregister
+ * @implements action-pipeline-system
+ * @memberof core-concepts
+ * @example
+ * // 액션 핸들러 등록 (컴포넌트 내부에서)
+ * useEffect(() => {
+ *   const unsubscribe = storeActionRegister.register('updateUser', ({ user }, controller) => {
+ *     userStore.setValue(user);
+ *     controller.next();
+ *   });
+ *   return unsubscribe;
+ * }, [userStore]);
+ * @since 1.0.0
+ */
+
 // 로거 및 액션 레지스터 설정
 export const logger = createLogger(LogLevel.DEBUG);
 export const storeActionRegister = new ActionRegister<StoreFullActionMap>({ logger });

@@ -5,6 +5,20 @@ import { StoreScenarios, defaultUser } from '../stores';
 import { storeActionRegister } from '../actions';
 import type { User } from '../types';
 
+/**
+ * 사용자 프로필 관리 데모 컴포넌트
+ * 복잡한 객체 업데이트와 중첩된 속성 관리를 보여주는 Context Store 패턴 예제
+ * 
+ * @implements store-integration-pattern
+ * @implements action-handler
+ * @memberof core-concepts
+ * @example
+ * // Context Store 패턴을 사용한 사용자 프로필 관리
+ * <StoreScenarios.Provider registryId="user-profile-demo">
+ *   <UserProfileDemo />
+ * </StoreScenarios.Provider>
+ * @since 1.0.0
+ */
 export function UserProfileDemo() {
   const userStore = StoreScenarios.useStore('user', defaultUser);
   const user = useStoreValue(userStore);
