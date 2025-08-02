@@ -815,6 +815,8 @@ function FormWizardDemo() {
 // 6. Settings Management Demo
 function SettingsDemo() {
   const settings = useStoreValue(settingsStore);
+  const [testScenario, setTestScenario] = useState<string>('');
+  const [simulationResults, setSimulationResults] = useState<string[]>([]);
 
   const updateGeneral = useCallback((updates: Partial<AppSettings['general']>) => {
     storeActionRegister.dispatch('updateGeneralSettings', { settings: updates });
@@ -832,9 +834,163 @@ function SettingsDemo() {
     storeActionRegister.dispatch('resetToDefaults');
   }, []);
 
+  // 테스트 시나리오 실행
+  const runTestScenario = useCallback((scenario: string) => {
+    setTestScenario(scenario);
+    setSimulationResults([]);
+    
+    const results: string[] = [];
+    
+    switch (scenario) {
+      case 'auto-save-test':
+        results.push('🔄 Auto-save 테스트 시작...');
+        results.push('📝 사용자가 문서를 편집 중...');
+        results.push(`⏰ ${settings?.general?.autoSave ? 'Auto-save 활성화됨' : 'Auto-save 비활성화됨'}`);
+        if (settings?.general?.autoSave) {
+          results.push('💾 자동 저장 실행됨');
+          results.push('✅ 데이터 손실 방지됨');
+        } else {
+          results.push('⚠️ 자동 저장되지 않음');
+          results.push('❌ 데이터 손실 위험');
+        }
+        break;
+        
+      case 'performance-test':
+        results.push('🚀 성능 테스트 시작...');
+        results.push(`💾 캐시 크기: ${settings?.performance?.cacheSize ?? 100}MB`);
+        results.push(`🔧 압축 레벨: ${settings?.performance?.compressionLevel ?? 5}`);
+        results.push(`⚡ 지연 로딩: ${settings?.performance?.lazyLoading ? '활성화' : '비활성화'}`);
+        
+        const cacheSize = settings?.performance?.cacheSize ?? 100;
+        const compressionLevel = settings?.performance?.compressionLevel ?? 5;
+        const lazyLoading = settings?.performance?.lazyLoading ?? false;
+        
+        if (cacheSize > 200 && compressionLevel > 7 && lazyLoading) {
+          results.push('🏆 최적 성능 설정');
+          results.push('⚡ 빠른 로딩 속도');
+        } else if (cacheSize < 50 || compressionLevel < 3) {
+          results.push('🐌 낮은 성능 설정');
+          results.push('⏳ 느린 로딩 속도');
+        } else {
+          results.push('⚖️ 중간 성능 설정');
+          results.push('📊 적절한 성능');
+        }
+        break;
+        
+      case 'security-test':
+        results.push('🔒 보안 테스트 시작...');
+        results.push(`⏱️ 세션 타임아웃: ${settings?.security?.sessionTimeout ?? 30}분`);
+        results.push(`🔐 2FA: ${settings?.security?.twoFactorAuth ? '활성화' : '비활성화'}`);
+        results.push(`🔑 비밀번호 만료: ${settings?.security?.passwordExpiry ?? 90}일`);
+        
+        const sessionTimeout = settings?.security?.sessionTimeout ?? 30;
+        const twoFactorAuth = settings?.security?.twoFactorAuth ?? false;
+        const passwordExpiry = settings?.security?.passwordExpiry ?? 90;
+        
+        if (sessionTimeout <= 15 && twoFactorAuth && passwordExpiry <= 60) {
+          results.push('🛡️ 높은 보안 설정');
+          results.push('✅ 강력한 보안 정책');
+        } else if (sessionTimeout > 60 || !twoFactorAuth) {
+          results.push('⚠️ 낮은 보안 설정');
+          results.push('❌ 보안 위험');
+        } else {
+          results.push('🛡️ 중간 보안 설정');
+          results.push('📊 적절한 보안');
+        }
+        break;
+        
+      case 'exit-confirmation-test':
+        results.push('🚪 종료 확인 테스트...');
+        results.push('📝 사용자가 작업 중인 문서가 있음');
+        results.push(`❓ 종료 확인: ${settings?.general?.confirmOnExit ? '활성화' : '비활성화'}`);
+        
+        if (settings?.general?.confirmOnExit) {
+          results.push('💬 "저장하지 않고 종료하시겠습니까?" 대화상자 표시');
+          results.push('✅ 데이터 손실 방지됨');
+        } else {
+          results.push('🚪 즉시 종료됨');
+          results.push('❌ 저장되지 않은 데이터 손실');
+        }
+        break;
+        
+      case 'view-mode-test':
+        results.push('👁️ 뷰 모드 테스트...');
+        results.push(`📋 기본 뷰: ${settings?.general?.defaultView ?? 'list'}`);
+        
+        const viewMode = settings?.general?.defaultView ?? 'list';
+        switch (viewMode) {
+          case 'list':
+            results.push('📋 리스트 뷰로 표시');
+            results.push('📊 간단한 정보 표시');
+            break;
+          case 'grid':
+            results.push('🔲 그리드 뷰로 표시');
+            results.push('🖼️ 썸네일 형태로 표시');
+            break;
+          case 'card':
+            results.push('🃏 카드 뷰로 표시');
+            results.push('📄 상세 정보 포함 표시');
+            break;
+        }
+        break;
+    }
+    
+    setSimulationResults(results);
+  }, [settings]);
+
   return (
     <div className="demo-card">
       <h3>⚙️ Settings Management</h3>
+      
+      {/* 테스트 시나리오 섹션 */}
+      <div className="test-scenarios">
+        <h4>🧪 테스트 시나리오</h4>
+        <div className="scenario-buttons">
+          <button 
+            onClick={() => runTestScenario('auto-save-test')}
+            className="btn btn-primary btn-small"
+          >
+            Auto-save 테스트
+          </button>
+          <button 
+            onClick={() => runTestScenario('performance-test')}
+            className="btn btn-primary btn-small"
+          >
+            성능 테스트
+          </button>
+          <button 
+            onClick={() => runTestScenario('security-test')}
+            className="btn btn-primary btn-small"
+          >
+            보안 테스트
+          </button>
+          <button 
+            onClick={() => runTestScenario('exit-confirmation-test')}
+            className="btn btn-primary btn-small"
+          >
+            종료 확인 테스트
+          </button>
+          <button 
+            onClick={() => runTestScenario('view-mode-test')}
+            className="btn btn-primary btn-small"
+          >
+            뷰 모드 테스트
+          </button>
+        </div>
+        
+        {testScenario && (
+          <div className="simulation-results">
+            <h5>📊 시뮬레이션 결과</h5>
+            <div className="results-list">
+              {simulationResults.map((result, index) => (
+                <div key={index} className="result-item">
+                  {result}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
       
       <div className="settings-sections">
         <div className="settings-section">
@@ -848,6 +1004,7 @@ function SettingsDemo() {
               />
               Auto Save
             </label>
+            <small>문서 편집 시 자동 저장</small>
           </div>
           <div className="setting-item">
             <label className="checkbox-label">
@@ -858,6 +1015,7 @@ function SettingsDemo() {
               />
               Confirm on Exit
             </label>
+            <small>종료 시 확인 대화상자 표시</small>
           </div>
           <div className="setting-item">
             <label>Default View:</label>
@@ -870,6 +1028,7 @@ function SettingsDemo() {
               <option value="grid">Grid</option>
               <option value="card">Card</option>
             </select>
+            <small>기본 표시 모드</small>
           </div>
         </div>
 
@@ -885,6 +1044,7 @@ function SettingsDemo() {
               onChange={(e) => updatePerformance({ cacheSize: Number(e.target.value) })}
               className="range-input"
             />
+            <small>메모리 캐시 크기 (성능에 영향)</small>
           </div>
           <div className="setting-item">
             <label className="checkbox-label">
@@ -895,6 +1055,7 @@ function SettingsDemo() {
               />
               Lazy Loading
             </label>
+            <small>필요할 때만 데이터 로드</small>
           </div>
           <div className="setting-item">
             <label>Compression Level: {settings?.performance?.compressionLevel ?? 5}</label>
@@ -906,6 +1067,7 @@ function SettingsDemo() {
               onChange={(e) => updatePerformance({ compressionLevel: Number(e.target.value) })}
               className="range-input"
             />
+            <small>데이터 압축 레벨 (1=빠름, 9=높은 압축)</small>
           </div>
         </div>
 
@@ -921,6 +1083,7 @@ function SettingsDemo() {
               onChange={(e) => updateSecurity({ sessionTimeout: Number(e.target.value) })}
               className="range-input"
             />
+            <small>자동 로그아웃 시간</small>
           </div>
           <div className="setting-item">
             <label className="checkbox-label">
@@ -931,6 +1094,7 @@ function SettingsDemo() {
               />
               Two-Factor Authentication
             </label>
+            <small>이중 인증 활성화</small>
           </div>
           <div className="setting-item">
             <label>Password Expiry: {settings?.security?.passwordExpiry ?? 90} days</label>
@@ -942,6 +1106,7 @@ function SettingsDemo() {
               onChange={(e) => updateSecurity({ passwordExpiry: Number(e.target.value) })}
               className="range-input"
             />
+            <small>비밀번호 만료 기간</small>
           </div>
         </div>
       </div>
@@ -950,6 +1115,29 @@ function SettingsDemo() {
         <button onClick={resetToDefaults} className="btn btn-warning">
           Reset to Defaults
         </button>
+      </div>
+      
+      {/* 시스템 이점 설명 */}
+      <div className="system-benefits">
+        <h4>🎯 시스템 이점</h4>
+        <div className="benefits-grid">
+          <div className="benefit-item">
+            <h5>🔄 실시간 반영</h5>
+            <p>설정 변경이 즉시 모든 컴포넌트에 반영됩니다.</p>
+          </div>
+          <div className="benefit-item">
+            <h5>📊 타입 안전성</h5>
+            <p>TypeScript로 설정 타입이 보장되어 런타임 에러를 방지합니다.</p>
+          </div>
+          <div className="benefit-item">
+            <h5>🎛️ 중앙화된 관리</h5>
+            <p>모든 설정이 하나의 스토어에서 관리되어 일관성을 보장합니다.</p>
+          </div>
+          <div className="benefit-item">
+            <h5>🔍 디버깅 용이성</h5>
+            <p>ActionRegister를 통한 모든 설정 변경이 로깅되어 추적이 쉽습니다.</p>
+          </div>
+        </div>
       </div>
     </div>
   );
