@@ -100,27 +100,29 @@ export function LogMonitorProvider({
     return pageLogger;
   }, [initialLogLevel]);
 
-  // 안정적인 addLog 함수 - 스토어 업데이트 사용
-  const addLog = useCallback((entry: Omit<LogEntry, 'id' | 'timestamp'>) => {
-    const logEntry: LogEntry = {
-      ...entry,
-      id: `${pageId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      timestamp: new Date().toLocaleTimeString()
+  // 완전히 안정적인 API 생성 - 한 번만 생성되고 내부에서 최신 상태 접근
+  const stableProviderAPI = useMemo(() => {
+    return {
+      addLog: (entry: Omit<LogEntry, 'id' | 'timestamp'>) => {
+        const logEntry: LogEntry = {
+          ...entry,
+          id: `${pageId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          timestamp: new Date().toLocaleTimeString()
+        };
+        
+        // 스토어 업데이트 - 최대 50개 로그 유지
+        stores.logs.update(prev => [...prev.slice(-49), logEntry]);
+      },
+
+      clearLogs: () => {
+        stores.logs.setValue([]);
+      },
+
+      setLogLevel: (level: LogLevel) => {
+        stores.logLevel.setValue(level);
+      }
     };
-    
-    // 스토어 업데이트 - 최대 50개 로그 유지
-    stores.logs.update(prev => [...prev.slice(-49), logEntry]);
-  }, [pageId, stores.logs]);
-
-  // 안정적인 clearLogs 함수
-  const clearLogs = useCallback(() => {
-    stores.logs.setValue([]);
-  }, [stores.logs]);
-
-  // 안정적인 setLogLevel 함수
-  const setLogLevel = useCallback((level: LogLevel) => {
-    stores.logLevel.setValue(level);
-  }, [stores.logLevel]);
+  }, [pageId, stores.logs, stores.logLevel]); // stores는 안정적이므로 의존성에 포함해도 안전
 
   // 로그 레벨 변경 시 로거 업데이트
   useEffect(() => {
@@ -129,7 +131,7 @@ export function LogMonitorProvider({
 
   // 페이지 초기화 및 정리 로그
   useEffect(() => {
-    addLog({
+    stableProviderAPI.addLog({
       level: LogLevel.INFO,
       type: 'system',
       message: `Page initialized: ${pageId}`,
@@ -137,7 +139,7 @@ export function LogMonitorProvider({
     });
 
     return () => {
-      addLog({
+      stableProviderAPI.addLog({
         level: LogLevel.INFO,
         type: 'system',
         message: `Page cleanup: ${pageId}`
@@ -146,16 +148,17 @@ export function LogMonitorProvider({
       // 페이지 언마운트 시 스토어 정리 (선택적)
       // LogMonitorStoreRegistry.getInstance().clearStores(pageId);
     };
-  }, [pageId, addLog, initialLogLevel]);
+  }, [pageId, stableProviderAPI, initialLogLevel]);
 
-  const contextValue: LogMonitorContextType = {
+  // 컨텍스트 값도 안정화 - 함수 참조는 변경되지 않고 데이터만 업데이트
+  const contextValue = useMemo((): LogMonitorContextType => ({
     logs,
-    addLog,
-    clearLogs,
+    addLog: stableProviderAPI.addLog,
+    clearLogs: stableProviderAPI.clearLogs,
     logger,
     logLevel,
-    setLogLevel
-  };
+    setLogLevel: stableProviderAPI.setLogLevel
+  }), [logs, logLevel, logger, stableProviderAPI]);
 
   return (
     <LogMonitorContext.Provider value={contextValue}>
@@ -348,109 +351,196 @@ const actionMessages: Record<string, { title: string; message: string; type: 'su
     nestedUpdate: { title: '중첩 업데이트', message: '중첩된 업데이트가 실행되었습니다', type: 'success' }
 };
 
-// 통합 액션 로거 훅 (토스트 자동 주입)
-export function useActionLogger() {
+// Stable API 인터페이스 - 참조가 변경되지 않는 안정적인 로거 API
+interface StableLoggerAPI {
+  logAction: (actionType: string, payload?: any, options?: ActionLogOptions) => void;
+  logError: (message: string, error?: Error | any, options?: ActionLogOptions) => void;
+  logSystem: (message: string, options?: ActionLogOptions) => void;
+  logger: Logger;
+}
+
+// 통합 액션 로거 훅 (근본적 안정성 개선)
+export function useActionLogger(): StableLoggerAPI {
   const { addLog, logger } = useLogMonitor();
   const toast = useActionToast();
 
-  const logAction = useCallback((
-    actionType: string,
-    payload?: any,
-    options: ActionLogOptions = {}
-  ) => {
-    // 로그 기록
-    addLog({
-      level: LogLevel.INFO,
-      type: 'action',
-      message: `Action dispatched: ${actionType}`,
-      priority: options.priority,
-      details: { payload, context: options.context }
-    });
-    
-    logger.info(`Action: ${actionType}`, payload);
+  // useMemo로 안정적인 API 객체 생성 - 컨텍스트가 변경되어도 함수 참조는 유지
+  const stableAPI = useMemo(() => {
+    const api: StableLoggerAPI = {
+      logAction: (actionType: string, payload?: any, options: ActionLogOptions = {}) => {
+        // 실제 로그 기록 - 현재 컨텍스트 값 직접 사용
+        addLog({
+          level: LogLevel.INFO,
+          type: 'action',
+          message: `Action dispatched: ${actionType}`,
+          priority: options.priority,
+          details: { payload, context: options.context }
+        });
+        
+        logger.info(`Action: ${actionType}`, payload);
 
-    // 토스트 자동 주입
-    if (options.toast !== false) {
-      const actionMsg = actionMessages[actionType];
+        // 토스트 자동 주입
+        if (options.toast !== false) {
+          const actionMsg = actionMessages[actionType];
+          
+          if (typeof options.toast === 'object') {
+            // 커스텀 토스트 설정
+            toast.showToast(
+              options.toast.type || 'info',
+              options.toast.title || actionType,
+              options.toast.message || `${actionType} 액션이 실행되었습니다`
+            );
+          } else if (actionMsg) {
+            // 자동 매핑된 토스트
+            toast.showToast(actionMsg.type, actionMsg.title, actionMsg.message);
+          } else {
+            // 기본 토스트
+            toast.showToast('success', actionType, `${actionType} 액션이 실행되었습니다`);
+          }
+        }
+      },
+
+      logError: (message: string, error?: Error | any, options: ActionLogOptions = {}) => {
+        addLog({
+          level: LogLevel.ERROR,
+          type: 'error',
+          message,
+          details: { error: error?.message || error, stack: error?.stack, context: options.context }
+        });
+        
+        logger.error(message, error);
+
+        // 에러 토스트 자동 표시
+        if (options.toast !== false) {
+          if (typeof options.toast === 'object') {
+            toast.showToast(
+              'error',
+              options.toast.title || '오류 발생',
+              options.toast.message || message
+            );
+          } else {
+            toast.showToast('error', '오류 발생', message);
+          }
+        }
+      },
+
+      logSystem: (message: string, options: ActionLogOptions = {}) => {
+        addLog({
+          level: LogLevel.INFO,
+          type: 'system',
+          message,
+          details: options.context
+        });
+        
+        logger.info(`System: ${message}`, options.context);
+
+        // 시스템 토스트 (기본적으로 비활성화, 명시적 요청시만)
+        if (options.toast === true || typeof options.toast === 'object') {
+          if (typeof options.toast === 'object') {
+            toast.showToast(
+              options.toast.type || 'system',
+              options.toast.title || '시스템',
+              options.toast.message || message
+            );
+          } else {
+            toast.showToast('system', '시스템', message);
+          }
+        }
+      },
+
+      logger
+    };
+
+    return api;
+  }, []); // 빈 의존성 배열 - 한 번만 생성되고 참조 변경 안됨
+
+  // 컨텍스트 값이 변경될 때 내부 함수들을 업데이트
+  // 하지만 API 객체 자체의 참조는 변경되지 않음
+  useEffect(() => {
+    // 새로운 컨텍스트 값들로 내부 구현 업데이트
+    const currentAddLog = addLog;
+    const currentLogger = logger;
+    const currentToast = toast;
+
+    // API 함수들의 구현을 새로운 컨텍스트 값으로 업데이트
+    stableAPI.logAction = (actionType: string, payload?: any, options: ActionLogOptions = {}) => {
+      currentAddLog({
+        level: LogLevel.INFO,
+        type: 'action',
+        message: `Action dispatched: ${actionType}`,
+        priority: options.priority,
+        details: { payload, context: options.context }
+      });
       
-      if (typeof options.toast === 'object') {
-        // 커스텀 토스트 설정
-        toast.showToast(
-          options.toast.type || 'info',
-          options.toast.title || actionType,
-          options.toast.message || `${actionType} 액션이 실행되었습니다`
-        );
-      } else if (actionMsg) {
-        // 자동 매핑된 토스트
-        toast.showToast(actionMsg.type, actionMsg.title, actionMsg.message);
-      } else {
-        // 기본 토스트
-        toast.showToast('success', actionType, `${actionType} 액션이 실행되었습니다`);
+      currentLogger.info(`Action: ${actionType}`, payload);
+
+      if (options.toast !== false) {
+        const actionMsg = actionMessages[actionType];
+        
+        if (typeof options.toast === 'object') {
+          currentToast.showToast(
+            options.toast.type || 'info',
+            options.toast.title || actionType,
+            options.toast.message || `${actionType} 액션이 실행되었습니다`
+          );
+        } else if (actionMsg) {
+          currentToast.showToast(actionMsg.type, actionMsg.title, actionMsg.message);
+        } else {
+          currentToast.showToast('success', actionType, `${actionType} 액션이 실행되었습니다`);
+        }
       }
-    }
-  }, [addLog, logger, toast]);
+    };
 
-  const logError = useCallback((
-    message: string,
-    error?: Error | any,
-    options: ActionLogOptions = {}
-  ) => {
-    addLog({
-      level: LogLevel.ERROR,
-      type: 'error',
-      message,
-      details: { error: error?.message || error, stack: error?.stack, context: options.context }
-    });
-    
-    logger.error(message, error);
+    stableAPI.logError = (message: string, error?: Error | any, options: ActionLogOptions = {}) => {
+      currentAddLog({
+        level: LogLevel.ERROR,
+        type: 'error',
+        message,
+        details: { error: error?.message || error, stack: error?.stack, context: options.context }
+      });
+      
+      currentLogger.error(message, error);
 
-    // 에러 토스트 자동 표시
-    if (options.toast !== false) {
-      if (typeof options.toast === 'object') {
-        toast.showToast(
-          'error',
-          options.toast.title || '오류 발생',
-          options.toast.message || message
-        );
-      } else {
-        toast.showToast('error', '오류 발생', message);
+      if (options.toast !== false) {
+        if (typeof options.toast === 'object') {
+          currentToast.showToast(
+            'error',
+            options.toast.title || '오류 발생',
+            options.toast.message || message
+          );
+        } else {
+          currentToast.showToast('error', '오류 발생', message);
+        }
       }
-    }
-  }, [addLog, logger, toast]);
+    };
 
-  const logSystem = useCallback((
-    message: string,
-    options: ActionLogOptions = {}
-  ) => {
-    addLog({
-      level: LogLevel.INFO,
-      type: 'system',
-      message,
-      details: options.context
-    });
-    
-    logger.info(`System: ${message}`, options.context);
+    stableAPI.logSystem = (message: string, options: ActionLogOptions = {}) => {
+      currentAddLog({
+        level: LogLevel.INFO,
+        type: 'system',
+        message,
+        details: options.context
+      });
+      
+      currentLogger.info(`System: ${message}`, options.context);
 
-    // 시스템 토스트 (기본적으로 비활성화, 명시적 요청시만)
-    if (options.toast === true || typeof options.toast === 'object') {
-      if (typeof options.toast === 'object') {
-        toast.showToast(
-          options.toast.type || 'system',
-          options.toast.title || '시스템',
-          options.toast.message || message
-        );
-      } else {
-        toast.showToast('system', '시스템', message);
+      if (options.toast === true || typeof options.toast === 'object') {
+        if (typeof options.toast === 'object') {
+          currentToast.showToast(
+            options.toast.type || 'system',
+            options.toast.title || '시스템',
+            options.toast.message || message
+          );
+        } else {
+          currentToast.showToast('system', '시스템', message);
+        }
       }
-    }
-  }, [addLog, logger, toast]);
+    };
 
-  return {
-    logAction,
-    logError,
-    logSystem,
-    logger
-  };
+    stableAPI.logger = currentLogger;
+  }, [addLog, logger, toast, stableAPI]);
+
+  return stableAPI;
 }
 
 // 간소화된 로거 별칭 (하위 호환성)
