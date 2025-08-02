@@ -34,7 +34,7 @@ export type {
 
 // === CORE CLASSES ===
 export { Store, ManagedStore } from './Store';
-export { StoreRegistry } from './StoreRegistry';
+export { StoreRegistry, type StoreMetadata } from './StoreRegistry';
 export { EventBus, ScopedEventBus } from './EventBus';
 
 // === UTILITIES ===
@@ -70,7 +70,6 @@ export {
   useStoreActions,
   // Registry hooks
   useRegistry,
-  useRegistryStore,
   // Specialized hooks
   useLocalStore,
   usePersistedStore
@@ -147,6 +146,32 @@ export {
   type CustomComparator,
   type ComparisonMetrics
 } from './comparison';
+
+// === ISOLATION PATTERNS ===
+export {
+  // Utility functions
+  generateStoreName,
+  getOrCreateRegistryStore,
+  wrapStoreWithDebug,
+  
+  // Factory classes
+  IsolationStoreFactory,
+  TestStoreIsolationManager,
+  
+  // Types
+  type RegistryStoreOptions
+} from './isolation-utils';
+
+export {
+  // React hooks
+  useRegistryStore,
+  useIsolatedStore,
+  useLazyIsolatedStore,
+  useIsolationStoreFactory,
+  useConditionalIsolatedStore,
+  useStoreIsolationMonitoring,
+  useStoreMemoryTracking
+} from './isolation-hooks';
 
 // === METADATA ===
 export const VERSION = '1.0.0';

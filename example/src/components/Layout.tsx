@@ -19,6 +19,9 @@ function Layout({ children }: LayoutProps) {
     { path: '/react/hooks', label: 'React Hooks', category: 'react' },
     { path: '/logger/demo', label: 'Logger System', category: 'logger' },
     { path: '/actionguard/demo', label: 'Action Guard', category: 'actionguard' },
+    { path: '/infinite-loop/test', label: '🧪 Infinite Loop Test', category: 'debug' },
+    { path: '/comparison/demo', label: '⚡ Store Comparison Demo', category: 'debug' },
+    { path: '/comparison/throttled', label: '⏱️ Throttled Loop Control', category: 'debug' },
   ];
 
   return (

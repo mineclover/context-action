@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useStoreValue } from '@context-action/react';
-import { useActionLogger } from '../../../components/LogMonitor';
+import { useActionLoggerWithToast } from '../../../components/LogMonitor/';
 import { chatStore } from '../stores';
 import { storeActionRegister } from '../actions';
 import type { ChatMessage } from '../types';
@@ -14,7 +14,7 @@ export function ChatDemo() {
   const [messageType, setMessageType] = useState<ChatMessage['type']>('text');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const logger = useActionLogger();
+  const logger = useActionLoggerWithToast();
 
   // 자동 스크롤
   const scrollToBottom = useCallback(() => {

@@ -1,13 +1,13 @@
 import React, { useCallback, useMemo } from 'react';
 import { useStoreValue } from '@context-action/react';
-import { useActionLogger } from '../../../components/LogMonitor';
+import { useActionLoggerWithToast } from '../../../components/LogMonitor/';
 import { productsStore, cartStore } from '../stores';
 import { storeActionRegister } from '../actions';
 
 export function ShoppingCartDemo() {
   const products = useStoreValue(productsStore);
   const cart = useStoreValue(cartStore);
-  const logger = useActionLogger();
+  const logger = useActionLoggerWithToast();
 
   const totalAmount = useMemo(() => {
     if (!cart || !products) return 0;

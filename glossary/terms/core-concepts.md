@@ -397,3 +397,29 @@ Logger 인터페이스의 구체적인 구현체들입니다.
 - 적절한 포커스 관리
 
 **Related Terms**: [Action Guard](#action-guard), [Performance Optimization](#performance-optimization), Business Logic
+
+---
+
+## Store Immutability
+
+**Definition**: Store의 상태 불변성을 보장하는 시스템으로, 외부 수정으로부터 내부 상태를 보호하고 데이터 무결성을 유지합니다.
+
+**Usage Context**:
+- Store 값 읽기 시 안전한 복사본 제공
+- 외부 코드의 의도치 않은 상태 변경 방지
+- 액션 핸들러에서 최신 상태 접근 보장
+- 메모리 효율성과 보안성의 균형
+
+**Key Characteristics**:
+- `performantSafeGet()` 함수를 통한 조건부 복사
+- 글로벌 불변성 옵션으로 성능 조절 가능
+- `enableCloning` 옵션으로 딥클론 활성화/비활성화
+- 원시값과 참조값 모두 안전하게 처리
+
+**Implementation Strategy**:
+- 원시값: 직접 반환 (자연스러운 불변성)
+- 참조값: `structuredClone()` 기반 딥클론
+- 성능 고려: 필요 시에만 복사 수행
+- 디버깅 지원: 복사 여부 로깅
+
+**Related Terms**: [Store Integration Pattern](#store-integration-pattern), [Fresh State Access](./architecture-terms.md#fresh-state-access), [Unidirectional Data Flow](./architecture-terms.md#unidirectional-data-flow)

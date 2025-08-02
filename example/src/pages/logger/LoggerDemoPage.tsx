@@ -8,7 +8,7 @@ import {
   getLogLevelFromEnv
 } from '@context-action/react';
 import { LogLevel } from '@context-action/logger';
-import { PageWithLogMonitor } from '../../components/LogMonitor';
+import { PageWithLogMonitor } from '../../components/LogMonitor/';
 
 // 액션 타입 정의
 interface LoggerActionMap extends ActionPayloadMap {

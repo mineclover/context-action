@@ -34,11 +34,15 @@ export interface IStoreRegistry {
   readonly name: string;                           // Registry 식별자
   subscribe: Subscribe;                            // Registry 변경 구독
   getSnapshot: () => Array<[string, IStore]>;      // 등록된 Store 목록 스냅샷
-  register: (name: string, store: IStore) => void; // Store 등록
-  unregister: (name: string) => void;              // Store 등록 해제
+  register: (name: string, store: IStore, metadata?: any) => void; // Store 등록
+  unregister: (name: string) => boolean;           // Store 등록 해제
   getStore: (name: string) => IStore | undefined;  // 이름으로 Store 조회
   getAllStores: () => Map<string, IStore>;         // 전체 Store 목록
   hasStore: (name: string) => boolean;             // Store 존재 여부 확인
+  getStoreCount: () => number;                     // 등록된 Store 개수
+  getStoreNames: () => string[];                   // 등록된 Store 이름 목록
+  clear: () => void;                               // 모든 Store 정리
+  forEach: (callback: (store: IStore, name: string) => void) => void; // Store 순회
 }
 
 // === 이벤트 시스템 타입 ===

@@ -4,7 +4,7 @@ import { createLogger } from '@context-action/logger';
 /**
  * Store metadata interface
  */
-interface StoreMetadata {
+export interface StoreMetadata {
   registeredAt: number;
   name: string;
   tags?: string[];

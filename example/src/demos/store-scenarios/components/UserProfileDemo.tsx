@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useStoreValue } from '@context-action/react';
-import { useActionLogger } from '../../../components/LogMonitor';
+import { useActionLoggerWithToast } from '../../../components/LogMonitor/';
 import { userStore } from '../stores';
 import { storeActionRegister } from '../actions';
 import type { User } from '../types';
@@ -9,7 +9,7 @@ export function UserProfileDemo() {
   const user = useStoreValue(userStore);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState(user);
-  const logger = useActionLogger();
+  const logger = useActionLoggerWithToast();
 
   useEffect(() => {
     setEditForm(user);

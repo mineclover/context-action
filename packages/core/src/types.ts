@@ -8,6 +8,8 @@ import type { Logger, LogLevel } from '@context-action/logger';
 /**
  * Base interface for defining action payload mappings
  * @implements action-payload-map
+ * @implements type-safety
+ * @implements compile-time-validation
  * @memberof core-concepts
  * @since 1.0.0
  * 

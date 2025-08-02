@@ -11,7 +11,7 @@ import {
 
 } from '@context-action/react';
 import { LogLevel } from '@context-action/logger';
-import { PageWithLogMonitor, useActionLogger } from '../../components/LogMonitor';
+import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
 
 // React Hooks 최적화 액션 맵
 interface HooksOptimizationMap extends ActionPayloadMap {
