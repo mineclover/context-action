@@ -185,6 +185,91 @@ Each layer of the architecture can be tested in isolation:
 -   **Stores** can be tested as standalone state containers.
 -   **Components** can be tested with a mock `dispatch` function.
 
+### 5. [Performance Optimization Patterns][performance-patterns]
+
+The framework includes several built-in patterns for optimal performance:
+
+#### Memory Management
+- **Store Registry Pattern**: Automatic cleanup of unused stores
+- **Lazy Store Creation**: Stores created only when needed
+- **Reference Stability**: Stable function references to prevent unnecessary re-renders
+
+#### Action Pipeline Optimization
+- **Priority-based Execution**: High-priority handlers execute first
+- **Selective Handler Execution**: Action guards prevent unnecessary processing
+- **Debounce/Throttle Support**: Built-in rate limiting for frequent actions
+
+```typescript
+// Example: Performance-optimized action handler
+actionRegister.register('expensiveCalculation', 
+  async (payload, controller) => {
+    // Use controller.abort() for early termination
+    if (payload.skipCondition) {
+      controller.abort('Skipped due to condition');
+      return;
+    }
+    
+    // Batch store updates for better performance
+    const results = await heavyComputation(payload);
+    
+    // Single store update instead of multiple
+    storeRegistry.updateMultiple({
+      calculationResults: results,
+      lastUpdated: Date.now(),
+      status: 'completed'
+    });
+  }, 
+  { 
+    priority: 10,
+    debounce: 300 // Prevent excessive calls
+  }
+);
+```
+
+---
+
+## Real-World Implementation Examples
+
+### Modern LogMonitor Architecture
+
+The framework's LogMonitor system demonstrates advanced architectural patterns:
+
+```mermaid
+graph TB
+    subgraph "LogMonitor Modular Architecture"
+        Types[types.ts<br/>Type Definitions]
+        Registry[store-registry.ts<br/>Store Management]
+        Utils[utils.ts<br/>Pure Functions]
+        Context[context.tsx<br/>React Integration]
+        Hooks[hooks.tsx<br/>Business Logic]
+        Component[LogMonitor.tsx<br/>UI Presentation]
+    end
+    
+    subgraph "Dependency Injection"
+        ToastSystem[Toast System<br/>Optional Dependency]
+        Logger[Custom Logger<br/>Optional Dependency]
+    end
+    
+    Types --> Registry
+    Types --> Context
+    Types --> Hooks
+    Registry --> Context
+    Utils --> Context
+    Utils --> Component
+    Context --> Hooks
+    Hooks --> Component
+    
+    ToastSystem -.->|"Injected"| Hooks
+    Logger -.->|"Injected"| Hooks
+```
+
+#### Key Architectural Improvements:
+1. **Modular Design**: Each module has a single responsibility
+2. **Dependency Injection**: External systems injected rather than tightly coupled
+3. **Type Safety**: Comprehensive TypeScript coverage
+4. **Performance**: Memoized functions and stable references
+5. **Testability**: Each module can be tested independently
+
 ---
 
 ## Advanced Patterns & Examples
@@ -238,6 +323,29 @@ actionRegister.register('fetchUserData', async (payload, controller) => {
 });
 ```
 
+### 3. [Modular System Integration][modular-integration]
+The LogMonitor example shows how to build modular, reusable systems:
+
+```typescript
+// Dependency injection pattern for loose coupling
+export function useActionLoggerWithCustomToast(toastSystem: ToastSystem) {
+  return useActionLogger({ toastSystem });
+}
+
+// Store registry pattern for multi-instance management
+const logMonitorStoreRegistry = LogMonitorStoreRegistry.getInstance();
+const stores = logMonitorStoreRegistry.getStores(pageId, initialConfig);
+
+// Pure function utilities for testability
+export function createLogEntry(pageId: string, entry: LogEntryData): LogEntry {
+  return {
+    ...entry,
+    id: generateLogEntryId(pageId),
+    timestamp: getCurrentTimeString(),
+  };
+}
+```
+
 ---
 
 ## Comparison with Traditional MVVM
@@ -250,6 +358,8 @@ actionRegister.register('fetchUserData', async (payload, controller) => {
 | State Updates | Direct property setters | Decoupled store setters |
 | Type Safety | Can be runtime-dependent | Compile-time safety is central |
 | Debugging | Can involve complex binding chains | Linear, traceable action flow |
+| Modularity | Often monolithic ViewModels | Composable, injectable handlers |
+| Performance | View-driven optimization | Action-driven lazy evaluation |
 
 ## See Also
 
@@ -258,23 +368,25 @@ actionRegister.register('fetchUserData', async (payload, controller) => {
 - [Best Practices](./best-practices.md) - Development best practices and guidelines
 
 <!-- Glossary Reference Links -->
-[mvvm-pattern]: ../glossary/architecture-terms.md#mvvm-pattern
-[action-handler]: ../glossary/core-concepts.md#action-handler
-[viewmodel-layer]: ../glossary/architecture-terms.md#viewmodel-layer
-[model-layer]: ../glossary/architecture-terms.md#model-layer
-[view-layer]: ../glossary/architecture-terms.md#view-layer
-[action-pipeline-system]: ../glossary/core-concepts.md#action-pipeline-system
-[action-payload-map]: ../glossary/core-concepts.md#action-payload-map
-[actionregister]: ../glossary/api-terms.md#actionregister
-[pipeline-controller]: ../glossary/core-concepts.md#pipeline-controller
-[store-integration-pattern]: ../glossary/core-concepts.md#store-integration-pattern
-[lazy-evaluation]: ../glossary/architecture-terms.md#lazy-evaluation
-[business-logic]: ../glossary/architecture-terms.md#business-logic
-[decoupled-architecture]: ../glossary/architecture-terms.md#decoupled-architecture
-[type-safety]: ../glossary/architecture-terms.md#type-safety
-[storeprovider]: ../glossary/api-terms.md#storeprovider
-[actionprovider]: ../glossary/api-terms.md#actionprovider
-[action-dispatcher]: ../glossary/api-terms.md#action-dispatcher
-[store-hooks]: ../glossary/api-terms.md#store-hooks
-[cross-store-coordination]: ../glossary/api-terms.md#cross-store-coordination
-[async-operations]: ../glossary/api-terms.md#async-operations
+[mvvm-pattern]: ../../ko/glossary/architecture-terms.md#mvvm-pattern
+[action-handler]: ../../ko/glossary/core-concepts.md#action-handler
+[viewmodel-layer]: ../../ko/glossary/architecture-terms.md#viewmodel-layer
+[model-layer]: ../../ko/glossary/architecture-terms.md#model-layer
+[view-layer]: ../../ko/glossary/architecture-terms.md#view-layer
+[action-pipeline-system]: ../../ko/glossary/core-concepts.md#action-pipeline-system
+[action-payload-map]: ../../ko/glossary/core-concepts.md#action-payload-map
+[actionregister]: ../../ko/glossary/api-terms.md#actionregister
+[pipeline-controller]: ../../ko/glossary/core-concepts.md#pipeline-controller
+[store-integration-pattern]: ../../ko/glossary/core-concepts.md#store-integration-pattern
+[lazy-evaluation]: ../../ko/glossary/architecture-terms.md#lazy-evaluation
+[business-logic]: ../../ko/glossary/architecture-terms.md#business-logic
+[decoupled-architecture]: ../../ko/glossary/architecture-terms.md#decoupled-architecture
+[type-safety]: ../../ko/glossary/architecture-terms.md#type-safety
+[performance-patterns]: ../../ko/glossary/architecture-terms.md#performance-patterns
+[modular-integration]: ../../ko/glossary/architecture-terms.md#modular-integration
+[storeprovider]: ../../ko/glossary/api-terms.md#storeprovider
+[actionprovider]: ../../ko/glossary/api-terms.md#actionprovider
+[action-dispatcher]: ../../ko/glossary/api-terms.md#action-dispatcher
+[store-hooks]: ../../ko/glossary/api-terms.md#store-hooks
+[cross-store-coordination]: ../../ko/glossary/api-terms.md#cross-store-coordination
+[async-operations]: ../../ko/glossary/api-terms.md#async-operations
