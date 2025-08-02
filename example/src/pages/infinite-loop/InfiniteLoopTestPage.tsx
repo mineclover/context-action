@@ -155,8 +155,8 @@ function GoodStableComponent({ pageId }: { pageId: string }) {
   );
 }
 
-// 메인 테스트 페이지
-export default function InfiniteLoopTestPage() {
+// 내부 컨텐츠 컴포넌트 (Provider 내부에서 사용)
+function InfiniteLoopTestContent() {
   const { logAction, logSystem, logError } = useActionLoggerWithToast();
   const [mounted, setMounted] = useState(false);
   const [componentType, setComponentType] = useState<'bad' | 'good' | 'improved'>('good');
@@ -181,7 +181,6 @@ export default function InfiniteLoopTestPage() {
   }, [logAction, pageId]);
   
   return (
-    <PageWithLogMonitor pageId="infinite-loop-test" title="Infinite Loop Test Environment">
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <h1 className="text-2xl font-bold text-blue-800 mb-2">
@@ -328,7 +327,15 @@ export default function InfiniteLoopTestPage() {
           </div>
         </div>
       </div>
-      </div>
+    </div>
+  );
+}
+
+// 메인 테스트 페이지
+export default function InfiniteLoopTestPage() {
+  return (
+    <PageWithLogMonitor pageId="infinite-loop-test" title="Infinite Loop Test Environment">
+      <InfiniteLoopTestContent />
     </PageWithLogMonitor>
   );
 }

@@ -359,8 +359,8 @@ function ThrottledTestComponent({
   );
 }
 
-// 메인 페이지 컴포넌트
-export default function ThrottledComparisonPage() {
+// 내부 컨텐츠 컴포넌트 (Provider 내부에서 사용)
+function ThrottledComparisonContent() {
   const { logAction, logSystem, logError } = useActionLoggerWithToast();
   const [selectedPattern, setSelectedPattern] = useState<DataPattern>('primitive');
   const [testKey, setTestKey] = useState(0);
@@ -384,7 +384,7 @@ export default function ThrottledComparisonPage() {
     
     console.clear();
     logAction('resetAllComponents', { isolationId }, { toast: true });
-  }, []);
+  }, [logAction, isolationId]);
   
   // 패턴 변경
   const changePattern = useCallback((pattern: DataPattern) => {
@@ -404,14 +404,13 @@ export default function ThrottledComparisonPage() {
       const temp = new Array(1000000).fill(0);
       temp.length = 0;
     }
-  }, []);
+  }, [logAction, logSystem]);
   
   const patternInfo = DATA_PATTERN_INFO[selectedPattern];
   const totalRenderRate = Object.values(componentStats).reduce((sum: number, stat: any) => sum + (stat?.renderRate || 0), 0);
   const avgMemoryUsage = Object.values(componentStats).reduce((sum: number, stat: any) => sum + (stat?.memoryUsage || 0), 0) / 3;
   
   return (
-    <PageWithLogMonitor pageId="throttled-comparison" title="Throttled Infinite Loop Demo">
       <div className="max-w-6xl mx-auto p-6 space-y-6">
         {/* 헤더 */}
         <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-4">
@@ -577,7 +576,15 @@ export default function ThrottledComparisonPage() {
           </div>
         </div>
       </div>
-      </div>
+    </div>
+  );
+}
+
+// 메인 페이지 컴포넌트
+export default function ThrottledComparisonPage() {
+  return (
+    <PageWithLogMonitor pageId="throttled-comparison" title="Throttled Infinite Loop Demo">
+      <ThrottledComparisonContent />
     </PageWithLogMonitor>
   );
 }
