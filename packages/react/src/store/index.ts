@@ -173,5 +173,17 @@ export {
   useStoreMemoryTracking
 } from './isolation-hooks';
 
+// === CONTEXT STORE PATTERNS ===
+export {
+  // Context Store Pattern Factory
+  createContextStorePattern,
+  
+  // Pre-defined Context Store Patterns
+  PageStores,
+  ComponentStores, 
+  DemoStores,
+  TestStores
+} from './context-store-pattern';
+
 // === METADATA ===
 export const VERSION = '1.0.0';
