@@ -103,5 +103,26 @@ export {
   RegistryUtils
 } from './registry-sync';
 
+// === IMMUTABILITY UTILITIES ===
+export {
+  // Core immutability functions
+  deepClone,
+  verifyImmutability,
+  safeGet,
+  safeSet,
+  performantSafeGet,
+  
+  // Configuration
+  setGlobalImmutabilityOptions,
+  getGlobalImmutabilityOptions,
+  
+  // Performance monitoring
+  getPerformanceProfile,
+  
+  // Types
+  type ImmutabilityOptions,
+  type PerformanceProfile
+} from './immutable';
+
 // === METADATA ===
 export const VERSION = '1.0.0';

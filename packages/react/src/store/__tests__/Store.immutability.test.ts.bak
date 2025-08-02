@@ -1,0 +1,312 @@
+/**
+ * Store 불변성 보장 테스트
+ * 
+ * 테스트 목표:
+ * 1. getValue() 메서드가 안전한 복사본을 반환하는지 검증
+ * 2. getSnapshot() 메서드가 안전한 복사본을 반환하는지 검증
+ * 3. setValue() 메서드가 입력값을 안전하게 복사하는지 검증
+ * 4. update() 메서드가 안전한 복사본을 전달하는지 검증
+ * 5. 외부 참조를 통한 Store 내부 상태 변경이 불가능한지 검증
+ */
+
+import { createStore } from '../Store';
+import { setGlobalImmutabilityOptions } from '../immutable';
+
+describe('Store Immutability', () => {
+  beforeEach(() => {
+    // 각 테스트 전에 불변성 옵션 초기화
+    setGlobalImmutabilityOptions({
+      enableCloning: true,
+      enableVerification: true,
+      warnOnFallback: false // 테스트 중 경고 메시지 억제
+    });
+  });
+
+  afterEach(() => {
+    // 테스트 후 기본 설정으로 복원
+    setGlobalImmutabilityOptions({
+      enableCloning: true,
+      enableVerification: process.env.NODE_ENV === 'development',
+      warnOnFallback: true
+    });
+  });
+
+  describe('Primitive Values', () => {
+    it('should handle primitive values correctly (no cloning needed)', () => {
+      const numberStore = createStore('number', 42);
+      const stringStore = createStore('string', 'hello');
+      const booleanStore = createStore('boolean', true);
+
+      // Primitive 값은 이미 불변이므로 복사 없이 동일한 값 반환
+      expect(numberStore.getValue()).toBe(42);
+      expect(stringStore.getValue()).toBe('hello');
+      expect(booleanStore.getValue()).toBe(true);
+
+      // Snapshot도 동일
+      expect(numberStore.getSnapshot().value).toBe(42);
+      expect(stringStore.getSnapshot().value).toBe('hello');
+      expect(booleanStore.getSnapshot().value).toBe(true);
+    });
+  });
+
+  describe('Object Values - getValue() Immutability', () => {
+    it('should return deep cloned object from getValue()', () => {
+      const originalUser = {
+        id: '1',
+        name: 'John',
+        profile: {
+          age: 30,
+          settings: {
+            theme: 'dark',
+            notifications: true
+          }
+        },
+        tags: ['developer', 'react']
+      };
+
+      const userStore = createStore('user', originalUser);
+      const retrievedUser = userStore.getValue();
+
+      // 1. 최상위 객체 참조가 다른지 확인
+      expect(retrievedUser).not.toBe(originalUser);
+      expect(retrievedUser).toEqual(originalUser);
+
+      // 2. 중첩된 객체 참조가 다른지 확인
+      expect(retrievedUser.profile).not.toBe(originalUser.profile);
+      expect(retrievedUser.profile.settings).not.toBe(originalUser.profile.settings);
+
+      // 3. 배열 참조가 다른지 확인
+      expect(retrievedUser.tags).not.toBe(originalUser.tags);
+
+      // 4. 외부에서 반환된 객체를 수정해도 Store 내부가 변경되지 않는지 확인
+      retrievedUser.name = 'Jane';
+      retrievedUser.profile.age = 25;
+      retrievedUser.profile.settings.theme = 'light';
+      retrievedUser.tags.push('typescript');
+
+      const storeValue = userStore.getValue();
+      expect(storeValue.name).toBe('John'); // 원본 유지
+      expect(storeValue.profile.age).toBe(30); // 원본 유지
+      expect(storeValue.profile.settings.theme).toBe('dark'); // 원본 유지
+      expect(storeValue.tags).toEqual(['developer', 'react']); // 원본 유지
+    });
+  });
+
+  describe('Object Values - getSnapshot() Immutability', () => {
+    it('should return deep cloned object in snapshot', () => {
+      const originalData = {
+        users: [
+          { id: 1, name: 'Alice' },
+          { id: 2, name: 'Bob' }
+        ],
+        metadata: {
+          total: 2,
+          lastUpdate: new Date('2024-01-01')
+        }
+      };
+
+      const dataStore = createStore('data', originalData);
+      const snapshot = dataStore.getSnapshot();
+
+      // 1. 스냅샷 value가 다른 참조인지 확인
+      expect(snapshot.value).not.toBe(originalData);
+      expect(snapshot.value).toEqual(originalData);
+
+      // 2. 중첩된 배열과 객체가 다른 참조인지 확인
+      expect(snapshot.value.users).not.toBe(originalData.users);
+      expect(snapshot.value.users[0]).not.toBe(originalData.users[0]);
+      expect(snapshot.value.metadata).not.toBe(originalData.metadata);
+
+      // 3. 스냅샷을 수정해도 Store 내부가 변경되지 않는지 확인
+      snapshot.value.users[0].name = 'Modified Alice';
+      snapshot.value.metadata.total = 999;
+
+      const newSnapshot = dataStore.getSnapshot();
+      expect(newSnapshot.value.users[0].name).toBe('Alice'); // 원본 유지
+      expect(newSnapshot.value.metadata.total).toBe(2); // 원본 유지
+    });
+  });
+
+  describe('setValue() Input Immutability', () => {
+    it('should clone input value to prevent external mutation', () => {
+      const userStore = createStore('user', { id: '', name: '' });
+      
+      const externalUser = {
+        id: '1',
+        name: 'John',
+        profile: {
+          age: 30
+        }
+      };
+
+      // setValue로 외부 객체 설정
+      userStore.setValue(externalUser);
+
+      // 외부 객체를 수정
+      externalUser.name = 'Modified John';
+      externalUser.profile.age = 999;
+
+      // Store 내부 값은 변경되지 않아야 함
+      const storeValue = userStore.getValue();
+      expect(storeValue.name).toBe('John'); // 원본 유지
+      expect(storeValue.profile.age).toBe(30); // 원본 유지
+    });
+  });
+
+  describe('update() Function Immutability', () => {
+    it('should pass cloned value to updater function', () => {
+      const initialState = {
+        count: 0,
+        items: [{ id: 1, name: 'item1' }]
+      };
+
+      const counterStore = createStore('counter', initialState);
+
+      let receivedValue: any = null;
+      counterStore.update((current) => {
+        receivedValue = current;
+        
+        // updater 함수 내에서 받은 값을 수정해도 Store에 영향 없어야 함
+        current.count = 999;
+        current.items[0].name = 'modified';
+        
+        return {
+          count: current.count + 1, // 수정된 값을 기반으로 업데이트
+          items: [...current.items, { id: 2, name: 'item2' }]
+        };
+      });
+
+      // 1. updater에 전달된 값이 복사본인지 확인
+      expect(receivedValue).not.toBe(initialState);
+
+      // 2. updater 내에서의 수정이 원본 Store에 영향을 주지 않았는지 확인
+      // (update 이전의 getValue 호출로 확인할 수 없으므로, 로직 검증으로 대체)
+      
+      // 3. 최종 결과가 올바른지 확인
+      const finalValue = counterStore.getValue();
+      expect(finalValue.count).toBe(1000); // 999 + 1
+      expect(finalValue.items).toHaveLength(2);
+    });
+  });
+
+  describe('Array Values Immutability', () => {
+    it('should handle array values with deep cloning', () => {
+      const originalArray = [
+        { id: 1, data: { value: 'a' } },
+        { id: 2, data: { value: 'b' } }
+      ];
+
+      const arrayStore = createStore('array', originalArray);
+      const retrievedArray = arrayStore.getValue();
+
+      // 1. 배열 자체가 다른 참조인지 확인
+      expect(retrievedArray).not.toBe(originalArray);
+      expect(retrievedArray).toEqual(originalArray);
+
+      // 2. 배열 요소들이 다른 참조인지 확인
+      expect(retrievedArray[0]).not.toBe(originalArray[0]);
+      expect(retrievedArray[0].data).not.toBe(originalArray[0].data);
+
+      // 3. 반환된 배열을 수정해도 Store가 영향받지 않는지 확인
+      retrievedArray.push({ id: 3, data: { value: 'c' } });
+      retrievedArray[0].data.value = 'modified';
+
+      const storeArray = arrayStore.getValue();
+      expect(storeArray).toHaveLength(2); // 원본 길이 유지
+      expect(storeArray[0].data.value).toBe('a'); // 원본 값 유지
+    });
+  });
+
+  describe('Immutability Options', () => {
+    it('should respect global immutability options', () => {
+      const testObject = { id: 1, name: 'test' };
+      const store = createStore('test', testObject);
+
+      // 복사 비활성화
+      setGlobalImmutabilityOptions({ enableCloning: false });
+
+      const retrievedValue = store.getValue();
+      
+      // 복사가 비활성화되었으므로 같은 참조여야 함
+      expect(retrievedValue).toBe(testObject);
+
+      // 복사 재활성화
+      setGlobalImmutabilityOptions({ enableCloning: true });
+
+      const clonedValue = store.getValue();
+      
+      // 복사가 활성화되었으므로 다른 참조여야 함
+      expect(clonedValue).not.toBe(testObject);
+      expect(clonedValue).toEqual(testObject);
+    });
+  });
+
+  describe('Special Values', () => {
+    it('should handle null and undefined correctly', () => {
+      const nullStore = createStore('null', null);
+      const undefinedStore = createStore('undefined', undefined);
+
+      expect(nullStore.getValue()).toBeNull();
+      expect(undefinedStore.getValue()).toBeUndefined();
+      
+      expect(nullStore.getSnapshot().value).toBeNull();
+      expect(undefinedStore.getSnapshot().value).toBeUndefined();
+    });
+
+    it('should handle Date objects correctly', () => {
+      const originalDate = new Date('2024-01-01');
+      const dateStore = createStore('date', originalDate);
+      
+      const retrievedDate = dateStore.getValue();
+      
+      // Date 객체가 다른 인스턴스인지 확인
+      expect(retrievedDate).not.toBe(originalDate);
+      expect(retrievedDate.getTime()).toBe(originalDate.getTime());
+      
+      // 반환된 Date를 수정해도 Store가 영향받지 않는지 확인
+      retrievedDate.setFullYear(2025);
+      
+      const storeDate = dateStore.getValue();
+      expect(storeDate.getFullYear()).toBe(2024); // 원본 유지
+    });
+  });
+
+  describe('Performance Considerations', () => {
+    it('should not clone primitive values unnecessarily', () => {
+      const numberStore = createStore('number', 42);
+      
+      // 여러 번 호출해도 동일한 값 반환 (primitive는 복사 불필요)
+      const value1 = numberStore.getValue();
+      const value2 = numberStore.getValue();
+      
+      expect(value1).toBe(42);
+      expect(value2).toBe(42);
+      expect(value1).toBe(value2); // primitive는 === 비교 가능
+    });
+
+    it('should handle large objects efficiently', () => {
+      // 큰 객체 생성
+      const largeObject = {
+        data: Array.from({ length: 1000 }, (_, i) => ({
+          id: i,
+          value: `item-${i}`,
+          metadata: { created: new Date(), tags: [`tag-${i}`] }
+        }))
+      };
+
+      const store = createStore('large', largeObject);
+      
+      // 성능 테스트 (시간 측정)
+      const start = performance.now();
+      const cloned = store.getValue();
+      const end = performance.now();
+      
+      // 복사가 올바르게 동작하는지 확인
+      expect(cloned).not.toBe(largeObject);
+      expect(cloned.data).toHaveLength(1000);
+      
+      // 성능이 합리적인 범위 내인지 확인 (100ms 이내)
+      expect(end - start).toBeLessThan(100);
+    });
+  });
+});
