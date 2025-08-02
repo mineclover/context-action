@@ -1,6 +1,10 @@
 /**
  * @fileoverview ActionProvider - React Context Provider for Action dispatch
  * Provides centralized action dispatch functionality following ARCHITECTURE.md patterns
+ * 
+ * @implements viewmodel-layer
+ * @implements mvvm-pattern  
+ * @memberof architecture-terms
  */
 
 import React, { createContext, useContext, useRef, ReactNode } from 'react';
@@ -32,6 +36,8 @@ export interface ActionProviderProps {
 /**
  * React context provider for action system
  * @implements actionprovider
+ * @implements viewmodel-layer
+ * @implements mvvm-pattern
  * @memberof api-terms
  * @example
  * ```typescript
@@ -91,6 +97,7 @@ function useActionContext<T extends ActionPayloadMap = ActionPayloadMap>(): Acti
 /**
  * Hook to get action dispatch function
  * @implements action-dispatcher
+ * @implements useactiondispatch
  * @memberof api-terms
  * 
  * Following ARCHITECTURE.md pattern for component usage
@@ -124,6 +131,9 @@ export function useActionDispatch<T extends ActionPayloadMap = ActionPayloadMap>
 /**
  * Hook to get ActionRegister instance for handler registration
  * Following ARCHITECTURE.md pattern for action handler registration
+ * 
+ * @implements useactionregister
+ * @memberof core-concepts
  * 
  * @example
  * ```typescript

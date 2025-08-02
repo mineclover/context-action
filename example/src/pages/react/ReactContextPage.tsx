@@ -9,7 +9,7 @@ import {
   createStore,
   useStoreValue
 } from '@context-action/react';
-import { PageWithLogMonitor, useActionLogger } from '../../components/LogMonitor';
+import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
 
 // 이벤트 엔트리 타입 정의
 interface EventEntry {
@@ -41,7 +41,7 @@ const globalMessageStore = createStore('global-message', 'Welcome to Multi-Conte
 const globalEventStore = createStore<EventEntry[]>('global-events', []);
 const contextCountStore = createStore('context-count', 0);
 
-// 로거는 useActionLogger 훅에서 자동 생성됨
+  // 로거는 useActionLoggerWithToast 훅에서 자동 생성됨
 
 // 컨텍스트 정보를 전달하기 위한 Context
 const ContextInfoContext = createContext<{

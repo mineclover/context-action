@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PageWithLogMonitor } from '../../components/LogMonitor';
+import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
 import { registerStoreActions } from '../../demos/store-scenarios/actions';
 import { 
   UserProfileDemo,
@@ -207,7 +207,7 @@ storeActionRegister.register('updateUser', ({ user }, controller) => {
 // 4. 컴포넌트 사용 (/components/UserProfileDemo.tsx)
 export function UserProfileDemo() {
   const user = useStoreValue(userStore);
-  const logger = useActionLogger();
+  const logger = useActionLoggerWithToast();
   
   const handleSave = useCallback(() => {
     logger.logAction('saveUserProfile', { oldUser: user, newUser: editForm });

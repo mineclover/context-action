@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ActionRegister, ActionPayloadMap } from '@context-action/react';
-import { LogMonitorProvider, LogMonitor, useActionLogger } from '../../components/LogMonitor';
+import { LogMonitorProvider, LogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
 
 // 고급 액션 맵 정의
 interface AdvancedActionMap extends ActionPayloadMap {
@@ -28,7 +28,7 @@ function CoreAdvancedDemo() {
   const [actionRegister] = useState(() => new ActionRegister<AdvancedActionMap>());
   const [isMiddlewareEnabled, setIsMiddlewareEnabled] = useState(true);
   const [chainStep, setChainStep] = useState(0);
-  const { logAction, logSystem, logError } = useActionLogger();
+  const { logAction, logSystem, logError } = useActionLoggerWithToast();
 
   // 로깅 미들웨어 (안정적인 참조)
   const loggingMiddleware: Middleware<AdvancedActionMap> = useCallback(

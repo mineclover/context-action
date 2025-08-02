@@ -325,6 +325,10 @@ export function createTransactionHandler<T>(
  * Helper for creating action handlers with validation patterns
  * Following ARCHITECTURE.md business logic validation patterns
  * 
+ * @implements business-logic
+ * @implements domain-rules
+ * @memberof core-concepts
+ * 
  * @template T - Action payload type
  * @param validators - Array of validation functions
  * @param handler - Main handler function

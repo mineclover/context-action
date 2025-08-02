@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ActionRegister, ActionPayloadMap } from '@context-action/react';
-import { LogMonitorProvider, LogMonitor, useActionLogger } from '../../components/LogMonitor';
+import { LogMonitorProvider, LogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
 
 // 액션 타입 정의
 interface CoreActionMap extends ActionPayloadMap {
@@ -15,7 +15,7 @@ interface CoreActionMap extends ActionPayloadMap {
 function CoreBasicsDemo() {
   const [count, setCount] = useState(0);
   const [actionRegister] = useState(() => new ActionRegister<CoreActionMap>());
-  const { logAction, logSystem } = useActionLogger();
+  const { logAction, logSystem } = useActionLoggerWithToast();
 
   useEffect(() => {
     logSystem('ActionRegister initialized');

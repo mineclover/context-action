@@ -8,7 +8,7 @@ import {
   useStoreValue,
   ActionPayloadMap
 } from '@context-action/react';
-import { PageWithLogMonitor, useActionLogger } from '../../components/LogMonitor';
+import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
 
 // 액션 타입 정의
 interface AppActions extends ActionPayloadMap {
@@ -19,7 +19,7 @@ interface AppActions extends ActionPayloadMap {
   logActivity: { activity: string };
 }
 
-// 로거는 useActionLogger 훅에서 자동 생성됨
+// 로거는 useActionLoggerWithToast 훅에서 자동 생성됨
 
 // 스토어 인스턴스들
 const counterStore = createStore('provider-counter', 0);
@@ -28,7 +28,7 @@ const messageStore = createStore('provider-message', 'Hello from Provider!');
 // 카운터 컴포넌트
 function CounterComponent() {
   const count = useStoreValue(counterStore);
-  const logger = useActionLogger();
+  const logger = useActionLoggerWithToast();
 
   const handleIncrement = useCallback(() => {
     if (typeof count === 'number') {
@@ -71,7 +71,7 @@ function CounterComponent() {
 function MessageComponent() {
   const message = useStoreValue(messageStore);
   const [inputValue, setInputValue] = useState('');
-  const logger = useActionLogger();
+  const logger = useActionLoggerWithToast();
   
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();

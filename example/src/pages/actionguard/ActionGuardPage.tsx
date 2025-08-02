@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { ActionRegister, ActionPayloadMap } from '@context-action/react';
-import { PageWithLogMonitor, useActionLogger } from '../../components/LogMonitor';
+import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
 
 // Action Guard 액션 맵
 interface ActionGuardMap extends ActionPayloadMap {
@@ -80,7 +80,7 @@ function SearchDemo() {
   const [searchResults, setSearchResults] = useState<string[]>([]);
   const [searchCount, setSearchCount] = useState(0);
   const [actionRegister] = useState(() => new ActionRegister<ActionGuardMap>());
-  const { logAction, logSystem } = useActionLogger();
+  const { logAction, logSystem } = useActionLoggerWithToast();
   
   // 실제 검색 함수 (모의)
   const performSearch = useCallback((term: string) => {
@@ -141,7 +141,7 @@ function ScrollDemo() {
   const [scrollTop, setScrollTop] = useState(0);
   const [scrollCount, setScrollCount] = useState(0);
   const [actionRegister] = useState(() => new ActionRegister<ActionGuardMap>());
-  const { logAction } = useActionLogger();
+  const { logAction } = useActionLoggerWithToast();
   
   const throttledScrollHandler = useThrottle((scrollTop: number) => {
     setScrollCount(prev => prev + 1);
@@ -189,7 +189,7 @@ function ApiBlockingDemo() {
   const [apiCalls, setApiCalls] = useState<string[]>([]);
   const [actionRegister] = useState(() => new ActionRegister<ActionGuardMap>());
   const { isBlocked, lastAction, blockAction } = useActionBlock(2000);
-  const { logAction, logSystem } = useActionLogger();
+  const { logAction, logSystem } = useActionLoggerWithToast();
   
   useEffect(() => {
     const unsubscribe = actionRegister.register('apiCall', (data, controller) => {
@@ -256,7 +256,7 @@ function MouseEventDemo() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [moveCount, setMoveCount] = useState(0);
   const [actionRegister] = useState(() => new ActionRegister<ActionGuardMap>());
-  const { logAction } = useActionLogger();
+  const { logAction } = useActionLoggerWithToast();
   
   const throttledMouseHandler = useThrottle((x: number, y: number) => {
     setMoveCount(prev => prev + 1);

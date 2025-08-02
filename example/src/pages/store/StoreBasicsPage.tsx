@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { createStore, useStoreValue } from '@context-action/react';
-import { PageWithLogMonitor, useActionLogger } from '../../components/LogMonitor';
+import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
 
 // Store 인스턴스 생성
 const messageStore = createStore('message', 'Hello, Context-Action!');
@@ -10,7 +10,7 @@ const userStore = createStore('user', { name: 'John Doe', email: 'john@example.c
 // 커스텀 훅 - 메시지 스토어 관리
 function useMessageDemo() {
   const message = useStoreValue(messageStore);
-  const { logAction } = useActionLogger();
+  const { logAction } = useActionLoggerWithToast();
   
   const updateMessage = useCallback((newMessage: string) => {
     logAction('updateMessage', { oldMessage: message, newMessage });
@@ -28,7 +28,7 @@ function useMessageDemo() {
 // 커스텀 훅 - 카운터 스토어 관리
 function useCounterDemo() {
   const count = useStoreValue(counterStore);
-  const { logAction } = useActionLogger();
+  const { logAction } = useActionLoggerWithToast();
 
   
   const increment = useCallback(() => {
@@ -57,7 +57,7 @@ function useCounterDemo() {
 // 커스텀 훅 - 사용자 스토어 관리
 function useUserDemo() {
   const user = useStoreValue(userStore);
-  const { logAction } = useActionLogger();
+  const { logAction } = useActionLoggerWithToast();
 
   
   const updateName = useCallback((name: string) => {
