@@ -38,66 +38,66 @@ The Context-Action framework follows these principles:
 ### Root Level Commands
 ```bash
 # Install dependencies
-pnpm install -w
+pnpm install
 
 # Build all packages
-pnpm build -w
+pnpm build
 
 # Build specific package
-pnpm build:core -w     # @context-action/core
-pnpm build:react -w    # @context-action/react
-pnpm build:jotai -w    # @context-action/jotai
-pnpm build:logger -w   # @context-action/logger
+pnpm build:core        # @context-action/core
+pnpm build:react       # @context-action/react
+pnpm build:jotai       # @context-action/jotai
+pnpm build:logger      # @context-action/logger
 
 # Run tests
-pnpm test -w           # All packages
-pnpm test:core -w      # Specific package
+pnpm test              # All packages
+pnpm test:core         # Specific package
 
 # Linting and type checking
-pnpm lint -w           # ESLint for all packages
-pnpm type-check -w     # TypeScript compilation check
+pnpm lint              # ESLint for all packages
+pnpm type-check        # TypeScript compilation check
 
 # Clean build artifacts
-pnpm clean -w
+pnpm clean
 
 # Development server (example app)
-pnpm dev -w            # Runs example application
+pnpm dev               # Runs example application
 ```
 
 ### Package Management (Lerna)
 ```bash
 # Check which packages have changed
-pnpm changed -w
+pnpm changed
 
 # See diff of changes
-pnpm diff -w
+pnpm diff
 
 # Version management
-pnpm version -w        # Interactive version bump
-pnpm version:patch -w  # Patch version bump
-pnpm version:minor -w  # Minor version bump
-pnpm version:major -w  # Major version bump
+pnpm version           # Interactive version bump
+pnpm version:patch     # Patch version bump
+pnpm version:minor     # Minor version bump
+pnpm version:major     # Major version bump
 
 # Publishing
-pnpm release -w        # Publish changed packages
-pnpm release:patch -w  # Version patch + publish
+pnpm release           # Publish changed packages
+pnpm release:patch     # Version patch + publish
 ```
 
 ### Documentation
 ```bash
 # Documentation development
-pnpm docs:dev -w       # VitePress dev server
-pnpm docs:build -w     # Build documentation
-pnpm docs:api -w       # Generate API docs with TypeDoc
-pnpm docs:sync -w      # Sync API docs to documentation
-pnpm docs:full -w      # Full documentation build pipeline
+pnpm docs:dev          # VitePress dev server
+pnpm docs:build        # Build documentation
+pnpm docs:api          # Generate API docs with TypeDoc
+pnpm docs:sync         # Sync API docs to documentation
+pnpm docs:full         # Full documentation build pipeline
 ```
 
 ### Example Application
 ```bash
 # Example app (in example/ directory)
-pnpm example:dev -w    # Development server
-pnpm example:build -w  # Build example app
+pnpm example:dev       # Development server
+pnpm example:build     # Build example app
 
 # Or from example directory:
 cd example
@@ -110,11 +110,11 @@ pnpm type-check    # TypeScript check
 ### Glossary System
 ```bash
 # Glossary management tools
-pnpm glossary:scan -w       # Scan codebase for terms
-pnpm glossary:validate -w   # Validate glossary definitions
-pnpm glossary:missing -w    # Analyze missing terms
-pnpm glossary:dashboard -w  # Generate implementation dashboard
-pnpm glossary:update -w     # Full glossary update pipeline
+pnpm glossary:scan          # Scan codebase for terms
+pnpm glossary:validate      # Validate glossary definitions
+pnpm glossary:missing       # Analyze missing terms
+pnpm glossary:dashboard     # Generate implementation dashboard
+pnpm glossary:update        # Full glossary update pipeline
 ```
 
 ## Testing Strategy
@@ -127,7 +127,7 @@ pnpm glossary:update -w     # Full glossary update pipeline
 ### Running Tests
 ```bash
 # Run single test file
-pnpm test:core -w -- --testNamePattern="ActionRegister"
+pnpm test:core -- --testNamePattern="ActionRegister"
 
 # Watch mode for development
 cd packages/core && pnpm test:watch
@@ -203,11 +203,11 @@ register('riskyAction', async (payload, controller) => {
 
 ## Development Workflow
 
-1. **Setup**: `pnpm install -w` from root
-2. **Development**: Use `pnpm dev -w` for live example app
+1. **Setup**: `pnpm install` from root
+2. **Development**: Use `pnpm dev` for live example app
 3. **Changes**: Make changes in respective `packages/*/src/` directories  
-4. **Testing**: Run `pnpm test -w` and `pnpm type-check -w`
-5. **Building**: Run `pnpm build -w` before committing
+4. **Testing**: Run `pnpm test` and `pnpm type-check`
+5. **Building**: Run `pnpm build` before committing
 6. **Documentation**: Update docs if changing public APIs
 
 ### Monorepo Dependencies

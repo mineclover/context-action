@@ -25,7 +25,7 @@
     "clean": "lerna run clean",
     "version": "lerna version",
     "version:patch": "lerna version patch",
-    "version:minor": "lerna version minor", 
+    "version:minor": "lerna version minor",
     "version:major": "lerna version major",
     "prerelease": "lerna run build && lerna run lint && lerna run type-check",
     "release": "lerna publish from-package",
@@ -39,10 +39,11 @@
     "glossary:validate": "cd glossary/tools && node glossary-validator.js",
     "glossary:missing": "cd glossary/tools && node missing-analysis.js",
     "glossary:dashboard": "cd glossary/tools && node implementation-dashboard.js",
+    "docs:translation": "node packages/glossary/bin/translation-check.js",
     "glossary:update": "pnpm glossary:scan && pnpm glossary:validate && pnpm glossary:missing && pnpm glossary:dashboard",
     "postrelease": "git push origin main --tags",
     "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs", 
+    "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
     "docs:api": "typedoc",
     "docs:sync": "node scripts/sync-api-docs.js",
@@ -67,6 +68,15 @@
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=9.0.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "esbuild@<=0.24.2": ">=0.25.0"
+    },
+    "ignoredBuiltDependencies": [
+      "esbuild",
+      "nx"
+    ]
   },
   "author": "mineclover",
   "license": "MIT"
