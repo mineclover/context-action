@@ -1,5 +1,6 @@
 import type { IStore, Listener, Snapshot, Unsubscribe } from './types';
 import { createLogger } from '@context-action/logger';
+import { safeGet, safeSet, getGlobalImmutabilityOptions, performantSafeGet } from './immutable';
 
 /**
  * Store 클래스 - 중앙화된 상태 관리의 핵심
@@ -67,51 +68,83 @@ export class Store<T = any> implements IStore<T> {
 
   /**
    * 현재 값 직접 가져오기 (액션 핸들러용)
-   * 핵심 로직: 스냅샷 래퍼 없이 실제 값에 직접 접근
+   * 핵심 로직: 불변성을 보장하는 깊은 복사본 반환
    * 
    * @implements lazy-evaluation
+   * @implements store-immutability
    * @memberof architecture-terms
    * 
    * 사용 시나리오: Action handler에서 최신 상태 읽기
+   * 보안 강화: 외부에서 반환된 값을 수정해도 Store 내부 상태는 보호됨
    */
   getValue(): T {
-    return this._value;
+    const options = getGlobalImmutabilityOptions();
+    const clonedValue = performantSafeGet(this._value, options.enableCloning);
+    
+    this.logger.trace(`Store getValue: ${this.name}`, { 
+      type: typeof this._value,
+      cloned: options.enableCloning 
+    });
+    
+    return clonedValue;
   }
 
   /**
    * Store 값 설정 및 구독자 알림
    * 핵심 로직: 
-   * 1. Object.is()로 참조 동등성 검사 (불필요한 리렌더링 방지)
-   * 2. 값 변경 시에만 스냅샷 재생성 및 알림
+   * 1. 입력값의 불변성 보장을 위한 깊은 복사
+   * 2. Object.is()로 참조 동등성 검사 (불필요한 리렌더링 방지)
+   * 3. 값 변경 시에만 스냅샷 재생성 및 알림
    * 
    * @implements unidirectional-data-flow
+   * @implements store-immutability
    * @memberof architecture-terms
+   * 
+   * 보안 강화: 입력값을 복사하여 Store 내부 상태가 외부 참조에 의해 변경되지 않도록 보호
    */
   setValue(value: T): void {
+    const options = getGlobalImmutabilityOptions();
+    const safeValue = safeSet(value, options.enableCloning);
     const oldValue = this._value;
+    
     // 참조 동등성 검사 - 성능 최적화의 핵심
-    if (!Object.is(this._value, value)) {
-      this._value = value;
+    if (!Object.is(this._value, safeValue)) {
+      this._value = safeValue;
       // 새 스냅샷 생성 - 불변성 보장
       this._snapshot = this._createSnapshot();
       this.logger.debug(`Store value updated: ${this.name}`, { 
         oldValue, 
-        newValue: value,
+        newValue: safeValue,
+        cloned: options.enableCloning,
         listenerCount: this.listeners.size 
       });
       // 모든 구독자에게 변경 알림
       this._notifyListeners();
     } else {
-      this.logger.trace(`Store value unchanged: ${this.name}`, { value });
+      this.logger.trace(`Store value unchanged: ${this.name}`, { value: safeValue });
     }
   }
 
   /**
    * Update value using updater function
+   * 핵심 로직: 
+   * 1. 현재 값의 안전한 복사본을 updater에 전달
+   * 2. updater 결과를 setValue로 안전하게 설정
+   * 
+   * @implements store-immutability
+   * 보안 강화: updater 함수가 내부 상태를 직접 수정할 수 없도록 복사본 전달
    */
   update(updater: (current: T) => T): void {
-    this.logger.trace(`Store update called: ${this.name}`, { currentValue: this._value });
-    this.setValue(updater(this._value));
+    const options = getGlobalImmutabilityOptions();
+    const safeCurrentValue = performantSafeGet(this._value, options.enableCloning);
+    
+    this.logger.trace(`Store update called: ${this.name}`, { 
+      currentValue: this._value,
+      cloned: options.enableCloning 
+    });
+    
+    const updatedValue = updater(safeCurrentValue);
+    this.setValue(updatedValue);
   }
 
   /**
@@ -131,8 +164,16 @@ export class Store<T = any> implements IStore<T> {
   }
 
   private _createSnapshot(): Snapshot<T> {
+    const options = getGlobalImmutabilityOptions();
+    const clonedValue = safeGet(this._value, options.enableCloning);
+    
+    this.logger.trace(`Creating snapshot for store: ${this.name}`, { 
+      type: typeof this._value,
+      cloned: options.enableCloning 
+    });
+    
     return {
-      value: this._value,
+      value: clonedValue,
       name: this.name,
       lastUpdate: Date.now()
     };

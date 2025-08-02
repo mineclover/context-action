@@ -10,6 +10,7 @@ export * from './parser.js';
 export * from './scanner.js';
 export * from './validator.js';
 export * from './config.js';
+export * from './translation-checker.js';
 
 import { GlossaryParser } from './parser.js';
 import { GlossaryScanner } from './scanner.js';

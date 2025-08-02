@@ -39,7 +39,7 @@ async function main() {
     // Use configuration with proper paths for now
     const glossary = await createGlossaryAPI({
       rootDir,
-      debug: true,
+      debug: false,
       scanPaths: [
         'example/src/**/*.{ts,tsx,js,jsx}',
         'packages/*/src/**/*.{ts,tsx,js,jsx}'
