@@ -281,8 +281,8 @@ function ComparisonTestComponent({
   );
 }
 
-// 메인 페이지 컴포넌트
-export default function ComparisonDemoPage() {
+// 내부 컨텐츠 컴포넌트 (Provider 내부에서 사용)
+function ComparisonDemoContent() {
   const { logAction, logSystem, logError } = useActionLoggerWithToast();
   const [selectedPattern, setSelectedPattern] = useState<DataPattern>('primitive');
   const [testKey, setTestKey] = useState(0);
@@ -307,7 +307,7 @@ export default function ComparisonDemoPage() {
     setRenderStats({});
     console.clear();
     logAction('resetAllDemos', { isolationId }, { toast: true });
-  }, []);
+  }, [logAction, isolationId]);
   
   // 패턴 변경
   const changePattern = useCallback((pattern: DataPattern) => {
@@ -319,7 +319,6 @@ export default function ComparisonDemoPage() {
   const patternInfo = DATA_PATTERN_INFO[selectedPattern];
   
   return (
-    <PageWithLogMonitor pageId="comparison-demo" title="Store Comparison Logic Demo">
       <div className="max-w-6xl mx-auto p-6 space-y-6">
         {/* 헤더 */}
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
@@ -469,7 +468,15 @@ export default function ComparisonDemoPage() {
           </div>
         </div>
       </div>
-      </div>
+    </div>
+  );
+}
+
+// 메인 페이지 컴포넌트
+export default function ComparisonDemoPage() {
+  return (
+    <PageWithLogMonitor pageId="comparison-demo" title="Store Comparison Logic Demo">
+      <ComparisonDemoContent />
     </PageWithLogMonitor>
   );
 }
