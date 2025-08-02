@@ -1,48 +1,187 @@
 /**
- * Store 시스템 핵심 타입 정의
- * 핵심 기능: Store, Registry, Event 시스템에 필요한 모든 TypeScript 타입 제공
+ * @fileoverview Store System Core Type Definitions
+ * @implements store-integration-pattern
+ * @implements model-layer
+ * @implements reactive-state-management
+ * @memberof core-concepts
+ * @version 1.0.0
+ * 
+ * Comprehensive type definitions for the Context-Action framework's Store system,
+ * providing reactive state management with React integration and type safety.
+ * 
+ * Core Type Categories:
+ * - Store interfaces for reactive state management
+ * - Registry types for multi-store coordination  
+ * - Event system types for store communication
+ * - React integration types for Context API usage
+ * - Performance optimization interfaces
+ * 
+ * Key Design Patterns:
+ * - Observer pattern for store subscriptions
+ * - Registry pattern for store lifecycle management
+ * - Pub-Sub pattern for store-to-store communication
+ * - Context pattern for React integration
  */
 
-// === 기본 구독 타입 ===
-// 핵심 설계: Observer 패턴을 위한 기본 타입 정의
-export type Listener = () => void;                                  // 변경 알림 콜백
-export type Unsubscribe = () => void;                               // 구독 해제 함수
-export type Subscribe = (listener: Listener) => Unsubscribe;         // 구독 함수
+/**
+ * Basic subscription types for Observer pattern implementation
+ * @implements observer-pattern
+ * @memberof core-concepts
+ * @since 1.0.0
+ */
 
-// === Store 스냅샷 인터페이스 ===
-// 핵심 설계: 불변 Store 상태 스냅샷 (최적화 및 디버깅용)
+/** Change notification callback function */
+export type Listener = () => void;
+
+/** Unsubscribe function returned by subscribe methods */
+export type Unsubscribe = () => void;
+
+/** Subscribe function signature for observer pattern */
+export type Subscribe = (listener: Listener) => Unsubscribe;
+
+/**
+ * Store snapshot interface for immutable state representation
+ * @implements store-snapshot
+ * @implements immutable-state
+ * @memberof api-terms
+ * @since 1.0.0
+ * 
+ * Immutable snapshot of Store state used for optimization and debugging.
+ * Compatible with React's useSyncExternalStore pattern.
+ * 
+ * @template T - The type of the stored value
+ */
 export interface Snapshot<T = any> {
-  value: T;           // Store의 현재 값
-  name: string;       // Store 식별자
-  lastUpdate: number; // 마지막 업데이트 타임스탬프
+  /** The current value of the store */
+  value: T;
+  
+  /** Unique identifier for the store */
+  name: string;
+  
+  /** Timestamp of the last update */
+  lastUpdate: number;
 }
 
-// === 핵심 Store 인터페이스 ===
-// 핵심 설계: useSyncExternalStore 호환 및 Observer 패턴 구현
+/**
+ * Core Store interface for reactive state management
+ * @implements store-interface
+ * @implements usesyncexternalstore-compatible
+ * @implements observer-pattern
+ * @memberof core-concepts
+ * @since 1.0.0
+ * 
+ * Primary interface for Store instances, compatible with React's useSyncExternalStore
+ * and implementing the Observer pattern for reactive state management.
+ * 
+ * @template T - The type of the stored value
+ * 
+ * @example
+ * ```typescript
+ * const userStore: IStore<User> = createStore('user', { 
+ *   id: '', 
+ *   name: '', 
+ *   email: '' 
+ * });
+ * 
+ * // Subscribe to changes
+ * const unsubscribe = userStore.subscribe(() => {
+ *   console.log('User store updated:', userStore.getSnapshot().value);
+ * });
+ * 
+ * // Update store value
+ * userStore.setValue({ id: '1', name: 'John', email: 'john@example.com' });
+ * 
+ * // Get current value for action handlers
+ * const currentUser = userStore.getValue();
+ * ```
+ */
 export interface IStore<T = any> {
-  readonly name: string;                    // Store 고유 식별자
-  subscribe: Subscribe;                     // React useSyncExternalStore 호환
-  getSnapshot: () => Snapshot<T>;           // React useSyncExternalStore 호환
-  setValue: (value: T) => void;             // Store 값 설정
-  getValue: () => T;                        // Store 값 직접 접근
-  getListenerCount?: () => number;          // 디버깅/모니터링용
+  /** Unique identifier for the store */
+  readonly name: string;
+  
+  /** Subscribe to store changes (React useSyncExternalStore compatible) */
+  subscribe: Subscribe;
+  
+  /** Get immutable snapshot (React useSyncExternalStore compatible) */
+  getSnapshot: () => Snapshot<T>;
+  
+  /** Set store value with change notification */
+  setValue: (value: T) => void;
+  
+  /** Get current value directly (for action handlers) */
+  getValue: () => T;
+  
+  /** Get number of active listeners (debugging/monitoring) */
+  getListenerCount?: () => number;
 }
 
-// === Store Registry 인터페이스 ===
-// 핵심 설계: 다중 Store 중앙 관리 및 동적 접근
+/**
+ * Store Registry interface for centralized store management
+ * @implements store-registry
+ * @implements registry-pattern
+ * @memberof core-concepts
+ * @since 1.0.0
+ * 
+ * Central registry for managing multiple Store instances with dynamic access
+ * and lifecycle management. Provides subscription capability for registry changes.
+ * 
+ * @example
+ * ```typescript
+ * const registry = new StoreRegistry('app-registry');
+ * 
+ * // Register stores
+ * const userStore = createStore('user', { name: '', email: '' });
+ * const settingsStore = createStore('settings', { theme: 'light' });
+ * 
+ * registry.register('user', userStore);
+ * registry.register('settings', settingsStore);
+ * 
+ * // Access stores dynamically
+ * const user = registry.getStore('user');
+ * const settings = registry.getStore('settings');
+ * 
+ * // Subscribe to registry changes
+ * registry.subscribe(() => {
+ *   console.log('Registry changed, store count:', registry.getStoreCount());
+ * });
+ * ```
+ */
 export interface IStoreRegistry {
-  readonly name: string;                           // Registry 식별자
-  subscribe: Subscribe;                            // Registry 변경 구독
-  getSnapshot: () => Array<[string, IStore]>;      // 등록된 Store 목록 스냅샷
-  register: (name: string, store: IStore, metadata?: any) => void; // Store 등록
-  unregister: (name: string) => boolean;           // Store 등록 해제
-  getStore: (name: string) => IStore | undefined;  // 이름으로 Store 조회
-  getAllStores: () => Map<string, IStore>;         // 전체 Store 목록
-  hasStore: (name: string) => boolean;             // Store 존재 여부 확인
-  getStoreCount: () => number;                     // 등록된 Store 개수
-  getStoreNames: () => string[];                   // 등록된 Store 이름 목록
-  clear: () => void;                               // 모든 Store 정리
-  forEach: (callback: (store: IStore, name: string) => void) => void; // Store 순회
+  /** Unique identifier for the registry */
+  readonly name: string;
+  
+  /** Subscribe to registry changes */
+  subscribe: Subscribe;
+  
+  /** Get snapshot of all registered stores */
+  getSnapshot: () => Array<[string, IStore]>;
+  
+  /** Register a store with optional metadata */
+  register: (name: string, store: IStore, metadata?: any) => void;
+  
+  /** Unregister a store by name */
+  unregister: (name: string) => boolean;
+  
+  /** Get store by name */
+  getStore: (name: string) => IStore | undefined;
+  
+  /** Get all registered stores as Map */
+  getAllStores: () => Map<string, IStore>;
+  
+  /** Check if store exists by name */
+  hasStore: (name: string) => boolean;
+  
+  /** Get count of registered stores */
+  getStoreCount: () => number;
+  
+  /** Get array of registered store names */
+  getStoreNames: () => string[];
+  
+  /** Clear all registered stores */
+  clear: () => void;
+  
+  /** Iterate over all stores */
+  forEach: (callback: (store: IStore, name: string) => void) => void;
 }
 
 // === 이벤트 시스템 타입 ===

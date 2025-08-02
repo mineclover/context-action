@@ -1,6 +1,52 @@
 /**
- * @fileoverview Simple logging system for Context-Action framework
- * Provides configurable logging with level filtering and .env support
+ * @fileoverview Context-Action Logger Package Entry Point
+ * @implements logger-system
+ * @implements cross-platform-logging
+ * @implements environment-configuration
+ * @memberof packages
+ * @version 1.0.0
+ * 
+ * Lightweight, configurable logging system for the Context-Action framework
+ * with cross-platform environment variable support and level-based filtering.
+ * 
+ * This package provides structured logging capabilities for monitoring and debugging
+ * action pipeline execution, store operations, and general application flow.
+ * 
+ * Key Features:
+ * - Hierarchical log levels with configurable filtering
+ * - Cross-platform environment variable support (Node.js + Vite)
+ * - Console-based and no-op logger implementations
+ * - Automatic level detection from NODE_ENV
+ * - Runtime level adjustment capability
+ * - TypeScript interface for custom logger implementations
+ * 
+ * Environment Variables:
+ * - CONTEXT_ACTION_LOG_LEVEL: 'TRACE'|'DEBUG'|'INFO'|'WARN'|'ERROR'|'NONE'
+ * - CONTEXT_ACTION_DEBUG: 'true'|'1' enables DEBUG level
+ * - CONTEXT_ACTION_TRACE: 'true'|'1' enables TRACE level  
+ * - CONTEXT_ACTION_LOGGER_NAME: Custom logger name
+ * - NODE_ENV: Auto-configures level ('development' -> DEBUG, 'production' -> ERROR)
+ * 
+ * @example
+ * ```typescript
+ * import { createLogger, LogLevel } from '@context-action/logger';
+ * 
+ * // Create logger with environment-based configuration
+ * const logger = createLogger();
+ * 
+ * // Or with explicit level
+ * const debugLogger = createLogger(LogLevel.DEBUG);
+ * 
+ * // Use structured logging
+ * logger.trace('Pipeline execution started', { action: 'updateUser', payload });
+ * logger.debug('Handler registration', { handlerId: 'user-validator', priority: 10 });
+ * logger.info('Store updated successfully', { storeName: 'user', newValue });
+ * logger.warn('Performance threshold exceeded', { executionTime: 1500 });
+ * logger.error('Action pipeline failed', error);
+ * 
+ * // Runtime level adjustment
+ * logger.setLevel(LogLevel.WARN);
+ * ```
  */
 
 import { Logger, LogLevel } from './types.js';
@@ -130,9 +176,38 @@ export class NoopLogger implements Logger {
 }
 
 /**
- * Get log level from environment variable with .env support
- * Supports both CONTEXT_ACTION_LOG_LEVEL and CONTEXT_ACTION_TRACE for backward compatibility
- * Note: Load .env in your application with 'import "dotenv/config"'
+ * Get log level from environment variables with cross-platform support
+ * @implements environment-configuration
+ * @implements cross-platform-support
+ * @memberof api-terms  
+ * @since 1.0.0
+ * 
+ * Automatically detects appropriate log level from multiple environment sources
+ * with intelligent fallbacks and NODE_ENV-based configuration.
+ * 
+ * Priority order:
+ * 1. CONTEXT_ACTION_TRACE='true' -> TRACE level
+ * 2. CONTEXT_ACTION_DEBUG='true' -> DEBUG level  
+ * 3. CONTEXT_ACTION_LOG_LEVEL explicit value
+ * 4. NODE_ENV-based auto-configuration
+ * 5. Default ERROR level
+ * 
+ * @returns Detected LogLevel based on environment configuration
+ * 
+ * @example
+ * ```typescript
+ * // Environment examples:
+ * // NODE_ENV=development -> LogLevel.DEBUG
+ * // NODE_ENV=production -> LogLevel.ERROR
+ * // CONTEXT_ACTION_LOG_LEVEL=INFO -> LogLevel.INFO
+ * // CONTEXT_ACTION_DEBUG=true -> LogLevel.DEBUG
+ * // CONTEXT_ACTION_TRACE=1 -> LogLevel.TRACE
+ * 
+ * const level = getLogLevelFromEnv();
+ * const logger = createLogger(level);
+ * ```
+ * 
+ * @note Load .env files in your application with 'import "dotenv/config"'
  */
 export function getLogLevelFromEnv(): LogLevel {
   // Use safe environment variable access
@@ -197,9 +272,34 @@ export function getDebugFromEnv(): boolean {
 }
 
 /**
- * Create a logger instance with the specified level
+ * Create a logger instance with specified or environment-based level
+ * @implements logger-factory
+ * @implements smart-logger-creation
+ * @memberof api-terms
+ * @since 1.0.0
  * 
- * Factory function for creating configured logger instances
+ * Factory function for creating appropriately configured logger instances
+ * with automatic environment detection and optimal logger selection.
+ * 
+ * @param level - Optional explicit log level. If not provided, uses getLogLevelFromEnv()
+ * @returns Logger instance (ConsoleLogger or NoopLogger based on level)
+ * 
+ * @example
+ * ```typescript
+ * // Environment-based logger creation
+ * const logger = createLogger(); // Uses NODE_ENV and environment variables
+ * 
+ * // Explicit level logger creation
+ * const debugLogger = createLogger(LogLevel.DEBUG);
+ * const productionLogger = createLogger(LogLevel.ERROR);
+ * const silentLogger = createLogger(LogLevel.NONE); // Returns NoopLogger
+ * 
+ * // Usage in ActionRegister
+ * const actionRegister = new ActionRegister({ 
+ *   logger: createLogger(LogLevel.DEBUG),
+ *   name: 'UserActions' 
+ * });
+ * ```
  */
 export function createLogger(level?: LogLevel): Logger {
   const logLevel = level ?? getLogLevelFromEnv();
