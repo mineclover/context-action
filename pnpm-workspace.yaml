@@ -3,6 +3,7 @@ packages:
   - packages/react
   - packages/jotai
   - packages/glossary
+  - packages/glossary-query
   - packages/logger
   - example
 
