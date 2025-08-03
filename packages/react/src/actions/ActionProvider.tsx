@@ -11,8 +11,7 @@
 
 import React, { createContext, useContext, useRef, ReactNode } from 'react';
 import { ActionRegister, ActionPayloadMap, ActionRegisterConfig } from '@context-action/core';
-import { StoreRegistry } from '../stores/core/StoreRegistry';
-import { StoreProvider } from '../providers/StoreProvider';
+import { LogArtHelpers } from '@context-action/logger';
 
 /**
  * Context type for Action dispatch system
@@ -98,6 +97,9 @@ export function ActionProvider({ children, config }: ActionProviderProps) {
   
   if (!actionRegisterRef.current) {
     actionRegisterRef.current = new ActionRegister(config);
+    if (config?.debug) {
+      console.info(LogArtHelpers.react.start('ActionProvider 초기화'));
+    }
   }
 
   const contextValue: ActionContextType<any> = {
@@ -278,31 +280,17 @@ export function withActionProvider<T extends ActionPayloadMap = ActionPayloadMap
 }
 
 /**
- * Combined HOC for both Store and Action providers
- * Wraps component with both StoreProvider and ActionProvider
+ * Combined setup with ActionProvider and Context Store Pattern
  * 
- * **Note**: For enhanced type safety, consider using createActionContext with Context Store Pattern:
+ * **Recommended**: Use createActionContext with Context Store Pattern for enhanced type safety:
  * 
  * @example
  * ```typescript
- * // Simple HOC approach (ActionProvider based)
+ * // Enhanced type safety approach (recommended)
  * interface AppActions extends ActionPayloadMap {
  *   updateUser: { id: string; name: string };
  * }
  * 
- * const withProviders = withStoreAndActionProvider<AppActions>({
- *   action: { logLevel: LogLevel.DEBUG },
- *   store: { registry: customRegistry }
- * });
- * 
- * const App = withProviders(() => (
- *   <div>
- *     <UserProfile />
- *     <ShoppingCart />
- *   </div>
- * ));
- * 
- * // Enhanced type safety approach (createActionContext)
  * const { Provider: ActionProviderTyped } = createActionContext<AppActions>();
  * const AppStores = createContextStorePattern('App');
  * 
@@ -318,27 +306,3 @@ export function withActionProvider<T extends ActionPayloadMap = ActionPayloadMap
  * }
  * ```
  */
-export function withStoreAndActionProvider<T extends ActionPayloadMap = ActionPayloadMap>(
-  config?: {
-    action?: ActionRegisterConfig;
-    store?: { registry?: StoreRegistry };
-  }
-) {
-  const { Provider: ActionProviderTyped } = createTypedActionProvider<T>();
-  
-  return function <P extends {}>(
-    WrappedComponent: React.ComponentType<P>
-  ): React.FC<P> {
-    const WithBothProviders = (props: P) => (
-      <StoreProvider registry={config?.store?.registry}>
-        <ActionProviderTyped config={config?.action}>
-          <WrappedComponent {...props} />
-        </ActionProviderTyped>
-      </StoreProvider>
-    );
-    
-    WithBothProviders.displayName = `withStoreAndActionProvider(${WrappedComponent.displayName || WrappedComponent.name})`;
-    
-    return WithBothProviders;
-  };
-}

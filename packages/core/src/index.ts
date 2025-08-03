@@ -69,5 +69,8 @@ export { ActionGuard } from './action-guard.js';
 /** Execution mode implementations */
 export { executeSequential, executeParallel, executeRace } from './execution-modes.js';
 
+/** HMR Support (Development only) */
+export * from './hmr/action-register-hmr-support.js';
+
 /** Note: Logger utilities are now available from @context-action/logger package */
 /** Applications should import logger functionality directly from @context-action/logger */
