@@ -1,8 +1,8 @@
 {
-  "name": "@context-action/logger",
+  "name": "@context-action/react-dev",
   "version": "0.0.4",
   "type": "module",
-  "description": "Logging utility for the context-action framework",
+  "description": "Development version of @context-action/react - Includes HMR, debugging tools, and full logging support",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -20,47 +20,61 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsdown",
     "build:watch": "tsdown --watch",
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
-    "lint": "echo 'Linting skipped for @context-action/logger (no ESLint config)'",
-    "lint:fix": "echo 'Linting skipped for @context-action/logger (no ESLint config)'",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "type-check": "tsc --noEmit",
     "clean": "rimraf dist",
     "prepublishOnly": "pnpm run build"
   },
   "keywords": [
     "typescript",
-    "javascript",
+    "react",
     "action",
-    "logger"
+    "pipeline",
+    "state-management",
+    "context",
+    "hooks",
+    "hmr",
+    "development",
+    "debugging"
   ],
   "author": "mineclover",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mineclover/context-action.git",
-    "directory": "packages/logger"
+    "directory": "packages/react-dev"
   },
   "bugs": {
     "url": "https://github.com/mineclover/context-action/issues"
   },
   "homepage": "https://github.com/mineclover/context-action#readme",
+  "peerDependencies": {
+    "react": ">=16.8.0"
+  },
   "dependencies": {
-    "console-log-colors": "0.5.0",
-    "dotenv": "^16.4.5"
+    "@context-action/core": "workspace:*",
+    "@context-action/logger": "workspace:*"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",
+    "@types/react": "^18.2.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "eslint": "^8.0.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
     "jest": "^29.0.0",
+    "react": "^18.2.0",
     "rimraf": "^5.0.0",
+    "rollup-plugin-visualizer": "6.0.3",
     "ts-jest": "^29.0.0",
     "tsdown": "^0.13.0",
     "tslib": "^2.8.1",

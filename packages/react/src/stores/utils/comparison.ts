@@ -258,6 +258,7 @@ export function deepEquals<T>(
 
 /**
  * 전략별 값 비교 함수
+ * HMR 최적화 기술 적용: 크기 기반 최적 전략 자동 선택
  */
 export function compareValues<T>(
   oldValue: T, 
@@ -270,8 +271,43 @@ export function compareValues<T>(
   const startTime = performance.now();
 
   let result: boolean;
+  let actualStrategy = strategy;
 
   try {
+    // HMR 최적화: 자동 전략 선택 (strategy가 'reference'가 아닌 경우)
+    if (strategy !== 'reference' && strategy !== 'custom' && typeof oldValue === 'object' && typeof newValue === 'object') {
+      // JSON 직렬화 시도로 크기와 복잡도 판단
+      try {
+        const oldStr = JSON.stringify(oldValue);
+        const newStr = JSON.stringify(newValue);
+        
+        // 작은 객체 (1KB 미만): JSON 문자열 비교가 가장 빠름
+        if (oldStr.length < 1000 && newStr.length < 1000) {
+          result = oldStr === newStr;
+          actualStrategy = 'json-fast';
+          
+          logger.trace('JSON fast comparison used', { 
+            oldSize: oldStr.length, 
+            newSize: newStr.length 
+          });
+          
+          const duration = performance.now() - startTime;
+          logger.debug('Value comparison completed', {
+            strategy: actualStrategy,
+            result,
+            duration: `${duration.toFixed(3)}ms`,
+            oldValueType: typeof oldValue,
+            newValueType: typeof newValue
+          });
+          
+          return result;
+        }
+      } catch (error) {
+        // JSON 직렬화 실패 시 원래 전략 사용
+      }
+    }
+
+    // 원래 전략 실행
     switch (strategy) {
       case 'reference':
         result = referenceEquals(oldValue, newValue);
@@ -310,7 +346,7 @@ export function compareValues<T>(
   const duration = performance.now() - startTime;
 
   logger.debug('Value comparison completed', {
-    strategy,
+    strategy: actualStrategy,
     result,
     duration: `${duration.toFixed(3)}ms`,
     hasCustomComparator: !!customComparator,
@@ -324,6 +360,7 @@ export function compareValues<T>(
 /**
  * 성능 최적화된 빠른 비교 함수
  * 간단한 케이스들을 빠르게 처리하고, 복잡한 경우만 전체 비교로 넘김
+ * HMR 최적화 기술 적용: JSON 직렬화 기반 빠른 비교
  */
 export function fastCompare<T>(oldValue: T, newValue: T): boolean {
   // 1. 참조 동등성 체크 (가장 빠름)
@@ -341,7 +378,20 @@ export function fastCompare<T>(oldValue: T, newValue: T): boolean {
     return oldValue === newValue;
   }
 
-  // 4. 간단한 객체/배열의 경우 얕은 비교
+  // 4. JSON 직렬화 가능한 객체 - 빠른 문자열 비교 (HMR 기술 적용)
+  try {
+    const oldStr = JSON.stringify(oldValue);
+    const newStr = JSON.stringify(newValue);
+    
+    // 작은 객체의 경우 JSON 문자열 비교가 가장 빠르고 정확
+    if (oldStr.length <= 1000 && newStr.length <= 1000) { // 1KB 이하
+      return oldStr === newStr;
+    }
+  } catch (error) {
+    // JSON 직렬화 실패 시 기존 로직으로 fallback
+  }
+
+  // 5. 간단한 배열의 경우 얕은 비교
   if (Array.isArray(oldValue) && Array.isArray(newValue)) {
     if (oldValue.length !== newValue.length) {
       return false;
@@ -351,7 +401,7 @@ export function fastCompare<T>(oldValue: T, newValue: T): boolean {
     }
   }
 
-  // 5. 작은 객체의 경우 얕은 비교
+  // 6. 작은 객체의 경우 얕은 비교
   const oldKeys = Object.keys(oldValue as any);
   if (oldKeys.length <= 5) { // 프로퍼티가 5개 이하인 작은 객체
     const newKeys = Object.keys(newValue as any);
@@ -363,7 +413,7 @@ export function fastCompare<T>(oldValue: T, newValue: T): boolean {
     }
   }
 
-  // 6. 복잡한 경우는 전역 설정에 따른 비교로 위임
+  // 7. 복잡한 경우는 전역 설정에 따른 비교로 위임
   return compareValues(oldValue, newValue);
 }
 

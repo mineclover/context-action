@@ -103,6 +103,11 @@ export * from './patterns';
 // All hooks in one place for convenience
 export * from './hooks';
 
+// === HMR SUPPORT ===
+// Hot Module Replacement support for development
+// Note: Only available in development mode
+export * from './hmr';
+
 // ===================================================================
 // CORE FRAMEWORK RE-EXPORTS - FOR CONVENIENCE
 // ===================================================================

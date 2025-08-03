@@ -14,6 +14,7 @@
 // Essential hooks for store management
 export { useStoreSelector as useStore } from '../utils/store-selector';
 export { useStoreValue, useStoreValues } from './useStoreValue';
+export { useStoreValueSafe, assertStoreValue } from './useStoreValueSafe';
 export { useStoreActions } from './useStoreActions';
 
 // === REGISTRY HOOKS ===

@@ -241,7 +241,7 @@ export function createContextPattern<T extends ActionPayloadMap = ActionPayloadM
   }
   
   /**
-   * Store 생성/접근 Hook
+   * Store 생성/접근 Hook - 타입 안전성이 보장된 Store 반환
    */
   function useStore<V>(
     storeName: string,
@@ -256,9 +256,20 @@ export function createContextPattern<T extends ActionPayloadMap = ActionPayloadM
     const { strategy = 'reference', debug = process.env.NODE_ENV === 'development', comparisonOptions } = options;
     
     return useMemo(() => {
+      // 초기값 검증
       const resolvedInitialValue = typeof initialValue === 'function' 
         ? (initialValue as () => V)() 
         : initialValue;
+      
+      // 개발 모드에서 초기값 검증
+      if (process.env.NODE_ENV === 'development') {
+        if (resolvedInitialValue === undefined) {
+          console.warn(
+            `useStore: Store "${storeName}" initialized with undefined value. ` +
+            'This might cause type safety issues. Consider using null or a default value instead.'
+          );
+        }
+      }
       
       const { store } = getOrCreateRegistryStore({
         storeName,
@@ -267,6 +278,14 @@ export function createContextPattern<T extends ActionPayloadMap = ActionPayloadM
         debug,
         comparisonOptions
       }, registry);
+      
+      // Store가 제대로 생성되었는지 검증
+      if (!store) {
+        throw new Error(
+          `Failed to create store "${storeName}" in context "${contextName}". ` +
+          'This might indicate a configuration issue.'
+        );
+      }
       
       return store;
     }, [storeName, registry]);

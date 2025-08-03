@@ -98,6 +98,28 @@ export type {
   UniversalTraceConfig
 } from './universal-trace-logger.js';
 
+// Export log art utilities with console-log-colors
+export {
+  AreaColors,
+  AreaIcons,
+  AsciiArt,
+  createColoredHeader,
+  createColoredSeparator,
+  createStartMarker,
+  createEndMarker,
+  createErrorMarker,
+  createInfoMarker,
+  createDebugMarker,
+  createWarningMarker,
+  createColoredLogger,
+  LogArtHelpers
+} from './log-art.js';
+
+export type {
+  ExecutionArea,
+  ColoredLogger
+} from './log-art.js';
+
 // Note: .env loading should be done by the application
 // Import dotenv in your application entry point:
 // import 'dotenv/config';

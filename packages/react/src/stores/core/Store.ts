@@ -1,11 +1,12 @@
 import type { IStore, Listener, Snapshot, Unsubscribe } from './types';
-import { createLogger } from '@context-action/logger';
+import { createLogger, LogArtHelpers } from '@context-action/logger';
 import { safeGet, safeSet, getGlobalImmutabilityOptions, performantSafeGet } from '../utils/immutable';
 import { 
   compareValues, 
   fastCompare, 
   ComparisonOptions
 } from '../utils/comparison';
+import { autoEnableStoreHMR } from '../../hmr/auto-hmr';
 
 /**
  * Store 클래스 - 중앙화된 상태 관리의 핵심
@@ -39,7 +40,7 @@ export class Store<T = any> implements IStore<T> {
     this._value = initialValue;
     // 초기 스냅샷 생성 - 즉시 구독 가능한 상태로 만듦
     this._snapshot = this._createSnapshot();
-    this.logger.debug(`Store created: ${name}`, { initialValue });
+    this.logger.debug(LogArtHelpers.store.debug(`Store 생성: ${name}`, { initialValue }));
   }
 
   /**
@@ -124,13 +125,13 @@ export class Store<T = any> implements IStore<T> {
       this._value = safeValue;
       // 새 스냅샷 생성 - 불변성 보장
       this._snapshot = this._createSnapshot();
-      this.logger.debug(`Store value updated: ${this.name}`, { 
+      this.logger.debug(LogArtHelpers.store.debug(`Store 값 업데이트: ${this.name}`, { 
         oldValue, 
         newValue: safeValue,
         cloned: options.enableCloning,
         listenerCount: this.listeners.size,
         comparisonStrategy: this.comparisonOptions?.strategy || 'global'
-      });
+      }));
       // 모든 구독자에게 변경 알림
       this._notifyListeners();
     } else {
@@ -349,7 +350,7 @@ export class Store<T = any> implements IStore<T> {
       try {
         listener();
       } catch (error) {
-        this.logger.error(`Error in store listener for "${this.name}"`, error);
+        this.logger.error(LogArtHelpers.store.error(`리스너 실행`, `Store "${this.name}"에서 리스너 에러`));
       }
     });
   }
@@ -379,7 +380,10 @@ export class Store<T = any> implements IStore<T> {
  * ```
  */
 export function createStore<T>(name: string, initialValue: T): Store<T> {
-  return new Store<T>(name, initialValue);
+  const store = new Store<T>(name, initialValue);
+  
+  // 개발 환경에서 자동으로 HMR 지원 활성화
+  return autoEnableStoreHMR(store) as Store<T>;
 }
 
 /**

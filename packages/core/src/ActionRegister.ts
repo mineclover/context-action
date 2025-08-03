@@ -19,7 +19,7 @@ import {
   EventHandler,
   ExecutionMode,
 } from './types.js';
-import { Logger, createLogger, getLoggerNameFromEnv, getDebugFromEnv } from '@context-action/logger';
+import { Logger, createLogger, getLoggerNameFromEnv, getDebugFromEnv, LogArtHelpers } from '@context-action/logger';
 import { executeSequential, executeParallel, executeRace } from './execution-modes.js';
 import { ActionGuard } from './action-guard.js';
 
@@ -138,11 +138,14 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     this.logger.trace(`${this.config.name} constructor called`, { config });
 
     if (this.config.debug) {
-      this.logger.info(`${this.config.name} initialized`, {
+      this.logger.info(LogArtHelpers.core.start('ActionRegister 초기화'));
+      this.logger.info(LogArtHelpers.core.debug('ActionRegister 구성', {
+        name: this.config.name,
         logLevel: this.config.logLevel,
         debug: this.config.debug,
         defaultExecutionMode: this.executionMode,
-      });
+      }));
+      this.logger.info(LogArtHelpers.core.end('ActionRegister 초기화'));
     }
     
     this.logger.trace(`${this.config.name} constructor completed`);
@@ -237,12 +240,12 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       priorities: pipeline.map(reg => ({ id: reg.id, priority: reg.config.priority })) 
     });
 
-    this.logger.debug(`Registered handler for action '${String(action)}'`, {
+    this.logger.debug(LogArtHelpers.core.debug(`핸들러 등록 완료: '${String(action)}'`, {
       handlerId,
       priority: registration.config.priority,
       blocking: registration.config.blocking,
       once: registration.config.once,
-    });
+    }));
 
     // Emit registration event
     this.events.emit('handler:register', {
@@ -293,11 +296,11 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     this.events.emit('action:start', { action, payload });
     this.logger.trace(`Emitted 'action:start' event`);
 
-    this.logger.debug(`Dispatching action '${String(action)}'`, { payload });
+    this.logger.debug(LogArtHelpers.core.start(`액션 디스패치: '${String(action)}'`));
 
     const pipeline = this.pipelines.get(action);
     if (!pipeline || pipeline.length === 0) {
-      this.logger.warn(`No handlers registered for action '${String(action)}'`);
+      this.logger.warn(LogArtHelpers.core.error(`액션 디스패치: '${String(action)}'`, '등록된 핸들러가 없음'));
       this.logger.trace(`Dispatch completed early - no handlers`);
       return;
     }
@@ -348,7 +351,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         });
       }
 
-      this.logger.debug(`Completed action '${String(action)}'`, metrics);
+      const duration = Date.now() - startTime;
+      this.logger.debug(LogArtHelpers.core.end(`액션 디스패치: '${String(action)}'`, duration));
 
     } catch (error: any) {
       const metrics: ActionMetrics = {
@@ -360,7 +364,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         timestamp: Date.now(),
       };
 
-      this.logger.error(`Error executing action '${String(action)}'`, metrics);
+      this.logger.error(LogArtHelpers.core.error(`액션 디스패치: '${String(action)}'`, error.message || 'Unknown error'));
       
       this.events.emit('action:error', {
         action,

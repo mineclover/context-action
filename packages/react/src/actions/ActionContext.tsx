@@ -1,6 +1,6 @@
 import React, { createContext, ReactNode, useContext, useRef, useEffect, useId, useMemo } from 'react';
 import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig, ActionRegisterConfig } from '@context-action/core';
-import { Logger, LogLevel, createLogger  } from '@context-action/logger';
+import { Logger, LogLevel, createLogger, LogArtHelpers } from '@context-action/logger';
 
 /**
  * @fileoverview createActionContext - Advanced type-safe action context factory
@@ -189,13 +189,13 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
         
         // 로거를 포함한 dispatch 래퍼
         return ((action: any, payload?: any) => {
-          context.logger.debug('useAction dispatch called', { action, payload });
+          context.logger.debug(LogArtHelpers.react.debug('액션 디스패치 호출', { action, payload }));
           return boundDispatch(action, payload);
         }) as ActionRegister<T>['dispatch'];
       }
 
       return (...args: any[]) => {
-        context.logger.error('ActionRegister is not initialized', { args });
+        context.logger.error(LogArtHelpers.react.error('액션 디스패치', 'ActionRegister가 초기화되지 않음'));
         throw new Error(
           'ActionRegister is not initialized. ' +
           'Make sure the ActionContext Provider is properly set up.'
@@ -224,19 +224,19 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
 
     useEffect(() => {
       if (!actionRegisterRef.current) {
-        logger.error('ActionRegister is not initialized in useActionHandler');
+        logger.error(LogArtHelpers.react.error('핸들러 등록', 'ActionRegister가 초기화되지 않음'));
         throw new Error(
           'ActionRegister is not initialized. ' +
           'Make sure the ActionContext Provider is properly set up.'
         );
       }
 
-      logger.debug('useActionHandler registering', {
+      logger.debug(LogArtHelpers.react.debug('핸들러 등록 시작', {
         action: String(action),
         componentId,
         priority: config?.priority ?? 0,
         blocking: config?.blocking ?? false
-      });
+      }));
       
       const actionRegister = actionRegisterRef.current;
       const unregister = actionRegister.register(
@@ -246,10 +246,10 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
       );
       
       return () => {
-        logger.debug('useActionHandler unregistering', {
+        logger.debug(LogArtHelpers.react.debug('핸들러 등록 해제', {
           action: String(action),
           componentId
-        });
+        }));
         unregister();
       };
     }, [action, handler, config?.id, config?.priority, config?.blocking, componentId, actionRegisterRef.current, logger]);
