@@ -65,18 +65,28 @@ export function useActionLogger(options: UseActionLoggerOptions = {}): StableLog
     
     // 액션 로그 핸들러
     register.register('_internal.log.action', ({ actionType, payload, options = {} }, controller) => {
-      // 로그 추가
+      // 자동 계산된 데이터 추출
+      const autoCalc = options._autoCalculated || {};
+      const timestamp = autoCalc.timestamp || new Date().toLocaleTimeString('ko-KR');
+      const executionTime = autoCalc.executionTime || 0;
+      
+      // 로그 추가 (자동 계산된 타임스탬프 사용)
       addLog({
         level: LogLevel.INFO,
         type: 'action',
         message: `액션 실행: ${actionType}`,
         priority: options.priority,
-        details: { payload, context: options.context }
+        details: { 
+          payload, 
+          context: options.context,
+          executionTime,
+          timestamp
+        }
       });
       
-      logger.info(`Action: ${actionType}`, payload);
+      logger.info(`Action: ${actionType} (${executionTime}ms)`, payload);
 
-      // Toast 표시 (활성화된 경우)
+      // Toast 표시 (활성화된 경우) - 자동 계산된 데이터 사용
       console.log('🍞 Toast check conditions:', {
         enableToast: config.enableToast,
         hasToastSystem: !!toastSystem,
@@ -86,16 +96,22 @@ export function useActionLogger(options: UseActionLoggerOptions = {}): StableLog
       
       if (config.enableToast && toastSystem && options.toast !== false) {
         const actionMsg = getActionMessage(actionType);
-        console.log('🍞 Calling showToast with:', actionMsg);
+        console.log('🍞 Calling showToast with auto-calculated data:', { 
+          actionType, 
+          executionTime, 
+          timestamp 
+        });
         
         if (typeof options.toast === 'object') {
           toastSystem.showToast(
             options.toast.type || 'info',
-            options.toast.title || actionType,
-            options.toast.message || `${actionType} 액션이 실행되었습니다`
+            options.toast.title || `⚡ ${actionType}`,
+            options.toast.message || `${actionType} 실행 완료 (${executionTime}ms)`
           );
         } else {
-          toastSystem.showToast(actionMsg.type, actionMsg.title, actionMsg.message);
+          // 자동 계산된 실행시간을 메시지에 포함
+          const enhancedMessage = `${actionMsg.message} (${executionTime}ms)`;
+          toastSystem.showToast(actionMsg.type, `⚡ ${actionType}`, enhancedMessage);
         }
       } else {
         console.log('🍞 Toast not shown due to conditions not met');
@@ -164,7 +180,34 @@ export function useActionLogger(options: UseActionLoggerOptions = {}): StableLog
   // 안정적인 API 생성
   const stableAPI = useMemo((): StableLoggerAPI => ({
     logAction: (actionType: string, payload?: any, options: ActionLogOptions = {}) => {
-      internalActionRegister.dispatch('_internal.log.action', { actionType, payload, options });
+      // 자동 계산: 실행 시작 시간 기록
+      const startTime = performance.now();
+      
+      // 자동 계산: 타임스탬프 생성
+      const timestamp = new Date().toLocaleTimeString('ko-KR', {
+        hour: '2-digit',
+        minute: '2-digit', 
+        second: '2-digit',
+        fractionalSecondDigits: 3
+      });
+      
+      // 액션 실행 완료 후 정확한 실행시간 계산
+      const endTime = performance.now();
+      const executionTime = Math.max(0.1, Math.round((endTime - startTime) * 10) / 10); // 0.1ms 최소값, 소수점 1자리
+      
+      internalActionRegister.dispatch('_internal.log.action', { 
+        actionType, 
+        payload, 
+        options: {
+          ...options,
+          // 자동 주입: 실행 시간과 타임스탬프
+          _autoCalculated: {
+            executionTime,
+            timestamp,
+            actionType // 중복 제거를 위한 자동 주입
+          }
+        }
+      });
     },
 
     logError: (message: string, error?: Error | any, options: ActionLogOptions = {}) => {

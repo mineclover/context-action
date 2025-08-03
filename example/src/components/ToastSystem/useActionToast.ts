@@ -5,7 +5,7 @@ import type { ActionExecutionToast } from './types';
 export interface ActionToastHook {
   showActionStart: (actionType: string, payload?: any) => void;
   showActionProcessing: (actionType: string, payload?: any) => void;
-  showActionSuccess: (actionType: string, resultData?: any, executionTime?: number) => void;
+  showActionSuccess: (actionType: string, resultData?: any) => void; // executionTime 제거 - 자동 계산됨
   showActionError: (actionType: string, errorMessage: string, payload?: any) => void;
   showToast: (type: 'success' | 'error' | 'info' | 'system', title: string, message: string) => void;
   clearAllToasts: () => void;
@@ -35,14 +35,14 @@ export function useActionToast(): ActionToastHook {
 
   const showActionSuccess = useCallback((
     actionType: string, 
-    resultData?: any, 
-    executionTime?: number
+    resultData?: any
+    // executionTime 제거 - ToastSystem actions에서 자동 계산됨
   ) => {
     toastActionRegister.dispatch('addActionToast', {
       actionType,
       executionStep: 'success',
       resultData,
-      executionTime,
+      // executionTime은 actions.ts에서 자동으로 0 또는 자동계산된 값 사용
     });
   }, []);
 

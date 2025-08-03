@@ -16,10 +16,12 @@ export function ToastContainer() {
   // 표시할 토스트들만 필터링 (hidden 상태 제외)
   const visibleToasts = toasts?.filter(toast => toast.phase !== 'hidden') || [];
 
-  // 최신 토스트가 위로 오도록 정렬
-  const sortedToasts = [...visibleToasts].sort((a, b) => 
-    b.timestamp.getTime() - a.timestamp.getTime()
-  );
+  // 최신 토스트가 위로 오도록 정렬 (timestamp가 Date 객체가 아닐 수 있으므로 안전하게 처리)
+  const sortedToasts = [...visibleToasts].sort((a, b) => {
+    const aTime = a.timestamp instanceof Date ? a.timestamp.getTime() : new Date(a.timestamp).getTime();
+    const bTime = b.timestamp instanceof Date ? b.timestamp.getTime() : new Date(b.timestamp).getTime();
+    return bTime - aTime;
+  });
 
   const handleClearAll = () => {
     toastActionRegister.dispatch('clearAllToasts', {});
