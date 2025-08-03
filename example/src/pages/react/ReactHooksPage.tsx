@@ -3,13 +3,13 @@ import {
   ActionRegister,
   ActionPayloadMap,
   ActionProvider,
-  StoreProvider,
   useActionDispatch,
   useActionRegister,
   createContextStorePattern,
   useStoreValue,
 
 } from '@context-action/react';
+import { StoreProvider } from '../../legacy/StoreProvider';
 import { LogLevel } from '@context-action/logger';
 import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
 

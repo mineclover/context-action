@@ -36,12 +36,12 @@ export function useStoreValue<T, R>(
 ): T | R | undefined {
   if (selector) {
     return useStoreSelector(store, {
-      selector: snapshot => snapshot?.value ? selector(snapshot.value) : undefined
+      selector: (snapshot: any) => snapshot?.value ? selector(snapshot.value) : undefined
     });
   }
   
   return useStoreSelector(store, {
-    selector: snapshot => snapshot?.value
+    selector: (snapshot: any) => snapshot?.value
   });
 }
 
@@ -79,7 +79,7 @@ export function useStoreValues<T, S extends Record<string, (value: T) => any>>(
   selectors: S
 ): { [K in keyof S]: ReturnType<S[K]> } | undefined {
   return useStoreSelector(store, {
-    selector: snapshot => {
+    selector: (snapshot: any) => {
       if (!snapshot?.value) return undefined;
       
       const result = {} as { [K in keyof S]: ReturnType<S[K]> };

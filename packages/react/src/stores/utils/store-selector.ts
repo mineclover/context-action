@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import type { IStore, Snapshot, StoreSyncConfig } from './types';
+import type { IStore, Snapshot, StoreSyncConfig } from '../core/types';
 
 /**
  * Store sync 상수 정의
@@ -103,7 +103,7 @@ export function createTypedStoreHooks<T>() {
      */
     useStoreValue(store: IStore<T> | undefined | null): T | undefined {
       return useStoreSelector(store, {
-        selector: snapshot => snapshot.value
+        selector: (snapshot: any) => snapshot.value
       });
     },
     
