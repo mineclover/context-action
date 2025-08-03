@@ -242,7 +242,7 @@ todoActionRegister.register('getTodoStats', {
 
 ### Main Todo App
 
-```typescript
+```tsx
 // components/TodoApp.tsx
 import React, { useEffect, useState } from 'react'
 import { ActionProvider } from '@context-action/react'

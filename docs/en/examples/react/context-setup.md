@@ -6,7 +6,7 @@ React 애플리케이션에서 Context Action을 효과적으로 설정하고 �
 
 ### ActionProvider 사용
 
-```typescript
+```tsx
 // App.tsx
 import React from 'react'
 import { ActionProvider } from '@context-action/react'
@@ -53,7 +53,7 @@ actionRegister.register('createUser', {
 })
 ```
 
-```typescript
+```tsx
 // App.tsx
 import React from 'react'
 import { ActionProvider } from '@context-action/react'
@@ -123,7 +123,7 @@ userActionRegister.register('updateProfile', {
 })
 ```
 
-```typescript
+```tsx
 // App.tsx - 중첩된 Provider 설정
 import React from 'react'
 import { ActionProvider } from '@context-action/react'
@@ -200,7 +200,7 @@ export function useAuthenticatedActions() {
 }
 ```
 
-```typescript
+```tsx
 // components/AuthenticatedApp.tsx
 import React from 'react'
 import { ActionProvider } from '@context-action/react'
@@ -221,7 +221,7 @@ export function AuthenticatedApp({ children }: { children: React.ReactNode }) {
 
 ### 기본 사용법
 
-```typescript
+```tsx
 // components/UserList.tsx
 import React, { useEffect, useState } from 'react'
 import { useAction } from '@context-action/react'
@@ -295,7 +295,7 @@ export function UserList() {
 
 ### 에러 바운더리와 함께 사용
 
-```typescript
+```tsx
 // components/ActionErrorBoundary.tsx
 import React, { Component, ReactNode } from 'react'
 
@@ -345,7 +345,7 @@ export class ActionErrorBoundary extends Component<Props, State> {
 }
 ```
 
-```typescript
+```tsx
 // App.tsx - 에러 바운더리 적용
 import React from 'react'
 import { ActionProvider } from '@context-action/react'
@@ -425,7 +425,7 @@ export { actionRegister }
 
 ### Context Provider 모킹
 
-```typescript
+```tsx
 // __tests__/utils/ActionTestProvider.tsx
 import React from 'react'
 import { ActionProvider } from '@context-action/react'
@@ -455,7 +455,7 @@ export function ActionTestProvider({
 }
 ```
 
-```typescript
+```tsx
 // __tests__/UserList.test.tsx
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'

@@ -4,22 +4,24 @@ MVVM architecture and design patterns used throughout the Context-Action framewo
 
 ## MVVM Pattern
 
-**Definition**: Model-View-ViewModel architectural pattern adapted for React applications with centralized state management and action-based business logic.
-
+**Definition**: React 애플리케이션을 위해 적응된 Model-View-ViewModel 아키텍처 패턴으로, 중앙화된 상태 관리와 액션 기반 비즈니스 로직을 특징으로 합니다.
 
 **Usage Context**:
-- Application architecture design
-- Separation of concerns implementation
-- Scalable application structure
-- Clean code organization
+- 애플리케이션 아키텍처 설계 및 구조화
+- 관심사의 분리 구현 (Separation of Concerns)
+- 확장 가능한 애플리케이션 구조 설계
+- 깔끔한 코드 조직 및 유지보수성 향상
+- Context-Action 프레임워크의 핵심 아키텍처
 
 **Key Characteristics**:
-- **View**: React components handling presentation
-- **ViewModel**: Action handlers containing business logic
-- **Model**: Stores managing application state
-- Unidirectional data flow via actions
-- Type-safe communication between layers
+- **View**: React 컴포넌트를 통한 프레젠테이션 처리 (Store Hooks 사용)
+- **ViewModel**: 비즈니스 로직을 담당하는 Action Handler 시스템
+- **Model**: 애플리케이션 상태를 관리하는 Store 시스템
+- 액션을 통한 단방향 데이터 플로우 구현
+- 계층 간 타입 안전한 통신 보장
+- ActionRegister를 통한 ViewModel 조정
 
+**Implementation**: Context-Action 프레임워크에서 View는 React 컴포넌트와 Store Hooks, ViewModel은 ActionRegister와 Action Handler, Model은 Store와 StoreRegistry로 구현됩니다.
 
 **Related Terms**: [View Layer](#view-layer), [ViewModel Layer](#viewmodel-layer), [Model Layer](#model-layer), [Unidirectional Data Flow](#unidirectional-data-flow)
 
@@ -27,23 +29,25 @@ MVVM architecture and design patterns used throughout the Context-Action framewo
 
 ## View Layer
 
-**Definition**: The presentation layer consisting of React components responsible for rendering UI and capturing user interactions.
-
+**Definition**: UI 렌더링과 사용자 상호작용 캡처를 담당하는 React 컴포넌트로 구성된 프레젠테이션 계층입니다.
 
 **Usage Context**:
-- User interface rendering
-- User interaction handling
-- Store subscription for reactive updates
-- Action dispatch for business logic
+- 사용자 인터페이스 렌더링 및 표시
+- 사용자 상호작용 처리 및 이벤트 캡처
+- 반응형 업데이트를 위한 Store 구독
+- 비즈니스 로직을 위한 액션 디스패치
+- MVVM 패턴의 View 역할 구현
 
 **Responsibilities**:
-- ✅ **DO**: Handle presentation and user interaction
-- ✅ **DO**: Subscribe to relevant stores
-- ✅ **DO**: Dispatch actions with payloads
-- ❌ **DON'T**: Contain business logic
-- ❌ **DON'T**: Directly manipulate store state
-- ❌ **DON'T**: Make API calls or side effects
+- ✅ **DO**: 프레젠테이션 및 사용자 상호작용 처리
+- ✅ **DO**: 관련 Store 구독 (useStoreValue, useStoreActions)
+- ✅ **DO**: 페이로드와 함께 액션 디스패치 (useActionDispatch)
+- ✅ **DO**: 조건부 렌더링 및 UI 상태 관리
+- ❌ **DON'T**: 비즈니스 로직 포함
+- ❌ **DON'T**: Store 상태 직접 조작
+- ❌ **DON'T**: API 호출이나 사이드 이펙트 수행
 
+**Implementation**: React 컴포넌트에서 Store Hooks(useStoreValue)로 상태 구독, Action Dispatcher(useActionDispatch)로 액션 전송하여 구현됩니다.
 
 **Related Terms**: [ViewModel Layer](#viewmodel-layer), [Model Layer](#model-layer), [Store Hooks](./api-terms.md#store-hooks), [Action Dispatcher](./api-terms.md#action-dispatcher)
 
@@ -51,26 +55,28 @@ MVVM architecture and design patterns used throughout the Context-Action framewo
 
 ## ViewModel Layer
 
-**Definition**: The business logic layer implemented through action handlers that process user actions and coordinate between View and Model layers.
-
+**Definition**: 사용자 액션을 처리하고 View와 Model 계층 간을 조정하는 Action Handler를 통해 구현된 비즈니스 로직 계층입니다.
 
 **Usage Context**:
-- Business logic implementation
-- State transformation and validation
-- Cross-store coordination
-- Side effect management
+- 비즈니스 로직 구현 및 실행
+- 상태 변환 및 유효성 검증
+- 크로스 스토어 조정 및 데이터 동기화
+- 사이드 이펙트 관리 및 비동기 작업 처리
+- MVVM 패턴의 ViewModel 역할 구현
 
 **Responsibilities**:
-- ✅ **DO**: Implement business logic and validation
-- ✅ **DO**: Coordinate multiple stores
-- ✅ **DO**: Handle async operations and side effects
-- ✅ **DO**: Provide error handling and rollback
-- ❌ **DON'T**: Directly manipulate DOM
-- ❌ **DON'T**: Handle presentation logic
-- ❌ **DON'T**: Maintain local state
+- ✅ **DO**: 비즈니스 로직 및 유효성 검증 구현
+- ✅ **DO**: 여러 Store 조정 및 데이터 일관성 유지
+- ✅ **DO**: 비동기 연산 및 사이드 이펙트 처리
+- ✅ **DO**: 오류 처리 및 롤백 메커니즘 제공
+- ✅ **DO**: Store 간 의존성 관리 및 업데이트 순서 제어
+- ❌ **DON'T**: DOM 직접 조작
+- ❌ **DON'T**: 프레젠테이션 로직 처리
+- ❌ **DON'T**: 로컬 상태 유지
 
+**Implementation**: ActionRegister에 등록된 Action Handler 함수들로 구현되며, Pipeline Controller를 통해 흐름을 제어하고 Store registry로 데이터에 접근합니다.
 
-**Related Terms**: [View Layer](#view-layer), [Model Layer](#model-layer), [Action Handler](./core-concepts.md#action-handler), [Business Logic](#business-logic)
+**Related Terms**: [View Layer](#view-layer), [Model Layer](#model-layer), [Action Handler](./core-concepts.md#action-handler), [Business Logic](#business-logic), [ActionRegister](./core-concepts.md#actionregister)
 
 ---
 

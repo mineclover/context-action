@@ -49,7 +49,7 @@ actionRegister.register('fetchData', {
 
 ### App.tsx 설정
 
-```typescript
+```tsx
 import React from 'react'
 import { ActionProvider } from '@context-action/react'
 import { actionRegister } from './actions'
@@ -75,7 +75,7 @@ export default App
 
 ### 컴포넌트에서 액션 사용
 
-```typescript
+```tsx
 import React, { useState } from 'react'
 import { useAction } from '@context-action/react'
 
