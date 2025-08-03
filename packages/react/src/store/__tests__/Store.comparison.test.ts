@@ -3,11 +3,9 @@
  * 강화된 값 비교 시스템의 정확성과 성능 검증
  */
 
-import { Store, createStore } from '../Store';
+import { createStore } from '../Store';
 import { 
   setGlobalComparisonOptions, 
-  ComparisonStrategy,
-  compareValues,
   fastCompare,
   referenceEquals,
   shallowEquals,

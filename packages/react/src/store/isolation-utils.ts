@@ -9,7 +9,7 @@
  */
 
 import { createStore } from './Store';
-import { StoreRegistry, type StoreMetadata } from './StoreRegistry';
+import { StoreRegistry } from './StoreRegistry';
 import type { ComparisonOptions } from './comparison';
 import type { IStore } from './types';
 
@@ -323,10 +323,10 @@ export class IsolationStoreFactory {
  * ```
  */
 export function useIsolatedStore<T>(
-  componentId: string,
-  strategy: 'reference' | 'shallow' | 'deep',
-  initialValue: T,
-  comparisonOptions?: Partial<ComparisonOptions<T>>
+  _componentId: string,
+  _strategy: 'reference' | 'shallow' | 'deep',
+  _initialValue: T,
+  _comparisonOptions?: Partial<ComparisonOptions<T>>
 ): ReturnType<typeof createStore<T>> {
   // React Hook이므로 별도 파일에서 구현 필요
   // 여기서는 타입 정의만 제공
@@ -354,7 +354,7 @@ export function useIsolatedStore<T>(
  */
 export function useIsolationStoreFactory(
   componentId: string,
-  debug = false
+  _debug = false
 ): IsolationStoreFactory {
   // React Hook이므로 별도 파일에서 구현 필요
   // 여기서는 타입 정의만 제공
