@@ -65,7 +65,7 @@ const { Provider, useAction, useActionHandler } = createActionContext<AppActions
 
 Wrap your app with the Provider and use hooks to dispatch actions and register handlers:
 
-```typescript
+```tsx
 function App() {
   return (
     <Provider>

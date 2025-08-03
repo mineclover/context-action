@@ -153,7 +153,7 @@ Each package uses `tsdown.config.ts` for build configuration. The build outputs:
 ### Action Handler Registration
 Action handlers must be registered before components mount. Use the provider pattern:
 
-```typescript
+```tsx
 // Correct: Register handlers in provider setup
 function ActionSetup({ children }) {
   const register = useActionRegister();
@@ -169,7 +169,7 @@ function ActionSetup({ children }) {
 ### Context Store Pattern (Primary Pattern)
 The Context-Action framework uses **Context Store Pattern** as the primary state management pattern. This provides automatic Store isolation and component-level encapsulation:
 
-```typescript
+```tsx
 // 1. Create Context Store Pattern
 const UserStores = createContextStorePattern('User');
 
@@ -254,7 +254,7 @@ register('riskyAction', async (payload, controller) => {
 ### Recommended Development Patterns
 
 #### For New Components (HOC Pattern)
-```typescript
+```tsx
 // 1. Create isolated component module
 const FeatureStores = createContextStorePattern('Feature');
 
@@ -283,7 +283,7 @@ function App() {
 ```
 
 #### For Existing Components (Provider Pattern)
-```typescript
+```tsx
 // Traditional approach - still fully supported
 function App() {
   return (

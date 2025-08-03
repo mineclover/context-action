@@ -76,90 +76,107 @@ Technical implementation and API concepts for the Context-Action framework.
 
 ## Store Hooks
 
-**Definition**: React hooks that provide reactive access to store values and enable components to subscribe to store changes.
-
+**Definition**: Store 값에 대한 반응형 접근을 제공하고 컴포넌트가 Store 변경 사항을 구독할 수 있게 하는 React hooks입니다.
 
 **Usage Context**:
-- Component-store integration
-- Reactive UI updates
-- Store value subscription
-- Performance optimization
+- 컴포넌트-Store 통합 및 데이터 바인딩
+- 반응형 UI 업데이트 및 상태 동기화
+- Store 값 구독 및 선택적 리렌더링
+- 성능 최적화 및 메모리 관리
+- MVVM 패턴의 View 레이어 구현
 
 **Available Hooks**:
-- `useStoreValue`: Subscribe to store value with optional selector
-- `useStore`: Full store access with value and setter
-- `useComputedStore`: Subscribe to computed/derived values
-- `usePersistedStore`: Store with persistence integration
-- `useDynamicStore`: Dynamic store creation and management
+- `useStoreValue`: Store 값 구독 및 선택적 셀렉터 지원
+- `useStoreActions`: Store 액션 메서드 (setValue, update) 제공
+- `useRegistryStore`: Registry를 통한 Store 접근 및 생성
+- `useRegistry`: StoreRegistry 인스턴스 접근
+- `useLocalStore`: 로컬 Store 생성 및 관리
 
+**Key Features**:
+- 자동 구독 관리 및 언마운트 시 정리
+- 선택적 리렌더링 (useStoreSelector 기반)
+- 타입 안전한 Store 접근 및 셀렉터 지원
+- useSyncExternalStore 기반 최적화된 구독
 
-**Related Terms**: [Store Integration Pattern](./core-concepts.md#store-integration-pattern), [Computed Store](#computed-store), [Selective Subscription](#selective-subscription)
+**Implementation**: useStoreSelector를 기반으로 구현되며, IStore 인터페이스와 통합되어 타입 안전성과 성능 최적화를 보장합니다.
+
+**Related Terms**: [Store Integration Pattern](./core-concepts.md#store-integration-pattern), [Computed Store](#computed-store), [Selective Subscription](#selective-subscription), [StoreProvider](#storeprovider)
 
 ---
 
 ## Cross-Store Coordination
 
-**Definition**: A pattern for coordinating actions across multiple stores within a single action handler, enabling complex business logic that spans multiple data domains.
-
+**Definition**: 단일 액션 핸들러 내에서 여러 Store 간의 액션을 조정하는 패턴으로, 여러 데이터 도메인에 걸친 복잡한 비즈니스 로직을 가능하게 합니다.
 
 **Usage Context**:
-- Complex business operations
-- Multi-domain data updates
-- Transaction-like behavior
-- Data consistency maintenance
+- 복잡한 비즈니스 연산 및 워크플로우 구현
+- 다중 도메인 데이터 업데이트 및 동기화
+- 트랜잭션과 유사한 동작 구현
+- 데이터 일관성 유지 및 무결성 보장
+- 도메인 간 의존성 관리
 
 **Key Patterns**:
-- Read from multiple stores before processing
-- Validate constraints across stores
-- Update multiple stores atomically
-- Rollback on failures
+- 처리 전 여러 Store에서 데이터 읽기 (getValue 패턴)
+- Store 간 제약 조건 유효성 검증
+- 여러 Store를 원자적으로 업데이트
+- 실패 시 롤백 및 상태 복구
+- Store registry를 통한 통합 접근
 
+**Implementation Strategies**:
+- **Sequential Updates**: 의존성 순서에 따른 순차 업데이트
+- **Batch Operations**: 모든 업데이트를 그룹화하여 처리
+- **Compensation Patterns**: 실패 시 이전 상태로 복구
+- **Event Coordination**: Store 변경 간 이벤트 기반 조정
 
-**Related Terms**: [Store Integration Pattern](./core-concepts.md#store-integration-pattern), [Action Handler](./core-concepts.md#action-handler), [Atomic Updates](#atomic-updates)
+**Related Terms**: [Store Integration Pattern](./core-concepts.md#store-integration-pattern), [Action Handler](./core-concepts.md#action-handler), [Atomic Updates](#atomic-updates), [Store Registry](./core-concepts.md#store-registry)
 
 ---
 
 ## Async Operations
 
-**Definition**: Asynchronous operations within action handlers that handle external API calls, database operations, and other non-blocking tasks while maintaining proper error handling and state management.
-
+**Definition**: 액션 핸들러 내에서 외부 API 호출, 데이터베이스 작업 및 기타 비차단 작업을 처리하는 비동기 연산으로, 적절한 오류 처리와 상태 관리를 유지합니다.
 
 **Usage Context**:
-- External API integration
-- Database operations
-- File system operations
-- Time-delayed operations
+- 외부 API 통합 및 데이터 페칭
+- 데이터베이스 연산 및 트랜잭션
+- 파일 시스템 작업 및 I/O 처리
+- 시간 지연 작업 및 타이머
+- 비동기 비즈니스 로직 처리
 
 **Key Features**:
-- Proper error handling and rollback
-- Loading state management
-- Timeout and cancellation support
-- Progress tracking capabilities
+- 적절한 오류 처리 및 롤백 메커니즘
+- 로딩 상태 관리 및 진행 상황 추적
+- 타임아웃 및 취소 지원
+- Promise<void> 반환 타입 지원
+- Pipeline Controller를 통한 흐름 제어
 
+**Implementation**: ActionHandler의 Promise<void> 반환 타입과 blocking 설정을 통해 비동기 완료 대기를 제어할 수 있습니다.
 
-**Related Terms**: [Action Handler](./core-concepts.md#action-handler), [Error Handling](#error-handling), [Loading States](#loading-states)
+**Related Terms**: [Action Handler](./core-concepts.md#action-handler), [Handler Configuration](./core-concepts.md#handler-configuration), [Pipeline Controller](./core-concepts.md#pipeline-controller)
 
 ---
 
 ## Action Dispatcher
 
-**Definition**: A type-safe function interface that enables dispatching actions with proper payload validation and type checking.
-
+**Definition**: 적절한 페이로드 유효성 검증과 타입 검사를 통해 액션을 디스패치할 수 있게 하는 타입 안전한 함수 인터페이스입니다.
 
 **Usage Context**:
-- Component action dispatch
-- Type-safe action invocation
-- Business logic triggering
-- User interaction handling
+- 컴포넌트 액션 디스패치 및 이벤트 처리
+- 타입 안전한 액션 호출 및 실행
+- 비즈니스 로직 트리거 및 워크플로우 시작
+- 사용자 상호작용 처리 및 UI 이벤트
+- MVVM 패턴의 View에서 ViewModel로의 호출
 
 **Key Features**:
-- Overloaded for actions with and without payloads
-- Compile-time type checking
-- Async operation support
-- Error propagation
+- 페이로드 유무에 따른 오버로드 지원
+- 컴파일 타임 타입 검사 및 유효성 검증
+- 비동기 연산 지원 (Promise 반환)
+- 오류 전파 및 예외 처리
+- ActionPayloadMap 기반 타입 안전성
 
+**Implementation**: ActionDispatcher<T> 타입으로 정의되며, ActionRegister의 dispatch 메서드를 래핑하여 타입 안전성을 보장합니다.
 
-**Related Terms**: [Action Payload Map](./core-concepts.md#action-payload-map), [Type Safety](./architecture-terms.md#type-safety), [useActionDispatch](#useactiondispatch)
+**Related Terms**: [Action Payload Map](./core-concepts.md#action-payload-map), [Type Safety](./architecture-terms.md#type-safety), [useActionDispatch](#useactiondispatch), [ActionRegister](./core-concepts.md#actionregister)
 
 ---
 

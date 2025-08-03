@@ -24,7 +24,7 @@ pnpm add @context-action/react @context-action/core @context-action/logger
 
 ### Basic Usage
 
-```typescript
+```tsx
 import { 
   createContextStorePattern, 
   useStoreValue, 
@@ -88,7 +88,7 @@ function App() {
 
 Create isolated store environments for component trees:
 
-```typescript
+```tsx
 // Create pattern
 const UserStores = createContextStorePattern('User');
 
@@ -114,7 +114,7 @@ function UserComponent() {
 
 Automatically wrap components with providers:
 
-```typescript
+```tsx
 // Basic HOC - Store isolation only
 const withUserStores = UserStores.withProvider('user-profile');
 
@@ -142,7 +142,7 @@ const FullUserModule = withFullProviders(UserComponent);
 
 Centralized action management:
 
-```typescript
+```tsx
 interface UserActions extends ActionPayloadMap {
   updateProfile: { name: string; email: string };
   deleteProfile: { id: string };
@@ -165,7 +165,7 @@ function UserComponent() {
 
 Each component gets its own store namespace:
 
-```typescript
+```tsx
 const FeatureStores = createContextStorePattern('Feature');
 
 // Component A and B will have separate store instances
@@ -186,7 +186,7 @@ function App() {
 
 For even finer isolation:
 
-```typescript
+```tsx
 function UserCard({ userId }: { userId: string }) {
   // Each UserCard instance gets its own isolated store
   const userStore = UserStores.useIsolatedStore('user-data', { 

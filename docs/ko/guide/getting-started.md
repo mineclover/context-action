@@ -51,7 +51,7 @@ const { Provider, useAction, useActionHandler } = createActionContext<CounterAct
 
 앱의 루트나 필요한 컴포넌트를 Provider로 감쌉니다:
 
-```typescript
+```tsx
 function App() {
   return (
     <Provider>
@@ -65,7 +65,7 @@ function App() {
 
 컴포넌트에서 `useActionHandler`를 사용하여 액션 핸들러를 등록합니다:
 
-```typescript
+```tsx
 function Counter() {
   const [count, setCount] = useState(0);
   const dispatch = useAction();
