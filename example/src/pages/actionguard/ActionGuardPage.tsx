@@ -2,6 +2,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { ActionRegister, ActionPayloadMap } from '@context-action/react';
 import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
 import { DemoCard, Button, Input, CodeExample, CodeBlock } from '../../components/ui';
+import { toastActionRegister } from '../../components/ToastSystem/actions';
 
 // Action Guard 액션 맵
 interface ActionGuardMap extends ActionPayloadMap {
@@ -194,11 +195,33 @@ function ApiBlockingDemo() {
   useEffect(() => {
     const unsubscribe = actionRegister.register('apiCall', (data, controller) => {
       if (blockAction('apiCall')) {
+        // 로그 기록
         logAction('apiCall', { endpoint: data.endpoint, blocked: false });
+        
+        // 직접 Toast 발생
+        logSystem(`🍞 Dispatching success toast for: ${data.endpoint}`);
+        toastActionRegister.dispatch('addToast', {
+          type: 'success',
+          title: '🌐 API 호출',
+          message: `${data.endpoint} 호출 성공!`
+        });
+        logSystem('🍞 Toast dispatch completed');
+        
         setApiCalls(prev => [...prev, `API Call to ${data.endpoint} at ${new Date().toLocaleTimeString()}`]);
         controller.next();
       } else {
+        // 로그 기록
         logAction('apiCall', { endpoint: data.endpoint, blocked: true });
+        
+        // 직접 Toast 발생
+        logSystem(`🍞 Dispatching error toast for: ${data.endpoint}`);
+        toastActionRegister.dispatch('addToast', {
+          type: 'error',
+          title: '🚫 API 차단',
+          message: `${data.endpoint} 호출이 차단되었습니다`
+        });
+        logSystem('🍞 Toast dispatch completed (error)');
+        
         logSystem('API call blocked due to rate limiting');
       }
     });
@@ -310,7 +333,11 @@ function MouseEventDemo() {
 
 function ActionGuardPage() {
   return (
-    <PageWithLogMonitor pageId="action-guard" title="Action Guard System">
+    <PageWithLogMonitor 
+      pageId="action-guard" 
+      title="Action Guard System"
+      initialConfig={{ enableToast: true, maxLogs: 100 }}
+    >
       <div className="page-container">
         <header className="page-header">
           <h1>Action Guard System</h1>

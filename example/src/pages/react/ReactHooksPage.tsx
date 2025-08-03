@@ -453,7 +453,11 @@ function ReactHooksSetup() {
 
 function ReactHooksPage() {
   return (
-    <PageWithLogMonitor pageId="react-hooks" title="React Hooks Performance Optimization">
+    <PageWithLogMonitor 
+      pageId="react-hooks" 
+      title="React Hooks Performance Optimization"
+      initialConfig={{ enableToast: true, maxLogs: 100 }}
+    >
       <div className="page-container">
         <header className="page-header">
           <h1>React Hooks Performance Optimization</h1>

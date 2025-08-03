@@ -136,6 +136,29 @@ export function maintainMaxLogs(
  * 국제화(i18n) 시스템으로 교체하는 것을 권장합니다.
  */
 export const ACTION_MESSAGES: ActionMessageMap = {
+  // Store 기본 액션들
+  updateMessage: { title: '💬 메시지 업데이트', message: '메시지가 성공적으로 업데이트되었습니다', type: 'success' },
+  resetMessage: { title: '🔄 메시지 리셋', message: '메시지가 초기값으로 재설정되었습니다', type: 'info' },
+  increment: { title: '➕ 카운터 증가', message: '카운터가 증가했습니다', type: 'success' },
+  decrement: { title: '➖ 카운터 감소', message: '카운터가 감소했습니다', type: 'success' },
+  addValue: { title: '🔢 값 추가', message: '카운터에 값이 추가되었습니다', type: 'success' },
+  resetCounter: { title: '🔄 카운터 리셋', message: '카운터가 0으로 재설정되었습니다', type: 'info' },
+  updateUserName: { title: '👤 이름 변경', message: '사용자 이름이 업데이트되었습니다', type: 'success' },
+  updateUserEmail: { title: '📧 이메일 변경', message: '사용자 이메일이 업데이트되었습니다', type: 'success' },
+  resetUser: { title: '🔄 사용자 리셋', message: '사용자 정보가 초기값으로 재설정되었습니다', type: 'info' },
+
+  // Core ActionRegister 액션들
+  setCount: { title: '🔢 카운트 설정', message: '카운트가 설정된 값으로 변경되었습니다', type: 'success' },
+  reset: { title: '🔄 리셋', message: '값이 초기화되었습니다', type: 'info' },
+  log: { title: '📝 로그 기록', message: '사용자 로그가 기록되었습니다', type: 'info' },
+
+  // ActionGuard 액션들
+  performSearch: { title: '🔍 검색 실행', message: '검색이 실행되었습니다', type: 'success' },
+  searchInput: { title: '🔍 검색 입력', message: '검색어가 입력되었습니다 (디바운스 적용)', type: 'info' },
+  scrollEvent: { title: '📜 스크롤 이벤트', message: '스크롤 이벤트가 처리되었습니다 (스로틀 적용)', type: 'info' },
+  apiCall: { title: '🌐 API 호출', message: 'API가 호출되었습니다', type: 'success' },
+  mouseMove: { title: '🖱️ 마우스 이동', message: '마우스 이동이 감지되었습니다 (스로틀 적용)', type: 'info' },
+
   // Store 시나리오 액션들
   updateUser: { title: '프로필 저장', message: '사용자 프로필이 업데이트되었습니다', type: 'success' },
   updateUserTheme: { title: '테마 변경', message: '테마가 변경되었습니다', type: 'success' },
@@ -162,6 +185,18 @@ export const ACTION_MESSAGES: ActionMessageMap = {
   // React Provider 액션들
   updateCounter: { title: '카운터 변경', message: '카운터 값이 변경되었습니다', type: 'success' },
   resetCounter: { title: '카운터 리셋', message: '카운터가 초기화되었습니다', type: 'info' },
+  
+  // Toast Config 예제 액션들
+  testBasicToast: { title: '🍞 기본 Toast 테스트', message: 'Toast 시스템이 정상적으로 작동합니다', type: 'success' },
+  customMessage: { title: '📝 커스텀 메시지', message: '사용자가 입력한 메시지가 처리되었습니다', type: 'success' },
+  successAction: { title: '✅ 성공 액션', message: '작업이 성공적으로 완료되었습니다', type: 'success' },
+  errorAction: { title: '❌ 오류 액션', message: '오류가 발생했습니다. 다시 시도해주세요', type: 'error' },
+  infoAction: { title: 'ℹ️ 정보 액션', message: '참고할 정보가 있습니다', type: 'info' },
+  warningAction: { title: '⚠️ 경고 액션', message: '주의가 필요한 상황입니다', type: 'error' },
+  incrementCounter: { title: '➕ 카운터 증가', message: '카운터가 1 증가했습니다', type: 'success' },
+  toggleAutoMode: { title: '⚡ 자동 모드 전환', message: '자동 모드가 전환되었습니다', type: 'info' },
+  autoIncrement: { title: '🔄 자동 증가', message: '자동 모드에서 카운터가 증가했습니다', type: 'success' },
+  autoModeTimeout: { title: '⏰ 자동 모드 종료', message: '자동 모드가 시간 초과로 종료되었습니다', type: 'info' },
   updateMessage: { title: '메시지 변경', message: '메시지가 업데이트되었습니다', type: 'success' },
   resetMessage: { title: '메시지 리셋', message: '메시지가 초기화되었습니다', type: 'info' },
   

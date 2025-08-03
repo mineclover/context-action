@@ -92,7 +92,7 @@ export function ToastItem({ toast, index, totalCount }: ToastItemProps) {
           phase: toast.phase as ToastVariants['phase'],
           executionStep: toast.type === 'action' ? executionStep : undefined
         }),
-        "p-4 w-full max-w-md"
+        "p-4 w-full max-w-md bg-white shadow-lg border rounded-lg relative transition-all duration-200"
       )}
       style={{
         '--stack-offset': `${stackOffset}px`,

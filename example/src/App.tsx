@@ -12,6 +12,7 @@ import ReactContextPage from './pages/react/ReactContextPage';
 import ReactHooksPage from './pages/react/ReactHooksPage';
 import LoggerDemoPage from './pages/logger/LoggerDemoPage';
 import ActionGuardPage from './pages/actionguard/ActionGuardPage';
+import ToastConfigExamplePage from './pages/examples/ToastConfigExamplePage';
 import InfiniteLoopTestPage from './pages/infinite-loop/InfiniteLoopTestPage';
 import ComparisonDemoPage from './pages/comparison/ComparisonDemoPage';
 import ThrottledComparisonPage from './pages/comparison/ThrottledComparisonPage';
@@ -31,6 +32,7 @@ function App() {
           <Route path="/react/hooks" element={<ReactHooksPage />} />
           <Route path="/logger/demo" element={<LoggerDemoPage />} />
           <Route path="/actionguard/demo" element={<ActionGuardPage />} />
+          <Route path="/examples/toast-config" element={<ToastConfigExamplePage />} />
           <Route path="/infinite-loop/test" element={<InfiniteLoopTestPage />} />
           <Route path="/comparison/demo" element={<ComparisonDemoPage />} />
           <Route path="/comparison/throttled" element={<ThrottledComparisonPage />} />

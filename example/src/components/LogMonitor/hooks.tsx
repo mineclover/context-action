@@ -77,8 +77,16 @@ export function useActionLogger(options: UseActionLoggerOptions = {}): StableLog
       logger.info(`Action: ${actionType}`, payload);
 
       // Toast 표시 (활성화된 경우)
+      console.log('🍞 Toast check conditions:', {
+        enableToast: config.enableToast,
+        hasToastSystem: !!toastSystem,
+        toastOption: options.toast,
+        shouldShow: config.enableToast && toastSystem && options.toast !== false
+      });
+      
       if (config.enableToast && toastSystem && options.toast !== false) {
         const actionMsg = getActionMessage(actionType);
+        console.log('🍞 Calling showToast with:', actionMsg);
         
         if (typeof options.toast === 'object') {
           toastSystem.showToast(
@@ -89,6 +97,8 @@ export function useActionLogger(options: UseActionLoggerOptions = {}): StableLog
         } else {
           toastSystem.showToast(actionMsg.type, actionMsg.title, actionMsg.message);
         }
+      } else {
+        console.log('🍞 Toast not shown due to conditions not met');
       }
 
       controller.next();
@@ -180,23 +190,53 @@ export function useActionLoggerWithToast(): StableLoggerAPI {
   const toastSystem = useMemo((): ToastSystem | undefined => {
     try {
       // Toast 시스템이 전역으로 등록되어 있는지 확인
-      const { toastActionRegister } = require('../ToastSystem/actions');
-      
-      return {
-        showToast: (type: 'success' | 'error' | 'info' | 'system', title: string, message: string) => {
-          toastActionRegister.dispatch('addToast', {
-            type,
-            title,
-            message,
-          });
-        }
-      };
+      // ES6 dynamic import 대신 전역 객체 접근 시도
+      const globalThis = window as any;
+      if (globalThis.toastActionRegister) {
+        const toastActionRegister = globalThis.toastActionRegister;
+        
+        console.log('🍞 Toast system loaded from global:', !!toastActionRegister);
+        
+        return {
+          showToast: (type: 'success' | 'error' | 'info' | 'system', title: string, message: string) => {
+            console.log('🍞 showToast called with:', { type, title, message });
+            console.log('🍞 Dispatching addToast action');
+            try {
+              toastActionRegister.dispatch('addToast', {
+                type,
+                title,
+                message,
+              });
+              console.log('🍞 Toast dispatch successful');
+            } catch (error) {
+              console.error('🍞 Toast dispatch failed:', error);
+            }
+          }
+        };
+      } else {
+        // 동적 import를 통한 Toast 시스템 로드 시도
+        import('../ToastSystem/actions').then((module) => {
+          const { toastActionRegister } = module;
+          if (toastActionRegister) {
+            console.log('🍞 Toast system loaded via dynamic import:', !!toastActionRegister);
+            // 전역에 등록하여 다음 번에 재사용 가능하도록 함
+            globalThis.toastActionRegister = toastActionRegister;
+          }
+        }).catch((error) => {
+          console.error('🍞 Dynamic import failed:', error);
+        });
+        
+        console.log('🍞 Toast system not available yet, will try later');
+        return undefined;
+      }
     } catch (error) {
+      console.error('🍞 Toast system loading failed:', error);
       // Toast 시스템이 없는 경우 undefined 반환
       return undefined;
     }
   }, []);
 
+  console.log('🍞 useActionLoggerWithToast: toastSystem created:', !!toastSystem);
   return useActionLogger({ toastSystem });
 }
 

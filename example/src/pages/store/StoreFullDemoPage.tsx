@@ -59,7 +59,11 @@ function StoreFullDemoPage() {
   const currentDemo = demos.find(demo => demo.id === activeDemo);
 
   return (
-    <PageWithLogMonitor pageId="store-full-demo" title="Store System - 8 Real-world Scenarios">
+    <PageWithLogMonitor 
+      pageId="store-full-demo" 
+      title="Store System - 8 Real-world Scenarios"
+      initialConfig={{ enableToast: true, maxLogs: 150 }}
+    >
       <div className="page-container">
         <header className="page-header">
           <h1>🏪 Modularized Store System</h1>

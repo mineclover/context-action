@@ -39,26 +39,39 @@ export function ToastControlPanel() {
   ];
 
   return (
-    <div className="toast-control-panel">
+    <div className="fixed bottom-4 right-4 z-40 bg-white border border-gray-300 rounded-lg shadow-lg" style={{ zIndex: 9998 }}>
       <button 
-        className="toast-panel-toggle"
+        className="w-full p-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors rounded-lg"
         onClick={() => setIsExpanded(!isExpanded)}
         title={isExpanded ? '토스트 패널 닫기' : '토스트 패널 열기'}
       >
         🍞 Toast Control {isExpanded ? '🔽' : '🔼'}
       </button>
 
+      {/* 강제 테스트 버튼 추가 (항상 표시) */}
+      <div className="p-2 border-t border-gray-200">
+        <button 
+          onClick={() => {
+            console.log('🍞 Quick test button clicked');
+            showToast('success', '✅ Quick Test', 'Quick test button was clicked!');
+          }}
+          className="w-full px-3 py-2 text-xs font-medium bg-green-100 text-green-800 rounded-md border border-green-300 hover:bg-green-200 transition-colors"
+        >
+          🧪 Quick Test Toast
+        </button>
+      </div>
+
       {isExpanded && (
-        <div className="toast-panel-content">
+        <div className="p-4 space-y-4 w-80">
           {/* 빠른 테스트 버튼들 */}
-          <div className="toast-quick-tests">
-            <h4>🧪 Quick Tests</h4>
-            <div className="toast-test-buttons">
+          <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">🧪 Quick Tests</h4>
+            <div className="grid grid-cols-2 gap-2">
               {testToasts.map((toast, index) => (
                 <button
                   key={index}
                   onClick={() => showToast(toast.type, toast.title, toast.message)}
-                  className={`toast-test-btn toast-test-${toast.type}`}
+                  className="px-3 py-2 text-xs font-medium rounded-md border transition-colors hover:bg-gray-50"
                   title={`Show ${toast.type} toast`}
                 >
                   {toast.title}
@@ -66,27 +79,29 @@ export function ToastControlPanel() {
               ))}
             </div>
             
-            <button
-              onClick={() => {
-                toastActionRegister.dispatch('addActionToast', {
-                  actionType: 'updateProfile',
-                  executionStep: 'success',
-                  executionTime: 234,
-                });
-              }}
-              className="toast-test-btn toast-test-action"
-              title="Show action toast"
-            >
-              ⚡ Action Toast
-            </button>
-            
-            <button 
-              onClick={clearAllToasts}
-              className="toast-clear-btn"
-              title="Clear all toasts"
-            >
-              🗑️ Clear All
-            </button>
+            <div className="flex gap-2 mt-2">
+              <button
+                onClick={() => {
+                  toastActionRegister.dispatch('addActionToast', {
+                    actionType: 'updateProfile',
+                    executionStep: 'success',
+                    executionTime: 234,
+                  });
+                }}
+                className="px-3 py-2 text-xs font-medium rounded-md border transition-colors hover:bg-gray-50"
+                title="Show action toast"
+              >
+                ⚡ Action Toast
+              </button>
+              
+              <button 
+                onClick={clearAllToasts}
+                className="px-3 py-2 text-xs font-medium rounded-md border border-red-300 text-red-600 hover:bg-red-50 transition-colors"
+                title="Clear all toasts"
+              >
+                🗑️ Clear All
+              </button>
+            </div>
           </div>
 
           {/* 설정 섹션 */}
