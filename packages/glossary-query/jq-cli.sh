@@ -59,6 +59,10 @@ ${GREEN}🔍 키워드 조회:${NC}
   $0 keyword <키워드>              ${GRAY}# 키워드로 용어 찾기${NC}
   $0 alias <별칭>                  ${GRAY}# 별칭으로 용어 찾기${NC}
 
+${GREEN}🔗 관련 용어 네트워크:${NC}
+  $0 explore <용어명>              ${GRAY}# 관련 용어 네트워크 탐색${NC}
+  $0 related <용어명> [깊이]       ${GRAY}# 관련 용어들 상세 정보${NC}
+
 ${GREEN}📊 시스템 정보:${NC}
   $0 stats                         ${GRAY}# 통계 정보${NC}
   $0 help                          ${GRAY}# 도움말${NC}
@@ -69,6 +73,8 @@ ${YELLOW}예시:${NC}
   $0 detail "Action Pipeline System"
   $0 keyword action
   $0 alias 액션
+  $0 explore "ActionRegister"
+  $0 related "Action Pipeline System" 2
 
 EOF
 }
@@ -374,6 +380,131 @@ function show_alias_search() {
     show_detail "$(jq -r ".terms[\"$term_id\"].title" "$DATA_FILE")"
 }
 
+function show_related_network() {
+    local term_name="$1"
+    local depth="${2:-1}"
+    
+    if [ -z "$term_name" ]; then
+        echo -e "${RED}${ICON_ERROR} 용어명을 입력해주세요.${NC}"
+        echo -e "${YELLOW}사용법:${NC} $0 explore <용어명> [깊이]"
+        return 1
+    fi
+    
+    # 1. 시작 용어 ID 찾기
+    local term_id=$(jq -r --arg name "$term_name" '
+        .terms | 
+        to_entries[] | 
+        select(.value.title | test($name; "i")) | 
+        .key
+    ' "$DATA_FILE" | head -1)
+    
+    # 2. 별칭 검색 시도
+    if [ -z "$term_id" ]; then
+        term_id=$(search_by_alias "$term_name")
+    fi
+    
+    # 3. 퍼지 검색 시도
+    if [ -z "$term_id" ]; then
+        term_id=$(fuzzy_search_terms "$term_name" | head -1)
+    fi
+    
+    if [ -z "$term_id" ]; then
+        echo -e "${RED}${ICON_ERROR} '$term_name' 용어를 찾을 수 없습니다.${NC}"
+        return 1
+    fi
+    
+    local main_term=$(jq -r ".terms[\"$term_id\"].title" "$DATA_FILE")
+    echo -e "\n🔗 ${GREEN}관련 용어 네트워크 탐색:${NC} ${CYAN}$main_term${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    
+    # 중앙 용어 정보 출력
+    echo -e "\n${ICON_TERM} ${GREEN}중심 용어:${NC}"
+    show_term_summary "$term_id" "🎯"
+    
+    # 1단계 관련 용어들
+    echo -e "\n${GREEN}🔗 직접 관련 용어들:${NC}"
+    local related_terms=$(jq -r ".terms[\"$term_id\"].relatedTerms[]?" "$DATA_FILE" 2>/dev/null)
+    
+    if [ -z "$related_terms" ]; then
+        echo -e "   ${GRAY}관련 용어가 없습니다.${NC}"
+    else
+        local count=0
+        for related_id in $related_terms; do
+            count=$((count + 1))
+            show_term_summary "$related_id" "  $count."
+        done
+    fi
+    
+    # 2단계 관련 용어들 (depth가 2 이상인 경우)
+    if [ "$depth" -ge 2 ] && [ -n "$related_terms" ]; then
+        echo -e "\n${GREEN}🔗🔗 2단계 관련 용어들:${NC}"
+        local second_level_terms=""
+        
+        for related_id in $related_terms; do
+            local second_level=$(jq -r ".terms[\"$related_id\"].relatedTerms[]?" "$DATA_FILE" 2>/dev/null)
+            for second_id in $second_level; do
+                # 이미 출력된 용어들 제외
+                if [ "$second_id" != "$term_id" ] && ! echo "$related_terms" | grep -q "$second_id"; then
+                    if ! echo "$second_level_terms" | grep -q "$second_id"; then
+                        second_level_terms="$second_level_terms $second_id"
+                    fi
+                fi
+            done
+        done
+        
+        if [ -z "$second_level_terms" ]; then
+            echo -e "   ${GRAY}2단계 관련 용어가 없습니다.${NC}"
+        else
+            local count=0
+            for second_id in $second_level_terms; do
+                count=$((count + 1))
+                show_term_summary "$second_id" "    $count."
+            done
+        fi
+    fi
+    
+    # 같은 카테고리 용어들
+    local category=$(jq -r ".terms[\"$term_id\"].category" "$DATA_FILE")
+    echo -e "\n${GREEN}📂 같은 카테고리 (${category}) 용어들:${NC}"
+    local category_terms=$(jq -r ".categories[\"$category\"].terms[]" "$DATA_FILE" | head -5)
+    local count=0
+    for cat_id in $category_terms; do
+        if [ "$cat_id" != "$term_id" ]; then
+            count=$((count + 1))
+            if [ $count -le 5 ]; then
+                show_term_summary "$cat_id" "  $count."
+            fi
+        fi
+    done
+    
+    echo -e "\n${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${YELLOW}💡 사용법:${NC}"
+    echo -e "   $0 detail <용어명>     ${ICON_ARROW} 특정 용어 상세 정보"
+    echo -e "   $0 explore <용어명> 2  ${ICON_ARROW} 2단계 깊이로 탐색"
+    echo
+}
+
+function show_term_summary() {
+    local term_id="$1"
+    local prefix="$2"
+    
+    local term_data=$(jq -r ".terms[\"$term_id\"]" "$DATA_FILE")
+    local title=$(echo "$term_data" | jq -r '.title')
+    local category=$(echo "$term_data" | jq -r '.category')
+    local definition=$(echo "$term_data" | jq -r '.definition // "정의 없음"')
+    local impl_count=$(echo "$term_data" | jq -r '.implementations | length')
+    
+    # 정의 길이 제한
+    if [ ${#definition} -gt 80 ]; then
+        definition="${definition:0:80}..."
+    fi
+    
+    echo -e "$prefix ${ICON_TERM} ${GREEN}$title${NC} [${YELLOW}$category${NC}]"
+    echo -e "     📄 $definition"
+    echo -e "     🔧 구현체: ${CYAN}${impl_count}개${NC}"
+    echo
+}
+
 function show_stats() {
     echo -e "\n${ICON_STATS} ${GREEN}시스템 통계:${NC}"
     
@@ -452,6 +583,10 @@ function main() {
         "alias")
             print_header
             show_alias_search "$2"
+            ;;
+        "explore"|"related"|"network")
+            print_header
+            show_related_network "$2" "$3"
             ;;
         "stats"|"status")
             print_header
