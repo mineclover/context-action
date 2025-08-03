@@ -254,7 +254,7 @@ function StoreBasicsPage() {
             </div>
           </header>
 
-          <div className="demo-grid">
+          <div className="space-y-6">
             <MessageDemo />
             <CounterDemo />
             <UserDemo />

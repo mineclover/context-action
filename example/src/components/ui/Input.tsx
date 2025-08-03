@@ -3,7 +3,7 @@ import { cn } from '../../lib/utils';
 import { inputVariants, type InputVariants } from './variants';
 
 export interface InputProps 
-  extends React.InputHTMLAttributes<HTMLInputElement>, 
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'>, 
     InputVariants {
   label?: string;
   error?: string;
@@ -49,7 +49,7 @@ export function Input({
 }
 
 export interface TextareaProps 
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement>, 
+  extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'size'>, 
     InputVariants {
   label?: string;
   error?: string;

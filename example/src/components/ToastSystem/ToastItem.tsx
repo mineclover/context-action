@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import type { Toast } from './types';
 import { toastActionRegister } from './actions';
+import { cn } from '../../lib/utils';
+import { toastVariants, toastStepBadgeVariants, type ToastVariants } from '../ui/variants';
 
 interface ToastItemProps {
   toast: Toast;
@@ -80,14 +82,24 @@ export function ToastItem({ toast, index, totalCount }: ToastItemProps) {
   const scaleOffset = Math.max(0.95, 1 - index * 0.02); // 최소 0.95배까지
   const opacityOffset = Math.max(0.7, 1 - index * 0.1); // 최소 0.7 투명도까지
 
+  const executionStep = toast.payload?.executionStep as ToastVariants['executionStep'];
+
   return (
     <div
-      className={`toast-item toast-${toast.type} toast-${toast.phase}`}
+      className={cn(
+        toastVariants({ 
+          type: toast.type as ToastVariants['type'],
+          phase: toast.phase as ToastVariants['phase'],
+          executionStep: toast.type === 'action' ? executionStep : undefined
+        }),
+        "p-4 w-full max-w-md"
+      )}
       style={{
-        '--toast-color': getTypeColor(),
         '--stack-offset': `${stackOffset}px`,
         '--scale-offset': scaleOffset,
         '--opacity-offset': opacityOffset,
+        transform: `translateY(var(--stack-offset)) scale(var(--scale-offset))`,
+        opacity: opacityOffset,
         zIndex: totalCount - index,
       } as React.CSSProperties}
       onMouseEnter={() => setIsHovered(true)}
@@ -95,74 +107,77 @@ export function ToastItem({ toast, index, totalCount }: ToastItemProps) {
     >
       {/* 스택 카운터 */}
       {index > 0 && (
-        <div className="toast-stack-indicator">
+        <div className="absolute -top-2 -right-2 bg-gray-700 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-medium">
           +{index}
         </div>
       )}
 
-      {/* 메인 콘텐츠 */}
-      <div className="toast-content">
-        {/* 헤더 */}
-        <div className="toast-header">
-          <div className="toast-icon">
-            {getTypeIcon()}
+      {/* 헤더 */}
+      <div className="flex items-start gap-3 mb-2">
+        <div className="flex-shrink-0 text-lg">
+          {getTypeIcon()}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-medium text-gray-900 truncate">{toast.title}</div>
+          <div className="text-xs text-gray-500">
+            {formatTime(toast.timestamp)}
           </div>
-          <div className="toast-title-section">
-            <div className="toast-title">{toast.title}</div>
-            <div className="toast-timestamp">
-              {formatTime(toast.timestamp)}
+        </div>
+        <button 
+          className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors p-1 rounded"
+          onClick={handleClose}
+          title="토스트 닫기"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      {/* 메시지 */}
+      <div className="text-sm text-gray-700 mb-3 break-words">
+        {toast.message}
+      </div>
+
+      {/* 액션 페이로드 정보 (개발/디버그용) */}
+      {toast.type === 'action' && toast.payload && (
+        <div className="bg-gray-50 rounded-md p-3 space-y-2 text-xs">
+          {toast.actionType && (
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500 font-medium">Action:</span>
+              <code className="bg-gray-200 px-2 py-1 rounded text-gray-700 font-mono">
+                {toast.actionType}
+              </code>
             </div>
-          </div>
-          <button 
-            className="toast-close" 
-            onClick={handleClose}
-            title="토스트 닫기"
-          >
-            ✕
-          </button>
+          )}
+          {toast.payload.executionTime && (
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500 font-medium">Time:</span>
+              <code className="bg-gray-200 px-2 py-1 rounded text-gray-700 font-mono">
+                {toast.payload.executionTime}ms
+              </code>
+            </div>
+          )}
+          {toast.payload.executionStep && (
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500 font-medium">Step:</span>
+              <span className={cn(toastStepBadgeVariants({ step: toast.payload.executionStep as any }))}>
+                {toast.payload.executionStep}
+              </span>
+            </div>
+          )}
         </div>
+      )}
 
-        {/* 메시지 */}
-        <div className="toast-message">
-          {toast.message}
-        </div>
-
-        {/* 액션 페이로드 정보 (개발/디버그용) */}
-        {toast.type === 'action' && toast.payload && (
-          <div className="toast-action-details">
-            {toast.actionType && (
-              <div className="action-type">
-                <span className="label">Action:</span>
-                <code>{toast.actionType}</code>
-              </div>
-            )}
-            {toast.payload.executionTime && (
-              <div className="execution-time">
-                <span className="label">Time:</span>
-                <code>{toast.payload.executionTime}ms</code>
-              </div>
-            )}
-            {toast.payload.executionStep && (
-              <div className="execution-step">
-                <span className="label">Step:</span>
-                <span className={`step-badge step-${toast.payload.executionStep}`}>
-                  {toast.payload.executionStep}
-                </span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* 진행률 바 */}
-        <div className="toast-progress-container">
-          <div 
-            className="toast-progress-bar"
-            style={{ 
-              width: `${progress}%`,
-              opacity: isHovered ? 0.3 : 1 
-            }}
-          />
-        </div>
+      {/* 진행률 바 */}
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200 rounded-b-lg overflow-hidden">
+        <div 
+          className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-100"
+          style={{ 
+            width: `${progress}%`,
+            opacity: isHovered ? 0.3 : 1 
+          }}
+        />
       </div>
     </div>
   );

@@ -258,7 +258,7 @@ function ProviderApp() {
   return (
     <>
       <ActionHandlerSetup />
-      <div className="demo-grid">
+      <div className="space-y-6">
         <CounterComponent />
         <MessageComponent />
         <ActivityLogger />

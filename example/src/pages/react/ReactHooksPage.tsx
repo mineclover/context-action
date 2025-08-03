@@ -468,7 +468,7 @@ function ReactHooksPage() {
             <HooksStores.Provider registryId="react-hooks-demo">
               <ReactHooksSetup />
               
-              <div className="demo-grid">
+              <div className="space-y-6">
                 <MemoizationDemo />
                 <ConditionalHandlerDemo />
                 <DynamicHandlerDemo />

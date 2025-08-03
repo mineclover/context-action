@@ -197,7 +197,7 @@ function InfiniteLoopTestContent() {
       {/* 컨트롤 패널 */}
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
         <h2 className="text-lg font-semibold mb-3">🎛️ Controls</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="space-y-4">
           
           {/* 컴포넌트 타입 선택 */}
           <div>
@@ -304,7 +304,7 @@ function InfiniteLoopTestContent() {
       {/* 설명 섹션 */}
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
         <h2 className="text-lg font-semibold mb-3">📚 What to Look For</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-6">
           <div>
             <h3 className="font-medium text-red-700 mb-2">❌ Bad Component Issues:</h3>
             <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">

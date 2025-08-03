@@ -359,7 +359,7 @@ function LoggerDemoPage() {
           </p>
         </header>
 
-        <div className="demo-grid">
+        <div className="space-y-6">
           <ConsoleLoggerDemo />
           <MemoryLoggerDemo />
           <LoggerFactoryDemo />

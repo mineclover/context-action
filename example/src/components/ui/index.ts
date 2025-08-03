@@ -6,6 +6,11 @@ export { Badge } from './Badge';
 export { Input, Textarea } from './Input';
 export { Grid } from './Grid';
 export { Status } from './Status';
+export { DemoCard } from './DemoCard';
+export { CodeExample, CodeBlock } from './CodeExample';
+
+// Export layout components  
+export { PageLayout, PageSection, FeatureHighlight } from '../layout/PageLayout';
 
 // Export specialized components
 export * from './ComparisonComponents';

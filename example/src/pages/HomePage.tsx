@@ -1,19 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Container, Card, CardContent, Grid } from '../components/ui';
+import { PageLayout, Card, CardContent, Grid, FeatureHighlight } from '../components/ui';
 
 function HomePage() {
   return (
-    <Container size="lg">
-      <header className="page-header">
-        <h1>Context-Action Framework Examples</h1>
-        <p className="page-description">
-          Interactive examples demonstrating the Context-Action framework's capabilities.
-          Learn through hands-on experience with action pipelines, store management, and React integration.
-        </p>
-      </header>
+    <PageLayout 
+      title="Context-Action Framework Examples"
+      description="Interactive examples demonstrating the Context-Action framework's capabilities. Learn through hands-on experience with action pipelines, store management, and React integration."
+    >
 
-      <Grid cols={3} className="mb-12">
+      <div className="space-y-6 mb-8">
         <Card category="core" hover>
           <CardContent>
             <h3 className="text-xl font-semibold text-gray-900 mb-3">Core ActionRegister</h3>
@@ -100,7 +96,7 @@ function HomePage() {
             </Link>
           </CardContent>
         </Card>
-      </Grid>
+      </div>
 
       <Card variant="elevated">
         <CardContent>
@@ -121,7 +117,7 @@ function HomePage() {
           </p>
         </CardContent>
       </Card>
-    </Container>
+    </PageLayout>
   );
 }
 

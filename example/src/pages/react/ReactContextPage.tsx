@@ -10,6 +10,7 @@ import {
   useStoreValue
 } from '@context-action/react';
 import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
+import { Card, CardContent, Badge, Button, Grid } from '../../components/ui';
 
 // 이벤트 엔트리 타입 정의
 interface EventEntry {
@@ -89,28 +90,32 @@ function GlobalContextProvider({ children }: { children: React.ReactNode }) {
         <StoreProvider>
           <GlobalStores.Provider>
             <GlobalContextSetup />
-            <div className="context-wrapper global-context">
-              <div className="context-header">
-                <h3>🌍 Global Context</h3>
-                <div className="context-info">
-                  <span>Level: Global</span>
-                  <span>ID: global-1</span>
+            <Card variant="elevated" className="border-l-4 border-l-blue-500 bg-blue-50">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-blue-900 flex items-center gap-2">
+                    🌍 Global Context
+                  </h3>
+                  <div className="flex gap-2">
+                    <Badge variant="outline" className="bg-blue-100 text-blue-800">Level: Global</Badge>
+                    <Badge variant="outline" className="bg-blue-100 text-blue-800">ID: global-1</Badge>
+                  </div>
                 </div>
-              </div>
-              {children}
-              
-              <div className="global-events">
-                <h4>Global Events:</h4>
-                <div className="event-list">
-                  {globalEvents.slice(-3).map((event) => (
-                    <div key={event.id} className="event-entry">
-                      <span className="event-name">{event.event}</span>
-                      <span className="event-time">{event.timestamp}</span>
-                    </div>
-                  ))}
+                {children}
+                
+                <div className="mt-6 pt-4 border-t border-blue-200">
+                  <h4 className="text-sm font-medium text-blue-800 mb-3">Recent Global Events:</h4>
+                  <div className="space-y-2">
+                    {globalEvents.slice(-3).map((event) => (
+                      <div key={event.id} className="flex justify-between items-center text-xs bg-white rounded p-2 border border-blue-200">
+                        <span className="font-medium text-blue-700">{event.event}</span>
+                        <span className="text-blue-500">{event.timestamp}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </GlobalStores.Provider>
         </StoreProvider>
       </ActionProvider>
@@ -178,21 +183,25 @@ function LocalContextProvider({ children, contextId }: { children: React.ReactNo
     <ContextInfoContext.Provider value={contextValue}>
       <ActionProvider >
         <LocalContextSetup localCount={localCount} setLocalCount={setLocalCount} localMessage={localMessage} setLocalMessage={setLocalMessage} contextId={contextId} />
-        <div className="context-wrapper local-context">
-          <div className="context-header">
-            <h4>🏠 Local Context ({contextId})</h4>
-            <div className="context-info">
-              <span>Parent: {parentContext.level}</span>
-              <span>Count: {localCount}</span>
+        <Card className="border-l-4 border-l-green-500 bg-green-50 ml-4">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-md font-semibold text-green-900 flex items-center gap-2">
+                🏠 Local Context ({contextId})
+              </h4>
+              <div className="flex gap-2">
+                <Badge variant="outline" className="bg-green-100 text-green-800 text-xs">Parent: {parentContext.level}</Badge>
+                <Badge variant="outline" className="bg-green-100 text-green-800 text-xs">Count: {localCount}</Badge>
+              </div>
             </div>
-          </div>
-          
-          <div className="local-state">
-            <div>Message: {localMessage}</div>
-          </div>
-          
-          {children}
-        </div>
+            
+            <div className="mb-4 p-3 bg-white rounded border border-green-200">
+              <div className="text-sm text-green-700"><strong>Message:</strong> {localMessage}</div>
+            </div>
+            
+            {children}
+          </CardContent>
+        </Card>
       </ActionProvider>
     </ContextInfoContext.Provider>
   );
@@ -276,16 +285,20 @@ function NestedContextProvider({ children, level }: { children: React.ReactNode;
     <ContextInfoContext.Provider value={contextValue}>
       <ActionProvider >
         <NestedContextSetup nestedValue={nestedValue} setNestedValue={setNestedValue} level={level} />
-        <div className={`context-wrapper nested-context level-${level}`}>
-          <div className="context-header">
-            <h5>🧩 Nested Level {level}</h5>
-            <div className="context-info">
-              <span>Parent: {parentContext.level}</span>
-              <span>Value: {nestedValue}</span>
+        <Card className={`border-l-4 ${level === 1 ? 'border-l-purple-500 bg-purple-50 ml-4' : 'border-l-orange-500 bg-orange-50 ml-6'}`}>
+          <CardContent className="p-3">
+            <div className="flex items-center justify-between mb-3">
+              <h5 className={`text-sm font-semibold ${level === 1 ? 'text-purple-900' : 'text-orange-900'} flex items-center gap-2`}>
+                🧩 Nested Level {level}
+              </h5>
+              <div className="flex gap-1">
+                <Badge variant="outline" className={`${level === 1 ? 'bg-purple-100 text-purple-800' : 'bg-orange-100 text-orange-800'} text-xs`}>Parent: {parentContext.level}</Badge>
+                <Badge variant="outline" className={`${level === 1 ? 'bg-purple-100 text-purple-800' : 'bg-orange-100 text-orange-800'} text-xs`}>Value: {nestedValue}</Badge>
+              </div>
             </div>
-          </div>
-          {children}
-        </div>
+            {children}
+          </CardContent>
+        </Card>
       </ActionProvider>
     </ContextInfoContext.Provider>
   );
@@ -336,30 +349,34 @@ function ContextMonitor() {
   const contextCount = useStoreValue(contextCountStore);
   
   return (
-    <div className="demo-card monitor-card">
-      <h3>Context Monitor</h3>
-      <div className="monitor-section">
-        <div className="monitor-item">
-          <strong>Global Message:</strong>
-          <span>{globalMessage}</span>
-        </div>
-        <div className="monitor-item">
-          <strong>Active Contexts:</strong>
-          <span>{contextCount}</span>
-        </div>
-        <div className="monitor-item">
-          <strong>Recent Events:</strong>
-          <div className="event-monitor">
-            {Array.isArray(globalEvents) ? globalEvents.slice(-5).map((event, index) => (
-              <div key={index} className="event-monitor-entry">
-                <span className="event-name">{event.event}</span>
-                <span className="event-time">{event.timestamp}</span>
-              </div>
-            )) : null}
+    <Card variant="elevated">
+      <CardContent className="p-4">
+        <h3 className="text-md font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          📊 Context Monitor
+        </h3>
+        <div className="space-y-3">
+          <div className="p-3 bg-gray-50 rounded border">
+            <div className="text-sm font-medium text-gray-700 mb-1">Global Message:</div>
+            <div className="text-gray-900 text-sm">{globalMessage}</div>
+          </div>
+          <div className="p-3 bg-gray-50 rounded border">
+            <div className="text-sm font-medium text-gray-700 mb-1">Active Contexts:</div>
+            <div className="text-xl font-bold text-primary-600">{contextCount}</div>
+          </div>
+          <div className="p-3 bg-gray-50 rounded border">
+            <div className="text-sm font-medium text-gray-700 mb-2">Recent Events:</div>
+            <div className="space-y-1 max-h-24 overflow-y-auto">
+              {Array.isArray(globalEvents) ? globalEvents.slice(-3).map((event, index) => (
+                <div key={index} className="flex justify-between items-center text-xs bg-white rounded p-2 border">
+                  <span className="font-medium text-gray-700">{event.event}</span>
+                  <span className="text-gray-500">{event.timestamp}</span>
+                </div>
+              )) : null}
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -421,34 +438,37 @@ function ContextMonitor() {
   }, [contextInfo]);
   
   return (
-    <div className="interactive-controls">
-      <div className="control-section">
-        <h5>Current Context: {contextInfo.level} ({contextInfo.id})</h5>
-        <div className="button-group">
-          <button onClick={handleGlobalMessage} className="btn btn-primary">
+    <div className="mt-3 p-3 bg-white rounded border border-gray-200">
+      <div className="mb-2">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xs font-medium text-gray-700">Current Context:</span>
+          <Badge className="bg-gray-100 text-gray-800 text-xs">{contextInfo.level} ({contextInfo.id})</Badge>
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          <Button size="sm" variant="primary" onClick={handleGlobalMessage}>
             Global Message
-          </button>
-          <button onClick={handleBroadcast} className="btn btn-secondary">
+          </Button>
+          <Button size="sm" variant="secondary" onClick={handleBroadcast}>
             Broadcast Event
-          </button>
+          </Button>
           {contextInfo.level.includes('Local') && (
             <>
-              <button onClick={handleLocalAction} className="btn btn-success">
+              <Button size="sm" variant="success" onClick={handleLocalAction}>
                 Local Counter +1
-              </button>
-              <button onClick={handleRequestGlobal} className="btn btn-info">
+              </Button>
+              <Button size="sm" variant="info" onClick={handleRequestGlobal}>
                 Request Global
-              </button>
+              </Button>
             </>
           )}
           {contextInfo.level.includes('Nested') && (
             <>
-              <button onClick={handleNestedAction} className="btn btn-warning">
+              <Button size="sm" variant="warning" onClick={handleNestedAction}>
                 Nested Action
-              </button>
-              <button onClick={handleBubbleUp} className="btn btn-danger">
+              </Button>
+              <Button size="sm" variant="danger" onClick={handleBubbleUp}>
                 Bubble Up
-              </button>
+              </Button>
             </>
           )}
         </div>
@@ -470,8 +490,63 @@ function ReactContextPage() {
         </header>
 
         <GlobalContextProvider>
-          <div className="context-demo-grid">
+          <div className="space-y-6 mb-6">
             <ContextMonitor />
+            
+            {/* 컨텍스트 설명 */}
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="text-md font-semibold text-gray-900 mb-3">🏗️ Context Hierarchy</h3>
+                <div className="text-sm space-y-2">
+                  <div className="flex items-center text-blue-600 font-medium">
+                    🌍 Global Context
+                  </div>
+                  <div className="ml-4 space-y-1">
+                    <div className="flex items-center text-green-600">
+                      🏠 Local Context A
+                    </div>
+                    <div className="ml-4 space-y-1">
+                      <div className="flex items-center text-purple-600">
+                        🧩 Nested Level 1
+                      </div>
+                      <div className="ml-4">
+                        <div className="flex items-center text-orange-600">
+                          🧩 Nested Level 2
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center text-green-600">
+                      🏠 Local Context B
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* 컨텍스트 패턴들 */}
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="text-md font-semibold text-gray-900 mb-3">🔧 Context Patterns</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="p-3 bg-gray-50 rounded border">
+                    <div className="font-medium text-gray-900 mb-1">Context Isolation</div>
+                    <div className="text-gray-600">각 컨텍스트는 독립적인 ActionRegister를 가짐</div>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded border">
+                    <div className="font-medium text-gray-900 mb-1">Event Bubbling</div>
+                    <div className="text-gray-600">하위 컨텍스트에서 상위로 이벤트 전파</div>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded border">
+                    <div className="font-medium text-gray-900 mb-1">Cross-Context Communication</div>
+                    <div className="text-gray-600">다른 컨텍스트에 메시지 전송</div>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded border">
+                    <div className="font-medium text-gray-900 mb-1">Context Boundaries</div>
+                    <div className="text-gray-600">명확한 책임 범위와 데이터 경계</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
             
             {/* 첫 번째 로컬 컨텍스트 */}
             <LocalContextProvider contextId="local-A">
@@ -492,56 +567,14 @@ function ReactContextPage() {
             <LocalContextProvider contextId="local-B">
               <InteractiveControls />
             </LocalContextProvider>
-            
-            {/* 컨텍스트 설명 */}
-            <div className="demo-card info-card">
-              <h3>Context Hierarchy</h3>
-              <ul className="context-hierarchy">
-                <li>
-                  <strong>🌍 Global Context</strong>
-                  <ul>
-                    <li>
-                      🏠 Local Context A
-                      <ul>
-                        <li>
-                          🧩 Nested Level 1
-                          <ul>
-                            <li>🧩 Nested Level 2</li>
-                          </ul>
-                        </li>
-                      </ul>
-                    </li>
-                    <li>🏠 Local Context B</li>
-                  </ul>
-                </li>
-              </ul>
-            </div>
-            
-            {/* 컨텍스트 패턴들 */}
-            <div className="demo-card info-card">
-              <h3>Context Patterns</h3>
-              <ul className="pattern-list">
-                <li>
-                  <strong>Context Isolation:</strong> 각 컨텍스트는 독립적인 ActionRegister를 가짐
-                </li>
-                <li>
-                  <strong>Event Bubbling:</strong> 하위 컨텍스트에서 상위로 이벤트 전파
-                </li>
-                <li>
-                  <strong>Cross-Context Communication:</strong> 다른 컨텍스트에 메시지 전송
-                </li>
-                <li>
-                  <strong>Context Boundaries:</strong> 명확한 책임 범위와 데이터 경계
-                </li>
-              </ul>
-            </div>
           </div>
         </GlobalContextProvider>
 
         {/* 코드 예제 */}
-        <div className="code-example">
-          <h3>Multi-Context Implementation</h3>
-          <pre className="code-block">
+        <Card className="mt-6">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">📝 Multi-Context Implementation</h3>
+            <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
 {`// 1. 계층적 컨텍스트 구조
 function GlobalContextProvider({ children }) {
   return (
@@ -574,8 +607,9 @@ localDispatch('requestGlobal', { request: 'Hello' });
 
 // 로컬 컨텍스트에서 전역 컨텍스트로 전송
 globalDispatch('globalMessage', { message: 'From local' });`}
-          </pre>
-        </div>
+            </pre>
+          </CardContent>
+        </Card>
       </div>
     </PageWithLogMonitor>
   );

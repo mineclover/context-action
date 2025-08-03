@@ -268,7 +268,7 @@ function CoreAdvancedDemo() {
   }, [isMiddlewareEnabled, logSystem]);
 
   return (
-    <div className="demo-grid">
+    <div className="space-y-6">
       {/* 상태 표시 */}
       <div className="demo-card">
         <h3>Advanced State</h3>
