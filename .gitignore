@@ -71,6 +71,7 @@ docs/ko/api/
 
 # Glossary auto-generated data
 glossary/implementations/_data/
+packages/glossary-query/glossary-data.json
 
 # history
 .history/
