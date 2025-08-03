@@ -74,8 +74,13 @@ class SimpleEventEmitter<T extends Record<string, any>> implements EventEmitter<
 /**
  * Central action registration and dispatch system
  * @implements action-pipeline-system
- * @implements actionregister  
+ * @implements actionregister
+ * @implements loose-coupling
+ * @implements separation-of-concerns
+ * @implements viewmodel-layer
+ * @implements class-naming
  * @memberof core-concepts
+ * @since 1.0.0
  * 
  * Core action pipeline management system with type-safe action dispatch
  * @template T - Action payload map defining available actions and their payload types
@@ -369,7 +374,20 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
 
   /**
    * Execute the pipeline with proper flow control
+   * @implements pipeline-execution
+   * @implements flow-control
+   * @memberof core-concepts
    * @internal
+   * @since 1.0.0
+   * 
+   * Executes action pipeline using configured execution mode
+   * @implements execution-mode
+   * 
+   * @template K - The action key type being executed
+   * @param context - Pipeline execution context containing handlers, payload, and state
+   * @returns Promise that resolves when pipeline execution completes or aborts
+   * 
+   * @throws {Error} When execution mode is unknown or handler execution fails
    */
   private async executePipeline<K extends keyof T>(context: PipelineContext<T[K]>): Promise<void> {
     this.logger.trace(`Starting pipeline execution`, {
@@ -379,19 +397,26 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       payload: context.payload
     });
 
-    // Create controller factory for handlers
+    /**
+     * Create controller factory for handlers
+     * @implements pipeline-controller
+     * Each handler receives a unique controller instance with action-specific context
+     */
     const createController = (registration: HandlerRegistration<T[K]>, _index: number): PipelineController<T[K]> => {
       return {
         next: () => {
-          // Next is called automatically after handler completion
+          /** Next is called automatically after handler completion in sequential mode */
+          /** In parallel/race modes, this method is essentially a no-op */
         },
         abort: (reason?: string) => {
+          /** Set abort flag to stop pipeline execution immediately */
           this.logger.trace(`Handler '${registration.id}' is aborting pipeline`, { reason });
           context.aborted = true;
           context.abortReason = reason;
           this.logger.warn(`Pipeline aborted by handler '${registration.id}'`, { reason });
         },
         modifyPayload: (modifier: (payload: T[K]) => T[K]) => {
+          /** Transform payload for subsequent handlers in the pipeline */
           this.logger.trace(`Handler '${registration.id}' is modifying payload`);
           const oldPayload = context.payload;
           context.payload = modifier(context.payload);
@@ -400,13 +425,14 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         },
         getPayload: () => context.payload,
         jumpToPriority: (priority: number) => {
+          /** Set priority jump target for sequential execution mode */
           this.logger.trace(`Handler '${registration.id}' jumping to priority ${priority}`);
           context.jumpToPriority = priority;
         },
       };
     };
 
-    // Execute based on execution mode
+    /** Delegate execution to mode-specific implementation */
     switch (context.executionMode) {
       case 'sequential':
         await executeSequential(context, createController, this.logger);
@@ -421,26 +447,41 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         throw new Error(`Unknown execution mode: ${context.executionMode}`);
     }
 
-    // Clean up one-time handlers after execution
+    /** Clean up one-time handlers after successful execution */
     this.cleanupOneTimeHandlers(context.action as K, context.handlers);
   }
 
   /**
    * Clean up one-time handlers after pipeline execution
+   * @implements cleanup-function
+   * @implements memory-management
+   * @memberof core-concepts
    * @internal
+   * @since 1.0.0
+   * 
+   * Removes one-time handlers after pipeline execution
+   * @implements cleanup-function
+   * 
+   * @template K - The action key type
+   * @param action - The action whose handlers should be cleaned up
+   * @param executedHandlers - Array of handlers that were executed in this pipeline run
+   * @returns void
    */
   private cleanupOneTimeHandlers<K extends keyof T>(action: K, executedHandlers: HandlerRegistration<T[K]>[]): void {
     const pipeline = this.pipelines.get(action);
     if (!pipeline) return;
 
+    /** Find handlers marked for one-time execution */
     const oneTimeHandlers = executedHandlers.filter(reg => reg.config.once);
     if (oneTimeHandlers.length === 0) return;
 
     this.logger.trace(`Cleaning up ${oneTimeHandlers.length} one-time handlers`);
 
+    /** Remove each one-time handler from the active pipeline */
     oneTimeHandlers.forEach(registration => {
       const index = pipeline.findIndex(reg => reg.id === registration.id);
       if (index !== -1) {
+        /** Remove handler while preserving array integrity */
         pipeline.splice(index, 1);
         this.logger.debug(`Removed one-time handler '${registration.id}'`);
       }
