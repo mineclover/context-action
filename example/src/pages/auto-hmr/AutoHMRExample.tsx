@@ -9,6 +9,7 @@ import {
   useStoreValue, 
   ActionRegister,
   useActionDispatch,
+  useActionRegister,
   ActionProvider,
   GlobalAutoHMRStatus
 } from '@context-action/react';
@@ -66,8 +67,7 @@ interface AutoHMRActions extends ActionPayloadMap {
   reset: void;
 }
 
-// 일반적인 ActionRegister 생성 - 별도 HMR 설정 없음!
-const actionRegister = new ActionRegister<AutoHMRActions>();
+// ActionProvider가 내부적으로 ActionRegister를 생성하므로 여기서는 제거
 
 // 모니터링 헬퍼 함수들
 const logActionStart = (action: string, payload?: any): string => {
@@ -208,8 +208,7 @@ function MonitoringTool() {
       hour12: false, 
       hour: '2-digit', 
       minute: '2-digit', 
-      second: '2-digit', 
-      fractionalSecondDigits: 3 
+      second: '2-digit'
     });
   };
   
@@ -387,8 +386,9 @@ function AutoHMRDemo() {
   const counter = useStoreValue(counterStore) as { count: number; lastUpdate: number };
   const user = useStoreValue(userStore) as { name: string; email: string };
   const dispatch = useActionDispatch<AutoHMRActions>();
+  const actionRegister = useActionRegister<AutoHMRActions>();
 
-  // 핸들러 등록 - 일반적인 패턴
+  // 핸들러 등록 - ActionProvider의 ActionRegister 사용
   useEffect(() => {
     const unregisterIncrement = actionRegister.register('increment', incrementHandler);
     const unregisterDecrement = actionRegister.register('decrement', decrementHandler);
@@ -401,7 +401,7 @@ function AutoHMRDemo() {
       unregisterUpdateUser();
       unregisterReset();
     };
-  }, []);
+  }, [actionRegister]);
 
   return (
     <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
@@ -562,13 +562,9 @@ function AutoHMRDemo() {
  */
 export function AutoHMRExample() {
   return (
-    <ActionProvider actionRegister={actionRegister}>
+    <ActionProvider config={{ debug: false }}>
       <AutoHMRDemo />
-      
-      {/* 실시간 모니터링 툴 */}
       <MonitoringTool />
-      
-      {/* 자동 HMR 상태 표시기 - 전역에서 한 번만 렌더링 */}
       <GlobalAutoHMRStatus />
     </ActionProvider>
   );

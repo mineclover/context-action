@@ -7,16 +7,16 @@ export default defineConfig({
   dts: true,
   clean: true,
   external: ['react', 'react-dom'],
-  sourcemap: true,
+  // sourcemap: true,
   target: 'es2020',
   rollupOptions: {
     plugins: [
       visualizer({
-        filename: 'reports/bundle-analysis-dev.html',
+        filename: 'reports/bundle-analysis.html',
         open: false,
         gzipSize: true,
         brotliSize: true,
-        template: 'treemap'
+        template: 'treemap' // sunburst, treemap, network
       })
     ]
   }

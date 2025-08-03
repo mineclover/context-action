@@ -1,53 +1,119 @@
 /**
- * @fileoverview Context-Action React Development Package
- * 개발 전용 버전 - HMR, 디버깅 도구, 풀 로깅, 개발자 도구 포함
+ * @fileoverview Context-Action React Package Entry Point - Modular Re-export Structure
+ * @implements viewmodel-layer
+ * @implements mvvm-pattern
+ * @implements react-integration
+ * @memberof packages
+ * @version 1.0.0
  * 
- * 이 패키지는 개발 환경에서만 사용되는 모든 기능을 포함합니다:
- * - Hot Module Replacement (HMR) 지원
- * - 개발자 대시보드 및 디버깅 도구
- * - 상세한 로깅 및 추적 기능
- * - 성능 모니터링 도구
+ * React integration package for the Context-Action framework, providing comprehensive
+ * React hooks, components, and patterns for action management and reactive state stores.
  * 
- * 프로덕션 환경에서는 @context-action/react를 사용하세요.
+ * This package implements the View and ViewModel layers of the MVVM architecture,
+ * connecting React components to the action pipeline and store system.
+ * 
+ * === MODULAR STRUCTURE ===
+ * This package is organized into logical modules for better tree-shaking and developer experience:
+ * - actions/     - createActionContext (primary) and ActionProvider (simple) for action management
+ * - stores/      - Complete store system (core, hooks, utils, patterns)
+ * - hooks/       - Unified hooks export
+ * 
+ * === USAGE PATTERNS ===
+ * 
+ * Basic Import (Full compatibility):
+ * ```typescript
+ * import { useStoreValue, ActionProvider } from '@context-action/react';
+ * ```
+ * 
+ * Optimized Import (Smaller bundles):
+ * ```typescript
+ * import { useStoreValue } from '@context-action/react/stores';
+ * import { ActionProvider } from '@context-action/react/actions';
+ * ```
+ * 
+ * @example
+ * ```typescript
+ * import { 
+ *   ActionProvider, 
+ *   useActionDispatch, 
+ *   createContextStorePattern,
+ *   useStoreValue 
+ * } from '@context-action/react';
+ * import type { ActionPayloadMap } from '@context-action/core';
+ * 
+ * // Define action types
+ * interface AppActions extends ActionPayloadMap {
+ *   updateUser: { id: string; name: string };
+ *   calculateTotal: void;
+ * }
+ * 
+ * // Create isolated store pattern
+ * const AppStores = createContextStorePattern('App');
+ * 
+ * // Root component with providers
+ * function App() {
+ *   return (
+ *     <AppStores.Provider>
+ *       <ActionProvider config={{ logLevel: LogLevel.DEBUG }}>
+ *         <UserProfile />
+ *       </ActionProvider>
+ *     </AppStores.Provider>
+ *   );
+ * }
+ * 
+ * // Component with action dispatch and store subscription
+ * function UserProfile() {
+ *   const dispatch = useActionDispatch<AppActions>();
+ *   const userStore = AppStores.useStore('user', { name: '', email: '' });
+ *   const user = useStoreValue(userStore);
+ *   
+ *   return (
+ *     <div>
+ *       <h1>{user.name}</h1>
+ *       <button onClick={() => dispatch('updateUser', { id: '1', name: 'John' })}>
+ *         Update User
+ *       </button>
+ *     </div>
+ *   );
+ * }
+ * ```
  */
 
 // ===================================================================
-// PRODUCTION FEATURES - 프로덕션 기능들 (react 패키지와 동일)
+// MAIN EXPORTS - FULL COMPATIBILITY WITH EXISTING IMPORTS
 // ===================================================================
 
 // === ACTION SYSTEM ===
-export * from '@context-action/react/actions';
+// All action-related functionality including ActionProvider and hooks
+export * from './actions';
 
 // === STORE SYSTEM ===
-export * from '@context-action/react/stores';
+// Complete store system: core, hooks, utilities, and patterns
+export * from './stores';
+
+// === PROVIDER COMPONENTS ===
+// Note: Use Context Store Pattern (createContextStorePattern) for store management
+// Use createActionContext or ActionProvider for action management
 
 // === UNIFIED PATTERNS ===
-export * from '@context-action/react/patterns';
+// Store + Action integrated patterns
+export * from './patterns';
 
 // === UNIFIED HOOKS ===
-export * from '@context-action/react/hooks';
+// All hooks in one place for convenience
+export * from './hooks';
 
-// ===================================================================
-// DEVELOPMENT-ONLY FEATURES - 개발 전용 기능들
-// ===================================================================
-
-// === HMR SUPPORT (개발 전용) ===
-// Hot Module Replacement 지원 - 상태 보존하며 코드 변경사항 적용
+// === HMR SUPPORT ===
+// Hot Module Replacement support for development
+// Note: Only available in development mode
 export * from './hmr';
 
-// === DEVELOPMENT TOOLS (개발 전용) ===
-// 개발자 대시보드, 성능 모니터링, 디버깅 도구
-export * from './dev-tools';
-
-// === ENHANCED LOGGING (개발 전용) ===
-// 상세한 로깅, 추적, 디버깅 정보
-export * from './dev-logging';
-
 // ===================================================================
-// CORE FRAMEWORK RE-EXPORTS
+// CORE FRAMEWORK RE-EXPORTS - FOR CONVENIENCE
 // ===================================================================
 
 // === CORE ACTION SYSTEM ===
+// Re-export core types and classes for convenience
 export type {
 	ActionPayloadMap,
 	ActionHandler,
@@ -62,34 +128,19 @@ export {
 	ActionRegister,
 } from "@context-action/core";
 
-// === ENHANCED LOGGER SYSTEM (개발 전용) ===
+// === LOGGER SYSTEM ===
 export type { Logger, LogLevel } from "@context-action/logger";
 export {
 	ConsoleLogger,
 	createLogger,
 	getLogLevelFromEnv,
-	// 개발 전용 고급 로깅 기능
-	TraceCollector,
-	LogArtHelpers,
-	UniversalTraceLogger
 } from "@context-action/logger";
 
 // ===================================================================
-// DEVELOPMENT BUILD INFO
+// NOTE: All detailed exports are now handled by the modular structure above.
+// This ensures 100% compatibility while enabling selective imports like:
+//
+// import { useStoreValue } from '@context-action/react/stores';
+// import { ActionProvider } from '@context-action/react/actions';
 // ===================================================================
-export const DEV_BUILD_INFO = {
-  version: "0.0.4",
-  buildType: "development",
-  features: {
-    hmr: true,
-    devTools: true,
-    enhancedLogging: true,
-    performanceMonitoring: true,
-    debugging: true
-  },
-  bundleOptimizations: {
-    treeShaking: false, // 개발용은 전체 포함
-    minification: false,
-    deadCodeElimination: false
-  }
-} as const;
+
