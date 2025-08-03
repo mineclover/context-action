@@ -1,121 +1,178 @@
 import React, { useState, useCallback } from 'react';
 import {
-  ActionRegister,
-  ActionProvider,
-  createContextStorePattern,
-  useStoreValue,
-  ActionPayloadMap
+  ActionPayloadMap,
+  createContextPattern,
+  useStoreValueSafe
 } from '@context-action/react';
-import { StoreProvider, useStoreRegistry } from '../../legacy/StoreProvider';
 import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
+import { Card, CardContent, Badge, Button } from '../../components/ui';
 
 // 액션 타입 정의
-interface AppActions extends ActionPayloadMap {
+interface ProviderActions extends ActionPayloadMap {
   updateCounter: { value: number };
-  resetCounter: undefined;
+  resetCounter: void;
   updateMessage: { text: string };
-  resetMessage: undefined;
+  resetMessage: void;
   logActivity: { activity: string };
 }
 
-// Context Store 패턴 생성
-const ProviderStores = createContextStorePattern('ReactProvider');
+// 통합 Context Pattern 생성 - Provider Pattern 데모용
+const ProviderContext = createContextPattern<ProviderActions>('ReactProviderDemo');
 
-// 카운터 컴포넌트
+// 카운터 컴포넌트 - 통합 패턴 사용
 function CounterComponent() {
-  const counterStore = ProviderStores.useStore('counter', 0);
-  const count = useStoreValue(counterStore);
-  const logger = useActionLoggerWithToast();
+  const counterStore = ProviderContext.useStore('counter', 0);
+  const count = useStoreValueSafe(counterStore);
+  const dispatch = ProviderContext.useAction();
+  const { logAction } = useActionLoggerWithToast();
 
   const handleIncrement = useCallback(() => {
-    if (typeof count === 'number') {
-      actionRegister.dispatch('updateCounter', { value: count + 1 });
-    }
-  }, [count, logger]);
+    const newValue = count + 1;
+    dispatch('updateCounter', { value: newValue });
+    // 자동 계산: 실행시간, 타임스탬프, 액션타입이 자동으로 주입됨
+    logAction('updateCounter', { value: newValue }, { toast: true });
+  }, [count, dispatch, logAction]);
 
   const handleDecrement = useCallback(() => {
-    if (typeof count === 'number') {
-      actionRegister.dispatch('updateCounter', { value: count - 1 });
-    }
-  }, [count, logger]);
+    const newValue = count - 1;
+    dispatch('updateCounter', { value: newValue });
+    // 자동 계산: 실행시간, 타임스탬프, 액션타입이 자동으로 주입됨
+    logAction('updateCounter', { value: newValue }, { toast: true });
+  }, [count, dispatch, logAction]);
   
   const handleReset = useCallback(() => {
-    actionRegister.dispatch('resetCounter');
-  }, [logger]);
+    dispatch('resetCounter');
+    // 자동 계산: 실행시간, 타임스탬프, 액션타입이 자동으로 주입됨
+    logAction('resetCounter', undefined, { toast: true });
+  }, [dispatch, logAction]);
   
   return (
-    <div className="demo-card">
-      <h3>Counter Component</h3>
-      <div className="counter-display">
-        <span className="count-value">{count}</span>
-      </div>
-      <div className="button-group">
-        <button onClick={handleIncrement} className="btn btn-primary">
-          +1
-        </button>
-        <button onClick={handleDecrement} className="btn btn-primary">
-          -1
-        </button>
-        <button onClick={handleReset} className="btn btn-danger">
-          Reset
-        </button>
-      </div>
-    </div>
+    <Card variant="elevated">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">
+            🔢 Counter Component
+          </h3>
+          <Badge variant="outline" className="bg-blue-100 text-blue-800">
+            Count: {count}
+          </Badge>
+        </div>
+        
+        <div className="mb-4 p-4 bg-gray-50 rounded border text-center">
+          <div className="text-3xl font-bold text-gray-900 mb-2">{count}</div>
+          <div className="text-sm text-gray-600">Current Value</div>
+        </div>
+        
+        <div className="flex flex-wrap gap-2">
+          <Button 
+            size="sm" 
+            variant="primary" 
+            onClick={handleIncrement}
+          >
+            + Increment
+          </Button>
+          <Button 
+            size="sm" 
+            variant="secondary" 
+            onClick={handleDecrement}
+          >
+            - Decrement
+          </Button>
+          <Button 
+            size="sm" 
+            variant="danger" 
+            onClick={handleReset}
+          >
+            🔄 Reset
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
-// 메시지 컴포넌트
+// 메시지 컴포넌트 - 통합 패턴 사용
 function MessageComponent() {
-  const messageStore = ProviderStores.useStore('message', 'Hello from Provider!');
-  const message = useStoreValue(messageStore);
+  const messageStore = ProviderContext.useStore('message', 'Hello from Provider!');
+  const message = useStoreValueSafe(messageStore);
   const [inputValue, setInputValue] = useState('');
-  const logger = useActionLoggerWithToast();
+  const dispatch = ProviderContext.useAction();
+  const { logAction } = useActionLoggerWithToast();
   
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim()) {
-      actionRegister.dispatch('updateMessage', { text: inputValue.trim() });
+      const newText = inputValue.trim();
+      dispatch('updateMessage', { text: newText });
+      // 자동 계산: 실행시간, 타임스탬프, 액션타입이 자동으로 주입됨
+      logAction('updateMessage', { text: newText }, { toast: true });
       setInputValue('');
     }
-  }, [inputValue, logger]);
+  }, [inputValue, dispatch, logAction]);
   
   const handleReset = useCallback(() => {
-    actionRegister.dispatch('resetMessage');
-  }, [logger]);
+    dispatch('resetMessage');
+    // 자동 계산: 실행시간, 타임스탬프, 액션타입이 자동으로 주입됨
+    logAction('resetMessage', undefined, { toast: true });
+  }, [dispatch, logAction]);
   
   return (
-    <div className="demo-card">
-      <h3>Message Component</h3>
-      <div className="store-display">
-        <div className="store-value">{message}</div>
-      </div>
-      <form onSubmit={handleSubmit} className="input-form">
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          placeholder="Enter new message"
-          className="text-input"
-        />
-        <button type="submit" className="btn btn-primary">
-          Update
-        </button>
-      </form>
-      <button onClick={handleReset} className="btn btn-secondary">
-        Reset
-      </button>
-    </div>
+    <Card variant="elevated">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">
+            💬 Message Component
+          </h3>
+          <Badge variant="outline" className="bg-green-100 text-green-800">
+            Length: {message.length}
+          </Badge>
+        </div>
+        
+        <div className="mb-4 p-4 bg-gray-50 rounded border">
+          <div className="text-sm font-medium text-gray-700 mb-1">Current Message:</div>
+          <div className="text-gray-900">"{message}"</div>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div>
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="Enter new message"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button type="submit" variant="primary" size="sm">
+              💾 Update Message
+            </Button>
+            <Button 
+              type="button" 
+              variant="secondary" 
+              size="sm"
+              onClick={handleReset}
+            >
+              🔄 Reset
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
 
-// 액티비티 로거 컴포넌트
+// 액티비티 로거 컴포넌트 - 통합 패턴 사용
 function ActivityLogger() {
-  const [activities, setActivities] = useState<string[]>([]);
+  const activitiesStore = ProviderContext.useStore<string[]>('activities', []);
+  const activities = useStoreValueSafe(activitiesStore);
+  const dispatch = ProviderContext.useAction();
+  const { logAction } = useActionLoggerWithToast();
   
   const logCustomActivity = useCallback(() => {
     // 랜덤 활동 생성 함수
     const generateRandomActivity = () => {
-      const activities = [
+      const activityTypes = [
         'User logged in from mobile app',
         'Downloaded quarterly report',
         'Updated profile settings',
@@ -128,147 +185,172 @@ function ActivityLogger() {
         'Scheduled team meeting'
       ];
       
-      return activities[Math.floor(Math.random() * activities.length)];
+      return activityTypes[Math.floor(Math.random() * activityTypes.length)];
     };
     
     const randomActivity = generateRandomActivity();
-    actionRegister.dispatch('logActivity', { activity: randomActivity });
-  }, []);
+    dispatch('logActivity', { activity: randomActivity });
+    // 자동 계산: 실행시간, 타임스탬프, 액션타입이 자동으로 주입됨
+    logAction('logActivity', { activity: randomActivity }, { toast: true });
+  }, [dispatch, logAction]);
   
   const clearActivities = useCallback(() => {
-    setActivities([]);
-  }, []);
-  
-  React.useEffect(() => {
-    const addActivity = (activity: string) => {
-      setActivities(prev => [
-        ...prev,
-        `${new Date().toLocaleTimeString()}: ${activity}`
-      ]);
-    };
-    
-    // 시스템 이벤트 로깅
-    addActivity('Activity Logger initialized');
-    
-    return () => {
-      // Cleanup if needed
-    };
-  }, []);
+    activitiesStore.setValue([]);
+    // 자동 계산: 실행시간, 타임스탬프, 액션타입이 자동으로 주입됨
+    logAction('clearActivities', undefined, { toast: true });
+  }, [activitiesStore, logAction]);
   
   return (
-    <div className="demo-card logger-card">
-      <div className="card-header">
-        <h3>Activity Logger</h3>
-        <div className="button-group">
-          <button onClick={logCustomActivity} className="btn btn-small btn-primary">
-            🎲 Random Activity
-          </button>
-          <button onClick={clearActivities} className="btn btn-small btn-secondary">
-            Clear
-          </button>
-        </div>
-      </div>
-      <div className="activity-log">
-        {activities.length === 0 ? (
-          <div className="log-empty">No activities logged yet...</div>
-        ) : (
-          activities.map((activity, index) => (
-            <div key={index} className="activity-entry">
-              {activity}
-            </div>
-          ))
-        )}
-      </div>
-    </div>
-  );
-}
-
-// 스토어 모니터 컴포넌트
-function StoreMonitor() {
-  const registry = useStoreRegistry();
-  const counterStore = ProviderStores.useStore('counter', 0);
-  const messageStore = ProviderStores.useStore('message', 'Welcome to React Provider Demo');
-  const counter = useStoreValue(counterStore);
-  const message = useStoreValue(messageStore);
-  
-  return (
-    <div className="demo-card monitor-card">
-      <h3>Store Registry Monitor</h3>
-      <div className="registry-info">
-        <div className="registry-stats">
-          <div className="stat-item">
-            <span className="stat-label">Active Stores:</span>
-            <span className="stat-value">2</span>
+    <Card variant="elevated">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">
+            📝 Activity Logger
+          </h3>
+          <div className="flex gap-2">
+            <Badge variant="outline" className="bg-purple-100 text-purple-800">
+              Count: {activities.length}
+            </Badge>
+            <Button 
+              size="sm" 
+              variant="primary" 
+              onClick={logCustomActivity}
+            >
+              🎲 Random Activity
+            </Button>
+            <Button 
+              size="sm" 
+              variant="secondary" 
+              onClick={clearActivities}
+            >
+              🗑️ Clear
+            </Button>
           </div>
         </div>
         
-        <div className="store-list">
-          <div className="store-item">
-            <div className="store-name">provider-counter</div>
-            <div className="store-value">{counter}</div>
-          </div>
-          <div className="store-item">
-            <div className="store-name">provider-message</div>
-            <div className="store-value">"{message}"</div>
-          </div>
+        <div className="border rounded-lg bg-gray-50 p-4 max-h-48 overflow-y-auto">
+          {activities.length === 0 ? (
+            <div className="text-center text-gray-500 py-4">
+              No activities logged yet...
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {activities.map((activity, index) => (
+                <div key={index} className="flex items-start gap-2 text-sm">
+                  <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
+                    {index + 1}
+                  </span>
+                  <span className="text-gray-700">{activity}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
-// ActionRegister 인스턴스 생성 (로거 없이)
-const actionRegister = new ActionRegister<AppActions>();
-
-// 액션 핸들러 설정 컴포넌트
-function ActionHandlerSetup() {
-  const counterStore = ProviderStores.useStore('counter', 0);
-  const messageStore = ProviderStores.useStore('message', 'Welcome to React Provider Demo');
+// 스토어 모니터 컴포넌트 - 통합 패턴 사용
+function StoreMonitor() {
+  const counterStore = ProviderContext.useStore('counter', 0);
+  const messageStore = ProviderContext.useStore('message', 'Welcome to React Provider Demo');
+  const activitiesStore = ProviderContext.useStore<string[]>('activities', []);
   
-  React.useEffect(() => {
-    // 카운터 업데이트 핸들러
-    const unsubscribeUpdateCounter = actionRegister.register('updateCounter', ({ value }, controller) => {
-      counterStore.setValue(value);
-      controller.next();
-    });
-    
-    // 카운터 리셋 핸들러
-    const unsubscribeResetCounter = actionRegister.register('resetCounter', (_, controller) => {
-      counterStore.setValue(0);
-      controller.next();
-    });
-    
-    // 메시지 업데이트 핸들러
-    const unsubscribeUpdateMessage = actionRegister.register('updateMessage', ({ text }, controller) => {
-      messageStore.setValue(text);
-      controller.next();
-    });
-    
-    // 메시지 리셋 핸들러
-    const unsubscribeResetMessage = actionRegister.register('resetMessage', (_, controller) => {
-      messageStore.setValue('Hello from Provider!');
-      controller.next();
-    });
-    
-    // 액티비티 로깅 핸들러
-    const unsubscribeLogActivity = actionRegister.register('logActivity', ({ activity }, controller) => {
-      controller.next();
-    });
-    
-    
-    return () => {
-      unsubscribeUpdateCounter();
-      unsubscribeResetCounter();
-      unsubscribeUpdateMessage();
-      unsubscribeResetMessage();
-      unsubscribeLogActivity();
-    };
-  }, [counterStore, messageStore]);
+  const counter = useStoreValueSafe(counterStore);
+  const message = useStoreValueSafe(messageStore);
+  const activities = useStoreValueSafe(activitiesStore);
+  
+  return (
+    <Card variant="elevated">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">
+            📊 Store Registry Monitor
+          </h3>
+          <Badge variant="outline" className="bg-gray-100 text-gray-800">
+            Active Stores: 3
+          </Badge>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-3 bg-blue-50 rounded border border-blue-200">
+              <div className="text-sm font-medium text-blue-700 mb-1">counter</div>
+              <div className="text-lg font-bold text-blue-900">{counter}</div>
+              <div className="text-xs text-blue-600">number</div>
+            </div>
+            
+            <div className="p-3 bg-green-50 rounded border border-green-200">
+              <div className="text-sm font-medium text-green-700 mb-1">message</div>
+              <div className="text-sm font-bold text-green-900 truncate">"{message}"</div>
+              <div className="text-xs text-green-600">string ({message.length} chars)</div>
+            </div>
+            
+            <div className="p-3 bg-purple-50 rounded border border-purple-200">
+              <div className="text-sm font-medium text-purple-700 mb-1">activities</div>
+              <div className="text-lg font-bold text-purple-900">{activities.length} items</div>
+              <div className="text-xs text-purple-600">string[]</div>
+            </div>
+          </div>
+          
+          <div className="mt-4 p-3 bg-gray-50 rounded border">
+            <div className="text-sm font-medium text-gray-700 mb-2">Store Status:</div>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="outline" className="bg-green-100 text-green-800 text-xs">
+                ✅ All stores initialized
+              </Badge>
+              <Badge variant="outline" className="bg-blue-100 text-blue-800 text-xs">
+                🔄 Real-time updates
+              </Badge>
+              <Badge variant="outline" className="bg-purple-100 text-purple-800 text-xs">
+                🎯 Type-safe access
+              </Badge>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// 액션 핸들러 설정 컴포넌트 - 통합 패턴 사용
+function ActionHandlerSetup() {
+  const counterStore = ProviderContext.useStore('counter', 0);
+  const messageStore = ProviderContext.useStore('message', 'Welcome to React Provider Demo');
+  const activitiesStore = ProviderContext.useStore<string[]>('activities', []);
+  
+  // 카운터 업데이트 핸들러
+  ProviderContext.useActionHandler('updateCounter', ({ value }) => {
+    counterStore.setValue(value);
+  });
+  
+  // 카운터 리셋 핸들러
+  ProviderContext.useActionHandler('resetCounter', () => {
+    counterStore.setValue(0);
+  });
+  
+  // 메시지 업데이트 핸들러
+  ProviderContext.useActionHandler('updateMessage', ({ text }) => {
+    messageStore.setValue(text);
+  });
+  
+  // 메시지 리셋 핸들러
+  ProviderContext.useActionHandler('resetMessage', () => {
+    messageStore.setValue('Hello from Provider!');
+  });
+  
+  // 액티비티 로깅 핸들러
+  ProviderContext.useActionHandler('logActivity', ({ activity }) => {
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = `${timestamp}: ${activity}`;
+    activitiesStore.update(prev => [...prev, logEntry]);
+  });
   
   return null; // 이 컴포넌트는 UI를 렌더링하지 않음
 }
 
-// 메인 애플리케이션 컴포넌트
+// 메인 애플리케이션 컴포넌트 - 통합 패턴 사용
 function ProviderApp() {
   return (
     <>
@@ -279,28 +361,79 @@ function ProviderApp() {
         <ActivityLogger />
         <StoreMonitor />
         
-        {/* Provider 설명 */}
-        <div className="demo-card info-card">
-          <h3>Provider Pattern Benefits</h3>
-          <ul className="benefit-list">
-            <li>✓ 전역 상태 관리</li>
-            <li>✓ 컴포넌트 간 통신</li>
-            <li>✓ 액션 중앙화</li>
-            <li>✓ 타입 안전성</li>
-            <li>✓ 디버깅 편의성</li>
-          </ul>
-        </div>
+        {/* Provider 패턴 특징 */}
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">🏗️ Provider Pattern Benefits</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xs">✓</span>
+                  <span>전역 상태 관리 및 공유</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xs">✓</span>
+                  <span>컴포넌트 간 통신 표준화</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xs">✓</span>
+                  <span>액션 중앙 집중화</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xs">✓</span>
+                  <span>완전한 타입 안전성</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xs">✓</span>
+                  <span>향상된 디버깅 편의성</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xs">✓</span>
+                  <span>로거 모니터 통합</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
         
         {/* 사용법 가이드 */}
-        <div className="demo-card info-card">
-          <h3>Provider Usage Guide</h3>
-          <ol className="usage-steps">
-            <li>ActionProvider로 앱 래핑</li>
-            <li>StoreProvider로 스토어 제공</li>
-            <li>useActionDispatch로 액션 디스패치</li>
-            <li>useStoreValue로 상태 구독</li>
-          </ol>
-        </div>
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">📖 Unified Provider Usage Guide</h3>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                <div>
+                  <div className="font-medium text-gray-900">Create Context Pattern</div>
+                  <div className="text-sm text-gray-600">const MyContext = createContextPattern&lt;Actions&gt;('MyApp')</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                <div>
+                  <div className="font-medium text-gray-900">Wrap with Provider</div>
+                  <div className="text-sm text-gray-600">&lt;MyContext.Provider registryId="app"&gt;</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                <div>
+                  <div className="font-medium text-gray-900">Use Integrated Hooks</div>
+                  <div className="text-sm text-gray-600">MyContext.useStore(), MyContext.useAction(), MyContext.useActionHandler()</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">4</span>
+                <div>
+                  <div className="font-medium text-gray-900">Safe Value Access</div>
+                  <div className="text-sm text-gray-600">useStoreValueSafe() for guaranteed type safety</div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </>
   );
@@ -308,58 +441,102 @@ function ProviderApp() {
 
 function ReactProviderPage() {
   return (
-    <PageWithLogMonitor pageId="react-provider" title="React Provider Pattern">
+    <PageWithLogMonitor pageId="react-provider" title="Unified Provider Pattern Demo">
       <div className="page-container">
         <header className="page-header">
-          <h1>React Provider Pattern</h1>
+          <h1>Unified Provider Pattern Demo</h1>
           <p className="page-description">
-            Learn how to integrate the Context-Action framework with React using the Provider pattern.
-            This enables global state management and centralized action dispatching across your application.
+            Experience the new Unified Provider Pattern that combines Store and Action management
+            in a single Provider. This demo shows complete integration with the Logger Monitor
+            and demonstrates modern Context-Action framework usage.
           </p>
         </header>
 
-        {/* Provider 래핑 */}
-        <ActionProvider>
-          <StoreProvider>
-            <ProviderStores.Provider registryId="react-provider-demo">
-              <ProviderApp />
-            </ProviderStores.Provider>
-          </StoreProvider>
-        </ActionProvider>
+        {/* 통합 Provider 패턴 사용 */}
+        <ProviderContext.Provider registryId="react-provider-demo">
+          <ProviderApp />
+        </ProviderContext.Provider>
 
         {/* 코드 예제 */}
-        <div className="code-example">
-          <h3>Provider Setup Code</h3>
-          <pre className="code-block">
-{`// 1. App 래핑
+        <Card className="mt-6">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">💻 Unified Provider Pattern Code</h3>
+            <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
+{`// 1. Create Unified Context Pattern
+const ProviderContext = createContextPattern<ProviderActions>('ReactProviderDemo');
+
+// 2. Simple Provider Wrapping
 function App() {
   return (
-    <ActionProvider logger={logger}>
-      <StoreProvider>
-        <MyApp />
-      </StoreProvider>
-    </ActionProvider>
+    <ProviderContext.Provider registryId="react-provider-demo">
+      <MyApp />
+    </ProviderContext.Provider>
   );
 }
 
-// 2. 컴포넌트에서 사용
+// 3. Integrated Store & Action Usage
 function MyComponent() {
-  const dispatch = useActionDispatch<AppActions>();
-  const value = useStoreValue(myStore);
+  // Store management
+  const counterStore = ProviderContext.useStore('counter', 0);
+  const count = useStoreValueSafe(counterStore); // Type-safe!
   
-  const handleAction = () => {
-    dispatch('updateValue', { newValue: 'updated' });
+  // Action dispatching
+  const dispatch = ProviderContext.useAction();
+  
+  // Action handling
+  ProviderContext.useActionHandler('updateCounter', ({ value }) => {
+    counterStore.setValue(value);
+  });
+  
+  // Logger integration
+  const { logAction } = useActionLoggerWithToast();
+  
+  const handleIncrement = () => {
+    const newValue = count + 1;
+    dispatch('updateCounter', { value: newValue });
+    logAction('updateCounter', { value: newValue }, { toast: true });
   };
   
   return (
     <div>
-      <p>{value}</p>
-      <button onClick={handleAction}>Update</button>
+      <div>Count: {count}</div>
+      <button onClick={handleIncrement}>Increment</button>
     </div>
   );
 }`}
-          </pre>
-        </div>
+            </pre>
+          </CardContent>
+        </Card>
+
+        {/* 패턴 비교 */}
+        <Card className="mt-6">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">🔄 Pattern Evolution</h3>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="p-4 bg-red-50 rounded border border-red-200">
+                <h4 className="font-semibold text-red-900 mb-3">❌ Legacy Approach</h4>
+                <div className="space-y-2 text-sm text-red-800">
+                  <div>• Multiple separate providers</div>
+                  <div>• Manual ActionRegister management</div>
+                  <div>• Complex setup and configuration</div>
+                  <div>• Type safety issues with undefined</div>
+                  <div>• Poor logger integration</div>
+                </div>
+              </div>
+              
+              <div className="p-4 bg-green-50 rounded border border-green-200">
+                <h4 className="font-semibold text-green-900 mb-3">✅ Unified Pattern</h4>
+                <div className="space-y-2 text-sm text-green-800">
+                  <div>• Single integrated provider</div>
+                  <div>• Automatic action register setup</div>
+                  <div>• Simple, clean configuration</div>
+                  <div>• Guaranteed type safety</div>
+                  <div>• Built-in logger integration</div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </PageWithLogMonitor>
   );

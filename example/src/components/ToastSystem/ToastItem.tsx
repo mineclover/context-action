@@ -69,8 +69,10 @@ export function ToastItem({ toast, index, totalCount }: ToastItemProps) {
     }
   };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('ko-KR', { 
+  const formatTime = (date: Date | string | number) => {
+    // Date 객체가 아닐 수 있으므로 안전하게 처리
+    const dateObj = date instanceof Date ? date : new Date(date);
+    return dateObj.toLocaleTimeString('ko-KR', { 
       hour: '2-digit', 
       minute: '2-digit', 
       second: '2-digit' 

@@ -52,6 +52,12 @@ export interface ActionLogOptions {
   toast?: boolean | ToastOptions;
   priority?: number;
   context?: any;
+  // 자동 계산된 데이터 (내부 사용)
+  _autoCalculated?: {
+    executionTime: number;
+    timestamp: string;
+    actionType: string;
+  };
 }
 
 /**

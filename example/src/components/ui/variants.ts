@@ -275,6 +275,7 @@ export const navItemVariants = cva(
         actionguard: "hover:bg-pink-50 hover:text-pink-900",
         examples: "hover:bg-orange-50 hover:text-orange-900",
         debug: "hover:bg-indigo-50 hover:text-indigo-900",
+        dev: "hover:bg-red-50 hover:text-red-900",
       },
     },
     defaultVariants: {

@@ -1,5 +1,6 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { LogArtHelpers } from '@context-action/logger';
 import Layout from './components/Layout';
 import { ToastContainer, ToastControlPanel } from './components/ToastSystem';
 import HomePage from './pages/HomePage';
@@ -13,13 +14,33 @@ import ReactHooksPage from './pages/react/ReactHooksPage';
 import LoggerDemoPage from './pages/logger/LoggerDemoPage';
 import ActionGuardPage from './pages/actionguard/ActionGuardPage';
 import ToastConfigExamplePage from './pages/examples/ToastConfigExamplePage';
-import InfiniteLoopTestPage from './pages/infinite-loop/InfiniteLoopTestPage';
 import ComparisonDemoPage from './pages/comparison/ComparisonDemoPage';
 import ThrottledComparisonPage from './pages/comparison/ThrottledComparisonPage';
+import UnifiedPatternDemoPage from './pages/unified-pattern/UnifiedPatternDemoPage';
+import { HMRDemoPage } from './pages/hmr-demo';
+import { AutoHMRExample } from './pages/auto-hmr/AutoHMRExample';
+
+// 라우트 변경 시 콘솔 클리어 (개발 환경에서만)
+function ConsoleClearer() {
+  const location = useLocation();
+  
+  useEffect(() => {
+    // 개발 환경에서만 콘솔 클리어 (프로덕션이 아닌 경우)
+    if (process.env.NODE_ENV !== 'production') {
+      console.clear();
+      console.info(LogArtHelpers.react.separator(`페이지 이동`));
+      console.info(LogArtHelpers.react.info(`현재 경로: ${location.pathname}`));
+      console.info(LogArtHelpers.react.separator());
+    }
+  }, [location.pathname]);
+  
+  return null;
+}
 
 function App() {
   return (
     <Router>
+      <ConsoleClearer />
       <Layout>
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -33,9 +54,11 @@ function App() {
           <Route path="/logger/demo" element={<LoggerDemoPage />} />
           <Route path="/actionguard/demo" element={<ActionGuardPage />} />
           <Route path="/examples/toast-config" element={<ToastConfigExamplePage />} />
-          <Route path="/infinite-loop/test" element={<InfiniteLoopTestPage />} />
           <Route path="/comparison/demo" element={<ComparisonDemoPage />} />
           <Route path="/comparison/throttled" element={<ThrottledComparisonPage />} />
+          <Route path="/unified-pattern/demo" element={<UnifiedPatternDemoPage />} />
+          <Route path="/hmr/demo" element={<HMRDemoPage />} />
+          <Route path="/hmr/auto" element={<AutoHMRExample />} />
         </Routes>
       </Layout>
       

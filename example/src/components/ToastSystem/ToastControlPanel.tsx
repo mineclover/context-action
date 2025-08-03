@@ -82,10 +82,11 @@ export function ToastControlPanel() {
             <div className="flex gap-2 mt-2">
               <button
                 onClick={() => {
+                  // executionTime 제거 - 자동 계산됨
                   toastActionRegister.dispatch('addActionToast', {
                     actionType: 'updateProfile',
                     executionStep: 'success',
-                    executionTime: 234,
+                    // executionTime은 ToastSystem actions에서 자동으로 처리
                   });
                 }}
                 className="px-3 py-2 text-xs font-medium rounded-md border transition-colors hover:bg-gray-50"
@@ -180,10 +181,11 @@ export function ToastControlPanel() {
                   const actionTypes = ['updateProfile', 'addToCart', 'addTodo', 'sendMessage'];
                   actionTypes.forEach((actionType, i) => {
                     setTimeout(() => {
+                      // executionTime 제거 - 자동 계산됨
                       toastActionRegister.dispatch('addActionToast', {
                         actionType,
                         executionStep: 'success',
-                        executionTime: Math.floor(Math.random() * 500) + 100,
+                        // executionTime은 ToastSystem actions에서 자동으로 처리
                       });
                     }, i * 300);
                   });

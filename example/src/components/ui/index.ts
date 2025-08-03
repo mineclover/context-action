@@ -8,6 +8,15 @@ export { Grid } from './Grid';
 export { Status } from './Status';
 export { DemoCard } from './DemoCard';
 export { CodeExample, CodeBlock } from './CodeExample';
+export { 
+  PatternBadge, 
+  HOCPatternBadge, 
+  ProviderPatternBadge, 
+  ContextPatternBadge, 
+  UnifiedPatternBadge, 
+  StorePatternBadge, 
+  ActionPatternBadge 
+} from './PatternBadge';
 
 // Export layout components  
 export { PageLayout, PageSection, FeatureHighlight } from '../layout/PageLayout';

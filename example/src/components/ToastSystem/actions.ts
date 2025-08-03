@@ -143,10 +143,12 @@ toastActionRegister.register('addToast', ({ type, title, message, actionType, pa
   
   // 최대 토스트 수 체크
   if (currentToasts.length >= config.maxToasts) {
-    // 가장 오래된 토스트 제거
-    const oldestToast = currentToasts.reduce((oldest, toast) => 
-      toast.timestamp < oldest.timestamp ? toast : oldest
-    );
+    // 가장 오래된 토스트 제거 (timestamp가 Date 객체가 아닐 수 있으므로 안전하게 처리)
+    const oldestToast = currentToasts.reduce((oldest, toast) => {
+      const oldestTime = oldest.timestamp instanceof Date ? oldest.timestamp.getTime() : new Date(oldest.timestamp).getTime();
+      const currentTime = toast.timestamp instanceof Date ? toast.timestamp.getTime() : new Date(toast.timestamp).getTime();
+      return currentTime < oldestTime ? toast : oldest;
+    });
     toastActionRegister.dispatch('removeToast', { toastId: oldestToast.id });
   }
   
@@ -216,17 +218,20 @@ toastActionRegister.register('addActionToast', ({
   if (executionStep === 'error') duration = 5000; // 에러는 5초
   if (executionStep === 'processing') duration = 2000; // 처리 중은 2초
   
+  // 자동 계산된 실행시간이 있으면 사용, 없으면 전달받은 값 사용
+  const finalExecutionTime = executionTime || 0;
+  
   toastActionRegister.dispatch('addToast', {
     type: 'action',
     title,
-    message: executionTime ? `${message} (${executionTime}ms)` : message,
+    message: finalExecutionTime ? `${message} (${finalExecutionTime}ms)` : message,
     actionType,
     payload: { 
       executionStep, 
       originalPayload: payload, 
       resultData, 
       errorMessage,
-      executionTime 
+      executionTime: finalExecutionTime // 자동 계산된 실행시간 사용
     },
     duration,
   });
