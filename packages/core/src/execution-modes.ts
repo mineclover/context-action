@@ -18,21 +18,14 @@ import type { Logger } from '@context-action/logger';
  * @internal
  * @since 1.0.0
  * 
- * Executes action handlers sequentially in priority order, supporting flow control,
- * conditional execution, and priority jumping within the pipeline.
+ * Executes handlers sequentially in priority order with flow control
+ * @implements sequential-execution
  * 
  * @template T - The type of the payload being processed
  * @param context - Pipeline execution context with handlers and state
  * @param createController - Factory function for creating pipeline controllers
  * @param logger - Logger instance for tracing execution
  * @returns Promise that resolves when all handlers complete or pipeline aborts
- * 
- * Features:
- * - Priority-based execution order (higher priority first)
- * - Support for priority jumping within execution
- * - Conditional handler execution (condition/validation checks)
- * - Blocking/non-blocking handler support
- * - Comprehensive error handling and recovery
  */
 export async function executeSequential<T>(
   context: PipelineContext<T>,
@@ -52,7 +45,7 @@ export async function executeSequential<T>(
       break;
     }
 
-    // Handle jump to priority
+    /** Handle jump to priority */
     if (context.jumpToPriority !== undefined) {
       const jumpIndex = context.handlers.findIndex(
         handler => handler.config.priority === context.jumpToPriority
@@ -73,13 +66,13 @@ export async function executeSequential<T>(
     const registration = context.handlers[i];
     context.currentIndex = i;
 
-    // Check condition if provided
+    /** Check condition if provided */
     if (registration.config.condition && !registration.config.condition()) {
       logger.debug(`Skipping handler '${registration.id}' - condition not met`);
       continue;
     }
 
-    // Check validation if provided
+    /** Check validation if provided */
     if (registration.config.validation && !registration.config.validation(context.payload)) {
       logger.debug(`Skipping handler '${registration.id}' - validation failed`);
       continue;
@@ -95,7 +88,7 @@ export async function executeSequential<T>(
 
       const result = registration.handler(context.payload, controller);
 
-      // Wait for async handlers if they're blocking
+      /** Wait for async handlers if they're blocking */
       if (registration.config.blocking && result instanceof Promise) {
         logger.trace(`Waiting for blocking handler '${registration.id}'`);
         await result;
@@ -115,7 +108,23 @@ export async function executeSequential<T>(
 
 /**
  * Execute handlers in parallel mode (all at once)
+ * @implements execution-modes
+ * @implements parallel-execution
+ * @implements concurrent-processing
+ * @memberof core-concepts
  * @internal
+ * @since 1.0.0
+ * 
+ * Executes all eligible handlers simultaneously using Promise.allSettled
+ * @implements concurrent-processing
+ * 
+ * @template T - The type of the payload being processed
+ * @param context - Pipeline execution context with handlers and state
+ * @param createController - Factory function for creating pipeline controllers
+ * @param logger - Logger instance for tracing execution
+ * @returns Promise that resolves when all handlers complete or critical failures occur
+ * 
+ * @throws {Error} When blocking handlers fail or validation errors occur
  */
 export async function executeParallel<T>(
   context: PipelineContext<T>,
@@ -126,15 +135,15 @@ export async function executeParallel<T>(
     handlerCount: context.handlers.length
   });
 
-  // Filter handlers that should run
+  /** Filter handlers that should run */
   const runnableHandlers = context.handlers.filter((registration, _index) => {
-    // Check condition
+    /** Check condition */
     if (registration.config.condition && !registration.config.condition()) {
       logger.debug(`Skipping handler '${registration.id}' - condition not met`);
       return false;
     }
 
-    // Check validation
+    /** Check validation */
     if (registration.config.validation && !registration.config.validation(context.payload)) {
       logger.debug(`Skipping handler '${registration.id}' - validation failed`);
       return false;
@@ -145,7 +154,7 @@ export async function executeParallel<T>(
 
   logger.trace(`Running ${runnableHandlers.length} handlers in parallel`);
 
-  // Create promises for all handlers
+  /** Create promises for all handlers */
   const handlerPromises = runnableHandlers.map(async (registration, _index) => {
     const controller = createController(registration, _index);
     
@@ -172,10 +181,10 @@ export async function executeParallel<T>(
     }
   });
 
-  // Wait for all handlers to complete
+  /** Wait for all handlers to complete */
   const results = await Promise.allSettled(handlerPromises);
   
-  // Check for any rejected blocking handlers
+  /** Check for any rejected blocking handlers */
   const failures = results.filter((result, index) => {
     if (result.status === 'rejected') {
       const registration = runnableHandlers[index];
@@ -197,7 +206,23 @@ export async function executeParallel<T>(
 
 /**
  * Execute handlers in race mode (first to complete wins)
+ * @implements execution-modes
+ * @implements race-execution
+ * @implements competitive-processing
+ * @memberof core-concepts
  * @internal
+ * @since 1.0.0
+ * 
+ * Executes handlers simultaneously, uses first completed result
+ * @implements competitive-processing
+ * 
+ * @template T - The type of the payload being processed
+ * @param context - Pipeline execution context with handlers and state
+ * @param createController - Factory function for creating pipeline controllers
+ * @param logger - Logger instance for tracing execution
+ * @returns Promise that resolves when the first handler completes or fails
+ * 
+ * @throws {Error} When the winning handler fails and is marked as blocking
  */
 export async function executeRace<T>(
   context: PipelineContext<T>,
@@ -208,15 +233,15 @@ export async function executeRace<T>(
     handlerCount: context.handlers.length
   });
 
-  // Filter handlers that should run
+  /** Filter handlers that should run */
   const runnableHandlers = context.handlers.filter((registration, _index) => {
-    // Check condition
+    /** Check condition */
     if (registration.config.condition && !registration.config.condition()) {
       logger.debug(`Skipping handler '${registration.id}' - condition not met`);
       return false;
     }
 
-    // Check validation
+    /** Check validation */
     if (registration.config.validation && !registration.config.validation(context.payload)) {
       logger.debug(`Skipping handler '${registration.id}' - validation failed`);
       return false;
@@ -232,7 +257,7 @@ export async function executeRace<T>(
 
   logger.trace(`Racing ${runnableHandlers.length} handlers`);
 
-  // Create promises for all handlers
+  /** Create promises for all handlers */
   const handlerPromises = runnableHandlers.map(async (registration, _index) => {
     const controller = createController(registration, _index);
     
@@ -255,7 +280,7 @@ export async function executeRace<T>(
   });
 
   try {
-    // Race all handlers
+    /** Race all handlers */
     const winner = await Promise.race(handlerPromises);
     
     logger.debug('Race completed', {
@@ -263,7 +288,7 @@ export async function executeRace<T>(
       success: winner.success
     });
 
-    // If the winner failed and was blocking, throw the error
+    /** If the winner failed and was blocking, throw the error */
     if (!winner.success && winner.registration?.config.blocking) {
       throw winner.error;
     }

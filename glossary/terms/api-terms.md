@@ -27,45 +27,50 @@ Technical implementation and API concepts for the Context-Action framework.
 
 ## StoreProvider
 
-**Definition**: A React context provider that manages store instances and provides them to child components through the React context system.
-
+**Definition**: Store 인스턴스들을 관리하고 React context 시스템을 통해 자식 컴포넌트들에게 제공하는 React context provider입니다.
 
 **Usage Context**:
-- Application root setup
-- Store dependency injection
-- React context pattern implementation
-- Store lifecycle management
+- 애플리케이션 루트 설정 및 초기화
+- Store 의존성 주입 및 관리
+- React context 패턴 구현의 핵심
+- Store 생명주기 관리 및 제어
+- Provider 패턴과 HOC 패턴 지원
 
 **Key Features**:
-- Centralized store management
-- Context-based dependency injection
-- Store instance lifecycle control
-- Integration with React component tree
+- 중앙화된 Store 관리 (StoreRegistry 기반)
+- Context 기반 의존성 주입 시스템
+- Store 인스턴스 생명주기 제어 (useRef 기반 싱글톤)
+- React 컴포넌트 트리와의 완전한 통합
+- 선택적 registry prop으로 커스텀 StoreRegistry 지원
 
+**Implementation**: StoreProvider 컴포넌트로 구현되며, StoreContext를 통해 StoreRegistry 인스턴스를 하위 컴포넌트에 제공하고 useStoreContext 훅으로 접근합니다.
 
-**Related Terms**: [ActionProvider](#actionprovider), [Store Registry](./core-concepts.md#store-registry), [Store Hooks](#store-hooks)
+**Related Terms**: [ActionProvider](#actionprovider), [Store Registry](./core-concepts.md#store-registry), [Store Hooks](#store-hooks), [Context Store Pattern](./architecture-terms.md#context-store-pattern)
 
 ---
 
 ## ActionProvider
 
-**Definition**: A React context provider that manages action registration and dispatch functionality within the React component tree.
-
+**Definition**: React 컴포넌트 트리 내에서 액션 등록 및 디스패치 기능을 관리하는 React context provider입니다.
 
 **Usage Context**:
-- Action handler registration context
-- Action dispatch accessibility
-- Component lifecycle integration
-- Handler cleanup management
+- 액션 핸들러 등록 컨텍스트 제공
+- 액션 디스패치 접근성 보장
+- 컴포넌트 생명주기와의 통합
+- 핸들러 정리 관리 및 자동 정리
+- MVVM 패턴의 ViewModel 레이어 구현
 
 **Key Features**:
-- Action dispatch context provision
-- Handler registration lifecycle
-- Automatic cleanup on unmount
-- Integration with store providers
+- 액션 디스패치 컨텍스트 제공 (ActionContext)
+- 핸들러 등록 생명주기 관리
+- 언마운트 시 자동 정리 (useRef 기반)
+- Store provider와의 통합 지원
+- ActionRegisterConfig를 통한 설정 가능
+- 타입 안전한 액션 디스패치 시스템
 
+**Implementation**: ActionProvider 컴포넌트로 구현되며, ActionContext를 통해 ActionRegister 인스턴스와 dispatch 함수를 제공하고 useActionContext 훅으로 접근합니다.
 
-**Related Terms**: [StoreProvider](#storeprovider), [Action Dispatcher](#action-dispatcher), [useActionDispatch](#useactiondispatch)
+**Related Terms**: [StoreProvider](#storeprovider), [Action Dispatcher](#action-dispatcher), [useActionDispatch](#useactiondispatch), [ActionRegister](./core-concepts.md#actionregister)
 
 ---
 

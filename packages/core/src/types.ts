@@ -3,6 +3,9 @@
  * @implements type-safety
  * @implements compile-time-validation 
  * @implements architecture-terms
+ * @implements interface-naming
+ * @implements function-naming
+ * @implements constant-naming
  * @memberof core-concepts
  * @version 1.0.0
  * 

@@ -42,10 +42,10 @@
  * ```
  */
 
-// Core ActionRegister class and types
+/** Core ActionRegister class and types */
 export { ActionRegister } from './ActionRegister.js';
 
-// Type definitions
+/** Type definitions */
 export type {
   ActionPayloadMap,
   ActionHandler,
@@ -63,11 +63,11 @@ export type {
   ExecutionMode,
 } from './types.js';
 
-// Performance optimization utilities
+/** Performance optimization utilities */
 export { ActionGuard } from './action-guard.js';
 
-// Execution mode implementations  
+/** Execution mode implementations */
 export { executeSequential, executeParallel, executeRace } from './execution-modes.js';
 
-// Note: Logger utilities are now available from @context-action/logger package
-// Applications should import logger functionality directly from @context-action/logger
+/** Note: Logger utilities are now available from @context-action/logger package */
+/** Applications should import logger functionality directly from @context-action/logger */
