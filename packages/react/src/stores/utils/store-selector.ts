@@ -18,6 +18,12 @@ const CONSTANTS = {
 
 /**
  * Store Selector Hook - 선택적 데이터 구독
+ * @implements computed-store
+ * @implements fresh-state-access
+ * @implements performance-optimization
+ * @memberof core-concepts
+ * @since 1.0.0
+ * 
  * 핵심 기능: selector를 사용하여 Store의 특정 부분만 구독하고 반환
  * 
  * @template T - Store 값 타입

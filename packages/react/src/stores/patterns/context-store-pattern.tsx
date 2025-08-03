@@ -9,15 +9,22 @@
  */
 
 import React, { createContext, useContext, useMemo, ReactNode, useId } from 'react';
-import { StoreRegistry } from './StoreRegistry';
+import { StoreRegistry } from '../core/StoreRegistry';
 import { generateStoreName, getOrCreateRegistryStore } from './isolation-utils';
-import { createStore } from './Store';
-import type { ComparisonOptions } from './comparison';
+import { createStore } from '../core/Store';
+import type { ComparisonOptions } from '../utils/comparison';
 
 /**
  * Context Store 패턴 팩토리 함수
+ * @implements cross-store-coordination
+ * @implements store-factory-functions
+ * @implements separation-of-concerns
+ * @implements mvvm-pattern
+ * @memberof core-concepts
+ * @since 1.0.0
  * 
  * Provider와 해당 Provider 영역 내에서 사용할 수 있는 Hooks를 함께 생성합니다.
+ * 각 Provider는 독립적인 Store Registry를 가지며, Store 간 격리를 보장합니다.
  * 
  * @param contextName - Context 이름 (Registry 식별용)
  * @returns Provider 컴포넌트와 Store 접근 Hooks

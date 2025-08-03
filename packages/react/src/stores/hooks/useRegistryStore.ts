@@ -1,5 +1,5 @@
 import { useRegistry } from './useRegistry';
-import type { IStore, IStoreRegistry } from '../types';
+import type { IStore, IStoreRegistry } from '../core/types';
 import { createLogger } from '@context-action/logger';
 
 const logger = createLogger();

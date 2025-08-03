@@ -1,8 +1,7 @@
 import { useRef } from 'react';
-import { Store } from '../Store';
-import { useStoreSelector } from '../store-selector';
-import { createStore } from '../utils';
-import type { Snapshot } from '../types';
+import { Store, createStore } from '../core/Store';
+import { useStoreSelector } from '../utils/store-selector';
+import type { Snapshot } from '../core/types';
 import { createLogger } from '@context-action/logger';
 
 // Create logger once at module level
@@ -43,7 +42,8 @@ export function useLocalStore<T>(
   const storeRef = useRef<Store<T>>();
   
   if (!storeRef.current) {
-    storeRef.current = createStore(initialValue, name);
+    const storeName = name || `localStore_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    storeRef.current = createStore(storeName, initialValue);
     logger.debug(`Local store created via useLocalStore`, { 
       name: storeRef.current.name,
       initialValue 

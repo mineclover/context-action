@@ -4,7 +4,7 @@
  */
 
 import React, { createContext, useContext, useRef, ReactNode } from 'react';
-import { StoreRegistry } from './store';
+import { StoreRegistry } from '../stores/core';
 
 /**
  * Context type for Store registry system

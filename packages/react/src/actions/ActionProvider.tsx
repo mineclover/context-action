@@ -9,8 +9,8 @@
 
 import React, { createContext, useContext, useRef, ReactNode } from 'react';
 import { ActionRegister, ActionPayloadMap, ActionRegisterConfig } from '@context-action/core';
-import { StoreRegistry } from './store/StoreRegistry';
-import { StoreProvider } from './StoreProvider';
+import { StoreRegistry } from '../stores/core/StoreRegistry';
+import { StoreProvider } from '../providers/StoreProvider';
 
 /**
  * Context type for Action dispatch system
@@ -23,7 +23,7 @@ export interface ActionContextType<T extends ActionPayloadMap = ActionPayloadMap
 /**
  * Action Context - provides action dispatch functionality
  */
-const ActionContext = createContext<ActionContextType<any> | null>(null);
+export const ActionContext = createContext<ActionContextType<any> | null>(null);
 
 /**
  * Props for ActionProvider component
@@ -110,7 +110,7 @@ export function ActionProvider({ children, config }: ActionProviderProps) {
  * Hook to access ActionContext
  * @throws Error if used outside ActionProvider
  */
-function useActionContext<T extends ActionPayloadMap = ActionPayloadMap>(): ActionContextType<T> {
+export function useActionContext<T extends ActionPayloadMap = ActionPayloadMap>(): ActionContextType<T> {
   const context = useContext(ActionContext);
   
   if (!context) {
@@ -127,7 +127,10 @@ function useActionContext<T extends ActionPayloadMap = ActionPayloadMap>(): Acti
  * Hook to get action dispatch function
  * @implements action-dispatcher
  * @implements useactiondispatch
+ * @implements view-layer
+ * @implements mvvm-pattern
  * @memberof api-terms
+ * @since 1.0.0
  * 
  * Following ARCHITECTURE.md pattern for component usage
  * 

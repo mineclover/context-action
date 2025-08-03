@@ -1,11 +1,11 @@
 import type { IStore, Listener, Snapshot, Unsubscribe } from './types';
 import { createLogger } from '@context-action/logger';
-import { safeGet, safeSet, getGlobalImmutabilityOptions, performantSafeGet } from './immutable';
+import { safeGet, safeSet, getGlobalImmutabilityOptions, performantSafeGet } from '../utils/immutable';
 import { 
   compareValues, 
   fastCompare, 
   ComparisonOptions
-} from './comparison';
+} from '../utils/comparison';
 
 /**
  * Store 클래스 - 중앙화된 상태 관리의 핵심

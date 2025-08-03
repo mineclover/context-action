@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react';
-import { Store } from '../Store';
-import { useStoreSelector } from '../store-selector';
+import { Store } from '../core/Store';
+import { useStoreSelector } from '../utils/store-selector';
 
 /**
  * 지속성 옵션 인터페이스

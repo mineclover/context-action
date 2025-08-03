@@ -1,5 +1,5 @@
-import { useStoreSelector } from '../store-selector';
-import type { IStore, IStoreRegistry } from '../types';
+import { useStoreSelector } from '../utils/store-selector';
+import type { IStore, IStoreRegistry } from '../core/types';
 
 /**
  * Registry 변경사항을 구독하고 등록된 모든 Store 목록 반환
