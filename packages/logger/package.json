@@ -1,6 +1,6 @@
 {
   "name": "@context-action/logger",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "type": "module",
   "description": "Logging utility for the context-action framework",
   "main": "dist/index.cjs",
