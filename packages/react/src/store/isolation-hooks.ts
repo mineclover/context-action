@@ -9,7 +9,7 @@
 
 import { useMemo, useRef, useId } from 'react';
 import { createStore } from './Store';
-import { IsolationStoreFactory, wrapStoreWithDebug, generateStoreName } from './isolation-utils';
+import { IsolationStoreFactory, generateStoreName } from './isolation-utils';
 import { useStoreRegistry } from './StoreContext';
 import type { ComparisonOptions } from './comparison';
 

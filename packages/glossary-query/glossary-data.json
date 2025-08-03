@@ -1,7 +1,7 @@
 {
   "metadata": {
     "version": "1.0.0",
-    "generated": "2025-08-03T08:31:44.412Z",
+    "generated": "2025-08-03T10:55:51.003Z",
     "totalTerms": 97,
     "categories": [
       "VALIDATION",
@@ -165,7 +165,7 @@
       "relatedTerms": [],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.413Z"
+      "lastModified": "2025-08-03T10:55:51.004Z"
     },
     "quality-metrics": {
       "id": "quality-metrics",
@@ -183,7 +183,7 @@
       "relatedTerms": [],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.413Z"
+      "lastModified": "2025-08-03T10:55:51.005Z"
     },
     "recommendations": {
       "id": "recommendations",
@@ -198,7 +198,7 @@
       "relatedTerms": [],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.413Z"
+      "lastModified": "2025-08-03T10:55:51.005Z"
     },
     "maintenance-schedule": {
       "id": "maintenance-schedule",
@@ -214,7 +214,7 @@
       "relatedTerms": [],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.413Z"
+      "lastModified": "2025-08-03T10:55:51.005Z"
     },
     "success-indicators": {
       "id": "success-indicators",
@@ -230,7 +230,7 @@
       "relatedTerms": [],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.414Z"
+      "lastModified": "2025-08-03T10:55:51.005Z"
     },
     "next-steps": {
       "id": "next-steps",
@@ -246,7 +246,7 @@
       "relatedTerms": [],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.414Z"
+      "lastModified": "2025-08-03T10:55:51.005Z"
     },
     "actionregister": {
       "id": "actionregister",
@@ -315,13 +315,11 @@
       "relatedTerms": [
         "action-pipeline-system",
         "action-handler",
-        "pipeline-controller",
-        "useactionregister",
-        "actionregister-configuration"
+        "pipeline-controller"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.417Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "storeprovider": {
       "id": "storeprovider",
@@ -371,7 +369,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.414Z"
+      "lastModified": "2025-08-03T10:55:51.005Z"
     },
     "actionprovider": {
       "id": "actionprovider",
@@ -402,7 +400,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.414Z"
+      "lastModified": "2025-08-03T10:55:51.005Z"
     },
     "store-hooks": {
       "id": "store-hooks",
@@ -522,13 +520,11 @@
       "relatedTerms": [
         "store-integration-pattern",
         "computed-store",
-        "selective-subscription",
-        "store-factory-functions",
-        "managed-store"
+        "selective-subscription"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.414Z"
+      "lastModified": "2025-08-03T10:55:51.005Z"
     },
     "cross-store-coordination": {
       "id": "cross-store-coordination",
@@ -553,11 +549,12 @@
       "implementations": [],
       "relatedTerms": [
         "store-integration-pattern",
-        "action-handler"
+        "action-handler",
+        "atomic-updates"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.414Z"
+      "lastModified": "2025-08-03T10:55:51.005Z"
     },
     "async-operations": {
       "id": "async-operations",
@@ -581,11 +578,13 @@
       ],
       "implementations": [],
       "relatedTerms": [
-        "action-handler"
+        "action-handler",
+        "error-handling",
+        "loading-states"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.414Z"
+      "lastModified": "2025-08-03T10:55:51.005Z"
     },
     "action-dispatcher": {
       "id": "action-dispatcher",
@@ -651,13 +650,11 @@
       "relatedTerms": [
         "action-payload-map",
         "type-safety",
-        "useactiondispatch",
-        "action-metrics",
-        "action-events"
+        "useactiondispatch"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.006Z"
     },
     "priority-based-execution": {
       "id": "priority-based-execution",
@@ -682,11 +679,12 @@
       "implementations": [],
       "relatedTerms": [
         "handler-configuration",
-        "action-handler"
+        "action-handler",
+        "pipeline-execution"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.006Z"
     },
     "computed-store": {
       "id": "computed-store",
@@ -711,14 +709,12 @@
       "implementations": [],
       "relatedTerms": [
         "store-hooks",
-        "performance-optimization",
-        "store-factory-functions",
-        "managed-store",
-        "store-snapshot"
+        "reactive-updates",
+        "performance-optimization"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.006Z"
     },
     "pipeline-context": {
       "id": "pipeline-context",
@@ -767,11 +763,11 @@
       "relatedTerms": [
         "pipeline-controller",
         "action-pipeline-system",
-        "atom-context-config"
+        "handler-execution"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.006Z"
     },
     "selective-subscription": {
       "id": "selective-subscription",
@@ -834,11 +830,11 @@
       "relatedTerms": [
         "store-hooks",
         "performance-optimization",
-        "useatomselect"
+        "reactive-updates"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.006Z"
     },
     "useactiondispatch": {
       "id": "useactiondispatch",
@@ -891,7 +887,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.006Z"
     },
     "useactionregister": {
       "id": "useactionregister",
@@ -941,7 +937,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.006Z"
     },
     "store-integration-pattern": {
       "id": "store-integration-pattern",
@@ -1149,13 +1145,11 @@
       "relatedTerms": [
         "action-handler",
         "cross-store-coordination",
-        "lazy-evaluation",
-        "store-registry",
-        "store-immutability"
+        "lazy-evaluation"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.417Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "store-factory-functions": {
       "id": "store-factory-functions",
@@ -1181,13 +1175,11 @@
       "relatedTerms": [
         "store-integration-pattern",
         "store-registry",
-        "managed-store",
-        "store-hooks",
-        "computed-store"
+        "managed-store"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.006Z"
     },
     "managed-store": {
       "id": "managed-store",
@@ -1213,13 +1205,11 @@
       "relatedTerms": [
         "store-integration-pattern",
         "store-registry",
-        "store-factory-functions",
-        "store-hooks",
-        "computed-store"
+        "store-factory-functions"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.006Z"
     },
     "jotai-integration": {
       "id": "jotai-integration",
@@ -1245,11 +1235,11 @@
       "relatedTerms": [
         "store-integration-pattern",
         "selective-subscription",
-        "jotai-integration-naming"
+        "context-integration"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.006Z"
     },
     "logger-factory": {
       "id": "logger-factory",
@@ -1294,13 +1284,12 @@
         }
       ],
       "relatedTerms": [
-        "environment-configuration",
-        "smart-logger-creation",
-        "store-factory-functions"
+        "logger-system",
+        "environment-configuration"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.006Z"
     },
     "smart-logger-creation": {
       "id": "smart-logger-creation",
@@ -1350,7 +1339,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.006Z"
     },
     "atom-context-config": {
       "id": "atom-context-config",
@@ -1395,12 +1384,11 @@
       ],
       "relatedTerms": [
         "jotai-integration",
-        "atom-provider",
-        "pipeline-context"
+        "logger-system"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.006Z"
     },
     "atom-provider": {
       "id": "atom-provider",
@@ -1443,11 +1431,11 @@
       ],
       "relatedTerms": [
         "jotai-integration",
-        "atom-context-config"
+        "context-integration"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.006Z"
     },
     "useatomstate": {
       "id": "useatomstate",
@@ -1494,7 +1482,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.006Z"
     },
     "useatomreadonly": {
       "id": "useatomreadonly",
@@ -1541,7 +1529,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.006Z"
     },
     "useatomselect": {
       "id": "useatomselect",
@@ -1589,7 +1577,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.006Z"
     },
     "useatomsetter": {
       "id": "useatomsetter",
@@ -1636,7 +1624,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.006Z"
     },
     "actionregister-configuration": {
       "id": "actionregister-configuration",
@@ -1682,11 +1670,12 @@
         }
       ],
       "relatedTerms": [
-        "actionregister"
+        "actionregister",
+        "logger-system"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.006Z"
     },
     "cleanup-function": {
       "id": "cleanup-function",
@@ -1735,7 +1724,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.006Z"
     },
     "action-metrics": {
       "id": "action-metrics",
@@ -1782,13 +1771,11 @@
       ],
       "relatedTerms": [
         "performance-monitoring",
-        "actionregister",
-        "action-dispatcher",
-        "action-events"
+        "actionregister"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.006Z"
     },
     "performance-monitoring": {
       "id": "performance-monitoring",
@@ -1836,7 +1823,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.006Z"
     },
     "action-events": {
       "id": "action-events",
@@ -1883,13 +1870,11 @@
       ],
       "relatedTerms": [
         "event-driven-architecture",
-        "actionregister",
-        "action-dispatcher",
-        "action-metrics"
+        "actionregister"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.006Z"
     },
     "event-driven-architecture": {
       "id": "event-driven-architecture",
@@ -1935,12 +1920,11 @@
       ],
       "relatedTerms": [
         "action-events",
-        "event-handler",
-        "event-emitter"
+        "event-handler"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.007Z"
     },
     "event-handler": {
       "id": "event-handler",
@@ -1983,12 +1967,11 @@
       ],
       "relatedTerms": [
         "event-driven-architecture",
-        "event-emitter",
-        "actionregister"
+        "event-emitter"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.007Z"
     },
     "event-emitter": {
       "id": "event-emitter",
@@ -2029,12 +2012,11 @@
       ],
       "relatedTerms": [
         "event-handler",
-        "event-driven-architecture",
-        "simple-event-emitter"
+        "event-driven-architecture"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.007Z"
     },
     "observer-pattern": {
       "id": "observer-pattern",
@@ -2098,11 +2080,11 @@
       ],
       "relatedTerms": [
         "store-integration-pattern",
-        "registry-pattern"
+        "reactive-updates"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.007Z"
     },
     "store-snapshot": {
       "id": "store-snapshot",
@@ -2146,14 +2128,11 @@
       ],
       "relatedTerms": [
         "immutable-state",
-        "store-integration-pattern",
-        "store-hooks",
-        "computed-store",
-        "store-factory-functions"
+        "store-integration-pattern"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.007Z"
     },
     "immutable-state": {
       "id": "immutable-state",
@@ -2199,7 +2178,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.007Z"
     },
     "store-interface": {
       "id": "store-interface",
@@ -2247,14 +2226,11 @@
       ],
       "relatedTerms": [
         "usesyncexternalstore-compatible",
-        "observer-pattern",
-        "store-hooks",
-        "computed-store",
-        "store-factory-functions"
+        "observer-pattern"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.007Z"
     },
     "usesyncexternalstore-compatible": {
       "id": "usesyncexternalstore-compatible",
@@ -2300,11 +2276,12 @@
         }
       ],
       "relatedTerms": [
-        "store-interface"
+        "store-interface",
+        "react-integration"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.415Z"
+      "lastModified": "2025-08-03T10:55:51.007Z"
     },
     "registry-pattern": {
       "id": "registry-pattern",
@@ -2351,12 +2328,11 @@
       ],
       "relatedTerms": [
         "store-registry",
-        "store-integration-pattern",
-        "observer-pattern"
+        "store-integration-pattern"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.416Z"
+      "lastModified": "2025-08-03T10:55:51.007Z"
     },
     "environment-configuration": {
       "id": "environment-configuration",
@@ -2372,11 +2348,12 @@
       ],
       "implementations": [],
       "relatedTerms": [
-        "logger-system-naming"
+        "logger-system-naming",
+        "cross-platform-support"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.418Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "mvvm-pattern": {
       "id": "mvvm-pattern",
@@ -2408,7 +2385,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.416Z"
+      "lastModified": "2025-08-03T10:55:51.007Z"
     },
     "view-layer": {
       "id": "view-layer",
@@ -2440,7 +2417,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.416Z"
+      "lastModified": "2025-08-03T10:55:51.007Z"
     },
     "viewmodel-layer": {
       "id": "viewmodel-layer",
@@ -2473,7 +2450,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.416Z"
+      "lastModified": "2025-08-03T10:55:51.007Z"
     },
     "model-layer": {
       "id": "model-layer",
@@ -2523,7 +2500,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.416Z"
+      "lastModified": "2025-08-03T10:55:51.008Z"
     },
     "lazy-evaluation": {
       "id": "lazy-evaluation",
@@ -2585,7 +2562,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.416Z"
+      "lastModified": "2025-08-03T10:55:51.007Z"
     },
     "decoupled-architecture": {
       "id": "decoupled-architecture",
@@ -2615,7 +2592,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.416Z"
+      "lastModified": "2025-08-03T10:55:51.007Z"
     },
     "unidirectional-data-flow": {
       "id": "unidirectional-data-flow",
@@ -2661,7 +2638,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.416Z"
+      "lastModified": "2025-08-03T10:55:51.008Z"
     },
     "type-safety": {
       "id": "type-safety",
@@ -2689,7 +2666,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.416Z"
+      "lastModified": "2025-08-03T10:55:51.008Z"
     },
     "business-logic": {
       "id": "business-logic",
@@ -2735,7 +2712,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.416Z"
+      "lastModified": "2025-08-03T10:55:51.008Z"
     },
     "deprecated-hoc-patterns": {
       "id": "deprecated-hoc-patterns",
@@ -2766,7 +2743,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.416Z"
+      "lastModified": "2025-08-03T10:55:51.008Z"
     },
     "fresh-state-access": {
       "id": "fresh-state-access",
@@ -2790,14 +2767,13 @@
       "relatedTerms": [
         "lazy-evaluation",
         "store-integration-pattern",
-        "action-handler",
-        "predictable-state-updates"
+        "action-handler"
       ],
       "examples": [
         "```typescript"
       ],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.416Z"
+      "lastModified": "2025-08-03T10:55:51.008Z"
     },
     "separation-of-concerns": {
       "id": "separation-of-concerns",
@@ -2825,7 +2801,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.416Z"
+      "lastModified": "2025-08-03T10:55:51.008Z"
     },
     "loose-coupling": {
       "id": "loose-coupling",
@@ -2848,11 +2824,12 @@
       "implementations": [],
       "relatedTerms": [
         "decoupled-architecture",
-        "separation-of-concerns"
+        "separation-of-concerns",
+        "interface-abstraction"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.416Z"
+      "lastModified": "2025-08-03T10:55:51.008Z"
     },
     "predictable-state-updates": {
       "id": "predictable-state-updates",
@@ -2876,11 +2853,11 @@
       "relatedTerms": [
         "unidirectional-data-flow",
         "mvvm-pattern",
-        "fresh-state-access"
+        "state-management"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.416Z"
+      "lastModified": "2025-08-03T10:55:51.008Z"
     },
     "compile-time-validation": {
       "id": "compile-time-validation",
@@ -2903,11 +2880,12 @@
       "implementations": [],
       "relatedTerms": [
         "type-safety",
-        "action-payload-map"
+        "action-payload-map",
+        "generic-programming"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.416Z"
+      "lastModified": "2025-08-03T10:55:51.008Z"
     },
     "domain-rules": {
       "id": "domain-rules",
@@ -2953,7 +2931,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.416Z"
+      "lastModified": "2025-08-03T10:55:51.008Z"
     },
     "action-pipeline-system": {
       "id": "action-pipeline-system",
@@ -3043,13 +3021,11 @@
       "relatedTerms": [
         "action-handler",
         "pipeline-controller",
-        "store-integration-pattern",
-        "action-payload-map",
-        "action-guard"
+        "store-integration-pattern"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.417Z"
+      "lastModified": "2025-08-03T10:55:51.008Z"
     },
     "action-handler": {
       "id": "action-handler",
@@ -3177,13 +3153,11 @@
       "relatedTerms": [
         "pipeline-controller",
         "action-pipeline-system",
-        "handler-configuration",
-        "async-operations",
-        "priority-based-execution"
+        "handler-configuration"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.417Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "pipeline-controller": {
       "id": "pipeline-controller",
@@ -3233,7 +3207,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.417Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "store-registry": {
       "id": "store-registry",
@@ -3357,12 +3331,13 @@
         }
       ],
       "relatedTerms": [
-        "store-integration-pattern",
-        "store-immutability"
+        "store-provider",
+        "action-provider",
+        "store-integration-pattern"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.417Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "action-payload-map": {
       "id": "action-payload-map",
@@ -3389,13 +3364,11 @@
       "relatedTerms": [
         "action-handler",
         "action-dispatcher",
-        "type-safety",
-        "action-pipeline-system",
-        "action-guard"
+        "type-safety"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.417Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "handler-configuration": {
       "id": "handler-configuration",
@@ -3446,7 +3419,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.417Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "simple-event-emitter": {
       "id": "simple-event-emitter",
@@ -3470,11 +3443,11 @@
       "relatedTerms": [
         "actionregister",
         "event-handler",
-        "event-emitter"
+        "action-register-events"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.417Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "execution-modes": {
       "id": "execution-modes",
@@ -3519,13 +3492,11 @@
       "relatedTerms": [
         "action-pipeline-system",
         "handler-configuration",
-        "pipeline-controller",
-        "execution-mode",
-        "sequential-execution"
+        "pipeline-controller"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.417Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "action-guard": {
       "id": "action-guard",
@@ -3574,13 +3545,11 @@
       "relatedTerms": [
         "actionregister",
         "handler-configuration",
-        "performance-optimization",
-        "action-pipeline-system",
-        "action-handler"
+        "performance-optimization"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.417Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "logger-interface": {
       "id": "logger-interface",
@@ -3623,7 +3592,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.417Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "log-level": {
       "id": "log-level",
@@ -3662,7 +3631,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.417Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "logger-implementation": {
       "id": "logger-implementation",
@@ -3705,7 +3674,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.417Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "console-logger": {
       "id": "console-logger",
@@ -3748,7 +3717,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.417Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "execution-mode": {
       "id": "execution-mode",
@@ -3786,12 +3755,11 @@
       "relatedTerms": [
         "sequential-execution",
         "actionregister",
-        "handler-configuration",
-        "execution-modes"
+        "handler-configuration"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.417Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "sequential-execution": {
       "id": "sequential-execution",
@@ -3828,12 +3796,11 @@
       "relatedTerms": [
         "execution-mode",
         "pipeline-controller",
-        "handler-configuration",
-        "execution-modes"
+        "handler-configuration"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.417Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "performance-optimization": {
       "id": "performance-optimization",
@@ -3911,13 +3878,11 @@
       ],
       "relatedTerms": [
         "action-guard",
-        "user-experience-optimization",
-        "useatomselect",
-        "action-metrics"
+        "user-experience-optimization"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.417Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "user-experience-optimization": {
       "id": "user-experience-optimization",
@@ -3959,7 +3924,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.417Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "store-immutability": {
       "id": "store-immutability",
@@ -4050,12 +4015,11 @@
       "relatedTerms": [
         "store-integration-pattern",
         "fresh-state-access",
-        "unidirectional-data-flow",
-        "store-registry"
+        "unidirectional-data-flow"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.417Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "overview": {
       "id": "overview",
@@ -4070,7 +4034,7 @@
       "relatedTerms": [],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.418Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "general-principles": {
       "id": "general-principles",
@@ -4086,7 +4050,7 @@
       "relatedTerms": [],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.418Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "class-naming": {
       "id": "class-naming",
@@ -4101,14 +4065,11 @@
       "implementations": [],
       "relatedTerms": [
         "actionregister",
-        "storeprovider",
-        "interface-naming",
-        "function-naming",
-        "constant-naming"
+        "storeprovider"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.418Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "interface-naming": {
       "id": "interface-naming",
@@ -4125,14 +4086,11 @@
       "implementations": [],
       "relatedTerms": [
         "action-payload-map",
-        "handler-configuration",
-        "class-naming",
-        "function-naming",
-        "constant-naming"
+        "handler-configuration"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.418Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "function-naming": {
       "id": "function-naming",
@@ -4147,14 +4105,11 @@
       "implementations": [],
       "relatedTerms": [
         "store-hooks",
-        "action-handler",
-        "class-naming",
-        "interface-naming",
-        "constant-naming"
+        "action-handler"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.418Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "constant-naming": {
       "id": "constant-naming",
@@ -4169,14 +4124,11 @@
       "implementations": [],
       "relatedTerms": [
         "actionregister",
-        "handler-configuration",
-        "class-naming",
-        "interface-naming",
-        "function-naming"
+        "handler-configuration"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.418Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "file-naming": {
       "id": "file-naming",
@@ -4190,15 +4142,12 @@
       "aliases": [],
       "implementations": [],
       "relatedTerms": [
-        "class-naming",
-        "interface-naming",
-        "function-naming",
-        "constant-naming",
-        "variable-naming"
+        "project-structure",
+        "module-organization"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.418Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "variable-naming": {
       "id": "variable-naming",
@@ -4213,14 +4162,11 @@
       "implementations": [],
       "relatedTerms": [
         "type-safety",
-        "class-naming",
-        "interface-naming",
-        "function-naming",
-        "constant-naming"
+        "code-clarity"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.418Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "generic-type-parameters": {
       "id": "generic-type-parameters",
@@ -4235,11 +4181,12 @@
       "aliases": [],
       "implementations": [],
       "relatedTerms": [
-        "type-safety"
+        "type-safety",
+        "generic-programming"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.418Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "documentation-naming": {
       "id": "documentation-naming",
@@ -4253,15 +4200,12 @@
       "aliases": [],
       "implementations": [],
       "relatedTerms": [
-        "class-naming",
-        "interface-naming",
-        "function-naming",
-        "constant-naming",
-        "file-naming"
+        "documentation-structure",
+        "link-management"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.418Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "validation-rules": {
       "id": "validation-rules",
@@ -4274,10 +4218,13 @@
       ],
       "aliases": [],
       "implementations": [],
-      "relatedTerms": [],
+      "relatedTerms": [
+        "code-quality",
+        "framework-consistency"
+      ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.418Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "logger-system-naming": {
       "id": "logger-system-naming",
@@ -4296,14 +4243,11 @@
       "implementations": [],
       "relatedTerms": [
         "logger-interface",
-        "environment-configuration",
-        "store-system-naming",
-        "class-naming",
-        "interface-naming"
+        "environment-configuration"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.418Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "store-system-naming": {
       "id": "store-system-naming",
@@ -4322,14 +4266,11 @@
       "implementations": [],
       "relatedTerms": [
         "store-integration-pattern",
-        "store-hooks",
-        "logger-system-naming",
-        "class-naming",
-        "interface-naming"
+        "store-hooks"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.418Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "react-integration-naming": {
       "id": "react-integration-naming",
@@ -4348,13 +4289,11 @@
       "relatedTerms": [
         "actionprovider",
         "storeprovider",
-        "jotai-integration-naming",
-        "class-naming",
-        "interface-naming"
+        "react-hooks"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.418Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "jotai-integration-naming": {
       "id": "jotai-integration-naming",
@@ -4372,14 +4311,11 @@
       "implementations": [],
       "relatedTerms": [
         "jotai-integration",
-        "react-integration-naming",
-        "class-naming",
-        "interface-naming",
-        "function-naming"
+        "context-integration"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.418Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "core-framework-naming": {
       "id": "core-framework-naming",
@@ -4395,14 +4331,11 @@
       "implementations": [],
       "relatedTerms": [
         "actionregister",
-        "action-pipeline-system",
-        "class-naming",
-        "interface-naming",
-        "function-naming"
+        "action-pipeline-system"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.418Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     },
     "error-and-utility-naming": {
       "id": "error-and-utility-naming",
@@ -4418,14 +4351,11 @@
       "implementations": [],
       "relatedTerms": [
         "action-guard",
-        "performance-optimization",
-        "class-naming",
-        "interface-naming",
-        "function-naming"
+        "performance-optimization"
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T08:31:44.418Z"
+      "lastModified": "2025-08-03T10:55:51.009Z"
     }
   },
   "index": {

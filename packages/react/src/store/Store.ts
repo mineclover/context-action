@@ -4,9 +4,7 @@ import { safeGet, safeSet, getGlobalImmutabilityOptions, performantSafeGet } fro
 import { 
   compareValues, 
   fastCompare, 
-  ComparisonOptions, 
-  createStoreComparator,
-  getGlobalComparisonOptions 
+  ComparisonOptions
 } from './comparison';
 
 /**
