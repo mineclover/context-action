@@ -2,10 +2,67 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { createStore, useStoreValue } from '@context-action/react';
 import { ErrorBoundary } from './ErrorBoundary';
 import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
+import { Container, Card, CardContent, Grid, Button, Badge } from '../../components/ui';
 
 // 안전 장치 설정
 const RENDER_LIMIT = 15; // 렌더링 임계치
 const AUTO_STOP_LIMIT = 20; // 자동 중단 임계치
+
+// Performance Card 컴포넌트
+interface PerformanceCardProps {
+  type: 'info' | 'success' | 'warning' | 'error';
+  title: string;
+  icon?: string;
+  className?: string;
+  children: React.ReactNode;
+}
+
+function PerformanceCard({ type, title, icon, className, children }: PerformanceCardProps) {
+  const typeColors = {
+    info: 'border-blue-200 bg-blue-50',
+    success: 'border-green-200 bg-green-50',
+    warning: 'border-yellow-200 bg-yellow-50',
+    error: 'border-red-200 bg-red-50',
+  };
+
+  return (
+    <Card className={`${typeColors[type]} ${className || ''}`}>
+      <CardContent>
+        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+          {icon && <span>{icon}</span>}
+          {title}
+        </h3>
+        {children}
+      </CardContent>
+    </Card>
+  );
+}
+
+// Comparison Card 컴포넌트
+interface ComparisonCardProps {
+  strategy: string;
+  title: string;
+  renderCount?: number;
+  stopped?: boolean;
+  children: React.ReactNode;
+}
+
+function ComparisonCard({ strategy, title, children }: ComparisonCardProps) {
+  const strategyColors = {
+    reference: 'border-blue-200 bg-blue-50',
+    shallow: 'border-green-200 bg-green-50',
+    deep: 'border-purple-200 bg-purple-50',
+  };
+
+  return (
+    <Card className={strategyColors[strategy as keyof typeof strategyColors] || 'border-gray-200 bg-gray-50'}>
+      <CardContent>
+        <h4 className="font-medium mb-3">{title}</h4>
+        {children}
+      </CardContent>
+    </Card>
+  );
+}
 
 // 참조 안정한 렌더링 카운터 훅 (useMemo로 참조 안정화)
 function useRenderCounter(name: string) {
@@ -362,7 +419,7 @@ function ComparisonDemoContent() {
       )}
       
       {/* 완전히 격리된 비교 테스트 컴포넌트들 */}
-      <Grid cols={3} className="mb-6">
+      <div className="space-y-4 mb-6">
         {(['reference', 'shallow', 'deep'] as const).map((strategy) => {
           const uniqueTestId = `${strategy}-${testKey}-${isolationId}`;
           
@@ -390,7 +447,7 @@ function ComparisonDemoContent() {
       <Card className="mb-6">
         <CardContent>
           <h3 className="text-lg font-semibold mb-3">📊 Performance Analysis</h3>
-          <Grid cols={3}>
+          <div className="space-y-4">
             {(['reference', 'shallow', 'deep'] as const).map((strategy) => {
               const stats = renderStats[`${strategy}-${testKey}`] || { count: 0, stopped: false };
               const efficiency = stats.count <= 3 ? '매우 효율적' : 
@@ -416,13 +473,13 @@ function ComparisonDemoContent() {
                 </div>
               );
             })}
-          </Grid>
+          </div>
         </CardContent>
       </Card>
       
       {/* 가이드라인 */}
       <PerformanceCard type="success" title="Best Practice Guidelines" icon="💡">
-        <Grid cols={2} className="text-sm text-blue-700">
+        <div className="space-y-4">
           <div>
             <h4 className="font-medium mb-2">언제 어떤 전략을 사용할까?</h4>
             <ul className="space-y-1 list-disc list-inside text-xs">
@@ -440,7 +497,7 @@ function ComparisonDemoContent() {
               <li>렌더링 카운트 모니터링</li>
             </ul>
           </div>
-        </Grid>
+        </div>
       </PerformanceCard>
     </Container>
   );

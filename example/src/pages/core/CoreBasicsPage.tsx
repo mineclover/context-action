@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ActionRegister, ActionPayloadMap } from '@context-action/react';
 import { LogMonitorProvider, LogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
+import { DemoCard, Button, CodeExample, CodeBlock, Container } from '../../components/ui';
 
 // 액션 타입 정의
 interface CoreActionMap extends ActionPayloadMap {
@@ -103,68 +104,68 @@ function CoreBasicsDemo() {
   }, [actionRegister]);
 
   return (
-    <div className="demo-grid">
+    <div className="space-y-6">
       {/* 카운터 데모 */}
-      <div className="demo-card">
-        <h3>Basic Counter</h3>
-        <div className="counter-display">
-          <span className="count-value">{count}</span>
+      <DemoCard>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Basic Counter</h3>
+        <div className="text-center my-8">
+          <span className="text-2xl font-bold text-primary-600 text-center block">{count}</span>
         </div>
-        <div className="button-group">
-          <button onClick={handleIncrement} className="btn btn-primary">
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={handleIncrement} variant="primary">
             +1
-          </button>
-          <button onClick={handleDecrement} className="btn btn-primary">
+          </Button>
+          <Button onClick={handleDecrement} variant="primary">
             -1
-          </button>
-          <button onClick={handleSetCount} className="btn btn-secondary">
+          </Button>
+          <Button onClick={handleSetCount} variant="secondary">
             Set to 10
-          </button>
-          <button onClick={handleReset} className="btn btn-danger">
+          </Button>
+          <Button onClick={handleReset} variant="danger">
             Reset
-          </button>
+          </Button>
         </div>
-      </div>
+      </DemoCard>
 
       {/* 사용자 정의 로그 */}
-      <div className="demo-card">
-        <h3>Custom Logging</h3>
-        <p>Test custom action logging with user input</p>
-        <button onClick={handleCustomLog} className="btn btn-info">
+      <DemoCard>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Custom Logging</h3>
+        <p className="text-gray-600 mb-4">Test custom action logging with user input</p>
+        <Button onClick={handleCustomLog} variant="info">
           Custom Log
-        </button>
-      </div>
+        </Button>
+      </DemoCard>
 
       {/* 액션 시스템 설명 */}
-      <div className="demo-card info-card">
-        <h3>How ActionRegister Works</h3>
-        <ol className="how-it-works-list">
-          <li>
-            <strong>Create ActionRegister:</strong> Instantiate with action type map
+      <DemoCard variant="info">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">How ActionRegister Works</h3>
+        <ol className="space-y-3 text-sm text-gray-700 list-decimal list-inside">
+          <li className="pl-2">
+            <strong className="text-gray-900 font-semibold">Create ActionRegister:</strong> Instantiate with action type map
           </li>
-          <li>
-            <strong>Register Handlers:</strong> Define what happens for each action
+          <li className="pl-2">
+            <strong className="text-gray-900 font-semibold">Register Handlers:</strong> Define what happens for each action
           </li>
-          <li>
-            <strong>Dispatch Actions:</strong> Trigger actions from UI components
+          <li className="pl-2">
+            <strong className="text-gray-900 font-semibold">Dispatch Actions:</strong> Trigger actions from UI components
           </li>
-          <li>
-            <strong>Handle Results:</strong> Use controller.next() or controller.abort()
+          <li className="pl-2">
+            <strong className="text-gray-900 font-semibold">Handle Results:</strong> Use controller.next() or controller.abort()
           </li>
         </ol>
-      </div>
+      </DemoCard>
 
       {/* 주요 특징 */}
-      <div className="demo-card info-card">
-        <h3>Key Features</h3>
-        <ul className="feature-list">
-          <li>✓ Type-safe action dispatching</li>
-          <li>✓ Centralized action handling</li>
-          <li>✓ Automatic logging integration</li>
-          <li>✓ Clean unsubscribe mechanism</li>
-          <li>✓ Middleware support</li>
+      <DemoCard variant="info">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Key Features</h3>
+        <ul className="space-y-2 text-sm text-gray-700">
+          <li className="flex items-start gap-2">✓ Type-safe action dispatching</li>
+          <li className="flex items-start gap-2">✓ Centralized action handling</li>
+          <li className="flex items-start gap-2">✓ Automatic logging integration</li>
+          <li className="flex items-start gap-2">✓ Clean unsubscribe mechanism</li>
+          <li className="flex items-start gap-2">✓ Middleware support</li>
         </ul>
-      </div>
+      </DemoCard>
 
       {/* 로그 모니터 */}
       <LogMonitor title="Core Basics - Action Log" />
@@ -175,10 +176,10 @@ function CoreBasicsDemo() {
 function CoreBasicsPage() {
   return (
     <LogMonitorProvider pageId="core-basics">
-      <div className="page-container">
-        <header className="page-header">
-          <h1>Core ActionRegister Basics</h1>
-          <p className="page-description">
+      <Container>
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Core ActionRegister Basics</h1>
+          <p className="text-lg text-gray-600 leading-relaxed">
             Learn the fundamentals of the ActionRegister system - creating, registering handlers,
             and dispatching type-safe actions in your application.
           </p>
@@ -187,9 +188,8 @@ function CoreBasicsPage() {
         <CoreBasicsDemo />
 
         {/* 코드 예제 */}
-        <div className="code-example">
-          <h3>ActionRegister Implementation</h3>
-          <pre className="code-block">
+        <CodeExample title="ActionRegister Implementation">
+          <CodeBlock>
 {`// 1. 액션 타입 정의
 interface AppActions extends ActionPayloadMap {
   increment: undefined;
@@ -213,9 +213,9 @@ actionRegister.dispatch('setCount', 42);
 
 // 5. 정리
 unsubscribe();`}
-          </pre>
-        </div>
-      </div>
+          </CodeBlock>
+        </CodeExample>
+      </Container>
     </LogMonitorProvider>
   );
 }

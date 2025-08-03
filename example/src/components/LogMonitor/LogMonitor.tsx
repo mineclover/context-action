@@ -13,6 +13,14 @@ import {
   getLogTypeColor, 
   getLogLevelName 
 } from './utils';
+import { cn } from '../../lib/utils';
+import { 
+  logMonitorVariants, 
+  logEntryVariants, 
+  logLevelBadgeVariants,
+  buttonVariants,
+  inputVariants
+} from '../ui/variants';
 
 /**
  * 로그 모니터 컴포넌트
@@ -37,15 +45,15 @@ export function LogMonitor({
   }, [config, updateConfig]);
 
   return (
-    <div className={`demo-card logger-card ${className}`}>
-      <div className="card-header">
-        <h3>{title}</h3>
+    <div className={cn(logMonitorVariants({ variant: "default" }), "p-4", className)}>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
         {showControls && (
-          <div className="button-group">
+          <div className="flex items-center gap-2">
             <select
               value={logLevel}
               onChange={(e) => setLogLevel(Number(e.target.value))}
-              className="select-input"
+              className={cn(inputVariants({ size: "sm" }), "w-24")}
               aria-label="로그 레벨 선택"
             >
               <option value={LogLevel.TRACE}>TRACE</option>
@@ -56,7 +64,7 @@ export function LogMonitor({
             </select>
             <button 
               onClick={clearLogs} 
-              className="btn btn-small btn-secondary"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
               aria-label="로그 지우기"
             >
               Clear
@@ -82,14 +90,20 @@ interface LogListProps {
 function LogList({ logs, maxHeight }: LogListProps) {
   if (logs.length === 0) {
     return (
-      <div className="log-container" style={{ maxHeight }}>
-        <div className="log-empty">로그가 아직 기록되지 않았습니다...</div>
+      <div 
+        className="bg-gray-50 rounded-lg p-4 text-center text-gray-500" 
+        style={{ maxHeight }}
+      >
+        <div className="text-sm">로그가 아직 기록되지 않았습니다...</div>
       </div>
     );
   }
 
   return (
-    <div className="log-container" style={{ maxHeight }}>
+    <div 
+      className="bg-gray-50 rounded-lg overflow-y-auto" 
+      style={{ maxHeight }}
+    >
       {[...logs].reverse().map((log) => (
         <LogEntryItem key={log.id} log={log} />
       ))}
@@ -106,31 +120,38 @@ interface LogEntryItemProps {
 
 function LogEntryItem({ log }: LogEntryItemProps) {
   const shortId = log.id.split('-').slice(-1)[0];
+  const levelName = getLogLevelName(log.level).toLowerCase() as any;
 
   return (
-    <div className={`log-entry log-${log.type}`}>
-      <span className="log-id" title={log.id}>
+    <div className={cn(
+      logEntryVariants({ 
+        type: log.type as any, 
+        level: levelName 
+      }),
+      "grid-cols-[auto_auto_auto_auto_1fr] items-center gap-3"
+    )}>
+      <span className="text-gray-400 text-xs" title={log.id}>
         {shortId}
       </span>
-      <span className="log-time">{log.timestamp}</span>
-      <span 
-        className="log-level" 
-        style={{ color: getLogLevelColor(log.level) }}
-      >
+      <span className="text-gray-500 text-xs whitespace-nowrap">{log.timestamp}</span>
+      <span className={cn(logLevelBadgeVariants({ level: levelName }))}>
         {getLogLevelName(log.level)}
       </span>
-      <span 
-        className="log-type" 
-        style={{ color: getLogTypeColor(log.type) }}
-      >
-        {log.type.toUpperCase()}
+      <span className="text-xs font-medium text-gray-600 uppercase">
+        {log.type}
       </span>
-      {log.priority !== undefined && (
-        <span className="log-priority">{log.priority}</span>
-      )}
-      <span className="log-message">{log.message}</span>
+      <div className="flex items-center gap-2">
+        {log.priority !== undefined && (
+          <span className="text-xs bg-gray-200 px-2 py-1 rounded text-gray-700">
+            P{log.priority}
+          </span>
+        )}
+        <span className="text-sm text-gray-900 break-all">{log.message}</span>
+      </div>
       {log.details && (
-        <LogDetails details={log.details} />
+        <div className="col-span-5">
+          <LogDetails details={log.details} />
+        </div>
       )}
     </div>
   );
@@ -145,9 +166,13 @@ interface LogDetailsProps {
 
 function LogDetails({ details }: LogDetailsProps) {
   return (
-    <details className="log-details">
-      <summary>Details</summary>
-      <pre>{JSON.stringify(details, null, 2)}</pre>
+    <details className="mt-2">
+      <summary className="text-xs text-blue-600 cursor-pointer hover:text-blue-800">
+        Details
+      </summary>
+      <pre className="mt-2 p-3 bg-gray-100 rounded text-xs overflow-x-auto">
+        {JSON.stringify(details, null, 2)}
+      </pre>
     </details>
   );
 }
@@ -162,14 +187,18 @@ interface LogStatsProps {
 
 function LogStats({ logs, currentLevel }: LogStatsProps) {
   return (
-    <div className="log-stats">
-      <div className="stat-item">
-        <span className="stat-label">Total Logs:</span>
-        <span className="stat-value">{logs.length}</span>
-      </div>
-      <div className="stat-item">
-        <span className="stat-label">Current Level:</span>
-        <span className="stat-value">{getLogLevelName(currentLevel)}</span>
+    <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+      <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-2">
+          <span className="text-gray-500">Total Logs:</span>
+          <span className="font-medium text-gray-900">{logs.length}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-gray-500">Current Level:</span>
+          <span className={cn(logLevelBadgeVariants({ level: getLogLevelName(currentLevel).toLowerCase() as any }))}>
+            {getLogLevelName(currentLevel)}
+          </span>
+        </div>
       </div>
     </div>
   );

@@ -109,7 +109,7 @@ function StoreFullDemoPage() {
         {/* Demo Content */}
         <StoreScenarios.Provider registryId="store-full-demo">
           {showAllDemos ? (
-            <div className="demo-grid full-demo-grid">
+            <div className="space-y-6">
               <UserProfileDemo />
               <ShoppingCartDemo />
               <TodoListDemo />
@@ -164,7 +164,7 @@ function StoreFullDemoPage() {
         {/* Modular Architecture Overview */}
         <div className="architecture-overview">
           <h3>🏗️ Modular Architecture</h3>
-          <div className="architecture-grid">
+          <div className="space-y-4">
             <div className="architecture-item">
               <h4>📄 Types</h4>
               <p>공통 인터페이스와 액션 타입 정의</p>
@@ -191,7 +191,7 @@ function StoreFullDemoPage() {
         {/* Store Patterns Summary */}
         <div className="patterns-summary">
           <h3>📚 Store Management Patterns Overview</h3>
-          <div className="patterns-grid">
+          <div className="space-y-3">
             {demos.map((demo, index) => (
               <div 
                 key={demo.id} 
@@ -267,7 +267,7 @@ export function UserProfileDemo() {
         {/* Benefits Section */}
         <div className="system-benefits">
           <h3>🎯 Modular Architecture Benefits</h3>
-          <div className="benefits-grid">
+          <div className="space-y-4">
             <div className="benefit-item">
               <h4>🔄 재사용성</h4>
               <p>각 모듈을 독립적으로 재사용하고 테스트할 수 있습니다.</p>

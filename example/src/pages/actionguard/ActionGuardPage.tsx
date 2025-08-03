@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { ActionRegister, ActionPayloadMap } from '@context-action/react';
 import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
+import { DemoCard, Button, Input, CodeExample, CodeBlock } from '../../components/ui';
 
 // Action Guard 액션 맵
 interface ActionGuardMap extends ActionPayloadMap {
@@ -113,26 +114,26 @@ function SearchDemo() {
   };
 
   return (
-    <div className="demo-card">
-      <h3>Search with Debouncing</h3>
-      <div className="search-container">
-        <input
+    <DemoCard>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Search with Debouncing</h3>
+      <div className="space-y-4">
+        <Input
           type="text"
           value={searchTerm}
           onChange={handleSearchChange}
           placeholder="Type to search (debounced)"
-          className="search-input"
+          className="w-full"
         />
-        <div className="search-stats">
+        <div className="text-sm text-gray-600">
           <span>Search count: {searchCount}</span>
         </div>
-        <div className="search-results">
+        <div className="space-y-2">
           {searchResults.map((result, index) => (
-            <div key={index} className="search-result">{result}</div>
+            <div key={index} className="p-2 bg-gray-50 rounded border text-sm">{result}</div>
           ))}
         </div>
       </div>
-    </div>
+    </DemoCard>
   );
 }
 
@@ -164,14 +165,13 @@ function ScrollDemo() {
   };
 
   return (
-    <div className="demo-card">
-      <h3>Scroll with Throttling</h3>
+    <DemoCard>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Scroll with Throttling</h3>
       <div 
-        className="scroll-container"
+        className="h-[200px] overflow-auto border border-gray-300 rounded-lg bg-gray-50"
         onScroll={handleScroll}
-        style={{ height: '200px', overflow: 'auto', border: '1px solid #ccc' }}
       >
-        <div style={{ height: '1000px', padding: '20px' }}>
+        <div className="h-[1000px] p-5">
           <p>Scroll this container to see throttling in action</p>
           <p>Current scroll position: {scrollTop}px</p>
           <p>Scroll events processed: {scrollCount}</p>
@@ -180,7 +180,7 @@ function ScrollDemo() {
           ))}
         </div>
       </div>
-    </div>
+    </DemoCard>
   );
 }
 
@@ -211,43 +211,48 @@ function ApiBlockingDemo() {
   };
 
   return (
-    <div className="demo-card">
-      <h3>API Call Blocking</h3>
-      <div className="api-controls">
-        <button 
-          onClick={() => handleApiCall('/api/users')}
-          disabled={isBlocked}
-          className="btn btn-primary"
-        >
-          Call /api/users
-        </button>
-        <button 
-          onClick={() => handleApiCall('/api/posts')}
-          disabled={isBlocked}
-          className="btn btn-primary"
-        >
-          Call /api/posts
-        </button>
-        <button 
-          onClick={() => handleApiCall('/api/comments')}
-          disabled={isBlocked}
-          className="btn btn-primary"
-        >
-          Call /api/comments
-        </button>
-      </div>
-      {isBlocked && (
-        <div className="block-status">
-          <span>Blocked for 2 seconds (Last action: {lastAction})</span>
+    <DemoCard>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">API Call Blocking</h3>
+      <div className="space-y-4">
+        <div className="flex flex-wrap gap-2">
+          <Button 
+            onClick={() => handleApiCall('/api/users')}
+            disabled={isBlocked}
+            variant="primary"
+            size="sm"
+          >
+            Call /api/users
+          </Button>
+          <Button 
+            onClick={() => handleApiCall('/api/posts')}
+            disabled={isBlocked}
+            variant="primary"
+            size="sm"
+          >
+            Call /api/posts
+          </Button>
+          <Button 
+            onClick={() => handleApiCall('/api/comments')}
+            disabled={isBlocked}
+            variant="primary"
+            size="sm"
+          >
+            Call /api/comments
+          </Button>
         </div>
-      )}
-      <div className="api-calls">
-        <h4>Recent API Calls:</h4>
-        {apiCalls.map((call, index) => (
-          <div key={index} className="api-call">{call}</div>
-        ))}
+        {isBlocked && (
+          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm">
+            <span>Blocked for 2 seconds (Last action: {lastAction})</span>
+          </div>
+        )}
+        <div className="space-y-2">
+          <h4 className="font-medium text-gray-900">Recent API Calls:</h4>
+          {apiCalls.map((call, index) => (
+            <div key={index} className="p-2 bg-gray-50 rounded border text-sm">{call}</div>
+          ))}
+        </div>
       </div>
-    </div>
+    </DemoCard>
   );
 }
 
@@ -281,37 +286,25 @@ function MouseEventDemo() {
   };
 
   return (
-    <div className="demo-card">
-      <h3>Mouse Events with Throttling</h3>
+    <DemoCard>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Mouse Events with Throttling</h3>
       <div 
-        className="mouse-area"
+        className="h-[200px] border-2 border-gray-300 relative bg-gray-100 rounded-lg overflow-hidden"
         onMouseMove={handleMouseMove}
-        style={{ 
-          height: '200px', 
-          border: '2px solid #ccc', 
-          position: 'relative',
-          backgroundColor: '#f5f5f5'
-        }}
       >
-        <div className="mouse-info">
+        <div className="absolute top-2 left-2 text-sm text-gray-600 bg-white bg-opacity-90 p-2 rounded">
           <p>Mouse Position: ({mousePosition.x}, {mousePosition.y})</p>
           <p>Move events processed: {moveCount}</p>
         </div>
         <div 
-          className="mouse-pointer"
+          className="absolute w-2.5 h-2.5 bg-red-500 rounded-full pointer-events-none transition-all duration-75"
           style={{
-            position: 'absolute',
             left: mousePosition.x - 5,
             top: mousePosition.y - 5,
-            width: '10px',
-            height: '10px',
-            backgroundColor: 'red',
-            borderRadius: '50%',
-            pointerEvents: 'none'
           }}
         />
       </div>
-    </div>
+    </DemoCard>
   );
 }
 
@@ -327,49 +320,48 @@ function ActionGuardPage() {
           </p>
         </header>
 
-        <div className="demo-grid">
+        <div className="space-y-6">
           <SearchDemo />
           <ScrollDemo />
           <ApiBlockingDemo />
           <MouseEventDemo />
           
           {/* Action Guard 개념 */}
-          <div className="demo-card info-card">
-            <h3>Action Guard Patterns</h3>
-            <ul className="guard-pattern-list">
-              <li>
-                <strong>Debouncing:</strong> 연속된 이벤트에서 마지막 이벤트만 처리 (검색, 입력 유효성 검사)
+          <DemoCard variant="info">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Action Guard Patterns</h3>
+            <ul className="space-y-4 text-sm text-gray-700">
+              <li className="space-y-2">
+                <strong className="text-gray-900 font-semibold">Debouncing:</strong> 연속된 이벤트에서 마지막 이벤트만 처리 (검색, 입력 유효성 검사)
               </li>
-              <li>
-                <strong>Throttling:</strong> 지정된 주기마다 이벤트 처리 (스크롤, 마우스 이벤트)
+              <li className="space-y-2">
+                <strong className="text-gray-900 font-semibold">Throttling:</strong> 지정된 주기마다 이벤트 처리 (스크롤, 마우스 이벤트)
               </li>
-              <li>
-                <strong>Blocking:</strong> 일정 시간 동안 중복 실행 방지 (API 호출, 폼 제출)
+              <li className="space-y-2">
+                <strong className="text-gray-900 font-semibold">Blocking:</strong> 일정 시간 동안 중복 실행 방지 (API 호출, 폼 제출)
               </li>
-              <li>
-                <strong>Rate Limiting:</strong> 시간당 최대 실행 횟수 제한
+              <li className="space-y-2">
+                <strong className="text-gray-900 font-semibold">Rate Limiting:</strong> 시간당 최대 실행 횟수 제한
               </li>
             </ul>
-          </div>
+          </DemoCard>
           
           {/* 사용 사례 */}
-          <div className="demo-card info-card">
-            <h3>Use Cases</h3>
-            <ul className="use-case-list">
-              <li>✓ 검색 입력 최적화</li>
-              <li>✓ API 호출 빈도 제어</li>
-              <li>✓ 스크롤 성능 개선</li>
-              <li>✓ 버튼 연행 클릭 방지</li>
-              <li>✓ 마우스 이벤트 최적화</li>
-              <li>✓ 리사이징 이벤트 제어</li>
+          <DemoCard variant="info">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Use Cases</h3>
+            <ul className="space-y-2 text-sm text-gray-700">
+              <li className="flex items-start gap-2">✓ 검색 입력 최적화</li>
+              <li className="flex items-start gap-2">✓ API 호출 빈도 제어</li>
+              <li className="flex items-start gap-2">✓ 스크롤 성능 개선</li>
+              <li className="flex items-start gap-2">✓ 버튼 연행 클릭 방지</li>
+              <li className="flex items-start gap-2">✓ 마우스 이벤트 최적화</li>
+              <li className="flex items-start gap-2">✓ 리사이징 이벤트 제어</li>
             </ul>
-          </div>
+          </DemoCard>
         </div>
 
         {/* 코드 예제 */}
-        <div className="code-example">
-          <h3>Action Guard Implementation</h3>
-          <pre className="code-block">
+        <CodeExample title="Action Guard Implementation">
+          <CodeBlock>
 {`// 1. 디바운스 훅
 const useDebounce = (callback, delay) => {
   const timeoutRef = useRef();
@@ -410,8 +402,8 @@ actionRegister.register('searchInput', (term, controller) => {
   debouncedSearch(term);
   controller.next();
 });`}
-          </pre>
-        </div>
+          </CodeBlock>
+        </CodeExample>
       </div>
     </PageWithLogMonitor>
   );

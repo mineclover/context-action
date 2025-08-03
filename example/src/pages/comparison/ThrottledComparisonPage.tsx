@@ -310,7 +310,7 @@ function ThrottledTestComponent({
       <div className="text-xs space-y-2">
         {/* 렌더링 통계 */}
         <div className="bg-white p-2 rounded border">
-          <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="space-y-2 text-xs">
             <div>실제: <strong>{actualCount}</strong></div>
             <div>표시: <strong>{displayCount}</strong></div>
             <div>속도: <strong>{renderRate}/s</strong></div>
@@ -483,7 +483,7 @@ function ThrottledComparisonContent() {
       {/* 성능 정보 */}
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
         <h3 className="text-yellow-800 font-bold mb-2">⚡ Performance Features</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-yellow-700">
+        <div className="space-y-4 text-sm text-yellow-700">
           <div>
             <h4 className="font-medium mb-1">🔒 Complete Isolation</h4>
             <ul className="space-y-1 list-disc list-inside text-xs">
@@ -506,7 +506,7 @@ function ThrottledComparisonContent() {
       </div>
       
       {/* 완전히 격리된 Throttled 테스트 컴포넌트들 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="space-y-4">
         {(['reference', 'shallow', 'deep'] as const).map((strategy) => {
           const uniqueTestId = `${strategy}-${testKey}-${isolationId}`;
           
@@ -532,7 +532,7 @@ function ThrottledComparisonContent() {
       {/* 실시간 성능 모니터링 */}
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
         <h3 className="text-lg font-semibold mb-3">📊 Real-time Performance Monitor</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="space-y-4">
           {(['reference', 'shallow', 'deep'] as const).map((strategy) => {
             const stats = componentStats[`${strategy}-${testKey}-${isolationId}`] || {};
             
@@ -555,7 +555,7 @@ function ThrottledComparisonContent() {
       {/* 사용 가이드 */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <h3 className="text-blue-800 font-bold mb-2">🎯 Infinite Loop Control Guide</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-700">
+        <div className="space-y-4 text-sm text-blue-700">
           <div>
             <h4 className="font-medium mb-1">Auto 모드 사용법</h4>
             <ul className="space-y-1 list-disc list-inside text-xs">

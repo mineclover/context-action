@@ -185,7 +185,7 @@ export default function ComparisonStrategyDemo({ pageId }: { pageId: string }) {
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="space-y-4">
         <div key={`reference-${remountKey}`}>
           <ImprovedComparisonComponent 
             pageId={pageId} 
@@ -222,7 +222,7 @@ export default function ComparisonStrategyDemo({ pageId }: { pageId: string }) {
       
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <h3 className="text-blue-800 font-bold mb-2">📊 비교 결과 관찰 포인트</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+        <div className="space-y-4 text-sm">
           <div>
             <h4 className="font-medium text-orange-700 mb-1">🟠 Reference</h4>
             <ul className="text-gray-700 space-y-1 list-disc list-inside">
