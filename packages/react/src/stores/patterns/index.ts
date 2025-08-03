@@ -16,7 +16,10 @@
 // Main pattern for store isolation and coordination
 export { 
   createContextStorePattern,
-  PageStores
+  PageStores,
+  ComponentStores,
+  DemoStores,
+  TestStores
 } from './context-store-pattern';
 
 // === ISOLATION UTILITIES ===

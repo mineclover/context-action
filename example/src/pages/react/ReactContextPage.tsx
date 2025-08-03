@@ -3,12 +3,12 @@ import {
   ActionRegister,
   ActionPayloadMap,
   ActionProvider,
-  StoreProvider,
   useActionDispatch,
   useActionRegister,
   createContextStorePattern,
   useStoreValue
 } from '@context-action/react';
+import { StoreProvider } from '../../legacy/StoreProvider';
 import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
 import { Card, CardContent, Badge, Button, Grid } from '../../components/ui';
 

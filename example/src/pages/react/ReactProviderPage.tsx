@@ -2,12 +2,11 @@ import React, { useState, useCallback } from 'react';
 import {
   ActionRegister,
   ActionProvider,
-  StoreProvider,
-  useStoreRegistry,
   createContextStorePattern,
   useStoreValue,
   ActionPayloadMap
 } from '@context-action/react';
+import { StoreProvider, useStoreRegistry } from '../../legacy/StoreProvider';
 import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
 
 // 액션 타입 정의

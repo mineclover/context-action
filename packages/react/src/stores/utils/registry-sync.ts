@@ -1,5 +1,5 @@
 import { useStoreSelector } from './store-selector';
-import type { IStoreRegistry, IStore } from './types';
+import type { IStoreRegistry, IStore } from '../core/types';
 
 /**
  * Factory for creating registry sync hooks
@@ -26,7 +26,7 @@ export function createRegistrySync<T = any>() {
     ): T | undefined {
       const store = registry?.getStore(storeName);
       return useStoreSelector(store, {
-        selector: snapshot => snapshot.value as T
+        selector: (snapshot: any) => snapshot.value as T
       });
     }
   };

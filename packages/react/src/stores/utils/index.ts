@@ -34,7 +34,6 @@ export {
 // === STORE SELECTORS ===
 // Advanced store selection and subscription
 export { 
-  useStore, 
   useStoreSelector
 } from './store-selector';
 
@@ -43,10 +42,7 @@ export {
 // export { createStore } from './utils';
 
 // === ACTION HANDLER UTILITIES ===
-// Business logic and validation helpers
-export { 
-  createValidatedHandler
-} from './ActionHandlerUtils';
+// Moved to actions/utils - use import from '@context-action/react/actions'
 
 // === REGISTRY SYNC ===
 // Store registry synchronization utilities

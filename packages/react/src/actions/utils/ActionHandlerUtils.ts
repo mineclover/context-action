@@ -10,8 +10,8 @@
  */
 
 import { ActionHandler, HandlerConfig } from '@context-action/core';
-import { StoreRegistry } from './StoreRegistry';
-import type { IStore } from './types';
+import { StoreRegistry } from '../../stores/core/StoreRegistry';
+import type { IStore } from '../../stores/core/types';
 
 /**
  * Store 스냅샷 인터페이스

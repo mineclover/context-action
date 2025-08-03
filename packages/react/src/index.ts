@@ -14,9 +14,8 @@
  * 
  * === MODULAR STRUCTURE ===
  * This package is organized into logical modules for better tree-shaking and developer experience:
- * - actions/     - ActionProvider and action-related functionality
+ * - actions/     - createActionContext (primary) and ActionProvider (simple) for action management
  * - stores/      - Complete store system (core, hooks, utils, patterns)
- * - providers/   - React Provider components
  * - hooks/       - Unified hooks export
  * 
  * === USAGE PATTERNS ===
@@ -93,8 +92,12 @@ export * from './actions';
 export * from './stores';
 
 // === PROVIDER COMPONENTS ===
-// React Provider components for context setup
-export * from './providers';
+// Note: Use Context Store Pattern (createContextStorePattern) for store management
+// Use createActionContext or ActionProvider for action management
+
+// === UNIFIED PATTERNS ===
+// Store + Action integrated patterns
+export * from './patterns';
 
 // === UNIFIED HOOKS ===
 // All hooks in one place for convenience
