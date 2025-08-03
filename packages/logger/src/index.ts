@@ -55,6 +55,49 @@ import { Logger, LogLevel } from './types.js';
 export type { Logger };
 export { LogLevel };
 
+// Export trace collection system
+export {
+  TraceCollector,
+  TraceCategory,
+  DefaultTraceProcessor,
+  FileTraceProcessor,
+  createTraceEnabledLogger
+} from './trace-collector.js';
+
+export type {
+  TraceEntry,
+  TraceCollectorConfig,
+  TraceProcessor,
+  TraceContext
+} from './trace-collector.js';
+
+// Export framework trace integration
+export {
+  initializeFrameworkTracing,
+  createFrameworkLogger,
+  getGlobalTraceCollector,
+  getFrameworkTraceAnalysis,
+  FrameworkLoggers,
+  TraceDebugUtils,
+  useComponentTracing
+} from './trace-integration.js';
+
+export type { FrameworkTraceConfig } from './trace-integration.js';
+
+// Export universal trace logging system
+export {
+  UniversalTraceLogger,
+  UniversalTraceCollector,
+  TraceSource,
+  createUniversalTraceLogger,
+  createFrameworkUniversalLogger
+} from './universal-trace-logger.js';
+
+export type {
+  UniversalTraceEntry,
+  UniversalTraceConfig
+} from './universal-trace-logger.js';
+
 // Note: .env loading should be done by the application
 // Import dotenv in your application entry point:
 // import 'dotenv/config';
