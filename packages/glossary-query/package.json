@@ -1,6 +1,6 @@
 {
   "name": "@context-action/glossary-query",
-  "version": "2.0.0",
+  "version": "0.0.4",
   "description": "jq-based high-performance information query system for Context-Action framework terminology",
   "main": "jq-cli.sh",
   "bin": {
@@ -35,7 +35,7 @@
     "jq",
     "query",
     "information-retrieval",
-    "documentation", 
+    "documentation",
     "context-action",
     "glossary",
     "cli-tool",
@@ -43,7 +43,6 @@
   ],
   "author": "Context-Action Team",
   "license": "MIT",
-  "dependencies": {},
   "peerDependencies": {
     "jq": ">=1.6.0"
   },
