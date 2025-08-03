@@ -114,10 +114,26 @@ function ActivityLogger() {
   const [activities, setActivities] = useState<string[]>([]);
   
   const logCustomActivity = useCallback(() => {
-    const activity = prompt('Enter activity:');
-    if (activity) {
-      actionRegister.dispatch('logActivity', { activity });
-    }
+    // 랜덤 활동 생성 함수
+    const generateRandomActivity = () => {
+      const activities = [
+        'User logged in from mobile app',
+        'Downloaded quarterly report',
+        'Updated profile settings',
+        'Shared document with team',
+        'Completed security training',
+        'Created new project workspace',
+        'Joined video conference',
+        'Submitted expense report',
+        'Reviewed code changes',
+        'Scheduled team meeting'
+      ];
+      
+      return activities[Math.floor(Math.random() * activities.length)];
+    };
+    
+    const randomActivity = generateRandomActivity();
+    actionRegister.dispatch('logActivity', { activity: randomActivity });
   }, []);
   
   const clearActivities = useCallback(() => {
@@ -146,7 +162,7 @@ function ActivityLogger() {
         <h3>Activity Logger</h3>
         <div className="button-group">
           <button onClick={logCustomActivity} className="btn btn-small btn-primary">
-            Log Activity
+            🎲 Random Activity
           </button>
           <button onClick={clearActivities} className="btn btn-small btn-secondary">
             Clear

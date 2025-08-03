@@ -182,9 +182,9 @@ export const ACTION_MESSAGES: ActionMessageMap = {
   deleteChatMessage: { title: '메시지 삭제', message: '메시지가 삭제되었습니다', type: 'info' },
   clearChat: { title: '채팅 초기화', message: '채팅이 초기화되었습니다', type: 'info' },
   
-  // React Provider 액션들
-  updateCounter: { title: '카운터 변경', message: '카운터 값이 변경되었습니다', type: 'success' },
-  resetCounter: { title: '카운터 리셋', message: '카운터가 초기화되었습니다', type: 'info' },
+  // React Provider 액션들 (Provider 페이지용)
+  updateCounterProvider: { title: '카운터 변경', message: '카운터 값이 변경되었습니다', type: 'success' },
+  resetCounterProvider: { title: '카운터 리셋', message: '카운터가 초기화되었습니다', type: 'info' },
   
   // Toast Config 예제 액션들
   testBasicToast: { title: '🍞 기본 Toast 테스트', message: 'Toast 시스템이 정상적으로 작동합니다', type: 'success' },
@@ -197,23 +197,23 @@ export const ACTION_MESSAGES: ActionMessageMap = {
   toggleAutoMode: { title: '⚡ 자동 모드 전환', message: '자동 모드가 전환되었습니다', type: 'info' },
   autoIncrement: { title: '🔄 자동 증가', message: '자동 모드에서 카운터가 증가했습니다', type: 'success' },
   autoModeTimeout: { title: '⏰ 자동 모드 종료', message: '자동 모드가 시간 초과로 종료되었습니다', type: 'info' },
-  updateMessage: { title: '메시지 변경', message: '메시지가 업데이트되었습니다', type: 'success' },
-  resetMessage: { title: '메시지 리셋', message: '메시지가 초기화되었습니다', type: 'info' },
+  updateMessageHooks: { title: '메시지 변경', message: '메시지가 업데이트되었습니다', type: 'success' },
+  resetMessageHooks: { title: '메시지 리셋', message: '메시지가 초기화되었습니다', type: 'info' },
   
   // Core Basic 액션들
-  increment: { title: '증가', message: '값이 증가되었습니다', type: 'success' },
-  decrement: { title: '감소', message: '값이 감소되었습니다', type: 'success' },
-  reset: { title: '리셋', message: '값이 초기화되었습니다', type: 'info' },
-  updateValue: { title: '값 변경', message: '값이 업데이트되었습니다', type: 'success' },
+  incrementBasic: { title: '증가', message: '값이 증가되었습니다', type: 'success' },
+  decrementBasic: { title: '감소', message: '값이 감소되었습니다', type: 'success' },
+  resetBasic: { title: '리셋', message: '값이 초기화되었습니다', type: 'info' },
+  updateValueBasic: { title: '값 변경', message: '값이 업데이트되었습니다', type: 'success' },
   
   // Core Advanced 액션들
   multiply: { title: '곱하기', message: '값이 곱해졌습니다', type: 'success' },
   divide: { title: '나누기', message: '값이 나누어졌습니다', type: 'success' },
   priorityTest: { title: '우선순위 테스트', message: '우선순위 테스트가 실행되었습니다', type: 'info' },
   
-  // Store Basic 액션들
-  updateUserName: { title: '이름 변경', message: '사용자 이름이 변경되었습니다', type: 'success' },
-  updateUserEmail: { title: '이메일 변경', message: '사용자 이메일이 변경되었습니다', type: 'success' },
+  // Store Basic 액션들 (Store Basic 페이지용)
+  updateUserNameStore: { title: '이름 변경', message: '사용자 이름이 변경되었습니다', type: 'success' },
+  updateUserEmailStore: { title: '이메일 변경', message: '사용자 이메일이 변경되었습니다', type: 'success' },
   
   // React Hooks 액션들
   updateList: { title: '리스트 업데이트', message: '리스트가 업데이트되었습니다', type: 'success' },

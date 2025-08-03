@@ -177,6 +177,238 @@ function ComponentWithErrorHandling() {
 
 ## Action Pipeline Patterns
 
+### Priority-Based Interceptor Pattern
+
+The ActionRegister supports sophisticated pipeline control through priority-based handlers. Higher priority numbers execute first, enabling powerful interceptor patterns.
+
+```typescript
+interface SecurityActions {
+  sensitiveOperation: { data: string; userId: string };
+}
+
+function SecurityInterceptorDemo() {
+  const [enableInterceptor, setEnableInterceptor] = useState(true);
+  const [interceptedActions, setInterceptedActions] = useState<string[]>([]);
+  const interceptorEnabledRef = useRef(enableInterceptor);
+  
+  // Update ref when state changes
+  useEffect(() => {
+    interceptorEnabledRef.current = enableInterceptor;
+  }, [enableInterceptor]);
+
+  const actionRegister = useActionRegister<SecurityActions>();
+
+  useEffect(() => {
+    // High priority interceptor (executes first)
+    const unsubscribeInterceptor = actionRegister.register(
+      'sensitiveOperation',
+      ({ data, userId }, controller) => {
+        const isInterceptorEnabled = interceptorEnabledRef.current;
+        
+        if (isInterceptorEnabled) {
+          // Security check - block unauthorized access
+          if (!hasPermission(userId, 'sensitive_operation')) {
+            setInterceptedActions(prev => [...prev, 
+              `🛡️ BLOCKED: ${data} - unauthorized user ${userId}`
+            ]);
+            
+            // Abort the entire pipeline - business logic won't execute
+            controller.abort('Unauthorized access blocked by security interceptor');
+            return;
+          }
+        }
+        
+        // Allow to proceed to business logic
+        console.log('✅ Security check passed, proceeding...');
+        controller.next();
+      },
+      { priority: 10 } // High priority - executes first
+    );
+
+    // Low priority business logic (executes second, if allowed)
+    const unsubscribeBusinessLogic = actionRegister.register(
+      'sensitiveOperation',
+      ({ data }, controller) => {
+        // This only runs if interceptor allows it
+        console.log('🎯 Executing business logic:', data);
+        
+        // Perform the actual operation
+        performSensitiveOperation(data);
+        
+        controller.next();
+      },
+      { priority: 1 } // Low priority - executes after interceptor
+    );
+
+    return () => {
+      unsubscribeInterceptor();
+      unsubscribeBusinessLogic();
+    };
+  }, []);
+
+  return (
+    <div>
+      <button onClick={() => setEnableInterceptor(!enableInterceptor)}>
+        {enableInterceptor ? 'Disable' : 'Enable'} Security Interceptor
+      </button>
+      
+      <button onClick={() => 
+        actionRegister.dispatch('sensitiveOperation', { 
+          data: 'confidential-data', 
+          userId: 'user123' 
+        })
+      }>
+        Execute Sensitive Operation
+      </button>
+
+      {interceptedActions.length > 0 && (
+        <div>
+          <h3>Intercepted Actions:</h3>
+          {interceptedActions.map((action, index) => (
+            <div key={index}>{action}</div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### Pipeline Flow Control
+
+ActionRegister provides several methods for controlling pipeline execution:
+
+```typescript
+interface FlowControlActions {
+  processData: { data: any; skipValidation?: boolean };
+  chainedAction: { step: number; data: string };
+}
+
+function PipelineFlowDemo() {
+  const actionRegister = useActionRegister<FlowControlActions>();
+
+  useEffect(() => {
+    // Validation handler (high priority)
+    actionRegister.register('processData', ({ data, skipValidation }, controller) => {
+      if (!skipValidation && !isValid(data)) {
+        console.log('❌ Validation failed - aborting pipeline');
+        controller.abort('Data validation failed');
+        return;
+      }
+      
+      console.log('✅ Validation passed');
+      controller.next();
+    }, { priority: 10 });
+
+    // Processing handler (medium priority)
+    actionRegister.register('processData', ({ data }, controller) => {
+      console.log('🔄 Processing data...');
+      
+      // Modify payload for next handlers
+      controller.modifyPayload((payload) => ({
+        ...payload,
+        data: processData(payload.data),
+        processedAt: new Date().toISOString()
+      }));
+      
+      controller.next();
+    }, { priority: 5 });
+
+    // Logging handler (low priority)
+    actionRegister.register('processData', ({ data }, controller) => {
+      console.log('📝 Logging processed data:', data);
+      
+      // Log to analytics
+      analytics.track('data_processed', { 
+        timestamp: new Date().toISOString(),
+        dataSize: JSON.stringify(data).length 
+      });
+      
+      controller.next();
+    }, { priority: 1 });
+
+    // Chained action example
+    actionRegister.register('chainedAction', ({ step, data }, controller) => {
+      console.log(`Step ${step}: ${data}`);
+      
+      // Automatically trigger next step
+      if (step < 3) {
+        setTimeout(() => {
+          actionRegister.dispatch('chainedAction', { 
+            step: step + 1, 
+            data: `Chain step ${step + 1}` 
+          });
+        }, 1000);
+      } else {
+        console.log('🎉 Chain completed');
+      }
+      
+      controller.next();
+    });
+
+  }, [actionRegister]);
+}
+```
+
+### Conditional Pipeline Execution
+
+```typescript
+interface ConditionalActions {
+  contextualAction: { 
+    context: 'development' | 'production'; 
+    data: any;
+  };
+}
+
+function ConditionalPipelineDemo() {
+  const actionRegister = useActionRegister<ConditionalActions>();
+
+  useEffect(() => {
+    // Development-only logging
+    actionRegister.register('contextualAction', 
+      ({ context, data }, controller) => {
+        console.log('🔍 Development logging:', { context, data });
+        controller.next();
+      }, 
+      { 
+        priority: 10,
+        condition: () => process.env.NODE_ENV === 'development'
+      }
+    );
+
+    // Production monitoring
+    actionRegister.register('contextualAction', 
+      ({ context, data }, controller) => {
+        if (context === 'production') {
+          monitoringService.track('action_executed', data);
+        }
+        controller.next();
+      }, 
+      { 
+        priority: 9,
+        condition: () => process.env.NODE_ENV === 'production'
+      }
+    );
+
+    // Data validation (always runs)
+    actionRegister.register('contextualAction', 
+      ({ data }, controller) => {
+        if (!data || typeof data !== 'object') {
+          controller.abort('Invalid data format');
+          return;
+        }
+        controller.next();
+      }, 
+      { 
+        priority: 8,
+        validation: (payload) => payload.data !== null
+      }
+    );
+
+  }, [actionRegister]);
+}
+```
+
 ### Middleware Pattern
 
 ```typescript
