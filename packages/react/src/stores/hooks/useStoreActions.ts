@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { Store } from '../Store';
+import type { Store } from '../core/Store';
 
 /**
  * Store 액션 핸들러들을 메모이제이션하여 반환

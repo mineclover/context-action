@@ -8,10 +8,10 @@
  */
 
 import { useMemo, useRef, useId } from 'react';
-import { createStore } from './Store';
+import { createStore } from '../core/Store';
 import { IsolationStoreFactory, generateStoreName } from './isolation-utils';
-import { useStoreRegistry } from './StoreContext';
-import type { ComparisonOptions } from './comparison';
+import { useStoreRegistry } from '../core/StoreContext';
+import type { ComparisonOptions } from '../utils/comparison';
 
 /**
  * React Hook: Registry 기반 Store 사용

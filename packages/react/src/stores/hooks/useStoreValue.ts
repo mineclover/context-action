@@ -1,10 +1,13 @@
-import { useStoreSelector } from '../store-selector';
-import type { IStore } from '../types';
+import { useStoreSelector } from '../utils/store-selector';
+import type { IStore } from '../core/types';
 
 /**
  * Hook to get current value from store with optional selector
  * @implements store-hooks
+ * @implements fresh-state-access
+ * @implements type-safety
  * @memberof api-terms
+ * @since 1.0.0
  * @example
  * ```typescript
  * // Basic store subscription

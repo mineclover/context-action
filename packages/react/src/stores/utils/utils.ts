@@ -1,5 +1,5 @@
-import type { IStore, IStoreRegistry } from "./types";
-import { Store } from ".";
+import type { IStore, IStoreRegistry } from "../core/types";
+import { Store } from "../core/Store";
 
 /**
  * Create a new store with the given initial value

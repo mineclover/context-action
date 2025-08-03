@@ -8,10 +8,10 @@
  * @version 2.0.0 - StoreRegistry 통합
  */
 
-import { createStore } from './Store';
-import { StoreRegistry } from './StoreRegistry';
-import type { ComparisonOptions } from './comparison';
-import type { IStore } from './types';
+import { createStore } from '../core/Store';
+import { StoreRegistry } from '../core/StoreRegistry';
+import type { ComparisonOptions } from '../utils/comparison';
+import type { IStore } from '../core/types';
 
 /**
  * 도메인 기반 Store 이름 생성기

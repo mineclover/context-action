@@ -1,5 +1,5 @@
 /**
- * @fileoverview Context-Action React Package Entry Point  
+ * @fileoverview Context-Action React Package Entry Point - Modular Re-export Structure
  * @implements viewmodel-layer
  * @implements mvvm-pattern
  * @implements react-integration
@@ -12,20 +12,25 @@
  * This package implements the View and ViewModel layers of the MVVM architecture,
  * connecting React components to the action pipeline and store system.
  * 
- * Key Features:
- * - ActionProvider: React Context integration for action dispatch
- * - Store system: Reactive state management with useSyncExternalStore
- * - Context Store Pattern: Provider-level store isolation
- * - HOC patterns: Higher-Order Components for provider composition
- * - Type-safe hooks: Full TypeScript support throughout
- * - Performance optimization: Selective subscriptions and comparison strategies
+ * === MODULAR STRUCTURE ===
+ * This package is organized into logical modules for better tree-shaking and developer experience:
+ * - actions/     - ActionProvider and action-related functionality
+ * - stores/      - Complete store system (core, hooks, utils, patterns)
+ * - providers/   - React Provider components
+ * - hooks/       - Unified hooks export
  * 
- * Architecture Patterns:
- * - MVVM: Clear separation between View (React), ViewModel (Actions), Model (Stores)
- * - Observer: Reactive updates through store subscriptions
- * - Context: React Context API for dependency injection
- * - Registry: Centralized store management and lifecycle
- * - Provider: Component composition and dependency provision
+ * === USAGE PATTERNS ===
+ * 
+ * Basic Import (Full compatibility):
+ * ```typescript
+ * import { useStoreValue, ActionProvider } from '@context-action/react';
+ * ```
+ * 
+ * Optimized Import (Smaller bundles):
+ * ```typescript
+ * import { useStoreValue } from '@context-action/react/stores';
+ * import { ActionProvider } from '@context-action/react/actions';
+ * ```
  * 
  * @example
  * ```typescript
@@ -75,6 +80,30 @@
  * ```
  */
 
+// ===================================================================
+// MAIN EXPORTS - FULL COMPATIBILITY WITH EXISTING IMPORTS
+// ===================================================================
+
+// === ACTION SYSTEM ===
+// All action-related functionality including ActionProvider and hooks
+export * from './actions';
+
+// === STORE SYSTEM ===
+// Complete store system: core, hooks, utilities, and patterns
+export * from './stores';
+
+// === PROVIDER COMPONENTS ===
+// React Provider components for context setup
+export * from './providers';
+
+// === UNIFIED HOOKS ===
+// All hooks in one place for convenience
+export * from './hooks';
+
+// ===================================================================
+// CORE FRAMEWORK RE-EXPORTS - FOR CONVENIENCE
+// ===================================================================
+
 // === CORE ACTION SYSTEM ===
 // Re-export core types and classes for convenience
 export type {
@@ -82,6 +111,9 @@ export type {
 	ActionHandler,
 	HandlerConfig,
 	PipelineController,
+	ActionRegisterConfig,
+	ExecutionMode,
+	UnregisterFunction
 } from "@context-action/core";
 
 export { 
@@ -96,136 +128,11 @@ export {
 	getLogLevelFromEnv,
 } from "@context-action/logger";
 
-// === REACT ACTION CONTEXT (DEPRECATED) ===
-// @deprecated ActionContext is deprecated in favor of ActionProvider
-// Use ActionProvider and related hooks for new development
-export * from "./ActionContext";
+// ===================================================================
+// NOTE: All detailed exports are now handled by the modular structure above.
+// This ensures 100% compatibility while enabling selective imports like:
+//
+// import { useStoreValue } from '@context-action/react/stores';
+// import { ActionProvider } from '@context-action/react/actions';
+// ===================================================================
 
-// === ACTION PROVIDER (ARCHITECTURE.md Pattern) ===
-export {
-	ActionProvider,
-	useActionDispatch,
-	useActionRegister,
-	createTypedActionProvider,
-	withActionProvider,
-	withStoreAndActionProvider,
-} from "./ActionProvider";
-
-export type {
-	ActionContextType,
-	ActionProviderProps,
-} from "./ActionProvider";
-
-// === STORE PROVIDER (ARCHITECTURE.md Pattern) ===
-export {
-	StoreProvider,
-	useStoreRegistry,
-	createTypedStoreProvider,
-	withStoreProvider,
-} from "./StoreProvider";
-
-export type {
-	StoreContextType as StoreProviderContextType,
-	StoreProviderProps,
-} from "./StoreProvider";
-
-// === STORE SYSTEM ===
-// Core store classes and interfaces
-export {
-	Store,
-	ManagedStore,
-	StoreRegistry,
-	EventBus,
-	ScopedEventBus,
-	StoreUtils,
-	createStore,
-	createManagedStore,
-} from "./store";
-
-// HOC patterns for stores - REMOVED
-// Use hooks instead:
-// - withStore → useLocalStore + useStoreValue  
-// - withManagedStore → useRegistryStore + useStoreValue
-// - withStoreData → useStoreValue with multiple stores
-
-// React hooks for store management
-export {
-	// Core store hooks
-	useStore,
-	useStoreValue,
-	useStoreValues,
-	useStoreActions,
-	// Registry hooks
-	useRegistry,
-	useRegistryStore,
-	// Specialized hooks
-	useLocalStore,
-	usePersistedStore,
-} from "./store";
-
-// Context API for store management
-export {
-	createStoreContext,
-	useStoreContext,
-	createContextStorePattern,
-	// Pre-defined Context Store Patterns
-	PageStores,
-	ComponentStores,
-	DemoStores,
-	TestStores,
-} from "./store";
-
-// Advanced sync utilities
-export {
-	useStoreSelector,
-	createTypedStoreHooks,
-	createRegistrySync,
-	RegistryUtils,
-} from "./store";
-
-// Comparison utilities for enhanced Store performance
-export {
-	compareValues,
-	fastCompare,
-	referenceEquals,
-	shallowEquals,
-	deepEquals,
-	createStoreComparator,
-	measureComparison,
-	setGlobalComparisonOptions,
-	getGlobalComparisonOptions,
-} from "./store";
-
-// === TYPE DEFINITIONS ===
-export type {
-	// Store core types
-	Snapshot,
-	Listener,
-	Unsubscribe,
-	Subscribe,
-	IStore,
-	IStoreRegistry,
-	EventHandler,
-	IEventBus,
-	
-	// Store configuration types
-	StoreConfig,
-	
-	// Hook configuration types
-	StoreSyncConfig,
-	HookOptions,
-	
-	// Context types
-	StoreContextType,
-	StoreContextReturn,
-	
-	// Registry types
-	RegistryStoreMap,
-	DynamicStoreOptions,
-	
-	// Comparison system types
-	ComparisonStrategy,
-	ComparisonOptions,
-	CustomComparator,
-	ComparisonMetrics,
-} from "./store";
