@@ -1,7 +1,7 @@
 {
   "metadata": {
     "version": "1.0.0",
-    "generated": "2025-08-03T10:55:51.003Z",
+    "generated": "2025-08-03T10:58:38.213Z",
     "totalTerms": 97,
     "categories": [
       "VALIDATION",
@@ -165,7 +165,7 @@
       "relatedTerms": [],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.004Z"
+      "lastModified": "2025-08-03T10:58:38.214Z"
     },
     "quality-metrics": {
       "id": "quality-metrics",
@@ -183,7 +183,7 @@
       "relatedTerms": [],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.005Z"
+      "lastModified": "2025-08-03T10:58:38.215Z"
     },
     "recommendations": {
       "id": "recommendations",
@@ -198,7 +198,7 @@
       "relatedTerms": [],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.005Z"
+      "lastModified": "2025-08-03T10:58:38.215Z"
     },
     "maintenance-schedule": {
       "id": "maintenance-schedule",
@@ -214,7 +214,7 @@
       "relatedTerms": [],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.005Z"
+      "lastModified": "2025-08-03T10:58:38.215Z"
     },
     "success-indicators": {
       "id": "success-indicators",
@@ -230,7 +230,7 @@
       "relatedTerms": [],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.005Z"
+      "lastModified": "2025-08-03T10:58:38.215Z"
     },
     "next-steps": {
       "id": "next-steps",
@@ -246,7 +246,7 @@
       "relatedTerms": [],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.005Z"
+      "lastModified": "2025-08-03T10:58:38.215Z"
     },
     "actionregister": {
       "id": "actionregister",
@@ -319,7 +319,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "storeprovider": {
       "id": "storeprovider",
@@ -369,7 +369,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.005Z"
+      "lastModified": "2025-08-03T10:58:38.216Z"
     },
     "actionprovider": {
       "id": "actionprovider",
@@ -400,7 +400,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.005Z"
+      "lastModified": "2025-08-03T10:58:38.216Z"
     },
     "store-hooks": {
       "id": "store-hooks",
@@ -524,7 +524,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.005Z"
+      "lastModified": "2025-08-03T10:58:38.216Z"
     },
     "cross-store-coordination": {
       "id": "cross-store-coordination",
@@ -554,7 +554,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.005Z"
+      "lastModified": "2025-08-03T10:58:38.216Z"
     },
     "async-operations": {
       "id": "async-operations",
@@ -584,7 +584,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.005Z"
+      "lastModified": "2025-08-03T10:58:38.216Z"
     },
     "action-dispatcher": {
       "id": "action-dispatcher",
@@ -654,7 +654,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.006Z"
+      "lastModified": "2025-08-03T10:58:38.216Z"
     },
     "priority-based-execution": {
       "id": "priority-based-execution",
@@ -684,7 +684,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.006Z"
+      "lastModified": "2025-08-03T10:58:38.216Z"
     },
     "computed-store": {
       "id": "computed-store",
@@ -714,7 +714,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.006Z"
+      "lastModified": "2025-08-03T10:58:38.216Z"
     },
     "pipeline-context": {
       "id": "pipeline-context",
@@ -767,7 +767,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.006Z"
+      "lastModified": "2025-08-03T10:58:38.216Z"
     },
     "selective-subscription": {
       "id": "selective-subscription",
@@ -834,7 +834,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.006Z"
+      "lastModified": "2025-08-03T10:58:38.216Z"
     },
     "useactiondispatch": {
       "id": "useactiondispatch",
@@ -887,7 +887,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.006Z"
+      "lastModified": "2025-08-03T10:58:38.216Z"
     },
     "useactionregister": {
       "id": "useactionregister",
@@ -937,7 +937,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.006Z"
+      "lastModified": "2025-08-03T10:58:38.216Z"
     },
     "store-integration-pattern": {
       "id": "store-integration-pattern",
@@ -1149,7 +1149,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "store-factory-functions": {
       "id": "store-factory-functions",
@@ -1179,7 +1179,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.006Z"
+      "lastModified": "2025-08-03T10:58:38.216Z"
     },
     "managed-store": {
       "id": "managed-store",
@@ -1209,7 +1209,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.006Z"
+      "lastModified": "2025-08-03T10:58:38.216Z"
     },
     "jotai-integration": {
       "id": "jotai-integration",
@@ -1239,7 +1239,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.006Z"
+      "lastModified": "2025-08-03T10:58:38.216Z"
     },
     "logger-factory": {
       "id": "logger-factory",
@@ -1289,7 +1289,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.006Z"
+      "lastModified": "2025-08-03T10:58:38.216Z"
     },
     "smart-logger-creation": {
       "id": "smart-logger-creation",
@@ -1339,7 +1339,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.006Z"
+      "lastModified": "2025-08-03T10:58:38.216Z"
     },
     "atom-context-config": {
       "id": "atom-context-config",
@@ -1388,7 +1388,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.006Z"
+      "lastModified": "2025-08-03T10:58:38.216Z"
     },
     "atom-provider": {
       "id": "atom-provider",
@@ -1435,7 +1435,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.006Z"
+      "lastModified": "2025-08-03T10:58:38.216Z"
     },
     "useatomstate": {
       "id": "useatomstate",
@@ -1482,7 +1482,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.006Z"
+      "lastModified": "2025-08-03T10:58:38.216Z"
     },
     "useatomreadonly": {
       "id": "useatomreadonly",
@@ -1529,7 +1529,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.006Z"
+      "lastModified": "2025-08-03T10:58:38.217Z"
     },
     "useatomselect": {
       "id": "useatomselect",
@@ -1577,7 +1577,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.006Z"
+      "lastModified": "2025-08-03T10:58:38.217Z"
     },
     "useatomsetter": {
       "id": "useatomsetter",
@@ -1624,7 +1624,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.006Z"
+      "lastModified": "2025-08-03T10:58:38.217Z"
     },
     "actionregister-configuration": {
       "id": "actionregister-configuration",
@@ -1675,7 +1675,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.006Z"
+      "lastModified": "2025-08-03T10:58:38.217Z"
     },
     "cleanup-function": {
       "id": "cleanup-function",
@@ -1724,7 +1724,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.006Z"
+      "lastModified": "2025-08-03T10:58:38.217Z"
     },
     "action-metrics": {
       "id": "action-metrics",
@@ -1775,7 +1775,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.006Z"
+      "lastModified": "2025-08-03T10:58:38.217Z"
     },
     "performance-monitoring": {
       "id": "performance-monitoring",
@@ -1823,7 +1823,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.006Z"
+      "lastModified": "2025-08-03T10:58:38.217Z"
     },
     "action-events": {
       "id": "action-events",
@@ -1874,7 +1874,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.006Z"
+      "lastModified": "2025-08-03T10:58:38.217Z"
     },
     "event-driven-architecture": {
       "id": "event-driven-architecture",
@@ -1924,7 +1924,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.007Z"
+      "lastModified": "2025-08-03T10:58:38.217Z"
     },
     "event-handler": {
       "id": "event-handler",
@@ -1971,7 +1971,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.007Z"
+      "lastModified": "2025-08-03T10:58:38.217Z"
     },
     "event-emitter": {
       "id": "event-emitter",
@@ -2016,7 +2016,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.007Z"
+      "lastModified": "2025-08-03T10:58:38.217Z"
     },
     "observer-pattern": {
       "id": "observer-pattern",
@@ -2084,7 +2084,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.007Z"
+      "lastModified": "2025-08-03T10:58:38.217Z"
     },
     "store-snapshot": {
       "id": "store-snapshot",
@@ -2132,7 +2132,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.007Z"
+      "lastModified": "2025-08-03T10:58:38.217Z"
     },
     "immutable-state": {
       "id": "immutable-state",
@@ -2178,7 +2178,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.007Z"
+      "lastModified": "2025-08-03T10:58:38.217Z"
     },
     "store-interface": {
       "id": "store-interface",
@@ -2230,7 +2230,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.007Z"
+      "lastModified": "2025-08-03T10:58:38.217Z"
     },
     "usesyncexternalstore-compatible": {
       "id": "usesyncexternalstore-compatible",
@@ -2281,7 +2281,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.007Z"
+      "lastModified": "2025-08-03T10:58:38.217Z"
     },
     "registry-pattern": {
       "id": "registry-pattern",
@@ -2332,7 +2332,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.007Z"
+      "lastModified": "2025-08-03T10:58:38.217Z"
     },
     "environment-configuration": {
       "id": "environment-configuration",
@@ -2353,7 +2353,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.220Z"
     },
     "mvvm-pattern": {
       "id": "mvvm-pattern",
@@ -2385,7 +2385,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.007Z"
+      "lastModified": "2025-08-03T10:58:38.218Z"
     },
     "view-layer": {
       "id": "view-layer",
@@ -2417,7 +2417,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.007Z"
+      "lastModified": "2025-08-03T10:58:38.218Z"
     },
     "viewmodel-layer": {
       "id": "viewmodel-layer",
@@ -2450,7 +2450,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.007Z"
+      "lastModified": "2025-08-03T10:58:38.218Z"
     },
     "model-layer": {
       "id": "model-layer",
@@ -2500,7 +2500,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.008Z"
+      "lastModified": "2025-08-03T10:58:38.218Z"
     },
     "lazy-evaluation": {
       "id": "lazy-evaluation",
@@ -2562,7 +2562,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.007Z"
+      "lastModified": "2025-08-03T10:58:38.218Z"
     },
     "decoupled-architecture": {
       "id": "decoupled-architecture",
@@ -2592,7 +2592,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.007Z"
+      "lastModified": "2025-08-03T10:58:38.218Z"
     },
     "unidirectional-data-flow": {
       "id": "unidirectional-data-flow",
@@ -2638,7 +2638,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.008Z"
+      "lastModified": "2025-08-03T10:58:38.218Z"
     },
     "type-safety": {
       "id": "type-safety",
@@ -2666,7 +2666,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.008Z"
+      "lastModified": "2025-08-03T10:58:38.218Z"
     },
     "business-logic": {
       "id": "business-logic",
@@ -2712,7 +2712,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.008Z"
+      "lastModified": "2025-08-03T10:58:38.218Z"
     },
     "deprecated-hoc-patterns": {
       "id": "deprecated-hoc-patterns",
@@ -2743,7 +2743,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.008Z"
+      "lastModified": "2025-08-03T10:58:38.218Z"
     },
     "fresh-state-access": {
       "id": "fresh-state-access",
@@ -2773,7 +2773,7 @@
         "```typescript"
       ],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.008Z"
+      "lastModified": "2025-08-03T10:58:38.218Z"
     },
     "separation-of-concerns": {
       "id": "separation-of-concerns",
@@ -2801,7 +2801,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.008Z"
+      "lastModified": "2025-08-03T10:58:38.218Z"
     },
     "loose-coupling": {
       "id": "loose-coupling",
@@ -2829,7 +2829,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.008Z"
+      "lastModified": "2025-08-03T10:58:38.218Z"
     },
     "predictable-state-updates": {
       "id": "predictable-state-updates",
@@ -2857,7 +2857,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.008Z"
+      "lastModified": "2025-08-03T10:58:38.218Z"
     },
     "compile-time-validation": {
       "id": "compile-time-validation",
@@ -2885,7 +2885,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.008Z"
+      "lastModified": "2025-08-03T10:58:38.218Z"
     },
     "domain-rules": {
       "id": "domain-rules",
@@ -2931,7 +2931,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.008Z"
+      "lastModified": "2025-08-03T10:58:38.218Z"
     },
     "action-pipeline-system": {
       "id": "action-pipeline-system",
@@ -3025,7 +3025,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.008Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "action-handler": {
       "id": "action-handler",
@@ -3157,7 +3157,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "pipeline-controller": {
       "id": "pipeline-controller",
@@ -3207,7 +3207,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "store-registry": {
       "id": "store-registry",
@@ -3337,7 +3337,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "action-payload-map": {
       "id": "action-payload-map",
@@ -3368,7 +3368,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "handler-configuration": {
       "id": "handler-configuration",
@@ -3419,7 +3419,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "simple-event-emitter": {
       "id": "simple-event-emitter",
@@ -3447,7 +3447,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "execution-modes": {
       "id": "execution-modes",
@@ -3496,7 +3496,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "action-guard": {
       "id": "action-guard",
@@ -3549,7 +3549,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "logger-interface": {
       "id": "logger-interface",
@@ -3592,7 +3592,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "log-level": {
       "id": "log-level",
@@ -3631,7 +3631,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "logger-implementation": {
       "id": "logger-implementation",
@@ -3674,7 +3674,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "console-logger": {
       "id": "console-logger",
@@ -3717,7 +3717,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "execution-mode": {
       "id": "execution-mode",
@@ -3759,7 +3759,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "sequential-execution": {
       "id": "sequential-execution",
@@ -3800,7 +3800,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "performance-optimization": {
       "id": "performance-optimization",
@@ -3882,7 +3882,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "user-experience-optimization": {
       "id": "user-experience-optimization",
@@ -3924,7 +3924,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "store-immutability": {
       "id": "store-immutability",
@@ -4019,7 +4019,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "overview": {
       "id": "overview",
@@ -4034,7 +4034,7 @@
       "relatedTerms": [],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "general-principles": {
       "id": "general-principles",
@@ -4050,7 +4050,7 @@
       "relatedTerms": [],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "class-naming": {
       "id": "class-naming",
@@ -4069,7 +4069,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "interface-naming": {
       "id": "interface-naming",
@@ -4090,7 +4090,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "function-naming": {
       "id": "function-naming",
@@ -4109,7 +4109,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "constant-naming": {
       "id": "constant-naming",
@@ -4128,7 +4128,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "file-naming": {
       "id": "file-naming",
@@ -4147,7 +4147,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "variable-naming": {
       "id": "variable-naming",
@@ -4166,7 +4166,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "generic-type-parameters": {
       "id": "generic-type-parameters",
@@ -4186,7 +4186,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "documentation-naming": {
       "id": "documentation-naming",
@@ -4205,7 +4205,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "validation-rules": {
       "id": "validation-rules",
@@ -4224,7 +4224,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "logger-system-naming": {
       "id": "logger-system-naming",
@@ -4247,7 +4247,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "store-system-naming": {
       "id": "store-system-naming",
@@ -4270,7 +4270,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.219Z"
     },
     "react-integration-naming": {
       "id": "react-integration-naming",
@@ -4293,7 +4293,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.220Z"
     },
     "jotai-integration-naming": {
       "id": "jotai-integration-naming",
@@ -4315,7 +4315,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.220Z"
     },
     "core-framework-naming": {
       "id": "core-framework-naming",
@@ -4335,7 +4335,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.220Z"
     },
     "error-and-utility-naming": {
       "id": "error-and-utility-naming",
@@ -4355,7 +4355,7 @@
       ],
       "examples": [],
       "since": "1.0.0",
-      "lastModified": "2025-08-03T10:55:51.009Z"
+      "lastModified": "2025-08-03T10:58:38.220Z"
     }
   },
   "index": {
