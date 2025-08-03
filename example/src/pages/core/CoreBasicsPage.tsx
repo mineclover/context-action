@@ -175,7 +175,10 @@ function CoreBasicsDemo() {
 
 function CoreBasicsPage() {
   return (
-    <LogMonitorProvider pageId="core-basics">
+    <LogMonitorProvider 
+      pageId="core-basics"
+      initialConfig={{ enableToast: true, maxLogs: 100 }}
+    >
       <Container>
         <header className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Core ActionRegister Basics</h1>

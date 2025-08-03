@@ -349,7 +349,11 @@ function LoggerFactoryDemo() {
 
 function LoggerDemoPage() {
   return (
-    <PageWithLogMonitor pageId="logger-demo" title="Logger System Integration">
+    <PageWithLogMonitor 
+      pageId="logger-demo" 
+      title="Logger System Integration"
+      initialConfig={{ enableToast: true, maxLogs: 100 }}
+    >
       <div className="page-container">
         <header className="page-header">
           <h1>Logger System Integration</h1>

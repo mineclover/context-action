@@ -1,10 +1,13 @@
 import React from 'react';
-import { useStoreValue } from '@context-action/react';
+import { useStoreValue, createLogger } from '@context-action/react';
+import { LogLevel } from '@context-action/logger';
 import { toastsStore, toastConfigStore } from './store';
 import { ToastItem } from './ToastItem';
 import { toastActionRegister } from './actions';
 import { cn } from '../../lib/utils';
 import { toastContainerVariants, buttonVariants } from '../ui/variants';
+
+const logger = createLogger(LogLevel.DEBUG);
 
 export function ToastContainer() {
   const toasts = useStoreValue(toastsStore);
@@ -12,6 +15,22 @@ export function ToastContainer() {
 
   // 표시할 토스트들만 필터링 (hidden 상태 제외)
   const visibleToasts = toasts?.filter(toast => toast.phase !== 'hidden') || [];
+
+  // 디버깅 정보 출력
+  logger.debug('🍞 ToastContainer render:', {
+    toasts: toasts?.length || 0,
+    config,
+    toastsData: toasts
+  });
+
+  // 콘솔에도 출력 (문제 진단용)
+  console.log('🍞 ToastContainer Debug:', {
+    toastsLength: toasts?.length || 0,
+    visibleToastsLength: visibleToasts.length,
+    sortedToastsLength: visibleToasts.length,
+    config,
+    toastsData: toasts
+  });
 
   // 최신 토스트가 위로 오도록 정렬
   const sortedToasts = [...visibleToasts].sort((a, b) => 
@@ -22,76 +41,57 @@ export function ToastContainer() {
     toastActionRegister.dispatch('clearAllToasts', {});
   };
 
-  if (sortedToasts.length === 0) {
-    return null;
-  }
+  // 강제 테스트 Toast 생성 (디버깅용)
+  const testToast = {
+    id: 'test-toast-1',
+    type: 'success' as const,
+    title: '🧪 Test Toast',
+    message: 'This is a test toast to verify display',
+    timestamp: new Date(),
+    duration: 5000,
+    stackIndex: 0,
+    isVisible: true,
+    phase: 'visible' as const,
+  };
 
+  // 항상 컨테이너를 표시하여 위치와 스타일 확인
   return (
-    <div className={cn(
-      toastContainerVariants({ 
-        position: (config?.position as any) || 'top-right',
-        width: 'md'
-      })
-    )}>
-      {/* 컨트롤 헤더 (토스트가 많을 때만 표시) */}
-      {sortedToasts.length > 2 && (
-        <div className="flex items-center justify-between bg-white/90 backdrop-blur-sm rounded-lg p-3 mb-3 border border-gray-200">
-          <div className="text-sm font-medium text-gray-700">
-            {sortedToasts.length}개의 알림
+    <div 
+      className="fixed top-4 right-4 z-50 w-96 pointer-events-none"
+      style={{ zIndex: 9999 }}
+    >
+      {/* 디버그용 항상 표시되는 요소 */}
+      <div className="pointer-events-auto mb-2 bg-blue-100 border border-blue-300 p-2 rounded text-xs text-blue-800">
+        🍞 Toast Container Active - Store Toasts: {sortedToasts.length}
+      </div>
+      
+      {/* 강제 테스트 Toast 표시 */}
+      <div className="space-y-2 pointer-events-auto">
+        <div className="p-4 w-full max-w-md bg-white shadow-lg border rounded-lg relative transition-all duration-200">
+          <div className="flex items-start gap-3 mb-2">
+            <div className="flex-shrink-0 text-lg">🧪</div>
+            <div className="flex-1 min-w-0">
+              <div className="font-medium text-gray-900 truncate">Test Toast (Forced Display)</div>
+              <div className="text-xs text-gray-500">
+                {new Date().toLocaleTimeString('ko-KR')}
+              </div>
+            </div>
           </div>
-          <button 
-            className={cn(
-              buttonVariants({ variant: 'ghost', size: 'sm' }),
-              "text-gray-500 hover:text-gray-700"
-            )}
-            onClick={handleClearAll}
-            title="모든 토스트 지우기"
-          >
-            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-            모두 지우기
-          </button>
+          <div className="text-sm text-gray-700 mb-3 break-words">
+            이 Toast는 강제로 표시되는 테스트 Toast입니다. 이것이 보인다면 CSS와 위치는 정상입니다.
+          </div>
         </div>
-      )}
-
-      {/* 토스트 스택 */}
-      <div className="space-y-2">
+        
+        {/* Store에서 가져온 실제 Toast들 */}
         {sortedToasts.map((toast, index) => (
           <ToastItem
             key={toast.id}
             toast={toast}
-            index={index}
-            totalCount={sortedToasts.length}
+            index={index + 1}
+            totalCount={sortedToasts.length + 1}
           />
         ))}
       </div>
-
-      {/* 스택 표시기 (4개 이상일 때) */}
-      {sortedToasts.length > 3 && (
-        <div className="relative mt-4">
-          <div className="flex justify-center">
-            <div className="relative">
-              {Array.from({ length: Math.min(3, sortedToasts.length) }).map((_, i) => (
-                <div 
-                  key={i}
-                  className="absolute w-16 h-2 bg-gray-300 rounded-full left-1/2 -ml-8"
-                  style={{
-                    transform: `translateY(${i * 2}px) scale(${1 - i * 0.1})`,
-                    opacity: 1 - i * 0.3,
-                    zIndex: 3 - i,
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-          {sortedToasts.length > 3 && (
-            <div className="text-center text-xs text-gray-500 mt-6">
-              +{sortedToasts.length - 3} more
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }

@@ -37,6 +37,7 @@ function Layout({
     { path: '/react/hooks', label: 'React Hooks', category: 'react' as const },
     { path: '/logger/demo', label: 'Logger System', category: 'logger' as const },
     { path: '/actionguard/demo', label: 'Action Guard', category: 'actionguard' as const },
+    { path: '/examples/toast-config', label: '🍞 Toast Config Example', category: 'examples' as const },
     { path: '/infinite-loop/test', label: '🧪 Infinite Loop Test', category: 'debug' as const },
     { path: '/comparison/demo', label: '⚡ Store Comparison Demo', category: 'debug' as const },
     { path: '/comparison/throttled', label: '⏱️ Throttled Loop Control', category: 'debug' as const },

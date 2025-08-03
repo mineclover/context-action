@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useStoreValue, PageStores } from '@context-action/react';
 import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
+import { DemoCard, Button, Input, CodeExample, CodeBlock } from '../../components/ui';
 
 // 커스텀 훅 - 메시지 스토어 관리 (PageStores 패턴 사용)
 function useMessageDemo() {
@@ -103,27 +104,29 @@ function MessageDemo() {
   };
   
   return (
-    <div className="demo-card">
-      <h3>String Store Demo</h3>
-      <div className="store-display">
-        <div className="store-value">{message}</div>
+    <DemoCard>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">String Store Demo</h3>
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+        <div className="text-xl font-mono text-center text-gray-800">"{message}"</div>
       </div>
-      <form onSubmit={handleSubmit} className="input-form">
-        <input
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <Input
           type="text"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           placeholder="Enter new message"
-          className="text-input"
+          className="w-full"
         />
-        <button type="submit" className="btn btn-primary">
-          Update
-        </button>
+        <div className="flex gap-2">
+          <Button type="submit" variant="primary">
+            Update Message
+          </Button>
+          <Button type="button" onClick={resetMessage} variant="secondary">
+            Reset
+          </Button>
+        </div>
       </form>
-      <button onClick={resetMessage} className="btn btn-secondary">
-        Reset
-      </button>
-    </div>
+    </DemoCard>
   );
 }
 
@@ -141,35 +144,37 @@ function CounterDemo() {
   };
 
   return (
-    <div className="demo-card">
-      <h3>Number Store Demo</h3>
-      <div className="store-display">
-        <div className="store-value">{count}</div>
+    <DemoCard>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Number Store Demo</h3>
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+        <div className="text-3xl font-bold text-center text-blue-600">{count}</div>
       </div>
-      <div className="button-group">
-        <button onClick={increment} className="btn btn-primary">
-          +1
-        </button>
-        <button onClick={decrement} className="btn btn-primary">
-          -1
-        </button>
+      <div className="space-y-4">
+        <div className="flex gap-2 justify-center">
+          <Button onClick={increment} variant="primary">
+            +1
+          </Button>
+          <Button onClick={decrement} variant="primary">
+            -1
+          </Button>
+        </div>
+        <div className="flex gap-2">
+          <Input
+            type="number"
+            value={addValueInput}
+            onChange={(e) => setAddValueInput(e.target.value)}
+            placeholder="Enter value to add"
+            className="flex-1"
+          />
+          <Button onClick={handleAddValue} variant="secondary">
+            Add Value
+          </Button>
+        </div>
+        <Button onClick={reset} variant="danger" className="w-full">
+          Reset Counter
+        </Button>
       </div>
-      <div className="add-value-form">
-        <input
-          type="number"
-          value={addValueInput}
-          onChange={(e) => setAddValueInput(e.target.value)}
-          placeholder="Enter value to add"
-          className="number-input"
-        />
-        <button onClick={handleAddValue} className="btn btn-secondary">
-          Add
-        </button>
-      </div>
-      <button onClick={reset} className="btn btn-secondary">
-        Reset
-      </button>
-    </div>
+    </DemoCard>
   );
 }
 
@@ -194,63 +199,73 @@ function UserDemo() {
   };
 
   return (
-    <div className="demo-card">
-      <h3>Object Store Demo</h3>
-              <div className="store-display">
-          <div className="user-info">
-            <div><strong>Name:</strong> {user?.name ?? 'Unknown'}</div>
-            <div><strong>Email:</strong> {user?.email ?? 'Unknown'}</div>
+    <DemoCard>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Object Store Demo</h3>
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-gray-600">Name:</span>
+            <span className="text-gray-800">{user?.name ?? 'Unknown'}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-gray-600">Email:</span>
+            <span className="text-gray-800">{user?.email ?? 'Unknown'}</span>
           </div>
         </div>
-      <div className="user-form">
-        <div className="form-group">
-          <input
+      </div>
+      <div className="space-y-4">
+        <div className="flex gap-2">
+          <Input
             type="text"
             value={nameInput}
             onChange={(e) => setNameInput(e.target.value)}
             placeholder="Enter new name"
-            className="text-input"
+            className="flex-1"
           />
-          <button onClick={handleUpdateName} className="btn btn-primary">
+          <Button onClick={handleUpdateName} variant="primary">
             Update Name
-          </button>
+          </Button>
         </div>
-        <div className="form-group">
-          <input
+        <div className="flex gap-2">
+          <Input
             type="email"
             value={emailInput}
             onChange={(e) => setEmailInput(e.target.value)}
             placeholder="Enter new email"
-            className="text-input"
+            className="flex-1"
           />
-          <button onClick={handleUpdateEmail} className="btn btn-primary">
+          <Button onClick={handleUpdateEmail} variant="primary">
             Update Email
-          </button>
+          </Button>
         </div>
+        <Button onClick={resetUser} variant="secondary" className="w-full">
+          Reset User
+        </Button>
       </div>
-      <button onClick={resetUser} className="btn btn-secondary">
-        Reset User
-      </button>
-    </div>
+    </DemoCard>
   );
 }
 
 function StoreBasicsPage() {
   return (
-    <PageWithLogMonitor pageId="store-basics" title="Store System Basics">
+    <PageWithLogMonitor 
+      pageId="store-basics" 
+      title="Store System Basics"
+      initialConfig={{ enableToast: true, maxLogs: 100 }}
+    >
       <PageStores.Provider registryId="store-basics-demo">
-        <div className="page-container">
-          <header className="page-header">
-            <h1>Store System Basics</h1>
-            <p className="page-description">
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          <header className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Store System Basics</h1>
+            <p className="text-lg text-gray-600 leading-relaxed mb-4">
               Learn the fundamentals of the Store system - reactive state management,
               subscriptions, and React integration with hooks.
             </p>
-            <div className="architecture-info">
-              <small className="text-gray-600">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800">
                 🏗️ <strong>Architecture:</strong> Each page instance has its own isolated Store registry.
                 Multiple tabs or instances will have completely independent state.
-              </small>
+              </p>
             </div>
           </header>
 
@@ -260,44 +275,48 @@ function StoreBasicsPage() {
             <UserDemo />
           
           {/* Store Concepts */}
-          <div className="demo-card info-card">
-            <h3>Key Store Concepts</h3>
-            <ul className="concept-list">
-              <li>
-                <strong>createStore():</strong> Factory function to create new store instances
+          <DemoCard variant="info">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Key Store Concepts</h3>
+            <ul className="space-y-3 text-sm text-gray-700">
+              <li className="flex flex-col gap-1">
+                <strong className="text-gray-900 font-semibold">createStore():</strong>
+                <span>Factory function to create new store instances</span>
               </li>
-              <li>
-                <strong>useStoreValue():</strong> React hook for reactive subscriptions
+              <li className="flex flex-col gap-1">
+                <strong className="text-gray-900 font-semibold">useStoreValue():</strong>
+                <span>React hook for reactive subscriptions</span>
               </li>
-              <li>
-                <strong>setValue():</strong> Replace the entire store value
+              <li className="flex flex-col gap-1">
+                <strong className="text-gray-900 font-semibold">setValue():</strong>
+                <span>Replace the entire store value</span>
               </li>
-              <li>
-                <strong>update():</strong> Update using a callback function
+              <li className="flex flex-col gap-1">
+                <strong className="text-gray-900 font-semibold">update():</strong>
+                <span>Update using a callback function</span>
               </li>
-              <li>
-                <strong>getSnapshot():</strong> Get current value without subscription
+              <li className="flex flex-col gap-1">
+                <strong className="text-gray-900 font-semibold">getSnapshot():</strong>
+                <span>Get current value without subscription</span>
               </li>
             </ul>
-          </div>
+          </DemoCard>
           
           {/* Store Features */}
-          <div className="demo-card info-card">
-            <h3>Store Features</h3>
-            <ul className="feature-list">
-              <li>✓ Type-safe operations</li>
-              <li>✓ Automatic React re-renders</li>
-              <li>✓ Immutable updates</li>
-              <li>✓ Memory efficient</li>
-              <li>✓ Cross-component state sharing</li>
+          <DemoCard variant="info">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Store Features</h3>
+            <ul className="space-y-2 text-sm text-gray-700">
+              <li className="flex items-start gap-2">✓ Type-safe operations</li>
+              <li className="flex items-start gap-2">✓ Automatic React re-renders</li>
+              <li className="flex items-start gap-2">✓ Immutable updates</li>
+              <li className="flex items-start gap-2">✓ Memory efficient</li>
+              <li className="flex items-start gap-2">✓ Cross-component state sharing</li>
             </ul>
-          </div>
+          </DemoCard>
           </div>
 
           {/* Code Example - Updated for new Context Store Pattern */}
-          <div className="code-example">
-            <h3>New Context Store Pattern</h3>
-            <pre className="code-block">
+          <CodeExample title="New Context Store Pattern">
+            <CodeBlock>
 {`// 1. Use Context Store Pattern for automatic registry isolation
 import { PageStores, useStoreValue } from '@context-action/react';
 
@@ -329,8 +348,8 @@ function MyComponent() {
     </div>
   );
 }`}
-            </pre>
-          </div>
+            </CodeBlock>
+          </CodeExample>
         </div>
       </PageStores.Provider>
     </PageWithLogMonitor>

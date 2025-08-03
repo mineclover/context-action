@@ -37,6 +37,11 @@ interface ToastActionMap {
 const logger = createLogger(LogLevel.DEBUG);
 export const toastActionRegister = new ActionRegister<ToastActionMap>({ logger });
 
+// 전역 객체에 toastActionRegister 등록 (LogMonitor hooks에서 접근 가능하도록)
+if (typeof window !== 'undefined') {
+  (window as any).toastActionRegister = toastActionRegister;
+}
+
 // 유틸리티 함수: 토스트 ID 생성
 const generateToastId = () => `toast_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
@@ -124,9 +129,17 @@ const getExecutionStepMessage = (
 
 // 액션 핸들러들
 toastActionRegister.register('addToast', ({ type, title, message, actionType, payload, duration }) => {
+  logger.debug('🍞 addToast handler called:', { type, title, message });
+  
   const config = toastConfigStore.getValue();
   const currentToasts = toastsStore.getValue();
   const currentStackIndex = toastStackIndexStore.getValue();
+  
+  logger.debug('🍞 Current toast state:', { 
+    currentToastsCount: currentToasts.length, 
+    maxToasts: config.maxToasts,
+    stackIndex: currentStackIndex 
+  });
   
   // 최대 토스트 수 체크
   if (currentToasts.length >= config.maxToasts) {
@@ -155,10 +168,13 @@ toastActionRegister.register('addToast', ({ type, title, message, actionType, pa
   toastStackIndexStore.setValue(currentStackIndex + 1);
   
   // 토스트 추가
+  logger.debug('🍞 Adding new toast to store:', newToast);
   toastsStore.setValue([...currentToasts, newToast]);
+  logger.debug('🍞 Store updated, new length:', toastsStore.getValue().length);
   
   // 애니메이션 단계 관리
   setTimeout(() => {
+    logger.debug('🍞 Updating toast to visible phase:', newToast.id);
     toastActionRegister.dispatch('updateToastPhase', { 
       toastId: newToast.id, 
       phase: 'visible' 
@@ -167,15 +183,19 @@ toastActionRegister.register('addToast', ({ type, title, message, actionType, pa
   
   // 자동 제거 타이머
   setTimeout(() => {
+    logger.debug('🍞 Starting toast exit phase:', newToast.id);
     toastActionRegister.dispatch('updateToastPhase', { 
       toastId: newToast.id, 
       phase: 'exiting' 
     });
     
     setTimeout(() => {
+      logger.debug('🍞 Removing toast:', newToast.id);
       toastActionRegister.dispatch('removeToast', { toastId: newToast.id });
     }, 300); // 애니메이션 완료 후 제거
   }, newToast.duration);
+  
+  logger.debug('🍞 Toast auto-remove timer set for:', newToast.duration);
   
   logger.info('addToast', { toastId: newToast.id, type, title });
 });
