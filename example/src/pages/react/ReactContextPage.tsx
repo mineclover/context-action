@@ -385,10 +385,26 @@ function ContextMonitor() {
   const contextInfo = useContext(ContextInfoContext);
   
   const handleGlobalMessage = useCallback(() => {
-    const message = prompt('Enter global message:');
-    if (message) {
-      globalActionRegister.dispatch('globalMessage', { message });
-    }
+    // 랜덤 글로벌 메시지 생성 함수
+    const generateRandomGlobalMessage = () => {
+      const globalMessages = [
+        'System maintenance scheduled for tonight',
+        'New feature release announcement',
+        'Security update completed successfully',
+        'Database backup process initiated',
+        'Server performance optimization applied',
+        'User authentication system upgraded',
+        'Cache refresh operation completed',
+        'Content delivery network updated',
+        'API rate limiting rules modified',
+        'Monitoring alerts configuration changed'
+      ];
+      
+      return globalMessages[Math.floor(Math.random() * globalMessages.length)];
+    };
+    
+    const randomMessage = generateRandomGlobalMessage();
+    globalActionRegister.dispatch('globalMessage', { message: randomMessage });
   }, []);
   
   const handleBroadcast = useCallback(() => {
@@ -446,7 +462,7 @@ function ContextMonitor() {
         </div>
         <div className="flex flex-wrap gap-1.5">
           <Button size="sm" variant="primary" onClick={handleGlobalMessage}>
-            Global Message
+            🎲 Random Global Message
           </Button>
           <Button size="sm" variant="secondary" onClick={handleBroadcast}>
             Broadcast Event

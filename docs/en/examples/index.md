@@ -1564,12 +1564,34 @@ function App() {
 }
 ```
 
+## Advanced Patterns
+
+For more sophisticated use cases, see our advanced pattern examples:
+
+### [Core Advanced Patterns](./core-advanced-patterns.md)
+
+Demonstrates advanced ActionRegister capabilities including:
+
+- **Priority-based Pipeline Control**: Understanding execution order with higher numbers first
+- **Action Interceptor Patterns**: Security and validation interceptors that can block pipeline execution
+- **Pipeline Flow Control**: Conditional execution, chaining, and abort mechanisms
+- **Error Handling**: Graceful failure and recovery patterns
+- **Real-world Use Cases**: API request pipelines, user action auditing, data processing
+
+Key concepts covered:
+- How ActionRegister sorts handlers (`priority: 10` executes before `priority: 1`)
+- Implementing security interceptors that can completely block actions
+- Using `controller.abort()` to stop pipeline execution
+- State management with `useRef` to avoid closure issues
+- Testing strategies for complex pipeline patterns
+
 These examples demonstrate various patterns and techniques available in Context Action:
 
 - **Basic state management** with simple actions
 - **Complex async operations** with loading states and error handling
 - **Form validation** with field dependencies and real-time feedback
 - **Priority-based handlers** for execution order control
+- **Advanced pipeline patterns** with interceptors and flow control
 - **Integration patterns** with external APIs and services
 - **Error boundaries** and recovery mechanisms
 - **Performance optimization** techniques

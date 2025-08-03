@@ -97,10 +97,22 @@ function CoreBasicsDemo() {
   }, [actionRegister]);
 
   const handleCustomLog = useCallback(() => {
-    const message = prompt('Enter log message:');
-    if (message) {
-      actionRegister.dispatch('log', message);
-    }
+    // 랜덤 문자열 생성 함수
+    const generateRandomString = () => {
+      const adjectives = ['Amazing', 'Brilliant', 'Creative', 'Dynamic', 'Elegant', 'Fantastic', 'Gorgeous', 'Incredible', 'Joyful', 'Magnificent'];
+      const nouns = ['Action', 'Event', 'Process', 'Operation', 'Task', 'Function', 'Method', 'Handler', 'Request', 'Response'];
+      const colors = ['Red', 'Blue', 'Green', 'Purple', 'Orange', 'Yellow', 'Pink', 'Cyan', 'Magenta', 'Lime'];
+      
+      const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+      const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+      const randomColor = colors[Math.floor(Math.random() * colors.length)];
+      const randomNumber = Math.floor(Math.random() * 1000) + 1;
+      
+      return `${randomAdjective} ${randomColor} ${randomNoun} #${randomNumber}`;
+    };
+    
+    const randomMessage = generateRandomString();
+    actionRegister.dispatch('log', randomMessage);
   }, [actionRegister]);
 
   return (
@@ -130,9 +142,9 @@ function CoreBasicsDemo() {
       {/* 사용자 정의 로그 */}
       <DemoCard>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Custom Logging</h3>
-        <p className="text-gray-600 mb-4">Test custom action logging with user input</p>
+        <p className="text-gray-600 mb-4">Generate random log messages to test the logging system</p>
         <Button onClick={handleCustomLog} variant="info">
-          Custom Log
+          🎲 Generate Random Log
         </Button>
       </DemoCard>
 

@@ -78,7 +78,7 @@ async function handleSubmit() {
 
 ## 우선순위 시스템
 
-여러 핸들러가 같은 액션을 처리할 때 우선순위를 설정할 수 있습니다.
+여러 핸들러가 같은 액션을 처리할 때 우선순위를 설정할 수 있습니다. ActionRegister는 높은 숫자의 우선순위를 먼저 실행합니다.
 
 ```typescript
 function LoggingComponent() {
@@ -89,17 +89,190 @@ function LoggingComponent() {
     console.log('증가 액션 시작');
   }, { priority: 100 });
 
-  // 기본 우선순위
+  // 기본 우선순위 (중간에 실행됨)
   useActionHandler('increment', () => {
     console.log('카운터 증가');
-  });
+  }, { priority: 0 });
 
   // 낮은 우선순위 (나중에 실행됨)
   useActionHandler('increment', () => {
     console.log('증가 액션 완료');
-  }, { priority: -100 });
+  }, { priority: 1 });
 
   return <button onClick={() => dispatch('increment')}>클릭</button>;
+}
+```
+
+## 액션 인터셉터 패턴
+
+ActionRegister의 우선순위 시스템을 활용하여 강력한 인터셉터 패턴을 구현할 수 있습니다.
+
+### 보안 인터셉터
+
+```typescript
+interface SecurityActions {
+  sensitiveOperation: { data: string; userId: string };
+}
+
+function SecurityInterceptorDemo() {
+  const [enableInterceptor, setEnableInterceptor] = useState(true);
+  const [interceptedActions, setInterceptedActions] = useState<string[]>([]);
+  const interceptorEnabledRef = useRef(enableInterceptor);
+  
+  // 상태 변경 시 ref 업데이트
+  useEffect(() => {
+    interceptorEnabledRef.current = enableInterceptor;
+  }, [enableInterceptor]);
+
+  const actionRegister = useActionRegister<SecurityActions>();
+
+  useEffect(() => {
+    // 높은 우선순위 인터셉터 (먼저 실행됨)
+    const unsubscribeInterceptor = actionRegister.register(
+      'sensitiveOperation',
+      ({ data, userId }, controller) => {
+        const isInterceptorEnabled = interceptorEnabledRef.current;
+        
+        if (isInterceptorEnabled) {
+          // 보안 검사 - 권한이 없는 접근 차단
+          if (!hasPermission(userId, 'sensitive_operation')) {
+            setInterceptedActions(prev => [...prev, 
+              `🛡️ 차단됨: ${data} - 권한 없는 사용자 ${userId}`
+            ]);
+            
+            // 전체 파이프라인 중단 - 비즈니스 로직 실행 안됨
+            controller.abort('보안 인터셉터에 의해 권한 없는 접근이 차단됨');
+            return;
+          }
+        }
+        
+        // 비즈니스 로직으로 진행 허용
+        console.log('✅ 보안 검사 통과, 진행...');
+        controller.next();
+      },
+      { priority: 10 } // 높은 우선순위 - 먼저 실행
+    );
+
+    // 낮은 우선순위 비즈니스 로직 (허가된 경우에만 실행)
+    const unsubscribeBusinessLogic = actionRegister.register(
+      'sensitiveOperation',
+      ({ data }, controller) => {
+        // 인터셉터를 통과한 경우에만 실행됨
+        console.log('🎯 비즈니스 로직 실행:', data);
+        
+        // 실제 민감한 작업 수행
+        performSensitiveOperation(data);
+        
+        controller.next();
+      },
+      { priority: 1 } // 낮은 우선순위 - 인터셉터 이후 실행
+    );
+
+    return () => {
+      unsubscribeInterceptor();
+      unsubscribeBusinessLogic();
+    };
+  }, []);
+
+  return (
+    <div>
+      <button onClick={() => setEnableInterceptor(!enableInterceptor)}>
+        {enableInterceptor ? '비활성화' : '활성화'} 보안 인터셉터
+      </button>
+      
+      <button onClick={() => 
+        actionRegister.dispatch('sensitiveOperation', { 
+          data: '기밀-데이터', 
+          userId: 'user123' 
+        })
+      }>
+        민감한 작업 실행
+      </button>
+
+      {interceptedActions.length > 0 && (
+        <div>
+          <h3>차단된 액션:</h3>
+          {interceptedActions.map((action, index) => (
+            <div key={index}>{action}</div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### 파이프라인 플로우 제어
+
+```typescript
+interface FlowControlActions {
+  processData: { data: any; skipValidation?: boolean };
+  chainedAction: { step: number; data: string };
+}
+
+function PipelineFlowDemo() {
+  const actionRegister = useActionRegister<FlowControlActions>();
+
+  useEffect(() => {
+    // 검증 핸들러 (높은 우선순위)
+    actionRegister.register('processData', ({ data, skipValidation }, controller) => {
+      if (!skipValidation && !isValid(data)) {
+        console.log('❌ 검증 실패 - 파이프라인 중단');
+        controller.abort('데이터 검증 실패');
+        return;
+      }
+      
+      console.log('✅ 검증 통과');
+      controller.next();
+    }, { priority: 10 });
+
+    // 처리 핸들러 (중간 우선순위)
+    actionRegister.register('processData', ({ data }, controller) => {
+      console.log('🔄 데이터 처리 중...');
+      
+      // 다음 핸들러를 위한 페이로드 수정
+      controller.modifyPayload((payload) => ({
+        ...payload,
+        data: processData(payload.data),
+        processedAt: new Date().toISOString()
+      }));
+      
+      controller.next();
+    }, { priority: 5 });
+
+    // 로깅 핸들러 (낮은 우선순위)
+    actionRegister.register('processData', ({ data }, controller) => {
+      console.log('📝 처리된 데이터 로깅:', data);
+      
+      // 분석에 로그 전송
+      analytics.track('data_processed', { 
+        timestamp: new Date().toISOString(),
+        dataSize: JSON.stringify(data).length 
+      });
+      
+      controller.next();
+    }, { priority: 1 });
+
+    // 체인 액션 예제
+    actionRegister.register('chainedAction', ({ step, data }, controller) => {
+      console.log(`단계 ${step}: ${data}`);
+      
+      // 다음 단계 자동 트리거
+      if (step < 3) {
+        setTimeout(() => {
+          actionRegister.dispatch('chainedAction', { 
+            step: step + 1, 
+            data: `체인 단계 ${step + 1}` 
+          });
+        }, 1000);
+      } else {
+        console.log('🎉 체인 완료');
+      }
+      
+      controller.next();
+    });
+
+  }, [actionRegister]);
 }
 ```
 
