@@ -18,8 +18,7 @@
       ],
       "conventionalCommits": true,
       "message": "chore(release): publish %v",
-      "push": true,
-      "createRelease": "github"
+      "push": true
     },
     "publish": {
       "npmClient": "pnpm",
