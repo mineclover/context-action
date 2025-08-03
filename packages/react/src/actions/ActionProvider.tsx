@@ -1,6 +1,8 @@
 /**
- * @fileoverview ActionProvider - React Context Provider for Action dispatch
- * Provides centralized action dispatch functionality following ARCHITECTURE.md patterns
+ * @fileoverview ActionProvider - Simple React Context Provider for Action dispatch
+ * Provides basic action dispatch functionality for simple applications and quick prototypes
+ * 
+ * **For enhanced type safety and complex applications, use createActionContext instead.**
  * 
  * @implements viewmodel-layer
  * @implements mvvm-pattern  
@@ -34,19 +36,31 @@ export interface ActionProviderProps {
 }
 
 /**
- * React context provider for action system
+ * Simple React context provider for action system
+ * 
+ * **Recommended for**: Simple applications, quick prototypes, flexible typing needs
+ * **For complex apps**: Use createActionContext for enhanced type safety and automatic inference
+ * 
  * @implements actionprovider
  * @implements viewmodel-layer
  * @implements mvvm-pattern
  * @memberof api-terms
- * @example
+ * 
+ * ## Key Characteristics:
+ * - **Manual Type Annotations**: Requires `useActionDispatch<T>()` type parameters
+ * - **Flexible Typing**: Easy to switch between different action types
+ * - **Simple Setup**: Straightforward Provider/hook pattern
+ * - **Quick Development**: Minimal boilerplate for basic usage
+ * 
+ * ## Usage Patterns:
  * ```typescript
- * // Basic usage with StoreProvider
+ * // 1. Define action types
  * interface AppActions extends ActionPayloadMap {
  *   updateUser: { id: string; name: string };
  *   calculateTotal: void;
  * }
  * 
+ * // 2. Setup providers
  * function App() {
  *   return (
  *     <StoreProvider>
@@ -57,21 +71,9 @@ export interface ActionProviderProps {
  *   );
  * }
  * 
- * // Advanced usage with Context Store Pattern
- * const AppStores = createContextStorePattern('App');
- * 
- * function App() {
- *   return (
- *     <AppStores.Provider>
- *       <ActionProvider config={{ logLevel: LogLevel.DEBUG }}>
- *         <UserProfile />
- *       </ActionProvider>
- *     </AppStores.Provider>
- *   );
- * }
- * 
+ * // 3. Use in components (manual type annotation required)
  * function UserProfile() {
- *   const dispatch = useActionDispatch<AppActions>();
+ *   const dispatch = useActionDispatch<AppActions>(); // ← Type annotation needed
  *   const userStore = AppStores.useStore('user', { name: '', email: '' });
  *   const user = useStoreValue(userStore);
  *   
@@ -85,6 +87,10 @@ export interface ActionProviderProps {
  *   );
  * }
  * ```
+ * 
+ * ## When to use ActionProvider vs createActionContext:
+ * - **ActionProvider**: Simple apps, flexible typing, quick prototypes
+ * - **createActionContext**: Complex apps, strong typing needs, team development
  */
 export function ActionProvider({ children, config }: ActionProviderProps) {
   // Create ActionRegister instance once per provider
@@ -124,7 +130,11 @@ export function useActionContext<T extends ActionPayloadMap = ActionPayloadMap>(
 }
 
 /**
- * Hook to get action dispatch function
+ * Hook to get action dispatch function with manual type annotation
+ * 
+ * **Note**: Requires manual type parameter `<T>` for each usage.
+ * For automatic type inference, use createActionContext instead.
+ * 
  * @implements action-dispatcher
  * @implements useactiondispatch
  * @implements view-layer
@@ -132,12 +142,10 @@ export function useActionContext<T extends ActionPayloadMap = ActionPayloadMap>(
  * @memberof api-terms
  * @since 1.0.0
  * 
- * Following ARCHITECTURE.md pattern for component usage
- * 
  * @example
  * ```typescript
  * function UserProfile() {
- *   const dispatch = useActionDispatch<AppActions>();
+ *   const dispatch = useActionDispatch<AppActions>(); // ← Manual type annotation required
  *   const user = useStoreValue(userStore);
  *   
  *   const updateName = (name: string) => {
@@ -273,13 +281,11 @@ export function withActionProvider<T extends ActionPayloadMap = ActionPayloadMap
  * Combined HOC for both Store and Action providers
  * Wraps component with both StoreProvider and ActionProvider
  * 
- * @deprecated Consider using Context Store Pattern instead:
- * const AppStores = createContextStorePattern('App');
- * <AppStores.Provider><ActionProvider>...</ActionProvider></AppStores.Provider>
+ * **Note**: For enhanced type safety, consider using createActionContext with Context Store Pattern:
  * 
  * @example
  * ```typescript
- * // Legacy HOC approach (still supported)
+ * // Simple HOC approach (ActionProvider based)
  * interface AppActions extends ActionPayloadMap {
  *   updateUser: { id: string; name: string };
  * }
@@ -296,16 +302,17 @@ export function withActionProvider<T extends ActionPayloadMap = ActionPayloadMap
  *   </div>
  * ));
  * 
- * // Recommended Context Store Pattern approach
+ * // Enhanced type safety approach (createActionContext)
+ * const { Provider: ActionProviderTyped } = createActionContext<AppActions>();
  * const AppStores = createContextStorePattern('App');
  * 
  * function App() {
  *   return (
  *     <AppStores.Provider>
- *       <ActionProvider config={{ logLevel: LogLevel.DEBUG }}>
+ *       <ActionProviderTyped>
  *         <UserProfile />
  *         <ShoppingCart />
- *       </ActionProvider>
+ *       </ActionProviderTyped>
  *     </AppStores.Provider>
  *   );
  * }
