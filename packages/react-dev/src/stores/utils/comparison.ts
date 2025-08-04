@@ -10,7 +10,7 @@ const logger = createLogger();
 /**
  * 비교 전략 타입
  */
-export type ComparisonStrategy = 'reference' | 'shallow' | 'deep' | 'custom';
+export type ComparisonStrategy = 'reference' | 'shallow' | 'deep' | 'custom' | 'json-fast';
 
 /**
  * 커스텀 비교 함수 타입

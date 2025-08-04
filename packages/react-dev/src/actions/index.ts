@@ -39,4 +39,4 @@ export type {
   HandlerConfig,
   PipelineController,
   ActionRegisterConfig
-} from '@context-action/core';
+} from '@context-action/core-dev';

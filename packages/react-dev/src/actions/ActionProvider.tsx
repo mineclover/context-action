@@ -10,7 +10,7 @@
  */
 
 import React, { createContext, useContext, useRef, ReactNode } from 'react';
-import { ActionRegister, ActionPayloadMap, ActionRegisterConfig } from '@context-action/core';
+import { ActionRegister, ActionPayloadMap, ActionRegisterConfig } from '@context-action/core-dev';
 import { LogArtHelpers } from '@context-action/logger';
 
 /**

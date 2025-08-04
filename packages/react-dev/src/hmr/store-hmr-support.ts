@@ -4,7 +4,7 @@
  * Store 인스턴스를 감시하고 상태 변경시 자동으로 백업, HMR시 복원
  */
 
-import type { IStore } from '../core/types';
+import type { IStore } from '../stores/core/types';
 import { hmrStateManager } from './hmr-state-manager';
 import { LogArtHelpers } from '@context-action/logger';
 

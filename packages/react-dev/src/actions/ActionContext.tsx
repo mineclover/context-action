@@ -1,5 +1,5 @@
 import React, { createContext, ReactNode, useContext, useRef, useEffect, useId, useMemo } from 'react';
-import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig, ActionRegisterConfig } from '@context-action/core';
+import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig, ActionRegisterConfig } from '@context-action/core-dev';
 import { Logger, LogLevel, createLogger, LogArtHelpers } from '@context-action/logger';
 
 /**

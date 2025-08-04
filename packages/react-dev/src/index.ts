@@ -122,11 +122,11 @@ export type {
 	ActionRegisterConfig,
 	ExecutionMode,
 	UnregisterFunction
-} from "@context-action/core";
+} from "@context-action/core-dev";
 
 export { 
 	ActionRegister,
-} from "@context-action/core";
+} from "@context-action/core-dev";
 
 // === LOGGER SYSTEM ===
 export type { Logger, LogLevel } from "@context-action/logger";

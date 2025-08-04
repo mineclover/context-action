@@ -4,7 +4,9 @@
   "npmClient": "pnpm",
   "packages": [
     "packages/core",
+    "packages/core-dev",
     "packages/react",
+    "packages/react-dev",
     "packages/jotai",
     "packages/glossary",
     "packages/glossary-query",

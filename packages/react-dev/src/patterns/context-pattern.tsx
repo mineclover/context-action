@@ -9,7 +9,7 @@
  */
 
 import React, { createContext, useContext, useMemo, ReactNode, useId, useRef } from 'react';
-import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig, ActionRegisterConfig } from '@context-action/core';
+import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig, ActionRegisterConfig } from '@context-action/core-dev';
 import { Logger, LogLevel, createLogger } from '@context-action/logger';
 import { StoreRegistry } from '../stores/core/StoreRegistry';
 import { generateStoreName, getOrCreateRegistryStore } from '../stores/patterns/isolation-utils';

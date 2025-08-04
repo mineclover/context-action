@@ -5,7 +5,7 @@
  */
 
 import type { IStore } from '../stores/core/types';
-import type { ActionRegister } from '@context-action/core';
+import type { ActionRegister, ActionPayloadMap } from '@context-action/core-dev';
 import { StoreHMRWrapper } from './store-hmr-support';
 import { hmrStateManager } from './hmr-state-manager';
 
@@ -23,7 +23,7 @@ function isHMREnvironment(): boolean {
 /**
  * 자동 HMR Store 래핑 맵 (중복 래핑 방지)
  */
-const autoWrappedStores = new WeakMap<IStore, StoreHMRWrapper>();
+const autoWrappedStores = new Map<IStore, StoreHMRWrapper>();
 
 /**
  * Store에 자동으로 HMR 지원 추가
@@ -56,7 +56,7 @@ export function autoEnableStoreHMR<T>(store: IStore<T>): IStore<T> {
  * ActionRegister에 자동으로 HMR 지원 추가
  * 현재는 ActionRegister HMR이 복잡하므로 Store만 자동화
  */
-export function autoEnableActionRegisterHMR<T>(actionRegister: ActionRegister<T>): ActionRegister<T> {
+export function autoEnableActionRegisterHMR<T extends ActionPayloadMap>(actionRegister: ActionRegister<T>): ActionRegister<T> {
   // 프로덕션 환경에서는 원본 반환
   if (!isHMREnvironment()) {
     return actionRegister;
