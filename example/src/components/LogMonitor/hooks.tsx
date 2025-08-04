@@ -4,7 +4,8 @@
  */
 
 import { useMemo, useCallback } from 'react';
-import { createLogger, ActionRegister } from '@context-action/react';
+import { ActionRegister } from '@context-action/react';
+import { createLogger } from '@context-action/logger';
 import type { Logger } from '@context-action/logger';
 import { LogLevel } from '@context-action/logger';
 
@@ -66,7 +67,7 @@ export function useActionLogger(options: UseActionLoggerOptions = {}): StableLog
     // 액션 로그 핸들러
     register.register('_internal.log.action', ({ actionType, payload, options = {} }, controller) => {
       // 자동 계산된 데이터 추출
-      const autoCalc = options._autoCalculated || {};
+      const autoCalc = options._autoCalculated || {} as any;
       const timestamp = autoCalc.timestamp || new Date().toLocaleTimeString('ko-KR');
       const executionTime = autoCalc.executionTime || 0;
       
@@ -187,8 +188,7 @@ export function useActionLogger(options: UseActionLoggerOptions = {}): StableLog
       const timestamp = new Date().toLocaleTimeString('ko-KR', {
         hour: '2-digit',
         minute: '2-digit', 
-        second: '2-digit',
-        fractionalSecondDigits: 3
+        second: '2-digit'
       });
       
       // 액션 실행 완료 후 정확한 실행시간 계산

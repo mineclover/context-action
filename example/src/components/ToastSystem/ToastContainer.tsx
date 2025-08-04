@@ -1,5 +1,6 @@
 import React from 'react';
-import { useStoreValue, createLogger } from '@context-action/react';
+import { useStoreValue } from '@context-action/react';
+import { createLogger } from '@context-action/logger';
 import { LogLevel } from '@context-action/logger';
 import { toastsStore, toastConfigStore } from './store';
 import { ToastItem } from './ToastItem';

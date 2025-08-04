@@ -17,8 +17,9 @@ import ToastConfigExamplePage from './pages/examples/ToastConfigExamplePage';
 import ComparisonDemoPage from './pages/comparison/ComparisonDemoPage';
 import ThrottledComparisonPage from './pages/comparison/ThrottledComparisonPage';
 import UnifiedPatternDemoPage from './pages/unified-pattern/UnifiedPatternDemoPage';
-import { HMRDemoPage } from './pages/hmr-demo';
-import { AutoHMRExample } from './pages/auto-hmr/AutoHMRExample';
+// HMR-related imports commented out due to production build (HMR functionality removed)
+// import { HMRDemoPage } from './pages/hmr-demo';
+// import { AutoHMRExample } from './pages/auto-hmr/AutoHMRExample';
 
 // 라우트 변경 시 콘솔 클리어 (개발 환경에서만)
 function ConsoleClearer() {
@@ -57,8 +58,9 @@ function App() {
           <Route path="/comparison/demo" element={<ComparisonDemoPage />} />
           <Route path="/comparison/throttled" element={<ThrottledComparisonPage />} />
           <Route path="/unified-pattern/demo" element={<UnifiedPatternDemoPage />} />
-          <Route path="/hmr/demo" element={<HMRDemoPage />} />
-          <Route path="/hmr/auto" element={<AutoHMRExample />} />
+          {/* HMR routes commented out due to production build */}
+          {/* <Route path="/hmr/demo" element={<HMRDemoPage />} /> */}
+          {/* <Route path="/hmr/auto" element={<AutoHMRExample />} /> */}
         </Routes>
       </Layout>
       

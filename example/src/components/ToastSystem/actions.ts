@@ -1,4 +1,5 @@
-import { ActionRegister, createLogger } from '@context-action/react';
+import { ActionRegister } from '@context-action/react';
+import { createLogger } from '@context-action/logger';
 import { LogLevel } from '@context-action/logger';
 import { toastsStore, toastConfigStore, toastStackIndexStore } from './store';
 import type { Toast, ActionExecutionToast, ToastConfig } from './types';
@@ -35,7 +36,7 @@ interface ToastActionMap {
 
 // 로거 및 액션 레지스터 설정
 const logger = createLogger(LogLevel.DEBUG);
-export const toastActionRegister = new ActionRegister<ToastActionMap>({ logger });
+export const toastActionRegister = new ActionRegister<ToastActionMap>({ name: 'ToastActions' });
 
 // 전역 객체에 toastActionRegister 등록 (LogMonitor hooks에서 접근 가능하도록)
 if (typeof window !== 'undefined') {
