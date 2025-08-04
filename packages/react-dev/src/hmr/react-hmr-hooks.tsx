@@ -5,8 +5,8 @@
  */
 
 import { useEffect, useRef, useMemo, useCallback } from 'react';
-import type { ActionRegister, ActionPayloadMap } from '@context-action/core';
-import type { IStore } from '../core/types';
+import type { ActionRegister, ActionPayloadMap } from '@context-action/core-dev';
+import type { IStore } from '../stores/core/types';
 import { StoreHMRWrapper, enableStoreHMR, type StoreHMRConfig } from './store-hmr-support';
 // HMR 타입과 클래스를 직접 재정의 (core 패키지와의 의존성 분리)
 export interface ActionRegisterHMRConfig {

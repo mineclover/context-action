@@ -7,8 +7,10 @@
   "scripts": {
     "build": "lerna run build",
     "build:core": "lerna run build --scope=@context-action/core",
+    "build:core-dev": "lerna run build --scope=@context-action/core-dev",
     "build:logger": "lerna run build --scope=@context-action/logger",
     "build:react": "lerna run build --scope=@context-action/react",
+    "build:react-dev": "lerna run build --scope=@context-action/react-dev",
     "build:jotai": "lerna run build --scope=@context-action/jotai",
     "build:glossary": "lerna run build --scope=@context-action/glossary",
     "build:glossary-search": "lerna run build --scope=@context-action/glossary-search",
@@ -17,8 +19,10 @@
     "example:build": "cd example && pnpm build",
     "test": "lerna run test",
     "test:core": "lerna run test --scope=@context-action/core",
+    "test:core-dev": "lerna run test --scope=@context-action/core-dev",
     "test:logger": "lerna run test --scope=@context-action/logger",
     "test:react": "lerna run test --scope=@context-action/react",
+    "test:react-dev": "lerna run test --scope=@context-action/react-dev",
     "test:jotai": "lerna run test --scope=@context-action/jotai",
     "test:glossary": "lerna run test --scope=@context-action/glossary",
     "test:glossary-search": "lerna run test --scope=@context-action/glossary-search",
@@ -59,8 +63,10 @@
     "glossary:check": "pnpm glossary:validate"
   },
   "devDependencies": {
+    "@rollup/plugin-terser": "0.4.4",
     "@tailwindcss/typography": "0.5.16",
     "@types/node": "^20.0.0",
+    "ansis": "4.1.0",
     "autoprefixer": "10.4.21",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",

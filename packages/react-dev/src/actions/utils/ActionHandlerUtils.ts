@@ -9,7 +9,7 @@
  * 4. 공통 조정 패턴 - master-detail, cache invalidation
  */
 
-import { ActionHandler, HandlerConfig } from '@context-action/core';
+import { ActionHandler, HandlerConfig } from '@context-action/core-dev';
 import { StoreRegistry } from '../../stores/core/StoreRegistry';
 import type { IStore } from '../../stores/core/types';
 
