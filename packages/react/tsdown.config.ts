@@ -7,8 +7,8 @@ export default defineConfig({
   dts: true,
   clean: true,
   external: ['react', 'react-dom'],
-  // sourcemap: true,
   target: 'es2020',
+  minify: false,
   rollupOptions: {
     plugins: [
       visualizer({
@@ -16,7 +16,7 @@ export default defineConfig({
         open: false,
         gzipSize: true,
         brotliSize: true,
-        template: 'treemap' // sunburst, treemap, network
+        template: 'treemap'
       })
     ]
   }

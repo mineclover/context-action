@@ -1,12 +1,10 @@
 import type { IStore, Listener, Snapshot, Unsubscribe } from './types';
-import { createLogger, LogArtHelpers } from '@context-action/logger';
 import { safeGet, safeSet, getGlobalImmutabilityOptions, performantSafeGet } from '../utils/immutable';
 import { 
   compareValues, 
   fastCompare, 
   ComparisonOptions
 } from '../utils/comparison';
-import { autoEnableStoreHMR } from '../../hmr/auto-hmr';
 
 /**
  * Store 클래스 - 중앙화된 상태 관리의 핵심
@@ -29,7 +27,6 @@ export class Store<T = any> implements IStore<T> {
   // 불변 스냅샷 - React의 useSyncExternalStore와 호환
   private _snapshot: Snapshot<T>;
   public readonly name: string;
-  protected logger = createLogger();
   // Store별 커스텀 비교 함수
   private customComparator?: (oldValue: T, newValue: T) => boolean;
   // Store별 비교 옵션
@@ -40,7 +37,6 @@ export class Store<T = any> implements IStore<T> {
     this._value = initialValue;
     // 초기 스냅샷 생성 - 즉시 구독 가능한 상태로 만듦
     this._snapshot = this._createSnapshot();
-    this.logger.debug(LogArtHelpers.store.debug(`Store 생성: ${name}`, { initialValue }));
   }
 
   /**
@@ -55,16 +51,10 @@ export class Store<T = any> implements IStore<T> {
   subscribe = (listener: Listener): Unsubscribe => {
     // Set에 리스너 추가 - 자동 중복 제거
     this.listeners.add(listener);
-    this.logger.trace(`Subscriber added to store: ${this.name}`, { 
-      listenerCount: this.listeners.size 
-    });
     
     // 구독 해제 함수 반환 - 클로저로 listener 참조 유지
     return () => {
       this.listeners.delete(listener);
-      this.logger.trace(`Subscriber removed from store: ${this.name}`, { 
-        listenerCount: this.listeners.size 
-      });
     };
   };
 
@@ -91,10 +81,6 @@ export class Store<T = any> implements IStore<T> {
     const options = getGlobalImmutabilityOptions();
     const clonedValue = performantSafeGet(this._value, options.enableCloning);
     
-    this.logger.trace(`Store getValue: ${this.name}`, { 
-      type: typeof this._value,
-      cloned: options.enableCloning 
-    });
     
     return clonedValue;
   }
@@ -116,7 +102,6 @@ export class Store<T = any> implements IStore<T> {
   setValue(value: T): void {
     const options = getGlobalImmutabilityOptions();
     const safeValue = safeSet(value, options.enableCloning);
-    const oldValue = this._value;
     
     // 강화된 값 비교 시스템
     const hasChanged = this._compareValues(this._value, safeValue);
@@ -125,17 +110,8 @@ export class Store<T = any> implements IStore<T> {
       this._value = safeValue;
       // 새 스냅샷 생성 - 불변성 보장
       this._snapshot = this._createSnapshot();
-      this.logger.debug(LogArtHelpers.store.debug(`Store 값 업데이트: ${this.name}`, { 
-        oldValue, 
-        newValue: safeValue,
-        cloned: options.enableCloning,
-        listenerCount: this.listeners.size,
-        comparisonStrategy: this.comparisonOptions?.strategy || 'global'
-      }));
       // 모든 구독자에게 변경 알림
       this._notifyListeners();
-    } else {
-      this.logger.trace(`Store value unchanged: ${this.name}`, { value: safeValue });
     }
   }
 
@@ -152,10 +128,6 @@ export class Store<T = any> implements IStore<T> {
     const options = getGlobalImmutabilityOptions();
     const safeCurrentValue = performantSafeGet(this._value, options.enableCloning);
     
-    this.logger.trace(`Store update called: ${this.name}`, { 
-      currentValue: this._value,
-      cloned: options.enableCloning 
-    });
     
     const updatedValue = updater(safeCurrentValue);
     this.setValue(updatedValue);
@@ -172,9 +144,7 @@ export class Store<T = any> implements IStore<T> {
    * Clear all listeners
    */
   clearListeners(): void {
-    const count = this.listeners.size;
     this.listeners.clear();
-    this.logger.debug(`Cleared all listeners from store: ${this.name}`, { clearedCount: count });
   }
 
   /**
@@ -191,7 +161,6 @@ export class Store<T = any> implements IStore<T> {
    */
   setCustomComparator(comparator: (oldValue: T, newValue: T) => boolean): void {
     this.customComparator = comparator;
-    this.logger.debug(`Custom comparator set for store: ${this.name}`);
   }
 
   /**
@@ -213,7 +182,6 @@ export class Store<T = any> implements IStore<T> {
    */
   setComparisonOptions(options: Partial<ComparisonOptions<T>>): void {
     this.comparisonOptions = options;
-    this.logger.debug(`Comparison options set for store: ${this.name}`, options);
   }
 
   /**
@@ -228,7 +196,6 @@ export class Store<T = any> implements IStore<T> {
    */
   clearCustomComparator(): void {
     this.customComparator = undefined;
-    this.logger.debug(`Custom comparator cleared for store: ${this.name}`);
   }
 
   /**
@@ -236,7 +203,6 @@ export class Store<T = any> implements IStore<T> {
    */
   clearComparisonOptions(): void {
     this.comparisonOptions = undefined;
-    this.logger.debug(`Comparison options cleared for store: ${this.name}`);
   }
 
   /**
@@ -252,75 +218,32 @@ export class Store<T = any> implements IStore<T> {
    * @private
    */
   private _compareValues(oldValue: T, newValue: T): boolean {
-    const startTime = performance.now();
     let result: boolean;
-    let strategy: string;
 
     try {
       // 1. 커스텀 비교 함수가 설정된 경우 우선 사용
       if (this.customComparator) {
-        strategy = 'custom';
         const areEqual = this.customComparator(oldValue, newValue);
         result = !areEqual; // 같으면 false (변경 없음), 다르면 true (변경 있음)
         
-        this.logger.trace(`Custom comparison for store: ${this.name}`, {
-          oldValue,
-          newValue,
-          areEqual,
-          hasChanged: result
-        });
       }
       // 2. Store별 비교 옵션이 설정된 경우
       else if (this.comparisonOptions) {
-        strategy = this.comparisonOptions.strategy || 'reference';
         const areEqual = compareValues(oldValue, newValue, this.comparisonOptions);
         result = !areEqual;
         
-        this.logger.trace(`Store-specific comparison for store: ${this.name}`, {
-          strategy,
-          options: this.comparisonOptions,
-          areEqual,
-          hasChanged: result
-        });
       }
       // 3. 성능 최적화된 빠른 비교 (대부분의 일반적인 케이스)
       else {
-        strategy = 'fast';
         const areEqual = fastCompare(oldValue, newValue);
         result = !areEqual;
         
-        this.logger.trace(`Fast comparison for store: ${this.name}`, {
-          oldValue,
-          newValue,
-          areEqual,
-          hasChanged: result
-        });
       }
     } catch (error) {
       // 비교 중 에러 발생 시 안전한 fallback (참조 비교)
-      this.logger.warn(`Error during value comparison in store: ${this.name}, falling back to reference comparison`, error);
-      strategy = 'reference-fallback';
       result = !Object.is(oldValue, newValue);
     }
 
-    const duration = performance.now() - startTime;
-
-    // 성능 모니터링 (느린 비교 감지)
-    if (duration > 1) { // 1ms 이상 걸린 경우 경고
-      this.logger.warn(`Slow comparison detected in store: ${this.name}`, {
-        strategy,
-        duration: `${duration.toFixed(3)}ms`,
-        oldValueType: typeof oldValue,
-        newValueType: typeof newValue,
-        suggestion: 'Consider using simpler comparison strategy or custom comparator'
-      });
-    }
-
-    this.logger.trace(`Value comparison completed for store: ${this.name}`, {
-      strategy,
-      hasChanged: result,
-      duration: `${duration.toFixed(3)}ms`
-    });
 
     return result;
   }
@@ -329,10 +252,6 @@ export class Store<T = any> implements IStore<T> {
     const options = getGlobalImmutabilityOptions();
     const clonedValue = safeGet(this._value, options.enableCloning);
     
-    this.logger.trace(`Creating snapshot for store: ${this.name}`, { 
-      type: typeof this._value,
-      cloned: options.enableCloning 
-    });
     
     return {
       value: clonedValue,
@@ -342,15 +261,12 @@ export class Store<T = any> implements IStore<T> {
   }
 
   private _notifyListeners(): void {
-    this.logger.trace(`Notifying listeners for store: ${this.name}`, { 
-      listenerCount: this.listeners.size 
-    });
     
     this.listeners.forEach(listener => {
       try {
         listener();
       } catch (error) {
-        this.logger.error(LogArtHelpers.store.error(`리스너 실행`, `Store "${this.name}"에서 리스너 에러`));
+        // Silent catch for listener errors
       }
     });
   }
@@ -382,8 +298,7 @@ export class Store<T = any> implements IStore<T> {
 export function createStore<T>(name: string, initialValue: T): Store<T> {
   const store = new Store<T>(name, initialValue);
   
-  // 개발 환경에서 자동으로 HMR 지원 활성화
-  return autoEnableStoreHMR(store) as Store<T>;
+  return store;
 }
 
 /**

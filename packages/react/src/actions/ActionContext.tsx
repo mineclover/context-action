@@ -194,7 +194,7 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
         }) as ActionRegister<T>['dispatch'];
       }
 
-      return (...args: any[]) => {
+      return (..._args: any[]) => {
         context.logger.error(LogArtHelpers.react.error('액션 디스패치', 'ActionRegister가 초기화되지 않음'));
         throw new Error(
           'ActionRegister is not initialized. ' +
