@@ -1,749 +1,456 @@
-import React, { useState, useCallback, createContext, useContext, useRef, useEffect, useId } from 'react';
-
-// Custom CSS for animations
-const customStyles = `
-  @keyframes fade-in {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  .animate-fade-in {
-    animation: fade-in 0.3s ease-out;
-  }
-  
-  @keyframes scale-bounce {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-  }
-  
-  .animate-scale-bounce {
-    animation: scale-bounce 0.6s ease-in-out;
-  }
-  
-  @keyframes flow-arrow {
-    0% { transform: translateX(-5px); opacity: 0.5; }
-    50% { transform: translateX(0px); opacity: 1; }
-    100% { transform: translateX(5px); opacity: 0.5; }
-  }
-  
-  .animate-flow-arrow {
-    animation: flow-arrow 2s ease-in-out infinite;
-  }
-  
-  @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.3); }
-    50% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.6); }
-  }
-  
-  .animate-pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite;
-  }
-  
-  @keyframes slide-in-right {
-    from { transform: translateX(10px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-  }
-  
-  .animate-slide-in-right {
-    animation: slide-in-right 0.4s ease-out;
-  }
-  
-  .transition-smooth {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  /* 반응형 디자인 개선 */
-  @media (max-width: 768px) {
-    .grid-cols-2 {
-      grid-template-columns: 1fr;
-    }
-    
-    .flex-wrap {
-      flex-direction: column;
-      align-items: stretch;
-    }
-    
-    .ml-6, .ml-8 {
-      margin-left: 1rem;
-    }
-    
-    .text-lg {
-      font-size: 1rem;
-    }
-    
-    .p-5 {
-      padding: 1rem;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .grid-cols-2 {
-      grid-template-columns: 1fr;
-      gap: 0.5rem;
-    }
-    
-    .p-4 {
-      padding: 0.75rem;
-    }
-    
-    .gap-3 {
-      gap: 0.5rem;
-    }
-    
-    .text-sm {
-      font-size: 0.75rem;
-    }
-  }
-  
-`;
+import React, { useState, useCallback } from 'react';
 import {
   ActionPayloadMap,
   createContextPattern,
-  useStoreValueSafe
+  useStoreValue
 } from '@context-action/react';
-import { PageWithLogMonitor } from '../../components/LogMonitor/';
-import { Card, CardContent, Badge, Button, UnifiedPatternBadge } from '../../components/ui';
+import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
+import { Card, CardContent, Badge, Button } from '../../components/ui';
 
-// 이벤트 엔트리 타입 정의
-interface EventEntry {
-  id: string;
-  event: string;
-  data: unknown;
-  timestamp: string;
+// 상위 컨텍스트: 인터페이스만 정의 (구현체는 몰라야 함)
+interface ParentActions extends ActionPayloadMap {
+  // 하위 컴포넌트들이 등록할 수 있는 인터페이스만 정의
+  onChildRegistered: { childId: string; childType: string };
+  onDataChanged: { source: string; data: any };
+  onUserInteraction: { action: string; payload: any };
+  // 상위 자체 액션
+  incrementParentCounter: void;
+  resetParentCounter: void;
+  // 하위 컨트롤 인터페이스
+  controlChild: { childId: string; action: 'increment' | 'reset'; amount?: number };
 }
 
-// 다양한 컨텍스트 레벨에서 사용할 액션 타입들
-interface GlobalActions extends ActionPayloadMap {
-  globalMessage: { message: string };
-  broadcastEvent: { event: string; data: any };
-  logContextEvent: { eventType: string; contextId: string; data: any };
-  updateContextCount: { count: number };
+// 하위 컴포넌트들의 독립적인 액션 타입들
+interface ChildAActions extends ActionPayloadMap {
+  incrementCounter: { amount: number };
+  resetCounter: void;
 }
 
-interface LocalActions extends ActionPayloadMap {
-  localCounter: { increment: number };
-  localMessage: { message: string };
-  requestGlobal: { request: string };
+interface ChildBActions extends ActionPayloadMap {
+  updateText: { newText: string };
+  clearText: void;
 }
 
-interface NestedActions extends ActionPayloadMap {
-  nestedAction: { value: string };
-  bubbleUp: { data: any };
-}
+// Context Pattern 생성
+const ParentContext = createContextPattern<ParentActions>('ParentContext');
+const ChildAContext = createContextPattern<ChildAActions>('ChildAContext');
+const ChildBContext = createContextPattern<ChildBActions>('ChildBContext');
 
-/**
- * 통합 Context Pattern을 활용한 다중 컨텍스트 시스템
- * Store + Action을 모두 포함하는 통합 관리 패턴
- * 
- * @implements unified-context-pattern
- * @implements store-action-integration
- * @memberof core-concepts
- * @example
- * // 통합 Context Pattern 생성
- * const GlobalContext = createContextPattern<GlobalActions>('ReactContextGlobal');
- * 
- * // Provider + Store + Action 모두 제공
- * <GlobalContext.Provider>
- *   <LocalContext.Provider contextId="local-A">
- *     <NestedContext.Provider level={1}>
- *       <InteractiveControls />
- *     </NestedContext.Provider>
- *   </LocalContext.Provider>
- * </GlobalContext.Provider>
- * @since 1.0.0
- */
-const GlobalContext = createContextPattern<GlobalActions>('ReactContextGlobal');
-const LocalContext = createContextPattern<LocalActions>('ReactContextLocal');
-const NestedContext = createContextPattern<NestedActions>('ReactContextNested');
+// 상위 컨텍스트 UI - 하위 컴포넌트들을 모름
+function ParentContextUI() {
+  const registeredChildren = useStoreValue(ParentContext.useStore('registered-children', [] as Array<{childId: string, childType: string}>));
+  const dataLog = useStoreValue(ParentContext.useStore('data-log', [] as Array<{source: string, data: any, timestamp: number}>));
+  const parentCounter = useStoreValue(ParentContext.useStore('parent-counter', 0));
+  const parentDispatch = ParentContext.useAction();
 
-// 컨텍스트 정보를 전달하기 위한 Context
-const ContextInfoContext = createContext<{
-  level: string;
-  id: string;
-  onContextEvent: (event: string, data: any) => void;
-}>({ level: 'unknown', id: 'unknown', onContextEvent: () => {} });
-
-// 전역 컨텍스트 컴포넌트 - 통합 Context Pattern 사용 (이벤트 플로우 시각화 포함)
-function GlobalContextProvider({ children }: { children: React.ReactNode }) {
-  const componentId = useId();
-  const [globalEvents, setGlobalEvents] = useState<Array<{ id: string; event: string; data: any; timestamp: string }>>([]);
-  const [eventFlow, setEventFlow] = useState<Array<{ id: string; from: string; to: string; action: string; timestamp: number }>>([]);
-  
-  const handleGlobalEvent = useCallback((event: string, data: any) => {
-    const eventEntry = {
-      id: `${componentId}-${Date.now()}`,
-      event,
-      data,
-      timestamp: new Date().toLocaleTimeString()
-    };
-    setGlobalEvents(prev => [...prev, eventEntry]);
-    
-    // 이벤트 플로우 추적 (Cross-context communication용)
-    if (event.includes(':')) {
-      const [fromContext, actionName] = event.split(':');
-      const flowEntry = {
-        id: `flow-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-        from: fromContext,
-        to: 'global',
-        action: actionName,
-        timestamp: Date.now()
-      };
-      setEventFlow(prev => [...prev.slice(-9), flowEntry]); // 최근 10개만 유지
-    }
-  }, [componentId]);
-  
   return (
-    <ContextInfoContext.Provider value={{ level: 'Global', id: 'global-1', onContextEvent: handleGlobalEvent }}>
-      <GlobalContext.Provider registryId="global-context">
-        <GlobalContextSetup />
-        <Card variant="elevated" className="border-l-4 border-l-blue-500 bg-gradient-to-r from-blue-50 to-blue-100 shadow-lg hover:shadow-xl transition-all duration-300">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-blue-900 flex items-center gap-3">
-                <div className="relative">
-                  🌍
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
-                  <div className="absolute -top-2 -right-2 w-4 h-4 bg-blue-400 rounded-full animate-ping opacity-30"></div>
-                </div>
-                <div className="flex flex-col">
-                  <span>Global Context</span>
-                  <span className="text-sm text-blue-600 font-normal">Unified Pattern</span>
-                </div>
-              </h3>
-              <div className="flex gap-2 flex-wrap">
-                <Badge variant="outline" className="bg-blue-100 text-blue-800 hover:bg-blue-200 transition-all duration-200 shadow-sm">
-                  Level: Global
-                </Badge>
-                <Badge variant="outline" className="bg-blue-100 text-blue-800 hover:bg-blue-200 transition-all duration-200 shadow-sm">
-                  ID: global-1
-                </Badge>
-                <UnifiedPatternBadge />
+    <Card className="border-l-4 border-l-blue-500 bg-blue-50">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold text-blue-900 flex items-center gap-2">
+            🌍 Parent Context (Interface Only)
+            <Badge variant="outline" className="bg-blue-100 text-blue-800">
+              상위 컨텍스트
+            </Badge>
+          </h3>
+        </div>
+        
+        <div className="space-y-4">
+          {/* 상위 컨텍스트 자체 카운터 */}
+          <div className="p-4 bg-white rounded-lg border border-blue-200">
+            <h4 className="font-semibold mb-3 text-blue-900">🏠 상위 컨텍스트 카운터</h4>
+            <div className="flex items-center justify-between">
+              <div className="text-2xl font-bold text-blue-700">
+                카운터: {parentCounter}
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  size="sm" 
+                  variant="primary"
+                  onClick={() => parentDispatch('incrementParentCounter')}
+                >
+                  🔼 상위 +1
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="secondary"
+                  onClick={() => parentDispatch('resetParentCounter')}
+                >
+                  🔄 상위 리셋
+                </Button>
               </div>
             </div>
-            {children}
-            
-            <div className="mt-6 pt-4 border-t border-blue-200">
-              <h4 className="text-sm font-medium text-blue-800 mb-3">🔄 Real-time Context Communication Flow:</h4>
-              <div className="space-y-2 mb-4">
-                {eventFlow.slice(-5).map((flow, index) => {
-                  const getContextIcon = (contextName: string) => {
-                    if (contextName.includes('global')) return '🌍';
-                    if (contextName.includes('local')) return '🏠';
-                    if (contextName.includes('nested')) return '🧩';
-                    return '⚡';
-                  };
-                  
-                  const getContextColor = (contextName: string) => {
-                    if (contextName.includes('global')) return 'bg-blue-100 text-blue-700 border-blue-300';
-                    if (contextName.includes('local')) return 'bg-green-100 text-green-700 border-green-300';
-                    if (contextName.includes('nested')) return 'bg-purple-100 text-purple-700 border-purple-300';
-                    return 'bg-gray-100 text-gray-700 border-gray-300';
-                  };
-                  
-                  return (
-                    <div key={flow.id} className="flex items-center gap-3 text-xs bg-white rounded-lg p-3 border border-blue-200 animate-slide-in-right shadow-sm hover:shadow-md transition-all duration-300" style={{ animationDelay: `${index * 0.1}s` }}>
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <div className={`flex items-center gap-1 px-2 py-1 rounded border ${getContextColor(flow.from)} font-medium transition-all duration-200 hover:scale-105`}>
-                          <span>{getContextIcon(flow.from)}</span>
-                          <span className="truncate max-w-20">{flow.from}</span>
-                        </div>
-                        <div className="flex items-center gap-1 text-blue-500">
-                          <span className="animate-flow-arrow text-lg">→</span>
-                          <span className="text-xs font-medium">sends</span>
-                        </div>
-                        <div className={`flex items-center gap-1 px-2 py-1 rounded border ${getContextColor(flow.to)} font-medium transition-all duration-200 hover:scale-105`}>
-                          <span>{getContextIcon(flow.to)}</span>
-                          <span className="truncate max-w-20">{flow.to}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="px-2 py-1 bg-amber-100 text-amber-800 rounded font-medium border border-amber-200">
-                          {flow.action}
-                        </div>
-                        <div className="text-blue-500 text-xs px-2 py-1 bg-gray-50 rounded border">
-                          {new Date(flow.timestamp).toLocaleTimeString('ko-KR')}
-                        </div>
-                      </div>
-                    </div>
-                  );
+          </div>
+
+          {/* 하위 컴포넌트 제어 패널 */}
+          <div className="p-4 bg-white rounded-lg border border-orange-200">
+            <h4 className="font-semibold mb-3 text-orange-900">🎮 하위 컴포넌트 원격 제어</h4>
+            <p className="text-sm text-orange-700 mb-3">
+              상위에서 하위 컴포넌트를 직접 제어할 수 있습니다 (인터페이스를 통한 제어)
+            </p>
+            <div className="flex gap-2 flex-wrap">
+              <Button 
+                size="sm" 
+                variant="success"
+                onClick={() => parentDispatch('controlChild', { 
+                  childId: 'child-a-counter', 
+                  action: 'increment', 
+                  amount: 1 
                 })}
-                {eventFlow.length === 0 && (
-                  <div className="text-xs text-blue-600 italic p-4 text-center bg-blue-50 rounded-lg border border-blue-200 border-dashed transition-smooth hover:bg-blue-100">
-                    <div className="animate-pulse mb-2">💫 Cross-context communication will appear here</div>
-                    <div className="text-xs opacity-70">Click action buttons to see real-time event flow between contexts</div>
-                    <div className="text-xs mt-2 font-medium">
-                      Example flows: Local → Global, Nested → Local → Global
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              <h4 className="text-sm font-medium text-blue-800 mb-3">📝 Recent Global Events Log:</h4>
-              <div className="space-y-1 max-h-32 overflow-y-auto">
-                {globalEvents.slice(-5).map((event) => (
-                  <div key={event.id} className="flex justify-between items-center text-xs bg-white rounded p-2 border border-blue-200 hover:bg-blue-50 transition-colors duration-200">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
-                      <span className="font-medium text-blue-700">{event.event}</span>
-                    </div>
-                    <span className="text-blue-500 font-mono">{event.timestamp}</span>
+              >
+                🎯 Child A +1
+              </Button>
+              <Button 
+                size="sm" 
+                variant="success"
+                onClick={() => parentDispatch('controlChild', { 
+                  childId: 'child-a-counter', 
+                  action: 'increment', 
+                  amount: 5 
+                })}
+              >
+                🎯 Child A +5
+              </Button>
+              <Button 
+                size="sm" 
+                variant="warning"
+                onClick={() => parentDispatch('controlChild', { 
+                  childId: 'child-a-counter', 
+                  action: 'reset' 
+                })}
+              >
+                🎯 Child A 리셋
+              </Button>
+            </div>
+          </div>
+
+          <div className="p-4 bg-white rounded-lg border">
+            <h4 className="font-semibold mb-2">등록된 하위 컴포넌트들:</h4>
+            {registeredChildren.length === 0 ? (
+              <p className="text-sm text-gray-500">아직 등록된 컴포넌트가 없습니다</p>
+            ) : (
+              <div className="space-y-1">
+                {registeredChildren.map((child, index) => (
+                  <div key={index} className="text-sm">
+                    📦 {child.childType} - ID: {child.childId}
                   </div>
                 ))}
-                {globalEvents.length === 0 && (
-                  <div className="text-xs text-gray-500 italic p-3 text-center bg-gray-50 rounded border border-dashed">
-                    No global events recorded yet
-                  </div>
-                )}
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </GlobalContext.Provider>
-    </ContextInfoContext.Provider>
+            )}
+          </div>
+
+          <div className="p-4 bg-white rounded-lg border">
+            <h4 className="font-semibold mb-2">데이터 변경 로그:</h4>
+            {dataLog.length === 0 ? (
+              <p className="text-sm text-gray-500">아직 데이터 변경이 없습니다</p>
+            ) : (
+              <div className="space-y-1 max-h-32 overflow-y-auto">
+                {dataLog.map((log, index) => (
+                  <div key={index} className="text-xs bg-gray-50 p-2 rounded">
+                    🔄 {log.source}: {JSON.stringify(log.data)} 
+                    <span className="text-gray-500 ml-2">
+                      {new Date(log.timestamp).toLocaleTimeString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
-// 전역 컨텍스트 설정 - 통합 패턴 사용
-function GlobalContextSetup() {
-  const contextInfo = useContext(ContextInfoContext);
-  
-  // 통합 Context Pattern의 Store와 Action 사용
-  const globalMessageStore = GlobalContext.useStore('global-message', 'Welcome to Unified Context Demo');
-  const globalEventStore = GlobalContext.useStore<EventEntry[]>('global-events', []);
-  
-  // 공통 이벤트 로깅 함수
-  const logEvent = useCallback((eventType: string, eventData: any) => {
-    const eventEntry: EventEntry = {
-      id: `global-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-      event: eventType,
-      data: eventData,
-      timestamp: new Date().toLocaleTimeString('ko-KR', { 
-        hour: '2-digit', 
-        minute: '2-digit', 
-        second: '2-digit' 
-      })
-    };
-    globalEventStore.update(prev => [...prev, eventEntry]);
-  }, [globalEventStore]);
-  
-  // Action Handler 등록
-  GlobalContext.useActionHandler('globalMessage', ({ message }) => {
-    globalMessageStore.setValue(message);
-    logEvent('globalMessage', { message });
-    contextInfo.onContextEvent('globalMessage', { message });
+// 독립적인 Child A 컴포넌트 - 자체적으로 상위에 등록됨
+function IndependentChildA() {
+  return (
+    <ChildAContext.Provider registryId="child-a-context">
+      <ChildALogicRegistration />
+      <ChildAUI />
+    </ChildAContext.Provider>
+  );
+}
+
+function ChildALogicRegistration() {
+  const counter = ChildAContext.useStore('counter', 0);
+  const actionLogger = useActionLoggerWithToast();
+  const parentDispatch = ParentContext.useAction(); // 상위 컨텍스트에 접근
+
+  const childId = 'child-a-counter';
+
+  React.useEffect(() => {
+    // 🎯 핵심: 하위 컴포넌트가 상위 ActionRegister에 자신의 로직을 등록
+    parentDispatch('onChildRegistered', { 
+      childId, 
+      childType: 'Counter Component' 
+    });
+  }, [parentDispatch]);
+
+  // 🎯 핵심: 상위의 제어 명령을 구독하여 자율적으로 반응
+  ParentContext.useActionHandler('controlChild', ({ childId: targetId, action, amount }) => {
+    // 자신에게 향한 명령인지 확인
+    if (targetId !== childId) return;
+    
+    if (action === 'increment') {
+      const currentValue = counter.getValue();
+      const incrementAmount = amount || 1;
+      const newValue = currentValue + incrementAmount;
+      counter.setValue(newValue);
+      
+      // 상위에게 변경사항 알림
+      parentDispatch('onDataChanged', { 
+        source: `${childId} (remote-controlled)`, 
+        data: { counter: newValue, action: 'remote-increment', amount: incrementAmount } 
+      });
+      
+      actionLogger.logAction('remote-increment', { amount: incrementAmount, newValue }, {
+        context: 'Child A - Remote Control',
+        toast: { type: 'info', message: `🎮 원격 제어로 카운터 증가: ${newValue}` }
+      });
+    } else if (action === 'reset') {
+      counter.setValue(0);
+      
+      // 상위에게 변경사항 알림
+      parentDispatch('onDataChanged', { 
+        source: `${childId} (remote-controlled)`, 
+        data: { counter: 0, action: 'remote-reset' } 
+      });
+      
+      actionLogger.logAction('remote-reset', {}, {
+        context: 'Child A - Remote Control',
+        toast: { type: 'info', message: '🎮 원격 제어로 카운터 리셋됨' }
+      });
+    }
   });
-  
-  GlobalContext.useActionHandler('broadcastEvent', ({ event, data }) => {
-    logEvent('broadcastEvent', { event, data });
-    contextInfo.onContextEvent('broadcastEvent', { event, data });
+
+  // Child A의 자체 액션 핸들러
+  ChildAContext.useActionHandler('incrementCounter', ({ amount }) => {
+    const newValue = counter.getValue() + amount;
+    counter.setValue(newValue);
+    
+    // 상위에게 데이터 변경 알림
+    parentDispatch('onDataChanged', { 
+      source: childId, 
+      data: { counter: newValue, action: 'increment', amount } 
+    });
+    
+    actionLogger.logAction('incrementCounter', { amount, newValue }, {
+      context: 'Child A Component',
+      toast: { type: 'success', message: `카운터 증가: ${newValue}` }
+    });
   });
-  
-  // 다른 컨텍스트에서 발생한 이벤트도 전역 이벤트로 기록
-  GlobalContext.useActionHandler('logContextEvent', ({ eventType, contextId, data }) => {
-    logEvent(`${contextId}:${eventType}`, data);
+
+  ChildAContext.useActionHandler('resetCounter', () => {
+    counter.setValue(0);
+    
+    // 상위에게 데이터 변경 알림
+    parentDispatch('onDataChanged', { 
+      source: childId, 
+      data: { counter: 0, action: 'reset' } 
+    });
+    
+    actionLogger.logAction('resetCounter', {}, {
+      context: 'Child A Component',
+      toast: { type: 'info', message: '카운터 리셋됨' }
+    });
   });
-  
+
   return null;
 }
 
-// 로컬 컨텍스트 컴포넌트 - 통합 Context Pattern 사용 (UI/UX 개선)
-function LocalContextProvider({ children, contextId }: { children: React.ReactNode; contextId: string }) {
-  const parentContext = useContext(ContextInfoContext);
-  
-  const handleLocalEvent = useCallback((event: string, data: any) => {
-    parentContext.onContextEvent(`${contextId}:${event}`, data);
-  }, [parentContext, contextId]);
-  
-  const contextValue = {
-    level: 'Local',
-    id: contextId,
-    onContextEvent: handleLocalEvent
-  };
-  
-  return (
-    <ContextInfoContext.Provider value={contextValue}>
-      <LocalContext.Provider registryId={`local-context-${contextId}`}>
-        <LocalContextContent />
-        <div className="relative ml-6 mt-4">
-          {/* 계층 구조 시각화 라인 */}
-          <div className="absolute -left-6 top-0 bottom-0 w-px bg-gradient-to-b from-green-300 to-green-500"></div>
-          <div className="absolute -left-6 top-6 w-6 h-px bg-green-400"></div>
-          
-          <Card className="border-l-4 border-l-green-500 bg-gradient-to-r from-green-50 to-green-25 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01]">
-            <CardContent className="p-5">
-              <div className="relative">
-                {/* 컨텍스트 레벨 인디케이터 */}
-                <div className="absolute -top-2 -left-2 w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
-                {children}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </LocalContext.Provider>
-    </ContextInfoContext.Provider>
-  );
-}
+function ChildAUI() {
+  const counter = useStoreValue(ChildAContext.useStore('counter', 0));
+  const childADispatch = ChildAContext.useAction();
+  const parentDispatch = ParentContext.useAction();
 
-// 로컬 컨텍스트 내용 컴포넌트
-function LocalContextContent() {
-  const contextInfo = useContext(ContextInfoContext);
-  
-  // 통합 패턴의 Store 사용
-  const localCountStore = LocalContext.useStore('local-count', 0);
-  const localMessageStore = LocalContext.useStore('local-message', `Local context ${contextInfo.id}`);
-  
-  const localCount = useStoreValueSafe(localCountStore);
-  const localMessage = useStoreValueSafe(localMessageStore);
-  const parentContext = useContext(ContextInfoContext);
-  
-  // 전역 이벤트 로깅을 위한 dispatch
-  const globalDispatch = GlobalContext.useAction();
-  
-  // Action Handler 등록
-  LocalContext.useActionHandler('localCounter', ({ increment }) => {
-    const newCount = localCount + increment;
-    localCountStore.setValue(newCount);
-    contextInfo.onContextEvent('localCounter', { increment, newCount });
-    // 전역 이벤트 로그에 기록
-    globalDispatch('logContextEvent', { 
-      eventType: 'localCounter', 
-      contextId: contextInfo.id, 
-      data: { increment, newCount } 
-    });
-  });
-  
-  LocalContext.useActionHandler('localMessage', ({ message }) => {
-    localMessageStore.setValue(message);
-    contextInfo.onContextEvent('localMessage', { message });
-    // 전역 이벤트 로그에 기록
-    globalDispatch('logContextEvent', { 
-      eventType: 'localMessage', 
-      contextId: contextInfo.id, 
-      data: { message } 
-    });
-  });
-  
-  LocalContext.useActionHandler('requestGlobal', ({ request }) => {
-    // 로컬에서 전역으로 요청
-    globalDispatch('globalMessage', { message: `Request from ${contextInfo.id}: ${request}` });
-    contextInfo.onContextEvent('requestGlobal', { request });
-    // 전역 이벤트 로그에 기록
-    globalDispatch('logContextEvent', { 
-      eventType: 'requestGlobal', 
-      contextId: contextInfo.id, 
-      data: { request } 
-    });
-  });
-  
   return (
-    <div className="mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <h4 className="text-lg font-semibold text-green-900 flex items-center gap-3">
-          <div className="relative">
-            🏠
-            <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          </div>
-          <div className="flex flex-col">
-            <span>Local Context ({contextInfo.id})</span>
-            <span className="text-xs text-green-600 font-normal">Unified Pattern</span>
-          </div>
-        </h4>
-        <div className="flex gap-2 flex-wrap">
-          <Badge variant="outline" className="bg-green-100 text-green-800 text-xs hover:bg-green-200 transition-all duration-200">
-            Parent: {parentContext.level}
-          </Badge>
-          <Badge variant="outline" className={`text-xs transition-all duration-300 hover:scale-110 ${
-            localCount > 0 
-              ? 'bg-green-200 text-green-900 animate-pulse shadow-md' 
-              : 'bg-green-100 text-green-800'
-          }`}>
-            Count: {localCount}
-          </Badge>
-          <UnifiedPatternBadge size="sm" />
-        </div>
-      </div>
-      
-      <div className="mb-4 p-4 bg-gradient-to-r from-white to-green-25 rounded-lg border border-green-200 transition-all duration-300 hover:shadow-md hover:from-green-25 hover:to-green-50">
-        <div className="flex items-center text-sm text-green-700">
-          <div className="flex items-center gap-2 mr-3">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <strong>Message:</strong>
-          </div>
-          <div className="flex-1 px-3 py-2 bg-gradient-to-r from-green-100 to-green-200 rounded-md font-medium transition-all duration-300 hover:from-green-200 hover:to-green-300 text-green-800">
-            {localMessage}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-
-// 중첩된 컨텍스트 컴포넌트 - 통합 Context Pattern 사용 (UI/UX 개선)
-function NestedContextProvider({ children, level }: { children: React.ReactNode; level: number }) {
-  const parentContext = useContext(ContextInfoContext);
-  
-  const handleNestedEvent = useCallback((event: string, data: any) => {
-    parentContext.onContextEvent(`nested-L${level}:${event}`, data);
-  }, [parentContext, level]);
-  
-  const contextValue = {
-    level: `Nested-${level}`,
-    id: `nested-${level}`,
-    onContextEvent: handleNestedEvent
-  };
-  
-  const getNestedStyle = (level: number) => {
-    if (level === 1) {
-      return {
-        borderColor: 'border-l-purple-500',
-        bgColor: 'bg-gradient-to-r from-purple-50 to-purple-25',
-        lineColor: 'from-purple-300 to-purple-500',
-        dotColor: 'bg-purple-500',
-        connectColor: 'bg-purple-400',
-        margin: 'ml-6'
-      };
-    } else {
-      return {
-        borderColor: 'border-l-orange-500', 
-        bgColor: 'bg-gradient-to-r from-orange-50 to-orange-25',
-        lineColor: 'from-orange-300 to-orange-500',
-        dotColor: 'bg-orange-500',
-        connectColor: 'bg-orange-400',
-        margin: 'ml-8'
-      };
-    }
-  };
-  
-  const style = getNestedStyle(level);
-  
-  return (
-    <ContextInfoContext.Provider value={contextValue}>
-      <NestedContext.Provider registryId={`nested-context-${level}`}>
-        <NestedContextContent level={level} />
-        <div className={`relative ${style.margin} mt-4`}>
-          {/* 계층 구조 시각화 라인 */}
-          <div className={`absolute -left-6 top-0 bottom-0 w-px bg-gradient-to-b ${style.lineColor}`}></div>
-          <div className={`absolute -left-6 top-6 w-6 h-px ${style.connectColor}`}></div>
-          
-          <Card className={`border-l-4 ${style.borderColor} ${style.bgColor} shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01] hover:rotate-1`}>
-            <CardContent className="p-4">
-              <div className="relative">
-                {/* 중첩 레벨 인디케이터 */}
-                <div className={`absolute -top-2 -left-2 w-3 h-3 ${style.dotColor} rounded-full border-2 border-white shadow-sm`}>
-                  <div className="absolute inset-0.5 bg-white rounded-full opacity-30 animate-ping"></div>
-                </div>
-                {/* 레벨 번호 */}
-                <div className={`absolute -top-1 -right-1 w-5 h-5 ${style.dotColor} text-white text-xs font-bold rounded-full flex items-center justify-center shadow-sm`}>
-                  {level}
-                </div>
-                {children}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </NestedContext.Provider>
-    </ContextInfoContext.Provider>
-  );
-}
-
-// 중첩된 컨텍스트 내용 컴포넌트
-function NestedContextContent({ level }: { level: number }) {
-  const contextInfo = useContext(ContextInfoContext);
-  const parentContext = useContext(ContextInfoContext);
-  
-  // 통합 패턴의 Store 사용
-  const nestedValueStore = NestedContext.useStore('nested-value', `Nested Level ${level}`);
-  const nestedValue = useStoreValueSafe(nestedValueStore);
-  
-  // 전역 이벤트 로깅을 위한 dispatch
-  const globalDispatch = GlobalContext.useAction();
-  
-  // Action Handler 등록
-  NestedContext.useActionHandler('nestedAction', ({ value }) => {
-    nestedValueStore.setValue(value);
-    contextInfo.onContextEvent('nestedAction', { value, level });
-    // 전역 이벤트 로그에 기록
-    globalDispatch('logContextEvent', { 
-      eventType: 'nestedAction', 
-      contextId: contextInfo.id, 
-      data: { value, level } 
-    });
-  });
-  
-  NestedContext.useActionHandler('bubbleUp', ({ data }) => {
-    contextInfo.onContextEvent('bubbleUp', { data, level });
-    // 전역 이벤트 로그에 기록
-    globalDispatch('logContextEvent', { 
-      eventType: 'bubbleUp', 
-      contextId: contextInfo.id, 
-      data: { data, level } 
-    });
-  });
-  
-  return (
-    <div className="mb-3">
-      <div className="flex items-center justify-between mb-3">
-        <h5 className={`text-sm font-semibold ${level === 1 ? 'text-purple-900' : 'text-orange-900'} flex items-center gap-2`}>
-          🧩 Nested Level {level} - Unified Pattern
-        </h5>
-        <div className="flex gap-1">
-          <Badge variant="outline" className={`${level === 1 ? 'bg-purple-100 text-purple-800' : 'bg-orange-100 text-orange-800'} text-xs`}>Parent: {parentContext.level}</Badge>
-          <Badge variant="outline" className={`${level === 1 ? 'bg-purple-100 text-purple-800' : 'bg-orange-100 text-orange-800'} text-xs transition-all duration-300 hover:scale-110`}>Value: {nestedValue}</Badge>
-          <UnifiedPatternBadge size="sm" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// 컨텍스트 상태 모니터 - 통합 패턴 사용
-function ContextMonitor() {
-  const globalMessageStore = GlobalContext.useStore('global-message', 'Welcome to Unified Context Demo');
-  const globalEventStore = GlobalContext.useStore<EventEntry[]>('global-events', []);
-  const contextCountStore = GlobalContext.useStore('context-count', 4); // Global + 2 Local + 2 Nested = 5개 컨텍스트
-  
-  const globalMessage = useStoreValueSafe(globalMessageStore);
-  const globalEvents = useStoreValueSafe(globalEventStore);
-  const contextCount = useStoreValueSafe(contextCountStore);
-  
-  // 이벤트 통계 계산
-  const eventStats = React.useMemo(() => {
-    const events = Array.isArray(globalEvents) ? globalEvents : [];
-    const contextCounts = events.reduce((acc, event) => {
-      const contextId = event.event.split(':')[0] || 'global';
-      acc[contextId] = (acc[contextId] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-    
-    return {
-      total: events.length,
-      byContext: contextCounts,
-      recent: events.slice(-5).length,
-      lastEventTime: events.length > 0 ? events[events.length - 1].timestamp : null
-    };
-  }, [globalEvents]);
-  
-  // Context 카운트 자동 업데이트 핸들러 등록
-  GlobalContext.useActionHandler('updateContextCount', ({ count }) => {
-    contextCountStore.setValue(count);
-  });
-  
-  // Context가 마운트/언마운트될 때 카운트 업데이트
-  useEffect(() => {
-    // 현재 페이지의 실제 컨텍스트 수: Global(1) + Local A(1) + Local B(1) + Nested 1(1) + Nested 2(1) = 5
-    contextCountStore.setValue(5);
-  }, [contextCountStore]);
-  
-  return (
-    <Card variant="elevated">
+    <Card className="border-l-4 border-l-green-500 bg-green-50">
       <CardContent className="p-4">
-        <h3 className="text-md font-semibold text-gray-900 mb-3 flex items-center gap-2">
-          📊 Context Monitor
-        </h3>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-lg font-bold text-green-900 flex items-center gap-2">
+            🏠 Independent Child A
+            <Badge variant="outline" className="bg-green-100 text-green-800 text-xs">
+              독립 컴포넌트
+            </Badge>
+          </h4>
+        </div>
+        
         <div className="space-y-3">
-          <div className="p-3 bg-gray-50 rounded border">
-            <div className="text-sm font-medium text-gray-700 mb-1">Global Message:</div>
-            <div className="text-gray-900 text-sm">{globalMessage}</div>
+          <div className="p-3 bg-white rounded border">
+            <p className="text-sm font-semibold">카운터: {counter}</p>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="p-3 bg-gray-50 rounded border">
-              <div className="text-sm font-medium text-gray-700 mb-1">Active Contexts:</div>
-              <div className="text-xl font-bold text-blue-600">{contextCount}</div>
-            </div>
-            <div className="p-3 bg-gray-50 rounded border">
-              <div className="text-sm font-medium text-gray-700 mb-1">Total Events:</div>
-              <div className="text-xl font-bold text-green-600">{eventStats.total}</div>
-            </div>
+          
+          <div className="flex gap-2 flex-wrap">
+            <Button 
+              size="sm" 
+              variant="success"
+              onClick={() => childADispatch('incrementCounter', { amount: 1 })}
+            >
+              🔢 +1
+            </Button>
+            <Button 
+              size="sm" 
+              variant="success"
+              onClick={() => childADispatch('incrementCounter', { amount: 5 })}
+            >
+              🔢 +5
+            </Button>
+            <Button 
+              size="sm" 
+              variant="secondary"
+              onClick={() => childADispatch('resetCounter')}
+            >
+              🔄 리셋
+            </Button>
+            <Button 
+              size="sm" 
+              variant="primary"
+              onClick={() => parentDispatch('incrementParentCounter')}
+            >
+              🔼 상위 카운터 +1
+            </Button>
+            <Button 
+              size="sm" 
+              variant="info"
+              onClick={() => parentDispatch('onUserInteraction', { 
+                action: 'button-click', 
+                payload: { component: 'child-a', button: 'custom-action' } 
+              })}
+            >
+              📤 상위에 알림
+            </Button>
           </div>
-          {eventStats.total > 0 && (
-            <div className="p-3 bg-gray-50 rounded border">
-              <div className="text-sm font-medium text-gray-700 mb-2">📊 Event Statistics:</div>
-              <div className="space-y-1">
-                {Object.entries(eventStats.byContext).map(([contextId, count]) => {
-                  const getContextColor = (id: string) => {
-                    if (id.includes('global')) return 'text-blue-600';
-                    if (id.includes('local')) return 'text-green-600';
-                    if (id.includes('nested')) return 'text-purple-600';
-                    return 'text-gray-600';
-                  };
-                  
-                  const getContextIcon = (id: string) => {
-                    if (id.includes('global')) return '🌍';
-                    if (id.includes('local')) return '🏠';
-                    if (id.includes('nested')) return '🧩';
-                    return '⚡';
-                  };
-                  
-                  return (
-                    <div key={contextId} className="flex justify-between items-center text-xs">
-                      <div className="flex items-center gap-1">
-                        <span>{getContextIcon(contextId)}</span>
-                        <span className="font-medium">{contextId}</span>
-                      </div>
-                      <span className={`font-bold ${getContextColor(contextId)}`}>{count}</span>
-                    </div>
-                  );
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// 독립적인 Child B 컴포넌트 - 자체적으로 상위에 등록됨
+function IndependentChildB() {
+  return (
+    <ChildBContext.Provider registryId="child-b-context">
+      <ChildBLogicRegistration />
+      <ChildBUI />
+    </ChildBContext.Provider>
+  );
+}
+
+function ChildBLogicRegistration() {
+  const textStore = ChildBContext.useStore('text', 'Hello World');
+  const actionLogger = useActionLoggerWithToast();
+  const parentDispatch = ParentContext.useAction(); // 상위 컨텍스트에 접근
+
+  const childId = 'child-b-text';
+
+  React.useEffect(() => {
+    // 🎯 핵심: 하위 컴포넌트가 상위 ActionRegister에 자신의 로직을 등록
+    parentDispatch('onChildRegistered', { 
+      childId, 
+      childType: 'Text Editor Component' 
+    });
+  }, [parentDispatch]);
+
+  // Child B의 자체 액션 핸들러
+  ChildBContext.useActionHandler('updateText', ({ newText }) => {
+    textStore.setValue(newText);
+    
+    // 상위에게 데이터 변경 알림
+    parentDispatch('onDataChanged', { 
+      source: childId, 
+      data: { text: newText, action: 'update', length: newText.length } 
+    });
+    
+    actionLogger.logAction('updateText', { newText }, {
+      context: 'Child B Component',
+      toast: { type: 'success', message: '텍스트 업데이트됨' }
+    });
+  });
+
+  ChildBContext.useActionHandler('clearText', () => {
+    textStore.setValue('');
+    
+    // 상위에게 데이터 변경 알림
+    parentDispatch('onDataChanged', { 
+      source: childId, 
+      data: { text: '', action: 'clear' } 
+    });
+    
+    actionLogger.logAction('clearText', {}, {
+      context: 'Child B Component',
+      toast: { type: 'info', message: '텍스트 클리어됨' }
+    });
+  });
+
+  return null;
+}
+
+function ChildBUI() {
+  const text = useStoreValue(ChildBContext.useStore('text', ''));
+  const childBDispatch = ChildBContext.useAction();
+  const parentDispatch = ParentContext.useAction();
+
+  return (
+    <Card className="border-l-4 border-l-purple-500 bg-purple-50">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-lg font-bold text-purple-900 flex items-center gap-2">
+            🧩 Independent Child B
+            <Badge variant="outline" className="bg-purple-100 text-purple-800 text-xs">
+              독립 컴포넌트
+            </Badge>
+          </h4>
+        </div>
+        
+        <div className="space-y-3">
+          <div className="p-3 bg-white rounded border">
+            <p className="text-sm font-semibold mb-1">텍스트: "{text}"</p>
+            <p className="text-xs text-gray-500">Length: {text.length}</p>
+          </div>
+          
+          <div className="space-y-2">
+            <input
+              type="text"
+              value={text}
+              onChange={(e) => childBDispatch('updateText', { newText: e.target.value })}
+              placeholder="텍스트를 입력하세요..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+            />
+            <div className="flex gap-2 flex-wrap">
+              <Button 
+                size="sm" 
+                variant="warning"
+                onClick={() => childBDispatch('updateText', { 
+                  newText: `Sample Text ${new Date().toLocaleTimeString()}` 
                 })}
-                {eventStats.lastEventTime && (
-                  <div className="pt-2 mt-2 border-t border-gray-300 text-xs text-gray-600">
-                    Last event: {eventStats.lastEventTime}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-          <div className="p-3 bg-gray-50 rounded border">
-            <div className="text-sm font-medium text-gray-700 mb-2 flex items-center justify-between">
-              Recent Events:
-              <div className="flex gap-1">
-                <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">Total: {Array.isArray(globalEvents) ? globalEvents.length : 0}</span>
-                {Array.isArray(globalEvents) && globalEvents.length > 5 && (
-                  <span className="text-xs px-2 py-1 bg-orange-100 text-orange-700 rounded">+{globalEvents.length - 5} more</span>
-                )}
-              </div>
-            </div>
-            <div className="space-y-1 max-h-40 overflow-y-auto">
-              {Array.isArray(globalEvents) && globalEvents.length > 0 ? (
-                globalEvents.slice(-6).reverse().map((event, index) => {
-                  const eventParts = event.event.split(':');
-                  const contextId = eventParts.length > 1 ? eventParts[0] : 'global';
-                  const actionName = eventParts.length > 1 ? eventParts[1] : event.event;
-                  
-                  // 컨텍스트별 색상 스키마
-                  const getEventStyle = (contextId: string) => {
-                    if (contextId.includes('global')) return 'bg-blue-50 border-blue-200 text-blue-800';
-                    if (contextId.includes('local')) return 'bg-green-50 border-green-200 text-green-800';
-                    if (contextId.includes('nested')) return 'bg-purple-50 border-purple-200 text-purple-800';
-                    return 'bg-gray-50 border-gray-200 text-gray-800';
-                  };
-                  
-                  const getContextIcon = (contextId: string) => {
-                    if (contextId.includes('global')) return '🌍';
-                    if (contextId.includes('local')) return '🏠';
-                    if (contextId.includes('nested')) return '🧩';
-                    return '⚡';
-                  };
-                  
-                  return (
-                    <div key={`${event.id}-${index}`} className={`flex items-center justify-between text-xs rounded p-2 border transition-all duration-300 hover:scale-[1.02] ${getEventStyle(contextId)}`}>
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <span className="text-sm">{getContextIcon(contextId)}</span>
-                        <div className="flex flex-col flex-1 min-w-0">
-                          <div className="font-medium truncate">{actionName}</div>
-                          <div className="text-xs opacity-70 truncate">{contextId}</div>
-                        </div>
-                      </div>
-                      <div className="text-xs opacity-70 ml-2 whitespace-nowrap">{event.timestamp}</div>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="text-xs text-gray-500 italic p-3 text-center bg-white rounded border border-dashed">
-                  <div className="mb-1">🎯 No events yet!</div>
-                  <div>Try clicking buttons to see event propagation</div>
-                </div>
-              )}
+              >
+                📝 샘플 텍스트
+              </Button>
+              <Button 
+                size="sm" 
+                variant="secondary"
+                onClick={() => childBDispatch('clearText')}
+              >
+                🗑️ 클리어
+              </Button>
+              <Button 
+                size="sm" 
+                variant="primary"
+                onClick={() => parentDispatch('incrementParentCounter')}
+              >
+                🔼 상위 카운터 +1
+              </Button>
+              <Button 
+                size="sm" 
+                variant="info"
+                onClick={() => parentDispatch('onUserInteraction', { 
+                  action: 'text-interaction', 
+                  payload: { component: 'child-b', textLength: text.length } 
+                })}
+              >
+                📤 상위에 알림
+              </Button>
             </div>
           </div>
         </div>
@@ -752,572 +459,234 @@ function ContextMonitor() {
   );
 }
 
-// 인터랙티브 컨트롤 - 통합 패턴 사용 (강화된 피드백 포함)
-function InteractiveControls() {
-  const contextInfo = useContext(ContextInfoContext);
-  const [lastActionInfo, setLastActionInfo] = useState<{ action: string; timestamp: number } | null>(null);
-  const [buttonStates, setButtonStates] = useState<Record<string, 'idle' | 'loading' | 'success'>>({});
-  
-  // Note: This framework uses useAction() calls inside callbacks
-  // This violates React Rules of Hooks but is part of the framework's design
-  
-  // 버튼 상태 관리 함수
-  const setButtonState = useCallback((buttonId: string, state: 'idle' | 'loading' | 'success') => {
-    setButtonStates(prev => ({ ...prev, [buttonId]: state }));
-    
-    if (state === 'success') {
-      setTimeout(() => {
-        setButtonStates(prev => ({ ...prev, [buttonId]: 'idle' }));
-      }, 1500); // 1.5초 후 idle로 복귀
-    }
-  }, []);
-  
-  // 액션 실행 피드백 함수
-  const executeWithFeedback = useCallback(async (buttonId: string, actionName: string, actionFn: () => void) => {
-    setButtonState(buttonId, 'loading');
-    setLastActionInfo({ action: actionName, timestamp: Date.now() });
-    
-    try {
-      // 약간의 지연을 추가하여 로딩 상태를 보여줌
-      await new Promise(resolve => setTimeout(resolve, 200));
-      actionFn();
-      setButtonState(buttonId, 'success');
-    } catch (error) {
-      console.error('Action failed:', error);
-      setButtonState(buttonId, 'idle');
-    }
-  }, [setButtonState]);
-  
-  // 버튼 클래스명 생성 함수
-  const getButtonClassName = (buttonId: string, baseVariant: string) => {
-    const state = buttonStates[buttonId] || 'idle';
-    const baseClasses = '';
-    
-    switch (state) {
-      case 'loading':
-        return `animate-pulse opacity-70 cursor-wait`;
-      case 'success':
-        return `bg-green-500 text-white border-green-500 animate-bounce`;
-      default:
-        return baseClasses;
-    }
-  };
-  
-  // 버튼 텍스트 생성 함수
-  const getButtonText = (buttonId: string, defaultText: string) => {
-    const state = buttonStates[buttonId] || 'idle';
-    
-    switch (state) {
-      case 'loading':
-        return '⏳ Processing...';
-      case 'success':
-        return '✅ Done!';
-      default:
-        return defaultText;
-    }
-  };
-  
-  const handleGlobalMessage = useCallback(() => {
-    executeWithFeedback('global-message', 'Global Message Update', () => {
-      // 랜덤 글로벌 메시지 생성 함수
-      const generateRandomGlobalMessage = () => {
-        const globalMessages = [
-          'System maintenance scheduled for tonight',
-          'New feature release announcement', 
-          'Security update completed successfully',
-          'Database backup process initiated',
-          'Server performance optimization applied',
-          'User authentication system upgraded',
-          'Cache refresh operation completed',
-          'Content delivery network updated',
-          'API rate limiting rules modified',
-          'Monitoring alerts configuration changed'
-        ];
-        
-        return globalMessages[Math.floor(Math.random() * globalMessages.length)];
-      };
-      
-      const randomMessage = generateRandomGlobalMessage();
-      const globalDispatch = GlobalContext.useAction();
-      globalDispatch('globalMessage', { message: randomMessage });
-    });
-  }, [executeWithFeedback]);
-  
-  const handleBroadcast = useCallback(() => {
-    executeWithFeedback('broadcast', 'Broadcast Event', () => {
-      const globalDispatch = GlobalContext.useAction();
-      globalDispatch('broadcastEvent', { 
-        event: 'test-broadcast', 
-        data: { timestamp: Date.now(), from: contextInfo.id } 
-      });
-    });
-  }, [contextInfo, executeWithFeedback]);
-  
-  const handleLocalAction = useCallback(() => {
-    if (contextInfo.level.includes('Local')) {
-      executeWithFeedback('local-counter', 'Local Counter +1', () => {
-        const localDispatch = LocalContext.useAction();
-        localDispatch('localCounter', { increment: 1 });
-      });
-    }
-  }, [contextInfo, executeWithFeedback]);
-  
-  const handleRequestGlobal = useCallback(() => {
-    if (contextInfo.level.includes('Local')) {
-      executeWithFeedback('request-global', 'Request Global', () => {
-        const localDispatch = LocalContext.useAction();
-        localDispatch('requestGlobal', { request: 'Hello from unified local context' });
-      });
-    }
-  }, [contextInfo, executeWithFeedback]);
-  
-  const handleNestedAction = useCallback(() => {
-    if (contextInfo.level.includes('Nested')) {
-      executeWithFeedback('nested-action', 'Nested Action', () => {
-        const nestedDispatch = NestedContext.useAction();
-        const value = `Updated at ${new Date().toLocaleTimeString()}`;
-        nestedDispatch('nestedAction', { value });
-      });
-    }
-  }, [contextInfo, executeWithFeedback]);
-  
-  const handleBubbleUp = useCallback(() => {
-    if (contextInfo.level.includes('Nested')) {
-      executeWithFeedback('bubble-up', 'Bubble Up', () => {
-        const nestedDispatch = NestedContext.useAction();
-        nestedDispatch('bubbleUp', { data: `Bubble from unified ${contextInfo.id}` });
-      });
-    }
-  }, [contextInfo, executeWithFeedback]);
-  
+// 통신 설명 컴포넌트
+function CommunicationExplanation() {
   return (
-    <div className="mt-4 p-4 bg-gradient-to-br from-white via-gray-50 to-gray-100 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
-      <div className="space-y-4">
-        {/* 컨텍스트 정보 섹션 */}
-        <div className="flex items-center justify-between p-3 bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-              <span className="text-sm font-semibold text-gray-700">Current Context:</span>
-            </div>
-            <Badge className="bg-gradient-to-r from-gray-200 to-gray-300 text-gray-800 text-sm font-medium px-3 py-1 shadow-sm">
-              {contextInfo.level} ({contextInfo.id})
-            </Badge>
-          </div>
-          {lastActionInfo && (
-            <Badge className="bg-gradient-to-r from-green-100 to-green-200 text-green-800 text-sm animate-pulse shadow-md px-3 py-1">
-              ⚡ Last: {lastActionInfo.action}
-            </Badge>
-          )}
-        </div>
+    <Card className="mt-6">
+      <CardContent className="p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          🏗️ Dependency Inversion 패턴 원리
+        </h3>
         
-        {/* 액션 버튼 그리드 */}
         <div className="space-y-4">
-          <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">Available Actions</div>
-          
-          {/* 기본 액션들 */}
-          <div className="grid grid-cols-2 gap-2">
-            <Button 
-              size="sm" 
-              variant="primary" 
-              onClick={handleGlobalMessage}
-              className={`${getButtonClassName('global-message', 'primary')} flex items-center justify-center gap-2 p-3 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105`}
-              disabled={buttonStates['global-message'] === 'loading'}
-            >
-              {getButtonText('global-message', '🎲 Global Message')}
-            </Button>
-            <Button 
-              size="sm" 
-              variant="secondary" 
-              onClick={handleBroadcast}
-              className={`${getButtonClassName('broadcast', 'secondary')} flex items-center justify-center gap-2 p-3 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105`}
-              disabled={buttonStates['broadcast'] === 'loading'}
-            >
-              {getButtonText('broadcast', '📡 Broadcast')}
-            </Button>
-            
-            {contextInfo.level.includes('Local') && (
-              <>
-                <Button 
-                  size="sm" 
-                  variant="success" 
-                  onClick={handleLocalAction}
-                  className={`${getButtonClassName('local-counter', 'success')} flex items-center justify-center gap-2 p-3 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105`}
-                  disabled={buttonStates['local-counter'] === 'loading'}
-                >
-                  {getButtonText('local-counter', '🔢 Counter +1')}
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="info" 
-                  onClick={handleRequestGlobal}
-                  className={`${getButtonClassName('request-global', 'info')} flex items-center justify-center gap-2 p-3 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105`}
-                  disabled={buttonStates['request-global'] === 'loading'}
-                >
-                  {getButtonText('request-global', '📤 Request')}
-                </Button>
-              </>
-            )}
-            
-            {contextInfo.level.includes('Nested') && (
-              <>
-                <Button 
-                  size="sm" 
-                  variant="warning" 
-                  onClick={handleNestedAction}
-                  className={`${getButtonClassName('nested-action', 'warning')} flex items-center justify-center gap-2 p-3 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105`}
-                  disabled={buttonStates['nested-action'] === 'loading'}
-                >
-                  {getButtonText('nested-action', '🧩 Nested')}
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="danger" 
-                  onClick={handleBubbleUp}
-                  className={`${getButtonClassName('bubble-up', 'danger')} flex items-center justify-center gap-2 p-3 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105`}
-                  disabled={buttonStates['bubble-up'] === 'loading'}
-                >
-                  {getButtonText('bubble-up', '🫧 Bubble')}
-                </Button>
-              </>
-            )}
+          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <h4 className="font-semibold text-blue-900 mb-2">1. 인터페이스 기반 상위 컨텍스트</h4>
+            <p className="text-sm text-blue-800">
+              상위 컨텍스트는 구현체를 모르고, 오직 <code>ParentActions</code> 인터페이스만 정의합니다.
+              하위 컴포넌트가 무엇인지 전혀 알지 못합니다.
+            </p>
           </div>
           
-          {/* Cross-Context Communication 섹션 */}
-          <div className="border-t border-gray-200 pt-3 mt-4">
-            <div className="text-xs font-medium text-purple-600 uppercase tracking-wide mb-2 flex items-center gap-1">
-              <span>🔄</span>
-              Cross-Context Communication
-            </div>
-            <div className="text-xs text-gray-500 mb-3 p-2 bg-purple-50 rounded border border-purple-200">
-              These buttons demonstrate direct communication between different contexts
-            </div>
-            <div className="grid grid-cols-1 gap-2">
-              {contextInfo.level.includes('Local') && (
-                <Button 
-                  size="sm" 
-                  variant="primary"
-                  onClick={() => executeWithFeedback('cross-local-to-global', 'Local → Global Communication', () => {
-                    const localDispatch = LocalContext.useAction();
-                    localDispatch('requestGlobal', { 
-                      request: `Cross-context message from ${contextInfo.id} at ${new Date().toLocaleTimeString()}` 
-                    });
-                  })}
-                  className={`${getButtonClassName('cross-local-to-global', 'primary')} flex items-center justify-center gap-2 p-3 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white border-0`}
-                  disabled={buttonStates['cross-local-to-global'] === 'loading'}
-                >
-                  {getButtonText('cross-local-to-global', '🏠→🌍 Local to Global')}
-                </Button>
-              )}
-              
-              {contextInfo.level.includes('Nested') && (
-                <>
-                  <Button 
-                    size="sm" 
-                    variant="primary"
-                    onClick={() => executeWithFeedback('cross-nested-to-global', 'Nested → Global Communication', () => {
-                      const globalDispatch = GlobalContext.useAction();
-                      globalDispatch('globalMessage', { 
-                        message: `Direct message from ${contextInfo.id}: Nested context speaking directly to Global!` 
-                      });
-                    })}
-                    className={`${getButtonClassName('cross-nested-to-global', 'primary')} flex items-center justify-center gap-2 p-3 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white border-0`}
-                    disabled={buttonStates['cross-nested-to-global'] === 'loading'}
-                  >
-                    {getButtonText('cross-nested-to-global', '🧩→🌍 Nested to Global')}
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="secondary"
-                    onClick={() => executeWithFeedback('cross-nested-bubble', 'Nested → Parent Bubble', () => {
-                      const nestedDispatch = NestedContext.useAction();
-                      nestedDispatch('bubbleUp', { 
-                        data: `Bubble up chain from ${contextInfo.id} → Parent → Global` 
-                      });
-                    })}
-                    className={`${getButtonClassName('cross-nested-bubble', 'secondary')} flex items-center justify-center gap-2 p-3 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105 bg-gradient-to-r from-purple-400 to-green-400 hover:from-purple-500 hover:to-green-500 text-white border-0`}
-                    disabled={buttonStates['cross-nested-bubble'] === 'loading'}
-                  >
-                    {getButtonText('cross-nested-bubble', '🧩→🏠→🌍 Bubble Chain')}
-                  </Button>
-                </>
-              )}
-            </div>
+          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+            <h4 className="font-semibold text-green-900 mb-2">2. 완전 독립적 하위 컴포넌트</h4>
+            <p className="text-sm text-green-800">
+              각 하위 컴포넌트는 자체 <code>Provider</code>를 가지며, 완전히 독립적으로 동작합니다.
+              Context API 계층을 통해 상위 ActionRegister에 접근 가능합니다.
+            </p>
+          </div>
+          
+          <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+            <h4 className="font-semibold text-purple-900 mb-2">3. 자동 등록 패턴</h4>
+            <p className="text-sm text-purple-800">
+              하위 컴포넌트가 마운트시 <code>parentDispatch('onChildRegistered')</code>로 
+              자신을 상위에 등록합니다. 상위는 등록된 컴포넌트 정보만 알게 됩니다.
+            </p>
+          </div>
+          
+          <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+            <h4 className="font-semibold text-orange-900 mb-2">4. 하위 → 상위 통신</h4>
+            <p className="text-sm text-orange-800">
+              하위 컴포넌트에서 <code>parentDispatch('incrementParentCounter')</code>로 
+              상위 카운터를 직접 증가시킬 수 있습니다.
+            </p>
+          </div>
+
+          <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+            <h4 className="font-semibold text-red-900 mb-2">5. 상위 → 하위 제어</h4>
+            <p className="text-sm text-red-800">
+              상위에서 <code>controlChild</code> 인터페이스로 명령을 발송하면, 
+              하위가 <code>ParentContext.useActionHandler</code>로 구독하여 자율적으로 반응합니다.
+            </p>
+          </div>
+
+          <div className="p-4 bg-teal-50 rounded-lg border border-teal-200">
+            <h4 className="font-semibold text-teal-900 mb-2">6. 데이터 변경 알림</h4>
+            <p className="text-sm text-teal-800">
+              모든 상태 변경은 <code>parentDispatch('onDataChanged')</code>로 
+              상위에게 실시간으로 알려집니다.
+            </p>
+          </div>
+          
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <h4 className="font-semibold text-gray-900 mb-2">💡 핵심 장점</h4>
+            <ul className="text-sm text-gray-700 space-y-1">
+              <li>• <strong>완전한 독립성</strong>: 각 컴포넌트가 자체 Provider로 완전 분리</li>
+              <li>• <strong>인터페이스 계약</strong>: TypeScript 인터페이스로 명확한 통신 규약</li>
+              <li>• <strong>확장성</strong>: 새로운 하위 컴포넌트를 쉽게 추가 가능</li>
+              <li>• <strong>테스트 용이성</strong>: 각 컴포넌트를 독립적으로 테스트 가능</li>
+            </ul>
           </div>
         </div>
-        
-        {/* 실시간 피드백 표시 */}
-        {lastActionInfo && (
-          <div className="mt-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg text-sm text-green-700 animate-slide-in-right shadow-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span>✨ <strong>{lastActionInfo.action}</strong> executed successfully</span>
-              <span className="text-xs text-green-600 ml-auto">
-                {new Date(lastActionInfo.timestamp).toLocaleTimeString('ko-KR')}
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
+}
+
+// 상위 컨텍스트: 인터페이스만 정의하고 하위 구성을 모름
+function ParentContextContainer({ children }: { children: React.ReactNode }) {
+  return (
+    <ParentContext.Provider registryId="parent-context">
+      <ParentContextLogic />
+      {children}
+    </ParentContext.Provider>
+  );
+}
+
+// 상위 컨텍스트의 로직 - 하위 컴포넌트들이 뭔지 모름
+function ParentContextLogic() {
+  const actionLogger = useActionLoggerWithToast();
+  const registeredChildrenStore = ParentContext.useStore('registered-children', [] as Array<{childId: string, childType: string}>);
+  const dataLogStore = ParentContext.useStore('data-log', [] as Array<{source: string, data: any, timestamp: number}>);
+  const parentCounterStore = ParentContext.useStore('parent-counter', 0);
+
+  // 상위는 단순히 인터페이스에 정의된 액션들만 처리
+  ParentContext.useActionHandler('onChildRegistered', ({ childId, childType }) => {
+    const currentChildren = registeredChildrenStore.getValue();
+    const newChildren = [...currentChildren, { childId, childType }];
+    registeredChildrenStore.setValue(newChildren);
+    
+    actionLogger.logAction('onChildRegistered', { childId, childType }, {
+      context: 'Parent Context',
+      toast: { type: 'info', message: `${childType} 컴포넌트 등록됨: ${childId}` }
+    });
+  });
+
+  ParentContext.useActionHandler('onDataChanged', ({ source, data }) => {
+    const currentLog = dataLogStore.getValue();
+    const newLog = [...currentLog, { source, data, timestamp: Date.now() }];
+    dataLogStore.setValue(newLog.slice(-10)); // 최근 10개만 유지
+    
+    actionLogger.logAction('onDataChanged', { source, data }, {
+      context: 'Parent Context',
+      toast: { type: 'success', message: `${source}에서 데이터 변경됨` }
+    });
+  });
+
+  ParentContext.useActionHandler('onUserInteraction', ({ action, payload }) => {
+    actionLogger.logAction('onUserInteraction', { action, payload }, {
+      context: 'Parent Context',
+      toast: { type: 'info', message: `사용자 액션: ${action}` }
+    });
+  });
+
+  // 상위 자체 카운터 핸들러
+  ParentContext.useActionHandler('incrementParentCounter', () => {
+    const currentCount = parentCounterStore.getValue();
+    const newCount = currentCount + 1;
+    parentCounterStore.setValue(newCount);
+    
+    actionLogger.logAction('incrementParentCounter', {}, {
+      context: 'Parent Context',
+      toast: { type: 'success', message: `상위 카운터 증가: ${newCount}` }
+    });
+  });
+
+  ParentContext.useActionHandler('resetParentCounter', () => {
+    parentCounterStore.setValue(0);
+    
+    actionLogger.logAction('resetParentCounter', {}, {
+      context: 'Parent Context',
+      toast: { type: 'info', message: '상위 카운터 리셋됨' }
+    });
+  });
+
+  // 하위 컴포넌트 제어 인터페이스 (구현체는 모르고 인터페이스만 사용)
+  ParentContext.useActionHandler('controlChild', ({ childId, action, amount }) => {
+    actionLogger.logAction('controlChild', { childId, action, amount }, {
+      context: 'Parent Context',
+      toast: { type: 'info', message: `${childId} 원격 제어: ${action}${amount ? ` (${amount})` : ''}` }
+    });
+
+    // 실제 제어는 하위 컴포넌트가 이 액션을 구독하여 처리
+    // 상위는 단순히 명령만 발송하고, 하위가 자율적으로 반응
+  });
+
+  return null;
 }
 
 function ReactContextPage() {
   return (
-    <PageWithLogMonitor pageId="react-context" title="Unified Context Pattern Demo">
-      <style dangerouslySetInnerHTML={{ __html: customStyles }} />
+    <PageWithLogMonitor 
+      pageId="react-context" 
+      title="React Context Communication"
+      initialConfig={{ enableToast: true, maxLogs: 100 }}
+    >
       <div className="page-container">
         <header className="page-header">
-          <h1>Unified Context Pattern Demo</h1>
+          <h1>React Context 간 통신</h1>
           <p className="page-description">
-            Experience the new Unified Context Pattern that combines Store and Action management
-            in a single Provider. See how to manage multiple nested contexts with complete isolation
-            and simplified cross-context communication.
+            완전히 독립적인 컴포넌트들이 dependency inversion 패턴을 통해 상위 컨텍스트와 통신합니다.
+            각 컴포넌트는 자체 Provider를 가지며, Context API 계층을 통해 상위 ActionRegister에 접근합니다.
           </p>
         </header>
 
-        <GlobalContextProvider>
-          <div className="space-y-6 mb-6">
-            <ContextMonitor />
-            
-            {/* 컨텍스트 설명 */}
-            <Card>
-              <CardContent className="p-4">
-                <h3 className="text-md font-semibold text-gray-900 mb-3">🏗️ Context Architecture & Communication Flow</h3>
-                <div className="text-sm space-y-3">
-                  {/* Global Context */}
-                  <div className="p-3 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center text-blue-600 font-medium">
-                        <span className="text-lg mr-2">🌍</span>
-                        Global Context (Event Hub)
-                      </div>
-                      <div className="flex gap-2">
-                        <div className="text-xs px-2 py-1 bg-blue-200 text-blue-800 rounded font-medium">
-                          Collects All Events
-                        </div>
-                        <div className="text-xs px-2 py-1 bg-green-200 text-green-800 rounded font-medium">
-                          Cross-Context Router
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Local Contexts */}
-                  <div className="ml-4 space-y-3">
-                    <div className="relative">
-                      <div className="absolute -left-4 top-0 bottom-0 w-px bg-gradient-to-b from-blue-300 to-green-300"></div>
-                      <div className="absolute -left-4 top-6 w-4 h-px bg-blue-400"></div>
-                      
-                      <div className="pl-2 p-3 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg shadow-sm">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center text-green-600 font-medium">
-                            <span className="text-lg mr-2">🏠</span>
-                            Local Context A
-                          </div>
-                          <div className="flex gap-1">
-                            <div className="text-xs px-2 py-1 bg-green-200 text-green-800 rounded font-medium">
-                              Can send to Global ↗️
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Nested Contexts under Local A */}
-                      <div className="ml-6 mt-3 space-y-2">
-                        <div className="relative">
-                          <div className="absolute -left-6 top-0 bottom-0 w-px bg-gradient-to-b from-green-300 to-purple-300"></div>
-                          <div className="absolute -left-6 top-6 w-6 h-px bg-green-400"></div>
-                          
-                          <div className="pl-2 p-2 bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded shadow-sm">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center text-purple-600 font-medium text-sm">
-                                <span className="mr-2">🧩</span>
-                                Nested Level 1
-                              </div>
-                              <div className="text-xs px-2 py-1 bg-purple-200 text-purple-800 rounded font-medium">
-                                Direct to Global OR Bubble ↗️
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="ml-6 mt-2">
-                            <div className="relative">
-                              <div className="absolute -left-6 top-0 bottom-0 w-px bg-gradient-to-b from-purple-300 to-orange-300"></div>
-                              <div className="absolute -left-6 top-4 w-6 h-px bg-purple-400"></div>
-                              
-                              <div className="pl-2 p-2 bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded shadow-sm">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center text-orange-600 font-medium text-sm">
-                                    <span className="mr-2">🧩</span>
-                                    Nested Level 2
-                                  </div>
-                                  <div className="text-xs px-2 py-1 bg-orange-200 text-orange-800 rounded font-medium">
-                                    Chain: Level2→Level1→Local→Global
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Local Context B */}
-                    <div className="relative">
-                      <div className="absolute -left-4 top-0 bottom-0 w-px bg-gradient-to-b from-blue-300 to-green-300"></div>
-                      <div className="absolute -left-4 top-6 w-4 h-px bg-blue-400"></div>
-                      
-                      <div className="pl-2 p-3 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg shadow-sm">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center text-green-600 font-medium">
-                            <span className="text-lg mr-2">🏠</span>
-                            Local Context B
-                          </div>
-                          <div className="text-xs px-2 py-1 bg-green-200 text-green-800 rounded font-medium">
-                            Can send to Global ↗️
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Communication Rules */}
-                  <div className="mt-4 p-4 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-lg">
-                    <div className="text-xs text-gray-600">
-                      <div className="font-medium mb-2 text-gray-800 flex items-center gap-2">
-                        <span>💡</span>
-                        Cross-Context Communication Patterns:
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-green-600">🔄</span>
-                          <span>Direct dispatch between any contexts</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-blue-600">⬆️</span>
-                          <span>Event bubbling through hierarchy</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-purple-600">🌐</span>
-                          <span>Global context as central hub</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-orange-600">🔗</span>
-                          <span>Chained communication paths</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            {/* 통합 패턴 특징들 */}
-            <Card>
-              <CardContent className="p-4">
-                <h3 className="text-md font-semibold text-gray-900 mb-3">✨ Unified Pattern Features</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="p-3 bg-gray-50 rounded border">
-                    <div className="font-medium text-gray-900 mb-1">Store + Action Integration</div>
-                    <div className="text-gray-600">단일 Provider에서 Store Registry와 Action Register 모두 제공</div>
-                  </div>
-                  <div className="p-3 bg-gray-50 rounded border">
-                    <div className="font-medium text-gray-900 mb-1">Complete Isolation</div>
-                    <div className="text-gray-600">각 Provider는 독립적인 Store/Action 컨텍스트 보장</div>
-                  </div>
-                  <div className="p-3 bg-gray-50 rounded border">
-                    <div className="font-medium text-gray-900 mb-1">Simplified API</div>
-                    <div className="text-gray-600">useStore, useAction, useActionHandler 통합 Hook 제공</div>
-                  </div>
-                  <div className="p-3 bg-gray-50 rounded border">
-                    <div className="font-medium text-gray-900 mb-1">Cross-Context Communication</div>
-                    <div className="text-gray-600">다른 Context Pattern 간 직접 통신 가능</div>
-                  </div>
-                  <div className="p-3 bg-gray-50 rounded border">
-                    <div className="font-medium text-gray-900 mb-1">Type Safety</div>
-                    <div className="text-gray-600">TypeScript 타입 안전성 완전 보장</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            {/* 첫 번째 로컬 컨텍스트 */}
-            <LocalContextProvider contextId="local-A">
-              <InteractiveControls />
-              
-              {/* 중첩된 컨텍스트 1 */}
-              <NestedContextProvider level={1}>
-                <InteractiveControls />
-                
-                {/* 중첩된 컨텍스트 2 */}
-                <NestedContextProvider level={2}>
-                  <InteractiveControls />
-                </NestedContextProvider>
-              </NestedContextProvider>
-            </LocalContextProvider>
-            
-            {/* 두 번째 로컬 컨텍스트 */}
-            <LocalContextProvider contextId="local-B">
-              <InteractiveControls />
-            </LocalContextProvider>
+        {/* 상위 컨텍스트: 인터페이스만 정의 */}
+        <ParentContextContainer>
+          <ParentContextUI />
+          
+          {/* 독립적인 하위 컴포넌트들 - 각자 완전히 분리된 Provider */}
+          <div className="ml-8 mt-4 space-y-4">
+            <IndependentChildA />
+            <IndependentChildB />
           </div>
-        </GlobalContextProvider>
+        </ParentContextContainer>
+
+        <CommunicationExplanation />
 
         {/* 코드 예제 */}
         <Card className="mt-6">
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">📝 Unified Context Pattern Implementation</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">📝 Dependency Inversion 패턴 구현</h3>
             <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
-{`// 1. 통합 Context Pattern 생성
-const GlobalContext = createContextPattern<GlobalActions>('ReactContextGlobal');
-const LocalContext = createContextPattern<LocalActions>('ReactContextLocal');
-const NestedContext = createContextPattern<NestedActions>('ReactContextNested');
+{`// 1. 양방향 통신 인터페이스 정의
+interface ParentActions extends ActionPayloadMap {
+  onChildRegistered: { childId: string; childType: string };
+  incrementParentCounter: void; // 하위에서 상위 카운터 증가
+  controlChild: { childId: string; action: 'increment' | 'reset'; amount?: number };
+}
 
-// 2. 통합 Provider 사용 (Store + Action)
-function GlobalContextProvider({ children }) {
+// 2. 하위 → 상위 통신 (직접 호출)
+function ChildAUI() {
+  const parentDispatch = ParentContext.useAction();
+  
   return (
-    <GlobalContext.Provider registryId="global-context">
-      <GlobalContextSetup />
-      {children}
-    </GlobalContext.Provider>
+    <button onClick={() => parentDispatch('incrementParentCounter')}>
+      🔼 상위 카운터 +1
+    </button>
   );
 }
 
-// 3. Store와 Action Handler 통합 사용
-function GlobalContextSetup() {
-  // Store 생성
-  const messageStore = GlobalContext.useStore('global-message', 'Welcome');
-  const eventStore = GlobalContext.useStore<EventEntry[]>('global-events', []);
+// 3. 상위 → 하위 제어 (인터페이스 기반)
+function ParentContextUI() {
+  const parentDispatch = ParentContext.useAction();
   
-  // Action Handler 등록
-  GlobalContext.useActionHandler('globalMessage', ({ message }) => {
-    messageStore.setValue(message);
-  });
-  
-  GlobalContext.useActionHandler('broadcastEvent', ({ event, data }) => {
-    const eventEntry = { id: Date.now(), event, data, timestamp: new Date() };
-    eventStore.update(prev => [...prev, eventEntry]);
-  });
-  
-  return null;
+  return (
+    <button onClick={() => parentDispatch('controlChild', { 
+      childId: 'child-a-counter', action: 'increment', amount: 5 
+    })}>
+      🎯 Child A +5 (원격 제어)
+    </button>
+  );
 }
 
-// 4. 컨텍스트 간 통신
-function LocalContextSetup() {
-  LocalContext.useActionHandler('requestGlobal', ({ request }) => {
-    // 로컬에서 전역으로 직접 dispatch
-    const globalDispatch = GlobalContext.useAction();
-    globalDispatch('globalMessage', { message: \`Request: \${request}\` });
-  });
-}
-
-// 5. 간편한 Action 사용
-function MyComponent() {
-  const dispatch = GlobalContext.useAction();
-  const handleClick = () => dispatch('globalMessage', { message: 'Hello!' });
-}`}
+// 4. 하위에서 상위 명령 구독
+ParentContext.useActionHandler('controlChild', ({ childId, action, amount }) => {
+  if (childId === 'child-a-counter' && action === 'increment') {
+    // 자율적으로 반응하여 자신의 상태 변경
+    const newValue = counter.getValue() + (amount || 1);
+    counter.setValue(newValue);
+  }
+});`}
             </pre>
           </CardContent>
         </Card>

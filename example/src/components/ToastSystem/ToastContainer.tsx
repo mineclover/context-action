@@ -1,14 +1,10 @@
-import React from 'react';
 import { useStoreValue } from '@context-action/react';
-import { createLogger } from '@context-action/logger';
-import { LogLevel } from '@context-action/logger';
 import { toastsStore, toastConfigStore } from './store';
 import { ToastItem } from './ToastItem';
 import { toastActionRegister } from './actions';
 import { cn } from '../../lib/utils';
 import { toastContainerVariants, buttonVariants } from '../ui/variants';
 
-const logger = createLogger(LogLevel.DEBUG);
 
 export function ToastContainer() {
   const toasts = useStoreValue(toastsStore);
@@ -47,6 +43,7 @@ export function ToastContainer() {
             {sortedToasts.length}개의 알림
           </div>
           <button 
+            type="button"
             className={cn(
               buttonVariants({ variant: 'ghost', size: 'sm' }),
               "text-gray-500 hover:text-gray-700"
@@ -55,6 +52,7 @@ export function ToastContainer() {
             title="모든 토스트 지우기"
           >
             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <title>모든 토스트 지우기</title>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
             모두 지우기
