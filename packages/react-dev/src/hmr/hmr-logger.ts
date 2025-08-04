@@ -127,11 +127,6 @@ class HMRLogger {
    */
   private outputToConsole(entry: HMRLogEntry): void {
     const { level, category, message, details, context } = entry;
-    const timestamp = entry.timestamp.toLocaleTimeString('ko-KR', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    });
 
     // 카테고리별 아이콘
     const categoryIcons: Record<HMRLogCategory, string> = {

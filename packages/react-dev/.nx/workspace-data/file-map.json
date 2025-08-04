@@ -1,0 +1,231 @@
+{
+  "version": "6.0",
+  "nxVersion": "20.8.2",
+  "pathMappings": {},
+  "nxJsonPlugins": [],
+  "fileMap": {
+    "projectFileMap": {},
+    "nonProjectFiles": [
+      {
+        "file": "CHANGELOG.md",
+        "hash": "1500017661553284883"
+      },
+      {
+        "file": "README.md",
+        "hash": "5891813692056674972"
+      },
+      {
+        "file": "package.json",
+        "hash": "14548718004735679026"
+      },
+      {
+        "file": "src/actions/ActionContext.tsx",
+        "hash": "117102515107408787"
+      },
+      {
+        "file": "src/actions/ActionProvider.tsx",
+        "hash": "16578592400710437436"
+      },
+      {
+        "file": "src/actions/index.ts",
+        "hash": "13874878144078616086"
+      },
+      {
+        "file": "src/actions/utils/ActionHandlerUtils.ts",
+        "hash": "3799183463568021804"
+      },
+      {
+        "file": "src/actions/utils/index.ts",
+        "hash": "12432365634360370416"
+      },
+      {
+        "file": "src/dev-logging/index.ts",
+        "hash": "15500970925527161618"
+      },
+      {
+        "file": "src/dev-tools/index.ts",
+        "hash": "8220038862687629879"
+      },
+      {
+        "file": "src/dev-tools/types.ts",
+        "hash": "1149053754860455759"
+      },
+      {
+        "file": "src/hmr/auto-hmr-dashboard.tsx",
+        "hash": "4178678673216924510"
+      },
+      {
+        "file": "src/hmr/auto-hmr.ts",
+        "hash": "667222517560523029"
+      },
+      {
+        "file": "src/hmr/hmr-dev-dashboard.tsx",
+        "hash": "14331532436613546501"
+      },
+      {
+        "file": "src/hmr/hmr-logger.ts",
+        "hash": "17193648589966570873"
+      },
+      {
+        "file": "src/hmr/hmr-state-manager.ts",
+        "hash": "15437833855242418235"
+      },
+      {
+        "file": "src/hmr/index.ts",
+        "hash": "10262046991436041233"
+      },
+      {
+        "file": "src/hmr/react-hmr-hooks.tsx",
+        "hash": "5908958744848617949"
+      },
+      {
+        "file": "src/hmr/store-hmr-support.ts",
+        "hash": "6467260326880228872"
+      },
+      {
+        "file": "src/hooks/index.ts",
+        "hash": "17499216847376611522"
+      },
+      {
+        "file": "src/index.ts",
+        "hash": "17239691494978700861"
+      },
+      {
+        "file": "src/patterns/context-pattern.tsx",
+        "hash": "13753857781295487922"
+      },
+      {
+        "file": "src/patterns/index.ts",
+        "hash": "5610530758681715472"
+      },
+      {
+        "file": "src/stores/ARCHITECTURE.md",
+        "hash": "5155547914047559935"
+      },
+      {
+        "file": "src/stores/README-comparison.md",
+        "hash": "6383853117820632281"
+      },
+      {
+        "file": "src/stores/README-context-store-pattern.md",
+        "hash": "13895623375999085096"
+      },
+      {
+        "file": "src/stores/README.md",
+        "hash": "17199915125553044278"
+      },
+      {
+        "file": "src/stores/__tests__/Store.comparison.test.ts",
+        "hash": "8153946976129746593"
+      },
+      {
+        "file": "src/stores/core/EventBus.ts",
+        "hash": "2170644512592372457"
+      },
+      {
+        "file": "src/stores/core/Store.ts",
+        "hash": "17710057931271553760"
+      },
+      {
+        "file": "src/stores/core/StoreContext.tsx",
+        "hash": "6823323689869609409"
+      },
+      {
+        "file": "src/stores/core/StoreRegistry.ts",
+        "hash": "16052759060811567165"
+      },
+      {
+        "file": "src/stores/core/index.ts",
+        "hash": "8663154597842819126"
+      },
+      {
+        "file": "src/stores/core/types.ts",
+        "hash": "869076363719336740"
+      },
+      {
+        "file": "src/stores/hooks/index.ts",
+        "hash": "12092389114530734564"
+      },
+      {
+        "file": "src/stores/hooks/useLocalStore.ts",
+        "hash": "15935388394685390674"
+      },
+      {
+        "file": "src/stores/hooks/usePersistedStore.ts",
+        "hash": "974071229914436918"
+      },
+      {
+        "file": "src/stores/hooks/useRegistry.ts",
+        "hash": "1929402278224515812"
+      },
+      {
+        "file": "src/stores/hooks/useRegistryStore.ts",
+        "hash": "2094968005843017795"
+      },
+      {
+        "file": "src/stores/hooks/useStoreActions.ts",
+        "hash": "5027559459450139514"
+      },
+      {
+        "file": "src/stores/hooks/useStoreValue.ts",
+        "hash": "13219353847682674198"
+      },
+      {
+        "file": "src/stores/hooks/useStoreValueSafe.ts",
+        "hash": "5267982215412518232"
+      },
+      {
+        "file": "src/stores/index.ts",
+        "hash": "11297376385624822467"
+      },
+      {
+        "file": "src/stores/patterns/context-store-pattern.tsx",
+        "hash": "13698611424700689813"
+      },
+      {
+        "file": "src/stores/patterns/index.ts",
+        "hash": "18372484914000304108"
+      },
+      {
+        "file": "src/stores/patterns/isolation-hooks.ts",
+        "hash": "13836312399581722559"
+      },
+      {
+        "file": "src/stores/patterns/isolation-utils.ts",
+        "hash": "6845145588200425451"
+      },
+      {
+        "file": "src/stores/utils/comparison.ts",
+        "hash": "9159071133484056332"
+      },
+      {
+        "file": "src/stores/utils/immutable.ts",
+        "hash": "10744563849296537191"
+      },
+      {
+        "file": "src/stores/utils/index.ts",
+        "hash": "6787143098313983518"
+      },
+      {
+        "file": "src/stores/utils/registry-sync.ts",
+        "hash": "15394422903895025902"
+      },
+      {
+        "file": "src/stores/utils/store-selector.ts",
+        "hash": "16708250392470635372"
+      },
+      {
+        "file": "src/stores/utils/utils.ts",
+        "hash": "3135280811530518385"
+      },
+      {
+        "file": "tsconfig.json",
+        "hash": "9887417008456310562"
+      },
+      {
+        "file": "tsdown.config.ts",
+        "hash": "14386626286898953299"
+      }
+    ]
+  }
+}

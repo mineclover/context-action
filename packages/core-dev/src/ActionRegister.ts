@@ -370,6 +370,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         action,
         payload,
         error: error instanceof Error ? error : new Error(String(error)),
+        metrics,
       });
 
       throw error;

@@ -393,7 +393,7 @@ export interface ActionRegisterEvents<T extends ActionPayloadMap = ActionPayload
   'action:abort': { action: keyof T; payload: any; reason?: string };
   
   /** Emitted when action encounters an error */
-  'action:error': { action: keyof T; payload: any; error: Error };
+  'action:error': { action: keyof T; payload: any; error: Error; metrics?: ActionMetrics };
   
   /** Emitted when handler is registered */
   'handler:register': { action: keyof T; handlerId: string; config: HandlerConfig };

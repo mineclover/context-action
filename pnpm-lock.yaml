@@ -355,6 +355,9 @@ importers:
       '@context-action/core':
         specifier: workspace:*
         version: link:../core
+      '@context-action/logger':
+        specifier: workspace:*
+        version: link:../logger
     devDependencies:
       '@types/jest':
         specifier: ^29.5.0
