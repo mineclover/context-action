@@ -3,7 +3,7 @@
  * @module LogMonitorHooks
  */
 
-import { useMemo, useCallback } from 'react';
+import { useMemo } from 'react';
 import { ActionRegister } from '@context-action/react';
 import { createLogger } from '@context-action/logger';
 import type { Logger } from '@context-action/logger';
@@ -12,8 +12,7 @@ import { LogLevel } from '@context-action/logger';
 import type { 
   StableLoggerAPI, 
   ActionLogOptions, 
-  InternalLogActionMap, 
-  ToastOptions 
+  InternalLogActionMap
 } from './types';
 import { useLogMonitorContext } from './context';
 import { getActionMessage } from './utils';
@@ -67,7 +66,7 @@ export function useActionLogger(options: UseActionLoggerOptions = {}): StableLog
     // 액션 로그 핸들러
     register.register('_internal.log.action', ({ actionType, payload, options = {} }, controller) => {
       // 자동 계산된 데이터 추출
-      const autoCalc = options._autoCalculated || {} as any;
+      const autoCalc = options._autoCalculated || {} as { timestamp?: string; executionTime?: number };
       const timestamp = autoCalc.timestamp || new Date().toLocaleTimeString('ko-KR');
       const executionTime = autoCalc.executionTime || 0;
       
@@ -180,7 +179,7 @@ export function useActionLogger(options: UseActionLoggerOptions = {}): StableLog
 
   // 안정적인 API 생성
   const stableAPI = useMemo((): StableLoggerAPI => ({
-    logAction: (actionType: string, payload?: any, options: ActionLogOptions = {}) => {
+    logAction: (actionType: string, payload?: unknown, options: ActionLogOptions = {}) => {
       // 자동 계산: 실행 시작 시간 기록
       const startTime = performance.now();
       
@@ -210,7 +209,7 @@ export function useActionLogger(options: UseActionLoggerOptions = {}): StableLog
       });
     },
 
-    logError: (message: string, error?: Error | any, options: ActionLogOptions = {}) => {
+    logError: (message: string, error?: Error | unknown, options: ActionLogOptions = {}) => {
       internalActionRegister.dispatch('_internal.log.error', { message, error, options });
     },
 
@@ -234,9 +233,9 @@ export function useActionLoggerWithToast(): StableLoggerAPI {
     try {
       // Toast 시스템이 전역으로 등록되어 있는지 확인
       // ES6 dynamic import 대신 전역 객체 접근 시도
-      const globalThis = window as any;
-      if (globalThis.toastActionRegister) {
-        const toastActionRegister = globalThis.toastActionRegister;
+      const globalWindow = window as any;
+      if (globalWindow.toastActionRegister) {
+        const toastActionRegister = globalWindow.toastActionRegister;
         
         console.log('🍞 Toast system loaded from global:', !!toastActionRegister);
         
@@ -263,7 +262,7 @@ export function useActionLoggerWithToast(): StableLoggerAPI {
           if (toastActionRegister) {
             console.log('🍞 Toast system loaded via dynamic import:', !!toastActionRegister);
             // 전역에 등록하여 다음 번에 재사용 가능하도록 함
-            globalThis.toastActionRegister = toastActionRegister;
+            globalWindow.toastActionRegister = toastActionRegister;
           }
         }).catch((error) => {
           console.error('🍞 Dynamic import failed:', error);

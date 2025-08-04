@@ -1,14 +1,13 @@
-import React from 'react';
+import type React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import { 
   layoutVariants, 
   sidebarVariants, 
-  mainContentVariants, 
   navItemVariants,
+  mainContentVariants,
   type LayoutVariants,
-  type SidebarVariants,
-  type MainContentVariants
+  type SidebarVariants
 } from './ui/variants';
 
 interface LayoutProps {
@@ -30,6 +29,7 @@ function Layout({
     { path: '/', label: 'Home', category: 'main' as const },
     { path: '/core/basics', label: 'Core Basics', category: 'core' as const },
     { path: '/core/advanced', label: 'Core Advanced', category: 'core' as const },
+    { path: '/core/features', label: '🚀 Core Features', category: 'core' as const },
     { path: '/store/basics', label: 'Store Basics', category: 'store' as const },
     { path: '/store/full-demo', label: 'Store Full Demo', category: 'store' as const },
     { path: '/react/provider', label: '🔧 Unified Provider', category: 'react' as const },
@@ -38,11 +38,8 @@ function Layout({
     { path: '/unified-pattern/demo', label: '🚀 Unified Pattern', category: 'react' as const },
     { path: '/logger/demo', label: 'Logger System', category: 'logger' as const },
     { path: '/actionguard/demo', label: 'Action Guard', category: 'actionguard' as const },
+    { path: '/actionguard/test', label: '🧪 Dispatch Options Test', category: 'actionguard' as const },
     { path: '/examples/toast-config', label: '🍞 Toast Config Example', category: 'examples' as const },
-    { path: '/comparison/demo', label: '⚡ Store Comparison Demo', category: 'debug' as const },
-    { path: '/comparison/throttled', label: '⏱️ Throttled Loop Control', category: 'debug' as const },
-    { path: '/hmr/demo', label: '🔥 HMR Demo', category: 'dev' as const },
-    { path: '/hmr/auto', label: '🚀 Auto HMR', category: 'dev' as const },
   ];
 
   const isActive = (path: string) => location.pathname === path;
