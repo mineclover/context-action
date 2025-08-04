@@ -3,7 +3,6 @@
  * Provides rate limiting and user experience optimization for actions
  */
 
-import type { Logger } from '@context-action/logger';
 
 /**
  * Action guard state tracking for debouncing and throttling
@@ -60,10 +59,9 @@ interface GuardState {
  */
 export class ActionGuard {
   private guards = new Map<string, GuardState>();
-  private logger: Logger;
 
-  constructor(logger: Logger) {
-    this.logger = logger;
+  constructor() {
+    // ActionGuard without logger
   }
 
   /**
@@ -73,7 +71,6 @@ export class ActionGuard {
    * @returns Promise that resolves when debounce period is complete
    */
   async debounce(actionKey: string, debounceMs: number): Promise<boolean> {
-    this.logger.trace(`Checking debounce for '${actionKey}'`, { debounceMs });
 
     /** Get or create guard state for this action */
     let state = this.guards.get(actionKey);
@@ -90,14 +87,12 @@ export class ActionGuard {
     /** This implements the "debounce" behavior where rapid calls reset the timer */
     if (state.debounceTimer) {
       clearTimeout(state.debounceTimer);
-      this.logger.trace(`Cleared existing debounce timer for '${actionKey}'`);
     }
 
     /** Create new debounce promise that resolves after the delay period */
     /** The promise will only resolve if no new debounce requests arrive */
     return new Promise((resolve) => {
       state!.debounceTimer = setTimeout(() => {
-        this.logger.trace(`Debounce completed for '${actionKey}'`);
         /** Clean up timer reference to prevent memory leaks */
         state!.debounceTimer = undefined;
         /** Update last execution timestamp for throttling calculations */
@@ -105,7 +100,6 @@ export class ActionGuard {
         resolve(true);
       }, debounceMs);
       
-      this.logger.trace(`Set debounce timer for '${actionKey}'`, { delay: debounceMs });
     });
   }
 
@@ -116,7 +110,6 @@ export class ActionGuard {
    * @returns True if action should proceed, false if throttled
    */
   throttle(actionKey: string, throttleMs: number): boolean {
-    this.logger.trace(`Checking throttle for '${actionKey}'`, { throttleMs });
 
     /** Get or create guard state for this action */
     let state = this.guards.get(actionKey);
@@ -139,10 +132,6 @@ export class ActionGuard {
       state.lastExecuted = now;
       state.isThrottled = false;
       
-      this.logger.trace(`Throttle passed for '${actionKey}'`, {
-        timeSinceLastExecution,
-        throttleMs
-      });
       
       return true;
     }
@@ -150,7 +139,6 @@ export class ActionGuard {
     /** If already in throttled state, don't create duplicate timers */
     /** This prevents timer accumulation and unnecessary processing */
     if (state.isThrottled) {
-      this.logger.trace(`Action '${actionKey}' is already throttled`);
       return false;
     }
 
@@ -164,13 +152,8 @@ export class ActionGuard {
       /** Clear throttled state and timer reference */
       state!.isThrottled = false;
       state!.throttleTimer = undefined;
-      this.logger.trace(`Throttle period ended for '${actionKey}'`);
     }, remainingTime);
 
-    this.logger.trace(`Action '${actionKey}' throttled`, {
-      timeSinceLastExecution,
-      remainingTime
-    });
 
     return false;
   }
@@ -180,7 +163,6 @@ export class ActionGuard {
    * @param actionKey - Action key to clear
    */
   clearGuards(actionKey: string): void {
-    this.logger.trace(`Clearing guards for '${actionKey}'`);
     
     const state = this.guards.get(actionKey);
     if (state) {
@@ -195,7 +177,6 @@ export class ActionGuard {
       /** Remove guard state from memory */
       this.guards.delete(actionKey);
       
-      this.logger.debug(`Cleared guards for '${actionKey}'`);
     }
   }
 
@@ -203,7 +184,6 @@ export class ActionGuard {
    * Clear all guards
    */
   clearAll(): void {
-    this.logger.trace('Clearing all action guards');
     
     /** Iterate through all guard states and clear their timers */
     /** This prevents memory leaks when clearing the entire guard system */
@@ -220,7 +200,6 @@ export class ActionGuard {
     
     /** Remove all guard states from memory */
     this.guards.clear();
-    this.logger.debug('Cleared all action guards');
   }
 
   /**

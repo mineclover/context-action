@@ -23,11 +23,5 @@ export {
 	ActionRegister,
 } from "@context-action/core";
 
-export type { Logger, LogLevel } from "@context-action/logger";
-export {
-	ConsoleLogger,
-	createLogger,
-	getLogLevelFromEnv,
-} from "@context-action/logger";
 
 

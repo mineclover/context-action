@@ -54,9 +54,7 @@
     "url": "https://github.com/mineclover/context-action/issues"
   },
   "homepage": "https://github.com/mineclover/context-action#readme",
-  "dependencies": {
-    "@context-action/logger": "workspace:*"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/jest": "^29.5.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
