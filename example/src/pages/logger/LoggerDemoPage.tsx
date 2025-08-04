@@ -2,13 +2,15 @@ import React, { useState, useCallback, useEffect } from 'react';
 import {
   ActionRegister,
   ActionPayloadMap,
+} from '@context-action/react';
+import {
   ConsoleLogger,
   createLogger,
   Logger,
   getLogLevelFromEnv
-} from '@context-action/react';
+} from '@context-action/logger';
 import { LogLevel } from '@context-action/logger';
-import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
+import { PageWithLogMonitor, useActionLoggerWithToast, useLogMonitor } from '../../components/LogMonitor/';
 
 // 액션 타입 정의
 interface LoggerActionMap extends ActionPayloadMap {
@@ -18,11 +20,16 @@ interface LoggerActionMap extends ActionPayloadMap {
   batchLog: { count: number };
 }
 
-// 커스텀 로거 구현 예제
+// 커스텀 로거 구현 예제 (LogMonitor 통합)
 class MemoryLogger implements Logger {
   private logs: Array<{ level: string; message: string; timestamp: Date }> = [];
   
-  constructor(private level: LogLevel, private onLog?: (log: any) => void) {}
+  constructor(
+    private level: LogLevel, 
+    private onLog?: (log: any) => void,
+    private logMonitorAPI?: any // LogMonitor API 추가
+  ) {}
+  
   setLevel(level: LogLevel): void {
     this.level = level;
   }
@@ -42,6 +49,24 @@ class MemoryLogger implements Logger {
     };
     this.logs.push(log);
     this.onLog?.(log);
+    
+    // LogMonitor에도 로그 전송
+    if (this.logMonitorAPI) {
+      const levelMap = {
+        'TRACE': LogLevel.TRACE,
+        'DEBUG': LogLevel.DEBUG,
+        'INFO': LogLevel.INFO,
+        'WARN': LogLevel.WARN,
+        'ERROR': LogLevel.ERROR
+      };
+      
+      this.logMonitorAPI.addLog({
+        level: levelMap[level as keyof typeof levelMap] || LogLevel.INFO,
+        type: 'memory-logger',
+        message: `[Memory Logger] ${message}`,
+        details: { args, timestamp: log.timestamp.toLocaleTimeString() }
+      });
+    }
   }
   
   trace(message: string, ...args: any[]): void {
@@ -100,11 +125,13 @@ function LogLevelSelector({ level, onChange }: { level: LogLevel; onChange: (lev
   );
 }
 
-// ConsoleLogger 데모
+// ConsoleLogger 데모 (LogMonitor 통합)
 function ConsoleLoggerDemo() {
   const [logLevel, setLogLevel] = useState(LogLevel.DEBUG);
   const [logger, setLogger] = useState(() => new ConsoleLogger(logLevel));
-  const [actionRegister] = useState(() => new ActionRegister<LoggerActionMap>({ logger }));
+  const [actionRegister] = useState(() => new ActionRegister<LoggerActionMap>({ name: 'LoggerDemo' }));
+  const actionLogger = useActionLoggerWithToast();
+  const logMonitor = useLogMonitor();
 
   useEffect(() => {
     // 로그 레벨 변경 시 새 로거 생성
@@ -113,21 +140,40 @@ function ConsoleLoggerDemo() {
   }, [logLevel, actionRegister]);
   
   useEffect(() => {
-    // 액션 핸들러 등록
+    // 액션 핸들러 등록 (LogMonitor와 통합)
     const unsubscribe1 = actionRegister.register('performAction', ({ type, data }, controller) => {
       logger.info(`Performing action: ${type}`, data);
+      // LogMonitor에 액션 로그 추가
+      actionLogger.logAction('performAction', { type, data }, {
+        context: 'ConsoleLogger Demo',
+        toast: { type: 'info', message: `액션 ${type} 실행됨` }
+      });
       controller.next();
     });
     
     const unsubscribe2 = actionRegister.register('throwError', ({ message }, controller) => {
       logger.error('Error occurred:', message);
+      // LogMonitor에 에러 로그 추가
+      actionLogger.logError(`ConsoleLogger Error: ${message}`, new Error(message), {
+        context: 'ConsoleLogger Demo',
+        toast: true
+      });
       throw new Error(message);
     });
     
     const unsubscribe3 = actionRegister.register('asyncAction', async ({ delay }, controller) => {
       logger.debug(`Starting async action with ${delay}ms delay`);
+      actionLogger.logSystem(`비동기 액션 시작 (${delay}ms 지연)`, {
+        context: 'ConsoleLogger Demo'
+      });
+      
       await new Promise(resolve => setTimeout(resolve, delay));
+      
       logger.debug('Async action completed');
+      actionLogger.logAction('asyncAction', { delay }, {
+        context: 'ConsoleLogger Demo',
+        toast: { type: 'success', message: `비동기 액션 완료 (${delay}ms)` }
+      });
       controller.next();
     });
     
@@ -136,7 +182,7 @@ function ConsoleLoggerDemo() {
       unsubscribe2();
       unsubscribe3();
     };
-  }, [actionRegister, logger]);
+  }, [actionRegister, logger, actionLogger]);
   
   const testActions = useCallback(() => {
     logger.trace('Testing trace level');
@@ -144,7 +190,13 @@ function ConsoleLoggerDemo() {
     logger.info('Testing info level');
     logger.warn('Testing warn level');
     logger.error('Testing error level');
-  }, [logger]);
+    
+    // LogMonitor에도 로그 레벨 테스트 기록
+    actionLogger.logSystem('모든 로그 레벨 테스트 완료', {
+      context: 'ConsoleLogger Demo',
+      toast: { type: 'info', message: '로그 레벨 테스트 완료' }
+    });
+  }, [logger, actionLogger]);
   
   const dispatchAction = useCallback(() => {
     actionRegister.dispatch('performAction', { type: 'TEST', data: { value: 42 } });
@@ -187,14 +239,18 @@ function ConsoleLoggerDemo() {
   );
 }
 
-// Memory Logger 데모
+// Memory Logger 데모 (LogMonitor 통합)
 function MemoryLoggerDemo() {
   const [logLevel, setLogLevel] = useState(LogLevel.DEBUG);
   const [logs, setLogs] = useState<Array<{ level: string; message: string; timestamp: Date }>>([]);
+  const actionLogger = useActionLoggerWithToast();
+  const logMonitor = useLogMonitor();
+  
   const [memoryLogger] = useState(() => new MemoryLogger(logLevel, (log) => {
     setLogs(prev => [...prev, log]);
-  }));
-  const [actionRegister] = useState(() => new ActionRegister<LoggerActionMap>({ logger: memoryLogger }));
+  }, logMonitor)); // LogMonitor API 전달
+  
+  const [actionRegister] = useState(() => new ActionRegister<LoggerActionMap>({ name: 'MemoryLoggerDemo' }));
   
   useEffect(() => {
     // 로그 레벨 변경 시 처리
@@ -202,16 +258,23 @@ function MemoryLoggerDemo() {
   }, [logLevel, memoryLogger]);
   
   useEffect(() => {
-    // 액션 핸들러 등록
+    // 액션 핸들러 등록 (LogMonitor와 통합)
     const unsubscribe = actionRegister.register('batchLog', ({ count }, controller) => {
       for (let i = 0; i < count; i++) {
         memoryLogger.info(`Batch log entry ${i + 1} of ${count}`);
       }
+      
+      // LogMonitor에 배치 로그 완료 기록
+      actionLogger.logAction('batchLog', { count }, {
+        context: 'MemoryLogger Demo',
+        toast: { type: 'success', message: `${count}개 배치 로그 완료` }
+      });
+      
       controller.next();
     });
     
     return () => unsubscribe();
-  }, [actionRegister, memoryLogger]);
+  }, [actionRegister, memoryLogger, actionLogger]);
   
   const testLogger = useCallback(() => {
     memoryLogger.trace('Memory logger trace');
@@ -219,7 +282,13 @@ function MemoryLoggerDemo() {
     memoryLogger.info('Memory logger info');
     memoryLogger.warn('Memory logger warning');
     memoryLogger.error('Memory logger error');
-  }, [memoryLogger]);
+    
+    // LogMonitor에 테스트 완료 기록
+    actionLogger.logSystem('Memory Logger 레벨 테스트 완료', {
+      context: 'MemoryLogger Demo',
+      toast: { type: 'info', message: 'Memory Logger 테스트 완료' }
+    });
+  }, [memoryLogger, actionLogger]);
   
   const batchLog = useCallback(() => {
     actionRegister.dispatch('batchLog', { count: 5 });
@@ -228,7 +297,13 @@ function MemoryLoggerDemo() {
   const clearLogs = useCallback(() => {
     setLogs([]);
     memoryLogger.clearLogs();
-  }, [memoryLogger]);
+    
+    // LogMonitor에 로그 초기화 기록
+    actionLogger.logSystem('Memory Logger 로그 초기화', {
+      context: 'MemoryLogger Demo',
+      toast: { type: 'info', message: '로그가 초기화되었습니다' }
+    });
+  }, [memoryLogger, actionLogger]);
   
   return (
     <div className="demo-card logger-card">
@@ -267,11 +342,12 @@ function MemoryLoggerDemo() {
   );
 }
 
-// Logger 팩토리 데모
+// Logger 팩토리 데모 (LogMonitor 통합)
 function LoggerFactoryDemo() {
   const [envLevel, setEnvLevel] = useState('DEBUG');
   const [customPrefix, setCustomPrefix] = useState('[App]');
   const [logger, setLogger] = useState<Logger>();
+  const actionLogger = useActionLoggerWithToast();
   
   const createCustomLogger = useCallback(() => {
     // 환경 변수 시뮬레이션
@@ -281,7 +357,13 @@ function LoggerFactoryDemo() {
     
     // 테스트 로그
     newLogger.info('Logger created with level:', LogLevel[level]);
-  }, [envLevel, customPrefix]);
+    
+    // LogMonitor에 로거 생성 기록
+    actionLogger.logSystem(`Logger Factory에서 로거 생성 (레벨: ${LogLevel[level]})`, {
+      context: 'LoggerFactory Demo',
+      toast: { type: 'success', message: '새 로거가 생성되었습니다' }
+    });
+  }, [envLevel, customPrefix, actionLogger]);
   
   const testLogger = useCallback(() => {
     if (!logger) return;
@@ -291,7 +373,13 @@ function LoggerFactoryDemo() {
     logger.info('Factory logger info');
     logger.warn('Factory logger warning');
     logger.error('Factory logger error');
-  }, [logger]);
+    
+    // LogMonitor에 팩토리 로거 테스트 기록
+    actionLogger.logSystem('Factory Logger 레벨 테스트 완료', {
+      context: 'LoggerFactory Demo',
+      toast: { type: 'info', message: 'Factory Logger 테스트 완료' }
+    });
+  }, [logger, actionLogger]);
   
   return (
     <div className="demo-card">

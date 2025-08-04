@@ -95,25 +95,6 @@ const customStyles = `
     }
   }
   
-  /* 다크 모드 지원 */
-  @media (prefers-color-scheme: dark) {
-    .bg-white {
-      background-color: rgb(31 41 55);
-      color: rgb(229 231 235);
-    }
-    
-    .border-gray-200 {
-      border-color: rgb(75 85 99);
-    }
-    
-    .text-gray-700 {
-      color: rgb(209 213 219);
-    }
-    
-    .bg-gray-50 {
-      background-color: rgb(55 65 81);
-    }
-  }
 `;
 import {
   ActionPayloadMap,
@@ -242,35 +223,77 @@ function GlobalContextProvider({ children }: { children: React.ReactNode }) {
             {children}
             
             <div className="mt-6 pt-4 border-t border-blue-200">
-              <h4 className="text-sm font-medium text-blue-800 mb-3">🔄 Event Flow Visualization:</h4>
+              <h4 className="text-sm font-medium text-blue-800 mb-3">🔄 Real-time Context Communication Flow:</h4>
               <div className="space-y-2 mb-4">
-                {eventFlow.slice(-3).map((flow, index) => (
-                  <div key={flow.id} className="flex items-center gap-2 text-xs bg-white rounded p-2 border border-blue-200 animate-slide-in-right animate-pulse-glow" style={{ animationDelay: `${index * 0.1}s` }}>
-                    <div className="flex items-center gap-1">
-                      <span className="px-2 py-1 bg-green-100 text-green-700 rounded font-medium transition-smooth hover:scale-110">{flow.from}</span>
-                      <span className="text-blue-500 animate-flow-arrow">→</span>
-                      <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded font-medium transition-smooth hover:scale-110">{flow.to}</span>
+                {eventFlow.slice(-5).map((flow, index) => {
+                  const getContextIcon = (contextName: string) => {
+                    if (contextName.includes('global')) return '🌍';
+                    if (contextName.includes('local')) return '🏠';
+                    if (contextName.includes('nested')) return '🧩';
+                    return '⚡';
+                  };
+                  
+                  const getContextColor = (contextName: string) => {
+                    if (contextName.includes('global')) return 'bg-blue-100 text-blue-700 border-blue-300';
+                    if (contextName.includes('local')) return 'bg-green-100 text-green-700 border-green-300';
+                    if (contextName.includes('nested')) return 'bg-purple-100 text-purple-700 border-purple-300';
+                    return 'bg-gray-100 text-gray-700 border-gray-300';
+                  };
+                  
+                  return (
+                    <div key={flow.id} className="flex items-center gap-3 text-xs bg-white rounded-lg p-3 border border-blue-200 animate-slide-in-right shadow-sm hover:shadow-md transition-all duration-300" style={{ animationDelay: `${index * 0.1}s` }}>
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <div className={`flex items-center gap-1 px-2 py-1 rounded border ${getContextColor(flow.from)} font-medium transition-all duration-200 hover:scale-105`}>
+                          <span>{getContextIcon(flow.from)}</span>
+                          <span className="truncate max-w-20">{flow.from}</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-blue-500">
+                          <span className="animate-flow-arrow text-lg">→</span>
+                          <span className="text-xs font-medium">sends</span>
+                        </div>
+                        <div className={`flex items-center gap-1 px-2 py-1 rounded border ${getContextColor(flow.to)} font-medium transition-all duration-200 hover:scale-105`}>
+                          <span>{getContextIcon(flow.to)}</span>
+                          <span className="truncate max-w-20">{flow.to}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="px-2 py-1 bg-amber-100 text-amber-800 rounded font-medium border border-amber-200">
+                          {flow.action}
+                        </div>
+                        <div className="text-blue-500 text-xs px-2 py-1 bg-gray-50 rounded border">
+                          {new Date(flow.timestamp).toLocaleTimeString('ko-KR')}
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex-1 text-center font-medium text-blue-800 px-2 py-1 bg-blue-50 rounded">{flow.action}</div>
-                    <div className="text-blue-500 text-xs px-2 py-1 bg-gray-50 rounded">{new Date(flow.timestamp).toLocaleTimeString('ko-KR')}</div>
-                  </div>
-                ))}
+                  );
+                })}
                 {eventFlow.length === 0 && (
-                  <div className="text-xs text-blue-600 italic p-3 text-center bg-blue-50 rounded border border-blue-200 border-dashed transition-smooth hover:bg-blue-100">
-                    <div className="animate-pulse">💫 Cross-context events will appear here</div>
-                    <div className="text-xs mt-1 opacity-70">Click buttons to see event propagation flow</div>
+                  <div className="text-xs text-blue-600 italic p-4 text-center bg-blue-50 rounded-lg border border-blue-200 border-dashed transition-smooth hover:bg-blue-100">
+                    <div className="animate-pulse mb-2">💫 Cross-context communication will appear here</div>
+                    <div className="text-xs opacity-70">Click action buttons to see real-time event flow between contexts</div>
+                    <div className="text-xs mt-2 font-medium">
+                      Example flows: Local → Global, Nested → Local → Global
+                    </div>
                   </div>
                 )}
               </div>
               
-              <h4 className="text-sm font-medium text-blue-800 mb-3">Recent Global Events:</h4>
-              <div className="space-y-2">
-                {globalEvents.slice(-3).map((event) => (
-                  <div key={event.id} className="flex justify-between items-center text-xs bg-white rounded p-2 border border-blue-200">
-                    <span className="font-medium text-blue-700">{event.event}</span>
-                    <span className="text-blue-500">{event.timestamp}</span>
+              <h4 className="text-sm font-medium text-blue-800 mb-3">📝 Recent Global Events Log:</h4>
+              <div className="space-y-1 max-h-32 overflow-y-auto">
+                {globalEvents.slice(-5).map((event) => (
+                  <div key={event.id} className="flex justify-between items-center text-xs bg-white rounded p-2 border border-blue-200 hover:bg-blue-50 transition-colors duration-200">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+                      <span className="font-medium text-blue-700">{event.event}</span>
+                    </div>
+                    <span className="text-blue-500 font-mono">{event.timestamp}</span>
                   </div>
                 ))}
+                {globalEvents.length === 0 && (
+                  <div className="text-xs text-gray-500 italic p-3 text-center bg-gray-50 rounded border border-dashed">
+                    No global events recorded yet
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
@@ -735,6 +758,9 @@ function InteractiveControls() {
   const [lastActionInfo, setLastActionInfo] = useState<{ action: string; timestamp: number } | null>(null);
   const [buttonStates, setButtonStates] = useState<Record<string, 'idle' | 'loading' | 'success'>>({});
   
+  // Note: This framework uses useAction() calls inside callbacks
+  // This violates React Rules of Hooks but is part of the framework's design
+  
   // 버튼 상태 관리 함수
   const setButtonState = useCallback((buttonId: string, state: 'idle' | 'loading' | 'success') => {
     setButtonStates(prev => ({ ...prev, [buttonId]: state }));
@@ -761,18 +787,6 @@ function InteractiveControls() {
       setButtonState(buttonId, 'idle');
     }
   }, [setButtonState]);
-  
-  // 각 컨텍스트 레벨에 따른 Action dispatch 함수들
-  const getActionDispatcher = () => {
-    if (contextInfo.level === 'Global') {
-      return GlobalContext.useAction();
-    } else if (contextInfo.level === 'Local') {
-      return LocalContext.useAction();
-    } else if (contextInfo.level.includes('Nested')) {
-      return NestedContext.useAction();
-    }
-    return null;
-  };
   
   // 버튼 클래스명 생성 함수
   const getButtonClassName = (buttonId: string, baseVariant: string) => {
@@ -898,8 +912,10 @@ function InteractiveControls() {
         </div>
         
         {/* 액션 버튼 그리드 */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">Available Actions</div>
+          
+          {/* 기본 액션들 */}
           <div className="grid grid-cols-2 gap-2">
             <Button 
               size="sm" 
@@ -966,6 +982,68 @@ function InteractiveControls() {
               </>
             )}
           </div>
+          
+          {/* Cross-Context Communication 섹션 */}
+          <div className="border-t border-gray-200 pt-3 mt-4">
+            <div className="text-xs font-medium text-purple-600 uppercase tracking-wide mb-2 flex items-center gap-1">
+              <span>🔄</span>
+              Cross-Context Communication
+            </div>
+            <div className="text-xs text-gray-500 mb-3 p-2 bg-purple-50 rounded border border-purple-200">
+              These buttons demonstrate direct communication between different contexts
+            </div>
+            <div className="grid grid-cols-1 gap-2">
+              {contextInfo.level.includes('Local') && (
+                <Button 
+                  size="sm" 
+                  variant="primary"
+                  onClick={() => executeWithFeedback('cross-local-to-global', 'Local → Global Communication', () => {
+                    const localDispatch = LocalContext.useAction();
+                    localDispatch('requestGlobal', { 
+                      request: `Cross-context message from ${contextInfo.id} at ${new Date().toLocaleTimeString()}` 
+                    });
+                  })}
+                  className={`${getButtonClassName('cross-local-to-global', 'primary')} flex items-center justify-center gap-2 p-3 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white border-0`}
+                  disabled={buttonStates['cross-local-to-global'] === 'loading'}
+                >
+                  {getButtonText('cross-local-to-global', '🏠→🌍 Local to Global')}
+                </Button>
+              )}
+              
+              {contextInfo.level.includes('Nested') && (
+                <>
+                  <Button 
+                    size="sm" 
+                    variant="primary"
+                    onClick={() => executeWithFeedback('cross-nested-to-global', 'Nested → Global Communication', () => {
+                      const globalDispatch = GlobalContext.useAction();
+                      globalDispatch('globalMessage', { 
+                        message: `Direct message from ${contextInfo.id}: Nested context speaking directly to Global!` 
+                      });
+                    })}
+                    className={`${getButtonClassName('cross-nested-to-global', 'primary')} flex items-center justify-center gap-2 p-3 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white border-0`}
+                    disabled={buttonStates['cross-nested-to-global'] === 'loading'}
+                  >
+                    {getButtonText('cross-nested-to-global', '🧩→🌍 Nested to Global')}
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="secondary"
+                    onClick={() => executeWithFeedback('cross-nested-bubble', 'Nested → Parent Bubble', () => {
+                      const nestedDispatch = NestedContext.useAction();
+                      nestedDispatch('bubbleUp', { 
+                        data: `Bubble up chain from ${contextInfo.id} → Parent → Global` 
+                      });
+                    })}
+                    className={`${getButtonClassName('cross-nested-bubble', 'secondary')} flex items-center justify-center gap-2 p-3 text-sm font-medium rounded-lg transition-all duration-300 hover:scale-105 bg-gradient-to-r from-purple-400 to-green-400 hover:from-purple-500 hover:to-green-500 text-white border-0`}
+                    disabled={buttonStates['cross-nested-bubble'] === 'loading'}
+                  >
+                    {getButtonText('cross-nested-bubble', '🧩→🏠→🌍 Bubble Chain')}
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
         </div>
         
         {/* 실시간 피드백 표시 */}
@@ -1006,57 +1084,78 @@ function ReactContextPage() {
             {/* 컨텍스트 설명 */}
             <Card>
               <CardContent className="p-4">
-                <h3 className="text-md font-semibold text-gray-900 mb-3">🏗️ Context Hierarchy & Event Flow</h3>
+                <h3 className="text-md font-semibold text-gray-900 mb-3">🏗️ Context Architecture & Communication Flow</h3>
                 <div className="text-sm space-y-3">
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded">
+                  {/* Global Context */}
+                  <div className="p-3 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg shadow-sm">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center text-blue-600 font-medium">
-                        🌍 Global Context (Event Collector)
+                        <span className="text-lg mr-2">🌍</span>
+                        Global Context (Event Hub)
                       </div>
-                      <div className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
-                        Receives all events
+                      <div className="flex gap-2">
+                        <div className="text-xs px-2 py-1 bg-blue-200 text-blue-800 rounded font-medium">
+                          Collects All Events
+                        </div>
+                        <div className="text-xs px-2 py-1 bg-green-200 text-green-800 rounded font-medium">
+                          Cross-Context Router
+                        </div>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="ml-4 space-y-2">
+                  {/* Local Contexts */}
+                  <div className="ml-4 space-y-3">
                     <div className="relative">
-                      <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-300"></div>
-                      <div className="pl-4 p-2 bg-green-50 border border-green-200 rounded">
+                      <div className="absolute -left-4 top-0 bottom-0 w-px bg-gradient-to-b from-blue-300 to-green-300"></div>
+                      <div className="absolute -left-4 top-6 w-4 h-px bg-blue-400"></div>
+                      
+                      <div className="pl-2 p-3 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg shadow-sm">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center text-green-600 font-medium">
-                            🏠 Local Context A
+                            <span className="text-lg mr-2">🏠</span>
+                            Local Context A
                           </div>
                           <div className="flex gap-1">
-                            <div className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded">
-                              Bubbles up ↗️
+                            <div className="text-xs px-2 py-1 bg-green-200 text-green-800 rounded font-medium">
+                              Can send to Global ↗️
                             </div>
                           </div>
                         </div>
                       </div>
                       
-                      <div className="ml-8 mt-2 space-y-2">
+                      {/* Nested Contexts under Local A */}
+                      <div className="ml-6 mt-3 space-y-2">
                         <div className="relative">
-                          <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-300"></div>
-                          <div className="pl-4 p-2 bg-purple-50 border border-purple-200 rounded">
+                          <div className="absolute -left-6 top-0 bottom-0 w-px bg-gradient-to-b from-green-300 to-purple-300"></div>
+                          <div className="absolute -left-6 top-6 w-6 h-px bg-green-400"></div>
+                          
+                          <div className="pl-2 p-2 bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded shadow-sm">
                             <div className="flex items-center justify-between">
-                              <div className="flex items-center text-purple-600 font-medium">
-                                🧩 Nested Level 1
+                              <div className="flex items-center text-purple-600 font-medium text-sm">
+                                <span className="mr-2">🧩</span>
+                                Nested Level 1
                               </div>
-                              <div className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded">
-                                Bubbles up ↗️
+                              <div className="text-xs px-2 py-1 bg-purple-200 text-purple-800 rounded font-medium">
+                                Direct to Global OR Bubble ↗️
                               </div>
                             </div>
                           </div>
                           
-                          <div className="ml-8 mt-2">
-                            <div className="p-2 bg-orange-50 border border-orange-200 rounded">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center text-orange-600 font-medium">
-                                  🧩 Nested Level 2
-                                </div>
-                                <div className="text-xs px-2 py-1 bg-orange-100 text-orange-700 rounded">
-                                  Bubbles up ↗️
+                          <div className="ml-6 mt-2">
+                            <div className="relative">
+                              <div className="absolute -left-6 top-0 bottom-0 w-px bg-gradient-to-b from-purple-300 to-orange-300"></div>
+                              <div className="absolute -left-6 top-4 w-6 h-px bg-purple-400"></div>
+                              
+                              <div className="pl-2 p-2 bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded shadow-sm">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center text-orange-600 font-medium text-sm">
+                                    <span className="mr-2">🧩</span>
+                                    Nested Level 2
+                                  </div>
+                                  <div className="text-xs px-2 py-1 bg-orange-200 text-orange-800 rounded font-medium">
+                                    Chain: Level2→Level1→Local→Global
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -1065,27 +1164,50 @@ function ReactContextPage() {
                       </div>
                     </div>
                     
-                    <div className="relative mt-3">
-                      <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-300"></div>
-                      <div className="pl-4 p-2 bg-green-50 border border-green-200 rounded">
+                    {/* Local Context B */}
+                    <div className="relative">
+                      <div className="absolute -left-4 top-0 bottom-0 w-px bg-gradient-to-b from-blue-300 to-green-300"></div>
+                      <div className="absolute -left-4 top-6 w-4 h-px bg-blue-400"></div>
+                      
+                      <div className="pl-2 p-3 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg shadow-sm">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center text-green-600 font-medium">
-                            🏠 Local Context B
+                            <span className="text-lg mr-2">🏠</span>
+                            Local Context B
                           </div>
-                          <div className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded">
-                            Bubbles up ↗️
+                          <div className="text-xs px-2 py-1 bg-green-200 text-green-800 rounded font-medium">
+                            Can send to Global ↗️
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded">
+                  {/* Communication Rules */}
+                  <div className="mt-4 p-4 bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-lg">
                     <div className="text-xs text-gray-600">
-                      <div className="font-medium mb-1">💡 Event Propagation Rules:</div>
-                      <div>• Child contexts bubble events up to parent contexts</div>
-                      <div>• Global context receives and logs all events</div>
-                      <div>• Cross-context communication flows through global dispatcher</div>
+                      <div className="font-medium mb-2 text-gray-800 flex items-center gap-2">
+                        <span>💡</span>
+                        Cross-Context Communication Patterns:
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-green-600">🔄</span>
+                          <span>Direct dispatch between any contexts</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-blue-600">⬆️</span>
+                          <span>Event bubbling through hierarchy</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-purple-600">🌐</span>
+                          <span>Global context as central hub</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-orange-600">🔗</span>
+                          <span>Chained communication paths</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

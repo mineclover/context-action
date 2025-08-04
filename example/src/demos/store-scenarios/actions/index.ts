@@ -1,4 +1,5 @@
-import { ActionRegister, createLogger } from '@context-action/react';
+import { ActionRegister } from '@context-action/react';
+import { createLogger } from '@context-action/logger';
 import { LogLevel } from '@context-action/logger';
 import { setupSelectiveActionToast } from '../../../components/ToastSystem';
 import type { StoreFullActionMap, TodoItem, ChatMessage, NotificationItem } from '../types';
@@ -24,7 +25,7 @@ import type { StoreFullActionMap, TodoItem, ChatMessage, NotificationItem } from
 
 // 로거 및 액션 레지스터 설정
 export const logger = createLogger(LogLevel.DEBUG);
-export const storeActionRegister = new ActionRegister<StoreFullActionMap>({ logger });
+export const storeActionRegister = new ActionRegister<StoreFullActionMap>({ name: 'StoreActions' });
 
 // 토스트 시스템과 연동 - 주요 액션들만 추적
 const trackedActions = [
