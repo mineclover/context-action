@@ -10,7 +10,7 @@
 
 import React, { createContext, useContext, useMemo, ReactNode, useId, useRef } from 'react';
 import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig, ActionRegisterConfig } from '@context-action/core';
-import { Logger, LogLevel, createLogger } from '@context-action/logger';
+import { LogLevel } from '@context-action/logger';
 import { StoreRegistry } from '../stores/core/StoreRegistry';
 import { generateStoreName, getOrCreateRegistryStore } from '../stores/patterns/isolation-utils';
 import { createStore } from '../stores/core/Store';
@@ -20,12 +20,8 @@ import type { ComparisonOptions } from '../stores/utils/comparison';
  * 통합 Context 설정 옵션
  */
 export interface ContextPatternConfig extends ActionRegisterConfig {
-  /** Custom logger implementation */
-  logger?: Logger;
   /** Log level for the logger */
   logLevel?: LogLevel;
-  /** Name identifier for this context instance */
-  name?: string;
   /** Whether to enable debug mode */
   debug?: boolean;
 }
@@ -36,7 +32,6 @@ export interface ContextPatternConfig extends ActionRegisterConfig {
 export interface UnifiedContextType<T extends ActionPayloadMap = ActionPayloadMap> {
   storeRegistry: StoreRegistry;
   actionRegisterRef: React.RefObject<ActionRegister<T>>;
-  logger: Logger;
 }
 
 /**
@@ -174,7 +169,6 @@ export function createContextPattern<T extends ActionPayloadMap = ActionPayloadM
     registryId?: string;
   }) {
     const componentId = useId();
-    const logger = config?.logger || createLogger(config?.logLevel);
     
     // Store Registry 생성
     const storeRegistry = useMemo(() => {
@@ -190,10 +184,7 @@ export function createContextPattern<T extends ActionPayloadMap = ActionPayloadM
     
     // Action Register 생성
     const actionRegisterRef = useRef(new ActionRegister<T>({
-      logger,
-      logLevel: config?.logLevel,
-      name: config?.name || `${contextName}-action-${componentId}`,
-      debug: config?.debug
+      name: config?.name || `${contextName}-action-${componentId}`
     }));
     
     if (process.env.NODE_ENV === 'development' && config?.debug) {
@@ -205,9 +196,8 @@ export function createContextPattern<T extends ActionPayloadMap = ActionPayloadM
     
     const contextValue = useMemo(() => ({
       storeRegistry,
-      actionRegisterRef,
-      logger
-    }), [storeRegistry, logger]);
+      actionRegisterRef
+    }), [storeRegistry]);
     
     return (
       <UnifiedContext.Provider value={contextValue}>
@@ -343,7 +333,7 @@ export function createContextPattern<T extends ActionPayloadMap = ActionPayloadM
    * Action dispatch Hook
    */
   function useAction(): ActionRegister<T>['dispatch'] {
-    const { actionRegisterRef, logger } = useUnifiedContext();
+    const { actionRegisterRef } = useUnifiedContext();
     
     return useMemo(() => {
       if (!actionRegisterRef.current) {
@@ -352,11 +342,8 @@ export function createContextPattern<T extends ActionPayloadMap = ActionPayloadM
       
       const boundDispatch = actionRegisterRef.current.dispatch.bind(actionRegisterRef.current);
       
-      return ((action: any, payload?: any) => {
-        logger.debug('Unified Context dispatch', { action, payload });
-        return boundDispatch(action, payload);
-      }) as ActionRegister<T>['dispatch'];
-    }, [actionRegisterRef.current, logger]);
+      return boundDispatch as ActionRegister<T>['dispatch'];
+    }, [actionRegisterRef.current]);
   }
   
   /**
@@ -367,18 +354,13 @@ export function createContextPattern<T extends ActionPayloadMap = ActionPayloadM
     handler: ActionHandler<T[K]>,
     config?: HandlerConfig
   ) {
-    const { actionRegisterRef, logger } = useUnifiedContext();
+    const { actionRegisterRef } = useUnifiedContext();
     const componentId = useId();
     
     React.useEffect(() => {
       if (!actionRegisterRef.current) {
         throw new Error('ActionRegister is not initialized');
       }
-      
-      logger.debug('Unified Context handler registering', {
-        action: String(action),
-        componentId
-      });
       
       const unregister = actionRegisterRef.current.register(
         action,
@@ -387,13 +369,9 @@ export function createContextPattern<T extends ActionPayloadMap = ActionPayloadM
       );
       
       return () => {
-        logger.debug('Unified Context handler unregistering', {
-          action: String(action),
-          componentId
-        });
         unregister();
       };
-    }, [action, handler, config?.id, config?.priority, config?.blocking, componentId, actionRegisterRef.current, logger]);
+    }, [action, handler, config?.id, config?.priority, config?.blocking, componentId, actionRegisterRef.current]);
   }
   
   /**
@@ -414,37 +392,22 @@ export function createContextPattern<T extends ActionPayloadMap = ActionPayloadM
    * 전체 정리 Hook
    */
   function useClearAll() {
-    const { storeRegistry, actionRegisterRef, logger } = useUnifiedContext();
+    const { storeRegistry, actionRegisterRef } = useUnifiedContext();
     
     return useMemo(() => ({
       clearStores: () => {
-        const clearedCount = storeRegistry.getStoreCount();
         storeRegistry.clear();
-        
-        if (process.env.NODE_ENV === 'development') {
-          logger.debug(`Store Registry cleared: ${clearedCount} stores`);
-        }
       },
       clearActions: () => {
         if (actionRegisterRef.current) {
           actionRegisterRef.current.clearAll();
-          
-          if (process.env.NODE_ENV === 'development') {
-            logger.debug(`Action Register cleared`);
-          }
         }
       },
       clearAll: () => {
-        const storeCount = storeRegistry.getStoreCount();
-        
         storeRegistry.clear();
         actionRegisterRef.current?.clearAll();
-        
-        if (process.env.NODE_ENV === 'development') {
-          logger.debug(`Unified Context cleared: ${storeCount} stores and all handlers`);
-        }
       }
-    }), [storeRegistry, actionRegisterRef.current, logger]);
+    }), [storeRegistry, actionRegisterRef.current]);
   }
   
   /**

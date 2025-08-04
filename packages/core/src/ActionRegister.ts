@@ -84,15 +84,39 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
 
   async dispatch<K extends keyof T>(
     action: K,
-    payload?: T[K]
+    payload?: T[K],
+    options?: import('./types.js').DispatchOptions
   ): Promise<void> {
     const pipeline = this.pipelines.get(action);
     if (!pipeline || pipeline.length === 0) {
       return;
     }
 
-    // Determine execution mode for this action
-    const currentExecutionMode = this.actionExecutionModes.get(action) || this.executionMode;
+    // Apply ActionGuard controls if specified in options
+    if (options) {
+      const actionKey = String(action);
+      
+      // Handle debounce - wait for delay after last call
+      if (options.debounce !== undefined) {
+        const shouldProceed = await this.actionGuard.debounce(actionKey, options.debounce);
+        if (!shouldProceed) {
+          return; // Debounced - don't execute
+        }
+      }
+      
+      // Handle throttle - limit execution frequency
+      if (options.throttle !== undefined) {
+        const shouldProceed = this.actionGuard.throttle(actionKey, options.throttle);
+        if (!shouldProceed) {
+          return; // Throttled - don't execute
+        }
+      }
+    }
+
+    // Determine execution mode for this action (with option override)
+    const currentExecutionMode = options?.executionMode || 
+                                this.actionExecutionModes.get(action) || 
+                                this.executionMode;
 
     // Create pipeline execution context
     const context: PipelineContext<T[K]> = {

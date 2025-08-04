@@ -96,8 +96,6 @@ export function ActionProvider({ children, config }: ActionProviderProps) {
   
   if (!actionRegisterRef.current) {
     actionRegisterRef.current = new ActionRegister(config);
-    if (config?.debug) {
-    }
   }
 
   const contextValue: ActionContextType<any> = {
@@ -219,7 +217,11 @@ export function useActionRegister<T extends ActionPayloadMap = ActionPayloadMap>
  * Typed ActionProvider for specific action map
  * @template T - The action payload map type
  */
-export function createTypedActionProvider<T extends ActionPayloadMap>() {
+export function createTypedActionProvider<T extends ActionPayloadMap>(): {
+  Provider: (props: ActionProviderProps) => React.JSX.Element;
+  useDispatch: () => ActionRegister<T>['dispatch'];
+  useRegister: () => ActionRegister<T>;
+} {
   return {
     Provider: ({ children, config }: ActionProviderProps) => (
       <ActionProvider config={config}>{children}</ActionProvider>

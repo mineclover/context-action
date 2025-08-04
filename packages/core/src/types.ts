@@ -94,10 +94,10 @@ export type UnregisterFunction = () => void;
 
 export interface ActionDispatcher<T extends ActionPayloadMap> {
   /** Dispatch an action without payload */
-  <K extends keyof T>(action: T[K] extends void ? K : never): Promise<void>;
+  <K extends keyof T>(action: T[K] extends void ? K : never, options?: DispatchOptions): Promise<void>;
   
   /** Dispatch an action with payload */
-  <K extends keyof T>(action: K, payload: T[K]): Promise<void>;
+  <K extends keyof T>(action: K, payload: T[K], options?: DispatchOptions): Promise<void>;
 }
 
 
