@@ -2,6 +2,7 @@
   "name": "@context-action/core-dev",
   "version": "0.0.4",
   "type": "module",
+  "private": true,
   "description": "Development version of @context-action/core with HMR support and debugging features",
   "main": "dist/index.cjs",
   "module": "dist/index.js",

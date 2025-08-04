@@ -4,9 +4,8 @@
  * 개발 환경에서만 사용되며 프로덕션 빌드에서는 제외됨
  */
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { hmrStateManager } from './hmr-state-manager';
-import { LogArtHelpers } from '@context-action/logger';
 
 /**
  * HMR 대시보드 상태
