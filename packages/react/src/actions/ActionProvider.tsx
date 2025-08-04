@@ -11,7 +11,6 @@
 
 import React, { createContext, useContext, useRef, ReactNode } from 'react';
 import { ActionRegister, ActionPayloadMap, ActionRegisterConfig } from '@context-action/core';
-import { LogArtHelpers } from '@context-action/logger';
 
 /**
  * Context type for Action dispatch system
@@ -98,7 +97,6 @@ export function ActionProvider({ children, config }: ActionProviderProps) {
   if (!actionRegisterRef.current) {
     actionRegisterRef.current = new ActionRegister(config);
     if (config?.debug) {
-      console.info(LogArtHelpers.react.start('ActionProvider 초기화'));
     }
   }
 

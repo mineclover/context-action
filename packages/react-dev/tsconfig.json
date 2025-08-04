@@ -7,11 +7,12 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "noEmit": false
+    "noEmit": false,
+    "removeComments": true
   },
   "include": ["src/**/*"],
   "exclude": ["dist", "node_modules", "**/*.test.*", "**/*.spec.*"],
   "references": [
-    { "path": "../core" }
+    { "path": "../core-dev" }
   ]
 }
