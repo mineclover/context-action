@@ -235,6 +235,54 @@ export interface DispatchOptions {
   
   /** Execution mode override for this specific dispatch */
   executionMode?: ExecutionMode;
+  
+  /** Handler filtering options */
+  filter?: {
+    /** Only execute handlers with these tags */
+    tags?: string[];
+    
+    /** Only execute handlers in this category */
+    category?: string;
+    
+    /** Only execute handlers with these IDs */
+    handlerIds?: string[];
+    
+    /** Exclude handlers with these tags */
+    excludeTags?: string[];
+    
+    /** Exclude handlers in this category */
+    excludeCategory?: string;
+    
+    /** Exclude handlers with these IDs */
+    excludeHandlerIds?: string[];
+    
+    /** Only execute handlers matching this environment */
+    environment?: 'development' | 'production' | 'test';
+    
+    /** Only execute handlers with this feature flag enabled */
+    feature?: string;
+    
+    /** Custom filter function */
+    custom?: (config: Required<HandlerConfig>) => boolean;
+  };
+  
+  /** Result collection and processing options */
+  result?: {
+    /** How to handle multiple results */
+    strategy?: 'first' | 'last' | 'all' | 'merge' | 'custom';
+    
+    /** Custom result merger function (used with 'merge' or 'custom' strategy) */
+    merger?: <R>(results: R[]) => R;
+    
+    /** Whether to collect results from all handlers */
+    collect?: boolean;
+    
+    /** Timeout for result collection */
+    timeout?: number;
+    
+    /** Maximum number of results to collect */
+    maxResults?: number;
+  };
 }
 
 /**

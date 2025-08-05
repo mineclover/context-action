@@ -1,5 +1,5 @@
 import React, { createContext, ReactNode, useContext, useRef, useEffect, useId, useMemo } from 'react';
-import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig, ActionRegisterConfig } from '@context-action/core';
+import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig, ActionRegisterConfig, ExecutionResult, DispatchOptions } from '@context-action/core';
 
 /**
  * @fileoverview createActionContext - Advanced type-safe action context factory
@@ -34,6 +34,7 @@ export interface ActionContextReturn<T extends ActionPayloadMap = ActionPayloadM
     config?: HandlerConfig
   ) => void;
   useActionRegister: () => ActionRegister<T> | null;
+  useActionWithResult: () => ActionRegister<T>['dispatchWithResult'];
 }
 
 /**
@@ -50,21 +51,41 @@ export interface ActionContextReturn<T extends ActionPayloadMap = ActionPayloadM
  *   logout: void;
  * }
  * 
- * const { Provider, useAction, useActionHandler } = createActionContext<MyActions>({
+ * const { 
+ *   Provider, 
+ *   useAction, 
+ *   useActionHandler, 
+ *   useActionWithResult 
+ * } = createActionContext<MyActions>({
  *   name: 'AuthActions'
  * });
  * 
  * function AuthComponent() {
  *   const dispatch = useAction();
+ *   const dispatchWithResult = useActionWithResult();
  *   
  *   useActionHandler('login', async ({ username, password }) => {
  *     // Handle login logic
+ *     return { success: true, userId: '123' };
  *   });
  *   
+ *   const handleLogin = async () => {
+ *     const result = await dispatchWithResult('login', 
+ *       { username: 'user', password: 'pass' }, 
+ *       { result: { collect: true } }
+ *     );
+ *     console.log('Login result:', result.results);
+ *   };
+ *   
  *   return (
- *     <button onClick={() => dispatch('login', { username: 'user', password: 'pass' })}>
- *       Login
- *     </button>
+ *     <div>
+ *       <button onClick={handleLogin}>
+ *         Login with Result
+ *       </button>
+ *       <button onClick={() => dispatch('login', { username: 'user', password: 'pass' })}>
+ *         Login (no result)
+ *       </button>
+ *     </div>
  *   );
  * }
  * 
@@ -219,11 +240,64 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
     return context.actionRegisterRef.current;
   };
 
+  // Hook to get the dispatchWithResult function with full type safety
+  /**
+   * Hook that provides access to the dispatchWithResult function
+   * 
+   * This hook returns a function that dispatches actions and returns detailed
+   * execution results including collected handler results, execution metadata,
+   * and error information.
+   * 
+   * @returns dispatchWithResult function with full type safety
+   * 
+   * @example
+   * ```typescript
+   * function MyComponent() {
+   *   const dispatchWithResult = useActionWithResult();
+   *   
+   *   const handleAction = async () => {
+   *     const result = await dispatchWithResult('myAction', { data: 'test' }, {
+   *       result: { 
+   *         collect: true, 
+   *         strategy: 'all' 
+   *       },
+   *       filter: { 
+   *         tags: ['important'] 
+   *       }
+   *     });
+   *     
+   *     console.log('Execution successful:', result.success);
+   *     console.log('Results:', result.results);
+   *     console.log('Duration:', result.execution.duration);
+   *   };
+   * }
+   * ```
+   */
+  const useActionWithResult = (): ActionRegister<T>['dispatchWithResult'] => {
+    const context = useActionContext();
+    
+    return useMemo(() => {
+      if (context.actionRegisterRef.current) {
+        // Create bound dispatchWithResult function for consistency
+        const register = context.actionRegisterRef.current;
+        return register.dispatchWithResult.bind(register);
+      }
+
+      return (..._args: any[]) => {
+        throw new Error(
+          'ActionRegister is not initialized. ' +
+          'Make sure the ActionContext Provider is properly set up.'
+        );
+      };
+    }, [context.actionRegisterRef]);
+  };
+
   return {
     Provider,
     useActionContext,
     useAction,
     useActionHandler,
     useActionRegister,
+    useActionWithResult,
   };
 }
