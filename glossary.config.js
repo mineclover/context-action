@@ -11,20 +11,19 @@ export default {
 
   // 📂 코드 스캔 영역 설정
   scanPaths: [
-    // React 훅들
-    'example/src/hooks/**/*.{ts,tsx,js,jsx}',
+    // Example 전체 영역
+    'example/src/**/*.{ts,tsx,js,jsx}',
     
-    // 핵심 패키지들
-    'packages/*/src/**/*.{ts,tsx,js,jsx}',
+    // 핵심 패키지들만: core, react
+    'packages/core/src/**/*.{ts,tsx,js,jsx}',
+    'packages/react/src/**/*.{ts,tsx,js,jsx}',
     
-    // 예시: 특정 컴포넌트만 스캔
-    // 'example/src/components/**/*.{ts,tsx}',
-    
-    // 예시: 서비스 레이어 추가
-    // 'example/src/services/**/*.ts',
-    
-    // 예시: 유틸리티 함수들
-    // 'packages/*/src/utils/**/*.ts',
+    // 제외된 패키지들 (참고용 주석)
+    // 'packages/logger/src/**/*.{ts,tsx,js,jsx}',
+    // 'packages/jotai/src/**/*.{ts,tsx,js,jsx}',
+    // 'packages/glossary/src/**/*.{ts,tsx,js,jsx}',
+    // 'packages/core-dev/src/**/*.{ts,tsx,js,jsx}',
+    // 'packages/react-dev/src/**/*.{ts,tsx,js,jsx}',
   ],
 
   // ❌ 제외할 영역 설정
