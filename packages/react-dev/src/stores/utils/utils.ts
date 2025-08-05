@@ -5,7 +5,7 @@ import { Store } from "../core/Store";
  * Create a new store with the given initial value
  * Following ARCHITECTURE.md pattern for store creation
  * 
- * @template T - Type of the store value
+ * @template T Type of the store value
  * @param initialValue - Initial value for the store
  * @param name - Optional name for the store (auto-generated if not provided)
  * @returns New Store instance

@@ -26,8 +26,8 @@ const CONSTANTS = {
  * 
  * 핵심 기능: selector를 사용하여 Store의 특정 부분만 구독하고 반환
  * 
- * @template T - Store 값 타입
- * @template R - 반환 타입 (기본값: Snapshot<T>)
+ * @template T Store 값 타입
+ * @template R 반환 타입 (기본값: Snapshot<T>)
  * @param store - 구독할 Store 인스턴스
  * @param config - 선택적 설정 (selector, defaultValue)
  * @returns 선택된 값 또는 스냅샷
@@ -78,7 +78,7 @@ export function useStoreSelector<T, R = Snapshot<T>>(
  * Store Hook - 스냅샷 구독
  * 핵심 기능: Store 변경사항을 구독하고 현재 스냅샷 반환
  * 
- * @template T - Store 값 타입
+ * @template T Store 값 타입
  * @param store - 구독할 Store 인스턴스  
  * @returns Store의 현재 스냅샷 (value, name, lastUpdate 포함)
  * 

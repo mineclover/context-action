@@ -219,7 +219,7 @@ export function useActionRegister<T extends ActionPayloadMap = ActionPayloadMap>
 
 /**
  * Typed ActionProvider for specific action map
- * @template T - The action payload map type
+ * @template T The action payload map type
  */
 export function createTypedActionProvider<T extends ActionPayloadMap>() {
   return {

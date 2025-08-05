@@ -55,7 +55,7 @@ export interface ActionPayloadMap {
  * 
  * Provides methods for controlling pipeline flow and payload modification
  * 
- * @template T - The type of the payload being processed
+ * @template T The type of the payload being processed
  */
 export interface PipelineController<T = any> {
   /** Continue to the next handler in the pipeline */
@@ -83,7 +83,7 @@ export interface PipelineController<T = any> {
  * Function signature for handlers that process specific actions within the pipeline.
  * Handlers receive the action payload and a controller for managing pipeline flow.
  * 
- * @template T - The type of the payload this handler processes
+ * @template T The type of the payload this handler processes
  * @param payload - The action payload data
  * @param controller - Pipeline controller for flow management
  * @returns void or Promise<void> for async operations
@@ -207,7 +207,7 @@ export type ExecutionMode = 'sequential' | 'parallel' | 'race';
  * Maintains state during action pipeline execution including current payload,
  * handler queue, execution status, and flow control information.
  * 
- * @template T - The type of the payload being processed
+ * @template T The type of the payload being processed
  * 
  * @example
  * ```typescript
@@ -300,7 +300,7 @@ export type UnregisterFunction = () => void;
  * Provides overloaded function signatures for dispatching actions with proper
  * type checking. Supports both actions with payloads and void actions.
  * 
- * @template T - Action payload map defining available actions
+ * @template T Action payload map defining available actions
  * 
  * @example
  * ```typescript
@@ -363,7 +363,7 @@ export interface ActionMetrics {
  * Defines all event types that can be emitted by ActionRegister instances.
  * Enables reactive programming and monitoring of action lifecycle events.
  * 
- * @template T - Action payload map defining available actions
+ * @template T Action payload map defining available actions
  * 
  * @example
  * ```typescript
@@ -410,7 +410,7 @@ export interface ActionRegisterEvents<T extends ActionPayloadMap = ActionPayload
  * 
  * Function type for handling events emitted by ActionRegister.
  * 
- * @template T - The type of event data
+ * @template T The type of event data
  */
 export type EventHandler<T = any> = (data: T) => void;
 
@@ -423,7 +423,7 @@ export type EventHandler<T = any> = (data: T) => void;
  * Basic event emitter interface for ActionRegister event system.
  * Provides methods for subscribing, emitting, and unsubscribing from events.
  * 
- * @template T - Record type defining available events and their data types
+ * @template T Record type defining available events and their data types
  */
 export interface EventEmitter<T extends Record<string, any> = Record<string, any>> {
   on<K extends keyof T>(event: K, handler: EventHandler<T[K]>): UnregisterFunction;

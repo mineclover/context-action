@@ -53,7 +53,7 @@ export interface RegistryStoreOptions<T> {
 /**
  * StoreRegistry를 활용한 격리 Store 생성기
  * 
- * @template T - Store 값 타입
+ * @template T Store 값 타입
  * @param options - 격리 Store 생성 옵션
  * @param registry - 사용할 StoreRegistry 인스턴스 (선택사항)
  * @returns 격리된 Store 인스턴스와 Registry 정보
@@ -163,7 +163,7 @@ export class IsolationStoreFactory {
   /**
    * 격리된 Store 생성 (StoreRegistry를 통한 관리)
    * 
-   * @template T - Store 값 타입
+   * @template T Store 값 타입
    * @param name - Store 식별 이름
    * @param initialValue - 초기값
    * @param strategy - 비교 전략
@@ -300,7 +300,7 @@ export class IsolationStoreFactory {
 /**
  * React Hook: 격리된 Store 생성 및 관리
  * 
- * @template T - Store 값 타입
+ * @template T Store 값 타입
  * @param componentId - 컴포넌트 식별자
  * @param strategy - 비교 전략
  * @param initialValue - 초기값
@@ -365,7 +365,7 @@ export function useIsolationStoreFactory(
  * 개발 모드용 Store 디버깅 래퍼
  * Store의 생성, 업데이트, 정리 과정을 로깅합니다.
  * 
- * @template T - Store 값 타입
+ * @template T Store 값 타입
  * @param store - 디버깅할 Store
  * @param name - 디버깅용 이름
  * @param options - 디버깅 옵션

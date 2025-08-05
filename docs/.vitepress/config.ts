@@ -37,6 +37,9 @@ export default defineConfig({
   // 죽은 링크 무시
   ignoreDeadLinks: true,
   
+  // TypeDoc 생성 디렉토리 제외
+  srcExclude: ['**/api/generated/**'],
+  
   // Markdown 설정
   markdown: {
     theme: {

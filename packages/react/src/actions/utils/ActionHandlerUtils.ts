@@ -36,7 +36,7 @@ export interface MultiStoreContext {
  * Create a multi-store action handler with automatic rollback support
  * Following ARCHITECTURE.md patterns for cross-store coordination
  * 
- * @template T - Action payload type
+ * @template T Action payload type
  * @param storeNames - Names of stores to coordinate
  * @param handler - Handler function with multi-store context
  * @param config - Handler configuration
@@ -161,7 +161,7 @@ export function createMultiStoreHandler<T>(
  * Create a transaction-like action handler
  * Provides explicit transaction boundaries with commit/rollback
  * 
- * @template T - Action payload type
+ * @template T Action payload type
  * @param storeNames - Names of stores to include in transaction
  * @param handler - Handler function with transaction context
  * @param config - Handler configuration
@@ -329,7 +329,7 @@ export function createTransactionHandler<T>(
  * @implements domain-rules
  * @memberof core-concepts
  * 
- * @template T - Action payload type
+ * @template T Action payload type
  * @param validators - Array of validation functions
  * @param handler - Main handler function
  * @param config - Handler configuration

@@ -93,8 +93,8 @@ export function useStoreValue<T, R>(
  * 
  * Optimizes re-renders by only updating when selected values change
  * 
- * @template T - Type of the store value
- * @template S - Type of the selectors object
+ * @template T Type of the store value
+ * @template S Type of the selectors object
  * @param store - The store to subscribe to
  * @param selectors - Object with selector functions
  * @returns Object with selected values

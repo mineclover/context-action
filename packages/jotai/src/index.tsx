@@ -123,7 +123,7 @@ export interface AtomContextConfig {
  * Factory function that creates a Context-based atom sharing system,
  * enabling scoped state management with Jotai atoms within React component trees.
  * 
- * @template T - The type of the atom value
+ * @template T The type of the atom value
  * @param initialValue - Initial value for the atom
  * @param config - Optional configuration for logging and behavior
  * @returns Object containing Provider and atom manipulation hooks
@@ -322,7 +322,7 @@ export function createAtomContext<T>(initialValue: T, config?: AtomContextConfig
    * subscriptions, minimizing re-renders by subscribing only to specific
    * parts of the atom state.
    * 
-   * @template R - The type of the derived value
+   * @template R The type of the derived value
    * @param callback - Selector function that derives value from atom state
    * @returns Derived value that updates only when selected portion changes
    * 

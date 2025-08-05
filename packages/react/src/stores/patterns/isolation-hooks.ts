@@ -18,7 +18,7 @@ import type { ComparisonOptions } from '../utils/comparison';
  * 
  * StoreRegistry에서 이름으로 Store를 찾고, 없으면 생성하여 안정적인 Store 사용을 보장합니다.
  * 
- * @template T - Store 값 타입
+ * @template T Store 값 타입
  * @param storeName - Store 이름 (Registry 등록용)
  * @param initialValue - 초기값 (이미 있는 Store인 경우 무시됨)
  * @param options - Store 생성 옵션
@@ -101,7 +101,7 @@ export function useRegistryStore<T>(
  * React useId와 도메인명을 결합하여 컴포넌트별로 고유한 Store를 생성합니다.
  * StoreRegistry가 자연스럽게 중복 생성을 방지합니다.
  * 
- * @template T - Store 값 타입
+ * @template T Store 값 타입
  * @param domain - Store 도메인 이름
  * @param initialValue - 초기값 (이미 있는 Store인 경우 무시됨)
  * @param options - Store 생성 옵션
@@ -143,7 +143,7 @@ export function useIsolatedStore<T>(
  * Store가 없을 때만 무거운 초기화 작업을 수행하여 성능을 최적화합니다.
  * useId와 도메인을 결합하여 컴포넌트별로 고유한 Store를 생성합니다.
  * 
- * @template T - Store 값 타입
+ * @template T Store 값 타입
  * @param domain - Store 도메인 이름
  * @param initializer - 지연 초기화 함수 (이미 Store가 있으면 호출되지 않음)
  * @param options - Store 생성 옵션
@@ -232,7 +232,7 @@ export function useLazyIsolatedStore<T>(
  * React Hook: 조건부 격리 Store
  * 조건에 따라 격리된 Store 또는 공유 Store를 사용합니다.
  * 
- * @template T - Store 값 타입
+ * @template T Store 값 타입
  * @param storeName - Store 이름 (격리 모드일 때 사용)
  * @param isolationMode - 격리 모드 ('isolated' | 'shared')
  * @param initialValue - 초기값 (격리 모드일 때 사용)

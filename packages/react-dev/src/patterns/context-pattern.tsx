@@ -105,7 +105,7 @@ export interface ContextPatternReturn<T extends ActionPayloadMap = ActionPayload
  * Store와 Action을 모두 포함하는 통합 Context 패턴을 생성합니다.
  * 각 Provider는 독립적인 Store Registry와 Action Register를 가지며, 완전한 격리를 보장합니다.
  * 
- * @template T - Action payload map type
+ * @template T Action payload map type
  * @param contextName - Context 이름 (Registry 식별용)
  * @param config - Context 설정 옵션
  * @returns Provider 컴포넌트와 Store/Action 접근 Hooks
