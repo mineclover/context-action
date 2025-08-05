@@ -31,6 +31,7 @@ const UserContext = createActionContext<UserActions>({ name: 'UserDomain' });
 // - useActionHandler: Hook to register handlers
 // - useActionContext: Hook to access the full context
 // - useActionRegister: Hook to get ActionRegister instance for direct registration
+// - useActionWithResult: Hook to get dispatchWithResult function for result collection
 ```
 
 ### 2. Context Boundary Benefits
@@ -66,7 +67,8 @@ const {
   useAction: useAuthAction,
   useActionHandler: useAuthHandler,
   useActionContext: useAuthContext,
-  useActionRegister: useAuthRegister
+  useActionRegister: useAuthRegister,
+  useActionWithResult: useAuthActionWithResult
 } = createActionContext<AuthActions>({ 
   name: 'AuthDomain' 
 });
@@ -76,7 +78,8 @@ const {
   useAction: useCartAction,
   useActionHandler: useCartHandler,
   useActionContext: useCartContext,
-  useActionRegister: useCartRegister
+  useActionRegister: useCartRegister,
+  useActionWithResult: useCartActionWithResult
 } = createActionContext<CartActions>({ 
   name: 'CartDomain' 
 });
@@ -172,7 +175,134 @@ function useAuthHandlersSimple() {
 }
 ```
 
-### 3. Context-Scoped Store Integration
+### 3. Action Result Collection and Processing
+
+The Context-Action framework provides powerful result collection capabilities through the `useActionWithResult` hook and expanded dispatch options:
+
+```typescript
+// Using result collection with filtering and processing
+function useAdvancedCart() {
+  const cartDispatch = useCartActionWithResult();
+  
+  const processCartAction = async (items: CartItem[]) => {
+    // Dispatch with result collection and handler filtering
+    const result = await cartDispatch('calculateTotal', { items }, {
+      // Result collection options
+      result: {
+        collect: true,          // Enable result collection
+        strategy: 'all',        // Collect all handler results
+        timeout: 5000,          // 5 second timeout
+        maxResults: 10          // Limit to 10 results
+      },
+      
+      // Handler filtering options
+      filter: {
+        tags: ['calculation', 'validation'],  // Only run handlers with these tags
+        excludeTags: ['logging'],             // Exclude logging handlers
+        environment: 'production',            // Only production handlers
+        category: 'business-logic'            // Only business logic handlers
+      },
+      
+      // Execution options
+      executionMode: 'sequential',            // Override execution mode
+      throttle: 1000                         // Throttle to once per second
+    });
+    
+    // Access detailed execution information
+    console.log('Execution success:', result.success);
+    console.log('Handler results:', result.results);
+    console.log('Execution duration:', result.execution.duration);
+    console.log('Handlers executed:', result.execution.handlersExecuted);
+    
+    if (result.terminated) {
+      console.log('Pipeline terminated early with result:', result.result);
+    }
+    
+    if (result.errors.length > 0) {
+      console.log('Execution errors:', result.errors);
+    }
+    
+    return result.result;
+  };
+}
+
+// Handler with result return
+function useCartHandlers() {
+  const calculateTotalHandler = useCallback(async (payload, controller) => {
+    const { items } = payload;
+    
+    // Perform calculation
+    const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const tax = subtotal * 0.1;
+    const total = subtotal + tax;
+    
+    // Return structured result
+    const calculationResult = {
+      subtotal,
+      tax,
+      total,
+      itemCount: items.length,
+      timestamp: Date.now()
+    };
+    
+    // Option 1: Set result and continue pipeline
+    controller.setResult(calculationResult);
+    
+    // Option 2: Return result and terminate pipeline early
+    // controller.return(calculationResult);
+    
+    return calculationResult; // This will be collected automatically
+    
+  }, []);
+  
+  useCartHandler('calculateTotal', calculateTotalHandler, {
+    priority: 10,
+    tags: ['calculation', 'business-logic'],
+    category: 'cart-operations',
+    returnType: 'value'
+  });
+}
+
+// Multiple result strategies
+function useResultStrategies() {
+  const dispatchWithResult = useCartActionWithResult();
+  
+  const demonstrateStrategies = async () => {
+    // Strategy 1: Collect first result only
+    const firstResult = await dispatchWithResult('validateCart', cart, {
+      result: { collect: true, strategy: 'first' }
+    });
+    
+    // Strategy 2: Collect last result only
+    const lastResult = await dispatchWithResult('processCart', cart, {
+      result: { collect: true, strategy: 'last' }
+    });
+    
+    // Strategy 3: Collect all results
+    const allResults = await dispatchWithResult('enrichCart', cart, {
+      result: { collect: true, strategy: 'all' }
+    });
+    
+    // Strategy 4: Merge results with custom merger
+    const mergedResult = await dispatchWithResult('aggregateCart', cart, {
+      result: { 
+        collect: true, 
+        strategy: 'merge',
+        merger: (results) => {
+          // Custom merge logic
+          return results.reduce((acc, result) => ({
+            ...acc,
+            ...result,
+            totalProcessed: acc.totalProcessed + 1
+          }), { totalProcessed: 0 });
+        }
+      }
+    });
+  };
+}
+```
+
+### 4. Context-Scoped Store Integration
 
 Action handlers within each context interact with domain-specific stores:
 
@@ -1093,27 +1223,35 @@ ComponentReRender --> UpdatedUI[Updated UI]
 11. **Alternative Pattern 2**: Use useActionContext to access actionRegisterRef directly (legacy approach)
 12. **Handler Lifecycle**: Remember that handlers are registered/unregistered based on component lifecycle
 
+### Result Collection Best Practices
+13. **Use Metadata Tags**: Tag handlers appropriately for filtering (e.g., 'validation', 'business-logic', 'logging')
+14. **Return Meaningful Results**: Design handler return values to be useful for composition and debugging
+15. **Choose Result Strategy**: Select appropriate result strategy (first, last, all, merge) based on use case
+16. **Handle Termination**: Use controller.return() for early termination with final result
+17. **Collect Selectively**: Use filtering options to collect results only from relevant handlers
+18. **Monitor Performance**: Use execution metadata to monitor and optimize handler performance
+
 ### Store Management
-13. **Context-Scoped Stores**: Keep stores within their appropriate context boundaries
-14. **Avoid Side Effects**: Keep store updates predictable and traceable within context scope
-15. **Store Naming**: Use context prefixes for store names to avoid confusion
+19. **Context-Scoped Stores**: Keep stores within their appropriate context boundaries
+20. **Avoid Side Effects**: Keep store updates predictable and traceable within context scope
+21. **Store Naming**: Use context prefixes for store names to avoid confusion
 
 ### Type Safety
-16. **Context-Specific Types**: Define action payload maps per context for better type safety
-17. **Type Everything**: Leverage TypeScript for safety and documentation within each context
-18. **Cross-Context Types**: Define explicit interfaces for cross-context communication
+22. **Context-Specific Types**: Define action payload maps per context for better type safety
+23. **Type Everything**: Leverage TypeScript for safety and documentation within each context
+24. **Cross-Context Types**: Define explicit interfaces for cross-context communication
 
 ### Testing Strategy  
-19. **Context Isolation Testing**: Test each context independently with domain-specific mock stores
-20. **Cross-Context Integration Testing**: Test cross-context communication at the integration level
-21. **Mock Context Providers**: Create mock context providers for testing components
+25. **Context Isolation Testing**: Test each context independently with domain-specific mock stores
+26. **Cross-Context Integration Testing**: Test cross-context communication at the integration level
+27. **Mock Context Providers**: Create mock context providers for testing components
 
 ### Performance
-22. **Context Scope Optimization**: Only subscribe to stores within the relevant context
-23. **Lazy Context Loading**: Load contexts only when needed
-24. **Context Memory Management**: Properly cleanup context resources when unmounting
+28. **Context Scope Optimization**: Only subscribe to stores within the relevant context
+29. **Lazy Context Loading**: Load contexts only when needed
+30. **Context Memory Management**: Properly cleanup context resources when unmounting
 
 ### Development Workflow
-25. **Context-First Development**: Design contexts before implementing features
-26. **Team Ownership**: Assign context ownership to specific teams or developers
-27. **Context Documentation**: Document context boundaries, responsibilities, and interfaces
+31. **Context-First Development**: Design contexts before implementing features
+32. **Team Ownership**: Assign context ownership to specific teams or developers
+33. **Context Documentation**: Document context boundaries, responsibilities, and interfaces

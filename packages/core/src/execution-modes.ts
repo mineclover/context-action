@@ -12,13 +12,13 @@ import type {
 /**
  * Execute handlers in sequential mode (one after another)
  */
-export async function executeSequential<T>(
-  context: PipelineContext<T>,
-  createController: (registration: HandlerRegistration<T>, index: number) => PipelineController<T>
+export async function executeSequential<T, R = void>(
+  context: PipelineContext<T, R>,
+  createController: (registration: HandlerRegistration<T, R>, index: number) => PipelineController<T, R>
 ): Promise<void> {
 
   for (let i = 0; i < context.handlers.length; i++) {
-    if (context.aborted) {
+    if (context.aborted || context.terminated) {
       break;
     }
 
@@ -55,7 +55,31 @@ export async function executeSequential<T>(
 
       /** Wait for async handlers if they're blocking */
       if (registration.config.blocking && result instanceof Promise) {
-        await result;
+        const handlerResult = await result;
+        
+        /** Collect result if handler returned something and wasn't terminated */
+        if (handlerResult !== undefined && !context.terminated) {
+          context.results.push(handlerResult);
+        }
+      } else if (result !== undefined && !context.terminated) {
+        /** Collect synchronous result */
+        if (result instanceof Promise) {
+          // Non-blocking async handler - don't wait but collect result when resolved
+          result.then(asyncResult => {
+            if (asyncResult !== undefined && !context.terminated) {
+              context.results.push(asyncResult);
+            }
+          }).catch(() => {
+            // Ignore errors from non-blocking handlers
+          });
+        } else {
+          context.results.push(result);
+        }
+      }
+
+      /** Check if pipeline was terminated by controller.return() */
+      if (context.terminated) {
+        break;
       }
 
     } catch (error: any) {
@@ -69,9 +93,9 @@ export async function executeSequential<T>(
 /**
  * Execute handlers in parallel mode (all at once)
  */
-export async function executeParallel<T>(
-  context: PipelineContext<T>,
-  createController: (registration: HandlerRegistration<T>, index: number) => PipelineController<T>
+export async function executeParallel<T, R = void>(
+  context: PipelineContext<T, R>,
+  createController: (registration: HandlerRegistration<T, R>, index: number) => PipelineController<T, R>
 ): Promise<void> {
 
   /** Filter handlers that should run */
@@ -96,11 +120,24 @@ export async function executeParallel<T>(
     try {
       const result = registration.handler(context.payload, controller);
       
+      let handlerResult: R | undefined;
       if (result instanceof Promise) {
-        await result;
+        handlerResult = await result;
+      } else {
+        handlerResult = result;
       }
       
-      return { success: true, handlerId: registration.id };
+      /** Collect result if handler returned something and pipeline wasn't terminated */
+      if (handlerResult !== undefined && !context.terminated) {
+        context.results.push(handlerResult);
+      }
+      
+      return { 
+        success: true, 
+        handlerId: registration.id, 
+        result: handlerResult,
+        terminated: context.terminated 
+      };
       
     } catch (error: any) {
       if (registration.config.blocking) {
@@ -127,14 +164,27 @@ export async function executeParallel<T>(
     const firstFailure = failures[0] as PromiseRejectedResult;
     throw firstFailure.reason;
   }
+
+  /** Check if any handler terminated the pipeline */
+  const terminatedResults = results.filter(result => 
+    result.status === 'fulfilled' && result.value.terminated
+  );
+  
+  if (terminatedResults.length > 0) {
+    context.terminated = true;
+    // In parallel mode, we can't determine which handler's termination result to use,
+    // so we use the first one that terminated
+    const firstTerminated = terminatedResults[0] as PromiseFulfilledResult<any>;
+    context.terminationResult = firstTerminated.value.result;
+  }
 }
 
 /**
  * Execute handlers in race mode (first to complete wins)
  */
-export async function executeRace<T>(
-  context: PipelineContext<T>,
-  createController: (registration: HandlerRegistration<T>, index: number) => PipelineController<T>
+export async function executeRace<T, R = void>(
+  context: PipelineContext<T, R>,
+  createController: (registration: HandlerRegistration<T, R>, index: number) => PipelineController<T, R>
 ): Promise<void> {
 
   /** Filter handlers that should run */
@@ -163,11 +213,20 @@ export async function executeRace<T>(
     try {
       const result = registration.handler(context.payload, controller);
       
+      let handlerResult: R | undefined;
       if (result instanceof Promise) {
-        await result;
+        handlerResult = await result;
+      } else {
+        handlerResult = result;
       }
       
-      return { success: true, handlerId: registration.id, registration };
+      return { 
+        success: true, 
+        handlerId: registration.id, 
+        registration,
+        result: handlerResult,
+        terminated: context.terminated
+      };
       
     } catch (error: any) {
       return { success: false, handlerId: registration.id, error, registration };
@@ -180,5 +239,16 @@ export async function executeRace<T>(
   /** If the winner failed and was blocking, throw the error */
   if (!winner.success && winner.registration?.config.blocking) {
     throw winner.error;
+  }
+
+  /** Collect result from the winning handler */
+  if (winner.success && winner.result !== undefined) {
+    context.results.push(winner.result);
+  }
+
+  /** Check if the winning handler terminated the pipeline */
+  if (winner.success && winner.terminated) {
+    context.terminated = true;
+    context.terminationResult = winner.result;
   }
 }
