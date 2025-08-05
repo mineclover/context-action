@@ -4,7 +4,7 @@
  */
 
 import type { LogLevel } from '@context-action/logger';
-import type { ActionRegister, ActionPayloadMap, Store } from '@context-action/react';
+import type { ActionPayloadMap, Store } from '@context-action/react';
 
 /**
  * 로그 엔트리 타입 정의
@@ -15,7 +15,7 @@ export interface LogEntry {
   level: LogLevel;
   type: LogEntryType;
   message: string;
-  details?: any;
+  details?: unknown;
   priority?: number;
 }
 
@@ -51,7 +51,7 @@ export interface LogMonitorProps {
 export interface ActionLogOptions {
   toast?: boolean | ToastOptions;
   priority?: number;
-  context?: any;
+  context?: string;
   // 자동 계산된 데이터 (내부 사용)
   _autoCalculated?: {
     executionTime: number;
@@ -93,8 +93,8 @@ export interface InternalLogActionMap extends ActionPayloadMap {
  * 안정적인 로거 API 인터페이스
  */
 export interface StableLoggerAPI {
-  logAction: (actionType: string, payload?: any, options?: ActionLogOptions) => void;
-  logError: (message: string, error?: Error | any, options?: ActionLogOptions) => void;
+  logAction: (actionType: string, payload?: unknown, options?: ActionLogOptions) => void;
+  logError: (message: string, error?: Error | unknown, options?: ActionLogOptions) => void;
   logSystem: (message: string, options?: ActionLogOptions) => void;
 }
 

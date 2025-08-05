@@ -32,7 +32,7 @@ export function ToastContainer() {
   return (
     <div className={cn(
       toastContainerVariants({ 
-        position: (config?.position as any) || 'top-right',
+        position: (config?.position) || 'top-right',
         width: 'md'
       })
     )}>

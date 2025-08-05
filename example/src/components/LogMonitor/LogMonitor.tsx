@@ -120,13 +120,13 @@ interface LogEntryItemProps {
 
 function LogEntryItem({ log }: LogEntryItemProps) {
   const shortId = log.id.split('-').slice(-1)[0];
-  const levelName = getLogLevelName(log.level).toLowerCase() as any;
+  const levelName = getLogLevelName(log.level).toLowerCase();
 
   return (
     <div className={cn(
       logEntryVariants({ 
         type: log.type as any, 
-        level: levelName 
+        level: levelName as any 
       }),
       "grid-cols-[auto_auto_auto_auto_1fr] items-center gap-3"
     )}>
@@ -134,7 +134,7 @@ function LogEntryItem({ log }: LogEntryItemProps) {
         {shortId}
       </span>
       <span className="text-gray-500 text-xs whitespace-nowrap">{log.timestamp}</span>
-      <span className={cn(logLevelBadgeVariants({ level: levelName }))}>
+      <span className={cn(logLevelBadgeVariants({ level: levelName as any }))}>
         {getLogLevelName(log.level)}
       </span>
       <span className="text-xs font-medium text-gray-600 uppercase">
@@ -148,7 +148,7 @@ function LogEntryItem({ log }: LogEntryItemProps) {
         )}
         <span className="text-sm text-gray-900 break-all">{log.message}</span>
       </div>
-      {log.details && (
+      {log.details !== undefined && (
         <div className="col-span-5">
           <LogDetails details={log.details} />
         </div>
@@ -161,7 +161,7 @@ function LogEntryItem({ log }: LogEntryItemProps) {
  * 로그 상세 정보 컴포넌트
  */
 interface LogDetailsProps {
-  details: any;
+  details: unknown;
 }
 
 function LogDetails({ details }: LogDetailsProps) {
