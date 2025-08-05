@@ -43,7 +43,7 @@ import { ActionGuard } from './action-guard.js';
  * ```
  */
 export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
-  private pipelines = new Map<keyof T, HandlerRegistration<any>[]>();
+  private pipelines = new Map<keyof T, HandlerRegistration<any, any>[]>();
   private handlerCounter = 0;
   private readonly actionGuard: ActionGuard;
   private executionMode: ExecutionMode = 'sequential';
@@ -55,9 +55,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     this.actionGuard = new ActionGuard();
   }
 
-  register<K extends keyof T>(
+  register<K extends keyof T, R = void>(
     action: K,
-    handler: ActionHandler<T[K]>,
+    handler: ActionHandler<T[K], R>,
     config: HandlerConfig = {}
   ): UnregisterFunction {
     
@@ -65,9 +65,10 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     const handlerId = config.id || `handler_${++this.handlerCounter}`;
     
     // Create handler registration with defaults
-    const registration: HandlerRegistration<T[K]> = {
+    const registration: HandlerRegistration<T[K], R> = {
       handler,
       config: {
+        // Existing fields
         priority: config.priority ?? 0,
         id: handlerId,
         blocking: config.blocking ?? false,
@@ -77,6 +78,25 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         throttle: config.throttle ?? undefined,
         validation: config.validation ?? undefined,
         middleware: config.middleware ?? false,
+        
+        // New metadata fields
+        tags: config.tags ?? [],
+        category: config.category ?? undefined,
+        description: config.description ?? undefined,
+        version: config.version ?? undefined,
+        returnType: config.returnType ?? 'value',
+        timeout: config.timeout ?? undefined,
+        retries: config.retries ?? 0,
+        dependencies: config.dependencies ?? [],
+        conflicts: config.conflicts ?? [],
+        environment: config.environment ?? undefined,
+        feature: config.feature ?? undefined,
+        metrics: config.metrics ?? {
+          collectTiming: false,
+          collectErrors: false,
+          customMetrics: {}
+        },
+        metadata: config.metadata ?? {},
       } as Required<HandlerConfig>,
       id: handlerId,
     };
@@ -147,7 +167,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
                                 this.executionMode;
 
     // Create pipeline execution context
-    const context: PipelineContext<T[K]> = {
+    const context: PipelineContext<T[K], any> = {
       action: String(action),
       payload: payload as T[K],
       handlers: [...pipeline], // Copy handlers to avoid modification during execution
@@ -156,14 +176,19 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       currentIndex: 0,
       jumpToPriority: undefined,
       executionMode: currentExecutionMode,
+      
+      // New result collection fields
+      results: [],
+      terminated: false,
+      terminationResult: undefined,
     };
 
     await this.executePipeline(context);
   }
 
-  private async executePipeline<K extends keyof T>(context: PipelineContext<T[K]>): Promise<void> {
+  private async executePipeline<K extends keyof T>(context: PipelineContext<T[K], any>): Promise<void> {
 
-    const createController = (_registration: HandlerRegistration<T[K]>, _index: number): PipelineController<T[K]> => {
+    const createController = (_registration: HandlerRegistration<T[K], any>, _index: number): PipelineController<T[K], any> => {
       return {
         next: () => {
           /** Next is called automatically after handler completion in sequential mode */
@@ -182,6 +207,28 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         jumpToPriority: (priority: number) => {
           /** Set priority jump target for sequential execution mode */
           context.jumpToPriority = priority;
+        },
+        
+        // New result handling methods
+        return: (result: any) => {
+          /** Return a result and terminate the pipeline */
+          context.terminated = true;
+          context.terminationResult = result;
+        },
+        setResult: (result: any) => {
+          /** Set a result but continue pipeline execution */
+          context.results.push(result);
+        },
+        getResults: () => {
+          /** Get all results from previously executed handlers */
+          return [...context.results];
+        },
+        mergeResult: (merger: (previousResults: any[], currentResult: any) => any) => {
+          /** Merge current result with previous results using a custom merger function */
+          const currentResult = context.results[context.results.length - 1];
+          const previousResults = context.results.slice(0, -1);
+          const mergedResult = merger(previousResults, currentResult);
+          context.results[context.results.length - 1] = mergedResult;
         },
       };
     };
@@ -205,7 +252,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     this.cleanupOneTimeHandlers(context.action as K, context.handlers);
   }
 
-  private cleanupOneTimeHandlers<K extends keyof T>(action: K, executedHandlers: HandlerRegistration<T[K]>[]): void {
+  private cleanupOneTimeHandlers<K extends keyof T>(action: K, executedHandlers: HandlerRegistration<T[K], any>[]): void {
     const pipeline = this.pipelines.get(action);
     if (!pipeline) return;
 

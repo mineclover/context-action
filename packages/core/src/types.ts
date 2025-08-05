@@ -45,7 +45,7 @@ export interface ActionPayloadMap {
  * });
  * ```
  */
-export interface PipelineController<T = any> {
+export interface PipelineController<T = any, R = void> {
   /** Continue to the next handler in the pipeline */
   next(): void;
   
@@ -60,6 +60,19 @@ export interface PipelineController<T = any> {
   
   /** Jump to a specific priority level in the pipeline */
   jumpToPriority(priority: number): void;
+  
+  // New result handling methods
+  /** Return a result and terminate the pipeline */
+  return(result: R): void;
+  
+  /** Set a result but continue pipeline execution */
+  setResult(result: R): void;
+  
+  /** Get all results from previously executed handlers */
+  getResults(): R[];
+  
+  /** Merge current result with previous results using a custom merger function */
+  mergeResult(merger: (previousResults: R[], currentResult: R) => R): void;
 }
 
 /**
@@ -85,10 +98,10 @@ export interface PipelineController<T = any> {
  * };
  * ```
  */
-export type ActionHandler<T = any> = (
+export type ActionHandler<T = any, R = void> = (
   payload: T,
-  controller: PipelineController<T>
-) => void | Promise<void>;
+  controller: PipelineController<T, R>
+) => R | Promise<R>;
 
 /**
  * 파이프라인 내에서 액션 핸들러의 동작을 제어하는 설정 옵션들입니다.
@@ -133,25 +146,79 @@ export interface HandlerConfig {
   
   /** Mark this handler as middleware */
   middleware?: boolean;
+  
+  // New metadata fields
+  /** Tags for categorizing and filtering handlers */
+  tags?: string[];
+  
+  /** Category for grouping related handlers */
+  category?: string;
+  
+  /** Human-readable description of what this handler does */
+  description?: string;
+  
+  /** Version identifier for this handler */
+  version?: string;
+  
+  /** How to handle the result from this handler */
+  returnType?: 'value' | 'merge' | 'collect';
+  
+  /** Timeout for this specific handler in milliseconds */
+  timeout?: number;
+  
+  /** Number of retries if handler fails */
+  retries?: number;
+  
+  /** Other handler IDs that this handler depends on */
+  dependencies?: string[];
+  
+  /** Handler IDs that conflict with this handler */
+  conflicts?: string[];
+  
+  /** Environment where this handler should run */
+  environment?: 'development' | 'production' | 'test';
+  
+  /** Feature flag to control handler availability */
+  feature?: string;
+  
+  /** Metrics collection configuration */
+  metrics?: {
+    /** Whether to collect timing information */
+    collectTiming?: boolean;
+    
+    /** Whether to collect error information */
+    collectErrors?: boolean;
+    
+    /** Custom metrics to collect */
+    customMetrics?: Record<string, any>;
+  };
+  
+  /** Custom metadata for this handler */
+  metadata?: Record<string, any>;
 }
 
-export interface HandlerRegistration<T = any> {
-  handler: ActionHandler<T>;
+export interface HandlerRegistration<T = any, R = void> {
+  handler: ActionHandler<T, R>;
   config: Required<HandlerConfig>;
   id: string;
 }
 
 export type ExecutionMode = 'sequential' | 'parallel' | 'race';
 
-export interface PipelineContext<T = any> {
+export interface PipelineContext<T = any, R = void> {
   action: string;
   payload: T;
-  handlers: HandlerRegistration<T>[];
+  handlers: HandlerRegistration<T, R>[];
   aborted: boolean;
   abortReason?: string;
   currentIndex: number;
   jumpToPriority?: number;
   executionMode: ExecutionMode;
+  
+  // New result collection fields
+  results: R[];
+  terminated: boolean;
+  terminationResult?: R;
 }
 
 export interface ActionRegisterConfig {
@@ -168,6 +235,83 @@ export interface DispatchOptions {
   
   /** Execution mode override for this specific dispatch */
   executionMode?: ExecutionMode;
+}
+
+/**
+ * Result of pipeline execution containing detailed execution information
+ */
+export interface ExecutionResult<R = void> {
+  /** Whether the execution completed successfully */
+  success: boolean;
+  
+  /** Whether the execution was aborted */
+  aborted: boolean;
+  
+  /** Reason for abortion if aborted */
+  abortReason?: string;
+  
+  /** Whether the execution was terminated early via controller.return() */
+  terminated: boolean;
+  
+  /** Final result based on result strategy */
+  result?: R;
+  
+  /** All individual handler results */
+  results: R[];
+  
+  /** Execution metadata */
+  execution: {
+    /** Total execution duration in milliseconds */
+    duration: number;
+    
+    /** Number of handlers that were executed */
+    handlersExecuted: number;
+    
+    /** Number of handlers that were skipped */
+    handlersSkipped: number;
+    
+    /** Number of handlers that failed */
+    handlersFailed: number;
+    
+    /** Execution start timestamp */
+    startTime: number;
+    
+    /** Execution end timestamp */
+    endTime: number;
+  };
+  
+  /** Detailed information about each handler */
+  handlers: Array<{
+    /** Handler unique identifier */
+    id: string;
+    
+    /** Whether this handler was executed */
+    executed: boolean;
+    
+    /** Handler execution duration in milliseconds */
+    duration?: number;
+    
+    /** Result returned by this handler */
+    result?: R;
+    
+    /** Error thrown by this handler if any */
+    error?: Error;
+    
+    /** Custom metadata for this handler */
+    metadata?: Record<string, any>;
+  }>;
+  
+  /** Errors that occurred during execution */
+  errors: Array<{
+    /** ID of the handler that caused the error */
+    handlerId: string;
+    
+    /** The error that occurred */
+    error: Error;
+    
+    /** Timestamp when the error occurred */
+    timestamp: number;
+  }>;
 }
 
 export type UnregisterFunction = () => void;
