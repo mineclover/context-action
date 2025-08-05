@@ -62,8 +62,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     config: HandlerConfig = {}
   ): UnregisterFunction {
     
-    // Generate unique handler ID
-    const handlerId = config.id || `handler_${++this.handlerCounter}`;
+    // Generate unique handler ID with security consideration
+    // Use counter + random suffix to prevent ID prediction attacks
+    const handlerId = config.id || `handler_${++this.handlerCounter}_${Math.random().toString(36).substr(2, 5)}`;
     
     // Create handler registration with defaults
     const registration: HandlerRegistration<T[K], R> = {
