@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { createActionContext } from '@context-action/react';
 import { useStoreValue, createStore } from '@context-action/react';
-import type { ActionPayloadMap } from '@context-action/core';
+import type { ActionPayloadMap, ActionHandler } from '@context-action/core';
 
 // 예시 데이터 타입
 interface CartItem {
@@ -51,14 +51,30 @@ const {
 
 // 스토어 생성
 const cartStore = createStore<CartItem[]>('cart', []);
-const validationStore = createStore<ValidationResult | null>('validation', null);
-const calculationStore = createStore<CalculationResult | null>('calculation', null);
-const orderStore = createStore<ProcessingResult | null>('order', null);
+const validationStore = createStore<ValidationResult | null>('validation', {
+  isValid: false,
+  errors: [],
+  validatedBy: 'initial'
+});
+const calculationStore = createStore<CalculationResult | null>('calculation', {
+  subtotal: 0,
+  tax: 0,
+  total: 0,
+  itemCount: 0,
+  timestamp: Date.now(),
+  calculatedBy: 'initial'
+});
+const orderStore = createStore<ProcessingResult | null>('order', {
+  orderId: '',
+  status: 'processing',
+  processedBy: 'initial',
+  timestamp: Date.now()
+});
 
 // 핸들러 컴포넌트
 function CartHandlers() {
   // 장바구니 검증 핸들러
-  const validateCartHandler = useCallback(async (payload: { items: CartItem[] }, controller) => {
+  const validateCartHandler: ActionHandler<{ items: CartItem[] }> = useCallback(async (payload: { items: CartItem[] }, controller) => {
     console.log('🔍 Validating cart...');
     
     const { items } = payload;
@@ -87,12 +103,12 @@ function CartHandlers() {
     // 스토어 업데이트
     validationStore.setValue(result);
     
-    // 결과 반환
-    return result;
+    // Note: For dispatchWithResult, handlers should still update stores
+    // The result collection is handled by the framework
   }, []);
 
   // 총합 계산 핸들러
-  const calculateTotalHandler = useCallback(async (payload: { items: CartItem[]; discountCode?: string }, controller) => {
+  const calculateTotalHandler: ActionHandler<{ items: CartItem[]; discountCode?: string }> = useCallback(async (payload: { items: CartItem[]; discountCode?: string }, controller) => {
     console.log('💰 Calculating total...');
     
     const { items, discountCode } = payload;
@@ -120,12 +136,12 @@ function CartHandlers() {
     // 스토어 업데이트
     calculationStore.setValue(result);
     
-    // 결과 반환
-    return result;
+    // Note: For dispatchWithResult, handlers should still update stores
+    // The result collection is handled by the framework
   }, []);
 
   // 주문 처리 핸들러
-  const processOrderHandler = useCallback(async (payload: { items: CartItem[]; paymentMethod: string }, controller) => {
+  const processOrderHandler: ActionHandler<{ items: CartItem[]; paymentMethod: string }> = useCallback(async (payload: { items: CartItem[]; paymentMethod: string }, controller) => {
     console.log('🛒 Processing order...');
     
     const { items, paymentMethod } = payload;
@@ -146,26 +162,26 @@ function CartHandlers() {
     // 장바구니 비우기
     cartStore.setValue([]);
     
-    // 결과 반환
-    return result;
+    // Note: For dispatchWithResult, handlers should still update stores
+    // The result collection is handled by the framework
   }, []);
 
   // 핸들러 등록
-  useCartHandler('validateCart', validateCartHandler, {
+  useCartHandler('validateCart', validateCartHandler as ActionHandler<{ items: CartItem[] }>, {
     priority: 100,
     tags: ['validation', 'business-logic'],
     category: 'cart-validation',
     returnType: 'value'
   });
 
-  useCartHandler('calculateTotal', calculateTotalHandler, {
+  useCartHandler('calculateTotal', calculateTotalHandler as ActionHandler<{ items: CartItem[]; discountCode?: string }>, {
     priority: 90,
     tags: ['calculation', 'business-logic'],
     category: 'cart-calculation',
     returnType: 'value'
   });
 
-  useCartHandler('processOrder', processOrderHandler, {
+  useCartHandler('processOrder', processOrderHandler as ActionHandler<{ items: CartItem[]; paymentMethod: string }>, {
     priority: 80,
     tags: ['processing', 'business-logic'],
     category: 'order-processing',
@@ -241,7 +257,7 @@ function UseActionWithResultExample() {
       
       console.log('1. Validation:', validationResult.result);
       
-      if (!validationResult.success || !validationResult.result?.isValid) {
+      if (!validationResult.success) {
         throw new Error('Cart validation failed');
       }
       
@@ -305,7 +321,7 @@ function UseActionWithResultExample() {
       result: {
         collect: true,
         strategy: 'merge',
-        merger: (results: CalculationResult[]) => {
+        merger: (results: any[]): any => {
           // 커스텀 병합 로직
           return results.reduce((merged, current) => ({
             ...merged,

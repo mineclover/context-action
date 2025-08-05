@@ -93,7 +93,7 @@ jobs:
           fi
 
       - name: Build packages
-        run: pnpm build:all
+        run: pnpm build
 
       - name: Generate API documentation
         run: |
