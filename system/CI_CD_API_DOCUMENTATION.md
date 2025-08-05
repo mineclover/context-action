@@ -121,9 +121,79 @@ git commit -m "Remove auto-generated API documentation from Git tracking"
 - pnpm 저장소 캐싱으로 빌드 속도 향상
 - 의존성 설치 시간 단축
 
+## Vue 호환성 이슈
+
+### 문제: TypeScript 제네릭 구문과 Vue 컴파일러 충돌
+
+CI/CD 파이프라인에서 다음과 같은 Vue 빌드 오류가 발생할 수 있습니다:
+
+```
+[vite:vue] docs/en/api/react/src/functions/useStore.md (19:24): Element is missing end tag.
+Error: Process completed with exit code 1.
+```
+
+**원인:** TypeDoc이 생성한 마크다운의 TypeScript 제네릭 구문(`<T>`, `Snapshot<T>`)을 Vue 컴파일러가 HTML 태그로 잘못 해석
+
+### 해결 방법
+
+#### 1. JSDoc 구문 규칙 준수
+
+모든 TypeScript 파일에서 다음 규칙을 따라야 합니다:
+
+```typescript
+// ❌ CI/CD에서 빌드 실패 원인
+/**
+ * @template T - Store value type
+ */
+
+// ✅ 올바른 패턴
+/**
+ * @template T Store value type
+ */
+```
+
+#### 2. 자동 후처리 적용
+
+`scripts/sync-api-docs.js`에서 Vue 호환성을 위한 후처리가 자동으로 적용됩니다:
+
+- 제네릭 패턴: `Snapshot<T>` → `Snapshot&lt;T&gt;`
+- 타입 파라미터: `` `T` `` → `**T**`
+- 헤더 안전화: `### T` → `### Generic type T`
+
+#### 3. CI/CD 워크플로우 업데이트
+
+```yaml
+- name: Generate API documentation
+  run: |
+    pnpm docs:api
+    pnpm docs:sync  # Vue 호환성 후처리 포함
+
+- name: Build documentation
+  run: pnpm docs:build  # Vue 컴파일러 호환 빌드
+```
+
 ## Troubleshooting
 
-### 1. 빌드 실패 시
+### 1. Vue 빌드 오류 해결
+
+Vue 컴파일러 오류가 발생하는 경우:
+
+```bash
+# 로컬 테스트로 문제 확인
+pnpm docs:api
+pnpm docs:sync
+pnpm docs:build
+
+# 문제 파일 확인
+grep -r "<[A-Z]>" docs/en/api/
+```
+
+**체크리스트:**
+- [ ] JSDoc `@template` 구문에 대시(-) 사용 안 함
+- [ ] 제네릭 타입이 HTML 엔티티로 변환됨
+- [ ] 타이틀 헤더에 단일 문자 사용 안 함
+
+### 2. 빌드 실패 시
 
 ```bash
 # 로컬에서 테스트
@@ -132,7 +202,7 @@ pnpm docs:sync
 pnpm docs:build
 ```
 
-### 2. 문서가 업데이트되지 않는 경우
+### 3. 문서가 업데이트되지 않는 경우
 
 ```bash
 # 캐시 클리어
@@ -142,7 +212,7 @@ rm -rf docs/ko/api/
 pnpm docs:full
 ```
 
-### 3. TypeDoc 경고 해결
+### 4. TypeDoc 경고 해결
 
 TypeDoc 경고는 대부분 JSDoc 태그 관련입니다:
 
@@ -151,7 +221,19 @@ TypeDoc 경고는 대부분 JSDoc 태그 관련입니다:
 /**
  * @param payload - Input data
  * @returns Processed result
+ * @template T Store value type (대시 없이)
  */
+```
+
+### 5. GitHub Actions 디버깅
+
+빌드 로그에서 Vue 오류 패턴 확인:
+
+```bash
+# 로그에서 찾을 오류 패턴
+"Element is missing end tag"
+"[vite:vue]"
+"SyntaxError: [plugin vite:vue]"
 ```
 
 ## Security Considerations

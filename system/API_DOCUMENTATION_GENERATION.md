@@ -245,6 +245,74 @@ JSDoc에 예제 코드를 포함하여 사용법을 명확히 합니다:
  */
 ```
 
+## Vue 호환성 처리
+
+### 문제: Vue 컴파일러와 TypeScript 제네릭 구문 충돌
+
+TypeDoc으로 생성된 API 문서에서 TypeScript 제네릭 구문(`<T>`, `Snapshot<T>` 등)이 Vue 컴파일러에 의해 HTML 태그로 잘못 해석되어 빌드 오류가 발생할 수 있습니다.
+
+**오류 예시:**
+```
+[vite:vue] docs/en/api/react/src/functions/useStore.md (19:24): Element is missing end tag.
+```
+
+### 해결 방법
+
+#### 1. JSDoc Template 구문 수정
+
+JSDoc에서 `@template` 태그의 대시 패턴을 제거하여 TypeDoc이 안전한 출력을 생성하도록 합니다:
+
+```typescript
+// ❌ 문제가 되는 패턴
+/**
+ * @template T - Store 값 타입
+ * @template R - 반환 타입
+ */
+
+// ✅ 올바른 패턴  
+/**
+ * @template T Store 값 타입
+ * @template R 반환 타입
+ */
+```
+
+#### 2. 마크다운 후처리
+
+`scripts/sync-api-docs.js`에서 생성된 마크다운을 Vue 호환 형태로 후처리합니다:
+
+```javascript
+function postProcessMarkdown(content) {
+  return content
+    // 제네릭 타입 패턴: Snapshot<T> → Snapshot&lt;T&gt;
+    .replace(/([A-Za-z]+)<([A-Z])>/g, '$1&lt;$2&gt;')
+    // 타입 파라미터: Type parameter `T` → Type parameter **T**
+    .replace(/Type parameter `([A-Z])`/g, 'Type parameter **$1**')
+    // 헤더 안전화: ### T → ### Generic type T
+    .replace(/^### ([A-Z])$/gm, '### Generic type $1')
+    // 기타 제네릭 패턴들
+    .replace(/\\<`([^`]+)`\\>/g, '&lt;`$1`&gt;');
+}
+```
+
+#### 3. 적용된 변환 패턴
+
+| 원본 패턴 | 변환 후 | 이유 |
+|-----------|---------|------|
+| `<T>` | `&lt;T&gt;` | HTML 태그로 인식 방지 |
+| `Snapshot<T>` | `Snapshot&lt;T&gt;` | Vue 컴파일러 호환성 |
+| `Type parameter `T`` | `Type parameter **T**` | 백틱 패턴 안전화 |
+| `### T` | `### Generic type T` | 단일 문자 헤더 방지 |
+
+### 워크플로우 통합
+
+이 후처리는 문서 동기화 과정에서 자동으로 적용됩니다:
+
+```bash
+pnpm docs:api   # TypeDoc 생성
+pnpm docs:sync  # 후처리 및 동기화 (자동 적용)
+pnpm docs:build # Vue 호환 빌드 성공
+```
+
 ## 문제 해결
 
 ### 1. 문서가 업데이트되지 않는 경우
@@ -263,7 +331,23 @@ rm docs/.vitepress/config/api-spec.ts
 pnpm docs:sync
 ```
 
-### 3. TypeDoc 경고 해결
+### 3. Vue 빌드 오류 해결
+
+Vue 컴파일러 오류가 발생하는 경우:
+
+```bash
+# 문제 파일 강제 재생성
+rm -rf docs/en/api/
+pnpm docs:sync
+pnpm docs:build
+```
+
+**주요 체크포인트:**
+- JSDoc `@template` 구문에 대시(-) 사용 금지
+- 제네릭 타입 패턴이 HTML 엔티티로 변환되었는지 확인
+- 타입 파라미터가 안전한 형태로 표시되는지 확인
+
+### 4. TypeDoc 경고 해결
 
 TypeDoc 경고는 대부분 JSDoc 태그 관련입니다:
 
@@ -272,6 +356,7 @@ TypeDoc 경고는 대부분 JSDoc 태그 관련입니다:
 /**
  * @param payload - Input data
  * @returns Processed result
+ * @template T Store value type (대시 없이)
  */
 ```
 
