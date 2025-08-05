@@ -1,250 +1,49 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { ActionProvider, useActionDispatch, useActionRegister } from '@context-action/react';
-import { ActionPayloadMap } from '@context-action/core';
-import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
+import { useState, useCallback, useEffect } from 'react';
+import { createContextStorePattern, useStoreValue } from '@context-action/react';
+import { PageWithLogMonitor } from '../../components/LogMonitor/';
+import { usePriorityTestManager, HandlerConfig, ExecutionState } from './hooks';
 import styles from './PriorityTestPage.module.css';
 
-// 테스트용 액션 타입 정의
-interface PriorityTestActions extends ActionPayloadMap {
-  priorityTest: { testId: string; delay: number };
-}
-
-// 개별 핸들러 설정 타입
-interface HandlerConfig {
-  id: string;
-  priority: number;
-  color: string;
-  label: string;
-  delay: number;
-  jumpToPriority?: number | null; // 점프할 우선순위 (null이면 점프 없음)
-  jumpToIndex?: number | null; // 같은 우선순위 내에서 특정 인덱스로 점프 (0부터 시작)
-}
-
-// 실행 상태 타입
-interface ExecutionState {
-  handlerId: string;
-  priority: number;
-  status: 'pending' | 'running' | 'completed';
-  startTime?: number;
-  endTime?: number;
-  executionOrder: number;
-}
-
-// 기본 핸들러 설정 (무한루프 테스트 포함)
+// 기본 핸들러 설정 (점프 기능 테스트)
 const DEFAULT_HANDLER_CONFIGS: HandlerConfig[] = [
   { id: 'h1', priority: 300, color: '#dc2626', label: 'Ultra High (300)', delay: 100, jumpToPriority: null, jumpToIndex: null },
-  { id: 'h2', priority: 250, color: '#ea580c', label: 'High (250) #1', delay: 150, jumpToPriority: 10, jumpToIndex: null }, // 10으로 점프
-  { id: 'h3', priority: 250, color: '#ea580c', label: 'High (250) #2', delay: 200, jumpToPriority: null, jumpToIndex: null },
-  { id: 'h4', priority: 200, color: '#ca8a04', label: 'Medium (200) #1', delay: 120, jumpToPriority: 50, jumpToIndex: null },
-  { id: 'h5', priority: 200, color: '#ca8a04', label: 'Medium (200) #2', delay: 130, jumpToPriority: null, jumpToIndex: null },
-  { id: 'h6', priority: 150, color: '#ca8a04', label: 'Medium (150) #3', delay: 140, jumpToPriority: null, jumpToIndex: null },
-  { id: 'h7', priority: 100, color: '#65a30d', label: 'Low (100) #1', delay: 80, jumpToPriority: null, jumpToIndex: null },
-  { id: 'h8', priority: 50, color: '#65a30d', label: 'Low (50) #2', delay: 90, jumpToPriority: null, jumpToIndex: null },
-  // 무한루프 테스트: 20 -> 10 -> 20 순환
-  { id: 'h9', priority: 20, color: '#f59e0b', label: 'Loop A (20)', delay: 60, jumpToPriority: 10, jumpToIndex: null }, // 10으로 점프
-  { id: 'h10', priority: 10, color: '#0891b2', label: 'Loop B (10)', delay: 60, jumpToPriority: 20, jumpToIndex: null }, // 20으로 점프 (무한루프!)
-  { id: 'h11', priority: 1, color: '#7c3aed', label: 'Ultra Low (1)', delay: 40, jumpToPriority: null, jumpToIndex: null },
+  { id: 'h8', priority: 260, color: '#e11d48', label: 'Very High (260)', delay: 130, jumpToPriority: null, jumpToIndex: null },
+  { id: 'h2', priority: 250, color: '#ea580c', label: 'High (250)', delay: 150, jumpToPriority: 230, jumpToIndex: null },
+  { id: 'h3', priority: 230, color: '#f59e0b', label: 'High-Mid (230)', delay: 120, jumpToPriority: null, jumpToIndex: null },
+  { id: 'h4', priority: 200, color: '#ca8a04', label: 'Medium (200)', delay: 120, jumpToPriority: 150, jumpToIndex: null },
+  { id: 'h5', priority: 150, color: '#84cc16', label: 'Med-Low (150)', delay: 110, jumpToPriority: null, jumpToIndex: null },
+  { id: 'h6', priority: 100, color: '#65a30d', label: 'Low (100)', delay: 80, jumpToPriority: null, jumpToIndex: null },
+  { id: 'h7', priority: 50, color: '#0891b2', label: 'Lower (50)', delay: 90, jumpToPriority: null, jumpToIndex: null },
+  { id: 'h9', priority: 20, color: '#7c3aed', label: 'Lowest (20)', delay: 70, jumpToPriority: 260, jumpToIndex: null },
 ];
+
+// Priority Test Store Pattern 생성
+const PriorityStores = createContextStorePattern('PriorityTest');
 
 // 메인 테스트 컴포넌트
 function PriorityTest() {
-  const dispatch = useActionDispatch<PriorityTestActions>();
-  const actionRegister = useActionRegister<PriorityTestActions>();
-  const actionLogger = useActionLoggerWithToast();
+  // Context Store Pattern을 사용한 상태 관리
+  const priorityCountsStore = PriorityStores.useStore('priorityCounts', {} as Record<number, number>);
+  const priorityCounts = useStoreValue(priorityCountsStore);
   
   const [configs, setConfigs] = useState<HandlerConfig[]>(DEFAULT_HANDLER_CONFIGS);
-  const [executionStates, setExecutionStates] = useState<ExecutionState[]>([]);
-  const [isRunning, setIsRunning] = useState(false);
-  const [testResults, setTestResults] = useState<string[]>([]);
-  const [completedCount, setCompletedCount] = useState(0);
-  const [priorityCounts, setPriorityCounts] = useState<Record<number, number>>({});
-  
-  const executionOrderRef = useRef(0);
-  const startTimeRef = useRef<number>(0);
-  const currentTestIdRef = useRef<string>('');
-  const currentAbortControllerRef = useRef<{ abort: (reason?: string) => void } | null>(null);
+  const [bulkDelayValue, setBulkDelayValue] = useState<number>(100);
 
-  // 실행 상태 초기화
-  const initializeExecutionStates = useCallback(() => {
-    const states: ExecutionState[] = configs.map(config => ({
-      handlerId: config.id,
-      priority: config.priority,
-      status: 'pending' as const,
-      executionOrder: 0
-    }));
-    setExecutionStates(states);
-    setCompletedCount(0);
-    setPriorityCounts({});
-  }, [configs]);
-
-
-  // 실행 상태 업데이트
-  const updateExecutionState = useCallback((handlerId: string, status: ExecutionState['status']) => {
-    setExecutionStates(prev => prev.map(state => {
-      if (state.handlerId === handlerId) {
-        const updatedState = { ...state, status };
-        
-        if (status === 'running' && state.status !== 'running') {
-          // 이미 running 상태가 아닐 때만 카운트 증가 (중복 방지)
-          updatedState.startTime = Date.now();
-          updatedState.executionOrder = ++executionOrderRef.current;
-          
-          // 우선순위별 카운트 증가
-          setPriorityCounts(prevCounts => ({
-            ...prevCounts,
-            [state.priority]: (prevCounts[state.priority] || 0) + 1
-          }));
-        } else if (status === 'completed') {
-          updatedState.endTime = Date.now();
-          setCompletedCount(prev => prev + 1);
-        }
-        
-        return updatedState;
-      }
-      return state;
-    }));
-  }, []);
-
-  // 액션 핸들러 등록
-  useEffect(() => {
-    console.log(`🔧 [REGISTER] useEffect triggered, configs.length: ${configs.length}`);
-    const unregisterFunctions: (() => void)[] = [];
-
-    configs.forEach((config) => {
-      console.log(`📝 [REGISTER] Registering handler: ${config.id} (P${config.priority})`);
-      const unregister = actionRegister.register('priorityTest', 
-        async ({ testId, delay }, controller) => {
-          // 현재 실행 중인 테스트만 처리
-          if (!testId || !testId.startsWith('test-') || testId !== currentTestIdRef.current) {
-            controller.next();
-            return;
-          }
-          
-          // 외부 중단 컨트롤러 설정 (첫 번째 핸들러에서만)
-          if (!currentAbortControllerRef.current) {
-            currentAbortControllerRef.current = controller;
-          }
-          
-          console.log(`🏃 [EXECUTE] Handler ${config.id} (P${config.priority}) executing`);
-          updateExecutionState(config.id, 'running');
-          
-          const timestamp = Date.now() - startTimeRef.current;
-          setTestResults(prev => [...prev, `[${timestamp}ms] 🟡 ${config.label} 시작 (지연: ${config.delay}ms)`]);
-          
-          actionLogger.logAction('priorityTest', { testId, delay }, {
-            context: `Priority Test - ${config.label}`,
-            toast: { type: 'info', message: `${config.label} 실행 중...` }
-          });
-
-          try {
-            // 지연 시뮬레이션
-            await new Promise(resolve => setTimeout(resolve, config.delay));
-            
-            updateExecutionState(config.id, 'completed');
-            
-            const completionTimestamp = Date.now() - startTimeRef.current;
-            setTestResults(prev => [...prev, `[${completionTimestamp}ms] 🟢 ${config.label} 완료`]);
-            
-            // Jump 처리
-            if (config.jumpToPriority !== null && config.jumpToPriority !== undefined) {
-              const jumpTimestamp = Date.now() - startTimeRef.current;
-              const jumpTarget = config.jumpToIndex !== null && config.jumpToIndex !== undefined 
-                ? `P${config.jumpToPriority}[${config.jumpToIndex}]` 
-                : `P${config.jumpToPriority}`;
-              setTestResults(prev => [...prev, `[${jumpTimestamp}ms] 🔄 ${config.label}에서 ${jumpTarget}로 점프`]);
-              
-              // 기존 jumpToPriority 사용 (첫 번째 핸들러로 점프)
-              controller.jumpToPriority(config.jumpToPriority);
-            } else {
-              // 다음 핸들러로 진행
-              controller.next();
-            }
-          } catch (error) {
-            const errorTimestamp = Date.now() - startTimeRef.current;
-            setTestResults(prev => [...prev, `[${errorTimestamp}ms] 🔴 ${config.label} 에러: ${error}`]);
-            controller.abort('Handler failed');
-          }
-        },
-        { 
-          id: config.id,
-          priority: config.priority, 
-          blocking: true 
-        }
-      );
-      
-      unregisterFunctions.push(unregister);
-    });
-
-    return () => {
-      unregisterFunctions.forEach(fn => fn());
-    };
-  }, [configs]);
+  // 모듈화된 우선순위 테스트 매니저 사용
+  const testManager = usePriorityTestManager(configs, priorityCountsStore);
 
   // 테스트 실행
   const runPriorityTest = useCallback(async () => {
-    if (isRunning) return;
+    if (testManager.isRunning) return;
     
-    setIsRunning(true);
-    setTestResults([]);
-    setCompletedCount(0);
-    setPriorityCounts({});
-    executionOrderRef.current = 0;
-    startTimeRef.current = Date.now();
-    currentAbortControllerRef.current = null; // abort controller 초기화
-    
-    const testId = `test-${Date.now()}`;
-    currentTestIdRef.current = testId;
-    
-    // 실행 상태 초기화
-    initializeExecutionStates();
-    
-    const timestamp = Date.now() - startTimeRef.current;
-    setTestResults([`[${timestamp}ms] 🚀 우선순위 테스트 시작 (총 ${configs.length}개 핸들러)`]);
-    
-    try {
-      // 액션 디스패치 (순차 실행 모드) - dispatchWithResult 사용
-      const result = await actionRegister.dispatchWithResult('priorityTest', { testId, delay: 0 }, { executionMode: 'sequential' });
-      
-      // dispatch 완료 후 처리
-      const dispatchCompleteTimestamp = Date.now() - startTimeRef.current;
-      setTestResults(prev => [...prev, `[${dispatchCompleteTimestamp}ms] 🏁 디스패치 완료`]);
-      
-      // ExecutionResult를 통한 정확한 완료 감지
-      const executionInfo = `실행된 핸들러: ${result.execution.handlersExecuted}, 건너뛴 핸들러: ${result.execution.handlersSkipped}, 실패한 핸들러: ${result.execution.handlersFailed}`;
-      setTestResults(prev => [...prev, `[${dispatchCompleteTimestamp}ms] 📊 ${executionInfo}`]);
-      
-      if (result.aborted) {
-        setTestResults(prev => [...prev, `[${dispatchCompleteTimestamp}ms] 🛑 실행이 중단되었습니다: ${result.abortReason}`]);
-      } else if (result.terminated) {
-        setTestResults(prev => [...prev, `[${dispatchCompleteTimestamp}ms] 🏁 파이프라인이 조기 종료되었습니다`]);
-      } else {
-        setTestResults(prev => [...prev, `[${dispatchCompleteTimestamp}ms] ✅ 모든 핸들러 실행 완료`]);
-      }
-      
-      // 즉시 완료 처리
-      setIsRunning(false);
-      currentAbortControllerRef.current = null;
-      
-    } catch (error) {
-      const errorTimestamp = Date.now() - startTimeRef.current;
-      setTestResults(prev => [...prev, `[${errorTimestamp}ms] ❌ 테스트 실패: ${error}`]);
-      setIsRunning(false);
-      currentAbortControllerRef.current = null;
-    }
-  }, [actionRegister, isRunning, initializeExecutionStates, configs.length]);
+    await testManager.executeTest(100); // 기본 지연 100ms (개별 설정은 config.delay 사용)
+  }, [testManager]);
 
   // 설정 초기화
   const resetConfigs = useCallback(() => {
     setConfigs(DEFAULT_HANDLER_CONFIGS);
-    setTestResults([]);
-    setExecutionStates([]);
-    setIsRunning(false);
-    setCompletedCount(0);
-    setPriorityCounts({});
-    executionOrderRef.current = 0;
-    startTimeRef.current = 0;
-    currentAbortControllerRef.current = null;
-  }, []);
+    testManager.initializeTest();
+  }, [testManager]);
 
   // 우선순위 설정 업데이트
   const updateConfig = useCallback((index: number, field: keyof HandlerConfig, value: number | string | null) => {
@@ -287,51 +86,57 @@ function PriorityTest() {
     setConfigs(prev => [...prev, newConfig]);
   }, []);
 
-  // 1부터 300까지 핸들러 일괄 추가
+  // 1부터 300까지 핸들러 일괄 추가 (중복 우선순위 제거)
   const addBulkHandlers = useCallback(() => {
-    const bulkConfigs: HandlerConfig[] = [];
-    const colors = ['#dc2626', '#ea580c', '#ca8a04', '#65a30d', '#0891b2', '#7c3aed', '#8b5cf6', '#f59e0b'];
-    
-    for (let priority = 1; priority <= 300; priority++) {
-      const color = colors[priority % colors.length];
-      const delay = Math.floor(Math.random() * 100) + 20; // 20-120ms
+    setConfigs(prev => {
+      const bulkConfigs: HandlerConfig[] = [];
+      const colors = ['#dc2626', '#ea580c', '#ca8a04', '#65a30d', '#0891b2', '#7c3aed', '#8b5cf6', '#f59e0b'];
       
-      bulkConfigs.push({
-        id: `bulk-${priority}`,
-        priority,
-        color,
-        label: `P${priority}`,
-        delay,
-        jumpToPriority: null,
-        jumpToIndex: null
-      });
-    }
-    
-    setConfigs(prev => [...prev, ...bulkConfigs]);
+      // 현재 설정에서 이미 사용 중인 우선순위 추출
+      const existingPriorities = new Set(prev.map(config => config.priority));
+      
+      for (let priority = 1; priority <= 300; priority++) {
+        // 이미 존재하는 우선순위는 건너뛰기
+        if (existingPriorities.has(priority)) {
+          continue;
+        }
+        
+        const color = colors[priority % colors.length];
+        const delay = Math.floor(Math.random() * 100) + 20; // 20-120ms
+        
+        bulkConfigs.push({
+          id: `bulk-${priority}`,
+          priority,
+          color,
+          label: `P${priority}`,
+          delay,
+          jumpToPriority: null,
+          jumpToIndex: null
+        });
+      }
+      
+      return [...prev, ...bulkConfigs];
+    });
   }, []);
 
   // 실행 중단
   const abortExecution = useCallback(() => {
-    if (currentAbortControllerRef.current && isRunning) {
-      currentAbortControllerRef.current.abort('사용자가 실행을 중단했습니다');
-      const timestamp = Date.now() - startTimeRef.current;
-      setTestResults(prev => [...prev, `[${timestamp}ms] 🛑 실행이 사용자에 의해 중단되었습니다`]);
-      setIsRunning(false);
-      currentAbortControllerRef.current = null;
-    }
-  }, [isRunning]);
+    testManager.abortTest();
+  }, [testManager]);
 
   // 설정 제거
   const removeConfig = useCallback((index: number) => {
     setConfigs(prev => prev.filter((_, i) => i !== index));
   }, []);
 
-  // 더 이상 completedCount 기반 완료 감지 사용하지 않음 - dispatchWithResult로 정확한 완료 추적
+  // 모든 핸들러의 지연 시간 일괄 수정
+  const updateAllDelays = useCallback(() => {
+    setConfigs(prev => prev.map(config => ({
+      ...config,
+      delay: bulkDelayValue
+    })));
+  }, [bulkDelayValue]);
 
-  // 컴포넌트 초기화
-  useEffect(() => {
-    initializeExecutionStates();
-  }, [initializeExecutionStates]);
 
   return (
     <div className="priority-test">
@@ -350,60 +155,86 @@ function PriorityTest() {
           <div className="flex gap-2">
             <button 
               onClick={runPriorityTest}
-              disabled={isRunning}
-              className={`btn ${isRunning ? 'btn-secondary' : 'btn-primary'}`}
+              disabled={testManager.isRunning}
+              className={`btn ${testManager.isRunning ? 'btn-secondary' : 'btn-primary'}`}
             >
-              {isRunning ? '⏳ 실행 중...' : '🚀 우선순위 테스트 실행'}
+              {testManager.isRunning ? '⏳ 실행 중...' : '🚀 우선순위 테스트 실행'}
             </button>
             <button 
               onClick={abortExecution}
-              disabled={!isRunning}
+              disabled={!testManager.isRunning}
               className="btn btn-danger"
             >
               🛑 실행 중단
             </button>
             <button 
               onClick={resetConfigs}
-              disabled={isRunning}
+              disabled={testManager.isRunning}
               className="btn btn-secondary"
             >
               🔄 설정 초기화
             </button>
             <button 
               onClick={addConfig}
-              disabled={isRunning}
+              disabled={testManager.isRunning}
               className="btn btn-info"
             >
               ➕ 핸들러 추가
             </button>
             <button 
               onClick={addRandomConfig}
-              disabled={isRunning}
+              disabled={testManager.isRunning}
               className="btn btn-success"
             >
               🎲 임의 핸들러
             </button>
             <button 
               onClick={addBulkHandlers}
-              disabled={isRunning}
+              disabled={testManager.isRunning}
               className="btn btn-warning"
             >
               📦 일괄 추가 (1-300)
             </button>
           </div>
         </div>
+
+        {/* 일괄 지연 수정 컨트롤 */}
+        <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 rounded-lg">
+          <span className="text-sm font-medium text-gray-700">⏱️ 일괄 지연 수정:</span>
+          <input
+            type="number"
+            value={bulkDelayValue}
+            onChange={(e) => setBulkDelayValue(parseInt(e.target.value) || 0)}
+            className="text-input w-20 text-sm"
+            placeholder="ms"
+            min="0"
+            max="5000"
+            disabled={testManager.isRunning}
+          />
+          <span className="text-xs text-gray-500">ms</span>
+          <button
+            onClick={updateAllDelays}
+            disabled={testManager.isRunning}
+            className="btn btn-secondary text-sm px-3 py-1"
+          >
+            🔄 모든 지연 시간 적용
+          </button>
+          <span className="text-xs text-gray-500">
+            현재 {configs.length}개 핸들러의 지연 시간을 {bulkDelayValue}ms로 일괄 변경
+          </span>
+        </div>
         
         {/* 진행률 표시 */}
-        {isRunning && (
+        {testManager.isRunning && (
           <div className="mt-4">
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm text-gray-600">테스트 진행률</span>
-              <span className="text-sm font-medium">{completedCount}/{configs.length}</span>
+              <span className="text-sm font-medium">{testManager.completedCount}/{configs.length}</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div 
                 className="bg-primary-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${configs.length > 0 ? (completedCount / configs.length) * 100 : 0}%` }}
+                style={{ width: `${configs.length > 0 ? (testManager.completedCount / configs.length) * 100 : 0}%` }}
               />
             </div>
           </div>
@@ -418,7 +249,7 @@ function PriorityTest() {
             <div className="text-xs text-gray-600 mb-1">
               각 우선순위별 실행 횟수를 실시간으로 표시합니다. 무한루프 시 카운트가 계속 증가합니다.
             </div>
-            {isRunning && (
+            {testManager.isRunning && (
               <div className="text-xs text-blue-600 font-medium">
                 ⚡ 현재 실행중... (총 실행 횟수: {Object.values(priorityCounts).reduce((sum, count) => sum + count, 0)})
               </div>
@@ -468,7 +299,7 @@ function PriorityTest() {
                     onChange={(e) => updateConfig(index, 'label', e.target.value)}
                     className="text-input text-sm"
                     placeholder="라벨"
-                    disabled={isRunning}
+                    disabled={testManager.isRunning}
                   />
                   <input
                     type="number"
@@ -476,7 +307,7 @@ function PriorityTest() {
                     onChange={(e) => updateConfig(index, 'priority', parseInt(e.target.value) || 0)}
                     className="text-input text-sm"
                     placeholder="우선순위"
-                    disabled={isRunning}
+                    disabled={testManager.isRunning}
                   />
                   <input
                     type="number"
@@ -484,7 +315,7 @@ function PriorityTest() {
                     onChange={(e) => updateConfig(index, 'delay', parseInt(e.target.value) || 0)}
                     className="text-input text-sm"
                     placeholder="지연(ms)"
-                    disabled={isRunning}
+                    disabled={testManager.isRunning}
                   />
                   <input
                     type="number"
@@ -495,7 +326,7 @@ function PriorityTest() {
                     }}
                     className="text-input text-sm"
                     placeholder="점프P"
-                    disabled={isRunning}
+                    disabled={testManager.isRunning}
                   />
                   <input
                     type="number"
@@ -506,7 +337,7 @@ function PriorityTest() {
                     }}
                     className="text-input text-sm"
                     placeholder="점프#"
-                    disabled={isRunning}
+                    disabled={testManager.isRunning}
                   />
                   <input
                     type="text"
@@ -514,11 +345,11 @@ function PriorityTest() {
                     onChange={(e) => updateConfig(index, 'color', e.target.value)}
                     className="text-input text-sm"
                     placeholder="색상"
-                    disabled={isRunning}
+                    disabled={testManager.isRunning}
                   />
                   <button
                     onClick={() => removeConfig(index)}
-                    disabled={isRunning || configs.length <= 1}
+                    disabled={testManager.isRunning || configs.length <= 1}
                     className="btn btn-danger text-xs px-2 py-1"
                     title="이 우선순위 설정 삭제"
                   >
@@ -541,13 +372,13 @@ function PriorityTest() {
       <div className="demo-card mt-6">
         <h3>📋 실행 로그</h3>
         <div className={styles.testLog}>
-          {testResults.length === 0 ? (
+          {testManager.testResults.length === 0 ? (
             <div className="text-gray-500 text-center py-4">
               테스트를 실행하면 실행 로그가 표시됩니다
             </div>
           ) : (
             <div className="max-h-64 overflow-y-auto">
-              {testResults.map((result, index) => (
+              {testManager.testResults.map((result, index) => (
                 <div key={index} className={styles.logEntry}>
                   {result}
                 </div>
@@ -607,9 +438,9 @@ function PriorityTestPage() {
       title="Priority Execution Test"
       initialConfig={{ enableToast: true, maxLogs: 100 }}
     >
-      <ActionProvider config={{ name: 'PriorityTest' }}>
+      <PriorityStores.Provider registryId="priority-test">
         <PriorityTest />
-      </ActionProvider>
+      </PriorityStores.Provider>
     </PageWithLogMonitor>
   );
 }
