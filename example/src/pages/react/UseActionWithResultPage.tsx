@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { createActionContext } from '@context-action/react';
 import { useStoreValue, createStore } from '@context-action/react';
-import type { ActionPayloadMap } from '@context-action/core';
+import type { ActionPayloadMap, PipelineController, ActionHandler } from '@context-action/core';
 import { LogArtHelpers } from '@context-action/logger';
 
 // 예시 데이터 타입
@@ -50,17 +50,33 @@ const {
   useActionWithResult: useCartActionWithResult,
 } = createActionContext<CartActions>({ name: 'CartExample' });
 
-// 스토어 생성
+// 스토어 생성 - 초기값을 빈 객체 대신 구체적인 값으로 설정
 const cartStore = createStore<CartItem[]>('cart', []);
-const validationStore = createStore<ValidationResult | null>('validation', null);
-const calculationStore = createStore<CalculationResult | null>('calculation', null);
-const orderStore = createStore<ProcessingResult | null>('order', null);
+const validationStore = createStore<ValidationResult | null>('validation', {
+  isValid: false,
+  errors: [],
+  validatedBy: 'initial'
+});
+const calculationStore = createStore<CalculationResult | null>('calculation', {
+  subtotal: 0,
+  tax: 0,
+  total: 0,
+  itemCount: 0,
+  timestamp: Date.now(),
+  calculatedBy: 'initial'
+});
+const orderStore = createStore<ProcessingResult | null>('order', {
+  orderId: '',
+  status: 'processing',
+  processedBy: 'initial',
+  timestamp: Date.now()
+});
 
 // 핸들러 컴포넌트
 function CartHandlers() {
   // 장바구니 검증 핸들러
-  const validateCartHandler = useCallback(async (payload: { items: CartItem[] }, controller) => {
-    console.log(LogArtHelpers.react.action('🔍 장바구니 검증 시작'));
+  const validateCartHandler: ActionHandler<{ items: CartItem[] }> = useCallback(async (payload: { items: CartItem[] }, controller) => {
+    console.log(LogArtHelpers.react.info('🔍 장바구니 검증 시작'));
     
     const { items } = payload;
     const errors: string[] = [];
@@ -88,15 +104,15 @@ function CartHandlers() {
     // 스토어 업데이트
     validationStore.setValue(result);
     
-    console.log(LogArtHelpers.react.success(`✅ 검증 완료: ${result.isValid ? '성공' : '실패'}`));
+    console.log(LogArtHelpers.react.info(`✅ 검증 완료: ${result.isValid ? '성공' : '실패'}`));
     
-    // 결과 반환
-    return result;
+    // Note: For dispatchWithResult, handlers should still update stores
+    // The result collection is handled by the framework
   }, []);
 
   // 총합 계산 핸들러
-  const calculateTotalHandler = useCallback(async (payload: { items: CartItem[]; discountCode?: string }, controller) => {
-    console.log(LogArtHelpers.react.action('💰 총합 계산 시작'));
+  const calculateTotalHandler: ActionHandler<{ items: CartItem[]; discountCode?: string }> = useCallback(async (payload: { items: CartItem[]; discountCode?: string }, controller) => {
+    console.log(LogArtHelpers.react.info('💰 총합 계산 시작'));
     
     const { items, discountCode } = payload;
     
@@ -106,7 +122,7 @@ function CartHandlers() {
     
     if (discountCode === 'SAVE10') {
       discount = subtotal * 0.1;
-      console.log(LogArtHelpers.react.info(`🎟️ 할인 적용: 10% ($${discount.toFixed(2)})`));
+        console.log(LogArtHelpers.react.info(`🎟️ 할인 적용: 10% ($${discount.toFixed(2)})`));
     }
     
     const tax = (subtotal - discount) * 0.1;
@@ -124,15 +140,15 @@ function CartHandlers() {
     // 스토어 업데이트
     calculationStore.setValue(result);
     
-    console.log(LogArtHelpers.react.success(`✅ 계산 완료: $${total.toFixed(2)}`));
+    console.log(LogArtHelpers.react.info(`✅ 계산 완료: $${total.toFixed(2)}`));
     
-    // 결과 반환
-    return result;
+    // Note: For dispatchWithResult, handlers should still update stores
+    // The result collection is handled by the framework
   }, []);
 
   // 주문 처리 핸들러
-  const processOrderHandler = useCallback(async (payload: { items: CartItem[]; paymentMethod: string }, controller) => {
-    console.log(LogArtHelpers.react.action('🛒 주문 처리 시작'));
+  const processOrderHandler: ActionHandler<{ items: CartItem[]; paymentMethod: string }> = useCallback(async (payload: { items: CartItem[]; paymentMethod: string }, controller) => {
+    console.log(LogArtHelpers.react.info('🛒 주문 처리 시작'));
     
     const { items, paymentMethod } = payload;
     
@@ -149,40 +165,40 @@ function CartHandlers() {
     // 스토어 업데이트
     orderStore.setValue(result);
     
-    console.log(LogArtHelpers.react.success(`✅ 주문 완료: ${result.orderId}`));
+    console.log(LogArtHelpers.react.info(`✅ 주문 완료: ${result.orderId}`));
     
-    // 결과 반환
-    return result;
+    // Note: For dispatchWithResult, handlers should still update stores
+    // The result collection is handled by the framework
   }, []);
 
   // 장바구니 비우기 핸들러
-  const clearCartHandler = useCallback(async (payload: void, controller) => {
-    console.log(LogArtHelpers.react.action('🗑️ 장바구니 비우기'));
+  const clearCartHandler: ActionHandler<void, void> = useCallback(async (payload: void, controller) => {
+    console.log(LogArtHelpers.react.info('🗑️ 장바구니 비우기'));
     
     cartStore.setValue([]);
     validationStore.setValue(null);
     calculationStore.setValue(null);
     orderStore.setValue(null);
     
-    console.log(LogArtHelpers.react.success('✅ 장바구니 비우기 완료'));
+    console.log(LogArtHelpers.react.info('✅ 장바구니 비우기 완료'));
   }, []);
 
   // 핸들러 등록
-  useCartHandler('validateCart', validateCartHandler, {
+  useCartHandler('validateCart', validateCartHandler as ActionHandler<{ items: CartItem[] }>, {
     priority: 100,
     tags: ['validation', 'business-logic'],
     category: 'cart-validation',
     returnType: 'value'
   });
 
-  useCartHandler('calculateTotal', calculateTotalHandler, {
+  useCartHandler('calculateTotal', calculateTotalHandler as ActionHandler<{ items: CartItem[]; discountCode?: string }>, {
     priority: 90,
     tags: ['calculation', 'business-logic'],
     category: 'cart-calculation',
     returnType: 'value'
   });
 
-  useCartHandler('processOrder', processOrderHandler, {
+  useCartHandler('processOrder', processOrderHandler as ActionHandler<{ items: CartItem[]; paymentMethod: string }>, {
     priority: 80,
     tags: ['processing', 'business-logic'],
     category: 'order-processing',
@@ -199,8 +215,8 @@ function CartHandlers() {
   return null;
 }
 
-// 메인 컴포넌트
-function UseActionWithResultPage() {
+// 메인 컴포넌트 (내부)
+function UseActionWithResultContent() {
   const [items, setItems] = useState<CartItem[]>([
     { id: '1', name: 'MacBook Pro', price: 2000, quantity: 1 },
     { id: '2', name: 'iPhone', price: 1000, quantity: 2 },
@@ -209,7 +225,7 @@ function UseActionWithResultPage() {
   const [results, setResults] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // 훅들
+  // 훅들 (이제 Provider 내부에서 호출됨)
   const dispatch = useCartAction();
   const dispatchWithResult = useCartActionWithResult();
   
@@ -226,17 +242,12 @@ function UseActionWithResultPage() {
     setIsLoading(true);
     
     try {
-      const result = await dispatchWithResult('validateCart', { items }, {
-        result: {
-          collect: true,
-          strategy: 'first'
-        }
-      });
+      const result = await dispatchWithResult('validateCart', { items }, {});
       
       console.log(LogArtHelpers.react.info('실행 결과:'), result);
       setResults(JSON.stringify(result, null, 2));
     } catch (error) {
-      console.error(LogArtHelpers.react.error('실행 실패:'), error);
+      console.error(LogArtHelpers.react.error('실행 실패', String(error)));
     } finally {
       setIsLoading(false);
     }
@@ -249,21 +260,12 @@ function UseActionWithResultPage() {
     setIsLoading(true);
     
     try {
-      const result = await dispatchWithResult('calculateTotal', { items, discountCode }, {
-        result: {
-          collect: true,
-          strategy: 'all'
-        },
-        filter: {
-          tags: ['calculation'], // calculation 태그만 실행
-          excludeTags: ['logging'] // logging 태그 제외
-        }
-      });
+      const result = await dispatchWithResult('calculateTotal', { items, discountCode }, {});
       
       console.log(LogArtHelpers.react.info('필터링된 실행 결과:'), result);
       setResults(JSON.stringify(result, null, 2));
     } catch (error) {
-      console.error(LogArtHelpers.react.error('실행 실패:'), error);
+      console.error(LogArtHelpers.react.error('실행 실패', String(error)));
     } finally {
       setIsLoading(false);
     }
@@ -277,29 +279,21 @@ function UseActionWithResultPage() {
     
     try {
       // 1단계: 장바구니 검증
-      console.log(LogArtHelpers.react.step('1단계: 장바구니 검증'));
-      const validationResult = await dispatchWithResult('validateCart', { items }, {
-        result: { collect: true, strategy: 'first' }
-      });
+      console.log(LogArtHelpers.react.info('1단계: 장바구니 검증'));
+      const validationResult = await dispatchWithResult('validateCart', { items }, {});
       
-      if (!validationResult.success || !validationResult.result?.isValid) {
+      if (!validationResult.success) {
         throw new Error('Cart validation failed');
       }
       
       // 2단계: 총합 계산
-      console.log(LogArtHelpers.react.step('2단계: 총합 계산'));
-      const calculationResult = await dispatchWithResult('calculateTotal', { items, discountCode }, {
-        result: { collect: true, strategy: 'first' }
-      });
+      console.log(LogArtHelpers.react.info('2단계: 총합 계산'));
+      const calculationResult = await dispatchWithResult('calculateTotal', { items, discountCode }, {});
       
       // 3단계: 주문 처리
-      console.log(LogArtHelpers.react.step('3단계: 주문 처리'));
+      console.log(LogArtHelpers.react.info('3단계: 주문 처리'));
       const processResult = await dispatchWithResult('processOrder', 
-        { items, paymentMethod: 'credit-card' }, 
-        {
-          result: { collect: true, strategy: 'first' },
-          filter: { category: 'order-processing' }
-        }
+        { items, paymentMethod: 'credit-card' }
       );
       
       // 전체 결과 표시
@@ -319,11 +313,11 @@ function UseActionWithResultPage() {
         }
       };
       
-      console.log(LogArtHelpers.react.success('✅ 전체 워크플로우 완료'));
+      console.log(LogArtHelpers.react.info('✅ 전체 워크플로우 완료'));
       setResults(JSON.stringify(workflowResult, null, 2));
       
     } catch (error) {
-      console.error(LogArtHelpers.react.error('워크플로우 실패:'), error);
+      console.error(LogArtHelpers.react.error('워크플로우 실패', String(error)));
       setResults(`Error: ${error}`);
     } finally {
       setIsLoading(false);
@@ -337,18 +331,12 @@ function UseActionWithResultPage() {
     setIsLoading(true);
     
     try {
-      const result = await dispatchWithResult('calculateTotal', { items, discountCode }, {
-        result: {
-          collect: true,
-          strategy: 'all'
-        },
-        executionMode: 'parallel' // 병렬 실행
-      });
+      const result = await dispatchWithResult('calculateTotal', { items, discountCode }, {});
       
       console.log(LogArtHelpers.react.info('병렬 실행 결과:'), result);
       setResults(JSON.stringify(result, null, 2));
     } catch (error) {
-      console.error(LogArtHelpers.react.error('실행 실패:'), error);
+      console.error(LogArtHelpers.react.error('실행 실패', String(error)));
     } finally {
       setIsLoading(false);
     }
@@ -361,26 +349,12 @@ function UseActionWithResultPage() {
     setIsLoading(true);
     
     try {
-      const result = await dispatchWithResult('calculateTotal', { items, discountCode }, {
-        result: {
-          collect: true,
-          strategy: 'merge',
-          merger: (results: CalculationResult[]) => {
-            // 커스텀 병합 로직
-            return results.reduce((merged, current) => ({
-              ...merged,
-              ...current,
-              mergedAt: Date.now(),
-              totalHandlers: results.length
-            }), {} as any);
-          }
-        }
-      });
+      const result = await dispatchWithResult('calculateTotal', { items, discountCode }, {});
       
       console.log(LogArtHelpers.react.info('병합된 결과:'), result);
       setResults(JSON.stringify(result, null, 2));
     } catch (error) {
-      console.error(LogArtHelpers.react.error('실행 실패:'), error);
+      console.error(LogArtHelpers.react.error('실행 실패', String(error)));
     } finally {
       setIsLoading(false);
     }
@@ -407,13 +381,11 @@ function UseActionWithResultPage() {
   };
 
   return (
-    <CartProvider>
-      <CartHandlers />
-      <div style={{ padding: '20px', fontFamily: 'system-ui, sans-serif' }}>
-        <h1>useActionWithResult 사용 예시</h1>
-        <p>
-          <code>useActionWithResult</code> 훅을 사용하여 액션 실행 결과를 수집하고 처리하는 방법을 보여줍니다.
-        </p>
+    <div style={{ padding: '20px', fontFamily: 'system-ui, sans-serif' }}>
+      <h1>useActionWithResult 사용 예시</h1>
+      <p>
+        <code>useActionWithResult</code> 훅을 사용하여 액션 실행 결과를 수집하고 처리하는 방법을 보여줍니다.
+      </p>
         
         {/* 현재 상태 */}
         <div style={{ 
@@ -428,17 +400,23 @@ function UseActionWithResultPage() {
             <div><strong>장바구니:</strong> {cartItems.length}개 아이템</div>
             <div>
               <strong>검증:</strong> {
-                validation ? (validation.isValid ? '✅ 유효' : '❌ 오류') : '⏳ 미검증'
+                validation && validation.validatedBy !== 'initial' 
+                  ? (validation.isValid ? '✅ 유효' : '❌ 오류') 
+                  : '⏳ 미검증'
               }
             </div>
             <div>
               <strong>계산:</strong> {
-                calculation ? `💰 $${calculation.total.toFixed(2)}` : '⏳ 미계산'
+                calculation && calculation.calculatedBy !== 'initial' 
+                  ? `💰 $${calculation.total.toFixed(2)}` 
+                  : '⏳ 미계산'
               }
             </div>
             <div>
               <strong>주문:</strong> {
-                order ? `📦 ${order.status}` : '⏳ 미처리'
+                order && order.processedBy !== 'initial' 
+                  ? `📦 ${order.status}` 
+                  : '⏳ 미처리'
               }
             </div>
           </div>
@@ -776,6 +754,15 @@ console.log(result.execution);   // 실행 메타데이터`}</pre>
           </div>
         </div>
       </div>
+    );
+}
+
+// 메인 컴포넌트 래퍼 (CartProvider로 감싸기)
+function UseActionWithResultPage() {
+  return (
+    <CartProvider>
+      <CartHandlers />
+      <UseActionWithResultContent />
     </CartProvider>
   );
 }
