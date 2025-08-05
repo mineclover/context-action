@@ -90,65 +90,67 @@ function ActionGuardTest() {
 
   // 액션 핸들러 등록
   useEffect(() => {
-    const startTime = performance.now();
-
     // 검색 액션 (debounce 테스트용)
     const unregister1 = actionRegister.register('searchUser', ({ query }, controller) => {
-      const execTime = performance.now() - startTime;
-      updateMetrics(execTime, 'debounced');
+      const actionStartTime = performance.now();
       
       actionLogger.logAction('searchUser', { query }, {
         context: 'ActionGuard Test',
         toast: { type: 'info', message: `검색: "${query}"` }
       });
       
+      const execTime = performance.now() - actionStartTime;
+      updateMetrics(execTime, 'debounced');
       addTestResult('Debounce Search', 'success', `검색어: "${query}"`, execTime);
       controller.next();
     }, { debounce: 300 });
 
     // 저장 액션 (throttle 테스트용) 
     const unregister2 = actionRegister.register('saveData', ({ data }, controller) => {
-      const execTime = performance.now() - startTime;
-      updateMetrics(execTime, 'throttled');
+      const actionStartTime = performance.now();
       
       actionLogger.logAction('saveData', { data }, {
         context: 'ActionGuard Test',
         toast: { type: 'success', message: '데이터 저장됨' }
       });
       
+      const execTime = performance.now() - actionStartTime;
+      updateMetrics(execTime, 'throttled');
       addTestResult('Throttled Save', 'success', `데이터: "${data}"`, execTime);
       controller.next();
     }, { throttle: 1000 });
 
     // 스크롤 액션 (throttle 테스트용)
     const unregister3 = actionRegister.register('scrollEvent', ({ position }, controller) => {
-      const execTime = performance.now() - startTime;
-      updateMetrics(execTime, 'throttled');
+      const actionStartTime = performance.now();
       
       actionLogger.logAction('scrollEvent', { position }, {
         context: 'ActionGuard Test'
       });
       
+      const execTime = performance.now() - actionStartTime;
+      updateMetrics(execTime, 'throttled');
       controller.next();
     }, { throttle: 100 });
 
     // 버튼 클릭 액션
     const unregister4 = actionRegister.register('buttonClick', ({ buttonId }, controller) => {
-      const execTime = performance.now() - startTime;
-      updateMetrics(execTime, 'normal');
+      const actionStartTime = performance.now();
       
       actionLogger.logAction('buttonClick', { buttonId }, {
         context: 'ActionGuard Test',
         toast: { type: 'info', message: `버튼 클릭: ${buttonId}` }
       });
       
+      const execTime = performance.now() - actionStartTime;
+      updateMetrics(execTime, 'normal');
       addTestResult('Button Click', 'success', `버튼: ${buttonId}`, execTime);
       controller.next();
     });
 
     // 양식 검증 액션 (조건부 실행)
     const unregister5 = actionRegister.register('validateForm', ({ formData }, controller) => {
-      const execTime = performance.now() - startTime;
+      const actionStartTime = performance.now();
       const isValid = formData.name && formData.email && formData.age;
       
       if (isValid) {
@@ -156,16 +158,19 @@ function ActionGuardTest() {
           context: 'ActionGuard Test',
           toast: { type: 'success', message: '양식 검증 성공' }
         });
+        const execTime = performance.now() - actionStartTime;
         addTestResult('Form Validation', 'success', '유효한 양식', execTime);
+        updateMetrics(execTime, 'normal');
       } else {
         actionLogger.logError('Form validation failed', new Error('Required fields missing'), {
           context: 'ActionGuard Test',
           toast: true
         });
+        const execTime = performance.now() - actionStartTime;
         addTestResult('Form Validation', 'failed', '필수 필드 누락', execTime);
+        updateMetrics(execTime, 'normal');
       }
       
-      updateMetrics(execTime, 'normal');
       controller.next();
     }, { 
       condition: () => formData.name?.length > 0,
@@ -210,7 +215,7 @@ function ActionGuardTest() {
 
     // 에러 테스트 액션
     const unregister7 = actionRegister.register('errorTest', ({ shouldFail }, controller) => {
-      const execTime = performance.now() - startTime;
+      const actionStartTime = performance.now();
       
       if (shouldFail) {
         const error = new Error('의도적인 테스트 에러');
@@ -218,29 +223,32 @@ function ActionGuardTest() {
           context: 'ActionGuard Test',
           toast: true
         });
+        const execTime = performance.now() - actionStartTime;
         addTestResult('Error Test', 'failed', '의도적 에러 발생', execTime);
+        updateMetrics(execTime, 'normal');
         controller.abort('Test error');
       } else {
         actionLogger.logAction('errorTest', { shouldFail }, {
           context: 'ActionGuard Test',
           toast: { type: 'success', message: '에러 테스트 성공' }
         });
+        const execTime = performance.now() - actionStartTime;
         addTestResult('Error Test', 'success', '에러 없이 성공', execTime);
+        updateMetrics(execTime, 'normal');
         controller.next();
       }
-      
-      updateMetrics(execTime, 'normal');
     });
 
     // 우선순위 테스트 액션
     const unregister8 = actionRegister.register('priorityTest', ({ priority, message }, controller) => {
-      const execTime = performance.now() - startTime;
+      const actionStartTime = performance.now();
       
       actionLogger.logAction('priorityTest', { priority, message }, {
         context: 'ActionGuard Test',
         toast: { type: 'info', message: `우선순위 ${priority}: ${message}` }
       });
       
+      const execTime = performance.now() - actionStartTime;
       addTestResult('Priority Test', 'success', `P${priority}: ${message}`, execTime);
       updateMetrics(execTime, 'normal');
       controller.next();
@@ -290,10 +298,10 @@ function ActionGuardTest() {
   }, [dispatch]);
 
   const handlePriorityTest = useCallback(() => {
-    // 다양한 우선순위로 액션 실행
-    dispatch('priorityTest', { priority: 1, message: 'Low priority' });
-    dispatch('priorityTest', { priority: 5, message: 'High priority' });
-    dispatch('priorityTest', { priority: 3, message: 'Medium priority' });
+    // 다양한 우선순위로 액션 실행 (숫자가 높을수록 높은 우선순위)
+    dispatch('priorityTest', { priority: 5, message: 'High priority (P5)' });
+    dispatch('priorityTest', { priority: 3, message: 'Medium priority (P3)' });
+    dispatch('priorityTest', { priority: 1, message: 'Low priority (P1)' });
   }, [dispatch]);
 
   const startAutoScroll = useCallback(() => {
@@ -643,7 +651,7 @@ function ActionGuardTest() {
               우선순위 액션 실행
             </button>
             <p className="text-xs text-gray-500 mt-2">
-              높은 우선순위가 먼저 실행됩니다
+              우선순위 순서: P5(High) → P3(Medium) → P1(Low)
             </p>
           </div>
         </div>

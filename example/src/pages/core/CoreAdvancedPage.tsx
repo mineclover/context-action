@@ -1041,9 +1041,9 @@ function CoreAdvancedPage() {
         <CodeExample>
           <CodeBlock>
 {`// 1. 우선순위별 핸들러 등록
-actionRegister.register('priorityTest', handler1, { priority: 1 }); // 높은 우선순위
+actionRegister.register('priorityTest', handler1, { priority: 3 }); // 높은 우선순위
 actionRegister.register('priorityTest', handler2, { priority: 2 }); // 중간 우선순위  
-actionRegister.register('priorityTest', handler3, { priority: 3 }); // 낮은 우선순위
+actionRegister.register('priorityTest', handler3, { priority: 1 }); // 낮은 우선순위
 
 // 2. 비동기 액션 핸들러
 actionRegister.register('delayedAction', async ({ delay, message }, controller) => {
