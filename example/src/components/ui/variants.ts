@@ -286,7 +286,7 @@ export const navItemVariants = cva(
 );
 
 // 토스트 컴포넌트
-export const toastVariants = cva(
+const _toastVariants = cva(
   "relative bg-white rounded-lg shadow-lg border transition-all duration-300 ease-out",
   {
     variants: {
@@ -316,6 +316,11 @@ export const toastVariants = cva(
     },
   }
 );
+
+// 타입 안전한 래퍼
+export const toastVariants = (props?: VariantProps<typeof _toastVariants>): string => {
+  return _toastVariants(props) as string;
+};
 
 // 토스트 컨테이너
 export const toastContainerVariants = cva(
