@@ -57,8 +57,6 @@ export interface UniversalTraceConfig {
 
 /**
  * Universal Trace Logger that collects trace data from all log levels
- * @implements universal-trace-collection
- * @implements dual-collection-distinction
  * @memberof api-terms
  * 
  * Features:

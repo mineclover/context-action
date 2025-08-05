@@ -36,8 +36,6 @@ export interface FrameworkTraceConfig extends TraceCollectorConfig {
 
 /**
  * Initialize global trace collection for the entire framework
- * @implements comprehensive-tracing
- * @implements framework-integration
  * @memberof api-terms
  * 
  * Sets up centralized trace collection that automatically captures

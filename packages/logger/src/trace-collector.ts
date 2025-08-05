@@ -88,8 +88,6 @@ export interface TraceContext {
 
 /**
  * Comprehensive trace collection system that captures all framework operations
- * @implements trace-collection
- * @implements centralized-monitoring
  * @memberof api-terms
  * 
  * Features:
