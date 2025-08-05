@@ -9,6 +9,7 @@ import CoreAdvancedPage from './pages/core/CoreAdvancedPage';
 import CoreFeaturesPage from './pages/core/CoreFeatures';
 import StoreBasicsPage from './pages/store/StoreBasicsPage';
 import StoreFullDemoPage from './pages/store/StoreFullDemoPage';
+import StoreImmutabilityTestPage from './pages/store/StoreImmutabilityTestPage';
 import ReactProviderPage from './pages/react/ReactProviderPage';
 import ReactContextPage from './pages/react/ReactContextPage';
 import ReactHooksPage from './pages/react/ReactHooksPage';
@@ -49,6 +50,7 @@ function App() {
           <Route path="/core/features" element={<CoreFeaturesPage />} />
           <Route path="/store/basics" element={<StoreBasicsPage />} />
           <Route path="/store/full-demo" element={<StoreFullDemoPage />} />
+          <Route path="/store/immutability-test" element={<StoreImmutabilityTestPage />} />
           <Route path="/react/provider" element={<ReactProviderPage />} />
           <Route path="/react/context" element={<ReactContextPage />} />
           <Route path="/react/hooks" element={<ReactHooksPage />} />
