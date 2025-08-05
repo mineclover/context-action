@@ -1,6 +1,6 @@
 # 용어집 구현 현황 대시보드
 
-> 🕒 최종 업데이트: 2025. 8. 3. 오후 8:52:46
+> 🕒 최종 업데이트: 2025. 8. 5. 오전 12:43:22
 > 
 > 📊 자동 생성된 구현 현황 리포트입니다.
 
@@ -8,24 +8,24 @@
 
 ### 구현 통계
 - **전체 용어집 용어**: 91개
-- **구현된 용어**: 61개
-- **구현률**: **67%**
-- **스캔된 파일**: 99개
-- **태그가 있는 파일**: 30개
+- **구현된 용어**: 73개
+- **구현률**: **80%**
+- **스캔된 파일**: 162개
+- **태그가 있는 파일**: 45개
 
 ### 품질 현황
-- **검증 상태**: ✅ 통과
-- **에러**: 0개
-- **경고**: 57개
+- **검증 상태**: ❌ 실패
+- **에러**: 19개
+- **경고**: 76개
 
 ## 📊 카테고리별 현황
 
 
 ### 🎯 핵심 개념
 
-🟠 **개선필요** (47%)
+🟠 **개선필요** (49%)
 
-- 구현 완료: 36/76개
+- 구현 완료: 44/89개
 - 미구현: 7개
 
 
@@ -44,9 +44,9 @@
 
 ### 🏗️ 아키텍처
 
-🔴 **시작단계** (5%)
+🔴 **시작단계** (4%)
 
-- 구현 완료: 3/64개
+- 구현 완료: 3/76개
 - 미구현: 5개
 
 
@@ -65,17 +65,17 @@
 
 ### 🔌 API 용어
 
-🟠 **개선필요** (40%)
+🟠 **개선필요** (41%)
 
-- 구현 완료: 25/62개
+- 구현 완료: 30/74개
 - 미구현: 0개
 
 **✅ 모든 핵심 용어 구현 완료**
 
 
 **최근 구현:**
-- storeprovider
-- pipeline-context
+- universal-trace-collection
+- dual-collection-distinction
 
 
 
@@ -83,7 +83,7 @@
 
 🔴 **시작단계** (0%)
 
-- 구현 완료: 0/72개
+- 구현 완료: 0/84개
 - 미구현: 12개
 
 
@@ -113,29 +113,29 @@ actionprovider을 구현하는 함수/클래스/인터페이스에 @implements a
 
 
 
-- **performance-optimization** `useStoreActions` (function)
-  - 📁 `packages/react/src/store/hooks/useStoreActions.ts`
-  - 📅 2025. 8. 3.
-
-
-- **selective-subscription** `useStoreValues` (function)
-  - 📁 `packages/react/src/store/hooks/useStoreValue.ts`
-  - 📅 2025. 8. 3.
-
-
-- **fresh-state-access** `useStoreValue` (function)
-  - 📁 `packages/react/src/store/hooks/useStoreValue.ts`
-  - 📅 2025. 8. 3.
-
-
 - **business-logic** `createValidatedHandler` (function)
-  - 📁 `packages/react/src/store/ActionHandlerUtils.ts`
-  - 📅 2025. 8. 3.
+  - 📁 `packages/react/src/actions/utils/ActionHandlerUtils.ts`
+  - 📅 2025. 8. 5.
 
 
 - **domain-rules** `createValidatedHandler` (function)
-  - 📁 `packages/react/src/store/ActionHandlerUtils.ts`
-  - 📅 2025. 8. 3.
+  - 📁 `packages/react/src/actions/utils/ActionHandlerUtils.ts`
+  - 📅 2025. 8. 5.
+
+
+- **store-integration-pattern** `Store` (class)
+  - 📁 `packages/react/src/stores/core/Store.ts`
+  - 📅 2025. 8. 5.
+
+
+- **store-registry** `IStoreRegistry` (interface)
+  - 📁 `packages/react/src/stores/core/types.ts`
+  - 📅 2025. 8. 5.
+
+
+- **store-registry** `StoreRegistry` (class)
+  - 📁 `packages/react/src/stores/core/StoreRegistry.ts`
+  - 📅 2025. 8. 5.
 
 
 
@@ -143,7 +143,7 @@ actionprovider을 구현하는 함수/클래스/인터페이스에 @implements a
 
 - **구현 속도**: + 3 용어/주
 - **가장 활발한 카테고리**: core-concepts
-- **완료 예상 시기**: 2-3개월
+- **완료 예상 시기**: 1-2개월
 
 ## 🔄 다음 단계
 
@@ -168,4 +168,4 @@ actionprovider을 구현하는 함수/클래스/인터페이스에 @implements a
 *이 대시보드는 `node implementation-dashboard.js` 명령어로 자동 생성됩니다.*
 *문제가 있거나 개선사항이 있다면 이슈를 생성해주세요.*
 
-<!-- Dashboard generated at 2025-08-03T11:52:46.907Z -->
+<!-- Dashboard generated at 2025-08-04T15:43:22.526Z -->

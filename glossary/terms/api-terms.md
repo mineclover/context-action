@@ -104,6 +104,7 @@ Technical implementation and API concepts for the Context-Action framework.
 
 ---
 
+
 ## Cross-Store Coordination
 
 **Definition**: 단일 액션 핸들러 내에서 여러 Store 간의 액션을 조정하는 패턴으로, 여러 데이터 도메인에 걸친 복잡한 비즈니스 로직을 가능하게 합니다.
@@ -888,3 +889,263 @@ Technical implementation and API concepts for the Context-Action framework.
 - Runtime configuration
 
 **Related Terms**: [Logger Factory](#logger-factory), [Smart Logger Creation](#smart-logger-creation)
+
+---
+
+## React Integration
+
+**Definition**: Context-Action 프레임워크와 React 생태계의 통합으로, React의 컴포넌트 생명주기, Context API, 그리고 현대적인 훅 시스템을 활용합니다.
+
+**Usage Context**:
+- React 컴포넌트와 상태관리 통합
+- Context API를 통한 의존성 주입
+- 컴포넌트 생명주기와 동기화
+- React 18의 concurrent features 지원
+
+**Core Integration Points**:
+- **Context Providers**: ActionProvider, StoreProvider를 통한 시스템 제공
+- **React Hooks**: useActionDispatch, useStoreValue 등 반응형 훅 시스템
+- **Component Lifecycle**: 자동 cleanup 및 메모리 누수 방지
+- **Concurrent Features**: useSyncExternalStore 호환성
+
+**Key Features**:
+- Provider 패턴과 HOC 패턴 모두 지원
+- TypeScript와의 완전한 통합
+- React DevTools 호환성
+- 자동 구독 관리 및 정리
+
+**Related Terms**: [Context Store Pattern](./architecture-terms.md#context-store-pattern), [Store Hooks](#store-hooks), [ActionProvider](#actionprovider)
+
+---
+
+## Action-State Coordination
+
+**Definition**: Actions(ViewModel)과 Stores(Model) 간의 조정 메커니즘으로, MVVM 패턴에서 비즈니스 로직과 상태 관리의 분리를 보장합니다.
+
+**Usage Context**:
+- 비즈니스 로직과 상태의 명확한 분리
+- Action handlers에서 여러 Store 조작
+- 상태 변경의 원자성 보장
+- 도메인 규칙과 유효성 검증
+
+**Coordination Patterns**:
+- **Read-Compute-Write**: Store 값 읽기, 로직 실행, Store 업데이트
+- **Validation Gates**: 상태 변경 전 유효성 검증
+- **Atomic Updates**: 여러 Store를 일관성 있게 업데이트
+- **Rollback Mechanisms**: 실패 시 이전 상태로 복구
+
+**Key Features**:
+- Store registry를 통한 통합 접근
+- Pipeline controller를 통한 흐름 제어
+- 비동기 작업과 상태 동기화
+- 오류 처리 및 복구 메커니즘
+
+**Related Terms**: [Cross-Store Coordination](#cross-store-coordination), [Action Handler](./core-concepts.md#action-handler), [Store Integration Pattern](#store-integration-pattern)
+
+---
+
+## Component-Action Binding
+
+**Definition**: React 컴포넌트(View)와 Action 시스템(ViewModel) 간의 바인딩으로, 사용자 상호작용을 비즈니스 로직으로 전달하는 메커니즘입니다.
+
+**Usage Context**:
+- 사용자 이벤트를 Action으로 변환
+- 컴포넌트에서 비즈니스 로직 분리
+- 타입 안전한 액션 디스패치
+- UI 상태와 비즈니스 상태 동기화
+
+**Binding Mechanisms**:
+- **useActionDispatch**: 타입 안전한 액션 발생 훅
+- **Event Handlers**: onClick, onSubmit 등을 액션으로 변환
+- **Form Integration**: 폼 데이터를 액션 페이로드로 전달
+- **Async Actions**: 비동기 작업의 상태 반영
+
+**Key Features**:
+- 완전한 타입 추론 및 검증
+- 오류 전파 및 UI 피드백
+- 로딩 상태 관리
+- 사용자 경험 최적화
+
+**Related Terms**: [Action Dispatcher](#action-dispatcher), [useActionDispatch](#useactiondispatch), [MVVM Pattern](./architecture-terms.md#mvvm-pattern)
+
+---
+
+## Store-Component Binding
+
+**Definition**: Store(Model)와 React 컴포넌트(View) 간의 반응형 바인딩으로, 상태 변경을 UI에 자동으로 반영하는 시스템입니다.
+
+**Usage Context**:
+- 상태 변경의 자동 UI 반영
+- 선택적 구독을 통한 성능 최적화
+- 컴포넌트별 상태 격리
+- 메모리 효율적인 구독 관리
+
+**Binding Patterns**:
+- **Full Subscription**: useStoreValue로 전체 상태 구독
+- **Selective Subscription**: 셀렉터를 통한 부분 구독
+- **Computed Values**: 파생 상태의 자동 계산
+- **Conditional Rendering**: 상태 기반 조건부 렌더링
+
+**Performance Optimizations**:
+- useSyncExternalStore 기반 최적화
+- 참조 동등성 체크를 통한 불필요한 리렌더링 방지
+- 자동 구독 정리 및 메모리 누수 방지
+- 배치 업데이트 지원
+
+**Related Terms**: [Store Hooks](#store-hooks), [Selective Subscription](#selective-subscription), [Store Integration Pattern](#store-integration-pattern)
+
+---
+
+## Context Integration
+
+**Definition**: React Context API와 Context-Action 프레임워크의 통합으로, 컴포넌트 트리 전체에서 일관된 상태 관리와 액션 시스템을 제공합니다.
+
+**Usage Context**:
+- 애플리케이션 레벨 상태 공유
+- 의존성 주입 패턴 구현
+- 컴포넌트 격리 및 테스트 용이성
+- 다중 컨텍스트 관리 및 조합
+
+**Integration Strategies**:
+- **Provider Composition**: 여러 Provider의 체계적 조합
+- **Context Boundaries**: 컨텍스트 범위 제한 및 격리
+- **HOC Patterns**: Higher-Order Components를 통한 자동 래핑
+- **Custom Hooks**: 컨텍스트 접근을 위한 전용 훅
+
+**Key Features**:
+- 타입 안전한 컨텍스트 접근
+- 자동 의존성 주입
+- 컴포넌트 트리 격리 지원
+- 테스트를 위한 모킹 지원
+
+**Related Terms**: [ActionProvider](#actionprovider), [StoreProvider](#storeprovider), [Context Store Pattern](./architecture-terms.md#context-store-pattern)
+
+---
+
+## Reactive Updates
+
+**Definition**: 상태 변경에 대한 반응형 업데이트 시스템으로, Store 값이 변경될 때 연관된 컴포넌트들이 자동으로 리렌더링되는 메커니즘입니다.
+
+**Usage Context**:
+- 상태 변경의 자동 UI 반영
+- 성능 최적화된 업데이트 전파
+- 컴포넌트 간 상태 동기화
+- 실시간 사용자 인터페이스 구현
+
+**Update Mechanisms**:
+- **Observer Pattern**: Store에서 구독자들에게 변경 알림
+- **Batched Updates**: 여러 상태 변경을 배치로 처리
+- **Selective Updates**: 변경된 부분만 선택적으로 업데이트
+- **Async Updates**: 비동기 상태 변경 처리
+
+**Performance Features**:
+- 참조 동등성 기반 변경 감지
+- 불필요한 리렌더링 방지
+- 메모리 효율적인 구독 관리
+- React concurrent features 활용
+
+**Related Terms**: [Observer Pattern](#observer-pattern), [Store Integration Pattern](#store-integration-pattern), [Performance Optimization](#performance-optimization)
+
+---
+
+## Type-Safe Actions
+
+**Definition**: TypeScript를 활용한 완전히 타입 안전한 액션 시스템으로, 컴파일 시점에 액션과 페이로드의 유효성을 검증합니다.
+
+**Usage Context**:
+- 컴파일 타임 오류 방지
+- IDE 자동완성 및 리팩토링 지원
+- 런타임 오류 최소화
+- 팀 개발에서의 계약 명확화
+
+**Type Safety Features**:
+- **ActionPayloadMap**: 액션과 페이로드 타입 매핑
+- **Generic Constraints**: 제네릭을 통한 타입 제약
+- **Payload Validation**: 컴파일 시점 페이로드 검증
+- **Return Type Inference**: 자동 반환 타입 추론
+
+**Implementation Strategies**:
+- 인터페이스 기반 타입 정의
+- 제네릭 타입 매개변수 활용
+- 조건부 타입을 통한 오버로드
+- 타입 가드를 통한 런타임 검증
+
+**Related Terms**: [Action Payload Map](./core-concepts.md#action-payload-map), [Type Safety](./architecture-terms.md#type-safety), [Action Dispatcher](#action-dispatcher)
+
+---
+
+## Pipeline Execution
+
+**Definition**: 액션 파이프라인에서의 핸들러 실행 과정으로, 우선순위 기반 순차 실행과 흐름 제어를 관리합니다.
+
+**Usage Context**:
+- 다중 핸들러의 순서 보장
+- 비즈니스 로직의 단계별 처리
+- 조건부 실행 및 중단 처리
+- 성능 모니터링 및 디버깅
+
+**Execution Flow**:
+- **Priority Sorting**: 등록 시 우선순위별 정렬
+- **Sequential Processing**: 핸들러들의 순차적 실행
+- **Flow Control**: Pipeline Controller를 통한 흐름 제어
+- **Error Handling**: 예외 발생 시 파이프라인 중단 또는 계속
+
+**Control Mechanisms**:
+- **Blocking/Non-blocking**: 핸들러 완료 대기 여부 설정
+- **Abort Conditions**: 조건부 파이프라인 중단
+- **Skip Logic**: 특정 핸들러 건너뛰기
+- **Retry Mechanisms**: 실패 시 재시도 로직
+
+**Related Terms**: [Priority-based Execution](#priority-based-execution), [Pipeline Controller](./core-concepts.md#pipeline-controller), [Action Pipeline System](./core-concepts.md#action-pipeline-system)
+
+---
+
+## Handler Execution
+
+**Definition**: 개별 액션 핸들러의 실행 과정으로, 페이로드 처리, 상태 조작, 그리고 오류 처리를 포함합니다.
+
+**Usage Context**:
+- 비즈니스 로직 실행
+- 상태 변경 및 업데이트
+- 비동기 작업 처리
+- 오류 복구 및 롤백
+
+**Execution Context**:
+- **Payload Access**: 타입 안전한 페이로드 접근
+- **Controller Interface**: 파이프라인 제어 인터페이스
+- **Store Access**: 상태 읽기/쓰기 작업
+- **Async Support**: Promise 기반 비동기 처리
+
+**Error Handling**:
+- **Exception Propagation**: 오류의 상위 전파
+- **Pipeline Abortion**: 치명적 오류 시 파이프라인 중단
+- **Graceful Degradation**: 부분 실패 시 우아한 처리
+- **Logging Integration**: 실행 과정 로깅
+
+**Related Terms**: [Action Handler](./core-concepts.md#action-handler), [Pipeline Context](#pipeline-context), [Pipeline Execution](#pipeline-execution)
+
+---
+
+## Atomic Updates
+
+**Definition**: 여러 Store에 대한 원자적 업데이트로, 모든 변경이 성공하거나 전체가 롤백되는 트랜잭션 같은 동작을 보장합니다.
+
+**Usage Context**:
+- 다중 도메인 데이터 일관성
+- 복잡한 비즈니스 트랜잭션
+- 데이터 무결성 보장
+- 부분 실패 방지
+
+**Implementation Strategies**:
+- **Snapshot-based Rollback**: 변경 전 상태 스냅샷 저장
+- **Compensation Actions**: 실패 시 보상 액션 실행
+- **Two-phase Updates**: 준비-커밋 단계 분리
+- **Validation Gates**: 업데이트 전 전체 유효성 검증
+
+**Consistency Guarantees**:
+- **All-or-Nothing**: 전체 성공 또는 전체 롤백
+- **Isolation**: 업데이트 중 외부 간섭 방지
+- **Durability**: 성공한 변경의 영속성 보장
+- **Consistency**: 비즈니스 규칙 일관성 유지
+
+**Related Terms**: [Cross-Store Coordination](#cross-store-coordination), [Action-State Coordination](#action-state-coordination), [Store Integration Pattern](#store-integration-pattern)

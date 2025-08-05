@@ -503,6 +503,7 @@ Fundamental framework concepts and systems that form the foundation of the Conte
 
 ---
 
+
 ## Store Immutability
 
 **Definition**: Store의 상태 불변성을 보장하는 시스템으로, 외부 수정으로부터 내부 상태를 보호하고 데이터 무결성을 유지합니다.
