@@ -32,6 +32,7 @@ function Layout({
     { path: '/core/features', label: '🚀 Core Features', category: 'core' as const },
     { path: '/store/basics', label: 'Store Basics', category: 'store' as const },
     { path: '/store/full-demo', label: 'Store Full Demo', category: 'store' as const },
+    { path: '/store/immutability-test', label: '🔒 Immutability Test', category: 'store' as const },
     { path: '/react/provider', label: '🔧 Unified Provider', category: 'react' as const },
     { path: '/react/context', label: '🏗️ React Context', category: 'react' as const },
     { path: '/react/hooks', label: 'React Hooks', category: 'react' as const },

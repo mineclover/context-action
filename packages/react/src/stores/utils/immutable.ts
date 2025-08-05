@@ -219,83 +219,18 @@ export function getGlobalImmutabilityOptions(): ImmutabilityOptions {
   return { ...globalImmutabilityOptions };
 }
 
-/**
- * 객체의 깊이를 계산하는 함수
- * 
- * @param obj - 깊이를 계산할 객체
- * @param currentDepth - 현재 깊이 (내부 사용)
- * @returns 객체의 최대 깊이
- */
-function calculateDepth(obj: any, currentDepth: number = 0): number {
-  if (
-    obj === null ||
-    obj === undefined ||
-    typeof obj !== 'object' ||
-    currentDepth > 10 // 무한 재귀 방지
-  ) {
-    return currentDepth;
-  }
-
-  let maxDepth = currentDepth;
-  
-  try {
-    for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        const depth = calculateDepth(obj[key], currentDepth + 1);
-        maxDepth = Math.max(maxDepth, depth);
-      }
-    }
-  } catch (error) {
-    // 순환 참조 등의 경우 현재 깊이 반환
-    return currentDepth;
-  }
-
-  return maxDepth;
-}
-
-/**
- * 얕은 복사 함수 - 1단계만 복사
- * 
- * @template T - 복사할 값의 타입
- * @param value - 복사할 값
- * @returns 얕은 복사된 값
- */
-function shallowClone<T>(value: T): T {
-  if (Array.isArray(value)) {
-    return [...value] as T;
-  }
-
-  if (value && typeof value === 'object') {
-    return { ...value } as T;
-  }
-
-  return value;
-}
+// 사용하지 않는 함수들 제거됨 (calculateDepth, shallowClone)
 
 /**
  * 성능 최적화된 복사 함수
+ * 현재는 불변성 보장을 위해 항상 깊은 복사 사용
  * 
  * @template T - 복사할 값의 타입
  * @param value - 복사할 값
  * @returns 복사된 값
  */
 function optimizedClone<T>(value: T): T {
-  const options = globalImmutabilityOptions;
-
-  // 깊이 기반 최적화
-  if (typeof value === 'object' && value !== null) {
-    const depth = calculateDepth(value);
-    const threshold = options.shallowCloneThreshold || 3;
-
-    // 얕은 객체는 얕은 복사로 처리
-    if (depth <= threshold) {
-      const cloned = shallowClone(value);
-      logger.trace('Shallow clone applied', { depth, threshold });
-      return cloned;
-    }
-  }
-
-  // 깊은 복사
+  // 불변성 보장을 위해 항상 깊은 복사 사용
   return deepClone(value);
 }
 
