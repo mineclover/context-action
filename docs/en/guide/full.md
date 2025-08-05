@@ -1235,23 +1235,52 @@ ComponentReRender --> UpdatedUI[Updated UI]
 19. **Context-Scoped Stores**: Keep stores within their appropriate context boundaries
 20. **Avoid Side Effects**: Keep store updates predictable and traceable within context scope
 21. **Store Naming**: Use context prefixes for store names to avoid confusion
+22. **Proper Initial Values**: Always provide type-appropriate initial values instead of `null` to prevent empty store warnings and enable better UI state management
+
+```typescript
+// ❌ Avoid: null initial values cause useStoreValue warnings
+const userStore = createStore<User | null>('user', null);
+const dataStore = createStore<ApiResponse | null>('data', null);
+
+// ✅ Preferred: Type-appropriate initial values with distinguishable markers
+const userStore = createStore<User>('user', {
+  id: '',
+  name: '',
+  email: '',
+  createdBy: 'initial' // Use marker to distinguish from real data
+});
+
+const dataStore = createStore<ApiResponse>('data', {
+  status: 'pending',
+  data: null,
+  error: null,
+  loadedBy: 'initial' // Marker for initial state
+});
+
+// ✅ UI logic: Check markers to distinguish initial vs real data
+const user = useStoreValue(userStore);
+const isUserLoaded = user.createdBy !== 'initial';
+
+const response = useStoreValue(dataStore);
+const isDataLoaded = response.loadedBy !== 'initial';
+```
 
 ### Type Safety
-22. **Context-Specific Types**: Define action payload maps per context for better type safety
-23. **Type Everything**: Leverage TypeScript for safety and documentation within each context
-24. **Cross-Context Types**: Define explicit interfaces for cross-context communication
+23. **Context-Specific Types**: Define action payload maps per context for better type safety
+24. **Type Everything**: Leverage TypeScript for safety and documentation within each context
+25. **Cross-Context Types**: Define explicit interfaces for cross-context communication
 
 ### Testing Strategy  
-25. **Context Isolation Testing**: Test each context independently with domain-specific mock stores
-26. **Cross-Context Integration Testing**: Test cross-context communication at the integration level
-27. **Mock Context Providers**: Create mock context providers for testing components
+26. **Context Isolation Testing**: Test each context independently with domain-specific mock stores
+27. **Cross-Context Integration Testing**: Test cross-context communication at the integration level
+28. **Mock Context Providers**: Create mock context providers for testing components
 
 ### Performance
-28. **Context Scope Optimization**: Only subscribe to stores within the relevant context
-29. **Lazy Context Loading**: Load contexts only when needed
-30. **Context Memory Management**: Properly cleanup context resources when unmounting
+29. **Context Scope Optimization**: Only subscribe to stores within the relevant context
+30. **Lazy Context Loading**: Load contexts only when needed
+31. **Context Memory Management**: Properly cleanup context resources when unmounting
 
 ### Development Workflow
-31. **Context-First Development**: Design contexts before implementing features
-32. **Team Ownership**: Assign context ownership to specific teams or developers
-33. **Context Documentation**: Document context boundaries, responsibilities, and interfaces
+32. **Context-First Development**: Design contexts before implementing features
+33. **Team Ownership**: Assign context ownership to specific teams or developers
+34. **Context Documentation**: Document context boundaries, responsibilities, and interfaces

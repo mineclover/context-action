@@ -1,5 +1,5 @@
 import React, { createContext, ReactNode, useContext, useRef, useEffect, useId, useMemo } from 'react';
-import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig, ActionRegisterConfig, ExecutionResult, DispatchOptions } from '@context-action/core';
+import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig, ActionRegisterConfig } from '@context-action/core';
 
 /**
  * @fileoverview createActionContext - Advanced type-safe action context factory
