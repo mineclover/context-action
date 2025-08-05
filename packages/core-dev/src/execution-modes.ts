@@ -109,14 +109,11 @@ export async function executeSequential<T>(
 /**
  * Execute handlers in parallel mode (all at once)
  * @implements execution-modes
- * @implements parallel-execution
- * @implements concurrent-processing
  * @memberof core-concepts
  * @internal
  * @since 1.0.0
  * 
  * Executes all eligible handlers simultaneously using Promise.allSettled
- * @implements concurrent-processing
  * 
  * @template T - The type of the payload being processed
  * @param context - Pipeline execution context with handlers and state
@@ -207,14 +204,11 @@ export async function executeParallel<T>(
 /**
  * Execute handlers in race mode (first to complete wins)
  * @implements execution-modes
- * @implements race-execution
- * @implements competitive-processing
  * @memberof core-concepts
  * @internal
  * @since 1.0.0
  * 
  * Executes handlers simultaneously, uses first completed result
- * @implements competitive-processing
  * 
  * @template T - The type of the payload being processed
  * @param context - Pipeline execution context with handlers and state

@@ -33,6 +33,7 @@ export interface ActionContextReturn<T extends ActionPayloadMap = ActionPayloadM
     handler: ActionHandler<T[K]>,
     config?: HandlerConfig
   ) => void;
+  useActionRegister: () => ActionRegister<T> | null;
 }
 
 /**
@@ -59,6 +60,30 @@ export interface ActionContextReturn<T extends ActionPayloadMap = ActionPayloadM
  *   useActionHandler('login', async ({ username, password }) => {
  *     // Handle login logic
  *   });
+ *   
+ *   return (
+ *     <button onClick={() => dispatch('login', { username: 'user', password: 'pass' })}>
+ *       Login
+ *     </button>
+ *   );
+ * }
+ * 
+ * // Alternative: Using useActionRegister for direct registration in useEffect
+ * function AuthComponentAlt() {
+ *   const dispatch = useAction();
+ *   const register = useActionRegister();
+ *   
+ *   useEffect(() => {
+ *     if (!register) return;
+ *     
+ *     const unregisterLogin = register.register('login', async ({ username, password }) => {
+ *       // Handle login logic
+ *     });
+ *     
+ *     return () => {
+ *       unregisterLogin();
+ *     };
+ *   }, [register]);
  *   
  *   return (
  *     <button onClick={() => dispatch('login', { username: 'user', password: 'pass' })}>
@@ -159,10 +184,46 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
     }, [action, actionId, actionRegisterRef]);
   };
 
+  // Hook to get the ActionRegister instance directly for use in useEffect
+  /**
+   * Hook that provides direct access to the ActionRegister instance
+   * 
+   * This hook is useful when you need to register handlers directly in useEffect
+   * instead of using the useActionHandler hook. This pattern can be helpful
+   * for complex handler registration logic or when you need more control over
+   * the registration lifecycle.
+   * 
+   * @returns ActionRegister instance or null if not initialized
+   * 
+   * @example
+   * ```typescript
+   * function MyComponent() {
+   *   const register = useActionRegister();
+   *   
+   *   useEffect(() => {
+   *     if (!register) return;
+   *     
+   *     const unregisterHandler = register.register('myAction', async (payload, controller) => {
+   *       // Handler logic
+   *     });
+   *     
+   *     return () => {
+   *       unregisterHandler();
+   *     };
+   *   }, [register]);
+   * }
+   * ```
+   */
+  const useActionRegister = (): ActionRegister<T> | null => {
+    const context = useActionContext();
+    return context.actionRegisterRef.current;
+  };
+
   return {
     Provider,
     useActionContext,
     useAction,
     useActionHandler,
+    useActionRegister,
   };
 }

@@ -459,7 +459,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   /**
    * Clean up one-time handlers after pipeline execution
    * @implements cleanup-function
-   * @implements memory-management
    * @memberof core-concepts
    * @internal
    * @since 1.0.0

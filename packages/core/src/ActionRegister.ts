@@ -13,7 +13,35 @@ import {
 import { executeSequential, executeParallel, executeRace } from './execution-modes.js';
 import { ActionGuard } from './action-guard.js';
 
-
+/**
+ * 중앙화된 액션 등록 및 디스패치 시스템으로, 타입 안전한 액션 파이프라인 관리를 제공하는 핵심 클래스입니다.
+ * 
+ * @implements {ActionRegister}
+ * @implements {Action Pipeline System}
+ * @memberof core-concepts
+ * 
+ * @example
+ * ```typescript
+ * interface AppActions extends ActionPayloadMap {
+ *   updateUser: { id: string; name: string };
+ *   calculateTotal: void;
+ * }
+ * 
+ * const register = new ActionRegister<AppActions>({
+ *   name: 'AppRegister',
+ *   logLevel: LogLevel.DEBUG
+ * });
+ * 
+ * // 핸들러 등록
+ * register.register('updateUser', ({ id, name }, controller) => {
+ *   userStore.setValue({ id, name });
+ *   controller.next();
+ * }, { priority: 10 });
+ * 
+ * // 액션 디스패치
+ * await register.dispatch('updateUser', { id: '1', name: 'John' });
+ * ```
+ */
 export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   private pipelines = new Map<keyof T, HandlerRegistration<any>[]>();
   private handlerCounter = 0;
