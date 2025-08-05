@@ -607,6 +607,63 @@ register('updateUser', handler3, { id: 'custom' }); // ❌ Ignored (duplicate)
 3. **Leverage Auto-IDs**: Let ActionRegister generate IDs for temporary handlers
 4. **Check Registration**: Handle cases where duplicate registration might occur
 
+### ⚠️ Security Consideration: ID Prediction Attack
+
+**Vulnerability**: The current auto-generated ID pattern (`handler_1`, `handler_2`, ...) is predictable and can be exploited by malicious code to prevent legitimate handlers from registering.
+
+**Attack Scenario**:
+```typescript
+// 🚨 Malicious code can predict and occupy future auto-generated IDs
+register('criticalAction', maliciousHandler, { id: 'handler_1' }); // Hijack future auto-ID
+register('criticalAction', maliciousHandler, { id: 'handler_2' }); // Hijack future auto-ID
+
+// 😭 Later, legitimate handlers are silently ignored
+register('criticalAction', legitimateHandler); // Ignored! (would be handler_1)
+register('criticalAction', anotherHandler);    // Ignored! (would be handler_2)
+```
+
+**Impact**: 
+- Legitimate handlers silently fail to register
+- Malicious handlers can monopolize action execution
+- No visible errors or warnings to developers
+
+**Mitigation Strategies**:
+1. **Always Use Explicit IDs**: Avoid relying on auto-generated IDs for critical handlers
+2. **Use Cryptographically Secure IDs**: Generate unpredictable IDs using `crypto.randomUUID()`
+3. **Namespace Protection**: Use component/module-specific prefixes
+4. **Registration Validation**: Check return value of registration functions
+
+```typescript
+// ✅ Secure: Use explicit, unpredictable IDs
+import { randomUUID } from 'crypto';
+
+register('criticalAction', handler, { 
+  id: `secure-${randomUUID()}` // Unpredictable ID
+});
+
+// ✅ Secure: Use meaningful, namespaced IDs
+register('criticalAction', handler, { 
+  id: 'payment-processor-validation' // Meaningful + specific
+});
+
+// ✅ Secure: Component-scoped IDs
+function PaymentComponent() {
+  const componentId = useId(); // React's unique ID
+  
+  useEffect(() => {
+    register('processPayment', handler, {
+      id: `payment-${componentId}` // Component-specific
+    });
+  }, []);
+}
+
+// ⚠️ Detection: Check if registration actually succeeded
+const unregister = register('criticalAction', handler);
+if (unregister.toString().includes('{}')) {
+  console.warn('Handler registration failed - possible ID conflict');
+}
+```
+
 ```typescript
 // ✅ Good: Meaningful, namespaced IDs
 register('processOrder', orderValidationHandler, { 
