@@ -3,7 +3,7 @@
  * @module LogMonitorContext
  */
 
-import React, { createContext, useContext, useMemo, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useMemo, useEffect } from 'react';
 import { useStoreValue } from '@context-action/react';
 import { LogLevel } from '@context-action/logger';
 
