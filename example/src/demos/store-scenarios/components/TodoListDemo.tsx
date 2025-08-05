@@ -98,7 +98,7 @@ export function TodoListDemo() {
     });
 
     logger.logSystem('할일 목록 필터링/정렬', { 
-      context: { filter, sortBy, totalCount: todos.length, filteredCount: sorted.length }
+      context: `filter: ${filter}, sortBy: ${sortBy}, total: ${todos.length}, filtered: ${sorted.length}`
     });
 
     return sorted;
