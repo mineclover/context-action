@@ -575,6 +575,108 @@ configs.forEach((config) => {
 
 **Note**: `blocking` primarily affects sequential mode behavior. In parallel and race modes, the timing behavior is inherently different regardless of the blocking setting.
 
+### Handler ID-Based Duplicate Prevention:
+
+**Automatic Duplicate Prevention**: ActionRegister prevents duplicate handler registration using unique handler IDs:
+
+- **Explicit ID**: When `config.id` is provided, it's used as the handler identifier
+- **Auto-generated ID**: When no ID is provided, ActionRegister generates `handler_1`, `handler_2`, etc.
+- **Duplicate Detection**: If a handler with the same ID already exists, new registration is ignored
+- **No-op Unregister**: Duplicate registrations return a no-op unregister function
+
+```typescript
+// ID-based duplicate prevention examples
+register('updateUser', handler1, { id: 'user-updater' }); // ✅ Registered
+register('updateUser', handler2, { id: 'user-updater' }); // ❌ Ignored (duplicate ID)
+
+// Auto-generated IDs - all registered with unique IDs
+register('updateUser', handler1); // ✅ Registered as 'handler_1'
+register('updateUser', handler2); // ✅ Registered as 'handler_2' 
+register('updateUser', handler3); // ✅ Registered as 'handler_3'
+
+// Mixed approach
+register('updateUser', handler1, { id: 'custom' }); // ✅ Registered as 'custom'
+register('updateUser', handler2);                   // ✅ Registered as 'handler_1'
+register('updateUser', handler3, { id: 'custom' }); // ❌ Ignored (duplicate)
+```
+
+### Handler ID Management Best Practices:
+
+1. **Use Meaningful IDs**: Provide descriptive IDs for important handlers
+2. **Avoid ID Conflicts**: Use namespaced or component-specific IDs
+3. **Leverage Auto-IDs**: Let ActionRegister generate IDs for temporary handlers
+4. **Check Registration**: Handle cases where duplicate registration might occur
+
+```typescript
+// ✅ Good: Meaningful, namespaced IDs
+register('processOrder', orderValidationHandler, { 
+  id: 'order-validation',
+  priority: 100 
+});
+
+register('processOrder', paymentHandler, { 
+  id: 'payment-processing', 
+  priority: 90 
+});
+
+// ✅ Good: Component-specific ID pattern  
+register('userAction', handler, { 
+  id: `user-profile-${componentId}`,
+  priority: 50 
+});
+
+// ✅ Good: Strategic use of auto-IDs for temporary handlers
+register('debugAction', tempHandler); // Auto-ID: handler_1
+register('debugAction', anotherTempHandler); // Auto-ID: handler_2
+
+// ❌ Potential issue: Generic IDs may conflict
+register('processData', handler1, { id: 'handler' }); // First registration
+register('processData', handler2, { id: 'handler' }); // Ignored silently
+```
+
+### Duplicate Registration Detection:
+
+**When Duplicates Occur**:
+- Same action type AND same handler ID
+- Second registration is silently ignored
+- Original handler remains active
+- No-op unregister function returned
+
+**Use Cases for Intentional Duplicates**:
+- **Component Re-mounting**: Same component registers same handler multiple times
+- **Development Hot Reload**: Handler re-registration during development
+- **Conditional Registration**: Prevent double registration in complex flows
+
+```typescript
+// Example: Component-safe registration pattern
+function UserProfile() {
+  const actionRegister = useActionRegister();
+  const componentId = useId();
+
+  useEffect(() => {
+    // Use component ID to prevent duplicates across instances
+    const unregister = actionRegister.register('updateProfile', handler, {
+      id: `profile-updater-${componentId}`,
+      priority: 100
+    });
+
+    return unregister; // Clean unregister even if duplicate was ignored
+  }, [actionRegister, componentId]);
+}
+
+// Example: Development-safe registration
+function DevToolsHandler() {
+  useEffect(() => {
+    // Safe re-registration during hot reload
+    const unregister = actionRegister.register('devTools', debugHandler, {
+      id: 'dev-debug-handler' // Same ID = ignored on re-mount
+    });
+    
+    return unregister; 
+  }, []);
+}
+```
+
 ## Key Design Principles
 
 ### 1. Context Isolation
