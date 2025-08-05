@@ -208,7 +208,7 @@ function useCounter() {
     setCount(0);
   }, []);
 
-  // 액션 핸들러 등록 (우선순위 1)
+  // 액션 핸들러 등록 (우선순위 1 - 먼저 실행)
   useActionHandler('increment', incrementHandler, { priority: 1 });
   useActionHandler('decrement', decrementHandler, { priority: 1 });
   useActionHandler('setCount', setCountHandler, { priority: 1 });
@@ -228,7 +228,7 @@ function useLogger() {
     ]);
   }, []);
 
-  // 로깅 핸들러 (우선순위 0 - 먼저 실행)
+  // 로깅 핸들러 (우선순위 0 - 나중에 실행)
   const incrementLogHandler = useCallback(() => {
     console.log('[TRACE] Logger: Increment action detected');
     addLog('Increment action detected');

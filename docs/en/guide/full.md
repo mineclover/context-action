@@ -427,12 +427,36 @@ Context A ···················> Context B
 ### Context-Scoped Execution Flow:
 
 1. **Context-Scoped Dispatch**: Component calls `contextDispatch('actionName', payload)` within its context boundary
-2. **Domain Pipeline Processing**: Context-specific ActionRegister executes registered handlers in priority order
+2. **Domain Pipeline Processing**: Context-specific ActionRegister executes registered handlers in priority order (higher numbers execute first: priority 100 → priority 50 → priority 10)
 3. **Context Store Access**: Handlers access stores within the same context boundary
 4. **Domain Business Logic**: Handlers process payload with context-specific state values
 5. **Context Store Updates**: Handlers update stores within their domain boundary
 6. **Context Component Re-render**: Only components within the same context that subscribe to updated stores re-render
 7. **Cross-Context Communication**: If needed, explicit bridges handle communication between contexts
+
+### Handler Priority System:
+
+The Context-Action framework uses a numeric priority system to control handler execution order:
+
+- **Higher priority numbers execute first** (e.g., priority: 100 runs before priority: 50)
+- **Default priority is 0** if not specified
+- **Use priorities for dependent operations**: validation (priority: 100) → business logic (priority: 50) → logging (priority: 10)
+- **Priority jump control**: Use `controller.jumpToPriority(priority)` to skip to handlers with specific priority levels
+
+```typescript
+// Example: Ordered handler execution
+useActionHandler('processOrder', validationHandler, { priority: 100 }); // Runs first
+useActionHandler('processOrder', businessLogicHandler, { priority: 50 }); // Runs second  
+useActionHandler('processOrder', loggingHandler, { priority: 10 }); // Runs last
+
+// Priority jump example
+const criticalHandler = useCallback(async (payload, controller) => {
+  if (payload.isCritical) {
+    // Skip to high-priority handlers only
+    controller.jumpToPriority(90);
+  }
+}, []);
+```
 
 ## Key Design Principles
 

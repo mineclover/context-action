@@ -91,12 +91,12 @@ const { Provider, useAction, useActionHandler } = createActionContext<AppActionM
 useActionHandler('increment', () => {
   setCount(prev => prev + 1)
   console.log('Counter incremented')
-}, { priority: 1 })
+}, { priority: 10 })
 
 // Low priority logger (runs after)
 useActionHandler('increment', () => {
   console.log('Logger: Increment action detected')
-}, { priority: 0 })
+}, { priority: 1 })
 ```
 
 ### Action Dispatching
