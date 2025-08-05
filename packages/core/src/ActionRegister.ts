@@ -141,24 +141,54 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       return;
     }
 
-    // Apply ActionGuard controls if specified in options
-    if (options) {
-      const actionKey = String(action);
-      
-      // Handle debounce - wait for delay after last call
-      if (options.debounce !== undefined) {
-        const shouldProceed = await this.actionGuard.debounce(actionKey, options.debounce);
-        if (!shouldProceed) {
-          return; // Debounced - don't execute
+    // Apply handler filtering first
+    const filteredHandlers = this.filterHandlers([...pipeline], options?.filter);
+
+    // Apply ActionGuard controls - check both dispatch options and handler configs
+    const actionKey = String(action);
+    
+    // Get throttle/debounce settings from dispatch options or handler configs
+    let throttleMs: number | undefined;
+    let debounceMs: number | undefined;
+    
+    // Priority: dispatch options > handler config
+    if (options?.throttle !== undefined) {
+      throttleMs = options.throttle;
+    } else if (filteredHandlers.length > 0) {
+      // Use throttle from the first handler that has it (handlers are sorted by priority)
+      for (const handler of filteredHandlers) {
+        if (handler.config.throttle !== undefined) {
+          throttleMs = handler.config.throttle;
+          break;
         }
       }
-      
-      // Handle throttle - limit execution frequency
-      if (options.throttle !== undefined) {
-        const shouldProceed = this.actionGuard.throttle(actionKey, options.throttle);
-        if (!shouldProceed) {
-          return; // Throttled - don't execute
+    }
+    
+    if (options?.debounce !== undefined) {
+      debounceMs = options.debounce;
+    } else if (filteredHandlers.length > 0) {
+      // Use debounce from the first handler that has it (handlers are sorted by priority)
+      for (const handler of filteredHandlers) {
+        if (handler.config.debounce !== undefined) {
+          debounceMs = handler.config.debounce;
+          break;
         }
+      }
+    }
+    
+    // Apply debounce if specified
+    if (debounceMs !== undefined) {
+      const shouldProceed = await this.actionGuard.debounce(actionKey, debounceMs);
+      if (!shouldProceed) {
+        return; // Debounced - don't execute
+      }
+    }
+    
+    // Apply throttle if specified
+    if (throttleMs !== undefined) {
+      const shouldProceed = this.actionGuard.throttle(actionKey, throttleMs);
+      if (!shouldProceed) {
+        return; // Throttled - don't execute
       }
     }
 
@@ -166,9 +196,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     const currentExecutionMode = options?.executionMode || 
                                 this.actionExecutionModes.get(action) || 
                                 this.executionMode;
-
-    // Apply handler filtering if specified
-    const filteredHandlers = this.filterHandlers([...pipeline], options?.filter);
 
     // Create pipeline execution context
     const context: PipelineContext<T[K], any> = {
@@ -218,58 +245,88 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       };
     }
 
-    // Apply ActionGuard controls if specified in options
-    if (options) {
-      const actionKey = String(action);
-      
-      // Handle debounce - wait for delay after last call
-      if (options.debounce !== undefined) {
-        const shouldProceed = await this.actionGuard.debounce(actionKey, options.debounce);
-        if (!shouldProceed) {
-          return {
-            success: false,
-            aborted: true,
-            abortReason: 'Debounced execution',
-            terminated: false,
-            result: undefined,
-            results: [],
-            execution: {
-              duration: Date.now() - startTime,
-              handlersExecuted: 0,
-              handlersSkipped: pipeline.length,
-              handlersFailed: 0,
-              startTime,
-              endTime: Date.now(),
-            },
-            handlers: [],
-            errors: [],
-          };
+    // Apply handler filtering first
+    const filteredHandlers = this.filterHandlers([...pipeline], options?.filter);
+
+    // Apply ActionGuard controls - check both dispatch options and handler configs
+    const actionKey = String(action);
+    
+    // Get throttle/debounce settings from dispatch options or handler configs
+    let throttleMs: number | undefined;
+    let debounceMs: number | undefined;
+    
+    // Priority: dispatch options > handler config
+    if (options?.throttle !== undefined) {
+      throttleMs = options.throttle;
+    } else if (filteredHandlers.length > 0) {
+      // Use throttle from the first handler that has it (handlers are sorted by priority)
+      for (const handler of filteredHandlers) {
+        if (handler.config.throttle !== undefined) {
+          throttleMs = handler.config.throttle;
+          break;
         }
       }
-      
-      // Handle throttle - limit execution frequency
-      if (options.throttle !== undefined) {
-        const shouldProceed = this.actionGuard.throttle(actionKey, options.throttle);
-        if (!shouldProceed) {
-          return {
-            success: false,
-            aborted: true,
-            abortReason: 'Throttled execution',
-            terminated: false,
-            result: undefined,
-            results: [],
-            execution: {
-              duration: Date.now() - startTime,
-              handlersExecuted: 0,
-              handlersSkipped: pipeline.length,
-              handlersFailed: 0,
-              startTime,
-              endTime: Date.now(),
-            },
-            handlers: [],
-            errors: [],
-          };
+    }
+    
+    if (options?.debounce !== undefined) {
+      debounceMs = options.debounce;
+    } else if (filteredHandlers.length > 0) {
+      // Use debounce from the first handler that has it (handlers are sorted by priority)
+      for (const handler of filteredHandlers) {
+        if (handler.config.debounce !== undefined) {
+          debounceMs = handler.config.debounce;
+          break;
         }
+      }
+    }
+    
+    // Apply debounce if specified
+    if (debounceMs !== undefined) {
+      const shouldProceed = await this.actionGuard.debounce(actionKey, debounceMs);
+      if (!shouldProceed) {
+        return {
+          success: false,
+          aborted: true,
+          abortReason: 'Debounced execution',
+          terminated: false,
+          result: undefined,
+          results: [],
+          execution: {
+            duration: Date.now() - startTime,
+            handlersExecuted: 0,
+            handlersSkipped: pipeline.length,
+            handlersFailed: 0,
+            startTime,
+            endTime: Date.now(),
+          },
+          handlers: [],
+          errors: [],
+        };
+      }
+    }
+    
+    // Apply throttle if specified
+    if (throttleMs !== undefined) {
+      const shouldProceed = this.actionGuard.throttle(actionKey, throttleMs);
+      if (!shouldProceed) {
+        return {
+          success: false,
+          aborted: true,
+          abortReason: 'Throttled execution',
+          terminated: false,
+          result: undefined,
+          results: [],
+          execution: {
+            duration: Date.now() - startTime,
+            handlersExecuted: 0,
+            handlersSkipped: pipeline.length,
+            handlersFailed: 0,
+            startTime,
+            endTime: Date.now(),
+          },
+          handlers: [],
+          errors: [],
+        };
       }
     }
 
@@ -277,9 +334,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     const currentExecutionMode = options?.executionMode || 
                                 this.actionExecutionModes.get(action) || 
                                 this.executionMode;
-
-    // Apply handler filtering if specified
-    const filteredHandlers = this.filterHandlers([...pipeline], options?.filter);
 
     // Create pipeline execution context
     const context: PipelineContext<T[K], R> = {

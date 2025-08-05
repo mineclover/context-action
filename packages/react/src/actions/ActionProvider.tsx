@@ -100,7 +100,7 @@ export function ActionProvider({ children, config }: ActionProviderProps) {
 
   const contextValue: ActionContextType<any> = {
     actionRegister: actionRegisterRef.current,
-    dispatch: actionRegisterRef.current.dispatch,
+    dispatch: actionRegisterRef.current.dispatch.bind(actionRegisterRef.current),
   };
 
   return (
