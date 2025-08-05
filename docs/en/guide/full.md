@@ -458,6 +458,49 @@ const criticalHandler = useCallback(async (payload, controller) => {
 }, []);
 ```
 
+### Automatic Handler Execution:
+
+**Important**: Handlers execute automatically without requiring explicit `controller.next()` calls:
+
+- **Sequential mode** (default): Handlers run one after another automatically using priority order
+- **Parallel mode**: All handlers execute simultaneously using `Promise.allSettled()`
+- **Race mode**: All handlers compete, first to complete wins using `Promise.race()`
+- **`controller.next()` is optional**: The method exists for compatibility but does nothing - execution proceeds automatically
+
+```typescript
+// ✅ Handlers execute automatically - no controller.next() needed
+useActionHandler('processData', async (payload, controller) => {
+  const result = await processPayload(payload);
+  // Automatically proceeds to next handler after completion
+  return result;
+});
+
+// ✅ Controller methods for pipeline control (optional)
+useActionHandler('validateData', async (payload, controller) => {
+  if (!isValid(payload)) {
+    controller.abort('Invalid data'); // Stop pipeline
+    return;
+  }
+  
+  if (payload.isUrgent) {
+    controller.jumpToPriority(90); // Skip to high-priority handlers
+  }
+  
+  // Execution continues automatically to next handler
+}, { priority: 100 });
+
+// ✅ Early termination with result
+useActionHandler('quickProcess', async (payload, controller) => {
+  const result = await quickCheck(payload);
+  
+  if (result.canFinishEarly) {
+    controller.return(result); // Terminate pipeline and return result
+  }
+  
+  // If not terminated, continues to next handler automatically
+});
+```
+
 ## Key Design Principles
 
 ### 1. Context Isolation

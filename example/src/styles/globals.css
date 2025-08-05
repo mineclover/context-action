@@ -3,12 +3,20 @@
 @tailwind utilities;
 
 /* Base styles - minimal but essential */
-body {
+html, body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   color: rgb(17 24 39);
   background-color: rgb(249 250 251);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden; /* 좌우 스크롤 방지 */
+  width: 100%;
+  max-width: 100vw; /* 뷰포트 너비를 초과하지 않도록 */
+}
+
+/* 모든 요소가 뷰포트를 넘지 않도록 */
+* {
+  box-sizing: border-box;
 }
 
 /* Component styles - comprehensive coverage */
@@ -152,7 +160,7 @@ body {
 
   /* Page layout styles */
   .page-container {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+    @apply max-w-full w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-x-hidden;
   }
   
   .page-header {
@@ -177,7 +185,7 @@ body {
   }
   
   .code-block {
-    @apply bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono leading-relaxed;
+    @apply bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono leading-relaxed max-w-full;
   }
 
   /* Form styles */

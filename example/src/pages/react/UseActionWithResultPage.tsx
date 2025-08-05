@@ -221,6 +221,11 @@ function UseActionWithResultContent() {
     { id: '1', name: 'MacBook Pro', price: 2000, quantity: 1 },
     { id: '2', name: 'iPhone', price: 1000, quantity: 2 },
   ]);
+
+  // Store와 컴포넌트 state 동기화
+  React.useEffect(() => {
+    cartStore.setValue(items);
+  }, [items]);
   const [discountCode, setDiscountCode] = useState('');
   const [results, setResults] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);

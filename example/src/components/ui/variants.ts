@@ -191,7 +191,7 @@ export const gridVariants = cva(
 
 // 레이아웃 컴포넌트
 export const layoutVariants = cva(
-  "flex min-h-screen bg-gray-50",
+  "flex min-h-screen bg-gray-50 w-full max-w-full overflow-hidden",
   {
     variants: {
       variant: {
@@ -207,13 +207,13 @@ export const layoutVariants = cva(
 
 // 사이드바 컴포넌트
 export const sidebarVariants = cva(
-  "fixed h-full overflow-y-auto bg-white border-r border-gray-200 transition-all duration-200",
+  "fixed h-full overflow-y-auto bg-white border-r border-gray-200 transition-all duration-200 left-0 top-0 z-40",
   {
     variants: {
       width: {
-        sm: "w-64",
-        md: "w-72",
-        lg: "w-80",
+        sm: "w-56 md:w-64",
+        md: "w-64 md:w-72", 
+        lg: "w-72 md:w-80",
       },
       collapsed: {
         true: "w-16",
@@ -229,13 +229,13 @@ export const sidebarVariants = cva(
 
 // 메인 콘텐츠 영역
 export const mainContentVariants = cva(
-  "flex-1 p-8 transition-all duration-200",
+  "flex-1 p-4 md:p-8 transition-all duration-200 w-full min-w-0 overflow-x-hidden",
   {
     variants: {
       sidebarWidth: {
-        sm: "ml-64",
-        md: "ml-72",
-        lg: "ml-80",
+        sm: "ml-56 md:ml-64",
+        md: "ml-64 md:ml-72",
+        lg: "ml-72 md:ml-80",
       },
       sidebarCollapsed: {
         true: "ml-16",
@@ -244,7 +244,7 @@ export const mainContentVariants = cva(
       maxWidth: {
         none: "max-w-none",
         sm: "max-w-2xl",
-        md: "max-w-4xl",
+        md: "max-w-4xl", 
         lg: "max-w-6xl",
         xl: "max-w-7xl",
       },
@@ -324,26 +324,26 @@ export const toastVariants = (props?: VariantProps<typeof _toastVariants>): stri
 
 // 토스트 컨테이너
 export const toastContainerVariants = cva(
-  "fixed z-50 p-4 space-y-3",
+  "fixed z-50 p-4 space-y-2 pointer-events-none",
   {
     variants: {
       position: {
-        "top-right": "top-4 right-4",
-        "top-left": "top-4 left-4",
-        "top-center": "top-4 left-1/2 transform -translate-x-1/2",
-        "bottom-right": "bottom-4 right-4",
-        "bottom-left": "bottom-4 left-4",
-        "bottom-center": "bottom-4 left-1/2 transform -translate-x-1/2",
+        "top-right": "top-2 right-2",
+        "top-left": "top-2 left-2",
+        "top-center": "top-2 left-1/2 transform -translate-x-1/2",
+        "bottom-right": "bottom-2 right-2",
+        "bottom-left": "bottom-2 left-2",
+        "bottom-center": "bottom-2 left-1/2 transform -translate-x-1/2",
       },
       width: {
-        sm: "w-80",
-        md: "w-96",
-        lg: "w-[28rem]",
+        sm: "w-56",
+        md: "w-64", 
+        lg: "w-80",
       },
     },
     defaultVariants: {
       position: "top-right",
-      width: "md",
+      width: "sm",
     },
   }
 );
@@ -479,7 +479,7 @@ export const codeExampleVariants = cva(
 
 // 코드 블록 변형 - 레거시 code-block 클래스 대체
 export const codeBlockVariants = cva(
-  "bg-gray-900 text-gray-100 rounded-lg overflow-x-auto font-mono leading-relaxed",
+  "bg-gray-900 text-gray-100 rounded-lg overflow-x-auto font-mono leading-relaxed max-w-full w-full",
   {
     variants: {
       size: {
