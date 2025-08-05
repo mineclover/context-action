@@ -501,6 +501,80 @@ useActionHandler('quickProcess', async (payload, controller) => {
 });
 ```
 
+### Handler Blocking Configuration:
+
+**Critical for Sequential Execution**: The `blocking` option controls whether the framework waits for async handlers to complete in sequential mode:
+
+- **`blocking: true`** - Framework waits for handler completion before proceeding to next handler
+- **`blocking: false`** (default) - Async handlers start simultaneously, framework doesn't wait for completion
+- **Essential for timing control**: Use `blocking: true` when handlers have individual delays or must execute in strict order
+
+```typescript
+// ❌ Problem: All handlers start simultaneously despite sequential mode
+useActionHandler('processStep', async (payload, controller) => {
+  await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
+  console.log('Step completed');
+}, { 
+  priority: 100 
+  // Missing blocking: true - handler starts but framework doesn't wait
+});
+
+// ✅ Solution: Framework waits for each handler to complete
+useActionHandler('processStep', async (payload, controller) => {
+  await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
+  console.log('Step completed');
+}, { 
+  priority: 100,
+  blocking: true  // Framework waits for completion before next handler
+});
+
+// ✅ Multiple handlers with different delays execute in sequence
+useActionHandler('step1', stepOneHandler, { priority: 100, blocking: true });
+useActionHandler('step2', stepTwoHandler, { priority: 90, blocking: true });
+useActionHandler('step3', stepThreeHandler, { priority: 80, blocking: true });
+
+// With blocking: true, execution order is guaranteed:
+// step1 (waits for completion) → step2 (waits for completion) → step3
+```
+
+### When to Use `blocking: true`:
+
+1. **Sequential Processing with Delays**: When handlers have individual `setTimeout` or async operations
+2. **Strict Execution Order**: When subsequent handlers depend on previous handler completion
+3. **Testing Scenarios**: When testing execution timing and order control
+4. **State Dependencies**: When handlers modify state that subsequent handlers need
+
+```typescript
+// Example: Priority Test Page with individual delays
+configs.forEach((config) => {
+  useActionHandler('priorityTest', async (payload, controller) => {
+    // Individual delay per handler configuration
+    await new Promise(resolve => setTimeout(resolve, config.delay));
+    
+    // Jump logic based on execution count
+    if (config.jumpToPriority && executionCount <= 10) {
+      controller.jumpToPriority(config.jumpToPriority);
+    }
+  }, {
+    priority: config.priority,
+    blocking: true  // Essential: Framework waits for each handler's delay
+  });
+});
+
+// Result: Handlers execute sequentially with proper delays:
+// Handler A (150ms delay) → waits → Handler B (120ms delay) → waits → Handler C (90ms delay)
+```
+
+### Execution Modes and Blocking:
+
+| Mode | `blocking: false` (default) | `blocking: true` |
+|------|----------------------------|------------------|
+| **Sequential** | Async handlers start simultaneously | Framework waits for each handler |
+| **Parallel** | All handlers start simultaneously | All handlers start simultaneously |
+| **Race** | First to complete wins | First to complete wins |
+
+**Note**: `blocking` primarily affects sequential mode behavior. In parallel and race modes, the timing behavior is inherently different regardless of the blocking setting.
+
 ## Key Design Principles
 
 ### 1. Context Isolation

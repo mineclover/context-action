@@ -109,9 +109,11 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
 
     const pipeline = this.pipelines.get(action)!;
     
-    // Check for duplicate handler IDs
-    if (pipeline.some(reg => reg.id === handlerId)) {
-      return () => {}; // Return no-op unregister function
+    // Check for duplicate handler IDs and prevent duplicate registration
+    const existingIndex = pipeline.findIndex(reg => reg.id === handlerId);
+    if (existingIndex !== -1) {
+      // Return a no-op unregister function for the duplicate
+      return () => {};
     }
 
     // Add handler to pipeline
@@ -120,13 +122,11 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     // Sort pipeline by priority (highest first)
     pipeline.sort((a, b) => b.config.priority - a.config.priority);
 
-
-    // Return unregister function
+    // Return unregister function that removes this specific registration
     return () => {
-      const index = pipeline.findIndex(reg => reg.id === handlerId);
+      const index = pipeline.findIndex((reg) => reg.id === handlerId && reg === registration);
       if (index !== -1) {
         pipeline.splice(index, 1);
-        
       }
     };
   }
@@ -520,44 +520,31 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   }
 
   private async executePipeline<K extends keyof T>(context: PipelineContext<T[K], any>): Promise<void> {
-
     const createController = (_registration: HandlerRegistration<T[K], any>, _index: number): PipelineController<T[K], any> => {
       return {
-        next: () => {
-          /** Next is called automatically after handler completion in sequential mode */
-          /** In parallel/race modes, this method is essentially a no-op */
-        },
+        next: () => {},
         abort: (reason?: string) => {
-          /** Set abort flag to stop pipeline execution immediately */
           context.aborted = true;
           context.abortReason = reason;
         },
         modifyPayload: (modifier: (payload: T[K]) => T[K]) => {
-          /** Transform payload for subsequent handlers in the pipeline */
           context.payload = modifier(context.payload);
         },
         getPayload: () => context.payload,
         jumpToPriority: (priority: number) => {
-          /** Set priority jump target for sequential execution mode */
           context.jumpToPriority = priority;
         },
-        
-        // New result handling methods
         return: (result: any) => {
-          /** Return a result and terminate the pipeline */
           context.terminated = true;
           context.terminationResult = result;
         },
         setResult: (result: any) => {
-          /** Set a result but continue pipeline execution */
           context.results.push(result);
         },
         getResults: () => {
-          /** Get all results from previously executed handlers */
           return [...context.results];
         },
         mergeResult: (merger: (previousResults: any[], currentResult: any) => any) => {
-          /** Merge current result with previous results using a custom merger function */
           const currentResult = context.results[context.results.length - 1];
           const previousResults = context.results.slice(0, -1);
           const mergedResult = merger(previousResults, currentResult);
@@ -566,7 +553,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       };
     };
 
-    /** Delegate execution to mode-specific implementation */
     switch (context.executionMode) {
       case 'sequential':
         await executeSequential<T[K], any>(context, createController);
@@ -581,7 +567,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         throw new Error(`Unknown execution mode: ${context.executionMode}`);
     }
 
-    /** Clean up one-time handlers after successful execution */
     this.cleanupOneTimeHandlers(context.action as K, context.handlers);
   }
 
@@ -589,15 +574,12 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     const pipeline = this.pipelines.get(action);
     if (!pipeline) return;
 
-    /** Find handlers marked for one-time execution */
     const oneTimeHandlers = executedHandlers.filter(reg => reg.config.once);
     if (oneTimeHandlers.length === 0) return;
 
-    /** Remove each one-time handler from the active pipeline */
     oneTimeHandlers.forEach(registration => {
       const index = pipeline.findIndex(reg => reg.id === registration.id);
       if (index !== -1) {
-        /** Remove handler while preserving array integrity */
         pipeline.splice(index, 1);
       }
     });
@@ -605,18 +587,15 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
 
   getHandlerCount<K extends keyof T>(action: K): number {
     const pipeline = this.pipelines.get(action);
-    const count = pipeline ? pipeline.length : 0;
-    return count;
+    return pipeline ? pipeline.length : 0;
   }
 
   hasHandlers<K extends keyof T>(action: K): boolean {
-    const hasHandlers = this.getHandlerCount(action) > 0;
-    return hasHandlers;
+    return this.getHandlerCount(action) > 0;
   }
 
   getRegisteredActions(): (keyof T)[] {
-    const actions = Array.from(this.pipelines.keys());
-    return actions;
+    return Array.from(this.pipelines.keys());
   }
 
   clearAction<K extends keyof T>(action: K): void {

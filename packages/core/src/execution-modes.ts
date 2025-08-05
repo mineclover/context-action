@@ -17,22 +17,11 @@ export async function executeSequential<T, R = void>(
   createController: (registration: HandlerRegistration<T, R>, index: number) => PipelineController<T, R>
 ): Promise<void> {
 
-  for (let i = 0; i < context.handlers.length; i++) {
+  let i = 0;
+  
+  while (i < context.handlers.length) {
     if (context.aborted || context.terminated) {
       break;
-    }
-
-    /** Handle jump to priority */
-    if (context.jumpToPriority !== undefined) {
-      const jumpIndex = context.handlers.findIndex(
-        handler => handler.config.priority === context.jumpToPriority
-      );
-      if (jumpIndex !== -1 && jumpIndex !== i) {
-        i = jumpIndex - 1; // -1 because loop will increment
-        context.jumpToPriority = undefined;
-        continue;
-      }
-      context.jumpToPriority = undefined;
     }
 
     const registration = context.handlers[i];
@@ -40,11 +29,13 @@ export async function executeSequential<T, R = void>(
 
     /** Check condition if provided */
     if (registration.config.condition && !registration.config.condition()) {
+      i++;
       continue;
     }
 
     /** Check validation if provided */
     if (registration.config.validation && !registration.config.validation(context.payload)) {
+      i++;
       continue;
     }
 
@@ -82,10 +73,33 @@ export async function executeSequential<T, R = void>(
         break;
       }
 
+      /** Handle jump to priority AFTER handler execution */
+      if (context.jumpToPriority !== undefined) {
+        const jumpIndex = context.handlers.findIndex(
+          handler => handler.config.priority === context.jumpToPriority
+        );
+        
+        if (jumpIndex !== -1) {
+          // Jump to the target index directly (position movement)
+          i = jumpIndex;
+          context.jumpToPriority = undefined;
+          continue; // Continue to execute the handler at jump destination
+        } else {
+          // Invalid jump target, clear and continue normally
+          context.jumpToPriority = undefined;
+          i++;
+        }
+      } else {
+        // Normal progression to next handler
+        i++;
+      }
+
     } catch (error: any) {
       if (registration.config.blocking) {
         throw error;
       }
+      // For non-blocking handlers, continue to next handler
+      i++;
     }
   }
 }
