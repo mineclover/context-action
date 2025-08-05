@@ -12,6 +12,7 @@ import StoreFullDemoPage from './pages/store/StoreFullDemoPage';
 import ReactProviderPage from './pages/react/ReactProviderPage';
 import ReactContextPage from './pages/react/ReactContextPage';
 import ReactHooksPage from './pages/react/ReactHooksPage';
+import UseActionWithResultPage from './pages/react/UseActionWithResultPage';
 import LoggerDemoPage from './pages/logger/LoggerDemoPage';
 import ActionGuardPage from './pages/actionguard/ActionGuardPage';
 import ActionGuardTestPage from './pages/actionguard/ActionGuardTestPage';
@@ -50,6 +51,7 @@ function App() {
           <Route path="/react/provider" element={<ReactProviderPage />} />
           <Route path="/react/context" element={<ReactContextPage />} />
           <Route path="/react/hooks" element={<ReactHooksPage />} />
+          <Route path="/react/useActionWithResult" element={<UseActionWithResultPage />} />
           <Route path="/logger/demo" element={<LoggerDemoPage />} />
           <Route path="/actionguard/demo" element={<ActionGuardPage />} />
           <Route path="/actionguard/test" element={<ActionGuardTestPage />} />

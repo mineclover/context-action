@@ -35,6 +35,7 @@ function Layout({
     { path: '/react/provider', label: '🔧 Unified Provider', category: 'react' as const },
     { path: '/react/context', label: '🏗️ React Context', category: 'react' as const },
     { path: '/react/hooks', label: 'React Hooks', category: 'react' as const },
+    { path: '/react/useActionWithResult', label: '✨ useActionWithResult', category: 'react' as const },
     { path: '/unified-pattern/demo', label: '🚀 Unified Pattern', category: 'react' as const },
     { path: '/logger/demo', label: 'Logger System', category: 'logger' as const },
     { path: '/actionguard/demo', label: 'Action Guard', category: 'actionguard' as const },
