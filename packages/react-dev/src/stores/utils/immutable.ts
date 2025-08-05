@@ -23,7 +23,7 @@ const logger = createLogger();
  * 3. 객체/배열은 structuredClone으로 깊은 복사
  * 4. Function, Symbol 등 복사 불가능한 타입은 에러 처리
  * 
- * @template T - 복사할 값의 타입
+ * @template T 복사할 값의 타입
  * @param value - 복사할 값
  * @returns 깊은 복사된 값
  * 
@@ -139,7 +139,7 @@ export function verifyImmutability<T>(original: T, cloned: T): boolean {
 /**
  * 안전한 getter - 불변성을 보장하는 값 반환
  * 
- * @template T - 값의 타입
+ * @template T 값의 타입
  * @param value - 반환할 값
  * @param enableCloning - 복사 활성화 여부 (기본: true)
  * @returns 불변성이 보장된 값
@@ -166,7 +166,7 @@ export function safeGet<T>(value: T, enableCloning: boolean = true): T {
 /**
  * 안전한 setter - 입력값의 불변성을 보장하는 값 설정
  * 
- * @template T - 값의 타입
+ * @template T 값의 타입
  * @param value - 설정할 값
  * @param enableCloning - 복사 활성화 여부 (기본: true)
  * @returns 불변성이 보장된 값
@@ -256,7 +256,7 @@ function calculateDepth(obj: any, currentDepth: number = 0): number {
 /**
  * 얕은 복사 함수 - 1단계만 복사
  * 
- * @template T - 복사할 값의 타입
+ * @template T 복사할 값의 타입
  * @param value - 복사할 값
  * @returns 얕은 복사된 값
  */
@@ -275,7 +275,7 @@ function shallowClone<T>(value: T): T {
 /**
  * 성능 최적화된 복사 함수
  * 
- * @template T - 복사할 값의 타입
+ * @template T 복사할 값의 타입
  * @param value - 복사할 값
  * @returns 복사된 값
  */

@@ -40,7 +40,7 @@ export interface ActionContextReturn<T extends ActionPayloadMap = ActionPayloadM
 /**
  * Enhanced action context factory with automatic type inference
  * 
- * @template T - Action payload map type for complete type safety
+ * @template T Action payload map type for complete type safety
  * @param config - Configuration options for the ActionRegister
  * @returns Object containing Provider, hooks, and utility functions
  * 

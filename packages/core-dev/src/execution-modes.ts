@@ -21,7 +21,7 @@ import type { Logger } from '@context-action/logger';
  * Executes handlers sequentially in priority order with flow control
  * @implements sequential-execution
  * 
- * @template T - The type of the payload being processed
+ * @template T The type of the payload being processed
  * @param context - Pipeline execution context with handlers and state
  * @param createController - Factory function for creating pipeline controllers
  * @param logger - Logger instance for tracing execution
@@ -115,7 +115,7 @@ export async function executeSequential<T>(
  * 
  * Executes all eligible handlers simultaneously using Promise.allSettled
  * 
- * @template T - The type of the payload being processed
+ * @template T The type of the payload being processed
  * @param context - Pipeline execution context with handlers and state
  * @param createController - Factory function for creating pipeline controllers
  * @param logger - Logger instance for tracing execution
@@ -210,7 +210,7 @@ export async function executeParallel<T>(
  * 
  * Executes handlers simultaneously, uses first completed result
  * 
- * @template T - The type of the payload being processed
+ * @template T The type of the payload being processed
  * @param context - Pipeline execution context with handlers and state
  * @param createController - Factory function for creating pipeline controllers
  * @param logger - Logger instance for tracing execution

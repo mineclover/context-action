@@ -5,7 +5,7 @@ import type { IStoreRegistry, IStore } from '../core/types';
  * Factory for creating registry sync hooks
  * 핵심 기능: Registry에서 동적으로 store에 접근하는 표준화된 인터페이스 제공
  * 
- * @template T - Store value type
+ * @template T Store value type
  * @returns Registry sync methods
  * 
  * @example

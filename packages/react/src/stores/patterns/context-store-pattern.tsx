@@ -112,7 +112,7 @@ export function createContextStorePattern(contextName: string) {
    * 현재 Provider 범위 내에서 Store를 생성하거나 기존 Store에 접근합니다.
    * 이름이 같으면 동일한 Store를 반환하고, 없으면 새로 생성합니다.
    * 
-   * @template T - Store 값 타입
+   * @template T Store 값 타입
    * @param storeName - Store 이름
    * @param initialValue - 초기값 (Store가 없을 때만 사용)
    * @param options - Store 옵션
@@ -153,7 +153,7 @@ export function createContextStorePattern(contextName: string) {
    * useId를 사용하여 컴포넌트별로 고유한 Store를 생성합니다.
    * Provider 범위 + 컴포넌트별 격리의 이중 격리 패턴입니다.
    * 
-   * @template T - Store 값 타입
+   * @template T Store 값 타입
    * @param domain - Store 도메인 이름
    * @param initialValue - 초기값
    * @param options - Store 옵션

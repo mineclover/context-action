@@ -83,7 +83,7 @@ class SimpleEventEmitter<T extends Record<string, any>> implements EventEmitter<
  * @since 1.0.0
  * 
  * Core action pipeline management system with type-safe action dispatch
- * @template T - Action payload map defining available actions and their payload types
+ * @template T Action payload map defining available actions and their payload types
  * 
  * @example
  * ```typescript
@@ -388,7 +388,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * Executes action pipeline using configured execution mode
    * @implements execution-mode
    * 
-   * @template K - The action key type being executed
+   * @template K The action key type being executed
    * @param context - Pipeline execution context containing handlers, payload, and state
    * @returns Promise that resolves when pipeline execution completes or aborts
    * 
@@ -466,7 +466,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * Removes one-time handlers after pipeline execution
    * @implements cleanup-function
    * 
-   * @template K - The action key type
+   * @template K The action key type
    * @param action - The action whose handlers should be cleaned up
    * @param executedHandlers - Array of handlers that were executed in this pipeline run
    * @returns void

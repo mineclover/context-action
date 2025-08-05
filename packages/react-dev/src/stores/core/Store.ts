@@ -360,7 +360,7 @@ export class Store<T = any> implements IStore<T> {
  * Store 팩토리 함수 - 간편한 Store 인스턴스 생성
  * 핵심 기능: 타입 안전한 Store 인스턴스 생성을 위한 팩토리 함수
  * 
- * @template T - Store 값 타입
+ * @template T Store 값 타입
  * @param name - Store 식별자 이름
  * @param initialValue - Store 초기값
  * @returns Store 인스턴스
@@ -426,7 +426,7 @@ export class ManagedStore<T> extends Store<T> {
 
 /**
  * Create a managed store with auto-registration
- * @template T - The store value type
+ * @template T The store value type
  * @param config - Store configuration
  * @returns ManagedStore instance
  * 

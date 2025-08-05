@@ -49,7 +49,7 @@ export type Subscribe = (listener: Listener) => Unsubscribe;
  * Immutable snapshot of Store state used for optimization and debugging.
  * Compatible with React's useSyncExternalStore pattern.
  * 
- * @template T - The type of the stored value
+ * @template T The type of the stored value
  */
 export interface Snapshot<T = any> {
   /** The current value of the store */
@@ -73,7 +73,7 @@ export interface Snapshot<T = any> {
  * Primary interface for Store instances, compatible with React's useSyncExternalStore
  * and implementing the Observer pattern for reactive state management.
  * 
- * @template T - The type of the stored value
+ * @template T The type of the stored value
  * 
  * @example
  * ```typescript

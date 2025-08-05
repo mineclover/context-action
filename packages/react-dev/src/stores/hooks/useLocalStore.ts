@@ -14,7 +14,7 @@ const logger = createLogger();
  * 
  * @implements store-hooks
  * @memberof api-terms
- * @template T - Type of the store value
+ * @template T Type of the store value
  * @param initialValue - The initial value for the local store
  * @param name - Optional name for the store (auto-generated if not provided)
  * @returns The store snapshot with store instance

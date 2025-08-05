@@ -111,7 +111,7 @@ export interface ActionContextReturn<T extends ActionPayloadMap = ActionPayloadM
  * - **createActionContext**: Complex apps, strong typing needs, team development
  * - **ActionProvider**: Simple apps, flexible typing, quick prototypes
  * 
- * @template T - The action payload map type (defined once, used everywhere)
+ * @template T The action payload map type (defined once, used everywhere)
  * @param config Configuration for ActionRegister with enhanced options
  * @returns Object containing Provider component and fully-typed hooks
  */
@@ -208,7 +208,7 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
 
   /**
    * Action Handler 등록 hook
-   * @template K - 액션 키 타입
+   * @template K 액션 키 타입
    * @param action - 등록할 액션 이름
    * @param handler - 액션 처리 함수
    * @param config - 핸들러 설정 (선택사항)
