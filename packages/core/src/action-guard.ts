@@ -6,14 +6,11 @@
 
 /**
  * Action guard state tracking for debouncing and throttling
- * @implements guard-state
- * @implements timing-control
  * @memberof core-concepts
  * @internal
  * @since 1.0.0
  * 
  * Tracks timing and execution state for action execution control
- * @implements timing-control
  */
 interface GuardState {
   /** Timestamp of last successful execution for throttling calculations */

@@ -138,7 +138,6 @@ export function useActionContext<T extends ActionPayloadMap = ActionPayloadMap>(
  * @implements view-layer
  * @implements mvvm-pattern
  * @memberof api-terms
- * @since 1.0.0
  * 
  * @example
  * ```typescript
