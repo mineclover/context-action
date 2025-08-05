@@ -17,6 +17,7 @@ import UseActionWithResultPage from './pages/react/UseActionWithResultPage';
 import LoggerDemoPage from './pages/logger/LoggerDemoPage';
 import ActionGuardPage from './pages/actionguard/ActionGuardPage';
 import ActionGuardTestPage from './pages/actionguard/ActionGuardTestPage';
+import PriorityTestPage from './pages/actionguard/PriorityTestPage';
 import ThrottleComparisonPage from './pages/actionguard/ThrottleComparisonPage';
 import ToastConfigExamplePage from './pages/examples/ToastConfigExamplePage';
 import UnifiedPatternDemoPage from './pages/unified-pattern/UnifiedPatternDemoPage';
@@ -58,6 +59,7 @@ function App() {
           <Route path="/logger/demo" element={<LoggerDemoPage />} />
           <Route path="/actionguard/demo" element={<ActionGuardPage />} />
           <Route path="/actionguard/test" element={<ActionGuardTestPage />} />
+          <Route path="/actionguard/priority-test" element={<PriorityTestPage />} />
           <Route path="/actionguard/throttle-comparison" element={<ThrottleComparisonPage />} />
           <Route path="/examples/toast-config" element={<ToastConfigExamplePage />} />
           <Route path="/unified-pattern/demo" element={<UnifiedPatternDemoPage />} />
