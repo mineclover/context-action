@@ -533,7 +533,7 @@ function CommunicationExplanation() {
 }
 
 // 상위 컨텍스트: 인터페이스만 정의하고 하위 구성을 모름
-function ParentContextContainer({ children }: { children: React.ReactNode }) {
+function ParentContextContainer({ children }: { children: any }) {
   return (
     <ParentContext.Provider registryId="parent-context">
       <ParentContextLogic />

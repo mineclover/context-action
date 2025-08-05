@@ -78,7 +78,7 @@ export function ShoppingCartDemo() {
     }, 0);
     // 자동 계산: 실행시간, 타임스탬프가 자동으로 주입됨
     logger.logSystem('장바구니 총액 계산', { 
-      context: { itemCount: cart?.length ?? 0, totalAmount: total }
+      context: `items: ${cart?.length ?? 0}, total: ${total}`
     });
     return total;
   }, [cart, products, logger]);

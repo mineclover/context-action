@@ -68,7 +68,7 @@ export function UserProfileDemo() {
         changes: Object.keys(editForm).filter(key => user?.[key as keyof User] !== editForm[key as keyof User])
       });
       storeActionRegister.dispatch('updateUser', { user: editForm });
-      logger.logSystem('프로필 업데이트 성공', { context: { userId: editForm.id } });
+      logger.logSystem('프로필 업데이트 성공', { context: `userId: ${editForm.id}` });
     }
     setIsEditing(false);
   }, [editForm, user, logger]);
