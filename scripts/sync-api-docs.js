@@ -45,6 +45,32 @@ function isNewerFile(sourcePath, targetPath) {
 }
 
 /**
+ * 마크다운 파일의 Vue 호환성을 위한 후처리
+ */
+function postProcessMarkdown(content) {
+  // Vue 컴파일러가 HTML 태그로 인식하는 패턴들을 완전히 제거
+  return content
+    // 제네릭 타입 파라미터 \<T\> -> &lt;T&gt;
+    .replace(/\\<`([A-Z])`\\>/g, '&lt;`$1`&gt;')
+    // 다른 제네릭 패턴들도 처리
+    .replace(/\\<`([A-Z][A-Za-z0-9]*)`\\>/g, '&lt;`$1`&gt;')
+    // 복잡한 제네릭 타입도 처리 (예: \<T, K\>)
+    .replace(/\\<`([^`]+)`\\>/g, '&lt;`$1`&gt;')
+    // Vue가 문제를 일으키는 일반적인 제네릭 타입 패턴들 처리
+    .replace(/([A-Za-z]+)<([A-Z])>/g, '$1&lt;$2&gt;')
+    // Vue가 문제를 일으키는 단일 타입 파라미터 헤더들을 안전한 형태로 변경
+    .replace(/^### ([A-Z])$/gm, '### Generic type $1')
+    // 백틱이 있는 단일 대문자를 완전히 안전한 형태로 변경
+    .replace(/Type parameter `([A-Z])`/g, 'Type parameter **$1**')
+    // 단일 줄에 단일 대문자만 있는 경우 (예: `T`)
+    .replace(/^`([A-Z])`$/gm, 'Type parameter **$1**')
+    // 단일 줄에 제네릭 타입만 있는 경우 (예: `T extends Something`)
+    .replace(/^`([A-Z][A-Za-z0-9 =<>\[\]]*)`$/gm, 'Type parameter **$1**')
+    // 타입 파라미터 설명 라인들을 안전하게 처리
+    .replace(/^Generic type parameter ([A-Z])$/gm, 'Type parameter **$1**');
+}
+
+/**
  * 파일을 안전하게 복사 (새 파일만)
  */
 function copyFileIfNewer(sourcePath, targetPath) {
@@ -58,9 +84,13 @@ function copyFileIfNewer(sourcePath, targetPath) {
     const targetDir = path.dirname(targetPath);
     ensureDirectoryExists(targetDir);
     
-    // 파일 복사
-    fs.copyFileSync(sourcePath, targetPath);
-    console.log(`📄 파일 복사: ${path.basename(sourcePath)}`);
+    // 파일 읽기 및 후처리
+    let content = fs.readFileSync(sourcePath, 'utf8');
+    content = postProcessMarkdown(content);
+    
+    // 처리된 내용을 타겟 파일에 쓰기
+    fs.writeFileSync(targetPath, content);
+    console.log(`📄 파일 복사 및 후처리: ${path.basename(sourcePath)}`);
     return true;
   } catch (error) {
     console.error(`❌ 파일 복사 실패: ${sourcePath}`, error.message);
