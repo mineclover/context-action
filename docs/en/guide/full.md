@@ -1421,46 +1421,31 @@ function useUserActions() {
   useUserHandler('updateUser', updateUserHandler, { priority: 10, blocking: true });
 }
 
-// Cross-context handler coordination
+// Cross-context handler coordination with declarative stores
 function useCrossContextHandlers() {
-  // Get dispatch functions from each context
-  const userDispatch = useUserAction();
-  const registry = useStoreRegistry();
-  
-  // Register handlers in different contexts that coordinate
+  const authRegister = useAuthRegister();
   
   // Auth context handler - wrapped with useCallback
   const loginHandler = useCallback(async (payload, controller) => {
-    const authStore = registry.getStore('auth');
     const authResult = await authenticateUser(payload);
-    authStore.setValue(authResult);
     
-    // Signal to other contexts (via event or direct call)
+    // Update user stores after successful auth
+    const profileStore = UserStores.useStore('profile');
+    const userData = await fetchUserData(authResult.userId);
+    profileStore.setValue(userData);
+    
+    // Signal to other contexts if needed
     window.dispatchEvent(new CustomEvent('auth:login', { 
       detail: { userId: authResult.userId } 
     }));
-  }, [registry]);
+  }, []);
 
-  // User context handler responding to auth events - wrapped with useCallback
-  const loadUserDataHandler = useCallback(async (payload, controller) => {
-    const userStore = registry.getStore('user');
-    const userData = await fetchUserData(payload.userId);
-    userStore.setValue(userData);
-  }, [registry]);
-
-  // Register handlers
-  useAuthHandler('login', loginHandler);
-  useUserHandler('loadUserData', loadUserDataHandler);
-
-  // Listen for cross-context events
+  // Register handlers with useEffect pattern
   useEffect(() => {
-    const handleAuthLogin = (event) => {
-      userDispatch('loadUserData', { userId: event.detail.userId });
-    };
-
-    window.addEventListener('auth:login', handleAuthLogin);
-    return () => window.removeEventListener('auth:login', handleAuthLogin);
-  }, [userDispatch]);
+    if (!authRegister) return;
+    const unregister = authRegister.register('login', loginHandler);
+    return unregister;
+  }, [authRegister, loginHandler]);
 }
 ```
 
@@ -2007,31 +1992,30 @@ ComponentReRender --> UpdatedUI[Updated UI]
 9. **Team Scalability**: Different teams can work on different contexts independently
 10. **Deployment Flexibility**: Contexts can be deployed as separate modules or micro-frontends
 
-## Context Store Pattern Best Practices
+## Declarative Store Pattern Best Practices
 
-### Context Store Pattern Design
-1. **Use Destructuring**: Always destructure `createContextStorePattern` for cleaner, domain-specific naming
-2. **Domain-Focused Patterns**: Create separate patterns for different business domains (user, cart, auth, etc.)
-3. **Combine with Action Contexts**: Use Context Store Patterns alongside `createActionContext` for complete domain isolation
-4. **HOC Composition**: Use `withCustomProvider` to combine store and action contexts cleanly
+### Declarative Store Pattern Design
+1. **Define Store Schemas**: Always define `StorePayloadMap` interfaces for compile-time type safety
+2. **Use createDeclarativeStores**: Create stores with pre-defined schemas and initial values
+3. **Domain-Focused Patterns**: Create separate declarative patterns for different business domains
+4. **HOC Composition**: Use `withProvider` and `withCustomProvider` for clean component wrapping
 
 ### Store Management Best Practices
-5. **Separate Creation from Access**: Use `useCreateStore` once for creation, `useStore` for access
-6. **Setup Components**: Create dedicated setup components for store initialization
-7. **Type Safety**: Always specify types when accessing stores: `useUserStore<User>('profile')`
-8. **Consistent Naming**: Use consistent store names between components and action handlers
-9. **Lazy Evaluation**: Access stores in handlers via `registry.getStore()` for execution-time evaluation
+5. **Type-Safe Access**: Use `PatternName.useStore('storeName')` for automatic type inference
+6. **Consistent Schemas**: Keep store schemas consistent across components and handlers
+7. **Singleton Behavior**: Stores are singletons within Provider boundaries - same name returns same instance
+8. **Initial Values**: Provide proper initial values instead of null to prevent useStoreValue warnings
 
-### Action Design with Stores
-10. **Context-Scoped Actions**: Keep actions focused within their domain context
-11. **Use Registry Access**: Use `useRegistry()` in action handlers to access context-specific stores
-12. **Cross-Context Coordination**: Access stores from different contexts explicitly when needed
-13. **Handle Errors**: Use try-catch in async handlers with context-specific error handling
+### Action Design with Declarative Stores
+9. **Direct Store Access**: Use `PatternName.useStore('storeName')` directly in handlers
+10. **Type Safety**: Leverage compile-time type checking for store access
+11. **Cross-Pattern Coordination**: Access stores from different patterns when needed
+12. **Handle Errors**: Use try-catch in async handlers with pattern-specific error handling
 
 ### Handler Registration Best Practices  
-14. **Use useActionRegister Pattern**: Primary pattern is `useActionRegister` + `useEffect` for optimal re-render performance
-15. **Store Registry Integration**: Combine action contexts with store patterns for complete domain solutions
-16. **Handler Lifecycle**: Register handlers in `useEffect` and always return cleanup functions
+13. **Use useActionRegister Pattern**: Primary pattern is `useActionRegister` + `useEffect` for optimal performance
+14. **Direct Store Integration**: Access declarative stores directly without registry indirection
+15. **Handler Lifecycle**: Register handlers in `useEffect` and always return cleanup functions
 
 ### Result Collection Best Practices
 13. **Use Metadata Tags**: Tag handlers appropriately for filtering (e.g., 'validation', 'business-logic', 'logging')
@@ -2042,55 +2026,60 @@ ComponentReRender --> UpdatedUI[Updated UI]
 18. **Monitor Performance**: Use execution metadata to monitor and optimize handler performance
 
 ### Store Management
-19. **Context-Scoped Stores**: Keep stores within their appropriate context boundaries
-20. **Avoid Side Effects**: Keep store updates predictable and traceable within context scope
-21. **Store Naming**: Use context prefixes for store names to avoid confusion
-22. **Proper Initial Values**: Always provide type-appropriate initial values instead of `null` to prevent empty store warnings and enable better UI state management
+16. **Pattern-Scoped Stores**: Keep stores within their appropriate declarative pattern boundaries
+17. **Avoid Side Effects**: Keep store updates predictable and traceable within pattern scope
+18. **Semantic Naming**: Use clear store names that match the StorePayloadMap keys
+19. **Proper Initial Values**: Always provide type-appropriate initial values in store schemas
 
 ```typescript
-// ❌ Avoid: null initial values cause useStoreValue warnings
-const userStore = createStore<User | null>('user', null);
-const dataStore = createStore<ApiResponse | null>('data', null);
+// ✅ Declarative Store Pattern: Type-safe schemas with proper initial values
+interface AppStores extends StorePayloadMap {
+  user: { id: string; name: string; email: string; status: 'loading' | 'loaded' | 'error' };
+  data: { status: 'pending' | 'loading' | 'success' | 'error'; result: any; error: string | null };
+}
 
-// ✅ Preferred: Type-appropriate initial values with distinguishable markers
-const userStore = createStore<User>('user', {
-  id: '',
-  name: '',
-  email: '',
-  createdBy: 'initial' // Use marker to distinguish from real data
+const AppStores = createDeclarativeStores('App', {
+  user: { 
+    initialValue: { 
+      id: '', 
+      name: '', 
+      email: '', 
+      status: 'loading' // Clear initial state
+    } 
+  },
+  data: { 
+    initialValue: { 
+      status: 'pending', 
+      result: null, 
+      error: null 
+    } 
+  }
 });
 
-const dataStore = createStore<ApiResponse>('data', {
-  status: 'pending',
-  data: null,
-  error: null,
-  loadedBy: 'initial' // Marker for initial state
-});
+// ✅ UI logic: Use status fields to distinguish states
+const user = useStoreValue(AppStores.useStore('user'));
+const isUserLoaded = user.status === 'loaded';
 
-// ✅ UI logic: Check markers to distinguish initial vs real data
-const user = useStoreValue(userStore);
-const isUserLoaded = user.createdBy !== 'initial';
-
-const response = useStoreValue(dataStore);
-const isDataLoaded = response.loadedBy !== 'initial';
+const response = useStoreValue(AppStores.useStore('data'));
+const isDataLoaded = response.status === 'success';
 ```
 
 ### Type Safety
-23. **Context-Specific Types**: Define action payload maps per context for better type safety
-24. **Type Everything**: Leverage TypeScript for safety and documentation within each context
-25. **Cross-Context Types**: Define explicit interfaces for cross-context communication
+20. **Pattern-Specific Types**: Define `StorePayloadMap` interfaces per pattern for better type safety
+21. **Leverage Type Inference**: Use TypeScript's automatic inference with declarative stores
+22. **Cross-Pattern Types**: Define explicit interfaces for cross-pattern communication
 
 ### Testing Strategy  
-26. **Context Isolation Testing**: Test each context independently with domain-specific mock stores
-27. **Cross-Context Integration Testing**: Test cross-context communication at the integration level
-28. **Mock Context Providers**: Create mock context providers for testing components
+23. **Pattern Isolation Testing**: Test each pattern independently with mock declarative stores
+24. **Cross-Pattern Integration Testing**: Test cross-pattern communication at the integration level
+25. **Mock Declarative Providers**: Create mock providers for testing components
 
 ### Performance
-29. **Context Scope Optimization**: Only subscribe to stores within the relevant context
-30. **Lazy Context Loading**: Load contexts only when needed
-31. **Context Memory Management**: Properly cleanup context resources when unmounting
+26. **Pattern Scope Optimization**: Only subscribe to stores within the relevant pattern
+27. **Lazy Pattern Loading**: Load patterns only when needed
+28. **Pattern Memory Management**: Properly cleanup pattern resources when unmounting
 
 ### Development Workflow
-32. **Context-First Development**: Design contexts before implementing features
-33. **Team Ownership**: Assign context ownership to specific teams or developers
-34. **Context Documentation**: Document context boundaries, responsibilities, and interfaces
+29. **Schema-First Development**: Design store schemas before implementing features
+30. **Pattern Ownership**: Assign pattern ownership to specific teams or developers
+31. **Pattern Documentation**: Document pattern boundaries, responsibilities, and store schemas
