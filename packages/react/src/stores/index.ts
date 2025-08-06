@@ -6,13 +6,12 @@
  * @memberof core-concepts
  * @since 2.0.0
  * 
- * Core store system for Context-Action framework. The recommended approach
- * is to use createDeclarativeStores for type-safe declarative store management
- * similar to Action Registry pattern.
+ * Core store system for Context-Action framework using Declarative Store Pattern
+ * for type-safe store management similar to Action Registry pattern.
  */
 
-// === RECOMMENDED APPROACH ===
-// Declarative Store Pattern for type-safe store management (Primary)
+// === DECLARATIVE STORE PATTERN ===
+// Primary pattern for type-safe store management
 export * from './patterns';
 
 // === CORE STORE SYSTEM ===
@@ -20,7 +19,7 @@ export * from './patterns';
 export * from './core';
 
 // === REACT HOOKS ===
-// Basic store hooks (prefer Declarative Store Pattern hooks)
+// Store hooks for React integration
 export * from './hooks';
 
 // === UTILITIES ===
@@ -28,19 +27,19 @@ export * from './hooks';
 export * from './utils';
 
 // === RE-EXPORTS FOR CONVENIENCE ===
-// Common imports that users expect from the main store module
+// Common imports expected from the main store module
 
-// PRIMARY: Declarative Store Pattern (Recommended)
+// Primary factory functions
 export { createDeclarativeStores, createDeclarativeStorePattern } from './patterns';
 
-// Types for declarative pattern
+// Declarative Store Pattern types
 export type {
   StorePayloadMap,
   StoreSchema,
   StoreConfig
 } from './patterns';
 
-// Core types and interfaces
+// Core types
 export type {
   IStore,
   IStoreRegistry,
@@ -53,21 +52,9 @@ export type {
   ComparisonStrategy
 } from './utils';
 
-// Pre-defined example stores for reference
+// Example stores for reference
 export { 
   UserStores,
   ShoppingStores, 
   DashboardStores
-} from './patterns';
-
-// === LEGACY EXPORTS ===
-// @deprecated Use createDeclarativeStores instead
-export { createContextStorePattern } from './patterns';
-
-// Legacy pre-defined patterns
-export { 
-  PageStores, 
-  ComponentStores, 
-  DemoStores, 
-  TestStores 
 } from './patterns';

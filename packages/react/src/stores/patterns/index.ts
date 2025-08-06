@@ -7,12 +7,12 @@
  * @memberof core-concepts
  * @since 2.0.0
  * 
- * Declarative Store Pattern is the recommended approach for type-safe store
- * management with Action Registry-style schema definition. Provides compile-time
- * type inference and singleton behavior for consistent data management.
+ * Declarative Store Pattern provides type-safe store management with Action Registry-style 
+ * schema definition. Offers compile-time type inference and singleton behavior for 
+ * consistent data management.
  * 
  * @example
- * // ✅ Recommended: Declarative Store Pattern (v2.0+)
+ * // ✅ Declarative Store Pattern - Type-safe and clean
  * interface AppStores extends StorePayloadMap {
  *   user: { id: string; name: string };
  *   settings: { theme: 'light' | 'dark' };
@@ -24,14 +24,10 @@
  * });
  * 
  * const userStore = AppStores.useStore('user'); // Type: Store<{id: string, name: string}>
- * 
- * // ❌ Legacy: Context Store Pattern (deprecated)
- * const { useStore } = createContextStorePattern('myDomain');
- * const store = useStore('user'); // Type: any
  */
 
-// === DECLARATIVE STORE PATTERN (PRIMARY) ===
-// Recommended pattern for type-safe declarative store management
+// === DECLARATIVE STORE PATTERN ===
+// Type-safe declarative store management
 export { 
   createDeclarativeStores,
   createDeclarativeStorePattern,
@@ -43,7 +39,7 @@ export {
   type StoreCreation
 } from './declarative-store-registry';
 
-// === DECLARATIVE EXAMPLES ===
+// === EXAMPLES ===
 // Usage examples and best practices
 export {
   UserStores,
@@ -54,26 +50,3 @@ export {
   AnalyticsDashboard,
   TypeSafetyExample
 } from './declarative-examples';
-
-// === LEGACY CONTEXT STORE PATTERN ===
-// @deprecated Use createDeclarativeStores instead
-export { 
-  createContextStorePattern,
-  PageStores,
-  ComponentStores,
-  DemoStores,
-  TestStores
-} from './context-store-pattern';
-
-// === ISOLATION UTILITIES ===
-// Store isolation and boundary management (used by legacy patterns)
-export { 
-  generateStoreName,
-  getOrCreateRegistryStore
-} from './isolation-utils';
-
-// === LEGACY ISOLATION HOOKS ===
-// @deprecated Use Declarative Store Pattern instead
-export { 
-  useIsolatedStore
-} from './isolation-hooks';

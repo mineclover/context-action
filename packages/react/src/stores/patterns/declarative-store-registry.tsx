@@ -8,7 +8,7 @@
  * @since 2.0.0
  */
 
-import React, { createContext, useContext, useMemo, ReactNode, useId } from 'react';
+import React, { createContext, useContext, useMemo, ReactNode } from 'react';
 import { StoreRegistry } from '../core/StoreRegistry';
 import { createStore } from '../core/Store';
 import type { ComparisonOptions } from '../utils/comparison';
@@ -276,26 +276,23 @@ export function createDeclarativeStorePattern<T extends StorePayloadMap>(
    * 
    * 선언적 Store Registry를 Context로 제공합니다.
    */
-  function Provider({ children, registryId }: { 
+  function Provider({ children, registryId = contextName }: { 
     children: ReactNode; 
     registryId?: string;
   }) {
-    const componentId = useId();
-    
-    // 고유한 Registry 생성
+    // 간단한 Registry 생성 - 복잡한 ID 생성 로직 제거
     const registry = useMemo(() => {
-      const uniqueId = registryId || `${contextName}-${componentId}`;
-      const registryInstance = new DeclarativeStoreRegistry(uniqueId, schema);
+      const registryInstance = new DeclarativeStoreRegistry(registryId, schema);
       
       if (process.env.NODE_ENV === 'development') {
-        console.log(`🏭 Declarative Store Pattern created: ${uniqueId}`, {
+        console.log(`🏭 Declarative Store Pattern created: ${registryId}`, {
           availableStores: registryInstance.getAvailableStores(),
           totalStores: Object.keys(schema).length
         });
       }
       
       return registryInstance;
-    }, [registryId, componentId]);
+    }, [registryId]);
     
     return (
       <RegistryContext.Provider value={registry}>
