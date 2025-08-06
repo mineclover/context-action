@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   ActionPayloadMap,
-  createContextPattern,
+  createActionContextPattern,
   useStoreValueSafe
 } from '@context-action/react';
 import { PageWithLogMonitor } from '../../components/LogMonitor/';
@@ -21,12 +21,12 @@ interface UserActions extends ActionPayloadMap {
 }
 
 // 통합 Context Pattern 생성
-const CounterContext = createContextPattern<CounterActions>('Counter', {
+const CounterContext = createActionContextPattern<CounterActions>('Counter', {
   logLevel: 1, // DEBUG level
   debug: true
 });
 
-const UserContext = createContextPattern<UserActions>('User', {
+const UserContext = createActionContextPattern<UserActions>('User', {
   logLevel: 1, // DEBUG level  
   debug: true
 });
@@ -292,8 +292,8 @@ function UnifiedPatternDemoPage() {
               <div>
                 <h4 className="font-medium text-gray-900 mb-2">HOC Pattern</h4>
                 <pre className="bg-gray-900 text-gray-100 p-3 rounded text-xs overflow-x-auto">
-{`// 1. Create Context Pattern
-const CounterContext = createContextPattern<CounterActions>('Counter');
+{`// 1. Create Action Context Pattern
+const CounterContext = createActionContextPattern<CounterActions>('Counter');
 
 // 2. Use HOC Pattern
 const CounterWithProvider = CounterContext.withProvider('counter-demo')(() => {

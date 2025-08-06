@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   ActionPayloadMap,
-  createContextPattern,
+  createActionContextPattern,
   useStoreValue
 } from '@context-action/react';
 import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
@@ -31,10 +31,10 @@ interface ChildBActions extends ActionPayloadMap {
   clearText: void;
 }
 
-// Context Pattern 생성
-const ParentContext = createContextPattern<ParentActions>('ParentContext');
-const ChildAContext = createContextPattern<ChildAActions>('ChildAContext');
-const ChildBContext = createContextPattern<ChildBActions>('ChildBContext');
+// Action Context Pattern 생성
+const ParentContext = createActionContextPattern<ParentActions>('ParentContext');
+const ChildAContext = createActionContextPattern<ChildAActions>('ChildAContext');
+const ChildBContext = createActionContextPattern<ChildBActions>('ChildBContext');
 
 // 상위 컨텍스트 UI - 하위 컴포넌트들을 모름
 function ParentContextUI() {
