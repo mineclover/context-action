@@ -1,11 +1,15 @@
 /**
- * Context API 기반 Registry 영역 격리 패턴
+ * Context Store Pattern for domain-scoped store isolation
  * 
- * Provider별로 독립적인 StoreRegistry를 생성하고,
- * 해당 Provider 범위 내에서만 Store에 접근할 수 있는 패턴
- * 
+ * @deprecated Use createDeclarativeStores for type-safe declarative store management
  * @module store/context-store-pattern
- * @version 1.0.0
+ * @since 1.0.0
+ * 
+ * This pattern is being superseded by the Declarative Store Pattern which provides:
+ * - Compile-time type inference for store access
+ * - Schema-based store definition similar to Action Registry
+ * - Singleton behavior for consistent data management
+ * - Better integration with action-store coordination
  */
 
 import React, { createContext, useContext, useMemo, ReactNode, useId } from 'react';
@@ -15,7 +19,9 @@ import { createStore } from '../core/Store';
 import type { ComparisonOptions } from '../utils/comparison';
 
 /**
- * Context Store 패턴 팩토리 함수
+ * Context Store Pattern factory function
+ * 
+ * @deprecated Use createDeclarativeStores instead for better type safety
  * @implements cross-store-coordination
  * @implements store-factory-functions
  * @implements separation-of-concerns
@@ -23,75 +29,32 @@ import type { ComparisonOptions } from '../utils/comparison';
  * @memberof core-concepts
  * @since 1.0.0
  * 
- * Provider와 해당 Provider 영역 내에서 사용할 수 있는 Hooks를 함께 생성합니다.
- * 각 Provider는 독립적인 Store Registry를 가지며, Store 간 격리를 보장합니다.
+ * Creates Provider and hooks for domain-scoped store management.
+ * Each Provider maintains independent Store Registry with isolation guarantees.
  * 
- * @param contextName - Context 이름 (Registry 식별용)
- * @returns Provider 컴포넌트와 Store 접근 Hooks
+ * @param contextName Context identifier for registry naming
+ * @returns Provider component and store access hooks
  * 
  * @example
- * ```typescript
- * // 1. Context Store 패턴 생성 및 구조분해
- * const {
- *   Provider: UserStoreProvider,
- *   useCreateStore: useCreateUserStore,
- *   useStore: useUserStore,
- *   useRegistry: useUserRegistry
- * } = createContextStorePattern('user');
+ * // ❌ Old approach (limited type inference)
+ * const { useStore } = createContextStorePattern('User');
+ * const store = useStore('profile'); // Type: any
  * 
- * // 2. Provider로 영역 격리
- * function App() {
- *   return (
- *     <UserStoreProvider>
- *       <UserProfile />
- *       <Settings />
- *     </UserStoreProvider>
- *   );
- * }
- * 
- * // 3. Store 생성 (action handler와 component에서 동일한 이름으로 접근 가능)
- * function UserStoreSetup() {
- *   // Context-aware Store 생성
- *   useCreateUserStore('profile', { name: '', email: '' });
- *   useCreateUserStore('preferences', { theme: 'light', lang: 'en' });
- *   return null; // Setup component
- * }
- * 
- * // 4. 영역 내에서 Store 접근 (Store 이름만으로 접근)
- * function UserProfile() {
- *   const profileStore = useUserStore<User>('profile');
- *   const profile = useStoreValue(profileStore);
- *   
- *   return <div>User: {profile.name}</div>;
- * }
- * 
- * // 5. Action handler에서도 동일한 이름으로 접근 가능
- * function useUserActions() {
- *   const registry = useUserRegistry();
- *   
- *   useEffect(() => {
- *     const register = getActionRegister();
- *     
- *     const unregister = register.register('updateUser', (payload) => {
- *       // Context registry에서 같은 이름으로 접근
- *       const profileStore = registry.getStore('profile');
- *       profileStore.setValue(payload);
- *     });
- *     
- *     return unregister;
- *   }, [registry]);
- * }
- * ```
+ * // ✅ New approach (full type safety)
+ * const UserStores = createDeclarativeStores('User', {
+ *   profile: { initialValue: { id: '', name: '' } }
+ * });
+ * const store = UserStores.useStore('profile'); // Type: Store<{id: string, name: string}>
  */
 export function createContextStorePattern(contextName: string) {
-  // Registry Context 생성
+  // Create Registry Context
   const RegistryContext = createContext<StoreRegistry | null>(null);
   
   /**
    * Store Registry Provider
    * 
-   * 이 Provider 범위 내에서 독립적인 Store Registry를 제공합니다.
-   * 여러 Provider 인스턴스는 서로 격리된 Store 영역을 가집니다.
+   * Provides independent Store Registry within this Provider scope.
+   * Multiple Provider instances maintain isolated store domains.
    */
   function Provider({ children, registryId }: { 
     children: ReactNode; 
@@ -99,7 +62,7 @@ export function createContextStorePattern(contextName: string) {
   }) {
     const componentId = useId();
     
-    // Provider별 고유 Registry 생성 - useId + contextName으로 간결하게
+    // Create unique Registry per Provider - useId + contextName
     const registry = useMemo(() => {
       const uniqueId = registryId || `${contextName}-${componentId}`;
       const registryInstance = new StoreRegistry(uniqueId);
@@ -445,96 +408,48 @@ export function createContextStorePattern(contextName: string) {
 }
 
 /**
- * 사전 정의된 Context Store 패턴들
+ * Pre-defined Context Store Patterns
  * 
- * 일반적으로 사용되는 패턴들을 미리 정의해둡니다.
+ * Common patterns ready to use. These demonstrate the standard approach
+ * for domain-scoped store management in Context-Action framework.
+ * 
+ * @example
+ * // ✅ Standard usage pattern
+ * const { Provider, useStore, useCreateStore } = createContextStorePattern('myDomain');
+ * 
+ * // ✅ Using pre-defined patterns
+ * const { Provider: PageProvider, useStore: usePageStore } = PageStores;
  */
 
 /**
- * 페이지별 Store 격리 패턴
+ * Page-level Store isolation pattern
  * 
- * 각 페이지마다 독립적인 Store 영역을 제공합니다.
+ * Provides independent Store domain for each page/route.
+ * Recommended for page-specific state management.
  */
 export const PageStores = createContextStorePattern('page');
 
 /**
- * 컴포넌트별 Store 격리 패턴
+ * Component-level Store isolation pattern
  * 
- * 컴포넌트별로 독립적인 Store 영역을 제공합니다.
+ * Provides independent Store domain for reusable components.
+ * Use when components need isolated state across instances.
  */
 export const ComponentStores = createContextStorePattern('component');
 
 /**
- * 데모/예제용 Store 격리 패턴
+ * Demo/Example Store isolation pattern
  * 
- * 데모나 예제에서 사용할 독립적인 Store 영역을 제공합니다.
+ * For demonstrations and examples. Shows standard usage patterns
+ * for Context Store Pattern implementation.
  */
 export const DemoStores = createContextStorePattern('demo');
 
 /**
- * 테스트용 Store 격리 패턴
+ * Test Store isolation pattern
  * 
- * 테스트에서 사용할 독립적인 Store 영역을 제공합니다.
+ * For testing environments. Provides clean isolation for test cases
+ * without affecting other test suites or application state.
  */
 export const TestStores = createContextStorePattern('test');
 
-/**
- * 사용 예시와 패턴 가이드
- * 
- * @example
- * // 1. 기본 사용법 - Store 생성과 접근 패턴 (구조분해 권장)
- * const {
- *   Provider: AppStoreProvider,
- *   useCreateStore: useCreateAppStore,
- *   useStore: useAppStore
- * } = createContextStorePattern('my-app');
- * 
- * function App() {
- *   return (
- *     <AppStoreProvider>
- *       <StoreSetup />
- *       <UserProfile />
- *     </AppStoreProvider>
- *   );
- * }
- * 
- * function StoreSetup() {
- *   // Context registry에 Store 생성 (양방향 접근 가능)
- *   useCreateAppStore('user', { name: '', email: '' });
- *   useCreateAppStore('settings', { theme: 'light', lang: 'en' });
- *   return null;
- * }
- * 
- * function UserProfile() {
- *   // 생성된 Store에 접근 (Store 이름만으로)
- *   const userStore = useAppStore<User>('user');
- *   const user = useStoreValue(userStore);
- *   
- *   return <div>User: {user.name}</div>;
- * }
- * 
- * @example
- * // Multiple Provider isolation (구조분해 패턴)
- * const { Provider: AppStoreProvider } = createContextStorePattern('my-app');
- * 
- * function App() {
- *   return (
- *     <div>
- *       <AppStoreProvider registryId="area-1">
- *         <UserProfile />
- *       </AppStoreProvider>
- *       <AppStoreProvider registryId="area-2">
- *         <UserProfile />
- *       </AppStoreProvider>
- *     </div>
- *   );
- * }
- * 
- * @example
- * // Component-level isolation (useId 기반으로 각 컴포넌트마다 고유 Store)
- * function UserProfile({ userId }) {
- *   const userStore = MyStores.useIsolatedStore('user', { id: userId, name: '' });
- *   const user = useStoreValue(userStore);
- *   return <div>User {userId}: {user.name}</div>;
- * }
- */

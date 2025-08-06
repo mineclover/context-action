@@ -1,34 +1,44 @@
 /**
- * @fileoverview Store system exports - comprehensive store functionality
+ * @fileoverview Store system exports
  * @implements store-integration-pattern
  * @implements model-layer
  * @implements mvvm-pattern
  * @memberof core-concepts
- * @since 1.0.0
+ * @since 2.0.0
  * 
- * Complete store system including core classes, React hooks, utility functions,
- * advanced patterns, and integration helpers. This module provides everything
- * needed for store management in the Context-Action framework.
+ * Core store system for Context-Action framework. The recommended approach
+ * is to use createDeclarativeStores for type-safe declarative store management
+ * similar to Action Registry pattern.
  */
+
+// === RECOMMENDED APPROACH ===
+// Declarative Store Pattern for type-safe store management (Primary)
+export * from './patterns';
 
 // === CORE STORE SYSTEM ===
 // Fundamental store classes and registry
 export * from './core';
 
 // === REACT HOOKS ===
-// All store-related React hooks
+// Basic store hooks (prefer Declarative Store Pattern hooks)
 export * from './hooks';
 
 // === UTILITIES ===
 // Comparison, immutability, and helper functions
 export * from './utils';
 
-// === ADVANCED PATTERNS ===
-// Context Store Pattern and isolation utilities
-export * from './patterns';
-
 // === RE-EXPORTS FOR CONVENIENCE ===
 // Common imports that users expect from the main store module
+
+// PRIMARY: Declarative Store Pattern (Recommended)
+export { createDeclarativeStores, createDeclarativeStorePattern } from './patterns';
+
+// Types for declarative pattern
+export type {
+  StorePayloadMap,
+  StoreSchema,
+  StoreConfig
+} from './patterns';
 
 // Core types and interfaces
 export type {
@@ -43,5 +53,21 @@ export type {
   ComparisonStrategy
 } from './utils';
 
-// Main factory functions  
+// Pre-defined example stores for reference
+export { 
+  UserStores,
+  ShoppingStores, 
+  DashboardStores
+} from './patterns';
+
+// === LEGACY EXPORTS ===
+// @deprecated Use createDeclarativeStores instead
 export { createContextStorePattern } from './patterns';
+
+// Legacy pre-defined patterns
+export { 
+  PageStores, 
+  ComponentStores, 
+  DemoStores, 
+  TestStores 
+} from './patterns';
