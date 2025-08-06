@@ -27,5 +27,4 @@ export { useLocalStore } from '../stores/hooks/useLocalStore';
 export { useRegistry } from '../stores/hooks/useRegistry';
 
 // === PATTERN HOOKS ===
-// Advanced pattern hooks
-export { useIsolatedStore } from '../stores/patterns';
+// Pattern-specific hooks removed - use Declarative Store Pattern instead
