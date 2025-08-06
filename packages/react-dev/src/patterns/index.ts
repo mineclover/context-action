@@ -13,7 +13,7 @@
 // === UNIFIED CONTEXT PATTERN ===
 // Integrated Store + Action management with complete isolation
 export { 
-  createContextPattern,
+  createActionContextPattern,
   type ContextPatternConfig,
   type ContextPatternReturn,
   type UnifiedContextType

@@ -158,7 +158,7 @@ export interface ContextPatternReturn<T extends ActionPayloadMap = ActionPayload
  * }
  * ```
  */
-export function createContextPattern<T extends ActionPayloadMap = ActionPayloadMap>(
+export function createActionContextPattern<T extends ActionPayloadMap = ActionPayloadMap>(
   contextName: string,
   config?: ContextPatternConfig
 ): ContextPatternReturn<T> {

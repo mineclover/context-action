@@ -86,7 +86,7 @@ The Unified Context Pattern ensures complete type safety across the entire conte
 
 ```typescript
 // ✅ Type-safe context pattern creation
-const UserContext = createContextPattern<UserActions>('User');
+const UserContext = createActionContextPattern<UserActions>('User');
 
 // ✅ Type-safe store creation with guaranteed types
 const UserComponent = () => {
@@ -136,7 +136,7 @@ If you're migrating from legacy patterns, follow these steps:
 </StoreProvider>
 
 // ✅ New unified pattern
-const MyContext = createContextPattern<MyActions>('MyContext');
+const MyContext = createActionContextPattern<MyActions>('MyContext');
 
 <MyContext.Provider registryId="my-app">
   <MyComponent />
@@ -191,7 +191,7 @@ interface LooseActions extends ActionPayloadMap {
 
 ```typescript
 // ✅ Good - isolated context with complete typing
-const ShoppingCartContext = createContextPattern<CartActions>('ShoppingCart');
+const ShoppingCartContext = createActionContextPattern<CartActions>('ShoppingCart');
 
 const CartComponent = () => {
   const cartStore = ShoppingCartContext.useStore('items', []);
@@ -258,7 +258,7 @@ const undefinedStore = createStore(undefined); // StoreState<undefined> = undefi
 ### Pattern 1: HOC with Type Safety
 
 ```typescript
-const UserModuleContext = createContextPattern<UserActions>('UserModule');
+const UserModuleContext = createActionContextPattern<UserActions>('UserModule');
 
 const withUserModule = UserModuleContext.withProvider('user-module')(() => {
   const userStore = UserModuleContext.useStore('user', { name: '', email: '' });
@@ -272,8 +272,8 @@ const withUserModule = UserModuleContext.withProvider('user-module')(() => {
 
 ```typescript
 // ✅ Type-safe communication between contexts
-const GlobalContext = createContextPattern<GlobalActions>('Global');
-const LocalContext = createContextPattern<LocalActions>('Local');
+const GlobalContext = createActionContextPattern<GlobalActions>('Global');
+const LocalContext = createActionContextPattern<LocalActions>('Local');
 
 const LocalComponent = () => {
   LocalContext.useActionHandler('requestGlobal', ({ message }) => {
