@@ -537,5 +537,4 @@ export function createActionContextPattern<T extends ActionPayloadMap = ActionPa
   };
 }
 
-// Legacy export for backward compatibility
-export const createContextPattern = createActionContextPattern;
+// Legacy export removed - use createActionContextPattern instead

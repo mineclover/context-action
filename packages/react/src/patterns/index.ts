@@ -14,7 +14,6 @@
 // Integrated Store + Action pattern with full isolation
 export { 
   createActionContextPattern,
-  createContextPattern, // Legacy alias for backward compatibility
   type ActionContextPatternConfig,
   type ActionContextType,
   type ActionContextPatternReturn

@@ -86,7 +86,7 @@ const value = useStoreValue(store); // 여전히 작동, T | undefined 반환
 
 ```typescript
 // ✅ 타입 안전한 컨텍스트 패턴 생성
-const UserContext = createContextPattern<UserActions>('User');
+const UserContext = createActionContextPattern<UserActions>('User');
 
 // ✅ 보장된 타입으로 타입 안전한 Store 생성
 const UserComponent = () => {
@@ -136,7 +136,7 @@ const value = useStoreValueSafe(invalidStore);
 </StoreProvider>
 
 // ✅ 새로운 통합 패턴
-const MyContext = createContextPattern<MyActions>('MyContext');
+const MyContext = createActionContextPattern<MyActions>('MyContext');
 
 <MyContext.Provider registryId="my-app">
   <MyComponent />
@@ -191,7 +191,7 @@ interface LooseActions extends ActionPayloadMap {
 
 ```typescript
 // ✅ 좋음 - 완전한 타이핑으로 격리된 컨텍스트
-const ShoppingCartContext = createContextPattern<CartActions>('ShoppingCart');
+const ShoppingCartContext = createActionContextPattern<CartActions>('ShoppingCart');
 
 const CartComponent = () => {
   const cartStore = ShoppingCartContext.useStore('items', []);
@@ -258,7 +258,7 @@ const undefinedStore = createStore(undefined); // StoreState<undefined> = undefi
 ### 패턴 1: 타입 안전성을 가진 HOC
 
 ```typescript
-const UserModuleContext = createContextPattern<UserActions>('UserModule');
+const UserModuleContext = createActionContextPattern<UserActions>('UserModule');
 
 const withUserModule = UserModuleContext.withProvider('user-module')(() => {
   const userStore = UserModuleContext.useStore('user', { name: '', email: '' });
@@ -272,8 +272,8 @@ const withUserModule = UserModuleContext.withProvider('user-module')(() => {
 
 ```typescript
 // ✅ 컨텍스트 간 타입 안전한 통신
-const GlobalContext = createContextPattern<GlobalActions>('Global');
-const LocalContext = createContextPattern<LocalActions>('Local');
+const GlobalContext = createActionContextPattern<GlobalActions>('Global');
+const LocalContext = createActionContextPattern<LocalActions>('Local');
 
 const LocalComponent = () => {
   LocalContext.useActionHandler('requestGlobal', ({ message }) => {
