@@ -4,7 +4,6 @@
  * @implements cross-platform-logging
  * @implements environment-configuration
  * @memberof packages
- * @version 1.0.0
  * 
  * Lightweight, configurable logging system for the Context-Action framework
  * with cross-platform environment variable support and level-based filtering.

@@ -5,7 +5,6 @@
  * 해당 Provider 범위 내에서만 Store와 Action에 접근할 수 있는 통합 패턴
  * 
  * @module patterns/context-pattern
- * @version 1.0.0
  */
 
 import React, { createContext, useContext, useMemo, ReactNode, useId, useRef } from 'react';

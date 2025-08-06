@@ -4,7 +4,6 @@
  * @implements atom-context-pattern
  * @implements atomic-state-management
  * @memberof packages
- * @version 1.0.0
  * 
  * Jotai integration package for the Context-Action framework, providing
  * Context-based atom sharing and management with enhanced developer experience.

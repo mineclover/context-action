@@ -4,7 +4,6 @@
  * @implements model-layer
  * @implements reactive-state-management
  * @memberof core-concepts
- * @version 1.0.0
  * 
  * Comprehensive type definitions for the Context-Action framework's Store system,
  * providing reactive state management with React integration and type safety.

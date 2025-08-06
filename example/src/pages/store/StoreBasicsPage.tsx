@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useStoreValue, createActionContextPattern } from '@context-action/react';
 import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
 import { DemoCard, Button, Input, CodeExample, CodeBlock } from '../../components/ui';
@@ -11,7 +11,10 @@ function useMessageDemo() {
   // PageStores 영역 내에서 'message' Store 사용 - 페이지별로 독립적
   const messageStore = PageStores.useStore('message', 'Hello, Context-Action!', {
     strategy: 'reference', // 단순 string이므로 reference 비교
-    debug: true
+    debug: true,
+    description: 'Message store for demo purposes',
+    tags: ['demo', 'message'],
+    version: '1.0.0'
   });
   
   const message = useStoreValue(messageStore);
@@ -69,7 +72,10 @@ function useUserDemo() {
   // PageStores 영역 내에서 'user' Store 사용 - 페이지별로 독립적
   const userStore = PageStores.useStore('user', { name: 'John Doe', email: 'john@example.com' }, {
     strategy: 'shallow', // 객체의 첫 번째 레벨 프로퍼티 비교
-    debug: true
+    debug: true,
+    description: 'User profile store with shallow comparison',
+    tags: ['demo', 'user', 'profile'],
+    version: '1.0.0'
   });
   
   const user = useStoreValue(userStore);
@@ -249,6 +255,49 @@ function UserDemo() {
   );
 }
 
+// Registry 액션들을 테스트하기 위한 컴포넌트
+function RegistryActionsDemo() {
+  const { clearStores, clearActions, clearAll, removeStore } = PageStores.useRegistryActions();
+  const registryInfo = PageStores.useRegistryInfo();
+
+  return (
+    <DemoCard variant="info">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Registry Management (New API)</h3>
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <strong>Registry Name:</strong> {registryInfo.name}
+          </div>
+          <div>
+            <strong>Store Count:</strong> {registryInfo.storeCount}
+          </div>
+          <div className="col-span-2">
+            <strong>Active Stores:</strong> {registryInfo.storeNames.join(', ')}
+          </div>
+          <div className="col-span-2">
+            <strong>Initialized:</strong> {registryInfo.initialized.join(', ')}
+          </div>
+        </div>
+        
+        <div className="flex gap-2 flex-wrap">
+          <Button onClick={clearStores} variant="danger" size="sm">
+            Clear Stores
+          </Button>
+          <Button onClick={clearActions} variant="danger" size="sm">
+            Clear Actions
+          </Button>
+          <Button onClick={clearAll} variant="danger" size="sm">
+            Clear All
+          </Button>
+          <Button onClick={() => removeStore('message')} variant="secondary" size="sm">
+            Remove Message Store
+          </Button>
+        </div>
+      </div>
+    </DemoCard>
+  );
+}
+
 function StoreBasicsPage() {
   return (
     <PageWithLogMonitor 
@@ -276,6 +325,9 @@ function StoreBasicsPage() {
             <MessageDemo />
             <CounterDemo />
             <UserDemo />
+            
+            {/* Registry Actions Demo - New API */}
+            <RegistryActionsDemo />
           
           {/* Store Concepts */}
           <DemoCard variant="info">
