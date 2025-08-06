@@ -10,6 +10,8 @@ import {
   UnregisterFunction,
   ExecutionMode,
   ExecutionResult,
+  ActionRegistryInfo,
+  ActionHandlerStats,
 } from './types.js';
 import { executeSequential, executeParallel, executeRace } from './execution-modes.js';
 import { ActionGuard } from './action-guard.js';
@@ -50,10 +52,30 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   private executionMode: ExecutionMode = 'sequential';
   private actionExecutionModes = new Map<keyof T, ExecutionMode>();
   public readonly name: string;
+  private readonly registryConfig: ActionRegisterConfig['registry'];
+  private executionStats = new Map<keyof T, {
+    totalExecutions: number;
+    totalDuration: number;
+    successCount: number;
+    errorCount: number;
+  }>();
 
   constructor(config: ActionRegisterConfig = {}) {
     this.name = config.name || 'ActionRegister';
+    this.registryConfig = config.registry;
     this.actionGuard = new ActionGuard();
+    
+    if (this.registryConfig?.defaultExecutionMode) {
+      this.executionMode = this.registryConfig.defaultExecutionMode;
+    }
+    
+    if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
+      console.log(`🎯 ActionRegister created: ${this.name}`, {
+        defaultExecutionMode: this.executionMode,
+        maxHandlers: this.registryConfig.maxHandlers,
+        autoCleanup: this.registryConfig.autoCleanup ?? true
+      });
+    }
   }
 
   register<K extends keyof T, R = void>(
@@ -116,18 +138,44 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       // Return a no-op unregister function for the duplicate
       return () => {};
     }
+    
+    // Check maximum handlers limit
+    if (this.registryConfig?.maxHandlers && pipeline.length >= this.registryConfig.maxHandlers) {
+      throw new Error(
+        `Maximum number of handlers (${this.registryConfig.maxHandlers}) reached for action '${String(action)}' in registry '${this.name}'`
+      );
+    }
 
     // Add handler to pipeline
     pipeline.push(registration);
     
     // Sort pipeline by priority (highest first)
     pipeline.sort((a, b) => b.config.priority - a.config.priority);
+    
+    if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
+      console.log(`🎯 Handler registered: ${String(action)}`, {
+        handlerId,
+        priority: config.priority,
+        tags: config.tags,
+        category: config.category,
+        totalHandlers: pipeline.length,
+        registry: this.name
+      });
+    }
 
     // Return unregister function that removes this specific registration
     return () => {
       const index = pipeline.findIndex((reg) => reg.id === handlerId && reg === registration);
       if (index !== -1) {
         pipeline.splice(index, 1);
+        
+        if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
+          console.log(`🎯 Handler unregistered: ${String(action)}`, {
+            handlerId,
+            remainingHandlers: pipeline.length,
+            registry: this.name
+          });
+        }
       }
     };
   }
@@ -215,7 +263,19 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       terminationResult: undefined,
     };
 
-    await this.executePipeline(context);
+    const startTime = Date.now();
+    let executionSuccess = true;
+    
+    try {
+      await this.executePipeline(context);
+    } catch (error) {
+      executionSuccess = false;
+      throw error;
+    } finally {
+      // Track execution statistics
+      const duration = Date.now() - startTime;
+      this.updateExecutionStats(action, executionSuccess, duration);
+    }
   }
 
   async dispatchWithResult<K extends keyof T, R = void>(
@@ -381,6 +441,10 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     }
 
     const endTime = Date.now();
+    const executionSuccess = !executionError && !context.aborted;
+    
+    // Track execution statistics
+    this.updateExecutionStats(action, executionSuccess, endTime - startTime);
 
     // Process results based on options
     const processedResult = this.processResults(context, options?.result);
@@ -582,8 +646,44 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       const index = pipeline.findIndex(reg => reg.id === registration.id);
       if (index !== -1) {
         pipeline.splice(index, 1);
+        
+        if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
+          console.log(`🎯 One-time handler removed: ${String(action)}`, {
+            handlerId: registration.id,
+            remainingHandlers: pipeline.length,
+            registry: this.name
+          });
+        }
       }
     });
+  }
+
+  /**
+   * Update execution statistics for an action
+   * 
+   * @param action Action name
+   * @param success Whether execution was successful
+   * @param duration Execution duration in milliseconds
+   */
+  private updateExecutionStats<K extends keyof T>(action: K, success: boolean, duration: number): void {
+    if (!this.executionStats.has(action)) {
+      this.executionStats.set(action, {
+        totalExecutions: 0,
+        totalDuration: 0,
+        successCount: 0,
+        errorCount: 0,
+      });
+    }
+
+    const stats = this.executionStats.get(action)!;
+    stats.totalExecutions++;
+    stats.totalDuration += duration;
+    
+    if (success) {
+      stats.successCount++;
+    } else {
+      stats.errorCount++;
+    }
   }
 
   getHandlerCount<K extends keyof T>(action: K): number {
@@ -609,5 +709,211 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
 
   getName(): string {
     return this.name;
+  }
+
+  /**
+   * Get comprehensive registry information (similar to DeclarativeStoreRegistry pattern)
+   * 
+   * @returns Registry information including actions, handlers, and execution modes
+   */
+  getRegistryInfo(): ActionRegistryInfo<T> {
+    const totalHandlers = Array.from(this.pipelines.values()).reduce(
+      (total, pipeline) => total + pipeline.length, 
+      0
+    );
+    
+    return {
+      name: this.name,
+      totalActions: this.pipelines.size,
+      totalHandlers,
+      registeredActions: Array.from(this.pipelines.keys()),
+      actionExecutionModes: new Map(this.actionExecutionModes),
+      defaultExecutionMode: this.executionMode,
+    };
+  }
+
+  /**
+   * Get detailed statistics for a specific action
+   * 
+   * @param action Action name to get statistics for
+   * @returns Detailed handler statistics
+   */
+  getActionStats<K extends keyof T>(action: K): ActionHandlerStats<T> | null {
+    const pipeline = this.pipelines.get(action);
+    if (!pipeline) {
+      return null;
+    }
+
+    // Group handlers by priority
+    const priorityMap = new Map<number, typeof pipeline>();
+    pipeline.forEach(handler => {
+      if (!priorityMap.has(handler.config.priority)) {
+        priorityMap.set(handler.config.priority, []);
+      }
+      priorityMap.get(handler.config.priority)!.push(handler);
+    });
+
+    const handlersByPriority = Array.from(priorityMap.entries())
+      .sort(([a], [b]) => b - a) // Sort by priority (highest first)
+      .map(([priority, handlers]) => ({
+        priority,
+        handlers: handlers.map(h => ({
+          id: h.config.id,
+          tags: h.config.tags,
+          category: h.config.category,
+          description: h.config.description,
+          version: h.config.version,
+        }))
+      }));
+
+    // Get execution statistics if available
+    const stats = this.executionStats.get(action);
+    const executionStats = stats ? {
+      totalExecutions: stats.totalExecutions,
+      averageDuration: stats.totalExecutions > 0 ? stats.totalDuration / stats.totalExecutions : 0,
+      successRate: stats.totalExecutions > 0 ? (stats.successCount / stats.totalExecutions) * 100 : 0,
+      errorCount: stats.errorCount,
+    } : undefined;
+
+    return {
+      action,
+      handlerCount: pipeline.length,
+      handlersByPriority,
+      executionStats,
+    };
+  }
+
+  /**
+   * Get statistics for all registered actions
+   * 
+   * @returns Array of statistics for all actions
+   */
+  getAllActionStats(): Array<ActionHandlerStats<T>> {
+    return Array.from(this.pipelines.keys())
+      .map(action => this.getActionStats(action))
+      .filter((stats): stats is ActionHandlerStats<T> => stats !== null);
+  }
+
+  /**
+   * Get handlers by tag across all actions
+   * 
+   * @param tag Tag to filter handlers by
+   * @returns Map of actions to handlers with the specified tag
+   */
+  getHandlersByTag(tag: string): Map<keyof T, HandlerRegistration<any, any>[]> {
+    const result = new Map<keyof T, HandlerRegistration<any, any>[]>();
+    
+    for (const [action, pipeline] of this.pipelines.entries()) {
+      const matchingHandlers = pipeline.filter(handler => 
+        handler.config.tags.includes(tag)
+      );
+      
+      if (matchingHandlers.length > 0) {
+        result.set(action, matchingHandlers);
+      }
+    }
+    
+    return result;
+  }
+
+  /**
+   * Get handlers by category across all actions
+   * 
+   * @param category Category to filter handlers by
+   * @returns Map of actions to handlers with the specified category
+   */
+  getHandlersByCategory(category: string): Map<keyof T, HandlerRegistration<any, any>[]> {
+    const result = new Map<keyof T, HandlerRegistration<any, any>[]>();
+    
+    for (const [action, pipeline] of this.pipelines.entries()) {
+      const matchingHandlers = pipeline.filter(handler => 
+        handler.config.category === category
+      );
+      
+      if (matchingHandlers.length > 0) {
+        result.set(action, matchingHandlers);
+      }
+    }
+    
+    return result;
+  }
+
+  /**
+   * Set execution mode for a specific action
+   * 
+   * @param action Action name
+   * @param mode Execution mode to set
+   */
+  setActionExecutionMode<K extends keyof T>(action: K, mode: ExecutionMode): void {
+    this.actionExecutionModes.set(action, mode);
+    
+    if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
+      console.log(`🎯 Execution mode set for action '${String(action)}': ${mode}`);
+    }
+  }
+
+  /**
+   * Get execution mode for a specific action
+   * 
+   * @param action Action name
+   * @returns Execution mode for the action, or default if not set
+   */
+  getActionExecutionMode<K extends keyof T>(action: K): ExecutionMode {
+    return this.actionExecutionModes.get(action) || this.executionMode;
+  }
+
+  /**
+   * Remove execution mode override for a specific action
+   * 
+   * @param action Action name
+   */
+  removeActionExecutionMode<K extends keyof T>(action: K): void {
+    this.actionExecutionModes.delete(action);
+    
+    if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
+      console.log(`🎯 Execution mode reset for action '${String(action)}' to default: ${this.executionMode}`);
+    }
+  }
+
+  /**
+   * Clear execution statistics for all actions
+   */
+  clearExecutionStats(): void {
+    this.executionStats.clear();
+    
+    if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
+      console.log(`🎯 Execution statistics cleared for registry: ${this.name}`);
+    }
+  }
+
+  /**
+   * Clear execution statistics for a specific action
+   * 
+   * @param action Action name
+   */
+  clearActionExecutionStats<K extends keyof T>(action: K): void {
+    this.executionStats.delete(action);
+    
+    if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
+      console.log(`🎯 Execution statistics cleared for action: ${String(action)}`);
+    }
+  }
+
+  /**
+   * Get registry configuration (for debugging and inspection)
+   * 
+   * @returns Current registry configuration
+   */
+  getRegistryConfig(): ActionRegisterConfig['registry'] {
+    return this.registryConfig;
+  }
+
+  /**
+   * Check if registry has debug mode enabled
+   * 
+   * @returns Whether debug mode is enabled
+   */
+  isDebugEnabled(): boolean {
+    return Boolean(this.registryConfig?.debug && process.env.NODE_ENV === 'development');
   }
 }

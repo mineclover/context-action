@@ -12,20 +12,20 @@ import { Card, CardContent, Badge, Button } from '../../components/ui';
 
 /**
  * 모듈화된 Store 시스템 데모 페이지
- * 8개의 실제 시나리오를 통해 Context Store 패턴의 활용을 보여주는 종합 데모
+ * 8개의 실제 시나리오를 통해 Declarative Store 패턴의 활용을 보여주는 종합 데모
  * 
  * @implements store-integration-pattern
  * @implements action-pipeline-system
  * @memberof core-concepts
  * @example
- * // 모듈화된 Store 시스템 사용 예제
+ * // 모듈화된 Declarative Store 시스템 사용 예제
  * <StoreScenarios.Provider registryId="store-full-demo">
  *   <UserProfileDemo />
  *   <ShoppingCartDemo />
  *   <TodoListDemo />
  *   <ChatDemo />
  * </StoreScenarios.Provider>
- * @since 1.0.0
+ * @since 2.0.0
  */
 
 // 액션 설정 컴포넌트

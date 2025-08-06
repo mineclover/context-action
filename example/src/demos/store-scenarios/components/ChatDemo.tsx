@@ -9,20 +9,20 @@ const CHAT_USERS = ['김개발', '이디자인', '박매니저', '최기획'];
 
 /**
  * 실시간 채팅 시스템 데모 컴포넌트
- * 메시지 스트리밍과 자동 스크롤 기능을 보여주는 Context Store 패턴 예제
+ * 메시지 스트리밍과 자동 스크롤 기능을 보여주는 Declarative Store 패턴 예제
  * 
  * @implements store-integration-pattern
  * @implements action-handler
  * @memberof core-concepts
  * @example
- * // 실시간 채팅을 위한 Context Store 패턴
- * const chatStore = StoreScenarios.useStore('chat', initialMessages);
- * const messages = useStoreValue(chatStore);
- * @since 1.0.0
+ * // 실시간 채팅을 위한 Declarative Store 패턴
+ * const messagesStore = StoreScenarios.useStore('messages'); // 자동 타입 추론: Store<ChatMessage[]>
+ * const messages = useStoreValue(messagesStore);
+ * @since 2.0.0
  */
 export function ChatDemo() {
-  const chatStore = StoreScenarios.useStore('chat', initialMessages);
-  const messages = useStoreValue(chatStore);
+  const messagesStore = StoreScenarios.useStore('messages'); // 자동 타입 추론: Store<ChatMessage[]>
+  const messages = useStoreValue(messagesStore);
   const [newMessage, setNewMessage] = useState('');
   const [currentUser, setCurrentUser] = useState('김개발');
   const [messageType, setMessageType] = useState<ChatMessage['type']>('text');
@@ -41,17 +41,17 @@ export function ChatDemo() {
           timestamp: new Date(),
           type
         };
-        chatStore.update(prev => [...prev, newMessage]);
+        messagesStore.update(prev => [...prev, newMessage]);
         controller.next();
       }),
 
       storeActionRegister.register('deleteMessage', ({ messageId }, controller) => {
-        chatStore.update(prev => prev.filter(msg => msg.id !== messageId));
+        messagesStore.update(prev => prev.filter(msg => msg.id !== messageId));
         controller.next();
       }),
 
       storeActionRegister.register('clearChat', (_, controller) => {
-        chatStore.setValue([]);
+        messagesStore.setValue([]);
         controller.next();
       })
     ];
@@ -59,7 +59,7 @@ export function ChatDemo() {
     return () => {
       unsubscribers.forEach(unsubscribe => unsubscribe());
     };
-  }, [chatStore]);
+  }, [messagesStore]);
 
   // 자동 스크롤
   const scrollToBottom = useCallback(() => {
