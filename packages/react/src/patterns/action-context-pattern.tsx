@@ -4,8 +4,9 @@
  * Provider별로 독립적인 StoreRegistry와 ActionRegister를 모두 생성하고,
  * 해당 Provider 범위 내에서만 Store와 Action에 접근할 수 있는 통합 패턴
  * 
+ * Declarative Store Pattern과 호환되는 최신 스펙을 따릅니다.
+ * 
  * @module patterns/action-context-pattern
- * @version 2.0.0
  */
 
 import React, { createContext, useContext, useMemo, ReactNode, useRef, useEffect } from 'react';
@@ -14,6 +15,7 @@ import { LogLevel } from '@context-action/logger';
 import { StoreRegistry } from '../stores/core/StoreRegistry';
 import { createStore } from '../stores/core/Store';
 import type { ComparisonOptions } from '../stores/utils/comparison';
+import type { StoreConfig } from '../stores/patterns/declarative-store-registry';
 
 /**
  * Action Context 설정 옵션
@@ -34,22 +36,18 @@ export interface ActionContextType<T extends ActionPayloadMap = ActionPayloadMap
 }
 
 /**
- * Action Context 패턴 반환 타입
+ * Action Context 패턴 반환 타입 - 최신 Declarative Store 스펙 호환
  */
 export interface ActionContextPatternReturn<T extends ActionPayloadMap = ActionPayloadMap> {
   // Provider 컴포넌트
   Provider: React.FC<{ children: ReactNode; registryId?: string }>;
   
-  // Store 관련 hooks
+  // Store 관련 hooks - Declarative Store 패턴과 호환
   useStoreRegistry: () => StoreRegistry;
   useStore: <V>(
     storeName: string,
     initialValue: V | (() => V),
-    options?: {
-      strategy?: 'reference' | 'shallow' | 'deep';
-      debug?: boolean;
-      comparisonOptions?: Partial<ComparisonOptions<V>>;
-    }
+    options?: Partial<StoreConfig<V>>
   ) => ReturnType<typeof createStore<V>>;
   
   // Action 관련 hooks
@@ -61,22 +59,30 @@ export interface ActionContextPatternReturn<T extends ActionPayloadMap = ActionP
     config?: HandlerConfig
   ) => void;
   
-  // 통합 관리 hooks
+  // 통합 관리 hooks - Declarative Store 패턴과 호환
   useContext: () => ActionContextType<T>;
   useRegistryInfo: () => {
     name: string;
     storeCount: number;
     actionCount: number;
     storeNames: string[];
+    initialized: string[];
   };
-  useClearAll: () => {
+  useRegistryActions: () => {
     clearStores: () => void;
     clearActions: () => void;
     clearAll: () => void;
+    removeStore: (storeName: string) => boolean;
   };
   
-  // HOC patterns
+  // HOC patterns - Declarative Store 패턴과 호환
   withProvider: (registryId?: string) => <P extends {}>(
+    WrappedComponent: React.ComponentType<P>
+  ) => React.FC<P>;
+  withCustomProvider: (
+    wrapperComponent: React.ComponentType<{ children: ReactNode }>,
+    registryId?: string
+  ) => <P extends {}>(
     WrappedComponent: React.ComponentType<P>
   ) => React.FC<P>;
   
@@ -86,6 +92,7 @@ export interface ActionContextPatternReturn<T extends ActionPayloadMap = ActionP
 
 /**
  * Helper function to get or create store from registry
+ * Declarative Store Pattern 호환 버전
  */
 function getOrCreateRegistryStore<T>(
   options: {
@@ -94,38 +101,63 @@ function getOrCreateRegistryStore<T>(
     strategy?: 'reference' | 'shallow' | 'deep';
     debug?: boolean;
     comparisonOptions?: Partial<ComparisonOptions<T>>;
+    description?: string;
+    tags?: string[];
+    version?: string;
   },
   registry: StoreRegistry
-): { store: ReturnType<typeof createStore<T>> } {
-  const { storeName, initialValue, strategy = 'reference', debug = false, comparisonOptions } = options;
+): { store: ReturnType<typeof createStore<T>>; wasCreated: boolean } {
+  const { 
+    storeName, 
+    initialValue, 
+    strategy = 'reference', 
+    debug = false, 
+    comparisonOptions,
+    description,
+    tags,
+    version
+  } = options;
   
   // Check if store already exists in registry
   const existingStore = registry.getStore(storeName);
   if (existingStore) {
-    return { store: existingStore as ReturnType<typeof createStore<T>> };
+    if (debug && process.env.NODE_ENV === 'development') {
+      console.log(`🔄 Using existing store: ${storeName}`);
+    }
+    return { 
+      store: existingStore as ReturnType<typeof createStore<T>>,
+      wasCreated: false
+    };
   }
   
   // Create new store
   const store = createStore(storeName, initialValue);
   
-  // Set comparison options
-  store.setComparisonOptions({
+  // Set comparison options - Declarative Store Pattern 호환
+  const finalComparisonOptions = {
     strategy,
     ...comparisonOptions
-  });
+  };
+  store.setComparisonOptions(finalComparisonOptions);
   
-  // Register store
+  // Register store with enhanced metadata
   registry.register(storeName, store, {
     name: storeName,
-    tags: ['action-context', strategy],
-    description: `Store created via Action Context Pattern with ${strategy} comparison`
+    tags: tags ?? ['action-context', strategy, ...(version ? [`v${version}`] : [])],
+    description: description ?? `Action Context store: ${storeName} with ${strategy} comparison`
   });
   
-  if (debug) {
-    console.log(`🏪 Store created: ${storeName} with strategy: ${strategy}`);
+  if (debug && process.env.NODE_ENV === 'development') {
+    console.log(`🏪 Action Context store created: ${storeName}`, {
+      strategy,
+      registryName: registry.name,
+      description,
+      tags: tags ?? ['action-context', strategy],
+      version
+    });
   }
   
-  return { store };
+  return { store, wasCreated: true };
 }
 
 /**
@@ -141,7 +173,7 @@ function getOrCreateRegistryStore<T>(
  * 
  * @example
  * ```typescript
- * // 1. Action Context 패턴 생성
+ * // 1. Action Context 패턴 생성 - Declarative Store 호환
  * interface AppActions extends ActionPayloadMap {
  *   updateUser: { id: string; name: string };
  *   fetchData: { endpoint: string };
@@ -151,24 +183,34 @@ function getOrCreateRegistryStore<T>(
  *   logLevel: LogLevel.DEBUG
  * });
  * 
- * // 2. Provider로 완전한 격리
- * function App() {
- *   return (
- *     <AppContext.Provider registryId="app-main">
- *       <UserProfile />
- *       <DataFetcher />
- *     </AppContext.Provider>
- *   );
- * }
+ * // 2. Provider로 완전한 격리 - HOC 패턴 지원
+ * const AppWithProviders = AppContext.withCustomProvider(
+ *   ({ children }) => (
+ *     <ThemeProvider>
+ *       <ErrorBoundary>
+ *         {children}
+ *       </ErrorBoundary>
+ *     </ThemeProvider>
+ *   ),
+ *   'app-main'
+ * )(App);
  * 
- * // 3. Store와 Action 모두 사용
+ * // 3. Store와 Action 모두 사용 - 향상된 Store Config 지원
  * function UserProfile() {
- *   // Store 사용
- *   const userStore = AppContext.useStore('user', { name: '', email: '' });
+ *   // Store 사용 - Declarative Store Config 지원
+ *   const userStore = AppContext.useStore('user', { name: '', email: '' }, {
+ *     strategy: 'shallow',
+ *     description: 'User profile data',
+ *     tags: ['user', 'profile'],
+ *     version: '1.0.0'
+ *   });
  *   const user = useStoreValue(userStore);
  *   
  *   // Action 사용
  *   const dispatch = AppContext.useAction();
+ *   
+ *   // Registry 액션 사용
+ *   const { clearStores, removeStore } = AppContext.useRegistryActions();
  *   
  *   // Action Handler 등록
  *   AppContext.useActionHandler('updateUser', async (payload) => {
@@ -183,6 +225,7 @@ function getOrCreateRegistryStore<T>(
  *     <div>
  *       <div>User: {user.name}</div>
  *       <button onClick={handleUpdate}>Update</button>
+ *       <button onClick={() => removeStore('user')}>Remove Store</button>
  *     </div>
  *   );
  * }
@@ -265,22 +308,28 @@ export function createActionContextPattern<T extends ActionPayloadMap = ActionPa
   }
   
   /**
-   * Store 생성/접근 Hook - 타입 안전성이 보장된 Store 반환
+   * Store 생성/접근 Hook - Declarative Store Config 지원
+   * 타입 안전성이 보장된 Store 반환
    */
   function useStore<V>(
     storeName: string,
     initialValue: V | (() => V),
-    options: {
-      strategy?: 'reference' | 'shallow' | 'deep';
-      debug?: boolean;
-      comparisonOptions?: Partial<ComparisonOptions<V>>;
-    } = {}
+    options: Partial<StoreConfig<V>> = {}
   ): ReturnType<typeof createStore<V>> {
     const registry = useStoreRegistry();
-    const { strategy = 'reference', debug = process.env.NODE_ENV === 'development', comparisonOptions } = options;
+    
+    // Declarative Store Config에서 옵션 추출
+    const {
+      strategy = 'reference',
+      debug = process.env.NODE_ENV === 'development',
+      comparisonOptions,
+      description,
+      tags,
+      version
+    } = options;
     
     return useMemo(() => {
-      // 초기값 검증
+      // 초기값 해결
       const resolvedInitialValue = typeof initialValue === 'function' 
         ? (initialValue as () => V)() 
         : initialValue;
@@ -300,7 +349,10 @@ export function createActionContextPattern<T extends ActionPayloadMap = ActionPa
         initialValue: resolvedInitialValue,
         strategy,
         debug,
-        comparisonOptions
+        comparisonOptions,
+        description,
+        tags,
+        version
       }, registry);
       
       // Store가 제대로 생성되었는지 검증
@@ -373,7 +425,7 @@ export function createActionContextPattern<T extends ActionPayloadMap = ActionPa
   }
   
   /**
-   * Registry 정보 조회 Hook
+   * Registry 정보 조회 Hook - Declarative Store 호환
    */
   function useRegistryInfo() {
     const { storeRegistry, actionRegisterRef } = useActionContext();
@@ -382,14 +434,15 @@ export function createActionContextPattern<T extends ActionPayloadMap = ActionPa
       name: storeRegistry.name,
       storeCount: storeRegistry.getStoreCount(),
       actionCount: 0, // ActionRegister doesn't expose total handler count
-      storeNames: storeRegistry.getStoreNames()
+      storeNames: storeRegistry.getStoreNames(),
+      initialized: storeRegistry.getStoreNames() // Action Context에서는 생성 즉시 초기화됨
     }), [storeRegistry, actionRegisterRef.current]);
   }
   
   /**
-   * 전체 정리 Hook
+   * Registry 액션 관리 Hook - Declarative Store 호환
    */
-  function useClearAll() {
+  function useRegistryActions() {
     const { storeRegistry, actionRegisterRef } = useActionContext();
     
     return useMemo(() => ({
@@ -404,12 +457,15 @@ export function createActionContextPattern<T extends ActionPayloadMap = ActionPa
       clearAll: () => {
         storeRegistry.clear();
         actionRegisterRef.current?.clearAll();
+      },
+      removeStore: (storeName: string) => {
+        return storeRegistry.unregister(storeName);
       }
     }), [storeRegistry, actionRegisterRef.current]);
   }
   
   /**
-   * HOC that wraps a component with this Action Provider
+   * HOC that wraps a component with this Action Context Provider
    */
   function withProvider(registryId?: string) {
     return function <P extends {}>(
@@ -427,11 +483,38 @@ export function createActionContextPattern<T extends ActionPayloadMap = ActionPa
     };
   }
   
+  /**
+   * HOC factory that combines Action Context Provider with custom providers
+   * Declarative Store Pattern 호환
+   */
+  function withCustomProvider(
+    wrapperComponent: React.ComponentType<{ children: ReactNode }>,
+    registryId?: string
+  ) {
+    return function <P extends {}>(
+      WrappedComponent: React.ComponentType<P>
+    ): React.FC<P> {
+      const WrapperComponent = wrapperComponent;
+      
+      const WithCustomProvider = (props: P) => (
+        <Provider registryId={registryId}>
+          <WrapperComponent>
+            <WrappedComponent {...props} />
+          </WrapperComponent>
+        </Provider>
+      );
+      
+      WithCustomProvider.displayName = `with${contextName}ActionCustomProvider(${WrappedComponent.displayName || WrappedComponent.name})`;
+      
+      return WithCustomProvider;
+    };
+  }
+  
   return {
     // Provider 컴포넌트
     Provider,
     
-    // Store 관련 hooks
+    // Store 관련 hooks - Declarative Store 호환
     useStoreRegistry,
     useStore,
     
@@ -440,13 +523,14 @@ export function createActionContextPattern<T extends ActionPayloadMap = ActionPa
     useAction,
     useActionHandler,
     
-    // 통합 관리 hooks
+    // 통합 관리 hooks - Declarative Store 호환
     useContext: useActionContext,
     useRegistryInfo,
-    useClearAll,
+    useRegistryActions, // useClearAll을 useRegistryActions로 변경
     
-    // HOC patterns
+    // HOC patterns - Declarative Store 호환
     withProvider,
+    withCustomProvider, // 새로 추가
     
     // Context 정보
     contextName

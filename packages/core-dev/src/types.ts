@@ -7,7 +7,6 @@
  * @implements function-naming
  * @implements constant-naming
  * @memberof core-concepts
- * @version 1.0.0
  * 
  * Provides comprehensive type definitions for the Context-Action framework's
  * action pipeline management and Store integration systems. Ensures type safety

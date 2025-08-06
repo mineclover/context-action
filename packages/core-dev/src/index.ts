@@ -3,7 +3,6 @@
  * @implements action-pipeline-system
  * @implements core-concepts
  * @memberof packages
- * @version 1.0.0
  * 
  * Core action pipeline management system providing type-safe action dispatch
  * with priority-based handler execution, Store integration, and performance optimization.

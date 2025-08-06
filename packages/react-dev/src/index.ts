@@ -4,7 +4,6 @@
  * @implements mvvm-pattern
  * @implements react-integration
  * @memberof packages
- * @version 1.0.0
  * 
  * React integration package for the Context-Action framework, providing comprehensive
  * React hooks, components, and patterns for action management and reactive state stores.

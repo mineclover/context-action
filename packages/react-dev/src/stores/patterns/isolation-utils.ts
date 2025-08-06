@@ -5,7 +5,6 @@
  * StoreRegistry는 Store 격리와 관리를 위해 설계된 핵심 컴포넌트입니다.
  * 
  * @module store/isolation-utils
- * @version 2.0.0 - StoreRegistry 통합
  */
 
 import { createStore } from '../core/Store';

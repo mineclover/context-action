@@ -4,7 +4,6 @@
  * 이름 기반으로 Store를 찾고, 없으면 생성하여 안정적인 Store 사용을 보장합니다.
  * 
  * @module store/isolation-hooks
- * @version 2.0.0 - StoreRegistry 통합 + 이름 기반 안정성
  */
 
 import { useMemo, useRef, useId } from 'react';
