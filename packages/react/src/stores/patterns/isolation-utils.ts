@@ -1,11 +1,11 @@
 /**
- * Store 격리 패턴을 위한 유틸리티 함수들
+ * Store isolation utilities for Context-Action framework
  * 
- * Context-Action 프레임워크에서 StoreRegistry를 활용한 안전하고 효율적인 Store 격리를 지원합니다.
- * StoreRegistry는 Store 격리와 관리를 위해 설계된 핵심 컴포넌트입니다.
+ * Provides safe and efficient store isolation using StoreRegistry.
+ * StoreRegistry is a core component designed for store isolation and management.
  * 
  * @module store/isolation-utils
- * @version 2.0.0 - StoreRegistry 통합
+ * @since 1.0.0
  */
 
 import { createStore } from '../core/Store';
@@ -14,18 +14,11 @@ import type { ComparisonOptions } from '../utils/comparison';
 import type { IStore } from '../core/types';
 
 /**
- * 도메인 기반 Store 이름 생성기
- * 간단하고 자연스러운 이름 생성
+ * Generate domain-based store name
  * 
- * @param domain - Store 도메인 이름
- * @param componentId - 컴포넌트 식별자 (useId 사용 권장)
- * @returns Store 이름
- * 
- * @example
- * ```typescript
- * const storeName = generateStoreName('user', componentId);
- * // 결과: "user-:r1:" (useId 사용 시)
- * ```
+ * @param domain Store domain name
+ * @param componentId Component identifier (useId recommended)
+ * @returns Generated store name
  */
 export function generateStoreName(
   domain: string,
@@ -35,38 +28,28 @@ export function generateStoreName(
 }
 
 /**
- * Registry 기반 Store 생성 옵션
+ * Registry-based store creation options
  */
 export interface RegistryStoreOptions<T> {
-  /** Store 이름 (도메인-componentId 형식) */
+  /** Store name (domain-componentId format) */
   storeName: string;
-  /** 초기값 */
+  /** Initial value */
   initialValue: T;
-  /** 비교 전략 */
+  /** Comparison strategy */
   strategy?: 'reference' | 'shallow' | 'deep';
-  /** 개발 모드 디버깅 활성화 */
+  /** Enable debug mode */
   debug?: boolean;
-  /** 추가 비교 옵션 */
+  /** Additional comparison options */
   comparisonOptions?: Partial<ComparisonOptions<T>>;
 }
 
 /**
- * StoreRegistry를 활용한 격리 Store 생성기
+ * Create or retrieve isolated store using StoreRegistry
  * 
- * @template T Store 값 타입
- * @param options - 격리 Store 생성 옵션
- * @param registry - 사용할 StoreRegistry 인스턴스 (선택사항)
- * @returns 격리된 Store 인스턴스와 Registry 정보
- * 
- * @example
- * ```typescript
- * const { store, registry, storeName } = createIsolatedStore({
- *   componentId: 'userProfile',
- *   strategy: 'shallow',
- *   initialValue: { name: '', email: '' },
- *   debug: true
- * });
- * ```
+ * @template T Store value type
+ * @param options Isolated store creation options
+ * @param registry StoreRegistry instance to use
+ * @returns Store instance and creation status
  */
 export function getOrCreateRegistryStore<T>({
   storeName,
