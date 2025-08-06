@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   ActionPayloadMap,
-  createContextPattern,
+  createActionContextPattern,
   useStoreValueSafe
 } from '@context-action/react';
 import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
@@ -16,8 +16,8 @@ interface ProviderActions extends ActionPayloadMap {
   logActivity: { activity: string };
 }
 
-// 통합 Context Pattern 생성 - Provider Pattern 데모용
-const ProviderContext = createContextPattern<ProviderActions>('ReactProviderDemo');
+// 통합 Action Context Pattern 생성 - Provider Pattern 데모용
+const ProviderContext = createActionContextPattern<ProviderActions>('ReactProviderDemo');
 
 // 카운터 컴포넌트 - 통합 패턴 사용
 function CounterComponent() {
@@ -407,7 +407,7 @@ function ProviderApp() {
                 <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
                 <div>
                   <div className="font-medium text-gray-900">Create Context Pattern</div>
-                  <div className="text-sm text-gray-600">const MyContext = createContextPattern&lt;Actions&gt;('MyApp')</div>
+                  <div className="text-sm text-gray-600">const MyContext = createActionContextPattern&lt;Actions&gt;('MyApp')</div>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -463,7 +463,7 @@ function ReactProviderPage() {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">💻 Unified Provider Pattern Code</h3>
             <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
 {`// 1. Create Unified Context Pattern
-const ProviderContext = createContextPattern<ProviderActions>('ReactProviderDemo');
+const ProviderContext = createActionContextPattern<ProviderActions>('ReactProviderDemo');
 
 // 2. Simple Provider Wrapping
 function App() {
