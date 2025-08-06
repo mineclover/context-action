@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useStoreValue, PageStores } from '@context-action/react';
+import { useStoreValue, createActionContextPattern } from '@context-action/react';
 import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
 import { DemoCard, Button, Input, CodeExample, CodeBlock } from '../../components/ui';
+
+// Store Basics 데모용 Action Context 패턴
+const PageStores = createActionContextPattern('StoreBasics');
 
 // 커스텀 훅 - 메시지 스토어 관리 (PageStores 패턴 사용)
 function useMessageDemo() {
@@ -314,11 +317,13 @@ function StoreBasicsPage() {
           </DemoCard>
           </div>
 
-          {/* Code Example - Updated for new Context Store Pattern */}
-          <CodeExample title="New Context Store Pattern">
+          {/* Code Example - Updated for Action Context Pattern */}
+          <CodeExample title="Action Context Pattern">
             <CodeBlock>
-{`// 1. Use Context Store Pattern for automatic registry isolation
-import { PageStores, useStoreValue } from '@context-action/react';
+{`// 1. Create Action Context Pattern for automatic registry isolation
+import { createActionContextPattern, useStoreValue } from '@context-action/react';
+
+const PageStores = createActionContextPattern('MyPage');
 
 function MyPage() {
   return (

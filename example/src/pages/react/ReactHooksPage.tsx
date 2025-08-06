@@ -5,9 +5,7 @@ import {
   ActionProvider,
   useActionDispatch,
   useActionRegister,
-  createDeclarativeStores,
-  type StorePayloadMap,
-  type StoreSchema,
+  createActionContextPattern,
   useStoreValue,
 
 } from '@context-action/react';
@@ -27,7 +25,7 @@ interface HooksOptimizationMap extends ActionPayloadMap {
 }
 
 /**
- * React Hooks 최적화 데모용 Context Store 패턴
+ * React Hooks 최적화 데모용 Action Context 패턴
  * 메모이제이션과 성능 최적화 예제를 위한 Store 격리 시스템
  * 
  * @implements store-registry
@@ -35,15 +33,15 @@ interface HooksOptimizationMap extends ActionPayloadMap {
  * @implements store-integration-pattern
  * @memberof core-concepts
  * @example
- * // React Hooks 최적화를 위한 Context Store 패턴
- * const HooksStores = createContextStorePattern('ReactHooks');
+ * // React Hooks 최적화를 위한 Action Context 패턴
+ * const HooksStores = createActionContextPattern('ReactHooks');
  * 
  * // 컴포넌트에서 Store 사용
  * const calculationStore = HooksStores.useStore('calculation', { result: 0, computeTime: 0 });
  * const memoryStore = HooksStores.useStore('memory', { objects: 0, allocatedMB: 0 });
  * @since 1.0.0
  */
-const HooksStores = createContextStorePattern('ReactHooks');
+const HooksStores = createActionContextPattern('ReactHooks');
 
 // 무거운 계산 시뮬레이션
 const heavyComputation = (numbers: number[]): { result: number; computeTime: number } => {

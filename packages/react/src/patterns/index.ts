@@ -1,13 +1,24 @@
 /**
- * @fileoverview React patterns exports - Declarative Store Pattern
+ * @fileoverview React patterns exports - Action Context Pattern and Declarative Store Pattern
  * @implements separation-of-concerns
  * @implements mvvm-pattern
  * @memberof core-concepts
  * @since 2.0.0
  * 
- * Re-exports from the Declarative Store Pattern for convenient access.
- * Use createDeclarativeStores for type-safe store management.
+ * Re-exports patterns for convenient access.
+ * - createActionContextPattern for integrated Store + Action management
+ * - createDeclarativeStores for type-safe store management
  */
+
+// === ACTION CONTEXT PATTERN ===
+// Integrated Store + Action pattern with full isolation
+export { 
+  createActionContextPattern,
+  createContextPattern, // Legacy alias for backward compatibility
+  type ActionContextPatternConfig,
+  type ActionContextType,
+  type ActionContextPatternReturn
+} from './action-context-pattern';
 
 // === DECLARATIVE STORE PATTERN ===
 // Re-export store patterns for convenience
