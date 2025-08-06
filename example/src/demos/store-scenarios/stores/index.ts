@@ -1,4 +1,4 @@
-import { createContextStorePattern } from '@context-action/react';
+import { createDeclarativeStores, type StorePayloadMap, type StoreSchema } from '@context-action/react';
 import type { 
   User, 
   Product, 
@@ -11,26 +11,24 @@ import type {
 } from '../types';
 
 /**
- * Store-scenarios용 Context Store 패턴 팩토리
- * Provider별 독립적인 Registry 영역을 생성하여 Store 격리를 제공
+ * Store-scenarios용 Declarative Store 패턴
+ * 컴파일타임 타입 안전성과 미리 정의된 스키마를 제공
  * 
  * @implements store-registry
  * @implements store-integration-pattern
  * @memberof core-concepts
- * @example
- * // Context Store 패턴 사용법
- * export const StoreScenarios = createContextStorePattern('StoreScenarios');
- * 
- * // Provider로 감싸기
- * <StoreScenarios.Provider registryId="demo">
- *   <UserProfileDemo />
- * </StoreScenarios.Provider>
- * 
- * // 컴포넌트에서 Store 사용
- * const userStore = StoreScenarios.useStore('user', defaultUser);
- * @since 1.0.0
+ * @since 2.0.0
  */
-export const StoreScenarios = createContextStorePattern('StoreScenarios');
+interface StoreScenarios extends StorePayloadMap {
+  user: User;
+  products: Product[];
+  cart: CartItem[];
+  todos: TodoItem[];
+  messages: ChatMessage[];
+  formData: FormData;
+  settings: AppSettings;
+  notifications: NotificationItem[];
+}
 
 // 초기 데이터 export
 export const defaultUser: User = {
@@ -172,7 +170,52 @@ export const initialNotifications: NotificationItem[] = [
   }
 ];
 
-// Context Store 패턴을 사용하여 각 컴포넌트에서 필요한 스토어를 생성하고 관리합니다.
+const storeScenariosSchema: StoreSchema<StoreScenarios> = {
+  user: {
+    initialValue: defaultUser,
+    description: 'User profile and preferences',
+    tags: ['user', 'profile']
+  },
+  products: {
+    initialValue: initialProducts,
+    description: 'Product catalog',
+    tags: ['shopping', 'products']
+  },
+  cart: {
+    initialValue: [],
+    description: 'Shopping cart items',
+    tags: ['shopping', 'cart']
+  },
+  todos: {
+    initialValue: initialTodos,
+    description: 'Todo list items',
+    tags: ['productivity', 'todos']
+  },
+  messages: {
+    initialValue: initialMessages,
+    description: 'Chat messages',
+    tags: ['communication', 'chat']
+  },
+  formData: {
+    initialValue: defaultFormData,
+    description: 'Form wizard data',
+    tags: ['forms', 'wizard']
+  },
+  settings: {
+    initialValue: defaultSettings,
+    description: 'Application settings',
+    tags: ['settings', 'configuration']
+  },
+  notifications: {
+    initialValue: initialNotifications,
+    description: 'System notifications',
+    tags: ['notifications', 'system']
+  }
+};
+
+export const StoreScenarios = createDeclarativeStores('StoreScenarios', storeScenariosSchema);
+
+// Declarative Store 패턴을 사용하여 타입 안전한 스토어 접근을 제공합니다.
 // 예시:
-// const userStore = StoreScenarios.useStore('user', defaultUser);
-// const cartStore = StoreScenarios.useStore('cart', [] as CartItem[]);
+// const userStore = StoreScenarios.useStore('user'); // 자동 타입 추론: Store<User>
+// const cartStore = StoreScenarios.useStore('cart'); // 자동 타입 추론: Store<CartItem[]>

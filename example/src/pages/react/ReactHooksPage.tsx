@@ -5,7 +5,9 @@ import {
   ActionProvider,
   useActionDispatch,
   useActionRegister,
-  createContextStorePattern,
+  createDeclarativeStores,
+  type StorePayloadMap,
+  type StoreSchema,
   useStoreValue,
 
 } from '@context-action/react';

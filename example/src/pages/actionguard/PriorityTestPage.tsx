@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { createContextStorePattern, useStoreValue } from '@context-action/react';
+import { createDeclarativeStores, useStoreValue, type StorePayloadMap, type StoreSchema } from '@context-action/react';
 import { PageWithLogMonitor } from '../../components/LogMonitor/';
 import { usePriorityTestManager, HandlerConfig, ExecutionState } from './hooks';
 import styles from './PriorityTestPage.module.css';
@@ -17,13 +17,25 @@ const DEFAULT_HANDLER_CONFIGS: HandlerConfig[] = [
   { id: 'h9', priority: 20, color: '#7c3aed', label: 'Lowest (20)', delay: 70, jumpToPriority: 260, jumpToIndex: null },
 ];
 
-// Priority Test Store Pattern 생성
-const PriorityStores = createContextStorePattern('PriorityTest');
+// Priority Test Declarative Store Pattern 정의
+interface PriorityTestStores extends StorePayloadMap {
+  priorityCounts: Record<number, number>;
+}
+
+const priorityTestSchema: StoreSchema<PriorityTestStores> = {
+  priorityCounts: {
+    initialValue: {},
+    description: 'Priority execution counts',
+    tags: ['priority', 'testing']
+  }
+};
+
+const PriorityStores = createDeclarativeStores('PriorityTest', priorityTestSchema);
 
 // 메인 테스트 컴포넌트
 function PriorityTest() {
-  // Context Store Pattern을 사용한 상태 관리
-  const priorityCountsStore = PriorityStores.useStore('priorityCounts', {} as Record<number, number>);
+  // Declarative Store Pattern을 사용한 상태 관리
+  const priorityCountsStore = PriorityStores.useStore('priorityCounts'); // 자동 타입 추론: Store<Record<number, number>>
   const priorityCounts = useStoreValue(priorityCountsStore);
   
   const [configs, setConfigs] = useState<HandlerConfig[]>(DEFAULT_HANDLER_CONFIGS);
