@@ -224,6 +224,21 @@ export interface PipelineContext<T = any, R = void> {
 export interface ActionRegisterConfig {
   /** Name identifier for this ActionRegister instance */
   name?: string;
+  
+  /** Registry-specific configuration options */
+  registry?: {
+    /** Debug mode for registry operations */
+    debug?: boolean;
+    
+    /** Auto-cleanup configuration for one-time handlers */
+    autoCleanup?: boolean;
+    
+    /** Maximum number of handlers per action */
+    maxHandlers?: number;
+    
+    /** Default execution mode for actions */
+    defaultExecutionMode?: ExecutionMode;
+  };
 }
 
 export interface DispatchOptions {
@@ -370,6 +385,69 @@ export interface ActionDispatcher<T extends ActionPayloadMap> {
   
   /** Dispatch an action with payload */
   <K extends keyof T>(action: K, payload: T[K], options?: DispatchOptions): Promise<void>;
+}
+
+/**
+ * Registry information interface for ActionRegister introspection
+ * 
+ * Similar to DeclarativeStoreRegistry pattern for consistent registry management
+ */
+export interface ActionRegistryInfo<T extends ActionPayloadMap> {
+  /** Registry name */
+  name: string;
+  
+  /** Total number of registered actions */
+  totalActions: number;
+  
+  /** Total number of registered handlers across all actions */
+  totalHandlers: number;
+  
+  /** List of all registered actions */
+  registeredActions: Array<keyof T>;
+  
+  /** Execution mode settings per action */
+  actionExecutionModes: Map<keyof T, ExecutionMode>;
+  
+  /** Default execution mode */
+  defaultExecutionMode: ExecutionMode;
+}
+
+/**
+ * Handler statistics for registry monitoring
+ */
+export interface ActionHandlerStats<T extends ActionPayloadMap> {
+  /** Action name */
+  action: keyof T;
+  
+  /** Number of handlers for this action */
+  handlerCount: number;
+  
+  /** Handler configurations grouped by priority */
+  handlersByPriority: Array<{
+    priority: number;
+    handlers: Array<{
+      id: string;
+      tags: string[];
+      category?: string;
+      description?: string;
+      version?: string;
+    }>;
+  }>;
+  
+  /** Execution statistics */
+  executionStats?: {
+    /** Total number of executions */
+    totalExecutions: number;
+    
+    /** Average execution duration in milliseconds */
+    averageDuration: number;
+    
+    /** Success rate percentage */
+    successRate: number;
+    
+    /** Error count */
+    errorCount: number;
+  };
 }
 
 
