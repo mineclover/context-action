@@ -1209,18 +1209,48 @@ function DevToolsHandler() {
 
 ## Integration with React
 
-### Context Store Pattern Setup (Recommended)
+### Declarative Store Pattern Setup (Recommended)
 
-The Context Store Pattern provides the best integration approach, combining both action contexts and store contexts seamlessly:
+The Declarative Store Pattern provides the best integration approach, combining compile-time type safety with HOC patterns for clean component composition:
 
 ```typescript
-// 1. Create domain-specific patterns with destructuring
-const {
-  Provider: UserStoreProvider,
-  useCreateStore: useCreateUserStore,
-  useStore: useUserStore,
-  useRegistry: useUserRegistry
-} = createContextStorePattern('user');
+// 1. Define store schemas with compile-time types
+interface UserStores extends StorePayloadMap {
+  profile: { id: string; name: string; email: string };
+  preferences: { theme: 'light' | 'dark'; notifications: boolean };
+}
+
+interface CartStores extends StorePayloadMap {
+  items: CartItem[];
+  totals: { subtotal: number; tax: number; total: number };
+}
+
+// 2. Create declarative stores
+const UserStores = createDeclarativeStores('User', {
+  profile: { 
+    initialValue: { id: '', name: '', email: '' },
+    description: 'User profile data',
+    tags: ['user', 'profile']
+  },
+  preferences: { 
+    initialValue: { theme: 'light', notifications: true },
+    description: 'User preferences',
+    tags: ['user', 'settings']
+  }
+});
+
+const CartStores = createDeclarativeStores('Cart', {
+  items: { 
+    initialValue: [],
+    description: 'Shopping cart items',
+    tags: ['shopping', 'cart']
+  },
+  totals: { 
+    initialValue: { subtotal: 0, tax: 0, total: 0 },
+    description: 'Cart totals',
+    tags: ['shopping', 'totals']
+  }
+});
 
 const {
   Provider: AuthProvider,
@@ -1229,44 +1259,12 @@ const {
 } = createActionContext<AuthActions>({ name: 'auth' });
 
 const {
-  Provider: CartStoreProvider,
-  useCreateStore: useCreateCartStore,
-  useStore: useCartStore,
-  useRegistry: useCartRegistry
-} = createContextStorePattern('cart');
-
-const {
   Provider: ShopProvider,
   useActionRegister: useShopRegister
 } = createActionContext<ShopActions>({ name: 'shop' });
 
-// 2. App structure with combined providers
-function App() {
-  return (
-    <div>
-      {/* User domain with both stores and actions */}
-      <UserStoreProvider>
-        <AuthProvider>
-          <UserSection />
-        </AuthProvider>
-      </UserStoreProvider>
-
-      {/* Shopping domain with both stores and actions */}
-      <CartStoreProvider>
-        <ShopProvider>
-          <ShoppingSection />
-        </ShopProvider>
-      </CartStoreProvider>
-    </div>
-  );
-}
-
-// Alternative: HOC Pattern for cleaner composition
-const {
-  withCustomProvider: withUserStoreAndAuth
-} = createContextStorePattern('user');
-
-const withUserProviders = withUserStoreAndAuth(
+// 3. HOC Pattern for cleaner composition (recommended)
+const UserSection = UserStores.withCustomProvider(
   ({ children }) => (
     <AuthProvider>
       {children}
@@ -1275,43 +1273,48 @@ const withUserProviders = withUserStoreAndAuth(
   'user-section'
 );
 
-const UserSection = withUserProviders(() => {
-  const profileStore = useUserStore<User>('profile');
-  const authDispatch = useAuthAction();
-  
-  return <UserProfile />;
-});
-```
+const ShoppingSection = CartStores.withCustomProvider(
+  ({ children }) => (
+    <ShopProvider>
+      {children}
+    </ShopProvider>
+  ),
+  'shopping-section'
+);
 
-### Context Store Pattern Component Usage
-
-```typescript
-// Component within User store context
-function UserProfileSetup() {
-  // Create stores in UserStore context
-  useCreateUserStore('profile', {
-    id: '',
-    name: '',
-    email: '',
-    status: 'offline'
-  });
-  
-  useCreateUserStore('preferences', {
-    theme: 'light',
-    notifications: true
-  });
-  
-  return null; // Setup component
+// 4. App structure (clean composition)
+function App() {
+  return (
+    <div>
+      <UserSection>
+        <UserProfile />
+        <UserActions />
+      </UserSection>
+      
+      <ShoppingSection>
+        <ShoppingCart />
+        <CheckoutFlow />
+      </ShoppingSection>
+    </div>
+  );
 }
 
-// Component using User stores and Auth actions
-function LoginComponent() {
+```
+
+### Declarative Store Pattern Component Usage
+
+```typescript
+// Component using declarative stores (no setup needed)
+function UserProfile() {
+  // Type-safe store access with compile-time inference
+  const profileStore = UserStores.useStore('profile'); // Inferred: Store<{id: string, name: string, email: string}>
+  const preferencesStore = UserStores.useStore('preferences'); // Inferred: Store<{theme: 'light' | 'dark', notifications: boolean}>
+  
+  const profile = useStoreValue(profileStore);
+  const preferences = useStoreValue(preferencesStore);
+  
   // Use Auth context's dispatch
   const authDispatch = useAuthAction();
-  
-  // Use User store from context
-  const profileStore = useUserStore<User>('profile');
-  const profile = useStoreValue(profileStore);
 
   const handleLogin = (username: string, password: string) => {
     // Auth action in Auth context
@@ -1321,7 +1324,7 @@ function LoginComponent() {
   return (
     <div>
       <h1>User: {profile.name}</h1>
-      <p>Status: {profile.status}</p>
+      <p>Theme: {preferences.theme}</p>
       <button onClick={() => handleLogin('user', 'pass')}>
         Login
       </button>
@@ -1329,17 +1332,17 @@ function LoginComponent() {
   );
 }
 
-// Component within Cart store context  
+// Component within Cart declarative stores
 function ShoppingCart() {
   // Use Shop context's dispatch
   const shopDispatch = useShopAction();
   
-  // Use Cart store from context (type-safe access)
-  const cartStore = useCartStore<Cart>('items');
-  const preferencesStore = useCartStore<ShopPreferences>('preferences');
+  // Type-safe cart store access
+  const itemsStore = CartStores.useStore('items'); // Inferred: Store<CartItem[]>
+  const totalsStore = CartStores.useStore('totals'); // Inferred: Store<{subtotal: number, tax: number, total: number}>
   
-  const cart = useStoreValue(cartStore);
-  const preferences = useStoreValue(preferencesStore);
+  const items = useStoreValue(itemsStore);
+  const totals = useStoreValue(totalsStore);
 
   const addItem = (productId: string, quantity: number) => {
     // Shop action in Shop context
@@ -1348,8 +1351,8 @@ function ShoppingCart() {
 
   return (
     <div>
-      <h1>Cart ({cart.items.length} items)</h1>
-      <p>Currency: {preferences.currency}</p>
+      <h1>Cart ({items.length} items)</h1>
+      <p>Total: ${totals.total}</p>
       <button onClick={() => addItem('prod-1', 1)}>
         Add Item
       </button>
@@ -1357,68 +1360,73 @@ function ShoppingCart() {
   );
 }
 
-// Component using multiple contexts (explicit cross-context access)
+// Component using multiple declarative stores (cross-store access)
 function DashboardComponent() {
   const authDispatch = useAuthAction();
   const shopDispatch = useShopAction();
   
-  // Access stores from different contexts
-  const userProfile = useUserStore<User>('profile');
-  const cartItems = useCartStore<Cart>('items');
+  // Access stores from different declarative patterns
+  const profileStore = UserStores.useStore('profile');
+  const itemsStore = CartStores.useStore('items');
   
-  const profile = useStoreValue(userProfile);
-  const cart = useStoreValue(cartItems);
-  const userDispatch = useUserAction();
-  const cartDispatch = useCartAction();
+  const profile = useStoreValue(profileStore);
+  const items = useStoreValue(itemsStore);
   
   const handleLogout = async () => {
     // Coordinate across multiple contexts
-    await cartDispatch('clearCart', undefined);
-    await userDispatch('resetUser', undefined);
+    await shopDispatch('clearCart', undefined);
     await authDispatch('logout', undefined);
   };
 
   return (
-    <button onClick={handleLogout}>
-      Complete Logout
-    </button>
+    <div>
+      <h2>Welcome, {profile.name}</h2>
+      <p>Cart: {items.length} items</p>
+      <button onClick={handleLogout}>
+        Complete Logout
+      </button>
+    </div>
   );
 }
 ```
 
-### Context-Scoped Action Handler Registration
+### Declarative Store Action Handler Registration
 
 ```typescript
-// Handler registration within specific context
+// Handler registration with declarative stores
 function useUserActions() {
-  const registry = useStoreRegistry();
+  const register = useAuthRegister();
 
   const updateUserHandler = useCallback(
     async (payload, controller) => {
-      // Access stores within UserContext boundary
-      const userStore = registry.getStore('user');
-      const settingsStore = registry.getStore('settings');
+      // Type-safe store access in handlers
+      const profileStore = UserStores.useStore('profile');
+      const preferencesStore = UserStores.useStore('preferences');
       
-      const user = userStore.getValue();
-      const settings = settingsStore.getValue();
+      const profile = profileStore.getValue();
+      const preferences = preferencesStore.getValue();
 
       // Domain-specific business logic
-      if (settings.validateNames && !isValidName(payload.name)) {
+      if (!isValidName(payload.name)) {
         controller.abort('Invalid name');
         return;
       }
 
-      userStore.setValue({
-        ...user,
+      profileStore.setValue({
+        ...profile,
         ...payload,
         updatedAt: Date.now()
       });
     },
-    [registry] // Dependencies for useCallback
+    [] // No registry dependency needed
   );
 
-  // Register handler with options
-  useUserHandler('updateUser', updateUserHandler, { priority: 10, blocking: true });
+  // Register handler with useEffect pattern
+  useEffect(() => {
+    if (!register) return;
+    const unregister = register.register('updateUser', updateUserHandler, { priority: 10, blocking: true });
+    return unregister;
+  }, [register, updateUserHandler]);
 }
 
 // Cross-context handler coordination with declarative stores
