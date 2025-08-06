@@ -31,25 +31,55 @@ import type { ComparisonOptions } from '../utils/comparison';
  * 
  * @example
  * ```typescript
- * // 1. Context Store 패턴 생성
- * const DemoStores = createContextStorePattern('demo');
+ * // 1. Context Store 패턴 생성 및 구조분해
+ * const {
+ *   Provider: UserStoreProvider,
+ *   useCreateStore: useCreateUserStore,
+ *   useStore: useUserStore,
+ *   useRegistry: useUserRegistry
+ * } = createContextStorePattern('user');
  * 
  * // 2. Provider로 영역 격리
  * function App() {
  *   return (
- *     <DemoStores.Provider>
+ *     <UserStoreProvider>
  *       <UserProfile />
  *       <Settings />
- *     </DemoStores.Provider>
+ *     </UserStoreProvider>
  *   );
  * }
  * 
- * // 3. 영역 내에서 Store 사용
+ * // 3. Store 생성 (action handler와 component에서 동일한 이름으로 접근 가능)
+ * function UserStoreSetup() {
+ *   // Context-aware Store 생성
+ *   useCreateUserStore('profile', { name: '', email: '' });
+ *   useCreateUserStore('preferences', { theme: 'light', lang: 'en' });
+ *   return null; // Setup component
+ * }
+ * 
+ * // 4. 영역 내에서 Store 접근 (Store 이름만으로 접근)
  * function UserProfile() {
- *   const userStore = DemoStores.useStore('user', { name: '', email: '' });
- *   const user = useStoreValue(userStore);
+ *   const profileStore = useUserStore<User>('profile');
+ *   const profile = useStoreValue(profileStore);
  *   
- *   return <div>User: {user.name}</div>;
+ *   return <div>User: {profile.name}</div>;
+ * }
+ * 
+ * // 5. Action handler에서도 동일한 이름으로 접근 가능
+ * function useUserActions() {
+ *   const registry = useUserRegistry();
+ *   
+ *   useEffect(() => {
+ *     const register = getActionRegister();
+ *     
+ *     const unregister = register.register('updateUser', (payload) => {
+ *       // Context registry에서 같은 이름으로 접근
+ *       const profileStore = registry.getStore('profile');
+ *       profileStore.setValue(payload);
+ *     });
+ *     
+ *     return unregister;
+ *   }, [registry]);
  * }
  * ```
  */
@@ -107,18 +137,20 @@ export function createContextStorePattern(contextName: string) {
   }
   
   /**
-   * Provider 영역 내 Store 생성/접근 Hook
+   * Context-aware Store 생성 함수 (Hook)
    * 
-   * 현재 Provider 범위 내에서 Store를 생성하거나 기존 Store에 접근합니다.
-   * 이름이 같으면 동일한 Store를 반환하고, 없으면 새로 생성합니다.
+   * 현재 Provider의 registry에서 Store를 생성합니다.
+   * Action handler와 component에서 동일한 이름으로 접근 가능합니다.
+   * 
+   * ⚠️ 주의: React Hook이므로 React 컴포넌트나 Hook 내에서만 사용 가능합니다.
    * 
    * @template T Store 값 타입
-   * @param storeName - Store 이름
-   * @param initialValue - 초기값 (Store가 없을 때만 사용)
+   * @param storeName - Store 이름 (양방향 접근을 위해 고정 문자열 사용)
+   * @param initialValue - 초기값
    * @param options - Store 옵션
    * @returns Store 인스턴스
    */
-  function useStore<T>(
+  function useCreateStore<T>(
     storeName: string,
     initialValue: T | (() => T),
     options: {
@@ -144,7 +176,34 @@ export function createContextStorePattern(contextName: string) {
       }, registry);
       
       return store;
-    }, [storeName, registry]); // initialValue는 의존성에서 제외 (기존 Store 사용 시 무시)
+    }, [storeName, registry]); // initialValue는 의존성에서 제외
+  }
+
+  /**
+   * Provider 영역 내 Store 접근 Hook
+   * 
+   * 현재 Provider 범위 내에서 기존 Store에 접근합니다.
+   * Store가 존재하지 않으면 오류가 발생하므로, 미리 useCreateStore로 생성되어 있어야 합니다.
+   * 
+   * @template T Store 값 타입
+   * @param storeName - Store 이름 (양방향 접근을 위해 고정 문자열 사용)
+   * @returns Store 인스턴스
+   */
+  function useStore<T = any>(storeName: string): ReturnType<typeof createStore<T>> {
+    const registry = useRegistry();
+    
+    return useMemo(() => {
+      const existingStore = registry.getStore(storeName);
+      
+      if (!existingStore) {
+        throw new Error(
+          `Store '${storeName}' not found in ${contextName} context. ` +
+          `Make sure you've created it first using useCreateStore('${storeName}', initialValue).`
+        );
+      }
+      
+      return existingStore as ReturnType<typeof createStore<T>>;
+    }, [storeName, registry]);
   }
   
   /**
@@ -248,21 +307,25 @@ export function createContextStorePattern(contextName: string) {
    * 
    * @example
    * ```typescript
-   * const UserStores = createContextStorePattern('User');
+   * const {
+   *   withProvider: withUserStores,
+   *   useCreateStore: useCreateUserStore,
+   *   useStore: useUserStore
+   * } = createContextStorePattern('User');
    * 
    * // Create HOC with specific registry ID
-   * const withUserStores = UserStores.withProvider('user-management');
+   * const withUserProvider = withUserStores('user-management');
    * 
    * // Wrap component automatically
-   * const UserDashboard = withUserStores(() => {
-   *   const userStore = UserStores.useStore('current-user', { name: '', email: '' });
+   * const UserDashboard = withUserProvider(() => {
+   *   const userStore = useUserStore<User>('current-user');
    *   const user = useStoreValue(userStore);
    *   
    *   return <div>Welcome, {user.name}!</div>;
    * });
    * 
    * // Or wrap existing component
-   * const EnhancedUserProfile = withUserStores(UserProfile);
+   * const EnhancedUserProfile = withUserProvider(UserProfile);
    * 
    * // Usage - no need to manually wrap with Provider
    * function App() {
@@ -303,10 +366,13 @@ export function createContextStorePattern(contextName: string) {
    * 
    * @example
    * ```typescript
-   * const FeatureStores = createContextStorePattern('Feature');
+   * const {
+   *   withCustomProvider: withFeatureCustomProvider,
+   *   useStore: useFeatureStore
+   * } = createContextStorePattern('Feature');
    * 
    * // Create a HOC that combines with ActionProvider
-   * const withFeatureAndAction = FeatureStores.withCustomProvider(
+   * const withFeatureAndAction = withFeatureCustomProvider(
    *   ({ children }) => (
    *     <ActionProvider config={{ logLevel: LogLevel.DEBUG }}>
    *       {children}
@@ -316,7 +382,7 @@ export function createContextStorePattern(contextName: string) {
    * );
    * 
    * const FeatureModule = withFeatureAndAction(() => {
-   *   const dataStore = FeatureStores.useStore('feature-data', {});
+   *   const dataStore = useFeatureStore('feature-data');
    *   const data = useStoreValue(dataStore);
    *   
    *   return <div>Feature: {data}</div>;
@@ -360,6 +426,7 @@ export function createContextStorePattern(contextName: string) {
     useRegistry,
     
     // Store 생성/접근 Hooks
+    useCreateStore,
     useStore,
     useIsolatedStore,
     
@@ -415,41 +482,56 @@ export const TestStores = createContextStorePattern('test');
  * 사용 예시와 패턴 가이드
  * 
  * @example
- * // 1. 기본 사용법
- * const MyStores = createContextStorePattern('my-app');
+ * // 1. 기본 사용법 - Store 생성과 접근 패턴 (구조분해 권장)
+ * const {
+ *   Provider: AppStoreProvider,
+ *   useCreateStore: useCreateAppStore,
+ *   useStore: useAppStore
+ * } = createContextStorePattern('my-app');
  * 
  * function App() {
  *   return (
- *     <MyStores.Provider>
+ *     <AppStoreProvider>
+ *       <StoreSetup />
  *       <UserProfile />
- *     </MyStores.Provider>
+ *     </AppStoreProvider>
  *   );
  * }
  * 
+ * function StoreSetup() {
+ *   // Context registry에 Store 생성 (양방향 접근 가능)
+ *   useCreateAppStore('user', { name: '', email: '' });
+ *   useCreateAppStore('settings', { theme: 'light', lang: 'en' });
+ *   return null;
+ * }
+ * 
  * function UserProfile() {
- *   const userStore = MyStores.useStore('user', { name: '', email: '' });
+ *   // 생성된 Store에 접근 (Store 이름만으로)
+ *   const userStore = useAppStore<User>('user');
  *   const user = useStoreValue(userStore);
  *   
  *   return <div>User: {user.name}</div>;
  * }
  * 
  * @example
- * // Multiple Provider isolation
+ * // Multiple Provider isolation (구조분해 패턴)
+ * const { Provider: AppStoreProvider } = createContextStorePattern('my-app');
+ * 
  * function App() {
  *   return (
  *     <div>
- *       <MyStores.Provider registryId="area-1">
+ *       <AppStoreProvider registryId="area-1">
  *         <UserProfile />
- *       </MyStores.Provider>
- *       <MyStores.Provider registryId="area-2">
+ *       </AppStoreProvider>
+ *       <AppStoreProvider registryId="area-2">
  *         <UserProfile />
- *       </MyStores.Provider>
+ *       </AppStoreProvider>
  *     </div>
  *   );
  * }
  * 
  * @example
- * // Component-level isolation
+ * // Component-level isolation (useId 기반으로 각 컴포넌트마다 고유 Store)
  * function UserProfile({ userId }) {
  *   const userStore = MyStores.useIsolatedStore('user', { id: userId, name: '' });
  *   const user = useStoreValue(userStore);

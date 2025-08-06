@@ -2,12 +2,13 @@
 
 ## Overview
 
-The Context-Action framework implements a clean separation of concerns through an MVVM-inspired pattern combined with **Context-based Domain Isolation**. This architecture provides:
+The Context-Action framework implements a clean separation of concerns through an MVVM-inspired pattern combined with **Context Store Pattern** for complete domain isolation. This architecture provides:
 
 - **Actions** handle business logic (ViewModel layer)
-- **Stores** manage state (Model layer) 
+- **Context Store Pattern** manages state with domain isolation (Model layer)
 - **Components** render UI (View layer)
 - **Context Boundaries** isolate functional domains and enable modular architecture
+- **Type-Safe Integration** between actions and stores through shared context registries
 
 ## Context-Based Domain Isolation
 
@@ -20,18 +21,26 @@ The framework uses React Context to create **isolated functional domains**, wher
 - **Component tree** - UI components within the domain boundary
 
 ```typescript
-// Each domain gets its own isolated context with all necessary components
-const AuthContext = createActionContext<AuthActions>({ name: 'AuthDomain' });
-const CartContext = createActionContext<CartActions>({ name: 'CartDomain' });
-const UserContext = createActionContext<UserActions>({ name: 'UserDomain' });
+// Modern Context Store Pattern: Each domain gets isolated context with store integration
+const {
+  Provider: UserStoreProvider,
+  useCreateStore: useCreateUserStore,
+  useStore: useUserStore,
+  useRegistry: useUserRegistry
+} = createContextStorePattern('user');
 
-// createActionContext returns everything needed for a context domain:
-// - Provider: React component to wrap the domain
-// - useAction: Hook to get dispatch function
-// - useActionHandler: Hook to register handlers
-// - useActionContext: Hook to access the full context
-// - useActionRegister: Hook to get ActionRegister instance for direct registration
-// - useActionWithResult: Hook to get dispatchWithResult function for result collection
+const {
+  Provider: AuthProvider,
+  useActionRegister: useAuthRegister,
+  useAction: useAuthAction
+} = createActionContext<AuthActions>({ name: 'auth' });
+
+// Combined domain structure provides:
+// - Isolated store management per domain
+// - Type-safe action dispatching per domain  
+// - Shared registry access between actions and stores
+// - Automatic cleanup and lifecycle management
+// - Cross-context communication when needed
 ```
 
 ### 2. Context Boundary Benefits
@@ -98,81 +107,50 @@ function App() {
 
 ### 2. Context-Aware Handler Registration
 
-Action handlers are registered within their specific context boundaries:
+Action handlers are registered within their specific context boundaries using `useActionRegister` + `useEffect` pattern for optimal re-render performance:
 
 ```typescript
 function useAuthHandlers() {
-  // Using the hooks returned from createActionContext
-  // IMPORTANT: Wrap handlers with useCallback to prevent infinite loops
-  
-  const loginHandler = useCallback(async (payload, controller) => {
-    // This handler only exists within AuthContext
-    const authState = authStore.getValue();
-    // Business logic here
-  }, []); // Add dependencies as needed
-  
-  const logoutHandler = useCallback(async (payload, controller) => {
-    // Completely isolated from other contexts
-    authStore.setValue(null);
-    sessionStore.clear();
-  }, []);
-  
-  useAuthHandler('login', loginHandler);
-  useAuthHandler('logout', logoutHandler);
-}
-
-// Alternative pattern 1: Using ActionRegister directly in useEffect (old way)
-function useAuthHandlersAlt() {
-  const { actionRegisterRef } = useAuthContext();
-  
-  useEffect(() => {
-    const register = actionRegisterRef.current;
-    if (!register) return;
-    
-    // Register handlers directly
-    const unregisterLogin = register.register('login', async (payload, controller) => {
-      const authState = authStore.getValue();
-      // Business logic here
-    });
-    
-    const unregisterLogout = register.register('logout', async (payload, controller) => {
-      authStore.setValue(null);
-      sessionStore.clear();
-    });
-    
-    // Cleanup
-    return () => {
-      unregisterLogin();
-      unregisterLogout();
-    };
-  }, []); // Dependencies here
-}
-
-// Alternative pattern 2: Using useActionRegister (recommended)
-function useAuthHandlersSimple() {
   const register = useAuthRegister();
   
   useEffect(() => {
     if (!register) return;
     
-    // Direct registration using the dedicated hook
+    // Register login handler
     const unregisterLogin = register.register('login', async (payload, controller) => {
-      const authState = authStore.getValue();
-      // Business logic here
+      const { username, password } = payload;
+      
+      // Access stores at execution time for lazy evaluation
+      const authStore = registry.getStore<AuthState>('auth');
+      const userStore = registry.getStore<User>('currentUser');
+      
+      try {
+        const response = await authAPI.login(username, password);
+        
+        authStore.setValue({ isAuthenticated: true, token: response.token });
+        userStore.setValue(response.user);
+      } catch (error) {
+        controller.abort('Login failed', error);
+      }
     });
     
-    const unregisterLogout = register.register('logout', async (payload, controller) => {
-      authStore.setValue(null);
-      sessionStore.clear();
+    // Register logout handler
+    const unregisterLogout = register.register('logout', async (_, controller) => {
+      const authStore = registry.getStore<AuthState>('auth');
+      const userStore = registry.getStore<User>('currentUser');
+      
+      authStore.setValue({ isAuthenticated: false, token: null });
+      userStore.setValue(null);
     });
     
-    // Cleanup
+    // Cleanup function unregisters handlers
     return () => {
       unregisterLogin();
       unregisterLogout();
     };
-  }, [register]); // Dependencies here
+  }, [register]); // Re-register if register instance changes
 }
+
 ```
 
 ### 3. Action Result Collection and Processing
@@ -302,91 +280,123 @@ function useResultStrategies() {
 }
 ```
 
-### 4. Context-Scoped Store Integration
+### 4. Context Store Pattern Integration (Recommended)
 
-Action handlers within each context interact with domain-specific stores:
+The **Context Store Pattern** provides the best integration between contexts and stores with type-safe, domain-scoped store management. This is the recommended approach for modern Context-Action applications.
+
+#### Context Store Pattern Setup
 
 ```typescript
-// Context-scoped store integration using hooks from createActionContext
-function useUserHandlers() {
-  const dispatch = useUserAction();
-  const registry = useStoreRegistry();
-  
-  // Wrap handler with useCallback to prevent re-registration
-  const updateUserHandler = useCallback(async (payload, controller) => {
-    // Get stores from registry within handler
-    const userStore = registry.getStore('user');
-    const userActivityStore = registry.getStore('userActivity');
-    const userSettingsStore = registry.getStore('userSettings');
-    
-    // Stores are accessed within context boundary
-    const currentUser = userStore.getValue();
-    const userSettings = userSettingsStore.getValue();
-    
-    // Domain-specific business logic
-    const updatedUser = {
-      ...currentUser,
-      ...payload,
-      lastModified: Date.now(),
-      theme: userSettings.theme
-    };
-    
-    // Update domain stores
-    userStore.setValue(updatedUser);
-    userActivityStore.update(activities => [...activities, {
-      type: 'user_updated',
-      timestamp: Date.now(),
-      userId: payload.id
-    }]);
-  }, [registry]); // Include registry in dependencies
-  
-  useUserHandler('updateUser', updateUserHandler);
+// 1. Create Context Store Pattern with destructuring (recommended)
+const {
+  Provider: UserStoreProvider,
+  useCreateStore: useCreateUserStore,
+  useStore: useUserStore,
+  useRegistry: useUserRegistry
+} = createContextStorePattern('user');
+
+const {
+  Provider: AuthProvider,
+  useActionRegister: useAuthRegister,
+  // ... other auth hooks
+} = createActionContext<AuthActions>({ name: 'auth' });
+```
+
+#### Store Creation and Access Pattern
+
+```typescript
+// 2. App structure with combined providers
+function App() {
+  return (
+    <UserStoreProvider>
+      <AuthProvider>
+        <UserStoreSetup />
+        <UserProfile />
+        <UserActions />
+      </AuthProvider>
+    </UserStoreProvider>
+  );
 }
 
-// Alternative: Using useActionRegister for direct registration
-function useUserHandlersWithRegister() {
-  const register = useUserRegister();
-  const registry = useStoreRegistry();
+// 3. Store creation (context-aware)
+function UserStoreSetup() {
+  // Create stores in the UserStore context registry
+  useCreateUserStore('profile', {
+    id: '',
+    name: '',
+    email: '',
+    createdBy: 'initial'
+  });
+  
+  useCreateUserStore('activity', [] as Activity[]);
+  useCreateUserStore('settings', defaultSettings);
+  
+  return null; // Setup component
+}
+
+// 4. Store usage in components
+function UserProfile() {
+  // Access stores by name only (type-safe)
+  const profileStore = useUserStore<User>('profile');
+  const settingsStore = useUserStore<Settings>('settings');
+  
+  const profile = useStoreValue(profileStore);
+  const settings = useStoreValue(settingsStore);
+  
+  return (
+    <div>
+      <h1>{profile.name}</h1>
+      <p>Theme: {settings.theme}</p>
+    </div>
+  );
+}
+
+// 5. Store access in action handlers
+function useUserActions() {
+  const register = useAuthRegister();
+  const userRegistry = useUserRegistry(); // Access UserStore registry
   
   useEffect(() => {
     if (!register) return;
     
-    // Direct registration without useCallback
-    const unregisterUpdateUser = register.register('updateUser', async (payload, controller) => {
-      // Get stores from registry within handler
-      const userStore = registry.getStore('user');
-      const userActivityStore = registry.getStore('userActivity');
-      const userSettingsStore = registry.getStore('userSettings');
+    const unregisterUpdate = register.register('updateUser', async (payload, controller) => {
+      // Access stores from UserStore context registry (same names as components)
+      const profileStore = userRegistry.getStore<User>('profile');
+      const activityStore = userRegistry.getStore<Activity[]>('activity');
+      const settingsStore = userRegistry.getStore<Settings>('settings');
       
-      // Stores are accessed within context boundary
-      const currentUser = userStore.getValue();
-      const userSettings = userSettingsStore.getValue();
+      // Read current state
+      const currentProfile = profileStore.getValue();
+      const currentSettings = settingsStore.getValue();
       
-      // Domain-specific business logic
-      const updatedUser = {
-        ...currentUser,
+      // Business logic
+      const updatedProfile = {
+        ...currentProfile,
         ...payload,
         lastModified: Date.now(),
-        theme: userSettings.theme
+        theme: currentSettings.theme
       };
       
-      // Update domain stores
-      userStore.setValue(updatedUser);
-      userActivityStore.update(activities => [...activities, {
+      // Update stores
+      profileStore.setValue(updatedProfile);
+      activityStore.update(activities => [...activities, {
         type: 'user_updated',
         timestamp: Date.now(),
         userId: payload.id
       }]);
     });
     
-    // Cleanup
-    return () => {
-      unregisterUpdateUser();
-    };
-  }, [register, registry]); // Dependencies for useEffect
+    return () => unregisterUpdate();
+  }, [register, userRegistry]);
 }
 
-// Cross-context communication (when needed)
+```
+
+### 5. Cross-Context Communication
+
+When communication between contexts is needed, each context provides its own dispatch function:
+
+```typescript
 function useCrossContextIntegration() {
   // Each context provides its own dispatch function
   const authDispatch = useAuthAction();
@@ -419,9 +429,6 @@ Context Boundary B (Cart Domain):
 │ └──────────────┘ subscribe └──────────────┘         └──────┘ │
 └─────────────────────────────────────────────────────────────┘
 
-Cross-Context Communication (Explicit):
-Context A ···················> Context B
-         (deliberate bridge)
 ```
 
 ### Context-Scoped Execution Flow:
@@ -432,7 +439,6 @@ Context A ···················> Context B
 4. **Domain Business Logic**: Handlers process payload with context-specific state values
 5. **Context Store Updates**: Handlers update stores within their domain boundary
 6. **Context Component Re-render**: Only components within the same context that subscribe to updated stores re-render
-7. **Cross-Context Communication**: If needed, explicit bridges handle communication between contexts
 
 ### Handler Priority System:
 
@@ -579,8 +585,8 @@ configs.forEach((config) => {
 
 **Automatic Duplicate Prevention**: ActionRegister prevents duplicate handler registration using unique handler IDs:
 
-- **Explicit ID**: When `config.id` is provided, it's used as the handler identifier
-- **Auto-generated ID**: When no ID is provided, ActionRegister generates `handler_1`, `handler_2`, etc.
+- **Explicit ID**: When `config.id` is provided, it's used as the handler identifier for explicit registration
+- **Auto-generated Secure ID**: When no ID is provided, ActionRegister generates unpredictable IDs like `handler_1_k3x9z` to prevent collisions with explicit IDs
 - **Duplicate Detection**: If a handler with the same ID already exists, new registration is ignored
 - **No-op Unregister**: Duplicate registrations return a no-op unregister function
 
@@ -717,6 +723,424 @@ register('processData', handler2, { id: 'handler' }); // Ignored silently
 - **Development Hot Reload**: Handler re-registration during development
 - **Conditional Registration**: Prevent double registration in complex flows
 
+## Advanced Handler ID Management
+
+### Handler Unique ID System Architecture
+
+The Context-Action framework implements a sophisticated **Handler Unique ID system** that goes beyond simple name-based registration to provide robust duplicate prevention and handler lifecycle management.
+
+#### Core Components:
+
+1. **Handler ID Registry**: Central registry that tracks all registered handler IDs across all action types
+2. **ID Generation Strategy**: Intelligent system for creating predictable vs. secure IDs
+3. **Collision Detection**: Advanced duplicate prevention with configurable behavior
+4. **Lifecycle Tracking**: Monitors handler registration, execution, and cleanup phases
+
+```typescript
+interface HandlerRegistration {
+  id: string;                    // Unique identifier 
+  actionType: string;           // Associated action type
+  handler: Function;            // Handler function reference
+  config: HandlerConfig;        // Configuration metadata
+  registeredAt: number;         // Registration timestamp
+  executionCount: number;       // Number of executions
+  lastExecuted?: number;        // Last execution timestamp
+}
+
+interface HandlerRegistry {
+  [handlerId: string]: HandlerRegistration;
+}
+```
+
+#### Registration Flow:
+
+```mermaid
+flowchart TD
+    A[register call] --> B[Generate/Validate ID]
+    B --> C{ID exists?}
+    C -->|Yes| D[Return no-op unregister]
+    C -->|No| E[Create HandlerRegistration]
+    E --> F[Add to Registry]
+    F --> G[Return unregister function]
+    
+    D --> H[Log duplicate attempt]
+    G --> I[Handler Ready]
+    
+    style D fill:#ffcccc
+    style G fill:#ccffcc
+```
+
+### Handler ID Generation Strategies
+
+#### 1. **Auto-Generated Secure IDs** (Recommended)
+
+**Pattern**: `handler_${counter}_${randomSuffix}`
+
+```typescript
+// Framework automatically generates secure IDs
+register('processOrder', orderHandler);
+// Generated ID: "handler_1_k3x9z"
+
+register('processOrder', validateHandler); 
+// Generated ID: "handler_2_m7q4p"
+```
+
+**Benefits**:
+- ✅ **Security**: Unpredictable suffixes prevent ID prediction attacks
+- ✅ **Performance**: Lightweight generation (no crypto overhead)
+- ✅ **Uniqueness**: Counter + random ensures no collisions
+- ✅ **Debugging**: Sequential counter aids in debugging
+
+**Implementation Details**:
+```typescript
+class SecureIDGenerator {
+  private counter = 0;
+  
+  generate(): string {
+    return `handler_${++this.counter}_${Math.random().toString(36).substr(2, 5)}`;
+  }
+}
+```
+
+#### 2. **Explicit Semantic IDs**
+
+**Pattern**: `${module}-${purpose}-${scope}`
+
+```typescript
+register('processPayment', validatePaymentHandler, {
+  id: 'payment-validation-primary'    // Module-Purpose-Scope
+});
+
+register('processPayment', logPaymentHandler, {
+  id: 'payment-logging-audit'         // Clear semantic meaning
+});
+```
+
+**Benefits**:
+- ✅ **Maintainability**: Self-documenting handler purpose
+- ✅ **Debugging**: Easy identification during troubleshooting
+- ✅ **Team Collaboration**: Clear ownership and responsibility
+- ✅ **Testing**: Predictable IDs for unit tests
+
+#### 3. **Component-Scoped IDs**
+
+**Pattern**: `${component}-${handler}-${instance}`
+
+```typescript
+function PaymentForm() {
+  const componentId = useId(); // React's unique ID: r1, r2, etc.
+  
+  useActionHandler('processPayment', paymentHandler, {
+    id: `PaymentForm-process-${componentId}`, // e.g., PaymentForm-process-r1
+    cleanup: true  // Auto-unregister on component unmount
+  });
+}
+```
+
+**Benefits**:
+- ✅ **Isolation**: Handlers tied to component instances
+- ✅ **Cleanup**: Automatic unregistration on unmount
+- ✅ **Debugging**: Clear component-handler relationship
+- ✅ **Scalability**: No conflicts across component instances
+
+#### 4. **Handler Name + useId Pattern for Non-Split Contexts**
+
+When contexts aren't split but internal duplication is needed (e.g., multiple instances of the same component in a single context), combine handler names with component IDs:
+
+**Pattern**: `${handlerName}-${componentId}`
+
+```typescript
+// Shared context with multiple component instances
+function TodoItem({ todoId }: { todoId: string }) {
+  const componentId = useId(); // React's unique ID for this instance
+  const dispatch = useActionDispatch();
+  
+  // Use handler name + component ID for uniqueness
+  useActionHandler('updateTodo', async (payload) => {
+    // Handler specific to this TodoItem instance
+    const todoStore = useStore(`todo-${todoId}`);
+    await todoStore.update(payload);
+  }, {
+    // Combine semantic handler name with component instance ID
+    id: `updateTodo-${componentId}`,
+    cleanup: true
+  });
+  
+  // Alternative: Include todo ID for more granular identification
+  useActionHandler('deleteTodo', async () => {
+    const todoStore = useStore(`todo-${todoId}`);
+    await todoStore.remove();
+  }, {
+    id: `deleteTodo-${todoId}-${componentId}`,
+    cleanup: true
+  });
+}
+
+// Parent component with multiple TodoItems in same context
+function TodoList() {
+  const todos = useStoreValue(todosStore);
+  
+  return (
+    <>
+      {/* Same context, but each TodoItem has unique handler IDs */}
+      {todos.map(todo => (
+        <TodoItem key={todo.id} todoId={todo.id} />
+      ))}
+    </>
+  );
+}
+```
+
+**Advanced Pattern - Dynamic Handler Registration**:
+
+```typescript
+function DynamicForm({ formId }: { formId: string }) {
+  const componentId = useId();
+  const [fields, setFields] = useState<Field[]>([]);
+  
+  // Register field-specific handlers dynamically
+  useEffect(() => {
+    fields.forEach(field => {
+      register(`validate-${field.name}`, (value) => {
+        return validateField(field, value);
+      }, {
+        // Combine handler name, field name, and component ID
+        id: `validate-${field.name}-${componentId}`,
+        replace: true // Replace if field config changes
+      });
+    });
+    
+    // Cleanup function
+    return () => {
+      fields.forEach(field => {
+        unregister(`validate-${field.name}-${componentId}`);
+      });
+    };
+  }, [fields, componentId]);
+}
+```
+
+**When to Use This Pattern**:
+- ✅ **Single Context**: When splitting contexts isn't feasible or desired
+- ✅ **Dynamic Components**: Lists, forms, or other repeating components
+- ✅ **Component Isolation**: Need handler isolation without context separation
+- ✅ **Temporary Handlers**: Short-lived handlers for component lifecycle
+
+**Benefits**:
+- **Uniqueness Without Context Split**: Achieve handler uniqueness in shared contexts
+- **Semantic Clarity**: Handler names remain meaningful and debuggable
+- **Automatic Cleanup**: Component unmount naturally cleans up handlers
+- **Performance**: Avoid context creation overhead for simple duplication needs
+
+### Handler ID Collision Handling
+
+#### Detection Mechanisms:
+
+```typescript
+interface CollisionResult {
+  isCollision: boolean;
+  existingHandler: HandlerRegistration;
+  action: 'ignore' | 'replace' | 'error' | 'warn';
+  message: string;
+}
+
+// Collision detection with different strategies
+register('action', handler, { 
+  id: 'duplicate-test',
+  onCollision: 'warn'  // 'ignore' | 'replace' | 'error' | 'warn'
+});
+```
+
+#### Collision Resolution Strategies:
+
+1. **Silent Ignore** (Default)
+```typescript
+register('action', handler1, { id: 'test' }); // ✅ Registered
+register('action', handler2, { id: 'test' }); // ⚠️ Silently ignored
+// handler1 remains active, handler2 never executes
+```
+
+2. **Warning Mode** (Development)
+```typescript
+register('action', handler, { 
+  id: 'test', 
+  onCollision: 'warn' 
+});
+// Console warning: "Handler ID 'test' already registered for action 'action'"
+```
+
+3. **Error Mode** (Strict)
+```typescript
+register('action', handler, { 
+  id: 'test', 
+  onCollision: 'error' 
+});
+// Throws: HandlerRegistrationError
+```
+
+4. **Replace Mode** (Override)
+```typescript
+register('action', handler, { 
+  id: 'test', 
+  onCollision: 'replace' 
+});
+// Previous handler unregistered, new handler takes over
+```
+
+### Production vs Development Behavior
+
+#### Development Environment:
+- **Verbose Logging**: All collision attempts logged with stack traces
+- **Hot Reload Support**: Automatic handler replacement during development
+- **Debug Information**: Handler registry inspection tools
+- **Performance Warnings**: Identifies potential ID generation bottlenecks
+
+```typescript
+// Development mode features
+if (process.env.NODE_ENV === 'development') {
+  // Enhanced debugging
+  register.debug = true;
+  
+  // Registry inspection
+  console.log('Registered handlers:', register.getRegistry());
+  
+  // Performance monitoring
+  console.time('handler-registration');
+  register('action', handler);
+  console.timeEnd('handler-registration');
+}
+```
+
+#### Production Environment:
+- **Silent Operation**: Minimal logging to reduce noise
+- **Performance Optimized**: Streamlined ID generation and lookup
+- **Memory Efficient**: Automatic cleanup of unused registrations
+- **Security Hardened**: Enhanced protection against prediction attacks
+
+### Handler ID Lifecycle Management
+
+#### Registration Phase:
+```typescript
+const unregister = register('processOrder', handler, {
+  id: 'order-processor',
+  metadata: {
+    module: 'ecommerce',
+    priority: 100,
+    version: '1.2.0'
+  }
+});
+```
+
+#### Execution Phase:
+```typescript
+// Framework automatically tracks execution
+dispatch('processOrder', orderData);
+// Increments executionCount, updates lastExecuted timestamp
+```
+
+#### Cleanup Phase:
+```typescript
+// Manual cleanup
+unregister();
+
+// Automatic cleanup (component unmount)
+useEffect(() => {
+  const unregister = register('action', handler, { id: 'temp' });
+  return unregister; // Cleanup on component unmount
+}, []);
+
+// Bulk cleanup (entire action type)
+register.unregisterAll('processOrder');
+```
+
+### Handler Registry Inspection
+
+#### Debug Information:
+```typescript
+// Get all registered handlers
+const registry = register.getRegistry();
+
+// Filter by action type
+const orderHandlers = register.getHandlersFor('processOrder');
+
+// Find handler by ID
+const handler = register.findById('payment-validation-primary');
+
+// Get handler statistics
+const stats = register.getStats();
+/*
+{
+  totalHandlers: 24,
+  byActionType: {
+    'processOrder': 3,
+    'updateUser': 2,
+    'validatePayment': 5
+  },
+  mostExecuted: 'payment-validation-primary',
+  registrationRate: '2.3 handlers/minute'
+}
+*/
+```
+
+### Testing Handler IDs
+
+#### Unit Testing:
+```typescript
+describe('Handler Registration', () => {
+  beforeEach(() => {
+    register.clearRegistry(); // Clean state
+  });
+
+  it('should prevent duplicate registration', () => {
+    const unregister1 = register('action', handler1, { id: 'test' });
+    const unregister2 = register('action', handler2, { id: 'test' });
+    
+    expect(unregister1).toBeTruthy();
+    expect(unregister2).toBe(register.NOOP); // No-op unregister
+  });
+
+  it('should generate unique auto-IDs', () => {
+    register('action', handler1); // handler_1_xxxxx
+    register('action', handler2); // handler_2_yyyyy
+    
+    const handlers = register.getHandlersFor('action');
+    expect(handlers).toHaveLength(2);
+    expect(handlers[0].id).toMatch(/handler_1_[a-z0-9]{5}/);
+    expect(handlers[1].id).toMatch(/handler_2_[a-z0-9]{5}/);
+  });
+});
+```
+
+### Migration Guide: Name-Based to ID-Based
+
+#### Legacy Pattern (Handler Name Based):
+```typescript
+// ❌ Old: Registration based only on handler function names
+register('action', namedHandler);     // Relies on function.name
+register('action', anotherHandler);   // Potential conflicts with minification
+```
+
+#### Modern Pattern (Handler ID Based):
+```typescript
+// ✅ New: Explicit ID-based registration
+register('action', handlerFunction, { 
+  id: 'action-processor-v1',           // Explicit, semantic ID
+  metadata: { purpose: 'validation' }  // Additional context
+});
+
+register('action', otherHandlerFunction, { 
+  id: 'action-logger-audit',           // Clear, unique ID
+  metadata: { purpose: 'logging' }     // Handler classification
+});
+```
+
+#### Migration Steps:
+1. **Audit Current Handlers**: Identify all registered handlers
+2. **Add Explicit IDs**: Provide meaningful IDs for critical handlers
+3. **Update Tests**: Modify tests to use ID-based assertions
+4. **Enable Warnings**: Use `onCollision: 'warn'` during migration
+5. **Validate Coverage**: Ensure all handlers have appropriate IDs
+
 ```typescript
 // Example: Component-safe registration pattern
 function UserProfile() {
@@ -785,66 +1209,119 @@ function DevToolsHandler() {
 
 ## Integration with React
 
-### Context-Based Provider Setup
+### Context Store Pattern Setup (Recommended)
+
+The Context Store Pattern provides the best integration approach, combining both action contexts and store contexts seamlessly:
 
 ```typescript
-// Multiple contexts for different domains
-function App() {
-  return (
-    <StoreProvider>
-      {/* Authentication Domain */}
-      <AuthProvider>
-        {/* Cart Domain nested within */}
-        <CartProvider>
-          {/* User Profile Domain */}
-          <UserProvider>
-            <Application />
-          </UserProvider>
-        </CartProvider>
-      </AuthProvider>
-    </StoreProvider>
-  );
-}
+// 1. Create domain-specific patterns with destructuring
+const {
+  Provider: UserStoreProvider,
+  useCreateStore: useCreateUserStore,
+  useStore: useUserStore,
+  useRegistry: useUserRegistry
+} = createContextStorePattern('user');
 
-// Alternative: Separate domain boundaries
+const {
+  Provider: AuthProvider,
+  useActionRegister: useAuthRegister,
+  useAction: useAuthAction
+} = createActionContext<AuthActions>({ name: 'auth' });
+
+const {
+  Provider: CartStoreProvider,
+  useCreateStore: useCreateCartStore,
+  useStore: useCartStore,
+  useRegistry: useCartRegistry
+} = createContextStorePattern('cart');
+
+const {
+  Provider: ShopProvider,
+  useActionRegister: useShopRegister
+} = createActionContext<ShopActions>({ name: 'shop' });
+
+// 2. App structure with combined providers
 function App() {
   return (
     <div>
-      {/* Auth section with its own context */}
-      <AuthProvider>
-        <StoreProvider registryId="auth">
-          <AuthSection />
-        </StoreProvider>
-      </AuthProvider>
-      
-      {/* Shopping section with its own context */}
-      <CartProvider>
-        <StoreProvider registryId="cart">
+      {/* User domain with both stores and actions */}
+      <UserStoreProvider>
+        <AuthProvider>
+          <UserSection />
+        </AuthProvider>
+      </UserStoreProvider>
+
+      {/* Shopping domain with both stores and actions */}
+      <CartStoreProvider>
+        <ShopProvider>
           <ShoppingSection />
-        </StoreProvider>
-      </CartProvider>
+        </ShopProvider>
+      </CartStoreProvider>
     </div>
   );
 }
+
+// Alternative: HOC Pattern for cleaner composition
+const {
+  withCustomProvider: withUserStoreAndAuth
+} = createContextStorePattern('user');
+
+const withUserProviders = withUserStoreAndAuth(
+  ({ children }) => (
+    <AuthProvider>
+      {children}
+    </AuthProvider>
+  ),
+  'user-section'
+);
+
+const UserSection = withUserProviders(() => {
+  const profileStore = useUserStore<User>('profile');
+  const authDispatch = useAuthAction();
+  
+  return <UserProfile />;
+});
 ```
 
-### Context-Scoped Component Usage
+### Context Store Pattern Component Usage
 
 ```typescript
-// Component within Auth context
+// Component within User store context
+function UserProfileSetup() {
+  // Create stores in UserStore context
+  useCreateUserStore('profile', {
+    id: '',
+    name: '',
+    email: '',
+    status: 'offline'
+  });
+  
+  useCreateUserStore('preferences', {
+    theme: 'light',
+    notifications: true
+  });
+  
+  return null; // Setup component
+}
+
+// Component using User stores and Auth actions
 function LoginComponent() {
-  // Uses auth context's dispatch - type-safe and scoped
-  const dispatch = useAuthAction();
-  const authState = useStoreValue(authStore);
+  // Use Auth context's dispatch
+  const authDispatch = useAuthAction();
+  
+  // Use User store from context
+  const profileStore = useUserStore<User>('profile');
+  const profile = useStoreValue(profileStore);
 
   const handleLogin = (username: string, password: string) => {
-    // Only 'login' actions available in AuthContext
-    dispatch('login', { username, password });
+    // Auth action in Auth context
+    authDispatch('login', { username, password });
   };
 
   return (
     <div>
-      <h1>Authentication Status: {authState.status}</h1>
+      <h1>User: {profile.name}</h1>
+      <p>Status: {profile.status}</p>
       <button onClick={() => handleLogin('user', 'pass')}>
         Login
       </button>
@@ -852,22 +1329,29 @@ function LoginComponent() {
   );
 }
 
-// Component within User context
-function UserProfile() {
-  // Uses user context's dispatch - different from AuthContext
-  const dispatch = useUserAction();
-  const user = useStoreValue(userStore);
+// Component within Cart store context  
+function ShoppingCart() {
+  // Use Shop context's dispatch
+  const shopDispatch = useShopAction();
+  
+  // Use Cart store from context (type-safe access)
+  const cartStore = useCartStore<Cart>('items');
+  const preferencesStore = useCartStore<ShopPreferences>('preferences');
+  
+  const cart = useStoreValue(cartStore);
+  const preferences = useStoreValue(preferencesStore);
 
-  const updateName = (name: string) => {
-    // Only 'updateUser' actions available in UserContext
-    dispatch('updateUser', { id: user.id, name });
+  const addItem = (productId: string, quantity: number) => {
+    // Shop action in Shop context
+    shopDispatch('addToCart', { productId, quantity });
   };
 
   return (
     <div>
-      <h1>{user.name}</h1>
-      <button onClick={() => updateName('New Name')}>
-        Update Name
+      <h1>Cart ({cart.items.length} items)</h1>
+      <p>Currency: {preferences.currency}</p>
+      <button onClick={() => addItem('prod-1', 1)}>
+        Add Item
       </button>
     </div>
   );
@@ -876,6 +1360,14 @@ function UserProfile() {
 // Component using multiple contexts (explicit cross-context access)
 function DashboardComponent() {
   const authDispatch = useAuthAction();
+  const shopDispatch = useShopAction();
+  
+  // Access stores from different contexts
+  const userProfile = useUserStore<User>('profile');
+  const cartItems = useCartStore<Cart>('items');
+  
+  const profile = useStoreValue(userProfile);
+  const cart = useStoreValue(cartItems);
   const userDispatch = useUserAction();
   const cartDispatch = useCartAction();
   
@@ -901,7 +1393,6 @@ function DashboardComponent() {
 function useUserActions() {
   const registry = useStoreRegistry();
 
-  // Create handler with useCallback to prevent infinite loops
   const updateUserHandler = useCallback(
     async (payload, controller) => {
       // Access stores within UserContext boundary
@@ -1516,25 +2007,31 @@ ComponentReRender --> UpdatedUI[Updated UI]
 9. **Team Scalability**: Different teams can work on different contexts independently
 10. **Deployment Flexibility**: Contexts can be deployed as separate modules or micro-frontends
 
-## Context-Based Best Practices
+## Context Store Pattern Best Practices
 
-### Context Design
-1. **Domain-Focused Contexts**: Create contexts around business domains, not technical layers
-2. **Context Boundaries**: Keep related functionality within the same context, separate unrelated concerns
-3. **Context Size**: Balance between too many small contexts (complexity) and too few large contexts (coupling)
+### Context Store Pattern Design
+1. **Use Destructuring**: Always destructure `createContextStorePattern` for cleaner, domain-specific naming
+2. **Domain-Focused Patterns**: Create separate patterns for different business domains (user, cart, auth, etc.)
+3. **Combine with Action Contexts**: Use Context Store Patterns alongside `createActionContext` for complete domain isolation
+4. **HOC Composition**: Use `withCustomProvider` to combine store and action contexts cleanly
 
-### Action Design  
-4. **Context-Scoped Actions**: Keep actions focused within their domain context
-5. **Use Priority**: Higher priority handlers run first for dependent operations within context
-6. **Cross-Context Coordination**: Use explicit bridges for cross-context communication
-7. **Handle Errors**: Use try-catch in async handlers and controller.abort() with context-specific error handling
+### Store Management Best Practices
+5. **Separate Creation from Access**: Use `useCreateStore` once for creation, `useStore` for access
+6. **Setup Components**: Create dedicated setup components for store initialization
+7. **Type Safety**: Always specify types when accessing stores: `useUserStore<User>('profile')`
+8. **Consistent Naming**: Use consistent store names between components and action handlers
+9. **Lazy Evaluation**: Access stores in handlers via `registry.getStore()` for execution-time evaluation
 
-### Handler Registration Best Practices
-8. **Wrap with useCallback**: Always wrap handler functions with useCallback to prevent infinite re-registration loops
-9. **Include Dependencies**: Add necessary dependencies to useCallback (like registry, dispatch functions)
-10. **Alternative Pattern 1**: For complex handlers, use useActionRegister hook with useEffect for direct registration
-11. **Alternative Pattern 2**: Use useActionContext to access actionRegisterRef directly (legacy approach)
-12. **Handler Lifecycle**: Remember that handlers are registered/unregistered based on component lifecycle
+### Action Design with Stores
+10. **Context-Scoped Actions**: Keep actions focused within their domain context
+11. **Use Registry Access**: Use `useRegistry()` in action handlers to access context-specific stores
+12. **Cross-Context Coordination**: Access stores from different contexts explicitly when needed
+13. **Handle Errors**: Use try-catch in async handlers with context-specific error handling
+
+### Handler Registration Best Practices  
+14. **Use useActionRegister Pattern**: Primary pattern is `useActionRegister` + `useEffect` for optimal re-render performance
+15. **Store Registry Integration**: Combine action contexts with store patterns for complete domain solutions
+16. **Handler Lifecycle**: Register handlers in `useEffect` and always return cleanup functions
 
 ### Result Collection Best Practices
 13. **Use Metadata Tags**: Tag handlers appropriately for filtering (e.g., 'validation', 'business-logic', 'logging')
