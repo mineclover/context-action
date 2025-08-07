@@ -101,7 +101,7 @@ function PriorityTestInstance({ title, instanceId }: { title: string; instanceId
     <div className="flex-1 p-4 border border-gray-200 rounded-lg bg-white">
       {/* 헤더 */}
       <div className="mb-4">
-        <h3 className="text-lg font-bold text-gray-900 mb-1">{title}</h3>
+        <h3 className="text-lg font-bold text-gray-900 mb-1 truncate">{title}</h3>
         <div className="text-xs text-gray-500">
           {instanceId && `인스턴스: ${instanceId} | `}핸들러: {configs.length}개
         </div>
@@ -138,11 +138,11 @@ function PriorityTestInstance({ title, instanceId }: { title: string; instanceId
           <button
             onClick={addBulkHandlers}
             disabled={testManager.isRunning}
-            className="btn btn-warning text-xs px-3 py-2 flex-1"
+            className="btn btn-warning text-xs px-3 py-2 flex-1 whitespace-nowrap"
           >
             📦 일괄 추가 (1-100)
           </button>
-          <div className="text-xs text-gray-500 flex items-center">
+          <div className="text-xs text-gray-500 flex items-center whitespace-nowrap">
             현재: {configs.length}개 핸들러
           </div>
         </div>
@@ -154,14 +154,14 @@ function PriorityTestInstance({ title, instanceId }: { title: string; instanceId
         <h4 className="font-medium text-gray-700 mb-2 text-sm">📊 성능 메트릭</h4>
         <div className="grid grid-cols-2 gap-2">
           <div className="p-2 bg-blue-50 rounded text-center">
-            <div className="text-xs text-blue-700">총 실행</div>
+            <div className="text-xs text-blue-700 whitespace-nowrap">총 실행</div>
             <div className="text-lg font-bold text-blue-900">
               {Object.values(priorityCounts).reduce((sum, count) => sum + count, 0)}
             </div>
           </div>
           <div className="p-2 bg-green-50 rounded text-center">
-            <div className="text-xs text-green-700">상태</div>
-            <div className="text-sm font-semibold text-green-900">
+            <div className="text-xs text-green-700 whitespace-nowrap">상태</div>
+            <div className="text-sm font-semibold text-green-900 whitespace-nowrap">
               {testManager.isRunning ? '실행 중' : '대기 중'}
             </div>
           </div>
@@ -232,13 +232,13 @@ function PriorityTestInstance({ title, instanceId }: { title: string; instanceId
           </div>
         </div>
         <div className="text-xs text-gray-500 mt-1 flex items-center gap-4">
-          <div className="flex items-center">
+          <div className="flex items-center whitespace-nowrap">
             <span className="inline-block w-2 h-2 border border-blue-300 mr-1" style={{backgroundColor: '#dbeafe'}}></span>핸들러
           </div>
-          <div className="flex items-center">
+          <div className="flex items-center whitespace-nowrap">
             <span className="inline-block w-2 h-2 border border-yellow-500 mr-1" style={{backgroundColor: '#fbbf24'}}></span>점프 실행
           </div>
-          <div className="text-gray-400">
+          <div className="text-gray-400 whitespace-nowrap">
             실행 횟수에 따라 색상 농도 변화
           </div>
         </div>
@@ -246,10 +246,10 @@ function PriorityTestInstance({ title, instanceId }: { title: string; instanceId
 
       {/* 실행 로그 (최근 2개만) */}
       <div>
-        <h4 className="font-medium text-gray-700 mb-1 text-sm">📋 실행 로그</h4>
+        <h4 className="font-medium text-gray-700 mb-1 text-sm whitespace-nowrap">📋 실행 로그</h4>
         <div className="bg-gray-50 rounded p-2 h-12 overflow-hidden">
           {testManager.testResults.length === 0 ? (
-            <div className="text-gray-500 text-center py-1 text-xs">
+            <div className="text-gray-500 text-center py-1 text-xs whitespace-nowrap">
               테스트 대기 중...
             </div>
           ) : (

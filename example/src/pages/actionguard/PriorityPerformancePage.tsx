@@ -76,13 +76,7 @@ const PriorityPerformancePage = () => {
 
       {/* 성능 테스트 인스턴스들 */}
       <div className="px-6 pb-6">
-        <div className={`grid gap-4 ${
-          instances.length === 1 ? 'grid-cols-1' :
-          instances.length === 2 ? 'grid-cols-2' :
-          instances.length <= 4 ? 'grid-cols-2' :
-          instances.length <= 6 ? 'grid-cols-3' :
-          'grid-cols-4'
-        }`}>
+        <div className="grid gap-4 grid-cols-2">
           {instances.map((instance) => (
             <div key={instance.id} className="relative">
               {instances.length > 1 && (
