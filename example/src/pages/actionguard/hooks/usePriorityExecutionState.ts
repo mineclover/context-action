@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { ExecutionState, HandlerConfig } from './usePriorityActionHandlers';
+import { ExecutionState, HandlerConfig } from './types';
 
 // 우선순위 실행 상태 관리 훅
 export function usePriorityExecutionState(configs: HandlerConfig[]) {

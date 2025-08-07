@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { UnregisterFunction } from '@context-action/core';
-import { PriorityTestViewModel, ViewModelDependencies } from '../types';
+import { PriorityTestViewModel, ViewModelDependencies } from './types';
 
 /**
  * ViewModel Layer: 상태 관리와 UI 바인딩
