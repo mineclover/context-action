@@ -11,22 +11,14 @@
  * interactions and business logic flow.
  */
 
-// === ENHANCED TYPE-SAFE ACTION SYSTEM ===
-// Primary recommendation for complex applications
+// === UNIFIED ACTION CONTEXT SYSTEM ===
+// Factory-based action context with built-in abort support
 export { 
+  // Factory function for creating typed action contexts
   createActionContext,
-  type ActionContextConfig 
+  type ActionContextConfig,
+  type ActionContextReturn
 } from './ActionContext';
-
-// === SIMPLE ACTION PROVIDER ===  
-// For simple applications and quick prototypes
-export { 
-  ActionProvider, 
-  useActionDispatch, 
-  useActionContext, 
-  useActionRegister,
-  ActionContext 
-} from './ActionProvider';
 
 // === ACTION UTILITIES ===
 // Business logic coordination and validation helpers
