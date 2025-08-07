@@ -251,6 +251,9 @@ export interface DispatchOptions {
   /** Execution mode override for this specific dispatch */
   executionMode?: ExecutionMode;
   
+  /** Abort signal for cancelling the dispatch */
+  signal?: AbortSignal;
+  
   /** Handler filtering options */
   filter?: {
     /** Only execute handlers with these tags */

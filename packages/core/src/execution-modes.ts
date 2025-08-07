@@ -20,6 +20,7 @@ export async function executeSequential<T, R = void>(
   let i = 0;
   
   while (i < context.handlers.length) {
+    // Check for abort or termination
     if (context.aborted || context.terminated) {
       break;
     }
@@ -42,6 +43,11 @@ export async function executeSequential<T, R = void>(
     const controller = createController(registration, i);
 
     try {
+      // Check for abort before executing handler
+      if (context.aborted) {
+        break;
+      }
+      
       const result = registration.handler(context.payload, controller);
 
       /** Wait for async handlers if they're blocking */
