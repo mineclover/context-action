@@ -1,7 +1,7 @@
 import { Store } from '@context-action/react';
 import { usePriorityActionRegister, usePriorityActionDispatch } from '../context/ActionTestContext';
 import { usePriorityCountManagement } from './usePriorityCountManagement';
-import { usePriorityExecutionState } from './usePriorityExecutionState';
+import { usePriorityExecutionState, ExecutionStateData } from './usePriorityExecutionState';
 import { usePriorityTestViewModel } from './usePriorityTestViewModel';
 import { HandlerConfig, PerformanceOptions } from './types';
 
@@ -15,7 +15,10 @@ import { HandlerConfig, PerformanceOptions } from './types';
 export function usePriorityTestManagerMVVM(
   configs: HandlerConfig[],
   priorityCountsStore: Store<Record<number, number>>,
-  performanceOptions: PerformanceOptions = {}
+  performanceOptions: PerformanceOptions & {
+    executionStateStore: Store<ExecutionStateData>;
+    executionActionRegister?: any;
+  }
 ) {
   // Context 의존성
   const actionRegister = usePriorityActionRegister();
@@ -23,7 +26,10 @@ export function usePriorityTestManagerMVVM(
 
   // 하위 의존성들 (ViewModel에서 사용)
   const countManagement = usePriorityCountManagement(priorityCountsStore);
-  const executionState = usePriorityExecutionState();
+  const executionState = usePriorityExecutionState(
+    performanceOptions.executionStateStore,
+    performanceOptions.executionActionRegister
+  );
 
   // ViewModel 사용
   const viewModel = usePriorityTestViewModel({
