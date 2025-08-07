@@ -1,0 +1,128 @@
+/* Priority Test Page Styles */
+
+/* Priority Configuration Item */
+.priorityConfigItem {
+  @apply p-3 border border-gray-200 rounded-lg bg-gray-50;
+}
+
+
+/* Priority Dot Styles */
+.priorityGroup {
+  @apply p-2 border-l-4 border-gray-200 ml-2;
+}
+
+.priorityGroupHeader {
+  @apply text-sm text-gray-700 mb-1;
+}
+
+.priorityDot {
+  @apply w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer border-4 border-white relative;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.priorityDot:hover {
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+.priorityDot[data-status="running"] {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.dotLabel {
+  @apply text-white text-xs font-bold;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Test Log Styles */
+.testLog {
+  @apply bg-gray-800 text-gray-200 rounded-lg p-4;
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 0.875rem;
+}
+
+.logEntry {
+  @apply mb-1 py-1 border-b border-gray-600;
+}
+
+.logEntry:last-child {
+  @apply border-b-0;
+}
+
+/* Usage Guide Styles */
+.usageGuide h4 {
+  @apply text-gray-800 text-sm font-semibold;
+}
+
+.usageGuide ul li {
+  @apply text-gray-600;
+}
+
+/* Priority Count Grid Visualization Styles */
+.priorityCountVisualization {
+  @apply w-full;
+}
+
+.priorityCountGrid {
+  @apply flex flex-wrap gap-1;
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 0.75rem;
+  max-width: 100%;
+}
+
+.priorityCountCell {
+  @apply w-8 h-8 border border-gray-300 rounded flex flex-col items-center justify-center bg-gray-50 transition-all duration-200 cursor-help relative;
+}
+
+.priorityCountCell.hasHandlers {
+  @apply bg-cyan-50 border-cyan-600 font-semibold;
+}
+
+.priorityCountCell.active {
+  @apply bg-yellow-100 border-yellow-500;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+  animation: priorityPulse 1.5s ease-in-out infinite;
+}
+
+.priorityCountCell.hasHandlers.active {
+  @apply bg-green-100 border-green-500;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+}
+
+@keyframes priorityPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.priorityNumber {
+  @apply text-xs text-gray-500 leading-none font-medium;
+}
+
+.priorityCountCell.hasHandlers .priorityNumber {
+  @apply text-cyan-600 font-semibold;
+}
+
+.countNumber {
+  @apply text-xs font-bold leading-none text-red-600 mt-0.5;
+}
+
+.priorityCountCell.hasHandlers .countNumber {
+  @apply text-red-600;
+}
+
+.priorityCountCell:hover {
+  transform: scale(1.1);
+  @apply z-10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.priorityLegend {
+  @apply mb-3;
+}
