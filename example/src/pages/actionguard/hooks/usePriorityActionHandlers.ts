@@ -1,11 +1,6 @@
 import { useEffect, useId } from 'react';
 import { ActionRegister } from '@context-action/react';
-import { ActionPayloadMap } from '@context-action/core';
-
-// 테스트용 액션 타입 정의
-interface PriorityTestActions extends ActionPayloadMap {
-  priorityTest: { testId: string; delay: number };
-}
+import { TestActions } from '../context/ActionTestContext';
 
 // 개별 핸들러 설정 타입
 export interface HandlerConfig {
@@ -30,7 +25,7 @@ export interface ExecutionState {
 
 // 우선순위 액션 핸들러 관리 훅
 export function usePriorityActionHandlers(
-  actionRegister: ActionRegister<PriorityTestActions>,
+  actionRegister: ActionRegister<TestActions>,
   configs: HandlerConfig[],
   options: {
     onTestResultAdd: (result: string) => void;

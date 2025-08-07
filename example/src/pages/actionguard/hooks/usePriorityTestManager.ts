@@ -1,15 +1,9 @@
 import { useState, useEffect } from 'react';
-import { ActionRegister } from '@context-action/react';
-import { ActionPayloadMap } from '@context-action/core';
 import { usePriorityActionHandlers, HandlerConfig } from './usePriorityActionHandlers';
 import { usePriorityCountManagement } from './usePriorityCountManagement';
 import { usePriorityExecutionState } from './usePriorityExecutionState';
 import { Store } from '@context-action/react';
-
-// 테스트용 액션 타입 정의
-interface PriorityTestActions extends ActionPayloadMap {
-  priorityTest: { testId: string; delay: number };
-}
+import { usePriorityActionRegister } from '../context/ActionTestContext';
 
 // 성능 옵션 인터페이스
 interface PerformanceOptions {
@@ -29,8 +23,9 @@ export function usePriorityTestManager(
     enableConsoleLog = true,
     performanceMode = false
   } = performanceOptions;
-  // ActionRegister 인스턴스 생성 (CoreBasicsPage와 동일한 패턴)
-  const [actionRegister] = useState(() => new ActionRegister<PriorityTestActions>());
+  
+  // Context에서 ActionRegister 가져오기
+  const actionRegister = usePriorityActionRegister();
 
   // 우선순위 카운팅 관리
   const countManagement = usePriorityCountManagement(priorityCountsStore);

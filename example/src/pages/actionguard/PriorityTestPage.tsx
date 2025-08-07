@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { createDeclarativeStores, useStoreValue, type StorePayloadMap, type StoreSchema } from '@context-action/react';
 import { PageWithLogMonitor } from '../../components/LogMonitor/';
 import { usePriorityTestManager, HandlerConfig, ExecutionState } from './hooks';
+import { ActionTestProvider } from './context/ActionTestContext';
 import styles from './PriorityTestPage.module.css';
 
 // 기본 핸들러 설정 (점프 기능 테스트)
@@ -450,9 +451,11 @@ function PriorityTestPage() {
       title="Priority Execution Test"
       initialConfig={{ enableToast: true, maxLogs: 100 }}
     >
-      <PriorityStores.Provider registryId="priority-test">
-        <PriorityTest />
-      </PriorityStores.Provider>
+      <ActionTestProvider>
+        <PriorityStores.Provider registryId="priority-test">
+          <PriorityTest />
+        </PriorityStores.Provider>
+      </ActionTestProvider>
     </PageWithLogMonitor>
   );
 }

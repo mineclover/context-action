@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { createDeclarativeStores, useStoreValue, type StorePayloadMap, type StoreSchema } from '@context-action/react';
 import { usePriorityTestManager, HandlerConfig } from '../hooks';
+import { ActionTestProvider } from '../context/ActionTestContext';
 import styles from './PriorityTestInstance.module.css';
 
 // 기본 핸들러 설정 (점프 패턴이 잘 보이도록 조정)
@@ -270,9 +271,11 @@ function PriorityTestInstance({ title, instanceId }: { title: string; instanceId
 // Provider로 감싸진 래퍼 컴포넌트
 function PriorityTestInstanceWithProvider({ title, instanceId }: { title: string; instanceId?: string }) {
   return (
-    <PriorityStores.Provider registryId="priority-perf">
-      <PriorityTestInstance title={title} instanceId={instanceId} />
-    </PriorityStores.Provider>
+    <ActionTestProvider>
+      <PriorityStores.Provider registryId="priority-perf">
+        <PriorityTestInstance title={title} instanceId={instanceId} />
+      </PriorityStores.Provider>
+    </ActionTestProvider>
   );
 }
 
