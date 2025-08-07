@@ -17,15 +17,7 @@ export interface HandlerConfig {
   jumpToIndex?: number | null;
 }
 
-// 실행 상태 타입
-export interface ExecutionState {
-  handlerId: string;
-  priority: number;
-  status: 'pending' | 'running' | 'completed';
-  startTime?: number;
-  endTime?: number;
-  executionOrder: number;
-}
+
 
 // 성능 옵션 타입
 export interface PerformanceOptions {
@@ -49,7 +41,6 @@ export interface PriorityTestState {
   
   // 테스트 결과
   testResults: string[];
-  completedCount: number;
   
   // 카운트 관리
   priorityCounts: Record<number, number>;

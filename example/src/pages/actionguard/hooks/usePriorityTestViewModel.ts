@@ -54,23 +54,17 @@ export function usePriorityTestViewModel(dependencies: ViewModelDependencies): P
 
       // 새로운 핸들러 등록
       const registeredIds: string[] = [];
-      const registeredPriorities = new Set<number>();
 
       configs.forEach((config) => {
-        if (registeredPriorities.has(config.priority)) {
-          return;
-        }
-        registeredPriorities.add(config.priority);
-
-        const uniqueHandlerId = `priority-${config.priority}`;
+        const uniqueHandlerId = config.id; // config의 고유 ID 사용
         
-        // 핸들러 함수 생성 (인라인)
-        const handlerFunction = async ({ testId, delay }: { testId: string; delay: number }, controller: any) => {
+        // 각 config마다 개별 핸들러 등록
+        const unregister = actionRegister.register('priorityTest', async ({ testId, delay }: { testId: string; delay: number }, controller: any) => {
           // 우선순위 카운트 증가
           countManagement.incrementPriorityCount(config.priority, config.id);
           
           const timestamp = Date.now() - executionState.startTimeRef.current;
-          const currentCount = countManagement.priorityExecutionCountRef.current[config.priority] || 0;
+          const currentCount = countManagement.getPriorityCount(config.priority);
           
           if (enableConsoleLog) {
             executionState.addTestResult(`[${timestamp}ms] 🟡 ${config.label} 시작 (지연: ${config.delay}ms, 파라미터: ${delay}ms, 핸들러ID: ${uniqueHandlerId}, 현재카운트: ${currentCount})`);
@@ -107,19 +101,19 @@ export function usePriorityTestViewModel(dependencies: ViewModelDependencies): P
               executionState.addTestResult(`[${completionTimestamp}ms] 🟢 ${config.label} 완료 (실제 소요: ${actualDelay}ms)`);
             }
             
-            // Jump 처리
+            // Jump 처리 (최대 4번까지만 점프 허용)
             if (config.jumpToPriority !== null && config.jumpToPriority !== undefined) {
-              const finalCount = countManagement.priorityExecutionCountRef.current[config.priority] || 0;
+              const finalCount = countManagement.getPriorityCount(config.priority);
               const jumpTimestamp = Date.now() - executionState.startTimeRef.current;
               
-              if (finalCount <= 3) {
+              if (finalCount <= 4) {
                 if (enableConsoleLog) {
-                  executionState.addTestResult(`[${jumpTimestamp}ms] 🦘 ${config.label} → P${config.jumpToPriority} 점프 (카운트: ${finalCount})`);
+                  executionState.addTestResult(`[${jumpTimestamp}ms] 🦘 ${config.label} → P${config.jumpToPriority} 점프 (실행횟수: ${finalCount}/4)`);
                 }
                 controller.jumpToPriority(config.jumpToPriority);
               } else {
                 if (enableConsoleLog) {
-                  executionState.addTestResult(`[${jumpTimestamp}ms] 🚫 ${config.label} 점프 건너뜀 (카운트: ${finalCount} > 3)`);
+                  executionState.addTestResult(`[${jumpTimestamp}ms] 🚫 ${config.label} 점프 제한 (실행횟수: ${finalCount}/4 초과)`);
                 }
                 controller.next();
               }
@@ -134,10 +128,7 @@ export function usePriorityTestViewModel(dependencies: ViewModelDependencies): P
             }
             controller.abort(`Handler ${config.id} failed: ${error}`);
           }
-        };
-
-        // 핸들러 등록
-        const unregister = actionRegister.register('priorityTest', handlerFunction, {
+        }, {
           id: uniqueHandlerId,
           priority: config.priority,
           blocking: true
@@ -270,23 +261,16 @@ export function usePriorityTestViewModel(dependencies: ViewModelDependencies): P
     
     // 새로운 핸들러 등록 (완전 인라인)
     const registeredIds: string[] = [];
-    const registeredPriorities = new Set<number>();
 
     configs.forEach((config) => {
-      if (registeredPriorities.has(config.priority)) {
-        return;
-      }
-      registeredPriorities.add(config.priority);
-
-      const uniqueHandlerId = `priority-${config.priority}`;
+      const uniqueHandlerId = config.id; // config의 고유 ID 사용
       
-      // 핸들러 함수 생성 (완전 인라인)
-      const handlerFunction = async ({ testId, delay }: { testId: string; delay: number }, controller: any) => {
-        // 우선순위 카운트 증가
-        countManagement.incrementPriorityCount(config.priority, config.id);
+      // 각 config마다 개별 핸들러 등록
+      const unregister = actionRegister.register('priorityTest', async ({ testId, delay }: { testId: string; delay: number }, controller: any) => {
+        // 우선순위 카운트 증가 후 최신 카운트 받기
+        const currentCount = countManagement.incrementPriorityCount(config.priority, config.id);
         
         const timestamp = Date.now() - executionState.startTimeRef.current;
-        const currentCount = countManagement.priorityExecutionCountRef.current[config.priority] || 0;
         
         if (enableConsoleLog) {
           executionState.addTestResult(`[${timestamp}ms] 🟡 ${config.label} 시작 (지연: ${config.delay}ms, 파라미터: ${delay}ms, 핸들러ID: ${uniqueHandlerId}, 현재카운트: ${currentCount})`);
@@ -325,7 +309,7 @@ export function usePriorityTestViewModel(dependencies: ViewModelDependencies): P
           
           // Jump 처리
           if (config.jumpToPriority !== null && config.jumpToPriority !== undefined) {
-            const finalCount = countManagement.priorityExecutionCountRef.current[config.priority] || 0;
+            const finalCount = countManagement.getPriorityCount(config.priority);
             const jumpTimestamp = Date.now() - executionState.startTimeRef.current;
             
             if (finalCount <= 3) {
@@ -350,10 +334,7 @@ export function usePriorityTestViewModel(dependencies: ViewModelDependencies): P
           }
           controller.abort(`Handler ${config.id} failed: ${error}`);
         }
-      };
-
-      // 핸들러 등록
-      const unregister = actionRegister.register('priorityTest', handlerFunction, {
+      }, {
         id: uniqueHandlerId,
         priority: config.priority,
         blocking: true
@@ -393,8 +374,7 @@ export function usePriorityTestViewModel(dependencies: ViewModelDependencies): P
     isRunning: executionState.isRunning,
     aborted: executionState.abortedRef.current,
     testResults: executionState.testResults,
-    completedCount: executionState.completedCount,
-    priorityCounts: countManagement.priorityExecutionCountRef.current,
+    priorityCounts: countManagement.priorityCounts,
 
     // 액션
     registerHandlers,
