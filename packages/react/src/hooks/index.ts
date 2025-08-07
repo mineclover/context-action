@@ -13,8 +13,8 @@
  */
 
 // === ACTION HOOKS ===
-// Hooks for action dispatching and context access
-export { useActionDispatch, useActionContext } from '../actions';
+// Factory-based action context system - use createActionContext to create hooks
+export { createActionContext, type ActionContextConfig, type ActionContextReturn } from '../actions';
 
 // === STORE HOOKS ===
 // All store-related React hooks

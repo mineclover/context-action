@@ -1,5 +1,5 @@
-import React, { createContext, ReactNode, useContext, useRef, useEffect, useId, useMemo } from 'react';
-import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig, ActionRegisterConfig } from '@context-action/core';
+import React, { createContext, ReactNode, useContext, useRef, useEffect, useId, useMemo, useCallback } from 'react';
+import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig, ActionRegisterConfig, DispatchOptions, ExecutionResult } from '@context-action/core';
 
 /**
  * @fileoverview createActionContext - Advanced type-safe action context factory
@@ -15,26 +15,40 @@ export interface ActionContextConfig extends ActionRegisterConfig {
 }
 
 /**
- * Context type for ActionRegister with enhanced type safety
+ * Context type for ActionRegister with enhanced type safety and abort support
  */
 export interface ActionContextType<T extends ActionPayloadMap = ActionPayloadMap> {
   actionRegisterRef: React.RefObject<ActionRegister<T>>;
+  abortControllerRef: React.RefObject<AbortController | null>;
 }
 
 /**
- * Return type for createActionContext
+ * Return type for createActionContext with abort support
  */
 export interface ActionContextReturn<T extends ActionPayloadMap = ActionPayloadMap> {
   Provider: React.FC<{ children: ReactNode }>;
   useActionContext: () => ActionContextType<T>;
-  useAction: () => ActionRegister<T>['dispatch'];
+  useActionDispatch: () => ActionRegister<T>['dispatch'];
   useActionHandler: <K extends keyof T>(
     action: K,
     handler: ActionHandler<T[K]>,
     config?: HandlerConfig
   ) => void;
   useActionRegister: () => ActionRegister<T> | null;
-  useActionWithResult: () => ActionRegister<T>['dispatchWithResult'];
+  useActionDispatchWithResult: () => {
+    dispatch: <K extends keyof T>(
+      action: K,
+      payload?: T[K],
+      options?: DispatchOptions
+    ) => Promise<void>;
+    dispatchWithResult: <K extends keyof T, R = void>(
+      action: K,
+      payload?: T[K],
+      options?: DispatchOptions
+    ) => Promise<ExecutionResult<R>>;
+    abortAll: () => void;
+    resetAbortScope: () => void;
+  };
 }
 
 /**
@@ -122,54 +136,87 @@ export interface ActionContextReturn<T extends ActionPayloadMap = ActionPayloadM
  * }
  * ```
  */
+// === UNIFIED ACTION CONTEXT SYSTEM ===
+// Factory-based action context with built-in abort support
+
 export function createActionContext<T extends ActionPayloadMap = ActionPayloadMap>(
   config: ActionContextConfig = {}
 ): ActionContextReturn<T> {
-  // Create the context with a default value
-  const ActionContext = createContext<ActionContextType<T> | null>(null);
+  // Create the factory-specific context with a default value
+  const FactoryActionContext = createContext<ActionContextType<T> | null>(null);
 
-  // Provider component
+  // Provider component with abort support
   const Provider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const actionRegisterRef = useRef<ActionRegister<T>>(new ActionRegister<T>(config));
+    const abortControllerRef = useRef<AbortController | null>(null);
 
     const contextValue = useMemo(() => ({
       actionRegisterRef,
+      abortControllerRef,
     }), []);
 
     return (
-      <ActionContext.Provider value={contextValue}>
+      <FactoryActionContext.Provider value={contextValue}>
         {children}
-      </ActionContext.Provider>
+      </FactoryActionContext.Provider>
     );
   };
 
-  // Hook to get the action context
-  const useActionContext = (): ActionContextType<T> => {
-    const context = useContext(ActionContext);
+  // Hook to get the factory action context (different from simple ActionContext)
+  const useFactoryActionContext = (): ActionContextType<T> => {
+    const context = useContext(FactoryActionContext);
     if (!context) {
-      throw new Error('useActionContext must be used within an ActionContext Provider');
+      throw new Error('useFactoryActionContext must be used within a factory ActionContext Provider');
     }
     return context;
   };
 
-  // Hook to get the dispatch function with full type safety
+  // Hook to get the dispatch function with automatic abort on unmount
   const useAction = (): ActionRegister<T>['dispatch'] => {
-    const context = useActionContext();
+    const context = useFactoryActionContext();
+    const componentAbortRef = useRef<AbortController | null>(null);
     
-    return useMemo(() => {
-      if (context.actionRegisterRef.current) {
-        // Create bound dispatch function for consistency
-        const register = context.actionRegisterRef.current;
-        return register.dispatch.bind(register);
+    // Get or create component-specific abort controller
+    const getComponentAbortController = useCallback(() => {
+      if (!componentAbortRef.current || componentAbortRef.current.signal.aborted) {
+        componentAbortRef.current = new AbortController();
       }
-
-      return (..._args: any[]) => {
+      return componentAbortRef.current;
+    }, []);
+    
+    // Create wrapped dispatch that includes component-specific abort signal
+    const wrappedDispatch = useCallback(<K extends keyof T>(
+      action: K,
+      payload?: T[K],
+      options?: DispatchOptions
+    ): Promise<void> => {
+      const register = context.actionRegisterRef.current;
+      if (!register) {
         throw new Error(
           'ActionRegister is not initialized. ' +
           'Make sure the ActionContext Provider is properly set up.'
         );
+      }
+      
+      const controller = getComponentAbortController();
+      // Merge component abort signal with any existing options
+      const dispatchOptions: DispatchOptions = {
+        ...options,
+        signal: options?.signal || controller.signal,
       };
-    }, [context.actionRegisterRef]);
+      return register.dispatch(action, payload, dispatchOptions);
+    }, [context.actionRegisterRef, getComponentAbortController]);
+    
+    // Cleanup: abort all pending actions on unmount
+    useEffect(() => {
+      return () => {
+        if (componentAbortRef.current && !componentAbortRef.current.signal.aborted) {
+          componentAbortRef.current.abort();
+        }
+      };
+    }, []);
+    
+    return wrappedDispatch as ActionRegister<T>['dispatch'];
   };
 
   // Hook to register action handlers with automatic cleanup
@@ -178,7 +225,7 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
     handler: ActionHandler<T[K]>,
     config?: HandlerConfig
   ): void => {
-    const { actionRegisterRef } = useActionContext();
+    const { actionRegisterRef } = useFactoryActionContext();
     const handlerRef = useRef(handler);
     const configRef = useRef(config);
     const actionId = useId();
@@ -235,8 +282,8 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
    * }
    * ```
    */
-  const useActionRegister = (): ActionRegister<T> | null => {
-    const context = useActionContext();
+  const useFactoryActionRegister = (): ActionRegister<T> | null => {
+    const context = useFactoryActionContext();
     return context.actionRegisterRef.current;
   };
 
@@ -273,31 +320,95 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
    * }
    * ```
    */
-  const useActionWithResult = (): ActionRegister<T>['dispatchWithResult'] => {
-    const context = useActionContext();
-    
-    return useMemo(() => {
-      if (context.actionRegisterRef.current) {
-        // Create bound dispatchWithResult function for consistency
-        const register = context.actionRegisterRef.current;
-        return register.dispatchWithResult.bind(register);
-      }
 
-      return (..._args: any[]) => {
-        throw new Error(
-          'ActionRegister is not initialized. ' +
-          'Make sure the ActionContext Provider is properly set up.'
-        );
+  // Hook for enhanced dispatch with abort control (similar to old useActionDispatchWithResult)
+  const useFactoryActionDispatchWithResult = () => {
+    const context = useFactoryActionContext();
+    const componentAbortRef = useRef<AbortController | null>(null);
+    
+    // Get or create component-specific abort controller
+    const getComponentAbortController = useCallback(() => {
+      if (!componentAbortRef.current || componentAbortRef.current.signal.aborted) {
+        componentAbortRef.current = new AbortController();
+      }
+      return componentAbortRef.current;
+    }, []);
+    
+    // Create wrapped dispatch
+    const dispatch = useCallback(<K extends keyof T>(
+      action: K,
+      payload?: T[K],
+      options?: DispatchOptions
+    ): Promise<void> => {
+      const register = context.actionRegisterRef.current;
+      if (!register) {
+        throw new Error('ActionRegister not initialized');
+      }
+      
+      const controller = getComponentAbortController();
+      const dispatchOptions: DispatchOptions = {
+        ...options,
+        signal: options?.signal || controller.signal,
       };
-    }, [context.actionRegisterRef]);
+      return register.dispatch(action, payload, dispatchOptions);
+    }, [context.actionRegisterRef, getComponentAbortController]);
+    
+    // Create wrapped dispatchWithResult
+    const dispatchWithResult = useCallback(<K extends keyof T, R = void>(
+      action: K,
+      payload?: T[K],
+      options?: DispatchOptions
+    ): Promise<ExecutionResult<R>> => {
+      const register = context.actionRegisterRef.current;
+      if (!register) {
+        throw new Error('ActionRegister not initialized');
+      }
+      
+      const controller = getComponentAbortController();
+      const dispatchOptions: DispatchOptions = {
+        ...options,
+        signal: options?.signal || controller.signal,
+      };
+      return register.dispatchWithResult<K, R>(action, payload, dispatchOptions);
+    }, [context.actionRegisterRef, getComponentAbortController]);
+    
+    // Method to manually abort all pending actions
+    const abortAll = useCallback(() => {
+      if (componentAbortRef.current && !componentAbortRef.current.signal.aborted) {
+        componentAbortRef.current.abort();
+        componentAbortRef.current = null;
+      }
+    }, []);
+    
+    // Method to create a new abort scope
+    const resetAbortScope = useCallback(() => {
+      abortAll();
+      componentAbortRef.current = new AbortController();
+    }, [abortAll]);
+    
+    // Cleanup: abort all pending actions on unmount
+    useEffect(() => {
+      return () => {
+        if (componentAbortRef.current && !componentAbortRef.current.signal.aborted) {
+          componentAbortRef.current.abort();
+        }
+      };
+    }, []);
+    
+    return {
+      dispatch,
+      dispatchWithResult,
+      abortAll,
+      resetAbortScope,
+    };
   };
 
   return {
     Provider,
-    useActionContext,
-    useAction,
+    useActionContext: useFactoryActionContext,
+    useActionDispatch: useAction,
     useActionHandler,
-    useActionRegister,
-    useActionWithResult,
+    useActionRegister: useFactoryActionRegister,
+    useActionDispatchWithResult: useFactoryActionDispatchWithResult,
   };
 }
