@@ -185,6 +185,11 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     payload?: T[K],
     options?: import('./types.js').DispatchOptions
   ): Promise<void> {
+    // Check if dispatch is aborted before starting
+    if (options?.signal?.aborted) {
+      return;
+    }
+    
     const pipeline = this.pipelines.get(action);
     if (!pipeline || pipeline.length === 0) {
       return;
@@ -266,12 +271,26 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     const startTime = Date.now();
     let executionSuccess = true;
     
+    // Add abort listener if signal provided
+    const abortHandler = options?.signal ? () => {
+      context.aborted = true;
+      context.abortReason = 'Action dispatch aborted by signal';
+    } : undefined;
+    
+    if (options?.signal && abortHandler) {
+      options.signal.addEventListener('abort', abortHandler);
+    }
+    
     try {
       await this.executePipeline(context);
     } catch (error) {
       executionSuccess = false;
       throw error;
     } finally {
+      // Clean up abort listener
+      if (options?.signal && abortHandler) {
+        options.signal.removeEventListener('abort', abortHandler);
+      }
       // Track execution statistics
       const duration = Date.now() - startTime;
       this.updateExecutionStats(action, executionSuccess, duration);
@@ -284,6 +303,29 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     options?: import('./types.js').DispatchOptions
   ): Promise<ExecutionResult<R>> {
     const startTime = Date.now();
+    
+    // Check if dispatch is aborted before starting
+    if (options?.signal?.aborted) {
+      return {
+        success: false,
+        aborted: true,
+        abortReason: 'Action dispatch aborted by signal',
+        terminated: false,
+        result: undefined,
+        results: [],
+        execution: {
+          duration: 0,
+          handlersExecuted: 0,
+          handlersSkipped: 0,
+          handlersFailed: 0,
+          startTime,
+          endTime: startTime,
+        },
+        handlers: [],
+        errors: [],
+      };
+    }
+    
     const pipeline = this.pipelines.get(action);
     
     if (!pipeline || pipeline.length === 0) {
@@ -429,6 +471,16 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       timestamp: number;
     }> = [];
 
+    // Add abort listener if signal provided
+    const abortHandler = options?.signal ? () => {
+      context.aborted = true;
+      context.abortReason = 'Action dispatch aborted by signal';
+    } : undefined;
+    
+    if (options?.signal && abortHandler) {
+      options.signal.addEventListener('abort', abortHandler);
+    }
+    
     try {
       await this.executePipeline(context);
     } catch (error) {
@@ -438,6 +490,11 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         error: executionError,
         timestamp: Date.now(),
       });
+    } finally {
+      // Clean up abort listener
+      if (options?.signal && abortHandler) {
+        options.signal.removeEventListener('abort', abortHandler);
+      }
     }
 
     const endTime = Date.now();

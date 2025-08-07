@@ -11,6 +11,8 @@ export type {
   UnregisterFunction,
   ActionDispatcher,
   ExecutionMode,
+  DispatchOptions,
+  ExecutionResult,
 } from './types.js';
 
 export { ActionGuard } from './action-guard.js';
