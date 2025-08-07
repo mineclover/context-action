@@ -10,9 +10,9 @@ import CoreFeaturesPage from './pages/core/CoreFeatures';
 import StoreBasicsPage from './pages/store/StoreBasicsPage';
 import StoreFullDemoPage from './pages/store/StoreFullDemoPage';
 import StoreImmutabilityTestPage from './pages/store/StoreImmutabilityTestPage';
-// import ReactProviderPage from './pages/react/ReactProviderPage';
-// import ReactContextPage from './pages/react/ReactContextPage';
-// import ReactHooksPage from './pages/react/ReactHooksPage';
+import ReactProviderPage from './pages/react/ReactProviderPage';
+import ReactContextPage from './pages/react/ReactContextPage';
+import ReactHooksPage from './pages/react/ReactHooksPage';
 import UseActionWithResultPage from './pages/react/UseActionWithResultPage';
 import LoggerDemoPage from './pages/logger/LoggerDemoPage';
 // import ActionGuardPage from './pages/actionguard/ActionGuardPage';
@@ -54,9 +54,9 @@ function App() {
           <Route path="/store/basics" element={<StoreBasicsPage />} />
           <Route path="/store/full-demo" element={<StoreFullDemoPage />} />
           <Route path="/store/immutability-test" element={<StoreImmutabilityTestPage />} />
-          {/* <Route path="/react/provider" element={<ReactProviderPage />} />
+          <Route path="/react/provider" element={<ReactProviderPage />} />
           <Route path="/react/context" element={<ReactContextPage />} />
-          <Route path="/react/hooks" element={<ReactHooksPage />} /> */}
+          <Route path="/react/hooks" element={<ReactHooksPage />} />
           <Route path="/react/useActionWithResult" element={<UseActionWithResultPage />} />
           <Route path="/logger/demo" element={<LoggerDemoPage />} />
           {/* <Route path="/actionguard/demo" element={<ActionGuardPage />} />

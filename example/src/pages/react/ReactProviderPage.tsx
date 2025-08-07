@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import {
   ActionPayloadMap,
   createActionContextPattern,
-  useStoreValueSafe
+  useStoreValue
 } from '@context-action/react';
 import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
 import { Card, CardContent, Badge, Button } from '../../components/ui';
@@ -22,7 +22,7 @@ const ProviderContext = createActionContextPattern<ProviderActions>('ReactProvid
 // 카운터 컴포넌트 - 통합 패턴 사용
 function CounterComponent() {
   const counterStore = ProviderContext.useStore('counter', 0);
-  const count = useStoreValueSafe(counterStore);
+  const count = useStoreValue(counterStore);
   const dispatch = ProviderContext.useAction();
   const { logAction } = useActionLoggerWithToast();
 
@@ -94,7 +94,7 @@ function CounterComponent() {
 // 메시지 컴포넌트 - 통합 패턴 사용
 function MessageComponent() {
   const messageStore = ProviderContext.useStore('message', 'Hello from Provider!');
-  const message = useStoreValueSafe(messageStore);
+  const message = useStoreValue(messageStore);
   const [inputValue, setInputValue] = useState('');
   const dispatch = ProviderContext.useAction();
   const { logAction } = useActionLoggerWithToast();
@@ -165,7 +165,7 @@ function MessageComponent() {
 // 액티비티 로거 컴포넌트 - 통합 패턴 사용
 function ActivityLogger() {
   const activitiesStore = ProviderContext.useStore<string[]>('activities', []);
-  const activities = useStoreValueSafe(activitiesStore);
+  const activities = useStoreValue(activitiesStore);
   const dispatch = ProviderContext.useAction();
   const { logAction } = useActionLoggerWithToast();
   
@@ -257,9 +257,9 @@ function StoreMonitor() {
   const messageStore = ProviderContext.useStore('message', 'Welcome to React Provider Demo');
   const activitiesStore = ProviderContext.useStore<string[]>('activities', []);
   
-  const counter = useStoreValueSafe(counterStore);
-  const message = useStoreValueSafe(messageStore);
-  const activities = useStoreValueSafe(activitiesStore);
+  const counter = useStoreValue(counterStore);
+  const message = useStoreValue(messageStore);
+  const activities = useStoreValue(activitiesStore);
   
   return (
     <Card variant="elevated">
@@ -428,7 +428,7 @@ function ProviderApp() {
                 <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">4</span>
                 <div>
                   <div className="font-medium text-gray-900">Safe Value Access</div>
-                  <div className="text-sm text-gray-600">useStoreValueSafe() for guaranteed type safety</div>
+                  <div className="text-sm text-gray-600">useStoreValue() for guaranteed type safety</div>
                 </div>
               </div>
             </div>
@@ -478,7 +478,7 @@ function App() {
 function MyComponent() {
   // Store management
   const counterStore = ProviderContext.useStore('counter', 0);
-  const count = useStoreValueSafe(counterStore); // Type-safe!
+  const count = useStoreValue(counterStore); // Type-safe!
   
   // Action dispatching
   const dispatch = ProviderContext.useAction();

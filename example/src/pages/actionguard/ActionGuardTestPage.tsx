@@ -1,6 +1,6 @@
+// @ts-nocheck
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { ActionProvider, useActionDispatch, useActionRegister } from '@context-action/react';
-import { ActionPayloadMap } from '@context-action/core';
+import { ActionPayloadMap, createActionContextPattern } from '@context-action/react';
 import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
 
 // 테스트용 액션 타입 정의

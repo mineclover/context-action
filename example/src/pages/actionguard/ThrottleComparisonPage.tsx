@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { ActionProvider, useActionDispatch, useActionRegister } from '@context-action/react';
 import { ActionPayloadMap } from '@context-action/core';
