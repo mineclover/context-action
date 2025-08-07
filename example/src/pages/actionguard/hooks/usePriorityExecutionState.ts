@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { Store, useStoreValue } from '@context-action/react';
 
 // 실행 상태 관리를 위한 타입 정의
@@ -34,6 +34,8 @@ export function usePriorityExecutionState(
   executionStateStore: Store<ExecutionStateData>,
   executionActionRegister?: any
 ) {
+  // AbortController 관리 (실행 중 중단용)
+  const abortControllerRef = useRef<AbortController | null>(null);
   // Store 기반 상태 사용 (필수)
   const executionState = useStoreValue(executionStateStore);
 
@@ -127,9 +129,16 @@ export function usePriorityExecutionState(
     addTestResult(`📊 핸들러 ${handlerId} 실행시간: ${executionTime}ms 기록`, 'info');
   }, [calculateStats, updateStore, dispatchAction, addTestResult]);
 
-  // 액션핸들러 내장 abort 기능 사용
+
+
+  // AbortController 기반 abort 기능 사용
   const abortExecution = useCallback((reason: string = '사용자 요청') => {
     const currentState = executionStateStore.getValue();
+    
+    // AbortController가 있으면 abort 신호 전송
+    if (abortControllerRef.current && !abortControllerRef.current.signal.aborted) {
+      abortControllerRef.current.abort();
+    }
     
     updateStore({
       isRunning: false,
@@ -137,33 +146,11 @@ export function usePriorityExecutionState(
       currentTestId: null
     });
     
-    // executionActionRegister의 내장 abort 기능 사용
-    if (executionActionRegister) {
-      executionActionRegister.abort(reason);
-    }
-    
     dispatchAction('abortAllTests', { reason });
     addTestResult(`⛔ 테스트 중단: ${reason}`, 'warning');
-  }, [executionStateStore, updateStore, executionActionRegister, dispatchAction, addTestResult]);
-
-  const startNewTest = useCallback(() => {
-    const currentState = executionStateStore.getValue();
-    const testId = `test-${Date.now()}`;
-    const startTime = Date.now();
-    
-    updateStore({
-      isRunning: true,
-      currentTestId: testId,
-      totalTests: currentState.totalTests + 1,
-      startTime,
-      testResults: [] // 새 테스트 시작시 결과 초기화
-    });
-    
-    dispatchAction('startTest', { testId });
-    addTestResult(`🚀 새 테스트 시작 (ID: ${testId})`, 'info');
-    
-    return testId;
   }, [executionStateStore, updateStore, dispatchAction, addTestResult]);
+
+
 
   const completeTest = useCallback((success: boolean = true, executionTime?: number) => {
     const currentState = executionStateStore.getValue();
@@ -222,7 +209,6 @@ export function usePriorityExecutionState(
     addTestResult,
     clearTestResults,
     abortExecution,
-    startNewTest,
     completeTest,
     
     // 개별 핸들러 시간 관리
@@ -235,6 +221,17 @@ export function usePriorityExecutionState(
     
     // Store 및 Action 접근
     updateStore,
-    dispatchAction
+    dispatchAction,
+    
+    // AbortController 직접 접근 (고급 사용자용)
+    getCurrentAbortController: () => abortControllerRef.current,
+    
+    // 핸들러에서 전체 파이프라인 abort 트리거
+    triggerPipelineAbort: useCallback((reason: string = '핸들러에서 요청') => {
+      if (abortControllerRef.current && !abortControllerRef.current.signal.aborted) {
+        abortControllerRef.current.abort();
+        addTestResult(`🔴 파이프라인 중단: ${reason}`, 'error');
+      }
+    }, [addTestResult])
   };
 }
