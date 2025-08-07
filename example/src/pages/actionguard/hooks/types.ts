@@ -54,7 +54,7 @@ export interface PriorityTestActions {
   unregisterAllHandlers: () => void;
   
   // 테스트 실행
-  executeTest: (delay?: number) => Promise<void>;
+  executeTest: () => Promise<void>;
   abortTest: () => void;
   initializeTest: () => void;
   

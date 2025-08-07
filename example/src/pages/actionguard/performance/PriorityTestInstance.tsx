@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { createDeclarativeStores, useStoreValue, type StorePayloadMap, type StoreSchema } from '@context-action/react';
 import { usePriorityTestManager, HandlerConfig } from '../hooks';
 import { ExecutionStateData } from '../hooks/usePriorityExecutionState';
@@ -42,7 +42,9 @@ const priorityTestSchema: StoreSchema<PriorityTestStores> = {
       averageExecutionTime: 0,
       lastExecutionTime: 0,
       maxExecutionTime: 0,
-      minExecutionTime: Number.MAX_VALUE
+      minExecutionTime: Number.MAX_VALUE,
+      startTime: 0,
+      executionTimes: []
     },
     description: 'Performance test execution state',
     tags: ['execution', 'performance', 'testing']
@@ -61,6 +63,20 @@ function PriorityTestInstance({ title, instanceId }: { title: string; instanceId
   const executionState = useStoreValue(executionStateStore);
   
   const [configs, setConfigs] = useState<HandlerConfig[]>(DEFAULT_HANDLER_CONFIGS);
+  const [selectedDelay, setSelectedDelay] = useState<0 | 1 | 50>(0); // 0ms, 1ms, 50ms 선택
+
+  // 선택된 딜레이에 따라 기존 핸들러 딜레이 덮어쓰기
+  const overrideExistingDelays = useCallback(() => {
+    setConfigs(prev => prev.map(config => ({
+      ...config,
+      delay: selectedDelay
+    })));
+  }, [selectedDelay]);
+
+  // 딜레이 선택 변경 시 자동으로 기존 핸들러 딜레이 적용
+  useEffect(() => {
+    overrideExistingDelays();
+  }, [selectedDelay, overrideExistingDelays]);
 
   // 모듈화된 우선순위 테스트 매니저 사용 (성능 최적화 + 필수 Store)
   const testManager = usePriorityTestManager(configs, priorityCountsStore, {
@@ -75,7 +91,7 @@ function PriorityTestInstance({ title, instanceId }: { title: string; instanceId
   const runPriorityTest = useCallback(async () => {
     if (testManager.isRunning) return;
     
-    await testManager.executeTest(50); // 성능 테스트용 짧은 지연
+    await testManager.executeTest(); // 각 핸들러는 개별 config.delay 사용
   }, [testManager]);
 
   // 설정 초기화
@@ -105,7 +121,7 @@ function PriorityTestInstance({ title, instanceId }: { title: string; instanceId
         }
         
         const color = colors[priority % colors.length];
-        const delay = Math.floor(Math.random() * 50) + 20; // 20-70ms (성능 테스트용 짧은 지연)
+        const delay = selectedDelay; // 선택된 딜레이 적용: 0ms, 1ms, 또는 50ms
         
         bulkConfigs.push({
           id: `bulk-${priority}`,
@@ -120,7 +136,7 @@ function PriorityTestInstance({ title, instanceId }: { title: string; instanceId
       
       return [...prev, ...bulkConfigs];
     });
-  }, []);
+  }, [selectedDelay]);
 
   return (
     <div className="flex-1 p-4 border border-gray-200 rounded-lg bg-white">
@@ -170,6 +186,30 @@ function PriorityTestInstance({ title, instanceId }: { title: string; instanceId
           <div className="text-xs text-gray-500 flex items-center whitespace-nowrap">
             현재: {configs.length}개 핸들러
           </div>
+        </div>
+
+        {/* 딜레이 설정 버튼 (0ms, 1ms, 50ms) */}
+        <div className="flex items-center gap-2 mb-3 p-2 bg-purple-50 rounded text-xs">
+          <span className="text-gray-600 font-medium">딜레이:</span>
+          <div className="flex gap-1">
+            {[0, 1, 50].map((delay) => (
+              <button
+                key={delay}
+                onClick={() => setSelectedDelay(delay as 0 | 1 | 50)}
+                disabled={testManager.isRunning}
+                className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+                  selectedDelay === delay
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-white text-purple-600 border border-purple-300 hover:bg-purple-100'
+                }`}
+              >
+                {delay}ms
+              </button>
+            ))}
+          </div>
+          <span className="text-gray-500 ml-auto text-xs">
+            ⚡ 자동: {selectedDelay}ms
+          </span>
         </div>
 
         {/* 핸들러 상태 정보 */}
