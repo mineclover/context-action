@@ -48,11 +48,31 @@ function PriorityTest() {
     minExecutionTime: testManager.minExecutionTime
   };
 
-  // 테스트 실행
+  // 🎯 기본 테스트 실행
   const runPriorityTest = useCallback(async () => {
     if (testManager.isRunning) return;
     
     await testManager.executeTest(); // 각 핸들러는 개별 config.delay 사용
+  }, [testManager]);
+
+  // 🎯 컨테이너 객체로 controller 받는 방식 예시
+  const runTestWithContainer = useCallback(async () => {
+    if (testManager.isRunning) return;
+    
+    const controllerContainer: { controller?: AbortController } = {};
+    
+    try {
+      // 테스트 실행하면서 컨테이너 객체에 controller 받기
+      await testManager.executeTest(controllerContainer);
+      
+      // 이제 controllerContainer.controller로 직접 접근 가능!
+      if (controllerContainer.controller) {
+        console.log('🎯 컨테이너로 받은 AbortController:', controllerContainer.controller);
+        console.log('🎯 중단 상태:', controllerContainer.controller.signal.aborted);
+      }
+    } catch (error) {
+      console.error('테스트 실행 실패:', error);
+    }
   }, [testManager]);
 
   // 설정 초기화
@@ -135,9 +155,36 @@ function PriorityTest() {
     });
   }, [selectedDelay, bulkDelayValue]);
 
-  // 실행 중단
+  // 실행 중단 (기본)
   const abortExecution = useCallback(() => {
     testManager.abortTest();
+  }, [testManager]);
+
+  // 고급 abort 기능들 - 외부에서 abort 사용 예시
+  const triggerCustomAbort = useCallback(() => {
+    testManager.triggerPipelineAbort('사용자 정의 중단 요청');
+  }, [testManager]);
+
+  const getAbortControllerInfo = useCallback(() => {
+    const controller = testManager.getCurrentAbortController();
+    if (controller) {
+      console.log('🔍 AbortController 정보:', {
+        aborted: controller.signal.aborted,
+        signalExists: !!controller.signal
+      });
+    } else {
+      console.log('🔍 현재 활성화된 AbortController가 없습니다.');
+    }
+  }, [testManager]);
+
+  const manualAbortWithController = useCallback(() => {
+    const controller = testManager.getCurrentAbortController();
+    if (controller && !controller.signal.aborted) {
+      controller.abort(); // 직접 AbortController.abort() 호출
+      console.log('🔴 AbortController.abort()를 직접 호출했습니다!');
+    } else {
+      console.log('🔴 사용 가능한 AbortController가 없습니다.');
+    }
   }, [testManager]);
 
   // 설정 제거
@@ -224,6 +271,43 @@ function PriorityTest() {
             >
               📦 일괄 추가 (1-300)
             </button>
+            <button 
+              onClick={runTestWithContainer}
+              disabled={testManager.isRunning}
+              className="btn btn-primary"
+            >
+              🎯 컨테이너 방식 테스트
+            </button>
+          </div>
+        </div>
+
+        {/* 고급 외부 Abort 기능 섹션 */}
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <h4 className="text-sm font-semibold text-blue-800 mb-2">🔧 고급 외부 Abort 제어</h4>
+          <div className="flex gap-2 mb-2">
+            <button 
+              onClick={triggerCustomAbort} 
+              disabled={!testManager.isRunning}
+              className="btn btn-warning text-xs px-2 py-1"
+            >
+              🎯 커스텀 중단
+            </button>
+            <button 
+              onClick={getAbortControllerInfo} 
+              className="btn btn-info text-xs px-2 py-1"
+            >
+              ℹ️ Controller 정보
+            </button>
+            <button 
+              onClick={manualAbortWithController} 
+              disabled={!testManager.isRunning}
+              className="btn btn-danger text-xs px-2 py-1"
+            >
+              🔴 직접 Abort
+            </button>
+          </div>
+          <div className="text-xs text-blue-600">
+            💡 외부에서 AbortController에 직접 접근하고 제어하는 예시
           </div>
         </div>
 

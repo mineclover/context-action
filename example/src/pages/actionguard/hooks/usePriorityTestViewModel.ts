@@ -26,6 +26,9 @@ export function usePriorityTestViewModel(dependencies: ViewModelDependencies): P
   // 간소화된 상태 관리
   const unregisterFunctionsRef = useRef<Map<string, UnregisterFunction>>(new Map());
   const [registeredHandlers, setRegisteredHandlers] = useState<Set<string>>(new Set());
+  
+  // AbortController 관리
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // configs 해시값 계산 (최적화)
   const configsHash = useMemo(() => {
@@ -177,7 +180,7 @@ export function usePriorityTestViewModel(dependencies: ViewModelDependencies): P
   }, []); // 의존성 제거 - 클로저를 통해 최신 값 사용
 
   // 테스트 실행
-  const executeTest = useCallback(async () => {
+  const executeTest = useCallback(async (controllerContainer?: { controller?: AbortController }) => {
     if (executionState.isRunning) {
       if (enableConsoleLog) {
         console.log('⚠️ [WARNING] Test already running, ignoring new execution request');
@@ -186,16 +189,31 @@ export function usePriorityTestViewModel(dependencies: ViewModelDependencies): P
     }
 
     initializeTest();
-    const testId = executionState.startNewTest();
-
+    
     try {
       // 로그 출력
       if (enableConsoleLog) {
         executionState.addTestResult(`[0ms] 🚀 우선순위 테스트 시작 (총 ${configs.length}개 핸들러)`);
       }
 
-      // 액션 디스패치 (각 핸들러는 개별 config.delay 사용)
-      await dispatch('priorityTest', { testId, delay: 0 }, { executionMode: 'sequential' });
+      // 액션 디스패치 (core의 autoAbort 기능 사용)
+      await dispatch('priorityTest', { testId: `test-${Date.now()}`, delay: 0 }, { 
+        executionMode: 'sequential',
+        autoAbort: {
+          enabled: true,
+          onControllerCreated: (controller: AbortController) => {
+            // 🎯 외부에서 제공한 컨테이너 객체에 controller 저장 (선택적)
+            if (controllerContainer) {
+              controllerContainer.controller = controller;
+            }
+            // AbortController를 내부 ref에 저장
+            abortControllerRef.current = controller;
+          },
+          allowHandlerAbort: true
+        }
+      });
+      
+      // 💡 이제 외부에서 controllerContainer.controller로 직접 접근 가능!
 
       // 완료 로그
       if (enableConsoleLog) {
@@ -263,15 +281,55 @@ export function usePriorityTestViewModel(dependencies: ViewModelDependencies): P
           executionState.addTestResult(`[${timestamp}ms] 🟡 ${config.label} 시작 (지연: ${config.delay}ms, 핸들러ID: ${uniqueHandlerId}, 현재카운트: ${currentCount})`);
         }
 
+        // 📘 고급 사용법: 핸들러에서 전체 파이프라인 abort 트리거 가능
+        // 예시: Ultra High(300) 핸들러에서 조건부 abort 데모
+        if (config.priority === 300 && currentCount > 1) {
+          // Ultra High 핸들러가 2번째 실행될 때 전체 파이프라인 중단
+          executionState.triggerPipelineAbort(`${config.label}에서 조건부 중단 (카운트: ${currentCount})`);
+          return;
+        }
+        
+        // 또 다른 예시: 특정 핸들러에서 4번째 실행 시 abort
+        if (config.label.includes('Lowest') && currentCount >= 4) {
+          executionState.triggerPipelineAbort(`${config.label}에서 최대 실행 횟수 초과 중단`);
+          return;
+        }
+
         try {
-          // 액션핸들러 내장 abort 기능이 자동으로 처리
+          // Abort 신호 체크 (시작 시점)
+          if (controller.aborted) {
+            const abortTimestamp = Date.now() - executionState.startTime;
+            if (enableConsoleLog) {
+              executionState.addTestResult(`[${abortTimestamp}ms] ⛔ ${config.label} 중단됨 (abort 신호)`);
+            }
+            return;
+          }
 
           // 성능 최적화: 0ms는 바로 실행, 그 외에만 setTimeout 사용
           if (config.delay > 0) {
-            await new Promise(resolve => setTimeout(resolve, config.delay));
+            await new Promise((resolve, reject) => {
+              const timeoutId = setTimeout(resolve, config.delay);
+              
+              // Abort 신호 리스너 추가
+              const onAbort = () => {
+                clearTimeout(timeoutId);
+                reject(new Error('Aborted during delay'));
+              };
+              
+              if (controller.signal) {
+                controller.signal.addEventListener('abort', onAbort, { once: true });
+              }
+            });
           }
           
-          // 액션핸들러가 abort를 자동으로 처리함
+          // Abort 신호 체크 (지연 후)
+          if (controller.aborted) {
+            const abortTimestamp = Date.now() - executionState.startTime;
+            if (enableConsoleLog) {
+              executionState.addTestResult(`[${abortTimestamp}ms] ⛔ ${config.label} 중단됨 (지연 후)`);
+            }
+            return;
+          }
           
           const completionTimestamp = Date.now() - executionState.startTime;
           const actualDelay = completionTimestamp - timestamp;
@@ -305,10 +363,19 @@ export function usePriorityTestViewModel(dependencies: ViewModelDependencies): P
           
         } catch (error) {
           const errorTimestamp = Date.now() - executionState.startTime;
-          if (enableConsoleLog) {
-            executionState.addTestResult(`[${errorTimestamp}ms] ❌ ${config.label} 실패: ${error}`);
+          
+          // Abort 에러와 일반 에러 구분
+          if (error instanceof Error && error.message.includes('Aborted')) {
+            if (enableConsoleLog) {
+              executionState.addTestResult(`[${errorTimestamp}ms] ⛔ ${config.label} 중단됨`);
+            }
+            return; // abort는 정상적인 중단이므로 error로 처리하지 않음
+          } else {
+            if (enableConsoleLog) {
+              executionState.addTestResult(`[${errorTimestamp}ms] ❌ ${config.label} 실패: ${error}`);
+            }
+            controller.abort(`Handler ${config.id} failed: ${error}`);
           }
-          controller.abort(`Handler ${config.id} failed: ${error}`);
         }
       }, {
         id: uniqueHandlerId,
@@ -361,6 +428,10 @@ export function usePriorityTestViewModel(dependencies: ViewModelDependencies): P
     initializeTest,
     getRegisteredCount,
     isHandlerRegistered,
+
+    // 고급 abort 제어 (핸들러/외부에서 파이프라인 abort 가능)
+    getCurrentAbortController: () => abortControllerRef.current,
+    triggerPipelineAbort: executionState.triggerPipelineAbort,
 
     // 호환성을 위한 ActionRegister
     actionRegister

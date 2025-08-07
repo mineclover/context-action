@@ -53,14 +53,18 @@ export interface PriorityTestActions {
   unregisterHandler: (handlerId: string) => void;
   unregisterAllHandlers: () => void;
   
-  // 테스트 실행
-  executeTest: () => Promise<void>;
+  // 테스트 실행 (🎯 컨테이너 객체로 controller 받기 지원)
+  executeTest: (controllerContainer?: { controller?: AbortController }) => Promise<void>;
   abortTest: () => void;
   initializeTest: () => void;
   
   // 상태 조회
   getRegisteredCount: () => number;
   isHandlerRegistered: (handlerId: string) => boolean;
+  
+  // 고급 abort 제어 (dispatch 시점 AbortController + 핸들러에서 파이프라인 abort)
+  getCurrentAbortController: () => AbortController | null;
+  triggerPipelineAbort: (reason?: string) => void;
 }
 
 // 통합 ViewModel 인터페이스

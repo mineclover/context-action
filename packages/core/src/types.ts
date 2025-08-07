@@ -254,6 +254,18 @@ export interface DispatchOptions {
   /** Abort signal for cancelling the dispatch */
   signal?: AbortSignal;
   
+  /** Auto-abort options for automatic AbortController management */
+  autoAbort?: {
+    /** Create and manage AbortController automatically */
+    enabled: boolean;
+    
+    /** Provide access to the created AbortController */
+    onControllerCreated?: (controller: AbortController) => void;
+    
+    /** Enable pipeline abort trigger from handlers */
+    allowHandlerAbort?: boolean;
+  };
+  
   /** Handler filtering options */
   filter?: {
     /** Only execute handlers with these tags */
