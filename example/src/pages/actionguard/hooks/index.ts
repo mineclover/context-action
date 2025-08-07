@@ -1,12 +1,22 @@
-// 우선순위 테스트 관련 훅들
-export { usePriorityTestManager } from './usePriorityTestManagerMVVM'; // MVVM 리팩토링 버전
-export { usePriorityTestManager as usePriorityTestManagerLegacy } from './usePriorityTestManager'; // 기존 버전 (호환성)
-export { usePriorityCountManagement } from './usePriorityCountManagement';
+/**
+ * 우선순위 테스트 시스템 - 최적화된 MVVM 아키텍처
+ */
 
-// MVVM 모델들 (필요한 경우 직접 사용 가능)
-export { usePriorityTestViewModel } from './viewmodels/usePriorityTestViewModel';
-export type { PriorityTestViewModel, PerformanceOptions } from './viewmodels/PriorityTestState';
+// 메인 훅 (권장)
+export { usePriorityTestManager } from './usePriorityTestManagerMVVM';
+
+// 하위 레벨 훅들 (고급 사용자용)
+export { usePriorityTestViewModel } from './usePriorityTestViewModel';
+export { usePriorityCountManagement } from './usePriorityCountManagement';
 export { usePriorityExecutionState } from './usePriorityExecutionState';
 
-// 타입 정의들
-export type { HandlerConfig, ExecutionState } from './usePriorityActionHandlers';
+// 타입 정의들 (중앙화)
+export type { 
+  HandlerConfig, 
+  ExecutionState, 
+  PerformanceOptions,
+  PriorityTestState,
+  PriorityTestActions,
+  PriorityTestViewModel,
+  ViewModelDependencies
+} from './types';
