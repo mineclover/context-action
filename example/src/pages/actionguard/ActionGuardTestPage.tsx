@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { ActionPayloadMap, createActionContextPattern } from '@context-action/react';
 import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
@@ -16,6 +15,9 @@ interface ActionGuardTestActions extends ActionPayloadMap {
   priorityTest: { priority: number; message: string };
 }
 
+// Action Context Pattern 생성
+const ActionGuardContext = createActionContextPattern<ActionGuardTestActions>('ActionGuardTest');
+
 // 성능 메트릭 타입
 interface PerformanceMetrics {
   totalDispatches: number;
@@ -27,8 +29,8 @@ interface PerformanceMetrics {
 
 // 메인 테스트 컴포넌트
 function ActionGuardTest() {
-  const dispatch = useActionDispatch<ActionGuardTestActions>();
-  const actionRegister = useActionRegister<ActionGuardTestActions>();
+  const dispatch = ActionGuardContext.useAction();
+  const actionRegister = ActionGuardContext.useActionRegister();
   const actionLogger = useActionLoggerWithToast();
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -787,9 +789,9 @@ function ActionGuardTestPage() {
       title="ActionGuard Testing Suite"
       initialConfig={{ enableToast: true, maxLogs: 200 }}
     >
-      <ActionProvider config={{ name: 'ActionGuardTest' }}>
+      <ActionGuardContext.Provider registryId="action-guard-test">
         <ActionGuardTest />
-      </ActionProvider>
+      </ActionGuardContext.Provider>
     </PageWithLogMonitor>
   );
 }
