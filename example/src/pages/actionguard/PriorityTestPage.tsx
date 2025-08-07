@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { createDeclarativeStores, useStoreValue, type StorePayloadMap, type StoreSchema } from '@context-action/react';
 import { PageWithLogMonitor } from '../../components/LogMonitor/';
 import { usePriorityTestManager, HandlerConfig } from './hooks';
+import { ExecutionStateData } from './hooks/usePriorityExecutionState';
 import { ActionTestProvider } from './context/ActionTestContext';
 import styles from './PriorityTestPage.module.css';
 
@@ -21,6 +22,7 @@ const DEFAULT_HANDLER_CONFIGS: HandlerConfig[] = [
 // Priority Test Declarative Store Pattern 정의
 interface PriorityTestStores extends StorePayloadMap {
   priorityCounts: Record<number, number>;
+  executionState: ExecutionStateData;
 }
 
 const priorityTestSchema: StoreSchema<PriorityTestStores> = {
@@ -28,6 +30,23 @@ const priorityTestSchema: StoreSchema<PriorityTestStores> = {
     initialValue: {},
     description: 'Priority execution counts',
     tags: ['priority', 'testing']
+  },
+  executionState: {
+    initialValue: {
+      isRunning: false,
+      testResults: [],
+      currentTestId: null,
+      totalTests: 0,
+      successfulTests: 0,
+      failedTests: 0,
+      abortedTests: 0,
+      averageExecutionTime: 0,
+      lastExecutionTime: 0,
+      maxExecutionTime: 0,
+      minExecutionTime: Number.MAX_VALUE
+    },
+    description: 'Test execution state and statistics',
+    tags: ['execution', 'statistics', 'testing']
   }
 };
 
@@ -35,15 +54,23 @@ const PriorityStores = createDeclarativeStores('PriorityTest', priorityTestSchem
 
 // 메인 테스트 컴포넌트
 function PriorityTest() {
-  // Declarative Store Pattern을 사용한 상태 관리
+  // Declarative Store Pattern을 사용한 풍부한 상태 관리
   const priorityCountsStore = PriorityStores.useStore('priorityCounts'); // 자동 타입 추론: Store<Record<number, number>>
+  const executionStateStore = PriorityStores.useStore('executionState'); // 자동 타입 추론: Store<ExecutionStateData>
+  
   const priorityCounts = useStoreValue(priorityCountsStore);
+  const executionState = useStoreValue(executionStateStore);
   
   const [configs, setConfigs] = useState<HandlerConfig[]>(DEFAULT_HANDLER_CONFIGS);
   const [bulkDelayValue, setBulkDelayValue] = useState<number>(100);
 
-  // 모듈화된 우선순위 테스트 매니저 사용
-  const testManager = usePriorityTestManager(configs, priorityCountsStore);
+  // 모듈화된 우선순위 테스트 매니저 사용 (필수 Store 전달)
+  const testManager = usePriorityTestManager(configs, priorityCountsStore, {
+    executionStateStore,
+    executionActionRegister: undefined, // 필요시 ActionRegister 전달
+    enableToast: true,
+    enableConsoleLog: true
+  });
 
   // 테스트 실행
   const runPriorityTest = useCallback(async () => {
@@ -262,18 +289,61 @@ function PriorityTest() {
           </div>
         </div>
         
-        {/* 진행률 표시 */}
-        {testManager.isRunning && (
-          <div className="mt-4">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm text-gray-600">실행 통계</span>
-              <span className="text-sm font-medium">총 실행: {testManager.getTotalExecutionCount()}회</span>
+        {/* 실행 통계 표시 */}
+        <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-semibold text-gray-700">📊 실행 통계</span>
+            <span className="text-sm font-medium text-indigo-600">
+              테스트 ID: {executionState.currentTestId || 'None'}
+            </span>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+            <div className="bg-white p-2 rounded shadow-sm">
+              <div className="text-green-600 font-semibold">✅ 성공</div>
+              <div className="text-lg font-bold text-green-700">{executionState.successfulTests}</div>
             </div>
-            <div className="text-xs text-gray-500">
-              등록된 핸들러: {testManager.getRegisteredCount()}개
+            <div className="bg-white p-2 rounded shadow-sm">
+              <div className="text-red-600 font-semibold">❌ 실패</div>
+              <div className="text-lg font-bold text-red-700">{executionState.failedTests}</div>
+            </div>
+            <div className="bg-white p-2 rounded shadow-sm">
+              <div className="text-orange-600 font-semibold">⛔ 중단</div>
+              <div className="text-lg font-bold text-orange-700">{executionState.abortedTests}</div>
+            </div>
+            <div className="bg-white p-2 rounded shadow-sm">
+              <div className="text-blue-600 font-semibold">📈 총 테스트</div>
+              <div className="text-lg font-bold text-blue-700">{executionState.totalTests}</div>
             </div>
           </div>
-        )}
+          
+          {executionState.totalTests > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3 text-xs">
+              <div className="bg-white p-2 rounded shadow-sm">
+                <div className="text-purple-600 font-semibold">⚡ 평균 시간</div>
+                <div className="text-lg font-bold text-purple-700">{executionState.averageExecutionTime}ms</div>
+              </div>
+              <div className="bg-white p-2 rounded shadow-sm">
+                <div className="text-teal-600 font-semibold">🚀 최대 시간</div>
+                <div className="text-lg font-bold text-teal-700">{executionState.maxExecutionTime}ms</div>
+              </div>
+              <div className="bg-white p-2 rounded shadow-sm">
+                <div className="text-cyan-600 font-semibold">⚡ 최소 시간</div>
+                <div className="text-lg font-bold text-cyan-700">
+                  {executionState.minExecutionTime === Number.MAX_VALUE ? 0 : executionState.minExecutionTime}ms
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div className="mt-2 text-xs text-gray-600">
+            등록된 핸들러: {testManager.getRegisteredCount()}개 | 
+            카운팅 총합: {testManager.getTotalExecutionCount()}회
+            {executionState.totalTests > 0 && (
+              <> | 성공률: {((executionState.successfulTests / executionState.totalTests) * 100).toFixed(1)}%</>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* 우선순위별 실행 카운트 시각화 */}

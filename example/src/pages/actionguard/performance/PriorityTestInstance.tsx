@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { createDeclarativeStores, useStoreValue, type StorePayloadMap, type StoreSchema } from '@context-action/react';
 import { usePriorityTestManager, HandlerConfig } from '../hooks';
+import { ExecutionStateData } from '../hooks/usePriorityExecutionState';
 import { ActionTestProvider } from '../context/ActionTestContext';
 import styles from './PriorityTestInstance.module.css';
 
@@ -20,6 +21,7 @@ const DEFAULT_HANDLER_CONFIGS: HandlerConfig[] = [
 // Priority Test Declarative Store Pattern 정의
 interface PriorityTestStores extends StorePayloadMap {
   priorityCounts: Record<number, number>;
+  executionState: ExecutionStateData;
 }
 
 const priorityTestSchema: StoreSchema<PriorityTestStores> = {
@@ -27,6 +29,23 @@ const priorityTestSchema: StoreSchema<PriorityTestStores> = {
     initialValue: {},
     description: 'Priority execution counts',
     tags: ['priority', 'performance-testing']
+  },
+  executionState: {
+    initialValue: {
+      isRunning: false,
+      testResults: [],
+      currentTestId: null,
+      totalTests: 0,
+      successfulTests: 0,
+      failedTests: 0,
+      abortedTests: 0,
+      averageExecutionTime: 0,
+      lastExecutionTime: 0,
+      maxExecutionTime: 0,
+      minExecutionTime: Number.MAX_VALUE
+    },
+    description: 'Performance test execution state',
+    tags: ['execution', 'performance', 'testing']
   }
 };
 
@@ -34,14 +53,19 @@ const PriorityStores = createDeclarativeStores('PriorityTestPerf', priorityTestS
 
 // 성능 테스트용 컴포넌트 (간소화된 버전)
 function PriorityTestInstance({ title, instanceId }: { title: string; instanceId?: string }) {
-  // Declarative Store Pattern을 사용한 상태 관리
+  // Declarative Store Pattern을 사용한 풍부한 상태 관리
   const priorityCountsStore = PriorityStores.useStore('priorityCounts');
+  const executionStateStore = PriorityStores.useStore('executionState');
+  
   const priorityCounts = useStoreValue(priorityCountsStore);
+  const executionState = useStoreValue(executionStateStore);
   
   const [configs, setConfigs] = useState<HandlerConfig[]>(DEFAULT_HANDLER_CONFIGS);
 
-  // 모듈화된 우선순위 테스트 매니저 사용 (성능 최적화)
+  // 모듈화된 우선순위 테스트 매니저 사용 (성능 최적화 + 필수 Store)
   const testManager = usePriorityTestManager(configs, priorityCountsStore, {
+    executionStateStore,
+    executionActionRegister: undefined,
     enableToast: false, // 토스트 비활성화
     enableConsoleLog: false, // 콘솔 로그 비활성화
     performanceMode: true // 성능 모드 활성화
@@ -167,7 +191,7 @@ function PriorityTestInstance({ title, instanceId }: { title: string; instanceId
       {/* 성능 메트릭 */}
       <div className="mb-4">
         <h4 className="font-medium text-gray-700 mb-2 text-sm">📊 성능 메트릭</h4>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           <div className="p-2 bg-blue-50 rounded text-center">
             <div className="text-xs text-blue-700 whitespace-nowrap">총 실행</div>
             <div className="text-lg font-bold text-blue-900">
@@ -178,6 +202,20 @@ function PriorityTestInstance({ title, instanceId }: { title: string; instanceId
             <div className="text-xs text-green-700 whitespace-nowrap">상태</div>
             <div className="text-sm font-semibold text-green-900 whitespace-nowrap">
               {testManager.isRunning ? '실행 중' : '대기 중'}
+            </div>
+          </div>
+          <div className="p-2 bg-purple-50 rounded text-center">
+            <div className="text-xs text-purple-700 whitespace-nowrap">성공률</div>
+            <div className="text-sm font-bold text-purple-900">
+              {executionState.totalTests > 0 
+                ? `${((executionState.successfulTests / executionState.totalTests) * 100).toFixed(1)}%` 
+                : '0%'}
+            </div>
+          </div>
+          <div className="p-2 bg-orange-50 rounded text-center">
+            <div className="text-xs text-orange-700 whitespace-nowrap">평균 시간</div>
+            <div className="text-sm font-bold text-orange-900">
+              {executionState.averageExecutionTime}ms
             </div>
           </div>
         </div>
