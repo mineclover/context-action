@@ -1,7 +1,5 @@
-// @ts-nocheck
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { ActionProvider, useActionDispatch, useActionRegister } from '@context-action/react';
-import { ActionPayloadMap } from '@context-action/core';
+import { ActionPayloadMap, createActionContextPattern } from '@context-action/react';
 import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
 import { DemoCard, Button } from '../../components/ui';
 
@@ -10,6 +8,9 @@ interface ThrottleTestActions extends ActionPayloadMap {
   manualThrottle: { value: string; timestamp: number };
   internalThrottle: { value: string; timestamp: number };
 }
+
+// Action Context Pattern 생성
+const ThrottleContext = createActionContextPattern<ThrottleTestActions>('ThrottleComparison');
 
 // 수동 throttle 훅 (ActionGuardPage에서 가져온 것)
 function useThrottle<T extends any[]>(callback: (...args: T) => void, delay: number) {
@@ -45,8 +46,8 @@ interface ThrottleMetrics {
 }
 
 function ThrottleComparisonTest() {
-  const dispatch = useActionDispatch<ThrottleTestActions>();
-  const actionRegister = useActionRegister<ThrottleTestActions>();
+  const dispatch = ThrottleContext.useAction();
+  const actionRegister = ThrottleContext.useActionRegister();
   const { logAction, logSystem } = useActionLoggerWithToast();
   
   // ActionRegister가 초기화되지 않은 경우 처리
@@ -640,9 +641,9 @@ function ThrottleComparisonPage() {
       title="Throttle Implementation Comparison"
       initialConfig={{ enableToast: true, maxLogs: 150 }}
     >
-      <ActionProvider config={{ name: 'ThrottleComparison' }}>
+      <ThrottleContext.Provider registryId="throttle-comparison">
         <ThrottleComparisonTest />
-      </ActionProvider>
+      </ThrottleContext.Provider>
     </PageWithLogMonitor>
   );
 }
