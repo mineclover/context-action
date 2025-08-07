@@ -1,55 +1,107 @@
 /**
- * Example component demonstrating automatic action abortion on unmount
- * and search cancellation patterns using the enhanced ActionProvider
+ * Enhanced Abortable Search Example
+ * 
+ * Comprehensive demonstration of abort functionality, search patterns, and
+ * advanced action management scenarios.
  * 
  * Features:
- * - Automatic abort on component unmount via createActionContext factory
- * - Search cancellation with resetAbortScope
- * - Built-in abort support in all hooks
- * - Type-safe action context with factory pattern
+ * - Multiple abort scenarios and strategies
+ * - Search cancellation and debouncing
+ * - Manual and automatic abort controls
+ * - Real-time abort status monitoring
+ * - Complex search workflows
+ * - Performance optimization patterns
  * 
  * Usage:
  * ```tsx
- * // Wrap your component tree with the Provider
- * function App() {
- *   return (
- *     <ActionProvider>
- *       <AbortableSearchExample />
- *     </ActionProvider>
- *   );
- * }
+ * <ActionProvider>
+ *   <AbortableSearchExample />
+ * </ActionProvider>
  * ```
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createActionContext } from '@context-action/react';
 import type { AppActions } from '../types/actions.js';
+import { Button } from './ui/Button';
+import { Card } from './ui/Card';
+import { Status } from './ui/Status';
+import { Input } from './ui/Input';
 
-// Create typed action context
+// Create typed action context with enhanced debugging
 const { 
   Provider: ActionProvider, 
   useActionDispatch, 
   useActionDispatchWithResult, 
   useActionRegister 
-} = createActionContext<AppActions>();
+} = createActionContext<AppActions>({
+  name: 'AbortableSearchExample'
+});
 
 interface SearchResult {
   id: string;
   title: string;
   description: string;
+  relevance: number;
+  source: string;
+}
+
+interface SearchMetrics {
+  totalSearches: number;
+  successfulSearches: number;
+  abortedSearches: number;
+  failedSearches: number;
+  averageSearchTime: number;
+  lastSearchTime: number;
+}
+
+interface AbortScenario {
+  id: string;
+  name: string;
+  description: string;
+  active: boolean;
+  result?: string;
 }
 
 export function AbortableSearchExample() {
+  // Search state
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchId, setSearchId] = useState<string | null>(null);
 
-  const { dispatch, dispatchWithResult, resetAbortScope } = useActionDispatchWithResult();
+  // Advanced state
+  const [abortCount, setAbortCount] = useState(0);
+  const [searchMetrics, setSearchMetrics] = useState<SearchMetrics>({
+    totalSearches: 0,
+    successfulSearches: 0,
+    abortedSearches: 0,
+    failedSearches: 0,
+    averageSearchTime: 0,
+    lastSearchTime: 0
+  });
+
+  // Abort scenarios
+  const [abortScenarios, setAbortScenarios] = useState<AbortScenario[]>([
+    { id: 'quick-search', name: 'Quick Search', description: 'Fast search with immediate cancellation', active: false },
+    { id: 'slow-search', name: 'Slow Search', description: 'Slow search to test abort timing', active: false },
+    { id: 'multi-step', name: 'Multi-step Search', description: 'Complex search with multiple phases', active: false },
+    { id: 'cascade-search', name: 'Cascade Search', description: 'Search that triggers other searches', active: false },
+  ]);
+
+  // Refs for tracking
+  const searchStartTime = useRef<number | null>(null);
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const activeSearches = useRef<Set<string>>(new Set());
+
+  const { dispatch, dispatchWithResult, abortAll, resetAbortScope } = useActionDispatchWithResult();
   const register = useActionRegister();
 
   // Register search handler
   useEffect(() => {
+    if (!register) return;
+    
     const unregister = register.register('search', async ({ query }, controller) => {
       // Simulate API call
       const response = await fetch(`/api/search?q=${query}`);
@@ -174,6 +226,8 @@ export function DataFetcherWithCleanup() {
   const register = useActionRegister();
 
   useEffect(() => {
+    if (!register) return;
+    
     // Register data fetch handler
     const unregister = register.register('fetchUserData', async ({ userId }) => {
       const response = await fetch(`/api/users/${userId}`);
