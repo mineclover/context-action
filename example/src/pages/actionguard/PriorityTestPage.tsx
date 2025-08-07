@@ -236,6 +236,31 @@ function PriorityTest() {
             현재 {configs.length}개 핸들러의 지연 시간을 {bulkDelayValue}ms로 일괄 변경
           </span>
         </div>
+
+        {/* 핸들러 관리 컨트롤 */}
+        <div className="flex items-center gap-3 mb-4 p-3 bg-blue-50 rounded-lg">
+          <span className="text-sm font-medium text-gray-700">🎛️ 핸들러 관리:</span>
+          <button
+            onClick={testManager.registerHandlers}
+            disabled={testManager.isRunning}
+            className="btn btn-info text-sm px-3 py-1"
+          >
+            🔄 핸들러 재등록
+          </button>
+          <button
+            onClick={testManager.unregisterAllHandlers}
+            disabled={testManager.isRunning}
+            className="btn btn-warning text-sm px-3 py-1"
+          >
+            🗑️ 모든 핸들러 해제
+          </button>
+          <span className="text-xs text-gray-500">
+            등록된 핸들러: {testManager.registeredHandlers?.size || 0}개
+          </span>
+          <div className="text-xs text-gray-600 max-w-md">
+            핸들러 ID: {Array.from(testManager.registeredHandlers || []).join(', ') || '없음'}
+          </div>
+        </div>
         
         {/* 진행률 표시 */}
         {testManager.isRunning && (
@@ -360,14 +385,24 @@ function PriorityTest() {
                     placeholder="색상"
                     disabled={testManager.isRunning}
                   />
-                  <button
-                    onClick={() => removeConfig(index)}
-                    disabled={testManager.isRunning || configs.length <= 1}
-                    className="btn btn-danger text-xs px-2 py-1"
-                    title="이 우선순위 설정 삭제"
-                  >
-                    🗑️
-                  </button>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => testManager.unregisterHandler(`priority-${config.priority}`)}
+                      disabled={testManager.isRunning || !testManager.registeredHandlers?.has(`priority-${config.priority}`)}
+                      className="btn btn-warning text-xs px-1 py-1"
+                      title="이 핸들러 해제"
+                    >
+                      🚫
+                    </button>
+                    <button
+                      onClick={() => removeConfig(index)}
+                      disabled={testManager.isRunning || configs.length <= 1}
+                      className="btn btn-danger text-xs px-1 py-1"
+                      title="이 우선순위 설정 삭제"
+                    >
+                      🗑️
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="text-xs text-gray-500 mt-1">

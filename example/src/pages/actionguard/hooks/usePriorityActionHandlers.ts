@@ -1,6 +1,6 @@
 import { useEffect, useId } from 'react';
 import { ActionRegister } from '@context-action/react';
-import { TestActions } from '../context/ActionTestContext';
+import type { TestActions } from '../context/ActionTestContext';
 
 // 개별 핸들러 설정 타입
 export interface HandlerConfig {
