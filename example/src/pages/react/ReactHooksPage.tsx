@@ -2,14 +2,9 @@ import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import {
   ActionRegister,
   ActionPayloadMap,
-  ActionProvider,
-  useActionDispatch,
-  useActionRegister,
   createActionContextPattern,
   useStoreValue,
-
 } from '@context-action/react';
-import { StoreProvider } from '../../legacy/StoreProvider';
 import { LogLevel } from '@context-action/logger';
 import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
 
@@ -467,9 +462,7 @@ function ReactHooksPage() {
           </p>
         </header>
 
-        <ActionProvider>
-          <StoreProvider>
-            <HooksStores.Provider registryId="react-hooks-demo">
+        <HooksStores.Provider registryId="react-hooks-demo">
               <ReactHooksSetup />
               
               <div className="space-y-6">
@@ -559,9 +552,7 @@ useEffect(() => {
 }, []);`}
               </pre>
               </div>
-            </HooksStores.Provider>
-          </StoreProvider>
-        </ActionProvider>
+        </HooksStores.Provider>
       </div>
     </PageWithLogMonitor>
   );
