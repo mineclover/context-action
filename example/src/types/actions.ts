@@ -27,4 +27,25 @@ export interface AppActions extends ActionPayloadMap {
   // Form actions
   submitForm: { formId: string; data: Record<string, any> };
   validateField: { fieldName: string; value: any };
+  
+  // === CONCURRENT ACTION TEST ACTIONS ===
+  // Actions for testing simultaneous execution and abort functionality
+  longRunningTaskA: { taskId: string; duration: number };
+  longRunningTaskB: { taskId: string; duration: number };
+  longRunningTaskC: { taskId: string; duration: number };
+  
+  // Data processing actions
+  processDataSet: { dataSetId: string; chunkSize: number };
+  calculateResults: { inputData: number[]; complexity: number };
+  
+  // API simulation actions
+  apiCallPrimary: { endpoint: string; params: Record<string, any> };
+  apiCallSecondary: { endpoint: string; params: Record<string, any> };
+  
+  // Background job actions
+  backgroundJob: { jobId: string; jobType: string; priority: number };
+  
+  // File processing actions
+  uploadFile: { fileId: string; fileName: string; size: number };
+  processFile: { fileId: string; processingType: string };
 }

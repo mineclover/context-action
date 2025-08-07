@@ -44,6 +44,8 @@ function Layout({
     { path: '/actionguard/priority-test', label: '🎯 Priority Test', category: 'actionguard' as const },
     { path: '/actionguard/throttle-comparison', label: '⚖️ Throttle Comparison', category: 'actionguard' as const },
     { path: '/examples/toast-config', label: '🍞 Toast Config Example', category: 'examples' as const },
+    { path: '/examples/concurrent-actions', label: '🔄 Concurrent Actions Test', category: 'examples' as const },
+    { path: '/examples/enhanced-search', label: '🔍 Enhanced Abortable Search', category: 'examples' as const },
   ];
 
   const isActive = (path: string) => location.pathname === path;

@@ -44,9 +44,9 @@ interface CartActions extends ActionPayloadMap {
 // Context 생성
 const {
   Provider: CartProvider,
-  useAction: useCartAction,
+  useActionDispatch: useCartAction,
   useActionHandler: useCartHandler,
-  useActionWithResult: useCartActionWithResult,
+  useActionDispatchWithResult: useCartActionWithResult,
 } = createActionContext<CartActions>({ name: 'CartExample' });
 
 // 스토어 생성
@@ -203,7 +203,7 @@ function UseActionWithResultExample() {
 
   // 훅들
   const dispatch = useCartAction();
-  const dispatchWithResult = useCartActionWithResult();
+  const { dispatchWithResult } = useCartActionWithResult();
   
   // 스토어 구독
   const cartItems = useStoreValue(cartStore);

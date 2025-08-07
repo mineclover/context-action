@@ -62,20 +62,20 @@ export function useStoreValue<T, R>(
   if (selector) {
     return useStoreSelector(store, {
       selector: (snapshot: any) => {
-        if (!snapshot?.value && process.env.NODE_ENV === 'development') {
+        if (!snapshot && process.env.NODE_ENV === 'development') {
           console.warn(
             `useStoreValue: Store snapshot is empty for store "${store.name}". ` +
             'This might indicate an initialization issue.'
           );
         }
-        return snapshot?.value ? selector(snapshot.value) : undefined;
+        return snapshot?.value !== undefined ? selector(snapshot.value) : undefined;
       }
     });
   }
   
   return useStoreSelector(store, {
     selector: (snapshot: any) => {
-      if (!snapshot?.value && process.env.NODE_ENV === 'development') {
+      if (!snapshot && process.env.NODE_ENV === 'development') {
         console.warn(
           `useStoreValue: Store snapshot is empty for store "${store.name}". ` +
           'This might indicate an initialization issue.'
