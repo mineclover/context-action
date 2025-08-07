@@ -42,6 +42,7 @@ function Layout({
     { path: '/actionguard/demo', label: 'Action Guard', category: 'actionguard' as const },
     { path: '/actionguard/test', label: '🧪 Dispatch Options Test', category: 'actionguard' as const },
     { path: '/actionguard/priority-test', label: '🎯 Priority Test', category: 'actionguard' as const },
+    { path: '/actionguard/priority-performance', label: '⚡ Priority Performance', category: 'actionguard' as const },
     { path: '/actionguard/throttle-comparison', label: '⚖️ Throttle Comparison', category: 'actionguard' as const },
     { path: '/examples/toast-config', label: '🍞 Toast Config Example', category: 'examples' as const },
     { path: '/examples/concurrent-actions', label: '🔄 Concurrent Actions Test', category: 'examples' as const },

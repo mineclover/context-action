@@ -1,7 +1,6 @@
 import { useEffect, useId } from 'react';
 import { ActionRegister } from '@context-action/react';
 import { ActionPayloadMap } from '@context-action/core';
-import { useActionLoggerWithToast } from '../../../components/LogMonitor/';
 
 // 테스트용 액션 타입 정의
 interface PriorityTestActions extends ActionPayloadMap {
@@ -39,17 +38,18 @@ export function usePriorityActionHandlers(
     startTimeRef: React.MutableRefObject<number>;
     priorityExecutionCountRef: React.MutableRefObject<Record<number, number>>;
     abortedRef: React.MutableRefObject<boolean>;
+    enableActionLogger?: boolean; // 액션 로거 활성화 여부
   }
 ) {
   const componentId = useId();
-  const actionLogger = useActionLoggerWithToast();
   
   const {
     onTestResultAdd,
     onPriorityCountIncrement,
     startTimeRef,
     priorityExecutionCountRef,
-    abortedRef
+    abortedRef,
+    enableActionLogger = true
   } = options;
 
   // 핸들러 등록 및 정리
@@ -75,11 +75,6 @@ export function usePriorityActionHandlers(
           const timestamp = Date.now() - startTimeRef.current;
           const currentCount = priorityExecutionCountRef.current[config.priority] || 0;
           onTestResultAdd(`[${timestamp}ms] 🟡 ${config.label} 시작 (지연: ${config.delay}ms, 파라미터: ${delay}ms, 핸들러ID: ${uniqueHandlerId}, 현재카운트: ${currentCount})`);
-          
-          // 액션 로깅
-          actionLogger.logAction('priorityTest', { testId, delay }, {
-            context: `Priority Test - ${config.label}`,
-          });
 
           try {
             // 중단 상태 확인
@@ -167,12 +162,12 @@ export function usePriorityActionHandlers(
     actionRegister, 
     configs, 
     componentId, 
-    actionLogger,
     onTestResultAdd,
     onPriorityCountIncrement,
     startTimeRef,
     priorityExecutionCountRef,
-    abortedRef
+    abortedRef,
+    enableActionLogger
   ]);
 
   return {};
