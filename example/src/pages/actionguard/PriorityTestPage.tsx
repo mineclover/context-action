@@ -43,7 +43,9 @@ const priorityTestSchema: StoreSchema<PriorityTestStores> = {
       averageExecutionTime: 0,
       lastExecutionTime: 0,
       maxExecutionTime: 0,
-      minExecutionTime: Number.MAX_VALUE
+      minExecutionTime: Number.MAX_VALUE,
+      startTime: 0,
+      executionTimes: []
     },
     description: 'Test execution state and statistics',
     tags: ['execution', 'statistics', 'testing']
@@ -63,6 +65,7 @@ function PriorityTest() {
   
   const [configs, setConfigs] = useState<HandlerConfig[]>(DEFAULT_HANDLER_CONFIGS);
   const [bulkDelayValue, setBulkDelayValue] = useState<number>(100);
+  const [selectedDelay, setSelectedDelay] = useState<0 | 1 | 50>(0); // 0ms, 1ms, 50ms 선택
 
   // 모듈화된 우선순위 테스트 매니저 사용 (필수 Store 전달)
   const testManager = usePriorityTestManager(configs, priorityCountsStore, {
@@ -76,7 +79,7 @@ function PriorityTest() {
   const runPriorityTest = useCallback(async () => {
     if (testManager.isRunning) return;
     
-    await testManager.executeTest(100); // 기본 지연 100ms (개별 설정은 config.delay 사용)
+    await testManager.executeTest(); // 각 핸들러는 개별 config.delay 사용
   }, [testManager]);
 
   // 설정 초기화
@@ -142,7 +145,7 @@ function PriorityTest() {
         }
         
         const color = colors[priority % colors.length];
-        const delay = Math.floor(Math.random() * 100) + 20; // 20-120ms
+        const delay = selectedDelay; // 선택된 딜레이 적용: 0ms, 1ms, 또는 50ms
         
         bulkConfigs.push({
           id: `bulk-${priority}`,
@@ -157,7 +160,7 @@ function PriorityTest() {
       
       return [...prev, ...bulkConfigs];
     });
-  }, []);
+  }, [selectedDelay, bulkDelayValue]);
 
   // 실행 중단
   const abortExecution = useCallback(() => {
@@ -176,6 +179,19 @@ function PriorityTest() {
       delay: bulkDelayValue
     })));
   }, [bulkDelayValue]);
+
+  // 선택된 딜레이에 따라 기존 핸들러 딜레이 덮어쓰기
+  const overrideExistingDelays = useCallback(() => {
+    setConfigs(prev => prev.map(config => ({
+      ...config,
+      delay: selectedDelay
+    })));
+  }, [selectedDelay]);
+
+  // 딜레이 선택 변경 시 자동으로 기존 핸들러 딜레이 적용
+  useEffect(() => {
+    overrideExistingDelays();
+  }, [selectedDelay, overrideExistingDelays]);
 
 
   return (
@@ -261,6 +277,33 @@ function PriorityTest() {
           </button>
           <span className="text-xs text-gray-500">
             현재 {configs.length}개 핸들러의 지연 시간을 {bulkDelayValue}ms로 일괄 변경
+          </span>
+        </div>
+
+        {/* 딜레이 설정 버튼 (0ms, 1ms, 50ms) */}
+        <div className="flex items-center gap-3 mb-4 p-3 bg-purple-50 rounded-lg">
+          <span className="text-sm font-medium text-gray-700">🎲 딜레이 설정:</span>
+          <div className="flex gap-2">
+            {[0, 1, 50].map((delay) => (
+              <button
+                key={delay}
+                onClick={() => setSelectedDelay(delay as 0 | 1 | 50)}
+                disabled={testManager.isRunning}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  selectedDelay === delay
+                    ? 'bg-purple-600 text-white shadow-md'
+                    : 'bg-white text-purple-600 border border-purple-300 hover:bg-purple-100'
+                }`}
+              >
+                {delay}ms
+              </button>
+            ))}
+          </div>
+          <span className="text-xs text-gray-500">
+            일괄 추가 및 기존 핸들러에 {selectedDelay}ms 딜레이 적용
+          </span>
+          <span className="text-xs text-gray-500 font-medium">
+            ⚡ 자동 적용됨: 모든 핸들러가 {selectedDelay}ms로 설정
           </span>
         </div>
 
@@ -512,7 +555,7 @@ function PriorityTest() {
             <ul className="list-disc list-inside space-y-1 text-sm">
               <li><strong>높은 우선순위 먼저 실행</strong>: Priority 300 → 250 → 200 → 150 → 100 → 50 → 20 → 10 → 1</li>
               <li><strong>개별 핸들러 관리</strong>: 각 핸들러는 고유 ID로 개별 관리됨</li>
-              <li><strong>지연 시간 다양화</strong>: 각 핸들러마다 다른 지연 시간으로 비동기 처리 테스트</li>
+              <li><strong>개별 지연 시간</strong>: 각 핸들러는 고유한 지연 시간(config.delay)으로 비동기 처리</li>
               <li><strong>우선순위 그리드 시각화</strong>: Flex wrap으로 자동 줄바꿈되는 우선순위별 실행 카운트</li>
             </ul>
           </div>
@@ -521,7 +564,7 @@ function PriorityTest() {
             <h4 className="font-semibold mb-2">커스텀 테스트 방법:</h4>
             <ul className="list-disc list-inside space-y-1 text-sm">
               <li>우선순위 값을 변경하여 다양한 조합 테스트</li>
-              <li>지연 시간을 조정하여 비동기 실행 패턴 확인</li>
+              <li><strong>지연 시간 조정</strong>: 각 핸들러의 개별 지연을 조정하여 다양한 비동기 실행 패턴 확인</li>
               <li>개별 핸들러를 추가/제거하여 다양한 시나리오 테스트</li>
               <li><strong>점프 기능</strong>: 점프P(우선순위), 점프#(인덱스) 설정으로 세밀한 점프 제어 (비워두면 점프 없음)</li>
               <li><strong>점프 제한</strong>: 각 핸들러는 최대 4번까지만 점프 가능 (무한루프 방지)</li>

@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback } from 'react';
 import { Store, useStoreValue } from '@context-action/react';
 
 // 실행 상태 관리를 위한 타입 정의
@@ -14,6 +14,8 @@ export interface ExecutionStateData {
   lastExecutionTime: number;
   maxExecutionTime: number;
   minExecutionTime: number;
+  startTime: number;
+  executionTimes: number[];
 }
 
 export interface ExecutionActionPayloads {
@@ -23,6 +25,8 @@ export interface ExecutionActionPayloads {
   clearResults: {};
   resetStats: {};
   updateStats: { executionTime: number };
+  abortAllTests: { reason: string };
+  addHandlerExecutionTime: { handlerId: string; executionTime: number };
 }
 
 // Store 기반 풍부한 실행 상태 관리 훅
@@ -32,11 +36,6 @@ export function usePriorityExecutionState(
 ) {
   // Store 기반 상태 사용 (필수)
   const executionState = useStoreValue(executionStateStore);
-  
-  // 성능을 위한 ref들
-  const startTimeRef = useRef<number>(0);
-  const abortedRef = useRef<boolean>(false);
-  const executionTimes = useRef<number[]>([]);
 
   // Store 업데이트 헬퍼
   const updateStore = useCallback((updates: Partial<ExecutionStateData>) => {
@@ -51,26 +50,32 @@ export function usePriorityExecutionState(
     }
   }, [executionActionRegister]);
 
-  // 통계 계산 헬퍼
+  // 통계 계산 헬퍼 (Store 기반) - 성능 최적화
   const calculateStats = useCallback((newExecutionTime: number) => {
-    executionTimes.current.push(newExecutionTime);
+    const currentState = executionStateStore.getValue();
+    const updatedTimes = [...currentState.executionTimes, newExecutionTime];
     
-    const times = executionTimes.current;
-    const average = times.reduce((sum, time) => sum + time, 0) / times.length;
-    const max = Math.max(...times);
-    const min = Math.min(...times);
+    // 성능 최적화: 점진적 계산
+    const totalTimes = updatedTimes.length;
+    const prevSum = currentState.executionTimes.reduce((sum, time) => sum + time, 0);
+    const newSum = prevSum + newExecutionTime;
+    const average = newSum / totalTimes;
+    
+    // 최대/최소값 점진적 계산
+    const max = Math.max(currentState.maxExecutionTime || 0, newExecutionTime);
+    const min = Math.min(currentState.minExecutionTime === Number.MAX_VALUE ? newExecutionTime : currentState.minExecutionTime, newExecutionTime);
 
     return {
-      averageExecutionTime: Math.round(average),
+      executionTimes: updatedTimes,
+      averageExecutionTime: Math.round(average * 100) / 100, // 소수점 2자리까지 표시
       maxExecutionTime: max,
       minExecutionTime: min,
       lastExecutionTime: newExecutionTime
     };
-  }, []);
+  }, [executionStateStore]);
 
-  // 간소화된 초기화
+  // Store 기반 초기화
   const initializeExecutionStates = useCallback(() => {
-    executionTimes.current = [];
     updateStore({
       testResults: [],
       currentTestId: null,
@@ -81,7 +86,9 @@ export function usePriorityExecutionState(
       averageExecutionTime: 0,
       lastExecutionTime: 0,
       maxExecutionTime: 0,
-      minExecutionTime: Number.MAX_VALUE
+      minExecutionTime: Number.MAX_VALUE,
+      startTime: 0,
+      executionTimes: []
     });
     dispatchAction('resetStats', {});
   }, [updateStore, dispatchAction]);
@@ -91,89 +98,98 @@ export function usePriorityExecutionState(
     message: string, 
     type: 'info' | 'success' | 'warning' | 'error' = 'info'
   ) => {
+    const currentState = executionStateStore.getValue();
     const timestamp = Date.now();
-    const timestampedMessage = `[${timestamp - startTimeRef.current}ms] ${message}`;
+    const timestampedMessage = `[${timestamp - currentState.startTime}ms] ${message}`;
     
     updateStore({
-      testResults: [...executionState.testResults, timestampedMessage]
+      testResults: [...currentState.testResults, timestampedMessage]
     });
     
     dispatchAction('addResult', { message: timestampedMessage, type, timestamp });
-  }, [executionState.testResults, updateStore, dispatchAction]);
+  }, [executionStateStore, updateStore, dispatchAction]);
 
   const clearTestResults = useCallback(() => {
     updateStore({ testResults: [] });
     dispatchAction('clearResults', {});
   }, [updateStore, dispatchAction]);
 
-  // 고급 실행 제어 (executionActionRegister의 내장 abort 사용)
+  // 개별 핸들러 실행 시간 추가
+  const addHandlerExecutionTime = useCallback((handlerId: string, executionTime: number) => {
+    // 개별 핸들러 시간을 executionTimes에 추가하고 통계 재계산
+    const stats = calculateStats(executionTime);
+    
+    updateStore({
+      ...stats
+    });
+    
+    dispatchAction('addHandlerExecutionTime', { handlerId, executionTime });
+    addTestResult(`📊 핸들러 ${handlerId} 실행시간: ${executionTime}ms 기록`, 'info');
+  }, [calculateStats, updateStore, dispatchAction, addTestResult]);
+
+  // 액션핸들러 내장 abort 기능 사용
   const abortExecution = useCallback((reason: string = '사용자 요청') => {
-    const currentTestId = executionState.currentTestId;
+    const currentState = executionStateStore.getValue();
     
     updateStore({
       isRunning: false,
-      abortedTests: executionState.abortedTests + 1,
+      abortedTests: currentState.abortedTests + 1,
       currentTestId: null
     });
-    
-    abortedRef.current = true;
     
     // executionActionRegister의 내장 abort 기능 사용
     if (executionActionRegister) {
       executionActionRegister.abort(reason);
     }
     
+    dispatchAction('abortAllTests', { reason });
     addTestResult(`⛔ 테스트 중단: ${reason}`, 'warning');
-  }, [executionState.currentTestId, executionState.abortedTests, updateStore, executionActionRegister, addTestResult]);
+  }, [executionStateStore, updateStore, executionActionRegister, dispatchAction, addTestResult]);
 
   const startNewTest = useCallback(() => {
+    const currentState = executionStateStore.getValue();
     const testId = `test-${Date.now()}`;
-    startTimeRef.current = Date.now();
+    const startTime = Date.now();
     
     updateStore({
       isRunning: true,
       currentTestId: testId,
-      totalTests: executionState.totalTests + 1
+      totalTests: currentState.totalTests + 1,
+      startTime,
+      testResults: [] // 새 테스트 시작시 결과 초기화
     });
-    
-    abortedRef.current = false;
-    clearTestResults();
     
     dispatchAction('startTest', { testId });
     addTestResult(`🚀 새 테스트 시작 (ID: ${testId})`, 'info');
     
     return testId;
-  }, [executionState.totalTests, updateStore, dispatchAction, clearTestResults, addTestResult]);
+  }, [executionStateStore, updateStore, dispatchAction, addTestResult]);
 
   const completeTest = useCallback((success: boolean = true, executionTime?: number) => {
-    const currentTestId = executionState.currentTestId;
-    const actualExecutionTime = executionTime || (Date.now() - startTimeRef.current);
+    const currentState = executionStateStore.getValue();
+    const actualExecutionTime = executionTime || (Date.now() - currentState.startTime);
     
-    // 통계 계산
-    const stats = calculateStats(actualExecutionTime);
-    
+    // 전체 테스트 완료 시에는 개별 핸들러 시간 통계가 아닌 전체 테스트 상태만 업데이트
     updateStore({
       isRunning: false,
       currentTestId: null,
-      successfulTests: success ? executionState.successfulTests + 1 : executionState.successfulTests,
-      failedTests: success ? executionState.failedTests : executionState.failedTests + 1,
-      ...stats
+      successfulTests: success ? currentState.successfulTests + 1 : currentState.successfulTests,
+      failedTests: success ? currentState.failedTests : currentState.failedTests + 1,
+      lastExecutionTime: actualExecutionTime
     });
     
-    if (currentTestId) {
+    if (currentState.currentTestId) {
       dispatchAction('completeTest', { 
-        testId: currentTestId, 
+        testId: currentState.currentTestId, 
         executionTime: actualExecutionTime, 
         success 
       });
     }
     
-    dispatchAction('updateStats', { executionTime: actualExecutionTime });
-    
     const statusIcon = success ? '✅' : '❌';
     const statusText = success ? '성공' : '실패';
-    addTestResult(`${statusIcon} 테스트 ${statusText} (소요시간: ${actualExecutionTime}ms)`, success ? 'success' : 'error');
-  }, [executionState.currentTestId, executionState.successfulTests, executionState.failedTests, calculateStats, updateStore, dispatchAction, addTestResult]);
+    addTestResult(`${statusIcon} 테스트 ${statusText} (전체 소요시간: ${actualExecutionTime}ms)`, success ? 'success' : 'error');
+  }, [executionStateStore, updateStore, dispatchAction, addTestResult]);
 
   // 고급 조회 함수들
   const getExecutionStats = useCallback(() => {
@@ -198,20 +214,19 @@ export function usePriorityExecutionState(
   }, [executionState.testResults]);
 
   return {
-    // 풍부한 상태
+    // 풍부한 상태 (Store 기반)
     ...executionState,
     
-    // 성능 ref들
-    startTimeRef,
-    abortedRef,
-    
-    // 기본 함수들 (호환성)
+    // 기본 함수들
     initializeExecutionStates,
     addTestResult,
     clearTestResults,
     abortExecution,
     startNewTest,
     completeTest,
+    
+    // 개별 핸들러 시간 관리
+    addHandlerExecutionTime,
     
     // 고급 함수들
     getExecutionStats,

@@ -63,7 +63,7 @@ export function usePriorityTestViewModel(dependencies: ViewModelDependencies): P
           // 우선순위 카운트 증가
           countManagement.incrementPriorityCount(config.priority, config.id);
           
-          const timestamp = Date.now() - executionState.startTimeRef.current;
+          const timestamp = Date.now() - executionState.startTime;
           const currentCount = countManagement.getPriorityCount(config.priority);
           
           if (enableConsoleLog) {
@@ -71,31 +71,18 @@ export function usePriorityTestViewModel(dependencies: ViewModelDependencies): P
           }
 
           try {
-            // 중단 상태 확인
-            if (executionState.abortedRef.current) {
-              const abortTimestamp = Date.now() - executionState.startTimeRef.current;
-              if (enableConsoleLog) {
-                executionState.addTestResult(`[${abortTimestamp}ms] ⛔ ${config.label} 중단됨`);
-              }
-              controller.abort('테스트가 사용자에 의해 중단되었습니다');
-              return;
-            }
+            // 액션핸들러 내장 abort 기능이 자동으로 처리
 
             // 지연 시뮬레이션
             await new Promise(resolve => setTimeout(resolve, config.delay));
             
-            // 지연 후 다시 중단 상태 확인
-            if (executionState.abortedRef.current) {
-              const abortTimestamp = Date.now() - executionState.startTimeRef.current;
-              if (enableConsoleLog) {
-                executionState.addTestResult(`[${abortTimestamp}ms] ⛔ ${config.label} 완료 전 중단됨`);
-              }
-              controller.abort('테스트가 사용자에 의해 중단되었습니다');
-              return;
-            }
+            // 액션핸들러가 abort를 자동으로 처리함
             
-            const completionTimestamp = Date.now() - executionState.startTimeRef.current;
+            const completionTimestamp = Date.now() - executionState.startTime;
             const actualDelay = completionTimestamp - timestamp;
+            
+            // 개별 핸들러 실행 시간을 executionState에 기록
+            executionState.addHandlerExecutionTime(uniqueHandlerId, actualDelay);
             
             if (enableConsoleLog) {
               executionState.addTestResult(`[${completionTimestamp}ms] 🟢 ${config.label} 완료 (실제 소요: ${actualDelay}ms)`);
@@ -104,7 +91,7 @@ export function usePriorityTestViewModel(dependencies: ViewModelDependencies): P
             // Jump 처리 (최대 4번까지만 점프 허용)
             if (config.jumpToPriority !== null && config.jumpToPriority !== undefined) {
               const finalCount = countManagement.getPriorityCount(config.priority);
-              const jumpTimestamp = Date.now() - executionState.startTimeRef.current;
+              const jumpTimestamp = Date.now() - executionState.startTime;
               
               if (finalCount <= 4) {
                 if (enableConsoleLog) {
@@ -122,7 +109,7 @@ export function usePriorityTestViewModel(dependencies: ViewModelDependencies): P
             }
             
           } catch (error) {
-            const errorTimestamp = Date.now() - executionState.startTimeRef.current;
+            const errorTimestamp = Date.now() - executionState.startTime;
             if (enableConsoleLog) {
               executionState.addTestResult(`[${errorTimestamp}ms] ❌ ${config.label} 실패: ${error}`);
             }
@@ -190,7 +177,7 @@ export function usePriorityTestViewModel(dependencies: ViewModelDependencies): P
   }, []); // 의존성 제거 - 클로저를 통해 최신 값 사용
 
   // 테스트 실행
-  const executeTest = useCallback(async (delay: number = 100) => {
+  const executeTest = useCallback(async () => {
     if (executionState.isRunning) {
       if (enableConsoleLog) {
         console.log('⚠️ [WARNING] Test already running, ignoring new execution request');
@@ -207,18 +194,18 @@ export function usePriorityTestViewModel(dependencies: ViewModelDependencies): P
         executionState.addTestResult(`[0ms] 🚀 우선순위 테스트 시작 (총 ${configs.length}개 핸들러)`);
       }
 
-      // 액션 디스패치
-      await dispatch('priorityTest', { testId, delay }, { executionMode: 'sequential' });
+      // 액션 디스패치 (각 핸들러는 개별 config.delay 사용)
+      await dispatch('priorityTest', { testId, delay: 0 }, { executionMode: 'sequential' });
 
       // 완료 로그
       if (enableConsoleLog) {
-        const dispatchCompleteTimestamp = Date.now() - executionState.startTimeRef.current;
+        const dispatchCompleteTimestamp = Date.now() - executionState.startTime;
         executionState.addTestResult(`[${dispatchCompleteTimestamp}ms] 🏁 디스패치 완료`);
         executionState.addTestResult(`[${dispatchCompleteTimestamp}ms] ✅ 모든 핸들러 실행 완료`);
       }
 
     } catch (error) {
-      const errorTimestamp = Date.now() - executionState.startTimeRef.current;
+      const errorTimestamp = Date.now() - executionState.startTime;
       executionState.addTestResult(`[${errorTimestamp}ms] ❌ 테스트 실행 실패: ${error}`);
     } finally {
       executionState.completeTest();
@@ -270,38 +257,27 @@ export function usePriorityTestViewModel(dependencies: ViewModelDependencies): P
         // 우선순위 카운트 증가 후 최신 카운트 받기
         const currentCount = countManagement.incrementPriorityCount(config.priority, config.id);
         
-        const timestamp = Date.now() - executionState.startTimeRef.current;
+        const timestamp = Date.now() - executionState.startTime;
         
         if (enableConsoleLog) {
-          executionState.addTestResult(`[${timestamp}ms] 🟡 ${config.label} 시작 (지연: ${config.delay}ms, 파라미터: ${delay}ms, 핸들러ID: ${uniqueHandlerId}, 현재카운트: ${currentCount})`);
+          executionState.addTestResult(`[${timestamp}ms] 🟡 ${config.label} 시작 (지연: ${config.delay}ms, 핸들러ID: ${uniqueHandlerId}, 현재카운트: ${currentCount})`);
         }
 
         try {
-          // 중단 상태 확인
-          if (executionState.abortedRef.current) {
-            const abortTimestamp = Date.now() - executionState.startTimeRef.current;
-            if (enableConsoleLog) {
-              executionState.addTestResult(`[${abortTimestamp}ms] ⛔ ${config.label} 중단됨`);
-            }
-            controller.abort('테스트가 사용자에 의해 중단되었습니다');
-            return;
-          }
+          // 액션핸들러 내장 abort 기능이 자동으로 처리
 
-          // 지연 시뮬레이션
-          await new Promise(resolve => setTimeout(resolve, config.delay));
-          
-          // 지연 후 다시 중단 상태 확인
-          if (executionState.abortedRef.current) {
-            const abortTimestamp = Date.now() - executionState.startTimeRef.current;
-            if (enableConsoleLog) {
-              executionState.addTestResult(`[${abortTimestamp}ms] ⛔ ${config.label} 완료 전 중단됨`);
-            }
-            controller.abort('테스트가 사용자에 의해 중단되었습니다');
-            return;
+          // 성능 최적화: 0ms는 바로 실행, 그 외에만 setTimeout 사용
+          if (config.delay > 0) {
+            await new Promise(resolve => setTimeout(resolve, config.delay));
           }
           
-          const completionTimestamp = Date.now() - executionState.startTimeRef.current;
+          // 액션핸들러가 abort를 자동으로 처리함
+          
+          const completionTimestamp = Date.now() - executionState.startTime;
           const actualDelay = completionTimestamp - timestamp;
+          
+          // 개별 핸들러 실행 시간을 executionState에 기록
+          executionState.addHandlerExecutionTime(uniqueHandlerId, actualDelay);
           
           if (enableConsoleLog) {
             executionState.addTestResult(`[${completionTimestamp}ms] 🟢 ${config.label} 완료 (실제 소요: ${actualDelay}ms)`);
@@ -310,7 +286,7 @@ export function usePriorityTestViewModel(dependencies: ViewModelDependencies): P
           // Jump 처리
           if (config.jumpToPriority !== null && config.jumpToPriority !== undefined) {
             const finalCount = countManagement.getPriorityCount(config.priority);
-            const jumpTimestamp = Date.now() - executionState.startTimeRef.current;
+            const jumpTimestamp = Date.now() - executionState.startTime;
             
             if (finalCount <= 3) {
               if (enableConsoleLog) {
@@ -328,7 +304,7 @@ export function usePriorityTestViewModel(dependencies: ViewModelDependencies): P
           }
           
         } catch (error) {
-          const errorTimestamp = Date.now() - executionState.startTimeRef.current;
+          const errorTimestamp = Date.now() - executionState.startTime;
           if (enableConsoleLog) {
             executionState.addTestResult(`[${errorTimestamp}ms] ❌ ${config.label} 실패: ${error}`);
           }
@@ -372,7 +348,7 @@ export function usePriorityTestViewModel(dependencies: ViewModelDependencies): P
     // 상태
     registeredHandlers,
     isRunning: executionState.isRunning,
-    aborted: executionState.abortedRef.current,
+    aborted: !executionState.isRunning && executionState.currentTestId === null,
     testResults: executionState.testResults,
     priorityCounts: countManagement.priorityCounts,
 
