@@ -13,7 +13,6 @@ export { usePriorityExecutionState } from './usePriorityExecutionState';
 // 타입 정의들 (중앙화)
 export type { 
   HandlerConfig, 
-  ExecutionState, 
   PerformanceOptions,
   PriorityTestState,
   PriorityTestActions,

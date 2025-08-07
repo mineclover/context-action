@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { createDeclarativeStores, useStoreValue, type StorePayloadMap, type StoreSchema } from '@context-action/react';
 import { PageWithLogMonitor } from '../../components/LogMonitor/';
-import { usePriorityTestManager, HandlerConfig, ExecutionState } from './hooks';
+import { usePriorityTestManager, HandlerConfig } from './hooks';
 import { ActionTestProvider } from './context/ActionTestContext';
 import styles from './PriorityTestPage.module.css';
 
@@ -266,14 +266,11 @@ function PriorityTest() {
         {testManager.isRunning && (
           <div className="mt-4">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm text-gray-600">테스트 진행률</span>
-              <span className="text-sm font-medium">{testManager.completedCount}/{configs.length}</span>
+              <span className="text-sm text-gray-600">실행 통계</span>
+              <span className="text-sm font-medium">총 실행: {testManager.getTotalExecutionCount()}회</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-primary-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${configs.length > 0 ? (testManager.completedCount / configs.length) * 100 : 0}%` }}
-              />
+            <div className="text-xs text-gray-500">
+              등록된 핸들러: {testManager.getRegisteredCount()}개
             </div>
           </div>
         )}
@@ -457,7 +454,8 @@ function PriorityTest() {
               <li>지연 시간을 조정하여 비동기 실행 패턴 확인</li>
               <li>개별 핸들러를 추가/제거하여 다양한 시나리오 테스트</li>
               <li><strong>점프 기능</strong>: 점프P(우선순위), 점프#(인덱스) 설정으로 세밀한 점프 제어 (비워두면 점프 없음)</li>
-              <li><strong>무한루프 주의</strong>: 뒤에서 앞으로 점프하는 설정 시 무한루프 가능성 있음 (🛑 중단 버튼 사용)</li>
+              <li><strong>점프 제한</strong>: 각 핸들러는 최대 4번까지만 점프 가능 (무한루프 방지)</li>
+              <li><strong>무한루프 주의</strong>: 뒤에서 앞으로 점프하는 설정 시 4번 제한 후 자동 중단</li>
               <li>극단적인 값(0, 1000, -100 등)으로 경계 조건 테스트</li>
             </ul>
           </div>
@@ -469,7 +467,8 @@ function PriorityTest() {
               2. 개별 핸들러들이 우선순위 순서대로 실행되는가?<br/>
               3. 지연이 있는 비동기 핸들러도 우선순위가 올바르게 적용되는가?<br/>
               4. <strong>점프 기능</strong>이 제대로 동작하여 지정된 우선순위로 이동하는가?<br/>
-              5. <strong>무한루프 방지</strong>: 뒤에서 앞으로 점프 시 중단 버튼으로 제어 가능한가?
+              5. <strong>점프 제한</strong>: 각 핸들러가 4번 실행 후 자동으로 점프를 중단하는가?<br/>
+              6. <strong>무한루프 방지</strong>: 점프 제한으로 인해 무한루프가 자동 차단되는가?
             </p>
           </div>
         </div>

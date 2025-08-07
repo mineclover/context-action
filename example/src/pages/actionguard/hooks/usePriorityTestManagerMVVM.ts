@@ -23,7 +23,7 @@ export function usePriorityTestManagerMVVM(
 
   // 하위 의존성들 (ViewModel에서 사용)
   const countManagement = usePriorityCountManagement(priorityCountsStore);
-  const executionState = usePriorityExecutionState(configs);
+  const executionState = usePriorityExecutionState();
 
   // ViewModel 사용
   const viewModel = usePriorityTestViewModel({
