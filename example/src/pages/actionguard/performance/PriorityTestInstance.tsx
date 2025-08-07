@@ -147,6 +147,20 @@ function PriorityTestInstance({ title, instanceId }: { title: string; instanceId
             현재: {configs.length}개 핸들러
           </div>
         </div>
+
+        {/* 핸들러 상태 정보 */}
+        <div className="flex gap-2 mb-3 p-2 bg-blue-50 rounded text-xs">
+          <span className="text-gray-600">등록된 핸들러:</span>
+          <span className="font-medium text-blue-800">{testManager.registeredHandlers?.size || 0}개</span>
+          <button
+            onClick={testManager.unregisterAllHandlers}
+            disabled={testManager.isRunning}
+            className="ml-auto btn btn-warning text-xs px-2 py-1"
+            title="모든 핸들러 해제"
+          >
+            🗑️ 해제
+          </button>
+        </div>
         
       </div>
 
