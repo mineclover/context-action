@@ -3,7 +3,7 @@
  */
 
 // 메인 훅 (권장)
-export { usePriorityTestManager } from './usePriorityTestManagerMVVM';
+export { usePriorityTestManager, PriorityTestProvider } from './usePriorityTestManagerMVVM';
 
 // 하위 레벨 훅들 (고급 사용자용)
 export { usePriorityTestViewModel } from './usePriorityTestViewModel';

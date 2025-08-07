@@ -1,8 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
-import { createDeclarativeStores, useStoreValue, type StorePayloadMap, type StoreSchema } from '@context-action/react';
+import { useStoreValue } from '@context-action/react';
 import { PageWithLogMonitor } from '../../components/LogMonitor/';
-import { usePriorityTestManager, HandlerConfig } from './hooks';
-import { ExecutionStateData } from './hooks/usePriorityExecutionState';
+import { usePriorityTestManager, HandlerConfig, PriorityTestProvider } from './hooks';
 import { ActionTestProvider } from './context/ActionTestContext';
 import styles from './PriorityTestPage.module.css';
 
@@ -19,61 +18,35 @@ const DEFAULT_HANDLER_CONFIGS: HandlerConfig[] = [
   { id: 'h9', priority: 20, color: '#7c3aed', label: 'Lowest (20)', delay: 70, jumpToPriority: 260, jumpToIndex: null },
 ];
 
-// Priority Test Declarative Store Pattern 정의
-interface PriorityTestStores extends StorePayloadMap {
-  priorityCounts: Record<number, number>;
-  executionState: ExecutionStateData;
-}
-
-const priorityTestSchema: StoreSchema<PriorityTestStores> = {
-  priorityCounts: {
-    initialValue: {},
-    description: 'Priority execution counts',
-    tags: ['priority', 'testing']
-  },
-  executionState: {
-    initialValue: {
-      isRunning: false,
-      testResults: [],
-      currentTestId: null,
-      totalTests: 0,
-      successfulTests: 0,
-      failedTests: 0,
-      abortedTests: 0,
-      averageExecutionTime: 0,
-      lastExecutionTime: 0,
-      maxExecutionTime: 0,
-      minExecutionTime: Number.MAX_VALUE,
-      startTime: 0,
-      executionTimes: []
-    },
-    description: 'Test execution state and statistics',
-    tags: ['execution', 'statistics', 'testing']
-  }
-};
-
-const PriorityStores = createDeclarativeStores('PriorityTest', priorityTestSchema);
+// Store는 usePriorityTestManager 내부에서 자동 관리됨
 
 // 메인 테스트 컴포넌트
 function PriorityTest() {
-  // Declarative Store Pattern을 사용한 풍부한 상태 관리
-  const priorityCountsStore = PriorityStores.useStore('priorityCounts'); // 자동 타입 추론: Store<Record<number, number>>
-  const executionStateStore = PriorityStores.useStore('executionState'); // 자동 타입 추론: Store<ExecutionStateData>
-  
-  const priorityCounts = useStoreValue(priorityCountsStore);
-  const executionState = useStoreValue(executionStateStore);
-  
   const [configs, setConfigs] = useState<HandlerConfig[]>(DEFAULT_HANDLER_CONFIGS);
   const [bulkDelayValue, setBulkDelayValue] = useState<number>(100);
   const [selectedDelay, setSelectedDelay] = useState<0 | 1 | 50>(0); // 0ms, 1ms, 50ms 선택
 
-  // 모듈화된 우선순위 테스트 매니저 사용 (필수 Store 전달)
-  const testManager = usePriorityTestManager(configs, priorityCountsStore, {
-    executionStateStore,
-    executionActionRegister: undefined, // 필요시 ActionRegister 전달
+  // 간소화된 우선순위 테스트 매니저 사용 (Store는 내부에서 자동 관리)
+  const testManager = usePriorityTestManager(configs, {
     enableToast: true,
     enableConsoleLog: true
   });
+
+  // Store 값들은 testManager를 통해 접근
+  const priorityCounts = testManager.getAllCounts();
+  const executionState = {
+    isRunning: testManager.isRunning,
+    testResults: testManager.testResults,
+    currentTestId: testManager.currentTestId,
+    totalTests: testManager.totalTests,
+    successfulTests: testManager.successfulTests,
+    failedTests: testManager.failedTests,
+    abortedTests: testManager.abortedTests,
+    averageExecutionTime: testManager.averageExecutionTime,
+    lastExecutionTime: testManager.lastExecutionTime,
+    maxExecutionTime: testManager.maxExecutionTime,
+    minExecutionTime: testManager.minExecutionTime
+  };
 
   // 테스트 실행
   const runPriorityTest = useCallback(async () => {
@@ -599,9 +572,9 @@ function PriorityTestPage() {
       initialConfig={{ enableToast: true, maxLogs: 100 }}
     >
       <ActionTestProvider>
-        <PriorityStores.Provider registryId="priority-test">
+        <PriorityTestProvider registryId="priority-test">
           <PriorityTest />
-        </PriorityStores.Provider>
+        </PriorityTestProvider>
       </ActionTestProvider>
     </PageWithLogMonitor>
   );

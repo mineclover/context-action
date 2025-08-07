@@ -1,7 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { createDeclarativeStores, useStoreValue, type StorePayloadMap, type StoreSchema } from '@context-action/react';
-import { usePriorityTestManager, HandlerConfig } from '../hooks';
-import { ExecutionStateData } from '../hooks/usePriorityExecutionState';
+import { usePriorityTestManager, HandlerConfig, PriorityTestProvider } from '../hooks';
 import { ActionTestProvider } from '../context/ActionTestContext';
 import styles from './PriorityTestInstance.module.css';
 
@@ -19,49 +17,10 @@ const DEFAULT_HANDLER_CONFIGS: HandlerConfig[] = [
 ];
 
 // Priority Test Declarative Store Pattern 정의
-interface PriorityTestStores extends StorePayloadMap {
-  priorityCounts: Record<number, number>;
-  executionState: ExecutionStateData;
-}
-
-const priorityTestSchema: StoreSchema<PriorityTestStores> = {
-  priorityCounts: {
-    initialValue: {},
-    description: 'Priority execution counts',
-    tags: ['priority', 'performance-testing']
-  },
-  executionState: {
-    initialValue: {
-      isRunning: false,
-      testResults: [],
-      currentTestId: null,
-      totalTests: 0,
-      successfulTests: 0,
-      failedTests: 0,
-      abortedTests: 0,
-      averageExecutionTime: 0,
-      lastExecutionTime: 0,
-      maxExecutionTime: 0,
-      minExecutionTime: Number.MAX_VALUE,
-      startTime: 0,
-      executionTimes: []
-    },
-    description: 'Performance test execution state',
-    tags: ['execution', 'performance', 'testing']
-  }
-};
-
-const PriorityStores = createDeclarativeStores('PriorityTestPerf', priorityTestSchema);
+// Store는 usePriorityTestManager 내부에서 자동 관리됨
 
 // 성능 테스트용 컴포넌트 (간소화된 버전)
 function PriorityTestInstance({ title, instanceId }: { title: string; instanceId?: string }) {
-  // Declarative Store Pattern을 사용한 풍부한 상태 관리
-  const priorityCountsStore = PriorityStores.useStore('priorityCounts');
-  const executionStateStore = PriorityStores.useStore('executionState');
-  
-  const priorityCounts = useStoreValue(priorityCountsStore);
-  const executionState = useStoreValue(executionStateStore);
-  
   const [configs, setConfigs] = useState<HandlerConfig[]>(DEFAULT_HANDLER_CONFIGS);
   const [selectedDelay, setSelectedDelay] = useState<0 | 1 | 50>(0); // 0ms, 1ms, 50ms 선택
 
@@ -78,14 +37,20 @@ function PriorityTestInstance({ title, instanceId }: { title: string; instanceId
     overrideExistingDelays();
   }, [selectedDelay, overrideExistingDelays]);
 
-  // 모듈화된 우선순위 테스트 매니저 사용 (성능 최적화 + 필수 Store)
-  const testManager = usePriorityTestManager(configs, priorityCountsStore, {
-    executionStateStore,
-    executionActionRegister: undefined,
-    enableToast: false, // 토스트 비활성화
-    enableConsoleLog: false, // 콘솔 로그 비활성화
-    performanceMode: true // 성능 모드 활성화
+  // 간소화된 우선순위 테스트 매니저 사용 (Store는 내부에서 자동 관리)
+  const testManager = usePriorityTestManager(configs, {
+    enableToast: false, // 성능 테스트에서는 토스트 비활성화
+    enableConsoleLog: false // 성능 테스트에서는 콘솔 로그 최소화
   });
+
+  // Store 값들은 testManager를 통해 접근
+  const priorityCounts = testManager.getAllCounts();
+  const executionState = {
+    isRunning: testManager.isRunning,
+    averageExecutionTime: testManager.averageExecutionTime,
+    totalTests: testManager.totalTests,
+    successfulTests: testManager.successfulTests
+  };
 
   // 테스트 실행
   const runPriorityTest = useCallback(async () => {
@@ -364,9 +329,9 @@ function PriorityTestInstance({ title, instanceId }: { title: string; instanceId
 function PriorityTestInstanceWithProvider({ title, instanceId }: { title: string; instanceId?: string }) {
   return (
     <ActionTestProvider>
-      <PriorityStores.Provider registryId="priority-perf">
+      <PriorityTestProvider registryId={`priority-perf-${instanceId || 'default'}`}>
         <PriorityTestInstance title={title} instanceId={instanceId} />
-      </PriorityStores.Provider>
+      </PriorityTestProvider>
     </ActionTestProvider>
   );
 }
