@@ -1,5 +1,5 @@
 import React, { createContext, ReactNode, useContext, useRef, useEffect, useId, useMemo, useCallback } from 'react';
-import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig, ActionRegisterConfig, DispatchOptions, ExecutionResult } from '@context-action/core';
+import {  ActionRegister, ActionHandler, HandlerConfig, ActionRegisterConfig, DispatchOptions, ExecutionResult } from '@context-action/core';
 
 /**
  * @fileoverview createActionContext - Advanced type-safe action context factory
@@ -17,15 +17,15 @@ export interface ActionContextConfig extends ActionRegisterConfig {
 /**
  * Context type for ActionRegister with enhanced type safety and abort support
  */
-export interface ActionContextType<T extends ActionPayloadMap = ActionPayloadMap> {
+export interface ActionContextType<T extends {}> {
   actionRegisterRef: React.RefObject<ActionRegister<T>>;
-  abortControllerRef: React.RefObject<AbortController | null>;
+  // abortControllerRef: React.RefObject<AbortController | null>;
 }
 
 /**
  * Return type for createActionContext with abort support
  */
-export interface ActionContextReturn<T extends ActionPayloadMap = ActionPayloadMap> {
+export interface ActionContextReturn<T extends {}> {
   Provider: React.FC<{ children: ReactNode }>;
   useActionContext: () => ActionContextType<T>;
   useActionDispatch: () => ActionRegister<T>['dispatch'];
@@ -49,6 +49,7 @@ export interface ActionContextReturn<T extends ActionPayloadMap = ActionPayloadM
     abortAll: () => void;
     resetAbortScope: () => void;
   };
+  context: React.Context<ActionContextType<T>>;
 }
 
 /**
@@ -139,7 +140,7 @@ export interface ActionContextReturn<T extends ActionPayloadMap = ActionPayloadM
 // === UNIFIED ACTION CONTEXT SYSTEM ===
 // Factory-based action context with built-in abort support
 
-export function createActionContext<T extends ActionPayloadMap = ActionPayloadMap>(
+export function createActionContext<T extends {}>(
   config: ActionContextConfig = {}
 ): ActionContextReturn<T> {
   // Create the factory-specific context with a default value
@@ -410,5 +411,6 @@ export function createActionContext<T extends ActionPayloadMap = ActionPayloadMa
     useActionHandler,
     useActionRegister: useFactoryActionRegister,
     useActionDispatchWithResult: useFactoryActionDispatchWithResult,
+    context: FactoryActionContext as unknown as  React.Context<ActionContextType<T>>,
   };
 }

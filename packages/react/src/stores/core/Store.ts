@@ -26,6 +26,8 @@ export class Store<T = any> implements IStore<T> {
   private _value: T;
   // 불변 스냅샷 - React의 useSyncExternalStore와 호환
   private _snapshot: Snapshot<T>;
+
+
   public readonly name: string;
   // Store별 커스텀 비교 함수
   private customComparator?: (oldValue: T, newValue: T) => boolean;
@@ -111,7 +113,10 @@ export class Store<T = any> implements IStore<T> {
       // 새 스냅샷 생성 - 불변성 보장
       this._snapshot = this._createSnapshot();
       // 모든 구독자에게 변경 알림
-      this._notifyListeners();
+
+      requestAnimationFrame(() => {
+        this._notifyListeners();
+      });
     }
   }
 
