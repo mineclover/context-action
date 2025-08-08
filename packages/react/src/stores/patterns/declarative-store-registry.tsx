@@ -13,13 +13,7 @@ import { StoreRegistry } from '../core/StoreRegistry';
 import { createStore } from '../core/Store';
 import type { ComparisonOptions } from '../utils/comparison';
 
-/**
- * Store Payload Map 인터페이스
- * Action Registry의 ActionPayloadMap과 동일한 패턴
- */
-export interface StorePayloadMap {
-  [storeName: string]: any;
-}
+
 
 /**
  * Store Configuration 인터페이스
@@ -38,7 +32,7 @@ export interface StoreConfig<T = any> {
  * Store Schema Definition
  * 컴파일타임에 Store 타입을 정의하는 스키마
  */
-export type StoreSchema<T extends StorePayloadMap> = {
+export type StoreSchema<T extends {}> = {
   [K in keyof T]: StoreConfig<T[K]>;
 };
 
@@ -46,7 +40,7 @@ export type StoreSchema<T extends StorePayloadMap> = {
  * Store Access Interface
  * Registry로부터 타입 안전한 Store 접근을 제공
  */
-export interface StoreAccess<T extends StorePayloadMap> {
+export interface StoreAccess<T extends {}> {
   <K extends keyof T>(storeName: K): ReturnType<typeof createStore<T[K]>>;
 }
 
@@ -54,7 +48,7 @@ export interface StoreAccess<T extends StorePayloadMap> {
  * Store Creation Interface
  * 새로운 Store를 동적으로 생성
  */
-export interface StoreCreation<T extends StorePayloadMap> {
+export interface StoreCreation<T extends {}> {
   <K extends keyof T>(storeName: K, config?: Partial<StoreConfig<T[K]>>): ReturnType<typeof createStore<T[K]>>;
 }
 
@@ -92,7 +86,7 @@ export interface StoreCreation<T extends StorePayloadMap> {
  * const counter = storeRegistry.getStore('counter'); // 타입: Store<number>
  * ```
  */
-export class DeclarativeStoreRegistry<T extends StorePayloadMap> {
+export class DeclarativeStoreRegistry<T extends {}> {
   private registry: StoreRegistry;
   private schema: StoreSchema<T>;
   private initialized = new Set<keyof T>();
@@ -264,7 +258,7 @@ export class DeclarativeStoreRegistry<T extends StorePayloadMap> {
  * Context Store Pattern과 Declarative Store Registry를 결합한 패턴입니다.
  * React Context를 통해 Store Registry를 제공하며, 타입 안전성을 보장합니다.
  */
-export function createDeclarativeStorePattern<T extends StorePayloadMap>(
+export function createDeclarativeStorePattern<T extends {}>(
   contextName: string,
   schema: StoreSchema<T>
 ) {
@@ -438,7 +432,7 @@ export function createDeclarativeStorePattern<T extends StorePayloadMap>(
  * 
  * @example
  * ```typescript
- * interface UserStores extends StorePayloadMap {
+ * interface UserStores extends {} {
  *   profile: { id: string; name: string };
  *   preferences: { theme: 'light' | 'dark' };
  * }
@@ -457,7 +451,7 @@ export function createDeclarativeStorePattern<T extends StorePayloadMap>(
  * }
  * ```
  */
-export function createDeclarativeStores<T extends StorePayloadMap>(
+export function createDeclarativeStores<T extends {}>(
   contextName: string,
   schema: StoreSchema<T>
 ) {

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
-import { usePriorityTestManager, HandlerConfig, PriorityTestProvider } from '../hooks';
-import { ActionTestProvider } from '../context/ActionTestContext';
+import { usePriorityTestManager, HandlerConfig } from '../hooks';
+import { ActionTestProvider, PriorityTestProvider } from '../context/ActionTestContext';
 import styles from './PriorityTestInstance.module.css';
 
 // 기본 핸들러 설정 (점프 패턴이 잘 보이도록 조정)

@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { UnregisterFunction } from '@context-action/core';
 import { PriorityTestViewModel, ViewModelDependencies } from './types';
+import { usePriorityActionContext, usePriorityTestStore } from '../context/ActionTestContext';
+import { useStoreValue } from '@context-action/react';
 
 /**
  * ViewModel Layer: 상태 관리와 UI 바인딩
@@ -436,4 +438,16 @@ export function usePriorityTestViewModel(dependencies: ViewModelDependencies): P
     // 호환성을 위한 ActionRegister
     actionRegister
   };
+}
+
+export const usePriorityTestTestCount = (priority: number) => {
+  const countStore = usePriorityTestStore('priorityCounts')
+  const count = useStoreValue(countStore, (c) => c[priority])
+  return count
+}
+
+export const usePriorityTestExecutionState = () => {
+  const executionStateStore = usePriorityTestStore('executionState')
+  const executionState = useStoreValue(executionStateStore)
+  return executionState
 }
