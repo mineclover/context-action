@@ -1,13 +1,9 @@
 /**
- * 우선순위 테스트 시스템 - 최적화된 MVVM 아키텍처
+ * 우선순위 테스트 시스템 - 최적화된 Context-Action v7 아키텍처
  */
-
-// 메인 훅 (권장)
-export { usePriorityTestManager } from './usePriorityTestManagerMVVM';
 
 // 하위 레벨 훅들 (고급 사용자용)
 export { usePriorityTestViewModel } from './usePriorityTestViewModel';
-export { usePriorityCountManagement } from './usePriorityCountManagement';
 export { usePriorityExecutionState } from './usePriorityExecutionState';
 
 // 개별 컴포넌트용 특화 훅들

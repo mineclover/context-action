@@ -42,7 +42,6 @@ function Layout({
     { path: '/logger/demo', label: 'Logger System', category: 'logger' as const },
     { path: '/actionguard/demo', label: 'Action Guard', category: 'actionguard' as const },
     { path: '/actionguard/test', label: '🧪 Dispatch Options Test', category: 'actionguard' as const },
-    { path: '/actionguard/priority-test', label: '🎯 Priority Test', category: 'actionguard' as const },
     { path: '/actionguard/priority-performance', label: '⚡ Priority Performance', category: 'actionguard' as const },
     { path: '/actionguard/throttle-comparison', label: '⚖️ Throttle Comparison', category: 'actionguard' as const },
     { path: '/examples/toast-config', label: '🍞 Toast Config Example', category: 'examples' as const },

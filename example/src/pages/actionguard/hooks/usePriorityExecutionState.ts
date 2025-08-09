@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react';
-import { Store, useStoreValue } from '@context-action/react';
+import { Store } from '@context-action/react';
 
 // 실행 상태 관리를 위한 타입 정의
 export interface ExecutionStateData {
@@ -29,15 +29,15 @@ export interface ExecutionActionPayloads {
   addHandlerExecutionTime: { handlerId: string; executionTime: number };
 }
 
-// Store 기반 풍부한 실행 상태 관리 훅
+// Store 기반 풍부한 실행 상태 관리 훅 - 지연 평가 패턴
 export function usePriorityExecutionState(
   executionStateStore: Store<ExecutionStateData>,
   executionActionRegister?: any
 ) {
   // AbortController 관리 (실행 중 중단용)
   const abortControllerRef = useRef<AbortController | null>(null);
-  // Store 기반 상태 사용 (필수)
-  const executionState = useStoreValue(executionStateStore);
+  // Store 값을 지연 평가로 사용 (구독 없음)
+  const getExecutionState = useCallback(() => executionStateStore.getValue(), [executionStateStore]);
 
   // Store 업데이트 헬퍼
   const updateStore = useCallback((updates: Partial<ExecutionStateData>) => {
@@ -178,31 +178,49 @@ export function usePriorityExecutionState(
     addTestResult(`${statusIcon} 테스트 ${statusText} (전체 소요시간: ${actualExecutionTime}ms)`, success ? 'success' : 'error');
   }, [executionStateStore, updateStore, dispatchAction, addTestResult]);
 
-  // 고급 조회 함수들
+  // 고급 조회 함수들 - 지연 평가
   const getExecutionStats = useCallback(() => {
+    const state = executionStateStore.getValue();
     return {
-      totalTests: executionState.totalTests,
-      successfulTests: executionState.successfulTests,
-      failedTests: executionState.failedTests,
-      abortedTests: executionState.abortedTests,
-      successRate: executionState.totalTests > 0 ? (executionState.successfulTests / executionState.totalTests * 100).toFixed(1) : '0.0',
-      averageExecutionTime: executionState.averageExecutionTime,
-      maxExecutionTime: executionState.maxExecutionTime,
-      minExecutionTime: executionState.minExecutionTime === Number.MAX_VALUE ? 0 : executionState.minExecutionTime
+      totalTests: state.totalTests,
+      successfulTests: state.successfulTests,
+      failedTests: state.failedTests,
+      abortedTests: state.abortedTests,
+      successRate: state.totalTests > 0 ? (state.successfulTests / state.totalTests * 100).toFixed(1) : '0.0',
+      averageExecutionTime: state.averageExecutionTime,
+      maxExecutionTime: state.maxExecutionTime,
+      minExecutionTime: state.minExecutionTime === Number.MAX_VALUE ? 0 : state.minExecutionTime
     };
-  }, [executionState]);
+  }, [executionStateStore]);
 
   const getRecentResults = useCallback((count: number = 10) => {
-    return executionState.testResults.slice(-count);
-  }, [executionState.testResults]);
+    const state = executionStateStore.getValue();
+    return state.testResults.slice(-count);
+  }, [executionStateStore]);
 
   const filterResultsByType = useCallback((type: string) => {
-    return executionState.testResults.filter(result => result.includes(type));
-  }, [executionState.testResults]);
+    const state = executionStateStore.getValue();
+    return state.testResults.filter(result => result.includes(type));
+  }, [executionStateStore]);
 
   return {
-    // 풍부한 상태 (Store 기반)
-    ...executionState,
+    // 지연 평가 상태 접근자
+    getExecutionState,
+    
+    // 호환성을 위한 getter 속성 (지연 평가)
+    get isRunning() { return executionStateStore.getValue().isRunning; },
+    get testResults() { return executionStateStore.getValue().testResults; },
+    get currentTestId() { return executionStateStore.getValue().currentTestId; },
+    get totalTests() { return executionStateStore.getValue().totalTests; },
+    get successfulTests() { return executionStateStore.getValue().successfulTests; },
+    get failedTests() { return executionStateStore.getValue().failedTests; },
+    get abortedTests() { return executionStateStore.getValue().abortedTests; },
+    get averageExecutionTime() { return executionStateStore.getValue().averageExecutionTime; },
+    get lastExecutionTime() { return executionStateStore.getValue().lastExecutionTime; },
+    get maxExecutionTime() { return executionStateStore.getValue().maxExecutionTime; },
+    get minExecutionTime() { return executionStateStore.getValue().minExecutionTime; },
+    get startTime() { return executionStateStore.getValue().startTime; },
+    get executionTimes() { return executionStateStore.getValue().executionTimes; },
     
     // 기본 함수들
     initializeExecutionStates,
