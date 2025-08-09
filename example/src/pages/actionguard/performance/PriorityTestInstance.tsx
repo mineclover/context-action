@@ -151,7 +151,6 @@ const PriorityTestInstance = memo(function PriorityTestInstance({ title, instanc
 
   // ActionRegistry 패턴을 사용한 올바른 구현
   const actionRegister = usePriorityActionRegister();
-  const dispatch = usePriorityActionDispatch();
 
   // 핸들러 등록 함수
   const registerHandlers = useCallback(() => {
@@ -203,6 +202,11 @@ const PriorityTestInstance = memo(function PriorityTestInstance({ title, instanc
         async (payload, controller) => {
           const handlerStartTime = Date.now(); // 핸들러 시작 시간
           
+          // abortSignal 체크
+          if (controller.signal?.aborted) {
+            throw new Error('Operation aborted');
+          }
+          
           // 카운트 증가 (지연 평가)
           const currentCounts = priorityCountsStore.getValue();
           priorityCountsStore.setValue({
@@ -210,9 +214,19 @@ const PriorityTestInstance = memo(function PriorityTestInstance({ title, instanc
             [config.priority]: (currentCounts[config.priority] || 0) + 1
           });
 
-          // 딜레이 적용
+          // 딜레이 적용 (abort 가능하도록 처리)
           if (config.delay > 0) {
-            await new Promise(resolve => setTimeout(resolve, config.delay));
+            await new Promise((resolve, reject) => {
+              const timeoutId = setTimeout(resolve, config.delay);
+              
+              // abortSignal이 있으면 abort 이벤트 리스너 등록
+              if (controller.signal) {
+                controller.signal.addEventListener('abort', () => {
+                  clearTimeout(timeoutId);
+                  reject(new Error('Operation aborted'));
+                }, { once: true });
+              }
+            });
           }
 
           const handlerEndTime = Date.now();
@@ -259,6 +273,9 @@ const PriorityTestInstance = memo(function PriorityTestInstance({ title, instanc
     registerHandlers();
   }, [registerHandlers]);
 
+  // abort 컨트롤러 관리
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
+
   // 실제 테스트 실행 함수 - ActionRegistry 디스패치 (초기화는 우선순위 200 핸들러에서 처리)
   const runPriorityTest = useCallback(async () => {
     if (isRunning) return;
@@ -266,21 +283,33 @@ const PriorityTestInstance = memo(function PriorityTestInstance({ title, instanc
     setIsRunning(true);
     setTotalTests(prev => prev + 1);
     
+    // abort 컨트롤러 생성
+    const controller = new AbortController();
+    setAbortController(controller);
+    
     const startTime = Date.now();
     
     try {
       // ActionRegistry에 등록된 핸들러들이 우선순위대로 순차 실행 (초기화 핸들러부터)
-      await dispatch('priorityTest', { 
+      const result = await actionRegister.dispatchWithResult('priorityTest', { 
         testId: `test-${Date.now()}`, 
         delay: 0 
       }, {
-        executionMode: 'sequential'
+        executionMode: 'sequential',
+        signal: controller.signal
       });
       
-      const executionTime = Date.now() - startTime;
-      const result = `테스트 완료: ${configsWithDelay.length + 1}개 핸들러 (초기화 포함), ${executionTime}ms`;
+      // abort 체크
+      if (result.aborted) {
+        console.log('Test execution aborted by user');
+        setTestResults(prev => [...prev, `테스트 중단됨`].slice(-2));
+        return; // 조기 종료
+      }
       
-      setTestResults(prev => [...prev, result].slice(-2)); // 최근 2개만 유지
+      const executionTime = Date.now() - startTime;
+      const resultMessage = `테스트 완료: ${configsWithDelay.length + 1}개 핸들러 (초기화 포함), ${executionTime}ms`;
+      
+      setTestResults(prev => [...prev, resultMessage].slice(-2)); // 최근 2개만 유지
       setSuccessfulTests(prev => prev + 1);
       
       // 실행 상태 저장 (지연 평가) - 평균 시간은 각 핸들러에서 이미 계산됨
@@ -305,8 +334,17 @@ const PriorityTestInstance = memo(function PriorityTestInstance({ title, instanc
       });
     } finally {
       setIsRunning(false);
+      setAbortController(null);
     }
-  }, [isRunning, dispatch, configsWithDelay.length, executionStateStore, totalTests, successfulTests]);
+  }, [isRunning, actionRegister, configsWithDelay.length, executionStateStore, totalTests, successfulTests]);
+
+  // 테스트 중단 함수
+  const abortTest = useCallback(() => {
+    if (abortController) {
+      abortController.abort();
+      console.log('🛑 Test execution aborted by user');
+    }
+  }, [abortController]);
 
   // 설정 초기화
   const resetTest = useCallback(() => {
@@ -393,16 +431,25 @@ const PriorityTestInstance = memo(function PriorityTestInstance({ title, instanc
           <button 
             onClick={runPriorityTest}
             disabled={isRunning}
-            className={`btn text-sm px-3 py-2 flex-1 ${isRunning ? 'btn-secondary' : 'btn-primary'}`}
+            className="btn btn-primary text-sm px-3 py-2 flex-1"
           >
             {isRunning ? '⏳ 실행 중...' : '🚀 성능 테스트'}
           </button>
           <button 
+            onClick={abortTest}
+            disabled={!isRunning}
+            className="btn btn-danger text-sm px-3 py-2"
+            title="실행 중단"
+          >
+            🛑 중단
+          </button>
+          <button 
             onClick={resetTest}
             disabled={isRunning}
-            className="btn btn-secondary text-sm px-2 py-2"
+            className="btn btn-secondary text-sm px-3 py-2"
+            title="전체 초기화"
           >
-            🔄
+            🔄 리셋
           </button>
         </div>
         
