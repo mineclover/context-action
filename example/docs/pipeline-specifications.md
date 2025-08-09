@@ -62,6 +62,54 @@ register('emergencyHandler', (payload, controller) => {
 }, { priority: 5 });
 ```
 
+#### 고급 점프 패턴 - 카운트 기반 제한
+```typescript
+// 점프 제한이 있는 핸들러 (무한 루프 방지)
+register('conditionalJump', (payload, controller) => {
+  const currentCount = executionCounts[config.priority] || 0;
+  
+  // 최대 5회 실행 제한으로 무한 점프 방지
+  if (currentCount < 5 && shouldJumpToDifferentPriority()) {
+    console.log(`🔄 Priority Jump: P${config.priority} → P${targetPriority} (count: ${currentCount})`);
+    controller.jumpToPriority(targetPriority);
+  } else if (currentCount >= 5) {
+    console.log(`⛔ Jump blocked: P${config.priority} count (${currentCount}) >= 5`);
+    controller.next();
+  }
+}, { 
+  priority: 70,
+  blocking: true  // 순차 실행을 위한 블로킹 모드
+});
+```
+
+#### 점프 체인 패턴 - 복잡한 실행 흐름
+```typescript
+// 다단계 점프 체인 구현
+const jumpChain = [
+  { from: 90, to: 70, condition: 'highPriority' },
+  { from: 70, to: 25, condition: 'mediumPriority' }, 
+  { from: 25, to: 15, condition: 'lowPriority' },
+  { from: 15, to: 95, condition: 'restart' }
+];
+
+jumpChain.forEach(({ from, to, condition }) => {
+  register('chainedExecution', (payload, controller) => {
+    if (payload.condition === condition) {
+      const currentCount = getExecutionCount(from);
+      if (currentCount < 5) {
+        controller.jumpToPriority(to);
+        return;
+      }
+    }
+    controller.next();
+  }, { 
+    priority: from,
+    blocking: true,
+    tags: ['jump-chain'] 
+  });
+});
+```
+
 ### 2. Execution Modes System ✅
 
 3가지 실행 모드로 다양한 비즈니스 요구사항을 지원합니다.
@@ -303,6 +351,105 @@ searchRegister.register('performSearch', async (query, controller) => {
 }, { 
   debounce: 300,
   validation: (query) => query.length >= 2
+});
+```
+
+### 4. 성능 테스트 및 점프 패턴
+```typescript
+interface PriorityTestActions extends ActionPayloadMap {
+  priorityTest: { testId: string; delay: number };
+}
+
+const performanceRegister = new ActionRegister<PriorityTestActions>();
+
+// 초기화 핸들러 (최고 우선순위)
+performanceRegister.register('priorityTest', (payload, controller) => {
+  console.log('🚀 Priority Test Started - Initializing...');
+  
+  // 모든 메트릭 초기화
+  executionStateStore.setValue({
+    totalTests: 0,
+    successfulTests: 0,
+    averageExecutionTime: 0,
+    executionTimes: []
+  });
+  
+  priorityCountsStore.setValue({});
+  
+  controller.next();
+}, { 
+  priority: 200,
+  id: 'initializer',
+  blocking: true 
+});
+
+// 점프 패턴이 적용된 핸들러들
+const testHandlers = [
+  { priority: 90, jumpTo: 70, id: 'high-90' },
+  { priority: 70, jumpTo: 25, id: 'med-70' },
+  { priority: 25, jumpTo: 15, id: 'low-25' },
+  { priority: 15, jumpTo: 95, id: 'restart-15' }
+];
+
+testHandlers.forEach(config => {
+  performanceRegister.register('priorityTest', async (payload, controller) => {
+    const handlerStartTime = Date.now();
+    
+    // 실행 카운트 증가
+    const currentCounts = priorityCountsStore.getValue();
+    const currentCount = currentCounts[config.priority] || 0;
+    
+    priorityCountsStore.setValue({
+      ...currentCounts,
+      [config.priority]: currentCount + 1
+    });
+    
+    // 딜레이 시뮬레이션
+    if (payload.delay > 0) {
+      await new Promise(resolve => setTimeout(resolve, payload.delay));
+    }
+    
+    const handlerExecutionTime = Date.now() - handlerStartTime;
+    
+    // 개별 핸들러 실행 시간 추적
+    const currentState = executionStateStore.getValue();
+    const newExecutionTimes = [...currentState.executionTimes, handlerExecutionTime];
+    const newAverage = Math.round(
+      newExecutionTimes.reduce((sum, time) => sum + time, 0) / newExecutionTimes.length
+    );
+    
+    executionStateStore.setValue({
+      ...currentState,
+      executionTimes: newExecutionTimes,
+      averageExecutionTime: newAverage,
+      lastExecutionTime: handlerExecutionTime,
+      maxExecutionTime: Math.max(currentState.maxExecutionTime, handlerExecutionTime),
+      minExecutionTime: Math.min(currentState.minExecutionTime, handlerExecutionTime)
+    });
+    
+    // 점프 로직 (최대 5회 제한)
+    if (currentCount < 5 && config.jumpTo) {
+      console.log(`🔄 Jump: P${config.priority} → P${config.jumpTo} (count: ${currentCount})`);
+      controller.jumpToPriority(config.jumpTo);
+    } else {
+      console.log(`⛔ Jump blocked: P${config.priority} (count: ${currentCount})`);
+      controller.next();
+    }
+  }, {
+    priority: config.priority,
+    id: config.id,
+    blocking: true,
+    tags: ['performance-test']
+  });
+});
+
+// 사용법
+performanceRegister.dispatch('priorityTest', { 
+  testId: `test-${Date.now()}`, 
+  delay: 50 
+}, {
+  executionMode: 'sequential',
+  abortSignal: abortController.signal
 });
 ```
 
