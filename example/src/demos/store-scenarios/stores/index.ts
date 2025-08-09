@@ -1,4 +1,4 @@
-import { createDeclarativeStores, type StorePayloadMap, type StoreSchema } from '@context-action/react';
+import { createDeclarativeStores, createDeclarativeStorePattern, type StoreSchema } from '@context-action/react';
 import type { 
   User, 
   Product, 
@@ -19,7 +19,7 @@ import type {
  * @memberof core-concepts
  * @since 2.0.0
  */
-interface StoreScenarios extends StorePayloadMap {
+interface StoreScenarios {
   user: User;
   products: Product[];
   cart: CartItem[];
@@ -213,7 +213,7 @@ const storeScenariosSchema: StoreSchema<StoreScenarios> = {
   }
 };
 
-export const StoreScenarios = createDeclarativeStores('StoreScenarios', storeScenariosSchema);
+export const StoreScenarios: ReturnType<typeof createDeclarativeStorePattern<StoreScenarios>> = createDeclarativeStores('StoreScenarios', storeScenariosSchema);
 
 // Declarative Store 패턴을 사용하여 타입 안전한 스토어 접근을 제공합니다.
 // 예시:

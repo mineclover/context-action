@@ -1,3 +1,4 @@
+import React from 'react';
 import { createActionContext, createDeclarativeStores } from '@context-action/react';
 import { ActionPayloadMap } from '@context-action/core';
 import { type StoreSchema } from '@context-action/react';
@@ -16,14 +17,14 @@ export const PriorityTestAction = createActionContext<TestActions>({
   name: 'PriorityTest'
 });
 
-// 사용 중인 hooks만 export
-export const {
-  Provider: ActionTestProvider,
-  useActionDispatch: usePriorityActionDispatch,
-  useActionRegister: usePriorityActionRegister,
-  useActionContext: usePriorityActionContext,
-  context: PriorityTestActionContext,
-} = PriorityTestAction;
+// Provider 타입을 명시적으로 선언
+export const ActionTestProvider: React.FC<{ children: React.ReactNode }> = PriorityTestAction.Provider;
+
+// 나머지 hooks export
+export const usePriorityActionDispatch = PriorityTestAction.useActionDispatch;
+export const usePriorityActionRegister = PriorityTestAction.useActionRegister;
+export const usePriorityActionContext: () => any = PriorityTestAction.useActionContext;
+export const PriorityTestActionContext: React.Context<any> = PriorityTestAction.context;
 
 
 
@@ -65,5 +66,15 @@ const priorityTestSchema: StoreSchema<PriorityTestStores> = {
 // Stores 인스턴스 생성 (컨텍스트별로 고유)
 const PriorityStores = createDeclarativeStores('PriorityTestManager', priorityTestSchema);
 
-export const { Provider: PriorityTestProvider, useStore: usePriorityTestStore, RegistryContext: PriorityTestStoreContext, useRegistry: usePriorityTestRegistry, useRegistryInfo: usePriorityTestRegistryInfo } = PriorityStores;
+// Provider 타입을 명시적으로 선언
+export const PriorityTestProvider: React.FC<{ 
+  children: React.ReactNode;
+  registryId?: string;
+}> = PriorityStores.Provider;
+
+// 나머지 exports
+export const usePriorityTestStore = PriorityStores.useStore;
+export const PriorityTestStoreContext: React.Context<any> = PriorityStores.RegistryContext;
+export const usePriorityTestRegistry = PriorityStores.useRegistry;
+export const usePriorityTestRegistryInfo = PriorityStores.useRegistryInfo;
 

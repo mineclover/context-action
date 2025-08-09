@@ -51,10 +51,20 @@ export function usePriorityTestManagerMVVM(
   });
 
   // 기존 인터페이스 호환성을 위한 속성 합성
+  // viewModel이 가장 완전한 인터페이스를 가지므로 먼저 펼치고,
+  // 그 다음에 executionState와 countManagement의 추가 속성을 덮어씌움
   return {
     ...viewModel,
     ...executionState,
-    ...countManagement
+    ...countManagement,
+    // viewModel에서 누락될 수 있는 속성들을 명시적으로 추가
+    registeredHandlers: viewModel.registeredHandlers,
+    getRegisteredCount: viewModel.getRegisteredCount,
+    unregisterHandler: viewModel.unregisterHandler,
+    unregisterAllHandlers: viewModel.unregisterAllHandlers,
+    registerHandlers: viewModel.registerHandlers,
+    getCurrentAbortController: viewModel.getCurrentAbortController,
+    triggerPipelineAbort: viewModel.triggerPipelineAbort || executionState.triggerPipelineAbort
   };
 }
 

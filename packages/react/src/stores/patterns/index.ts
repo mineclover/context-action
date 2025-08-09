@@ -13,7 +13,7 @@
  * 
  * @example
  * // ✅ Declarative Store Pattern - Type-safe and clean
- * interface AppStores extends StorePayloadMap {
+ * interface AppStores {
  *   user: { id: string; name: string };
  *   settings: { theme: 'light' | 'dark' };
  * }
@@ -32,7 +32,6 @@ export {
   createDeclarativeStores,
   createDeclarativeStorePattern,
   DeclarativeStoreRegistry,
-  type StorePayloadMap,
   type StoreSchema,
   type StoreConfig,
   type StoreAccess,

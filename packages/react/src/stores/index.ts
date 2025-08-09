@@ -34,7 +34,6 @@ export { createDeclarativeStores, createDeclarativeStorePattern } from './patter
 
 // Declarative Store Pattern types
 export type {
-  StorePayloadMap,
   StoreSchema,
   StoreConfig
 } from './patterns';
