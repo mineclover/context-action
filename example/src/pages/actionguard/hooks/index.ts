@@ -10,6 +10,9 @@ export { usePriorityTestViewModel } from './usePriorityTestViewModel';
 export { usePriorityCountManagement } from './usePriorityCountManagement';
 export { usePriorityExecutionState } from './usePriorityExecutionState';
 
+// 개별 컴포넌트용 특화 훅들
+export { usePriorityTestTestCount, usePriorityTestExecutionState as usePriorityTestExecutionStateHook } from './usePriorityTestViewModel';
+
 // 타입 정의들 (중앙화)
 export type { 
   HandlerConfig, 

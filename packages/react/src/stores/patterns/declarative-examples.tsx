@@ -8,7 +8,7 @@
  */
 
 import React from 'react';
-import { createDeclarativeStores, type StorePayloadMap, type StoreSchema } from './declarative-store-registry';
+import { createDeclarativeStores, type StoreSchema } from './declarative-store-registry';
 import { useStoreValue } from '../hooks/useStoreValue';
 
 /**
@@ -16,7 +16,7 @@ import { useStoreValue } from '../hooks/useStoreValue';
  * 
  * 사용자 관리를 위한 타입 안전한 Store 스키마 정의
  */
-interface UserStores extends StorePayloadMap {
+interface UserStores {
   profile: {
     id: string;
     name: string;
@@ -87,7 +87,7 @@ export const UserProfile: React.FC = () => {
  * 
  * 전자상거래 애플리케이션을 위한 복합 Store 스키마
  */
-interface ShoppingStores extends StorePayloadMap {
+interface ShoppingStores {
   products: Array<{
     id: string;
     name: string;
@@ -177,7 +177,7 @@ export const ShoppingCart = ShoppingStores.withProvider('main-cart')(ShoppingCar
  * 
  * 대시보드 분석을 위한 성능 최적화된 Store 스키마
  */
-interface DashboardStores extends StorePayloadMap {
+interface DashboardStores {
   metrics: {
     views: number;
     users: number;

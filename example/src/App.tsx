@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { LogArtHelpers } from '@context-action/logger';
 import Layout from './components/Layout';
 import { ToastContainer, ToastControlPanel } from './components/ToastSystem';
@@ -42,9 +43,9 @@ function ConsoleClearer() {
   return null;
 }
 
-function App() {
+function AppContent() {
   return (
-    <Router>
+    <>
       <ConsoleClearer />
       <Layout>
         <Routes>
@@ -75,6 +76,14 @@ function App() {
       {/* 글로벌 토스트 시스템 */}
       <ToastContainer />
       <ToastControlPanel />
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
     </Router>
   );
 }

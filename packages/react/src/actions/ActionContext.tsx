@@ -49,7 +49,7 @@ export interface ActionContextReturn<T extends {}> {
     abortAll: () => void;
     resetAbortScope: () => void;
   };
-  context: React.Context<ActionContextType<T>>;
+  context: React.Context<ActionContextType<T> | null>;
 }
 
 /**
@@ -411,6 +411,6 @@ export function createActionContext<T extends {}>(
     useActionHandler,
     useActionRegister: useFactoryActionRegister,
     useActionDispatchWithResult: useFactoryActionDispatchWithResult,
-    context: FactoryActionContext as unknown as  React.Context<ActionContextType<T>>,
+    context: FactoryActionContext,
   };
 }

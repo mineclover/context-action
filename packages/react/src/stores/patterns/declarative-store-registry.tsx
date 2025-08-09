@@ -14,7 +14,6 @@ import { createStore } from '../core/Store';
 import type { ComparisonOptions } from '../utils/comparison';
 
 
-
 /**
  * Store Configuration 인터페이스
  */
@@ -59,7 +58,7 @@ export interface StoreCreation<T extends {}> {
  * 
  * @example
  * ```typescript
- * interface AppStores extends StorePayloadMap {
+ * interface AppStores {
  *   user: { id: string; name: string };
  *   settings: { theme: 'light' | 'dark' };
  *   counter: number;
