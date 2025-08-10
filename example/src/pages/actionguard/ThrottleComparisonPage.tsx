@@ -1,7 +1,13 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { ActionPayloadMap, createActionContextPattern } from '@context-action/react';
-import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
-import { DemoCard, Button } from '../../components/ui';
+import {
+  type ActionPayloadMap,
+  createActionContextPattern,
+} from '@context-action/react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  PageWithLogMonitor,
+  useActionLoggerWithToast,
+} from '../../components/LogMonitor/';
+import { Button, DemoCard } from '../../components/ui';
 
 // 액션 타입 정의
 interface ThrottleTestActions extends ActionPayloadMap {
@@ -10,30 +16,37 @@ interface ThrottleTestActions extends ActionPayloadMap {
 }
 
 // Action Context Pattern 생성
-const ThrottleContext = createActionContextPattern<ThrottleTestActions>('ThrottleComparison');
+const ThrottleContext =
+  createActionContextPattern<ThrottleTestActions>('ThrottleComparison');
 
 // 수동 throttle 훅 (ActionGuardPage에서 가져온 것)
-function useThrottle<T extends any[]>(callback: (...args: T) => void, delay: number) {
+function useThrottle<T extends any[]>(
+  callback: (...args: T) => void,
+  delay: number
+) {
   const lastCallRef = useRef<number>(0);
   const timeoutRef = useRef<NodeJS.Timeout>();
-  
-  return useCallback((...args: T) => {
-    const now = Date.now();
-    const timeSinceLastCall = now - lastCallRef.current;
-    
-    if (timeSinceLastCall >= delay) {
-      lastCallRef.current = now;
-      callback(...args);
-    } else {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      timeoutRef.current = setTimeout(() => {
-        lastCallRef.current = Date.now();
+
+  return useCallback(
+    (...args: T) => {
+      const now = Date.now();
+      const timeSinceLastCall = now - lastCallRef.current;
+
+      if (timeSinceLastCall >= delay) {
+        lastCallRef.current = now;
         callback(...args);
-      }, delay - timeSinceLastCall);
-    }
-  }, [callback, delay]);
+      } else {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+        timeoutRef.current = setTimeout(() => {
+          lastCallRef.current = Date.now();
+          callback(...args);
+        }, delay - timeSinceLastCall);
+      }
+    },
+    [callback, delay]
+  );
 }
 
 // 메트릭 타입
@@ -49,7 +62,7 @@ function ThrottleComparisonTest() {
   const dispatch = ThrottleContext.useAction();
   const actionRegister = ThrottleContext.useActionRegister();
   const { logAction, logSystem } = useActionLoggerWithToast();
-  
+
   // ActionRegister가 초기화되지 않은 경우 처리
   if (!actionRegister) {
     return (
@@ -61,20 +74,20 @@ function ThrottleComparisonTest() {
       </div>
     );
   }
-  
+
   // 상태 관리
   const [inputValue, setInputValue] = useState('');
   const [isAutoTesting, setIsAutoTesting] = useState(false);
   const [testDuration, setTestDuration] = useState(5000); // 5초
   const [testInterval, setTestInterval] = useState(50); // 50ms마다 호출
-  
+
   // 메트릭 상태
   const [manualMetrics, setManualMetrics] = useState<ThrottleMetrics>({
     totalCalls: 0,
     throttledCalls: 0,
     actualExecutions: 0,
     lastExecutionTime: 0,
-    averageInterval: 0
+    averageInterval: 0,
   });
 
   const [internalMetrics, setInternalMetrics] = useState<ThrottleMetrics>({
@@ -82,79 +95,105 @@ function ThrottleComparisonTest() {
     throttledCalls: 0,
     actualExecutions: 0,
     lastExecutionTime: 0,
-    averageInterval: 0
+    averageInterval: 0,
   });
 
   // 실행 시간 추적
   const manualExecutionTimes = useRef<number[]>([]);
   const internalExecutionTimes = useRef<number[]>([]);
   const autoTestInterval = useRef<NodeJS.Timeout>();
-  
+
   // 수동 throttle 핸들러
-  const manualThrottledHandler = useThrottle((value: string, timestamp: number) => {
-    const now = Date.now();
-    manualExecutionTimes.current.push(now);
-    
-    // 평균 간격 계산
-    let averageInterval = 0;
-    if (manualExecutionTimes.current.length > 1) {
-      const intervals = [];
-      for (let i = 1; i < manualExecutionTimes.current.length; i++) {
-        intervals.push(manualExecutionTimes.current[i] - manualExecutionTimes.current[i - 1]);
+  const manualThrottledHandler = useThrottle(
+    (value: string, timestamp: number) => {
+      const now = Date.now();
+      manualExecutionTimes.current.push(now);
+
+      // 평균 간격 계산
+      let averageInterval = 0;
+      if (manualExecutionTimes.current.length > 1) {
+        const intervals = [];
+        for (let i = 1; i < manualExecutionTimes.current.length; i++) {
+          intervals.push(
+            manualExecutionTimes.current[i] -
+              manualExecutionTimes.current[i - 1]
+          );
+        }
+        averageInterval =
+          intervals.reduce((a, b) => a + b, 0) / intervals.length;
       }
-      averageInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-    }
-    
-    setManualMetrics(prev => ({
-      ...prev,
-      actualExecutions: prev.actualExecutions + 1,
-      lastExecutionTime: now,
-      averageInterval: Math.round(averageInterval)
-    }));
-    
-    logAction('manualThrottle', { value, timestamp }, {
-      context: 'Manual Throttle',
-      toast: { type: 'info', message: `수동 쓰로틀: ${value}` }
-    });
-  }, 1000); // 1초 throttle
+
+      setManualMetrics((prev) => ({
+        ...prev,
+        actualExecutions: prev.actualExecutions + 1,
+        lastExecutionTime: now,
+        averageInterval: Math.round(averageInterval),
+      }));
+
+      logAction(
+        'manualThrottle',
+        { value, timestamp },
+        {
+          context: 'Manual Throttle',
+          toast: { type: 'info', message: `수동 쓰로틀: ${value}` },
+        }
+      );
+    },
+    1000
+  ); // 1초 throttle
 
   // 액션 핸들러 등록
   useEffect(() => {
     // 수동 throttle 액션
-    const unregister1 = actionRegister.register('manualThrottle', ({ value, timestamp }, controller) => {
-      manualThrottledHandler(value, timestamp);
-      controller.next();
-    });
+    const unregister1 = actionRegister.register(
+      'manualThrottle',
+      ({ value, timestamp }, controller) => {
+        manualThrottledHandler(value, timestamp);
+        controller.next();
+      }
+    );
 
     // 내장 throttle 액션
-    const unregister2 = actionRegister.register('internalThrottle', ({ value, timestamp }, controller) => {
-      const now = Date.now();
-      internalExecutionTimes.current.push(now);
-      
-      // 평균 간격 계산
-      let averageInterval = 0;
-      if (internalExecutionTimes.current.length > 1) {
-        const intervals = [];
-        for (let i = 1; i < internalExecutionTimes.current.length; i++) {
-          intervals.push(internalExecutionTimes.current[i] - internalExecutionTimes.current[i - 1]);
+    const unregister2 = actionRegister.register(
+      'internalThrottle',
+      ({ value, timestamp }, controller) => {
+        const now = Date.now();
+        internalExecutionTimes.current.push(now);
+
+        // 평균 간격 계산
+        let averageInterval = 0;
+        if (internalExecutionTimes.current.length > 1) {
+          const intervals = [];
+          for (let i = 1; i < internalExecutionTimes.current.length; i++) {
+            intervals.push(
+              internalExecutionTimes.current[i] -
+                internalExecutionTimes.current[i - 1]
+            );
+          }
+          averageInterval =
+            intervals.reduce((a, b) => a + b, 0) / intervals.length;
         }
-        averageInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-      }
-      
-      setInternalMetrics(prev => ({
-        ...prev,
-        actualExecutions: prev.actualExecutions + 1,
-        lastExecutionTime: now,
-        averageInterval: Math.round(averageInterval)
-      }));
-      
-      logAction('internalThrottle', { value, timestamp }, {
-        context: 'Internal Throttle',
-        toast: { type: 'success', message: `내장 쓰로틀: ${value}` }
-      });
-      
-      controller.next();
-    }, { throttle: 1000 }); // 1초 throttle
+
+        setInternalMetrics((prev) => ({
+          ...prev,
+          actualExecutions: prev.actualExecutions + 1,
+          lastExecutionTime: now,
+          averageInterval: Math.round(averageInterval),
+        }));
+
+        logAction(
+          'internalThrottle',
+          { value, timestamp },
+          {
+            context: 'Internal Throttle',
+            toast: { type: 'success', message: `내장 쓰로틀: ${value}` },
+          }
+        );
+
+        controller.next();
+      },
+      { throttle: 1000 }
+    ); // 1초 throttle
 
     return () => {
       unregister1();
@@ -165,15 +204,15 @@ function ThrottleComparisonTest() {
   // 수동 테스트 함수들
   const handleManualCall = useCallback(() => {
     if (!dispatch || !actionRegister) return;
-    
+
     const timestamp = Date.now();
     const value = inputValue || `manual-${timestamp}`;
-    
-    setManualMetrics(prev => ({
+
+    setManualMetrics((prev) => ({
       ...prev,
-      totalCalls: prev.totalCalls + 1
+      totalCalls: prev.totalCalls + 1,
     }));
-    
+
     try {
       dispatch('manualThrottle', { value, timestamp });
     } catch (error) {
@@ -183,15 +222,15 @@ function ThrottleComparisonTest() {
 
   const handleInternalCall = useCallback(() => {
     if (!dispatch || !actionRegister) return;
-    
+
     const timestamp = Date.now();
     const value = inputValue || `internal-${timestamp}`;
-    
-    setInternalMetrics(prev => ({
+
+    setInternalMetrics((prev) => ({
       ...prev,
-      totalCalls: prev.totalCalls + 1
+      totalCalls: prev.totalCalls + 1,
     }));
-    
+
     try {
       dispatch('internalThrottle', { value, timestamp });
     } catch (error) {
@@ -202,15 +241,18 @@ function ThrottleComparisonTest() {
   // 자동 테스트
   const startAutoTest = useCallback(() => {
     if (isAutoTesting || !dispatch || !actionRegister) return;
-    
+
     setIsAutoTesting(true);
-    logSystem(`자동 테스트 시작: ${testDuration}ms 동안 ${testInterval}ms 간격으로 호출`, {
-      context: 'Throttle Comparison'
-    });
-    
+    logSystem(
+      `자동 테스트 시작: ${testDuration}ms 동안 ${testInterval}ms 간격으로 호출`,
+      {
+        context: 'Throttle Comparison',
+      }
+    );
+
     let callCount = 0;
     const maxCalls = Math.floor(testDuration / testInterval);
-    
+
     autoTestInterval.current = setInterval(() => {
       // 더 엄격한 안전성 검사
       if (!dispatch || !actionRegister || !actionRegister.dispatch) {
@@ -218,49 +260,71 @@ function ThrottleComparisonTest() {
         stopAutoTest();
         return;
       }
-      
+
       callCount++;
       const timestamp = Date.now();
-      
+
       try {
         // 두 방식 모두 호출
-        setManualMetrics(prev => ({ ...prev, totalCalls: prev.totalCalls + 1 }));
-        setInternalMetrics(prev => ({ ...prev, totalCalls: prev.totalCalls + 1 }));
-        
+        setManualMetrics((prev) => ({
+          ...prev,
+          totalCalls: prev.totalCalls + 1,
+        }));
+        setInternalMetrics((prev) => ({
+          ...prev,
+          totalCalls: prev.totalCalls + 1,
+        }));
+
         // ActionRegister의 dispatch 메서드를 직접 호출
-        actionRegister.dispatch('manualThrottle', { value: `auto-manual-${callCount}`, timestamp });
-        actionRegister.dispatch('internalThrottle', { value: `auto-internal-${callCount}`, timestamp });
+        actionRegister.dispatch('manualThrottle', {
+          value: `auto-manual-${callCount}`,
+          timestamp,
+        });
+        actionRegister.dispatch('internalThrottle', {
+          value: `auto-internal-${callCount}`,
+          timestamp,
+        });
       } catch (error) {
         console.error('자동 테스트 중 오류 발생:', error);
-        logSystem(`자동 테스트 오류: ${error instanceof Error ? error.message : String(error)}`, {
-          context: 'Throttle Comparison'
-        });
+        logSystem(
+          `자동 테스트 오류: ${error instanceof Error ? error.message : String(error)}`,
+          {
+            context: 'Throttle Comparison',
+          }
+        );
         stopAutoTest();
         return;
       }
-      
+
       if (callCount >= maxCalls) {
         stopAutoTest();
       }
     }, testInterval);
-    
+
     // 테스트 종료 타이머
     setTimeout(() => {
       if (isAutoTesting) {
         stopAutoTest();
       }
     }, testDuration + 100);
-  }, [dispatch, actionRegister, isAutoTesting, testDuration, testInterval, logSystem]);
+  }, [
+    dispatch,
+    actionRegister,
+    isAutoTesting,
+    testDuration,
+    testInterval,
+    logSystem,
+  ]);
 
   const stopAutoTest = useCallback(() => {
     setIsAutoTesting(false);
     if (autoTestInterval.current) {
       clearInterval(autoTestInterval.current);
     }
-    
+
     logSystem('자동 테스트 완료', {
       context: 'Throttle Comparison',
-      toast: { type: 'success', message: '자동 테스트 완료!' }
+      toast: { type: 'success', message: '자동 테스트 완료!' },
     });
   }, [logSystem]);
 
@@ -270,20 +334,20 @@ function ThrottleComparisonTest() {
       throttledCalls: 0,
       actualExecutions: 0,
       lastExecutionTime: 0,
-      averageInterval: 0
+      averageInterval: 0,
     });
-    
+
     setInternalMetrics({
       totalCalls: 0,
       throttledCalls: 0,
       actualExecutions: 0,
       lastExecutionTime: 0,
-      averageInterval: 0
+      averageInterval: 0,
     });
-    
+
     manualExecutionTimes.current = [];
     internalExecutionTimes.current = [];
-    
+
     logSystem('메트릭 초기화', { context: 'Throttle Comparison' });
   }, [logSystem]);
 
@@ -301,36 +365,42 @@ function ThrottleComparisonTest() {
       <header className="page-header">
         <h1>🔄 Throttle 구현 방식 비교</h1>
         <p className="page-description">
-          수동으로 구현한 useThrottle 훅과 Context-Action 프레임워크의 내장 throttle 기능을 비교해보세요.
-          두 방식 모두 1초 간격으로 throttle이 적용됩니다.
+          수동으로 구현한 useThrottle 훅과 Context-Action 프레임워크의 내장
+          throttle 기능을 비교해보세요. 두 방식 모두 1초 간격으로 throttle이
+          적용됩니다.
         </p>
       </header>
 
       {/* 비교 메트릭 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <DemoCard variant="info">
-          <h3 className="text-lg font-semibold mb-4">📊 수동 Throttle (useThrottle 훅)</h3>
+          <h3 className="text-lg font-semibold mb-4">
+            📊 수동 Throttle (useThrottle 훅)
+          </h3>
           <div className="grid grid-cols-2 gap-4">
             <div className="metric-item">
               <div className="metric-value">{manualMetrics.totalCalls}</div>
               <div className="metric-label">총 호출</div>
             </div>
             <div className="metric-item">
-              <div className="metric-value">{manualMetrics.actualExecutions}</div>
+              <div className="metric-value">
+                {manualMetrics.actualExecutions}
+              </div>
               <div className="metric-label">실제 실행</div>
             </div>
             <div className="metric-item">
               <div className="metric-value">
-                {manualMetrics.totalCalls > 0 
+                {manualMetrics.totalCalls > 0
                   ? `${((manualMetrics.actualExecutions / manualMetrics.totalCalls) * 100).toFixed(1)}%`
-                  : '0%'
-                }
+                  : '0%'}
               </div>
               <div className="metric-label">실행율</div>
             </div>
             <div className="metric-item">
               <div className="metric-value">
-                {manualMetrics.averageInterval > 0 ? `${manualMetrics.averageInterval}ms` : '-'}
+                {manualMetrics.averageInterval > 0
+                  ? `${manualMetrics.averageInterval}ms`
+                  : '-'}
               </div>
               <div className="metric-label">평균 간격</div>
             </div>
@@ -338,28 +408,33 @@ function ThrottleComparisonTest() {
         </DemoCard>
 
         <DemoCard variant="info">
-          <h3 className="text-lg font-semibold mb-4">⚡ 내장 Throttle (ActionRegister 옵션)</h3>
+          <h3 className="text-lg font-semibold mb-4">
+            ⚡ 내장 Throttle (ActionRegister 옵션)
+          </h3>
           <div className="grid grid-cols-2 gap-4">
             <div className="metric-item">
               <div className="metric-value">{internalMetrics.totalCalls}</div>
               <div className="metric-label">총 호출</div>
             </div>
             <div className="metric-item">
-              <div className="metric-value">{internalMetrics.actualExecutions}</div>
+              <div className="metric-value">
+                {internalMetrics.actualExecutions}
+              </div>
               <div className="metric-label">실제 실행</div>
             </div>
             <div className="metric-item">
               <div className="metric-value">
-                {internalMetrics.totalCalls > 0 
+                {internalMetrics.totalCalls > 0
                   ? `${((internalMetrics.actualExecutions / internalMetrics.totalCalls) * 100).toFixed(1)}%`
-                  : '0%'
-                }
+                  : '0%'}
               </div>
               <div className="metric-label">실행율</div>
             </div>
             <div className="metric-item">
               <div className="metric-value">
-                {internalMetrics.averageInterval > 0 ? `${internalMetrics.averageInterval}ms` : '-'}
+                {internalMetrics.averageInterval > 0
+                  ? `${internalMetrics.averageInterval}ms`
+                  : '-'}
               </div>
               <div className="metric-label">평균 간격</div>
             </div>
@@ -370,7 +445,7 @@ function ThrottleComparisonTest() {
       {/* 테스트 컨트롤 */}
       <DemoCard className="mb-6">
         <h3 className="text-lg font-semibold mb-4">🎮 테스트 컨트롤</h3>
-        
+
         {/* 입력값 */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -390,15 +465,15 @@ function ThrottleComparisonTest() {
           <div>
             <h4 className="text-md font-medium mb-2">수동 테스트</h4>
             <div className="button-group">
-              <Button 
-                onClick={handleManualCall} 
+              <Button
+                onClick={handleManualCall}
                 variant="secondary"
                 disabled={!dispatch || !actionRegister || isAutoTesting}
               >
                 📊 수동 Throttle 호출
               </Button>
-              <Button 
-                onClick={handleInternalCall} 
+              <Button
+                onClick={handleInternalCall}
                 variant="primary"
                 disabled={!dispatch || !actionRegister || isAutoTesting}
               >
@@ -449,9 +524,9 @@ function ThrottleComparisonTest() {
               </div>
             </div>
             <div className="button-group">
-              <Button 
+              <Button
                 onClick={isAutoTesting ? stopAutoTest : startAutoTest}
-                variant={isAutoTesting ? "danger" : "success"}
+                variant={isAutoTesting ? 'danger' : 'success'}
                 disabled={!dispatch || !actionRegister}
               >
                 {isAutoTesting ? '⏹️ 테스트 중지' : '▶️ 자동 테스트 시작'}
@@ -462,7 +537,8 @@ function ThrottleComparisonTest() {
                 <div className="flex items-center gap-2">
                   <div className="loading-spinner"></div>
                   <span>
-                    자동 테스트 실행 중... ({testInterval}ms 간격으로 {testDuration}ms 동안)
+                    자동 테스트 실행 중... ({testInterval}ms 간격으로{' '}
+                    {testDuration}ms 동안)
                   </span>
                 </div>
               </div>
@@ -474,10 +550,12 @@ function ThrottleComparisonTest() {
       {/* 구현 방식 비교 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <DemoCard>
-          <h3 className="text-lg font-semibold mb-4">🔧 수동 구현 (useThrottle)</h3>
+          <h3 className="text-lg font-semibold mb-4">
+            🔧 수동 구현 (useThrottle)
+          </h3>
           <div className="code-block">
             <pre className="text-sm">
-{`function useThrottle(callback, delay) {
+              {`function useThrottle(callback, delay) {
   const lastCallRef = useRef(0);
   const timeoutRef = useRef();
   
@@ -521,10 +599,12 @@ const throttledHandler = useThrottle(handler, 1000);`}
         </DemoCard>
 
         <DemoCard>
-          <h3 className="text-lg font-semibold mb-4">⚡ 내장 구현 (ActionGuard)</h3>
+          <h3 className="text-lg font-semibold mb-4">
+            ⚡ 내장 구현 (ActionGuard)
+          </h3>
           <div className="code-block">
             <pre className="text-sm">
-{`// ActionRegister 등록 시 옵션으로 설정
+              {`// ActionRegister 등록 시 옵션으로 설정
 actionRegister.register('myAction', handler, {
   throttle: 1000  // 1초 throttle
 });
@@ -569,7 +649,9 @@ throttle(actionKey: string, throttleMs: number): boolean {
             <div className="space-y-1 text-sm">
               <div>• 수동: 각 컴포넌트마다 ref 생성</div>
               <div>• 내장: 중앙 집중식 관리</div>
-              <div className="text-green-600 font-medium">→ 내장 방식이 메모리 효율적</div>
+              <div className="text-green-600 font-medium">
+                → 내장 방식이 메모리 효율적
+              </div>
             </div>
           </div>
           <div className="analysis-item">
@@ -577,7 +659,9 @@ throttle(actionKey: string, throttleMs: number): boolean {
             <div className="space-y-1 text-sm">
               <div>• 수동: 수동 cleanup 필요</div>
               <div>• 내장: 자동 cleanup</div>
-              <div className="text-green-600 font-medium">→ 내장 방식이 안전함</div>
+              <div className="text-green-600 font-medium">
+                → 내장 방식이 안전함
+              </div>
             </div>
           </div>
           <div className="analysis-item">
@@ -585,7 +669,9 @@ throttle(actionKey: string, throttleMs: number): boolean {
             <div className="space-y-1 text-sm">
               <div>• 수동: 별도 훅 구현/관리</div>
               <div>• 내장: 옵션만 설정</div>
-              <div className="text-green-600 font-medium">→ 내장 방식이 간편함</div>
+              <div className="text-green-600 font-medium">
+                → 내장 방식이 간편함
+              </div>
             </div>
           </div>
         </div>
@@ -596,35 +682,51 @@ throttle(actionKey: string, throttleMs: number): boolean {
         <h3 className="text-lg font-semibold mb-4">💡 결론 및 권장사항</h3>
         <div className="space-y-4">
           <div>
-            <h4 className="font-semibold text-gray-900 mb-2">Context-Action 내장 throttle을 권장하는 이유:</h4>
+            <h4 className="font-semibold text-gray-900 mb-2">
+              Context-Action 내장 throttle을 권장하는 이유:
+            </h4>
             <ul className="space-y-2 text-sm">
               <li className="flex items-start gap-2">
                 <span className="text-green-600 mt-0.5">✅</span>
-                <span><strong>자동 메모리 관리:</strong> 컴포넌트 언마운트 시 자동으로 타이머 정리</span>
+                <span>
+                  <strong>자동 메모리 관리:</strong> 컴포넌트 언마운트 시
+                  자동으로 타이머 정리
+                </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-green-600 mt-0.5">✅</span>
-                <span><strong>중앙 집중식 관리:</strong> ActionGuard 클래스에서 모든 throttle 상태 관리</span>
+                <span>
+                  <strong>중앙 집중식 관리:</strong> ActionGuard 클래스에서 모든
+                  throttle 상태 관리
+                </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-green-600 mt-0.5">✅</span>
-                <span><strong>프레임워크 통합:</strong> 액션 시스템과 완벽하게 통합됨</span>
+                <span>
+                  <strong>프레임워크 통합:</strong> 액션 시스템과 완벽하게
+                  통합됨
+                </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-green-600 mt-0.5">✅</span>
-                <span><strong>성능 최적화:</strong> 불필요한 타이머 생성 방지</span>
+                <span>
+                  <strong>성능 최적화:</strong> 불필요한 타이머 생성 방지
+                </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-green-600 mt-0.5">✅</span>
-                <span><strong>사용 편의성:</strong> 단일 옵션으로 간단 설정</span>
+                <span>
+                  <strong>사용 편의성:</strong> 단일 옵션으로 간단 설정
+                </span>
               </li>
             </ul>
           </div>
-          
+
           <div className="p-4 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-800">
-              <strong>💡 팁:</strong> 기존 수동 throttle 코드를 내장 throttle로 마이그레이션하면 
-              코드량 감소, 성능 향상, 메모리 누수 방지 등의 이점을 얻을 수 있습니다.
+              <strong>💡 팁:</strong> 기존 수동 throttle 코드를 내장 throttle로
+              마이그레이션하면 코드량 감소, 성능 향상, 메모리 누수 방지 등의
+              이점을 얻을 수 있습니다.
             </p>
           </div>
         </div>
@@ -636,8 +738,8 @@ throttle(actionKey: string, throttleMs: number): boolean {
 // 페이지 래퍼
 function ThrottleComparisonPage() {
   return (
-    <PageWithLogMonitor 
-      pageId="throttle-comparison" 
+    <PageWithLogMonitor
+      pageId="throttle-comparison"
       title="Throttle Implementation Comparison"
       initialConfig={{ enableToast: true, maxLogs: 150 }}
     >

@@ -75,12 +75,12 @@ export interface ToastOptions {
 export interface InternalLogActionMap extends ActionPayloadMap {
   '_internal.log.action': {
     actionType: string;
-    payload?: any;
+    payload?: unknown;
     options?: ActionLogOptions;
   };
   '_internal.log.error': {
     message: string;
-    error?: Error | any;
+    error?: Error | unknown;
     options?: ActionLogOptions;
   };
   '_internal.log.system': {
@@ -93,8 +93,16 @@ export interface InternalLogActionMap extends ActionPayloadMap {
  * 안정적인 로거 API 인터페이스
  */
 export interface StableLoggerAPI {
-  logAction: (actionType: string, payload?: unknown, options?: ActionLogOptions) => void;
-  logError: (message: string, error?: Error | unknown, options?: ActionLogOptions) => void;
+  logAction: (
+    actionType: string,
+    payload?: unknown,
+    options?: ActionLogOptions
+  ) => void;
+  logError: (
+    message: string,
+    error?: Error | unknown,
+    options?: ActionLogOptions
+  ) => void;
   logSystem: (message: string, options?: ActionLogOptions) => void;
 }
 

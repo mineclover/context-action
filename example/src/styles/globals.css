@@ -3,8 +3,10 @@
 @tailwind utilities;
 
 /* Base styles - minimal but essential */
-html, body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+html,
+body {
+  font-family:
+    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   color: rgb(17 24 39);
   background-color: rgb(249 250 251);
   -webkit-font-smoothing: antialiased;
@@ -25,23 +27,24 @@ html, body {
   .demo-card {
     @apply bg-white rounded-lg border border-gray-200 p-6 shadow-sm;
   }
-  
+
   .demo-card.info-card {
     @apply bg-blue-50 border-blue-200;
   }
-  
+
   .demo-display {
     @apply p-6 bg-gray-50 border border-gray-200 rounded-lg;
   }
-  
+
   .store-display {
     @apply p-4 bg-gray-50 border border-gray-200 rounded-lg mb-4;
   }
-  
-  .demo-value, .count-value {
+
+  .demo-value,
+  .count-value {
     @apply text-2xl font-bold text-primary-600 text-center block;
   }
-  
+
   .counter-display {
     @apply text-center my-8;
   }
@@ -50,23 +53,23 @@ html, body {
   .state-display {
     @apply space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200 mb-4;
   }
-  
+
   .state-item {
     @apply flex justify-between items-center;
   }
-  
+
   .state-label {
     @apply text-sm font-medium text-gray-700;
   }
-  
+
   .state-value {
     @apply text-sm font-bold text-gray-900;
   }
-  
+
   .state-value.enabled {
     @apply text-green-600;
   }
-  
+
   .state-value.disabled {
     @apply text-red-600;
   }
@@ -75,27 +78,27 @@ html, body {
   .btn {
     @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 border focus:outline-none focus:ring-2 focus:ring-offset-2;
   }
-  
+
   .btn-primary {
     @apply bg-primary-600 text-white border-primary-600 hover:bg-primary-700 focus:ring-primary-500;
   }
-  
+
   .btn-secondary {
     @apply bg-gray-600 text-white border-gray-600 hover:bg-gray-700 focus:ring-gray-500;
   }
-  
+
   .btn-info {
     @apply bg-blue-600 text-white border-blue-600 hover:bg-blue-700 focus:ring-blue-500;
   }
-  
+
   .btn-success {
     @apply bg-success-600 text-white border-success-600 hover:bg-success-700 focus:ring-success-500;
   }
-  
+
   .btn-warning {
     @apply bg-warning-600 text-white border-warning-600 hover:bg-warning-700 focus:ring-warning-600;
   }
-  
+
   .btn-danger {
     @apply bg-danger-600 text-white border-danger-600 hover:bg-danger-700 focus:ring-danger-500;
   }
@@ -109,11 +112,11 @@ html, body {
   .concept-list {
     @apply space-y-3 text-sm text-gray-700;
   }
-  
+
   .concept-list li {
     @apply flex flex-col gap-1;
   }
-  
+
   .concept-list strong {
     @apply text-gray-900 font-semibold;
   }
@@ -121,11 +124,11 @@ html, body {
   .how-it-works-list {
     @apply space-y-3 text-sm text-gray-700 counter-reset list-decimal list-inside;
   }
-  
+
   .how-it-works-list li {
     @apply pl-2;
   }
-  
+
   .how-it-works-list strong {
     @apply text-gray-900 font-semibold;
   }
@@ -133,7 +136,7 @@ html, body {
   .usage-steps {
     @apply space-y-2 text-sm text-gray-700 list-decimal list-inside;
   }
-  
+
   .usage-steps li {
     @apply pl-2;
   }
@@ -141,7 +144,7 @@ html, body {
   .feature-list {
     @apply space-y-2 text-sm text-gray-700;
   }
-  
+
   .feature-list li {
     @apply flex items-start gap-2;
   }
@@ -149,7 +152,7 @@ html, body {
   .benefit-list {
     @apply space-y-2 text-sm text-gray-700;
   }
-  
+
   .benefit-list li {
     @apply flex items-start gap-2;
   }
@@ -162,15 +165,15 @@ html, body {
   .page-container {
     @apply max-w-full w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-x-hidden;
   }
-  
+
   .page-header {
     @apply mb-8;
   }
-  
+
   .page-header h1 {
     @apply text-3xl font-bold text-gray-900 mb-4;
   }
-  
+
   .page-description {
     @apply text-lg text-gray-600 leading-relaxed;
   }
@@ -179,11 +182,11 @@ html, body {
   .code-example {
     @apply mt-8 bg-white rounded-lg border border-gray-200 p-6 shadow-sm;
   }
-  
+
   .code-example h3 {
     @apply text-lg font-semibold text-gray-900 mb-4;
   }
-  
+
   .code-block {
     @apply bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono leading-relaxed max-w-full;
   }
@@ -192,15 +195,15 @@ html, body {
   .input-form {
     @apply flex gap-2 mb-4;
   }
-  
+
   .text-input {
     @apply flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
   }
-  
+
   .number-input {
     @apply flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
   }
-  
+
   .range-input {
     @apply w-full appearance-none bg-gray-200 rounded-lg h-2 focus:outline-none focus:ring-2 focus:ring-primary-500;
   }
@@ -208,11 +211,11 @@ html, body {
   .add-value-form {
     @apply flex gap-2 mb-4;
   }
-  
+
   .user-form {
     @apply space-y-4;
   }
-  
+
   .form-group {
     @apply flex gap-2;
   }
@@ -221,11 +224,11 @@ html, body {
   .logger-card {
     @apply relative;
   }
-  
+
   .logger-card .card-header {
     @apply flex justify-between items-center;
   }
-  
+
   .monitor-card {
     @apply bg-gray-50 border-gray-300;
   }
@@ -234,11 +237,11 @@ html, body {
   .activity-log {
     @apply max-h-40 overflow-y-auto bg-white rounded border border-gray-200 p-3;
   }
-  
+
   .log-empty {
     @apply text-gray-500 italic text-center py-4;
   }
-  
+
   .activity-entry {
     @apply text-xs text-gray-700 py-1 border-b border-gray-100 last:border-b-0;
   }
@@ -247,19 +250,19 @@ html, body {
   .registry-info {
     @apply space-y-4;
   }
-  
+
   .registry-stats {
     @apply space-y-2;
   }
-  
+
   .stat-item {
     @apply flex justify-between items-center;
   }
-  
+
   .stat-label {
     @apply text-sm font-medium text-gray-700;
   }
-  
+
   .stat-value {
     @apply text-lg font-bold text-primary-600;
   }
@@ -267,11 +270,11 @@ html, body {
   .store-item {
     @apply flex justify-between items-center p-3 bg-gray-50 rounded border;
   }
-  
+
   .store-name {
     @apply text-sm font-medium text-gray-700;
   }
-  
+
   .store-value {
     @apply text-sm font-mono text-gray-900 max-w-xs truncate;
   }
@@ -280,11 +283,11 @@ html, body {
   .user-info {
     @apply space-y-2 text-sm;
   }
-  
+
   .user-info div {
     @apply flex gap-2;
   }
-  
+
   .user-info strong {
     @apply font-medium text-gray-700 min-w-[60px];
   }
@@ -293,19 +296,19 @@ html, body {
   .log-level-selector {
     @apply mb-4 flex gap-2 items-center;
   }
-  
+
   .memory-log-container {
     @apply max-h-48 overflow-y-auto bg-gray-50 rounded-lg border border-gray-200 p-3;
   }
-  
+
   .log-time {
     @apply text-xs text-gray-500 font-mono;
   }
-  
+
   .log-level {
     @apply text-xs font-medium px-2 py-1 rounded bg-gray-200 text-gray-800;
   }
-  
+
   .log-message {
     @apply text-sm text-gray-900;
   }
@@ -314,11 +317,11 @@ html, body {
   .guard-pattern-list {
     @apply space-y-4 text-sm text-gray-700;
   }
-  
+
   .guard-pattern-list li {
     @apply space-y-2;
   }
-  
+
   .guard-pattern-list strong {
     @apply text-gray-900 font-semibold;
   }
@@ -326,7 +329,7 @@ html, body {
   .use-case-list {
     @apply space-y-2 text-sm text-gray-700;
   }
-  
+
   .use-case-list li {
     @apply flex items-start gap-2;
   }
@@ -335,7 +338,7 @@ html, body {
   .patterns-summary {
     @apply mt-8 bg-white rounded-lg border border-gray-200 p-6 shadow-sm;
   }
-  
+
   .pattern-indicator {
     @apply mt-2 text-xs text-blue-600 font-medium bg-blue-100 rounded px-2 py-1 inline-block;
   }
@@ -344,19 +347,19 @@ html, body {
   .architecture-overview {
     @apply mt-8 bg-white rounded-lg border border-gray-200 p-6 shadow-sm;
   }
-  
+
   .architecture-item {
     @apply p-4 bg-gray-50 rounded-lg border border-gray-200;
   }
-  
+
   .architecture-item h4 {
     @apply font-semibold text-gray-900 mb-2;
   }
-  
+
   .architecture-item p {
     @apply text-sm text-gray-600 mb-2;
   }
-  
+
   .architecture-item code {
     @apply text-xs font-mono bg-gray-100 px-2 py-1 rounded;
   }
@@ -365,15 +368,15 @@ html, body {
   .system-benefits {
     @apply mt-8 bg-white rounded-lg border border-gray-200 p-6 shadow-sm;
   }
-  
+
   .benefit-item {
     @apply p-4 bg-gray-50 rounded-lg border border-gray-200;
   }
-  
+
   .benefit-item h4 {
     @apply font-semibold text-gray-900 mb-2;
   }
-  
+
   .benefit-item p {
     @apply text-sm text-gray-600;
   }

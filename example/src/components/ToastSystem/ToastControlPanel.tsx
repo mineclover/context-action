@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
 import { useStoreValue } from '@context-action/react';
-import { useActionToast } from './useActionToast';
-import { toastConfigStore } from './store';
+import { useState } from 'react';
 import { toastActionRegister } from './actions';
+import { toastConfigStore } from './store';
 import type { ToastPosition } from './types';
+import { useActionToast } from './useActionToast';
 
 export function ToastControlPanel() {
   const config = useStoreValue(toastConfigStore);
@@ -23,10 +23,26 @@ export function ToastControlPanel() {
   };
 
   const testToasts = [
-    { type: 'success' as const, title: '✅ Success Toast', message: 'Operation completed successfully!' },
-    { type: 'error' as const, title: '❌ Error Toast', message: 'Something went wrong. Please try again.' },
-    { type: 'info' as const, title: 'ℹ️ Info Toast', message: 'Here is some useful information for you.' },
-    { type: 'system' as const, title: '⚙️ System Toast', message: 'System notification message.' },
+    {
+      type: 'success' as const,
+      title: '✅ Success Toast',
+      message: 'Operation completed successfully!',
+    },
+    {
+      type: 'error' as const,
+      title: '❌ Error Toast',
+      message: 'Something went wrong. Please try again.',
+    },
+    {
+      type: 'info' as const,
+      title: 'ℹ️ Info Toast',
+      message: 'Here is some useful information for you.',
+    },
+    {
+      type: 'system' as const,
+      title: '⚙️ System Toast',
+      message: 'System notification message.',
+    },
   ];
 
   const positions: { value: ToastPosition; label: string }[] = [
@@ -39,8 +55,11 @@ export function ToastControlPanel() {
   ];
 
   return (
-    <div className="fixed bottom-4 right-4 z-40 bg-white border border-gray-300 rounded-lg shadow-lg" style={{ zIndex: 9998 }}>
-      <button 
+    <div
+      className="fixed bottom-4 right-4 z-40 bg-white border border-gray-300 rounded-lg shadow-lg"
+      style={{ zIndex: 9998 }}
+    >
+      <button
         className="w-full p-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors rounded-lg"
         onClick={() => setIsExpanded(!isExpanded)}
         title={isExpanded ? '토스트 패널 닫기' : '토스트 패널 열기'}
@@ -50,10 +69,14 @@ export function ToastControlPanel() {
 
       {/* 강제 테스트 버튼 추가 (항상 표시) */}
       <div className="p-2 border-t border-gray-200">
-        <button 
+        <button
           onClick={() => {
             console.log('🍞 Quick test button clicked');
-            showToast('success', '✅ Quick Test', 'Quick test button was clicked!');
+            showToast(
+              'success',
+              '✅ Quick Test',
+              'Quick test button was clicked!'
+            );
           }}
           className="w-full px-3 py-2 text-xs font-medium bg-green-100 text-green-800 rounded-md border border-green-300 hover:bg-green-200 transition-colors"
         >
@@ -65,12 +88,16 @@ export function ToastControlPanel() {
         <div className="p-4 space-y-4 w-80">
           {/* 빠른 테스트 버튼들 */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">🧪 Quick Tests</h4>
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">
+              🧪 Quick Tests
+            </h4>
             <div className="grid grid-cols-2 gap-2">
               {testToasts.map((toast, index) => (
                 <button
                   key={index}
-                  onClick={() => showToast(toast.type, toast.title, toast.message)}
+                  onClick={() =>
+                    showToast(toast.type, toast.title, toast.message)
+                  }
                   className="px-3 py-2 text-xs font-medium rounded-md border transition-colors hover:bg-gray-50"
                   title={`Show ${toast.type} toast`}
                 >
@@ -78,7 +105,7 @@ export function ToastControlPanel() {
                 </button>
               ))}
             </div>
-            
+
             <div className="flex gap-2 mt-2">
               <button
                 onClick={() => {
@@ -94,8 +121,8 @@ export function ToastControlPanel() {
               >
                 ⚡ Action Toast
               </button>
-              
-              <button 
+
+              <button
                 onClick={clearAllToasts}
                 className="px-3 py-2 text-xs font-medium rounded-md border border-red-300 text-red-600 hover:bg-red-50 transition-colors"
                 title="Clear all toasts"
@@ -108,7 +135,7 @@ export function ToastControlPanel() {
           {/* 설정 섹션 */}
           <div className="toast-settings">
             <h4>⚙️ Settings</h4>
-            
+
             {/* 위치 설정 */}
             <div className="toast-setting-group">
               <label className="toast-setting-label">Position:</label>
@@ -130,7 +157,7 @@ export function ToastControlPanel() {
             <div className="toast-setting-group">
               <label className="toast-setting-label">Max Toasts:</label>
               <div className="toast-number-controls">
-                {[3, 5, 7, 10].map(num => (
+                {[3, 5, 7, 10].map((num) => (
                   <button
                     key={num}
                     onClick={() => handleMaxToastsChange(num)}
@@ -146,7 +173,7 @@ export function ToastControlPanel() {
             <div className="toast-setting-group">
               <label className="toast-setting-label">Duration (ms):</label>
               <div className="toast-number-controls">
-                {[2000, 3000, 4000, 5000, 8000].map(duration => (
+                {[2000, 3000, 4000, 5000, 8000].map((duration) => (
                   <button
                     key={duration}
                     onClick={() => handleDurationChange(duration)}
@@ -167,7 +194,11 @@ export function ToastControlPanel() {
                 onClick={() => {
                   for (let i = 0; i < 5; i++) {
                     setTimeout(() => {
-                      showToast('info', `🔄 Bulk Test ${i + 1}`, `This is bulk message number ${i + 1}`);
+                      showToast(
+                        'info',
+                        `🔄 Bulk Test ${i + 1}`,
+                        `This is bulk message number ${i + 1}`
+                      );
                     }, i * 200);
                   }
                 }}
@@ -175,10 +206,15 @@ export function ToastControlPanel() {
               >
                 🔄 Bulk Test (5)
               </button>
-              
+
               <button
                 onClick={() => {
-                  const actionTypes = ['updateProfile', 'addToCart', 'addTodo', 'sendMessage'];
+                  const actionTypes = [
+                    'updateProfile',
+                    'addToCart',
+                    'addTodo',
+                    'sendMessage',
+                  ];
                   actionTypes.forEach((actionType, i) => {
                     setTimeout(() => {
                       // executionTime 제거 - 자동 계산됨

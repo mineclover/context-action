@@ -1,14 +1,13 @@
 import type React from 'react';
-import { Link } from 'react-router-dom';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../lib/utils';
-import { 
-  layoutVariants, 
-  sidebarVariants, 
-  navItemVariants,
-  mainContentVariants,
+import {
   type LayoutVariants,
-  type SidebarVariants
+  layoutVariants,
+  mainContentVariants,
+  navItemVariants,
+  type SidebarVariants,
+  sidebarVariants,
 } from './ui/variants';
 
 interface LayoutProps {
@@ -18,42 +17,115 @@ interface LayoutProps {
   collapsed?: boolean;
 }
 
-function Layout({ 
-  children, 
+function Layout({
+  children,
   variant = 'default',
   sidebarWidth = 'md',
-  collapsed = false 
+  collapsed = false,
 }: LayoutProps) {
   const location = useLocation();
 
   const navItems = [
     { path: '/', label: 'Home', category: 'main' as const },
     { path: '/core/basics', label: 'Core Basics', category: 'core' as const },
-    { path: '/core/advanced', label: 'Core Advanced', category: 'core' as const },
-    { path: '/core/features', label: '🚀 Core Features', category: 'core' as const },
-    { path: '/store/basics', label: 'Store Basics', category: 'store' as const },
-    { path: '/store/full-demo', label: 'Store Full Demo', category: 'store' as const },
-    { path: '/store/immutability-test', label: '🔒 Immutability Test', category: 'store' as const },
-    { path: '/react/provider', label: '🔧 Unified Provider', category: 'react' as const },
-    { path: '/react/context', label: '🏗️ React Context', category: 'react' as const },
+    {
+      path: '/core/advanced',
+      label: 'Core Advanced',
+      category: 'core' as const,
+    },
+    {
+      path: '/core/features',
+      label: '🚀 Core Features',
+      category: 'core' as const,
+    },
+    {
+      path: '/store/basics',
+      label: 'Store Basics',
+      category: 'store' as const,
+    },
+    {
+      path: '/store/full-demo',
+      label: 'Store Full Demo',
+      category: 'store' as const,
+    },
+    {
+      path: '/store/immutability-test',
+      label: '🔒 Immutability Test',
+      category: 'store' as const,
+    },
+    {
+      path: '/react/provider',
+      label: '🔧 Unified Provider',
+      category: 'react' as const,
+    },
+    {
+      path: '/react/context',
+      label: '🏗️ React Context',
+      category: 'react' as const,
+    },
     { path: '/react/hooks', label: 'React Hooks', category: 'react' as const },
-    { path: '/react/useActionWithResult', label: '✨ useActionWithResult', category: 'react' as const },
-    { path: '/unified-pattern/demo', label: '🚀 Unified Pattern', category: 'react' as const },
-    { path: '/logger/demo', label: 'Logger System', category: 'logger' as const },
-    { path: '/actionguard/demo', label: 'Action Guard', category: 'actionguard' as const },
-    { path: '/actionguard/test', label: '🧪 Dispatch Options Test', category: 'actionguard' as const },
-    { path: '/actionguard/priority-performance', label: '⚡ Priority Performance', category: 'actionguard' as const },
-    { path: '/actionguard/throttle-comparison', label: '⚖️ Throttle Comparison', category: 'actionguard' as const },
-    { path: '/examples/toast-config', label: '🍞 Toast Config Example', category: 'examples' as const },
-    { path: '/examples/concurrent-actions', label: '🔄 Concurrent Actions Test', category: 'examples' as const },
-    { path: '/examples/enhanced-search', label: '🔍 Enhanced Abortable Search', category: 'examples' as const },
+    {
+      path: '/react/useActionWithResult',
+      label: '✨ useActionWithResult',
+      category: 'react' as const,
+    },
+    {
+      path: '/unified-pattern/demo',
+      label: '🚀 Unified Pattern',
+      category: 'react' as const,
+    },
+    {
+      path: '/logger/demo',
+      label: 'Logger System',
+      category: 'logger' as const,
+    },
+    {
+      path: '/actionguard/demo',
+      label: 'Action Guard',
+      category: 'actionguard' as const,
+    },
+    {
+      path: '/actionguard/test',
+      label: '🧪 Dispatch Options Test',
+      category: 'actionguard' as const,
+    },
+    {
+      path: '/actionguard/priority-performance',
+      label: '⚡ Priority Performance',
+      category: 'actionguard' as const,
+    },
+    {
+      path: '/actionguard/throttle-comparison',
+      label: '⚖️ Throttle Comparison',
+      category: 'actionguard' as const,
+    },
+    {
+      path: '/examples/toast-config',
+      label: '🍞 Toast Config Example',
+      category: 'examples' as const,
+    },
+    {
+      path: '/examples/concurrent-actions',
+      label: '🔄 Concurrent Actions Test',
+      category: 'examples' as const,
+    },
+    {
+      path: '/examples/enhanced-search',
+      label: '🔍 Enhanced Abortable Search',
+      category: 'examples' as const,
+    },
   ];
 
   const isActive = (path: string) => location.pathname === path;
 
   return (
     <div className={cn(layoutVariants({ variant }))}>
-      <nav className={cn(sidebarVariants({ width: sidebarWidth, collapsed }), "hidden md:block")}>
+      <nav
+        className={cn(
+          sidebarVariants({ width: sidebarWidth, collapsed }),
+          'hidden md:block'
+        )}
+      >
         {/* Logo Section */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-3">
@@ -62,13 +134,15 @@ function Layout({
             </div>
             {!collapsed && (
               <div>
-                <h2 className="text-lg font-bold text-gray-900">Context-Action</h2>
+                <h2 className="text-lg font-bold text-gray-900">
+                  Context-Action
+                </h2>
                 <p className="text-xs text-gray-500">Framework Examples</p>
               </div>
             )}
           </div>
         </div>
-        
+
         {/* Navigation Section */}
         <div className="p-4">
           {!collapsed && (
@@ -101,18 +175,25 @@ function Layout({
           </nav>
         </div>
       </nav>
-      
-      <main className={cn(
-        mainContentVariants({ 
-          sidebarWidth, 
-          sidebarCollapsed: collapsed 
-        }),
-        "ml-0", // 모바일에서는 margin 없음
-        collapsed ? "md:ml-16" : 
-          sidebarWidth === 'sm' ? "md:ml-64" :
-          sidebarWidth === 'md' ? "md:ml-72" :
-          sidebarWidth === 'lg' ? "md:ml-80" : "md:ml-72"
-      )}>
+
+      <main
+        className={cn(
+          mainContentVariants({
+            sidebarWidth,
+            sidebarCollapsed: collapsed,
+          }),
+          'ml-0', // 모바일에서는 margin 없음
+          collapsed
+            ? 'md:ml-16'
+            : sidebarWidth === 'sm'
+              ? 'md:ml-64'
+              : sidebarWidth === 'md'
+                ? 'md:ml-72'
+                : sidebarWidth === 'lg'
+                  ? 'md:ml-80'
+                  : 'md:ml-72'
+        )}
+      >
         {children}
       </main>
     </div>

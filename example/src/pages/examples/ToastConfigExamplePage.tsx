@@ -1,11 +1,14 @@
-import React, { useState, useCallback } from 'react';
-import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
-import { DemoCard, Button, Input } from '../../components/ui';
+import { useCallback, useState } from 'react';
+import {
+  PageWithLogMonitor,
+  useActionLoggerWithToast,
+} from '../../components/LogMonitor/';
+import { Button, DemoCard, Input } from '../../components/ui';
 
 /**
  * config.enableToast 명시적 설정 예제 페이지
- * 
- * 이 페이지는 LogMonitor의 config.enableToast를 명시적으로 true로 설정하는 
+ *
+ * 이 페이지는 LogMonitor의 config.enableToast를 명시적으로 true로 설정하는
  * 다양한 방법을 보여줍니다.
  */
 
@@ -15,17 +18,17 @@ function BasicToastDemo() {
   const [message, setMessage] = useState('');
 
   const handleTestToast = useCallback(() => {
-    logAction('testBasicToast', { 
-      message: '기본 Toast 테스트', 
-      timestamp: new Date().toISOString() 
+    logAction('testBasicToast', {
+      message: '기본 Toast 테스트',
+      timestamp: new Date().toISOString(),
     });
   }, [logAction]);
 
   const handleCustomMessage = useCallback(() => {
     if (message.trim()) {
-      logAction('customMessage', { 
+      logAction('customMessage', {
         userMessage: message,
-        length: message.length 
+        length: message.length,
       });
       setMessage('');
     }
@@ -36,12 +39,13 @@ function BasicToastDemo() {
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
         예제 1: 기본 Toast 활성화 (enableToast: true)
       </h3>
-      
+
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
         <p className="text-sm text-blue-800">
-          ✅ <strong>이 페이지의 설정:</strong> 
+          ✅ <strong>이 페이지의 설정:</strong>
           <code className="ml-2 bg-blue-100 px-2 py-1 rounded">
-            initialConfig=&#123;&#123; enableToast: true, maxLogs: 100 &#125;&#125;
+            initialConfig=&#123;&#123; enableToast: true, maxLogs: 100
+            &#125;&#125;
           </code>
         </p>
       </div>
@@ -64,8 +68,8 @@ function BasicToastDemo() {
             placeholder="커스텀 메시지를 입력하세요"
             className="w-full"
           />
-          <Button 
-            onClick={handleCustomMessage} 
+          <Button
+            onClick={handleCustomMessage}
             variant="secondary"
             disabled={!message.trim()}
           >
@@ -82,30 +86,30 @@ function ToastTypesDemo() {
   const { logAction } = useActionLoggerWithToast();
 
   const testToastTypes = [
-    { 
-      type: 'success', 
+    {
+      type: 'success',
       action: 'successAction',
-      label: '✅ Success Toast', 
-      payload: { result: '성공적으로 완료되었습니다' } 
+      label: '✅ Success Toast',
+      payload: { result: '성공적으로 완료되었습니다' },
     },
-    { 
-      type: 'error', 
+    {
+      type: 'error',
       action: 'errorAction',
-      label: '❌ Error Toast', 
-      payload: { error: '오류가 발생했습니다' } 
+      label: '❌ Error Toast',
+      payload: { error: '오류가 발생했습니다' },
     },
-    { 
-      type: 'info', 
+    {
+      type: 'info',
       action: 'infoAction',
-      label: 'ℹ️ Info Toast', 
-      payload: { info: '정보를 확인하세요' } 
+      label: 'ℹ️ Info Toast',
+      payload: { info: '정보를 확인하세요' },
     },
-    { 
-      type: 'warning', 
+    {
+      type: 'warning',
       action: 'warningAction',
-      label: '⚠️ Warning Toast', 
-      payload: { warning: '주의가 필요합니다' } 
-    }
+      label: '⚠️ Warning Toast',
+      payload: { warning: '주의가 필요합니다' },
+    },
   ];
 
   return (
@@ -129,8 +133,8 @@ function ToastTypesDemo() {
 
       <div className="mt-4 p-3 bg-gray-50 rounded-lg">
         <p className="text-sm text-gray-700">
-          각 버튼은 서로 다른 액션을 실행하며, ACTION_MESSAGES에 정의된 
-          메시지에 따라 적절한 Toast 타입이 표시됩니다.
+          각 버튼은 서로 다른 액션을 실행하며, ACTION_MESSAGES에 정의된 메시지에
+          따라 적절한 Toast 타입이 표시됩니다.
         </p>
       </div>
     </DemoCard>
@@ -146,37 +150,37 @@ function RealTimeActionsDemo() {
   const handleIncrement = useCallback(() => {
     const newValue = counter + 1;
     setCounter(newValue);
-    logAction('incrementCounter', { 
-      oldValue: counter, 
-      newValue, 
-      timestamp: Date.now() 
+    logAction('incrementCounter', {
+      oldValue: counter,
+      newValue,
+      timestamp: Date.now(),
     });
   }, [counter, logAction]);
 
   const handleReset = useCallback(() => {
     setCounter(0);
-    logAction('resetCounter', { 
-      previousValue: counter, 
-      resetTime: new Date().toISOString() 
+    logAction('resetCounter', {
+      previousValue: counter,
+      resetTime: new Date().toISOString(),
     });
   }, [counter, logAction]);
 
   const toggleAutoMode = useCallback(() => {
     const newMode = !autoMode;
     setAutoMode(newMode);
-    logAction('toggleAutoMode', { 
-      enabled: newMode, 
-      counterValue: counter 
+    logAction('toggleAutoMode', {
+      enabled: newMode,
+      counterValue: counter,
     });
 
     if (newMode) {
       // 자동 모드에서는 3초마다 증가
       const interval = setInterval(() => {
-        setCounter(prev => {
+        setCounter((prev) => {
           const newVal = prev + 1;
-          logAction('autoIncrement', { 
-            autoValue: newVal, 
-            mode: 'automatic' 
+          logAction('autoIncrement', {
+            autoValue: newVal,
+            mode: 'automatic',
           });
           return newVal;
         });
@@ -186,9 +190,9 @@ function RealTimeActionsDemo() {
       setTimeout(() => {
         clearInterval(interval);
         setAutoMode(false);
-        logAction('autoModeTimeout', { 
-          finalValue: counter, 
-          duration: '10초' 
+        logAction('autoModeTimeout', {
+          finalValue: counter,
+          duration: '10초',
         });
       }, 10000);
     }
@@ -218,12 +222,12 @@ function RealTimeActionsDemo() {
         </div>
 
         <div className="text-center">
-          <Button 
-            onClick={toggleAutoMode} 
-            variant={autoMode ? "danger" : "primary"}
+          <Button
+            onClick={toggleAutoMode}
+            variant={autoMode ? 'danger' : 'primary'}
             disabled={autoMode}
           >
-            {autoMode ? "🔄 자동 모드 실행 중..." : "⚡ 자동 모드 시작 (10초)"}
+            {autoMode ? '🔄 자동 모드 실행 중...' : '⚡ 자동 모드 시작 (10초)'}
           </Button>
           {autoMode && (
             <p className="text-sm text-orange-600 mt-2">
@@ -238,13 +242,13 @@ function RealTimeActionsDemo() {
 
 function ToastConfigExamplePage() {
   return (
-    <PageWithLogMonitor 
-      pageId="toast-config-example" 
+    <PageWithLogMonitor
+      pageId="toast-config-example"
       title="Toast Configuration Example"
-      initialConfig={{ 
-        enableToast: true,    // 🔑 명시적으로 Toast 활성화
-        maxLogs: 100,        // 최대 로그 개수 설정
-        defaultLogLevel: 1   // DEBUG 레벨로 설정
+      initialConfig={{
+        enableToast: true, // 🔑 명시적으로 Toast 활성화
+        maxLogs: 100, // 최대 로그 개수 설정
+        defaultLogLevel: 1, // DEBUG 레벨로 설정
       }}
     >
       <div className="max-w-6xl mx-auto px-6 py-8">
@@ -253,15 +257,19 @@ function ToastConfigExamplePage() {
             Toast Configuration 예제
           </h1>
           <p className="text-lg text-gray-600 leading-relaxed mb-4">
-            LogMonitor의 <code className="bg-gray-100 px-2 py-1 rounded">config.enableToast</code>를 
-            명시적으로 <code className="bg-green-100 px-2 py-1 rounded">true</code>로 설정하는 방법과 
-            Toast 시스템의 동작을 확인하는 예제입니다.
+            LogMonitor의{' '}
+            <code className="bg-gray-100 px-2 py-1 rounded">
+              config.enableToast
+            </code>
+            를 명시적으로{' '}
+            <code className="bg-green-100 px-2 py-1 rounded">true</code>로
+            설정하는 방법과 Toast 시스템의 동작을 확인하는 예제입니다.
           </p>
-          
+
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <h3 className="font-semibold text-yellow-800 mb-2">💡 핵심 설정</h3>
             <pre className="text-sm text-yellow-700 font-mono">
-{`<PageWithLogMonitor 
+              {`<PageWithLogMonitor 
   pageId="toast-config-example"
   initialConfig={{
     enableToast: true,    // 🔑 Toast 활성화
@@ -279,18 +287,20 @@ function ToastConfigExamplePage() {
           <BasicToastDemo />
           <ToastTypesDemo />
           <RealTimeActionsDemo />
-          
+
           {/* 설정 방법 안내 */}
           <DemoCard variant="info">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               📋 Toast 활성화 설정 방법
             </h3>
-            
+
             <div className="space-y-4">
               <div>
-                <h4 className="font-semibold text-gray-800 mb-2">1. PageWithLogMonitor 컴포넌트에서</h4>
+                <h4 className="font-semibold text-gray-800 mb-2">
+                  1. PageWithLogMonitor 컴포넌트에서
+                </h4>
                 <pre className="bg-gray-50 p-3 rounded text-sm font-mono">
-{`<PageWithLogMonitor 
+                  {`<PageWithLogMonitor 
   pageId="my-page"
   initialConfig={{ enableToast: true }}
 >
@@ -298,11 +308,13 @@ function ToastConfigExamplePage() {
 </PageWithLogMonitor>`}
                 </pre>
               </div>
-              
+
               <div>
-                <h4 className="font-semibold text-gray-800 mb-2">2. 런타임에서 동적 변경</h4>
+                <h4 className="font-semibold text-gray-800 mb-2">
+                  2. 런타임에서 동적 변경
+                </h4>
                 <pre className="bg-gray-50 p-3 rounded text-sm font-mono">
-{`const { updateConfig } = useLogMonitor();
+                  {`const { updateConfig } = useLogMonitor();
 
 // Toast 활성화
 updateConfig({ enableToast: true });
@@ -311,11 +323,13 @@ updateConfig({ enableToast: true });
 updateConfig({ enableToast: false });`}
                 </pre>
               </div>
-              
+
               <div>
-                <h4 className="font-semibold text-gray-800 mb-2">3. 액션 로깅에서 Toast 사용</h4>
+                <h4 className="font-semibold text-gray-800 mb-2">
+                  3. 액션 로깅에서 Toast 사용
+                </h4>
                 <pre className="bg-gray-50 p-3 rounded text-sm font-mono">
-{`const { logAction } = useActionLoggerWithToast();
+                  {`const { logAction } = useActionLoggerWithToast();
 
 // 기본 Toast (ACTION_MESSAGES 기반)
 logAction('myAction', { data: 'test' });
@@ -331,11 +345,13 @@ logAction('myAction', { data: 'test' });
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               🔄 Toast 동작 원리
             </h3>
-            
+
             <div className="space-y-3 text-sm text-gray-700">
               <div className="flex items-start gap-2">
                 <span className="font-semibold text-blue-600">1.</span>
-                <span>useActionLoggerWithToast() 훅이 Toast 시스템을 자동 감지</span>
+                <span>
+                  useActionLoggerWithToast() 훅이 Toast 시스템을 자동 감지
+                </span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="font-semibold text-blue-600">2.</span>

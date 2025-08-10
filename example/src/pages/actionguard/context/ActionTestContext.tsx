@@ -1,35 +1,39 @@
-import React from 'react';
-import { createActionContext, createDeclarativeStores } from '@context-action/react';
-import { ActionPayloadMap } from '@context-action/core';
-import { type StoreSchema } from '@context-action/react';
-import { ExecutionStateData } from '../hooks/usePriorityExecutionState';
+import type { ActionPayloadMap } from '@context-action/core';
+import {
+  createActionContext,
+  createDeclarativeStores,
+  type StoreSchema,
+} from '@context-action/react';
+import type React from 'react';
+import type { ExecutionStateData } from '../hooks/usePriorityExecutionState';
 
 // 테스트용 액션 타입 정의
 export interface TestActions extends ActionPayloadMap {
-  priorityTest: { 
-    testId: string; 
+  priorityTest: {
+    testId: string;
     delay: number; // 미사용 (각 핸들러는 개별 config.delay만 사용)
   };
 }
 
 // Priority Test용 Action Context
 export const PriorityTestAction = createActionContext<TestActions>({
-  name: 'PriorityTest'
+  name: 'PriorityTest',
 });
 
 // Provider 타입을 명시적으로 선언
-export const ActionTestProvider: React.FC<{ children: React.ReactNode }> = PriorityTestAction.Provider;
+export const ActionTestProvider: React.FC<{ children: React.ReactNode }> =
+  PriorityTestAction.Provider;
 
 // 나머지 hooks export
 export const usePriorityActionDispatch = PriorityTestAction.useActionDispatch;
 export const usePriorityActionRegister = PriorityTestAction.useActionRegister;
-export const usePriorityActionContext: () => any = PriorityTestAction.useActionContext;
-export const PriorityTestActionContext: React.Context<any> = PriorityTestAction.context;
-
-
+export const usePriorityActionContext: () => any =
+  PriorityTestAction.useActionContext;
+export const PriorityTestActionContext: React.Context<any> =
+  PriorityTestAction.context;
 
 // Priority Test Stores 타입 정의
-interface PriorityTestStores  {
+interface PriorityTestStores {
   priorityCounts: Record<number, number>;
   executionState: ExecutionStateData;
 }
@@ -39,7 +43,7 @@ const priorityTestSchema: StoreSchema<PriorityTestStores> = {
   priorityCounts: {
     initialValue: {},
     description: 'Priority execution counts',
-    tags: ['priority', 'testing']
+    tags: ['priority', 'testing'],
   },
   executionState: {
     initialValue: {
@@ -55,26 +59,28 @@ const priorityTestSchema: StoreSchema<PriorityTestStores> = {
       maxExecutionTime: 0,
       minExecutionTime: Number.MAX_VALUE,
       startTime: 0,
-      executionTimes: []
+      executionTimes: [],
     },
     description: 'Test execution state and statistics',
-    tags: ['execution', 'statistics', 'testing']
-  }
+    tags: ['execution', 'statistics', 'testing'],
+  },
 };
 
-
 // Stores 인스턴스 생성 (컨텍스트별로 고유)
-const PriorityStores = createDeclarativeStores('PriorityTestManager', priorityTestSchema);
+const PriorityStores = createDeclarativeStores(
+  'PriorityTestManager',
+  priorityTestSchema
+);
 
 // Provider 타입을 명시적으로 선언
-export const PriorityTestProvider: React.FC<{ 
+export const PriorityTestProvider: React.FC<{
   children: React.ReactNode;
   registryId?: string;
 }> = PriorityStores.Provider;
 
 // 나머지 exports
 export const usePriorityTestStore = PriorityStores.useStore;
-export const PriorityTestStoreContext: React.Context<any> = PriorityStores.RegistryContext;
+export const PriorityTestStoreContext: React.Context<any> =
+  PriorityStores.RegistryContext;
 export const usePriorityTestRegistry = PriorityStores.useRegistry;
 export const usePriorityTestRegistryInfo = PriorityStores.useRegistryInfo;
-

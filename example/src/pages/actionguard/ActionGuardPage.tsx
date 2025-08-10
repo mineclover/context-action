@@ -1,8 +1,18 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { ActionRegister, ActionPayloadMap } from '@context-action/react';
-import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
-import { DemoCard, Button, Input, CodeExample, CodeBlock } from '../../components/ui';
+import { type ActionPayloadMap, ActionRegister } from '@context-action/react';
+import type React from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  PageWithLogMonitor,
+  useActionLoggerWithToast,
+} from '../../components/LogMonitor/';
 import { toastActionRegister } from '../../components/ToastSystem/actions';
+import {
+  Button,
+  CodeBlock,
+  CodeExample,
+  DemoCard,
+  Input,
+} from '../../components/ui';
 
 // Action Guard 액션 맵
 interface ActionGuardMap extends ActionPayloadMap {
@@ -16,63 +26,78 @@ interface ActionGuardMap extends ActionPayloadMap {
 }
 
 // 디바운스 훅
-function useDebounce<T extends any[]>(callback: (...args: T) => void, delay: number) {
+function useDebounce<T extends any[]>(
+  callback: (...args: T) => void,
+  delay: number
+) {
   const timeoutRef = useRef<NodeJS.Timeout>();
-  
-  return useCallback((...args: T) => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    timeoutRef.current = setTimeout(() => {
-      callback(...args);
-    }, delay);
-  }, [callback, delay]);
-}
 
-// 스로틀 훅
-function useThrottle<T extends any[]>(callback: (...args: T) => void, delay: number) {
-  const lastCallRef = useRef<number>(0);
-  const timeoutRef = useRef<NodeJS.Timeout>();
-  
-  return useCallback((...args: T) => {
-    const now = Date.now();
-    const timeSinceLastCall = now - lastCallRef.current;
-    
-    if (timeSinceLastCall >= delay) {
-      lastCallRef.current = now;
-      callback(...args);
-    } else {
+  return useCallback(
+    (...args: T) => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
       timeoutRef.current = setTimeout(() => {
-        lastCallRef.current = Date.now();
         callback(...args);
-      }, delay - timeSinceLastCall);
-    }
-  }, [callback, delay]);
+      }, delay);
+    },
+    [callback, delay]
+  );
+}
+
+// 스로틀 훅
+function useThrottle<T extends any[]>(
+  callback: (...args: T) => void,
+  delay: number
+) {
+  const lastCallRef = useRef<number>(0);
+  const timeoutRef = useRef<NodeJS.Timeout>();
+
+  return useCallback(
+    (...args: T) => {
+      const now = Date.now();
+      const timeSinceLastCall = now - lastCallRef.current;
+
+      if (timeSinceLastCall >= delay) {
+        lastCallRef.current = now;
+        callback(...args);
+      } else {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+        timeoutRef.current = setTimeout(() => {
+          lastCallRef.current = Date.now();
+          callback(...args);
+        }, delay - timeSinceLastCall);
+      }
+    },
+    [callback, delay]
+  );
 }
 
 // 블로킹 훅
 function useActionBlock(duration: number = 1000) {
   const [isBlocked, setIsBlocked] = useState(false);
   const [lastAction, setLastAction] = useState<string>('');
-  
-  const blockAction = useCallback((actionName: string) => {
-    if (isBlocked) {
-      return false;
-    }
-    
-    setIsBlocked(true);
-    setLastAction(actionName);
-    setTimeout(() => {
-      setIsBlocked(false);
-      setLastAction('');
-    }, duration);
-    
-    return true;
-  }, [isBlocked, duration]);
-  
+
+  const blockAction = useCallback(
+    (actionName: string) => {
+      if (isBlocked) {
+        return false;
+      }
+
+      setIsBlocked(true);
+      setLastAction(actionName);
+      setTimeout(() => {
+        setIsBlocked(false);
+        setLastAction('');
+      }, duration);
+
+      return true;
+    },
+    [isBlocked, duration]
+  );
+
   return { isBlocked, lastAction, blockAction };
 }
 
@@ -83,28 +108,38 @@ function SearchDemo() {
   const [searchCount, setSearchCount] = useState(0);
   const [actionRegister] = useState(() => new ActionRegister<ActionGuardMap>());
   const { logAction, logSystem } = useActionLoggerWithToast();
-  
+
   // 실제 검색 함수 (모의)
-  const performSearch = useCallback((term: string) => {
-    setSearchCount(prev => prev + 1);
-    logAction('performSearch', { term, count: searchCount + 1 });
-    // 모의 검색 결과
-    const mockResults = term
-      ? [`Result 1 for "${term}"`, `Result 2 for "${term}"`, `Result 3 for "${term}"`]
-      : [];
-    setSearchResults(mockResults);
-  }, [searchCount, logAction]);
-  
+  const performSearch = useCallback(
+    (term: string) => {
+      setSearchCount((prev) => prev + 1);
+      logAction('performSearch', { term, count: searchCount + 1 });
+      // 모의 검색 결과
+      const mockResults = term
+        ? [
+            `Result 1 for "${term}"`,
+            `Result 2 for "${term}"`,
+            `Result 3 for "${term}"`,
+          ]
+        : [];
+      setSearchResults(mockResults);
+    },
+    [searchCount, logAction]
+  );
+
   // 디바운스된 검색
   const debouncedSearch = useDebounce(performSearch, 500);
-  
+
   useEffect(() => {
-    const unsubscribe = actionRegister.register('searchInput', (term, controller) => {
-      logAction('searchInput', { term, debounced: true });
-      debouncedSearch(term);
-      controller.next();
-    });
-    
+    const unsubscribe = actionRegister.register(
+      'searchInput',
+      (term, controller) => {
+        logAction('searchInput', { term, debounced: true });
+        debouncedSearch(term);
+        controller.next();
+      }
+    );
+
     return unsubscribe;
   }, [actionRegister, debouncedSearch, logAction]);
 
@@ -116,7 +151,9 @@ function SearchDemo() {
 
   return (
     <DemoCard>
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Search with Debouncing</h3>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        Search with Debouncing
+      </h3>
       <div className="space-y-4">
         <Input
           type="text"
@@ -130,7 +167,9 @@ function SearchDemo() {
         </div>
         <div className="space-y-2">
           {searchResults.map((result, index) => (
-            <div key={index} className="p-2 bg-gray-50 rounded border text-sm">{result}</div>
+            <div key={index} className="p-2 bg-gray-50 rounded border text-sm">
+              {result}
+            </div>
           ))}
         </div>
       </div>
@@ -144,18 +183,21 @@ function ScrollDemo() {
   const [scrollCount, setScrollCount] = useState(0);
   const [actionRegister] = useState(() => new ActionRegister<ActionGuardMap>());
   const { logAction } = useActionLoggerWithToast();
-  
+
   const throttledScrollHandler = useThrottle((scrollTop: number) => {
-    setScrollCount(prev => prev + 1);
+    setScrollCount((prev) => prev + 1);
     logAction('scrollEvent', { scrollTop, count: scrollCount + 1 });
   }, 100);
-  
+
   useEffect(() => {
-    const unsubscribe = actionRegister.register('scrollEvent', (data, controller) => {
-      throttledScrollHandler(data.scrollTop);
-      controller.next();
-    });
-    
+    const unsubscribe = actionRegister.register(
+      'scrollEvent',
+      (data, controller) => {
+        throttledScrollHandler(data.scrollTop);
+        controller.next();
+      }
+    );
+
     return unsubscribe;
   }, [actionRegister, throttledScrollHandler, logAction]);
 
@@ -167,8 +209,10 @@ function ScrollDemo() {
 
   return (
     <DemoCard>
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Scroll with Throttling</h3>
-      <div 
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        Scroll with Throttling
+      </h3>
+      <div
         className="h-[200px] overflow-auto border border-gray-300 rounded-lg bg-gray-50"
         onScroll={handleScroll}
       >
@@ -191,41 +235,47 @@ function ApiBlockingDemo() {
   const [actionRegister] = useState(() => new ActionRegister<ActionGuardMap>());
   const { isBlocked, lastAction, blockAction } = useActionBlock(2000);
   const { logAction, logSystem } = useActionLoggerWithToast();
-  
+
   useEffect(() => {
-    const unsubscribe = actionRegister.register('apiCall', (data, controller) => {
-      if (blockAction('apiCall')) {
-        // 로그 기록
-        logAction('apiCall', { endpoint: data.endpoint, blocked: false });
-        
-        // 직접 Toast 발생
-        logSystem(`🍞 Dispatching success toast for: ${data.endpoint}`);
-        toastActionRegister.dispatch('addToast', {
-          type: 'success',
-          title: '🌐 API 호출',
-          message: `${data.endpoint} 호출 성공!`
-        });
-        logSystem('🍞 Toast dispatch completed');
-        
-        setApiCalls(prev => [...prev, `API Call to ${data.endpoint} at ${new Date().toLocaleTimeString()}`]);
-        controller.next();
-      } else {
-        // 로그 기록
-        logAction('apiCall', { endpoint: data.endpoint, blocked: true });
-        
-        // 직접 Toast 발생
-        logSystem(`🍞 Dispatching error toast for: ${data.endpoint}`);
-        toastActionRegister.dispatch('addToast', {
-          type: 'error',
-          title: '🚫 API 차단',
-          message: `${data.endpoint} 호출이 차단되었습니다`
-        });
-        logSystem('🍞 Toast dispatch completed (error)');
-        
-        logSystem('API call blocked due to rate limiting');
+    const unsubscribe = actionRegister.register(
+      'apiCall',
+      (data, controller) => {
+        if (blockAction('apiCall')) {
+          // 로그 기록
+          logAction('apiCall', { endpoint: data.endpoint, blocked: false });
+
+          // 직접 Toast 발생
+          logSystem(`🍞 Dispatching success toast for: ${data.endpoint}`);
+          toastActionRegister.dispatch('addToast', {
+            type: 'success',
+            title: '🌐 API 호출',
+            message: `${data.endpoint} 호출 성공!`,
+          });
+          logSystem('🍞 Toast dispatch completed');
+
+          setApiCalls((prev) => [
+            ...prev,
+            `API Call to ${data.endpoint} at ${new Date().toLocaleTimeString()}`,
+          ]);
+          controller.next();
+        } else {
+          // 로그 기록
+          logAction('apiCall', { endpoint: data.endpoint, blocked: true });
+
+          // 직접 Toast 발생
+          logSystem(`🍞 Dispatching error toast for: ${data.endpoint}`);
+          toastActionRegister.dispatch('addToast', {
+            type: 'error',
+            title: '🚫 API 차단',
+            message: `${data.endpoint} 호출이 차단되었습니다`,
+          });
+          logSystem('🍞 Toast dispatch completed (error)');
+
+          logSystem('API call blocked due to rate limiting');
+        }
       }
-    });
-    
+    );
+
     return unsubscribe;
   }, [actionRegister, blockAction, logAction, logSystem]);
 
@@ -235,10 +285,12 @@ function ApiBlockingDemo() {
 
   return (
     <DemoCard>
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">API Call Blocking</h3>
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        API Call Blocking
+      </h3>
       <div className="space-y-4">
         <div className="flex flex-wrap gap-2">
-          <Button 
+          <Button
             onClick={() => handleApiCall('/api/users')}
             disabled={isBlocked}
             variant="primary"
@@ -246,7 +298,7 @@ function ApiBlockingDemo() {
           >
             Call /api/users
           </Button>
-          <Button 
+          <Button
             onClick={() => handleApiCall('/api/posts')}
             disabled={isBlocked}
             variant="primary"
@@ -254,7 +306,7 @@ function ApiBlockingDemo() {
           >
             Call /api/posts
           </Button>
-          <Button 
+          <Button
             onClick={() => handleApiCall('/api/comments')}
             disabled={isBlocked}
             variant="primary"
@@ -271,7 +323,9 @@ function ApiBlockingDemo() {
         <div className="space-y-2">
           <h4 className="font-medium text-gray-900">Recent API Calls:</h4>
           {apiCalls.map((call, index) => (
-            <div key={index} className="p-2 bg-gray-50 rounded border text-sm">{call}</div>
+            <div key={index} className="p-2 bg-gray-50 rounded border text-sm">
+              {call}
+            </div>
           ))}
         </div>
       </div>
@@ -285,18 +339,21 @@ function MouseEventDemo() {
   const [moveCount, setMoveCount] = useState(0);
   const [actionRegister] = useState(() => new ActionRegister<ActionGuardMap>());
   const { logAction } = useActionLoggerWithToast();
-  
+
   const throttledMouseHandler = useThrottle((x: number, y: number) => {
-    setMoveCount(prev => prev + 1);
+    setMoveCount((prev) => prev + 1);
     logAction('mouseMove', { x, y, count: moveCount + 1 });
   }, 50);
-  
+
   useEffect(() => {
-    const unsubscribe = actionRegister.register('mouseMove', (data, controller) => {
-      throttledMouseHandler(data.x, data.y);
-      controller.next();
-    });
-    
+    const unsubscribe = actionRegister.register(
+      'mouseMove',
+      (data, controller) => {
+        throttledMouseHandler(data.x, data.y);
+        controller.next();
+      }
+    );
+
     return unsubscribe;
   }, [actionRegister, throttledMouseHandler, logAction]);
 
@@ -310,16 +367,20 @@ function MouseEventDemo() {
 
   return (
     <DemoCard>
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Mouse Events with Throttling</h3>
-      <div 
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        Mouse Events with Throttling
+      </h3>
+      <div
         className="h-[200px] border-2 border-gray-300 relative bg-gray-100 rounded-lg overflow-hidden"
         onMouseMove={handleMouseMove}
       >
         <div className="absolute top-2 left-2 text-sm text-gray-600 bg-white bg-opacity-90 p-2 rounded">
-          <p>Mouse Position: ({mousePosition.x}, {mousePosition.y})</p>
+          <p>
+            Mouse Position: ({mousePosition.x}, {mousePosition.y})
+          </p>
           <p>Move events processed: {moveCount}</p>
         </div>
-        <div 
+        <div
           className="absolute w-2.5 h-2.5 bg-red-500 rounded-full pointer-events-none transition-all duration-75"
           style={{
             left: mousePosition.x - 5,
@@ -333,8 +394,8 @@ function MouseEventDemo() {
 
 function ActionGuardPage() {
   return (
-    <PageWithLogMonitor 
-      pageId="action-guard" 
+    <PageWithLogMonitor
+      pageId="action-guard"
       title="Action Guard System"
       initialConfig={{ enableToast: true, maxLogs: 100 }}
     >
@@ -342,8 +403,9 @@ function ActionGuardPage() {
         <header className="page-header">
           <h1>Action Guard System</h1>
           <p className="page-description">
-            Learn how to implement debouncing, throttling, and action blocking patterns
-            to optimize user experience and prevent excessive action execution.
+            Learn how to implement debouncing, throttling, and action blocking
+            patterns to optimize user experience and prevent excessive action
+            execution.
           </p>
         </header>
 
@@ -352,29 +414,45 @@ function ActionGuardPage() {
           <ScrollDemo />
           <ApiBlockingDemo />
           <MouseEventDemo />
-          
+
           {/* Action Guard 개념 */}
           <DemoCard variant="info">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Action Guard Patterns</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Action Guard Patterns
+            </h3>
             <ul className="space-y-4 text-sm text-gray-700">
               <li className="space-y-2">
-                <strong className="text-gray-900 font-semibold">Debouncing:</strong> 연속된 이벤트에서 마지막 이벤트만 처리 (검색, 입력 유효성 검사)
+                <strong className="text-gray-900 font-semibold">
+                  Debouncing:
+                </strong>{' '}
+                연속된 이벤트에서 마지막 이벤트만 처리 (검색, 입력 유효성 검사)
               </li>
               <li className="space-y-2">
-                <strong className="text-gray-900 font-semibold">Throttling:</strong> 지정된 주기마다 이벤트 처리 (스크롤, 마우스 이벤트)
+                <strong className="text-gray-900 font-semibold">
+                  Throttling:
+                </strong>{' '}
+                지정된 주기마다 이벤트 처리 (스크롤, 마우스 이벤트)
               </li>
               <li className="space-y-2">
-                <strong className="text-gray-900 font-semibold">Blocking:</strong> 일정 시간 동안 중복 실행 방지 (API 호출, 폼 제출)
+                <strong className="text-gray-900 font-semibold">
+                  Blocking:
+                </strong>{' '}
+                일정 시간 동안 중복 실행 방지 (API 호출, 폼 제출)
               </li>
               <li className="space-y-2">
-                <strong className="text-gray-900 font-semibold">Rate Limiting:</strong> 시간당 최대 실행 횟수 제한
+                <strong className="text-gray-900 font-semibold">
+                  Rate Limiting:
+                </strong>{' '}
+                시간당 최대 실행 횟수 제한
               </li>
             </ul>
           </DemoCard>
-          
+
           {/* 사용 사례 */}
           <DemoCard variant="info">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Use Cases</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Use Cases
+            </h3>
             <ul className="space-y-2 text-sm text-gray-700">
               <li className="flex items-start gap-2">✓ 검색 입력 최적화</li>
               <li className="flex items-start gap-2">✓ API 호출 빈도 제어</li>
@@ -389,7 +467,7 @@ function ActionGuardPage() {
         {/* 코드 예제 */}
         <CodeExample title="Action Guard Implementation">
           <CodeBlock>
-{`// 1. 디바운스 훅
+            {`// 1. 디바운스 훅
 const useDebounce = (callback, delay) => {
   const timeoutRef = useRef();
   return useCallback((...args) => {

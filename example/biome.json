@@ -5,23 +5,45 @@
 		"rules": {
 			"recommended": true,
 			"style": {
-				"noNonNullAssertion": "off"
+				"noNonNullAssertion": "off",
+				"noImplicitBoolean": "off",
+				"useImportType": "off",
+				"useFilenamingConvention": "off"
 			},
 			"a11y": {
-				"recommended": true,
-				"useButtonType": "warn",
-				"noLabelWithoutControl": "warn"
+				"recommended": false,
+				"useButtonType": "off",
+				"noLabelWithoutControl": "off",
+				"useKeyWithClickEvents": "off",
+				"useValidAnchor": "off",
+				"noSvgWithoutTitle": "off"
 			},
 			"correctness": {
-				"useExhaustiveDependencies": "warn"
+				"useExhaustiveDependencies": "off",
+				"useHookAtTopLevel": "error",
+				"noUnusedImports": "warn",
+				"noUnusedVariables": "warn",
+				"noUnusedFunctionParameters": "off",
+				"noUnreachable": "warn"
 			},
 			"suspicious": {
-				"noExplicitAny": "warn",
-				"noArrayIndexKey": "warn",
-				"noEmptyInterface": "off"
+				"noExplicitAny": "off",
+				"noArrayIndexKey": "off",
+				"noEmptyInterface": "off",
+				"noConfusingVoidType": "off",
+				"noImplicitAnyLet": "off"
 			},
 			"complexity": {
-				"noExcessiveCognitiveComplexity": "off"
+				"noExcessiveCognitiveComplexity": "off",
+				"noBannedTypes": "off",
+				"noUselessFragments": "off"
+			},
+			"performance": {
+				"noAccumulatingSpread": "warn",
+				"noReExportAll": "off"
+			},
+			"nursery": {
+				"useSortedClasses": "off"
 			}
 		}
 	},

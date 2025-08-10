@@ -13,7 +13,11 @@ export interface Toast {
 }
 
 export interface ToastAction {
-  type: 'ADD_TOAST' | 'REMOVE_TOAST' | 'UPDATE_TOAST_PHASE' | 'CLEAR_ALL_TOASTS';
+  type:
+    | 'ADD_TOAST'
+    | 'REMOVE_TOAST'
+    | 'UPDATE_TOAST_PHASE'
+    | 'CLEAR_ALL_TOASTS';
   payload?: unknown;
 }
 
@@ -34,14 +38,26 @@ export interface ActionToastPayload {
   errorMessage?: string;
 }
 
-export function isActionToastPayload(payload: unknown): payload is ActionToastPayload {
+export function isActionToastPayload(
+  payload: unknown
+): payload is ActionToastPayload {
   if (!payload || typeof payload !== 'object') return false;
   const p = payload as Record<string, unknown>;
-  return typeof p.executionStep === 'undefined' || 
-         ['start', 'processing', 'success', 'error'].includes(p.executionStep as string);
+  return (
+    typeof p.executionStep === 'undefined' ||
+    ['start', 'processing', 'success', 'error'].includes(
+      p.executionStep as string
+    )
+  );
 }
 
-export type ToastPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'top-center' | 'bottom-center';
+export type ToastPosition =
+  | 'top-right'
+  | 'top-left'
+  | 'bottom-right'
+  | 'bottom-left'
+  | 'top-center'
+  | 'bottom-center';
 
 export interface ToastConfig {
   position: ToastPosition;

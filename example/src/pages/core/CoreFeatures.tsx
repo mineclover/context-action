@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  ActionRegister,
-  ActionPayloadMap 
-} from '@context-action/core';
+import { type ActionPayloadMap, ActionRegister } from '@context-action/core';
 import { createLogger, LogLevel } from '@context-action/logger';
-import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
+import { useCallback, useEffect, useState } from 'react';
+import {
+  PageWithLogMonitor,
+  useActionLoggerWithToast,
+} from '../../components/LogMonitor/';
 
 // Core 패키지용 액션 맵
 interface CoreActionMap extends ActionPayloadMap {
@@ -15,58 +15,90 @@ interface CoreActionMap extends ActionPayloadMap {
   chainedAction: { step: number; data: any };
 }
 
-const logger = createLogger(LogLevel.DEBUG);
+const _logger = createLogger(LogLevel.DEBUG);
 
 // 기본 ActionRegister 테스트 컴포넌트
 function BasicActionRegisterTest() {
-  const [coreRegister] = useState(() => new ActionRegister<CoreActionMap>({ name: 'CoreBasicTest' }));
+  const [coreRegister] = useState(
+    () => new ActionRegister<CoreActionMap>({ name: 'CoreBasicTest' })
+  );
   const [results, setResults] = useState<string[]>([]);
   const actionLogger = useActionLoggerWithToast();
 
   useEffect(() => {
     // 기본 액션 핸들러 등록
-    const unsubscribe1 = coreRegister.register('basicAction', ({ message, timestamp }: { message: string; timestamp: number }, controller: any) => {
-      const result = `[Basic] Action executed: ${message} at ${new Date(timestamp).toLocaleTimeString()}`;
-      setResults(prev => [...prev, result]);
-      
-      actionLogger.logAction('basicAction', { message, timestamp }, {
-        context: 'Basic ActionRegister Test',
-        toast: { type: 'info', message: '기본 액션 실행됨' }
-      });
-      
-      controller.next();
-    });
+    const unsubscribe1 = coreRegister.register(
+      'basicAction',
+      (
+        { message, timestamp }: { message: string; timestamp: number },
+        controller: any
+      ) => {
+        const result = `[Basic] Action executed: ${message} at ${new Date(timestamp).toLocaleTimeString()}`;
+        setResults((prev) => [...prev, result]);
 
-    const unsubscribe2 = coreRegister.register('asyncAction', async ({ delay }: { delay: number }, controller: any) => {
-      const startTime = Date.now();
-      setResults(prev => [...prev, `[Async] Starting async action (${delay}ms delay)...`]);
-      
-      await new Promise(resolve => setTimeout(resolve, delay));
-      
-      const endTime = Date.now();
-      const actualDelay = endTime - startTime;
-      const result = `[Async] Completed in ${actualDelay}ms`;
-      setResults(prev => [...prev, result]);
-      
-      actionLogger.logAction('asyncAction', { delay }, {
-        context: 'Basic ActionRegister Test',
-        toast: { type: 'success', message: `비동기 작업 완료 (${actualDelay}ms)` }
-      });
-      
-      controller.next();
-    });
+        actionLogger.logAction(
+          'basicAction',
+          { message, timestamp },
+          {
+            context: 'Basic ActionRegister Test',
+            toast: { type: 'info', message: '기본 액션 실행됨' },
+          }
+        );
 
-    const unsubscribe3 = coreRegister.register('errorAction', ({ errorMessage }: { errorMessage: string }, controller: any) => {
-      const result = `[Error] Error handled: ${errorMessage}`;
-      setResults(prev => [...prev, result]);
-      
-      actionLogger.logError(`Core Package Error: ${errorMessage}`, new Error(errorMessage), {
-        context: 'Basic ActionRegister Test',
-        toast: true
-      });
-      
-      controller.abort('Test error', new Error(errorMessage));
-    });
+        controller.next();
+      }
+    );
+
+    const unsubscribe2 = coreRegister.register(
+      'asyncAction',
+      async ({ delay }: { delay: number }, controller: any) => {
+        const startTime = Date.now();
+        setResults((prev) => [
+          ...prev,
+          `[Async] Starting async action (${delay}ms delay)...`,
+        ]);
+
+        await new Promise((resolve) => setTimeout(resolve, delay));
+
+        const endTime = Date.now();
+        const actualDelay = endTime - startTime;
+        const result = `[Async] Completed in ${actualDelay}ms`;
+        setResults((prev) => [...prev, result]);
+
+        actionLogger.logAction(
+          'asyncAction',
+          { delay },
+          {
+            context: 'Basic ActionRegister Test',
+            toast: {
+              type: 'success',
+              message: `비동기 작업 완료 (${actualDelay}ms)`,
+            },
+          }
+        );
+
+        controller.next();
+      }
+    );
+
+    const unsubscribe3 = coreRegister.register(
+      'errorAction',
+      ({ errorMessage }: { errorMessage: string }, controller: any) => {
+        const result = `[Error] Error handled: ${errorMessage}`;
+        setResults((prev) => [...prev, result]);
+
+        actionLogger.logError(
+          `Core Package Error: ${errorMessage}`,
+          new Error(errorMessage),
+          {
+            context: 'Basic ActionRegister Test',
+            toast: true,
+          }
+        );
+
+        controller.abort('Test error', new Error(errorMessage));
+      }
+    );
 
     return () => {
       unsubscribe1();
@@ -76,9 +108,9 @@ function BasicActionRegisterTest() {
   }, [coreRegister, actionLogger]);
 
   const runBasicTest = useCallback(() => {
-    coreRegister.dispatch('basicAction', { 
-      message: 'Basic Core functionality test', 
-      timestamp: Date.now() 
+    coreRegister.dispatch('basicAction', {
+      message: 'Basic Core functionality test',
+      timestamp: Date.now(),
     });
   }, [coreRegister]);
 
@@ -87,7 +119,9 @@ function BasicActionRegisterTest() {
   }, [coreRegister]);
 
   const runErrorTest = useCallback(() => {
-    coreRegister.dispatch('errorAction', { errorMessage: 'Core package test error' });
+    coreRegister.dispatch('errorAction', {
+      errorMessage: 'Core package test error',
+    });
   }, [coreRegister]);
 
   const clearResults = useCallback(() => {
@@ -99,17 +133,20 @@ function BasicActionRegisterTest() {
       <div className="card-header">
         <h3>기본 ActionRegister 기능 테스트</h3>
         <div className="flex gap-2">
-          <button onClick={clearResults} className="btn btn-small btn-secondary">
+          <button
+            onClick={clearResults}
+            className="btn btn-small btn-secondary"
+          >
             Clear
           </button>
         </div>
       </div>
-      
+
       <div className="mb-4">
         <p className="text-sm text-gray-600 mb-3">
           @context-action/core 패키지의 핵심 ActionRegister 기능을 테스트합니다.
         </p>
-        
+
         <div className="button-group">
           <button onClick={runBasicTest} className="btn btn-primary">
             Basic Action
@@ -127,11 +164,15 @@ function BasicActionRegisterTest() {
         <h4 className="text-sm font-medium mb-2">실행 결과:</h4>
         <div className="result-log">
           {results.length === 0 ? (
-            <div className="text-sm text-gray-500 italic">아직 실행된 액션이 없습니다.</div>
+            <div className="text-sm text-gray-500 italic">
+              아직 실행된 액션이 없습니다.
+            </div>
           ) : (
             results.map((result, index) => (
               <div key={index} className="result-entry">
-                <span className="result-time">{new Date().toLocaleTimeString()}</span>
+                <span className="result-time">
+                  {new Date().toLocaleTimeString()}
+                </span>
                 <span className="result-message">{result}</span>
               </div>
             ))
@@ -144,77 +185,115 @@ function BasicActionRegisterTest() {
 
 // 고급 기능 테스트 컴포넌트
 function AdvancedActionRegisterTest() {
-  const [advancedRegister] = useState(() => new ActionRegister<CoreActionMap>({ name: 'CoreAdvancedTest' }));
+  const [advancedRegister] = useState(
+    () => new ActionRegister<CoreActionMap>({ name: 'CoreAdvancedTest' })
+  );
   const [advancedResults, setAdvancedResults] = useState<string[]>([]);
-  const [chainState, setChainState] = useState<{ step: number; data: any[] }>({ step: 0, data: [] });
+  const [chainState, setChainState] = useState<{ step: number; data: any[] }>({
+    step: 0,
+    data: [],
+  });
   const actionLogger = useActionLoggerWithToast();
 
   useEffect(() => {
     // 우선순위 기반 액션 핸들러들 (서로 다른 우선순위로 등록)
-    const unsubscribe1 = advancedRegister.register('priorityAction', ({ taskId, data }: { taskId: number; data: string }, controller: any) => {
-      const result = `[High Priority Handler] Processing: ${data} (task ID: ${taskId})`;
-      setAdvancedResults(prev => [...prev, result]);
-      
-      actionLogger.logAction('priorityAction', { taskId, data }, {
-        context: 'Advanced ActionRegister Test - High Priority',
-        toast: { type: 'success', message: `🚀 고우선순위 핸들러: ${data}` }
-      });
-      
-      controller.next();
-    }, { priority: 10 }); // 높은 우선순위
+    const unsubscribe1 = advancedRegister.register(
+      'priorityAction',
+      ({ taskId, data }: { taskId: number; data: string }, controller: any) => {
+        const result = `[High Priority Handler] Processing: ${data} (task ID: ${taskId})`;
+        setAdvancedResults((prev) => [...prev, result]);
 
-    const unsubscribe1b = advancedRegister.register('priorityAction', ({ taskId, data }: { taskId: number; data: string }, controller: any) => {
-      const result = `[Medium Priority Handler] Processing: ${data} (task ID: ${taskId})`;
-      setAdvancedResults(prev => [...prev, result]);
-      
-      actionLogger.logAction('priorityAction', { taskId, data }, {
-        context: 'Advanced ActionRegister Test - Medium Priority',
-        toast: { type: 'info', message: `⚡ 중우선순위 핸들러: ${data}` }
-      });
-      
-      controller.next();
-    }, { priority: 5 }); // 중간 우선순위
+        actionLogger.logAction(
+          'priorityAction',
+          { taskId, data },
+          {
+            context: 'Advanced ActionRegister Test - High Priority',
+            toast: {
+              type: 'success',
+              message: `🚀 고우선순위 핸들러: ${data}`,
+            },
+          }
+        );
 
-    const unsubscribe1c = advancedRegister.register('priorityAction', ({ taskId, data }: { taskId: number; data: string }, controller: any) => {
-      const result = `[Low Priority Handler] Processing: ${data} (task ID: ${taskId})`;
-      setAdvancedResults(prev => [...prev, result]);
-      
-      actionLogger.logAction('priorityAction', { taskId, data }, {
-        context: 'Advanced ActionRegister Test - Low Priority',
-        toast: { type: 'info', message: `📋 저우선순위 핸들러: ${data}` }
-      });
-      
-      controller.next();
-    }, { priority: 1 }); // 낮은 우선순위
+        controller.next();
+      },
+      { priority: 10 }
+    ); // 높은 우선순위
+
+    const unsubscribe1b = advancedRegister.register(
+      'priorityAction',
+      ({ taskId, data }: { taskId: number; data: string }, controller: any) => {
+        const result = `[Medium Priority Handler] Processing: ${data} (task ID: ${taskId})`;
+        setAdvancedResults((prev) => [...prev, result]);
+
+        actionLogger.logAction(
+          'priorityAction',
+          { taskId, data },
+          {
+            context: 'Advanced ActionRegister Test - Medium Priority',
+            toast: { type: 'info', message: `⚡ 중우선순위 핸들러: ${data}` },
+          }
+        );
+
+        controller.next();
+      },
+      { priority: 5 }
+    ); // 중간 우선순위
+
+    const unsubscribe1c = advancedRegister.register(
+      'priorityAction',
+      ({ taskId, data }: { taskId: number; data: string }, controller: any) => {
+        const result = `[Low Priority Handler] Processing: ${data} (task ID: ${taskId})`;
+        setAdvancedResults((prev) => [...prev, result]);
+
+        actionLogger.logAction(
+          'priorityAction',
+          { taskId, data },
+          {
+            context: 'Advanced ActionRegister Test - Low Priority',
+            toast: { type: 'info', message: `📋 저우선순위 핸들러: ${data}` },
+          }
+        );
+
+        controller.next();
+      },
+      { priority: 1 }
+    ); // 낮은 우선순위
 
     // 체인 액션 핸들러
-    const unsubscribe2 = advancedRegister.register('chainedAction', ({ step, data }: { step: number; data: any }, controller: any) => {
-      const newData = [...chainState.data, { step, data, timestamp: Date.now() }];
-      setChainState({ step: step + 1, data: newData });
-      
-      const result = `[Chain Step ${step}] Added data: ${JSON.stringify(data)}`;
-      setAdvancedResults(prev => [...prev, result]);
-      
-      // 다음 체인 액션 자동 실행 (3단계 까지)
-      if (step < 3) {
-        setTimeout(() => {
-          advancedRegister.dispatch('chainedAction', { 
-            step: step + 1, 
-            data: `chain-${step + 1}` 
+    const unsubscribe2 = advancedRegister.register(
+      'chainedAction',
+      ({ step, data }: { step: number; data: any }, controller: any) => {
+        const newData = [
+          ...chainState.data,
+          { step, data, timestamp: Date.now() },
+        ];
+        setChainState({ step: step + 1, data: newData });
+
+        const result = `[Chain Step ${step}] Added data: ${JSON.stringify(data)}`;
+        setAdvancedResults((prev) => [...prev, result]);
+
+        // 다음 체인 액션 자동 실행 (3단계 까지)
+        if (step < 3) {
+          setTimeout(() => {
+            advancedRegister.dispatch('chainedAction', {
+              step: step + 1,
+              data: `chain-${step + 1}`,
+            });
+          }, 500);
+        } else {
+          const finalResult = `[Chain Complete] Processed ${newData.length} steps`;
+          setAdvancedResults((prev) => [...prev, finalResult]);
+
+          actionLogger.logSystem('체인 액션 완료', {
+            context: 'Advanced ActionRegister Test',
+            toast: { type: 'success', message: '체인 액션 완료!' },
           });
-        }, 500);
-      } else {
-        const finalResult = `[Chain Complete] Processed ${newData.length} steps`;
-        setAdvancedResults(prev => [...prev, finalResult]);
-        
-        actionLogger.logSystem('체인 액션 완료', {
-          context: 'Advanced ActionRegister Test',
-          toast: { type: 'success', message: '체인 액션 완료!' }
-        });
+        }
+
+        controller.next();
       }
-      
-      controller.next();
-    });
+    );
 
     return () => {
       unsubscribe1();
@@ -226,15 +305,24 @@ function AdvancedActionRegisterTest() {
 
   const runPriorityTest = useCallback(() => {
     // 우선순위 테스트: 한 번의 dispatch로 여러 핸들러가 우선순위 순서대로 실행
-    setAdvancedResults(prev => [...prev, '=== 우선순위 테스트 시작 (단일 dispatch) ===']);
-    
+    setAdvancedResults((prev) => [
+      ...prev,
+      '=== 우선순위 테스트 시작 (단일 dispatch) ===',
+    ]);
+
     // 하나의 액션으로 모든 핸들러가 우선순위 순서대로 실행됨 (10 -> 5 -> 1)
-    advancedRegister.dispatch('priorityAction', { taskId: 123, data: '테스트 데이터' });
+    advancedRegister.dispatch('priorityAction', {
+      taskId: 123,
+      data: '테스트 데이터',
+    });
   }, [advancedRegister]);
 
   const runChainTest = useCallback(() => {
     setChainState({ step: 0, data: [] });
-    advancedRegister.dispatch('chainedAction', { step: 1, data: 'chain-start' });
+    advancedRegister.dispatch('chainedAction', {
+      step: 1,
+      data: 'chain-start',
+    });
   }, [advancedRegister]);
 
   const clearAdvancedResults = useCallback(() => {
@@ -247,17 +335,20 @@ function AdvancedActionRegisterTest() {
       <div className="card-header">
         <h3>고급 ActionRegister 기능 테스트</h3>
         <div className="flex gap-2">
-          <button onClick={clearAdvancedResults} className="btn btn-small btn-secondary">
+          <button
+            onClick={clearAdvancedResults}
+            className="btn btn-small btn-secondary"
+          >
             Clear
           </button>
         </div>
       </div>
-      
+
       <div className="mb-4">
         <p className="text-sm text-gray-600 mb-3">
           단일 dispatch로 여러 핸들러가 우선순위 순서대로 실행됩니다 (10→5→1).
         </p>
-        
+
         <div className="button-group">
           <button onClick={runPriorityTest} className="btn btn-primary">
             Priority Actions
@@ -266,11 +357,11 @@ function AdvancedActionRegisterTest() {
             Chained Actions
           </button>
         </div>
-        
+
         {chainState.data.length > 0 && (
           <div className="mt-3 p-2 bg-blue-50 rounded text-sm">
-            <strong>Chain State:</strong> Step {chainState.step}, 
-            Data: {chainState.data.map(d => d.data).join(' → ')}
+            <strong>Chain State:</strong> Step {chainState.step}, Data:{' '}
+            {chainState.data.map((d) => d.data).join(' → ')}
           </div>
         )}
       </div>
@@ -279,11 +370,15 @@ function AdvancedActionRegisterTest() {
         <h4 className="text-sm font-medium mb-2">고급 기능 실행 결과:</h4>
         <div className="result-log">
           {advancedResults.length === 0 ? (
-            <div className="text-sm text-gray-500 italic">아직 실행된 고급 액션이 없습니다.</div>
+            <div className="text-sm text-gray-500 italic">
+              아직 실행된 고급 액션이 없습니다.
+            </div>
           ) : (
             advancedResults.map((result, index) => (
               <div key={index} className="result-entry">
-                <span className="result-time">{new Date().toLocaleTimeString()}</span>
+                <span className="result-time">
+                  {new Date().toLocaleTimeString()}
+                </span>
                 <span className="result-message">{result}</span>
               </div>
             ))
@@ -299,7 +394,7 @@ function CoreFeaturesOverview() {
   return (
     <div className="demo-card info-card">
       <h3>@context-action/core 패키지 특징</h3>
-      
+
       <div className="features-grid">
         <div className="feature-section">
           <h4>🚀 핵심 기능</h4>
@@ -312,7 +407,7 @@ function CoreFeaturesOverview() {
             <li>✅ 체인 액션 및 조건부 실행</li>
           </ul>
         </div>
-        
+
         <div className="feature-section">
           <h4>⚡ 성능 특징</h4>
           <ul className="feature-list">
@@ -325,7 +420,7 @@ function CoreFeaturesOverview() {
           </ul>
         </div>
       </div>
-      
+
       <div className="usage-patterns">
         <h4>📋 사용 패턴</h4>
         <div className="pattern-grid">
@@ -355,8 +450,8 @@ function CoreFeaturesOverview() {
 
 function CoreFeaturesPage() {
   return (
-    <PageWithLogMonitor 
-      pageId="core-features" 
+    <PageWithLogMonitor
+      pageId="core-features"
       title="Core Package Features"
       initialConfig={{ enableToast: true, maxLogs: 150 }}
     >
@@ -364,19 +459,19 @@ function CoreFeaturesPage() {
         <header className="page-header">
           <h1>Core Package Features & Capabilities</h1>
           <p className="page-description">
-            @context-action/core 패키지의 모든 기능을 테스트하고 
-            실제 동작을 확인할 수 있습니다.
+            @context-action/core 패키지의 모든 기능을 테스트하고 실제 동작을
+            확인할 수 있습니다.
           </p>
         </header>
 
         <div className="space-y-6">
           <CoreFeaturesOverview />
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <BasicActionRegisterTest />
             <AdvancedActionRegisterTest />
           </div>
-          
+
           {/* 코드 예제 */}
           <div className="code-example">
             <h3>Core 패키지 사용 예제</h3>
@@ -384,7 +479,7 @@ function CoreFeaturesPage() {
               <div className="code-tab">
                 <h4>기본 ActionRegister 설정</h4>
                 <pre className="code-block">
-{`// 1. ActionRegister 생성
+                  {`// 1. ActionRegister 생성
 import { ActionRegister } from '@context-action/core';
 
 const actionRegister = new ActionRegister<MyActions>({
@@ -407,11 +502,11 @@ actionRegister.dispatch('userAction', {
 });`}
                 </pre>
               </div>
-              
+
               <div className="code-tab">
                 <h4>고급 기능 활용</h4>
                 <pre className="code-block">
-{`// 우선순위 기반 핸들러
+                  {`// 우선순위 기반 핸들러
 actionRegister.register('criticalAction', (payload, controller) => {
   // 높은 우선순위로 먼저 실행됨
   handleCriticalLogic(payload);

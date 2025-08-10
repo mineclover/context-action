@@ -1,20 +1,21 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
-import { PageLayout, Card, CardContent, Grid, FeatureHighlight } from '../components/ui';
+import { Card, CardContent, PageLayout } from '../components/ui';
 
 function HomePage() {
   return (
-    <PageLayout 
+    <PageLayout
       title="Context-Action Framework Examples"
       description="Interactive examples demonstrating the Context-Action framework's capabilities. Learn through hands-on experience with action pipelines, store management, and React integration."
     >
-
       <div className="space-y-6 mb-8">
         <Card category="core" hover>
           <CardContent>
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">Core ActionRegister</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              Core ActionRegister
+            </h3>
             <p className="text-gray-600 mb-4">
-              Learn the fundamentals of action pipeline management and type-safe action dispatching.
+              Learn the fundamentals of action pipeline management and type-safe
+              action dispatching.
             </p>
             <ul className="space-y-2 mb-6 text-gray-700">
               <li className="flex items-start">
@@ -30,8 +31,8 @@ function HomePage() {
                 Pipeline control and error handling
               </li>
             </ul>
-            <Link 
-              to="/core/basics" 
+            <Link
+              to="/core/basics"
               className="inline-flex items-center text-danger-600 hover:text-danger-700 font-medium"
             >
               Explore Core →
@@ -41,7 +42,9 @@ function HomePage() {
 
         <Card category="store" hover>
           <CardContent>
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">Store System</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              Store System
+            </h3>
             <p className="text-gray-600 mb-4">
               Discover reactive state management with the built-in store system.
             </p>
@@ -59,8 +62,8 @@ function HomePage() {
                 React integration with hooks
               </li>
             </ul>
-            <Link 
-              to="/store/basics" 
+            <Link
+              to="/store/basics"
               className="inline-flex items-center text-success-600 hover:text-success-700 font-medium"
             >
               Explore Stores →
@@ -70,9 +73,12 @@ function HomePage() {
 
         <Card category="react" hover>
           <CardContent>
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">React Integration</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              React Integration
+            </h3>
             <p className="text-gray-600 mb-4">
-              See how the framework integrates seamlessly with React applications.
+              See how the framework integrates seamlessly with React
+              applications.
             </p>
             <ul className="space-y-2 mb-6 text-gray-700">
               <li className="flex items-start">
@@ -88,8 +94,8 @@ function HomePage() {
                 Custom hooks for actions and stores
               </li>
             </ul>
-            <Link 
-              to="/react/provider" 
+            <Link
+              to="/react/provider"
               className="inline-flex items-center text-purple-600 hover:text-purple-700 font-medium"
             >
               Explore React →
@@ -100,20 +106,32 @@ function HomePage() {
 
       <Card variant="elevated">
         <CardContent>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Getting Started</h2>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            Getting Started
+          </h2>
           <p className="text-gray-600 leading-relaxed">
             Start with{' '}
-            <Link to="/core/basics" className="text-primary-600 hover:text-primary-700 font-medium">
+            <Link
+              to="/core/basics"
+              className="text-primary-600 hover:text-primary-700 font-medium"
+            >
               Core Basics
             </Link>{' '}
             to understand the fundamental concepts, then explore{' '}
-            <Link to="/store/basics" className="text-primary-600 hover:text-primary-700 font-medium">
+            <Link
+              to="/store/basics"
+              className="text-primary-600 hover:text-primary-700 font-medium"
+            >
               Store System
             </Link>{' '}
             for state management, and finally see how it all comes together with{' '}
-            <Link to="/react/provider" className="text-primary-600 hover:text-primary-700 font-medium">
+            <Link
+              to="/react/provider"
+              className="text-primary-600 hover:text-primary-700 font-medium"
+            >
               React Integration
-            </Link>.
+            </Link>
+            .
           </p>
         </CardContent>
       </Card>

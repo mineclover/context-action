@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import { usePriorityTestTestCount } from '../hooks';
 
 interface PriorityCountDisplayProps {
@@ -8,20 +8,21 @@ interface PriorityCountDisplayProps {
   className?: string;
 }
 
-export const PriorityCountDisplay: React.FC<PriorityCountDisplayProps> = ({ 
-  priority, 
+export const PriorityCountDisplay: React.FC<PriorityCountDisplayProps> = ({
+  priority,
   label,
   color = '#3b82f6',
-  className = ''
+  className = '',
 }) => {
-  const count = usePriorityTestTestCount(priority);
-  
+  const getCount = usePriorityTestTestCount(priority);
+  const count = getCount();
+
   if (count === undefined || count === 0) {
     return null;
   }
 
   return (
-    <div 
+    <div
       className={`priority-count-display ${className}`}
       style={{
         padding: '8px 12px',
@@ -30,22 +31,22 @@ export const PriorityCountDisplay: React.FC<PriorityCountDisplayProps> = ({
         borderLeft: `3px solid ${color}`,
         display: 'inline-flex',
         alignItems: 'center',
-        gap: '8px'
+        gap: '8px',
       }}
     >
       <span style={{ fontSize: '12px', color: '#6b7280' }}>
         {label || `Priority ${priority}`}:
       </span>
-      <span style={{ 
-        fontSize: '18px', 
-        fontWeight: 'bold', 
-        color 
-      }}>
+      <span
+        style={{
+          fontSize: '18px',
+          fontWeight: 'bold',
+          color,
+        }}
+      >
         {count}
       </span>
-      <span style={{ fontSize: '11px', color: '#9ca3af' }}>
-        executions
-      </span>
+      <span style={{ fontSize: '11px', color: '#9ca3af' }}>executions</span>
     </div>
   );
 };

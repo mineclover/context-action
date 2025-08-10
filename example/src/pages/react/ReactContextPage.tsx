@@ -1,11 +1,14 @@
-import React, { useState, useCallback } from 'react';
 import {
-  ActionPayloadMap,
+  type ActionPayloadMap,
   createActionContextPattern,
-  useStoreValue
+  useStoreValue,
 } from '@context-action/react';
-import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor/';
-import { Card, CardContent, Badge, Button } from '../../components/ui';
+import React from 'react';
+import {
+  PageWithLogMonitor,
+  useActionLoggerWithToast,
+} from '../../components/LogMonitor/';
+import { Badge, Button, Card, CardContent } from '../../components/ui';
 
 // 상위 컨텍스트: 인터페이스만 정의 (구현체는 몰라야 함)
 interface ParentActions extends ActionPayloadMap {
@@ -17,7 +20,11 @@ interface ParentActions extends ActionPayloadMap {
   incrementParentCounter: void;
   resetParentCounter: void;
   // 하위 컨트롤 인터페이스
-  controlChild: { childId: string; action: 'increment' | 'reset'; amount?: number };
+  controlChild: {
+    childId: string;
+    action: 'increment' | 'reset';
+    amount?: number;
+  };
 }
 
 // 하위 컴포넌트들의 독립적인 액션 타입들
@@ -32,15 +39,30 @@ interface ChildBActions extends ActionPayloadMap {
 }
 
 // Action Context Pattern 생성
-const ParentContext = createActionContextPattern<ParentActions>('ParentContext');
-const ChildAContext = createActionContextPattern<ChildAActions>('ChildAContext');
-const ChildBContext = createActionContextPattern<ChildBActions>('ChildBContext');
+const ParentContext =
+  createActionContextPattern<ParentActions>('ParentContext');
+const ChildAContext =
+  createActionContextPattern<ChildAActions>('ChildAContext');
+const ChildBContext =
+  createActionContextPattern<ChildBActions>('ChildBContext');
 
 // 상위 컨텍스트 UI - 하위 컴포넌트들을 모름
 function ParentContextUI() {
-  const registeredChildren = useStoreValue(ParentContext.useStore('registered-children', [] as Array<{childId: string, childType: string}>));
-  const dataLog = useStoreValue(ParentContext.useStore('data-log', [] as Array<{source: string, data: any, timestamp: number}>));
-  const parentCounter = useStoreValue(ParentContext.useStore('parent-counter', 0));
+  const registeredChildren = useStoreValue(
+    ParentContext.useStore(
+      'registered-children',
+      [] as Array<{ childId: string; childType: string }>
+    )
+  );
+  const dataLog = useStoreValue(
+    ParentContext.useStore(
+      'data-log',
+      [] as Array<{ source: string; data: any; timestamp: number }>
+    )
+  );
+  const parentCounter = useStoreValue(
+    ParentContext.useStore('parent-counter', 0)
+  );
   const parentDispatch = ParentContext.useAction();
 
   return (
@@ -54,25 +76,27 @@ function ParentContextUI() {
             </Badge>
           </h3>
         </div>
-        
+
         <div className="space-y-4">
           {/* 상위 컨텍스트 자체 카운터 */}
           <div className="p-4 bg-white rounded-lg border border-blue-200">
-            <h4 className="font-semibold mb-3 text-blue-900">🏠 상위 컨텍스트 카운터</h4>
+            <h4 className="font-semibold mb-3 text-blue-900">
+              🏠 상위 컨텍스트 카운터
+            </h4>
             <div className="flex items-center justify-between">
               <div className="text-2xl font-bold text-blue-700">
                 카운터: {parentCounter}
               </div>
               <div className="flex gap-2">
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   variant="primary"
                   onClick={() => parentDispatch('incrementParentCounter')}
                 >
                   🔼 상위 +1
                 </Button>
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   variant="secondary"
                   onClick={() => parentDispatch('resetParentCounter')}
                 >
@@ -84,40 +108,49 @@ function ParentContextUI() {
 
           {/* 하위 컴포넌트 제어 패널 */}
           <div className="p-4 bg-white rounded-lg border border-orange-200">
-            <h4 className="font-semibold mb-3 text-orange-900">🎮 하위 컴포넌트 원격 제어</h4>
+            <h4 className="font-semibold mb-3 text-orange-900">
+              🎮 하위 컴포넌트 원격 제어
+            </h4>
             <p className="text-sm text-orange-700 mb-3">
-              상위에서 하위 컴포넌트를 직접 제어할 수 있습니다 (인터페이스를 통한 제어)
+              상위에서 하위 컴포넌트를 직접 제어할 수 있습니다 (인터페이스를
+              통한 제어)
             </p>
             <div className="flex gap-2 flex-wrap">
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 variant="success"
-                onClick={() => parentDispatch('controlChild', { 
-                  childId: 'child-a-counter', 
-                  action: 'increment', 
-                  amount: 1 
-                })}
+                onClick={() =>
+                  parentDispatch('controlChild', {
+                    childId: 'child-a-counter',
+                    action: 'increment',
+                    amount: 1,
+                  })
+                }
               >
                 🎯 Child A +1
               </Button>
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 variant="success"
-                onClick={() => parentDispatch('controlChild', { 
-                  childId: 'child-a-counter', 
-                  action: 'increment', 
-                  amount: 5 
-                })}
+                onClick={() =>
+                  parentDispatch('controlChild', {
+                    childId: 'child-a-counter',
+                    action: 'increment',
+                    amount: 5,
+                  })
+                }
               >
                 🎯 Child A +5
               </Button>
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 variant="warning"
-                onClick={() => parentDispatch('controlChild', { 
-                  childId: 'child-a-counter', 
-                  action: 'reset' 
-                })}
+                onClick={() =>
+                  parentDispatch('controlChild', {
+                    childId: 'child-a-counter',
+                    action: 'reset',
+                  })
+                }
               >
                 🎯 Child A 리셋
               </Button>
@@ -127,7 +160,9 @@ function ParentContextUI() {
           <div className="p-4 bg-white rounded-lg border">
             <h4 className="font-semibold mb-2">등록된 하위 컴포넌트들:</h4>
             {registeredChildren.length === 0 ? (
-              <p className="text-sm text-gray-500">아직 등록된 컴포넌트가 없습니다</p>
+              <p className="text-sm text-gray-500">
+                아직 등록된 컴포넌트가 없습니다
+              </p>
             ) : (
               <div className="space-y-1">
                 {registeredChildren.map((child, index) => (
@@ -142,12 +177,14 @@ function ParentContextUI() {
           <div className="p-4 bg-white rounded-lg border">
             <h4 className="font-semibold mb-2">데이터 변경 로그:</h4>
             {dataLog.length === 0 ? (
-              <p className="text-sm text-gray-500">아직 데이터 변경이 없습니다</p>
+              <p className="text-sm text-gray-500">
+                아직 데이터 변경이 없습니다
+              </p>
             ) : (
               <div className="space-y-1 max-h-32 overflow-y-auto">
                 {dataLog.map((log, index) => (
                   <div key={index} className="text-xs bg-gray-50 p-2 rounded">
-                    🔄 {log.source}: {JSON.stringify(log.data)} 
+                    🔄 {log.source}: {JSON.stringify(log.data)}
                     <span className="text-gray-500 ml-2">
                       {new Date(log.timestamp).toLocaleTimeString()}
                     </span>
@@ -181,79 +218,105 @@ function ChildALogicRegistration() {
 
   React.useEffect(() => {
     // 🎯 핵심: 하위 컴포넌트가 상위 ActionRegister에 자신의 로직을 등록
-    parentDispatch('onChildRegistered', { 
-      childId, 
-      childType: 'Counter Component' 
+    parentDispatch('onChildRegistered', {
+      childId,
+      childType: 'Counter Component',
     });
   }, [parentDispatch]);
 
   // 🎯 핵심: 상위의 제어 명령을 구독하여 자율적으로 반응
-  ParentContext.useActionHandler('controlChild', ({ childId: targetId, action, amount }) => {
-    // 자신에게 향한 명령인지 확인
-    if (targetId !== childId) return;
-    
-    if (action === 'increment') {
-      const currentValue = counter.getValue();
-      const incrementAmount = amount || 1;
-      const newValue = currentValue + incrementAmount;
-      counter.setValue(newValue);
-      
-      // 상위에게 변경사항 알림
-      parentDispatch('onDataChanged', { 
-        source: `${childId} (remote-controlled)`, 
-        data: { counter: newValue, action: 'remote-increment', amount: incrementAmount } 
-      });
-      
-      actionLogger.logAction('remote-increment', { amount: incrementAmount, newValue }, {
-        context: 'Child A - Remote Control',
-        toast: { type: 'info', message: `🎮 원격 제어로 카운터 증가: ${newValue}` }
-      });
-    } else if (action === 'reset') {
-      counter.setValue(0);
-      
-      // 상위에게 변경사항 알림
-      parentDispatch('onDataChanged', { 
-        source: `${childId} (remote-controlled)`, 
-        data: { counter: 0, action: 'remote-reset' } 
-      });
-      
-      actionLogger.logAction('remote-reset', {}, {
-        context: 'Child A - Remote Control',
-        toast: { type: 'info', message: '🎮 원격 제어로 카운터 리셋됨' }
-      });
+  ParentContext.useActionHandler(
+    'controlChild',
+    ({ childId: targetId, action, amount }) => {
+      // 자신에게 향한 명령인지 확인
+      if (targetId !== childId) return;
+
+      if (action === 'increment') {
+        const currentValue = counter.getValue();
+        const incrementAmount = amount || 1;
+        const newValue = currentValue + incrementAmount;
+        counter.setValue(newValue);
+
+        // 상위에게 변경사항 알림
+        parentDispatch('onDataChanged', {
+          source: `${childId} (remote-controlled)`,
+          data: {
+            counter: newValue,
+            action: 'remote-increment',
+            amount: incrementAmount,
+          },
+        });
+
+        actionLogger.logAction(
+          'remote-increment',
+          { amount: incrementAmount, newValue },
+          {
+            context: 'Child A - Remote Control',
+            toast: {
+              type: 'info',
+              message: `🎮 원격 제어로 카운터 증가: ${newValue}`,
+            },
+          }
+        );
+      } else if (action === 'reset') {
+        counter.setValue(0);
+
+        // 상위에게 변경사항 알림
+        parentDispatch('onDataChanged', {
+          source: `${childId} (remote-controlled)`,
+          data: { counter: 0, action: 'remote-reset' },
+        });
+
+        actionLogger.logAction(
+          'remote-reset',
+          {},
+          {
+            context: 'Child A - Remote Control',
+            toast: { type: 'info', message: '🎮 원격 제어로 카운터 리셋됨' },
+          }
+        );
+      }
     }
-  });
+  );
 
   // Child A의 자체 액션 핸들러
   ChildAContext.useActionHandler('incrementCounter', ({ amount }) => {
     const newValue = counter.getValue() + amount;
     counter.setValue(newValue);
-    
+
     // 상위에게 데이터 변경 알림
-    parentDispatch('onDataChanged', { 
-      source: childId, 
-      data: { counter: newValue, action: 'increment', amount } 
+    parentDispatch('onDataChanged', {
+      source: childId,
+      data: { counter: newValue, action: 'increment', amount },
     });
-    
-    actionLogger.logAction('incrementCounter', { amount, newValue }, {
-      context: 'Child A Component',
-      toast: { type: 'success', message: `카운터 증가: ${newValue}` }
-    });
+
+    actionLogger.logAction(
+      'incrementCounter',
+      { amount, newValue },
+      {
+        context: 'Child A Component',
+        toast: { type: 'success', message: `카운터 증가: ${newValue}` },
+      }
+    );
   });
 
   ChildAContext.useActionHandler('resetCounter', () => {
     counter.setValue(0);
-    
+
     // 상위에게 데이터 변경 알림
-    parentDispatch('onDataChanged', { 
-      source: childId, 
-      data: { counter: 0, action: 'reset' } 
+    parentDispatch('onDataChanged', {
+      source: childId,
+      data: { counter: 0, action: 'reset' },
     });
-    
-    actionLogger.logAction('resetCounter', {}, {
-      context: 'Child A Component',
-      toast: { type: 'info', message: '카운터 리셋됨' }
-    });
+
+    actionLogger.logAction(
+      'resetCounter',
+      {},
+      {
+        context: 'Child A Component',
+        toast: { type: 'info', message: '카운터 리셋됨' },
+      }
+    );
   });
 
   return null;
@@ -270,53 +333,58 @@ function ChildAUI() {
         <div className="flex items-center justify-between mb-3">
           <h4 className="text-lg font-bold text-green-900 flex items-center gap-2">
             🏠 Independent Child A
-            <Badge variant="outline" className="bg-green-100 text-green-800 text-xs">
+            <Badge
+              variant="outline"
+              className="bg-green-100 text-green-800 text-xs"
+            >
               독립 컴포넌트
             </Badge>
           </h4>
         </div>
-        
+
         <div className="space-y-3">
           <div className="p-3 bg-white rounded border">
             <p className="text-sm font-semibold">카운터: {counter}</p>
           </div>
-          
+
           <div className="flex gap-2 flex-wrap">
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               variant="success"
               onClick={() => childADispatch('incrementCounter', { amount: 1 })}
             >
               🔢 +1
             </Button>
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               variant="success"
               onClick={() => childADispatch('incrementCounter', { amount: 5 })}
             >
               🔢 +5
             </Button>
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               variant="secondary"
               onClick={() => childADispatch('resetCounter')}
             >
               🔄 리셋
             </Button>
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               variant="primary"
               onClick={() => parentDispatch('incrementParentCounter')}
             >
               🔼 상위 카운터 +1
             </Button>
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               variant="info"
-              onClick={() => parentDispatch('onUserInteraction', { 
-                action: 'button-click', 
-                payload: { component: 'child-a', button: 'custom-action' } 
-              })}
+              onClick={() =>
+                parentDispatch('onUserInteraction', {
+                  action: 'button-click',
+                  payload: { component: 'child-a', button: 'custom-action' },
+                })
+              }
             >
               📤 상위에 알림
             </Button>
@@ -346,41 +414,49 @@ function ChildBLogicRegistration() {
 
   React.useEffect(() => {
     // 🎯 핵심: 하위 컴포넌트가 상위 ActionRegister에 자신의 로직을 등록
-    parentDispatch('onChildRegistered', { 
-      childId, 
-      childType: 'Text Editor Component' 
+    parentDispatch('onChildRegistered', {
+      childId,
+      childType: 'Text Editor Component',
     });
   }, [parentDispatch]);
 
   // Child B의 자체 액션 핸들러
   ChildBContext.useActionHandler('updateText', ({ newText }) => {
     textStore.setValue(newText);
-    
+
     // 상위에게 데이터 변경 알림
-    parentDispatch('onDataChanged', { 
-      source: childId, 
-      data: { text: newText, action: 'update', length: newText.length } 
+    parentDispatch('onDataChanged', {
+      source: childId,
+      data: { text: newText, action: 'update', length: newText.length },
     });
-    
-    actionLogger.logAction('updateText', { newText }, {
-      context: 'Child B Component',
-      toast: { type: 'success', message: '텍스트 업데이트됨' }
-    });
+
+    actionLogger.logAction(
+      'updateText',
+      { newText },
+      {
+        context: 'Child B Component',
+        toast: { type: 'success', message: '텍스트 업데이트됨' },
+      }
+    );
   });
 
   ChildBContext.useActionHandler('clearText', () => {
     textStore.setValue('');
-    
+
     // 상위에게 데이터 변경 알림
-    parentDispatch('onDataChanged', { 
-      source: childId, 
-      data: { text: '', action: 'clear' } 
+    parentDispatch('onDataChanged', {
+      source: childId,
+      data: { text: '', action: 'clear' },
     });
-    
-    actionLogger.logAction('clearText', {}, {
-      context: 'Child B Component',
-      toast: { type: 'info', message: '텍스트 클리어됨' }
-    });
+
+    actionLogger.logAction(
+      'clearText',
+      {},
+      {
+        context: 'Child B Component',
+        toast: { type: 'info', message: '텍스트 클리어됨' },
+      }
+    );
   });
 
   return null;
@@ -397,57 +473,66 @@ function ChildBUI() {
         <div className="flex items-center justify-between mb-3">
           <h4 className="text-lg font-bold text-purple-900 flex items-center gap-2">
             🧩 Independent Child B
-            <Badge variant="outline" className="bg-purple-100 text-purple-800 text-xs">
+            <Badge
+              variant="outline"
+              className="bg-purple-100 text-purple-800 text-xs"
+            >
               독립 컴포넌트
             </Badge>
           </h4>
         </div>
-        
+
         <div className="space-y-3">
           <div className="p-3 bg-white rounded border">
             <p className="text-sm font-semibold mb-1">텍스트: "{text}"</p>
             <p className="text-xs text-gray-500">Length: {text.length}</p>
           </div>
-          
+
           <div className="space-y-2">
             <input
               type="text"
               value={text}
-              onChange={(e) => childBDispatch('updateText', { newText: e.target.value })}
+              onChange={(e) =>
+                childBDispatch('updateText', { newText: e.target.value })
+              }
               placeholder="텍스트를 입력하세요..."
               className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
             />
             <div className="flex gap-2 flex-wrap">
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 variant="warning"
-                onClick={() => childBDispatch('updateText', { 
-                  newText: `Sample Text ${new Date().toLocaleTimeString()}` 
-                })}
+                onClick={() =>
+                  childBDispatch('updateText', {
+                    newText: `Sample Text ${new Date().toLocaleTimeString()}`,
+                  })
+                }
               >
                 📝 샘플 텍스트
               </Button>
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 variant="secondary"
                 onClick={() => childBDispatch('clearText')}
               >
                 🗑️ 클리어
               </Button>
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 variant="primary"
                 onClick={() => parentDispatch('incrementParentCounter')}
               >
                 🔼 상위 카운터 +1
               </Button>
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 variant="info"
-                onClick={() => parentDispatch('onUserInteraction', { 
-                  action: 'text-interaction', 
-                  payload: { component: 'child-b', textLength: text.length } 
-                })}
+                onClick={() =>
+                  parentDispatch('onUserInteraction', {
+                    action: 'text-interaction',
+                    payload: { component: 'child-b', textLength: text.length },
+                  })
+                }
               >
                 📤 상위에 알림
               </Button>
@@ -467,63 +552,91 @@ function CommunicationExplanation() {
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           🏗️ Dependency Inversion 패턴 원리
         </h3>
-        
+
         <div className="space-y-4">
           <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <h4 className="font-semibold text-blue-900 mb-2">1. 인터페이스 기반 상위 컨텍스트</h4>
+            <h4 className="font-semibold text-blue-900 mb-2">
+              1. 인터페이스 기반 상위 컨텍스트
+            </h4>
             <p className="text-sm text-blue-800">
-              상위 컨텍스트는 구현체를 모르고, 오직 <code>ParentActions</code> 인터페이스만 정의합니다.
-              하위 컴포넌트가 무엇인지 전혀 알지 못합니다.
+              상위 컨텍스트는 구현체를 모르고, 오직 <code>ParentActions</code>{' '}
+              인터페이스만 정의합니다. 하위 컴포넌트가 무엇인지 전혀 알지
+              못합니다.
             </p>
           </div>
-          
+
           <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-            <h4 className="font-semibold text-green-900 mb-2">2. 완전 독립적 하위 컴포넌트</h4>
+            <h4 className="font-semibold text-green-900 mb-2">
+              2. 완전 독립적 하위 컴포넌트
+            </h4>
             <p className="text-sm text-green-800">
-              각 하위 컴포넌트는 자체 <code>Provider</code>를 가지며, 완전히 독립적으로 동작합니다.
-              Context API 계층을 통해 상위 ActionRegister에 접근 가능합니다.
+              각 하위 컴포넌트는 자체 <code>Provider</code>를 가지며, 완전히
+              독립적으로 동작합니다. Context API 계층을 통해 상위
+              ActionRegister에 접근 가능합니다.
             </p>
           </div>
-          
+
           <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-            <h4 className="font-semibold text-purple-900 mb-2">3. 자동 등록 패턴</h4>
+            <h4 className="font-semibold text-purple-900 mb-2">
+              3. 자동 등록 패턴
+            </h4>
             <p className="text-sm text-purple-800">
-              하위 컴포넌트가 마운트시 <code>parentDispatch('onChildRegistered')</code>로 
-              자신을 상위에 등록합니다. 상위는 등록된 컴포넌트 정보만 알게 됩니다.
+              하위 컴포넌트가 마운트시{' '}
+              <code>parentDispatch('onChildRegistered')</code>로 자신을 상위에
+              등록합니다. 상위는 등록된 컴포넌트 정보만 알게 됩니다.
             </p>
           </div>
-          
+
           <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-            <h4 className="font-semibold text-orange-900 mb-2">4. 하위 → 상위 통신</h4>
+            <h4 className="font-semibold text-orange-900 mb-2">
+              4. 하위 → 상위 통신
+            </h4>
             <p className="text-sm text-orange-800">
-              하위 컴포넌트에서 <code>parentDispatch('incrementParentCounter')</code>로 
-              상위 카운터를 직접 증가시킬 수 있습니다.
+              하위 컴포넌트에서{' '}
+              <code>parentDispatch('incrementParentCounter')</code>로 상위
+              카운터를 직접 증가시킬 수 있습니다.
             </p>
           </div>
 
           <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-            <h4 className="font-semibold text-red-900 mb-2">5. 상위 → 하위 제어</h4>
+            <h4 className="font-semibold text-red-900 mb-2">
+              5. 상위 → 하위 제어
+            </h4>
             <p className="text-sm text-red-800">
-              상위에서 <code>controlChild</code> 인터페이스로 명령을 발송하면, 
-              하위가 <code>ParentContext.useActionHandler</code>로 구독하여 자율적으로 반응합니다.
+              상위에서 <code>controlChild</code> 인터페이스로 명령을 발송하면,
+              하위가 <code>ParentContext.useActionHandler</code>로 구독하여
+              자율적으로 반응합니다.
             </p>
           </div>
 
           <div className="p-4 bg-teal-50 rounded-lg border border-teal-200">
-            <h4 className="font-semibold text-teal-900 mb-2">6. 데이터 변경 알림</h4>
+            <h4 className="font-semibold text-teal-900 mb-2">
+              6. 데이터 변경 알림
+            </h4>
             <p className="text-sm text-teal-800">
-              모든 상태 변경은 <code>parentDispatch('onDataChanged')</code>로 
+              모든 상태 변경은 <code>parentDispatch('onDataChanged')</code>로
               상위에게 실시간으로 알려집니다.
             </p>
           </div>
-          
+
           <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
             <h4 className="font-semibold text-gray-900 mb-2">💡 핵심 장점</h4>
             <ul className="text-sm text-gray-700 space-y-1">
-              <li>• <strong>완전한 독립성</strong>: 각 컴포넌트가 자체 Provider로 완전 분리</li>
-              <li>• <strong>인터페이스 계약</strong>: TypeScript 인터페이스로 명확한 통신 규약</li>
-              <li>• <strong>확장성</strong>: 새로운 하위 컴포넌트를 쉽게 추가 가능</li>
-              <li>• <strong>테스트 용이성</strong>: 각 컴포넌트를 독립적으로 테스트 가능</li>
+              <li>
+                • <strong>완전한 독립성</strong>: 각 컴포넌트가 자체 Provider로
+                완전 분리
+              </li>
+              <li>
+                • <strong>인터페이스 계약</strong>: TypeScript 인터페이스로
+                명확한 통신 규약
+              </li>
+              <li>
+                • <strong>확장성</strong>: 새로운 하위 컴포넌트를 쉽게 추가 가능
+              </li>
+              <li>
+                • <strong>테스트 용이성</strong>: 각 컴포넌트를 독립적으로
+                테스트 가능
+              </li>
             </ul>
           </div>
         </div>
@@ -545,38 +658,62 @@ function ParentContextContainer({ children }: { children: any }) {
 // 상위 컨텍스트의 로직 - 하위 컴포넌트들이 뭔지 모름
 function ParentContextLogic() {
   const actionLogger = useActionLoggerWithToast();
-  const registeredChildrenStore = ParentContext.useStore('registered-children', [] as Array<{childId: string, childType: string}>);
-  const dataLogStore = ParentContext.useStore('data-log', [] as Array<{source: string, data: any, timestamp: number}>);
+  const registeredChildrenStore = ParentContext.useStore(
+    'registered-children',
+    [] as Array<{ childId: string; childType: string }>
+  );
+  const dataLogStore = ParentContext.useStore(
+    'data-log',
+    [] as Array<{ source: string; data: any; timestamp: number }>
+  );
   const parentCounterStore = ParentContext.useStore('parent-counter', 0);
 
   // 상위는 단순히 인터페이스에 정의된 액션들만 처리
-  ParentContext.useActionHandler('onChildRegistered', ({ childId, childType }) => {
-    const currentChildren = registeredChildrenStore.getValue();
-    const newChildren = [...currentChildren, { childId, childType }];
-    registeredChildrenStore.setValue(newChildren);
-    
-    actionLogger.logAction('onChildRegistered', { childId, childType }, {
-      context: 'Parent Context',
-      toast: { type: 'info', message: `${childType} 컴포넌트 등록됨: ${childId}` }
-    });
-  });
+  ParentContext.useActionHandler(
+    'onChildRegistered',
+    ({ childId, childType }) => {
+      const currentChildren = registeredChildrenStore.getValue();
+      const newChildren = [...currentChildren, { childId, childType }];
+      registeredChildrenStore.setValue(newChildren);
+
+      actionLogger.logAction(
+        'onChildRegistered',
+        { childId, childType },
+        {
+          context: 'Parent Context',
+          toast: {
+            type: 'info',
+            message: `${childType} 컴포넌트 등록됨: ${childId}`,
+          },
+        }
+      );
+    }
+  );
 
   ParentContext.useActionHandler('onDataChanged', ({ source, data }) => {
     const currentLog = dataLogStore.getValue();
     const newLog = [...currentLog, { source, data, timestamp: Date.now() }];
     dataLogStore.setValue(newLog.slice(-10)); // 최근 10개만 유지
-    
-    actionLogger.logAction('onDataChanged', { source, data }, {
-      context: 'Parent Context',
-      toast: { type: 'success', message: `${source}에서 데이터 변경됨` }
-    });
+
+    actionLogger.logAction(
+      'onDataChanged',
+      { source, data },
+      {
+        context: 'Parent Context',
+        toast: { type: 'success', message: `${source}에서 데이터 변경됨` },
+      }
+    );
   });
 
   ParentContext.useActionHandler('onUserInteraction', ({ action, payload }) => {
-    actionLogger.logAction('onUserInteraction', { action, payload }, {
-      context: 'Parent Context',
-      toast: { type: 'info', message: `사용자 액션: ${action}` }
-    });
+    actionLogger.logAction(
+      'onUserInteraction',
+      { action, payload },
+      {
+        context: 'Parent Context',
+        toast: { type: 'info', message: `사용자 액션: ${action}` },
+      }
+    );
   });
 
   // 상위 자체 카운터 핸들러
@@ -584,40 +721,58 @@ function ParentContextLogic() {
     const currentCount = parentCounterStore.getValue();
     const newCount = currentCount + 1;
     parentCounterStore.setValue(newCount);
-    
-    actionLogger.logAction('incrementParentCounter', {}, {
-      context: 'Parent Context',
-      toast: { type: 'success', message: `상위 카운터 증가: ${newCount}` }
-    });
+
+    actionLogger.logAction(
+      'incrementParentCounter',
+      {},
+      {
+        context: 'Parent Context',
+        toast: { type: 'success', message: `상위 카운터 증가: ${newCount}` },
+      }
+    );
   });
 
   ParentContext.useActionHandler('resetParentCounter', () => {
     parentCounterStore.setValue(0);
-    
-    actionLogger.logAction('resetParentCounter', {}, {
-      context: 'Parent Context',
-      toast: { type: 'info', message: '상위 카운터 리셋됨' }
-    });
+
+    actionLogger.logAction(
+      'resetParentCounter',
+      {},
+      {
+        context: 'Parent Context',
+        toast: { type: 'info', message: '상위 카운터 리셋됨' },
+      }
+    );
   });
 
   // 하위 컴포넌트 제어 인터페이스 (구현체는 모르고 인터페이스만 사용)
-  ParentContext.useActionHandler('controlChild', ({ childId, action, amount }) => {
-    actionLogger.logAction('controlChild', { childId, action, amount }, {
-      context: 'Parent Context',
-      toast: { type: 'info', message: `${childId} 원격 제어: ${action}${amount ? ` (${amount})` : ''}` }
-    });
+  ParentContext.useActionHandler(
+    'controlChild',
+    ({ childId, action, amount }) => {
+      actionLogger.logAction(
+        'controlChild',
+        { childId, action, amount },
+        {
+          context: 'Parent Context',
+          toast: {
+            type: 'info',
+            message: `${childId} 원격 제어: ${action}${amount ? ` (${amount})` : ''}`,
+          },
+        }
+      );
 
-    // 실제 제어는 하위 컴포넌트가 이 액션을 구독하여 처리
-    // 상위는 단순히 명령만 발송하고, 하위가 자율적으로 반응
-  });
+      // 실제 제어는 하위 컴포넌트가 이 액션을 구독하여 처리
+      // 상위는 단순히 명령만 발송하고, 하위가 자율적으로 반응
+    }
+  );
 
   return null;
 }
 
 function ReactContextPage() {
   return (
-    <PageWithLogMonitor 
-      pageId="react-context" 
+    <PageWithLogMonitor
+      pageId="react-context"
       title="React Context Communication"
       initialConfig={{ enableToast: true, maxLogs: 100 }}
     >
@@ -625,15 +780,16 @@ function ReactContextPage() {
         <header className="page-header">
           <h1>React Context 간 통신</h1>
           <p className="page-description">
-            완전히 독립적인 컴포넌트들이 dependency inversion 패턴을 통해 상위 컨텍스트와 통신합니다.
-            각 컴포넌트는 자체 Provider를 가지며, Context API 계층을 통해 상위 ActionRegister에 접근합니다.
+            완전히 독립적인 컴포넌트들이 dependency inversion 패턴을 통해 상위
+            컨텍스트와 통신합니다. 각 컴포넌트는 자체 Provider를 가지며, Context
+            API 계층을 통해 상위 ActionRegister에 접근합니다.
           </p>
         </header>
 
         {/* 상위 컨텍스트: 인터페이스만 정의 */}
         <ParentContextContainer>
           <ParentContextUI />
-          
+
           {/* 독립적인 하위 컴포넌트들 - 각자 완전히 분리된 Provider */}
           <div className="ml-8 mt-4 space-y-4">
             <IndependentChildA />
@@ -646,9 +802,11 @@ function ReactContextPage() {
         {/* 코드 예제 */}
         <Card className="mt-6">
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">📝 Dependency Inversion 패턴 구현</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              📝 Dependency Inversion 패턴 구현
+            </h3>
             <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
-{`// 1. 양방향 통신 인터페이스 정의
+              {`// 1. 양방향 통신 인터페이스 정의
 interface ParentActions extends ActionPayloadMap {
   onChildRegistered: { childId: string; childType: string };
   incrementParentCounter: void; // 하위에서 상위 카운터 증가

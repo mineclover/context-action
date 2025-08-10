@@ -1,31 +1,39 @@
 // Export all UI components
-export { Container } from './Container';
-export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './Card';
-export { Button } from './Button';
-export { Badge } from './Badge';
-export { Input, Textarea } from './Input';
-export { Grid } from './Grid';
-export { Status } from './Status';
-export { DemoCard } from './DemoCard';
-export { CodeExample, CodeBlock } from './CodeExample';
-export { 
-  PatternBadge, 
-  HOCPatternBadge, 
-  ProviderPatternBadge, 
-  ContextPatternBadge, 
-  UnifiedPatternBadge, 
-  StorePatternBadge, 
-  ActionPatternBadge 
-} from './PatternBadge';
-
-// Export layout components  
-export { PageLayout, PageSection, FeatureHighlight } from '../layout/PageLayout';
-
-// Export specialized components
-export * from './ComparisonComponents';
-
-// Export variants and types
-export * from './variants';
 
 // Export utilities
 export { cn } from '../../lib/utils';
+// Export layout components
+export {
+  FeatureHighlight,
+  PageLayout,
+  PageSection,
+} from '../layout/PageLayout';
+export { Badge } from './Badge';
+export { Button } from './Button';
+export {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from './Card';
+export { CodeBlock, CodeExample } from './CodeExample';
+// Export specialized components
+export * from './ComparisonComponents';
+export { Container } from './Container';
+export { DemoCard } from './DemoCard';
+export { Grid } from './Grid';
+export { Input, Textarea } from './Input';
+export {
+  ActionPatternBadge,
+  ContextPatternBadge,
+  HOCPatternBadge,
+  PatternBadge,
+  ProviderPatternBadge,
+  StorePatternBadge,
+  UnifiedPatternBadge,
+} from './PatternBadge';
+export { Status } from './Status';
+// Export variants and types
+export * from './variants';
