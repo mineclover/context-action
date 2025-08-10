@@ -3,39 +3,35 @@
  * @module LogMonitor
  */
 
-import React from 'react';
 import { LogLevel } from '@context-action/logger';
-
-import type { LogMonitorProps, LogEntry } from './types';
-import { useLogMonitor } from './hooks';
-import { 
-  getLogLevelColor, 
-  getLogTypeColor, 
-  getLogLevelName 
-} from './utils';
+import React from 'react';
 import { cn } from '../../lib/utils';
-import { 
-  logMonitorVariants, 
-  logEntryVariants, 
-  logLevelBadgeVariants,
+import {
   buttonVariants,
-  inputVariants
+  inputVariants,
+  logEntryVariants,
+  logLevelBadgeVariants,
+  logMonitorVariants,
 } from '../ui/variants';
+import { useLogMonitor } from './hooks';
+import type { LogEntry, LogMonitorProps } from './types';
+import { getLogLevelName } from './utils';
 
 /**
  * 로그 모니터 컴포넌트
- * 
+ *
  * 로그를 시각화하고 로그 레벨을 제어하는 UI를 제공합니다.
  * 이제 단순하고 재사용 가능한 구조로 리팩토링되었습니다.
  */
-export function LogMonitor({ 
-  title = "Log Monitor",
-  maxHeight = "300px",
+export function LogMonitor({
+  title = 'Log Monitor',
+  maxHeight = '300px',
   showControls = true,
-  className = "",
-  config
+  className = '',
+  config,
 }: LogMonitorProps) {
-  const { logs, clearLogs, logLevel, setLogLevel, updateConfig } = useLogMonitor();
+  const { logs, clearLogs, logLevel, setLogLevel, updateConfig } =
+    useLogMonitor();
 
   // 설정 업데이트
   React.useEffect(() => {
@@ -45,7 +41,13 @@ export function LogMonitor({
   }, [config, updateConfig]);
 
   return (
-    <div className={cn(logMonitorVariants({ variant: "default" }), "p-4", className)}>
+    <div
+      className={cn(
+        logMonitorVariants({ variant: 'default' }),
+        'p-4',
+        className
+      )}
+    >
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
         {showControls && (
@@ -53,7 +55,7 @@ export function LogMonitor({
             <select
               value={logLevel}
               onChange={(e) => setLogLevel(Number(e.target.value))}
-              className={cn(inputVariants({ size: "sm" }), "w-24")}
+              className={cn(inputVariants({ size: 'sm' }), 'w-24')}
               aria-label="로그 레벨 선택"
             >
               <option value={LogLevel.TRACE}>TRACE</option>
@@ -62,9 +64,9 @@ export function LogMonitor({
               <option value={LogLevel.WARN}>WARN</option>
               <option value={LogLevel.ERROR}>ERROR</option>
             </select>
-            <button 
-              onClick={clearLogs} 
-              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+            <button
+              onClick={clearLogs}
+              className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
               aria-label="로그 지우기"
             >
               Clear
@@ -72,7 +74,7 @@ export function LogMonitor({
           </div>
         )}
       </div>
-      
+
       <LogList logs={logs} maxHeight={maxHeight} />
       <LogStats logs={logs} currentLevel={logLevel} />
     </div>
@@ -90,8 +92,8 @@ interface LogListProps {
 function LogList({ logs, maxHeight }: LogListProps) {
   if (logs.length === 0) {
     return (
-      <div 
-        className="bg-gray-50 rounded-lg p-4 text-center text-gray-500" 
+      <div
+        className="bg-gray-50 rounded-lg p-4 text-center text-gray-500"
         style={{ maxHeight }}
       >
         <div className="text-sm">로그가 아직 기록되지 않았습니다...</div>
@@ -100,8 +102,8 @@ function LogList({ logs, maxHeight }: LogListProps) {
   }
 
   return (
-    <div 
-      className="bg-gray-50 rounded-lg overflow-y-auto" 
+    <div
+      className="bg-gray-50 rounded-lg overflow-y-auto"
       style={{ maxHeight }}
     >
       {[...logs].reverse().map((log) => (
@@ -120,21 +122,31 @@ interface LogEntryItemProps {
 
 function LogEntryItem({ log }: LogEntryItemProps) {
   const shortId = log.id.split('-').slice(-1)[0];
-  const levelName = getLogLevelName(log.level).toLowerCase();
+  const levelName = getLogLevelName(log.level).toLowerCase() as
+    | 'trace'
+    | 'debug'
+    | 'info'
+    | 'warn'
+    | 'error';
+  const logType = log.type as 'action' | 'system' | 'performance' | 'error';
 
   return (
-    <div className={cn(
-      logEntryVariants({ 
-        type: log.type as any, 
-        level: levelName as any 
-      }),
-      "grid-cols-[auto_auto_auto_auto_1fr] items-center gap-3"
-    )}>
+    <div
+      className={cn(
+        logEntryVariants({
+          type: logType,
+          level: levelName,
+        }),
+        'grid-cols-[auto_auto_auto_auto_1fr] items-center gap-3'
+      )}
+    >
       <span className="text-gray-400 text-xs" title={log.id}>
         {shortId}
       </span>
-      <span className="text-gray-500 text-xs whitespace-nowrap">{log.timestamp}</span>
-      <span className={cn(logLevelBadgeVariants({ level: levelName as any }))}>
+      <span className="text-gray-500 text-xs whitespace-nowrap">
+        {log.timestamp}
+      </span>
+      <span className={cn(logLevelBadgeVariants({ level: levelName }))}>
         {getLogLevelName(log.level)}
       </span>
       <span className="text-xs font-medium text-gray-600 uppercase">
@@ -195,7 +207,18 @@ function LogStats({ logs, currentLevel }: LogStatsProps) {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-gray-500">Current Level:</span>
-          <span className={cn(logLevelBadgeVariants({ level: getLogLevelName(currentLevel).toLowerCase() as any }))}>
+          <span
+            className={cn(
+              logLevelBadgeVariants({
+                level: getLogLevelName(currentLevel).toLowerCase() as
+                  | 'trace'
+                  | 'debug'
+                  | 'info'
+                  | 'warn'
+                  | 'error',
+              })
+            )}
+          >
             {getLogLevelName(currentLevel)}
           </span>
         </div>

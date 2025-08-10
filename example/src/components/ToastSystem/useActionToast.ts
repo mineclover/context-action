@@ -1,13 +1,20 @@
 import { useCallback } from 'react';
 import { toastActionRegister } from './actions';
-import type { ActionExecutionToast } from './types';
 
 export interface ActionToastHook {
-  showActionStart: (actionType: string, payload?: any) => void;
-  showActionProcessing: (actionType: string, payload?: any) => void;
-  showActionSuccess: (actionType: string, resultData?: any) => void; // executionTime 제거 - 자동 계산됨
-  showActionError: (actionType: string, errorMessage: string, payload?: any) => void;
-  showToast: (type: 'success' | 'error' | 'info' | 'system', title: string, message: string) => void;
+  showActionStart: (actionType: string, payload?: unknown) => void;
+  showActionProcessing: (actionType: string, payload?: unknown) => void;
+  showActionSuccess: (actionType: string, resultData?: unknown) => void; // executionTime 제거 - 자동 계산됨
+  showActionError: (
+    actionType: string,
+    errorMessage: string,
+    payload?: unknown
+  ) => void;
+  showToast: (
+    type: 'success' | 'error' | 'info' | 'system',
+    title: string,
+    message: string
+  ) => void;
   clearAllToasts: () => void;
 }
 
@@ -16,60 +23,70 @@ export interface ActionToastHook {
  * 액션 실행의 각 단계를 시각적으로 표시합니다.
  */
 export function useActionToast(): ActionToastHook {
-  
-  const showActionStart = useCallback((actionType: string, payload?: any) => {
-    toastActionRegister.dispatch('addActionToast', {
-      actionType,
-      executionStep: 'start',
-      payload,
-    });
-  }, []);
+  const showActionStart = useCallback(
+    (actionType: string, payload?: unknown) => {
+      toastActionRegister.dispatch('addActionToast', {
+        actionType,
+        executionStep: 'start',
+        payload,
+      });
+    },
+    []
+  );
 
-  const showActionProcessing = useCallback((actionType: string, payload?: any) => {
-    toastActionRegister.dispatch('addActionToast', {
-      actionType,
-      executionStep: 'processing',
-      payload,
-    });
-  }, []);
+  const showActionProcessing = useCallback(
+    (actionType: string, payload?: unknown) => {
+      toastActionRegister.dispatch('addActionToast', {
+        actionType,
+        executionStep: 'processing',
+        payload,
+      });
+    },
+    []
+  );
 
-  const showActionSuccess = useCallback((
-    actionType: string, 
-    resultData?: any
-    // executionTime 제거 - ToastSystem actions에서 자동 계산됨
-  ) => {
-    toastActionRegister.dispatch('addActionToast', {
-      actionType,
-      executionStep: 'success',
-      resultData,
-      // executionTime은 actions.ts에서 자동으로 0 또는 자동계산된 값 사용
-    });
-  }, []);
+  const showActionSuccess = useCallback(
+    (
+      actionType: string,
+      resultData?: unknown
+      // executionTime 제거 - ToastSystem actions에서 자동 계산됨
+    ) => {
+      toastActionRegister.dispatch('addActionToast', {
+        actionType,
+        executionStep: 'success',
+        resultData,
+        // executionTime은 actions.ts에서 자동으로 0 또는 자동계산된 값 사용
+      });
+    },
+    []
+  );
 
-  const showActionError = useCallback((
-    actionType: string, 
-    errorMessage: string, 
-    payload?: any
-  ) => {
-    toastActionRegister.dispatch('addActionToast', {
-      actionType,
-      executionStep: 'error',
-      errorMessage,
-      payload,
-    });
-  }, []);
+  const showActionError = useCallback(
+    (actionType: string, errorMessage: string, payload?: any) => {
+      toastActionRegister.dispatch('addActionToast', {
+        actionType,
+        executionStep: 'error',
+        errorMessage,
+        payload,
+      });
+    },
+    []
+  );
 
-  const showToast = useCallback((
-    type: 'success' | 'error' | 'info' | 'system',
-    title: string,
-    message: string
-  ) => {
-    toastActionRegister.dispatch('addToast', {
-      type,
-      title,
-      message,
-    });
-  }, []);
+  const showToast = useCallback(
+    (
+      type: 'success' | 'error' | 'info' | 'system',
+      title: string,
+      message: string
+    ) => {
+      toastActionRegister.dispatch('addToast', {
+        type,
+        title,
+        message,
+      });
+    },
+    []
+  );
 
   const clearAllToasts = useCallback(() => {
     toastActionRegister.dispatch('clearAllToasts', {});
@@ -90,7 +107,7 @@ export function useActionToast(): ActionToastHook {
  */
 export function setupActionToastInterceptor(actionRegister: any) {
   const originalDispatch = actionRegister.dispatch.bind(actionRegister);
-  
+
   actionRegister.dispatch = (actionType: string, payload: any) => {
     // 토스트 시스템 자체 액션은 제외
     if (actionType.startsWith('toast') || actionType.includes('Toast')) {
@@ -98,7 +115,7 @@ export function setupActionToastInterceptor(actionRegister: any) {
     }
 
     const startTime = Date.now();
-    
+
     // 액션 시작 토스트
     toastActionRegister.dispatch('addActionToast', {
       actionType,
@@ -118,7 +135,7 @@ export function setupActionToastInterceptor(actionRegister: any) {
 
       // 원본 액션 실행
       const result = originalDispatch(actionType, payload);
-      
+
       // 성공 토스트
       const executionTime = Date.now() - startTime;
       setTimeout(() => {
@@ -133,14 +150,14 @@ export function setupActionToastInterceptor(actionRegister: any) {
       return result;
     } catch (error) {
       // 에러 토스트
-      const executionTime = Date.now() - startTime;
+      const _executionTime = Date.now() - startTime;
       toastActionRegister.dispatch('addActionToast', {
         actionType,
         executionStep: 'error',
         errorMessage: error instanceof Error ? error.message : String(error),
         payload,
       });
-      
+
       throw error;
     }
   };
@@ -154,7 +171,7 @@ export function setupSelectiveActionToast(
   trackedActions: string[] = []
 ) {
   const originalDispatch = actionRegister.dispatch.bind(actionRegister);
-  
+
   actionRegister.dispatch = (actionType: string, payload: any) => {
     // 추적할 액션이 아니거나 토스트 시스템 액션인 경우 그냥 실행
     if (!trackedActions.includes(actionType) || actionType.includes('toast')) {
@@ -162,7 +179,7 @@ export function setupSelectiveActionToast(
     }
 
     const startTime = Date.now();
-    
+
     // 액션 시작 표시
     toastActionRegister.dispatch('addActionToast', {
       actionType,
@@ -172,7 +189,7 @@ export function setupSelectiveActionToast(
 
     try {
       const result = originalDispatch(actionType, payload);
-      
+
       // 성공 표시
       const executionTime = Date.now() - startTime;
       toastActionRegister.dispatch('addActionToast', {
@@ -191,7 +208,7 @@ export function setupSelectiveActionToast(
         errorMessage: error instanceof Error ? error.message : String(error),
         payload,
       });
-      
+
       throw error;
     }
   };

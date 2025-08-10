@@ -5,7 +5,6 @@
   @apply p-3 border border-gray-200 rounded-lg bg-gray-50;
 }
 
-
 /* Priority Dot Styles */
 .priorityGroup {
   @apply p-2 border-l-4 border-gray-200 ml-2;
@@ -17,12 +16,12 @@
 
 .priorityDot {
   @apply w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer border-4 border-white relative;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .priorityDot:hover {
   transform: scale(1.15);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 .priorityDot[data-status="running"] {
@@ -30,20 +29,26 @@
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .dotLabel {
   @apply text-white text-xs font-bold;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 /* Test Log Styles */
 .testLog {
   @apply bg-gray-800 text-gray-200 rounded-lg p-4;
-  font-family: 'Monaco', 'Menlo', monospace;
+  font-family: "Monaco", "Menlo", monospace;
   font-size: 0.875rem;
 }
 
@@ -71,7 +76,7 @@
 
 .priorityCountGrid {
   @apply flex flex-wrap gap-1;
-  font-family: 'Monaco', 'Menlo', monospace;
+  font-family: "Monaco", "Menlo", monospace;
   font-size: 0.75rem;
   max-width: 100%;
 }
@@ -96,9 +101,15 @@
 }
 
 @keyframes priorityPulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .priorityNumber {

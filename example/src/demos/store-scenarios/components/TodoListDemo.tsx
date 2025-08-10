@@ -1,14 +1,15 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useStoreValue } from '@context-action/react';
+import type React from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useActionLoggerWithToast } from '../../../components/LogMonitor/';
-import { StoreScenarios, initialTodos } from '../stores';
 import { storeActionRegister } from '../actions';
+import { StoreScenarios } from '../stores';
 import type { TodoItem } from '../types';
 
 /**
  * 할일 목록 관리 데모 컴포넌트
  * CRUD 작업과 필터링, 정렬 기능을 보여주는 Declarative Store 패턴 예제
- * 
+ *
  * @implements store-integration-pattern
  * @implements action-handler
  * @memberof core-concepts
@@ -24,28 +25,33 @@ export function TodoListDemo() {
   const [newTodo, setNewTodo] = useState('');
   const [priority, setPriority] = useState<TodoItem['priority']>('medium');
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
-  const [sortBy, setSortBy] = useState<'created' | 'priority' | 'title'>('created');
+  const [sortBy, setSortBy] = useState<'created' | 'priority' | 'title'>(
+    'created'
+  );
   const logger = useActionLoggerWithToast();
 
   // 필요한 액션 핸들러들을 등록
   useEffect(() => {
     const unsubscribers = [
-      storeActionRegister.register('addTodo', ({ title, priority }, controller) => {
-        const newTodo: TodoItem = {
-          id: `todo-${Date.now()}`,
-          title,
-          completed: false,
-          priority,
-          createdAt: new Date(),
-          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7일 후
-        };
-        todosStore.update(prev => [...prev, newTodo]);
-        controller.next();
-      }),
+      storeActionRegister.register(
+        'addTodo',
+        ({ title, priority }, controller) => {
+          const newTodo: TodoItem = {
+            id: `todo-${Date.now()}`,
+            title,
+            completed: false,
+            priority,
+            createdAt: new Date(),
+            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7일 후
+          };
+          todosStore.update((prev) => [...prev, newTodo]);
+          controller.next();
+        }
+      ),
 
       storeActionRegister.register('toggleTodo', ({ todoId }, controller) => {
-        todosStore.update(prev =>
-          prev.map(todo =>
+        todosStore.update((prev) =>
+          prev.map((todo) =>
             todo.id === todoId ? { ...todo, completed: !todo.completed } : todo
           )
         );
@@ -53,52 +59,57 @@ export function TodoListDemo() {
       }),
 
       storeActionRegister.register('deleteTodo', ({ todoId }, controller) => {
-        todosStore.update(prev => prev.filter(todo => todo.id !== todoId));
+        todosStore.update((prev) => prev.filter((todo) => todo.id !== todoId));
         controller.next();
       }),
 
-      storeActionRegister.register('updateTodoPriority', ({ todoId, priority }, controller) => {
-        todosStore.update(prev =>
-          prev.map(todo =>
-            todo.id === todoId ? { ...todo, priority } : todo
-          )
-        );
-        controller.next();
-      })
+      storeActionRegister.register(
+        'updateTodoPriority',
+        ({ todoId, priority }, controller) => {
+          todosStore.update((prev) =>
+            prev.map((todo) =>
+              todo.id === todoId ? { ...todo, priority } : todo
+            )
+          );
+          controller.next();
+        }
+      ),
     ];
 
     return () => {
-      unsubscribers.forEach(unsubscribe => unsubscribe());
+      unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
   }, [todosStore]);
 
   const filteredAndSortedTodos = useMemo(() => {
     if (!todos) return [];
-    
+
     // 필터링
     let filtered = todos;
     if (filter === 'active') {
-      filtered = todos.filter(todo => !todo.completed);
+      filtered = todos.filter((todo) => !todo.completed);
     } else if (filter === 'completed') {
-      filtered = todos.filter(todo => todo.completed);
+      filtered = todos.filter((todo) => todo.completed);
     }
 
     // 정렬
     const sorted = [...filtered].sort((a, b) => {
       switch (sortBy) {
-        case 'priority':
+        case 'priority': {
           const priorityOrder = { high: 3, medium: 2, low: 1 };
           return priorityOrder[b.priority] - priorityOrder[a.priority];
+        }
         case 'title':
           return a.title.localeCompare(b.title);
-        case 'created':
         default:
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
       }
     });
 
-    logger.logSystem('할일 목록 필터링/정렬', { 
-      context: `filter: ${filter}, sortBy: ${sortBy}, total: ${todos.length}, filtered: ${sorted.length}`
+    logger.logSystem('할일 목록 필터링/정렬', {
+      context: `filter: ${filter}, sortBy: ${sortBy}, total: ${todos.length}, filtered: ${sorted.length}`,
     });
 
     return sorted;
@@ -106,97 +117,124 @@ export function TodoListDemo() {
 
   const stats = useMemo(() => {
     if (!todos) return { total: 0, completed: 0, active: 0, highPriority: 0 };
-    
-    const completed = todos.filter(todo => todo.completed).length;
+
+    const completed = todos.filter((todo) => todo.completed).length;
     const active = todos.length - completed;
-    const highPriority = todos.filter(todo => todo.priority === 'high' && !todo.completed).length;
-    
+    const highPriority = todos.filter(
+      (todo) => todo.priority === 'high' && !todo.completed
+    ).length;
+
     return {
       total: todos.length,
       completed,
       active,
-      highPriority
+      highPriority,
     };
   }, [todos]);
 
   const addTodo = useCallback(() => {
     if (newTodo.trim()) {
-      logger.logAction('addTodo', { 
+      logger.logAction('addTodo', {
         title: newTodo.trim(),
         priority,
-        currentTotalCount: todos?.length ?? 0
+        currentTotalCount: todos?.length ?? 0,
       });
-      storeActionRegister.dispatch('addTodo', { 
-        title: newTodo.trim(), 
-        priority 
+      storeActionRegister.dispatch('addTodo', {
+        title: newTodo.trim(),
+        priority,
       });
       setNewTodo('');
       setPriority('medium');
     }
   }, [newTodo, priority, todos, logger]);
 
-  const toggleTodo = useCallback((todoId: string) => {
-    const todo = todos?.find(t => t.id === todoId);
-    logger.logAction('toggleTodo', { 
-      todoId, 
-      currentStatus: todo?.completed,
-      newStatus: !todo?.completed,
-      title: todo?.title
-    });
-    storeActionRegister.dispatch('toggleTodo', { todoId });
-  }, [todos, logger]);
+  const toggleTodo = useCallback(
+    (todoId: string) => {
+      const todo = todos?.find((t) => t.id === todoId);
+      logger.logAction('toggleTodo', {
+        todoId,
+        currentStatus: todo?.completed,
+        newStatus: !todo?.completed,
+        title: todo?.title,
+      });
+      storeActionRegister.dispatch('toggleTodo', { todoId });
+    },
+    [todos, logger]
+  );
 
-  const deleteTodo = useCallback((todoId: string) => {
-    const todo = todos?.find(t => t.id === todoId);
-    logger.logAction('deleteTodo', { 
-      todoId, 
-      title: todo?.title,
-      wasCompleted: todo?.completed
-    });
-    storeActionRegister.dispatch('deleteTodo', { todoId });
-  }, [todos, logger]);
+  const deleteTodo = useCallback(
+    (todoId: string) => {
+      const todo = todos?.find((t) => t.id === todoId);
+      logger.logAction('deleteTodo', {
+        todoId,
+        title: todo?.title,
+        wasCompleted: todo?.completed,
+      });
+      storeActionRegister.dispatch('deleteTodo', { todoId });
+    },
+    [todos, logger]
+  );
 
-  const updatePriority = useCallback((todoId: string, newPriority: TodoItem['priority']) => {
-    const todo = todos?.find(t => t.id === todoId);
-    const priorityLabels = { high: '높음', medium: '보통', low: '낮음' };
-    logger.logAction('updateTodoPriority', { 
-      todoId, 
-      oldPriority: todo?.priority,
-      newPriority,
-      title: todo?.title
-    });
-    storeActionRegister.dispatch('updateTodoPriority', { todoId, priority: newPriority });
-  }, [todos, logger]);
+  const updatePriority = useCallback(
+    (todoId: string, newPriority: TodoItem['priority']) => {
+      const todo = todos?.find((t) => t.id === todoId);
+      const _priorityLabels = { high: '높음', medium: '보통', low: '낮음' };
+      logger.logAction('updateTodoPriority', {
+        todoId,
+        oldPriority: todo?.priority,
+        newPriority,
+        title: todo?.title,
+      });
+      storeActionRegister.dispatch('updateTodoPriority', {
+        todoId,
+        priority: newPriority,
+      });
+    },
+    [todos, logger]
+  );
 
-  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      addTodo();
-    }
-  }, [addTodo]);
+  const handleKeyPress = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        addTodo();
+      }
+    },
+    [addTodo]
+  );
 
   const getPriorityColor = (priority: TodoItem['priority']) => {
     switch (priority) {
-      case 'high': return '#ef4444';
-      case 'medium': return '#f59e0b';
-      case 'low': return '#10b981';
-      default: return '#6b7280';
+      case 'high':
+        return '#ef4444';
+      case 'medium':
+        return '#f59e0b';
+      case 'low':
+        return '#10b981';
+      default:
+        return '#6b7280';
     }
   };
 
   const getPriorityIcon = (priority: TodoItem['priority']) => {
     switch (priority) {
-      case 'high': return '🔴';
-      case 'medium': return '🟡';
-      case 'low': return '🟢';
-      default: return '⚪';
+      case 'high':
+        return '🔴';
+      case 'medium':
+        return '🟡';
+      case 'low':
+        return '🟢';
+      default:
+        return '⚪';
     }
   };
 
   return (
     <div className="demo-card">
       <h3>✅ Todo List Management</h3>
-      <p className="demo-description">CRUD 작업과 필터링, 정렬 기능을 보여주는 할일 목록 데모</p>
-      
+      <p className="demo-description">
+        CRUD 작업과 필터링, 정렬 기능을 보여주는 할일 목록 데모
+      </p>
+
       {/* 통계 섹션 */}
       <div className="todo-stats">
         <div className="stat-card">
@@ -225,7 +263,9 @@ export function TodoListDemo() {
             value={newTodo}
             onChange={(e) => {
               setNewTodo(e.target.value);
-              logger.logAction('typeTodoTitle', { length: e.target.value.length });
+              logger.logAction('typeTodoTitle', {
+                length: e.target.value.length,
+              });
             }}
             onKeyPress={handleKeyPress}
             placeholder="새로운 할일을 입력하세요..."
@@ -244,7 +284,7 @@ export function TodoListDemo() {
             <option value="medium">🟡 보통</option>
             <option value="high">🔴 높음</option>
           </select>
-          <button 
+          <button
             onClick={addTodo}
             disabled={!newTodo.trim()}
             className="btn btn-primary add-todo-btn"
@@ -267,7 +307,11 @@ export function TodoListDemo() {
               }}
               className={`filter-btn ${filter === filterType ? 'active' : ''}`}
             >
-              {filterType === 'all' ? '전체' : filterType === 'active' ? '진행중' : '완료'}
+              {filterType === 'all'
+                ? '전체'
+                : filterType === 'active'
+                  ? '진행중'
+                  : '완료'}
               {filterType === 'all' && ` (${stats.total})`}
               {filterType === 'active' && ` (${stats.active})`}
               {filterType === 'completed' && ` (${stats.completed})`}
@@ -280,7 +324,10 @@ export function TodoListDemo() {
           <select
             value={sortBy}
             onChange={(e) => {
-              const newSortBy = e.target.value as 'created' | 'priority' | 'title';
+              const newSortBy = e.target.value as
+                | 'created'
+                | 'priority'
+                | 'title';
               setSortBy(newSortBy);
               logger.logAction('sortTodos', { sortBy: newSortBy });
             }}
@@ -299,16 +346,18 @@ export function TodoListDemo() {
           <div className="todo-empty">
             <div className="empty-icon">📝</div>
             <div className="empty-message">
-              {filter === 'all' ? '아직 할일이 없습니다' : 
-               filter === 'active' ? '진행중인 할일이 없습니다' : 
-               '완료된 할일이 없습니다'}
+              {filter === 'all'
+                ? '아직 할일이 없습니다'
+                : filter === 'active'
+                  ? '진행중인 할일이 없습니다'
+                  : '완료된 할일이 없습니다'}
             </div>
             <div className="empty-hint">위에서 새로운 할일을 추가해보세요</div>
           </div>
         ) : (
           filteredAndSortedTodos.map((todo) => (
-            <div 
-              key={todo.id} 
+            <div
+              key={todo.id}
               className={`todo-item ${todo.completed ? 'completed' : ''}`}
             >
               <div className="todo-checkbox-section">
@@ -322,13 +371,20 @@ export function TodoListDemo() {
 
               <div className="todo-content">
                 <div className="todo-title-section">
-                  <span className={`todo-title ${todo.completed ? 'completed' : ''}`}>
+                  <span
+                    className={`todo-title ${todo.completed ? 'completed' : ''}`}
+                  >
                     {todo.title}
                   </span>
                   <div className="todo-priority">
                     <select
                       value={todo.priority}
-                      onChange={(e) => updatePriority(todo.id, e.target.value as TodoItem['priority'])}
+                      onChange={(e) =>
+                        updatePriority(
+                          todo.id,
+                          e.target.value as TodoItem['priority']
+                        )
+                      }
                       className="priority-mini-select"
                       disabled={todo.completed}
                     >
@@ -338,17 +394,19 @@ export function TodoListDemo() {
                     </select>
                   </div>
                 </div>
-                
+
                 <div className="todo-meta">
                   <span className="todo-date">
                     📅 {new Date(todo.createdAt).toLocaleDateString('ko-KR')}
                   </span>
                   {todo.dueDate && (
-                    <span className={`todo-due ${new Date(todo.dueDate) < new Date() ? 'overdue' : ''}`}>
+                    <span
+                      className={`todo-due ${new Date(todo.dueDate) < new Date() ? 'overdue' : ''}`}
+                    >
                       ⏰ {new Date(todo.dueDate).toLocaleDateString('ko-KR')}
                     </span>
                   )}
-                  <span 
+                  <span
                     className="todo-priority-badge"
                     style={{ backgroundColor: getPriorityColor(todo.priority) }}
                   >
@@ -375,11 +433,15 @@ export function TodoListDemo() {
       {stats.total > 0 && (
         <div className="todo-progress">
           <div className="progress-info">
-            <span>진행률: {Math.round((stats.completed / stats.total) * 100)}%</span>
-            <span>{stats.completed}/{stats.total} 완료</span>
+            <span>
+              진행률: {Math.round((stats.completed / stats.total) * 100)}%
+            </span>
+            <span>
+              {stats.completed}/{stats.total} 완료
+            </span>
           </div>
           <div className="progress-bar">
-            <div 
+            <div
               className="progress-fill"
               style={{ width: `${(stats.completed / stats.total) * 100}%` }}
             ></div>

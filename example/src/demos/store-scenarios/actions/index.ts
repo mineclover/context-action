@@ -1,13 +1,12 @@
+import { createLogger, LogLevel } from '@context-action/logger';
 import { ActionRegister } from '@context-action/react';
-import { createLogger } from '@context-action/logger';
-import { LogLevel } from '@context-action/logger';
 import { setupSelectiveActionToast } from '../../../components/ToastSystem';
-import type { StoreFullActionMap, TodoItem, ChatMessage, NotificationItem } from '../types';
+import type { StoreFullActionMap } from '../types';
 
 /**
  * Store scenarios 데모용 액션 시스템 설정
  * ActionRegister를 중심으로 하는 액션 파이프라인과 로깅 시스템을 구성
- * 
+ *
  * @implements actionregister
  * @implements action-pipeline-system
  * @memberof core-concepts
@@ -25,13 +24,25 @@ import type { StoreFullActionMap, TodoItem, ChatMessage, NotificationItem } from
 
 // 로거 및 액션 레지스터 설정
 export const logger = createLogger(LogLevel.DEBUG);
-export const storeActionRegister = new ActionRegister<StoreFullActionMap>({ name: 'StoreActions' });
+export const storeActionRegister = new ActionRegister<StoreFullActionMap>({
+  name: 'StoreActions',
+});
 
 // 토스트 시스템과 연동 - 주요 액션들만 추적
 const trackedActions = [
-  'updateProfile', 'toggleTheme', 'addToCart', 'removeFromCart',
-  'addTodo', 'toggleTodo', 'deleteTodo', 'sendMessage', 'deleteMessage',
-  'clearChat', 'updateFormField', 'nextStep', 'resetSettings'
+  'updateProfile',
+  'toggleTheme',
+  'addToCart',
+  'removeFromCart',
+  'addTodo',
+  'toggleTodo',
+  'deleteTodo',
+  'sendMessage',
+  'deleteMessage',
+  'clearChat',
+  'updateFormField',
+  'nextStep',
+  'resetSettings',
 ];
 
 setupSelectiveActionToast(storeActionRegister, trackedActions);

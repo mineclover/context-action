@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import { usePriorityTestExecutionState } from '../hooks/usePriorityTestViewModel';
 
 interface ExecutionStateDisplayProps {
@@ -6,73 +6,81 @@ interface ExecutionStateDisplayProps {
   showDetails?: boolean;
 }
 
-export const ExecutionStateDisplay: React.FC<ExecutionStateDisplayProps> = ({ 
+export const ExecutionStateDisplay: React.FC<ExecutionStateDisplayProps> = ({
   className = '',
-  showDetails = true 
+  showDetails = true,
 }) => {
-  const executionState = usePriorityTestExecutionState();
-  
-  if (!executionState) {
+  const getExecutionState = usePriorityTestExecutionState();
+
+  if (!getExecutionState) {
     return null;
   }
 
-  const successRate = executionState.totalTests > 0 
-    ? ((executionState.successfulTests / executionState.totalTests) * 100).toFixed(1)
-    : '0.0';
+  const executionState = getExecutionState();
+
+  const successRate =
+    executionState.totalTests > 0
+      ? (
+          (executionState.successfulTests / executionState.totalTests) *
+          100
+        ).toFixed(1)
+      : '0.0';
 
   return (
     <div className={`execution-state-display ${className}`}>
       <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg">
         <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-semibold text-gray-700">📊 실행 통계</span>
+          <span className="text-sm font-semibold text-gray-700">
+            📊 실행 통계
+          </span>
           <span className="text-sm font-medium text-indigo-600">
             테스트 ID: {executionState.currentTestId || 'None'}
           </span>
         </div>
-        
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-          <StatCard 
-            label="✅ 성공" 
-            value={executionState.successfulTests} 
+          <StatCard
+            label="✅ 성공"
+            value={executionState.successfulTests}
             colorClass="green"
           />
-          <StatCard 
-            label="❌ 실패" 
-            value={executionState.failedTests} 
+          <StatCard
+            label="❌ 실패"
+            value={executionState.failedTests}
             colorClass="red"
           />
-          <StatCard 
-            label="⛔ 중단" 
-            value={executionState.abortedTests} 
+          <StatCard
+            label="⛔ 중단"
+            value={executionState.abortedTests}
             colorClass="orange"
           />
-          <StatCard 
-            label="📈 총 테스트" 
-            value={executionState.totalTests} 
+          <StatCard
+            label="📈 총 테스트"
+            value={executionState.totalTests}
             colorClass="blue"
           />
         </div>
-        
+
         {showDetails && executionState.totalTests > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3 text-xs">
-            <StatCard 
-              label="⚡ 평균 시간" 
-              value={`${executionState.averageExecutionTime}ms`} 
+            <StatCard
+              label="⚡ 평균 시간"
+              value={`${executionState.averageExecutionTime}ms`}
               colorClass="purple"
             />
-            <StatCard 
-              label="🚀 최대 시간" 
-              value={`${executionState.maxExecutionTime}ms`} 
+            <StatCard
+              label="🚀 최대 시간"
+              value={`${executionState.maxExecutionTime}ms`}
               colorClass="teal"
             />
-            <StatCard 
-              label="⚡ 최소 시간" 
-              value={`${executionState.minExecutionTime === Number.MAX_VALUE ? 0 : executionState.minExecutionTime}ms`} 
+            <StatCard
+              label="⚡ 최소 시간"
+              value={`${executionState.minExecutionTime === Number.MAX_VALUE ? 0 : executionState.minExecutionTime}ms`}
               colorClass="cyan"
             />
           </div>
         )}
-        
+
         {executionState.totalTests > 0 && (
           <div className="mt-2 text-xs text-gray-600">
             성공률: {successRate}%

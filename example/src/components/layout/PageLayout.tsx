@@ -1,6 +1,6 @@
-import React from 'react';
-import { Container, Card, CardContent } from '../ui';
+import type React from 'react';
 import { cn } from '../../lib/utils';
+import { Card, CardContent, Container } from '../ui';
 
 interface PageLayoutProps {
   title: string;
@@ -11,13 +11,13 @@ interface PageLayoutProps {
   category?: 'core' | 'store' | 'react' | 'logger' | 'actionguard' | 'debug';
 }
 
-export function PageLayout({ 
-  title, 
-  description, 
-  children, 
+export function PageLayout({
+  title,
+  description,
+  children,
   className,
   size = 'lg',
-  category
+  category,
 }: PageLayoutProps) {
   return (
     <Container size={size} className={className}>
@@ -42,15 +42,19 @@ interface PageSectionProps {
   category?: 'core' | 'store' | 'react' | 'logger' | 'actionguard' | 'debug';
 }
 
-export function PageSection({ 
-  title, 
-  children, 
+export function PageSection({
+  title,
+  children,
   className,
   variant = 'default',
-  category 
+  category,
 }: PageSectionProps) {
   return (
-    <Card variant={variant} category={category} className={cn("mb-6", className)}>
+    <Card
+      variant={variant}
+      category={category}
+      className={cn('mb-6', className)}
+    >
       <CardContent>
         {title && (
           <h2 className="text-xl font-semibold text-gray-900 mb-4">{title}</h2>
@@ -69,12 +73,12 @@ interface FeatureHighlightProps {
   category?: 'core' | 'store' | 'react' | 'logger' | 'actionguard' | 'debug';
 }
 
-export function FeatureHighlight({ 
-  icon, 
-  title, 
-  description, 
+export function FeatureHighlight({
+  icon,
+  title,
+  description,
   children,
-  category = 'core'
+  category = 'core',
 }: FeatureHighlightProps) {
   const categoryColors = {
     core: 'text-danger-600',
@@ -87,13 +91,9 @@ export function FeatureHighlight({
 
   return (
     <div className="flex items-start gap-4 p-4 rounded-lg border border-gray-200 bg-gray-50/50">
-      {icon && (
-        <div className="flex-shrink-0 text-2xl">
-          {icon}
-        </div>
-      )}
+      {icon && <div className="flex-shrink-0 text-2xl">{icon}</div>}
       <div className="flex-1">
-        <h3 className={cn("font-semibold mb-2", categoryColors[category])}>
+        <h3 className={cn('font-semibold mb-2', categoryColors[category])}>
           {title}
         </h3>
         <p className="text-gray-600 text-sm mb-3">{description}</p>
@@ -111,15 +111,15 @@ export interface DemoCardProps {
   className?: string;
 }
 
-export function DemoCard({ 
-  title, 
-  description, 
-  children, 
+export function DemoCard({
+  title,
+  description,
+  children,
   category = 'core',
-  className 
+  className,
 }: DemoCardProps) {
   return (
-    <Card category={category} className={cn("mb-6", className)}>
+    <Card category={category} className={cn('mb-6', className)}>
       <CardContent>
         <div className="border-b border-gray-200 pb-4 mb-4">
           <h3 className="text-lg font-semibold text-gray-900">{title}</h3>

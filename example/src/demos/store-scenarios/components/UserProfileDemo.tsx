@@ -1,14 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react';
 import { useStoreValue } from '@context-action/react';
+import { useCallback, useEffect, useState } from 'react';
 import { useActionLoggerWithToast } from '../../../components/LogMonitor/';
-import { StoreScenarios } from '../stores';
 import { storeActionRegister } from '../actions';
+import { StoreScenarios } from '../stores';
 import type { User } from '../types';
 
 /**
  * 사용자 프로필 관리 데모 컴포넌트
  * 복잡한 객체 업데이트와 중첩된 속성 관리를 보여주는 Declarative Store 패턴 예제
- * 
+ *
  * @implements store-integration-pattern
  * @implements action-handler
  * @memberof core-concepts
@@ -34,25 +34,31 @@ export function UserProfileDemo() {
         controller.next();
       }),
 
-      storeActionRegister.register('updateUserTheme', ({ theme }, controller) => {
-        userStore.update(prev => ({
-          ...prev,
-          preferences: { ...prev.preferences, theme }
-        }));
-        controller.next();
-      }),
+      storeActionRegister.register(
+        'updateUserTheme',
+        ({ theme }, controller) => {
+          userStore.update((prev) => ({
+            ...prev,
+            preferences: { ...prev.preferences, theme },
+          }));
+          controller.next();
+        }
+      ),
 
-      storeActionRegister.register('toggleNotifications', ({ enabled }, controller) => {
-        userStore.update(prev => ({
-          ...prev,
-          preferences: { ...prev.preferences, notifications: enabled }
-        }));
-        controller.next();
-      })
+      storeActionRegister.register(
+        'toggleNotifications',
+        ({ enabled }, controller) => {
+          userStore.update((prev) => ({
+            ...prev,
+            preferences: { ...prev.preferences, notifications: enabled },
+          }));
+          controller.next();
+        }
+      ),
     ];
 
     return () => {
-      unsubscribers.forEach(unsubscribe => unsubscribe());
+      unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
   }, [userStore]);
 
@@ -62,21 +68,33 @@ export function UserProfileDemo() {
 
   const handleSave = useCallback(() => {
     if (editForm) {
-      logger.logAction('updateUser', { 
+      logger.logAction('updateUser', {
         oldUser: user,
         newUser: editForm,
-        changes: Object.keys(editForm).filter(key => user?.[key as keyof User] !== editForm[key as keyof User])
+        changes: Object.keys(editForm).filter(
+          (key) => user?.[key as keyof User] !== editForm[key as keyof User]
+        ),
       });
       storeActionRegister.dispatch('updateUser', { user: editForm });
-      logger.logSystem('프로필 업데이트 성공', { context: `userId: ${editForm.id}` });
+      logger.logSystem('프로필 업데이트 성공', {
+        context: `userId: ${editForm.id}`,
+      });
     }
     setIsEditing(false);
   }, [editForm, user, logger]);
 
   const handleCancel = useCallback(() => {
-    logger.logAction('cancelProfileEdit', { discardedChanges: editForm }, {
-      toast: { type: 'info', title: '편집 취소', message: '변경사항이 취소되었습니다' }
-    });
+    logger.logAction(
+      'cancelProfileEdit',
+      { discardedChanges: editForm },
+      {
+        toast: {
+          type: 'info',
+          title: '편집 취소',
+          message: '변경사항이 취소되었습니다',
+        },
+      }
+    );
     setEditForm(user);
     setIsEditing(false);
   }, [user, editForm, logger]);
@@ -84,9 +102,9 @@ export function UserProfileDemo() {
   const toggleTheme = useCallback(() => {
     if (user?.preferences) {
       const newTheme = user.preferences.theme === 'light' ? 'dark' : 'light';
-      logger.logAction('updateUserTheme', { 
-        fromTheme: user.preferences.theme, 
-        toTheme: newTheme 
+      logger.logAction('updateUserTheme', {
+        fromTheme: user.preferences.theme,
+        toTheme: newTheme,
       });
       storeActionRegister.dispatch('updateUserTheme', { theme: newTheme });
     }
@@ -95,11 +113,19 @@ export function UserProfileDemo() {
   const updateLastLogin = useCallback(() => {
     if (user) {
       const now = new Date();
-      logger.logAction('updateLastLogin', { previousLogin: user.lastLogin, newLogin: now }, {
-        toast: { type: 'info', title: '로그인 시간 업데이트', message: '마지막 로그인 시간이 현재 시간으로 업데이트되었습니다' }
-      });
-      storeActionRegister.dispatch('updateUser', { 
-        user: { ...user, lastLogin: now }
+      logger.logAction(
+        'updateLastLogin',
+        { previousLogin: user.lastLogin, newLogin: now },
+        {
+          toast: {
+            type: 'info',
+            title: '로그인 시간 업데이트',
+            message: '마지막 로그인 시간이 현재 시간으로 업데이트되었습니다',
+          },
+        }
+      );
+      storeActionRegister.dispatch('updateUser', {
+        user: { ...user, lastLogin: now },
       });
     }
   }, [user, logger]);
@@ -107,19 +133,23 @@ export function UserProfileDemo() {
   const toggleNotifications = useCallback(() => {
     if (user?.preferences) {
       const newValue = !user.preferences.notifications;
-      logger.logAction('toggleNotifications', { 
+      logger.logAction('toggleNotifications', {
         enabled: newValue,
-        userId: user.id 
+        userId: user.id,
       });
-      storeActionRegister.dispatch('toggleNotifications', { enabled: newValue });
+      storeActionRegister.dispatch('toggleNotifications', {
+        enabled: newValue,
+      });
     }
   }, [user, logger]);
 
   return (
     <div className="demo-card">
       <h3>👤 User Profile Management</h3>
-      <p className="demo-description">복잡한 객체 업데이트와 중첩된 속성 관리를 보여주는 사용자 프로필 데모</p>
-      
+      <p className="demo-description">
+        복잡한 객체 업데이트와 중첩된 속성 관리를 보여주는 사용자 프로필 데모
+      </p>
+
       {!isEditing ? (
         <div className="user-profile-view">
           <div className="profile-avatar">
@@ -127,7 +157,7 @@ export function UserProfileDemo() {
               {user?.name?.charAt(0)?.toUpperCase() ?? 'U'}
             </div>
           </div>
-          
+
           <div className="profile-info">
             <div className="profile-field">
               <strong>Name:</strong> {user?.name ?? 'Unknown User'}
@@ -136,41 +166,50 @@ export function UserProfileDemo() {
               <strong>Email:</strong> {user?.email ?? 'user@example.com'}
             </div>
             <div className="profile-field">
-              <strong>User ID:</strong> 
+              <strong>User ID:</strong>
               <code>{user?.id ?? 'N/A'}</code>
             </div>
             <div className="profile-field">
-              <strong>Theme:</strong> 
-              <span className={`theme-badge ${user?.preferences?.theme ?? 'light'}`}>
-                {user?.preferences?.theme === 'dark' ? '🌙' : '☀️'} {user?.preferences?.theme ?? 'light'}
+              <strong>Theme:</strong>
+              <span
+                className={`theme-badge ${user?.preferences?.theme ?? 'light'}`}
+              >
+                {user?.preferences?.theme === 'dark' ? '🌙' : '☀️'}{' '}
+                {user?.preferences?.theme ?? 'light'}
               </span>
             </div>
             <div className="profile-field">
-              <strong>Language:</strong> 
+              <strong>Language:</strong>
               <span className="language-badge">
-                {user?.preferences?.language === 'ko' ? '🇰🇷 한국어' : '🇺🇸 English'}
+                {user?.preferences?.language === 'ko'
+                  ? '🇰🇷 한국어'
+                  : '🇺🇸 English'}
               </span>
             </div>
             <div className="profile-field">
-              <strong>Notifications:</strong> 
-              <span className={`status-badge ${user?.preferences?.notifications ? 'enabled' : 'disabled'}`}>
+              <strong>Notifications:</strong>
+              <span
+                className={`status-badge ${user?.preferences?.notifications ? 'enabled' : 'disabled'}`}
+              >
                 {user?.preferences?.notifications ? '🔔 ON' : '🔕 OFF'}
               </span>
             </div>
             <div className="profile-field">
-              <strong>Last Login:</strong> 
+              <strong>Last Login:</strong>
               <span className="timestamp">
-                {user?.lastLogin ? new Date(user.lastLogin).toLocaleString('ko-KR') : 'Never'}
+                {user?.lastLogin
+                  ? new Date(user.lastLogin).toLocaleString('ko-KR')
+                  : 'Never'}
               </span>
             </div>
           </div>
-          
+
           <div className="button-group">
-            <button 
+            <button
               onClick={() => {
                 logger.logAction('startProfileEdit', { userId: user?.id });
                 setIsEditing(true);
-              }} 
+              }}
               className="btn btn-primary"
             >
               ✏️ Edit Profile
@@ -182,14 +221,15 @@ export function UserProfileDemo() {
               🕒 Update Login Time
             </button>
             <button onClick={toggleNotifications} className="btn btn-secondary">
-              {user?.preferences?.notifications ? '🔕' : '🔔'} Toggle Notifications
+              {user?.preferences?.notifications ? '🔕' : '🔔'} Toggle
+              Notifications
             </button>
           </div>
         </div>
       ) : (
         <div className="user-profile-edit">
           <h4>Edit Profile Information</h4>
-          
+
           <div className="form-group">
             <label>Name:</label>
             <input
@@ -197,14 +237,17 @@ export function UserProfileDemo() {
               value={editForm?.name ?? ''}
               onChange={(e) => {
                 const newValue = e.target.value;
-                logger.logAction('updateProfileField', { field: 'name', value: newValue });
+                logger.logAction('updateProfileField', {
+                  field: 'name',
+                  value: newValue,
+                });
                 editForm && setEditForm({ ...editForm, name: newValue });
               }}
               className="text-input"
               placeholder="Enter your full name"
             />
           </div>
-          
+
           <div className="form-group">
             <label>Email:</label>
             <input
@@ -212,7 +255,10 @@ export function UserProfileDemo() {
               value={editForm?.email ?? ''}
               onChange={(e) => {
                 const newValue = e.target.value;
-                logger.logAction('updateProfileField', { field: 'email', value: newValue });
+                logger.logAction('updateProfileField', {
+                  field: 'email',
+                  value: newValue,
+                });
                 editForm && setEditForm({ ...editForm, email: newValue });
               }}
               className="text-input"
@@ -222,15 +268,22 @@ export function UserProfileDemo() {
 
           <div className="form-group">
             <label>Language:</label>
-            <select 
-              value={editForm?.preferences?.language ?? 'ko'} 
+            <select
+              value={editForm?.preferences?.language ?? 'ko'}
               onChange={(e) => {
                 const newValue = e.target.value as 'ko' | 'en';
-                logger.logAction('updateProfileField', { field: 'language', value: newValue });
-                editForm && setEditForm({ 
-                  ...editForm, 
-                  preferences: { ...editForm.preferences, language: newValue } 
+                logger.logAction('updateProfileField', {
+                  field: 'language',
+                  value: newValue,
                 });
+                editForm &&
+                  setEditForm({
+                    ...editForm,
+                    preferences: {
+                      ...editForm.preferences,
+                      language: newValue,
+                    },
+                  });
               }}
               className="text-input"
             >
@@ -238,7 +291,7 @@ export function UserProfileDemo() {
               <option value="en">🇺🇸 English</option>
             </select>
           </div>
-          
+
           <div className="button-group">
             <button onClick={handleSave} className="btn btn-success">
               💾 Save Changes
@@ -249,21 +302,26 @@ export function UserProfileDemo() {
           </div>
         </div>
       )}
-      
+
       {/* Profile Stats */}
       <div className="profile-stats">
         <div className="stat-item">
           <span className="stat-label">Profile Completeness:</span>
           <div className="progress-bar">
-            <div 
-              className="progress-fill" 
-              style={{ 
-                width: `${user ? Math.min(100, (
-                  (user.name ? 25 : 0) + 
-                  (user.email ? 25 : 0) + 
-                  (user.preferences ? 25 : 0) + 
-                  (user.lastLogin ? 25 : 0)
-                )) : 0}%` 
+            <div
+              className="progress-fill"
+              style={{
+                width: `${
+                  user
+                    ? Math.min(
+                        100,
+                        (user.name ? 25 : 0) +
+                          (user.email ? 25 : 0) +
+                          (user.preferences ? 25 : 0) +
+                          (user.lastLogin ? 25 : 0)
+                      )
+                    : 0
+                }%`,
               }}
             ></div>
           </div>

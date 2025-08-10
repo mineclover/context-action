@@ -1,9 +1,9 @@
 /**
  * Enhanced Abortable Search Example
- * 
+ *
  * Comprehensive demonstration of abort functionality, search patterns, and
  * advanced action management scenarios.
- * 
+ *
  * Features:
  * - Multiple abort scenarios and strategies
  * - Search cancellation and debouncing
@@ -13,22 +13,21 @@
  * - Performance optimization patterns
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createActionContext } from '@context-action/react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { AppActions } from '../types/actions.js';
 import { Button } from './ui/Button';
 import { Card } from './ui/Card';
-import { Status } from './ui/Status';
 import { Input } from './ui/Input';
+import { Status } from './ui/Status';
 
 // Create typed action context with enhanced debugging
-const { 
-  Provider: ActionProvider, 
-  useActionDispatch, 
-  useActionDispatchWithResult, 
-  useActionRegister 
+const {
+  Provider: ActionProvider,
+  useActionDispatchWithResult,
+  useActionRegister,
 } = createActionContext<AppActions>({
-  name: 'EnhancedAbortableSearchExample'
+  name: 'EnhancedAbortableSearchExample',
 });
 
 interface SearchResult {
@@ -72,15 +71,35 @@ export function EnhancedAbortableSearchExample() {
     abortedSearches: 0,
     failedSearches: 0,
     averageSearchTime: 0,
-    lastSearchTime: 0
+    lastSearchTime: 0,
   });
 
   // Abort scenarios
   const [abortScenarios, setAbortScenarios] = useState<AbortScenario[]>([
-    { id: 'quick-search', name: 'Quick Search', description: 'Fast search with immediate cancellation', active: false },
-    { id: 'slow-search', name: 'Slow Search', description: 'Slow search to test abort timing', active: false },
-    { id: 'multi-step', name: 'Multi-step Search', description: 'Complex search with multiple phases', active: false },
-    { id: 'cascade-search', name: 'Cascade Search', description: 'Search that triggers other searches', active: false },
+    {
+      id: 'quick-search',
+      name: 'Quick Search',
+      description: 'Fast search with immediate cancellation',
+      active: false,
+    },
+    {
+      id: 'slow-search',
+      name: 'Slow Search',
+      description: 'Slow search to test abort timing',
+      active: false,
+    },
+    {
+      id: 'multi-step',
+      name: 'Multi-step Search',
+      description: 'Complex search with multiple phases',
+      active: false,
+    },
+    {
+      id: 'cascade-search',
+      name: 'Cascade Search',
+      description: 'Search that triggers other searches',
+      active: false,
+    },
   ]);
 
   // Refs for tracking
@@ -88,45 +107,56 @@ export function EnhancedAbortableSearchExample() {
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const activeSearches = useRef<Set<string>>(new Set());
 
-  const { dispatch, dispatchWithResult, abortAll, resetAbortScope } = useActionDispatchWithResult();
+  const { dispatch, abortAll, resetAbortScope } =
+    useActionDispatchWithResult();
   const register = useActionRegister();
 
   // Update search metrics
-  const updateMetrics = useCallback((type: 'success' | 'abort' | 'fail', duration?: number) => {
-    setSearchMetrics(prev => {
-      const newMetrics = { ...prev };
-      newMetrics.totalSearches += 1;
-      
-      switch (type) {
-        case 'success':
-          newMetrics.successfulSearches += 1;
-          break;
-        case 'abort':
-          newMetrics.abortedSearches += 1;
-          break;
-        case 'fail':
-          newMetrics.failedSearches += 1;
-          break;
-      }
+  const updateMetrics = useCallback(
+    (type: 'success' | 'abort' | 'fail', duration?: number) => {
+      setSearchMetrics((prev) => {
+        const newMetrics = { ...prev };
+        newMetrics.totalSearches += 1;
 
-      if (duration !== undefined) {
-        newMetrics.lastSearchTime = duration;
-        const totalDuration = (prev.averageSearchTime * (prev.totalSearches - 1)) + duration;
-        newMetrics.averageSearchTime = totalDuration / newMetrics.totalSearches;
-      }
+        switch (type) {
+          case 'success':
+            newMetrics.successfulSearches += 1;
+            break;
+          case 'abort':
+            newMetrics.abortedSearches += 1;
+            break;
+          case 'fail':
+            newMetrics.failedSearches += 1;
+            break;
+        }
 
-      return newMetrics;
-    });
-  }, []);
+        if (duration !== undefined) {
+          newMetrics.lastSearchTime = duration;
+          const totalDuration =
+            prev.averageSearchTime * (prev.totalSearches - 1) + duration;
+          newMetrics.averageSearchTime =
+            totalDuration / newMetrics.totalSearches;
+        }
+
+        return newMetrics;
+      });
+    },
+    []
+  );
 
   // Update abort scenario status
-  const updateScenarioStatus = useCallback((scenarioId: string, active: boolean, result?: string) => {
-    setAbortScenarios(prev => prev.map(scenario => 
-      scenario.id === scenarioId 
-        ? { ...scenario, active, result }
-        : scenario
-    ));
-  }, []);
+  const updateScenarioStatus = useCallback(
+    (scenarioId: string, active: boolean, result?: string) => {
+      setAbortScenarios((prev) =>
+        prev.map((scenario) =>
+          scenario.id === scenarioId
+            ? { ...scenario, active, result }
+            : scenario
+        )
+      );
+    },
+    []
+  );
 
   // Register enhanced search handlers
   useEffect(() => {
@@ -139,7 +169,7 @@ export function EnhancedAbortableSearchExample() {
       register.register('search', async ({ query }, controller) => {
         const currentSearchId = `search-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         const startTime = Date.now();
-        
+
         activeSearches.current.add(currentSearchId);
         setSearchId(currentSearchId);
         setLoading(true);
@@ -170,7 +200,7 @@ export function EnhancedAbortableSearchExample() {
           for (let i = 0; i < steps; i++) {
             try {
               // Simulate processing time
-              await new Promise(resolve => setTimeout(resolve, stepDuration));
+              await new Promise((resolve) => setTimeout(resolve, stepDuration));
 
               // Generate mock results progressively
               if (i % 2 === 0 && query.trim()) {
@@ -179,11 +209,14 @@ export function EnhancedAbortableSearchExample() {
                   title: `Result ${i + 1} for "${query}"`,
                   description: `This is a mock search result for your query. Step ${i + 1}/${steps} completed.`,
                   relevance: Math.random() * 100,
-                  source: i % 3 === 0 ? 'Database' : i % 3 === 1 ? 'API' : 'Cache'
+                  source:
+                    i % 3 === 0 ? 'Database' : i % 3 === 1 ? 'API' : 'Cache',
                 });
               }
-            } catch (error) {
-              console.log(`Search aborted at step ${i}/${steps} for query: ${query}`);
+            } catch (_error) {
+              console.log(
+                `Search aborted at step ${i}/${steps} for query: ${query}`
+              );
               activeSearches.current.delete(currentSearchId);
               updateMetrics('abort', Date.now() - startTime);
               setLoading(false);
@@ -194,14 +227,15 @@ export function EnhancedAbortableSearchExample() {
 
           // Success
           const duration = Date.now() - startTime;
-          console.log(`Search completed successfully: ${query} (${duration}ms)`);
-          
+          console.log(
+            `Search completed successfully: ${query} (${duration}ms)`
+          );
+
           setResults(mockResults);
           updateMetrics('success', duration);
           activeSearches.current.delete(currentSearchId);
           setLoading(false);
           setSearchId(null);
-
         } catch (error) {
           console.error(`Search failed for query: ${query}`, error);
           const duration = Date.now() - startTime;
@@ -216,44 +250,52 @@ export function EnhancedAbortableSearchExample() {
 
     // Process data set handler (for cascade testing)
     unregisterFunctions.push(
-      register.register('processDataSet', async ({ dataSetId, chunkSize }, controller) => {
-        console.log(`Processing dataset ${dataSetId} with chunk size ${chunkSize}`);
-        
-        // Simulate data processing
-        for (let i = 0; i < chunkSize; i++) {
-          try {
-            await new Promise(resolve => setTimeout(resolve, 100));
-          } catch (error) {
-            console.log(`Data processing aborted at chunk ${i}/${chunkSize}`);
-            return;
-          }
-        }
+      register.register(
+        'processDataSet',
+        async ({ dataSetId, chunkSize }, controller) => {
+          console.log(
+            `Processing dataset ${dataSetId} with chunk size ${chunkSize}`
+          );
 
-        console.log(`Dataset ${dataSetId} processing completed`);
-      })
+          // Simulate data processing
+          for (let i = 0; i < chunkSize; i++) {
+            try {
+              await new Promise((resolve) => setTimeout(resolve, 100));
+            } catch (_error) {
+              console.log(`Data processing aborted at chunk ${i}/${chunkSize}`);
+              return;
+            }
+          }
+
+          console.log(`Dataset ${dataSetId} processing completed`);
+        }
+      )
     );
 
     return () => {
-      unregisterFunctions.forEach(unregister => unregister());
+      unregisterFunctions.forEach((unregister) => unregister());
     };
   }, [register, updateMetrics]);
 
   // Debounced search function
-  const debouncedSearch = useCallback((searchQuery: string, delay: number = 300) => {
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-    }
-
-    debounceTimer.current = setTimeout(async () => {
-      if (searchQuery.trim()) {
-        // Reset abort scope for new search (cancels previous searches)
-        resetAbortScope();
-        await dispatch('search', { query: searchQuery });
-      } else {
-        setResults([]);
+  const debouncedSearch = useCallback(
+    (searchQuery: string, delay: number = 300) => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
       }
-    }, delay);
-  }, [dispatch, resetAbortScope]);
+
+      debounceTimer.current = setTimeout(async () => {
+        if (searchQuery.trim()) {
+          // Reset abort scope for new search (cancels previous searches)
+          resetAbortScope();
+          await dispatch('search', { query: searchQuery });
+        } else {
+          setResults([]);
+        }
+      }, delay);
+    },
+    [dispatch, resetAbortScope]
+  );
 
   // Handle query changes with debouncing
   useEffect(() => {
@@ -276,8 +318,12 @@ export function EnhancedAbortableSearchExample() {
           // Start quick search then immediately abort
           setTimeout(() => {
             abortAll();
-            setAbortCount(prev => prev + 1);
-            updateScenarioStatus(scenarioId, false, 'Quick search aborted successfully');
+            setAbortCount((prev) => prev + 1);
+            updateScenarioStatus(
+              scenarioId,
+              false,
+              'Quick search aborted successfully'
+            );
           }, 50);
           await dispatch('search', { query: 'quick test query' });
           break;
@@ -286,37 +332,57 @@ export function EnhancedAbortableSearchExample() {
           // Start slow search, wait, then abort
           setTimeout(() => {
             abortAll();
-            setAbortCount(prev => prev + 1);
-            updateScenarioStatus(scenarioId, false, 'Slow search aborted at 50% progress');
+            setAbortCount((prev) => prev + 1);
+            updateScenarioStatus(
+              scenarioId,
+              false,
+              'Slow search aborted at 50% progress'
+            );
           }, 1500);
           await dispatch('search', { query: 'slow detailed complex query' });
           break;
 
         case 'multi-step':
           // Run multiple searches in sequence
-          updateScenarioStatus(scenarioId, false, 'Multi-step search initiated');
+          updateScenarioStatus(
+            scenarioId,
+            false,
+            'Multi-step search initiated'
+          );
           await dispatch('search', { query: 'step 1' });
           await dispatch('search', { query: 'step 2 complex' });
           await dispatch('search', { query: 'step 3' });
-          updateScenarioStatus(scenarioId, false, 'Multi-step search completed');
+          updateScenarioStatus(
+            scenarioId,
+            false,
+            'Multi-step search completed'
+          );
           break;
 
-        case 'cascade-search':
+        case 'cascade-search': {
           // Search that triggers data processing
           const promises = [
             dispatch('search', { query: 'cascade trigger' }),
-            dispatch('processDataSet', { dataSetId: 'cascade-data', chunkSize: 10 })
+            dispatch('processDataSet', {
+              dataSetId: 'cascade-data',
+              chunkSize: 10,
+            }),
           ];
-          
+
           // Abort after 1 second
           setTimeout(() => {
             abortAll();
-            setAbortCount(prev => prev + 1);
-            updateScenarioStatus(scenarioId, false, 'Cascade operations aborted');
+            setAbortCount((prev) => prev + 1);
+            updateScenarioStatus(
+              scenarioId,
+              false,
+              'Cascade operations aborted'
+            );
           }, 1000);
-          
+
           await Promise.all(promises);
           break;
+        }
       }
     } catch (error) {
       updateScenarioStatus(scenarioId, false, `Error: ${error}`);
@@ -326,14 +392,16 @@ export function EnhancedAbortableSearchExample() {
   // Manual abort handlers
   const handleAbortAll = () => {
     abortAll();
-    setAbortCount(prev => prev + 1);
+    setAbortCount((prev) => prev + 1);
     setLoading(false);
     setError('Search aborted by user');
   };
 
   const handleResetAbortScope = () => {
     resetAbortScope();
-    console.log('Abort scope reset - new searches will use fresh abort context');
+    console.log(
+      'Abort scope reset - new searches will use fresh abort context'
+    );
   };
 
   const handleClearResults = () => {
@@ -346,9 +414,12 @@ export function EnhancedAbortableSearchExample() {
     <div className="enhanced-abortable-search-example">
       <div className="max-w-6xl mx-auto p-6 space-y-8">
         <header>
-          <h1 className="text-3xl font-bold text-gray-900">Enhanced Abortable Search</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Enhanced Abortable Search
+          </h1>
           <p className="mt-2 text-gray-600">
-            Advanced abort functionality, search patterns, and action management scenarios
+            Advanced abort functionality, search patterns, and action management
+            scenarios
           </p>
         </header>
 
@@ -365,23 +436,17 @@ export function EnhancedAbortableSearchExample() {
                   className="w-full"
                 />
               </div>
-              <Button 
+              <Button
                 onClick={handleAbortAll}
                 variant="danger"
                 disabled={!loading}
               >
                 Abort Search
               </Button>
-              <Button 
-                onClick={handleResetAbortScope}
-                variant="warning"
-              >
+              <Button onClick={handleResetAbortScope} variant="warning">
                 Reset Scope
               </Button>
-              <Button 
-                onClick={handleClearResults}
-                variant="secondary"
-              >
+              <Button onClick={handleClearResults} variant="secondary">
                 Clear
               </Button>
             </div>
@@ -394,16 +459,14 @@ export function EnhancedAbortableSearchExample() {
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                     <span className="text-sm text-blue-600">Searching...</span>
                     {searchId && (
-                      <span className="text-xs text-gray-500">ID: {searchId.substr(-8)}</span>
+                      <span className="text-xs text-gray-500">
+                        ID: {searchId.substr(-8)}
+                      </span>
                     )}
                   </div>
                 )}
-                
-                {error && (
-                  <Status status="danger">
-                    {error}
-                  </Status>
-                )}
+
+                {error && <Status status="danger">{error}</Status>}
 
                 <div className="text-sm text-gray-600">
                   Active searches: {activeSearches.current.size}
@@ -421,12 +484,14 @@ export function EnhancedAbortableSearchExample() {
           {/* Abort Scenarios */}
           <Card title="Abort Scenarios">
             <div className="space-y-3">
-              {abortScenarios.map(scenario => (
+              {abortScenarios.map((scenario) => (
                 <div key={scenario.id} className="border rounded-lg p-4">
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <h4 className="font-medium">{scenario.name}</h4>
-                      <p className="text-sm text-gray-600">{scenario.description}</p>
+                      <p className="text-sm text-gray-600">
+                        {scenario.description}
+                      </p>
                     </div>
                     <Button
                       onClick={() => runAbortScenario(scenario.id)}
@@ -437,7 +502,7 @@ export function EnhancedAbortableSearchExample() {
                       {scenario.active ? 'Running...' : 'Run'}
                     </Button>
                   </div>
-                  
+
                   {scenario.result && (
                     <div className="text-sm text-green-600 mt-2">
                       Result: {scenario.result}
@@ -452,19 +517,27 @@ export function EnhancedAbortableSearchExample() {
           <Card title="Search Metrics">
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{searchMetrics.totalSearches}</div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {searchMetrics.totalSearches}
+                </div>
                 <div className="text-gray-500">Total Searches</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{searchMetrics.successfulSearches}</div>
+                <div className="text-2xl font-bold text-green-600">
+                  {searchMetrics.successfulSearches}
+                </div>
                 <div className="text-gray-500">Successful</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-600">{searchMetrics.abortedSearches}</div>
+                <div className="text-2xl font-bold text-yellow-600">
+                  {searchMetrics.abortedSearches}
+                </div>
                 <div className="text-gray-500">Aborted</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-red-600">{searchMetrics.failedSearches}</div>
+                <div className="text-2xl font-bold text-red-600">
+                  {searchMetrics.failedSearches}
+                </div>
                 <div className="text-gray-500">Failed</div>
               </div>
               <div className="text-center col-span-2">
@@ -485,12 +558,19 @@ export function EnhancedAbortableSearchExample() {
                 {query ? 'No results found' : 'Start typing to search...'}
               </p>
             ) : (
-              results.map(result => (
-                <div key={result.id} className="border rounded-lg p-4 bg-gray-50">
+              results.map((result) => (
+                <div
+                  key={result.id}
+                  className="border rounded-lg p-4 bg-gray-50"
+                >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">{result.title}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{result.description}</p>
+                      <h3 className="font-medium text-gray-900">
+                        {result.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {result.description}
+                      </p>
                       <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
                         <span>Source: {result.source}</span>
                         <span>Relevance: {Math.round(result.relevance)}%</span>
@@ -508,20 +588,50 @@ export function EnhancedAbortableSearchExample() {
           <div className="prose prose-sm max-w-none">
             <h4>Features Demonstrated:</h4>
             <ul>
-              <li><strong>Debounced Search:</strong> Automatic cancellation of previous searches when typing</li>
-              <li><strong>Manual Abort:</strong> User-triggered abort of running searches</li>
-              <li><strong>Abort Scenarios:</strong> Pre-configured test cases for different abort patterns</li>
-              <li><strong>Progress Tracking:</strong> Real-time monitoring of search progress and abort status</li>
-              <li><strong>Metrics Collection:</strong> Performance and behavior analytics</li>
-              <li><strong>Scope Management:</strong> resetAbortScope() for managing abort contexts</li>
+              <li>
+                <strong>Debounced Search:</strong> Automatic cancellation of
+                previous searches when typing
+              </li>
+              <li>
+                <strong>Manual Abort:</strong> User-triggered abort of running
+                searches
+              </li>
+              <li>
+                <strong>Abort Scenarios:</strong> Pre-configured test cases for
+                different abort patterns
+              </li>
+              <li>
+                <strong>Progress Tracking:</strong> Real-time monitoring of
+                search progress and abort status
+              </li>
+              <li>
+                <strong>Metrics Collection:</strong> Performance and behavior
+                analytics
+              </li>
+              <li>
+                <strong>Scope Management:</strong> resetAbortScope() for
+                managing abort contexts
+              </li>
             </ul>
-            
+
             <h4>Abort Strategies:</h4>
             <ul>
-              <li><strong>Quick Search:</strong> Tests immediate abort after dispatch</li>
-              <li><strong>Slow Search:</strong> Tests abort during long-running operations</li>
-              <li><strong>Multi-step:</strong> Tests abort between sequential operations</li>
-              <li><strong>Cascade:</strong> Tests abort of multiple concurrent actions</li>
+              <li>
+                <strong>Quick Search:</strong> Tests immediate abort after
+                dispatch
+              </li>
+              <li>
+                <strong>Slow Search:</strong> Tests abort during long-running
+                operations
+              </li>
+              <li>
+                <strong>Multi-step:</strong> Tests abort between sequential
+                operations
+              </li>
+              <li>
+                <strong>Cascade:</strong> Tests abort of multiple concurrent
+                actions
+              </li>
             </ul>
           </div>
         </Card>

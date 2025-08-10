@@ -1,95 +1,96 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
-import { inputVariants, type InputVariants } from './variants';
+import { type InputVariants, inputVariants } from './variants';
 
-export interface InputProps 
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'>, 
+export interface InputProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'>,
     InputVariants {
   label?: string;
   error?: string;
   helper?: string;
 }
 
-export function Input({ 
-  className, 
-  variant, 
-  size, 
+export function Input({
+  className,
+  variant,
+  size,
   label,
   error,
   helper,
   id,
-  ...props 
+  ...props
 }: InputProps) {
-  const inputId = id || React.useId();
+  const generatedId = React.useId();
+  const inputId = id || generatedId;
   const errorVariant = error ? 'error' : variant;
 
   return (
     <div className="space-y-1">
       {label && (
-        <label 
+        <label
           htmlFor={inputId}
           className="block text-sm font-medium text-gray-700"
         >
           {label}
         </label>
       )}
-      <input 
+      <input
         id={inputId}
-        className={cn(inputVariants({ variant: errorVariant, size }), className)} 
+        className={cn(
+          inputVariants({ variant: errorVariant, size }),
+          className
+        )}
         {...props}
       />
-      {error && (
-        <p className="text-sm text-danger-600">{error}</p>
-      )}
-      {helper && !error && (
-        <p className="text-sm text-gray-500">{helper}</p>
-      )}
+      {error && <p className="text-sm text-danger-600">{error}</p>}
+      {helper && !error && <p className="text-sm text-gray-500">{helper}</p>}
     </div>
   );
 }
 
-export interface TextareaProps 
-  extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'size'>, 
+export interface TextareaProps
+  extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'size'>,
     InputVariants {
   label?: string;
   error?: string;
   helper?: string;
 }
 
-export function Textarea({ 
-  className, 
-  variant, 
-  size, 
+export function Textarea({
+  className,
+  variant,
+  size,
   label,
   error,
   helper,
   id,
-  ...props 
+  ...props
 }: TextareaProps) {
-  const textareaId = id || React.useId();
+  const generatedId = React.useId();
+  const textareaId = id || generatedId;
   const errorVariant = error ? 'error' : variant;
 
   return (
     <div className="space-y-1">
       {label && (
-        <label 
+        <label
           htmlFor={textareaId}
           className="block text-sm font-medium text-gray-700"
         >
           {label}
         </label>
       )}
-      <textarea 
+      <textarea
         id={textareaId}
-        className={cn(inputVariants({ variant: errorVariant, size }), "min-h-[80px]", className)} 
+        className={cn(
+          inputVariants({ variant: errorVariant, size }),
+          'min-h-[80px]',
+          className
+        )}
         {...props}
       />
-      {error && (
-        <p className="text-sm text-danger-600">{error}</p>
-      )}
-      {helper && !error && (
-        <p className="text-sm text-gray-500">{helper}</p>
-      )}
+      {error && <p className="text-sm text-danger-600">{error}</p>}
+      {helper && !error && <p className="text-sm text-gray-500">{helper}</p>}
     </div>
   );
 }

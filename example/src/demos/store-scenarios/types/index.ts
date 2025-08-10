@@ -146,13 +146,13 @@ export interface NotificationActions {
 }
 
 // 전체 액션 맵
-export interface StoreFullActionMap extends 
-  UserProfileActions,
-  ShoppingCartActions,
-  TodoActions,
-  ChatActions,
-  FormWizardActions,
-  SettingsActions,
-  NotificationActions {
+export interface StoreFullActionMap
+  extends UserProfileActions,
+    ShoppingCartActions,
+    TodoActions,
+    ChatActions,
+    FormWizardActions,
+    SettingsActions,
+    NotificationActions {
   [key: string]: any; // ActionPayloadMap 제약조건을 만족하기 위한 인덱스 시그니처
 }

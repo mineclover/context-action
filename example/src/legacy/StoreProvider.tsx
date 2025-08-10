@@ -3,8 +3,8 @@
  * @deprecated Use Context Store Pattern (createContextStorePattern) instead
  */
 
-import React, { createContext, useContext, useRef, ReactNode } from 'react';
 import { StoreRegistry } from '@context-action/react';
+import { createContext, type ReactNode, useContext, useRef } from 'react';
 
 /**
  * @deprecated Use Context Store Pattern instead
@@ -27,12 +27,12 @@ export interface StoreProviderProps {
 }
 
 /**
- * @deprecated This is only for example app compatibility. 
+ * @deprecated This is only for example app compatibility.
  * Use createContextStorePattern instead for new code.
  */
 export function StoreProvider({ children, registry }: StoreProviderProps) {
   const registryRef = useRef<StoreRegistry>();
-  
+
   if (!registryRef.current) {
     registryRef.current = registry || new StoreRegistry();
   }
@@ -53,13 +53,13 @@ export function StoreProvider({ children, registry }: StoreProviderProps) {
  */
 export function useStoreRegistry(): StoreRegistry {
   const context = useContext(StoreContext);
-  
+
   if (!context) {
     throw new Error(
       'useStoreRegistry must be used within a StoreProvider. ' +
-      'Consider using Context Store Pattern instead.'
+        'Consider using Context Store Pattern instead.'
     );
   }
-  
+
   return context.registry;
 }
