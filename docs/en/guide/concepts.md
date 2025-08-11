@@ -45,7 +45,7 @@ interface UserData {
 export const {
   Provider: UserProvider,
   useStore: useUserStore,        // Domain-specific store access
-  useRegistry: useUserRegistry,  // Registry access for handlers
+  useStores: useUserStores,      // Store registry access
 } = createDeclarativeStores<UserData>('User', {
   profile: { initialValue: { id: '', name: '', email: '' } },
   preferences: { initialValue: { theme: 'light', language: 'en' } }

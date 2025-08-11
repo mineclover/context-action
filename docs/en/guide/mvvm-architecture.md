@@ -37,7 +37,7 @@ export interface UserData {
 export const {
   Provider: UserProvider,
   useStore: useUserStore,
-  useRegistry: useUserRegistry
+  useStores: useUserStores
 } = createDeclarativeStores<UserData>('User', {
   profile: {
     initialValue: {
