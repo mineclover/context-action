@@ -39,7 +39,7 @@ export interface UserActions {
 export const {
   Provider: UserProvider,
   useStore: useUserStore,
-  useRegistry: useUserRegistry
+  useStores: useUserStores  // New clearer naming
 } = createDeclarativeStores<UserData>('User', {
   profile: { initialValue: { id: '', name: '', email: '' } },
   preferences: { initialValue: { theme: 'light', language: 'en' } }
@@ -48,7 +48,7 @@ export const {
 export const {
   Provider: UserActionProvider,
   useAction: useUserAction,
-  useActionRegister: useUserActionRegister
+  useActionHandler: useUserActionHandler  // New clearer naming
 } = createActionContext<UserActions>({ name: 'UserAction' });
 ```
 
@@ -59,15 +59,15 @@ Define your business logic:
 ```typescript
 // hooks/useUserHandlers.ts
 import { useEffect, useCallback } from 'react';
-import { useUserActionRegister, useUserRegistry } from '../stores/user.store';
+import { useUserActionHandler, useUserStores } from '../stores/user.store';
 
 export function useUserHandlers() {
-  const register = useUserActionRegister();
-  const registry = useUserRegistry();
+  const addHandler = useUserActionHandler();
+  const stores = useUserStores();
   
   // Update profile handler
   const updateProfileHandler = useCallback(async (payload, controller) => {
-    const profileStore = registry.getStore('profile');
+    const profileStore = stores.getStore('profile');
     const currentProfile = profileStore.getValue();
     
     // Simple validation
@@ -88,7 +88,7 @@ export function useUserHandlers() {
   
   // Toggle theme handler
   const toggleThemeHandler = useCallback(async (payload, controller) => {
-    const prefsStore = registry.getStore('preferences');
+    const prefsStore = stores.getStore('preferences');
     const currentPrefs = prefsStore.getValue();
     
     prefsStore.setValue({
@@ -101,12 +101,12 @@ export function useUserHandlers() {
   useEffect(() => {
     if (!register) return;
     
-    const unregisterUpdate = register('updateProfile', updateProfileHandler, {
+    const unaddHandlerUpdate = addHandler('updateProfile', updateProfileHandler, {
       priority: 100,
       blocking: true
     });
     
-    const unregisterTheme = register('toggleTheme', toggleThemeHandler, {
+    const unaddHandlerTheme = addHandler('toggleTheme', toggleThemeHandler, {
       priority: 50,
       blocking: true
     });
@@ -259,7 +259,7 @@ const profile = useStoreValue(profileStore); // Auto re-render on changes
 
 ```typescript
 useEffect(() => {
-  const unregister = register('action', handler);
+  const unaddHandler = addHandler('action', handler);
   return unregister; // Important cleanup
 }, [register, handler]);
 ```
@@ -319,7 +319,7 @@ describe('updateProfile handler', () => {
 
 ```typescript
 const loadingHandler = useCallback(async (payload, controller) => {
-  const uiStore = registry.getStore('ui');
+  const uiStore = stores.getStore('ui');
   
   // Set loading
   uiStore.setValue({ ...uiStore.getValue(), loading: true });
@@ -352,7 +352,7 @@ const errorHandler = useCallback(async (payload, controller) => {
 
 ```typescript
 const conditionalHandler = useCallback(async (payload, controller) => {
-  const userStore = registry.getStore('profile');
+  const userStore = stores.getStore('profile');
   const user = userStore.getValue();
   
   if (!user.id) {
