@@ -21,7 +21,7 @@ describe('Unified ActionContext (createActionContext factory)', () => {
     Provider: ActionProvider, 
     useActionDispatch, 
     useActionDispatchWithResult, 
-    useActionRegister 
+    // useActionHandler, - Currently tested in separate section 
   } = createActionContext<TestActions>({ name: 'TestProvider' });
 
   // Test wrapper using factory-generated Provider

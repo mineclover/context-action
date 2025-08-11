@@ -25,7 +25,7 @@ import { Status } from './ui/Status';
 const {
   Provider: ActionProvider,
   useActionDispatchWithResult,
-  useActionRegister,
+  useActionHandler,
 } = createActionContext<AppActions>({
   name: 'EnhancedAbortableSearchExample',
 });
@@ -108,7 +108,7 @@ export function EnhancedAbortableSearchExample() {
   const activeSearches = useRef<Set<string>>(new Set());
 
   const { dispatch, abortAll, resetAbortScope } = useActionDispatchWithResult();
-  const register = useActionRegister();
+  const addHandler = useActionHandler();
 
   // Update search metrics
   const updateMetrics = useCallback(
@@ -159,13 +159,13 @@ export function EnhancedAbortableSearchExample() {
 
   // Register enhanced search handlers
   useEffect(() => {
-    if (!register) return;
+    if (!addHandler) return;
 
     const unregisterFunctions: (() => void)[] = [];
 
     // Main search handler
     unregisterFunctions.push(
-      register.register('search', async ({ query }, controller) => {
+      addHandler('search', async ({ query }, controller) => {
         const currentSearchId = `search-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         const startTime = Date.now();
 
@@ -249,7 +249,7 @@ export function EnhancedAbortableSearchExample() {
 
     // Process data set handler (for cascade testing)
     unregisterFunctions.push(
-      register.register(
+      addHandler(
         'processDataSet',
         async ({ dataSetId, chunkSize }, controller) => {
           console.log(
@@ -274,7 +274,7 @@ export function EnhancedAbortableSearchExample() {
     return () => {
       unregisterFunctions.forEach((unregister) => unregister());
     };
-  }, [register, updateMetrics]);
+  }, [addHandler, updateMetrics]);
 
   // Debounced search function
   const debouncedSearch = useCallback(

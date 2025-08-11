@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { useStoreSelector, shallowEqual, defaultEqualityFn } from './useStoreSelector';
 import type { Store } from '../core/Store';
 
@@ -45,7 +45,7 @@ import type { Store } from '../core/Store';
 /**
  * 성능 최적화 옵션
  */
-export interface StoreValueOptions<T, R> {
+export interface StoreValueOptions<R> {
   /** 동등성 비교 함수 */
   equalityFn?: (a: R, b: R) => boolean;
   
@@ -77,33 +77,33 @@ export interface StoreValueOptions<T, R> {
 // Store가 확정된 경우 - 기본 구독
 export function useStoreValue<T>(
   store: Store<T>, 
-  options?: StoreValueOptions<T, T>
+  options?: StoreValueOptions<T>
 ): T;
 
 // Store가 undefined일 수 있는 경우 - 안전한 구독
 export function useStoreValue<T>(
   store: Store<T> | undefined | null,
-  options?: StoreValueOptions<T, T>
+  options?: StoreValueOptions<T>
 ): T | undefined;
 
 // Store가 확정된 경우 + selector - 선택적 구독
 export function useStoreValue<T, R>(
   store: Store<T>, 
   selector: (value: T) => R,
-  options?: StoreValueOptions<T, R>
+  options?: StoreValueOptions<R>
 ): R;
 
 // Store가 undefined일 수 있는 경우 + selector - 안전한 선택적 구독  
 export function useStoreValue<T, R>(
   store: Store<T> | undefined | null, 
   selector: (value: T) => R,
-  options?: StoreValueOptions<T, R>
+  options?: StoreValueOptions<R>
 ): R | undefined;
 
 export function useStoreValue<T, R>(
   store: Store<T> | undefined | null,
-  selectorOrOptions?: ((value: T) => R) | StoreValueOptions<T, T>,
-  options?: StoreValueOptions<T, R>
+  selectorOrOptions?: ((value: T) => R) | StoreValueOptions<T>,
+  options?: StoreValueOptions<R>
 ): T | R | undefined {
   // 파라미터 정규화
   const selector = typeof selectorOrOptions === 'function' ? selectorOrOptions : undefined;

@@ -2,7 +2,7 @@
  * @fileoverview Tests for action abort functionality
  */
 
-import { ActionRegister, ActionPayloadMap, DispatchOptions } from '../index.js';
+import { ActionRegister, ActionPayloadMap } from '../index.js';
 
 // Test action types
 interface TestActions extends ActionPayloadMap {
@@ -40,7 +40,7 @@ describe('Action Abort Functionality', () => {
       let handlerStarted = false;
       let handlerCompleted = false;
 
-      register.register('longRunning', async (payload, controller) => {
+      register.register('longRunning', async (payload, _controller) => {
         handlerStarted = true;
         
         // Simulate long-running operation
@@ -184,6 +184,7 @@ describe('Action Abort Functionality', () => {
 
   describe('Abort reason propagation', () => {
     it('should propagate abort reason through pipeline context', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const abortController = new AbortController();
       let capturedAbortReason: string | undefined;
 

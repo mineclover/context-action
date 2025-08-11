@@ -23,7 +23,7 @@ import { Status } from './ui/Status';
 const {
   Provider: ActionProvider,
   useActionDispatchWithResult,
-  useActionRegister,
+  useActionHandler,
 } = createActionContext<AppActions>({
   name: 'ConcurrentActionTest',
 });
@@ -52,7 +52,7 @@ export function ConcurrentActionTestPage() {
   const [globalAbortCount, setGlobalAbortCount] = useState(0);
 
   const { dispatch, abortAll, resetAbortScope } = useActionDispatchWithResult();
-  const register = useActionRegister();
+  const addHandler = useActionHandler();
 
   const tasksRef = useRef<TaskStatus[]>([]);
   const logsRef = useRef<ExecutionLog[]>([]);
@@ -112,13 +112,13 @@ export function ConcurrentActionTestPage() {
 
   // Register action handlers
   useEffect(() => {
-    if (!register) return;
+    if (!addHandler) return;
 
     const unregisterFunctions: (() => void)[] = [];
 
     // Long running task A handler
     unregisterFunctions.push(
-      register.register(
+      addHandler(
         'longRunningTaskA',
         async ({ taskId, duration }, controller) => {
           const taskName = `Task A (${duration}ms)`;
@@ -190,7 +190,7 @@ export function ConcurrentActionTestPage() {
 
     // Long running task B handler
     unregisterFunctions.push(
-      register.register(
+      addHandler(
         'longRunningTaskB',
         async ({ taskId, duration }, controller) => {
           const taskName = `Task B (${duration}ms)`;
@@ -285,7 +285,7 @@ export function ConcurrentActionTestPage() {
 
     // Long running task C handler
     unregisterFunctions.push(
-      register.register(
+      addHandler(
         'longRunningTaskC',
         async ({ taskId, duration }, controller) => {
           const taskName = `Task C (${duration}ms)`;
@@ -356,7 +356,7 @@ export function ConcurrentActionTestPage() {
 
     // API call handlers for pipeline interaction testing
     unregisterFunctions.push(
-      register.register('apiCallSecondary', async ({ endpoint, params }) => {
+      addHandler('apiCallSecondary', async ({ endpoint, params }) => {
         addLog(
           'apiCallSecondary',
           'started',
@@ -376,7 +376,7 @@ export function ConcurrentActionTestPage() {
 
     // Background job handler
     unregisterFunctions.push(
-      register.register(
+      addHandler(
         'backgroundJob',
         async ({ jobId, jobType, priority }, controller) => {
           const taskName = `Background Job (${jobType}, Priority: ${priority})`;
@@ -441,7 +441,7 @@ export function ConcurrentActionTestPage() {
     return () => {
       unregisterFunctions.forEach((unregister) => unregister());
     };
-  }, [register]);
+  }, [addHandler]);
 
   // Action execution functions
   const runSingleTask = async (taskType: 'A' | 'B' | 'C', duration: number) => {

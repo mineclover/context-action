@@ -29,7 +29,7 @@ const {
   Provider: ActionProvider,
   useActionDispatch,
   useActionDispatchWithResult,
-  useActionRegister,
+  useActionHandler,
 } = createActionContext<AppActions>({
   name: 'AbortableSearchExample',
 });
@@ -112,13 +112,13 @@ export function AbortableSearchExample() {
   const _activeSearches = useRef<Set<string>>(new Set());
 
   const { dispatchWithResult, resetAbortScope } = useActionDispatchWithResult();
-  const register = useActionRegister();
+  const addHandler = useActionHandler();
 
   // Register search handler
   useEffect(() => {
-    if (!register) return;
+    if (!addHandler) return;
 
-    const unregister = register.register(
+    const unregister = addHandler(
       'search',
       async ({ query }, controller) => {
         // Simulate API call
@@ -136,7 +136,7 @@ export function AbortableSearchExample() {
     );
 
     return unregister;
-  }, [register]);
+  }, [addHandler]);
 
   // Handle search with automatic cancellation of previous searches
   const handleSearch = async (searchQuery: string) => {
@@ -237,13 +237,13 @@ export function DataFetcherWithCleanup() {
 
   // Using dispatch with automatic abort ensures fetch is cancelled if component unmounts
   const dispatch = useActionDispatch();
-  const register = useActionRegister();
+  const addHandler = useActionHandler();
 
   useEffect(() => {
-    if (!register) return;
+    if (!addHandler) return;
 
     // Register data fetch handler
-    const unregister = register.register(
+    const unregister = addHandler(
       'fetchUserData',
       async ({ userId }) => {
         const response = await fetch(`/api/users/${userId}`);
@@ -253,7 +253,7 @@ export function DataFetcherWithCleanup() {
     );
 
     return unregister;
-  }, [register]);
+  }, [addHandler]);
 
   useEffect(() => {
     const loadData = async () => {
