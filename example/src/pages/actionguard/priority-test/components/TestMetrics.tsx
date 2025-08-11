@@ -53,9 +53,11 @@ export const MinMaxExecutionTime = memo(() => {
     : executionState.minExecutionTime;
     
   return (
-    <>
-      {minTime}ms ~ {executionState.maxExecutionTime || 0}ms
-    </>
+    <div className="flex flex-col text-sm">
+      <div>{minTime}ms</div>
+      <div className="text-xs text-gray-500">~</div>
+      <div>{executionState.maxExecutionTime || 0}ms</div>
+    </div>
   );
 });
 
@@ -107,11 +109,11 @@ export const MetricCard = memo<MetricCardProps>(({
   colorClass = 'blue' 
 }) => {
   return (
-    <div className={`bg-white rounded-lg p-3 shadow-sm border ${className}`}>
-      <div className={`text-xs text-${colorClass}-600 font-medium mb-1`}>
+    <div className={`bg-white rounded-lg p-4 shadow-sm border flex-1 min-h-[80px] ${className}`}>
+      <div className={`text-xs text-${colorClass}-600 font-medium mb-2 whitespace-nowrap`}>
         {title}
       </div>
-      <div className={`text-lg font-bold text-${colorClass}-700`}>
+      <div className={`text-base font-bold text-${colorClass}-700 leading-tight`}>
         {children}
       </div>
     </div>

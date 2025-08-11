@@ -209,7 +209,7 @@ const PerformanceMetrics = memo<{
       <h4 className="font-medium text-gray-700 mb-2 text-sm">
         📊 성능 메트릭
       </h4>
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+      <div className="flex flex-wrap gap-3">
         <MetricCard title="총 실행">
           <TotalExecutionCount />
         </MetricCard>
@@ -224,7 +224,7 @@ const PerformanceMetrics = memo<{
         <MetricCard title="평균 시간">
           <AverageExecutionTime />
         </MetricCard>
-        <MetricCard title="최소~최대">
+        <MetricCard title="최소-최대">
           <MinMaxExecutionTime />
         </MetricCard>
       </div>
@@ -369,28 +369,33 @@ const PriorityTestInstance = memo(function PriorityTestInstance({
       {/* 우선순위별 실행 카운트 (1-100 전체 표시) */}
       <div className="mb-3">
         <h4 className="font-medium text-gray-700 mb-2 text-sm">
-          🎯 우선순위별 실행 횟수 (1-100)
+          🎯 우선순위별 실행 횟수 (높은 순위 → 낮은 순위)
         </h4>
         <div className="bg-gray-50 rounded p-1">
           <PriorityGrid configs={configsWithDelay} className="" />
         </div>
-        <div className="text-xs text-gray-500 mt-1 flex items-center gap-4">
-          <div className="flex items-center whitespace-nowrap">
-            <span
-              className="inline-block w-2 h-2 border border-blue-300 mr-1"
-              style={{ backgroundColor: '#dbeafe' }}
-            ></span>
-            핸들러
+        <div className="text-xs text-gray-500 mt-1 space-y-1">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center whitespace-nowrap">
+              <span
+                className="inline-block w-2 h-2 border border-blue-300 mr-1"
+                style={{ backgroundColor: '#dbeafe' }}
+              ></span>
+              핸들러
+            </div>
+            <div className="flex items-center whitespace-nowrap">
+              <span
+                className="inline-block w-2 h-2 border border-yellow-500 mr-1"
+                style={{ backgroundColor: '#fbbf24' }}
+              ></span>
+              점프 지점
+            </div>
+            <div className="text-gray-400 whitespace-nowrap">
+              실행 횟수에 따라 색상 농도 변화
+            </div>
           </div>
-          <div className="flex items-center whitespace-nowrap">
-            <span
-              className="inline-block w-2 h-2 border border-yellow-500 mr-1"
-              style={{ backgroundColor: '#fbbf24' }}
-            ></span>
-            점프 실행
-          </div>
-          <div className="text-gray-400 whitespace-nowrap">
-            실행 횟수에 따라 색상 농도 변화
+          <div className="text-xs text-gray-400">
+            💡 P30은 점프만 하고 직접 실행되지 않음 | 지연 평가로 실시간 조건 확인
           </div>
         </div>
       </div>
