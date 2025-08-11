@@ -22,3 +22,6 @@ export {
 // === DECLARATIVE STORE PATTERN ===
 // Re-export store patterns for convenience
 export * from '../stores/patterns';
+
+// === Performance Optimization Patterns (v2.1.0+) ===
+// Focus on essential context management and type-safe hooks

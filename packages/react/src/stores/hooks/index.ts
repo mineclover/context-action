@@ -35,3 +35,21 @@ export { useRegistryStore } from './useRegistryStore';
 // Optional but useful patterns
 export { useLocalStore } from './useLocalStore';
 export { usePersistedStore } from './usePersistedStore';
+
+// === PERFORMANCE OPTIMIZATION HOOKS ===
+// 성능 최적화를 위한 새로운 Hook들 (v2.1.0+)
+export { 
+  useStoreSelector, 
+  useMultiStoreSelector, 
+  useStorePathSelector,
+  shallowEqual,
+  deepEqual,
+  defaultEqualityFn 
+} from './useStoreSelector';
+
+export { 
+  useComputedStore, 
+  useMultiComputedStore, 
+  useComputedStoreInstance,
+  useAsyncComputedStore 
+} from './useComputedStore';
