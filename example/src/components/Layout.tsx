@@ -80,8 +80,13 @@ function Layout({
       category: 'logger' as const,
     },
     {
-      path: '/actionguard/demo',
+      path: '/actionguard',
       label: 'Action Guard',
+      category: 'actionguard' as const,
+    },
+    {
+      path: '/actionguard/search',
+      label: '🔍 Search Demo',
       category: 'actionguard' as const,
     },
     {
