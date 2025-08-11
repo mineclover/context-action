@@ -11,8 +11,8 @@ export type {
   PriorityTestViewModel,
 } from './types';
 
-// 기존 훅들 (호환성 유지)
-export { usePriorityExecutionState } from './usePriorityExecutionState';
+// 기존 훅들도 더 이상 사용되지 않습니다.
+// 모든 상태 관리는 직접 Store 접근 패턴을 사용하세요.
 
 // 레거시 훅들이 완전히 제거되었습니다.
 // 새로운 패턴: 직접 Store 접근 방식을 사용하세요.

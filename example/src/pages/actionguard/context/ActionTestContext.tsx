@@ -5,7 +5,23 @@ import {
   type StoreSchema,
 } from '@context-action/react';
 import type React from 'react';
-import type { ExecutionStateData } from '../hooks/usePriorityExecutionState';
+
+// 실행 상태 관리를 위한 타입 정의
+export interface ExecutionStateData {
+  isRunning: boolean;
+  testResults: string[];
+  currentTestId: string | null;
+  totalTests: number;
+  successfulTests: number;
+  failedTests: number;
+  abortedTests: number;
+  averageExecutionTime: number;
+  lastExecutionTime: number;
+  maxExecutionTime: number;
+  minExecutionTime: number;
+  startTime: number;
+  executionTimes: number[];
+}
 
 // 테스트용 액션 타입 정의
 export interface TestActions extends ActionPayloadMap {
