@@ -96,7 +96,36 @@ export function PriorityPerformanceView() {
         ))}
       </div>
 
-      {/* 성능 테스트 안내 */}
+      {/* 우선순위 실행 시스템 설명 */}
+      <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
+        <h3 className="font-semibold text-indigo-900 mb-3">
+          🎯 우선순위 실행 시스템
+        </h3>
+        <div className="text-sm text-indigo-800 space-y-2">
+          <div>
+            <strong>실행 순서:</strong> 높은 우선순위 → 낮은 우선순위 (95 → 90 → 70 → 55 → 45 → 30 → 25 → 15 → 10)
+          </div>
+          <div>
+            <strong>점프 시스템:</strong> 특정 조건에서 다른 우선순위로 점프하여 실행
+          </div>
+          <ul className="ml-4 space-y-1">
+            <li>• P90 → P70 점프 (조건부)</li>
+            <li>• P70 → P25 점프 (조건부)</li>
+            <li>• P55 → P45 점프 (조건부)</li>
+            <li>• P45 → P15 점프 (조건부)</li>
+            <li>• P30 → P10 점프 (조건부) - P30은 직접 실행되지 않음</li>
+            <li>• P15 → P95 점프 (무한 루프 방지 조건 적용)</li>
+          </ul>
+          <div>
+            <strong>지연 평가:</strong> 점프 조건은 런타임에 실시간으로 평가되어 동적 실행 경로 결정
+          </div>
+          <div>
+            <strong>루프 방지:</strong> 무한 점프를 방지하기 위한 조건부 로직과 실행 횟수 제한 적용
+          </div>
+        </div>
+      </div>
+
+      {/* 성능 테스트 특징 */}
       <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
         <h3 className="font-semibold text-yellow-900 mb-2">
           ⚡ 성능 테스트 특징
@@ -107,7 +136,7 @@ export function PriorityPerformanceView() {
           <li>• 동적 인스턴스 추가로 스트레스 테스트 가능</li>
           <li>• 콘솔 로그 최소화로 성능 영향 제거</li>
           <li>• 간소화된 UI로 메모리 사용량 최적화</li>
-          <li>• 점프 패턴: 90→70, 55→45→15→95</li>
+          <li>• 우선순위 그리드로 실시간 실행 패턴 시각화</li>
         </ul>
       </div>
 
@@ -153,14 +182,22 @@ export function PriorityPerformanceView() {
             • <strong>CPU 사용량</strong>: 동시 실행 시 멀티코어 활용도 확인
           </li>
           <li>
-            • <strong>색상 변화</strong>: 실행 횟수에 따른 우선순위별 색상
-            농도 관찰
+            • <strong>실행 패턴 관찰</strong>: 우선순위 그리드에서 색상 농도 변화로 실행 횟수 파악
           </li>
           <li>
-            • <strong>점프 패턴</strong>: 15→95 무한루프로 인한 색상 변화 확인
+            • <strong>점프 시각화</strong>: 황색 점프 표시(⚫)를 통해 점프 경로 추적
           </li>
           <li>
-            • <strong>성능 비교</strong>: 여러 인스턴스 간의 성능 차이 분석
+            • <strong>P30 미실행</strong>: P30은 점프 경유지로만 사용되어 직접 실행되지 않음 확인
+          </li>
+          <li>
+            • <strong>루프 방지 확인</strong>: P15→P95 점프가 무한 루프 방지 조건에 의해 제어됨
+          </li>
+          <li>
+            • <strong>지연 평가 효과</strong>: 실시간 조건 변화에 따른 점프 경로 변화 관찰
+          </li>
+          <li>
+            • <strong>성능 비교</strong>: 여러 인스턴스 간의 실행 패턴 및 성능 차이 분석
           </li>
         </ul>
       </div>

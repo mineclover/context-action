@@ -35,25 +35,32 @@ export const PriorityGrid = memo<PriorityGridProps>(({
     return [...configs].sort((a, b) => b.priority - a.priority);
   }, [configs]);
 
-  // 색상 계산 함수 - 우선순위에 따라 일관된 색상 생성
+  // 색상 계산 함수 - 우선순위에 따라 일관된 색상 생성 (고대비 버전)
   const getPriorityColor = (priority: number) => {
     // 우선순위를 0-100 범위에서 0-1 사이로 정규화
     const normalized = priority / 100;
     
-    if (normalized >= 0.9) return { bg: '#dc2626', text: '#fff' }; // red-600
-    if (normalized >= 0.8) return { bg: '#ea580c', text: '#fff' }; // orange-600
-    if (normalized >= 0.7) return { bg: '#d97706', text: '#fff' }; // amber-600
-    if (normalized >= 0.6) return { bg: '#059669', text: '#fff' }; // emerald-600
-    if (normalized >= 0.5) return { bg: '#0d9488', text: '#fff' }; // teal-600
-    if (normalized >= 0.4) return { bg: '#0891b2', text: '#fff' }; // cyan-600
-    if (normalized >= 0.3) return { bg: '#2563eb', text: '#fff' }; // blue-600
-    if (normalized >= 0.2) return { bg: '#7c3aed', text: '#fff' }; // violet-600
-    return { bg: '#9333ea', text: '#fff' }; // purple-600
+    if (normalized >= 0.9) return { bg: '#b91c1c', text: '#ffffff' }; // red-700 (더 진한 빨강)
+    if (normalized >= 0.8) return { bg: '#c2410c', text: '#ffffff' }; // orange-700
+    if (normalized >= 0.7) return { bg: '#a16207', text: '#ffffff' }; // amber-700
+    if (normalized >= 0.6) return { bg: '#047857', text: '#ffffff' }; // emerald-700
+    if (normalized >= 0.5) return { bg: '#0f766e', text: '#ffffff' }; // teal-700
+    if (normalized >= 0.4) return { bg: '#0e7490', text: '#ffffff' }; // cyan-700
+    if (normalized >= 0.3) return { bg: '#1d4ed8', text: '#ffffff' }; // blue-700
+    if (normalized >= 0.2) return { bg: '#6d28d9', text: '#ffffff' }; // violet-700
+    return { bg: '#7c3aed', text: '#ffffff' }; // purple-600
   };
 
   return (
     <div className={`priority-grid ${className}`}>
-      <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-2 p-4 bg-gray-50 rounded-lg">
+      <div 
+        className="gap-2 p-3 bg-gray-50 rounded-lg overflow-hidden max-w-full"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(36px, 1fr))',
+          maxWidth: '100%',
+        }}
+      >
         {sortedConfigs.map((config) => {
           const count = priorityCounts[config.priority] || 0;
           const hasExecuted = count > 0;
@@ -64,11 +71,15 @@ export const PriorityGrid = memo<PriorityGridProps>(({
               key={config.id}
               className={`
                 relative flex flex-col items-center justify-center
-                w-12 h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-lg shadow-sm border-2
+                rounded shadow-sm border text-center
                 transition-all duration-200 hover:scale-105 cursor-default
                 ${hasExecuted ? 'border-indigo-400 shadow-md' : 'border-gray-300'}
               `}
               style={{
+                width: '36px',
+                height: '36px',
+                minWidth: '36px',
+                minHeight: '36px',
                 backgroundColor: hasExecuted ? colors.bg : '#f3f4f6',
                 color: hasExecuted ? colors.text : '#6b7280',
               }}
@@ -76,30 +87,33 @@ export const PriorityGrid = memo<PriorityGridProps>(({
             >
               {/* 우선순위 번호 */}
               <div
-                className="font-bold leading-tight mb-0.5"
+                className="font-black leading-tight mb-0.5"
                 style={{
-                  fontSize: '10px',
-                  textShadow: hasExecuted ? '0 1px 2px rgba(0,0,0,0.3)' : 'none',
+                  fontSize: '9px',
+                  textShadow: hasExecuted ? '0 1px 3px rgba(0,0,0,0.5)' : 'none',
+                  fontWeight: '900',
                 }}
               >
                 P{config.priority}
               </div>
               
-              {/* 실행 횟수 */}
+              {/* 실행 횟수 - 더 강조 */}
               <div
-                className="leading-none font-mono font-extrabold"
+                className="leading-none font-mono"
                 style={{ 
-                  fontSize: '11px',
-                  textShadow: hasExecuted ? '0 1px 2px rgba(0,0,0,0.3)' : 'none',
+                  fontSize: '12px',
+                  fontWeight: '900',
+                  textShadow: hasExecuted ? '0 1px 3px rgba(0,0,0,0.5)' : 'none',
+                  letterSpacing: '-0.5px',
                 }}
               >
-                {count > 0 ? (count > 99 ? '99+' : count) : '-'}
+                {count > 0 ? (count > 9 ? '9+' : count) : '-'}
               </div>
               
               {/* 점프 표시 */}
               {config.jumpToPriority && (
                 <div 
-                  className="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full border-2 border-white shadow-sm"
+                  className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-400 rounded-full border border-white shadow-sm"
                   title={`P${config.jumpToPriority}로 점프`}
                 />
               )}
@@ -109,20 +123,16 @@ export const PriorityGrid = memo<PriorityGridProps>(({
       </div>
       
       {/* 범례 */}
-      <div className="flex items-center justify-between text-sm text-gray-700 mt-3 px-2">
+      <div className="flex items-center justify-between text-xs text-gray-600 mt-2 px-1">
         <span className="font-medium">우선순위 (높음 → 낮음)</span>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-amber-400 rounded-full border border-white shadow-sm" />
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 bg-amber-400 rounded-full border border-white shadow-sm" />
             <span>점프</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-indigo-400 rounded border-2 border-indigo-400" />
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 bg-indigo-400 rounded border border-indigo-400" />
             <span>실행됨</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-gray-300 rounded border-2 border-gray-300" />
-            <span>대기중</span>
           </div>
         </div>
       </div>
@@ -151,19 +161,19 @@ export const PriorityList = memo<PriorityListProps>(({
     return [...configs].sort((a, b) => b.priority - a.priority);
   }, [configs]);
 
-  // 색상 계산 함수 (PriorityGrid와 동일)
+  // 색상 계산 함수 (PriorityGrid와 동일한 고대비 버전)
   const getPriorityColor = (priority: number) => {
     const normalized = priority / 100;
     
-    if (normalized >= 0.9) return '#dc2626'; // red-600
-    if (normalized >= 0.8) return '#ea580c'; // orange-600
-    if (normalized >= 0.7) return '#d97706'; // amber-600
-    if (normalized >= 0.6) return '#059669'; // emerald-600
-    if (normalized >= 0.5) return '#0d9488'; // teal-600
-    if (normalized >= 0.4) return '#0891b2'; // cyan-600
-    if (normalized >= 0.3) return '#2563eb'; // blue-600
-    if (normalized >= 0.2) return '#7c3aed'; // violet-600
-    return '#9333ea'; // purple-600
+    if (normalized >= 0.9) return '#b91c1c'; // red-700
+    if (normalized >= 0.8) return '#c2410c'; // orange-700
+    if (normalized >= 0.7) return '#a16207'; // amber-700
+    if (normalized >= 0.6) return '#047857'; // emerald-700
+    if (normalized >= 0.5) return '#0f766e'; // teal-700
+    if (normalized >= 0.4) return '#0e7490'; // cyan-700
+    if (normalized >= 0.3) return '#1d4ed8'; // blue-700
+    if (normalized >= 0.2) return '#6d28d9'; // violet-700
+    return '#7c3aed'; // purple-600
   };
 
   return (
@@ -198,10 +208,10 @@ export const PriorityList = memo<PriorityListProps>(({
               
               {showCounts && (
                 <div className="text-right">
-                  <div className="text-lg font-mono font-bold text-gray-900">
+                  <div className="text-xl font-mono font-black text-gray-900" style={{ fontWeight: '900' }}>
                     {count}
                   </div>
-                  <div className="text-xs text-gray-500">실행</div>
+                  <div className="text-xs text-gray-500 font-medium">실행</div>
                 </div>
               )}
             </div>
