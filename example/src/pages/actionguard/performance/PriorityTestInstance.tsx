@@ -2,12 +2,12 @@ import { memo, useMemo, useState, useCallback, useEffect } from 'react';
 import {
   ActionTestProvider,
   PriorityTestProvider,
-} from '../context/ActionTestContext';
+} from '../priority-test/context/ActionTestContext';
 import {
   useTestHandlerRegistration,
   useTestExecution,
   type HandlerConfig,
-} from '../hooks';
+} from '../priority-test/hooks';
 import {
   TotalExecutionCount,
   SuccessRate,
@@ -15,7 +15,7 @@ import {
   MinMaxExecutionTime,
   MetricCard,
   PriorityGrid,
-} from '../components';
+} from '../priority-test/components';
 
 // 기본 핸들러 설정 (점프 패턴이 잘 보이도록 조정)
 const DEFAULT_HANDLER_CONFIGS: HandlerConfig[] = [
