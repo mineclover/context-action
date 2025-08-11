@@ -6,9 +6,10 @@
  */
 
 import { useStoreValue } from '@context-action/react';
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useEffect, useRef, useState } from 'react';
 import { usePriorityTestStore } from '../context/ActionTestContext';
 import type { HandlerConfig } from '../hooks/types';
+import styles from '../../performance/PriorityTestInstance.module.css';
 
 interface PriorityGridProps {
   configs: HandlerConfig[];
@@ -29,11 +30,60 @@ export const PriorityGrid = memo<PriorityGridProps>(({
 }) => {
   const priorityCountsStore = usePriorityTestStore('priorityCounts');
   const priorityCounts = useStoreValue(priorityCountsStore);
+  
+  // 이전 카운트를 추적하기 위한 ref
+  const prevCountsRef = useRef<Record<number, number>>({});
+  const [animatingPriorities, setAnimatingPriorities] = useState<Set<number>>(new Set());
+  const animationTimeouts = useRef<Record<number, NodeJS.Timeout>>({});
 
   // 우선순위별로 정렬된 config (높은 우선순위부터)
   const sortedConfigs = useMemo(() => {
     return [...configs].sort((a, b) => b.priority - a.priority);
   }, [configs]);
+
+  // 카운트 변화 감지 및 애니메이션 트리거
+  useEffect(() => {
+    const prevCounts = prevCountsRef.current;
+
+    // 카운트가 증가한 우선순위 찾기
+    Object.keys(priorityCounts).forEach(priorityStr => {
+      const priority = Number(priorityStr);
+      const currentCount = priorityCounts[priority] || 0;
+      const prevCount = prevCounts[priority] || 0;
+      
+      if (currentCount > prevCount) {
+        // 기존 타이머가 있으면 취소
+        if (animationTimeouts.current[priority]) {
+          clearTimeout(animationTimeouts.current[priority]);
+        }
+
+        // 애니메이션 시작
+        setAnimatingPriorities(prev => new Set([...prev, priority]));
+        
+        // 개별 타이머로 애니메이션 종료 (400ms로 단축)
+        animationTimeouts.current[priority] = setTimeout(() => {
+          setAnimatingPriorities(prev => {
+            const newSet = new Set(prev);
+            newSet.delete(priority);
+            return newSet;
+          });
+          delete animationTimeouts.current[priority];
+        }, 400);
+      }
+    });
+
+    // 현재 카운트를 이전 카운트로 업데이트
+    prevCountsRef.current = { ...priorityCounts };
+  }, [priorityCounts]);
+
+  // 컴포넌트 언마운트시 모든 타이머 정리
+  useEffect(() => {
+    return () => {
+      Object.values(animationTimeouts.current).forEach(timeout => {
+        clearTimeout(timeout);
+      });
+    };
+  }, []);
 
   // 색상 계산 함수 - 우선순위에 따라 일관된 색상 생성 (고대비 버전)
   const getPriorityColor = (priority: number) => {
@@ -65,15 +115,17 @@ export const PriorityGrid = memo<PriorityGridProps>(({
           const count = priorityCounts[config.priority] || 0;
           const hasExecuted = count > 0;
           const colors = getPriorityColor(config.priority);
+          const isAnimating = animatingPriorities.has(config.priority);
           
           return (
             <div
               key={config.id}
               className={`
                 relative flex flex-col items-center justify-center
-                rounded shadow-sm border text-center
-                transition-all duration-200 hover:scale-105 cursor-default
+                rounded shadow-sm border text-center cursor-default
+                transition-all duration-300 hover:scale-105
                 ${hasExecuted ? 'border-indigo-400 shadow-md' : 'border-gray-300'}
+                ${isAnimating ? styles['animate-priority-update'] : ''}
               `}
               style={{
                 width: '36px',
@@ -82,6 +134,11 @@ export const PriorityGrid = memo<PriorityGridProps>(({
                 minHeight: '36px',
                 backgroundColor: hasExecuted ? colors.bg : '#f3f4f6',
                 color: hasExecuted ? colors.text : '#6b7280',
+                transform: isAnimating ? 'scale(1.15)' : 'scale(1)',
+                boxShadow: isAnimating 
+                  ? `0 0 15px ${colors.bg}80, 0 4px 10px rgba(0,0,0,0.2)` 
+                  : hasExecuted ? '0 2px 4px rgba(0,0,0,0.1)' : '0 1px 2px rgba(0,0,0,0.05)',
+                zIndex: isAnimating ? 10 : 1,
               }}
               title={`${config.label} - ${count}회 실행`}
             >
