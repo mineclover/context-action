@@ -37,14 +37,14 @@ The framework's core philosophy is to create **domain-specific hooks** through d
 export const {
   Provider: UserBusinessProvider,
   useStore: useUserBusinessStore,        // Domain-specific store hook
-  useRegistry: useUserBusinessRegistry,  // Domain-specific registry hook
+  useStores: useUserBusinessRegistry,  // Domain-specific registry hook
   useCreateStore: useCreateUserBusinessStore
 } = createDeclarativeStores<UserBusinessData>('UserBusiness', storeDefinitions);
 
 export const {
   Provider: UserBusinessActionProvider,
   useAction: useUserBusinessAction,      // Domain-specific action hook
-  useActionRegister: useUserBusinessActionRegister
+  useActionHandler: useUserBusinessActionRegister
 } = createActionContext<UserBusinessActions>({ name: 'UserBusinessAction' });
 ```
 
@@ -107,7 +107,7 @@ export interface UserBusinessActions {
 export const {
   Provider: UserBusinessStoreProvider,
   useStore: useUserBusinessStore,
-  useRegistry: useUserBusinessRegistry,
+  useStores: useUserBusinessRegistry,
   useCreateStore: useCreateUserBusinessStore
 } = createDeclarativeStores<UserBusinessData>('UserBusiness', {
   profile: {
@@ -130,7 +130,7 @@ export const {
 export const {
   Provider: UserBusinessActionProvider,
   useAction: useUserBusinessAction,
-  useActionRegister: useUserBusinessActionRegister,
+  useActionHandler: useUserBusinessActionRegister,
   useActionWithResult: useUserBusinessActionWithResult
 } = createActionContext<UserBusinessActions>({ 
   name: 'UserBusinessAction' 
@@ -286,9 +286,9 @@ const handler = async (payload, controller) => {
 
 ## 5. Action Handlers
 
-### Best Practice: useActionRegister Pattern
+### Best Practice: useActionHandler Pattern
 
-The recommended pattern for handler registration uses `useActionRegister` + `useEffect` for optimal performance and proper cleanup:
+The recommended pattern for handler registration uses `useActionHandler` + `useEffect` for optimal performance and proper cleanup:
 
 ```typescript
 import React, { useEffect, useCallback } from 'react';
@@ -525,7 +525,7 @@ function TodoItem({ todoId }: { todoId: string }) {
 
 ### Handler Registration
 
-1. **Always use `useActionRegister` + `useEffect` pattern**
+1. **Always use `useActionHandler` + `useEffect` pattern**
 2. **Return unregister function for cleanup**
 3. **Use `blocking: true` for sequential async handlers**
 4. **Consider explicit IDs for debugging and critical handlers**
@@ -692,7 +692,7 @@ export interface UserActions {
 export const {
   Provider: UserProvider,
   useStore: useUserStore,
-  useRegistry: useUserRegistry
+  useStores: useUserRegistry
 } = createDeclarativeStores<UserData>('User', {
   profile: { initialValue: { id: '', name: '', email: '', role: 'guest' } },
   preferences: { initialValue: { theme: 'light', language: 'en' } }
@@ -701,7 +701,7 @@ export const {
 export const {
   Provider: UserActionProvider,
   useAction: useUserAction,
-  useActionRegister: useUserActionRegister
+  useActionHandler: useUserActionRegister
 } = createActionContext<UserActions>({ name: 'UserAction' });
 ```
 
@@ -990,7 +990,7 @@ function OldComponent() {
 
 // ✅ New Pattern: Register with cleanup
 function NewComponent() {
-  const register = useActionRegister();
+  const register = useActionHandler();
   const dispatch = useAction();
   
   const handler = useCallback(() => {
@@ -1016,7 +1016,7 @@ function NewComponent() {
     - Add domain-specific hook exports
 2. **Phase 2: Update Handler Registration**
     
-    - Convert to useActionRegister pattern
+    - Convert to useActionHandler pattern
     - Add cleanup functions
     - Add explicit handler IDs
 3. **Phase 3: Implement Domain Isolation**
