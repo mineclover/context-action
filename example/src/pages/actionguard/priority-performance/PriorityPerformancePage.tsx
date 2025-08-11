@@ -4,7 +4,7 @@
  * Context → Data/Action → Hook → View 계층 구조를 따르는 우선순위 성능 테스트 페이지
  */
 
-import React from 'react';
+
 import { PriorityPerformanceProvider } from './context/PriorityPerformanceContext';
 import { PriorityPerformanceView } from './components/PriorityPerformanceView';
 

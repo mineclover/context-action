@@ -4,8 +4,7 @@
  * Hook을 통해 Data/Action과 연결되는 View 컴포넌트입니다.
  */
 
-import React from 'react';
-import { DemoCard, Button, Input, CodeBlock, CodeExample } from '../../../../components/ui';
+import { DemoCard, Button, Input, CodeBlock } from '../../../../components/ui';
 import { useDispatchOptionsTestLogic } from '../hooks/useDispatchOptionsTestLogic';
 import { DispatchOptionsTestStyles } from './DispatchOptionsTestStyles';
 
@@ -45,11 +44,16 @@ export function DispatchOptionsTestView() {
     <div className="space-y-6">
       <DispatchOptionsTestStyles />
       <header className="page-header">
-        <h1>🧪 Dispatch Options 종합 테스트</h1>
+        <h1>🧪 Dispatch Options Comprehensive Test</h1>
         <p className="page-description">
-          Context-Action 프레임워크의 다양한 dispatch 옵션들(throttle, debounce, priority 등)을 
-          종합적으로 테스트하고 성능을 측정할 수 있는 페이지입니다.
+          This comprehensive testing suite demonstrates all Context-Action framework dispatch options: 
+          <strong>debouncing (300ms)</strong>, <strong>throttling (1000ms, 100ms)</strong>, 
+          <strong>priority handling</strong>, and <strong>async operations</strong>. 
+          Use this page to understand performance characteristics and test different scenarios.
         </p>
+        <div className="mt-3 text-sm text-gray-600">
+          <strong>Features:</strong> Real-time metrics • Bulk testing • Auto-scrolling • Form validation • Error handling
+        </div>
       </header>
 
       {/* 성능 메트릭 대시보드 */}

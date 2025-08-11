@@ -4,7 +4,6 @@
  * Hook을 통해 Data/Action과 연결되는 View 컴포넌트입니다.
  */
 
-import React from 'react';
 import { DemoCard, Button, CodeBlock, CodeExample } from '../../../../components/ui';
 import { useMouseEventsLogic } from '../hooks/useMouseEventsLogic';
 
@@ -58,9 +57,16 @@ export function MouseEventsView() {
     <div className="space-y-6">
       {/* 메인 마우스 이벤트 UI */}
       <DemoCard>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Mouse Events with Throttling Demo
-        </h3>
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            🖱️ Mouse Events with Throttling Demo
+          </h3>
+          <p className="text-sm text-gray-600">
+            This demo tracks mouse movement with throttling at <strong>50ms intervals</strong> (20 events/second). 
+            It shows position tracking, movement patterns, and velocity calculations while maintaining 
+            smooth performance even during rapid mouse movements.
+          </p>
+        </div>
         
         <div className="space-y-4">
           {/* 마우스 인터랙션 영역 */}

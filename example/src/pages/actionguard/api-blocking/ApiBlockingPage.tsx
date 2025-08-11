@@ -4,7 +4,6 @@
  * Context → Data/Action → Hook → View 계층 구조를 따르는 API 블로킹 데모 페이지
  */
 
-import React from 'react';
 import { PageWithLogMonitor } from '../../../components/LogMonitor';
 import { ApiBlockingProvider } from './context/ApiBlockingContext';
 import { ApiBlockingView } from './components/ApiBlockingView';
@@ -18,19 +17,11 @@ export function ApiBlockingPage() {
   return (
     <PageWithLogMonitor
       pageId="action-guard-api-blocking"
-      title="API Call Blocking"
+      title="API Blocking Demo"
       initialConfig={{ enableToast: true, maxLogs: 50 }}
     >
       <ApiBlockingProvider>
         <div className="page-container">
-          <header className="page-header">
-            <h1>API Call Blocking</h1>
-            <p className="page-description">
-              Learn how to prevent duplicate API calls using blocking patterns 
-              to improve performance and user experience.
-            </p>
-          </header>
-          
           <ApiBlockingView />
         </div>
       </ApiBlockingProvider>

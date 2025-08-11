@@ -34,12 +34,15 @@ export function ThrottleComparisonView() {
     <div className="space-y-6">
       <ThrottleComparisonStyles />
       <header className="page-header">
-        <h1>🔄 Throttle 구현 방식 비교</h1>
+        <h1>📊 Throttle Implementation Comparison</h1>
         <p className="page-description">
-          수동으로 구현한 useThrottle 훅과 Context-Action 프레임워크의 내장
-          throttle 기능을 비교해보세요. 두 방식 모두 1초 간격으로 throttle이
-          적용됩니다.
+          Side-by-side comparison of manual <code>useThrottle</code> hook implementation 
+          versus Context-Action framework's built-in throttling feature. Both use 
+          <strong>1-second throttling intervals</strong> for direct performance comparison.
         </p>
+        <div className="mt-3 text-sm text-gray-600">
+          <strong>Test Features:</strong> Real-time metrics • Auto-test mode • Execution rate comparison • Performance analysis
+        </div>
       </header>
 
       {/* 비교 메트릭 */}
