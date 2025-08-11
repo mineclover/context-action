@@ -503,37 +503,52 @@ function useUserFeatures() {
 
 ### 23. Consistent File Structure
 
-```
-src/
-├── stores/
-│   ├── user/
-│   │   ├── userBusiness.store.ts
-│   │   ├── userUI.store.ts
-│   │   └── index.ts
-│   ├── cart/
-│   │   ├── cart.store.ts
-│   │   └── index.ts
-│   └── index.ts
-├── hooks/
-│   ├── handlers/
-│   │   ├── useUserHandlers.ts
-│   │   ├── useCartHandlers.ts
-│   │   └── index.ts
-│   ├── logic/
-│   │   ├── useUserLogic.ts
-│   │   ├── useCartLogic.ts
-│   │   └── index.ts
-│   └── integration/
-│       ├── useUserCartIntegration.ts
-│       └── index.ts
-├── components/
-│   ├── user/
-│   ├── cart/
-│   └── shared/
-└── providers/
-    ├── UserProvider.tsx
-    ├── CartProvider.tsx
-    └── AppProvider.tsx
+```mermaid
+graph TD
+    A[src/] --> B[stores/]
+    A --> C[hooks/]
+    A --> D[components/]
+    A --> E[providers/]
+    
+    B --> B1[user/]
+    B --> B2[cart/]
+    B --> B3[index.ts]
+    
+    B1 --> B1a[userBusiness.store.ts]
+    B1 --> B1b[userUI.store.ts]
+    B1 --> B1c[index.ts]
+    
+    B2 --> B2a[cart.store.ts]
+    B2 --> B2b[index.ts]
+    
+    C --> C1[handlers/]
+    C --> C2[logic/]
+    C --> C3[integration/]
+    
+    C1 --> C1a[useUserHandlers.ts]
+    C1 --> C1b[useCartHandlers.ts]
+    C1 --> C1c[index.ts]
+    
+    C2 --> C2a[useUserLogic.ts]
+    C2 --> C2b[useCartLogic.ts]
+    C2 --> C2c[index.ts]
+    
+    C3 --> C3a[useUserCartIntegration.ts]
+    C3 --> C3b[index.ts]
+    
+    D --> D1[user/]
+    D --> D2[cart/]
+    D --> D3[shared/]
+    
+    E --> E1[UserProvider.tsx]
+    E --> E2[CartProvider.tsx]
+    E --> E3[AppProvider.tsx]
+    
+    style A fill:#e3f2fd
+    style B fill:#fff8e1
+    style C fill:#e8f5e8
+    style D fill:#fce4ec
+    style E fill:#f3e5f5
 ```
 
 ### 24. Use Barrel Exports

@@ -1,4 +1,4 @@
-// Guide 사이드바 구조 정의
+// Guide 사이드바 구조 정의 - full.md 기반 최신 가이드 구조
 
 // 로케일별 경로 생성 유틸리티
 function createLocalePath(locale: string, path: string): string {
@@ -17,88 +17,96 @@ type SidebarSection = {
   items: SidebarItem[]
 }
 
-// Guide 구조 - 영어
+// Guide 구조 - 영어 (full.md 기반)
 export const GUIDE_STRUCTURE_EN = {
-  introduction: {
-    text: 'Introduction',
+  gettingStarted: {
+    text: 'Getting Started',
     items: [
-      { text: 'What is Context Action?', path: '/guide/getting-started' },
-      { text: 'Action Pipeline', path: '/guide/action-pipeline' }
+      { text: 'Overview', path: '/guide/overview' },
+      { text: 'Core Concepts', path: '/guide/concepts' },
+      { text: 'Philosophy', path: '/guide/philosophy' },
+      { text: 'Quick Start', path: '/guide/quick-start' }
     ]
   },
-  configuration: {
-    text: 'Configuration',
+  setupAndUsage: {
+    text: 'Setup & Usage',
     items: [
-      { text: 'Handler Configuration', path: '/guide/handler-configuration' },
-      { text: 'Advanced Usage', path: '/guide/advanced' }
+      { text: 'Setup & Usage', path: '/guide/setup-usage' },
+      { text: 'Domain Hooks Pattern', path: '/guide/domain-hooks-pattern' },
+      { text: 'Provider Composition', path: '/guide/provider-composition' }
     ]
   },
-  typeSafety: {
-    text: 'Type Safety',
+  implementation: {
+    text: 'Implementation',
     items: [
-      { text: 'Type Safety Guide', path: '/guide/type-safety' }
+      { text: 'Store Management', path: '/guide/store-management' },
+      { text: 'Action Handlers', path: '/guide/action-handlers' },
+      { text: 'React Integration', path: '/guide/react-integration' },
+      { text: 'Handler ID Strategies', path: '/guide/handler-id-strategies' }
     ]
   },
-  apiSpec: {
-    text: 'API Specification',
+  advancedPatterns: {
+    text: 'Advanced Patterns',
     items: [
-      { text: 'Overview', path: '/guide/api-spec/' },
-      { text: 'Design Principles', path: '/guide/api-spec/design-principles' },
-      { text: 'Architecture', path: '/guide/api-spec/architecture' },
-      { text: 'Type System', path: '/guide/api-spec/type-system' },
-      { text: 'Generic Constraints', path: '/guide/api-spec/generic-constraints' },
-      { text: 'Type Inference', path: '/guide/api-spec/type-inference' },
-      { text: 'Utility Types', path: '/guide/api-spec/utility-types' },
-      { text: 'Action Interface', path: '/guide/api-spec/core/action-interface' },
-      { text: 'Register Interface', path: '/guide/api-spec/core/register-interface' },
-      { text: 'Handler Specification', path: '/guide/api-spec/core/handler-specification' },
-      { text: 'Lifecycle Hooks', path: '/guide/api-spec/core/lifecycle-hooks' },
-      { text: 'React Integration', path: '/guide/api-spec/react/integration-spec' },
-      { text: 'Jotai Integration', path: '/guide/api-spec/jotai/integration-spec' },
-      { text: 'Plugin System', path: '/guide/api-spec/plugin-system' }
+      { text: 'Cross-Domain Integration', path: '/guide/cross-domain-integration' },
+      { text: 'Logic Fit Hooks', path: '/guide/logic-fit-hooks' },
+      { text: 'MVVM Architecture', path: '/guide/mvvm-architecture' }
+    ]
+  },
+  bestPractices: {
+    text: 'Best Practices',
+    items: [
+      { text: 'Best Practices', path: '/guide/best-practices' },
+      { text: 'Common Pitfalls', path: '/guide/common-pitfalls' },
+      { text: 'Performance', path: '/guide/performance' },
+      { text: 'Error Handling', path: '/guide/error-handling' }
     ]
   }
 }
 
-// Guide 구조 - 한국어
+// Guide 구조 - 한국어 (full.md 기반)
 export const GUIDE_STRUCTURE_KO = {
-  introduction: {
-    text: '소개',
+  gettingStarted: {
+    text: '시작하기',
     items: [
-      { text: 'Context Action이란?', path: '/guide/getting-started' },
-      { text: 'Action Pipeline', path: '/guide/action-pipeline' }
+      { text: '개요', path: '/guide/overview' },
+      { text: '핵심 개념', path: '/guide/concepts' },
+      { text: '철학', path: '/guide/philosophy' },
+      { text: '빠른 시작', path: '/guide/quick-start' }
     ]
   },
-  configuration: {
-    text: '설정',
+  setupAndUsage: {
+    text: '설정 및 사용법',
     items: [
-      { text: 'Handler 설정', path: '/guide/handler-configuration' },
-      { text: '고급 사용법', path: '/guide/advanced' }
+      { text: '설정 및 사용법', path: '/guide/setup-usage' },
+      { text: '도메인 Hook 패턴', path: '/guide/domain-hooks-pattern' },
+      { text: 'Provider 구성', path: '/guide/provider-composition' }
     ]
   },
-  typeSafety: {
-    text: '타입 안전성',
+  implementation: {
+    text: '구현',
     items: [
-      { text: '타입 안전성 가이드', path: '/guide/type-safety' }
+      { text: '스토어 관리', path: '/guide/store-management' },
+      { text: '액션 핸들러', path: '/guide/action-handlers' },
+      { text: 'React 통합', path: '/guide/react-integration' },
+      { text: '핸들러 ID 전략', path: '/guide/handler-id-strategies' }
     ]
   },
-  apiSpec: {
-    text: 'API 명세',
+  advancedPatterns: {
+    text: '고급 패턴',
     items: [
-      { text: '개요', path: '/guide/api-spec/' },
-      { text: '설계 원칙', path: '/guide/api-spec/design-principles' },
-      { text: '아키텍처', path: '/guide/api-spec/architecture' },
-      { text: '타입 시스템', path: '/guide/api-spec/type-system' },
-      { text: '제네릭 제약', path: '/guide/api-spec/generic-constraints' },
-      { text: '타입 추론', path: '/guide/api-spec/type-inference' },
-      { text: '유틸리티 타입', path: '/guide/api-spec/utility-types' },
-      { text: 'Action 인터페이스', path: '/guide/api-spec/core/action-interface' },
-      { text: 'Register 인터페이스', path: '/guide/api-spec/core/register-interface' },
-      { text: 'Handler 명세', path: '/guide/api-spec/core/handler-specification' },
-      { text: '라이프사이클 훅', path: '/guide/api-spec/core/lifecycle-hooks' },
-      { text: 'React 통합', path: '/guide/api-spec/react/integration-spec' },
-      { text: 'Jotai 통합', path: '/guide/api-spec/jotai/integration-spec' },
-      { text: '플러그인 시스템', path: '/guide/api-spec/plugin-system' }
+      { text: '크로스 도메인 통합', path: '/guide/cross-domain-integration' },
+      { text: 'Logic Fit Hook', path: '/guide/logic-fit-hooks' },
+      { text: 'MVVM 아키텍처', path: '/guide/mvvm-architecture' }
+    ]
+  },
+  bestPractices: {
+    text: '모범 사례',
+    items: [
+      { text: '모범 사례', path: '/guide/best-practices' },
+      { text: '일반적인 함정', path: '/guide/common-pitfalls' },
+      { text: '성능 최적화', path: '/guide/performance' },
+      { text: '에러 처리', path: '/guide/error-handling' }
     ]
   }
 }
@@ -118,21 +126,23 @@ function createSidebarSection(locale: string, section: any): SidebarSection {
   }
 }
 
-// 가이드 사이드바 생성
+// 가이드 사이드바 생성 - full.md 기반 최신 구조
 export function sidebarGuideEn() {
   return [
-    createSidebarSection('en', GUIDE_STRUCTURE_EN.introduction),
-    createSidebarSection('en', GUIDE_STRUCTURE_EN.configuration),
-    createSidebarSection('en', GUIDE_STRUCTURE_EN.typeSafety),
-    createSidebarSection('en', GUIDE_STRUCTURE_EN.apiSpec)
+    createSidebarSection('en', GUIDE_STRUCTURE_EN.gettingStarted),
+    createSidebarSection('en', GUIDE_STRUCTURE_EN.setupAndUsage),
+    createSidebarSection('en', GUIDE_STRUCTURE_EN.implementation),
+    createSidebarSection('en', GUIDE_STRUCTURE_EN.advancedPatterns),
+    createSidebarSection('en', GUIDE_STRUCTURE_EN.bestPractices)
   ]
 }
 
 export function sidebarGuideKo() {
   return [
-    createSidebarSection('ko', GUIDE_STRUCTURE_KO.introduction),
-    createSidebarSection('ko', GUIDE_STRUCTURE_KO.configuration),
-    createSidebarSection('ko', GUIDE_STRUCTURE_KO.typeSafety),
-    createSidebarSection('ko', GUIDE_STRUCTURE_KO.apiSpec)
+    createSidebarSection('ko', GUIDE_STRUCTURE_KO.gettingStarted),
+    createSidebarSection('ko', GUIDE_STRUCTURE_KO.setupAndUsage),
+    createSidebarSection('ko', GUIDE_STRUCTURE_KO.implementation),
+    createSidebarSection('ko', GUIDE_STRUCTURE_KO.advancedPatterns),
+    createSidebarSection('ko', GUIDE_STRUCTURE_KO.bestPractices)
   ]
 }
