@@ -37,14 +37,14 @@ The framework's core philosophy is to create **domain-specific hooks** through d
 export const {
   Provider: UserBusinessProvider,
   useStore: useUserBusinessStore,        // Domain-specific store hook
-  useStores: useUserBusinessRegistry,  // Domain-specific registry hook
+  useStores: useUserBusinessStores,    // Domain-specific store registry hook
   useCreateStore: useCreateUserBusinessStore
 } = createDeclarativeStores<UserBusinessData>('UserBusiness', storeDefinitions);
 
 export const {
   Provider: UserBusinessActionProvider,
   useAction: useUserBusinessAction,      // Domain-specific action hook
-  useActionHandler: useUserBusinessActionRegister
+  useActionHandler: useUserBusinessActionHandler
 } = createActionContext<UserBusinessActions>({ name: 'UserBusinessAction' });
 ```
 
@@ -65,7 +65,7 @@ Three valid patterns for accessing stores, each with specific use cases:
 const store = useUserBusinessStore('profile');
 
 // Pattern 2: Registry access for lazy evaluation (Handlers)
-const store = registry.getStore('profile');
+const store = stores.getStore('profile');
 
 // Pattern 3: Context Store Pattern
 const store = useUserStore('profile');
@@ -130,7 +130,7 @@ export const {
 export const {
   Provider: UserBusinessActionProvider,
   useAction: useUserBusinessAction,
-  useActionHandler: useUserBusinessActionRegister,
+  useActionHandler: useUserBusinessActionHandler,
   useActionWithResult: useUserBusinessActionWithResult
 } = createActionContext<UserBusinessActions>({ 
   name: 'UserBusinessAction' 
@@ -271,7 +271,7 @@ function ComponentB() {
 
 #### Lazy Evaluation in Handlers
 
-Use registry.getStore() for lazy evaluation to avoid stale closures:
+Use stores.getStore() for lazy evaluation to avoid stale closures:
 
 ```typescript
 const handler = async (payload, controller) => {
@@ -292,16 +292,16 @@ The recommended pattern for handler registration uses `useActionHandler` + `useE
 
 ```typescript
 import React, { useEffect, useCallback } from 'react';
-import { useUserBusinessActionRegister, useUserBusinessRegistry } from '@/stores/userBusiness.store';
+import { useUserBusinessActionHandler, useUserBusinessStores } from '@/stores/userBusiness.store';
 
 function useUserBusinessHandlers() {
-  const register = useUserBusinessActionRegister();
-  const registry = useUserBusinessRegistry();
+  const addHandler = useUserBusinessActionHandler();
+  const stores = useUserBusinessStores();
   
   // Wrap handler with useCallback to prevent re-registration
   const updateProfileHandler = useCallback(async (payload, controller) => {
     // Lazy evaluation using registry for current state
-    const profileStore = registry.getStore('profile');
+    const profileStore = stores.getStore('profile');
     const currentProfile = profileStore.getValue();
     
     // Validation
@@ -326,10 +326,10 @@ function useUserBusinessHandlers() {
   
   // Register handler with cleanup
   useEffect(() => {
-    if (!register) return;
+    if (!addHandler) return;
     
     // Register returns unregister function
-    const unregister = register('updateProfile', updateProfileHandler, {
+    const unaddHandler = addHandler('updateProfile', updateProfileHandler, {
       priority: 100,      // Higher priority executes first
       blocking: true,     // Wait for async completion in sequential mode
       tags: ['business'], // For filtering
@@ -501,17 +501,17 @@ When multiple instances of the same component exist:
 ```typescript
 function TodoItem({ todoId }: { todoId: string }) {
   const componentId = useId(); // React's unique ID
-  const register = useTodoActionRegister();
+  const addHandler = useTodoActionHandler();
   
   const handler = useCallback(async (payload) => {
     // Handler logic specific to this instance
   }, [todoId]);
   
   useEffect(() => {
-    if (!register) return;
+    if (!addHandler) return;
     
     // Unique ID per component instance
-    const unregister = register('updateTodo', handler, {
+    const unaddHandler = addHandler('updateTodo', handler, {
       id: `updateTodo-${componentId}`,
       cleanup: true
     });
@@ -534,7 +534,7 @@ function TodoItem({ todoId }: { todoId: string }) {
 ### Store Access
 
 6. **Use domain-specific hooks in components**
-7. **Use `registry.getStore()` for lazy evaluation in handlers**
+7. **Use `stores.getStore()` for lazy evaluation in handlers**
 8. **Provide proper initial values, not null**
 9. **Keep store updates predictable and traceable**
 
@@ -570,8 +570,8 @@ useEffect(() => {
 
 // ✅ Correct - With cleanup
 useEffect(() => {
-  if (!register) return;
-  const unregister = register('action', handler);
+  if (!addHandler) return;
+  const unaddHandler = addHandler('action', handler);
   return unregister; // Memory cleanup on unmount
 }, [register, handler]);
 ```
@@ -600,7 +600,7 @@ const handler = async () => {
 
 // ✅ Correct - Lazy evaluation
 const handler = async () => {
-  const profileStore = registry.getStore('profile');
+  const profileStore = stores.getStore('profile');
   const profile = profileStore.getValue(); // Current value
 };
 ```
@@ -692,7 +692,7 @@ export interface UserActions {
 export const {
   Provider: UserProvider,
   useStore: useUserStore,
-  useStores: useUserRegistry
+  useStores: useUserStores
 } = createDeclarativeStores<UserData>('User', {
   profile: { initialValue: { id: '', name: '', email: '', role: 'guest' } },
   preferences: { initialValue: { theme: 'light', language: 'en' } }
@@ -701,19 +701,19 @@ export const {
 export const {
   Provider: UserActionProvider,
   useAction: useUserAction,
-  useActionHandler: useUserActionRegister
+  useActionHandler: useUserActionHandler
 } = createActionContext<UserActions>({ name: 'UserAction' });
 ```
 
 ```typescript
 // 2. Define Actions & Handlers (hooks/useUserHandlers.ts)
 export function useUserHandlers() {
-  const register = useUserActionRegister();
-  const registry = useUserRegistry();
+  const addHandler = useUserActionHandler();
+  const stores = useUserStores();
   
   // Login handler example
   const loginHandler = useCallback(async (payload, controller) => {
-    const profileStore = registry.getStore('profile');
+    const profileStore = stores.getStore('profile');
     
     try {
       // Validation
@@ -742,7 +742,7 @@ export function useUserHandlers() {
   
   // Register handlers with cleanup
   useEffect(() => {
-    if (!register) return;
+    if (!addHandler) return;
     
     const unregisterLogin = register('login', loginHandler, {
       priority: 100,
@@ -998,8 +998,8 @@ function NewComponent() {
   }, []);
   
   useEffect(() => {
-    if (!register) return;
-    const unregister = register('action', handler, {
+    if (!addHandler) return;
+    const unaddHandler = addHandler('action', handler, {
       id: 'unique-handler-id',
       blocking: true
     });
@@ -1056,7 +1056,7 @@ const handler = () => console.log(value); // Stale
 
 // Solution: Use lazy evaluation
 const handler = () => {
-  const store = registry.getStore('name');
+  const store = stores.getStore('name');
   const value = store.getValue(); // Current
 };
 ```
@@ -1071,8 +1071,8 @@ useEffect(() => {
 
 // Solution: Return unregister
 useEffect(() => {
-  if (!register) return;
-  const unregister = register('action', handler);
+  if (!addHandler) return;
+  const unaddHandler = addHandler('action', handler);
   return unregister; // Cleanup on unmount
 }, [register, handler]);
 ```
