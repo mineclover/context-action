@@ -32,10 +32,7 @@ export {
 } from './immutable';
 
 // === STORE SELECTORS ===
-// Advanced store selection and subscription
-export { 
-  useStoreSelector
-} from './store-selector';
+// Store selector utilities - useStoreSelector moved to hooks for consistency
 
 // === GENERAL UTILITIES ===
 // Common store helper functions (createStore removed - use core/Store.createStore instead)
