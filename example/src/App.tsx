@@ -12,6 +12,9 @@ import Layout from './components/Layout';
 import { ToastContainer, ToastControlPanel } from './components/ToastSystem';
 import ActionGuardIndexPage from './pages/actionguard/ActionGuardIndexPage';
 import SearchPage from './pages/actionguard/search/SearchPage';
+import ScrollPage from './pages/actionguard/scroll/ScrollPage';
+import ApiBlockingPage from './pages/actionguard/api-blocking/ApiBlockingPage';
+import MouseEventsPage from './pages/actionguard/mouse-events/MouseEventsPage';
 import ActionGuardTestPage from './pages/actionguard/ActionGuardTestPage';
 import PriorityPerformancePage from './pages/actionguard/PriorityPerformancePage';
 import ThrottleComparisonPage from './pages/actionguard/ThrottleComparisonPage';
@@ -73,6 +76,9 @@ function AppContent() {
           <Route path="/logger/demo" element={<LoggerDemoPage />} />
           <Route path="/actionguard" element={<ActionGuardIndexPage />} />
           <Route path="/actionguard/search" element={<SearchPage />} />
+          <Route path="/actionguard/scroll" element={<ScrollPage />} />
+          <Route path="/actionguard/api-blocking" element={<ApiBlockingPage />} />
+          <Route path="/actionguard/mouse-events" element={<MouseEventsPage />} />
           <Route path="/actionguard/test" element={<ActionGuardTestPage />} />
           <Route
             path="/actionguard/priority-performance"
