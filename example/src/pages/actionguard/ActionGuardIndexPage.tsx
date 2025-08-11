@@ -6,7 +6,6 @@
  */
 
 import { Link } from 'react-router-dom';
-import { PageWithLogMonitor } from '../../components/LogMonitor';
 import { DemoCard } from '../../components/ui';
 
 const demos = [
@@ -70,20 +69,15 @@ const demos = [
 
 export function ActionGuardIndexPage() {
   return (
-    <PageWithLogMonitor
-      pageId="action-guard-index"
-      title="Action Guard System"
-      initialConfig={{ enableToast: true, maxLogs: 50 }}
-    >
-      <div className="page-container">
-        <header className="page-header">
-          <h1>Action Guard System</h1>
-          <p className="page-description">
-            Learn how to implement debouncing, throttling, and action blocking
-            patterns to optimize user experience and prevent excessive action
-            execution.
-          </p>
-        </header>
+    <div className="page-container">
+      <header className="page-header">
+        <h1>🛡️ Action Guard System</h1>
+        <p className="page-description">
+          Learn how to implement debouncing, throttling, and action blocking
+          patterns to optimize user experience and prevent excessive action
+          execution.
+        </p>
+      </header>
 
         <div className="space-y-6">
           {/* 데모 링크 그리드 */}
@@ -193,9 +187,8 @@ export function ActionGuardIndexPage() {
               </ul>
             </div>
           </DemoCard>
-        </div>
       </div>
-    </PageWithLogMonitor>
+    </div>
   );
 }
 

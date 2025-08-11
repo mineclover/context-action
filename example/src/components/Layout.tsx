@@ -81,8 +81,9 @@ function Layout({
     },
     {
       path: '/actionguard',
-      label: 'Action Guard',
+      label: '🛡️ Action Guard System',
       category: 'actionguard' as const,
+      isIndex: true,
     },
     {
       path: '/actionguard/search',
@@ -179,7 +180,9 @@ function Layout({
                   navItemVariants({
                     variant: isActive(item.path) ? 'active' : 'default',
                     category: item.category,
-                  })
+                  }),
+                  // @ts-ignore - isIndex is not in the original type but we added it
+                  item.isIndex && 'font-semibold border-l-2 border-indigo-500 bg-indigo-50 text-indigo-700'
                 )}
                 title={collapsed ? item.label : undefined}
               >
@@ -188,7 +191,18 @@ function Layout({
                     {item.label.charAt(0)}
                   </span>
                 ) : (
-                  item.label
+                  <span className={cn(
+                    // @ts-ignore - isIndex is not in the original type but we added it
+                    item.isIndex && 'flex items-center gap-1'
+                  )}>
+                    {item.label}
+                    {/* @ts-ignore - isIndex is not in the original type but we added it */}
+                    {item.isIndex && (
+                      <span className="text-xs bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-medium">
+                        Index
+                      </span>
+                    )}
+                  </span>
                 )}
               </Link>
             ))}
