@@ -90,6 +90,21 @@ function Layout({
       category: 'actionguard' as const,
     },
     {
+      path: '/actionguard/scroll',
+      label: '📜 Scroll Demo',
+      category: 'actionguard' as const,
+    },
+    {
+      path: '/actionguard/api-blocking',
+      label: '🚫 API Blocking Demo',
+      category: 'actionguard' as const,
+    },
+    {
+      path: '/actionguard/mouse-events',
+      label: '🖱️ Mouse Events Demo',
+      category: 'actionguard' as const,
+    },
+    {
       path: '/actionguard/test',
       label: '🧪 Dispatch Options Test',
       category: 'actionguard' as const,
