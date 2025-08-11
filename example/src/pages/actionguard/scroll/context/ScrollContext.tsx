@@ -119,8 +119,12 @@ export const ScrollStoreProvider: React.FC<{ children: React.ReactNode; registry
 
 // Hooks export
 export const useScrollActionDispatch = ScrollActionContext.useActionDispatch;
-export const useScrollActionRegister = ScrollActionContext.useActionRegister;
+export const useScrollActionHandler = ScrollActionContext.useActionHandler;
 export const useScrollStore = ScrollStoreContext.useStore;
+export const useScrollStores = ScrollStoreContext.useStores;
+
+// Legacy exports (deprecated)
+export const useScrollActionRegister = ScrollActionContext.useActionRegister;
 export const useScrollRegistry = ScrollStoreContext.useRegistry;
 
 /**

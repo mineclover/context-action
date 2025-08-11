@@ -102,8 +102,12 @@ export const SearchStoreProvider: React.FC<{ children: React.ReactNode; registry
 
 // Hooks export
 export const useSearchActionDispatch = SearchActionContext.useActionDispatch;
-export const useSearchActionRegister = SearchActionContext.useActionRegister;
+export const useSearchActionHandler = SearchActionContext.useActionHandler;
 export const useSearchStore = SearchStoreContext.useStore;
+export const useSearchStores = SearchStoreContext.useStores;
+
+// Legacy exports (deprecated)
+export const useSearchActionRegister = SearchActionContext.useActionRegister;
 export const useSearchRegistry = SearchStoreContext.useRegistry;
 
 /**

@@ -158,8 +158,12 @@ export const MouseEventsStoreProvider: React.FC<{ children: React.ReactNode; reg
 
 // Hooks export
 export const useMouseEventsActionDispatch = MouseEventsActionContext.useActionDispatch;
-export const useMouseEventsActionRegister = MouseEventsActionContext.useActionRegister;
+export const useMouseEventsActionHandler = MouseEventsActionContext.useActionHandler;
 export const useMouseEventsStore = MouseEventsStoreContext.useStore;
+export const useMouseEventsStores = MouseEventsStoreContext.useStores;
+
+// Legacy exports (deprecated)
+export const useMouseEventsActionRegister = MouseEventsActionContext.useActionRegister;
 export const useMouseEventsRegistry = MouseEventsStoreContext.useRegistry;
 
 /**
