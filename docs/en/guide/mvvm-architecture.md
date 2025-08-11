@@ -188,8 +188,15 @@ export function UserProfile() {
 
 ### Unidirectional Data Flow
 
-```
-[View] → dispatch → [ViewModel] → update → [Model] → subscribe → [View]
+```mermaid
+graph LR
+    A[View] -->|dispatch| B[ViewModel]
+    B -->|update| C[Model]
+    C -->|subscribe| A
+    
+    style A fill:#e3f2fd
+    style B fill:#fff8e1
+    style C fill:#e8f5e8
 ```
 
 1. **View** dispatches actions (user interactions)

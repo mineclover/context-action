@@ -4,8 +4,15 @@ The Context-Action framework implements a clean separation of concerns through a
 
 ## Architecture Overview
 
-```
-[Component] → dispatch → [Action Pipeline] → handlers → [Store] → subscribe → [Component]
+```mermaid
+graph LR
+    A[Component] -->|dispatch| B[Action Pipeline]
+    B -->|handlers| C[Store]
+    C -->|subscribe| A
+    
+    style A fill:#e3f2fd
+    style B fill:#fff8e1
+    style C fill:#e8f5e8
 ```
 
 ## Key Benefits

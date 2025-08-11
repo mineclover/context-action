@@ -6,26 +6,27 @@ Understanding the fundamental concepts of the Context-Action framework is essent
 
 The Context-Action framework implements a clean separation of concerns through three main layers:
 
-```
-┌─────────────────────────────────────────────┐
-│                VIEW LAYER                   │
-│            React Components                 │
-│          (UI Presentation)                  │
-└─────────────────┬───────────────────────────┘
-                  │ dispatch actions
-                  ▼
-┌─────────────────────────────────────────────┐
-│              VIEWMODEL LAYER                │
-│             Action Handlers                 │
-│           (Business Logic)                  │
-└─────────────────┬───────────────────────────┘
-                  │ update stores
-                  ▼
-┌─────────────────────────────────────────────┐
-│               MODEL LAYER                   │
-│              Store System                   │
-│            (State Management)               │
-└─────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph "VIEW LAYER"
+        A[React Components<br/>UI Presentation]
+    end
+    
+    subgraph "VIEWMODEL LAYER"  
+        B[Action Handlers<br/>Business Logic]
+    end
+    
+    subgraph "MODEL LAYER"
+        C[Store System<br/>State Management]
+    end
+    
+    A -->|dispatch actions| B
+    B -->|update stores| C
+    C -->|subscribe/re-render| A
+    
+    style A fill:#e3f2fd
+    style B fill:#fff8e1
+    style C fill:#e8f5e8
 ```
 
 ## Core Components
