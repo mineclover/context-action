@@ -312,7 +312,7 @@ export function useActionLoggerWithToast(): StableLoggerAPI {
           },
         };
       }
-      
+
       console.log('🍞 Toast system not available');
       return undefined;
     } catch (error) {

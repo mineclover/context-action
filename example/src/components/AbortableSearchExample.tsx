@@ -111,8 +111,7 @@ export function AbortableSearchExample() {
   const _debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const _activeSearches = useRef<Set<string>>(new Set());
 
-  const { dispatchWithResult, resetAbortScope } =
-    useActionDispatchWithResult();
+  const { dispatchWithResult, resetAbortScope } = useActionDispatchWithResult();
   const register = useActionRegister();
 
   // Register search handler
