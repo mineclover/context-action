@@ -94,8 +94,12 @@ export const PriorityPerformanceStoreProvider: React.FC<{ children: React.ReactN
 
 // Hooks export
 export const usePriorityPerformanceActionDispatch = PriorityPerformanceActionContext.useActionDispatch;
-export const usePriorityPerformanceActionRegister = PriorityPerformanceActionContext.useActionRegister;
+export const usePriorityPerformanceActionHandler = PriorityPerformanceActionContext.useActionHandler;
 export const usePriorityPerformanceStore = PriorityPerformanceStoreContext.useStore;
+export const usePriorityPerformanceStores = PriorityPerformanceStoreContext.useStores;
+
+// Legacy exports (deprecated)
+export const usePriorityPerformanceActionRegister = PriorityPerformanceActionContext.useActionRegister;
 export const usePriorityPerformanceRegistry = PriorityPerformanceStoreContext.useRegistry;
 
 /**

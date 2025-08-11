@@ -295,19 +295,36 @@ export function createDeclarativeStorePattern<T extends {}>(
   }
 
   /**
-   * Registry 접근 Hook
+   * Store Registry 접근 Hook
    */
-  function useRegistry(): DeclarativeStoreRegistry<T> {
+  function useStores(): DeclarativeStoreRegistry<T> {
     const registry = useContext(RegistryContext);
     
     if (!registry) {
       throw new Error(
-        `useRegistry must be used within ${contextName} Provider. ` +
+        `useStores must be used within ${contextName} Provider. ` +
         `Make sure your component is wrapped with <${contextName}.Provider>.`
       );
     }
     
     return registry;
+  }
+
+  /**
+   * Registry 접근 Hook
+   * 
+   * @deprecated Use useStores instead. This method will be removed in v2.0.0
+   */
+  function useRegistry(): DeclarativeStoreRegistry<T> {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(
+        `⚠️ ${contextName}.useRegistry is deprecated. Use ${contextName}.useStores instead. ` +
+        'This method will be removed in v2.0.0. ' +
+        'Migration: useRegistry() → useStores()'
+      );
+    }
+    
+    return useStores();
   }
 
   /**
@@ -319,7 +336,7 @@ export function createDeclarativeStorePattern<T extends {}>(
    * @returns 타입 안전한 Store 인스턴스
    */
   function useStore<K extends keyof T>(storeName: K): ReturnType<typeof createStore<T[K]>> {
-    const registry = useRegistry();
+    const registry = useStores();
     
     return useMemo(() => {
       return registry.getStore(storeName);
@@ -330,7 +347,7 @@ export function createDeclarativeStorePattern<T extends {}>(
    * Registry 상태 조회 Hook (디버깅/모니터링용)
    */
   function useRegistryInfo() {
-    const registry = useRegistry();
+    const registry = useStores();
     
     return useMemo(() => {
       return registry.getRegistryInfo();
@@ -341,7 +358,7 @@ export function createDeclarativeStorePattern<T extends {}>(
    * Registry 관리 Hook
    */
   function useRegistryActions() {
-    const registry = useRegistry();
+    const registry = useStores();
     
     return useMemo(() => ({
       initializeAll: () => registry.initializeAll(),
@@ -402,7 +419,10 @@ export function createDeclarativeStorePattern<T extends {}>(
     // Provider 컴포넌트
     Provider,
     
-    // Registry 접근
+    // Store Registry 접근
+    useStores,
+    
+    // Legacy Registry 접근 (deprecated)
     useRegistry,
     
     // 타입 안전한 Store 접근

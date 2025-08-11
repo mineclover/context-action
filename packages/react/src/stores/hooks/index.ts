@@ -28,7 +28,8 @@ export { useStoreActions } from './useStoreActions';
 
 // === REGISTRY HOOKS ===
 // For dynamic store management
-export { useRegistry } from './useRegistry';
+export { useStores } from './useStores';                    // New preferred naming
+export { useRegistry } from './useRegistry';               // Deprecated - use useStores
 export { useRegistryStore } from './useRegistryStore';
 
 // === SPECIALIZED HOOKS ===

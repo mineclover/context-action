@@ -88,21 +88,40 @@ export function createContextStorePattern(contextName: string) {
   }
   
   /**
-   * Registry 접근 Hook
+   * Store Registry 접근 Hook
    * 
-   * 현재 Provider의 Registry에 접근합니다.
+   * 현재 Provider의 Store Registry에 접근합니다.
    */
-  function useRegistry(): StoreRegistry {
+  function useStores(): StoreRegistry {
     const registry = useContext(RegistryContext);
     
     if (!registry) {
       throw new Error(
-        `useRegistry must be used within ${contextName} Provider. ` +
+        `useStores must be used within ${contextName} Provider. ` +
         `Make sure your component is wrapped with <${contextName}.Provider>.`
       );
     }
     
     return registry;
+  }
+
+  /**
+   * Registry 접근 Hook
+   * 
+   * @deprecated Use useStores instead. This method will be removed in v2.0.0
+   * 
+   * 현재 Provider의 Registry에 접근합니다.
+   */
+  function useRegistry(): StoreRegistry {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(
+        `⚠️ ${contextName}.useRegistry is deprecated. Use ${contextName}.useStores instead. ` +
+        'This method will be removed in v2.0.0. ' +
+        'Migration: useRegistry() → useStores()'
+      );
+    }
+    
+    return useStores();
   }
   
   /**
@@ -126,7 +145,7 @@ export function createContextStorePattern(contextName: string) {
       comparisonOptions?: Partial<ComparisonOptions<T>>;
     } = {}
   ): ReturnType<typeof createStore<T>> {
-    const registry = useRegistry();
+    const registry = useStores();
     const { strategy = 'reference', debug = process.env.NODE_ENV === 'development', comparisonOptions } = options;
     
     return useMemo(() => {
@@ -167,7 +186,7 @@ export function createContextStorePattern(contextName: string) {
       comparisonOptions?: Partial<ComparisonOptions<T>>;
     } = {}
   ): ReturnType<typeof createStore<T>> {
-    const registry = useRegistry();
+    const registry = useStores();
     const componentId = useId();
     const storeName = generateStoreName(domain, componentId);
     
@@ -196,7 +215,7 @@ export function createContextStorePattern(contextName: string) {
    * 현재 Provider의 Registry 상태를 조회합니다.
    */
   function useRegistryInfo() {
-    const registry = useRegistry();
+    const registry = useStores();
     
     return useMemo(() => ({
       name: registry.name,
@@ -213,7 +232,7 @@ export function createContextStorePattern(contextName: string) {
    * 주로 테스트나 특수한 경우에 사용합니다.
    */
   function useClearRegistry() {
-    const registry = useRegistry();
+    const registry = useStores();
     
     return useMemo(() => ({
       clearAll: () => {
@@ -355,7 +374,10 @@ export function createContextStorePattern(contextName: string) {
     // Provider 컴포넌트
     Provider,
     
-    // Registry 접근
+    // Store Registry 접근
+    useStores,
+    
+    // Legacy Registry 접근 (deprecated)
     useRegistry,
     
     // Store 생성/접근 Hooks

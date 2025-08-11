@@ -34,6 +34,14 @@ export interface ActionContextReturn<T extends {}> {
     handler: ActionHandler<T[K]>,
     config?: HandlerConfig
   ) => void;
+  /**
+   * @deprecated Use useActionHandler instead. This hook will be removed in v2.0.0
+   * @example 
+   * // Old way (deprecated):
+   * const register = useActionRegister();
+   * // New way (recommended):
+   * const addHandler = useActionHandler();
+   */
   useActionRegister: () => ActionRegister<T> | null;
   useActionDispatchWithResult: () => {
     dispatch: <K extends keyof T>(
@@ -404,12 +412,26 @@ export function createActionContext<T extends {}>(
     };
   };
 
+  // Add deprecation warning for old useActionRegister hook
+  const useActionRegisterWithWarning = (): ActionRegister<T> | null => {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(
+        '⚠️ useActionRegister is deprecated. Use useActionHandler instead. ' +
+        'This hook will be removed in v2.0.0. ' +
+        'Migration: const register = useActionRegister() → const addHandler = useActionHandler()'
+      );
+    }
+    return useFactoryActionRegister();
+  };
+
   return {
     Provider,
     useActionContext: useFactoryActionContext,
     useActionDispatch: useAction,
+    // New preferred naming (prioritized in order)
     useActionHandler,
-    useActionRegister: useFactoryActionRegister,
+    // Deprecated naming (with warnings)
+    useActionRegister: useActionRegisterWithWarning,
     useActionDispatchWithResult: useFactoryActionDispatchWithResult,
     context: FactoryActionContext,
   };
