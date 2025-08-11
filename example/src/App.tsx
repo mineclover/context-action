@@ -10,7 +10,8 @@ import ConcurrentActionTestPageWithProvider from './components/ConcurrentActionT
 import EnhancedAbortableSearchExampleWithProvider from './components/EnhancedAbortableSearchExample';
 import Layout from './components/Layout';
 import { ToastContainer, ToastControlPanel } from './components/ToastSystem';
-import ActionGuardPage from './pages/actionguard/ActionGuardPage';
+import ActionGuardIndexPage from './pages/actionguard/ActionGuardIndexPage';
+import SearchPage from './pages/actionguard/search/SearchPage';
 import ActionGuardTestPage from './pages/actionguard/ActionGuardTestPage';
 import PriorityPerformancePage from './pages/actionguard/PriorityPerformancePage';
 import ThrottleComparisonPage from './pages/actionguard/ThrottleComparisonPage';
@@ -70,7 +71,8 @@ function AppContent() {
             element={<UseActionWithResultPage />}
           />
           <Route path="/logger/demo" element={<LoggerDemoPage />} />
-          <Route path="/actionguard/demo" element={<ActionGuardPage />} />
+          <Route path="/actionguard" element={<ActionGuardIndexPage />} />
+          <Route path="/actionguard/search" element={<SearchPage />} />
           <Route path="/actionguard/test" element={<ActionGuardTestPage />} />
           <Route
             path="/actionguard/priority-performance"
