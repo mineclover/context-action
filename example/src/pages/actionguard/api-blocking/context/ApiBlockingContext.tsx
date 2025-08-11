@@ -147,8 +147,12 @@ export const ApiBlockingStoreProvider: React.FC<{ children: React.ReactNode; reg
 
 // Hooks export
 export const useApiBlockingActionDispatch = ApiBlockingActionContext.useActionDispatch;
-export const useApiBlockingActionRegister = ApiBlockingActionContext.useActionRegister;
+export const useApiBlockingActionHandler = ApiBlockingActionContext.useActionHandler;
 export const useApiBlockingStore = ApiBlockingStoreContext.useStore;
+export const useApiBlockingStores = ApiBlockingStoreContext.useStores;
+
+// Legacy exports (deprecated)
+export const useApiBlockingActionRegister = ApiBlockingActionContext.useActionRegister;
 export const useApiBlockingRegistry = ApiBlockingStoreContext.useRegistry;
 
 /**

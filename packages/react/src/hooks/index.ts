@@ -24,7 +24,8 @@ export * from '../stores/hooks';
 // Most commonly used hooks for easy access
 export { useStoreValue, useStoreValues } from '../stores/hooks/useStoreValue';
 export { useLocalStore } from '../stores/hooks/useLocalStore';
-export { useRegistry } from '../stores/hooks/useRegistry';
+export { useStores } from '../stores/hooks/useStores';      // New preferred naming
+export { useRegistry } from '../stores/hooks/useRegistry'; // Deprecated - use useStores
 
 // === PATTERN HOOKS ===
 // Pattern-specific hooks removed - use Declarative Store Pattern instead
