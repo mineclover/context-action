@@ -38,7 +38,7 @@ const checkoutSummary = useMultiStoreSelector(
 
 **성능 향상**: 30-60% 리렌더링 감소
 
-### 2. 🎯 Computed Store Pattern 구현 (우선순위 2)
+### 2. 🎯 Computed Store Pattern 구현 (v0.0.5)
 
 **파일**: `src/stores/hooks/useComputedStore.ts`
 
@@ -71,7 +71,7 @@ const checkoutSummary = useMultiComputedStore(
 
 **성능 향상**: 불필요한 계산 60-80% 감소
 
-### 3. 🎯 Performance 최적화 - Store Subscription 개선 (우선순위 3)
+### 3. 🎯 Performance 최적화 - Store Subscription 개선 (v0.0.5)
 
 **파일**: `src/stores/hooks/useStoreValue.ts` (개선)
 

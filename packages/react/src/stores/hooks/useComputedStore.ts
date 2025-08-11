@@ -12,7 +12,7 @@ import { useMemo, useRef, useCallback, useEffect, useState } from 'react';
 import { createStore } from '../core/Store';
 import type { Store } from '../core/Store';
 import { useStoreValue } from './useStoreValue';
-import { defaultEqualityFn, shallowEqual, deepEqual } from './useStoreSelector';
+import { defaultEqualityFn } from './useStoreSelector';
 
 /**
  * Computed Store 설정 옵션

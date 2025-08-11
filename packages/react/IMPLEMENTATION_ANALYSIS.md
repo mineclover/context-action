@@ -175,7 +175,7 @@ const userStore = UserStores.useStore('profile');
 // 타입: Store<{id: string, name: string}>
 ```
 
-## 🚀 새롭게 추가된 핵심 기능들 (v2.1.0)
+## 🚀 새롭게 추가된 핵심 기능들 (v0.0.5)
 
 ### 1. ✅ Selector Pattern 구현 완료
 ```typescript
