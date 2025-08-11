@@ -4,7 +4,6 @@
  * Hook을 통해 Data/Action과 연결되는 View 컴포넌트입니다.
  */
 
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../../../../components/ui';
 import PriorityTestInstance from '../../performance/PriorityTestInstance';
@@ -30,20 +29,22 @@ export function PriorityPerformanceView() {
     <div className="space-y-6">
       {/* 헤더 */}
       <header className="page-header">
-        <h1>🚀 Priority Test Performance Comparison</h1>
+        <h1>⚡ Priority Performance Test</h1>
         <p className="page-description">
-          완전히 분리된 Priority Test 인스턴스들을 이용한 성능 테스트. 토스트
-          기능이 비활성화되어 순수한 액션 파이프라인 성능을 측정합니다.
+          Multi-instance priority test system for stress testing and scalability analysis. 
+          Each instance runs completely isolated with its own Store Registry, allowing 
+          performance comparison and stress testing with <strong>multiple priority handlers</strong> 
+          running simultaneously. Toast notifications are disabled for pure performance measurement.
         </p>
         <div className="flex items-center gap-4 mt-4">
           <Link
             to="/actionguard"
             className="text-blue-600 hover:text-blue-800 underline text-sm"
           >
-            📋 ActionGuard 인덱스 페이지 보기
+            📋 Back to ActionGuard Index
           </Link>
           <div className="text-sm text-gray-500">
-            현재 인스턴스: {instanceCount}개
+            Active Instances: <strong>{instanceCount}</strong>
           </div>
         </div>
       </header>

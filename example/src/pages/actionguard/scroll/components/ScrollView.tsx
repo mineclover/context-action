@@ -4,7 +4,6 @@
  * Hook을 통해 Data/Action과 연결되는 View 컴포넌트입니다.
  */
 
-import React from 'react';
 import { DemoCard, Button, CodeBlock, CodeExample } from '../../../../components/ui';
 import { useScrollLogic } from '../hooks/useScrollLogic';
 
@@ -27,9 +26,16 @@ export function ScrollView() {
     <div className="space-y-6">
       {/* 메인 스크롤 UI */}
       <DemoCard>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Scroll with Throttling Demo
-        </h3>
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            📜 Scroll with Throttling Demo
+          </h3>
+          <p className="text-sm text-gray-600">
+            This demo demonstrates throttling for scroll events. Events are processed at most once every 
+            <strong> 100ms</strong> (10 events/second), preventing performance issues while maintaining 
+            smooth user experience. Try scrolling rapidly to see the difference.
+          </p>
+        </div>
         
         <div className="space-y-4">
           {/* 스크롤 컨테이너 */}

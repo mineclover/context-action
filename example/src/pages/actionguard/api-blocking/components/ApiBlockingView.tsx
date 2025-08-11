@@ -34,9 +34,16 @@ export function ApiBlockingView() {
     <div className="space-y-6">
       {/* 메인 API 블로킹 UI */}
       <DemoCard>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          API Call Blocking Demo
-        </h3>
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            🚫 API Call Blocking Demo
+          </h3>
+          <p className="text-sm text-gray-600">
+            This demo prevents duplicate API calls using a blocking mechanism. After an API call, 
+            all subsequent calls are blocked for a configurable duration (default: <strong>2 seconds</strong>). 
+            This prevents accidental double-clicks and reduces server load.
+          </p>
+        </div>
         
         <div className="space-y-4">
           {/* 블로킹 설정 */}

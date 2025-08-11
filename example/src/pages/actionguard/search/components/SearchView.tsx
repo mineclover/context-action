@@ -4,7 +4,6 @@
  * Hook을 통해 Data/Action과 연결되는 View 컴포넌트입니다.
  */
 
-import React from 'react';
 import { DemoCard, Input, Button, CodeBlock, CodeExample } from '../../../../components/ui';
 import { useSearchLogic } from '../hooks/useSearchLogic';
 
@@ -26,9 +25,16 @@ export function SearchView() {
     <div className="space-y-6">
       {/* 메인 검색 UI */}
       <DemoCard>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Search with Debouncing Demo
-        </h3>
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            🔍 Search with Debouncing Demo
+          </h3>
+          <p className="text-sm text-gray-600">
+            This demo shows how debouncing prevents excessive API calls during rapid typing. 
+            Search requests are delayed by <strong>500ms</strong> after the user stops typing, 
+            reducing server load and improving user experience.
+          </p>
+        </div>
         
         <div className="space-y-4">
           {/* 검색 입력 */}

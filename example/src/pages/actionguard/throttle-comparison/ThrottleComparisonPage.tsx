@@ -4,7 +4,7 @@
  * Context → Data/Action → Hook → View 계층 구조를 따르는 스로틀 비교 데모 페이지
  */
 
-import React from 'react';
+
 import { PageWithLogMonitor } from '../../../components/LogMonitor';
 import { ThrottleComparisonProvider } from './context/ThrottleComparisonContext';
 import { ThrottleComparisonView } from './components/ThrottleComparisonView';

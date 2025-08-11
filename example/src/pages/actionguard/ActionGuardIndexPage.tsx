@@ -5,7 +5,6 @@
  * 각 데모 페이지로의 네비게이션을 제공합니다.
  */
 
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { PageWithLogMonitor } from '../../components/LogMonitor';
 import { DemoCard } from '../../components/ui';
@@ -13,45 +12,59 @@ import { DemoCard } from '../../components/ui';
 const demos = [
   {
     path: '/actionguard/search',
-    title: 'Search with Debouncing',
-    description: 'Optimize search inputs with debouncing to reduce API calls',
+    title: 'Search Demo',
+    description: 'Real-time search with debouncing (500ms delay) to optimize API calls and reduce server load',
     icon: '🔍',
+    technique: 'Debouncing',
+    useCase: 'Search inputs, auto-complete, form validation',
   },
   {
     path: '/actionguard/scroll',
-    title: 'Scroll with Throttling',
-    description: 'Handle scroll events efficiently with throttling',
+    title: 'Scroll Demo',
+    description: 'Smooth scroll event handling with throttling (100ms interval) for performance optimization',
     icon: '📜',
+    technique: 'Throttling',
+    useCase: 'Scroll events, window resize, infinite scroll',
   },
   {
     path: '/actionguard/api-blocking',
-    title: 'API Call Blocking',
-    description: 'Prevent duplicate API calls with blocking pattern',
+    title: 'API Blocking Demo',
+    description: 'Prevent duplicate API calls with 2-second blocking window and rate limiting',
     icon: '🚫',
+    technique: 'Blocking',
+    useCase: 'API calls, form submission, button clicks',
   },
   {
     path: '/actionguard/mouse-events',
-    title: 'Mouse Events Optimization',
-    description: 'Optimize mouse move events with throttling',
+    title: 'Mouse Events Demo',
+    description: 'Optimize mouse move tracking with throttling (50ms) and movement pattern analysis',
     icon: '🖱️',
+    technique: 'Throttling',
+    useCase: 'Mouse tracking, drag & drop, drawing apps',
   },
   {
     path: '/actionguard/test',
-    title: 'Priority Test System',
-    description: 'Test action execution with priority-based handlers',
+    title: 'Dispatch Options Test',
+    description: 'Comprehensive testing of all dispatch options: throttle, debounce, priority, and performance metrics',
     icon: '🧪',
+    technique: 'All Techniques',
+    useCase: 'Testing, benchmarking, performance analysis',
   },
   {
     path: '/actionguard/priority-performance',
-    title: 'Priority Performance',
-    description: 'Performance testing for priority-based action execution',
+    title: 'Priority Performance Test',
+    description: 'Multi-instance priority test with isolated stores for stress testing and performance comparison',
     icon: '⚡',
+    technique: 'Priority System',
+    useCase: 'Performance testing, stress testing, scalability',
   },
   {
     path: '/actionguard/throttle-comparison',
     title: 'Throttle Comparison',
-    description: 'Compare different throttling strategies',
+    description: 'Side-by-side comparison of manual vs Context-Action throttling with detailed metrics',
     icon: '📊',
+    technique: 'Throttling Analysis',
+    useCase: 'Performance comparison, optimization validation',
   },
 ];
 
@@ -85,12 +98,20 @@ export function ActionGuardIndexPage() {
                   <div className="flex items-start gap-4">
                     <span className="text-3xl">{demo.icon}</span>
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        {demo.title}
-                      </h3>
-                      <p className="text-sm text-gray-600">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {demo.title}
+                        </h3>
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
+                          {demo.technique}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-3">
                         {demo.description}
                       </p>
+                      <div className="text-xs text-gray-500">
+                        <strong>Use Cases:</strong> {demo.useCase}
+                      </div>
                     </div>
                   </div>
                 </DemoCard>
