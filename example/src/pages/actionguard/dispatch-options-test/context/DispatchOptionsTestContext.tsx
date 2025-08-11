@@ -201,8 +201,12 @@ export const DispatchOptionsTestStoreProvider: React.FC<{ children: React.ReactN
 
 // Hooks export
 export const useDispatchOptionsTestActionDispatch = DispatchOptionsTestActionContext.useActionDispatch;
-export const useDispatchOptionsTestActionRegister = DispatchOptionsTestActionContext.useActionRegister;
+export const useDispatchOptionsTestActionHandler = DispatchOptionsTestActionContext.useActionHandler;
 export const useDispatchOptionsTestStore = DispatchOptionsTestStoreContext.useStore;
+export const useDispatchOptionsTestStores = DispatchOptionsTestStoreContext.useStores;
+
+// Legacy exports (deprecated)
+export const useDispatchOptionsTestActionRegister = DispatchOptionsTestActionContext.useActionRegister;
 export const useDispatchOptionsTestRegistry = DispatchOptionsTestStoreContext.useRegistry;
 
 /**

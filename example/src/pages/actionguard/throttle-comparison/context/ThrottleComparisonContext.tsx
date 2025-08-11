@@ -159,8 +159,12 @@ export const ThrottleComparisonStoreProvider: React.FC<{ children: React.ReactNo
 
 // Hooks export
 export const useThrottleComparisonActionDispatch = ThrottleComparisonActionContext.useActionDispatch;
-export const useThrottleComparisonActionRegister = ThrottleComparisonActionContext.useActionRegister;
+export const useThrottleComparisonActionHandler = ThrottleComparisonActionContext.useActionHandler;
 export const useThrottleComparisonStore = ThrottleComparisonStoreContext.useStore;
+export const useThrottleComparisonStores = ThrottleComparisonStoreContext.useStores;
+
+// Legacy exports (deprecated)
+export const useThrottleComparisonActionRegister = ThrottleComparisonActionContext.useActionRegister;
 export const useThrottleComparisonRegistry = ThrottleComparisonStoreContext.useRegistry;
 
 /**

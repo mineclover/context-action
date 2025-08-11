@@ -42,6 +42,9 @@ export const ActionTestProvider: React.FC<{ children: React.ReactNode }> =
 
 // 나머지 hooks export
 export const usePriorityActionDispatch = PriorityTestAction.useActionDispatch;
+export const usePriorityActionHandler = PriorityTestAction.useActionHandler;
+
+// Legacy exports (deprecated)
 export const usePriorityActionRegister = PriorityTestAction.useActionRegister;
 export const usePriorityActionContext: () => any =
   PriorityTestAction.useActionContext;
@@ -98,5 +101,8 @@ export const PriorityTestProvider: React.FC<{
 export const usePriorityTestStore = PriorityStores.useStore;
 export const PriorityTestStoreContext: React.Context<any> =
   PriorityStores.RegistryContext;
-export const usePriorityTestRegistry = PriorityStores.useRegistry;
+export const usePriorityTestStores = PriorityStores.useStores;
 export const usePriorityTestRegistryInfo = PriorityStores.useRegistryInfo;
+
+// Legacy exports (deprecated)
+export const usePriorityTestRegistry = PriorityStores.useRegistry;
