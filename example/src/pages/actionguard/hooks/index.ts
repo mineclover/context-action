@@ -1,5 +1,5 @@
 /**
- * 우선순위 테스트 시스템 - 최적화된 Context-Action v7 아키텍처
+ * 우선순위 테스트 시스템 - 관심사별 분리된 훅들
  */
 
 // 타입 정의들 (중앙화)
@@ -9,13 +9,17 @@ export type {
   PriorityTestActions,
   PriorityTestState,
   PriorityTestViewModel,
-  ViewModelDependencies,
 } from './types';
+
+// 기존 훅들 (호환성 유지)
 export { usePriorityExecutionState } from './usePriorityExecutionState';
-// 하위 레벨 훅들 (고급 사용자용)
-// 개별 컴포넌트용 특화 훅들
+
+// 개별 관심사별 훅들 (최소 의존성)
 export {
-  usePriorityTestExecutionState as usePriorityTestExecutionStateHook,
+  usePriorityTestExecutionState,
   usePriorityTestTestCount,
-  usePriorityTestViewModel,
 } from './usePriorityTestViewModel';
+
+// 새로운 분리된 훅들 (권장)
+export { useTestHandlerRegistration } from './useTestHandlerRegistration';
+export { useTestExecution } from './useTestExecution';

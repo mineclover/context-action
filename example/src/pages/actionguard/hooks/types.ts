@@ -1,5 +1,10 @@
 /**
- * 우선순위 테스트 시스템 - 통합 타입 정의
+ * @fileoverview 우선순위 테스트 시스템 타입 정의
+ *
+ * 최소 의존성 아키텍처를 지원하는 타입들:
+ * - HandlerConfig: 개별 핸들러 설정
+ * - PriorityTestViewModel: 통합 ViewModel 인터페이스
+ * - PriorityTestState/Actions: 상태와 액션 분리
  */
 
 // ================================
@@ -71,17 +76,6 @@ export interface PriorityTestActions {
 export interface PriorityTestViewModel
   extends PriorityTestState,
     PriorityTestActions {
-  // ActionRegister 인스턴스 (호환성을 위해)
-  actionRegister: any;
-}
-
-// ViewModel 의존성 주입 인터페이스
-export interface ViewModelDependencies {
-  configs: HandlerConfig[];
-  priorityCountsStore: any;
-  performanceOptions: PerformanceOptions;
-  actionRegister: any;
-  dispatch: any;
-  countManagement: any;
-  executionState: any;
+  // ActionRegister 인스턴스 (선택적 - 개별 훅들이 내부 관리)
+  actionRegister?: any;
 }

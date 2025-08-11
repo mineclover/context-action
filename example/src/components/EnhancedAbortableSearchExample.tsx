@@ -107,8 +107,7 @@ export function EnhancedAbortableSearchExample() {
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const activeSearches = useRef<Set<string>>(new Set());
 
-  const { dispatch, abortAll, resetAbortScope } =
-    useActionDispatchWithResult();
+  const { dispatch, abortAll, resetAbortScope } = useActionDispatchWithResult();
   const register = useActionRegister();
 
   // Update search metrics

@@ -1,5 +1,6 @@
 import type React from 'react';
-import { usePriorityTestTestCount } from '../hooks';
+import { useStoreValue } from '@context-action/react';
+import { usePriorityTestStore } from '../context/ActionTestContext';
 
 interface PriorityCountDisplayProps {
   priority: number;
@@ -14,8 +15,9 @@ export const PriorityCountDisplay: React.FC<PriorityCountDisplayProps> = ({
   color = '#3b82f6',
   className = '',
 }) => {
-  const getCount = usePriorityTestTestCount(priority);
-  const count = getCount();
+  const priorityCountsStore = usePriorityTestStore('priorityCounts');
+  const priorityCounts = useStoreValue(priorityCountsStore);
+  const count = priorityCounts[priority] || 0;
 
   if (count === undefined || count === 0) {
     return null;

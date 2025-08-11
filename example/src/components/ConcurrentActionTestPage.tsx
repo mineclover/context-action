@@ -51,8 +51,7 @@ export function ConcurrentActionTestPage() {
   const [executionLogs, setExecutionLogs] = useState<ExecutionLog[]>([]);
   const [globalAbortCount, setGlobalAbortCount] = useState(0);
 
-  const { dispatch, abortAll, resetAbortScope } =
-    useActionDispatchWithResult();
+  const { dispatch, abortAll, resetAbortScope } = useActionDispatchWithResult();
   const register = useActionRegister();
 
   const tasksRef = useRef<TaskStatus[]>([]);

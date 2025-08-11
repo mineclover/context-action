@@ -1,5 +1,6 @@
 import type React from 'react';
-import { usePriorityTestExecutionState } from '../hooks/usePriorityTestViewModel';
+import { useStoreValue } from '@context-action/react';
+import { usePriorityTestStore } from '../context/ActionTestContext';
 
 interface ExecutionStateDisplayProps {
   className?: string;
@@ -10,13 +11,8 @@ export const ExecutionStateDisplay: React.FC<ExecutionStateDisplayProps> = ({
   className = '',
   showDetails = true,
 }) => {
-  const getExecutionState = usePriorityTestExecutionState();
-
-  if (!getExecutionState) {
-    return null;
-  }
-
-  const executionState = getExecutionState();
+  const executionStateStore = usePriorityTestStore('executionState');
+  const executionState = useStoreValue(executionStateStore);
 
   const successRate =
     executionState.totalTests > 0
