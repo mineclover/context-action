@@ -6,7 +6,7 @@
 
 import { Link } from 'react-router-dom';
 import { MouseEventsContainer } from './clean-architecture/containers/MouseEventsContainer';
-import { StoreBasedMouseEventsContainer } from './reactive-stores/containers/StoreBasedMouseEventsContainer';
+import { ContextStoreMouseEventsWrapper } from './context-store-action-based/ContextStoreMouseEventsWrapper';
 import { ContextStoreMouseEventsContainer } from './context-store-pattern/containers/ContextStoreMouseEventsContainer';
 
 /**
@@ -36,9 +36,9 @@ const MouseEventsUI = () => {
       {/* Clean Architecture Container */}
       <MouseEventsContainer />
       
-      {/* Reactive Stores Container */}
+      {/* Context Store Container (Action-Based) */}
       <div className="mt-8">
-        <StoreBasedMouseEventsContainer />
+        <ContextStoreMouseEventsWrapper />
       </div>
       
       {/* Context Store Container with Navigation */}
