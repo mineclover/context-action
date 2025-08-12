@@ -139,7 +139,19 @@ const OptimizedMouseEventsViewComponent = () => {
   // 초기 활동 상태만 React 상태로 관리
   const [hasInitialActivity, setHasInitialActivity] = useState(false);
 
-  // Hook에서 상태를 전역으로 전파하는 useEffect 제거 - Hook 내부에서 처리
+  // 렌더러와 상태 표시를 업데이트하는 useEffect 추가
+  useEffect(() => {
+    // 전역 렌더러 핸들 설정
+    (window as any).__rendererHandle = rendererRef.current;
+    
+    // 초기 활동 상태 전역 설정
+    (window as any).__setHasInitialActivity = setHasInitialActivity;
+    
+    return () => {
+      delete (window as any).__rendererHandle;
+      delete (window as any).__setHasInitialActivity;
+    };
+  }, []);
 
   // 매끄러운 마우스 추적을 위한 콜백들
   const handleSmoothMouseMove = useCallback((position: { x: number; y: number }, velocity: number) => {

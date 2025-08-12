@@ -128,9 +128,17 @@ export function useMouseEventsLogic() {
         
         // UI 업데이트
         const statusDisplay = (window as any).__statusDisplay;
+        const rendererHandle = (window as any).__rendererHandle;
         if (statusDisplay) {
           const newState = mouseStore.getValue();
           statusDisplay.updateClicks(newState.clickCount);
+        }
+        if (rendererHandle) {
+          const newState = mouseStore.getValue();
+          const latestClick = newState.clickHistory[0];
+          if (latestClick) {
+            rendererHandle.addClick(latestClick);
+          }
         }
         
         controller.next();
@@ -151,9 +159,14 @@ export function useMouseEventsLogic() {
         
         // UI 업데이트
         const statusDisplay = (window as any).__statusDisplay;
+        const rendererHandle = (window as any).__rendererHandle;
         if (statusDisplay) {
           statusDisplay.updateInside(true);
           statusDisplay.updatePosition(x, y);
+        }
+        if (rendererHandle) {
+          rendererHandle.updateVisibility(true);
+          rendererHandle.updatePosition({ x, y }, 0);
         }
         
         controller.next();
@@ -176,10 +189,15 @@ export function useMouseEventsLogic() {
         
         // UI 업데이트
         const statusDisplay = (window as any).__statusDisplay;
+        const rendererHandle = (window as any).__rendererHandle;
         if (statusDisplay) {
           statusDisplay.updateInside(false);
           statusDisplay.updateStatus(false);
           statusDisplay.updateVelocity(0);
+        }
+        if (rendererHandle) {
+          rendererHandle.updateVisibility(false);
+          rendererHandle.updateMoving(false);
         }
         
         controller.next();
@@ -200,8 +218,12 @@ export function useMouseEventsLogic() {
         
         // UI 업데이트
         const statusDisplay = (window as any).__statusDisplay;
+        const rendererHandle = (window as any).__rendererHandle;
         if (statusDisplay) {
           statusDisplay.updateStatus(true);
+        }
+        if (rendererHandle) {
+          rendererHandle.updateMoving(true);
         }
         
         controller.next();
@@ -244,12 +266,31 @@ export function useMouseEventsLogic() {
         
         // UI 업데이트 (DOM 직접 조작)
         const statusDisplay = (window as any).__statusDisplay;
+        const rendererHandle = (window as any).__rendererHandle;
+        const setHasInitialActivity = (window as any).__setHasInitialActivity;
+        
         if (statusDisplay) {
           const newState = mouseStore.getValue();
           statusDisplay.updatePosition(position.x, position.y);
           statusDisplay.updateMoves(newState.moveCount);
           statusDisplay.updateVelocity(velocity);
           statusDisplay.updateLastActivity(timestamp);
+        }
+        
+        // 초기 활동 상태 업데이트 (한 번만)
+        if (setHasInitialActivity) {
+          setHasInitialActivity(true);
+        }
+        if (rendererHandle) {
+          const newState = mouseStore.getValue();
+          rendererHandle.updatePosition(position, velocity);
+          // 경로에 포인트 추가
+          if (newState.movePath.length > 0) {
+            const latestPoint = newState.movePath[0];
+            if (latestPoint.x !== 0 && latestPoint.y !== 0) {
+              rendererHandle.addToPath(latestPoint);
+            }
+          }
         }
         
         controller.next();
@@ -271,9 +312,13 @@ export function useMouseEventsLogic() {
         
         // UI 업데이트
         const statusDisplay = (window as any).__statusDisplay;
+        const rendererHandle = (window as any).__rendererHandle;
         if (statusDisplay) {
           statusDisplay.updateStatus(false);
           statusDisplay.updateVelocity(0);
+        }
+        if (rendererHandle) {
+          rendererHandle.updateMoving(false);
         }
         
         controller.next();
