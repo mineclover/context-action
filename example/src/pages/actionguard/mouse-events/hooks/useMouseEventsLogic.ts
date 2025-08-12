@@ -5,9 +5,8 @@
  * 양방향 데이터 흐름을 관리합니다.
  */
 
-import { useCallback, useEffect, useRef } from 'react';
-import { useStoreValue } from '@context-action/react';
-import { useActionLoggerWithToast } from '../../../../components/LogMonitor';
+import { useCallback, useEffect, useRef, useState } from 'react';
+// import { useActionLoggerWithToast } from '../../../../components/LogMonitor';
 import {
   useMouseEventsActionDispatch,
   useMouseEventsActionRegister,
@@ -21,13 +20,21 @@ import {
  * 마우스 이벤트 로직 Hook
  * 
  * View Layer에 필요한 데이터와 액션을 제공합니다.
+ * Store 구독 제거 - 리렌더링 방지를 위해 직접 접근만 사용
  */
 export function useMouseEventsLogic() {
+  console.log('🔧 useMouseEventsLogic render at', new Date().toISOString());
+  
   const dispatch = useMouseEventsActionDispatch();
   const register = useMouseEventsActionRegister();
   const mouseStore = useMouseEventsStore('mouseState');
-  const mouseState = useStoreValue(mouseStore);
-  const { logAction } = useActionLoggerWithToast();
+  // Store 구독 제거 - 리렌더링 방지
+  // const mouseState = useStoreValue(mouseStore);
+  // const { logAction } = useActionLoggerWithToast(); // 리렌더링 원인일 수 있으므로 임시 제거
+  
+  // 리렌더링 방지를 위해 React 상태 대신 ref 사용
+  const hasActivityRef = useRef(false);
+  const isActiveRef = useRef(false);
   const moveEndTimeoutRef = useRef<NodeJS.Timeout>();
   
   // 로깅 스로틀링을 위한 ref
@@ -43,7 +50,6 @@ export function useMouseEventsLogic() {
       // core의 내장 throttle 기능 사용 (~60fps)
       dispatch('updateMouseMetrics', {
         position,
-        velocity: 0, // 속도는 핸들러에서 계산
         timestamp,
       }, { 
         throttle: 16 // ~60fps throttling
@@ -55,11 +61,20 @@ export function useMouseEventsLogic() {
   // 마우스 이동 종료 감지 (안정적인 참조)
   const handleMoveEnd = useCallback(
     (position: MousePosition) => {
+      // 0,0 문제 디버깅
+      if (position.x === 0 && position.y === 0) {
+        console.warn('🔴 handleMoveEnd called with 0,0 position:', position);
+        console.trace('handleMoveEnd 0,0 trace');
+      }
+      
+      console.log('⏳ handleMoveEnd called:', position);
+      
       if (moveEndTimeoutRef.current) {
         clearTimeout(moveEndTimeoutRef.current);
       }
       
       moveEndTimeoutRef.current = setTimeout(() => {
+        console.log('🛑 moveEnd timeout triggered with position:', position);
         dispatch('moveEnd', {
           position,
           timestamp: Date.now(),
@@ -88,11 +103,16 @@ export function useMouseEventsLogic() {
         );
         
         if (shouldLog) {
-          logAction('mouseMove', { 
+          // logAction('mouseMove', { 
+          //   x, y, timestamp, 
+          //   moveCount: logControl.moveCount,
+          //   note: `${logControl.moveCount}번째 이동` 
+          // }, { toast: false }); // Toast 비활성화
+          console.log('mouseMove', { 
             x, y, timestamp, 
             moveCount: logControl.moveCount,
             note: `${logControl.moveCount}번째 이동` 
-          }, { toast: false }); // Toast 비활성화
+          });
           logControl.lastMoveLogTime = now;
         }
         
@@ -115,7 +135,7 @@ export function useMouseEventsLogic() {
     const unregisterClick = register.register(
       'mouseClick',
       ({ x, y, button, timestamp }, controller) => {
-        logAction('mouseClick', { x, y, button, timestamp });
+        // logAction('mouseClick', { x, y, button, timestamp });
         
         mouseStore.update((state) => ({
           ...state,
@@ -149,7 +169,7 @@ export function useMouseEventsLogic() {
     const unregisterEnter = register.register(
       'mouseEnter',
       ({ x, y, timestamp }, controller) => {
-        logAction('mouseEnter', { x, y, timestamp });
+        // logAction('mouseEnter', { x, y, timestamp });
         
         mouseStore.update((state) => ({
           ...state,
@@ -177,7 +197,7 @@ export function useMouseEventsLogic() {
     const unregisterLeave = register.register(
       'mouseLeave',
       ({ x, y, timestamp }, controller) => {
-        logAction('mouseLeave', { x, y, timestamp });
+        // logAction('mouseLeave', { x, y, timestamp });
         
         mouseStore.update((state) => ({
           ...state,
@@ -208,7 +228,7 @@ export function useMouseEventsLogic() {
     const unregisterMoveStart = register.register(
       'moveStart',
       ({ position, timestamp }, controller) => {
-        logAction('moveStart', { position, timestamp });
+        // logAction('moveStart', { position, timestamp });
         
         mouseStore.update((state) => ({
           ...state,
@@ -244,11 +264,11 @@ export function useMouseEventsLogic() {
         // 마우스 속도 계산 (px/ms)
         const velocity = timeDiff > 0 ? distance / timeDiff : 0;
         
-        logAction('updateMouseMetrics', { 
-          position, 
-          velocity: velocity.toFixed(2),
-          timestamp 
-        });
+        // logAction('updateMouseMetrics', { 
+        //   position, 
+        //   velocity: velocity.toFixed(2),
+        //   timestamp 
+        // });
         
         // 상태 업데이트
         mouseStore.update((state) => ({
@@ -278,16 +298,33 @@ export function useMouseEventsLogic() {
         }
         
         // 초기 활동 상태 업데이트 (한 번만)
-        if (setHasInitialActivity) {
+        if (setHasInitialActivity && !hasActivityRef.current) {
           setHasInitialActivity(true);
+        }
+        
+        // 내부 상태 업데이트 (리렌더링 방지)
+        if (!hasActivityRef.current) {
+          hasActivityRef.current = true;
+        }
+        if (!isActiveRef.current) {
+          isActiveRef.current = true;
         }
         if (rendererHandle) {
           const newState = mouseStore.getValue();
+          
+          // 0,0 문제 디버깅
+          if (position.x === 0 && position.y === 0) {
+            console.warn('🔴 Detected 0,0 position in updateMouseMetrics handler:', { position, velocity });
+            console.trace('0,0 position trace');
+          }
+          
+          console.log('🔧 updateMouseMetrics calling updatePosition:', position, 'velocity:', velocity);
           rendererHandle.updatePosition(position, velocity);
-          // 경로에 포인트 추가
+          
+          // 경로에 포인트 추가 (유효한 포인트만)
           if (newState.movePath.length > 0) {
             const latestPoint = newState.movePath[0];
-            if (latestPoint.x !== 0 && latestPoint.y !== 0) {
+            if (latestPoint.x !== 0 && latestPoint.y !== 0 && latestPoint.x !== -999 && latestPoint.y !== -999) {
               rendererHandle.addToPath(latestPoint);
             }
           }
@@ -301,7 +338,15 @@ export function useMouseEventsLogic() {
     const unregisterMoveEnd = register.register(
       'moveEnd',
       ({ position, timestamp }, controller) => {
-        logAction('moveEnd', { position, timestamp });
+        // logAction('moveEnd', { position, timestamp });
+        
+        // 0,0 문제 디버깅
+        if (position.x === 0 && position.y === 0) {
+          console.warn('🔴 moveEnd handler received 0,0 position:', { position, timestamp });
+          console.trace('moveEnd 0,0 trace');
+        }
+        
+        console.log('🛑 moveEnd handler called:', position);
         
         mouseStore.update((state) => ({
           ...state,
@@ -321,6 +366,9 @@ export function useMouseEventsLogic() {
           rendererHandle.updateMoving(false);
         }
         
+        // 내부 상태 업데이트
+        isActiveRef.current = false;
+        
         controller.next();
       }
     );
@@ -329,7 +377,7 @@ export function useMouseEventsLogic() {
     const unregisterReset = register.register(
       'resetMouseState',
       (_, controller) => {
-        logAction('resetMouseState', {});
+        // logAction('resetMouseState', {});
         
         
         // 현재 위치를 유지하되 다른 상태만 초기화
@@ -346,6 +394,10 @@ export function useMouseEventsLogic() {
           isInsideArea: false, // 리셋 후에는 영역 밖으로 설정 (커서 숨김)
           clickHistory: [],
         });
+        
+        // 내부 상태 초기화
+        hasActivityRef.current = false;
+        isActiveRef.current = false;
         
         controller.next();
       }
@@ -365,20 +417,19 @@ export function useMouseEventsLogic() {
         clearTimeout(moveEndTimeoutRef.current);
       }
     };
-  }, [
-    register,
-    mouseStore,
-    // dispatch, throttledMouseHandler, handleMoveEnd, logAction 제거
-    // 이 함수들은 이제 안정적인 참조를 가지므로 의존성에서 제외
-  ]);
+  }, []); // 빈 의존성 - 초기화 시 한 번만 실행
 
-  // View에 제공할 인터페이스
+  // View에 제공할 인터페이스 (Store 구독 제거)
   return {
-    // Data
-    mouseState,
-    
-    // Actions
+    // Actions only - 데이터는 DOM 직접 조작으로 표시
     handleMouseMove: (x: number, y: number) => {
+      // 0,0 문제 디버깅
+      if (x === 0 && y === 0) {
+        console.warn('🔴 Detected 0,0 in handleMouseMove:', { x, y });
+        console.trace('0,0 handleMouseMove trace');
+      }
+      
+      console.log('🖱️ handleMouseMove called:', { x, y });
       dispatch('mouseMove', {
         x,
         y,
@@ -415,9 +466,12 @@ export function useMouseEventsLogic() {
       dispatch('resetMouseState');
     },
     
-    // Computed
-    isActive: mouseState.isMoving,
-    hasActivity: mouseState.moveCount > 0 || mouseState.clickCount > 0,
-    averageVelocity: mouseState.mouseVelocity, // 실시간 속도 사용 (성능 최적화)
+    // 리렌더링 방지를 위해 정적 값만 반환
+    isActive: false,
+    hasActivity: false,
+    averageVelocity: 0, // 실시간 계산 제거
+    
+    // Store 직접 접근 함수 (필요시에만 사용)
+    getMouseState: () => mouseStore.getValue(),
   };
 }

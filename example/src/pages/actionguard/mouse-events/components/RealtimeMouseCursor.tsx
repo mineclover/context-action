@@ -44,8 +44,21 @@ const RealtimeMouseCursorComponent = ({
       return; // 초기값일 때는 렌더링하지 않음
     }
 
+    // 0,0으로 가는 문제 디버깅 - 확장된 조건
+    if (position.x === 0 && position.y === 0) {
+      console.warn('🔴 Detected original 0,0 position in RealtimeMouseCursor:', position);
+      console.trace('Original 0,0 Position update trace');
+      return;
+    }
+    if (position.x === 8 && position.y === 8) {
+      console.warn('🔴 Detected 0,0 position after offset (8,8) in RealtimeMouseCursor:', position);
+      console.trace('Offset 0,0 Position update trace');
+      return;
+    }
+
     // 직접 CSS 변경으로 최고 성능
     requestAnimationFrame(() => {
+      console.log('📱 RealtimeMouseCursor position update:', position, `→ translate3d(${position.x - 8}px, ${position.y - 8}px, 0)`);
       cursor.style.transform = `translate3d(${position.x - 8}px, ${position.y - 8}px, 0)`;
       trail.style.transform = `translate3d(${position.x - 12}px, ${position.y - 12}px, 0)`;
     });

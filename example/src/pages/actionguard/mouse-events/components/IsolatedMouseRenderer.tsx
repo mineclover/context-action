@@ -54,7 +54,7 @@ const IsolatedMouseRendererComponent = forwardRef<MouseRendererHandle, IsolatedM
     
     // 상태 참조 (React 상태가 아님)
     const stateRef = useRef<MouseRendererState>({
-      position: { x: 0, y: 0 },
+      position: { x: -999, y: -999 }, // 초기값을 -999로 설정
       velocity: 0,
       isVisible: false,
       isMoving: false,
@@ -74,11 +74,24 @@ const IsolatedMouseRendererComponent = forwardRef<MouseRendererHandle, IsolatedM
         return;
       }
 
+      // 0,0으로 가는 문제 디버깅 - 확장된 조건
+      if (position.x === 0 && position.y === 0) {
+        console.warn('🔴 Detected original 0,0 position in IsolatedMouseRenderer:', position);
+        console.trace('Original 0,0 Position update trace');
+        return;
+      }
+      if (position.x === 8 && position.y === 8) {
+        console.warn('🔴 Detected 0,0 position after offset (8,8) in IsolatedMouseRenderer:', position);
+        console.trace('Offset 0,0 Position update trace');
+        return;
+      }
+
       const cursor = cursorRef.current;
       const trail = trailRef.current;
 
       // 직접 CSS transform으로 최고 성능
       requestAnimationFrame(() => {
+        console.log('🎯 IsolatedMouseRenderer position update:', position, `→ translate3d(${position.x - 8}px, ${position.y - 8}px, 0)`);
         cursor.style.transform = `translate3d(${position.x - 8}px, ${position.y - 8}px, 0)`;
         trail.style.transform = `translate3d(${position.x - 12}px, ${position.y - 12}px, 0)`;
       });
@@ -120,8 +133,12 @@ const IsolatedMouseRendererComponent = forwardRef<MouseRendererHandle, IsolatedM
     const updatePath = useCallback((movePath: MousePosition[]) => {
       if (!pathRef.current) return;
 
-      // 0,0 위치 필터링
-      const validPath = movePath.filter(point => point.x !== 0 || point.y !== 0);
+      // 유효하지 않은 위치 필터링 (초기값과 0,0 모두 제외)
+      const validPath = movePath.filter(point => 
+        (point.x !== 0 || point.y !== 0) && 
+        point.x !== -999 && 
+        point.y !== -999
+      );
       
       if (validPath.length < 2) {
         pathRef.current.setAttribute('d', '');
@@ -136,7 +153,8 @@ const IsolatedMouseRendererComponent = forwardRef<MouseRendererHandle, IsolatedM
     // 클릭 애니메이션 추가 (직접 DOM 생성 및 애니메이션)
     const addClickAnimation = useCallback((click: ClickHistory) => {
       if (!clickContainerRef.current) return;
-      if (click.x === 0 && click.y === 0) return; // 0,0 필터링
+      // 유효하지 않은 위치 필터링 (초기값과 0,0 모두 제외)
+      if ((click.x === 0 && click.y === 0) || click.x === -999 || click.y === -999) return;
 
       const clickId = `click-${clickCounterRef.current++}`;
       
@@ -276,7 +294,7 @@ const IsolatedMouseRendererComponent = forwardRef<MouseRendererHandle, IsolatedM
 
       reset: () => {
         stateRef.current = {
-          position: { x: 0, y: 0 },
+          position: { x: -999, y: -999 }, // 초기값으로 리셋
           velocity: 0,
           isVisible: false,
           isMoving: false,
