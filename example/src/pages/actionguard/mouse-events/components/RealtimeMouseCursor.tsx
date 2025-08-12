@@ -36,6 +36,9 @@ const RealtimeMouseCursorComponent = ({
     const cursor = cursorRef.current;
     const trail = trailRef.current;
 
+    // 유효하지 않은 위치 필터링
+    if (position.x <= 0 || position.y <= 0) return;
+
     // 직접 CSS 변경으로 최고 성능
     requestAnimationFrame(() => {
       cursor.style.transform = `translate3d(${position.x - 8}px, ${position.y - 8}px, 0)`;

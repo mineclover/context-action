@@ -54,8 +54,8 @@ export const SimpleSmoothTracker = ({
     const now = performance.now();
     const deltaTime = now - lastTimeRef.current;
     
-    // 0,0 위치 필터링
-    if (position.x === 0 && position.y === 0) return;
+    // 유효하지 않은 위치 필터링 
+    if (position.x <= 0 || position.y <= 0) return;
     
     const velocity = calculateVelocity(position, lastPositionRef.current, deltaTime);
     
