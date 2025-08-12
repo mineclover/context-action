@@ -17,18 +17,22 @@ interface StaticMousePathProps {
 }
 
 const StaticMousePathComponent = ({ movePath, isVisible }: StaticMousePathProps) => {
-  // Path 데이터 메모화 (0,0 위치 필터링)
+  // Path 데이터 메모화 (유효하지 않은 위치 필터링)
   const pathData = useMemo(() => {
-    const validPath = movePath.filter(point => point.x !== 0 || point.y !== 0);
+    const validPath = movePath.filter(point => 
+      point.x > 0 && point.y > 0 && point.x !== -999 && point.y !== -999
+    );
     if (validPath.length < 2) return '';
     const visiblePath = validPath.slice(0, 10); // 최근 10개 점만 표시
     return `M ${visiblePath.map(point => `${point.x} ${point.y}`).join(' L ')}`;
   }, [movePath]);
 
-  // Points 데이터 메모화 (0,0 위치 필터링)
+  // Points 데이터 메모화 (유효하지 않은 위치 필터링)
   const points = useMemo(() => {
     return movePath
-      .filter(point => point.x !== 0 || point.y !== 0)
+      .filter(point => 
+        point.x > 0 && point.y > 0 && point.x !== -999 && point.y !== -999
+      )
       .slice(0, 10)
       .map((point, index) => ({
         ...point,

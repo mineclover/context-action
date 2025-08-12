@@ -269,16 +269,19 @@ export function useMouseEventsLogic() {
       (_, controller) => {
         logAction('resetMouseState', {});
         
+        
+        // 현재 위치를 유지하되 다른 상태만 초기화
+        const currentState = mouseStore.getValue();
         mouseStore.setValue({
-          mousePosition: { x: 0, y: 0 },
+          mousePosition: currentState.mousePosition, // 현재 위치 유지
           moveCount: 0,
           clickCount: 0,
           isMoving: false,
           lastMoveTime: null,
           movePath: [],
           mouseVelocity: 0,
-          previousPosition: { x: 0, y: 0 },
-          isInsideArea: false, // 리셋 후에는 영역 밖으로 설정
+          previousPosition: currentState.mousePosition, // 현재 위치를 이전 위치로
+          isInsideArea: false, // 리셋 후에는 영역 밖으로 설정 (커서 숨김)
           clickHistory: [],
         });
         

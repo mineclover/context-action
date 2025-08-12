@@ -32,6 +32,15 @@ const OptimizedMouseEventsViewComponent = () => {
   useEffect(() => {
     if (!rendererRef.current) return;
 
+    // 0,0 위치 전파 디버깅
+    if (mouseState.mousePosition.x === 0 && mouseState.mousePosition.y === 0) {
+      console.warn('🔴 OptimizedMouseEventsView: 0,0 위치 상태 감지됨', {
+        mousePosition: mouseState.mousePosition,
+        isInsideArea: mouseState.isInsideArea,
+        isMoving: mouseState.isMoving
+      });
+    }
+
     rendererRef.current.updatePosition(mouseState.mousePosition, mouseState.mouseVelocity);
   }, [mouseState.mousePosition.x, mouseState.mousePosition.y, mouseState.mouseVelocity]);
 

@@ -89,7 +89,9 @@ const AnimatedClickIndicatorsComponent = ({ clickHistory }: AnimatedClickIndicat
 
   return (
     <div ref={containerRef} className="absolute inset-0 pointer-events-none">
-      {clickHistory.slice(0, 5).filter(click => click.x !== 0 || click.y !== 0).map((click, index) => (
+      {clickHistory.slice(0, 5).filter(click => 
+        click.x > 0 && click.y > 0 && click.x !== -999 && click.y !== -999
+      ).map((click, index) => (
         <div
           key={click.timestamp}
           className="absolute"
