@@ -69,8 +69,8 @@ const IsolatedMouseRendererComponent = forwardRef<MouseRendererHandle, IsolatedM
     const updateCursorPosition = useCallback((position: MousePosition) => {
       if (!cursorRef.current || !trailRef.current) return;
       
-      // 유효하지 않은 위치 필터링
-      if (position.x <= 0 || position.y <= 0 || position.x === -999 || position.y === -999) {
+      // 유효하지 않은 위치 필터링 (초기값 -999 체크)
+      if (position.x === -999 || position.y === -999) {
         return;
       }
 

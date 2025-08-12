@@ -15,41 +15,7 @@ import {
   type MousePosition,
 } from '../context/MouseEventsContext';
 
-/**
- * 스로틀 훅
- */
-function useThrottle<T extends any[]>(
-  callback: (...args: T) => void,
-  delay: number
-) {
-  const lastCallRef = useRef<number>(0);
-  const timeoutRef = useRef<NodeJS.Timeout>();
-  const callbackRef = useRef(callback);
-  
-  // 최신 callback을 ref에 저장 (리렌더링 방지)
-  callbackRef.current = callback;
-
-  return useCallback(
-    (...args: T) => {
-      const now = Date.now();
-      const timeSinceLastCall = now - lastCallRef.current;
-
-      if (timeSinceLastCall >= delay) {
-        lastCallRef.current = now;
-        callbackRef.current(...args); // ref를 통해 호출
-      } else {
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
-        timeoutRef.current = setTimeout(() => {
-          lastCallRef.current = Date.now();
-          callbackRef.current(...args); // ref를 통해 호출
-        }, delay - timeSinceLastCall);
-      }
-    },
-    [delay] // callback 의존성 제거
-  );
-}
+// useThrottle Hook 제거 - core 내장 throttle 사용
 
 /**
  * 마우스 이벤트 로직 Hook
@@ -71,29 +37,20 @@ export function useMouseEventsLogic() {
     lastClickLogTime: 0
   });
 
-  // 마우스 메트릭 업데이트 함수 (안정적인 참조)
+  // 마우스 메트릭 업데이트 함수 (core throttle 사용)
   const updateMouseMetrics = useCallback(
     (position: MousePosition, timestamp: number) => {
-      const currentState = mouseStore.getValue();
-      const timeDiff = currentState.lastMoveTime ? timestamp - currentState.lastMoveTime : 0;
-      const deltaX = position.x - currentState.previousPosition.x;
-      const deltaY = position.y - currentState.previousPosition.y;
-      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-      
-      // 마우스 속도 계산 (px/ms)
-      const velocity = timeDiff > 0 ? distance / timeDiff : 0;
-
+      // core의 내장 throttle 기능 사용 (~60fps)
       dispatch('updateMouseMetrics', {
         position,
-        velocity,
+        velocity: 0, // 속도는 핸들러에서 계산
         timestamp,
+      }, { 
+        throttle: 16 // ~60fps throttling
       });
     },
-    [] // 빈 의존성으로 안정적인 참조 유지
+    [] // 안정적인 참조 유지
   );
-
-  // 스로틀된 마우스 핸들러 (안정적인 참조)
-  const throttledMouseHandler = useThrottle(updateMouseMetrics, 16);
 
   // 마우스 이동 종료 감지 (안정적인 참조)
   const handleMoveEnd = useCallback(
@@ -147,7 +104,7 @@ export function useMouseEventsLogic() {
           dispatch('moveStart', { position, timestamp });
         }
         
-        throttledMouseHandler(position, timestamp);
+        updateMouseMetrics(position, timestamp);
         handleMoveEnd(position);
         
         controller.next();
@@ -169,6 +126,13 @@ export function useMouseEventsLogic() {
           ],
         }));
         
+        // UI 업데이트
+        const statusDisplay = (window as any).__statusDisplay;
+        if (statusDisplay) {
+          const newState = mouseStore.getValue();
+          statusDisplay.updateClicks(newState.clickCount);
+        }
+        
         controller.next();
       }
     );
@@ -184,6 +148,13 @@ export function useMouseEventsLogic() {
           isInsideArea: true,
           mousePosition: { x, y },
         }));
+        
+        // UI 업데이트
+        const statusDisplay = (window as any).__statusDisplay;
+        if (statusDisplay) {
+          statusDisplay.updateInside(true);
+          statusDisplay.updatePosition(x, y);
+        }
         
         controller.next();
       }
@@ -203,6 +174,14 @@ export function useMouseEventsLogic() {
           // 위치는 유지 - 0,0으로 초기화하지 않음
         }));
         
+        // UI 업데이트
+        const statusDisplay = (window as any).__statusDisplay;
+        if (statusDisplay) {
+          statusDisplay.updateInside(false);
+          statusDisplay.updateStatus(false);
+          statusDisplay.updateVelocity(0);
+        }
+        
         controller.next();
       }
     );
@@ -219,20 +198,37 @@ export function useMouseEventsLogic() {
           lastMoveTime: timestamp,
         }));
         
+        // UI 업데이트
+        const statusDisplay = (window as any).__statusDisplay;
+        if (statusDisplay) {
+          statusDisplay.updateStatus(true);
+        }
+        
         controller.next();
       }
     );
 
-    // 마우스 메트릭 업데이트 핸들러
+    // 마우스 메트릭 업데이트 핸들러 (속도 계산 + UI 업데이트)
     const unregisterUpdate = register.register(
       'updateMouseMetrics',
-      ({ position, velocity, timestamp }, controller) => {
+      ({ position, timestamp }, controller) => {
+        // 현재 상태에서 속도 계산
+        const currentState = mouseStore.getValue();
+        const timeDiff = currentState.lastMoveTime ? timestamp - currentState.lastMoveTime : 0;
+        const deltaX = position.x - currentState.previousPosition.x;
+        const deltaY = position.y - currentState.previousPosition.y;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        
+        // 마우스 속도 계산 (px/ms)
+        const velocity = timeDiff > 0 ? distance / timeDiff : 0;
+        
         logAction('updateMouseMetrics', { 
           position, 
           velocity: velocity.toFixed(2),
           timestamp 
         });
         
+        // 상태 업데이트
         mouseStore.update((state) => ({
           ...state,
           mousePosition: position,
@@ -245,6 +241,16 @@ export function useMouseEventsLogic() {
             ...state.movePath.slice(0, 19), // 최근 20개 점 유지 (히스토리 보존)
           ],
         }));
+        
+        // UI 업데이트 (DOM 직접 조작)
+        const statusDisplay = (window as any).__statusDisplay;
+        if (statusDisplay) {
+          const newState = mouseStore.getValue();
+          statusDisplay.updatePosition(position.x, position.y);
+          statusDisplay.updateMoves(newState.moveCount);
+          statusDisplay.updateVelocity(velocity);
+          statusDisplay.updateLastActivity(timestamp);
+        }
         
         controller.next();
       }
@@ -262,6 +268,13 @@ export function useMouseEventsLogic() {
           mouseVelocity: 0,
           // position은 현재 위치를 유지 - 0,0으로 초기화하지 않음
         }));
+        
+        // UI 업데이트
+        const statusDisplay = (window as any).__statusDisplay;
+        if (statusDisplay) {
+          statusDisplay.updateStatus(false);
+          statusDisplay.updateVelocity(0);
+        }
         
         controller.next();
       }

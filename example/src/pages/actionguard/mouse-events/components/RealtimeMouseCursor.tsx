@@ -39,9 +39,9 @@ const RealtimeMouseCursorComponent = ({
     // 영역 밖이면 렌더링하지 않음
     if (!isVisible) return;
 
-    // 유효하지 않은 위치 필터링
-    if (position.x <= 0 || position.y <= 0 || position.x === -999 || position.y === -999) {
-      return; // 유효하지 않은 위치로 이동하지 않음
+    // 유효하지 않은 위치 필터링 (초기값 -999 체크)
+    if (position.x === -999 || position.y === -999) {
+      return; // 초기값일 때는 렌더링하지 않음
     }
 
     // 직접 CSS 변경으로 최고 성능

@@ -117,7 +117,6 @@ export interface MouseEventsActions extends ActionPayloadMap {
   /** 마우스 메트릭 업데이트 액션 */
   updateMouseMetrics: {
     position: MousePosition;
-    velocity: number;
     timestamp: number;
   };
   
