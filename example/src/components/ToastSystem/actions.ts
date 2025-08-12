@@ -274,7 +274,8 @@ toastActionRegister.register('removeToast', ({ toastId }) => {
   const updatedToasts = currentToasts.filter((toast) => toast.id !== toastId);
   toastsStore.setValue(updatedToasts);
 
-  logger.info('removeToast', { toastId });
+  // removeToast 로깅을 DEBUG 레벨로 낮춰서 덜 눈에 띄게 함
+  logger.debug('removeToast', { toastId });
 });
 
 toastActionRegister.register('updateToastPhase', ({ toastId, phase }) => {
@@ -283,6 +284,9 @@ toastActionRegister.register('updateToastPhase', ({ toastId, phase }) => {
     toast.id === toastId ? { ...toast, phase } : toast
   );
   toastsStore.setValue(updatedToasts);
+  
+  // updateToastPhase도 DEBUG 레벨로 로깅
+  logger.debug('updateToastPhase', { toastId, phase });
 });
 
 toastActionRegister.register('clearAllToasts', () => {

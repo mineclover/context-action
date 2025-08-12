@@ -59,6 +59,13 @@ export function useMouseEventsLogic() {
   const mouseState = useStoreValue(mouseStore);
   const { logAction } = useActionLoggerWithToast();
   const moveEndTimeoutRef = useRef<NodeJS.Timeout>();
+  
+  // 로깅 스로틀링을 위한 ref
+  const logControlRef = useRef({ 
+    moveCount: 0, 
+    lastMoveLogTime: 0,
+    lastClickLogTime: 0
+  });
 
   // 마우스 메트릭 업데이트 함수
   const updateMouseMetrics = useCallback(
@@ -109,7 +116,24 @@ export function useMouseEventsLogic() {
     const unregisterMove = register.register(
       'mouseMove',
       ({ x, y, timestamp }, controller) => {
-        logAction('mouseMove', { x, y, timestamp });
+        const now = Date.now();
+        const logControl = logControlRef.current;
+        
+        // 마우스 이동 로깅을 1초마다 1번만 하거나 매 100번째마다
+        logControl.moveCount++;
+        const shouldLog = (
+          now - logControl.lastMoveLogTime > 1000 || // 1초마다
+          logControl.moveCount % 100 === 0 // 또는 100번마다
+        );
+        
+        if (shouldLog) {
+          logAction('mouseMove', { 
+            x, y, timestamp, 
+            moveCount: logControl.moveCount,
+            note: `${logControl.moveCount}번째 이동` 
+          }, { toast: false }); // Toast 비활성화
+          logControl.lastMoveLogTime = now;
+        }
         
         const currentState = mouseStore.getValue();
         const position = { x, y };
