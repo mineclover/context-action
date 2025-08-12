@@ -100,6 +100,15 @@ interface MouseEventsStores {
     activityStatus: 'idle' | 'moving' | 'clicking';
     hasActivity: boolean;
   };
+  
+  // 성능 메트릭
+  performance: {
+    containerRenderCount: number;
+    totalRenderCount: number;
+    averageRenderTime: number;
+    lastRenderTime: number;
+    sessionStartTime: number;
+  };
 }
 
 const mouseEventsStoreSchema: StoreSchema<MouseEventsStores> = {
@@ -145,6 +154,18 @@ const mouseEventsStoreSchema: StoreSchema<MouseEventsStores> = {
     },
     description: 'Computed values and derived state',
     tags: ['computed', 'derived', 'reactive', 'lazy'],
+  },
+  
+  performance: {
+    initialValue: {
+      containerRenderCount: 0,
+      totalRenderCount: 0,
+      averageRenderTime: 0,
+      lastRenderTime: 0,
+      sessionStartTime: Date.now(),
+    },
+    description: 'Performance metrics and render tracking',
+    tags: ['performance', 'metrics', 'render', 'timing'],
   },
 };
 
@@ -428,6 +449,7 @@ const MouseEventsActionHandlers: React.FC<{ children: React.ReactNode }> = ({ ch
   const movementStore = useMouseEventsStore('movement');
   const clicksStore = useMouseEventsStore('clicks');
   const computedStore = useMouseEventsStore('computed');
+  const performanceStore = useMouseEventsStore('performance');
   
   // Action 핸들러 등록
   useMouseEventsActionHandler('mouseMove', async (payload) => {
@@ -585,7 +607,17 @@ const MouseEventsActionHandlers: React.FC<{ children: React.ReactNode }> = ({ ch
       activityStatus: 'idle',
       hasActivity: false
     });
+    
+    performanceStore.setValue({
+      containerRenderCount: 0,
+      totalRenderCount: 0,
+      averageRenderTime: 0,
+      lastRenderTime: 0,
+      sessionStartTime: Date.now(),
+    });
   });
+  
+  // updatePerformanceMetrics 핸들러 제거 - 무한 루프 방지를 위해 사용하지 않음
 
   return <>{children}</>;
 };
