@@ -61,15 +61,15 @@ interface MouseEventsStores {
 const mouseEventsStoreSchema: StoreSchema<MouseEventsStores> = {
   mouseState: {
     initialValue: {
-      mousePosition: { x: 0, y: 0 },
+      mousePosition: { x: -1, y: -1 }, // 0,0 대신 -1,-1로 초기화
       moveCount: 0,
       clickCount: 0,
       isMoving: false,
       lastMoveTime: null,
       movePath: [],
       mouseVelocity: 0,
-      previousPosition: { x: 0, y: 0 },
-      isInsideArea: true,
+      previousPosition: { x: -1, y: -1 }, // 0,0 대신 -1,-1로 초기화
+      isInsideArea: false, // 처음에는 영역 밖으로 설정
       clickHistory: [],
     },
     description: 'Mouse events state management with throttling',

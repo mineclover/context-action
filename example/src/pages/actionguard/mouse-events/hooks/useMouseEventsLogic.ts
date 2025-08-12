@@ -157,10 +157,17 @@ export function useMouseEventsLogic() {
       ({ x, y, timestamp }, controller) => {
         logAction('mouseEnter', { x, y, timestamp });
         
+        // 유효하지 않은 위치 진입 필터링
+        if (x <= 0 || y <= 0) {
+          controller.next();
+          return;
+        }
+        
         mouseStore.update((state) => ({
           ...state,
           isInsideArea: true,
           mousePosition: { x, y },
+          previousPosition: { x, y }, // 진입 시점의 위치를 이전 위치로도 설정
         }));
         
         controller.next();
