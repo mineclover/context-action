@@ -7,7 +7,7 @@ export const toastsStore = createStore<Toast[]>('toasts', []);
 // 토스트 설정 스토어
 export const toastConfigStore = createStore<ToastConfig>('toastConfig', {
   position: 'top-right',
-  maxToasts: 5,
+  maxToasts: 4, // 화면 공간을 고려하여 4개로 제한
   defaultDuration: 4000,
   showStackCount: true,
   enableActionLogging: true,

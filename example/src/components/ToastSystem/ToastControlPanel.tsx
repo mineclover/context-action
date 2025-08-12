@@ -155,9 +155,12 @@ export function ToastControlPanel() {
 
             {/* 최대 토스트 수 */}
             <div className="toast-setting-group">
-              <label className="toast-setting-label">Max Toasts:</label>
+              <label className="toast-setting-label">
+                Max Toasts:
+                <span className="text-xs text-gray-500 ml-1">(화면에 표시될 최대 개수)</span>
+              </label>
               <div className="toast-number-controls">
-                {[3, 5, 7, 10].map((num) => (
+                {[3, 4, 5, 6].map((num) => (
                   <button
                     key={num}
                     onClick={() => handleMaxToastsChange(num)}
@@ -167,6 +170,9 @@ export function ToastControlPanel() {
                   </button>
                 ))}
               </div>
+              <p className="text-xs text-gray-500 mt-1">
+                초과 시 가장 오래된 토스트가 자동으로 제거됩니다
+              </p>
             </div>
 
             {/* 기본 지속 시간 */}
@@ -192,19 +198,20 @@ export function ToastControlPanel() {
             <div className="toast-stress-buttons">
               <button
                 onClick={() => {
-                  for (let i = 0; i < 5; i++) {
+                  for (let i = 0; i < 8; i++) {
                     setTimeout(() => {
+                      const types = ['info', 'success', 'error', 'system'] as const;
                       showToast(
-                        'info',
-                        `🔄 Bulk Test ${i + 1}`,
-                        `This is bulk message number ${i + 1}`
+                        types[i % types.length],
+                        `🔄 Overflow Test ${i + 1}`,
+                        `이 메시지로 최대 개수 제한을 테스트해보세요! (${i + 1}/8)`
                       );
-                    }, i * 200);
+                    }, i * 300);
                   }
                 }}
                 className="toast-stress-btn"
               >
-                🔄 Bulk Test (5)
+                🔄 Overflow Test (8개)
               </button>
 
               <button

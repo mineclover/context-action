@@ -26,12 +26,15 @@ export function ToastContainer() {
     return bTime - aTime;
   });
 
+  // maxToasts 설정에 따라 표시할 토스트 수 제한 (최신 것들만)
+  const displayToasts = sortedToasts.slice(0, config?.maxToasts || 4);
+
   const handleClearAll = () => {
     toastActionRegister.dispatch('clearAllToasts', {});
   };
 
   // 토스트가 없으면 컨테이너를 숨김
-  if (sortedToasts.length === 0) {
+  if (displayToasts.length === 0) {
     return null;
   }
 
@@ -45,7 +48,22 @@ export function ToastContainer() {
       )}
     >
       {/* 컨트롤 헤더 - 최소화 (토스트가 많을 때만 표시) */}
-      {sortedToasts.length > 3 && (
+      {visibleToasts.length > (config?.maxToasts || 4) && (
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs text-white/40">
+            {visibleToasts.length - displayToasts.length}개 더 있음
+          </span>
+          <button
+            type="button"
+            className="text-xs text-white/50 hover:text-white/80 transition-colors p-1"
+            onClick={handleClearAll}
+            title="모든 토스트 지우기"
+          >
+            ×다 지우기
+          </button>
+        </div>
+      )}
+      {displayToasts.length > 2 && visibleToasts.length <= (config?.maxToasts || 4) && (
         <div className="flex items-center justify-end mb-2">
           <button
             type="button"
@@ -60,12 +78,12 @@ export function ToastContainer() {
 
       {/* 토스트 스택 */}
       <div className="space-y-2">
-        {sortedToasts.map((toast, index) => (
+        {displayToasts.map((toast, index) => (
           <ToastItem
             key={toast.id}
             toast={toast}
             index={index}
-            totalCount={sortedToasts.length}
+            totalCount={displayToasts.length}
           />
         ))}
       </div>
