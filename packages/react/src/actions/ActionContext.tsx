@@ -34,14 +34,6 @@ export interface ActionContextReturn<T extends {}> {
     handler: ActionHandler<T[K]>,
     config?: HandlerConfig
   ) => void;
-  /**
-   * @deprecated Use useActionHandler instead. This hook will be removed in v2.0.0
-   * @example 
-   * // Old way (deprecated):
-   * const register = useActionRegister();
-   * // New way (recommended):
-   * const addHandler = useActionHandler();
-   */
   useActionRegister: () => ActionRegister<T> | null;
   useActionDispatchWithResult: () => {
     dispatch: <K extends keyof T>(
@@ -112,7 +104,7 @@ export interface ActionContextReturn<T extends {}> {
  *   );
  * }
  * 
- * // Alternative: Using useActionRegister for direct registration in useEffect
+ * // Alternative: Using useActionRegister for direct ActionRegister access
  * function AuthComponentAlt() {
  *   const dispatch = useAction();
  *   const register = useActionRegister();
@@ -120,9 +112,21 @@ export interface ActionContextReturn<T extends {}> {
  *   useEffect(() => {
  *     if (!register) return;
  *     
+ *     // Clear existing handlers if needed
+ *     register.clearAction('login');
+ *     
+ *     // Register handlers with full control
  *     const unregisterLogin = register.register('login', async ({ username, password }) => {
  *       // Handle login logic
- *     });
+ *     }, { priority: 100 });
+ *     
+ *     // Can also use dispatchWithResult directly from register
+ *     const handleLoginWithResult = async () => {
+ *       const result = await register.dispatchWithResult('login', 
+ *         { username: 'user', password: 'pass' }
+ *       );
+ *       console.log('Login result:', result);
+ *     };
  *     
  *     return () => {
  *       unregisterLogin();
@@ -157,11 +161,11 @@ export function createActionContext<T extends {}>(
   // Provider component with abort support
   const Provider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const actionRegisterRef = useRef<ActionRegister<T>>(new ActionRegister<T>(config));
-    const abortControllerRef = useRef<AbortController | null>(null);
+    // const abortControllerRef = useRef<AbortController | null>(null);
 
     const contextValue = useMemo(() => ({
       actionRegisterRef,
-      abortControllerRef,
+      // abortControllerRef,
     }), []);
 
     return (
@@ -180,20 +184,11 @@ export function createActionContext<T extends {}>(
     return context;
   };
 
-  // Hook to get the dispatch function with automatic abort on unmount
+  // Hook to get the dispatch function with automatic abort support
   const useAction = (): ActionRegister<T>['dispatch'] => {
     const context = useFactoryActionContext();
-    const componentAbortRef = useRef<AbortController | null>(null);
     
-    // Get or create component-specific abort controller
-    const getComponentAbortController = useCallback(() => {
-      if (!componentAbortRef.current || componentAbortRef.current.signal.aborted) {
-        componentAbortRef.current = new AbortController();
-      }
-      return componentAbortRef.current;
-    }, []);
-    
-    // Create wrapped dispatch that includes component-specific abort signal
+    // Create wrapped dispatch that uses core's autoAbort feature
     const wrappedDispatch = useCallback(<K extends keyof T>(
       action: K,
       payload?: T[K],
@@ -207,23 +202,17 @@ export function createActionContext<T extends {}>(
         );
       }
       
-      const controller = getComponentAbortController();
-      // Merge component abort signal with any existing options
+      // Use core's autoAbort feature if no signal is provided
       const dispatchOptions: DispatchOptions = {
         ...options,
-        signal: options?.signal || controller.signal,
-      };
-      return register.dispatch(action, payload, dispatchOptions);
-    }, [context.actionRegisterRef, getComponentAbortController]);
-    
-    // Cleanup: abort all pending actions on unmount
-    useEffect(() => {
-      return () => {
-        if (componentAbortRef.current && !componentAbortRef.current.signal.aborted) {
-          componentAbortRef.current.abort();
+        // Enable autoAbort if no signal is provided
+        autoAbort: options?.signal ? undefined : {
+          enabled: true,
+          allowHandlerAbort: true
         }
       };
-    }, []);
+      return register.dispatch(action, payload, dispatchOptions);
+    }, [context.actionRegisterRef.current]);
     
     return wrappedDispatch as ActionRegister<T>['dispatch'];
   };
@@ -258,17 +247,17 @@ export function createActionContext<T extends {}>(
 
       // Cleanup on unmount or when dependencies change
       return unregister;
-    }, [action, actionId, actionRegisterRef]);
+    }, [action, actionId, actionRegisterRef.current]);
   };
 
-  // Hook to get the ActionRegister instance directly for use in useEffect
   /**
    * Hook that provides direct access to the ActionRegister instance
    * 
-   * This hook is useful when you need to register handlers directly in useEffect
-   * instead of using the useActionHandler hook. This pattern can be helpful
-   * for complex handler registration logic or when you need more control over
-   * the registration lifecycle.
+   * This hook is useful when you need to:
+   * - Register multiple handlers dynamically
+   * - Access other ActionRegister methods like clearAction, getHandlers, etc.
+   * - Implement complex handler registration logic
+   * - Have more control over the registration lifecycle
    * 
    * @returns ActionRegister instance or null if not initialized
    * 
@@ -280,12 +269,19 @@ export function createActionContext<T extends {}>(
    *   useEffect(() => {
    *     if (!register) return;
    *     
-   *     const unregisterHandler = register.register('myAction', async (payload, controller) => {
-   *       // Handler logic
-   *     });
+   *     // Clear all handlers for an action
+   *     register.clearAction('myAction');
+   *     
+   *     // Register multiple handlers
+   *     const unregister1 = register.register('myAction', handler1, { priority: 100 });
+   *     const unregister2 = register.register('myAction', handler2, { priority: 50 });
+   *     
+   *     // Access other methods
+   *     const handlers = register.getHandlers('myAction');
    *     
    *     return () => {
-   *       unregisterHandler();
+   *       unregister1();
+   *       unregister2();
    *     };
    *   }, [register]);
    * }
@@ -330,20 +326,12 @@ export function createActionContext<T extends {}>(
    * ```
    */
 
-  // Hook for enhanced dispatch with abort control (similar to old useActionDispatchWithResult)
+  // Hook for enhanced dispatch with abort control
   const useFactoryActionDispatchWithResult = () => {
     const context = useFactoryActionContext();
-    const componentAbortRef = useRef<AbortController | null>(null);
+    const activeControllersRef = useRef<Set<AbortController>>(new Set());
     
-    // Get or create component-specific abort controller
-    const getComponentAbortController = useCallback(() => {
-      if (!componentAbortRef.current || componentAbortRef.current.signal.aborted) {
-        componentAbortRef.current = new AbortController();
-      }
-      return componentAbortRef.current;
-    }, []);
-    
-    // Create wrapped dispatch
+    // Create wrapped dispatch using core's autoAbort
     const dispatch = useCallback(<K extends keyof T>(
       action: K,
       payload?: T[K],
@@ -354,15 +342,21 @@ export function createActionContext<T extends {}>(
         throw new Error('ActionRegister not initialized');
       }
       
-      const controller = getComponentAbortController();
       const dispatchOptions: DispatchOptions = {
         ...options,
-        signal: options?.signal || controller.signal,
+        // Enable autoAbort if no signal is provided
+        autoAbort: options?.signal ? undefined : {
+          enabled: true,
+          allowHandlerAbort: true,
+          onControllerCreated: (controller) => {
+            activeControllersRef.current.add(controller);
+          }
+        }
       };
       return register.dispatch(action, payload, dispatchOptions);
-    }, [context.actionRegisterRef, getComponentAbortController]);
+    }, [context.actionRegisterRef]);
     
-    // Create wrapped dispatchWithResult
+    // Create wrapped dispatchWithResult using core's autoAbort
     const dispatchWithResult = useCallback(<K extends keyof T, R = void>(
       action: K,
       payload?: T[K],
@@ -373,34 +367,44 @@ export function createActionContext<T extends {}>(
         throw new Error('ActionRegister not initialized');
       }
       
-      const controller = getComponentAbortController();
       const dispatchOptions: DispatchOptions = {
         ...options,
-        signal: options?.signal || controller.signal,
+        // Enable autoAbort if no signal is provided
+        autoAbort: options?.signal ? undefined : {
+          enabled: true,
+          allowHandlerAbort: true,
+          onControllerCreated: (controller) => {
+            activeControllersRef.current.add(controller);
+          }
+        }
       };
       return register.dispatchWithResult<K, R>(action, payload, dispatchOptions);
-    }, [context.actionRegisterRef, getComponentAbortController]);
+    }, [context.actionRegisterRef.current]);
     
     // Method to manually abort all pending actions
     const abortAll = useCallback(() => {
-      if (componentAbortRef.current && !componentAbortRef.current.signal.aborted) {
-        componentAbortRef.current.abort();
-        componentAbortRef.current = null;
-      }
+      activeControllersRef.current.forEach(controller => {
+        if (!controller.signal.aborted) {
+          controller.abort();
+        }
+      });
+      activeControllersRef.current.clear();
     }, []);
     
     // Method to create a new abort scope
     const resetAbortScope = useCallback(() => {
       abortAll();
-      componentAbortRef.current = new AbortController();
     }, [abortAll]);
     
     // Cleanup: abort all pending actions on unmount
     useEffect(() => {
       return () => {
-        if (componentAbortRef.current && !componentAbortRef.current.signal.aborted) {
-          componentAbortRef.current.abort();
-        }
+        activeControllersRef.current.forEach(controller => {
+          if (!controller.signal.aborted) {
+            controller.abort();
+          }
+        });
+        activeControllersRef.current.clear();
       };
     }, []);
     
@@ -412,26 +416,12 @@ export function createActionContext<T extends {}>(
     };
   };
 
-  // Add deprecation warning for old useActionRegister hook
-  const useActionRegisterWithWarning = (): ActionRegister<T> | null => {
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn(
-        '⚠️ useActionRegister is deprecated. Use useActionHandler instead. ' +
-        'This hook will be removed in v2.0.0. ' +
-        'Migration: const register = useActionRegister() → const addHandler = useActionHandler()'
-      );
-    }
-    return useFactoryActionRegister();
-  };
-
   return {
     Provider,
     useActionContext: useFactoryActionContext,
     useActionDispatch: useAction,
-    // New preferred naming (prioritized in order)
     useActionHandler,
-    // Deprecated naming (with warnings)
-    useActionRegister: useActionRegisterWithWarning,
+    useActionRegister: useFactoryActionRegister,
     useActionDispatchWithResult: useFactoryActionDispatchWithResult,
     context: FactoryActionContext,
   };

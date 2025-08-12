@@ -48,7 +48,7 @@ export function useTestExecution(options: TestExecutionOptions = {}) {
   const executionStateStore = usePriorityTestStore('executionState');
   
   const [isRunning, setIsRunning] = useState(false);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const currentAbortControllerRef = useRef<AbortController | null>(null);
   
   /**
    * 테스트를 실행합니다
@@ -68,22 +68,24 @@ export function useTestExecution(options: TestExecutionOptions = {}) {
     try {
       setIsRunning(true);
       
-      // 새로운 AbortController 생성
-      const abortController = new AbortController();
-      abortControllerRef.current = abortController;
-      
       onTestStart?.();
       
       const testStartTime = Date.now();
       console.log('🚀 Starting priority test...');
 
-      // 테스트 실행
+      // 테스트 실행 - autoAbort 사용
       const result = await actionRegister.dispatchWithResult(
         'priorityTest',
         { testId: `test-${testStartTime}`, delay: 0 },
         { 
           executionMode: 'sequential',
-          signal: abortController.signal 
+          autoAbort: {
+            enabled: true,
+            onControllerCreated: (controller) => {
+              currentAbortControllerRef.current = controller;
+            },
+            allowHandlerAbort: true
+          }
         }
       );
 
@@ -120,7 +122,7 @@ export function useTestExecution(options: TestExecutionOptions = {}) {
       
     } finally {
       setIsRunning(false);
-      abortControllerRef.current = null;
+      currentAbortControllerRef.current = null;
     }
   }, [actionRegister, isRunning, onTestStart, onTestComplete, onTestError]);
 
@@ -128,9 +130,9 @@ export function useTestExecution(options: TestExecutionOptions = {}) {
    * 실행 중인 테스트를 중단합니다
    */
   const abortTest = useCallback(() => {
-    if (abortControllerRef.current && !abortControllerRef.current.signal.aborted) {
+    if (currentAbortControllerRef.current && !currentAbortControllerRef.current.signal.aborted) {
       console.log('🛑 Aborting test...');
-      abortControllerRef.current.abort('User requested abort');
+      currentAbortControllerRef.current.abort('User requested abort');
       
       // executionState 업데이트
       const currentState = executionStateStore.getValue();
@@ -174,7 +176,7 @@ export function useTestExecution(options: TestExecutionOptions = {}) {
    * 현재 실행 중인 AbortController를 반환합니다
    */
   const getCurrentAbortController = useCallback(() => {
-    return abortControllerRef.current;
+    return currentAbortControllerRef.current;
   }, []);
 
   return {
