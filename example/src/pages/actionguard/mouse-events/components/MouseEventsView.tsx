@@ -8,7 +8,7 @@ import { memo, useMemo, useCallback } from 'react';
 import { DemoCard, Button, CodeBlock, CodeExample } from '../../../../components/ui';
 import { useStoreValue } from '@context-action/react';
 import { useMouseEventsLogic } from '../hooks/useMouseEventsLogic';
-import { useMouseEventsStore, type MouseEventsStateData } from '../context/MouseEventsContext';
+import { useMouseEventsStore, useAggregatedMouseEventsState, type MouseEventsStateData } from '../context/MouseEventsContext';
 import { SimpleSmoothTracker } from './SimpleSmoothTracker';
 import { StaticMousePath } from './StaticMousePath';
 import { AnimatedClickIndicators } from './AnimatedClickIndicators';
@@ -30,9 +30,43 @@ const MouseEventsViewComponent = () => {
     resetState,
   } = useMouseEventsLogic();
   
-  // 깔끔한 useStoreValue 사용 및 구조분해
-  const mouseStore = useMouseEventsStore('mouseState');
-  const mouseState = useStoreValue(mouseStore);
+  // 개별 stores에서 반응형 구독
+  const positionStore = useMouseEventsStore('position');
+  const movementStore = useMouseEventsStore('movement');
+  const clicksStore = useMouseEventsStore('clicks');
+  const computedStore = useMouseEventsStore('computed');
+  
+  const position = useStoreValue(positionStore);
+  const movement = useStoreValue(movementStore);
+  const clicks = useStoreValue(clicksStore);
+  const computed = useStoreValue(computedStore);
+  
+  // 집계된 상태 (메모화)
+  const mouseState = useMemo(() => ({
+    // Position data
+    mousePosition: position.current,
+    previousPosition: position.previous,
+    isInsideArea: position.isInsideArea,
+    
+    // Movement data
+    moveCount: movement.moveCount,
+    isMoving: movement.isMoving,
+    mouseVelocity: movement.velocity,
+    lastMoveTime: movement.lastMoveTime,
+    movePath: movement.path,
+    
+    // Click data
+    clickCount: clicks.count,
+    clickHistory: clicks.history,
+    
+    // Computed values
+    validPath: computed.validPath,
+    recentClickCount: computed.recentClickCount,
+    averageVelocity: computed.averageVelocity,
+    totalEvents: computed.totalEvents,
+    activityStatus: computed.activityStatus,
+    hasActivity: computed.hasActivity,
+  }), [position, movement, clicks, computed]);
   
   // mouseState 구조분해
   const {

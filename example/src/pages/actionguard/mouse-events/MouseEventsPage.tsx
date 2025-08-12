@@ -4,8 +4,10 @@
  * Context → Data/Action → Hook → View 계층 구조를 따르는 마우스 이벤트 데모 페이지
  */
 
+import { Link } from 'react-router-dom';
 import { MouseEventsContainer } from './containers/MouseEventsContainer';
 import { StoreBasedMouseEventsContainer } from './containers/StoreBasedMouseEventsContainer';
+import { ContextStoreMouseEventsContainer } from './containers/ContextStoreMouseEventsContainer';
 
 /**
  * Clean Architecture 마우스 이벤트 UI
@@ -37,6 +39,35 @@ const MouseEventsUI = () => {
       {/* Reactive Stores Container */}
       <div className="mt-8">
         <StoreBasedMouseEventsContainer />
+      </div>
+      
+      {/* Context Store Container with Navigation */}
+      <div className="mt-8">
+        <div className="mb-4">
+          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🏪</span>
+                <h2 className="text-lg font-semibold text-emerald-800">
+                  Context Store Pattern - Preview
+                </h2>
+              </div>
+              <Link 
+                to="/actionguard/mouse-events/context-store"
+                className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              >
+                🚀 Enhanced Context Store Page
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </Link>
+            </div>
+            <p className="text-sm text-emerald-700 mt-2">
+              Individual stores with selective subscriptions. Click the button above to see the enhanced version with real-time analytics and performance metrics.
+            </p>
+          </div>
+        </div>
+        <ContextStoreMouseEventsContainer />
       </div>
     </div>
   );

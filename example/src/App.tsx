@@ -15,6 +15,7 @@ import SearchPage from './pages/actionguard/search/SearchPage';
 import ScrollPage from './pages/actionguard/scroll/ScrollPage';
 import ApiBlockingPage from './pages/actionguard/api-blocking/ApiBlockingPage';
 import MouseEventsPage from './pages/actionguard/mouse-events/MouseEventsPage';
+import { ContextStoreMouseEventsPage } from './pages/actionguard/mouse-events/ContextStoreMouseEventsPage';
 import ActionGuardTestPage from './pages/actionguard/dispatch-options-test/DispatchOptionsTestPage';
 import PriorityPerformancePage from './pages/actionguard/priority-performance/PriorityPerformancePage';
 import ThrottleComparisonPage from './pages/actionguard/throttle-comparison/ThrottleComparisonPage';
@@ -79,6 +80,7 @@ function AppContent() {
           <Route path="/actionguard/scroll" element={<ScrollPage />} />
           <Route path="/actionguard/api-blocking" element={<ApiBlockingPage />} />
           <Route path="/actionguard/mouse-events" element={<MouseEventsPage />} />
+          <Route path="/actionguard/mouse-events/context-store" element={<ContextStoreMouseEventsPage />} />
           <Route path="/actionguard/test" element={<ActionGuardTestPage />} />
           <Route
             path="/actionguard/priority-performance"

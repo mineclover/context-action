@@ -106,6 +106,11 @@ function Layout({
       category: 'actionguard' as const,
     },
     {
+      path: '/actionguard/mouse-events/context-store',
+      label: '🚀 Enhanced Context Store',
+      category: 'actionguard' as const,
+    },
+    {
       path: '/actionguard/test',
       label: '🧪 Dispatch Options Test',
       category: 'actionguard' as const,
