@@ -4,7 +4,7 @@
  * Context Store 패턴으로 마우스 이벤트 상태 관리
  */
 
-import { createActionContextPattern, StoreSchema } from '@context-action/react';
+import { createActionContextPattern } from '@context-action/react';
 
 // ================================
 // 📊 기본 타입 정의
@@ -64,6 +64,7 @@ export interface MouseActions {
   mouseLeave: { position: MousePosition; timestamp: number };
   moveEnd: { position: MousePosition; timestamp: number };
   reset: void;
+  [key: string]: any;
 }
 
 // ================================
@@ -121,7 +122,7 @@ export function computeAverageVelocity(validPath: MousePosition[]): number {
     const prev = validPath[i - 1];
     const curr = validPath[i];
     const distance = Math.sqrt(
-      Math.pow(curr.x - prev.x, 2) + Math.pow(curr.y - prev.y, 2)
+      (curr.x - prev.x) ** 2 + (curr.y - prev.y) ** 2
     );
     totalDistance += distance;
   }

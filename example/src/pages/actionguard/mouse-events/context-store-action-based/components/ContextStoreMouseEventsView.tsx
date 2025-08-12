@@ -8,7 +8,6 @@ import { memo, useMemo, useRef } from 'react';
 import { useStoreValue } from '@context-action/react';
 import { DemoCard, Button, CodeBlock, CodeExample } from '../../../../../components/ui';
 import { useMouseStore, initialMouseState } from '../stores/MouseStoreSchema';
-import type { MouseStateData } from '../stores/MouseStoreSchema';
 
 // ================================
 // 📊 Props 인터페이스
