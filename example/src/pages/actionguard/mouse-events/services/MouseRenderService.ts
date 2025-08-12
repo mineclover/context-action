@@ -153,6 +153,7 @@ export class MouseRenderService {
     isMoving?: boolean;
     isInside?: boolean;
     lastActivity?: number | null;
+    activityStatus?: 'idle' | 'moving' | 'clicking';
   }): void {
     if (data.position && this.statusElements.position) {
       this.statusElements.position.textContent = `(${data.position.x}, ${data.position.y})`;
@@ -170,7 +171,16 @@ export class MouseRenderService {
       this.statusElements.velocity.textContent = `${data.velocity.toFixed(2)} px/ms`;
     }
 
-    if (data.isMoving !== undefined && this.statusElements.status) {
+    // activityStatus가 있으면 우선 사용, 없으면 isMoving 사용
+    if (data.activityStatus !== undefined && this.statusElements.status) {
+      const statusText = data.activityStatus === 'moving' ? '🔄 Moving' : 
+                        data.activityStatus === 'clicking' ? '👆 Clicking' : '⏸️ Idle';
+      const statusColor = data.activityStatus === 'moving' ? 'text-blue-600' : 
+                         data.activityStatus === 'clicking' ? 'text-purple-600' : 'text-gray-400';
+      
+      this.statusElements.status.textContent = statusText;
+      this.statusElements.status.className = `font-mono ${statusColor}`;
+    } else if (data.isMoving !== undefined && this.statusElements.status) {
       this.statusElements.status.textContent = data.isMoving ? '🔄 Moving' : '⏸️ Idle';
       this.statusElements.status.className = `font-mono ${data.isMoving ? 'text-blue-600' : 'text-gray-400'}`;
     }
