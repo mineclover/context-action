@@ -380,4 +380,53 @@ body {
   .benefit-item p {
     @apply text-sm text-gray-600;
   }
+
+  /* Toast progress bar animation */
+  .toast-progress-bar {
+    animation: toast-progress var(--duration) linear forwards;
+  }
+
+  .toast-progress-bar:hover {
+    animation-play-state: paused;
+  }
+}
+
+/* Toast progress animation */
+@keyframes toast-progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+/* GSAP 애니메이션 최적화 - 블링크 방지 */
+.gsap-animated {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  perspective: 1000px;
+  transform: translateZ(0); /* 하드웨어 가속 강제 */
+}
+
+/* 마우스 이벤트 컨테이너 최적화 */
+.mouse-events-container {
+  contain: layout style paint;
+  isolation: isolate;
+}
+
+/* SVG 애니메이션 최적화 */
+svg.animated-path {
+  will-change: auto;
+  contain: layout style paint;
+}
+
+svg.animated-path path {
+  will-change: stroke-dashoffset, opacity;
+  vector-effect: non-scaling-stroke;
+}
+
+svg.animated-path circle {
+  will-change: transform, opacity;
+  transform-origin: center;
 }
