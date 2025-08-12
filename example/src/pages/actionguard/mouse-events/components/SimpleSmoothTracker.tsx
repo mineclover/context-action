@@ -27,7 +27,7 @@ export const SimpleSmoothTracker = ({
   children
 }: SimpleSmoothTrackerProps) => {
   const [isInside, setIsInside] = useState(false);
-  const lastPositionRef = useRef<MousePosition>({ x: 0, y: 0 });
+  const lastPositionRef = useRef<MousePosition | null>(null);
   const lastTimeRef = useRef<number>(0);
 
   // 마우스 위치 계산
@@ -40,8 +40,8 @@ export const SimpleSmoothTracker = ({
   }, []);
 
   // 속도 계산
-  const calculateVelocity = useCallback((current: MousePosition, previous: MousePosition, deltaTime: number): number => {
-    if (deltaTime === 0) return 0;
+  const calculateVelocity = useCallback((current: MousePosition, previous: MousePosition | null, deltaTime: number): number => {
+    if (deltaTime === 0 || !previous) return 0;
     const deltaX = current.x - previous.x;
     const deltaY = current.y - previous.y;
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
@@ -53,6 +53,9 @@ export const SimpleSmoothTracker = ({
     const position = getPosition(e);
     const now = performance.now();
     const deltaTime = now - lastTimeRef.current;
+    
+    // 0,0 위치 필터링
+    if (position.x === 0 && position.y === 0) return;
     
     const velocity = calculateVelocity(position, lastPositionRef.current, deltaTime);
     
