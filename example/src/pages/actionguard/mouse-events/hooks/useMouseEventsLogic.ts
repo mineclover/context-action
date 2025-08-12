@@ -11,6 +11,8 @@ import {
   useMouseEventsActionDispatch,
   useMouseEventsActionRegister,
   useMouseEventsStore,
+  updateComputedValuesFromStores,
+  aggregateMouseEventsState,
   type MousePosition,
 } from '../context/MouseEventsContext';
 
@@ -27,9 +29,14 @@ export function useMouseEventsLogic() {
   
   const dispatch = useMouseEventsActionDispatch();
   const register = useMouseEventsActionRegister();
-  const mouseStore = useMouseEventsStore('mouseState');
+  
+  // 개별 stores 접근
+  const positionStore = useMouseEventsStore('position');
+  const movementStore = useMouseEventsStore('movement');
+  const clicksStore = useMouseEventsStore('clicks');
+  const computedStore = useMouseEventsStore('computed');
+  
   // Store 구독 제거 - 리렌더링 방지
-  // const mouseState = useStoreValue(mouseStore);
   // const { logAction } = useActionLoggerWithToast(); // 리렌더링 원인일 수 있으므로 임시 제거
   
   // 리렌더링 방지를 위해 React 상태 대신 ref 사용
@@ -116,11 +123,11 @@ export function useMouseEventsLogic() {
           logControl.lastMoveLogTime = now;
         }
         
-        const currentState = mouseStore.getValue();
+        const currentMovement = movementStore.getValue();
         const position = { x, y };
         
         // 처음 이동이면 이동 시작 이벤트 발생
-        if (!currentState.isMoving) {
+        if (!currentMovement.isMoving) {
           dispatch('moveStart', { position, timestamp });
         }
         
@@ -137,25 +144,29 @@ export function useMouseEventsLogic() {
       ({ x, y, button, timestamp }, controller) => {
         // logAction('mouseClick', { x, y, button, timestamp });
         
-        mouseStore.update((state) => ({
-          ...state,
-          clickCount: state.clickCount + 1,
-          clickHistory: [
+        // 클릭 이벤트 업데이트
+        clicksStore.update((clicks) => ({
+          count: clicks.count + 1,
+          history: [
             { x, y, timestamp },
-            ...state.clickHistory.slice(0, 9), // 최근 10개 유지 (히스토리 보존)
+            ...clicks.history.slice(0, 9), // 최근 10개 유지 (히스토리 보존)
           ],
         }));
+        
+        // 계산된 값 업데이트
+        const updatedMovement = movementStore.getValue();
+        const updatedClicks = clicksStore.getValue();
+        const newComputed = updateComputedValuesFromStores(updatedMovement, updatedClicks);
+        computedStore.setValue(newComputed);
         
         // UI 업데이트
         const statusDisplay = (window as any).__statusDisplay;
         const rendererHandle = (window as any).__rendererHandle;
         if (statusDisplay) {
-          const newState = mouseStore.getValue();
-          statusDisplay.updateClicks(newState.clickCount);
+          statusDisplay.updateClicks(updatedClicks.count);
         }
         if (rendererHandle) {
-          const newState = mouseStore.getValue();
-          const latestClick = newState.clickHistory[0];
+          const latestClick = updatedClicks.history[0];
           if (latestClick) {
             rendererHandle.addClick(latestClick);
           }
@@ -171,10 +182,11 @@ export function useMouseEventsLogic() {
       ({ x, y, timestamp }, controller) => {
         // logAction('mouseEnter', { x, y, timestamp });
         
-        mouseStore.update((state) => ({
-          ...state,
+        // 위치 상태 업데이트
+        positionStore.update((position) => ({
+          ...position,
+          current: { x, y },
           isInsideArea: true,
-          mousePosition: { x, y },
         }));
         
         // UI 업데이트
@@ -199,12 +211,17 @@ export function useMouseEventsLogic() {
       ({ x, y, timestamp }, controller) => {
         // logAction('mouseLeave', { x, y, timestamp });
         
-        mouseStore.update((state) => ({
-          ...state,
+        // 위치 및 이동 상태 업데이트
+        positionStore.update((position) => ({
+          ...position,
           isInsideArea: false,
+        }));
+        
+        movementStore.update((movement) => ({
+          ...movement,
           isMoving: false,
-          mouseVelocity: 0,
-          // 위치는 유지 - 0,0으로 초기화하지 않음
+          velocity: 0,
+          // 경로와 카운트는 유지
         }));
         
         // UI 업데이트
@@ -230,8 +247,9 @@ export function useMouseEventsLogic() {
       ({ position, timestamp }, controller) => {
         // logAction('moveStart', { position, timestamp });
         
-        mouseStore.update((state) => ({
-          ...state,
+        // 이동 상태 업데이트
+        movementStore.update((movement) => ({
+          ...movement,
           isMoving: true,
           lastMoveTime: timestamp,
         }));
@@ -255,10 +273,11 @@ export function useMouseEventsLogic() {
       'updateMouseMetrics',
       ({ position, timestamp }, controller) => {
         // 현재 상태에서 속도 계산
-        const currentState = mouseStore.getValue();
-        const timeDiff = currentState.lastMoveTime ? timestamp - currentState.lastMoveTime : 0;
-        const deltaX = position.x - currentState.previousPosition.x;
-        const deltaY = position.y - currentState.previousPosition.y;
+        const currentMovement = movementStore.getValue();
+        const currentPosition = positionStore.getValue();
+        const timeDiff = currentMovement.lastMoveTime ? timestamp - currentMovement.lastMoveTime : 0;
+        const deltaX = position.x - currentPosition.previous.x;
+        const deltaY = position.y - currentPosition.previous.y;
         const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
         
         // 마우스 속도 계산 (px/ms)
@@ -270,19 +289,30 @@ export function useMouseEventsLogic() {
         //   timestamp 
         // });
         
-        // 상태 업데이트
-        mouseStore.update((state) => ({
-          ...state,
-          mousePosition: position,
-          moveCount: state.moveCount + 1,
-          mouseVelocity: velocity,
-          previousPosition: state.mousePosition,
+        // 위치 상태 업데이트
+        positionStore.update((pos) => ({
+          current: position,
+          previous: pos.current, // 현재 위치를 이전 위치로
+          isInsideArea: pos.isInsideArea,
+        }));
+        
+        // 이동 상태 업데이트
+        movementStore.update((movement) => ({
+          ...movement,
+          moveCount: movement.moveCount + 1,
+          velocity: velocity,
           lastMoveTime: timestamp,
-          movePath: [
+          path: [
             position,
-            ...state.movePath.slice(0, 19), // 최근 20개 점 유지 (히스토리 보존)
+            ...movement.path.slice(0, 19), // 최근 20개 점 유지 (히스토리 보존)
           ],
         }));
+        
+        // 계산된 값 업데이트
+        const updatedMovement = movementStore.getValue();
+        const updatedClicks = clicksStore.getValue();
+        const newComputed = updateComputedValuesFromStores(updatedMovement, updatedClicks);
+        computedStore.setValue(newComputed);
         
         // UI 업데이트 (DOM 직접 조작)
         const statusDisplay = (window as any).__statusDisplay;
@@ -290,9 +320,8 @@ export function useMouseEventsLogic() {
         const setHasInitialActivity = (window as any).__setHasInitialActivity;
         
         if (statusDisplay) {
-          const newState = mouseStore.getValue();
           statusDisplay.updatePosition(position.x, position.y);
-          statusDisplay.updateMoves(newState.moveCount);
+          statusDisplay.updateMoves(updatedMovement.moveCount);
           statusDisplay.updateVelocity(velocity);
           statusDisplay.updateLastActivity(timestamp);
         }
@@ -310,8 +339,6 @@ export function useMouseEventsLogic() {
           isActiveRef.current = true;
         }
         if (rendererHandle) {
-          const newState = mouseStore.getValue();
-          
           // 0,0 문제 디버깅
           if (position.x === 0 && position.y === 0) {
             console.warn('🔴 Detected 0,0 position in updateMouseMetrics handler:', { position, velocity });
@@ -322,8 +349,8 @@ export function useMouseEventsLogic() {
           rendererHandle.updatePosition(position, velocity);
           
           // 경로에 포인트 추가 (유효한 포인트만)
-          if (newState.movePath.length > 0) {
-            const latestPoint = newState.movePath[0];
+          if (updatedMovement.path.length > 0) {
+            const latestPoint = updatedMovement.path[0];
             if (latestPoint.x !== 0 && latestPoint.y !== 0 && latestPoint.x !== -999 && latestPoint.y !== -999) {
               rendererHandle.addToPath(latestPoint);
             }
@@ -348,10 +375,11 @@ export function useMouseEventsLogic() {
         
         console.log('🛑 moveEnd handler called:', position);
         
-        mouseStore.update((state) => ({
-          ...state,
+        // 이동 상태만 업데이트 (위치는 유지)
+        movementStore.update((movement) => ({
+          ...movement,
           isMoving: false,
-          mouseVelocity: 0,
+          velocity: 0,
           // position은 현재 위치를 유지 - 0,0으로 초기화하지 않음
         }));
         
@@ -380,19 +408,39 @@ export function useMouseEventsLogic() {
         // logAction('resetMouseState', {});
         
         
-        // 현재 위치를 유지하되 다른 상태만 초기화
-        const currentState = mouseStore.getValue();
-        mouseStore.setValue({
-          mousePosition: currentState.mousePosition, // 현재 위치 유지
+        // 개별 stores 초기화 (현재 위치는 유지)
+        const currentPosition = positionStore.getValue();
+        
+        // 위치: 현재 위치 유지, 영역 밖으로 설정
+        positionStore.setValue({
+          current: currentPosition.current,
+          previous: currentPosition.current,
+          isInsideArea: false,
+        });
+        
+        // 이동: 모든 상태 초기화
+        movementStore.setValue({
           moveCount: 0,
-          clickCount: 0,
           isMoving: false,
+          velocity: 0,
           lastMoveTime: null,
-          movePath: [],
-          mouseVelocity: 0,
-          previousPosition: currentState.mousePosition, // 현재 위치를 이전 위치로
-          isInsideArea: false, // 리셋 후에는 영역 밖으로 설정 (커서 숨김)
-          clickHistory: [],
+          path: [],
+        });
+        
+        // 클릭: 모든 상태 초기화
+        clicksStore.setValue({
+          count: 0,
+          history: [],
+        });
+        
+        // 계산된 값: 모든 상태 초기화
+        computedStore.setValue({
+          validPath: [],
+          recentClickCount: 0,
+          averageVelocity: 0,
+          totalEvents: 0,
+          activityStatus: 'idle',
+          hasActivity: false,
         });
         
         // 내부 상태 초기화
@@ -471,7 +519,19 @@ export function useMouseEventsLogic() {
     hasActivity: false,
     averageVelocity: 0, // 실시간 계산 제거
     
-    // Store 직접 접근 함수 (필요시에만 사용)
-    getMouseState: () => mouseStore.getValue(),
+    // Store 직접 접근 함수 (필요시에만 사용) - 집계된 상태 반환
+    getMouseState: () => {
+      const position = positionStore.getValue();
+      const movement = movementStore.getValue();
+      const clicks = clicksStore.getValue();
+      const computed = computedStore.getValue();
+      return aggregateMouseEventsState(position, movement, clicks, computed);
+    },
+    
+    // 개별 store 접근 함수들
+    getPositionStore: () => positionStore,
+    getMovementStore: () => movementStore,
+    getClicksStore: () => clicksStore,
+    getComputedStore: () => computedStore,
   };
 }

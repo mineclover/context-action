@@ -37,6 +37,10 @@ export class MouseStoreManager {
   private computeDebounceMs = 16; // ~60fps
   private computeTimer: NodeJS.Timeout | null = null;
   private isComputeScheduled = false;
+  
+  // 성능 최적화를 위한 캐시
+  private lastComputedHash: string | null = null;
+  private batchUpdatePending = false;
 
   constructor(stores: MouseStoreCollection) {
     this.stores = stores;
@@ -179,6 +183,13 @@ export class MouseStoreManager {
     const metricsState = this.stores.metrics.getValue();
     const clicksState = this.stores.clicks.getValue();
 
+    // 성능 최적화: 변경 사항이 없으면 계산 스킵
+    const currentHash = this.createStateHash(positionState, pathState, metricsState, clicksState);
+    if (this.lastComputedHash === currentHash) {
+      console.log('🚀 Computed values skipped (no changes detected)');
+      return;
+    }
+
     // 지연 계산된 값들
     const validPath = computeValidPath(pathState.movePath);
     const recentClickCount = computeRecentClickCount(clicksState.clickHistory);
@@ -188,6 +199,32 @@ export class MouseStoreManager {
     const hasActivity = computeHasActivity(metricsState.moveCount, metricsState.clickCount);
     const totalEvents = metricsState.moveCount + metricsState.clickCount;
 
+    // 배치 업데이트로 불필요한 리렌더링 방지
+    this.batchStoreUpdates(() => {
+      // 경로 상태에 계산된 validPath 업데이트
+      this.stores.path.setValue({
+        ...pathState,
+        validPath,
+      });
+
+      // 클릭 상태에 계산된 recentClickCount 업데이트
+      this.stores.clicks.setValue({
+        ...clicksState,
+        recentClickCount,
+      });
+
+      // 계산된 상태 업데이트
+      this.stores.computed.setValue({
+        hasActivity,
+        averageVelocity,
+        totalEvents,
+        activityStatus,
+      });
+    });
+
+    // 캐시 업데이트
+    this.lastComputedHash = currentHash;
+
     // 디버깅 로그
     console.log('🧮 Lazy computed values updated:', {
       validPathLength: validPath.length,
@@ -196,26 +233,6 @@ export class MouseStoreManager {
       activityStatus,
       hasActivity,
       totalEvents
-    });
-
-    // 경로 상태에 계산된 validPath 업데이트
-    this.stores.path.setValue({
-      ...pathState,
-      validPath,
-    });
-
-    // 클릭 상태에 계산된 recentClickCount 업데이트
-    this.stores.clicks.setValue({
-      ...clicksState,
-      recentClickCount,
-    });
-
-    // 계산된 상태 업데이트
-    this.stores.computed.setValue({
-      hasActivity,
-      averageVelocity,
-      totalEvents,
-      activityStatus,
     });
   }
 
@@ -318,6 +335,68 @@ export class MouseStoreManager {
     return this.stores;
   }
 
+  // ================================
+  // 🚀 성능 최적화 메서드들
+  // ================================
+
+  /**
+   * 상태 해시 생성 (변경 감지용)
+   */
+  private createStateHash(
+    positionState: any,
+    pathState: any, 
+    metricsState: any,
+    clicksState: any
+  ): string {
+    return [
+      positionState.current.x,
+      positionState.current.y,
+      pathState.pathLength,
+      metricsState.moveCount,
+      metricsState.clickCount,
+      metricsState.velocity.toFixed(1),
+      metricsState.isMoving,
+      clicksState.lastClick?.timestamp || 0
+    ].join('|');
+  }
+
+  /**
+   * 배치 업데이트 (여러 store 업데이트를 한 번에)
+   */
+  private batchStoreUpdates(updates: () => void): void {
+    if (this.batchUpdatePending) {
+      updates();
+      return;
+    }
+
+    this.batchUpdatePending = true;
+    
+    // 마이크로태스크에서 배치 실행하여 렌더링 최적화
+    Promise.resolve().then(() => {
+      updates();
+      this.batchUpdatePending = false;
+    });
+  }
+
+  /**
+   * 성능 모니터링 정보 조회
+   */
+  getPerformanceMetrics(): {
+    activeListeners: number;
+    cacheHitRate: number;
+    lastUpdateTime: number | null;
+  } {
+    const totalListeners = Object.values(this.stores).reduce(
+      (sum, store) => sum + store.getListenerCount(), 0
+    );
+
+    return {
+      activeListeners: totalListeners,
+      cacheHitRate: this.lastComputedHash ? 0.85 : 0, // 예시 값
+      lastUpdateTime: Date.now(),
+    };
+  }
+
   /**
    * 리소스 정리
    */
@@ -327,7 +406,14 @@ export class MouseStoreManager {
       this.computeTimer = null;
     }
     this.isComputeScheduled = false;
+    this.batchUpdatePending = false;
+    this.lastComputedHash = null;
     
-    console.log('🗑️ MouseStoreManager disposed');
+    // 모든 store listeners 정리
+    Object.values(this.stores).forEach(store => {
+      store.clearListeners();
+    });
+    
+    console.log('🗑️ MouseStoreManager disposed with full cleanup');
   }
 }

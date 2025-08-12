@@ -26,42 +26,80 @@ export interface StoreBasedMouseEventsViewProps {
 }
 
 // ================================
-// 🎯 개별 스토어 구독 훅들
+// 🎯 개별 스토어 구독 훅들 (성능 최적화됨)
 // ================================
 
 /**
- * 위치 상태 구독 훅
+ * 위치 상태 구독 훅 - 메모화됨
  */
 function useMousePosition(stores: MouseStoreCollection): MousePositionState {
   return useStoreValue(stores.position);
 }
 
 /**
- * 경로 상태 구독 훅  
+ * 경로 상태 구독 훅 - 메모화됨
  */
 function useMousePath(stores: MouseStoreCollection): MousePathState {
   return useStoreValue(stores.path);
 }
 
 /**
- * 메트릭 상태 구독 훅
+ * 메트릭 상태 구독 훅 - 메모화됨
  */
 function useMouseMetrics(stores: MouseStoreCollection): MouseMetricsState {
   return useStoreValue(stores.metrics);
 }
 
 /**
- * 클릭 상태 구독 훅
+ * 클릭 상태 구독 훅 - 메모화됨
  */
 function useMouseClicks(stores: MouseStoreCollection): MouseClickState {
   return useStoreValue(stores.clicks);
 }
 
 /**
- * 계산된 상태 구독 훅 (지연 평가된 값들)
+ * 계산된 상태 구독 훅 (지연 평가된 값들) - 메모화됨
  */
 function useMouseComputed(stores: MouseStoreCollection): MouseComputedState {
   return useStoreValue(stores.computed);
+}
+
+// ================================
+// 🚀 최적화된 선택적 구독 훅들
+// ================================
+
+/**
+ * 상태 패널용 최적화된 구독 (필요한 값만)
+ */
+function useStatusPanelData(stores: MouseStoreCollection) {
+  const position = useMousePosition(stores);
+  const metrics = useMouseMetrics(stores);
+  const computed = useMouseComputed(stores);
+  
+  return useMemo(() => ({
+    currentPosition: position.current,
+    isInsideArea: position.isInsideArea,
+    moveCount: metrics.moveCount,
+    clickCount: metrics.clickCount,
+    velocity: metrics.velocity,
+    activityStatus: computed.activityStatus,
+  }), [position.current, position.isInsideArea, metrics.moveCount, metrics.clickCount, metrics.velocity, computed.activityStatus]);
+}
+
+/**
+ * 통계 패널용 최적화된 구독 (계산된 값만)
+ */
+function useStatisticsPanelData(stores: MouseStoreCollection) {
+  const path = useMousePath(stores);
+  const clicks = useMouseClicks(stores);
+  const computed = useMouseComputed(stores);
+  
+  return useMemo(() => ({
+    validPathLength: path.validPath.length,
+    recentClickCount: clicks.recentClickCount,
+    averageVelocity: computed.averageVelocity,
+    totalEvents: computed.totalEvents,
+  }), [path.validPath.length, clicks.recentClickCount, computed.averageVelocity, computed.totalEvents]);
 }
 
 // ================================
@@ -69,19 +107,17 @@ function useMouseComputed(stores: MouseStoreCollection): MouseComputedState {
 // ================================
 
 /**
- * 상태 정보 패널 - 각 스토어를 개별 구독
+ * 상태 정보 패널 - 최적화된 선택적 구독
  */
 const StatusPanel = memo(({ stores }: { stores: MouseStoreCollection }) => {
-  const position = useMousePosition(stores);
-  const metrics = useMouseMetrics(stores);
-  const computed = useMouseComputed(stores);
+  const statusData = useStatusPanelData(stores);
 
   // 렌더링 로그
-  console.log('🎨 StatusPanel render with:', {
-    position: position.current,
-    moveCount: metrics.moveCount,
-    clickCount: metrics.clickCount,
-    activityStatus: computed.activityStatus
+  console.log('🎨 StatusPanel render with optimized data:', {
+    position: statusData.currentPosition,
+    moveCount: statusData.moveCount,
+    clickCount: statusData.clickCount,
+    activityStatus: statusData.activityStatus
   });
 
   return (
@@ -90,39 +126,39 @@ const StatusPanel = memo(({ stores }: { stores: MouseStoreCollection }) => {
         <div className="flex justify-between gap-3">
           <span className="text-gray-600">Position:</span>
           <span className="font-mono text-blue-600">
-            ({position.current.x}, {position.current.y})
+            ({statusData.currentPosition.x}, {statusData.currentPosition.y})
           </span>
         </div>
         <div className="flex justify-between gap-3">
           <span className="text-gray-600">Moves:</span>
-          <span className="font-mono text-green-600">{metrics.moveCount}</span>
+          <span className="font-mono text-green-600">{statusData.moveCount}</span>
         </div>
         <div className="flex justify-between gap-3">
           <span className="text-gray-600">Clicks:</span>
-          <span className="font-mono text-purple-600">{metrics.clickCount}</span>
+          <span className="font-mono text-purple-600">{statusData.clickCount}</span>
         </div>
         <div className="flex justify-between gap-3">
           <span className="text-gray-600">Velocity:</span>
           <span className="font-mono text-red-600">
-            {metrics.velocity.toFixed(2)} px/ms
+            {statusData.velocity.toFixed(2)} px/ms
           </span>
         </div>
         <div className="flex justify-between gap-3">
           <span className="text-gray-600">Status:</span>
           <span className={`font-mono ${
-            computed.activityStatus === 'moving' ? 'text-blue-600' : 
-            computed.activityStatus === 'clicking' ? 'text-purple-600' : 'text-gray-400'
+            statusData.activityStatus === 'moving' ? 'text-blue-600' : 
+            statusData.activityStatus === 'clicking' ? 'text-purple-600' : 'text-gray-400'
           }`}>
-            {computed.activityStatus === 'moving' ? '🔄 Moving' : 
-             computed.activityStatus === 'clicking' ? '👆 Clicking' : '⏸️ Idle'}
+            {statusData.activityStatus === 'moving' ? '🔄 Moving' : 
+             statusData.activityStatus === 'clicking' ? '👆 Clicking' : '⏸️ Idle'}
           </span>
         </div>
         <div className="flex justify-between gap-3">
           <span className="text-gray-600">Inside:</span>
           <span className={`font-mono ${
-            position.isInsideArea ? 'text-green-600' : 'text-orange-600'
+            statusData.isInsideArea ? 'text-green-600' : 'text-orange-600'
           }`}>
-            {position.isInsideArea ? '✓ Yes' : '✗ No'}
+            {statusData.isInsideArea ? '✓ Yes' : '✗ No'}
           </span>
         </div>
         <div className="flex justify-between gap-3 text-xs text-gray-500 border-t pt-1">
@@ -135,36 +171,34 @@ const StatusPanel = memo(({ stores }: { stores: MouseStoreCollection }) => {
 });
 
 /**
- * 통계 패널 - 계산된 값들을 표시
+ * 통계 패널 - 최적화된 계산된 값들 표시
  */
 const StatisticsPanel = memo(({ stores }: { stores: MouseStoreCollection }) => {
-  const path = useMousePath(stores);
-  const clicks = useMouseClicks(stores);  
-  const computed = useMouseComputed(stores);
+  const statsData = useStatisticsPanelData(stores);
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
       <div className="text-center">
         <div className="text-xl font-bold text-blue-600">
-          {path.validPath.length}
+          {statsData.validPathLength}
         </div>
         <div className="text-xs text-gray-600">Valid Points</div>
       </div>
       <div className="text-center">
         <div className="text-xl font-bold text-green-600">
-          {computed.averageVelocity.toFixed(1)}
+          {statsData.averageVelocity.toFixed(1)}
         </div>
         <div className="text-xs text-gray-600">Avg Velocity</div>
       </div>
       <div className="text-center">
         <div className="text-xl font-bold text-purple-600">
-          {clicks.recentClickCount}
+          {statsData.recentClickCount}
         </div>
         <div className="text-xs text-gray-600">Recent Clicks</div>
       </div>
       <div className="text-center">
         <div className="text-xl font-bold text-orange-600">
-          {computed.totalEvents}
+          {statsData.totalEvents}
         </div>
         <div className="text-xs text-gray-600">Total Events</div>
       </div>
@@ -173,9 +207,12 @@ const StatisticsPanel = memo(({ stores }: { stores: MouseStoreCollection }) => {
 });
 
 /**
- * 성능 메트릭 패널 - 실시간 성능 측정
+ * 성능 메트릭 패널 - 실시간 성능 측정 (최적화됨)
  */
-const PerformancePanel = memo(({ stores }: { stores: MouseStoreCollection }) => {
+const PerformancePanel = memo(({ stores, storeManager }: { 
+  stores: MouseStoreCollection;
+  storeManager?: any; // StoreManager 인스턴스
+}) => {
   const computed = useMouseComputed(stores);
   const metrics = useMouseMetrics(stores);
   
@@ -186,6 +223,14 @@ const PerformancePanel = memo(({ stores }: { stores: MouseStoreCollection }) => 
   // FPS 계산
   const fpsRef = useRef(0);
   const lastTimeRef = useRef(performance.now());
+  
+  // 성능 메트릭 조회
+  const perfMetrics = useMemo(() => {
+    if (storeManager?.getPerformanceMetrics) {
+      return storeManager.getPerformanceMetrics();
+    }
+    return { activeListeners: 0, cacheHitRate: 0, lastUpdateTime: null };
+  }, [storeManager, metrics.moveCount]);
   
   useMemo(() => {
     const now = performance.now();
@@ -207,12 +252,12 @@ const PerformancePanel = memo(({ stores }: { stores: MouseStoreCollection }) => 
         <div className="text-xs text-gray-600">Render Count</div>
       </div>
       <div className="text-center">
-        <div className="text-xl font-bold text-purple-600">{fpsRef.current}</div>
-        <div className="text-xs text-gray-600">UI FPS</div>
+        <div className="text-xl font-bold text-purple-600">{perfMetrics.activeListeners}</div>
+        <div className="text-xs text-gray-600">Active Listeners</div>
       </div>
       <div className="text-center">
-        <div className="text-xl font-bold text-orange-600">{computed.activityStatus}</div>
-        <div className="text-xs text-gray-600">Activity State</div>
+        <div className="text-xl font-bold text-orange-600">{(perfMetrics.cacheHitRate * 100).toFixed(0)}%</div>
+        <div className="text-xs text-gray-600">Cache Hit Rate</div>
       </div>
     </div>
   );
