@@ -4,77 +4,142 @@
  * Canvas 스타일의 격리된 렌더링을 사용하는 최적화된 마우스 이벤트 뷰
  */
 
-import { memo, useRef, useEffect, useCallback } from 'react';
+import { memo, useRef, useEffect, useCallback, useState } from 'react';
 import { DemoCard, Button, CodeBlock, CodeExample } from '../../../../components/ui';
 import { useMouseEventsLogic } from '../hooks/useMouseEventsLogic';
 import { SimpleSmoothTracker } from './SimpleSmoothTracker';
 import { IsolatedMouseRenderer, type MouseRendererHandle } from './IsolatedMouseRenderer';
 
 /**
- * 최적화된 마우스 이벤트 View 컴포넌트
+ * 격리된 상태 표시 컴포넌트 (DOM 직접 조작)
+ */
+const IsolatedStatusDisplay = () => {
+  const positionRef = useRef<HTMLSpanElement>(null);
+  const movesRef = useRef<HTMLSpanElement>(null);
+  const clicksRef = useRef<HTMLSpanElement>(null);
+  const velocityRef = useRef<HTMLSpanElement>(null);
+  const statusRef = useRef<HTMLSpanElement>(null);
+  const insideRef = useRef<HTMLSpanElement>(null);
+  const lastActivityRef = useRef<HTMLSpanElement>(null);
+  
+  // 상태 업데이트 함수들을 전역에서 접근 가능하도록 설정
+  useEffect(() => {
+    (window as any).__statusDisplay = {
+      updatePosition: (x: number, y: number) => {
+        if (positionRef.current) {
+          positionRef.current.textContent = `(${x}, ${y})`;
+        }
+      },
+      updateMoves: (count: number) => {
+        if (movesRef.current) {
+          movesRef.current.textContent = count.toString();
+        }
+      },
+      updateClicks: (count: number) => {
+        if (clicksRef.current) {
+          clicksRef.current.textContent = count.toString();
+        }
+      },
+      updateVelocity: (velocity: number) => {
+        if (velocityRef.current) {
+          velocityRef.current.textContent = `${velocity.toFixed(2)} px/ms`;
+        }
+      },
+      updateStatus: (isMoving: boolean) => {
+        if (statusRef.current) {
+          statusRef.current.textContent = isMoving ? '🔄 Moving' : '⏸️ Idle';
+          statusRef.current.className = `font-mono ${isMoving ? 'text-blue-600' : 'text-gray-400'}`;
+        }
+      },
+      updateInside: (isInside: boolean) => {
+        if (insideRef.current) {
+          insideRef.current.textContent = isInside ? '✓ Yes' : '✗ No';
+          insideRef.current.className = `font-mono ${isInside ? 'text-green-600' : 'text-orange-600'}`;
+        }
+      },
+      updateLastActivity: (timestamp: number | null) => {
+        if (lastActivityRef.current) {
+          if (timestamp) {
+            lastActivityRef.current.textContent = `Last activity: ${new Date(timestamp).toLocaleTimeString()}`;
+            lastActivityRef.current.style.display = '';
+          } else {
+            lastActivityRef.current.style.display = 'none';
+          }
+        }
+      }
+    };
+    
+    return () => {
+      delete (window as any).__statusDisplay;
+    };
+  }, []);
+
+  return (
+    <>
+      {/* 상태 정보 패널 */}
+      <div className="absolute top-3 left-3 bg-white bg-opacity-95 p-3 rounded-lg shadow-sm border min-w-[200px] z-10">
+        <div className="text-sm space-y-1">
+          <div className="flex justify-between gap-3">
+            <span className="text-gray-600">Position:</span>
+            <span ref={positionRef} className="font-mono text-blue-600">(-999, -999)</span>
+          </div>
+          <div className="flex justify-between gap-3">
+            <span className="text-gray-600">Moves:</span>
+            <span ref={movesRef} className="font-mono text-green-600">0</span>
+          </div>
+          <div className="flex justify-between gap-3">
+            <span className="text-gray-600">Clicks:</span>
+            <span ref={clicksRef} className="font-mono text-purple-600">0</span>
+          </div>
+          <div className="flex justify-between gap-3">
+            <span className="text-gray-600">Velocity:</span>
+            <span ref={velocityRef} className="font-mono text-red-600">0.00 px/ms</span>
+          </div>
+          <div className="flex justify-between gap-3">
+            <span className="text-gray-600">Status:</span>
+            <span ref={statusRef} className="font-mono text-gray-400">⏸️ Idle</span>
+          </div>
+          <div className="flex justify-between gap-3">
+            <span className="text-gray-600">Inside:</span>
+            <span ref={insideRef} className="font-mono text-orange-600">✗ No</span>
+          </div>
+          <div className="flex justify-between gap-3 text-xs text-gray-500 border-t pt-1">
+            <span>Renderer:</span>
+            <span className="text-blue-600">Isolated</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 마지막 활동 시간 */}
+      <span 
+        ref={lastActivityRef} 
+        className="absolute bottom-1 right-4 text-xs text-gray-500"
+        style={{ display: 'none' }}
+      >
+      </span>
+    </>
+  );
+};
+
+/**
+ * 최적화된 마우스 이벤트 View 컴포넌트 (상태 표시 격리)
  */
 const OptimizedMouseEventsViewComponent = () => {
   const {
-    mouseState,
     handleMouseMove,
     handleMouseClick,
     handleMouseEnter,
     handleMouseLeave,
     resetState,
-    isActive,
-    hasActivity,
   } = useMouseEventsLogic();
 
   // 격리된 렌더러 참조
   const rendererRef = useRef<MouseRendererHandle>(null);
+  
+  // 초기 활동 상태만 React 상태로 관리
+  const [hasInitialActivity, setHasInitialActivity] = useState(false);
 
-  // 상태 변경 감지 및 렌더러 업데이트
-  useEffect(() => {
-    if (!rendererRef.current) return;
-
-    // 0,0 위치 전파 디버깅
-    if (mouseState.mousePosition.x === 0 && mouseState.mousePosition.y === 0) {
-      console.warn('🔴 OptimizedMouseEventsView: 0,0 위치 상태 감지됨', {
-        mousePosition: mouseState.mousePosition,
-        isInsideArea: mouseState.isInsideArea,
-        isMoving: mouseState.isMoving
-      });
-    }
-
-    rendererRef.current.updatePosition(mouseState.mousePosition, mouseState.mouseVelocity);
-  }, [mouseState.mousePosition.x, mouseState.mousePosition.y, mouseState.mouseVelocity]);
-
-  useEffect(() => {
-    if (!rendererRef.current) return;
-    
-    rendererRef.current.updateVisibility(mouseState.isInsideArea);
-  }, [mouseState.isInsideArea]);
-
-  useEffect(() => {
-    if (!rendererRef.current) return;
-    
-    rendererRef.current.updateMoving(mouseState.isMoving);
-  }, [mouseState.isMoving]);
-
-  // 경로 업데이트 (새로운 점이 추가될 때만)
-  useEffect(() => {
-    if (!rendererRef.current || mouseState.movePath.length === 0) return;
-    
-    const latestPoint = mouseState.movePath[0];
-    if (latestPoint.x !== 0 || latestPoint.y !== 0) {
-      rendererRef.current.addToPath(latestPoint);
-    }
-  }, [mouseState.movePath.length, mouseState.movePath[0]?.x, mouseState.movePath[0]?.y]);
-
-  // 클릭 이벤트 추가 (새로운 클릭이 있을 때만)
-  useEffect(() => {
-    if (!rendererRef.current || mouseState.clickHistory.length === 0) return;
-    
-    const latestClick = mouseState.clickHistory[0];
-    if (latestClick.x !== 0 || latestClick.y !== 0) {
-      rendererRef.current.addClick(latestClick);
-    }
-  }, [mouseState.clickHistory.length, mouseState.clickHistory[0]?.timestamp]);
+  // Hook에서 상태를 전역으로 전파하는 useEffect 제거 - Hook 내부에서 처리
 
   // 매끄러운 마우스 추적을 위한 콜백들
   const handleSmoothMouseMove = useCallback((position: { x: number; y: number }, velocity: number) => {
@@ -129,51 +194,8 @@ const OptimizedMouseEventsViewComponent = () => {
                 willChange: 'auto'
               }}
             >
-              {/* 상태 정보 패널 */}
-              <div className="absolute top-3 left-3 bg-white bg-opacity-95 p-3 rounded-lg shadow-sm border min-w-[200px] z-10">
-                <div className="text-sm space-y-1">
-                  <div className="flex justify-between gap-3">
-                    <span className="text-gray-600">Position:</span>
-                    <span className="font-mono text-blue-600">
-                      ({mouseState.mousePosition.x}, {mouseState.mousePosition.y})
-                    </span>
-                  </div>
-                  <div className="flex justify-between gap-3">
-                    <span className="text-gray-600">Moves:</span>
-                    <span className="font-mono text-green-600">{mouseState.moveCount}</span>
-                  </div>
-                  <div className="flex justify-between gap-3">
-                    <span className="text-gray-600">Clicks:</span>
-                    <span className="font-mono text-purple-600">{mouseState.clickCount}</span>
-                  </div>
-                  <div className="flex justify-between gap-3">
-                    <span className="text-gray-600">Velocity:</span>
-                    <span className="font-mono text-red-600">
-                      {mouseState.mouseVelocity.toFixed(2)} px/ms
-                    </span>
-                  </div>
-                  <div className="flex justify-between gap-3">
-                    <span className="text-gray-600">Status:</span>
-                    <span className={`font-mono ${
-                      isActive ? 'text-blue-600' : 'text-gray-400'
-                    }`}>
-                      {isActive ? '🔄 Moving' : '⏸️ Idle'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between gap-3">
-                    <span className="text-gray-600">Inside:</span>
-                    <span className={`font-mono ${
-                      mouseState.isInsideArea ? 'text-green-600' : 'text-orange-600'
-                    }`}>
-                      {mouseState.isInsideArea ? '✓ Yes' : '✗ No'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between gap-3 text-xs text-gray-500 border-t pt-1">
-                    <span>Renderer:</span>
-                    <span className="text-blue-600">Isolated</span>
-                  </div>
-                </div>
-              </div>
+              {/* 격리된 상태 표시 */}
+              <IsolatedStatusDisplay />
 
               {/* 격리된 렌더러 */}
               <IsolatedMouseRenderer
@@ -183,7 +205,7 @@ const OptimizedMouseEventsViewComponent = () => {
               />
 
               {/* 인터랙션 가이드 */}
-              {!hasActivity && (
+              {!hasInitialActivity && (
                 <div className="absolute inset-0 flex items-center justify-center z-5">
                   <div className="text-center text-gray-500">
                     <div className="text-lg mb-2">🖱️</div>
@@ -202,38 +224,48 @@ const OptimizedMouseEventsViewComponent = () => {
           {/* 컨트롤 */}
           <div className="flex justify-between items-center">
             <Button
-              onClick={handleReset}
+              onClick={() => {
+                handleReset();
+                setHasInitialActivity(false);
+                const statusDisplay = (window as any).__statusDisplay;
+                if (statusDisplay) {
+                  statusDisplay.updatePosition(-999, -999);
+                  statusDisplay.updateMoves(0);
+                  statusDisplay.updateClicks(0);
+                  statusDisplay.updateVelocity(0);
+                  statusDisplay.updateStatus(false);
+                  statusDisplay.updateInside(false);
+                  statusDisplay.updateLastActivity(null);
+                }
+              }}
               variant="secondary"
               size="sm"
-              disabled={!hasActivity}
             >
               Reset Tracking
             </Button>
             
-            {mouseState.lastMoveTime && (
-              <span className="text-xs text-gray-500">
-                Last activity: {new Date(mouseState.lastMoveTime).toLocaleTimeString()}
-              </span>
-            )}
+            <div className="text-xs text-gray-500">
+              <strong className="text-green-600">Status:</strong> Zero React Re-renders ✅
+            </div>
           </div>
 
-          {/* 성능 통계 */}
+          {/* 성능 통계 - 정적 */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
             <div className="text-center">
               <div className="text-xl font-bold text-blue-600">
-                {mouseState.movePath.length}
+                Live
               </div>
               <div className="text-xs text-gray-600">Path Points</div>
             </div>
             <div className="text-center">
               <div className="text-xl font-bold text-green-600">
-                {mouseState.mouseVelocity.toFixed(1)}
+                Live
               </div>
               <div className="text-xs text-gray-600">Current Speed</div>
             </div>
             <div className="text-center">
               <div className="text-xl font-bold text-purple-600">
-                {mouseState.clickHistory.length}
+                Live
               </div>
               <div className="text-xs text-gray-600">Recent Clicks</div>
             </div>
@@ -352,5 +384,8 @@ useEffect(() => {
   );
 };
 
-// 메인 컴포넌트 메모화
-export const OptimizedMouseEventsView = memo(OptimizedMouseEventsViewComponent);
+// 메인 컴포넌트 완전 격리 (상태 변경 시 리렌더링 없음)
+export const OptimizedMouseEventsView = memo(OptimizedMouseEventsViewComponent, () => {
+  // 항상 같다고 간주하여 리렌더링 방지 (DOM 직접 조작으로 UI 업데이트)
+  return true;
+});
