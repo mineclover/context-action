@@ -7,7 +7,7 @@
 import { useRef, useEffect, useCallback, useMemo } from 'react';
 import { StoreBasedMouseController } from '../controllers/StoreBasedMouseController';
 import { StoreBasedMouseEventsView } from '../components/StoreBasedMouseEventsView';
-import type { MouseViewElements } from '../components/CleanMouseEventsView';
+import type { MouseViewElements } from '../../clean-architecture/components/CleanMouseEventsView';
 
 /**
  * 스토어 기반 마우스 이벤트 컨테이너

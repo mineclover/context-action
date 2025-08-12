@@ -5,7 +5,7 @@
  */
 
 import { memo, useRef, useEffect, useCallback, useState } from 'react';
-import { DemoCard, Button, CodeBlock, CodeExample } from '../../../../components/ui';
+import { DemoCard, Button, CodeBlock, CodeExample } from '../../../../../components/ui';
 import { useMouseEventsLogic } from '../hooks/useMouseEventsLogic';
 import { SimpleSmoothTracker } from './SimpleSmoothTracker';
 import { IsolatedMouseRenderer, type MouseRendererHandle } from './IsolatedMouseRenderer';

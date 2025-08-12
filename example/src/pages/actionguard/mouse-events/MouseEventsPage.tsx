@@ -5,9 +5,9 @@
  */
 
 import { Link } from 'react-router-dom';
-import { MouseEventsContainer } from './containers/MouseEventsContainer';
-import { StoreBasedMouseEventsContainer } from './containers/StoreBasedMouseEventsContainer';
-import { ContextStoreMouseEventsContainer } from './containers/ContextStoreMouseEventsContainer';
+import { MouseEventsContainer } from './clean-architecture/containers/MouseEventsContainer';
+import { StoreBasedMouseEventsContainer } from './reactive-stores/containers/StoreBasedMouseEventsContainer';
+import { ContextStoreMouseEventsContainer } from './context-store-pattern/containers/ContextStoreMouseEventsContainer';
 
 /**
  * Clean Architecture 마우스 이벤트 UI

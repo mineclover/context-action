@@ -97,6 +97,23 @@ export class MouseStoreManager {
   }
 
   /**
+   * 경로 포인트 추가
+   */
+  addPathPoint(position: MousePosition): void {
+    const currentPath = this.stores.path.getValue();
+    const newMovePath = [position, ...currentPath.movePath.slice(0, this.maxPathLength - 1)];
+    
+    this.stores.path.setValue({
+      movePath: newMovePath,
+      pathLength: newMovePath.length,
+      validPath: currentPath.validPath, // 지연 계산됨
+    });
+
+    // 계산된 값들 지연 평가 스케줄링
+    this.scheduleComputedUpdate();
+  }
+
+  /**
    * 클릭 이벤트 추가
    */
   addClick(position: MousePosition, timestamp: number): void {

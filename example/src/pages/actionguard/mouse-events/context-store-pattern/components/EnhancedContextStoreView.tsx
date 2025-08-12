@@ -6,7 +6,7 @@
 
 import { memo, useMemo, useRef, useCallback, useState, useEffect } from 'react';
 import { useStoreSelector, useStoreValue } from '@context-action/react';
-import { DemoCard, Button, CodeBlock, CodeExample } from '../../../../components/ui';
+import { DemoCard, Button, CodeBlock, CodeExample } from '../../../../../components/ui';
 import { AdvancedMetricsPanel } from './AdvancedMetricsPanel';
 import { RealTimeDebugger } from './RealTimeDebugger';
 
