@@ -132,12 +132,6 @@ export function useMouseEventsLogic() {
       ({ x, y, button, timestamp }, controller) => {
         logAction('mouseClick', { x, y, button, timestamp });
         
-        // 유효하지 않은 위치 클릭 필터링
-        if (x <= 0 || y <= 0) {
-          controller.next();
-          return;
-        }
-        
         mouseStore.update((state) => ({
           ...state,
           clickCount: state.clickCount + 1,
@@ -157,17 +151,10 @@ export function useMouseEventsLogic() {
       ({ x, y, timestamp }, controller) => {
         logAction('mouseEnter', { x, y, timestamp });
         
-        // 유효하지 않은 위치 진입 필터링
-        if (x <= 0 || y <= 0) {
-          controller.next();
-          return;
-        }
-        
         mouseStore.update((state) => ({
           ...state,
           isInsideArea: true,
           mousePosition: { x, y },
-          previousPosition: { x, y }, // 진입 시점의 위치를 이전 위치로도 설정
         }));
         
         controller.next();
@@ -226,8 +213,7 @@ export function useMouseEventsLogic() {
           previousPosition: state.mousePosition,
           lastMoveTime: timestamp,
           movePath: [
-            // 유효하지 않은 위치 필터링 및 유효한 위치만 추가
-            ...(position.x > 0 && position.y > 0 ? [position] : []),
+            position,
             ...state.movePath.slice(0, 19), // 최근 20개 점 유지 (히스토리 보존)
           ],
         }));
@@ -260,15 +246,15 @@ export function useMouseEventsLogic() {
         logAction('resetMouseState', {});
         
         mouseStore.setValue({
-          mousePosition: { x: -1, y: -1 }, // 0,0 대신 -1,-1로 초기화
+          mousePosition: { x: 0, y: 0 },
           moveCount: 0,
           clickCount: 0,
           isMoving: false,
           lastMoveTime: null,
           movePath: [],
           mouseVelocity: 0,
-          previousPosition: { x: -1, y: -1 }, // 0,0 대신 -1,-1로 초기화
-          isInsideArea: true,
+          previousPosition: { x: 0, y: 0 },
+          isInsideArea: false, // 리셋 후에는 영역 밖으로 설정
           clickHistory: [],
         });
         
