@@ -5,13 +5,14 @@
  */
 
 import type { ActionHandler } from '@context-action/core';
-import type { MouseActions, MousePosition, MouseStateData, initialMouseState } from '../stores/MouseStoreSchema';
+import type { Store } from '@context-action/react';
+import type { MouseActions, MouseStateData } from '../stores/MouseStoreSchema';
+import { initialMouseState } from '../stores/MouseStoreSchema';
 import {
   computeValidPath,
   computeRecentClickCount,
   computeAverageVelocity,
   computeActivityStatus,
-  computeHasActivity,
 } from '../stores/MouseStoreSchema';
 
 // ================================
@@ -21,7 +22,7 @@ import {
 /**
  * 마우스 이동 액션 핸들러 팩토리
  */
-export const createMouseMoveHandler = (mouseStateStore: any): ActionHandler<MouseActions['mouseMove']> => 
+export const createMouseMoveHandler = (mouseStateStore: Store<MouseStateData>): ActionHandler<MouseActions['mouseMove']> => 
   (payload, controller) => {
     const { position, timestamp } = payload;
     const currentState = mouseStateStore.getValue();
@@ -89,7 +90,7 @@ export const createMouseMoveHandler = (mouseStateStore: any): ActionHandler<Mous
 /**
  * 마우스 클릭 액션 핸들러 팩토리
  */
-export const createMouseClickHandler = (mouseStateStore: any): ActionHandler<MouseActions['mouseClick']> => 
+export const createMouseClickHandler = (mouseStateStore: Store<MouseStateData>): ActionHandler<MouseActions['mouseClick']> => 
   (payload, controller) => {
     const { position, button, timestamp } = payload;
     const currentState = mouseStateStore.getValue();
@@ -126,7 +127,7 @@ export const createMouseClickHandler = (mouseStateStore: any): ActionHandler<Mou
 /**
  * 마우스 진입 액션 핸들러 팩토리
  */
-export const createMouseEnterHandler = (mouseStateStore: any): ActionHandler<MouseActions['mouseEnter']> => 
+export const createMouseEnterHandler = (mouseStateStore: Store<MouseStateData>): ActionHandler<MouseActions['mouseEnter']> => 
   (payload, controller) => {
     const { position, timestamp } = payload;
     const currentState = mouseStateStore.getValue();
@@ -143,7 +144,7 @@ export const createMouseEnterHandler = (mouseStateStore: any): ActionHandler<Mou
 /**
  * 마우스 이탈 액션 핸들러 팩토리
  */
-export const createMouseLeaveHandler = (mouseStateStore: any): ActionHandler<MouseActions['mouseLeave']> => 
+export const createMouseLeaveHandler = (mouseStateStore: Store<MouseStateData>): ActionHandler<MouseActions['mouseLeave']> => 
   (payload, controller) => {
     const { position, timestamp } = payload;
     const currentState = mouseStateStore.getValue();
@@ -169,7 +170,7 @@ export const createMouseLeaveHandler = (mouseStateStore: any): ActionHandler<Mou
 /**
  * 마우스 이동 종료 액션 핸들러 팩토리
  */
-export const createMoveEndHandler = (mouseStateStore: any): ActionHandler<MouseActions['moveEnd']> => 
+export const createMoveEndHandler = (mouseStateStore: Store<MouseStateData>): ActionHandler<MouseActions['moveEnd']> => 
   (payload, controller) => {
     const { position, timestamp } = payload;
     const currentState = mouseStateStore.getValue();
@@ -194,36 +195,10 @@ export const createMoveEndHandler = (mouseStateStore: any): ActionHandler<MouseA
 /**
  * 상태 리셋 액션 핸들러 팩토리
  */
-export const createResetHandler = (mouseStateStore: any): ActionHandler<MouseActions['reset']> => 
+export const createResetHandler = (mouseStateStore: Store<MouseStateData>): ActionHandler<MouseActions['reset']> => 
   (payload, controller) => {
     console.log('🎯 reset action');
 
+    // Store 상태만 리셋 - DOM은 구독에서 자동으로 처리됨
     mouseStateStore.setValue(initialMouseState);
-    
-    // DOM 요소들도 초기화
-    const container = document.getElementById('context-store-mouse-area');
-    if (container) {
-      const cursor = container.querySelector('.absolute.w-4.h-4') as HTMLElement;
-      const trail = container.querySelector('.absolute.w-6.h-6') as HTMLElement;
-      const pathSvg = container.querySelector('path') as SVGPathElement;
-      const clickContainer = container.querySelector('.absolute.inset-0.pointer-events-none') as HTMLElement;
-      
-      if (cursor) {
-        cursor.style.opacity = '0';
-        cursor.style.transform = 'translate3d(-999px, -999px, 0)';
-      }
-      
-      if (trail) {
-        trail.style.opacity = '0';
-        trail.style.transform = 'translate3d(-999px, -999px, 0)';
-      }
-      
-      if (pathSvg) {
-        pathSvg.setAttribute('d', '');
-      }
-      
-      if (clickContainer) {
-        clickContainer.innerHTML = '';
-      }
-    }
   };

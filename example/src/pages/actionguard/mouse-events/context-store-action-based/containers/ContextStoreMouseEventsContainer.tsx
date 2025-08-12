@@ -5,7 +5,7 @@
  */
 
 import { useRef, useEffect, useCallback } from 'react';
-import { useStoreValue } from '@context-action/react';
+import { Store } from '@context-action/react';
 import { ContextStoreMouseEventsView } from '../components/ContextStoreMouseEventsView';
 import { 
   createMouseMoveHandler,
@@ -15,7 +15,7 @@ import {
   createMoveEndHandler,
   createResetHandler
 } from '../actions/MouseActionHandlers';
-import type { MouseActions } from '../stores/MouseStoreSchema';
+import type { MouseStateData } from '../stores/MouseStoreSchema';
 import { 
   initialMouseState, 
   useMouseStore, 
@@ -30,7 +30,7 @@ export const ContextStoreMouseEventsContainer = () => {
   console.log('🏪 ContextStoreMouseEventsContainer render at', new Date().toISOString());
   
   const containerRef = useRef<HTMLDivElement>(null);
-  const isInitialized = useRef(false);
+  const _isInitialized = useRef(false);
   
   // Action Context Pattern 사용 - 구조 분해 할당 방식
   const mouseStateStore = useMouseStore('mouseState', initialMouseState);
@@ -88,10 +88,24 @@ export const ContextStoreMouseEventsContainer = () => {
 // 🔧 DOM 설정 헬퍼 함수들
 // ================================
 
+// ================================
+// 🔧 타입 정의
+// ================================
+
+/**
+ * DOM 렌더링 요소들 타입
+ */
+interface RenderElements {
+  cursor: HTMLDivElement;
+  trail: HTMLDivElement;
+  pathSvg: SVGPathElement;
+  clickContainer: HTMLDivElement;
+}
+
 /**
  * DOM 요소들 생성 및 설정
  */
-function setupDOMElements(container: HTMLElement) {
+function setupDOMElements(container: HTMLElement): { renderElements: RenderElements } {
   // 커서 요소 생성
   const cursor = document.createElement('div');
   cursor.className = 'absolute w-4 h-4 rounded-full pointer-events-none border-2 border-white';
@@ -182,7 +196,7 @@ function setupDOMElements(container: HTMLElement) {
       trail,
       pathSvg: path,
       clickContainer,
-    },
+    } as RenderElements,
   };
 }
 
@@ -190,43 +204,69 @@ function setupDOMElements(container: HTMLElement) {
  * 상태 변화 구독하여 DOM 업데이트
  */
 function subscribeToStateChanges(
-  mouseStateStore: any,
-  elements: { renderElements: { cursor: HTMLDivElement; trail: HTMLDivElement; pathSvg: SVGPathElement; clickContainer: HTMLDivElement } }
-) {
+  mouseStateStore: Store<MouseStateData>,
+  elements: { renderElements: RenderElements }
+): () => void {
   let prevState = mouseStateStore.getValue();
   
   const updateVisuals = () => {
     const currentState = mouseStateStore.getValue();
     
-    // 커서 위치 업데이트
-    if (currentState.mousePosition.x !== -999 && currentState.mousePosition.y !== -999) {
-      const { cursor, trail } = elements.renderElements;
+    // 리셋 상태 확인 - 모든 값이 초기값이면 DOM도 초기화
+    const isResetState = (
+      currentState.mousePosition.x === -999 && 
+      currentState.mousePosition.y === -999 &&
+      currentState.moveCount === 0 &&
+      currentState.clickCount === 0
+    );
+    
+    if (isResetState) {
+      // 리셋 상태일 때 DOM 요소들 초기화
+      const { cursor, trail, pathSvg, clickContainer } = elements.renderElements;
       
-      // 커서와 트레일 위치 업데이트
       requestAnimationFrame(() => {
-        cursor.style.transform = `translate3d(${currentState.mousePosition.x - 8}px, ${currentState.mousePosition.y - 8}px, 0)`;
-        cursor.style.opacity = '1';
+        cursor.style.opacity = '0';
+        cursor.style.transform = 'translate3d(-999px, -999px, 0)';
         
-        trail.style.transform = `translate3d(${currentState.mousePosition.x - 12}px, ${currentState.mousePosition.y - 12}px, 0)`;
-        trail.style.opacity = '1';
+        trail.style.opacity = '0';
+        trail.style.transform = 'translate3d(-999px, -999px, 0)';
+        
+        pathSvg.setAttribute('d', '');
+        clickContainer.innerHTML = '';
       });
-    }
-    
-    // 경로 렌더링 (validPath 사용)
-    if (currentState.validPath && currentState.validPath.length >= 2) {
-      const pathSvg = elements.renderElements.pathSvg;
-      const visiblePath = currentState.validPath.slice(0, 10); // 최대 10개 포인트
-      const pathData = `M ${visiblePath.map(point => `${point.x} ${point.y}`).join(' L ')}`;
-      pathSvg.setAttribute('d', pathData);
     } else {
-      elements.renderElements.pathSvg.setAttribute('d', '');
-    }
-    
-    // 클릭 애니메이션 (새로운 클릭이 있을 때만)
-    if (currentState.clickHistory.length > prevState.clickHistory.length) {
-      const latestClick = currentState.clickHistory[0];
-      if (latestClick && latestClick.x !== -999 && latestClick.y !== -999) {
-        renderClickAnimation(latestClick, elements.renderElements.clickContainer);
+      // 일반 상태일 때 정상 렌더링
+      
+      // 커서 위치 업데이트
+      if (currentState.mousePosition.x !== -999 && currentState.mousePosition.y !== -999) {
+        const { cursor, trail } = elements.renderElements;
+        
+        // 커서와 트레일 위치 업데이트
+        requestAnimationFrame(() => {
+          cursor.style.transform = `translate3d(${currentState.mousePosition.x - 8}px, ${currentState.mousePosition.y - 8}px, 0)`;
+          cursor.style.opacity = '1';
+          
+          trail.style.transform = `translate3d(${currentState.mousePosition.x - 12}px, ${currentState.mousePosition.y - 12}px, 0)`;
+          trail.style.opacity = '1';
+        });
+      }
+      
+      // 경로 렌더링 (validPath 사용)
+      if (currentState.validPath && currentState.validPath.length >= 2) {
+        const pathSvg = elements.renderElements.pathSvg;
+        const visiblePath = currentState.validPath.slice(0, 10); // 최대 10개 포인트
+        const pathData = `M ${visiblePath.map(point => `${point.x} ${point.y}`).join(' L ')}`;
+        pathSvg.setAttribute('d', pathData);
+      } else {
+        elements.renderElements.pathSvg.setAttribute('d', '');
+      }
+      
+      // 클릭 애니메이션 (새로운 클릭이 있을 때만)
+      if (currentState.clickHistory.length > prevState.clickHistory.length) {
+        const latestClick = currentState.clickHistory[0];
+        if (latestClick && latestClick.x !== -999 && latestClick.y !== -999) {
+          renderClickAnimation(latestClick, elements.renderElements.clickContainer);
+        }
       }
     }
     
@@ -245,7 +285,10 @@ function subscribeToStateChanges(
 /**
  * 클릭 애니메이션 렌더링
  */
-function renderClickAnimation(click: { x: number; y: number; timestamp: number }, clickContainer: HTMLDivElement) {
+function renderClickAnimation(
+  click: { x: number; y: number; timestamp: number }, 
+  clickContainer: HTMLDivElement
+): void {
   const clickElement = document.createElement('div');
   clickElement.className = 'absolute pointer-events-none';
   clickElement.style.cssText = `
@@ -296,7 +339,10 @@ function renderClickAnimation(click: { x: number; y: number; timestamp: number }
 /**
  * 이벤트 리스너 바인딩
  */
-function bindEventListeners(container: HTMLElement, dispatch: ReturnType<typeof useMouseActionDispatch>) {
+function bindEventListeners(
+  container: HTMLElement, 
+  dispatch: ReturnType<typeof useMouseActionDispatch>
+): () => void {
   const handleMouseMove = (e: MouseEvent) => {
     const rect = container.getBoundingClientRect();
     const x = Math.round(e.clientX - rect.left);
