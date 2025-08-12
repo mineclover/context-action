@@ -531,22 +531,27 @@ const MouseEventsActionHandlers: React.FC<{ children: React.ReactNode }> = ({ ch
       isInsideArea: false
     });
     
-    // Movement 정리
+    // Movement 정리 - 이미 false라면 업데이트하지 않음
     const currentMovement = movementStore.getValue();
-    movementStore.setValue({
-      ...currentMovement,
-      isMoving: false
-    });
+    if (currentMovement.isMoving) {
+      movementStore.setValue({
+        ...currentMovement,
+        isMoving: false
+      });
+    }
   });
 
   useMouseEventsActionHandler('moveEnd', async (payload) => {
     console.log('🎯 moveEnd action:', payload);
     
     const currentMovement = movementStore.getValue();
-    movementStore.setValue({
-      ...currentMovement,
-      isMoving: false
-    });
+    // 이미 isMoving이 false라면 업데이트하지 않음 (불필요한 렌더링 방지)
+    if (currentMovement.isMoving) {
+      movementStore.setValue({
+        ...currentMovement,
+        isMoving: false
+      });
+    }
   });
 
   useMouseEventsActionHandler('resetMouseState', async () => {
