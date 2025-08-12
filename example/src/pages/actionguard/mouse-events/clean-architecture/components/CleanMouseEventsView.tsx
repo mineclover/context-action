@@ -5,7 +5,7 @@
  */
 
 import { memo, useRef, useEffect, useCallback, useState } from 'react';
-import { DemoCard, Button, CodeBlock, CodeExample } from '../../../../components/ui';
+import { DemoCard, Button, CodeBlock, CodeExample } from '../../../../../components/ui';
 
 /**
  * 마우스 이벤트 핸들러 인터페이스 (외부에서 주입)

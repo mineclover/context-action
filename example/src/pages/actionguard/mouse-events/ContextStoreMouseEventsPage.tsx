@@ -4,7 +4,7 @@
  * Context Store Pattern을 집중적으로 보여주는 독립 페이지
  */
 
-import { EnhancedContextStoreContainer } from './containers/EnhancedContextStoreContainer';
+import { EnhancedContextStoreContainer } from './context-store-pattern/containers/EnhancedContextStoreContainer';
 
 /**
  * Context Store 마우스 이벤트 전용 페이지

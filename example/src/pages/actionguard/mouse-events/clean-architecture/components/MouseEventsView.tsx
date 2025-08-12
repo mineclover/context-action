@@ -5,7 +5,7 @@
  */
 
 import { memo, useMemo, useCallback } from 'react';
-import { DemoCard, Button, CodeBlock, CodeExample } from '../../../../components/ui';
+import { DemoCard, Button, CodeBlock, CodeExample } from '../../../../../components/ui';
 import { useStoreValue } from '@context-action/react';
 import { useMouseEventsLogic } from '../hooks/useMouseEventsLogic';
 import { useMouseEventsStore, useAggregatedMouseEventsState, type MouseEventsStateData } from '../context/MouseEventsContext';

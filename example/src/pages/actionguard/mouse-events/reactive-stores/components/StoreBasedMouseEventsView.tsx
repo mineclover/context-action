@@ -6,7 +6,7 @@
 
 import { memo, useMemo, useRef } from 'react';
 import { useStoreValue } from '@context-action/react';
-import { DemoCard, Button, CodeBlock, CodeExample } from '../../../../components/ui';
+import { DemoCard, Button, CodeBlock, CodeExample } from '../../../../../components/ui';
 import type { 
   MouseStoreCollection,
   MousePositionState,
