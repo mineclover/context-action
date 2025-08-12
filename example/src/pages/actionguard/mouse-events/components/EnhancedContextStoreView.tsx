@@ -58,6 +58,7 @@ export interface EnhancedContextStoreViewProps {
   movementStore: any;
   clicksStore: any;
   computedStore: any;
+  performanceStore: any;
 }
 
 // ================================
@@ -314,44 +315,7 @@ const ComputedPanel = memo(({ computedStore }: { computedStore: any }) => {
   );
 });
 
-/**
- * 실시간 성능 메트릭 패널
- */
-const PerformancePanel = memo(({ metrics }: { metrics: PerformanceMetrics }) => {
-  const [updateCount, setUpdateCount] = useState(0);
 
-  useEffect(() => {
-    setUpdateCount(prev => prev + 1);
-  }, [metrics.renderCount]);
-
-  return (
-    <div className="bg-gray-50 border border-gray-300 rounded-lg p-4">
-      <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-        <span>📊</span>
-        Performance Metrics
-        <span className="text-xs bg-gray-200 px-2 py-1 rounded">#{updateCount}</span>
-      </h4>
-      <div className="grid grid-cols-2 gap-3 text-sm">
-        <div className="text-center">
-          <div className="text-xl font-bold text-blue-600">{metrics.renderCount}</div>
-          <div className="text-xs text-gray-600">Total Renders</div>
-        </div>
-        <div className="text-center">
-          <div className="text-xl font-bold text-green-600">{metrics.averageRenderTime}ms</div>
-          <div className="text-xs text-gray-600">Avg Render Time</div>
-        </div>
-        <div className="text-center">
-          <div className="text-xl font-bold text-purple-600">{metrics.storeCount}</div>
-          <div className="text-xs text-gray-600">Active Stores</div>
-        </div>
-        <div className="text-center">
-          <div className="text-xl font-bold text-orange-600">{metrics.subscriptionCount}</div>
-          <div className="text-xs text-gray-600">Subscriptions</div>
-        </div>
-      </div>
-    </div>
-  );
-});
 
 // ================================
 // 🖥️ 메인 컴포넌트
@@ -517,6 +481,7 @@ const RealTimeDebuggerWithStores = memo(({
   movementStore,
   clicksStore,
   computedStore,
+  performanceStore,
   isVisible,
   onToggle
 }: {
@@ -524,6 +489,7 @@ const RealTimeDebuggerWithStores = memo(({
   movementStore: any;
   clicksStore: any;
   computedStore: any;
+  performanceStore: any;
   isVisible: boolean;
   onToggle: () => void;
 }) => {
@@ -532,6 +498,7 @@ const RealTimeDebuggerWithStores = memo(({
   const movement = useStoreValue(movementStore);
   const clicks = useStoreValue(clicksStore);
   const computed = useStoreValue(computedStore);
+  const performance = useStoreValue(performanceStore);
   
   return (
     <RealTimeDebugger 
@@ -539,6 +506,7 @@ const RealTimeDebuggerWithStores = memo(({
       movement={movement}
       clicks={clicks}
       computed={computed}
+      performance={performance}
       isVisible={isVisible}
       onToggle={onToggle}
     />
@@ -555,7 +523,8 @@ const EnhancedContextStoreViewComponent = ({
   positionStore,
   movementStore,
   clicksStore,
-  computedStore
+  computedStore,
+  performanceStore
 }: EnhancedContextStoreViewProps) => {
   console.log('🚀 EnhancedContextStoreView render at', new Date().toISOString());
   
@@ -663,19 +632,18 @@ const EnhancedContextStoreViewComponent = ({
                 <ClicksPanel clicksStore={clicksStore} />
                 <ComputedPanel computedStore={computedStore} />
               </div>
-              
-              <PerformancePanel metrics={performanceMetrics} />
             </div>
           )}
 
           {/* 고급 분석 패널 */}
-          {showAdvanced && positionStore && movementStore && clicksStore && computedStore && (
+          {showAdvanced && positionStore && movementStore && clicksStore && computedStore && performanceStore && (
             <AdvancedMetricsPanel 
               performanceMetrics={performanceMetrics}
               positionStore={positionStore}
               movementStore={movementStore}
               clicksStore={clicksStore}
               computedStore={computedStore}
+              performanceStore={performanceStore}
             />
           )}
         </div>
@@ -687,6 +655,7 @@ const EnhancedContextStoreViewComponent = ({
             movementStore={movementStore}
             clicksStore={clicksStore}
             computedStore={computedStore}
+            performanceStore={performanceStore}
             isVisible={showDebugger}
             onToggle={() => setShowDebugger(!showDebugger)}
           />
@@ -784,36 +753,46 @@ function EnhancedContextStoreContainer() {
   const movementStore = useMouseEventsStore('movement');
   const clicksStore = useMouseEventsStore('clicks');
   const computedStore = useMouseEventsStore('computed');
+  const performanceStore = useMouseEventsStore('performance');
   
-  // 선택적 구독 - 각 컴포넌트가 필요한 데이터만 구독
-  const position = useStoreValue(positionStore);
-  const movement = useStoreValue(movementStore);
-  const clicks = useStoreValue(clicksStore);
-  const computed = useStoreValue(computedStore);
+  // 선택적 구독 - hasActivity만 구독하여 렌더링 최소화
+  const hasActivity = useStoreSelector(computedStore, state => state.hasActivity);
+  
+  // 간단한 렌더 카운트 (무한 루프 방지)
+  const renderCountRef = useRef(0);
+  renderCountRef.current++;
   
   return (
     <EnhancedContextStoreView 
-      position={position}      // Only position changes trigger PositionPanel
-      movement={movement}      // Only movement changes trigger MovementPanel
-      clicks={clicks}          // Only click changes trigger ClicksPanel
-      computed={computed}      // Only computed changes trigger ComputedPanel
+      positionStore={positionStore}    // Store 참조만 전달
+      movementStore={movementStore}    // 각 패널이 직접 구독
+      clicksStore={clicksStore}        // 최적화된 렌더링
+      computedStore={computedStore}
+      performanceStore={performanceStore}
+      hasActivity={hasActivity}        // 선택적 구독 결과만 전달
     />
   );
 }
 
-// Individual Panel with Selective Subscription
-const PositionPanel = memo(({ position }) => {
+// Individual Panel with Direct Store Subscription
+const PositionPanel = memo(({ positionStore }) => {
+  const position = useStoreValue(positionStore);
+  
   // This panel ONLY re-renders when position store updates
-  // Movement, clicks, or computed updates won't affect this panel
+  // Movement, clicks, computed, or performance updates won't affect this panel
   
   return (
-    <div>
-      Current: ({position.current.x}, {position.current.y})
-      Previous: ({position.previous.x}, {position.previous.y})
-      Inside Area: {position.isInsideArea ? 'Yes' : 'No'}
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <h4>📍 Position Store</h4>
+      <div>Current: ({position.current.x}, {position.current.y})</div>
+      <div>Previous: ({position.previous.x}, {position.previous.y})</div>
+      <div>Inside Area: {position.isInsideArea ? 'Yes' : 'No'}</div>
     </div>
   );
 });
+
+// Individual panels subscribe directly to their stores
+// This ensures optimal rendering performance with selective subscriptions
 
 // Store Schema Definition
 interface MouseEventsStores {
@@ -841,6 +820,22 @@ interface MouseEventsStores {
     activityStatus: 'idle' | 'moving' | 'clicking';
     hasActivity: boolean;
   };
+  performance: {
+    containerRenderCount: number;
+    totalRenderCount: number;
+    averageRenderTime: number;
+    lastRenderTime: number;
+    sessionStartTime: number;
+  };
+}
+
+// Action Definitions
+interface MouseEventsActions extends ActionPayloadMap {
+  mouseMove: { x: number; y: number; timestamp: number };
+  mouseClick: { x: number; y: number; button: number; timestamp: number };
+  mouseEnter: { x: number; y: number; timestamp: number };
+  mouseLeave: { x: number; y: number; timestamp: number };
+  resetMouseState: void;
 }`}
         </CodeBlock>
       </CodeExample>

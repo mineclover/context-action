@@ -103,50 +103,148 @@ const AdvancedMetricsPanelComponent = ({
     return () => clearInterval(interval);
   }, [isMonitoring, performanceMetrics, storeMetrics, movement.moveCount, clicks.count]);
 
-  // Store 메트릭 업데이트
+  // 개별 Store 업데이트 추적 - 각 store별로 독립적인 useEffect 사용
   useEffect(() => {
-    const updateStoreMetrics = () => {
-      const now = Date.now();
-      const stores = [
-        { name: 'position', store: positionStore },
-        { name: 'movement', store: movementStore },
-        { name: 'clicks', store: clicksStore },
-        { name: 'computed', store: computedStore }
-      ];
-
-      const newMetrics: StoreMetrics[] = stores.map(({ name, store }) => {
-        const currentCount = updateCountRef.current[name as keyof typeof updateCountRef.current];
-        const lastTime = lastUpdateTimeRef.current[name as keyof typeof lastUpdateTimeRef.current];
-        
-        // 업데이트 횟수 추적
-        updateCountRef.current[name as keyof typeof updateCountRef.current]++;
-        lastUpdateTimeRef.current[name as keyof typeof lastUpdateTimeRef.current] = now;
-
-        return {
-          storeName: name,
-          updateCount: currentCount + 1,
-          lastUpdate: now,
-          subscriptionCount: 1, // 각 패널당 1개 구독
-          averageUpdateTime: lastTime ? now - lastTime : 0
-        };
-      });
-
-      setStoreMetrics(newMetrics);
-    };
-
-    updateStoreMetrics();
-  }, [position, movement, clicks, computed]);
-
-  // 성능 점수 계산
-  const performanceScore = useMemo(() => {
-    const renderScore = Math.max(0, 100 - parseFloat(performanceMetrics.averageRenderTime));
-    const memoryScore = Math.max(0, 100 - memoryUsage.percentage);
-    const updateScore = storeMetrics.length > 0 
-      ? Math.max(0, 100 - (storeMetrics.reduce((acc, s) => acc + s.averageUpdateTime, 0) / storeMetrics.length / 10))
-      : 100;
+    const now = Date.now();
+    const lastTime = lastUpdateTimeRef.current.position;
     
-    return Math.round((renderScore + memoryScore + updateScore) / 3);
+    updateCountRef.current.position++;
+    lastUpdateTimeRef.current.position = now;
+    
+    setStoreMetrics(prev => prev.map(metric => 
+      metric.storeName === 'position' 
+        ? {
+            ...metric,
+            updateCount: updateCountRef.current.position,
+            lastUpdate: now,
+            averageUpdateTime: lastTime ? now - lastTime : 0
+          }
+        : metric
+    ));
+  }, [position]);
+
+  useEffect(() => {
+    const now = Date.now();
+    const lastTime = lastUpdateTimeRef.current.movement;
+    
+    updateCountRef.current.movement++;
+    lastUpdateTimeRef.current.movement = now;
+    
+    setStoreMetrics(prev => prev.map(metric => 
+      metric.storeName === 'movement' 
+        ? {
+            ...metric,
+            updateCount: updateCountRef.current.movement,
+            lastUpdate: now,
+            averageUpdateTime: lastTime ? now - lastTime : 0
+          }
+        : metric
+    ));
+  }, [movement]);
+
+  useEffect(() => {
+    const now = Date.now();
+    const lastTime = lastUpdateTimeRef.current.clicks;
+    
+    updateCountRef.current.clicks++;
+    lastUpdateTimeRef.current.clicks = now;
+    
+    setStoreMetrics(prev => prev.map(metric => 
+      metric.storeName === 'clicks' 
+        ? {
+            ...metric,
+            updateCount: updateCountRef.current.clicks,
+            lastUpdate: now,
+            averageUpdateTime: lastTime ? now - lastTime : 0
+          }
+        : metric
+    ));
+  }, [clicks]);
+
+  useEffect(() => {
+    const now = Date.now();
+    const lastTime = lastUpdateTimeRef.current.computed;
+    
+    updateCountRef.current.computed++;
+    lastUpdateTimeRef.current.computed = now;
+    
+    setStoreMetrics(prev => prev.map(metric => 
+      metric.storeName === 'computed' 
+        ? {
+            ...metric,
+            updateCount: updateCountRef.current.computed,
+            lastUpdate: now,
+            averageUpdateTime: lastTime ? now - lastTime : 0
+          }
+        : metric
+    ));
+  }, [computed]);
+
+  // 초기 메트릭 설정
+  useEffect(() => {
+    const initialMetrics: StoreMetrics[] = [
+      {
+        storeName: 'position',
+        updateCount: 0,
+        lastUpdate: 0,
+        subscriptionCount: 1,
+        averageUpdateTime: 0
+      },
+      {
+        storeName: 'movement', 
+        updateCount: 0,
+        lastUpdate: 0,
+        subscriptionCount: 1,
+        averageUpdateTime: 0
+      },
+      {
+        storeName: 'clicks',
+        updateCount: 0,
+        lastUpdate: 0,
+        subscriptionCount: 1,
+        averageUpdateTime: 0
+      },
+      {
+        storeName: 'computed',
+        updateCount: 0,
+        lastUpdate: 0,
+        subscriptionCount: 1,
+        averageUpdateTime: 0
+      }
+    ];
+    
+    setStoreMetrics(initialMetrics);
+  }, []); // 초기화는 한 번만
+
+  // 성능 점수 계산 (구체적인 공식 포함)
+  const performanceCalculation = useMemo(() => {
+    const renderTime = parseFloat(performanceMetrics.averageRenderTime);
+    const memoryPercentage = memoryUsage.percentage;
+    const avgStoreUpdateTime = storeMetrics.length > 0 
+      ? (storeMetrics.reduce((acc, s) => acc + s.averageUpdateTime, 0) / storeMetrics.length)
+      : 0;
+
+    // 개별 점수 계산
+    const renderScore = Math.max(0, 100 - renderTime);
+    const memoryScore = Math.max(0, 100 - memoryPercentage);
+    const updateScore = Math.max(0, 100 - (avgStoreUpdateTime / 10));
+    
+    // 최종 점수 (가중 평균)
+    const finalScore = Math.round((renderScore + memoryScore + updateScore) / 3);
+    
+    return {
+      renderTime,
+      memoryPercentage,
+      avgStoreUpdateTime,
+      renderScore,
+      memoryScore, 
+      updateScore,
+      finalScore,
+      formula: `((100-${renderTime.toFixed(1)}) + (100-${memoryPercentage.toFixed(1)}) + (100-${(avgStoreUpdateTime/10).toFixed(1)})) / 3 = ${finalScore}`
+    };
   }, [performanceMetrics.averageRenderTime, memoryUsage.percentage, storeMetrics]);
+
+  const performanceScore = performanceCalculation.finalScore;
 
   // 실시간 차트 데이터
   const chartData = useMemo(() => {
@@ -168,10 +266,15 @@ const AdvancedMetricsPanelComponent = ({
     <div className="bg-gray-900 text-white rounded-lg p-6 space-y-6">
       {/* 헤더 */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <span className="text-green-400">📊</span>
-          Advanced Performance Analytics
-        </h3>
+        <div>
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <span className="text-green-400">📊</span>
+            Advanced Performance Analytics
+          </h3>
+          <p className="text-sm text-gray-400 mt-1">
+            Real-time monitoring of Context Store Pattern performance with store-level metrics
+          </p>
+        </div>
         <button
           onClick={() => setIsMonitoring(!isMonitoring)}
           className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
@@ -182,6 +285,22 @@ const AdvancedMetricsPanelComponent = ({
         >
           {isMonitoring ? '⏹️ Stop' : '▶️ Monitor'}
         </button>
+      </div>
+      
+      {/* 설명 패널 */}
+      <div className="bg-blue-900/30 border border-blue-500/30 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <div className="text-blue-400 text-lg">💡</div>
+          <div>
+            <h4 className="text-sm font-semibold text-blue-300 mb-2">What This Panel Shows</h4>
+            <div className="text-xs text-blue-100 space-y-1">
+              <div><strong>Performance Score:</strong> Overall system performance based on render time, memory usage, and store update efficiency</div>
+              <div><strong>Store Performance:</strong> Individual store update counts and frequency - shows selective subscription effectiveness</div>
+              <div><strong>Memory Usage:</strong> Estimated memory consumption from path data, click history, and DOM elements (~509KB total)</div>
+              <div><strong>Real-time Chart:</strong> Live visualization of render performance when monitoring is active</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* 성능 스코어 */}
@@ -195,7 +314,7 @@ const AdvancedMetricsPanelComponent = ({
             {performanceScore}/100
           </span>
         </div>
-        <div className="w-full bg-gray-700 rounded-full h-2">
+        <div className="w-full bg-gray-700 rounded-full h-2 mb-3">
           <div 
             className={`h-2 rounded-full transition-all duration-500 ${
               performanceScore >= 80 ? 'bg-green-400' : 
@@ -204,6 +323,28 @@ const AdvancedMetricsPanelComponent = ({
             style={{ width: `${performanceScore}%` }}
           />
         </div>
+        
+        {/* 계산식 상세 정보 */}
+        <details className="text-xs">
+          <summary className="cursor-pointer text-gray-400 hover:text-white mb-2">
+            📊 Calculation Details
+          </summary>
+          <div className="bg-gray-900 p-3 rounded border space-y-2 font-mono">
+            <div className="text-gray-300">
+              <div className="text-yellow-300 mb-2">Score Components:</div>
+              <div>• Render Score: 100 - {performanceCalculation.renderTime.toFixed(1)}ms = <span className="text-green-400">{performanceCalculation.renderScore}/100</span></div>
+              <div>• Memory Score: 100 - {performanceCalculation.memoryPercentage.toFixed(1)}% = <span className="text-green-400">{performanceCalculation.memoryScore}/100</span></div>
+              <div>• Update Score: 100 - {(performanceCalculation.avgStoreUpdateTime/10).toFixed(1)} = <span className="text-green-400">{performanceCalculation.updateScore}/100</span></div>
+            </div>
+            <div className="border-t border-gray-700 pt-2">
+              <div className="text-blue-300">Final Formula:</div>
+              <div className="text-green-400">{performanceCalculation.formula}</div>
+            </div>
+            <div className="text-xs text-gray-500 mt-2">
+              Higher scores indicate better performance. Render time penalty increases linearly, memory usage affects score 1:1, store update time is scaled by factor of 10.
+            </div>
+          </div>
+        </details>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
