@@ -151,9 +151,16 @@ const MouseEventsStoreContext = createDeclarativeStores(
   mouseEventsStoreSchema
 );
 
-// Providers
-export const MouseEventsActionProvider: React.FC<{ children: React.ReactNode }> = MouseEventsActionContext.Provider;
-export const MouseEventsStoreProvider: React.FC<{ children: React.ReactNode; registryId?: string }> = MouseEventsStoreContext.Provider;
+// Providers with logging
+export const MouseEventsActionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  console.log('🎯 MouseEventsActionProvider render at', new Date().toISOString());
+  return <MouseEventsActionContext.Provider>{children}</MouseEventsActionContext.Provider>;
+};
+
+export const MouseEventsStoreProvider: React.FC<{ children: React.ReactNode; registryId?: string }> = ({ children, registryId }) => {
+  console.log('🏪 MouseEventsStoreProvider render at', new Date().toISOString(), 'registryId:', registryId);
+  return <MouseEventsStoreContext.Provider registryId={registryId}>{children}</MouseEventsStoreContext.Provider>;
+};
 
 // Hooks export
 export const useMouseEventsActionDispatch = MouseEventsActionContext.useActionDispatch;
@@ -171,6 +178,8 @@ export const useMouseEventsRegistry = MouseEventsStoreContext.useRegistry;
  * Store와 Action Context를 함께 제공합니다.
  */
 export const MouseEventsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  console.log('🔄 MouseEventsProvider render at', new Date().toISOString());
+  
   return (
     <MouseEventsStoreProvider registryId="mouse-events-page">
       <MouseEventsActionProvider>

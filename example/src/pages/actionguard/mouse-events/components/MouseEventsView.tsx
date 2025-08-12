@@ -6,7 +6,9 @@
 
 import { memo, useMemo, useCallback } from 'react';
 import { DemoCard, Button, CodeBlock, CodeExample } from '../../../../components/ui';
+import { useStoreValue } from '@context-action/react';
 import { useMouseEventsLogic } from '../hooks/useMouseEventsLogic';
+import { useMouseEventsStore, type MouseEventsStateData } from '../context/MouseEventsContext';
 import { SimpleSmoothTracker } from './SimpleSmoothTracker';
 import { StaticMousePath } from './StaticMousePath';
 import { AnimatedClickIndicators } from './AnimatedClickIndicators';
@@ -18,22 +20,42 @@ import { RealtimeMouseCursor } from './RealtimeMouseCursor';
  * Hook Layer를 통해 데이터와 액션을 받아 UI를 렌더링합니다.
  */
 const MouseEventsViewComponent = () => {
+  console.log('📱 MouseEventsView render at', new Date().toISOString());
+  
   const {
-    mouseState,
     handleMouseMove,
     handleMouseClick,
     handleMouseEnter,
     handleMouseLeave,
     resetState,
-    isActive,
-    hasActivity,
-    averageVelocity,
   } = useMouseEventsLogic();
+  
+  // 깔끔한 useStoreValue 사용 및 구조분해
+  const mouseStore = useMouseEventsStore('mouseState');
+  const mouseState = useStoreValue(mouseStore);
+  
+  // mouseState 구조분해
+  const {
+    mousePosition,
+    moveCount,
+    clickCount,
+    isMoving,
+    lastMoveTime,
+    movePath,
+    mouseVelocity,
+    isInsideArea,
+    clickHistory
+  } = mouseState;
+  
+  // 계산된 값들
+  const isActive = isMoving;
+  const hasActivity = moveCount > 0 || clickCount > 0;
+  const averageVelocity = mouseVelocity;
 
   // 메모화된 계산값
   const memoizedAverageVelocity = useMemo(() => averageVelocity, [
-    mouseState.movePath.length,
-    mouseState.moveCount
+    movePath.length,
+    moveCount
   ]);
 
   // 매끄러운 마우스 추적을 위한 콜백들
@@ -89,21 +111,21 @@ const MouseEventsViewComponent = () => {
                 <div className="flex justify-between gap-3">
                   <span className="text-gray-600">Position:</span>
                   <span className="font-mono text-blue-600">
-                    ({mouseState.mousePosition.x}, {mouseState.mousePosition.y})
+                    ({mousePosition.x}, {mousePosition.y})
                   </span>
                 </div>
                 <div className="flex justify-between gap-3">
                   <span className="text-gray-600">Moves:</span>
-                  <span className="font-mono text-green-600">{mouseState.moveCount}</span>
+                  <span className="font-mono text-green-600">{moveCount}</span>
                 </div>
                 <div className="flex justify-between gap-3">
                   <span className="text-gray-600">Clicks:</span>
-                  <span className="font-mono text-purple-600">{mouseState.clickCount}</span>
+                  <span className="font-mono text-purple-600">{clickCount}</span>
                 </div>
                 <div className="flex justify-between gap-3">
                   <span className="text-gray-600">Velocity:</span>
                   <span className="font-mono text-red-600">
-                    {mouseState.mouseVelocity.toFixed(2)} px/ms
+                    {mouseVelocity.toFixed(2)} px/ms
                   </span>
                 </div>
                 <div className="flex justify-between gap-3">
@@ -117,9 +139,9 @@ const MouseEventsViewComponent = () => {
                 <div className="flex justify-between gap-3">
                   <span className="text-gray-600">Inside:</span>
                   <span className={`font-mono ${
-                    mouseState.isInsideArea ? 'text-green-600' : 'text-orange-600'
+                    isInsideArea ? 'text-green-600' : 'text-orange-600'
                   }`}>
-                    {mouseState.isInsideArea ? '✓ Yes' : '✗ No'}
+                    {isInsideArea ? '✓ Yes' : '✗ No'}
                   </span>
                 </div>
               </div>
@@ -127,20 +149,20 @@ const MouseEventsViewComponent = () => {
 
             {/* 실시간 마우스 커서 */}
             <RealtimeMouseCursor
-              position={mouseState.mousePosition}
-              velocity={mouseState.mouseVelocity}
-              isVisible={mouseState.isInsideArea}
-              isMoving={mouseState.isMoving}
+              position={mousePosition}
+              velocity={mouseVelocity}
+              isVisible={isInsideArea}
+              isMoving={isMoving}
             />
 
             {/* 정적 마우스 경로 (성능 최적화) */}
             <StaticMousePath 
-              movePath={mouseState.movePath}
-              isVisible={mouseState.movePath.length > 1}
+              movePath={movePath}
+              isVisible={movePath.length > 1}
             />
 
             {/* GSAP 기반 클릭 애니메이션 */}
-            <AnimatedClickIndicators clickHistory={mouseState.clickHistory} />
+            <AnimatedClickIndicators clickHistory={clickHistory} />
 
             {/* 인터랙션 가이드 */}
             {!hasActivity && (
@@ -170,16 +192,19 @@ const MouseEventsViewComponent = () => {
               Reset Tracking
             </Button>
             
-            {mouseState.lastMoveTime && (
+            {lastMoveTime && (
               <span className="text-xs text-gray-500">
-                Last activity: {new Date(mouseState.lastMoveTime).toLocaleTimeString()}
+                Last activity: {new Date(lastMoveTime).toLocaleTimeString()}
               </span>
             )}
           </div>
 
           {/* 추가 통계 - 최적화됨 */}
           <StatisticsPanel 
-            mouseState={mouseState}
+            movePath={movePath}
+            moveCount={moveCount}
+            clickCount={clickCount}
+            clickHistory={clickHistory}
             averageVelocity={memoizedAverageVelocity}
           />
         </div>
@@ -364,15 +389,26 @@ const MouseTracker = () => {
   );
 };
 
-// 메모화된 통계 패널 컴포넌트
-const StatisticsPanel = memo(({ mouseState, averageVelocity }: {
-  mouseState: any;
+// 메모화된 통계 패널 컴포넌트 - 타입 안전성 개선
+interface StatisticsPanelProps {
+  movePath: MouseEventsStateData['movePath'];
+  moveCount: number;
+  clickCount: number;
+  clickHistory: MouseEventsStateData['clickHistory'];
   averageVelocity: number;
-}) => (
+}
+
+const StatisticsPanel = memo(({ 
+  movePath, 
+  moveCount, 
+  clickCount, 
+  clickHistory, 
+  averageVelocity 
+}: StatisticsPanelProps) => (
   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
     <div className="text-center">
       <div className="text-xl font-bold text-blue-600">
-        {mouseState.movePath.length}
+        {movePath.length}
       </div>
       <div className="text-xs text-gray-600">Path Points</div>
     </div>
@@ -384,13 +420,13 @@ const StatisticsPanel = memo(({ mouseState, averageVelocity }: {
     </div>
     <div className="text-center">
       <div className="text-xl font-bold text-purple-600">
-        {mouseState.clickHistory.length}
+        {clickHistory.length}
       </div>
       <div className="text-xs text-gray-600">Recent Clicks</div>
     </div>
     <div className="text-center">
       <div className="text-xl font-bold text-orange-600">
-        {mouseState.moveCount + mouseState.clickCount}
+        {moveCount + clickCount}
       </div>
       <div className="text-xs text-gray-600">Total Events</div>
     </div>

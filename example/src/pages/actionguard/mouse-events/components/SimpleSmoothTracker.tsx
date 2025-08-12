@@ -33,10 +33,25 @@ export const SimpleSmoothTracker = ({
   // 마우스 위치 계산
   const getPosition = useCallback((e: React.MouseEvent<HTMLDivElement>): MousePosition => {
     const rect = e.currentTarget.getBoundingClientRect();
-    return {
+    const position = {
       x: Math.round(e.clientX - rect.left),
       y: Math.round(e.clientY - rect.top)
     };
+    
+    // 0,0 문제 디버깅
+    if (position.x === 0 && position.y === 0) {
+      console.warn('🔴 SimpleSmoothTracker getPosition returned 0,0:', {
+        clientX: e.clientX,
+        clientY: e.clientY,
+        rectLeft: rect.left,
+        rectTop: rect.top,
+        rect,
+        position
+      });
+      console.trace('getPosition 0,0 trace');
+    }
+    
+    return position;
   }, []);
 
   // 속도 계산
@@ -55,6 +70,13 @@ export const SimpleSmoothTracker = ({
     const deltaTime = now - lastTimeRef.current;
     
     const velocity = calculateVelocity(position, lastPositionRef.current, deltaTime);
+    
+    // 0,0 문제 디버깅
+    if (position.x === 0 && position.y === 0) {
+      console.warn('🔴 SimpleSmoothTracker handleMouseMove detected 0,0:', { position, velocity });
+    }
+    
+    console.log('🖱️ SimpleSmoothTracker onMouseMove:', position, 'velocity:', velocity);
     
     // 콜백 호출
     onMouseMove(position, velocity);

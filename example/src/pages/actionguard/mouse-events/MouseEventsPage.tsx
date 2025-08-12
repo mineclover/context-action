@@ -4,71 +4,55 @@
  * Context → Data/Action → Hook → View 계층 구조를 따르는 마우스 이벤트 데모 페이지
  */
 
-import { useState } from 'react';
-import { PageWithLogMonitor } from '../../../components/LogMonitor';
-import { MouseEventsProvider } from './context/MouseEventsContext';
-import { MouseEventsView } from './components/MouseEventsView';
-import { OptimizedMouseEventsView } from './components/OptimizedMouseEventsView';
+import { MouseEventsContainer } from './containers/MouseEventsContainer';
 
 /**
- * Provider와 격리된 UI 컴포넌트
- * viewMode 상태 변경이 Provider에 영향을 주지 않도록 분리
+ * Clean Architecture 마우스 이벤트 UI
  */
 const MouseEventsUI = () => {
-  const [viewMode, setViewMode] = useState<'traditional' | 'optimized'>('optimized');
+  console.log('🖥️ MouseEventsUI render at', new Date().toISOString());
 
   return (
     <div className="page-container">
-      {/* 뷰 모드 선택 탭 */}
-      <div className="flex space-x-1 mb-6 bg-gray-100 p-1 rounded-lg max-w-md">
-        <button
-          onClick={() => setViewMode('optimized')}
-          className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all ${
-            viewMode === 'optimized'
-              ? 'bg-white text-blue-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-800'
-          }`}
-        >
-          🚀 Isolated Renderer
-        </button>
-        <button
-          onClick={() => setViewMode('traditional')}
-          className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all ${
-            viewMode === 'traditional'
-              ? 'bg-white text-blue-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-800'
-          }`}
-        >
-          📱 Traditional React
-        </button>
+      {/* 헤더 설명 */}
+      <div className="mb-6">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-2xl">🏗️</span>
+            <h2 className="text-lg font-semibold text-blue-800">
+              Clean Architecture - Separated Concerns
+            </h2>
+          </div>
+          <p className="text-sm text-blue-700">
+            Complete separation of View, Controller, Service layers. 
+            Testable, maintainable architecture with dependency injection and clean interfaces.
+          </p>
+        </div>
       </div>
 
-      {/* 선택된 뷰 렌더링 */}
-      {viewMode === 'optimized' ? (
-        <OptimizedMouseEventsView />
-      ) : (
-        <MouseEventsView />
-      )}
+      {/* Clean Architecture Container */}
+      <MouseEventsContainer />
     </div>
   );
 };
 
 /**
- * 마우스 이벤트 데모 페이지
+ * 마우스 이벤트 데모 페이지 - Clean Architecture
  * 
- * Provider를 최상위에 고정하여 UI 상태 변경으로부터 격리합니다.
+ * Context나 Provider 없이 순수한 의존성 주입으로 구성
  */
 export function MouseEventsPage() {
+  console.log('📄 MouseEventsPage render at', new Date().toISOString());
+  
   return (
-    <PageWithLogMonitor
-      pageId="action-guard-mouse-events"
-      title="Mouse Events Demo"
-      initialConfig={{ enableToast: true, maxLogs: 100 }}
-    >
-      <MouseEventsProvider>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">
+          Clean Architecture Mouse Events
+        </h1>
         <MouseEventsUI />
-      </MouseEventsProvider>
-    </PageWithLogMonitor>
+      </div>
+    </div>
   );
 }
 

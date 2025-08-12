@@ -125,6 +125,8 @@ const IsolatedStatusDisplay = () => {
  * 최적화된 마우스 이벤트 View 컴포넌트 (상태 표시 격리)
  */
 const OptimizedMouseEventsViewComponent = () => {
+  console.log('🚀 OptimizedMouseEventsView render at', new Date().toISOString());
+  
   const {
     handleMouseMove,
     handleMouseClick,
@@ -132,19 +134,19 @@ const OptimizedMouseEventsViewComponent = () => {
     handleMouseLeave,
     resetState,
   } = useMouseEventsLogic();
+  
+  // 초기 활동 상태만 React 상태로 관리 (UI용)
+  const [hasInitialActivity, setHasInitialActivity] = useState(false);
 
   // 격리된 렌더러 참조
   const rendererRef = useRef<MouseRendererHandle>(null);
-  
-  // 초기 활동 상태만 React 상태로 관리
-  const [hasInitialActivity, setHasInitialActivity] = useState(false);
 
   // 렌더러와 상태 표시를 업데이트하는 useEffect 추가
   useEffect(() => {
     // 전역 렌더러 핸들 설정
     (window as any).__rendererHandle = rendererRef.current;
     
-    // 초기 활동 상태 전역 설정
+    // 초기 활동 상태 설정 함수
     (window as any).__setHasInitialActivity = setHasInitialActivity;
     
     return () => {
