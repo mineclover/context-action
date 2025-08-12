@@ -24,6 +24,10 @@ function useThrottle<T extends any[]>(
 ) {
   const lastCallRef = useRef<number>(0);
   const timeoutRef = useRef<NodeJS.Timeout>();
+  const callbackRef = useRef(callback);
+  
+  // 최신 callback을 ref에 저장 (리렌더링 방지)
+  callbackRef.current = callback;
 
   return useCallback(
     (...args: T) => {
@@ -32,18 +36,18 @@ function useThrottle<T extends any[]>(
 
       if (timeSinceLastCall >= delay) {
         lastCallRef.current = now;
-        callback(...args);
+        callbackRef.current(...args); // ref를 통해 호출
       } else {
         if (timeoutRef.current) {
           clearTimeout(timeoutRef.current);
         }
         timeoutRef.current = setTimeout(() => {
           lastCallRef.current = Date.now();
-          callback(...args);
+          callbackRef.current(...args); // ref를 통해 호출
         }, delay - timeSinceLastCall);
       }
     },
-    [callback, delay]
+    [delay] // callback 의존성 제거
   );
 }
 
@@ -67,7 +71,7 @@ export function useMouseEventsLogic() {
     lastClickLogTime: 0
   });
 
-  // 마우스 메트릭 업데이트 함수
+  // 마우스 메트릭 업데이트 함수 (안정적인 참조)
   const updateMouseMetrics = useCallback(
     (position: MousePosition, timestamp: number) => {
       const currentState = mouseStore.getValue();
@@ -85,13 +89,13 @@ export function useMouseEventsLogic() {
         timestamp,
       });
     },
-    [dispatch, mouseStore]
+    [] // 빈 의존성으로 안정적인 참조 유지
   );
 
-  // 스로틀된 마우스 핸들러 (더 반응성 있게)
-  const throttledMouseHandler = useThrottle(updateMouseMetrics, 16); // ~60fps
+  // 스로틀된 마우스 핸들러 (안정적인 참조)
+  const throttledMouseHandler = useThrottle(updateMouseMetrics, 16);
 
-  // 마우스 이동 종료 감지
+  // 마우스 이동 종료 감지 (안정적인 참조)
   const handleMoveEnd = useCallback(
     (position: MousePosition) => {
       if (moveEndTimeoutRef.current) {
@@ -105,7 +109,7 @@ export function useMouseEventsLogic() {
         });
       }, 100); // 100ms 후 이동 종료로 간주
     },
-    [dispatch]
+    [] // 빈 의존성으로 안정적인 참조 유지
   );
 
   // 액션 핸들러 등록
@@ -306,10 +310,8 @@ export function useMouseEventsLogic() {
   }, [
     register,
     mouseStore,
-    dispatch,
-    throttledMouseHandler,
-    handleMoveEnd,
-    logAction,
+    // dispatch, throttledMouseHandler, handleMoveEnd, logAction 제거
+    // 이 함수들은 이제 안정적인 참조를 가지므로 의존성에서 제외
   ]);
 
   // View에 제공할 인터페이스
