@@ -125,7 +125,7 @@ const RefactoredPriorityTestInstance = memo<RefactoredPriorityTestInstanceProps>
     }, [configs, selectedDelay]);
 
     // 핸들러 등록 훅
-    const { registerHandlers, unregisterHandlers, setAbortController } = useTestHandlerRegistration(
+    const { registerHandlers, unregisterHandlers } = useTestHandlerRegistration(
       configsWithDelay,
       {
         onRegistered: (count) => {
@@ -138,7 +138,7 @@ const RefactoredPriorityTestInstance = memo<RefactoredPriorityTestInstanceProps>
     );
 
     // 테스트 실행 훅
-    const { isRunning, executeTest, abortTest, resetTest, getCurrentAbortController } = useTestExecution({
+    const { isRunning, executeTest, abortTest, resetTest } = useTestExecution({
       onTestStart: () => {
         console.log('🚀 테스트 시작');
       },
@@ -161,12 +161,6 @@ const RefactoredPriorityTestInstance = memo<RefactoredPriorityTestInstanceProps>
         unregisterHandlers();
       };
     }, [registerHandlers, unregisterHandlers]);
-
-    // AbortController 연동
-    useEffect(() => {
-      const controller = getCurrentAbortController();
-      setAbortController(controller);
-    }, [getCurrentAbortController, setAbortController]);
 
     // 이벤트 핸들러들
     const handleStart = useCallback(async () => {

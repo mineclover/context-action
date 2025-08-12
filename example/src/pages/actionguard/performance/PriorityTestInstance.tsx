@@ -254,7 +254,7 @@ const PriorityTestInstance = memo(function PriorityTestInstance({
   }, [configs, selectedDelay]);
 
   // 새로운 분리된 훅들 사용
-  const { registerHandlers, unregisterHandlers, setAbortController } = useTestHandlerRegistration(
+  const { registerHandlers, unregisterHandlers } = useTestHandlerRegistration(
     configsWithDelay,
     {
       onRegistered: (handlerCount) => {
@@ -266,7 +266,7 @@ const PriorityTestInstance = memo(function PriorityTestInstance({
     }
   );
 
-  const { isRunning, executeTest, abortTest, resetTest, getCurrentAbortController } = useTestExecution({
+  const { isRunning, executeTest, abortTest, resetTest } = useTestExecution({
     onTestStart: () => {
       console.log('🚀 Performance test started');
     },
@@ -289,12 +289,6 @@ const PriorityTestInstance = memo(function PriorityTestInstance({
       unregisterHandlers();
     };
   }, [registerHandlers, unregisterHandlers]);
-
-  // AbortController 연결
-  useEffect(() => {
-    const currentController = getCurrentAbortController();
-    setAbortController(currentController);
-  }, [getCurrentAbortController, setAbortController]);
 
   // 일괄 핸들러 추가 (1-100)
   const addBulkHandlers = useCallback(() => {

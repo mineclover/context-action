@@ -329,8 +329,33 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   ): Promise<ExecutionResult<R>> {
     const startTime = Date.now();
     
+    // Auto-abort: Create AbortController if enabled (same as dispatch)
+    let autoAbortController: AbortController | undefined;
+    let effectiveSignal = options?.signal;
+    
+    if (options?.autoAbort?.enabled) {
+      autoAbortController = new AbortController();
+      effectiveSignal = autoAbortController.signal;
+      
+      // Provide access to the created controller
+      if (options.autoAbort.onControllerCreated) {
+        options.autoAbort.onControllerCreated(autoAbortController);
+      }
+      
+      // If original signal exists, link them together
+      if (options?.signal) {
+        const originalSignal = options.signal;
+        if (originalSignal.aborted) {
+          autoAbortController.abort();
+        } else {
+          const abortHandler = () => autoAbortController!.abort();
+          originalSignal.addEventListener('abort', abortHandler, { once: true });
+        }
+      }
+    }
+    
     // Check if dispatch is aborted before starting
-    if (options?.signal?.aborted) {
+    if (effectiveSignal?.aborted) {
       return {
         success: false,
         aborted: true,
@@ -496,18 +521,18 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       timestamp: number;
     }> = [];
 
-    // Add abort listener if signal provided
-    const abortHandler = options?.signal ? () => {
+    // Add abort listener if signal provided (use effectiveSignal for auto-abort)
+    const abortHandler = effectiveSignal ? () => {
       context.aborted = true;
       context.abortReason = 'Action dispatch aborted by signal';
     } : undefined;
     
-    if (options?.signal && abortHandler) {
-      options.signal.addEventListener('abort', abortHandler);
+    if (effectiveSignal && abortHandler) {
+      effectiveSignal.addEventListener('abort', abortHandler);
     }
     
     try {
-      await this.executePipeline(context);
+      await this.executePipeline(context, autoAbortController, options?.autoAbort);
     } catch (error) {
       executionError = error instanceof Error ? error : new Error(String(error));
       errors.push({
@@ -517,8 +542,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       });
     } finally {
       // Clean up abort listener
-      if (options?.signal && abortHandler) {
-        options.signal.removeEventListener('abort', abortHandler);
+      if (effectiveSignal && abortHandler) {
+        effectiveSignal.removeEventListener('abort', abortHandler);
       }
     }
 

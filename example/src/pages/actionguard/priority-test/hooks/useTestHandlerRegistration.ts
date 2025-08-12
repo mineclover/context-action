@@ -225,16 +225,8 @@ export function useTestHandlerRegistration(
     actionRegister.clearAction('priorityTest');
   }, [actionRegister]);
 
-  /**
-   * AbortController를 설정합니다
-   */
-  const setAbortController = useCallback((controller: AbortController | null) => {
-    abortControllerRef.current = controller;
-  }, []);
-
   return {
     registerHandlers,
     unregisterHandlers,
-    setAbortController,
   };
 }
