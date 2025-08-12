@@ -70,6 +70,17 @@ export class MouseController {
       this.handleMoveStart(position, timestamp);
     }
 
+    // Activity Status 계산 (Clean Architecture 전용)
+    const now = Date.now();
+    const timeSinceLastClick = pathData.clickHistory.length > 0 ? now - pathData.clickHistory[0].timestamp : Infinity;
+    let activityStatus: 'idle' | 'moving' | 'clicking' = 'idle';
+    
+    if (pathData.clickHistory.length > 0 && timeSinceLastClick < 500) {
+      activityStatus = 'clicking';
+    } else if (pathData.isMoving && pathData.velocity > 0.1) {
+      activityStatus = 'moving';  
+    }
+
     // 렌더링
     this.renderService.renderCursorPosition(pathData.currentPosition);
     this.renderService.renderPath(this.pathService.getValidPath());
@@ -77,6 +88,8 @@ export class MouseController {
       position: pathData.currentPosition,
       moveCount: pathData.moveCount,
       velocity: pathData.velocity,
+      isMoving: pathData.isMoving,
+      activityStatus,
     });
 
     // 이동 종료 감지 타이머 설정

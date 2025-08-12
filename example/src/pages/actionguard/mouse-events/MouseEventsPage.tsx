@@ -5,6 +5,7 @@
  */
 
 import { MouseEventsContainer } from './containers/MouseEventsContainer';
+import { StoreBasedMouseEventsContainer } from './containers/StoreBasedMouseEventsContainer';
 
 /**
  * Clean Architecture 마우스 이벤트 UI
@@ -32,6 +33,11 @@ const MouseEventsUI = () => {
 
       {/* Clean Architecture Container */}
       <MouseEventsContainer />
+      
+      {/* Reactive Stores Container */}
+      <div className="mt-8">
+        <StoreBasedMouseEventsContainer />
+      </div>
     </div>
   );
 };
@@ -48,7 +54,7 @@ export function MouseEventsPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          Clean Architecture Mouse Events
+          Advanced Mouse Events Architecture Comparison
         </h1>
         <MouseEventsUI />
       </div>
