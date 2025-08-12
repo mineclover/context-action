@@ -4,15 +4,20 @@
  * Hook을 통해 Data/Action과 연결되는 View 컴포넌트입니다.
  */
 
+import { memo, useMemo, useCallback } from 'react';
 import { DemoCard, Button, CodeBlock, CodeExample } from '../../../../components/ui';
 import { useMouseEventsLogic } from '../hooks/useMouseEventsLogic';
+import { SimpleSmoothTracker } from './SimpleSmoothTracker';
+import { StaticMousePath } from './StaticMousePath';
+import { AnimatedClickIndicators } from './AnimatedClickIndicators';
+import { RealtimeMouseCursor } from './RealtimeMouseCursor';
 
 /**
  * 마우스 이벤트 View 컴포넌트
  * 
  * Hook Layer를 통해 데이터와 액션을 받아 UI를 렌더링합니다.
  */
-export function MouseEventsView() {
+const MouseEventsViewComponent = () => {
   const {
     mouseState,
     handleMouseMove,
@@ -25,33 +30,28 @@ export function MouseEventsView() {
     averageVelocity,
   } = useMouseEventsLogic();
 
-  const handleContainerMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = Math.round(e.clientX - rect.left);
-    const y = Math.round(e.clientY - rect.top);
-    handleMouseMove(x, y);
-  };
+  // 메모화된 계산값
+  const memoizedAverageVelocity = useMemo(() => averageVelocity, [
+    mouseState.movePath.length,
+    mouseState.moveCount
+  ]);
 
-  const handleContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = Math.round(e.clientX - rect.left);
-    const y = Math.round(e.clientY - rect.top);
-    handleMouseClick(x, y, e.button);
-  };
+  // 매끄러운 마우스 추적을 위한 콜백들
+  const handleSmoothMouseMove = useCallback((position: { x: number; y: number }, velocity: number) => {
+    handleMouseMove(Math.round(position.x), Math.round(position.y));
+  }, [handleMouseMove]);
 
-  const handleContainerEnter = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = Math.round(e.clientX - rect.left);
-    const y = Math.round(e.clientY - rect.top);
-    handleMouseEnter(x, y);
-  };
+  const handleSmoothMouseClick = useCallback((position: { x: number; y: number }, button: number) => {
+    handleMouseClick(Math.round(position.x), Math.round(position.y), button);
+  }, [handleMouseClick]);
 
-  const handleContainerLeave = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = Math.round(e.clientX - rect.left);
-    const y = Math.round(e.clientY - rect.top);
-    handleMouseLeave(x, y);
-  };
+  const handleSmoothMouseEnter = useCallback((position: { x: number; y: number }) => {
+    handleMouseEnter(Math.round(position.x), Math.round(position.y));
+  }, [handleMouseEnter]);
+
+  const handleSmoothMouseLeave = useCallback((position: { x: number; y: number }) => {
+    handleMouseLeave(Math.round(position.x), Math.round(position.y));
+  }, [handleMouseLeave]);
 
   return (
     <div className="space-y-6">
@@ -62,21 +62,27 @@ export function MouseEventsView() {
             🖱️ Mouse Events with Throttling Demo
           </h3>
           <p className="text-sm text-gray-600">
-            This demo tracks mouse movement with throttling at <strong>50ms intervals</strong> (20 events/second). 
-            It shows position tracking, movement patterns, and velocity calculations while maintaining 
-            smooth performance even during rapid mouse movements.
+            This demo showcases optimized real-time mouse tracking with <strong>60fps performance</strong>. 
+            It features smooth cursor tracking, dynamic path visualization, and velocity-based scaling 
+            while maintaining excellent performance through efficient rendering techniques.
           </p>
         </div>
         
         <div className="space-y-4">
           {/* 마우스 인터랙션 영역 */}
-          <div
-            className="relative h-[400px] border-2 border-gray-300 rounded-lg bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 overflow-hidden cursor-crosshair"
-            onMouseMove={handleContainerMouseMove}
-            onClick={handleContainerClick}
-            onMouseEnter={handleContainerEnter}
-            onMouseLeave={handleContainerLeave}
+          <SimpleSmoothTracker
+            onMouseMove={handleSmoothMouseMove}
+            onMouseClick={handleSmoothMouseClick}
+            onMouseEnter={handleSmoothMouseEnter}
+            onMouseLeave={handleSmoothMouseLeave}
           >
+            <div
+              className="relative h-[400px] border-2 border-gray-300 rounded-lg bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 overflow-hidden cursor-crosshair mouse-events-container"
+              style={{
+                containIntrinsicSize: '100% 400px',
+                willChange: 'auto'
+              }}
+            >
             {/* 상태 정보 패널 */}
             <div className="absolute top-3 left-3 bg-white bg-opacity-95 p-3 rounded-lg shadow-sm border min-w-[200px]">
               <div className="text-sm space-y-1">
@@ -119,72 +125,22 @@ export function MouseEventsView() {
               </div>
             </div>
 
-            {/* 마우스 커서 표시 */}
-            {mouseState.isInsideArea && (
-              <div
-                className="absolute w-4 h-4 bg-red-500 rounded-full pointer-events-none transition-all duration-75 shadow-lg border-2 border-white"
-                style={{
-                  left: mouseState.mousePosition.x - 8,
-                  top: mouseState.mousePosition.y - 8,
-                  transform: `scale(${Math.min(1 + mouseState.mouseVelocity / 2, 2)})`,
-                }}
-              >
-                <div className="absolute inset-0 bg-red-400 rounded-full animate-ping opacity-75" />
-              </div>
-            )}
+            {/* 실시간 마우스 커서 */}
+            <RealtimeMouseCursor
+              position={mouseState.mousePosition}
+              velocity={mouseState.mouseVelocity}
+              isVisible={mouseState.isInsideArea}
+              isMoving={mouseState.isMoving}
+            />
 
-            {/* 마우스 이동 경로 */}
-            {mouseState.movePath.length > 1 && (
-              <svg
-                className="absolute inset-0 w-full h-full pointer-events-none"
-                style={{ zIndex: 1 }}
-              >
-                <path
-                  d={`M ${mouseState.movePath.map((point, index) => 
-                    `${point.x} ${point.y}`
-                  ).join(' L ')}`}
-                  stroke="rgba(59, 130, 246, 0.6)"
-                  strokeWidth="2"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                {mouseState.movePath.map((point, index) => (
-                  <circle
-                    key={index}
-                    cx={point.x}
-                    cy={point.y}
-                    r={Math.max(1, 4 - index * 0.3)}
-                    fill={`rgba(59, 130, 246, ${Math.max(0.1, 1 - index * 0.1)})`}
-                  />
-                ))}
-              </svg>
-            )}
+            {/* 정적 마우스 경로 (성능 최적화) */}
+            <StaticMousePath 
+              movePath={mouseState.movePath}
+              isVisible={mouseState.movePath.length > 1}
+            />
 
-            {/* 클릭 위치 표시 */}
-            {mouseState.clickHistory.map((click, index) => (
-              <div
-                key={click.timestamp}
-                className="absolute w-6 h-6 pointer-events-none"
-                style={{
-                  left: click.x - 12,
-                  top: click.y - 12,
-                }}
-              >
-                <div
-                  className="w-6 h-6 bg-yellow-400 rounded-full animate-ping"
-                  style={{
-                    animationDelay: `${index * 0.1}s`,
-                    opacity: Math.max(0.2, 1 - index * 0.2),
-                  }}
-                />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-xs font-bold text-yellow-800">
-                    {index + 1}
-                  </span>
-                </div>
-              </div>
-            ))}
+            {/* GSAP 기반 클릭 애니메이션 */}
+            <AnimatedClickIndicators clickHistory={mouseState.clickHistory} />
 
             {/* 인터랙션 가이드 */}
             {!hasActivity && (
@@ -192,15 +148,16 @@ export function MouseEventsView() {
                 <div className="text-center text-gray-500">
                   <div className="text-lg mb-2">🖱️</div>
                   <div className="text-sm">
-                    Move your mouse and click to see throttling in action
+                    Move your mouse and click to see smooth tracking in action
                   </div>
                   <div className="text-xs mt-1 opacity-75">
-                    Events are throttled to 50ms intervals for smooth performance
+                    Using lerp-based real-time tracking with optimized rendering
                   </div>
                 </div>
               </div>
             )}
-          </div>
+            </div>
+          </SimpleSmoothTracker>
 
           {/* 컨트롤 */}
           <div className="flex justify-between items-center">
@@ -220,33 +177,11 @@ export function MouseEventsView() {
             )}
           </div>
 
-          {/* 추가 통계 */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
-            <div className="text-center">
-              <div className="text-xl font-bold text-blue-600">
-                {mouseState.movePath.length}
-              </div>
-              <div className="text-xs text-gray-600">Path Points</div>
-            </div>
-            <div className="text-center">
-              <div className="text-xl font-bold text-green-600">
-                {averageVelocity.toFixed(1)}
-              </div>
-              <div className="text-xs text-gray-600">Avg Distance</div>
-            </div>
-            <div className="text-center">
-              <div className="text-xl font-bold text-purple-600">
-                {mouseState.clickHistory.length}
-              </div>
-              <div className="text-xs text-gray-600">Recent Clicks</div>
-            </div>
-            <div className="text-center">
-              <div className="text-xl font-bold text-orange-600">
-                {mouseState.moveCount + mouseState.clickCount}
-              </div>
-              <div className="text-xs text-gray-600">Total Events</div>
-            </div>
-          </div>
+          {/* 추가 통계 - 최적화됨 */}
+          <StatisticsPanel 
+            mouseState={mouseState}
+            averageVelocity={memoizedAverageVelocity}
+          />
         </div>
       </DemoCard>
 
@@ -371,23 +306,23 @@ const MouseTracker = () => {
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>
-            <h4 className="font-semibold text-red-600 mb-2">Without Throttling</h4>
+            <h4 className="font-semibold text-red-600 mb-2">Traditional Approach</h4>
             <ul className="space-y-1 text-gray-700">
-              <li>• 100-1000+ events/second</li>
-              <li>• High CPU usage</li>
-              <li>• UI stuttering possible</li>
-              <li>• Battery drain on mobile</li>
-              <li>• Server overload risk</li>
+              <li>• Heavy GSAP animations</li>
+              <li>• Complex event handling</li>
+              <li>• Render blocking</li>
+              <li>• Memory leaks potential</li>
+              <li>• Inconsistent frame rates</li>
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold text-green-600 mb-2">With Throttling (50ms)</h4>
+            <h4 className="font-semibold text-green-600 mb-2">Optimized System</h4>
             <ul className="space-y-1 text-gray-700">
-              <li>• Fixed 20 events/second</li>
-              <li>• Reduced CPU usage</li>
-              <li>• Smooth performance</li>
-              <li>• Better battery life</li>
-              <li>• Manageable server load</li>
+              <li>• 60fps smooth tracking</li>
+              <li>• Efficient React events</li>
+              <li>• Hardware acceleration</li>
+              <li>• Memory optimized</li>
+              <li>• Consistent performance</li>
             </ul>
           </div>
         </div>
@@ -427,4 +362,40 @@ const MouseTracker = () => {
       </DemoCard>
     </div>
   );
-}
+};
+
+// 메모화된 통계 패널 컴포넌트
+const StatisticsPanel = memo(({ mouseState, averageVelocity }: {
+  mouseState: any;
+  averageVelocity: number;
+}) => (
+  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
+    <div className="text-center">
+      <div className="text-xl font-bold text-blue-600">
+        {mouseState.movePath.length}
+      </div>
+      <div className="text-xs text-gray-600">Path Points</div>
+    </div>
+    <div className="text-center">
+      <div className="text-xl font-bold text-green-600">
+        {averageVelocity.toFixed(1)}
+      </div>
+      <div className="text-xs text-gray-600">Avg Distance</div>
+    </div>
+    <div className="text-center">
+      <div className="text-xl font-bold text-purple-600">
+        {mouseState.clickHistory.length}
+      </div>
+      <div className="text-xs text-gray-600">Recent Clicks</div>
+    </div>
+    <div className="text-center">
+      <div className="text-xl font-bold text-orange-600">
+        {mouseState.moveCount + mouseState.clickCount}
+      </div>
+      <div className="text-xs text-gray-600">Total Events</div>
+    </div>
+  </div>
+));
+
+// 메인 컴포넌트 메모화
+export const MouseEventsView = memo(MouseEventsViewComponent);

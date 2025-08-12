@@ -81,8 +81,8 @@ export function useMouseEventsLogic() {
     [dispatch, mouseStore]
   );
 
-  // 스로틀된 마우스 핸들러
-  const throttledMouseHandler = useThrottle(updateMouseMetrics, 50);
+  // 스로틀된 마우스 핸들러 (더 반응성 있게)
+  const throttledMouseHandler = useThrottle(updateMouseMetrics, 16); // ~60fps
 
   // 마우스 이동 종료 감지
   const handleMoveEnd = useCallback(
@@ -137,7 +137,7 @@ export function useMouseEventsLogic() {
           clickCount: state.clickCount + 1,
           clickHistory: [
             { x, y, timestamp },
-            ...state.clickHistory.slice(0, 4), // 최근 5개만 유지
+            ...state.clickHistory.slice(0, 9), // 최근 10개 유지 (히스토리 보존)
           ],
         }));
         
@@ -213,7 +213,7 @@ export function useMouseEventsLogic() {
           lastMoveTime: timestamp,
           movePath: [
             position,
-            ...state.movePath.slice(0, 9), // 최근 10개 점만 유지
+            ...state.movePath.slice(0, 19), // 최근 20개 점 유지 (히스토리 보존)
           ],
         }));
         
@@ -329,16 +329,6 @@ export function useMouseEventsLogic() {
     // Computed
     isActive: mouseState.isMoving,
     hasActivity: mouseState.moveCount > 0 || mouseState.clickCount > 0,
-    averageVelocity: mouseState.movePath.length > 1 
-      ? mouseState.movePath.reduce((acc, _, i, arr) => {
-          if (i === 0) return acc;
-          const prev = arr[i - 1];
-          const curr = arr[i];
-          const distance = Math.sqrt(
-            Math.pow(curr.x - prev.x, 2) + Math.pow(curr.y - prev.y, 2)
-          );
-          return acc + distance;
-        }, 0) / (mouseState.movePath.length - 1)
-      : 0,
+    averageVelocity: mouseState.mouseVelocity, // 실시간 속도 사용 (성능 최적화)
   };
 }
