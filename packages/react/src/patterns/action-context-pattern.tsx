@@ -9,7 +9,7 @@
  * @module patterns/action-context-pattern
  */
 
-import React, { createContext, useContext, useMemo, ReactNode, useRef, useEffect } from 'react';
+import React, { createContext, useContext, ReactNode, useRef, useEffect } from 'react';
 import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig, ActionRegisterConfig } from '@context-action/core';
 import { LogLevel } from '@context-action/logger';
 import { StoreRegistry } from '../stores/core/StoreRegistry';
@@ -31,7 +31,7 @@ export interface ActionContextPatternConfig extends ActionRegisterConfig {
  * Action Context 타입 - Store + Action
  */
 export interface ActionContextType<T extends ActionPayloadMap = ActionPayloadMap> {
-  storeRegistry: StoreRegistry;
+  storeRegistryRef: React.RefObject<StoreRegistry>;
   actionRegisterRef: React.RefObject<ActionRegister<T>>;
 }
 
@@ -248,33 +248,35 @@ export function createActionContextPattern<T extends ActionPayloadMap = ActionPa
     // Simple ID generation without useId
     const uniqueId = registryId || `${contextName}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
-    // Store Registry 생성
-    const storeRegistry = useMemo(() => {
-      const registryInstance = new StoreRegistry(uniqueId);
+    // Store Registry 생성 - ref로 싱글톤 보장
+    const storeRegistryRef = useRef<StoreRegistry | null>(null);
+    if (!storeRegistryRef.current) {
+      storeRegistryRef.current = new StoreRegistry(uniqueId);
       
       if (process.env.NODE_ENV === 'development') {
         console.log(`🏪 Store Registry created: ${uniqueId}`);
       }
-      
-      return registryInstance;
-    }, [uniqueId]);
-    
-    // Action Register 생성
-    const actionRegisterRef = useRef(new ActionRegister<T>({
-      name: config?.name || `${contextName}-action-${uniqueId}`
-    }));
-    
-    if (process.env.NODE_ENV === 'development' && config?.debug) {
-      console.log(`🎯 Action Context Pattern created: ${contextName}`, {
-        storeRegistry: storeRegistry.name,
-        actionRegister: `${contextName}-action-${uniqueId}`
-      });
     }
     
-    const contextValue = useMemo(() => ({
-      storeRegistry,
+    // Action Register 생성 - ref로 싱글톤 보장
+    const actionRegisterRef = useRef<ActionRegister<T> | null>(null);
+    if (!actionRegisterRef.current) {
+      actionRegisterRef.current = new ActionRegister<T>({
+        name: config?.name || `${contextName}-action-${uniqueId}`
+      });
+      
+      if (process.env.NODE_ENV === 'development' && config?.debug) {
+        console.log(`🎯 Action Context Pattern created: ${contextName}`, {
+          storeRegistry: storeRegistryRef.current.name,
+          actionRegister: `${contextName}-action-${uniqueId}`
+        });
+      }
+    }
+    
+    const contextValue = {
+      storeRegistryRef,
       actionRegisterRef
-    }), [storeRegistry]);
+    };
     
     return (
       <ActionContext.Provider value={contextValue}>
@@ -303,8 +305,13 @@ export function createActionContextPattern<T extends ActionPayloadMap = ActionPa
    * Store Registry 접근 Hook
    */
   function useStoreRegistry(): StoreRegistry {
-    const { storeRegistry } = useActionContext();
-    return storeRegistry;
+    const { storeRegistryRef } = useActionContext();
+    
+    if (!storeRegistryRef.current) {
+      throw new Error('StoreRegistry is not initialized');
+    }
+    
+    return storeRegistryRef.current;
   }
   
   /**
@@ -328,43 +335,41 @@ export function createActionContextPattern<T extends ActionPayloadMap = ActionPa
       version
     } = options;
     
-    return useMemo(() => {
-      // 초기값 해결
-      const resolvedInitialValue = typeof initialValue === 'function' 
-        ? (initialValue as () => V)() 
-        : initialValue;
-      
-      // 개발 모드에서 초기값 검증
-      if (process.env.NODE_ENV === 'development') {
-        if (resolvedInitialValue === undefined) {
-          console.warn(
-            `useStore: Store "${storeName}" initialized with undefined value. ` +
-            'This might cause type safety issues. Consider using null or a default value instead.'
-          );
-        }
-      }
-      
-      const { store } = getOrCreateRegistryStore({
-        storeName,
-        initialValue: resolvedInitialValue,
-        strategy,
-        debug,
-        comparisonOptions,
-        description,
-        tags,
-        version
-      }, registry);
-      
-      // Store가 제대로 생성되었는지 검증
-      if (!store) {
-        throw new Error(
-          `Failed to create store "${storeName}" in context "${contextName}". ` +
-          'This might indicate a configuration issue.'
+    // 초기값 해결
+    const resolvedInitialValue = typeof initialValue === 'function' 
+      ? (initialValue as () => V)() 
+      : initialValue;
+    
+    // 개발 모드에서 초기값 검증
+    if (process.env.NODE_ENV === 'development') {
+      if (resolvedInitialValue === undefined) {
+        console.warn(
+          `useStore: Store "${storeName}" initialized with undefined value. ` +
+          'This might cause type safety issues. Consider using null or a default value instead.'
         );
       }
-      
-      return store;
-    }, [storeName, registry]);
+    }
+    
+    const { store } = getOrCreateRegistryStore({
+      storeName,
+      initialValue: resolvedInitialValue,
+      strategy,
+      debug,
+      comparisonOptions,
+      description,
+      tags,
+      version
+    }, registry);
+    
+    // Store가 제대로 생성되었는지 검증
+    if (!store) {
+      throw new Error(
+        `Failed to create store "${storeName}" in context "${contextName}". ` +
+        'This might indicate a configuration issue.'
+      );
+    }
+    
+    return store;
   }
   
   /**
@@ -386,15 +391,11 @@ export function createActionContextPattern<T extends ActionPayloadMap = ActionPa
   function useAction(): ActionRegister<T>['dispatch'] {
     const { actionRegisterRef } = useActionContext();
     
-    return useMemo(() => {
-      if (!actionRegisterRef.current) {
-        throw new Error('ActionRegister is not initialized');
-      }
-      
-      const boundDispatch = actionRegisterRef.current.dispatch.bind(actionRegisterRef.current);
-      
-      return boundDispatch as ActionRegister<T>['dispatch'];
-    }, [actionRegisterRef.current]);
+    if (!actionRegisterRef.current) {
+      throw new Error('ActionRegister is not initialized');
+    }
+    
+    return actionRegisterRef.current.dispatch.bind(actionRegisterRef.current);
   }
   
   /**
@@ -428,26 +429,34 @@ export function createActionContextPattern<T extends ActionPayloadMap = ActionPa
    * Registry 정보 조회 Hook - Declarative Store 호환
    */
   function useRegistryInfo() {
-    const { storeRegistry, actionRegisterRef } = useActionContext();
+    const { storeRegistryRef, actionRegisterRef } = useActionContext();
     
-    return useMemo(() => ({
-      name: storeRegistry.name,
-      storeCount: storeRegistry.getStoreCount(),
+    if (!storeRegistryRef.current) {
+      throw new Error('StoreRegistry is not initialized');
+    }
+    
+    return {
+      name: storeRegistryRef.current.name,
+      storeCount: storeRegistryRef.current.getStoreCount(),
       actionCount: 0, // ActionRegister doesn't expose total handler count
-      storeNames: storeRegistry.getStoreNames(),
-      initialized: storeRegistry.getStoreNames() // Action Context에서는 생성 즉시 초기화됨
-    }), [storeRegistry, actionRegisterRef.current]);
+      storeNames: storeRegistryRef.current.getStoreNames(),
+      initialized: storeRegistryRef.current.getStoreNames() // Action Context에서는 생성 즉시 초기화됨
+    };
   }
   
   /**
    * Registry 액션 관리 Hook - Declarative Store 호환
    */
   function useRegistryActions() {
-    const { storeRegistry, actionRegisterRef } = useActionContext();
+    const { storeRegistryRef, actionRegisterRef } = useActionContext();
     
-    return useMemo(() => ({
+    if (!storeRegistryRef.current) {
+      throw new Error('StoreRegistry is not initialized');
+    }
+    
+    return {
       clearStores: () => {
-        storeRegistry.clear();
+        storeRegistryRef.current!.clear();
       },
       clearActions: () => {
         if (actionRegisterRef.current) {
@@ -455,13 +464,13 @@ export function createActionContextPattern<T extends ActionPayloadMap = ActionPa
         }
       },
       clearAll: () => {
-        storeRegistry.clear();
+        storeRegistryRef.current!.clear();
         actionRegisterRef.current?.clearAll();
       },
       removeStore: (storeName: string) => {
-        return storeRegistry.unregister(storeName);
+        return storeRegistryRef.current!.unregister(storeName);
       }
-    }), [storeRegistry, actionRegisterRef.current]);
+    };
   }
   
   /**

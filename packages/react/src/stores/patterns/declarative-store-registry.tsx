@@ -8,7 +8,7 @@
  * @since 2.0.0
  */
 
-import React, { createContext, useContext, useMemo, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useRef } from 'react';
 import { StoreRegistry } from '../core/StoreRegistry';
 import { createStore } from '../core/Store';
 import type { ComparisonOptions } from '../utils/comparison';
@@ -261,8 +261,8 @@ export function createDeclarativeStorePattern<T extends {}>(
   contextName: string,
   schema: StoreSchema<T>
 ) {
-  // Registry Context 생성
-  const RegistryContext = createContext<DeclarativeStoreRegistry<T> | null>(null);
+  // Registry Context 생성 - ref로 싱글톤 보장
+  const RegistryContext = createContext<{ registryRef: React.RefObject<DeclarativeStoreRegistry<T>> } | null>(null);
 
   /**
    * Store Registry Provider
@@ -273,22 +273,23 @@ export function createDeclarativeStorePattern<T extends {}>(
     children: ReactNode; 
     registryId?: string;
   }) {
-    // 간단한 Registry 생성 - 복잡한 ID 생성 로직 제거
-    const registry = useMemo(() => {
-      const registryInstance = new DeclarativeStoreRegistry(registryId, schema);
+    // Registry 생성 - ref로 싱글톤 보장
+    const registryRef = useRef<DeclarativeStoreRegistry<T> | null>(null);
+    if (!registryRef.current) {
+      registryRef.current = new DeclarativeStoreRegistry(registryId, schema);
       
       if (process.env.NODE_ENV === 'development') {
         console.log(`🏭 Declarative Store Pattern created: ${registryId}`, {
-          availableStores: registryInstance.getAvailableStores(),
+          availableStores: registryRef.current.getAvailableStores(),
           totalStores: Object.keys(schema).length
         });
       }
-      
-      return registryInstance;
-    }, [registryId]);
+    }
+    
+    const contextValue = { registryRef };
     
     return (
-      <RegistryContext.Provider value={registry}>
+      <RegistryContext.Provider value={contextValue}>
         {children}
       </RegistryContext.Provider>
     );
@@ -298,16 +299,20 @@ export function createDeclarativeStorePattern<T extends {}>(
    * Store Registry 접근 Hook
    */
   function useStores(): DeclarativeStoreRegistry<T> {
-    const registry = useContext(RegistryContext);
+    const context = useContext(RegistryContext);
     
-    if (!registry) {
+    if (!context) {
       throw new Error(
         `useStores must be used within ${contextName} Provider. ` +
         `Make sure your component is wrapped with <${contextName}.Provider>.`
       );
     }
     
-    return registry;
+    if (!context.registryRef.current) {
+      throw new Error('DeclarativeStoreRegistry is not initialized');
+    }
+    
+    return context.registryRef.current;
   }
 
   /**
@@ -338,9 +343,7 @@ export function createDeclarativeStorePattern<T extends {}>(
   function useStore<K extends keyof T>(storeName: K): ReturnType<typeof createStore<T[K]>> {
     const registry = useStores();
     
-    return useMemo(() => {
-      return registry.getStore(storeName);
-    }, [storeName, registry]);
+    return registry.getStore(storeName);
   }
 
   /**
@@ -349,9 +352,7 @@ export function createDeclarativeStorePattern<T extends {}>(
   function useRegistryInfo() {
     const registry = useStores();
     
-    return useMemo(() => {
-      return registry.getRegistryInfo();
-    }, [registry]);
+    return registry.getRegistryInfo();
   }
 
   /**
@@ -360,13 +361,13 @@ export function createDeclarativeStorePattern<T extends {}>(
   function useRegistryActions() {
     const registry = useStores();
     
-    return useMemo(() => ({
+    return {
       initializeAll: () => registry.initializeAll(),
       clear: () => registry.clear(),
       removeStore: <K extends keyof T>(storeName: K) => registry.removeStore(storeName),
       getStoreSchema: <K extends keyof T>(storeName: K) => registry.getStoreSchema(storeName),
       isInitialized: <K extends keyof T>(storeName: K) => registry.isInitialized(storeName),
-    }), [registry]);
+    };
   }
 
   /**
