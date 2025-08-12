@@ -212,7 +212,8 @@ export function useMouseEventsLogic() {
           previousPosition: state.mousePosition,
           lastMoveTime: timestamp,
           movePath: [
-            position,
+            // 0,0 위치 필터링 및 유효한 위치만 추가
+            ...(position.x !== 0 || position.y !== 0 ? [position] : []),
             ...state.movePath.slice(0, 19), // 최근 20개 점 유지 (히스토리 보존)
           ],
         }));
