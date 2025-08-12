@@ -36,8 +36,8 @@ const RealtimeMouseCursorComponent = ({
     const cursor = cursorRef.current;
     const trail = trailRef.current;
 
-    // 유효하지 않은 위치 필터링
-    if (position.x <= 0 || position.y <= 0) return;
+    // 유효하지 않은 위치 또는 영역 밖 필터링
+    if (position.x <= 0 || position.y <= 0 || !isVisible) return;
 
     // 직접 CSS 변경으로 최고 성능
     requestAnimationFrame(() => {
