@@ -36,11 +36,8 @@ const EnhancedContextStoreContainerInner = () => {
   const clicksStore = useMouseEventsStore('clicks');
   const computedStore = useMouseEventsStore('computed');
   
-  // 선택적 구독 - 각 컴포넌트가 필요한 데이터만 구독
-  const position = useStoreValue(positionStore);
-  const movement = useStoreValue(movementStore);
-  const clicks = useStoreValue(clicksStore);
-  const computed = useStoreValue(computedStore);
+  // 🔥 최적화: 메인 컨테이너는 직접 구독하지 않고 선택적으로만 구독
+  // 각 패널 컴포넌트에서 직접 구독하도록 변경
   
   // 리셋 버튼용 선택적 구독 (hasActivity만) - useCallback으로 최적화
   const hasActivitySelector = useCallback((state: any) => state.hasActivity, []);
@@ -206,17 +203,15 @@ const EnhancedContextStoreContainerInner = () => {
   return (
     <div ref={containerRef}>
       <EnhancedContextStoreView 
-        // 개별 store 데이터 전달
-        position={position}
-        movement={movement}
-        clicks={clicks}
-        computed={computed}
+        // 🔥 최적화: store 데이터는 전달하지 않고, store 참조만 전달
+        // 각 컴포넌트에서 필요한 데이터만 직접 구독하도록 변경
+        
         // 성능 메트릭
         performanceMetrics={currentMetrics}
         // 이벤트 핸들러
         onReset={handleReset}
         hasActivity={hasActivity}
-        // Store 참조들 (고급 메트릭용)
+        // Store 참조들 (각 패널이 직접 구독용)
         positionStore={positionStore}
         movementStore={movementStore}
         clicksStore={clicksStore}

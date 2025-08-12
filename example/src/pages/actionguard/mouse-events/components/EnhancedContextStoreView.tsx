@@ -5,7 +5,7 @@
  */
 
 import { memo, useMemo, useRef, useCallback, useState, useEffect } from 'react';
-import { useStoreSelector } from '@context-action/react';
+import { useStoreSelector, useStoreValue } from '@context-action/react';
 import { DemoCard, Button, CodeBlock, CodeExample } from '../../../../components/ui';
 import { AdvancedMetricsPanel } from './AdvancedMetricsPanel';
 import { RealTimeDebugger } from './RealTimeDebugger';
@@ -50,18 +50,14 @@ interface PerformanceMetrics {
 }
 
 export interface EnhancedContextStoreViewProps {
-  position: Position;
-  movement: Movement;
-  clicks: Clicks;
-  computed: Computed;
   performanceMetrics: PerformanceMetrics;
   onReset: () => void;
   hasActivity: boolean;
-  // Store 참조들 (고급 메트릭용)
-  positionStore?: any;
-  movementStore?: any;
-  clicksStore?: any;
-  computedStore?: any;
+  // Store 참조들 (각 패널이 직접 구독용)
+  positionStore: any;
+  movementStore: any;
+  clicksStore: any;
+  computedStore: any;
 }
 
 // ================================
@@ -69,11 +65,14 @@ export interface EnhancedContextStoreViewProps {
 // ================================
 
 /**
- * Position Store 전용 패널
+ * Position Store 전용 패널 (직접 구독)
  */
-const PositionPanel = memo(({ position }: { position: Position }) => {
+const PositionPanel = memo(({ positionStore }: { positionStore: any }) => {
   const renderCountRef = useRef(0);
   renderCountRef.current++;
+  
+  // 🔥 직접 구독 - 이 패널은 position store 변경시만 리렌더
+  const position = useStoreValue(positionStore);
 
   console.log('🎯 PositionPanel render:', renderCountRef.current, position.current);
 
@@ -109,11 +108,14 @@ const PositionPanel = memo(({ position }: { position: Position }) => {
 });
 
 /**
- * Movement Store 전용 패널 (Path 시각화 포함)
+ * Movement Store 전용 패널 (Path 시각화 포함, 직접 구독)
  */
-const MovementPanel = memo(({ movement }: { movement: Movement }) => {
+const MovementPanel = memo(({ movementStore }: { movementStore: any }) => {
   const renderCountRef = useRef(0);
   renderCountRef.current++;
+  
+  // 🔥 직접 구독 - 이 패널은 movement store 변경시만 리렌더
+  const movement = useStoreValue(movementStore);
 
   const lastActivity = useMemo(() => {
     return movement.lastMoveTime ? new Date(movement.lastMoveTime).toLocaleTimeString() : 'Never';
@@ -198,11 +200,14 @@ const MovementPanel = memo(({ movement }: { movement: Movement }) => {
 });
 
 /**
- * Clicks Store 전용 패널
+ * Clicks Store 전용 패널 (직접 구독)
  */
-const ClicksPanel = memo(({ clicks }: { clicks: Clicks }) => {
+const ClicksPanel = memo(({ clicksStore }: { clicksStore: any }) => {
   const renderCountRef = useRef(0);
   renderCountRef.current++;
+  
+  // 🔥 직접 구독 - 이 패널은 clicks store 변경시만 리렌더
+  const clicks = useStoreValue(clicksStore);
 
   const recentClicks = useMemo(() => {
     return clicks.history.slice(0, 3);
@@ -242,11 +247,14 @@ const ClicksPanel = memo(({ clicks }: { clicks: Clicks }) => {
 });
 
 /**
- * Computed Store 전용 패널
+ * Computed Store 전용 패널 (직접 구독)
  */
-const ComputedPanel = memo(({ computed }: { computed: Computed }) => {
+const ComputedPanel = memo(({ computedStore }: { computedStore: any }) => {
   const renderCountRef = useRef(0);
   renderCountRef.current++;
+  
+  // 🔥 직접 구독 - 이 패널은 computed store 변경시만 리렌더
+  const computed = useStoreValue(computedStore);
 
   const statusColor = useMemo(() => {
     switch (computed.activityStatus) {
@@ -502,13 +510,45 @@ const ControlButtons = memo(({
 });
 
 /**
+ * RealTimeDebugger Wrapper - Store에서 직접 구독
+ */
+const RealTimeDebuggerWithStores = memo(({
+  positionStore,
+  movementStore,
+  clicksStore,
+  computedStore,
+  isVisible,
+  onToggle
+}: {
+  positionStore: any;
+  movementStore: any;
+  clicksStore: any;
+  computedStore: any;
+  isVisible: boolean;
+  onToggle: () => void;
+}) => {
+  // 각 store에서 직접 구독
+  const position = useStoreValue(positionStore);
+  const movement = useStoreValue(movementStore);
+  const clicks = useStoreValue(clicksStore);
+  const computed = useStoreValue(computedStore);
+  
+  return (
+    <RealTimeDebugger 
+      position={position}
+      movement={movement}
+      clicks={clicks}
+      computed={computed}
+      isVisible={isVisible}
+      onToggle={onToggle}
+    />
+  );
+});
+
+/**
  * 향상된 Context Store 뷰 컴포넌트
  */
 const EnhancedContextStoreViewComponent = ({
-  position,
-  movement,
-  clicks,
-  computed,
   performanceMetrics,
   onReset,
   hasActivity,
@@ -618,10 +658,10 @@ const EnhancedContextStoreViewComponent = ({
               </h4>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <PositionPanel position={position} />
-                <MovementPanel movement={movement} />
-                <ClicksPanel clicks={clicks} />
-                <ComputedPanel computed={computed} />
+                <PositionPanel positionStore={positionStore} />
+                <MovementPanel movementStore={movementStore} />
+                <ClicksPanel clicksStore={clicksStore} />
+                <ComputedPanel computedStore={computedStore} />
               </div>
               
               <PerformancePanel metrics={performanceMetrics} />
@@ -640,15 +680,17 @@ const EnhancedContextStoreViewComponent = ({
           )}
         </div>
 
-        {/* 실시간 디버거 */}
-        <RealTimeDebugger 
-          position={position}
-          movement={movement}
-          clicks={clicks}
-          computed={computed}
-          isVisible={showDebugger}
-          onToggle={() => setShowDebugger(!showDebugger)}
-        />
+        {/* 실시간 디버거 - Store로부터 직접 구독 */}
+        {showDebugger && (
+          <RealTimeDebuggerWithStores 
+            positionStore={positionStore}
+            movementStore={movementStore}
+            clicksStore={clicksStore}
+            computedStore={computedStore}
+            isVisible={showDebugger}
+            onToggle={() => setShowDebugger(!showDebugger)}
+          />
+        )}
       </DemoCard>
 
       {/* Context Store 패턴 설명 */}
