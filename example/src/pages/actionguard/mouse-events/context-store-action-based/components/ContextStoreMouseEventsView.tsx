@@ -30,7 +30,7 @@ export interface ContextStoreMouseEventsViewProps {
  * 상태 패널용 최적화된 구독 (필요한 값만)
  */
 function useStatusPanelData() {
-  const mouseStateStore = useMouseStore('mouseState', initialMouseState);
+  const mouseStateStore = useMouseStore('mouseState');
   const mouseState = useStoreValue(mouseStateStore);
 
   return useMemo(
@@ -57,7 +57,7 @@ function useStatusPanelData() {
  * 통계 패널용 최적화된 구독 (계산된 값만)
  */
 function useStatisticsPanelData() {
-  const mouseStateStore = useMouseStore('mouseState', initialMouseState);
+  const mouseStateStore = useMouseStore('mouseState');
   const mouseState = useStoreValue(mouseStateStore);
 
   return useMemo(
@@ -198,7 +198,7 @@ const StatisticsPanel = memo(() => {
  * 성능 메트릭 패널 - Context Store 메트릭 표시
  */
 const PerformancePanel = memo(() => {
-  const mouseStateStore = useMouseStore('mouseState', initialMouseState);
+  const mouseStateStore = useMouseStore('mouseState');
   const mouseState = useStoreValue(mouseStateStore);
 
   // 렌더링 횟수 추적
@@ -258,7 +258,7 @@ const ContextStoreMouseEventsViewComponent = ({
   );
 
   // Context Store 구독
-  const mouseStateStore = useMouseStore('mouseState', initialMouseState);
+  const mouseStateStore = useMouseStore('mouseState');
   const mouseState = useStoreValue(mouseStateStore);
 
   // 메모화된 값들
@@ -510,7 +510,7 @@ const mouseActionHandlers: ActionHandlerMap<MouseActions, MouseStores> = {
 
 // Usage in Components
 function MouseComponent() {
-  const mouseStateStore = useMouseStore('mouseState', initialMouseState);
+  const mouseStateStore = useMouseStore('mouseState');
   const mouseState = useStoreValue(mouseStateStore);
   const dispatch = useMouseActionDispatch();
   

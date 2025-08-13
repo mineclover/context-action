@@ -1,13 +1,15 @@
-name: Deploy Example Application
+name: Deploy Example Application (Disabled - Use deploy-all.yml)
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'example/**'
-      - 'packages/*/src/**'
-      - '.github/workflows/example-deploy.yml'
-      - 'package.json'
+  workflow_dispatch:
+  # Disabled - using deploy-all.yml instead
+  # push:
+  #   branches: [ main ]
+  #   paths:
+  #     - 'example/**'
+  #     - 'packages/*/src/**'
+  #     - '.github/workflows/example-deploy.yml'
+  #     - 'package.json'
   pull_request:
     branches: [ main ]
     paths:
@@ -98,16 +100,47 @@ jobs:
         with:
           path: example/dist
 
-  # Deployment job for example (temporarily disabled to fix main site)
+  # Deployment job for example
   deploy-example:
-    if: false # Temporarily disabled - example should be deployed to separate repository
+    if: github.ref == 'refs/heads/main'
     environment:
-      name: context-action-example
-      url: ${{ steps.deployment.outputs.page_url }}
+      name: github-pages
+      url: https://mineclover.github.io/context-action-example/
     needs: build-example
     runs-on: ubuntu-latest
     name: Deploy Example
     steps:
-      - name: Deploy Example to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 0
+        continue-on-error: true
+        
+      - name: Download example artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: github-pages
+          path: ./temp-example
+          
+      - name: Extract and deploy example
+        run: |
+          # Extract the artifact
+          cd temp-example
+          tar -xvf artifact.tar
+          cd ..
+          
+          # Create example subdirectory
+          rm -rf context-action-example
+          mkdir -p context-action-example
+          cp -r temp-example/* context-action-example/
+          rm -rf temp-example
+          
+          # Configure git
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          # Commit and push
+          git add context-action-example
+          git commit -m "Deploy example application" || echo "No changes to commit"
+          git push origin gh-pages

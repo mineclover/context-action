@@ -1,6 +1,7 @@
 import {
   type ActionPayloadMap,
-  createActionContextPattern,
+  createActionContext,
+  createDeclarativeStorePattern,
   useStoreValueSafe,
 } from '@context-action/react';
 import type React from 'react';
@@ -29,64 +30,70 @@ interface UserActions extends ActionPayloadMap {
   clearUser: void;
 }
 
-// 통합 Context Pattern 생성
-const CounterContext = createActionContextPattern<CounterActions>('Counter', {
-  logLevel: 1, // DEBUG level
-  debug: true,
+// Action Only + Store Only 패턴 생성
+const CounterActions = createActionContext<CounterActions>({
+  name: 'Counter-actions'
+});
+const CounterStores = createDeclarativeStorePattern('Counter-stores', {
+  'count': { initialValue: 0 },
+  'history': { initialValue: [] as number[] }
 });
 
-const UserContext = createActionContextPattern<UserActions>('User', {
-  logLevel: 1, // DEBUG level
-  debug: true,
+const UserActions = createActionContext<UserActions>({
+  name: 'User-actions'
+});
+const UserStores = createDeclarativeStorePattern('User-stores', {
+  'user': { initialValue: { name: '', email: '' } },
+  'loginCount': { initialValue: 0 }
 });
 
-// Counter 컴포넌트 - HOC 패턴 사용
-const CounterWithProvider = CounterContext.withProvider('counter-demo')(() => {
+// Counter 컴포넌트 - 직접 Provider 사용
+function CounterComponent() {
   // Store 생성
-  const countStore = CounterContext.useStore('count', 0);
-  const historyStore = CounterContext.useStore<number[]>('history', []);
+  const countStore = CounterStores.useStore('count');
+  const historyStore = CounterStores.useStore('history');
 
   const count = useStoreValueSafe(countStore);
   const history = useStoreValueSafe(historyStore);
 
   // Action Handler 등록
-  CounterContext.useActionHandler('increment', () => {
+  CounterActions.useActionHandler('increment', () => {
     const newCount = count + 1;
     countStore.setValue(newCount);
     historyStore.update((prev) => [...prev, newCount]);
   });
 
-  CounterContext.useActionHandler('decrement', () => {
+  CounterActions.useActionHandler('decrement', () => {
     const newCount = count - 1;
     countStore.setValue(newCount);
     historyStore.update((prev) => [...prev, newCount]);
   });
 
-  CounterContext.useActionHandler('reset', () => {
+  CounterActions.useActionHandler('reset', () => {
     countStore.setValue(0);
     historyStore.setValue([0]);
   });
 
-  CounterContext.useActionHandler('setCount', ({ value }) => {
+  CounterActions.useActionHandler('setCount', ({ value }) => {
     countStore.setValue(value);
     historyStore.update((prev) => [...prev, value]);
   });
 
   // Action dispatch
-  const dispatch = CounterContext.useAction();
+  const dispatch = CounterActions.useActionDispatch();
 
   return (
     <Card variant="elevated">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">
-            🔢 Counter (HOC Pattern)
+            🔢 Counter (Provider Pattern)
           </h3>
           <div className="flex gap-2">
             <Badge variant="outline" className="bg-blue-100 text-blue-800">
               Count: {count}
             </Badge>
-            <HOCPatternBadge />
+            <ProviderPatternBadge />
           </div>
         </div>
 
@@ -137,30 +144,39 @@ const CounterWithProvider = CounterContext.withProvider('counter-demo')(() => {
       </CardContent>
     </Card>
   );
-});
+}
+
+// HOC 스타일로 Wrapper 생성
+const CounterWithProvider = () => (
+  <CounterActions.Provider>
+    <CounterStores.Provider registryId="counter-demo">
+      <CounterComponent />
+    </CounterStores.Provider>
+  </CounterActions.Provider>
+);
 
 // User Profile 컴포넌트 - Provider 패턴 사용
 function UserProfile() {
   // Store 생성
-  const userStore = UserContext.useStore('user', { name: '', email: '' });
-  const loginCountStore = UserContext.useStore('loginCount', 0);
+  const userStore = UserStores.useStore('user');
+  const loginCountStore = UserStores.useStore('loginCount');
 
   const user = useStoreValueSafe(userStore);
   const loginCount = useStoreValueSafe(loginCountStore);
 
   // Action Handler 등록
-  UserContext.useActionHandler('updateUser', ({ name, email }) => {
+  UserActions.useActionHandler('updateUser', ({ name, email }) => {
     userStore.setValue({ name, email });
     loginCountStore.update((prev) => prev + 1);
   });
 
-  UserContext.useActionHandler('clearUser', () => {
+  UserActions.useActionHandler('clearUser', () => {
     userStore.setValue({ name: '', email: '' });
     loginCountStore.setValue(0);
   });
 
   // Action dispatch
-  const dispatch = UserContext.useAction();
+  const dispatch = UserActions.useActionDispatch();
 
   const [formData, setFormData] = useState({ name: '', email: '' });
 
@@ -251,11 +267,11 @@ function UnifiedPatternDemoPage() {
     >
       <div className="page-container">
         <header className="page-header">
-          <h1>Unified Context Pattern Demo</h1>
+          <h1>Separated Patterns Demo</h1>
           <p className="page-description">
-            Explore the new Unified Context Pattern that combines Store and
-            Action management. See two different usage patterns: HOC
-            (Higher-Order Component) and Provider patterns.
+            Explore the separated Action Only + Store Only patterns that provide
+            clear separation of concerns. See different composition approaches
+            for managing state and actions.
           </p>
         </header>
 
@@ -264,9 +280,11 @@ function UnifiedPatternDemoPage() {
           <CounterWithProvider />
 
           {/* Provider Pattern 예제 */}
-          <UserContext.Provider registryId="user-profile">
-            <UserProfile />
-          </UserContext.Provider>
+          <UserActions.Provider>
+            <UserStores.Provider registryId="user-profile">
+              <UserProfile />
+            </UserStores.Provider>
+          </UserActions.Provider>
         </Grid>
 
         {/* 패턴 비교 */}
@@ -278,14 +296,14 @@ function UnifiedPatternDemoPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-4 bg-blue-50 rounded border border-blue-200">
                 <h4 className="font-semibold text-blue-900 mb-3">
-                  🔧 HOC Pattern
+                  🔧 Composed Pattern
                 </h4>
                 <div className="space-y-2 text-sm text-blue-800">
-                  <div>✅ Automatic Provider wrapping</div>
+                  <div>✅ Nested Provider composition</div>
                   <div>✅ Self-contained components</div>
-                  <div>✅ No manual Provider setup</div>
-                  <div>✅ Reusable anywhere</div>
-                  <div>💡 Best for: Isolated components</div>
+                  <div>✅ Clear boundaries</div>
+                  <div>✅ Reusable patterns</div>
+                  <div>💡 Best for: Isolated features</div>
                 </div>
               </div>
 
@@ -313,25 +331,22 @@ function UnifiedPatternDemoPage() {
             </h3>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div>
-                <h4 className="font-medium text-gray-900 mb-2">HOC Pattern</h4>
+                <h4 className="font-medium text-gray-900 mb-2">Composed Pattern</h4>
                 <pre className="bg-gray-900 text-gray-100 p-3 rounded text-xs overflow-x-auto">
-                  {`// 1. Create Action Context Pattern
-const CounterContext = createActionContextPattern<CounterActions>('Counter');
+                  {`// 1. Create Separated Patterns
+const CounterActions = createActionContext<CounterActions>(...);
+const CounterStores = createDeclarativeStorePattern(...);
 
-// 2. Use HOC Pattern
-const CounterWithProvider = CounterContext.withProvider('counter-demo')(() => {
-  // Store & Action usage
-  const countStore = CounterContext.useStore('count', 0);
-  const dispatch = CounterContext.useAction();
-  
-  CounterContext.useActionHandler('increment', () => {
-    countStore.setValue(count + 1);
-  });
-  
-  return <div>Counter UI</div>;
-});
+// 2. Compose with Wrapper
+const CounterWithProvider = () => (
+  <CounterActions.Provider>
+    <CounterStores.Provider registryId="counter-demo">
+      <CounterComponent />
+    </CounterStores.Provider>
+  </CounterActions.Provider>
+);
 
-// 3. Use anywhere without Provider
+// 3. Use anywhere
 <CounterWithProvider />`}
                 </pre>
               </div>
@@ -341,17 +356,19 @@ const CounterWithProvider = CounterContext.withProvider('counter-demo')(() => {
                   Provider Pattern
                 </h4>
                 <pre className="bg-gray-900 text-gray-100 p-3 rounded text-xs overflow-x-auto">
-                  {`// 1. Explicit Provider wrapping
-<UserContext.Provider registryId="user-profile">
-  <UserProfile />
-</UserContext.Provider>
+                  {`// 1. Explicit Provider nesting
+<UserActions.Provider>
+  <UserStores.Provider registryId="user-profile">
+    <UserProfile />
+  </UserStores.Provider>
+</UserActions.Provider>
 
 // 2. Inside component
 function UserProfile() {
-  const userStore = UserContext.useStore('user', {});
-  const dispatch = UserContext.useAction();
+  const userStore = UserStores.useStore('user');
+  const dispatch = UserActions.useActionDispatch();
   
-  UserContext.useActionHandler('updateUser', (payload) => {
+  UserActions.useActionHandler('updateUser', (payload) => {
     userStore.setValue(payload);
   });
   

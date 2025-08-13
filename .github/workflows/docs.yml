@@ -1,15 +1,17 @@
-name: Deploy Documentation
+name: Deploy Documentation (Disabled - Use deploy-all.yml)
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'docs/**'
-      - 'packages/*/src/**'
-      - '.github/workflows/docs.yml'
-      - 'typedoc.json'
-      - 'package.json'
-      - 'docs/.vitepress/config.ts'
+  workflow_dispatch:
+  # Disabled - using deploy-all.yml instead
+  # push:
+  #   branches: [ main ]
+  #   paths:
+  #     - 'docs/**'
+  #     - 'packages/*/src/**'
+  #     - '.github/workflows/docs.yml'
+  #     - 'typedoc.json'
+  #     - 'package.json'
+  #     - 'docs/.vitepress/config.ts'
   pull_request:
     branches: [ main ]
     paths:

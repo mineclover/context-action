@@ -10,14 +10,13 @@
  * - createDeclarativeStores for type-safe store management
  */
 
-// === ACTION CONTEXT PATTERN ===
-// Integrated Store + Action pattern with full isolation
-export { 
-  createActionContextPattern,
-  type ActionContextPatternConfig,
-  type ActionContextPatternType,
-  type ActionContextPatternReturn
-} from './action-context-pattern';
+// === ACTION CONTEXT PATTERN (REMOVED) ===
+// Use Action Only + Store Only patterns composition instead
+// export { 
+//   createActionContextPattern,
+//   type ActionContextPatternConfig,
+//   type ActionContextPatternReturn
+// } from './action-context-pattern-legacy';
 
 // === DECLARATIVE STORE PATTERN ===
 // Re-export store patterns for convenience

@@ -1,5 +1,5 @@
 import {
-  createActionContextPattern,
+  createDeclarativeStorePattern,
   useStoreValue,
 } from '@context-action/react';
 import type React from 'react';
@@ -16,13 +16,38 @@ import {
   Input,
 } from '../../components/ui';
 
-// Store Basics 데모용 Action Context 패턴
-const PageStores = createActionContextPattern('StoreBasics');
+// Store Basics 데모용 Store Only 패턴
+const PageStores = createDeclarativeStorePattern('StoreBasics', {});
+
+// Dynamic store creation helper for Store Only pattern
+function usePageStore<T>(storeName: string, initialValue: T, options?: any) {
+  const manager = PageStores.useStoreManager();
+  
+  // Check if store already exists
+  const existingStore = manager.stores.get(storeName);
+  if (existingStore) {
+    return existingStore;
+  }
+  
+  // Create new store dynamically
+  if (initialValue !== undefined) {
+    (manager.initialStores as any)[storeName] = {
+      initialValue,
+      strategy: options?.strategy || 'reference',
+      debug: options?.debug ?? false,
+      description: options?.description,
+      tags: options?.tags,
+      version: options?.version,
+    };
+  }
+  
+  return manager.getStore(storeName);
+}
 
 // 커스텀 훅 - 메시지 스토어 관리 (PageStores 패턴 사용)
 function useMessageDemo() {
   // PageStores 영역 내에서 'message' Store 사용 - 페이지별로 독립적
-  const messageStore = PageStores.useStore(
+  const messageStore = usePageStore(
     'message',
     'Hello, Context-Action!',
     {
@@ -56,7 +81,7 @@ function useMessageDemo() {
 // 커스텀 훅 - 카운터 스토어 관리 (PageStores 패턴 사용)
 function useCounterDemo() {
   // PageStores 영역 내에서 'counter' Store 사용 - 페이지별로 독립적
-  const counterStore = PageStores.useStore('counter', 0, {
+  const counterStore = usePageStore('counter', 0, {
     strategy: 'reference', // 숫자이므로 reference 비교
     debug: true,
   });
@@ -93,7 +118,7 @@ function useCounterDemo() {
 // 커스텀 훅 - 사용자 스토어 관리 (PageStores 패턴 사용)
 function useUserDemo() {
   // PageStores 영역 내에서 'user' Store 사용 - 페이지별로 독립적
-  const userStore = PageStores.useStore(
+  const userStore = usePageStore(
     'user',
     { name: 'John Doe', email: 'john@example.com' },
     {
@@ -300,40 +325,33 @@ function UserDemo() {
 
 // Registry 액션들을 테스트하기 위한 컴포넌트
 function RegistryActionsDemo() {
-  const { clearStores, clearActions, clearAll, removeStore } =
-    PageStores.useRegistryActions();
-  const registryInfo = PageStores.useRegistryInfo();
+  const manager = PageStores.useStoreManager();
+  const storeInfo = PageStores.useStoreInfo();
+  
+  const clearStores = () => manager.clear();
+  const removeStore = (storeName: string) => manager.registry.unregister(storeName);
 
   return (
     <DemoCard variant="info">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        Registry Management (New API)
+        Registry Management (Store Only)
       </h3>
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <strong>Registry Name:</strong> {registryInfo.name}
+            <strong>Registry Name:</strong> {storeInfo.name}
           </div>
           <div>
-            <strong>Store Count:</strong> {registryInfo.storeCount}
+            <strong>Store Count:</strong> {storeInfo.storeCount}
           </div>
           <div className="col-span-2">
-            <strong>Active Stores:</strong> {registryInfo.storeNames.join(', ')}
-          </div>
-          <div className="col-span-2">
-            <strong>Initialized:</strong> {registryInfo.initialized.join(', ')}
+            <strong>Active Stores:</strong> {storeInfo.availableStores.join(', ')}
           </div>
         </div>
 
         <div className="flex gap-2 flex-wrap">
           <Button onClick={clearStores} variant="danger" size="sm">
             Clear Stores
-          </Button>
-          <Button onClick={clearActions} variant="danger" size="sm">
-            Clear Actions
-          </Button>
-          <Button onClick={clearAll} variant="danger" size="sm">
-            Clear All
           </Button>
           <Button
             onClick={() => removeStore('message')}
@@ -442,13 +460,29 @@ function StoreBasicsPage() {
             </DemoCard>
           </div>
 
-          {/* Code Example - Updated for Action Context Pattern */}
-          <CodeExample title="Action Context Pattern">
+          {/* Code Example - Updated for Store Only Pattern */}
+          <CodeExample title="Store Only Pattern">
             <CodeBlock>
-              {`// 1. Create Action Context Pattern for automatic registry isolation
-import { createActionContextPattern, useStoreValue } from '@context-action/react';
+              {`// 1. Create Store Only Pattern for automatic registry isolation
+import { createDeclarativeStorePattern, useStoreValue } from '@context-action/react';
 
-const PageStores = createActionContextPattern('MyPage');
+const PageStores = createDeclarativeStorePattern('MyPage', {});
+
+// Dynamic store creation helper
+function usePageStore(storeName, initialValue, options) {
+  const manager = PageStores.useStoreManager();
+  const existingStore = manager.stores.get(storeName);
+  if (existingStore) return existingStore;
+  
+  if (initialValue !== undefined) {
+    manager.initialStores[storeName] = {
+      initialValue,
+      strategy: options?.strategy || 'reference',
+      debug: options?.debug ?? false,
+    };
+  }
+  return manager.getStore(storeName);
+}
 
 function MyPage() {
   return (
@@ -461,8 +495,8 @@ function MyPage() {
 // 2. Use stores within the provider context
 function MyComponent() {
   // Automatically isolated per provider instance
-  const messageStore = PageStores.useStore('message', 'Hello!');
-  const counterStore = PageStores.useStore('counter', 0);
+  const messageStore = usePageStore('message', 'Hello!');
+  const counterStore = usePageStore('counter', 0);
   
   const message = useStoreValue(messageStore);
   const count = useStoreValue(counterStore);

@@ -8,7 +8,8 @@
 import { LogLevel } from '@context-action/logger';
 import {
   ActionPayloadMap,
-  createActionContextPattern,
+  createActionContext,
+  createDeclarativeStorePattern,
   Store,
   useStoreValue,
 } from '@context-action/react';
@@ -113,16 +114,48 @@ export interface MouseActions extends ActionPayloadMap {
 // ============================================================================
 
 /**
- * Create the Mouse Events Context using Action Context Pattern
- * This provides both store management and action dispatching
+ * Create the Mouse Events Context using Action Only + Store Only patterns
+ * Actions handle business logic, stores manage state separately
  */
-const MouseEventsContext = createActionContextPattern<MouseActions>(
-  'MouseEvents',
-  {
-    logLevel: LogLevel.ERROR, // Set to DEBUG for development
-    debug: false,
-  }
-);
+const MouseEventsActions = createActionContext<MouseActions>({
+  name: 'MouseEvents-actions',
+});
+
+const MouseEventsStores = createDeclarativeStorePattern('MouseEvents-stores', {
+  position: { initialValue: { x: 0, y: 0 } as MousePosition },
+  movement: {
+    initialValue: {
+      isMoving: false,
+      lastMoveTime: null,
+      moveCount: 0,
+      velocity: 0,
+      path: [],
+      previous: null,
+    } as MouseMovement
+  },
+  clicks: {
+    initialValue: {
+      count: 0,
+      history: [],
+    } as MouseClicks
+  },
+  computed: {
+    initialValue: {
+      validPath: [],
+      recentClickCount: 0,
+      averageVelocity: 0,
+      totalEvents: 0,
+      activityStatus: 'idle' as const,
+      hasActivity: false,
+    } as MouseComputed
+  },
+  state: {
+    initialValue: {
+      current: { x: 0, y: 0 },
+      isInsideArea: false,
+    } as MouseState
+  },
+});
 
 // ============================================================================
 // Provider Component
@@ -130,9 +163,11 @@ const MouseEventsContext = createActionContextPattern<MouseActions>(
 
 export function MouseEventsProvider({ children }: { children: ReactNode }) {
   return (
-    <MouseEventsContext.Provider registryId="mouse-events">
-      {children}
-    </MouseEventsContext.Provider>
+    <MouseEventsActions.Provider>
+      <MouseEventsStores.Provider registryId="mouse-events">
+        {children}
+      </MouseEventsStores.Provider>
+    </MouseEventsActions.Provider>
   );
 }
 
@@ -141,7 +176,7 @@ export function MouseEventsProvider({ children }: { children: ReactNode }) {
 // ============================================================================
 
 /**
- * Get or create a mouse events store
+ * Get mouse events stores with type safety
  */
 export function useMouseEventsStore(
   storeName: 'position'
@@ -155,56 +190,21 @@ export function useMouseEventsStore(
 ): Store<MouseComputed>;
 export function useMouseEventsStore(storeName: 'state'): Store<MouseState>;
 export function useMouseEventsStore(storeName: string): Store<any> {
-  const initialValues = {
-    position: { x: 0, y: 0 },
-    movement: {
-      isMoving: false,
-      lastMoveTime: null,
-      moveCount: 0,
-      velocity: 0,
-      path: [],
-      previous: null,
-    },
-    clicks: {
-      count: 0,
-      history: [],
-    },
-    computed: {
-      validPath: [],
-      recentClickCount: 0,
-      averageVelocity: 0,
-      totalEvents: 0,
-      activityStatus: 'idle' as const,
-      hasActivity: false,
-    },
-    state: {
-      current: { x: 0, y: 0 },
-      isInsideArea: false,
-    },
-  };
-
-  return MouseEventsContext.useStore(
-    storeName,
-    initialValues[storeName as keyof typeof initialValues] || {},
-    {
-      strategy: storeName === 'computed' ? 'shallow' : 'reference',
-      debug: false,
-    }
-  );
+  return MouseEventsStores.useStore(storeName as any);
 }
 
 /**
  * Get action dispatcher for mouse events
  */
 export function useMouseEventsActionDispatch() {
-  return MouseEventsContext.useAction();
+  return MouseEventsActions.useActionDispatch();
 }
 
 /**
  * Get action register for mouse events
  */
 export function useMouseEventsActionRegister() {
-  return MouseEventsContext.useActionRegister();
+  return MouseEventsActions.useActionRegister();
 }
 
 /**
@@ -215,7 +215,7 @@ export function useMouseEventsActionHandler(
   handler: (payload: any, controller: any) => void | Promise<void>,
   config?: any
 ) {
-  MouseEventsContext.useActionHandler(action, handler, config);
+  MouseEventsActions.useActionHandler(action, handler, config);
 }
 
 // ============================================================================
@@ -289,7 +289,7 @@ export function aggregateMouseEventsState(
 // Export Context Components
 // ============================================================================
 
-export default MouseEventsContext;
+export { MouseEventsActions, MouseEventsStores };
 
 // Re-export commonly used hooks from the framework
 export { useStoreValue };

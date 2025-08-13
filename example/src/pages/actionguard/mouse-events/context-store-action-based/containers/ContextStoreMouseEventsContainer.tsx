@@ -36,7 +36,7 @@ export const ContextStoreMouseEventsContainer = () => {
   const _isInitialized = useRef(false);
 
   // Action Context Pattern 사용 - 구조 분해 할당 방식
-  const mouseStateStore = useMouseStore('mouseState', initialMouseState);
+  const mouseStateStore = useMouseStore('mouseState');
   const dispatch = useMouseActionDispatch();
 
   // 액션 핸들러 등록 - 구조 분해 할당 방식

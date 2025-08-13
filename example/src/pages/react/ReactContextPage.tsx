@@ -1,6 +1,7 @@
 import {
   type ActionPayloadMap,
-  createActionContextPattern,
+  createActionContext,
+  createDeclarativeStorePattern,
   useStoreValue,
 } from '@context-action/react';
 import React from 'react';
@@ -38,32 +39,42 @@ interface ChildBActions extends ActionPayloadMap {
   clearText: void;
 }
 
-// Action Context Pattern 생성
-const ParentContext =
-  createActionContextPattern<ParentActions>('ParentContext');
-const ChildAContext =
-  createActionContextPattern<ChildAActions>('ChildAContext');
-const ChildBContext =
-  createActionContextPattern<ChildBActions>('ChildBContext');
+// Action Only + Store Only 패턴 생성
+const ParentActionContext = createActionContext<ParentActions>({
+  name: 'ParentContext-actions'
+});
+const ParentStores = createDeclarativeStorePattern('ParentContext-stores', {
+  'registered-children': { initialValue: [] as Array<{ childId: string; childType: string }> },
+  'data-log': { initialValue: [] as Array<{ source: string; data: any; timestamp: number }> },
+  'parent-counter': { initialValue: 0 }
+});
+
+const ChildAActionContext = createActionContext<ChildAActions>({
+  name: 'ChildAContext-actions'
+});
+const ChildAStores = createDeclarativeStorePattern('ChildAContext-stores', {
+  'counter': { initialValue: 0 }
+});
+
+const ChildBActionContext = createActionContext<ChildBActions>({
+  name: 'ChildBContext-actions'
+});
+const ChildBStores = createDeclarativeStorePattern('ChildBContext-stores', {
+  'text': { initialValue: 'Hello World' }
+});
 
 // 상위 컨텍스트 UI - 하위 컴포넌트들을 모름
 function ParentContextUI() {
   const registeredChildren = useStoreValue(
-    ParentContext.useStore(
-      'registered-children',
-      [] as Array<{ childId: string; childType: string }>
-    )
+    ParentStores.useStore('registered-children')
   );
   const dataLog = useStoreValue(
-    ParentContext.useStore(
-      'data-log',
-      [] as Array<{ source: string; data: any; timestamp: number }>
-    )
+    ParentStores.useStore('data-log')
   );
   const parentCounter = useStoreValue(
-    ParentContext.useStore('parent-counter', 0)
+    ParentStores.useStore('parent-counter')
   );
-  const parentDispatch = ParentContext.useAction();
+  const parentDispatch = ParentActionContext.useActionDispatch();
 
   return (
     <Card className="border-l-4 border-l-blue-500 bg-blue-50">
@@ -202,17 +213,19 @@ function ParentContextUI() {
 // 독립적인 Child A 컴포넌트 - 자체적으로 상위에 등록됨
 function IndependentChildA() {
   return (
-    <ChildAContext.Provider registryId="child-a-context">
-      <ChildALogicRegistration />
-      <ChildAUI />
-    </ChildAContext.Provider>
+    <ChildAActionContext.Provider>
+      <ChildAStores.Provider registryId="child-a-context">
+        <ChildALogicRegistration />
+        <ChildAUI />
+      </ChildAStores.Provider>
+    </ChildAActionContext.Provider>
   );
 }
 
 function ChildALogicRegistration() {
-  const counter = ChildAContext.useStore('counter', 0);
+  const counter = ChildAStores.useStore('counter');
   const actionLogger = useActionLoggerWithToast();
-  const parentDispatch = ParentContext.useAction(); // 상위 컨텍스트에 접근
+  const parentDispatch = ParentActionContext.useActionDispatch(); // 상위 컨텍스트에 접근
 
   const childId = 'child-a-counter';
 
@@ -225,7 +238,7 @@ function ChildALogicRegistration() {
   }, []); // parentDispatch 의존성 제거로 무한 리렌더링 방지
 
   // 🎯 핵심: 상위의 제어 명령을 구독하여 자율적으로 반응
-  ParentContext.useActionHandler(
+  ParentActionContext.useActionHandler(
     'controlChild',
     ({ childId: targetId, action, amount }) => {
       // 자신에게 향한 명령인지 확인
@@ -280,7 +293,7 @@ function ChildALogicRegistration() {
   );
 
   // Child A의 자체 액션 핸들러
-  ChildAContext.useActionHandler('incrementCounter', ({ amount }) => {
+  ChildAActionContext.useActionHandler('incrementCounter', ({ amount }) => {
     const newValue = counter.getValue() + amount;
     counter.setValue(newValue);
 
@@ -300,7 +313,7 @@ function ChildALogicRegistration() {
     );
   });
 
-  ChildAContext.useActionHandler('resetCounter', () => {
+  ChildAActionContext.useActionHandler('resetCounter', () => {
     counter.setValue(0);
 
     // 상위에게 데이터 변경 알림
@@ -323,9 +336,9 @@ function ChildALogicRegistration() {
 }
 
 function ChildAUI() {
-  const counter = useStoreValue(ChildAContext.useStore('counter', 0));
-  const childADispatch = ChildAContext.useAction();
-  const parentDispatch = ParentContext.useAction();
+  const counter = useStoreValue(ChildAStores.useStore('counter'));
+  const childADispatch = ChildAActionContext.useActionDispatch();
+  const parentDispatch = ParentActionContext.useActionDispatch();
 
   return (
     <Card className="border-l-4 border-l-green-500 bg-green-50">
@@ -398,17 +411,19 @@ function ChildAUI() {
 // 독립적인 Child B 컴포넌트 - 자체적으로 상위에 등록됨
 function IndependentChildB() {
   return (
-    <ChildBContext.Provider registryId="child-b-context">
-      <ChildBLogicRegistration />
-      <ChildBUI />
-    </ChildBContext.Provider>
+    <ChildBActionContext.Provider>
+      <ChildBStores.Provider registryId="child-b-context">
+        <ChildBLogicRegistration />
+        <ChildBUI />
+      </ChildBStores.Provider>
+    </ChildBActionContext.Provider>
   );
 }
 
 function ChildBLogicRegistration() {
-  const textStore = ChildBContext.useStore('text', 'Hello World');
+  const textStore = ChildBStores.useStore('text');
   const actionLogger = useActionLoggerWithToast();
-  const parentDispatch = ParentContext.useAction(); // 상위 컨텍스트에 접근
+  const parentDispatch = ParentActionContext.useActionDispatch(); // 상위 컨텍스트에 접근
 
   const childId = 'child-b-text';
 
@@ -421,7 +436,7 @@ function ChildBLogicRegistration() {
   }, []); // parentDispatch 의존성 제거로 무한 리렌더링 방지
 
   // Child B의 자체 액션 핸들러
-  ChildBContext.useActionHandler('updateText', ({ newText }) => {
+  ChildBActionContext.useActionHandler('updateText', ({ newText }) => {
     textStore.setValue(newText);
 
     // 상위에게 데이터 변경 알림
@@ -440,7 +455,7 @@ function ChildBLogicRegistration() {
     );
   });
 
-  ChildBContext.useActionHandler('clearText', () => {
+  ChildBActionContext.useActionHandler('clearText', () => {
     textStore.setValue('');
 
     // 상위에게 데이터 변경 알림
@@ -463,9 +478,9 @@ function ChildBLogicRegistration() {
 }
 
 function ChildBUI() {
-  const text = useStoreValue(ChildBContext.useStore('text', ''));
-  const childBDispatch = ChildBContext.useAction();
-  const parentDispatch = ParentContext.useAction();
+  const text = useStoreValue(ChildBStores.useStore('text'));
+  const childBDispatch = ChildBActionContext.useActionDispatch();
+  const parentDispatch = ParentActionContext.useActionDispatch();
 
   return (
     <Card className="border-l-4 border-l-purple-500 bg-purple-50">
@@ -648,28 +663,24 @@ function CommunicationExplanation() {
 // 상위 컨텍스트: 인터페이스만 정의하고 하위 구성을 모름
 function ParentContextContainer({ children }: { children: any }) {
   return (
-    <ParentContext.Provider registryId="parent-context">
-      <ParentContextLogic />
-      {children}
-    </ParentContext.Provider>
+    <ParentActionContext.Provider>
+      <ParentStores.Provider registryId="parent-context">
+        <ParentContextLogic />
+        {children}
+      </ParentStores.Provider>
+    </ParentActionContext.Provider>
   );
 }
 
 // 상위 컨텍스트의 로직 - 하위 컴포넌트들이 뭔지 모름
 function ParentContextLogic() {
   const actionLogger = useActionLoggerWithToast();
-  const registeredChildrenStore = ParentContext.useStore(
-    'registered-children',
-    [] as Array<{ childId: string; childType: string }>
-  );
-  const dataLogStore = ParentContext.useStore(
-    'data-log',
-    [] as Array<{ source: string; data: any; timestamp: number }>
-  );
-  const parentCounterStore = ParentContext.useStore('parent-counter', 0);
+  const registeredChildrenStore = ParentStores.useStore('registered-children');
+  const dataLogStore = ParentStores.useStore('data-log');
+  const parentCounterStore = ParentStores.useStore('parent-counter');
 
   // 상위는 단순히 인터페이스에 정의된 액션들만 처리
-  ParentContext.useActionHandler(
+  ParentActionContext.useActionHandler(
     'onChildRegistered',
     ({ childId, childType }) => {
       const currentChildren = registeredChildrenStore.getValue();
@@ -690,7 +701,7 @@ function ParentContextLogic() {
     }
   );
 
-  ParentContext.useActionHandler('onDataChanged', ({ source, data }) => {
+  ParentActionContext.useActionHandler('onDataChanged', ({ source, data }) => {
     const currentLog = dataLogStore.getValue();
     const newLog = [...currentLog, { source, data, timestamp: Date.now() }];
     dataLogStore.setValue(newLog.slice(-10)); // 최근 10개만 유지
@@ -705,7 +716,7 @@ function ParentContextLogic() {
     );
   });
 
-  ParentContext.useActionHandler('onUserInteraction', ({ action, payload }) => {
+  ParentActionContext.useActionHandler('onUserInteraction', ({ action, payload }) => {
     actionLogger.logAction(
       'onUserInteraction',
       { action, payload },
@@ -717,7 +728,7 @@ function ParentContextLogic() {
   });
 
   // 상위 자체 카운터 핸들러
-  ParentContext.useActionHandler('incrementParentCounter', () => {
+  ParentActionContext.useActionHandler('incrementParentCounter', () => {
     const currentCount = parentCounterStore.getValue();
     const newCount = currentCount + 1;
     parentCounterStore.setValue(newCount);
@@ -732,7 +743,7 @@ function ParentContextLogic() {
     );
   });
 
-  ParentContext.useActionHandler('resetParentCounter', () => {
+  ParentActionContext.useActionHandler('resetParentCounter', () => {
     parentCounterStore.setValue(0);
 
     actionLogger.logAction(
@@ -746,7 +757,7 @@ function ParentContextLogic() {
   });
 
   // 하위 컴포넌트 제어 인터페이스 (구현체는 모르고 인터페이스만 사용)
-  ParentContext.useActionHandler(
+  ParentActionContext.useActionHandler(
     'controlChild',
     ({ childId, action, amount }) => {
       actionLogger.logAction(
@@ -815,7 +826,7 @@ interface ParentActions extends ActionPayloadMap {
 
 // 2. 하위 → 상위 통신 (직접 호출)
 function ChildAUI() {
-  const parentDispatch = ParentContext.useAction();
+  const parentDispatch = ParentActionContext.useActionDispatch();
   
   return (
     <button onClick={() => parentDispatch('incrementParentCounter')}>
@@ -826,7 +837,7 @@ function ChildAUI() {
 
 // 3. 상위 → 하위 제어 (인터페이스 기반)
 function ParentContextUI() {
-  const parentDispatch = ParentContext.useAction();
+  const parentDispatch = ParentActionContext.useActionDispatch();
   
   return (
     <button onClick={() => parentDispatch('controlChild', { 
@@ -838,7 +849,7 @@ function ParentContextUI() {
 }
 
 // 4. 하위에서 상위 명령 구독
-ParentContext.useActionHandler('controlChild', ({ childId, action, amount }) => {
+ParentActionContext.useActionHandler('controlChild', ({ childId, action, amount }) => {
   if (childId === 'child-a-counter' && action === 'increment') {
     // 자율적으로 반응하여 자신의 상태 변경
     const newValue = counter.getValue() + (amount || 1);
