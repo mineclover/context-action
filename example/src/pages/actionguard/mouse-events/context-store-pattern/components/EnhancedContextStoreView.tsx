@@ -18,6 +18,7 @@ export function EnhancedContextStoreView() {
   const throttleTimeoutRef = useRef<number>();
   const animationFrameRef = useRef<number>();
   const pathSvgRef = useRef<SVGPathElement>(null);
+  const realtimePathPoints = useRef<Array<{ x: number; y: number }>>([]);
 
   // Access individual stores using the Context Store Pattern
   const positionStore = useMouseEventsStore('position');
@@ -60,26 +61,19 @@ export function EnhancedContextStoreView() {
       coordinatesRef.current.style.transform = `translate(${x + 16}px, ${y - 32}px)`;
     }
     
-    // Update path SVG in real-time using requestAnimationFrame for better performance
-    if (pathSvgRef.current) {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-      
-      animationFrameRef.current = requestAnimationFrame(() => {
-        if (pathSvgRef.current) {
-          // Use functional update to get latest path
-          setRealTimePath(currentPath => {
-            const newPath = [...currentPath, { x, y }].slice(-50);
-            const pathData = newPath
-              .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
-              .join(' ');
-            pathSvgRef.current!.setAttribute('d', pathData);
-            return newPath;
-          });
-        }
-      });
+    // Update real-time path for smooth drawing - both state and ref
+    realtimePathPoints.current = [...realtimePathPoints.current, { x, y }].slice(-50);
+    
+    // Update SVG path directly for immediate visual feedback
+    if (pathSvgRef.current && realtimePathPoints.current.length > 1) {
+      const pathData = realtimePathPoints.current
+        .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
+        .join(' ');
+      pathSvgRef.current.setAttribute('d', pathData);
     }
+    
+    // Also update state for React consistency (but less frequently)
+    setRealTimePath(realtimePathPoints.current);
     
     // Throttled store updates to prevent performance issues
     if (throttleTimeoutRef.current) {
@@ -125,6 +119,7 @@ export function EnhancedContextStoreView() {
     
     // Initialize real-time position and path
     setRealTimePosition({ x, y });
+    realtimePathPoints.current = [{ x, y }];
     setRealTimePath([{ x, y }]);
     
     // Show cursor immediately
@@ -156,7 +151,13 @@ export function EnhancedContextStoreView() {
     }
     
     // Clear real-time path
+    realtimePathPoints.current = [];
     setRealTimePath([]);
+    
+    // Clear SVG path immediately
+    if (pathSvgRef.current) {
+      pathSvgRef.current.setAttribute('d', '');
+    }
     
     // Clear any pending throttled updates
     if (throttleTimeoutRef.current) {
@@ -169,6 +170,7 @@ export function EnhancedContextStoreView() {
   const handleReset = useCallback(() => {
     // Clear real-time data
     setRealTimePosition({ x: -999, y: -999 });
+    realtimePathPoints.current = [];
     setRealTimePath([]);
     
     // Clear path SVG
@@ -490,7 +492,7 @@ export function EnhancedContextStoreView() {
               )}
               
               {/* Real-time path (foreground - smooth) */}
-              {realTimePath.length > 1 && isHovered && (
+              {realTimePath.length > 1 && (
                 <path
                   ref={pathSvgRef}
                   d={realTimePath
@@ -505,6 +507,7 @@ export function EnhancedContextStoreView() {
                   filter="url(#glow)"
                   style={{
                     transition: 'none', // No transition for real-time updates
+                    opacity: isHovered ? 1 : 0.7, // Slightly fade when not hovering but still visible
                   }}
                 />
               )}
