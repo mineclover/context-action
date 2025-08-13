@@ -1,6 +1,6 @@
 {
   "name": "@context-action/core",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "type": "module",
   "description": "Type-safe action pipeline management library for JavaScript/TypeScript",
   "main": "dist/index.cjs",
@@ -54,7 +54,6 @@
     "url": "https://github.com/mineclover/context-action/issues"
   },
   "homepage": "https://github.com/mineclover/context-action#readme",
-  "dependencies": {},
   "devDependencies": {
     "@types/jest": "^29.5.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",

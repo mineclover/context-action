@@ -1,6 +1,6 @@
 {
   "name": "@context-action/jotai",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "type": "module",
   "description": "Jotai integration for @context-action/core - Atomic state management with type-safe actions",
   "main": "dist/index.cjs",

@@ -1,6 +1,6 @@
 {
   "name": "@context-action/glossary-query",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "private": true,
   "description": "jq-based high-performance information query system for Context-Action framework terminology",
   "main": "jq-cli.sh",
