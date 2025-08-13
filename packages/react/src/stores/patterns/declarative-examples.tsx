@@ -8,7 +8,7 @@
  */
 
 import React from 'react';
-import { createDeclarativeStorePattern, type StoreConfig } from './declarative-store-pattern-v2';
+import { createDeclarativeStorePattern } from './declarative-store-pattern-v2';
 import { useStoreValue } from '../hooks/useStoreValue';
 
 /**
