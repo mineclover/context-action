@@ -31,7 +31,7 @@ import { createActionContextPattern } from '@context-action/react';
 - ✅ HOC patterns support
 
 ### Basic Usage
-```typescript
+```tsx
 // 1. Define Actions and State
 interface AppActions extends ActionPayloadMap {
   updateUser: { id: string; name: string };
@@ -45,33 +45,33 @@ interface UserData {
   email: string;
 }
 
-// 2. Create Pattern
-const AppContext = createActionContextPattern<AppActions>('App', {
+// 2. Create Pattern with Renaming Convention
+const {
+  Provider: AppContextProvider,
+  useStore: useAppStore,
+  useAction: useAppAction,
+  useActionHandler: useAppActionHandler
+} = createActionContextPattern<AppActions>('App', {
   debug: process.env.NODE_ENV === 'development'
 });
 
 // 3. Provider Setup
 function App() {
   return (
-    <AppContext.Provider registryId="app-main">
+    <AppContextProvider registryId="app-main">
       <UserProfile />
-    </AppContext.Provider>
+    </AppContextProvider>
   );
 }
 
-// 3. Declarative Hook Exports (Recommended)
-const useUserStore = AppContext.useStore;
-const useActionDispatch = AppContext.useAction;
-const useActionHandler = AppContext.useActionHandler;
-
-// 4. Component Usage with Exported Hooks
+// 4. Component Usage with Renamed Hooks
 function UserProfile() {
-  const userStore = useUserStore('user', { id: '', name: '', email: '' });
+  const userStore = useAppStore('user', { id: '', name: '', email: '' });
   const user = useStoreValue(userStore);
-  const dispatch = useActionDispatch();
+  const dispatch = useAppAction();
   
-  // Action handler registration with exported hook
-  useActionHandler('updateUser', async (payload) => {
+  // Action handler registration with renamed hook
+  useAppActionHandler('updateUser', async (payload) => {
     userStore.setValue({ ...user, ...payload });
   });
   
@@ -89,20 +89,27 @@ function UserProfile() {
 ```
 
 ### HOC Pattern (Advanced)
-```typescript
-// Automatic Provider wrapping
-const withAppProviders = AppContext.withCustomProvider(
-  ({ children }) => (
-    <ThemeProvider>
-      <ErrorBoundary>
-        {children}
-      </ErrorBoundary>
-    </ThemeProvider>
-  ),
-  'app-with-theme'
-);
+```tsx
+// Get withProvider from the same context
+const { withProvider: withAppProvider } = createActionContextPattern<AppActions>('App');
 
-const AppWithProviders = withAppProviders(App);
+// Simple Provider wrapping
+const AppWithProviders = withAppProvider(App, 'app-main');
+
+// Or manual composition for custom providers
+const withAppCustomProviders = (Component: React.ComponentType) => {
+  return (props: any) => (
+    <AppContextProvider>
+      <ThemeProvider>
+        <ErrorBoundary>
+          <Component {...props} />
+        </ErrorBoundary>
+      </ThemeProvider>
+    </AppContextProvider>
+  );
+};
+
+const AppWithCustomProviders = withAppCustomProviders(App);
 ```
 
 ### Available Hooks
@@ -133,7 +140,7 @@ import { createActionContext } from '@context-action/react';
 - ✅ Lightweight (no store overhead)
 
 ### Basic Usage
-```typescript
+```tsx
 // 1. Define Actions
 interface EventActions extends ActionPayloadMap {
   userClick: { x: number; y: number };
@@ -141,32 +148,33 @@ interface EventActions extends ActionPayloadMap {
   analytics: { event: string; data: any };
 }
 
-// 2. Create Context
-const EventContext = createActionContext<EventActions>('Events');
+// 2. Create Context with Renaming Pattern
+const {
+  Provider: EventActionProvider,
+  useActionDispatch: useEventAction,
+  useActionHandler: useEventActionHandler
+} = createActionContext<EventActions>('Events');
 
 // 3. Provider Setup
 function App() {
   return (
-    <EventContext.Provider>
+    <EventActionProvider>
       <InteractiveComponent />
-    </EventContext.Provider>
+    </EventActionProvider>
   );
 }
 
-// 4. Component Usage with Clean Destructuring  
+// 4. Component Usage with Renamed Hooks  
 function InteractiveComponent() {
-  // Destructure with semantic naming
-  const { useActionDispatch, useActionHandler } = EventContext;
-  
-  const dispatch = useActionDispatch();
+  const dispatch = useEventAction();
   
   // Register action handlers with renamed hook
-  useActionHandler('userClick', (payload, controller) => {
+  useEventActionHandler('userClick', (payload, controller) => {
     console.log('User clicked at:', payload.x, payload.y);
     // Pure side effects, no state management
   });
   
-  useActionHandler('analytics', async (payload) => {
+  useEventActionHandler('analytics', async (payload) => {
     await fetch('/analytics', {
       method: 'POST',
       body: JSON.stringify(payload)
@@ -183,10 +191,13 @@ function InteractiveComponent() {
 ```
 
 ### Advanced Features
-```typescript
+```tsx
+// Use the same renamed context from above
+const { useActionDispatchWithResult: useEventActionWithResult } = createActionContext<EventActions>('Events');
+
 function AdvancedComponent() {
-  // Clean destructuring for advanced features
-  const useAdvancedDispatch = EventContext.useActionDispatchWithResult;
+  // Use renamed hooks for advanced features
+  const useAdvancedDispatch = useEventActionWithResult;
   
   const { 
     dispatch, 
@@ -244,7 +255,7 @@ import { createDeclarativeStorePattern } from '@context-action/react';
 ```
 
 ### Basic Usage
-```typescript
+```tsx
 // 1. Define stores with automatic type inference
 const AppStores = createDeclarativeStorePattern('App', {
   // Simple direct values - cleanest syntax
@@ -332,14 +343,14 @@ function UserComponent() {
 
 ### Pattern 1: Semantic Destructuring
 
-```typescript
+```tsx
 // Clean, readable component with semantic names
 function TodoApp() {
   const { 
     useStore: useTodoStore,
     useAction: dispatchTodoAction,
     useActionHandler: registerTodoHandler 
-  } = TodoContext;
+  } = createActionContextPattern<TodoActions>('Todo');
   
   const todoStore = useTodoStore('todos', []);
   const todos = useStoreValue(todoStore);
@@ -361,10 +372,10 @@ function TodoApp() {
 
 ### Pattern 2: Domain-Specific Hooks
 
-```typescript
+```tsx
 // Custom hooks for domain-specific logic
 function useUserActions() {
-  const { useAction, useActionHandler, useStore } = UserContext;
+  const { useAction, useActionHandler, useStore } = createActionContextPattern<UserActions>('User');
   
   const dispatch = useAction();
   const userStore = useStore('profile', { name: '', email: '' });
@@ -398,14 +409,14 @@ function UserProfile() {
 
 ### Pattern 3: Module-Style Exports
 
-```typescript
+```tsx
 // Export specific hooks for clean imports
 export const { 
   useStore: useShoppingStore,
   useAction: useShoppingAction,
   useActionHandler: useShoppingHandler,
   Provider: ShoppingProvider 
-} = ShoppingContext;
+} = createActionContextPattern<ShoppingActions>('Shopping');
 
 // Clean usage in components
 function ShoppingCart() {
@@ -430,24 +441,30 @@ function ShoppingCart() {
 
 ### Pattern 4: Factory Pattern
 
-```typescript
+```tsx
 // Create reusable pattern factories
 function createFeatureContext<T extends ActionPayloadMap>(
   name: string,
   initialStores: Record<string, any>
 ) {
-  const context = createActionContextPattern<T>(name);
+  const {
+    Provider: FeatureProvider,
+    useStore: useFeatureStore,
+    useAction: useFeatureAction,
+    useActionHandler: useFeatureHandler,
+    withProvider: withFeatureProvider
+  } = createActionContextPattern<T>(name);
   
   return {
     // Renamed exports for clarity
-    Provider: context.Provider,
-    useFeatureStore: context.useStore,
-    useFeatureAction: context.useAction,
-    useFeatureHandler: context.useActionHandler,
+    Provider: FeatureProvider,
+    useFeatureStore,
+    useFeatureAction,
+    useFeatureHandler,
     // Utility functions
     createFeatureStore: (storeName: string, initial: any) => 
-      context.useStore(storeName, initial),
-    withFeatureProviders: context.withProvider,
+      useFeatureStore(storeName, initial),
+    withFeatureProviders: withFeatureProvider,
   };
 }
 
@@ -511,7 +528,10 @@ Do you need both actions AND state management?
 
 ### Store Configuration Options
 ```typescript
-const store = AppContext.useStore('user', initialValue, {
+// Using renamed hooks from created context
+const { useStore: useAppStore } = createActionContextPattern<AppActions>('App');
+
+const store = useAppStore('user', initialValue, {
   strategy: 'shallow',        // 'reference' | 'shallow' | 'deep'
   debug: true,               // Enable debug logging
   description: 'User data',  // Documentation
@@ -525,7 +545,10 @@ const store = AppContext.useStore('user', initialValue, {
 
 ### Action Handler Configuration
 ```typescript
-AppContext.useActionHandler('updateUser', handler, {
+// Using renamed hooks from created context
+const { useActionHandler: useAppActionHandler } = createActionContextPattern<AppActions>('App');
+
+useAppActionHandler('updateUser', handler, {
   id: 'user-updater',        // Unique handler ID
   priority: 10,              // Execution priority (higher = first)
   blocking: true            // Block subsequent handlers if this fails
@@ -534,7 +557,11 @@ AppContext.useActionHandler('updateUser', handler, {
 
 ### Provider Configuration
 ```typescript
-const AppContext = createActionContextPattern<Actions>('App', {
+const {
+  Provider: AppContextProvider,
+  useStore: useAppStore,
+  useAction: useAppAction
+} = createActionContextPattern<Actions>('App', {
   debug: true,               // Enable debug mode
   name: 'custom-register'    // Custom ActionRegister name
 });
@@ -547,26 +574,43 @@ const AppContext = createActionContextPattern<Actions>('App', {
 ### From Basic Patterns to Action Context
 
 ```typescript
-// Before: Separate patterns
-const ActionCtx = createActionContext<Actions>('actions');
-const StoreCtx = createStoreContext('stores');
+// Before: Separate patterns with direct context usage
+const {
+  Provider: ActionProvider,
+  useActionDispatch: useAction
+} = createActionContext<Actions>('actions');
+const {
+  Provider: StoreProvider,
+  useStore
+} = createStoreContext('stores');
 
-// After: Unified pattern
-const AppCtx = createActionContextPattern<Actions>('app');
+// After: Unified pattern with renaming convention
+const {
+  Provider: AppProvider,
+  useStore: useAppStore,
+  useAction: useAppAction,
+  useActionHandler: useAppActionHandler
+} = createActionContextPattern<Actions>('app');
 ```
 
 ### From Legacy Context to Declarative Store
 
 ```typescript
 // Before: Manual store management
-const StoreCtx = createStoreContext('stores');
+const {
+  Provider: StoreProvider,
+  useStore
+} = createStoreContext('stores');
 const userStore = registry.getOrCreateStore('user', initialValue);
 
-// After: Schema-based stores
-const AppStores = createDeclarativeStorePattern('app', {
+// After: Schema-based stores with renaming convention
+const {
+  Provider: AppStoreProvider,
+  useStore: useAppStore
+} = createDeclarativeStorePattern('app', {
   user: { initialValue: { name: '', email: '' } }
 });
-const userStore = AppStores.useStore('user');
+const userStore = useAppStore('user');
 ```
 
 ---
@@ -596,7 +640,11 @@ const userStore = AppStores.useStore('user');
 Enable debug logging to troubleshoot issues:
 
 ```typescript
-const AppContext = createActionContextPattern<Actions>('App', {
+const {
+  Provider: AppProvider,
+  useStore: useAppStore,
+  useAction: useAppAction
+} = createActionContextPattern<Actions>('App', {
   debug: process.env.NODE_ENV === 'development'
 });
 ```

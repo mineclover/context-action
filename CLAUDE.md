@@ -4,16 +4,71 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a TypeScript monorepo for the **Context-Action framework** - a type-safe action pipeline management system with React integration and enhanced state management. The framework implements an MVVM-inspired architecture with clear separation between View (React components), ViewModel (Action pipeline), and Model (Store system) layers.
+This is a TypeScript monorepo for the **Context-Action framework** - a revolutionary state management system designed to overcome the fundamental limitations of existing libraries through document-centric context separation and effective artifact management.
+
+### Project Philosophy
+
+The Context-Action framework addresses critical issues in modern state management:
+
+#### Problems with Existing Libraries
+- **High React Coupling**: Tight integration makes component modularization and props handling difficult
+- **Binary State Approach**: Simple global/local state dichotomy fails to handle specific scope-based separation
+- **Inadequate Handler/Trigger Management**: Poor support for complex interactions and business logic processing
+
+#### Context-Action's Solution
+- **Document-Artifact Centered Design**: Context separation based on document themes and deliverable management
+- **Perfect Separation of Concerns**: 
+  - View design in isolation → Design Context
+  - Development architecture in isolation → Architecture Context
+  - Business logic in isolation → Business Context  
+  - Data validation in isolation → Validation Context
+- **Clear Boundaries**: Implementation results maintain distinct, well-defined domain boundaries
+- **Effective Document-Artifact Management**: State management library that actively supports the relationship between documentation and deliverables
+
+The framework implements an MVVM-inspired architecture with clear separation between View (React components), ViewModel (Action pipeline), and Model (Store system) layers, all organized around **context-driven domain isolation**.
 
 ## Architecture
 
 ### Core Philosophy
 The Context-Action framework follows these principles:
+- **Document-Centric Context Separation**: Each context represents a specific document domain (design, architecture, business, validation)
 - **Type Safety**: Full TypeScript support with strict type checking throughout
 - **Action Pipeline**: Centralized action processing with priority-based handler execution
 - **Store Integration**: Decoupled state management with reactive store subscriptions
 - **MVVM Pattern**: Clear separation of concerns with business logic in action handlers
+
+### Context Separation Strategy
+
+#### Domain-Based Context Architecture
+- **Business Context**: Business logic, data processing, and domain rules
+- **UI Context**: Screen state, user interactions, and component behavior  
+- **Validation Context**: Data validation, form processing, and error handling
+- **Design Context**: Theme management, styling, layout, and visual states
+- **Architecture Context**: System configuration, infrastructure, and technical decisions
+
+#### Document-Based Context Design
+Each context is designed to manage its corresponding documentation and deliverables:
+- **Design Documentation** → Design Context (themes, component specifications, style guides)
+- **Business Requirements** → Business Context (workflows, rules, domain logic)  
+- **Architecture Documents** → Architecture Context (system design, technical decisions)
+- **Validation Specifications** → Validation Context (rules, schemas, error handling)
+- **UI Specifications** → UI Context (interactions, state management, user flows)
+
+### Advanced Handler & Trigger Management
+
+Context-Action provides sophisticated handler and trigger management that existing libraries lack:
+
+#### Priority-Based Handler Execution
+- **Sequential Processing**: Handlers execute in priority order with proper async handling
+- **Domain Isolation**: Each context maintains its own handler registry
+- **Cross-Context Coordination**: Controlled communication between domain contexts
+- **Result Collection**: Aggregate results from multiple handlers for complex workflows
+
+#### Intelligent Trigger System
+- **State-Change Triggers**: Automatic triggers based on store value changes
+- **Cross-Context Triggers**: Domain boundaries can trigger actions in other contexts
+- **Conditional Triggers**: Smart triggers based on business rules and conditions
+- **Trigger Cleanup**: Automatic cleanup prevents memory leaks and stale references
 
 ### Package Structure
 - `@context-action/core` - Core action pipeline management (no React dependency)
@@ -151,60 +206,58 @@ Each package uses `tsdown.config.ts` for build configuration. The build outputs:
 ## Important Implementation Details
 
 ### Action Handler Registration
-Action handlers must be registered before components mount. Use the provider pattern:
+Action handlers must be registered before components mount. Use the `useActionHandler` hook pattern:
 
 ```tsx
-// Correct: Register handlers in provider setup
+// Correct: Register handlers using useActionHandler hook
 function ActionSetup({ children }) {
-  const register = useActionRegister();
-  
-  useEffect(() => {
-    register('updateUser', userUpdateHandler);
+  const userUpdateHandler = useCallback(async (payload, controller) => {
+    // Handler logic here
   }, []);
+  
+  useActionHandler('updateUser', userUpdateHandler);
   
   return children;
 }
 ```
 
-### Context Store Pattern (Primary Pattern)
-The Context-Action framework uses **Context Store Pattern** as the primary state management pattern. This provides automatic Store isolation and component-level encapsulation:
+### Action Context Pattern (Primary Pattern)
+The Context-Action framework uses **Action Context Pattern** as the primary state management pattern. This provides unified action and store management with complete isolation:
 
 ```tsx
-// 1. Create Context Store Pattern
-const UserStores = createContextStorePattern('User');
+// 1. Create Action Context Pattern with unified management
+const UserContext = createActionContextPattern<UserActions>('User');
 
 // 2. Use Provider pattern
 function App() {
   return (
-    <UserStores.Provider registryId="user-app">
-      <ActionProvider>
-        <UserProfile />
-      </ActionProvider>
-    </UserStores.Provider>
+    <UserContext.Provider registryId="user-app">
+      <UserProfile />
+    </UserContext.Provider>
   );
 }
 
-// 3. Use HOC pattern for automatic wrapping
-const withUserStores = UserStores.withProvider('user-section');
+// 3. Use declarative hook exports for type-safe access
+const useUserStore = UserContext.useStore;
+const useUserAction = UserContext.useAction;
+const useUserActionHandler = UserContext.useActionHandler;
 
-const UserProfile = withUserStores(() => {
-  const userStore = UserStores.useStore('current-user', { name: '', email: '' });
+const UserProfile = () => {
+  const userStore = useUserStore('current-user', { name: '', email: '' });
   const user = useStoreValue(userStore);
+  const dispatch = useUserAction();
+  
+  // Register handler using hook
+  useUserActionHandler('updateUser', useCallback(async (payload) => {
+    userStore.setValue({ ...user, ...payload });
+  }, [user, userStore]));
   
   return <div>Welcome, {user.name}!</div>;
-});
+};
 
-// 4. Combine with ActionProvider using withCustomProvider
-const withUserAndActions = UserStores.withCustomProvider(
-  ({ children }) => (
-    <ActionProvider config={{ logLevel: LogLevel.DEBUG }}>
-      {children}
-    </ActionProvider>
-  ),
-  'user-with-actions'
-);
-
-const FullUserModule = withUserAndActions(UserComponent);
+// 4. HOC pattern for automatic provider wrapping
+const withUserContext = UserContext.withProvider('user-module');
+const WrappedUserProfile = withUserContext(UserProfile);
 ```
 
 ### Store Subscription Pattern
@@ -233,7 +286,7 @@ interface AppActions extends ActionPayloadMap {
 Action handlers should use the pipeline controller for error handling:
 
 ```typescript
-register('riskyAction', async (payload, controller) => {
+useActionHandler('riskyAction', async (payload, controller) => {
   try {
     // Business logic
   } catch (error) {
@@ -253,24 +306,22 @@ register('riskyAction', async (payload, controller) => {
 
 ### Recommended Development Patterns
 
-#### For New Components (HOC Pattern)
+#### For New Components (Action Context Pattern)
 ```tsx
-// 1. Create isolated component module
-const FeatureStores = createContextStorePattern('Feature');
+// 1. Create Action Context Pattern with unified management
+const FeatureContext = createActionContextPattern<FeatureActions>('Feature');
 
 // 2. Create self-contained component with HOC
-const withFeatureProviders = FeatureStores.withCustomProvider(
-  ({ children }) => (
-    <ActionProvider config={{ logLevel: LogLevel.DEBUG }}>
-      {children}
-    </ActionProvider>
-  ),
-  'feature-module'
-);
+const withFeatureContext = FeatureContext.withProvider('feature-module');
 
-const FeatureComponent = withFeatureProviders(() => {
-  const featureStore = FeatureStores.useStore('feature-data', initialData);
-  const dispatch = useActionDispatch<FeatureActions>();
+const FeatureComponent = withFeatureContext(() => {
+  const featureStore = FeatureContext.useStore('feature-data', initialData);
+  const dispatch = FeatureContext.useAction();
+  
+  // Register handlers using hook
+  FeatureContext.useActionHandler('updateFeature', useCallback(async (payload) => {
+    featureStore.setValue({ ...payload });
+  }, [featureStore]));
   
   // Component logic with complete isolation
   return <div>Feature UI</div>;
@@ -282,17 +333,61 @@ function App() {
 }
 ```
 
-#### For Existing Components (Provider Pattern)
+#### For Store-Only Components (Declarative Store Pattern)
 ```tsx
-// Traditional approach - still fully supported
+// For pure state management without actions using renaming convention
+const {
+  Provider: AppStoreProvider,
+  useStore: useAppStore,
+  useStoreManager: useAppStoreManager
+} = createDeclarativeStorePattern('App', {
+  user: { initialValue: { name: '', email: '' } },
+  settings: { initialValue: { theme: 'light' } }
+});
+
 function App() {
   return (
-    <StoreProvider>
-      <ActionProvider>
-        <ExistingComponent />
-      </ActionProvider>
-    </StoreProvider>
+    <AppStoreProvider>
+      <UserComponent />
+    </AppStoreProvider>
   );
+}
+
+function UserComponent() {
+  const userStore = useAppStore('user');
+  const user = useStoreValue(userStore);
+  
+  return <div>User: {user.name}</div>;
+}
+```
+
+#### For Action-Only Components (Action Context)
+```tsx
+// For pure action dispatching without state using renaming convention
+const {
+  Provider: EventActionProvider,
+  useActionDispatch: useEventAction,
+  useActionHandler: useEventActionHandler
+} = createActionContext<EventActions>('Events');
+
+function App() {
+  return (
+    <EventActionProvider>
+      <EventComponent />
+    </EventActionProvider>
+  );
+}
+
+function EventComponent() {
+  const dispatch = useEventAction();
+  
+  useEventActionHandler('trackEvent', async (payload) => {
+    await analytics.track(payload.event, payload.data);
+  });
+  
+  return <button onClick={() => dispatch('trackEvent', { event: 'click', data: {} })}>
+    Track Event
+  </button>;
 }
 ```
 
@@ -307,16 +402,70 @@ function App() {
 - `packages/react/src/store/` - Store system implementation
 - `packages/react/src/ActionProvider.tsx` - React context integration
 - `packages/react/src/store/context-store-pattern.tsx` - Context Store Pattern with HOC support
-- `packages/react/src/store/README-context-store-pattern.md` - Context Store Pattern documentation
-- `packages/react/examples/hoc-pattern-example.tsx` - HOC pattern usage examples
+- `packages/react/docs/PATTERN_GUIDE.md` - Complete pattern guide with three main approaches
+- `docs/en/guide/full.md` - Complete MVVM architecture guide with Context Store Pattern
 - `example/src/` - Comprehensive example application
 - `docs/` - VitePress documentation source
 - `glossary/` - Term management and documentation tools
 - `scripts/` - Build and utility scripts
 
+## Framework Architecture Patterns
+
+### Three Main Patterns (Latest Specification)
+
+#### 🚀 Action Context Pattern (Recommended)
+**Import**: `createActionContextPattern` from `@context-action/react`
+- **Use Case**: Most applications that need both actions and state management
+- **Features**: Unified action + store management, type-safe action handlers, automatic computed values, Provider-based isolation, HOC patterns support
+- **Domain-Specific Hooks**: Declarative hook exports for improved developer experience
+
+```tsx
+// Declarative Hook Exports Pattern (Renaming Convention)
+const {
+  Provider: AppContextProvider,
+  useStore: useAppStore,
+  useAction: useAppAction,
+  useActionHandler: useAppActionHandler
+} = createActionContextPattern<AppActions>('App');
+```
+
+#### 🎯 Action Only Pattern
+**Import**: `createActionContext` from `@context-action/react`
+- **Use Case**: Pure action dispatching without state management (event systems, command patterns)
+- **Features**: Type-safe action dispatching, action handler registration, abort support, result handling, lightweight (no store overhead)
+
+#### 🏪 Store Only Pattern (Simplified)
+**Import**: `createDeclarativeStorePattern` from `@context-action/react`
+- **Use Case**: Pure state management without action dispatching (data layers, simple state)
+- **Features**: Excellent type inference without manual type annotations, simplified API focused on store management, direct value or configuration object support
+
+### MVVM Architecture Integration
+
+#### Context Store Pattern (Primary)
+**Complete domain isolation** with automatic store encapsulation:
+- **Actions** handle business logic (ViewModel layer)
+- **Context Store Pattern** manages state with domain isolation (Model layer)
+- **Components** render UI (View layer)
+- **Context Boundaries** isolate functional domains
+- **Type-Safe Integration** through domain-specific hooks
+
+#### Store Integration 3-Step Process
+1. **Read current state** from stores using `store.getValue()`
+2. **Execute business logic** using payload and current state  
+3. **Update stores** using `store.setValue()` or `store.update()`
+
+#### Handler Registration Best Practice
+Use `useActionHandler` + `useEffect` pattern for optimal performance and proper cleanup:
+- Wrap handler with `useCallback` to prevent re-registration
+- Use lazy evaluation with `stores.getStore()` for current state
+- Register handlers with cleanup using unregister function
+
 ### Architecture Patterns
 
-- **Context Store Pattern**: `createContextStorePattern()` for isolated store management
+- **Action Context Pattern**: `createActionContextPattern()` for unified action + store management
+- **Context Store Pattern**: Complete domain isolation with automatic store encapsulation  
+- **Domain-Specific Hooks**: Declarative hook exports for type-safe, intuitive APIs
 - **HOC Pattern**: `withProvider()` and `withCustomProvider()` for automatic component wrapping
 - **Action Provider Pattern**: `ActionProvider` + `useActionDispatch()` for action management
+- **Store Integration Pattern**: 3-step process for handler implementation
 - **Traditional Provider Pattern**: Manual Provider composition (legacy support)
