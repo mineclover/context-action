@@ -13,7 +13,7 @@
 
 /**
  * 테스트 핸들러 설정
- * 
+ *
  * UI 표시와 테스트 실행을 위한 설정입니다.
  * 라이브러리의 HandlerConfig를 확장하지 않고 독립적으로 정의합니다.
  */
@@ -40,4 +40,3 @@ export interface PerformanceOptions {
   enableConsoleLog?: boolean;
   performanceMode?: boolean;
 }
-

@@ -1,13 +1,18 @@
 /**
  * @fileoverview Context Store Mouse Events View - Context Store 패턴 뷰 컴포넌트
- * 
+ *
  * Context Store를 구독하여 마우스 이벤트 상태를 표시하는 View 컴포넌트
  */
 
-import { memo, useMemo, useRef } from 'react';
 import { useStoreValue } from '@context-action/react';
-import { DemoCard, Button, CodeBlock, CodeExample } from '../../../../../components/ui';
-import { useMouseStore, initialMouseState } from '../stores/MouseStoreSchema';
+import { memo, useMemo, useRef } from 'react';
+import {
+  Button,
+  CodeBlock,
+  CodeExample,
+  DemoCard,
+} from '../../../../../components/ui';
+import { initialMouseState, useMouseStore } from '../stores/MouseStoreSchema';
 
 // ================================
 // 📊 Props 인터페이스
@@ -27,22 +32,25 @@ export interface ContextStoreMouseEventsViewProps {
 function useStatusPanelData() {
   const mouseStateStore = useMouseStore('mouseState', initialMouseState);
   const mouseState = useStoreValue(mouseStateStore);
-  
-  return useMemo(() => ({
-    currentPosition: mouseState.mousePosition,
-    isInsideArea: mouseState.isInsideArea,
-    moveCount: mouseState.moveCount,
-    clickCount: mouseState.clickCount,
-    velocity: mouseState.velocity,
-    activityStatus: mouseState.activityStatus,
-  }), [
-    mouseState.mousePosition, 
-    mouseState.isInsideArea, 
-    mouseState.moveCount, 
-    mouseState.clickCount, 
-    mouseState.velocity, 
-    mouseState.activityStatus
-  ]);
+
+  return useMemo(
+    () => ({
+      currentPosition: mouseState.mousePosition,
+      isInsideArea: mouseState.isInsideArea,
+      moveCount: mouseState.moveCount,
+      clickCount: mouseState.clickCount,
+      velocity: mouseState.velocity,
+      activityStatus: mouseState.activityStatus,
+    }),
+    [
+      mouseState.mousePosition,
+      mouseState.isInsideArea,
+      mouseState.moveCount,
+      mouseState.clickCount,
+      mouseState.velocity,
+      mouseState.activityStatus,
+    ]
+  );
 }
 
 /**
@@ -51,18 +59,21 @@ function useStatusPanelData() {
 function useStatisticsPanelData() {
   const mouseStateStore = useMouseStore('mouseState', initialMouseState);
   const mouseState = useStoreValue(mouseStateStore);
-  
-  return useMemo(() => ({
-    validPathLength: mouseState.validPath.length,
-    recentClickCount: mouseState.recentClickCount,
-    averageVelocity: mouseState.averageVelocity,
-    totalEvents: mouseState.totalEvents,
-  }), [
-    mouseState.validPath.length, 
-    mouseState.recentClickCount, 
-    mouseState.averageVelocity, 
-    mouseState.totalEvents
-  ]);
+
+  return useMemo(
+    () => ({
+      validPathLength: mouseState.validPath.length,
+      recentClickCount: mouseState.recentClickCount,
+      averageVelocity: mouseState.averageVelocity,
+      totalEvents: mouseState.totalEvents,
+    }),
+    [
+      mouseState.validPath.length,
+      mouseState.recentClickCount,
+      mouseState.averageVelocity,
+      mouseState.totalEvents,
+    ]
+  );
 }
 
 // ================================
@@ -80,7 +91,7 @@ const StatusPanel = memo(() => {
     position: statusData.currentPosition,
     moveCount: statusData.moveCount,
     clickCount: statusData.clickCount,
-    activityStatus: statusData.activityStatus
+    activityStatus: statusData.activityStatus,
   });
 
   return (
@@ -94,11 +105,15 @@ const StatusPanel = memo(() => {
         </div>
         <div className="flex justify-between gap-3">
           <span className="text-gray-600">Moves:</span>
-          <span className="font-mono text-green-600">{statusData.moveCount}</span>
+          <span className="font-mono text-green-600">
+            {statusData.moveCount}
+          </span>
         </div>
         <div className="flex justify-between gap-3">
           <span className="text-gray-600">Clicks:</span>
-          <span className="font-mono text-purple-600">{statusData.clickCount}</span>
+          <span className="font-mono text-purple-600">
+            {statusData.clickCount}
+          </span>
         </div>
         <div className="flex justify-between gap-3">
           <span className="text-gray-600">Velocity:</span>
@@ -108,19 +123,29 @@ const StatusPanel = memo(() => {
         </div>
         <div className="flex justify-between gap-3">
           <span className="text-gray-600">Status:</span>
-          <span className={`font-mono ${
-            statusData.activityStatus === 'moving' ? 'text-blue-600' : 
-            statusData.activityStatus === 'clicking' ? 'text-purple-600' : 'text-gray-400'
-          }`}>
-            {statusData.activityStatus === 'moving' ? '🔄 Moving' : 
-             statusData.activityStatus === 'clicking' ? '👆 Clicking' : '⏸️ Idle'}
+          <span
+            className={`font-mono ${
+              statusData.activityStatus === 'moving'
+                ? 'text-blue-600'
+                : statusData.activityStatus === 'clicking'
+                  ? 'text-purple-600'
+                  : 'text-gray-400'
+            }`}
+          >
+            {statusData.activityStatus === 'moving'
+              ? '🔄 Moving'
+              : statusData.activityStatus === 'clicking'
+                ? '👆 Clicking'
+                : '⏸️ Idle'}
           </span>
         </div>
         <div className="flex justify-between gap-3">
           <span className="text-gray-600">Inside:</span>
-          <span className={`font-mono ${
-            statusData.isInsideArea ? 'text-green-600' : 'text-orange-600'
-          }`}>
+          <span
+            className={`font-mono ${
+              statusData.isInsideArea ? 'text-green-600' : 'text-orange-600'
+            }`}
+          >
             {statusData.isInsideArea ? '✓ Yes' : '✗ No'}
           </span>
         </div>
@@ -175,7 +200,7 @@ const StatisticsPanel = memo(() => {
 const PerformancePanel = memo(() => {
   const mouseStateStore = useMouseStore('mouseState', initialMouseState);
   const mouseState = useStoreValue(mouseStateStore);
-  
+
   // 렌더링 횟수 추적
   const renderCountRef = useRef(0);
   renderCountRef.current++;
@@ -187,14 +212,25 @@ const PerformancePanel = memo(() => {
         <div className="text-xs text-gray-600">Unified Store</div>
       </div>
       <div className="text-center">
-        <div className="text-xl font-bold text-blue-600">{renderCountRef.current}</div>
+        <div className="text-xl font-bold text-blue-600">
+          {renderCountRef.current}
+        </div>
         <div className="text-xs text-gray-600">Render Count</div>
       </div>
       <div className="text-center">
         <div className="text-xl font-bold text-purple-600">
-          {Object.keys(mouseState).filter(key => 
-            ['validPath', 'recentClickCount', 'averageVelocity', 'activityStatus', 'totalEvents', 'hasActivity'].includes(key)
-          ).length}
+          {
+            Object.keys(mouseState).filter((key) =>
+              [
+                'validPath',
+                'recentClickCount',
+                'averageVelocity',
+                'activityStatus',
+                'totalEvents',
+                'hasActivity',
+              ].includes(key)
+            ).length
+          }
         </div>
         <div className="text-xs text-gray-600">Computed Values</div>
       </div>
@@ -213,9 +249,14 @@ const PerformancePanel = memo(() => {
 /**
  * Context Store 기반 마우스 이벤트 View 컴포넌트
  */
-const ContextStoreMouseEventsViewComponent = ({ onReset }: ContextStoreMouseEventsViewProps) => {
-  console.log('🏪 ContextStoreMouseEventsView render at', new Date().toISOString());
-  
+const ContextStoreMouseEventsViewComponent = ({
+  onReset,
+}: ContextStoreMouseEventsViewProps) => {
+  console.log(
+    '🏪 ContextStoreMouseEventsView render at',
+    new Date().toISOString()
+  );
+
   // Context Store 구독
   const mouseStateStore = useMouseStore('mouseState', initialMouseState);
   const mouseState = useStoreValue(mouseStateStore);
@@ -223,7 +264,9 @@ const ContextStoreMouseEventsViewComponent = ({ onReset }: ContextStoreMouseEven
   // 메모화된 값들
   const hasActivity = mouseState.hasActivity;
   const lastActivity = useMemo(() => {
-    return mouseState.lastMoveTime ? new Date(mouseState.lastMoveTime).toLocaleTimeString() : null;
+    return mouseState.lastMoveTime
+      ? new Date(mouseState.lastMoveTime).toLocaleTimeString()
+      : null;
   }, [mouseState.lastMoveTime]);
 
   return (
@@ -235,12 +278,14 @@ const ContextStoreMouseEventsViewComponent = ({ onReset }: ContextStoreMouseEven
             🏪 Context Store Mouse Events
           </h3>
           <p className="text-sm text-gray-600">
-            This demo showcases <strong>Context Store Pattern</strong> with action-based state management. 
-            Uses a unified store with <strong>action handlers</strong> and automatic computed values 
-            for optimal performance and maintainability with the @context-action framework.
+            This demo showcases <strong>Context Store Pattern</strong> with
+            action-based state management. Uses a unified store with{' '}
+            <strong>action handlers</strong> and automatic computed values for
+            optimal performance and maintainability with the @context-action
+            framework.
           </p>
         </div>
-        
+
         <div className="space-y-4">
           {/* 마우스 추적 영역 - DOM은 Context Store Container가 관리 */}
           <div
@@ -248,7 +293,7 @@ const ContextStoreMouseEventsViewComponent = ({ onReset }: ContextStoreMouseEven
             className="relative h-[400px] border-2 border-green-300 rounded-lg bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 overflow-hidden cursor-crosshair"
             style={{
               containIntrinsicSize: '100% 400px',
-              willChange: 'auto'
+              willChange: 'auto',
             }}
           >
             {/* 상태 정보 패널 - Context Store 구독 */}
@@ -280,7 +325,7 @@ const ContextStoreMouseEventsViewComponent = ({ onReset }: ContextStoreMouseEven
             >
               Reset Context Store
             </Button>
-            
+
             {lastActivity && (
               <span className="text-xs text-gray-500">
                 Last activity: {lastActivity}
@@ -303,27 +348,59 @@ const ContextStoreMouseEventsViewComponent = ({ onReset }: ContextStoreMouseEven
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
           <div className="border-r md:pr-6">
-            <h4 className="font-semibold text-blue-600 mb-3">🏗️ Clean Architecture</h4>
+            <h4 className="font-semibold text-blue-600 mb-3">
+              🏗️ Clean Architecture
+            </h4>
             <ul className="space-y-2 text-gray-700">
-              <li><strong>Data:</strong> Single service class</li>
-              <li><strong>State:</strong> Centralized state management</li>
-              <li><strong>Rendering:</strong> DOM direct manipulation</li>
-              <li><strong>Updates:</strong> Imperative DOM updates</li>
-              <li><strong>Coupling:</strong> Service → Render tight coupling</li>
-              <li><strong>Performance:</strong> 60fps via DOM optimization</li>
-              <li><strong>Debugging:</strong> Service method tracing</li>
+              <li>
+                <strong>Data:</strong> Single service class
+              </li>
+              <li>
+                <strong>State:</strong> Centralized state management
+              </li>
+              <li>
+                <strong>Rendering:</strong> DOM direct manipulation
+              </li>
+              <li>
+                <strong>Updates:</strong> Imperative DOM updates
+              </li>
+              <li>
+                <strong>Coupling:</strong> Service → Render tight coupling
+              </li>
+              <li>
+                <strong>Performance:</strong> 60fps via DOM optimization
+              </li>
+              <li>
+                <strong>Debugging:</strong> Service method tracing
+              </li>
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold text-green-600 mb-3">🏪 Context Store</h4>
+            <h4 className="font-semibold text-green-600 mb-3">
+              🏪 Context Store
+            </h4>
             <ul className="space-y-2 text-gray-700">
-              <li><strong>Data:</strong> Unified store with actions</li>
-              <li><strong>State:</strong> Action-based state management</li>
-              <li><strong>Rendering:</strong> React declarative updates</li>
-              <li><strong>Updates:</strong> Action dispatch → Store updates</li>
-              <li><strong>Coupling:</strong> Loose action-store coupling</li>
-              <li><strong>Performance:</strong> Computed values + memoization</li>
-              <li><strong>Debugging:</strong> Action flow tracing</li>
+              <li>
+                <strong>Data:</strong> Unified store with actions
+              </li>
+              <li>
+                <strong>State:</strong> Action-based state management
+              </li>
+              <li>
+                <strong>Rendering:</strong> React declarative updates
+              </li>
+              <li>
+                <strong>Updates:</strong> Action dispatch → Store updates
+              </li>
+              <li>
+                <strong>Coupling:</strong> Loose action-store coupling
+              </li>
+              <li>
+                <strong>Performance:</strong> Computed values + memoization
+              </li>
+              <li>
+                <strong>Debugging:</strong> Action flow tracing
+              </li>
             </ul>
           </div>
         </div>
@@ -336,27 +413,44 @@ const ContextStoreMouseEventsViewComponent = ({ onReset }: ContextStoreMouseEven
         </h3>
         <div className="space-y-3 text-sm text-gray-700">
           <p>
-            <strong className="text-gray-900">Action-Based State Management:</strong>
+            <strong className="text-gray-900">
+              Action-Based State Management:
+            </strong>
             <br />
-            This implementation uses the @context-action framework's Context Store pattern 
-            with action handlers. All state changes go through typed actions, providing 
-            predictable state transitions and excellent debugging capabilities.
+            This implementation uses the @context-action framework's Context
+            Store pattern with action handlers. All state changes go through
+            typed actions, providing predictable state transitions and excellent
+            debugging capabilities.
           </p>
           <p>
             <strong className="text-gray-900">Key Features:</strong>
           </p>
           <ul className="list-disc list-inside space-y-1 ml-2">
-            <li><strong>Unified Store:</strong> Single store with all mouse state</li>
-            <li><strong>Action Handlers:</strong> Typed action handlers for state transitions</li>
-            <li><strong>Computed Values:</strong> Automatic derivation of complex state</li>
-            <li><strong>Context Isolation:</strong> Provider-based component isolation</li>
-            <li><strong>Type Safety:</strong> Full TypeScript support throughout</li>
+            <li>
+              <strong>Unified Store:</strong> Single store with all mouse state
+            </li>
+            <li>
+              <strong>Action Handlers:</strong> Typed action handlers for state
+              transitions
+            </li>
+            <li>
+              <strong>Computed Values:</strong> Automatic derivation of complex
+              state
+            </li>
+            <li>
+              <strong>Context Isolation:</strong> Provider-based component
+              isolation
+            </li>
+            <li>
+              <strong>Type Safety:</strong> Full TypeScript support throughout
+            </li>
           </ul>
           <p>
             <strong className="text-gray-900">Benefits:</strong>
             <br />
-            Better integration with @context-action framework, predictable state management, 
-            excellent debugging through action flow tracing, and automatic computed value management.
+            Better integration with @context-action framework, predictable state
+            management, excellent debugging through action flow tracing, and
+            automatic computed value management.
           </p>
         </div>
       </DemoCard>
@@ -439,4 +533,6 @@ function MouseComponent() {
 };
 
 // 메인 컴포넌트 메모화
-export const ContextStoreMouseEventsView = memo(ContextStoreMouseEventsViewComponent);
+export const ContextStoreMouseEventsView = memo(
+  ContextStoreMouseEventsViewComponent
+);

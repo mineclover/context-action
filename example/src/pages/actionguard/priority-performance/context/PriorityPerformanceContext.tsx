@@ -1,6 +1,6 @@
 /**
  * @fileoverview Priority Performance Context - Data/Action Layer
- * 
+ *
  * Context → Data/Action 계층을 정의합니다.
  * 타입은 Data/Action 레이어에 선언됩니다.
  */
@@ -33,18 +33,21 @@ export interface PriorityPerformanceStateData {
 }
 
 // 새로운 패턴으로 변경 - 자동 타입 추론
-const PriorityPerformanceStores = createDeclarativeStorePattern('PriorityPerformanceStoreManager', {
-  performanceState: {
-    initialValue: {
-      instances: [
-        { id: 'instance-a', title: '🔴 Priority Test Instance A' },
-        { id: 'instance-b', title: '🔵 Priority Test Instance B' },
-      ],
+const PriorityPerformanceStores = createDeclarativeStorePattern(
+  'PriorityPerformanceStoreManager',
+  {
+    performanceState: {
+      initialValue: {
+        instances: [
+          { id: 'instance-a', title: '🔴 Priority Test Instance A' },
+          { id: 'instance-b', title: '🔵 Priority Test Instance B' },
+        ],
+      },
+      description: 'Priority performance test state with multiple instances',
+      tags: ['priority', 'performance', 'testing', 'instances'],
     },
-    description: 'Priority performance test state with multiple instances',
-    tags: ['priority', 'performance', 'testing', 'instances'],
-  },
-});
+  }
+);
 
 // ================================
 // ⚡ Action Layer - 액션 정의
@@ -56,12 +59,12 @@ const PriorityPerformanceStores = createDeclarativeStorePattern('PriorityPerform
 export interface PriorityPerformanceActions extends ActionPayloadMap {
   /** 인스턴스 추가 액션 */
   addInstance: void;
-  
+
   /** 인스턴스 제거 액션 */
   removeInstance: {
     instanceId: string;
   };
-  
+
   /** 인스턴스 리셋 액션 */
   resetInstances: void;
 }
@@ -71,32 +74,42 @@ export interface PriorityPerformanceActions extends ActionPayloadMap {
 // ================================
 
 // Action Context 생성
-export const PriorityPerformanceActionContext = createActionContext<PriorityPerformanceActions>({
-  name: 'PriorityPerformanceActions',
-});
+export const PriorityPerformanceActionContext =
+  createActionContext<PriorityPerformanceActions>({
+    name: 'PriorityPerformanceActions',
+  });
 
 // Store Context 생성
 // Store Context는 이미 PriorityPerformanceStores로 생성됨
 
 // Providers
-export const PriorityPerformanceActionProvider: React.FC<{ children: React.ReactNode }> = PriorityPerformanceActionContext.Provider;
-export const PriorityPerformanceStoreProvider: React.FC<{ children: React.ReactNode }> = PriorityPerformanceStores.Provider;
+export const PriorityPerformanceActionProvider: React.FC<{
+  children: React.ReactNode;
+}> = PriorityPerformanceActionContext.Provider;
+export const PriorityPerformanceStoreProvider: React.FC<{
+  children: React.ReactNode;
+}> = PriorityPerformanceStores.Provider;
 
 // Hooks export
-export const usePriorityPerformanceActionDispatch = PriorityPerformanceActionContext.useActionDispatch;
-export const usePriorityPerformanceActionHandler = PriorityPerformanceActionContext.useActionHandler;
+export const usePriorityPerformanceActionDispatch =
+  PriorityPerformanceActionContext.useActionDispatch;
+export const usePriorityPerformanceActionHandler =
+  PriorityPerformanceActionContext.useActionHandler;
 export const usePriorityPerformanceStore = PriorityPerformanceStores.useStore;
 
 // Legacy exports (deprecated)
-export const usePriorityPerformanceActionRegister = PriorityPerformanceActionContext.useActionRegister;
+export const usePriorityPerformanceActionRegister =
+  PriorityPerformanceActionContext.useActionRegister;
 // usePriorityPerformanceRegistry removed - not needed in new pattern
 
 /**
  * 통합 Provider
- * 
+ *
  * Store와 Action Context를 함께 제공합니다.
  */
-export const PriorityPerformanceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const PriorityPerformanceProvider: React.FC<{
+  children: React.ReactNode;
+}> = ({ children }) => {
   return (
     <PriorityPerformanceStoreProvider>
       <PriorityPerformanceActionProvider>

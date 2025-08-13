@@ -1,16 +1,16 @@
 /**
  * @fileoverview Dispatch Options Test View Component - View Layer
- * 
+ *
  * Hook을 통해 Data/Action과 연결되는 View 컴포넌트입니다.
  */
 
-import { DemoCard, Button, Input, CodeBlock } from '../../../../components/ui';
+import { Button, CodeBlock, DemoCard, Input } from '../../../../components/ui';
 import { useDispatchOptionsTestLogic } from '../hooks/useDispatchOptionsTestLogic';
 import { DispatchOptionsTestStyles } from './DispatchOptionsTestStyles';
 
 /**
  * 디스패치 옵션 테스트 View 컴포넌트
- * 
+ *
  * Hook Layer를 통해 데이터와 액션을 받아 UI를 렌더링합니다.
  */
 export function DispatchOptionsTestView() {
@@ -46,13 +46,17 @@ export function DispatchOptionsTestView() {
       <header className="page-header">
         <h1>🧪 Dispatch Options Comprehensive Test</h1>
         <p className="page-description">
-          This comprehensive testing suite demonstrates all Context-Action framework dispatch options: 
-          <strong>debouncing (300ms)</strong>, <strong>throttling (1000ms, 100ms)</strong>, 
-          <strong>priority handling</strong>, and <strong>async operations</strong>. 
-          Use this page to understand performance characteristics and test different scenarios.
+          This comprehensive testing suite demonstrates all Context-Action
+          framework dispatch options:
+          <strong>debouncing (300ms)</strong>,{' '}
+          <strong>throttling (1000ms, 100ms)</strong>,
+          <strong>priority handling</strong>, and{' '}
+          <strong>async operations</strong>. Use this page to understand
+          performance characteristics and test different scenarios.
         </p>
         <div className="mt-3 text-sm text-gray-600">
-          <strong>Features:</strong> Real-time metrics • Bulk testing • Auto-scrolling • Form validation • Error handling
+          <strong>Features:</strong> Real-time metrics • Bulk testing •
+          Auto-scrolling • Form validation • Error handling
         </div>
       </header>
 
@@ -61,15 +65,21 @@ export function DispatchOptionsTestView() {
         <h3 className="text-lg font-semibold mb-4">📊 성능 메트릭</h3>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="metric-item">
-            <div className="metric-value">{testState.metrics.totalDispatches}</div>
+            <div className="metric-value">
+              {testState.metrics.totalDispatches}
+            </div>
             <div className="metric-label">총 디스패치</div>
           </div>
           <div className="metric-item">
-            <div className="metric-value">{testState.metrics.throttledCount}</div>
+            <div className="metric-value">
+              {testState.metrics.throttledCount}
+            </div>
             <div className="metric-label">스로틀</div>
           </div>
           <div className="metric-item">
-            <div className="metric-value">{testState.metrics.debouncedCount}</div>
+            <div className="metric-value">
+              {testState.metrics.debouncedCount}
+            </div>
             <div className="metric-label">디바운스</div>
           </div>
           <div className="metric-item">
@@ -97,7 +107,9 @@ export function DispatchOptionsTestView() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Debounce 테스트 */}
         <DemoCard>
-          <h3 className="text-lg font-semibold mb-4">🔍 Debounce 테스트 (검색)</h3>
+          <h3 className="text-lg font-semibold mb-4">
+            🔍 Debounce 테스트 (검색)
+          </h3>
           <div className="space-y-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -122,7 +134,9 @@ export function DispatchOptionsTestView() {
 
         {/* Throttle 테스트 */}
         <DemoCard>
-          <h3 className="text-lg font-semibold mb-4">💾 Throttle 테스트 (저장)</h3>
+          <h3 className="text-lg font-semibold mb-4">
+            💾 Throttle 테스트 (저장)
+          </h3>
           <div className="space-y-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -136,7 +150,7 @@ export function DispatchOptionsTestView() {
                 disabled={!canOperate}
               />
             </div>
-            <Button 
+            <Button
               onClick={() => saveData(testState.saveData)}
               variant="primary"
               disabled={!canOperate}
@@ -152,12 +166,16 @@ export function DispatchOptionsTestView() {
 
       {/* 스크롤 테스트 */}
       <DemoCard>
-        <h3 className="text-lg font-semibold mb-4">📜 Scroll 테스트 (100ms 스로틀)</h3>
+        <h3 className="text-lg font-semibold mb-4">
+          📜 Scroll 테스트 (100ms 스로틀)
+        </h3>
         <div className="space-y-4">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium text-gray-700">위치:</label>
-              <span className="font-mono text-blue-600">{testState.scrollPosition}px</span>
+              <span className="font-mono text-blue-600">
+                {testState.scrollPosition}px
+              </span>
             </div>
             <Input
               type="range"
@@ -175,11 +193,17 @@ export function DispatchOptionsTestView() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Button
-              onClick={testState.isAutoScrolling ? stopAutoScrolling : startAutoScrolling}
+              onClick={
+                testState.isAutoScrolling
+                  ? stopAutoScrolling
+                  : startAutoScrolling
+              }
               variant={testState.isAutoScrolling ? 'danger' : 'success'}
               disabled={!canOperate}
             >
-              {testState.isAutoScrolling ? '⏹️ 자동 스크롤 중지' : '▶️ 자동 스크롤 시작'}
+              {testState.isAutoScrolling
+                ? '⏹️ 자동 스크롤 중지'
+                : '▶️ 자동 스크롤 시작'}
             </Button>
             {testState.isAutoScrolling && (
               <Button
@@ -192,18 +216,23 @@ export function DispatchOptionsTestView() {
             )}
           </div>
           <p className="text-sm text-gray-600">
-            슬라이더를 빠르게 움직이거나 자동 스크롤을 사용하여 스로틀링 효과를 확인하세요.
+            슬라이더를 빠르게 움직이거나 자동 스크롤을 사용하여 스로틀링 효과를
+            확인하세요.
           </p>
         </div>
       </DemoCard>
 
       {/* 폼 검증 테스트 */}
       <DemoCard>
-        <h3 className="text-lg font-semibold mb-4">📋 Form Validation 테스트 (500ms 디바운스)</h3>
+        <h3 className="text-lg font-semibold mb-4">
+          📋 Form Validation 테스트 (500ms 디바운스)
+        </h3>
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">이름</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                이름
+              </label>
               <Input
                 type="text"
                 value={testState.formData.name}
@@ -213,7 +242,9 @@ export function DispatchOptionsTestView() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">이메일</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                이메일
+              </label>
               <Input
                 type="email"
                 value={testState.formData.email}
@@ -223,7 +254,9 @@ export function DispatchOptionsTestView() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">나이</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                나이
+              </label>
               <Input
                 type="number"
                 value={testState.formData.age}
@@ -304,7 +337,9 @@ export function DispatchOptionsTestView() {
               </Button>
             </div>
             <Button
-              onClick={() => priorityTest(Math.floor(Math.random() * 100), 'priority test')}
+              onClick={() =>
+                priorityTest(Math.floor(Math.random() * 100), 'priority test')
+              }
               variant="primary"
               disabled={!canOperate}
               className="w-full"
@@ -323,7 +358,9 @@ export function DispatchOptionsTestView() {
               disabled={!canOperate}
               className="w-full"
             >
-              {testState.bulkTestRunning ? '⏹️ 벌크 테스트 중지' : '🚀 벌크 테스트 실행'}
+              {testState.bulkTestRunning
+                ? '⏹️ 벌크 테스트 중지'
+                : '🚀 벌크 테스트 실행'}
             </Button>
             {testState.bulkTestRunning && (
               <div className="p-3 bg-blue-50 rounded-lg text-sm">
@@ -352,17 +389,23 @@ export function DispatchOptionsTestView() {
                   result.status === 'success'
                     ? 'border-green-500 bg-green-50'
                     : result.status === 'failed'
-                    ? 'border-red-500 bg-red-50'
-                    : 'border-yellow-500 bg-yellow-50'
+                      ? 'border-red-500 bg-red-50'
+                      : 'border-yellow-500 bg-yellow-50'
                 }`}
               >
                 <div className="flex justify-between items-start">
                   <div>
                     <div className="font-semibold text-sm">
-                      {result.status === 'success' ? '✅' : result.status === 'failed' ? '❌' : '⏳'}{' '}
+                      {result.status === 'success'
+                        ? '✅'
+                        : result.status === 'failed'
+                          ? '❌'
+                          : '⏳'}{' '}
                       {result.testName}
                     </div>
-                    <div className="text-sm text-gray-600">{result.message}</div>
+                    <div className="text-sm text-gray-600">
+                      {result.message}
+                    </div>
                   </div>
                   <div className="text-xs text-gray-500 text-right">
                     <div>{result.timestamp.toLocaleTimeString()}</div>
@@ -387,13 +430,15 @@ export function DispatchOptionsTestView() {
           <h3 className="text-lg font-semibold mb-4">📚 Dispatch 옵션 설명</h3>
           <div className="space-y-3 text-sm">
             <div>
-              <strong>Throttle:</strong> 지정된 시간 간격 내에 첫 번째 호출만 실행하고 나머지는 무시
+              <strong>Throttle:</strong> 지정된 시간 간격 내에 첫 번째 호출만
+              실행하고 나머지는 무시
               <CodeBlock>
                 {`register('action', handler, { throttle: 1000 })`}
               </CodeBlock>
             </div>
             <div>
-              <strong>Debounce:</strong> 연속 호출 시 마지막 호출 후 지정 시간이 지나면 실행
+              <strong>Debounce:</strong> 연속 호출 시 마지막 호출 후 지정 시간이
+              지나면 실행
               <CodeBlock>
                 {`register('action', handler, { debounce: 300 })`}
               </CodeBlock>

@@ -187,7 +187,8 @@ function Layout({
                     category: item.category,
                   }),
                   // @ts-ignore - isIndex is not in the original type but we added it
-                  item.isIndex && 'font-semibold border-l-2 border-indigo-500 bg-indigo-50 text-indigo-700'
+                  item.isIndex &&
+                    'font-semibold border-l-2 border-indigo-500 bg-indigo-50 text-indigo-700'
                 )}
                 title={collapsed ? item.label : undefined}
               >
@@ -196,10 +197,12 @@ function Layout({
                     {item.label.charAt(0)}
                   </span>
                 ) : (
-                  <span className={cn(
-                    // @ts-ignore - isIndex is not in the original type but we added it
-                    item.isIndex && 'flex items-center gap-1'
-                  )}>
+                  <span
+                    className={cn(
+                      // @ts-ignore - isIndex is not in the original type but we added it
+                      item.isIndex && 'flex items-center gap-1'
+                    )}
+                  >
                     {item.label}
                     {/* @ts-ignore - isIndex is not in the original type but we added it */}
                     {item.isIndex && (

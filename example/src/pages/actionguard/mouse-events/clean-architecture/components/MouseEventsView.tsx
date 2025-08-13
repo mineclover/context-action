@@ -8,11 +8,13 @@ export function MouseEventsView() {
   return (
     <div className="p-4">
       <h2 className="text-xl font-bold mb-4">Mouse Events Demo</h2>
-      <p className="text-gray-600">Mouse events tracking demo (simplified for build compatibility)</p>
-      
+      <p className="text-gray-600">
+        Mouse events tracking demo (simplified for build compatibility)
+      </p>
+
       <div className="mt-8 p-4 border border-gray-200 rounded-lg">
         <h3 className="font-semibold mb-2">Mouse Tracking Area</h3>
-        <div 
+        <div
           className="w-full h-64 bg-gray-50 border border-gray-300 rounded cursor-crosshair flex items-center justify-center"
           onMouseMove={(e) => {
             const rect = e.currentTarget.getBoundingClientRect();

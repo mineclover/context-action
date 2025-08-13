@@ -1,18 +1,18 @@
 /**
  * @fileoverview Mouse Action Handlers - Context Store 패턴 액션 핸들러
- * 
+ *
  * 마우스 이벤트를 처리하는 액션 핸들러들
  */
 
 import type { ActionHandler } from '@context-action/core';
 import type { Store } from '@context-action/react';
 import type { MouseActions, MouseStateData } from '../stores/MouseStoreSchema';
-import { initialMouseState } from '../stores/MouseStoreSchema';
 import {
-  computeValidPath,
-  computeRecentClickCount,
-  computeAverageVelocity,
   computeActivityStatus,
+  computeAverageVelocity,
+  computeRecentClickCount,
+  computeValidPath,
+  initialMouseState,
 } from '../stores/MouseStoreSchema';
 
 // ================================
@@ -22,15 +22,24 @@ import {
 /**
  * 마우스 이동 액션 핸들러 팩토리
  */
-export const createMouseMoveHandler = (mouseStateStore: Store<MouseStateData>): ActionHandler<MouseActions['mouseMove']> => 
+export const createMouseMoveHandler =
+  (
+    mouseStateStore: Store<MouseStateData>
+  ): ActionHandler<MouseActions['mouseMove']> =>
   (payload, controller) => {
     const { position, timestamp } = payload;
     const currentState = mouseStateStore.getValue();
 
-    console.log('🎯 mouseMove action:', { x: position.x, y: position.y, timestamp });
+    console.log('🎯 mouseMove action:', {
+      x: position.x,
+      y: position.y,
+      timestamp,
+    });
 
     // 속도 계산
-    const timeDiff = currentState.lastMoveTime ? timestamp - currentState.lastMoveTime : 0;
+    const timeDiff = currentState.lastMoveTime
+      ? timestamp - currentState.lastMoveTime
+      : 0;
     const deltaX = position.x - currentState.mousePosition.x;
     const deltaY = position.y - currentState.mousePosition.y;
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
@@ -57,7 +66,7 @@ export const createMouseMoveHandler = (mouseStateStore: Store<MouseStateData>): 
       velocity,
       lastMoveTime: timestamp,
       movePath: newMovePath,
-      
+
       // 계산된 값들
       validPath,
       averageVelocity,
@@ -90,16 +99,27 @@ export const createMouseMoveHandler = (mouseStateStore: Store<MouseStateData>): 
 /**
  * 마우스 클릭 액션 핸들러 팩토리
  */
-export const createMouseClickHandler = (mouseStateStore: Store<MouseStateData>): ActionHandler<MouseActions['mouseClick']> => 
+export const createMouseClickHandler =
+  (
+    mouseStateStore: Store<MouseStateData>
+  ): ActionHandler<MouseActions['mouseClick']> =>
   (payload, controller) => {
     const { position, button, timestamp } = payload;
     const currentState = mouseStateStore.getValue();
 
-    console.log('🎯 mouseClick action:', { x: position.x, y: position.y, button, timestamp });
+    console.log('🎯 mouseClick action:', {
+      x: position.x,
+      y: position.y,
+      button,
+      timestamp,
+    });
 
     // 클릭 기록 업데이트
     const newClick = { ...position, timestamp };
-    const newClickHistory = [newClick, ...currentState.clickHistory.slice(0, 9)]; // 최대 10개
+    const newClickHistory = [
+      newClick,
+      ...currentState.clickHistory.slice(0, 9),
+    ]; // 최대 10개
     const recentClickCount = computeRecentClickCount(newClickHistory);
     const activityStatus = computeActivityStatus(
       currentState.isMoving,
@@ -113,7 +133,7 @@ export const createMouseClickHandler = (mouseStateStore: Store<MouseStateData>):
       ...currentState,
       clickCount: currentState.clickCount + 1,
       clickHistory: newClickHistory,
-      
+
       // 계산된 값들
       recentClickCount,
       activityStatus,
@@ -127,12 +147,19 @@ export const createMouseClickHandler = (mouseStateStore: Store<MouseStateData>):
 /**
  * 마우스 진입 액션 핸들러 팩토리
  */
-export const createMouseEnterHandler = (mouseStateStore: Store<MouseStateData>): ActionHandler<MouseActions['mouseEnter']> => 
+export const createMouseEnterHandler =
+  (
+    mouseStateStore: Store<MouseStateData>
+  ): ActionHandler<MouseActions['mouseEnter']> =>
   (payload, controller) => {
     const { position, timestamp } = payload;
     const currentState = mouseStateStore.getValue();
 
-    console.log('🎯 mouseEnter action:', { x: position.x, y: position.y, timestamp });
+    console.log('🎯 mouseEnter action:', {
+      x: position.x,
+      y: position.y,
+      timestamp,
+    });
 
     mouseStateStore.setValue({
       ...currentState,
@@ -144,12 +171,19 @@ export const createMouseEnterHandler = (mouseStateStore: Store<MouseStateData>):
 /**
  * 마우스 이탈 액션 핸들러 팩토리
  */
-export const createMouseLeaveHandler = (mouseStateStore: Store<MouseStateData>): ActionHandler<MouseActions['mouseLeave']> => 
+export const createMouseLeaveHandler =
+  (
+    mouseStateStore: Store<MouseStateData>
+  ): ActionHandler<MouseActions['mouseLeave']> =>
   (payload, controller) => {
     const { position, timestamp } = payload;
     const currentState = mouseStateStore.getValue();
 
-    console.log('🎯 mouseLeave action:', { x: position.x, y: position.y, timestamp });
+    console.log('🎯 mouseLeave action:', {
+      x: position.x,
+      y: position.y,
+      timestamp,
+    });
 
     const activityStatus = computeActivityStatus(
       false,
@@ -170,7 +204,10 @@ export const createMouseLeaveHandler = (mouseStateStore: Store<MouseStateData>):
 /**
  * 마우스 이동 종료 액션 핸들러 팩토리
  */
-export const createMoveEndHandler = (mouseStateStore: Store<MouseStateData>): ActionHandler<MouseActions['moveEnd']> => 
+export const createMoveEndHandler =
+  (
+    mouseStateStore: Store<MouseStateData>
+  ): ActionHandler<MouseActions['moveEnd']> =>
   (payload, controller) => {
     const { position, timestamp } = payload;
     const currentState = mouseStateStore.getValue();
@@ -195,7 +232,10 @@ export const createMoveEndHandler = (mouseStateStore: Store<MouseStateData>): Ac
 /**
  * 상태 리셋 액션 핸들러 팩토리
  */
-export const createResetHandler = (mouseStateStore: Store<MouseStateData>): ActionHandler<MouseActions['reset']> => 
+export const createResetHandler =
+  (
+    mouseStateStore: Store<MouseStateData>
+  ): ActionHandler<MouseActions['reset']> =>
   (payload, controller) => {
     console.log('🎯 reset action');
 

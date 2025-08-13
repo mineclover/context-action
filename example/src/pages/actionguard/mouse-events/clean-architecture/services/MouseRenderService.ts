@@ -1,10 +1,10 @@
 /**
  * @fileoverview Mouse Render Service - 순수한 렌더링 로직
- * 
+ *
  * DOM 직접 조작을 통한 렌더링만 담당
  */
 
-import type { MousePosition, ClickHistory } from './MousePathService';
+import type { ClickHistory, MousePosition } from './MousePathService';
 
 export interface RenderElements {
   cursor?: HTMLDivElement | null;
@@ -80,7 +80,7 @@ export class MouseRenderService {
     }
 
     const visiblePath = path.slice(0, 10);
-    const pathData = `M ${visiblePath.map(point => `${point.x} ${point.y}`).join(' L ')}`;
+    const pathData = `M ${visiblePath.map((point) => `${point.x} ${point.y}`).join(' L ')}`;
     this.elements.pathSvg.setAttribute('d', pathData);
   }
 
@@ -89,10 +89,15 @@ export class MouseRenderService {
    */
   renderClickAnimation(click: ClickHistory): void {
     if (!this.elements.clickContainer) return;
-    if (click.x === -999 || click.y === -999 || (click.x === 0 && click.y === 0)) return;
+    if (
+      click.x === -999 ||
+      click.y === -999 ||
+      (click.x === 0 && click.y === 0)
+    )
+      return;
 
     const clickId = `click-${this.clickCounter++}`;
-    
+
     // 클릭 요소 생성
     const clickElement = document.createElement('div');
     clickElement.id = clickId;
@@ -123,16 +128,16 @@ export class MouseRenderService {
     // 간단한 CSS 애니메이션
     clickElement.style.transform = 'scale(0)';
     clickElement.style.opacity = '0';
-    
+
     requestAnimationFrame(() => {
       clickElement.style.transition = 'all 0.6s ease-out';
       clickElement.style.transform = 'scale(1.2)';
       clickElement.style.opacity = '1';
-      
+
       setTimeout(() => {
         clickElement.style.transform = 'scale(0)';
         clickElement.style.opacity = '0';
-        
+
         setTimeout(() => {
           if (clickElement.parentNode) {
             clickElement.parentNode.removeChild(clickElement);
@@ -173,15 +178,25 @@ export class MouseRenderService {
 
     // activityStatus가 있으면 우선 사용, 없으면 isMoving 사용
     if (data.activityStatus !== undefined && this.statusElements.status) {
-      const statusText = data.activityStatus === 'moving' ? '🔄 Moving' : 
-                        data.activityStatus === 'clicking' ? '👆 Clicking' : '⏸️ Idle';
-      const statusColor = data.activityStatus === 'moving' ? 'text-blue-600' : 
-                         data.activityStatus === 'clicking' ? 'text-purple-600' : 'text-gray-400';
-      
+      const statusText =
+        data.activityStatus === 'moving'
+          ? '🔄 Moving'
+          : data.activityStatus === 'clicking'
+            ? '👆 Clicking'
+            : '⏸️ Idle';
+      const statusColor =
+        data.activityStatus === 'moving'
+          ? 'text-blue-600'
+          : data.activityStatus === 'clicking'
+            ? 'text-purple-600'
+            : 'text-gray-400';
+
       this.statusElements.status.textContent = statusText;
       this.statusElements.status.className = `font-mono ${statusColor}`;
     } else if (data.isMoving !== undefined && this.statusElements.status) {
-      this.statusElements.status.textContent = data.isMoving ? '🔄 Moving' : '⏸️ Idle';
+      this.statusElements.status.textContent = data.isMoving
+        ? '🔄 Moving'
+        : '⏸️ Idle';
       this.statusElements.status.className = `font-mono ${data.isMoving ? 'text-blue-600' : 'text-gray-400'}`;
     }
 
@@ -244,7 +259,7 @@ export class MouseRenderService {
       velocity: 0,
       isMoving: false,
       isInside: false,
-      lastActivity: null
+      lastActivity: null,
     });
 
     // 가시성 숨김

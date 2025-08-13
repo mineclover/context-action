@@ -1,6 +1,6 @@
 /**
  * @fileoverview Scroll Context - Data/Action Layer
- * 
+ *
  * Context → Data/Action 계층을 정의합니다.
  * 타입은 Data/Action 레이어에 선언됩니다.
  */
@@ -10,7 +10,7 @@ import {
   createActionContext,
   createDeclarativeStorePattern,
 } from '@context-action/react';
-import type React from 'react';
+import React from 'react';
 
 // ================================
 // 📊 Data Layer - 타입 및 스토어 정의
@@ -73,7 +73,7 @@ export interface ScrollActions extends ActionPayloadMap {
     scrollTop: number;
     timestamp: number;
   };
-  
+
   /** 스크롤 메트릭 업데이트 액션 */
   updateScrollMetrics: {
     scrollTop: number;
@@ -81,19 +81,19 @@ export interface ScrollActions extends ActionPayloadMap {
     velocity: number;
     timestamp: number;
   };
-  
+
   /** 스크롤 시작 액션 */
   scrollStart: {
     scrollTop: number;
     timestamp: number;
   };
-  
+
   /** 스크롤 종료 액션 */
   scrollEnd: {
     scrollTop: number;
     timestamp: number;
   };
-  
+
   /** 스크롤 초기화 액션 */
   resetScroll: void;
 }
@@ -111,8 +111,10 @@ export const ScrollActionContext = createActionContext<ScrollActions>({
 // Store Context는 이미 ScrollStores로 생성됨
 
 // Providers
-export const ScrollActionProvider: React.FC<{ children: React.ReactNode }> = ScrollActionContext.Provider;
-export const ScrollStoreProvider: React.FC<{ children: React.ReactNode }> = ScrollStores.Provider;
+export const ScrollActionProvider: React.FC<{ children: React.ReactNode }> =
+  ScrollActionContext.Provider;
+export const ScrollStoreProvider: React.FC<{ children: React.ReactNode }> =
+  ScrollStores.Provider;
 
 // Hooks export
 export const useScrollActionDispatch = ScrollActionContext.useActionDispatch;
@@ -130,13 +132,11 @@ export const useScrollActionRegister = ScrollActionContext.useActionRegister;
 /**
  * ActionProvider와 StoreProvider를 결합하는 커스텀 래퍼
  */
-const ScrollProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const ScrollProviderWrapper: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   console.log('🔄 ScrollProviderWrapper render at', new Date().toISOString());
-  return (
-    <ScrollActionProvider>
-      {children}
-    </ScrollActionProvider>
-  );
+  return <ScrollActionProvider>{children}</ScrollActionProvider>;
 };
 
 /**
@@ -151,20 +151,23 @@ export const withScrollStore = ScrollStores.withProvider;
 
 /**
  * 통합 Provider - Enhanced with new capabilities
- * 
+ *
  * Store와 Action Context를 함께 제공합니다.
  */
-export const ScrollProvider: React.FC<{ 
+export const ScrollProvider: React.FC<{
   children: React.ReactNode;
   registryId?: string; // 새로운 기능: 독립적인 레지스트리 ID
 }> = ({ children, registryId }) => {
-  console.log('🔄 ScrollProvider render at', new Date().toISOString(), 'registryId:', registryId);
-  
+  console.log(
+    '🔄 ScrollProvider render at',
+    new Date().toISOString(),
+    'registryId:',
+    registryId
+  );
+
   return (
     <ScrollStores.Provider registryId={registryId}>
-      <ScrollActionProvider>
-        {children}
-      </ScrollActionProvider>
+      <ScrollActionProvider>{children}</ScrollActionProvider>
     </ScrollStores.Provider>
   );
 };

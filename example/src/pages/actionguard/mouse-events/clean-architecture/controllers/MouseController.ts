@@ -1,12 +1,16 @@
 /**
  * @fileoverview Mouse Controller - 비즈니스 로직 컨트롤러
- * 
+ *
  * Path Service와 Render Service를 조합하여 마우스 이벤트 비즈니스 로직 처리
  */
 
-import { MousePathService, type MousePosition, type ClickHistory } from '../services/MousePathService';
+import {
+  type ClickHistory,
+  MousePathService,
+  type MousePosition,
+} from '../services/MousePathService';
 import { MouseRenderService } from '../services/MouseRenderService';
-import { MOUSE_ACTIONS, type MouseActions } from '../types/MouseActions';
+import { type MouseActions } from '../types/MouseActions';
 
 export interface MouseControllerConfig {
   throttleMs?: number;
@@ -22,7 +26,7 @@ export class MouseController {
   private pathService: MousePathService;
   private renderService: MouseRenderService;
   private config: Required<MouseControllerConfig>;
-  
+
   private moveEndTimeout: NodeJS.Timeout | null = null;
   private isInitialized = false;
 
@@ -64,7 +68,7 @@ export class MouseController {
 
     // Path 데이터 업데이트
     const pathData = this.pathService.updatePosition(position, timestamp);
-    
+
     // 첫 번째 이동이면 이동 시작 처리
     if (!pathData.isMoving && pathData.moveCount === 1) {
       this.handleMoveStart(position, timestamp);
@@ -72,13 +76,16 @@ export class MouseController {
 
     // Activity Status 계산 (Clean Architecture 전용)
     const now = Date.now();
-    const timeSinceLastClick = pathData.clickHistory.length > 0 ? now - pathData.clickHistory[0].timestamp : Infinity;
+    const timeSinceLastClick =
+      pathData.clickHistory.length > 0
+        ? now - pathData.clickHistory[0].timestamp
+        : Infinity;
     let activityStatus: 'idle' | 'moving' | 'clicking' = 'idle';
-    
+
     if (pathData.clickHistory.length > 0 && timeSinceLastClick < 500) {
       activityStatus = 'clicking';
     } else if (pathData.isMoving && pathData.velocity > 0.1) {
-      activityStatus = 'moving';  
+      activityStatus = 'moving';
     }
 
     // 렌더링
@@ -99,7 +106,11 @@ export class MouseController {
   /**
    * 마우스 클릭 처리
    */
-  handleClick(position: MousePosition, button: number, timestamp: number): void {
+  handleClick(
+    position: MousePosition,
+    button: number,
+    timestamp: number
+  ): void {
     if (!this.isInitialized) return;
 
     // 0,0 위치 필터링
@@ -110,7 +121,7 @@ export class MouseController {
 
     // Path 데이터 업데이트
     const pathData = this.pathService.addClick(position, timestamp);
-    
+
     // 렌더링
     this.renderService.renderClickAnimation(pathData.clickHistory[0]);
     this.renderService.renderStatus({
@@ -125,7 +136,7 @@ export class MouseController {
     if (!this.isInitialized) return;
 
     const pathData = this.pathService.setInsideArea(true, position);
-    
+
     // 렌더링
     this.renderService.setVisibility(true);
     this.renderService.renderCursorPosition(pathData.currentPosition);
@@ -142,7 +153,7 @@ export class MouseController {
     if (!this.isInitialized) return;
 
     const pathData = this.pathService.setInsideArea(false);
-    
+
     // 렌더링
     this.renderService.setVisibility(false);
     this.renderService.renderStatus({
@@ -160,7 +171,7 @@ export class MouseController {
    */
   private handleMoveStart(position: MousePosition, timestamp: number): void {
     const pathData = this.pathService.setMoving(true);
-    
+
     this.renderService.renderStatus({
       isMoving: true,
       lastActivity: timestamp,
@@ -178,7 +189,7 @@ export class MouseController {
     }
 
     const pathData = this.pathService.setMoving(false);
-    
+
     this.renderService.renderStatus({
       isMoving: false,
       velocity: 0,
@@ -192,7 +203,7 @@ export class MouseController {
     if (this.moveEndTimeout) {
       clearTimeout(this.moveEndTimeout);
     }
-    
+
     this.moveEndTimeout = setTimeout(() => {
       this.handleMoveEnd(position, timestamp);
     }, this.config.moveEndDelayMs);
@@ -206,10 +217,10 @@ export class MouseController {
 
     // Path 데이터 리셋
     this.pathService.reset();
-    
+
     // 렌더링 리셋
     this.renderService.reset();
-    
+
     // 타이머 정리
     if (this.moveEndTimeout) {
       clearTimeout(this.moveEndTimeout);

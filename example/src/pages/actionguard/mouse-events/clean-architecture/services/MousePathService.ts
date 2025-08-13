@@ -1,6 +1,6 @@
 /**
  * @fileoverview Mouse Path Service - 순수한 Path 저장 로직
- * 
+ *
  * 마우스 경로 데이터 관리를 담당하는 서비스
  */
 
@@ -59,14 +59,16 @@ export class MousePathService {
    * 마우스 위치 업데이트
    */
   updatePosition(position: MousePosition, timestamp: number): MousePathData {
-    const timeDiff = this.data.lastMoveTime ? timestamp - this.data.lastMoveTime : 0;
+    const timeDiff = this.data.lastMoveTime
+      ? timestamp - this.data.lastMoveTime
+      : 0;
     const deltaX = position.x - this.data.currentPosition.x;
     const deltaY = position.y - this.data.currentPosition.y;
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    
+
     // 속도 계산 (px/ms)
     const velocity = timeDiff > 0 ? distance / timeDiff : 0;
-    
+
     this.data = {
       ...this.data,
       previousPosition: this.data.currentPosition,
@@ -76,7 +78,7 @@ export class MousePathService {
       lastMoveTime: timestamp,
       movePath: [
         position,
-        ...this.data.movePath.slice(0, this.maxPathLength - 1)
+        ...this.data.movePath.slice(0, this.maxPathLength - 1),
       ],
     };
 
@@ -98,7 +100,7 @@ export class MousePathService {
       clickCount: this.data.clickCount + 1,
       clickHistory: [
         click,
-        ...this.data.clickHistory.slice(0, this.maxClickHistory - 1)
+        ...this.data.clickHistory.slice(0, this.maxClickHistory - 1),
       ],
     };
 
@@ -136,8 +138,12 @@ export class MousePathService {
    */
   reset(keepPosition = false): MousePathData {
     const resetData: MousePathData = {
-      currentPosition: keepPosition ? this.data.currentPosition : { x: -999, y: -999 },
-      previousPosition: keepPosition ? this.data.currentPosition : { x: -999, y: -999 },
+      currentPosition: keepPosition
+        ? this.data.currentPosition
+        : { x: -999, y: -999 },
+      previousPosition: keepPosition
+        ? this.data.currentPosition
+        : { x: -999, y: -999 },
       movePath: [],
       clickHistory: [],
       velocity: 0,
@@ -156,8 +162,9 @@ export class MousePathService {
    * 유효한 경로 포인트만 필터링
    */
   getValidPath(): MousePosition[] {
-    return this.data.movePath.filter(point => 
-      point.x >= 0 && point.y >= 0 && point.x !== -999 && point.y !== -999
+    return this.data.movePath.filter(
+      (point) =>
+        point.x >= 0 && point.y >= 0 && point.x !== -999 && point.y !== -999
     );
   }
 
@@ -165,8 +172,9 @@ export class MousePathService {
    * 유효한 클릭 히스토리만 필터링
    */
   getValidClicks(): ClickHistory[] {
-    return this.data.clickHistory.filter(click => 
-      click.x >= 0 && click.y >= 0 && click.x !== -999 && click.y !== -999
+    return this.data.clickHistory.filter(
+      (click) =>
+        click.x >= 0 && click.y >= 0 && click.x !== -999 && click.y !== -999
     );
   }
 }

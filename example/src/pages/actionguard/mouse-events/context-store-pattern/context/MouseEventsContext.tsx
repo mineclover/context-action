@@ -1,6 +1,6 @@
 /**
  * @fileoverview Mouse Events Context - Data/Action Layer
- * 
+ *
  * Context → Data/Action 계층을 정의합니다.
  * 타입은 Data/Action 레이어에 선언됩니다.
  */
@@ -48,7 +48,7 @@ export interface MouseEventsStateData {
   isInsideArea: boolean;
   /** 클릭 위치 기록 (최근 10개) */
   clickHistory: Array<MousePosition & { timestamp: number }>;
-  
+
   // Reactive Stores에서 추가된 계산된 값들
   /** 유효한 경로 (지연 계산) */
   validPath: MousePosition[];
@@ -74,7 +74,7 @@ interface MouseEventsStores {
     previous: MousePosition;
     isInsideArea: boolean;
   };
-  
+
   // 이동 관련 메트릭
   movement: {
     moveCount: number;
@@ -83,13 +83,13 @@ interface MouseEventsStores {
     lastMoveTime: number | null;
     path: MousePosition[];
   };
-  
+
   // 클릭 관련 데이터
   clicks: {
     count: number;
     history: Array<MousePosition & { timestamp: number }>;
   };
-  
+
   // 계산된 값들 (지연 평가)
   computed: {
     validPath: MousePosition[];
@@ -99,7 +99,7 @@ interface MouseEventsStores {
     activityStatus: 'idle' | 'moving' | 'clicking';
     hasActivity: boolean;
   };
-  
+
   // 성능 메트릭
   performance: {
     containerRenderCount: number;
@@ -111,63 +111,66 @@ interface MouseEventsStores {
 }
 
 // 새로운 패턴으로 변경 - 자동 타입 추론 사용
-const MouseEventsStores = createDeclarativeStorePattern('MouseEventsStoreManager', {
-  position: {
-    initialValue: {
-      current: { x: -999, y: -999 },
-      previous: { x: -999, y: -999 },
-      isInsideArea: false,
+const MouseEventsStores = createDeclarativeStorePattern(
+  'MouseEventsStoreManager',
+  {
+    position: {
+      initialValue: {
+        current: { x: -999, y: -999 },
+        previous: { x: -999, y: -999 },
+        isInsideArea: false,
+      },
+      description: 'Mouse position and area state',
+      strategy: 'shallow',
     },
-    description: 'Mouse position and area state',
-    strategy: 'shallow',
-  },
-  
-  movement: {
-    initialValue: {
-      moveCount: 0,
-      isMoving: false,
-      velocity: 0,
-      lastMoveTime: null,
-      path: [] as MousePosition[],
+
+    movement: {
+      initialValue: {
+        moveCount: 0,
+        isMoving: false,
+        velocity: 0,
+        lastMoveTime: null as number | null,
+        path: [] as MousePosition[],
+      },
+      description: 'Mouse movement metrics and tracking',
+      strategy: 'shallow',
     },
-    description: 'Mouse movement metrics and tracking',
-    strategy: 'shallow',
-  },
-  
-  clicks: {
-    initialValue: {
-      count: 0,
-      history: [] as Array<MousePosition & { timestamp: number }>,
+
+    clicks: {
+      initialValue: {
+        count: 0,
+        history: [] as Array<MousePosition & { timestamp: number }>,
+      },
+      description: 'Click events and history tracking',
+      strategy: 'shallow',
     },
-    description: 'Click events and history tracking',
-    strategy: 'shallow',
-  },
-  
-  computed: {
-    initialValue: {
-      validPath: [] as MousePosition[],
-      recentClickCount: 0,
-      averageVelocity: 0,
-      totalEvents: 0,
-      activityStatus: 'idle' as 'idle' | 'moving' | 'clicking',
-      hasActivity: false,
+
+    computed: {
+      initialValue: {
+        validPath: [] as MousePosition[],
+        recentClickCount: 0,
+        averageVelocity: 0,
+        totalEvents: 0,
+        activityStatus: 'idle' as 'idle' | 'moving' | 'clicking',
+        hasActivity: false,
+      },
+      description: 'Computed values and derived state',
+      strategy: 'shallow',
     },
-    description: 'Computed values and derived state',
-    strategy: 'shallow',
-  },
-  
-  performance: {
-    initialValue: {
-      containerRenderCount: 0,
-      totalRenderCount: 0,
-      averageRenderTime: 0,
-      lastRenderTime: 0,
-      sessionStartTime: Date.now(),
+
+    performance: {
+      initialValue: {
+        containerRenderCount: 0,
+        totalRenderCount: 0,
+        averageRenderTime: 0,
+        lastRenderTime: 0,
+        sessionStartTime: Date.now(),
+      },
+      description: 'Performance metrics and render tracking',
+      strategy: 'reference',
     },
-    description: 'Performance metrics and render tracking',
-    strategy: 'reference',
-  },
-});
+  }
+);
 
 // ================================
 // ⚡ Action Layer - 액션 정의
@@ -183,7 +186,7 @@ export interface MouseEventsActions extends ActionPayloadMap {
     y: number;
     timestamp: number;
   };
-  
+
   /** 마우스 클릭 이벤트 액션 */
   mouseClick: {
     x: number;
@@ -191,39 +194,39 @@ export interface MouseEventsActions extends ActionPayloadMap {
     button: number;
     timestamp: number;
   };
-  
+
   /** 마우스 진입 이벤트 액션 */
   mouseEnter: {
     x: number;
     y: number;
     timestamp: number;
   };
-  
+
   /** 마우스 이탈 이벤트 액션 */
   mouseLeave: {
     x: number;
     y: number;
     timestamp: number;
   };
-  
+
   /** 마우스 메트릭 업데이트 액션 */
   updateMouseMetrics: {
     position: MousePosition;
     timestamp: number;
   };
-  
+
   /** 마우스 이동 시작 액션 */
   moveStart: {
     position: MousePosition;
     timestamp: number;
   };
-  
+
   /** 마우스 이동 종료 액션 */
   moveEnd: {
     position: MousePosition;
     timestamp: number;
   };
-  
+
   /** 상태 초기화 액션 */
   resetMouseState: void;
 }
@@ -233,26 +236,44 @@ export interface MouseEventsActions extends ActionPayloadMap {
 // ================================
 
 // Action Context 생성
-export const MouseEventsActionContext = createActionContext<MouseEventsActions>({
-  name: 'MouseEventsActions',
-});
+export const MouseEventsActionContext = createActionContext<MouseEventsActions>(
+  {
+    name: 'MouseEventsActions',
+  }
+);
 
 // Store Context는 이미 MouseEventsStores로 생성됨
 
 // Providers with logging
-export const MouseEventsActionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  console.log('🎯 MouseEventsActionProvider render at', new Date().toISOString());
-  return <MouseEventsActionContext.Provider>{children}</MouseEventsActionContext.Provider>;
+export const MouseEventsActionProvider: React.FC<{
+  children: React.ReactNode;
+}> = ({ children }) => {
+  console.log(
+    '🎯 MouseEventsActionProvider render at',
+    new Date().toISOString()
+  );
+  return (
+    <MouseEventsActionContext.Provider>
+      {children}
+    </MouseEventsActionContext.Provider>
+  );
 };
 
-export const MouseEventsStoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  console.log('🏪 MouseEventsStoreProvider render at', new Date().toISOString());
+export const MouseEventsStoreProvider: React.FC<{
+  children: React.ReactNode;
+}> = ({ children }) => {
+  console.log(
+    '🏪 MouseEventsStoreProvider render at',
+    new Date().toISOString()
+  );
   return <MouseEventsStores.Provider>{children}</MouseEventsStores.Provider>;
 };
 
 // Hooks export
-export const useMouseEventsActionDispatch = MouseEventsActionContext.useActionDispatch;
-export const useMouseEventsActionHandler = MouseEventsActionContext.useActionHandler;
+export const useMouseEventsActionDispatch =
+  MouseEventsActionContext.useActionDispatch;
+export const useMouseEventsActionHandler =
+  MouseEventsActionContext.useActionHandler;
 export const useMouseEventsStore = MouseEventsStores.useStore;
 
 // Enhanced hooks
@@ -260,7 +281,8 @@ export const useMouseEventsStoreInfo = MouseEventsStores.useStoreInfo;
 export const useMouseEventsStoreClear = MouseEventsStores.useStoreClear;
 
 // Legacy exports (deprecated)
-export const useMouseEventsActionRegister = MouseEventsActionContext.useActionRegister;
+export const useMouseEventsActionRegister =
+  MouseEventsActionContext.useActionRegister;
 
 // ================================
 // 🔄 개별 Store 접근 및 집계 헬퍼
@@ -280,18 +302,18 @@ export function aggregateMouseEventsState(
     mousePosition: position.current,
     previousPosition: position.previous,
     isInsideArea: position.isInsideArea,
-    
+
     // Movement data
     moveCount: movement.moveCount,
     isMoving: movement.isMoving,
     mouseVelocity: movement.velocity,
     lastMoveTime: movement.lastMoveTime,
     movePath: movement.path,
-    
+
     // Click data
     clickCount: clicks.count,
     clickHistory: clicks.history,
-    
+
     // Computed values
     validPath: computed.validPath,
     recentClickCount: computed.recentClickCount,
@@ -310,19 +332,19 @@ export function useAggregatedMouseEventsState(): MouseEventsStateData {
   const movementStore = useMouseEventsStore('movement');
   const clicksStore = useMouseEventsStore('clicks');
   const computedStore = useMouseEventsStore('computed');
-  
+
   // 반응형 구독을 위해 useStoreValue 사용하지 않고 useMemo 사용
   const position = positionStore.getValue();
   const movement = movementStore.getValue();
   const clicks = clicksStore.getValue();
   const computed = computedStore.getValue();
-  
+
   return aggregateMouseEventsState(position, movement, clicks, computed);
 }
 
 /**
  * 통합 Provider
- * 
+ *
  * Store와 Action Context를 함께 제공합니다.
  */
 // ================================
@@ -333,15 +355,21 @@ export function useAggregatedMouseEventsState(): MouseEventsStateData {
  * 유효한 경로 계산 (지연 평가)
  */
 export function computeValidPath(movePath: MousePosition[]): MousePosition[] {
-  return movePath.filter(pos => pos.x !== -999 && pos.y !== -999 && pos.x !== 0 && pos.y !== 0);
+  return movePath.filter(
+    (pos) => pos.x !== -999 && pos.y !== -999 && pos.x !== 0 && pos.y !== 0
+  );
 }
 
 /**
  * 최근 클릭 수 계산 (지연 평가)
  */
-export function computeRecentClickCount(clickHistory: Array<MousePosition & { timestamp: number }>, timeWindow: number = 1500): number {
+export function computeRecentClickCount(
+  clickHistory: Array<MousePosition & { timestamp: number }>,
+  timeWindow: number = 1500
+): number {
   const now = Date.now();
-  return clickHistory.filter(click => now - click.timestamp <= timeWindow).length;
+  return clickHistory.filter((click) => now - click.timestamp <= timeWindow)
+    .length;
 }
 
 /**
@@ -349,14 +377,14 @@ export function computeRecentClickCount(clickHistory: Array<MousePosition & { ti
  */
 export function computeAverageVelocity(movePath: MousePosition[]): number {
   if (movePath.length < 2) return 0;
-  
+
   let totalDistance = 0;
   for (let i = 1; i < movePath.length; i++) {
     const deltaX = movePath[i].x - movePath[i - 1].x;
     const deltaY = movePath[i].y - movePath[i - 1].y;
     totalDistance += Math.sqrt(deltaX * deltaX + deltaY * deltaY);
   }
-  
+
   return totalDistance / (movePath.length - 1);
 }
 
@@ -371,24 +399,27 @@ export function computeActivityStatus(
 ): 'idle' | 'moving' | 'clicking' {
   const now = Date.now();
   const timeSinceLastClick = lastClickTime ? now - lastClickTime : Infinity;
-  
+
   // 500ms 이내의 매우 최근 클릭만 clicking으로 처리
   if (recentClickCount > 0 && timeSinceLastClick < 500) {
     return 'clicking';
   }
-  
+
   // 이동 중이고 속도가 있으면 moving
   if (isMoving && velocity > 0.1) {
     return 'moving';
   }
-  
+
   return 'idle';
 }
 
 /**
  * 활동 여부 계산 (지연 평가)
  */
-export function computeHasActivity(moveCount: number, clickCount: number): boolean {
+export function computeHasActivity(
+  moveCount: number,
+  clickCount: number
+): boolean {
   return moveCount > 0 || clickCount > 0;
 }
 
@@ -403,7 +434,12 @@ export function updateComputedValuesFromStores(
   const recentClickCount = computeRecentClickCount(clicks.history);
   const averageVelocity = computeAverageVelocity(validPath);
   const lastClickTime = clicks.history[0]?.timestamp || null;
-  const activityStatus = computeActivityStatus(movement.isMoving, recentClickCount, movement.velocity, lastClickTime);
+  const activityStatus = computeActivityStatus(
+    movement.isMoving,
+    recentClickCount,
+    movement.velocity,
+    lastClickTime
+  );
   const hasActivity = computeHasActivity(movement.moveCount, clicks.count);
   const totalEvents = movement.moveCount + clicks.count;
 
@@ -420,13 +456,23 @@ export function updateComputedValuesFromStores(
 /**
  * 계산된 값들을 업데이트하는 헬퍼 함수 (legacy 버전 - backward compatibility)
  */
-export function updateComputedValues(currentState: MouseEventsStateData): Partial<MouseEventsStateData> {
+export function updateComputedValues(
+  currentState: MouseEventsStateData
+): Partial<MouseEventsStateData> {
   const validPath = computeValidPath(currentState.movePath);
   const recentClickCount = computeRecentClickCount(currentState.clickHistory);
   const averageVelocity = computeAverageVelocity(validPath);
   const lastClickTime = currentState.clickHistory[0]?.timestamp || null;
-  const activityStatus = computeActivityStatus(currentState.isMoving, recentClickCount, currentState.mouseVelocity, lastClickTime);
-  const hasActivity = computeHasActivity(currentState.moveCount, currentState.clickCount);
+  const activityStatus = computeActivityStatus(
+    currentState.isMoving,
+    recentClickCount,
+    currentState.mouseVelocity,
+    lastClickTime
+  );
+  const hasActivity = computeHasActivity(
+    currentState.moveCount,
+    currentState.clickCount
+  );
   const totalEvents = currentState.moveCount + currentState.clickCount;
 
   return {
@@ -442,62 +488,75 @@ export function updateComputedValues(currentState: MouseEventsStateData): Partia
 /**
  * Action 핸들러 등록 컴포넌트
  */
-const MouseEventsActionHandlers: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const MouseEventsActionHandlers: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const positionStore = useMouseEventsStore('position');
   const movementStore = useMouseEventsStore('movement');
   const clicksStore = useMouseEventsStore('clicks');
   const computedStore = useMouseEventsStore('computed');
   const performanceStore = useMouseEventsStore('performance');
-  
+
   // Action 핸들러 등록
   useMouseEventsActionHandler('mouseMove', async (payload) => {
     console.log('🎯 mouseMove action:', payload);
-    
+
     // Position store 업데이트
     const currentPos = positionStore.getValue();
     positionStore.setValue({
       current: { x: payload.x, y: payload.y },
       previous: currentPos.current,
-      isInsideArea: true
+      isInsideArea: true,
     });
-    
+
     // Movement store 업데이트
     const currentMovement = movementStore.getValue();
-    const newPath = [...currentMovement.path.slice(-19), { x: payload.x, y: payload.y }];
-    
+    const newPath = [
+      ...currentMovement.path.slice(-19),
+      { x: payload.x, y: payload.y },
+    ];
+
     // 속도 계산
-    const deltaTime = currentMovement.lastMoveTime ? payload.timestamp - currentMovement.lastMoveTime : 0;
+    const deltaTime = currentMovement.lastMoveTime
+      ? payload.timestamp - currentMovement.lastMoveTime
+      : 0;
     const deltaX = payload.x - currentPos.current.x;
     const deltaY = payload.y - currentPos.current.y;
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     const velocity = deltaTime > 0 ? distance / deltaTime : 0;
-    
+
     const updatedMovement = {
       moveCount: currentMovement.moveCount + 1,
       isMoving: true,
       velocity,
       lastMoveTime: payload.timestamp,
-      path: newPath
+      path: newPath,
     };
-    
+
     movementStore.setValue(updatedMovement);
-    
+
     // Computed store 업데이트 - movement 관련 값들만 선택적으로 업데이트
     const currentComputed = computedStore.getValue();
-    
+
     // movement에만 의존하는 computed 값들만 다시 계산
     const validPath = computeValidPath(updatedMovement.path);
     const averageVelocity = computeAverageVelocity(validPath);
-    
+
     // activityStatus: movement가 활성화되면 moving, 아니면 기존 상태 유지
-    const activityStatus = updatedMovement.isMoving && updatedMovement.velocity > 0.1 ? 'moving' : 
-                          currentComputed.activityStatus === 'clicking' ? 'clicking' : 'idle';
-    
+    const activityStatus =
+      updatedMovement.isMoving && updatedMovement.velocity > 0.1
+        ? 'moving'
+        : currentComputed.activityStatus === 'clicking'
+          ? 'clicking'
+          : 'idle';
+
     // hasActivity: movement가 있으면 true
-    const hasActivity = updatedMovement.moveCount > 0 || currentComputed.recentClickCount > 0;
-    
+    const hasActivity =
+      updatedMovement.moveCount > 0 || currentComputed.recentClickCount > 0;
+
     // totalEvents: movement count와 기존 click count 합계
-    const totalEvents = updatedMovement.moveCount + currentComputed.recentClickCount;
+    const totalEvents =
+      updatedMovement.moveCount + currentComputed.recentClickCount;
 
     // movement 관련 computed 값들만 업데이트
     computedStore.setValue({
@@ -512,100 +571,103 @@ const MouseEventsActionHandlers: React.FC<{ children: React.ReactNode }> = ({ ch
 
   useMouseEventsActionHandler('mouseClick', async (payload) => {
     console.log('🎯 mouseClick action:', payload);
-    
+
     // Clicks store 업데이트
     const currentClicks = clicksStore.getValue();
     const newHistory = [
       { x: payload.x, y: payload.y, timestamp: payload.timestamp },
-      ...currentClicks.history.slice(0, 9)
+      ...currentClicks.history.slice(0, 9),
     ];
-    
+
     clicksStore.setValue({
       count: currentClicks.count + 1,
-      history: newHistory
+      history: newHistory,
     });
-    
+
     // Computed store 업데이트
     const currentMovement = movementStore.getValue();
     const updatedClicks = clicksStore.getValue();
-    const computedValues = updateComputedValuesFromStores(currentMovement, updatedClicks);
+    const computedValues = updateComputedValuesFromStores(
+      currentMovement,
+      updatedClicks
+    );
     computedStore.setValue(computedValues);
   });
 
   useMouseEventsActionHandler('mouseEnter', async (payload) => {
     console.log('🎯 mouseEnter action:', payload);
-    
+
     const currentPos = positionStore.getValue();
     positionStore.setValue({
       ...currentPos,
-      isInsideArea: true
+      isInsideArea: true,
     });
   });
 
   useMouseEventsActionHandler('mouseLeave', async (payload) => {
     console.log('🎯 mouseLeave action:', payload);
-    
+
     const currentPos = positionStore.getValue();
     positionStore.setValue({
       ...currentPos,
-      isInsideArea: false
+      isInsideArea: false,
     });
-    
+
     // Movement 정리 - 이미 false라면 업데이트하지 않음
     const currentMovement = movementStore.getValue();
     if (currentMovement.isMoving) {
       movementStore.setValue({
         ...currentMovement,
-        isMoving: false
+        isMoving: false,
       });
     }
   });
 
   useMouseEventsActionHandler('moveEnd', async (payload) => {
     console.log('🎯 moveEnd action:', payload);
-    
+
     const currentMovement = movementStore.getValue();
     // 이미 isMoving이 false라면 업데이트하지 않음 (불필요한 렌더링 방지)
     if (currentMovement.isMoving) {
       movementStore.setValue({
         ...currentMovement,
-        isMoving: false
+        isMoving: false,
       });
     }
   });
 
   useMouseEventsActionHandler('resetMouseState', async () => {
     console.log('🎯 resetMouseState action');
-    
+
     // 모든 stores 초기화
     positionStore.setValue({
       current: { x: -999, y: -999 },
       previous: { x: -999, y: -999 },
-      isInsideArea: false
+      isInsideArea: false,
     });
-    
+
     movementStore.setValue({
       moveCount: 0,
       isMoving: false,
       velocity: 0,
-      lastMoveTime: null,
-      path: []
+      lastMoveTime: null as number | null,
+      path: [],
     });
-    
+
     clicksStore.setValue({
       count: 0,
-      history: []
+      history: [],
     });
-    
+
     computedStore.setValue({
       validPath: [],
       recentClickCount: 0,
       averageVelocity: 0,
       totalEvents: 0,
       activityStatus: 'idle',
-      hasActivity: false
+      hasActivity: false,
     });
-    
+
     performanceStore.setValue({
       containerRenderCount: 0,
       totalRenderCount: 0,
@@ -614,7 +676,7 @@ const MouseEventsActionHandlers: React.FC<{ children: React.ReactNode }> = ({ ch
       sessionStartTime: Date.now(),
     });
   });
-  
+
   // updatePerformanceMetrics 핸들러 제거 - 무한 루프 방지를 위해 사용하지 않음
 
   return <>{children}</>;
@@ -622,21 +684,24 @@ const MouseEventsActionHandlers: React.FC<{ children: React.ReactNode }> = ({ ch
 
 /**
  * 통합 Provider - Enhanced with new capabilities
- * 
+ *
  * Store와 Action Context를 함께 제공합니다.
  */
-export const MouseEventsProvider: React.FC<{ 
+export const MouseEventsProvider: React.FC<{
   children: React.ReactNode;
   registryId?: string; // 새로운 기능: 독립적인 레지스트리 ID
 }> = ({ children, registryId }) => {
-  console.log('🔄 MouseEventsProvider render at', new Date().toISOString(), 'registryId:', registryId);
-  
+  console.log(
+    '🔄 MouseEventsProvider render at',
+    new Date().toISOString(),
+    'registryId:',
+    registryId
+  );
+
   return (
     <MouseEventsStores.Provider registryId={registryId}>
       <MouseEventsActionProvider>
-        <MouseEventsActionHandlers>
-          {children}
-        </MouseEventsActionHandlers>
+        <MouseEventsActionHandlers>{children}</MouseEventsActionHandlers>
       </MouseEventsActionProvider>
     </MouseEventsStores.Provider>
   );
@@ -649,13 +714,16 @@ export const MouseEventsProvider: React.FC<{
 /**
  * ActionProvider와 StoreProvider를 결합하는 커스텀 래퍼
  */
-const MouseEventsProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  console.log('🔄 MouseEventsProviderWrapper render at', new Date().toISOString());
+const MouseEventsProviderWrapper: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  console.log(
+    '🔄 MouseEventsProviderWrapper render at',
+    new Date().toISOString()
+  );
   return (
     <MouseEventsActionProvider>
-      <MouseEventsActionHandlers>
-        {children}
-      </MouseEventsActionHandlers>
+      <MouseEventsActionHandlers>{children}</MouseEventsActionHandlers>
     </MouseEventsActionProvider>
   );
 };

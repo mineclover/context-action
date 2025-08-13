@@ -1,24 +1,24 @@
 /**
  * @fileoverview API Blocking Logic Hook - Hook Layer
- * 
+ *
  * Data/Action과 View 사이의 브리지 역할을 하는 Hook입니다.
  * 양방향 데이터 흐름을 관리합니다.
  */
 
-import { useCallback, useEffect, useRef } from 'react';
 import { useStoreValue } from '@context-action/react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useActionLoggerWithToast } from '../../../../components/LogMonitor';
 import { toastActionRegister } from '../../../../components/ToastSystem/actions';
 import {
+  type ApiCallRecord,
   useApiBlockingActionDispatch,
   useApiBlockingActionRegister,
   useApiBlockingStore,
-  type ApiCallRecord,
 } from '../context/ApiBlockingContext';
 
 /**
  * API 블로킹 로직 Hook
- * 
+ *
  * View Layer에 필요한 데이터와 액션을 제공합니다.
  */
 export function useApiBlockingLogic() {
@@ -46,12 +46,12 @@ export function useApiBlockingLogic() {
         duration,
         timestamp: Date.now(),
       });
-      
+
       // 지정된 시간 후 블로킹 해제
       if (blockingTimeoutRef.current) {
         clearTimeout(blockingTimeoutRef.current);
       }
-      
+
       blockingTimeoutRef.current = setTimeout(() => {
         dispatch('endBlocking', {
           action,
@@ -64,11 +64,13 @@ export function useApiBlockingLogic() {
 
   // 모의 API 호출 함수
   const simulateApiCall = useCallback(
-    async (endpoint: string): Promise<{ success: boolean; responseTime: number }> => {
+    async (
+      endpoint: string
+    ): Promise<{ success: boolean; responseTime: number }> => {
       return new Promise((resolve) => {
         // 200-800ms 사이의 랜덤 응답 시간
         const responseTime = Math.random() * 600 + 200;
-        
+
         setTimeout(() => {
           resolve({
             success: Math.random() > 0.1, // 90% 성공률
@@ -89,7 +91,7 @@ export function useApiBlockingLogic() {
       'apiCall',
       async ({ endpoint, timestamp }, controller) => {
         logAction('apiCall', { endpoint, timestamp });
-        
+
         // 블로킹 상태 체크
         if (isCurrentlyBlocked()) {
           // 블로킹된 호출
@@ -98,18 +100,18 @@ export function useApiBlockingLogic() {
             reason: 'Rate limiting active',
             timestamp,
           });
-          
+
           controller.next();
           return;
         }
 
         // 블로킹 시작
         startBlocking('apiCall', blockingState.blockDuration);
-        
+
         try {
           // 모의 API 호출
           const result = await simulateApiCall(endpoint);
-          
+
           if (result.success) {
             const callId = `call-${timestamp}`;
             dispatch('apiCallSuccess', {
@@ -122,7 +124,7 @@ export function useApiBlockingLogic() {
         } catch (error) {
           logSystem(`API call failed: ${error}`);
         }
-        
+
         controller.next();
       }
     );
@@ -131,8 +133,13 @@ export function useApiBlockingLogic() {
     const unregisterSuccess = register.register(
       'apiCallSuccess',
       ({ callId, endpoint, responseTime, timestamp }, controller) => {
-        logAction('apiCallSuccess', { callId, endpoint, responseTime, timestamp });
-        
+        logAction('apiCallSuccess', {
+          callId,
+          endpoint,
+          responseTime,
+          timestamp,
+        });
+
         // 기록 추가
         const newRecord: ApiCallRecord = {
           id: callId,
@@ -141,14 +148,14 @@ export function useApiBlockingLogic() {
           status: 'success',
           responseTime,
         };
-        
+
         blockingStore.update((state) => ({
           ...state,
           apiCalls: [newRecord, ...state.apiCalls].slice(0, 20), // 최근 20개만 유지
           successCount: state.successCount + 1,
           lastCallTime: timestamp,
         }));
-        
+
         // Toast 표시
         logSystem(`🍞 Dispatching success toast for: ${endpoint}`);
         toastActionRegister.dispatch('addToast', {
@@ -156,7 +163,7 @@ export function useApiBlockingLogic() {
           title: '🌐 API 호출',
           message: `${endpoint} 호출 성공! (${responseTime}ms)`,
         });
-        
+
         controller.next();
       }
     );
@@ -166,7 +173,7 @@ export function useApiBlockingLogic() {
       'apiCallBlocked',
       ({ endpoint, reason, timestamp }, controller) => {
         logAction('apiCallBlocked', { endpoint, reason, timestamp });
-        
+
         // 기록 추가
         const newRecord: ApiCallRecord = {
           id: `blocked-${timestamp}`,
@@ -174,14 +181,14 @@ export function useApiBlockingLogic() {
           timestamp,
           status: 'blocked',
         };
-        
+
         blockingStore.update((state) => ({
           ...state,
           apiCalls: [newRecord, ...state.apiCalls].slice(0, 20),
           blockedCount: state.blockedCount + 1,
           lastCallTime: timestamp,
         }));
-        
+
         // Toast 표시
         logSystem(`🍞 Dispatching error toast for: ${endpoint}`);
         toastActionRegister.dispatch('addToast', {
@@ -189,7 +196,7 @@ export function useApiBlockingLogic() {
           title: '🚫 API 차단',
           message: `${endpoint} 호출이 차단되었습니다 (${reason})`,
         });
-        
+
         controller.next();
       }
     );
@@ -199,7 +206,7 @@ export function useApiBlockingLogic() {
       'startBlocking',
       ({ action, duration, timestamp }, controller) => {
         logAction('startBlocking', { action, duration, timestamp });
-        
+
         blockingStore.update((state) => ({
           ...state,
           isBlocked: true,
@@ -207,7 +214,7 @@ export function useApiBlockingLogic() {
           blockEndTime: timestamp + duration,
           blockDuration: duration,
         }));
-        
+
         controller.next();
       }
     );
@@ -217,14 +224,14 @@ export function useApiBlockingLogic() {
       'endBlocking',
       ({ action, timestamp }, controller) => {
         logAction('endBlocking', { action, timestamp });
-        
+
         blockingStore.update((state) => ({
           ...state,
           isBlocked: false,
           blockedAction: null,
           blockEndTime: null,
         }));
-        
+
         controller.next();
       }
     );
@@ -234,12 +241,12 @@ export function useApiBlockingLogic() {
       'setBlockDuration',
       ({ duration }, controller) => {
         logAction('setBlockDuration', { duration });
-        
+
         blockingStore.update((state) => ({
           ...state,
           blockDuration: duration,
         }));
-        
+
         controller.next();
       }
     );
@@ -249,15 +256,15 @@ export function useApiBlockingLogic() {
       'clearHistory',
       (_, controller) => {
         logAction('clearHistory', {});
-        
+
         blockingStore.update((state) => ({
           ...state,
-          apiCalls: [],
+          apiCalls: [] as ApiCallRecord[],
           successCount: 0,
           blockedCount: 0,
-          lastCallTime: null,
+          lastCallTime: null as number | null,
         }));
-        
+
         controller.next();
       }
     );
@@ -270,7 +277,7 @@ export function useApiBlockingLogic() {
       unregisterEndBlock();
       unregisterSetDuration();
       unregisterClear();
-      
+
       if (blockingTimeoutRef.current) {
         clearTimeout(blockingTimeoutRef.current);
       }
@@ -288,7 +295,7 @@ export function useApiBlockingLogic() {
   ]);
 
   // 남은 블로킹 시간 계산
-  const remainingBlockTime = blockingState.blockEndTime 
+  const remainingBlockTime = blockingState.blockEndTime
     ? Math.max(0, blockingState.blockEndTime - Date.now())
     : 0;
 
@@ -297,7 +304,7 @@ export function useApiBlockingLogic() {
     // Data
     blockingState,
     remainingBlockTime,
-    
+
     // Actions
     makeApiCall: (endpoint: string) => {
       dispatch('apiCall', {
@@ -305,20 +312,23 @@ export function useApiBlockingLogic() {
         timestamp: Date.now(),
       });
     },
-    
+
     setBlockDuration: (duration: number) => {
       dispatch('setBlockDuration', { duration });
     },
-    
+
     clearHistory: () => {
       dispatch('clearHistory');
     },
-    
+
     // Computed
     isBlocked: isCurrentlyBlocked(),
     hasHistory: blockingState.apiCalls.length > 0,
-    successRate: blockingState.successCount + blockingState.blockedCount > 0 
-      ? (blockingState.successCount / (blockingState.successCount + blockingState.blockedCount)) * 100
-      : 0,
+    successRate:
+      blockingState.successCount + blockingState.blockedCount > 0
+        ? (blockingState.successCount /
+            (blockingState.successCount + blockingState.blockedCount)) *
+          100
+        : 0,
   };
 }

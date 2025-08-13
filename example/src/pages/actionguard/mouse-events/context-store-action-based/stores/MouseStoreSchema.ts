@@ -1,6 +1,6 @@
 /**
  * @fileoverview Mouse Store Schema - Context Store 패턴 정의
- * 
+ *
  * Context Store 패턴으로 마우스 이벤트 상태 관리
  */
 
@@ -31,19 +31,19 @@ export interface MouseStateData {
   previousPosition: MousePosition;
   isInsideArea: boolean;
   isMoving: boolean;
-  
+
   // 카운터
   moveCount: number;
   clickCount: number;
-  
+
   // 메트릭
   velocity: number;
   lastMoveTime: number | null;
-  
+
   // 경로 및 클릭 기록
   movePath: MousePosition[];
   clickHistory: ClickHistory[];
-  
+
   // 계산된 값들 (지연 평가)
   validPath: MousePosition[];
   recentClickCount: number;
@@ -54,7 +54,7 @@ export interface MouseStateData {
 }
 
 // ================================
-// 🎯 액션 타입 정의  
+// 🎯 액션 타입 정의
 // ================================
 
 export interface MouseActions {
@@ -77,19 +77,19 @@ export const initialMouseState: MouseStateData = {
   previousPosition: { x: -999, y: -999 },
   isInsideArea: false,
   isMoving: false,
-  
+
   // 카운터
   moveCount: 0,
   clickCount: 0,
-  
+
   // 메트릭
   velocity: 0,
   lastMoveTime: null,
-  
+
   // 경로 및 클릭 기록
   movePath: [],
   clickHistory: [],
-  
+
   // 계산된 값들 (초기값)
   validPath: [],
   recentClickCount: 0,
@@ -105,28 +105,27 @@ export const initialMouseState: MouseStateData = {
 
 export function computeValidPath(movePath: MousePosition[]): MousePosition[] {
   // 유효한 경로 포인트만 필터링 (예: 경계 내부)
-  return movePath.filter(point => point.x >= 0 && point.y >= 0);
+  return movePath.filter((point) => point.x >= 0 && point.y >= 0);
 }
 
 export function computeRecentClickCount(clickHistory: ClickHistory[]): number {
   // 최근 5초 내 클릭 수
   const fiveSecondsAgo = Date.now() - 5000;
-  return clickHistory.filter(click => click.timestamp > fiveSecondsAgo).length;
+  return clickHistory.filter((click) => click.timestamp > fiveSecondsAgo)
+    .length;
 }
 
 export function computeAverageVelocity(validPath: MousePosition[]): number {
   if (validPath.length < 2) return 0;
-  
+
   let totalDistance = 0;
   for (let i = 1; i < Math.min(validPath.length, 10); i++) {
     const prev = validPath[i - 1];
     const curr = validPath[i];
-    const distance = Math.sqrt(
-      (curr.x - prev.x) ** 2 + (curr.y - prev.y) ** 2
-    );
+    const distance = Math.sqrt((curr.x - prev.x) ** 2 + (curr.y - prev.y) ** 2);
     totalDistance += distance;
   }
-  
+
   return totalDistance / Math.min(validPath.length - 1, 9);
 }
 
@@ -137,19 +136,22 @@ export function computeActivityStatus(
   lastClickTime: number | null
 ): 'idle' | 'moving' | 'clicking' {
   const recentClickThreshold = Date.now() - 500; // 0.5초
-  
+
   if (lastClickTime && lastClickTime > recentClickThreshold) {
     return 'clicking';
   }
-  
+
   if (isMoving && velocity > 0.1) {
     return 'moving';
   }
-  
+
   return 'idle';
 }
 
-export function computeHasActivity(moveCount: number, clickCount: number): boolean {
+export function computeHasActivity(
+  moveCount: number,
+  clickCount: number
+): boolean {
   return moveCount > 0 || clickCount > 0;
 }
 
@@ -171,5 +173,4 @@ export const {
   useAction: useMouseActionDispatch,
   useActionHandler: useMouseActionHandler,
   withProvider: withMouseActionProvider,
-  withCustomProvider: withMouseActionCustomProvider,
 } = MouseActionContext;

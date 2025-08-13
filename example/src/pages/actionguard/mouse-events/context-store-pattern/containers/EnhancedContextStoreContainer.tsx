@@ -1,93 +1,113 @@
 /**
  * @fileoverview Enhanced Context Store Container - 향상된 Context Store 패턴
- * 
+ *
  * 개별 stores를 최대한 활용하여 최적화된 Context Store 패턴을 구현
  */
 
-import { useRef, useEffect, useCallback, useMemo } from 'react';
-import { useStoreValue, useStoreSelector } from '@context-action/react';
-import { 
-  MouseEventsProvider, 
-  useMouseEventsStore, 
-  useMouseEventsActionDispatch,
-  updateComputedValuesFromStores,
-  type MousePosition 
-} from '../context/MouseEventsContext';
+import { useStoreSelector, useStoreValue } from '@context-action/react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { EnhancedContextStoreView } from '../components/EnhancedContextStoreView';
+import {
+  MouseEventsProvider,
+  type MousePosition,
+  updateComputedValuesFromStores,
+  useMouseEventsActionDispatch,
+  useMouseEventsStore,
+} from '../context/MouseEventsContext';
 
 /**
  * 향상된 Context Store 기반 마우스 이벤트 Container
  */
 const EnhancedContextStoreContainerInner = () => {
-  console.log('🚀 EnhancedContextStoreContainer render at', new Date().toISOString());
-  
+  console.log(
+    '🚀 EnhancedContextStoreContainer render at',
+    new Date().toISOString()
+  );
+
   const isInitialized = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const moveEndTimeout = useRef<NodeJS.Timeout | null>(null);
   const renderCountRef = useRef(0);
-  
+
   // 개별 Context Stores 접근 - 완전한 분리
   const positionStore = useMouseEventsStore('position');
-  const movementStore = useMouseEventsStore('movement');  
+  const movementStore = useMouseEventsStore('movement');
   const clicksStore = useMouseEventsStore('clicks');
   const computedStore = useMouseEventsStore('computed');
   const performanceStore = useMouseEventsStore('performance');
-  
+
   // 🔥 최적화: 메인 컨테이너는 직접 구독하지 않고 선택적으로만 구독
   // 각 패널 컴포넌트에서 직접 구독하도록 변경
-  
+
   // 리셋 버튼용 선택적 구독 (hasActivity만) - useCallback으로 최적화
-  const hasActivitySelector = useCallback((state: any) => state.hasActivity, []);
+  const hasActivitySelector = useCallback(
+    (state: any) => state.hasActivity,
+    []
+  );
   const hasActivity = useStoreSelector(computedStore, hasActivitySelector);
-  
+
   // Action dispatch
   const dispatch = useMouseEventsActionDispatch();
-  
+
   // 간단한 렌더 카운트 추적 - 무한 루프 방지
   renderCountRef.current++;
 
   // 향상된 Event handlers with optimizations
-  const handleMouseMove = useCallback((x: number, y: number) => {
-    const timestamp = Date.now();
-    
-    // 고성능 필터링
-    if (x === 0 && y === 0) {
-      console.warn('🔴 Enhanced Context: Blocked 0,0 position in handleMove');
-      return;
-    }
+  const handleMouseMove = useCallback(
+    (x: number, y: number) => {
+      const timestamp = Date.now();
 
-    dispatch('mouseMove', { x, y, timestamp });
-    
-    // 디바운스된 moveEnd 감지
-    if (moveEndTimeout.current) {
-      clearTimeout(moveEndTimeout.current);
-    }
-    
-    moveEndTimeout.current = setTimeout(() => {
-      dispatch('moveEnd', { position: { x, y }, timestamp: Date.now() });
-    }, 100);
-  }, [dispatch]);
+      // 고성능 필터링
+      if (x === 0 && y === 0) {
+        console.warn('🔴 Enhanced Context: Blocked 0,0 position in handleMove');
+        return;
+      }
 
-  const handleMouseClick = useCallback((x: number, y: number, button: number) => {
-    const timestamp = Date.now();
-    
-    if (x === 0 && y === 0) {
-      console.warn('🔴 Enhanced Context: Blocked 0,0 position in handleClick');
-      return;
-    }
+      dispatch('mouseMove', { x, y, timestamp });
 
-    dispatch('mouseClick', { x, y, button, timestamp });
-  }, [dispatch]);
+      // 디바운스된 moveEnd 감지
+      if (moveEndTimeout.current) {
+        clearTimeout(moveEndTimeout.current);
+      }
 
-  const handleMouseEnter = useCallback((x: number, y: number) => {
-    const timestamp = Date.now();
-    dispatch('mouseEnter', { x, y, timestamp });
-  }, [dispatch]);
+      moveEndTimeout.current = setTimeout(() => {
+        dispatch('moveEnd', { position: { x, y }, timestamp: Date.now() });
+      }, 100);
+    },
+    [dispatch]
+  );
 
-  const handleMouseLeave = useCallback((x: number, y: number) => {
-    const timestamp = Date.now();
-    dispatch('mouseLeave', { x, y, timestamp });
-  }, [dispatch]);
+  const handleMouseClick = useCallback(
+    (x: number, y: number, button: number) => {
+      const timestamp = Date.now();
+
+      if (x === 0 && y === 0) {
+        console.warn(
+          '🔴 Enhanced Context: Blocked 0,0 position in handleClick'
+        );
+        return;
+      }
+
+      dispatch('mouseClick', { x, y, button, timestamp });
+    },
+    [dispatch]
+  );
+
+  const handleMouseEnter = useCallback(
+    (x: number, y: number) => {
+      const timestamp = Date.now();
+      dispatch('mouseEnter', { x, y, timestamp });
+    },
+    [dispatch]
+  );
+
+  const handleMouseLeave = useCallback(
+    (x: number, y: number) => {
+      const timestamp = Date.now();
+      dispatch('mouseLeave', { x, y, timestamp });
+    },
+    [dispatch]
+  );
 
   const handleReset = useCallback(() => {
     dispatch('resetMouseState');
@@ -95,49 +115,60 @@ const EnhancedContextStoreContainerInner = () => {
   }, [dispatch]);
 
   // 최적화된 이벤트 바인딩 함수
-  const bindOptimizedEventListeners = useCallback((container: HTMLElement) => {
-    // 고성능 이벤트 핸들러들 - 메모화된 함수 재사용
-    const handleMouseMoveEvent = (e: MouseEvent) => {
-      const rect = container.getBoundingClientRect();
-      const x = Math.round(e.clientX - rect.left);
-      const y = Math.round(e.clientY - rect.top);
-      handleMouseMove(x, y);
-    };
+  const bindOptimizedEventListeners = useCallback(
+    (container: HTMLElement) => {
+      // 고성능 이벤트 핸들러들 - 메모화된 함수 재사용
+      const handleMouseMoveEvent = (e: MouseEvent) => {
+        const rect = container.getBoundingClientRect();
+        const x = Math.round(e.clientX - rect.left);
+        const y = Math.round(e.clientY - rect.top);
+        handleMouseMove(x, y);
+      };
 
-    const handleMouseClickEvent = (e: MouseEvent) => {
-      const rect = container.getBoundingClientRect();
-      const x = Math.round(e.clientX - rect.left);
-      const y = Math.round(e.clientY - rect.top);
-      handleMouseClick(x, y, e.button);
-    };
+      const handleMouseClickEvent = (e: MouseEvent) => {
+        const rect = container.getBoundingClientRect();
+        const x = Math.round(e.clientX - rect.left);
+        const y = Math.round(e.clientY - rect.top);
+        handleMouseClick(x, y, e.button);
+      };
 
-    const handleMouseEnterEvent = (e: MouseEvent) => {
-      const rect = container.getBoundingClientRect();
-      const x = Math.round(e.clientX - rect.left);
-      const y = Math.round(e.clientY - rect.top);
-      handleMouseEnter(x, y);
-    };
+      const handleMouseEnterEvent = (e: MouseEvent) => {
+        const rect = container.getBoundingClientRect();
+        const x = Math.round(e.clientX - rect.left);
+        const y = Math.round(e.clientY - rect.top);
+        handleMouseEnter(x, y);
+      };
 
-    const handleMouseLeaveEvent = (e: MouseEvent) => {
-      const rect = container.getBoundingClientRect();
-      const x = Math.round(e.clientX - rect.left);
-      const y = Math.round(e.clientY - rect.top);
-      handleMouseLeave(x, y);
-    };
+      const handleMouseLeaveEvent = (e: MouseEvent) => {
+        const rect = container.getBoundingClientRect();
+        const x = Math.round(e.clientX - rect.left);
+        const y = Math.round(e.clientY - rect.top);
+        handleMouseLeave(x, y);
+      };
 
-    // 고성능 이벤트 리스너 등록 (passive: true for better performance)
-    container.addEventListener('mousemove', handleMouseMoveEvent, { passive: true });
-    container.addEventListener('mousedown', handleMouseClickEvent, { passive: true });
-    container.addEventListener('mouseenter', handleMouseEnterEvent, { passive: true });
-    container.addEventListener('mouseleave', handleMouseLeaveEvent, { passive: true });
+      // 고성능 이벤트 리스너 등록 (passive: true for better performance)
+      container.addEventListener('mousemove', handleMouseMoveEvent, {
+        passive: true,
+      });
+      container.addEventListener('mousedown', handleMouseClickEvent, {
+        passive: true,
+      });
+      container.addEventListener('mouseenter', handleMouseEnterEvent, {
+        passive: true,
+      });
+      container.addEventListener('mouseleave', handleMouseLeaveEvent, {
+        passive: true,
+      });
 
-    return () => {
-      container.removeEventListener('mousemove', handleMouseMoveEvent);
-      container.removeEventListener('mousedown', handleMouseClickEvent);
-      container.removeEventListener('mouseenter', handleMouseEnterEvent);
-      container.removeEventListener('mouseleave', handleMouseLeaveEvent);
-    };
-  }, [handleMouseMove, handleMouseClick, handleMouseEnter, handleMouseLeave]);
+      return () => {
+        container.removeEventListener('mousemove', handleMouseMoveEvent);
+        container.removeEventListener('mousedown', handleMouseClickEvent);
+        container.removeEventListener('mouseenter', handleMouseEnterEvent);
+        container.removeEventListener('mouseleave', handleMouseLeaveEvent);
+      };
+    },
+    [handleMouseMove, handleMouseClick, handleMouseEnter, handleMouseLeave]
+  );
 
   // 고성능 DOM 설정 및 이벤트 바인딩
   useEffect(() => {
@@ -145,14 +176,22 @@ const EnhancedContextStoreContainerInner = () => {
       const container = document.getElementById('enhanced-context-mouse-area');
       if (!container || isInitialized.current) return;
 
-      console.log('🔧 Initializing Enhanced Context Store with optimized DOM elements');
+      console.log(
+        '🔧 Initializing Enhanced Context Store with optimized DOM elements'
+      );
 
       // 고성능 DOM 요소들 생성
       const elements = setupOptimizedDOMElements(container);
-      
+
       // DOM 렌더링 시스템 초기화
-      const rendererCleanup = initializeEnhancedRenderer(elements, positionStore, movementStore, clicksStore, computedStore);
-      
+      const rendererCleanup = initializeEnhancedRenderer(
+        elements,
+        positionStore,
+        movementStore,
+        clicksStore,
+        computedStore
+      );
+
       // 최적화된 이벤트 리스너 바인딩
       const eventCleanup = bindOptimizedEventListeners(container);
 
@@ -171,34 +210,29 @@ const EnhancedContextStoreContainerInner = () => {
     return () => {
       clearTimeout(timer);
     };
-  }, [dispatch, positionStore, movementStore, clicksStore, computedStore, bindOptimizedEventListeners]);
+  }, [
+    dispatch,
+    positionStore,
+    movementStore,
+    clicksStore,
+    computedStore,
+    bindOptimizedEventListeners,
+  ]);
 
   // 간단한 성능 메트릭 - 정적 데이터
-  const currentMetrics = useMemo(() => ({
-    renderCount: renderCountRef.current,
-    averageRenderTime: "0.30", // 최적화된 평균 시간
-    storeCount: 5, // position, movement, clicks, computed, performance
-    subscriptionCount: 1, // 컨테이너는 hasActivity만 구독
-  }), []);
+  const currentMetrics = useMemo(
+    () => ({
+      renderCount: renderCountRef.current,
+      averageRenderTime: '0.30', // 최적화된 평균 시간
+      storeCount: 5, // position, movement, clicks, computed, performance
+      subscriptionCount: 1, // 컨테이너는 hasActivity만 구독
+    }),
+    []
+  );
 
   return (
     <div ref={containerRef}>
-      <EnhancedContextStoreView 
-        // 🔥 최적화: store 데이터는 전달하지 않고, store 참조만 전달
-        // 각 컴포넌트에서 필요한 데이터만 직접 구독하도록 변경
-        
-        // 성능 메트릭
-        performanceMetrics={currentMetrics}
-        // 이벤트 핸들러
-        onReset={handleReset}
-        hasActivity={hasActivity}
-        // Store 참조들 (각 패널이 직접 구독용)
-        positionStore={positionStore}
-        movementStore={movementStore}
-        clicksStore={clicksStore}
-        computedStore={computedStore}
-        performanceStore={performanceStore}
-      />
+      <EnhancedContextStoreView />
     </div>
   );
 };
@@ -224,7 +258,8 @@ export const EnhancedContextStoreContainer = () => {
 function setupOptimizedDOMElements(container: HTMLElement) {
   // GPU 가속화된 커서 요소
   const cursor = document.createElement('div');
-  cursor.className = 'absolute w-4 h-4 rounded-full pointer-events-none border-2 border-white';
+  cursor.className =
+    'absolute w-4 h-4 rounded-full pointer-events-none border-2 border-white';
   cursor.style.cssText = `
     background: radial-gradient(circle, #10b981 0%, #059669 70%, #047857 100%);
     box-shadow: 0 0 15px rgba(16, 185, 129, 0.5), inset 0 1px 2px rgba(255,255,255,0.3);
@@ -235,10 +270,11 @@ function setupOptimizedDOMElements(container: HTMLElement) {
     opacity: 0;
     transition: opacity 0.2s ease;
   `;
-  
+
   // 향상된 내부 하이라이트
   const cursorInner = document.createElement('div');
-  cursorInner.className = 'absolute inset-0.5 bg-gradient-to-br from-white to-emerald-100 rounded-full opacity-90';
+  cursorInner.className =
+    'absolute inset-0.5 bg-gradient-to-br from-white to-emerald-100 rounded-full opacity-90';
   cursor.appendChild(cursorInner);
 
   // 고성능 트레일 시스템
@@ -256,9 +292,12 @@ function setupOptimizedDOMElements(container: HTMLElement) {
 
   // 향상된 SVG 패스 시스템
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('class', 'absolute inset-0 w-full h-full pointer-events-none');
+  svg.setAttribute(
+    'class',
+    'absolute inset-0 w-full h-full pointer-events-none'
+  );
   svg.style.cssText = 'z-index: 1; will-change: auto;';
-  
+
   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   path.setAttribute('stroke', 'url(#enhancedPathGradient)');
   path.setAttribute('stroke-width', '4');
@@ -271,31 +310,34 @@ function setupOptimizedDOMElements(container: HTMLElement) {
     stroke-dasharray: 0;
     animation: pathDraw 2s ease-in-out infinite alternate;
   `;
-  
+
   // 향상된 그라디언트 정의
   const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-  const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+  const gradient = document.createElementNS(
+    'http://www.w3.org/2000/svg',
+    'linearGradient'
+  );
   gradient.setAttribute('id', 'enhancedPathGradient');
   gradient.setAttribute('x1', '0%');
   gradient.setAttribute('y1', '0%');
   gradient.setAttribute('x2', '100%');
   gradient.setAttribute('y2', '100%');
-  
+
   const stops = [
     { offset: '0%', color: 'rgba(16, 185, 129, 1)' },
     { offset: '25%', color: 'rgba(5, 150, 105, 0.8)' },
     { offset: '50%', color: 'rgba(4, 120, 87, 0.6)' },
     { offset: '75%', color: 'rgba(6, 78, 59, 0.4)' },
-    { offset: '100%', color: 'rgba(6, 78, 59, 0.2)' }
+    { offset: '100%', color: 'rgba(6, 78, 59, 0.2)' },
   ];
-  
+
   stops.forEach(({ offset, color }) => {
     const stop = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
     stop.setAttribute('offset', offset);
     stop.setAttribute('stop-color', color);
     gradient.appendChild(stop);
   });
-  
+
   defs.appendChild(gradient);
   svg.appendChild(defs);
   svg.appendChild(path);
@@ -334,9 +376,9 @@ function initializeEnhancedRenderer(
   computedStore: any
 ) {
   const { cursor, trail, pathSvg, clickContainer } = elements;
-  
-  let animationId: number | null = null;
-  let lastPath: Array<{ x: number; y: number }> = [];
+
+  const animationId: number | null = null;
+  const lastPath: Array<{ x: number; y: number }> = [];
   let clickAnimations: Array<{ element: HTMLElement; startTime: number }> = [];
 
   // 고성능 위치 업데이트 함수
@@ -358,33 +400,33 @@ function initializeEnhancedRenderer(
   // SVG 패스 업데이트 (고성능)
   const updatePath = (pathPoints: Array<{ x: number; y: number }>) => {
     if (pathPoints.length < 2) return;
-    
+
     // 유효한 포인트만 필터링
-    const validPoints = pathPoints.filter(p => 
-      p.x !== -999 && p.y !== -999 && p.x !== 0 && p.y !== 0
-    ).slice(0, 50); // 최대 50개 포인트로 성능 최적화
+    const validPoints = pathPoints
+      .filter((p) => p.x !== -999 && p.y !== -999 && p.x !== 0 && p.y !== 0)
+      .slice(0, 50); // 최대 50개 포인트로 성능 최적화
 
     if (validPoints.length < 2) return;
 
     // 부드러운 곡선 생성 (Catmull-Rom spline)
     let pathData = `M ${validPoints[0].x} ${validPoints[0].y}`;
-    
+
     for (let i = 1; i < validPoints.length; i++) {
       const prev = validPoints[i - 1];
       const curr = validPoints[i];
       const next = validPoints[i + 1] || curr;
-      
+
       // 제어점 계산
       const cpx1 = prev.x + (curr.x - prev.x) * 0.3;
       const cpy1 = prev.y + (curr.y - prev.y) * 0.3;
       const cpx2 = curr.x - (next.x - curr.x) * 0.3;
       const cpy2 = curr.y - (next.y - curr.y) * 0.3;
-      
+
       pathData += ` Q ${cpx1} ${cpy1} ${curr.x} ${curr.y}`;
     }
 
     pathSvg.setAttribute('d', pathData);
-    
+
     // 패스 애니메이션 효과
     const pathLength = pathSvg.getTotalLength?.() || 0;
     if (pathLength > 0) {
@@ -439,7 +481,9 @@ function initializeEnhancedRenderer(
     // 애니메이션 완료 후 제거
     setTimeout(() => {
       clickEffect.remove();
-      clickAnimations = clickAnimations.filter(anim => anim.element !== clickEffect);
+      clickAnimations = clickAnimations.filter(
+        (anim) => anim.element !== clickEffect
+      );
     }, 600);
   };
 
@@ -452,7 +496,11 @@ function initializeEnhancedRenderer(
   unsubscribePosition = positionStore.subscribe((position: any) => {
     if (position.current.x !== -999 && position.current.y !== -999) {
       const movement = movementStore.getValue();
-      updateCursorPosition(position.current.x, position.current.y, movement.velocity);
+      updateCursorPosition(
+        position.current.x,
+        position.current.y,
+        movement.velocity
+      );
     }
 
     // 영역 밖으로 나가면 커서 숨김
@@ -485,7 +533,7 @@ function initializeEnhancedRenderer(
     unsubscribePosition?.();
     unsubscribeMovement?.();
     unsubscribeClicks?.();
-    
+
     // 클릭 애니메이션 정리
     clickAnimations.forEach(({ element }) => element.remove());
   };

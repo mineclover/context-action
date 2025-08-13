@@ -115,20 +115,22 @@ export function AbortableSearchExample() {
   const dispatch = useActionDispatch();
 
   // Register search handler
-  useActionHandler('search', async ({ query }, controller) => {
-        // Simulate API call
-        const response = await fetch(`/api/search?q=${query}`);
+  useActionHandler(
+    'search',
+    async ({ query }, controller) => {
+      // Simulate API call
+      const response = await fetch(`/api/search?q=${query}`);
 
-        // Check if aborted before processing response
-        if (!response.ok) {
-          throw new Error(`Search failed: ${response.statusText}`);
-        }
+      // Check if aborted before processing response
+      if (!response.ok) {
+        throw new Error(`Search failed: ${response.statusText}`);
+      }
 
-        const data = await response.json();
-        return data.results || [];
-      },
-      { priority: 10 }
-    );
+      const data = await response.json();
+      return data.results || [];
+    },
+    { priority: 10 }
+  );
 
   // Handle search with automatic cancellation of previous searches
   const handleSearch = async (searchQuery: string) => {

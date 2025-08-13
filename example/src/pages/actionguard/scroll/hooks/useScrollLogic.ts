@@ -1,18 +1,18 @@
 /**
  * @fileoverview Scroll Logic Hook - Hook Layer
- * 
+ *
  * Data/Action과 View 사이의 브리지 역할을 하는 Hook입니다.
  * 양방향 데이터 흐름을 관리합니다.
  */
 
-import { useCallback, useEffect, useRef } from 'react';
 import { useStoreValue } from '@context-action/react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useActionLoggerWithToast } from '../../../../components/LogMonitor';
 import {
+  type ScrollStateData,
   useScrollActionDispatch,
   useScrollActionRegister,
   useScrollStore,
-  type ScrollStateData,
 } from '../context/ScrollContext';
 
 /**
@@ -49,7 +49,7 @@ function useThrottle<T extends any[]>(
 
 /**
  * 스크롤 로직 Hook
- * 
+ *
  * View Layer에 필요한 데이터와 액션을 제공합니다.
  */
 export function useScrollLogic() {
@@ -64,14 +64,16 @@ export function useScrollLogic() {
   const updateScrollMetrics = useCallback(
     (scrollTop: number, timestamp: number) => {
       const currentState = scrollStore.getValue();
-      const timeDiff = currentState.lastScrollTime ? timestamp - currentState.lastScrollTime : 0;
+      const timeDiff = currentState.lastScrollTime
+        ? timestamp - currentState.lastScrollTime
+        : 0;
       const scrollDiff = scrollTop - currentState.previousScrollTop;
-      
+
       // 스크롤 방향 계산
       let scrollDirection: 'up' | 'down' | 'none' = 'none';
       if (scrollDiff > 0) scrollDirection = 'down';
       else if (scrollDiff < 0) scrollDirection = 'up';
-      
+
       // 스크롤 속도 계산 (px/ms)
       const velocity = timeDiff > 0 ? Math.abs(scrollDiff) / timeDiff : 0;
 
@@ -94,7 +96,7 @@ export function useScrollLogic() {
       if (scrollEndTimeoutRef.current) {
         clearTimeout(scrollEndTimeoutRef.current);
       }
-      
+
       scrollEndTimeoutRef.current = setTimeout(() => {
         dispatch('scrollEnd', {
           scrollTop,
@@ -114,17 +116,17 @@ export function useScrollLogic() {
       'scrollEvent',
       ({ scrollTop, timestamp }, controller) => {
         logAction('scrollEvent', { scrollTop, timestamp });
-        
+
         const currentState = scrollStore.getValue();
-        
+
         // 처음 스크롤이면 스크롤 시작 이벤트 발생
         if (!currentState.isScrolling) {
           dispatch('scrollStart', { scrollTop, timestamp });
         }
-        
+
         throttledScrollHandler(scrollTop, timestamp);
         handleScrollEnd(scrollTop);
-        
+
         controller.next();
       }
     );
@@ -134,13 +136,13 @@ export function useScrollLogic() {
       'scrollStart',
       ({ scrollTop, timestamp }, controller) => {
         logAction('scrollStart', { scrollTop, timestamp });
-        
+
         scrollStore.update((state) => ({
           ...state,
           isScrolling: true,
           lastScrollTime: timestamp,
         }));
-        
+
         controller.next();
       }
     );
@@ -149,13 +151,13 @@ export function useScrollLogic() {
     const unregisterUpdate = register.register(
       'updateScrollMetrics',
       ({ scrollTop, scrollDirection, velocity, timestamp }, controller) => {
-        logAction('updateScrollMetrics', { 
-          scrollTop, 
-          scrollDirection, 
+        logAction('updateScrollMetrics', {
+          scrollTop,
+          scrollDirection,
           velocity: velocity.toFixed(2),
-          timestamp 
+          timestamp,
         });
-        
+
         scrollStore.update((state) => ({
           ...state,
           scrollTop,
@@ -165,7 +167,7 @@ export function useScrollLogic() {
           previousScrollTop: state.scrollTop,
           lastScrollTime: timestamp,
         }));
-        
+
         controller.next();
       }
     );
@@ -175,14 +177,14 @@ export function useScrollLogic() {
       'scrollEnd',
       ({ scrollTop, timestamp }, controller) => {
         logAction('scrollEnd', { scrollTop, timestamp });
-        
+
         scrollStore.update((state) => ({
           ...state,
           isScrolling: false,
           scrollDirection: 'none',
           scrollVelocity: 0,
         }));
-        
+
         controller.next();
       }
     );
@@ -192,7 +194,7 @@ export function useScrollLogic() {
       'resetScroll',
       (_, controller) => {
         logAction('resetScroll', {});
-        
+
         scrollStore.setValue({
           scrollTop: 0,
           scrollCount: 0,
@@ -202,7 +204,7 @@ export function useScrollLogic() {
           previousScrollTop: 0,
           scrollVelocity: 0,
         });
-        
+
         controller.next();
       }
     );
@@ -213,18 +215,24 @@ export function useScrollLogic() {
       unregisterUpdate();
       unregisterEnd();
       unregisterReset();
-      
+
       if (scrollEndTimeoutRef.current) {
         clearTimeout(scrollEndTimeoutRef.current);
       }
     };
-  }, [register, scrollStore, throttledScrollHandler, handleScrollEnd, logAction]);
+  }, [
+    register,
+    scrollStore,
+    throttledScrollHandler,
+    handleScrollEnd,
+    logAction,
+  ]);
 
   // View에 제공할 인터페이스
   return {
     // Data
     scrollState,
-    
+
     // Actions
     handleScroll: (scrollTop: number) => {
       dispatch('scrollEvent', {
@@ -232,14 +240,15 @@ export function useScrollLogic() {
         timestamp: Date.now(),
       });
     },
-    
+
     resetScroll: () => {
       dispatch('resetScroll');
     },
-    
+
     // Computed
     isActive: scrollState.isScrolling,
     hasScrolled: scrollState.scrollCount > 0,
-    scrollProgress: scrollState.scrollTop > 0 ? (scrollState.scrollTop / 1000) * 100 : 0, // 1000px 기준
+    scrollProgress:
+      scrollState.scrollTop > 0 ? (scrollState.scrollTop / 1000) * 100 : 0, // 1000px 기준
   };
 }

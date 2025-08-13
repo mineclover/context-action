@@ -1,18 +1,18 @@
 /**
  * @fileoverview Search Logic Hook - Hook Layer
- * 
+ *
  * Data/Action과 View 사이의 브리지 역할을 하는 Hook입니다.
  * 양방향 데이터 흐름을 관리합니다.
  */
 
-import { useCallback, useEffect, useRef } from 'react';
 import { useStoreValue } from '@context-action/react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useActionLoggerWithToast } from '../../../../components/LogMonitor';
 import {
+  type SearchStateData,
   useSearchActionDispatch,
   useSearchActionRegister,
   useSearchStore,
-  type SearchStateData,
 } from '../context/SearchContext';
 
 /**
@@ -39,7 +39,7 @@ function useDebounce<T extends any[]>(
 
 /**
  * 검색 로직 Hook
- * 
+ *
  * View Layer에 필요한 데이터와 액션을 제공합니다.
  */
 export function useSearchLogic() {
@@ -99,16 +99,16 @@ export function useSearchLogic() {
       'searchInput',
       (term, controller) => {
         logAction('searchInput', { term, debounced: true });
-        
+
         // Store 업데이트
         searchStore.update((state) => ({
           ...state,
           searchTerm: term,
         }));
-        
+
         // 디바운스된 검색 실행
         debouncedSearch(term);
-        
+
         controller.next();
       }
     );
@@ -128,7 +128,7 @@ export function useSearchLogic() {
       'updateResults',
       ({ results, searchTime }, controller) => {
         logAction('updateResults', { resultCount: results.length, searchTime });
-        
+
         searchStore.update((state) => ({
           ...state,
           searchResults: results,
@@ -136,7 +136,7 @@ export function useSearchLogic() {
           isSearching: false,
           lastSearchTime: searchTime,
         }));
-        
+
         controller.next();
       }
     );
@@ -146,7 +146,7 @@ export function useSearchLogic() {
       'clearSearch',
       (_, controller) => {
         logAction('clearSearch', {});
-        
+
         searchStore.setValue({
           searchTerm: '',
           searchResults: [],
@@ -154,7 +154,7 @@ export function useSearchLogic() {
           isSearching: false,
           lastSearchTime: null,
         });
-        
+
         controller.next();
       }
     );
@@ -171,16 +171,16 @@ export function useSearchLogic() {
   return {
     // Data
     searchState,
-    
+
     // Actions
     handleSearchChange: (value: string) => {
       dispatch('searchInput', value);
     },
-    
+
     clearSearch: () => {
       dispatch('clearSearch');
     },
-    
+
     // Computed
     hasResults: searchState.searchResults.length > 0,
     isFirstSearch: searchState.searchCount === 0,

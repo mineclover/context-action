@@ -7,7 +7,6 @@ export type {
   HandlerConfig,
   PerformanceOptions,
 } from './types';
-
+export { useTestExecution } from './useTestExecution';
 // 비즈니스 로직 훅들
 export { useTestHandlerRegistration } from './useTestHandlerRegistration';
-export { useTestExecution } from './useTestExecution';

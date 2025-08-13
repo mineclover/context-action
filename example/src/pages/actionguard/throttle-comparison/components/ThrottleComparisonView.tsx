@@ -1,17 +1,23 @@
 /**
  * @fileoverview Throttle Comparison View Component - View Layer
- * 
+ *
  * Hook을 통해 Data/Action과 연결되는 View 컴포넌트입니다.
  */
 
 import React from 'react';
-import { DemoCard, Button, Input, CodeBlock, CodeExample } from '../../../../components/ui';
+import {
+  Button,
+  CodeBlock,
+  CodeExample,
+  DemoCard,
+  Input,
+} from '../../../../components/ui';
 import { useThrottleComparisonLogic } from '../hooks/useThrottleComparisonLogic';
 import { ThrottleComparisonStyles } from './ThrottleComparisonStyles';
 
 /**
  * 스로틀 비교 View 컴포넌트
- * 
+ *
  * Hook Layer를 통해 데이터와 액션을 받아 UI를 렌더링합니다.
  */
 export function ThrottleComparisonView() {
@@ -36,12 +42,15 @@ export function ThrottleComparisonView() {
       <header className="page-header">
         <h1>📊 Throttle Implementation Comparison</h1>
         <p className="page-description">
-          Side-by-side comparison of manual <code>useThrottle</code> hook implementation 
-          versus Context-Action framework's built-in throttling feature. Both use 
-          <strong>1-second throttling intervals</strong> for direct performance comparison.
+          Side-by-side comparison of manual <code>useThrottle</code> hook
+          implementation versus Context-Action framework's built-in throttling
+          feature. Both use
+          <strong>1-second throttling intervals</strong> for direct performance
+          comparison.
         </p>
         <div className="mt-3 text-sm text-gray-600">
-          <strong>Test Features:</strong> Real-time metrics • Auto-test mode • Execution rate comparison • Performance analysis
+          <strong>Test Features:</strong> Real-time metrics • Auto-test mode •
+          Execution rate comparison • Performance analysis
         </div>
       </header>
 
@@ -53,7 +62,9 @@ export function ThrottleComparisonView() {
           </h3>
           <div className="grid grid-cols-2 gap-4">
             <div className="metric-item">
-              <div className="metric-value">{throttleState.manualMetrics.totalCalls}</div>
+              <div className="metric-value">
+                {throttleState.manualMetrics.totalCalls}
+              </div>
               <div className="metric-label">총 호출</div>
             </div>
             <div className="metric-item">
@@ -83,7 +94,9 @@ export function ThrottleComparisonView() {
           </h3>
           <div className="grid grid-cols-2 gap-4">
             <div className="metric-item">
-              <div className="metric-value">{throttleState.internalMetrics.totalCalls}</div>
+              <div className="metric-value">
+                {throttleState.internalMetrics.totalCalls}
+              </div>
               <div className="metric-label">총 호출</div>
             </div>
             <div className="metric-item">
@@ -188,11 +201,15 @@ export function ThrottleComparisonView() {
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
-                onClick={throttleState.isAutoTesting ? stopAutoTest : startAutoTest}
+                onClick={
+                  throttleState.isAutoTesting ? stopAutoTest : startAutoTest
+                }
                 variant={throttleState.isAutoTesting ? 'danger' : 'success'}
                 disabled={!canOperate}
               >
-                {throttleState.isAutoTesting ? '⏹️ 테스트 중지' : '▶️ 자동 테스트 시작'}
+                {throttleState.isAutoTesting
+                  ? '⏹️ 테스트 중지'
+                  : '▶️ 자동 테스트 시작'}
               </Button>
             </div>
             {throttleState.isAutoTesting && (
@@ -200,8 +217,8 @@ export function ThrottleComparisonView() {
                 <div className="flex items-center gap-2">
                   <div className="loading-spinner" />
                   <span>
-                    자동 테스트 실행 중... ({throttleState.testInterval}ms 간격으로{' '}
-                    {throttleState.testDuration}ms 동안)
+                    자동 테스트 실행 중... ({throttleState.testInterval}ms
+                    간격으로 {throttleState.testDuration}ms 동안)
                   </span>
                 </div>
               </div>

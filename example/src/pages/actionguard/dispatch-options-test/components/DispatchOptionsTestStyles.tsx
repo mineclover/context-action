@@ -1,6 +1,6 @@
 /**
  * @fileoverview Dispatch Options Test Styles
- * 
+ *
  * 디스패치 옵션 테스트 페이지 전용 스타일 컴포넌트
  */
 
@@ -47,17 +47,17 @@ const styles = `
 export function DispatchOptionsTestStyles() {
   useEffect(() => {
     if (typeof document === 'undefined') return;
-    
+
     const styleId = 'dispatch-options-test-styles';
-    
+
     // 이미 스타일이 추가되었는지 확인
     if (document.getElementById(styleId)) return;
-    
+
     const styleElement = document.createElement('style');
     styleElement.id = styleId;
     styleElement.textContent = styles;
     document.head.appendChild(styleElement);
-    
+
     // 컴포넌트 언마운트 시 스타일 제거
     return () => {
       const existingStyle = document.getElementById(styleId);
@@ -66,6 +66,6 @@ export function DispatchOptionsTestStyles() {
       }
     };
   }, []);
-  
+
   return null;
 }

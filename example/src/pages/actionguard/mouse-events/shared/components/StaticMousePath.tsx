@@ -1,6 +1,6 @@
 /**
  * @fileoverview Static Mouse Path Component
- * 
+ *
  * 상태 기반으로 동작하는 마우스 경로 표시 (실시간 애니메이션 없음)
  */
 
@@ -16,30 +16,40 @@ interface StaticMousePathProps {
   isVisible: boolean;
 }
 
-const StaticMousePathComponent = ({ movePath, isVisible }: StaticMousePathProps) => {
+const StaticMousePathComponent = ({
+  movePath,
+  isVisible,
+}: StaticMousePathProps) => {
   // Path 데이터 메모화 (유효하지 않은 위치 필터링) - 조건 완화
   const pathData = useMemo(() => {
-    const validPath = movePath.filter(point => 
-      point.x >= 0 && point.y >= 0 && point.x !== -999 && point.y !== -999
+    const validPath = movePath.filter(
+      (point) =>
+        point.x >= 0 && point.y >= 0 && point.x !== -999 && point.y !== -999
     );
-    console.log('📊 StaticMousePath - validPath:', validPath.length, 'from', movePath.length);
+    console.log(
+      '📊 StaticMousePath - validPath:',
+      validPath.length,
+      'from',
+      movePath.length
+    );
     if (validPath.length < 2) return '';
     const visiblePath = validPath.slice(0, 10); // 최근 10개 점만 표시
-    return `M ${visiblePath.map(point => `${point.x} ${point.y}`).join(' L ')}`;
+    return `M ${visiblePath.map((point) => `${point.x} ${point.y}`).join(' L ')}`;
   }, [movePath]);
 
   // Points 데이터 메모화 (유효하지 않은 위치 필터링) - 조건 완화
   const points = useMemo(() => {
     return movePath
-      .filter(point => 
-        point.x >= 0 && point.y >= 0 && point.x !== -999 && point.y !== -999
+      .filter(
+        (point) =>
+          point.x >= 0 && point.y >= 0 && point.x !== -999 && point.y !== -999
       )
       .slice(0, 10)
       .map((point, index) => ({
         ...point,
         id: `${point.x}-${point.y}-${index}`,
         radius: Math.max(2, 4 - index * 0.2),
-        opacity: Math.max(0.3, 1 - index * 0.08)
+        opacity: Math.max(0.3, 1 - index * 0.08),
       }));
   }, [movePath]);
 
@@ -50,9 +60,9 @@ const StaticMousePathComponent = ({ movePath, isVisible }: StaticMousePathProps)
   return (
     <svg
       className="absolute inset-0 w-full h-full pointer-events-none"
-      style={{ 
+      style={{
         zIndex: 1,
-        willChange: 'auto'
+        willChange: 'auto',
       }}
     >
       {/* Path */}
@@ -65,10 +75,10 @@ const StaticMousePathComponent = ({ movePath, isVisible }: StaticMousePathProps)
         strokeLinejoin="round"
         style={{
           filter: 'drop-shadow(0 2px 4px rgba(59, 130, 246, 0.3))',
-          opacity: 0.8
+          opacity: 0.8,
         }}
       />
-      
+
       {/* Points */}
       <g>
         {points.map((point) => (
@@ -79,12 +89,12 @@ const StaticMousePathComponent = ({ movePath, isVisible }: StaticMousePathProps)
             r={point.radius}
             fill={`rgba(59, 130, 246, ${point.opacity})`}
             style={{
-              filter: 'drop-shadow(0 1px 2px rgba(59, 130, 246, 0.4))'
+              filter: 'drop-shadow(0 1px 2px rgba(59, 130, 246, 0.4))',
             }}
           />
         ))}
       </g>
-      
+
       {/* Gradient definition */}
       <defs>
         <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -97,12 +107,15 @@ const StaticMousePathComponent = ({ movePath, isVisible }: StaticMousePathProps)
   );
 };
 
-export const StaticMousePath = memo(StaticMousePathComponent, (prevProps, nextProps) => {
-  return (
-    prevProps.isVisible === nextProps.isVisible &&
-    prevProps.movePath.length === nextProps.movePath.length &&
-    (prevProps.movePath.length === 0 || 
-     prevProps.movePath[0]?.x === nextProps.movePath[0]?.x &&
-     prevProps.movePath[0]?.y === nextProps.movePath[0]?.y)
-  );
-});
+export const StaticMousePath = memo(
+  StaticMousePathComponent,
+  (prevProps, nextProps) => {
+    return (
+      prevProps.isVisible === nextProps.isVisible &&
+      prevProps.movePath.length === nextProps.movePath.length &&
+      (prevProps.movePath.length === 0 ||
+        (prevProps.movePath[0]?.x === nextProps.movePath[0]?.x &&
+          prevProps.movePath[0]?.y === nextProps.movePath[0]?.y))
+    );
+  }
+);

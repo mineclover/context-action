@@ -1,6 +1,6 @@
 /**
  * @fileoverview API Blocking Context - Data/Action Layer
- * 
+ *
  * Context → Data/Action 계층을 정의합니다.
  * 타입은 Data/Action 레이어에 선언됩니다.
  */
@@ -57,22 +57,25 @@ interface ApiBlockingStores {
 }
 
 // 새로운 패턴으로 변경 - 자동 타입 추론
-const ApiBlockingStores = createDeclarativeStorePattern('ApiBlockingStoreManager', {
-  blockingState: {
-    initialValue: {
-      apiCalls: [],
-      blockedAction: null,
-      isBlocked: false,
-      blockEndTime: null,
-      blockDuration: 2000, // 2초
-      successCount: 0,
-      blockedCount: 0,
-      lastCallTime: null,
+const ApiBlockingStores = createDeclarativeStorePattern(
+  'ApiBlockingStoreManager',
+  {
+    blockingState: {
+      initialValue: {
+        apiCalls: [] as ApiCallRecord[],
+        blockedAction: null as string | null,
+        isBlocked: false,
+        blockEndTime: null as number | null,
+        blockDuration: 2000, // 2초
+        successCount: 0,
+        blockedCount: 0,
+        lastCallTime: null as number | null,
+      },
+      description: 'API blocking state management',
+      strategy: 'shallow',
     },
-    description: 'API blocking state management',
-    strategy: 'shallow',
-  },
-});
+  }
+);
 
 // ================================
 // ⚡ Action Layer - 액션 정의
@@ -88,7 +91,7 @@ export interface ApiBlockingActions extends ActionPayloadMap {
     method?: string;
     timestamp: number;
   };
-  
+
   /** API 호출 성공 액션 */
   apiCallSuccess: {
     callId: string;
@@ -96,32 +99,32 @@ export interface ApiBlockingActions extends ActionPayloadMap {
     responseTime: number;
     timestamp: number;
   };
-  
+
   /** API 호출 블로킹 액션 */
   apiCallBlocked: {
     endpoint: string;
     reason: string;
     timestamp: number;
   };
-  
+
   /** 블로킹 시작 액션 */
   startBlocking: {
     action: string;
     duration: number;
     timestamp: number;
   };
-  
+
   /** 블로킹 종료 액션 */
   endBlocking: {
     action: string;
     timestamp: number;
   };
-  
+
   /** 블로킹 설정 변경 액션 */
   setBlockDuration: {
     duration: number;
   };
-  
+
   /** 기록 초기화 액션 */
   clearHistory: void;
 }
@@ -131,37 +134,45 @@ export interface ApiBlockingActions extends ActionPayloadMap {
 // ================================
 
 // Action Context 생성
-export const ApiBlockingActionContext = createActionContext<ApiBlockingActions>({
-  name: 'ApiBlockingActions',
-});
+export const ApiBlockingActionContext = createActionContext<ApiBlockingActions>(
+  {
+    name: 'ApiBlockingActions',
+  }
+);
 
 // Store Context 생성
 // Store Context는 이미 ApiBlockingStores로 생성됨
 
 // Providers
-export const ApiBlockingActionProvider: React.FC<{ children: React.ReactNode }> = ApiBlockingActionContext.Provider;
-export const ApiBlockingStoreProvider: React.FC<{ children: React.ReactNode }> = ApiBlockingStores.Provider;
+export const ApiBlockingActionProvider: React.FC<{
+  children: React.ReactNode;
+}> = ApiBlockingActionContext.Provider;
+export const ApiBlockingStoreProvider: React.FC<{ children: React.ReactNode }> =
+  ApiBlockingStores.Provider;
 
 // Hooks export
-export const useApiBlockingActionDispatch = ApiBlockingActionContext.useActionDispatch;
-export const useApiBlockingActionHandler = ApiBlockingActionContext.useActionHandler;
+export const useApiBlockingActionDispatch =
+  ApiBlockingActionContext.useActionDispatch;
+export const useApiBlockingActionHandler =
+  ApiBlockingActionContext.useActionHandler;
 export const useApiBlockingStore = ApiBlockingStores.useStore;
 
 // Legacy exports (deprecated)
-export const useApiBlockingActionRegister = ApiBlockingActionContext.useActionRegister;
+export const useApiBlockingActionRegister =
+  ApiBlockingActionContext.useActionRegister;
 // useApiBlockingRegistry removed - not needed in new pattern
 
 /**
  * 통합 Provider
- * 
+ *
  * Store와 Action Context를 함께 제공합니다.
  */
-export const ApiBlockingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ApiBlockingProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   return (
     <ApiBlockingStoreProvider>
-      <ApiBlockingActionProvider>
-        {children}
-      </ApiBlockingActionProvider>
+      <ApiBlockingActionProvider>{children}</ApiBlockingActionProvider>
     </ApiBlockingStoreProvider>
   );
 };

@@ -1,6 +1,6 @@
 /**
  * @fileoverview Mouse Events Demo Page
- * 
+ *
  * Context → Data/Action → Hook → View 계층 구조를 따르는 마우스 이벤트 데모 페이지
  */
 
@@ -27,20 +27,21 @@ const MouseEventsUI = () => {
             </h2>
           </div>
           <p className="text-sm text-blue-700">
-            Complete separation of View, Controller, Service layers. 
-            Testable, maintainable architecture with dependency injection and clean interfaces.
+            Complete separation of View, Controller, Service layers. Testable,
+            maintainable architecture with dependency injection and clean
+            interfaces.
           </p>
         </div>
       </div>
 
       {/* Clean Architecture Container */}
       <MouseEventsContainer />
-      
+
       {/* Context Store Container (Action-Based) */}
       <div className="mt-8">
         <ContextStoreMouseEventsWrapper />
       </div>
-      
+
       {/* Context Store Container with Navigation */}
       <div className="mt-8">
         <div className="mb-4">
@@ -52,18 +53,30 @@ const MouseEventsUI = () => {
                   Context Store Pattern - Preview
                 </h2>
               </div>
-              <Link 
+              <Link
                 to="/actionguard/mouse-events/context-store"
                 className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
               >
                 🚀 Enhanced Context Store Page
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                  />
                 </svg>
               </Link>
             </div>
             <p className="text-sm text-emerald-700 mt-2">
-              Individual stores with selective subscriptions. Click the button above to see the enhanced version with real-time analytics and performance metrics.
+              Individual stores with selective subscriptions. Click the button
+              above to see the enhanced version with real-time analytics and
+              performance metrics.
             </p>
           </div>
         </div>
@@ -75,12 +88,12 @@ const MouseEventsUI = () => {
 
 /**
  * 마우스 이벤트 데모 페이지 - Clean Architecture
- * 
+ *
  * Context나 Provider 없이 순수한 의존성 주입으로 구성
  */
 export function MouseEventsPage() {
   console.log('📄 MouseEventsPage render at', new Date().toISOString());
-  
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">

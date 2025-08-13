@@ -1,18 +1,18 @@
 /**
  * @fileoverview Throttle Comparison Logic Hook - Hook Layer
- * 
+ *
  * Data/Action과 View 사이의 브리지 역할을 하는 Hook입니다.
  * 양방향 데이터 흐름을 관리합니다.
  */
 
-import { useCallback, useEffect, useRef } from 'react';
 import { useStoreValue } from '@context-action/react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useActionLoggerWithToast } from '../../../../components/LogMonitor';
 import {
+  type ThrottleMetrics,
   useThrottleComparisonActionDispatch,
   useThrottleComparisonActionRegister,
   useThrottleComparisonStore,
-  type ThrottleMetrics,
 } from '../context/ThrottleComparisonContext';
 
 /**
@@ -52,18 +52,18 @@ function useThrottle<T extends any[]>(
  */
 function calculateAverageInterval(executionTimes: number[]): number {
   if (executionTimes.length < 2) return 0;
-  
+
   const intervals = [];
   for (let i = 1; i < executionTimes.length; i++) {
     intervals.push(executionTimes[i] - executionTimes[i - 1]);
   }
-  
+
   return Math.round(intervals.reduce((a, b) => a + b, 0) / intervals.length);
 }
 
 /**
  * 스로틀 비교 로직 Hook
- * 
+ *
  * View Layer에 필요한 데이터와 액션을 제공합니다.
  */
 export function useThrottleComparisonLogic() {
@@ -72,7 +72,7 @@ export function useThrottleComparisonLogic() {
   const throttleStore = useThrottleComparisonStore('throttleState');
   const throttleState = useStoreValue(throttleStore);
   const { logAction, logSystem } = useActionLoggerWithToast();
-  
+
   // 자동 테스트 타이머 ref
   const autoTestInterval = useRef<NodeJS.Timeout>();
 
@@ -93,10 +93,14 @@ export function useThrottleComparisonLogic() {
         executionTime: now,
       });
 
-      logAction('manualThrottle', { value, timestamp }, {
-        context: 'Manual Throttle',
-        toast: { type: 'info', message: `수동 스로틀: ${value}` },
-      });
+      logAction(
+        'manualThrottle',
+        { value, timestamp },
+        {
+          context: 'Manual Throttle',
+          toast: { type: 'info', message: `수동 스로틀: ${value}` },
+        }
+      );
     },
     1000
   );
@@ -132,10 +136,14 @@ export function useThrottleComparisonLogic() {
           executionTime: now,
         });
 
-        logAction('internalThrottle', { value, timestamp }, {
-          context: 'Internal Throttle',
-          toast: { type: 'success', message: `내장 스로틀: ${value}` },
-        });
+        logAction(
+          'internalThrottle',
+          { value, timestamp },
+          {
+            context: 'Internal Throttle',
+            toast: { type: 'success', message: `내장 스로틀: ${value}` },
+          }
+        );
 
         controller.next();
       },
@@ -190,7 +198,10 @@ export function useThrottleComparisonLogic() {
             ...metrics,
           },
           ...(executionTime && {
-            manualExecutionTimes: [...state.manualExecutionTimes, executionTime].slice(-50), // 최근 50개만 유지
+            manualExecutionTimes: [
+              ...state.manualExecutionTimes,
+              executionTime,
+            ].slice(-50), // 최근 50개만 유지
           }),
         }));
         controller.next();
@@ -208,7 +219,10 @@ export function useThrottleComparisonLogic() {
             ...metrics,
           },
           ...(executionTime && {
-            internalExecutionTimes: [...state.internalExecutionTimes, executionTime].slice(-50), // 최근 50개만 유지
+            internalExecutionTimes: [
+              ...state.internalExecutionTimes,
+              executionTime,
+            ].slice(-50), // 최근 50개만 유지
           }),
         }));
         controller.next();
@@ -231,8 +245,8 @@ export function useThrottleComparisonLogic() {
           ...state,
           manualMetrics: initialMetrics,
           internalMetrics: initialMetrics,
-          manualExecutionTimes: [],
-          internalExecutionTimes: [],
+          manualExecutionTimes: [] as number[],
+          internalExecutionTimes: [] as number[],
         }));
 
         logSystem('메트릭 초기화', { context: 'Throttle Comparison' });
@@ -270,7 +284,9 @@ export function useThrottleComparisonLogic() {
     );
 
     let callCount = 0;
-    const maxCalls = Math.floor(throttleState.testDuration / throttleState.testInterval);
+    const maxCalls = Math.floor(
+      throttleState.testDuration / throttleState.testInterval
+    );
 
     autoTestInterval.current = setInterval(() => {
       if (!register) {
@@ -360,20 +376,20 @@ export function useThrottleComparisonLogic() {
   return {
     // Data
     throttleState,
-    
+
     // Actions
     updateInputValue: (value: string) => {
       dispatch('updateInputValue', { value });
     },
-    
+
     updateTestDuration: (duration: number) => {
       dispatch('updateTestSettings', { testDuration: duration });
     },
-    
+
     updateTestInterval: (interval: number) => {
       dispatch('updateTestSettings', { testInterval: interval });
     },
-    
+
     handleManualCall: () => {
       const timestamp = Date.now();
       const value = throttleState.inputValue || `manual-${timestamp}`;
@@ -386,7 +402,7 @@ export function useThrottleComparisonLogic() {
 
       dispatch('manualThrottle', { value, timestamp });
     },
-    
+
     handleInternalCall: () => {
       const timestamp = Date.now();
       const value = throttleState.inputValue || `internal-${timestamp}`;
@@ -399,21 +415,31 @@ export function useThrottleComparisonLogic() {
 
       dispatch('internalThrottle', { value, timestamp });
     },
-    
+
     startAutoTest,
     stopAutoTest,
-    
+
     resetMetrics: () => {
       dispatch('resetMetrics');
     },
-    
+
     // Computed values
     canOperate: !!register && !!dispatch,
-    manualExecutionRate: throttleState.manualMetrics.totalCalls > 0 
-      ? ((throttleState.manualMetrics.actualExecutions / throttleState.manualMetrics.totalCalls) * 100).toFixed(1)
-      : '0',
-    internalExecutionRate: throttleState.internalMetrics.totalCalls > 0
-      ? ((throttleState.internalMetrics.actualExecutions / throttleState.internalMetrics.totalCalls) * 100).toFixed(1)
-      : '0',
+    manualExecutionRate:
+      throttleState.manualMetrics.totalCalls > 0
+        ? (
+            (throttleState.manualMetrics.actualExecutions /
+              throttleState.manualMetrics.totalCalls) *
+            100
+          ).toFixed(1)
+        : '0',
+    internalExecutionRate:
+      throttleState.internalMetrics.totalCalls > 0
+        ? (
+            (throttleState.internalMetrics.actualExecutions /
+              throttleState.internalMetrics.totalCalls) *
+            100
+          ).toFixed(1)
+        : '0',
   };
 }

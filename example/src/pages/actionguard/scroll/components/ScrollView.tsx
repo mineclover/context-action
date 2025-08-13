@@ -1,15 +1,20 @@
 /**
  * @fileoverview Scroll View Component - View Layer
- * 
+ *
  * Hook을 통해 Data/Action과 연결되는 View 컴포넌트입니다.
  */
 
-import { DemoCard, Button, CodeBlock, CodeExample } from '../../../../components/ui';
+import {
+  Button,
+  CodeBlock,
+  CodeExample,
+  DemoCard,
+} from '../../../../components/ui';
 import { useScrollLogic } from '../hooks/useScrollLogic';
 
 /**
  * 스크롤 View 컴포넌트
- * 
+ *
  * Hook Layer를 통해 데이터와 액션을 받아 UI를 렌더링합니다.
  */
 export function ScrollView() {
@@ -31,12 +36,14 @@ export function ScrollView() {
             📜 Scroll with Throttling Demo
           </h3>
           <p className="text-sm text-gray-600">
-            This demo demonstrates throttling for scroll events. Events are processed at most once every 
-            <strong> 100ms</strong> (10 events/second), preventing performance issues while maintaining 
-            smooth user experience. Try scrolling rapidly to see the difference.
+            This demo demonstrates throttling for scroll events. Events are
+            processed at most once every
+            <strong> 100ms</strong> (10 events/second), preventing performance
+            issues while maintaining smooth user experience. Try scrolling
+            rapidly to see the difference.
           </p>
         </div>
-        
+
         <div className="space-y-4">
           {/* 스크롤 컨테이너 */}
           <div
@@ -48,28 +55,38 @@ export function ScrollView() {
               className="absolute top-0 left-0 h-1 bg-blue-500 transition-all duration-200 z-10"
               style={{ width: `${Math.min(scrollProgress, 100)}%` }}
             />
-            
+
             {/* 스크롤 상태 표시 */}
             <div className="sticky top-2 left-2 z-20 inline-block bg-white bg-opacity-95 p-3 rounded-lg shadow-sm border">
               <div className="text-sm space-y-1">
                 <div className="flex justify-between gap-4">
                   <span className="text-gray-600">Scroll Position:</span>
-                  <span className="font-mono text-blue-600">{scrollState.scrollTop}px</span>
+                  <span className="font-mono text-blue-600">
+                    {scrollState.scrollTop}px
+                  </span>
                 </div>
                 <div className="flex justify-between gap-4">
                   <span className="text-gray-600">Events Processed:</span>
-                  <span className="font-mono text-green-600">{scrollState.scrollCount}</span>
+                  <span className="font-mono text-green-600">
+                    {scrollState.scrollCount}
+                  </span>
                 </div>
                 <div className="flex justify-between gap-4">
                   <span className="text-gray-600">Direction:</span>
-                  <span className={`font-mono ${
-                    scrollState.scrollDirection === 'down' ? 'text-orange-600' :
-                    scrollState.scrollDirection === 'up' ? 'text-purple-600' :
-                    'text-gray-400'
-                  }`}>
-                    {scrollState.scrollDirection === 'down' ? '↓ Down' :
-                     scrollState.scrollDirection === 'up' ? '↑ Up' : 
-                     '- None'}
+                  <span
+                    className={`font-mono ${
+                      scrollState.scrollDirection === 'down'
+                        ? 'text-orange-600'
+                        : scrollState.scrollDirection === 'up'
+                          ? 'text-purple-600'
+                          : 'text-gray-400'
+                    }`}
+                  >
+                    {scrollState.scrollDirection === 'down'
+                      ? '↓ Down'
+                      : scrollState.scrollDirection === 'up'
+                        ? '↑ Up'
+                        : '- None'}
                   </span>
                 </div>
                 <div className="flex justify-between gap-4">
@@ -80,9 +97,11 @@ export function ScrollView() {
                 </div>
                 <div className="flex justify-between gap-4">
                   <span className="text-gray-600">Status:</span>
-                  <span className={`font-mono ${
-                    isActive ? 'text-blue-600' : 'text-gray-400'
-                  }`}>
+                  <span
+                    className={`font-mono ${
+                      isActive ? 'text-blue-600' : 'text-gray-400'
+                    }`}
+                  >
                     {isActive ? '🔄 Scrolling' : '⏸️ Idle'}
                   </span>
                 </div>
@@ -96,11 +115,11 @@ export function ScrollView() {
                   Scroll Performance Demo
                 </div>
                 <p className="text-gray-600 leading-relaxed">
-                  This demo shows how throttling optimizes scroll event handling. 
-                  Without throttling, scroll events can fire hundreds of times per second, 
-                  causing performance issues.
+                  This demo shows how throttling optimizes scroll event
+                  handling. Without throttling, scroll events can fire hundreds
+                  of times per second, causing performance issues.
                 </p>
-                
+
                 {Array.from({ length: 30 }, (_, i) => (
                   <div
                     key={i}
@@ -110,14 +129,15 @@ export function ScrollView() {
                       Content Block #{i + 1}
                     </h4>
                     <p className="text-sm text-gray-600">
-                      This is sample content to create a scrollable area. 
-                      The throttling ensures smooth performance by limiting 
-                      the frequency of scroll event processing to once every 100ms.
+                      This is sample content to create a scrollable area. The
+                      throttling ensures smooth performance by limiting the
+                      frequency of scroll event processing to once every 100ms.
                     </p>
-                    
+
                     {i % 5 === 0 && (
                       <div className="mt-3 p-2 bg-yellow-100 rounded text-xs text-yellow-800">
-                        📊 Checkpoint: {scrollState.scrollTop}px scrolled, {scrollState.scrollCount} events processed
+                        📊 Checkpoint: {scrollState.scrollTop}px scrolled,{' '}
+                        {scrollState.scrollCount} events processed
                       </div>
                     )}
                   </div>
@@ -136,10 +156,11 @@ export function ScrollView() {
             >
               Reset Scroll
             </Button>
-            
+
             {scrollState.lastScrollTime && (
               <span className="text-xs text-gray-500">
-                Last scroll: {new Date(scrollState.lastScrollTime).toLocaleTimeString()}
+                Last scroll:{' '}
+                {new Date(scrollState.lastScrollTime).toLocaleTimeString()}
               </span>
             )}
           </div>
@@ -155,9 +176,10 @@ export function ScrollView() {
           <p>
             <strong className="text-gray-900">What is Throttling?</strong>
             <br />
-            Throttling limits function execution to a fixed interval. Unlike debouncing 
-            which waits for inactivity, throttling ensures the function runs at most 
-            once per time period, regardless of how many times it's called.
+            Throttling limits function execution to a fixed interval. Unlike
+            debouncing which waits for inactivity, throttling ensures the
+            function runs at most once per time period, regardless of how many
+            times it's called.
           </p>
           <p>
             <strong className="text-gray-900">Benefits:</strong>
@@ -169,10 +191,12 @@ export function ScrollView() {
             <li>Provides smooth, consistent event processing</li>
           </ul>
           <p>
-            <strong className="text-gray-900">Scroll Event Characteristics:</strong>
+            <strong className="text-gray-900">
+              Scroll Event Characteristics:
+            </strong>
             <br />
-            Scroll events can fire 60+ times per second during smooth scrolling. 
-            Throttling to 10Hz (100ms intervals) reduces this to just 10 events 
+            Scroll events can fire 60+ times per second during smooth scrolling.
+            Throttling to 10Hz (100ms intervals) reduces this to just 10 events
             per second while maintaining smooth user experience.
           </p>
         </div>
