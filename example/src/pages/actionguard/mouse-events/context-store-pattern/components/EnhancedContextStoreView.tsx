@@ -461,14 +461,9 @@ export function EnhancedContextStoreView() {
           )}
           
           {/* High-performance real-time path visualization */}
-          {(realTimePath.length > 1 || movement.path.length > 1) && (
+          {(realTimePath.length > 1 || clicks.history.length > 1) && (
             <svg className="absolute inset-0 w-full h-full pointer-events-none">
               <defs>
-                <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="rgba(16, 185, 129, 0.9)" />
-                  <stop offset="50%" stopColor="rgba(20, 184, 166, 0.7)" />
-                  <stop offset="100%" stopColor="rgba(59, 130, 246, 0.5)" />
-                </linearGradient>
                 <linearGradient id="realtimePathGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stopColor="rgba(16, 185, 129, 1.0)" />
                   <stop offset="50%" stopColor="rgba(20, 184, 166, 0.8)" />
@@ -488,22 +483,6 @@ export function EnhancedContextStoreView() {
                 </filter>
               </defs>
               
-              {/* Store-based path (background) */}
-              {movement.path.length > 1 && (
-                <path
-                  d={movement.path
-                    .filter(p => p.x !== -999 && p.y !== -999)
-                    .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
-                    .join(' ')
-                  }
-                  stroke="url(#pathGradient)"
-                  strokeWidth="2"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  opacity="0.6"
-                />
-              )}
               
               {/* Real-time path (foreground - smooth) */}
               {realTimePath.length > 1 && (
