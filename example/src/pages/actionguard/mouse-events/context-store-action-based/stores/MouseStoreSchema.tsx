@@ -1,10 +1,11 @@
 /**
- * @fileoverview Mouse Store Schema - Context Store 패턴 정의
+ * @fileoverview Mouse Store Schema - Separated Patterns 정의
  *
- * Context Store 패턴으로 마우스 이벤트 상태 관리
+ * Action Only + Store Only 패턴으로 마우스 이벤트 상태 관리
  */
 
-import { createActionContextPattern } from '@context-action/react';
+import React from 'react';
+import { createActionContext, createDeclarativeStorePattern } from '@context-action/react';
 
 // ================================
 // 📊 기본 타입 정의
@@ -64,7 +65,6 @@ export interface MouseActions {
   mouseLeave: { position: MousePosition; timestamp: number };
   moveEnd: { position: MousePosition; timestamp: number };
   reset: void;
-  [key: string]: any;
 }
 
 // ================================
@@ -156,11 +156,22 @@ export function computeHasActivity(
 }
 
 // ================================
-// 🏪 Action Context Pattern 생성
+// 🏪 Separated Patterns 생성
 // ================================
 
-const MouseActionContext = createActionContextPattern<MouseActions>('Mouse', {
-  debug: process.env.NODE_ENV === 'development',
+const MouseActionContext = createActionContext<MouseActions>({
+  name: 'Mouse-actions',
+});
+
+const MouseStoreContext = createDeclarativeStorePattern('Mouse-stores', {
+  'mouseState': {
+    initialValue: initialMouseState,
+    strategy: 'shallow',
+    debug: process.env.NODE_ENV === 'development',
+    description: 'Mouse state store with shallow comparison',
+    tags: ['mouse', 'events', 'state'],
+    version: '1.0.0',
+  },
 });
 
 // ================================
@@ -169,8 +180,21 @@ const MouseActionContext = createActionContextPattern<MouseActions>('Mouse', {
 
 export const {
   Provider: MouseActionProvider,
-  useStore: useMouseStore,
-  useAction: useMouseActionDispatch,
+  useActionDispatch: useMouseActionDispatch,
   useActionHandler: useMouseActionHandler,
-  withProvider: withMouseActionProvider,
 } = MouseActionContext;
+
+export const {
+  Provider: MouseStoreProvider,
+  useStore: useMouseStore,
+  useStoreManager: useMouseStoreManager,
+} = MouseStoreContext;
+
+// Combined Provider wrapper for convenience
+export const MouseProvider = ({ children, registryId }: { children: React.ReactNode; registryId?: string }) => (
+  <MouseActionProvider>
+    <MouseStoreProvider registryId={registryId}>
+      {children}
+    </MouseStoreProvider>
+  </MouseActionProvider>
+);

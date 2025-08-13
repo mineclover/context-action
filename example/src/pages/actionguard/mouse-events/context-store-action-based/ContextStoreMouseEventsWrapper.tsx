@@ -6,7 +6,7 @@
 
 import { memo } from 'react';
 import { ContextStoreMouseEventsContainer } from './containers/ContextStoreMouseEventsContainer';
-import { MouseActionProvider } from './stores/MouseStoreSchema';
+import { MouseProvider } from './stores/MouseStoreSchema';
 
 /**
  * Context Store Provider들과 함께 마우스 이벤트 컴포넌트를 래핑
@@ -18,9 +18,9 @@ const ContextStoreMouseEventsWrapperComponent = () => {
   );
 
   return (
-    <MouseActionProvider registryId="context-store-mouse-events">
+    <MouseProvider registryId="context-store-mouse-events">
       <ContextStoreMouseEventsContainer />
-    </MouseActionProvider>
+    </MouseProvider>
   );
 };
 

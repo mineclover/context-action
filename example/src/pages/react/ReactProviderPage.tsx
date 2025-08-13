@@ -1,6 +1,7 @@
 import {
   type ActionPayloadMap,
-  createActionContextPattern,
+  createActionContext,
+  createDeclarativeStorePattern,
   useStoreValue,
 } from '@context-action/react';
 import type React from 'react';
@@ -20,15 +21,21 @@ interface ProviderActions extends ActionPayloadMap {
   logActivity: { activity: string };
 }
 
-// 통합 Action Context Pattern 생성 - Provider Pattern 데모용
-const ProviderContext =
-  createActionContextPattern<ProviderActions>('ReactProviderDemo');
+// Action Only + Store Only 패턴 생성 - Provider Pattern 데모용
+const ProviderActions = createActionContext<ProviderActions>({
+  name: 'ReactProviderDemo-actions'
+});
+const ProviderStores = createDeclarativeStorePattern('ReactProviderDemo-stores', {
+  'counter': { initialValue: 0 },
+  'message': { initialValue: 'Hello from Provider!' },
+  'activities': { initialValue: [] as string[] }
+});
 
-// 카운터 컴포넌트 - 통합 패턴 사용
+// 카운터 컴포넌트 - Store Only + Action Only 패턴 사용
 function CounterComponent() {
-  const counterStore = ProviderContext.useStore('counter', 0);
+  const counterStore = ProviderStores.useStore('counter');
   const count = useStoreValue(counterStore);
-  const dispatch = ProviderContext.useAction();
+  const dispatch = ProviderActions.useActionDispatch();
   const { logAction } = useActionLoggerWithToast();
 
   const handleIncrement = useCallback(() => {
@@ -84,15 +91,12 @@ function CounterComponent() {
   );
 }
 
-// 메시지 컴포넌트 - 통합 패턴 사용
+// 메시지 컴포넌트 - Store Only + Action Only 패턴 사용
 function MessageComponent() {
-  const messageStore = ProviderContext.useStore(
-    'message',
-    'Hello from Provider!'
-  );
+  const messageStore = ProviderStores.useStore('message');
   const message = useStoreValue(messageStore);
   const [inputValue, setInputValue] = useState('');
-  const dispatch = ProviderContext.useAction();
+  const dispatch = ProviderActions.useActionDispatch();
   const { logAction } = useActionLoggerWithToast();
 
   const handleSubmit = useCallback(
@@ -163,11 +167,11 @@ function MessageComponent() {
   );
 }
 
-// 액티비티 로거 컴포넌트 - 통합 패턴 사용
+// 액티비티 로거 컴포넌트 - Store Only + Action Only 패턴 사용
 function ActivityLogger() {
-  const activitiesStore = ProviderContext.useStore<string[]>('activities', []);
+  const activitiesStore = ProviderStores.useStore('activities');
   const activities = useStoreValue(activitiesStore);
-  const dispatch = ProviderContext.useAction();
+  const dispatch = ProviderActions.useActionDispatch();
   const { logAction } = useActionLoggerWithToast();
 
   const logCustomActivity = useCallback(() => {
@@ -244,14 +248,11 @@ function ActivityLogger() {
   );
 }
 
-// 스토어 모니터 컴포넌트 - 통합 패턴 사용
+// 스토어 모니터 컴포넌트 - Store Only + Action Only 패턴 사용
 function StoreMonitor() {
-  const counterStore = ProviderContext.useStore('counter', 0);
-  const messageStore = ProviderContext.useStore(
-    'message',
-    'Welcome to React Provider Demo'
-  );
-  const activitiesStore = ProviderContext.useStore<string[]>('activities', []);
+  const counterStore = ProviderStores.useStore('counter');
+  const messageStore = ProviderStores.useStore('message');
+  const activitiesStore = ProviderStores.useStore('activities');
 
   const counter = useStoreValue(counterStore);
   const message = useStoreValue(messageStore);
@@ -333,37 +334,34 @@ function StoreMonitor() {
   );
 }
 
-// 액션 핸들러 설정 컴포넌트 - 통합 패턴 사용
+// 액션 핸들러 설정 컴포넌트 - Store Only + Action Only 패턴 사용
 function ActionHandlerSetup() {
-  const counterStore = ProviderContext.useStore('counter', 0);
-  const messageStore = ProviderContext.useStore(
-    'message',
-    'Welcome to React Provider Demo'
-  );
-  const activitiesStore = ProviderContext.useStore<string[]>('activities', []);
+  const counterStore = ProviderStores.useStore('counter');
+  const messageStore = ProviderStores.useStore('message');
+  const activitiesStore = ProviderStores.useStore('activities');
 
   // 카운터 업데이트 핸들러
-  ProviderContext.useActionHandler('updateCounter', ({ value }) => {
+  ProviderActions.useActionHandler('updateCounter', ({ value }) => {
     counterStore.setValue(value);
   });
 
   // 카운터 리셋 핸들러
-  ProviderContext.useActionHandler('resetCounter', () => {
+  ProviderActions.useActionHandler('resetCounter', () => {
     counterStore.setValue(0);
   });
 
   // 메시지 업데이트 핸들러
-  ProviderContext.useActionHandler('updateMessage', ({ text }) => {
+  ProviderActions.useActionHandler('updateMessage', ({ text }) => {
     messageStore.setValue(text);
   });
 
   // 메시지 리셋 핸들러
-  ProviderContext.useActionHandler('resetMessage', () => {
+  ProviderActions.useActionHandler('resetMessage', () => {
     messageStore.setValue('Hello from Provider!');
   });
 
   // 액티비티 로깅 핸들러
-  ProviderContext.useActionHandler('logActivity', ({ activity }) => {
+  ProviderActions.useActionHandler('logActivity', ({ activity }) => {
     const timestamp = new Date().toLocaleTimeString();
     const logEntry = `${timestamp}: ${activity}`;
     activitiesStore.update((prev) => [...prev, logEntry]);
@@ -438,7 +436,7 @@ function ProviderApp() {
         <Card>
           <CardContent className="p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              📖 Unified Provider Usage Guide
+              📖 Separated Provider Usage Guide
             </h3>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
@@ -447,11 +445,11 @@ function ProviderApp() {
                 </span>
                 <div>
                   <div className="font-medium text-gray-900">
-                    Create Context Pattern
+                    Create Separated Patterns
                   </div>
                   <div className="text-sm text-gray-600">
-                    const MyContext =
-                    createActionContextPattern&lt;Actions&gt;('MyApp')
+                    const MyActions = createActionContext&lt;Actions&gt;(...);<br/>
+                    const MyStores = createDeclarativeStorePattern(...);
                   </div>
                 </div>
               </div>
@@ -464,7 +462,7 @@ function ProviderApp() {
                     Wrap with Provider
                   </div>
                   <div className="text-sm text-gray-600">
-                    &lt;MyContext.Provider registryId="app"&gt;
+                    &lt;MyActions.Provider&gt;&lt;MyStores.Provider&gt;
                   </div>
                 </div>
               </div>
@@ -477,8 +475,8 @@ function ProviderApp() {
                     Use Integrated Hooks
                   </div>
                   <div className="text-sm text-gray-600">
-                    MyContext.useStore(), MyContext.useAction(),
-                    MyContext.useActionHandler()
+                    MyStores.useStore(), MyActions.useActionDispatch(),
+                    MyActions.useActionHandler()
                   </div>
                 </div>
               </div>
@@ -511,50 +509,60 @@ function ReactProviderPage() {
     >
       <div className="page-container">
         <header className="page-header">
-          <h1>Unified Provider Pattern Demo</h1>
+          <h1>Separated Provider Pattern Demo</h1>
           <p className="page-description">
-            Experience the new Unified Provider Pattern that combines Store and
-            Action management in a single Provider. This demo shows complete
-            integration with the Logger Monitor and demonstrates modern
-            Context-Action framework usage.
+            Experience the separated Action Only + Store Only patterns that provide
+            clear separation of concerns. This demo shows complete integration
+            with the Logger Monitor and demonstrates modern Context-Action
+            framework usage.
           </p>
         </header>
 
-        {/* 통합 Provider 패턴 사용 */}
-        <ProviderContext.Provider registryId="react-provider-demo">
-          <ProviderApp />
-        </ProviderContext.Provider>
+        {/* Store Only + Action Only Provider 패턴 사용 */}
+        <ProviderActions.Provider>
+          <ProviderStores.Provider registryId="react-provider-demo">
+            <ProviderApp />
+          </ProviderStores.Provider>
+        </ProviderActions.Provider>
 
         {/* 코드 예제 */}
         <Card className="mt-6">
           <CardContent className="p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              💻 Unified Provider Pattern Code
+              💻 Separated Provider Pattern Code
             </h3>
             <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
-              {`// 1. Create Unified Context Pattern
-const ProviderContext = createActionContextPattern<ProviderActions>('ReactProviderDemo');
+              {`// 1. Create Separated Patterns
+const ProviderActions = createActionContext<ProviderActions>({
+  name: 'ReactProviderDemo-actions'
+});
+const ProviderStores = createDeclarativeStorePattern('ReactProviderDemo-stores', {
+  'counter': { initialValue: 0 },
+  'message': { initialValue: 'Hello from Provider!' }
+});
 
-// 2. Simple Provider Wrapping
+// 2. Nested Provider Wrapping
 function App() {
   return (
-    <ProviderContext.Provider registryId="react-provider-demo">
-      <MyApp />
-    </ProviderContext.Provider>
+    <ProviderActions.Provider>
+      <ProviderStores.Provider registryId="react-provider-demo">
+        <MyApp />
+      </ProviderStores.Provider>
+    </ProviderActions.Provider>
   );
 }
 
-// 3. Integrated Store & Action Usage
+// 3. Separated Store & Action Usage
 function MyComponent() {
   // Store management
-  const counterStore = ProviderContext.useStore('counter', 0);
+  const counterStore = ProviderStores.useStore('counter');
   const count = useStoreValue(counterStore); // Type-safe!
   
   // Action dispatching
-  const dispatch = ProviderContext.useAction();
+  const dispatch = ProviderActions.useActionDispatch();
   
   // Action handling
-  ProviderContext.useActionHandler('updateCounter', ({ value }) => {
+  ProviderActions.useActionHandler('updateCounter', ({ value }) => {
     counterStore.setValue(value);
   });
   
@@ -600,14 +608,14 @@ function MyComponent() {
 
               <div className="p-4 bg-green-50 rounded border border-green-200">
                 <h4 className="font-semibold text-green-900 mb-3">
-                  ✅ Unified Pattern
+                  ✅ Separated Pattern
                 </h4>
                 <div className="space-y-2 text-sm text-green-800">
-                  <div>• Single integrated provider</div>
-                  <div>• Automatic action register setup</div>
-                  <div>• Simple, clean configuration</div>
+                  <div>• Clear separation of concerns</div>
+                  <div>• Independent action and store management</div>
+                  <div>• Flexible configuration</div>
                   <div>• Guaranteed type safety</div>
-                  <div>• Built-in logger integration</div>
+                  <div>• Improved maintainability</div>
                 </div>
               </div>
             </div>
