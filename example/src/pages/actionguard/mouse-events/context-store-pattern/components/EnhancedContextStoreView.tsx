@@ -14,8 +14,10 @@ export function EnhancedContextStoreView() {
   const [showDetails, setShowDetails] = useState(false);
   const [animationSpeed, setAnimationSpeed] = useState(1);
   const [realTimePosition, setRealTimePosition] = useState({ x: -999, y: -999 });
+  const [realTimePath, setRealTimePath] = useState<Array<{ x: number; y: number }>>([]);
   const throttleTimeoutRef = useRef<number>();
   const animationFrameRef = useRef<number>();
+  const pathSvgRef = useRef<SVGPathElement>(null);
 
   // Access individual stores using the Context Store Pattern
   const positionStore = useMouseEventsStore('position');
@@ -46,6 +48,7 @@ export function EnhancedContextStoreView() {
     // Real-time cursor update (no throttling)
     setRealTimePosition({ x, y });
     
+    
     // Update cursor position with GPU acceleration
     if (cursorRef.current) {
       cursorRef.current.style.transform = `translate(${x - 8}px, ${y - 8}px)`;
@@ -55,6 +58,27 @@ export function EnhancedContextStoreView() {
     if (coordinatesRef.current && showDetails) {
       coordinatesRef.current.textContent = `(${x}, ${y})`;
       coordinatesRef.current.style.transform = `translate(${x + 16}px, ${y - 32}px)`;
+    }
+    
+    // Update path SVG in real-time using requestAnimationFrame for better performance
+    if (pathSvgRef.current) {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      
+      animationFrameRef.current = requestAnimationFrame(() => {
+        if (pathSvgRef.current) {
+          // Use functional update to get latest path
+          setRealTimePath(currentPath => {
+            const newPath = [...currentPath, { x, y }].slice(-50);
+            const pathData = newPath
+              .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
+              .join(' ');
+            pathSvgRef.current!.setAttribute('d', pathData);
+            return newPath;
+          });
+        }
+      });
     }
     
     // Throttled store updates to prevent performance issues
@@ -99,8 +123,9 @@ export function EnhancedContextStoreView() {
     const y = Math.round(e.clientY - rect.top);
     const timestamp = Date.now();
     
-    // Initialize real-time position
+    // Initialize real-time position and path
     setRealTimePosition({ x, y });
+    setRealTimePath([{ x, y }]);
     
     // Show cursor immediately
     if (cursorRef.current) {
@@ -130,6 +155,9 @@ export function EnhancedContextStoreView() {
       coordinatesRef.current.style.opacity = '0';
     }
     
+    // Clear real-time path
+    setRealTimePath([]);
+    
     // Clear any pending throttled updates
     if (throttleTimeoutRef.current) {
       clearTimeout(throttleTimeoutRef.current);
@@ -139,6 +167,15 @@ export function EnhancedContextStoreView() {
   }, [dispatch]);
 
   const handleReset = useCallback(() => {
+    // Clear real-time data
+    setRealTimePosition({ x: -999, y: -999 });
+    setRealTimePath([]);
+    
+    // Clear path SVG
+    if (pathSvgRef.current) {
+      pathSvgRef.current.setAttribute('d', '');
+    }
+    
     dispatch('resetMouseState');
   }, [dispatch]);
 
@@ -412,17 +449,22 @@ export function EnhancedContextStoreView() {
             </>
           )}
           
-          {/* Enhanced path visualization */}
-          {movement.path.length > 1 && (
+          {/* High-performance real-time path visualization */}
+          {(realTimePath.length > 1 || movement.path.length > 1) && (
             <svg className="absolute inset-0 w-full h-full pointer-events-none">
               <defs>
                 <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="rgba(16, 185, 129, 0.8)" />
-                  <stop offset="50%" stopColor="rgba(20, 184, 166, 0.6)" />
-                  <stop offset="100%" stopColor="rgba(59, 130, 246, 0.4)" />
+                  <stop offset="0%" stopColor="rgba(16, 185, 129, 0.9)" />
+                  <stop offset="50%" stopColor="rgba(20, 184, 166, 0.7)" />
+                  <stop offset="100%" stopColor="rgba(59, 130, 246, 0.5)" />
+                </linearGradient>
+                <linearGradient id="realtimePathGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="rgba(16, 185, 129, 1.0)" />
+                  <stop offset="50%" stopColor="rgba(20, 184, 166, 0.8)" />
+                  <stop offset="100%" stopColor="rgba(59, 130, 246, 0.6)" />
                 </linearGradient>
                 <filter id="glow">
-                  <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                  <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
                   <feMerge> 
                     <feMergeNode in="coloredBlur"/>
                     <feMergeNode in="SourceGraphic"/> 
@@ -430,25 +472,44 @@ export function EnhancedContextStoreView() {
                 </filter>
               </defs>
               
-              {/* Path with gradient and glow */}
-              <path
-                d={movement.path
-                  .filter(p => p.x !== -999 && p.y !== -999)
-                  .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
-                  .join(' ')
-                }
-                stroke="url(#pathGradient)"
-                strokeWidth="3"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                filter="url(#glow)"
-                style={{
-                  animation: `pathDraw ${2 / animationSpeed}s ease-in-out`,
-                }}
-              />
+              {/* Store-based path (background) */}
+              {movement.path.length > 1 && (
+                <path
+                  d={movement.path
+                    .filter(p => p.x !== -999 && p.y !== -999)
+                    .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
+                    .join(' ')
+                  }
+                  stroke="url(#pathGradient)"
+                  strokeWidth="2"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  opacity="0.6"
+                />
+              )}
               
-              {/* Path points */}
+              {/* Real-time path (foreground - smooth) */}
+              {realTimePath.length > 1 && isHovered && (
+                <path
+                  ref={pathSvgRef}
+                  d={realTimePath
+                    .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
+                    .join(' ')
+                  }
+                  stroke="url(#realtimePathGradient)"
+                  strokeWidth="3"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  filter="url(#glow)"
+                  style={{
+                    transition: 'none', // No transition for real-time updates
+                  }}
+                />
+              )}
+              
+              {/* Path points (store-based for consistency) */}
               {showDetails && movement.path
                 .filter(p => p.x !== -999 && p.y !== -999)
                 .slice(-10) // Show last 10 points
