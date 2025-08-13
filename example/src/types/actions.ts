@@ -30,9 +30,9 @@ export interface AppActions extends ActionPayloadMap {
 
   // === CONCURRENT ACTION TEST ACTIONS ===
   // Actions for testing simultaneous execution and abort functionality
-  longRunningTaskA: { taskId: string; duration: number };
-  longRunningTaskB: { taskId: string; duration: number };
-  longRunningTaskC: { taskId: string; duration: number };
+  longRunningTaskA: { taskId: string; duration: number; abortController?: AbortController };
+  longRunningTaskB: { taskId: string; duration: number; abortController?: AbortController };
+  longRunningTaskC: { taskId: string; duration: number; abortController?: AbortController };
 
   // Data processing actions
   processDataSet: { dataSetId: string; chunkSize: number };
@@ -44,7 +44,7 @@ export interface AppActions extends ActionPayloadMap {
   networkRequest: { endpoint: string; params: Record<string, unknown> };
 
   // Additional actions for examples
-  quickTask: { taskId: string; duration: number };
+  quickTask: { taskId: string; duration: number; abortController?: AbortController };
   processLargeDataSet: { dataSetId: string; chunkSize: number };
 
   // Background job actions
