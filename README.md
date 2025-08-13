@@ -49,12 +49,12 @@ npm install @context-action/react
 ```
 
 **Features:**
-- 🎯 **Action Context Pattern**: Unified action + store management with complete domain isolation
+- 🏪 **Store Only Pattern**: Pure state management with reactive subscriptions
+- 🎯 **Action Only Pattern**: Pure action dispatching with pipeline management
+- 🔗 **Unified Interface**: Optional Action Context Pattern combining both patterns
 - 🪝 **Domain-Specific Hooks**: Declarative hook exports for type-safe, intuitive APIs
-- 🏪 **Store Integration**: 3-step store integration pattern with reactive subscriptions
 - 🏗️ **HOC Pattern**: `withProvider()` and `withCustomProvider()` for automatic component wrapping
 - 🔄 **Cross-Context Coordination**: Controlled communication between domain contexts
-- 💾 **State Management**: Multiple patterns for different use cases (Action Context, Store Only, Action Only)
 
 ### [@context-action/logger](./packages/logger)
 
@@ -146,52 +146,7 @@ pnpm release:major  # Bump major version and publish
 
 ## 🚀 Quick Start
 
-### 🎯 Action Context Pattern (Recommended)
-
-The primary pattern for most applications that need both actions and state management:
-
-```typescript
-import { createActionContextPattern } from '@context-action/react';
-import { ActionPayloadMap } from '@context-action/core';
-
-// 1. Define your action types
-interface UserActions extends ActionPayloadMap {
-  updateUser: { id: string; name: string };
-  deleteUser: { id: string };
-  resetUser: void;
-}
-
-// 2. Create Action Context Pattern with unified management
-const UserContext = createActionContextPattern<UserActions>('User');
-
-// 3. Use declarative hook exports for type-safe access
-const useUserStore = UserContext.useStore;
-const useUserAction = UserContext.useAction;
-const useUserActionHandler = UserContext.useActionHandler;
-
-// 4. Create self-contained component with HOC
-const withUserContext = UserContext.withProvider('user-module');
-
-const UserProfile = withUserContext(() => {
-  const userStore = useUserStore('current-user', { name: '', email: '' });
-  const user = useStoreValue(userStore);
-  const dispatch = useUserAction();
-  
-  // Register handler using hook
-  useUserActionHandler('updateUser', useCallback(async (payload) => {
-    userStore.setValue({ ...user, ...payload });
-  }, [user, userStore]));
-  
-  return <div>Welcome, {user.name}!</div>;
-});
-
-// 5. Use anywhere without manual Provider wrapping
-function App() {
-  return <UserProfile />;
-}
-```
-
-### 🏪 Store Only Pattern
+### 🏪 Store Only Pattern (Core Pattern)
 
 For pure state management without action dispatching:
 
@@ -214,20 +169,40 @@ function App() {
     </AppStoreProvider>
   );
 }
+
+function UserComponent() {
+  const userStore = useAppStore('user');
+  const user = useStoreValue(userStore);
+  
+  return <div>User: {user.name}</div>;
+}
 ```
 
-### 🎯 Action Only Pattern
+### 🎯 Action Only Pattern (Core Pattern)
 
 For pure action dispatching without state management:
 
 ```typescript
 import { createActionContext } from '@context-action/react';
+import { ActionPayloadMap } from '@context-action/core';
+
+interface EventActions extends ActionPayloadMap {
+  trackEvent: { event: string; data: any };
+}
 
 const {
   Provider: EventActionProvider,
   useActionDispatch: useEventAction,
   useActionHandler: useEventActionHandler
 } = createActionContext<EventActions>('Events');
+
+function App() {
+  return (
+    <EventActionProvider>
+      <EventComponent />
+    </EventActionProvider>
+  );
+}
 
 function EventComponent() {
   const dispatch = useEventAction();
@@ -240,6 +215,44 @@ function EventComponent() {
     Track Event
   </button>;
 }
+```
+
+### 🔗 Action Context Pattern (Unified Interface)
+
+Optional unified interface combining Store Only Pattern + Action Only Pattern:
+
+```typescript
+import { createActionContextPattern } from '@context-action/react';
+import { ActionPayloadMap } from '@context-action/core';
+
+// Note: Consider using Store Only + Action Only patterns separately
+// This unified interface may be removed in future versions
+
+interface UserActions extends ActionPayloadMap {
+  updateUser: { id: string; name: string };
+  deleteUser: { id: string };
+  resetUser: void;
+}
+
+const UserContext = createActionContextPattern<UserActions>('User');
+
+const useUserStore = UserContext.useStore;
+const useUserAction = UserContext.useAction;
+const useUserActionHandler = UserContext.useActionHandler;
+
+const withUserContext = UserContext.withProvider('user-module');
+
+const UserProfile = withUserContext(() => {
+  const userStore = useUserStore('current-user', { name: '', email: '' });
+  const user = useStoreValue(userStore);
+  const dispatch = useUserAction();
+  
+  useUserActionHandler('updateUser', useCallback(async (payload) => {
+    userStore.setValue({ ...user, ...payload });
+  }, [user, userStore]));
+  
+  return <div>Welcome, {user.name}!</div>;
+});
 ```
 
 ## 🏗️ Architecture
@@ -263,6 +276,8 @@ Each context manages its corresponding documentation and deliverables:
 
 ### Key Architectural Patterns
 
+- **Store Only Pattern**: Pure state management with reactive subscriptions and domain isolation
+- **Action Only Pattern**: Pure action dispatching with centralized pipeline processing
 - **Action Pipeline System**: All user interactions dispatch actions to a central `ActionRegister` which processes handlers by priority
 - **Store Integration Pattern**: 3-step process (read current state → execute business logic → update stores)
 - **MVVM Architecture**: Clear separation between View (React components), ViewModel (Action pipeline), and Model (Store system)
