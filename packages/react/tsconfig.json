@@ -11,7 +11,7 @@
     "removeComments": true,
     "preserveSymlinks": true,
     "skipLibCheck": true,
-    
+    "types": ["react", "node"]
   },
   "include": ["src/**/*"],
   "exclude": ["dist", "node_modules", "**/*.test.*", "**/*.spec.*"],
