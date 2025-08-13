@@ -1,12 +1,33 @@
-# Context Action Monorepo
+# Context-Action Framework
 
-A TypeScript library ecosystem for type-safe action pipeline management with React integration and enhanced state management capabilities.
+A revolutionary TypeScript state management system designed to overcome the fundamental limitations of existing libraries through **document-centric context separation** and **effective artifact management**.
+
+## 🎯 Core Philosophy
+
+The Context-Action framework addresses critical issues in modern state management:
+
+### Problems with Existing Libraries
+- **High React Coupling**: Tight integration makes component modularization and props handling difficult
+- **Binary State Approach**: Simple global/local state dichotomy fails to handle specific scope-based separation  
+- **Inadequate Handler/Trigger Management**: Poor support for complex interactions and business logic processing
+
+### Context-Action's Solution
+- **Document-Artifact Centered Design**: Context separation based on document themes and deliverable management
+- **Perfect Separation of Concerns**: 
+  - View design in isolation → Design Context
+  - Development architecture in isolation → Architecture Context  
+  - Business logic in isolation → Business Context
+  - Data validation in isolation → Validation Context
+- **Clear Boundaries**: Implementation results maintain distinct, well-defined domain boundaries
+- **Effective Document-Artifact Management**: State management library that actively supports the relationship between documentation and deliverables
+
+The framework implements an **MVVM-inspired architecture** with clear separation between View (React components), ViewModel (Action pipeline), and Model (Store system) layers, all organized around **context-driven domain isolation**.
 
 ## 📦 Packages
 
 ### [@context-action/core](./packages/core)
 
-The foundational library providing type-safe action pipeline management.
+Core action pipeline management with no React dependencies.
 
 ```bash
 npm install @context-action/core
@@ -14,37 +35,38 @@ npm install @context-action/core
 
 **Features:**
 - 🔒 **Type-safe**: Full TypeScript support with strict type checking
-- ⚡ **Pipeline System**: Chain multiple handlers with priority control
-- 🔄 **Async Support**: Handle both sync and async operations
-- 🛡️ **Error Handling**: Built-in error handling and abort mechanisms
+- ⚡ **Action Pipeline System**: Centralized action processing with priority-based handler execution
+- 🔄 **Async Support**: Handle both sync and async operations seamlessly
+- 🛡️ **Error Handling**: Built-in error handling and abort mechanisms with pipeline controller
 - 📊 **Trace Logging**: Advanced debugging with configurable trace logging
 
 ### [@context-action/react](./packages/react)
 
-React integration with Context API and hooks for seamless state management.
+React integration with Context API, hooks, and advanced store system for complete MVVM architecture.
 
 ```bash
 npm install @context-action/react
 ```
 
 **Features:**
-- 🎯 **Context Integration**: Seamless React Context integration
-- 🪝 **Advanced Hooks**: Comprehensive hook collection for state management
-- 🏪 **Store System**: Flexible store architecture with MVVM pattern support
-- 🔄 **State Synchronization**: Multi-store synchronization capabilities
-- 💾 **Persistence**: Built-in state persistence with customizable strategies
+- 🎯 **Action Context Pattern**: Unified action + store management with complete domain isolation
+- 🪝 **Domain-Specific Hooks**: Declarative hook exports for type-safe, intuitive APIs
+- 🏪 **Store Integration**: 3-step store integration pattern with reactive subscriptions
+- 🏗️ **HOC Pattern**: `withProvider()` and `withCustomProvider()` for automatic component wrapping
+- 🔄 **Cross-Context Coordination**: Controlled communication between domain contexts
+- 💾 **State Management**: Multiple patterns for different use cases (Action Context, Store Only, Action Only)
 
 ### [@context-action/logger](./packages/logger)
 
-Lightweight logging utility with trace capabilities for debugging.
+Lightweight logging utilities with trace capabilities for debugging and monitoring.
 
 ### [@context-action/jotai](./packages/jotai)
 
-Jotai integration for atom-based state management with action pipelines.
+Jotai integration for atom-based state management with action pipeline coordination.
 
 ### [@context-action/glossary](./packages/glossary)
 
-TypeScript glossary tool for documentation generation and term management.
+Documentation tools for TypeScript glossary management and term organization.
 
 ## 🏗️ Development Setup
 
@@ -124,72 +146,127 @@ pnpm release:major  # Bump major version and publish
 
 ## 🚀 Quick Start
 
-1. **Install the packages:**
-   ```bash
-   # Core package only
-   npm install @context-action/core
-   
-   # With React integration
-   npm install @context-action/core @context-action/react
-   ```
+### 🎯 Action Context Pattern (Recommended)
 
-2. **Define your action types:**
-   ```typescript
-   import { ActionPayloadMap } from '@context-action/core';
+The primary pattern for most applications that need both actions and state management:
 
-   interface AppActions extends ActionPayloadMap {
-     increment: void;
-     setCount: number;
-     reset: void;
-   }
-   ```
+```typescript
+import { createActionContextPattern } from '@context-action/react';
+import { ActionPayloadMap } from '@context-action/core';
 
-3. **Create action context with React:**
-   ```typescript
-   import { createActionContext } from '@context-action/react';
+// 1. Define your action types
+interface UserActions extends ActionPayloadMap {
+  updateUser: { id: string; name: string };
+  deleteUser: { id: string };
+  resetUser: void;
+}
 
-   const { Provider, useAction, useActionHandler } = createActionContext<AppActions>();
-   ```
+// 2. Create Action Context Pattern with unified management
+const UserContext = createActionContextPattern<UserActions>('User');
 
-4. **Use in your components:**
-   ```typescript
-   function Counter() {
-     const [count, setCount] = useState(0);
-     const dispatch = useAction();
+// 3. Use declarative hook exports for type-safe access
+const useUserStore = UserContext.useStore;
+const useUserAction = UserContext.useAction;
+const useUserActionHandler = UserContext.useActionHandler;
 
-     useActionHandler('increment', () => setCount(prev => prev + 1));
-     useActionHandler('setCount', (value) => setCount(value));
+// 4. Create self-contained component with HOC
+const withUserContext = UserContext.withProvider('user-module');
 
-     return (
-       <div>
-         <p>Count: {count}</p>
-         <button onClick={() => dispatch('increment')}>+1</button>
-         <button onClick={() => dispatch('setCount', 10)}>Set to 10</button>
-       </div>
-     );
-   }
-   ```
+const UserProfile = withUserContext(() => {
+  const userStore = useUserStore('current-user', { name: '', email: '' });
+  const user = useStoreValue(userStore);
+  const dispatch = useUserAction();
+  
+  // Register handler using hook
+  useUserActionHandler('updateUser', useCallback(async (payload) => {
+    userStore.setValue({ ...user, ...payload });
+  }, [user, userStore]));
+  
+  return <div>Welcome, {user.name}!</div>;
+});
 
-5. **Advanced: Use with Store System:**
-   ```typescript
-   import { createStore, StoreProvider, useStore } from '@context-action/react/store';
+// 5. Use anywhere without manual Provider wrapping
+function App() {
+  return <UserProfile />;
+}
+```
 
-   const counterStore = createStore({
-     state: { count: 0 },
-     actions: {
-       increment: (state) => ({ count: state.count + 1 }),
-       setCount: (state, payload: number) => ({ count: payload })
-     }
-   });
+### 🏪 Store Only Pattern
 
-   function App() {
-     return (
-       <StoreProvider stores={{ counter: counterStore }}>
-         <Counter />
-       </StoreProvider>
-     );
-   }
-   ```
+For pure state management without action dispatching:
+
+```typescript
+import { createDeclarativeStorePattern } from '@context-action/react';
+
+const {
+  Provider: AppStoreProvider,
+  useStore: useAppStore,
+  useStoreManager: useAppStoreManager
+} = createDeclarativeStorePattern('App', {
+  user: { initialValue: { name: '', email: '' } },
+  settings: { initialValue: { theme: 'light' } }
+});
+
+function App() {
+  return (
+    <AppStoreProvider>
+      <UserComponent />
+    </AppStoreProvider>
+  );
+}
+```
+
+### 🎯 Action Only Pattern
+
+For pure action dispatching without state management:
+
+```typescript
+import { createActionContext } from '@context-action/react';
+
+const {
+  Provider: EventActionProvider,
+  useActionDispatch: useEventAction,
+  useActionHandler: useEventActionHandler
+} = createActionContext<EventActions>('Events');
+
+function EventComponent() {
+  const dispatch = useEventAction();
+  
+  useEventActionHandler('trackEvent', async (payload) => {
+    await analytics.track(payload.event, payload.data);
+  });
+  
+  return <button onClick={() => dispatch('trackEvent', { event: 'click', data: {} })}>
+    Track Event
+  </button>;
+}
+```
+
+## 🏗️ Architecture
+
+### Context Separation Strategy
+
+#### Domain-Based Context Architecture
+- **Business Context**: Business logic, data processing, and domain rules
+- **UI Context**: Screen state, user interactions, and component behavior
+- **Validation Context**: Data validation, form processing, and error handling
+- **Design Context**: Theme management, styling, layout, and visual states
+- **Architecture Context**: System configuration, infrastructure, and technical decisions
+
+#### Document-Based Context Design
+Each context manages its corresponding documentation and deliverables:
+- **Design Documentation** → Design Context (themes, component specifications, style guides)
+- **Business Requirements** → Business Context (workflows, rules, domain logic)
+- **Architecture Documents** → Architecture Context (system design, technical decisions)
+- **Validation Specifications** → Validation Context (rules, schemas, error handling)
+- **UI Specifications** → UI Context (interactions, state management, user flows)
+
+### Key Architectural Patterns
+
+- **Action Pipeline System**: All user interactions dispatch actions to a central `ActionRegister` which processes handlers by priority
+- **Store Integration Pattern**: 3-step process (read current state → execute business logic → update stores)
+- **MVVM Architecture**: Clear separation between View (React components), ViewModel (Action pipeline), and Model (Store system)
+- **Domain Isolation**: Complete context boundaries with controlled cross-context communication
 
 ## 📁 Project Structure
 
@@ -197,30 +274,25 @@ pnpm release:major  # Bump major version and publish
 context-action/
 ├── packages/
 │   ├── core/                   # Core action pipeline management
-│   │   ├── src/
-│   │   │   ├── ActionRegister.ts
-│   │   │   ├── types.ts
-│   │   │   └── index.ts
-│   │   └── tsdown.config.ts
-│   ├── react/                  # React integration and store system
-│   │   ├── src/
-│   │   │   ├── ActionContext.tsx
-│   │   │   ├── ActionProvider.tsx
-│   │   │   ├── store/          # Advanced store management
-│   │   │   │   ├── Store.ts
-│   │   │   │   ├── hooks/
-│   │   │   │   └── utils.ts
-│   │   │   └── index.ts
-│   │   └── tsdown.config.ts
-│   ├── logger/                 # Logging utilities
-│   ├── jotai/                  # Jotai integration
-│   └── glossary/               # Documentation tools
-├── docs/                       # Documentation site (VitePress)
-├── lerna.json                  # Lerna configuration
-├── pnpm-workspace.yaml         # pnpm workspace configuration
-├── .npmrc                      # pnpm configuration for Lerna
-├── package.json                # Root package.json
-└── tsconfig.json              # TypeScript configuration
+│   │   └── src/
+│   │       ├── ActionRegister.ts    # Central action processing
+│   │       ├── types.ts             # Type definitions
+│   │       └── index.ts
+│   ├── react/                  # React integration with MVVM architecture
+│   │   └── src/
+│   │       ├── ActionProvider.tsx               # React context integration
+│   │       ├── store/                           # Advanced store system
+│   │       │   ├── context-store-pattern.tsx   # Context Store Pattern with HOC
+│   │       │   ├── hooks/                       # Store management hooks
+│   │       │   └── Store.ts                     # Store implementation
+│   │       └── index.ts
+│   ├── logger/                 # Logging utilities with trace capabilities
+│   ├── jotai/                  # Jotai integration for atom-based state management
+│   └── glossary/               # Documentation tools for TypeScript glossary
+├── example/                    # Comprehensive example application
+├── docs/                       # VitePress documentation site
+├── .github/workflows/          # CI/CD and GitHub Pages deployment
+└── scripts/                    # Build and utility scripts
 ```
 
 ## 🛠️ Technology Stack
@@ -251,6 +323,7 @@ Apache-2.0 © [mineclover](https://github.com/mineclover)
 ## 🔗 Links
 
 - [📚 Documentation](https://mineclover.github.io/context-action/) - Complete documentation and API reference
+- [🎮 Live Example](https://mineclover.github.io/context-action-example/) - Interactive example application
 - [Core Package](./packages/core) - @context-action/core (Pure TypeScript)
 - [React Package](./packages/react) - @context-action/react (React integration)
 - [Logger Package](./packages/logger) - @context-action/logger (Logging utilities)
