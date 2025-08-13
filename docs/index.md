@@ -15,12 +15,12 @@ features:
   - icon: 🇰🇷
     title: 한국어
     details: 한국어로 문서를 확인하세요
-    link: /ko/guide/getting-started
+    link: /ko/guide/overview
     linkText: 한국어 문서 보기
   - icon: 🇺🇸  
     title: English
     details: View documentation in English
-    link: /en/guide/getting-started
+    link: /en/guide/overview
     linkText: View English Documentation
 ---
 
@@ -55,16 +55,16 @@ onMounted(() => {
   if (autoRedirect) {
     const userLang = navigator.language || navigator.languages[0]
     if (userLang.startsWith('ko')) {
-      window.location.href = '/context-action/ko/guide/getting-started'
+      window.location.href = '/context-action/ko/guide/overview'
     } else {
-      window.location.href = '/context-action/en/guide/getting-started'
+      window.location.href = '/context-action/en/guide/overview'
     }
   }
   
   // 언어 선택 클릭 이벤트 처리
   document.querySelectorAll('.VPFeature').forEach((feature, index) => {
     feature.addEventListener('click', () => {
-      const links = ['/context-action/ko/guide/getting-started', '/context-action/en/guide/getting-started']
+      const links = ['/context-action/ko/guide/overview', '/context-action/en/guide/overview']
       window.location.href = links[index]
     })
   })
