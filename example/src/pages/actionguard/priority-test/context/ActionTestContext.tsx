@@ -1,8 +1,7 @@
 import type { ActionPayloadMap } from '@context-action/core';
 import {
   createActionContext,
-  createDeclarativeStores,
-  type StoreSchema,
+  createDeclarativeStorePattern,
 } from '@context-action/react';
 import type React from 'react';
 
@@ -51,24 +50,18 @@ export const usePriorityActionContext: () => any =
 export const PriorityTestActionContext: React.Context<any> =
   PriorityTestAction.context;
 
-// Priority Test Stores 타입 정의
-interface PriorityTestStores {
-  priorityCounts: Record<number, number>;
-  executionState: ExecutionStateData;
-}
-
-// Store 스키마 정의
-const priorityTestSchema: StoreSchema<PriorityTestStores> = {
+// Stores 인스턴스 생성 - 새로운 패턴으로 자동 타입 추론
+const PriorityStores = createDeclarativeStorePattern('PriorityTestManager', {
   priorityCounts: {
-    initialValue: {},
+    initialValue: {} as Record<number, number>,
     description: 'Priority execution counts',
-    tags: ['priority', 'testing'],
+    strategy: 'shallow',
   },
   executionState: {
     initialValue: {
       isRunning: false,
-      testResults: [],
-      currentTestId: null,
+      testResults: [] as string[],
+      currentTestId: null as string | null,
       totalTests: 0,
       successfulTests: 0,
       failedTests: 0,
@@ -78,31 +71,17 @@ const priorityTestSchema: StoreSchema<PriorityTestStores> = {
       maxExecutionTime: 0,
       minExecutionTime: Number.MAX_VALUE,
       startTime: 0,
-      executionTimes: [],
+      executionTimes: [] as number[],
     },
     description: 'Test execution state and statistics',
-    tags: ['execution', 'statistics', 'testing'],
+    strategy: 'shallow',
   },
-};
+});
 
-// Stores 인스턴스 생성 (컨텍스트별로 고유)
-const PriorityStores = createDeclarativeStores(
-  'PriorityTestManager',
-  priorityTestSchema
-);
-
-// Provider 타입을 명시적으로 선언
+// Provider 타입을 명시적으로 선언 - 새로운 패턴
 export const PriorityTestProvider: React.FC<{
   children: React.ReactNode;
-  registryId?: string;
 }> = PriorityStores.Provider;
 
-// 나머지 exports
+// 나머지 exports - 새로운 패턴
 export const usePriorityTestStore = PriorityStores.useStore;
-export const PriorityTestStoreContext: React.Context<any> =
-  PriorityStores.RegistryContext;
-export const usePriorityTestStores = PriorityStores.useStores;
-export const usePriorityTestRegistryInfo = PriorityStores.useRegistryInfo;
-
-// Legacy exports (deprecated)
-export const usePriorityTestRegistry = PriorityStores.useRegistry;

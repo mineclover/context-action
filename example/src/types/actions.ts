@@ -41,6 +41,11 @@ export interface AppActions extends ActionPayloadMap {
   // API simulation actions
   apiCallPrimary: { endpoint: string; params: Record<string, unknown> };
   apiCallSecondary: { endpoint: string; params: Record<string, unknown> };
+  networkRequest: { endpoint: string; params: Record<string, unknown> };
+
+  // Additional actions for examples
+  quickTask: { taskId: string; duration: number };
+  processLargeDataSet: { dataSetId: string; chunkSize: number };
 
   // Background job actions
   backgroundJob: { jobId: string; jobType: string; priority: number };

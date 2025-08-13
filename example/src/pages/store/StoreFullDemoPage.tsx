@@ -153,7 +153,7 @@ function StoreFullDemoPage() {
         </Card>
 
         {/* Demo Content */}
-        <StoreScenarios.Provider registryId="store-full-demo">
+        <StoreScenarios.Provider>
           {showAllDemos ? (
             <div className="space-y-6">
               <UserProfileDemo />

@@ -1,63 +1,40 @@
 /**
  * Declarative Store Pattern Examples
  * 
- * Action Registry 패턴과 일치하는 선언적 Store 관리 예시들입니다.
+ * 선언적 Store Pattern v2의 관리 예시들입니다.
  * 
  * @module store/declarative-examples
  * @since 2.0.0
  */
 
 import React from 'react';
-import { createDeclarativeStores, type StoreSchema } from './declarative-store-registry';
+import { createDeclarativeStorePattern, type StoreConfig } from './declarative-store-pattern-v2';
 import { useStoreValue } from '../hooks/useStoreValue';
 
 /**
  * Example 1: User Management Stores
  * 
- * 사용자 관리를 위한 타입 안전한 Store 스키마 정의
+ * 사용자 관리를 위한 타입 안전한 Store 패턴 정의
  */
-interface UserStores {
-  profile: {
-    id: string;
-    name: string;
-    email: string;
-    avatar?: string;
-  };
-  preferences: {
-    theme: 'light' | 'dark';
-    language: 'ko' | 'en';
-    notifications: boolean;
-  };
-  session: {
-    isLoggedIn: boolean;
-    token?: string;
-    lastActivity: number;
-  };
-}
 
-const userStoreSchema: StoreSchema<UserStores> = {
+// 선언적 Store 패턴 생성 - 자동 타입 추론
+export const UserStores = createDeclarativeStorePattern('User', {
   profile: {
     initialValue: { id: '', name: '', email: '' },
     description: 'User profile information',
-    tags: ['user', 'profile'],
     strategy: 'shallow'
   },
   preferences: {
-    initialValue: { theme: 'light', language: 'ko', notifications: true },
+    initialValue: { theme: 'light' as 'light' | 'dark', language: 'ko' as 'ko' | 'en', notifications: true },
     description: 'User preferences and settings',
-    tags: ['user', 'settings'],
     strategy: 'shallow'
   },
   session: {
     initialValue: { isLoggedIn: false, lastActivity: Date.now() },
     description: 'User session state',
-    tags: ['user', 'session'],
     strategy: 'reference'
   }
-};
-
-// 선언적 Store 패턴 생성 - Action Registry와 동일한 패턴
-export const UserStores = createDeclarativeStores('User', userStoreSchema);
+});
 
 /**
  * User Profile Component
@@ -85,54 +62,38 @@ export const UserProfile: React.FC = () => {
 /**
  * Example 2: E-commerce Stores
  * 
- * 전자상거래 애플리케이션을 위한 복합 Store 스키마
+ * 전자상거래 애플리케이션을 위한 복합 Store 패턴
  */
-interface ShoppingStores {
-  products: Array<{
-    id: string;
-    name: string;
-    price: number;
-    category: string;
-    inStock: boolean;
-  }>;
-  cart: {
-    items: Array<{ productId: string; quantity: number; price: number }>;
-    total: number;
-    shipping: number;
-  };
-  checkout: {
-    step: 'cart' | 'shipping' | 'payment' | 'complete';
-    shippingAddress?: {
-      street: string;
-      city: string;
-      zipCode: string;
-    };
-    paymentMethod?: 'card' | 'paypal' | 'bank';
-  };
-}
 
-const shoppingStoreSchema: StoreSchema<ShoppingStores> = {
+export const ShoppingStores = createDeclarativeStorePattern('Shopping', {
   products: {
-    initialValue: [],
+    initialValue: [] as Array<{
+      id: string;
+      name: string;
+      price: number;
+      category: string;
+      inStock: boolean;
+    }>,
     description: 'Product catalog',
-    tags: ['shopping', 'products'],
     strategy: 'deep'
   },
   cart: {
-    initialValue: { items: [], total: 0, shipping: 0 },
+    initialValue: {
+      items: [] as Array<{ productId: string; quantity: number; price: number }>,
+      total: 0,
+      shipping: 0
+    },
     description: 'Shopping cart state',
-    tags: ['shopping', 'cart'],
     strategy: 'shallow'
   },
   checkout: {
-    initialValue: { step: 'cart' },
+    initialValue: {
+      step: 'cart' as 'cart' | 'shipping' | 'payment' | 'complete'
+    },
     description: 'Checkout process state',
-    tags: ['shopping', 'checkout'],
     strategy: 'shallow'
   }
-};
-
-export const ShoppingStores = createDeclarativeStores('Shopping', shoppingStoreSchema);
+});
 
 /**
  * Shopping Cart Component with HOC Pattern
@@ -170,59 +131,45 @@ const ShoppingCartComponent: React.FC = () => {
 };
 
 // HOC를 사용한 자동 Provider 래핑
-export const ShoppingCart = ShoppingStores.withProvider('main-cart')(ShoppingCartComponent);
+export const ShoppingCart = ShoppingStores.withProvider(ShoppingCartComponent, { displayName: 'ShoppingCartWithProviders' });
+
+// 독립적인 인스턴스는 registryId로 구분
+// 예: <ShoppingStores.Provider registryId="cart-1"> 형태로 사용
 
 /**
  * Example 3: Dashboard Analytics Stores
  * 
- * 대시보드 분석을 위한 성능 최적화된 Store 스키마
+ * 대시보드 분석을 위한 성능 최적화된 Store 패턴
  */
-interface DashboardStores {
-  metrics: {
-    views: number;
-    users: number;
-    revenue: number;
-    conversions: number;
-  };
-  filters: {
-    dateRange: { start: Date; end: Date };
-    category?: string;
-    region?: string;
-  };
-  charts: {
-    loading: boolean;
-    data: Array<{ date: string; value: number }>;
-    error?: string;
-  };
-}
 
-const dashboardStoreSchema: StoreSchema<DashboardStores> = {
+export const DashboardStores = createDeclarativeStorePattern('Dashboard', {
   metrics: {
     initialValue: { views: 0, users: 0, revenue: 0, conversions: 0 },
     description: 'Analytics metrics',
-    tags: ['dashboard', 'metrics', 'analytics'],
     strategy: 'reference' // 성능 최적화
   },
   filters: {
-    initialValue: () => ({
+    initialValue: {
       dateRange: {
         start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7일 전
         end: new Date()
-      }
-    }),
+      },
+      category: undefined as string | undefined,
+      region: undefined as string | undefined
+    },
     description: 'Dashboard filter settings',
-    tags: ['dashboard', 'filters'],
     strategy: 'shallow'
   },
   charts: {
-    initialValue: { loading: false, data: [] },
+    initialValue: { 
+      loading: false, 
+      data: [] as Array<{ date: string; value: number }>,
+      error: undefined as string | undefined
+    },
     description: 'Chart data and loading state',
-    tags: ['dashboard', 'charts'],
     strategy: 'shallow'
   }
-};
-
-export const DashboardStores = createDeclarativeStores('Dashboard', dashboardStoreSchema);
+});
 
 /**
  * Analytics Dashboard Component
@@ -237,16 +184,8 @@ const AnalyticsDashboardComponent: React.FC = () => {
   const filters = useStoreValue(filtersStore);
   const charts = useStoreValue(chartsStore);
 
-  // Registry 정보 확인 (디버깅용)
-  const registryInfo = DashboardStores.useRegistryInfo();
-  const { initializeAll, isInitialized } = DashboardStores.useRegistryActions();
-
-  React.useEffect(() => {
-    // 모든 Store 미리 초기화 (성능 최적화)
-    if (registryInfo.initializedStores < registryInfo.totalStores) {
-      initializeAll();
-    }
-  }, [initializeAll, registryInfo]);
+  // Note: useRegistryInfo and useRegistryActions are not available in the new pattern
+  // Store initialization is handled automatically
 
   return (
     <div className="analytics-dashboard">
@@ -275,67 +214,64 @@ const AnalyticsDashboardComponent: React.FC = () => {
         )}
       </div>
 
-      {/* Registry 디버그 정보 */}
+      {/* Debug info simplified in new pattern */}
       {process.env.NODE_ENV === 'development' && (
         <div className="debug-info">
-          <h3>Registry Info</h3>
-          <p>Registry: {registryInfo.name}</p>
-          <p>Initialized: {registryInfo.initializedStores}/{registryInfo.totalStores}</p>
-          <p>Metrics initialized: {isInitialized('metrics') ? 'Yes' : 'No'}</p>
+          <h3>Store Pattern Info</h3>
+          <p>Pattern: Declarative Store Pattern v2</p>
+          <p>Auto-initialization: Enabled</p>
         </div>
       )}
     </div>
   );
 };
 
-// ActionProvider와 함께 사용하는 HOC 패턴
-export const AnalyticsDashboard = DashboardStores.withCustomProvider(
-  ({ children }) => (
-    // ActionProvider나 다른 Provider와 함께 조합 가능
-    <div className="dashboard-wrapper">
-      {children}
-    </div>
-  ),
-  'analytics-main'
-)(AnalyticsDashboardComponent);
+// 고급 패턴 - 수동 Provider 조합
+const DashboardWithProviders: React.FC = () => {
+  return (
+    <DashboardStores.Provider>
+      <div className="dashboard-wrapper">
+        <AnalyticsDashboardComponent />
+      </div>
+    </DashboardStores.Provider>
+  );
+};
+
+export const AnalyticsDashboard = DashboardWithProviders;
+
+// 간단한 HOC 패턴도 여전히 지원
+export const SimpleAnalyticsDashboard = DashboardStores.withProvider(AnalyticsDashboardComponent, { displayName: 'AnalyticsDashboardSimple' });
 
 /**
  * Example 4: Type-Safe Store Access Pattern
  * 
- * 컴파일타임 타입 체크 예시
+ * 컴파일타입 타입 체크 예시 - 새로운 패턴
  */
 export const TypeSafetyExample: React.FC = () => {
-  const userStores = UserStores.useRegistry();
-  const registryInfo = UserStores.useRegistryInfo();
+  // 새로운 패턴에서는 더 간단한 접근
+  const profileStore = UserStores.useStore('profile');
+  const profile = useStoreValue(profileStore);
 
   return (
     <div>
-      <h2>Type Safety Demonstration</h2>
+      <h2>Type Safety Demonstration - New Pattern</h2>
       
       {/* ✅ 타입 안전한 접근 */}
       <div>
-        Available stores: {registryInfo.availableStores.join(', ')}
+        Available stores: profile, preferences, session
       </div>
       
-      {/* ✅ 스키마 기반 접근 */}
+      {/* ✅ 자동 타입 추론 */}
       <div>
-        Profile store schema: {JSON.stringify(userStores.getStoreSchema('profile'), null, 2)}
+        Profile data: {JSON.stringify(profile, null, 2)}
       </div>
       
-      {/* ❌ 컴파일 에러: 'invalid' 스토어는 스키마에 정의되지 않음 */}
+      {/* ❌ 컴파일 에러: 'invalid' 스토어는 정의되지 않음 */}
       {/* const invalidStore = UserStores.useStore('invalid'); */}
       
-      {/* ✅ 런타임 에러 방지: 스키마에 없는 Store 접근 시 명확한 에러 메시지 */}
-      <button onClick={() => {
-        try {
-          // @ts-ignore - 런타임 테스트용
-          userStores.getStore('nonexistent');
-        } catch (error) {
-          console.error('Expected error:', error instanceof Error ? error.message : error);
-        }
-      }}>
-        Test Runtime Error Handling
-      </button>
+      <div>
+        Pattern: Declarative Store Pattern v2 with automatic type inference
+      </div>
     </div>
   );
 };

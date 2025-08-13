@@ -38,9 +38,9 @@ export type StoreSchema<T extends Record<string, any>> = InitialStores<T>;
  * Internal Registry Manager
  */
 class StoreManager<T extends Record<string, any>> {
-  private registry: StoreRegistry;
-  private initialStores: InitialStores<T>;
-  private stores = new Map<keyof T, Store<any>>();
+  public readonly registry: StoreRegistry;
+  public readonly initialStores: InitialStores<T>;
+  public readonly stores = new Map<keyof T, Store<any>>();
 
   constructor(
     public readonly name: string,
@@ -170,13 +170,20 @@ export function createDeclarativeStorePattern<T extends Record<string, any>>(
   const StoreContext = createContext<StoreContextValue<T> | null>(null);
 
   /**
-   * Provider component
+   * Provider component with optional registry isolation
    */
-  function Provider({ children }: { children: ReactNode }) {
+  function Provider({ 
+    children, 
+    registryId 
+  }: { 
+    children: ReactNode;
+    registryId?: string;
+  }) {
+    const effectiveRegistryId = registryId || contextName;
     const managerRef = useRef<StoreManager<T> | null>(null);
     
     if (!managerRef.current) {
-      managerRef.current = new StoreManager(contextName, initialStores);
+      managerRef.current = new StoreManager(effectiveRegistryId, initialStores);
     }
     
     return (
@@ -262,7 +269,7 @@ export function createDeclarativeStorePattern<T extends Record<string, any>>(
   }
 
 
-  // Return the public API - minimal and focused
+  // Return the public API - focused and clean
   return {
     // Core
     Provider,
@@ -273,7 +280,7 @@ export function createDeclarativeStorePattern<T extends Record<string, any>>(
     useStoreInfo,
     useStoreClear,
     
-    // HOC pattern
+    // HOC patterns
     withProvider,
     
     // Metadata

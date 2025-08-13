@@ -8,8 +8,7 @@
 import type { ActionPayloadMap } from '@context-action/core';
 import {
   createActionContext,
-  createDeclarativeStores,
-  type StoreSchema,
+  createDeclarativeStorePattern,
 } from '@context-action/react';
 import type React from 'react';
 
@@ -33,14 +32,8 @@ export interface PriorityPerformanceStateData {
   instances: TestInstance[];
 }
 
-/**
- * 우선순위 성능 테스트 스토어 스키마
- */
-interface PriorityPerformanceStores {
-  performanceState: PriorityPerformanceStateData;
-}
-
-const priorityPerformanceStoreSchema: StoreSchema<PriorityPerformanceStores> = {
+// 새로운 패턴으로 변경 - 자동 타입 추론
+const PriorityPerformanceStores = createDeclarativeStorePattern('PriorityPerformanceStoreManager', {
   performanceState: {
     initialValue: {
       instances: [
@@ -51,7 +44,7 @@ const priorityPerformanceStoreSchema: StoreSchema<PriorityPerformanceStores> = {
     description: 'Priority performance test state with multiple instances',
     tags: ['priority', 'performance', 'testing', 'instances'],
   },
-};
+});
 
 // ================================
 // ⚡ Action Layer - 액션 정의
@@ -83,24 +76,20 @@ export const PriorityPerformanceActionContext = createActionContext<PriorityPerf
 });
 
 // Store Context 생성
-const PriorityPerformanceStoreContext = createDeclarativeStores(
-  'PriorityPerformanceStoreManager',
-  priorityPerformanceStoreSchema
-);
+// Store Context는 이미 PriorityPerformanceStores로 생성됨
 
 // Providers
 export const PriorityPerformanceActionProvider: React.FC<{ children: React.ReactNode }> = PriorityPerformanceActionContext.Provider;
-export const PriorityPerformanceStoreProvider: React.FC<{ children: React.ReactNode; registryId?: string }> = PriorityPerformanceStoreContext.Provider;
+export const PriorityPerformanceStoreProvider: React.FC<{ children: React.ReactNode }> = PriorityPerformanceStores.Provider;
 
 // Hooks export
 export const usePriorityPerformanceActionDispatch = PriorityPerformanceActionContext.useActionDispatch;
 export const usePriorityPerformanceActionHandler = PriorityPerformanceActionContext.useActionHandler;
-export const usePriorityPerformanceStore = PriorityPerformanceStoreContext.useStore;
-export const usePriorityPerformanceStores = PriorityPerformanceStoreContext.useStores;
+export const usePriorityPerformanceStore = PriorityPerformanceStores.useStore;
 
 // Legacy exports (deprecated)
 export const usePriorityPerformanceActionRegister = PriorityPerformanceActionContext.useActionRegister;
-export const usePriorityPerformanceRegistry = PriorityPerformanceStoreContext.useRegistry;
+// usePriorityPerformanceRegistry removed - not needed in new pattern
 
 /**
  * 통합 Provider
@@ -109,7 +98,7 @@ export const usePriorityPerformanceRegistry = PriorityPerformanceStoreContext.us
  */
 export const PriorityPerformanceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <PriorityPerformanceStoreProvider registryId="priority-performance-page">
+    <PriorityPerformanceStoreProvider>
       <PriorityPerformanceActionProvider>
         {children}
       </PriorityPerformanceActionProvider>

@@ -30,12 +30,12 @@ export * from './utils';
 // Common imports expected from the main store module
 
 // Primary factory functions
-export { createDeclarativeStores, createDeclarativeStorePattern } from './patterns';
+export { createDeclarativeStorePattern, createDeclarativeStores } from './patterns';
 
 // Declarative Store Pattern types
 export type {
-  StoreSchema,
-  StoreConfig
+  StoreConfig,
+  StoreSchema
 } from './patterns';
 
 // Core types

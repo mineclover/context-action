@@ -8,8 +8,7 @@
 import type { ActionPayloadMap } from '@context-action/core';
 import {
   createActionContext,
-  createDeclarativeStores,
-  type StoreSchema,
+  createDeclarativeStorePattern,
 } from '@context-action/react';
 import type React from 'react';
 
@@ -57,7 +56,8 @@ interface ApiBlockingStores {
   blockingState: ApiBlockingStateData;
 }
 
-const apiBlockingStoreSchema: StoreSchema<ApiBlockingStores> = {
+// 새로운 패턴으로 변경 - 자동 타입 추론
+const ApiBlockingStores = createDeclarativeStorePattern('ApiBlockingStoreManager', {
   blockingState: {
     initialValue: {
       apiCalls: [],
@@ -70,9 +70,9 @@ const apiBlockingStoreSchema: StoreSchema<ApiBlockingStores> = {
       lastCallTime: null,
     },
     description: 'API blocking state management',
-    tags: ['api', 'blocking', 'performance'],
+    strategy: 'shallow',
   },
-};
+});
 
 // ================================
 // ⚡ Action Layer - 액션 정의
@@ -136,24 +136,20 @@ export const ApiBlockingActionContext = createActionContext<ApiBlockingActions>(
 });
 
 // Store Context 생성
-const ApiBlockingStoreContext = createDeclarativeStores(
-  'ApiBlockingStoreManager',
-  apiBlockingStoreSchema
-);
+// Store Context는 이미 ApiBlockingStores로 생성됨
 
 // Providers
 export const ApiBlockingActionProvider: React.FC<{ children: React.ReactNode }> = ApiBlockingActionContext.Provider;
-export const ApiBlockingStoreProvider: React.FC<{ children: React.ReactNode; registryId?: string }> = ApiBlockingStoreContext.Provider;
+export const ApiBlockingStoreProvider: React.FC<{ children: React.ReactNode }> = ApiBlockingStores.Provider;
 
 // Hooks export
 export const useApiBlockingActionDispatch = ApiBlockingActionContext.useActionDispatch;
 export const useApiBlockingActionHandler = ApiBlockingActionContext.useActionHandler;
-export const useApiBlockingStore = ApiBlockingStoreContext.useStore;
-export const useApiBlockingStores = ApiBlockingStoreContext.useStores;
+export const useApiBlockingStore = ApiBlockingStores.useStore;
 
 // Legacy exports (deprecated)
 export const useApiBlockingActionRegister = ApiBlockingActionContext.useActionRegister;
-export const useApiBlockingRegistry = ApiBlockingStoreContext.useRegistry;
+// useApiBlockingRegistry removed - not needed in new pattern
 
 /**
  * 통합 Provider
@@ -162,7 +158,7 @@ export const useApiBlockingRegistry = ApiBlockingStoreContext.useRegistry;
  */
 export const ApiBlockingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <ApiBlockingStoreProvider registryId="api-blocking-page">
+    <ApiBlockingStoreProvider>
       <ApiBlockingActionProvider>
         {children}
       </ApiBlockingActionProvider>
