@@ -6,8 +6,8 @@ import {
   Routes,
   useLocation,
 } from 'react-router-dom';
-import ConcurrentActionTestPageWithProvider from './components/ConcurrentActionTestPage';
-import EnhancedAbortableSearchExampleWithProvider from './components/EnhancedAbortableSearchExample';
+import ConcurrentActionTestPage from './components/ConcurrentActionTestPage';
+import EnhancedAbortableSearchExample from './components/EnhancedAbortableSearchExample';
 import Layout from './components/Layout';
 import { ToastContainer, ToastControlPanel } from './components/ToastSystem';
 import ActionGuardIndexPage from './pages/actionguard/ActionGuardIndexPage';
@@ -105,11 +105,11 @@ function AppContent() {
           />
           <Route
             path="/examples/concurrent-actions"
-            element={<ConcurrentActionTestPageWithProvider />}
+            element={<ConcurrentActionTestPage />}
           />
           <Route
             path="/examples/enhanced-search"
-            element={<EnhancedAbortableSearchExampleWithProvider />}
+            element={<EnhancedAbortableSearchExample />}
           />
           <Route
             path="/unified-pattern/demo"
