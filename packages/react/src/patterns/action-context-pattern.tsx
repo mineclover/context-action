@@ -28,9 +28,9 @@ export interface ActionContextPatternConfig extends ActionRegisterConfig {
 }
 
 /**
- * Action Context 타입 - Store + Action
+ * Action Context Pattern 내부 타입 - Store + Action 통합 관리
  */
-export interface ActionContextType<T extends ActionPayloadMap = ActionPayloadMap> {
+export interface ActionContextPatternType<T extends ActionPayloadMap = ActionPayloadMap> {
   storeRegistryRef: React.RefObject<StoreRegistry>;
   actionRegisterRef: React.RefObject<ActionRegister<T>>;
 }
@@ -60,7 +60,7 @@ export interface ActionContextPatternReturn<T extends ActionPayloadMap = ActionP
   ) => void;
   
   // 통합 관리 hooks - Declarative Store 패턴과 호환
-  useContext: () => ActionContextType<T>;
+  useContext: () => ActionContextPatternType<T>;
   useRegistryInfo: () => {
     name: string;
     storeCount: number;
@@ -218,7 +218,7 @@ export function createActionContextPattern<T extends ActionPayloadMap = ActionPa
   config?: ActionContextPatternConfig
 ): ActionContextPatternReturn<T> {
   
-  const ActionContext = createContext<ActionContextType<T> | null>(null);
+  const ActionContext = createContext<ActionContextPatternType<T> | null>(null);
   
   /**
    * Provider - Store + Action 모두 제공
@@ -270,7 +270,7 @@ export function createActionContextPattern<T extends ActionPayloadMap = ActionPa
   /**
    * Context 접근 Hook
    */
-  function useActionContext(): ActionContextType<T> {
+  function useActionContext(): ActionContextPatternType<T> {
     const context = useContext(ActionContext);
     
     if (!context) {
