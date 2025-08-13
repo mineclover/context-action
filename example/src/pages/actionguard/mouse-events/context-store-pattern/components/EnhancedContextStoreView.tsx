@@ -190,6 +190,15 @@ export function EnhancedContextStoreView() {
           to { stroke-dasharray: 1000; stroke-dashoffset: 0; }
         }
         
+        @keyframes dashMove {
+          0% { stroke-dashoffset: 0; }
+          100% { stroke-dashoffset: 20; }
+        }
+        
+        .click-connection-line {
+          animation: dashMove 2s linear infinite;
+        }
+        
         /* GPU acceleration for smooth animations */
         .will-change-transform {
           will-change: transform;
@@ -202,7 +211,7 @@ export function EnhancedContextStoreView() {
         
         /* Reduce motion for accessibility */
         @media (prefers-reduced-motion: reduce) {
-          .animate-pulse, .animate-ping {
+          .animate-pulse, .animate-ping, .click-connection-line {
             animation: none;
           }
           .cursor-smooth {
@@ -465,6 +474,11 @@ export function EnhancedContextStoreView() {
                   <stop offset="50%" stopColor="rgba(20, 184, 166, 0.8)" />
                   <stop offset="100%" stopColor="rgba(59, 130, 246, 0.6)" />
                 </linearGradient>
+                <linearGradient id="clickConnectionGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="rgba(147, 51, 234, 0.8)" />
+                  <stop offset="50%" stopColor="rgba(168, 85, 247, 0.6)" />
+                  <stop offset="100%" stopColor="rgba(196, 113, 237, 0.4)" />
+                </linearGradient>
                 <filter id="glow">
                   <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
                   <feMerge> 
@@ -509,6 +523,25 @@ export function EnhancedContextStoreView() {
                     transition: 'none', // No transition for real-time updates
                     opacity: isHovered ? 1 : 0.7, // Slightly fade when not hovering but still visible
                   }}
+                />
+              )}
+              
+              {/* Click connection lines (separate from mouse movement path) */}
+              {clicks.history.length > 1 && (
+                <path
+                  className="click-connection-line"
+                  d={clicks.history
+                    .slice(0, 5) // Only connect recent 5 clicks
+                    .map((click, index) => `${index === 0 ? 'M' : 'L'} ${click.x} ${click.y}`)
+                    .join(' ')
+                  }
+                  stroke="url(#clickConnectionGradient)" // Purple gradient for click connections
+                  strokeWidth="2"
+                  strokeDasharray="8,4" // Dashed line to distinguish from mouse path
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  opacity="0.8"
                 />
               )}
               
@@ -602,8 +635,44 @@ export function EnhancedContextStoreView() {
           </div>
         </div>
         
+        {/* Visual Legend */}
+        <div className="mt-4 bg-white/90 backdrop-blur-sm rounded-lg p-4 border border-emerald-200">
+          <h4 className="font-semibold text-emerald-800 mb-3 flex items-center gap-2">
+            <span className="text-sm">🎨</span>
+            Visual Guide
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center">
+                <svg width="30" height="8" viewBox="0 0 30 8">
+                  <path d="M0 4 L30 4" stroke="url(#realtimePathGradient)" strokeWidth="3" fill="none" strokeLinecap="round" />
+                </svg>
+              </div>
+              <span className="text-emerald-700">
+                <strong>Mouse Path:</strong> Real-time movement trail
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center">
+                <svg width="30" height="8" viewBox="0 0 30 8">
+                  <path d="M0 4 L30 4" stroke="url(#clickConnectionGradient)" strokeWidth="2" strokeDasharray="8,4" fill="none" strokeLinecap="round" />
+                </svg>
+              </div>
+              <span className="text-purple-700">
+                <strong>Click Connections:</strong> Links between click points
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 bg-emerald-500 border-2 border-white rounded-full shadow-sm"></div>
+              <span className="text-emerald-700">
+                <strong>Live Cursor:</strong> Real-time position tracker
+              </span>
+            </div>
+          </div>
+        </div>
+
         {/* Enhanced status information */}
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
           <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-emerald-200">
             <h4 className="font-semibold text-emerald-800 mb-2 flex items-center gap-2">
               <span className="text-sm">🏗️</span>
