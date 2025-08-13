@@ -12,14 +12,19 @@ import React, { createContext, useContext, ReactNode, useRef } from 'react';
 import { StoreRegistry } from '../core/StoreRegistry';
 import { createStore } from '../core/Store';
 import type { Store } from '../core/Store';
+import type { ComparisonOptions } from '../utils/comparison';
 
 /**
- * Store Configuration - Simplified
+ * Store Configuration - Extended to match Pattern Guide
  */
 export interface StoreConfig<T = any> {
   initialValue: T;
   strategy?: 'reference' | 'shallow' | 'deep';
   description?: string;
+  debug?: boolean;
+  tags?: string[];
+  version?: string;
+  comparisonOptions?: Partial<ComparisonOptions<T>>;
 }
 
 /**
@@ -67,30 +72,57 @@ class StoreManager<T extends Record<string, any>> {
     let initialValue: T[K];
     let strategy: 'reference' | 'shallow' | 'deep' = 'reference';
     let description: string | undefined;
+    let debug = false;
+    let tags: string[] = ['declarative'];
+    let version: string | undefined;
+    let comparisonOptions: StoreConfig<T[K]>['comparisonOptions'];
 
     if (storeConfig && typeof storeConfig === 'object' && 'initialValue' in storeConfig) {
-      // Config object
+      // Config object with extended options
       const config = storeConfig as StoreConfig<T[K]>;
       initialValue = config.initialValue;
       strategy = config.strategy || 'reference';
       description = config.description;
+      debug = config.debug || false;
+      tags = config.tags ? ['declarative', ...config.tags] : ['declarative', strategy];
+      version = config.version;
+      comparisonOptions = config.comparisonOptions;
     } else {
       // Direct value
       initialValue = storeConfig as T[K];
+      tags = ['declarative', strategy];
     }
 
     // Create store
     const store = createStore(String(storeName), initialValue);
     
-    // Set comparison strategy
-    store.setComparisonOptions({ strategy });
+    // Set comparison strategy with extended options
+    const finalComparisonOptions = {
+      strategy,
+      ...comparisonOptions
+    };
+    store.setComparisonOptions(finalComparisonOptions);
 
-    // Register in StoreRegistry
+    // Register in StoreRegistry with extended metadata
     this.registry.register(String(storeName), store, {
       name: String(storeName),
-      tags: ['declarative', strategy],
-      description: description || `Store: ${String(storeName)}`
+      tags,
+      description: description || `Store: ${String(storeName)}`,
+      version,
+      debug
     });
+
+    // Debug logging if enabled
+    if (debug && process.env.NODE_ENV === 'development') {
+      console.log(`🏪 Declarative store created: ${String(storeName)}`, {
+        strategy,
+        tags,
+        version,
+        description,
+        hasCustomComparison: !!comparisonOptions?.customComparator,
+        ignoreKeys: comparisonOptions?.ignoreKeys
+      });
+    }
 
     // Cache the store
     this.stores.set(storeName, store);

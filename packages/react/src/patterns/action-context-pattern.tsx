@@ -14,8 +14,8 @@ import { ActionPayloadMap, ActionRegister, ActionHandler, HandlerConfig, ActionR
 import { LogLevel } from '@context-action/logger';
 import { StoreRegistry } from '../stores/core/StoreRegistry';
 import { createStore } from '../stores/core/Store';
-import type { ComparisonOptions } from '../stores/utils/comparison';
 import type { StoreConfig } from '../stores/patterns/declarative-store-pattern-v2';
+import type { ComparisonOptions } from '../stores/utils/comparison';
 
 /**
  * Action Context 설정 옵션
@@ -95,6 +95,9 @@ function getOrCreateRegistryStore<T>(
     strategy?: 'reference' | 'shallow' | 'deep';
     debug?: boolean;
     description?: string;
+    tags?: string[];
+    version?: string;
+    comparisonOptions?: Partial<ComparisonOptions<T>>;
   },
   registry: StoreRegistry
 ): { store: ReturnType<typeof createStore<T>>; wasCreated: boolean } {
@@ -103,7 +106,10 @@ function getOrCreateRegistryStore<T>(
     initialValue, 
     strategy = 'reference', 
     debug = false, 
-    description
+    description,
+    tags,
+    version,
+    comparisonOptions
   } = options;
   
   // Check if store already exists in registry
@@ -121,21 +127,34 @@ function getOrCreateRegistryStore<T>(
   // Create new store
   const store = createStore(storeName, initialValue);
   
-  // Set comparison options - Declarative Store Pattern 호환
-  store.setComparisonOptions({ strategy });
+  // Set comparison options with extended configuration
+  const finalComparisonOptions = {
+    strategy,
+    ...comparisonOptions
+  };
+  store.setComparisonOptions(finalComparisonOptions);
   
-  // Register store with metadata
+  // Prepare extended metadata
+  const finalTags = tags ? ['action-context', ...tags] : ['action-context', strategy];
+  
+  // Register store with extended metadata
   registry.register(storeName, store, {
     name: storeName,
-    tags: ['action-context', strategy],
-    description: description ?? `Action Context store: ${storeName} with ${strategy} comparison`
+    tags: finalTags,
+    description: description ?? `Action Context store: ${storeName} with ${strategy} comparison`,
+    version,
+    debug
   });
   
   if (debug && process.env.NODE_ENV === 'development') {
     console.log(`🏪 Action Context store created: ${storeName}`, {
       strategy,
       registryName: registry.name,
-      description
+      description,
+      tags: finalTags,
+      version,
+      hasCustomComparison: !!comparisonOptions?.customComparator,
+      ignoreKeys: comparisonOptions?.ignoreKeys
     });
   }
   
@@ -307,13 +326,15 @@ export function createActionContextPattern<T extends ActionPayloadMap = ActionPa
   ): ReturnType<typeof createStore<V>> {
     const registry = useStoreRegistry();
     
-    // Declarative Store Config에서 옵션 추출
+    // Declarative Store Config에서 확장된 옵션 추출
     const {
       strategy = 'reference',
-      description
+      description,
+      debug = process.env.NODE_ENV === 'development',
+      tags,
+      version,
+      comparisonOptions
     } = options;
-    
-    const debug = process.env.NODE_ENV === 'development';
     
     // 초기값 해결
     const resolvedInitialValue = typeof initialValue === 'function' 
@@ -335,7 +356,10 @@ export function createActionContextPattern<T extends ActionPayloadMap = ActionPa
       initialValue: resolvedInitialValue,
       strategy,
       debug,
-      description
+      description,
+      tags,
+      version,
+      comparisonOptions
     }, registry);
     
     // Store가 제대로 생성되었는지 검증
@@ -406,7 +430,7 @@ export function createActionContextPattern<T extends ActionPayloadMap = ActionPa
    * Registry 정보 조회 Hook - Declarative Store 호환
    */
   function useRegistryInfo() {
-    const { storeRegistryRef, actionRegisterRef } = useActionContext();
+    const { storeRegistryRef } = useActionContext();
     
     if (!storeRegistryRef.current) {
       throw new Error('StoreRegistry is not initialized');

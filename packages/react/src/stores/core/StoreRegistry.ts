@@ -8,6 +8,8 @@ export interface StoreMetadata {
   name: string;
   tags?: string[];
   description?: string;
+  version?: string;
+  debug?: boolean;
 }
 
 /**
