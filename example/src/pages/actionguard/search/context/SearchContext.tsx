@@ -126,29 +126,9 @@ const SearchProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ childr
  */
 
 /**
- * 기본 HOC - Store만 제공
+ * HOC - Component를 SearchStores.Provider로 래핑
  */
 export const withSearchStore = SearchStores.withProvider;
-
-/**
- * 고급 HOC - Store + Action 모두 제공  
- */
-export const withSearchProviders = SearchStores.withProvider;
-
-/**
- * 다중 인스턴스 HOC - registryId를 사용한 방식
- */
-export const createSearchHOC = (instanceId: string) => {
-  return SearchStores.withProvider(
-    undefined,
-    { displayName: `SearchHOC_${instanceId}`, registryId: instanceId }
-  );
-};
-
-/**
- * Enhanced Provider - HOC 패턴 지원
- */
-export const EnhancedSearchProvider = SearchStores.withProvider;
 
 /**
  * 통합 Provider - Enhanced with new capabilities

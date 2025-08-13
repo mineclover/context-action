@@ -79,12 +79,6 @@ export interface ActionContextPatternReturn<T extends ActionPayloadMap = ActionP
   withProvider: (registryId?: string) => <P extends {}>(
     WrappedComponent: React.ComponentType<P>
   ) => React.FC<P>;
-  withCustomProvider: (
-    wrapperComponent: React.ComponentType<{ children: ReactNode }>,
-    registryId?: string
-  ) => <P extends {}>(
-    WrappedComponent: React.ComponentType<P>
-  ) => React.FC<P>;
   
   // Context 정보
   contextName: string;
@@ -475,32 +469,6 @@ export function createActionContextPattern<T extends ActionPayloadMap = ActionPa
     };
   }
   
-  /**
-   * HOC factory that combines Action Context Provider with custom providers
-   * Declarative Store Pattern 호환
-   */
-  function withCustomProvider(
-    wrapperComponent: React.ComponentType<{ children: ReactNode }>,
-    registryId?: string
-  ) {
-    return function <P extends {}>(
-      WrappedComponent: React.ComponentType<P>
-    ): React.FC<P> {
-      const WrapperComponent = wrapperComponent;
-      
-      const WithCustomProvider = (props: P) => (
-        <Provider registryId={registryId}>
-          <WrapperComponent>
-            <WrappedComponent {...props} />
-          </WrapperComponent>
-        </Provider>
-      );
-      
-      WithCustomProvider.displayName = `with${contextName}ActionCustomProvider(${WrappedComponent.displayName || WrappedComponent.name})`;
-      
-      return WithCustomProvider;
-    };
-  }
   
   return {
     // Provider 컴포넌트
@@ -522,7 +490,6 @@ export function createActionContextPattern<T extends ActionPayloadMap = ActionPa
     
     // HOC patterns - Declarative Store 호환
     withProvider,
-    withCustomProvider, // 새로 추가
     
     // Context 정보
     contextName

@@ -145,29 +145,9 @@ const ScrollProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ childr
  */
 
 /**
- * 기본 HOC - Store만 제공
+ * HOC - Component를 ScrollStores.Provider로 래핑
  */
 export const withScrollStore = ScrollStores.withProvider;
-
-/**
- * 고급 HOC - Store + Action 모두 제공  
- */
-export const withScrollProviders = ScrollStores.withProvider;
-
-/**
- * 다중 인스턴스 HOC - registryId를 사용한 방식
- */
-export const createScrollHOC = (instanceId: string) => {
-  return ScrollStores.withProvider(
-    undefined,
-    { displayName: `ScrollHOC_${instanceId}`, registryId: instanceId }
-  );
-};
-
-/**
- * Enhanced Provider - HOC 패턴 지원
- */
-export const EnhancedScrollProvider = ScrollStores.withProvider;
 
 /**
  * 통합 Provider - Enhanced with new capabilities
