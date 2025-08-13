@@ -1,6 +1,6 @@
 {
   "name": "@context-action/glossary",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "type": "module",
   "private": true,
   "description": "Glossary mapping system for Context-Action framework using standard JSDoc",
