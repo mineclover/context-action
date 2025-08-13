@@ -8,26 +8,26 @@ export interface MousePosition {
 }
 
 export interface MouseActions {
-  mouseMove: { 
-    position: MousePosition; 
-    timestamp: number 
+  mouseMove: {
+    position: MousePosition;
+    timestamp: number;
   };
-  mouseClick: { 
-    position: MousePosition; 
-    button: number; 
-    timestamp: number 
+  mouseClick: {
+    position: MousePosition;
+    button: number;
+    timestamp: number;
   };
-  mouseEnter: { 
-    position: MousePosition; 
-    timestamp: number 
+  mouseEnter: {
+    position: MousePosition;
+    timestamp: number;
   };
-  mouseLeave: { 
-    position: MousePosition; 
-    timestamp: number 
+  mouseLeave: {
+    position: MousePosition;
+    timestamp: number;
   };
-  moveEnd: { 
-    position: MousePosition; 
-    timestamp: number 
+  moveEnd: {
+    position: MousePosition;
+    timestamp: number;
   };
   resetMouseState: void;
 }
