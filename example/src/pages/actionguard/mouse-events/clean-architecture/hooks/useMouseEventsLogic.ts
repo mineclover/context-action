@@ -451,7 +451,7 @@ export function useMouseEventsLogic() {
           moveCount: 0,
           velocity: 0,
           path: [],
-          previous: null
+          previous: null,
         });
 
         // 클릭: 모든 상태 초기화

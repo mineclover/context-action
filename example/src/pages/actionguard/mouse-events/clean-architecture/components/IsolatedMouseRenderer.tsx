@@ -2,7 +2,7 @@
  * Isolated Mouse Renderer - Re-export from shared components
  */
 
-export { 
+export {
   IsolatedMouseRenderer,
-  type MouseRendererHandle
+  type MouseRendererHandle,
 } from '../../shared/components/IsolatedMouseRenderer';

@@ -1,18 +1,18 @@
 /**
  * Mouse Events Context - Real Context-Action Integration
- * 
+ *
  * Using @context-action/react's Action Context Pattern for complete
  * store and action management with type safety.
  */
 
-import React, { ReactNode } from 'react';
-import { 
-  createActionContextPattern,
-  ActionPayloadMap,
-  useStoreValue,
-  Store
-} from '@context-action/react';
 import { LogLevel } from '@context-action/logger';
+import {
+  ActionPayloadMap,
+  createActionContextPattern,
+  Store,
+  useStoreValue,
+} from '@context-action/react';
+import React, { ReactNode } from 'react';
 
 // ============================================================================
 // Types
@@ -62,27 +62,27 @@ export interface MouseState {
 
 export interface MouseActions extends ActionPayloadMap {
   // Mouse movement actions
-  mouseMove: { 
-    x: number; 
-    y: number; 
+  mouseMove: {
+    x: number;
+    y: number;
     timestamp: number;
   };
-  
+
   moveStart: {
     position: MousePosition;
     timestamp: number;
   };
-  
+
   moveEnd: {
     position: MousePosition;
     timestamp: number;
   };
-  
+
   updateMouseMetrics: {
     position: MousePosition;
     timestamp: number;
   };
-  
+
   // Mouse click actions
   mouseClick: {
     x: number;
@@ -90,20 +90,20 @@ export interface MouseActions extends ActionPayloadMap {
     button: number;
     timestamp: number;
   };
-  
+
   // Mouse area actions
   mouseEnter: {
     x: number;
     y: number;
     timestamp: number;
   };
-  
+
   mouseLeave: {
     x: number;
     y: number;
     timestamp: number;
   };
-  
+
   // Reset action
   resetMouseState: void;
 }
@@ -116,10 +116,13 @@ export interface MouseActions extends ActionPayloadMap {
  * Create the Mouse Events Context using Action Context Pattern
  * This provides both store management and action dispatching
  */
-const MouseEventsContext = createActionContextPattern<MouseActions>('MouseEvents', {
-  logLevel: LogLevel.ERROR, // Set to DEBUG for development
-  debug: false
-});
+const MouseEventsContext = createActionContextPattern<MouseActions>(
+  'MouseEvents',
+  {
+    logLevel: LogLevel.ERROR, // Set to DEBUG for development
+    debug: false,
+  }
+);
 
 // ============================================================================
 // Provider Component
@@ -140,10 +143,16 @@ export function MouseEventsProvider({ children }: { children: ReactNode }) {
 /**
  * Get or create a mouse events store
  */
-export function useMouseEventsStore(storeName: 'position'): Store<MousePosition>;
-export function useMouseEventsStore(storeName: 'movement'): Store<MouseMovement>;
+export function useMouseEventsStore(
+  storeName: 'position'
+): Store<MousePosition>;
+export function useMouseEventsStore(
+  storeName: 'movement'
+): Store<MouseMovement>;
 export function useMouseEventsStore(storeName: 'clicks'): Store<MouseClicks>;
-export function useMouseEventsStore(storeName: 'computed'): Store<MouseComputed>;
+export function useMouseEventsStore(
+  storeName: 'computed'
+): Store<MouseComputed>;
 export function useMouseEventsStore(storeName: 'state'): Store<MouseState>;
 export function useMouseEventsStore(storeName: string): Store<any> {
   const initialValues = {
@@ -154,11 +163,11 @@ export function useMouseEventsStore(storeName: string): Store<any> {
       moveCount: 0,
       velocity: 0,
       path: [],
-      previous: null
+      previous: null,
     },
     clicks: {
       count: 0,
-      history: []
+      history: [],
     },
     computed: {
       validPath: [],
@@ -166,20 +175,20 @@ export function useMouseEventsStore(storeName: string): Store<any> {
       averageVelocity: 0,
       totalEvents: 0,
       activityStatus: 'idle' as const,
-      hasActivity: false
+      hasActivity: false,
     },
     state: {
       current: { x: 0, y: 0 },
-      isInsideArea: false
-    }
+      isInsideArea: false,
+    },
   };
-  
+
   return MouseEventsContext.useStore(
     storeName,
     initialValues[storeName as keyof typeof initialValues] || {},
     {
       strategy: storeName === 'computed' ? 'shallow' : 'reference',
-      debug: false
+      debug: false,
     }
   );
 }
@@ -220,30 +229,30 @@ export function updateComputedValuesFromStores(
   movement: MouseMovement,
   clicks: MouseClicks
 ): MouseComputed {
-  const validPath = movement.path.filter(p => p.x !== 0 || p.y !== 0);
+  const validPath = movement.path.filter((p) => p.x !== 0 || p.y !== 0);
   const recentClickCount = clicks.history.filter(
-    c => Date.now() - c.timestamp < 5000
+    (c) => Date.now() - c.timestamp < 5000
   ).length;
-  
-  const averageVelocity = movement.path.length > 0
-    ? movement.velocity
-    : 0;
-  
+
+  const averageVelocity = movement.path.length > 0 ? movement.velocity : 0;
+
   const totalEvents = movement.moveCount + clicks.count;
-  
-  const activityStatus: 'idle' | 'active' | 'moving' = 
-    movement.isMoving ? 'moving' :
-    totalEvents > 0 ? 'active' : 'idle';
-  
+
+  const activityStatus: 'idle' | 'active' | 'moving' = movement.isMoving
+    ? 'moving'
+    : totalEvents > 0
+      ? 'active'
+      : 'idle';
+
   const hasActivity = totalEvents > 0;
-  
+
   return {
     validPath,
     recentClickCount,
     averageVelocity,
     totalEvents,
     activityStatus,
-    hasActivity
+    hasActivity,
   };
 }
 
@@ -272,7 +281,7 @@ export function aggregateMouseEventsState(
     averageVelocity: computed.averageVelocity,
     totalEvents: computed.totalEvents,
     activityStatus: computed.activityStatus,
-    hasActivity: computed.hasActivity
+    hasActivity: computed.hasActivity,
   };
 }
 
