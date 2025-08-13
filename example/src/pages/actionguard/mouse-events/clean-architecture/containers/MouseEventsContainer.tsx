@@ -1,19 +1,23 @@
 /**
  * @fileoverview Mouse Events Container - 아키텍처 레이어 조합
- * 
+ *
  * View, Controller, Service들을 조합하여 완전한 기능을 제공
  */
 
-import { useRef, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
+import {
+  CleanMouseEventsView,
+  type MouseEventHandlers,
+  type MouseViewElements,
+} from '../components/CleanMouseEventsView';
 import { MouseController } from '../controllers/MouseController';
-import { CleanMouseEventsView, type MouseEventHandlers, type MouseViewElements } from '../components/CleanMouseEventsView';
 
 /**
  * 마우스 이벤트 컨테이너 컴포넌트
  */
 export const MouseEventsContainer = () => {
   console.log('🏗️ MouseEventsContainer render at', new Date().toISOString());
-  
+
   const controllerRef = useRef<MouseController | null>(null);
   const isInitialized = useRef(false);
 
@@ -32,7 +36,7 @@ export const MouseEventsContainer = () => {
     if (!controllerRef.current || isInitialized.current) return;
 
     console.log('🔧 Initializing MouseController with elements');
-    
+
     controllerRef.current.initialize({
       renderElements: {
         cursor: elements.cursor,
@@ -59,7 +63,7 @@ export const MouseEventsContainer = () => {
     onMouseMove: useCallback((x: number, y: number) => {
       if (!controllerRef.current) return;
       controllerRef.current.handleMove({ x, y }, Date.now());
-      
+
       // 활동 상태 업데이트 (UI용)
       const setHasActivity = (window as any).__setHasActivity;
       if (setHasActivity) {
@@ -85,7 +89,7 @@ export const MouseEventsContainer = () => {
     onReset: useCallback(() => {
       if (!controllerRef.current) return;
       controllerRef.current.handleReset();
-      
+
       // 활동 상태 리셋 (UI용)
       const setHasActivity = (window as any).__setHasActivity;
       if (setHasActivity) {
@@ -95,7 +99,7 @@ export const MouseEventsContainer = () => {
   };
 
   return (
-    <CleanMouseEventsView 
+    <CleanMouseEventsView
       handlers={handlers}
       onElementsReady={handleElementsReady}
     />

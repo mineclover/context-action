@@ -157,7 +157,9 @@ export function ToastControlPanel() {
             <div className="toast-setting-group">
               <label className="toast-setting-label">
                 Max Toasts:
-                <span className="text-xs text-gray-500 ml-1">(화면에 표시될 최대 개수)</span>
+                <span className="text-xs text-gray-500 ml-1">
+                  (화면에 표시될 최대 개수)
+                </span>
               </label>
               <div className="toast-number-controls">
                 {[3, 4, 5, 6].map((num) => (
@@ -200,7 +202,12 @@ export function ToastControlPanel() {
                 onClick={() => {
                   for (let i = 0; i < 8; i++) {
                     setTimeout(() => {
-                      const types = ['info', 'success', 'error', 'system'] as const;
+                      const types = [
+                        'info',
+                        'success',
+                        'error',
+                        'system',
+                      ] as const;
                       showToast(
                         types[i % types.length],
                         `🔄 Overflow Test ${i + 1}`,

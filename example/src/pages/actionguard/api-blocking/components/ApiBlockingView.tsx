@@ -1,16 +1,22 @@
 /**
  * @fileoverview API Blocking View Component - View Layer
- * 
+ *
  * Hook을 통해 Data/Action과 연결되는 View 컴포넌트입니다.
  */
 
 import React from 'react';
-import { DemoCard, Button, Input, CodeBlock, CodeExample } from '../../../../components/ui';
+import {
+  Button,
+  CodeBlock,
+  CodeExample,
+  DemoCard,
+  Input,
+} from '../../../../components/ui';
 import { useApiBlockingLogic } from '../hooks/useApiBlockingLogic';
 
 /**
  * API 블로킹 View 컴포넌트
- * 
+ *
  * Hook Layer를 통해 데이터와 액션을 받아 UI를 렌더링합니다.
  */
 export function ApiBlockingView() {
@@ -39,12 +45,13 @@ export function ApiBlockingView() {
             🚫 API Call Blocking Demo
           </h3>
           <p className="text-sm text-gray-600">
-            This demo prevents duplicate API calls using a blocking mechanism. After an API call, 
-            all subsequent calls are blocked for a configurable duration (default: <strong>2 seconds</strong>). 
-            This prevents accidental double-clicks and reduces server load.
+            This demo prevents duplicate API calls using a blocking mechanism.
+            After an API call, all subsequent calls are blocked for a
+            configurable duration (default: <strong>2 seconds</strong>). This
+            prevents accidental double-clicks and reduces server load.
           </p>
         </div>
-        
+
         <div className="space-y-4">
           {/* 블로킹 설정 */}
           <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
@@ -113,7 +120,8 @@ export function ApiBlockingView() {
               <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800">
                 <div className="flex items-center justify-between">
                   <span className="font-medium">
-                    🚫 API calls blocked for {Math.ceil(remainingBlockTime / 1000)}s
+                    🚫 API calls blocked for{' '}
+                    {Math.ceil(remainingBlockTime / 1000)}s
                   </span>
                   <div className="text-xs text-yellow-600">
                     Action: {blockingState.blockedAction}
@@ -164,11 +172,7 @@ export function ApiBlockingView() {
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <h4 className="font-medium text-gray-900">Recent API Calls:</h4>
-                <Button
-                  onClick={clearHistory}
-                  variant="secondary"
-                  size="sm"
-                >
+                <Button onClick={clearHistory} variant="secondary" size="sm">
                   Clear History
                 </Button>
               </div>
@@ -180,8 +184,8 @@ export function ApiBlockingView() {
                       call.status === 'success'
                         ? 'bg-green-50 border-green-200 text-green-800'
                         : call.status === 'blocked'
-                        ? 'bg-red-50 border-red-200 text-red-800'
-                        : 'bg-gray-50 border-gray-200 text-gray-800'
+                          ? 'bg-red-50 border-red-200 text-red-800'
+                          : 'bg-gray-50 border-gray-200 text-gray-800'
                     }`}
                   >
                     <div className="flex justify-between items-start">
@@ -196,13 +200,15 @@ export function ApiBlockingView() {
                         )}
                       </div>
                       <div className="flex items-center gap-2 text-xs">
-                        <span className={`px-2 py-1 rounded-full font-medium ${
-                          call.status === 'success'
-                            ? 'bg-green-100 text-green-800'
-                            : call.status === 'blocked'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
+                        <span
+                          className={`px-2 py-1 rounded-full font-medium ${
+                            call.status === 'success'
+                              ? 'bg-green-100 text-green-800'
+                              : call.status === 'blocked'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-gray-100 text-gray-800'
+                          }`}
+                        >
                           {call.status}
                         </span>
                         <span className="text-gray-500">
@@ -219,9 +225,9 @@ export function ApiBlockingView() {
           {/* 빈 상태 */}
           {!hasHistory && (
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 text-sm">
-              Click any API button above to start making calls. 
-              The first call will succeed, then subsequent calls will be blocked 
-              for the configured duration.
+              Click any API button above to start making calls. The first call
+              will succeed, then subsequent calls will be blocked for the
+              configured duration.
             </div>
           )}
         </div>
@@ -236,9 +242,10 @@ export function ApiBlockingView() {
           <p>
             <strong className="text-gray-900">What is Action Blocking?</strong>
             <br />
-            Blocking prevents the same action from executing again for a specified 
-            duration. This is different from debouncing or throttling - it completely 
-            blocks subsequent executions until the blocking period expires.
+            Blocking prevents the same action from executing again for a
+            specified duration. This is different from debouncing or throttling
+            - it completely blocks subsequent executions until the blocking
+            period expires.
           </p>
           <p>
             <strong className="text-gray-900">Benefits:</strong>
@@ -253,8 +260,8 @@ export function ApiBlockingView() {
           <p>
             <strong className="text-gray-900">How it works:</strong>
             <br />
-            After a successful execution, the action is blocked for a configured 
-            duration. During this time, any attempts to execute the same action 
+            After a successful execution, the action is blocked for a configured
+            duration. During this time, any attempts to execute the same action
             are immediately rejected with appropriate feedback.
           </p>
         </div>

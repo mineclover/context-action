@@ -1,11 +1,5 @@
 /**
- * Simple Smooth Tracker - Placeholder
+ * Simple Smooth Tracker - Re-export from shared components
  */
 
-import React from 'react';
-
-export function SimpleSmoothTracker() {
-  return <div>Simple Smooth Tracker</div>;
-}
-
-export default SimpleSmoothTracker;
+export { SimpleSmoothTracker } from '../../shared/components/SimpleSmoothTracker';

@@ -1,15 +1,21 @@
 /**
  * @fileoverview Search View Component - View Layer
- * 
+ *
  * Hook을 통해 Data/Action과 연결되는 View 컴포넌트입니다.
  */
 
-import { DemoCard, Input, Button, CodeBlock, CodeExample } from '../../../../components/ui';
+import {
+  Button,
+  CodeBlock,
+  CodeExample,
+  DemoCard,
+  Input,
+} from '../../../../components/ui';
 import { useSearchLogic } from '../hooks/useSearchLogic';
 
 /**
  * 검색 View 컴포넌트
- * 
+ *
  * Hook Layer를 통해 데이터와 액션을 받아 UI를 렌더링합니다.
  */
 export function SearchView() {
@@ -30,12 +36,13 @@ export function SearchView() {
             🔍 Search with Debouncing Demo
           </h3>
           <p className="text-sm text-gray-600">
-            This demo shows how debouncing prevents excessive API calls during rapid typing. 
-            Search requests are delayed by <strong>500ms</strong> after the user stops typing, 
-            reducing server load and improving user experience.
+            This demo shows how debouncing prevents excessive API calls during
+            rapid typing. Search requests are delayed by <strong>500ms</strong>{' '}
+            after the user stops typing, reducing server load and improving user
+            experience.
           </p>
         </div>
-        
+
         <div className="space-y-4">
           {/* 검색 입력 */}
           <div className="flex gap-2">
@@ -67,7 +74,8 @@ export function SearchView() {
             </span>
             {searchState.lastSearchTime && (
               <span>
-                Last search: {new Date(searchState.lastSearchTime).toLocaleTimeString()}
+                Last search:{' '}
+                {new Date(searchState.lastSearchTime).toLocaleTimeString()}
               </span>
             )}
           </div>
@@ -88,16 +96,19 @@ export function SearchView() {
           )}
 
           {/* 빈 상태 */}
-          {!hasResults && !searchState.isSearching && searchState.searchTerm && (
-            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm">
-              No results found for "{searchState.searchTerm}"
-            </div>
-          )}
+          {!hasResults &&
+            !searchState.isSearching &&
+            searchState.searchTerm && (
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm">
+                No results found for "{searchState.searchTerm}"
+              </div>
+            )}
 
           {/* 초기 상태 */}
           {isFirstSearch && !searchState.searchTerm && (
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 text-sm">
-              Start typing to search. The search will be triggered 500ms after you stop typing.
+              Start typing to search. The search will be triggered 500ms after
+              you stop typing.
             </div>
           )}
         </div>
@@ -112,8 +123,8 @@ export function SearchView() {
           <p>
             <strong className="text-gray-900">What is Debouncing?</strong>
             <br />
-            Debouncing delays the execution of a function until after a certain 
-            period of inactivity. It's perfect for search inputs where you want 
+            Debouncing delays the execution of a function until after a certain
+            period of inactivity. It's perfect for search inputs where you want
             to wait until the user stops typing before making an API call.
           </p>
           <p>
@@ -128,7 +139,7 @@ export function SearchView() {
           <p>
             <strong className="text-gray-900">How it works:</strong>
             <br />
-            Each keystroke resets a timer. The search only executes when the 
+            Each keystroke resets a timer. The search only executes when the
             timer completes without interruption (user stops typing).
           </p>
         </div>

@@ -167,42 +167,42 @@ export const initialNotifications: NotificationItem[] = [
 export const StoreScenarios = createDeclarativeStorePattern('StoreScenarios', {
   // Simple direct values
   cart: [] as CartItem[],
-  
+
   // With configuration for complex types
   user: {
     initialValue: defaultUser,
     description: 'User profile and preferences',
-    strategy: 'shallow'
+    strategy: 'shallow',
   },
   products: {
     initialValue: initialProducts,
     description: 'Product catalog',
-    strategy: 'shallow'
+    strategy: 'shallow',
   },
   todos: {
     initialValue: initialTodos,
     description: 'Todo list items',
-    strategy: 'shallow'
+    strategy: 'shallow',
   },
   messages: {
     initialValue: initialMessages,
     description: 'Chat messages',
-    strategy: 'shallow'
+    strategy: 'shallow',
   },
   formData: {
     initialValue: defaultFormData,
     description: 'Form wizard data',
-    strategy: 'deep'
+    strategy: 'deep',
   },
   settings: {
     initialValue: defaultSettings,
     description: 'Application settings',
-    strategy: 'deep'
+    strategy: 'deep',
   },
   notifications: {
     initialValue: initialNotifications,
     description: 'System notifications',
-    strategy: 'shallow'
+    strategy: 'shallow',
   },
 });
 

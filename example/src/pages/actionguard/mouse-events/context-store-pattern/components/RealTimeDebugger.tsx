@@ -1,10 +1,10 @@
 /**
  * @fileoverview Real-Time Debugger - 실시간 디버깅 도구
- * 
+ *
  * Context Store Pattern의 실시간 상태 변화와 디버깅 정보를 제공
  */
 
-import { memo, useEffect, useState, useRef, useMemo } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 
 // ================================
 // 📊 타입 정의
@@ -46,32 +46,39 @@ const RealTimeDebuggerComponent = ({
   clicks,
   computed,
   isVisible,
-  onToggle
+  onToggle,
 }: RealTimeDebuggerProps) => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [stateHistory, setStateHistory] = useState<StateSnapshot[]>([]);
-  const [filterLevel, setFilterLevel] = useState<'all' | 'info' | 'warn' | 'error' | 'debug'>('all');
+  const [filterLevel, setFilterLevel] = useState<
+    'all' | 'info' | 'warn' | 'error' | 'debug'
+  >('all');
   const [maxLogs, setMaxLogs] = useState(100);
   const [isPaused, setIsPaused] = useState(false);
-  
+
   const logIdCounter = useRef(0);
   const logsEndRef = useRef<HTMLDivElement>(null);
   const prevStateRef = useRef<any>({});
 
   // 로그 추가 함수
-  const addLog = (type: LogEntry['type'], message: string, data: any, level: LogEntry['level'] = 'info') => {
+  const addLog = (
+    type: LogEntry['type'],
+    message: string,
+    data: any,
+    level: LogEntry['level'] = 'info'
+  ) => {
     if (isPaused) return;
-    
+
     const newLog: LogEntry = {
       id: `log-${logIdCounter.current++}`,
       timestamp: Date.now(),
       type,
       message,
       data,
-      level
+      level,
     };
 
-    setLogs(prevLogs => [...prevLogs.slice(-(maxLogs - 1)), newLog]);
+    setLogs((prevLogs) => [...prevLogs.slice(-(maxLogs - 1)), newLog]);
   };
 
   // 상태 변화 감지 및 로깅
@@ -80,51 +87,75 @@ const RealTimeDebuggerComponent = ({
     const current = { position, movement, clicks, computed };
 
     // Position 변화 감지
-    if (prev.position && (
-      prev.position.current.x !== position.current.x || 
-      prev.position.current.y !== position.current.y
-    )) {
-      addLog('position', 'Position updated', {
-        from: prev.position.current,
-        to: position.current,
-        insideArea: position.isInsideArea
-      }, 'debug');
+    if (
+      prev.position &&
+      (prev.position.current.x !== position.current.x ||
+        prev.position.current.y !== position.current.y)
+    ) {
+      addLog(
+        'position',
+        'Position updated',
+        {
+          from: prev.position.current,
+          to: position.current,
+          insideArea: position.isInsideArea,
+        },
+        'debug'
+      );
     }
 
     // Movement 변화 감지
     if (prev.movement && prev.movement.moveCount !== movement.moveCount) {
-      addLog('movement', `Move count increased: ${prev.movement.moveCount} → ${movement.moveCount}`, {
-        velocity: movement.velocity,
-        isMoving: movement.isMoving,
-        pathLength: movement.path.length
-      }, 'info');
+      addLog(
+        'movement',
+        `Move count increased: ${prev.movement.moveCount} → ${movement.moveCount}`,
+        {
+          velocity: movement.velocity,
+          isMoving: movement.isMoving,
+          pathLength: movement.path.length,
+        },
+        'info'
+      );
     }
 
     // Clicks 변화 감지
     if (prev.clicks && prev.clicks.count !== clicks.count) {
-      addLog('clicks', `Click registered: total ${clicks.count}`, {
-        latestClick: clicks.history[0] || null,
-        historyLength: clicks.history.length
-      }, 'info');
+      addLog(
+        'clicks',
+        `Click registered: total ${clicks.count}`,
+        {
+          latestClick: clicks.history[0] || null,
+          historyLength: clicks.history.length,
+        },
+        'info'
+      );
     }
 
     // Computed 변화 감지
-    if (prev.computed && prev.computed.activityStatus !== computed.activityStatus) {
-      addLog('computed', `Activity status changed: ${prev.computed.activityStatus} → ${computed.activityStatus}`, {
-        totalEvents: computed.totalEvents,
-        validPathLength: computed.validPath.length,
-        averageVelocity: computed.averageVelocity
-      }, 'info');
+    if (
+      prev.computed &&
+      prev.computed.activityStatus !== computed.activityStatus
+    ) {
+      addLog(
+        'computed',
+        `Activity status changed: ${prev.computed.activityStatus} → ${computed.activityStatus}`,
+        {
+          totalEvents: computed.totalEvents,
+          validPathLength: computed.validPath.length,
+          averageVelocity: computed.averageVelocity,
+        },
+        'info'
+      );
     }
 
     // 상태 스냅샷 저장
-    setStateHistory(prevHistory => {
+    setStateHistory((prevHistory) => {
       const newSnapshot: StateSnapshot = {
         timestamp: Date.now(),
         position: { ...position },
         movement: { ...movement },
         clicks: { ...clicks },
-        computed: { ...computed }
+        computed: { ...computed },
       };
 
       return [...prevHistory.slice(-49), newSnapshot]; // 최근 50개 스냅샷 유지
@@ -143,7 +174,7 @@ const RealTimeDebuggerComponent = ({
   // 필터된 로그
   const filteredLogs = useMemo(() => {
     if (filterLevel === 'all') return logs;
-    return logs.filter(log => log.level === filterLevel);
+    return logs.filter((log) => log.level === filterLevel);
   }, [logs, filterLevel]);
 
   // 자동 스크롤
@@ -156,23 +187,34 @@ const RealTimeDebuggerComponent = ({
   // 로그 레벨 색상
   const getLevelColor = (level: LogEntry['level']) => {
     switch (level) {
-      case 'error': return 'text-red-400';
-      case 'warn': return 'text-yellow-400';
-      case 'info': return 'text-blue-400';
-      case 'debug': return 'text-gray-400';
-      default: return 'text-white';
+      case 'error':
+        return 'text-red-400';
+      case 'warn':
+        return 'text-yellow-400';
+      case 'info':
+        return 'text-blue-400';
+      case 'debug':
+        return 'text-gray-400';
+      default:
+        return 'text-white';
     }
   };
 
   // 타입 아이콘
   const getTypeIcon = (type: LogEntry['type']) => {
     switch (type) {
-      case 'position': return '📍';
-      case 'movement': return '🏃';
-      case 'clicks': return '👆';
-      case 'computed': return '🧮';
-      case 'system': return '⚙️';
-      default: return '📝';
+      case 'position':
+        return '📍';
+      case 'movement':
+        return '🏃';
+      case 'clicks':
+        return '👆';
+      case 'computed':
+        return '🧮';
+      case 'system':
+        return '⚙️';
+      default:
+        return '📝';
     }
   };
 
@@ -199,8 +241,8 @@ const RealTimeDebuggerComponent = ({
           <button
             onClick={() => setIsPaused(!isPaused)}
             className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-              isPaused 
-                ? 'bg-green-600 hover:bg-green-700' 
+              isPaused
+                ? 'bg-green-600 hover:bg-green-700'
                 : 'bg-red-600 hover:bg-red-700'
             }`}
           >
@@ -234,7 +276,7 @@ const RealTimeDebuggerComponent = ({
           <option value="error">Errors</option>
           <option value="debug">Debug</option>
         </select>
-        
+
         <div className="text-xs text-gray-400">
           {filteredLogs.length} / {logs.length} logs
         </div>
@@ -270,15 +312,21 @@ const RealTimeDebuggerComponent = ({
         <div className="grid grid-cols-2 gap-2">
           <div>
             <span className="text-gray-400">Position:</span>
-            <span className="ml-1">({position.current.x}, {position.current.y})</span>
+            <span className="ml-1">
+              ({position.current.x}, {position.current.y})
+            </span>
           </div>
           <div>
             <span className="text-gray-400">Status:</span>
-            <span className={`ml-1 ${
-              computed.activityStatus === 'moving' ? 'text-blue-400' :
-              computed.activityStatus === 'clicking' ? 'text-purple-400' :
-              'text-gray-400'
-            }`}>
+            <span
+              className={`ml-1 ${
+                computed.activityStatus === 'moving'
+                  ? 'text-blue-400'
+                  : computed.activityStatus === 'clicking'
+                    ? 'text-purple-400'
+                    : 'text-gray-400'
+              }`}
+            >
               {computed.activityStatus}
             </span>
           </div>

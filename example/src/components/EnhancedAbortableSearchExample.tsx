@@ -29,14 +29,14 @@ export function EnhancedAbortableSearchExample() {
   // Register search handler
   useActionHandler('search', async ({ query }) => {
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     // Don't return results directly from handler
   });
 
   // Register data processing handler
   useActionHandler('processLargeDataSet', async ({ dataSetId, chunkSize }) => {
     // Simulate processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     // Don't return results directly from handler
   });
 
@@ -50,7 +50,7 @@ export function EnhancedAbortableSearchExample() {
       await dispatch('search', { query });
       // Simulate search results
       setResults([
-        { id: 1, title: `Result for "${query}"`, description: 'Sample result' }
+        { id: 1, title: `Result for "${query}"`, description: 'Sample result' },
       ]);
     } catch (error) {
       console.error('Search failed:', error);
@@ -63,7 +63,7 @@ export function EnhancedAbortableSearchExample() {
     <ActionProvider>
       <div className="space-y-4">
         <h2 className="text-xl font-bold">Enhanced Search Example</h2>
-        
+
         <div className="flex gap-2">
           <input
             type="text"

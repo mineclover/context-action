@@ -11,13 +11,13 @@ import EnhancedAbortableSearchExampleWithProvider from './components/EnhancedAbo
 import Layout from './components/Layout';
 import { ToastContainer, ToastControlPanel } from './components/ToastSystem';
 import ActionGuardIndexPage from './pages/actionguard/ActionGuardIndexPage';
-import SearchPage from './pages/actionguard/search/SearchPage';
-import ScrollPage from './pages/actionguard/scroll/ScrollPage';
 import ApiBlockingPage from './pages/actionguard/api-blocking/ApiBlockingPage';
-import MouseEventsPage from './pages/actionguard/mouse-events/MouseEventsPage';
-import { ContextStoreMouseEventsPage } from './pages/actionguard/mouse-events/ContextStoreMouseEventsPage';
 import ActionGuardTestPage from './pages/actionguard/dispatch-options-test/DispatchOptionsTestPage';
+import { ContextStoreMouseEventsPage } from './pages/actionguard/mouse-events/ContextStoreMouseEventsPage';
+import MouseEventsPage from './pages/actionguard/mouse-events/MouseEventsPage';
 import PriorityPerformancePage from './pages/actionguard/priority-performance/PriorityPerformancePage';
+import ScrollPage from './pages/actionguard/scroll/ScrollPage';
+import SearchPage from './pages/actionguard/search/SearchPage';
 import ThrottleComparisonPage from './pages/actionguard/throttle-comparison/ThrottleComparisonPage';
 import CoreAdvancedPage from './pages/core/CoreAdvancedPage';
 import CoreBasicsPage from './pages/core/CoreBasicsPage';
@@ -78,9 +78,18 @@ function AppContent() {
           <Route path="/actionguard" element={<ActionGuardIndexPage />} />
           <Route path="/actionguard/search" element={<SearchPage />} />
           <Route path="/actionguard/scroll" element={<ScrollPage />} />
-          <Route path="/actionguard/api-blocking" element={<ApiBlockingPage />} />
-          <Route path="/actionguard/mouse-events" element={<MouseEventsPage />} />
-          <Route path="/actionguard/mouse-events/context-store" element={<ContextStoreMouseEventsPage />} />
+          <Route
+            path="/actionguard/api-blocking"
+            element={<ApiBlockingPage />}
+          />
+          <Route
+            path="/actionguard/mouse-events"
+            element={<MouseEventsPage />}
+          />
+          <Route
+            path="/actionguard/mouse-events/context-store"
+            element={<ContextStoreMouseEventsPage />}
+          />
           <Route path="/actionguard/test" element={<ActionGuardTestPage />} />
           <Route
             path="/actionguard/priority-performance"

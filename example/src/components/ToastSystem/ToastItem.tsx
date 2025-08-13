@@ -42,18 +42,17 @@ const ToastItemComponent = ({
     }
   }, [safeToast.type]);
 
-
   // 스택 오프셋 계산 (뒤의 토스트들이 살짝 보이도록)
   const styleValues = useMemo(() => {
     const stackOffset = Math.min(index * 4, 12); // 최대 12px까지
     const scaleOffset = Math.max(0.95, 1 - index * 0.02); // 최소 0.95배까지
-    
+
     const actionPayload = isActionToastPayload(safeToast.payload)
       ? safeToast.payload
       : null;
     const executionStep =
       actionPayload?.executionStep as ToastVariants['executionStep'];
-    
+
     return {
       stackOffset,
       scaleOffset,
@@ -62,7 +61,8 @@ const ToastItemComponent = ({
     };
   }, [index, safeToast.payload]);
 
-  const { stackOffset, scaleOffset, actionPayload, executionStep } = styleValues;
+  const { stackOffset, scaleOffset, actionPayload, executionStep } =
+    styleValues;
 
   return (
     <div

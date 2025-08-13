@@ -284,7 +284,7 @@ toastActionRegister.register('updateToastPhase', ({ toastId, phase }) => {
     toast.id === toastId ? { ...toast, phase } : toast
   );
   toastsStore.setValue(updatedToasts);
-  
+
   // updateToastPhase도 DEBUG 레벨로 로깅
   logger.debug('updateToastPhase', { toastId, phase });
 });

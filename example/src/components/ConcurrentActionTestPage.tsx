@@ -35,7 +35,7 @@ interface TaskStatus {
 
 export function ConcurrentActionTestPage() {
   const [tasks, setTasks] = useState<TaskStatus[]>([]);
-  
+
   const dispatch = useActionDispatch();
   const { abortAll, resetAbortScope } = useActionDispatchWithResult();
 
@@ -43,7 +43,7 @@ export function ConcurrentActionTestPage() {
   useActionHandler('longRunningTaskA', async ({ taskId, duration }) => {
     // Simulate long running task
     for (let i = 0; i <= 10; i++) {
-      await new Promise(resolve => setTimeout(resolve, duration / 10));
+      await new Promise((resolve) => setTimeout(resolve, duration / 10));
     }
     // Don't return anything (void)
   });
@@ -51,53 +51,72 @@ export function ConcurrentActionTestPage() {
   useActionHandler('longRunningTaskB', async ({ taskId, duration }) => {
     // Simulate long running task
     for (let i = 0; i <= 10; i++) {
-      await new Promise(resolve => setTimeout(resolve, duration / 10));
+      await new Promise((resolve) => setTimeout(resolve, duration / 10));
     }
     // Don't return anything (void)
   });
 
   useActionHandler('quickTask', async ({ taskId, duration }) => {
-    await new Promise(resolve => setTimeout(resolve, duration));
+    await new Promise((resolve) => setTimeout(resolve, duration));
     // Don't return anything (void)
   });
 
   useActionHandler('networkRequest', async ({ endpoint, params }) => {
     // Simulate network request
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     // Don't return anything (void)
   });
 
   useActionHandler('backgroundJob', async ({ jobId, jobType, priority }) => {
     // Simulate background job
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     // Don't return anything (void)
   });
 
   const startTask = async (taskType: string, duration: number) => {
     const taskId = `task-${Date.now()}`;
-    
-    setTasks(prev => [...prev, {
-      id: taskId,
-      name: taskType,
-      status: 'running',
-      progress: 0,
-      startTime: Date.now()
-    }]);
+
+    setTasks((prev) => [
+      ...prev,
+      {
+        id: taskId,
+        name: taskType,
+        status: 'running',
+        progress: 0,
+        startTime: Date.now(),
+      },
+    ]);
 
     try {
-      await dispatch(taskType as keyof AppActions, { taskId, duration: duration } as any);
-      
-      setTasks(prev => prev.map(task => 
-        task.id === taskId 
-          ? { ...task, status: 'completed', progress: 100, endTime: Date.now() }
-          : task
-      ));
+      await dispatch(
+        taskType as keyof AppActions,
+        { taskId, duration: duration } as any
+      );
+
+      setTasks((prev) =>
+        prev.map((task) =>
+          task.id === taskId
+            ? {
+                ...task,
+                status: 'completed',
+                progress: 100,
+                endTime: Date.now(),
+              }
+            : task
+        )
+      );
     } catch (error) {
-      setTasks(prev => prev.map(task => 
-        task.id === taskId 
-          ? { ...task, status: 'failed', error: error instanceof Error ? error.message : 'Unknown error' }
-          : task
-      ));
+      setTasks((prev) =>
+        prev.map((task) =>
+          task.id === taskId
+            ? {
+                ...task,
+                status: 'failed',
+                error: error instanceof Error ? error.message : 'Unknown error',
+              }
+            : task
+        )
+      );
     }
   };
 
@@ -106,7 +125,7 @@ export function ConcurrentActionTestPage() {
       <div className="space-y-6">
         <Card>
           <h2 className="text-xl font-bold mb-4">Concurrent Action Tests</h2>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
             <Button onClick={() => startTask('longRunningTaskA', 3000)}>
               Start Task A (3s)
@@ -117,14 +136,25 @@ export function ConcurrentActionTestPage() {
             <Button onClick={() => startTask('quickTask', 500)}>
               Quick Task (0.5s)
             </Button>
-            <Button 
-              onClick={() => dispatch('networkRequest', { endpoint: '/api/data', params: {} })}
+            <Button
+              onClick={() =>
+                dispatch('networkRequest', {
+                  endpoint: '/api/data',
+                  params: {},
+                })
+              }
               variant="secondary"
             >
               Network Request
             </Button>
-            <Button 
-              onClick={() => dispatch('backgroundJob', { jobId: 'job1', jobType: 'sync', priority: 1 })}
+            <Button
+              onClick={() =>
+                dispatch('backgroundJob', {
+                  jobId: 'job1',
+                  jobType: 'sync',
+                  priority: 1,
+                })
+              }
               variant="secondary"
             >
               Background Job
@@ -139,10 +169,27 @@ export function ConcurrentActionTestPage() {
             {tasks.length === 0 ? (
               <p className="text-gray-500">No tasks running</p>
             ) : (
-              tasks.map(task => (
-                <div key={task.id} className="flex items-center justify-between p-2 border rounded">
-                  <span>{task.name} ({task.id})</span>
-                  <Status status={task.status === 'idle' ? 'neutral' : task.status === 'running' ? 'info' : task.status === 'completed' ? 'safe' : task.status === 'aborted' ? 'warning' : 'danger'} />
+              tasks.map((task) => (
+                <div
+                  key={task.id}
+                  className="flex items-center justify-between p-2 border rounded"
+                >
+                  <span>
+                    {task.name} ({task.id})
+                  </span>
+                  <Status
+                    status={
+                      task.status === 'idle'
+                        ? 'neutral'
+                        : task.status === 'running'
+                          ? 'info'
+                          : task.status === 'completed'
+                            ? 'safe'
+                            : task.status === 'aborted'
+                              ? 'warning'
+                              : 'danger'
+                    }
+                  />
                 </div>
               ))
             )}

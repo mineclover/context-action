@@ -1,6 +1,6 @@
 /**
  * @fileoverview Search Context - Data/Action Layer
- * 
+ *
  * Context → Data/Action 계층을 정의합니다.
  * 타입은 Data/Action 레이어에 선언됩니다.
  */
@@ -64,19 +64,19 @@ const SearchStores = createDeclarativeStorePattern('SearchStoreManager', {
 export interface SearchActions extends ActionPayloadMap {
   /** 검색 입력 액션 (디바운싱 적용) */
   searchInput: string;
-  
+
   /** 실제 검색 수행 액션 */
   performSearch: {
     term: string;
     timestamp: number;
   };
-  
+
   /** 검색 결과 업데이트 액션 */
   updateResults: {
     results: string[];
     searchTime: number;
   };
-  
+
   /** 검색 초기화 액션 */
   clearSearch: void;
 }
@@ -93,8 +93,10 @@ export const SearchActionContext = createActionContext<SearchActions>({
 // Store Context는 이미 SearchStores로 생성됨
 
 // Providers
-export const SearchActionProvider: React.FC<{ children: React.ReactNode }> = SearchActionContext.Provider;
-export const SearchStoreProvider: React.FC<{ children: React.ReactNode }> = SearchStores.Provider;
+export const SearchActionProvider: React.FC<{ children: React.ReactNode }> =
+  SearchActionContext.Provider;
+export const SearchStoreProvider: React.FC<{ children: React.ReactNode }> =
+  SearchStores.Provider;
 
 // Hooks export
 export const useSearchActionDispatch = SearchActionContext.useActionDispatch;
@@ -111,13 +113,11 @@ export const useSearchActionRegister = SearchActionContext.useActionRegister;
 /**
  * ActionProvider와 StoreProvider를 결합하는 커스텀 래퍼
  */
-const SearchProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const SearchProviderWrapper: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   console.log('🔄 SearchProviderWrapper render at', new Date().toISOString());
-  return (
-    <SearchActionProvider>
-      {children}
-    </SearchActionProvider>
-  );
+  return <SearchActionProvider>{children}</SearchActionProvider>;
 };
 
 /**
@@ -132,20 +132,23 @@ export const withSearchStore = SearchStores.withProvider;
 
 /**
  * 통합 Provider - Enhanced with new capabilities
- * 
+ *
  * Store와 Action Context를 함께 제공합니다.
  */
-export const SearchProvider: React.FC<{ 
+export const SearchProvider: React.FC<{
   children: React.ReactNode;
   registryId?: string; // 새로운 기능: 독립적인 레지스트리 ID
 }> = ({ children, registryId }) => {
-  console.log('🔄 SearchProvider render at', new Date().toISOString(), 'registryId:', registryId);
-  
+  console.log(
+    '🔄 SearchProvider render at',
+    new Date().toISOString(),
+    'registryId:',
+    registryId
+  );
+
   return (
     <SearchStores.Provider registryId={registryId}>
-      <SearchActionProvider>
-        {children}
-      </SearchActionProvider>
+      <SearchActionProvider>{children}</SearchActionProvider>
     </SearchStores.Provider>
   );
 };

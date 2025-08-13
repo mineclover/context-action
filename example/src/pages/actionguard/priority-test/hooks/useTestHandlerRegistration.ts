@@ -1,12 +1,15 @@
 /**
  * @fileoverview 테스트 핸들러 등록 전용 훅
- * 
+ *
  * PriorityTestInstance에서 추출한 핸들러 등록 로직
  * 복잡한 ActionRegistry 패턴을 캡슐화하여 재사용성 향상
  */
 
 import { useCallback, useRef } from 'react';
-import { usePriorityActionRegister, usePriorityTestStore } from '../context/ActionTestContext';
+import {
+  usePriorityActionRegister,
+  usePriorityTestStore,
+} from '../context/ActionTestContext';
 import type { HandlerConfig } from './types';
 
 interface TestHandlerRegistrationOptions {
@@ -14,7 +17,7 @@ interface TestHandlerRegistrationOptions {
    * 핸들러 등록 완료 콜백
    */
   onRegistered?: (handlerCount: number) => void;
-  
+
   /**
    * 핸들러 등록 실패 콜백
    */
@@ -23,10 +26,10 @@ interface TestHandlerRegistrationOptions {
 
 /**
  * 테스트 핸들러 등록 및 관리 훅
- * 
+ *
  * ActionRegistry 패턴을 사용하여 우선순위별 핸들러를 등록하고 관리합니다.
  * 초기화 핸들러와 개별 테스트 핸들러를 모두 처리합니다.
- * 
+ *
  * @param configs 핸들러 설정 배열
  * @param options 등록 옵션
  * @returns 핸들러 등록 API
@@ -36,13 +39,13 @@ export function useTestHandlerRegistration(
   options: TestHandlerRegistrationOptions = {}
 ) {
   const { onRegistered, onRegistrationError } = options;
-  
+
   const actionRegister = usePriorityActionRegister();
   const priorityCountsStore = usePriorityTestStore('priorityCounts');
   const executionStateStore = usePriorityTestStore('executionState');
-  
+
   const abortControllerRef = useRef<AbortController | null>(null);
-  
+
   /**
    * 모든 핸들러를 등록합니다
    */
@@ -82,7 +85,7 @@ export function useTestHandlerRegistration(
             maxExecutionTime: 0,
             minExecutionTime: Number.MAX_VALUE,
             startTime: Date.now(),
-            executionTimes: [],
+            executionTimes: [] as number[],
           });
 
           console.log('✅ All stores initialized');
@@ -147,7 +150,8 @@ export function useTestHandlerRegistration(
               handlerExecutionTime,
             ];
             const newAverageTime = Math.round(
-              newExecutionTimes.reduce((a, b) => a + b, 0) / newExecutionTimes.length
+              newExecutionTimes.reduce((a, b) => a + b, 0) /
+                newExecutionTimes.length
             );
             const newMaxTime = Math.max(...newExecutionTimes);
             const newMinTime = Math.min(...newExecutionTimes);
@@ -164,7 +168,10 @@ export function useTestHandlerRegistration(
             });
 
             // Jump 로직
-            if (config.jumpToPriority !== null && config.jumpToPriority !== undefined) {
+            if (
+              config.jumpToPriority !== null &&
+              config.jumpToPriority !== undefined
+            ) {
               const currentCount = (currentCounts[config.priority] || 0) + 1;
               if (currentCount <= 3) {
                 console.log(
@@ -192,14 +199,14 @@ export function useTestHandlerRegistration(
         'priorityTest',
         async (payload, controller) => {
           console.log('🏁 Priority Test Completed - Finalizing...');
-          
+
           const currentState = executionStateStore.getValue();
           executionStateStore.setValue({
             ...currentState,
             isRunning: false,
             currentTestId: null,
           });
-          
+
           console.log('✅ Test completed successfully');
         },
         {
@@ -211,11 +218,17 @@ export function useTestHandlerRegistration(
       );
 
       onRegistered?.(configs.length + 2); // configs + initializer + finalizer
-      
     } catch (error) {
       onRegistrationError?.(error as Error);
     }
-  }, [actionRegister, configs, priorityCountsStore, executionStateStore, onRegistered, onRegistrationError]);
+  }, [
+    actionRegister,
+    configs,
+    priorityCountsStore,
+    executionStateStore,
+    onRegistered,
+    onRegistrationError,
+  ]);
 
   /**
    * 모든 핸들러를 해제합니다

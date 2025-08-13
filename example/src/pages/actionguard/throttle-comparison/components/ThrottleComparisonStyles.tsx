@@ -1,6 +1,6 @@
 /**
  * @fileoverview Throttle Comparison Styles
- * 
+ *
  * 스로틀 비교 페이지 전용 스타일 컴포넌트
  */
 
@@ -54,17 +54,17 @@ const styles = `
 export function ThrottleComparisonStyles() {
   useEffect(() => {
     if (typeof document === 'undefined') return;
-    
+
     const styleId = 'throttle-comparison-styles';
-    
+
     // 이미 스타일이 추가되었는지 확인
     if (document.getElementById(styleId)) return;
-    
+
     const styleElement = document.createElement('style');
     styleElement.id = styleId;
     styleElement.textContent = styles;
     document.head.appendChild(styleElement);
-    
+
     // 컴포넌트 언마운트 시 스타일 제거
     return () => {
       const existingStyle = document.getElementById(styleId);
@@ -73,6 +73,6 @@ export function ThrottleComparisonStyles() {
       }
     };
   }, []);
-  
+
   return null;
 }

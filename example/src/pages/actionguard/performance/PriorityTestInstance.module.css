@@ -142,7 +142,7 @@
 @keyframes priority-update {
   0% {
     transform: scale(1);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
   30% {
     transform: scale(1.25);
@@ -152,12 +152,13 @@
   }
   100% {
     transform: scale(1);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 }
 
 .animate-priority-update {
-  animation: priority-update 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation: priority-update 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)
+    forwards;
 }
 
 /* 연속 애니메이션을 위한 펄스 효과 */

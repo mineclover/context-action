@@ -63,18 +63,19 @@ export function ToastContainer() {
           </button>
         </div>
       )}
-      {displayToasts.length > 2 && visibleToasts.length <= (config?.maxToasts || 4) && (
-        <div className="flex items-center justify-end mb-2">
-          <button
-            type="button"
-            className="text-xs text-white/50 hover:text-white/80 transition-colors p-1"
-            onClick={handleClearAll}
-            title="모든 토스트 지우기"
-          >
-            ×다 지우기
-          </button>
-        </div>
-      )}
+      {displayToasts.length > 2 &&
+        visibleToasts.length <= (config?.maxToasts || 4) && (
+          <div className="flex items-center justify-end mb-2">
+            <button
+              type="button"
+              className="text-xs text-white/50 hover:text-white/80 transition-colors p-1"
+              onClick={handleClearAll}
+              title="모든 토스트 지우기"
+            >
+              ×다 지우기
+            </button>
+          </div>
+        )}
 
       {/* 토스트 스택 */}
       <div className="space-y-2">

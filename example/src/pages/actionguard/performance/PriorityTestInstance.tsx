@@ -1,21 +1,21 @@
-import { memo, useMemo, useState, useCallback, useEffect } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  AverageExecutionTime,
+  MetricCard,
+  MinMaxExecutionTime,
+  PriorityGrid,
+  SuccessRate,
+  TotalExecutionCount,
+} from '../priority-test/components';
 import {
   ActionTestProvider,
   PriorityTestProvider,
 } from '../priority-test/context/ActionTestContext';
 import {
-  useTestHandlerRegistration,
-  useTestExecution,
   type HandlerConfig,
+  useTestExecution,
+  useTestHandlerRegistration,
 } from '../priority-test/hooks';
-import {
-  TotalExecutionCount,
-  SuccessRate,
-  AverageExecutionTime,
-  MinMaxExecutionTime,
-  MetricCard,
-  PriorityGrid,
-} from '../priority-test/components';
 
 // 기본 핸들러 설정 (점프 패턴이 잘 보이도록 조정)
 const DEFAULT_HANDLER_CONFIGS: HandlerConfig[] = [
@@ -184,9 +184,7 @@ const PerformanceTestControls = memo<{
       {/* 핸들러 상태 정보 */}
       <div className="flex gap-2 mb-3 p-2 bg-blue-50 rounded text-xs">
         <span className="text-gray-600">설정된 핸들러:</span>
-        <span className="font-medium text-blue-800">
-          {configs.length}개
-        </span>
+        <span className="font-medium text-blue-800">{configs.length}개</span>
         <button
           onClick={onClear}
           disabled={isRunning}
@@ -206,9 +204,7 @@ const PerformanceMetrics = memo<{
 }>(function PerformanceMetrics({ isRunning }) {
   return (
     <div className="mb-4">
-      <h4 className="font-medium text-gray-700 mb-2 text-sm">
-        📊 성능 메트릭
-      </h4>
+      <h4 className="font-medium text-gray-700 mb-2 text-sm">📊 성능 메트릭</h4>
       <div className="flex flex-wrap gap-3">
         <MetricCard title="총 실행">
           <TotalExecutionCount />
@@ -244,7 +240,7 @@ const PriorityTestInstance = memo(function PriorityTestInstance({
     DEFAULT_HANDLER_CONFIGS
   );
   const [selectedDelay, setSelectedDelay] = useState<0 | 1 | 50>(0);
-  
+
   // 선택된 딜레이가 적용된 configs를 memoized로 계산
   const configsWithDelay = useMemo(() => {
     return configs.map((config) => ({
@@ -258,7 +254,9 @@ const PriorityTestInstance = memo(function PriorityTestInstance({
     configsWithDelay,
     {
       onRegistered: (handlerCount) => {
-        console.log(`✅ Registered ${handlerCount} handlers for performance test`);
+        console.log(
+          `✅ Registered ${handlerCount} handlers for performance test`
+        );
       },
       onRegistrationError: (error) => {
         console.error('❌ Handler registration failed:', error);
@@ -389,7 +387,8 @@ const PriorityTestInstance = memo(function PriorityTestInstance({
             </div>
           </div>
           <div className="text-xs text-gray-400">
-            💡 P30은 점프만 하고 직접 실행되지 않음 | 지연 평가로 실시간 조건 확인
+            💡 P30은 점프만 하고 직접 실행되지 않음 | 지연 평가로 실시간 조건
+            확인
           </div>
         </div>
       </div>
@@ -426,7 +425,7 @@ const PriorityTestInstanceWithProvider = memo(
 
     return (
       <ActionTestProvider>
-        <PriorityTestProvider registryId={registryId}>
+        <PriorityTestProvider>
           <PriorityTestInstance title={title} instanceId={instanceId} />
         </PriorityTestProvider>
       </ActionTestProvider>

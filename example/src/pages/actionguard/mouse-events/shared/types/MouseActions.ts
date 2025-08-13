@@ -1,6 +1,6 @@
 /**
  * @fileoverview Mouse Actions - 액션 타입 정의
- * 
+ *
  * 마우스 이벤트 관련 모든 액션 타입 정의
  */
 
@@ -19,38 +19,38 @@ export interface MouseActions extends ActionPayloadMap {
     position: MousePosition;
     timestamp: number;
   };
-  
+
   /** 마우스 클릭 액션 */
   'mouse.click': {
     position: MousePosition;
     button: number;
     timestamp: number;
   };
-  
+
   /** 마우스 영역 진입 액션 */
   'mouse.enter': {
     position: MousePosition;
     timestamp: number;
   };
-  
+
   /** 마우스 영역 이탈 액션 */
   'mouse.leave': {
     position: MousePosition;
     timestamp: number;
   };
-  
+
   /** 마우스 이동 시작 액션 */
   'mouse.moveStart': {
     position: MousePosition;
     timestamp: number;
   };
-  
+
   /** 마우스 이동 종료 액션 */
   'mouse.moveEnd': {
     position: MousePosition;
     timestamp: number;
   };
-  
+
   /** 상태 리셋 액션 */
   'mouse.reset': void;
 }
