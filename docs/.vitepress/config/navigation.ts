@@ -29,6 +29,11 @@ export function createNavigation(locale: NavigationLocale) {
       {
         text: 'Guide',
         link: '/en/guide/overview'
+      },
+      {
+        text: 'Example',
+        link: 'https://mineclover.github.io/context-action-example/',
+        target: '_blank'
       }
     ]
   }
@@ -38,6 +43,11 @@ export function createNavigation(locale: NavigationLocale) {
       {
         text: '가이드',
         link: '/ko/guide/overview'
+      },
+      {
+        text: '예제',
+        link: 'https://mineclover.github.io/context-action-example/',
+        target: '_blank'
       }
     ]
   }
