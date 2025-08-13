@@ -134,43 +134,129 @@ export function ContextStoreMouseEventsPage() {
           </div>
         </div>
 
-        {/* 사용법 가이드 */}
-        <div className="mt-6 bg-gray-50 rounded-lg p-6 border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <span className="text-blue-500">📚</span>
-            Usage Guide
+        {/* Enhanced Usage Guide */}
+        <div className="mt-6 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-6 border border-emerald-200 shadow-sm">
+          <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+            <span className="text-2xl">📚</span>
+            Interactive Usage Guide & Code Examples
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-2">
-                Individual Store Access
-              </h4>
-              <pre className="bg-gray-800 text-green-400 p-3 rounded text-xs overflow-x-auto">
-                {`// Access specific stores
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+                <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <span className="text-emerald-500">🏪</span>
+                  Individual Store Access
+                </h4>
+                <pre className="bg-gray-900 text-green-400 p-4 rounded-lg text-xs overflow-x-auto font-mono leading-relaxed">
+{`// 🎯 Access specific stores
 const positionStore = useMouseEventsStore('position');
 const movementStore = useMouseEventsStore('movement');
 const clicksStore = useMouseEventsStore('clicks');
+const computedStore = useMouseEventsStore('computed');
+const performanceStore = useMouseEventsStore('performance');
 
-// Subscribe to values
+// ⚡ Subscribe to values (reactive)
 const position = useStoreValue(positionStore);
-const movement = useStoreValue(movementStore);`}
-              </pre>
-            </div>
+const movement = useStoreValue(movementStore);
+const clicks = useStoreValue(clicksStore);`}
+                </pre>
+              </div>
 
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-2">
-                Action Dispatch
-              </h4>
-              <pre className="bg-gray-800 text-green-400 p-3 rounded text-xs overflow-x-auto">
-                {`// Get action dispatcher
+              <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+                <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <span className="text-blue-500">🚀</span>
+                  Action Dispatch Pattern
+                </h4>
+                <pre className="bg-gray-900 text-blue-400 p-4 rounded-lg text-xs overflow-x-auto font-mono leading-relaxed">
+{`// 🎯 Get action dispatcher
 const dispatch = useMouseEventsActionDispatch();
 
-// Dispatch actions
+// 🖱️ Dispatch mouse events
 dispatch('mouseMove', { x, y, timestamp });
 dispatch('mouseClick', { x, y, button, timestamp });
+dispatch('mouseEnter', { x, y, timestamp });
+dispatch('mouseLeave', { x, y, timestamp });
+
+// 🔄 Reset state
 dispatch('resetMouseState');`}
-              </pre>
+                </pre>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+                <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <span className="text-purple-500">🏗️</span>
+                  Provider Setup
+                </h4>
+                <pre className="bg-gray-900 text-purple-400 p-4 rounded-lg text-xs overflow-x-auto font-mono leading-relaxed">
+{`// 🏪 Context Store Pattern Provider
+<MouseEventsProvider registryId="unique-id">
+  <YourComponent />
+</MouseEventsProvider>
+
+// 🎯 Or use HOC pattern
+const withMouseEvents = withMouseEventsStore('instance-id');
+const EnhancedComponent = withMouseEvents(YourComponent);`}
+                </pre>
+              </div>
+
+              <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+                <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                  <span className="text-orange-500">⚡</span>
+                  Performance Tips
+                </h4>
+                <div className="text-sm text-gray-700 space-y-2">
+                  <p className="flex items-start gap-2">
+                    <span className="text-green-500 font-bold">✓</span>
+                    <span><strong>Selective Subscriptions:</strong> Only subscribe to stores you need</span>
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <span className="text-green-500 font-bold">✓</span>
+                    <span><strong>Individual Store Access:</strong> Avoid re-renders on unrelated updates</span>
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <span className="text-green-500 font-bold">✓</span>
+                    <span><strong>Action Batching:</strong> Multiple store updates in single action</span>
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <span className="text-green-500 font-bold">✓</span>
+                    <span><strong>Computed Values:</strong> Lazy evaluation with automatic caching</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Real-time Statistics */}
+        <div className="mt-6 bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <span className="text-xl">📊</span>
+            Live Demo Statistics
+          </h3>
+          <p className="text-gray-600 text-sm mb-4">
+            The interactive area above demonstrates real-time Context Store Pattern behavior. 
+            Watch the store values update as you interact with the demo area.
+          </p>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+              <div className="text-2xl font-bold text-emerald-600">5</div>
+              <div className="text-xs text-emerald-800">Individual Stores</div>
+            </div>
+            <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="text-2xl font-bold text-blue-600">∞</div>
+              <div className="text-xs text-blue-800">Real-time Updates</div>
+            </div>
+            <div className="text-center p-3 bg-purple-50 rounded-lg border border-purple-200">
+              <div className="text-2xl font-bold text-purple-600">100%</div>
+              <div className="text-xs text-purple-800">Type Safety</div>
+            </div>
+            <div className="text-center p-3 bg-orange-50 rounded-lg border border-orange-200">
+              <div className="text-2xl font-bold text-orange-600">⚡</div>
+              <div className="text-xs text-orange-800">Optimized Renders</div>
             </div>
           </div>
         </div>

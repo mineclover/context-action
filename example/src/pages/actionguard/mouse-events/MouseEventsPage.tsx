@@ -42,45 +42,69 @@ const MouseEventsUI = () => {
         <ContextStoreMouseEventsWrapper />
       </div>
 
-      {/* Context Store Container with Navigation */}
+      {/* Context Store Pattern Navigation */}
       <div className="mt-8">
-        <div className="mb-4">
-          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">🏪</span>
-                <h2 className="text-lg font-semibold text-emerald-800">
-                  Context Store Pattern - Preview
+        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">🏪</span>
+              <div>
+                <h2 className="text-xl font-semibold text-emerald-800">
+                  Context Store Pattern Demo
                 </h2>
+                <p className="text-sm text-emerald-600 mt-1">
+                  Advanced individual store management with selective subscriptions
+                </p>
               </div>
-              <Link
-                to="/actionguard/mouse-events/context-store"
-                className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              >
-                🚀 Enhanced Context Store Page
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                  />
-                </svg>
-              </Link>
             </div>
-            <p className="text-sm text-emerald-700 mt-2">
-              Individual stores with selective subscriptions. Click the button
-              above to see the enhanced version with real-time analytics and
-              performance metrics.
-            </p>
+            <Link
+              to="/actionguard/mouse-events/context-store"
+              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-md hover:shadow-lg"
+            >
+              <span className="text-lg">🚀</span>
+              View Enhanced Demo
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
+              </svg>
+            </Link>
+          </div>
+          
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white rounded-lg p-4 border border-emerald-200">
+              <h4 className="font-semibold text-emerald-800 text-sm mb-2">
+                ⚡ Key Features
+              </h4>
+              <ul className="text-xs text-emerald-700 space-y-1">
+                <li>• Individual store access & selective subscriptions</li>
+                <li>• Real-time mouse tracking with visual feedback</li>
+                <li>• Action-based state management</li>
+                <li>• Performance optimized rendering</li>
+              </ul>
+            </div>
+            
+            <div className="bg-white rounded-lg p-4 border border-emerald-200">
+              <h4 className="font-semibold text-emerald-800 text-sm mb-2">
+                🎯 What You'll See
+              </h4>
+              <ul className="text-xs text-emerald-700 space-y-1">
+                <li>• Live cursor tracking & path visualization</li>
+                <li>• Click indicators & interaction history</li>
+                <li>• Store value displays & computed metrics</li>
+                <li>• Architecture benefits demonstration</li>
+              </ul>
+            </div>
           </div>
         </div>
-        <ContextStoreMouseEventsContainer />
       </div>
     </div>
   );
