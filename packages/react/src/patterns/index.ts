@@ -15,7 +15,7 @@
 export { 
   createActionContextPattern,
   type ActionContextPatternConfig,
-  type ActionContextType,
+  type ActionContextPatternType,
   type ActionContextPatternReturn
 } from './action-context-pattern';
 
