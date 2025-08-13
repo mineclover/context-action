@@ -222,7 +222,7 @@ function ChildALogicRegistration() {
       childId,
       childType: 'Counter Component',
     });
-  }, [parentDispatch]);
+  }, []); // parentDispatch 의존성 제거로 무한 리렌더링 방지
 
   // 🎯 핵심: 상위의 제어 명령을 구독하여 자율적으로 반응
   ParentContext.useActionHandler(
@@ -418,7 +418,7 @@ function ChildBLogicRegistration() {
       childId,
       childType: 'Text Editor Component',
     });
-  }, [parentDispatch]);
+  }, []); // parentDispatch 의존성 제거로 무한 리렌더링 방지
 
   // Child B의 자체 액션 핸들러
   ChildBContext.useActionHandler('updateText', ({ newText }) => {
