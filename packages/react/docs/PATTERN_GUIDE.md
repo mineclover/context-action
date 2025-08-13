@@ -59,19 +59,19 @@ function App() {
   );
 }
 
-// 4. Component Usage with Clean Destructuring
+// 3. Declarative Hook Exports (Recommended)
+const useUserStore = AppContext.useStore;
+const useActionDispatch = AppContext.useAction;
+const useActionHandler = AppContext.useActionHandler;
+
+// 4. Component Usage with Exported Hooks
 function UserProfile() {
-  // Store management with renaming for clarity
-  const useUserStore = AppContext.useStore;
-  const useActionDispatch = AppContext.useAction;
-  const useHandler = AppContext.useActionHandler;
-  
   const userStore = useUserStore('user', { id: '', name: '', email: '' });
   const user = useStoreValue(userStore);
   const dispatch = useActionDispatch();
   
-  // Action handler registration
-  useHandler('updateUser', async (payload) => {
+  // Action handler registration with exported hook
+  useActionHandler('updateUser', async (payload) => {
     userStore.setValue({ ...user, ...payload });
   });
   
