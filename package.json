@@ -66,6 +66,7 @@
     "@rollup/plugin-terser": "0.4.4",
     "@tailwindcss/typography": "0.5.16",
     "@types/node": "^20.0.0",
+    "@types/react": "18.3.23",
     "ansis": "4.1.0",
     "autoprefixer": "10.4.21",
     "class-variance-authority": "0.7.1",
@@ -88,7 +89,8 @@
   },
   "pnpm": {
     "overrides": {
-      "esbuild@<=0.24.2": ">=0.25.0"
+      "esbuild@<=0.24.2": ">=0.25.0",
+      "@types/react": "18.3.23"
     },
     "ignoredBuiltDependencies": [
       "esbuild",

@@ -163,7 +163,7 @@ export const initialNotifications: NotificationItem[] = [
   },
 ];
 
-// Simplified store configuration using the new v2 pattern
+// Simplified store configuration using the new v2 pattern  
 export const StoreScenarios = createDeclarativeStorePattern('StoreScenarios', {
   // Simple direct values
   cart: [] as CartItem[],
