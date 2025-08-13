@@ -5,7 +5,10 @@
  */
 
 import type { ActionPayloadMap } from '@context-action/core';
-import type { MousePosition } from '../services/MousePathService';
+export interface MousePosition {
+  x: number;
+  y: number;
+}
 
 /**
  * 마우스 이벤트 액션 맵

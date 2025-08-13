@@ -8,8 +8,7 @@
 import type { ActionPayloadMap } from '@context-action/core';
 import {
   createActionContext,
-  createDeclarativeStores,
-  type StoreSchema,
+  createDeclarativeStorePattern,
 } from '@context-action/react';
 import type React from 'react';
 
@@ -75,14 +74,8 @@ export interface DispatchOptionsTestStateData {
   executionTimes: number[];
 }
 
-/**
- * 디스패치 옵션 테스트 스토어 스키마
- */
-interface DispatchOptionsTestStores {
-  testState: DispatchOptionsTestStateData;
-}
-
-const dispatchOptionsTestStoreSchema: StoreSchema<DispatchOptionsTestStores> = {
+// 새로운 패턴으로 변경 - 자동 타입 추론
+const DispatchOptionsTestStores = createDeclarativeStorePattern('DispatchOptionsTestStoreManager', {
   testState: {
     initialValue: {
       searchQuery: '',
@@ -105,7 +98,7 @@ const dispatchOptionsTestStoreSchema: StoreSchema<DispatchOptionsTestStores> = {
     description: 'Dispatch options test state with performance metrics',
     tags: ['dispatch', 'options', 'performance', 'testing'],
   },
-};
+});
 
 // ================================
 // ⚡ Action Layer - 액션 정의
@@ -190,24 +183,20 @@ export const DispatchOptionsTestActionContext = createActionContext<DispatchOpti
 });
 
 // Store Context 생성
-const DispatchOptionsTestStoreContext = createDeclarativeStores(
-  'DispatchOptionsTestStoreManager',
-  dispatchOptionsTestStoreSchema
-);
+// Store Context는 이미 DispatchOptionsTestStores로 생성됨
 
 // Providers
 export const DispatchOptionsTestActionProvider: React.FC<{ children: React.ReactNode }> = DispatchOptionsTestActionContext.Provider;
-export const DispatchOptionsTestStoreProvider: React.FC<{ children: React.ReactNode; registryId?: string }> = DispatchOptionsTestStoreContext.Provider;
+export const DispatchOptionsTestStoreProvider: React.FC<{ children: React.ReactNode }> = DispatchOptionsTestStores.Provider;
 
 // Hooks export
 export const useDispatchOptionsTestActionDispatch = DispatchOptionsTestActionContext.useActionDispatch;
 export const useDispatchOptionsTestActionHandler = DispatchOptionsTestActionContext.useActionHandler;
-export const useDispatchOptionsTestStore = DispatchOptionsTestStoreContext.useStore;
-export const useDispatchOptionsTestStores = DispatchOptionsTestStoreContext.useStores;
+export const useDispatchOptionsTestStore = DispatchOptionsTestStores.useStore;
 
 // Legacy exports (deprecated)
 export const useDispatchOptionsTestActionRegister = DispatchOptionsTestActionContext.useActionRegister;
-export const useDispatchOptionsTestRegistry = DispatchOptionsTestStoreContext.useRegistry;
+// useDispatchOptionsTestRegistry removed - not needed in new pattern
 
 /**
  * 통합 Provider
@@ -216,7 +205,7 @@ export const useDispatchOptionsTestRegistry = DispatchOptionsTestStoreContext.us
  */
 export const DispatchOptionsTestProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <DispatchOptionsTestStoreProvider registryId="dispatch-options-test-page">
+    <DispatchOptionsTestStoreProvider>
       <DispatchOptionsTestActionProvider>
         {children}
       </DispatchOptionsTestActionProvider>

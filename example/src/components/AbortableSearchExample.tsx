@@ -112,15 +112,10 @@ export function AbortableSearchExample() {
   const _activeSearches = useRef<Set<string>>(new Set());
 
   const { dispatchWithResult, resetAbortScope } = useActionDispatchWithResult();
-  const addHandler = useActionHandler();
+  const dispatch = useActionDispatch();
 
   // Register search handler
-  useEffect(() => {
-    if (!addHandler) return;
-
-    const unregister = addHandler(
-      'search',
-      async ({ query }, controller) => {
+  useActionHandler('search', async ({ query }, controller) => {
         // Simulate API call
         const response = await fetch(`/api/search?q=${query}`);
 
@@ -134,9 +129,6 @@ export function AbortableSearchExample() {
       },
       { priority: 10 }
     );
-
-    return unregister;
-  }, [addHandler]);
 
   // Handle search with automatic cancellation of previous searches
   const handleSearch = async (searchQuery: string) => {
@@ -237,23 +229,13 @@ export function DataFetcherWithCleanup() {
 
   // Using dispatch with automatic abort ensures fetch is cancelled if component unmounts
   const dispatch = useActionDispatch();
-  const addHandler = useActionHandler();
 
-  useEffect(() => {
-    if (!addHandler) return;
-
-    // Register data fetch handler
-    const unregister = addHandler(
-      'fetchUserData',
-      async ({ userId }) => {
-        const response = await fetch(`/api/users/${userId}`);
-        const userData = await response.json();
-        return userData;
-      }
-    );
-
-    return unregister;
-  }, [addHandler]);
+  // Register data fetch handler
+  useActionHandler('fetchUserData', async ({ userId }) => {
+    const response = await fetch(`/api/users/${userId}`);
+    const userData = await response.json();
+    return userData;
+  });
 
   useEffect(() => {
     const loadData = async () => {

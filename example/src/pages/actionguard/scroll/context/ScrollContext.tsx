@@ -8,8 +8,7 @@
 import type { ActionPayloadMap } from '@context-action/core';
 import {
   createActionContext,
-  createDeclarativeStores,
-  type StoreSchema,
+  createDeclarativeStorePattern,
 } from '@context-action/react';
 import type React from 'react';
 
@@ -44,21 +43,22 @@ interface ScrollStores {
   scrollState: ScrollStateData;
 }
 
-const scrollStoreSchema: StoreSchema<ScrollStores> = {
+// 새로운 패턴으로 변경 - 자동 타입 추론
+const ScrollStores = createDeclarativeStorePattern('ScrollStoreManager', {
   scrollState: {
     initialValue: {
       scrollTop: 0,
       scrollCount: 0,
       isScrolling: false,
-      lastScrollTime: null,
-      scrollDirection: 'none',
+      lastScrollTime: null as number | null,
+      scrollDirection: 'none' as 'up' | 'down' | 'none',
       previousScrollTop: 0,
       scrollVelocity: 0,
     },
     description: 'Scroll state management with throttling',
-    tags: ['scroll', 'performance', 'ui'],
+    strategy: 'shallow',
   },
-};
+});
 
 // ================================
 // ⚡ Action Layer - 액션 정의
@@ -108,36 +108,87 @@ export const ScrollActionContext = createActionContext<ScrollActions>({
 });
 
 // Store Context 생성
-const ScrollStoreContext = createDeclarativeStores(
-  'ScrollStoreManager',
-  scrollStoreSchema
-);
+// Store Context는 이미 ScrollStores로 생성됨
 
 // Providers
 export const ScrollActionProvider: React.FC<{ children: React.ReactNode }> = ScrollActionContext.Provider;
-export const ScrollStoreProvider: React.FC<{ children: React.ReactNode; registryId?: string }> = ScrollStoreContext.Provider;
+export const ScrollStoreProvider: React.FC<{ children: React.ReactNode }> = ScrollStores.Provider;
 
 // Hooks export
 export const useScrollActionDispatch = ScrollActionContext.useActionDispatch;
 export const useScrollActionHandler = ScrollActionContext.useActionHandler;
-export const useScrollStore = ScrollStoreContext.useStore;
-export const useScrollStores = ScrollStoreContext.useStores;
+export const useScrollStore = ScrollStores.useStore;
 
 // Legacy exports (deprecated)
 export const useScrollActionRegister = ScrollActionContext.useActionRegister;
-export const useScrollRegistry = ScrollStoreContext.useRegistry;
+// useScrollRegistry removed - not needed in new pattern
+
+// ================================
+// 🚀 고급 HOC 패턴들 - Enhanced Features
+// ================================
 
 /**
- * 통합 Provider
+ * ActionProvider와 StoreProvider를 결합하는 커스텀 래퍼
+ */
+const ScrollProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  console.log('🔄 ScrollProviderWrapper render at', new Date().toISOString());
+  return (
+    <ScrollActionProvider>
+      {children}
+    </ScrollActionProvider>
+  );
+};
+
+/**
+ * 독립적인 Scroll 인스턴스는 registryId로 구분
+ * 예: <ScrollProvider registryId="instance-1"> 형태로 사용
+ */
+
+/**
+ * 기본 HOC - Store만 제공
+ */
+export const withScrollStore = ScrollStores.withProvider;
+
+/**
+ * 고급 HOC - Store + Action 모두 제공  
+ */
+export const withScrollProviders = ScrollStores.withProvider;
+
+/**
+ * 다중 인스턴스 HOC - registryId를 사용한 방식
+ */
+export const createScrollHOC = (instanceId: string) => {
+  return ScrollStores.withProvider(
+    undefined,
+    { displayName: `ScrollHOC_${instanceId}`, registryId: instanceId }
+  );
+};
+
+/**
+ * Enhanced Provider - HOC 패턴 지원
+ */
+export const EnhancedScrollProvider = ScrollStores.withProvider;
+
+/**
+ * 통합 Provider - Enhanced with new capabilities
  * 
  * Store와 Action Context를 함께 제공합니다.
  */
-export const ScrollProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ScrollProvider: React.FC<{ 
+  children: React.ReactNode;
+  registryId?: string; // 새로운 기능: 독립적인 레지스트리 ID
+}> = ({ children, registryId }) => {
+  console.log('🔄 ScrollProvider render at', new Date().toISOString(), 'registryId:', registryId);
+  
   return (
-    <ScrollStoreProvider registryId="scroll-page">
+    <ScrollStores.Provider registryId={registryId}>
       <ScrollActionProvider>
         {children}
       </ScrollActionProvider>
-    </ScrollStoreProvider>
+    </ScrollStores.Provider>
   );
 };
+
+// Enhanced hooks
+export const useScrollStoreInfo = ScrollStores.useStoreInfo;
+export const useScrollStoreClear = ScrollStores.useStoreClear;

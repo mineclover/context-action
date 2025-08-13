@@ -1,7 +1,6 @@
 import {
-  type createDeclarativeStorePattern,
-  createDeclarativeStores,
-  type StoreSchema,
+  createDeclarativeStorePattern,
+  type InitialStores,
 } from '@context-action/react';
 import type {
   AppSettings,
@@ -15,24 +14,14 @@ import type {
 } from '../types';
 
 /**
- * Store-scenarios용 Declarative Store 패턴
- * 컴파일타임 타입 안전성과 미리 정의된 스키마를 제공
+ * Store-scenarios용 Declarative Store 패턴 V2
+ * 간소화된 API로 컴파일타임 타입 안전성과 자동 타입 추론을 제공
  *
  * @implements store-registry
  * @implements store-integration-pattern
  * @memberof core-concepts
- * @since 2.0.0
+ * @since 2.1.0
  */
-interface StoreScenarios {
-  user: User;
-  products: Product[];
-  cart: CartItem[];
-  todos: TodoItem[];
-  messages: ChatMessage[];
-  formData: FormData;
-  settings: AppSettings;
-  notifications: NotificationItem[];
-}
 
 // 초기 데이터 export
 export const defaultUser: User = {
@@ -174,52 +163,48 @@ export const initialNotifications: NotificationItem[] = [
   },
 ];
 
-const storeScenariosSchema: StoreSchema<StoreScenarios> = {
+// Simplified store configuration using the new v2 pattern
+export const StoreScenarios = createDeclarativeStorePattern('StoreScenarios', {
+  // Simple direct values
+  cart: [] as CartItem[],
+  
+  // With configuration for complex types
   user: {
     initialValue: defaultUser,
     description: 'User profile and preferences',
-    tags: ['user', 'profile'],
+    strategy: 'shallow'
   },
   products: {
     initialValue: initialProducts,
     description: 'Product catalog',
-    tags: ['shopping', 'products'],
-  },
-  cart: {
-    initialValue: [],
-    description: 'Shopping cart items',
-    tags: ['shopping', 'cart'],
+    strategy: 'shallow'
   },
   todos: {
     initialValue: initialTodos,
     description: 'Todo list items',
-    tags: ['productivity', 'todos'],
+    strategy: 'shallow'
   },
   messages: {
     initialValue: initialMessages,
     description: 'Chat messages',
-    tags: ['communication', 'chat'],
+    strategy: 'shallow'
   },
   formData: {
     initialValue: defaultFormData,
     description: 'Form wizard data',
-    tags: ['forms', 'wizard'],
+    strategy: 'deep'
   },
   settings: {
     initialValue: defaultSettings,
     description: 'Application settings',
-    tags: ['settings', 'configuration'],
+    strategy: 'deep'
   },
   notifications: {
     initialValue: initialNotifications,
     description: 'System notifications',
-    tags: ['notifications', 'system'],
+    strategy: 'shallow'
   },
-};
-
-export const StoreScenarios: ReturnType<
-  typeof createDeclarativeStorePattern<StoreScenarios>
-> = createDeclarativeStores('StoreScenarios', storeScenariosSchema);
+});
 
 // Declarative Store 패턴을 사용하여 타입 안전한 스토어 접근을 제공합니다.
 // 예시:

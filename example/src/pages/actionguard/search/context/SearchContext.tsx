@@ -8,8 +8,7 @@
 import type { ActionPayloadMap } from '@context-action/core';
 import {
   createActionContext,
-  createDeclarativeStores,
-  type StoreSchema,
+  createDeclarativeStorePattern,
 } from '@context-action/react';
 import type React from 'react';
 
@@ -40,19 +39,20 @@ interface SearchStores {
   searchState: SearchStateData;
 }
 
-const searchStoreSchema: StoreSchema<SearchStores> = {
+// 새로운 패턴으로 변경 - 자동 타입 추론
+const SearchStores = createDeclarativeStorePattern('SearchStoreManager', {
   searchState: {
     initialValue: {
       searchTerm: '',
-      searchResults: [],
+      searchResults: [] as string[],
       searchCount: 0,
       isSearching: false,
-      lastSearchTime: null,
+      lastSearchTime: null as number | null,
     },
     description: 'Search state management',
-    tags: ['search', 'ui'],
+    strategy: 'shallow',
   },
-};
+});
 
 // ================================
 // ⚡ Action Layer - 액션 정의
@@ -90,37 +90,86 @@ export const SearchActionContext = createActionContext<SearchActions>({
   name: 'SearchActions',
 });
 
-// Store Context 생성
-const SearchStoreContext = createDeclarativeStores(
-  'SearchStoreManager',
-  searchStoreSchema
-);
+// Store Context는 이미 SearchStores로 생성됨
 
 // Providers
 export const SearchActionProvider: React.FC<{ children: React.ReactNode }> = SearchActionContext.Provider;
-export const SearchStoreProvider: React.FC<{ children: React.ReactNode; registryId?: string }> = SearchStoreContext.Provider;
+export const SearchStoreProvider: React.FC<{ children: React.ReactNode }> = SearchStores.Provider;
 
 // Hooks export
 export const useSearchActionDispatch = SearchActionContext.useActionDispatch;
 export const useSearchActionHandler = SearchActionContext.useActionHandler;
-export const useSearchStore = SearchStoreContext.useStore;
-export const useSearchStores = SearchStoreContext.useStores;
+export const useSearchStore = SearchStores.useStore;
 
 // Legacy exports (deprecated)
 export const useSearchActionRegister = SearchActionContext.useActionRegister;
-export const useSearchRegistry = SearchStoreContext.useRegistry;
+
+// ================================
+// 🚀 고급 HOC 패턴들 - Enhanced Features
+// ================================
 
 /**
- * 통합 Provider
+ * ActionProvider와 StoreProvider를 결합하는 커스텀 래퍼
+ */
+const SearchProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  console.log('🔄 SearchProviderWrapper render at', new Date().toISOString());
+  return (
+    <SearchActionProvider>
+      {children}
+    </SearchActionProvider>
+  );
+};
+
+/**
+ * 독립적인 Search 인스턴스는 registryId로 구분
+ * 예: <SearchProvider registryId="instance-1"> 형태로 사용
+ */
+
+/**
+ * 기본 HOC - Store만 제공
+ */
+export const withSearchStore = SearchStores.withProvider;
+
+/**
+ * 고급 HOC - Store + Action 모두 제공  
+ */
+export const withSearchProviders = SearchStores.withProvider;
+
+/**
+ * 다중 인스턴스 HOC - registryId를 사용한 방식
+ */
+export const createSearchHOC = (instanceId: string) => {
+  return SearchStores.withProvider(
+    undefined,
+    { displayName: `SearchHOC_${instanceId}`, registryId: instanceId }
+  );
+};
+
+/**
+ * Enhanced Provider - HOC 패턴 지원
+ */
+export const EnhancedSearchProvider = SearchStores.withProvider;
+
+/**
+ * 통합 Provider - Enhanced with new capabilities
  * 
  * Store와 Action Context를 함께 제공합니다.
  */
-export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const SearchProvider: React.FC<{ 
+  children: React.ReactNode;
+  registryId?: string; // 새로운 기능: 독립적인 레지스트리 ID
+}> = ({ children, registryId }) => {
+  console.log('🔄 SearchProvider render at', new Date().toISOString(), 'registryId:', registryId);
+  
   return (
-    <SearchStoreProvider registryId="search-page">
+    <SearchStores.Provider registryId={registryId}>
       <SearchActionProvider>
         {children}
       </SearchActionProvider>
-    </SearchStoreProvider>
+    </SearchStores.Provider>
   );
 };
+
+// Enhanced hooks
+export const useSearchStoreInfo = SearchStores.useStoreInfo;
+export const useSearchStoreClear = SearchStores.useStoreClear;

@@ -8,8 +8,7 @@
 import type { ActionPayloadMap } from '@context-action/core';
 import {
   createActionContext,
-  createDeclarativeStores,
-  type StoreSchema,
+  createDeclarativeStorePattern,
 } from '@context-action/react';
 import type React from 'react';
 
@@ -111,7 +110,8 @@ interface MouseEventsStores {
   };
 }
 
-const mouseEventsStoreSchema: StoreSchema<MouseEventsStores> = {
+// 새로운 패턴으로 변경 - 자동 타입 추론 사용
+const MouseEventsStores = createDeclarativeStorePattern('MouseEventsStoreManager', {
   position: {
     initialValue: {
       current: { x: -999, y: -999 },
@@ -119,7 +119,7 @@ const mouseEventsStoreSchema: StoreSchema<MouseEventsStores> = {
       isInsideArea: false,
     },
     description: 'Mouse position and area state',
-    tags: ['position', 'mouse', 'location'],
+    strategy: 'shallow',
   },
   
   movement: {
@@ -128,32 +128,32 @@ const mouseEventsStoreSchema: StoreSchema<MouseEventsStores> = {
       isMoving: false,
       velocity: 0,
       lastMoveTime: null,
-      path: [],
+      path: [] as MousePosition[],
     },
     description: 'Mouse movement metrics and tracking',
-    tags: ['movement', 'metrics', 'velocity', 'path'],
+    strategy: 'shallow',
   },
   
   clicks: {
     initialValue: {
       count: 0,
-      history: [],
+      history: [] as Array<MousePosition & { timestamp: number }>,
     },
     description: 'Click events and history tracking',
-    tags: ['clicks', 'events', 'history'],
+    strategy: 'shallow',
   },
   
   computed: {
     initialValue: {
-      validPath: [],
+      validPath: [] as MousePosition[],
       recentClickCount: 0,
       averageVelocity: 0,
       totalEvents: 0,
-      activityStatus: 'idle',
+      activityStatus: 'idle' as 'idle' | 'moving' | 'clicking',
       hasActivity: false,
     },
     description: 'Computed values and derived state',
-    tags: ['computed', 'derived', 'reactive', 'lazy'],
+    strategy: 'shallow',
   },
   
   performance: {
@@ -165,9 +165,9 @@ const mouseEventsStoreSchema: StoreSchema<MouseEventsStores> = {
       sessionStartTime: Date.now(),
     },
     description: 'Performance metrics and render tracking',
-    tags: ['performance', 'metrics', 'render', 'timing'],
+    strategy: 'reference',
   },
-};
+});
 
 // ================================
 // ⚡ Action Layer - 액션 정의
@@ -237,11 +237,7 @@ export const MouseEventsActionContext = createActionContext<MouseEventsActions>(
   name: 'MouseEventsActions',
 });
 
-// Store Context 생성
-const MouseEventsStoreContext = createDeclarativeStores(
-  'MouseEventsStoreManager',
-  mouseEventsStoreSchema
-);
+// Store Context는 이미 MouseEventsStores로 생성됨
 
 // Providers with logging
 export const MouseEventsActionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -249,20 +245,22 @@ export const MouseEventsActionProvider: React.FC<{ children: React.ReactNode }> 
   return <MouseEventsActionContext.Provider>{children}</MouseEventsActionContext.Provider>;
 };
 
-export const MouseEventsStoreProvider: React.FC<{ children: React.ReactNode; registryId?: string }> = ({ children, registryId }) => {
-  console.log('🏪 MouseEventsStoreProvider render at', new Date().toISOString(), 'registryId:', registryId);
-  return <MouseEventsStoreContext.Provider registryId={registryId}>{children}</MouseEventsStoreContext.Provider>;
+export const MouseEventsStoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  console.log('🏪 MouseEventsStoreProvider render at', new Date().toISOString());
+  return <MouseEventsStores.Provider>{children}</MouseEventsStores.Provider>;
 };
 
 // Hooks export
 export const useMouseEventsActionDispatch = MouseEventsActionContext.useActionDispatch;
 export const useMouseEventsActionHandler = MouseEventsActionContext.useActionHandler;
-export const useMouseEventsStore = MouseEventsStoreContext.useStore;
-export const useMouseEventsStores = MouseEventsStoreContext.useStores;
+export const useMouseEventsStore = MouseEventsStores.useStore;
+
+// Enhanced hooks
+export const useMouseEventsStoreInfo = MouseEventsStores.useStoreInfo;
+export const useMouseEventsStoreClear = MouseEventsStores.useStoreClear;
 
 // Legacy exports (deprecated)
 export const useMouseEventsActionRegister = MouseEventsActionContext.useActionRegister;
-export const useMouseEventsRegistry = MouseEventsStoreContext.useRegistry;
 
 // ================================
 // 🔄 개별 Store 접근 및 집계 헬퍼
@@ -272,10 +270,10 @@ export const useMouseEventsRegistry = MouseEventsStoreContext.useRegistry;
  * 개별 stores에서 MouseEventsStateData로 집계하는 헬퍼 함수
  */
 export function aggregateMouseEventsState(
-  position: MouseEventsStores['position'],
-  movement: MouseEventsStores['movement'],
-  clicks: MouseEventsStores['clicks'],
-  computed: MouseEventsStores['computed']
+  position: any,
+  movement: any,
+  clicks: any,
+  computed: any
 ): MouseEventsStateData {
   return {
     // Position data
@@ -398,9 +396,9 @@ export function computeHasActivity(moveCount: number, clickCount: number): boole
  * 계산된 값들을 업데이트하는 헬퍼 함수 (개별 stores 버전)
  */
 export function updateComputedValuesFromStores(
-  movement: MouseEventsStores['movement'],
-  clicks: MouseEventsStores['clicks']
-): MouseEventsStores['computed'] {
+  movement: any,
+  clicks: any
+): any {
   const validPath = computeValidPath(movement.path);
   const recentClickCount = computeRecentClickCount(clicks.history);
   const averageVelocity = computeAverageVelocity(validPath);
@@ -623,20 +621,71 @@ const MouseEventsActionHandlers: React.FC<{ children: React.ReactNode }> = ({ ch
 };
 
 /**
- * 통합 Provider
+ * 통합 Provider - Enhanced with new capabilities
  * 
  * Store와 Action Context를 함께 제공합니다.
  */
-export const MouseEventsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  console.log('🔄 MouseEventsProvider render at', new Date().toISOString());
+export const MouseEventsProvider: React.FC<{ 
+  children: React.ReactNode;
+  registryId?: string; // 새로운 기능: 독립적인 레지스트리 ID
+}> = ({ children, registryId }) => {
+  console.log('🔄 MouseEventsProvider render at', new Date().toISOString(), 'registryId:', registryId);
   
   return (
-    <MouseEventsStoreProvider registryId="mouse-events-page">
+    <MouseEventsStores.Provider registryId={registryId}>
       <MouseEventsActionProvider>
         <MouseEventsActionHandlers>
           {children}
         </MouseEventsActionHandlers>
       </MouseEventsActionProvider>
-    </MouseEventsStoreProvider>
+    </MouseEventsStores.Provider>
   );
 };
+
+// ================================
+// 🚀 고급 HOC 패턴들 - Enhanced Features
+// ================================
+
+/**
+ * ActionProvider와 StoreProvider를 결합하는 커스텀 래퍼
+ */
+const MouseEventsProviderWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  console.log('🔄 MouseEventsProviderWrapper render at', new Date().toISOString());
+  return (
+    <MouseEventsActionProvider>
+      <MouseEventsActionHandlers>
+        {children}
+      </MouseEventsActionHandlers>
+    </MouseEventsActionProvider>
+  );
+};
+
+/**
+ * 독립적인 MouseEvents 인스턴스는 registryId로 구분
+ * 예: <MouseEventsProvider registryId="instance-1"> 형태로 사용
+ */
+
+/**
+ * 기본 HOC - Store만 제공
+ */
+export const withMouseEventsStore = MouseEventsStores.withProvider;
+
+/**
+ * 고급 HOC - Store + Action 모두 제공  
+ */
+export const withMouseEventsProviders = MouseEventsStores.withProvider;
+
+/**
+ * 다중 인스턴스 HOC - registryId를 사용한 방식
+ */
+export const createMouseEventsHOC = (instanceId: string) => {
+  return MouseEventsStores.withProvider(
+    undefined,
+    { displayName: `MouseEventsHOC_${instanceId}`, registryId: instanceId }
+  );
+};
+
+/**
+ * Enhanced Provider - HOC 패턴 지원
+ */
+export const EnhancedMouseEventsProvider = MouseEventsStores.withProvider;

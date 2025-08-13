@@ -15,7 +15,7 @@ import { LogLevel } from '@context-action/logger';
 import { StoreRegistry } from '../stores/core/StoreRegistry';
 import { createStore } from '../stores/core/Store';
 import type { ComparisonOptions } from '../stores/utils/comparison';
-import type { StoreConfig } from '../stores/patterns/declarative-store-registry';
+import type { StoreConfig } from '../stores/patterns/declarative-store-pattern-v2';
 
 /**
  * Action Context 설정 옵션
@@ -100,10 +100,7 @@ function getOrCreateRegistryStore<T>(
     initialValue: T;
     strategy?: 'reference' | 'shallow' | 'deep';
     debug?: boolean;
-    comparisonOptions?: Partial<ComparisonOptions<T>>;
     description?: string;
-    tags?: string[];
-    version?: string;
   },
   registry: StoreRegistry
 ): { store: ReturnType<typeof createStore<T>>; wasCreated: boolean } {
@@ -112,10 +109,7 @@ function getOrCreateRegistryStore<T>(
     initialValue, 
     strategy = 'reference', 
     debug = false, 
-    comparisonOptions,
-    description,
-    tags,
-    version
+    description
   } = options;
   
   // Check if store already exists in registry
@@ -134,16 +128,12 @@ function getOrCreateRegistryStore<T>(
   const store = createStore(storeName, initialValue);
   
   // Set comparison options - Declarative Store Pattern 호환
-  const finalComparisonOptions = {
-    strategy,
-    ...comparisonOptions
-  };
-  store.setComparisonOptions(finalComparisonOptions);
+  store.setComparisonOptions({ strategy });
   
-  // Register store with enhanced metadata
+  // Register store with metadata
   registry.register(storeName, store, {
     name: storeName,
-    tags: tags ?? ['action-context', strategy, ...(version ? [`v${version}`] : [])],
+    tags: ['action-context', strategy],
     description: description ?? `Action Context store: ${storeName} with ${strategy} comparison`
   });
   
@@ -151,9 +141,7 @@ function getOrCreateRegistryStore<T>(
     console.log(`🏪 Action Context store created: ${storeName}`, {
       strategy,
       registryName: registry.name,
-      description,
-      tags: tags ?? ['action-context', strategy],
-      version
+      description
     });
   }
   
@@ -328,12 +316,10 @@ export function createActionContextPattern<T extends ActionPayloadMap = ActionPa
     // Declarative Store Config에서 옵션 추출
     const {
       strategy = 'reference',
-      debug = process.env.NODE_ENV === 'development',
-      comparisonOptions,
-      description,
-      tags,
-      version
+      description
     } = options;
+    
+    const debug = process.env.NODE_ENV === 'development';
     
     // 초기값 해결
     const resolvedInitialValue = typeof initialValue === 'function' 
@@ -355,10 +341,7 @@ export function createActionContextPattern<T extends ActionPayloadMap = ActionPa
       initialValue: resolvedInitialValue,
       strategy,
       debug,
-      comparisonOptions,
-      description,
-      tags,
-      version
+      description
     }, registry);
     
     // Store가 제대로 생성되었는지 검증

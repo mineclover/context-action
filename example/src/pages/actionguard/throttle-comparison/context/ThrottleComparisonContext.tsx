@@ -8,8 +8,7 @@
 import type { ActionPayloadMap } from '@context-action/core';
 import {
   createActionContext,
-  createDeclarativeStores,
-  type StoreSchema,
+  createDeclarativeStorePattern,
 } from '@context-action/react';
 import type React from 'react';
 
@@ -50,14 +49,8 @@ export interface ThrottleComparisonStateData {
   internalExecutionTimes: number[];
 }
 
-/**
- * 스로틀 비교 스토어 스키마
- */
-interface ThrottleComparisonStores {
-  throttleState: ThrottleComparisonStateData;
-}
-
-const throttleComparisonStoreSchema: StoreSchema<ThrottleComparisonStores> = {
+// 새로운 패턴으로 변경 - 자동 타입 추론
+const ThrottleComparisonStores = createDeclarativeStorePattern('ThrottleComparisonStoreManager', {
   throttleState: {
     initialValue: {
       inputValue: '',
@@ -84,7 +77,7 @@ const throttleComparisonStoreSchema: StoreSchema<ThrottleComparisonStores> = {
     description: 'Throttle comparison state with metrics tracking',
     tags: ['throttle', 'comparison', 'performance', 'metrics'],
   },
-};
+});
 
 // ================================
 // ⚡ Action Layer - 액션 정의
@@ -148,24 +141,20 @@ export const ThrottleComparisonActionContext = createActionContext<ThrottleCompa
 });
 
 // Store Context 생성
-const ThrottleComparisonStoreContext = createDeclarativeStores(
-  'ThrottleComparisonStoreManager',
-  throttleComparisonStoreSchema
-);
+// Store Context는 이미 ThrottleComparisonStores로 생성됨
 
 // Providers
 export const ThrottleComparisonActionProvider: React.FC<{ children: React.ReactNode }> = ThrottleComparisonActionContext.Provider;
-export const ThrottleComparisonStoreProvider: React.FC<{ children: React.ReactNode; registryId?: string }> = ThrottleComparisonStoreContext.Provider;
+export const ThrottleComparisonStoreProvider: React.FC<{ children: React.ReactNode }> = ThrottleComparisonStores.Provider;
 
 // Hooks export
 export const useThrottleComparisonActionDispatch = ThrottleComparisonActionContext.useActionDispatch;
 export const useThrottleComparisonActionHandler = ThrottleComparisonActionContext.useActionHandler;
-export const useThrottleComparisonStore = ThrottleComparisonStoreContext.useStore;
-export const useThrottleComparisonStores = ThrottleComparisonStoreContext.useStores;
+export const useThrottleComparisonStore = ThrottleComparisonStores.useStore;
 
 // Legacy exports (deprecated)
 export const useThrottleComparisonActionRegister = ThrottleComparisonActionContext.useActionRegister;
-export const useThrottleComparisonRegistry = ThrottleComparisonStoreContext.useRegistry;
+// useThrottleComparisonRegistry removed - not needed in new pattern
 
 /**
  * 통합 Provider
@@ -174,7 +163,7 @@ export const useThrottleComparisonRegistry = ThrottleComparisonStoreContext.useR
  */
 export const ThrottleComparisonProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <ThrottleComparisonStoreProvider registryId="throttle-comparison-page">
+    <ThrottleComparisonStoreProvider>
       <ThrottleComparisonActionProvider>
         {children}
       </ThrottleComparisonActionProvider>
