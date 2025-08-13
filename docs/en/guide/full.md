@@ -4,7 +4,30 @@
 
 ### What is Context-Action Architecture?
 
-The Context-Action framework implements a clean separation of concerns through an MVVM-inspired pattern combined with **Context Store Pattern** for complete domain isolation:
+The Context-Action framework is a **revolutionary state management system** designed to overcome the fundamental limitations of existing libraries through document-centric context separation and effective artifact management.
+
+#### Project Philosophy
+
+The Context-Action framework addresses critical issues in modern state management:
+
+**Problems with Existing Libraries:**
+- **High React Coupling**: Tight integration makes component modularization and props handling difficult
+- **Binary State Approach**: Simple global/local state dichotomy fails to handle specific scope-based separation  
+- **Inadequate Handler/Trigger Management**: Poor support for complex interactions and business logic processing
+
+**Context-Action's Solution:**
+- **Document-Artifact Centered Design**: Context separation based on document themes and deliverable management
+- **Perfect Separation of Concerns**: 
+  - View design in isolation → Design Context
+  - Development architecture in isolation → Architecture Context
+  - Business logic in isolation → Business Context  
+  - Data validation in isolation → Validation Context
+- **Clear Boundaries**: Implementation results maintain distinct, well-defined domain boundaries
+- **Effective Document-Artifact Management**: State management library that actively supports the relationship between documentation and deliverables
+
+### Architecture Implementation
+
+The framework implements a clean separation of concerns through an MVVM-inspired pattern combined with **Context Store Pattern** for complete domain isolation:
 
 - **Actions** handle business logic (ViewModel layer)
 - **Context Store Pattern** manages state with domain isolation (Model layer)
@@ -18,13 +41,48 @@ The Context-Action framework implements a clean separation of concerns through a
 [Component] → dispatch → [Action Pipeline] → handlers → [Store] → subscribe → [Component]
 ```
 
+### Context Separation Strategy
+
+#### Domain-Based Context Architecture
+- **Business Context**: Business logic, data processing, and domain rules
+- **UI Context**: Screen state, user interactions, and component behavior  
+- **Validation Context**: Data validation, form processing, and error handling
+- **Design Context**: Theme management, styling, layout, and visual states
+- **Architecture Context**: System configuration, infrastructure, and technical decisions
+
+#### Document-Based Context Design
+Each context is designed to manage its corresponding documentation and deliverables:
+- **Design Documentation** → Design Context (themes, component specifications, style guides)
+- **Business Requirements** → Business Context (workflows, rules, domain logic)  
+- **Architecture Documents** → Architecture Context (system design, technical decisions)
+- **Validation Specifications** → Validation Context (rules, schemas, error handling)
+- **UI Specifications** → UI Context (interactions, state management, user flows)
+
+### Advanced Handler & Trigger Management
+
+Context-Action provides sophisticated handler and trigger management that existing libraries lack:
+
+#### Priority-Based Handler Execution
+- **Sequential Processing**: Handlers execute in priority order with proper async handling
+- **Domain Isolation**: Each context maintains its own handler registry
+- **Cross-Context Coordination**: Controlled communication between domain contexts
+- **Result Collection**: Aggregate results from multiple handlers for complex workflows
+
+#### Intelligent Trigger System
+- **State-Change Triggers**: Automatic triggers based on store value changes
+- **Cross-Context Triggers**: Domain boundaries can trigger actions in other contexts
+- **Conditional Triggers**: Smart triggers based on business rules and conditions
+- **Trigger Cleanup**: Automatic cleanup prevents memory leaks and stale references
+
 ### Key Benefits
 
-1. **Domain Isolation**: Each context maintains complete independence
-2. **Type Safety**: Full TypeScript support with domain-specific hooks
-3. **Performance**: Only affected components re-render
-4. **Scalability**: Easy to add new domains without affecting existing ones
-5. **Team Collaboration**: Different teams can work on different domains
+1. **Document-Artifact Management**: Direct relationship between documentation and implementation
+2. **Domain Isolation**: Each context maintains complete independence
+3. **Type Safety**: Full TypeScript support with domain-specific hooks
+4. **Performance**: Only affected components re-render
+5. **Scalability**: Easy to add new domains without affecting existing ones
+6. **Team Collaboration**: Different teams can work on different domains without conflicts
+7. **Clear Boundaries**: Perfect separation of concerns based on document domains
 
 ## 2. Domain-Specific Hooks Pattern (Core)
 
@@ -66,9 +124,6 @@ const store = useUserBusinessStore('profile');
 
 // Pattern 2: Registry access for lazy evaluation (Handlers)
 const store = stores.getStore('profile');
-
-// Pattern 3: Context Store Pattern
-const store = useUserStore('profile');
 ```
 
 ## 3. Basic Setup & Usage
@@ -139,7 +194,7 @@ export const {
 
 ### Step 2: Provider Composition
 
-```typescript
+```tsx
 // providers/UserProvider.tsx
 import React, { FC } from 'react';
 import { 
@@ -174,7 +229,7 @@ export const withUserProviders = (Component: React.ComponentType) => {
 
 ### Step 3: Component Implementation
 
-```typescript
+```tsx
 // components/UserProfile.tsx
 import React, { useCallback } from 'react';
 import { useStoreValue } from '@/framework/stores';
@@ -215,7 +270,7 @@ export function UserProfile() {
 
 ### Store Creation and Access
 
-```typescript
+```tsx
 // Store setup component
 function UserStoreSetup() {
   // Create stores in the context registry
@@ -498,7 +553,7 @@ export function useUserEditor() {
 
 When multiple instances of the same component exist:
 
-```typescript
+```tsx
 function TodoItem({ todoId }: { todoId: string }) {
   const componentId = useId(); // React's unique ID
   const addHandler = useTodoActionHandler();
@@ -761,7 +816,7 @@ export function useUserHandlers() {
 }
 ```
 
-```typescript
+```tsx
 // 3. Use in Component (components/UserProfile.tsx)
 export function UserProfile() {
   const profileStore = useUserStore('profile');
@@ -801,7 +856,7 @@ export function UserProfile() {
 }
 ```
 
-```typescript
+```tsx
 // 4. App Setup (App.tsx)
 function App() {
   return (
@@ -939,7 +994,7 @@ describe('User Business Handlers', () => {
 
 ### Integration Testing
 
-```typescript
+```tsx
 // __tests__/integration/userFlow.test.tsx
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
