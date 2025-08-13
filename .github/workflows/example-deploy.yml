@@ -98,9 +98,9 @@ jobs:
         with:
           path: example/dist
 
-  # Deployment job for example
+  # Deployment job for example (temporarily disabled to fix main site)
   deploy-example:
-    if: github.ref == 'refs/heads/main'
+    if: false # Temporarily disabled - example should be deployed to separate repository
     environment:
       name: context-action-example
       url: ${{ steps.deployment.outputs.page_url }}
