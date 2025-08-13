@@ -3,14 +3,19 @@
  */
 
 import { useStoreValue } from '@context-action/react';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { useMouseEventsActionDispatch, useMouseEventsStore } from '../context/MouseEventsContext';
 
 export function EnhancedContextStoreView() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const cursorRef = useRef<HTMLDivElement>(null);
+  const coordinatesRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [animationSpeed, setAnimationSpeed] = useState(1);
+  const [realTimePosition, setRealTimePosition] = useState({ x: -999, y: -999 });
+  const throttleTimeoutRef = useRef<number>();
+  const animationFrameRef = useRef<number>();
 
   // Access individual stores using the Context Store Pattern
   const positionStore = useMouseEventsStore('position');
@@ -29,7 +34,7 @@ export function EnhancedContextStoreView() {
   // Action dispatcher
   const dispatch = useMouseEventsActionDispatch();
 
-  // Event handlers
+  // Performance optimized mouse move handler
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
     
@@ -38,8 +43,41 @@ export function EnhancedContextStoreView() {
     const y = Math.round(e.clientY - rect.top);
     const timestamp = Date.now();
     
-    dispatch('mouseMove', { x, y, timestamp });
-  }, [dispatch]);
+    // Real-time cursor update (no throttling)
+    setRealTimePosition({ x, y });
+    
+    // Update cursor position with GPU acceleration
+    if (cursorRef.current) {
+      cursorRef.current.style.transform = `translate(${x - 8}px, ${y - 8}px)`;
+    }
+    
+    // Update coordinates display
+    if (coordinatesRef.current && showDetails) {
+      coordinatesRef.current.textContent = `(${x}, ${y})`;
+      coordinatesRef.current.style.transform = `translate(${x + 16}px, ${y - 32}px)`;
+    }
+    
+    // Throttled store updates to prevent performance issues
+    if (throttleTimeoutRef.current) {
+      clearTimeout(throttleTimeoutRef.current);
+    }
+    
+    throttleTimeoutRef.current = window.setTimeout(() => {
+      dispatch('mouseMove', { x, y, timestamp });
+    }, 16); // ~60fps throttling
+  }, [dispatch, showDetails]);
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (throttleTimeoutRef.current) {
+        clearTimeout(throttleTimeoutRef.current);
+      }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, []);
 
   const handleMouseClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
@@ -61,6 +99,15 @@ export function EnhancedContextStoreView() {
     const y = Math.round(e.clientY - rect.top);
     const timestamp = Date.now();
     
+    // Initialize real-time position
+    setRealTimePosition({ x, y });
+    
+    // Show cursor immediately
+    if (cursorRef.current) {
+      cursorRef.current.style.opacity = '1';
+      cursorRef.current.style.transform = `translate(${x - 8}px, ${y - 8}px)`;
+    }
+    
     dispatch('mouseEnter', { x, y, timestamp });
   }, [dispatch]);
 
@@ -73,6 +120,21 @@ export function EnhancedContextStoreView() {
     const y = Math.round(e.clientY - rect.top);
     const timestamp = Date.now();
     
+    // Hide cursor immediately
+    if (cursorRef.current) {
+      cursorRef.current.style.opacity = '0';
+    }
+    
+    // Hide coordinates
+    if (coordinatesRef.current) {
+      coordinatesRef.current.style.opacity = '0';
+    }
+    
+    // Clear any pending throttled updates
+    if (throttleTimeoutRef.current) {
+      clearTimeout(throttleTimeoutRef.current);
+    }
+    
     dispatch('mouseLeave', { x, y, timestamp });
   }, [dispatch]);
 
@@ -82,11 +144,31 @@ export function EnhancedContextStoreView() {
 
   return (
     <div className="p-6">
-      {/* Add CSS for animations */}
+      {/* Add CSS for animations and performance */}
       <style>{`
         @keyframes pathDraw {
           from { stroke-dasharray: 1000; stroke-dashoffset: 1000; }
           to { stroke-dasharray: 1000; stroke-dashoffset: 0; }
+        }
+        
+        /* GPU acceleration for smooth animations */
+        .will-change-transform {
+          will-change: transform;
+        }
+        
+        /* Smooth cursor transitions */
+        .cursor-smooth {
+          transition: transform 16ms linear;
+        }
+        
+        /* Reduce motion for accessibility */
+        @media (prefers-reduced-motion: reduce) {
+          .animate-pulse, .animate-ping {
+            animation: none;
+          }
+          .cursor-smooth {
+            transition: none;
+          }
         }
       `}</style>
       
@@ -283,24 +365,29 @@ export function EnhancedContextStoreView() {
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          {/* Enhanced cursor indicator */}
-          {position.isInsideArea && position.current.x !== -999 && (
-            <div
-              className="absolute pointer-events-none transform -translate-x-2 -translate-y-2 transition-all duration-75"
-              style={{
-                left: position.current.x,
-                top: position.current.y,
-                transitionDuration: `${75 / animationSpeed}ms`,
-              }}
-            >
-              {/* Main cursor */}
-              <div className="w-4 h-4 bg-emerald-500 border-2 border-white rounded-full shadow-lg animate-pulse" />
+          {/* High-performance cursor indicator */}
+          {isHovered && (
+            <>
+              {/* Real-time cursor (GPU accelerated) */}
+              <div
+                ref={cursorRef}
+                className="absolute pointer-events-none w-4 h-4 will-change-transform transition-opacity duration-150"
+                style={{
+                  transform: `translate(${realTimePosition.x - 8}px, ${realTimePosition.y - 8}px)`,
+                  opacity: isHovered ? 1 : 0,
+                }}
+              >
+                {/* Main cursor */}
+                <div className="w-4 h-4 bg-emerald-500 border-2 border-white rounded-full shadow-lg animate-pulse" />
+              </div>
               
-              {/* Velocity indicator */}
-              {movement.velocity > 5 && (
+              {/* Velocity indicator (store-based) */}
+              {movement.velocity > 5 && position.isInsideArea && position.current.x !== -999 && (
                 <div
-                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+                  className="absolute pointer-events-none transition-all duration-150"
                   style={{
+                    left: position.current.x - Math.min(movement.velocity, 20),
+                    top: position.current.y - Math.min(movement.velocity, 20),
                     width: Math.min(movement.velocity * 2, 40),
                     height: Math.min(movement.velocity * 2, 40),
                   }}
@@ -309,13 +396,20 @@ export function EnhancedContextStoreView() {
                 </div>
               )}
               
-              {/* Coordinate display */}
+              {/* Real-time coordinate display */}
               {showDetails && (
-                <div className="absolute -top-8 left-4 bg-emerald-800 text-white px-2 py-1 rounded text-xs font-mono shadow-lg">
-                  ({position.current.x}, {position.current.y})
+                <div
+                  ref={coordinatesRef}
+                  className="absolute pointer-events-none bg-emerald-800 text-white px-2 py-1 rounded text-xs font-mono shadow-lg will-change-transform transition-opacity duration-150"
+                  style={{
+                    transform: `translate(${realTimePosition.x + 16}px, ${realTimePosition.y - 32}px)`,
+                    opacity: isHovered ? 1 : 0,
+                  }}
+                >
+                  ({realTimePosition.x}, {realTimePosition.y})
                 </div>
               )}
-            </div>
+            </>
           )}
           
           {/* Enhanced path visualization */}
