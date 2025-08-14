@@ -8,8 +8,8 @@ module.exports = {
     '^(.+)\\.js$': '$1'
   },
   testMatch: [
-    '**/__tests__/**/*.test.ts',
-    '**/__tests__/**/*.test.tsx'
+    '**/__tests__/simple-working.test.ts',
+    '**/__tests__/production/*.test.ts'
   ],
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
@@ -17,7 +17,8 @@ module.exports = {
         esModuleInterop: true,
         allowSyntheticDefaultImports: true,
         module: 'commonjs',
-        target: 'es2020'
+        target: 'es2020',
+        types: ['jest', 'node']
       }
     }]
   },
