@@ -1,0 +1,3 @@
+# 5000-Character Context-Action Guide
+
+*Character-limited content generation not yet implemented*
