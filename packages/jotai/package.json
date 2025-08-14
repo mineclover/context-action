@@ -3,6 +3,7 @@
   "version": "0.0.5",
   "type": "module",
   "description": "Jotai integration for @context-action/core - Atomic state management with type-safe actions",
+  "deprecated": "This package is no longer maintained. Use @context-action/react for state management instead.",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",

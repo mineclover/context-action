@@ -3,6 +3,7 @@
   "version": "0.0.5",
   "type": "module",
   "description": "Logging utility for the context-action framework",
+  "deprecated": "This package is no longer maintained. Use native console or other logging libraries instead.",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
