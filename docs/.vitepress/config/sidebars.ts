@@ -7,130 +7,52 @@ import type { DefaultTheme } from 'vitepress'
 
 export type SidebarLocale = 'en' | 'ko'
 
-// DOCUMENTATION_GUIDELINES.md에 맞춰 재구성된 가이드 구조
+// Concept 문서 기반으로 간소화된 가이드 구조
 const GUIDE_STRUCTURE = {
   en: {
-    // 1. Getting Started - MVVM 아키텍처와 패턴 중심
-    gettingStarted: {
-      text: '🚀 Getting Started',
+    // 1. Essential Guides - concept 문서 기반
+    essentials: {
+      text: '🚀 Essential Guides',
       collapsed: false,
       items: [
         { text: 'Getting Started', link: '/en/guide/getting-started' },
-        { text: 'MVVM Architecture', link: '/en/guide/mvvm-architecture' },
+        { text: 'Architecture', link: '/en/guide/architecture' },
         { text: 'Action Pipeline', link: '/en/guide/action-pipeline' },
-        { text: 'Main Patterns', link: '/en/guide/patterns' }
+        { text: 'React Hooks', link: '/en/guide/hooks' },
+        { text: 'Best Practices', link: '/en/guide/best-practices' }
       ]
     },
     
-    // 2. Legacy Support (기존 문서 호환성)
-    legacy: {
-      text: '📚 Legacy Guides',
+    // 2. Legacy Support - 남은 파일들
+    remaining: {
+      text: '📖 Additional Guides',
       collapsed: true,
       items: [
-        { text: 'Overview (Legacy)', link: '/en/guide/overview' },
-        { text: 'Concepts (Legacy)', link: '/en/guide/concepts' },
-        { text: 'Quick Start (Legacy)', link: '/en/guide/quick-start' },
-        { text: 'Setup & Usage (Legacy)', link: '/en/guide/setup-usage' },
-        { text: 'Philosophy (Legacy)', link: '/en/guide/philosophy' },
-        { text: 'Domain Hooks Pattern', link: '/en/guide/domain-hooks-pattern' }
-      ]
-    },
-    
-    // 3. Implementation Details
-    implementation: {
-      text: '⚙️ Implementation',
-      collapsed: true,
-      items: [
-        { text: 'Store Management', link: '/en/guide/store-management' },
-        { text: 'Action Handlers', link: '/en/guide/action-handlers' },
-        { text: 'Provider Composition', link: '/en/guide/provider-composition' },
-        { text: 'React Integration', link: '/en/guide/react-integration' }
-      ]
-    },
-    
-    // 4. Advanced Topics
-    advanced: {
-      text: '🚀 Advanced Topics',
-      collapsed: true,
-      items: [
-        { text: 'Cross-Domain Integration', link: '/en/guide/cross-domain-integration' },
-        { text: 'Handler ID Strategies', link: '/en/guide/handler-id-strategies' },
-        { text: 'Performance Optimization', link: '/en/guide/performance' },
-        { text: 'Error Handling', link: '/en/guide/error-handling' },
-        { text: 'Logic Fit Hooks', link: '/en/guide/logic-fit-hooks' }
-      ]
-    },
-    
-    // 5. Best Practices & Troubleshooting
-    bestPractices: {
-      text: '✅ Best Practices',
-      collapsed: true,
-      items: [
-        { text: 'Best Practices', link: '/en/guide/best-practices' },
-        { text: 'Common Pitfalls', link: '/en/guide/common-pitfalls' }
+        { text: 'Action Handlers', link: '/en/guide/action-handlers' }
       ]
     }
   },
   
   ko: {
-    // 1. 시작하기 - MVVM 아키텍처와 패턴 중심
-    gettingStarted: {
-      text: '🚀 시작하기',
+    // 1. 필수 가이드 - concept 문서 기반
+    essentials: {
+      text: '🚀 필수 가이드',
       collapsed: false,
       items: [
         { text: '시작하기', link: '/ko/guide/getting-started' },
-        { text: 'MVVM 아키텍처', link: '/ko/guide/mvvm-architecture' },
+        { text: '아키텍처', link: '/ko/guide/architecture' },
         { text: '액션 파이프라인', link: '/ko/guide/action-pipeline' },
-        { text: '주요 패턴', link: '/ko/guide/patterns' }
+        { text: 'React 훅', link: '/ko/guide/hooks' },
+        { text: '모범 사례', link: '/ko/guide/best-practices' }
       ]
     },
     
-    // 2. 기존 문서 (호환성)
-    legacy: {
-      text: '📚 기존 가이드',
+    // 2. 추가 가이드 - 남은 파일들
+    remaining: {
+      text: '📖 추가 가이드',
       collapsed: true,
       items: [
-        { text: '개요 (기존)', link: '/ko/guide/overview' },
-        { text: '핵심 개념 (기존)', link: '/ko/guide/concepts' },
-        { text: '빠른 시작 (기존)', link: '/ko/guide/quick-start' },
-        { text: '설정 & 사용법 (기존)', link: '/ko/guide/setup-usage' },
-        { text: '설계 철학 (기존)', link: '/ko/guide/philosophy' },
-        { text: '도메인 훅 패턴', link: '/ko/guide/domain-hooks-pattern' }
-      ]
-    },
-    
-    // 3. 구현 세부사항
-    implementation: {
-      text: '⚙️ 구현 세부사항',
-      collapsed: true,
-      items: [
-        { text: '스토어 관리', link: '/ko/guide/store-management' },
-        { text: '액션 핸들러', link: '/ko/guide/action-handlers' },
-        { text: '프로바이더 구성', link: '/ko/guide/provider-composition' },
-        { text: 'React 통합', link: '/ko/guide/react-integration' }
-      ]
-    },
-    
-    // 4. 고급 주제
-    advanced: {
-      text: '🚀 고급 주제',
-      collapsed: true,
-      items: [
-        { text: '크로스 도메인 통합', link: '/ko/guide/cross-domain-integration' },
-        { text: '핸들러 ID 전략', link: '/ko/guide/handler-id-strategies' },
-        { text: '성능 최적화', link: '/ko/guide/performance' },
-        { text: '오류 처리', link: '/ko/guide/error-handling' },
-        { text: 'Logic Fit Hooks', link: '/ko/guide/logic-fit-hooks' }
-      ]
-    },
-    
-    // 5. 모범 사례 & 문제 해결
-    bestPractices: {
-      text: '✅ 모범 사례',
-      collapsed: true,
-      items: [
-        { text: '모범 사례', link: '/ko/guide/best-practices' },
-        { text: '공통 함정', link: '/ko/guide/common-pitfalls' }
+        { text: '액션 핸들러', link: '/ko/guide/action-handlers' }
       ]
     }
   }
@@ -297,13 +219,10 @@ export function createSidebars(locale: SidebarLocale): DefaultTheme.Config['side
   const llms = LLMS_STRUCTURE[locale]
   
   return {
-    // Guide 섹션
+    // Guide 섹션 - concept 기반으로 간소화
     [`/${locale}/guide/`]: [
-      guide.gettingStarted,
-      guide.legacy,
-      guide.implementation,
-      guide.advanced,
-      guide.bestPractices
+      guide.essentials,
+      guide.remaining
     ],
     
     // Concept 섹션 - CLAUDE.md에서 중요하게 언급된 핵심 문서들
@@ -330,11 +249,8 @@ export function createSidebars(locale: SidebarLocale): DefaultTheme.Config['side
     
     // 기본 경로는 Guide로 리다이렉트
     [`/${locale}/`]: [
-      guide.gettingStarted,
-      guide.legacy,
-      guide.implementation,
-      guide.advanced,
-      guide.bestPractices
+      guide.essentials,
+      guide.remaining
     ]
   }
 }

@@ -1,631 +1,336 @@
-# Development Best Practices
+# Best Practices
 
-Essential best practices for building maintainable, scalable applications with the Context-Action framework. Follow these guidelines to ensure code quality, performance, and team productivity.
+Follow these conventions and best practices when using the Context-Action framework.
 
-## Handler Registration Best Practices
+## Naming Conventions
 
-### 1. Always Use `useActionRegister` + `useEffect` Pattern
+### Domain-Based Renaming Pattern
 
-```typescript
-// ✅ Correct: Proper registration with cleanup
-function useUserHandlers() {
-  const register = useUserActionRegister();
-  const registry = useUserRegistry();
-  
-  const handler = useCallback(async (payload, controller) => {
-    // Handler logic
-  }, [registry]);
-  
-  useEffect(() => {
-    if (!register) return;
-    const unregister = register('action', handler, {
-      priority: 100,
-      blocking: true
-    });
-    return unregister; // Critical: cleanup on unmount
-  }, [register, handler]);
+The core convention is **domain-specific renaming** for clear context separation.
+
+#### Store Pattern Renaming
+```tsx
+// ✅ Recommended: Domain-specific renaming
+const {
+  Provider: UserStoreProvider,
+  useStore: useUserStore,
+  useStoreManager: useUserStoreManager
+} = createDeclarativeStorePattern('User', {...});
+
+// ❌ Avoid: Direct object access
+const UserStores = createDeclarativeStorePattern('User', {...});
+const userStore = UserStores.useStore('profile'); // Domain unclear
+```
+
+#### Action Pattern Renaming
+```tsx
+// ✅ Recommended: Domain-specific renaming with explicit types
+const {
+  Provider: UserActionProvider,
+  useActionDispatch: useUserAction,
+  useActionHandler: useUserActionHandler
+} = createActionContext<UserActions>('UserActions');
+
+// ❌ Avoid: Generic names
+const {
+  Provider,
+  useActionDispatch,
+  useActionHandler
+} = createActionContext<UserActions>('UserActions');
+```
+
+### Context Naming Rules
+
+#### Domain-Based Naming
+```tsx
+// ✅ Recommended: Clear domain separation
+'UserProfile'     // User profile related
+'ShoppingCart'    // Shopping cart related  
+'ProductCatalog'  // Product catalog related
+'OrderManagement' // Order management related
+'AuthSystem'      // Authentication system related
+
+// ❌ Avoid: Ambiguous names
+'Data'           // Too broad
+'State'          // Not specific
+'App'            // Unclear scope (use only at root level)
+'Manager'        // Unclear role
+```
+
+#### Action vs Store Distinction
+```tsx
+// Action Context (behavior/event focused)
+'UserActions'         // User actions
+'PaymentActions'      // Payment actions
+'NavigationActions'   // Navigation actions
+
+// Store Context (data/state focused)  
+'UserData'           // User data
+'PaymentData'        // Payment data
+'AppSettings'        // Application settings
+```
+
+## File Structure
+
+### Recommended Directory Structure
+```
+src/
+├── contexts/
+│   ├── user/
+│   │   ├── UserActions.tsx     # Action context
+│   │   ├── UserStores.tsx      # Store context
+│   │   └── types.ts            # User-related types
+│   ├── payment/
+│   │   ├── PaymentActions.tsx
+│   │   ├── PaymentStores.tsx
+│   │   └── types.ts
+│   └── index.ts                # Export all contexts
+├── components/
+├── pages/
+└── utils/
+```
+
+### Context File Organization
+```tsx
+// contexts/user/UserActions.tsx
+import { createActionContext } from '@context-action/react';
+import type { UserActions } from './types';
+
+export const {
+  Provider: UserActionProvider,
+  useActionDispatch: useUserAction,
+  useActionHandler: useUserActionHandler
+} = createActionContext<UserActions>('UserActions');
+
+// contexts/user/UserStores.tsx
+import { createDeclarativeStorePattern } from '@context-action/react';
+import type { UserStoreConfig } from './types';
+
+export const {
+  Provider: UserStoreProvider,
+  useStore: useUserStore,
+  useStoreManager: useUserStoreManager
+} = createDeclarativeStorePattern('User', userStoreConfig);
+```
+
+## Pattern Usage
+
+### Action Pattern Best Practices
+
+#### Handler Registration
+```tsx
+// ✅ Recommended: Use useCallback for stable handlers
+function UserComponent() {
+  useUserActionHandler('updateProfile', useCallback(async (payload) => {
+    try {
+      await updateUserProfile(payload);
+      console.log('Profile updated successfully');
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+    }
+  }, [])); // Empty deps for stable handler
 }
 
-// ❌ Wrong: Missing cleanup
-function useUserHandlers() {
-  const register = useUserActionRegister();
-  
-  useEffect(() => {
-    register('action', handler); // Memory leak!
-  }, []);
+// ❌ Avoid: Inline handlers (causes re-registration)
+function UserComponent() {
+  useUserActionHandler('updateProfile', async (payload) => {
+    await updateUserProfile(payload); // Re-registers on every render
+  });
 }
 ```
 
-### 2. Use `blocking: true` for Sequential Async Handlers
-
-```typescript
-// ✅ Correct: Sequential execution
-register('asyncAction', asyncHandler, { 
-  priority: 100, 
-  blocking: true // Wait for completion
-});
-
-// ❌ Wrong: Handlers execute simultaneously
-register('asyncAction', asyncHandler, { 
-  priority: 100 
-  // Missing blocking: true
+#### Error Handling
+```tsx
+// ✅ Recommended: Use controller.abort for proper error handling
+useActionHandler('riskyAction', (payload, controller) => {
+  try {
+    // Business logic that might fail
+    processData(payload);
+  } catch (error) {
+    controller.abort('Processing failed', error);
+  }
 });
 ```
 
-### 3. Consider Explicit IDs for Debugging and Critical Handlers
+### Store Pattern Best Practices
 
-```typescript
-// ✅ Good: Explicit IDs for debugging
-register('updateProfile', handler, {
-  priority: 100,
-  blocking: true,
-  id: 'profile-updater-main' // Helpful for debugging
-});
-
-// ✅ Also good: Auto-generated IDs for simple cases
-register('updateProfile', handler, {
-  priority: 100,
-  blocking: true
-  // Framework generates ID automatically
-});
-```
-
-### 4. Wrap Handlers with `useCallback` to Prevent Re-registration
-
-```typescript
-// ✅ Correct: Stable handler reference
-const handler = useCallback(async (payload, controller) => {
-  // Handler logic
-}, [registry]); // Stable dependencies only
-
-// ❌ Wrong: Handler recreated every render
-const handler = async (payload, controller) => {
-  // This creates new function every render
-};
-```
-
-## Store Access Best Practices
-
-### 5. Use Domain-Specific Hooks in Components
-
-```typescript
-// ✅ Correct: Domain-specific hooks
+#### Store Access
+```tsx
+// ✅ Recommended: Specific store subscriptions
 function UserProfile() {
   const profileStore = useUserStore('profile');
   const profile = useStoreValue(profileStore);
-  const dispatch = useUserAction();
   
   return <div>{profile.name}</div>;
 }
 
-// ❌ Wrong: Generic hooks (no type safety)
+// ❌ Avoid: Unnecessary store access
 function UserProfile() {
-  const store = useStore('user-profile'); // No type information
-  const dispatch = useDispatch(); // No action safety
+  const profileStore = useUserStore('profile');
+  const settingsStore = useUserStore('settings'); // Not used
+  const profile = useStoreValue(profileStore);
+  
+  return <div>{profile.name}</div>;
 }
 ```
 
-### 6. Use `registry.getStore()` for Lazy Evaluation in Handlers
+#### Store Updates
+```tsx
+// ✅ Recommended: Functional updates for complex changes
+const { updateStore } = useUserStoreManager();
 
-```typescript
-// ✅ Correct: Lazy evaluation (fresh values)
-const handler = useCallback(async (payload, controller) => {
-  const profileStore = registry.getStore('profile');
-  const currentProfile = profileStore.getValue(); // Current value
-  
-  // Business logic with fresh data
-}, [registry]);
+const updateProfile = (changes: Partial<UserProfile>) => {
+  updateStore('profile', prevProfile => ({
+    ...prevProfile,
+    ...changes,
+    updatedAt: Date.now()
+  }));
+};
 
-// ❌ Wrong: Stale closure
-const profile = profileStore.getValue();
-const handler = useCallback(async (payload, controller) => {
-  console.log(profile); // Stale value from registration time
-}, [profile]);
+// ✅ Acceptable: Direct updates for simple changes
+const setUserName = (name: string) => {
+  updateStore('profile', { ...currentProfile, name });
+};
 ```
 
-### 7. Provide Proper Initial Values, Not Null
+## Type Definitions
 
-```typescript
-// ✅ Correct: Proper initial values
-export const userStores = createDeclarativeStores<UserData>('User', {
-  profile: {
+### Action Types
+```tsx
+// ✅ Recommended: Extend ActionPayloadMap
+interface UserActions extends ActionPayloadMap {
+  updateProfile: { name: string; email: string };
+  deleteAccount: { confirmationCode: string };
+  logout: void; // For actions without payload
+}
+
+// ❌ Avoid: Plain interfaces
+interface UserActions {
+  updateProfile: { name: string; email: string }; // Missing ActionPayloadMap
+}
+```
+
+### Store Types
+```tsx
+// ✅ Recommended: Clear type definitions
+interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+interface UserSettings {
+  theme: 'light' | 'dark';
+  notifications: boolean;
+  language: string;
+}
+
+const userStoreConfig = {
+  profile: { 
     initialValue: {
       id: '',
       name: '',
-      email: ''
-    }
+      email: '',
+      createdAt: 0,
+      updatedAt: 0
+    } as UserProfile
+  },
+  settings: { 
+    initialValue: {
+      theme: 'light',
+      notifications: true,
+      language: 'en'
+    } as UserSettings
   }
-});
-
-// ❌ Wrong: Null values cause type issues
-export const userStores = createDeclarativeStores<UserData>('User', {
-  profile: {
-    initialValue: null // TypeScript errors, runtime issues
-  }
-});
-```
-
-### 8. Keep Store Updates Predictable and Traceable
-
-```typescript
-// ✅ Correct: Clear, traceable updates
-const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
-  const profileStore = registry.getStore('profile');
-  const currentProfile = profileStore.getValue();
-  
-  const newProfile = {
-    ...currentProfile,
-    ...updates,
-    updatedAt: Date.now() // Add metadata
-  };
-  
-  profileStore.setValue(newProfile);
-  
-  // Log for debugging
-  console.log('Profile updated:', { from: currentProfile, to: newProfile });
-}, [registry]);
-
-// ❌ Wrong: Unclear mutations
-const updateProfile = useCallback((updates) => {
-  // Direct mutation (hard to debug)
-  Object.assign(currentProfile, updates);
-}, []);
-```
-
-## Type Safety (Recommended)
-
-### 9. Define Interfaces for Better Type Safety
-
-```typescript
-// ✅ Good: Clear interfaces
-export interface UserData {
-  profile: {
-    id: string;
-    name: string;
-    email: string;
-    role: 'admin' | 'user' | 'guest';
-  };
-  preferences: {
-    theme: 'light' | 'dark';
-    language: string;
-  };
-}
-
-export interface UserActions {
-  updateProfile: { data: Partial<UserData['profile']> };
-  deleteUser: { userId: string };
-  resetUser: void; // Explicit void for actions without payload
-}
-
-// ❌ Avoid: Any types (lose safety)
-export interface UserActions {
-  updateProfile: any;
-  deleteUser: any;
-}
-```
-
-### 10. Use Domain-Specific Hooks for Type Inference
-
-```typescript
-// ✅ Correct: Automatic type inference
-function UserComponent() {
-  const profileStore = useUserStore('profile'); // Store<UserProfile>
-  const profile = useStoreValue(profileStore);  // UserProfile
-  const dispatch = useUserAction();             // Typed dispatcher
-  
-  dispatch('updateProfile', { 
-    data: { name: 'New Name' } // ✓ Type-checked
-  });
-}
-```
-
-### 11. Avoid `any` Types - Leverage TypeScript
-
-```typescript
-// ✅ Correct: Proper typing
-const handler = useCallback(async (
-  payload: UserActions['updateProfile'],
-  controller: ActionController
-) => {
-  // Fully typed handler
-}, []);
-
-// ❌ Wrong: Any types defeat the purpose
-const handler = useCallback(async (payload: any, controller: any) => {
-  // Lost all type safety
-}, []);
-```
-
-## Performance Best Practices
-
-### 12. Only Subscribe to Needed Stores
-
-```typescript
-// ✅ Correct: Minimal subscriptions
-function UserName() {
-  const profileStore = useUserStore('profile');
-  const profile = useStoreValue(profileStore);
-  
-  // Only re-renders when profile changes
-  return <span>{profile.name}</span>;
-}
-
-// ❌ Wrong: Over-subscription
-function UserName() {
-  const profileStore = useUserStore('profile');
-  const preferencesStore = useUserStore('preferences'); // Unnecessary
-  const sessionStore = useUserStore('session'); // Unnecessary
-  
-  const profile = useStoreValue(profileStore);
-  const preferences = useStoreValue(preferencesStore); // Causes extra re-renders
-  const session = useStoreValue(sessionStore); // Causes extra re-renders
-  
-  return <span>{profile.name}</span>; // Only needs profile
-}
-```
-
-### 13. Use Proper Handler Priorities
-
-```typescript
-// ✅ Correct: Logical priority order
-register('updateProfile', validationHandler, { 
-  priority: 200, // Validation first
-  blocking: true 
-});
-
-register('updateProfile', updateHandler, { 
-  priority: 100, // Main logic second
-  blocking: true 
-});
-
-register('updateProfile', loggingHandler, { 
-  priority: 50,  // Logging last
-  blocking: true 
-});
-```
-
-### 14. Clean Up Handlers on Unmount
-
-```typescript
-// ✅ Correct: All handlers cleaned up
-useEffect(() => {
-  if (!register) return;
-  
-  const unregisterA = register('actionA', handlerA);
-  const unregisterB = register('actionB', handlerB);
-  const unregisterC = register('actionC', handlerC);
-  
-  return () => {
-    unregisterA();
-    unregisterB();
-    unregisterC();
-  };
-}, [register, handlerA, handlerB, handlerC]);
-```
-
-### 15. Use Result Collection Selectively
-
-```typescript
-// ✅ Good: Only when you need results
-const dispatchWithResult = useUserActionWithResult();
-
-const criticalAction = async () => {
-  const result = await dispatchWithResult('importantAction', payload, {
-    result: { collect: true, strategy: 'all' }
-  });
-  
-  // Process results
-  return result.results;
-};
-
-// ✅ Also good: Regular dispatch when results not needed
-const dispatch = useUserAction();
-
-const simpleAction = () => {
-  dispatch('simpleAction', payload); // No result collection overhead
 };
 ```
 
-## Architecture Best Practices
+## Performance Guidelines
 
-### 16. One Domain = One Context Boundary
+### Handler Optimization
+```tsx
+// ✅ Recommended: Memoized handlers
+const optimizedHandler = useCallback(async (payload: UserActions['updateProfile']) => {
+  await updateUserProfile(payload);
+}, []);
 
-```typescript
-// ✅ Correct: Clear domain boundaries
+useUserActionHandler('updateProfile', optimizedHandler);
+```
+
+### Store Subscription Optimization
+```tsx
+// ✅ Recommended: Subscribe to specific values
+const userName = useStoreValue(profileStore)?.name;
+
+// ❌ Avoid: Unnecessary full object subscriptions when only partial data needed
+const fullProfile = useStoreValue(profileStore);
+const userName = fullProfile.name; // Re-renders on any profile change
+```
+
+## Pattern Composition
+
+### Provider Hierarchy
+```tsx
+// ✅ Recommended: Logical provider ordering
 function App() {
   return (
-    <UserProvider>        {/* User domain */}
-      <CartProvider>      {/* Cart domain */}
-        <OrderProvider>   {/* Order domain */}
-          <AppContent />
-        </OrderProvider>
-      </CartProvider>
-    </UserProvider>
+    <UserStoreProvider>      {/* Data layer first */}
+      <UserActionProvider>   {/* Action layer second */}
+        <PaymentStoreProvider>
+          <PaymentActionProvider>
+            <AppContent />
+          </PaymentActionProvider>
+        </PaymentStoreProvider>
+      </UserActionProvider>
+    </UserStoreProvider>
   );
 }
 ```
 
-### 17. Separate Business and UI Concerns
-
-```typescript
-// ✅ Correct: Separated concerns
-// Business data
-interface UserBusinessData {
-  profile: UserProfile;
-  session: UserSession;
-}
-
-// UI state  
-interface UserUIState {
-  isEditing: boolean;
-  selectedTab: string;
-  loadingState: LoadingState;
-}
-
-// Separate providers
-<UserBusinessProvider>
-  <UserUIProvider>
-    <UserComponents />
-  </UserUIProvider>
-</UserBusinessProvider>
-```
-
-### 18. Prefer Domain Isolation - Use Cross-Domain Only When Necessary
-
-```typescript
-// ✅ Good: Domain isolation (preferred)
-function UserProfile() {
-  const profileStore = useUserStore('profile');
-  const userAction = useUserAction();
-  // Self-contained user logic
-}
-
-// ✅ Also good: Cross-domain when truly needed
-function useCheckoutProcess() {
-  const userProfile = useUserStore('profile');
-  const cartItems = useCartStore('items');
-  const userAction = useUserAction();
-  const cartAction = useCartAction();
+### Cross-Pattern Communication
+```tsx
+// ✅ Recommended: Actions update stores
+function UserComponent() {
+  const { updateStore } = useUserStoreManager();
   
-  // Business logic that truly spans domains
-}
-
-// ❌ Avoid: Unnecessary coupling
-function UserProfile() {
-  const cartItems = useCartStore('items'); // Why does user profile need cart?
-}
-```
-
-### 19. Document Domain Boundaries Clearly
-
-```typescript
-// ✅ Good: Clear documentation
-/**
- * User Domain
- * 
- * Responsibilities:
- * - User authentication and profile management
- * - User preferences and settings
- * - User session management
- * 
- * Dependencies:
- * - None (self-contained)
- * 
- * Provides to other domains:
- * - User ID for data association
- * - Authentication status
- */
-export interface UserData {
-  // Domain data definition
-}
-```
-
-## Development Workflow Best Practices
-
-### 20. Test Handlers in Isolation
-
-```typescript
-// ✅ Good: Isolated handler testing
-describe('updateProfile handler', () => {
-  it('should update profile with valid data', async () => {
-    // Arrange
-    const mockRegistry = createMockRegistry();
-    const mockController = createMockController();
-    const handler = createUpdateProfileHandler(mockRegistry);
-    
-    // Act
-    const result = await handler(
-      { data: { name: 'John Doe' } },
-      mockController
-    );
-    
-    // Assert
-    expect(result).toEqual({ success: true });
-    expect(mockRegistry.getStore('profile').setValue).toHaveBeenCalledWith({
-      name: 'John Doe'
-    });
-  });
-});
-```
-
-### 21. Use Consistent Error Handling
-
-```typescript
-// ✅ Correct: Consistent error patterns
-const handler = useCallback(async (payload, controller) => {
-  try {
-    // Validation
-    if (!isValid(payload)) {
-      controller.abort('Validation failed: invalid payload');
-      return { success: false, error: 'VALIDATION_ERROR' };
+  useUserActionHandler('updateProfile', useCallback(async (payload) => {
+    try {
+      const updatedProfile = await updateUserProfile(payload);
+      updateStore('profile', updatedProfile); // Update store after API call
+    } catch (error) {
+      console.error('Profile update failed:', error);
     }
-    
-    // Business logic
-    const result = await performOperation(payload);
-    
-    return { success: true, data: result };
-    
-  } catch (error) {
-    controller.abort('Operation failed', error);
-    return { 
-      success: false, 
-      error: error.code || 'UNKNOWN_ERROR',
-      message: error.message 
-    };
-  }
-}, []);
+  }, [updateStore]));
+}
 ```
 
-### 22. Implement Progressive Enhancement
+## Common Pitfalls
 
-```typescript
-// ✅ Good: Progressive enhancement
-function useUserFeatures() {
-  const profile = useStoreValue(useUserStore('profile'));
-  const [advancedFeatures, setAdvancedFeatures] = useState(false);
+### Avoid These Patterns
+```tsx
+// ❌ Don't: Mix action dispatch with direct store updates
+function BadComponent() {
+  const dispatch = useUserAction();
+  const { updateStore } = useUserStoreManager();
   
-  // Enable advanced features progressively
-  useEffect(() => {
-    if (profile.role === 'premium' && profile.isActive) {
-      setAdvancedFeatures(true);
-    }
-  }, [profile.role, profile.isActive]);
-  
-  return {
-    basicFeatures: true,      // Always available
-    advancedFeatures,         // Conditionally available
-    adminFeatures: profile.role === 'admin' // Role-based
+  const handleUpdate = () => {
+    updateStore('profile', newProfile);  // Direct store update
+    dispatch('updateProfile', newProfile); // AND action dispatch - redundant!
   };
 }
+
+// ❌ Don't: Create contexts inside components
+function BadComponent() {
+  const { Provider } = createActionContext<UserActions>('User'); // Wrong!
+  return <Provider>...</Provider>;
+}
+
+// ❌ Don't: Register handlers with dependencies that change frequently
+function BadComponent({ userId }: { userId: string }) {
+  useUserActionHandler('updateProfile', async (payload) => {
+    await updateUserProfile(userId, payload); // userId closure changes frequently
+  }); // Missing useCallback and userId in deps
+}
 ```
-
-## Code Organization Best Practices
-
-### 23. Consistent File Structure
-
-```mermaid
-graph TD
-    A[src/] --> B[stores/]
-    A --> C[hooks/]
-    A --> D[components/]
-    A --> E[providers/]
-    
-    B --> B1[user/]
-    B --> B2[cart/]
-    B --> B3[index.ts]
-    
-    B1 --> B1a[userBusiness.store.ts]
-    B1 --> B1b[userUI.store.ts]
-    B1 --> B1c[index.ts]
-    
-    B2 --> B2a[cart.store.ts]
-    B2 --> B2b[index.ts]
-    
-    C --> C1[handlers/]
-    C --> C2[logic/]
-    C --> C3[integration/]
-    
-    C1 --> C1a[useUserHandlers.ts]
-    C1 --> C1b[useCartHandlers.ts]
-    C1 --> C1c[index.ts]
-    
-    C2 --> C2a[useUserLogic.ts]
-    C2 --> C2b[useCartLogic.ts]
-    C2 --> C2c[index.ts]
-    
-    C3 --> C3a[useUserCartIntegration.ts]
-    C3 --> C3b[index.ts]
-    
-    D --> D1[user/]
-    D --> D2[cart/]
-    D --> D3[shared/]
-    
-    E --> E1[UserProvider.tsx]
-    E --> E2[CartProvider.tsx]
-    E --> E3[AppProvider.tsx]
-    
-    style A fill:#e3f2fd
-    style B fill:#fff8e1
-    style C fill:#e8f5e8
-    style D fill:#fce4ec
-    style E fill:#f3e5f5
-```
-
-### 24. Use Barrel Exports
-
-```typescript
-// stores/user/index.ts
-export * from './userBusiness.store';
-export * from './userUI.store';
-
-// stores/index.ts  
-export * from './user';
-export * from './cart';
-export * from './order';
-
-// Usage
-import { useUserStore, useCartStore } from '@/stores';
-```
-
-### 25. Implement Consistent Naming Conventions
-
-```typescript
-// ✅ Consistent naming
-// Stores
-export const useUserBusinessStore = ...;
-export const useUserUIStore = ...;
-
-// Actions
-export const useUserBusinessAction = ...;
-export const useUserUIAction = ...;
-
-// Handlers
-export const useUserBusinessHandlers = ...;
-export const useUserUIHandlers = ...;
-
-// Logic hooks
-export const useUserProfile = ...;
-export const useUserSettings = ...;
-```
-
----
-
-## Summary Checklist
-
-### Handler Registration ✓
-- [ ] Always use `useActionRegister` + `useEffect` pattern
-- [ ] Return unregister function for cleanup
-- [ ] Use `blocking: true` for sequential async handlers
-- [ ] Consider explicit IDs for debugging and critical handlers
-- [ ] Wrap handlers with `useCallback` to prevent re-registration
-
-### Store Access ✓
-- [ ] Use domain-specific hooks in components
-- [ ] Use `registry.getStore()` for lazy evaluation in handlers
-- [ ] Provide proper initial values, not null
-- [ ] Keep store updates predictable and traceable
-
-### Type Safety ✓
-- [ ] Define interfaces for better type safety
-- [ ] Use domain-specific hooks for type inference
-- [ ] Avoid `any` types - leverage TypeScript
-
-### Performance ✓
-- [ ] Only subscribe to needed stores
-- [ ] Use proper handler priorities
-- [ ] Clean up handlers on unmount
-- [ ] Use result collection selectively
-
-### Architecture ✓
-- [ ] One domain = One context boundary
-- [ ] Separate business and UI concerns
-- [ ] Prefer domain isolation - use cross-domain only when necessary
-- [ ] Document domain boundaries clearly
-
-Following these best practices ensures maintainable, scalable, and performant applications with the Context-Action framework.
-
----
-
-::: tip Continuous Improvement
-Regularly review your codebase against this checklist. Consider setting up ESLint rules and automated checks to enforce these patterns in your development workflow.
-:::
