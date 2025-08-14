@@ -1,6 +1,13 @@
 {
-  "characterLimits": [100, 200, 300, 400],
-  "languages": ["ko", "en", "ja"],
+  "characterLimits": [
+    100,
+    500
+  ],
+  "languages": [
+    "en",
+    "ko",
+    "id"
+  ],
   "paths": {
     "docsDir": "./docs",
     "dataDir": "./packages/llms-generator/data",

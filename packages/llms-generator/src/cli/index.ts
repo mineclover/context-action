@@ -57,8 +57,6 @@ async function main() {
       case 'config-show':
         console.log('🔧 Current Configuration\n');
         
-        console.log(`Project: ${userConfig.name || 'Unknown'}`);
-        console.log(`Version: ${userConfig.version || 'Unknown'}`);
         console.log(`Config file: ${userConfig.resolvedPaths.configFile || 'Default'}`);
         console.log(`Project root: ${userConfig.resolvedPaths.projectRoot}\n`);
         
@@ -68,22 +66,11 @@ async function main() {
         console.log(`  Output directory: ${userConfig.resolvedPaths.outputDir}\n`);
         
         console.log('📏 Character Limits:');
-        userConfig.extraction.characterLimits.forEach(limit => {
-          const status = limit.enabled === false ? '❌ disabled' : '✅ enabled';
-          console.log(`  ${limit.limit} chars: ${status} - ${limit.description || 'No description'}`);
-          if (limit.focus) {
-            console.log(`    Focus: ${limit.focus}`);
-          }
+        userConfig.characterLimits.forEach(limit => {
+          console.log(`  ${limit} chars`);
         });
         
-        console.log(`\n🌐 Languages: ${userConfig.extraction.languages.join(', ')}`);
-        console.log(`📊 Default strategy: ${userConfig.extraction.defaultStrategy || 'concept-first'}`);
-        
-        console.log('\n🎯 Composition:');
-        console.log(`  Default character limit: ${userConfig.composition.defaultCharacterLimit}`);
-        console.log(`  Default priority threshold: ${userConfig.composition.defaultPriorityThreshold}`);
-        console.log(`  Include TOC: ${userConfig.composition.includeTableOfContents ? '✅' : '❌'}`);
-        console.log(`  Target utilization: ${(userConfig.composition.targetUtilization * 100).toFixed(1)}%`);
+        console.log(`\n🌐 Languages: ${userConfig.languages.join(', ')}`);
         break;
         
       case 'config-validate':
@@ -94,9 +81,8 @@ async function main() {
         if (validation.valid) {
           console.log('✅ Configuration is valid!');
           console.log(`\n📊 Summary:`);
-          console.log(`  Enabled character limits: ${enabledCharLimits.length}`);
-          console.log(`  Character limits: ${enabledCharLimits.join(', ')}`);
-          console.log(`  Languages: ${userConfig.extraction.languages.length} (${userConfig.extraction.languages.join(', ')})`);
+          console.log(`  Character limits: ${enabledCharLimits.length} (${enabledCharLimits.join(', ')})`);
+          console.log(`  Languages: ${userConfig.languages.length} (${userConfig.languages.join(', ')})`);
         } else {
           console.log('❌ Configuration has errors:\n');
           validation.errors.forEach(error => {
@@ -107,23 +93,13 @@ async function main() {
         break;
         
       case 'config-limits':
-        const showDisabled = args.includes('--all');
+        console.log('📏 Character Limits\n');
         
-        console.log(`📏 Character Limits${showDisabled ? ' (all)' : ' (enabled only)'}\n`);
-        
-        const limitsToShow = showDisabled ? 
-          userConfig.extraction.characterLimits : 
-          userConfig.extraction.characterLimits.filter(l => l.enabled !== false);
-          
-        limitsToShow.sort((a, b) => a.limit - b.limit).forEach(limit => {
-          const status = limit.enabled === false ? '❌' : '✅';
-          console.log(`${status} ${limit.limit} chars - ${limit.description || 'No description'}`);
-          if (limit.focus) {
-            console.log(`   Focus: ${limit.focus}`);
-          }
+        userConfig.characterLimits.sort((a, b) => a - b).forEach(limit => {
+          console.log(`  ${limit} chars`);
         });
         
-        if (limitsToShow.length === 0) {
+        if (userConfig.characterLimits.length === 0) {
           console.log('No character limits found.');
         }
         break;
@@ -165,7 +141,7 @@ async function main() {
         break;
         
       case 'batch':
-        const batchLanguages = args.find(arg => arg.startsWith('--lang='))?.split('=')[1]?.split(',') || userConfig.extraction.languages || ['en'];
+        const batchLanguages = args.find(arg => arg.startsWith('--lang='))?.split('=')[1]?.split(',') || userConfig.languages || ['en'];
         const batchLimits = args.find(arg => arg.startsWith('--chars='))?.split('=')[1]?.split(',').map(Number) || enabledCharLimits;
         
         console.log(`🚀 Batch generating for languages: ${batchLanguages.join(', ')}`);
@@ -320,7 +296,7 @@ async function main() {
         break;
         
       case 'markdown-generate':
-        const mdLanguage = args[1] || userConfig.extraction.languages[0] || 'en';
+        const mdLanguage = args[1] || userConfig.languages[0] || 'en';
         const mdDryRun = args.includes('--dry-run');
         const mdOverwrite = args.includes('--overwrite');
         const mdCharLimits = args.find(arg => arg.startsWith('--chars='))?.split('=')[1]?.split(',').map(Number) || enabledCharLimits;
@@ -350,7 +326,7 @@ async function main() {
         break;
         
       case 'markdown-all':
-        const allLanguages = args.find(arg => arg.startsWith('--lang='))?.split('=')[1]?.split(',') || userConfig.extraction.languages;
+        const allLanguages = args.find(arg => arg.startsWith('--lang='))?.split('=')[1]?.split(',') || userConfig.languages;
         const allDryRun = args.includes('--dry-run');
         const allOverwrite = args.includes('--overwrite');
         
@@ -383,7 +359,7 @@ async function main() {
         break;
         
       case 'extract':
-        const extractLanguage = args[1] || userConfig.extraction.languages[0] || 'en';
+        const extractLanguage = args[1] || userConfig.languages[0] || 'en';
         const extractDryRun = args.includes('--dry-run');
         const extractOverwrite = args.includes('--overwrite');
         const extractCharLimits = args.find(arg => arg.startsWith('--chars='))?.split('=')[1]?.split(',').map(Number) || enabledCharLimits;
@@ -413,7 +389,7 @@ async function main() {
         break;
         
       case 'extract-all':
-        const extractAllLanguages = args.find(arg => arg.startsWith('--lang='))?.split('=')[1]?.split(',') || userConfig.extraction.languages;
+        const extractAllLanguages = args.find(arg => arg.startsWith('--lang='))?.split('=')[1]?.split(',') || userConfig.languages;
         const extractAllDryRun = args.includes('--dry-run');
         const extractAllOverwrite = args.includes('--overwrite');
         
@@ -446,11 +422,11 @@ async function main() {
         break;
 
       case 'compose':
-        const composeLanguage = args[1] || userConfig.extraction.languages[0] || 'ko';
-        const composeCharLimit = parseInt(args[2]) || userConfig.composition.defaultCharacterLimit;
+        const composeLanguage = args[1] || userConfig.languages[0] || 'ko';
+        const composeCharLimit = parseInt(args[2]) || 5000;
         const composeDryRun = args.includes('--dry-run');
         const composeNoToc = args.includes('--no-toc');
-        const composePriorityThreshold = parseInt(args.find(arg => arg.startsWith('--priority='))?.split('=')[1] || userConfig.composition.defaultPriorityThreshold.toString());
+        const composePriorityThreshold = parseInt(args.find(arg => arg.startsWith('--priority='))?.split('=')[1] || '0');
         
         console.log(`🎯 ${composeDryRun ? '[DRY RUN] ' : ''}Composing adaptive content for language: ${composeLanguage}`);
         console.log(`📏 Character limit: ${composeCharLimit}`);
@@ -461,7 +437,7 @@ async function main() {
           const composeResult = await adaptiveComposer.composeAdaptiveContent({
             language: composeLanguage,
             characterLimit: composeCharLimit,
-            includeTableOfContents: composeNoToc ? false : userConfig.composition.includeTableOfContents,
+            includeTableOfContents: !composeNoToc,
             priorityThreshold: composePriorityThreshold
           });
           
@@ -488,7 +464,7 @@ async function main() {
         break;
 
       case 'compose-batch':
-        const batchComposeLanguage = args[1] || userConfig.extraction.languages[0] || 'ko';
+        const batchComposeLanguage = args[1] || userConfig.languages[0] || 'ko';
         const batchComposeDryRun = args.includes('--dry-run');
         const batchComposeCharLimits = args.find(arg => arg.startsWith('--chars='))?.split('=')[1]?.split(',').map(Number) || enabledCharLimits.filter(limit => limit >= 1000);
         
@@ -511,7 +487,7 @@ async function main() {
         break;
 
       case 'compose-stats':
-        const statsComposeLanguage = args[1] || userConfig.extraction.languages[0] || 'ko';
+        const statsComposeLanguage = args[1] || userConfig.languages[0] || 'ko';
         console.log(`📊 Composition Statistics for language: ${statsComposeLanguage}\\n`);
         
         const composeStats = await adaptiveComposer.getCompositionStats(statsComposeLanguage);

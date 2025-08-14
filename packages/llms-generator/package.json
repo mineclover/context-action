@@ -31,7 +31,7 @@
   "keywords": [
     "llmstxt",
     "documentation",
-    "summarization", 
+    "summarization",
     "context-action",
     "priority-based",
     "generator"
@@ -51,11 +51,13 @@
     "@types/fs-extra": "^11.0.4",
     "@types/jest": "^29.5.14",
     "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.57.0",
     "jest": "^29.7.0",
-    "ts-jest": "^29.2.5",
-    "typescript": "^5.3.0",
+    "ts-jest": "^29.4.1",
     "tsdown": "^0.13.0",
-    "eslint": "^8.57.0"
+    "typescript": "^5.3.0"
   },
   "engines": {
     "node": ">=18.0.0"
