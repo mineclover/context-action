@@ -47,7 +47,13 @@ export type InferStoreTypes<T extends StoreDefinitions> = {
     ? V 
     : T[K] extends (...args: any[]) => any
       ? never  // Exclude functions
-      : T[K];
+      : T[K] extends object
+        ? T[K] extends { length: number }
+          ? T[K]  // Arrays
+          : T[K] extends Date
+            ? T[K]  // Dates
+            : T[K]  // Objects
+        : T[K];  // Primitives
 };
 
 /**
@@ -174,7 +180,7 @@ interface StoreContextValue<T extends Record<string, any>> {
 }
 
 /**
- * Generic store pattern factory - Type-safe store management with explicit generics
+ * Overload 1: Explicit generic types - User provides explicit type interface
  * 
  * @example
  * ```typescript
@@ -185,12 +191,12 @@ interface StoreContextValue<T extends Record<string, any>> {
  *   settings: { theme: 'light' | 'dark'; language: string };
  * }
  * 
- * // Create with explicit type and inferred initialValue
+ * // Create with explicit type and type-checked initialValue
  * const AppStores = createDeclarativeStorePattern<AppStores>('App', {
- *   counter: 0,  // Inferred as number
- *   user: { id: '', name: '', email: '' },  // Inferred as user type
+ *   counter: 0,  // Must match AppStores['counter'] = number
+ *   user: { id: '', name: '', email: '' },  // Must match AppStores['user']
  *   settings: { 
- *     initialValue: { theme: 'light' as const, language: 'en' },
+ *     initialValue: { theme: 'light', language: 'en' },  // Must match AppStores['settings']
  *     strategy: 'shallow'
  *   }
  * });
@@ -202,11 +208,11 @@ export function createDeclarativeStorePattern<T extends Record<string, any>>(
 ): ReturnType<typeof createDeclarativeStorePatternImpl<T>>;
 
 /**
- * Overload for type inference from store definitions
+ * Overload 2: Type inference - Types inferred from store definitions
  * 
  * @example
  * ```typescript
- * // Type inference from initialValue (current approach)
+ * // Type inference from initialValue (automatic)
  * const AppStores = createDeclarativeStorePattern('App', {
  *   counter: 0,  // Inferred as Store<number>
  *   user: { id: '', name: '', email: '' },  // Inferred as Store<{id: string, name: string, email: string}>
@@ -223,13 +229,13 @@ export function createDeclarativeStorePattern<T extends StoreDefinitions>(
 ): ReturnType<typeof createDeclarativeStorePatternImpl<InferStoreTypes<T>>>;
 
 /**
- * Implementation function
+ * Implementation function that handles both overloads
  */
-export function createDeclarativeStorePattern<T extends Record<string, any>>(
+export function createDeclarativeStorePattern(
   contextName: string,
-  initialStores: InitialStores<T> | StoreDefinitions
-) {
-  return createDeclarativeStorePatternImpl<T>(contextName, initialStores as InitialStores<T>);
+  initialStores: any
+): any {
+  return createDeclarativeStorePatternImpl(contextName, initialStores);
 }
 
 /**
