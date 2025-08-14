@@ -46,14 +46,3 @@ export {
   type StoreConfig as StoreSchema
 } from './declarative-store-pattern-v2';
 
-// === EXAMPLES ===
-// Usage examples and best practices
-export {
-  UserStores,
-  ShoppingStores,
-  DashboardStores,
-  UserProfile,
-  ShoppingCart,
-  AnalyticsDashboard,
-  TypeSafetyExample
-} from './declarative-examples';

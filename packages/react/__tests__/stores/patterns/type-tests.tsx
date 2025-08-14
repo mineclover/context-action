@@ -5,8 +5,8 @@
  * works correctly with both explicit generics and type inference.
  */
 
-import { createDeclarativeStorePattern } from './declarative-store-pattern-v2';
-import { createActionContext } from '../../actions/ActionContext';
+import { createDeclarativeStorePattern } from '../../../src/stores/patterns/declarative-store-pattern-v2';
+import { createActionContext } from '../../../src/actions/ActionContext';
 import type { ActionPayloadMap } from '@context-action/core';
 
 // ============================================================================

@@ -4,7 +4,7 @@
 
 import React, { useEffect } from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { createActionContext } from '../ActionContext';
+import { createActionContext } from '../../src/actions/ActionContext';
 import { ActionPayloadMap } from '@context-action/core';
 
 // Test action types

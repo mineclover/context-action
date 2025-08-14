@@ -8,8 +8,8 @@
  */
 
 import React from 'react';
-import { createDeclarativeStorePattern } from './declarative-store-pattern-v2';
-import { useStoreValue } from '../hooks/useStoreValue';
+import { createDeclarativeStorePattern } from '../../../src/stores/patterns/declarative-store-pattern-v2';
+import { useStoreValue } from '../../../src/stores/hooks/useStoreValue';
 
 /**
  * Example 1: User Management Stores
