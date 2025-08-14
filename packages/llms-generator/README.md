@@ -4,11 +4,54 @@ LLM을 위한 적응형 콘텐츠 생성 시스템입니다. 문서의 우선순
 
 ## 🎯 주요 기능
 
+- **간소화된 설정 시스템**: `characterLimits`, `languages`, `paths`만으로 구성된 단순 설정
 - **적응형 조합**: 요청된 글자 수에 맞춰 우선순위 기반으로 최적 콘텐츠 조합
 - **우선순위 관리**: 문서별 중요도와 추출 전략 관리
-- **다중 글자 수 지원**: 100자, 300자, 1000자 등 다양한 길이의 요약 지원
+- **다중 글자 수 지원**: 설정 가능한 다양한 길이의 요약 지원
+- **다국어 지원**: 한국어, 영어, 일본어, 중국어, 인도네시아어 등
 - **목차 자동 생성**: 100자 요약을 활용한 자동 목차 생성
-- **CLI 도구**: 추출, 조합, 통계 등 완전한 관리 도구
+- **CLI 도구**: 설정, 추출, 조합, 통계 등 완전한 관리 도구
+
+## ⚙️ 빠른 시작
+
+### 1. 설정 파일 생성
+
+```bash
+# 표준 설정으로 초기화
+npx @context-action/llms-generator config-init standard
+
+# 다른 프리셋 사용
+npx @context-action/llms-generator config-init minimal    # [100, 500]
+npx @context-action/llms-generator config-init extended   # [50, 100, 300, 500, 1000, 2000, 4000]
+npx @context-action/llms-generator config-init blog       # [200, 500, 1500]
+```
+
+### 2. 설정 확인 및 검증
+
+```bash
+# 현재 설정 확인
+npx @context-action/llms-generator config-show
+
+# 설정 검증
+npx @context-action/llms-generator config-validate
+
+# 글자 수 제한 확인
+npx @context-action/llms-generator config-limits
+```
+
+## 📋 설정 파일 (`llms-generator.config.json`)
+
+```json
+{
+  "characterLimits": [100, 300, 1000, 2000],
+  "languages": ["ko", "en", "ja"],
+  "paths": {
+    "docsDir": "./docs",
+    "dataDir": "./packages/llms-generator/data",
+    "outputDir": "./docs/llms"
+  }
+}
+```
 
 ## 🚀 사용 시나리오
 
@@ -156,6 +199,107 @@ pnpm test:llms-generator
 
 # CLI 도움말
 npx @context-action/llms-generator help
+```
+
+## 🎛️ CLI 옵션 가이드
+
+### 핵심 옵션들
+
+#### `--overwrite` 
+**의미**: 기존 파일이 있을 때 덮어쓰기 허용  
+**사용 명령어**: `priority-generate`, `schema-generate`, `markdown-generate`, `extract`, `extract-all`
+
+```bash
+# 기존 priority.json 파일들을 덮어씀
+npx @context-action/llms-generator priority-generate ko --overwrite
+
+# 기존 요약 파일들을 덮어씀  
+npx @context-action/llms-generator extract ko --chars=100,300 --overwrite
+```
+
+#### `--dry-run`
+**의미**: 실제로 실행하지 않고 미리보기만 수행
+
+```bash
+# 어떤 파일들이 생성될지 미리 확인
+npx @context-action/llms-generator priority-generate ko --dry-run
+npx @context-action/llms-generator extract ko --dry-run
+```
+
+#### `--path=<경로>`
+**의미**: 설정 파일 경로 지정
+
+```bash
+# 커스텀 경로에 설정 파일 생성
+npx @context-action/llms-generator config-init standard --path=my-config.json
+```
+
+#### `--lang=<언어목록>`
+**의미**: 처리할 언어들을 명시적으로 지정
+
+```bash
+# 여러 언어로 배치 작업
+npx @context-action/llms-generator batch --lang=ko,en,ja
+npx @context-action/llms-generator markdown-all --lang=ko,en
+```
+
+#### `--chars=<글자수목록>`
+**의미**: 처리할 글자 수 제한 지정
+
+```bash
+# 특정 글자 수로만 생성
+npx @context-action/llms-generator extract ko --chars=100,300,1000
+npx @context-action/llms-generator batch --chars=300,1000,2000
+```
+
+### 고급 옵션들
+
+#### 콘텐츠 조합 옵션
+- `--no-toc`: 목차(Table of Contents) 생성 비활성화
+- `--priority=<숫자>`: 우선순위 임계값 설정
+
+```bash
+# 목차 없이 콘텐츠 구성
+npx @context-action/llms-generator compose ko 5000 --no-toc
+
+# 우선순위 50 이상인 문서만 포함
+npx @context-action/llms-generator compose ko 5000 --priority=50
+```
+
+#### 스키마 관련 옵션
+- `--no-types`: TypeScript 타입 생성 생략
+- `--no-validators`: 검증기 생성 생략  
+- `--javascript`: TypeScript 대신 JavaScript 생성
+- `--cjs`: CommonJS 형식으로 생성 (기본값: ESM)
+
+#### 작업 상태 관리 옵션
+- `--need-edit`: 수동 편집이 필요한 문서만 표시
+- `--outdated`: 오래된 파일들만 표시
+- `--missing`: 누락된 파일들만 표시
+- `--need-update`: 업데이트가 필요한 파일들만 표시
+
+```bash
+# 수동 편집이 필요한 문서 확인
+npx @context-action/llms-generator work-status ko --need-edit
+
+# 누락된 파일 확인
+npx @context-action/llms-generator work-list ko --chars=100 --missing
+```
+
+### 옵션 조합 예시
+
+```bash
+# 안전한 테스트: dry-run으로 미리보기
+npx @context-action/llms-generator priority-generate ko --dry-run
+
+# 기존 파일 덮어쓰며 특정 글자수로만 콘텐츠 추출
+npx @context-action/llms-generator extract ko --chars=100,300 --overwrite
+
+# 모든 언어에 대해 마크다운 생성 (기존 파일 덮어쓰기)
+npx @context-action/llms-generator markdown-all --lang=ko,en --overwrite
+
+# 높은 우선순위만으로 목차 없이 콘텐츠 구성
+npx @context-action/llms-generator compose ko 3000 --no-toc --priority=70
 ```
 
 ## 📝 사용 팁

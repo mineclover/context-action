@@ -5,9 +5,9 @@
 import { readFile, writeFile, access } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
-import type { UserConfig, ResolvedConfig } from '../types/user-config.js';
-import { DEFAULT_USER_CONFIG } from '../types/user-config.js';
-import { CHARACTER_LIMIT_PRESETS } from '../types/user-config.js';
+import type { UserConfig, ResolvedConfig } from '../types/user-config';
+import { DEFAULT_USER_CONFIG } from '../types/user-config';
+import { CHARACTER_LIMIT_PRESETS } from '../types/user-config';
 
 export class ConfigManager {
   private static readonly CONFIG_FILE_NAMES = [
@@ -124,22 +124,9 @@ export class ConfigManager {
     return {
       ...defaultConfig,
       ...userConfig,
-      extraction: {
-        ...defaultConfig.extraction,
-        ...userConfig.extraction,
-        characterLimits: userConfig.extraction?.characterLimits || defaultConfig.extraction.characterLimits
-      },
-      composition: {
-        ...defaultConfig.composition,
-        ...userConfig.composition
-      },
       paths: {
         ...defaultConfig.paths,
         ...userConfig.paths
-      },
-      workflows: {
-        ...defaultConfig.workflows,
-        ...userConfig.workflows
       }
     };
   }
@@ -177,45 +164,7 @@ export class ConfigManager {
     
     return {
       ...defaultConfig,
-      extraction: {
-        ...defaultConfig.extraction,
-        characterLimits: CHARACTER_LIMIT_PRESETS[preset].map(limit => ({
-          ...limit,
-          enabled: true
-        }))
-      },
-      workflows: {
-        presets: {
-          'quick-100': {
-            name: 'Quick 100-character summaries',
-            description: 'Generate and check 100-character summaries for all documents',
-            commands: [
-              { command: 'discover', args: { language: 'ko' }, description: 'Discover available documents' },
-              { command: 'priority-generate', args: { language: 'ko', overwrite: true }, description: 'Generate priority files' },
-              { command: 'extract', args: { language: 'ko', chars: [100] }, description: 'Extract 100-char summaries' },
-              { command: 'work-list', args: { language: 'ko', chars: 100 }, description: 'Show work status' }
-            ]
-          },
-          'full-extraction': {
-            name: 'Full content extraction',
-            description: 'Extract all configured character limits',
-            commands: [
-              { command: 'priority-generate', args: { language: 'ko', overwrite: true } },
-              { command: 'extract-all', args: { languages: ['ko'], overwrite: true } },
-              { command: 'compose-stats', args: { language: 'ko' } }
-            ]
-          },
-          'quality-check': {
-            name: 'Quality assurance workflow',
-            description: 'Check and validate all generated content',
-            commands: [
-              { command: 'work-status', args: { language: 'ko' } },
-              { command: 'compose', args: { language: 'ko', chars: 5000, priority: 70 } },
-              { command: 'compose-batch', args: { language: 'ko', chars: [1000, 3000, 5000, 10000] } }
-            ]
-          }
-        }
-      }
+      characterLimits: CHARACTER_LIMIT_PRESETS[preset]
     };
   }
 
@@ -233,44 +182,36 @@ export class ConfigManager {
   static validateConfig(config: UserConfig): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
 
+    // Check if config exists
+    if (!config || typeof config !== 'object') {
+      errors.push('Configuration must be a valid object');
+      return { valid: false, errors };
+    }
+
     // Validate character limits
-    if (!config.extraction?.characterLimits || config.extraction.characterLimits.length === 0) {
+    if (!config.characterLimits || !Array.isArray(config.characterLimits) || config.characterLimits.length === 0) {
       errors.push('At least one character limit must be defined');
     } else {
-      const limits = config.extraction.characterLimits;
-      const enabledLimits = limits.filter(l => l.enabled !== false);
-      
-      if (enabledLimits.length === 0) {
-        errors.push('At least one character limit must be enabled');
-      }
-
       // Check for duplicate limits
-      const limitValues = enabledLimits.map(l => l.limit);
-      const uniqueLimits = new Set(limitValues);
-      if (limitValues.length !== uniqueLimits.size) {
+      const uniqueLimits = new Set(config.characterLimits);
+      if (config.characterLimits.length !== uniqueLimits.size) {
         errors.push('Duplicate character limits found');
       }
 
       // Check for invalid limits
-      enabledLimits.forEach((limit, index) => {
-        if (!limit.limit || limit.limit <= 0) {
+      config.characterLimits.forEach((limit, index) => {
+        if (!limit || limit <= 0) {
           errors.push(`Invalid character limit at index ${index}: must be greater than 0`);
         }
-        if (limit.limit > 10000) {
-          errors.push(`Character limit at index ${index} is too large: ${limit.limit} (max: 10000)`);
+        if (limit > 10000) {
+          errors.push(`Character limit at index ${index} is too large: ${limit} (max: 10000)`);
         }
       });
     }
 
     // Validate languages
-    if (!config.extraction?.languages || config.extraction.languages.length === 0) {
+    if (!config.languages || !Array.isArray(config.languages) || config.languages.length === 0) {
       errors.push('At least one language must be defined');
-    }
-
-    // Validate composition settings
-    if (config.composition?.targetUtilization && 
-        (config.composition.targetUtilization <= 0 || config.composition.targetUtilization > 1)) {
-      errors.push('Target utilization must be between 0 and 1');
     }
 
     return {
@@ -280,19 +221,9 @@ export class ConfigManager {
   }
 
   /**
-   * Get character limits from config (enabled only)
+   * Get character limits from config
    */
   static getEnabledCharacterLimits(config: ResolvedConfig): number[] {
-    return config.extraction.characterLimits
-      .filter(limit => limit.enabled !== false)
-      .map(limit => limit.limit)
-      .sort((a, b) => a - b);
-  }
-
-  /**
-   * Get character limit configuration for a specific limit
-   */
-  static getCharacterLimitConfig(config: ResolvedConfig, limit: number) {
-    return config.extraction.characterLimits.find(l => l.limit === limit);
+    return [...config.characterLimits].sort((a, b) => a - b);
   }
 }

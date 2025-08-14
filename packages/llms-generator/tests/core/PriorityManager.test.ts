@@ -2,8 +2,8 @@
  * Tests for PriorityManager class
  */
 
-import { PriorityManager } from '../../src/core/PriorityManager.js';
-import type { PriorityCollection, PriorityMetadata } from '../../src/types/index.js';
+import { PriorityManager } from '../../src/core/PriorityManager';
+import type { PriorityCollection, PriorityMetadata } from '../../src/types/index';
 
 // Mock fs/promises
 jest.mock('fs/promises');
