@@ -368,7 +368,7 @@ interface Product extends BaseEntity {
   category: string;
 }
 
-// Store 정의에서 활용 - 방법 1: 타입 추론
+// Store 정의에서 활용 - 방법 1: 타입 추론 (권장)
 const {
   Provider: UserStoreProvider,
   useStore: useUserStore
@@ -387,11 +387,15 @@ const {
   Provider: UserStoreProvider,
   useStore: useUserStore
 } = createDeclarativeStorePattern<UserStoreTypes>('User', {
-  users: [],  // UserStoreTypes에서 타입 추론
-  currentUser: null
+  // ⚠️ 주의: 명시적 제네릭 사용 시에도 InitialStores<T> 구조 필요
+  users: [],  // 직접 값 또는
+  currentUser: {  // 설정 객체
+    initialValue: null,
+    strategy: 'reference'
+  }
 });
 
-// Action 정의에서 활용
+// Action 정의에서 활용 - 새로운 API (contextName 우선)
 interface UserActions {
   createUser: { userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'> };
   updateUser: { id: string; updates: Partial<User> };
@@ -401,7 +405,9 @@ interface UserActions {
 const {
   Provider: UserActionProvider,
   useActionDispatch: useUserAction
-} = createActionContext<UserActions>('UserActions');
+} = createActionContext<UserActions>('UserActions', {
+  registry: { debug: true, maxHandlers: 10 }
+});
 ```
 
 ---
@@ -540,6 +546,29 @@ const {
     initialValue: [] as DataItem[],
     strategy: 'reference',
     description: '성능을 위해 reference equality 사용'
+  },
+  
+  // 고급 비교 옵션 사용
+  advancedData: {
+    initialValue: { id: '', data: {}, lastUpdated: new Date() },
+    comparisonOptions: {
+      strategy: 'shallow',
+      ignoreKeys: ['lastUpdated'], // 특정 키 무시
+      maxDepth: 2,                 // 성능을 위한 깊이 제한
+      enableCircularCheck: true    // 순환 참조 방지
+    }
+  },
+  
+  // 커스텀 비교 로직
+  versionedData: {
+    initialValue: { version: 1, content: {} },
+    comparisonOptions: {
+      strategy: 'custom',
+      customComparator: (oldVal, newVal) => {
+        // 버전 기반 비교
+        return oldVal.version === newVal.version;
+      }
+    }
   }
 });
 ```
@@ -586,6 +615,101 @@ useUserActionHandler('saveForm', saveHandler, {
   blocking: true,  // 중요한 액션은 blocking
   once: false,
   id: 'save-handler'
+});
+```
+
+---
+
+## 🧪 타입 테스트 및 검증
+
+### ✅ 타입 안전성 검증
+
+#### 컴파일 타임 타입 테스트
+```tsx
+// ✅ 권장: 타입 테스트 파일 작성
+// src/contexts/__tests__/user.types.test.tsx
+
+import { createDeclarativeStorePattern, createActionContext } from '@context-action/react';
+
+// 명시적 제네릭 테스트
+interface UserStores {
+  profile: { id: string; name: string; email: string };
+  settings: { theme: 'light' | 'dark'; language: string };
+}
+
+// 타입 안전성 검증
+const ExplicitStores = createDeclarativeStorePattern<UserStores>('User', {
+  profile: { id: '', name: '', email: '' },  // 타입 체크됨
+  settings: {
+    initialValue: { theme: 'light', language: 'en' },
+    strategy: 'shallow'
+  }
+});
+
+// 타입 추론 테스트
+const InferredStores = createDeclarativeStorePattern('Inferred', {
+  counter: 0,  // Store<number>로 추론
+  user: { id: '', name: '' },  // Store<{id: string, name: string}>로 추론
+  isActive: false  // Store<boolean>로 추론
+});
+
+// Action Context 타입 테스트
+interface TestActions {
+  updateUser: { id: string; name: string };
+  deleteUser: { id: string };
+  refresh: void;
+}
+
+const ActionContext = createActionContext<TestActions>('Test', {
+  registry: { debug: true }
+});
+
+// 사용 패턴 검증
+function TypeValidationComponent() {
+  const profileStore = ExplicitStores.useStore('profile');
+  const counterStore = InferredStores.useStore('counter');
+  const dispatch = ActionContext.useActionDispatch();
+  
+  // 올바른 타입 사용 검증
+  dispatch('updateUser', { id: '123', name: 'John' }); // ✅ 타입 안전
+  dispatch('refresh'); // ✅ void payload
+  
+  return null;
+}
+```
+
+#### 런타임 에러 처리 개선
+```tsx
+// ✅ 권장: 개발 모드 디버깅 지원
+// JSON 직렬화 실패 시 자동 fallback
+
+const DataStores = createDeclarativeStorePattern('Data', {
+  // 순환 참조나 특수 타입이 포함된 데이터
+  complexData: {
+    initialValue: { /* BigInt, Symbol, Function 등 */ },
+    comparisonOptions: {
+      strategy: 'deep',
+      // 개발 모드에서 JSON 직렬화 실패 로그 출력
+      enableCircularCheck: true
+    }
+  }
+});
+```
+
+### 🔍 디버깅 도구
+
+#### 개발 모드 로깅
+```tsx
+// ✅ 권장: 개발 모드에서만 활성화되는 디버깅
+const DebugStores = createDeclarativeStorePattern('Debug', {
+  userData: {
+    initialValue: { id: '', profile: {} },
+    debug: true,  // 개발 모드에서 스토어 생성 로그
+    comparisonOptions: {
+      strategy: 'shallow',
+      // 비교 실패 시 개발 모드에서만 경고 출력
+    }
+  }
 });
 ```
 
@@ -698,3 +822,19 @@ useUserActionHandler('riskyOperation', useCallback(async (payload, controller) =
 2. 도메인별 Error Boundary 설정
 3. 적절한 에러 타입별 처리
 4. 사용자 친화적 에러 메시지 제공
+
+### Q: 명시적 제네릭과 타입 추론 중 어떤 것을 사용해야 하나요?
+- **타입 추론 (권장)**: 대부분의 경우, 코드가 간결하고 타입 안전성 보장
+- **명시적 제네릭**: 복잡한 타입 구조나 엄격한 타입 제약이 필요한 경우
+
+### Q: comparisonOptions는 언제 사용해야 하나요?
+1. **ignoreKeys**: 타임스탬프 등 특정 필드 변경을 무시하고 싶을 때
+2. **customComparator**: 비즈니스 로직에 맞는 특별한 비교가 필요할 때
+3. **maxDepth**: 성능 최적화를 위해 깊은 비교의 깊이를 제한하고 싶을 때
+4. **enableCircularCheck**: 순환 참조 가능성이 있는 객체를 다룰 때
+
+### Q: 타입 테스트는 어떻게 작성해야 하나요?
+1. 명시적 제네릭과 타입 추론 모두 테스트
+2. 컴파일 타임에 타입 안전성 검증
+3. 에러 케이스도 주석으로 문서화
+4. 실제 사용 패턴을 반영한 테스트 컴포넌트 작성
