@@ -1,0 +1,14 @@
+---
+source: "examples/action-only.md"
+title: "Action Only Pattern Example"
+document_id: "examples-action-only"
+char_limit: 300
+priority: 85
+original_size: 21873
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Action Only Pattern Example (300 chars)
+
+[Content to be extracted from examples/action-only.md]

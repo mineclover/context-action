@@ -1,0 +1,14 @@
+---
+source: "concept/conventions.md"
+title: "Context-Action Framework Conventions"
+document_id: "concept-conventions"
+char_limit: 500
+priority: 50
+original_size: 18808
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Context-Action Framework Conventions (500 chars)
+
+[Content to be extracted from concept/conventions.md]

@@ -1,0 +1,14 @@
+---
+source: "guide/quick-start.md"
+title: "Quick Start Guide"
+document_id: "guide-quick-start"
+char_limit: 4000
+priority: 100
+original_size: 10073
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Quick Start Guide (4000 chars)
+
+[Content to be extracted from guide/quick-start.md]

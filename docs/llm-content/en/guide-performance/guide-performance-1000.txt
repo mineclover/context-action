@@ -1,0 +1,14 @@
+---
+source: "guide/performance.md"
+title: "Performance Optimization"
+document_id: "guide-performance"
+char_limit: 1000
+priority: 80
+original_size: 17476
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Performance Optimization (1000 chars)
+
+[Content to be extracted from guide/performance.md]

@@ -1,0 +1,14 @@
+---
+source: "guide/react-integration.md"
+title: "React Integration"
+document_id: "guide-react-integration"
+char_limit: 2000
+priority: 80
+original_size: 15507
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# React Integration (2000 chars)
+
+[Content to be extracted from guide/react-integration.md]

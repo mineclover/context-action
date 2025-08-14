@@ -1,0 +1,14 @@
+---
+source: "guide/concepts.md"
+title: "핵심 개념"
+document_id: "guide-concepts"
+char_limit: 300
+priority: 100
+original_size: 8337
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# 핵심 개념 (300 chars)
+
+[Content to be extracted from guide/concepts.md]

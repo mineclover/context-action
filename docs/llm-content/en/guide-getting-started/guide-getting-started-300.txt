@@ -1,0 +1,14 @@
+---
+source: "guide/getting-started.md"
+title: "Getting Started"
+document_id: "guide-getting-started"
+char_limit: 300
+priority: 100
+original_size: 5021
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Getting Started (300 chars)
+
+[Content to be extracted from guide/getting-started.md]

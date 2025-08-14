@@ -1,0 +1,14 @@
+---
+source: "guide/provider-composition.md"
+title: "프로바이더 구성"
+document_id: "guide-provider-composition"
+char_limit: 500
+priority: 70
+original_size: 17115
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# 프로바이더 구성 (500 chars)
+
+[Content to be extracted from guide/provider-composition.md]

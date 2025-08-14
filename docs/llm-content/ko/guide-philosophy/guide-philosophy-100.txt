@@ -1,0 +1,14 @@
+---
+source: "guide/philosophy.md"
+title: "설계 철학"
+document_id: "guide-philosophy"
+char_limit: 100
+priority: 85
+original_size: 5293
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# 설계 철학 (100 chars)
+
+[Content to be extracted from guide/philosophy.md]

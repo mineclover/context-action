@@ -1,0 +1,14 @@
+---
+source: "guide/setup-usage.md"
+title: "Setup & Usage"
+document_id: "guide-setup-usage"
+char_limit: 2000
+priority: 80
+original_size: 15804
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Setup & Usage (2000 chars)
+
+[Content to be extracted from guide/setup-usage.md]

@@ -1,0 +1,14 @@
+---
+source: "api/react/store-manager.md"
+title: "Store Manager API"
+document_id: "api-react-store-manager"
+char_limit: 2000
+priority: 75
+original_size: 10565
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Store Manager API (2000 chars)
+
+[Content to be extracted from api/react/store-manager.md]

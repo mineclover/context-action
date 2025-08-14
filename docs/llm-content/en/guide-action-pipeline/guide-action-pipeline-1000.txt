@@ -1,0 +1,14 @@
+---
+source: "guide/action-pipeline.md"
+title: "Action Pipeline System"
+document_id: "guide-action-pipeline"
+char_limit: 1000
+priority: 80
+original_size: 9008
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Action Pipeline System (1000 chars)
+
+[Content to be extracted from guide/action-pipeline.md]

@@ -1,0 +1,14 @@
+---
+source: "guide/handler-id-strategies.md"
+title: "핸들러 ID 전략"
+document_id: "guide-handler-id-strategies"
+char_limit: 1000
+priority: 80
+original_size: 14246
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# 핸들러 ID 전략 (1000 chars)
+
+[Content to be extracted from guide/handler-id-strategies.md]

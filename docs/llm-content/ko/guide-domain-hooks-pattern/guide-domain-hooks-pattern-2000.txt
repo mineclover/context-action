@@ -1,0 +1,14 @@
+---
+source: "guide/domain-hooks-pattern.md"
+title: "도메인 훅 패턴"
+document_id: "guide-domain-hooks-pattern"
+char_limit: 2000
+priority: 80
+original_size: 12557
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# 도메인 훅 패턴 (2000 chars)
+
+[Content to be extracted from guide/domain-hooks-pattern.md]

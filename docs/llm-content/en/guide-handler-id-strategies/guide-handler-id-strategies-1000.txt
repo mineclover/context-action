@@ -1,0 +1,14 @@
+---
+source: "guide/handler-id-strategies.md"
+title: "Handler ID Strategies"
+document_id: "guide-handler-id-strategies"
+char_limit: 1000
+priority: 80
+original_size: 13796
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Handler ID Strategies (1000 chars)
+
+[Content to be extracted from guide/handler-id-strategies.md]

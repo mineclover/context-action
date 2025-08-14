@@ -1,0 +1,14 @@
+---
+source: "guide/logic-fit-hooks.md"
+title: "Logic Fit Hooks Pattern"
+document_id: "guide-logic-fit-hooks"
+char_limit: 300
+priority: 95
+original_size: 18740
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Logic Fit Hooks Pattern (300 chars)
+
+[Content to be extracted from guide/logic-fit-hooks.md]

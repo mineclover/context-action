@@ -1,0 +1,14 @@
+---
+source: "guide/error-handling.md"
+title: "Error Handling Patterns"
+document_id: "guide-error-handling"
+char_limit: 300
+priority: 95
+original_size: 17967
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Error Handling Patterns (300 chars)
+
+[Content to be extracted from guide/error-handling.md]

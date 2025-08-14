@@ -1,0 +1,14 @@
+---
+source: "concept/pattern-guide.md"
+title: "@context-action/react Pattern Guide"
+document_id: "concept-pattern-guide"
+char_limit: 3000
+priority: 50
+original_size: 12510
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# @context-action/react Pattern Guide (3000 chars)
+
+[Content to be extracted from concept/pattern-guide.md]

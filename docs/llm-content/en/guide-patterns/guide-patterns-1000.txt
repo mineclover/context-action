@@ -1,0 +1,14 @@
+---
+source: "guide/patterns.md"
+title: "Main Patterns"
+document_id: "guide-patterns"
+char_limit: 1000
+priority: 80
+original_size: 11937
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Main Patterns (1000 chars)
+
+[Content to be extracted from guide/patterns.md]

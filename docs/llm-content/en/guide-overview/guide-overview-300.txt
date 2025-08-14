@@ -1,0 +1,14 @@
+---
+source: "guide/overview.md"
+title: "Context Action Framework Overview"
+document_id: "guide-overview"
+char_limit: 300
+priority: 100
+original_size: 1678
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Context Action Framework Overview (300 chars)
+
+[Content to be extracted from guide/overview.md]
