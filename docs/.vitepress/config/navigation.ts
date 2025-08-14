@@ -23,17 +23,58 @@ export function createNavigation(locale: NavigationLocale) {
     ]
   }
   
-  // 단일 가이드 링크만 제공 (사이드바에서 세부 네비게이션 처리)
+  // 새로운 구조: Guide, Examples, API, LLMs로 재배치
   if (locale === 'en') {
     return [
       {
         text: 'Guide',
-        link: '/en/guide/overview'
+        link: '/en/guide/getting-started'
       },
       {
-        text: 'Example',
-        link: 'https://mineclover.github.io/context-action-example/',
-        target: '_blank'
+        text: 'Examples',
+        items: [
+          {
+            text: 'Basic Setup',
+            link: '/en/examples/basic-setup'
+          },
+          {
+            text: 'Action Only Pattern',
+            link: '/en/examples/action-only'
+          },
+          {
+            text: 'Store Only Pattern',
+            link: '/en/examples/store-only'
+          },
+          {
+            text: 'Pattern Composition',
+            link: '/en/examples/pattern-composition'
+          }
+        ]
+      },
+      {
+        text: 'API',
+        items: [
+          {
+            text: 'Store Only Methods',
+            link: '/en/api/store-only'
+          },
+          {
+            text: 'Action Only Methods',
+            link: '/en/api/action-only'
+          },
+          {
+            text: 'Store Manager',
+            link: '/en/api/store-manager'
+          },
+          {
+            text: 'Action Registry',
+            link: '/en/api/action-registry'
+          }
+        ]
+      },
+      {
+        text: 'LLMs',
+        link: '/en/llms/llms.txt'
       }
     ]
   }
@@ -42,12 +83,53 @@ export function createNavigation(locale: NavigationLocale) {
     return [
       {
         text: '가이드',
-        link: '/ko/guide/overview'
+        link: '/ko/guide/getting-started'
       },
       {
         text: '예제',
-        link: 'https://mineclover.github.io/context-action-example/',
-        target: '_blank'
+        items: [
+          {
+            text: '기본 설정',
+            link: '/ko/examples/basic-setup'
+          },
+          {
+            text: 'Action Only 패턴',
+            link: '/ko/examples/action-only'
+          },
+          {
+            text: 'Store Only 패턴',
+            link: '/ko/examples/store-only'
+          },
+          {
+            text: '패턴 조합',
+            link: '/ko/examples/pattern-composition'
+          }
+        ]
+      },
+      {
+        text: 'API',
+        items: [
+          {
+            text: 'Store Only 메서드',
+            link: '/ko/api/store-only'
+          },
+          {
+            text: 'Action Only 메서드',
+            link: '/ko/api/action-only'
+          },
+          {
+            text: 'Store Manager',
+            link: '/ko/api/store-manager'
+          },
+          {
+            text: 'Action Registry',
+            link: '/ko/api/action-registry'
+          }
+        ]
+      },
+      {
+        text: 'LLMs',
+        link: '/ko/llms/llms.txt'
       }
     ]
   }
