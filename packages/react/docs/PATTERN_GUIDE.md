@@ -188,15 +188,15 @@ interface AppStoreTypes {
   settings: { theme: 'light' | 'dark'; language: string; notifications: boolean };
 }
 
-// 2. Create stores with explicit types and simplified initialValue
+// 2. Create stores with explicit types - still requires InitialStores<T> structure
 const {
   Provider: AppStoreProvider,
   useStore: useAppStore,
   useStoreManager: useAppStoreManager
 } = createDeclarativeStorePattern<AppStoreTypes>('App', {
-  // Types inferred from AppStoreTypes interface
-  counter: 0,
-  userName: '',
+  // Types validated against AppStoreTypes interface
+  counter: 0,  // Must match AppStoreTypes['counter'] = number
+  userName: '', // Must match AppStoreTypes['userName'] = string
   isLoggedIn: false,
   
   // Complex types with configuration

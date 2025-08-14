@@ -216,7 +216,12 @@ export function compareValues<T>(
           return result;
         }
       } catch (error) {
-        // JSON 직렬화 실패 시 원래 전략 사용
+        // JSON 직렬화 실패 시 (순환 참조, BigInt, Symbol, Function 등)
+        // 디버그 모드에서만 로깅하여 성능 영향 최소화
+        if (process.env.NODE_ENV === 'development') {
+          console.debug('[ComparisonOptimization] JSON serialization failed, falling back to original strategy:', error);
+        }
+        // 원래 전략으로 계속 진행 (fallthrough)
       }
     }
 
@@ -250,6 +255,10 @@ export function compareValues<T>(
         result = referenceEquals(oldValue, newValue);
     }
   } catch (error) {
+    // 비교 중 예상치 못한 오류 발생 시 안전한 참조 비교로 fallback
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[CompareValues] Comparison failed, falling back to reference equality:', error);
+    }
     result = referenceEquals(oldValue, newValue);
   }
 
@@ -283,6 +292,11 @@ export function fastCompare<T>(oldValue: T, newValue: T): boolean {
     }
   } catch (error) {
     // JSON 직렬화 실패 시 기존 로직으로 fallback
+    // 순환 참조, BigInt, Symbol, Function 등이 포함된 경우
+    if (process.env.NODE_ENV === 'development') {
+      console.debug('[FastCompare] JSON serialization failed, using fallback comparison:', error);
+    }
+    // 계속해서 다음 비교 로직으로 진행
   }
 
   // 5. 간단한 배열의 경우 얕은 비교
