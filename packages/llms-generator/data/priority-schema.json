@@ -1,0 +1,120 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LLMs Generator Priority Metadata",
+  "description": "Simplified priority metadata for LLMs content generation",
+  "type": "object",
+  "required": ["document", "priority", "extraction"],
+  "properties": {
+    "document": {
+      "type": "object",
+      "required": ["id", "title", "source_path", "category"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique document identifier"
+        },
+        "title": {
+          "type": "string",
+          "description": "Document title"
+        },
+        "source_path": {
+          "type": "string",
+          "description": "Relative path to source document"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["api", "guide", "concept", "examples", "llms"]
+        }
+      }
+    },
+    "priority": {
+      "type": "object",
+      "required": ["score", "tier"],
+      "properties": {
+        "score": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Priority score (0-100)"
+        },
+        "tier": {
+          "type": "string",
+          "enum": ["critical", "essential", "important", "useful", "optional"]
+        }
+      }
+    },
+    "extraction": {
+      "type": "object",
+      "required": ["strategy", "character_limits"],
+      "properties": {
+        "strategy": {
+          "type": "string",
+          "enum": ["concept-first", "api-first", "example-first", "general"]
+        },
+        "character_limits": {
+          "type": "object",
+          "patternProperties": {
+            "^[0-9]+$": {
+              "type": "object",
+              "properties": {
+                "focus": {
+                  "type": "string",
+                  "description": "What to focus on for this character limit"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "work_status": {
+      "type": "object",
+      "description": "Work status tracking for content generation",
+      "properties": {
+        "source_modified": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last modification time of source document"
+        },
+        "generated_files": {
+          "type": "object",
+          "description": "Status of generated content files",
+          "patternProperties": {
+            "^[0-9]+$": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "description": "Path to generated file"
+                },
+                "created": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "File creation time"
+                },
+                "modified": {
+                  "type": "string",
+                  "format": "date-time", 
+                  "description": "Last modification time"
+                },
+                "edited": {
+                  "type": "boolean",
+                  "description": "Whether file has been manually edited"
+                },
+                "needs_update": {
+                  "type": "boolean",
+                  "description": "Whether file needs update from source"
+                }
+              }
+            }
+          }
+        },
+        "last_checked": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last time work status was checked"
+        }
+      }
+    }
+  }
+}

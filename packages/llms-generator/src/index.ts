@@ -9,6 +9,10 @@ export { DocumentProcessor } from './core/DocumentProcessor.js';
 export { PriorityGenerator } from './core/PriorityGenerator.js';
 export { PrioritySchemaManager } from './core/PrioritySchemaManager.js';
 export { SchemaGenerator } from './core/SchemaGenerator.js';
+export { MarkdownGenerator } from './core/MarkdownGenerator.js';
+export { ContentExtractor } from './core/ContentExtractor.js';
+export { AdaptiveComposer } from './core/AdaptiveComposer.js';
+export { WorkStatusManager } from './core/WorkStatusManager.js';
 
 // Types
 export * from './types/index.js';
@@ -20,7 +24,7 @@ export * from './utils/index.js';
 export const DEFAULT_CONFIG = {
   paths: {
     docsDir: './docs',
-    llmContentDir: './docs/llm-content',
+    llmContentDir: './packages/llms-generator/data',
     outputDir: './docs/llms'
   },
   generation: {
