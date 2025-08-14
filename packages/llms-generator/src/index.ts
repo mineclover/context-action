@@ -6,6 +6,9 @@
 export { LLMSGenerator } from './core/LLMSGenerator.js';
 export { PriorityManager } from './core/PriorityManager.js';
 export { DocumentProcessor } from './core/DocumentProcessor.js';
+export { PriorityGenerator } from './core/PriorityGenerator.js';
+export { PrioritySchemaManager } from './core/PrioritySchemaManager.js';
+export { SchemaGenerator } from './core/SchemaGenerator.js';
 
 // Types
 export * from './types/index.js';
