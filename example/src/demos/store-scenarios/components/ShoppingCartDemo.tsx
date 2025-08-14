@@ -45,7 +45,7 @@ export function ShoppingCartDemo() {
             }
             return [...prev, { productId, quantity, addedAt: new Date() }];
           });
-          controller.next();
+          
         }
       ),
 
@@ -55,7 +55,7 @@ export function ShoppingCartDemo() {
           cartStore.update((prev) =>
             prev.filter((item) => item.productId !== productId)
           );
-          controller.next();
+          
         }
       ),
 
@@ -67,13 +67,13 @@ export function ShoppingCartDemo() {
               item.productId === productId ? { ...item, quantity } : item
             )
           );
-          controller.next();
+          
         }
       ),
 
       storeActionRegister.register('clearCart', (_, controller) => {
         cartStore.setValue([]);
-        controller.next();
+        
       }),
     ];
 

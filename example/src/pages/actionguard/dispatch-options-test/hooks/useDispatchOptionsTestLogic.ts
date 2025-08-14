@@ -115,7 +115,7 @@ export function useDispatchOptionsTestLogic() {
           execTime
         );
 
-        controller.next();
+        
       },
       { debounce: 300 }
     );
@@ -144,7 +144,7 @@ export function useDispatchOptionsTestLogic() {
           execTime
         );
 
-        controller.next();
+        
       },
       { throttle: 1000 }
     );
@@ -166,7 +166,7 @@ export function useDispatchOptionsTestLogic() {
         const execTime = performance.now() - actionStartTime;
         updateMetrics(execTime, 'throttled');
 
-        controller.next();
+        
       },
       { throttle: 100 }
     );
@@ -195,7 +195,7 @@ export function useDispatchOptionsTestLogic() {
           execTime
         );
 
-        controller.next();
+        
       }
     );
 
@@ -225,7 +225,7 @@ export function useDispatchOptionsTestLogic() {
         updateMetrics(execTime, 'normal');
         addTestResult('Form Validation', status, message, execTime);
 
-        controller.next();
+        
       },
       { debounce: 500 }
     );
@@ -278,7 +278,7 @@ export function useDispatchOptionsTestLogic() {
           );
         }
 
-        controller.next();
+        
       }
     );
 
@@ -319,7 +319,7 @@ export function useDispatchOptionsTestLogic() {
           const execTime = performance.now() - actionStartTime;
           updateMetrics(execTime, 'normal');
           addTestResult('Error Test', 'success', '에러 없이 성공', execTime);
-          controller.next();
+          
         }
       }
     );
@@ -348,7 +348,7 @@ export function useDispatchOptionsTestLogic() {
             `조건 충족: ${data}`,
             execTime
           );
-          controller.next();
+          
         } else {
           logAction(
             'conditionalAction',
@@ -398,7 +398,7 @@ export function useDispatchOptionsTestLogic() {
           execTime
         );
 
-        controller.next();
+        
       },
       { priority: 50 }
     );
@@ -408,7 +408,7 @@ export function useDispatchOptionsTestLogic() {
       'updateSearchQuery',
       ({ query }, controller) => {
         testStore.update((state) => ({ ...state, searchQuery: query }));
-        controller.next();
+        
       }
     );
 
@@ -416,7 +416,7 @@ export function useDispatchOptionsTestLogic() {
       'updateSaveData',
       ({ data }, controller) => {
         testStore.update((state) => ({ ...state, saveData: data }));
-        controller.next();
+        
       }
     );
 
@@ -424,7 +424,7 @@ export function useDispatchOptionsTestLogic() {
       'updateScrollPosition',
       ({ position }, controller) => {
         testStore.update((state) => ({ ...state, scrollPosition: position }));
-        controller.next();
+        
       }
     );
 
@@ -435,7 +435,7 @@ export function useDispatchOptionsTestLogic() {
           ...state,
           formData: { ...state.formData, ...formData },
         }));
-        controller.next();
+        
       }
     );
 
@@ -453,7 +453,7 @@ export function useDispatchOptionsTestLogic() {
             executionTimes: newExecutionTimes,
           };
         });
-        controller.next();
+        
       }
     );
 
@@ -461,7 +461,7 @@ export function useDispatchOptionsTestLogic() {
       'toggleAutoScrolling',
       ({ isRunning }, controller) => {
         testStore.update((state) => ({ ...state, isAutoScrolling: isRunning }));
-        controller.next();
+        
       }
     );
 
@@ -469,7 +469,7 @@ export function useDispatchOptionsTestLogic() {
       'togglePause',
       ({ isPaused }, controller) => {
         testStore.update((state) => ({ ...state, isPaused }));
-        controller.next();
+        
       }
     );
 
@@ -480,7 +480,7 @@ export function useDispatchOptionsTestLogic() {
           ...state,
           testResults: [result, ...state.testResults.slice(0, 19)], // 최근 20개만 유지
         }));
-        controller.next();
+        
       }
     );
 
@@ -502,7 +502,7 @@ export function useDispatchOptionsTestLogic() {
           executionTimes: [] as number[],
         }));
 
-        controller.next();
+        
       }
     );
 
@@ -510,7 +510,7 @@ export function useDispatchOptionsTestLogic() {
       'toggleBulkTest',
       ({ isRunning }, controller) => {
         testStore.update((state) => ({ ...state, bulkTestRunning: isRunning }));
-        controller.next();
+        
       }
     );
 

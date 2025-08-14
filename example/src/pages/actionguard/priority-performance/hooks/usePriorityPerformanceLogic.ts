@@ -55,7 +55,7 @@ export function usePriorityPerformanceLogic() {
         instances: [...state.instances, newInstance],
       }));
 
-      controller.next();
+      
     });
 
     // 인스턴스 제거 핸들러
@@ -69,7 +69,7 @@ export function usePriorityPerformanceLogic() {
           ),
         }));
 
-        controller.next();
+        
       }
     );
 
@@ -87,7 +87,7 @@ export function usePriorityPerformanceLogic() {
           instances: defaultInstances,
         }));
 
-        controller.next();
+        
       }
     );
 

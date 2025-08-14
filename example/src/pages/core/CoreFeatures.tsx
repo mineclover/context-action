@@ -45,7 +45,7 @@ function BasicActionRegisterTest() {
           }
         );
 
-        controller.next();
+        
       }
     );
 
@@ -77,7 +77,7 @@ function BasicActionRegisterTest() {
           }
         );
 
-        controller.next();
+        
       }
     );
 
@@ -215,7 +215,7 @@ function AdvancedActionRegisterTest() {
           }
         );
 
-        controller.next();
+        
       },
       { priority: 10 }
     ); // 높은 우선순위
@@ -235,7 +235,7 @@ function AdvancedActionRegisterTest() {
           }
         );
 
-        controller.next();
+        
       },
       { priority: 5 }
     ); // 중간 우선순위
@@ -255,7 +255,7 @@ function AdvancedActionRegisterTest() {
           }
         );
 
-        controller.next();
+        
       },
       { priority: 1 }
     ); // 낮은 우선순위
@@ -291,7 +291,7 @@ function AdvancedActionRegisterTest() {
           });
         }
 
-        controller.next();
+        
       }
     );
 
@@ -492,7 +492,7 @@ actionRegister.register('userAction', (payload, controller) => {
   console.log('User action:', payload);
   
   // 다음 핸들러로 진행
-  controller.next();
+  
 });
 
 // 3. 액션 실행
@@ -510,7 +510,7 @@ actionRegister.dispatch('userAction', {
 actionRegister.register('criticalAction', (payload, controller) => {
   // 높은 우선순위로 먼저 실행됨
   handleCriticalLogic(payload);
-  controller.next();
+  
 }, 10); // 우선순위 10
 
 // 비동기 액션 처리
@@ -531,7 +531,7 @@ actionRegister.register('chainAction', (payload, controller) => {
     // 다른 액션 실행
     actionRegister.dispatch('nextAction', payload.data);
   }
-  controller.next();
+  
 });`}
                 </pre>
               </div>

@@ -788,16 +788,17 @@ useUserActionHandler('riskyOperation', useCallback(async (payload, controller) =
 ## 📚 추가 리소스
 
 ### 관련 문서
-- [Pattern Guide](./packages/react/docs/PATTERN_GUIDE.md) - 상세한 패턴 사용법
-- [Full Architecture Guide](./docs/en/guide/full.md) - 완전한 아키텍처 가이드
-- [API Reference](./docs/api/) - API 문서
+- [Pattern Guide](./pattern-guide.md) - 상세한 패턴 사용법
+- [Full Architecture Guide](./architecture-guide.md) - 완전한 아키텍처 가이드
+- [Hooks Reference](./hooks-reference.md) - Hooks 참조 문서
+- [API Reference](../../api/) - API 문서
 
 ### 예제 프로젝트
-- [Basic Example](./example/) - 기본 사용 예제
-- [Advanced Patterns](./docs/examples/) - 고급 패턴 예제
+- [Basic Example](../../../example/) - 기본 사용 예제
+- [Advanced Patterns](../../examples/) - 고급 패턴 예제
 
 ### 마이그레이션 가이드
-- [Legacy Pattern Migration](./packages/react/docs/PATTERN_GUIDE.md#migration-guide) - 레거시 패턴에서 마이그레이션
+- [Legacy Pattern Migration](./pattern-guide.md#migration-guide) - 레거시 패턴에서 마이그레이션
 
 ---
 

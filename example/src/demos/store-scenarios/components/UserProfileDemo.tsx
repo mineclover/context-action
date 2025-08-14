@@ -31,7 +31,7 @@ export function UserProfileDemo() {
     const unsubscribers = [
       storeActionRegister.register('updateUser', ({ user }, controller) => {
         userStore.setValue(user);
-        controller.next();
+        
       }),
 
       storeActionRegister.register(
@@ -41,7 +41,7 @@ export function UserProfileDemo() {
             ...prev,
             preferences: { ...prev.preferences, theme },
           }));
-          controller.next();
+          
         }
       ),
 
@@ -52,7 +52,7 @@ export function UserProfileDemo() {
             ...prev,
             preferences: { ...prev.preferences, notifications: enabled },
           }));
-          controller.next();
+          
         }
       ),
     ];

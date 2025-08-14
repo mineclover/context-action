@@ -101,7 +101,7 @@ export function useApiBlockingLogic() {
             timestamp,
           });
 
-          controller.next();
+          
           return;
         }
 
@@ -125,7 +125,7 @@ export function useApiBlockingLogic() {
           logSystem(`API call failed: ${error}`);
         }
 
-        controller.next();
+        
       }
     );
 
@@ -164,7 +164,7 @@ export function useApiBlockingLogic() {
           message: `${endpoint} 호출 성공! (${responseTime}ms)`,
         });
 
-        controller.next();
+        
       }
     );
 
@@ -197,7 +197,7 @@ export function useApiBlockingLogic() {
           message: `${endpoint} 호출이 차단되었습니다 (${reason})`,
         });
 
-        controller.next();
+        
       }
     );
 
@@ -215,7 +215,7 @@ export function useApiBlockingLogic() {
           blockDuration: duration,
         }));
 
-        controller.next();
+        
       }
     );
 
@@ -232,7 +232,7 @@ export function useApiBlockingLogic() {
           blockEndTime: null,
         }));
 
-        controller.next();
+        
       }
     );
 
@@ -247,7 +247,7 @@ export function useApiBlockingLogic() {
           blockDuration: duration,
         }));
 
-        controller.next();
+        
       }
     );
 
@@ -265,7 +265,7 @@ export function useApiBlockingLogic() {
           lastCallTime: null as number | null,
         }));
 
-        controller.next();
+        
       }
     );
 

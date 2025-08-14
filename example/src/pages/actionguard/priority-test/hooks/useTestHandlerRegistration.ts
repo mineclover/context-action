@@ -179,10 +179,10 @@ export function useTestHandlerRegistration(
                 );
                 controller.jumpToPriority(config.jumpToPriority);
               } else {
-                controller.next();
+                
               }
             } else {
-              controller.next();
+              
             }
           },
           {

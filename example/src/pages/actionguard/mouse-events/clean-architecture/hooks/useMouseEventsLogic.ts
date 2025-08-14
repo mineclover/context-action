@@ -139,7 +139,7 @@ export function useMouseEventsLogic() {
         updateMouseMetrics(position, timestamp);
         handleMoveEnd(position);
 
-        controller.next();
+        
       },
       {} // config parameter
     );
@@ -181,7 +181,7 @@ export function useMouseEventsLogic() {
           }
         }
 
-        controller.next();
+        
       },
       {} // config parameter
     );
@@ -211,7 +211,7 @@ export function useMouseEventsLogic() {
           rendererHandle.updatePosition({ x, y }, 0);
         }
 
-        controller.next();
+        
       },
       {} // config parameter
     );
@@ -248,7 +248,7 @@ export function useMouseEventsLogic() {
           rendererHandle.updateMoving(false);
         }
 
-        controller.next();
+        
       },
       {} // config parameter
     );
@@ -276,7 +276,7 @@ export function useMouseEventsLogic() {
           rendererHandle.updateMoving(true);
         }
 
-        controller.next();
+        
       },
       {} // config parameter
     );
@@ -386,7 +386,7 @@ export function useMouseEventsLogic() {
           }
         }
 
-        controller.next();
+        
       },
       {} // config parameter
     );
@@ -430,7 +430,7 @@ export function useMouseEventsLogic() {
         // 내부 상태 업데이트
         isActiveRef.current = false;
 
-        controller.next();
+        
       }
     );
 
@@ -474,7 +474,7 @@ export function useMouseEventsLogic() {
         hasActivityRef.current = false;
         isActiveRef.current = false;
 
-        controller.next();
+        
       },
       {} // config parameter
     );

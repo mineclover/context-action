@@ -114,7 +114,7 @@ export function useThrottleComparisonLogic() {
       'manualThrottle',
       ({ value, timestamp }, controller) => {
         manualThrottledHandler(value, timestamp);
-        controller.next();
+        
       }
     );
 
@@ -145,7 +145,7 @@ export function useThrottleComparisonLogic() {
           }
         );
 
-        controller.next();
+        
       },
       { throttle: 1000 } // 1초 내장 스로틀
     );
@@ -158,7 +158,7 @@ export function useThrottleComparisonLogic() {
           ...state,
           inputValue: value,
         }));
-        controller.next();
+        
       }
     );
 
@@ -171,7 +171,7 @@ export function useThrottleComparisonLogic() {
           ...(testDuration !== undefined && { testDuration }),
           ...(testInterval !== undefined && { testInterval }),
         }));
-        controller.next();
+        
       }
     );
 
@@ -183,7 +183,7 @@ export function useThrottleComparisonLogic() {
           ...state,
           isAutoTesting: isRunning,
         }));
-        controller.next();
+        
       }
     );
 
@@ -204,7 +204,7 @@ export function useThrottleComparisonLogic() {
             ].slice(-50), // 최근 50개만 유지
           }),
         }));
-        controller.next();
+        
       }
     );
 
@@ -225,7 +225,7 @@ export function useThrottleComparisonLogic() {
             ].slice(-50), // 최근 50개만 유지
           }),
         }));
-        controller.next();
+        
       }
     );
 
@@ -250,7 +250,7 @@ export function useThrottleComparisonLogic() {
         }));
 
         logSystem('메트릭 초기화', { context: 'Throttle Comparison' });
-        controller.next();
+        
       }
     );
 

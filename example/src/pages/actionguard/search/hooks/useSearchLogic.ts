@@ -109,7 +109,7 @@ export function useSearchLogic() {
         // 디바운스된 검색 실행
         debouncedSearch(term);
 
-        controller.next();
+        
       }
     );
 
@@ -119,7 +119,7 @@ export function useSearchLogic() {
       ({ term, timestamp }, controller) => {
         logAction('performSearch', { term, timestamp });
         performSearch(term);
-        controller.next();
+        
       }
     );
 
@@ -137,7 +137,7 @@ export function useSearchLogic() {
           lastSearchTime: searchTime,
         }));
 
-        controller.next();
+        
       }
     );
 
@@ -155,7 +155,7 @@ export function useSearchLogic() {
           lastSearchTime: null,
         });
 
-        controller.next();
+        
       }
     );
 

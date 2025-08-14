@@ -189,7 +189,7 @@ function ConsoleLoggerDemo() {
             toast: { type: 'info', message: `액션 ${type} 실행됨` },
           }
         );
-        controller.next();
+        
       }
     );
 
@@ -232,7 +232,7 @@ function ConsoleLoggerDemo() {
             },
           }
         );
-        controller.next();
+        
       }
     );
 
@@ -349,7 +349,7 @@ function MemoryLoggerDemo() {
           }
         );
 
-        controller.next();
+        
       }
     );
 

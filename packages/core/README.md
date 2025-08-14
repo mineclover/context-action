@@ -43,12 +43,12 @@ const actions = new ActionRegister<MyActions>();
 // Register handlers
 actions.register('increment', (_, controller) => {
   console.log('Increment called');
-  controller.next();
+  // Handler automatically continues to next handler
 });
 
 actions.register('setCount', (count, controller) => {
   console.log(`Setting count to: ${count}`);
-  controller.next();
+  // Handler automatically continues to next handler
 });
 
 // Dispatch actions
@@ -102,7 +102,7 @@ actions.register('validate', (data, controller) => {
   
   // Modify data for next handlers
   controller.modifyPayload(data => ({ ...data, validated: true }));
-  controller.next();
+  // Handler automatically continues to next handler
 });
 ```
 
@@ -172,7 +172,7 @@ import { ActionRegister } from '@context-action/core';
 const actions = new ActionRegister();
 actions.register('test', (payload, controller) => {
   console.log('Handler executed:', payload);
-  controller.next();
+  // Handler automatically continues to next handler
 });
 await actions.dispatch('test', { message: 'Hello!' });" > test-logging.js
 
