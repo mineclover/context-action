@@ -7,18 +7,28 @@ The React package follows a clean separation between implementation, tests, and 
 ```
 packages/react/
 ├── __tests__/              # All test files (outside src)
-│   ├── actions/
-│   │   └── ActionContext-unified.test.tsx
-│   └── stores/
-│       └── patterns/
-│           ├── declarative-store-pattern-v2.test.tsx
-│           └── type-tests.tsx
+│   ├── actions/           # Action system tests
+│   │   ├── createActionContext.test.tsx
+│   │   ├── useActionDispatch.test.tsx
+│   │   └── useActionHandler.test.tsx
+│   └── stores/            # Store system tests
+│       ├── hooks/         # Hook tests
+│       │   ├── useComputedStore.test.tsx
+│       │   ├── useLocalStore.test.tsx
+│       │   ├── useStoreSelector.test.tsx
+│       │   └── useStoreValue.test.tsx
+│       ├── patterns/      # Pattern tests
+│       │   └── createDeclarativeStorePattern.test.tsx
+│       └── utils/         # Utility tests
+│           └── comparison.test.tsx
 │
 ├── examples/               # All example code (outside src)
-│   └── stores/
-│       └── patterns/
-│           ├── declarative-examples.tsx
-│           └── unified-pattern-example.tsx
+│   ├── hooks/             # Hook examples by category
+│   │   ├── essential/     # Must-learn hooks
+│   │   ├── utility/       # Performance and convenience hooks
+│   │   └── index.tsx      # Interactive hook explorer
+│   └── stores/            # Store pattern examples
+│       └── patterns/      # Store pattern examples
 │
 ├── src/                    # Clean implementation code only
 │   ├── actions/           # Action system implementation
@@ -53,8 +63,9 @@ packages/react/
 
 ### 3. Parallel Structure
 Tests and examples mirror the source structure:
-- `src/actions/ActionContext.tsx` → `__tests__/actions/ActionContext-unified.test.tsx`
-- `src/stores/patterns/declarative-store-pattern-v2.tsx` → `examples/stores/patterns/declarative-examples.tsx`
+- `src/actions/ActionContext.tsx` → `__tests__/actions/createActionContext.test.tsx`
+- `src/stores/hooks/useStoreValue.ts` → `__tests__/stores/hooks/useStoreValue.test.tsx`
+- `src/stores/patterns/` → `__tests__/stores/patterns/createDeclarativeStorePattern.test.tsx`
 
 ## Running Tests
 
@@ -69,6 +80,32 @@ pnpm test:watch
 pnpm test --coverage
 ```
 
+## Current Test Coverage
+
+The framework has comprehensive test coverage with **40+ passing tests** across all core functionality:
+
+### Action System Tests (22 tests)
+- **createActionContext** (8 tests): Factory function, provider creation, hook generation
+- **useActionDispatch** (6 tests): Action dispatching, error handling, abort support
+- **useActionHandler** (8 tests): Handler registration, priority system, cleanup
+
+### Store System Tests (18 tests)
+- **useStoreValue** (4 tests): Basic subscription, selector functionality, performance options
+- **useLocalStore** (4 tests): Component-local stores, lifecycle management, value updates
+- **useStoreSelector** (3 tests): Selective subscriptions, equality functions, optimization
+- **useComputedStore** (5 tests): Derived state, memoization, dependency tracking
+- **createDeclarativeStorePattern** (2 tests): Pattern creation, type safety
+
+### Utility Tests (13 tests)
+- **comparison utilities** (13 tests): Shallow/deep equality, custom comparators, edge cases
+
+### Key Testing Features
+- **TypeScript Support**: Full type checking in test environment
+- **React Testing Library**: Component testing with proper rendering
+- **Jest Mocking**: Clean mocks for dependencies and external packages
+- **Performance Testing**: Render count validation and optimization verification
+- **Error Testing**: Comprehensive error handling and edge case coverage
+
 ## Configuration
 
 ### Jest Configuration (`jest.config.cjs`)
@@ -80,11 +117,14 @@ pnpm test --coverage
 ### Import Path Updates
 All test and example files use relative imports from their location:
 ```typescript
-// In __tests__/stores/patterns/declarative-store-pattern-v2.test.tsx
-import { createDeclarativeStorePattern } from '../../../src/stores/patterns/declarative-store-pattern-v2';
+// In __tests__/stores/hooks/useStoreValue.test.tsx
+import { useStoreValue } from '../../../src/stores/hooks/useStoreValue';
 
-// In examples/stores/patterns/declarative-examples.tsx
-import { createDeclarativeStorePattern } from '../../../src/stores/patterns/declarative-store-pattern-v2';
+// In __tests__/actions/createActionContext.test.tsx  
+import { createActionContext } from '../../../src/actions/ActionContext';
+
+// In examples/hooks/essential/useStoreValue-example.tsx
+import { useStoreValue } from '../../../src/stores/hooks/useStoreValue';
 ```
 
 ## Benefits

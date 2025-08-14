@@ -2,7 +2,6 @@
  * @fileoverview Simple tests for useStoreValue hook
  */
 
-import React from 'react';
 import { renderHook, act } from '@testing-library/react';
 import { createStore } from '../../../src/stores/core/Store';
 import { useStoreSelector } from '../../../src/stores/hooks/useStoreSelector';

@@ -22,15 +22,7 @@
 // === CORE STORE HOOKS ===
 // Essential hooks for store management
 export { useStoreSelector as useStore } from '../utils/store-selector';
-export { useStoreValue, useStoreValues } from './useStoreValue';
-export { useStoreValueSafe, assertStoreValue } from './useStoreValueSafe';
-export { useStoreActions } from './useStoreActions';
-
-// === REGISTRY HOOKS ===
-// For dynamic store management
-export { useStores } from './useStores';                    // New preferred naming
-export { useRegistry } from './useRegistry';               // Deprecated - use useStores
-export { useRegistryStore } from './useRegistryStore';
+export { useStoreValue, useStoreValues, assertStoreValue } from './useStoreValue';
 
 // === SPECIALIZED HOOKS ===
 // Optional but useful patterns

@@ -30,7 +30,6 @@ examples/
 ### Utility Hooks (Learn As Needed)
 - **`useStoreSelector`**: Performance optimization through selective subscriptions
 - **`useComputedStore`**: Derived state computation from store values
-- **`useStoreActions`**: Memoized store action methods
 - **`usePersistedStore`**: Browser storage synchronization
 
 ### Pattern Hooks (For Larger Apps)
