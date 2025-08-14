@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **User Configuration System**: Complete user-customizable configuration system with project root discovery
+- **New CLI Commands**:
+  - `config-init [preset]`: Initialize configuration with presets (minimal|standard|extended|blog|documentation)
+  - `config-show`: Show current resolved configuration
+  - `config-validate`: Validate current configuration 
+  - `config-limits [--all]`: Show configured character limits
+- **Configuration Discovery**: Multi-format config file support (.json, .js, package.json field, RC files)
+- **Character Limit Presets**: Pre-configured character limit sets for different use cases
+- **Config-Driven CLI**: All CLI commands now use configuration defaults (languages, character limits, composition settings)
+- **Configuration Examples**: Comprehensive CONFIG_EXAMPLES.md with real-world configuration scenarios
+
+### Changed
+- **CLI Commands**: All commands now load user configuration and use config defaults instead of hardcoded values
+- **Character Limits**: Now fully user-configurable through config system instead of hardcoded arrays
+- **Help Text**: Updated to reflect config-driven approach with new examples
+
+### Technical Details
+- Added `ConfigManager` class for configuration discovery, loading, validation, and management
+- Added comprehensive `UserConfig` and `ResolvedConfig` TypeScript interfaces
+- Project root discovery by searching for package.json in parent directories
+- Configuration validation with detailed error messages
+- Support for enabled/disabled character limits
+- Workflow presets system for future automation features
+
 ## [1.1.0] - 2025-08-14
 
 ### Added

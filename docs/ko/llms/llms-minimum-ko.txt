@@ -2,6 +2,7 @@
 
 Generated: 2025-08-14
 Type: Minimum (Navigation Links)
+Language: KO
 
 This document provides quick navigation links to all Context-Action framework documentation, organized by priority tiers.
 
@@ -14,7 +15,7 @@ This document provides quick navigation links to all Context-Action framework do
 
 ## Essential Documents (14)
 
-- [Guide Action Handlers](https://mineclover.github.io/context-action/ko/guide/action-handlers) - Priority: 80
+- [액션 핸들러](https://mineclover.github.io/context-action/ko/guide/action-handlers) - Priority: 80
 - [Guide Best Practices](https://mineclover.github.io/context-action/ko/guide/best-practices) - Priority: 80
 - [Guide Common Pitfalls](https://mineclover.github.io/context-action/ko/guide/common-pitfalls) - Priority: 80
 - [Guide Cross Domain Integration](https://mineclover.github.io/context-action/ko/guide/cross-domain-integration) - Priority: 80

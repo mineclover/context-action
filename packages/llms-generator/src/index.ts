@@ -13,9 +13,11 @@ export { MarkdownGenerator } from './core/MarkdownGenerator.js';
 export { ContentExtractor } from './core/ContentExtractor.js';
 export { AdaptiveComposer } from './core/AdaptiveComposer.js';
 export { WorkStatusManager } from './core/WorkStatusManager.js';
+export { ConfigManager } from './core/ConfigManager.js';
 
 // Types
 export * from './types/index.js';
+export * from './types/user-config.js';
 
 // Utilities
 export * from './utils/index.js';

@@ -14,7 +14,7 @@ This document provides quick navigation links to all Context-Action framework do
 - [Guide Getting Started](https://mineclover.github.io/context-action/en/guide/getting-started) - Priority: 95
 - [Guide Quick Start](https://mineclover.github.io/context-action/en/guide/quick-start) - Priority: 95
 
-## Essential Documents (19)
+## Essential Documents (18)
 
 - [Action Only Methods](https://mineclover.github.io/context-action/en/api/action-only) - Priority: 85
 - [Guide Action Handlers](https://mineclover.github.io/context-action/en/guide/action-handlers) - Priority: 80
@@ -34,7 +34,6 @@ This document provides quick navigation links to all Context-Action framework do
 - [Guide React Integration](https://mineclover.github.io/context-action/en/guide/react-integration) - Priority: 80
 - [Guide Setup Usage](https://mineclover.github.io/context-action/en/guide/setup-usage) - Priority: 80
 - [Guide Store Management](https://mineclover.github.io/context-action/en/guide/store-management) - Priority: 80
-- [Test Document](https://mineclover.github.io/context-action/en/guide/test-document) - Priority: 80
 
 ## Important Documents (11)
 

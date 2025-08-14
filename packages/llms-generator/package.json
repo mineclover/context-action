@@ -66,6 +66,7 @@
     "data/priority-schema.json",
     "README.md",
     "CHANGELOG.md",
-    "USAGE_EXAMPLES.md"
+    "USAGE_EXAMPLES.md",
+    "CONFIG_EXAMPLES.md"
   ]
 }
