@@ -7,11 +7,11 @@ export enum LogLevel {
   TRACE = 0,
   DEBUG = 1,
   INFO = 2,
-  LOG = 2,
-  WARN = 3,
-  ERROR = 4,
-  CRITICAL = 5,
-  NONE = 6
+  LOG = 3,
+  WARN = 4,
+  ERROR = 5,
+  CRITICAL = 6,
+  NONE = 7
 }
 
 export interface Logger {
@@ -28,14 +28,27 @@ export interface Logger {
   getLevel: () => LogLevel;
 }
 
-export function createLogger(prefix: string = '[App]'): Logger {
-  let currentLevel = LogLevel.INFO;
+// Function overloads
+export function createLogger(level: LogLevel): Logger;
+export function createLogger(prefix: string, level?: LogLevel): Logger;
+export function createLogger(prefixOrLevel: string | LogLevel = '[App]', level?: LogLevel): Logger {
+  let actualPrefix: string;
+  let actualLevel: LogLevel;
+  
+  if (typeof prefixOrLevel === 'string') {
+    actualPrefix = prefixOrLevel;
+    actualLevel = level ?? LogLevel.INFO;
+  } else {
+    actualPrefix = '[App]';
+    actualLevel = prefixOrLevel;
+  }
+  let currentLevel = actualLevel;
 
   const shouldLog = (level: LogLevel) => level >= currentLevel;
 
   const log = (level: LogLevel, method: keyof Console, message: string, ...args: any[]) => {
     if (shouldLog(level)) {
-      const prefixedMessage = `${prefix} ${message}`;
+      const prefixedMessage = `${actualPrefix} ${message}`;
       (console[method] as any)(prefixedMessage, ...args);
     }
   };
@@ -48,7 +61,7 @@ export function createLogger(prefix: string = '[App]'): Logger {
     warn: (message: string, ...args: any[]) => log(LogLevel.WARN, 'warn', message, ...args),
     error: (message: string, ...args: any[]) => log(LogLevel.ERROR, 'error', message, ...args),
     critical: (message: string, ...args: any[]) => log(LogLevel.CRITICAL, 'error', `[CRITICAL] ${message}`, ...args),
-    group: (label: string) => console.group(`${prefix} ${label}`),
+    group: (label: string) => console.group(`${actualPrefix} ${label}`),
     groupEnd: () => console.groupEnd(),
     setLevel: (level: LogLevel) => { currentLevel = level; },
     getLevel: () => currentLevel
@@ -58,32 +71,50 @@ export function createLogger(prefix: string = '[App]'): Logger {
 // Helper functions for styled console output
 const createStyleHelpers = (theme: { primary: string; secondary: string; accent: string }) => ({
   title: (text: string) => {
-    console.log(`%c${text}`, `font-size: 18px; font-weight: bold; color: ${theme.primary}`);
+    const styledText = `%c${text}`;
+    console.log(styledText, `font-size: 18px; font-weight: bold; color: ${theme.primary}`);
+    return text;
   },
   subtitle: (text: string) => {
-    console.log(`%c${text}`, `font-size: 14px; font-weight: bold; color: ${theme.secondary}`);
+    const styledText = `%c${text}`;
+    console.log(styledText, `font-size: 14px; font-weight: bold; color: ${theme.secondary}`);
+    return text;
   },
   info: (text: string) => {
-    console.log(`%c${text}`, 'color: #666');
+    const styledText = `%c${text}`;
+    console.log(styledText, 'color: #666');
+    return text;
   },
   success: (text: string) => {
-    console.log(`%c✓ ${text}`, 'color: #4CAF50');
+    const styledText = `%c✓ ${text}`;
+    console.log(styledText, 'color: #4CAF50');
+    return `✓ ${text}`;
   },
   warning: (text: string) => {
-    console.log(`%c⚠ ${text}`, 'color: #FF9800');
+    const styledText = `%c⚠ ${text}`;
+    console.log(styledText, 'color: #FF9800');
+    return `⚠ ${text}`;
   },
   error: (text: string) => {
-    console.log(`%c✗ ${text}`, 'color: #F44336');
+    const styledText = `%c✗ ${text}`;
+    console.log(styledText, 'color: #F44336');
+    return `✗ ${text}`;
   },
   code: (text: string) => {
-    console.log(`%c${text}`, 'font-family: monospace; background: #f5f5f5; padding: 2px 4px; border-radius: 3px');
+    const styledText = `%c${text}`;
+    console.log(styledText, 'font-family: monospace; background: #f5f5f5; padding: 2px 4px; border-radius: 3px');
+    return text;
   },
   divider: () => {
-    console.log('━'.repeat(50));
+    const divider = '━'.repeat(50);
+    console.log(divider);
+    return divider;
   },
   section: (title: string) => {
+    const sectionText = `━━━ ${title} ━━━`;
     console.log('');
-    console.log(`%c━━━ ${title} ━━━`, `font-weight: bold; color: ${theme.accent}`);
+    console.log(`%c${sectionText}`, `font-weight: bold; color: ${theme.accent}`);
+    return sectionText;
   },
   separator: (label?: string) => {
     if (label) {
@@ -105,44 +136,58 @@ export const LogArtHelpers = {
   // Default theme methods for backward compatibility
   title: (text: string) => {
     console.log(`%c${text}`, 'font-size: 18px; font-weight: bold; color: #4CAF50');
+    return text;
   },
   subtitle: (text: string) => {
     console.log(`%c${text}`, 'font-size: 14px; font-weight: bold; color: #2196F3');
+    return text;
   },
   info: (text: string) => {
     console.log(`%c${text}`, 'color: #666');
+    return text;
   },
   success: (text: string) => {
     console.log(`%c✓ ${text}`, 'color: #4CAF50');
+    return `✓ ${text}`;
   },
   warning: (text: string) => {
     console.log(`%c⚠ ${text}`, 'color: #FF9800');
+    return `⚠ ${text}`;
   },
   error: (text: string) => {
     console.log(`%c✗ ${text}`, 'color: #F44336');
+    return `✗ ${text}`;
   },
   code: (text: string) => {
     console.log(`%c${text}`, 'font-family: monospace; background: #f5f5f5; padding: 2px 4px; border-radius: 3px');
+    return text;
   },
   divider: () => {
-    console.log('━'.repeat(50));
+    const divider = '━'.repeat(50);
+    console.log(divider);
+    return divider;
   },
   section: (title: string) => {
+    const sectionText = `━━━ ${title} ━━━`;
     console.log('');
-    console.log(`%c━━━ ${title} ━━━`, 'font-weight: bold; color: #673AB7');
+    console.log(`%c${sectionText}`, 'font-weight: bold; color: #673AB7');
+    return sectionText;
   }
 };
 
 // Default logger instance
-export const defaultLogger = createLogger();
+export const defaultLogger = createLogger('[App]');
 
 // Console Logger class for compatibility
 export class ConsoleLogger {
   private logger: Logger;
   
-  constructor(prefix: string = '[Console]', level: LogLevel = LogLevel.INFO) {
-    this.logger = createLogger(prefix);
-    this.logger.setLevel(level);
+  constructor(prefixOrLevel: string | LogLevel = '[Console]', level: LogLevel = LogLevel.INFO) {
+    if (typeof prefixOrLevel === 'string') {
+      this.logger = createLogger(prefixOrLevel, level);
+    } else {
+      this.logger = createLogger(prefixOrLevel);
+    }
   }
 
   trace(message: string, ...args: any[]) { this.logger.trace(message, ...args); }

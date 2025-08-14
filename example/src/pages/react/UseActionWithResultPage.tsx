@@ -308,7 +308,7 @@ function UseActionWithResultContent() {
       console.log(LogArtHelpers.react.info('실행 결과:'), result);
       setResults(JSON.stringify(result, null, 2));
     } catch (error) {
-      console.error(LogArtHelpers.react.error('실행 실패', String(error)));
+      console.error(LogArtHelpers.react.error(`실행 실패: ${String(error)}`));
     } finally {
       setIsLoading(false);
     }
@@ -330,7 +330,7 @@ function UseActionWithResultContent() {
       console.log(LogArtHelpers.react.info('필터링된 실행 결과:'), result);
       setResults(JSON.stringify(result, null, 2));
     } catch (error) {
-      console.error(LogArtHelpers.react.error('실행 실패', String(error)));
+      console.error(LogArtHelpers.react.error(`실행 실패: ${String(error)}`));
     } finally {
       setIsLoading(false);
     }
@@ -393,7 +393,7 @@ function UseActionWithResultContent() {
       setResults(JSON.stringify(workflowResult, null, 2));
     } catch (error) {
       console.error(
-        LogArtHelpers.react.error('워크플로우 실패', String(error))
+        LogArtHelpers.react.error(`워크플로우 실패: ${String(error)}`)
       );
       setResults(`Error: ${error}`);
     } finally {
@@ -417,7 +417,7 @@ function UseActionWithResultContent() {
       console.log(LogArtHelpers.react.info('병렬 실행 결과:'), result);
       setResults(JSON.stringify(result, null, 2));
     } catch (error) {
-      console.error(LogArtHelpers.react.error('실행 실패', String(error)));
+      console.error(LogArtHelpers.react.error(`실행 실패: ${String(error)}`));
     } finally {
       setIsLoading(false);
     }
@@ -439,7 +439,7 @@ function UseActionWithResultContent() {
       console.log(LogArtHelpers.react.info('병합된 결과:'), result);
       setResults(JSON.stringify(result, null, 2));
     } catch (error) {
-      console.error(LogArtHelpers.react.error('실행 실패', String(error)));
+      console.error(LogArtHelpers.react.error(`실행 실패: ${String(error)}`));
     } finally {
       setIsLoading(false);
     }
