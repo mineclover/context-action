@@ -1,6 +1,6 @@
 {
   "name": "@context-action/jotai",
-  "version": "0.0.5",
+  "version": "0.1.0",
   "type": "module",
   "description": "Jotai integration for @context-action/core - Atomic state management with type-safe actions",
   "deprecated": "This package is no longer maintained. Use @context-action/react for state management instead.",
