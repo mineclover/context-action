@@ -38,8 +38,10 @@ export const LOG_LEVEL_COLORS: LogLevelColorMap = {
   [LogLevel.TRACE]: '#9ca3af',
   [LogLevel.DEBUG]: '#3b82f6',
   [LogLevel.INFO]: '#10b981',
+  [LogLevel.LOG]: '#059669',
   [LogLevel.WARN]: '#f59e0b',
   [LogLevel.ERROR]: '#ef4444',
+  [LogLevel.CRITICAL]: '#dc2626',
   [LogLevel.NONE]: '#6b7280',
 };
 
@@ -60,8 +62,10 @@ export const LOG_LEVEL_NAMES: Record<LogLevel, string> = {
   [LogLevel.TRACE]: 'TRACE',
   [LogLevel.DEBUG]: 'DEBUG',
   [LogLevel.INFO]: 'INFO',
+  [LogLevel.LOG]: 'LOG',
   [LogLevel.WARN]: 'WARN',
   [LogLevel.ERROR]: 'ERROR',
+  [LogLevel.CRITICAL]: 'CRITICAL',
   [LogLevel.NONE]: 'NONE',
 };
 
