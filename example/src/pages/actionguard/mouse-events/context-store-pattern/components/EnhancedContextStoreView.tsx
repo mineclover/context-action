@@ -37,6 +37,62 @@ export function EnhancedContextStoreView() {
   // Action dispatcher
   const dispatch = useMouseEventsActionDispatch();
 
+  // 실시간 activityStatus 업데이트를 위한 주기적 검사
+  useEffect(() => {
+    const updateActivityStatus = () => {
+      if (!positionStore || !movementStore || !clicksStore || !computedStore) return;
+      
+      const currentMovement = movementStore.getValue();
+      const currentClicks = clicksStore.getValue();
+      const currentComputed = computedStore.getValue();
+      
+      // 현재 시간 기준으로 activityStatus 재계산
+      const lastClickTime = currentClicks.history[0]?.timestamp || null;
+      const recentClickCount = currentClicks.history.filter(
+        click => Date.now() - click.timestamp <= 1500
+      ).length;
+      
+      const newActivityStatus = (() => {
+        const now = Date.now();
+        const timeSinceLastClick = lastClickTime ? now - lastClickTime : Infinity;
+
+        // 300ms 이내의 매우 최근 클릭이면 clicking 상태
+        if (recentClickCount > 0 && timeSinceLastClick < 300) {
+          return 'clicking';
+        }
+
+        // 이동 중이고 속도가 충분하면 moving 상태
+        if (currentMovement.isMoving && currentMovement.velocity > 0.05) {
+          return 'moving';
+        }
+
+        // 1초 이내 클릭이 있지만 현재 이동 중이 아니면 여전히 clicking
+        if (recentClickCount > 0 && timeSinceLastClick < 1000) {
+          return 'clicking';
+        }
+
+        return 'idle';
+      })();
+      
+      // 상태가 변경되었을 때만 업데이트
+      if (currentComputed.activityStatus !== newActivityStatus) {
+        computedStore.setValue({
+          ...currentComputed,
+          activityStatus: newActivityStatus,
+          recentClickCount,
+        });
+      }
+    };
+
+    // 초기 실행
+    updateActivityStatus();
+    
+    // 200ms마다 상태 검사 (부드러운 실시간 업데이트)
+    const interval = setInterval(updateActivityStatus, 200);
+    
+    return () => clearInterval(interval);
+  }, [positionStore, movementStore, clicksStore, computedStore]);
+
   // Performance optimized mouse move handler
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
