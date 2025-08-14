@@ -42,7 +42,7 @@ class MemoryLogger implements Logger {
     return level >= this.level;
   }
 
-  private log(level: string, message: string, ...args: any[]) {
+  private writeLog(level: string, message: string, ...args: any[]) {
     const log = {
       level,
       message: `${message} ${args.join(' ')}`,
@@ -72,32 +72,52 @@ class MemoryLogger implements Logger {
 
   trace(message: string, ...args: any[]): void {
     if (this.shouldLog(LogLevel.TRACE)) {
-      this.log('TRACE', message, ...args);
+      this.writeLog('TRACE', message, ...args);
     }
   }
 
   debug(message: string, ...args: any[]): void {
     if (this.shouldLog(LogLevel.DEBUG)) {
-      this.log('DEBUG', message, ...args);
+      this.writeLog('DEBUG', message, ...args);
     }
   }
 
   info(message: string, ...args: any[]): void {
     if (this.shouldLog(LogLevel.INFO)) {
-      this.log('INFO', message, ...args);
+      this.writeLog('INFO', message, ...args);
+    }
+  }
+
+  log(message: string, ...args: any[]): void {
+    if (this.shouldLog(LogLevel.LOG)) {
+      this.writeLog('LOG', message, ...args);
     }
   }
 
   warn(message: string, ...args: any[]): void {
     if (this.shouldLog(LogLevel.WARN)) {
-      this.log('WARN', message, ...args);
+      this.writeLog('WARN', message, ...args);
     }
   }
 
   error(message: string, ...args: any[]): void {
     if (this.shouldLog(LogLevel.ERROR)) {
-      this.log('ERROR', message, ...args);
+      this.writeLog('ERROR', message, ...args);
     }
+  }
+
+  critical(message: string, ...args: any[]): void {
+    if (this.shouldLog(LogLevel.CRITICAL)) {
+      this.writeLog('CRITICAL', message, ...args);
+    }
+  }
+
+  group(label: string): void {
+    console.group(`[Memory Logger] ${label}`);
+  }
+
+  groupEnd(): void {
+    console.groupEnd();
   }
 
   getLogs() {
@@ -128,9 +148,11 @@ function LogLevelSelector({
         <option value={LogLevel.TRACE}>TRACE (0)</option>
         <option value={LogLevel.DEBUG}>DEBUG (1)</option>
         <option value={LogLevel.INFO}>INFO (2)</option>
-        <option value={LogLevel.WARN}>WARN (3)</option>
-        <option value={LogLevel.ERROR}>ERROR (4)</option>
-        <option value={LogLevel.NONE}>NONE (5)</option>
+        <option value={LogLevel.LOG}>LOG (3)</option>
+        <option value={LogLevel.WARN}>WARN (4)</option>
+        <option value={LogLevel.ERROR}>ERROR (5)</option>
+        <option value={LogLevel.CRITICAL}>CRITICAL (6)</option>
+        <option value={LogLevel.NONE}>NONE (7)</option>
       </select>
     </div>
   );
