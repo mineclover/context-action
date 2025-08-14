@@ -191,6 +191,7 @@ export const {
   useStoreManager: useUserBusinessStoreManager,
   useStoreInfo: useUserBusinessStoreInfo
 } = createDeclarativeStorePattern<UserBusinessData>('UserBusiness', {
+  // ⚠️ Note: Still requires InitialStores<T> structure even with explicit generics
   profile: {
     id: '',
     name: '',
@@ -198,8 +199,9 @@ export const {
     role: 'guest'
   },
   preferences: {
-    theme: 'light',
-    language: 'en'
+    // Can use direct values or config objects
+    initialValue: { theme: 'light', language: 'en' },
+    strategy: 'shallow'
   }
 });
 
@@ -208,7 +210,7 @@ export const {
   Provider: UserBusinessActionProvider,
   useActionDispatch: useUserBusinessAction,
   useActionHandler: useUserBusinessActionHandler,
-  useActionDispatchWithResult: useUserBusinessActionWithResult
+  useActionDispatchWithResult: useUserBusinessActionDispatchWithResult
 } = createActionContext<UserBusinessActions>('UserBusinessAction');
 ```
 
@@ -370,7 +372,6 @@ import React, { useEffect, useCallback } from 'react';
 import { useUserBusinessActionHandler, useUserBusinessStoreManager } from '@/stores/userBusiness.store';
 
 function useUserBusinessHandlers() {
-  const addHandler = useUserBusinessActionHandler();
   const storeManager = useUserBusinessStoreManager();
   
   // Wrap handler with useCallback to prevent re-registration
@@ -397,26 +398,15 @@ function useUserBusinessHandlers() {
     
     // Return result for collection
     return { success: true, profile: updatedProfile };
-  }, [registry]);
+  }, [storeManager]);
   
-  // Register handler with cleanup
-  useEffect(() => {
-    if (!addHandler) return;
-    
-    // Register returns unregister function
-    const unaddHandler = addHandler('updateProfile', updateProfileHandler, {
-      priority: 100,      // Higher priority executes first
-      blocking: true,     // Wait for async completion in sequential mode
-      tags: ['business'], // For filtering
-      id: 'profile-updater' // Explicit ID for debugging
-    });
-    
-    // Critical: Return unregister for memory cleanup on unmount
-    return unregister;
-  }, [register, updateProfileHandler]);
-  
-  // TODO: Bulk cleanup method
-  // register.clearAll(); // Coming soon for bulk unregistration
+  // Register handler using useActionHandler hook (actual API)
+  useUserBusinessActionHandler('updateProfile', updateProfileHandler, {
+    priority: 100,      // Higher priority executes first
+    blocking: true,     // Wait for async completion in sequential mode
+    tags: ['business'], // For filtering
+    id: 'profile-updater' // Explicit ID for debugging
+  });
 }
 ```
 
@@ -600,11 +590,11 @@ function TodoItem({ todoId }: { todoId: string }) {
 
 ### Handler Registration
 
-1. **Always use `useActionHandler` + `useEffect` pattern**
-2. **Return unregister function for cleanup**
+1. **Always use `useActionHandler` hook for automatic registration and cleanup**
+2. **Wrap handlers with `useCallback` to prevent re-registration**
 3. **Use `blocking: true` for sequential async handlers**
 4. **Consider explicit IDs for debugging and critical handlers**
-5. **Wrap handlers with `useCallback` to prevent re-registration**
+5. **Use `useActionRegister()` only for advanced manual control**
 
 ### Store Access
 
@@ -783,12 +773,11 @@ export const {
 ```typescript
 // 2. Define Actions & Handlers (hooks/useUserHandlers.ts)
 export function useUserHandlers() {
-  const addHandler = useUserActionHandler();
-  const stores = useUserStores();
+  const storeManager = useUserStoreManager();
   
   // Login handler example
   const loginHandler = useCallback(async (payload, controller) => {
-    const profileStore = stores.getStore('profile');
+    const profileStore = storeManager.getStore('profile');
     
     try {
       // Validation
@@ -811,28 +800,16 @@ export function useUserHandlers() {
       controller.abort('Login failed', error);
       return { success: false };
     }
-  }, [registry]);
+  }, [storeManager]);
+  
+  // Register handler using useActionHandler hook (actual API)
+  useUserActionHandler('login', loginHandler, {
+    priority: 100,
+    blocking: true,
+    id: 'user-login-handler'
+  });
   
   // Similar patterns for logout, updateProfile handlers...
-  
-  // Register handlers with cleanup
-  useEffect(() => {
-    if (!addHandler) return;
-    
-    const unregisterLogin = register('login', loginHandler, {
-      priority: 100,
-      blocking: true,
-      id: 'user-login-handler'
-    });
-    
-    // Register other handlers...
-    
-    // Cleanup on unmount
-    return () => {
-      unregisterLogin();
-      // Cleanup other handlers...
-    };
-  }, [register, loginHandler]);
 }
 ```
 
@@ -1052,34 +1029,35 @@ describe('User Profile Integration', () => {
 ### From Legacy Patterns
 
 ```typescript
-// ❌ Old Pattern: Direct handler registration
+// ❌ Old Pattern: Manual handler registration with useEffect
 function OldComponent() {
   const dispatch = useDispatch();
+  const register = useActionRegister();
   
   const handler = () => {
     // handler logic
   };
   
-  useActionHandler('action', handler); // Direct registration
+  useEffect(() => {
+    if (!register) return;
+    const unregister = register.register('action', handler);
+    return unregister;
+  }, [register, handler]);
 }
 
-// ✅ New Pattern: Register with cleanup
+// ✅ New Pattern: useActionHandler hook (current API)
 function NewComponent() {
-  const register = useActionHandler();
   const dispatch = useAction();
   
   const handler = useCallback(() => {
     // handler logic
   }, []);
   
-  useEffect(() => {
-    if (!addHandler) return;
-    const unaddHandler = addHandler('action', handler, {
-      id: 'unique-handler-id',
-      blocking: true
-    });
-    return unregister; // Cleanup
-  }, [register, handler]);
+  // Handler automatically registered and cleaned up
+  useActionHandler('action', handler, {
+    id: 'unique-handler-id',
+    blocking: true
+  });
 }
 ```
 
@@ -1139,17 +1117,22 @@ const handler = () => {
 #### Memory Leaks
 
 ```typescript
-// Problem: Handlers not cleaned up
+// Problem: Manual registration without cleanup
 useEffect(() => {
-  register('action', handler);
-}); // No cleanup!
-
-// Solution: Return unregister
-useEffect(() => {
-  if (!addHandler) return;
-  const unaddHandler = addHandler('action', handler);
-  return unregister; // Cleanup on unmount
+  if (!register) return;
+  register.register('action', handler);
+  // No cleanup!
 }, [register, handler]);
+
+// Solution: Use useActionHandler hook (automatic cleanup)
+const handler = useCallback(() => {
+  // handler logic
+}, []);
+
+useActionHandler('action', handler, {
+  id: 'action-handler',
+  blocking: true
+}); // Cleanup handled automatically
 ```
 
 #### Type Errors
@@ -1169,7 +1152,7 @@ The Context-Action Store Integration Architecture provides a robust, scalable, a
 ### Key Takeaways
 
 1. **Use domain-specific hooks** for type safety and clarity
-2. **Always implement cleanup** with unregister functions
+2. **Use `useActionHandler` hook** for automatic registration and cleanup
 3. **Use lazy evaluation** in handlers to avoid stale state
 4. **Separate business and UI concerns** with different stores/actions
 5. **Prefer domain isolation** - use cross-domain only when necessary
