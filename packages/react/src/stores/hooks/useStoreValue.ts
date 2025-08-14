@@ -3,6 +3,19 @@ import { useStoreSelector, shallowEqual, defaultEqualityFn } from './useStoreSel
 import type { Store } from '../core/Store';
 
 /**
+ * Create a type assertion helper for stores created with initial values
+ */
+export function assertStoreValue<T>(value: T | undefined, storeName: string): T {
+  if (value === undefined) {
+    throw new Error(
+      `Store "${storeName}" returned undefined value. ` +
+      'This should not happen with properly initialized stores.'
+    );
+  }
+  return value;
+}
+
+/**
  * 성능 최적화된 Store Value Hook
  * 
  * 기존 useStoreValue를 성능 최적화하여 불필요한 리렌더링을 방지합니다.

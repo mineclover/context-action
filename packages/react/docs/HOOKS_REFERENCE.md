@@ -23,7 +23,7 @@ These hooks are fundamental to using the Context-Action framework. Most applicat
 - **Returns**: `{ Provider, useActionDispatch, useActionHandler, useActionRegister }`
 - **Essential for**: Any action-based logic
 
-```typescript
+```tsx
 const { 
   Provider: UserActionProvider,
   useActionDispatch: useUserAction,
@@ -51,7 +51,7 @@ const {
 - **Returns**: `{ Provider, useStore, useStoreManager, withProvider }`
 - **Essential for**: Any state management
 
-```typescript
+```tsx
 const {
   Provider: UserStoreProvider,
   useStore: useUserStore,
@@ -67,7 +67,7 @@ const {
 - **Essential for**: Reading state in components
 - **Performance**: Only re-renders on actual value changes
 
-```typescript
+```tsx
 const userStore = useUserStore('profile');
 const user = useStoreValue(userStore);
 ```
@@ -92,7 +92,7 @@ These hooks provide additional functionality, optimizations, and convenience fea
 - **Use Case**: When you need return values from handlers
 - **Advanced**: For complex workflows requiring handler responses
 
-```typescript
+```tsx
 const { dispatchWithResult } = useActionDispatchWithResult();
 const result = await dispatchWithResult('login', credentials);
 ```
@@ -111,7 +111,7 @@ const result = await dispatchWithResult('login', credentials);
 - **Optimization**: Prevents unnecessary re-renders
 - **Use Case**: Large objects where only part changes
 
-```typescript
+```tsx
 const userName = useStoreSelector(userStore, user => user.name, shallowEqual);
 ```
 
@@ -121,7 +121,7 @@ const userName = useStoreSelector(userStore, user => user.name, shallowEqual);
 - **Optimization**: Only recomputes when dependencies change
 - **Use Case**: Calculated values, aggregations
 
-```typescript
+```tsx
 const fullName = useComputedStore(
   userStore,
   user => `${user.firstName} ${user.lastName}`
@@ -134,7 +134,7 @@ const fullName = useComputedStore(
 - **Use Case**: Complex component state
 - **Benefit**: Store API without global state
 
-```typescript
+```tsx
 const { value, setValue, store } = useLocalStore({ count: 0 });
 ```
 
@@ -144,48 +144,24 @@ const { value, setValue, store } = useLocalStore({ count: 0 });
 - **Use Case**: Settings, user preferences, draft data
 - **Feature**: Cross-tab synchronization
 
-```typescript
+```tsx
 const themeStore = usePersistedStore('theme', 'light', {
   storage: localStorage
 });
 ```
 
-#### `useStoreActions<T>(store)`
-**Memoized store methods** hook.
-- **Purpose**: Get memoized store action methods
-- **Optimization**: Prevents function recreation
-- **Use Case**: Passing store methods as props
 
-```typescript
-const { setValue, update, getValue } = useStoreActions(userStore);
-```
-
-#### `useStoreValueSafe<T>(store)`
-**Type-safe store value** hook.
-- **Purpose**: Guaranteed non-undefined values
-- **Type Safety**: Compile-time guarantee
+#### `assertStoreValue<T>(value, storeName)`
+**Type assertion utility** for store values.
+- **Purpose**: Runtime assertion for non-undefined values
+- **Type Safety**: Throws error if undefined
 - **Use Case**: When store must have a value
 
-```typescript
-const count = useStoreValueSafe(counterStore); // never undefined
+```tsx
+const user = useStoreValue(userStore);
+const safeUser = assertStoreValue(user, 'userStore'); // never undefined
 ```
 
-#### `useStores(registry)`
-**Registry monitoring** hook.
-- **Purpose**: Get all stores from registry
-- **Use Case**: Dynamic store management, debugging
-- **Advanced**: For tooling and meta-programming
-
-```typescript
-const stores = useStores(storeRegistry);
-stores.forEach(([name, store]) => console.log(name));
-```
-
-#### `useRegistryStore(registry, name)`
-**Dynamic store lookup** hook.
-- **Purpose**: Get store by name from registry
-- **Use Case**: Dynamic store access
-- **Advanced**: When store name is runtime-determined
 
 ### 🔧 Performance Optimization Hooks
 
@@ -228,7 +204,7 @@ stores.forEach(([name, store]) => console.log(name));
 - **Utility**: `usePersistedStore`
 
 #### Advanced/Meta
-- **Utility**: `useStores`, `useRegistryStore`, `useActionRegister`
+- **Utility**: `useActionRegister`
 
 ### By Usage Frequency
 
@@ -245,10 +221,7 @@ stores.forEach(([name, store]) => console.log(name));
 #### Low Frequency (<20% of components)
 - `useComputedStore`
 - `usePersistedStore`
-- `useStoreActions`
 - `useActionDispatchWithResult`
-- `useStores`
-- `useRegistryStore`
 
 ---
 
@@ -273,7 +246,7 @@ stores.forEach(([name, store]) => console.log(name));
 ### Best Practices
 
 #### Essential Hook Patterns
-```typescript
+```tsx
 // Standard component pattern
 function UserProfile() {
   // Essential: Get stores
@@ -293,7 +266,7 @@ function UserProfile() {
 ```
 
 #### Utility Hook Patterns
-```typescript
+```tsx
 // Optimized component with utilities
 function OptimizedUserProfile() {
   // Utility: Selective subscription
@@ -341,20 +314,9 @@ For existing projects:
 - **Use Case**: Custom store patterns, debugging
 - **Advanced**: Rarely needed in applications
 
-```typescript
+```tsx
 const context = useStoreContext();
 // Access to internal store context structure
-```
-
-#### `useStoreRegistry()`
-**Registry access hook** from default context.
-- **Purpose**: Get the default store registry instance
-- **Use Case**: Global store management
-- **Returns**: `StoreRegistry` instance
-
-```typescript
-const registry = useStoreRegistry();
-registry.register('newStore', createStore(initialValue));
 ```
 
 ### 📊 Multiple Store Hooks
@@ -365,7 +327,7 @@ registry.register('newStore', createStore(initialValue));
 - **Performance**: More efficient than multiple `useStoreValue` calls
 - **Use Case**: Components needing multiple derived values
 
-```typescript
+```tsx
 const { name, age, email } = useStoreValues(userStore, {
   name: user => user.name,
   age: user => user.age,
@@ -379,7 +341,7 @@ const { name, age, email } = useStoreValues(userStore, {
 - **Performance**: Single subscription for all stores
 - **Use Case**: Cross-store computed values
 
-```typescript
+```tsx
 const summary = useMultiStoreSelector(
   [userStore, settingsStore],
   ([user, settings]) => ({
@@ -396,7 +358,7 @@ const summary = useMultiStoreSelector(
 - **Memoization**: Only recomputes when dependencies change
 - **Use Case**: Complex cross-store calculations
 
-```typescript
+```tsx
 const dashboard = useMultiComputedStore(
   [salesStore, inventoryStore, userStore],
   ([sales, inventory, users]) => ({
@@ -415,7 +377,7 @@ const dashboard = useMultiComputedStore(
 - **Convenience**: Array or dot notation for paths
 - **Use Case**: Complex nested state structures
 
-```typescript
+```tsx
 // Using array path
 const city = useStorePathSelector(userStore, ['address', 'city']);
 
@@ -429,7 +391,7 @@ const city = useStorePathSelector(userStore, 'address.city');
 - **Features**: Loading states, error handling, caching
 - **Use Case**: API calls based on store values
 
-```typescript
+```tsx
 const enrichedUser = useAsyncComputedStore(
   [userStore],
   async ([user]) => {
@@ -449,7 +411,7 @@ const enrichedUser = useAsyncComputedStore(
 - **Returns**: Actual `Store<R>` instance (not just value)
 - **Use Case**: When you need a store interface for computed values
 
-```typescript
+```tsx
 const computedStore = useComputedStoreInstance(
   [priceStore, quantityStore],
   ([price, quantity]) => price * quantity,
@@ -468,7 +430,7 @@ const computedStore = useComputedStoreInstance(
 - **Convenience**: Eliminates manual provider nesting
 - **Configuration**: Optional display name and registry ID
 
-```typescript
+```tsx
 // Basic usage
 const UserProfileWithProvider = UserStores.withProvider(UserProfile);
 
@@ -490,7 +452,7 @@ const UserProfileWithProvider = UserStores.withProvider(UserProfile, {
 - **Performance**: Faster than deep comparison
 - **Use Case**: Object/array comparison in selectors
 
-```typescript
+```tsx
 const user = useStoreSelector(
   userStore,
   state => ({ name: state.name, age: state.age }),
@@ -504,7 +466,7 @@ const user = useStoreSelector(
 - **Caution**: Performance cost for large objects
 - **Use Case**: Complex nested object comparison
 
-```typescript
+```tsx
 const settings = useStoreSelector(
   settingsStore,
   state => state.preferences,
@@ -524,7 +486,7 @@ const settings = useStoreSelector(
 - **Safety**: Throws descriptive error if undefined
 - **Use Case**: Critical values that must exist
 
-```typescript
+```tsx
 function CriticalComponent() {
   const userStore = useUserStore('profile');
   const user = useStoreValue(userStore);
@@ -564,7 +526,6 @@ These hooks are created by factory functions:
 - `useStoreValue` - Subscribe to store value
 - `useStoreValues` - Subscribe to multiple values
 - `useStore` - Get store instance
-- `useStoreValueSafe` - Type-safe store value
 
 #### Performance Optimization
 - `useStoreSelector` - Selective subscription
@@ -578,8 +539,6 @@ These hooks are created by factory functions:
 - `useLocalStore` - Component-local store
 - `usePersistedStore` - Persistent store
 - `useComputedStoreInstance` - Computed store instance
-- `useStores` - List all stores
-- `useRegistryStore` - Get store from registry
 
 #### Action System
 - `useActionDispatch` - Dispatch actions
@@ -589,9 +548,7 @@ These hooks are created by factory functions:
 - `useActionContext` - Access context
 
 #### Utilities & Helpers
-- `useStoreActions` - Memoized store methods
 - `useStoreContext` - Store context access
-- `useStoreRegistry` - Registry access
 - `assertStoreValue` - Value assertion
 - `shallowEqual` - Shallow comparison
 - `deepEqual` - Deep comparison
@@ -609,19 +566,19 @@ These hooks are created by factory functions:
 - **Core Hooks**: `useStoreValue`, `useActionDispatch`, `useActionHandler`, `useStore`
 
 ### Utility Hooks (Learn As Needed)
-- **Performance**: `useStoreSelector`, `useComputedStore`, `useStoreActions`
+- **Performance**: `useStoreSelector`, `useComputedStore`
 - **Convenience**: `useLocalStore`, `usePersistedStore`
-- **Advanced**: `useActionDispatchWithResult`, `useStores`, `useRegistryStore`
+- **Advanced**: `useActionDispatchWithResult`
 
 ### Specialized Hooks (For Specific Cases)
 - **Multi-Store**: `useMultiStoreSelector`, `useMultiComputedStore`, `useStoreValues`
 - **Async**: `useAsyncComputedStore`
 - **Path Selection**: `useStorePathSelector`
-- **Type Safety**: `useStoreValueSafe`, `assertStoreValue`
-- **Low-Level**: `useStoreContext`, `useStoreRegistry`, `useActionContext`
+- **Type Safety**: `assertStoreValue`
+- **Low-Level**: `useStoreContext`, `useActionContext`
 
 ### Helper Functions
 - **Equality**: `shallowEqual`, `deepEqual`, `defaultEqualityFn`
 - **HOCs**: `withProvider`
 
-The framework provides **40+ hooks and utilities** total, but most applications only need the essential hooks. The extensive utility hooks provide powerful optimizations and conveniences when specific needs arise.
+The framework provides **30+ hooks and utilities** total, but most applications only need the essential hooks. The focused utility hooks provide powerful optimizations and conveniences when specific needs arise.
