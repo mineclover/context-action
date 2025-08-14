@@ -389,7 +389,7 @@ export function computeAverageVelocity(movePath: MousePosition[]): number {
 }
 
 /**
- * 활동 상태 계산 (지연 평가)
+ * 활동 상태 계산 (지연 평가) - 개선된 실시간 반응성
  */
 export function computeActivityStatus(
   isMoving: boolean,
@@ -400,16 +400,22 @@ export function computeActivityStatus(
   const now = Date.now();
   const timeSinceLastClick = lastClickTime ? now - lastClickTime : Infinity;
 
-  // 500ms 이내의 매우 최근 클릭만 clicking으로 처리
-  if (recentClickCount > 0 && timeSinceLastClick < 500) {
+  // 우선순위 1: 300ms 이내의 매우 최근 클릭이면 clicking 상태
+  if (recentClickCount > 0 && timeSinceLastClick < 300) {
     return 'clicking';
   }
 
-  // 이동 중이고 속도가 있으면 moving
-  if (isMoving && velocity > 0.1) {
+  // 우선순위 2: 이동 중이고 속도가 충분하면 moving 상태
+  if (isMoving && velocity > 0.05) {
     return 'moving';
   }
 
+  // 우선순위 3: 1초 이내 클릭이 있지만 현재 이동 중이 아니면 여전히 clicking
+  if (recentClickCount > 0 && timeSinceLastClick < 1000) {
+    return 'clicking';
+  }
+
+  // 기본값: idle 상태
   return 'idle';
 }
 
@@ -535,33 +541,32 @@ const MouseEventsActionHandlers: React.FC<{ children: React.ReactNode }> = ({
 
     movementStore.setValue(updatedMovement);
 
-    // Computed store 업데이트 - movement 관련 값들만 선택적으로 업데이트
+    // Computed store 업데이트 - 전체적으로 다시 계산하여 정확성 확보
+    const currentClicks = clicksStore.getValue();
     const currentComputed = computedStore.getValue();
 
-    // movement에만 의존하는 computed 값들만 다시 계산
+    // 모든 computed 값들을 정확히 다시 계산
     const validPath = computeValidPath(updatedMovement.path);
     const averageVelocity = computeAverageVelocity(validPath);
+    const recentClickCount = computeRecentClickCount(currentClicks.history);
+    
+    // activityStatus 실시간 업데이트 - 마지막 클릭 시간 고려
+    const lastClickTime = currentClicks.history[0]?.timestamp || null;
+    const activityStatus = computeActivityStatus(
+      updatedMovement.isMoving,
+      recentClickCount,
+      updatedMovement.velocity,
+      lastClickTime
+    );
 
-    // activityStatus: movement가 활성화되면 moving, 아니면 기존 상태 유지
-    const activityStatus =
-      updatedMovement.isMoving && updatedMovement.velocity > 0.1
-        ? 'moving'
-        : currentComputed.activityStatus === 'clicking'
-          ? 'clicking'
-          : 'idle';
+    // hasActivity와 totalEvents 정확히 계산
+    const hasActivity = computeHasActivity(updatedMovement.moveCount, currentClicks.count);
+    const totalEvents = updatedMovement.moveCount + currentClicks.count;
 
-    // hasActivity: movement가 있으면 true
-    const hasActivity =
-      updatedMovement.moveCount > 0 || currentComputed.recentClickCount > 0;
-
-    // totalEvents: movement count와 기존 click count 합계
-    const totalEvents =
-      updatedMovement.moveCount + currentComputed.recentClickCount;
-
-    // movement 관련 computed 값들만 업데이트
+    // 실시간 computed 값들 업데이트
     computedStore.setValue({
-      ...currentComputed,
       validPath,
+      recentClickCount,
       averageVelocity,
       totalEvents,
       activityStatus,
@@ -613,25 +618,61 @@ const MouseEventsActionHandlers: React.FC<{ children: React.ReactNode }> = ({
       isInsideArea: false,
     });
 
-    // Movement 정리 - 이미 false라면 업데이트하지 않음
+    // Movement 정리
     const currentMovement = movementStore.getValue();
-    if (currentMovement.isMoving) {
-      movementStore.setValue({
-        ...currentMovement,
-        isMoving: false,
-      });
-    }
+    const updatedMovement = {
+      ...currentMovement,
+      isMoving: false,
+      velocity: 0, // 속도도 0으로 리셋
+    };
+    movementStore.setValue(updatedMovement);
+
+    // Computed store 업데이트 - 이동 종료 상태 반영
+    const currentClicks = clicksStore.getValue();
+    const recentClickCount = computeRecentClickCount(currentClicks.history);
+    const lastClickTime = currentClicks.history[0]?.timestamp || null;
+    
+    const activityStatus = computeActivityStatus(
+      false, // isMoving = false
+      recentClickCount,
+      0, // velocity = 0
+      lastClickTime
+    );
+
+    computedStore.setValue({
+      ...computedStore.getValue(),
+      activityStatus,
+    });
   });
 
   useMouseEventsActionHandler('moveEnd', async (payload) => {
     console.log('🎯 moveEnd action:', payload);
 
     const currentMovement = movementStore.getValue();
-    // 이미 isMoving이 false라면 업데이트하지 않음 (불필요한 렌더링 방지)
+    // 이동 종료 처리
     if (currentMovement.isMoving) {
-      movementStore.setValue({
+      const updatedMovement = {
         ...currentMovement,
         isMoving: false,
+        velocity: 0, // 속도도 0으로 리셋
+      };
+      movementStore.setValue(updatedMovement);
+
+      // Computed store 업데이트 - 이동 종료 상태 반영
+      const currentClicks = clicksStore.getValue();
+      const recentClickCount = computeRecentClickCount(currentClicks.history);
+      const lastClickTime = currentClicks.history[0]?.timestamp || null;
+      
+      const activityStatus = computeActivityStatus(
+        false, // isMoving = false
+        recentClickCount,
+        0, // velocity = 0
+        lastClickTime
+      );
+
+      computedStore.setValue({
+        ...computedStore.getValue(),
+        activityStatus,
       });
     }
   });
