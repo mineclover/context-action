@@ -51,9 +51,14 @@ export type {
   ComparisonStrategy
 } from './utils';
 
-// Example stores for reference
+// Pattern factories
 export { 
-  UserStores,
-  ShoppingStores, 
-  DashboardStores
+  createDeclarativeStorePattern,
+  type InitialStores,
+  type StoreConfig,
+  type StoreDefinitions,
+  type InferStoreTypes,
+  type InferInitialStores,
+  type StoreValues,
+  type WithProviderConfig
 } from './patterns';
