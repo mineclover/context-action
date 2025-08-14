@@ -1,5 +1,7 @@
 # @context-action/logger
 
+> **⚠️ DEPRECATED**: This package is no longer maintained and will not receive updates. Use native `console` methods or other logging libraries instead.
+
 Lightweight, configurable logging system for the Context-Action framework with comprehensive trace collection and cross-platform environment support.
 
 ## Features

@@ -1,5 +1,7 @@
 # @context-action/jotai
 
+> **⚠️ DEPRECATED**: 이 패키지는 더 이상 유지보수되지 않으며 업데이트를 받지 않습니다. 상태 관리를 위해 `@context-action/react`를 사용하세요.
+
 Context 내에서 Jotai atom을 공유하기 위한 헬퍼 라이브러리입니다.
 
 ## 목적
