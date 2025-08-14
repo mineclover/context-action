@@ -35,7 +35,7 @@ register('validateUser', (payload, controller) => {
     controller.abort('User ID is required');
     return;
   }
-  controller.next();
+  
 }, { priority: 0, blocking: true });
 ```
 
@@ -47,7 +47,7 @@ register('enrichUserData', (payload, controller) => {
     timestamp: Date.now(),
     sessionId: getCurrentSession()
   }));
-  controller.next();
+  
 }, { priority: 1 });
 ```
 
@@ -57,7 +57,7 @@ register('emergencyHandler', (payload, controller) => {
   if (payload.emergency) {
     controller.jumpToPriority(0); // 최고 우선순위로 이동
   } else {
-    controller.next();
+    
   }
 }, { priority: 5 });
 ```
@@ -74,7 +74,7 @@ register('conditionalJump', (payload, controller) => {
     controller.jumpToPriority(targetPriority);
   } else if (currentCount >= 5) {
     console.log(`⛔ Jump blocked: P${config.priority} count (${currentCount}) >= 5`);
-    controller.next();
+    
   }
 }, { 
   priority: 70,
@@ -101,7 +101,7 @@ jumpChain.forEach(({ from, to, condition }) => {
         return;
       }
     }
-    controller.next();
+    
   }, { 
     priority: from,
     blocking: true,
@@ -152,7 +152,7 @@ register('fetchUserData', fetchFromAPI, { priority: 1 });
 register('searchUsers', async (query, controller) => {
   const results = await searchAPI(query);
   updateSearchResults(results);
-  controller.next();
+  
 }, { 
   priority: 0, 
   debounce: 300 // 300ms 지연
@@ -163,7 +163,7 @@ register('searchUsers', async (query, controller) => {
 ```typescript
 register('updateLocation', (location, controller) => {
   sendLocationUpdate(location);
-  controller.next();
+  
 }, {
   priority: 0,
   throttle: 1000 // 1초에 한 번만 실행
@@ -199,7 +199,7 @@ register('sendWelcomeEmail', sendEmailHandler, {
 ```typescript
 register('auditLogger', (payload, controller) => {
   logAuditEvent(controller.getPayload());
-  controller.next();
+  
 }, { 
   priority: -1, // 낮은 우선순위로 마지막 실행
   middleware: true 
@@ -219,7 +219,7 @@ const userStore = new Store<User>('user', { name: '', email: '' });
 register('updateUser', (userData, controller) => {
   const currentUser = userStore.getValue();
   userStore.setValue({ ...currentUser, ...userData });
-  controller.next();
+  
 });
 
 // React 컴포넌트에서 구독
@@ -326,7 +326,7 @@ orderRegister.register('processOrder', (order, controller) => {
     status: 'processing'
   }));
   
-  controller.next();
+  
 }, { priority: 0, blocking: true });
 ```
 
@@ -347,7 +347,7 @@ chatRegister.register('sendMessage', updateUnreadCount, { priority: 1 });
 searchRegister.register('performSearch', async (query, controller) => {
   const results = await searchAPI(query);
   searchStore.setValue({ results, loading: false });
-  controller.next();
+  
 }, { 
   debounce: 300,
   validation: (query) => query.length >= 2
@@ -376,7 +376,7 @@ performanceRegister.register('priorityTest', (payload, controller) => {
   
   priorityCountsStore.setValue({});
   
-  controller.next();
+  
 }, { 
   priority: 200,
   id: 'initializer',
@@ -433,7 +433,7 @@ testHandlers.forEach(config => {
       controller.jumpToPriority(config.jumpTo);
     } else {
       console.log(`⛔ Jump blocked: P${config.priority} (count: ${currentCount})`);
-      controller.next();
+      
     }
   }, {
     priority: config.priority,

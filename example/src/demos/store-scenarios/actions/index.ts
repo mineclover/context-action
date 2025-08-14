@@ -15,7 +15,7 @@ import type { StoreFullActionMap } from '../types';
  * useEffect(() => {
  *   const unsubscribe = storeActionRegister.register('updateUser', ({ user }, controller) => {
  *     userStore.setValue(user);
- *     controller.next();
+ *     
  *   });
  *   return unsubscribe;
  * }, [userStore]);

@@ -112,7 +112,7 @@ function CoreAdvancedDemo() {
       (_, controller) => {
         setCount((prev) => prev + 1);
         logAction(ACTION_NAMES.INCREMENT, undefined);
-        controller.next();
+        
       },
       { priority: 1 }
     );
@@ -123,7 +123,7 @@ function CoreAdvancedDemo() {
       (factor, controller) => {
         setCount((prev) => prev * factor);
         logAction(ACTION_NAMES.MULTIPLY, factor, { priority: 2 });
-        controller.next();
+        
       },
       { priority: 2 }
     );
@@ -139,7 +139,7 @@ function CoreAdvancedDemo() {
         }
         setCount((prev) => Math.floor(prev / divisor));
         logAction(ACTION_NAMES.DIVIDE, divisor);
-        controller.next();
+        
       },
       { priority: 1 }
     );
@@ -164,7 +164,7 @@ function CoreAdvancedDemo() {
           logSystem('🎉 [체인 완료] 모든 3단계 완료 - Chain action completed');
         }
 
-        controller.next();
+        
       }
     );
 
@@ -194,7 +194,7 @@ function CoreAdvancedDemo() {
             },
           });
 
-          controller.next();
+          
         } else {
           // 실패 시각적 피드백
           addActionResult({
@@ -260,7 +260,7 @@ function CoreAdvancedDemo() {
           },
         });
 
-        controller.next();
+        
       }
     );
 
@@ -321,7 +321,7 @@ function CoreAdvancedDemo() {
         logSystem(
           `✅ 보안 검사 통과: ${operation} 작업 승인 (사용자: ${userId})`
         );
-        controller.next();
+        
       },
       { priority: 100 } // 보안 검사는 최고 우선순위
     );
@@ -348,7 +348,7 @@ function CoreAdvancedDemo() {
         // 실제 보안 작업 수행
         setCount((prev) => prev + 10);
 
-        controller.next();
+        
       },
       { priority: 1 }
     );
@@ -391,7 +391,7 @@ function CoreAdvancedDemo() {
         }
 
         logSystem(`✅ 결제 검사 통과: ${amount} ${currency} 결제 승인`);
-        controller.next();
+        
       },
       { priority: 90 } // 결제 검사는 높은 우선순위
     );
@@ -418,7 +418,7 @@ function CoreAdvancedDemo() {
         // 실제 결제 처리
         setCount((prev) => prev + amount);
 
-        controller.next();
+        
       },
       { priority: 1 }
     );
@@ -463,7 +463,7 @@ function CoreAdvancedDemo() {
         logSystem(
           `✅ 데이터 내보내기 권한 확인: ${format} 내보내기 승인 (사용자: ${userId})`
         );
-        controller.next();
+        
       },
       { priority: 80 } // 데이터 접근 검사는 높은 우선순위
     );
@@ -492,7 +492,7 @@ function CoreAdvancedDemo() {
         // 실제 데이터 내보내기 처리
         setCount((prev) => prev + 5);
 
-        controller.next();
+        
       },
       { priority: 1 }
     );
@@ -543,7 +543,7 @@ function CoreAdvancedDemo() {
         });
 
         setCount((prev) => prev + 10);
-        controller.next();
+        
       }
     );
 
@@ -557,7 +557,7 @@ function CoreAdvancedDemo() {
           { priority: 3 }
         );
         logSystem('🥇 첫 번째 우선순위 핸들러 실행 (priority: 3)');
-        controller.next();
+        
       },
       { priority: 3 } // 가장 높은 숫자로 첫 번째 실행
     );
@@ -571,7 +571,7 @@ function CoreAdvancedDemo() {
           { priority: 2 }
         );
         logSystem('🥈 두 번째 우선순위 핸들러 실행 (priority: 2)');
-        controller.next();
+        
       },
       { priority: 2 }
     );
@@ -585,7 +585,7 @@ function CoreAdvancedDemo() {
           { priority: 1 }
         );
         logSystem('🥉 세 번째 우선순위 핸들러 실행 (priority: 1)');
-        controller.next();
+        
       },
       { priority: 1 } // 가장 낮은 숫자로 마지막 실행
     );
@@ -1279,14 +1279,14 @@ actionRegister.register('priorityTest', handler3, { priority: 1 }); // 낮은 �
 actionRegister.register('delayedAction', async ({ delay, message }, controller) => {
   await new Promise(resolve => setTimeout(resolve, delay));
   console.log(message);
-  controller.next();
+  
 });
 
 // 3. 조건부 로직과 파이프라인 제어
 actionRegister.register('conditionalAction', ({ condition, value }, controller) => {
   if (condition) {
     setState(value);
-    controller.next(); // 다음 핸들러로 진행
+     // 다음 핸들러로 진행
   } else {
     controller.abort('Condition not met'); // 파이프라인 중단
   }
@@ -1306,7 +1306,7 @@ actionRegister.register('chainedAction', ({ step, data }, controller) => {
     }, 1000);
   }
   
-  controller.next();
+  
 });
 
 // 5. 인터셉터 패턴 (액션 가로채기)
@@ -1317,7 +1317,7 @@ actionRegister.register('interceptorTest', ({ data }, controller) => {
     console.log('Action intercepted and logged');
   }
   
-  controller.next();
+  
 });
 
 // 6. 에러 처리와 복구

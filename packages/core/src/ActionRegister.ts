@@ -38,7 +38,7 @@ import { ActionGuard } from './action-guard.js';
  * // 핸들러 등록
  * register.register('updateUser', ({ id, name }, controller) => {
  *   userStore.setValue({ id, name });
- *   controller.next();
+ *   // 핸들러가 자동으로 다음 핸들러로 진행
  * }, { priority: 10 });
  * 
  * // 액션 디스패치
@@ -698,7 +698,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   ): Promise<void> {
     const createController = (_registration: HandlerRegistration<T[K], any>, _index: number): PipelineController<T[K], any> => {
       return {
-        next: () => {},
         abort: (reason?: string) => {
           context.aborted = true;
           context.abortReason = reason;

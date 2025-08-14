@@ -45,7 +45,7 @@ export function ChatDemo() {
             type,
           };
           messagesStore.update((prev) => [...prev, newMessage]);
-          controller.next();
+          
         }
       ),
 
@@ -55,13 +55,13 @@ export function ChatDemo() {
           messagesStore.update((prev) =>
             prev.filter((msg) => msg.id !== messageId)
           );
-          controller.next();
+          
         }
       ),
 
       storeActionRegister.register('clearChat', (_, controller) => {
         messagesStore.setValue([]);
-        controller.next();
+        
       }),
     ];
 

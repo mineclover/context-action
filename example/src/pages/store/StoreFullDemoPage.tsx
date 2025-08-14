@@ -360,7 +360,7 @@ const user = useStoreValue(userStore);
 useEffect(() => {
   const unsubscribe = storeActionRegister.register('updateUser', ({ user }, controller) => {
     userStore.setValue(user);
-    controller.next();
+    
   });
   return unsubscribe;
 }, [userStore]);

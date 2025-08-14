@@ -40,15 +40,11 @@ export interface ActionPayloadMap {
  *     timestamp: Date.now()
  *   }));
  *   
- *   // 다음 핸들러로 진행
- *   controller.next();
+ *   // 핸들러가 자동으로 다음 핸들러로 진행
  * });
  * ```
  */
 export interface PipelineController<T = any, R = void> {
-  /** Continue to the next handler in the pipeline */
-  next(): void;
-  
   /** Abort the pipeline execution with an optional reason */
   abort(reason?: string): void;
   
@@ -93,8 +89,7 @@ export interface PipelineController<T = any, R = void> {
  *   // 스토어 상태 업데이트
  *   userStore.setValue(updatedUser);
  *   
- *   // 파이프라인 계속 진행
- *   controller.next();
+ *   // 핸들러가 자동으로 다음 핸들러로 진행
  * };
  * ```
  */

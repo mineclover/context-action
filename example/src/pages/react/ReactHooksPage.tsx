@@ -99,7 +99,7 @@ function MemoizationDemo() {
       ({ numbers }, controller) => {
         const result = heavyComputation(numbers);
         calculationStore.setValue(result);
-        controller.next();
+        
       }
     );
 
@@ -183,7 +183,7 @@ function ConditionalHandlerDemo() {
           setActionCount((prev) => prev + 1);
           console.log('✅ Conditional handler executed:', data);
         }
-        controller.next();
+        
       }
     );
 
@@ -264,7 +264,7 @@ function DynamicHandlerDemo() {
             }));
             console.log(`✅ Handler ${handlerType} processed:`, payload);
           }
-          controller.next();
+          
         }
       );
 
@@ -476,7 +476,7 @@ function ReactHooksSetup() {
         'memoryIntensive',
         ({ size }, controller) => {
           console.log(`🧠 Processing memory intensive task: ${size} objects`);
-          controller.next();
+          
         }
       )
     );
@@ -485,7 +485,7 @@ function ReactHooksSetup() {
     unsubscribers.push(
       hooksActionRegister.register('rerenderTrigger', (_, controller) => {
         console.log('🔄 Re-render triggered');
-        controller.next();
+        
       })
     );
 

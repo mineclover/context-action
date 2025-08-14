@@ -133,7 +133,7 @@ export function useActionLogger(
           console.log('🍞 Toast not shown due to conditions not met');
         }
 
-        controller.next();
+        
       }
     );
 
@@ -173,7 +173,7 @@ export function useActionLogger(
           }
         }
 
-        controller.next();
+        
       }
     );
 
@@ -207,7 +207,7 @@ export function useActionLogger(
           }
         }
 
-        controller.next();
+        
       }
     );
 

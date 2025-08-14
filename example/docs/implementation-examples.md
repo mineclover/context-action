@@ -33,7 +33,7 @@ export function CoreBasicsPage() {
       (_, controller) => {
         setCount((prev) => prev + 1);
         addLog('Increment action executed');
-        controller.next();
+        
       }
     );
 
@@ -42,7 +42,7 @@ export function CoreBasicsPage() {
       (_, controller) => {
         setCount((prev) => prev - 1);
         addLog('Decrement action executed');
-        controller.next();
+        
       }
     );
 
@@ -51,7 +51,7 @@ export function CoreBasicsPage() {
       (payload, controller) => {
         setCount(payload);
         addLog(`Count set to: ${payload}`);
-        controller.next();
+        
       }
     );
 

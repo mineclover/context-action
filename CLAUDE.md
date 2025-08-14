@@ -322,9 +322,10 @@ function EventComponent() {
 - `packages/react/src/store/` - Store system implementation
 - `packages/react/src/actions/ActionContext.tsx` - React action context integration
 - `packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx` - Declarative Store Pattern implementation
-- `packages/react/docs/PATTERN_GUIDE.md` - Complete pattern guide with three main approaches
-- `docs/en/guide/full.md` - Complete MVVM architecture guide with Context Store Pattern
-- `docs/CONVENTIONS.md` - Comprehensive coding conventions and best practices
+- `docs/en/concept/pattern-guide.md` - Complete pattern guide with two main approaches
+- `docs/en/concept/architecture-guide.md` - Complete MVVM architecture guide with Context Store Pattern
+- `docs/en/concept/conventions.md` - Comprehensive coding conventions and best practices
+- `docs/en/concept/hooks-reference.md` - Complete hooks reference documentation
 - `example/src/` - Comprehensive example application
 - `docs/` - VitePress documentation source
 - `scripts/` - Build and utility scripts

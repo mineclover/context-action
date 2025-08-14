@@ -127,7 +127,7 @@ export function useScrollLogic() {
         throttledScrollHandler(scrollTop, timestamp);
         handleScrollEnd(scrollTop);
 
-        controller.next();
+        
       }
     );
 
@@ -143,7 +143,7 @@ export function useScrollLogic() {
           lastScrollTime: timestamp,
         }));
 
-        controller.next();
+        
       }
     );
 
@@ -168,7 +168,7 @@ export function useScrollLogic() {
           lastScrollTime: timestamp,
         }));
 
-        controller.next();
+        
       }
     );
 
@@ -185,7 +185,7 @@ export function useScrollLogic() {
           scrollVelocity: 0,
         }));
 
-        controller.next();
+        
       }
     );
 
@@ -205,7 +205,7 @@ export function useScrollLogic() {
           scrollVelocity: 0,
         });
 
-        controller.next();
+        
       }
     );
 

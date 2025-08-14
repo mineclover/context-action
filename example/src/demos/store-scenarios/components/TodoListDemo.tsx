@@ -45,7 +45,7 @@ export function TodoListDemo() {
             dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7일 후
           };
           todosStore.update((prev) => [...prev, newTodo]);
-          controller.next();
+          
         }
       ),
 
@@ -55,12 +55,12 @@ export function TodoListDemo() {
             todo.id === todoId ? { ...todo, completed: !todo.completed } : todo
           )
         );
-        controller.next();
+        
       }),
 
       storeActionRegister.register('deleteTodo', ({ todoId }, controller) => {
         todosStore.update((prev) => prev.filter((todo) => todo.id !== todoId));
-        controller.next();
+        
       }),
 
       storeActionRegister.register(
@@ -71,7 +71,7 @@ export function TodoListDemo() {
               todo.id === todoId ? { ...todo, priority } : todo
             )
           );
-          controller.next();
+          
         }
       ),
     ];

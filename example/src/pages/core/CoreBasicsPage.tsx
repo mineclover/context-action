@@ -37,7 +37,7 @@ function CoreBasicsDemo() {
       (_, controller) => {
         setCount((prev) => prev + 1);
         logAction('increment', undefined);
-        controller.next();
+        
       }
     );
 
@@ -46,7 +46,7 @@ function CoreBasicsDemo() {
       (_, controller) => {
         setCount((prev) => prev - 1);
         logAction('decrement', undefined);
-        controller.next();
+        
       }
     );
 
@@ -55,7 +55,7 @@ function CoreBasicsDemo() {
       (payload, controller) => {
         setCount(payload);
         logAction('setCount', payload);
-        controller.next();
+        
       }
     );
 
@@ -64,7 +64,7 @@ function CoreBasicsDemo() {
       (_, controller) => {
         setCount(0);
         logAction('reset', undefined);
-        controller.next();
+        
       }
     );
 
@@ -72,7 +72,7 @@ function CoreBasicsDemo() {
       'log',
       (payload, controller) => {
         logAction('log', payload);
-        controller.next();
+        
       }
     );
 
@@ -228,7 +228,7 @@ function CoreBasicsDemo() {
             <strong className="text-gray-900 font-semibold">
               Handle Results:
             </strong>{' '}
-            Use controller.next() or controller.abort()
+            Handlers automatically continue or use controller.abort()
           </li>
         </ol>
       </DemoCard>
@@ -298,7 +298,7 @@ const actionRegister = new ActionRegister<AppActions>();
 const unsubscribe = actionRegister.register('increment', (_, controller) => {
   setCount(prev => prev + 1);
   console.log('Counter incremented');
-  controller.next(); // 성공적으로 완료
+   // 성공적으로 완료
 });
 
 // 4. 액션 디스패치
