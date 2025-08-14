@@ -51,10 +51,10 @@ npm install @context-action/react
 **Features:**
 - 🏪 **Store Only Pattern**: Pure state management with reactive subscriptions
 - 🎯 **Action Only Pattern**: Pure action dispatching with pipeline management
-- 🔗 **Unified Interface**: Optional Action Context Pattern combining both patterns
-- 🪝 **Domain-Specific Hooks**: Declarative hook exports for type-safe, intuitive APIs
-- 🏗️ **HOC Pattern**: `withProvider()` and `withCustomProvider()` for automatic component wrapping
-- 🔄 **Cross-Context Coordination**: Controlled communication between domain contexts
+- 🔗 **Pattern Composition**: Combine Store Only + Action Only patterns for complex applications
+- 🪝 **Type-Safe Hooks**: Domain-specific hook exports with excellent type inference
+- 🏗️ **HOC Pattern**: `withProvider()` for automatic component wrapping
+- 🔄 **Provider Isolation**: Independent context management per pattern
 
 ### [@context-action/logger](./packages/logger)
 
@@ -217,42 +217,54 @@ function EventComponent() {
 }
 ```
 
-### 🔗 Action Context Pattern (Unified Interface)
+### 🔗 Pattern Composition
 
-Optional unified interface combining Store Only Pattern + Action Only Pattern:
+For complex applications needing both actions and state management, compose the patterns:
 
 ```typescript
-import { createActionContextPattern } from '@context-action/react';
+import { createActionContext, createDeclarativeStorePattern } from '@context-action/react';
 import { ActionPayloadMap } from '@context-action/core';
 
-// Note: Consider using Store Only + Action Only patterns separately
-// This unified interface may be removed in future versions
-
+// Define separate contexts
 interface UserActions extends ActionPayloadMap {
   updateUser: { id: string; name: string };
   deleteUser: { id: string };
   resetUser: void;
 }
 
-const UserContext = createActionContextPattern<UserActions>('User');
+const { 
+  Provider: UserActionProvider, 
+  useActionDispatch: useUserAction,
+  useActionHandler: useUserActionHandler
+} = createActionContext<UserActions>('UserActions');
 
-const useUserStore = UserContext.useStore;
-const useUserAction = UserContext.useAction;
-const useUserActionHandler = UserContext.useActionHandler;
+const UserStores = createDeclarativeStorePattern('UserStores', {
+  profile: { id: '', name: '', email: '' },
+  preferences: { theme: 'light' as const }
+});
 
-const withUserContext = UserContext.withProvider('user-module');
+// Compose providers and use both patterns
+function App() {
+  return (
+    <UserActionProvider>
+      <UserStores.Provider>
+        <UserProfile />
+      </UserStores.Provider>
+    </UserActionProvider>
+  );
+}
 
-const UserProfile = withUserContext(() => {
-  const userStore = useUserStore('current-user', { name: '', email: '' });
-  const user = useStoreValue(userStore);
+function UserProfile() {
+  const profileStore = UserStores.useStore('profile');
+  const profile = useStoreValue(profileStore);
   const dispatch = useUserAction();
   
   useUserActionHandler('updateUser', useCallback(async (payload) => {
-    userStore.setValue({ ...user, ...payload });
-  }, [user, userStore]));
+    profileStore.setValue({ ...profile, ...payload });
+  }, [profile, profileStore]));
   
-  return <div>Welcome, {user.name}!</div>;
-});
+  return <div>Welcome, {profile.name}!</div>;
+}
 ```
 
 ## 🏗️ Architecture
