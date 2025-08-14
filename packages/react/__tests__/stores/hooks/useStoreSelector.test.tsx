@@ -5,7 +5,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { createStore } from '../../../src/stores/core/Store';
 import { useStoreSelector } from '../../../src/stores/hooks/useStoreSelector';
-import { shallowEqual } from '../../../src/stores/utils/comparison';
+import { shallowEquals } from '../../../src/stores/utils/comparison';
 
 describe('useStoreSelector', () => {
   it('should return selected value from store', () => {
@@ -70,7 +70,7 @@ describe('useStoreSelector', () => {
       return useStoreSelector(
         store, 
         (state: any) => ({ name: state.user.name }),
-        shallowEqual
+        shallowEquals
       );
     });
     

@@ -144,8 +144,8 @@ describe('createActionContext', () => {
     });
 
     expect(result.current.register).toBeDefined();
-    expect(typeof result.current.register.register).toBe('function');
-    expect(typeof result.current.register.dispatch).toBe('function');
+    expect(typeof result.current.register?.register).toBe('function');
+    expect(typeof result.current.register?.dispatch).toBe('function');
   });
 
   it('should provide access to action context', () => {
