@@ -99,7 +99,7 @@ export class PrioritySchemaManager {
   private validate: any = null;
 
   constructor(llmContentDir: string) {
-    this.schemaPath = path.join(llmContentDir, 'priority-schema.json');
+    this.schemaPath = path.join(llmContentDir, 'schemas', 'priority-schema.json');
   }
 
   /**

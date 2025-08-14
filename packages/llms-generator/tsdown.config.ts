@@ -11,7 +11,7 @@ export default {
   dts: true,
   shims: true,
   banner: {
-    js: '#!/usr/bin/env node',
+    'cli/index': '#!/usr/bin/env node',
   },
   esbuildOptions: {
     conditions: ['node']

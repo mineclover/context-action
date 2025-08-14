@@ -2,6 +2,7 @@
 
 Generated: 2025-08-14
 Type: Origin (Full Documents)
+Language: KO
 
 This document contains the complete original content of all Context-Action framework documentation files, organized by priority.
 
@@ -858,7 +859,7 @@ Happy coding! 🚀
 ---
 
 
-# Guide Action Handlers
+# 액션 핸들러
 
 **Source**: `guide/action-handlers.md`  
 **Priority**: 80 (essential)  

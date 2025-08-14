@@ -1,0 +1,169 @@
+{
+  "name": "LLMS Generator Project",
+  "version": "1.0.0",
+  "extraction": {
+    "characterLimits": [
+      {
+        "limit": 50,
+        "description": "Micro-summary",
+        "focus": "Single sentence essence",
+        "enabled": true
+      },
+      {
+        "limit": 100,
+        "description": "Ultra-short",
+        "focus": "Core concept only",
+        "enabled": true
+      },
+      {
+        "limit": 300,
+        "description": "Short",
+        "focus": "Main points",
+        "enabled": true
+      },
+      {
+        "limit": 500,
+        "description": "Medium-short",
+        "focus": "Key details",
+        "enabled": true
+      },
+      {
+        "limit": 1000,
+        "description": "Detailed",
+        "focus": "Complete overview",
+        "enabled": true
+      },
+      {
+        "limit": 2000,
+        "description": "Comprehensive",
+        "focus": "Full content",
+        "enabled": true
+      },
+      {
+        "limit": 4000,
+        "description": "Extensive",
+        "focus": "Complete with all examples",
+        "enabled": true
+      }
+    ],
+    "defaultStrategy": "concept-first",
+    "languages": [
+      "en",
+      "ko"
+    ]
+  },
+  "composition": {
+    "defaultCharacterLimit": 5000,
+    "defaultPriorityThreshold": 0,
+    "includeTableOfContents": true,
+    "targetUtilization": 0.95
+  },
+  "paths": {
+    "docsDir": "./docs",
+    "dataDir": "./packages/llms-generator/data",
+    "outputDir": "./docs/llms"
+  },
+  "workflows": {
+    "presets": {
+      "quick-100": {
+        "name": "Quick 100-character summaries",
+        "description": "Generate and check 100-character summaries for all documents",
+        "commands": [
+          {
+            "command": "discover",
+            "args": {
+              "language": "ko"
+            },
+            "description": "Discover available documents"
+          },
+          {
+            "command": "priority-generate",
+            "args": {
+              "language": "ko",
+              "overwrite": true
+            },
+            "description": "Generate priority files"
+          },
+          {
+            "command": "extract",
+            "args": {
+              "language": "ko",
+              "chars": [
+                100
+              ]
+            },
+            "description": "Extract 100-char summaries"
+          },
+          {
+            "command": "work-list",
+            "args": {
+              "language": "ko",
+              "chars": 100
+            },
+            "description": "Show work status"
+          }
+        ]
+      },
+      "full-extraction": {
+        "name": "Full content extraction",
+        "description": "Extract all configured character limits",
+        "commands": [
+          {
+            "command": "priority-generate",
+            "args": {
+              "language": "ko",
+              "overwrite": true
+            }
+          },
+          {
+            "command": "extract-all",
+            "args": {
+              "languages": [
+                "ko"
+              ],
+              "overwrite": true
+            }
+          },
+          {
+            "command": "compose-stats",
+            "args": {
+              "language": "ko"
+            }
+          }
+        ]
+      },
+      "quality-check": {
+        "name": "Quality assurance workflow",
+        "description": "Check and validate all generated content",
+        "commands": [
+          {
+            "command": "work-status",
+            "args": {
+              "language": "ko"
+            }
+          },
+          {
+            "command": "compose",
+            "args": {
+              "language": "ko",
+              "chars": 5000,
+              "priority": 70
+            }
+          },
+          {
+            "command": "compose-batch",
+            "args": {
+              "language": "ko",
+              "chars": [
+                1000,
+                3000,
+                5000,
+                10000
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

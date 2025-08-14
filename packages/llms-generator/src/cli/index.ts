@@ -7,6 +7,8 @@
 import path from 'path';
 import { LLMSGenerator, PriorityGenerator, SchemaGenerator, MarkdownGenerator, ContentExtractor, AdaptiveComposer, DEFAULT_CONFIG } from '../index.js';
 import { WorkStatusManager } from '../core/WorkStatusManager.js';
+import { ConfigManager } from '../core/ConfigManager.js';
+import type { ResolvedConfig } from '../types/user-config.js';
 
 async function main() {
   const args = process.argv.slice(2);
@@ -19,7 +21,9 @@ async function main() {
   const command = args[0];
   
   try {
-    const config = createConfig();
+    // Load user configuration
+    const userConfig = await ConfigManager.findAndLoadConfig();
+    const config = createConfigFromUserConfig(userConfig);
     const generator = new LLMSGenerator(config);
     const priorityGenerator = new PriorityGenerator(config);
     const schemaGenerator = new SchemaGenerator(config);
@@ -28,7 +32,102 @@ async function main() {
     const adaptiveComposer = new AdaptiveComposer(config);
     const workStatusManager = new WorkStatusManager(config);
     
+    // Get enabled character limits from config
+    const enabledCharLimits = ConfigManager.getEnabledCharacterLimits(userConfig);
+    
     switch (command) {
+      // Config management commands
+      case 'config-init':
+        const preset = (args[1] as 'minimal' | 'standard' | 'extended' | 'blog' | 'documentation') || 'standard';
+        const configPath = args.find(arg => arg.startsWith('--path='))?.split('=')[1] || 'llms-generator.config.json';
+        
+        console.log(`🔧 Initializing configuration with preset: ${preset}`);
+        console.log(`📂 Config path: ${configPath}`);
+        
+        const sampleConfig = ConfigManager.generateSampleConfig(preset);
+        await ConfigManager.saveConfig(sampleConfig, configPath);
+        
+        console.log('✅ Configuration file created successfully!');
+        console.log('\n📝 Next steps:');
+        console.log('  1. Edit the configuration file to customize character limits');
+        console.log('  2. Run config-validate to check your configuration');
+        console.log('  3. Run config-show to see the resolved configuration');
+        break;
+        
+      case 'config-show':
+        console.log('🔧 Current Configuration\n');
+        
+        console.log(`Project: ${userConfig.name || 'Unknown'}`);
+        console.log(`Version: ${userConfig.version || 'Unknown'}`);
+        console.log(`Config file: ${userConfig.resolvedPaths.configFile || 'Default'}`);
+        console.log(`Project root: ${userConfig.resolvedPaths.projectRoot}\n`);
+        
+        console.log('📁 Paths:');
+        console.log(`  Docs directory: ${userConfig.resolvedPaths.docsDir}`);
+        console.log(`  Data directory: ${userConfig.resolvedPaths.dataDir}`);
+        console.log(`  Output directory: ${userConfig.resolvedPaths.outputDir}\n`);
+        
+        console.log('📏 Character Limits:');
+        userConfig.extraction.characterLimits.forEach(limit => {
+          const status = limit.enabled === false ? '❌ disabled' : '✅ enabled';
+          console.log(`  ${limit.limit} chars: ${status} - ${limit.description || 'No description'}`);
+          if (limit.focus) {
+            console.log(`    Focus: ${limit.focus}`);
+          }
+        });
+        
+        console.log(`\n🌐 Languages: ${userConfig.extraction.languages.join(', ')}`);
+        console.log(`📊 Default strategy: ${userConfig.extraction.defaultStrategy || 'concept-first'}`);
+        
+        console.log('\n🎯 Composition:');
+        console.log(`  Default character limit: ${userConfig.composition.defaultCharacterLimit}`);
+        console.log(`  Default priority threshold: ${userConfig.composition.defaultPriorityThreshold}`);
+        console.log(`  Include TOC: ${userConfig.composition.includeTableOfContents ? '✅' : '❌'}`);
+        console.log(`  Target utilization: ${(userConfig.composition.targetUtilization * 100).toFixed(1)}%`);
+        break;
+        
+      case 'config-validate':
+        console.log('🔍 Validating Configuration\n');
+        
+        const validation = ConfigManager.validateConfig(userConfig);
+        
+        if (validation.valid) {
+          console.log('✅ Configuration is valid!');
+          console.log(`\n📊 Summary:`);
+          console.log(`  Enabled character limits: ${enabledCharLimits.length}`);
+          console.log(`  Character limits: ${enabledCharLimits.join(', ')}`);
+          console.log(`  Languages: ${userConfig.extraction.languages.length} (${userConfig.extraction.languages.join(', ')})`);
+        } else {
+          console.log('❌ Configuration has errors:\n');
+          validation.errors.forEach(error => {
+            console.log(`  • ${error}`);
+          });
+          process.exit(1);
+        }
+        break;
+        
+      case 'config-limits':
+        const showDisabled = args.includes('--all');
+        
+        console.log(`📏 Character Limits${showDisabled ? ' (all)' : ' (enabled only)'}\n`);
+        
+        const limitsToShow = showDisabled ? 
+          userConfig.extraction.characterLimits : 
+          userConfig.extraction.characterLimits.filter(l => l.enabled !== false);
+          
+        limitsToShow.sort((a, b) => a.limit - b.limit).forEach(limit => {
+          const status = limit.enabled === false ? '❌' : '✅';
+          console.log(`${status} ${limit.limit} chars - ${limit.description || 'No description'}`);
+          if (limit.focus) {
+            console.log(`   Focus: ${limit.focus}`);
+          }
+        });
+        
+        if (limitsToShow.length === 0) {
+          console.log('No character limits found.');
+        }
+        break;
+
       case 'minimum':
         console.log('🔗 Generating minimum content...');
         await generator.generate({
@@ -66,8 +165,8 @@ async function main() {
         break;
         
       case 'batch':
-        const batchLanguages = args.find(arg => arg.startsWith('--lang='))?.split('=')[1]?.split(',') || ['en'];
-        const batchLimits = args.find(arg => arg.startsWith('--chars='))?.split('=')[1]?.split(',').map(Number) || [300, 1000, 2000];
+        const batchLanguages = args.find(arg => arg.startsWith('--lang='))?.split('=')[1]?.split(',') || userConfig.extraction.languages || ['en'];
+        const batchLimits = args.find(arg => arg.startsWith('--chars='))?.split('=')[1]?.split(',').map(Number) || enabledCharLimits;
         
         console.log(`🚀 Batch generating for languages: ${batchLanguages.join(', ')}`);
         console.log(`📏 Character limits: ${batchLimits.join(', ')}`);
@@ -221,10 +320,10 @@ async function main() {
         break;
         
       case 'markdown-generate':
-        const mdLanguage = args[1] || 'en';
+        const mdLanguage = args[1] || userConfig.extraction.languages[0] || 'en';
         const mdDryRun = args.includes('--dry-run');
         const mdOverwrite = args.includes('--overwrite');
-        const mdCharLimits = args.find(arg => arg.startsWith('--chars='))?.split('=')[1]?.split(',').map(Number) || [100, 300, 1000, 2000];
+        const mdCharLimits = args.find(arg => arg.startsWith('--chars='))?.split('=')[1]?.split(',').map(Number) || enabledCharLimits;
         
         console.log(`📝 ${mdDryRun ? '[DRY RUN] ' : ''}Generating markdown files for language: ${mdLanguage}`);
         console.log(`📏 Character limits: ${mdCharLimits.join(', ')}`);
@@ -251,7 +350,7 @@ async function main() {
         break;
         
       case 'markdown-all':
-        const allLanguages = args.find(arg => arg.startsWith('--lang='))?.split('=')[1]?.split(',') || ['en', 'ko'];
+        const allLanguages = args.find(arg => arg.startsWith('--lang='))?.split('=')[1]?.split(',') || userConfig.extraction.languages;
         const allDryRun = args.includes('--dry-run');
         const allOverwrite = args.includes('--overwrite');
         
@@ -284,10 +383,10 @@ async function main() {
         break;
         
       case 'extract':
-        const extractLanguage = args[1] || 'en';
+        const extractLanguage = args[1] || userConfig.extraction.languages[0] || 'en';
         const extractDryRun = args.includes('--dry-run');
         const extractOverwrite = args.includes('--overwrite');
-        const extractCharLimits = args.find(arg => arg.startsWith('--chars='))?.split('=')[1]?.split(',').map(Number) || [100, 300, 1000, 2000];
+        const extractCharLimits = args.find(arg => arg.startsWith('--chars='))?.split('=')[1]?.split(',').map(Number) || enabledCharLimits;
         
         console.log(`📝 ${extractDryRun ? '[DRY RUN] ' : ''}Extracting content summaries for language: ${extractLanguage}`);
         console.log(`📏 Character limits: ${extractCharLimits.join(', ')}`);
@@ -314,7 +413,7 @@ async function main() {
         break;
         
       case 'extract-all':
-        const extractAllLanguages = args.find(arg => arg.startsWith('--lang='))?.split('=')[1]?.split(',') || ['en', 'ko'];
+        const extractAllLanguages = args.find(arg => arg.startsWith('--lang='))?.split('=')[1]?.split(',') || userConfig.extraction.languages;
         const extractAllDryRun = args.includes('--dry-run');
         const extractAllOverwrite = args.includes('--overwrite');
         
@@ -347,11 +446,11 @@ async function main() {
         break;
 
       case 'compose':
-        const composeLanguage = args[1] || 'ko';
-        const composeCharLimit = parseInt(args[2]) || 5000;
+        const composeLanguage = args[1] || userConfig.extraction.languages[0] || 'ko';
+        const composeCharLimit = parseInt(args[2]) || userConfig.composition.defaultCharacterLimit;
         const composeDryRun = args.includes('--dry-run');
         const composeNoToc = args.includes('--no-toc');
-        const composePriorityThreshold = parseInt(args.find(arg => arg.startsWith('--priority='))?.split('=')[1] || '0');
+        const composePriorityThreshold = parseInt(args.find(arg => arg.startsWith('--priority='))?.split('=')[1] || userConfig.composition.defaultPriorityThreshold.toString());
         
         console.log(`🎯 ${composeDryRun ? '[DRY RUN] ' : ''}Composing adaptive content for language: ${composeLanguage}`);
         console.log(`📏 Character limit: ${composeCharLimit}`);
@@ -362,7 +461,7 @@ async function main() {
           const composeResult = await adaptiveComposer.composeAdaptiveContent({
             language: composeLanguage,
             characterLimit: composeCharLimit,
-            includeTableOfContents: !composeNoToc,
+            includeTableOfContents: composeNoToc ? false : userConfig.composition.includeTableOfContents,
             priorityThreshold: composePriorityThreshold
           });
           
@@ -389,9 +488,9 @@ async function main() {
         break;
 
       case 'compose-batch':
-        const batchComposeLanguage = args[1] || 'ko';
+        const batchComposeLanguage = args[1] || userConfig.extraction.languages[0] || 'ko';
         const batchComposeDryRun = args.includes('--dry-run');
-        const batchComposeCharLimits = args.find(arg => arg.startsWith('--chars='))?.split('=')[1]?.split(',').map(Number) || [1000, 3000, 5000, 10000];
+        const batchComposeCharLimits = args.find(arg => arg.startsWith('--chars='))?.split('=')[1]?.split(',').map(Number) || enabledCharLimits.filter(limit => limit >= 1000);
         
         console.log(`🎯 ${batchComposeDryRun ? '[DRY RUN] ' : ''}Batch composing adaptive content for language: ${batchComposeLanguage}`);
         console.log(`📏 Character limits: ${batchComposeCharLimits.join(', ')}`);
@@ -412,7 +511,7 @@ async function main() {
         break;
 
       case 'compose-stats':
-        const statsComposeLanguage = args[1] || 'ko';
+        const statsComposeLanguage = args[1] || userConfig.extraction.languages[0] || 'ko';
         console.log(`📊 Composition Statistics for language: ${statsComposeLanguage}\\n`);
         
         const composeStats = await adaptiveComposer.getCompositionStats(statsComposeLanguage);
@@ -595,11 +694,18 @@ function showHelp() {
   console.log('🚀 LLMS Generator CLI\n');
   console.log('USAGE:');
   console.log('  npx @context-action/llms-generator <command> [options]\n');
+  console.log('CONFIGURATION MANAGEMENT:');
+  console.log('  config-init [preset] [--path=config.json]');
+  console.log('                       Initialize configuration with preset (minimal|standard|extended|blog|documentation)');
+  console.log('  config-show          Show current resolved configuration');
+  console.log('  config-validate      Validate current configuration');
+  console.log('  config-limits [--all] Show configured character limits');
+  console.log('');
   console.log('CONTENT GENERATION:');
   console.log('  minimum              Generate minimum format content');
   console.log('  origin               Generate origin format content');
   console.log('  chars <limit> [lang] Generate character-limited content');
-  console.log('  batch [--lang=en,ko] [--chars=300,1000,2000] Generate all formats');
+  console.log('  batch [--lang=en,ko] [--chars=300,1000,2000] Generate all formats (uses config defaults)');
   console.log('');
   console.log('PRIORITY MANAGEMENT:');
   console.log('  priority-generate [lang] [--dry-run] [--overwrite]');
@@ -644,37 +750,46 @@ function showHelp() {
   console.log('  help                 Show this help message');
   console.log('');
   console.log('EXAMPLES:');
+  console.log('  # Configuration management');
+  console.log('  npx @context-action/llms-generator config-init standard');
+  console.log('  npx @context-action/llms-generator config-show');
+  console.log('  npx @context-action/llms-generator config-limits');
+  console.log('');
+  console.log('  # Content generation (uses config defaults)');
   console.log('  npx @context-action/llms-generator minimum');
   console.log('  npx @context-action/llms-generator chars 5000 en');
-  console.log('  npx @context-action/llms-generator batch --lang=en,ko --chars=300,1000');
+  console.log('  npx @context-action/llms-generator batch  # Uses config languages and character limits');
+  console.log('  npx @context-action/llms-generator batch --lang=en,ko --chars=300,1000  # Override defaults');
+  console.log('');
+  console.log('  # Priority and discovery');
   console.log('  npx @context-action/llms-generator priority-generate en --dry-run');
   console.log('  npx @context-action/llms-generator priority-stats ko');
   console.log('  npx @context-action/llms-generator discover en');
-  console.log('  npx @context-action/llms-generator schema-generate ./generated --overwrite');
-  console.log('  npx @context-action/llms-generator extract ko --chars=100,300,1000 --dry-run');
-  console.log('  npx @context-action/llms-generator extract-all --lang=en,ko --overwrite');
-  console.log('  npx @context-action/llms-generator compose ko 5000 --priority=70');
-  console.log('  npx @context-action/llms-generator compose-batch en --chars=1000,5000,10000');
-  console.log('  npx @context-action/llms-generator compose-stats ko');
+  console.log('');
+  console.log('  # Content extraction (uses config defaults)');
+  console.log('  npx @context-action/llms-generator extract ko  # Uses config character limits');
+  console.log('  npx @context-action/llms-generator extract-all  # Uses config languages');
+  console.log('');
+  console.log('  # Composition (uses config defaults)');
+  console.log('  npx @context-action/llms-generator compose ko  # Uses config default character limit');
+  console.log('  npx @context-action/llms-generator compose-batch en  # Uses config limits ≥1000');
+  console.log('');
+  console.log('  # Work management');
   console.log('  npx @context-action/llms-generator work-status ko --chars=100 --need-edit');
   console.log('  npx @context-action/llms-generator work-context ko guide-action-handlers --chars=100');
   console.log('  npx @context-action/llms-generator work-list ko --chars=100 --missing');
-  console.log('  npx @context-action/llms-generator markdown-generate en --chars=100,300,1000 --dry-run');
-  console.log('  npx @context-action/llms-generator markdown-all --lang=en,ko --overwrite');
 }
 
-function createConfig() {
+function createConfigFromUserConfig(userConfig: ResolvedConfig) {
+  // Convert user config to internal config format
   const config = { ...DEFAULT_CONFIG };
   
-  // Try to find project root
-  const cwd = process.cwd();
-  if (cwd.includes('context-action')) {
-    const projectRoot = cwd.substring(0, cwd.indexOf('context-action') + 'context-action'.length);
-    config.paths.docsDir = path.join(projectRoot, 'docs');
-    config.paths.llmContentDir = path.join(projectRoot, 'packages/llms-generator/data');
-    config.paths.outputDir = path.join(projectRoot, 'docs/llms');
-  }
-
+  // Map resolved paths from user config
+  config.paths.docsDir = userConfig.resolvedPaths.docsDir;
+  config.paths.llmContentDir = userConfig.resolvedPaths.dataDir;
+  config.paths.outputDir = userConfig.resolvedPaths.outputDir;
+  
+  // Preserve other existing configuration as needed
   return config;
 }
 

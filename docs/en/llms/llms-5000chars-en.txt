@@ -1,3 +1,461 @@
-# 5000-Character Context-Action Guide
+# Context-Action Framework - 5000 Character Summary
 
-*Character-limited content generation not yet implemented*
+Generated: 2025-08-14
+Type: Adaptive Character-Limited
+Language: EN
+Target Characters: 5000
+
+This document provides an intelligently composed summary of the Context-Action framework documentation, optimized for 5000 characters using priority-based adaptive composition.
+
+
+## Critical (4/4 documents)
+
+### Core Concepts
+
+**Priority**: 100/100 (critical)  
+**Category**: guide  
+**Subcategory**: fundamentals  
+**Source**: `guide/concepts.md`
+
+# Core Concepts
+
+Understanding the fundamental concepts of the Context-Action framework is essential for effective implementation. This guide covers the key building blocks and their relationships.
+
+**Key concepts**: Context-Action framework, Document-centric MVVM, Action Pipeline
+
+### Guide Overview
+
+**Priority**: 100/100 (critical)  
+**Category**: guide  
+**Subcategory**: TODO  
+**Source**: `guide/overview.md`
+
+# Context Action Framework Overview
+
+The Context-Action framework implements a clean separation of concerns through an MVVM-inspired pattern combined with **Context Store Pattern** for complete domain isolation.
+
+**Key concepts**: TODO: Add primary keywords
+
+### Guide Getting Started
+
+**Priority**: 95/100 (critical)  
+**Category**: guide  
+**Subcategory**: TODO  
+**Source**: `guide/getting-started.md`
+
+# Getting Started
+
+Welcome to **Context-Action framework** - a revolutionary state management system designed to overcome the fundamental limitations of existing libraries through document-centric context separation and effective artifact management.
+
+**Key concepts**: TODO: Add primary keywords
+
+### Guide Quick Start
+
+**Priority**: 95/100 (critical)  
+**Category**: guide  
+**Subcategory**: TODO  
+**Source**: `guide/quick-start.md`
+
+# Quick Start Guide
+
+Get up and running with the Context-Action framework in minutes. This guide shows you the essential patterns to start building type-safe, scalable React applications.
+
+**Key concepts**: TODO: Add primary keywords
+
+
+## Essential (18/18 documents)
+
+### Action Only Methods
+
+**Priority**: 85/100 (essential)  
+**Category**: api  
+**Subcategory**: action-patterns  
+**Source**: `api/action-only.md`
+
+
+
+### Guide Action Handlers
+
+**Priority**: 80/100 (essential)  
+**Category**: guide  
+**Subcategory**: TODO  
+**Source**: `guide/action-handlers.md`
+
+
+
+### Guide Action Pipeline
+
+**Priority**: 80/100 (essential)  
+**Category**: guide  
+**Subcategory**: TODO  
+**Source**: `guide/action-pipeline.md`
+
+
+
+### Guide Best Practices
+
+**Priority**: 80/100 (essential)  
+**Category**: guide  
+**Subcategory**: TODO  
+**Source**: `guide/best-practices.md`
+
+
+
+### Guide Common Pitfalls
+
+**Priority**: 80/100 (essential)  
+**Category**: guide  
+**Subcategory**: TODO  
+**Source**: `guide/common-pitfalls.md`
+
+
+
+### Guide Cross Domain Integration
+
+**Priority**: 80/100 (essential)  
+**Category**: guide  
+**Subcategory**: TODO  
+**Source**: `guide/cross-domain-integration.md`
+
+
+
+### Guide Domain Hooks Pattern
+
+**Priority**: 80/100 (essential)  
+**Category**: guide  
+**Subcategory**: TODO  
+**Source**: `guide/domain-hooks-pattern.md`
+
+
+
+### Guide Error Handling
+
+**Priority**: 80/100 (essential)  
+**Category**: guide  
+**Subcategory**: TODO  
+**Source**: `guide/error-handling.md`
+
+
+
+### Guide Handler Id Strategies
+
+**Priority**: 80/100 (essential)  
+**Category**: guide  
+**Subcategory**: TODO  
+**Source**: `guide/handler-id-strategies.md`
+
+
+
+### Guide Logic Fit Hooks
+
+**Priority**: 80/100 (essential)  
+**Category**: guide  
+**Subcategory**: TODO  
+**Source**: `guide/logic-fit-hooks.md`
+
+
+
+### Guide Mvvm Architecture
+
+**Priority**: 80/100 (essential)  
+**Category**: guide  
+**Subcategory**: TODO  
+**Source**: `guide/mvvm-architecture.md`
+
+
+
+### Guide Patterns
+
+**Priority**: 80/100 (essential)  
+**Category**: guide  
+**Subcategory**: TODO  
+**Source**: `guide/patterns.md`
+
+
+
+### Guide Performance
+
+**Priority**: 80/100 (essential)  
+**Category**: guide  
+**Subcategory**: TODO  
+**Source**: `guide/performance.md`
+
+
+
+### Guide Philosophy
+
+**Priority**: 80/100 (essential)  
+**Category**: guide  
+**Subcategory**: TODO  
+**Source**: `guide/philosophy.md`
+
+
+
+### Guide Provider Composition
+
+**Priority**: 80/100 (essential)  
+**Category**: guide  
+**Subcategory**: TODO  
+**Source**: `guide/provider-composition.md`
+
+
+
+### Guide React Integration
+
+**Priority**: 80/100 (essential)  
+**Category**: guide  
+**Subcategory**: TODO  
+**Source**: `guide/react-integration.md`
+
+
+
+### Guide Setup Usage
+
+**Priority**: 80/100 (essential)  
+**Category**: guide  
+**Subcategory**: TODO  
+**Source**: `guide/setup-usage.md`
+
+
+
+### Guide Store Management
+
+**Priority**: 80/100 (essential)  
+**Category**: guide  
+**Subcategory**: TODO  
+**Source**: `guide/store-management.md`
+
+
+
+
+## Important (11/11 documents)
+
+### Api Action Registry
+
+**Priority**: 75/100 (important)  
+**Category**: api  
+**Subcategory**: TODO  
+**Source**: `api/action-registry.md`
+
+
+
+### Api Core Action Register
+
+**Priority**: 75/100 (important)  
+**Category**: api  
+**Subcategory**: TODO  
+**Source**: `api/core-action-register.md`
+
+TODO: Define the main purpose of this document
+...
+
+### Api Core Pipeline Controller
+
+**Priority**: 75/100 (important)  
+**Category**: api  
+**Subcategory**: TODO  
+**Source**: `api/core-pipeline-controller.md`
+
+TODO: Define the main purpose of this document
+...
+
+### Api Declarative Store Pattern
+
+**Priority**: 75/100 (important)  
+**Category**: api  
+**Subcategory**: TODO  
+**Source**: `api/declarative-store-pattern.md`
+
+
+
+### Api Pipeline Controller
+
+**Priority**: 75/100 (important)  
+**Category**: api  
+**Subcategory**: TODO  
+**Source**: `api/pipeline-controller.md`
+
+
+
+### Api React Action Context
+
+**Priority**: 75/100 (important)  
+**Category**: api  
+**Subcategory**: TODO  
+**Source**: `api/react-action-context.md`
+
+TODO: Define the main purpose of this document
+...
+
+### Api React Store Manager
+
+**Priority**: 75/100 (important)  
+**Category**: api  
+**Subcategory**: TODO  
+**Source**: `api/react-store-manager.md`
+
+TODO: Define the main purpose of this document
+...
+
+### Api React Store Pattern
+
+**Priority**: 75/100 (important)  
+**Category**: api  
+**Subcategory**: TODO  
+**Source**: `api/react-store-pattern.md`
+
+TODO: Define the main purpose of this document
+...
+
+### Api Store Manager
+
+**Priority**: 75/100 (important)  
+**Category**: api  
+**Subcategory**: TODO  
+**Source**: `api/store-manager.md`
+
+
+
+### Api Store Only
+
+**Priority**: 75/100 (important)  
+**Category**: api  
+**Subcategory**: TODO  
+**Source**: `api/store-only.md`
+
+
+
+### Basic Setup Examples
+
+**Priority**: 75/100 (important)  
+**Category**: example  
+**Subcategory**: getting-started  
+**Source**: `examples/basic-setup.md`
+
+
+
+
+## Reference (11/11 documents)
+
+### Concept Action Pipeline Guide
+
+**Priority**: 50/100 (reference)  
+**Category**: concept  
+**Subcategory**: TODO  
+**Source**: `concept/action-pipeline-guide.md`
+
+
+
+### Concept Architecture Guide
+
+**Priority**: 50/100 (reference)  
+**Category**: concept  
+**Subcategory**: TODO  
+**Source**: `concept/architecture-guide.md`
+
+
+
+### Concept Conventions
+
+**Priority**: 50/100 (reference)  
+**Category**: concept  
+**Subcategory**: TODO  
+**Source**: `concept/conventions.md`
+
+
+
+### Concept Hooks Reference
+
+**Priority**: 50/100 (reference)  
+**Category**: concept  
+**Subcategory**: TODO  
+**Source**: `concept/hooks-reference.md`
+
+
+
+### Concept Pattern Guide
+
+**Priority**: 50/100 (reference)  
+**Category**: concept  
+**Subcategory**: TODO  
+**Source**: `concept/pattern-guide.md`
+
+
+
+### Examples Action Only
+
+**Priority**: 50/100 (reference)  
+**Category**: guide  
+**Subcategory**: TODO  
+**Source**: `examples-action-only.md`
+
+TODO: Define the main purpose of this document
+...
+
+### Examples Pattern Composition
+
+**Priority**: 50/100 (reference)  
+**Category**: guide  
+**Subcategory**: TODO  
+**Source**: `examples-pattern-composition.md`
+
+TODO: Define the main purpose of this document
+...
+
+### Examples Store Only
+
+**Priority**: 50/100 (reference)  
+**Category**: guide  
+**Subcategory**: TODO  
+**Source**: `examples-store-only.md`
+
+TODO: Define the main purpose of this document
+...
+
+### Llms Conventions
+
+**Priority**: 50/100 (reference)  
+**Category**: llms  
+**Subcategory**: TODO  
+**Source**: `llms/conventions.md`
+
+
+
+### Llms Index
+
+**Priority**: 50/100 (reference)  
+**Category**: llms  
+**Subcategory**: TODO  
+**Source**: `llms/index.md`
+
+
+
+### Llms Library Specs
+
+**Priority**: 50/100 (reference)  
+**Category**: llms  
+**Subcategory**: TODO  
+**Source**: `llms/library-specs.md`
+
+
+
+
+
+---
+
+## Composition Summary
+
+**Target Characters**: 5000  
+**Generated Characters**: 6400  
+**Composition Strategy**: Adaptive Priority-Based  
+
+**Distribution**:
+- **Critical**: 4 docs × 450 chars = 1800 chars
+- **Essential**: 18 docs × 133.33333333333334 chars = 2400 chars
+- **Important**: 11 docs × 100 chars = 1100 chars
+- **Reference**: 11 docs × 100 chars = 1100 chars
+
+**Total Documents**: 44  
+**Adaptation Algorithm**: 4-step adaptive procedure with priority-based expansion  
+
+*Generated automatically using @context-action/llms-generator*

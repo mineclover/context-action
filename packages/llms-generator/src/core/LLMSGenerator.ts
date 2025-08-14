@@ -15,18 +15,21 @@ import type {
 import { PriorityManager } from './PriorityManager.js';
 import { DocumentProcessor } from './DocumentProcessor.js';
 import { PriorityGenerator } from './PriorityGenerator.js';
+import { AdaptiveComposer } from './AdaptiveComposer.js';
 
 export class LLMSGenerator {
   private config: LLMSConfig;
   private priorityManager: PriorityManager;
   private documentProcessor: DocumentProcessor;
   private priorityGenerator: PriorityGenerator;
+  private adaptiveComposer: AdaptiveComposer;
 
   constructor(config: LLMSConfig) {
     this.config = config;
     this.priorityManager = new PriorityManager(config.paths.llmContentDir);
     this.documentProcessor = new DocumentProcessor(config.paths.docsDir);
     this.priorityGenerator = new PriorityGenerator(config);
+    this.adaptiveComposer = new AdaptiveComposer(config);
   }
 
   /**
@@ -105,7 +108,7 @@ export class LLMSGenerator {
   }
 
   /**
-   * Generate character-limited content
+   * Generate character-limited content using adaptive composition
    */
   async generateCharacterLimited(
     targetChars: number,
@@ -113,24 +116,19 @@ export class LLMSGenerator {
   ): Promise<string> {
     console.log(`\n📏 Generating ${targetChars}-character content (${language})...`);
     
-    // TODO: Implement intelligent content summarization based on priority and character limits
-    // This would use the extraction guidelines from priority.json files
-    
     const priorities = await this.priorityManager.loadAllPriorities();
     const langPriorities = this.priorityManager.filterByLanguage(priorities, language);
+    const sortedPriorities = this.priorityManager.sortByPriority(langPriorities);
+
+    // Use the adaptive composer for intelligent composition
+    const result = await this.adaptiveComposer.composeAdaptiveContent({
+      language,
+      characterLimit: targetChars,
+      includeTableOfContents: true,
+      priorityThreshold: 0
+    });
     
-    let content = `# Context-Action Framework - ${targetChars} Character Summary\n\n`;
-    content += `Generated: ${new Date().toISOString().split('T')[0]}\n`;
-    content += `Language: ${language.toUpperCase()}\n`;
-    content += `Character Limit: ${targetChars}\n\n`;
-    
-    // For now, return a placeholder
-    content += `*Character-limited content generation (${targetChars} chars) not yet fully implemented*\n\n`;
-    content += `This will intelligently summarize documents based on:\n`;
-    content += `- Priority scores and tiers\n`;
-    content += `- Extraction strategies from priority.json\n`;
-    content += `- Character limit guidelines\n`;
-    content += `- Must-include keywords and concepts\n`;
+    const content = result.content;
 
     return content;
   }

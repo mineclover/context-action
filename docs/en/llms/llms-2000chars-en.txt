@@ -1,0 +1,102 @@
+# 목차
+
+- Core Concepts
+- Context Action Framework Overview
+- Getting Started
+- Quick Start Guide
+
+# Core Concepts
+
+# Core Concepts
+
+Understanding the fundamental concepts of the Context-Action framework is essential for effective implementation. This guide covers the key building blocks and their relationships.
+
+## Architecture Overview
+
+## Core Components
+
+### 1. Domain-Specific Hooks Pattern
+
+### 2. Store System
+
+### 3. Action Pipeline System
+
+### 4. Provider Composition
+
+## Data Flow Patterns
+
+### 1. Component → Action → Store → Component
+
+### 2. Handler Access Patterns
+
+### 3. Cross-Domain Communication
+
+## Handler Registration Patterns
+
+### Best Practice Pattern
+
+### Handler Configuration Options
+
+## Context Boundaries & Domain Isolation
+
+### Single Domain Architecture
+
+### Multi-Domain Architecture
+
+## Memory Management
+
+### Store Lifecycle
+
+### Handler Cleanup
+
+## Type Safety Features
+
+### Automatic Type Inference
+
+### Compile-Time Safety
+
+## Summary
+
+The Context-Action framework's core concepts work together to provide:
+
+# Context Action Framework Overview
+
+# Context Action Framework Overview
+
+## Architecture Overview
+
+## Key Benefits
+
+## Quick Navigation
+
+- [Core Concepts](./concepts) - Understand the fundamental concepts
+
+## Framework Philosophy
+
+The Context-Action framework implements a clean separation of concerns through an MVVM-inspired pattern combined with **Context Store Pattern** for complete domain isolation.
+
+```mermaid
+
+graph LR
+
+A[Component] -->|dispatch| B[Action Pipeline]
+
+B -->|handlers| C[Store]
+
+C -->|subscribe| A
+
+style A fill:#e3f2fd
+
+style B fill:#fff8e1
+
+style C fill:#e8f5e8
+
+1. **Domain Isolation** - Each context maintains complete independence
+
+2. **Type Safety** - Full TypeScript support with domain-specific hooks
+
+3. **Performance** - Only affected components re-render
+
+4. **Scalability** - Easy to add new domains without affecting existing ones
+
+5. **Team Collaboration** - Different teams can work on different domains
