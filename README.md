@@ -321,26 +321,73 @@ context-action/
 └── scripts/                    # Build and utility scripts
 ```
 
+## 📚 Documentation & Conventions
+
+### 📖 Complete Documentation
+The Context-Action framework provides comprehensive documentation in multiple languages:
+
+**[📚 Official Documentation](https://mineclover.github.io/context-action/)**
+
+#### English Documentation
+- **[Quick Start](https://mineclover.github.io/context-action/en/guide/quick-start)** - Get started in 5 minutes
+- **[Complete Guide](https://mineclover.github.io/context-action/en/guide/full)** - MVVM architecture with Context Store Pattern
+- **[Best Practices](https://mineclover.github.io/context-action/en/guide/best-practices)** - Production-ready patterns
+- **[Performance Guide](https://mineclover.github.io/context-action/en/guide/performance)** - Optimization techniques
+- **[Error Handling](https://mineclover.github.io/context-action/en/guide/error-handling)** - Robust error management
+
+#### 한국어 문서
+- **[빠른 시작](https://mineclover.github.io/context-action/ko/guide/quick-start)** - 5분만에 시작하기
+- **[완전한 가이드](https://mineclover.github.io/context-action/ko/guide/overview)** - MVVM 아키텍처 완벽 가이드
+- **[베스트 프랙티스](https://mineclover.github.io/context-action/ko/guide/best-practices)** - 프로덕션 준비된 패턴들
+
+### 📋 Development Guidelines
+
+**[📋 Coding Conventions](./docs/CONVENTIONS.md)** - 종합적인 코딩 컨벤션과 베스트 프랙티스
+- **리네이밍 패턴**: 도메인별 명확한 네이밍 전략
+- **파일 구조**: 프로젝트 조직화 가이드라인
+- **패턴 사용법**: Store Pattern과 Action Pattern 활용법
+- **타입 정의**: TypeScript 타입 안전성 보장
+- **성능 가이드라인**: 최적화 기법과 성능 측정
+
+**[📖 Pattern Guide](./packages/react/docs/PATTERN_GUIDE.md)** - React 통합 패턴 완전 가이드
+- **Store Only Pattern**: 순수한 상태 관리 패턴
+- **Action Only Pattern**: 액션 디스패칭 패턴  
+- **Pattern Composition**: 복합 패턴 활용법
+- **HOC Pattern**: Higher-Order Component 패턴
+- **Provider Isolation**: 독립적인 컨텍스트 관리
+
+**[📐 Documentation Guidelines](./docs/DOCUMENTATION_GUIDELINES.md)** - 문서화 표준 및 가이드라인
+
 ## 🛠️ Technology Stack
 
 - **Package Manager**: pnpm with workspaces + Lerna
 - **Monorepo Tool**: Lerna 8.x for versioning and publishing
 - **Language**: TypeScript 5.3+
 - **Bundler**: tsdown (powered by rolldown)
-- **Documentation**: VitePress
+- **Documentation**: VitePress with dual-language support (English/Korean)
 - **Code Quality**: ESLint + TypeScript strict mode
 - **Testing**: Jest + TypeScript
 
 ## 📝 Contributing
 
-1. Clone the repository
-2. Install dependencies: `pnpm install`
-3. Make your changes
-4. Build all packages: `pnpm build`
-5. Run tests: `pnpm test`
-6. Lint your code: `pnpm lint`
-7. Check for changes: `pnpm changed`
-8. Submit a pull request
+We welcome contributions to the Context-Action framework! Please follow these guidelines:
+
+### Development Workflow
+1. **Setup**: Clone the repository and run `pnpm install`
+2. **Development**: Use `pnpm dev` for live example app development
+3. **Changes**: Make changes following our [coding conventions](./docs/CONVENTIONS.md)
+4. **Testing**: Run `pnpm test` and `pnpm type-check`
+5. **Building**: Run `pnpm build` before committing
+6. **Documentation**: Update docs for public API changes
+7. **Commit**: Follow conventional commit messages
+8. **Pull Request**: Submit a well-documented PR
+
+### Code Standards
+- **TypeScript**: Strict type checking enabled
+- **ESLint**: Follow project ESLint configuration
+- **Testing**: Maintain or improve test coverage
+- **Documentation**: Update relevant documentation files
+- **Conventions**: Follow [CONVENTIONS.md](./docs/CONVENTIONS.md) guidelines
 
 ## 📄 License
 
@@ -393,10 +440,19 @@ Explore the Context-Action framework through our comprehensive live examples:
 
 ## 🔗 Links
 
-- [📚 Documentation](https://mineclover.github.io/context-action/) - Complete documentation and API reference
-- [🎮 Live Example](https://mineclover.github.io/context-action/example/) - Interactive example application
+### 📚 Documentation & Examples
+- [📚 Complete Documentation](https://mineclover.github.io/context-action/) - Official documentation with API reference
+- [🎮 Live Interactive Examples](https://mineclover.github.io/context-action/example/) - 20+ working demonstrations
+- [📋 Coding Conventions](./docs/CONVENTIONS.md) - Development standards and best practices
+- [📖 Pattern Guide](./packages/react/docs/PATTERN_GUIDE.md) - React integration patterns
+
+### 📦 Package Information
 - [Core Package](./packages/core) - @context-action/core (Pure TypeScript)
 - [React Package](./packages/react) - @context-action/react (React integration)
-- [Release Guide](./RELEASE.md) - Publishing documentation
+- [API Reference](https://mineclover.github.io/context-action/api/) - Generated TypeScript API docs
+
+### 🤝 Community & Support
 - [Issues](https://github.com/mineclover/context-action/issues) - Bug reports and feature requests
+- [Discussions](https://github.com/mineclover/context-action/discussions) - Community discussions and Q&A
+- [Release Notes](./RELEASE.md) - Version history and publishing guide
 - [한국어 README](./README.ko.md) - Korean version

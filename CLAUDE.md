@@ -73,9 +73,6 @@ Context-Action provides sophisticated handler and trigger management that existi
 ### Package Structure
 - `@context-action/core` - Core action pipeline management (no React dependency)
 - `@context-action/react` - React integration with Context API and hooks
-- `@context-action/logger` - Lightweight logging utilities with trace capabilities
-- `@context-action/jotai` - Jotai integration for atom-based state management
-- `@context-action/glossary` - Documentation tools for TypeScript glossary management
 
 ### Key Architectural Patterns
 
@@ -101,8 +98,6 @@ pnpm build
 # Build specific package
 pnpm build:core        # @context-action/core
 pnpm build:react       # @context-action/react
-pnpm build:jotai       # @context-action/jotai
-pnpm build:logger      # @context-action/logger
 
 # Run tests
 pnpm test              # All packages
@@ -162,15 +157,6 @@ pnpm lint          # Biome linting
 pnpm type-check    # TypeScript check
 ```
 
-### Glossary System
-```bash
-# Glossary management tools
-pnpm glossary:scan          # Scan codebase for terms
-pnpm glossary:validate      # Validate glossary definitions
-pnpm glossary:missing       # Analyze missing terms
-pnpm glossary:dashboard     # Generate implementation dashboard
-pnpm glossary:update        # Full glossary update pipeline
-```
 
 ## Testing Strategy
 
@@ -334,14 +320,13 @@ function EventComponent() {
 
 - `packages/core/src/ActionRegister.ts` - Core action pipeline implementation
 - `packages/react/src/store/` - Store system implementation
-- `packages/react/src/ActionProvider.tsx` - React context integration
-- `packages/react/src/store/context-store-pattern.tsx` - Context Store Pattern with HOC support
+- `packages/react/src/actions/ActionContext.tsx` - React action context integration
+- `packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx` - Declarative Store Pattern implementation
 - `packages/react/docs/PATTERN_GUIDE.md` - Complete pattern guide with three main approaches
 - `docs/en/guide/full.md` - Complete MVVM architecture guide with Context Store Pattern
 - `docs/CONVENTIONS.md` - Comprehensive coding conventions and best practices
 - `example/src/` - Comprehensive example application
 - `docs/` - VitePress documentation source
-- `glossary/` - Term management and documentation tools
 - `scripts/` - Build and utility scripts
 
 ## Framework Architecture Patterns
