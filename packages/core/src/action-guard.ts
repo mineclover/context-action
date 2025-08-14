@@ -24,6 +24,12 @@ interface GuardState {
   
   /** Flag indicating if action is currently in throttled state */
   isThrottled: boolean;
+  
+  /** Current debounce promise - reused for concurrent calls */
+  debouncePromise?: Promise<boolean>;
+  
+  /** Resolve function for current debounce promise */
+  debounceResolve?: (value: boolean) => void;
 }
 
 /**
@@ -81,22 +87,29 @@ export class ActionGuard {
     }
 
     /** Clear any existing debounce timer to restart the delay period */
-    /** This implements the "debounce" behavior where rapid calls reset the timer */
     if (state.debounceTimer) {
       clearTimeout(state.debounceTimer);
+      // 이전 debounce resolve 함수가 있으면 false로 해결
+      if (state.debounceResolve) {
+        state.debounceResolve(false);
+        state.debounceResolve = undefined;
+      }
     }
 
-    /** Create new debounce promise that resolves after the delay period */
-    /** The promise will only resolve if no new debounce requests arrive */
-    return new Promise((resolve) => {
+    /** Create new debounce promise */
+    return new Promise<boolean>((resolve) => {
+      // 새로운 resolve 함수 저장
+      state!.debounceResolve = resolve;
+      
+      // 새 타이머 설정
       state!.debounceTimer = setTimeout(() => {
-        /** Clean up timer reference to prevent memory leaks */
+        /** Clean up timer and resolver references */
         state!.debounceTimer = undefined;
-        /** Update last execution timestamp for throttling calculations */
+        state!.debounceResolve = undefined;
+        /** Update last execution timestamp */
         state!.lastExecuted = Date.now();
         resolve(true);
       }, debounceMs);
-      
     });
   }
 
@@ -166,6 +179,10 @@ export class ActionGuard {
       /** Clear debounce timer if active to prevent memory leaks */
       if (state.debounceTimer) {
         clearTimeout(state.debounceTimer);
+        // 대기 중인 debounce 호출들을 취소로 해제
+        if (state.debounceResolve) {
+          state.debounceResolve(false);
+        }
       }
       /** Clear throttle timer if active to prevent memory leaks */
       if (state.throttleTimer) {
@@ -188,6 +205,10 @@ export class ActionGuard {
       /** Clear any active debounce timers */
       if (state.debounceTimer) {
         clearTimeout(state.debounceTimer);
+        // 대기 중인 debounce 호출들을 취소로 해제
+        if (state.debounceResolve) {
+          state.debounceResolve(false);
+        }
       }
       /** Clear any active throttle timers */
       if (state.throttleTimer) {

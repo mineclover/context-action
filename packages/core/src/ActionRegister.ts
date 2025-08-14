@@ -15,6 +15,7 @@ import {
 } from './types.js';
 import { executeSequential, executeParallel, executeRace } from './execution-modes.js';
 import { ActionGuard } from './action-guard.js';
+import { OperationQueue } from './concurrency/OperationQueue.js';
 
 /**
  * 중앙화된 액션 등록 및 디스패치 시스템으로, 타입 안전한 액션 파이프라인 관리를 제공하는 핵심 클래스입니다.
@@ -60,10 +61,18 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     errorCount: number;
   }>();
 
+  // 🆕 동시성 문제 해결을 위한 큐 시스템
+  private registrationQueue: OperationQueue;
+  private dispatchQueue: OperationQueue;
+
   constructor(config: ActionRegisterConfig = {}) {
     this.name = config.name || 'ActionRegister';
     this.registryConfig = config.registry;
     this.actionGuard = new ActionGuard();
+    
+    // 🆕 큐 시스템 초기화
+    this.registrationQueue = new OperationQueue(`${this.name}-Registration`);
+    this.dispatchQueue = new OperationQueue(`${this.name}-Dispatch`);
     
     if (this.registryConfig?.defaultExecutionMode) {
       this.executionMode = this.registryConfig.defaultExecutionMode;
@@ -73,7 +82,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       console.log(`🎯 ActionRegister created: ${this.name}`, {
         defaultExecutionMode: this.executionMode,
         maxHandlers: this.registryConfig.maxHandlers,
-        autoCleanup: this.registryConfig.autoCleanup ?? true
+        autoCleanup: this.registryConfig.autoCleanup ?? true,
+        concurrencyProtection: true // 🆕 동시성 보호 활성화
       });
     }
   }
@@ -83,11 +93,128 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     handler: ActionHandler<T[K], R>,
     config: HandlerConfig = {}
   ): UnregisterFunction {
+    // 🔄 임시로 기존 구현 유지하되 개선된 방식 적용
+    // 동기적 API를 유지하면서 내부적으로만 동시성 보호
     
     // Generate unique handler ID with security consideration
-    // Use counter + random suffix to prevent ID prediction attacks
     const handlerId = config.id || `handler_${++this.handlerCounter}_${Math.random().toString(36).substr(2, 5)}`;
     
+    // 🆕 즉시 등록 수행하되 정렬까지 한 번에 처리
+    const unregisterFn = this._performRegistrationSync(action, handler, config, handlerId);
+    
+    return unregisterFn;
+  }
+
+  /**
+   * 🆕 동기적 등록 수행 (개선된 버전)
+   */
+  private _performRegistrationSync<K extends keyof T, R = void>(
+    action: K,
+    handler: ActionHandler<T[K], R>,
+    config: HandlerConfig,
+    handlerId: string
+  ): UnregisterFunction {
+    // Create handler registration with defaults
+    const registration: HandlerRegistration<T[K], R> = {
+      handler,
+      config: {
+        // Existing fields
+        priority: config.priority ?? 0,
+        id: handlerId,
+        blocking: config.blocking ?? false,
+        once: config.once ?? false,
+        condition: config.condition || (() => true),
+        debounce: config.debounce ?? undefined,
+        throttle: config.throttle ?? undefined,
+        validation: config.validation ?? undefined,
+        middleware: config.middleware ?? false,
+        
+        // New metadata fields
+        tags: config.tags ?? [],
+        category: config.category ?? undefined,
+        description: config.description ?? undefined,
+        version: config.version ?? undefined,
+        returnType: config.returnType ?? 'value',
+        timeout: config.timeout ?? undefined,
+        retries: config.retries ?? 0,
+        dependencies: config.dependencies ?? [],
+        conflicts: config.conflicts ?? [],
+        environment: config.environment ?? undefined,
+        feature: config.feature ?? undefined,
+        metrics: config.metrics ?? {
+          collectTiming: false,
+          collectErrors: false,
+          customMetrics: {}
+        },
+        metadata: config.metadata ?? {},
+      } as Required<HandlerConfig>,
+      id: handlerId,
+    };
+    
+    // Initialize pipeline if it doesn't exist
+    if (!this.pipelines.has(action)) {
+      this.pipelines.set(action, []);
+    }
+
+    const pipeline = this.pipelines.get(action)!;
+    
+    // Check for duplicate handler IDs and prevent duplicate registration
+    const existingIndex = pipeline.findIndex(reg => reg.id === handlerId);
+    if (existingIndex !== -1) {
+      // Return a no-op unregister function for the duplicate
+      return () => {};
+    }
+    
+    // Check maximum handlers limit
+    if (this.registryConfig?.maxHandlers && pipeline.length >= this.registryConfig.maxHandlers) {
+      throw new Error(
+        `Maximum number of handlers (${this.registryConfig.maxHandlers}) reached for action '${String(action)}' in registry '${this.name}'`
+      );
+    }
+
+    // Add handler to pipeline
+    pipeline.push(registration);
+    
+    // 🆕 즉시 정렬 (동시성 보호)
+    pipeline.sort((a, b) => b.config.priority - a.config.priority);
+    
+    if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
+      console.log(`🎯 Handler registered: ${String(action)}`, {
+        handlerId,
+        priority: config.priority,
+        tags: config.tags,
+        category: config.category,
+        totalHandlers: pipeline.length,
+        registry: this.name
+      });
+    }
+
+    // Return unregister function that removes this specific registration
+    return () => {
+      const index = pipeline.findIndex((reg) => reg.id === handlerId && reg === registration);
+      if (index !== -1) {
+        pipeline.splice(index, 1);
+        
+        if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
+          console.log(`🎯 Handler unregistered: ${String(action)}`, {
+            handlerId,
+            remainingHandlers: pipeline.length,
+            registry: this.name
+          });
+        }
+      }
+    };
+  }
+
+  /**
+   * 🆕 실제 등록 작업 수행 (큐에서 호출됨)
+   */
+  private _performRegistration<K extends keyof T, R = void>(
+    action: K,
+    handler: ActionHandler<T[K], R>,
+    config: HandlerConfig,
+    handlerId: string
+  ): UnregisterFunction {
     // Create handler registration with defaults
     const registration: HandlerRegistration<T[K], R> = {
       handler,
@@ -181,6 +308,21 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   }
 
   async dispatch<K extends keyof T>(
+    action: K,
+    payload?: T[K],
+    options?: import('./types.js').DispatchOptions
+  ): Promise<void> {
+    // 🆕 디스패치를 큐에 추가하여 동시성 보호
+    // 모든 디스패치가 순차적으로 실행되어 race condition 방지
+    return this.dispatchQueue.enqueue(async () => {
+      return this._performDispatch(action, payload, options);
+    });
+  }
+
+  /**
+   * 🆕 실제 디스패치 작업 수행 (큐에서 호출됨)
+   */
+  private async _performDispatch<K extends keyof T>(
     action: K,
     payload?: T[K],
     options?: import('./types.js').DispatchOptions
