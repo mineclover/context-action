@@ -1,0 +1,110 @@
+{
+  "$schema": "../../priority-schema.json",
+  "document": {
+    "id": "guide-concepts",
+    "title": "Guide Concepts",
+    "source_path": "guide/concepts.md",
+    "category": "guide",
+    "subcategory": "TODO"
+  },
+  "priority": {
+    "score": 100,
+    "tier": "critical",
+    "rationale": "TODO: Add rationale for this priority level"
+  },
+  "purpose": {
+    "primary_goal": "TODO: Define the main purpose of this document",
+    "target_audience": [
+      "framework-users"
+    ],
+    "use_cases": [
+      "TODO: Add specific use cases"
+    ],
+    "dependencies": []
+  },
+  "keywords": {
+    "primary": [
+      "TODO: Add primary keywords"
+    ],
+    "technical": [
+      "TODO: Add technical terms"
+    ],
+    "patterns": [
+      "TODO: Add relevant patterns"
+    ],
+    "avoid": [
+      "TODO: Add terms to avoid"
+    ]
+  },
+  "extraction": {
+    "strategy": "concept-first",
+    "character_limits": {
+      "100": {
+        "focus": "TODO: Define focus for 100 chars",
+        "structure": "TODO: Define structure",
+        "must_include": [
+          "TODO"
+        ],
+        "avoid": [
+          "TODO"
+        ]
+      },
+      "300": {
+        "focus": "TODO: Define focus for 300 chars",
+        "structure": "TODO: Define structure",
+        "must_include": [
+          "TODO"
+        ],
+        "avoid": [
+          "TODO"
+        ]
+      },
+      "1000": {
+        "focus": "TODO: Define focus for 1000 chars",
+        "structure": "TODO: Define structure",
+        "must_include": [
+          "TODO"
+        ],
+        "avoid": [
+          "TODO"
+        ]
+      },
+      "2000": {
+        "focus": "TODO: Define focus for 2000 chars",
+        "structure": "TODO: Define structure",
+        "must_include": [
+          "TODO"
+        ],
+        "avoid": [
+          "TODO"
+        ]
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "TODO: Critical elements"
+      ],
+      "nice_to_have": [
+        "TODO: Optional elements"
+      ]
+    }
+  },
+  "quality": {
+    "completeness_threshold": 0.8,
+    "code_examples_required": false,
+    "consistency_checks": [
+      "terminology",
+      "pattern_usage"
+    ]
+  },
+  "metadata": {
+    "created": "2025-08-14",
+    "version": "1.0",
+    "original_size": 0,
+    "estimated_extraction_time": {
+      "300": "20 minutes",
+      "1000": "45 minutes",
+      "2000": "60 minutes"
+    }
+  }
+}

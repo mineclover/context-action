@@ -1,19 +1,20 @@
 # Optimized Document Structure Strategy
 
-## 최적화된 문서 구조 전략
+## 최적화된 문서 구조 전략 (Priority 시스템 기반)
 
-Context-Action 프레임워크를 위한 **문서별 타입 기반 콘텐츠 전략**입니다. 실제 문서를 기반으로 minimum, origin, 글자수별 버전으로 체계적으로 관리합니다.
+Context-Action 프레임워크를 위한 **문서별 Priority JSON 기반 콘텐츠 전략**입니다. 각 문서가 독립된 우선순위와 추출 가이드라인을 가지고 체계적으로 관리됩니다.
 
 ## 📁 구조 철학
 
-### Document-Centric Organization
-각 문서가 독립된 폴더를 가지고, 그 안에서 다양한 타입의 파일들을 관리합니다.
+### Document-Based Priority System
+각 문서가 독립된 폴더를 가지고, priority.json으로 우선순위와 추출 전략을 관리합니다.
 
 ```
 documentId/
-├── documentId-minimum.txt    # 🔗 빠른 참조
-├── documentId-origin.txt     # 📋 완전한 원본  
-├── documentId-100.txt        # 📝 극압축
+├── priority.json             # 🎯 우선순위 & 추출 가이드라인
+├── documentId-minimum.txt    # 🔗 경로/네비게이션 정보
+├── documentId-origin.txt     # 📄 완전한 원본 (수정 금지)
+├── documentId-100.txt        # 📝 극압축 (개념 정의)
 ├── documentId-300.txt        # 📝 핵심 요약
 ├── documentId-1000.txt       # 📝 실용적 정보
 ├── documentId-2000.txt       # 📝 포괄적 설명
@@ -22,28 +23,28 @@ documentId/
 
 ## 🎯 파일 타입별 전략
 
-### 📄 Minimum Files (최우선)
-**Score Boost**: +25점 (빠른 탐색을 위한 최우선)
+### 🔗 Minimum Files (경로/네비게이션)
+**llms.txt 조합 규칙**: 경로/링크 참조 정보로 활용
 
-**콘텐츠 전략**:
-1. **Document Links**: 원본 파일 경로와 관련 문서들
-2. **Brief Description**: 2-3줄의 핵심 설명
-3. **Document Type**: Guide/API/Examples/Concepts 분류
-4. **Quick Navigation**: 관련 minimum 파일들 링크
+**Priority.json 기반 콘텐츠 전략**:
+- **Focus**: "빠른 네비게이션과 경로 정보"  
+- **Must Include**: ["source link", "brief purpose", "related docs"]
+- **Structure**: "Document links + 간단한 설명 + 관련 문서"
+- **Avoid**: ["detailed explanations", "code examples"]
 
-**작성 우선순위**:
-1. Overview/Getting Started (100점)
-2. Core Concepts (95점)  
-3. Main Patterns (90점)
-4. Essential APIs (85점)
+**작성 방법**:
+1. 각 문서의 priority.json → extraction.character_limits.minimum 확인
+2. source_path, document ID, category 정보 포함
+3. 관련 문서 매핑 및 링크 구조 제공
 
-### 📋 Origin Files (백업/참조)
-**Score Boost**: +5점 (완전한 정보 제공)
+### 📄 Origin Files (문서 그대로)
+**llms.txt 조합 규칙**: 문서 그대로의 내용으로 활용
 
-**콘텐츠 전략**:
-- 원본 마크다운의 완전한 복사본 유지
-- 수정 없이 전체 정보 보존
-- 상세 참조가 필요할 때 사용
+**Priority.json 기반 콘텐츠 전략**:
+- **Focus**: "완전한 원본 내용 보존"
+- **Must Include**: ["complete original content"]  
+- **Avoid**: ["modifications", "truncations"]
+- **수정 금지**: 소스 파일의 완전한 복사본 유지
 
 ### 📝 Character-Limited Files
 
@@ -88,56 +89,64 @@ documentId/
 - 에러 핸들링
 - 성능 최적화
 
-## 📊 문서별 우선순위 매트릭스
+## 📊 Priority 시스템 기반 문서 관리
 
-### Tier 1: 필수 핵심 (85-100점)
-- **guide-overview** (95점): 프레임워크 전체 개요
-- **guide-concepts** (95점): 핵심 개념 설명
-- **guide-getting-started** (90점): 시작 가이드
-- **guide-quick-start** (90점): 빠른 시작
-- **concept-pattern-guide** (85점): 패턴 가이드
+### Document-Based Priority Tiers (실제 데이터)
+```bash
+# 실시간 priority 상태 확인
+pnpm docs:priority:status
+```
 
-### Tier 2: 실용적 핵심 (70-84점)
-- **API References** (75-85점): 주요 API들
-- **guide-best-practices** (80점): 베스트 프랙티스
-- **guide-action-handlers** (75점): 액션 핸들러
-- **guide-store-management** (75점): 스토어 관리
-- **examples-basic-setup** (70점): 기본 설정 예제
+**Priority Tier 분포**:
+- **Critical (90-100점)**: 7개 문서 - 프레임워크 핵심
+- **Essential (80-89점)**: 32개 문서 - 주요 가이드 및 API
+- **Important (60-79점)**: 11개 문서 - 중요 참조 문서  
+- **Reference (40-59점)**: 12개 문서 - 고급/참조용
 
-### Tier 3: 고급 활용 (55-69점)
-- **guide-error-handling** (65점): 에러 핸들링
-- **guide-performance** (60점): 성능 최적화  
-- **concept-architecture-guide** (60점): 아키텍처 가이드
-- **examples-pattern-composition** (55점): 패턴 조합
+### Priority JSON 구조 기반 관리
+각 문서의 우선순위와 추출 전략이 다음 요소로 결정:
 
-### Tier 4: 참조용 상세 (40-54점)
-- **Detailed API docs** (45-50점)
-- **Advanced examples** (40-45점)
-- **concept-conventions** (40점): 상세 컨벤션
+```json
+{
+  "priority": { "score": 85, "tier": "essential", "rationale": "..." },
+  "purpose": { "primary_goal": "...", "target_audience": [...] },
+  "keywords": { "primary": [...], "technical": [...], "avoid": [...] },
+  "extraction": { 
+    "strategy": "concept-first|api-first|example-first",
+    "character_limits": { /* 각 크기별 상세 가이드라인 */ }
+  }
+}
+```
 
-### Tier 5: 부가 정보 (25-39점)
-- **llms-* documents** (30점): LLM 관련 문서들
-- **Migration guides** (25점)
+### 새로운 관리 도구
+```bash
+pnpm docs:priority:critical      # Critical tier 문서 목록
+pnpm docs:priority:essential     # Essential tier 문서 목록  
+pnpm docs:priority:worklist      # 점수순 작업 목록
+pnpm docs:priority info [doc-id] # 특정 문서 상세 정보
+pnpm docs:priority:validate      # 모든 priority.json 검증
+```
 
 ## 🚀 작성 전략 로드맵
 
 ### Phase 1: Critical Minimum Files (1주)
-**목표**: 빠른 탐색 시스템 구축
+**목표**: 경로/네비게이션 시스템 구축
+```bash
+# Critical tier 문서 확인 후 작업
+pnpm docs:priority:critical
 ```
-Priority >= 85인 문서들의 minimum 파일:
-- guide-overview-minimum.txt
-- guide-concepts-minimum.txt  
-- guide-getting-started-minimum.txt
-- guide-quick-start-minimum.txt
-- concept-pattern-guide-minimum.txt
-```
+- **작업 방법**: 각 문서의 priority.json → minimum 추출 가이드라인 확인
+- **focus**: "빠른 네비게이션과 경로 정보"
+- **must_include**: source link, brief purpose, related docs
 
-### Phase 2: Core 300-char Files (1주)
+### Phase 2: Essential/Critical 300자 Files (1주)  
 **목표**: 핵심 개념 요약 완성
+```bash
+# Essential + Critical tier 문서 대상
+pnpm docs:priority:essential
 ```
-Priority >= 80인 문서들의 300자 파일:
-- 위 minimum 파일들 + guide-best-practices, 주요 API들
-```
+- **작업 방법**: priority.json → extraction.character_limits["300"] 확인
+- **strategy 활용**: concept-first/api-first/example-first 접근법
 
 ### Phase 3: Essential 1000-char Files (1-2주)
 **목표**: 실용적 정보 제공
@@ -210,7 +219,9 @@ pnpm docs:status  # 전체 진행 상황 확인
 
 ---
 
-**Strategy Version**: 2.0 (Optimized Structure)  
+**Strategy Version**: 3.0 (Priority JSON System)  
 **Updated**: 2025-08-14  
-**Focus**: Document-based minimum/origin + character-limited approach  
-**Next Review**: Phase 1 완료 후
+**Focus**: Document-based priority.json with llms.txt 조합 규칙 (minimum=경로, origin=문서)  
+**Priority System**: 62개 priority.json files with JSON schema validation  
+**Management Tools**: pnpm docs:priority:* commands  
+**Next Review**: Critical minimum files 완료 후

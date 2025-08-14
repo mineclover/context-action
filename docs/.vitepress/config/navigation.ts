@@ -14,21 +14,42 @@ export function createNavigation(locale: NavigationLocale) {
     return [
       {
         text: 'English',
-        link: '/en/guide/overview'
+        link: '/en/guide/getting-started'
       },
       {
         text: '한국어',
-        link: '/ko/guide/overview'
+        link: '/ko/guide/getting-started'
       }
     ]
   }
   
-  // 새로운 구조: Guide, Examples, API, LLMs로 재배치
+  // 새로운 구조: Guide, Concept, Examples, API, LLMs로 재배치
   if (locale === 'en') {
     return [
       {
         text: 'Guide',
         link: '/en/guide/getting-started'
+      },
+      {
+        text: 'Concept',
+        items: [
+          {
+            text: 'Pattern Guide',
+            link: '/en/concept/pattern-guide'
+          },
+          {
+            text: 'Architecture Guide',
+            link: '/en/concept/architecture-guide'
+          },
+          {
+            text: 'Hooks Reference',
+            link: '/en/concept/hooks-reference'
+          },
+          {
+            text: 'Conventions',
+            link: '/en/concept/conventions'
+          }
+        ]
       },
       {
         text: 'Examples',
@@ -55,26 +76,40 @@ export function createNavigation(locale: NavigationLocale) {
         text: 'API',
         items: [
           {
-            text: 'Store Only Methods',
-            link: '/en/api/store-only'
+            text: '@context-action/core',
+            items: [
+              {
+                text: 'ActionRegister',
+                link: '/en/api/core/action-register'
+              },
+              {
+                text: 'PipelineController',
+                link: '/en/api/core/pipeline-controller'
+              }
+            ]
           },
           {
-            text: 'Action Only Methods',
-            link: '/en/api/action-only'
-          },
-          {
-            text: 'Store Manager',
-            link: '/en/api/store-manager'
-          },
-          {
-            text: 'Action Registry',
-            link: '/en/api/action-registry'
+            text: '@context-action/react',
+            items: [
+              {
+                text: 'Action Context',
+                link: '/en/api/react/action-context'
+              },
+              {
+                text: 'Store Pattern',
+                link: '/en/api/react/store-pattern'
+              },
+              {
+                text: 'Store Manager',
+                link: '/en/api/react/store-manager'
+              }
+            ]
           }
         ]
       },
       {
         text: 'LLMs',
-        link: '/en/llms/llms.txt'
+        link: '/en/llms/'
       }
     ]
   }
@@ -84,6 +119,27 @@ export function createNavigation(locale: NavigationLocale) {
       {
         text: '가이드',
         link: '/ko/guide/getting-started'
+      },
+      {
+        text: '핵심 개념',
+        items: [
+          {
+            text: '패턴 가이드',
+            link: '/ko/concept/pattern-guide'
+          },
+          {
+            text: '아키텍처 가이드',
+            link: '/ko/concept/architecture-guide'
+          },
+          {
+            text: '훅 참조',
+            link: '/ko/concept/hooks-reference'
+          },
+          {
+            text: '컨벤션',
+            link: '/ko/concept/conventions'
+          }
+        ]
       },
       {
         text: '예제',
@@ -110,26 +166,40 @@ export function createNavigation(locale: NavigationLocale) {
         text: 'API',
         items: [
           {
-            text: 'Store Only 메서드',
-            link: '/ko/api/store-only'
+            text: '@context-action/core',
+            items: [
+              {
+                text: 'ActionRegister',
+                link: '/ko/api/core/action-register'
+              },
+              {
+                text: 'PipelineController',
+                link: '/ko/api/core/pipeline-controller'
+              }
+            ]
           },
           {
-            text: 'Action Only 메서드',
-            link: '/ko/api/action-only'
-          },
-          {
-            text: 'Store Manager',
-            link: '/ko/api/store-manager'
-          },
-          {
-            text: 'Action Registry',
-            link: '/ko/api/action-registry'
+            text: '@context-action/react',
+            items: [
+              {
+                text: 'Action Context',
+                link: '/ko/api/react/action-context'
+              },
+              {
+                text: 'Store Pattern',
+                link: '/ko/api/react/store-pattern'
+              },
+              {
+                text: 'Store Manager',
+                link: '/ko/api/react/store-manager'
+              }
+            ]
           }
         ]
       },
       {
         text: 'LLMs',
-        link: '/ko/llms/llms.txt'
+        link: '/ko/llms/'
       }
     ]
   }

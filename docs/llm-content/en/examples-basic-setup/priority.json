@@ -1,0 +1,120 @@
+{
+  "$schema": "../../priority-schema.json",
+  "document": {
+    "id": "examples-basic-setup",
+    "title": "Basic Setup Examples",
+    "source_path": "examples/basic-setup.md",
+    "category": "example",
+    "subcategory": "getting-started"
+  },
+  "priority": {
+    "score": 75,
+    "tier": "important",
+    "rationale": "Practical examples showing how to set up the framework - essential for implementation"
+  },
+  "purpose": {
+    "primary_goal": "Provide step-by-step setup examples for both main patterns",
+    "target_audience": ["beginners", "intermediate", "framework-users"],
+    "use_cases": [
+      "First implementation attempt",
+      "Quick setup reference",
+      "Pattern comparison through examples",
+      "Copy-paste starting points"
+    ],
+    "dependencies": ["guide-concepts", "api-action-only", "api-declarative-store-pattern"]
+  },
+  "keywords": {
+    "primary": [
+      "basic setup",
+      "getting started",
+      "implementation examples",
+      "pattern setup",
+      "quick start"
+    ],
+    "technical": [
+      "createActionContext",
+      "createDeclarativeStorePattern", 
+      "ActionProvider",
+      "Provider setup",
+      "hook usage"
+    ],
+    "patterns": [
+      "Action Only setup",
+      "Store Only setup",
+      "Pattern Composition",
+      "Provider pattern",
+      "Hook patterns"
+    ],
+    "avoid": [
+      "complex business logic",
+      "advanced features",
+      "optimization techniques"
+    ]
+  },
+  "extraction": {
+    "strategy": "example-first",
+    "character_limits": {
+      "100": {
+        "focus": "Simplest possible setup",
+        "structure": "One-line setup description",
+        "must_include": ["basic setup", "both patterns"],
+        "avoid": ["code details", "explanations"],
+        "example_structure": "Basic setup examples for Action Only and Store Only patterns"
+      },
+      "300": {
+        "focus": "Key setup steps for both patterns",
+        "structure": "Setup steps + minimal code + key points",
+        "must_include": ["both pattern setups", "provider setup", "basic usage"],
+        "avoid": ["full code examples", "detailed explanations"],
+        "example_structure": "Action pattern setup → Store pattern setup → Key usage points"
+      },
+      "1000": {
+        "focus": "Complete setup examples with code",
+        "structure": "Full setup examples + code + explanations + usage",
+        "must_include": ["complete setup code", "both patterns", "provider examples", "hook usage"],
+        "avoid": ["business logic", "advanced features"],
+        "example_structure": "Complete Action setup → Complete Store setup → Usage examples"
+      },
+      "2000": {
+        "focus": "Comprehensive setup guide with variations",
+        "structure": "Full examples + variations + best practices + common patterns",
+        "must_include": ["multiple setup variations", "best practices", "common patterns", "troubleshooting"],
+        "avoid": ["unrelated features", "deep API details"],
+        "example_structure": "Full setups → Variations → Best practices → Common patterns"
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "Action Only setup example",
+        "Store Only setup example",
+        "Provider configuration",
+        "Basic hook usage",
+        "Import statements"
+      ],
+      "nice_to_have": [
+        "TypeScript setup",
+        "Common variations",
+        "Setup troubleshooting"
+      ]
+    }
+  },
+  "quality": {
+    "completeness_threshold": 0.8,
+    "code_examples_required": true,
+    "consistency_checks": [
+      "code_style",
+      "naming_conventions",
+      "pattern_usage"
+    ]
+  },
+  "metadata": {
+    "created": "2025-08-14",
+    "version": "1.0",
+    "original_size": 8450,
+    "estimated_extraction_time": {
+      "300": "20 minutes",
+      "1000": "40 minutes",
+      "2000": "60 minutes"
+    }
+  }
+}
