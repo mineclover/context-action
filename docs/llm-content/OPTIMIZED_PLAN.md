@@ -120,6 +120,57 @@ pnpm docs:priority:worklist      # 작업 목록 (점수순)
 pnpm docs:priority info [doc-id] # 특정 문서 정보
 ```
 
+## 🎯 LLM 조합 구현 전략
+
+### 자동 조합 시스템 구현
+현재 스크립트 시스템을 기반으로 한 **적응형 LLM 조합 엔진** 구현:
+
+#### `generate-llms.js` 확장 계획
+```javascript
+// 적응형 조합 함수 추가 예시
+function generateAdaptiveContent(targetCharCount) {
+  // 1단계: 100자 기본 목차 (우선순위 순서)
+  const baseContent = combineByPriority(documents, 100);
+  
+  // 2단계: 여유분 계산
+  const remainingChars = targetCharCount - baseContent.length;
+  
+  // 3단계: 우선순위별 확장
+  const expandedContent = expandByPriority(documents, remainingChars);
+  
+  // 4단계: 동적 조정
+  return adjustToTarget(expandedContent, targetCharCount);
+}
+```
+
+#### 조합 품질 검증 시스템
+- **실시간 글자수 계산**: YAML 제외한 순수 콘텐츠만
+- **중복 제거 엔진**: 동일 개념/예제 자동 감지 및 통합
+- **일관성 검증**: 용어, 패턴, 링크 연결 상태 확인
+- **품질 스코어**: 완성도, 균형성, 실용성 자동 평가
+
+### 🔄 조합 전략 자동화
+
+#### 단계별 자동 선택 로직
+```
+1. 요청 글자수 분석
+   ├─ 3K 미만: 핵심 문서 선별 전략
+   ├─ 3K-10K: 단계적 확장 전략  
+   ├─ 10K-20K: 체계적 확장 전략
+   └─ 20K 초과: 포괄적 확장 전략
+
+2. 문서 우선순위 매트릭스 적용
+   ├─ Critical (90-100점): 항상 우선 포함
+   ├─ Essential (80-89점): 글자수 여유 시 포함
+   ├─ Important (60-79점): 충분한 여유 시 포함
+   └─ Reference (40-59점): 대용량 요청 시만 포함
+
+3. 동적 크기 조정
+   ├─ 100자 → 300자 → 500자 → 1000자 순서
+   ├─ 글자수 부족 시: 다음 우선순위 문서 추가
+   └─ 글자수 초과 시: 낮은 우선순위 문서 축소
+```
+
 ## 🚀 작업 계획
 
 ### Phase 1: Critical 문서 Minimum 파일 작성 (1-2일)
