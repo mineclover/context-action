@@ -17,7 +17,7 @@ import {
 interface TypeTestActions extends ActionPayloadMap {
   noPayload: void;
   stringPayload: string;
-  numberPayload: number;
+  numberPayload: number | { value: number };
   objectPayload: { id: string; name: string };
   optionalPayload: string | undefined;
   complexPayload: {

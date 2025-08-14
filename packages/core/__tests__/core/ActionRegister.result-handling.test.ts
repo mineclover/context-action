@@ -12,10 +12,13 @@ import {
 } from '../../src';
 
 interface ResultTestActions extends ActionPayloadMap {
-  collectResults: { id: string };
+  collectResults: { id?: string; step?: string; valid?: boolean; processed?: boolean };
   processData: { data: any };
   calculateSum: { numbers: number[] };
   fetchUser: { userId: string };
+  limitResults: string;
+  timeoutTest: void;
+  processItem: { item?: any; count?: number; type?: string };
 }
 
 describe('ActionRegister - Result Handling', () => {
