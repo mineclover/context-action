@@ -1,9 +1,7 @@
 {
   "entryPoints": [
     "./packages/core/src/index.ts",
-    "./packages/logger/src/index.ts",
-    "./packages/react/src/index.ts",
-    "./packages/jotai/src/index.tsx"
+    "./packages/react/src/index.ts"
   ],
   "tsconfig": "./tsconfig.json",
   "out": "./docs/api/generated",
