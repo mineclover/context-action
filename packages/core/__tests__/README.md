@@ -6,17 +6,21 @@ High-quality, comprehensive test suite for `@context-action/core` package.
 
 ```
 __tests__/
-├── simple-working.test.ts          # Basic functionality verification
+├── simple-working.test.ts          # Basic functionality verification (5 tests)
 ├── production/                     # Production-ready comprehensive tests
-│   └── ActionRegister.production.test.ts       # Complete feature coverage
-├── working/                        # Developmental tests (some may fail)
-├── comprehensive/                  # Advanced feature tests (experimental)
-├── final/                          # Final integration tests
-├── types/                          # TypeScript configuration tests
+│   └── ActionRegister.production.test.ts       # Complete feature coverage (22 tests)
+├── feature-coverage/               # Individual method and feature tests
+│   └── ActionRegister.features.test.ts        # All method coverage (22 tests)
+├── working/                        # Developmental tests (archived)
+├── comprehensive/                  # Advanced feature tests (archived)
+├── edge-cases/                     # Edge case and boundary tests (archived)
+├── performance/                    # Performance and stress tests (archived)  
+├── type-safety/                    # Type safety tests (archived)
+├── individual-features/            # Individual feature tests (archived)
 └── tsconfig.json                   # TypeScript configuration for tests
 ```
 
-## Test Categories
+## Active Test Suites (49 Total Tests)
 
 ### ✅ Production Test Suite (`production/ActionRegister.production.test.ts`)
 
@@ -59,6 +63,46 @@ __tests__/
 #### 🔄 Real-world Integration Scenarios (2 tests)
 - **Authentication Workflow**: Complete user auth pipeline with validation, rate limiting, authentication, and audit logging
 - **File Processing Pipeline**: File upload with validation, scanning, storage, and metadata extraction
+
+### ✅ Feature Coverage Test Suite (`feature-coverage/ActionRegister.features.test.ts`)
+
+**22 individual method and feature tests covering:**
+
+#### 📋 Registry Management Methods (5 tests)
+- **Registration & Unregistration**: Handler lifecycle management with proper cleanup
+- **Multiple Handler Priority**: Priority-based execution order (highest first)
+- **Duplicate ID Replacement**: Handler replacement with same ID
+- **Action Statistics**: Detailed stats with handler counts and metadata
+- **Registry Cleanup**: Complete handler and action clearing
+
+#### 🎯 Dispatch Operations (4 tests)  
+- **Multi-type Payloads**: Object, void, number, string, array payload dispatching
+- **Graceful Handling**: No-handler scenarios handled without errors
+- **Execution Results**: Detailed result structure with timing and statistics
+- **Result Collection**: Multi-handler result aggregation
+
+#### 🎛️ Pipeline Controller Features (4 tests)
+- **Payload Modification**: Inter-handler payload transformation
+- **Pipeline Abortion**: Controlled pipeline termination with reasons
+- **Result Management**: setResult/getResults controller methods
+- **Payload Access**: Current payload retrieval via getPayload
+
+#### ⚙️ Handler Configuration Options (3 tests)
+- **Once Handlers**: Single execution with auto-cleanup
+- **Conditional Logic**: Controller-based condition handling
+- **Handler Metadata**: ID assignment and metadata storage
+
+#### 🔧 Execution Mode Management (2 tests)
+- **Mode Configuration**: Sequential, parallel, race mode management per action
+- **Dispatch Overrides**: Temporary execution mode overrides
+
+#### 🚨 Error Handling and Recovery (2 tests)
+- **Error Resilience**: Graceful handling of sync/async handler errors
+- **Execution Statistics**: Detailed stats even with handler failures
+
+#### ⚡ Async and Performance Features (2 tests)
+- **Promise Support**: Async handler execution and Promise handling
+- **Mixed Execution**: Sync and async handler coordination
 
 ### 🧪 Simple Working Tests (`simple-working.test.ts`)
 
