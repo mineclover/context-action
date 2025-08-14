@@ -4,7 +4,8 @@
   "npmClient": "pnpm",
   "packages": [
     "packages/core",
-    "packages/react"
+    "packages/react",
+    "packages/llms-generator"
   ],
   "command": {
     "version": {

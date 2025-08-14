@@ -23,7 +23,7 @@ const __dirname = path.dirname(__filename);
 
 const DOCS_DIR = path.join(__dirname, '../docs');
 const LLM_CONTENT_DIR = path.join(__dirname, '../docs/llm-content');
-const OUTPUT_DIR = path.join(DOCS_DIR, 'en/llms');
+// OUTPUT_DIR will be dynamically set based on language
 
 class AdaptiveLLMGenerator {
   constructor() {
@@ -144,7 +144,7 @@ class AdaptiveLLMGenerator {
       content += `**Priority**: ${doc.priority} (${doc.tier})  \n\n`;
       
       // Try to read original source file
-      const originalContent = this.readOriginalDocument(doc.source);
+      const originalContent = this.readOriginalDocument(doc.source, language);
       if (originalContent) {
         // Remove YAML frontmatter if present
         const cleanContent = this.removeYAMLFrontmatter(originalContent);
@@ -163,10 +163,10 @@ class AdaptiveLLMGenerator {
   /**
    * Read original document from docs directory
    */
-  readOriginalDocument(sourcePath) {
+  readOriginalDocument(sourcePath, language = 'en') {
     if (!sourcePath) return null;
     
-    const fullPath = path.join(DOCS_DIR, 'en', sourcePath);
+    const fullPath = path.join(DOCS_DIR, language, sourcePath);
     
     try {
       return fs.readFileSync(fullPath, 'utf-8');
@@ -299,13 +299,16 @@ This collection includes all original documentation content from the Context-Act
   /**
    * Write content to output file
    */
-  writeOutput(content, filename) {
+  writeOutput(content, filename, language = 'en') {
+    // Create language-specific output directory
+    const outputDir = path.join(DOCS_DIR, language, 'llms');
+    
     // Ensure output directory exists
-    if (!fs.existsSync(OUTPUT_DIR)) {
-      fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
     }
     
-    const outputPath = path.join(OUTPUT_DIR, filename);
+    const outputPath = path.join(outputDir, filename);
     fs.writeFileSync(outputPath, content, 'utf-8');
     
     const sizeKB = (content.length / 1024).toFixed(1);
@@ -349,7 +352,7 @@ This collection includes all original documentation content from the Context-Act
         throw new Error(`Unknown type: ${type}`);
     }
     
-    return this.writeOutput(content, filename);
+    return this.writeOutput(content, filename, language);
   }
 }
 

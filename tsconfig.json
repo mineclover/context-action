@@ -23,6 +23,7 @@
   "references": [
     { "path": "./packages/core" },
     { "path": "./packages/react" },
+    { "path": "./packages/llms-generator" },
     { "path": "./example" }
   ],
   "files": []

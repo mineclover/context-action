@@ -1,0 +1,54 @@
+# Context-Action Framework - Document Navigation
+
+Generated: 2025-08-14
+Type: Minimum (Navigation Links)
+
+This document provides quick navigation links to all Context-Action framework documentation, organized by priority tiers.
+
+
+## Critical Documents (3)
+
+- [Guide Concepts](https://mineclover.github.io/context-action/ko/guide/concepts) - Priority: 100
+- [Guide Overview](https://mineclover.github.io/context-action/ko/guide/overview) - Priority: 100
+- [Guide Quick Start](https://mineclover.github.io/context-action/ko/guide/quick-start) - Priority: 95
+
+## Essential Documents (14)
+
+- [Guide Action Handlers](https://mineclover.github.io/context-action/ko/guide/action-handlers) - Priority: 80
+- [Guide Best Practices](https://mineclover.github.io/context-action/ko/guide/best-practices) - Priority: 80
+- [Guide Common Pitfalls](https://mineclover.github.io/context-action/ko/guide/common-pitfalls) - Priority: 80
+- [Guide Cross Domain Integration](https://mineclover.github.io/context-action/ko/guide/cross-domain-integration) - Priority: 80
+- [Guide Domain Hooks Pattern](https://mineclover.github.io/context-action/ko/guide/domain-hooks-pattern) - Priority: 80
+- [Guide Error Handling](https://mineclover.github.io/context-action/ko/guide/error-handling) - Priority: 80
+- [Guide Handler Id Strategies](https://mineclover.github.io/context-action/ko/guide/handler-id-strategies) - Priority: 80
+- [Guide Mvvm Architecture](https://mineclover.github.io/context-action/ko/guide/mvvm-architecture) - Priority: 80
+- [Guide Performance](https://mineclover.github.io/context-action/ko/guide/performance) - Priority: 80
+- [Guide Philosophy](https://mineclover.github.io/context-action/ko/guide/philosophy) - Priority: 80
+- [Guide Provider Composition](https://mineclover.github.io/context-action/ko/guide/provider-composition) - Priority: 80
+- [Guide React Integration](https://mineclover.github.io/context-action/ko/guide/react-integration) - Priority: 80
+- [Guide Setup Usage](https://mineclover.github.io/context-action/ko/guide/setup-usage) - Priority: 80
+- [Guide Store Management](https://mineclover.github.io/context-action/ko/guide/store-management) - Priority: 80
+
+## Reference Documents (1)
+
+- [Index](https://mineclover.github.io/context-action/ko/index) - Priority: 50
+
+
+## Usage Notes
+
+- **Critical**: Essential documents for understanding the framework
+- **Essential**: Important guides and API references  
+- **Important**: Valuable reference material
+- **Reference**: Advanced and supplementary content
+
+## Quick Start Path
+
+For first-time users, follow this recommended reading order:
+1. Core Concepts (Critical)
+2. Getting Started (Critical)  
+3. Pattern Guide (Essential)
+4. API Reference (Essential)
+
+---
+
+*Generated automatically from llm-content structure*
