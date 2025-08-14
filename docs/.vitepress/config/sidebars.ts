@@ -1,13 +1,13 @@
 /**
- * Sidebar Configuration - Updated for new documentation structure
- * DOCUMENTATION_GUIDELINES.md에 맞춘 새로운 문서 구조
+ * Sidebar Configuration - Unified structure based on concept documents
+ * Clean, focused documentation with 6 essential guides (21→6 file reduction)
  */
 
 import type { DefaultTheme } from 'vitepress'
 
 export type SidebarLocale = 'en' | 'ko'
 
-// Concept 문서 기반으로 간소화된 가이드 구조
+// Concept-based simplified guide structure
 const GUIDE_STRUCTURE = {
   en: {
     // 1. Essential Guides - concept 문서 기반
@@ -19,15 +19,7 @@ const GUIDE_STRUCTURE = {
         { text: 'Architecture', link: '/en/guide/architecture' },
         { text: 'Action Pipeline', link: '/en/guide/action-pipeline' },
         { text: 'React Hooks', link: '/en/guide/hooks' },
-        { text: 'Best Practices', link: '/en/guide/best-practices' }
-      ]
-    },
-    
-    // 2. Legacy Support - 남은 파일들
-    remaining: {
-      text: '📖 Additional Guides',
-      collapsed: true,
-      items: [
+        { text: 'Best Practices', link: '/en/guide/best-practices' },
         { text: 'Action Handlers', link: '/en/guide/action-handlers' }
       ]
     }
@@ -43,15 +35,7 @@ const GUIDE_STRUCTURE = {
         { text: '아키텍처', link: '/ko/guide/architecture' },
         { text: '액션 파이프라인', link: '/ko/guide/action-pipeline' },
         { text: 'React 훅', link: '/ko/guide/hooks' },
-        { text: '모범 사례', link: '/ko/guide/best-practices' }
-      ]
-    },
-    
-    // 2. 추가 가이드 - 남은 파일들
-    remaining: {
-      text: '📖 추가 가이드',
-      collapsed: true,
-      items: [
+        { text: '모범 사례', link: '/ko/guide/best-practices' },
         { text: '액션 핸들러', link: '/ko/guide/action-handlers' }
       ]
     }
@@ -221,8 +205,7 @@ export function createSidebars(locale: SidebarLocale): DefaultTheme.Config['side
   return {
     // Guide 섹션 - concept 기반으로 간소화
     [`/${locale}/guide/`]: [
-      guide.essentials,
-      guide.remaining
+      guide.essentials
     ],
     
     // Concept 섹션 - CLAUDE.md에서 중요하게 언급된 핵심 문서들
@@ -249,8 +232,7 @@ export function createSidebars(locale: SidebarLocale): DefaultTheme.Config['side
     
     // 기본 경로는 Guide로 리다이렉트
     [`/${locale}/`]: [
-      guide.essentials,
-      guide.remaining
+      guide.essentials
     ]
   }
 }
