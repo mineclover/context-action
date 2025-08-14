@@ -150,7 +150,7 @@ export interface UserBusinessData {
   };
 }
 
-// Define action interface
+// Define action interface (ActionPayloadMap optional)
 export interface UserBusinessActions {
   updateProfile: {
     data: Partial<UserBusinessData['profile']>;
@@ -160,6 +160,8 @@ export interface UserBusinessActions {
 }
 
 // Create domain-specific store hooks
+
+// Option 1: Type inference (current approach)
 export const {
   Provider: UserBusinessStoreProvider,
   useStore: useUserBusinessStore,
@@ -179,6 +181,25 @@ export const {
       theme: 'light',
       language: 'en'
     }
+  }
+});
+
+// Option 2: Explicit generic types (new approach)
+export const {
+  Provider: UserBusinessStoreProvider,
+  useStore: useUserBusinessStore,
+  useStoreManager: useUserBusinessStoreManager,
+  useStoreInfo: useUserBusinessStoreInfo
+} = createDeclarativeStorePattern<UserBusinessData>('UserBusiness', {
+  profile: {
+    id: '',
+    name: '',
+    email: '',
+    role: 'guest'
+  },
+  preferences: {
+    theme: 'light',
+    language: 'en'
   }
 });
 

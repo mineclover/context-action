@@ -36,7 +36,7 @@ const userStore = UserStores.useStore('profile'); // 도메인이 불분명
 
 #### ✅ Action Pattern 리네이밍
 ```tsx
-// ✅ 권장: 도메인별 리네이밍
+// ✅ 권장: 도메인별 리네이밍 (제네릭 타입 명시)
 const {
   Provider: UserActionProvider,
   useActionDispatch: useUserAction,
@@ -189,12 +189,30 @@ userProvider.tsx      // camelCase 대신 PascalCase
 // - 캐시된 데이터 관리
 // - UI 상태 (모달, 토글 등)
 
+// 방법 1: 타입 추론 (현재 방식)
 const {
   Provider: SettingsStoreProvider,
   useStore: useSettingsStore,
   useStoreManager: useSettingsStoreManager
 } = createDeclarativeStorePattern('Settings', {
   theme: 'light' as 'light' | 'dark',
+  language: 'ko',
+  notifications: true
+});
+
+// 방법 2: 명시적 제네릭 타입 (새로운 방식)
+interface SettingsStoreTypes {
+  theme: 'light' | 'dark';
+  language: string;
+  notifications: boolean;
+}
+
+const {
+  Provider: SettingsStoreProvider,
+  useStore: useSettingsStore,
+  useStoreManager: useSettingsStoreManager
+} = createDeclarativeStorePattern<SettingsStoreTypes>('Settings', {
+  theme: 'light',  // 타입이 SettingsStoreTypes에서 추론됨
   language: 'ko',
   notifications: true
 });
@@ -278,22 +296,29 @@ function UserProvider({ children }: { children: React.ReactNode }) {
 
 #### Action Payload Map
 ```tsx
-// ✅ 권장: 도메인 + Actions 패턴
+// ✅ 권장: 도메인 + Actions 패턴 (ActionPayloadMap 확장)
 interface UserActions extends ActionPayloadMap {
   updateProfile: { id: string; data: Partial<UserProfile> };
   deleteAccount: { id: string; reason?: string };
   refreshToken: void;
 }
 
-interface PaymentActions extends ActionPayloadMap {
+// ✅ 권장: 도메인 + Actions 패턴 (단순 인터페이스 - 미래 방식)
+interface UserActions {
+  updateProfile: { id: string; data: Partial<UserProfile> };
+  deleteAccount: { id: string; reason?: string };
+  refreshToken: void;
+}
+
+interface PaymentActions {
   processPayment: { amount: number; method: string };
   refundPayment: { transactionId: string };
   validateCard: { cardNumber: string };
 }
 
 // ❌ 지양
-interface Actions extends ActionPayloadMap { ... }  // 너무 포괄적
-interface UserActionTypes { ... }                  // ActionPayloadMap 미확장
+interface Actions { ... }           // 너무 포괄적
+interface UserActionTypes { ... }   // 일관성 없는 이름
 ```
 
 #### Store Data Interface
@@ -343,11 +368,40 @@ interface Product extends BaseEntity {
   category: string;
 }
 
-// Store 정의에서 활용
-const createUserStore = () => createDeclarativeStorePattern('User', {
+// Store 정의에서 활용 - 방법 1: 타입 추론
+const {
+  Provider: UserStoreProvider,
+  useStore: useUserStore
+} = createDeclarativeStorePattern('User', {
   users: { initialValue: [] as User[] },
   currentUser: { initialValue: null as User | null }
 });
+
+// Store 정의에서 활용 - 방법 2: 명시적 제네릭
+interface UserStoreTypes {
+  users: User[];
+  currentUser: User | null;
+}
+
+const {
+  Provider: UserStoreProvider,
+  useStore: useUserStore
+} = createDeclarativeStorePattern<UserStoreTypes>('User', {
+  users: [],  // UserStoreTypes에서 타입 추론
+  currentUser: null
+});
+
+// Action 정의에서 활용
+interface UserActions {
+  createUser: { userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'> };
+  updateUser: { id: string; updates: Partial<User> };
+  deleteUser: { id: string };
+}
+
+const {
+  Provider: UserActionProvider,
+  useActionDispatch: useUserAction
+} = createActionContext<UserActions>('UserActions');
 ```
 
 ---
