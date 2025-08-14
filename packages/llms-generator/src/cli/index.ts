@@ -5,7 +5,8 @@
  */
 
 import path from 'path';
-import { LLMSGenerator, PriorityGenerator, SchemaGenerator, DEFAULT_CONFIG } from '../index.js';
+import { LLMSGenerator, PriorityGenerator, SchemaGenerator, MarkdownGenerator, ContentExtractor, AdaptiveComposer, DEFAULT_CONFIG } from '../index.js';
+import { WorkStatusManager } from '../core/WorkStatusManager.js';
 
 async function main() {
   const args = process.argv.slice(2);
@@ -22,6 +23,10 @@ async function main() {
     const generator = new LLMSGenerator(config);
     const priorityGenerator = new PriorityGenerator(config);
     const schemaGenerator = new SchemaGenerator(config);
+    const markdownGenerator = new MarkdownGenerator(config);
+    const contentExtractor = new ContentExtractor(config);
+    const adaptiveComposer = new AdaptiveComposer(config);
+    const workStatusManager = new WorkStatusManager(config);
     
     switch (command) {
       case 'minimum':
@@ -40,6 +45,39 @@ async function main() {
           formats: ['origin']
         });
         console.log('✅ Origin content generated!');
+        break;
+        
+      case 'chars':
+        const charsLimit = parseInt(args[1]);
+        const charsLanguage = args[2] || 'en';
+        
+        if (!charsLimit || charsLimit <= 0) {
+          console.error('❌ Invalid character limit. Usage: chars <limit> [language]');
+          process.exit(1);
+        }
+        
+        console.log(`📏 Generating ${charsLimit}-character content for ${charsLanguage}...`);
+        await generator.generate({
+          languages: [charsLanguage],
+          formats: ['chars'],
+          characterLimits: [charsLimit]
+        });
+        console.log(`✅ ${charsLimit}-character content generated!`);
+        break;
+        
+      case 'batch':
+        const batchLanguages = args.find(arg => arg.startsWith('--lang='))?.split('=')[1]?.split(',') || ['en'];
+        const batchLimits = args.find(arg => arg.startsWith('--chars='))?.split('=')[1]?.split(',').map(Number) || [300, 1000, 2000];
+        
+        console.log(`🚀 Batch generating for languages: ${batchLanguages.join(', ')}`);
+        console.log(`📏 Character limits: ${batchLimits.join(', ')}`);
+        
+        await generator.generate({
+          languages: batchLanguages,
+          formats: ['minimum', 'origin', 'chars'],
+          characterLimits: batchLimits
+        });
+        console.log('✅ Batch generation completed!');
         break;
         
       case 'priority-generate':
@@ -182,6 +220,366 @@ async function main() {
         console.log(`  Output directory: ${config.paths.outputDir}`);
         break;
         
+      case 'markdown-generate':
+        const mdLanguage = args[1] || 'en';
+        const mdDryRun = args.includes('--dry-run');
+        const mdOverwrite = args.includes('--overwrite');
+        const mdCharLimits = args.find(arg => arg.startsWith('--chars='))?.split('=')[1]?.split(',').map(Number) || [100, 300, 1000, 2000];
+        
+        console.log(`📝 ${mdDryRun ? '[DRY RUN] ' : ''}Generating markdown files for language: ${mdLanguage}`);
+        console.log(`📏 Character limits: ${mdCharLimits.join(', ')}`);
+        
+        const mdResult = await markdownGenerator.generateByCharacterLimits(mdLanguage, mdCharLimits, {
+          dryRun: mdDryRun,
+          overwrite: mdOverwrite
+        });
+        
+        console.log('\n📊 Generation Summary:');
+        console.log(`  Total generated: ${mdResult.summary.totalGenerated}`);
+        console.log(`  Total errors: ${mdResult.summary.totalErrors}`);
+        console.log(`  By character limit:`);
+        Object.entries(mdResult.summary.byCharacterLimit).forEach(([limit, count]) => {
+          console.log(`    ${limit}chars: ${count} files`);
+        });
+        
+        if (mdResult.errors.length > 0) {
+          console.log('\n❌ Errors:');
+          mdResult.errors.forEach(error => {
+            console.log(`  ${error}`);
+          });
+        }
+        break;
+        
+      case 'markdown-all':
+        const allLanguages = args.find(arg => arg.startsWith('--lang='))?.split('=')[1]?.split(',') || ['en', 'ko'];
+        const allDryRun = args.includes('--dry-run');
+        const allOverwrite = args.includes('--overwrite');
+        
+        console.log(`📝 ${allDryRun ? '[DRY RUN] ' : ''}Generating all markdown files for languages: ${allLanguages.join(', ')}`);
+        
+        const allResult = await markdownGenerator.generateMarkdownFiles({
+          languages: allLanguages,
+          dryRun: allDryRun,
+          overwrite: allOverwrite
+        });
+        
+        console.log('\n📊 Generation Summary:');
+        console.log(`  Total generated: ${allResult.summary.totalGenerated}`);
+        console.log(`  Total errors: ${allResult.summary.totalErrors}`);
+        console.log(`  By language:`);
+        Object.entries(allResult.summary.byLanguage).forEach(([lang, count]) => {
+          console.log(`    ${lang}: ${count} files`);
+        });
+        console.log(`  By character limit:`);
+        Object.entries(allResult.summary.byCharacterLimit).forEach(([limit, count]) => {
+          console.log(`    ${limit}chars: ${count} files`);
+        });
+        
+        if (allResult.errors.length > 0) {
+          console.log('\n❌ Errors:');
+          allResult.errors.forEach(error => {
+            console.log(`  ${error}`);
+          });
+        }
+        break;
+        
+      case 'extract':
+        const extractLanguage = args[1] || 'en';
+        const extractDryRun = args.includes('--dry-run');
+        const extractOverwrite = args.includes('--overwrite');
+        const extractCharLimits = args.find(arg => arg.startsWith('--chars='))?.split('=')[1]?.split(',').map(Number) || [100, 300, 1000, 2000];
+        
+        console.log(`📝 ${extractDryRun ? '[DRY RUN] ' : ''}Extracting content summaries for language: ${extractLanguage}`);
+        console.log(`📏 Character limits: ${extractCharLimits.join(', ')}`);
+        
+        const extractResult = await contentExtractor.extractByCharacterLimits(extractLanguage, extractCharLimits, {
+          dryRun: extractDryRun,
+          overwrite: extractOverwrite
+        });
+        
+        console.log('\n📊 Extraction Summary:');
+        console.log(`  Total extracted: ${extractResult.summary.totalGenerated}`);
+        console.log(`  Total errors: ${extractResult.summary.totalErrors}`);
+        console.log(`  By character limit:`);
+        Object.entries(extractResult.summary.byCharacterLimit).forEach(([limit, count]) => {
+          console.log(`    ${limit}chars: ${count} files`);
+        });
+        
+        if (extractResult.errors.length > 0) {
+          console.log('\n❌ Errors:');
+          extractResult.errors.forEach(error => {
+            console.log(`  ${error}`);
+          });
+        }
+        break;
+        
+      case 'extract-all':
+        const extractAllLanguages = args.find(arg => arg.startsWith('--lang='))?.split('=')[1]?.split(',') || ['en', 'ko'];
+        const extractAllDryRun = args.includes('--dry-run');
+        const extractAllOverwrite = args.includes('--overwrite');
+        
+        console.log(`📝 ${extractAllDryRun ? '[DRY RUN] ' : ''}Extracting all content summaries for languages: ${extractAllLanguages.join(', ')}`);
+        
+        const extractAllResult = await contentExtractor.extractContentSummaries({
+          languages: extractAllLanguages,
+          dryRun: extractAllDryRun,
+          overwrite: extractAllOverwrite
+        });
+        
+        console.log('\n📊 Extraction Summary:');
+        console.log(`  Total extracted: ${extractAllResult.summary.totalGenerated}`);
+        console.log(`  Total errors: ${extractAllResult.summary.totalErrors}`);
+        console.log(`  By language:`);
+        Object.entries(extractAllResult.summary.byLanguage).forEach(([lang, count]) => {
+          console.log(`    ${lang}: ${count} files`);
+        });
+        console.log(`  By character limit:`);
+        Object.entries(extractAllResult.summary.byCharacterLimit).forEach(([limit, count]) => {
+          console.log(`    ${limit}chars: ${count} files`);
+        });
+        
+        if (extractAllResult.errors.length > 0) {
+          console.log('\n❌ Errors:');
+          extractAllResult.errors.forEach(error => {
+            console.log(`  ${error}`);
+          });
+        }
+        break;
+
+      case 'compose':
+        const composeLanguage = args[1] || 'ko';
+        const composeCharLimit = parseInt(args[2]) || 5000;
+        const composeDryRun = args.includes('--dry-run');
+        const composeNoToc = args.includes('--no-toc');
+        const composePriorityThreshold = parseInt(args.find(arg => arg.startsWith('--priority='))?.split('=')[1] || '0');
+        
+        console.log(`🎯 ${composeDryRun ? '[DRY RUN] ' : ''}Composing adaptive content for language: ${composeLanguage}`);
+        console.log(`📏 Character limit: ${composeCharLimit}`);
+        console.log(`📋 Table of contents: ${composeNoToc ? 'disabled' : 'enabled'}`);
+        console.log(`⭐ Priority threshold: ${composePriorityThreshold}`);
+        
+        if (!composeDryRun) {
+          const composeResult = await adaptiveComposer.composeAdaptiveContent({
+            language: composeLanguage,
+            characterLimit: composeCharLimit,
+            includeTableOfContents: !composeNoToc,
+            priorityThreshold: composePriorityThreshold
+          });
+          
+          console.log('\\n📊 Composition Summary:');
+          console.log(`  Target characters: ${composeResult.summary.targetCharacters}`);
+          console.log(`  Actual characters: ${composeResult.summary.totalCharacters}`);
+          console.log(`  Utilization: ${composeResult.summary.utilization.toFixed(1)}%`);
+          console.log(`  Documents included: ${composeResult.summary.documentsIncluded}`);
+          console.log(`  TOC characters: ${composeResult.summary.tocCharacters}`);
+          console.log(`  Content characters: ${composeResult.summary.contentCharacters}`);
+          
+          console.log('\\n📑 Documents included:');
+          composeResult.documents.forEach(doc => {
+            console.log(`  - ${doc.title} (priority: ${doc.priority}, ${doc.actualCharacters} chars, ${doc.characterLimit} limit)`);
+          });
+          
+          console.log('\\n📝 Generated Content:');
+          console.log('='.repeat(80));
+          console.log(composeResult.content);
+          console.log('='.repeat(80));
+        } else {
+          console.log('🔍 [DRY RUN] Would compose adaptive content with specified parameters');
+        }
+        break;
+
+      case 'compose-batch':
+        const batchComposeLanguage = args[1] || 'ko';
+        const batchComposeDryRun = args.includes('--dry-run');
+        const batchComposeCharLimits = args.find(arg => arg.startsWith('--chars='))?.split('=')[1]?.split(',').map(Number) || [1000, 3000, 5000, 10000];
+        
+        console.log(`🎯 ${batchComposeDryRun ? '[DRY RUN] ' : ''}Batch composing adaptive content for language: ${batchComposeLanguage}`);
+        console.log(`📏 Character limits: ${batchComposeCharLimits.join(', ')}`);
+        
+        if (!batchComposeDryRun) {
+          const batchResults = await adaptiveComposer.composeBatchContent(batchComposeLanguage, batchComposeCharLimits);
+          
+          console.log('\\n📊 Batch Composition Summary:');
+          for (const [limit, result] of batchResults) {
+            console.log(`\\n${limit} characters:`);
+            console.log(`  Utilization: ${result.summary.utilization.toFixed(1)}%`);
+            console.log(`  Documents: ${result.summary.documentsIncluded}`);
+            console.log(`  TOC/Content: ${result.summary.tocCharacters}/${result.summary.contentCharacters}`);
+          }
+        } else {
+          console.log('🔍 [DRY RUN] Would compose adaptive content for all specified character limits');
+        }
+        break;
+
+      case 'compose-stats':
+        const statsComposeLanguage = args[1] || 'ko';
+        console.log(`📊 Composition Statistics for language: ${statsComposeLanguage}\\n`);
+        
+        const composeStats = await adaptiveComposer.getCompositionStats(statsComposeLanguage);
+        
+        console.log(`Total documents: ${composeStats.totalDocuments}`);
+        console.log(`Documents with content: ${composeStats.documentsWithContent}`);
+        console.log(`Average priority: ${composeStats.averagePriority.toFixed(1)}`);
+        console.log(`Available character limits: ${composeStats.availableCharacterLimits.join(', ')}`);
+        console.log(`Total content size: ${(composeStats.totalContentSize / 1024).toFixed(1)}KB`);
+        break;
+
+      // Work Status Management Commands
+      case 'work-status':
+        const workStatusLanguage = args[1] || 'ko';
+        const workStatusDocumentId = args[2];
+        const workStatusCharLimit = parseInt(args.find(arg => arg.startsWith('--chars='))?.split('=')[1] || '100');
+        const needEditOnly = args.includes('--need-edit');
+
+        if (workStatusDocumentId) {
+          // Show status for specific document
+          console.log(`📊 Work Status for ${workStatusDocumentId} (${workStatusLanguage})\n`);
+          
+          const workStatus = await workStatusManager.getWorkStatus(workStatusLanguage, workStatusDocumentId);
+          if (!workStatus) {
+            console.error(`❌ Document not found: ${workStatusDocumentId}`);
+            process.exit(1);
+          }
+
+          console.log(`Document: ${workStatus.documentId}`);
+          console.log(`Source: ${workStatus.sourceFile}`);
+          console.log(`Source modified: ${workStatus.sourceModified?.toISOString() || 'Unknown'}`);
+          console.log(`Last checked: ${workStatus.lastChecked?.toISOString() || 'Never'}`);
+          console.log(`Needs work: ${workStatus.needsWork ? '❌ Yes' : '✅ No'}\n`);
+
+          console.log('Generated files:');
+          for (const file of workStatus.generatedFiles) {
+            const status = file.exists ? '✅' : '❌';
+            const updateStatus = file.needsUpdate ? '⚠️ needs update' : '✅ up to date';
+            const editStatus = file.edited ? '✏️ edited' : '🤖 auto-generated';
+            const size = file.size ? `${Math.round(file.size / 1024 * 100) / 100}KB` : 'N/A';
+            
+            console.log(`  ${file.charLimit} chars: ${status} ${updateStatus} ${editStatus} (${size})`);
+            if (file.modified) {
+              console.log(`    Modified: ${file.modified.toISOString()}`);
+            }
+          }
+        } else {
+          // Update and show status for all documents
+          console.log(`📊 Updating work status for language: ${workStatusLanguage}...\n`);
+          
+          const updateResult = await workStatusManager.updateAllWorkStatus(workStatusLanguage);
+          console.log(`✅ Updated ${updateResult.updated} documents`);
+          
+          if (updateResult.errors.length > 0) {
+            console.log(`❌ ${updateResult.errors.length} errors:`);
+            updateResult.errors.forEach(error => {
+              console.log(`  ${error.documentId}: ${error.error}`);
+            });
+          }
+
+          // Show summary
+          const workList = await workStatusManager.listWorkNeeded(workStatusLanguage, {
+            characterLimit: workStatusCharLimit,
+            needsUpdate: needEditOnly
+          });
+
+          console.log(`\n📋 Documents needing work (${workStatusCharLimit} chars):`);
+          console.log(`Total: ${workList.length} documents\n`);
+
+          workList.forEach(work => {
+            const file = work.generatedFiles.find(f => f.charLimit === workStatusCharLimit);
+            const status = file?.exists ? (file.needsUpdate ? '⚠️' : '✅') : '❌';
+            console.log(`${status} ${work.documentId} - ${file?.exists ? 'needs update' : 'missing'}`);
+          });
+        }
+        break;
+
+      case 'work-context':
+        const contextLanguage = args[1] || 'ko';
+        const contextDocumentId = args[2];
+        const contextCharLimit = parseInt(args.find(arg => arg.startsWith('--chars='))?.split('=')[1] || '100');
+
+        if (!contextDocumentId) {
+          console.error('❌ Document ID required. Usage: work-context <lang> <document-id> [--chars=100]');
+          process.exit(1);
+        }
+
+        console.log(`📖 Work Context for ${contextDocumentId} (${contextCharLimit} chars)\n`);
+
+        const workContext = await workStatusManager.getWorkContext(contextLanguage, contextDocumentId, contextCharLimit);
+        if (!workContext) {
+          console.error(`❌ Document not found: ${contextDocumentId}`);
+          process.exit(1);
+        }
+
+        console.log(`Title: ${workContext.title}`);
+        console.log(`Document ID: ${workContext.documentId}`);
+        console.log(`Priority: ${workContext.priorityInfo.priority.score} (${workContext.priorityInfo.priority.tier})`);
+        console.log(`Strategy: ${workContext.priorityInfo.extraction.strategy}`);
+        
+        const focusInfo = workContext.priorityInfo.extraction.character_limits[contextCharLimit.toString()];
+        if (focusInfo) {
+          console.log(`Focus: ${focusInfo.focus}`);
+        }
+
+        console.log('\n' + '='.repeat(80));
+        console.log('SOURCE CONTENT:');
+        console.log('='.repeat(80));
+        console.log(workContext.sourceContent.slice(0, 2000) + (workContext.sourceContent.length > 2000 ? '\n...(truncated)' : ''));
+
+        console.log('\n' + '='.repeat(80));
+        console.log(`CURRENT SUMMARY (${contextCharLimit} chars):`);
+        console.log('='.repeat(80));
+        if (workContext.currentSummary) {
+          console.log(workContext.currentSummary);
+          console.log(`\nActual length: ${workContext.currentSummary.length} characters`);
+        } else {
+          console.log('❌ No summary exists yet');
+        }
+
+        console.log('\n' + '='.repeat(80));
+        console.log('WORK STATUS:');
+        console.log('='.repeat(80));
+        const targetFile = workContext.workStatus.generatedFiles.find(f => f.charLimit === contextCharLimit);
+        if (targetFile) {
+          console.log(`File exists: ${targetFile.exists ? '✅' : '❌'}`);
+          console.log(`Needs update: ${targetFile.needsUpdate ? '⚠️ Yes' : '✅ No'}`);
+          console.log(`Manual edit: ${targetFile.edited ? '✏️ Yes' : '🤖 No'}`);
+          if (targetFile.modified) {
+            console.log(`Last modified: ${targetFile.modified.toISOString()}`);
+          }
+        }
+        break;
+
+      case 'work-list':
+        const listLanguage = args[1] || 'ko';
+        const listCharLimit = parseInt(args.find(arg => arg.startsWith('--chars='))?.split('=')[1] || '100');
+        const listOutdated = args.includes('--outdated');
+        const listMissing = args.includes('--missing');
+        const listNeedsUpdate = args.includes('--need-update');
+
+        console.log(`📋 Work List for language: ${listLanguage} (${listCharLimit} chars)\n`);
+
+        const workList = await workStatusManager.listWorkNeeded(listLanguage, {
+          characterLimit: listCharLimit,
+          outdated: listOutdated,
+          missing: listMissing,
+          needsUpdate: listNeedsUpdate || (!listOutdated && !listMissing)
+        });
+
+        console.log(`Found ${workList.length} documents needing work:\n`);
+
+        workList.forEach(work => {
+          const file = work.generatedFiles.find(f => f.charLimit === listCharLimit);
+          const status = file?.exists ? (file.needsUpdate ? '⚠️' : '✅') : '❌';
+          const statusText = file?.exists ? (file.needsUpdate ? 'UPDATE' : 'OK') : 'MISSING';
+          const editedText = file?.edited ? '(edited)' : '(auto)';
+          const size = file?.size ? `${Math.round(file.size / 1024 * 100) / 100}KB` : 'N/A';
+          
+          console.log(`${status} ${work.documentId.padEnd(30)} ${statusText.padEnd(8)} ${editedText.padEnd(8)} ${size}`);
+        });
+
+        if (workList.length === 0) {
+          console.log('🎉 No work needed! All documents are up to date.');
+        }
+        break;
+        
       default:
         console.error(`Unknown command: ${command}`);
         showHelp();
@@ -200,6 +598,8 @@ function showHelp() {
   console.log('CONTENT GENERATION:');
   console.log('  minimum              Generate minimum format content');
   console.log('  origin               Generate origin format content');
+  console.log('  chars <limit> [lang] Generate character-limited content');
+  console.log('  batch [--lang=en,ko] [--chars=300,1000,2000] Generate all formats');
   console.log('');
   console.log('PRIORITY MANAGEMENT:');
   console.log('  priority-generate [lang] [--dry-run] [--overwrite]');
@@ -212,16 +612,55 @@ function showHelp() {
   console.log('                       Generate TypeScript types and validators from schema');
   console.log('  schema-info          Show schema file information');
   console.log('');
+  console.log('CONTENT EXTRACTION:');
+  console.log('  extract [lang] [--chars=100,300,1000] [--dry-run] [--overwrite]');
+  console.log('                       Extract character-limited summaries to data directory');
+  console.log('  extract-all [--lang=en,ko] [--dry-run] [--overwrite]');
+  console.log('                       Extract all content summaries for all languages');
+  console.log('');
+  console.log('ADAPTIVE COMPOSITION:');
+  console.log('  compose [lang] [chars] [--no-toc] [--priority=50] [--dry-run]');
+  console.log('                       Compose adaptive content for specified character limit');
+  console.log('  compose-batch [lang] [--chars=1000,3000,5000] [--dry-run]');
+  console.log('                       Batch compose for multiple character limits');
+  console.log('  compose-stats [lang] Show composition statistics and available content');
+  console.log('');
+  console.log('WORK STATUS MANAGEMENT:');
+  console.log('  work-status [lang] [document-id] [--chars=100] [--need-edit]');
+  console.log('                       Check work status for documents or specific document');
+  console.log('  work-context <lang> <document-id> [--chars=100]');
+  console.log('                       Get complete work context for editing a document');
+  console.log('  work-list [lang] [--chars=100] [--outdated] [--missing] [--need-update]');
+  console.log('                       List documents that need work');
+  console.log('');
+  console.log('MARKDOWN GENERATION (VitePress):');
+  console.log('  markdown-generate [lang] [--chars=100,300,1000] [--dry-run] [--overwrite]');
+  console.log('                       Generate character-limited .md files for VitePress');
+  console.log('  markdown-all [--lang=en,ko] [--dry-run] [--overwrite]');
+  console.log('                       Generate all markdown files for all languages');
+  console.log('');
   console.log('OTHER:');
   console.log('  status               Show generator status');
   console.log('  help                 Show this help message');
   console.log('');
   console.log('EXAMPLES:');
+  console.log('  npx @context-action/llms-generator minimum');
+  console.log('  npx @context-action/llms-generator chars 5000 en');
+  console.log('  npx @context-action/llms-generator batch --lang=en,ko --chars=300,1000');
   console.log('  npx @context-action/llms-generator priority-generate en --dry-run');
   console.log('  npx @context-action/llms-generator priority-stats ko');
   console.log('  npx @context-action/llms-generator discover en');
   console.log('  npx @context-action/llms-generator schema-generate ./generated --overwrite');
-  console.log('  npx @context-action/llms-generator schema-info');
+  console.log('  npx @context-action/llms-generator extract ko --chars=100,300,1000 --dry-run');
+  console.log('  npx @context-action/llms-generator extract-all --lang=en,ko --overwrite');
+  console.log('  npx @context-action/llms-generator compose ko 5000 --priority=70');
+  console.log('  npx @context-action/llms-generator compose-batch en --chars=1000,5000,10000');
+  console.log('  npx @context-action/llms-generator compose-stats ko');
+  console.log('  npx @context-action/llms-generator work-status ko --chars=100 --need-edit');
+  console.log('  npx @context-action/llms-generator work-context ko guide-action-handlers --chars=100');
+  console.log('  npx @context-action/llms-generator work-list ko --chars=100 --missing');
+  console.log('  npx @context-action/llms-generator markdown-generate en --chars=100,300,1000 --dry-run');
+  console.log('  npx @context-action/llms-generator markdown-all --lang=en,ko --overwrite');
 }
 
 function createConfig() {
@@ -232,7 +671,7 @@ function createConfig() {
   if (cwd.includes('context-action')) {
     const projectRoot = cwd.substring(0, cwd.indexOf('context-action') + 'context-action'.length);
     config.paths.docsDir = path.join(projectRoot, 'docs');
-    config.paths.llmContentDir = path.join(projectRoot, 'docs/llm-content');
+    config.paths.llmContentDir = path.join(projectRoot, 'packages/llms-generator/data');
     config.paths.outputDir = path.join(projectRoot, 'docs/llms');
   }
 
