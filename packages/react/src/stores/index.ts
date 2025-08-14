@@ -35,7 +35,13 @@ export { createDeclarativeStorePattern, createDeclarativeStores } from './patter
 // Declarative Store Pattern types
 export type {
   StoreConfig,
-  StoreSchema
+  StoreSchema,
+  InitialStores,
+  StoreDefinitions,
+  InferStoreTypes,
+  InferInitialStores,
+  StoreValues,
+  WithProviderConfig
 } from './patterns';
 
 // Core types
@@ -50,15 +56,3 @@ export type {
   ComparisonOptions,
   ComparisonStrategy
 } from './utils';
-
-// Pattern factories
-export { 
-  createDeclarativeStorePattern,
-  type InitialStores,
-  type StoreConfig,
-  type StoreDefinitions,
-  type InferStoreTypes,
-  type InferInitialStores,
-  type StoreValues,
-  type WithProviderConfig
-} from './patterns';

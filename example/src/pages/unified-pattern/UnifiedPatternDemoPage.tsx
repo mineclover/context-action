@@ -2,7 +2,8 @@ import {
   type ActionPayloadMap,
   createActionContext,
   createDeclarativeStorePattern,
-  useStoreValueSafe,
+  useStoreValue,
+  assertStoreValue,
 } from '@context-action/react';
 import type React from 'react';
 import { useState } from 'react';
@@ -53,8 +54,8 @@ function CounterComponent() {
   const countStore = CounterStores.useStore('count');
   const historyStore = CounterStores.useStore('history');
 
-  const count = useStoreValueSafe(countStore);
-  const history = useStoreValueSafe(historyStore);
+  const count = useStoreValue(countStore);
+  const history = useStoreValue(historyStore);
 
   // Action Handler 등록
   CounterActions.useActionHandler('increment', () => {
@@ -134,7 +135,7 @@ function CounterComponent() {
         <div className="mt-4 p-3 bg-white rounded border">
           <div className="text-sm font-medium text-gray-700 mb-2">History:</div>
           <div className="flex flex-wrap gap-1">
-            {history.slice(-10).map((value, index) => (
+            {history.slice(-10).map((value: number, index: number) => (
               <Badge key={index} variant="outline" className="text-xs">
                 {value}
               </Badge>
@@ -161,8 +162,8 @@ function UserProfile() {
   const userStore = UserStores.useStore('user');
   const loginCountStore = UserStores.useStore('loginCount');
 
-  const user = useStoreValueSafe(userStore);
-  const loginCount = useStoreValueSafe(loginCountStore);
+  const user = useStoreValue(userStore);
+  const loginCount = useStoreValue(loginCountStore);
 
   // Action Handler 등록
   UserActions.useActionHandler('updateUser', ({ name, email }) => {

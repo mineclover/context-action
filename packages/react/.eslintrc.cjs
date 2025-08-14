@@ -22,4 +22,18 @@ module.exports = {
     es6: true,
     node: true,
   },
+  overrides: [
+    {
+      // Test files and type tests - allow unused vars for type checking
+      files: [
+        '**/__tests__/**/*',
+        '**/*.test.ts',
+        '**/*.test.tsx',
+        '**/type-tests.tsx'
+      ],
+      rules: {
+        '@typescript-eslint/no-unused-vars': 'warn', // Change to warning for test files
+      },
+    },
+  ],
 };

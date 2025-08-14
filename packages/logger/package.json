@@ -1,6 +1,6 @@
 {
   "name": "@context-action/logger",
-  "version": "0.0.5",
+  "version": "0.1.0",
   "type": "module",
   "description": "Logging utility for the context-action framework",
   "deprecated": "This package is no longer maintained. Use native console or other logging libraries instead.",
