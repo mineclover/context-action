@@ -74,4 +74,7 @@ glossary/implementations/_data/
 packages/glossary-query/glossary-data.json
 
 # history
-.history/.nx/
+.history/
+
+# Nx cache
+.nx/
