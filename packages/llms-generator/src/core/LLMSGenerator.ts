@@ -14,16 +14,19 @@ import type {
 } from '../types/index.js';
 import { PriorityManager } from './PriorityManager.js';
 import { DocumentProcessor } from './DocumentProcessor.js';
+import { PriorityGenerator } from './PriorityGenerator.js';
 
 export class LLMSGenerator {
   private config: LLMSConfig;
   private priorityManager: PriorityManager;
   private documentProcessor: DocumentProcessor;
+  private priorityGenerator: PriorityGenerator;
 
   constructor(config: LLMSConfig) {
     this.config = config;
     this.priorityManager = new PriorityManager(config.paths.llmContentDir);
     this.documentProcessor = new DocumentProcessor(config.paths.docsDir);
+    this.priorityGenerator = new PriorityGenerator(config);
   }
 
   /**
@@ -33,6 +36,14 @@ export class LLMSGenerator {
     if (schemaPath) {
       await this.priorityManager.initializeValidator(schemaPath);
     }
+    await this.priorityGenerator.initialize();
+  }
+
+  /**
+   * Get priority generator instance for direct access
+   */
+  getPriorityGenerator(): PriorityGenerator {
+    return this.priorityGenerator;
   }
 
   /**
@@ -73,6 +84,8 @@ export class LLMSGenerator {
     
     const documents = await this.documentProcessor.processDocuments(langPriorities, language);
     const sortedDocuments = this.documentProcessor.sortByPriority(documents, langPriorities);
+    
+    console.log(`📄 Successfully processed ${documents.length} out of ${Object.keys(langPriorities).length} documents`);
 
     let content = this.generateOriginHeader(language);
     

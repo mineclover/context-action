@@ -129,7 +129,8 @@ export class DocumentProcessor {
 
         documents.push(document);
       } catch (error) {
-        console.warn(`Failed to process document ${documentId}:`, error);
+        console.warn(`Failed to process document ${documentId}:`, error instanceof Error ? error.message : error);
+        // Continue processing other documents
       }
     }
 
