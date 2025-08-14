@@ -1,0 +1,14 @@
+---
+source: "llms/conventions.md"
+title: "Context-Action Conventions"
+document_id: "llms-conventions"
+char_limit: 100
+priority: 65
+original_size: 18980
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Context-Action Conventions (100 chars)
+
+[Content to be extracted from llms/conventions.md]

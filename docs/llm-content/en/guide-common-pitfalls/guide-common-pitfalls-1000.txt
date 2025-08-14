@@ -1,0 +1,14 @@
+---
+source: "guide/common-pitfalls.md"
+title: "Common Pitfalls"
+document_id: "guide-common-pitfalls"
+char_limit: 1000
+priority: 80
+original_size: 15499
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Common Pitfalls (1000 chars)
+
+[Content to be extracted from guide/common-pitfalls.md]

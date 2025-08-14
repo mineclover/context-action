@@ -1,0 +1,14 @@
+---
+source: "guide/best-practices.md"
+title: "Development Best Practices"
+document_id: "guide-best-practices"
+char_limit: 2000
+priority: 80
+original_size: 15451
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Development Best Practices (2000 chars)
+
+[Content to be extracted from guide/best-practices.md]

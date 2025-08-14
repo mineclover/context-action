@@ -1,0 +1,14 @@
+---
+source: "api/core/action-register.md"
+title: "ActionRegister API"
+document_id: "api-core-action-register"
+char_limit: 4000
+priority: 65
+original_size: 11661
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# ActionRegister API (4000 chars)
+
+[Content to be extracted from api/core/action-register.md]

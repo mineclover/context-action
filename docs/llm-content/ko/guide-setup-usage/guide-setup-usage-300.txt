@@ -1,0 +1,14 @@
+---
+source: "guide/setup-usage.md"
+title: "설정 및 사용법"
+document_id: "guide-setup-usage"
+char_limit: 300
+priority: 95
+original_size: 18484
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# 설정 및 사용법 (300 chars)
+
+[Content to be extracted from guide/setup-usage.md]

@@ -1,0 +1,14 @@
+---
+source: "api/store-only.md"
+title: "Store Only Methods"
+document_id: "api-store-only"
+char_limit: 100
+priority: 80
+original_size: 8883
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Store Only Methods (100 chars)
+
+[Content to be extracted from api/store-only.md]

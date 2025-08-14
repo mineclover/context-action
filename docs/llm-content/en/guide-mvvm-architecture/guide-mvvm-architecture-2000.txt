@@ -1,0 +1,14 @@
+---
+source: "guide/mvvm-architecture.md"
+title: "MVVM-Inspired Architecture"
+document_id: "guide-mvvm-architecture"
+char_limit: 2000
+priority: 80
+original_size: 12121
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# MVVM-Inspired Architecture (2000 chars)
+
+[Content to be extracted from guide/mvvm-architecture.md]

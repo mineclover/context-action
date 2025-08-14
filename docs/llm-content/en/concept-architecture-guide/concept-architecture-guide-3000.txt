@@ -1,0 +1,14 @@
+---
+source: "concept/architecture-guide.md"
+title: "Context-Action Store Integration Architecture"
+document_id: "concept-architecture-guide"
+char_limit: 3000
+priority: 50
+original_size: 33108
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Context-Action Store Integration Architecture (3000 chars)
+
+[Content to be extracted from concept/architecture-guide.md]

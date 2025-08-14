@@ -1,0 +1,14 @@
+---
+source: "guide/provider-composition.md"
+title: "Provider Composition"
+document_id: "guide-provider-composition"
+char_limit: 2000
+priority: 80
+original_size: 13201
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Provider Composition (2000 chars)
+
+[Content to be extracted from guide/provider-composition.md]

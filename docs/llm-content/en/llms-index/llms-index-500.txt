@@ -1,0 +1,14 @@
+---
+source: "llms/index.md"
+title: "LLM Integration Resources"
+document_id: "llms-index"
+char_limit: 500
+priority: 80
+original_size: 1738
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# LLM Integration Resources (500 chars)
+
+[Content to be extracted from llms/index.md]

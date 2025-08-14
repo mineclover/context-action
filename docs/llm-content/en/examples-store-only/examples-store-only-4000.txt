@@ -1,0 +1,14 @@
+---
+source: "examples/store-only.md"
+title: "Store Only Pattern Example"
+document_id: "examples-store-only"
+char_limit: 4000
+priority: 60
+original_size: 38218
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Store Only Pattern Example (4000 chars)
+
+[Content to be extracted from examples/store-only.md]

@@ -1,0 +1,14 @@
+---
+source: "api/action-only.md"
+title: "Action Only Methods"
+document_id: "api-action-only"
+char_limit: 3000
+priority: 65
+original_size: 12629
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Action Only Methods (3000 chars)
+
+[Content to be extracted from api/action-only.md]

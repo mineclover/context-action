@@ -1,0 +1,14 @@
+---
+source: "guide/error-handling.md"
+title: "오류 처리"
+document_id: "guide-error-handling"
+char_limit: 4000
+priority: 70
+original_size: 36236
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# 오류 처리 (4000 chars)
+
+[Content to be extracted from guide/error-handling.md]

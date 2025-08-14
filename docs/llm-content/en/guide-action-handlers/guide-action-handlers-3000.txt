@@ -1,0 +1,14 @@
+---
+source: "guide/action-handlers.md"
+title: "Action Handlers"
+document_id: "guide-action-handlers"
+char_limit: 3000
+priority: 70
+original_size: 11833
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Action Handlers (3000 chars)
+
+[Content to be extracted from guide/action-handlers.md]

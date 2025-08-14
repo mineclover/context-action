@@ -1,0 +1,14 @@
+---
+source: "api/declarative-store-pattern.md"
+title: "Declarative Store Pattern API"
+document_id: "api-declarative-store-pattern"
+char_limit: 3000
+priority: 65
+original_size: 22671
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Declarative Store Pattern API (3000 chars)
+
+[Content to be extracted from api/declarative-store-pattern.md]

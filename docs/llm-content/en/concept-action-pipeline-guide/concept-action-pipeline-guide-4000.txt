@@ -1,0 +1,14 @@
+---
+source: "concept/action-pipeline-guide.md"
+title: "Action Pipeline Guide: ActionPayloadMap & ActionRegister"
+document_id: "concept-action-pipeline-guide"
+char_limit: 4000
+priority: 50
+original_size: 40734
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Action Pipeline Guide: ActionPayloadMap & ActionRegister (4000 chars)
+
+[Content to be extracted from concept/action-pipeline-guide.md]

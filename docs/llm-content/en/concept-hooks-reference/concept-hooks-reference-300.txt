@@ -1,0 +1,14 @@
+---
+source: "concept/hooks-reference.md"
+title: "Context-Action React Hooks Reference"
+document_id: "concept-hooks-reference"
+char_limit: 300
+priority: 75
+original_size: 17685
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Context-Action React Hooks Reference (300 chars)
+
+[Content to be extracted from concept/hooks-reference.md]

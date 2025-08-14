@@ -1,0 +1,14 @@
+---
+source: "index.md"
+title: "Untitled"
+document_id: "index"
+char_limit: 1000
+priority: 90
+original_size: 1219
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Untitled (1000 chars)
+
+[Content to be extracted from index.md]

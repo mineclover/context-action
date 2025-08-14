@@ -1,0 +1,14 @@
+---
+source: "api/react/action-context.md"
+title: "Action Context API"
+document_id: "api-react-action-context"
+char_limit: 4000
+priority: 65
+original_size: 10404
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Action Context API (4000 chars)
+
+[Content to be extracted from api/react/action-context.md]

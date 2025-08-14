@@ -1,0 +1,14 @@
+---
+source: "examples/pattern-composition.md"
+title: "Pattern Composition Example"
+document_id: "examples-pattern-composition"
+char_limit: 300
+priority: 85
+original_size: 34788
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Pattern Composition Example (300 chars)
+
+[Content to be extracted from examples/pattern-composition.md]

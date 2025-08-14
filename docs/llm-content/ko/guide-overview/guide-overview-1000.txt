@@ -1,0 +1,14 @@
+---
+source: "guide/overview.md"
+title: "Context Action 프레임워크 개요"
+document_id: "guide-overview"
+char_limit: 1000
+priority: 100
+original_size: 1016
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Context Action 프레임워크 개요 (1000 chars)
+
+[Content to be extracted from guide/overview.md]

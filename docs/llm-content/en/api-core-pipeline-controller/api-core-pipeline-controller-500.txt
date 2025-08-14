@@ -1,0 +1,14 @@
+---
+source: "api/core/pipeline-controller.md"
+title: "PipelineController API"
+document_id: "api-core-pipeline-controller"
+char_limit: 500
+priority: 65
+original_size: 9467
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# PipelineController API (500 chars)
+
+[Content to be extracted from api/core/pipeline-controller.md]

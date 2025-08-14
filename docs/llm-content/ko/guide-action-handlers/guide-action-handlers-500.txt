@@ -1,0 +1,14 @@
+---
+source: "guide/action-handlers.md"
+title: "액션 핸들러"
+document_id: "guide-action-handlers"
+char_limit: 500
+priority: 70
+original_size: 16539
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# 액션 핸들러 (500 chars)
+
+[Content to be extracted from guide/action-handlers.md]

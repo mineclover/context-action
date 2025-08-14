@@ -1,0 +1,14 @@
+---
+source: "guide/philosophy.md"
+title: "Design Philosophy"
+document_id: "guide-philosophy"
+char_limit: 500
+priority: 70
+original_size: 7453
+status: "placeholder"
+created: "2025-08-14"
+---
+
+# Design Philosophy (500 chars)
+
+[Content to be extracted from guide/philosophy.md]
