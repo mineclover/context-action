@@ -88,14 +88,14 @@ jobs:
           cp -r docs/.vitepress/dist/* deploy-dist/
           
           # Copy example to subdirectory
-          mkdir -p deploy-dist/context-action-example
-          cp -r example/dist/* deploy-dist/context-action-example/
+          mkdir -p deploy-dist/example
+          cp -r example/dist/* deploy-dist/example/
           
           # Verify structure
           echo "📁 Deployment structure:"
           ls -la deploy-dist/
           echo "📁 Example subdirectory:"
-          ls -la deploy-dist/context-action-example/
+          ls -la deploy-dist/example/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

@@ -350,7 +350,7 @@ Apache-2.0 © [mineclover](https://github.com/mineclover)
 
 Explore the Context-Action framework through our comprehensive live examples:
 
-**[🚀 Live Example Application](https://mineclover.github.io/context-action/context-action-example/)**
+**[🚀 Live Example Application](https://mineclover.github.io/context-action/example/)**
 
 ### Featured Demonstrations
 
@@ -394,7 +394,7 @@ Explore the Context-Action framework through our comprehensive live examples:
 ## 🔗 Links
 
 - [📚 Documentation](https://mineclover.github.io/context-action/) - Complete documentation and API reference
-- [🎮 Live Example](https://mineclover.github.io/context-action/context-action-example/) - Interactive example application
+- [🎮 Live Example](https://mineclover.github.io/context-action/example/) - Interactive example application
 - [Core Package](./packages/core) - @context-action/core (Pure TypeScript)
 - [React Package](./packages/react) - @context-action/react (React integration)
 - [Release Guide](./RELEASE.md) - Publishing documentation
