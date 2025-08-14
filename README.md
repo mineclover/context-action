@@ -37,8 +37,9 @@ npm install @context-action/core
 - 🔒 **Type-safe**: Full TypeScript support with strict type checking
 - ⚡ **Action Pipeline System**: Centralized action processing with priority-based handler execution
 - 🔄 **Async Support**: Handle both sync and async operations seamlessly
-- 🛡️ **Error Handling**: Built-in error handling and abort mechanisms with pipeline controller
-- 📊 **Trace Logging**: Advanced debugging with configurable trace logging
+- 🛡️ **Action Guard System**: Advanced action filtering, throttling, and execution control
+- 🚫 **Error Handling**: Built-in error handling and abort mechanisms with pipeline controller
+- 📊 **Execution Modes**: Multiple execution strategies (immediate, throttled, debounced, queued)
 
 ### [@context-action/react](./packages/react)
 
@@ -49,24 +50,13 @@ npm install @context-action/react
 ```
 
 **Features:**
-- 🏪 **Store Only Pattern**: Pure state management with reactive subscriptions
-- 🎯 **Action Only Pattern**: Pure action dispatching with pipeline management
-- 🔗 **Pattern Composition**: Combine Store Only + Action Only patterns for complex applications
-- 🪝 **Type-Safe Hooks**: Domain-specific hook exports with excellent type inference
-- 🏗️ **HOC Pattern**: `withProvider()` for automatic component wrapping
-- 🔄 **Provider Isolation**: Independent context management per pattern
+- 🏪 **Declarative Store Pattern**: Type-safe store management with automatic provider handling
+- 🎯 **Action Context Pattern**: Pure action dispatching with centralized pipeline processing
+- 🔗 **Pattern Composition**: Combine different patterns for complex state management needs
+- 🪝 **Advanced Store Hooks**: `useStoreValue`, `useComputedStore`, `useStoreSelector` with reactive subscriptions
+- 🏗️ **HOC Support**: `withProvider()` for automatic component wrapping and context isolation
+- 📊 **Store Registry**: Centralized store management with lifecycle handling and cleanup
 
-### [@context-action/logger](./packages/logger)
-
-Lightweight logging utilities with trace capabilities for debugging and monitoring.
-
-### [@context-action/jotai](./packages/jotai)
-
-Jotai integration for atom-based state management with action pipeline coordination.
-
-### [@context-action/glossary](./packages/glossary)
-
-Documentation tools for TypeScript glossary management and term organization.
 
 ## 🏗️ Development Setup
 
@@ -303,19 +293,28 @@ context-action/
 │   ├── core/                   # Core action pipeline management
 │   │   └── src/
 │   │       ├── ActionRegister.ts    # Central action processing
+│   │       ├── action-guard.ts      # Action guard system
+│   │       ├── execution-modes.ts   # Execution mode management
 │   │       ├── types.ts             # Type definitions
 │   │       └── index.ts
-│   ├── react/                  # React integration with MVVM architecture
-│   │   └── src/
-│   │       ├── ActionProvider.tsx               # React context integration
-│   │       ├── store/                           # Advanced store system
-│   │       │   ├── context-store-pattern.tsx   # Context Store Pattern with HOC
-│   │       │   ├── hooks/                       # Store management hooks
-│   │       │   └── Store.ts                     # Store implementation
-│   │       └── index.ts
-│   ├── logger/                 # Logging utilities with trace capabilities
-│   ├── jotai/                  # Jotai integration for atom-based state management
-│   └── glossary/               # Documentation tools for TypeScript glossary
+│   └── react/                  # React integration with MVVM architecture
+│       └── src/
+│           ├── actions/                         # Action system
+│           │   ├── ActionContext.tsx            # React action context
+│           │   └── utils/ActionHandlerUtils.ts  # Action utilities
+│           ├── stores/                          # Advanced store system
+│           │   ├── core/                        # Core store implementation
+│           │   │   ├── Store.ts                 # Store implementation
+│           │   │   ├── StoreContext.tsx         # Store context
+│           │   │   └── StoreRegistry.ts         # Store registry
+│           │   ├── hooks/                       # Store management hooks
+│           │   │   ├── useStoreValue.ts         # Store value hook
+│           │   │   ├── useComputedStore.ts      # Computed store hook
+│           │   │   └── useStoreSelector.ts      # Store selector hook
+│           │   ├── patterns/                    # Store patterns
+│           │   │   └── declarative-store-pattern-v2.tsx # Declarative pattern
+│           │   └── utils/                       # Store utilities
+│           └── index.ts
 ├── example/                    # Comprehensive example application
 ├── docs/                       # VitePress documentation site
 ├── .github/workflows/          # CI/CD and GitHub Pages deployment
@@ -347,15 +346,57 @@ context-action/
 
 Apache-2.0 © [mineclover](https://github.com/mineclover)
 
+## 🎮 Interactive Examples
+
+Explore the Context-Action framework through our comprehensive live examples:
+
+**[🚀 Live Example Application](https://mineclover.github.io/context-action/context-action-example/)**
+
+### Featured Demonstrations
+
+#### 🏪 **Store System Examples**
+- **Store Basics** - Fundamental store operations and reactive subscriptions
+- **Store Full Demo** - Complete store integration with complex state management
+- **Immutability Test** - Deep immutability verification and performance testing
+- **Declarative Store Pattern** - Type-safe store patterns with automatic provider handling
+
+#### 🎯 **Action System Examples**
+- **Core Basics & Advanced** - Action pipeline fundamentals and advanced patterns
+- **Core Features** - Comprehensive action system capabilities
+- **Action Guard System** - Advanced action filtering and execution control
+- **Priority Performance** - Priority-based action execution and performance optimization
+
+#### 🛡️ **Action Guard Demonstrations**
+- **Search Demo** - Debounced search with intelligent action filtering
+- **Scroll Demo** - Throttled scroll events with performance optimization
+- **API Blocking Demo** - Duplicate API call prevention and request management
+- **Mouse Events Demo** - Real-time mouse tracking with Context Store Pattern
+- **Throttle Comparison** - Performance comparison between different throttling strategies
+
+#### 🔗 **React Integration Examples**
+- **React Context** - Context API integration and provider patterns
+- **React Hooks** - Advanced hook usage and store subscriptions
+- **React Provider** - Unified provider setup and management
+- **useActionWithResult** - Action dispatching with result handling
+
+#### 🌟 **Advanced Patterns**
+- **Unified Pattern Demo** - Complete MVVM architecture demonstration
+- **Enhanced Context Store** - Individual store access with selective subscriptions
+- **Concurrent Actions** - Multiple action coordination and synchronization
+- **Enhanced Abortable Search** - Advanced search with abort capabilities
+- **Toast Config Example** - Real-world notification system implementation
+
+#### 📊 **Performance & Monitoring**
+- **Logger System** - Built-in logging and debugging capabilities
+- **Dispatch Options Test** - Action dispatch configuration testing
+- **Real-time Analytics** - Live performance metrics and computed value tracking
+
 ## 🔗 Links
 
 - [📚 Documentation](https://mineclover.github.io/context-action/) - Complete documentation and API reference
-- [🎮 Live Example](https://mineclover.github.io/context-action-example/) - Interactive example application
+- [🎮 Live Example](https://mineclover.github.io/context-action/context-action-example/) - Interactive example application
 - [Core Package](./packages/core) - @context-action/core (Pure TypeScript)
 - [React Package](./packages/react) - @context-action/react (React integration)
-- [Logger Package](./packages/logger) - @context-action/logger (Logging utilities)
-- [Jotai Package](./packages/jotai) - @context-action/jotai (Jotai integration)
-- [Glossary Package](./packages/glossary) - @context-action/glossary (Documentation tools)
 - [Release Guide](./RELEASE.md) - Publishing documentation
 - [Issues](https://github.com/mineclover/context-action/issues) - Bug reports and feature requests
 - [한국어 README](./README.ko.md) - Korean version
