@@ -1,5 +1,5 @@
 import type { ActionHandler, ActionPayloadMap } from '@context-action/core';
-import { LogArtHelpers } from '@context-action/logger';
+import { LogArtHelpers } from '../../utils/logger';
 import {
   createActionContext,
   createStore,

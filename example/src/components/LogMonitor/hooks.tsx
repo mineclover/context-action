@@ -3,8 +3,8 @@
  * @module LogMonitorHooks
  */
 
-import type { Logger } from '@context-action/logger';
-import { createLogger, LogLevel } from '@context-action/logger';
+import type { Logger } from '../../utils/logger';
+import { createLogger, LogLevel } from '../../utils/logger';
 import { ActionRegister } from '@context-action/react';
 import { useMemo } from 'react';
 import { toastActionRegister } from '../ToastSystem/actions';
@@ -290,7 +290,7 @@ export function useActionLoggerWithToast(): StableLoggerAPI {
   const toastSystem = useMemo((): ToastSystem | undefined => {
     try {
       if (toastActionRegister) {
-        console.log('🍞 Toast system available:', !!toastActionRegister);
+        console.log('🍞 Toast system available and created');
 
         return {
           showToast: (
@@ -320,11 +320,6 @@ export function useActionLoggerWithToast(): StableLoggerAPI {
       return undefined;
     }
   }, []);
-
-  console.log(
-    '🍞 useActionLoggerWithToast: toastSystem created:',
-    !!toastSystem
-  );
   return useActionLogger({ toastSystem });
 }
 

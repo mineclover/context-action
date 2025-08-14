@@ -20,8 +20,6 @@
   },
   "dependencies": {
     "@context-action/core": "workspace:*",
-    "@context-action/jotai": "workspace:*",
-    "@context-action/logger": "workspace:*",
     "@context-action/react": "workspace:*",
     "dotenv": "^16.4.5",
     "gsap": "3.13.0",

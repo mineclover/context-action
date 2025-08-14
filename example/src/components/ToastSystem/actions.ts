@@ -1,4 +1,4 @@
-import { createLogger, LogLevel } from '@context-action/logger';
+import { createLogger, LogLevel } from '../../utils/logger';
 import { ActionRegister } from '@context-action/react';
 import { toastConfigStore, toastStackIndexStore, toastsStore } from './store';
 import type { ActionExecutionToast, Toast, ToastConfig } from './types';

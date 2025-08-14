@@ -21,9 +21,7 @@ export default defineConfig({
     // 워크스페이스 패키지들은 사전 번들링에서 제외
     exclude: [
       '@context-action/core',
-      '@context-action/react', 
-      '@context-action/logger',
-      '@context-action/jotai'
+      '@context-action/react'
     ],
     // 빠른 개발을 위한 esbuild 설정
     esbuildOptions: {
@@ -43,8 +41,7 @@ export default defineConfig({
           // Context-Action 프레임워크를 별도 청크로 분리
           'context-action': [
             '@context-action/core', 
-            '@context-action/react',
-            '@context-action/logger'
+            '@context-action/react'
           ],
         },
       },
@@ -57,8 +54,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@context-action/core': path.resolve(__dirname, '../packages/core/src/index.ts'),
-      '@context-action/react': path.resolve(__dirname, '../packages/react/src/index.ts'),
-      '@context-action/logger': path.resolve(__dirname, '../packages/logger/src/index.ts'),
+      '@context-action/react': path.resolve(__dirname, '../packages/react/src/index.ts')
     }
   },
   // CSS 최적화

@@ -10,9 +10,13 @@
  * @memberof core-concepts
  */
 
-import { createLogger } from '@context-action/logger';
-
-const logger = createLogger();
+// Simple logger replacement
+const logger = {
+  warn: (message: string, ...args: any[]) => console.warn(`[Context-Action] ${message}`, ...args),
+  trace: (message: string, ...args: any[]) => console.debug(`[Context-Action] ${message}`, ...args),
+  error: (message: string, ...args: any[]) => console.error(`[Context-Action] ${message}`, ...args),
+  debug: (message: string, ...args: any[]) => console.debug(`[Context-Action] ${message}`, ...args)
+};
 
 /**
  * 깊은 복사 함수 - structuredClone 기반 구현

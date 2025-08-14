@@ -3,7 +3,7 @@
  * @module LogMonitorStoreRegistry
  */
 
-import { LogLevel } from '@context-action/logger';
+import { LogLevel } from '../../utils/logger';
 import { createStore } from '@context-action/react';
 import type { LogEntry, LogMonitorConfig, LogMonitorStores } from './types';
 

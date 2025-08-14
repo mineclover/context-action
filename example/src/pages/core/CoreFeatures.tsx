@@ -1,5 +1,5 @@
 import { type ActionPayloadMap, ActionRegister } from '@context-action/core';
-import { createLogger, LogLevel } from '@context-action/logger';
+import { createLogger, LogLevel } from '../../utils/logger';
 import { useCallback, useEffect, useState } from 'react';
 import {
   PageWithLogMonitor,
