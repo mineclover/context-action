@@ -9,7 +9,8 @@ module.exports = {
   },
   testMatch: [
     '**/__tests__/simple-working.test.ts',
-    '**/__tests__/production/*.test.ts'
+    '**/__tests__/production/*.test.ts',
+    '**/__tests__/feature-coverage/*.test.ts'
   ],
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
