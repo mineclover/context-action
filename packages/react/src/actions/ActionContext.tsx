@@ -152,15 +152,42 @@ export interface ActionContextReturn<T extends {}> {
 // === UNIFIED ACTION CONTEXT SYSTEM ===
 // Factory-based action context with built-in abort support
 
+// Function overload for new API (contextName first)
 export function createActionContext<T extends {}>(
-  config: ActionContextConfig = {}
+  contextName: string,
+  config?: ActionContextConfig
+): ActionContextReturn<T>;
+
+// Function overload for legacy API (config only)
+export function createActionContext<T extends {}>(
+  config: ActionContextConfig
+): ActionContextReturn<T>;
+
+// Implementation
+export function createActionContext<T extends {}>(
+  contextNameOrConfig: string | ActionContextConfig = {},
+  config?: ActionContextConfig
 ): ActionContextReturn<T> {
+  let effectiveConfig: ActionContextConfig;
+  let contextName: string;
+  
+  // Handle both API styles
+  if (typeof contextNameOrConfig === 'string') {
+    // New API: createActionContext<T>('ContextName', config?)
+    contextName = contextNameOrConfig;
+    effectiveConfig = { ...config, name: config?.name || contextName };
+  } else {
+    // Legacy API: createActionContext<T>({ name: 'ContextName', ...config })
+    effectiveConfig = contextNameOrConfig;
+    contextName = effectiveConfig.name || 'ActionContext';
+  }
+  
   // Create the factory-specific context with a default value
   const FactoryActionContext = createContext<ActionContextType<T> | null>(null);
 
   // Provider component with abort support
   const Provider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const actionRegisterRef = useRef<ActionRegister<T>>(new ActionRegister<T>(config));
+    const actionRegisterRef = useRef<ActionRegister<T>>(new ActionRegister<T>(effectiveConfig));
     // const abortControllerRef = useRef<AbortController | null>(null);
 
     const contextValue = useMemo(() => ({

@@ -32,6 +32,8 @@ export {
   createDeclarativeStorePattern,
   type InitialStores,
   type StoreConfig,
+  type StoreDefinitions,
+  type InferStoreTypes,
   type InferInitialStores,
   type StoreValues,
   type WithProviderConfig

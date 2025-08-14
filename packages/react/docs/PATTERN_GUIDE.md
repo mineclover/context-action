@@ -33,8 +33,8 @@ import { createActionContext } from '@context-action/react';
 
 ### Basic Usage
 ```tsx
-// 1. Define Actions
-interface EventActions extends ActionPayloadMap {
+// 1. Define Actions (ActionPayloadMap optional)
+interface EventActions {
   userClick: { x: number; y: number };
   userHover: { elementId: string };
   analytics: { event: string; data: any };
@@ -144,6 +144,8 @@ import { createDeclarativeStorePattern } from '@context-action/react';
 ```
 
 ### Basic Usage
+
+#### Option 1: Type Inference (Current)
 ```tsx
 // 1. Define stores with renaming pattern for type-safe access
 const {
@@ -170,6 +172,37 @@ const {
       language: 'en',
       notifications: true
     },
+    strategy: 'shallow'
+  }
+});
+```
+
+#### Option 2: Explicit Generic Types (New)
+```tsx
+// 1. Define store types explicitly
+interface AppStoreTypes {
+  counter: number;
+  userName: string;
+  isLoggedIn: boolean;
+  user: { id: string; name: string; email: string };
+  settings: { theme: 'light' | 'dark'; language: string; notifications: boolean };
+}
+
+// 2. Create stores with explicit types and simplified initialValue
+const {
+  Provider: AppStoreProvider,
+  useStore: useAppStore,
+  useStoreManager: useAppStoreManager
+} = createDeclarativeStorePattern<AppStoreTypes>('App', {
+  // Types inferred from AppStoreTypes interface
+  counter: 0,
+  userName: '',
+  isLoggedIn: false,
+  
+  // Complex types with configuration
+  user: { id: '', name: '', email: '' },
+  settings: {
+    initialValue: { theme: 'light', language: 'en', notifications: true },
     strategy: 'shallow'
   }
 });
@@ -416,8 +449,9 @@ function App() {
 - Use `strategy: 'deep'` only when necessary
 
 ### 4. Type Safety
-- Always extend `ActionPayloadMap` for actions
-- Let TypeScript infer store types from initial values
+- Use explicit interfaces for actions (ActionPayloadMap optional)
+- Consider explicit generic types for better type safety
+- Let TypeScript infer store types from initial values or use explicit generics
 - Use `as const` for literal types in store definitions
 
 ---
