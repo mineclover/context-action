@@ -221,45 +221,6 @@ function ActionSetup({ children }) {
 }
 ```
 
-### Action Context Pattern (Primary Pattern)
-The Context-Action framework uses **Action Context Pattern** as the primary state management pattern. This provides unified action and store management with complete isolation:
-
-```tsx
-// 1. Create Action Context Pattern with unified management
-const UserContext = createActionContextPattern<UserActions>('User');
-
-// 2. Use Provider pattern
-function App() {
-  return (
-    <UserContext.Provider registryId="user-app">
-      <UserProfile />
-    </UserContext.Provider>
-  );
-}
-
-// 3. Use declarative hook exports for type-safe access
-const useUserStore = UserContext.useStore;
-const useUserAction = UserContext.useAction;
-const useUserActionHandler = UserContext.useActionHandler;
-
-const UserProfile = () => {
-  const userStore = useUserStore('current-user', { name: '', email: '' });
-  const user = useStoreValue(userStore);
-  const dispatch = useUserAction();
-  
-  // Register handler using hook
-  useUserActionHandler('updateUser', useCallback(async (payload) => {
-    userStore.setValue({ ...user, ...payload });
-  }, [user, userStore]));
-  
-  return <div>Welcome, {user.name}!</div>;
-};
-
-// 4. HOC pattern for automatic provider wrapping
-const withUserContext = UserContext.withProvider('user-module');
-const WrappedUserProfile = withUserContext(UserProfile);
-```
-
 ### Store Subscription Pattern
 Always use `useStoreValue()` for reactive subscriptions, not direct store access:
 
@@ -305,33 +266,6 @@ useActionHandler('riskyAction', async (payload, controller) => {
 6. **Documentation**: Update docs if changing public APIs
 
 ### Recommended Development Patterns
-
-#### For New Components (Action Context Pattern)
-```tsx
-// 1. Create Action Context Pattern with unified management
-const FeatureContext = createActionContextPattern<FeatureActions>('Feature');
-
-// 2. Create self-contained component with HOC
-const withFeatureContext = FeatureContext.withProvider('feature-module');
-
-const FeatureComponent = withFeatureContext(() => {
-  const featureStore = FeatureContext.useStore('feature-data', initialData);
-  const dispatch = FeatureContext.useAction();
-  
-  // Register handlers using hook
-  FeatureContext.useActionHandler('updateFeature', useCallback(async (payload) => {
-    featureStore.setValue({ ...payload });
-  }, [featureStore]));
-  
-  // Component logic with complete isolation
-  return <div>Feature UI</div>;
-});
-
-// 3. Use anywhere without manual Provider wrapping
-function App() {
-  return <FeatureComponent />;
-}
-```
 
 #### For Store-Only Components (Declarative Store Pattern)
 ```tsx
@@ -411,43 +345,27 @@ function EventComponent() {
 
 ## Framework Architecture Patterns
 
-### Three Main Patterns (Latest Specification)
-
-#### 🚀 Action Context Pattern (Recommended)
-**Import**: `createActionContextPattern` from `@context-action/react`
-- **Use Case**: Most applications that need both actions and state management
-- **Features**: Unified action + store management, type-safe action handlers, automatic computed values, Provider-based isolation, HOC patterns support
-- **Domain-Specific Hooks**: Declarative hook exports for improved developer experience
-
-```tsx
-// Declarative Hook Exports Pattern (Renaming Convention)
-const {
-  Provider: AppContextProvider,
-  useStore: useAppStore,
-  useAction: useAppAction,
-  useActionHandler: useAppActionHandler
-} = createActionContextPattern<AppActions>('App');
-```
+### Two Main Patterns (Current Implementation)
 
 #### 🎯 Action Only Pattern
 **Import**: `createActionContext` from `@context-action/react`
 - **Use Case**: Pure action dispatching without state management (event systems, command patterns)
 - **Features**: Type-safe action dispatching, action handler registration, abort support, result handling, lightweight (no store overhead)
 
-#### 🏪 Store Only Pattern (Simplified)
+#### 🏪 Store Only Pattern (Recommended)
 **Import**: `createDeclarativeStorePattern` from `@context-action/react`
 - **Use Case**: Pure state management without action dispatching (data layers, simple state)
 - **Features**: Excellent type inference without manual type annotations, simplified API focused on store management, direct value or configuration object support
 
 ### MVVM Architecture Integration
 
-#### Context Store Pattern (Primary)
-**Complete domain isolation** with automatic store encapsulation:
-- **Actions** handle business logic (ViewModel layer)
-- **Context Store Pattern** manages state with domain isolation (Model layer)
+#### Declarative Store Pattern (Primary)
+**Type-safe state management** with domain isolation:
+- **Actions** handle business logic (ViewModel layer) via `createActionContext`
+- **Declarative Store Pattern** manages state with type safety (Model layer)
 - **Components** render UI (View layer)
-- **Context Boundaries** isolate functional domains
-- **Type-Safe Integration** through domain-specific hooks
+- **Pattern Composition** allows flexible architecture
+- **Type-Safe Integration** through pattern-specific hooks
 
 #### Store Integration 3-Step Process
 1. **Read current state** from stores using `store.getValue()`
@@ -462,10 +380,9 @@ Use `useActionHandler` + `useEffect` pattern for optimal performance and proper 
 
 ### Architecture Patterns
 
-- **Action Context Pattern**: `createActionContextPattern()` for unified action + store management
-- **Context Store Pattern**: Complete domain isolation with automatic store encapsulation  
-- **Domain-Specific Hooks**: Declarative hook exports for type-safe, intuitive APIs
-- **HOC Pattern**: `withProvider()` and `withCustomProvider()` for automatic component wrapping
-- **Action Provider Pattern**: `ActionProvider` + `useActionDispatch()` for action management
+- **Action Only Pattern**: `createActionContext()` for pure action dispatching
+- **Declarative Store Pattern**: `createDeclarativeStorePattern()` for type-safe state management
 - **Store Integration Pattern**: 3-step process for handler implementation
-- **Traditional Provider Pattern**: Manual Provider composition (legacy support)
+- **HOC Pattern**: `withProvider()` for automatic component wrapping (Store Pattern)
+- **Pattern Composition**: Combine Action Only + Store Only patterns for complex applications
+- **Provider Isolation**: Independent context management per pattern

@@ -27,10 +27,10 @@ The Context-Action framework addresses critical issues in modern state managemen
 
 ### Architecture Implementation
 
-The framework implements a clean separation of concerns through an MVVM-inspired pattern combined with **Context Store Pattern** for complete domain isolation:
+The framework implements a clean separation of concerns through an MVVM-inspired pattern combined with **Declarative Store Pattern** for complete domain isolation:
 
 - **Actions** handle business logic (ViewModel layer)
-- **Context Store Pattern** manages state with domain isolation (Model layer)
+- **Declarative Store Pattern** manages state with domain isolation (Model layer)
 - **Components** render UI (View layer)
 - **Context Boundaries** isolate functional domains
 - **Type-Safe Integration** through domain-specific hooks
@@ -95,15 +95,15 @@ The framework's core philosophy is to create **domain-specific hooks** through d
 export const {
   Provider: UserBusinessProvider,
   useStore: useUserBusinessStore,        // Domain-specific store hook
-  useStores: useUserBusinessStores,    // Domain-specific store registry hook
-  useCreateStore: useCreateUserBusinessStore
-} = createDeclarativeStores<UserBusinessData>('UserBusiness', storeDefinitions);
+  useStoreManager: useUserBusinessStoreManager,    // Domain-specific store registry hook
+  useStoreInfo: useUserBusinessStoreInfo
+} = createDeclarativeStorePattern('UserBusiness', storeDefinitions);
 
 export const {
   Provider: UserBusinessActionProvider,
-  useAction: useUserBusinessAction,      // Domain-specific action hook
+  useActionDispatch: useUserBusinessAction,      // Domain-specific action hook
   useActionHandler: useUserBusinessActionHandler
-} = createActionContext<UserBusinessActions>({ name: 'UserBusinessAction' });
+} = createActionContext<UserBusinessActions>('UserBusinessAction');
 ```
 
 ### Benefits of Domain-Specific Naming
@@ -122,8 +122,9 @@ Three valid patterns for accessing stores, each with specific use cases:
 // Pattern 1: Domain-specific hooks (Components)
 const store = useUserBusinessStore('profile');
 
-// Pattern 2: Registry access for lazy evaluation (Handlers)
-const store = stores.getStore('profile');
+// Pattern 2: Store manager access for advanced use cases (Handlers)
+const storeManager = useUserBusinessStoreManager();
+const store = storeManager.getStore('profile');
 ```
 
 ## 3. Basic Setup & Usage
@@ -132,8 +133,8 @@ const store = stores.getStore('profile');
 
 ```typescript
 // stores/userBusiness.store.ts
-import { createDeclarativeStores } from '@/framework/stores';
-import { createActionContext } from '@/framework/actions';
+import { createDeclarativeStorePattern } from '@context-action/react';
+import { createActionContext } from '@context-action/react';
 
 // Define store interface
 export interface UserBusinessData {
@@ -162,9 +163,9 @@ export interface UserBusinessActions {
 export const {
   Provider: UserBusinessStoreProvider,
   useStore: useUserBusinessStore,
-  useStores: useUserBusinessRegistry,
-  useCreateStore: useCreateUserBusinessStore
-} = createDeclarativeStores<UserBusinessData>('UserBusiness', {
+  useStoreManager: useUserBusinessStoreManager,
+  useStoreInfo: useUserBusinessStoreInfo
+} = createDeclarativeStorePattern('UserBusiness', {
   profile: {
     initialValue: {
       id: '',
@@ -184,12 +185,10 @@ export const {
 // Create domain-specific action hooks
 export const {
   Provider: UserBusinessActionProvider,
-  useAction: useUserBusinessAction,
+  useActionDispatch: useUserBusinessAction,
   useActionHandler: useUserBusinessActionHandler,
-  useActionWithResult: useUserBusinessActionWithResult
-} = createActionContext<UserBusinessActions>({ 
-  name: 'UserBusinessAction' 
-});
+  useActionDispatchWithResult: useUserBusinessActionWithResult
+} = createActionContext<UserBusinessActions>('UserBusinessAction');
 ```
 
 ### Step 2: Provider Composition
@@ -232,7 +231,7 @@ export const withUserProviders = (Component: React.ComponentType) => {
 ```tsx
 // components/UserProfile.tsx
 import React, { useCallback } from 'react';
-import { useStoreValue } from '@/framework/stores';
+import { useStoreValue } from '@context-action/react';
 import { useUserBusinessStore, useUserBusinessAction } from '@/stores/userBusiness.store';
 
 export function UserProfile() {
@@ -347,16 +346,16 @@ The recommended pattern for handler registration uses `useActionHandler` + `useE
 
 ```typescript
 import React, { useEffect, useCallback } from 'react';
-import { useUserBusinessActionHandler, useUserBusinessStores } from '@/stores/userBusiness.store';
+import { useUserBusinessActionHandler, useUserBusinessStoreManager } from '@/stores/userBusiness.store';
 
 function useUserBusinessHandlers() {
   const addHandler = useUserBusinessActionHandler();
-  const stores = useUserBusinessStores();
+  const storeManager = useUserBusinessStoreManager();
   
   // Wrap handler with useCallback to prevent re-registration
   const updateProfileHandler = useCallback(async (payload, controller) => {
-    // Lazy evaluation using registry for current state
-    const profileStore = stores.getStore('profile');
+    // Lazy evaluation using store manager for current state
+    const profileStore = storeManager.getStore('profile');
     const currentProfile = profileStore.getValue();
     
     // Validation
@@ -747,17 +746,17 @@ export interface UserActions {
 export const {
   Provider: UserProvider,
   useStore: useUserStore,
-  useStores: useUserStores
-} = createDeclarativeStores<UserData>('User', {
+  useStoreManager: useUserStoreManager
+} = createDeclarativeStorePattern('User', {
   profile: { initialValue: { id: '', name: '', email: '', role: 'guest' } },
   preferences: { initialValue: { theme: 'light', language: 'en' } }
 });
 
 export const {
   Provider: UserActionProvider,
-  useAction: useUserAction,
+  useActionDispatch: useUserAction,
   useActionHandler: useUserActionHandler
-} = createActionContext<UserActions>({ name: 'UserAction' });
+} = createActionContext<UserActions>('UserAction');
 ```
 
 ```typescript
