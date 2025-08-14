@@ -1,0 +1,83 @@
+# Context-Action Framework - Document Navigation
+
+Generated: 2025-08-14
+Type: Minimum (Navigation Links)
+
+This document provides quick navigation links to all Context-Action framework documentation, organized by priority tiers.
+
+
+## Critical Documents (4)
+
+- [Core Concepts](https://mineclover.github.io/context-action/en/guide/concepts) - Priority: 100
+- [Guide Overview](https://mineclover.github.io/context-action/en/guide/overview) - Priority: 100
+- [Guide Getting Started](https://mineclover.github.io/context-action/en/guide/getting-started) - Priority: 95
+- [Guide Quick Start](https://mineclover.github.io/context-action/en/guide/quick-start) - Priority: 95
+
+## Essential Documents (18)
+
+- [Action Only Methods](https://mineclover.github.io/context-action/en/api/action-only) - Priority: 85
+- [Guide Action Handlers](https://mineclover.github.io/context-action/en/guide/action-handlers) - Priority: 80
+- [Guide Action Pipeline](https://mineclover.github.io/context-action/en/guide/action-pipeline) - Priority: 80
+- [Guide Best Practices](https://mineclover.github.io/context-action/en/guide/best-practices) - Priority: 80
+- [Guide Common Pitfalls](https://mineclover.github.io/context-action/en/guide/common-pitfalls) - Priority: 80
+- [Guide Cross Domain Integration](https://mineclover.github.io/context-action/en/guide/cross-domain-integration) - Priority: 80
+- [Guide Domain Hooks Pattern](https://mineclover.github.io/context-action/en/guide/domain-hooks-pattern) - Priority: 80
+- [Guide Error Handling](https://mineclover.github.io/context-action/en/guide/error-handling) - Priority: 80
+- [Guide Handler Id Strategies](https://mineclover.github.io/context-action/en/guide/handler-id-strategies) - Priority: 80
+- [Guide Logic Fit Hooks](https://mineclover.github.io/context-action/en/guide/logic-fit-hooks) - Priority: 80
+- [Guide Mvvm Architecture](https://mineclover.github.io/context-action/en/guide/mvvm-architecture) - Priority: 80
+- [Guide Patterns](https://mineclover.github.io/context-action/en/guide/patterns) - Priority: 80
+- [Guide Performance](https://mineclover.github.io/context-action/en/guide/performance) - Priority: 80
+- [Guide Philosophy](https://mineclover.github.io/context-action/en/guide/philosophy) - Priority: 80
+- [Guide Provider Composition](https://mineclover.github.io/context-action/en/guide/provider-composition) - Priority: 80
+- [Guide React Integration](https://mineclover.github.io/context-action/en/guide/react-integration) - Priority: 80
+- [Guide Setup Usage](https://mineclover.github.io/context-action/en/guide/setup-usage) - Priority: 80
+- [Guide Store Management](https://mineclover.github.io/context-action/en/guide/store-management) - Priority: 80
+
+## Important Documents (11)
+
+- [Api Action Registry](https://mineclover.github.io/context-action/en/api/action-registry) - Priority: 75
+- [Api Core Action Register](https://mineclover.github.io/context-action/en/api/core-action-register) - Priority: 75
+- [Api Core Pipeline Controller](https://mineclover.github.io/context-action/en/api/core-pipeline-controller) - Priority: 75
+- [Api Declarative Store Pattern](https://mineclover.github.io/context-action/en/api/declarative-store-pattern) - Priority: 75
+- [Api Pipeline Controller](https://mineclover.github.io/context-action/en/api/pipeline-controller) - Priority: 75
+- [Api React Action Context](https://mineclover.github.io/context-action/en/api/react-action-context) - Priority: 75
+- [Api React Store Manager](https://mineclover.github.io/context-action/en/api/react-store-manager) - Priority: 75
+- [Api React Store Pattern](https://mineclover.github.io/context-action/en/api/react-store-pattern) - Priority: 75
+- [Api Store Manager](https://mineclover.github.io/context-action/en/api/store-manager) - Priority: 75
+- [Api Store Only](https://mineclover.github.io/context-action/en/api/store-only) - Priority: 75
+- [Basic Setup Examples](https://mineclover.github.io/context-action/en/examples/basic-setup) - Priority: 75
+
+## Reference Documents (11)
+
+- [Concept Action Pipeline Guide](https://mineclover.github.io/context-action/en/concept/action-pipeline-guide) - Priority: 50
+- [Concept Architecture Guide](https://mineclover.github.io/context-action/en/concept/architecture-guide) - Priority: 50
+- [Concept Conventions](https://mineclover.github.io/context-action/en/concept/conventions) - Priority: 50
+- [Concept Hooks Reference](https://mineclover.github.io/context-action/en/concept/hooks-reference) - Priority: 50
+- [Concept Pattern Guide](https://mineclover.github.io/context-action/en/concept/pattern-guide) - Priority: 50
+- [Examples Action Only](https://mineclover.github.io/context-action/en/examples-action-only) - Priority: 50
+- [Examples Pattern Composition](https://mineclover.github.io/context-action/en/examples-pattern-composition) - Priority: 50
+- [Examples Store Only](https://mineclover.github.io/context-action/en/examples-store-only) - Priority: 50
+- [Llms Conventions](https://mineclover.github.io/context-action/en/llms/conventions) - Priority: 50
+- [Llms Index](https://mineclover.github.io/context-action/en/llms/index) - Priority: 50
+- [Llms Library Specs](https://mineclover.github.io/context-action/en/llms/library-specs) - Priority: 50
+
+
+## Usage Notes
+
+- **Critical**: Essential documents for understanding the framework
+- **Essential**: Important guides and API references  
+- **Important**: Valuable reference material
+- **Reference**: Advanced and supplementary content
+
+## Quick Start Path
+
+For first-time users, follow this recommended reading order:
+1. Core Concepts (Critical)
+2. Getting Started (Critical)  
+3. Pattern Guide (Essential)
+4. API Reference (Essential)
+
+---
+
+*Generated automatically from llm-content structure*
