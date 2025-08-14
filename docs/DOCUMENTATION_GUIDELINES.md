@@ -1,91 +1,329 @@
-# 문서 작성 가이드라인
+# Documentation Guidelines
 
-이 가이드는 Context-Action Store 프로젝트의 일관된 문서 작성을 위한 간단한 규칙들입니다.
+This document provides comprehensive guidelines for documenting the Context-Action framework. It covers documentation standards, patterns, and best practices for maintaining high-quality technical documentation.
 
-## 문서 구조
+## Framework Overview
 
-프로젝트 문서는 다음과 같이 구성되어 있습니다:
+The Context-Action framework is a revolutionary TypeScript state management system built on document-centric context separation and effective artifact management. Documentation should reflect the framework's core philosophy of domain isolation and MVVM architecture.
 
+## Documentation Philosophy
+
+### Core Principles
+- **Document-Centric Approach**: Documentation should mirror the framework's document-artifact centered design
+- **Domain Isolation**: Each documentation section should clearly define its domain boundaries
+- **Type Safety First**: All code examples must include proper TypeScript types
+- **Evidence-Based**: Claims must be supported with working code examples
+- **MVVM Clarity**: Clearly separate View (components), ViewModel (actions), and Model (stores) concerns
+
+### Target Audiences
+1. **Framework Users**: Developers implementing Context-Action in their projects
+2. **Contributors**: Developers contributing to the framework codebase
+3. **Evaluators**: Decision-makers comparing state management solutions
+
+## Documentation Structure
+
+### Core Documentation Categories
+
+#### 1. Concept Documentation (`docs/en/concept/`)
+- **pattern-guide.md**: Complete pattern guide with two main approaches (Action Only, Store Only)
+- **architecture-guide.md**: MVVM architecture guide with Context Store Pattern
+- **conventions.md**: Coding conventions and best practices
+- **hooks-reference.md**: Complete hooks reference documentation
+
+#### 2. API Documentation (`docs/en/api/`)
+- Auto-generated from TypeScript source using TypeDoc
+- Synchronized with `pnpm docs:api` command
+- Covers all public APIs with examples
+
+#### 3. Tutorial Documentation (`docs/en/tutorial/`)
+- Step-by-step guides for common use cases
+- Progressive complexity from basic to advanced patterns
+- Real-world implementation examples
+
+#### 4. Example Documentation (`example/`)
+- Comprehensive working examples
+- Demonstrates all major patterns and features
+- Serves as reference implementation
+
+## Writing Standards
+
+### Content Structure
+
+#### Document Headers
+Every documentation file must include:
+```markdown
+# Document Title
+
+Brief description of what this document covers and its target audience.
+
+## Overview
+High-level summary of key concepts covered.
+```
+
+#### Code Examples
+All code examples must:
+1. **Include TypeScript types**: Never show untyped JavaScript
+2. **Be complete and runnable**: Avoid partial snippets that won't compile
+3. **Follow framework conventions**: Use established patterns consistently
+4. **Include imports**: Show where functions/types come from
+
+```typescript
+// ✅ Good: Complete, typed example
+import { createActionContext, ActionPayloadMap } from '@context-action/react';
+
+interface UserActions extends ActionPayloadMap {
+  updateUser: { id: string; name: string };
+  deleteUser: { id: string };
+}
+
+const { Provider, useActionDispatch, useActionHandler } = 
+  createActionContext<UserActions>('User');
+```
+
+```typescript
+// ❌ Bad: Incomplete, untyped example
+const dispatch = useActionDispatch();
+dispatch('updateUser', data);
+```
+
+#### Pattern Documentation
+When documenting patterns, follow this structure:
+
+1. **Use Case**: When to use this pattern
+2. **Implementation**: Complete code example
+3. **Key Features**: What this pattern provides
+4. **Best Practices**: How to use it effectively
+5. **Common Pitfalls**: What to avoid
+
+### Language and Tone
+
+#### Technical Writing Standards
+- **Clarity**: Use simple, direct language
+- **Precision**: Technical terms must be accurate and consistent
+- **Conciseness**: Avoid unnecessary verbosity
+- **Active Voice**: Prefer active over passive constructions
+
+#### Framework-Specific Language
+- **Context-Action framework** (not "Context Action" or "context-action")
+- **Action Pipeline System** (capitalized when referring to the architectural pattern)
+- **Store Integration Pattern** (capitalized as architectural pattern)
+- **Declarative Store Pattern** (specific pattern name)
+
+## Code Documentation Standards
+
+### TypeScript Documentation
+All public APIs must include TSDoc comments:
+
+```typescript
+/**
+ * Creates an action context for type-safe action dispatching.
+ * 
+ * @template TActionMap - Action payload map extending ActionPayloadMap
+ * @param contextName - Unique identifier for the action context
+ * @returns Context provider and hooks for action management
+ * 
+ * @example
+ * ```typescript
+ * interface UserActions extends ActionPayloadMap {
+ *   updateUser: { id: string; name: string };
+ * }
+ * 
+ * const { Provider, useActionDispatch } = 
+ *   createActionContext<UserActions>('User');
+ * ```
+ */
+export function createActionContext<TActionMap extends ActionPayloadMap>(
+  contextName: string
+): ActionContextResult<TActionMap>
+```
+
+### Code Comments
+- **Focus on WHY, not WHAT**: Explain reasoning, not obvious behavior
+- **Document complex logic**: Multi-step processes need explanation
+- **Highlight framework patterns**: Point out when code follows specific patterns
+
+## Documentation Maintenance
+
+### Build and Deployment
+
+#### Development Workflow
+```bash
+# Documentation development
+pnpm docs:dev          # VitePress dev server at localhost:5173
+pnpm docs:build        # Build static documentation
+pnpm docs:api          # Generate API docs with TypeDoc
+pnpm docs:sync         # Sync API docs to documentation
+pnpm docs:full         # Full documentation build pipeline
+```
+
+#### Automatic API Documentation
+- TypeDoc automatically generates API documentation from TypeScript source
+- Run `pnpm docs:api` after any public API changes
+- API docs are synced to `docs/en/api/` directory
+
+### Content Review Process
+
+#### Before Publishing
+1. **Technical Accuracy**: Verify all code examples compile and run
+2. **Framework Alignment**: Ensure content follows framework principles
+3. **Cross-References**: Check that links and references are accurate
+4. **Examples Validation**: Test examples against current codebase
+
+#### Regular Maintenance
+- **API Sync**: Keep API documentation synchronized with code changes
+- **Example Updates**: Update examples when patterns evolve
+- **Link Validation**: Ensure internal and external links remain valid
+- **Version Compatibility**: Update version-specific information
+
+## Framework-Specific Guidelines
+
+### Architecture Documentation
+
+#### MVVM Pattern Documentation
+When documenting MVVM patterns:
+- **View Layer**: React components, UI rendering, user interactions
+- **ViewModel Layer**: Action pipeline, business logic, state coordination
+- **Model Layer**: Store system, data management, persistence
+
+#### Context Separation Documentation
+Document the five core contexts:
+1. **Business Context**: Domain logic, workflows, business rules
+2. **UI Context**: User interactions, screen state, component behavior
+3. **Validation Context**: Data validation, form processing, error handling
+4. **Design Context**: Themes, styling, layout, visual states
+5. **Architecture Context**: System configuration, technical decisions
+
+### Pattern Documentation Standards
+
+#### Action Only Pattern
+Document when to use for:
+- Event systems and command patterns
+- Pure action dispatching without state
+- Lightweight operations with minimal overhead
+
+#### Store Only Pattern (Declarative Store Pattern)
+Document when to use for:
+- Data layers and simple state management
+- Type-safe state without action dispatching
+- Clean state management with excellent type inference
+
+#### Pattern Composition
+Show how to combine patterns:
+- Action Only + Store Only for complex applications
+- Provider isolation strategies
+- Cross-pattern communication
+
+### Common Documentation Patterns
+
+#### Implementation Examples
+Always show the complete implementation pattern:
+
+```typescript
+// 1. Define types
+interface AppActions extends ActionPayloadMap {
+  updateUser: { id: string; name: string };
+}
+
+// 2. Create context
+const { Provider, useActionDispatch, useActionHandler } = 
+  createActionContext<AppActions>('App');
+
+// 3. Provider setup
+function App() {
+  return (
+    <Provider>
+      <UserComponent />
+    </Provider>
+  );
+}
+
+// 4. Handler registration
+function UserComponent() {
+  const dispatch = useActionDispatch();
+  
+  useActionHandler('updateUser', async (payload, controller) => {
+    // Business logic here
+    console.log('Updating user:', payload);
+  });
+  
+  return <button onClick={() => dispatch('updateUser', { id: '1', name: 'John' })}>
+    Update User
+  </button>;
+}
+```
+
+#### Error Handling Documentation
+Show proper error handling patterns:
+
+```typescript
+useActionHandler('riskyAction', async (payload, controller) => {
+  try {
+    // Business logic that might fail
+    await api.updateUser(payload);
+  } catch (error) {
+    // Use controller for proper error handling
+    controller.abort('User update failed', error);
+  }
+});
+```
+
+## Quality Assurance
+
+### Documentation Testing
+- All code examples must compile with TypeScript strict mode
+- Examples should run against the current framework version
+- Links and references must be validated regularly
+
+### Review Checklist
+- [ ] Technical accuracy verified
+- [ ] Code examples compile and run
+- [ ] Framework patterns followed correctly
+- [ ] Language is clear and concise
+- [ ] Cross-references are accurate
+- [ ] Follows documentation structure guidelines
+- [ ] Includes proper TypeScript types
+- [ ] Shows complete, working examples
+
+## Tools and Infrastructure
+
+### Documentation Stack
+- **VitePress**: Static site generator for main documentation
+- **TypeDoc**: Automatic API documentation generation
+- **TypeScript**: Type checking for all code examples
+- **ESLint**: Code quality enforcement in examples
+
+### File Organization
 ```
 docs/
-├── index.md                    # 언어 선택 홈페이지
-├── DOCUMENTATION_GUIDELINES.md # 이 파일 - 작성 가이드라인
-├── en/                         # 영어 문서
-│   ├── index.md               # 영어 홈페이지
-│   ├── guide/                 # 학습 가이드
-│   ├── api/                   # API 참조
-│   ├── examples/              # 코드 예제
-│   └── llms/                  # LLM 통합 가이드
-├── ko/                        # 한국어 문서 (en/ 미러)
-└── public/                    # 정적 자산
+├── en/
+│   ├── concept/           # Conceptual guides
+│   ├── api/              # Auto-generated API docs
+│   ├── tutorial/         # Step-by-step tutorials
+│   └── .vitepress/       # VitePress configuration
+└── DOCUMENTATION_GUIDELINES.md  # This file
 ```
 
-## 기본 문서 구조
+### Development Integration
+Documentation is integrated with the development workflow:
+- Changes to public APIs trigger documentation updates
+- Examples are validated against current codebase
+- Documentation builds are part of CI/CD pipeline
 
-모든 문서는 이 순서로 작성하세요:
+## Contribution Guidelines
 
-```markdown
-# 제목
+### For Contributors
+1. **Read Existing Documentation**: Understand current patterns and style
+2. **Follow TypeScript Standards**: All examples must be properly typed
+3. **Test Examples**: Verify code examples work with current framework
+4. **Update Cross-References**: Maintain links and references
+5. **Follow Review Process**: Submit documentation changes for review
 
-## 개요
-무엇을 다루는 문서인지 2-3줄로 설명
+### For Maintainers
+1. **Enforce Standards**: Ensure contributions follow these guidelines
+2. **Maintain Consistency**: Keep documentation style consistent
+3. **Regular Updates**: Schedule regular documentation maintenance
+4. **API Synchronization**: Keep API docs synchronized with code changes
 
-## 주요 내용
-핵심 개념과 사용법
+---
 
-## 사용 방법
-실제 코드와 단계별 설명
-
-## 관련 문서
-다른 문서 링크
-```
-
-## 문서 유형별 작성법
-
-### 가이드 문서 (`/guide/`)
-학습 경로를 제공하는 문서들입니다:
-- 처음 사용하는 사람도 따라할 수 있게 단계별로 설명
-- 코드는 복사해서 바로 실행 가능하게 작성
-- 자주 하는 실수나 주의사항 포함
-- `getting-started.md`, `action-pipeline.md`, `mvvm-architecture.md` 등
-
-### API 문서 (`/api/`)
-기술적 명세와 사용법을 제공하는 문서들입니다:
-- 함수/클래스가 무엇을 하는지 한 줄로 설명
-- 입력값과 출력값을 명확히 표시
-- 간단한 사용 예제 포함
-- `core/`, `react/`, `jotai/` 디렉토리로 구분
-
-### 예제 문서 (`/examples/`)
-실제 구현 사례를 보여주는 문서들입니다:
-- 완전히 동작하는 코드만 작성
-- 각 단계를 주석으로 설명
-- 실제 프로젝트에서 사용할 수 있는 내용
-- `basic-setup.md`, `first-action.md` 등
-
-## 작성 규칙
-
-### 글쓰기 스타일
-- 쉬운 말로 설명하기
-- 한 문장에 한 가지 내용만
-- 불필요한 설명 생략하기
-
-### 코드 작성
-- 복사해서 바로 실행 가능한 코드
-- 주석으로 각 줄 설명
-- TypeScript 타입 명시
-
-### 구조
-- 제목은 H1(#) 하나만 사용
-- 큰 섹션은 H2(##), 작은 섹션은 H3(###)
-- 관련된 다른 문서 링크 포함
-
-## 체크리스트
-
-문서 작성 후 확인사항:
-
-- [ ] 제목이 내용을 명확히 설명하는가?
-- [ ] 첫 문단에서 이 문서의 목적을 알 수 있는가?
-- [ ] 코드 예제가 실제로 동작하는가?
-- [ ] 독자가 다음에 무엇을 해야 할지 알 수 있는가?
-- [ ] 다른 관련 문서에 링크가 연결되어 있는가?
+This documentation standard ensures that the Context-Action framework documentation remains high-quality, accurate, and useful for all stakeholders while reflecting the framework's innovative approach to state management through document-centric context separation.
