@@ -38,7 +38,7 @@
     "docs:deploy": "lerna run build && pnpm docs:build",
     "check:size": "node scripts/check-bundle-size.js",
     "build:check": "lerna run build && pnpm check:size",
-    "ci:check": "lerna run lint && lerna run type-check && lerna run test && pnpm build:check",
+    "ci:check": "lerna run lint && lerna run type-check && lerna run test && pnpm build:check"
   },
   "devDependencies": {
     "@rollup/plugin-terser": "0.4.4",
