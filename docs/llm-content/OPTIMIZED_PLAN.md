@@ -5,49 +5,53 @@
 ### 완료된 작업
 - ✅ **구조 설계**: 최적화된 폴더/파일 구조 설계 완료
 - ✅ **스크립트 개발**: 문서 생성 및 상태 확인 스크립트 완료
-- ✅ **폴더 생성**: 59개 문서 폴더와 531개 파일 생성 완료
+- ✅ **폴더 생성**: 62개 문서 폴더와 558개 파일 생성 완료
 - ✅ **메타데이터 시스템**: YAML 기반 메타데이터 시스템 구축
 - ✅ **Origin 파일**: 원본 문서 자동 복사 완료
 - ✅ **가이드라인**: 추출 가이드라인 문서화 완료
+- ✅ **Priority 시스템**: 문서별 priority.json 기반 시스템 구축 완료
+- ✅ **JSON 스키마**: priority-schema.json 검증 시스템 구축
 
 ### 현재 상태
-- **총 문서**: 59개 (영어 42개, 한글 17개)
-- **총 파일**: 531개
+- **총 문서**: 62개 (영어 44개, 한글 18개)
+- **총 파일**: 620개 (558개 추출 파일 + 62개 priority.json)
 - **파일 타입**: 9개 (minimum, origin, 100~4000자)
-- **완료율**: 구조 100%, 내용 0% (모든 파일이 placeholder 상태)
+- **Priority 파일**: 62개 (100% 완성, 모든 파일 스키마 검증 통과)
+- **완료율**: 구조 100%, 내용 0% (모든 추출 파일이 placeholder 상태)
 
 ## 🎯 파일 타입별 전략
 
 ### 1. Minimum Files (-minimum.txt)
-**우선순위**: 가장 높음 (빠른 참조 및 탐색)
+**우선순위**: 가장 높음 (빠른 네비게이션과 경로 정보)
 
 **목적**: 
-- 문서의 핵심 링크와 간단한 설명 제공
-- LLM이 필요한 문서를 빠르게 찾을 수 있도록 지원
+- 문서 경로 및 네비게이션 정보 제공
+- LLM이 관련 문서를 빠르게 찾을 수 있도록 지원
+- **llms.txt 조합 시**: 경로/링크 참조 정보로 활용
 
 **내용 구성**:
 ```
-## Document Link
+## Document Path & Navigation
 - **Source**: `relative/path/to/source.md`
-- **Type**: Guide/API Reference/Examples/Concepts
-- **Priority**: XX/100
+- **Document ID**: guide-concepts
+- **Category**: Guide/API Reference/Examples/Concepts
 
-## Brief Description
-[2-3줄 설명]
+## Quick Navigation
+[2-3줄 빠른 설명]
 
-## Key Links
-- Main documentation: `source.md`
-- Related documents: [관련 문서들]
+## Related Documents
+- Related: [관련 문서 링크들]
+- Dependencies: [선행 문서들]
 ```
 
 ### 2. Origin Files (-origin.txt)
-**우선순위**: 중간 (완전한 참조 제공)
+**우선순위**: 중간 (원본 문서 완전 보존)
 
 **목적**: 
-- 원본 마크다운 문서의 전체 내용 보존
-- 수정 없이 완전한 정보 제공
+- 원본 마크다운 문서의 완전한 복사본 제공
+- **llms.txt 조합 시**: 문서 그대로의 내용으로 활용
 
-**내용**: 소스 파일의 전체 내용 그대로 복사 (이미 완료)
+**내용**: 소스 파일의 전체 내용 그대로 복사 (수정 금지)
 
 ### 3. Character-Limited Files (100~4000자)
 **우선순위**: 크기별 차등 (300, 1000, 2000이 핵심)
@@ -83,48 +87,70 @@
 - **목적**: 상세한 참조 자료
 - **내용**: 거의 완전한 정보 + 고급 기능
 
-## 📊 우선순위 시스템
+## 📊 Priority 시스템 (새로운 문서별 시스템)
 
-### 문서별 기본 우선순위
-1. **Overview/Getting Started**: 90-100점
-2. **Core Concepts**: 85-95점  
-3. **Main API References**: 80-90점
-4. **Pattern Guides**: 75-85점
-5. **Advanced Features**: 60-75점
-6. **Examples**: 70-80점
-7. **Detailed API**: 50-70점
+### Document-Based Priority System
+각 문서 폴더의 `priority.json` 파일로 관리:
 
-### 파일 타입별 우선순위 보정
-- **Minimum**: +25점 (빠른 참조)
-- **Origin**: +5점 (완전한 정보)
-- **300자**: +15점 (핵심 크기)
-- **1000자**: +15점 (실용적 크기)  
-- **2000자**: +15점 (포괄적 크기)
-- **기타**: 기본값
+**Priority Tiers**:
+- **Critical (90-100점)**: 7개 문서 - 프레임워크 핵심 개념
+- **Essential (80-89점)**: 32개 문서 - 주요 가이드 및 API  
+- **Important (60-79점)**: 11개 문서 - 중요 참조 문서
+- **Reference (40-59점)**: 12개 문서 - 고급/참조용
+
+### Priority JSON 구조
+```json
+{
+  "document": { "id": "...", "title": "...", "category": "..." },
+  "priority": { "score": 85, "tier": "essential" },
+  "purpose": { "primary_goal": "...", "target_audience": [...] },
+  "keywords": { "primary": [...], "technical": [...] },
+  "extraction": { 
+    "strategy": "concept-first",
+    "character_limits": { /* 9가지 타입별 가이드라인 */ }
+  }
+}
+```
+
+### 새로운 우선순위 관리 도구
+```bash
+pnpm docs:priority:status        # 전체 상태 확인
+pnpm docs:priority:critical      # Critical 문서 목록
+pnpm docs:priority:worklist      # 작업 목록 (점수순)
+pnpm docs:priority info [doc-id] # 특정 문서 정보
+```
 
 ## 🚀 작업 계획
 
-### Phase 1: 핵심 Minimum 파일 작성 (1-2일)
-**대상**: 우선순위 80점 이상 문서들의 minimum 파일
+### Phase 1: Critical 문서 Minimum 파일 작성 (1-2일)
+**대상**: Critical tier (90-100점) 7개 문서의 minimum 파일
 
-1. **guide-getting-started-minimum.txt**
-2. **guide-concepts-minimum.txt**  
-3. **guide-overview-minimum.txt**
-4. **guide-quick-start-minimum.txt**
-5. **concept-pattern-guide-minimum.txt**
-
-**작업 방법**:
-- 각 문서의 원본을 읽고 핵심 링크 정리
-- 2-3줄 간단 설명 작성
-- 관련 문서 링크 추가
-
-### Phase 2: 핵심 300자 파일 작성 (2-3일)
-**대상**: 우선순위 75점 이상 문서들의 300자 파일
+**Priority 기반 작업 순서**:
+```bash
+# Critical tier 문서 확인
+pnpm docs:priority:critical
+```
 
 **작업 방법**:
-- Origin 파일 내용 기반으로 핵심 개념 추출
-- 270-330자 범위 내에서 요약
-- 가장 중요한 1-2개 개념만 포함
+- 각 문서의 priority.json에서 extraction 가이드라인 확인
+- minimum 타입의 focus: "빠른 네비게이션과 경로 정보"
+- must_include: ["source link", "brief purpose", "related docs"]
+- 문서 경로, 카테고리, 관련 문서 링크 중심으로 작성
+
+### Phase 2: Essential/Critical 300자 파일 작성 (2-3일)
+**대상**: Essential + Critical tier 문서들의 300자 파일
+
+**Priority 기반 접근**:
+```bash
+# Essential tier 문서 확인
+pnpm docs:priority:essential
+```
+
+**작업 방법**:
+- 각 문서의 priority.json → extraction.character_limits["300"] 확인
+- strategy 따라 concept-first/api-first/example-first 접근
+- must_include keywords 우선 포함
+- avoid keywords 제외하여 작성
 
 ### Phase 3: 1000자 파일 작성 (3-4일)
 **대상**: 주요 가이드 및 API 문서들

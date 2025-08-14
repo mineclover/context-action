@@ -9,80 +9,86 @@ docs/llm-content/
 ├── README.md                           # 이 문서
 ├── EXTRACTION_GUIDELINES.md            # 추출 가이드라인
 ├── FINAL_STRUCTURE_ANALYSIS.md         # 구조 분석 보고서
+├── priority-schema.json                # JSON 스키마 정의
 │
-├── en/                                 # 영어 문서
+├── en/                                 # 영어 문서 (44개)
 │   ├── guide-concepts/                 # 개념 가이드
-│   │   ├── guide-concepts-minimum.txt     # 🔗 링크 + 간단 설명
-│   │   ├── guide-concepts-origin.txt      # 📋 원본 문서 전체
-│   │   ├── guide-concepts-100.txt         # 📝 100자 요약
-│   │   ├── guide-concepts-300.txt         # 📝 300자 요약
-│   │   ├── guide-concepts-500.txt         # 📝 500자 요약
-│   │   ├── guide-concepts-1000.txt        # 📝 1K자 요약
-│   │   ├── guide-concepts-2000.txt        # 📝 2K자 요약
-│   │   ├── guide-concepts-3000.txt        # 📝 3K자 요약
-│   │   └── guide-concepts-4000.txt        # 📝 4K자 요약
-│   ├── api-action-registry/            # API 레지스트리
-│   │   ├── api-action-registry-minimum.txt
-│   │   ├── api-action-registry-origin.txt
-│   │   └── ... (동일한 패턴)
-│   └── ... (42개 문서 폴더)
+│   │   ├── priority.json                   # 🎯 문서별 우선순위 & 추출 가이드
+│   │   ├── guide-concepts-100.txt          # 📝 100자 요약
+│   │   ├── guide-concepts-300.txt          # 📝 300자 요약
+│   │   ├── guide-concepts-500.txt          # 📝 500자 요약
+│   │   ├── guide-concepts-1000.txt         # 📝 1K자 요약
+│   │   ├── guide-concepts-2000.txt         # 📝 2K자 요약
+│   │   ├── guide-concepts-3000.txt         # 📝 3K자 요약
+│   │   └── guide-concepts-4000.txt         # 📝 4K자 요약
+│   ├── api-action-only/                # API 문서
+│   │   ├── priority.json                   # 🎯 문서별 우선순위 & 추출 가이드
+│   │   └── ... (7개 크기별 추출 파일)
+│   └── ... (총 44개 문서 폴더)
 │
-└── ko/                                 # 한글 문서
+└── ko/                                 # 한글 문서 (18개)
     ├── guide-concepts/                 # 개념 가이드
-    │   ├── guide-concepts-minimum.txt
-    │   ├── guide-concepts-origin.txt
-    │   └── ... (동일한 패턴)
-    └── ... (17개 문서 폴더)
+    │   ├── priority.json                   # 🎯 문서별 우선순위 & 추출 가이드
+    │   └── ... (7개 크기별 추출 파일)
+    └── ... (총 18개 문서 폴더)
 ```
 
 ## 🎯 파일 타입별 용도
 
-### 📄 Minimum Files (`-minimum.txt`)
-- **목적**: 빠른 참조 및 문서 링크
-- **내용**: 문서 링크 + 간단한 설명
-- **우선순위**: 가장 높음 (빠른 탐색용)
-- **예시**: `guide-concepts-minimum.txt`
+### 🎯 Priority Files (`priority.json`)
+- **목적**: 문서별 우선순위 및 추출 가이드라인 관리
+- **내용**: 우선순위 점수, 핵심 키워드, 문자수별 추출 전략, 품질 기준
+- **스키마**: `priority-schema.json`으로 구조 검증
+- **예시**: 각 문서 폴더의 `priority.json`
 
-### 📋 Origin Files (`-origin.txt`)
-- **목적**: 완전한 원본 문서 백업
-- **내용**: 소스 마크다운의 전체 내용
-- **우선순위**: 낮음 (완전 참조용)
-- **예시**: `guide-concepts-origin.txt`
+### 📝 Extraction Files (9가지 타입)
 
-### 📝 Character-Limited Files (`-[100|300|500|1000|2000|3000|4000].txt`)
+#### 🔗 Minimum Files (`-minimum.txt`)
+- **목적**: 빠른 네비게이션과 경로 정보
+- **내용**: 문서 링크 + 간단한 설명 + 관련 문서
+- **llms.txt 조합 시**: 경로/링크 참조 정보로 활용
+
+#### 📄 Origin Files (`-origin.txt`)
+- **목적**: 원본 문서 완전 보존
+- **내용**: 소스 마크다운 파일의 완전한 복사본
+- **llms.txt 조합 시**: 문서 그대로의 내용으로 활용
+
+#### 📝 Character-Limited Files (`-[100|300|500|1000|2000|3000|4000].txt`)
 - **목적**: 글자수 제한 내에서 요약된 내용
-- **내용**: 추출 및 요약된 핵심 내용
-- **우선순위**: 크기별 (300, 1000, 2000이 가장 높음)
+- **내용**: priority.json 가이드라인에 따라 추출된 핵심 내용
+- **우선순위**: 300, 1000, 2000자가 가장 중요
 - **예시**: `guide-concepts-300.txt`
 
 ## 🚀 사용 방법
 
-### 1. 구조 생성 (이미 완료됨)
+### 1. Priority 시스템 관리
 
 ```bash
-# 최적화된 구조 생성 (이미 실행됨)
-node scripts/generate-final-document-structure.js
+# 전체 상태 확인
+pnpm docs:priority:status
 
-# 또는 package.json 스크립트로
-pnpm docs:final
+# 우선순위별 작업 목록
+pnpm docs:priority:critical     # Critical tier (7개 문서)
+pnpm docs:priority:essential    # Essential tier (32개 문서)
+pnpm docs:priority:worklist     # 모든 문서 작업 목록
+
+# 특정 문서 정보
+pnpm docs:priority info guide-concepts
+
+# 스키마 검증
+pnpm docs:priority:validate
+
+# 누락된 priority.json 파일 생성
+pnpm docs:priority:generate
 ```
 
-### 2. 문서 상태 확인
+### 2. 문서 추출 작업 프로세스
 
-```bash
-# 현재 구조 기반 상태 확인
-node scripts/check-document-status-v2.js
-
-# 또는 package.json 스크립트로
-pnpm docs:status
-```
-
-### 3. 내용 추출 작업
-
-1. **Origin 파일들은 이미 자동 복사됨**
-2. **Minimum 파일에 링크와 설명 추가**
-3. **글자수별 파일에 요약 내용 추가**
-4. **YAML 상태를 "complete"로 업데이트**
+1. **Priority.json 확인**: 해당 문서의 추출 가이드라인 검토
+2. **키워드 파악**: primary, technical, patterns 키워드 숙지
+3. **전략 확인**: extraction.strategy에 따른 접근 방식
+4. **글자수별 작업**: 300자 → 1000자 → 2000자 순으로 진행
+5. **품질 검증**: completeness_threshold 및 consistency_checks 확인
 
 ## 📊 YAML 메타데이터 구조
 
@@ -121,25 +127,32 @@ language: "en"                             # 언어
 
 ### 생성된 구조
 - **언어**: 2개 (영어, 한글)
-- **총 문서**: 59개
-- **파일 타입**: 9개 (minimum, origin, 100, 300, 500, 1000, 2000, 3000, 4000)
-- **생성된 폴더**: 59개
-- **생성된 파일**: 531개
-- **높은 우선순위**: 168개 파일
+- **총 문서**: 62개 (영어 44개, 한글 18개)
+- **Priority 파일**: 62개 (100% 완성)
+- **추출 파일**: 434개 (7개 크기 × 62개 문서)
+- **평균 우선순위**: 75/100점
+- **스키마 검증**: 모든 파일 유효
+
+### 우선순위 분포
+- **Critical (7개)**: guide-concepts, guide-overview, guide-getting-started 등
+- **Essential (32개)**: 대부분의 가이드 문서들
+- **Important (11개)**: API 참조 문서들  
+- **Reference (12개)**: 고급/참조용 문서들
 
 ### 다음 단계
-1. **Minimum 파일 작성**: 문서 링크와 간단 설명 추가
-2. **Origin 파일 검증**: 원본 복사 확인
-3. **요약 추출**: 우선순위별 글자수 파일 작성
-4. **상태 업데이트**: YAML `status` 필드 관리
+1. **Critical 문서 우선 작업**: 7개 핵심 문서부터 시작
+2. **300자 추출**: 빠른 이해를 위한 핵심 요약
+3. **1000자 확장**: 실용적 정보 포함
+4. **2000자 완성**: 종합적 이해 제공
 
 ## 🔍 품질 기준
 
-1. **Minimum 파일**: 모든 관련 링크와 명확한 설명 포함
-2. **Origin 파일**: 소스 마크다운의 정확한 복사
+1. **Minimum 파일**: 문서 경로, 관련 링크, 네비게이션 정보 포함
+2. **Origin 파일**: 소스 마크다운의 완전한 복사본 (수정 금지)
 3. **글자수 제한**: 목표의 ±10% 범위 내
 4. **정보 보존**: 핵심 의미 유지
 5. **일관성**: 확립된 패턴 준수
+6. **llms.txt 조합**: minimum (경로), origin (문서), 글자수별 (요약) 역할 구분
 
 ## 🛠️ 관련 스크립트
 

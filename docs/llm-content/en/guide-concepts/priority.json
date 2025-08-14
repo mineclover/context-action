@@ -1,0 +1,158 @@
+{
+  "$schema": "../../priority-schema.json",
+  "document": {
+    "id": "guide-concepts",
+    "title": "Core Concepts",
+    "source_path": "guide/concepts.md",
+    "category": "guide",
+    "subcategory": "fundamentals"
+  },
+  "priority": {
+    "score": 100,
+    "tier": "critical", 
+    "rationale": "Foundation document explaining core framework concepts - essential for understanding everything else"
+  },
+  "purpose": {
+    "primary_goal": "Introduce fundamental concepts of Context-Action framework including document-centric MVVM architecture",
+    "target_audience": ["beginners", "framework-users", "llms"],
+    "use_cases": [
+      "First-time framework learning",
+      "Understanding MVVM separation",
+      "Grasping context-driven architecture",
+      "LLM framework comprehension"
+    ],
+    "dependencies": []
+  },
+  "keywords": {
+    "primary": [
+      "Context-Action framework",
+      "Document-centric MVVM",
+      "Action Pipeline",
+      "Store Integration",
+      "Context separation"
+    ],
+    "technical": [
+      "ActionRegister",
+      "createActionContext",
+      "createDeclarativeStorePattern",
+      "useActionDispatch",
+      "useStoreValue",
+      "MVVM architecture"
+    ],
+    "patterns": [
+      "Action Only Pattern",
+      "Store Only Pattern", 
+      "Store Integration Pattern",
+      "Context Store Pattern",
+      "Pattern Composition"
+    ],
+    "avoid": [
+      "Redux comparisons",
+      "Complex implementation details",
+      "Advanced optimization techniques"
+    ]
+  },
+  "extraction": {
+    "strategy": "concept-first",
+    "character_limits": {
+      "minimum": {
+        "focus": "Quick navigation and document overview",
+        "structure": "Document links + 2-3 line description + related documents",
+        "must_include": ["source document link", "brief purpose", "related documents"],
+        "avoid": ["detailed explanations", "code examples"],
+        "example_structure": "Source: guide/concepts.md | Purpose: Core framework concepts | Related: getting-started, pattern-guide"
+      },
+      "origin": {
+        "focus": "Complete original content preservation",
+        "structure": "Full markdown content from source file",
+        "must_include": ["complete original content"],
+        "avoid": ["modifications", "truncations"],
+        "example_structure": "Complete copy of guide/concepts.md"
+      },
+      "100": {
+        "focus": "Framework identity and core approach",
+        "structure": "One-sentence framework definition",
+        "must_include": ["Context-Action", "MVVM", "document-centric"],
+        "avoid": ["code examples", "detailed explanations"],
+        "example_structure": "Context-Action: Document-centric MVVM state management with Action/Store separation"
+      },
+      "300": {
+        "focus": "Core concepts and main patterns",
+        "structure": "Framework definition + two main patterns + key benefit",
+        "must_include": ["MVVM architecture", "Action Pipeline", "Store Integration", "two main patterns"],
+        "avoid": ["code syntax", "installation steps"],
+        "example_structure": "Framework overview → Two patterns → Key architectural benefit"
+      },
+      "500": {
+        "focus": "Concepts with basic context",
+        "structure": "Framework definition + patterns + simple benefits + basic usage hint",
+        "must_include": ["MVVM concept", "both patterns", "key benefit", "usage hint"],
+        "avoid": ["detailed code", "advanced topics"],
+        "example_structure": "Framework concept → Both patterns → Benefits → Basic usage"
+      },
+      "1000": {
+        "focus": "Complete conceptual understanding with basic usage",
+        "structure": "Concepts + patterns + basic examples + integration approach",
+        "must_include": ["MVVM layers", "pattern details", "simple code example", "context separation"],
+        "avoid": ["advanced features", "performance details"],
+        "example_structure": "Concepts → Patterns → Basic example → Integration benefits"
+      },
+      "2000": {
+        "focus": "Comprehensive conceptual guide with examples",
+        "structure": "Full concept explanation + both patterns + examples + architectural benefits",
+        "must_include": ["complete MVVM explanation", "both pattern examples", "context benefits", "when to use each"],
+        "avoid": ["API reference details", "troubleshooting"],
+        "example_structure": "Full concepts → Both patterns with examples → Architecture benefits → Usage guidelines"
+      },
+      "3000": {
+        "focus": "Detailed concepts with advanced understanding",
+        "structure": "Complete concepts + detailed patterns + multiple examples + advanced benefits",
+        "must_include": ["detailed MVVM", "pattern variations", "multiple examples", "advanced concepts"],
+        "avoid": ["API details", "implementation specifics"],
+        "example_structure": "Detailed concepts → Pattern variations → Multiple examples → Advanced benefits"
+      },
+      "4000": {
+        "focus": "Complete conceptual reference",
+        "structure": "All concepts + all patterns + comprehensive examples + complete architecture understanding",
+        "must_include": ["all core concepts", "all patterns", "comprehensive examples", "complete architecture"],
+        "avoid": ["API reference", "troubleshooting details"],
+        "example_structure": "All concepts → All patterns → Comprehensive examples → Complete architecture"
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "Document-centric approach",
+        "MVVM separation", 
+        "Action Pipeline concept",
+        "Store Integration pattern",
+        "Two main patterns"
+      ],
+      "nice_to_have": [
+        "Context separation benefits",
+        "Comparison with other libraries",
+        "Framework philosophy"
+      ]
+    }
+  },
+  "quality": {
+    "completeness_threshold": 0.9,
+    "code_examples_required": true,
+    "consistency_checks": [
+      "terminology",
+      "pattern_usage", 
+      "api_signatures"
+    ]
+  },
+  "metadata": {
+    "created": "2025-08-14",
+    "version": "1.0",
+    "original_size": 10496,
+    "estimated_extraction_time": {
+      "minimum": "10 minutes",
+      "origin": "automatic",
+      "300": "20 minutes",
+      "1000": "45 minutes", 
+      "2000": "60 minutes"
+    }
+  }
+}
