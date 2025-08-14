@@ -338,6 +338,7 @@ function EventComponent() {
 - `packages/react/src/store/context-store-pattern.tsx` - Context Store Pattern with HOC support
 - `packages/react/docs/PATTERN_GUIDE.md` - Complete pattern guide with three main approaches
 - `docs/en/guide/full.md` - Complete MVVM architecture guide with Context Store Pattern
+- `docs/CONVENTIONS.md` - Comprehensive coding conventions and best practices
 - `example/src/` - Comprehensive example application
 - `docs/` - VitePress documentation source
 - `glossary/` - Term management and documentation tools

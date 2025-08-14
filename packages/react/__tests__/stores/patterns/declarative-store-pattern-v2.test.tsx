@@ -1,7 +1,7 @@
 import React from 'react';
 import { renderHook, act } from '@testing-library/react';
-import { createDeclarativeStorePattern } from '../declarative-store-pattern-v2';
-import { useStoreValue } from '../../hooks/useStoreValue';
+import { createDeclarativeStorePattern } from '../../../src/stores/patterns/declarative-store-pattern-v2';
+import { useStoreValue } from '../../../src/stores/hooks/useStoreValue';
 
 describe('Declarative Store Pattern V2', () => {
   describe('Basic functionality', () => {
