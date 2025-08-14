@@ -1,4 +1,4 @@
-import { LogArtHelpers } from '@context-action/logger';
+import { LogArtHelpers } from './utils/logger';
 import { useEffect } from 'react';
 import {
   Route,

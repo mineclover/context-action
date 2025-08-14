@@ -5,7 +5,7 @@
  * store and action management with type safety.
  */
 
-import { LogLevel } from '@context-action/logger';
+import { LogLevel } from '../../../../../utils/logger';
 import {
   ActionPayloadMap,
   createActionContext,

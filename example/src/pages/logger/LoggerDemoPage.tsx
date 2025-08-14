@@ -4,7 +4,7 @@ import {
   getLogLevelFromEnv,
   type Logger,
   LogLevel,
-} from '@context-action/logger';
+} from '../../utils/logger';
 import { type ActionPayloadMap, ActionRegister } from '@context-action/react';
 import { useCallback, useEffect, useState } from 'react';
 import {
