@@ -5,7 +5,7 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   // GitHub Pages 배포를 위한 base path 설정
-  base: process.env.NODE_ENV === 'production' ? '/context-action-example/' : '/',
+  base: process.env.NODE_ENV === 'production' ? '/context-action/context-action-example/' : '/',
   server: {
     port: 4000,
     hmr: {
