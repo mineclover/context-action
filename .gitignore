@@ -67,7 +67,10 @@ typedoc-out/
 # Auto-generated API documentation
 docs/.vitepress/config/api-spec.ts
 
-# API docs cache (enhanced script)
+# TypeDoc VitePress Sync cache
+.typedoc-vitepress-cache/
+
+# Legacy API docs cache (enhanced script)
 .api-docs-cache/
 
 # Reports directory

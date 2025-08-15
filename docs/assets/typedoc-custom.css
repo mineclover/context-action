@@ -1,0 +1,144 @@
+/**
+ * Custom CSS for TypeDoc generated documentation
+ * Optimized for VitePress integration and readability
+ */
+
+/* Base typography improvements */
+.tsd-typography {
+  line-height: 1.6;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.tsd-typography h1,
+.tsd-typography h2,
+.tsd-typography h3,
+.tsd-typography h4,
+.tsd-typography h5,
+.tsd-typography h6 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+/* Code block improvements */
+.tsd-typography pre {
+  background-color: #f6f8fa;
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+  padding: 16px;
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.tsd-typography code {
+  background-color: rgba(175, 184, 193, 0.2);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-size: 0.875em;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+/* Link improvements */
+.tsd-typography a {
+  color: #0969da;
+  text-decoration: none;
+}
+
+.tsd-typography a:hover {
+  text-decoration: underline;
+}
+
+/* Table improvements */
+.tsd-typography table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+}
+
+.tsd-typography th,
+.tsd-typography td {
+  border: 1px solid #d1d9e0;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.tsd-typography th {
+  background-color: #f6f8fa;
+  font-weight: 600;
+}
+
+/* Example block styling */
+.tsd-example {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-left: 4px solid #0969da;
+  border-radius: 0 6px 6px 0;
+}
+
+.tsd-example-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #0969da;
+}
+
+/* Parameter documentation */
+.tsd-parameters {
+  margin: 1rem 0;
+}
+
+.tsd-parameter {
+  margin: 0.5rem 0;
+  padding-left: 1rem;
+  border-left: 3px solid #e1e4e8;
+}
+
+/* Accessibility improvements */
+.tsd-typography :focus {
+  outline: 2px solid #0969da;
+  outline-offset: 2px;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .tsd-typography pre {
+    background-color: #161b22;
+    border-color: #30363d;
+    color: #e6edf3;
+  }
+  
+  .tsd-typography code {
+    background-color: rgba(110, 118, 129, 0.4);
+    color: #e6edf3;
+  }
+  
+  .tsd-typography th {
+    background-color: #21262d;
+    border-color: #30363d;
+  }
+  
+  .tsd-typography td {
+    border-color: #30363d;
+  }
+  
+  .tsd-example {
+    background-color: #0d1117;
+    border-left-color: #1f6feb;
+  }
+}
+
+/* Print styles */
+@media print {
+  .tsd-typography {
+    font-size: 12pt;
+    line-height: 1.4;
+  }
+  
+  .tsd-typography pre {
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    page-break-inside: avoid;
+  }
+}
