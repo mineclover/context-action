@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.1.3/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.2.0/schema.json",
 	"linter": {
 		"enabled": true,
 		"rules": {
@@ -21,17 +21,22 @@
 			"correctness": {
 				"useExhaustiveDependencies": "off",
 				"useHookAtTopLevel": "error",
-				"noUnusedImports": "warn",
-				"noUnusedVariables": "warn",
+				"noUnusedImports": "off",
+				"noUnusedVariables": "off",
 				"noUnusedFunctionParameters": "off",
-				"noUnreachable": "warn"
+				"noUnreachable": "warn",
+				"useParseIntRadix": "off",
+				"useUniqueElementIds": "off"
 			},
 			"suspicious": {
 				"noExplicitAny": "off",
 				"noArrayIndexKey": "off",
 				"noEmptyInterface": "off",
 				"noConfusingVoidType": "off",
-				"noImplicitAnyLet": "off"
+				"noImplicitAnyLet": "off",
+				"noTsIgnore": "off",
+				"noUnknownAtRules": "off",
+				"useIterableCallbackReturn": "off"
 			},
 			"complexity": {
 				"noExcessiveCognitiveComplexity": "off",
@@ -73,6 +78,6 @@
 	"files": {
 		"maxSize": 1048576,
 		"ignoreUnknown": false,
-		"includes": ["src/**/*"]
+		"includes": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.jsx"]
 	}
 }
