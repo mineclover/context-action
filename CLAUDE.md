@@ -139,7 +139,7 @@ pnpm release:patch     # Version patch + publish
 pnpm docs:dev          # VitePress dev server
 pnpm docs:build        # Build documentation
 pnpm docs:api          # Generate API docs with TypeDoc
-pnpm docs:sync         # Sync API docs to documentation
+pnpm docs:sync         # Sync API docs to documentation (with smart caching)
 pnpm docs:full         # Full documentation build pipeline
 ```
 
