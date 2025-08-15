@@ -35,6 +35,9 @@
     "lint:fix": "eslint src --ext .ts --fix",
     "type-check": "tsc --noEmit",
     "clean": "rimraf dist coverage",
+    "security:audit": "pnpm audit --audit-level high",
+    "security:outdated": "pnpm outdated",
+    "security:check": "pnpm security:audit && pnpm security:outdated",
     "prepublishOnly": "pnpm run build"
   },
   "keywords": [

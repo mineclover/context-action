@@ -297,8 +297,40 @@ export function useMultiComputedStore<R>(
   computeRef.current = compute;
   equalityFnRef.current = equalityFn;
   
-  // 모든 Store 값 구독
-  const currentValues = stores.map(store => useStoreValue(store));
+  // 모든 Store 값 구독 - Hook 규칙을 지키기 위해 개별적으로 호출
+  const currentValues = useMemo(() => {
+    return stores.map(store => store.getValue());
+  }, [stores]);
+  
+  // 각 store 변경을 감지하기 위한 effect
+  useEffect(() => {
+    const unsubscribeFunctions: Array<() => void> = [];
+    
+    stores.forEach(store => {
+      const unsubscribe = store.subscribe(() => {
+        // Store가 변경되면 강제 리렌더링을 위해 forceUpdate 트리거
+        setComputedValue(prev => {
+          const newValues = stores.map(s => s.getValue());
+          try {
+            const newComputed = computeRef.current(newValues);
+            return equalityFnRef.current(prev, newComputed) ? prev : newComputed;
+          } catch (error) {
+            if (onError) {
+              onError(error as Error);
+            } else if (debug) {
+              console.error(`useMultiComputedStore [${name}]: Error in computation:`, error);
+            }
+            return prev;
+          }
+        });
+      });
+      unsubscribeFunctions.push(unsubscribe);
+    });
+    
+    return () => {
+      unsubscribeFunctions.forEach(unsubscribe => unsubscribe());
+    };
+  }, [stores, name, debug, onError]);
   
   // 계산된 값 상태
   const [computedValue, setComputedValue] = useState<R>(() => {
@@ -478,7 +510,7 @@ export function useComputedStoreInstance<R>(
     }
     
     return store;
-  }, [finalConfig.name, finalConfig.debug]);
+  }, [finalConfig.name, finalConfig.debug, computedValue]);
   
   // 계산된 값이 변경될 때마다 Store 업데이트
   useEffect(() => {
@@ -532,7 +564,10 @@ export function useAsyncComputedStore<R>(
     onError
   } = config;
   
-  const currentValues = dependencies.map(store => useStoreValue(store));
+  // Dependencies 값 구독 - Hook 규칙을 지키기 위해 수정
+  const currentValues = useMemo(() => {
+    return dependencies.map(store => store.getValue());
+  }, [dependencies]);
   const [state, setState] = useState<{
     value: R;
     loading: boolean;
