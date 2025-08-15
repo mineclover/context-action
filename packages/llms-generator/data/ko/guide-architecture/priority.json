@@ -1,0 +1,105 @@
+{
+  "document": {
+    "id": "guide-architecture",
+    "title": "아키텍처",
+    "source_path": "ko/guide/architecture.md",
+    "category": "guide"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "critical"
+  },
+  "extraction": {
+    "strategy": "concept-first",
+    "character_limits": {
+      "100": {
+        "focus": "아키텍처 핵심 개념",
+        "key_points": [
+          "MVVM 패턴으로 3개 레이어 분리",
+          "View, ViewModel, Model 구조",
+          "도메인별 컨텍스트 구성"
+        ],
+        "prioritized_key_points": [
+          {
+            "text": "MVVM 패턴으로 3개 레이어 분리",
+            "priority": "critical",
+            "category": "concept"
+          },
+          {
+            "text": "View: React 컴포넌트",
+            "priority": "important",
+            "category": "implementation"
+          },
+          {
+            "text": "도메인별 컨텍스트 구성",
+            "priority": "important",
+            "category": "concept"
+          }
+        ]
+      },
+      "200": {
+        "focus": "MVVM 패턴과 컨텍스트 분리",
+        "key_points": [
+          "View: React 컴포넌트, UI 렌더링",
+          "ViewModel: 액션 파이프라인, 우선순위 기반 핸들러",
+          "Model: 스토어 시스템, 반응형 상태 관리",
+          "5개 도메인 컨텍스트: 비즈니스, UI, 검증, 디자인, 아키텍처",
+          "완전한 도메인 격리와 명확한 경계"
+        ]
+      },
+      "300": {
+        "focus": "아키텍처 구조와 데이터 흐름",
+        "key_points": [
+          "데이터 흐름: 컴포넌트 → dispatch → 액션 파이프라인 → handlers → 스토어 → subscribe → 컴포넌트",
+          "핸들러 관리: 우선순위 기반 실행, 도메인 격리, 교차 컨텍스트 조정",
+          "트리거 시스템: 상태 변경, 교차 컨텍스트, 조건부 트리거",
+          "패키지 구조: @context-action/core (핵심), @context-action/react (React 통합)"
+        ]
+      },
+      "400": {
+        "focus": "완전한 아키텍처 가이드",
+        "key_points": [
+          "주요 장점: 문서-아티팩트 관리, 완벽한 관심사 분리, 고급 핸들러 관리",
+          "타입 안전성: 전체 프레임워크 TypeScript 지원",
+          "성능: 영향받는 컴포넌트만 리렌더링",
+          "팀 협업: 도메인별 독립 작업 가능",
+          "확장성: 기존 도메인 영향 없이 새 도메인 추가"
+        ]
+      }
+    }
+  },
+  "work_status": {
+    "source_modified": "2025-08-14T21:07:28.252Z",
+    "generated_files": {
+      "100": {
+        "path": "/Users/junwoobang/project/context-action/packages/llms-generator/data/ko/guide-architecture/guide-architecture-100.txt",
+        "created": "2025-08-14T21:30:36.025Z",
+        "modified": "2025-08-14T21:30:36.026Z",
+        "edited": true,
+        "needs_update": false
+      },
+      "300": {
+        "path": "/Users/junwoobang/project/context-action/packages/llms-generator/data/ko/guide-architecture/guide-architecture-300.txt",
+        "created": "2025-08-14T21:30:02.557Z",
+        "modified": "2025-08-14T21:30:02.557Z",
+        "edited": false,
+        "needs_update": false
+      },
+      "1000": {
+        "path": "/Users/junwoobang/project/context-action/packages/llms-generator/data/ko/guide-architecture/guide-architecture-1000.txt",
+        "created": "2025-08-15T16:35:32.071Z",
+        "modified": "2025-08-15T16:35:32.071Z",
+        "edited": false,
+        "needs_update": true
+      },
+      "2000": {
+        "path": "/Users/junwoobang/project/context-action/packages/llms-generator/data/ko/guide-architecture/guide-architecture-2000.txt",
+        "created": "2025-08-15T16:35:32.071Z",
+        "modified": "2025-08-15T16:35:32.071Z",
+        "edited": false,
+        "needs_update": true
+      }
+    },
+    "last_checked": "2025-08-15T16:35:32.071Z"
+  }
+}

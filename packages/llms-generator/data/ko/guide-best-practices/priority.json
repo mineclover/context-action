@@ -1,0 +1,63 @@
+{
+  "document": {
+    "id": "guide-best-practices",
+    "title": "개발 모범 사례",
+    "source_path": "ko/guide/best-practices.md",
+    "category": "guide"
+  },
+  "priority": {
+    "score": 80,
+    "tier": "important"
+  },
+  "extraction": {
+    "strategy": "example-first",
+    "character_limits": {
+      "100": {
+        "focus": "핵심 모범 사례"
+      },
+      "200": {
+        "focus": "코드 품질과 성능"
+      },
+      "300": {
+        "focus": "실용적인 개발 가이드"
+      },
+      "400": {
+        "focus": "완전한 모범 사례 가이드"
+      }
+    }
+  },
+  "work_status": {
+    "source_modified": "2025-08-14T21:10:37.655Z",
+    "generated_files": {
+      "100": {
+        "path": "/Users/junwoobang/project/context-action/packages/llms-generator/data/ko/guide-best-practices/guide-best-practices-100.txt",
+        "created": "2025-08-14T21:31:30.773Z",
+        "modified": "2025-08-14T21:31:30.773Z",
+        "edited": true,
+        "needs_update": false
+      },
+      "300": {
+        "path": "/Users/junwoobang/project/context-action/packages/llms-generator/data/ko/guide-best-practices/guide-best-practices-300.txt",
+        "created": "2025-08-14T21:30:02.558Z",
+        "modified": "2025-08-14T21:30:02.558Z",
+        "edited": false,
+        "needs_update": false
+      },
+      "1000": {
+        "path": "/Users/junwoobang/project/context-action/packages/llms-generator/data/ko/guide-best-practices/guide-best-practices-1000.txt",
+        "created": "2025-08-15T16:35:32.071Z",
+        "modified": "2025-08-15T16:35:32.071Z",
+        "edited": false,
+        "needs_update": true
+      },
+      "2000": {
+        "path": "/Users/junwoobang/project/context-action/packages/llms-generator/data/ko/guide-best-practices/guide-best-practices-2000.txt",
+        "created": "2025-08-15T16:35:32.071Z",
+        "modified": "2025-08-15T16:35:32.071Z",
+        "edited": false,
+        "needs_update": true
+      }
+    },
+    "last_checked": "2025-08-15T16:35:32.071Z"
+  }
+}

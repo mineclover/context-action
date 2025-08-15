@@ -1,0 +1,63 @@
+{
+  "document": {
+    "id": "guide-hooks",
+    "title": "훅 사용법",
+    "source_path": "ko/guide/hooks.md",
+    "category": "guide"
+  },
+  "priority": {
+    "score": 88,
+    "tier": "essential"
+  },
+  "extraction": {
+    "strategy": "api-first",
+    "character_limits": {
+      "100": {
+        "focus": "훅 기본 개념"
+      },
+      "200": {
+        "focus": "주요 훅 사용법"
+      },
+      "300": {
+        "focus": "훅 패턴과 활용"
+      },
+      "400": {
+        "focus": "완전한 훅 가이드"
+      }
+    }
+  },
+  "work_status": {
+    "source_modified": "2025-08-14T21:08:50.211Z",
+    "generated_files": {
+      "100": {
+        "path": "/Users/junwoobang/project/context-action/packages/llms-generator/data/ko/guide-hooks/guide-hooks-100.txt",
+        "created": "2025-08-14T21:31:17.004Z",
+        "modified": "2025-08-14T21:31:17.004Z",
+        "edited": true,
+        "needs_update": false
+      },
+      "300": {
+        "path": "/Users/junwoobang/project/context-action/packages/llms-generator/data/ko/guide-hooks/guide-hooks-300.txt",
+        "created": "2025-08-14T21:30:02.559Z",
+        "modified": "2025-08-14T21:30:02.559Z",
+        "edited": false,
+        "needs_update": false
+      },
+      "1000": {
+        "path": "/Users/junwoobang/project/context-action/packages/llms-generator/data/ko/guide-hooks/guide-hooks-1000.txt",
+        "created": "2025-08-15T16:35:32.072Z",
+        "modified": "2025-08-15T16:35:32.072Z",
+        "edited": false,
+        "needs_update": true
+      },
+      "2000": {
+        "path": "/Users/junwoobang/project/context-action/packages/llms-generator/data/ko/guide-hooks/guide-hooks-2000.txt",
+        "created": "2025-08-15T16:35:32.072Z",
+        "modified": "2025-08-15T16:35:32.072Z",
+        "edited": false,
+        "needs_update": true
+      }
+    },
+    "last_checked": "2025-08-15T16:35:32.072Z"
+  }
+}

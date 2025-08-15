@@ -1,0 +1,87 @@
+{
+  "document": {
+    "id": "guide-getting-started",
+    "title": "빠른 시작",
+    "source_path": "ko/guide/getting-started.md",
+    "category": "guide"
+  },
+  "priority": {
+    "score": 92,
+    "tier": "essential"
+  },
+  "extraction": {
+    "strategy": "example-first",
+    "character_limits": {
+      "100": {
+        "focus": "설치와 기본 설정",
+        "key_points": [
+          "두 가지 주요 패턴 제공",
+          "Action Only: 순수 액션 디스패칭",
+          "Store Only: 순수 상태 관리"
+        ]
+      },
+      "200": {
+        "focus": "첫 번째 예제 구현",
+        "key_points": [
+          "Action Only: createActionContext 사용",
+          "이벤트 시스템, 커맨드 패턴에 최적",
+          "Store Only: createDeclarativeStorePattern 사용",
+          "데이터 레이어, 순수 상태 관리에 최적",
+          "패턴별 적합한 사용 사례 제공"
+        ]
+      },
+      "300": {
+        "focus": "빠른 시작 가이드",
+        "key_points": [
+          "Action Only 패턴: 액션 정의 → 컨텍스트 생성 → Provider 설정 → 컴포넌트 사용",
+          "useActionDispatch로 액션 발생, useActionHandler로 핸들러 등록",
+          "Store Only 패턴: 스토어 정의 → 타입 안전 hooks 생성",
+          "useStoreValue로 구독, 직접 setValue로 업데이트"
+        ]
+      },
+      "400": {
+        "focus": "완전한 시작 가이드",
+        "key_points": [
+          "패턴 선택 가이드: 요구사항에 따른 최적 패턴 결정",
+          "Action Only 완전 예제: 이벤트 처리, 핸들러 등록, Provider 구성",
+          "Store Only 완전 예제: 스토어 관리, 타입 안전성, 반응형 구독",
+          "실무 활용: 각 패턴의 실제 프로젝트 적용 방법"
+        ]
+      }
+    }
+  },
+  "work_status": {
+    "source_modified": "2025-08-15T17:01:38.519Z",
+    "generated_files": {
+      "100": {
+        "path": "/Users/junwoobang/project/context-action/packages/llms-generator/data/ko/guide-getting-started/guide-getting-started-100.txt",
+        "created": "2025-08-14T21:31:03.994Z",
+        "modified": "2025-08-14T21:31:03.994Z",
+        "edited": true,
+        "needs_update": false
+      },
+      "200": {
+        "path": "/Users/junwoobang/project/context-action/packages/llms-generator/data/ko/guide-getting-started/guide-getting-started-200.txt",
+        "created": "2025-08-15T16:58:58.417Z",
+        "modified": "2025-08-15T17:01:38.519Z",
+        "edited": false,
+        "needs_update": true
+      },
+      "300": {
+        "path": "/Users/junwoobang/project/context-action/packages/llms-generator/data/ko/guide-getting-started/guide-getting-started-300.txt",
+        "created": "2025-08-14T21:30:02.559Z",
+        "modified": "2025-08-15T17:01:38.519Z",
+        "edited": false,
+        "needs_update": true
+      },
+      "400": {
+        "path": "/Users/junwoobang/project/context-action/packages/llms-generator/data/ko/guide-getting-started/guide-getting-started-400.txt",
+        "created": "2025-08-15T16:58:58.417Z",
+        "modified": "2025-08-15T17:01:38.519Z",
+        "edited": false,
+        "needs_update": true
+      }
+    },
+    "last_checked": "2025-08-15T17:01:38.519Z"
+  }
+}
