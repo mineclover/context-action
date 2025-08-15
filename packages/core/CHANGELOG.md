@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.1](https://github.com/mineclover/context-action/compare/v0.1.1...v0.2.1) (2025-08-15)
+
+
+### Features
+
+* **core:** resolve concurrency issues with OperationQueue system ([e42339f](https://github.com/mineclover/context-action/commit/e42339ffd4d0983ee6787fadebae1d17d3d95f29))
+* optimize codebase and remove legacy code ([19c042f](https://github.com/mineclover/context-action/commit/19c042f4a2915c0bd1bd9b76cb7750a061af6675))
+
+
+
+
+
 # [0.2.0](https://github.com/mineclover/context-action/compare/v0.1.1...v0.2.0) (2025-08-15)
 
 
