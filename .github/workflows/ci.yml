@@ -66,6 +66,46 @@ jobs:
         run: pnpm example:build
         continue-on-error: true
 
+  security:
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile || pnpm install --no-frozen-lockfile
+        
+      - name: Security audit
+        run: |
+          echo "🔒 Security Audit Report"
+          echo "======================="
+          echo ""
+          
+          # Run security check for root
+          echo "📋 Root package audit:"
+          pnpm audit --audit-level high || echo "⚠️ High vulnerabilities found in root"
+          echo ""
+          
+          # Run security check for all packages
+          echo "📋 All packages audit:"
+          pnpm run security:audit:all || echo "⚠️ High vulnerabilities found in packages"
+          echo ""
+          
+          echo "✅ Security audit completed"
+
   size-check:
     runs-on: ubuntu-latest
     needs: test

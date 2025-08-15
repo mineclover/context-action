@@ -1,7 +1,7 @@
 {
-  "timestamp": "2025-08-15T07:44:32.740Z",
-  "totalSize": 299179,
-  "totalSizeFormatted": "292.17 KB",
+  "timestamp": "2025-08-15T10:33:35.961Z",
+  "totalSize": 301319,
+  "totalSizeFormatted": "294.26 KB",
   "packages": {
     "core": {
       "version": "0.2.1",
@@ -48,13 +48,13 @@
     },
     "react": {
       "version": "0.2.1",
-      "size": 193703,
-      "sizeFormatted": "189.16 KB",
-      "sizeKB": 189.16,
+      "size": 195843,
+      "sizeFormatted": "191.25 KB",
+      "sizeKB": 191.25,
       "files": {
         "index.cjs": {
-          "size": 81896,
-          "sizeFormatted": "79.98 KB",
+          "size": 82999,
+          "sizeFormatted": "81.05 KB",
           "type": "CommonJS"
         },
         "index.d.cts": {
@@ -63,8 +63,8 @@
           "type": "Unknown"
         },
         "index.d.cts.map": {
-          "size": 15117,
-          "sizeFormatted": "14.76 KB",
+          "size": 15137,
+          "sizeFormatted": "14.78 KB",
           "type": "Source Map"
         },
         "index.d.ts": {
@@ -73,18 +73,18 @@
           "type": "Unknown"
         },
         "index.d.ts.map": {
-          "size": 15116,
-          "sizeFormatted": "14.76 KB",
+          "size": 15136,
+          "sizeFormatted": "14.78 KB",
           "type": "Source Map"
         },
         "index.js": {
-          "size": 79958,
-          "sizeFormatted": "78.08 KB",
+          "size": 80995,
+          "sizeFormatted": "79.1 KB",
           "type": "JavaScript"
         },
         "index.js.map": {
-          "size": 161354,
-          "sizeFormatted": "157.57 KB",
+          "size": 164385,
+          "sizeFormatted": "160.53 KB",
           "type": "Source Map"
         }
       }
