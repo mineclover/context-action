@@ -619,7 +619,7 @@ export class SummaryGeneratorUseCase {
   }
 
   private generatePathFromUrl(url: string): string {
-    return url.replace(/^https?:\/\/[^\/]+\//, '').replace(/\.html?$/, '.md');
+    return url.replace(/^https?:\/\/[^/]+\//, '').replace(/\.html?$/, '.md');
   }
 
   private extractCategoryFromPath(path: string): string {
