@@ -1,0 +1,17 @@
+{
+  "characterLimits": [
+    100,
+    300,
+    1000,
+    2000
+  ],
+  "languages": [
+    "en",
+    "ko"
+  ],
+  "paths": {
+    "docsDir": "../../docs",
+    "dataDir": "./data",
+    "outputDir": "./docs/llms"
+  }
+}

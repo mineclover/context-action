@@ -1,0 +1,146 @@
+# LLMstxt YAML Template for @context-action/llms-generator
+# 이 템플릿은 요약 텍스트 파일의 표준 형식을 정의합니다
+
+# 문서 메타데이터
+document:
+  path: "{{source_path}}"           # 실제 파일 위치 (예: "ko/guide/action-handlers.md")
+  title: "{{title}}"               # 문서 제목 (예: "액션 핸들러")
+  id: "{{document_id}}"            # 문서 고유 ID (예: "guide-action-handlers")
+  category: "{{category}}"         # 문서 카테고리 (api, guide, concept, examples, llms)
+
+# 우선순위 정보
+priority:
+  score: {{priority_score}}        # 우선순위 점수 (0-100)
+  tier: "{{priority_tier}}"        # 우선순위 티어 (critical, essential, important, useful, optional)
+
+# 요약 메타데이터
+summary:
+  character_limit: {{char_limit}}  # 글자 수 제한 (100, 200, 300, 400, etc.)
+  focus: "{{focus_description}}"   # 이 길이에서 중점적으로 다룰 내용
+  strategy: "{{extraction_strategy}}" # 추출 전략 (concept-first, api-first, example-first, general)
+  language: "{{language}}"         # 언어 코드 (ko, en, ja, etc.)
+
+# 실제 요약 내용
+content: |
+  {{summary_content}}
+
+# 작업 상태 (선택사항)
+work_status:
+  created: "{{created_timestamp}}"     # 생성 시간 (ISO 8601)
+  modified: "{{modified_timestamp}}"   # 수정 시간 (ISO 8601)
+  edited: {{is_manually_edited}}       # 수동 편집 여부 (true/false)
+  needs_update: {{needs_update}}       # 업데이트 필요 여부 (true/false)
+
+---
+# 예시 템플릿 (액션 핸들러 100자 요약)
+
+document:
+  path: "ko/guide/action-handlers.md"
+  title: "액션 핸들러"
+  id: "guide-action-handlers"
+  category: "guide"
+
+priority:
+  score: 90
+  tier: "essential"
+
+summary:
+  character_limit: 100
+  focus: "핸들러 기본 개념"
+  strategy: "concept-first"
+  language: "ko"
+
+content: |
+  액션 핸들러는 비즈니스 로직을 포함하며 useActionHandler + useEffect 패턴으로 효과적으로 구현, 등록, 관리할 수 있습니다.
+
+work_status:
+  created: "2025-08-14T21:14:34.753Z"
+  modified: "2025-08-14T21:14:34.753Z"
+  edited: true
+  needs_update: false
+
+---
+# 예시 템플릿 (액션 파이프라인 200자 요약)
+
+document:
+  path: "ko/guide/action-pipeline.md"
+  title: "액션 파이프라인"
+  id: "guide-action-pipeline"
+  category: "guide"
+
+priority:
+  score: 85
+  tier: "essential"
+
+summary:
+  character_limit: 200
+  focus: "파이프라인 실행 흐름"
+  strategy: "concept-first"
+  language: "ko"
+
+content: |
+  액션 파이프라인 시스템은 Context-Action 프레임워크의 ViewModel 계층 핵심입니다. ActionRegister를 통해 우선순위 기반 핸들러 등록과 실행을 관리하며, PipelineController로 abort, continue, skip 등 정교한 파이프라인 제어가 가능합니다. 순차, 병렬, 경쟁 모드를 지원합니다.
+
+work_status:
+  created: "2025-08-14T21:15:25.129Z"
+  modified: "2025-08-14T21:15:25.129Z"
+  edited: true
+  needs_update: false
+
+---
+# 변수 설명
+
+# {{source_path}}: 원본 문서의 상대 경로
+# {{title}}: 사용자 친화적 문서 제목
+# {{document_id}}: 시스템에서 사용하는 고유 식별자
+# {{category}}: api, guide, concept, examples, llms 중 하나
+# {{priority_score}}: 0-100 범위의 우선순위 점수
+# {{priority_tier}}: critical, essential, important, useful, optional 중 하나
+# {{char_limit}}: 요약의 글자 수 제한
+# {{focus_description}}: 해당 길이에서 중점적으로 다룰 내용 설명
+# {{extraction_strategy}}: concept-first, api-first, example-first, general 중 하나
+# {{language}}: ko, en, ja 등 언어 코드
+# {{summary_content}}: 실제 요약 텍스트 내용
+# {{created_timestamp}}: ISO 8601 형식의 생성 시간
+# {{modified_timestamp}}: ISO 8601 형식의 수정 시간
+# {{is_manually_edited}}: 수동 편집 여부 (true/false)
+# {{needs_update}}: 업데이트 필요 여부 (true/false)
+
+---
+# 사용법
+
+# 1. 이 템플릿을 기반으로 실제 요약 파일 생성:
+#    - 파일명: {document-id}-{character-limit}.yaml
+#    - 예: guide-action-handlers-100.yaml
+
+# 2. LLMstxt 형식으로 변환할 때 YAML 메타데이터 활용:
+#    - path와 title 정보로 원본 문서 참조
+#    - priority 정보로 중요도 기반 정렬
+#    - summary 정보로 적절한 길이 선택
+
+# 3. 조합 시 활용:
+#    - 우선순위 기반 문서 선택
+#    - 글자 수 제한에 맞는 요약 선택
+#    - 메타데이터 기반 목차 생성
+
+---
+# 장점
+
+# 1. 구조화된 메타데이터: 
+#    - 문서 경로, 제목, 카테고리 명확히 구분
+#    - 우선순위와 전략 정보로 지능적 조합 가능
+
+# 2. LLMstxt 호환성:
+#    - YAML 헤더로 메타데이터 제공
+#    - content 필드에 실제 요약 내용
+#    - 표준화된 형식으로 도구 간 호환성 보장
+
+# 3. 작업 관리:
+#    - 편집 상태 추적
+#    - 업데이트 필요성 판단
+#    - 버전 관리 지원
+
+# 4. 확장성:
+#    - 새로운 메타데이터 필드 추가 용이
+#    - 다국어 지원
+#    - 다양한 추출 전략 지원
