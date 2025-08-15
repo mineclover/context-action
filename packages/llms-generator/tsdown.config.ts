@@ -7,6 +7,7 @@ export default {
   },
   format: ['esm'],
   target: 'node18',
+  tsconfig: './tsconfig.json',
   clean: true,
   dts: true,
   shims: true,
