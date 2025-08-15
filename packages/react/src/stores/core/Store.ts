@@ -27,6 +27,13 @@ export class Store<T = any> implements IStore<T> {
   // 불변 스냅샷 - React의 useSyncExternalStore와 호환
   private _snapshot: Snapshot<T>;
 
+  // 동시성 보호를 위한 상태
+  private isUpdating = false;
+  private updateQueue: Array<() => void> = [];
+  
+  // 알림 모드 설정
+  private notificationMode: 'batched' | 'immediate' = 'batched';
+  private pendingNotification = false;
 
   public readonly name: string;
   // Store별 커스텀 비교 함수
@@ -112,11 +119,9 @@ export class Store<T = any> implements IStore<T> {
       this._value = safeValue;
       // 새 스냅샷 생성 - 불변성 보장
       this._snapshot = this._createSnapshot();
-      // 모든 구독자에게 변경 알림
-
-      requestAnimationFrame(() => {
-        this._notifyListeners();
-      });
+      
+      // 듀얼 모드 알림 시스템
+      this._scheduleNotification();
     }
   }
 
@@ -130,12 +135,31 @@ export class Store<T = any> implements IStore<T> {
    * 보안 강화: updater 함수가 내부 상태를 직접 수정할 수 없도록 복사본 전달
    */
   update(updater: (current: T) => T): void {
-    const options = getGlobalImmutabilityOptions();
-    const safeCurrentValue = performantSafeGet(this._value, options.enableCloning);
-    
-    
-    const updatedValue = updater(safeCurrentValue);
-    this.setValue(updatedValue);
+    // 동시성 보호: update 진행 중이면 큐에 추가
+    if (this.isUpdating) {
+      this.updateQueue.push(() => this.update(updater));
+      return;
+    }
+
+    try {
+      this.isUpdating = true;
+      const options = getGlobalImmutabilityOptions();
+      const safeCurrentValue = performantSafeGet(this._value, options.enableCloning);
+      
+      const updatedValue = updater(safeCurrentValue);
+      this.setValue(updatedValue);
+    } finally {
+      this.isUpdating = false;
+      
+      // 큐에 대기 중인 업데이트 처리
+      if (this.updateQueue.length > 0) {
+        const nextUpdate = this.updateQueue.shift();
+        if (nextUpdate) {
+          // 다음 마이크로태스크에서 실행하여 스택 오버플로우 방지
+          Promise.resolve().then(nextUpdate);
+        }
+      }
+    }
   }
 
   /**
@@ -263,6 +287,39 @@ export class Store<T = any> implements IStore<T> {
       name: this.name,
       lastUpdate: Date.now()
     };
+  }
+
+  /**
+   * 알림 모드 설정 - 테스트/디버그용
+   */
+  setNotificationMode(mode: 'batched' | 'immediate'): void {
+    this.notificationMode = mode;
+  }
+
+  /**
+   * 현재 알림 모드 조회
+   */
+  getNotificationMode(): 'batched' | 'immediate' {
+    return this.notificationMode;
+  }
+
+  /**
+   * 듀얼 모드 알림 스케줄링
+   */
+  private _scheduleNotification(): void {
+    if (this.notificationMode === 'immediate') {
+      // 즉시 모드: 동기적으로 모든 리스너에게 알림
+      this._notifyListeners();
+    } else {
+      // 배치 모드: requestAnimationFrame으로 최적화된 알림
+      if (!this.pendingNotification) {
+        this.pendingNotification = true;
+        requestAnimationFrame(() => {
+          this.pendingNotification = false;
+          this._notifyListeners();
+        });
+      }
+    }
   }
 
   private _notifyListeners(): void {

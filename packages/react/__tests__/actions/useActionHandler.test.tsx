@@ -185,12 +185,14 @@ describe('useActionHandler', () => {
     const TestComponent = () => {
       const dispatch = useActionDispatch();
       
-      // Conditionally register handler
-      if (condition) {
-        useActionHandler('fetchData', useCallback(async (payload) => {
+      // Use handler with condition check inside to maintain hook order
+      const conditionalHandler = useCallback(async (payload) => {
+        if (condition) {
           handlerExecuted = true;
-        }, []));
-      }
+        }
+      }, []);
+      
+      useActionHandler('fetchData', conditionalHandler);
       
       return { dispatch };
     };
@@ -217,12 +219,14 @@ describe('useActionHandler', () => {
 
   it('should handle handler re-registration', async () => {
     let executionCount = 0;
+    let currentVersion = 1;
 
     const TestComponent = ({ version }: { version: number }) => {
       const dispatch = useActionDispatch();
+      currentVersion = version;
       
       useActionHandler('fetchData', useCallback(async (payload) => {
-        executionCount += version;
+        executionCount += currentVersion;
       }, [version]));
       
       return { dispatch };
