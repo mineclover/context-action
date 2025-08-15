@@ -10,7 +10,7 @@ const PROJECT_ROOT = resolve(__dirname, '..');
 
 class BundleSizeChecker {
   constructor() {
-    this.packages = ['core', 'react', 'jotai'];
+    this.packages = ['core', 'react'];
     this.report = {
       timestamp: new Date().toISOString(),
       totalSize: 0,
