@@ -9,6 +9,7 @@ import { LLMSGenerator, PriorityGenerator, SchemaGenerator, MarkdownGenerator, C
 import { WorkStatusManager } from '../core/WorkStatusManager.js';
 import { ConfigManager } from '../core/ConfigManager.js';
 import { InstructionGenerator } from '../core/InstructionGenerator.js';
+import { initializeContainer } from '../infrastructure/di/DIContainer.js';
 import type { ResolvedConfig } from '../types/user-config.js';
 
 async function main() {
@@ -25,6 +26,16 @@ async function main() {
     // Load user configuration
     const userConfig = await ConfigManager.findAndLoadConfig();
     const config = createConfigFromUserConfig(userConfig);
+    
+    // Initialize DI container for new features
+    let diInitialized = false;
+    try {
+      initializeContainer(config);
+      diInitialized = true;
+    } catch (error) {
+      console.warn('⚠️  DI container initialization failed. Some features may be unavailable.');
+    }
+    
     const generator = new LLMSGenerator(config);
     const priorityGenerator = new PriorityGenerator(config);
     const schemaGenerator = new SchemaGenerator(config);
@@ -798,6 +809,170 @@ async function main() {
         }
         break;
 
+      case 'generate-summaries':
+        if (!diInitialized) {
+          console.error('❌ DI container not initialized. This feature requires proper configuration.');
+          process.exit(1);
+        }
+
+        const summarySourceType = args[1] as 'minimum' | 'origin';
+        const summaryLanguage = args[2] || userConfig.languages[0] || 'ko';
+        const summaryDryRun = args.includes('--dry-run');
+        const summaryOverwrite = args.includes('--overwrite');
+        const summaryCharLimits = args.find(arg => arg.startsWith('--chars='))?.split('=')[1]?.split(',').map(Number) || enabledCharLimits;
+        const summaryQualityThreshold = parseInt(args.find(arg => arg.startsWith('--quality='))?.split('=')[1] || '70');
+        const summaryStrategy = args.find(arg => arg.startsWith('--strategy='))?.split('=')[1] || 'concept-first';
+
+        if (!summarySourceType || !['minimum', 'origin'].includes(summarySourceType)) {
+          console.error('❌ Source type required. Usage: generate-summaries <minimum|origin> [language] [options]');
+          console.log('Available source types:');
+          console.log('  minimum - Generate from navigation links (minimum format)');
+          console.log('  origin  - Generate from complete documents (origin format)');
+          process.exit(1);
+        }
+
+        console.log(`📝 ${summaryDryRun ? '[DRY RUN] ' : ''}Generating YAML frontmatter summaries`);
+        console.log(`📊 Source: ${summarySourceType} format`);
+        console.log(`🌐 Language: ${summaryLanguage}`);
+        console.log(`📏 Character limits: ${summaryCharLimits.join(', ')}`);
+        console.log(`🎯 Quality threshold: ${summaryQualityThreshold}%`);
+        console.log(`⚙️  Default strategy: ${summaryStrategy}`);
+        console.log(`🔄 Overwrite existing: ${summaryOverwrite ? 'Yes' : 'No'}\n`);
+
+        if (summaryDryRun) {
+          console.log('🧪 [DRY RUN] Would generate summaries but not save to files\n');
+          
+          // Show what would be generated
+          const allPriorities = await generator.getPriorityManager().loadAllPriorities();
+          const langPriorities = generator.getPriorityManager().filterByLanguage(allPriorities, summaryLanguage);
+          const documents = Object.keys(langPriorities);
+          
+          console.log(`📄 Documents to process: ${documents.length}`);
+          console.log(`📊 Total summaries to generate: ${documents.length * summaryCharLimits.length}`);
+          console.log(`📁 Output format: .md files with YAML frontmatter`);
+          
+          documents.slice(0, 5).forEach(docId => {
+            console.log(`  - ${docId} (${summaryCharLimits.length} variants)`);
+          });
+          
+          if (documents.length > 5) {
+            console.log(`  ... and ${documents.length - 5} more documents`);
+          }
+          
+          console.log('\n💡 Remove --dry-run to execute the generation');
+          break;
+        }
+
+        try {
+          await generator.initialize();
+          
+          const summaryResult = await generator.generateSummariesFromSource({
+            sourceType: summarySourceType,
+            language: summaryLanguage,
+            characterLimits: summaryCharLimits,
+            overwrite: summaryOverwrite
+          });
+
+          if (summaryResult.success && summaryResult.results) {
+            const stats = summaryResult.results.statistics;
+            
+            console.log('✅ Summary generation completed!\n');
+            console.log('📊 Generation Statistics:');
+            console.log(`  Total processed: ${summaryResult.results.totalRequested}`);
+            console.log(`  Successfully generated: ${summaryResult.results.successCount}`);
+            console.log(`  Failed: ${summaryResult.results.failureCount}`);
+            console.log(`  Skipped: ${summaryResult.results.skippedCount}`);
+            console.log(`  Average quality score: ${stats.averageQualityScore.toFixed(1)}%`);
+            console.log(`  Average character count: ${Math.round(stats.averageCharacterCount)}`);
+            console.log(`  Processing time: ${(stats.processingTimeMs / 1000).toFixed(1)}s\n`);
+
+            // Quality distribution
+            console.log('🎯 Quality Distribution:');
+            Object.entries(stats.qualityDistribution).forEach(([level, count]) => {
+              if (count > 0) {
+                console.log(`  ${level}: ${count} summaries`);
+              }
+            });
+
+            // Extraction method distribution
+            if (Object.keys(stats.extractionMethodDistribution).length > 0) {
+              console.log('\n⚙️  Extraction Methods:');
+              Object.entries(stats.extractionMethodDistribution).forEach(([method, count]) => {
+                console.log(`  ${method}: ${count} summaries`);
+              });
+            }
+
+            // Show recommendations
+            if (summaryResult.results.recommendations.length > 0) {
+              console.log('\n💡 Recommendations:');
+              summaryResult.results.recommendations.forEach(rec => {
+                console.log(`  • ${rec}`);
+              });
+            }
+
+            // Show failed items if any
+            const failedResults = summaryResult.results.results.filter(r => !r.success);
+            if (failedResults.length > 0 && failedResults.length <= 5) {
+              console.log('\n❌ Failed generations:');
+              failedResults.forEach(result => {
+                console.log(`  • ${result.documentId} (${result.characterLimit} chars): ${result.error}`);
+              });
+            } else if (failedResults.length > 5) {
+              console.log(`\n❌ ${failedResults.length} generations failed. Use --verbose for details.`);
+            }
+
+          } else {
+            console.error(`❌ Summary generation failed: ${summaryResult.error}`);
+            process.exit(1);
+          }
+
+        } catch (error) {
+          console.error('❌ Summary generation failed:', error instanceof Error ? error.message : String(error));
+          process.exit(1);
+        }
+        break;
+
+      case 'improve-summaries':
+        if (!diInitialized) {
+          console.error('❌ DI container not initialized. This feature requires proper configuration.');
+          process.exit(1);
+        }
+
+        const improveLanguage = args[1] || userConfig.languages[0] || 'ko';
+        const improveMinQuality = parseInt(args.find(arg => arg.startsWith('--min-quality='))?.split('=')[1] || '70');
+        const improveCharLimits = args.find(arg => arg.startsWith('--chars='))?.split('=')[1]?.split(',').map(Number);
+        const improveDryRun = args.includes('--dry-run');
+        const improveMaxAge = args.find(arg => arg.startsWith('--max-age='))?.split('=')[1];
+
+        console.log(`🔧 ${improveDryRun ? '[DRY RUN] ' : ''}Improving existing summaries`);
+        console.log(`🌐 Language: ${improveLanguage}`);
+        console.log(`🎯 Minimum quality threshold: ${improveMinQuality}%`);
+        if (improveCharLimits) {
+          console.log(`📏 Character limits: ${improveCharLimits.join(', ')}`);
+        }
+        if (improveMaxAge) {
+          console.log(`⏰ Max age: ${improveMaxAge} days`);
+        }
+
+        if (improveDryRun) {
+          console.log('\n🧪 [DRY RUN] Would analyze and improve summaries but not save changes');
+          console.log('💡 Remove --dry-run to execute the improvements');
+          break;
+        }
+
+        try {
+          await generator.initialize();
+          
+          // This would use SummaryGeneratorUseCase.improveExistingSummaries
+          console.log('🔧 This feature is under development...');
+          console.log('💡 For now, use generate-summaries with --overwrite to regenerate summaries');
+
+        } catch (error) {
+          console.error('❌ Summary improvement failed:', error instanceof Error ? error.message : String(error));
+          process.exit(1);
+        }
+        break;
+
       case 'instruction-template':
         const templateCommand = args[1] || 'list';
         const templateLanguage = args[2] || 'ko';
@@ -905,6 +1080,14 @@ function showHelp() {
   console.log('  extract-all [--lang=en,ko] [--dry-run] [--overwrite]');
   console.log('                       Extract all content summaries for all languages');
   console.log('');
+  console.log('YAML FRONTMATTER SUMMARIES (NEW):');
+  console.log('  generate-summaries <minimum|origin> [lang] [options]');
+  console.log('                       Generate YAML frontmatter summaries from source formats');
+  console.log('                       [--chars=100,300,1000] [--quality=70] [--strategy=concept-first]');
+  console.log('                       [--dry-run] [--overwrite]');
+  console.log('  improve-summaries [lang] [--min-quality=70] [--chars=100,300] [--max-age=30]');
+  console.log('                       Analyze and improve existing summary quality (coming soon)');
+  console.log('');
   console.log('ADAPTIVE COMPOSITION:');
   console.log('  compose [lang] [chars] [--no-toc] [--priority=50] [--dry-run]');
   console.log('                       Compose adaptive content for specified character limit');
@@ -976,6 +1159,11 @@ function showHelp() {
   console.log('  npx @context-action/llms-generator instruction-batch ko --template=default --dry-run');
   console.log('  npx @context-action/llms-generator instruction-template list');
   console.log('  npx @context-action/llms-generator instruction-template show ko default');
+  console.log('');
+  console.log('  # YAML frontmatter summary generation (NEW)');
+  console.log('  npx @context-action/llms-generator generate-summaries minimum ko --chars=100,300 --dry-run');
+  console.log('  npx @context-action/llms-generator generate-summaries origin ko --overwrite --strategy=api-first');
+  console.log('  npx @context-action/llms-generator improve-summaries ko --min-quality=80');
 }
 
 function createConfigFromUserConfig(userConfig: ResolvedConfig) {

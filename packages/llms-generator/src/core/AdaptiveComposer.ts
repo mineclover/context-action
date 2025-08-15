@@ -139,6 +139,7 @@ export class AdaptiveComposer {
 
   /**
    * Load all document contents with their available character limits
+   * Now supports both .txt and .md (with YAML frontmatter) files
    */
   private async loadDocumentContents(language: string): Promise<DocumentContent[]> {
     const allPriorities = await this.priorityManager.loadAllPriorities();
@@ -163,11 +164,17 @@ export class AdaptiveComposer {
       const standardLimits = [100, 300, 500, 1000, 2000, 3000, 4000];
       
       for (const limit of standardLimits) {
-        const filePath = path.join(documentDir, `${documentId}-${limit}.txt`);
+        // Try .md first (new format with YAML frontmatter), then .txt (legacy)
+        const mdPath = path.join(documentDir, `${documentId}-${limit}.md`);
+        const txtPath = path.join(documentDir, `${documentId}-${limit}.txt`);
         
-        if (existsSync(filePath)) {
+        const filePath = existsSync(mdPath) ? mdPath : (existsSync(txtPath) ? txtPath : null);
+        
+        if (filePath) {
           try {
-            const content = await readFile(filePath, 'utf-8');
+            const rawContent = await readFile(filePath, 'utf-8');
+            const content = this.extractContentFromFile(rawContent, filePath.endsWith('.md'));
+            
             documentContent.availableCharacterLimits.push(limit);
             documentContent.contents.set(limit, content.trim());
           } catch (error) {
@@ -184,6 +191,25 @@ export class AdaptiveComposer {
     }
 
     return documents;
+  }
+
+  /**
+   * Extract content from file, handling both .md (with frontmatter) and .txt formats
+   */
+  private extractContentFromFile(rawContent: string, isMarkdown: boolean): string {
+    if (!isMarkdown) {
+      return rawContent; // .txt files - return as is
+    }
+
+    // .md files - extract content after YAML frontmatter
+    const frontmatterMatch = rawContent.match(/^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/);
+    
+    if (frontmatterMatch) {
+      return frontmatterMatch[2]; // Content after frontmatter
+    }
+
+    // No frontmatter found, return entire content
+    return rawContent;
   }
 
   /**
