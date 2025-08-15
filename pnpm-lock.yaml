@@ -12,9 +12,6 @@ importers:
 
   .:
     devDependencies:
-      '@rollup/plugin-terser':
-        specifier: 0.4.4
-        version: 0.4.4(rollup@4.46.2)
       '@tailwindcss/typography':
         specifier: 0.5.16
         version: 0.5.16(tailwindcss@4.1.11)
@@ -42,12 +39,6 @@ importers:
       autoprefixer:
         specifier: 10.4.21
         version: 10.4.21(postcss@8.5.6)
-      class-variance-authority:
-        specifier: 0.7.1
-        version: 0.7.1
-      clsx:
-        specifier: 2.1.1
-        version: 2.1.1
       comment-parser:
         specifier: ^1.4.1
         version: 1.4.1
@@ -66,9 +57,6 @@ importers:
       shiki:
         specifier: ^3.8.1
         version: 3.9.2
-      tailwind-merge:
-        specifier: 3.3.1
-        version: 3.3.1
       tailwindcss:
         specifier: 4.1.11
         version: 4.1.11
@@ -200,9 +188,6 @@ importers:
       '@testing-library/react':
         specifier: 16.3.0
         version: 16.3.0(@testing-library/dom@10.4.1)(@types/react-dom@18.3.7(@types/react@18.3.23))(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@testing-library/react-hooks':
-        specifier: 8.0.1
-        version: 8.0.1(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@types/jest':
         specifier: ^29.5.14
         version: 29.5.14
@@ -1294,15 +1279,6 @@ packages:
   '@rolldown/pluginutils@1.0.0-beta.32':
     resolution: {integrity: sha512-QReCdvxiUZAPkvp1xpAg62IeNzykOFA6syH2CnClif4YmALN1XKpB39XneL80008UbtMShthSVDKmrx05N1q/g==}
 
-  '@rollup/plugin-terser@0.4.4':
-    resolution: {integrity: sha512-XHeJC5Bgvs8LfukDwWZp7yeqin6ns8RTl2B9avbejt6tZqsqvVoWI7ZTQrcNsfKEDWBTnTxM8nMDkO2IFFbd0A==}
-    engines: {node: '>=14.0.0'}
-    peerDependencies:
-      rollup: ^2.0.0||^3.0.0||^4.0.0
-    peerDependenciesMeta:
-      rollup:
-        optional: true
-
   '@rollup/rollup-android-arm-eabi@4.46.2':
     resolution: {integrity: sha512-Zj3Hl6sN34xJtMv7Anwb5Gu01yujyE/cLBDB2gnHTAHaWS1Z38L7kuSG+oAh0giZMqG060f/YBStXtMH6FvPMA==}
     cpu: [arm]
@@ -1496,22 +1472,6 @@ packages:
   '@testing-library/jest-dom@6.7.0':
     resolution: {integrity: sha512-RI2e97YZ7MRa+vxP4UUnMuMFL2buSsf0ollxUbTgrbPLKhMn8KVTx7raS6DYjC7v1NDVrioOvaShxsguLNISCA==}
     engines: {node: '>=14', npm: '>=6', yarn: '>=1'}
-
-  '@testing-library/react-hooks@8.0.1':
-    resolution: {integrity: sha512-Aqhl2IVmLt8IovEVarNDFuJDVWVvhnr9/GCU6UUnrYXwgDFF9h2L2o2P9KBni1AST5sT6riAyoukFLyjQUgD/g==}
-    engines: {node: '>=12'}
-    peerDependencies:
-      '@types/react': 18.3.23
-      react: ^16.9.0 || ^17.0.0
-      react-dom: ^16.9.0 || ^17.0.0
-      react-test-renderer: ^16.9.0 || ^17.0.0
-    peerDependenciesMeta:
-      '@types/react':
-        optional: true
-      react-dom:
-        optional: true
-      react-test-renderer:
-        optional: true
 
   '@testing-library/react@16.3.0':
     resolution: {integrity: sha512-kFSyxiEDwv1WLl2fgsq6pPBbw5aWKrsY2/noi1Id0TK0UParSF62oFQFGHXIyaG4pp2tEub/Zlel+fjjZILDsw==}
@@ -4478,19 +4438,10 @@ packages:
     resolution: {integrity: sha512-ARhCpm70fzdcvNQfPoy49IaanKkTlRWF2JMzqhcJbhSFRZv7nPTvZJdcY7301IPmvW+/p0RgIWnQDLJxifsQ7g==}
     engines: {node: '>=8'}
 
-  randombytes@2.1.0:
-    resolution: {integrity: sha512-vYl3iOX+4CKUWuxGi9Ukhie6fsqXqS9FE2Zaic4tNFD2N2QQaXOMFbuKK4QmDHC0JO6B1Zp41J0LpT0oR68amQ==}
-
   react-dom@18.3.1:
     resolution: {integrity: sha512-5m4nQKp+rZRb09LNH59GM4BxTh9251/ylbKIbpe7TpGxfJ+9kv6BLkLBXIjjspbgbnIBNqlI23tRnTWT0snUIw==}
     peerDependencies:
       react: ^18.3.1
-
-  react-error-boundary@3.1.4:
-    resolution: {integrity: sha512-uM9uPzZJTF6wRQORmSrvOIgt4lJ9MC1sNgEOj2XGsDTRE4kmpWxg7ENK9EWNKJRMAOY9z0MuF4yIfl6gp4sotA==}
-    engines: {node: '>=10', npm: '>=6'}
-    peerDependencies:
-      react: '>=16.13.1'
 
   react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
@@ -4735,9 +4686,6 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
-  serialize-javascript@6.0.2:
-    resolution: {integrity: sha512-Saa1xPByTTq2gdeFZYLLo+RFE35NHZkAbqZeWNd3BpzppeVisAqpDjcp8dyf6uIvEqJRd46jemmyA4iFIeVk8g==}
-
   set-blocking@2.0.0:
     resolution: {integrity: sha512-KiKBS8AnWGEyLzofFfmvKwpdPzqiy16LvQfK3yv/fVH7Bj13/wl3JSR1J+rfgRE9q7xUJK4qvgS8raSOeLUehw==}
 
@@ -4783,9 +4731,6 @@ packages:
   smart-buffer@4.2.0:
     resolution: {integrity: sha512-94hK0Hh8rPqQl2xXc3HsaBoOXKV20MToPkcXvwbISWLEs+64sBq5kFgn2kJDHb1Pry9yrP0dxrCI9RRci7RXKg==}
     engines: {node: '>= 6.0.0', npm: '>= 3.0.0'}
-
-  smob@1.5.0:
-    resolution: {integrity: sha512-g6T+p7QO8npa+/hNx9ohv1E5pVCmWrVCUzUXJyLdMmftX6ER0oiWY/w9knEonLpnOp6b6FenKnMfR8gqwWdwig==}
 
   socks-proxy-agent@8.0.5:
     resolution: {integrity: sha512-HehCEsotFqbPW9sJ8WVYB6UbmIMv7kUUORIF2Nncq4VQvBfNBLibW9YZR5dlYCSUhwcD628pRllm7n+E+YTzJw==}
@@ -6362,6 +6307,7 @@ snapshots:
     dependencies:
       '@jridgewell/gen-mapping': 0.3.13
       '@jridgewell/trace-mapping': 0.3.30
+    optional: true
 
   '@jridgewell/sourcemap-codec@1.5.5': {}
 
@@ -6778,14 +6724,6 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.0-beta.32': {}
 
-  '@rollup/plugin-terser@0.4.4(rollup@4.46.2)':
-    dependencies:
-      serialize-javascript: 6.0.2
-      smob: 1.5.0
-      terser: 5.43.1
-    optionalDependencies:
-      rollup: 4.46.2
-
   '@rollup/rollup-android-arm-eabi@4.46.2':
     optional: true
 
@@ -6992,15 +6930,6 @@ snapshots:
       dom-accessibility-api: 0.6.3
       picocolors: 1.1.1
       redent: 3.0.0
-
-  '@testing-library/react-hooks@8.0.1(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
-    dependencies:
-      '@babel/runtime': 7.28.2
-      react: 18.3.1
-      react-error-boundary: 3.1.4(react@18.3.1)
-    optionalDependencies:
-      '@types/react': 18.3.23
-      react-dom: 18.3.1(react@18.3.1)
 
   '@testing-library/react@16.3.0(@testing-library/dom@10.4.1)(@types/react-dom@18.3.7(@types/react@18.3.23))(@types/react@18.3.23)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
@@ -7885,7 +7814,8 @@ snapshots:
 
   comma-separated-tokens@2.0.3: {}
 
-  commander@2.20.3: {}
+  commander@2.20.3:
+    optional: true
 
   commander@4.1.1: {}
 
@@ -10480,20 +10410,11 @@ snapshots:
 
   quick-lru@4.0.1: {}
 
-  randombytes@2.1.0:
-    dependencies:
-      safe-buffer: 5.2.1
-
   react-dom@18.3.1(react@18.3.1):
     dependencies:
       loose-envify: 1.4.0
       react: 18.3.1
       scheduler: 0.23.2
-
-  react-error-boundary@3.1.4(react@18.3.1):
-    dependencies:
-      '@babel/runtime': 7.28.2
-      react: 18.3.1
 
   react-is@17.0.2: {}
 
@@ -10760,10 +10681,6 @@ snapshots:
 
   semver@7.7.2: {}
 
-  serialize-javascript@6.0.2:
-    dependencies:
-      randombytes: 2.1.0
-
   set-blocking@2.0.0: {}
 
   set-cookie-parser@2.7.1: {}
@@ -10821,8 +10738,6 @@ snapshots:
 
   smart-buffer@4.2.0: {}
 
-  smob@1.5.0: {}
-
   socks-proxy-agent@8.0.5:
     dependencies:
       agent-base: 7.1.4
@@ -10851,6 +10766,7 @@ snapshots:
     dependencies:
       buffer-from: 1.1.2
       source-map: 0.6.1
+    optional: true
 
   source-map@0.6.1: {}
 
@@ -11028,6 +10944,7 @@ snapshots:
       acorn: 8.15.0
       commander: 2.20.3
       source-map-support: 0.5.21
+    optional: true
 
   test-exclude@6.0.0:
     dependencies:
