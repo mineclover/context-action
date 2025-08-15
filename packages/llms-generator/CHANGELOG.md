@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.1](https://github.com/mineclover/context-action/compare/v0.1.1...v0.2.1) (2025-08-15)
+
+
+### Features
+
+* add @context-action/llms-generator package ([3331b37](https://github.com/mineclover/context-action/commit/3331b371a3820454e023df24f30b4e709b0951a9))
+* **llms-generator:** add work status management for -100 character summaries ([ad9c1b2](https://github.com/mineclover/context-action/commit/ad9c1b232a57e52b53b01ddca99f91653dc0115b))
+* **llms-generator:** implement user-configurable character limits system ([1f8e7fc](https://github.com/mineclover/context-action/commit/1f8e7fc5383e1e5e609ba5eb20de1b42c4cf2cc6))
+* **llms-generator:** integrate priority generation and schema management ([5b01ee9](https://github.com/mineclover/context-action/commit/5b01ee9af563ae2ff226156117185016bc57c9ee))
+* **llms-generator:** major usability improvements for manual summary workflow ([3ea4f94](https://github.com/mineclover/context-action/commit/3ea4f947c620c47089799030c790d33537f3abd6))
+* **llms-generator:** simplify configuration system and enhance testing ([c67f5a9](https://github.com/mineclover/context-action/commit/c67f5a9d5e3af4ed2e4bc3d654fce8c38193a34f))
+* optimize codebase and remove legacy code ([19c042f](https://github.com/mineclover/context-action/commit/19c042f4a2915c0bd1bd9b76cb7750a061af6675))
+
+
+
+
+
 # [0.2.0](https://github.com/mineclover/context-action/compare/v0.1.1...v0.2.0) (2025-08-15)
 
 

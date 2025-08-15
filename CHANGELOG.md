@@ -3,6 +3,72 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.1](https://github.com/mineclover/context-action/compare/v0.1.1...v0.2.1) (2025-08-15)
+
+
+### Bug Fixes
+
+* resolve Store concurrency issues with hybrid notification system ([171cb40](https://github.com/mineclover/context-action/commit/171cb40cd71e2373bc2cb09ca3772ccce40b21ec))
+
+
+### Documentation
+
+* major restructure - simplify guides based on concept documents ([457a216](https://github.com/mineclover/context-action/commit/457a216009ec4d176c4f1dfcd9c5ed5836192f08))
+
+
+### Features
+
+* add @context-action/llms-generator package ([3331b37](https://github.com/mineclover/context-action/commit/3331b371a3820454e023df24f30b4e709b0951a9))
+* consolidate package.json scripts with CLI interfaces ([1bf18cb](https://github.com/mineclover/context-action/commit/1bf18cb4e4f9e98f7cf1de3ae661c0e78bd71586))
+* **core:** resolve concurrency issues with OperationQueue system ([e42339f](https://github.com/mineclover/context-action/commit/e42339ffd4d0983ee6787fadebae1d17d3d95f29))
+* **docs:** implement document-based priority system with JSON schema validation ([d532c99](https://github.com/mineclover/context-action/commit/d532c99081f0106ee8c884b2bd09dab12b3c9f6c))
+* **docs:** implement optimized document structure system for LLM integration ([18bf4dc](https://github.com/mineclover/context-action/commit/18bf4dc08ed91d6e2d0e2f25862e6a7786541775))
+* **docs:** restructure Korean guides to match English version ([6d6e9e9](https://github.com/mineclover/context-action/commit/6d6e9e986a896291d617ba76fa4af6b0111efec2))
+* **docs:** restructure VitePress docs with examples, api, and llms sections ([262ebfc](https://github.com/mineclover/context-action/commit/262ebfcf711e8f09c396b86048a8722eb9ed3898))
+* **llms-generator:** add work status management for -100 character summaries ([ad9c1b2](https://github.com/mineclover/context-action/commit/ad9c1b232a57e52b53b01ddca99f91653dc0115b))
+* **llms-generator:** implement user-configurable character limits system ([1f8e7fc](https://github.com/mineclover/context-action/commit/1f8e7fc5383e1e5e609ba5eb20de1b42c4cf2cc6))
+* **llms-generator:** integrate priority generation and schema management ([5b01ee9](https://github.com/mineclover/context-action/commit/5b01ee9af563ae2ff226156117185016bc57c9ee))
+* **llms-generator:** major usability improvements for manual summary workflow ([3ea4f94](https://github.com/mineclover/context-action/commit/3ea4f947c620c47089799030c790d33537f3abd6))
+* **llms-generator:** simplify configuration system and enhance testing ([c67f5a9](https://github.com/mineclover/context-action/commit/c67f5a9d5e3af4ed2e4bc3d654fce8c38193a34f))
+* **llms:** implement adaptive LLM content generator with minimum and origin types ([9e1e78c](https://github.com/mineclover/context-action/commit/9e1e78c26082dcb14c8c6bb97991394317330c72))
+* optimize codebase and remove legacy code ([19c042f](https://github.com/mineclover/context-action/commit/19c042f4a2915c0bd1bd9b76cb7750a061af6675))
+
+
+### BREAKING CHANGES
+
+* Remove legacy guide structure and consolidate documentation
+
+- Remove 15 redundant and outdated guide files
+- Simplify from 21 files to 6 essential guides
+- Restructure sidebar: Legacy Guides → Essential Guides + Additional Guides
+- Base all guides on concept documents for consistency:
+  * getting-started.md (pattern-guide based)
+  * architecture.md (architecture-guide based)
+  * action-pipeline.md (action-pipeline-guide based)
+  * hooks.md (hooks-reference based)
+  * best-practices.md (conventions based)
+  * action-handlers.md (remaining useful content)
+
+Benefits:
+- 71% reduction in documentation files (21 → 6)
+- Eliminates content duplication and confusion
+- Provides clear learning path for new users
+- Ensures concept-guide consistency
+- Focuses each file on single, clear topics
+
+Migration:
+- Legacy guides removed: overview, concepts, quick-start, setup-usage, philosophy
+- Advanced topics consolidated into essential guides
+- Sidebar structure simplified to Essential + Additional sections
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+
+
+
+
+
 # [0.2.0](https://github.com/mineclover/context-action/compare/v0.1.1...v0.2.0) (2025-08-15)
 
 
