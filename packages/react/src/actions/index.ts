@@ -21,8 +21,7 @@ export {
 } from './ActionContext';
 
 // === ACTION UTILITIES ===
-// Business logic coordination and validation helpers
-export * from './utils';
+// Reserved for future action utilities
 
 // Re-export core types for convenience
 export type {
