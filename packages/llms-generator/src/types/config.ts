@@ -7,6 +7,8 @@ export interface LLMSConfig {
     docsDir: string;           // 원본 문서 경로
     llmContentDir: string;     // llm-content 경로  
     outputDir: string;         // 출력 디렉토리
+    templatesDir: string;      // 지시문 템플릿 경로
+    instructionsDir: string;   // 생성된 지시문 경로
   };
   
   generation: {

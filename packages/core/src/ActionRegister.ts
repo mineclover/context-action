@@ -208,6 +208,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
 
   /**
    * 🆕 실제 등록 작업 수행 (큐에서 호출됨)
+   * @deprecated Currently unused - reserved for future queue-based registration
    */
   private _performRegistration<K extends keyof T, R = void>(
     action: K,

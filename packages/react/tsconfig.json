@@ -3,7 +3,7 @@
   "compilerOptions": {
     "composite": true,
     "outDir": "./dist",
-    "rootDir": "./",
+    "rootDir": "./src",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -13,8 +13,8 @@
     "skipLibCheck": true,
     "types": ["react", "node", "jest"]
   },
-  "include": ["src/**/*", "__tests__/**/*"],
-  "exclude": ["dist", "node_modules"],
+  "include": ["src/**/*"],
+  "exclude": ["dist", "node_modules", "__tests__", "**/*.test.*", "**/*.spec.*"],
   "references": [
     { "path": "../core" }
   ]

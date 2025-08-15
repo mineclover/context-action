@@ -1,0 +1,59 @@
+{
+  "id": "guide-action-handlers-100-1755239468434",
+  "documentId": "guide-action-handlers",
+  "language": "ko",
+  "characterLimit": 100,
+  "template": "default",
+  "createdAt": "2025-08-15T06:31:08.434Z",
+  "context": {
+    "document": {
+      "id": "guide-action-handlers",
+      "title": "액션 핸들러",
+      "language": "ko",
+      "category": "guide",
+      "sourcePath": "ko/guide/action-handlers.md"
+    },
+    "priority": {
+      "score": 90,
+      "tier": "essential",
+      "strategy": "concept-first"
+    },
+    "keyPoints": {
+      "characterLimit": 100,
+      "focus": "핸들러 기본 개념",
+      "points": []
+    },
+    "sourceContent": "# 액션 핸들러\n\n액션 핸들러는 애플리케이션의 비즈니스 로직을 포함합니다. 확장 가능하고 유지보수가 가능한 애플리케이션을 위해 핸들러를 효과적으로 구현, 등록, 관리하는 방법을 알아보세요.\n\n## 핸들러 구현 패턴\n\n### 모범 사례: useActionHandler 패턴\n\n핸들러 등록에 권장되는 패턴은 최적의 성능과 적절한 정리를 위해 `useActionHandler` + `useEffect`를 사용하는 것입니다:\n\n```typescript\nimport React, { useEffect, useCallback } from 'react';\nimport { useUserActionHandler, useUserStores } from '@/stores/user.store';\n\nfunction useUserHandlers() {\n  const addHandler = useUserActionHandler();\n  const stores = useUserStores();\n  \n  // 재등록을 방지하기 위해 핸들러를 useCallback으로 감싸기\n  const updateProfileHandler = useCallback(async (payload, controller) => {\n    // 현재 상태를 위한 stores 지연 평가\n    const profileStore = stores.getStore('profile');\n    const currentProfile = profileStore.getValue();\n    \n    // 검증\n    if (payload.validate && !isValidEmail(payload.data.email)) {\n      controller.abort('유효하지 않은 이메일 형식');\n      return;\n    }\n    \n    // 비즈니스 로직\n    const updatedProfile = {\n      ...currentProfile,\n      ...payload.data,\n      updatedAt: Date.now()\n    };\n    \n    // 스토어 업데이트\n    profileStore.setValue(updatedProfile);\n    \n    // 수집을 위한 결과 반환\n    return { success: true, profile: updatedProfile };\n  }, [stores]);\n  \n  // 정리와 함께 핸들러 등록\n  useEffect(() => {\n    if (!addHandler) return;\n    \n    // 등록은 등록 해제 함수를 반환\n    const unregister = addHandler('updateProfile', updateProfileHandler, {\n      priority: 100,      // 높은 우선순위가 먼저 실행\n      blocking: true,     // 순차 모드에서 비동기 완료 대기\n      tags: ['business'], // 필터링용\n      id: 'profile-updater' // 디버깅을 위한 명시적 ID\n    });\n    \n    // 중요: 언마운트 시 메모리 정리를 위한 unregister 반환\n    return unregister;\n  }, [addHandler, updateProfileHandler]);\n}\n```\n\n## 핸들러 설정 옵션\n\n```typescript\ninterface HandlerConfig {\n  priority?: number;        // 실행 순서 (높을수록 먼저)\n  blocking?: boolean;       // 비동기 완료 대기\n  tags?: string[];         // 필터링과 분류를 위함\n  id?: string;            // 명시적 핸들러 ID\n  category?: string;      // 핸들러 카테고리\n  returnType?: 'value';   // 반환 값 수집 활성화\n}\n```\n\n## 핸들러 실행 흐름\n\n1. **순차 모드** (기본값): 핸들러가 우선순위 순서로 실행\n2. **병렬 모드**: 모든 핸들러가 동시에 실행\n3. **경쟁 모드**: 첫 번째로 완료되는 핸들러가 승리\n\n```typescript\n// 블로킹과 함께 순차 실행\naddHandler('processOrder', handler1, { priority: 100, blocking: true });\naddHandler('processOrder', handler2, { priority: 90, blocking: true });\naddHandler('processOrder', handler3, { priority: 80, blocking: true });\n// 실행: handler1 → 대기 → handler2 → 대기 → handler3\n\n// 병렬 실행\ndispatch('processOrder', payload, { executionMode: 'parallel' });\n```\n\n## 컨트롤러 메서드\n\n컨트롤러는 핸들러 실행 흐름을 관리하는 메서드를 제공합니다:\n\n```typescript\nconst handler = async (payload, controller) => {\n  // 파이프라인 중단\n  if (error) controller.abort('에러 메시지');\n  \n  // 특정 우선순위로 점프\n  if (urgent) controller.jumpToPriority(90);\n  \n  // 수집을 위한 결과 설정\n  controller.setResult(computedValue);\n  \n  // 결과와 함께 파이프라인 종료\n  if (canFinishEarly) controller.return(finalResult);\n};\n```\n\n## 고급 핸들러 패턴\n\n### 에러 핸들링\n\n```typescript\nconst robustHandler = useCallback(async (payload, controller) => {\n  const store = stores.getStore('data');\n  \n  try {\n    // 위험한 작업\n    const result = await performRiskyOperation(payload);\n    store.setValue(result);\n    \n    return { success: true, data: result };\n  } catch (error) {\n    // 컨텍스트와 함께 적절한 에러 핸들링\n    controller.abort(`작업 실패: ${error.message}`, {\n      operation: 'performRiskyOperation',\n      payload,\n      timestamp: Date.now(),\n      error: error.stack\n    });\n    \n    return { success: false, error: error.message };\n  }\n}, [stores]);\n```\n\n### 검증 핸들러\n\n```typescript\nconst validationHandler = useCallback(async (payload, controller) => {\n  // 입력 검증\n  const errors = validatePayload(payload);\n  if (errors.length > 0) {\n    controller.abort('검증 실패', { errors });\n    return { success: false, errors };\n  }\n  \n  // 비즈니스 규칙 검증\n  const store = stores.getStore('state');\n  const currentState = store.getValue();\n  \n  if (!canPerformAction(currentState, payload)) {\n    controller.abort('현재 상태에서 액션이 허용되지 않음');\n    return { success: false, error: 'INVALID_STATE' };\n  }\n  \n  return { success: true };\n}, [stores]);\n```\n\n### 부작용 핸들러\n\n```typescript\nconst sideEffectsHandler = useCallback(async (payload, controller) => {\n  const store = stores.getStore('data');\n  \n  // 주요 작업\n  const result = await mainOperation(payload);\n  store.setValue(result);\n  \n  // 부작용 (실행 후 무시)\n  scheduleCleanup(result.id);\n  sendAnalytics('operation_completed', { id: result.id });\n  logActivity('user_action', { action: 'update', userId: payload.userId });\n  \n  // 선택사항: 수집을 위한 결과 설정\n  controller.setResult(result);\n  \n  return result;\n}, [stores]);\n```\n\n## 결과 수집\n\n여러 핸들러로부터 결과 수집:\n\n```typescript\nfunction useOrderProcessing() {\n  const dispatchWithResult = useUserActionWithResult();\n  \n  const processOrder = async (orderData) => {\n    const result = await dispatchWithResult('processOrder', orderData, {\n      result: {\n        collect: true,         // 수집 활성화\n        strategy: 'all',       // 모든 결과 수집\n        timeout: 5000,         // 5초 타임아웃\n        maxResults: 10         // 결과 제한\n      },\n      filter: {\n        tags: ['validation', 'business'], // 이 핸들러들만\n        excludeTags: ['logging']          // 로깅 제외\n      }\n    });\n    \n    if (result.success) {\n      console.log('결과:', result.results);\n      console.log('지속시간:', result.execution.duration);\n    }\n    \n    return result.result;\n  };\n}\n```\n\n## 핸들러 조직 패턴\n\n### 도메인별 핸들러 파일\n\n```typescript\n// hooks/handlers/useUserBusinessHandlers.ts\nexport function useUserBusinessHandlers() {\n  const addHandler = useUserActionHandler();\n  const stores = useUserStores();\n  \n  // 프로필 핸들러\n  const updateProfileHandler = useCallback(/* ... */, [stores]);\n  const deleteProfileHandler = useCallback(/* ... */, [stores]);\n  \n  // 인증 핸들러  \n  const loginHandler = useCallback(/* ... */, [stores]);\n  const logoutHandler = useCallback(/* ... */, [stores]);\n  \n  // 모든 핸들러 등록\n  useEffect(() => {\n    if (!addHandler) return;\n    \n    const unregisterUpdate = addHandler('updateProfile', updateProfileHandler, {\n      priority: 100, blocking: true, id: 'update-profile'\n    });\n    \n    const unregisterDelete = addHandler('deleteProfile', deleteProfileHandler, {\n      priority: 100, blocking: true, id: 'delete-profile'\n    });\n    \n    const unregisterLogin = addHandler('login', loginHandler, {\n      priority: 100, blocking: true, id: 'user-login'\n    });\n    \n    const unregisterLogout = addHandler('logout', logoutHandler, {\n      priority: 100, blocking: true, id: 'user-logout'\n    });\n    \n    return () => {\n      unregisterUpdate();\n      unregisterDelete();\n      unregisterLogin();\n      unregisterLogout();\n    };\n  }, [addHandler, updateProfileHandler, deleteProfileHandler, loginHandler, logoutHandler]);\n}\n```\n\n### 핸들러 조합\n\n```typescript\n// 여러 핸들러 훅 조합\nfunction useAllHandlers() {\n  useUserBusinessHandlers();\n  useUserUIHandlers();\n  useCartHandlers();\n  useOrderHandlers();\n  // 모든 핸들러가 한 곳에서 등록됨\n}\n```\n\n## 성능 고려사항\n\n### 핸들러 최적화\n\n```typescript\n// ✅ 좋음: 최소 의존성을 가진 안정적인 핸들러\nconst optimizedHandler = useCallback(async (payload, controller) => {\n  const store = registry.getStore('data');\n  // 핸들러 로직\n}, [registry]); // registry 의존성만\n\n// ❌ 나쁨: 매 렌더링마다 재생성되는 핸들러\nconst unoptimizedHandler = async (payload, controller) => {\n  // 매 렌더링마다 새로운 함수\n};\n```\n\n### 지연 로딩\n\n```typescript\n// 비용이 많이 드는 핸들러를 조건부로 등록\nfunction useConditionalHandlers(userRole: string) {\n  const addHandler = useActionHandler();\n  \n  useEffect(() => {\n    if (!addHandler) return;\n    \n    const handlers = [];\n    \n    // 항상 기본 핸들러 등록\n    handlers.push(addHandler('basic', basicHandler));\n    \n    // 관리자에게만 관리자 핸들러 등록\n    if (userRole === 'admin') {\n      handlers.push(addHandler('admin', adminHandler));\n    }\n    \n    return () => handlers.forEach(unregister => unregister());\n  }, [addHandler, userRole]);\n}\n```\n\n## 일반적인 핸들러 안티패턴\n\n### ❌ 정리 누락\n\n```typescript\n// 잘못됨 - 메모리 누수\nuseEffect(() => {\n  addHandler('action', handler);\n}, []); // 정리 없음\n```\n\n### ❌ 오래된 클로저\n\n```typescript\n// 잘못됨 - 오래된 값 사용\nconst data = store.getValue();\nconst handler = useCallback(() => {\n  console.log(data); // 오래된 값\n}, [data]);\n```\n\n### ❌ 에러 핸들링 누락\n\n```typescript\n// 잘못됨 - 무음 실패\nconst handler = async (payload, controller) => {\n  await riskyOperation(); // 에러 핸들링 없음\n};\n```\n\n## 요약\n\n효과적인 액션 핸들러 구현에는 다음이 필요합니다:\n\n- **적절한 등록**: `useActionHandler` + `useEffect` 패턴 사용\n- **메모리 관리**: 항상 정리 함수 반환\n- **에러 핸들링**: 의미 있는 메시지와 함께 견고한 에러 핸들링\n- **성능**: `useCallback`을 사용한 안정적인 핸들러\n- **테스트**: 비즈니스 로직에 대한 격리된 단위 테스트\n- **조직**: 도메인별 핸들러 파일\n\n액션 핸들러는 비즈니스 로직의 핵심입니다 - 유지보수 가능하고 확장 가능한 애플리케이션을 위해 올바르게 구현하세요.\n\n---\n\n::: tip 다음 단계\n- 효과적인 상태 처리를 위한 [스토어 관리](./store-management) 학습\n- 다중 도메인 핸들러를 위한 [교차 도메인 통합](./cross-domain-integration) 탐색\n- 종합적인 핸들러 테스트 전략을 위한 [테스트 가이드](./testing) 참조\n:::",
+    "currentSummaries": [
+      {
+        "characterLimit": 100,
+        "content": "# 액션 핸들러\n\n[100자 요약 - 우선순위: 90/essential]\n\n이 문서는 guide 카테고리의 액션 핸들러에 대한 내용입니다.\n\n추출 전략: concept-fir...",
+        "isEdited": true,
+        "needsUpdate": false
+      },
+      {
+        "characterLimit": 200,
+        "content": "# 액션 핸들러\n\n[200자 요약 - 우선순위: 90/essential]\n\n이 문서는 guide 카테고리의 액션 핸들러에 대한 내용입니다.\n\n추출 전략: concept-first\n\n실제 콘텐츠는 소스 문서에서 추출되어 여기에 표시됩니다.",
+        "isEdited": false,
+        "needsUpdate": false
+      },
+      {
+        "characterLimit": 300,
+        "content": "# 액션 핸들러\n\n[300자 요약 - 우선순위: 90/essential]\n\n이 문서는 guide 카테고리의 액션 핸들러에 대한 내용입니다.\n\n추출 전략: concept-first\n\n실제 콘텐츠는 소스 문서에서 추출되어 여기에 표시됩니다.",
+        "isEdited": false,
+        "needsUpdate": false
+      },
+      {
+        "characterLimit": 400,
+        "content": "# 액션 핸들러\n\n[400자 요약 - 우선순위: 90/essential]\n\n이 문서는 guide 카테고리의 액션 핸들러에 대한 내용입니다.\n\n추출 전략: concept-first\n\n실제 콘텐츠는 소스 문서에서 추출되어 여기에 표시됩니다.",
+        "isEdited": false,
+        "needsUpdate": false
+      }
+    ],
+    "workStatus": {
+      "needsWork": false,
+      "lastChecked": "2025-08-15T06:00:48.468Z",
+      "filesToUpdate": []
+    }
+  }
+}

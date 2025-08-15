@@ -36,7 +36,6 @@ export {
 
 // === GENERAL UTILITIES ===
 // Common store helper functions (createStore removed - use core/Store.createStore instead)
-// export { createStore } from './utils';
 
 // === ACTION HANDLER UTILITIES ===
 // Moved to actions/utils - use import from '@context-action/react/actions'
@@ -45,4 +44,3 @@ export {
 // Store registry synchronization utilities
 export { createRegistrySync, RegistryUtils } from './registry-sync';
 
-// NOTE: withStore HOC pattern is deprecated - use useLocalStore hook instead

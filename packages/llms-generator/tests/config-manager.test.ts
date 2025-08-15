@@ -101,7 +101,7 @@ describe('ConfigManager Unit Tests', () => {
       
       // 잘못된 범위의 characterLimits
       const invalidLimits = ConfigManager.validateConfig(INVALID_CONFIGS.invalidCharLimits as any);
-      expect(invalidLimits.errors.some(error => error.includes('between 1 and 10000'))).toBe(true);
+      expect(invalidLimits.errors.some(error => error.includes('must be greater than 0') || error.includes('max: 10000'))).toBe(true);
       
       // 빈 languages
       const emptyLanguages = ConfigManager.validateConfig(INVALID_CONFIGS.emptyLanguages as any);

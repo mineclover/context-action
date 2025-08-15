@@ -2,12 +2,12 @@
  * Configuration Manager - Discovers and loads user configuration
  */
 
-import { readFile, writeFile, access } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
-import type { UserConfig, ResolvedConfig } from '../types/user-config';
-import { DEFAULT_USER_CONFIG } from '../types/user-config';
-import { CHARACTER_LIMIT_PRESETS } from '../types/user-config';
+import type { UserConfig, ResolvedConfig } from '../types/user-config.js';
+import { DEFAULT_USER_CONFIG } from '../types/user-config.js';
+import { CHARACTER_LIMIT_PRESETS } from '../types/user-config.js';
 
 export class ConfigManager {
   private static readonly CONFIG_FILE_NAMES = [
@@ -127,6 +127,10 @@ export class ConfigManager {
       paths: {
         ...defaultConfig.paths,
         ...userConfig.paths
+      },
+      instructions: {
+        ...defaultConfig.instructions,
+        ...userConfig.instructions
       }
     };
   }
@@ -147,6 +151,8 @@ export class ConfigManager {
       configFile,
       docsDir: path.resolve(projectRoot, config.paths?.docsDir || './docs'),
       dataDir: path.resolve(projectRoot, config.paths?.dataDir || './packages/llms-generator/data'),
+      templatesDir: path.resolve(projectRoot, config.paths?.templatesDir || './templates'),
+      instructionsDir: path.resolve(projectRoot, config.paths?.instructionsDir || './instructions'),
       outputDir: path.resolve(projectRoot, config.paths?.outputDir || './docs/llms')
     };
 
@@ -189,13 +195,17 @@ export class ConfigManager {
     }
 
     // Validate character limits
-    if (!config.characterLimits || !Array.isArray(config.characterLimits) || config.characterLimits.length === 0) {
+    if (!config.characterLimits) {
+      errors.push('At least one character limit must be defined');
+    } else if (!Array.isArray(config.characterLimits)) {
+      errors.push('Character limits must be an array');
+    } else if (config.characterLimits.length === 0) {
       errors.push('At least one character limit must be defined');
     } else {
       // Check for duplicate limits
       const uniqueLimits = new Set(config.characterLimits);
       if (config.characterLimits.length !== uniqueLimits.size) {
-        errors.push('Duplicate character limits found');
+        errors.push('duplicate character limits found');
       }
 
       // Check for invalid limits
@@ -210,8 +220,17 @@ export class ConfigManager {
     }
 
     // Validate languages
-    if (!config.languages || !Array.isArray(config.languages) || config.languages.length === 0) {
+    if (!config.languages) {
       errors.push('At least one language must be defined');
+    } else if (!Array.isArray(config.languages)) {
+      errors.push('Languages must be an array');
+    } else if (config.languages.length === 0) {
+      errors.push('At least one language must be defined');
+    }
+
+    // Validate paths
+    if (config.paths !== undefined && (typeof config.paths !== 'object' || config.paths === null || Array.isArray(config.paths))) {
+      errors.push('Paths must be an object');
     }
 
     return {
