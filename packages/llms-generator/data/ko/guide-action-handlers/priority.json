@@ -1,0 +1,63 @@
+{
+  "document": {
+    "id": "guide-action-handlers",
+    "title": "액션 핸들러",
+    "source_path": "ko/guide/action-handlers.md",
+    "category": "guide"
+  },
+  "priority": {
+    "score": 90,
+    "tier": "essential"
+  },
+  "extraction": {
+    "strategy": "concept-first",
+    "character_limits": {
+      "100": {
+        "focus": "핸들러 기본 개념"
+      },
+      "200": {
+        "focus": "핸들러 구조와 패턴"
+      },
+      "300": {
+        "focus": "핸들러 구현과 사용법"
+      },
+      "400": {
+        "focus": "완전한 핸들러 구현과 예제"
+      }
+    }
+  },
+  "work_status": {
+    "source_modified": "2025-08-14T21:12:53.561Z",
+    "generated_files": {
+      "100": {
+        "path": "/Users/junwoobang/project/context-action/packages/llms-generator/data/ko/guide-action-handlers/guide-action-handlers-100.txt",
+        "created": "2025-08-14T21:14:34.753Z",
+        "modified": "2025-08-14T21:30:02.554Z",
+        "edited": true,
+        "needs_update": false
+      },
+      "300": {
+        "path": "/Users/junwoobang/project/context-action/packages/llms-generator/data/ko/guide-action-handlers/guide-action-handlers-300.txt",
+        "created": "2025-08-14T21:15:01.933Z",
+        "modified": "2025-08-14T21:30:02.555Z",
+        "edited": false,
+        "needs_update": false
+      },
+      "1000": {
+        "path": "/Users/junwoobang/project/context-action/packages/llms-generator/data/ko/guide-action-handlers/guide-action-handlers-1000.txt",
+        "created": "2025-08-15T16:35:32.069Z",
+        "modified": "2025-08-15T16:35:32.069Z",
+        "edited": false,
+        "needs_update": true
+      },
+      "2000": {
+        "path": "/Users/junwoobang/project/context-action/packages/llms-generator/data/ko/guide-action-handlers/guide-action-handlers-2000.txt",
+        "created": "2025-08-15T16:35:32.069Z",
+        "modified": "2025-08-15T16:35:32.069Z",
+        "edited": false,
+        "needs_update": true
+      }
+    },
+    "last_checked": "2025-08-15T16:35:32.069Z"
+  }
+}
