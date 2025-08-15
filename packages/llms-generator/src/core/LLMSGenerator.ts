@@ -16,6 +16,8 @@ import { PriorityManager } from './PriorityManager.js';
 import { DocumentProcessor } from './DocumentProcessor.js';
 import { PriorityGenerator } from './PriorityGenerator.js';
 import { AdaptiveComposer } from './AdaptiveComposer.js';
+import { SummaryGeneratorUseCase } from '../application/use-cases/SummaryGeneratorUseCase.js';
+import { getServices } from '../infrastructure/di/DIContainer.js';
 
 export class LLMSGenerator {
   private config: LLMSConfig;
@@ -23,6 +25,7 @@ export class LLMSGenerator {
   private documentProcessor: DocumentProcessor;
   private priorityGenerator: PriorityGenerator;
   private adaptiveComposer: AdaptiveComposer;
+  private summaryGenerator: SummaryGeneratorUseCase | null = null;
 
   constructor(config: LLMSConfig) {
     this.config = config;
@@ -40,6 +43,14 @@ export class LLMSGenerator {
       await this.priorityManager.initializeValidator(schemaPath);
     }
     await this.priorityGenerator.initialize();
+    
+    // Initialize DI container and get SummaryGenerator
+    try {
+      const services = getServices();
+      this.summaryGenerator = services.summaryGeneratorUseCase;
+    } catch (error) {
+      console.warn('SummaryGenerator not available - DI container not initialized');
+    }
   }
 
   /**
@@ -47,6 +58,13 @@ export class LLMSGenerator {
    */
   getPriorityGenerator(): PriorityGenerator {
     return this.priorityGenerator;
+  }
+
+  /**
+   * Get priority manager instance for direct access
+   */
+  getPriorityManager(): PriorityManager {
+    return this.priorityManager;
   }
 
   /**
@@ -131,6 +149,81 @@ export class LLMSGenerator {
     const content = result.content;
 
     return content;
+  }
+
+  /**
+   * Generate YAML frontmatter-based summaries from minimum/origin formats
+   */
+  async generateSummariesFromSource(options: {
+    sourceType: 'minimum' | 'origin';
+    language?: string;
+    characterLimits?: number[];
+    overwrite?: boolean;
+  }): Promise<{
+    success: boolean;
+    results?: any;
+    error?: string;
+  }> {
+    if (!this.summaryGenerator) {
+      return {
+        success: false,
+        error: 'SummaryGenerator not available. Ensure DI container is initialized.'
+      };
+    }
+
+    try {
+      const language = options.language || this.config.generation.defaultLanguage;
+      const characterLimits = options.characterLimits || [100, 300, 1000];
+
+      // Generate source content
+      const sourceContent = options.sourceType === 'minimum' 
+        ? await this.generateMinimum(language)
+        : await this.generateOrigin(language);
+
+      // Prepare bulk generation request
+      const request = {
+        source: {
+          type: options.sourceType,
+          content: sourceContent,
+          metadata: {
+            language,
+            documentsCount: 0, // Will be calculated
+            totalSize: sourceContent.length
+          }
+        },
+        characterLimits,
+        languages: [language],
+        extractionConfig: {
+          defaultStrategy: 'concept-first',
+          qualityThreshold: 70,
+          retryOnFailure: true
+        }
+      };
+
+      // Execute bulk generation
+      const result = options.sourceType === 'minimum'
+        ? await this.summaryGenerator.generateFromMinimum(request)
+        : await this.summaryGenerator.generateFromOrigin(request);
+
+      console.log(`📝 Generated ${result.successCount}/${result.totalRequested} summaries`);
+      console.log(`📊 Average quality score: ${result.statistics.averageQualityScore.toFixed(1)}`);
+      
+      if (result.recommendations.length > 0) {
+        console.log('💡 Recommendations:');
+        result.recommendations.forEach(rec => console.log(`   - ${rec}`));
+      }
+
+      return {
+        success: true,
+        results: result
+      };
+
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error)
+      };
+    }
   }
 
   /**
