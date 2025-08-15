@@ -60,8 +60,7 @@
     "jest": "^29.7.0",
     "ts-jest": "^29.4.1",
     "tsdown": "^0.13.0",
-    "typescript": "^5.3.0",
-    "@types/gray-matter": "^2.3.4"
+    "typescript": "^5.3.0"
   },
   "engines": {
     "node": ">=18.0.0"

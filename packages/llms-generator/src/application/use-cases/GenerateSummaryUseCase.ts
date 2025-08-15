@@ -5,7 +5,7 @@
  * 클린 아키텍처에서 Use Case 계층 구현
  */
 
-import type { DocumentSummary } from '../../domain/entities/DocumentSummary.js';
+import { DocumentSummary } from '../../domain/entities/DocumentSummary.js';
 import type { IDocumentSummaryRepository } from '../../domain/repositories/IDocumentSummaryRepository.js';
 import type { IFrontmatterService } from '../../domain/services/interfaces/IFrontmatterService.js';
 

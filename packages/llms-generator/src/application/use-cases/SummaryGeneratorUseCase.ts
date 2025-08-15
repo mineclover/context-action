@@ -5,7 +5,7 @@
  * 기존 LLMSGenerator와 통합하여 YAML frontmatter 포함 요약 생성
  */
 
-import type { DocumentSummary } from '../../domain/entities/DocumentSummary.js';
+import { DocumentSummary } from '../../domain/entities/DocumentSummary.js';
 import type { IDocumentSummaryRepository } from '../../domain/repositories/IDocumentSummaryRepository.js';
 import type { ISummaryExtractor, MinimumDocumentInfo, OriginDocumentInfo } from '../../domain/services/interfaces/ISummaryExtractor.js';
 import type { LLMSConfig } from '../../types/index.js';
@@ -596,7 +596,7 @@ export class SummaryGeneratorUseCase {
     return '상세 설명과 예제';
   }
 
-  private selectStrategy(info: MinimumDocumentInfo | OriginDocumentInfo, characterLimit: number): string {
+  private selectStrategy(info: MinimumDocumentInfo | OriginDocumentInfo, characterLimit: number): 'concept-first' | 'api-first' | 'example-first' | 'tutorial-first' | 'reference-first' {
     const category = this.getDocumentCategory(info);
     
     if (category === 'api') return 'api-first';
@@ -649,7 +649,7 @@ export class SummaryGeneratorUseCase {
       fakeInfo,
       existingSummary.summary.characterLimit,
       existingSummary.summary.language,
-      existingSummary.generated.from
+      existingSummary.generated.from === 'adaptive' ? 'origin' : existingSummary.generated.from as 'minimum' | 'origin'
     );
   }
 }
