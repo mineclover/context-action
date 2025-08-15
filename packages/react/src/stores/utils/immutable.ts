@@ -88,11 +88,14 @@ export function deepClone<T>(value: T): T {
     // 이는 웹 표준 API로 모든 모던 브라우저와 Node.js 17+에서 지원
     const cloned = structuredClone(value);
     
-    logger.trace('Deep clone successful', { 
-      type: typeof value,
-      isArray: Array.isArray(value),
-      constructor: value?.constructor?.name 
-    });
+    // Performance: Only log in development mode and drastically reduce frequency
+    if (process.env.NODE_ENV === 'development' && Math.random() < 0.001) {
+      logger.trace('Deep clone successful', { 
+        type: typeof value,
+        isArray: Array.isArray(value),
+        constructor: value?.constructor?.name 
+      });
+    }
     
     return cloned;
   } catch (error) {

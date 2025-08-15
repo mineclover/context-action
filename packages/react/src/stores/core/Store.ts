@@ -268,7 +268,7 @@ export class Store<T = any> implements IStore<T> {
         result = !areEqual;
         
       }
-    } catch (error) {
+    } catch {
       // 비교 중 에러 발생 시 안전한 fallback (참조 비교)
       result = !Object.is(oldValue, newValue);
     }
@@ -327,7 +327,7 @@ export class Store<T = any> implements IStore<T> {
     this.listeners.forEach(listener => {
       try {
         listener();
-      } catch (error) {
+      } catch {
         // Silent catch for listener errors
       }
     });

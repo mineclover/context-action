@@ -134,19 +134,8 @@ export function useStoreValue<T, R>(
     name = store?.name || 'unknown'
   } = finalOptions;
   
-  // Store가 null/undefined인 경우 처리
-  if (!store) {
-    if (debug || process.env.NODE_ENV === 'development') {
-      console.warn(
-        `useStoreValue [${name}]: Store is null or undefined. ` +
-        'Component might not be wrapped in proper Provider.'
-      );
-    }
-    return initialValue !== undefined ? initialValue : undefined;
-  }
-  
-  // 조건부 구독 상태 관리
-  const [isActive, setIsActive] = useState(() => !lazy && (!condition || condition()));
+  // Hook 규칙을 지키기 위해 모든 Hook을 조건부 이전에 호출
+  const [isActive, setIsActive] = useState(() => store && !lazy && (!condition || condition()));
   const conditionRef = useRef(condition);
   conditionRef.current = condition;
   
@@ -188,8 +177,7 @@ export function useStoreValue<T, R>(
   const throttleLastExecRef = useRef<number>(0);
   const latestValueRef = useRef<T | R | undefined>(initialValue);
   
-  // 실제 Store 구독 (조건부)
-  // Hook 규칙 준수: 조건부로 Hook을 호출할 수 없음
+  // 실제 Store 구독 - Hook 규칙 준수: 모든 Hook을 조건부 이전에 호출
   const selectorFunction = useMemo(() => {
     if (selector) {
       return selector;
@@ -197,7 +185,14 @@ export function useStoreValue<T, R>(
     return (value: T) => value as unknown as R;
   }, [selector]);
   
-  const rawStoreValue = useStoreSelector(store, selectorFunction, equalityFn as (a: R, b: R) => boolean);
+  // store가 null/undefined인 경우를 처리하면서 Hook 규칙 준수
+  const dummyStore = useMemo(() => {
+    if (store) return store;
+    // Dummy store for Hook rules compliance
+    return { getValue: () => undefined, subscribe: () => () => {}, getSnapshot: () => ({ value: undefined }) } as any;
+  }, [store]);
+  
+  const rawStoreValue = useStoreSelector(dummyStore, selectorFunction, equalityFn as (a: R, b: R) => boolean);
   
   const currentStoreValue = useMemo(() => {
     if (!isActive) {
@@ -291,13 +286,25 @@ export function useStoreValues<T, S extends Record<string, (value: T) => any>>(
   store: Store<T> | undefined | null,
   selectors: S
 ): { [K in keyof S]: ReturnType<S[K]> } | undefined {
-  if (!store) return undefined;
+  // Hook 규칙 준수: 조건부 이전에 모든 Hook 호출
+  const selectorFunction = useMemo(() => {
+    return (value: T) => {
+      const result = {} as { [K in keyof S]: ReturnType<S[K]> };
+      for (const [key, selector] of Object.entries(selectors)) {
+        result[key as keyof S] = selector(value);
+      }
+      return result;
+    };
+  }, [selectors]);
   
-  return useStoreSelector(store, (value: T) => {
-    const result = {} as { [K in keyof S]: ReturnType<S[K]> };
-    for (const [key, selector] of Object.entries(selectors)) {
-      result[key as keyof S] = selector(value);
-    }
-    return result;
-  }, shallowEqual);
+  // store가 null/undefined인 경우를 처리하면서 Hook 규칙 준수
+  const dummyStoreForValues = useMemo(() => {
+    if (store) return store;
+    // Dummy store for Hook rules compliance
+    return { getValue: () => undefined as any, subscribe: () => () => {}, getSnapshot: () => ({ value: undefined }) } as any;
+  }, [store]);
+  
+  const storeValue = useStoreSelector(dummyStoreForValues, selectorFunction, shallowEqual);
+  
+  return store ? storeValue : undefined;
 }

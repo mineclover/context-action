@@ -239,7 +239,8 @@ export function createActionContext<T extends {}>(
         }
       };
       return register.dispatch(action, payload, dispatchOptions);
-    }, [context.actionRegisterRef.current]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // actionRegisterRef는 ref이므로 의존성에 포함하지 않음
     
     return wrappedDispatch as ActionRegister<T>['dispatch'];
   };
@@ -274,7 +275,8 @@ export function createActionContext<T extends {}>(
 
       // Cleanup on unmount or when dependencies change
       return unregister;
-    }, [action, actionId, actionRegisterRef.current]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [action, actionId]); // actionRegisterRef는 ref이므로 의존성에 포함하지 않음
   };
 
   /**
@@ -406,7 +408,8 @@ export function createActionContext<T extends {}>(
         }
       };
       return register.dispatchWithResult<K, R>(action, payload, dispatchOptions);
-    }, [context.actionRegisterRef.current]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // actionRegisterRef는 ref이므로 의존성에 포함하지 않음
     
     // Method to manually abort all pending actions
     const abortAll = useCallback(() => {
@@ -425,13 +428,14 @@ export function createActionContext<T extends {}>(
     
     // Cleanup: abort all pending actions on unmount
     useEffect(() => {
+      const controllers = activeControllersRef;
       return () => {
-        activeControllersRef.current.forEach(controller => {
+        controllers.current.forEach(controller => {
           if (!controller.signal.aborted) {
             controller.abort();
           }
         });
-        activeControllersRef.current.clear();
+        controllers.current.clear();
       };
     }, []);
     
