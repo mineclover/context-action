@@ -2,7 +2,7 @@
  * @fileoverview Tests for createDeclarativeStorePattern factory
  */
 
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, render } from '@testing-library/react';
 import React from 'react';
 import { createDeclarativeStorePattern } from '../../../src/stores/patterns/declarative-store-pattern-v2';
 import { useStoreValue } from '../../../src/stores/hooks/useStoreValue';
@@ -145,12 +145,13 @@ describe('createDeclarativeStorePattern', () => {
 
     const ComponentWithProvider = UserStores.withProvider(BaseComponent);
 
-    const { result } = renderHook(() => {
-      return <ComponentWithProvider />;
-    });
-
-    // Should render without provider wrapper since HOC provides it
-    expect(result.current.type).toBe(BaseComponent);
+    // Test that HOC creates a wrapped component
+    expect(ComponentWithProvider).toBeDefined();
+    expect(ComponentWithProvider.displayName).toContain('withUserProvider');
+    
+    // Test that the wrapped component can render properly
+    const { container } = render(<ComponentWithProvider />);
+    expect(container).toBeDefined();
   });
 
   it('should support complex nested initial values', () => {
