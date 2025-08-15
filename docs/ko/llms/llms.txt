@@ -1,0 +1,355 @@
+# Context-Action Framework - 완전한 문서 컬렉션
+
+생성일: 2025-08-14
+유형: 완전한 LLM 참조
+언어: KO
+
+이 문서는 Context-Action 프레임워크의 모든 문서를 하나의 포괄적인 참조로 통합합니다.
+
+## 개요
+
+Context-Action 프레임워크는 문서 중심 컨텍스트 분리와 효과적인 아티팩트 관리를 통해 기존 라이브러리의 근본적인 한계를 극복하도록 설계된 혁신적인 상태 관리 시스템입니다.
+
+### 핵심 기능
+
+1. **문서 중심 설계**: 각 컨텍스트가 특정 문서 도메인을 나타냄
+2. **완벽한 관심사 분리**: 설계, 아키텍처, 비즈니스, 검증 컨텍스트의 격리
+3. **타입 안전성**: 전체적인 엄격한 TypeScript 지원
+4. **Action Pipeline**: 우선순위 기반 핸들러 실행을 통한 중앙집중식 액션 처리
+5. **Store Integration**: 반응형 스토어 구독을 통한 분리된 상태 관리
+
+### 두 가지 주요 패턴
+
+#### Action Only 패턴
+- **임포트**: `@context-action/react`에서 `createActionContext`
+- **사용 사례**: 상태 관리 없는 순수 액션 디스패치 (이벤트 시스템, 명령 패턴)
+- **기능**: 타입 안전한 액션 디스패치, 액션 핸들러 등록, 중단 지원, 결과 처리
+
+#### Store Only 패턴 (권장)
+- **임포트**: `@context-action/react`에서 `createDeclarativeStorePattern`
+- **사용 사례**: 상태 관리 (데이터 레이어, 단순 상태)
+- **기능**: 수동 타입 주석 없이 뛰어난 타입 추론, 스토어 관리에 중점을 둔 단순화된 API
+
+## API 참조
+
+### Action Only API
+
+```typescript
+interface AppActions extends ActionPayloadMap {
+  updateUser: { id: string; name: string };
+  deleteUser: { id: string };
+}
+
+const { Provider, useActionDispatch, useActionHandler } = 
+  createActionContext<AppActions>('App');
+```
+
+### Store Only API
+
+```typescript
+const { Provider, useStore, useStoreManager, withProvider } = 
+  createDeclarativeStorePattern('App', {
+    user: { id: '', name: '', email: '' },
+    settings: { theme: 'light', language: 'ko' }
+  });
+```
+
+## 핵심 개념
+
+### MVVM 아키텍처
+- **Actions**: 비즈니스 로직 처리 (ViewModel 레이어)
+- **Stores**: 상태 관리 (Model 레이어)
+- **Components**: UI 렌더링 (View 레이어)
+
+### 스토어 통합 3단계 프로세스
+1. **현재 상태 읽기**: `store.getValue()` 사용
+2. **비즈니스 로직 실행**: 페이로드와 현재 상태 사용
+3. **스토어 업데이트**: `store.setValue()` 또는 `store.update()` 사용
+
+### 핸들러 등록 베스트 프랙티스
+- 재등록 방지를 위해 `useCallback`으로 핸들러 래핑
+- 현재 상태를 위해 `stores.getStore()`를 통한 지연 평가 사용
+- 정리를 위해 등록 해제 함수 사용
+
+## 사용 예제
+
+### Action Only 패턴 예제
+
+```typescript
+interface EventActions extends ActionPayloadMap {
+  trackEvent: { event: string; data: any };
+  sendAnalytics: { userId: string; action: string };
+}
+
+const {
+  Provider: EventActionProvider,
+  useActionDispatch: useEventAction,
+  useActionHandler: useEventActionHandler
+} = createActionContext<EventActions>('Events');
+
+function EventComponent() {
+  const dispatch = useEventAction();
+  
+  useEventActionHandler('trackEvent', async (payload) => {
+    await analytics.track(payload.event, payload.data);
+  });
+  
+  return (
+    <button onClick={() => dispatch('trackEvent', { event: 'click', data: {} })}>
+      이벤트 추적
+    </button>
+  );
+}
+
+function App() {
+  return (
+    <EventActionProvider>
+      <EventComponent />
+    </EventActionProvider>
+  );
+}
+```
+
+### Store Only 패턴 예제
+
+```typescript
+const {
+  Provider: UserStoreProvider,
+  useStore: useUserStore,
+  useStoreManager: useUserStoreManager
+} = createDeclarativeStorePattern('User', {
+  profile: { name: '', email: '', avatar: '' },
+  preferences: { theme: 'light', language: 'ko' }
+});
+
+function UserComponent() {
+  const profileStore = useUserStore('profile');
+  const profile = useStoreValue(profileStore);
+  
+  const updateProfile = () => {
+    profileStore.update(current => ({
+      ...current,
+      name: '업데이트된 이름'
+    }));
+  };
+  
+  return (
+    <div>
+      <h1>{profile.name}</h1>
+      <button onClick={updateProfile}>프로필 업데이트</button>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <UserStoreProvider>
+      <UserComponent />
+    </UserStoreProvider>
+  );
+}
+```
+
+## 아키텍처 패턴
+
+### Context Store Pattern (주요 아키텍처)
+- **비즈니스 컨텍스트**: 비즈니스 로직, 데이터 처리, 도메인 규칙
+- **UI 컨텍스트**: 화면 상태, 사용자 상호작용, 컴포넌트 동작
+- **검증 컨텍스트**: 데이터 검증, 폼 처리, 에러 처리
+- **설계 컨텍스트**: 테마 관리, 스타일링, 레이아웃, 시각적 상태
+- **아키텍처 컨텍스트**: 시스템 구성, 인프라스트럭처, 기술적 결정
+
+### 패턴 조합
+Action Only + Store Only 패턴을 조합하여 복잡한 애플리케이션 구현:
+
+```typescript
+// Action Only for business logic
+const {
+  Provider: BusinessActionProvider,
+  useActionDispatch: useBusinessAction,
+  useActionHandler: useBusinessActionHandler
+} = createActionContext<BusinessActions>('Business');
+
+// Store Only for state management
+const {
+  Provider: AppStoreProvider,
+  useStore: useAppStore,
+  useStoreManager: useAppStoreManager
+} = createDeclarativeStorePattern('App', {
+  user: { id: '', name: '', email: '' },
+  ui: { loading: false, error: null }
+});
+
+function App() {
+  return (
+    <BusinessActionProvider>
+      <AppStoreProvider>
+        <MainComponent />
+      </AppStoreProvider>
+    </BusinessActionProvider>
+  );
+}
+```
+
+## 베스트 프랙티스
+
+### 패턴 선택 가이드
+
+**Action Only 패턴 사용 시기:**
+- 이벤트 시스템 및 분석
+- 명령 패턴 구현
+- 부작용 및 API 호출
+- 복잡한 비즈니스 로직
+
+**Store Only 패턴 사용 시기:**
+- 애플리케이션 상태 관리
+- 폼 상태 및 UI 상태
+- 데이터 캐싱 및 지속성
+- 파생 상태 및 계산된 값
+
+### 성능 최적화
+
+```typescript
+// 비용이 많이 드는 컴포넌트에 React.memo 사용
+const ExpensiveComponent = React.memo(function ExpensiveComponent() {
+  const dataStore = useAppStore('largeDataset');
+  const data = useStoreValue(dataStore);
+  
+  const processedData = useMemo(() => {
+    return expensiveProcessing(data);
+  }, [data]);
+  
+  return <div>{processedData}</div>;
+});
+```
+
+### 에러 처리
+
+```typescript
+// 액션 핸들러에서의 에러 처리
+useBusinessActionHandler('riskyOperation', async (payload, controller) => {
+  try {
+    const result = await riskyApiCall(payload.data);
+    return { success: true, result };
+  } catch (error) {
+    controller.abort(`작업 실패: ${(error as Error).message}`);
+  }
+});
+
+// 디스패치에서의 에러 처리
+const handleAction = async () => {
+  try {
+    const result = await dispatch('riskyOperation', { data: 'test' });
+    if (result.success) {
+      // 성공 처리
+    }
+  } catch (error) {
+    console.error('액션 실패:', error);
+  }
+};
+```
+
+## 고급 기능
+
+### 파이프라인 컨트롤러
+
+```typescript
+// 다단계 처리 파이프라인
+useActionHandler('processOrder', async (payload, controller) => {
+  // 1단계: 페이로드 강화
+  controller.modifyPayload(current => ({
+    ...current,
+    timestamp: Date.now(),
+    sessionId: getSessionId()
+  }));
+  
+  // 2단계: 검증
+  const validation = await validateOrder(payload);
+  if (!validation.isValid) {
+    controller.abort(`검증 실패: ${validation.errors.join(', ')}`);
+    return;
+  }
+  
+  // 3단계: 중간 결과 설정
+  controller.setResult({ step: 'validation', valid: true });
+  
+  return { processed: true };
+}, { priority: 100 });
+```
+
+### 스토어 매니저
+
+```typescript
+function AdminPanel() {
+  const storeManager = useAppStoreManager();
+  
+  const exportState = () => {
+    const state = storeManager.getAllValues();
+    const dataStr = JSON.stringify(state, null, 2);
+    downloadFile('app-state.json', dataStr);
+  };
+  
+  const importState = (importedData: any) => {
+    storeManager.setAllValues(importedData);
+  };
+  
+  const resetAll = () => {
+    storeManager.resetAll();
+  };
+  
+  return (
+    <div>
+      <button onClick={exportState}>상태 내보내기</button>
+      <button onClick={resetAll}>모든 상태 재설정</button>
+    </div>
+  );
+}
+```
+
+## 개발 워크플로우
+
+1. **설정**: 루트에서 `pnpm install`
+2. **개발**: 라이브 예제 앱을 위해 `pnpm dev` 사용
+3. **변경사항**: 각각의 `packages/*/src/` 디렉토리에서 변경
+4. **테스트**: `pnpm test` 및 `pnpm type-check` 실행
+5. **빌드**: 커밋 전에 `pnpm build` 실행
+6. **문서**: 공개 API 변경 시 문서 업데이트
+
+## 패키지 구조
+
+- `@context-action/core` - 핵심 액션 파이프라인 관리 (React 의존성 없음)
+- `@context-action/react` - Context API 및 훅을 통한 React 통합
+
+## 중요 구현 세부사항
+
+### 액션 핸들러 등록
+컴포넌트가 마운트되기 전에 액션 핸들러를 등록해야 함. `useActionHandler` 훅 패턴 사용:
+
+```typescript
+function ActionSetup({ children }) {
+  const userUpdateHandler = useCallback(async (payload, controller) => {
+    // 핸들러 로직
+  }, []);
+  
+  useActionHandler('updateUser', userUpdateHandler);
+  
+  return children;
+}
+```
+
+### 스토어 구독 패턴
+반응형 구독을 위해 항상 `useStoreValue()` 사용, 직접 스토어 액세스 금지:
+
+```typescript
+// 올바름: 반응형 구독
+const userValue = useStoreValue(userStore);
+
+// 잘못됨: 직접 액세스 (반응형 아님)
+const userValue = userStore.getValue();
+```
+
+이 완전한 참조는 Context-Action 프레임워크의 모든 측면을 다루며, 효과적인 구현을 위한 실용적인 예제와 베스트 프랙티스를 제공합니다.
+
+---
+
+*Context-Action 프레임워크 문서에서 자동 생성됨*
