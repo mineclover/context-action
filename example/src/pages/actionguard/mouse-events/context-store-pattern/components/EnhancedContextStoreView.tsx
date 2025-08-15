@@ -19,6 +19,8 @@ export function EnhancedContextStoreView() {
   const animationFrameRef = useRef<number>();
   const pathSvgRef = useRef<SVGPathElement>(null);
   const realtimePathPoints = useRef<Array<{ x: number; y: number }>>([]);
+  const moveEndTimeoutRef = useRef<number>();
+  const lastMoveTimeRef = useRef<number>(0);
 
   // Access individual stores using the Context Store Pattern
   const positionStore = useMouseEventsStore('position');
@@ -37,7 +39,7 @@ export function EnhancedContextStoreView() {
   // Action dispatcher
   const dispatch = useMouseEventsActionDispatch();
 
-  // 실시간 activityStatus 업데이트를 위한 주기적 검사
+  // 실시간 상태 모니터링 및 움직임 종료 감지
   useEffect(() => {
     const updateActivityStatus = () => {
       if (!positionStore || !movementStore || !clicksStore || !computedStore) return;
@@ -45,29 +47,46 @@ export function EnhancedContextStoreView() {
       const currentMovement = movementStore.getValue();
       const currentClicks = clicksStore.getValue();
       const currentComputed = computedStore.getValue();
+      const now = Date.now();
+      
+      // 움직임 종료 감지: 마지막 움직임으로부터 500ms 경과 시 자동으로 이동 종료
+      if (currentMovement.isMoving && currentMovement.lastMoveTime) {
+        const timeSinceLastMove = now - currentMovement.lastMoveTime;
+        if (timeSinceLastMove > 500) {
+          // 움직임이 오래전에 멈췄으므로 이동 종료 처리
+          movementStore.setValue({
+            ...currentMovement,
+            isMoving: false,
+            velocity: 0,
+          });
+          
+          // 상태 업데이트를 위해 재귀 호출
+          setTimeout(updateActivityStatus, 10);
+          return;
+        }
+      }
       
       // 현재 시간 기준으로 activityStatus 재계산
       const lastClickTime = currentClicks.history[0]?.timestamp || null;
       const recentClickCount = currentClicks.history.filter(
-        click => Date.now() - click.timestamp <= 1500
+        click => now - click.timestamp <= 1500
       ).length;
       
       const newActivityStatus = (() => {
-        const now = Date.now();
         const timeSinceLastClick = lastClickTime ? now - lastClickTime : Infinity;
 
-        // 300ms 이내의 매우 최근 클릭이면 clicking 상태
-        if (recentClickCount > 0 && timeSinceLastClick < 300) {
+        // 200ms 이내의 매우 최근 클릭이면 clicking 상태 (더 빠른 반응)
+        if (recentClickCount > 0 && timeSinceLastClick < 200) {
           return 'clicking';
         }
 
-        // 이동 중이고 속도가 충분하면 moving 상태
-        if (currentMovement.isMoving && currentMovement.velocity > 0.05) {
+        // 이동 중이고 속도가 충분하면 moving 상태 (임계값 낮춤)
+        if (currentMovement.isMoving && currentMovement.velocity > 0.01) {
           return 'moving';
         }
 
-        // 1초 이내 클릭이 있지만 현재 이동 중이 아니면 여전히 clicking
-        if (recentClickCount > 0 && timeSinceLastClick < 1000) {
+        // 800ms 이내 클릭이 있지만 현재 이동 중이 아니면 여전히 clicking (시간 단축)
+        if (recentClickCount > 0 && timeSinceLastClick < 800) {
           return 'clicking';
         }
 
@@ -75,7 +94,7 @@ export function EnhancedContextStoreView() {
       })();
       
       // 상태가 변경되었을 때만 업데이트
-      if (currentComputed.activityStatus !== newActivityStatus) {
+      if (currentComputed.activityStatus !== newActivityStatus || currentComputed.recentClickCount !== recentClickCount) {
         computedStore.setValue({
           ...currentComputed,
           activityStatus: newActivityStatus,
@@ -87,8 +106,8 @@ export function EnhancedContextStoreView() {
     // 초기 실행
     updateActivityStatus();
     
-    // 200ms마다 상태 검사 (부드러운 실시간 업데이트)
-    const interval = setInterval(updateActivityStatus, 200);
+    // 100ms마다 상태 검사 (더 빠른 실시간 업데이트 + 움직임 종료 감지)
+    const interval = setInterval(updateActivityStatus, 100);
     
     return () => clearInterval(interval);
   }, [positionStore, movementStore, clicksStore, computedStore]);
@@ -131,14 +150,30 @@ export function EnhancedContextStoreView() {
     // Also update state for React consistency (but less frequently)
     setRealTimePath(realtimePathPoints.current);
     
-    // Throttled store updates to prevent performance issues
+    // 마지막 움직임 시간 기록
+    lastMoveTimeRef.current = timestamp;
+    
+    // 기존의 움직임 종료 타이머 클리어
+    if (moveEndTimeoutRef.current) {
+      clearTimeout(moveEndTimeoutRef.current);
+    }
+    
+    // 움직임 종료 감지 타이머 설정 (300ms 후 움직임 종료 처리)
+    moveEndTimeoutRef.current = window.setTimeout(() => {
+      dispatch('moveEnd', { 
+        position: { x, y }, 
+        timestamp: Date.now() 
+      });
+    }, 300); // 300ms 동안 움직임이 없으면 움직임 종료로 간주
+    
+    // Optimized store updates - 더 빠른 반응성
     if (throttleTimeoutRef.current) {
       clearTimeout(throttleTimeoutRef.current);
     }
     
     throttleTimeoutRef.current = window.setTimeout(() => {
       dispatch('mouseMove', { x, y, timestamp });
-    }, 16); // ~60fps throttling
+    }, 8); // ~120fps throttling for better responsiveness
   }, [dispatch, showDetails]);
   
   // Cleanup on unmount
@@ -149,6 +184,9 @@ export function EnhancedContextStoreView() {
       }
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
+      }
+      if (moveEndTimeoutRef.current) {
+        clearTimeout(moveEndTimeoutRef.current);
       }
     };
   }, []);
@@ -215,9 +253,12 @@ export function EnhancedContextStoreView() {
       pathSvgRef.current.setAttribute('d', '');
     }
     
-    // Clear any pending throttled updates
+    // Clear any pending updates and timers
     if (throttleTimeoutRef.current) {
       clearTimeout(throttleTimeoutRef.current);
+    }
+    if (moveEndTimeoutRef.current) {
+      clearTimeout(moveEndTimeoutRef.current);
     }
     
     dispatch('mouseLeave', { x, y, timestamp });
@@ -233,6 +274,17 @@ export function EnhancedContextStoreView() {
     if (pathSvgRef.current) {
       pathSvgRef.current.setAttribute('d', '');
     }
+    
+    // Clear all timers
+    if (throttleTimeoutRef.current) {
+      clearTimeout(throttleTimeoutRef.current);
+    }
+    if (moveEndTimeoutRef.current) {
+      clearTimeout(moveEndTimeoutRef.current);
+    }
+    
+    // Reset last move time
+    lastMoveTimeRef.current = 0;
     
     dispatch('resetMouseState');
   }, [dispatch]);
