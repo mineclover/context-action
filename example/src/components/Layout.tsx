@@ -186,7 +186,6 @@ function Layout({
                     variant: isActive(item.path) ? 'active' : 'default',
                     category: item.category,
                   }),
-                  // @ts-ignore - isIndex is not in the original type but we added it
                   item.isIndex &&
                     'font-semibold border-l-2 border-indigo-500 bg-indigo-50 text-indigo-700'
                 )}
@@ -199,7 +198,6 @@ function Layout({
                 ) : (
                   <span
                     className={cn(
-                      // @ts-ignore - isIndex is not in the original type but we added it
                       item.isIndex && 'flex items-center gap-1'
                     )}
                   >
