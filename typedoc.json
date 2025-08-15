@@ -63,6 +63,10 @@
     "invalidLink": true,
     "notDocumented": false
   },
+  "customCss": "./docs/assets/typedoc-custom.css",
+  "navigationLinks": {
+    "GitHub": "https://github.com/mineclover/context-action"
+  },
   "treatWarningsAsErrors": false,
   "skipErrorChecking": true,
   "basePath": ".",
