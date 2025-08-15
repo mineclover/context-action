@@ -889,7 +889,7 @@ async function main() {
             // Quality distribution
             console.log('🎯 Quality Distribution:');
             Object.entries(stats.qualityDistribution).forEach(([level, count]) => {
-              if (count > 0) {
+              if ((count as number) > 0) {
                 console.log(`  ${level}: ${count} summaries`);
               }
             });
@@ -905,16 +905,16 @@ async function main() {
             // Show recommendations
             if (summaryResult.results.recommendations.length > 0) {
               console.log('\n💡 Recommendations:');
-              summaryResult.results.recommendations.forEach(rec => {
+              summaryResult.results.recommendations.forEach((rec: string) => {
                 console.log(`  • ${rec}`);
               });
             }
 
             // Show failed items if any
-            const failedResults = summaryResult.results.results.filter(r => !r.success);
+            const failedResults = summaryResult.results.results.filter((r: any) => !r.success);
             if (failedResults.length > 0 && failedResults.length <= 5) {
               console.log('\n❌ Failed generations:');
-              failedResults.forEach(result => {
+              failedResults.forEach((result: any) => {
                 console.log(`  • ${result.documentId} (${result.characterLimit} chars): ${result.error}`);
               });
             } else if (failedResults.length > 5) {

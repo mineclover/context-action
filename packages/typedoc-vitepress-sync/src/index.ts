@@ -280,7 +280,7 @@ export class TypeDocVitePressSync {
     }
 
     // Check cache directory permissions
-    if (this.config.cache.enabled) {
+    if (this.config.cache.enabled && this.config.cache.dir) {
       try {
         const cacheDir = this.config.cache.dir
         if (!fs.existsSync(cacheDir)) {

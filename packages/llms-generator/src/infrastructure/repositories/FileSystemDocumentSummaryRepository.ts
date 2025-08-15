@@ -15,7 +15,7 @@ import type {
   SaveResult,
   BatchResult
 } from '../../domain/repositories/IDocumentSummaryRepository.js';
-import type { DocumentSummary } from '../../domain/entities/DocumentSummary.js';
+import { DocumentSummary } from '../../domain/entities/DocumentSummary.js';
 import type { IFrontmatterService } from '../../domain/services/interfaces/IFrontmatterService.js';
 
 /**
@@ -63,11 +63,14 @@ export class FileSystemDocumentSummaryRepository implements IDocumentSummaryRepo
    * 여러 문서 요약 일괄 저장
    */
   async saveMany(summaries: ReadonlyArray<DocumentSummary>): Promise<BatchResult> {
-    const result: BatchResult = {
+    const result = {
       totalProcessed: summaries.length,
       successCount: 0,
       failureCount: 0,
-      failures: []
+      failures: [] as Array<{
+        documentSummary: DocumentSummary;
+        error: string;
+      }>
     };
 
     for (const summary of summaries) {
@@ -195,11 +198,14 @@ export class FileSystemDocumentSummaryRepository implements IDocumentSummaryRepo
    */
   async deleteMany(criteria: SummarySearchCriteria): Promise<BatchResult> {
     const summaries = await this.findByCriteria(criteria);
-    const result: BatchResult = {
+    const result = {
       totalProcessed: summaries.length,
       successCount: 0,
       failureCount: 0,
-      failures: []
+      failures: [] as Array<{
+        documentSummary: DocumentSummary;
+        error: string;
+      }>
     };
 
     for (const summary of summaries) {
@@ -259,11 +265,14 @@ export class FileSystemDocumentSummaryRepository implements IDocumentSummaryRepo
     const summaries = await this.findByCriteria(criteria);
     const duplicateGroups = this.groupDuplicates(summaries);
     
-    const result: BatchResult = {
+    const result = {
       totalProcessed: 0,
       successCount: 0,
       failureCount: 0,
-      failures: []
+      failures: [] as Array<{
+        documentSummary: DocumentSummary;
+        error: string;
+      }>
     };
 
     for (const group of duplicateGroups) {
@@ -459,7 +468,7 @@ export class FileSystemDocumentSummaryRepository implements IDocumentSummaryRepo
     });
   }
 
-  private groupDuplicates(summaries: DocumentSummary[]): DocumentSummary[][] {
+  private groupDuplicates(summaries: ReadonlyArray<DocumentSummary>): DocumentSummary[][] {
     const groups = new Map<string, DocumentSummary[]>();
 
     summaries.forEach(summary => {
