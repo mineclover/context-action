@@ -67,6 +67,12 @@ typedoc-out/
 # Auto-generated API documentation
 docs/.vitepress/config/api-spec.ts
 
+# API docs cache (enhanced script)
+.api-docs-cache/
+
+# Reports directory
+reports/
+
 # Glossary auto-generated data
 glossary/implementations/_data/
 packages/glossary-query/glossary-data.json

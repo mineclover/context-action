@@ -36,6 +36,7 @@
     "docs:preview": "vitepress preview docs",
     "docs:api": "typedoc",
     "docs:sync": "node scripts/sync-api-docs.js",
+    "docs:sync:enhanced": "node scripts/sync-api-docs-enhanced.js",
     "llms": "node packages/llms-generator/dist/cli/index.js",
     "llms:generator": "node packages/llms-generator/dist/cli/index.js",
     "llms:minimum": "node packages/llms-generator/dist/cli/index.js minimum",
@@ -48,10 +49,16 @@
     "priority": "node packages/llms-generator/dist/cli/index.js priority-stats",
     "docs": "node scripts/docs-cli.js",
     "docs:full": "pnpm docs:api && pnpm docs:sync && pnpm llms:minimum && pnpm docs:build",
+    "docs:full:enhanced": "pnpm docs:api && pnpm docs:sync:enhanced && pnpm llms:minimum && pnpm docs:build",
     "docs:deploy": "lerna run build && pnpm docs:build",
     "check:size": "node scripts/check-bundle-size.js",
     "build:check": "lerna run build && pnpm check:size",
-    "ci:check": "lerna run lint && lerna run type-check && lerna run test && pnpm build:check"
+    "security:audit": "pnpm audit --audit-level high",
+    "security:audit:all": "lerna run security:audit",
+    "security:outdated": "pnpm outdated",
+    "security:check": "pnpm security:audit && pnpm security:outdated",
+    "ci:check": "lerna run lint && lerna run type-check && lerna run test && pnpm build:check",
+    "ci:security": "pnpm security:check && lerna run security:audit"
   },
   "devDependencies": {
     "@eslint/js": "9.33.0",
