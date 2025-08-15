@@ -8,7 +8,7 @@
 import { readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
-import type { LLMSConfig, PriorityMetadata } from '../types/index.js';
+import type { LLMSConfig } from '../types/index.js';
 import { PriorityManager } from './PriorityManager.js';
 
 export interface CompositionOptions {

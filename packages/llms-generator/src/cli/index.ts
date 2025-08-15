@@ -8,6 +8,7 @@ import path from 'path';
 import { LLMSGenerator, PriorityGenerator, SchemaGenerator, MarkdownGenerator, ContentExtractor, AdaptiveComposer, DEFAULT_CONFIG } from '../index.js';
 import { WorkStatusManager } from '../core/WorkStatusManager.js';
 import { ConfigManager } from '../core/ConfigManager.js';
+import { InstructionGenerator } from '../core/InstructionGenerator.js';
 import type { ResolvedConfig } from '../types/user-config.js';
 
 async function main() {
@@ -31,6 +32,7 @@ async function main() {
     const contentExtractor = new ContentExtractor(config);
     const adaptiveComposer = new AdaptiveComposer(config);
     const workStatusManager = new WorkStatusManager(config);
+    const instructionGenerator = new InstructionGenerator(config);
     
     // Get enabled character limits from config
     const enabledCharLimits = ConfigManager.getEnabledCharacterLimits(userConfig);
@@ -680,6 +682,183 @@ async function main() {
           console.log('🎉 No work needed! All documents are up to date.');
         }
         break;
+
+      // Instruction Generation Commands
+      case 'instruction-generate':
+        const instrLanguage = args[1] || userConfig.languages[0] || 'ko';
+        const instrDocumentId = args[2];
+        const instrTemplate = args.find(arg => arg.startsWith('--template='))?.split('=')[1] || 'default';
+        const instrCharLimits = args.find(arg => arg.startsWith('--chars='))?.split('=')[1]?.split(',').map(Number);
+        const instrDryRun = args.includes('--dry-run');
+        const instrOverwrite = args.includes('--overwrite');
+        const instrMaxLength = parseInt(args.find(arg => arg.startsWith('--max-length='))?.split('=')[1] || '8000');
+        const instrIncludeSource = !args.includes('--no-source');
+        const instrIncludeSummaries = !args.includes('--no-summaries');
+
+        if (!instrDocumentId) {
+          console.error('❌ Document ID required. Usage: instruction-generate <lang> <document-id> [options]');
+          process.exit(1);
+        }
+
+        console.log(`📝 ${instrDryRun ? '[DRY RUN] ' : ''}Generating instructions for: ${instrDocumentId} (${instrLanguage})`);
+        console.log(`📋 Template: ${instrTemplate}`);
+        console.log(`📏 Character limits: ${instrCharLimits ? instrCharLimits.join(', ') : 'all configured'}`);
+        console.log(`📖 Include source: ${instrIncludeSource ? 'Yes' : 'No'}`);
+        console.log(`📄 Include summaries: ${instrIncludeSummaries ? 'Yes' : 'No'}`);
+
+        const instrResult = await instructionGenerator.generateInstructions(instrLanguage, instrDocumentId, {
+          template: instrTemplate,
+          characterLimits: instrCharLimits,
+          includeSourceContent: instrIncludeSource,
+          includeCurrentSummaries: instrIncludeSummaries,
+          maxLength: instrMaxLength,
+          dryRun: instrDryRun,
+          overwrite: instrOverwrite
+        });
+
+        console.log('\n📊 Generation Summary:');
+        console.log(`  Generated: ${instrResult.summary.totalGenerated}`);
+        console.log(`  Skipped: ${instrResult.summary.totalSkipped}`);
+        console.log(`  Errors: ${instrResult.summary.totalErrors}`);
+        console.log(`  By character limit:`);
+        Object.entries(instrResult.summary.byCharacterLimit).forEach(([limit, count]) => {
+          console.log(`    ${limit}chars: ${count} instructions`);
+        });
+
+        if (!instrDryRun && instrResult.instructions.length > 0) {
+          console.log('\n📁 Generated instructions:');
+          instrResult.instructions.forEach(instr => {
+            console.log(`  ✅ ${instr.filePath}`);
+          });
+        }
+
+        if (instrResult.errors.length > 0) {
+          console.log('\n❌ Errors:');
+          instrResult.errors.forEach(error => {
+            console.log(`  ${error}`);
+          });
+        }
+        break;
+
+      case 'instruction-batch':
+        const batchInstrLanguage = args[1] || userConfig.languages[0] || 'ko';
+        const batchInstrTemplate = args.find(arg => arg.startsWith('--template='))?.split('=')[1] || 'default';
+        const batchInstrCharLimits = args.find(arg => arg.startsWith('--chars='))?.split('=')[1]?.split(',').map(Number);
+        const batchInstrDryRun = args.includes('--dry-run');
+        const batchInstrOverwrite = args.includes('--overwrite');
+        const batchInstrMaxLength = parseInt(args.find(arg => arg.startsWith('--max-length='))?.split('=')[1] || '8000');
+        const batchInstrIncludeSource = !args.includes('--no-source');
+        const batchInstrIncludeSummaries = !args.includes('--no-summaries');
+
+        console.log(`📝 ${batchInstrDryRun ? '[DRY RUN] ' : ''}Batch generating instructions for language: ${batchInstrLanguage}`);
+        console.log(`📋 Template: ${batchInstrTemplate}`);
+        console.log(`📏 Character limits: ${batchInstrCharLimits ? batchInstrCharLimits.join(', ') : 'all configured'}`);
+
+        const batchInstrResult = await instructionGenerator.generateBatchInstructions(batchInstrLanguage, {
+          template: batchInstrTemplate,
+          characterLimits: batchInstrCharLimits,
+          includeSourceContent: batchInstrIncludeSource,
+          includeCurrentSummaries: batchInstrIncludeSummaries,
+          maxLength: batchInstrMaxLength,
+          dryRun: batchInstrDryRun,
+          overwrite: batchInstrOverwrite
+        });
+
+        console.log('\n📊 Batch Generation Summary:');
+        console.log(`  Generated: ${batchInstrResult.summary.totalGenerated}`);
+        console.log(`  Skipped: ${batchInstrResult.summary.totalSkipped}`);
+        console.log(`  Errors: ${batchInstrResult.summary.totalErrors}`);
+        console.log(`  By character limit:`);
+        Object.entries(batchInstrResult.summary.byCharacterLimit).forEach(([limit, count]) => {
+          console.log(`    ${limit}chars: ${count} instructions`);
+        });
+
+        if (!batchInstrDryRun && batchInstrResult.instructions.length > 0) {
+          console.log(`\n📁 Generated ${batchInstrResult.instructions.length} instructions in total`);
+          if (batchInstrResult.instructions.length <= 10) {
+            batchInstrResult.instructions.forEach(instr => {
+              console.log(`  ✅ ${instr.filePath}`);
+            });
+          } else {
+            console.log(`  (showing first 5 of ${batchInstrResult.instructions.length})`);
+            batchInstrResult.instructions.slice(0, 5).forEach(instr => {
+              console.log(`  ✅ ${instr.filePath}`);
+            });
+          }
+        }
+
+        if (batchInstrResult.errors.length > 0) {
+          console.log('\n❌ Errors:');
+          batchInstrResult.errors.slice(0, 10).forEach(error => {
+            console.log(`  ${error}`);
+          });
+          if (batchInstrResult.errors.length > 10) {
+            console.log(`  ... and ${batchInstrResult.errors.length - 10} more errors`);
+          }
+        }
+        break;
+
+      case 'instruction-template':
+        const templateCommand = args[1] || 'list';
+        const templateLanguage = args[2] || 'ko';
+
+        switch (templateCommand) {
+          case 'list':
+            console.log('📋 Available Instruction Templates:\n');
+            console.log('Built-in templates:');
+            console.log('  default - Default instruction template for document updates');
+            console.log('    Languages: en, ko');
+            console.log('    Variables: title, documentId, characterLimit, focus, keyPoints, sourceContent, currentSummary');
+            
+            // Check for custom templates
+            const templatesDir = userConfig.resolvedPaths.templatesDir;
+            try {
+              const fs = await import('fs/promises');
+              const templateFiles = await fs.readdir(templatesDir);
+              const customTemplates = templateFiles.filter(f => f.endsWith('.json'));
+              
+              if (customTemplates.length > 0) {
+                console.log('\nCustom templates:');
+                customTemplates.forEach(template => {
+                  const templateName = template.replace(/(-[a-z]{2})?\.json$/, '');
+                  const langMatch = template.match(/-([a-z]{2})\.json$/);
+                  const lang = langMatch ? langMatch[1] : 'default';
+                  console.log(`  ${templateName} (${lang})`);
+                });
+              }
+            } catch (error) {
+              console.log('\nNo custom templates directory found');
+            }
+            break;
+
+          case 'show':
+            const showTemplate = args[3] || 'default';
+            console.log(`📋 Template: ${showTemplate} (${templateLanguage})\n`);
+            
+            try {
+              // This would load and display the template
+              console.log('Template preview would be shown here');
+            } catch (error) {
+              console.error(`❌ Failed to load template: ${error}`);
+            }
+            break;
+
+          case 'create':
+            const createTemplate = args[3];
+            if (!createTemplate) {
+              console.error('❌ Template name required. Usage: instruction-template create <lang> <name>');
+              process.exit(1);
+            }
+            console.log(`📝 Creating template: ${createTemplate} for language: ${templateLanguage}`);
+            console.log('🔧 This feature is coming soon!');
+            break;
+
+          default:
+            console.error(`❌ Unknown template command: ${templateCommand}`);
+            console.log('Available commands: list, show, create');
+            process.exit(1);
+        }
+        break;
         
       default:
         console.error(`Unknown command: ${command}`);
@@ -741,6 +920,17 @@ function showHelp() {
   console.log('  work-list [lang] [--chars=100] [--outdated] [--missing] [--need-update]');
   console.log('                       List documents that need work');
   console.log('');
+  console.log('INSTRUCTION GENERATION:');
+  console.log('  instruction-generate <lang> <document-id> [options]');
+  console.log('                       Generate detailed instructions for document updates');
+  console.log('                       [--template=default] [--chars=100,300] [--dry-run] [--overwrite]');
+  console.log('                       [--max-length=8000] [--no-source] [--no-summaries]');
+  console.log('  instruction-batch <lang> [options]');
+  console.log('                       Batch generate instructions for all documents');
+  console.log('                       [--template=default] [--chars=100,300] [--dry-run] [--overwrite]');
+  console.log('  instruction-template <command> [lang] [name]');
+  console.log('                       Manage instruction templates (list|show|create)');
+  console.log('');
   console.log('MARKDOWN GENERATION (VitePress):');
   console.log('  markdown-generate [lang] [--chars=100,300,1000] [--dry-run] [--overwrite]');
   console.log('                       Generate character-limited .md files for VitePress');
@@ -780,6 +970,12 @@ function showHelp() {
   console.log('  npx @context-action/llms-generator work-status ko --chars=100 --need-edit');
   console.log('  npx @context-action/llms-generator work-context ko guide-action-handlers --chars=100');
   console.log('  npx @context-action/llms-generator work-list ko --chars=100 --missing');
+  console.log('');
+  console.log('  # Instruction generation');
+  console.log('  npx @context-action/llms-generator instruction-generate ko guide-action-handlers --chars=100,300');
+  console.log('  npx @context-action/llms-generator instruction-batch ko --template=default --dry-run');
+  console.log('  npx @context-action/llms-generator instruction-template list');
+  console.log('  npx @context-action/llms-generator instruction-template show ko default');
 }
 
 function createConfigFromUserConfig(userConfig: ResolvedConfig) {
@@ -790,6 +986,8 @@ function createConfigFromUserConfig(userConfig: ResolvedConfig) {
   config.paths.docsDir = userConfig.resolvedPaths.docsDir;
   config.paths.llmContentDir = userConfig.resolvedPaths.dataDir;
   config.paths.outputDir = userConfig.resolvedPaths.outputDir;
+  config.paths.templatesDir = userConfig.resolvedPaths.templatesDir;
+  config.paths.instructionsDir = userConfig.resolvedPaths.instructionsDir;
   
   // Preserve other existing configuration as needed
   return config;

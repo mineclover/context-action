@@ -14,10 +14,12 @@ export { ContentExtractor } from './core/ContentExtractor.js';
 export { AdaptiveComposer } from './core/AdaptiveComposer.js';
 export { WorkStatusManager } from './core/WorkStatusManager.js';
 export { ConfigManager } from './core/ConfigManager.js';
+export { InstructionGenerator } from './core/InstructionGenerator.js';
 
 // Types
 export * from './types/index.js';
 export * from './types/user-config.js';
+export * from './types/instruction.js';
 
 // Utilities
 export * from './utils/index.js';
@@ -27,7 +29,9 @@ export const DEFAULT_CONFIG = {
   paths: {
     docsDir: './docs',
     llmContentDir: './packages/llms-generator/data',
-    outputDir: './docs/llms'
+    outputDir: './docs/llms',
+    templatesDir: './templates',
+    instructionsDir: './instructions'
   },
   generation: {
     supportedLanguages: ['en', 'ko'],

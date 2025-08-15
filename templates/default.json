@@ -1,0 +1,15 @@
+{
+  "name": "default",
+  "description": "Default instruction template for document updates",
+  "languages": ["en", "ko"],
+  "variables": [
+    { "name": "title", "description": "Document title", "required": true },
+    { "name": "documentId", "description": "Document ID", "required": true },
+    { "name": "characterLimit", "description": "Target character limit", "required": true },
+    { "name": "focus", "description": "Focus area for this character limit", "required": true },
+    { "name": "keyPoints", "description": "Key points to include", "required": true },
+    { "name": "sourceContent", "description": "Original document content", "required": false },
+    { "name": "currentSummary", "description": "Current summary if any", "required": false }
+  ],
+  "content": "# Document Update Instructions\n\n## 📋 Task Overview\n- **Document ID**: {{documentId}}\n- **Document Title**: {{title}}\n- **Target Length**: {{characterLimit}} characters\n- **Primary Focus**: {{focus}}\n\n## 🎯 Key Points\n{{#each keyPoints}}\n{{#if this.priority}}\n- {{this.priority_icon}} **{{this.text}}**{{#if this.category}} ({{this.category}}){{/if}}\n{{else}}\n- • {{this}}\n{{/if}}\n{{/each}}\n\n## 📖 Source Content\n{{#if sourceContent}}\n```\n{{sourceContent}}\n```\n{{else}}\n*Please refer to the source document separately*\n{{/if}}\n\n## 📝 Current Summary\n{{#if currentSummary}}\n**Current content** ({{currentSummary.length}} characters):\n```\n{{currentSummary}}\n```\n{{else}}\n*No summary written yet*\n{{/if}}\n\n## ✅ Guidelines\n1. **Character Limit**: Write exactly within {{characterLimit}} characters\n2. **Include Key Points**: Include key points according to priority\n3. **Clarity**: Use clear and accurate expressions\n4. **Completeness**: Content should be understandable independently\n\n## 🔍 Quality Check\n- [ ] Is the length within {{characterLimit}} characters?\n- [ ] Are all key points included?\n- [ ] Is the content clear and accurate?\n- [ ] Does it convey the original document's intent well?"
+}

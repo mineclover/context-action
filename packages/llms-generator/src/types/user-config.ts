@@ -9,6 +9,23 @@ export interface PathConfig {
   dataDir?: string;
   /** Path to output directory for generated files */
   outputDir?: string;
+  /** Path to instruction templates directory */
+  templatesDir?: string;
+  /** Path to generated instructions directory */
+  instructionsDir?: string;
+}
+
+export interface InstructionConfig {
+  /** Enable instruction generation */
+  enabled?: boolean;
+  /** Template to use for instruction generation */
+  template?: string;
+  /** Include source content in instructions */
+  includeSourceContent?: boolean;
+  /** Include current summaries in instructions */
+  includeCurrentSummaries?: boolean;
+  /** Max instruction length in characters */
+  maxInstructionLength?: number;
 }
 
 export interface UserConfig {
@@ -18,6 +35,8 @@ export interface UserConfig {
   languages: string[];
   /** Path configuration */
   paths?: PathConfig;
+  /** Instruction generation configuration */
+  instructions?: InstructionConfig;
 }
 
 export interface ResolvedConfig extends UserConfig {
@@ -26,6 +45,8 @@ export interface ResolvedConfig extends UserConfig {
     docsDir: string;
     dataDir: string;
     outputDir: string;
+    templatesDir: string;
+    instructionsDir: string;
     projectRoot: string;
     configFile: string;
   };
@@ -40,7 +61,16 @@ export const DEFAULT_USER_CONFIG: UserConfig = {
   paths: {
     docsDir: './docs',
     dataDir: './packages/llms-generator/data',
-    outputDir: './docs/llms'
+    outputDir: './docs/llms',
+    templatesDir: './templates',
+    instructionsDir: './instructions'
+  },
+  instructions: {
+    enabled: true,
+    template: 'default',
+    includeSourceContent: true,
+    includeCurrentSummaries: true,
+    maxInstructionLength: 8000
   }
 };
 

@@ -1,0 +1,15 @@
+{
+  "name": "default",
+  "description": "문서 수정을 위한 기본 지시문 템플릿",
+  "languages": ["ko"],
+  "variables": [
+    { "name": "title", "description": "문서 제목", "required": true },
+    { "name": "documentId", "description": "문서 ID", "required": true },
+    { "name": "characterLimit", "description": "목표 글자수", "required": true },
+    { "name": "focus", "description": "해당 글자수의 초점 영역", "required": true },
+    { "name": "keyPoints", "description": "포함할 핵심 포인트", "required": true },
+    { "name": "sourceContent", "description": "원본 문서 내용", "required": false },
+    { "name": "currentSummary", "description": "현재 요약 내용", "required": false }
+  ],
+  "content": "# 문서 수정 지시문\n\n## 📋 작업 개요\n- **문서 ID**: {{documentId}}\n- **문서 제목**: {{title}}\n- **목표 글자수**: {{characterLimit}}자\n- **핵심 초점**: {{focus}}\n\n## 🎯 핵심 포인트\n{{#each keyPoints}}\n{{#if this.priority}}\n- {{this.priority_icon}} **{{this.text}}**{{#if this.category}} ({{this.category}}){{/if}}\n{{else}}\n- • {{this}}\n{{/if}}\n{{/each}}\n\n## 📖 원본 내용\n{{#if sourceContent}}\n```\n{{sourceContent}}\n```\n{{else}}\n*원본 내용을 별도로 확인해주세요*\n{{/if}}\n\n## 📝 현재 요약\n{{#if currentSummary}}\n**현재 작성된 내용** ({{currentSummary.length}}자):\n```\n{{currentSummary}}\n```\n{{else}}\n*아직 작성된 요약이 없습니다*\n{{/if}}\n\n## ✅ 작업 지침\n1. **글자수 준수**: 정확히 {{characterLimit}}자 이내로 작성\n2. **핵심 포인트 포함**: 위의 핵심 포인트를 우선순위에 따라 포함\n3. **명확성**: 이해하기 쉽고 정확한 표현 사용\n4. **완성도**: 독립적으로 읽어도 이해 가능한 내용\n\n## 🔍 품질 검증\n- [ ] 글자수가 {{characterLimit}}자 이내인가?\n- [ ] 핵심 포인트가 모두 포함되었는가?\n- [ ] 내용이 명확하고 정확한가?\n- [ ] 원본 문서의 의도가 잘 전달되는가?"
+}

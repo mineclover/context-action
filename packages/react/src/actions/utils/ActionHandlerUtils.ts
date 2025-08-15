@@ -36,6 +36,9 @@ export interface MultiStoreContext {
  * Create a multi-store action handler with automatic rollback support
  * Following ARCHITECTURE.md patterns for cross-store coordination
  * 
+ * @deprecated This utility function is unused and will be removed in v0.3.0
+ * Use direct store coordination patterns instead
+ * 
  * @template T Action payload type
  * @param storeNames - Names of stores to coordinate
  * @param handler - Handler function with multi-store context
@@ -110,7 +113,7 @@ export function createMultiStoreHandler<T>(
     const registry = (global as any).__contextActionRegistry as StoreRegistry;
     
     if (!registry) {
-      controller.abort('StoreRegistry not available. Make sure to use within StoreProvider.');
+      controller.abort('StoreRegistry not available. Make sure to use within a Store Context Provider.');
       return;
     }
 
@@ -160,6 +163,9 @@ export function createMultiStoreHandler<T>(
 /**
  * Create a transaction-like action handler
  * Provides explicit transaction boundaries with commit/rollback
+ * 
+ * @deprecated This utility function is unused and will be removed in v0.3.0
+ * Use direct store coordination patterns instead
  * 
  * @template T Action payload type
  * @param storeNames - Names of stores to include in transaction
@@ -233,7 +239,7 @@ export function createTransactionHandler<T>(
     const registry = (global as any).__contextActionRegistry as StoreRegistry;
     
     if (!registry) {
-      controller.abort('StoreRegistry not available. Make sure to use within StoreProvider.');
+      controller.abort('StoreRegistry not available. Make sure to use within a Store Context Provider.');
       return;
     }
 
@@ -325,6 +331,9 @@ export function createTransactionHandler<T>(
  * Helper for creating action handlers with validation patterns
  * Following ARCHITECTURE.md business logic validation patterns
  * 
+ * @deprecated This utility function is unused and will be removed in v0.3.0
+ * Use direct validation patterns instead
+ * 
  * @implements business-logic
  * @implements domain-rules
  * @memberof core-concepts
@@ -344,7 +353,7 @@ export function createValidatedHandler<T>(
     const registry = (global as any).__contextActionRegistry as StoreRegistry;
     
     if (!registry) {
-      controller.abort('StoreRegistry not available. Make sure to use within StoreProvider.');
+      controller.abort('StoreRegistry not available. Make sure to use within a Store Context Provider.');
       return;
     }
 
