@@ -301,7 +301,7 @@ context-action/
 │       └── src/
 │           ├── actions/                         # Action system
 │           │   ├── ActionContext.tsx            # React action context
-│           │   └── utils/ActionHandlerUtils.ts  # Action utilities
+│           │   └── utils/                       # Action utilities (reserved)
 │           ├── stores/                          # Advanced store system
 │           │   ├── core/                        # Core store implementation
 │           │   │   ├── Store.ts                 # Store implementation
