@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [Unreleased]
+
+### Features
+
+* remove deprecated action handler utilities ([2861d61](https://github.com/mineclover/context-action/commit/2861d61))
+  - Remove unused deprecated functions: createMultiStoreHandler, createTransactionHandler, createValidatedHandler
+  - Remove ActionHandlerUtils class and related interfaces (StoreSnapshot, MultiStoreContext, TransactionContext)
+  - Delete empty utils directory: packages/react/src/actions/utils/
+  - Reduce bundle size: React package from 89.14 kB to 81.90 kB (8% reduction)
+
 ## [0.2.1](https://github.com/mineclover/context-action/compare/v0.1.1...v0.2.1) (2025-08-15)
 
 
