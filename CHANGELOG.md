@@ -3,6 +3,39 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.2](https://github.com/mineclover/context-action/compare/v0.2.1...v0.2.2) (2025-08-15)
+
+
+### Bug Fixes
+
+* **build:** resolve llms-generator build issues and dependencies ([44ca184](https://github.com/mineclover/context-action/commit/44ca1847bd9942c7fe13b02d961cc6f8eb0e8509))
+* **ci:** resolve CI/CD dependency installation errors ([675641f](https://github.com/mineclover/context-action/commit/675641f814d63d639cfa375f5e8debe134828762))
+* **ci:** standardize tsdown version across all packages ([714ab1d](https://github.com/mineclover/context-action/commit/714ab1d7f8005096f7abe2f09d8067f500168a3a))
+* **core,react:** improve code quality and security across packages ([e7baf2f](https://github.com/mineclover/context-action/commit/e7baf2fb8bf49bc5ae0b3f92efbf567fb5d2da09))
+* **dependabot:** resolve schema validation errors and improve configuration ([07e15d5](https://github.com/mineclover/context-action/commit/07e15d5dfa6fec9f503c02a35480faca8bf69dd3))
+* **deps:** update tsdown and resolve build dependency issues ([100008a](https://github.com/mineclover/context-action/commit/100008ae67794750ab4839d3476c300275e464ca))
+* **llms-generator:** resolve linting issues by adding eslint config and temporarily disabling problematic checks ([1d6cead](https://github.com/mineclover/context-action/commit/1d6cead48821f6cc26a8e1cd119b4924dab978c4))
+* **mouse-events:** complete real-time activity status updates in Context Store Pattern ([bb4f3fa](https://github.com/mineclover/context-action/commit/bb4f3fae8b21c049d774abcc5544b9b5110f268c))
+* **scripts:** remove non-existent jotai package from bundle size check ([aee42b9](https://github.com/mineclover/context-action/commit/aee42b959b34311c87ad17ed674f0eaacd1ebc1f))
+* **ts:** resolve TypeScript compilation errors across packages ([6f583d1](https://github.com/mineclover/context-action/commit/6f583d1b4d4c2bc9f077c68b3db432d0399fb846))
+* **typedoc-vitepress-sync:** add missing ESLint config and TypeScript setup ([66b7f6a](https://github.com/mineclover/context-action/commit/66b7f6a2329635c1a87a0f441fe0aac09659d06d))
+* **typedoc-vitepress-sync:** add publishConfig for public npm publication ([97c3d3e](https://github.com/mineclover/context-action/commit/97c3d3efb558a8d8811d9d48ebe7bcaba3d27f5c))
+* **typedoc-vitepress-sync:** temporarily skip tests in prepublishOnly for package publication ([0db4406](https://github.com/mineclover/context-action/commit/0db4406b9dc47ad25bd88e7a163958a013f2e049))
+
+
+### Features
+
+* add centralized configuration for typedoc-vitepress-sync ([417b20f](https://github.com/mineclover/context-action/commit/417b20f689e884dd917f12563c1c243fd7cb21ef))
+* add enhanced API documentation sync script with smart caching ([0a5b368](https://github.com/mineclover/context-action/commit/0a5b3684ae41c6057d5b9f638d81b989785d8e07))
+* **llms-generator:** implement YAML frontmatter summary generation with clean architecture ([5f9e38e](https://github.com/mineclover/context-action/commit/5f9e38eca2b0e8c78a3c66130f22244bce0e768a))
+* remove deprecated action handler utilities ([2861d61](https://github.com/mineclover/context-action/commit/2861d61b4b5d930e9e7f5277983455dc296dc859))
+* **security:** major security and tooling updates ([f0d794e](https://github.com/mineclover/context-action/commit/f0d794eb007d58a301c01d0b4b36f07865da2434))
+* **typedoc-vitepress-sync:** implement enhanced TypeDoc to VitePress sync library ([17bdac7](https://github.com/mineclover/context-action/commit/17bdac7e035fdc073a092d83442c9a290b1640f0))
+
+
+
+
+
 ## [Unreleased]
 
 ### Features
