@@ -42,12 +42,20 @@ export type ConsistencyCheck =
   | 'pattern_usage' 
   | 'api_signatures';
 
+export interface KeyPoint {
+  text: string;
+  priority: 'critical' | 'important' | 'optional';
+  category?: 'concept' | 'implementation' | 'example' | 'usage';
+}
+
 export interface CharacterLimitGuideline {
   focus: string;
   structure: string;
   must_include: string[];
   avoid: string[];
   example_structure?: string;
+  key_points?: string[]; // Simple string array for backward compatibility
+  prioritized_key_points?: KeyPoint[]; // Enhanced key points with priority and category
 }
 
 export interface CharacterLimitsConfig {

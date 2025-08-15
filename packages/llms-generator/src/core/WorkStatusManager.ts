@@ -74,7 +74,7 @@ export class WorkStatusManager {
     const priority: PriorityMetadata = JSON.parse(priorityContent);
 
     // Get source file info
-    const sourceFile = path.join(this.config.paths.docsDir, language, priority.document.source_path);
+    const sourceFile = path.join(this.config.paths.docsDir, priority.document.source_path);
     let sourceModified: Date | undefined;
     
     if (existsSync(sourceFile)) {
@@ -106,12 +106,37 @@ export class WorkStatusManager {
           fileInfo.needs_update = true;
         }
 
-        // Simple heuristic: if file is very short, it might need editing
+        // Enhanced quality assessment: check content quality and template detection
         const content = await readFile(generatedFile, 'utf-8');
-        if (content.trim().length < charLimit * 0.5) {
-          fileInfo.edited = false; // Likely auto-generated
-        } else {
+        const trimmedContent = content.trim();
+        
+        // Template detection - common template phrases
+        const templateIndicators = [
+          '개요를 제공합니다',
+          '설명하는 내용입니다',
+          'This section provides',
+          'This document describes',
+          '{{',
+          'TODO:',
+          'PLACEHOLDER'
+        ];
+        
+        const hasTemplateIndicators = templateIndicators.some(indicator => 
+          trimmedContent.includes(indicator)
+        );
+        
+        // Quality scoring
+        const lengthRatio = trimmedContent.length / charLimit;
+        const isReasonableLength = lengthRatio >= 0.5 && lengthRatio <= 1.5;
+        const hasSpecificContent = !hasTemplateIndicators;
+        
+        // Determine edit status based on multiple factors
+        if (hasTemplateIndicators || trimmedContent.length < charLimit * 0.3) {
+          fileInfo.edited = false; // Likely template or auto-generated
+        } else if (isReasonableLength && hasSpecificContent) {
           fileInfo.edited = true; // Likely manually edited
+        } else {
+          fileInfo.edited = false; // Uncertain, treat as auto-generated
         }
       } else {
         fileInfo.needs_update = true; // Missing file needs creation
@@ -146,7 +171,7 @@ export class WorkStatusManager {
     const priorityContent = await readFile(priorityFile, 'utf-8');
     const priority: PriorityMetadata & { work_status?: WorkStatusData } = JSON.parse(priorityContent);
     
-    const sourceFile = path.join(this.config.paths.docsDir, language, priority.document.source_path);
+    const sourceFile = path.join(this.config.paths.docsDir, priority.document.source_path);
     let sourceModified: Date | undefined;
     
     if (existsSync(sourceFile)) {
@@ -217,6 +242,8 @@ export class WorkStatusManager {
     currentSummary: string;
     priorityInfo: PriorityMetadata;
     workStatus: WorkStatusInfo;
+    keyPoints?: string[];
+    focus?: string;
   } | null> {
     // Get work status
     const workStatus = await this.getWorkStatus(language, documentId);
@@ -244,13 +271,39 @@ export class WorkStatusManager {
       currentSummary = await readFile(summaryFile.path, 'utf-8');
     }
 
+    // Extract key points and focus for the specific character limit
+    const charLimitConfig = priorityInfo.extraction.character_limits?.[characterLimit.toString()];
+    
+    // Handle both simple and prioritized key points
+    let keyPoints: string[] | undefined;
+    if (charLimitConfig?.prioritized_key_points) {
+      // Sort prioritized key points by priority and format for display
+      const sortedKeyPoints = charLimitConfig.prioritized_key_points.sort((a, b) => {
+        const priorityOrder = { critical: 0, important: 1, optional: 2 };
+        return priorityOrder[a.priority] - priorityOrder[b.priority];
+      });
+      
+      keyPoints = sortedKeyPoints.map(kp => {
+        const priorityIcon = { critical: '🔴', important: '🟡', optional: '🟢' }[kp.priority];
+        const categoryLabel = kp.category ? ` [${kp.category}]` : '';
+        return `${priorityIcon} ${kp.text}${categoryLabel}`;
+      });
+    } else if (charLimitConfig?.key_points) {
+      // Fallback to simple key points
+      keyPoints = charLimitConfig.key_points;
+    }
+    
+    const focus = charLimitConfig?.focus;
+
     return {
       documentId,
       title: priorityInfo.document.title,
       sourceContent,
       currentSummary,
       priorityInfo,
-      workStatus
+      workStatus,
+      keyPoints,
+      focus
     };
   }
 

@@ -529,7 +529,25 @@ async function main() {
             const editStatus = file.edited ? '✏️ edited' : '🤖 auto-generated';
             const size = file.size ? `${Math.round(file.size / 1024 * 100) / 100}KB` : 'N/A';
             
-            console.log(`  ${file.charLimit} chars: ${status} ${updateStatus} ${editStatus} (${size})`);
+            // Add quality indicator
+            let qualityIndicator = '';
+            if (file.exists && file.size) {
+              const sizeBytes = file.size;
+              const estimatedChars = sizeBytes; // Rough estimate
+              const lengthRatio = estimatedChars / file.charLimit;
+              
+              if (lengthRatio < 0.3) {
+                qualityIndicator = '🔴 too short';
+              } else if (lengthRatio > 1.5) {
+                qualityIndicator = '🟡 too long';
+              } else if (file.edited) {
+                qualityIndicator = '🟢 good';
+              } else {
+                qualityIndicator = '🟡 needs review';
+              }
+            }
+            
+            console.log(`  ${file.charLimit} chars: ${status} ${updateStatus} ${editStatus} ${qualityIndicator} (${size})`);
             if (file.modified) {
               console.log(`    Modified: ${file.modified.toISOString()}`);
             }
@@ -591,6 +609,14 @@ async function main() {
         const focusInfo = workContext.priorityInfo.extraction.character_limits[contextCharLimit.toString()];
         if (focusInfo) {
           console.log(`Focus: ${focusInfo.focus}`);
+        }
+
+        // Display key points if available
+        if (workContext.keyPoints && workContext.keyPoints.length > 0) {
+          console.log('Key Points:');
+          workContext.keyPoints.forEach(point => {
+            console.log(`  • ${point}`);
+          });
         }
 
         console.log('\n' + '='.repeat(80));
