@@ -1,12 +1,10 @@
-import { 
-  EnhancedConfigManager,
-  DocumentScorer,
-  TagBasedDocumentFilter,
-  AdaptiveDocumentSelector,
-  DependencyResolver,
-  ConflictDetector,
-  QualityEvaluator
-} from '../../src/core';
+import { EnhancedConfigManager } from '../../src/core/EnhancedConfigManager';
+import { DocumentScorer } from '../../src/core/DocumentScorer';
+import { TagBasedDocumentFilter } from '../../src/core/TagBasedDocumentFilter';
+import { AdaptiveDocumentSelector } from '../../src/core/AdaptiveDocumentSelector';
+import { DependencyResolver } from '../../src/core/DependencyResolver';
+import { ConflictDetector } from '../../src/core/ConflictDetector';
+import { QualityEvaluator } from '../../src/core/QualityEvaluator';
 import { EnhancedLLMSConfig, DocumentMetadata, SelectionConstraints } from '../../src/types/config';
 import { TestDataGenerator } from '../helpers/test-data-generator';
 
