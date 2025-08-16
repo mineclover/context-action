@@ -182,6 +182,7 @@ export class PriorityGenerator {
         priorityScore: options.priorityScore || this.getDefaultPriorityScore(document.category),
         priorityTier: options.priorityTier || this.getDefaultPriorityTier(document.category),
         strategy: options.strategy || this.getDefaultStrategy(document.category),
+        characterLimits: this.config.generation.characterLimits,
         overwrite: options.overwrite || false
       };
 

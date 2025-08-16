@@ -2,39 +2,80 @@
   "$schema": "../../priority-schema-enhanced.json",
   "document": {
     "id": "concept--pattern-guide",
-    "title": "Concept  Pattern Guide",
+    "title": "@context-action/react Pattern Guide",
     "source_path": "en/concept/pattern-guide.md",
-    "category": "concept",
-    "lastModified": "2025-08-16T02:18:05.174Z",
-    "wordCount": 0,
-    "subcategory": ""
+    "category": "concept"
   },
   "priority": {
-    "score": null,
-    "tier": "",
-    "rationale": "",
-    "reviewDate": "2025-08-16",
-    "autoCalculated": false
+    "score": 50,
+    "tier": "reference",
+    "rationale": "Auto-generated priority assignment for concept document"
   },
   "purpose": {
-    "primary_goal": "",
-    "target_audience": [],
-    "use_cases": [],
-    "learning_objectives": []
+    "primary_goal": "Provide comprehensive guidance on concept  pattern guide",
+    "target_audience": [
+      "framework-users",
+      "beginners"
+    ],
+    "use_cases": [
+      "Understanding concept  pattern guide",
+      "Implementing concept  pattern guide patterns",
+      "Framework learning"
+    ],
+    "dependencies": []
   },
   "keywords": {
-    "primary": [],
-    "technical": [],
-    "patterns": [],
-    "avoid": []
+    "primary": [
+      "Context-Action framework",
+      "concept",
+      "pattern",
+      "guide"
+    ],
+    "technical": [
+      "Context-Action",
+      "architecture",
+      "principles",
+      "design",
+      "createActionContext",
+      "createDeclarativeStorePattern",
+      "EventActionProvider",
+      "useActionDispatch",
+      "useEventAction",
+      "useActionHandler",
+      "useEventActionHandler",
+      "return",
+      "log",
+      "useEventActionWithResult",
+      "async",
+      "dispatchWithResult",
+      "catch"
+    ],
+    "patterns": [
+      "Action Only Pattern",
+      "Store Only Pattern",
+      "Store Integration Pattern",
+      "Context Store Pattern",
+      "Pattern Composition"
+    ],
+    "avoid": [
+      "Complex implementation details",
+      "Advanced optimization techniques"
+    ]
   },
   "tags": {
-    "primary": [],
-    "secondary": [],
-    "audience": [],
-    "complexity": "",
-    "estimatedReadingTime": "",
-    "lastUpdated": "2025-08-16"
+    "primary": [
+      "theory",
+      "architecture",
+      "design"
+    ],
+    "secondary": [
+      "design-patterns"
+    ],
+    "audience": [
+      "framework-users",
+      "beginners"
+    ],
+    "complexity": "intermediate"
   },
   "dependencies": {
     "prerequisites": [],
@@ -44,37 +85,102 @@
     "complements": []
   },
   "extraction": {
-    "strategy": "",
-    "character_limits": {},
+    "strategy": "concept-first",
+    "character_limits": {
+      "200": {
+        "focus": "Core concept definition",
+        "structure": "One-sentence definition or primary use case",
+        "must_include": [
+          "main concept",
+          "framework context"
+        ],
+        "avoid": [
+          "code examples",
+          "detailed explanations"
+        ],
+        "example_structure": "Concept  Pattern Guide: Brief definition with Context-Action framework context"
+      },
+      "500": {
+        "focus": "Core concepts with basic context",
+        "structure": "Definition + main purpose + key benefit",
+        "must_include": [
+          "concept definition",
+          "main purpose",
+          "key benefit"
+        ],
+        "avoid": [
+          "code syntax",
+          "advanced details"
+        ],
+        "example_structure": "Concept definition → Main purpose → Key benefit"
+      },
+      "1000": {
+        "focus": "Practical understanding",
+        "structure": "Concept + basic usage + simple example hint",
+        "must_include": [
+          "concept",
+          "usage context",
+          "basic example"
+        ],
+        "avoid": [
+          "detailed code",
+          "advanced topics"
+        ],
+        "example_structure": "Concept → Usage context → Basic example"
+      },
+      "minimum": {
+        "focus": "Quick navigation and document overview",
+        "structure": "Document links + 2-3 line description + related documents",
+        "must_include": [
+          "source document link",
+          "brief purpose",
+          "related documents"
+        ],
+        "avoid": [
+          "detailed explanations",
+          "code examples"
+        ],
+        "example_structure": "Source: concept/*.md | Purpose: Concept  Pattern Guide overview | Related: getting-started, best-practices"
+      },
+      "origin": {
+        "focus": "Complete original content preservation",
+        "structure": "Full markdown content from source file",
+        "must_include": [
+          "complete original content"
+        ],
+        "avoid": [
+          "modifications",
+          "truncations"
+        ],
+        "example_structure": "Complete copy of concept/*.md"
+      }
+    },
     "emphasis": {
-      "must_include": [],
-      "nice_to_have": [],
-      "contextual_keywords": []
+      "must_include": [
+        "Context-Action framework",
+        "Concept  Pattern Guide",
+        "architectural concept",
+        "design principle"
+      ],
+      "nice_to_have": [
+        "best practices",
+        "common use cases",
+        "comparison with alternatives",
+        "design rationale"
+      ]
     }
   },
   "quality": {
-    "completeness_threshold": null,
-    "code_examples_required": null,
-    "consistency_checks": [],
-    "lastQualityCheck": "",
-    "qualityScore": null
+    "completeness_threshold": 0.8,
+    "code_examples_required": false,
+    "consistency_checks": [
+      "terminology",
+      "pattern_usage"
+    ]
   },
   "metadata": {
     "created": "2025-08-16",
-    "updated": "2025-08-16",
     "version": "1.0",
-    "original_size": 0,
-    "estimated_extraction_time": {},
-    "maintainer": "",
-    "reviewCycle": ""
-  },
-  "work_status": {
-    "generated_files": {},
-    "last_checked": "2025-08-16T02:18:05.174Z",
-    "automation_status": {
-      "auto_tag_extraction": false,
-      "auto_dependency_detection": false,
-      "last_auto_update": "2025-08-16T02:18:05.174Z"
-    }
+    "original_size": 12510
   }
 }

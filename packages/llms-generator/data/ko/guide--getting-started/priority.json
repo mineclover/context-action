@@ -1,0 +1,187 @@
+{
+  "$schema": "../../priority-schema-enhanced.json",
+  "document": {
+    "id": "guide--getting-started",
+    "title": "시작하기",
+    "source_path": "ko/guide/getting-started.md",
+    "category": "guide"
+  },
+  "priority": {
+    "score": 80,
+    "tier": "essential",
+    "rationale": "Auto-generated priority assignment for guide document"
+  },
+  "purpose": {
+    "primary_goal": "Provide comprehensive guidance on guide  getting started",
+    "target_audience": [
+      "framework-users",
+      "beginners"
+    ],
+    "use_cases": [
+      "Understanding guide  getting started",
+      "Implementing guide  getting started patterns",
+      "Framework learning"
+    ],
+    "dependencies": []
+  },
+  "keywords": {
+    "primary": [
+      "Context-Action framework",
+      "guide",
+      "getting",
+      "started"
+    ],
+    "technical": [
+      "Context-Action",
+      "patterns",
+      "implementation",
+      "best practices",
+      "createActionContext",
+      "createDeclarativeStorePattern",
+      "EventActionProvider",
+      "useActionDispatch",
+      "useEventAction",
+      "useActionHandler",
+      "useEventActionHandler",
+      "return",
+      "log",
+      "dispatch",
+      "useAppStore",
+      "useStoreValue",
+      "useAppStoreManager"
+    ],
+    "patterns": [
+      "Action Only Pattern",
+      "Store Only Pattern",
+      "Store Integration Pattern",
+      "Context Store Pattern",
+      "Pattern Composition"
+    ],
+    "avoid": [
+      "Complex implementation details",
+      "Advanced optimization techniques"
+    ]
+  },
+  "tags": {
+    "primary": [
+      "tutorial",
+      "step-by-step",
+      "practical"
+    ],
+    "secondary": [
+      "implementation",
+      "best-practices"
+    ],
+    "audience": [
+      "framework-users",
+      "beginners"
+    ],
+    "complexity": "basic"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "extraction": {
+    "strategy": "tutorial-first",
+    "character_limits": {
+      "200": {
+        "focus": "Primary functionality",
+        "structure": "One-sentence definition or primary use case",
+        "must_include": [
+          "main concept",
+          "framework context"
+        ],
+        "avoid": [
+          "code examples",
+          "detailed explanations"
+        ],
+        "example_structure": "Guide  Getting Started: Brief definition with Context-Action framework context"
+      },
+      "500": {
+        "focus": "Core concepts with basic context",
+        "structure": "Definition + main purpose + key benefit",
+        "must_include": [
+          "concept definition",
+          "main purpose",
+          "key benefit"
+        ],
+        "avoid": [
+          "code syntax",
+          "advanced details"
+        ],
+        "example_structure": "Concept definition → Main purpose → Key benefit"
+      },
+      "1000": {
+        "focus": "Practical understanding",
+        "structure": "Concept + basic usage + simple example hint",
+        "must_include": [
+          "concept",
+          "usage context",
+          "basic example"
+        ],
+        "avoid": [
+          "detailed code",
+          "advanced topics"
+        ],
+        "example_structure": "Concept → Usage context → Basic example"
+      },
+      "minimum": {
+        "focus": "Quick navigation and document overview",
+        "structure": "Document links + 2-3 line description + related documents",
+        "must_include": [
+          "source document link",
+          "brief purpose",
+          "related documents"
+        ],
+        "avoid": [
+          "detailed explanations",
+          "code examples"
+        ],
+        "example_structure": "Source: guide/*.md | Purpose: Guide  Getting Started overview | Related: getting-started, best-practices"
+      },
+      "origin": {
+        "focus": "Complete original content preservation",
+        "structure": "Full markdown content from source file",
+        "must_include": [
+          "complete original content"
+        ],
+        "avoid": [
+          "modifications",
+          "truncations"
+        ],
+        "example_structure": "Complete copy of guide/*.md"
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "Context-Action framework",
+        "Guide  Getting Started",
+        "implementation pattern",
+        "usage example"
+      ],
+      "nice_to_have": [
+        "best practices",
+        "common use cases",
+        "troubleshooting tips",
+        "related patterns"
+      ]
+    }
+  },
+  "quality": {
+    "completeness_threshold": 0.8,
+    "code_examples_required": true,
+    "consistency_checks": [
+      "terminology",
+      "pattern_usage"
+    ]
+  },
+  "metadata": {
+    "created": "2025-08-16",
+    "version": "1.0",
+    "original_size": 2757
+  }
+}

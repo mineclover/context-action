@@ -9,14 +9,17 @@ import { readFile, writeFile, readdir, stat, mkdir, unlink } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
 import type {
-  IDocumentSummaryRepository,
+  DocumentSummaryRepositoryInterface,
   SummarySearchCriteria,
   SummarySortOptions,
   SaveResult,
   BatchResult
-} from '../../domain/repositories/IDocumentSummaryRepository.js';
+} from '../../domain/repositories/DocumentSummaryRepositoryInterface.js';
 import { DocumentSummary } from '../../domain/entities/DocumentSummary.js';
 import type { IFrontmatterService } from '../../domain/services/interfaces/IFrontmatterService.js';
+import { CharacterLimitUtils, DocumentIdUtils } from '../../domain/value-objects/ValueObjectUtils.js';
+import { DocumentId } from '../../domain/value-objects/DocumentId.js';
+import { CharacterLimit } from '../../domain/value-objects/CharacterLimit.js';
 
 /**
  * FileSystemDocumentSummaryRepository
@@ -24,7 +27,7 @@ import type { IFrontmatterService } from '../../domain/services/interfaces/IFron
  * 파일 시스템을 사용한 DocumentSummary 영속성 관리
  * 각 요약은 개별 .md 파일로 저장
  */
-export class FileSystemDocumentSummaryRepository implements IDocumentSummaryRepository {
+export class FileSystemDocumentSummaryRepository implements DocumentSummaryRepositoryInterface {
   constructor(
     private readonly basePath: string,
     private readonly frontmatterService: IFrontmatterService
@@ -101,19 +104,27 @@ export class FileSystemDocumentSummaryRepository implements IDocumentSummaryRepo
       return null;
     }
 
-    return this.findByDocumentAndLimit(documentId, language, numericLimit);
+    return this.findByDocumentAndLimit(
+      DocumentIdUtils.toDocumentId(documentId), 
+      language, 
+      CharacterLimitUtils.toCharacterLimit(numericLimit)
+    );
   }
 
   /**
    * 문서 ID와 언어, 글자 수로 조회
    */
   async findByDocumentAndLimit(
-    documentId: string,
+    documentId: DocumentId,
     language: string,
-    characterLimit: number
+    characterLimit: CharacterLimit
   ): Promise<DocumentSummary | null> {
     try {
-      const filePath = this.getFilePathByComponents(documentId, language, characterLimit);
+      const filePath = this.getFilePathByComponents(
+        DocumentIdUtils.toString(documentId), 
+        language, 
+        CharacterLimitUtils.toNumber(characterLimit)
+      );
       
       if (!existsSync(filePath)) {
         return null;
@@ -123,7 +134,7 @@ export class FileSystemDocumentSummaryRepository implements IDocumentSummaryRepo
       return this.parseMarkdownToSummary(markdown);
 
     } catch (error) {
-      console.warn(`Failed to load summary ${documentId}-${characterLimit}-${language}:`, error);
+      console.warn(`Failed to load summary ${DocumentIdUtils.toString(documentId)}-${CharacterLimitUtils.toNumber(characterLimit)}-${language}:`, error);
       return null;
     }
   }
@@ -161,8 +172,8 @@ export class FileSystemDocumentSummaryRepository implements IDocumentSummaryRepo
   /**
    * 특정 글자 수 제한의 모든 문서 요약 조회
    */
-  async findByCharacterLimit(characterLimit: number): Promise<ReadonlyArray<DocumentSummary>> {
-    return this.findByCriteria({ characterLimit });
+  async findByCharacterLimit(characterLimit: CharacterLimit): Promise<ReadonlyArray<DocumentSummary>> {
+    return this.findByCriteria({ characterLimit: CharacterLimitUtils.toNumber(characterLimit) });
   }
 
   /**
@@ -239,7 +250,7 @@ export class FileSystemDocumentSummaryRepository implements IDocumentSummaryRepo
     const summaries = await this.findByCriteria(criteria);
 
     const uniqueDocuments = new Set(summaries.map(s => s.document.id)).size;
-    const characterLimits = [...new Set(summaries.map(s => s.summary.characterLimit))].sort((a, b) => a - b);
+    const characterLimits = CharacterLimitUtils.arrayToNumbers([...new Set(summaries.map(s => s.summary.characterLimit))]).sort((a, b) => a - b);
     const averagePriority = summaries.length > 0 
       ? summaries.reduce((sum, s) => sum + s.priority.score, 0) / summaries.length 
       : 0;
@@ -306,9 +317,9 @@ export class FileSystemDocumentSummaryRepository implements IDocumentSummaryRepo
 
   private getFilePath(summary: DocumentSummary): string {
     return this.getFilePathByComponents(
-      summary.document.id,
+      DocumentIdUtils.toString(summary.document.id),
       summary.summary.language,
-      summary.summary.characterLimit
+      CharacterLimitUtils.toNumber(summary.summary.characterLimit)
     );
   }
 
@@ -454,13 +465,13 @@ export class FileSystemDocumentSummaryRepository implements IDocumentSummaryRepo
           comparison = a.priority.score - b.priority.score;
           break;
         case 'characterLimit':
-          comparison = a.summary.characterLimit - b.summary.characterLimit;
+          comparison = CharacterLimitUtils.toNumber(a.summary.characterLimit) - CharacterLimitUtils.toNumber(b.summary.characterLimit);
           break;
         case 'timestamp':
           comparison = a.generated.timestamp.getTime() - b.generated.timestamp.getTime();
           break;
         case 'documentId':
-          comparison = a.document.id.localeCompare(b.document.id);
+          comparison = DocumentIdUtils.toString(a.document.id).localeCompare(DocumentIdUtils.toString(b.document.id));
           break;
       }
 

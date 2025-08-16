@@ -1,0 +1,419 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18'
+  PNPM_VERSION: '8'
+
+jobs:
+  # 의존성 설치 및 캐싱
+  setup:
+    name: Setup Dependencies
+    runs-on: ubuntu-latest
+    outputs:
+      cache-key: ${{ steps.cache-key.outputs.key }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Generate cache key
+        id: cache-key
+        run: echo "key=pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}" >> $GITHUB_OUTPUT
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            node_modules
+            packages/*/node_modules
+          key: ${{ steps.cache-key.outputs.key }}
+          restore-keys: |
+            pnpm-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+  # 코드 품질 검사
+  quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    needs: setup
+    strategy:
+      matrix:
+        check: [lint, type-check, security-audit]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            node_modules
+            packages/*/node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Run ESLint
+        if: matrix.check == 'lint'
+        run: pnpm lint
+
+      - name: Run TypeScript check
+        if: matrix.check == 'type-check'
+        run: pnpm type-check
+
+      - name: Run security audit
+        if: matrix.check == 'security-audit'
+        run: pnpm security:check
+
+      - name: Upload lint results
+        if: matrix.check == 'lint' && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-results
+          path: eslint-report.json
+          retention-days: 7
+
+  # 테스트 실행
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    needs: setup
+    strategy:
+      matrix:
+        test-suite: [unit, integration]
+        node-version: ['18', '20']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            node_modules
+            packages/*/node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Run unit tests
+        if: matrix.test-suite == 'unit'
+        run: pnpm test --testPathPattern=unit --coverage
+        env:
+          NODE_ENV: test
+
+      - name: Run integration tests
+        if: matrix.test-suite == 'integration'
+        run: pnpm test --testPathPattern=integration --coverage
+        env:
+          NODE_ENV: test
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage/lcov.info
+          flags: ${{ matrix.test-suite }}-node${{ matrix.node-version }}
+          name: coverage-${{ matrix.test-suite }}-node${{ matrix.node-version }}
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.test-suite }}-node${{ matrix.node-version }}
+          path: |
+            coverage/
+            test-results.xml
+          retention-days: 7
+
+  # 빌드 검증
+  build:
+    name: Build Verification
+    runs-on: ubuntu-latest
+    needs: [setup, quality]
+    strategy:
+      matrix:
+        build-type: [development, production]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            node_modules
+            packages/*/node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Build for development
+        if: matrix.build-type == 'development'
+        run: pnpm build
+
+      - name: Build for production
+        if: matrix.build-type == 'production'
+        run: pnpm build:prod
+
+      - name: Check bundle size
+        run: pnpm size
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.build-type }}
+          path: |
+            dist/
+            reports/bundle-size.json
+          retention-days: 30
+
+  # 성능 테스트
+  performance:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    needs: [setup, build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            node_modules
+            packages/*/node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-production
+          path: dist/
+
+      - name: Run performance benchmarks
+        run: |
+          pnpm test:llms
+          pnpm test:category
+          node -e "
+            const { globalPerformanceMonitor } = require('./dist/index.js');
+            const report = globalPerformanceMonitor.generateReport();
+            console.log('Performance Report:', JSON.stringify(report, null, 2));
+          "
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results
+          path: |
+            benchmark-results.json
+            performance-report.json
+          retention-days: 30
+
+  # 릴리스 준비
+  release:
+    name: Release Preparation
+    runs-on: ubuntu-latest
+    needs: [test, build, performance]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            node_modules
+            packages/*/node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Get current version
+        id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Check if release needed
+        id: check-release
+        run: |
+          if git tag --list | grep -q "v${{ steps.version.outputs.version }}"; then
+            echo "should-release=false" >> $GITHUB_OUTPUT
+          else
+            echo "should-release=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate changelog
+        if: steps.check-release.outputs.should-release == 'true'
+        run: |
+          pnpm conventional-changelog -p angular -i CHANGELOG.md -s
+          git add CHANGELOG.md
+
+      - name: Update documentation
+        if: steps.check-release.outputs.should-release == 'true'
+        run: |
+          pnpm docs:generate
+          pnpm docs:build
+
+      - name: Commit release files
+        if: steps.check-release.outputs.should-release == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -m "chore: prepare release v${{ steps.version.outputs.version }}" || exit 0
+
+  # NPM 패키지 배포
+  deploy:
+    name: Deploy to NPM
+    runs-on: ubuntu-latest
+    needs: [release]
+    if: needs.release.outputs.should-release == 'true'
+    environment:
+      name: production
+      url: https://www.npmjs.com/package/@context-action/llms-generator
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            node_modules
+            packages/*/node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-production
+          path: dist/
+
+      - name: Publish to NPM
+        run: pnpm publish --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ needs.release.outputs.version }}
+          release_name: Release v${{ needs.release.outputs.version }}
+          draft: false
+          prerelease: false
+
+  # 알림 및 정리
+  notify:
+    name: Notification & Cleanup
+    runs-on: ubuntu-latest
+    needs: [quality, test, build, performance, deploy]
+    if: always()
+    steps:
+      - name: Notify success
+        if: needs.test.result == 'success' && needs.build.result == 'success'
+        run: |
+          echo "✅ CI/CD pipeline completed successfully!"
+          echo "- Code quality: ${{ needs.quality.result }}"
+          echo "- Tests: ${{ needs.test.result }}"
+          echo "- Build: ${{ needs.build.result }}"
+          echo "- Performance: ${{ needs.performance.result }}"
+          echo "- Deploy: ${{ needs.deploy.result }}"
+
+      - name: Notify failure
+        if: needs.test.result == 'failure' || needs.build.result == 'failure'
+        run: |
+          echo "❌ CI/CD pipeline failed!"
+          echo "- Code quality: ${{ needs.quality.result }}"
+          echo "- Tests: ${{ needs.test.result }}"
+          echo "- Build: ${{ needs.build.result }}"
+          exit 1
+
+      - name: Clean up artifacts
+        run: echo "Cleaning up temporary artifacts..."

@@ -14,6 +14,9 @@ import { TagBasedDocumentFilter } from './TagBasedDocumentFilter.js';
 import { CategoryStrategyManager } from './CategoryStrategyManager.js';
 import { DependencyResolver, type ResolutionResult } from './DependencyResolver.js';
 import { ConflictDetector, type ConflictAnalysisResult } from './ConflictDetector.js';
+import { globalPerformanceMonitor, monitor } from '../infrastructure/monitoring/PerformanceMonitor.js';
+import { documentCache } from '../infrastructure/cache/IntelligentCache.js';
+import { globalParallelProcessor } from '../infrastructure/parallel/ParallelProcessor.js';
 
 export interface SelectionStrategy {
   name: string;
@@ -124,6 +127,22 @@ export class AdaptiveDocumentSelector {
     options: AdaptiveSelectionOptions = {}
   ): Promise<SelectionResult> {
     const startTime = Date.now();
+    
+    // 캐시 키 생성
+    const cacheKey = this.generateCacheKey(documents, constraints, options);
+    const cachedResult = await documentCache.get(cacheKey);
+    if (cachedResult) {
+      globalPerformanceMonitor.recordMetric({
+        name: 'cache_hit',
+        value: 1,
+        unit: 'count',
+        timestamp: new Date(),
+        category: 'computation',
+        context: { strategy: options.strategy }
+      });
+      return cachedResult;
+    }
+    
     const {
       strategy: strategyName = 'hybrid',
       maxIterations = 100,
@@ -249,6 +268,11 @@ export class AdaptiveDocumentSelector {
         convergenceAchieved
       }
     };
+    
+    // 결과를 캐시에 저장
+    await documentCache.set(cacheKey, result, 900000); // 15분 TTL
+    
+    return result;
   }
 
   /**
@@ -262,11 +286,27 @@ export class AdaptiveDocumentSelector {
     convergenceThreshold: number
   ): { selectedDocuments: DocumentMetadata[]; scoringResults: ScoringResult[]; iterationsPerformed: number; convergenceAchieved: boolean } {
     const candidates = this.createSelectionCandidates(documents, constraints, strategy);
-    const maxCharacters = constraints.maxCharacters;
+    const characterLimit = constraints.characterLimit;
 
     // Classic 0/1 knapsack with floating point weights
     const n = candidates.length;
-    const W = Math.floor(maxCharacters / 10); // Scale down for DP table size
+    const W = Math.min(Math.max(1, Math.floor(characterLimit / 10)), 10000); // Scale down and cap to prevent huge arrays
+    
+    // Early return if no candidates or invalid constraints
+    if (n === 0 || characterLimit <= 0) {
+      return {
+        selectedDocuments: [],
+        scoringResults: [],
+        iterationsPerformed: 0,
+        convergenceAchieved: true
+      };
+    }
+    
+    // Validate array size to prevent RangeError
+    if (W > 50000 || n > 1000 || (W * n) > 1000000) {
+      console.warn(`Knapsack parameters too large: W=${W}, n=${n}. Using greedy fallback.`);
+      return this.greedySelectionFromCandidates(candidates, constraints);
+    }
     
     const dp = Array(n + 1).fill(null).map(() => Array(W + 1).fill(0));
     const keep = Array(n + 1).fill(null).map(() => Array(W + 1).fill(false));
@@ -331,6 +371,50 @@ export class AdaptiveDocumentSelector {
   /**
    * Greedy selection algorithm
    */
+  private greedySelectionFromCandidates(
+    candidates: SelectionCandidate[],
+    constraints: SelectionConstraints
+  ): { selectedDocuments: DocumentMetadata[]; scoringResults: ScoringResult[]; iterationsPerformed: number; convergenceAchieved: boolean } {
+    // Sort by score/character ratio (efficiency)
+    candidates.sort((a, b) => {
+      const efficiencyA = a.score / Math.max(a.estimatedCharacters, 1);
+      const efficiencyB = b.score / Math.max(b.estimatedCharacters, 1);
+      return efficiencyB - efficiencyA;
+    });
+
+    const selectedDocuments: DocumentMetadata[] = [];
+    const scoringResults: ScoringResult[] = [];
+    let usedCharacters = 0;
+    const characterLimit = constraints.characterLimit;
+
+    for (const candidate of candidates) {
+      if (usedCharacters + candidate.estimatedCharacters <= characterLimit) {
+        selectedDocuments.push(candidate.document);
+        usedCharacters += candidate.estimatedCharacters;
+        
+        scoringResults.push({
+          document: candidate.document,
+          scores: {
+            total: candidate.score,
+            category: candidate.categoryAffinity,
+            tag: candidate.tagAffinity,
+            dependency: candidate.dependencyBonus,
+            priority: candidate.priority
+          },
+          reasons: candidate.reasons,
+          excluded: false
+        });
+      }
+    }
+
+    return {
+      selectedDocuments,
+      scoringResults,
+      iterationsPerformed: 1,
+      convergenceAchieved: true
+    };
+  }
+
   private greedySelection(
     documents: DocumentMetadata[],
     constraints: SelectionConstraints,
@@ -348,10 +432,10 @@ export class AdaptiveDocumentSelector {
     const selectedDocuments: DocumentMetadata[] = [];
     const scoringResults: ScoringResult[] = [];
     let usedCharacters = 0;
-    const maxCharacters = constraints.maxCharacters;
+    const characterLimit = constraints.characterLimit;
 
     for (const candidate of candidates) {
-      if (usedCharacters + candidate.estimatedCharacters <= maxCharacters) {
+      if (usedCharacters + candidate.estimatedCharacters <= characterLimit) {
         selectedDocuments.push(candidate.document);
         usedCharacters += candidate.estimatedCharacters;
         
@@ -410,7 +494,7 @@ export class AdaptiveDocumentSelector {
     let usedCharacters = 0;
 
     for (const candidate of rankedCandidates) {
-      if (usedCharacters + candidate.estimatedCharacters <= constraints.maxCharacters) {
+      if (usedCharacters + candidate.estimatedCharacters <= constraints.characterLimit) {
         selectedDocuments.push(candidate.document);
         usedCharacters += candidate.estimatedCharacters;
         
@@ -519,7 +603,7 @@ export class AdaptiveDocumentSelector {
         document,
         score: scoringResult.scores.total,
         estimatedCharacters: estimatedChars,
-        priority: document.priority.score,
+        priority: document.priority?.score || 0,
         categoryAffinity: scoringResult.scores.category,
         tagAffinity: scoringResult.scores.tag,
         dependencyBonus: scoringResult.scores.dependency,
@@ -553,7 +637,7 @@ export class AdaptiveDocumentSelector {
       'advanced': 1.3,
       'expert': 1.6
     };
-    estimate *= complexityMultipliers[document.tags.complexity] || 1.0;
+    estimate *= complexityMultipliers[document.tags?.complexity] || 1.0;
 
     // Adjust for word count if available
     if (document.document.wordCount) {
@@ -699,7 +783,7 @@ export class AdaptiveDocumentSelector {
         const totalChars = newSelection.reduce((sum, doc) => 
           sum + this.estimateDocumentCharacters(doc), 0);
         
-        if (totalChars <= constraints.maxCharacters) {
+        if (totalChars <= constraints.characterLimit) {
           const score = this.calculateSelectionScore(newSelection, constraints, strategy);
           
           if (score > bestScore) {
@@ -758,11 +842,15 @@ export class AdaptiveDocumentSelector {
 
     // Tag diversity
     const allTags = new Set<string>();
-    documents.forEach(doc => doc.tags.primary.forEach(tag => allTags.add(tag)));
-    const tagDiversity = Math.min(allTags.size / (documents.length * 2), 1); // Normalize
+    documents.forEach(doc => {
+      if (doc.tags && doc.tags.primary) {
+        doc.tags.primary.forEach(tag => allTags.add(tag));
+      }
+    });
+    const tagDiversity = documents.length > 0 ? Math.min(allTags.size / (documents.length * 2), 1) : 0; // Normalize
 
     // Complexity diversity
-    const complexities = new Set(documents.map(doc => doc.tags.complexity));
+    const complexities = new Set(documents.map(doc => doc.tags?.complexity).filter(c => c != null));
     const complexityDiversity = complexities.size / 4; // 4 complexity levels
 
     return (categoryDiversity + tagDiversity + complexityDiversity) / 3;
@@ -772,6 +860,8 @@ export class AdaptiveDocumentSelector {
    * Calculate balance bonus for even category distribution
    */
   private calculateBalanceBonus(documents: DocumentMetadata[]): number {
+    if (documents.length === 0) return 0;
+    
     const categoryCounts = new Map<string, number>();
     
     for (const doc of documents) {
@@ -783,6 +873,9 @@ export class AdaptiveDocumentSelector {
 
     const counts = Array.from(categoryCounts.values());
     const average = counts.reduce((sum, count) => sum + count, 0) / counts.length;
+    
+    if (average === 0) return 0;
+    
     const variance = counts.reduce((sum, count) => sum + Math.pow(count - average, 2), 0) / counts.length;
     
     // Lower variance = better balance
@@ -833,7 +926,7 @@ export class AdaptiveDocumentSelector {
     analysis: SelectionResult['analysis'];
   } {
     const totalCharacters = documents.reduce((sum, doc) => sum + this.estimateDocumentCharacters(doc), 0);
-    const spaceUtilization = totalCharacters / constraints.maxCharacters;
+    const spaceUtilization = constraints.characterLimit > 0 ? totalCharacters / constraints.characterLimit : 0;
 
     // Category coverage
     const categoryCounts = new Map<string, number>();
@@ -854,7 +947,7 @@ export class AdaptiveDocumentSelector {
       }
     }
 
-    const qualityScore = documents.reduce((sum, doc) => sum + (doc.priority.score / 100), 0) / documents.length;
+    const qualityScore = documents.length > 0 ? documents.reduce((sum, doc) => sum + (doc.priority.score / 100), 0) / documents.length : 0;
     const diversityScore = this.calculateDiversityBonus(documents);
     const balanceScore = this.calculateBalanceBonus(documents);
 
@@ -1029,5 +1122,54 @@ export class AdaptiveDocumentSelector {
     if (strategy) {
       Object.assign(strategy, updates);
     }
+  }
+
+  /**
+   * Generate cache key for selection results
+   */
+  private generateCacheKey(
+    documents: DocumentMetadata[],
+    constraints: SelectionConstraints,
+    options: AdaptiveSelectionOptions
+  ): string {
+    const docHash = documents
+      .map(doc => `${doc.document?.id || 'unknown'}-${doc.priority?.score || 0}-${doc.tags?.primary?.join(',') || ''}`)
+      .sort()
+      .join('|');
+    
+    const constraintsHash = [
+      constraints.maxCharacters,
+      constraints.maxDocuments,
+      constraints.minQualityScore,
+      constraints.requiredCategories?.join(','),
+      constraints.excludedCategories?.join(','),
+      constraints.preferredTags?.join(','),
+      constraints.excludedTags?.join(',')
+    ].join('-');
+    
+    const optionsHash = [
+      options.strategy,
+      options.maxIterations,
+      options.convergenceThreshold,
+      options.enableOptimization,
+      options.enableConflictResolution,
+      options.enableDependencyResolution,
+      JSON.stringify(options.customWeights)
+    ].join('-');
+    
+    return `selection-${this.hashCode(docHash)}-${this.hashCode(constraintsHash)}-${this.hashCode(optionsHash)}`;
+  }
+
+  /**
+   * Simple hash function for strings
+   */
+  private hashCode(str: string): number {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    return Math.abs(hash);
   }
 }

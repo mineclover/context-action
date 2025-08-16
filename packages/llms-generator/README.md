@@ -1,8 +1,8 @@
 # @context-action/llms-generator
 
-**Document processing and LLM content generation for Context-Action framework**
+**Enterprise-grade LLM content generation framework for Context-Action documentation**
 
-TypeScript library and CLI tools for generating optimized content from documentation with intelligent categorization and priority-based selection.
+TypeScript library and CLI tools for generating optimized content from documentation with intelligent categorization, priority-based selection, and multi-language support.
 
 [![npm version](https://badge.fury.io/js/@context-action%2Fllms-generator.svg)](https://www.npmjs.com/package/@context-action/llms-generator)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -17,72 +17,114 @@ npm install @context-action/llms-generator
 pnpm add @context-action/llms-generator
 ```
 
-### Basic Usage
-
-```typescript
-import { CategoryMinimumGenerator } from '@context-action/llms-generator';
-
-const generator = new CategoryMinimumGenerator({
-  dataDir: './data',
-  outputDir: './output'
-});
-
-// Generate API documentation summary
-const result = await generator.generateSingle('api-spec', 'en');
-console.log(`Generated: ${result.filePath} (${result.documentCount} docs)`);
-
-// Batch generation for multiple categories and languages
-const results = await generator.generateBatch({
-  categories: ['api-spec', 'guide'],
-  languages: ['en', 'ko']
-});
-```
-
-### CLI Usage
+### Basic CLI Usage
 
 ```bash
-# Generate category-based minimal LLMS files
-npx llms-generator category api-spec en
-npx llms-generator category guide ko
+# Initialize configuration
+npx llms-generator config-init standard
 
-# Get category information
-npx llms-generator categories
-npx llms-generator stats api-spec en
+# Generate all content
+npx llms-generator batch
+
+# Generate specific character limit
+npx llms-generator chars 1000 en
+
+# Work status management
+npx llms-generator work-status ko
+```
+
+### Library Usage
+
+```typescript
+import { LLMSGenerator, CategoryMinimumGenerator } from '@context-action/llms-generator';
+
+// Main LLMS generation
+const generator = new LLMSGenerator(config);
+await generator.generate({
+  languages: ['en', 'ko'],
+  formats: ['minimum', 'origin', 'chars'],
+  characterLimits: [100, 300, 1000, 2000]
+});
+
+// Category-based generation
+const categoryGen = new CategoryMinimumGenerator(config);
+const result = await categoryGen.generateSingle('api-spec', 'en');
 ```
 
 ## 🎯 Key Features
 
-### Category-Based Generation
-- **API Documentation**: Extract API references and technical specifications
-- **Guide Content**: Generate user guides and tutorials
-- **Priority-Based Selection**: Automatically prioritize documents by importance
+### 🔧 Configuration Management
+- **Multiple Presets**: minimal, standard, extended, blog, documentation
+- **Validation**: Built-in config validation with detailed error reporting
+- **Auto-discovery**: Automatic path resolution and project structure detection
 
-### Multi-Language Support
-- Korean (ko), English (en), Japanese (ja), Chinese (zh)
-- Automatic URL generation and folder mapping
-- Language-specific document organization
+### 📝 Content Generation
+- **Multiple Formats**: minimum, origin, character-limited variants
+- **Batch Processing**: Generate all content with single command
+- **Priority-Based**: Intelligent document prioritization and selection
+- **Quality Control**: Built-in quality evaluation and improvement suggestions
 
-### TypeScript Library Interface
-- Type-safe API with full TypeScript support
-- Comprehensive error handling and validation
-- Statistics and analytics for generated content
+### 🌐 Multi-Language Support
+- **Primary Languages**: Korean (ko), English (en)
+- **Extensible**: Easy addition of new languages
+- **Localized Templates**: Language-specific instruction templates
 
-## 📁 Project Structure
+### 🔄 Work Status Management
+- **Smart Tracking**: Automatic detection of outdated content
+- **Context Provision**: Complete work context for editing
+- **Progress Monitoring**: Real-time work status and completion tracking
 
+### 🎨 Adaptive Composition
+- **Dynamic Content**: Character limit-aware content composition
+- **Priority Optimization**: Intelligent content selection within limits
+- **Table of Contents**: Auto-generated navigation
+
+## 📋 Available Commands
+
+### Configuration
+```bash
+npx llms-generator config-init [preset]     # Initialize with preset
+npx llms-generator config-show              # Show current config
+npx llms-generator config-validate          # Validate configuration
+npx llms-generator config-limits            # Show character limits
 ```
-packages/llms-generator/
-├── src/
-│   ├── core/
-│   │   ├── CategoryMinimumGenerator.ts  # Main category generator
-│   │   ├── AdaptiveDocumentSelector.ts   # Smart document selection
-│   │   ├── ConfigManager.ts              # Configuration management
-│   │   └── ...
-│   ├── cli/                              # Command-line interface
-│   └── types/                            # TypeScript definitions
-├── data/                                 # Source documentation
-│   ├── en/                              # English content
-│   └── ko/                              # Korean content
-└── test/                                # Test suites
+
+### Content Generation
+```bash
+npx llms-generator minimum                  # Generate minimum format
+npx llms-generator origin                   # Generate origin format
+npx llms-generator chars <limit> [lang]     # Generate specific limit
+npx llms-generator batch [options]          # Generate all formats
+```
+
+### Priority & Discovery
+```bash
+npx llms-generator priority-generate [lang] # Generate priority files
+npx llms-generator priority-stats [lang]    # Show statistics
+npx llms-generator discover [lang]          # Discover documents
+```
+
+### Work Management
+```bash
+npx llms-generator work-status [lang]       # Check work status
+npx llms-generator work-context <lang> <id> # Get work context
+npx llms-generator work-list [lang]         # List work needed
+npx llms-generator work-check [lang]        # Enhanced work check
+```
+
+### Adaptive Composition
+```bash
+npx llms-generator compose [lang] [chars]   # Compose content
+npx llms-generator compose-batch [lang]     # Batch composition
+npx llms-generator compose-stats [lang]     # Show statistics
+```
+
+### Advanced Features
+```bash
+npx llms-generator extract [lang]           # Extract summaries
+npx llms-generator markdown-generate [lang] # Generate markdown
+npx llms-generator instruction-generate     # Generate instructions
+npx llms-generator generate-summaries       # YAML frontmatter summaries
 ```
 
 ## ⚙️ Configuration
@@ -91,112 +133,164 @@ Create `llms-generator.config.json`:
 
 ```json
 {
-  "characterLimits": [100, 300, 1000, 2000],
+  "characterLimits": [100, 300, 1000, 2000, 5000],
   "languages": ["ko", "en"],
   "paths": {
     "docsDir": "./docs",
     "dataDir": "./data",
-    "outputDir": "./output"
+    "outputDir": "./data",
+    "templatesDir": "./templates",
+    "instructionsDir": "./instructions"
+  },
+  "generation": {
+    "defaultLanguage": "ko",
+    "formats": ["minimum", "origin", "chars"],
+    "qualityThreshold": 70
+  },
+  "optimization": {
+    "enableCaching": true,
+    "parallelProcessing": true,
+    "maxConcurrency": 4
   }
 }
 ```
 
-## 📚 API Reference
+### Configuration Presets
 
-### CategoryMinimumGenerator
+- **minimal**: Basic setup with 2 character limits
+- **standard**: Balanced setup with 4 character limits (default)
+- **extended**: Comprehensive setup with 6 character limits
+- **blog**: Blog-optimized with SEO focus
+- **documentation**: Technical documentation focus
 
-```typescript
-class CategoryMinimumGenerator {
-  constructor(options?: CategoryMinimumOptions)
-  
-  // Generate single category/language combination
-  generateSingle(category: string, language: string): Promise<GenerationResult>
-  
-  // Batch generate multiple combinations
-  generateBatch(options?: CategoryMinimumOptions): Promise<GenerationResult[]>
-  
-  // Get available categories and statistics
-  getAvailableCategories(): string[]
-  getCategoryStats(category: string, language: string): CategoryStats
-  getAvailableDocuments(language: string): DocumentInfo[]
-}
+## 📁 Project Structure
+
+```
+packages/llms-generator/
+├── src/
+│   ├── cli/                              # Command-line interface
+│   │   ├── index.ts                      # Main CLI entry point
+│   │   └── commands/                     # Individual commands
+│   ├── core/                             # Core functionality
+│   │   ├── LLMSGenerator.ts              # Main generator
+│   │   ├── CategoryMinimumGenerator.ts   # Category-based generation
+│   │   ├── AdaptiveComposer.ts           # Content composition
+│   │   ├── ConfigManager.ts              # Configuration management
+│   │   └── WorkStatusManager.ts          # Work tracking
+│   ├── domain/                           # Domain objects
+│   │   ├── entities/                     # Business entities
+│   │   ├── value-objects/                # Value objects
+│   │   └── repositories/                 # Repository interfaces
+│   ├── infrastructure/                   # Infrastructure layer
+│   │   ├── repositories/                 # Repository implementations
+│   │   ├── services/                     # External services
+│   │   └── di/                           # Dependency injection
+│   └── types/                            # TypeScript definitions
+├── test/                                 # Test suites
+│   ├── unit/                             # Unit tests
+│   ├── integration/                      # Integration tests
+│   ├── e2e/                              # End-to-end tests
+│   └── scripts/                          # Test scripts
+├── examples/                             # Usage examples
+│   ├── demo.ts                           # Demo script
+│   └── library-usage.js                 # Library usage example
+└── scripts/                              # Utility scripts
 ```
 
-### Document Selection
-
-```typescript
-import { AdaptiveDocumentSelector } from '@context-action/llms-generator';
-
-const selector = new AdaptiveDocumentSelector(config);
-
-const result = await selector.selectDocuments(documents, constraints, {
-  strategy: 'balanced', // 'greedy', 'hybrid', 'adaptive'
-  maxIterations: 100,
-  enableOptimization: true
-});
-```
-
-## 🛠️ CLI Commands
-
-| Command | Description | Example |
-|---------|-------------|---------|
-| `category <category> <lang>` | Generate category-specific content | `npx llms-generator category api-spec en` |
-| `categories` | List available categories | `npx llms-generator categories` |
-| `stats <category> <lang>` | Show category statistics | `npx llms-generator stats guide ko` |
-| `config-init <preset>` | Initialize configuration | `npx llms-generator config-init standard` |
-
-## 🔧 Development
+## 🧪 Testing
 
 ```bash
-# Install dependencies
-pnpm install
-
-# Build the package
-pnpm build
-
-# Run tests
+# Run all tests
 pnpm test
 
-# Type checking
-pnpm type-check
+# Run specific test suites
+pnpm test -- scenarios.test.ts
 
-# Development mode
-pnpm dev
+# Run migrated test scripts
+pnpm test:llms
+pnpm test:category
+pnpm test:save-results
+
+# Run demo
+pnpm demo
+pnpm demo:verbose
 ```
 
-## 📈 Document Categories
+## 🔧 Development Scripts
 
-### API Documentation (`api-spec`)
-- Technical API references
-- Interface definitions
-- Function signatures and parameters
-- Code examples and usage patterns
+```bash
+# Build and development
+pnpm build                               # Build the package
+pnpm dev                                 # Watch mode
+pnpm type-check                          # TypeScript checking
 
-### User Guides (`guide`)
-- Getting started tutorials
-- Step-by-step instructions
-- Best practices and patterns
-- Conceptual explanations
+# Testing
+pnpm test                                # Run all tests
+pnpm test:watch                          # Watch mode testing
 
-## 🚨 Important Notes
+# Quality
+pnpm lint                                # (temporarily disabled)
+pnpm clean                               # Clean build artifacts
 
-- **Data Directory**: Contains source documentation with `priority.json` metadata
-- **Output Files**: Generated `.txt` files with category-specific content
-- **TypeScript Support**: Full type safety and IntelliSense support
-- **Performance**: Optimized for large documentation sets (100+ files)
+# Utilities
+pnpm cli                                 # Direct CLI access
+```
+
+## 🏗️ Architecture
+
+### Clean Architecture Implementation
+- **Domain Layer**: Business logic and entities
+- **Application Layer**: Use cases and application services
+- **Infrastructure Layer**: External concerns and implementations
+- **Interface Layer**: CLI and API interfaces
+
+### Key Patterns
+- **Repository Pattern**: Data access abstraction
+- **Dependency Injection**: Loose coupling and testability
+- **Result Pattern**: Explicit error handling
+- **Value Objects**: Domain modeling and type safety
+
+### Quality Features
+- **Type Safety**: Full TypeScript implementation
+- **Error Handling**: Comprehensive error management
+- **Validation**: Input validation and sanitization
+- **Performance**: Optimized for large document sets
+- **Extensibility**: Plugin-based architecture support
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes and add tests
+4. Run tests: `pnpm test`
+5. Commit changes: `git commit -m 'Add amazing feature'`
+6. Push to branch: `git push origin feature/amazing-feature`
+7. Open a Pull Request
 
 ## 📄 License
 
-MIT License - see [LICENSE](../../LICENSE) for details.
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## 🔗 Related Packages
+
+- [@context-action/core](../core) - Core action pipeline management
+- [@context-action/react](../react) - React integration with hooks and context
+
+## 🚀 Performance & Scale
+
+- **Large Document Sets**: Handles 1000+ documents efficiently
+- **Parallel Processing**: Multi-threaded generation support
+- **Memory Efficient**: Streaming processing for large files
+- **Caching**: Intelligent caching for repeated operations
+- **Incremental Updates**: Only regenerate changed content
+
+## 📊 Metrics & Analytics
+
+- **Generation Statistics**: Detailed metrics on content generation
+- **Quality Scoring**: Automatic quality assessment
+- **Performance Tracking**: Generation time and resource usage
+- **Work Analytics**: Progress tracking and completion rates
 
 ---
 
-For advanced usage and API documentation, see [API_REFERENCE.md](./API_REFERENCE.md).
+**Built with ❤️ for the Context-Action framework**

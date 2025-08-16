@@ -8,10 +8,16 @@ import path from 'path';
 import { LLMSGenerator, PriorityGenerator, SchemaGenerator, MarkdownGenerator, ContentExtractor, AdaptiveComposer, DEFAULT_CONFIG } from '../index.js';
 import { WorkStatusManager } from '../core/WorkStatusManager.js';
 import { ConfigManager } from '../core/ConfigManager.js';
+import { EnhancedConfigManager } from '../core/EnhancedConfigManager.js';
 import { InstructionGenerator } from '../core/InstructionGenerator.js';
+import { TemplateGenerator } from '../core/TemplateGenerator.js';
 import { initializeContainer } from '../infrastructure/di/DIContainer.js';
 import type { ResolvedConfig } from '../types/user-config.js';
+import { existsSync } from 'fs';
 import { checkWorkStatus } from './commands/work-check.js';
+import { generateIndividualFiles } from './commands/generate.js';
+import { syncAll } from './commands/sync.js';
+import { fixSourcePaths } from './commands/fix-paths.js';
 
 async function main() {
   const args = process.argv.slice(2);
@@ -24,9 +30,55 @@ async function main() {
   const command = args[0];
   
   try {
-    // Load user configuration
-    const userConfig = await ConfigManager.findAndLoadConfig();
-    const config = createConfigFromUserConfig(userConfig);
+    // Try to load enhanced config first (for llms-generator.config.json)
+    let config;
+    let userConfig; // Declare here for use throughout
+    const enhancedConfigPath = path.join(process.cwd(), 'llms-generator.config.json');
+    
+    if (existsSync(enhancedConfigPath)) {
+      console.log('📋 Loading enhanced config from llms-generator.config.json');
+      const enhancedConfigManager = new EnhancedConfigManager(enhancedConfigPath);
+      const enhancedConfig = await enhancedConfigManager.loadConfig();
+      
+      // Convert enhanced config to internal format (resolve paths)
+      const projectRoot = process.cwd();
+      config = {
+        ...DEFAULT_CONFIG, // Start with defaults
+        paths: {
+          docsDir: path.resolve(projectRoot, enhancedConfig.paths.docsDir),
+          llmContentDir: path.resolve(projectRoot, enhancedConfig.paths.llmContentDir),
+          outputDir: path.resolve(projectRoot, enhancedConfig.paths.outputDir),
+          templatesDir: path.resolve(projectRoot, enhancedConfig.paths.templatesDir),
+          instructionsDir: path.resolve(projectRoot, enhancedConfig.paths.instructionsDir)
+        },
+        generation: {
+          ...DEFAULT_CONFIG.generation,
+          supportedLanguages: enhancedConfig.generation.supportedLanguages,
+          characterLimits: enhancedConfig.generation.characterLimits,
+          defaultLanguage: enhancedConfig.generation.defaultLanguage,
+          outputFormat: enhancedConfig.generation.outputFormat
+        },
+        quality: enhancedConfig.quality
+      };
+      
+      // Create a compatible userConfig for legacy command compatibility
+      userConfig = {
+        characterLimits: enhancedConfig.generation.characterLimits,
+        languages: enhancedConfig.generation.supportedLanguages,
+        resolvedPaths: {
+          configFile: enhancedConfigPath,
+          projectRoot: projectRoot,
+          docsDir: config.paths.docsDir,
+          dataDir: config.paths.llmContentDir,
+          outputDir: config.paths.outputDir
+        }
+      } as any;
+    } else {
+      // Fall back to legacy config
+      console.log('📋 Loading legacy config');
+      userConfig = await ConfigManager.findAndLoadConfig();
+      config = createConfigFromUserConfig(userConfig);
+    }
     
     // Initialize DI container for new features
     let diInitialized = false;
@@ -45,9 +97,10 @@ async function main() {
     const adaptiveComposer = new AdaptiveComposer(config);
     const workStatusManager = new WorkStatusManager(config);
     const instructionGenerator = new InstructionGenerator(config);
+    const templateGenerator = new TemplateGenerator(config);
     
     // Get enabled character limits from config
-    const enabledCharLimits = ConfigManager.getEnabledCharacterLimits(userConfig);
+    const enabledCharLimits = config.generation.characterLimits;
     
     switch (command) {
       // Config management commands
@@ -80,7 +133,7 @@ async function main() {
         console.log(`  Output directory: ${userConfig.resolvedPaths.outputDir}\n`);
         
         console.log('📏 Character Limits:');
-        userConfig.characterLimits.forEach(limit => {
+        userConfig.characterLimits.forEach((limit: number) => {
           console.log(`  ${limit} chars`);
         });
         
@@ -109,7 +162,7 @@ async function main() {
       case 'config-limits':
         console.log('📏 Character Limits\n');
         
-        userConfig.characterLimits.sort((a, b) => a - b).forEach(limit => {
+        userConfig.characterLimits.sort((a: number, b: number) => a - b).forEach((limit: number) => {
           console.log(`  ${limit} chars`);
         });
         
@@ -194,6 +247,18 @@ async function main() {
           result.errors.forEach(error => {
             console.log(`  ${error.document.documentId}: ${error.error}`);
           });
+        }
+        break;
+
+      case 'template-generate':
+        console.log('📋 Generating individual summary document templates for all priority files...');
+        
+        try {
+          await templateGenerator.generateAllTemplates();
+          console.log('\n✅ Template generation completed successfully!');
+        } catch (error) {
+          console.error('\n❌ Template generation failed:', error);
+          process.exit(1);
         }
         break;
         
@@ -620,7 +685,7 @@ async function main() {
         console.log(`Priority: ${workContext.priorityInfo.priority.score} (${workContext.priorityInfo.priority.tier})`);
         console.log(`Strategy: ${workContext.priorityInfo.extraction.strategy}`);
         
-        const focusInfo = workContext.priorityInfo.extraction.character_limits[contextCharLimit.toString()];
+        const focusInfo = workContext.priorityInfo.extraction.characterLimit[contextCharLimit.toString()];
         if (focusInfo) {
           console.log(`Focus: ${focusInfo.focus}`);
         }
@@ -1053,6 +1118,44 @@ async function main() {
           showMissingConfig
         });
         break;
+
+      case 'generate-files':
+        const genLanguages = args.find(arg => arg.startsWith('--lang='))?.split('=')[1]?.split(',') || userConfig.languages;
+        const genCharLimits = args.find(arg => arg.startsWith('--chars='))?.split('=')[1]?.split(',').map(Number) || enabledCharLimits;
+        const genConfigPath = args.find(arg => arg.startsWith('--config='))?.split('=')[1];
+
+        await generateIndividualFiles({
+          languages: genLanguages,
+          characterLimits: genCharLimits,
+          configPath: genConfigPath
+        });
+        break;
+
+      case 'sync-all':
+        const syncLanguages = args.find(arg => arg.startsWith('--lang='))?.split('=')[1]?.split(',') || userConfig.languages;
+        const syncCharLimits = args.find(arg => arg.startsWith('--chars='))?.split('=')[1]?.split(',').map(Number) || enabledCharLimits;
+        const syncConfigPath = args.find(arg => arg.startsWith('--config='))?.split('=')[1];
+        const skipGeneration = args.includes('--skip-generation');
+
+        await syncAll({
+          languages: syncLanguages,
+          characterLimits: syncCharLimits,
+          configPath: syncConfigPath,
+          skipGeneration
+        });
+        break;
+
+      case 'fix-paths':
+        const fixLanguage = args.find(arg => arg.startsWith('--lang='))?.split('=')[1] || 'en';
+        const fixDataDir = args.find(arg => arg.startsWith('--data-dir='))?.split('=')[1];
+        const fixDryRun = args.includes('--dry-run');
+
+        await fixSourcePaths({
+          language: fixLanguage,
+          dataDir: fixDataDir,
+          dryRun: fixDryRun
+        });
+        break;
         
       default:
         console.error(`Unknown command: ${command}`);
@@ -1085,6 +1188,7 @@ function showHelp() {
   console.log('PRIORITY MANAGEMENT:');
   console.log('  priority-generate [lang] [--dry-run] [--overwrite]');
   console.log('                       Generate priority.json files for all documents');
+  console.log('  template-generate    Generate individual summary document templates for all priority files');
   console.log('  priority-stats [lang] Show priority generation statistics');
   console.log('  discover [lang]      Discover all available documents');
   console.log('');
@@ -1123,6 +1227,14 @@ function showHelp() {
   console.log('                       List documents that need work');
   console.log('  work-check [lang] [--show-all] [--show-edited] [--show-missing-config]');
   console.log('                       Enhanced work status check with config integration');
+  console.log('');
+  console.log('MIGRATION COMMANDS (from legacy scripts):');
+  console.log('  generate-files [--lang=en,ko] [--chars=100,300] [--config=path]');
+  console.log('                       Generate individual character-limited files (migrated from legacy)');
+  console.log('  sync-all [--lang=en,ko] [--chars=100,300] [--skip-generation] [--config=path]');
+  console.log('                       Bulk sync operation for all content (migrated from legacy)');
+  console.log('  fix-paths [--lang=en] [--data-dir=path] [--dry-run]');
+  console.log('                       Fix source_path in priority.json files (migrated from legacy)');
   console.log('');
   console.log('INSTRUCTION GENERATION:');
   console.log('  instruction-generate <lang> <document-id> [options]');
@@ -1198,6 +1310,14 @@ function createConfigFromUserConfig(userConfig: ResolvedConfig) {
   config.paths.outputDir = userConfig.resolvedPaths.outputDir;
   config.paths.templatesDir = userConfig.resolvedPaths.templatesDir;
   config.paths.instructionsDir = userConfig.resolvedPaths.instructionsDir;
+  
+  // Map generation settings if available (check if userConfig has the new structure)
+  if (userConfig.characterLimits) {
+    config.generation.characterLimits = userConfig.characterLimits;
+  }
+  if (userConfig.languages) {
+    config.generation.supportedLanguages = userConfig.languages;
+  }
   
   // Preserve other existing configuration as needed
   return config;

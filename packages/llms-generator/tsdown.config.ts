@@ -15,6 +15,18 @@ export default {
     'cli/index': '#!/usr/bin/env node',
   },
   esbuildOptions: {
-    conditions: ['node']
-  }
+    conditions: ['node'],
+    // Bundle optimization
+    treeShaking: true,
+    minify: false, // Keep readable for debugging
+    splitting: true, // Enable code splitting
+  },
+  // Optimize external dependencies
+  external: [
+    'commander',
+    'yaml',
+    'ajv',
+    'ajv-formats',
+    'gray-matter'
+  ]
 };

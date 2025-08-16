@@ -119,7 +119,7 @@ export class YamlToTxtConverter {
     sourceDir: string,
     outputDir: string
   ): Promise<string[]> {
-    const characterLimits = this.config.generation?.defaultCharacterLimits || [100, 300, 1000];
+    const characterLimits = this.config.generation?.characterLimits || [100, 300, 1000];
     const convertedFiles: string[] = [];
     
     for (const charLimit of characterLimits) {

@@ -943,7 +943,7 @@ export class QualityEvaluator {
       totalCharacters += this.estimateDocumentCharacters(document);
     }
 
-    const utilization = totalCharacters / constraints.maxCharacters;
+    const utilization = totalCharacters / constraints.characterLimit;
     const targetUtilization = config.composition.optimization.spaceUtilizationTarget;
     
     // Score is based on how close we are to target utilization
@@ -960,7 +960,7 @@ export class QualityEvaluator {
         reasoning: [
           `Space utilization: ${Math.round(utilization * 100)}%`,
           `Target utilization: ${Math.round(targetUtilization * 100)}%`,
-          `Estimated characters: ${totalCharacters}/${constraints.maxCharacters}`
+          `Estimated characters: ${totalCharacters}/${constraints.characterLimit}`
         ],
         suggestions: efficiency < 0.8 ? [
           utilization < targetUtilization 
@@ -1197,10 +1197,10 @@ export class QualityEvaluator {
         for (const doc of selection) {
           totalChars += this.estimateDocumentCharacters(doc);
         }
-        const withinLimit = totalChars <= constraints.maxCharacters * 1.1; // 10% tolerance
+        const withinLimit = totalChars <= constraints.characterLimit * 1.1; // 10% tolerance
         return {
           passed: withinLimit,
-          details: withinLimit ? undefined : `Estimated ${totalChars} chars exceeds limit of ${constraints.maxCharacters}`
+          details: withinLimit ? undefined : `Estimated ${totalChars} chars exceeds limit of ${constraints.characterLimit}`
         };
       }
     });

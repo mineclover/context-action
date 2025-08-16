@@ -2,6 +2,8 @@
  * Configuration types for LLMS Generator
  */
 
+import { CharacterLimit, DocumentId } from '../domain/value-objects/index.js';
+
 export interface LLMSConfig {
   paths: {
     docsDir: string;           // 원본 문서 경로
@@ -123,15 +125,23 @@ export interface DependencyConfig {
 
 export interface CompositionStrategyConfig {
   name: string;
-  description: string;
-  weights: {
+  description?: string;
+  algorithm?: string;
+  weights?: {
     categoryWeight: number;
     tagWeight: number;
     dependencyWeight: number;
     priorityWeight: number;
     contextualWeight?: number;
   };
-  constraints: {
+  criteria?: {
+    categoryWeight: number;
+    tagWeight: number;
+    dependencyWeight: number;
+    priorityWeight: number;
+    contextualWeight?: number;
+  };
+  constraints?: {
     minCategoryRepresentation: number;
     maxDocumentsPerCategory: number;
     requireCoreTags: boolean;
@@ -197,7 +207,11 @@ export interface EnhancedLLMSConfig extends LLMSConfig {
 }
 
 // Re-export from priority.ts to avoid duplication
-export type { ExtractionStrategy, DocumentCategory, PriorityTier, TargetAudience, ConsistencyCheck } from './priority.js';
+export { ExtractionStrategy, DocumentCategory, PriorityTier } from './priority.js';
+export type { TargetAudience, ConsistencyCheck } from './priority.js';
+
+// Extract Strategy type - make compatible with configuration expectations
+export type ExtractStrategy = keyof typeof ExtractionStrategy | string;
 
 // Selection and Composition Types
 
@@ -207,12 +221,12 @@ export interface SelectionContext {
   tagWeights: Record<string, number>;
   selectedDocuments: DocumentMetadata[];
   requiredTopics?: string[];
-  maxCharacters: number;
+  characterLimit: number;
   targetCharacterLimit: number;
 }
 
 export interface SelectionConstraints {
-  maxCharacters: number;
+  characterLimit: number;
   targetCharacterLimit: number;
   context: SelectionContext;
 }
@@ -241,6 +255,12 @@ export interface DocumentMetadata {
     complexity: 'basic' | 'intermediate' | 'advanced' | 'expert';
     estimatedReadingTime: string;
     lastUpdated?: string;
+  };
+  keywords?: {
+    primary: string[];
+    technical: string[];
+    domain: string[];
+    patterns?: string[];
   };
   dependencies: {
     prerequisites: Array<{

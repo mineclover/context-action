@@ -91,7 +91,7 @@ export interface PriorityMetadata {
   };
   extraction: {
     strategy: ExtractionStrategy;
-    character_limits: CharacterLimitsConfig;
+    characterLimit: CharacterLimitsConfig;
     emphasis: {
       must_include: string[];
       nice_to_have: string[];
@@ -107,7 +107,6 @@ export interface PriorityMetadata {
     updated?: string;
     version: string;
     original_size: number;
-    estimated_extraction_time: Record<string, string>;
   };
 }
 

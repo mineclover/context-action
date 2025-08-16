@@ -456,10 +456,10 @@ export class AdaptiveComposer {
               const frontmatter = {
                 title: priority.document.title,
                 category: priority.document.category,
-                complexity: priority.tags?.complexity || 'intermediate',
+                complexity: 'intermediate', // Default complexity since tags not available in PriorityMetadata
                 character_limit: limit,
-                tags: priority.tags?.primary || [],
-                audience: priority.tags?.audience || [],
+                tags: [],
+                audience: priority.purpose?.target_audience || [],
                 source: sourcePath
               };
               

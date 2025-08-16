@@ -37,7 +37,7 @@ export interface PrioritySchema {
   };
   extraction: {
     strategy: 'concept-first' | 'example-first' | 'api-first' | 'tutorial-first' | 'reference-first';
-    character_limits: {
+    characterLimit: {
       minimum?: CharacterLimitGuideline;
       origin?: CharacterLimitGuideline;
       '100'?: CharacterLimitGuideline;
@@ -63,13 +63,6 @@ export interface PrioritySchema {
     updated?: string;
     version?: string;
     original_size?: number;
-    estimated_extraction_time?: {
-      minimum?: string;
-      origin?: string;
-      '300'?: string;
-      '1000'?: string;
-      '2000'?: string;
-    };
   };
 }
 
@@ -89,6 +82,7 @@ export interface PriorityGenerationOptions {
   priorityScore?: number;
   priorityTier?: PrioritySchema['priority']['tier'];
   strategy?: PrioritySchema['extraction']['strategy'];
+  characterLimits?: number[];
   overwrite?: boolean;
 }
 
@@ -233,8 +227,8 @@ export class PrioritySchemaManager {
       if (!priority.extraction.strategy) {
         errors.push('extraction.strategy is required');
       }
-      if (!priority.extraction.character_limits) {
-        errors.push('extraction.character_limits is required');
+      if (!priority.extraction.characterLimit) {
+        errors.push('extraction.characterLimit is required');
       }
     }
 
@@ -260,7 +254,8 @@ export class PrioritySchemaManager {
 
     // Extract document info from source path if not provided
     const finalDocumentId = documentId || this.extractDocumentIdFromPath(sourcePath || '');
-    const finalSourcePath = sourcePath || this.generateSourcePathFromId(finalDocumentId, category);
+    // Always generate source path with language to ensure correct format
+    const finalSourcePath = this.generateSourcePathFromId(finalDocumentId, category, language);
     const title = this.generateTitleFromId(finalDocumentId);
 
     const template: PrioritySchema = {
@@ -297,9 +292,22 @@ export class PrioritySchemaManager {
           'Advanced optimization techniques'
         ]
       },
+      tags: {
+        primary: this.generatePrimaryTags(category),
+        secondary: this.generateSecondaryTags(category, finalDocumentId),
+        audience: ['framework-users', 'beginners'],
+        complexity: this.getDefaultComplexity(category)
+      },
+      dependencies: {
+        prerequisites: [],
+        references: [],
+        followups: [],
+        conflicts: [],
+        complements: []
+      },
       extraction: {
         strategy: strategy,
-        character_limits: this.generateCharacterLimits(strategy, category, title),
+        characterLimit: this.generateCharacterLimits(strategy, category, title, options),
         emphasis: {
           must_include: this.generateMustInclude(category, title),
           nice_to_have: this.generateNiceToHave(category)
@@ -312,14 +320,7 @@ export class PrioritySchemaManager {
       },
       metadata: {
         created: new Date().toISOString().split('T')[0],
-        version: '1.0',
-        estimated_extraction_time: {
-          minimum: '10 minutes',
-          origin: 'automatic',
-          '300': '20 minutes',
-          '1000': '45 minutes',
-          '2000': '60 minutes'
-        }
+        version: '1.0'
       }
     };
 
@@ -337,12 +338,22 @@ export class PrioritySchemaManager {
   /**
    * Generate source path from document ID
    */
-  private generateSourcePathFromId(documentId: string, category: string): string {
-    const parts = documentId.split('-');
+  private generateSourcePathFromId(documentId: string, category: string, language?: string): string {
+    const parts = documentId.split('-').filter(part => part.length > 0); // Remove empty parts
+    let basePath: string;
+    
     if (parts.length >= 2 && parts[0] === category) {
-      return `${category}/${parts.slice(1).join('-')}.md`;
+      basePath = `${category}/${parts.slice(1).join('-')}.md`;
+    } else {
+      basePath = `${category}/${documentId.replace(/^-+|-+$/g, '').replace(/-+/g, '-')}.md`;
     }
-    return `${category}/${documentId}.md`;
+    
+    // Include language if provided
+    if (language) {
+      return `${language}/${basePath}`;
+    }
+    
+    return basePath;
   }
 
   /**
@@ -407,8 +418,11 @@ export class PrioritySchemaManager {
   /**
    * Generate character limits guidelines
    */
-  private generateCharacterLimits(strategy: string, category: string, title: string): PrioritySchema['extraction']['character_limits'] {
-    const baseGuidelines = {
+  private generateCharacterLimits(strategy: string, category: string, title: string, options: PriorityGenerationOptions): PrioritySchema['extraction']['characterLimit'] {
+    // Get character limits from config (passed through options)
+    const characterLimits = options.characterLimits || [200, 500, 1000];
+    
+    const baseGuidelines: any = {
       minimum: {
         focus: 'Quick navigation and document overview',
         structure: 'Document links + 2-3 line description + related documents',
@@ -422,29 +436,42 @@ export class PrioritySchemaManager {
         must_include: ['complete original content'],
         avoid: ['modifications', 'truncations'],
         example_structure: `Complete copy of ${category}/*.md`
-      },
-      '100': {
-        focus: strategy === 'concept-first' ? 'Core concept definition' : 'Primary functionality',
-        structure: 'One-sentence definition or primary use case',
-        must_include: ['main concept', 'framework context'],
-        avoid: ['code examples', 'detailed explanations'],
-        example_structure: `${title}: Brief definition with Context-Action framework context`
-      },
-      '300': {
-        focus: 'Core concepts with basic context',
-        structure: 'Definition + main purpose + key benefit',
-        must_include: ['concept definition', 'main purpose', 'key benefit'],
-        avoid: ['code syntax', 'advanced details'],
-        example_structure: 'Concept definition → Main purpose → Key benefit'
-      },
-      '500': {
-        focus: 'Practical understanding',
-        structure: 'Concept + basic usage + simple example hint',
-        must_include: ['concept', 'usage context', 'basic example'],
-        avoid: ['detailed code', 'advanced topics'],
-        example_structure: 'Concept → Usage context → Basic example'
       }
     };
+
+    // Dynamically add character limits from config
+    characterLimits.forEach((limit, index) => {
+      const limitKey = limit.toString();
+      
+      if (index === 0) {
+        // First (smallest) limit
+        baseGuidelines[limitKey] = {
+          focus: strategy === 'concept-first' ? 'Core concept definition' : 'Primary functionality',
+          structure: 'One-sentence definition or primary use case',
+          must_include: ['main concept', 'framework context'],
+          avoid: ['code examples', 'detailed explanations'],
+          example_structure: `${title}: Brief definition with Context-Action framework context`
+        };
+      } else if (index === 1) {
+        // Second (medium) limit
+        baseGuidelines[limitKey] = {
+          focus: 'Core concepts with basic context',
+          structure: 'Definition + main purpose + key benefit',
+          must_include: ['concept definition', 'main purpose', 'key benefit'],
+          avoid: ['code syntax', 'advanced details'],
+          example_structure: 'Concept definition → Main purpose → Key benefit'
+        };
+      } else if (index === 2) {
+        // Third (largest) limit
+        baseGuidelines[limitKey] = {
+          focus: 'Practical understanding',
+          structure: 'Concept + basic usage + simple example hint',
+          must_include: ['concept', 'usage context', 'basic example'],
+          avoid: ['detailed code', 'advanced topics'],
+          example_structure: 'Concept → Usage context → Basic example'
+        };
+      }
+    });
 
     return baseGuidelines;
   }
@@ -481,6 +508,65 @@ export class PrioritySchemaManager {
     }
     
     return items;
+  }
+
+  /**
+   * Generate primary tags based on category
+   */
+  private generatePrimaryTags(category: string): string[] {
+    const categoryTags: Record<string, string[]> = {
+      'guide': ['tutorial', 'step-by-step', 'practical'],
+      'api': ['reference', 'technical', 'developer'],
+      'concept': ['theory', 'architecture', 'design'],
+      'example': ['practical', 'code', 'sample'],
+      'reference': ['detailed', 'comprehensive', 'lookup'],
+      'llms': ['llms', 'optimized', 'concise']
+    };
+    return categoryTags[category] || ['general'];
+  }
+
+  /**
+   * Generate secondary tags based on category and document ID
+   */
+  private generateSecondaryTags(category: string, documentId: string): string[] {
+    const tags: string[] = [];
+    
+    if (documentId.includes('action')) {
+      tags.push('action-pipeline', 'dispatch');
+    }
+    if (documentId.includes('store')) {
+      tags.push('state-management', 'reactive');
+    }
+    if (documentId.includes('hook')) {
+      tags.push('react-hooks');
+    }
+    if (documentId.includes('pattern')) {
+      tags.push('design-patterns');
+    }
+    
+    // Add category-specific secondary tags
+    if (category === 'guide') {
+      tags.push('implementation', 'best-practices');
+    } else if (category === 'api') {
+      tags.push('methods', 'interfaces');
+    }
+    
+    return tags.slice(0, 5); // Limit to 5 tags
+  }
+
+  /**
+   * Get default complexity based on category
+   */
+  private getDefaultComplexity(category: string): string {
+    const complexityMap: Record<string, string> = {
+      'guide': 'basic',
+      'api': 'intermediate',
+      'concept': 'intermediate',
+      'example': 'basic',
+      'reference': 'advanced',
+      'llms': 'basic'
+    };
+    return complexityMap[category] || 'basic';
   }
 
   /**

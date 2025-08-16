@@ -18,6 +18,13 @@ export class DocumentId {
   }
 
   /**
+   * 문자열로부터 DocumentId 생성 (표준 Static Method)
+   */
+  static fromString(value: string): DocumentId {
+    return new DocumentId(value);
+  }
+
+  /**
    * 파일 경로로부터 DocumentId 생성 (더블 대시 규칙 적용)
    */
   static fromPath(sourcePath: string, language?: string): DocumentId {
@@ -103,6 +110,13 @@ export class DocumentId {
    * 암시적 문자열 변환을 위한 valueOf
    */
   valueOf(): string {
+    return this._value;
+  }
+
+  /**
+   * Symbol.toPrimitive 구현으로 타입 호환성 향상
+   */
+  [Symbol.toPrimitive](hint: string): string {
     return this._value;
   }
 

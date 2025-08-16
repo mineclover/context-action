@@ -171,7 +171,7 @@ export class ContentExtractor {
     charLimit: number
   ): Promise<string> {
     // Get character limit configuration from priority
-    const charLimitConfig = priority.extraction.character_limits[charLimit.toString()];
+    const charLimitConfig = priority.extraction.characterLimit[charLimit.toString()];
     
     // Try to read source document
     let sourceContent = '';
@@ -440,7 +440,7 @@ export class ContentExtractor {
    * Extract character limits from priority metadata
    */
   private getCharacterLimitsFromPriority(priority: PriorityMetadata): number[] {
-    const limits = Object.keys(priority.extraction.character_limits || {})
+    const limits = Object.keys(priority.extraction.characterLimit || {})
       .filter(key => !isNaN(parseInt(key)))
       .map(key => parseInt(key))
       .sort((a, b) => a - b);

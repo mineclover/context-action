@@ -2,39 +2,71 @@
   "$schema": "../../priority-schema-enhanced.json",
   "document": {
     "id": "api--react--src--functions--assertstorevalue",
-    "title": "Api  React  Src  Functions  Assertstorevalue",
-    "source_path": "en/api/react/src/functions/assertStoreValue.md",
-    "category": "api",
-    "lastModified": "2025-08-16T02:18:05.163Z",
-    "wordCount": 0,
-    "subcategory": ""
+    "title": "Function: assertStoreValue()",
+    "source_path": "en/api/react-src-functions-assertstorevalue.md",
+    "category": "api"
   },
   "priority": {
-    "score": null,
-    "tier": "",
-    "rationale": "",
-    "reviewDate": "2025-08-16",
-    "autoCalculated": false
+    "score": 75,
+    "tier": "important",
+    "rationale": "Auto-generated priority assignment for api document"
   },
   "purpose": {
-    "primary_goal": "",
-    "target_audience": [],
-    "use_cases": [],
-    "learning_objectives": []
+    "primary_goal": "Provide comprehensive guidance on api  react  src  functions  assertstorevalue",
+    "target_audience": [
+      "framework-users",
+      "beginners"
+    ],
+    "use_cases": [
+      "Understanding api  react  src  functions  assertstorevalue",
+      "Implementing api  react  src  functions  assertstorevalue patterns",
+      "Framework learning"
+    ],
+    "dependencies": []
   },
   "keywords": {
-    "primary": [],
-    "technical": [],
-    "patterns": [],
-    "avoid": []
+    "primary": [
+      "Context-Action framework",
+      "api",
+      "react",
+      "src",
+      "functions"
+    ],
+    "technical": [
+      "Context-Action",
+      "API",
+      "methods",
+      "interfaces",
+      "StoreManager",
+      "useStoreValue",
+      "createDeclarativeStorePattern"
+    ],
+    "patterns": [
+      "Action Only Pattern",
+      "Store Only Pattern"
+    ],
+    "avoid": [
+      "Complex implementation details",
+      "Advanced optimization techniques"
+    ]
   },
   "tags": {
-    "primary": [],
-    "secondary": [],
-    "audience": [],
-    "complexity": "",
-    "estimatedReadingTime": "",
-    "lastUpdated": "2025-08-16"
+    "primary": [
+      "reference",
+      "technical",
+      "developer"
+    ],
+    "secondary": [
+      "state-management",
+      "reactive",
+      "methods",
+      "interfaces"
+    ],
+    "audience": [
+      "framework-users",
+      "beginners"
+    ],
+    "complexity": "intermediate"
   },
   "dependencies": {
     "prerequisites": [],
@@ -44,37 +76,102 @@
     "complements": []
   },
   "extraction": {
-    "strategy": "",
-    "character_limits": {},
+    "strategy": "api-first",
+    "character_limits": {
+      "200": {
+        "focus": "Primary functionality",
+        "structure": "One-sentence definition or primary use case",
+        "must_include": [
+          "main concept",
+          "framework context"
+        ],
+        "avoid": [
+          "code examples",
+          "detailed explanations"
+        ],
+        "example_structure": "Api  React  Src  Functions  Assertstorevalue: Brief definition with Context-Action framework context"
+      },
+      "500": {
+        "focus": "Core concepts with basic context",
+        "structure": "Definition + main purpose + key benefit",
+        "must_include": [
+          "concept definition",
+          "main purpose",
+          "key benefit"
+        ],
+        "avoid": [
+          "code syntax",
+          "advanced details"
+        ],
+        "example_structure": "Concept definition → Main purpose → Key benefit"
+      },
+      "1000": {
+        "focus": "Practical understanding",
+        "structure": "Concept + basic usage + simple example hint",
+        "must_include": [
+          "concept",
+          "usage context",
+          "basic example"
+        ],
+        "avoid": [
+          "detailed code",
+          "advanced topics"
+        ],
+        "example_structure": "Concept → Usage context → Basic example"
+      },
+      "minimum": {
+        "focus": "Quick navigation and document overview",
+        "structure": "Document links + 2-3 line description + related documents",
+        "must_include": [
+          "source document link",
+          "brief purpose",
+          "related documents"
+        ],
+        "avoid": [
+          "detailed explanations",
+          "code examples"
+        ],
+        "example_structure": "Source: api/*.md | Purpose: Api  React  Src  Functions  Assertstorevalue overview | Related: getting-started, best-practices"
+      },
+      "origin": {
+        "focus": "Complete original content preservation",
+        "structure": "Full markdown content from source file",
+        "must_include": [
+          "complete original content"
+        ],
+        "avoid": [
+          "modifications",
+          "truncations"
+        ],
+        "example_structure": "Complete copy of api/*.md"
+      }
+    },
     "emphasis": {
-      "must_include": [],
-      "nice_to_have": [],
-      "contextual_keywords": []
+      "must_include": [
+        "Context-Action framework",
+        "Api  React  Src  Functions  Assertstorevalue",
+        "API signature",
+        "parameters"
+      ],
+      "nice_to_have": [
+        "best practices",
+        "common use cases",
+        "usage examples",
+        "return types"
+      ]
     }
   },
   "quality": {
-    "completeness_threshold": null,
-    "code_examples_required": null,
-    "consistency_checks": [],
-    "lastQualityCheck": "",
-    "qualityScore": null
+    "completeness_threshold": 0.8,
+    "code_examples_required": false,
+    "consistency_checks": [
+      "terminology",
+      "pattern_usage"
+    ]
   },
   "metadata": {
     "created": "2025-08-16",
-    "updated": "2025-08-16",
     "version": "1.0",
-    "original_size": 0,
-    "estimated_extraction_time": {},
-    "maintainer": "",
-    "reviewCycle": ""
-  },
-  "work_status": {
-    "generated_files": {},
-    "last_checked": "2025-08-16T02:18:05.163Z",
-    "automation_status": {
-      "auto_tag_extraction": false,
-      "auto_dependency_detection": false,
-      "last_auto_update": "2025-08-16T02:18:05.163Z"
-    }
+    "original_size": 712
   }
 }

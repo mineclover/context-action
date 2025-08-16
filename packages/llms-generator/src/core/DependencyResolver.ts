@@ -158,22 +158,24 @@ export class DependencyResolver {
         inPath: false
       };
       
-      // Add direct relationships
-      document.dependencies.prerequisites.forEach(prereq => 
-        node.prerequisites.add(prereq.documentId)
-      );
-      document.dependencies.references.forEach(ref => 
-        node.references.add(ref.documentId)
-      );
-      document.dependencies.followups.forEach(followup => 
-        node.followups.add(followup.documentId)
-      );
-      document.dependencies.conflicts.forEach(conflict => 
-        node.conflicts.add(conflict.documentId)
-      );
-      document.dependencies.complements.forEach(complement => 
-        node.complements.add(complement.documentId)
-      );
+      // Add direct relationships (with null safety)
+      if (document.dependencies) {
+        document.dependencies.prerequisites?.forEach(prereq => 
+          node.prerequisites.add(prereq.documentId)
+        );
+        document.dependencies.references?.forEach(ref => 
+          node.references.add(ref.documentId)
+        );
+        document.dependencies.followups?.forEach(followup => 
+          node.followups.add(followup.documentId)
+        );
+        document.dependencies.conflicts?.forEach(conflict => 
+          node.conflicts.add(conflict.documentId)
+        );
+        document.dependencies.complements?.forEach(complement => 
+          node.complements.add(complement.documentId)
+        );
+      }
 
       nodes.set(document.document.id, node);
     }

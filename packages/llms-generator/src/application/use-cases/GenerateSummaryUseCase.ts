@@ -8,7 +8,7 @@
 import { DocumentSummary } from '../../domain/entities/DocumentSummary.js';
 import { DocumentId } from '../../domain/value-objects/DocumentId.js';
 import { CharacterLimit } from '../../domain/value-objects/CharacterLimit.js';
-import type { IDocumentSummaryRepository } from '../../domain/repositories/IDocumentSummaryRepository.js';
+import type { DocumentSummaryRepositoryInterface } from '../../domain/repositories/DocumentSummaryRepositoryInterface.js';
 import type { IFrontmatterService } from '../../domain/services/interfaces/IFrontmatterService.js';
 
 /**
@@ -72,7 +72,7 @@ export interface BatchGenerateResponse {
  */
 export class GenerateSummaryUseCase {
   constructor(
-    private readonly summaryRepository: IDocumentSummaryRepository,
+    private readonly summaryRepository: DocumentSummaryRepositoryInterface,
     private readonly frontmatterService: IFrontmatterService
   ) {}
 

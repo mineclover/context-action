@@ -5,7 +5,10 @@ import * as path from 'path';
 
 // Mock fs module
 jest.mock('fs/promises');
+jest.mock('fs');
 const mockedFs = fs as jest.Mocked<typeof fs>;
+const mockedFsSync = require('fs');
+mockedFsSync.existsSync = jest.fn();
 
 describe('EnhancedConfigManager', () => {
   let configManager: EnhancedConfigManager;
@@ -14,6 +17,9 @@ describe('EnhancedConfigManager', () => {
   beforeEach(() => {
     configManager = new EnhancedConfigManager(testConfigPath);
     jest.clearAllMocks();
+    // Setup default mocks
+    mockedFsSync.existsSync.mockReturnValue(true);
+    mockedFs.readFile.mockResolvedValue('{}');
   });
 
   describe('Constructor', () => {
