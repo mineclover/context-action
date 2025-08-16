@@ -65,7 +65,7 @@ export class CategoryMinimumGenerator {
 
   constructor(options: CategoryMinimumOptions = {}) {
     this.dataDir = options.dataDir || './data';
-    this.outputDir = options.outputDir || './test-minimum-output';
+    this.outputDir = options.outputDir || './test/outputs';
     this.baseUrl = options.baseUrl || 'https://mineclover.github.io/context-action';
     
     // 입력 검증
