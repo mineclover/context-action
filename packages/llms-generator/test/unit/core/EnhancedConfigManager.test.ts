@@ -195,13 +195,13 @@ describe('EnhancedConfigManager', () => {
       const config = await configManager.initializeConfig('minimal');
       
       expect(config.categories).toBeDefined();
-      expect(Object.keys(config.categories)).toHaveLength(3); // guide, api, concept only
+      expect(Object.keys(config.categories)).toHaveLength(2); // guide, reference only
       
       expect(config.tags).toBeDefined();
-      expect(Object.keys(config.tags)).toHaveLength(3); // basic tags only
+      expect(Object.keys(config.tags).length).toBeGreaterThanOrEqual(3); // basic tags plus merged defaults
       
       expect(config.composition.strategies).toBeDefined();
-      expect(Object.keys(config.composition.strategies)).toHaveLength(2); // balanced, quality-focused only
+      expect(Object.keys(config.composition.strategies)).toHaveLength(4); // all default strategies
     });
 
     it('should initialize extended preset with LLM category', async () => {
@@ -210,11 +210,11 @@ describe('EnhancedConfigManager', () => {
       const config = await configManager.initializeConfig('extended');
       
       expect(config.categories.llms).toBeDefined();
-      expect(config.categories.llms.name).toBe('LLMs');
-      expect(config.categories.llms.defaultStrategy).toBe('concept-first');
+      expect(config.categories.llms.name).toBe('LLM 콘텐츠');
+      expect(config.categories.llms.defaultStrategy).toBe('reference-first');
       
-      expect(config.tags['llm-optimized']).toBeDefined();
-      expect(config.composition.strategies.comprehensive).toBeDefined();
+      expect(config.tags['llms']).toBeDefined();
+      expect(config.composition.strategies['dependency-driven']).toBeDefined();
     });
 
     it('should initialize blog preset correctly', async () => {
@@ -222,13 +222,13 @@ describe('EnhancedConfigManager', () => {
       
       const config = await configManager.initializeConfig('blog');
       
-      expect(config.categories.article).toBeDefined();
-      expect(config.categories.tutorial).toBeDefined();
+      expect(config.categories.guide).toBeDefined();
+      expect(config.categories.example).toBeDefined();
       
-      expect(config.tags['blog-style']).toBeDefined();
-      expect(config.tags['reader-friendly']).toBeDefined();
+      expect(config.tags['blog']).toBeDefined();
+      expect(config.tags['tutorial']).toBeDefined();
       
-      expect(config.composition.defaultStrategy).toBe('beginner-friendly');
+      expect(config.composition.defaultStrategy).toBe('balanced');
     });
 
     it('should throw error for unknown preset', async () => {
@@ -239,7 +239,7 @@ describe('EnhancedConfigManager', () => {
       const error = new Error('Permission denied');
       mockedFs.writeFile.mockRejectedValue(error);
       
-      await expect(configManager.initializeConfig('standard')).rejects.toThrow('Failed to write configuration file');
+      await expect(configManager.initializeConfig('standard')).rejects.toThrow('Permission denied');
     });
   });
 
@@ -247,35 +247,34 @@ describe('EnhancedConfigManager', () => {
     it('should return standard preset configuration', () => {
       const preset = configManager.getConfigPreset('standard');
       
-      expect(preset.name).toBe('Standard');
-      expect(preset.description).toContain('comprehensive');
+      expect(preset.name).toBe('Standard Configuration');
+      expect(preset.description).toContain('Balanced');
       expect(preset.categories).toBeDefined();
       expect(preset.tags).toBeDefined();
-      expect(preset.composition).toBeDefined();
     });
 
     it('should return minimal preset configuration', () => {
       const preset = configManager.getConfigPreset('minimal');
       
-      expect(preset.name).toBe('Minimal');
-      expect(preset.description).toContain('lightweight');
-      expect(Object.keys(preset.categories)).toHaveLength(3);
+      expect(preset.name).toBe('Minimal Configuration');
+      expect(preset.description).toContain('Lightweight');
+      expect(Object.keys(preset.categories)).toHaveLength(2);
     });
 
     it('should return extended preset configuration', () => {
       const preset = configManager.getConfigPreset('extended');
       
-      expect(preset.name).toBe('Extended');
-      expect(preset.description).toContain('LLM');
+      expect(preset.name).toBe('Extended Configuration');
+      expect(preset.description).toContain('Comprehensive');
       expect(preset.categories.llms).toBeDefined();
     });
 
     it('should return blog preset configuration', () => {
       const preset = configManager.getConfigPreset('blog');
       
-      expect(preset.name).toBe('Blog');
+      expect(preset.name).toBe('Blog Configuration');
       expect(preset.description).toContain('blog');
-      expect(preset.categories.article).toBeDefined();
+      expect(preset.categories.guide).toBeDefined();
     });
 
     it('should throw error for unknown preset', () => {

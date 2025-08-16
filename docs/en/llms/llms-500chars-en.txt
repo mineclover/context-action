@@ -1,9 +1,0 @@
-# 목차
-
-- Action Only Methods
-
-# Action Only Methods
-
-This is a 2000-character summary about Action Only Methods. This content is an automatically generated template.
-
-**Note**: Complete the priority.json file manually for accurate metadata.

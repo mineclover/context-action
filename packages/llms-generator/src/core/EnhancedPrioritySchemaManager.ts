@@ -8,13 +8,17 @@ import path from 'path';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import type { 
-  DocumentMetadata, 
   EnhancedLLMSConfig, 
-  ExtractStrategy, 
-  DocumentCategory, 
-  PriorityTier,
-  TargetAudience
+  ExtractStrategy,
+  DocumentMetadata
 } from '../types/config.js';
+import {
+  DocumentCategory,
+  PriorityTier,
+  TargetAudience,
+  PriorityMetadata,
+  ExtractionStrategy
+} from '../types/priority.js';
 
 export interface EnhancedPriorityGenerationOptions {
   documentId?: string;
@@ -209,7 +213,7 @@ export class EnhancedPrioritySchemaManager {
         const tagConfig = this.config.tags[tag];
         if (tagConfig) {
           // Check for incompatible tag combinations
-          const incompatibleTags = priority.tags.primary.filter(otherTag => 
+          const incompatibleTags = priority.tags.primary.filter((otherTag: string) => 
             otherTag !== tag && !tagConfig.compatibleWith.includes(otherTag)
           );
 
@@ -229,9 +233,9 @@ export class EnhancedPrioritySchemaManager {
     }
 
     // Check dependency cycles (basic check)
-    const prereqs = priority.dependencies?.prerequisites?.map(p => p.documentId) || [];
-    const followups = priority.dependencies?.followups?.map(f => f.documentId) || [];
-    const cycles = prereqs.filter(prereq => followups.includes(prereq));
+    const prereqs = priority.dependencies?.prerequisites?.map((p: any) => p.documentId) || [];
+    const followups = priority.dependencies?.followups?.map((f: any) => f.documentId) || [];
+    const cycles = prereqs.filter((prereq: string) => followups.includes(prereq));
     if (cycles.length > 0) {
       warnings.push(`Potential dependency cycles detected with: ${cycles.join(', ')}`);
     }
@@ -285,12 +289,12 @@ export class EnhancedPrioritySchemaManager {
   /**
    * Generate an enhanced priority template
    */
-  generatePriorityTemplate(options: EnhancedPriorityGenerationOptions): DocumentMetadata {
+  generatePriorityTemplate(options: EnhancedPriorityGenerationOptions): PriorityMetadata {
     const {
       documentId,
       sourcePath,
       language,
-      category = 'guide',
+      category = DocumentCategory.GUIDE,
       priorityScore,
       priorityTier,
       strategy,
@@ -309,33 +313,29 @@ export class EnhancedPrioritySchemaManager {
     const categoryConfig = this.config?.categories[category];
     const finalPriorityScore = priorityScore || categoryConfig?.priority || 75;
     const finalPriorityTier = priorityTier || this.calculateTierFromScore(finalPriorityScore);
-    const finalStrategy = strategy || categoryConfig?.defaultStrategy || 'concept-first';
+    const finalStrategy = strategy || categoryConfig?.defaultStrategy || ExtractionStrategy.CONCEPT_FIRST;
 
     // Generate smart tags
     const primaryTags = this.generateSmartTags(finalDocumentId, category, tags, autoExtractTags);
     const secondaryTags = this.generateSecondaryTags(category, finalDocumentId);
 
-    const template: DocumentMetadata = {
+    const template: PriorityMetadata = {
       document: {
         id: finalDocumentId,
         title: title,
         source_path: finalSourcePath,
-        category: category,
-        lastModified: new Date().toISOString(),
-        wordCount: 0
+        category: category
       },
       priority: {
         score: finalPriorityScore,
         tier: finalPriorityTier,
-        rationale: `Auto-generated priority for ${category} document`,
-        reviewDate: new Date().toISOString().split('T')[0],
-        autoCalculated: true
+        rationale: `Auto-generated priority for ${category} document`
       },
       purpose: {
         primary_goal: `${category} documentation for ${title}`,
         target_audience: targetAudience,
         use_cases: [],
-        learning_objectives: []
+        dependencies: []
       },
       keywords: {
         primary: primaryTags,
@@ -343,35 +343,23 @@ export class EnhancedPrioritySchemaManager {
         patterns: [],
         avoid: []
       },
-      tags: {
-        primary: primaryTags,
-        secondary: secondaryTags,
-        audience: targetAudience,
-        complexity: this.calculateComplexity(category, primaryTags),
-        estimatedReadingTime: this.estimateReadingTime(category),
-        lastUpdated: new Date().toISOString().split('T')[0]
+      quality: {
+        completeness_threshold: 0.8,
+        code_examples_required: category === DocumentCategory.API || category === DocumentCategory.EXAMPLE,
+        consistency_checks: ['terminology', 'code_style']
       },
-      dependencies: {
-        prerequisites: autoDetectDependencies ? this.detectPrerequisites(finalDocumentId, category) : [],
-        references: [],
-        followups: autoDetectDependencies ? this.detectFollowups(finalDocumentId, category) : [],
-        conflicts: [],
-        complements: []
+      metadata: {
+        created: new Date().toISOString(),
+        version: '1.0.0',
+        original_size: 0
       },
       extraction: {
-        strategy: finalStrategy,
+        strategy: finalStrategy as ExtractionStrategy,
         characterLimit: {},
         emphasis: {
           must_include: [],
-          nice_to_have: [],
-          contextual_keywords: []
+          nice_to_have: []
         }
-      },
-      composition: {
-        categoryAffinity: this.generateCategoryAffinity(category),
-        tagAffinity: this.generateTagAffinity(primaryTags),
-        contextualRelevance: this.generateContextualRelevance(category, primaryTags),
-        userJourneyStage: this.determineUserJourneyStage(category, primaryTags)
       }
     };
 
@@ -582,11 +570,11 @@ export class EnhancedPrioritySchemaManager {
    * Calculate tier from priority score
    */
   private calculateTierFromScore(score: number): PriorityTier {
-    if (score >= 90) return 'critical';
-    if (score >= 80) return 'essential';
-    if (score >= 70) return 'important';
-    if (score >= 60) return 'reference';
-    return 'supplementary';
+    if (score >= 90) return PriorityTier.CRITICAL;
+    if (score >= 80) return PriorityTier.ESSENTIAL;
+    if (score >= 70) return PriorityTier.IMPORTANT;
+    if (score >= 60) return PriorityTier.REFERENCE;
+    return PriorityTier.SUPPLEMENTARY;
   }
 
   /**

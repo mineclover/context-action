@@ -5,7 +5,8 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import * as glob from 'glob';
+// @ts-ignore
+import { glob } from 'glob';
 
 export interface PriorityDocument {
   document: {

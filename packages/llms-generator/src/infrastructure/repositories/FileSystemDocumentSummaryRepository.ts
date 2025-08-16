@@ -173,7 +173,8 @@ export class FileSystemDocumentSummaryRepository implements DocumentSummaryRepos
    * 특정 글자 수 제한의 모든 문서 요약 조회
    */
   async findByCharacterLimit(characterLimit: CharacterLimit): Promise<ReadonlyArray<DocumentSummary>> {
-    return this.findByCriteria({ characterLimit: CharacterLimitUtils.toNumber(characterLimit) });
+    const limitValue = CharacterLimitUtils.toNumber(characterLimit);
+    return this.findByCriteria({ characterLimit: CharacterLimitUtils.toCharacterLimit(limitValue) });
   }
 
   /**
@@ -370,13 +371,20 @@ export class FileSystemDocumentSummaryRepository implements DocumentSummaryRepos
       const frontmatter = parseResult.frontmatter;
       const data = frontmatter.data;
 
-      return DocumentSummary.create({
+      const summaryResult = DocumentSummary.create({
         document: data.document,
         priority: data.priority,
         summary: data.summary,
         content: parseResult.content,
         generated: data.generated
       });
+      
+      if (summaryResult.isFailure) {
+        console.warn('Failed to create DocumentSummary:', summaryResult.error);
+        return null;
+      }
+      
+      return summaryResult.value;
 
     } catch (error) {
       console.warn('Failed to parse markdown to summary:', error);

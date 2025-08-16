@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Priority JSON 검증 (config 기반)
+echo "🔍 Priority JSON 파일들을 검증합니다..."
+
+# Pre-commit hook 실행 - 모든 설정은 llms-generator.config.json에서 로드
+npx @context-action/llms-generator pre-commit-check --quiet
+
+# 검증 결과에 따라 커밋 허용/차단
+if [ $? -eq 0 ]; then
+  echo "✅ Priority JSON 검증 통과 - 커밋을 진행합니다."
+  exit 0
+else
+  echo "❌ Priority JSON 검증 실패 - 커밋이 차단되었습니다."
+  echo "상세 내용은 .husky/pre-commit-report.json을 확인하세요."
+  exit 1
+fi

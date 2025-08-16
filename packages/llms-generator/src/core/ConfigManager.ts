@@ -282,7 +282,7 @@ export class ConfigManager {
     for (const key in source) {
       if (source[key] !== undefined) {
         if (typeof source[key] === 'object' && source[key] !== null && !Array.isArray(source[key])) {
-          result[key] = this.deepMerge((result[key] as Record<string, any>) || {}, source[key] as any);
+          (result as any)[key] = this.deepMerge((result[key] as Record<string, any>) || {}, source[key] as any);
         } else {
           result[key] = source[key] as any;
         }

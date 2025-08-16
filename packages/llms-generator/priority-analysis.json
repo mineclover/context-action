@@ -1,0 +1,2819 @@
+{
+  "analysis": {
+    "summary": {
+      "totalFiles": 128,
+      "completeFiles": 0,
+      "partialFiles": 0,
+      "emptyFiles": 128,
+      "missingFiles": 0,
+      "completionRate": 0
+    },
+    "byLanguage": {
+      "en": {
+        "total": 102,
+        "complete": 0,
+        "completionRate": 0
+      },
+      "ko": {
+        "total": 26,
+        "complete": 0,
+        "completionRate": 0
+      }
+    },
+    "byCategory": {
+      "api--action-only": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--action-registry": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--core--action-register": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--core--pipeline-controller": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--core--src--classes--actionregister": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--core--src--functions--executeparallel": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--core--src--functions--executerace": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--core--src--functions--executesequential": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--core--src--interfaces--actiondispatcher": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--core--src--interfaces--actionpayloadmap": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--core--src--interfaces--actionregisterconfig": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--core--src--interfaces--dispatchoptions": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--core--src--interfaces--executionresult": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--core--src--interfaces--handlerconfig": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--core--src--interfaces--handlerregistration": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--core--src--interfaces--pipelinecontext": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--core--src--interfaces--pipelinecontroller": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--core--src--readme": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--core--src--type-aliases--actionhandler": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--core--src--type-aliases--executionmode": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--core--src--type-aliases--unregisterfunction": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--declarative-store-pattern": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--pipeline-controller": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--action-context": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--classes--eventbus": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--classes--registryutils": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--classes--store": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--classes--storeregistry": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--assertstorevalue": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--comparevalues": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--createactioncontext": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--createdeclarativestorepattern": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--createregistrysync": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--createstore": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--createstorecontext": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--deepclone": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--deepequal": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--defaultequalityfn": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--getglobalcomparisonoptions": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--getglobalimmutabilityoptions": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--performantsafeget": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--safeget": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--safeset": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--setglobalcomparisonoptions": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--shallowequal": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--useasynccomputedstore": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--usecomputedstore": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--usecomputedstoreinstance": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--uselocalstore": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--usemulticomputedstore": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--usemultistoreselector": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--usepersistedstore": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--usestore": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--usestorepathselector": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--usestoreselector": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--usestorevalue": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--functions--usestorevalues": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--interfaces--actioncontextconfig": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--interfaces--actioncontextreturn": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--interfaces--actioncontexttype": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--interfaces--comparisonoptions": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--interfaces--ieventbus": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--interfaces--istore": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--interfaces--istoreregistry": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--interfaces--snapshot": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--interfaces--storeconfig": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--interfaces--storecontextreturn": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--interfaces--storecontexttype": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--interfaces--storeeventhandler": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--interfaces--withproviderconfig": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--readme": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--type-aliases--comparisonstrategy": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--type-aliases--customcomparator": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--type-aliases--inferinitialstores": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--type-aliases--inferstoretypes": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--type-aliases--initialstores": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--type-aliases--listener": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--type-aliases--storedefinitions": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--type-aliases--storevalues": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--type-aliases--unsubscribe": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--variables--usestorecontext": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--src--variables--usestoreregistry": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--store-manager": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--react--store-pattern": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--readme": {
+        "total": 1,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--store-manager": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "api--store-only": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "concept--action-pipeline-guide": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "concept--architecture-guide": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "concept--conventions": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "concept--hooks-reference": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "concept--pattern-guide": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "examples--action-only": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "examples--basic-setup": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "examples--pattern-composition": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "examples--store-only": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "guide--action-handlers": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "guide--action-pipeline": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "guide--architecture": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "guide--best-practices": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "guide--getting-started": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      },
+      "guide--hooks": {
+        "total": 2,
+        "complete": 0,
+        "completionRate": 0,
+        "averagePriority": 0
+      }
+    },
+    "files": [
+      {
+        "path": "data/en/api--action-only/priority.json",
+        "category": "api--action-only",
+        "language": "en",
+        "exists": true,
+        "size": 4492,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--action-registry/priority.json",
+        "category": "api--action-registry",
+        "language": "en",
+        "exists": true,
+        "size": 4626,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--core--action-register/priority.json",
+        "category": "api--core--action-register",
+        "language": "en",
+        "exists": true,
+        "size": 4501,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--core--pipeline-controller/priority.json",
+        "category": "api--core--pipeline-controller",
+        "language": "en",
+        "exists": true,
+        "size": 4558,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--core--src--classes--actionregister/priority.json",
+        "category": "api--core--src--classes--actionregister",
+        "language": "en",
+        "exists": true,
+        "size": 4656,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--core--src--functions--executeparallel/priority.json",
+        "category": "api--core--src--functions--executeparallel",
+        "language": "en",
+        "exists": true,
+        "size": 4535,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--core--src--functions--executerace/priority.json",
+        "category": "api--core--src--functions--executerace",
+        "language": "en",
+        "exists": true,
+        "size": 4499,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--core--src--functions--executesequential/priority.json",
+        "category": "api--core--src--functions--executesequential",
+        "language": "en",
+        "exists": true,
+        "size": 4553,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--core--src--interfaces--actiondispatcher/priority.json",
+        "category": "api--core--src--interfaces--actiondispatcher",
+        "language": "en",
+        "exists": true,
+        "size": 4631,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--core--src--interfaces--actionpayloadmap/priority.json",
+        "category": "api--core--src--interfaces--actionpayloadmap",
+        "language": "en",
+        "exists": true,
+        "size": 4621,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--core--src--interfaces--actionregisterconfig/priority.json",
+        "category": "api--core--src--interfaces--actionregisterconfig",
+        "language": "en",
+        "exists": true,
+        "size": 4658,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--core--src--interfaces--dispatchoptions/priority.json",
+        "category": "api--core--src--interfaces--dispatchoptions",
+        "language": "en",
+        "exists": true,
+        "size": 4515,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--core--src--interfaces--executionresult/priority.json",
+        "category": "api--core--src--interfaces--executionresult",
+        "language": "en",
+        "exists": true,
+        "size": 4497,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--core--src--interfaces--handlerconfig/priority.json",
+        "category": "api--core--src--interfaces--handlerconfig",
+        "language": "en",
+        "exists": true,
+        "size": 4490,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--core--src--interfaces--handlerregistration/priority.json",
+        "category": "api--core--src--interfaces--handlerregistration",
+        "language": "en",
+        "exists": true,
+        "size": 4536,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--core--src--interfaces--pipelinecontext/priority.json",
+        "category": "api--core--src--interfaces--pipelinecontext",
+        "language": "en",
+        "exists": true,
+        "size": 4500,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--core--src--interfaces--pipelinecontroller/priority.json",
+        "category": "api--core--src--interfaces--pipelinecontroller",
+        "language": "en",
+        "exists": true,
+        "size": 4638,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--core--src--readme/priority.json",
+        "category": "api--core--src--readme",
+        "language": "en",
+        "exists": true,
+        "size": 4362,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--core--src--type-aliases--actionhandler/priority.json",
+        "category": "api--core--src--type-aliases--actionhandler",
+        "language": "en",
+        "exists": true,
+        "size": 4697,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--core--src--type-aliases--executionmode/priority.json",
+        "category": "api--core--src--type-aliases--executionmode",
+        "language": "en",
+        "exists": true,
+        "size": 4482,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--core--src--type-aliases--unregisterfunction/priority.json",
+        "category": "api--core--src--type-aliases--unregisterfunction",
+        "language": "en",
+        "exists": true,
+        "size": 4529,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--declarative-store-pattern/priority.json",
+        "category": "api--declarative-store-pattern",
+        "language": "en",
+        "exists": true,
+        "size": 4613,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--pipeline-controller/priority.json",
+        "category": "api--pipeline-controller",
+        "language": "en",
+        "exists": true,
+        "size": 4448,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--action-context/priority.json",
+        "category": "api--react--action-context",
+        "language": "en",
+        "exists": true,
+        "size": 4577,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--classes--eventbus/priority.json",
+        "category": "api--react--src--classes--eventbus",
+        "language": "en",
+        "exists": true,
+        "size": 4405,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--classes--registryutils/priority.json",
+        "category": "api--react--src--classes--registryutils",
+        "language": "en",
+        "exists": true,
+        "size": 4450,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--classes--store/priority.json",
+        "category": "api--react--src--classes--store",
+        "language": "en",
+        "exists": true,
+        "size": 4602,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--classes--storeregistry/priority.json",
+        "category": "api--react--src--classes--storeregistry",
+        "language": "en",
+        "exists": true,
+        "size": 4578,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--assertstorevalue/priority.json",
+        "category": "api--react--src--functions--assertstorevalue",
+        "language": "en",
+        "exists": true,
+        "size": 4627,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--comparevalues/priority.json",
+        "category": "api--react--src--functions--comparevalues",
+        "language": "en",
+        "exists": true,
+        "size": 4473,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--createactioncontext/priority.json",
+        "category": "api--react--src--functions--createactioncontext",
+        "language": "en",
+        "exists": true,
+        "size": 4739,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--createdeclarativestorepattern/priority.json",
+        "category": "api--react--src--functions--createdeclarativestorepattern",
+        "language": "en",
+        "exists": true,
+        "size": 4857,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--createregistrysync/priority.json",
+        "category": "api--react--src--functions--createregistrysync",
+        "language": "en",
+        "exists": true,
+        "size": 4597,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--createstore/priority.json",
+        "category": "api--react--src--functions--createstore",
+        "language": "en",
+        "exists": true,
+        "size": 4622,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--createstorecontext/priority.json",
+        "category": "api--react--src--functions--createstorecontext",
+        "language": "en",
+        "exists": true,
+        "size": 4713,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--deepclone/priority.json",
+        "category": "api--react--src--functions--deepclone",
+        "language": "en",
+        "exists": true,
+        "size": 4456,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--deepequal/priority.json",
+        "category": "api--react--src--functions--deepequal",
+        "language": "en",
+        "exists": true,
+        "size": 4462,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--defaultequalityfn/priority.json",
+        "category": "api--react--src--functions--defaultequalityfn",
+        "language": "en",
+        "exists": true,
+        "size": 4534,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--getglobalcomparisonoptions/priority.json",
+        "category": "api--react--src--functions--getglobalcomparisonoptions",
+        "language": "en",
+        "exists": true,
+        "size": 4589,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--getglobalimmutabilityoptions/priority.json",
+        "category": "api--react--src--functions--getglobalimmutabilityoptions",
+        "language": "en",
+        "exists": true,
+        "size": 4607,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--performantsafeget/priority.json",
+        "category": "api--react--src--functions--performantsafeget",
+        "language": "en",
+        "exists": true,
+        "size": 4508,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--safeget/priority.json",
+        "category": "api--react--src--functions--safeget",
+        "language": "en",
+        "exists": true,
+        "size": 4418,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--safeset/priority.json",
+        "category": "api--react--src--functions--safeset",
+        "language": "en",
+        "exists": true,
+        "size": 4418,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--setglobalcomparisonoptions/priority.json",
+        "category": "api--react--src--functions--setglobalcomparisonoptions",
+        "language": "en",
+        "exists": true,
+        "size": 4589,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--shallowequal/priority.json",
+        "category": "api--react--src--functions--shallowequal",
+        "language": "en",
+        "exists": true,
+        "size": 4489,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--useasynccomputedstore/priority.json",
+        "category": "api--react--src--functions--useasynccomputedstore",
+        "language": "en",
+        "exists": true,
+        "size": 4793,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--usecomputedstore/priority.json",
+        "category": "api--react--src--functions--usecomputedstore",
+        "language": "en",
+        "exists": true,
+        "size": 4675,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--usecomputedstoreinstance/priority.json",
+        "category": "api--react--src--functions--usecomputedstoreinstance",
+        "language": "en",
+        "exists": true,
+        "size": 4793,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--uselocalstore/priority.json",
+        "category": "api--react--src--functions--uselocalstore",
+        "language": "en",
+        "exists": true,
+        "size": 4623,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--usemulticomputedstore/priority.json",
+        "category": "api--react--src--functions--usemulticomputedstore",
+        "language": "en",
+        "exists": true,
+        "size": 4751,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--usemultistoreselector/priority.json",
+        "category": "api--react--src--functions--usemultistoreselector",
+        "language": "en",
+        "exists": true,
+        "size": 4751,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--usepersistedstore/priority.json",
+        "category": "api--react--src--functions--usepersistedstore",
+        "language": "en",
+        "exists": true,
+        "size": 4664,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--usestore/priority.json",
+        "category": "api--react--src--functions--usestore",
+        "language": "en",
+        "exists": true,
+        "size": 4646,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--usestorepathselector/priority.json",
+        "category": "api--react--src--functions--usestorepathselector",
+        "language": "en",
+        "exists": true,
+        "size": 4741,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--usestoreselector/priority.json",
+        "category": "api--react--src--functions--usestoreselector",
+        "language": "en",
+        "exists": true,
+        "size": 4705,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--usestorevalue/priority.json",
+        "category": "api--react--src--functions--usestorevalue",
+        "language": "en",
+        "exists": true,
+        "size": 4601,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--functions--usestorevalues/priority.json",
+        "category": "api--react--src--functions--usestorevalues",
+        "language": "en",
+        "exists": true,
+        "size": 4655,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--interfaces--actioncontextconfig/priority.json",
+        "category": "api--react--src--interfaces--actioncontextconfig",
+        "language": "en",
+        "exists": true,
+        "size": 4657,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--interfaces--actioncontextreturn/priority.json",
+        "category": "api--react--src--interfaces--actioncontextreturn",
+        "language": "en",
+        "exists": true,
+        "size": 4744,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--interfaces--actioncontexttype/priority.json",
+        "category": "api--react--src--interfaces--actioncontexttype",
+        "language": "en",
+        "exists": true,
+        "size": 4646,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--interfaces--comparisonoptions/priority.json",
+        "category": "api--react--src--interfaces--comparisonoptions",
+        "language": "en",
+        "exists": true,
+        "size": 4524,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--interfaces--ieventbus/priority.json",
+        "category": "api--react--src--interfaces--ieventbus",
+        "language": "en",
+        "exists": true,
+        "size": 4445,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--interfaces--istore/priority.json",
+        "category": "api--react--src--interfaces--istore",
+        "language": "en",
+        "exists": true,
+        "size": 4675,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--interfaces--istoreregistry/priority.json",
+        "category": "api--react--src--interfaces--istoreregistry",
+        "language": "en",
+        "exists": true,
+        "size": 4675,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--interfaces--snapshot/priority.json",
+        "category": "api--react--src--interfaces--snapshot",
+        "language": "en",
+        "exists": true,
+        "size": 4473,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--interfaces--storeconfig/priority.json",
+        "category": "api--react--src--interfaces--storeconfig",
+        "language": "en",
+        "exists": true,
+        "size": 4598,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--interfaces--storecontextreturn/priority.json",
+        "category": "api--react--src--interfaces--storecontextreturn",
+        "language": "en",
+        "exists": true,
+        "size": 4705,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--interfaces--storecontexttype/priority.json",
+        "category": "api--react--src--interfaces--storecontexttype",
+        "language": "en",
+        "exists": true,
+        "size": 4635,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--interfaces--storeeventhandler/priority.json",
+        "category": "api--react--src--interfaces--storeeventhandler",
+        "language": "en",
+        "exists": true,
+        "size": 4653,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--interfaces--withproviderconfig/priority.json",
+        "category": "api--react--src--interfaces--withproviderconfig",
+        "language": "en",
+        "exists": true,
+        "size": 4526,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--readme/priority.json",
+        "category": "api--react--src--readme",
+        "language": "en",
+        "exists": true,
+        "size": 4455,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--type-aliases--comparisonstrategy/priority.json",
+        "category": "api--react--src--type-aliases--comparisonstrategy",
+        "language": "en",
+        "exists": true,
+        "size": 4536,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--type-aliases--customcomparator/priority.json",
+        "category": "api--react--src--type-aliases--customcomparator",
+        "language": "en",
+        "exists": true,
+        "size": 4528,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--type-aliases--inferinitialstores/priority.json",
+        "category": "api--react--src--type-aliases--inferinitialstores",
+        "language": "en",
+        "exists": true,
+        "size": 4671,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--type-aliases--inferstoretypes/priority.json",
+        "category": "api--react--src--type-aliases--inferstoretypes",
+        "language": "en",
+        "exists": true,
+        "size": 4644,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--type-aliases--initialstores/priority.json",
+        "category": "api--react--src--type-aliases--initialstores",
+        "language": "en",
+        "exists": true,
+        "size": 4626,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--type-aliases--listener/priority.json",
+        "category": "api--react--src--type-aliases--listener",
+        "language": "en",
+        "exists": true,
+        "size": 4448,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--type-aliases--storedefinitions/priority.json",
+        "category": "api--react--src--type-aliases--storedefinitions",
+        "language": "en",
+        "exists": true,
+        "size": 4646,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--type-aliases--storevalues/priority.json",
+        "category": "api--react--src--type-aliases--storevalues",
+        "language": "en",
+        "exists": true,
+        "size": 4608,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--type-aliases--unsubscribe/priority.json",
+        "category": "api--react--src--type-aliases--unsubscribe",
+        "language": "en",
+        "exists": true,
+        "size": 4475,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--variables--usestorecontext/priority.json",
+        "category": "api--react--src--variables--usestorecontext",
+        "language": "en",
+        "exists": true,
+        "size": 4643,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--src--variables--usestoreregistry/priority.json",
+        "category": "api--react--src--variables--usestoreregistry",
+        "language": "en",
+        "exists": true,
+        "size": 4653,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--store-manager/priority.json",
+        "category": "api--react--store-manager",
+        "language": "en",
+        "exists": true,
+        "size": 4680,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--react--store-pattern/priority.json",
+        "category": "api--react--store-pattern",
+        "language": "en",
+        "exists": true,
+        "size": 4563,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--readme/priority.json",
+        "category": "api--readme",
+        "language": "en",
+        "exists": true,
+        "size": 4209,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--store-manager/priority.json",
+        "category": "api--store-manager",
+        "language": "en",
+        "exists": true,
+        "size": 4593,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/api--store-only/priority.json",
+        "category": "api--store-only",
+        "language": "en",
+        "exists": true,
+        "size": 4445,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/concept--action-pipeline-guide/priority.json",
+        "category": "concept--action-pipeline-guide",
+        "language": "en",
+        "exists": true,
+        "size": 4693,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/concept--architecture-guide/priority.json",
+        "category": "concept--architecture-guide",
+        "language": "en",
+        "exists": true,
+        "size": 4838,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/concept--conventions/priority.json",
+        "category": "concept--conventions",
+        "language": "en",
+        "exists": true,
+        "size": 4626,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/concept--hooks-reference/priority.json",
+        "category": "concept--hooks-reference",
+        "language": "en",
+        "exists": true,
+        "size": 4755,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/concept--pattern-guide/priority.json",
+        "category": "concept--pattern-guide",
+        "language": "en",
+        "exists": true,
+        "size": 4792,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/examples--action-only/priority.json",
+        "category": "examples--action-only",
+        "language": "en",
+        "exists": true,
+        "size": 4497,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/examples--basic-setup/priority.json",
+        "category": "examples--basic-setup",
+        "language": "en",
+        "exists": true,
+        "size": 4415,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/examples--pattern-composition/priority.json",
+        "category": "examples--pattern-composition",
+        "language": "en",
+        "exists": true,
+        "size": 4602,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/examples--store-only/priority.json",
+        "category": "examples--store-only",
+        "language": "en",
+        "exists": true,
+        "size": 4502,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/guide--action-handlers/priority.json",
+        "category": "guide--action-handlers",
+        "language": "en",
+        "exists": true,
+        "size": 4790,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/guide--action-pipeline/priority.json",
+        "category": "guide--action-pipeline",
+        "language": "en",
+        "exists": true,
+        "size": 4736,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/guide--architecture/priority.json",
+        "category": "guide--architecture",
+        "language": "en",
+        "exists": true,
+        "size": 4415,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/guide--best-practices/priority.json",
+        "category": "guide--best-practices",
+        "language": "en",
+        "exists": true,
+        "size": 4674,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/guide--getting-started/priority.json",
+        "category": "guide--getting-started",
+        "language": "en",
+        "exists": true,
+        "size": 4778,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/en/guide--hooks/priority.json",
+        "category": "guide--hooks",
+        "language": "en",
+        "exists": true,
+        "size": 4616,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/api--action-only/priority.json",
+        "category": "api--action-only",
+        "language": "ko",
+        "exists": true,
+        "size": 4488,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/api--action-registry/priority.json",
+        "category": "api--action-registry",
+        "language": "ko",
+        "exists": true,
+        "size": 4597,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/api--core--action-register/priority.json",
+        "category": "api--core--action-register",
+        "language": "ko",
+        "exists": true,
+        "size": 4500,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/api--core--pipeline-controller/priority.json",
+        "category": "api--core--pipeline-controller",
+        "language": "ko",
+        "exists": true,
+        "size": 4558,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/api--declarative-store-pattern/priority.json",
+        "category": "api--declarative-store-pattern",
+        "language": "ko",
+        "exists": true,
+        "size": 4598,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/api--pipeline-controller/priority.json",
+        "category": "api--pipeline-controller",
+        "language": "ko",
+        "exists": true,
+        "size": 4439,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/api--react--action-context/priority.json",
+        "category": "api--react--action-context",
+        "language": "ko",
+        "exists": true,
+        "size": 4569,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/api--react--store-manager/priority.json",
+        "category": "api--react--store-manager",
+        "language": "ko",
+        "exists": true,
+        "size": 4673,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/api--react--store-pattern/priority.json",
+        "category": "api--react--store-pattern",
+        "language": "ko",
+        "exists": true,
+        "size": 4556,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/api--store-manager/priority.json",
+        "category": "api--store-manager",
+        "language": "ko",
+        "exists": true,
+        "size": 4586,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/api--store-only/priority.json",
+        "category": "api--store-only",
+        "language": "ko",
+        "exists": true,
+        "size": 4441,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/concept--action-pipeline-guide/priority.json",
+        "category": "concept--action-pipeline-guide",
+        "language": "ko",
+        "exists": true,
+        "size": 4777,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/concept--architecture-guide/priority.json",
+        "category": "concept--architecture-guide",
+        "language": "ko",
+        "exists": true,
+        "size": 4606,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/concept--conventions/priority.json",
+        "category": "concept--conventions",
+        "language": "ko",
+        "exists": true,
+        "size": 4626,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/concept--hooks-reference/priority.json",
+        "category": "concept--hooks-reference",
+        "language": "ko",
+        "exists": true,
+        "size": 4755,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/concept--pattern-guide/priority.json",
+        "category": "concept--pattern-guide",
+        "language": "ko",
+        "exists": true,
+        "size": 4692,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/examples--action-only/priority.json",
+        "category": "examples--action-only",
+        "language": "ko",
+        "exists": true,
+        "size": 4557,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/examples--basic-setup/priority.json",
+        "category": "examples--basic-setup",
+        "language": "ko",
+        "exists": true,
+        "size": 4408,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/examples--pattern-composition/priority.json",
+        "category": "examples--pattern-composition",
+        "language": "ko",
+        "exists": true,
+        "size": 4583,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/examples--store-only/priority.json",
+        "category": "examples--store-only",
+        "language": "ko",
+        "exists": true,
+        "size": 4469,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/guide--action-handlers/priority.json",
+        "category": "guide--action-handlers",
+        "language": "ko",
+        "exists": true,
+        "size": 4765,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/guide--action-pipeline/priority.json",
+        "category": "guide--action-pipeline",
+        "language": "ko",
+        "exists": true,
+        "size": 4711,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/guide--architecture/priority.json",
+        "category": "guide--architecture",
+        "language": "ko",
+        "exists": true,
+        "size": 4407,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/guide--best-practices/priority.json",
+        "category": "guide--best-practices",
+        "language": "ko",
+        "exists": true,
+        "size": 4650,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/guide--getting-started/priority.json",
+        "category": "guide--getting-started",
+        "language": "ko",
+        "exists": true,
+        "size": 4767,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      },
+      {
+        "path": "data/ko/guide--hooks/priority.json",
+        "category": "guide--hooks",
+        "language": "ko",
+        "exists": true,
+        "size": 4612,
+        "priorityCount": 0,
+        "averagePriority": 0,
+        "completionStatus": "empty",
+        "tierDistribution": {},
+        "issues": [
+          "우선순위 데이터 없음",
+          "평균 우선순위가 너무 낮음 (< 20)"
+        ]
+      }
+    ],
+    "issues": {
+      "missingFiles": [],
+      "emptyFiles": [
+        "data/en/api--action-only/priority.json",
+        "data/en/api--action-registry/priority.json",
+        "data/en/api--core--action-register/priority.json",
+        "data/en/api--core--pipeline-controller/priority.json",
+        "data/en/api--core--src--classes--actionregister/priority.json",
+        "data/en/api--core--src--functions--executeparallel/priority.json",
+        "data/en/api--core--src--functions--executerace/priority.json",
+        "data/en/api--core--src--functions--executesequential/priority.json",
+        "data/en/api--core--src--interfaces--actiondispatcher/priority.json",
+        "data/en/api--core--src--interfaces--actionpayloadmap/priority.json",
+        "data/en/api--core--src--interfaces--actionregisterconfig/priority.json",
+        "data/en/api--core--src--interfaces--dispatchoptions/priority.json",
+        "data/en/api--core--src--interfaces--executionresult/priority.json",
+        "data/en/api--core--src--interfaces--handlerconfig/priority.json",
+        "data/en/api--core--src--interfaces--handlerregistration/priority.json",
+        "data/en/api--core--src--interfaces--pipelinecontext/priority.json",
+        "data/en/api--core--src--interfaces--pipelinecontroller/priority.json",
+        "data/en/api--core--src--readme/priority.json",
+        "data/en/api--core--src--type-aliases--actionhandler/priority.json",
+        "data/en/api--core--src--type-aliases--executionmode/priority.json",
+        "data/en/api--core--src--type-aliases--unregisterfunction/priority.json",
+        "data/en/api--declarative-store-pattern/priority.json",
+        "data/en/api--pipeline-controller/priority.json",
+        "data/en/api--react--action-context/priority.json",
+        "data/en/api--react--src--classes--eventbus/priority.json",
+        "data/en/api--react--src--classes--registryutils/priority.json",
+        "data/en/api--react--src--classes--store/priority.json",
+        "data/en/api--react--src--classes--storeregistry/priority.json",
+        "data/en/api--react--src--functions--assertstorevalue/priority.json",
+        "data/en/api--react--src--functions--comparevalues/priority.json",
+        "data/en/api--react--src--functions--createactioncontext/priority.json",
+        "data/en/api--react--src--functions--createdeclarativestorepattern/priority.json",
+        "data/en/api--react--src--functions--createregistrysync/priority.json",
+        "data/en/api--react--src--functions--createstore/priority.json",
+        "data/en/api--react--src--functions--createstorecontext/priority.json",
+        "data/en/api--react--src--functions--deepclone/priority.json",
+        "data/en/api--react--src--functions--deepequal/priority.json",
+        "data/en/api--react--src--functions--defaultequalityfn/priority.json",
+        "data/en/api--react--src--functions--getglobalcomparisonoptions/priority.json",
+        "data/en/api--react--src--functions--getglobalimmutabilityoptions/priority.json",
+        "data/en/api--react--src--functions--performantsafeget/priority.json",
+        "data/en/api--react--src--functions--safeget/priority.json",
+        "data/en/api--react--src--functions--safeset/priority.json",
+        "data/en/api--react--src--functions--setglobalcomparisonoptions/priority.json",
+        "data/en/api--react--src--functions--shallowequal/priority.json",
+        "data/en/api--react--src--functions--useasynccomputedstore/priority.json",
+        "data/en/api--react--src--functions--usecomputedstore/priority.json",
+        "data/en/api--react--src--functions--usecomputedstoreinstance/priority.json",
+        "data/en/api--react--src--functions--uselocalstore/priority.json",
+        "data/en/api--react--src--functions--usemulticomputedstore/priority.json",
+        "data/en/api--react--src--functions--usemultistoreselector/priority.json",
+        "data/en/api--react--src--functions--usepersistedstore/priority.json",
+        "data/en/api--react--src--functions--usestore/priority.json",
+        "data/en/api--react--src--functions--usestorepathselector/priority.json",
+        "data/en/api--react--src--functions--usestoreselector/priority.json",
+        "data/en/api--react--src--functions--usestorevalue/priority.json",
+        "data/en/api--react--src--functions--usestorevalues/priority.json",
+        "data/en/api--react--src--interfaces--actioncontextconfig/priority.json",
+        "data/en/api--react--src--interfaces--actioncontextreturn/priority.json",
+        "data/en/api--react--src--interfaces--actioncontexttype/priority.json",
+        "data/en/api--react--src--interfaces--comparisonoptions/priority.json",
+        "data/en/api--react--src--interfaces--ieventbus/priority.json",
+        "data/en/api--react--src--interfaces--istore/priority.json",
+        "data/en/api--react--src--interfaces--istoreregistry/priority.json",
+        "data/en/api--react--src--interfaces--snapshot/priority.json",
+        "data/en/api--react--src--interfaces--storeconfig/priority.json",
+        "data/en/api--react--src--interfaces--storecontextreturn/priority.json",
+        "data/en/api--react--src--interfaces--storecontexttype/priority.json",
+        "data/en/api--react--src--interfaces--storeeventhandler/priority.json",
+        "data/en/api--react--src--interfaces--withproviderconfig/priority.json",
+        "data/en/api--react--src--readme/priority.json",
+        "data/en/api--react--src--type-aliases--comparisonstrategy/priority.json",
+        "data/en/api--react--src--type-aliases--customcomparator/priority.json",
+        "data/en/api--react--src--type-aliases--inferinitialstores/priority.json",
+        "data/en/api--react--src--type-aliases--inferstoretypes/priority.json",
+        "data/en/api--react--src--type-aliases--initialstores/priority.json",
+        "data/en/api--react--src--type-aliases--listener/priority.json",
+        "data/en/api--react--src--type-aliases--storedefinitions/priority.json",
+        "data/en/api--react--src--type-aliases--storevalues/priority.json",
+        "data/en/api--react--src--type-aliases--unsubscribe/priority.json",
+        "data/en/api--react--src--variables--usestorecontext/priority.json",
+        "data/en/api--react--src--variables--usestoreregistry/priority.json",
+        "data/en/api--react--store-manager/priority.json",
+        "data/en/api--react--store-pattern/priority.json",
+        "data/en/api--readme/priority.json",
+        "data/en/api--store-manager/priority.json",
+        "data/en/api--store-only/priority.json",
+        "data/en/concept--action-pipeline-guide/priority.json",
+        "data/en/concept--architecture-guide/priority.json",
+        "data/en/concept--conventions/priority.json",
+        "data/en/concept--hooks-reference/priority.json",
+        "data/en/concept--pattern-guide/priority.json",
+        "data/en/examples--action-only/priority.json",
+        "data/en/examples--basic-setup/priority.json",
+        "data/en/examples--pattern-composition/priority.json",
+        "data/en/examples--store-only/priority.json",
+        "data/en/guide--action-handlers/priority.json",
+        "data/en/guide--action-pipeline/priority.json",
+        "data/en/guide--architecture/priority.json",
+        "data/en/guide--best-practices/priority.json",
+        "data/en/guide--getting-started/priority.json",
+        "data/en/guide--hooks/priority.json",
+        "data/ko/api--action-only/priority.json",
+        "data/ko/api--action-registry/priority.json",
+        "data/ko/api--core--action-register/priority.json",
+        "data/ko/api--core--pipeline-controller/priority.json",
+        "data/ko/api--declarative-store-pattern/priority.json",
+        "data/ko/api--pipeline-controller/priority.json",
+        "data/ko/api--react--action-context/priority.json",
+        "data/ko/api--react--store-manager/priority.json",
+        "data/ko/api--react--store-pattern/priority.json",
+        "data/ko/api--store-manager/priority.json",
+        "data/ko/api--store-only/priority.json",
+        "data/ko/concept--action-pipeline-guide/priority.json",
+        "data/ko/concept--architecture-guide/priority.json",
+        "data/ko/concept--conventions/priority.json",
+        "data/ko/concept--hooks-reference/priority.json",
+        "data/ko/concept--pattern-guide/priority.json",
+        "data/ko/examples--action-only/priority.json",
+        "data/ko/examples--basic-setup/priority.json",
+        "data/ko/examples--pattern-composition/priority.json",
+        "data/ko/examples--store-only/priority.json",
+        "data/ko/guide--action-handlers/priority.json",
+        "data/ko/guide--action-pipeline/priority.json",
+        "data/ko/guide--architecture/priority.json",
+        "data/ko/guide--best-practices/priority.json",
+        "data/ko/guide--getting-started/priority.json",
+        "data/ko/guide--hooks/priority.json"
+      ],
+      "lowQualityFiles": [],
+      "inconsistentFiles": []
+    },
+    "recommendations": [
+      "전체 완성률이 0.0%로 낮습니다. 우선순위 작업 강화가 필요합니다.",
+      "128개의 빈 파일이 있습니다. 우선순위 데이터를 추가하세요."
+    ]
+  },
+  "progress": {
+    "totalProgress": 0,
+    "categoryProgress": {
+      "api--action-only": 0,
+      "api--action-registry": 0,
+      "api--core--action-register": 0,
+      "api--core--pipeline-controller": 0,
+      "api--core--src--classes--actionregister": 0,
+      "api--core--src--functions--executeparallel": 0,
+      "api--core--src--functions--executerace": 0,
+      "api--core--src--functions--executesequential": 0,
+      "api--core--src--interfaces--actiondispatcher": 0,
+      "api--core--src--interfaces--actionpayloadmap": 0,
+      "api--core--src--interfaces--actionregisterconfig": 0,
+      "api--core--src--interfaces--dispatchoptions": 0,
+      "api--core--src--interfaces--executionresult": 0,
+      "api--core--src--interfaces--handlerconfig": 0,
+      "api--core--src--interfaces--handlerregistration": 0,
+      "api--core--src--interfaces--pipelinecontext": 0,
+      "api--core--src--interfaces--pipelinecontroller": 0,
+      "api--core--src--readme": 0,
+      "api--core--src--type-aliases--actionhandler": 0,
+      "api--core--src--type-aliases--executionmode": 0,
+      "api--core--src--type-aliases--unregisterfunction": 0,
+      "api--declarative-store-pattern": 0,
+      "api--pipeline-controller": 0,
+      "api--react--action-context": 0,
+      "api--react--src--classes--eventbus": 0,
+      "api--react--src--classes--registryutils": 0,
+      "api--react--src--classes--store": 0,
+      "api--react--src--classes--storeregistry": 0,
+      "api--react--src--functions--assertstorevalue": 0,
+      "api--react--src--functions--comparevalues": 0,
+      "api--react--src--functions--createactioncontext": 0,
+      "api--react--src--functions--createdeclarativestorepattern": 0,
+      "api--react--src--functions--createregistrysync": 0,
+      "api--react--src--functions--createstore": 0,
+      "api--react--src--functions--createstorecontext": 0,
+      "api--react--src--functions--deepclone": 0,
+      "api--react--src--functions--deepequal": 0,
+      "api--react--src--functions--defaultequalityfn": 0,
+      "api--react--src--functions--getglobalcomparisonoptions": 0,
+      "api--react--src--functions--getglobalimmutabilityoptions": 0,
+      "api--react--src--functions--performantsafeget": 0,
+      "api--react--src--functions--safeget": 0,
+      "api--react--src--functions--safeset": 0,
+      "api--react--src--functions--setglobalcomparisonoptions": 0,
+      "api--react--src--functions--shallowequal": 0,
+      "api--react--src--functions--useasynccomputedstore": 0,
+      "api--react--src--functions--usecomputedstore": 0,
+      "api--react--src--functions--usecomputedstoreinstance": 0,
+      "api--react--src--functions--uselocalstore": 0,
+      "api--react--src--functions--usemulticomputedstore": 0,
+      "api--react--src--functions--usemultistoreselector": 0,
+      "api--react--src--functions--usepersistedstore": 0,
+      "api--react--src--functions--usestore": 0,
+      "api--react--src--functions--usestorepathselector": 0,
+      "api--react--src--functions--usestoreselector": 0,
+      "api--react--src--functions--usestorevalue": 0,
+      "api--react--src--functions--usestorevalues": 0,
+      "api--react--src--interfaces--actioncontextconfig": 0,
+      "api--react--src--interfaces--actioncontextreturn": 0,
+      "api--react--src--interfaces--actioncontexttype": 0,
+      "api--react--src--interfaces--comparisonoptions": 0,
+      "api--react--src--interfaces--ieventbus": 0,
+      "api--react--src--interfaces--istore": 0,
+      "api--react--src--interfaces--istoreregistry": 0,
+      "api--react--src--interfaces--snapshot": 0,
+      "api--react--src--interfaces--storeconfig": 0,
+      "api--react--src--interfaces--storecontextreturn": 0,
+      "api--react--src--interfaces--storecontexttype": 0,
+      "api--react--src--interfaces--storeeventhandler": 0,
+      "api--react--src--interfaces--withproviderconfig": 0,
+      "api--react--src--readme": 0,
+      "api--react--src--type-aliases--comparisonstrategy": 0,
+      "api--react--src--type-aliases--customcomparator": 0,
+      "api--react--src--type-aliases--inferinitialstores": 0,
+      "api--react--src--type-aliases--inferstoretypes": 0,
+      "api--react--src--type-aliases--initialstores": 0,
+      "api--react--src--type-aliases--listener": 0,
+      "api--react--src--type-aliases--storedefinitions": 0,
+      "api--react--src--type-aliases--storevalues": 0,
+      "api--react--src--type-aliases--unsubscribe": 0,
+      "api--react--src--variables--usestorecontext": 0,
+      "api--react--src--variables--usestoreregistry": 0,
+      "api--react--store-manager": 0,
+      "api--react--store-pattern": 0,
+      "api--readme": 0,
+      "api--store-manager": 0,
+      "api--store-only": 0,
+      "concept--action-pipeline-guide": 0,
+      "concept--architecture-guide": 0,
+      "concept--conventions": 0,
+      "concept--hooks-reference": 0,
+      "concept--pattern-guide": 0,
+      "examples--action-only": 0,
+      "examples--basic-setup": 0,
+      "examples--pattern-composition": 0,
+      "examples--store-only": 0,
+      "guide--action-handlers": 0,
+      "guide--action-pipeline": 0,
+      "guide--architecture": 0,
+      "guide--best-practices": 0,
+      "guide--getting-started": 0,
+      "guide--hooks": 0
+    },
+    "languageProgress": {
+      "en": 0,
+      "ko": 0
+    },
+    "recentChanges": [],
+    "upcomingTasks": [
+      {
+        "priority": "high",
+        "description": "128개의 빈 Priority JSON 파일에 데이터 추가",
+        "estimatedTime": "3840분"
+      }
+    ]
+  },
+  "timestamp": "2025-08-16T19:59:46.153Z"
+}

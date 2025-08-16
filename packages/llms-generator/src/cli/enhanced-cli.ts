@@ -18,6 +18,7 @@ import {
   ConflictDetector
 } from '../core';
 import type { EnhancedLLMSConfig, DocumentMetadata, SelectionConstraints } from '../types/config';
+import { DocumentCategory, PriorityTier, TargetAudience } from '../types/priority.js';
 
 // CLI Classes for document operations
 class DocumentScanner {
@@ -84,17 +85,17 @@ class DocumentScanner {
           id,
           title,
           source_path: relativePath,
-          category,
+          category: category as DocumentCategory,
           wordCount
         },
         priority: {
           score: Math.floor(Math.random() * 100), // Simplified scoring
-          tier: 'useful'
+          tier: PriorityTier.REFERENCE
         },
         tags: {
           primary: tags,
           secondary: [],
-          audience: ['developers'],
+          audience: ['framework-users'] as TargetAudience[],
           complexity: wordCount > 1000 ? 'advanced' : wordCount > 500 ? 'intermediate' : 'basic',
           estimatedReadingTime: `${Math.ceil(wordCount / 200)}분`
         },

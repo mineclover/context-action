@@ -325,7 +325,7 @@ export class ParallelProcessor<T = any, R = any> {
    */
   cleanup(): void {
     this.taskQueue.length = 0;
-    this.activeasks.clear();
+    this.activeTasks.clear();
     this.workers.clear();
   }
 }

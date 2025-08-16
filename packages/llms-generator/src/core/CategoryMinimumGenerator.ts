@@ -5,7 +5,8 @@
 
 import fs from 'fs';
 import path from 'path';
-import * as glob from 'glob';
+// @ts-ignore
+import { glob } from 'glob';
 
 export interface CategoryDocument {
   id: string;
@@ -102,7 +103,7 @@ export class CategoryMinimumGenerator {
    */
   async generateSingle(category: string, language: string): Promise<GenerationResult> {
     try {
-      const documents = this.collectDocuments(language, category);
+      const documents = await this.collectDocuments(language, category);
       
       if (documents.length === 0) {
         return {
@@ -183,8 +184,8 @@ export class CategoryMinimumGenerator {
   /**
    * 카테고리별 통계 정보 반환
    */
-  getCategoryStats(category: string, language: string): CategoryStats {
-    const documents = this.collectDocuments(language, category);
+  async getCategoryStats(category: string, language: string): Promise<CategoryStats> {
+    const documents = await this.collectDocuments(language, category);
     const grouped = this.groupByTier(documents);
     
     const tierBreakdown: Record<string, number> = {};
@@ -206,20 +207,26 @@ export class CategoryMinimumGenerator {
   /**
    * 모든 카테고리의 통계 정보 반환
    */
-  getAllStats(language: string): CategoryStats[] {
-    return this.getAvailableCategories().map(category => 
-      this.getCategoryStats(category, language)
+  async getAllStats(language: string): Promise<CategoryStats[]> {
+    const categories = this.getAvailableCategories();
+    const results = await Promise.all(
+      categories.map(category => this.getCategoryStats(category, language))
     );
+    return results;
   }
 
   /**
    * 특정 언어로 사용 가능한 문서 확인
    */
-  getAvailableDocuments(language: string): { category: string; count: number }[] {
-    return this.getAvailableCategories().map(category => ({
-      category,
-      count: this.collectDocuments(language, category).length
-    }));
+  async getAvailableDocuments(language: string): Promise<{ category: string; count: number }[]> {
+    const categories = this.getAvailableCategories();
+    const results = await Promise.all(
+      categories.map(async category => ({
+        category,
+        count: (await this.collectDocuments(language, category)).length
+      }))
+    );
+    return results;
   }
 
   /**
@@ -254,9 +261,9 @@ export class CategoryMinimumGenerator {
   /**
    * 문서 정보 수집
    */
-  private collectDocuments(language: string, category: string): CategoryDocument[] {
+  private async collectDocuments(language: string, category: string): Promise<CategoryDocument[]> {
     const documents: CategoryDocument[] = [];
-    const priorityFiles = glob.sync(`${this.dataDir}/${language}/*/priority.json`);
+    const priorityFiles = await glob(`${this.dataDir}/${language}/*/priority.json`);
 
     for (const priorityFile of priorityFiles) {
       const priority = this.readPriorityFile(priorityFile);
