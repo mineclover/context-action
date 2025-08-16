@@ -6,14 +6,16 @@
  */
 
 import type { DocumentSummary } from '../entities/DocumentSummary.js';
+import type { DocumentId } from '../value-objects/DocumentId.js';
+import type { CharacterLimit } from '../value-objects/CharacterLimit.js';
 
 /**
  * 문서 요약 검색 조건
  */
 export interface SummarySearchCriteria {
-  readonly documentId?: string;
+  readonly documentId?: DocumentId;
   readonly language?: string;
-  readonly characterLimit?: number;
+  readonly characterLimit?: CharacterLimit;
   readonly priorityRange?: {
     min: number;
     max: number;
@@ -78,9 +80,9 @@ export interface IDocumentSummaryRepository {
    * 문서 ID와 언어, 글자 수로 조회
    */
   findByDocumentAndLimit(
-    documentId: string, 
+    documentId: DocumentId, 
     language: string, 
-    characterLimit: number
+    characterLimit: CharacterLimit
   ): Promise<DocumentSummary | null>;
 
   /**

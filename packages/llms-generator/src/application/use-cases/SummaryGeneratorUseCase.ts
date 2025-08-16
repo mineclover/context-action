@@ -6,6 +6,8 @@
  */
 
 import { DocumentSummary } from '../../domain/entities/DocumentSummary.js';
+import { DocumentId } from '../../domain/value-objects/DocumentId.js';
+import { CharacterLimit } from '../../domain/value-objects/CharacterLimit.js';
 import type { IDocumentSummaryRepository } from '../../domain/repositories/IDocumentSummaryRepository.js';
 import type { ISummaryExtractor, MinimumDocumentInfo, OriginDocumentInfo } from '../../domain/services/interfaces/ISummaryExtractor.js';
 import type { LLMSConfig } from '../../types/index.js';
@@ -171,7 +173,7 @@ export class SummaryGeneratorUseCase {
     // 개선 대상 요약들 조회
     const existingSummaries = await this.summaryRepository.findByCriteria({
       language: criteria.language,
-      characterLimit: criteria.characterLimits?.[0] // 단순화
+      characterLimit: criteria.characterLimits?.[0] ? CharacterLimit.create(criteria.characterLimits[0]) : undefined // 단순화
     });
 
     const results: DocumentGenerationResult[] = [];
@@ -198,9 +200,9 @@ export class SummaryGeneratorUseCase {
 
       if (!needsImprovement) {
         results.push({
-          documentId: summary.document.id,
+          documentId: summary.document.id.value,
           language: summary.summary.language,
-          characterLimit: summary.summary.characterLimit,
+          characterLimit: summary.summary.characterLimit.value,
           success: true,
           summary,
           quality: qualityAssessment
@@ -221,9 +223,9 @@ export class SummaryGeneratorUseCase {
         }
       } catch (error) {
         results.push({
-          documentId: summary.document.id,
+          documentId: summary.document.id.value,
           language: summary.summary.language,
-          characterLimit: summary.summary.characterLimit,
+          characterLimit: summary.summary.characterLimit.value,
           success: false,
           error: error instanceof Error ? error.message : String(error)
         });
@@ -325,11 +327,14 @@ export class SummaryGeneratorUseCase {
   ): Promise<DocumentGenerationResult> {
     try {
       // 추출 컨텍스트 구성
+      const documentId = DocumentId.create(documentInfo.documentId);
+      const charLimit = CharacterLimit.create(characterLimit);
+      
       const context = {
         document: {
           path: this.getDocumentPath(documentInfo),
           title: documentInfo.title,
-          id: documentInfo.documentId,
+          id: documentId,
           category: this.getDocumentCategory(documentInfo)
         },
         priority: {
@@ -337,7 +342,7 @@ export class SummaryGeneratorUseCase {
           tier: documentInfo.tier as any
         },
         summary: {
-          characterLimit,
+          characterLimit: charLimit,
           focus: this.generateFocus(documentInfo, characterLimit),
           strategy: this.selectStrategy(documentInfo, characterLimit),
           language
@@ -368,7 +373,7 @@ export class SummaryGeneratorUseCase {
       }
 
       // DocumentSummary 엔티티 생성
-      const summary = DocumentSummary.create({
+      const summaryResult = DocumentSummary.create({
         document: context.document,
         priority: context.priority,
         summary: context.summary,
@@ -380,6 +385,18 @@ export class SummaryGeneratorUseCase {
           characterCount: extractionResult.actualCharacterCount
         }
       });
+
+      if (summaryResult.isFailure) {
+        return {
+          documentId: documentInfo.documentId,
+          language,
+          characterLimit,
+          success: false,
+          error: `Failed to create summary: ${summaryResult.error.message}`
+        };
+      }
+
+      const summary = summaryResult.value;
 
       // 저장
       const saveResult = await this.summaryRepository.save(summary);
@@ -644,7 +661,7 @@ export class SummaryGeneratorUseCase {
   private async regenerateSummary(existingSummary: DocumentSummary): Promise<DocumentGenerationResult> {
     // 기존 요약 재생성 로직 (간단한 구현)
     const fakeInfo: OriginDocumentInfo = {
-      documentId: existingSummary.document.id,
+      documentId: existingSummary.document.id.value,
       title: existingSummary.document.title,
       priority: existingSummary.priority.score,
       tier: existingSummary.priority.tier,
@@ -654,7 +671,7 @@ export class SummaryGeneratorUseCase {
 
     return this.generateSingleSummary(
       fakeInfo,
-      existingSummary.summary.characterLimit,
+      existingSummary.summary.characterLimit.value,
       existingSummary.summary.language,
       existingSummary.generated.from === 'adaptive' ? 'origin' : existingSummary.generated.from as 'minimum' | 'origin'
     );

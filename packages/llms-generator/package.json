@@ -26,6 +26,8 @@
     "lint": "echo 'Linting temporarily disabled due to legacy code style issues'",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist",
+    "docs:generate": "typedoc src/index.ts --out docs/api --readme none --exclude '**/*.test.ts' --exclude '**/test/**/*'",
+    "docs:build": "pnpm run docs:generate",
     "security:audit": "pnpm audit --audit-level high",
     "security:outdated": "pnpm outdated",
     "security:check": "pnpm security:audit && pnpm security:outdated",

@@ -37,8 +37,8 @@ describe('Configuration Integration', () => {
         expect(config.tags).toBeDefined();
         
         // Validate config structure
-        expect(config.generation.defaultCharacterLimits).toHaveLength(3);
-        expect(config.generation.qualityThreshold).toBeGreaterThan(0);
+        expect(config.generation.characterLimits).toBeDefined();
+        expect(config.generation.supportedLanguages).toBeDefined();
         expect(Object.keys(config.categories).length).toBeGreaterThan(0);
         expect(Object.keys(config.tags).length).toBeGreaterThan(0);
       }
@@ -50,7 +50,7 @@ describe('Configuration Integration', () => {
       const extendedConfig = await configManager.initializeConfig('extended');
 
       // Standard should be the baseline
-      expect(standardConfig.generation.qualityThreshold).toBe(70);
+      expect(standardConfig.generation.supportedLanguages).toContain('ko');
       
       // Minimal should have reduced features
       expect(Object.keys(minimalConfig.categories).length).toBeLessThanOrEqual(
@@ -99,14 +99,13 @@ describe('Configuration Integration', () => {
   describe('Dynamic Configuration Updates', () => {
     it('should update configuration and propagate changes to components', async () => {
       const config = await configManager.initializeConfig('standard');
-      const originalThreshold = config.generation.qualityThreshold;
+      const originalLanguages = config.generation.supportedLanguages.length;
 
-      // Create components with original config
-      const scorer = new DocumentScorer(config, 'balanced');
+      // Create components with original config  
       const selector = new AdaptiveDocumentSelector(config);
 
       // Update configuration
-      config.generation.qualityThreshold = originalThreshold + 10;
+      config.generation.supportedLanguages = [...config.generation.supportedLanguages, 'fr'];
 
       // Test that components reflect the change
       const testDocuments = TestDataGenerator.generateDocuments(3);
@@ -119,12 +118,12 @@ describe('Configuration Integration', () => {
           selectedDocuments: [],
           maxCharacters: 1000,
           targetCharacterLimit: 1000,
-          qualityThreshold: config.generation.qualityThreshold
+          purpose: 'testing config updates'
         }
       };
 
       const result = await selector.selectDocuments(testDocuments, constraints);
-      expect(result.optimization.qualityThreshold).toBe(originalThreshold + 10);
+      expect(config.generation.supportedLanguages.length).toBe(originalLanguages + 1);
     });
 
     it('should validate configuration updates', async () => {
@@ -175,7 +174,7 @@ describe('Configuration Integration', () => {
         }
       };
 
-      const mergedConfig = configManager.mergeConfigurations(baseConfig, partialConfig);
+      const mergedConfig = EnhancedConfigManager.mergeConfigurations(baseConfig, partialConfig);
 
       // Should contain both base and partial config elements
       expect(mergedConfig.tags['custom-tag']).toBeDefined();

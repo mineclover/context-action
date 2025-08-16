@@ -1,348 +1,274 @@
-# Enhanced LLMS-Generator Architecture Guide
+# Architecture Guide
 
-## Overview
+## System Overview
 
-The enhanced LLMS-Generator transforms from a basic document summarization tool into an **intelligent content curation system** that considers categories, tags, and dependencies for "appropriate" content selection.
+The LLMS-Generator is a TypeScript library for processing documentation and generating optimized content for LLM consumption. It provides category-based generation, adaptive document selection, and comprehensive configuration management.
 
-## Core Philosophy
+## Core Components
 
-**"적절히" (Appropriately)** = Categories + Dependencies + Intelligence
+### 1. Category-Based Generation
 
-The system intelligently selects documents by:
-- **Category-based strategies**: Each document type has optimized selection logic
-- **Tag compatibility**: Ensuring harmonious tag combinations 
-- **Dependency resolution**: Automatically including prerequisites and related content
-- **Quality evaluation**: Comprehensive 12-dimension quality assessment
-
-## System Architecture
-
-### Layer 1: Configuration & Schema Management
-
-#### EnhancedConfigManager (`src/core/EnhancedConfigManager.ts`)
-**Purpose**: Manages enhanced configurations with multiple presets and auto-enhancement
+#### CategoryMinimumGenerator
+**Purpose**: Generate minimal LLMS content for specific categories
 
 **Key Features**:
-- 4 built-in presets: `standard`, `minimal`, `extended`, `blog`
-- Auto-enhancement from basic to advanced configuration
-- Category-based and tag-based default configurations
-- Dependency rules and composition strategies
+- Category patterns: `api-spec`, `guide`
+- Multi-language support: `ko`, `en`, `ja`, `zh`
+- Priority-based document sorting
+- Automatic URL generation and metadata processing
 
-**Configuration Structure**:
+**Architecture**:
 ```typescript
-interface EnhancedLLMSConfig extends LLMSConfig {
-  categories: Record<string, CategoryConfig>;      // Document categories
-  tags: Record<string, TagConfig>;                 // Tag definitions
-  dependencies: DependencyConfig;                  // Dependency rules
-  composition: CompositionConfig;                  // Selection strategies
-  extraction: ExtractionConfig;                    // Content extraction
-  validation: ValidationConfig;                    // Validation rules
-  ui: UIConfig;                                   // UI configuration
+CategoryMinimumGenerator
+├── Pattern Matching → Document Discovery
+├── Priority Sorting → Document Ranking  
+├── Content Generation → LLMS Text Output
+└── Statistics & Analytics → Usage Insights
+```
+
+### 2. Adaptive Document Selection
+
+#### AdaptiveDocumentSelector
+**Purpose**: Intelligent document selection with multiple algorithms
+
+**Selection Strategies**:
+- **Balanced**: Equal weight to all factors
+- **Greedy**: Fast efficiency-focused selection
+- **Hybrid**: Combines multiple algorithms
+- **Quality-focused**: Prioritizes high-quality documents
+- **Diverse**: Maximizes category and tag diversity
+
+**Algorithm Flow**:
+```
+Input Documents → Strategy Selection → Algorithm Execution → Optimization → Results
+```
+
+### 3. Configuration Management
+
+#### ConfigManager & EnhancedConfigManager
+**Purpose**: Hierarchical configuration with preset support
+
+**Configuration Layers**:
+1. **Default Configuration**: Base settings and character limits
+2. **User Configuration**: Project-specific overrides
+3. **Enhanced Configuration**: Advanced features and presets
+
+### 4. Document Processing Pipeline
+
+```
+Source Documents
+    ↓
+Priority Metadata Generation
+    ↓
+Category-Based Filtering
+    ↓
+Document Selection Algorithm
+    ↓
+Content Extraction & Summarization
+    ↓
+Output Generation
+```
+
+## Directory Structure
+
+```
+src/
+├── core/
+│   ├── CategoryMinimumGenerator.ts      # Main category generator
+│   ├── AdaptiveDocumentSelector.ts      # Selection algorithms
+│   ├── ConfigManager.ts                 # Basic configuration
+│   ├── EnhancedConfigManager.ts         # Advanced configuration
+│   ├── DocumentScorer.ts                # Document quality scoring
+│   ├── ConflictDetector.ts              # Dependency conflict resolution
+│   └── ...
+├── cli/                                 # Command-line interface
+├── types/                               # TypeScript definitions
+└── utils/                               # Utility functions
+
+data/
+├── {language}/                          # Language-specific content
+│   └── {document-id}/
+│       ├── priority.json                # Document metadata
+│       └── {document-id}-{chars}.md     # Generated summaries
+└── config-schema.json                   # Configuration validation
+
+test/
+├── unit/                                # Unit tests
+├── integration/                         # Integration tests
+├── e2e/                                 # End-to-end tests
+└── fixtures/                            # Test data
+```
+
+## Data Flow
+
+### 1. Document Discovery
+```
+File System Scan → priority.json Files → Category Pattern Matching → Document Registry
+```
+
+### 2. Content Generation
+```
+Document Registry → Priority Sorting → Template Application → Content Generation → File Output
+```
+
+### 3. Selection Process
+```
+Input Constraints → Strategy Selection → Algorithm Execution → Optimization → Result Validation
+```
+
+## Key Design Patterns
+
+### 1. Strategy Pattern
+Used in `AdaptiveDocumentSelector` for multiple selection algorithms:
+```typescript
+interface SelectionStrategy {
+  name: string;
+  algorithm: 'greedy' | 'hybrid' | 'multi-criteria';
+  criteria: SelectionCriteria;
+  constraints: SelectionConstraints;
 }
 ```
 
-#### EnhancedPrioritySchemaManager (`src/core/EnhancedPrioritySchemaManager.ts`)
-**Purpose**: Advanced schema management with smart generation capabilities
-
-**Key Features**:
-- Enhanced JSON schema validation with custom AJV validators
-- Smart tag generation based on document patterns
-- Auto-detection of dependencies and relationships  
-- Contextual relevance and user journey stage analysis
-
-### Layer 2: Document Scoring & Filtering
-
-#### DocumentScorer (`src/core/DocumentScorer.ts`)
-**Purpose**: Multi-dimensional document scoring system
-
-**Scoring Dimensions**:
-- **Category Score**: Based on category priority and affinity
-- **Tag Score**: Tag compatibility and affinity calculations
-- **Dependency Score**: Prerequisite satisfaction and relationship scoring
-- **Priority Score**: Document priority normalization
-- **Contextual Score**: Context-specific relevance scoring
-
-**Strategy Integration**:
-- Supports 4 composition strategies: `balanced`, `category-focused`, `dependency-driven`, `beginner-friendly`
-- Weighted scoring based on strategy configuration
-- Tag affinity calculation with compatibility checking
-
-#### TagBasedDocumentFilter (`src/core/TagBasedDocumentFilter.ts`)
-**Purpose**: Advanced tag filtering with compatibility analysis
-
-**Key Features**:
-- **Tag Compatibility Matrix**: Detects compatible/incompatible tag combinations
-- **Tag Grouping**: Groups documents by tag patterns (core, beginner-friendly, advanced, etc.)
-- **Synergistic Detection**: Finds documents with synergistic tag combinations
-- **Balanced Distribution**: Creates balanced tag distributions within limits
-
-#### CategoryStrategyManager (`src/core/CategoryStrategyManager.ts`)
-**Purpose**: Category-specific selection strategies and analysis
-
-**Category Strategies**:
-- **Guide**: Tutorial-first, beginner-friendly, step-by-step focus
-- **API**: Reference-first, technical accuracy, developer-oriented
-- **Concept**: Concept-first, architectural focus, theory-heavy
-- **Example**: Example-first, practical application, code-heavy
-- **Reference**: Reference-first, comprehensive coverage, lookup-oriented
-- **LLMS**: Optimized for LLM processing, concise, structured
-
-### Layer 3: Dependency & Conflict Management
-
-#### DependencyResolver (`src/core/DependencyResolver.ts`)
-**Purpose**: Resolves document dependencies using graph algorithms
-
-**Core Algorithms**:
-- **Dependency Graph Construction**: Builds directed graph of document relationships
-- **Cycle Detection**: DFS-based cycle detection with breaking strategies
-- **Topological Sorting**: BFS (Kahn's) and DFS-based ordering
-- **Conflict Resolution**: Multiple strategies for handling conflicts
-
-**Dependency Types**:
-- **Prerequisites**: Required prior knowledge (auto-include with BFS)
-- **References**: Related reference material (selective inclusion)
-- **Followups**: Suggested next steps (optional inclusion)
-- **Conflicts**: Mutually exclusive content (automatic exclusion)
-- **Complements**: Complementary content (space-permitting inclusion)
-
-#### ConflictDetector (`src/core/ConflictDetector.ts`)
-**Purpose**: Detects and resolves conflicts between documents
-
-**Conflict Types**:
-- **Tag Incompatible**: Documents with incompatible tags
-- **Content Duplicate**: Duplicate or highly similar content
-- **Audience Mismatch**: Conflicting target audiences
-- **Complexity Gap**: Large complexity gaps between related documents
-- **Category Exclusive**: Mutually exclusive categories
-
-**Resolution Strategies**:
-- **exclude-first/second/both**: Remove conflicting documents
-- **modify-first/second**: Apply suggested modifications
-- **keep-both**: Allow both with warnings
-- **manual-review**: Flag for manual intervention
-
-### Layer 4: Adaptive Selection Algorithms
-
-#### AdaptiveDocumentSelector (`src/core/AdaptiveDocumentSelector.ts`)
-**Purpose**: Intelligent document selection using multiple optimization algorithms
-
-**Selection Algorithms**:
-
-1. **Knapsack Algorithm** (Dynamic Programming)
-   - Optimal solution for character-constrained selection
-   - Considers value-to-space ratio
-   - Guaranteed optimal within constraints
-
-2. **Greedy Algorithm**
-   - Fast efficiency-based selection
-   - Sorts by score/character ratio
-   - Applies diversity penalties
-
-3. **Multi-Criteria Decision Analysis** (TOPSIS)
-   - Normalizes multiple criteria
-   - Calculates distance to ideal solution
-   - Balanced multi-objective optimization
-
-4. **Hybrid Algorithm**
-   - Combines multiple algorithms
-   - Iterative local optimization
-   - Convergence-based stopping
-
-**Selection Strategies**:
-- **Balanced**: Equal consideration of all factors
-- **Quality-focused**: Prioritizes high-quality documents
-- **Diverse**: Maximizes category and tag diversity
-- **Efficiency**: Maximizes information density
-
-### Layer 5: Quality Evaluation
-
-#### QualityEvaluator (`src/core/QualityEvaluator.ts`)
-**Purpose**: Comprehensive quality assessment with 12 quality dimensions
-
-**Quality Metrics Categories**:
-
-1. **Content Quality**
-   - Content Relevance: Alignment with target context
-   - Content Completeness: Topic coverage adequacy  
-   - Content Accuracy: Document quality and correctness
-
-2. **Structure Quality**
-   - Logical Flow: Document sequence coherence
-   - Dependency Satisfaction: Prerequisite fulfillment
-
-3. **Accessibility**
-   - Complexity Appropriateness: Suitable complexity for audience
-   - Audience Alignment: Target audience matching
-
-4. **Coherence**
-   - Thematic Coherence: Overall theme consistency
-   - Tag Consistency: Tag compatibility and usage
-
-5. **Completeness**
-   - Category Coverage: Category representation
-   - Topic Breadth: Topic diversity coverage
-
-6. **Efficiency**
-   - Space Efficiency: Character limit utilization
-   - Information Density: Value per character
-
-**Quality Report Features**:
-- **Overall Score**: 0-100 with A+ to F grading
-- **Detailed Metrics**: Individual metric scores with reasoning
-- **Benchmarking**: Performance comparison with thresholds
-- **Validation**: Rule-based validation with pass/fail results
-- **Recommendations**: Prioritized improvement suggestions
-
-## Data Flow Architecture
-
-```
-1. Configuration Load
-   EnhancedConfigManager → Load preset/custom config
-
-2. Document Analysis
-   Documents → EnhancedPrioritySchemaManager → Enhanced metadata
-
-3. Initial Filtering  
-   Documents → TagBasedDocumentFilter → Compatible documents
-
-4. Conflict Resolution
-   Documents → ConflictDetector → Conflict-free set
-
-5. Dependency Resolution
-   Documents → DependencyResolver → Ordered with dependencies
-
-6. Scoring & Selection
-   Documents → DocumentScorer → Scored candidates
-           → CategoryStrategyManager → Category strategies
-           → AdaptiveDocumentSelector → Optimal selection
-
-7. Quality Evaluation
-   Selection → QualityEvaluator → Quality report & recommendations
+### 2. Factory Pattern
+Used in configuration management for preset creation:
+```typescript
+class EnhancedConfigManager {
+  getConfigPreset(presetName: string): ConfigPreset
+  createConfigFromPreset(preset: ConfigPreset): EnhancedLLMSConfig
+}
 ```
 
-## Integration Points
+### 3. Builder Pattern
+Used in document selection for complex constraint building:
+```typescript
+const result = await selector.selectDocuments(documents, constraints, {
+  strategy: 'balanced',
+  enableOptimization: true,
+  maxIterations: 100
+});
+```
 
-### With Existing LLMS-Generator
-- **Backward Compatible**: Works with existing priority files
-- **Auto-Enhancement**: Converts basic configs to enhanced format
-- **Gradual Migration**: Can enable enhanced features incrementally
+## Configuration Schema
 
-### With External Systems
-- **CLI Integration**: Enhanced commands with new flags and options
-- **API Extensions**: New endpoints for enhanced selection
-- **Monitoring**: Quality metrics for system monitoring
-- **Caching**: Intelligent caching of scoring and selection results
+### Basic Configuration
+```typescript
+interface CategoryMinimumOptions {
+  dataDir?: string;
+  outputDir?: string;
+  languages?: string[];
+  categories?: string[];
+  baseUrl?: string;
+}
+```
+
+### Enhanced Configuration
+```typescript
+interface EnhancedLLMSConfig {
+  paths: PathConfig;
+  generation: GenerationConfig;
+  quality: QualityConfig;
+  categories: Record<string, CategoryConfig>;
+  tags: Record<string, TagConfig>;
+  dependencies: DependencyConfig;
+  composition: CompositionConfig;
+}
+```
 
 ## Performance Characteristics
 
-### Algorithmic Complexity
-- **Knapsack**: O(n × W) where n = documents, W = character limit
-- **Greedy**: O(n log n) for sorting plus O(n) for selection
-- **TOPSIS**: O(n × m) where n = documents, m = criteria
-- **Dependency Resolution**: O(V + E) where V = documents, E = dependencies
+### Scalability
+- **Document Count**: Linear scaling up to 1000+ documents
+- **Memory Usage**: ~1MB per 100 documents
+- **Processing Time**: <100ms for typical operations
 
-### Memory Usage
-- **Configuration**: ~1-5MB depending on categories/tags
-- **Dependency Graph**: O(V²) in worst case, typically O(V + E)
-- **Scoring Cache**: O(n) per scoring context
-- **Quality Metrics**: O(n) per evaluation
+### Optimization Features
+- **Caching**: Configuration and metadata caching
+- **Parallel Processing**: Batch operations run concurrently
+- **Lazy Loading**: Documents loaded on-demand
+- **Smart Filtering**: Early elimination of irrelevant documents
 
-### Scalability Limits
-- **Documents**: Efficiently handles 1K-10K documents
-- **Dependencies**: Up to ~10K dependency relationships
-- **Categories/Tags**: Up to ~100 categories, ~500 tags
-- **Character Limits**: Supports up to 1M character constraints
+## Error Handling Strategy
 
-## Configuration Examples
+### 1. Graceful Degradation
+- Continue operation with reduced functionality when possible
+- Provide meaningful error messages with context
+- Return partial results when complete processing fails
 
-### Standard Configuration
-```json
-{
-  "categories": {
-    "guide": {
-      "name": "가이드",
-      "priority": 90,
-      "defaultStrategy": "tutorial-first",
-      "tags": ["beginner", "step-by-step", "practical"]
-    }
-  },
-  "composition": {
-    "strategies": {
-      "balanced": {
-        "weights": {
-          "categoryWeight": 0.4,
-          "tagWeight": 0.3,
-          "dependencyWeight": 0.2,
-          "priorityWeight": 0.1
-        }
-      }
-    },
-    "defaultStrategy": "balanced"
-  }
-}
-```
+### 2. Validation Layers
+- **Input Validation**: Parameter and option validation
+- **Configuration Validation**: Schema-based config validation
+- **Output Validation**: Result integrity checks
 
-### Enhanced Priority Metadata
-```json
-{
-  "document": {
-    "id": "guide-getting-started",
-    "category": "guide"
-  },
-  "tags": {
-    "primary": ["beginner", "step-by-step"],
-    "audience": ["new-users"],
-    "complexity": "basic"
-  },
-  "dependencies": {
-    "prerequisites": [],
-    "followups": [
-      {
-        "documentId": "guide-advanced-patterns",
-        "timing": "after-practice"
-      }
-    ]
-  },
-  "composition": {
-    "categoryAffinity": { "guide": 1.0, "concept": 0.8 },
-    "tagAffinity": { "beginner": 1.0, "practical": 0.8 }
-  }
-}
-```
+### 3. Error Recovery
+- Automatic retry for transient failures
+- Fallback strategies for missing dependencies
+- Clean state restoration after errors
 
-## Extension Points
+## Testing Strategy
 
-### Custom Metrics
+### 1. Unit Tests
+- Individual component functionality
+- Mock external dependencies
+- Test error conditions and edge cases
+
+### 2. Integration Tests
+- Component interaction testing
+- Configuration loading and validation
+- End-to-end workflow testing
+
+### 3. Performance Tests
+- Load testing with large document sets
+- Memory usage profiling
+- Algorithm performance benchmarks
+
+## Security Considerations
+
+### 1. Input Sanitization
+- Path traversal prevention
+- File access validation
+- Configuration parameter validation
+
+### 2. Output Security
+- Safe file writing operations
+- Controlled directory access
+- Metadata sanitization
+
+## Extensibility Points
+
+### 1. Custom Selection Strategies
+Add new strategies by implementing the `SelectionStrategy` interface:
 ```typescript
-qualityEvaluator.addMetric('custom-metric', {
-  name: 'Custom Quality Metric',
-  category: 'content',
-  weight: 0.5,
-  calculate: (selection, constraints, config) => {
-    // Custom calculation logic
-    return { value: score, confidence: confidence, details: {...} };
-  }
-});
-```
-
-### Custom Conflict Rules
-```typescript
-conflictDetector.addCustomRule('custom-conflict', {
-  type: 'custom-conflict',
-  severity: 'moderate',
-  description: 'Custom conflict detection',
-  detectFunction: (docA, docB, config) => { /* logic */ },
-  resolveFunction: (docA, docB, config) => { /* resolution */ }
-});
-```
-
-### Custom Selection Strategies
-```typescript
-adaptiveSelector.addStrategy('custom-strategy', {
+const customStrategy: SelectionStrategy = {
   name: 'Custom Strategy',
-  algorithm: 'hybrid',
+  algorithm: 'multi-criteria',
   criteria: { /* custom weights */ },
   constraints: { /* custom constraints */ }
-});
+};
+
+selector.addStrategy('custom', customStrategy);
 ```
 
-This enhanced architecture provides a comprehensive, extensible, and intelligent document curation system that truly understands what "appropriate" means in the context of document selection.
+### 2. Category Extensions
+Add new document categories by extending pattern matching:
+```typescript
+const CATEGORY_PATTERNS = {
+  'api-spec': ['api--*', 'api/*'],
+  'guide': ['guide--*', 'guide/*'],
+  'custom': ['custom--*', 'custom/*']  // New category
+};
+```
+
+### 3. Configuration Presets
+Create custom presets for specific use cases:
+```typescript
+const customPreset: ConfigPreset = {
+  name: 'Custom Preset',
+  description: 'Specialized configuration',
+  characterLimits: [100, 500, 2000],
+  languages: ['en'],
+  categories: { /* custom categories */ },
+  tags: { /* custom tags */ }
+};
+```
+
+This architecture provides a solid foundation for document processing while maintaining flexibility for future enhancements and customizations.

@@ -233,6 +233,13 @@ export class CharacterLimit {
   }
 
   /**
+   * 암시적 숫자 변환을 위한 valueOf
+   */
+  valueOf(): number {
+    return this._value;
+  }
+
+  /**
    * 사용자 친화적 문자열 표현
    */
   toDisplayString(): string {

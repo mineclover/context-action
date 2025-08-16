@@ -100,6 +100,13 @@ export class DocumentId {
   }
 
   /**
+   * 암시적 문자열 변환을 위한 valueOf
+   */
+  valueOf(): string {
+    return this._value;
+  }
+
+  /**
    * 카테고리 추출 (첫 번째 세그먼트)
    */
   getCategory(): string {

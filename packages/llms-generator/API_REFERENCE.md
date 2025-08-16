@@ -1,357 +1,224 @@
-# Enhanced LLMS-Generator API Reference
+# API Reference
 
 ## Core Classes
 
-### EnhancedConfigManager
+### CategoryMinimumGenerator
 
-Enhanced configuration management with preset support and auto-enhancement capabilities.
+Main class for generating category-based minimal LLMS content.
 
 #### Constructor
+
 ```typescript
-new EnhancedConfigManager(configPath?: string)
+new CategoryMinimumGenerator(options?: CategoryMinimumOptions)
 ```
+
+**Parameters**:
+- `options.dataDir?: string` - Source data directory (default: `'./data'`)
+- `options.outputDir?: string` - Output directory (default: `'./test/outputs'`)
+- `options.languages?: string[]` - Supported languages (default: `['ko', 'en']`)
+- `options.categories?: string[]` - Categories to process (default: `['api-spec', 'guide']`)
+- `options.baseUrl?: string` - Base URL for generated links
 
 #### Methods
 
-##### `loadConfig(): Promise<EnhancedLLMSConfig>`
-Loads configuration from file with auto-enhancement.
+##### `generateSingle(category: string, language: string): Promise<GenerationResult>`
 
-**Returns**: Promise resolving to enhanced configuration
+Generate minimal LLMS content for a specific category and language.
+
+**Parameters**:
+- `category` - Category name (`'api-spec'` or `'guide'`)
+- `language` - Language code (`'ko'`, `'en'`, etc.)
+
+**Returns**: Promise resolving to generation result
 
 **Example**:
 ```typescript
-const configManager = new EnhancedConfigManager();
-const config = await configManager.loadConfig();
+const generator = new CategoryMinimumGenerator();
+const result = await generator.generateSingle('api-spec', 'en');
+
+if (result.success) {
+  console.log(`Generated ${result.documentCount} documents to ${result.filePath}`);
+} else {
+  console.error(`Error: ${result.error}`);
+}
 ```
 
-##### `initializeConfig(presetName: string): Promise<EnhancedLLMSConfig>`
-Initializes configuration with a preset.
+##### `generateBatch(options?: CategoryMinimumOptions): Promise<GenerationResult[]>`
+
+Batch generate content for multiple categories and languages.
 
 **Parameters**:
-- `presetName`: One of `"standard"`, `"minimal"`, `"extended"`, `"blog"`
+- `options` - Optional configuration overrides
 
-**Returns**: Promise resolving to initialized configuration
+**Returns**: Promise resolving to array of generation results
 
 **Example**:
 ```typescript
-const config = await configManager.initializeConfig('standard');
-```
+const results = await generator.generateBatch({
+  categories: ['api-spec', 'guide'],
+  languages: ['en', 'ko']
+});
 
-##### `getConfigPreset(presetName: string): ConfigPreset`
-Gets a configuration preset.
-
-**Parameters**:
-- `presetName`: Preset name to retrieve
-
-**Returns**: Configuration preset object
-
-**Throws**: Error if preset not found
-
-### DocumentScorer
-
-Multi-dimensional document scoring system with strategy-based weighting.
-
-#### Constructor
-```typescript
-new DocumentScorer(config: EnhancedLLMSConfig, strategyName?: string)
-```
-
-#### Methods
-
-##### `scoreDocument(document: DocumentMetadata, context: SelectionContext, options?: ScoringOptions): ScoringResult`
-Scores a document against selection context.
-
-**Parameters**:
-- `document`: Document metadata to score
-- `context`: Selection context with target criteria
-- `options`: Optional scoring configuration
-
-**Returns**: Detailed scoring result with breakdown
-
-**Example**:
-```typescript
-const scorer = new DocumentScorer(config, 'balanced');
-const result = scorer.scoreDocument(document, context);
-console.log(`Total score: ${result.scores.total}`);
-```
-
-##### `calculateTagAffinity(document: DocumentMetadata, targetTags: string[]): TagAffinityResult`
-Calculates tag affinity between document and target tags.
-
-**Parameters**:
-- `document`: Document to analyze
-- `targetTags`: Array of target tags to match
-
-**Returns**: Detailed tag affinity analysis
-
-**Example**:
-```typescript
-const affinity = scorer.calculateTagAffinity(document, ['beginner', 'practical']);
-console.log(`Matched tags: ${affinity.matchedTags.join(', ')}`);
-```
-
-### TagBasedDocumentFilter
-
-Advanced tag filtering with compatibility analysis and grouping.
-
-#### Constructor
-```typescript
-new TagBasedDocumentFilter(config: EnhancedLLMSConfig)
-```
-
-#### Methods
-
-##### `filterDocuments(documents: DocumentMetadata[], options?: TagFilterOptions): TagFilterResult`
-Filters documents based on tag criteria with detailed analysis.
-
-**Parameters**:
-- `documents`: Array of documents to filter
-- `options`: Filter configuration options
-
-**Returns**: Filter results with statistics and exclusions
-
-**Example**:
-```typescript
-const filter = new TagBasedDocumentFilter(config);
-const result = filter.filterDocuments(documents, {
-  requiredTags: ['core'],
-  excludedTags: ['advanced'],
-  targetAudience: ['beginners']
+results.forEach(result => {
+  console.log(`${result.category}-${result.language}: ${result.success ? 'Success' : 'Failed'}`);
 });
 ```
 
-##### `groupDocumentsByTags(documents: DocumentMetadata[]): TagGrouping`
-Groups documents by common tag patterns.
+##### `getAvailableCategories(): string[]`
 
-**Returns**: Documents grouped by tag categories
+Get list of available document categories.
+
+**Returns**: Array of category names
+
+##### `getCategoryStats(category: string, language: string): CategoryStats`
+
+Get statistics for a specific category and language.
+
+**Parameters**:
+- `category` - Category name
+- `language` - Language code
+
+**Returns**: Statistics object with document counts and priority breakdown
+
+**Example**:
+```typescript
+const stats = generator.getCategoryStats('api-spec', 'en');
+console.log(`Total documents: ${stats.totalDocuments}`);
+console.log(`Average priority: ${stats.averagePriorityScore}`);
+console.log('By tier:', stats.tierBreakdown);
+```
+
+##### `getAvailableDocuments(language: string): DocumentInfo[]`
+
+Get available documents for a language across all categories.
+
+**Parameters**:
+- `language` - Language code
+
+**Returns**: Array of document information objects
 
 ### AdaptiveDocumentSelector
 
-Intelligent document selection using multiple optimization algorithms.
+Advanced document selection with multiple algorithms and optimization strategies.
 
 #### Constructor
+
 ```typescript
 new AdaptiveDocumentSelector(config: EnhancedLLMSConfig)
 ```
 
 #### Methods
 
-##### `selectDocuments(documents: DocumentMetadata[], constraints: SelectionConstraints, options?: AdaptiveSelectionOptions): Promise<SelectionResult>`
-Selects optimal document set using adaptive algorithms.
+##### `selectDocuments(documents, constraints, options?): Promise<SelectionResult>`
+
+Select optimal document set using adaptive algorithms.
 
 **Parameters**:
-- `documents`: Available documents for selection
-- `constraints`: Character limits and context constraints
-- `options`: Selection algorithm configuration
+- `documents` - Array of document metadata
+- `constraints` - Selection constraints (character limits, quality thresholds)
+- `options` - Selection options including strategy and optimization settings
 
-**Returns**: Promise resolving to comprehensive selection result
+**Available Strategies**:
+- `'balanced'` - Balanced approach considering all factors
+- `'greedy'` - Fast greedy algorithm prioritizing efficiency  
+- `'hybrid'` - Combines multiple algorithms for optimal results
+- `'adaptive'` - Dynamically adapts strategy based on characteristics
+- `'quality-focused'` - Prioritizes high-quality documents
+- `'diverse'` - Maximizes diversity across categories
 
 **Example**:
 ```typescript
 const selector = new AdaptiveDocumentSelector(config);
-const result = await selector.selectDocuments(documents, {
-  maxCharacters: 5000,
-  targetCharacterLimit: 5000,
-  context: {
-    targetTags: ['beginner', 'practical'],
-    tagWeights: { 'beginner': 1.5, 'practical': 1.2 },
-    selectedDocuments: [],
-    maxCharacters: 5000,
-    targetCharacterLimit: 5000
+
+const result = await selector.selectDocuments(documents, 
+  { maxCharacters: 5000 },
+  { 
+    strategy: 'balanced',
+    enableOptimization: true,
+    maxIterations: 100
   }
-}, {
-  strategy: 'hybrid',
-  enableOptimization: true,
-  enableConflictResolution: true
-});
+);
+
+console.log(`Selected ${result.selectedDocuments.length} documents`);
+console.log(`Space utilization: ${result.optimization.spaceUtilization * 100}%`);
 ```
 
-##### `getAvailableStrategies(): Array<{ name: string; strategy: SelectionStrategy }>`
-Gets all available selection strategies.
+### ConfigManager
 
-**Returns**: Array of available strategies with configurations
+Basic configuration management for LLMS generator.
 
-### DependencyResolver
+#### Static Methods
 
-Resolves document dependencies using graph algorithms.
+##### `findAndLoadConfig(startDir?: string): Promise<ResolvedConfig>`
 
-#### Constructor
-```typescript
-new DependencyResolver(config: EnhancedLLMSConfig)
-```
+Find and load configuration from project root.
 
-#### Methods
+##### `mergeConfigurations(...configs): UserConfig`
 
-##### `resolveDependencies(documents: DocumentMetadata[], options?: ResolutionOptions): ResolutionResult`
-Resolves dependencies and orders documents.
-
-**Parameters**:
-- `documents`: Documents to analyze for dependencies
-- `options`: Resolution configuration
-
-**Returns**: Resolved documents with dependency analysis
+Merge multiple configuration objects.
 
 **Example**:
 ```typescript
-const resolver = new DependencyResolver(config);
-const result = resolver.resolveDependencies(documents, {
-  maxDepth: 3,
-  includeOptionalDependencies: true,
-  resolveConflicts: true,
-  conflictResolution: 'higher-score-wins'
-});
+const baseConfig = await ConfigManager.findAndLoadConfig();
+const customConfig = { characterLimits: [100, 500] };
+const merged = ConfigManager.mergeConfigurations(baseConfig, customConfig);
 ```
-
-##### `buildDependencyGraph(documents: DocumentMetadata[]): DependencyGraph`
-Builds dependency graph from documents.
-
-**Returns**: Dependency graph with nodes and relationships
-
-##### `detectCycles(graph: DependencyGraph): string[][]`
-Detects dependency cycles in the graph.
-
-**Returns**: Array of cycles (each cycle is an array of document IDs)
-
-### ConflictDetector
-
-Detects and resolves conflicts between documents.
-
-#### Constructor
-```typescript
-new ConflictDetector(config: EnhancedLLMSConfig)
-```
-
-#### Methods
-
-##### `detectConflicts(documents: DocumentMetadata[], options?: ConflictDetectionOptions): ConflictAnalysisResult`
-Detects conflicts between documents with comprehensive analysis.
-
-**Parameters**:
-- `documents`: Documents to analyze for conflicts
-- `options`: Detection configuration
-
-**Returns**: Complete conflict analysis with resolutions
-
-**Example**:
-```typescript
-const detector = new ConflictDetector(config);
-const analysis = detector.detectConflicts(documents, {
-  autoResolve: true,
-  severityThreshold: 'moderate'
-});
-```
-
-##### `applyConflictResolutions(documents: DocumentMetadata[], conflicts: Conflict[]): Resolution`
-Applies conflict resolutions to document set.
-
-**Returns**: Resolved documents with exclusions and modifications
-
-### QualityEvaluator
-
-Comprehensive quality assessment with 12 quality dimensions.
-
-#### Constructor
-```typescript
-new QualityEvaluator(config: EnhancedLLMSConfig)
-```
-
-#### Methods
-
-##### `evaluateQuality(selection: DocumentMetadata[], constraints: SelectionConstraints, selectionResult?: SelectionResult): QualityReport`
-Evaluates quality of document selection across all dimensions.
-
-**Parameters**:
-- `selection`: Selected documents to evaluate
-- `constraints`: Selection constraints for context
-- `selectionResult`: Optional selection result for additional context
-
-**Returns**: Comprehensive quality report with scores and recommendations
-
-**Example**:
-```typescript
-const evaluator = new QualityEvaluator(config);
-const report = evaluator.evaluateQuality(selectedDocuments, constraints);
-console.log(`Overall Score: ${report.overallScore}/100 (${report.grade})`);
-console.log(`Strengths: ${report.summary.strengths.join(', ')}`);
-```
-
-##### `addMetric(name: string, metric: QualityMetric): void`
-Adds custom quality metric.
-
-**Parameters**:
-- `name`: Unique metric name
-- `metric`: Metric configuration and calculation function
 
 ## Type Definitions
 
-### Configuration Types
+### CategoryMinimumOptions
 
-#### EnhancedLLMSConfig
 ```typescript
-interface EnhancedLLMSConfig extends LLMSConfig {
-  categories: Record<string, CategoryConfig>;
-  tags: Record<string, TagConfig>;
-  dependencies: DependencyConfig;
-  composition: CompositionConfig;
-  extraction: ExtractionConfig;
-  validation: ValidationConfig;
-  ui: UIConfig;
+interface CategoryMinimumOptions {
+  dataDir?: string;
+  outputDir?: string;
+  languages?: string[];
+  categories?: string[];
+  baseUrl?: string;
 }
 ```
 
-#### CategoryConfig
+### GenerationResult
+
 ```typescript
-interface CategoryConfig {
-  name: string;                    // Display name
-  description: string;             // Category description
-  priority: number;                // Base priority (1-100)
-  defaultStrategy: ExtractStrategy; // Default extraction strategy
-  tags: string[];                  // Associated tags
-  color?: string;                  // UI color
-  icon?: string;                   // UI icon
+interface GenerationResult {
+  category: string;
+  language: string;
+  documentCount: number;
+  filePath: string;
+  success: boolean;
+  error?: string;
 }
 ```
 
-#### TagConfig
+### CategoryStats
+
 ```typescript
-interface TagConfig {
-  name: string;                    // Display name
-  description: string;             // Tag description
-  weight: number;                  // Scoring weight
-  compatibleWith: string[];        // Compatible tags
-  audience?: string[];             // Target audiences
-  estimatedTime?: string;          // Estimated reading time
-  importance?: 'critical' | 'optional';
-  frequency?: 'high' | 'low';
-  urgency?: 'high' | 'medium' | 'low';
+interface CategoryStats {
+  category: string;
+  totalDocuments: number;
+  tierBreakdown: Record<string, number>;
+  averagePriorityScore: number;
 }
 ```
 
-### Selection Types
+### CategoryDocument
 
-#### SelectionConstraints
 ```typescript
-interface SelectionConstraints {
-  maxCharacters: number;           // Maximum character limit
-  targetCharacterLimit: number;    // Target character count
-  context: SelectionContext;       // Selection context
+interface CategoryDocument {
+  id: string;
+  title: string;
+  category: string;
+  priority_score: number;
+  priority_tier: string;
+  source_path: string;
+  folder_name: string;
+  url: string;
 }
 ```
 
-#### SelectionContext
-```typescript
-interface SelectionContext {
-  targetCategory?: DocumentCategory;
-  targetTags: string[];
-  tagWeights: Record<string, number>;
-  selectedDocuments: DocumentMetadata[];
-  requiredTopics?: string[];
-  maxCharacters: number;
-  targetCharacterLimit: number;
-}
-```
+### SelectionResult
 
-#### SelectionResult
 ```typescript
 interface SelectionResult {
   selectedDocuments: DocumentMetadata[];
@@ -371,17 +238,6 @@ interface SelectionResult {
     categoryCoverage: Record<string, number>;
     tagCoverage: Record<string, number>;
     audienceCoverage: Record<string, number>;
-    complexityDistribution: Record<string, number>;
-  };
-  dependencies: {
-    resolved: ResolutionResult;
-    includedDependencies: number;
-    cyclesDetected: number;
-  };
-  conflicts: {
-    analysis: ConflictAnalysisResult;
-    resolved: number;
-    remaining: number;
   };
   metadata: {
     selectionTime: number;
@@ -392,220 +248,133 @@ interface SelectionResult {
 }
 ```
 
-### Quality Types
+## Configuration
 
-#### QualityReport
-```typescript
-interface QualityReport {
-  overallScore: number;            // 0-100
-  confidence: number;              // 0-1
-  grade: 'A+' | 'A' | 'B+' | 'B' | 'C+' | 'C' | 'D' | 'F';
-  metrics: {
-    [metricName: string]: QualityScore;
-  };
-  summary: {
-    strengths: string[];
-    weaknesses: string[];
-    criticalIssues: string[];
-    recommendations: Array<{
-      priority: 'high' | 'medium' | 'low';
-      action: string;
-      reason: string;
-      impact: number;
-    }>;
-  };
-  benchmarks: {
-    category: string;
-    performance: 'excellent' | 'good' | 'average' | 'below-average' | 'poor';
-    percentile: number;
-    comparison: string;
-  };
-  validation: {
-    passed: Array<{ rule: string; description: string }>;
-    failed: Array<{ rule: string; description: string; severity: 'error' | 'warning' }>;
-    score: number;
-  };
-}
-```
+### Default Configuration
 
-#### QualityScore
 ```typescript
-interface QualityScore {
-  value: number;                   // 0-1
-  confidence: number;              // 0-1
-  details: {
-    measured: any;
-    expected: any;
-    reasoning: string[];
-    suggestions: string[];
-  };
-}
+export const DEFAULT_CONFIG = {
+  paths: {
+    docsDir: './docs',
+    llmContentDir: './packages/llms-generator/data',
+    outputDir: './docs/llms',
+    templatesDir: './templates',
+    instructionsDir: './instructions'
+  },
+  generation: {
+    supportedLanguages: ['en', 'ko'],
+    characterLimits: [100, 300, 500, 1000, 2000, 3000, 4000],
+    defaultCharacterLimits: {
+      summary: 1000,
+      detailed: 3000,
+      comprehensive: 5000
+    },
+    defaultLanguage: 'en',
+    outputFormat: 'txt'
+  },
+  quality: {
+    minCompletenessThreshold: 0.8,
+    enableValidation: true,
+    strictMode: false
+  }
+};
 ```
 
 ## Usage Examples
 
-### Basic Document Selection
+### Basic Category Generation
+
 ```typescript
-import { 
-  EnhancedConfigManager, 
-  AdaptiveDocumentSelector, 
-  QualityEvaluator 
-} from '@context-action/llms-generator';
+import { CategoryMinimumGenerator } from '@context-action/llms-generator';
 
-// Initialize system
-const configManager = new EnhancedConfigManager();
-const config = await configManager.loadConfig();
-const selector = new AdaptiveDocumentSelector(config);
-const evaluator = new QualityEvaluator(config);
-
-// Define constraints
-const constraints = {
-  maxCharacters: 5000,
-  targetCharacterLimit: 5000,
-  context: {
-    targetTags: ['beginner', 'practical'],
-    tagWeights: { 'beginner': 1.5, 'practical': 1.2 },
-    selectedDocuments: [],
-    maxCharacters: 5000,
-    targetCharacterLimit: 5000
-  }
-};
-
-// Select documents
-const result = await selector.selectDocuments(documents, constraints, {
-  strategy: 'balanced',
-  enableOptimization: true
+const generator = new CategoryMinimumGenerator({
+  dataDir: './data',
+  outputDir: './output',
+  baseUrl: 'https://example.com/docs'
 });
 
-// Evaluate quality
-const quality = evaluator.evaluateQuality(result.selectedDocuments, constraints, result);
+// Generate API documentation
+const apiResult = await generator.generateSingle('api-spec', 'en');
+console.log(`API docs: ${apiResult.filePath}`);
+
+// Generate user guides
+const guideResult = await generator.generateSingle('guide', 'ko');
+console.log(`Guide docs: ${guideResult.filePath}`);
+```
+
+### Batch Processing
+
+```typescript
+// Process multiple categories and languages
+const results = await generator.generateBatch({
+  categories: ['api-spec', 'guide'],
+  languages: ['en', 'ko', 'ja']
+});
+
+// Show results summary
+results.forEach(result => {
+  if (result.success) {
+    console.log(`✅ ${result.category}-${result.language}: ${result.documentCount} docs`);
+  } else {
+    console.log(`❌ ${result.category}-${result.language}: ${result.error}`);
+  }
+});
+```
+
+### Advanced Document Selection
+
+```typescript
+import { AdaptiveDocumentSelector, EnhancedConfigManager } from '@context-action/llms-generator';
+
+const configManager = new EnhancedConfigManager();
+const config = await configManager.initializeConfig('standard');
+const selector = new AdaptiveDocumentSelector(config);
+
+const documents = /* load your documents */;
+
+const result = await selector.selectDocuments(
+  documents,
+  {
+    maxCharacters: 10000,
+    context: {
+      purpose: 'API reference generation',
+      targetTags: ['api', 'reference'],
+      audience: ['developers']
+    }
+  },
+  {
+    strategy: 'quality-focused',
+    enableOptimization: true,
+    enableConflictResolution: true,
+    debugMode: false
+  }
+);
 
 console.log(`Selected ${result.selectedDocuments.length} documents`);
-console.log(`Quality: ${quality.overallScore}/100 (${quality.grade})`);
-console.log(`Space utilization: ${Math.round(result.optimization.spaceUtilization * 100)}%`);
-```
-
-### Advanced Configuration
-```typescript
-// Initialize with custom preset
-const config = await configManager.initializeConfig('extended');
-
-// Add custom quality metric
-evaluator.addMetric('domain-relevance', {
-  name: 'Domain Relevance',
-  category: 'content',
-  weight: 0.8,
-  calculate: (selection, constraints, config) => {
-    // Custom domain-specific scoring logic
-    const relevance = calculateDomainRelevance(selection);
-    return {
-      value: relevance,
-      confidence: 0.9,
-      details: {
-        measured: relevance,
-        expected: 0.8,
-        reasoning: ['Domain relevance analysis'],
-        suggestions: relevance < 0.6 ? ['Include more domain-specific content'] : []
-      }
-    };
-  }
-});
-
-// Use dependency-driven strategy
-const result = await selector.selectDocuments(documents, constraints, {
-  strategy: 'dependency-driven',
-  enableDependencyResolution: true,
-  enableConflictResolution: true,
-  customWeights: {
-    dependencyWeight: 0.6,
-    categoryWeight: 0.2,
-    tagWeight: 0.2
-  }
-});
-```
-
-### Conflict Resolution
-```typescript
-import { ConflictDetector } from '@context-action/llms-generator';
-
-const detector = new ConflictDetector(config);
-
-// Detect conflicts
-const analysis = detector.detectConflicts(documents, {
-  enabledRules: ['tag-incompatible', 'content-duplicate', 'audience-mismatch'],
-  severityThreshold: 'moderate',
-  autoResolve: true
-});
-
-console.log(`Found ${analysis.summary.total} conflicts`);
-console.log(`Auto-resolvable: ${analysis.summary.autoResolvable}`);
-
-// Apply resolutions
-const resolution = detector.applyConflictResolutions(documents, analysis.conflicts);
-console.log(`Excluded ${resolution.excludedDocuments.length} conflicted documents`);
+console.log(`Quality score: ${result.optimization.qualityScore}`);
+console.log(`Space utilization: ${(result.optimization.spaceUtilization * 100).toFixed(1)}%`);
 ```
 
 ## Error Handling
 
-### Common Errors
+All async methods can throw errors. It's recommended to use try-catch blocks:
 
-#### Configuration Errors
 ```typescript
 try {
-  const config = await configManager.loadConfig();
+  const result = await generator.generateSingle('api-spec', 'en');
+  if (!result.success) {
+    console.error(`Generation failed: ${result.error}`);
+  }
 } catch (error) {
-  if (error.message.includes('not found')) {
-    // Initialize with default preset
-    const config = await configManager.initializeConfig('standard');
-  } else {
-    throw error;
-  }
+  console.error(`Unexpected error: ${error.message}`);
 }
 ```
 
-#### Selection Errors
-```typescript
-try {
-  const result = await selector.selectDocuments(documents, constraints);
-} catch (error) {
-  if (error.message.includes('Unknown strategy')) {
-    // Fallback to balanced strategy
-    const result = await selector.selectDocuments(documents, constraints, {
-      strategy: 'balanced'
-    });
-  } else {
-    throw error;
-  }
-}
-```
+## Performance Considerations
 
-### Validation Errors
-```typescript
-const report = evaluator.evaluateQuality(selection, constraints);
+- **Large Document Sets**: The system handles 100+ documents efficiently
+- **Memory Usage**: Scales linearly with document count
+- **Caching**: Results are cached for improved performance
+- **Parallel Processing**: Batch operations run in parallel when possible
 
-if (report.validation.failed.length > 0) {
-  const errors = report.validation.failed.filter(f => f.severity === 'error');
-  if (errors.length > 0) {
-    console.error('Validation errors:', errors);
-    // Handle critical validation failures
-  }
-}
-```
-
-## Performance Guidelines
-
-### Memory Management
-- Reuse `DocumentScorer` instances for multiple scoring operations
-- Clear large result sets when no longer needed
-- Use streaming for very large document collections
-
-### Optimization Tips
-- Enable caching for repeated selections with similar constraints
-- Use simpler algorithms (`greedy`) for real-time scenarios
-- Batch multiple quality evaluations when possible
-
-### Scalability Limits
-- **Documents**: Optimized for 1K-10K documents
-- **Characters**: Supports up to 1M character constraints  
-- **Dependencies**: Handles up to 10K relationships efficiently
-- **Categories/Tags**: Up to 100 categories, 500 tags recommended
+For more examples and advanced usage patterns, see the [README](./README.md).
