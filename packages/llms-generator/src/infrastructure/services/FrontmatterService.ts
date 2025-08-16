@@ -13,6 +13,7 @@ import type {
   GenerateOptions
 } from '../../domain/services/interfaces/IFrontmatterService.js';
 import { Frontmatter } from '../../domain/value-objects/Frontmatter.js';
+import { CharacterLimitUtils } from '../../domain/value-objects/ValueObjectUtils.js';
 
 /**
  * FrontmatterService 구현
@@ -142,7 +143,7 @@ export class FrontmatterService implements IFrontmatterService {
       }
 
       // 글자 수 제한 검증
-      if (data.summary.characterLimit <= 0) {
+      if (CharacterLimitUtils.isLessThanOrEqual(data.summary.characterLimit, 0)) {
         errors.push('Character limit must be positive');
       }
 

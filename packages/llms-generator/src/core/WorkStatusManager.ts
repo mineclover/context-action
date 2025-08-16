@@ -195,7 +195,7 @@ export class WorkStatusManager {
     }
 
     // Get character limits from extraction config
-    const characterLimits = Object.keys(priority.extraction.character_limits || {}).map(Number);
+    const characterLimits = Object.keys(priority.extraction.characterLimit || {}).map(Number);
 
     const generatedFiles = [];
     let needsWork = false;
@@ -287,7 +287,7 @@ export class WorkStatusManager {
     }
 
     // Extract key points and focus for the specific character limit
-    const charLimitConfig = priorityInfo.extraction.character_limits?.[characterLimit.toString()];
+    const charLimitConfig = priorityInfo.extraction.characterLimit?.[characterLimit.toString()];
     
     // Handle both simple and prioritized key points
     let keyPoints: string[] | undefined;

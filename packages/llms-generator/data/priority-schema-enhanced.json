@@ -11,8 +11,8 @@
       "properties": {
         "id": {
           "type": "string",
-          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
-          "description": "Kebab-case document identifier"
+          "pattern": "^[a-z0-9]+([_-]+[a-z0-9]+)*$",
+          "description": "Kebab-case or underscore-separated document identifier"
         },
         "title": {
           "type": "string",
@@ -195,7 +195,7 @@
             "properties": {
               "documentId": {
                 "type": "string",
-                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                "pattern": "^[a-z0-9]+([_-][a-z0-9]+)*$"
               },
               "importance": {
                 "enum": ["required", "recommended", "optional"],
@@ -217,7 +217,7 @@
             "properties": {
               "documentId": {
                 "type": "string",
-                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                "pattern": "^[a-z0-9]+([_-][a-z0-9]+)*$"
               },
               "type": {
                 "enum": ["concept", "example", "api", "implementation"],
@@ -241,7 +241,7 @@
             "properties": {
               "documentId": {
                 "type": "string",
-                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                "pattern": "^[a-z0-9]+([_-][a-z0-9]+)*$"
               },
               "reason": {
                 "type": "string",
@@ -263,7 +263,7 @@
             "properties": {
               "documentId": {
                 "type": "string",
-                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                "pattern": "^[a-z0-9]+([_-][a-z0-9]+)*$"
               },
               "reason": {
                 "type": "string",
@@ -285,7 +285,7 @@
             "properties": {
               "documentId": {
                 "type": "string",
-                "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                "pattern": "^[a-z0-9]+([_-][a-z0-9]+)*$"
               },
               "relationship": {
                 "enum": ["alternative-approach", "deeper-dive", "practical-example", "related-concept"],
@@ -498,15 +498,6 @@
           "type": "integer",
           "minimum": 0,
           "description": "Original file size in bytes"
-        },
-        "estimated_extraction_time": {
-          "type": "object",
-          "patternProperties": {
-            "^(minimum|origin|\\d+)$": {
-              "type": "string",
-              "description": "Estimated time to extract content"
-            }
-          }
         },
         "maintainer": {
           "type": "string",

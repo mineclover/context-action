@@ -58,7 +58,6 @@ describe('PriorityManager', () => {
             created: '2024-01-01',
             version: '1.0',
             original_size: 1000,
-            estimated_extraction_time: {}
           }
         },
         'doc2': {

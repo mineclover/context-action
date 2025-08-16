@@ -23,6 +23,13 @@ export class CharacterLimit {
   }
 
   /**
+   * 숫자로부터 CharacterLimit 생성 (표준 Static Method)
+   */
+  static fromNumber(value: number): CharacterLimit {
+    return new CharacterLimit(value);
+  }
+
+  /**
    * 기본 제한값으로 생성
    */
   static default(): CharacterLimit {
@@ -236,6 +243,13 @@ export class CharacterLimit {
    * 암시적 숫자 변환을 위한 valueOf
    */
   valueOf(): number {
+    return this._value;
+  }
+
+  /**
+   * Symbol.toPrimitive 구현으로 타입 호환성 향상
+   */
+  [Symbol.toPrimitive](hint: string): number {
     return this._value;
   }
 

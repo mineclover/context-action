@@ -93,6 +93,23 @@ export class DocumentScorer {
       contextual: contextualScore
     }, options);
 
+    // Calculate confidence based on data completeness
+    let confidence = 1.0;
+    if (!document.tags || !document.tags.primary) confidence -= 0.3;
+    if (!document.composition) confidence -= 0.2;
+    if (!document.tags?.secondary) confidence -= 0.1;
+    if (!document.priority || document.priority.score === undefined) confidence -= 0.2;
+    confidence = Math.max(0, confidence);
+
+    // Calculate breakdown for strategy analysis
+    const weights = this.strategy.weights || this.strategy.criteria || {};
+    const breakdown = {
+      categoryContribution: categoryScore * (weights.categoryWeight || 0.25),
+      tagContribution: tagScore * (weights.tagWeight || 0.25),
+      dependencyContribution: dependencyScore * (weights.dependencyWeight || 0.25),
+      priorityContribution: priorityScore * (weights.priorityWeight || 0.25)
+    };
+
     return {
       document,
       scores: {
@@ -103,6 +120,8 @@ export class DocumentScorer {
         priority: priorityScore,
         contextual: contextualScore
       },
+      breakdown,
+      confidence,
       reasons,
       excluded,
       exclusionReason
@@ -135,7 +154,7 @@ export class DocumentScorer {
       maxPossibleScore += tagConfig.weight;
 
       // Direct match
-      if (document.tags.primary.includes(targetTag)) {
+      if (document.tags?.primary?.includes(targetTag)) {
         const score = tagConfig.weight;
         totalScore += score;
         matchedTags.push(targetTag);
@@ -144,7 +163,7 @@ export class DocumentScorer {
       }
 
       // Secondary match
-      if (document.tags.secondary?.includes(targetTag)) {
+      if (document.tags?.secondary?.includes(targetTag)) {
         const score = tagConfig.weight * 0.7;
         totalScore += score;
         matchedTags.push(targetTag);
@@ -154,9 +173,9 @@ export class DocumentScorer {
 
       // Compatible tag match
       let bestCompatibilityScore = 0;
-      for (const docTag of document.tags.primary) {
+      for (const docTag of document.tags?.primary || []) {
         const docTagConfig = this.config.tags[docTag];
-        if (docTagConfig && docTagConfig.compatibleWith.includes(targetTag)) {
+        if (docTagConfig && docTagConfig.compatibleWith?.includes(targetTag)) {
           const score = tagConfig.weight * 0.5;
           if (score > bestCompatibilityScore) {
             bestCompatibilityScore = score;
@@ -170,10 +189,10 @@ export class DocumentScorer {
         affinityBreakdown[targetTag] = bestCompatibilityScore;
       } else {
         // Check for incompatibility
-        const hasIncompatibleTag = document.tags.primary.some(docTag => {
+        const hasIncompatibleTag = document.tags?.primary?.some(docTag => {
           const docTagConfig = this.config.tags[docTag];
           return docTagConfig && !docTagConfig.compatibleWith.includes(targetTag);
-        });
+        }) || false;
 
         if (hasIncompatibleTag) {
           incompatibleTags.push(targetTag);
@@ -186,6 +205,8 @@ export class DocumentScorer {
     const normalizedScore = maxPossibleScore > 0 ? totalScore / maxPossibleScore : 0;
 
     return {
+      affinity: normalizedScore,
+      weightedAffinity: totalScore,
       score: normalizedScore,
       matchedTags,
       compatibleTags,
@@ -238,8 +259,8 @@ export class DocumentScorer {
     }
 
     // Check strategy constraints
-    if (this.strategy.constraints.requireCoreTags) {
-      const hasCoreTags = document.tags.primary.some(tag => {
+    if (this.strategy.constraints?.requireCoreTags) {
+      const hasCoreTags = document.tags?.primary?.some(tag => {
         const tagConfig = this.config.tags[tag];
         return tagConfig && tagConfig.importance === 'critical';
       });
@@ -250,8 +271,8 @@ export class DocumentScorer {
     }
 
     // Check preferred tags for beginner-friendly strategy
-    if (this.strategy.constraints.preferredTags) {
-      const hasPreferredTag = document.tags.primary.some(tag => 
+    if (this.strategy.constraints?.preferredTags) {
+      const hasPreferredTag = document.tags?.primary?.some(tag => 
         this.strategy.constraints.preferredTags?.includes(tag)
       );
       
@@ -310,10 +331,10 @@ export class DocumentScorer {
     let totalWeight = 0;
 
     for (const [tag, weight] of Object.entries(context.tagWeights)) {
-      if (document.tags.primary.includes(tag)) {
+      if (document.tags?.primary?.includes(tag)) {
         weightedScore += weight * 1.0;
         totalWeight += weight;
-      } else if (document.tags.secondary?.includes(tag)) {
+      } else if (document.tags?.secondary?.includes(tag)) {
         weightedScore += weight * 0.7;
         totalWeight += weight;
       }
@@ -344,10 +365,10 @@ export class DocumentScorer {
     const selectedIds = new Set(context.selectedDocuments.map(doc => doc.document.id));
 
     // Check prerequisites satisfaction
-    const prereqSatisfied = document.dependencies.prerequisites.filter(
+    const prereqSatisfied = document.dependencies?.prerequisites?.filter(
       prereq => selectedIds.has(prereq.documentId)
-    );
-    const prereqTotal = document.dependencies.prerequisites.length;
+    ) || [];
+    const prereqTotal = document.dependencies?.prerequisites?.length || 0;
     
     if (prereqTotal > 0) {
       const satisfaction = prereqSatisfied.length / prereqTotal;
@@ -356,18 +377,18 @@ export class DocumentScorer {
     }
 
     // Check complementary relationships
-    const complements = document.dependencies.complements.filter(
+    const complements = document.dependencies?.complements?.filter(
       comp => selectedIds.has(comp.documentId)
-    );
+    ) || [];
     if (complements.length > 0) {
       score += complements.length * 0.1; // 10% boost per complement
       reasons.push(`Complementary documents: ${complements.length}`);
     }
 
     // Penalize conflicts
-    const conflicts = document.dependencies.conflicts.filter(
+    const conflicts = document.dependencies?.conflicts?.filter(
       conf => selectedIds.has(conf.documentId)
-    );
+    ) || [];
     if (conflicts.length > 0) {
       score -= conflicts.length * 0.4; // 40% penalty per conflict
       reasons.push(`Conflicts detected: ${conflicts.length}`);
@@ -383,8 +404,10 @@ export class DocumentScorer {
     document: DocumentMetadata,
     reasons: string[]
   ): number {
-    const score = document.priority.score / 100; // Normalize to 0-1
-    reasons.push(`Priority: ${document.priority.score}/100 (${document.priority.tier})`);
+    const priorityScore = document.priority?.score || 50; // Default to 50 if not set
+    const priorityTier = document.priority?.tier || 'important';
+    const score = priorityScore / 100; // Normalize to 0-1
+    reasons.push(`Priority: ${priorityScore}/100 (${priorityTier})`);
     return score;
   }
 
@@ -422,12 +445,14 @@ export class DocumentScorer {
     scores: Record<string, number>,
     options: ScoringOptions
   ): number {
+    // Handle both 'weights' and 'criteria' naming conventions
+    const strategyWeights = this.strategy.weights || this.strategy.criteria || {};
     const weights = {
-      category: this.strategy.weights.categoryWeight,
-      tag: this.strategy.weights.tagWeight,
-      dependency: this.strategy.weights.dependencyWeight,
-      priority: this.strategy.weights.priorityWeight || 0.1,
-      contextual: this.strategy.weights.contextualWeight || 0
+      category: strategyWeights.categoryWeight || 0.25,
+      tag: strategyWeights.tagWeight || 0.25,
+      dependency: strategyWeights.dependencyWeight || 0.25,
+      priority: strategyWeights.priorityWeight || 0.1,
+      contextual: strategyWeights.contextualWeight || 0
     };
 
     // Apply priority weight override if specified

@@ -6,12 +6,13 @@
  */
 
 import type {
-  ISummaryExtractor,
+  SummaryExtractorInterface,
   ExtractionContext,
   ExtractionResult,
   MinimumDocumentInfo,
   OriginDocumentInfo
-} from '../../domain/services/interfaces/ISummaryExtractor.js';
+} from '../../domain/services/interfaces/SummaryExtractorInterface.js';
+import { CharacterLimitUtils, DocumentIdUtils } from '../../domain/value-objects/ValueObjectUtils.js';
 
 /**
  * 추출 전략 인터페이스
@@ -27,7 +28,7 @@ interface ExtractionStrategy {
  * 
  * 전략 패턴과 템플릿 메서드 패턴을 활용한 요약 추출
  */
-export class SummaryExtractor implements ISummaryExtractor {
+export class SummaryExtractor implements SummaryExtractorInterface {
   private readonly strategies: Map<string, ExtractionStrategy>;
 
   constructor() {
@@ -51,7 +52,7 @@ export class SummaryExtractor implements ISummaryExtractor {
         content,
         actualCharacterCount: content.length,
         extractionMethod: 'minimum-based',
-        warnings: content.length > context.summary.characterLimit ? 
+        warnings: CharacterLimitUtils.isGreaterThan(content.length, context.summary.characterLimit) ? 
           ['Content exceeds character limit'] : undefined
       };
 
@@ -115,7 +116,7 @@ export class SummaryExtractor implements ISummaryExtractor {
     context: ExtractionContext
   ): Promise<ExtractionResult> {
     const fakeOriginData: OriginDocumentInfo = {
-      documentId: context.document.id,
+      documentId: DocumentIdUtils.toString(context.document.id),
       title: context.document.title,
       priority: context.priority.score,
       tier: context.priority.tier,
@@ -185,7 +186,7 @@ export class SummaryExtractor implements ISummaryExtractor {
     // 글자 수 준수
     factors.characterLimitCompliance = this.scoreCharacterLimit(
       extractedContent.length,
-      context.summary.characterLimit
+      CharacterLimitUtils.toNumber(context.summary.characterLimit)
     );
 
     // 전체 점수 계산 (가중 평균)
@@ -251,8 +252,9 @@ export class SummaryExtractor implements ISummaryExtractor {
     let content = templates[language as keyof typeof templates] || templates.ko;
     
     // 글자 수 제한에 맞춰 조정
-    if (content.length > characterLimit) {
-      content = this.smartTrim(content, characterLimit);
+    const characterLimitNum = CharacterLimitUtils.toNumber(characterLimit);
+    if (content.length > characterLimitNum) {
+      content = this.smartTrim(content, characterLimitNum);
     }
 
     return content;
@@ -275,8 +277,9 @@ export class SummaryExtractor implements ISummaryExtractor {
     let processed = content.trim();
     
     // 글자 수 제한 적용
-    if (processed.length > context.summary.characterLimit) {
-      processed = this.smartTrim(processed, context.summary.characterLimit);
+    const characterLimitNum = CharacterLimitUtils.toNumber(context.summary.characterLimit);
+    if (processed.length > characterLimitNum) {
+      processed = this.smartTrim(processed, characterLimitNum);
     }
 
     // 언어별 후처리
@@ -418,7 +421,7 @@ class ConceptFirstStrategy implements ExtractionStrategy {
       }
     }
     
-    const extracted = conceptLines.join(' ').substring(0, context.summary.characterLimit);
+    const extracted = conceptLines.join(' ').substring(0, CharacterLimitUtils.toNumber(context.summary.characterLimit));
     
     return {
       success: true,
@@ -444,7 +447,7 @@ class ApiFirstStrategy implements ExtractionStrategy {
       ...functionDefs.slice(0, 3)
     ].join('\n\n');
     
-    const extracted = apiContent.substring(0, context.summary.characterLimit);
+    const extracted = apiContent.substring(0, CharacterLimitUtils.toNumber(context.summary.characterLimit));
     
     return {
       success: true,
@@ -470,7 +473,7 @@ class ExampleFirstStrategy implements ExtractionStrategy {
       ...codeExamples.slice(0, 1)
     ].join('\n\n');
     
-    const extracted = exampleContent.substring(0, context.summary.characterLimit);
+    const extracted = exampleContent.substring(0, CharacterLimitUtils.toNumber(context.summary.characterLimit));
     
     return {
       success: true,
@@ -495,7 +498,7 @@ class TutorialFirstStrategy implements ExtractionStrategy {
       ...steps.slice(0, 3)
     ].join('\n\n');
     
-    const extracted = tutorialContent.substring(0, context.summary.characterLimit);
+    const extracted = tutorialContent.substring(0, CharacterLimitUtils.toNumber(context.summary.characterLimit));
     
     return {
       success: true,
@@ -521,7 +524,7 @@ class ReferenceFirstStrategy implements ExtractionStrategy {
       ...links.slice(0, 5)
     ].join('\n\n');
     
-    const extracted = referenceContent.substring(0, context.summary.characterLimit);
+    const extracted = referenceContent.substring(0, CharacterLimitUtils.toNumber(context.summary.characterLimit));
     
     return {
       success: true,

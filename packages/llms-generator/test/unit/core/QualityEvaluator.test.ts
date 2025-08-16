@@ -83,6 +83,19 @@ describe('QualityEvaluator', () => {
         },
         defaultStrategy: 'balanced'
       },
+      metrics: {
+        'space-efficiency': {
+          enabled: true,
+          weight: 0.15,
+          spaceUtilizationTarget: 0.8,
+          minEfficiency: 0.6
+        },
+        'quality-coverage': {
+          enabled: true,
+          weight: 0.25,
+          coverageTarget: 0.9
+        }
+      },
       extraction: {
         enableSmartExtraction: true,
         contextAwareExtraction: true,

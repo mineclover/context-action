@@ -26,20 +26,20 @@ export type {
 } from '../domain/services/interfaces/IFrontmatterService.js';
 
 export type {
-  ISummaryExtractor,
+  SummaryExtractorInterface,
   ExtractionContext,
   ExtractionResult,
   MinimumDocumentInfo,
   OriginDocumentInfo
-} from '../domain/services/interfaces/ISummaryExtractor.js';
+} from '../domain/services/interfaces/SummaryExtractorInterface.js';
 
 export type {
-  IDocumentSummaryRepository,
+  DocumentSummaryRepositoryInterface,
   SummarySearchCriteria,
   SummarySortOptions,
   SaveResult,
   BatchResult
-} from '../domain/repositories/IDocumentSummaryRepository.js';
+} from '../domain/repositories/DocumentSummaryRepositoryInterface.js';
 
 // Re-export use case types
 export type {

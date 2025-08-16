@@ -8,8 +8,8 @@
 import { DocumentSummary } from '../../domain/entities/DocumentSummary.js';
 import { DocumentId } from '../../domain/value-objects/DocumentId.js';
 import { CharacterLimit } from '../../domain/value-objects/CharacterLimit.js';
-import type { IDocumentSummaryRepository } from '../../domain/repositories/IDocumentSummaryRepository.js';
-import type { ISummaryExtractor, MinimumDocumentInfo, OriginDocumentInfo } from '../../domain/services/interfaces/ISummaryExtractor.js';
+import type { DocumentSummaryRepositoryInterface } from '../../domain/repositories/DocumentSummaryRepositoryInterface.js';
+import type { SummaryExtractorInterface, MinimumDocumentInfo, OriginDocumentInfo } from '../../domain/services/interfaces/SummaryExtractorInterface.js';
 import type { LLMSConfig } from '../../types/index.js';
 
 /**
@@ -90,8 +90,8 @@ export interface BulkGenerationResult {
  */
 export class SummaryGeneratorUseCase {
   constructor(
-    private readonly summaryRepository: IDocumentSummaryRepository,
-    private readonly summaryExtractor: ISummaryExtractor,
+    private readonly summaryRepository: DocumentSummaryRepositoryInterface,
+    private readonly summaryExtractor: SummaryExtractorInterface,
     private readonly config: LLMSConfig
   ) {}
 

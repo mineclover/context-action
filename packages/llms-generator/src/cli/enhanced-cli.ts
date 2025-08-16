@@ -70,7 +70,7 @@ class DocumentScanner {
   private async extractMetadata(filePath: string): Promise<DocumentMetadata | null> {
     try {
       const content = await fs.readFile(filePath, 'utf-8');
-      const relativePath = path.relative(this.config.paths.docs, filePath);
+      const relativePath = path.relative(this.config.paths.docsDir || 'docs', filePath);
       const id = this.generateDocumentId(relativePath);
       
       // Extract basic metadata
@@ -93,8 +93,10 @@ class DocumentScanner {
         },
         tags: {
           primary: tags,
+          secondary: [],
           audience: ['developers'],
-          complexity: wordCount > 1000 ? 'advanced' : wordCount > 500 ? 'intermediate' : 'basic'
+          complexity: wordCount > 1000 ? 'advanced' : wordCount > 500 ? 'intermediate' : 'basic',
+          estimatedReadingTime: `${Math.ceil(wordCount / 200)}분`
         },
         keywords: {
           primary: this.extractKeywords(content),
@@ -113,7 +115,7 @@ class DocumentScanner {
           tagAffinity: tags.reduce((acc, tag) => ({ ...acc, [tag]: 1.0 }), {}),
           contextualRelevance: {}
         },
-        metrics: {
+        quality: {
           readabilityScore: 0.8,
           completenessScore: 0.9,
           accuracyScore: 0.85,
@@ -442,9 +444,9 @@ async function main() {
           console.log('Loading configuration...');
         }
         
-        const configManager = new EnhancedConfigManager();
+        const configManager = new EnhancedConfigManager(options.config);
         const config = options.config 
-          ? await configManager.loadConfig(options.config)
+          ? await configManager.loadConfig()
           : await configManager.initializeConfig('standard');
 
         if (options.verbose) {
@@ -452,7 +454,7 @@ async function main() {
         }
 
         const scanner = new DocumentScanner(config);
-        const documents = await scanner.scanDocuments(config.paths.docs);
+        const documents = await scanner.scanDocuments(config.paths.docsDir || 'docs');
         
         console.log(`📄 Found ${documents.length} documents`);
 
@@ -490,15 +492,14 @@ async function main() {
 
         // Prepare constraints
         const constraints: SelectionConstraints = {
-          maxCharacters: Math.max(...characterLimits),
+          characterLimit: Math.max(...characterLimits),
           targetCharacterLimit: Math.max(...characterLimits),
           context: {
             targetTags: options.tags ? options.tags.split(',').map((s: string) => s.trim()) : [],
             tagWeights: {},
             selectedDocuments: [],
-            maxCharacters: Math.max(...characterLimits),
-            targetCharacterLimit: Math.max(...characterLimits),
-            qualityThreshold: parseInt(options.qualityThreshold)
+            characterLimit: Math.max(...characterLimits),
+            targetCharacterLimit: Math.max(...characterLimits)
           }
         };
 
@@ -572,13 +573,13 @@ async function main() {
       try {
         console.log('📊 Starting document analysis...');
 
-        const configManager = new EnhancedConfigManager();
+        const configManager = new EnhancedConfigManager(options.config);
         const config = options.config 
-          ? await configManager.loadConfig(options.config)
+          ? await configManager.loadConfig()
           : await configManager.initializeConfig('standard');
 
         const scanner = new DocumentScanner(config);
-        const documents = await scanner.scanDocuments(config.paths.docs);
+        const documents = await scanner.scanDocuments(config.paths.docsDir || 'docs');
 
         const reporter = new AnalysisReporter(config);
         const outputPath = options.output || `./analysis-${Date.now()}.${options.format}`;
@@ -613,12 +614,12 @@ async function main() {
         }
 
         try {
-          const config = await configManager.loadConfig(options.config);
+          const config = await configManager.loadConfig();
           console.log('✅ Configuration validation passed');
 
           if (options.documents) {
             const scanner = new DocumentScanner(config);
-            const documents = await scanner.scanDocuments(config.paths.docs);
+            const documents = await scanner.scanDocuments(config.paths.docsDir || 'docs');
             console.log(`✅ Document validation completed - ${documents.length} documents processed`);
           }
 

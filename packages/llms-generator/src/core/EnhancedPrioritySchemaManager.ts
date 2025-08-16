@@ -360,7 +360,7 @@ export class EnhancedPrioritySchemaManager {
       },
       extraction: {
         strategy: finalStrategy,
-        character_limits: {},
+        characterLimit: {},
         emphasis: {
           must_include: [],
           nice_to_have: [],

@@ -20,10 +20,11 @@
   },
   "scripts": {
     "build": "tsdown",
+    "build:prod": "NODE_ENV=production tsdown --config tsdown.prod.config.ts",
     "dev": "tsdown --watch",
     "test": "jest",
     "test:watch": "jest --watch",
-    "lint": "echo 'Linting temporarily disabled due to legacy code style issues'",
+    "lint": "eslint src --ext .ts,.js",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist",
     "docs:generate": "typedoc src/index.ts --out docs/api --readme none --exclude '**/*.test.ts' --exclude '**/test/**/*'",
@@ -31,7 +32,17 @@
     "security:audit": "pnpm audit --audit-level high",
     "security:outdated": "pnpm outdated",
     "security:check": "pnpm security:audit && pnpm security:outdated",
-    "prepublishOnly": "pnpm run build"
+    "size": "pnpm build:prod && node -e \"const fs=require('fs');const path=require('path');const distPath='./dist';const files=fs.readdirSync(distPath).filter(f=>f.endsWith('.js'));console.log('Bundle sizes:');files.forEach(f=>{const size=fs.statSync(path.join(distPath,f)).size;console.log(f+': '+(size/1024).toFixed(1)+'KB');});\"",
+    "prepublishOnly": "pnpm run build",
+    "legacy:generate-files": "npm run cli -- generate-files",
+    "legacy:sync-all": "npm run cli -- sync-all",
+    "legacy:fix-paths": "npm run cli -- fix-paths",
+    "test:llms": "npx tsx test/scripts/test-llms.ts",
+    "test:category": "npx tsx test/scripts/test-category.ts",
+    "test:save-results": "npx tsx test/scripts/save-results.ts",
+    "demo": "npx tsx examples/demo.ts",
+    "demo:verbose": "npx tsx examples/demo.ts --verbose",
+    "cli": "npx tsx src/cli/index.ts"
   },
   "keywords": [
     "llmstxt",
@@ -51,11 +62,13 @@
   "dependencies": {
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
+    "commander": "14.0.0",
     "gray-matter": "^4.0.3",
     "typescript": "^5.3.0",
     "yaml": "^2.8.1"
   },
   "devDependencies": {
+    "@types/glob": "9.0.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",

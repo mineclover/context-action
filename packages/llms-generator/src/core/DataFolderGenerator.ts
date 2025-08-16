@@ -5,7 +5,7 @@
 
 import fs from 'fs/promises';
 import path from 'path';
-import { glob } from 'glob';
+import * as glob from 'glob';
 
 export interface PriorityDocument {
   document: {
@@ -20,7 +20,7 @@ export interface PriorityDocument {
   };
   extraction?: {
     strategy?: string;
-    character_limits?: Record<string, any>;
+    characterLimit?: Record<string, any>;
   };
   work_status?: {
     generated_files?: Record<string, any>;
@@ -190,7 +190,7 @@ export class DataFolderGenerator {
     lines.push(`  character_limit: ${characterLimit}`);
     
     // Get focus from extraction config
-    const limitConfig = priorityData.extraction?.character_limits?.[characterLimit];
+    const limitConfig = priorityData.extraction?.characterLimit?.[characterLimit];
     const focus = limitConfig?.focus || (language === 'ko' ? '기본 개념' : 'Core Concepts');
     
     lines.push(`  focus: "${focus}"`);
@@ -243,7 +243,7 @@ export class DataFolderGenerator {
     lines.push('# Summary Configuration');
     lines.push(`Character Limit: ${characterLimit}`);
     
-    const limitConfig = priorityData.extraction?.character_limits?.[characterLimit];
+    const limitConfig = priorityData.extraction?.characterLimit?.[characterLimit];
     const focus = limitConfig?.focus || (language === 'ko' ? '기본 개념' : 'Core Concepts');
     
     lines.push(`Focus: ${focus}`);

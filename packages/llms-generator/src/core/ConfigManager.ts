@@ -150,7 +150,7 @@ export class ConfigManager {
       projectRoot,
       configFile,
       docsDir: path.resolve(projectRoot, config.paths?.docsDir || './docs'),
-      dataDir: path.resolve(projectRoot, config.paths?.dataDir || './packages/llms-generator/data'),
+      dataDir: path.resolve(projectRoot, (config.paths as any)?.llmContentDir || config.paths?.dataDir || './data'),
       templatesDir: path.resolve(projectRoot, config.paths?.templatesDir || './templates'),
       instructionsDir: path.resolve(projectRoot, config.paths?.instructionsDir || './instructions'),
       outputDir: path.resolve(projectRoot, config.paths?.outputDir || './docs/llms')

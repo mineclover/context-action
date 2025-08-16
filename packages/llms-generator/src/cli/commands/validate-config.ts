@@ -2,7 +2,7 @@
  * CLI command for validating configuration files
  */
 
-import { readFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
 import { ConfigSchemaManager } from '../../core/ConfigSchemaManager.js';
@@ -179,7 +179,7 @@ async function attemptAutoFix(configPath: string, result: any): Promise<void> {
     // Fix composition strategy weights
     if (config.composition?.strategies) {
       for (const [strategyName, strategy] of Object.entries(config.composition.strategies) as any) {
-        const weightSum = Object.values(strategy.weights).reduce((sum: number, weight: number) => sum + weight, 0);
+        const weightSum = Object.values(strategy.weights as Record<string, number>).reduce((sum: number, weight: number) => sum + weight, 0);
         if (Math.abs(weightSum - 1.0) > 0.01) {
           // Normalize weights to sum to 1.0
           const factor = 1.0 / weightSum;

@@ -6,6 +6,7 @@
  */
 
 import type { DocumentMetadata, PriorityInfo, SummaryMetadata, GenerationInfo } from '../entities/DocumentSummary.js';
+import { CharacterLimitUtils, DocumentIdUtils } from './ValueObjectUtils.js';
 
 export interface FrontmatterData {
   document: DocumentMetadata;
@@ -77,8 +78,8 @@ export class Frontmatter {
       throw new Error(`Invalid priority score: ${priority.score}`);
     }
 
-    if (summary.characterLimit <= 0) {
-      throw new Error(`Invalid character limit: ${summary.characterLimit}`);
+    if (CharacterLimitUtils.isLessThanOrEqual(summary.characterLimit, 0)) {
+      throw new Error(`Invalid character limit: ${CharacterLimitUtils.toNumber(summary.characterLimit)}`);
     }
 
     const validTiers = ['critical', 'essential', 'important', 'reference', 'supplementary'];
@@ -145,7 +146,7 @@ export class Frontmatter {
       ...this._data,
       summary: {
         ...this._data.summary,
-        characterLimit: newLimit
+        characterLimit: CharacterLimitUtils.toCharacterLimit(newLimit)
       }
     };
 
@@ -163,11 +164,11 @@ export class Frontmatter {
   }
 
   get documentId(): string {
-    return this._data.document.id;
+    return DocumentIdUtils.toString(this._data.document.id);
   }
 
   get characterLimit(): number {
-    return this._data.summary.characterLimit;
+    return CharacterLimitUtils.toNumber(this._data.summary.characterLimit);
   }
 
   get priorityScore(): number {

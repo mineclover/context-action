@@ -7,8 +7,8 @@
 
 import type { LLMSConfig } from '../../types/index.js';
 import type { IFrontmatterService } from '../../domain/services/interfaces/IFrontmatterService.js';
-import type { IDocumentSummaryRepository } from '../../domain/repositories/IDocumentSummaryRepository.js';
-import type { ISummaryExtractor } from '../../domain/services/interfaces/ISummaryExtractor.js';
+import type { DocumentSummaryRepositoryInterface } from '../../domain/repositories/DocumentSummaryRepositoryInterface.js';
+import type { SummaryExtractorInterface } from '../../domain/services/interfaces/SummaryExtractorInterface.js';
 import { FrontmatterService } from '../services/FrontmatterService.js';
 import { SummaryExtractor } from '../services/SummaryExtractor.js';
 import { FileSystemDocumentSummaryRepository } from '../repositories/FileSystemDocumentSummaryRepository.js';
@@ -21,10 +21,10 @@ import { SummaryGeneratorUseCase } from '../../application/use-cases/SummaryGene
 export interface ServiceContainer {
   // Domain Services
   readonly frontmatterService: IFrontmatterService;
-  readonly summaryExtractor: ISummaryExtractor;
+  readonly summaryExtractor: SummaryExtractorInterface;
   
   // Repositories
-  readonly documentSummaryRepository: IDocumentSummaryRepository;
+  readonly documentSummaryRepository: DocumentSummaryRepositoryInterface;
   
   // Use Cases
   readonly generateSummaryUseCase: GenerateSummaryUseCase;
@@ -108,7 +108,7 @@ export class DIContainer {
     return this.services.frontmatterService;
   }
 
-  getDocumentSummaryRepository(): IDocumentSummaryRepository {
+  getDocumentSummaryRepository(): DocumentSummaryRepositoryInterface {
     return this.services.documentSummaryRepository;
   }
 
@@ -116,7 +116,7 @@ export class DIContainer {
     return this.services.generateSummaryUseCase;
   }
 
-  getSummaryExtractor(): ISummaryExtractor {
+  getSummaryExtractor(): SummaryExtractorInterface {
     return this.services.summaryExtractor;
   }
 
@@ -175,7 +175,7 @@ export function useFrontmatterService(): IFrontmatterService {
   return getServices().frontmatterService;
 }
 
-export function useDocumentSummaryRepository(): IDocumentSummaryRepository {
+export function useDocumentSummaryRepository(): DocumentSummaryRepositoryInterface {
   return getServices().documentSummaryRepository;
 }
 
@@ -183,7 +183,7 @@ export function useGenerateSummaryUseCase(): GenerateSummaryUseCase {
   return getServices().generateSummaryUseCase;
 }
 
-export function useSummaryExtractor(): ISummaryExtractor {
+export function useSummaryExtractor(): SummaryExtractorInterface {
   return getServices().summaryExtractor;
 }
 
