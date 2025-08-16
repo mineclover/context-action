@@ -245,4 +245,50 @@ export class ConfigManager {
   static getEnabledCharacterLimits(config: ResolvedConfig): number[] {
     return [...config.characterLimits].sort((a, b) => a - b);
   }
+
+  /**
+   * Merge multiple configurations
+   */
+  static mergeConfigurations(...configs: Partial<UserConfig>[]): UserConfig {
+    const defaultConfig = this.getDefaultConfig();
+    let result = { ...defaultConfig };
+
+    for (const config of configs) {
+      if (!config) continue;
+
+      result = {
+        ...result,
+        ...config,
+        paths: {
+          ...result.paths,
+          ...config.paths
+        },
+        instructions: {
+          ...result.instructions,
+          ...config.instructions
+        }
+      };
+    }
+
+    return result;
+  }
+
+  /**
+   * Deep merge utility for nested objects
+   */
+  private static deepMerge<T extends Record<string, any>>(target: T, source: Partial<T>): T {
+    const result = { ...target };
+
+    for (const key in source) {
+      if (source[key] !== undefined) {
+        if (typeof source[key] === 'object' && source[key] !== null && !Array.isArray(source[key])) {
+          result[key] = this.deepMerge(result[key] || {}, source[key] as any);
+        } else {
+          result[key] = source[key] as any;
+        }
+      }
+    }
+
+    return result;
+  }
 }

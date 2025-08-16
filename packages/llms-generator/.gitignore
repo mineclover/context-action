@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+
+# Generated documentation
+docs/api/
+
+# Test outputs
+test/outputs/
+test/temp/
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Runtime data
+*.pid
+*.seed
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.test
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Generated content (data should be in main project gitignore)
+data/**/*.txt
+data/**/*.md
+!data/**/priority.json
+
+# Work queue state
+work-queue-state.json
+
+# Temporary files
+*.tmp
+*.temp

@@ -946,6 +946,57 @@ export class AdaptiveDocumentSelector {
       }
     });
 
+    // Add missing strategies that tests are looking for
+    strategies.set('greedy', {
+      name: 'Greedy Selection',
+      description: 'Fast greedy algorithm prioritizing efficiency',
+      algorithm: 'greedy',
+      criteria: {
+        priorityWeight: 0.4,
+        diversityWeight: 0.3,
+        dependencyWeight: 0.2,
+        qualityWeight: 0.1,
+        spaceUtilization: 0.0
+      },
+      constraints: {
+        minQualityScore: 0.4
+      }
+    });
+
+    strategies.set('hybrid', {
+      name: 'Hybrid Selection',
+      description: 'Combines multiple algorithms for optimal results',
+      algorithm: 'hybrid',
+      criteria: {
+        priorityWeight: 0.3,
+        diversityWeight: 0.25,
+        dependencyWeight: 0.25,
+        qualityWeight: 0.15,
+        spaceUtilization: 0.05
+      },
+      constraints: {
+        minQualityScore: 0.5,
+        balanceRequirement: 0.6
+      }
+    });
+
+    strategies.set('adaptive', {
+      name: 'Adaptive Selection',
+      description: 'Dynamically adapts strategy based on document characteristics',
+      algorithm: 'multi-criteria',
+      criteria: {
+        priorityWeight: 0.25,
+        diversityWeight: 0.25,
+        dependencyWeight: 0.25,
+        qualityWeight: 0.25,
+        spaceUtilization: 0.0
+      },
+      constraints: {
+        minQualityScore: 0.6,
+        balanceRequirement: 0.7
+      }
+    });
+
     return strategies;
   }
 

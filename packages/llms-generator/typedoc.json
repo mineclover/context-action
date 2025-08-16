@@ -1,0 +1,44 @@
+{
+  "entryPoints": ["src/index.ts"],
+  "out": "docs/api",
+  "name": "@context-action/llms-generator",
+  "readme": "README.md",
+  "exclude": [
+    "**/*.test.ts",
+    "**/test/**/*",
+    "**/*.spec.ts",
+    "**/node_modules/**/*"
+  ],
+  "excludePrivate": true,
+  "excludeProtected": false,
+  "excludeInternal": true,
+  "categorizeByGroup": true,
+  "defaultCategory": "Other",
+  "categoryOrder": [
+    "Core Classes",
+    "Configuration",
+    "Types",
+    "Utilities",
+    "*"
+  ],
+  "sort": ["source-order", "required-first", "kind"],
+  "kindSortOrder": [
+    "Class",
+    "Interface",
+    "Type alias",
+    "Function",
+    "Variable",
+    "Enum"
+  ],
+  "navigation": {
+    "includeCategories": true,
+    "includeGroups": true
+  },
+  "theme": "default",
+  "plugin": [],
+  "validation": {
+    "notExported": false,
+    "invalidLink": true,
+    "notDocumented": false
+  }
+}

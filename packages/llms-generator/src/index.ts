@@ -48,6 +48,11 @@ export const DEFAULT_CONFIG = {
   generation: {
     supportedLanguages: ['en', 'ko'],
     characterLimits: [100, 300, 500, 1000, 2000, 3000, 4000],
+    defaultCharacterLimits: {
+      summary: 1000,
+      detailed: 3000,
+      comprehensive: 5000
+    },
     defaultLanguage: 'en',
     outputFormat: 'txt' as const
   },

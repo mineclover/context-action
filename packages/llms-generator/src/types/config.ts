@@ -196,15 +196,8 @@ export interface EnhancedLLMSConfig extends LLMSConfig {
   ui: UIConfig;
 }
 
-export type ExtractStrategy = 'concept-first' | 'example-first' | 'api-first' | 'tutorial-first' | 'reference-first';
-
-export type DocumentCategory = 'guide' | 'api' | 'concept' | 'example' | 'reference' | 'llms';
-
-export type PriorityTier = 'critical' | 'essential' | 'important' | 'reference' | 'supplementary';
-
-export type TargetAudience = 'beginners' | 'intermediate' | 'advanced' | 'framework-users' | 'contributors' | 'llms' | 'new-users' | 'experienced-users' | 'experts' | 'all-users';
-
-export type ConsistencyCheck = 'terminology' | 'code_style' | 'naming_conventions' | 'pattern_usage' | 'api_signatures' | 'tag_consistency' | 'dependency_validity';
+// Re-export from priority.ts to avoid duplication
+export type { ExtractionStrategy, DocumentCategory, PriorityTier, TargetAudience, ConsistencyCheck } from './priority.js';
 
 // Selection and Composition Types
 

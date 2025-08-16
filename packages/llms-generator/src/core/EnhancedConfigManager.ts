@@ -686,4 +686,100 @@ export class EnhancedConfigManager {
       }
     };
   }
+
+  /**
+   * Merge multiple enhanced configurations
+   */
+  static mergeConfigurations(...configs: Partial<EnhancedLLMSConfig>[]): EnhancedLLMSConfig {
+    const manager = new EnhancedConfigManager();
+    const preset = manager.getConfigPreset('standard');
+    let result = manager.createConfigFromPreset(preset);
+
+    for (const config of configs) {
+      if (!config) continue;
+
+      result = {
+        ...result,
+        ...config,
+        paths: {
+          ...result.paths,
+          ...config.paths
+        },
+        generation: {
+          ...result.generation,
+          ...config.generation
+        },
+        quality: {
+          ...result.quality,
+          ...config.quality
+        },
+        categories: {
+          ...result.categories,
+          ...config.categories
+        },
+        tags: {
+          ...result.tags,
+          ...config.tags
+        },
+        dependencies: config.dependencies ? {
+          ...result.dependencies,
+          ...config.dependencies,
+          rules: {
+            ...result.dependencies?.rules,
+            ...config.dependencies.rules
+          },
+          conflictResolution: {
+            ...result.dependencies?.conflictResolution,
+            ...config.dependencies.conflictResolution
+          }
+        } : result.dependencies,
+        composition: config.composition ? {
+          ...result.composition,
+          ...config.composition,
+          strategies: {
+            ...result.composition?.strategies,
+            ...config.composition.strategies
+          },
+          optimization: {
+            ...result.composition?.optimization,
+            ...config.composition.optimization
+          }
+        } : result.composition,
+        extraction: config.extraction ? {
+          ...result.extraction,
+          ...config.extraction,
+          strategies: {
+            ...result.extraction?.strategies,
+            ...config.extraction.strategies
+          }
+        } : result.extraction,
+        validation: config.validation ? {
+          ...result.validation,
+          ...config.validation,
+          schema: {
+            ...result.validation?.schema,
+            ...config.validation.schema
+          },
+          quality: {
+            ...result.validation?.quality,
+            ...config.validation.quality
+          }
+        } : result.validation,
+        ui: config.ui ? {
+          ...result.ui,
+          ...config.ui,
+          dashboard: {
+            ...result.ui?.dashboard,
+            ...config.ui.dashboard
+          },
+          reporting: {
+            ...result.ui?.reporting,
+            ...config.ui.reporting
+          }
+        } : result.ui
+      };
+    }
+
+    return result;
+  }
 }

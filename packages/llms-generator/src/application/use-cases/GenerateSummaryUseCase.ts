@@ -6,6 +6,8 @@
  */
 
 import { DocumentSummary } from '../../domain/entities/DocumentSummary.js';
+import { DocumentId } from '../../domain/value-objects/DocumentId.js';
+import { CharacterLimit } from '../../domain/value-objects/CharacterLimit.js';
 import type { IDocumentSummaryRepository } from '../../domain/repositories/IDocumentSummaryRepository.js';
 import type { IFrontmatterService } from '../../domain/services/interfaces/IFrontmatterService.js';
 
@@ -80,10 +82,13 @@ export class GenerateSummaryUseCase {
   async execute(request: GenerateSummaryRequest): Promise<GenerateSummaryResponse> {
     try {
       // 1. 기존 요약 존재 여부 확인
+      const documentId = DocumentId.create(request.documentId);
+      const characterLimit = CharacterLimit.create(request.characterLimit);
+      
       const existingSummary = await this.summaryRepository.findByDocumentAndLimit(
-        request.documentId,
+        documentId,
         request.language,
-        request.characterLimit
+        characterLimit
       );
 
       if (existingSummary) {
@@ -96,16 +101,16 @@ export class GenerateSummaryUseCase {
       // 2. 소스 컨텐츠에서 요약 추출
       const extractedContent = this.extractSummaryFromSource(
         request.sourceContent,
-        request.characterLimit,
+        characterLimit.value,
         request.strategy
       );
 
       // 3. DocumentSummary 엔티티 생성
-      const summary = DocumentSummary.create({
+      const summaryResult = DocumentSummary.create({
         document: {
           path: request.documentPath,
           title: request.documentTitle,
-          id: request.documentId,
+          id: documentId,
           category: request.category
         },
         priority: {
@@ -113,7 +118,7 @@ export class GenerateSummaryUseCase {
           tier: request.priorityTier
         },
         summary: {
-          characterLimit: request.characterLimit,
+          characterLimit: characterLimit,
           focus: request.focus,
           strategy: request.strategy,
           language: request.language
@@ -126,6 +131,15 @@ export class GenerateSummaryUseCase {
           characterCount: extractedContent.length
         }
       });
+
+      if (summaryResult.isFailure) {
+        return {
+          success: false,
+          error: `Failed to create summary: ${summaryResult.error.message}`
+        };
+      }
+
+      const summary = summaryResult.value;
 
       // 4. 저장소에 저장
       const saveResult = await this.summaryRepository.save(summary);
@@ -192,7 +206,7 @@ export class GenerateSummaryUseCase {
       if (result.success && result.summary) {
         successCount++;
         characterCounts.push(result.summary.content.length);
-        uniqueDocuments.add(result.summary.document.id);
+        uniqueDocuments.add(result.summary.document.id.value);
         
         const tier = result.summary.priority.tier;
         tierDistribution[tier] = (tierDistribution[tier] || 0) + 1;
@@ -238,12 +252,12 @@ export class GenerateSummaryUseCase {
 
       // 업데이트된 요약 생성
       const updatedRequest: GenerateSummaryRequest = {
-        documentId: updates.documentId ?? existingSummary.document.id,
+        documentId: updates.documentId ?? existingSummary.document.id.value,
         documentPath: updates.documentPath ?? existingSummary.document.path,
         documentTitle: updates.documentTitle ?? existingSummary.document.title,
         category: updates.category ?? existingSummary.document.category,
         language: updates.language ?? existingSummary.summary.language,
-        characterLimit: updates.characterLimit ?? existingSummary.summary.characterLimit,
+        characterLimit: updates.characterLimit ?? existingSummary.summary.characterLimit.value,
         priorityScore: updates.priorityScore ?? existingSummary.priority.score,
         priorityTier: updates.priorityTier ?? existingSummary.priority.tier,
         strategy: updates.strategy ?? existingSummary.summary.strategy,
@@ -280,15 +294,15 @@ export class GenerateSummaryUseCase {
       // 조건에 맞는 기존 요약들 조회
       const existingSummaries = await this.summaryRepository.findByCriteria({
         language: criteria.language,
-        characterLimit: criteria.characterLimits?.[0] // 단순화
+        characterLimit: criteria.characterLimits?.[0] ? CharacterLimit.create(criteria.characterLimits[0]) : undefined // 단순화
       });
 
       // 필터링
       const targetSummaries = existingSummaries.filter(summary => {
-        if (criteria.documentIds && !criteria.documentIds.includes(summary.document.id)) {
+        if (criteria.documentIds && !criteria.documentIds.includes(summary.document.id.value)) {
           return false;
         }
-        if (criteria.characterLimits && !criteria.characterLimits.includes(summary.summary.characterLimit)) {
+        if (criteria.characterLimits && !criteria.characterLimits.includes(summary.summary.characterLimit.value)) {
           return false;
         }
         if (criteria.olderThan && summary.generated.timestamp >= criteria.olderThan) {
@@ -301,15 +315,15 @@ export class GenerateSummaryUseCase {
       const requests: GenerateSummaryRequest[] = [];
       for (const summary of targetSummaries) {
         try {
-          const sourceContent = await sourceContentProvider(summary.document.id, summary.summary.language);
+          const sourceContent = await sourceContentProvider(summary.document.id.value, summary.summary.language);
           
           requests.push({
-            documentId: summary.document.id,
+            documentId: summary.document.id.value,
             documentPath: summary.document.path,
             documentTitle: summary.document.title,
             category: summary.document.category,
             language: summary.summary.language,
-            characterLimit: summary.summary.characterLimit,
+            characterLimit: summary.summary.characterLimit.value,
             priorityScore: summary.priority.score,
             priorityTier: summary.priority.tier,
             strategy: summary.summary.strategy,
