@@ -3,15 +3,9 @@
  * 시나리오 기반 통합 테스트 - 사용법 검증과 스펙 연계 확인
  */
 
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
-import { readFile, writeFile, mkdir, rm } from 'fs/promises';
-import { existsSync } from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-// Test configuration
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const { readFile, writeFile, mkdir, rm } = require('fs/promises');
+const { existsSync } = require('fs');
+const path = require('path');
 const TEST_DATA_DIR = path.join(__dirname, 'test-data');
 const TEST_DOCS_DIR = path.join(TEST_DATA_DIR, 'docs');
 

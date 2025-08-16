@@ -204,7 +204,7 @@ If you notice memory usage growing over time, check for...
     stderr: string;
   }> {
     return new Promise((resolve) => {
-      const child = spawn('node', ['./dist/cli.js', ...args], {
+      const child = spawn('node', ['./dist/cli/index.js', ...args], {
         cwd: path.join(__dirname, '../../'),
         stdio: ['pipe', 'pipe', 'pipe']
       });
@@ -519,7 +519,7 @@ If you notice memory usage growing over time, check for...
   describe('Interactive Mode', () => {
     it('should support interactive selection mode', async () => {
       // This test simulates interactive input
-      const child = spawn('node', ['./dist/cli.js', 'generate', '--config', testConfigPath, '--interactive'], {
+      const child = spawn('node', ['./dist/cli/index.js', 'generate', '--config', testConfigPath, '--interactive'], {
         cwd: path.join(__dirname, '../../'),
         stdio: ['pipe', 'pipe', 'pipe']
       });

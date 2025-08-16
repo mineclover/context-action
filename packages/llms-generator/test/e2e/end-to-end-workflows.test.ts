@@ -1,11 +1,9 @@
 import { spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import {
-  EnhancedConfigManager,
-  AdaptiveDocumentSelector,
-  QualityEvaluator
-} from '../../src/core';
+import { EnhancedConfigManager } from '../../src/core/EnhancedConfigManager';
+import { AdaptiveDocumentSelector } from '../../src/core/AdaptiveDocumentSelector';
+import { QualityEvaluator } from '../../src/core/QualityEvaluator';
 
 describe('End-to-End Workflows', () => {
   let testEnvironmentDir: string;
