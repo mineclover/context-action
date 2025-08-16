@@ -53,3 +53,8 @@ work-queue-state.json
 # Temporary files
 *.tmp
 *.temp
+
+# Legacy scripts (for reference only)
+# scripts/legacy/ files are tracked but output should be ignored
+scripts/legacy/*.output
+scripts/legacy/*.temp
