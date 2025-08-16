@@ -7,7 +7,7 @@
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
-import type { LLMSConfig } from './types';
+import type { LLMSConfig } from '../types/index.js';
 
 interface PriorityData {
   document: {

@@ -1248,7 +1248,7 @@ export class QualityEvaluator {
           failed.push({
             rule: name,
             description: result.details || rule.description,
-            severity: rule.severity
+            severity: rule.severity === 'info' ? 'warning' : rule.severity
           });
         }
       } catch (error) {

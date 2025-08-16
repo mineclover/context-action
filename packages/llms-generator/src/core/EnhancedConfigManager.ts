@@ -259,16 +259,25 @@ export class EnhancedConfigManager {
    * Enhance basic configuration with defaults
    */
   private enhanceBasicConfig(baseConfig: any): EnhancedLLMSConfig {
-    // If it's already enhanced, return as-is
-    if (baseConfig.categories && baseConfig.tags && baseConfig.composition) {
+    // If it's already fully enhanced, return as-is
+    if (baseConfig.categories && baseConfig.tags && baseConfig.composition && baseConfig.dependencies) {
       return baseConfig as EnhancedLLMSConfig;
     }
 
-    // Convert basic config to enhanced
+    // Convert basic config to enhanced, merging with defaults
+    const standardCategories = this.getStandardCategories();
+    const standardTags = this.getStandardTags();
+    
     const enhanced: EnhancedLLMSConfig = {
       ...baseConfig,
-      categories: baseConfig.categories || this.getStandardCategories(),
-      tags: baseConfig.tags || this.getStandardTags(),
+      categories: {
+        ...standardCategories,
+        ...baseConfig.categories // User categories override defaults
+      },
+      tags: {
+        ...standardTags,
+        ...baseConfig.tags // User tags override defaults
+      },
       dependencies: baseConfig.dependencies || {
         rules: {
           prerequisite: {

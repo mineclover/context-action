@@ -353,7 +353,7 @@ export class LLMSGenerator {
       important: documents.filter(d => 
         d.priority.priority.tier === 'important' || 
         !d.priority.priority.tier || 
-        d.priority.priority.tier === ''
+        d.priority.priority.tier === null || d.priority.priority.tier === undefined
       ),
       reference: documents.filter(d => d.priority.priority.tier === 'reference'),
       supplementary: documents.filter(d => d.priority.priority.tier === 'supplementary')

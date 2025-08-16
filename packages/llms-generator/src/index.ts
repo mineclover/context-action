@@ -13,6 +13,7 @@ export { MarkdownGenerator } from './core/MarkdownGenerator.js';
 export { ContentExtractor } from './core/ContentExtractor.js';
 export { AdaptiveComposer } from './core/AdaptiveComposer.js';
 export { WorkStatusManager } from './core/WorkStatusManager.js';
+export { EnhancedWorkStatusManager } from './core/EnhancedWorkStatusManager.js';
 export { ConfigManager } from './core/ConfigManager.js';
 export { InstructionGenerator } from './core/InstructionGenerator.js';
 export { CategoryMinimumGenerator } from './core/CategoryMinimumGenerator.js';

@@ -115,15 +115,7 @@ export class Success<T> extends Result<T, never> {
   }
 
   map<U>(fn: (value: T) => U): Result<U, never> {
-    try {
-      return Result.success(fn(this._value!));
-    } catch (error) {
-      // map 함수에서 예외 발생 시 실패로 변환
-      return Result.failure({
-        message: error instanceof Error ? error.message : 'Unknown error in map function',
-        code: 'MAP_ERROR'
-      });
-    }
+    return Result.success(fn(this._value!));
   }
 
   flatMap<U, E extends DomainError>(fn: (value: T) => Result<U, E>): Result<U, E> {

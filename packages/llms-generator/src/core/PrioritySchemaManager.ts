@@ -292,19 +292,6 @@ export class PrioritySchemaManager {
           'Advanced optimization techniques'
         ]
       },
-      tags: {
-        primary: this.generatePrimaryTags(category),
-        secondary: this.generateSecondaryTags(category, finalDocumentId),
-        audience: ['framework-users', 'beginners'],
-        complexity: this.getDefaultComplexity(category)
-      },
-      dependencies: {
-        prerequisites: [],
-        references: [],
-        followups: [],
-        conflicts: [],
-        complements: []
-      },
       extraction: {
         strategy: strategy,
         characterLimit: this.generateCharacterLimits(strategy, category, title, options),

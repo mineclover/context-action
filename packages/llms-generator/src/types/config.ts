@@ -3,6 +3,12 @@
  */
 
 import { CharacterLimit, DocumentId } from '../domain/value-objects/index.js';
+import type { 
+  DocumentCategory, 
+  PriorityTier, 
+  TargetAudience, 
+  ExtractionStrategy 
+} from './priority.js';
 
 export interface LLMSConfig {
   paths: {
@@ -268,6 +274,7 @@ export interface DocumentMetadata {
     technical: string[];
     domain: string[];
     patterns?: string[];
+    avoid?: string[];
   };
   dependencies: {
     prerequisites: Array<{

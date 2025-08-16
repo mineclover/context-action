@@ -1,0 +1,23 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Git merge 후 문서 동기화 (pull이나 merge 후 실행)
+echo "🔀 Merge 후 문서 동기화를 확인합니다..."
+
+# 최근 merge에서 변경된 파일들 감지
+CHANGED_FILES=$(git diff HEAD~1 --name-only | grep -E '\.(md|txt)$' | tr '\n' ',' | sed 's/,$//')
+
+if [ -n "$CHANGED_FILES" ]; then
+  echo "📄 변경된 문서들: $CHANGED_FILES"
+  
+  # 변경된 파일들을 명시적으로 전달하여 동기화
+  npx @context-action/llms-generator sync-docs --changed-files "$CHANGED_FILES" --quiet
+  
+  if [ $? -eq 0 ]; then
+    echo "✅ Merge 후 문서 동기화가 완료되었습니다."
+  else
+    echo "⚠️ Merge 후 문서 동기화 중 문제가 발생했습니다."
+  fi
+else
+  echo "📄 변경된 문서가 없어 동기화를 건너뜁니다."
+fi

@@ -1,0 +1,27 @@
+{
+  "timestamp": "2025-08-16T21:59:46.075Z",
+  "result": {
+    "success": false,
+    "canCommit": false,
+    "summary": {
+      "totalChecked": 0,
+      "missingFiles": 0,
+      "outdatedFiles": 0,
+      "autoFixed": 0,
+      "criticalIssues": 1
+    },
+    "details": {
+      "blockers": [
+        "검증 중 오류 발생: TypeError: filePaths is not iterable"
+      ],
+      "warnings": [],
+      "autoFixed": [],
+      "recommendations": []
+    }
+  },
+  "environment": {
+    "nodeVersion": "v22.17.1",
+    "platform": "darwin",
+    "cwd": "/Users/junwoobang/project/context-action/packages/llms-generator"
+  }
+}

@@ -40,6 +40,7 @@ export interface ScoringResult {
     dependencyContribution: number;
     priorityContribution: number;
   };
+  confidence?: number;
 }
 
 export interface TagAffinityResult {
@@ -218,8 +219,6 @@ export class DocumentScorer {
     const normalizedScore = maxPossibleScore > 0 ? totalScore / maxPossibleScore : 0;
 
     return {
-      affinity: normalizedScore,
-      weightedAffinity: totalScore,
       score: normalizedScore,
       matchedTags,
       compatibleTags,
@@ -286,7 +285,7 @@ export class DocumentScorer {
     // Check preferred tags for beginner-friendly strategy
     if (this.strategy.constraints?.preferredTags) {
       const hasPreferredTag = document.tags?.primary?.some(tag => 
-        this.strategy.constraints.preferredTags?.includes(tag)
+        this.strategy.constraints?.preferredTags?.includes(tag)
       );
       
       if (!hasPreferredTag) {
@@ -459,7 +458,7 @@ export class DocumentScorer {
     options: ScoringOptions
   ): number {
     // Handle both 'weights' and 'criteria' naming conventions
-    const strategyWeights = this.strategy.weights || this.strategy.criteria || {};
+    const strategyWeights = this.strategy.weights || this.strategy.criteria || {} as any;
     const weights = {
       category: strategyWeights.categoryWeight || 0.25,
       tag: strategyWeights.tagWeight || 0.25,

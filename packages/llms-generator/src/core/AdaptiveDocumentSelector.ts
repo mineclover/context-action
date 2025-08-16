@@ -288,9 +288,26 @@ export class AdaptiveDocumentSelector {
     const candidates = this.createSelectionCandidates(documents, constraints, strategy);
     const characterLimit = constraints.characterLimit;
 
+    // Input validation with detailed logging for debugging
+    if (!Number.isFinite(characterLimit) || characterLimit < 0) {
+      console.warn(`Invalid characterLimit: ${characterLimit}. Using greedy fallback.`);
+      return this.greedySelectionFromCandidates(candidates, constraints);
+    }
+
     // Classic 0/1 knapsack with floating point weights
     const n = candidates.length;
     const W = Math.min(Math.max(1, Math.floor(characterLimit / 10)), 10000); // Scale down and cap to prevent huge arrays
+    
+    // Enhanced validation for array parameters
+    if (!Number.isInteger(n) || n < 0 || n > 1000) {
+      console.warn(`Invalid candidate count: ${n}. Using greedy fallback.`);
+      return this.greedySelectionFromCandidates(candidates, constraints);
+    }
+    
+    if (!Number.isInteger(W) || W < 0 || W > 50000) {
+      console.warn(`Invalid weight parameter: W=${W} (from characterLimit=${characterLimit}). Using greedy fallback.`);
+      return this.greedySelectionFromCandidates(candidates, constraints);
+    }
     
     // Early return if no candidates or invalid constraints
     if (n === 0 || characterLimit <= 0) {
@@ -302,14 +319,24 @@ export class AdaptiveDocumentSelector {
       };
     }
     
-    // Validate array size to prevent RangeError
-    if (W > 50000 || n > 1000 || (W * n) > 1000000) {
-      console.warn(`Knapsack parameters too large: W=${W}, n=${n}. Using greedy fallback.`);
+    // Validate array size to prevent RangeError - with additional safety checks
+    const totalArrayElements = (n + 1) * (W + 1);
+    if (W > 50000 || n > 1000 || totalArrayElements > 1000000) {
+      console.warn(`Knapsack parameters too large: W=${W}, n=${n}, total elements=${totalArrayElements}. Using greedy fallback.`);
       return this.greedySelectionFromCandidates(candidates, constraints);
     }
     
-    const dp = Array(n + 1).fill(null).map(() => Array(W + 1).fill(0));
-    const keep = Array(n + 1).fill(null).map(() => Array(W + 1).fill(false));
+    // Safe array creation with try-catch for debugging
+    let dp: number[][];
+    let keep: boolean[][];
+    
+    try {
+      dp = Array(n + 1).fill(null).map(() => Array(W + 1).fill(0));
+      keep = Array(n + 1).fill(null).map(() => Array(W + 1).fill(false));
+    } catch (error) {
+      console.error(`Array allocation failed: n=${n}, W=${W}, error=${error instanceof Error ? error.message : String(error)}`);
+      return this.greedySelectionFromCandidates(candidates, constraints);
+    }
 
     // Fill DP table
     for (let i = 1; i <= n; i++) {
@@ -595,23 +622,37 @@ export class AdaptiveDocumentSelector {
     constraints: SelectionConstraints,
     strategy: SelectionStrategy
   ): SelectionCandidate[] {
-    return documents.map(document => {
-      const scoringResult = this.scorer.scoreDocument(document, constraints.context);
-      const estimatedChars = this.estimateDocumentCharacters(document);
-      
-      return {
-        document,
-        score: scoringResult.scores.total,
-        estimatedCharacters: estimatedChars,
-        priority: document.priority?.score || 0,
-        categoryAffinity: scoringResult.scores.category,
-        tagAffinity: scoringResult.scores.tag,
-        dependencyBonus: scoringResult.scores.dependency,
-        diversityBonus: 0, // Will be calculated dynamically
-        selected: false,
-        reasons: scoringResult.reasons
-      };
-    });
+    return documents
+      .map(document => {
+        const scoringResult = this.scorer.scoreDocument(document, constraints.context);
+        const estimatedChars = this.estimateDocumentCharacters(document);
+        
+        return {
+          document,
+          score: scoringResult.scores.total,
+          estimatedCharacters: estimatedChars,
+          priority: document.priority?.score || 0,
+          categoryAffinity: scoringResult.scores.category,
+          tagAffinity: scoringResult.scores.tag,
+          dependencyBonus: scoringResult.scores.dependency,
+          diversityBonus: 0, // Will be calculated dynamically
+          selected: false,
+          reasons: scoringResult.reasons
+        };
+      })
+      .filter(candidate => {
+        // Filter out candidates with invalid scores or character estimates
+        const isValid = Number.isFinite(candidate.score) && 
+                       Number.isFinite(candidate.estimatedCharacters) &&
+                       candidate.score >= 0 &&
+                       candidate.estimatedCharacters > 0;
+        
+        if (!isValid) {
+          console.warn(`Filtering out invalid candidate: ${candidate.document.document.id}, score=${candidate.score}, chars=${candidate.estimatedCharacters}`);
+        }
+        
+        return isValid;
+      });
   }
 
   /**
@@ -637,14 +678,30 @@ export class AdaptiveDocumentSelector {
       'advanced': 1.3,
       'expert': 1.6
     };
-    estimate *= complexityMultipliers[document.tags?.complexity] || 1.0;
+    const complexityMultiplier = complexityMultipliers[document.tags?.complexity] || 1.0;
+    
+    // Validate multiplier to prevent invalid estimates
+    if (!Number.isFinite(complexityMultiplier) || complexityMultiplier <= 0) {
+      console.warn(`Invalid complexity multiplier for document ${document.document.id}: ${complexityMultiplier}`);
+      estimate *= 1.0; // Use default
+    } else {
+      estimate *= complexityMultiplier;
+    }
 
     // Adjust for word count if available
-    if (document.document.wordCount) {
+    if (document.document.wordCount && Number.isFinite(document.document.wordCount) && document.document.wordCount > 0) {
       estimate = document.document.wordCount * 5; // Rough chars per word
     }
 
-    return Math.round(estimate);
+    const result = Math.round(estimate);
+    
+    // Ensure valid positive result
+    if (!Number.isFinite(result) || result <= 0) {
+      console.warn(`Invalid character estimate for document ${document.document.id}: ${result}. Using default 500.`);
+      return 500; // Safe default
+    }
+
+    return result;
   }
 
   /**
