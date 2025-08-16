@@ -350,7 +350,11 @@ export class LLMSGenerator {
     return {
       critical: documents.filter(d => d.priority.priority.tier === 'critical'),
       essential: documents.filter(d => d.priority.priority.tier === 'essential'),
-      important: documents.filter(d => d.priority.priority.tier === 'important'),
+      important: documents.filter(d => 
+        d.priority.priority.tier === 'important' || 
+        !d.priority.priority.tier || 
+        d.priority.priority.tier === ''
+      ),
       reference: documents.filter(d => d.priority.priority.tier === 'reference'),
       supplementary: documents.filter(d => d.priority.priority.tier === 'supplementary')
     };

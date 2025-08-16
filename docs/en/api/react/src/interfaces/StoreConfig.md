@@ -6,7 +6,7 @@
 
 # Interface: StoreConfig\<T\>
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:20](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L20)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:20](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L20)
 
 Store Configuration - Extended to match Pattern Guide
 
@@ -22,7 +22,7 @@ Store Configuration - Extended to match Pattern Guide
 
 > **initialValue**: `T`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:21](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L21)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:21](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L21)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx
 
 > `optional` **strategy**: `"reference"` \| `"shallow"` \| `"deep"`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:22](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L22)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:22](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L22)
 
 ***
 
@@ -38,7 +38,7 @@ Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx
 
 > `optional` **description**: `string`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:23](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L23)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:23](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L23)
 
 ***
 
@@ -46,7 +46,7 @@ Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx
 
 > `optional` **debug**: `boolean`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:24](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L24)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:24](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L24)
 
 ***
 
@@ -54,7 +54,7 @@ Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx
 
 > `optional` **tags**: `string`[]
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:25](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L25)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:25](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L25)
 
 ***
 
@@ -62,7 +62,7 @@ Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx
 
 > `optional` **version**: `string`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:26](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L26)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:26](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L26)
 
 ***
 
@@ -70,4 +70,4 @@ Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx
 
 > `optional` **comparisonOptions**: `Partial`\<[`ComparisonOptions`](ComparisonOptions.md)&lt;`T`&gt;\>
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:27](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L27)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:27](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L27)

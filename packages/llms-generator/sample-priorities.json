@@ -1,0 +1,14 @@
+{
+  "guide-action-handlers": {
+    "score": 95,
+    "tier": "critical"
+  },
+  "guide-store-integration": {
+    "score": 88,
+    "tier": "essential"
+  },
+  "api-action-context": {
+    "score": 82,
+    "tier": "important"
+  }
+}

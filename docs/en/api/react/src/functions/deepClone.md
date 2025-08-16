@@ -8,7 +8,7 @@
 
 > **deepClone**&lt;`T`&gt;(`value`): `T`
 
-Defined in: [packages/react/src/stores/utils/immutable.ts:51](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/utils/immutable.ts#L51)
+Defined in: [packages/react/src/stores/utils/immutable.ts:51](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/utils/immutable.ts#L51)
 
 깊은 복사 함수 - structuredClone 기반 구현
 

@@ -6,7 +6,7 @@
 
 # Interface: DispatchOptions
 
-Defined in: [packages/core/src/types.ts:239](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L239)
+Defined in: [packages/core/src/types.ts:239](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L239)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/core/src/types.ts:239](https://github.com/mineclover/conte
 
 > `optional` **debounce**: `number`
 
-Defined in: [packages/core/src/types.ts:241](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L241)
+Defined in: [packages/core/src/types.ts:241](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L241)
 
 Debounce delay in milliseconds - wait for this delay after last call
 
@@ -24,7 +24,7 @@ Debounce delay in milliseconds - wait for this delay after last call
 
 > `optional` **throttle**: `number`
 
-Defined in: [packages/core/src/types.ts:244](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L244)
+Defined in: [packages/core/src/types.ts:244](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L244)
 
 Throttle delay in milliseconds - limit execution to once per this period
 
@@ -34,7 +34,7 @@ Throttle delay in milliseconds - limit execution to once per this period
 
 > `optional` **executionMode**: [`ExecutionMode`](../type-aliases/ExecutionMode.md)
 
-Defined in: [packages/core/src/types.ts:247](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L247)
+Defined in: [packages/core/src/types.ts:247](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L247)
 
 Execution mode override for this specific dispatch
 
@@ -44,7 +44,7 @@ Execution mode override for this specific dispatch
 
 > `optional` **signal**: `AbortSignal`
 
-Defined in: [packages/core/src/types.ts:250](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L250)
+Defined in: [packages/core/src/types.ts:250](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L250)
 
 Abort signal for cancelling the dispatch
 
@@ -54,7 +54,7 @@ Abort signal for cancelling the dispatch
 
 > `optional` **autoAbort**: `object`
 
-Defined in: [packages/core/src/types.ts:253](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L253)
+Defined in: [packages/core/src/types.ts:253](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L253)
 
 Auto-abort options for automatic AbortController management
 
@@ -92,7 +92,7 @@ Enable pipeline abort trigger from handlers
 
 > `optional` **filter**: `object`
 
-Defined in: [packages/core/src/types.ts:265](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L265)
+Defined in: [packages/core/src/types.ts:265](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L265)
 
 Handler filtering options
 
@@ -166,7 +166,7 @@ Custom filter function
 
 > `optional` **result**: `object`
 
-Defined in: [packages/core/src/types.ts:295](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L295)
+Defined in: [packages/core/src/types.ts:295](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L295)
 
 Result collection and processing options
 

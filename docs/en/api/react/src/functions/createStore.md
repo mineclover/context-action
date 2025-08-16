@@ -8,7 +8,7 @@
 
 > **createStore**&lt;`T`&gt;(`name`, `initialValue`): [`Store`](../classes/Store.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/core/Store.ts:360](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/core/Store.ts#L360)
+Defined in: [packages/react/src/stores/core/Store.ts:360](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/core/Store.ts#L360)
 
 Store 팩토리 함수 - 간편한 Store 인스턴스 생성
 핵심 기능: 타입 안전한 Store 인스턴스 생성을 위한 팩토리 함수

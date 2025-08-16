@@ -202,7 +202,6 @@ function Layout({
                     )}
                   >
                     {item.label}
-                    {/* @ts-ignore - isIndex is not in the original type but we added it */}
                     {item.isIndex && (
                       <span className="text-xs bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-medium">
                         Index

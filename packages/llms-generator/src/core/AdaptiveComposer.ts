@@ -5,7 +5,7 @@
  * Optimally fills character limits using priority-based content selection
  */
 
-import { readFile } from 'fs/promises';
+import { readFile, writeFile, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
 import type { LLMSConfig } from '../types/index.js';
@@ -151,46 +151,88 @@ export class AdaptiveComposer {
       const documentContent: DocumentContent = {
         documentId,
         title: priority.document.title,
-        priority: priority.priority.score,
-        tier: priority.priority.tier,
+        priority: priority.priority.score || 50, // Default priority if null
+        tier: priority.priority.tier || 'important',
         availableCharacterLimits: [],
         contents: new Map()
       };
 
-      // Find all available character limit files for this document
-      const documentDir = path.join(this.config.paths.llmContentDir, language, documentId);
-      
-      // Check for standard character limits
-      const standardLimits = [100, 300, 500, 1000, 2000, 3000, 4000];
-      
-      for (const limit of standardLimits) {
-        // Try .md first (new format with YAML frontmatter), then .txt (legacy)
-        const mdPath = path.join(documentDir, `${documentId}-${limit}.md`);
-        const txtPath = path.join(documentDir, `${documentId}-${limit}.txt`);
-        
-        const filePath = existsSync(mdPath) ? mdPath : (existsSync(txtPath) ? txtPath : null);
-        
-        if (filePath) {
-          try {
-            const rawContent = await readFile(filePath, 'utf-8');
-            const content = this.extractContentFromFile(rawContent, filePath.endsWith('.md'));
-            
-            documentContent.availableCharacterLimits.push(limit);
-            documentContent.contents.set(limit, content.trim());
-          } catch (error) {
-            console.warn(`⚠️  Could not read ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
-          }
-        }
+      // Try to read the original markdown file from docs directory
+      const sourcePath = priority.document.source_path;
+      if (!sourcePath) {
+        console.warn(`⚠️  No source_path for document ${documentId}`);
+        continue;
       }
 
-      if (documentContent.availableCharacterLimits.length > 0) {
-        // Sort character limits in ascending order
-        documentContent.availableCharacterLimits.sort((a, b) => a - b);
-        documents.push(documentContent);
+      const originalFilePath = path.join(this.config.paths.docsDir, sourcePath);
+      
+      if (existsSync(originalFilePath)) {
+        try {
+          const originalContent = await readFile(originalFilePath, 'utf-8');
+          
+          // Generate content summaries for different character limits
+          const standardLimits = [100, 200, 300, 400, 500, 1000, 2000, 3000, 4000];
+          
+          for (const limit of standardLimits) {
+            const summary = this.generateContentSummary(originalContent, limit);
+            if (summary.trim()) {
+              documentContent.availableCharacterLimits.push(limit);
+              documentContent.contents.set(limit, summary.trim());
+            }
+          }
+          
+          if (documentContent.availableCharacterLimits.length > 0) {
+            // Sort character limits in ascending order
+            documentContent.availableCharacterLimits.sort((a, b) => a - b);
+            documents.push(documentContent);
+          }
+        } catch (error) {
+          console.warn(`⚠️  Could not read original file ${originalFilePath}: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      } else {
+        console.warn(`⚠️  Original file not found: ${originalFilePath}`);
       }
     }
 
     return documents;
+  }
+
+  /**
+   * Generate content summary for a specific character limit
+   */
+  private generateContentSummary(originalContent: string, characterLimit: number): string {
+    // Clean the content (remove frontmatter if exists)
+    const cleanContent = this.extractContentFromFile(originalContent, true);
+    
+    if (cleanContent.length <= characterLimit) {
+      return cleanContent;
+    }
+    
+    // For very small limits, just return the title and a brief description
+    if (characterLimit <= 100) {
+      const lines = cleanContent.split('\n').filter(line => line.trim());
+      const title = lines.find(line => line.startsWith('#'))?.replace(/^#+\s*/, '') || 'Document';
+      return `# ${title}\n\nBrief reference for ${title}.`;
+    }
+    
+    // For larger limits, try to preserve structure while truncating
+    const lines = cleanContent.split('\n');
+    let result = '';
+    let currentLength = 0;
+    
+    for (const line of lines) {
+      const lineWithNewline = line + '\n';
+      if (currentLength + lineWithNewline.length > characterLimit - 20) { // Reserve space for ellipsis
+        if (result.trim()) {
+          result += '\n\n...';
+        }
+        break;
+      }
+      result += lineWithNewline;
+      currentLength += lineWithNewline.length;
+    }
+    
+    return result.trim();
   }
 
   /**
@@ -248,18 +290,8 @@ export class AdaptiveComposer {
    * Extract a concise TOC entry from content
    */
   private extractTocEntry(content: string, fallbackTitle: string): string {
-    // Remove markdown headers
-    const cleanContent = content.replace(/^#+\s*/gm, '').trim();
-    
-    // Try to get first meaningful line
-    const lines = cleanContent.split('\n').filter(line => line.trim());
-    
-    if (lines.length > 0) {
-      const firstLine = lines[0].trim();
-      // Limit to reasonable TOC entry length
-      return firstLine.length > 50 ? firstLine.substring(0, 47) + '...' : firstLine;
-    }
-    
+    // For TOC, just use the title to avoid placeholder text
+    // Remove any extra characters and return clean title
     return fallbackTitle;
   }
 
@@ -386,5 +418,74 @@ export class AdaptiveComposer {
       availableCharacterLimits: Array.from(allLimits).sort((a, b) => a - b),
       totalContentSize
     };
+  }
+
+  /**
+   * Generate individual character-limited files for all documents
+   */
+  async generateIndividualCharacterLimited(
+    characterLimits: number[], 
+    language: string = 'en'
+  ): Promise<void> {
+    console.log(`📝 Generating individual character-limited files for ${language}...`);
+    
+    const allPriorities = await this.priorityManager.loadAllPriorities();
+    const priorities = this.priorityManager.filterByLanguage(allPriorities, language);
+    
+    let generatedCount = 0;
+    
+    for (const [documentId, priority] of Object.entries(priorities)) {
+      const sourcePath = priority.document.source_path;
+      if (!sourcePath) {
+        console.warn(`⚠️  No source_path for document ${documentId}`);
+        continue;
+      }
+
+      const originalFilePath = path.join(this.config.paths.docsDir, sourcePath);
+      
+      if (existsSync(originalFilePath)) {
+        try {
+          const originalContent = await readFile(originalFilePath, 'utf-8');
+          
+          // Generate files for each character limit
+          for (const limit of characterLimits) {
+            const summary = this.generateContentSummary(originalContent, limit);
+            
+            if (summary.trim()) {
+              // Create frontmatter
+              const frontmatter = {
+                title: priority.document.title,
+                category: priority.document.category,
+                complexity: priority.tags?.complexity || 'intermediate',
+                character_limit: limit,
+                tags: priority.tags?.primary || [],
+                audience: priority.tags?.audience || [],
+                source: sourcePath
+              };
+              
+              // Combine frontmatter and content
+              const fileContent = `---\n${Object.entries(frontmatter)
+                .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
+                .join('\n')}\n---\n\n${summary}`;
+              
+              // Write to individual document directory
+              const documentDir = path.join(this.config.paths.llmContentDir, language, documentId);
+              await mkdir(documentDir, { recursive: true });
+              
+              const filePath = path.join(documentDir, `${documentId}-${limit}.md`);
+              await writeFile(filePath, fileContent, 'utf-8');
+              
+              generatedCount++;
+            }
+          }
+        } catch (error) {
+          console.warn(`⚠️  Could not process ${originalFilePath}: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      } else {
+        console.warn(`⚠️  Original file not found: ${originalFilePath}`);
+      }
+    }
+    
+    console.log(`✅ Generated ${generatedCount} individual character-limited files`);
   }
 }

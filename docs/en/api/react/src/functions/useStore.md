@@ -8,7 +8,7 @@
 
 > **useStore**\<`T`, `R`\>(`store`, `config?`): `R`
 
-Defined in: [packages/react/src/stores/utils/store-selector.ts:53](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/utils/store-selector.ts#L53)
+Defined in: [packages/react/src/stores/utils/store-selector.ts:53](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/utils/store-selector.ts#L53)
 
 Store Selector Hook - 선택적 데이터 구독
 

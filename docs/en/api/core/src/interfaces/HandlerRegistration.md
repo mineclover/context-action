@@ -6,7 +6,7 @@
 
 # Interface: HandlerRegistration\<T, R\>
 
-Defined in: [packages/core/src/types.ts:195](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L195)
+Defined in: [packages/core/src/types.ts:195](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L195)
 
 ## Type Parameters
 
@@ -24,7 +24,7 @@ Defined in: [packages/core/src/types.ts:195](https://github.com/mineclover/conte
 
 > **handler**: [`ActionHandler`](../type-aliases/ActionHandler.md)\<`T`, `R`\>
 
-Defined in: [packages/core/src/types.ts:196](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L196)
+Defined in: [packages/core/src/types.ts:196](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L196)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [packages/core/src/types.ts:196](https://github.com/mineclover/conte
 
 > **config**: `Required`\<[`HandlerConfig`](HandlerConfig.md)\>
 
-Defined in: [packages/core/src/types.ts:197](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L197)
+Defined in: [packages/core/src/types.ts:197](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L197)
 
 ***
 
@@ -40,4 +40,4 @@ Defined in: [packages/core/src/types.ts:197](https://github.com/mineclover/conte
 
 > **id**: `string`
 
-Defined in: [packages/core/src/types.ts:198](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L198)
+Defined in: [packages/core/src/types.ts:198](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L198)

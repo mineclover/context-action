@@ -8,7 +8,7 @@
 
 > **useStoreValues**\<`T`, `S`\>(`store`, `selectors`): `undefined` \| \{ \[K in string \| number \| symbol\]: ReturnType\<S\[K\]\> \}
 
-Defined in: [packages/react/src/stores/hooks/useStoreValue.ts:290](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/hooks/useStoreValue.ts#L290)
+Defined in: [packages/react/src/stores/hooks/useStoreValue.ts:285](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/hooks/useStoreValue.ts#L285)
 
 Hook to get multiple values from a store using selectors
 

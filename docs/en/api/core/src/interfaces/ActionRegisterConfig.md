@@ -6,7 +6,7 @@
 
 # Interface: ActionRegisterConfig
 
-Defined in: [packages/core/src/types.ts:219](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L219)
+Defined in: [packages/core/src/types.ts:219](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L219)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/core/src/types.ts:219](https://github.com/mineclover/conte
 
 > `optional` **name**: `string`
 
-Defined in: [packages/core/src/types.ts:221](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L221)
+Defined in: [packages/core/src/types.ts:221](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L221)
 
 Name identifier for this ActionRegister instance
 
@@ -24,7 +24,7 @@ Name identifier for this ActionRegister instance
 
 > `optional` **registry**: `object`
 
-Defined in: [packages/core/src/types.ts:224](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L224)
+Defined in: [packages/core/src/types.ts:224](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L224)
 
 Registry-specific configuration options
 

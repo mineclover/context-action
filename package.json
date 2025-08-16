@@ -47,6 +47,10 @@
     "llms:docs": "node packages/llms-generator/dist/cli/index.js markdown-all --lang=en,ko --overwrite",
     "llms:docs:en": "node packages/llms-generator/dist/cli/index.js markdown-generate en --overwrite",
     "llms:docs:ko": "node packages/llms-generator/dist/cli/index.js markdown-generate ko --overwrite",
+    "llms:check": "node packages/llms-generator/dist/cli/index.js work-check",
+    "llms:check:outdated": "node packages/llms-generator/dist/cli/index.js work-check --outdated",
+    "llms:mark-edited": "node scripts/mark-llms-edited.js",
+    "llms:status": "node scripts/mark-llms-edited.js",
     "priority": "node packages/llms-generator/dist/cli/index.js priority-stats",
     "docs": "node scripts/docs-cli.js",
     "docs:full": "pnpm docs:api && pnpm docs:sync && pnpm llms:minimum && pnpm docs:build",
@@ -58,7 +62,8 @@
     "security:outdated": "pnpm outdated",
     "security:check": "pnpm security:audit && pnpm security:outdated",
     "ci:check": "lerna run lint && lerna run type-check && lerna run test && pnpm build:check",
-    "ci:security": "pnpm security:check && lerna run security:audit"
+    "ci:security": "pnpm security:check && lerna run security:audit",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@eslint/js": "9.33.0",
@@ -73,6 +78,7 @@
     "autoprefixer": "10.4.21",
     "comment-parser": "^1.4.1",
     "eslint": "^9.33.0",
+    "husky": "9.1.7",
     "lerna": "^8.2.3",
     "mermaid": "^11.9.0",
     "postcss": "8.5.6",

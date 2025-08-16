@@ -81,8 +81,9 @@ glossary/implementations/_data/
 packages/glossary-query/glossary-data.json
 
 # LLMS Generator data directory (generated content) 
-# Include only the schema file, exclude everything else
-packages/llms-generator/data/*
+# Include priority metadata files but exclude generated content
+packages/llms-generator/data/**/*.txt
+packages/llms-generator/data/**/*.md
 !packages/llms-generator/data/priority-schema.json
 
 # history

@@ -1,11 +1,7 @@
 # 목차
 
-- 핵심 개념
-- Context Action 프레임워크 개요
-- 빠른 시작
-- 액션 핸들러
-- 개발 모범 사례
-- 공통 함정
-- 크로스 도메인 통합
-- 도메인 훅 패턴
+- Api Action Only
+- Api Action Registry
+- Api Core Action Register
+- ...
 

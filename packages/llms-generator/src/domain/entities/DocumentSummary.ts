@@ -5,10 +5,14 @@
  * 클린 아키텍처에서 가장 안정적인 계층
  */
 
+import { DocumentId } from '../value-objects/DocumentId.js';
+import { CharacterLimit } from '../value-objects/CharacterLimit.js';
+import { Result, Errors, ValidationError } from '../value-objects/Result.js';
+
 export interface DocumentMetadata {
   readonly path: string;
   readonly title: string;
-  readonly id: string;
+  readonly id: DocumentId;
   readonly category: string;
 }
 
@@ -18,7 +22,7 @@ export interface PriorityInfo {
 }
 
 export interface SummaryMetadata {
-  readonly characterLimit: number;
+  readonly characterLimit: CharacterLimit;
   readonly focus: string;
   readonly strategy: 'concept-first' | 'api-first' | 'example-first' | 'tutorial-first' | 'reference-first';
   readonly language: string;
@@ -56,23 +60,33 @@ export class DocumentSummary {
     summary: SummaryMetadata;
     content: string;
     generated: GenerationInfo;
-  }): DocumentSummary {
-    return new DocumentSummary(
-      params.document,
-      params.priority,
-      params.summary,
-      params.content,
-      params.generated
-    );
+  }): Result<DocumentSummary, ValidationError> {
+    try {
+      const summary = new DocumentSummary(
+        params.document,
+        params.priority,
+        params.summary,
+        params.content,
+        params.generated
+      );
+      return Result.success(summary);
+    } catch (error) {
+      return Result.failure(Errors.validation(
+        error instanceof Error ? error.message : 'Invalid DocumentSummary parameters'
+      ));
+    }
   }
 
   /**
    * 비즈니스 규칙 검증
    */
   private validateBusinessRules(): void {
-    if (this._content.length > this._summary.characterLimit * 1.1) {
+    // CharacterLimit Value Object가 자체 검증을 담당하므로 내용 길이만 확인
+    // 10% 오차 허용 (글자 수는 작성 기준이므로 약간의 오차 허용)
+    const maxAllowed = this._summary.characterLimit.value * 1.1;
+    if (this._content.length > maxAllowed) {
       throw new Error(
-        `Content exceeds character limit: ${this._content.length} > ${this._summary.characterLimit}`
+        `Content exceeds character limit: ${this._content.length} > ${this._summary.characterLimit.value} (with 10% tolerance: ${maxAllowed})`
       );
     }
 
@@ -99,19 +113,26 @@ export class DocumentSummary {
   /**
    * 도메인 로직: 글자 수 제한 내에서 적합성 확인
    */
-  fitsInCharacterLimit(limit: number): boolean {
-    return this._content.length <= limit;
+  fitsInCharacterLimit(limit: CharacterLimit): boolean {
+    return limit.isSatisfiedBy(this._content);
+  }
+
+  /**
+   * 도메인 로직: 현재 Character Limit 내에서 적합성 확인
+   */
+  fitsInCurrentLimit(): boolean {
+    return this._summary.characterLimit.isSatisfiedBy(this._content);
   }
 
   /**
    * 도메인 로직: 컨텐츠 트리밍 (새 인스턴스 반환)
    */
-  trimToLimit(newLimit: number): DocumentSummary {
-    if (this._content.length <= newLimit) {
-      return this;
+  trimToLimit(newLimit: CharacterLimit): Result<DocumentSummary, ValidationError> {
+    if (newLimit.isSatisfiedBy(this._content)) {
+      return Result.success(this);
     }
 
-    const trimmedContent = this.smartTrim(this._content, newLimit);
+    const trimmedContent = this.smartTrim(this._content, newLimit.value);
     const newGenerated: GenerationInfo = {
       ...this._generated,
       timestamp: new Date(),
@@ -176,8 +197,8 @@ export class DocumentSummary {
    */
   equals(other: DocumentSummary): boolean {
     return (
-      this._document.id === other._document.id &&
-      this._summary.characterLimit === other._summary.characterLimit &&
+      this._document.id.equals(other._document.id) &&
+      this._summary.characterLimit.equals(other._summary.characterLimit) &&
       this._summary.language === other._summary.language
     );
   }
@@ -186,6 +207,34 @@ export class DocumentSummary {
    * 도메인 로직: 고유 식별자
    */
   getUniqueId(): string {
-    return `${this._document.id}-${this._summary.characterLimit}-${this._summary.language}`;
+    return `${this._document.id.value}-${this._summary.characterLimit.value}-${this._summary.language}`;
+  }
+
+  /**
+   * 도메인 로직: 사용률 계산
+   */
+  getUtilizationRate(): number {
+    return this._summary.characterLimit.getUtilizationRate(this._content);
+  }
+
+  /**
+   * 도메인 로직: 여유 공간 계산
+   */
+  getRemainingSpace(): number {
+    return this._summary.characterLimit.getRemainingSpace(this._content);
+  }
+
+  /**
+   * 도메인 로직: 카테고리 추출
+   */
+  getCategory(): string {
+    return this._document.id.getCategory();
+  }
+
+  /**
+   * 도메인 로직: 복잡도 판단
+   */
+  isComplex(): boolean {
+    return this._document.id.isComplex();
   }
 }

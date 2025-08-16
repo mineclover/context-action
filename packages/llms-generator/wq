@@ -1,0 +1,220 @@
+#!/bin/bash
+
+# Work Queue 간편 래퍼 스크립트
+# Usage: ./wq [command] [options]
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WQ_CLI="$SCRIPT_DIR/work-queue-cli.cjs"
+
+# 디폴트 언어 설정
+DEFAULT_LANG="${WQ_DEFAULT_LANG:-en}"
+
+case "$1" in
+  "")
+    # 인자 없음 - 도움말 표시
+    node "$WQ_CLI"
+    ;;
+  
+  "n"|"next")
+    # 다음 작업 대상
+    LANG="${2:-$DEFAULT_LANG}"
+    echo "🔍 Getting next work target for $LANG..."
+    node "$WQ_CLI" next "$LANG"
+    ;;
+  
+  "s"|"status")
+    # 상태 확인
+    LANG="${2:-$DEFAULT_LANG}"
+    node "$WQ_CLI" status "$LANG"
+    ;;
+  
+  "l"|"list")
+    # 목록 보기
+    LANG="${2:-$DEFAULT_LANG}"
+    SHOW_ALL=""
+    if [ "$3" = "--all" ] || [ "$2" = "--all" ]; then
+      SHOW_ALL="--all"
+      if [ "$2" = "--all" ]; then
+        LANG="$DEFAULT_LANG"
+      fi
+    fi
+    node "$WQ_CLI" list "$LANG" $SHOW_ALL
+    ;;
+  
+  "c"|"complete")
+    # 작업 완료
+    if [ -z "$2" ]; then
+      echo "❌ Target ID required"
+      echo "Usage: ./wq complete <target-id> [language]"
+      exit 1
+    fi
+    LANG="${3:-$DEFAULT_LANG}"
+    node "$WQ_CLI" complete "$2" "$LANG"
+    echo "✨ Use './wq n $LANG' to get next work target"
+    ;;
+  
+  "skip")
+    # 작업 건너뛰기
+    if [ -z "$2" ]; then
+      echo "❌ Target ID required"
+      echo "Usage: ./wq skip <target-id> [language]"
+      exit 1
+    fi
+    LANG="${3:-$DEFAULT_LANG}"
+    node "$WQ_CLI" skip "$2" "$LANG"
+    echo "✨ Use './wq n $LANG' to get next work target"
+    ;;
+  
+  "r"|"reset")
+    # 리셋
+    LANG="$2"
+    if [ -n "$LANG" ]; then
+      echo "🔄 Resetting work queue for $LANG..."
+    else
+      echo "🔄 Resetting entire work queue..."
+    fi
+    node "$WQ_CLI" reset "$LANG"
+    ;;
+  
+  "work")
+    # 작업 모드 - 현재 작업 표시하고 에디터 열기
+    LANG="${2:-$DEFAULT_LANG}"
+    TARGET_INFO=$(node "$WQ_CLI" next "$LANG" 2>/dev/null)
+    
+    if echo "$TARGET_INFO" | grep -q "All work completed"; then
+      echo "🎉 All work completed!"
+      exit 0
+    fi
+    
+    # priority.json 파일 경로 추출
+    PRIORITY_FILE=$(echo "$TARGET_INFO" | grep "📝 Priority File:" | sed 's/📝 Priority File: //')
+    
+    if [ -n "$PRIORITY_FILE" ] && [ -f "$PRIORITY_FILE" ]; then
+      echo "📝 Opening priority file in editor..."
+      ${EDITOR:-code} "$PRIORITY_FILE"
+    else
+      echo "❌ Could not find priority file"
+    fi
+    ;;
+  
+  "quick")
+    # 빠른 상태 체크
+    echo "📊 Quick Status:"
+    for lang in en ko; do
+      if [ -d "$SCRIPT_DIR/data/$lang" ]; then
+        SUMMARY=$(node "$WQ_CLI" status "$lang" 2>/dev/null | grep -E "(Completed|Remaining)" | head -2)
+        echo "  $lang: $(echo "$SUMMARY" | grep Completed | sed 's/.*Completed: //' | sed 's/ (.*//')/$(echo "$SUMMARY" | grep Remaining | sed 's/.*Remaining: //' | sed 's/ (.*//')"
+      fi
+    done
+    ;;
+  
+  "check"|"check-dups")
+    # 중복 검사
+    LANG="${2:-$DEFAULT_LANG}"
+    echo "🔍 Checking duplicates for $LANG..."
+    node "$WQ_CLI" check-duplicates "$LANG"
+    ;;
+  
+  "resolve"|"resolve-dups")
+    # 중복 해결
+    LANG="$2"
+    DRY_RUN=""
+    STRATEGY=""
+    
+    # 옵션 파싱
+    for arg in "${@:2}"; do
+      case "$arg" in
+        "--dry-run")
+          DRY_RUN="--dry-run"
+          ;;
+        "--strategy="*)
+          STRATEGY="$arg"
+          ;;
+        *)
+          if [ -z "$LANG" ] && [[ ! "$arg" =~ ^-- ]]; then
+            LANG="$arg"
+          fi
+          ;;
+      esac
+    done
+    
+    LANG="${LANG:-$DEFAULT_LANG}"
+    
+    if [ -n "$DRY_RUN" ]; then
+      echo "🔍 Analyzing duplicate resolution for $LANG (dry run)..."
+    else
+      echo "🔧 Resolving duplicates for $LANG..."
+    fi
+    
+    node "$WQ_CLI" resolve-duplicates $LANG $DRY_RUN $STRATEGY
+    ;;
+  
+  "ambiguity"|"check-ambiguity")
+    # 모호성 위험 분석
+    LANG="${2:-$DEFAULT_LANG}"
+    echo "🔍 Analyzing ambiguity risks for $LANG..."
+    node "$WQ_CLI" check-ambiguity "$LANG"
+    ;;
+  
+  "migrate"|"migrate-hierarchical")
+    # 계층적 ID 마이그레이션
+    LANG="$2"
+    DRY_RUN=""
+    CATEGORY=""
+    
+    # 옵션 파싱
+    for arg in "${@:2}"; do
+      case "$arg" in
+        "--dry-run")
+          DRY_RUN="--dry-run"
+          ;;
+        "--category="*)
+          CATEGORY="$arg"
+          ;;
+        *)
+          if [ -z "$LANG" ] && [[ ! "$arg" =~ ^-- ]]; then
+            LANG="$arg"
+          fi
+          ;;
+      esac
+    done
+    
+    LANG="${LANG:-$DEFAULT_LANG}"
+    
+    if [ -n "$DRY_RUN" ]; then
+      echo "🔍 Analyzing hierarchical migration for $LANG (dry run)..."
+    else
+      echo "🔄 Migrating to hierarchical IDs for $LANG..."
+    fi
+    
+    node "$WQ_CLI" migrate-hierarchical $LANG $DRY_RUN $CATEGORY
+    ;;
+  
+  *)
+    # 알 수 없는 명령어
+    echo "❌ Unknown command: $1"
+    echo ""
+    echo "📋 Work Queue Shortcuts:"
+    echo "  ./wq                    Show help"
+    echo "  ./wq n [lang]          Next work target"
+    echo "  ./wq s [lang]          Status summary"
+    echo "  ./wq l [lang] [--all]  List targets"
+    echo "  ./wq c <id> [lang]     Complete work"
+    echo "  ./wq skip <id> [lang]  Skip work"
+    echo "  ./wq r [lang]          Reset queue"
+    echo "  ./wq work [lang]       Work mode (open editor)"
+    echo "  ./wq quick             Quick status check"
+    echo "  ./wq check [lang]      Check for duplicates"
+    echo "  ./wq resolve [lang] [opts]  Resolve duplicates"
+    echo "  ./wq ambiguity [lang]  Check ambiguity risks"
+    echo "  ./wq migrate [lang] [opts]  Migrate to hierarchical IDs"
+    echo ""
+    echo "Advanced Operations:"
+    echo "  ./wq resolve --dry-run      Analyze without changes"
+    echo "  ./wq migrate --dry-run --category=api  Analyze API migration"
+    echo "  ./wq resolve --strategy=hierarchical-separator"
+    echo ""
+    echo "Default language: $DEFAULT_LANG (set WQ_DEFAULT_LANG to change)"
+    exit 1
+    ;;
+esac

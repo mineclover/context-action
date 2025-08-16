@@ -6,7 +6,7 @@
 
 # Interface: ActionPayloadMap
 
-Defined in: [packages/core/src/types.ts:17](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L17)
+Defined in: [packages/core/src/types.ts:17](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L17)
 
 액션 이름과 해당 페이로드 타입 간의 매핑을 정의하는 TypeScript 인터페이스입니다.
 

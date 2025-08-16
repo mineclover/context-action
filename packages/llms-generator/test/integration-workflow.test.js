@@ -313,7 +313,7 @@ describe('Complete Workflow Integration Tests', () => {
 
   describe('스키마 검증 및 호환성', () => {
     it('should validate priority.json against schema', async () => {
-      const schemaPath = path.join(__dirname, '../data/priority-schema.json');
+      const schemaPath = path.join(__dirname, '../data/priority-schema-enhanced.json');
       const schemaContent = await readFile(schemaPath, 'utf-8');
       const schema = JSON.parse(schemaContent);
 

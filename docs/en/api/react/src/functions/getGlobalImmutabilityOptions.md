@@ -8,7 +8,7 @@
 
 > **getGlobalImmutabilityOptions**(): `ImmutabilityOptions`
 
-Defined in: [packages/react/src/stores/utils/immutable.ts:222](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/utils/immutable.ts#L222)
+Defined in: [packages/react/src/stores/utils/immutable.ts:225](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/utils/immutable.ts#L225)
 
 현재 전역 불변성 옵션 가져오기
 

@@ -6,7 +6,7 @@
 
 # Interface: IStore\<T\>
 
-Defined in: [packages/react/src/stores/core/types.ts:97](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/core/types.ts#L97)
+Defined in: [packages/react/src/stores/core/types.ts:97](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/core/types.ts#L97)
 
 Core Store interface for reactive state management
 
@@ -68,7 +68,7 @@ The type of the stored value
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/react/src/stores/core/types.ts:99](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/core/types.ts#L99)
+Defined in: [packages/react/src/stores/core/types.ts:99](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/core/types.ts#L99)
 
 Unique identifier for the store
 
@@ -78,7 +78,7 @@ Unique identifier for the store
 
 > **subscribe**: `Subscribe`
 
-Defined in: [packages/react/src/stores/core/types.ts:102](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/core/types.ts#L102)
+Defined in: [packages/react/src/stores/core/types.ts:102](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/core/types.ts#L102)
 
 Subscribe to store changes (React useSyncExternalStore compatible)
 
@@ -88,7 +88,7 @@ Subscribe to store changes (React useSyncExternalStore compatible)
 
 > **getSnapshot**: () => [`Snapshot`](Snapshot.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/core/types.ts:105](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/core/types.ts#L105)
+Defined in: [packages/react/src/stores/core/types.ts:105](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/core/types.ts#L105)
 
 Get immutable snapshot (React useSyncExternalStore compatible)
 
@@ -102,7 +102,7 @@ Get immutable snapshot (React useSyncExternalStore compatible)
 
 > **setValue**: (`value`) => `void`
 
-Defined in: [packages/react/src/stores/core/types.ts:108](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/core/types.ts#L108)
+Defined in: [packages/react/src/stores/core/types.ts:108](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/core/types.ts#L108)
 
 Set store value with change notification
 
@@ -122,7 +122,7 @@ Type parameter **T**
 
 > **getValue**: () => `T`
 
-Defined in: [packages/react/src/stores/core/types.ts:111](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/core/types.ts#L111)
+Defined in: [packages/react/src/stores/core/types.ts:111](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/core/types.ts#L111)
 
 Get current value directly (for action handlers)
 
@@ -136,7 +136,7 @@ Type parameter **T**
 
 > `optional` **getListenerCount**: () => `number`
 
-Defined in: [packages/react/src/stores/core/types.ts:114](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/core/types.ts#L114)
+Defined in: [packages/react/src/stores/core/types.ts:114](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/core/types.ts#L114)
 
 Get number of active listeners (debugging/monitoring)
 
