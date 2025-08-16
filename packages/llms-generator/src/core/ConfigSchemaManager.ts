@@ -2,7 +2,7 @@
  * Configuration Schema Manager - handles config validation and type safety
  */
 
-import { readFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
 import Ajv from 'ajv';

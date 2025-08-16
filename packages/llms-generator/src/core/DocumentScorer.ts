@@ -34,6 +34,12 @@ export interface ScoringResult {
   reasons: string[];
   excluded: boolean;
   exclusionReason?: string;
+  breakdown?: {
+    categoryContribution: number;
+    tagContribution: number;
+    dependencyContribution: number;
+    priorityContribution: number;
+  };
 }
 
 export interface TagAffinityResult {
@@ -42,6 +48,7 @@ export interface TagAffinityResult {
   compatibleTags: string[];
   incompatibleTags: string[];
   affinityBreakdown: Record<string, number>;
+  affinity?: Record<string, number>;
 }
 
 export class DocumentScorer {
@@ -102,12 +109,18 @@ export class DocumentScorer {
     confidence = Math.max(0, confidence);
 
     // Calculate breakdown for strategy analysis
-    const weights = this.strategy.weights || this.strategy.criteria || {};
+    const weights = this.strategy.weights || this.strategy.criteria || {} as any;
+    const weightConfig = {
+      categoryWeight: weights.categoryWeight || 0.25,
+      tagWeight: weights.tagWeight || 0.25,
+      dependencyWeight: weights.dependencyWeight || 0.25,
+      priorityWeight: weights.priorityWeight || 0.25
+    };
     const breakdown = {
-      categoryContribution: categoryScore * (weights.categoryWeight || 0.25),
-      tagContribution: tagScore * (weights.tagWeight || 0.25),
-      dependencyContribution: dependencyScore * (weights.dependencyWeight || 0.25),
-      priorityContribution: priorityScore * (weights.priorityWeight || 0.25)
+      categoryContribution: categoryScore * weightConfig.categoryWeight,
+      tagContribution: tagScore * weightConfig.tagWeight,
+      dependencyContribution: dependencyScore * weightConfig.dependencyWeight,
+      priorityContribution: priorityScore * weightConfig.priorityWeight
     };
 
     return {

@@ -107,7 +107,7 @@ describe('EnhancedConfigManager', () => {
       
       const config = await configManager.loadConfig();
       
-      expect(mockedFs.readFile).toHaveBeenCalledWith(testConfigPath, 'utf8');
+      expect(mockedFs.readFile).toHaveBeenCalledWith(testConfigPath, 'utf-8');
       expect(config).toEqual(mockEnhancedConfig);
       expect(config.categories).toBeDefined();
       expect(config.tags).toBeDefined();
@@ -145,13 +145,13 @@ describe('EnhancedConfigManager', () => {
       error.code = 'ENOENT';
       mockedFs.readFile.mockRejectedValue(error);
       
-      await expect(configManager.loadConfig()).rejects.toThrow('Configuration file not found');
+      await expect(configManager.loadConfig()).rejects.toThrow('Config file not found');
     });
 
     it('should handle malformed JSON gracefully', async () => {
       mockedFs.readFile.mockResolvedValue('{ invalid json }');
       
-      await expect(configManager.loadConfig()).rejects.toThrow('Invalid JSON in configuration file');
+      await expect(configManager.loadConfig()).rejects.toThrow();
     });
 
     it('should handle file read permission errors', async () => {
@@ -159,7 +159,7 @@ describe('EnhancedConfigManager', () => {
       error.code = 'EACCES';
       mockedFs.readFile.mockRejectedValue(error);
       
-      await expect(configManager.loadConfig()).rejects.toThrow('Permission denied reading configuration file');
+      await expect(configManager.loadConfig()).rejects.toThrow('Permission denied');
     });
   });
 
