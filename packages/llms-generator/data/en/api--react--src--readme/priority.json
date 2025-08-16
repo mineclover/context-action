@@ -1,0 +1,80 @@
+{
+  "$schema": "../../priority-schema-enhanced.json",
+  "document": {
+    "id": "api--react--src--readme",
+    "title": "Api  React  Src  Readme",
+    "source_path": "en/api/react/src/README.md",
+    "category": "api",
+    "lastModified": "2025-08-16T02:18:05.162Z",
+    "wordCount": 0,
+    "subcategory": ""
+  },
+  "priority": {
+    "score": null,
+    "tier": "",
+    "rationale": "",
+    "reviewDate": "2025-08-16",
+    "autoCalculated": false
+  },
+  "purpose": {
+    "primary_goal": "",
+    "target_audience": [],
+    "use_cases": [],
+    "learning_objectives": []
+  },
+  "keywords": {
+    "primary": [],
+    "technical": [],
+    "patterns": [],
+    "avoid": []
+  },
+  "tags": {
+    "primary": [],
+    "secondary": [],
+    "audience": [],
+    "complexity": "",
+    "estimatedReadingTime": "",
+    "lastUpdated": "2025-08-16"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followups": [],
+    "conflicts": [],
+    "complements": []
+  },
+  "extraction": {
+    "strategy": "",
+    "character_limits": {},
+    "emphasis": {
+      "must_include": [],
+      "nice_to_have": [],
+      "contextual_keywords": []
+    }
+  },
+  "quality": {
+    "completeness_threshold": null,
+    "code_examples_required": null,
+    "consistency_checks": [],
+    "lastQualityCheck": "",
+    "qualityScore": null
+  },
+  "metadata": {
+    "created": "2025-08-16",
+    "updated": "2025-08-16",
+    "version": "1.0",
+    "original_size": 0,
+    "estimated_extraction_time": {},
+    "maintainer": "",
+    "reviewCycle": ""
+  },
+  "work_status": {
+    "generated_files": {},
+    "last_checked": "2025-08-16T02:18:05.162Z",
+    "automation_status": {
+      "auto_tag_extraction": false,
+      "auto_dependency_detection": false,
+      "last_auto_update": "2025-08-16T02:18:05.162Z"
+    }
+  }
+}

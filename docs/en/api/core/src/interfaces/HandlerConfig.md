@@ -6,7 +6,7 @@
 
 # Interface: HandlerConfig
 
-Defined in: [packages/core/src/types.ts:117](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L117)
+Defined in: [packages/core/src/types.ts:117](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L117)
 
 파이프라인 내에서 액션 핸들러의 동작을 제어하는 설정 옵션들입니다.
 
@@ -33,7 +33,7 @@ register('searchUser', searchHandler, {
 
 > `optional` **priority**: `number`
 
-Defined in: [packages/core/src/types.ts:119](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L119)
+Defined in: [packages/core/src/types.ts:119](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L119)
 
 Priority level (higher numbers execute first). Default: 0
 
@@ -43,7 +43,7 @@ Priority level (higher numbers execute first). Default: 0
 
 > `optional` **id**: `string`
 
-Defined in: [packages/core/src/types.ts:122](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L122)
+Defined in: [packages/core/src/types.ts:122](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L122)
 
 Unique identifier for the handler. Auto-generated if not provided
 
@@ -53,7 +53,7 @@ Unique identifier for the handler. Auto-generated if not provided
 
 > `optional` **blocking**: `boolean`
 
-Defined in: [packages/core/src/types.ts:125](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L125)
+Defined in: [packages/core/src/types.ts:125](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L125)
 
 Whether to wait for async handlers to complete. Default: false
 
@@ -63,7 +63,7 @@ Whether to wait for async handlers to complete. Default: false
 
 > `optional` **once**: `boolean`
 
-Defined in: [packages/core/src/types.ts:128](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L128)
+Defined in: [packages/core/src/types.ts:128](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L128)
 
 Whether this handler should run once and then be removed. Default: false
 
@@ -73,7 +73,7 @@ Whether this handler should run once and then be removed. Default: false
 
 > `optional` **condition**: () => `boolean`
 
-Defined in: [packages/core/src/types.ts:131](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L131)
+Defined in: [packages/core/src/types.ts:131](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L131)
 
 Condition function to determine if handler should run
 
@@ -87,7 +87,7 @@ Condition function to determine if handler should run
 
 > `optional` **debounce**: `number`
 
-Defined in: [packages/core/src/types.ts:134](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L134)
+Defined in: [packages/core/src/types.ts:134](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L134)
 
 Debounce delay in milliseconds
 
@@ -97,7 +97,7 @@ Debounce delay in milliseconds
 
 > `optional` **throttle**: `number`
 
-Defined in: [packages/core/src/types.ts:137](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L137)
+Defined in: [packages/core/src/types.ts:137](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L137)
 
 Throttle delay in milliseconds
 
@@ -107,7 +107,7 @@ Throttle delay in milliseconds
 
 > `optional` **validation**: (`payload`) => `boolean`
 
-Defined in: [packages/core/src/types.ts:140](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L140)
+Defined in: [packages/core/src/types.ts:140](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L140)
 
 Validation function that must return true for handler to execute
 
@@ -127,7 +127,7 @@ Validation function that must return true for handler to execute
 
 > `optional` **middleware**: `boolean`
 
-Defined in: [packages/core/src/types.ts:143](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L143)
+Defined in: [packages/core/src/types.ts:143](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L143)
 
 Mark this handler as middleware
 
@@ -137,7 +137,7 @@ Mark this handler as middleware
 
 > `optional` **tags**: `string`[]
 
-Defined in: [packages/core/src/types.ts:147](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L147)
+Defined in: [packages/core/src/types.ts:147](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L147)
 
 Tags for categorizing and filtering handlers
 
@@ -147,7 +147,7 @@ Tags for categorizing and filtering handlers
 
 > `optional` **category**: `string`
 
-Defined in: [packages/core/src/types.ts:150](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L150)
+Defined in: [packages/core/src/types.ts:150](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L150)
 
 Category for grouping related handlers
 
@@ -157,7 +157,7 @@ Category for grouping related handlers
 
 > `optional` **description**: `string`
 
-Defined in: [packages/core/src/types.ts:153](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L153)
+Defined in: [packages/core/src/types.ts:153](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L153)
 
 Human-readable description of what this handler does
 
@@ -167,7 +167,7 @@ Human-readable description of what this handler does
 
 > `optional` **version**: `string`
 
-Defined in: [packages/core/src/types.ts:156](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L156)
+Defined in: [packages/core/src/types.ts:156](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L156)
 
 Version identifier for this handler
 
@@ -177,7 +177,7 @@ Version identifier for this handler
 
 > `optional` **returnType**: `"merge"` \| `"value"` \| `"collect"`
 
-Defined in: [packages/core/src/types.ts:159](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L159)
+Defined in: [packages/core/src/types.ts:159](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L159)
 
 How to handle the result from this handler
 
@@ -187,7 +187,7 @@ How to handle the result from this handler
 
 > `optional` **timeout**: `number`
 
-Defined in: [packages/core/src/types.ts:162](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L162)
+Defined in: [packages/core/src/types.ts:162](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L162)
 
 Timeout for this specific handler in milliseconds
 
@@ -197,7 +197,7 @@ Timeout for this specific handler in milliseconds
 
 > `optional` **retries**: `number`
 
-Defined in: [packages/core/src/types.ts:165](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L165)
+Defined in: [packages/core/src/types.ts:165](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L165)
 
 Number of retries if handler fails
 
@@ -207,7 +207,7 @@ Number of retries if handler fails
 
 > `optional` **dependencies**: `string`[]
 
-Defined in: [packages/core/src/types.ts:168](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L168)
+Defined in: [packages/core/src/types.ts:168](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L168)
 
 Other handler IDs that this handler depends on
 
@@ -217,7 +217,7 @@ Other handler IDs that this handler depends on
 
 > `optional` **conflicts**: `string`[]
 
-Defined in: [packages/core/src/types.ts:171](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L171)
+Defined in: [packages/core/src/types.ts:171](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L171)
 
 Handler IDs that conflict with this handler
 
@@ -227,7 +227,7 @@ Handler IDs that conflict with this handler
 
 > `optional` **environment**: `"development"` \| `"production"` \| `"test"`
 
-Defined in: [packages/core/src/types.ts:174](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L174)
+Defined in: [packages/core/src/types.ts:174](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L174)
 
 Environment where this handler should run
 
@@ -237,7 +237,7 @@ Environment where this handler should run
 
 > `optional` **feature**: `string`
 
-Defined in: [packages/core/src/types.ts:177](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L177)
+Defined in: [packages/core/src/types.ts:177](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L177)
 
 Feature flag to control handler availability
 
@@ -247,7 +247,7 @@ Feature flag to control handler availability
 
 > `optional` **metrics**: `object`
 
-Defined in: [packages/core/src/types.ts:180](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L180)
+Defined in: [packages/core/src/types.ts:180](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L180)
 
 Metrics collection configuration
 
@@ -275,6 +275,6 @@ Custom metrics to collect
 
 > `optional` **metadata**: `Record`\<`string`, `any`\>
 
-Defined in: [packages/core/src/types.ts:192](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L192)
+Defined in: [packages/core/src/types.ts:192](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L192)
 
 Custom metadata for this handler

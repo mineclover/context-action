@@ -74,3 +74,218 @@ export interface QualityCriteria {
   minLength?: number;
   requireCodeExamples?: boolean;
 }
+
+// Enhanced Configuration Types for Tag/Category System
+
+export interface CategoryConfig {
+  name: string;
+  description: string;
+  priority: number;
+  defaultStrategy: ExtractStrategy;
+  tags: string[];
+  color?: string;
+  icon?: string;
+}
+
+export interface TagConfig {
+  name: string;
+  description: string;
+  weight: number;
+  compatibleWith: string[];
+  audience?: string[];
+  estimatedTime?: string;
+  importance?: 'critical' | 'optional';
+  frequency?: 'high' | 'low';
+  urgency?: 'high' | 'medium' | 'low';
+}
+
+export interface DependencyRuleConfig {
+  description: string;
+  weight: number;
+  autoInclude: boolean;
+  maxDepth?: number;
+  strategy?: 'breadth-first' | 'selective' | 'optional' | 'space-permitting';
+}
+
+export interface DependencyConfig {
+  rules: {
+    prerequisite: DependencyRuleConfig;
+    reference: DependencyRuleConfig;
+    followup: DependencyRuleConfig;
+    complement: DependencyRuleConfig;
+  };
+  conflictResolution: {
+    strategy: 'exclude-conflicts' | 'higher-score-wins' | 'exclude-both' | 'manual-review';
+    priority: 'higher-score-wins' | 'category-priority' | 'manual-review';
+    allowPartialConflicts: boolean;
+  };
+}
+
+export interface CompositionStrategyConfig {
+  name: string;
+  description: string;
+  weights: {
+    categoryWeight: number;
+    tagWeight: number;
+    dependencyWeight: number;
+    priorityWeight: number;
+    contextualWeight?: number;
+  };
+  constraints: {
+    minCategoryRepresentation: number;
+    maxDocumentsPerCategory: number;
+    requireCoreTags: boolean;
+    includeDependencyChains?: boolean;
+    preferredTags?: string[];
+  };
+}
+
+export interface CompositionConfig {
+  strategies: Record<string, CompositionStrategyConfig>;
+  defaultStrategy: string;
+  optimization: {
+    spaceUtilizationTarget: number;
+    qualityThreshold: number;
+    diversityBonus: number;
+    redundancyPenalty: number;
+  };
+}
+
+export interface ExtractionConfig {
+  defaultQualityThreshold: number;
+  autoTagExtraction: boolean;
+  autoDependencyDetection: boolean;
+  strategies: Record<ExtractStrategy, {
+    focusOrder: string[];
+  }>;
+}
+
+export interface ValidationConfig {
+  schema: {
+    enforceTagConsistency: boolean;
+    validateDependencies: boolean;
+    checkCategoryAlignment: boolean;
+  };
+  quality: {
+    minPriorityScore: number;
+    maxDocumentAge: string;
+    requireMinimumContent: boolean;
+  };
+}
+
+export interface UIConfig {
+  dashboard: {
+    enableTagCloud: boolean;
+    showCategoryStats: boolean;
+    enableDependencyGraph: boolean;
+  };
+  reporting: {
+    generateCompositionReports: boolean;
+    includeQualityMetrics: boolean;
+    exportFormats: ('json' | 'csv' | 'html')[];
+  };
+}
+
+export interface EnhancedLLMSConfig extends LLMSConfig {
+  categories: Record<string, CategoryConfig>;
+  tags: Record<string, TagConfig>;
+  dependencies: DependencyConfig;
+  composition: CompositionConfig;
+  extraction: ExtractionConfig;
+  validation: ValidationConfig;
+  ui: UIConfig;
+}
+
+export type ExtractStrategy = 'concept-first' | 'example-first' | 'api-first' | 'tutorial-first' | 'reference-first';
+
+export type DocumentCategory = 'guide' | 'api' | 'concept' | 'example' | 'reference' | 'llms';
+
+export type PriorityTier = 'critical' | 'essential' | 'important' | 'reference' | 'supplementary';
+
+export type TargetAudience = 'beginners' | 'intermediate' | 'advanced' | 'framework-users' | 'contributors' | 'llms' | 'new-users' | 'experienced-users' | 'experts' | 'all-users';
+
+export type ConsistencyCheck = 'terminology' | 'code_style' | 'naming_conventions' | 'pattern_usage' | 'api_signatures' | 'tag_consistency' | 'dependency_validity';
+
+// Selection and Composition Types
+
+export interface SelectionContext {
+  targetCategory?: DocumentCategory;
+  targetTags: string[];
+  tagWeights: Record<string, number>;
+  selectedDocuments: DocumentMetadata[];
+  requiredTopics?: string[];
+  maxCharacters: number;
+  targetCharacterLimit: number;
+}
+
+export interface SelectionConstraints {
+  maxCharacters: number;
+  targetCharacterLimit: number;
+  context: SelectionContext;
+}
+
+export interface DocumentMetadata {
+  document: {
+    id: string;
+    title: string;
+    source_path: string;
+    category: DocumentCategory;
+    subcategory?: string;
+    lastModified?: string;
+    wordCount?: number;
+  };
+  priority: {
+    score: number;
+    tier: PriorityTier;
+    rationale?: string;
+    reviewDate?: string;
+    autoCalculated?: boolean;
+  };
+  tags: {
+    primary: string[];
+    secondary: string[];
+    audience: TargetAudience[];
+    complexity: 'basic' | 'intermediate' | 'advanced' | 'expert';
+    estimatedReadingTime: string;
+    lastUpdated?: string;
+  };
+  dependencies: {
+    prerequisites: Array<{
+      documentId: string;
+      importance: 'required' | 'recommended' | 'optional';
+      reason?: string;
+    }>;
+    references: Array<{
+      documentId: string;
+      type: 'concept' | 'example' | 'api' | 'implementation';
+      relevance?: number;
+    }>;
+    followups: Array<{
+      documentId: string;
+      reason?: string;
+      timing: 'immediate' | 'after-practice' | 'advanced-stage';
+    }>;
+    conflicts: Array<{
+      documentId: string;
+      reason: string;
+      severity: 'minor' | 'moderate' | 'major';
+    }>;
+    complements: Array<{
+      documentId: string;
+      relationship: 'alternative-approach' | 'deeper-dive' | 'practical-example' | 'related-concept';
+      strength?: number;
+    }>;
+  };
+  composition?: {
+    categoryAffinity: Record<string, number>;
+    tagAffinity: Record<string, number>;
+    contextualRelevance: {
+      onboarding?: number;
+      troubleshooting?: number;
+      advanced_usage?: number;
+      api_reference?: number;
+      learning_path?: number;
+    };
+    userJourneyStage?: 'discovery' | 'onboarding' | 'implementation' | 'mastery' | 'troubleshooting';
+  };
+}

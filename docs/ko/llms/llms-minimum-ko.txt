@@ -1,83 +1,56 @@
-# Context-Action Framework - 문서 내비게이션
+# Context-Action Framework - 문서 탐색
 
-생성일: 2025-08-14
-유형: 최소 (내비게이션 링크)
+생성일: 2025-08-16
+유형: 최소 (탐색 링크)
 언어: KO
 
-이 문서는 우선순위 계층으로 구성된 모든 Context-Action 프레임워크 문서에 대한 빠른 내비게이션 링크를 제공합니다.
+이 문서는 Context-Action 프레임워크의 모든 문서에 대한 빠른 탐색 링크를 우선순위 등급별로 정리하여 제공합니다.
 
 
-## 핵심 문서 (4)
+## Important Documents (26)
 
-- [핵심 개념](https://mineclover.github.io/context-action/ko/guide/concepts) - 우선순위: 100
-- [가이드 개요](https://mineclover.github.io/context-action/ko/guide/overview) - 우선순위: 100
-- [가이드 시작하기](https://mineclover.github.io/context-action/ko/guide/getting-started) - 우선순위: 95
-- [가이드 빠른 시작](https://mineclover.github.io/context-action/ko/guide/quick-start) - 우선순위: 95
-
-## 필수 문서 (18)
-
-- [Action Only 메서드](https://mineclover.github.io/context-action/ko/api/action-only) - 우선순위: 85
-- [가이드 액션 핸들러](https://mineclover.github.io/context-action/ko/guide/action-handlers) - 우선순위: 80
-- [가이드 액션 파이프라인](https://mineclover.github.io/context-action/ko/guide/action-pipeline) - 우선순위: 80
-- [가이드 베스트 프랙티스](https://mineclover.github.io/context-action/ko/guide/best-practices) - 우선순위: 80
-- [가이드 일반적인 함정](https://mineclover.github.io/context-action/ko/guide/common-pitfalls) - 우선순위: 80
-- [가이드 도메인 간 통합](https://mineclover.github.io/context-action/ko/guide/cross-domain-integration) - 우선순위: 80
-- [가이드 도메인 훅 패턴](https://mineclover.github.io/context-action/ko/guide/domain-hooks-pattern) - 우선순위: 80
-- [가이드 에러 처리](https://mineclover.github.io/context-action/ko/guide/error-handling) - 우선순위: 80
-- [가이드 핸들러 ID 전략](https://mineclover.github.io/context-action/ko/guide/handler-id-strategies) - 우선순위: 80
-- [가이드 로직 맞춤 훅](https://mineclover.github.io/context-action/ko/guide/logic-fit-hooks) - 우선순위: 80
-- [가이드 MVVM 아키텍처](https://mineclover.github.io/context-action/ko/guide/mvvm-architecture) - 우선순위: 80
-- [가이드 패턴](https://mineclover.github.io/context-action/ko/guide/patterns) - 우선순위: 80
-- [가이드 성능](https://mineclover.github.io/context-action/ko/guide/performance) - 우선순위: 80
-- [가이드 철학](https://mineclover.github.io/context-action/ko/guide/philosophy) - 우선순위: 80
-- [가이드 프로바이더 조합](https://mineclover.github.io/context-action/ko/guide/provider-composition) - 우선순위: 80
-- [가이드 React 통합](https://mineclover.github.io/context-action/ko/guide/react-integration) - 우선순위: 80
-- [가이드 설정 사용법](https://mineclover.github.io/context-action/ko/guide/setup-usage) - 우선순위: 80
-- [가이드 스토어 관리](https://mineclover.github.io/context-action/ko/guide/store-management) - 우선순위: 80
-
-## 중요 문서 (11)
-
-- [API 액션 레지스트리](https://mineclover.github.io/context-action/ko/api/action-registry) - 우선순위: 75
-- [API 코어 액션 레지스터](https://mineclover.github.io/context-action/ko/api/core/action-register) - 우선순위: 75
-- [API 코어 파이프라인 컨트롤러](https://mineclover.github.io/context-action/ko/api/core/pipeline-controller) - 우선순위: 75
-- [API 선언적 스토어 패턴](https://mineclover.github.io/context-action/ko/api/declarative-store-pattern) - 우선순위: 75
-- [API 파이프라인 컨트롤러](https://mineclover.github.io/context-action/ko/api/pipeline-controller) - 우선순위: 75
-- [API React 액션 컨텍스트](https://mineclover.github.io/context-action/ko/api/react/action-context) - 우선순위: 75
-- [API React 스토어 매니저](https://mineclover.github.io/context-action/ko/api/react/store-manager) - 우선순위: 75
-- [API React 스토어 패턴](https://mineclover.github.io/context-action/ko/api/react/store-pattern) - 우선순위: 75
-- [API 스토어 매니저](https://mineclover.github.io/context-action/ko/api/store-manager) - 우선순위: 75
-- [API Store Only](https://mineclover.github.io/context-action/ko/api/store-only) - 우선순위: 75
-- [기본 설정 예제](https://mineclover.github.io/context-action/ko/examples/basic-setup) - 우선순위: 75
-
-## 참조 문서 (11)
-
-- [개념 액션 파이프라인 가이드](https://mineclover.github.io/context-action/ko/concept/action-pipeline-guide) - 우선순위: 50
-- [개념 아키텍처 가이드](https://mineclover.github.io/context-action/ko/concept/architecture-guide) - 우선순위: 50
-- [개념 컨벤션](https://mineclover.github.io/context-action/ko/concept/conventions) - 우선순위: 50
-- [개념 훅 참조](https://mineclover.github.io/context-action/ko/concept/hooks-reference) - 우선순위: 50
-- [개념 패턴 가이드](https://mineclover.github.io/context-action/ko/concept/pattern-guide) - 우선순위: 50
-- [예제 Action Only](https://mineclover.github.io/context-action/ko/examples/action-only) - 우선순위: 50
-- [예제 패턴 조합](https://mineclover.github.io/context-action/ko/examples/pattern-composition) - 우선순위: 50
-- [예제 Store Only](https://mineclover.github.io/context-action/ko/examples/store-only) - 우선순위: 50
-- [LLMs 컨벤션](https://mineclover.github.io/context-action/ko/llms/conventions) - 우선순위: 50
-- [LLMs 인덱스](https://mineclover.github.io/context-action/ko/llms/index) - 우선순위: 50
-- [LLMs 라이브러리 스펙](https://mineclover.github.io/context-action/ko/llms/library-specs) - 우선순위: 50
+- [Api Action Only](https://mineclover.github.io/context-action/en/ko/api/action-only) - Priority: null
+- [Api Action Registry](https://mineclover.github.io/context-action/en/ko/api/action-registry) - Priority: null
+- [Api Core Action Register](https://mineclover.github.io/context-action/en/ko/api/core/action-register) - Priority: null
+- [Api Core Pipeline Controller](https://mineclover.github.io/context-action/en/ko/api/core/pipeline-controller) - Priority: null
+- [Api Declarative Store Pattern](https://mineclover.github.io/context-action/en/ko/api/declarative-store-pattern) - Priority: null
+- [Api Pipeline Controller](https://mineclover.github.io/context-action/en/ko/api/pipeline-controller) - Priority: null
+- [Api React Action Context](https://mineclover.github.io/context-action/en/ko/api/react/action-context) - Priority: null
+- [Api React Store Manager](https://mineclover.github.io/context-action/en/ko/api/react/store-manager) - Priority: null
+- [Api React Store Pattern](https://mineclover.github.io/context-action/en/ko/api/react/store-pattern) - Priority: null
+- [Api Store Manager](https://mineclover.github.io/context-action/en/ko/api/store-manager) - Priority: null
+- [Api Store Only](https://mineclover.github.io/context-action/en/ko/api/store-only) - Priority: null
+- [Concept Action Pipeline Guide](https://mineclover.github.io/context-action/en/ko/concept/action-pipeline-guide) - Priority: null
+- [Concept Architecture Guide](https://mineclover.github.io/context-action/en/ko/concept/architecture-guide) - Priority: null
+- [Concept Conventions](https://mineclover.github.io/context-action/en/ko/concept/conventions) - Priority: null
+- [Concept Hooks Reference](https://mineclover.github.io/context-action/en/ko/concept/hooks-reference) - Priority: null
+- [Concept Pattern Guide](https://mineclover.github.io/context-action/en/ko/concept/pattern-guide) - Priority: null
+- [Examples Action Only](https://mineclover.github.io/context-action/en/ko/examples/action-only) - Priority: null
+- [Examples Basic Setup](https://mineclover.github.io/context-action/en/ko/examples/basic-setup) - Priority: null
+- [Examples Pattern Composition](https://mineclover.github.io/context-action/en/ko/examples/pattern-composition) - Priority: null
+- [Examples Store Only](https://mineclover.github.io/context-action/en/ko/examples/store-only) - Priority: null
+- [Guide Action Handlers](https://mineclover.github.io/context-action/en/ko/guide/action-handlers) - Priority: null
+- [Guide Action Pipeline](https://mineclover.github.io/context-action/en/ko/guide/action-pipeline) - Priority: null
+- [Guide Architecture](https://mineclover.github.io/context-action/en/ko/guide/architecture) - Priority: null
+- [Guide Best Practices](https://mineclover.github.io/context-action/en/ko/guide/best-practices) - Priority: null
+- [Guide Getting Started](https://mineclover.github.io/context-action/en/ko/guide/getting-started) - Priority: null
+- [Guide Hooks](https://mineclover.github.io/context-action/en/ko/guide/hooks) - Priority: null
 
 
-## 사용 가이드
+## 사용 안내
 
-- **핵심**: 프레임워크 이해를 위한 필수 문서
-- **필수**: 중요한 가이드 및 API 참조  
-- **중요**: 유용한 참조 자료
-- **참조**: 고급 및 보충 콘텐츠
+- **Critical**: 프레임워크 이해를 위한 필수 문서
+- **Essential**: 중요한 가이드 및 API 참조자료  
+- **Important**: 유용한 참조 자료
+- **Reference**: 고급 및 보조 콘텐츠
 
 ## 빠른 시작 경로
 
-처음 사용하는 분들을 위한 권장 읽기 순서:
-1. 핵심 개념 (핵심)
-2. 시작하기 (핵심)  
-3. 패턴 가이드 (필수)
-4. API 참조 (필수)
+초급자를 위한 권장 읽기 순서:
+1. 핵심 개념 (Critical)
+2. 시작하기 (Critical)  
+3. 패턴 가이드 (Essential)
+4. API 참조 (Essential)
 
 ---
 

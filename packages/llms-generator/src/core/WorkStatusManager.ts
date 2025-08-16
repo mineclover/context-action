@@ -73,8 +73,15 @@ export class WorkStatusManager {
     const priorityContent = await readFile(priorityFile, 'utf-8');
     const priority: PriorityMetadata = JSON.parse(priorityContent);
 
-    // Get source file info
-    const sourceFile = path.join(this.config.paths.docsDir, priority.document.source_path);
+    // Get source file info (include language prefix if not already present)
+    let sourceFile: string;
+    if (priority.document.source_path.startsWith(`${language}/`)) {
+      // Language prefix already included
+      sourceFile = path.join(this.config.paths.docsDir, priority.document.source_path);
+    } else {
+      // Need to add language prefix
+      sourceFile = path.join(this.config.paths.docsDir, language, priority.document.source_path);
+    }
     let sourceModified: Date | undefined;
     
     if (existsSync(sourceFile)) {
@@ -171,7 +178,15 @@ export class WorkStatusManager {
     const priorityContent = await readFile(priorityFile, 'utf-8');
     const priority: PriorityMetadata & { work_status?: WorkStatusData } = JSON.parse(priorityContent);
     
-    const sourceFile = path.join(this.config.paths.docsDir, priority.document.source_path);
+    // Get source file info (include language prefix if not already present)
+    let sourceFile: string;
+    if (priority.document.source_path.startsWith(`${language}/`)) {
+      // Language prefix already included
+      sourceFile = path.join(this.config.paths.docsDir, priority.document.source_path);
+    } else {
+      // Need to add language prefix
+      sourceFile = path.join(this.config.paths.docsDir, language, priority.document.source_path);
+    }
     let sourceModified: Date | undefined;
     
     if (existsSync(sourceFile)) {

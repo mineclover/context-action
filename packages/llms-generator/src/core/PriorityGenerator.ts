@@ -136,13 +136,14 @@ export class PriorityGenerator {
    * Generate document ID from source path
    */
   private generateDocumentId(sourcePath: string): string {
-    return sourcePath
-      .replace(/\.md$/, '')
-      .replace(/\//g, '-')
-      .toLowerCase()
+    // 더블 대시 방식: 경로는 --, 단어 내부는 -
+    const withoutExt = sourcePath.replace(/\.md$/, '');
+    const pathParts = withoutExt.split('/');
+    
+    return pathParts.join('--').toLowerCase()
       .replace(/[^a-z0-9-]/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '');
+      .replace(/-{3,}/g, '--')  // 3개 이상 연속 대시를 --로 변환
+      .replace(/^-+|-+$/g, ''); // 앞뒤 대시 제거
   }
 
   /**
@@ -306,7 +307,7 @@ export class PriorityGenerator {
 
     // Add schema reference
     const priorityWithSchema = {
-      $schema: '../../priority-schema.json',
+      $schema: '../../priority-schema-enhanced.json',
       ...priority
     };
 

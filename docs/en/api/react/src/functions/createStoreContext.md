@@ -8,7 +8,7 @@
 
 > **createStoreContext**(`name?`): [`StoreContextReturn`](../interfaces/StoreContextReturn.md)
 
-Defined in: [packages/react/src/stores/core/StoreContext.tsx:41](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/core/StoreContext.tsx#L41)
+Defined in: [packages/react/src/stores/core/StoreContext.tsx:41](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/core/StoreContext.tsx#L41)
 
 Store Context 팩토리 함수 - 고급 사용 시나리오용
 

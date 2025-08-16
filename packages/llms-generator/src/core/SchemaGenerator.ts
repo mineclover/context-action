@@ -61,7 +61,7 @@ export class SchemaGenerator {
 
   constructor(config: LLMSConfig) {
     this.config = config;
-    this.schemaPath = path.join(config.paths.llmContentDir, 'priority-schema.json');
+    this.schemaPath = path.join(config.paths.llmContentDir, 'priority-schema-enhanced.json');
   }
 
   /**
@@ -113,7 +113,7 @@ export class SchemaGenerator {
       }
 
       // Copy schema file
-      const schemaOutputPath = path.join(outputDir, 'priority-schema.json');
+      const schemaOutputPath = path.join(outputDir, 'priority-schema-enhanced.json');
       if (!existsSync(schemaOutputPath) || options.overwrite) {
         const schemaContent = JSON.stringify(schema, null, 2);
         await writeFile(schemaOutputPath, schemaContent, 'utf-8');
@@ -170,7 +170,7 @@ export class SchemaGenerator {
     const imports = format === 'esm' ? '' : ''; // No special imports needed for now
     
     let content = `/**
- * TypeScript types generated from priority-schema.json
+ * TypeScript types generated from priority-schema-enhanced.json
  * Generated on: ${new Date().toISOString()}
  * 
  * @fileoverview Priority metadata types for Context-Action framework
@@ -461,7 +461,7 @@ ${imports}
     const typeImports = isTS ? `${format === 'esm' ? "import type { PriorityMetadata, ValidationResult } from './priority-types.js';" : "import { PriorityMetadata, ValidationResult } from './priority-types';"}\n` : '';
 
     return `/**
- * Priority validator generated from priority-schema.json
+ * Priority validator generated from priority-schema-enhanced.json
  * Generated on: ${new Date().toISOString()}
  */
 

@@ -1,26 +1,9 @@
 # 목차
 
-- Core Concepts
-- Context Action Framework Overview
-- Getting Started
-- Quick Start Guide
+- Action Only Methods
 
-# Core Concepts
+# Action Only Methods
 
-# Core Concepts
+This is a 2000-character summary about Action Only Methods. This content is an automatically generated template.
 
-Understanding the fundamental concepts of the Context-Action framework is essential for effective implementation. This guide covers the key building blocks and their relationships.
-
-## Architecture Overview
-
-## Core Components
-
-# Context Action Framework Overview
-
-# Context Action Framework Overview
-
-# Getting Started
-
-# Getting Started
-
-## What is Context-Action?
+**Note**: Complete the priority.json file manually for accurate metadata.

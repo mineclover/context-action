@@ -8,7 +8,7 @@
 
 > **usePersistedStore**&lt;`T`&gt;(`key`, `initialValue`, `options`): [`Store`](../classes/Store.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/hooks/usePersistedStore.ts:30](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/hooks/usePersistedStore.ts#L30)
+Defined in: [packages/react/src/stores/hooks/usePersistedStore.ts:30](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/hooks/usePersistedStore.ts#L30)
 
 지속성 Store Hook
 핵심 기능: localStorage/sessionStorage에 자동 저장/로드되는 Store 생성

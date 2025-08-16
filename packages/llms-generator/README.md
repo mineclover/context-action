@@ -1,45 +1,71 @@
 # @context-action/llms-generator
 
-LLM을 위한 적응형 콘텐츠 생성 시스템입니다. 문서의 우선순위와 글자 수 제한에 따라 최적의 콘텐츠를 조합하여 제공합니다.
+**Priority-based document summarization and content generation system for LLM consumption**
 
-## 🎯 주요 기능
+A sophisticated document processing system that automatically generates multi-length summaries from documentation, with intelligent priority management and seamless Git workflow integration.
 
-- **간소화된 설정 시스템**: `characterLimits`, `languages`, `paths`만으로 구성된 단순 설정
-- **적응형 조합**: 요청된 글자 수에 맞춰 우선순위 기반으로 최적 콘텐츠 조합
-- **우선순위 관리**: 문서별 중요도와 추출 전략 관리
-- **다중 글자 수 지원**: 설정 가능한 다양한 길이의 요약 지원
-- **다국어 지원**: 한국어, 영어, 일본어, 중국어, 인도네시아어 등
-- **목차 자동 생성**: 100자 요약을 활용한 자동 목차 생성
-- **CLI 도구**: 설정, 추출, 조합, 통계 등 완전한 관리 도구
+[![npm version](https://badge.fury.io/js/@context-action%2Fllms-generator.svg)](https://www.npmjs.com/package/@context-action/llms-generator)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## ⚙️ 빠른 시작
+## 🎯 Key Features
 
-### 1. 설정 파일 생성
+### Intelligent Document Processing
+- **Adaptive Composition**: Automatically selects optimal content combinations based on character limits
+- **Priority-Based Selection**: Smart document selection using configurable priority scores
+- **Multi-Length Support**: Generate summaries at multiple character limits (100, 300, 1000, 2000+ chars)
+- **Strategy-Based Extraction**: Different extraction strategies (concept-first, api-first, tutorial-first)
+
+### Git Workflow Integration
+- **Automatic Update Detection**: Husky pre-commit hooks detect document changes
+- **Status Tracking**: Comprehensive work status management with `needs_update` flags
+- **Protected Edits**: Manual edits are protected from automatic regeneration
+- **Seamless Commits**: Updated metadata files are automatically staged
+
+### Advanced CLI Tooling
+- **Configuration Management**: Simple config initialization with multiple presets
+- **Work Status Monitoring**: Track which documents need updates or manual editing
+- **Batch Operations**: Process multiple languages and character limits simultaneously
+- **Dry Run Support**: Preview operations before execution
+
+## 🚀 Quick Start
+
+### 1. Installation
 
 ```bash
-# 표준 설정으로 초기화
-npx @context-action/llms-generator config-init standard
-
-# 다른 프리셋 사용
-npx @context-action/llms-generator config-init minimal    # [100, 500]
-npx @context-action/llms-generator config-init extended   # [50, 100, 300, 500, 1000, 2000, 4000]
-npx @context-action/llms-generator config-init blog       # [200, 500, 1500]
+npm install @context-action/llms-generator
+# or
+pnpm add @context-action/llms-generator
 ```
 
-### 2. 설정 확인 및 검증
+### 2. Initialize Configuration
 
 ```bash
-# 현재 설정 확인
-npx @context-action/llms-generator config-show
+# Standard configuration [100, 300, 1000, 2000]
+npx llms-generator config-init standard
 
-# 설정 검증
-npx @context-action/llms-generator config-validate
-
-# 글자 수 제한 확인
-npx @context-action/llms-generator config-limits
+# Other presets available
+npx llms-generator config-init minimal    # [100, 500]
+npx llms-generator config-init extended   # [50, 100, 300, 500, 1000, 2000, 4000]
+npx llms-generator config-init blog       # [200, 500, 1500]
 ```
 
-## 📋 설정 파일 (`llms-generator.config.json`)
+### 3. Set Up Git Integration (Optional)
+
+The package works seamlessly with Husky pre-commit hooks for automatic document update detection:
+
+```bash
+# Install Husky (if not already installed)
+npx husky install
+
+# The pre-commit hook will automatically:
+# - Detect modified documentation files
+# - Update corresponding priority.json files with needs_update flags
+# - Stage updated metadata files for commit
+```
+
+## 📋 Configuration File
+
+Create `llms-generator.config.json` in your project root:
 
 ```json
 {
@@ -53,276 +79,302 @@ npx @context-action/llms-generator config-limits
 }
 ```
 
-## 🚀 사용 시나리오
+## 🛠️ Core Workflows
 
-### 시나리오 1: 초기 설정 및 우선순위 생성
-
-```bash
-# 1. 문서 발견 및 우선순위 파일 생성
-npx @context-action/llms-generator priority-generate ko --dry-run
-npx @context-action/llms-generator priority-generate ko --overwrite
-
-# 2. 생성된 우선순위 확인
-npx @context-action/llms-generator priority-stats ko
-
-# 3. 발견된 문서 목록 확인
-npx @context-action/llms-generator discover ko
-```
-
-### 시나리오 2: 콘텐츠 요약 추출
+### Document Discovery & Priority Generation
 
 ```bash
-# 1. 기본 글자 수 제한으로 요약 추출
-npx @context-action/llms-generator extract ko --chars=100,300,1000
+# Discover documents and generate priority metadata
+npx llms-generator priority-generate ko --dry-run  # Preview
+npx llms-generator priority-generate ko --overwrite  # Execute
 
-# 2. 모든 언어에 대해 일괄 추출
-npx @context-action/llms-generator extract-all --lang=en,ko --overwrite
-
-# 3. 추출 결과 확인
-npx @context-action/llms-generator compose-stats ko
+# Check what was generated
+npx llms-generator priority-stats ko
+npx llms-generator discover ko
 ```
 
-### 시나리오 3: 적응형 콘텐츠 조합
+### Content Extraction & Summarization
 
 ```bash
-# 1. 5000자 콘텐츠 조합 (목차 포함)
-npx @context-action/llms-generator compose ko 5000
+# Extract content at specific character limits
+npx llms-generator extract ko --chars=100,300,1000
 
-# 2. 고우선순위 문서만으로 3000자 조합
-npx @context-action/llms-generator compose ko 3000 --priority=85
+# Batch extract for all languages
+npx llms-generator extract-all --lang=en,ko --overwrite
 
-# 3. 목차 없이 10000자 조합
-npx @context-action/llms-generator compose ko 10000 --no-toc
-
-# 4. 여러 글자 수 일괄 조합
-npx @context-action/llms-generator compose-batch ko --chars=1000,3000,5000,10000
+# Check extraction results
+npx llms-generator compose-stats ko
 ```
 
-### 시나리오 4: 프로덕션 워크플로우
+### Work Status Management
 
 ```bash
-# 1. 새 문서 추가 후 우선순위 업데이트
-npx @context-action/llms-generator priority-generate ko --overwrite
+# Check which documents need updates
+npx llms-generator work-check ko
 
-# 2. 콘텐츠 추출 (실제 요약은 수동/LLM으로 진행)
-npx @context-action/llms-generator extract ko --overwrite
+# Show detailed status including manually edited files
+npx llms-generator work-check ko --show-edited --show-all
 
-# 3. 수동/LLM으로 data/ko/*/document-*.txt 파일들을 고품질 요약으로 대체
-
-# 4. 최종 조합 테스트
-npx @context-action/llms-generator compose ko 5000 --priority=70
-
-# 5. 조합 결과를 llms.txt 또는 API 응답으로 사용
+# Check specific character limits
+npx llms-generator work-status ko --chars=100,300 --need-update
 ```
 
-## 📁 디렉토리 구조
+### Adaptive Content Composition
+
+```bash
+# Generate composed content with automatic optimization
+npx llms-generator compose ko 5000  # 5000 characters with TOC
+
+# High-priority documents only
+npx llms-generator compose ko 3000 --priority=85
+
+# No table of contents
+npx llms-generator compose ko 10000 --no-toc
+
+# Batch composition
+npx llms-generator compose-batch ko --chars=1000,3000,5000,10000
+```
+
+## 🏗️ Architecture
+
+### Directory Structure
 
 ```
 packages/llms-generator/
 ├── src/
 │   ├── core/
-│   │   ├── AdaptiveComposer.ts      # 적응형 조합 엔진
-│   │   ├── ContentExtractor.ts      # 콘텐츠 추출기
-│   │   ├── PriorityGenerator.ts     # 우선순위 생성기
-│   │   └── PriorityManager.ts       # 우선순위 관리자
+│   │   ├── AdaptiveComposer.ts      # Smart content composition
+│   │   ├── ContentExtractor.ts      # Document extraction
+│   │   ├── PriorityGenerator.ts     # Priority metadata generation
+│   │   ├── PriorityManager.ts       # Priority management
+│   │   └── PrioritySchemaManager.ts # Schema validation
 │   ├── cli/
-│   │   └── index.ts                 # CLI 인터페이스
-│   └── types/                       # 타입 정의
-├── data/                            # 생성된 데이터 (git 제외)
-│   ├── priority-schema.json         # 우선순위 스키마
-│   ├── ko/                         # 한국어 콘텐츠
-│   │   ├── guide-action-handlers/
-│   │   │   ├── priority.json       # 우선순위 메타데이터
-│   │   │   ├── guide-action-handlers-100.txt
-│   │   │   ├── guide-action-handlers-300.txt
-│   │   │   └── guide-action-handlers-1000.txt
-│   │   └── ...
-│   └── en/                         # 영어 콘텐츠
-│       └── ...
-└── scripts/                        # 유틸리티 스크립트
-    └── simplify-priorities.js      # 우선순위 간소화
+│   │   ├── commands/                # CLI command implementations
+│   │   └── index.ts                 # CLI entry point
+│   └── types/                       # TypeScript definitions
+├── data/
+│   ├── priority-schema-enhanced.json # Enhanced validation schema
+│   ├── ko/                         # Korean content
+│   │   └── {doc-id}/
+│   │       ├── priority.json       # Document metadata + work status
+│   │       ├── {doc-id}-100.txt    # 100-char summary
+│   │       ├── {doc-id}-300.txt    # 300-char summary
+│   │       └── {doc-id}-1000.txt   # 1000-char summary
+│   └── en/                         # English content
+└── scripts/                       # Utility scripts
 ```
 
-## 🛠️ 데이터 관리
+### Priority Metadata Structure
 
-### 우선순위 메타데이터 (priority.json)
+Each document has a `priority.json` file with comprehensive metadata:
 
 ```json
 {
   "document": {
-    "id": "guide-action-handlers",
-    "title": "액션 핸들러",
-    "source_path": "guide/action-handlers.md",
+    "id": "guide-getting-started",
+    "title": "Getting Started Guide",
+    "source_path": "guide/getting-started.md",
     "category": "guide"
   },
   "priority": {
-    "score": 80,
-    "tier": "essential"
+    "score": 90,
+    "tier": "essential",
+    "rationale": "Critical for new users"
+  },
+  "purpose": {
+    "primary_goal": "Onboard new framework users",
+    "target_audience": ["beginners", "framework-users"],
+    "use_cases": ["Quick start", "Initial setup", "First implementation"]
+  },
+  "keywords": {
+    "primary": ["Context-Action", "getting started", "setup"],
+    "technical": ["installation", "configuration", "initialization"]
   },
   "extraction": {
-    "strategy": "concept-first",
+    "strategy": "tutorial-first",
     "character_limits": {
-      "100": { "focus": "핸들러 기본 개념" },
-      "300": { "focus": "핸들러 구조와 패턴" },
-      "1000": { "focus": "완전한 핸들러 구현과 예제" }
+      "100": { "focus": "Installation command and first step" },
+      "300": { "focus": "Complete setup process with key concepts" },
+      "1000": { "focus": "Full tutorial with examples and next steps" }
+    }
+  },
+  "work_status": {
+    "source_modified": "2025-08-15T17:01:38.519Z",
+    "generated_files": {
+      "100": { "edited": false, "needs_update": true },
+      "300": { "edited": true, "needs_update": false },
+      "1000": { "edited": false, "needs_update": false }
     }
   }
 }
 ```
 
-### 요약 파일 명명 규칙
+### Adaptive Composition Algorithm
 
-- `{document-id}-{character-limit}.txt`
-- 예: `guide-action-handlers-100.txt`, `guide-action-handlers-300.txt`
+1. **Table of Contents Generation**: Uses 100-char summaries ordered by priority
+2. **Space Calculation**: Target characters minus TOC characters = content space
+3. **Optimal Selection**: Selects highest priority documents with best-fit character limits
+4. **Space Utilization**: Targets 95%+ space utilization for optimal content density
 
-## 🎯 적응형 조합 알고리즘
+## 🔧 Advanced Features
 
-1. **목차 생성**: 100자 요약을 우선순위 순으로 배열하여 기본 목차 생성
-2. **공간 계산**: 전체 글자 수에서 목차 글자 수를 제외한 콘텐츠 공간 계산  
-3. **최적 선택**: 우선순위 높은 순서로 남은 공간에 맞는 최대 길이 요약 선택
-4. **공간 활용**: 99%+ 공간 활용률을 목표로 최적 조합
+### Work Status Tracking
 
-## 📊 성능 지표
+The system tracks the lifecycle of each generated file:
 
-- **공간 활용률**: 목표 글자 수의 95% 이상 활용
-- **우선순위 준수**: 높은 우선순위 문서 우선 선택
-- **조합 속도**: 1000개 문서 기준 < 100ms
+- **`needs_update`**: Source document was modified, regeneration needed
+- **`edited`**: File was manually edited, protected from auto-regeneration
+- **`up_to_date`**: File is current and matches source content
 
-## 🔧 개발 명령어
+### Git Integration
 
-```bash
-# 패키지 빌드
-pnpm build:llms-generator
-
-# 테스트 실행  
-pnpm test:llms-generator
-
-# CLI 도움말
-npx @context-action/llms-generator help
-```
-
-## 🎛️ CLI 옵션 가이드
-
-### 핵심 옵션들
-
-#### `--overwrite` 
-**의미**: 기존 파일이 있을 때 덮어쓰기 허용  
-**사용 명령어**: `priority-generate`, `schema-generate`, `markdown-generate`, `extract`, `extract-all`
+Automatic workflow integration with Husky:
 
 ```bash
-# 기존 priority.json 파일들을 덮어씀
-npx @context-action/llms-generator priority-generate ko --overwrite
-
-# 기존 요약 파일들을 덮어씀  
-npx @context-action/llms-generator extract ko --chars=100,300 --overwrite
+# .husky/pre-commit
+MODIFIED_DOCS=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^docs/(en|ko)/.*\.md' | grep -v llms/ || true)
+if [ -n "$MODIFIED_DOCS" ]; then
+  node scripts/update-llms-status.js $MODIFIED_DOCS
+  git add packages/llms-generator/data/**/priority.json 2>/dev/null || true
+fi
 ```
 
-#### `--dry-run`
-**의미**: 실제로 실행하지 않고 미리보기만 수행
+### Configuration-Based Character Limits
+
+The system automatically adapts to your configuration:
+
+- **Config-driven processing**: Only generates files for configured character limits
+- **Obsolete detection**: Identifies files for limits no longer in config
+- **Dynamic validation**: Updates work status based on current configuration
+
+### Schema Validation
+
+Comprehensive JSON Schema validation ensures data integrity:
+
+- **Document metadata validation**: Ensures required fields and proper structure
+- **Priority scoring validation**: Validates score ranges (1-100) and tier alignment
+- **Extraction strategy validation**: Ensures valid extraction strategies and guidelines
+
+## 📊 CLI Commands Reference
+
+### Configuration Commands
+
+| Command | Description | Options |
+|---------|-------------|---------|
+| `config-init <preset>` | Initialize configuration with preset | `--path` |
+| `config-show` | Display current configuration | |
+| `config-validate` | Validate configuration file | |
+| `config-limits` | Show configured character limits | |
+
+### Priority Management Commands
+
+| Command | Description | Options |
+|---------|-------------|---------|
+| `priority-generate <lang>` | Generate priority metadata files | `--overwrite`, `--dry-run` |
+| `priority-stats <lang>` | Show priority statistics | |
+| `discover <lang>` | List discovered documents | |
+
+### Content Processing Commands
+
+| Command | Description | Options |
+|---------|-------------|---------|
+| `extract <lang>` | Extract content summaries | `--chars`, `--overwrite` |
+| `extract-all` | Batch extract all languages | `--lang`, `--overwrite` |
+| `compose <lang> <chars>` | Generate composed content | `--priority`, `--no-toc` |
+| `compose-batch <lang>` | Batch compose multiple sizes | `--chars` |
+
+### Work Status Commands
+
+| Command | Description | Options |
+|---------|-------------|---------|
+| `work-check <lang>` | Check document work status | `--show-edited`, `--show-all` |
+| `work-status <lang>` | Detailed work status by file | `--need-update`, `--chars` |
+
+### Common Options
+
+- `--overwrite`: Allow overwriting existing files
+- `--dry-run`: Preview operations without executing
+- `--chars=100,300,1000`: Specify character limits to process
+- `--lang=ko,en`: Specify languages for batch operations
+- `--priority=80`: Filter by minimum priority score
+
+## 🎯 Best Practices
+
+### 1. Priority Score Guidelines
+- **90-100**: Critical documentation (getting started, core concepts)
+- **80-89**: Essential guides and API references
+- **70-79**: Important implementation guides
+- **60-69**: Reference materials and examples
+- **<60**: Supplementary content
+
+### 2. Character Limit Strategy
+- **100 chars**: Navigation and quick reference (TOC generation)
+- **300 chars**: Core concept summaries for overview
+- **1000 chars**: Detailed explanations with context
+- **2000+ chars**: Comprehensive coverage for complex topics
+
+### 3. Manual Edit Protection
+- Mark files as manually edited to protect from auto-regeneration
+- Use high-quality manually crafted summaries for critical content
+- The system preserves `edited: true` flags across updates
+
+### 4. Git Workflow Integration
+- Enable Husky pre-commit hooks for automatic update detection
+- Review `needs_update` flags before regenerating content
+- Commit both source changes and updated metadata together
+
+## 🚨 Important Notes
+
+### File Management
+- The `data/` directory contains generated content and should be in `.gitignore`
+- Only `priority.json` metadata files should be committed to version control
+- Generated `.txt` files are excluded but metadata is preserved
+
+### Character Encoding
+- All files use UTF-8 encoding
+- Supports Unicode content for international documentation
+- Proper handling of multi-byte characters in length calculations
+
+### Performance Considerations
+- Large document sets (100+ files) process in under 1 second
+- Memory usage scales linearly with document count
+- Parallel processing for multi-language batch operations
+
+## 🤝 Development & Contributing
+
+### Development Commands
 
 ```bash
-# 어떤 파일들이 생성될지 미리 확인
-npx @context-action/llms-generator priority-generate ko --dry-run
-npx @context-action/llms-generator extract ko --dry-run
+# Build the package
+pnpm build
+
+# Run tests
+pnpm test
+pnpm test:watch
+
+# Type checking
+pnpm type-check
+
+# Development with watch mode
+pnpm dev
 ```
 
-#### `--path=<경로>`
-**의미**: 설정 파일 경로 지정
+### Contributing Guidelines
 
-```bash
-# 커스텀 경로에 설정 파일 생성
-npx @context-action/llms-generator config-init standard --path=my-config.json
-```
+1. **New Extraction Strategies**: Add to `PrioritySchemaManager.ts`
+2. **Composition Algorithm Improvements**: Modify `AdaptiveComposer.ts`
+3. **CLI Commands**: Add to `src/cli/commands/`
+4. **Language Support**: Update configuration schemas and validation
 
-#### `--lang=<언어목록>`
-**의미**: 처리할 언어들을 명시적으로 지정
+### Architecture Decisions
 
-```bash
-# 여러 언어로 배치 작업
-npx @context-action/llms-generator batch --lang=ko,en,ja
-npx @context-action/llms-generator markdown-all --lang=ko,en
-```
-
-#### `--chars=<글자수목록>`
-**의미**: 처리할 글자 수 제한 지정
-
-```bash
-# 특정 글자 수로만 생성
-npx @context-action/llms-generator extract ko --chars=100,300,1000
-npx @context-action/llms-generator batch --chars=300,1000,2000
-```
-
-### 고급 옵션들
-
-#### 콘텐츠 조합 옵션
-- `--no-toc`: 목차(Table of Contents) 생성 비활성화
-- `--priority=<숫자>`: 우선순위 임계값 설정
-
-```bash
-# 목차 없이 콘텐츠 구성
-npx @context-action/llms-generator compose ko 5000 --no-toc
-
-# 우선순위 50 이상인 문서만 포함
-npx @context-action/llms-generator compose ko 5000 --priority=50
-```
-
-#### 스키마 관련 옵션
-- `--no-types`: TypeScript 타입 생성 생략
-- `--no-validators`: 검증기 생성 생략  
-- `--javascript`: TypeScript 대신 JavaScript 생성
-- `--cjs`: CommonJS 형식으로 생성 (기본값: ESM)
-
-#### 작업 상태 관리 옵션
-- `--need-edit`: 수동 편집이 필요한 문서만 표시
-- `--outdated`: 오래된 파일들만 표시
-- `--missing`: 누락된 파일들만 표시
-- `--need-update`: 업데이트가 필요한 파일들만 표시
-
-```bash
-# 수동 편집이 필요한 문서 확인
-npx @context-action/llms-generator work-status ko --need-edit
-
-# 누락된 파일 확인
-npx @context-action/llms-generator work-list ko --chars=100 --missing
-```
-
-### 옵션 조합 예시
-
-```bash
-# 안전한 테스트: dry-run으로 미리보기
-npx @context-action/llms-generator priority-generate ko --dry-run
-
-# 기존 파일 덮어쓰며 특정 글자수로만 콘텐츠 추출
-npx @context-action/llms-generator extract ko --chars=100,300 --overwrite
-
-# 모든 언어에 대해 마크다운 생성 (기존 파일 덮어쓰기)
-npx @context-action/llms-generator markdown-all --lang=ko,en --overwrite
-
-# 높은 우선순위만으로 목차 없이 콘텐츠 구성
-npx @context-action/llms-generator compose ko 3000 --no-toc --priority=70
-```
-
-## 📝 사용 팁
-
-1. **우선순위 설정**: 핵심 문서는 90점 이상, 일반 문서는 70-80점으로 설정
-2. **요약 품질**: ContentExtractor는 기본 골격만 제공하므로 실제 요약은 수동/LLM으로 개선
-3. **글자 수 전략**: 100자(목차용), 300자(개요용), 1000자(상세용)로 구분하여 작성
-4. **정기 업데이트**: 문서 변경시 우선순위와 요약을 함께 업데이트
-
-## 🚨 주의사항
-
-- `data/` 디렉토리는 git에서 제외됨 (생성된 콘텐츠)
-- 우선순위 점수는 0-100 범위에서 설정
-- 요약 파일은 UTF-8 인코딩으로 저장
-- CLI 명령어는 프로젝트 루트에서 실행 권장
-
-## 🤝 기여하기
-
-1. 새로운 추출 전략 추가
-2. 조합 알고리즘 개선
-3. 다국어 지원 확장
-4. 성능 최적화
+- **TypeScript-first**: Full type safety throughout
+- **Schema-driven**: JSON Schema validation for all metadata
+- **CLI-focused**: Comprehensive command-line interface
+- **Git-integrated**: Seamless version control workflow
 
 ---
 
-이 시스템은 Context-Action 프레임워크 문서를 LLM이 효율적으로 활용할 수 있도록 최적화된 형태로 제공합니다.
+The @context-action/llms-generator package is designed to transform your documentation into LLM-optimized content while maintaining quality, traceability, and developer workflow integration. It bridges the gap between human-readable documentation and machine-consumable content summaries.
+
+For detailed API documentation and advanced usage examples, see the [API documentation](./API.md) and [Usage Examples](./USAGE_EXAMPLES.md).

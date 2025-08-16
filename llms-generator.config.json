@@ -1,9 +1,319 @@
 {
+  "$schema": "packages/llms-generator/data/config-schema.json",
   "characterLimits": [100, 200, 300, 400],
-  "languages": ["ko", "en", "ja"],
+  "languages": ["ko", "en"],
   "paths": {
     "docsDir": "./docs",
     "dataDir": "./packages/llms-generator/data",
     "outputDir": "./docs/llms"
+  },
+  "categories": {
+    "guide": {
+      "name": "가이드",
+      "description": "사용자 가이드 및 튜토리얼",
+      "priority": 90,
+      "defaultStrategy": "tutorial-first",
+      "tags": ["beginner", "step-by-step", "practical"],
+      "color": "#28a745",
+      "icon": "📖"
+    },
+    "api": {
+      "name": "API 참조",
+      "description": "API 문서 및 참조 자료",
+      "priority": 85,
+      "defaultStrategy": "api-first",
+      "tags": ["reference", "technical", "developer"],
+      "color": "#17a2b8",
+      "icon": "🔧"
+    },
+    "concept": {
+      "name": "개념 설명",
+      "description": "핵심 개념 및 아키텍처",
+      "priority": 80,
+      "defaultStrategy": "concept-first",
+      "tags": ["theory", "architecture", "design"],
+      "color": "#6f42c1",
+      "icon": "💡"
+    },
+    "example": {
+      "name": "예제 코드",
+      "description": "실용적인 예제 및 샘플",
+      "priority": 75,
+      "defaultStrategy": "example-first",
+      "tags": ["practical", "code", "sample"],
+      "color": "#fd7e14",
+      "icon": "💻"
+    },
+    "reference": {
+      "name": "참조 자료",
+      "description": "상세 참조 문서",
+      "priority": 70,
+      "defaultStrategy": "reference-first",
+      "tags": ["detailed", "comprehensive", "lookup"],
+      "color": "#6c757d",
+      "icon": "📚"
+    }
+  },
+  "tags": {
+    "beginner": {
+      "name": "초보자",
+      "description": "초보자를 위한 콘텐츠",
+      "weight": 1.2,
+      "compatibleWith": ["step-by-step", "practical", "tutorial"],
+      "audience": ["new-users", "learners"],
+      "estimatedReadingTime": {
+        "min": 5,
+        "max": 15,
+        "unit": "minutes",
+        "complexity": "low"
+      }
+    },
+    "intermediate": {
+      "name": "중급",
+      "description": "중급 사용자를 위한 콘텐츠",
+      "weight": 1.0,
+      "compatibleWith": ["practical", "implementation", "patterns"],
+      "audience": ["experienced-users"],
+      "estimatedReadingTime": {
+        "min": 15,
+        "max": 30,
+        "unit": "minutes",
+        "complexity": "medium"
+      }
+    },
+    "advanced": {
+      "name": "고급",
+      "description": "고급 사용자를 위한 콘텐츠",
+      "weight": 0.9,
+      "compatibleWith": ["technical", "architecture", "optimization"],
+      "audience": ["experts", "contributors"],
+      "estimatedReadingTime": {
+        "min": 30,
+        "max": 60,
+        "unit": "minutes",
+        "complexity": "high"
+      }
+    },
+    "core": {
+      "name": "핵심",
+      "description": "핵심 기능 및 개념",
+      "weight": 1.5,
+      "compatibleWith": ["essential", "fundamental", "architecture"],
+      "importance": "critical",
+      "frequency": "high"
+    },
+    "optional": {
+      "name": "선택사항",
+      "description": "선택적 기능 및 확장",
+      "weight": 0.7,
+      "compatibleWith": ["advanced", "extension", "plugin"],
+      "importance": "optional",
+      "frequency": "low"
+    },
+    "quick-start": {
+      "name": "빠른 시작",
+      "description": "빠른 시작을 위한 콘텐츠",
+      "weight": 1.3,
+      "compatibleWith": ["beginner", "practical", "step-by-step"],
+      "audience": ["new-users"],
+      "estimatedReadingTime": {
+        "min": 5,
+        "max": 10,
+        "unit": "minutes",
+        "complexity": "low"
+      }
+    },
+    "troubleshooting": {
+      "name": "문제 해결",
+      "description": "문제 해결 및 디버깅",
+      "weight": 1.1,
+      "compatibleWith": ["practical", "solution", "debugging"],
+      "audience": ["all-users"],
+      "urgency": "high"
+    }
+  },
+  "dependencies": {
+    "rules": {
+      "prerequisite": {
+        "description": "선행 학습이 필요한 문서",
+        "weight": 1.3,
+        "autoInclude": true,
+        "maxDepth": 2,
+        "strategy": "breadth-first"
+      },
+      "reference": {
+        "description": "참조 관계의 문서",
+        "weight": 1.1,
+        "autoInclude": false,
+        "maxDepth": 1,
+        "strategy": "selective"
+      },
+      "followup": {
+        "description": "후속 학습 권장 문서",
+        "weight": 0.8,
+        "autoInclude": false,
+        "maxDepth": 1,
+        "strategy": "optional"
+      },
+      "complement": {
+        "description": "보완적 내용의 문서",
+        "weight": 0.9,
+        "autoInclude": false,
+        "maxDepth": 1,
+        "strategy": "space-permitting"
+      }
+    },
+    "conflictResolution": {
+      "strategy": "exclude-conflicts",
+      "priority": "higher-score-wins",
+      "allowPartialConflicts": false
+    }
+  },
+  "composition": {
+    "strategies": {
+      "balanced": {
+        "name": "균형잡힌 조합",
+        "description": "카테고리, 태그, 의존성을 균형있게 고려",
+        "weights": {
+          "categoryWeight": 0.4,
+          "tagWeight": 0.3,
+          "dependencyWeight": 0.2,
+          "priorityWeight": 0.1
+        },
+        "constraints": {
+          "minCategoryRepresentation": 2,
+          "maxDocumentsPerCategory": 8,
+          "requireCoreTags": true
+        }
+      },
+      "category-focused": {
+        "name": "카테고리 중심",
+        "description": "카테고리별 문서를 우선적으로 선택",
+        "weights": {
+          "categoryWeight": 0.6,
+          "tagWeight": 0.2,
+          "dependencyWeight": 0.1,
+          "priorityWeight": 0.1
+        },
+        "constraints": {
+          "minCategoryRepresentation": 1,
+          "maxDocumentsPerCategory": 15,
+          "requireCoreTags": false
+        }
+      },
+      "dependency-driven": {
+        "name": "의존성 기반",
+        "description": "문서 간 의존성을 최우선으로 고려",
+        "weights": {
+          "categoryWeight": 0.2,
+          "tagWeight": 0.2,
+          "dependencyWeight": 0.5,
+          "priorityWeight": 0.1
+        },
+        "constraints": {
+          "minCategoryRepresentation": 1,
+          "maxDocumentsPerCategory": 12,
+          "requireCoreTags": false,
+          "includeDependencyChains": true
+        }
+      },
+      "beginner-friendly": {
+        "name": "초보자 친화",
+        "description": "초보자를 위한 순차적 학습 경로",
+        "weights": {
+          "categoryWeight": 0.3,
+          "tagWeight": 0.4,
+          "dependencyWeight": 0.2,
+          "priorityWeight": 0.1
+        },
+        "constraints": {
+          "minCategoryRepresentation": 2,
+          "maxDocumentsPerCategory": 6,
+          "requireCoreTags": true,
+          "preferredTags": ["beginner", "step-by-step", "practical"]
+        }
+      }
+    },
+    "defaultStrategy": "balanced",
+    "optimization": {
+      "spaceUtilizationTarget": 0.95,
+      "qualityThreshold": 0.8,
+      "diversityBonus": 0.1,
+      "redundancyPenalty": 0.2
+    }
+  },
+  "extraction": {
+    "defaultQualityThreshold": 0.8,
+    "autoTagExtraction": true,
+    "autoDependencyDetection": true,
+    "strategies": {
+      "tutorial-first": {
+        "focusOrder": ["steps", "examples", "concepts", "references"]
+      },
+      "api-first": {
+        "focusOrder": ["signatures", "parameters", "examples", "concepts"]
+      },
+      "concept-first": {
+        "focusOrder": ["definitions", "principles", "examples", "applications"]
+      },
+      "example-first": {
+        "focusOrder": ["code", "usage", "explanations", "concepts"]
+      },
+      "reference-first": {
+        "focusOrder": ["complete-info", "details", "examples", "context"]
+      }
+    }
+  },
+  "validation": {
+    "schema": {
+      "enforceTagConsistency": true,
+      "validateDependencies": true,
+      "checkCategoryAlignment": true
+    },
+    "quality": {
+      "minPriorityScore": 50,
+      "maxDocumentAge": {
+        "value": 6,
+        "unit": "months"
+      },
+      "requireMinimumContent": true
+    }
+  },
+  "id": {
+    "generation": {
+      "strategy": "double-dash-separator",
+      "description": "경로는 --로, 단어 내부는 -로 구분",
+      "pathSeparator": "--",
+      "wordSeparator": "-",
+      "normalization": {
+        "lowercase": true,
+        "allowedCharacters": "a-z0-9-",
+        "consecutiveDashPattern": "-{3,}",
+        "consecutiveDashReplacement": "--",
+        "trimPattern": "^-+|-+$"
+      },
+      "examples": {
+        "simple": "guide/getting-started.md → guide-getting-started",
+        "complex": "api/core/src/ActionRegister.md → api--core--src--actionregister",
+        "deep": "api/react/src/functions/createStore.md → api--react--src--functions--createstore"
+      }
+    },
+    "validation": {
+      "enforceConsistency": true,
+      "detectAmbiguity": true,
+      "preventDuplicates": true
+    }
+  },
+  "ui": {
+    "dashboard": {
+      "enableTagCloud": true,
+      "showCategoryStats": true,
+      "enableDependencyGraph": true
+    },
+    "reporting": {
+      "generateCompositionReports": true,
+      "includeQualityMetrics": true,
+      "exportFormats": ["json", "csv", "html"]
+    }
   }
 }

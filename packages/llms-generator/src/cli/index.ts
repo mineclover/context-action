@@ -11,6 +11,7 @@ import { ConfigManager } from '../core/ConfigManager.js';
 import { InstructionGenerator } from '../core/InstructionGenerator.js';
 import { initializeContainer } from '../infrastructure/di/DIContainer.js';
 import type { ResolvedConfig } from '../types/user-config.js';
+import { checkWorkStatus } from './commands/work-check.js';
 
 async function main() {
   const args = process.argv.slice(2);
@@ -1034,6 +1035,24 @@ async function main() {
             process.exit(1);
         }
         break;
+
+      case 'work-check':
+        const checkLanguage = args[1];
+        const showAll = args.includes('--show-all');
+        const showOutdated = args.includes('--show-outdated');
+        const showEdited = args.includes('--show-edited');
+        const showMissingConfig = args.includes('--show-missing-config');
+
+        console.log('🔍 Enhanced work status check with config integration\n');
+        
+        await checkWorkStatus({
+          language: checkLanguage,
+          showAll,
+          showOutdated,
+          showEdited,
+          showMissingConfig
+        });
+        break;
         
       default:
         console.error(`Unknown command: ${command}`);
@@ -1102,6 +1121,8 @@ function showHelp() {
   console.log('                       Get complete work context for editing a document');
   console.log('  work-list [lang] [--chars=100] [--outdated] [--missing] [--need-update]');
   console.log('                       List documents that need work');
+  console.log('  work-check [lang] [--show-all] [--show-edited] [--show-missing-config]');
+  console.log('                       Enhanced work status check with config integration');
   console.log('');
   console.log('INSTRUCTION GENERATION:');
   console.log('  instruction-generate <lang> <document-id> [options]');
@@ -1153,6 +1174,7 @@ function showHelp() {
   console.log('  npx @context-action/llms-generator work-status ko --chars=100 --need-edit');
   console.log('  npx @context-action/llms-generator work-context ko guide-action-handlers --chars=100');
   console.log('  npx @context-action/llms-generator work-list ko --chars=100 --missing');
+  console.log('  npx @context-action/llms-generator work-check ko --show-all --show-edited');
   console.log('');
   console.log('  # Instruction generation');
   console.log('  npx @context-action/llms-generator instruction-generate ko guide-action-handlers --chars=100,300');

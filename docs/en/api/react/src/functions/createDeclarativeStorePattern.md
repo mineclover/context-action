@@ -12,7 +12,7 @@ Implementation function that handles both overloads
 
 > **createDeclarativeStorePattern**&lt;`T`&gt;(`contextName`, `initialStores`): `object`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:205](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L205)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:205](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L205)
 
 Overload 1: Explicit generic types - User provides explicit type interface
 
@@ -182,7 +182,7 @@ const AppStores = createDeclarativeStorePattern<AppStores>('App', {
 
 > **createDeclarativeStorePattern**&lt;`T`&gt;(`contextName`, `storeDefinitions`): `object`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:226](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L226)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:226](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L226)
 
 Overload 2: Type inference - Types inferred from store definitions
 

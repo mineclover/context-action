@@ -6,7 +6,7 @@
 
 # Interface: ExecutionResult\<R\>
 
-Defined in: [packages/core/src/types.ts:316](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L316)
+Defined in: [packages/core/src/types.ts:316](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L316)
 
 Result of pipeline execution containing detailed execution information
 
@@ -22,7 +22,7 @@ Result of pipeline execution containing detailed execution information
 
 > **success**: `boolean`
 
-Defined in: [packages/core/src/types.ts:318](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L318)
+Defined in: [packages/core/src/types.ts:318](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L318)
 
 Whether the execution completed successfully
 
@@ -32,7 +32,7 @@ Whether the execution completed successfully
 
 > **aborted**: `boolean`
 
-Defined in: [packages/core/src/types.ts:321](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L321)
+Defined in: [packages/core/src/types.ts:321](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L321)
 
 Whether the execution was aborted
 
@@ -42,7 +42,7 @@ Whether the execution was aborted
 
 > `optional` **abortReason**: `string`
 
-Defined in: [packages/core/src/types.ts:324](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L324)
+Defined in: [packages/core/src/types.ts:324](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L324)
 
 Reason for abortion if aborted
 
@@ -52,7 +52,7 @@ Reason for abortion if aborted
 
 > **terminated**: `boolean`
 
-Defined in: [packages/core/src/types.ts:327](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L327)
+Defined in: [packages/core/src/types.ts:327](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L327)
 
 Whether the execution was terminated early via controller.return()
 
@@ -62,7 +62,7 @@ Whether the execution was terminated early via controller.return()
 
 > `optional` **result**: `R`
 
-Defined in: [packages/core/src/types.ts:330](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L330)
+Defined in: [packages/core/src/types.ts:330](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L330)
 
 Final result based on result strategy
 
@@ -72,7 +72,7 @@ Final result based on result strategy
 
 > **results**: `R`[]
 
-Defined in: [packages/core/src/types.ts:333](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L333)
+Defined in: [packages/core/src/types.ts:333](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L333)
 
 All individual handler results
 
@@ -82,7 +82,7 @@ All individual handler results
 
 > **execution**: `object`
 
-Defined in: [packages/core/src/types.ts:336](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L336)
+Defined in: [packages/core/src/types.ts:336](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L336)
 
 Execution metadata
 
@@ -128,7 +128,7 @@ Execution end timestamp
 
 > **handlers**: `object`[]
 
-Defined in: [packages/core/src/types.ts:357](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L357)
+Defined in: [packages/core/src/types.ts:357](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L357)
 
 Detailed information about each handler
 
@@ -174,7 +174,7 @@ Custom metadata for this handler
 
 > **errors**: `object`[]
 
-Defined in: [packages/core/src/types.ts:378](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/core/src/types.ts#L378)
+Defined in: [packages/core/src/types.ts:378](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L378)
 
 Errors that occurred during execution
 

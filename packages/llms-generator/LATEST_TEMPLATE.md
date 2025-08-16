@@ -161,7 +161,7 @@ markdown-all [--lang=en,ko] [--dry-run] [--overwrite]
 ### 데이터 구조
 ```
 packages/llms-generator/data/
-├── priority-schema.json              # 우선순위 스키마 (git 포함)
+├── priority-schema-enhanced.json     # 강화된 우선순위 스키마 (git 포함)
 ├── ko/                              # 생성 데이터 (git 제외)
 │   ├── guide-action-handlers/
 │   │   ├── priority.json            # 우선순위 + 작업상태

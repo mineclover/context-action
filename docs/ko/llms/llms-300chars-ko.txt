@@ -1,34 +1,26 @@
 # 목차
 
-- 핵심 개념
-- Context Action 프레임워크 개요
-- 빠른 시작
-- 액션 핸들러
-- 개발 모범 사례
-- 공통 함정
-- 크로스 도메인 통합
-- 도메인 훅 패턴
+- Api Action Only
+- Api Action Registry
+- Api Core Action Register
+- ...
 
-# 핵심 개념
+# Action Only 메서드
 
-# 핵심 개념
+`createActionContext`에서 제공하는 Action Only 패턴 메서드의 완전한 API 레퍼런스입니다.
 
-# Context Action 프레임워크 개요
+## 개요
 
-# Context Action 프레임워크 개요
 
-## 아키텍처 개요
 
-## 주요 장점
+...
 
-# 빠른 시작
+# 액션 레지스트리 API
 
-# 빠른 시작
+액션 등록, 실행, 파이프라인 제어를 관리하는 액션 레지스트리 시스템의 완전한 API 레퍼런스입니다.
 
-## 설치
+## 개요
 
-# 또는
 
-## 1단계: 도메인 정의
 
-먼저 애플리케이션 도메인을 정의합니다:
+...

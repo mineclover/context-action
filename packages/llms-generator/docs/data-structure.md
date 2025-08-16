@@ -9,7 +9,7 @@ docs/llm-content/
 ├── README.md                           # 이 문서
 ├── EXTRACTION_GUIDELINES.md            # 추출 가이드라인
 ├── FINAL_STRUCTURE_ANALYSIS.md         # 구조 분석 보고서
-├── priority-schema.json                # JSON 스키마 정의
+├── priority-schema-enhanced.json       # JSON 스키마 정의
 │
 ├── en/                                 # 영어 문서 (44개)
 │   ├── guide-concepts/                 # 개념 가이드
@@ -38,7 +38,7 @@ docs/llm-content/
 ### 🎯 Priority Files (`priority.json`)
 - **목적**: 문서별 우선순위 및 추출 가이드라인 관리
 - **내용**: 우선순위 점수, 핵심 키워드, 문자수별 추출 전략, 품질 기준
-- **스키마**: `priority-schema.json`으로 구조 검증
+- **스키마**: `priority-schema-enhanced.json`으로 구조 검증
 - **예시**: 각 문서 폴더의 `priority.json`
 
 ### 📝 Extraction Files (9가지 타입)

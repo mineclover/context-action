@@ -9,7 +9,7 @@ import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import type { PriorityMetadata } from '../types/index.js';
 
-// Priority schema types based on priority-schema.json
+// Priority schema types based on priority-schema-enhanced.json
 export interface PrioritySchema {
   document: {
     id: string;
@@ -99,7 +99,7 @@ export class PrioritySchemaManager {
   private validate: any = null;
 
   constructor(llmContentDir: string) {
-    this.schemaPath = path.join(llmContentDir, 'schemas', 'priority-schema.json');
+    this.schemaPath = path.join(llmContentDir, 'priority-schema-enhanced.json');
   }
 
   /**

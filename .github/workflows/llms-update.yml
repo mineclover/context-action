@@ -1,0 +1,62 @@
+name: Update LLMs Documentation Status
+
+on:
+  push:
+    paths:
+      - 'docs/**/*.md'
+      - '!docs/**/llms/**'
+    branches:
+      - main
+      - develop
+
+jobs:
+  update-llms-status:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+    
+    - uses: pnpm/action-setup@v2
+      with:
+        version: 9
+    
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'pnpm'
+    
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+    
+    - name: Build llms-generator
+      run: pnpm build:llms-generator
+    
+    - name: Get changed files
+      id: changed-files
+      run: |
+        echo "files=$(git diff --name-only HEAD^ HEAD | grep -E '^docs/.*\.md$' | grep -v llms/ | tr '\n' ' ')" >> $GITHUB_OUTPUT
+    
+    - name: Update work status for changed files
+      run: |
+        for file in ${{ steps.changed-files.outputs.files }}; do
+          echo "Processing: $file"
+          # Extract language and document ID from path
+          if [[ $file =~ docs/(en|ko)/(.+)\.md$ ]]; then
+            lang="${BASH_REMATCH[1]}"
+            doc_path="${BASH_REMATCH[2]}"
+            doc_id=$(echo "$doc_path" | sed 's/\//-/g')
+            
+            echo "Updating status for $lang/$doc_id"
+            node packages/llms-generator/dist/cli/index.js work-update $lang $doc_id --source-modified
+          fi
+        done
+    
+    - name: Commit status updates
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add packages/llms-generator/data/*/priority.json
+        git diff --staged --quiet || git commit -m "chore: update LLMs work status for modified documents"
+        git push || echo "No changes to push"

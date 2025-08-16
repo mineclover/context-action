@@ -1,0 +1,22 @@
+# 목차
+
+- Api Action Only
+- Api Action Registry
+- Api Core Action Register
+- ...
+
+# Action Only 메서드
+
+`createActionContext`에서 제공하는 Action Only 패턴 메서드의 완전한 API 레퍼런스입니다.
+
+## 개요
+
+Action Only 패턴은 상태 관리 없이 타입 안전한 액션 디스패치를 제공합니다. 이 패턴은 이벤트 시스템, 커맨드 패턴, 비즈니스 로직 오케스트레이션, 그리고 로컬 상태 없이 액션 처리가 필요한 시나리오에 이상적입니다.
+
+## 핵심 메서드
+
+### `createActionContext<T>(contextName)`
+
+
+
+...

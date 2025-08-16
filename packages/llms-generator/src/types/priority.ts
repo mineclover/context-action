@@ -1,5 +1,5 @@
 /**
- * Priority metadata types based on priority-schema.json
+ * Priority metadata types based on priority-schema-enhanced.json
  */
 
 export enum DocumentCategory {

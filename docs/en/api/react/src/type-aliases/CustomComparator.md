@@ -8,7 +8,7 @@
 
 > **CustomComparator**&lt;`T`&gt; = (`oldValue`, `newValue`) => `boolean`
 
-Defined in: [packages/react/src/stores/utils/comparison.ts:5](https://github.com/mineclover/context-action/blob/2861d61b4b5d930e9e7f5277983455dc296dc859/packages/react/src/stores/utils/comparison.ts#L5)
+Defined in: [packages/react/src/stores/utils/comparison.ts:5](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/utils/comparison.ts#L5)
 
 ## Type Parameters
 

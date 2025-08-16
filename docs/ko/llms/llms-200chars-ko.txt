@@ -1,0 +1,16 @@
+# 목차
+
+- Api Action Only
+- Api Action Registry
+- Api Core Action Register
+- ...
+
+# Action Only 메서드
+
+`createActionContext`에서 제공하는 Action Only 패턴 메서드의 완전한 API 레퍼런스입니다.
+
+## 개요
+
+
+
+...

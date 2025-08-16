@@ -15,6 +15,7 @@ export { AdaptiveComposer } from './core/AdaptiveComposer.js';
 export { WorkStatusManager } from './core/WorkStatusManager.js';
 export { ConfigManager } from './core/ConfigManager.js';
 export { InstructionGenerator } from './core/InstructionGenerator.js';
+export { CategoryMinimumGenerator } from './core/CategoryMinimumGenerator.js';
 
 // Types
 export * from './types/index.js';
@@ -23,6 +24,17 @@ export * from './types/instruction.js';
 
 // Utilities
 export * from './utils/index.js';
+
+// Domain Layer (Clean Architecture)
+export { DocumentSummary } from './domain/entities/DocumentSummary.js';
+export { DocumentSummaryFactory } from './domain/factories/DocumentSummaryFactory.js';
+export { DocumentId } from './domain/value-objects/DocumentId.js';
+export { CharacterLimit } from './domain/value-objects/CharacterLimit.js';
+export { Result, Errors } from './domain/value-objects/Result.js';
+export * from './domain/events/DomainEvent.js';
+export * from './domain/events/DocumentSummaryEvents.js';
+export { Specification, SpecificationBuilder } from './domain/specifications/Specification.js';
+export * from './domain/specifications/DocumentSummarySpecifications.js';
 
 // Default configuration
 export const DEFAULT_CONFIG = {
