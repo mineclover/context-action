@@ -242,7 +242,7 @@ async function generateCategoryMinimum() {
   console.log('🔧 카테고리별 미니멈 LLMS 생성기 시작\n');
   
   const dataDir = './data';
-  const outputDir = './test-minimum-output';
+  const outputDir = './test/outputs';
   const languages = ['ko', 'en'];
   const categories = ['api-spec', 'guide'];
   

@@ -327,7 +327,7 @@ node test-category-minimum-cli.cjs all all
 
 #### **출력 파일 정보**
 
-**파일 형식**: `./test-minimum-output/llms-minimum-{category}-{language}.txt`
+**파일 형식**: `./test/outputs/llms-minimum-{category}-{language}.txt`
 
 **파일 구조**:
 ```

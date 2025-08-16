@@ -33,7 +33,7 @@ async function testSingleCategory(category, language) {
   console.log(`🧪 Testing: ${category} (${language})`);
   console.log('='.repeat(50));
   
-  const outputPath = `./test-minimum-output/llms-minimum-${category}-${language}.txt`;
+  const outputPath = `./test/outputs/llms-minimum-${category}-${language}.txt`;
   
   try {
     // 파일이 존재하는지 확인
@@ -136,7 +136,7 @@ async function main() {
   console.log(`\n🎯 결론: ${categories.includes('api-spec') && categories.includes('guide') ? 'API-spec과 Guide' : categoryArg} 카테고리의 미니멈 LLMS가 ${successful.length > 0 ? '성공적으로' : '실패하여'} 생성되었습니다.`);
   
   if (successful.length > 0) {
-    console.log(`📁 생성된 파일들: ./test-minimum-output/ 디렉토리에서 확인하세요.`);
+    console.log(`📁 생성된 파일들: ./test/outputs/ 디렉토리에서 확인하세요.`);
   }
 }
 

@@ -14,7 +14,7 @@ async function demonstrateLibraryUsage() {
   console.log('📋 1. 생성기 초기화');
   const generator = new CategoryMinimumGenerator({
     dataDir: './data',
-    outputDir: './library-output'
+    outputDir: './test/outputs'
   });
 
   // 2. 사용 가능한 카테고리 확인
@@ -97,7 +97,7 @@ async function demonstrateLibraryUsage() {
   }
 
   console.log('\n🎉 라이브러리 사용 예시 완료!');
-  console.log('📁 생성된 파일들은 ./library-output/ 디렉토리에서 확인하세요.');
+  console.log('📁 생성된 파일들은 ./test/outputs/ 디렉토리에서 확인하세요.');
 }
 
 // 실행
