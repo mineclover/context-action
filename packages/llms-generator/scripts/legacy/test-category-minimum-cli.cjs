@@ -5,7 +5,13 @@
  * 사용법: node test-category-minimum-cli.cjs [category] [language]
  */
 
-const { generateCategoryMinimum } = require('./category-minimum-generator.cjs');
+// NOTE: category-minimum-generator.cjs not found - using placeholder
+// const { generateCategoryMinimum } = require('./category-minimum-generator.cjs');
+const generateCategoryMinimum = () => {
+  console.error('❌ category-minimum-generator.cjs not found');
+  console.log('💡 This script requires category-minimum-generator.cjs to function');
+  return false;
+};
 const fs = require('fs');
 const path = require('path');
 
@@ -74,7 +80,7 @@ async function testSingleCategory(category, language) {
       return true;
     } else {
       console.log(`❌ 파일 없음: ${outputPath}`);
-      console.log(`💡 먼저 생성기를 실행하세요: node category-minimum-generator.cjs`);
+      console.log(`💡 먼저 생성기를 실행하세요: node scripts/legacy/category-minimum-generator.cjs`);
       return false;
     }
     

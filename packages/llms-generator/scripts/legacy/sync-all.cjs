@@ -47,29 +47,32 @@ async function syncAll() {
   let totalErrors = 0;
   
   // Step 1: Generate all priority.json templates
+  // NOTE: bulk-priority-generator.cjs not found - this step is disabled
   console.log('\n📝 Step 1: Generating priority.json templates...');
-  for (const language of languages) {
-    console.log(`\n🌐 Processing language: ${language}`);
-    
-    const output = runCommand(
-      `node packages/llms-generator/bulk-priority-generator.cjs ${language}`,
-      `Generate priority templates for ${language}`
-    );
-    
-    if (output) {
-      const match = output.match(/Generated: (\d+)/);
-      if (match) {
-        totalGenerated += parseInt(match[1]);
-      }
-    } else {
-      totalErrors++;
-    }
-  }
+  console.log('⚠️  bulk-priority-generator.cjs not found - skipping this step');
+  
+  // for (const language of languages) {
+  //   console.log(`\n🌐 Processing language: ${language}`);
+  //   
+  //   const output = runCommand(
+  //     `node scripts/legacy/bulk-priority-generator.cjs ${language}`,
+  //     `Generate priority templates for ${language}`
+  //   );
+  //   
+  //   if (output) {
+  //     const match = output.match(/Generated: (\d+)/);
+  //     if (match) {
+  //       totalGenerated += parseInt(match[1]);
+  //     }
+  //   } else {
+  //     totalErrors++;
+  //   }
+  // }
   
   // Step 2: Generate individual character-limited files from original docs
   console.log('\n📝 Step 2: Generating individual character-limited files...');
   runCommand(
-    'node packages/llms-generator/generate-individual-files.cjs',
+    'node scripts/legacy/generate-individual-files.cjs',
     'Generate individual character-limited files from original documents'
   );
 
