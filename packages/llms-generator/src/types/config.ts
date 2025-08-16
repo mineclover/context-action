@@ -228,6 +228,13 @@ export interface SelectionContext {
 export interface SelectionConstraints {
   characterLimit: number;
   targetCharacterLimit: number;
+  maxCharacters?: number;
+  maxDocuments?: number;
+  minQualityScore?: number;
+  requiredCategories?: string[];
+  excludedCategories?: string[];
+  preferredTags?: string[];
+  excludedTags?: string[];
   context: SelectionContext;
 }
 
@@ -300,5 +307,11 @@ export interface DocumentMetadata {
       learning_path?: number;
     };
     userJourneyStage?: 'discovery' | 'onboarding' | 'implementation' | 'mastery' | 'troubleshooting';
+  };
+  quality?: {
+    readabilityScore: number;
+    completenessScore: number;
+    accuracyScore: number;
+    freshnessScore: number;
   };
 }

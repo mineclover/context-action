@@ -354,7 +354,7 @@ export class CategoryMinimumGenerator {
 
     const grouped = this.groupByTier(documents);
     const tiers = ['critical', 'essential', 'important', 'reference', 'supplementary'];
-    const tierNames = {
+    const tierNames: Record<string, string> = {
       'critical': 'Critical Documents',
       'essential': 'Essential Documents',
       'important': 'Important Documents',

@@ -241,7 +241,7 @@ export class AdaptiveDocumentSelector {
       ? this.conflictDetector.detectConflicts(selectedDocuments)
       : { conflicts: [], summary: { total: 0, bySeverity: {}, byType: {}, autoResolvable: 0, requiresManualReview: 0 }, recommendations: [], resolutionPlan: [] };
 
-    return {
+    const selectionResult = {
       selectedDocuments,
       strategy,
       scoring: {
@@ -270,9 +270,9 @@ export class AdaptiveDocumentSelector {
     };
     
     // 결과를 캐시에 저장
-    await documentCache.set(cacheKey, result, 900000); // 15분 TTL
+    await documentCache.set(cacheKey, selectionResult, 900000); // 15분 TTL
     
-    return result;
+    return selectionResult;
   }
 
   /**
