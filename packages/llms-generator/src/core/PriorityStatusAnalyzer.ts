@@ -7,8 +7,7 @@
 import { readFile, readdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
-// @ts-ignore
-import { glob } from 'glob';
+import glob from 'glob';
 
 export interface PriorityFileInfo {
   path: string;

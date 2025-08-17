@@ -5,8 +5,7 @@
 
 import fs from 'fs';
 import path from 'path';
-// @ts-ignore
-import { glob } from 'glob';
+import glob from 'glob';
 
 export interface CategoryDocument {
   id: string;
