@@ -33,7 +33,12 @@ npx llms-generator chars 1000 en
 npx llms-generator generate-md en
 npx llms-generator generate-all
 
+# LLMS-TXT generation with advanced filtering
+npx llms-generator llms-generate --chars=100 --category=api
+npx llms-generator llms-generate --pattern=minimum --lang=ko
+
 # Work status management
+npx llms-generator work-next
 npx llms-generator work-status ko
 ```
 
@@ -104,6 +109,11 @@ npx llms-generator minimum                  # Generate minimum format
 npx llms-generator origin                   # Generate origin format
 npx llms-generator chars <limit> [lang]     # Generate specific limit
 npx llms-generator batch [options]          # Generate all formats
+
+# Advanced LLMS-TXT Generation (NEW!)
+npx llms-generator llms-generate [options]  # Generate with filtering & patterns
+npx llms-generator llms-generate --chars=100 --category=api  # Filter by char limit & category
+npx llms-generator llms-generate --pattern=minimum --lang=ko # Use specific pattern
 ```
 
 ### Priority & Discovery
@@ -115,6 +125,7 @@ npx llms-generator discover [lang]          # Discover documents
 
 ### Work Management
 ```bash
+npx llms-generator work-next [options]      # Identify next work item (NEW!)
 npx llms-generator work-status [lang]       # Check work status
 npx llms-generator work-context <lang> <id> # Get work context
 npx llms-generator work-list [lang]         # List work needed
