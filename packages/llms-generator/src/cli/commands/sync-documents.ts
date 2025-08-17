@@ -438,11 +438,35 @@ async function extractSummaryMetadata(summaryPath: string): Promise<{
 }
 
 /**
- * 문서 ID 추출
+ * 문서 ID 추출 (소스 경로를 우리 디렉토리 구조에 맞게 변환)
  */
 function extractDocumentId(filePath: string): string {
-  const fileName = path.basename(filePath, path.extname(filePath));
-  return fileName;
+  // 절대 경로를 상대 경로로 변환
+  let relativePath = filePath;
+  
+  // docs/ 경로 제거
+  if (relativePath.includes('/docs/')) {
+    const docsIndex = relativePath.indexOf('/docs/');
+    relativePath = relativePath.substring(docsIndex + 6); // '/docs/' 제거
+  }
+  
+  // 확장자 제거
+  if (relativePath.endsWith('.md')) {
+    relativePath = relativePath.substring(0, relativePath.length - 3);
+  }
+  
+  // 경로를 우리 명명 규칙에 맞게 변환
+  // 예: "ko/api/action-only" → "api--action-only"
+  // 예: "en/guide/getting-started" → "guide--getting-started"
+  const pathParts = relativePath.split('/');
+  if (pathParts.length >= 3) {
+    // 언어 부분 제거하고 나머지를 -- 로 결합
+    const [, ...contentParts] = pathParts;
+    return contentParts.join('--');
+  }
+  
+  // 폴백: 파일명만 사용
+  return path.basename(filePath, path.extname(filePath));
 }
 
 /**
