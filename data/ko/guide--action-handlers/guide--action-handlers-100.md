@@ -79,9 +79,7 @@ Guide  Action Handlers: Brief definition with Context-Action framework context
 ## 템플릿 내용 (100자 이내)
 
 ```markdown
-<!-- 여기에 100자 이내의 요약 내용을 작성하세요 -->
-
-액션 핸들러: Provide comprehensive guidance on guide  action handlers의 핵심 개념과 Context-Action 프레임워크에서의 역할을 간단히 설명.
+액션 핸들러: 비즈니스 로직을 컴포넌트에서 분리하여 우선순위 기반으로 실행되는 Context-Action 프레임워크의 핵심 시스템
 ```
 
 ---

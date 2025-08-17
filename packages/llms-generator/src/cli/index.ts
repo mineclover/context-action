@@ -30,6 +30,7 @@ import { createSimplePriorityCheckCommand } from './commands/simple-priority-che
 import { createMigrateToSimpleCommand } from './commands/migrate-to-simple.js';
 import { createSimpleLLMSGenerateCommand, createSimpleLLMSBatchCommand, createSimpleLLMSStatsCommand } from './commands/simple-llms-generate.js';
 import { InitCommand } from './commands/InitCommand.js';
+import { WorkNextCommand } from './commands/WorkNextCommand.js';
 
 // Helper function to count generated files for a language
 async function countGeneratedFiles(language: string): Promise<number> {
@@ -154,6 +155,20 @@ async function main() {
         
         const initCommand = new InitCommand(config);
         await initCommand.execute(initOptions);
+        break;
+
+      case 'work-next':
+        const workNextOptions = {
+          language: args.find(arg => arg.startsWith('--language=') || arg.startsWith('--lang='))?.split('=')[1],
+          characterLimit: parseInt(args.find(arg => arg.startsWith('--character-limit=') || arg.startsWith('--chars='))?.split('=')[1] || '0') || undefined,
+          category: args.find(arg => arg.startsWith('--category='))?.split('=')[1],
+          showCompleted: args.includes('--show-completed'),
+          limit: parseInt(args.find(arg => arg.startsWith('--limit='))?.split('=')[1] || '5'),
+          sortBy: args.find(arg => arg.startsWith('--sort-by='))?.split('=')[1] as 'priority' | 'category' | 'status' | 'modified' || 'priority'
+        };
+        
+        const workNextCommand = new WorkNextCommand(config);
+        await workNextCommand.execute(workNextOptions);
         break;
         
       // Config management commands
@@ -1502,6 +1517,10 @@ function showHelp() {
   console.log('                       [--dry-run] [--overwrite] [--quiet]');
   console.log('                       [--skip-discovery] [--skip-priority] [--skip-templates]');
   console.log('                       Performs: discovery → priority → templates');
+  console.log('  work-next [options]  Identify and guide next document work item');
+  console.log('                       [--language=en] [--chars=100] [--category=api] [--show-completed]');
+  console.log('                       [--limit=5] [--sort-by=priority|category|status|modified]');
+  console.log('                       Shows: next task, file paths, recommended actions');
   console.log('');
   console.log('CONFIGURATION MANAGEMENT:');
   console.log('  config-init [preset] [--path=config.json]');
@@ -1626,6 +1645,12 @@ function showHelp() {
   console.log('  npx @context-action/llms-generator init');
   console.log('  npx @context-action/llms-generator init --dry-run  # Preview what would be created');
   console.log('  npx @context-action/llms-generator init --overwrite --quiet  # Force overwrite silently');
+  console.log('');
+  console.log('  # Next work identification');
+  console.log('  npx @context-action/llms-generator work-next  # Show next work item');
+  console.log('  npx @context-action/llms-generator work-next --language=ko --chars=100  # Specific language and character limit');
+  console.log('  npx @context-action/llms-generator work-next --category=api --limit=10  # API docs only, show top 10');
+  console.log('  npx @context-action/llms-generator work-next --sort-by=modified --show-completed  # Sort by modification time');
   console.log('');
   console.log('  # Configuration management');
   console.log('  npx @context-action/llms-generator config-init standard');
