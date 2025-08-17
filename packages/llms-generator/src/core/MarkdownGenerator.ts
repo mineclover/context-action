@@ -172,7 +172,7 @@ export class MarkdownGenerator {
     charLimit: number
   ): Promise<string> {
     // Get character limit configuration from priority
-    const charLimitConfig = priority.extraction.characterLimit[charLimit.toString()];
+    const charLimitConfig = priority.extraction.character_limits[charLimit.toString()];
     
     // Try to read source document
     let sourceContent = '';
@@ -286,7 +286,7 @@ generated: "${created}"
    * Extract character limits from priority metadata
    */
   private getCharacterLimitsFromPriority(priority: PriorityMetadata): number[] {
-    const limits = Object.keys(priority.extraction.characterLimit || {})
+    const limits = Object.keys(priority.extraction.character_limits || {})
       .filter(key => !isNaN(parseInt(key)))
       .map(key => parseInt(key))
       .sort((a, b) => a - b);

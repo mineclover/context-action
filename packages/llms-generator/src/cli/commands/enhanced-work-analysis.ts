@@ -166,7 +166,7 @@ function displayEnhancedResults(options: {
     console.log('\n🔥 우선순위 작업 큐 (상위 5개):');
     priorityQueue.slice(0, 5).forEach((item, index) => {
       console.log(`  ${index + 1}. ${item.workStatus.documentId}`);
-      console.log(`     우선순위: ${item.priorityScore}점 | 긴급도: ${item.urgencyLevel} | 예상시간: ${item.estimatedTime}분`);
+      console.log(`     우선순위: ${item.priorityScore}점 | 긴급도: ${item.urgencyLevel}`);
       console.log(`     카테고리: ${item.category}`);
       if (item.workStatus.updateReasons.length > 0) {
         console.log(`     이슈: ${item.workStatus.updateReasons.slice(0, 2).join(', ')}`);
@@ -186,7 +186,7 @@ function displayEnhancedResults(options: {
       }[rec.priority as 'high' | 'medium' | 'low'] || '⚪';
       
       console.log(`  ${priorityIcon} [${rec.priority}] ${rec.description}`);
-      console.log(`     예상 시간: ${rec.estimatedTime} | 영향 범위: ${rec.affectedCount}개`);
+      console.log(`     영향 범위: ${rec.affectedCount}개`);
       console.log(`     조치 방법: ${rec.action}`);
       console.log('');
     });

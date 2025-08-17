@@ -17,6 +17,7 @@ export { EnhancedWorkStatusManager } from './core/EnhancedWorkStatusManager.js';
 export { ConfigManager } from './core/ConfigManager.js';
 export { InstructionGenerator } from './core/InstructionGenerator.js';
 export { CategoryMinimumGenerator } from './core/CategoryMinimumGenerator.js';
+export { FrontMatterManager, frontMatterManager } from './core/FrontMatterManager.js';
 
 // Types
 export * from './types/index.js';
@@ -41,14 +42,14 @@ export * from './domain/specifications/DocumentSummarySpecifications.js';
 export const DEFAULT_CONFIG = {
   paths: {
     docsDir: './docs',
-    llmContentDir: './packages/llms-generator/data',
+    llmContentDir: './data',
     outputDir: './docs/llms',
     templatesDir: './templates',
     instructionsDir: './instructions'
   },
   generation: {
     supportedLanguages: ['en', 'ko'],
-    characterLimits: [100, 300, 500, 1000, 2000, 3000, 4000],
+    characterLimits: [100, 200, 300, 500, 1000, 2000, 5000],
     defaultCharacterLimits: {
       summary: 1000,
       detailed: 3000,

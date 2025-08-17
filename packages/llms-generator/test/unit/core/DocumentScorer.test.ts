@@ -230,7 +230,7 @@ describe('DocumentScorer', () => {
       const targetTags = ['beginner', 'step-by-step'];
       const result = scorer.calculateTagAffinity(document, targetTags);
 
-      expect(result.affinity).toBeCloseTo(1.0, 1);
+      expect(result.score).toBeCloseTo(1.0, 1);
       expect(result.matchedTags).toContain('beginner');
       expect(result.matchedTags).toContain('step-by-step');
       expect(result.matchedTags).toHaveLength(2);
@@ -243,8 +243,8 @@ describe('DocumentScorer', () => {
       const targetTags = ['step-by-step']; // Compatible with beginner
       const result = scorer.calculateTagAffinity(document, targetTags);
 
-      expect(result.affinity).toBeGreaterThan(0);
-      expect(result.affinity).toBeLessThan(1);
+      expect(result.score).toBeGreaterThan(0);
+      expect(result.score).toBeLessThan(1);
       expect(result.compatibleTags).toContain('step-by-step');
     });
 
@@ -255,7 +255,7 @@ describe('DocumentScorer', () => {
       const targetTags = ['advanced']; // Incompatible with beginner
       const result = scorer.calculateTagAffinity(document, targetTags);
 
-      expect(result.affinity).toBeLessThan(0.5);
+      expect(result.score).toBeLessThan(0.5);
       expect(result.incompatibleTags).toContain('advanced');
     });
 
@@ -266,7 +266,7 @@ describe('DocumentScorer', () => {
       const targetTags: string[] = [];
       const result = scorer.calculateTagAffinity(document, targetTags);
 
-      expect(result.affinity).toBe(0);
+      expect(result.score).toBe(0);
       expect(result.matchedTags).toHaveLength(0);
       expect(result.compatibleTags).toHaveLength(0);
       expect(result.incompatibleTags).toHaveLength(0);
@@ -274,19 +274,16 @@ describe('DocumentScorer', () => {
 
     it('should apply tag weights in affinity calculation', () => {
       const document = testDocuments[0];
-      document.tags.primary = ['beginner']; // High weight tag (1.2)
+      document.tags.primary = ['beginner', 'technical']; // Mix of high weight (1.2) and normal weight (1.0)
       
-      const document2 = testDocuments[1];
-      document2.tags.primary = ['technical']; // Normal weight tag (1.0)
-      
-      const targetTags = ['beginner'];
-      const result1 = scorer.calculateTagAffinity(document, targetTags);
-      
-      const targetTags2 = ['technical'];
-      const result2 = scorer.calculateTagAffinity(document2, targetTags2);
+      const targetTags = ['beginner', 'technical'];
+      const result = scorer.calculateTagAffinity(document, targetTags);
 
-      // Beginner tag should have higher weighted affinity
-      expect(result1.weightedAffinity).toBeGreaterThan(result2.weightedAffinity);
+      // Beginner tag should have higher individual weight in breakdown
+      expect(result.affinityBreakdown['beginner']).toBeGreaterThan(result.affinityBreakdown['technical']);
+      expect(result.score).toBeGreaterThan(0);
+      expect(result.matchedTags).toContain('beginner');
+      expect(result.matchedTags).toContain('technical');
     });
   });
 

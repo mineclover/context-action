@@ -58,3 +58,9 @@ export type {
 
 // Re-export DI container types
 export type { ServiceContainer } from '../infrastructure/di/DIContainer.js';
+
+// Re-export document status types
+export * from './document-status.js';
+
+// Re-export front matter types
+export type { FrontMatterSpec, FrontMatterOptions } from '../core/FrontMatterManager.js';

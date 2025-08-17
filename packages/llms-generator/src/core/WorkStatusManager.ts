@@ -8,6 +8,8 @@ import path from 'path';
 import { createHash } from 'crypto';
 import type { LLMSConfig, PriorityMetadata } from '../types/index.js';
 import { PriorityManager } from './PriorityManager.js';
+import { PriorityFileStatusManager } from './PriorityFileStatusManager.js';
+import { TEMPLATE_INDICATORS, QUALITY_THRESHOLDS, WORK_STATUS_INDICATORS } from '../constants/template-patterns.js';
 
 export interface WorkStatusData {
   source_modified?: string;
@@ -68,10 +70,12 @@ export interface WorkListFilters {
 export class WorkStatusManager {
   private config: LLMSConfig;
   private priorityManager: PriorityManager;
+  private priorityFileStatusManager: PriorityFileStatusManager;
 
   constructor(config: LLMSConfig) {
     this.config = config;
     this.priorityManager = new PriorityManager(config.paths.llmContentDir);
+    this.priorityFileStatusManager = new PriorityFileStatusManager(config);
   }
 
   /**
@@ -94,40 +98,23 @@ export class WorkStatusManager {
     const issues: string[] = [];
     let score = 100;
 
-    // Template detection - enhanced patterns
-    const templateIndicators = [
-      '개요를 제공합니다',
-      '설명하는 내용입니다', 
-      '다음과 같습니다',
-      'This section provides',
-      'This document describes',
-      'The following describes',
-      '{{',
-      'TODO:',
-      'PLACEHOLDER',
-      '[INSERT',
-      'EXAMPLE:',
-      '예시:',
-      '다음 예시',
-      '아래 예시'
-    ];
-    
-    const templateDetected = templateIndicators.some(indicator => 
+    // Template detection using constants
+    const templateDetected = TEMPLATE_INDICATORS.all.some(indicator => 
       trimmedContent.toLowerCase().includes(indicator.toLowerCase())
     );
 
     if (templateDetected) {
-      score -= 40;
+      score -= QUALITY_THRESHOLDS.penalties.templateDetected;
       issues.push('템플릿 표현 감지됨');
     }
 
     // Length assessment
     const lengthRatio = trimmedContent.length / charLimit;
-    if (lengthRatio < 0.3) {
-      score -= 30;
+    if (lengthRatio < QUALITY_THRESHOLDS.lengthRatio.tooShort) {
+      score -= QUALITY_THRESHOLDS.penalties.tooShort;
       issues.push(`내용이 너무 짧음 (${Math.round(lengthRatio * 100)}%)`);
-    } else if (lengthRatio > 1.5) {
-      score -= 20;
+    } else if (lengthRatio > QUALITY_THRESHOLDS.lengthRatio.tooLong) {
+      score -= QUALITY_THRESHOLDS.penalties.tooLong;
       issues.push(`내용이 너무 김 (${Math.round(lengthRatio * 100)}%)`);
     }
 
@@ -177,9 +164,42 @@ export class WorkStatusManager {
     if (!exists) return 'missing';
     if (sourceNewer) return 'source_newer';
     if (templateDetected) return 'template_detected';
-    if (qualityScore < 50) return 'quality_low';
-    if (!edited && qualityScore < 70) return 'manual_edit_needed';
+    if (qualityScore < QUALITY_THRESHOLDS.minimumScore) return 'quality_low';
+    if (!edited && qualityScore < WORK_STATUS_INDICATORS.manualReviewThreshold) return 'manual_edit_needed';
     return null;
+  }
+
+  /**
+   * Check if priority file needs update
+   */
+  async checkPriorityFileStatus(
+    language: string,
+    documentId: string,
+    sourceDocumentPath: string
+  ) {
+    return await this.priorityFileStatusManager.checkPriorityFileStatus(
+      language,
+      documentId,
+      sourceDocumentPath
+    );
+  }
+
+  /**
+   * Update priority file status after processing
+   */
+  async updatePriorityFileStatus(
+    language: string,
+    documentId: string,
+    sourceDocumentPath: string
+  ): Promise<void> {
+    const priorityFilePath = path.join(
+      this.config.paths.llmContentDir,
+      language,
+      documentId,
+      'priority.json'
+    );
+
+    await this.priorityFileStatusManager.updateSourceDocumentLastSeen(priorityFilePath);
   }
 
   /**
@@ -188,7 +208,7 @@ export class WorkStatusManager {
   async updateWorkStatus(
     language: string, 
     documentId: string, 
-    characterLimits: number[] = [100, 300, 1000, 2000]
+    characterLimits: number[] = [100, 200, 300, 500, 1000, 2000, 5000]
   ): Promise<void> {
     const priorityFile = path.join(this.config.paths.llmContentDir, language, documentId, 'priority.json');
     
@@ -224,7 +244,7 @@ export class WorkStatusManager {
     const docDir = path.join(this.config.paths.llmContentDir, language, documentId);
     
     for (const charLimit of characterLimits) {
-      const generatedFile = path.join(docDir, `${documentId}-${charLimit}.txt`);
+      const generatedFile = path.join(docDir, `${documentId}-${charLimit}.md`);
       const prevFileInfo = previousWorkStatus?.generated_files?.[charLimit.toString()];
       
       const fileInfo: any = {
@@ -332,7 +352,7 @@ export class WorkStatusManager {
     }
 
     // Get character limits from extraction config
-    const characterLimits = Object.keys(priority.extraction.characterLimit || {}).map(Number);
+    const characterLimits = Object.keys(priority.extraction.character_limits || {}).map(Number);
 
     const generatedFiles = [];
     const updateReasons: string[] = [];
@@ -342,7 +362,7 @@ export class WorkStatusManager {
 
     for (const charLimit of characterLimits) {
       const workStatusFile = priority.work_status?.generated_files?.[charLimit.toString()];
-      const filePath = path.join(this.config.paths.llmContentDir, language, documentId, `${documentId}-${charLimit}.txt`);
+      const filePath = path.join(this.config.paths.llmContentDir, language, documentId, `${documentId}-${charLimit}.md`);
       
       let exists = existsSync(filePath);
       let fileSize: number | undefined;
@@ -397,7 +417,13 @@ export class WorkStatusManager {
       
       const needsUpdate = updateReason !== undefined;
       
-      if (needsUpdate || !exists) {
+      // Enhanced work detection logic based on work_status values
+      if (needsUpdate || !exists || 
+          manualReviewNeeded || 
+          templateDetected || 
+          (qualityScore !== undefined && qualityScore < 50) ||
+          (workStatusFile?.needs_update === true) ||
+          (workStatusFile?.edited === false && exists && contentHash === '')) {
         needsWork = true;
       }
       
@@ -477,7 +503,7 @@ export class WorkStatusManager {
     }
 
     // Extract key points and focus for the specific character limit
-    const charLimitConfig = priorityInfo.extraction.characterLimit?.[characterLimit.toString()];
+    const charLimitConfig = priorityInfo.extraction.character_limits?.[characterLimit.toString()];
     
     // Handle both simple and prioritized key points
     let keyPoints: string[] | undefined;
@@ -542,8 +568,18 @@ export class WorkStatusManager {
 
       if (filters.characterLimit) {
         const charLimitFile = workStatus.generatedFiles.find(f => f.charLimit === filters.characterLimit);
-        if (!charLimitFile || (!charLimitFile.needsUpdate && charLimitFile.exists)) {
+        if (!charLimitFile) {
           include = false;
+        } else {
+          // Check if this specific character limit needs work
+          const needsWork = charLimitFile.needsUpdate || 
+                          !charLimitFile.exists || 
+                          charLimitFile.manualReviewNeeded || 
+                          charLimitFile.templateDetected ||
+                          (charLimitFile.qualityScore !== undefined && charLimitFile.qualityScore < 50);
+          if (!needsWork) {
+            include = false;
+          }
         }
       }
       
@@ -582,7 +618,9 @@ export class WorkStatusManager {
         }
       }
 
-      if (include && (workStatus.needsWork || !filters.needsUpdate)) {
+      // If no specific filters are provided, use the general needsWork flag
+      // If filters are provided, include if it passes the filter checks
+      if (include && workStatus.needsWork) {
         results.push(workStatus);
       }
     }

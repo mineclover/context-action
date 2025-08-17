@@ -29,6 +29,10 @@ npx llms-generator batch
 # Generate specific character limit
 npx llms-generator chars 1000 en
 
+# Generate markdown files with YAML frontmatter
+npx llms-generator generate-md en
+npx llms-generator generate-all
+
 # Work status management
 npx llms-generator work-status ko
 ```
@@ -54,15 +58,18 @@ const result = await categoryGen.generateSingle('api-spec', 'en');
 ## 🎯 Key Features
 
 ### 🔧 Configuration Management
-- **Multiple Presets**: minimal, standard, extended, blog, documentation
-- **Validation**: Built-in config validation with detailed error reporting
+- **Multiple Presets**: minimal, standard, extended presets available
+- **Validation**: Built-in config validation with detailed error reporting  
 - **Auto-discovery**: Automatic path resolution and project structure detection
+- **📖 [Configuration Guide](./CONFIG.md)**: Complete configuration documentation
 
 ### 📝 Content Generation
 - **Multiple Formats**: minimum, origin, character-limited variants
 - **Batch Processing**: Generate all content with single command
 - **Priority-Based**: Intelligent document prioritization and selection
 - **Quality Control**: Built-in quality evaluation and improvement suggestions
+- **Markdown Generation**: Generate individual .md files with YAML frontmatter
+- **Bulk Generation**: `generate-all` command for all languages at once
 
 ### 🌐 Multi-Language Support
 - **Primary Languages**: Korean (ko), English (en)
@@ -78,6 +85,8 @@ const result = await categoryGen.generateSingle('api-spec', 'en');
 - **Dynamic Content**: Character limit-aware content composition
 - **Priority Optimization**: Intelligent content selection within limits
 - **Table of Contents**: Auto-generated navigation
+- **Placeholder System**: Automatic placeholder generation for missing source files
+- **Work Status Tracking**: Track document status with `generated` or `placeholder` markers
 
 ## 📋 Available Commands
 
@@ -119,10 +128,17 @@ npx llms-generator compose-batch [lang]     # Batch composition
 npx llms-generator compose-stats [lang]     # Show statistics
 ```
 
+### Markdown Generation
+```bash
+npx llms-generator generate-md [lang]       # Generate .md files for specific language
+npx llms-generator generate-all             # Generate .md files for all languages
+npx llms-generator generate-all --chars=100,500,1000  # Custom character limits
+```
+
 ### Advanced Features
 ```bash
 npx llms-generator extract [lang]           # Extract summaries
-npx llms-generator markdown-generate [lang] # Generate markdown
+npx llms-generator markdown-generate [lang] # Generate markdown (VitePress)
 npx llms-generator instruction-generate     # Generate instructions
 npx llms-generator generate-summaries       # YAML frontmatter summaries
 ```

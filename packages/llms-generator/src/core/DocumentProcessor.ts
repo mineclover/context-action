@@ -23,7 +23,12 @@ export class DocumentProcessor {
    * Read and process a source document
    */
   async readSourceDocument(sourcePath: string, language: string, documentId: string): Promise<DocumentContent> {
-    const fullPath = path.join(this.docsPath, language, sourcePath);
+    // Remove language prefix from sourcePath if it exists (priority.json might include it)
+    const cleanSourcePath = sourcePath.startsWith(`${language}/`) 
+      ? sourcePath.slice(language.length + 1) 
+      : sourcePath;
+    
+    const fullPath = path.join(this.docsPath, language, cleanSourcePath);
     
     if (!existsSync(fullPath)) {
       throw new Error(`Source document not found: ${fullPath}`);
@@ -66,18 +71,13 @@ export class DocumentProcessor {
     
     // Count lines
     const lineCount = cleanContent.split('\n').length;
-    
-    // Estimate reading time (average 200 words per minute)
-    const estimatedMinutes = Math.ceil(wordCount / 200);
-    const estimatedReadingTime = estimatedMinutes === 1 ? '1 minute' : `${estimatedMinutes} minutes`;
 
     return {
       totalCharacters,
       yamlCharacters,
       contentCharacters,
       wordCount,
-      lineCount,
-      estimatedReadingTime
+      lineCount
     };
   }
 

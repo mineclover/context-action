@@ -29,13 +29,18 @@ test/
 
 ### **Integration Tests** (`integration/`)
 - 여러 모듈 간 통합 테스트
-- configuration.test.ts: 설정 통합 테스트
+- configuration.test.ts: EnhancedConfigManager 통합 테스트
+- config-schema.test.ts: 설정 스키마 검증 테스트
 - document-processing.test.ts: 문서 처리 파이프라인 테스트
+- bidirectional-sync.test.ts: 양방향 동기화 테스트
+- git-workflow.test.ts: Git 워크플로우 테스트
 - **실행**: `npm test -- integration`
 
 ### **E2E Tests** (`e2e/`)
 - 전체 워크플로우 테스트
-- CLI부터 파일 생성까지 완전한 시나리오
+- main-scenarios.test.ts: 기본 사용 시나리오 E2E 테스트
+- advanced-scenarios.test.ts: 고급 시나리오 및 에러 케이스 테스트
+- end-to-end-workflows.test.ts: 완전한 End-to-End 워크플로우
 - **실행**: `npm test -- e2e`
 
 ### **CLI Tests** (`cli/`)

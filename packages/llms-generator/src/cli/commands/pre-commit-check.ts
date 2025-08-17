@@ -286,7 +286,7 @@ async function checkEnhancedLanguageWorkStatus(
     
     // 고품질 권장사항 추가
     for (const rec of enhancedReport.recommendations.slice(0, 3)) {
-      recommendations.push(`${language}: ${rec.description} (${rec.estimatedTime} 예상)`);
+      recommendations.push(`${language}: ${rec.description}`);
     }
 
     // 각 필수 문자 제한별로 누락 파일 체크
@@ -324,10 +324,9 @@ async function checkEnhancedLanguageWorkStatus(
 
       // Enhanced 권장사항 생성
       if (missingForLimit.length > 0) {
-        const estimatedTime = missingForLimit.length * (limit <= 200 ? 8 : 12);
         const priority = config.criticalLimits.includes(limit) ? '중요' : '일반';
         recommendations.push(
-          `${language}: ${limit}자 제한 파일 ${missingForLimit.length}개 생성 필요 (${priority}, 예상 ${estimatedTime}분)`
+          `${language}: ${limit}자 제한 파일 ${missingForLimit.length}개 생성 필요 (${priority})`
         );
       }
     }
@@ -393,7 +392,6 @@ async function createBasicPriorityStructure(filePath: string): Promise<void> {
       secondary: [],
       audience: [],
       complexity: "basic",
-      estimatedReadingTime: "5분",
       lastUpdated: new Date().toISOString()
     },
     extraction: {

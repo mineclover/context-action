@@ -1,0 +1,520 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://context-action.dev/schemas/llms-generator-config.json",
+  "title": "LLMS Generator Enhanced Configuration Schema",
+  "description": "Configuration schema for Context-Action LLMS Generator with enhanced features",
+  "type": "object",
+  "required": ["characterLimits", "languages", "paths", "categories", "tags"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference for validation and IDE support"
+    },
+    "characterLimits": {
+      "type": "array",
+      "description": "Array of character limits for content generation",
+      "items": {
+        "type": "integer",
+        "minimum": 50,
+        "maximum": 10000
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "languages": {
+      "type": "array",
+      "description": "Supported languages for content generation",
+      "items": {
+        "type": "string",
+        "enum": ["ko", "en", "ja", "zh", "es", "fr", "de"]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "paths": {
+      "type": "object",
+      "description": "File system paths configuration",
+      "required": ["docsDir", "dataDir", "outputDir"],
+      "properties": {
+        "docsDir": {
+          "type": "string",
+          "description": "Source documentation directory"
+        },
+        "dataDir": {
+          "type": "string",
+          "description": "Generated data directory"
+        },
+        "outputDir": {
+          "type": "string",
+          "description": "Output directory for compiled content"
+        },
+        "tempDir": {
+          "type": "string",
+          "description": "Temporary files directory"
+        },
+        "cacheDir": {
+          "type": "string",
+          "description": "Cache directory for optimization"
+        }
+      },
+      "additionalProperties": false
+    },
+    "categories": {
+      "type": "object",
+      "description": "Document categories configuration",
+      "patternProperties": {
+        "^[a-z][a-z0-9-]*$": {
+          "$ref": "#/definitions/CategoryConfig"
+        }
+      },
+      "additionalProperties": false
+    },
+    "tags": {
+      "type": "object",
+      "description": "Content tags configuration",
+      "patternProperties": {
+        "^[a-z][a-z0-9-]*$": {
+          "$ref": "#/definitions/TagConfig"
+        }
+      },
+      "additionalProperties": false
+    },
+    "dependencies": {
+      "type": "object",
+      "description": "Document dependency management configuration",
+      "properties": {
+        "rules": {
+          "type": "object",
+          "properties": {
+            "prerequisite": { "$ref": "#/definitions/DependencyRule" },
+            "reference": { "$ref": "#/definitions/DependencyRule" },
+            "followup": { "$ref": "#/definitions/DependencyRule" },
+            "complement": { "$ref": "#/definitions/DependencyRule" }
+          },
+          "additionalProperties": false
+        },
+        "conflictResolution": {
+          "type": "object",
+          "properties": {
+            "strategy": {
+              "type": "string",
+              "enum": ["exclude-conflicts", "include-highest-priority", "user-choice"]
+            },
+            "priority": {
+              "type": "string",
+              "enum": ["higher-score-wins", "category-priority", "manual-override"]
+            },
+            "allowPartialConflicts": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "composition": {
+      "type": "object",
+      "description": "Content composition strategies",
+      "properties": {
+        "strategies": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-z][a-z0-9-]*$": {
+              "$ref": "#/definitions/CompositionStrategy"
+            }
+          },
+          "additionalProperties": false
+        },
+        "defaultStrategy": {
+          "type": "string"
+        },
+        "optimization": {
+          "$ref": "#/definitions/OptimizationConfig"
+        }
+      },
+      "additionalProperties": false
+    },
+    "extraction": {
+      "type": "object",
+      "description": "Content extraction configuration",
+      "properties": {
+        "defaultQualityThreshold": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "autoTagExtraction": {
+          "type": "boolean"
+        },
+        "autoDependencyDetection": {
+          "type": "boolean"
+        },
+        "strategies": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-z][a-z0-9-]*$": {
+              "$ref": "#/definitions/ExtractionStrategy"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "validation": {
+      "type": "object",
+      "description": "Validation configuration",
+      "properties": {
+        "schema": {
+          "type": "object",
+          "properties": {
+            "enforceTagConsistency": { "type": "boolean" },
+            "validateDependencies": { "type": "boolean" },
+            "checkCategoryAlignment": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        },
+        "quality": {
+          "type": "object",
+          "properties": {
+            "minPriorityScore": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "maxDocumentAge": {
+              "$ref": "#/definitions/TimeSpan"
+            },
+            "requireMinimumContent": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "ui": {
+      "type": "object",
+      "description": "User interface configuration",
+      "properties": {
+        "dashboard": {
+          "type": "object",
+          "properties": {
+            "enableTagCloud": { "type": "boolean" },
+            "showCategoryStats": { "type": "boolean" },
+            "enableDependencyGraph": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        },
+        "reporting": {
+          "type": "object",
+          "properties": {
+            "generateCompositionReports": { "type": "boolean" },
+            "includeQualityMetrics": { "type": "boolean" },
+            "exportFormats": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["json", "csv", "html", "xml", "yaml"]
+              },
+              "uniqueItems": true
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "CategoryConfig": {
+      "type": "object",
+      "required": ["name", "description", "priority", "defaultStrategy"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "defaultStrategy": {
+          "type": "string",
+          "enum": ["tutorial-first", "api-first", "concept-first", "example-first", "reference-first"]
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "uniqueItems": true
+        },
+        "color": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "icon": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4
+        }
+      },
+      "additionalProperties": false
+    },
+    "TagConfig": {
+      "type": "object",
+      "required": ["name", "description", "weight"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "weight": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 3.0
+        },
+        "compatibleWith": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "uniqueItems": true
+        },
+        "audience": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["new-users", "learners", "experienced-users", "experts", "contributors", "all-users"]
+          },
+          "uniqueItems": true
+        },
+        "estimatedReadingTime": {
+          "$ref": "#/definitions/EstimatedReadingTime"
+        },
+        "importance": {
+          "type": "string",
+          "enum": ["critical", "high", "medium", "low", "optional"]
+        },
+        "frequency": {
+          "type": "string",
+          "enum": ["very-high", "high", "medium", "low", "very-low"]
+        },
+        "urgency": {
+          "type": "string",
+          "enum": ["critical", "high", "medium", "low"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "EstimatedReadingTime": {
+      "type": "object",
+      "required": ["min", "max", "unit", "complexity"],
+      "properties": {
+        "min": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "unit": {
+          "type": "string",
+          "enum": ["seconds", "minutes", "hours"]
+        },
+        "complexity": {
+          "type": "string",
+          "enum": ["low", "medium", "high"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "TimeSpan": {
+      "type": "object",
+      "required": ["value", "unit"],
+      "properties": {
+        "value": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "unit": {
+          "type": "string",
+          "enum": ["days", "weeks", "months", "years"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "DependencyRule": {
+      "type": "object",
+      "required": ["description", "weight", "autoInclude"],
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "weight": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 3.0
+        },
+        "autoInclude": {
+          "type": "boolean"
+        },
+        "maxDepth": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "strategy": {
+          "type": "string",
+          "enum": ["breadth-first", "depth-first", "selective", "optional", "space-permitting"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "CompositionStrategy": {
+      "type": "object",
+      "required": ["name", "description", "weights"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "weights": {
+          "type": "object",
+          "required": ["categoryWeight", "tagWeight", "dependencyWeight", "priorityWeight"],
+          "properties": {
+            "categoryWeight": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0
+            },
+            "tagWeight": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0
+            },
+            "dependencyWeight": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0
+            },
+            "priorityWeight": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 1.0
+            }
+          },
+          "additionalProperties": false
+        },
+        "constraints": {
+          "type": "object",
+          "properties": {
+            "minCategoryRepresentation": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "maxDocumentsPerCategory": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "requireCoreTags": {
+              "type": "boolean"
+            },
+            "includeDependencyChains": {
+              "type": "boolean"
+            },
+            "preferredTags": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]*$"
+              },
+              "uniqueItems": true
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "OptimizationConfig": {
+      "type": "object",
+      "properties": {
+        "spaceUtilizationTarget": {
+          "type": "number",
+          "minimum": 0.5,
+          "maximum": 1.0
+        },
+        "qualityThreshold": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "diversityBonus": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "redundancyPenalty": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        }
+      },
+      "additionalProperties": false
+    },
+    "ExtractionStrategy": {
+      "type": "object",
+      "required": ["focusOrder"],
+      "properties": {
+        "focusOrder": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "steps", "examples", "concepts", "references",
+              "signatures", "parameters", "definitions", "principles",
+              "applications", "code", "usage", "explanations",
+              "complete-info", "details", "context"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "weightMultipliers": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-z][a-z0-9-]*$": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 3.0
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

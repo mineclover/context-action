@@ -89,12 +89,17 @@ export class AdaptiveComposer {
       documents: []
     };
 
-    // Step 1: Generate Table of Contents using shortest summaries
+    // Step 1: Generate Table of Contents with adaptive sizing
     let tocContent = '';
     let tocCharacters = 0;
     
     if (includeTableOfContents && filteredDocs.length > 0) {
-      tocContent = this.generateTableOfContents(filteredDocs, tocCharacterLimit);
+      // For very small character limits, reduce TOC significantly
+      const adaptiveTocLimit = characterLimit <= 200 
+        ? Math.floor(characterLimit * 0.3) // 30% for very small limits
+        : tocCharacterLimit;
+      
+      tocContent = this.generateTableOfContents(filteredDocs, adaptiveTocLimit, language);
       tocCharacters = tocContent.length;
     }
 
@@ -164,14 +169,19 @@ export class AdaptiveComposer {
         continue;
       }
 
-      const originalFilePath = path.join(this.config.paths.docsDir, sourcePath);
+      // Remove language prefix from sourcePath if it exists (priority.json might include it)
+      const cleanSourcePath = sourcePath.startsWith(`${language}/`) 
+        ? sourcePath.slice(language.length + 1) 
+        : sourcePath;
+      
+      const originalFilePath = path.join(this.config.paths.docsDir, language, cleanSourcePath);
       
       if (existsSync(originalFilePath)) {
         try {
           const originalContent = await readFile(originalFilePath, 'utf-8');
           
           // Generate content summaries for different character limits
-          const standardLimits = [100, 200, 300, 400, 500, 1000, 2000, 3000, 4000];
+          const standardLimits = this.config.generation.characterLimits || [100, 200, 300, 500, 1000, 2000, 5000];
           
           for (const limit of standardLimits) {
             const summary = this.generateContentSummary(originalContent, limit);
@@ -194,6 +204,7 @@ export class AdaptiveComposer {
       }
     }
 
+
     return documents;
   }
 
@@ -208,11 +219,36 @@ export class AdaptiveComposer {
       return cleanContent;
     }
     
-    // For very small limits, just return the title and a brief description
+    // For very small limits, extract meaningful content from the beginning
     if (characterLimit <= 100) {
       const lines = cleanContent.split('\n').filter(line => line.trim());
       const title = lines.find(line => line.startsWith('#'))?.replace(/^#+\s*/, '') || 'Document';
-      return `# ${title}\n\nBrief reference for ${title}.`;
+      
+      // Try to include some actual content after the title
+      let result = `# ${title}\n\n`;
+      let remainingChars = characterLimit - result.length - 3; // Reserve 3 chars for "..."
+      
+      // Find the first non-header line with content
+      for (const line of lines) {
+        if (!line.startsWith('#') && line.trim()) {
+          const trimmedLine = line.trim();
+          if (trimmedLine.length <= remainingChars) {
+            result += trimmedLine;
+            break;
+          } else if (remainingChars > 10) {
+            // Include partial content if there's enough space
+            result += trimmedLine.substring(0, remainingChars - 3) + '...';
+            break;
+          }
+        }
+      }
+      
+      // If no content was added, just return the title
+      if (result.trim() === `# ${title}`) {
+        return result.trim();
+      }
+      
+      return result;
     }
     
     // For larger limits, try to preserve structure while truncating
@@ -257,8 +293,17 @@ export class AdaptiveComposer {
   /**
    * Generate table of contents using shortest available summaries
    */
-  private generateTableOfContents(documents: DocumentContent[], targetChars: number): string {
-    let toc = '# 목차\n\n';
+  private generateTableOfContents(documents: DocumentContent[], targetChars: number, language: string = 'en'): string {
+    // For very small character limits, use minimal TOC
+    if (targetChars <= 40) {
+      const count = documents.length;
+      return language === 'ko' 
+        ? `${count}개 문서` 
+        : `${count} docs`;
+    }
+    
+    const tocTitle = language === 'ko' ? '# 목차\n\n' : '# Table of Contents\n\n';
+    let toc = tocTitle;
     let currentLength = toc.length;
     
     for (const doc of documents) {
@@ -452,7 +497,7 @@ export class AdaptiveComposer {
             const summary = this.generateContentSummary(originalContent, limit);
             
             if (summary.trim()) {
-              // Create frontmatter
+              // Create frontmatter - handle missing source files gracefully
               const frontmatter = {
                 title: priority.document.title,
                 category: priority.document.category,
@@ -460,7 +505,8 @@ export class AdaptiveComposer {
                 character_limit: limit,
                 tags: [],
                 audience: priority.purpose?.target_audience || [],
-                source: sourcePath
+                source: sourcePath,
+                'work-status': 'generated' // Status field for tracking document workflow
               };
               
               // Combine frontmatter and content
@@ -482,10 +528,128 @@ export class AdaptiveComposer {
           console.warn(`⚠️  Could not process ${originalFilePath}: ${error instanceof Error ? error.message : String(error)}`);
         }
       } else {
-        console.warn(`⚠️  Original file not found: ${originalFilePath}`);
+        // Generate placeholder content for missing source files
+        console.warn(`⚠️  Original file not found: ${originalFilePath} - generating placeholder content`);
+        
+        for (const limit of characterLimits) {
+          const placeholderContent = this.generatePlaceholderContent(
+            priority.document.title, 
+            priority.document.category, 
+            documentId, 
+            limit
+          );
+          
+          // Create frontmatter for placeholder
+          const frontmatter = {
+            title: priority.document.title,
+            category: priority.document.category,
+            complexity: 'intermediate',
+            character_limit: limit,
+            tags: [],
+            audience: priority.purpose?.target_audience || [],
+            source: sourcePath,
+            'work-status': 'placeholder' // Status field indicates this is auto-generated placeholder
+          };
+          
+          // Combine frontmatter and content
+          const fileContent = `---\n${Object.entries(frontmatter)
+            .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
+            .join('\n')}\n---\n\n${placeholderContent}`;
+          
+          // Write to individual document directory
+          const documentDir = path.join(this.config.paths.llmContentDir, language, documentId);
+          await mkdir(documentDir, { recursive: true });
+          
+          const filePath = path.join(documentDir, `${documentId}-${limit}.md`);
+          await writeFile(filePath, fileContent, 'utf-8');
+          
+          generatedCount++;
+        }
       }
     }
     
     console.log(`✅ Generated ${generatedCount} individual character-limited files`);
+  }
+
+  /**
+   * Generate placeholder content for missing source files
+   */
+  private generatePlaceholderContent(
+    title: string, 
+    category: string, 
+    documentId: string, 
+    characterLimit: number
+  ): string {
+    const baseContent = `# ${title}
+
+This document is part of the Context-Action framework ${category} documentation.
+
+**Document ID**: ${documentId}
+**Category**: ${category}
+
+## Overview
+
+This is a placeholder document generated automatically. The source file for this documentation is not yet available.
+
+## Key Features
+
+- Part of Context-Action framework
+- ${category} documentation
+- Framework integration guide
+
+## Usage
+
+Please refer to the main documentation for usage examples and implementation details.
+
+## Related Documentation
+
+- Getting Started Guide
+- Best Practices
+- API Reference
+
+---
+
+*This is an auto-generated placeholder. Please check back later for complete documentation.*`;
+
+    // Truncate content to fit character limit
+    if (baseContent.length <= characterLimit) {
+      return baseContent;
+    }
+
+    // For smaller limits, create more concise content
+    if (characterLimit <= 200) {
+      return `# ${title}
+
+${category} documentation placeholder for Context-Action framework.
+
+**Document ID**: ${documentId}
+
+*Auto-generated placeholder - source file pending.*`;
+    }
+
+    if (characterLimit <= 500) {
+      return `# ${title}
+
+This document covers ${category} aspects of the Context-Action framework.
+
+**Document ID**: ${documentId}
+**Category**: ${category}
+
+## Overview
+
+Placeholder documentation for ${title}. The complete source file is not yet available.
+
+## Key Points
+
+- Context-Action framework ${category}
+- Framework integration
+- Implementation guidance
+
+*Auto-generated placeholder - complete documentation coming soon.*`;
+    }
+
+    // For larger limits, truncate the full content
+    const truncateAt = characterLimit - 50; // Reserve space for ellipsis
+    return baseContent.substring(0, truncateAt) + '...\n\n*Content truncated*';
   }
 }

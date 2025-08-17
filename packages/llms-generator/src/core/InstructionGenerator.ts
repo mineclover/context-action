@@ -67,7 +67,7 @@ export class InstructionGenerator {
 
       // Determine character limits to process
       const targetCharLimits = characterLimits || 
-        Object.keys(priorityInfo.extraction.characterLimit || {}).map(Number);
+        Object.keys(priorityInfo.extraction.character_limits || {}).map(Number);
 
       // Load template
       const templateContent = await this.loadTemplate(template, language);
@@ -384,7 +384,7 @@ export class InstructionGenerator {
     sourceContent?: string,
     includeCurrentSummaries = true
   ): Promise<InstructionContext> {
-    const charLimitConfig = priorityInfo.extraction.characterLimit?.[characterLimit.toString()];
+    const charLimitConfig = priorityInfo.extraction.character_limits?.[characterLimit.toString()];
     
     // Prepare key points with priority formatting
     let keyPoints: Array<{

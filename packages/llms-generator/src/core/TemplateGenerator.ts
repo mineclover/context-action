@@ -8,6 +8,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import type { LLMSConfig } from '../types/index.js';
+import { DocumentUpdateStatus } from '../types/document-status.js';
 
 interface PriorityData {
   document: {
@@ -32,7 +33,7 @@ interface PriorityData {
     patterns: string[];
   };
   extraction: {
-    characterLimit: {
+    character_limits: {
       [key: string]: {
         focus: string;
         structure: string;
@@ -87,8 +88,8 @@ export class TemplateGenerator {
     const priorityData = this.loadPriorityData(priorityFilePath);
     const baseDir = dirname(priorityFilePath);
     
-    // characterLimit에서 숫자 키만 추출 (200, 500, 1000)
-    const characterLimits = Object.keys(priorityData.extraction.characterLimit)
+    // character_limits에서 숫자 키만 추출 (200, 500, 1000)
+    const characterLimits = Object.keys(priorityData.extraction.character_limits)
       .filter(key => /^\d+$/.test(key))
       .map(key => parseInt(key))
       .sort((a, b) => a - b);
@@ -123,10 +124,26 @@ export class TemplateGenerator {
    * 특정 문자 제한에 대한 템플릿 내용 생성
    */
   private generateTemplateContent(priorityData: PriorityData, characterLimit: number): string {
-    const limitData = priorityData.extraction.characterLimit[characterLimit.toString()];
+    const limitData = priorityData.extraction.character_limits[characterLimit.toString()];
     const { document, purpose, keywords } = priorityData;
 
-    const template = `# ${document.title} (${characterLimit}자)
+    // Generate YAML frontmatter with new English status system
+    const frontmatter = `---
+document_id: ${document.id}
+category: ${document.category}
+source_path: ${document.source_path}
+character_limit: ${characterLimit}
+last_update: ${new Date().toISOString()}
+update_status: ${DocumentUpdateStatus.TEMPLATE_GENERATED}
+priority_score: ${priorityData.priority.score}
+priority_tier: ${priorityData.priority.tier}
+completion_status: template
+workflow_stage: template_generation
+---`;
+
+    const template = `${frontmatter}
+
+# ${document.title} (${characterLimit}자)
 
 ## 문서 정보
 - **문서 ID**: ${document.id}

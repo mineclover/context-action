@@ -7,7 +7,7 @@
 import { readFile, readdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
-import glob from 'glob';
+import { glob } from 'glob';
 
 export interface PriorityFileInfo {
   path: string;
@@ -66,7 +66,6 @@ export interface PriorityWorkProgress {
   upcomingTasks: Array<{
     priority: 'high' | 'medium' | 'low';
     description: string;
-    estimatedTime: string;
     category?: string;
   }>;
 }
@@ -517,13 +516,11 @@ export class PriorityStatusAnalyzer {
   private generateUpcomingTasks(files: PriorityFileInfo[]): Array<{
     priority: 'high' | 'medium' | 'low';
     description: string;
-    estimatedTime: string;
     category?: string;
   }> {
     const tasks: Array<{
       priority: 'high' | 'medium' | 'low';
       description: string;
-      estimatedTime: string;
       category?: string;
     }> = [];
 
@@ -533,7 +530,6 @@ export class PriorityStatusAnalyzer {
       tasks.push({
         priority: 'high',
         description: `${missingFiles.length}개의 누락된 Priority JSON 파일 생성`,
-        estimatedTime: `${missingFiles.length * 15}분`,
       });
     }
 
@@ -543,7 +539,6 @@ export class PriorityStatusAnalyzer {
       tasks.push({
         priority: 'high',
         description: `${emptyFiles.length}개의 빈 Priority JSON 파일에 데이터 추가`,
-        estimatedTime: `${emptyFiles.length * 30}분`,
       });
     }
 
@@ -553,7 +548,6 @@ export class PriorityStatusAnalyzer {
       tasks.push({
         priority: 'medium',
         description: `${partialFiles.length}개의 부분적 Priority JSON 파일 완성`,
-        estimatedTime: `${partialFiles.length * 20}분`,
       });
     }
 
@@ -563,7 +557,6 @@ export class PriorityStatusAnalyzer {
       tasks.push({
         priority: 'medium',
         description: `${lowQualityFiles.length}개의 파일 품질 개선`,
-        estimatedTime: `${lowQualityFiles.length * 25}분`,
       });
     }
 
