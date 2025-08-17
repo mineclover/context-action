@@ -6,11 +6,12 @@ MODIFIED_DOCS=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^docs
 if [ -n "$MODIFIED_DOCS" ]; then
   echo "📝 Detected modified documentation files. Updating LLM work status..."
   
-  # Run the update script
-  node scripts/update-llms-status.js $MODIFIED_DOCS
+  # Run the llms-generator sync-docs command
+  node packages/llms-generator/dist/cli/index.js sync-docs --changed-files="$MODIFIED_DOCS" --quiet
   
-  # Add the updated priority.json files to the commit
-  git add packages/llms-generator/data/**/priority.json 2>/dev/null || true
+  # Add any updated files to the commit
+  git add packages/llms-generator/data/ 2>/dev/null || true
+  git add docs/*/llms/ 2>/dev/null || true
   
   echo "✅ LLM work status updated"
 fi

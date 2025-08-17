@@ -1,0 +1,26 @@
+{
+  "characterLimits": [
+    100,
+    300,
+    1000,
+    2000
+  ],
+  "languages": [
+    "en",
+    "ko"
+  ],
+  "paths": {
+    "docsDir": "./docs",
+    "dataDir": "./packages/llms-generator/data",
+    "outputDir": "./docs/llms",
+    "templatesDir": "./templates",
+    "instructionsDir": "./instructions"
+  },
+  "instructions": {
+    "enabled": true,
+    "template": "default",
+    "includeSourceContent": true,
+    "includeCurrentSummaries": true,
+    "maxInstructionLength": 8000
+  }
+}
