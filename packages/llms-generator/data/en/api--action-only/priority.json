@@ -192,6 +192,9 @@
     "summaryPath": "/Users/junwoobang/project/context-action/packages/llms-generator/data/en/api--action-only/api--action-only-200.md",
     "charLimit": "200",
     "language": "en",
-    "last_checked": "2025-08-17T01:15:20.539Z"
+    "last_checked": "2025-08-17T01:17:26.769Z",
+    "lastSourceUpdate": "2025-08-17T01:17:26.769Z",
+    "sourcePath": "/Users/junwoobang/project/context-action/docs/ko/api/action-only.md",
+    "needsUpdate": true
   }
 }

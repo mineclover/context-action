@@ -181,9 +181,15 @@
   },
   "work_status": {
     "last_summary_update": "2025-08-17T12:00:00Z",
-    "last_checked": "2025-08-17T12:00:00Z",
+    "last_checked": "2025-08-17T01:17:26.768Z",
     "summary_docs_count": 3,
     "completion_status": "in_progress",
-    "next_actions": ["Update API documentation", "Add code examples"]
+    "next_actions": [
+      "Update API documentation",
+      "Add code examples"
+    ],
+    "lastSourceUpdate": "2025-08-17T01:17:26.767Z",
+    "sourcePath": "/Users/junwoobang/project/context-action/docs/ko/api/action-only.md",
+    "needsUpdate": true
   }
 }
