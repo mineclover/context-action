@@ -34,7 +34,6 @@ export interface EnhancedWorkStatusReport {
     category: 'missing' | 'quality' | 'template' | 'outdated';
     description: string;
     affectedCount: number;
-    estimatedTime: string;
     action: string;
   }>;
   insights: Array<{
@@ -149,7 +148,6 @@ export class EnhancedWorkStatusManager extends WorkStatusManager {
   async getPrioritizedWorkQueue(language: string, maxItems: number = 20): Promise<Array<{
     workStatus: WorkStatusInfo;
     priorityScore: number;
-    estimatedTime: number;
     urgencyLevel: 'critical' | 'high' | 'medium' | 'low';
     category: string;
   }>> {
@@ -157,14 +155,12 @@ export class EnhancedWorkStatusManager extends WorkStatusManager {
     
     const prioritizedWork = allWork.map(workStatus => {
       const priorityScore = this.calculatePriorityScore(workStatus);
-      const estimatedTime = this.estimateWorkTime(workStatus);
       const urgencyLevel = this.determineUrgencyLevel(workStatus);
       const category = this.categorizeWork(workStatus);
       
       return {
         workStatus,
         priorityScore,
-        estimatedTime,
         urgencyLevel,
         category
       };
@@ -326,7 +322,6 @@ export class EnhancedWorkStatusManager extends WorkStatusManager {
         category: 'missing' as const,
         description: `${workSummary.missingFiles}개의 파일이 누락되어 있습니다`,
         affectedCount: workSummary.missingFiles,
-        estimatedTime: `${workSummary.missingFiles * 10}분`,
         action: 'extract-all 명령으로 누락된 파일들을 생성하세요'
       });
     }
@@ -338,7 +333,6 @@ export class EnhancedWorkStatusManager extends WorkStatusManager {
         category: 'template' as const,
         description: `${workSummary.templateFiles}개의 파일에서 템플릿 표현이 감지되었습니다`,
         affectedCount: workSummary.templateFiles,
-        estimatedTime: `${workSummary.templateFiles * 5}분`,
         action: '템플릿 표현을 구체적인 내용으로 수정하세요'
       });
     }
@@ -350,7 +344,6 @@ export class EnhancedWorkStatusManager extends WorkStatusManager {
         category: 'quality' as const,
         description: `${workSummary.lowQualityFiles}개의 파일이 품질 기준을 만족하지 않습니다`,
         affectedCount: workSummary.lowQualityFiles,
-        estimatedTime: `${workSummary.lowQualityFiles * 15}분`,
         action: '내용을 확장하고 품질을 개선하세요'
       });
     }

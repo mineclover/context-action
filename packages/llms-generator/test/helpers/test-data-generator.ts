@@ -66,7 +66,6 @@ export class TestDataGenerator {
           primary: this.getRandomTags(tags, category),
           audience: this.getRandomAudience(),
           complexity: this.getRandomComplexity(),
-          estimatedReadingTime: `${Math.floor(Math.random() * 10) + 5}분`
         },
         dependencies: withDependencies ? this.generateDependencies(i, count) : {
           prerequisites: [],

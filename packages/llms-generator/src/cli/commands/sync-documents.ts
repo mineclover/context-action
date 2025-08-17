@@ -8,11 +8,17 @@ import { Command } from 'commander';
 import { EnhancedWorkStatusManager } from '../../core/EnhancedWorkStatusManager.js';
 import { ConfigManager } from '../../core/ConfigManager.js';
 import { EnhancedConfigManager } from '../../core/EnhancedConfigManager.js';
+import { DocumentStatusManager } from '../../core/DocumentStatusManager.js';
 import { globalPerformanceMonitor } from '../../infrastructure/monitoring/PerformanceMonitor.js';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { readFile, writeFile, readdir } from 'fs/promises';
 import path from 'path';
 import { execSync } from 'child_process';
+import { 
+  DocumentUpdateStatus, 
+  StatusTrigger,
+  StatusContext 
+} from '../../types/document-status.js';
 
 export interface SyncResult {
   success: boolean;
@@ -111,6 +117,9 @@ async function performDocumentSync(options: any, config: any): Promise<SyncResul
   };
 
   try {
+    // DocumentStatusManager 초기화
+    const statusManager = new DocumentStatusManager(config);
+    
     // 변경된 파일들 가져오기
     const changedFiles = options.changedFiles 
       ? options.changedFiles.split(',').map((f: string) => f.trim())
@@ -159,11 +168,11 @@ async function performDocumentSync(options: any, config: any): Promise<SyncResul
         }
         
         if (fileType === 'summary') {
-          // 요약 문서가 변경됨 → Priority JSON 업데이트
-          await handleSummaryDocumentChange(filePath, config, workStatusManager, result, options);
+          // 요약 문서가 변경됨 → 상태 관리 및 Priority JSON 업데이트
+          await handleSummaryDocumentChange(filePath, config, workStatusManager, statusManager, result, options);
         } else if (fileType === 'source') {
-          // 실제 문서가 변경됨 → 요약 문서 프론트매터 업데이트
-          await handleSourceDocumentChange(filePath, config, workStatusManager, result, options);
+          // 실제 문서가 변경됨 → 상태 관리 및 요약 문서 프론트매터 업데이트
+          await handleSourceDocumentChange(filePath, config, workStatusManager, statusManager, result, options);
         } else if (fileType === 'priority') {
           // Priority JSON이 변경됨 → 관련 요약 문서들에 상태 정보 업데이트
           await handlePriorityJsonChange(filePath, config, workStatusManager, result, options);
@@ -233,6 +242,7 @@ async function handleSummaryDocumentChange(
   summaryPath: string, 
   config: any, 
   workStatusManager: EnhancedWorkStatusManager,
+  statusManager: DocumentStatusManager,
   result: SyncResult,
   options: any
 ): Promise<void> {
@@ -247,6 +257,31 @@ async function handleSummaryDocumentChange(
 
     if (!options.quiet) {
       console.log(`📝 요약 문서 변경 감지: ${summaryPath} (${language}, ${charLimit}자)`);
+    }
+
+    // 상태 관리: 요약 문서 변경에 따른 상태 감지
+    for (const docId of documentIds) {
+      try {
+        // 현재 상태 확인
+        const currentStatus = await statusManager.getCurrentStatus(docId);
+        
+        // 요약 문서 내용 분석으로 사용자 액션 감지
+        const userAction = await detectUserAction(summaryPath);
+        
+        if (userAction === 'review_completed') {
+          await statusManager.handleUserReviewCompleted(docId, summaryPath);
+          if (!options.quiet) {
+            console.log(`  ✅ 검토 완료 상태로 업데이트: ${docId}`);
+          }
+        } else if (userAction === 'edit_completed') {
+          await statusManager.handleUserEditCompleted(docId, summaryPath);
+          if (!options.quiet) {
+            console.log(`  ✏️ 편집 완료 상태로 업데이트: ${docId}`);
+          }
+        }
+      } catch (error) {
+        console.warn(`⚠️ 상태 관리 실패 for ${docId}:`, error);
+      }
     }
 
     // 관련된 Priority JSON 파일들 업데이트
@@ -285,7 +320,8 @@ async function handleSummaryDocumentChange(
 async function handleSourceDocumentChange(
   sourcePath: string,
   config: any,
-  workStatusManager: EnhancedWorkStatusManager, 
+  workStatusManager: EnhancedWorkStatusManager,
+  statusManager: DocumentStatusManager,
   result: SyncResult,
   options: any
 ): Promise<void> {
@@ -300,6 +336,16 @@ async function handleSourceDocumentChange(
 
     if (!options.quiet) {
       console.log(`📄 실제 문서 변경 감지: ${sourcePath} (ID: ${documentId})`);
+    }
+
+    // 상태 관리: 소스 문서 변경 처리
+    try {
+      await statusManager.handleSourceDocumentChange(documentId, sourcePath);
+      if (!options.quiet) {
+        console.log(`  🔄 상태 업데이트: ${documentId} → source_updated`);
+      }
+    } catch (error) {
+      console.warn(`⚠️ 상태 관리 실패 for ${documentId}:`, error);
     }
 
     // 모든 언어의 Priority JSON 파일 업데이트
@@ -739,4 +785,36 @@ function displaySyncResults(result: SyncResult): void {
     console.log('⚠️ 문서 동기화가 일부 오류와 함께 완료되었습니다.');
   }
   console.log('='.repeat(60));
+}
+
+/**
+ * 요약 문서 내용 분석으로 사용자 액션 감지
+ */
+async function detectUserAction(summaryPath: string): Promise<'review_completed' | 'edit_completed' | 'none'> {
+  try {
+    const content = await readFile(summaryPath, 'utf-8');
+    
+    // 프론트메터에서 completion_status 확인
+    const { frontmatter } = parseYamlFrontmatter(content);
+    
+    // 명시적인 상태 표시 확인
+    if (frontmatter.completion_status === 'review' || 
+        frontmatter.completion_status === 'completed') {
+      return 'review_completed';
+    }
+    
+    // 내용 변경 여부 확인 (템플릿에서 벗어난 실질적인 내용)
+    const hasRealContent = content.includes('<!-- 여기에') === false && 
+                          content.length > 1000 && // 템플릿보다 충분한 내용
+                          !content.includes('템플릿 내용'); // 템플릿 표시가 없음
+    
+    if (hasRealContent) {
+      return 'edit_completed';
+    }
+    
+    return 'none';
+  } catch (error) {
+    console.warn(`사용자 액션 감지 실패 for ${summaryPath}:`, error);
+    return 'none';
+  }
 }

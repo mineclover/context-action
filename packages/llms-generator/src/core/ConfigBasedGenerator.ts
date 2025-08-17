@@ -93,7 +93,7 @@ export class ConfigBasedGenerator {
               }
               
             } catch (error) {
-              const errorMsg = `Failed to generate ${doc.documentId}-${charLimit}.txt: ${error}`;
+              const errorMsg = `Failed to generate ${doc.documentId}-${charLimit}.md: ${error}`;
               result.errors.push(errorMsg);
               result.totalErrors++;
               console.warn(`⚠️  ${errorMsg}`);

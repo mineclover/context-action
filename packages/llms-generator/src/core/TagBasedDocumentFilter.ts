@@ -15,10 +15,6 @@ export interface TagFilterOptions {
   excludedTags?: string[];
   targetAudience?: TargetAudience[];
   complexityLevel?: 'basic' | 'intermediate' | 'advanced' | 'expert';
-  estimatedTimeRange?: {
-    min?: number; // minutes
-    max?: number; // minutes
-  };
   requireAllRequired?: boolean;
   allowIncompatible?: boolean;
 }
@@ -83,8 +79,10 @@ export class TagBasedDocumentFilter {
         filtered.push(document);
         
         // Track tag coverage
-        for (const tag of document.tags.primary) {
-          tagCoverage[tag] = (tagCoverage[tag] || 0) + 1;
+        if (document.tags && document.tags.primary) {
+          for (const tag of document.tags.primary) {
+            tagCoverage[tag] = (tagCoverage[tag] || 0) + 1;
+          }
         }
       } else {
         excluded.push({
@@ -126,6 +124,7 @@ export class TagBasedDocumentFilter {
     };
 
     for (const document of documents) {
+      if (!document.tags || !document.tags.primary) continue;
       const tags = document.tags.primary;
 
       if (this.hasTagsFromList(tags, ['core', 'essential', 'fundamental'])) {
@@ -182,7 +181,9 @@ export class TagBasedDocumentFilter {
     }> = [];
 
     for (const document of documents) {
-      const synergies = this.findTagSynergies(document.tags.primary, targetTags);
+      const synergies = document.tags && document.tags.primary 
+        ? this.findTagSynergies(document.tags.primary, targetTags) 
+        : [];
       const totalScore = synergies.reduce((sum, synergy) => sum + synergy.strength, 0);
 
       if (synergies.length > 0) {
@@ -269,6 +270,8 @@ export class TagBasedDocumentFilter {
 
     // Collect statistics
     for (const document of documents) {
+      if (!document.tags || !document.tags.primary) continue;
+      
       // Count individual tags
       for (const tag of document.tags.primary) {
         tagCounts[tag] = (tagCounts[tag] || 0) + 1;
@@ -341,6 +344,14 @@ export class TagBasedDocumentFilter {
     document: DocumentMetadata,
     options: TagFilterOptions
   ): { include: boolean; reason: string; problematicTags: string[] } {
+    if (!document.tags || !document.tags.primary) {
+      return {
+        include: false,
+        reason: 'Missing tags',
+        problematicTags: []
+      };
+    }
+    
     const docTags = document.tags.primary;
 
     // Check excluded tags
@@ -409,22 +420,6 @@ export class TagBasedDocumentFilter {
       }
     }
 
-    // Check estimated time range
-    if (options.estimatedTimeRange) {
-      const timeStr = document.tags.estimatedReadingTime;
-      const minutes = this.parseTimeToMinutes(timeStr);
-      
-      if (minutes !== null) {
-        const { min = 0, max = Infinity } = options.estimatedTimeRange;
-        if (minutes < min || minutes > max) {
-          return {
-            include: false,
-            reason: `Reading time outside range: ${minutes}min not in ${min}-${max}min`,
-            problematicTags: []
-          };
-        }
-      }
-    }
 
     return { include: true, reason: '', problematicTags: [] };
   }
@@ -517,6 +512,8 @@ export class TagBasedDocumentFilter {
 
   private calculateTagRelevanceScore(document: DocumentMetadata, targetTags: string[]): number {
     let score = 0;
+    
+    if (!document.tags || !document.tags.primary) return 0;
     
     for (const tag of document.tags.primary) {
       if (targetTags.includes(tag)) {

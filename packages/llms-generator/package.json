@@ -24,6 +24,9 @@
     "dev": "tsdown --watch",
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:adaptive": "jest test/integration/AdaptiveComposer.test.ts",
+    "test:cli": "jest test/cli/generate-all.test.ts",
+    "test:new-cli": "jest test/cli/new-cli.test.ts",
     "lint": "eslint src --ext .ts,.js",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist",
@@ -63,6 +66,7 @@
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "commander": "14.0.0",
+    "glob": "11.0.3",
     "gray-matter": "^4.0.3",
     "typescript": "^5.3.0",
     "yaml": "^2.8.1"

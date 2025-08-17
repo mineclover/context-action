@@ -97,7 +97,6 @@ class DocumentScanner {
           secondary: [],
           audience: ['framework-users'] as TargetAudience[],
           complexity: wordCount > 1000 ? 'advanced' : wordCount > 500 ? 'intermediate' : 'basic',
-          estimatedReadingTime: `${Math.ceil(wordCount / 200)}분`
         },
         keywords: {
           primary: this.extractKeywords(content),

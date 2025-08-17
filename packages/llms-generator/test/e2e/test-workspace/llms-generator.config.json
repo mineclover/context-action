@@ -1,0 +1,13 @@
+{
+  "generation": {
+    "characterLimits": [
+      100,
+      300
+    ],
+    "supportedLanguages": [
+      "ko"
+    ],
+    "defaultLanguage": "ko",
+    "outputFormat": "txt"
+  }
+}

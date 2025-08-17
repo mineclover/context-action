@@ -36,7 +36,6 @@ export interface TagConfig {
   weight: number;
   compatibleWith?: string[];
   audience?: Array<'new-users' | 'learners' | 'experienced-users' | 'experts' | 'contributors' | 'all-users'>;
-  estimatedReadingTime?: EstimatedReadingTime;
   importance?: 'critical' | 'high' | 'medium' | 'low' | 'optional';
   frequency?: 'very-high' | 'high' | 'medium' | 'low' | 'very-low';
   urgency?: 'critical' | 'high' | 'medium' | 'low';

@@ -5,6 +5,7 @@
  */
 
 import path from 'path';
+import { promises as fs } from 'fs';
 import { LLMSGenerator, PriorityGenerator, SchemaGenerator, MarkdownGenerator, ContentExtractor, AdaptiveComposer, DEFAULT_CONFIG } from '../index.js';
 import { WorkStatusManager } from '../core/WorkStatusManager.js';
 import { ConfigManager } from '../core/ConfigManager.js';
@@ -23,6 +24,37 @@ import { globalPerformanceMonitor } from '../infrastructure/monitoring/Performan
 import { createPreCommitCheckCommand } from './commands/pre-commit-check.js';
 import { createEnhancedWorkAnalysisCommand } from './commands/enhanced-work-analysis.js';
 import { createSyncDocumentsCommand } from './commands/sync-documents.js';
+import { createLLMSGenerateCommand } from './commands/llms-generate.js';
+import { createCheckPriorityStatusCommand } from './commands/check-priority-status.js';
+import { createSimplePriorityCheckCommand } from './commands/simple-priority-check.js';
+import { createMigrateToSimpleCommand } from './commands/migrate-to-simple.js';
+import { createSimpleLLMSGenerateCommand, createSimpleLLMSBatchCommand, createSimpleLLMSStatsCommand } from './commands/simple-llms-generate.js';
+
+// Helper function to count generated files for a language
+async function countGeneratedFiles(language: string): Promise<number> {
+  const dataDir = path.join(process.cwd(), 'data', language);
+  
+  try {
+    const dirs = await fs.readdir(dataDir);
+    let fileCount = 0;
+    
+    for (const dir of dirs) {
+      const dirPath = path.join(dataDir, dir);
+      const stats = await fs.stat(dirPath);
+      
+      if (stats.isDirectory()) {
+        const files = await fs.readdir(dirPath);
+        const mdFiles = files.filter(f => f.endsWith('.md'));
+        fileCount += mdFiles.length;
+      }
+    }
+    
+    return fileCount;
+  } catch (error) {
+    console.warn(`⚠️  Could not count files for ${language}: ${error}`);
+    return 0;
+  }
+}
 
 async function main() {
   const args = process.argv.slice(2);
@@ -58,18 +90,18 @@ async function main() {
         },
         generation: {
           ...DEFAULT_CONFIG.generation,
-          supportedLanguages: enhancedConfig.generation.supportedLanguages,
-          characterLimits: enhancedConfig.generation.characterLimits,
-          defaultLanguage: enhancedConfig.generation.defaultLanguage,
-          outputFormat: enhancedConfig.generation.outputFormat
+          supportedLanguages: enhancedConfig.generation?.supportedLanguages || DEFAULT_CONFIG.generation.supportedLanguages,
+          characterLimits: enhancedConfig.generation?.characterLimits || DEFAULT_CONFIG.generation.characterLimits,
+          defaultLanguage: enhancedConfig.generation?.defaultLanguage || DEFAULT_CONFIG.generation.defaultLanguage,
+          outputFormat: enhancedConfig.generation?.outputFormat || DEFAULT_CONFIG.generation.outputFormat
         },
         quality: enhancedConfig.quality
       };
       
       // Create a compatible userConfig for legacy command compatibility
       userConfig = {
-        characterLimits: enhancedConfig.generation.characterLimits,
-        languages: enhancedConfig.generation.supportedLanguages,
+        characterLimits: enhancedConfig.generation?.characterLimits || DEFAULT_CONFIG.generation.characterLimits,
+        languages: enhancedConfig.generation?.supportedLanguages || DEFAULT_CONFIG.generation.supportedLanguages,
         resolvedPaths: {
           configFile: enhancedConfigPath,
           projectRoot: projectRoot,
@@ -225,6 +257,45 @@ async function main() {
           characterLimits: batchLimits
         });
         console.log('✅ Batch generation completed!');
+        break;
+      
+      case 'generate-md':
+        const adaptiveLang = args[1] || 'en';
+        const adaptiveLimits = args.find(arg => arg.startsWith('--chars='))?.split('=')[1]?.split(',').map(Number) || enabledCharLimits;
+        
+        console.log(`📝 Generating individual .md files for language: ${adaptiveLang}`);
+        console.log(`📏 Character limits: ${adaptiveLimits.join(', ')}`);
+        
+        await adaptiveComposer.generateIndividualCharacterLimited(adaptiveLimits, adaptiveLang);
+        console.log('✅ Individual .md files generated!');
+        break;
+        
+      case 'generate-all':
+        // Generate for all configured languages
+        const generateAllLanguages = args.find(arg => arg.startsWith('--lang='))?.split('=')[1]?.split(',') || ['en', 'ko'];
+        const generateAllLimits = args.find(arg => arg.startsWith('--chars='))?.split('=')[1]?.split(',').map(Number) || enabledCharLimits;
+        
+        console.log(`🚀 Generating .md files for all languages: ${generateAllLanguages.join(', ')}`);
+        console.log(`📏 Character limits: ${generateAllLimits.join(', ')}`);
+        console.log('');
+        
+        let totalGenerated = 0;
+        const startTime = Date.now();
+        
+        for (const lang of generateAllLanguages) {
+          console.log(`\n📝 Generating for language: ${lang}`);
+          await adaptiveComposer.generateIndividualCharacterLimited(generateAllLimits, lang);
+          
+          // Count generated files for this language
+          const langFiles = await countGeneratedFiles(lang);
+          totalGenerated += langFiles;
+          console.log(`✅ ${lang}: ${langFiles} files generated`);
+        }
+        
+        const totalTime = Math.round((Date.now() - startTime) / 1000);
+        console.log(`\n🎉 All .md file generation completed!`);
+        console.log(`📊 Total files generated: ${totalGenerated}`);
+        console.log(`⏱️  Total time: ${totalTime}s`);
         break;
         
       case 'priority-generate':
@@ -690,7 +761,7 @@ async function main() {
         console.log(`Priority: ${workContext.priorityInfo.priority.score} (${workContext.priorityInfo.priority.tier})`);
         console.log(`Strategy: ${workContext.priorityInfo.extraction.strategy}`);
         
-        const focusInfo = workContext.priorityInfo.extraction.characterLimit[contextCharLimit.toString()];
+        const focusInfo = workContext.priorityInfo.extraction.character_limits[contextCharLimit.toString()];
         if (focusInfo) {
           console.log(`Focus: ${focusInfo.focus}`);
         }
@@ -1235,6 +1306,146 @@ async function main() {
         }
         break;
 
+      case 'llms-generate':
+        // Execute the llms-generate command using Commander.js
+        const llmsGenerateCommand = createLLMSGenerateCommand();
+        const llmsGenerateOptions = args.slice(1); // Remove the command name
+        
+        // Set exitOverride to handle errors gracefully
+        llmsGenerateCommand.exitOverride();
+        
+        try {
+          await llmsGenerateCommand.parseAsync(['node', 'llms-generate', ...llmsGenerateOptions]);
+        } catch (error: any) {
+          if (error.code === 'commander.helpDisplayed') {
+            // Help was displayed, this is normal
+            return;
+          }
+          console.error('❌ LLMS 생성 명령 실행 중 오류:', error.message);
+          process.exit(1);
+        }
+        break;
+
+      case 'check-priority-status':
+        // Execute the check-priority-status command using Commander.js
+        const checkPriorityStatusCommand = createCheckPriorityStatusCommand();
+        const checkPriorityStatusOptions = args.slice(1); // Remove the command name
+        
+        // Set exitOverride to handle errors gracefully
+        checkPriorityStatusCommand.exitOverride();
+        
+        try {
+          await checkPriorityStatusCommand.parseAsync(['node', 'check-priority-status', ...checkPriorityStatusOptions]);
+        } catch (error: any) {
+          if (error.code === 'commander.helpDisplayed') {
+            // Help was displayed, this is normal
+            return;
+          }
+          console.error('❌ Priority 상태 확인 명령 실행 중 오류:', error.message);
+          process.exit(1);
+        }
+        break;
+
+      case 'simple-check':
+        // Execute the simple-check command using Commander.js
+        const simpleCheckCommand = createSimplePriorityCheckCommand();
+        const simpleCheckOptions = args.slice(1); // Remove the command name
+        
+        // Set exitOverride to handle errors gracefully
+        simpleCheckCommand.exitOverride();
+        
+        try {
+          await simpleCheckCommand.parseAsync(['node', 'simple-check', ...simpleCheckOptions]);
+        } catch (error: any) {
+          if (error.code === 'commander.helpDisplayed') {
+            // Help was displayed, this is normal
+            return;
+          }
+          console.error('❌ Simple check 명령 실행 중 오류:', error.message);
+          process.exit(1);
+        }
+        break;
+
+      case 'migrate-to-simple':
+        // Execute the migrate-to-simple command using Commander.js
+        const migrateCommand = createMigrateToSimpleCommand();
+        const migrateOptions = args.slice(1); // Remove the command name
+        
+        // Set exitOverride to handle errors gracefully
+        migrateCommand.exitOverride();
+        
+        try {
+          await migrateCommand.parseAsync(['node', 'migrate-to-simple', ...migrateOptions]);
+        } catch (error: any) {
+          if (error.code === 'commander.helpDisplayed') {
+            // Help was displayed, this is normal
+            return;
+          }
+          console.error('❌ 마이그레이션 명령 실행 중 오류:', error.message);
+          process.exit(1);
+        }
+        break;
+
+      case 'simple-llms-generate':
+        // Execute the simple-llms-generate command using Commander.js
+        const simpleLLMSGenerateCommand = createSimpleLLMSGenerateCommand();
+        const simpleLLMSGenerateOptions = args.slice(1); // Remove the command name
+        
+        // Set exitOverride to handle errors gracefully
+        simpleLLMSGenerateCommand.exitOverride();
+        
+        try {
+          await simpleLLMSGenerateCommand.parseAsync(['node', 'simple-llms-generate', ...simpleLLMSGenerateOptions]);
+        } catch (error: any) {
+          if (error.code === 'commander.helpDisplayed') {
+            // Help was displayed, this is normal
+            return;
+          }
+          console.error('❌ Simple LLMS 생성 명령 실행 중 오류:', error.message);
+          process.exit(1);
+        }
+        break;
+
+      case 'simple-llms-batch':
+        // Execute the simple-llms-batch command using Commander.js
+        const simpleLLMSBatchCommand = createSimpleLLMSBatchCommand();
+        const simpleLLMSBatchOptions = args.slice(1); // Remove the command name
+        
+        // Set exitOverride to handle errors gracefully
+        simpleLLMSBatchCommand.exitOverride();
+        
+        try {
+          await simpleLLMSBatchCommand.parseAsync(['node', 'simple-llms-batch', ...simpleLLMSBatchOptions]);
+        } catch (error: any) {
+          if (error.code === 'commander.helpDisplayed') {
+            // Help was displayed, this is normal
+            return;
+          }
+          console.error('❌ Simple LLMS 배치 생성 명령 실행 중 오류:', error.message);
+          process.exit(1);
+        }
+        break;
+
+      case 'simple-llms-stats':
+        // Execute the simple-llms-stats command using Commander.js
+        const simpleLLMSStatsCommand = createSimpleLLMSStatsCommand();
+        const simpleLLMSStatsOptions = args.slice(1); // Remove the command name
+        
+        // Set exitOverride to handle errors gracefully
+        simpleLLMSStatsCommand.exitOverride();
+        
+        try {
+          await simpleLLMSStatsCommand.parseAsync(['node', 'simple-llms-stats', ...simpleLLMSStatsOptions]);
+        } catch (error: any) {
+          if (error.code === 'commander.helpDisplayed') {
+            // Help was displayed, this is normal
+            return;
+          }
+          console.error('❌ Simple LLMS 통계 명령 실행 중 오류:', error.message);
+          process.exit(1);
+        }
+        break;
+
       case 'pre-commit-check':
         // Execute the pre-commit-check command using Commander.js
         const preCommitCommand = createPreCommitCheckCommand();
@@ -1297,6 +1508,25 @@ function showHelp() {
   console.log('                       [--required-limits <limits>] [--critical-limits <limits>] [--no-auto-fix]');
   console.log('  sync-docs [options]  Git 커밋 기반 문서 동기화 - 요약 문서와 실제 문서 간 양방향 동기화');
   console.log('                       [--changed-files <files>] [--mode <mode>] [--dry-run] [--quiet]');
+  console.log('  llms-generate [options] 준비된 문서들에 대해 LLMS 자동 생성');
+  console.log('                       [--document-id <id>] [--language <lang>] [--force] [--dry-run]');
+  console.log('  check-priority-status [options] Priority JSON 파일들의 상태 확인 및 관리');
+  console.log('                       [-l, --language <lang>] [-d, --document-id <id>] [--fix] [--migrate] [-v, --verbose]');
+  console.log('  simple-check [options] 단순화된 Priority 및 Markdown work status 확인');
+  console.log('                       [-l, --language <lang>] [-d, --document-id <id>] [-m, --check-markdown] [--fix] [-v, --verbose]');
+  console.log('  migrate-to-simple [options] 복잡한 Priority JSON을 단순화하고 work_status를 markdown 파일로 이동');
+  console.log('                       [-l, --language <lang>] [-d, --document-id <id>] [--dry-run] [--backup] [-v, --verbose]');
+  console.log('');
+  console.log('SIMPLE LLMS GENERATION:');
+  console.log('  simple-llms-generate [character-limit] [options]');
+  console.log('                       같은 character limit의 모든 개별 .md 파일들을 단순 결합하여 LLMS 생성');
+  console.log('                       [-l, --language <lang>] [-o, --output-dir <dir>] [--sort-by <method>] [--no-metadata] [--dry-run] [-v, --verbose]');
+  console.log('  simple-llms-batch [options]');
+  console.log('                       여러 character limit에 대해 Simple LLMS 일괄 생성');
+  console.log('                       [-l, --language <lang>] [-c, --character-limits <limits>] [-o, --output-dir <dir>] [--sort-by <method>] [--no-metadata] [--dry-run] [-v, --verbose]');
+  console.log('  simple-llms-stats [options]');
+  console.log('                       Simple LLMS 생성을 위한 통계 정보 확인');
+  console.log('                       [-l, --language <lang>] [-c, --character-limit <limit>]');
   console.log('');
   console.log('SCHEMA MANAGEMENT:');
   console.log('  schema-generate [outputDir] [--no-types] [--no-validators] [--javascript] [--cjs] [--overwrite]');
@@ -1353,6 +1583,12 @@ function showHelp() {
   console.log('  instruction-template <command> [lang] [name]');
   console.log('                       Manage instruction templates (list|show|create)');
   console.log('');
+  console.log('ADAPTIVE MARKDOWN GENERATION:');
+  console.log('  generate-md [lang] [--chars=100,200,300,500,1000,2000,5000]');
+  console.log('                       Generate individual .md files using AdaptiveComposer');
+  console.log('  generate-all [--lang=en,ko] [--chars=100,200,300,500,1000,2000,5000]');
+  console.log('                       Generate all .md files for all languages');
+  console.log('');
   console.log('MARKDOWN GENERATION (VitePress):');
   console.log('  markdown-generate [lang] [--chars=100,300,1000] [--dry-run] [--overwrite]');
   console.log('                       Generate character-limited .md files for VitePress');
@@ -1375,6 +1611,12 @@ function showHelp() {
   console.log('  npx @context-action/llms-generator batch  # Uses config languages and character limits');
   console.log('  npx @context-action/llms-generator batch --lang=en,ko --chars=300,1000  # Override defaults');
   console.log('');
+  console.log('  # Adaptive Markdown generation');
+  console.log('  npx @context-action/llms-generator generate-md en  # Generate for English');
+  console.log('  npx @context-action/llms-generator generate-md ko --chars=100,500,1000  # Korean with specific limits');
+  console.log('  npx @context-action/llms-generator generate-all  # Generate for all languages');
+  console.log('  npx @context-action/llms-generator generate-all --lang=en,ko,ja  # Specific languages');
+  console.log('');
   console.log('  # Priority and discovery');
   console.log('  npx @context-action/llms-generator priority-generate en --dry-run');
   console.log('  npx @context-action/llms-generator priority-stats ko');
@@ -1389,6 +1631,11 @@ function showHelp() {
   console.log('  # Composition (uses config defaults)');
   console.log('  npx @context-action/llms-generator compose ko  # Uses config default character limit');
   console.log('  npx @context-action/llms-generator compose-batch en  # Uses config limits ≥1000');
+  console.log('');
+  console.log('  # Simple LLMS generation (direct file combination)');
+  console.log('  npx @context-action/llms-generator simple-llms-generate 100 --language ko');
+  console.log('  npx @context-action/llms-generator simple-llms-batch --character-limits 100,300,1000');
+  console.log('  npx @context-action/llms-generator simple-llms-stats --language ko');
   console.log('');
   console.log('  # Work management');
   console.log('  npx @context-action/llms-generator work-status ko --chars=100 --need-edit');
@@ -1493,7 +1740,7 @@ async function displaySummaryFormat(report: any, progress: any, options: any): P
     console.log('📋 향후 작업:');
     progress.upcomingTasks.slice(0, 5).forEach((task: any) => {
       const priorityIcon = task.priority === 'high' ? '🔴' : task.priority === 'medium' ? '🟡' : '🟢';
-      console.log(`  ${priorityIcon} ${task.description} (예상: ${task.estimatedTime})`);
+      console.log(`  ${priorityIcon} ${task.description}`);
     });
     console.log();
   }

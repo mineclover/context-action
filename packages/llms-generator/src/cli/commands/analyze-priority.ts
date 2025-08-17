@@ -110,7 +110,7 @@ async function displaySummaryFormat(report: any, progress: any, options: any): P
     console.log('📋 향후 작업:');
     progress.upcomingTasks.slice(0, 5).forEach((task: any) => {
       const priorityIcon = task.priority === 'high' ? '🔴' : task.priority === 'medium' ? '🟡' : '🟢';
-      console.log(`  ${priorityIcon} ${task.description} (예상: ${task.estimatedTime})`);
+      console.log(`  ${priorityIcon} ${task.description}`);
     });
     console.log();
   }

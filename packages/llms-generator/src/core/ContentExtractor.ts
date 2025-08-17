@@ -9,6 +9,7 @@ import { writeFile, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
 import type { LLMSConfig, PriorityMetadata } from '../types/index.js';
+import { frontMatterManager } from './FrontMatterManager.js';
 import { PriorityManager } from './PriorityManager.js';
 import { DocumentProcessor } from './DocumentProcessor.js';
 
@@ -114,7 +115,7 @@ export class ContentExtractor {
           result.summary.byCharacterLimit[charLimit.toString()] = (result.summary.byCharacterLimit[charLimit.toString()] || 0) + 1;
         }
       } catch (error) {
-        const errorMessage = `Failed to extract ${documentId}-${charLimit}.txt (${language}): ${error instanceof Error ? error.message : String(error)}`;
+        const errorMessage = `Failed to extract ${documentId}-${charLimit}.md (${language}): ${error instanceof Error ? error.message : String(error)}`;
         result.errors.push(errorMessage);
         result.summary.totalErrors++;
         result.success = false;
@@ -134,7 +135,7 @@ export class ContentExtractor {
   ): Promise<string | null> {
     // Determine output directory - save to data directory, not docs directory
     const outputDir = path.join(this.config.paths.llmContentDir, language, documentId);
-    const outputPath = path.join(outputDir, `${documentId}-${charLimit}.txt`);
+    const outputPath = path.join(outputDir, `${documentId}-${charLimit}.md`);
 
     // Check if file exists and should not be overwritten
     if (existsSync(outputPath) && !options.overwrite) {
@@ -171,7 +172,7 @@ export class ContentExtractor {
     charLimit: number
   ): Promise<string> {
     // Get character limit configuration from priority
-    const charLimitConfig = priority.extraction.characterLimit[charLimit.toString()];
+    const charLimitConfig = priority.extraction.character_limits[charLimit.toString()];
     
     // Try to read source document
     let sourceContent = '';
@@ -196,14 +197,16 @@ export class ContentExtractor {
         documentTitle,
         charLimit,
         charLimitConfig,
-        priority
+        priority,
+        language
       );
     } else {
       return this.generatePlaceholderSummary(
         documentTitle,
         charLimit,
         charLimitConfig,
-        priority
+        priority,
+        language
       );
     }
   }
@@ -216,46 +219,54 @@ export class ContentExtractor {
     title: string,
     charLimit: number,
     charLimitConfig: any,
-    priority: PriorityMetadata
+    priority: PriorityMetadata,
+    language: string
   ): string {
+    // Generate front matter using FrontMatterManager
+    const frontMatter = frontMatterManager.generate(priority, charLimit, charLimitConfig, {
+      language: language,
+      includeExtendedMetadata: true
+    });
+    
     let summary = '';
 
     // Add title if space allows
-    if (charLimit > 50) {
+    const remainingChars = charLimit - frontMatter.length;
+    if (remainingChars > 50) {
       summary += `# ${title}\n\n`;
     }
 
-    // Calculate remaining space for content
-    const remainingChars = charLimit - summary.length - 20; // Reserve some space for ending
+    // Calculate remaining space for content (excluding front matter and title)
+    const availableChars = remainingChars - summary.length - 20; // Reserve some space for ending
 
-    if (remainingChars > 0) {
+    if (availableChars > 0) {
       // Extract content based on strategy
       const strategy = priority.extraction.strategy;
       let extractedContent = '';
 
       switch (strategy) {
         case 'concept-first':
-          extractedContent = this.extractConceptFirst(sourceContent, remainingChars);
+          extractedContent = this.extractConceptFirst(sourceContent, availableChars);
           break;
         case 'api-first':
-          extractedContent = this.extractApiFirst(sourceContent, remainingChars);
+          extractedContent = this.extractApiFirst(sourceContent, availableChars);
           break;
         case 'example-first':
-          extractedContent = this.extractExampleFirst(sourceContent, remainingChars);
+          extractedContent = this.extractExampleFirst(sourceContent, availableChars);
           break;
         default:
-          extractedContent = this.extractGeneral(sourceContent, remainingChars);
+          extractedContent = this.extractGeneral(sourceContent, availableChars);
       }
 
       summary += extractedContent;
     }
 
-    // Ensure we don't exceed character limit
-    if (summary.length > charLimit) {
-      summary = summary.substring(0, charLimit - 3) + '...';
+    // Ensure we don't exceed character limit (excluding front matter)
+    if (summary.length > remainingChars) {
+      summary = summary.substring(0, remainingChars - 3) + '...';
     }
 
-    return summary;
+    return frontMatter + summary;
   }
 
   /**
@@ -408,6 +419,7 @@ export class ContentExtractor {
     return truncated.trim() + '...';
   }
 
+
   /**
    * Generate placeholder summary when source is not available
    */
@@ -415,8 +427,15 @@ export class ContentExtractor {
     title: string,
     charLimit: number,
     charLimitConfig: any,
-    priority: PriorityMetadata
+    priority: PriorityMetadata,
+    language: string
   ): string {
+    // Generate front matter using FrontMatterManager
+    const frontMatter = frontMatterManager.generate(priority, charLimit, charLimitConfig, {
+      language: language,
+      includeExtendedMetadata: true
+    });
+    
     let content = `# ${title}\n\n`;
     
     const placeholder = `[${charLimit}자 요약 - 우선순위: ${priority.priority.score}/${priority.priority.tier}]\n\n` +
@@ -424,23 +443,29 @@ export class ContentExtractor {
                        `추출 전략: ${priority.extraction.strategy}\n\n` +
                        `실제 콘텐츠는 소스 문서에서 추출되어 여기에 표시됩니다.`;
 
-    // Ensure we don't exceed character limit
+    // Calculate available space for content (excluding front matter)
+    const remainingChars = charLimit - frontMatter.length;
     const totalContent = content + placeholder;
-    if (totalContent.length > charLimit) {
-      const availableSpace = charLimit - content.length - 3;
-      content += placeholder.substring(0, availableSpace) + '...';
+    
+    if (totalContent.length > remainingChars) {
+      const availableSpace = remainingChars - content.length - 3;
+      if (availableSpace > 0) {
+        content += placeholder.substring(0, availableSpace) + '...';
+      } else {
+        content = `# ${title}\n\n...`;
+      }
     } else {
       content += placeholder;
     }
 
-    return content;
+    return frontMatter + content;
   }
 
   /**
    * Extract character limits from priority metadata
    */
   private getCharacterLimitsFromPriority(priority: PriorityMetadata): number[] {
-    const limits = Object.keys(priority.extraction.characterLimit || {})
+    const limits = Object.keys(priority.extraction.character_limits || {})
       .filter(key => !isNaN(parseInt(key)))
       .map(key => parseInt(key))
       .sort((a, b) => a - b);

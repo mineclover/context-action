@@ -35,9 +35,40 @@ export interface PrioritySchema {
     patterns?: string[];
     avoid?: string[];
   };
+  // Required root-level tags field
+  tags: {
+    primary: string[];
+    secondary?: string[];
+    audience: Array<'framework-users' | 'beginners' | 'intermediate' | 'advanced' | 'contributors' | 'new-users' | 'experienced-users' | 'experts' | 'all-users'>;
+    complexity: 'basic' | 'intermediate' | 'advanced' | 'expert';
+    lastUpdated: string;
+  };
+  // Required root-level dependencies field
+  dependencies: {
+    prerequisites: Array<{
+      documentId: string;
+      reason?: string;
+      type?: 'hard' | 'soft';
+    }>;
+    references: Array<{
+      documentId: string;
+      reason?: string;
+      type?: 'reference' | 'complement';
+    }>;
+    followUp: Array<{
+      documentId: string;
+      reason?: string;
+      type?: 'suggested' | 'required';
+    }>;
+    conflicts: Array<{
+      documentId: string;
+      reason?: string;
+      type?: 'incompatible' | 'deprecated';
+    }>;
+  };
   extraction: {
     strategy: 'concept-first' | 'example-first' | 'api-first' | 'tutorial-first' | 'reference-first';
-    characterLimit: {
+    character_limits: {
       minimum?: CharacterLimitGuideline;
       origin?: CharacterLimitGuideline;
       '100'?: CharacterLimitGuideline;
@@ -227,8 +258,8 @@ export class PrioritySchemaManager {
       if (!priority.extraction.strategy) {
         errors.push('extraction.strategy is required');
       }
-      if (!priority.extraction.characterLimit) {
-        errors.push('extraction.characterLimit is required');
+      if (!priority.extraction.character_limits) {
+        errors.push('extraction.character_limits is required');
       }
     }
 
@@ -292,9 +323,24 @@ export class PrioritySchemaManager {
           'Advanced optimization techniques'
         ]
       },
+      // Add required root-level tags field
+      tags: {
+        primary: this.generatePrimaryTags(category),
+        secondary: this.generateSecondaryTags(category, finalDocumentId),
+        audience: ['framework-users', 'beginners'],
+        complexity: this.getDefaultComplexity(category),
+        lastUpdated: new Date().toISOString().split('T')[0]
+      },
+      // Add required root-level dependencies field
+      dependencies: {
+        prerequisites: [],
+        references: [],
+        followUp: [],
+        conflicts: []
+      },
       extraction: {
         strategy: strategy,
-        characterLimit: this.generateCharacterLimits(strategy, category, title, options),
+        character_limits: this.generateCharacterLimits(strategy, category, title, options),
         emphasis: {
           must_include: this.generateMustInclude(category, title),
           nice_to_have: this.generateNiceToHave(category)
@@ -405,9 +451,9 @@ export class PrioritySchemaManager {
   /**
    * Generate character limits guidelines
    */
-  private generateCharacterLimits(strategy: string, category: string, title: string, options: PriorityGenerationOptions): PrioritySchema['extraction']['characterLimit'] {
-    // Get character limits from config (passed through options)
-    const characterLimits = options.characterLimits || [200, 500, 1000];
+  private generateCharacterLimits(strategy: string, category: string, title: string, options: PriorityGenerationOptions): PrioritySchema['extraction']['character_limits'] {
+    // Get character limits from config (passed through options) - remove hardcoded defaults
+    const characterLimits = options.characterLimits || [100, 200, 300, 500, 1000, 2000, 5000];
     
     const baseGuidelines: any = {
       minimum: {
@@ -449,13 +495,31 @@ export class PrioritySchemaManager {
           example_structure: 'Concept definition → Main purpose → Key benefit'
         };
       } else if (index === 2) {
-        // Third (largest) limit
+        // Third limit
         baseGuidelines[limitKey] = {
           focus: 'Practical understanding',
           structure: 'Concept + basic usage + simple example hint',
           must_include: ['concept', 'usage context', 'basic example'],
           avoid: ['detailed code', 'advanced topics'],
           example_structure: 'Concept → Usage context → Basic example'
+        };
+      } else if (index === 3) {
+        // Fourth (largest) limit - typically 2000 characters
+        baseGuidelines[limitKey] = {
+          focus: 'Comprehensive understanding with examples',
+          structure: 'Complete concept + detailed usage + code examples + best practices',
+          must_include: ['full concept explanation', 'detailed usage', 'code examples', 'best practices'],
+          avoid: ['unnecessary verbosity', 'unrelated topics'],
+          example_structure: 'Introduction → Core concepts → Usage patterns → Code examples → Best practices'
+        };
+      } else {
+        // Any additional limits beyond the fourth
+        baseGuidelines[limitKey] = {
+          focus: 'Extended comprehensive coverage',
+          structure: 'Full documentation with all details',
+          must_include: ['complete documentation', 'all examples', 'edge cases', 'troubleshooting'],
+          avoid: ['redundancy'],
+          example_structure: 'Complete guide with all aspects covered'
         };
       }
     });
@@ -555,6 +619,7 @@ export class PrioritySchemaManager {
     };
     return complexityMap[category] || 'basic';
   }
+
 
   /**
    * Get schema statistics

@@ -5,7 +5,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import glob from 'glob';
+import { glob } from 'glob';
 
 export interface CategoryDocument {
   id: string;
@@ -171,6 +171,13 @@ export class CategoryMinimumGenerator {
    */
   getAvailableCategories(): string[] {
     return Object.keys(CategoryMinimumGenerator.CATEGORY_PATTERNS);
+  }
+
+  /**
+   * 카테고리별 미니멀 LLMS 생성 - 테스트 호환 메서드
+   */
+  async generateCategoryMinimum(category: string, language: string): Promise<GenerationResult> {
+    return this.generateSingle(category, language);
   }
 
   /**
