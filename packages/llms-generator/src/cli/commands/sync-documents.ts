@@ -10,7 +10,7 @@ import { ConfigManager } from '../../core/ConfigManager.js';
 import { EnhancedConfigManager } from '../../core/EnhancedConfigManager.js';
 import { globalPerformanceMonitor } from '../../infrastructure/monitoring/PerformanceMonitor.js';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { readFile, writeFile } from 'fs/promises';
+import { readFile, writeFile, readdir } from 'fs/promises';
 import path from 'path';
 import { execSync } from 'child_process';
 
@@ -159,11 +159,14 @@ async function performDocumentSync(options: any, config: any): Promise<SyncResul
         }
         
         if (fileType === 'summary') {
-          // 요약 문서가 변경됨 → 실제 문서의 Priority JSON 업데이트
+          // 요약 문서가 변경됨 → Priority JSON 업데이트
           await handleSummaryDocumentChange(filePath, config, workStatusManager, result, options);
         } else if (fileType === 'source') {
-          // 실제 문서가 변경됨 → 요약 문서의 프론트매터 업데이트
+          // 실제 문서가 변경됨 → 요약 문서 프론트매터 업데이트
           await handleSourceDocumentChange(filePath, config, workStatusManager, result, options);
+        } else if (fileType === 'priority') {
+          // Priority JSON이 변경됨 → 관련 요약 문서들에 상태 정보 업데이트
+          await handlePriorityJsonChange(filePath, config, workStatusManager, result, options);
         } else {
           if (!options.quiet) {
             console.log(`⚠️ 알 수 없는 파일 타입, 건너뜁니다: ${filePath}`);
@@ -189,17 +192,31 @@ async function performDocumentSync(options: any, config: any): Promise<SyncResul
 /**
  * 파일 타입 판별
  */
-function determineFileType(filePath: string, config: any): 'summary' | 'source' | 'unknown' {
+function determineFileType(filePath: string, config: any): 'summary' | 'source' | 'priority' | 'unknown' {
   const normalizedPath = path.normalize(filePath);
   
-  // 요약 문서 패턴 (docs/llms/, docs/en/llms/, docs/ko/llms/)
+  // Priority JSON 파일 패턴 (/data/언어/카테고리/priority.json)
+  if (normalizedPath.includes('/data/') && normalizedPath.endsWith('/priority.json')) {
+    return 'priority';
+  }
+  
+  // 요약 문서 패턴 1: /data/ 디렉토리의 생성된 요약 문서들
+  // 예: /data/en/api--action-only/api--action-only-200.md
+  if (normalizedPath.includes('/data/') && normalizedPath.endsWith('.md')) {
+    // 파일명에 숫자가 포함된 경우 (200.md, 500.md 등)
+    const fileName = path.basename(normalizedPath);
+    if (fileName.includes('-200.md') || fileName.includes('-500.md') || fileName.includes('-1000.md') || fileName.includes('-minimum.md') || fileName.includes('-origin.md')) {
+      return 'summary';
+    }
+  }
+  
+  // 요약 문서 패턴 2: docs/llms/ 디렉토리의 최종 LLMS 파일들
   if (normalizedPath.includes('/llms/') && normalizedPath.endsWith('.txt')) {
     return 'summary';
   }
   
-  // 실제 문서 패턴 (docs/ 하위의 .md 파일들, llms 폴더 제외)
-  // docs/README.md, docs/guide/something.md 등
-  if (normalizedPath.endsWith('.md') && !normalizedPath.includes('/llms/')) {
+  // 실제 문서 패턴 (docs/ 하위의 원본 .md 파일들)
+  if (normalizedPath.endsWith('.md') && !normalizedPath.includes('/llms/') && !normalizedPath.includes('/data/')) {
     // docs/ 디렉토리 체크를 더 유연하게
     if (normalizedPath.startsWith('docs/') || normalizedPath.includes('/docs/')) {
       return 'source';
@@ -234,7 +251,9 @@ async function handleSummaryDocumentChange(
 
     // 관련된 Priority JSON 파일들 업데이트
     for (const docId of documentIds) {
-      const priorityPath = path.join(config.paths?.llmContentDir || './data', language, `${docId}.json`);
+      const llmContentDir = config.paths?.llmContentDir || './data';
+      const priorityPath = path.resolve(llmContentDir, language, docId, 'priority.json');
+      
       
       if (existsSync(priorityPath)) {
         if (!options.dryRun) {
@@ -287,7 +306,8 @@ async function handleSourceDocumentChange(
     const languages = config.generation?.supportedLanguages || ['ko', 'en'];
     
     for (const language of languages) {
-      const priorityPath = path.join(config.paths?.llmContentDir || './data', language, `${documentId}.json`);
+      const llmContentDir = config.paths?.llmContentDir || './data';
+      const priorityPath = path.resolve(llmContentDir, language, documentId, 'priority.json');
       
       if (existsSync(priorityPath)) {
         if (!options.dryRun) {
@@ -316,7 +336,7 @@ async function handleSourceDocumentChange(
 }
 
 /**
- * 요약 문서 메타데이터 추출
+ * 요약 문서 메타데이터 추출 (YAML 프론트메터 기반)
  */
 async function extractSummaryMetadata(summaryPath: string): Promise<{
   language: string;
@@ -326,61 +346,89 @@ async function extractSummaryMetadata(summaryPath: string): Promise<{
   // 절대 경로로 변환
   const absolutePath = path.isAbsolute(summaryPath) ? summaryPath : path.resolve(summaryPath);
   const content = await readFile(absolutePath, 'utf-8');
-  const lines = content.split('\n');
+  
+  // YAML 프론트메터 파싱
+  const { frontmatter, content: bodyContent } = parseYamlFrontmatter(content);
   
   let language = '';
   let charLimit = '';
   const documentIds: string[] = [];
 
-  // 헤더에서 메타데이터 추출 (실제 형식에 맞춤)
-  for (const line of lines.slice(0, 10)) {
-    if (line.startsWith('Language:')) {
-      language = line.split(':')[1]?.trim() || '';
-    }
-    if (line.startsWith('Type:')) {
-      // "Type: Minimum (Navigation Links)" 또는 "Type: 1000chars" 등
-      if (line.includes('chars')) {
-        const match = line.match(/(\d+)chars/);
-        charLimit = match ? match[1] : '';
-      } else if (line.includes('Minimum')) {
-        charLimit = 'minimum';
-      } else if (line.includes('Origin')) {
-        charLimit = 'origin';
-      }
+  // 프론트메터에서 메타데이터 추출
+  if (frontmatter.source_path && typeof frontmatter.source_path === 'string') {
+    // source_path에서 언어 추출 (예: "en/api/action-only.md" → "en")
+    const pathParts = frontmatter.source_path.split('/');
+    if (pathParts.length > 0) {
+      language = pathParts[0].toLowerCase();
     }
   }
+  
+  if (frontmatter.character_limit) {
+    charLimit = String(frontmatter.character_limit);
+  }
+  
+  if (frontmatter.document_id && typeof frontmatter.document_id === 'string') {
+    documentIds.push(frontmatter.document_id);
+  }
 
-  // 파일명에서도 메타데이터 추출 (예: llms-1000chars-en.txt)
+  // 파일명에서도 메타데이터 추출 (폴백)
   const fileName = path.basename(summaryPath);
-  const fileMatch = fileName.match(/llms-(\w+)-(\w+)\.txt/);
-  if (fileMatch) {
-    if (!charLimit) charLimit = fileMatch[1]; // minimum, origin, 1000chars 등
-    if (!language) language = fileMatch[2].toUpperCase(); // en -> EN, ko -> KO
+  
+  // /data/언어/문서ID/문서ID-숫자.md 패턴에서 추출
+  const pathSegments = absolutePath.split('/');
+  const dataIndex = pathSegments.findIndex(segment => segment === 'data');
+  if (dataIndex !== -1 && dataIndex + 2 < pathSegments.length) {
+    if (!language) {
+      language = pathSegments[dataIndex + 1]; // data 다음이 언어
+    }
+    if (documentIds.length === 0) {
+      const dirName = pathSegments[dataIndex + 2]; // 언어 다음이 문서 디렉토리
+      documentIds.push(dirName);
+    }
+  }
+  
+  // 파일명에서 문자 제한 추출 (예: api--action-only-200.md)
+  if (!charLimit) {
+    const fileMatch = fileName.match(/-(\d+)\.md$/);
+    if (fileMatch) {
+      charLimit = fileMatch[1];
+    } else if (fileName.includes('-minimum.md')) {
+      charLimit = 'minimum';
+    } else if (fileName.includes('-origin.md')) {
+      charLimit = 'origin';
+    }
   }
 
-  // 링크에서 문서 ID들 추출
+  // 최종 LLMS 파일인 경우 (예: llms-1000chars-en.txt)
+  const llmsMatch = fileName.match(/llms-(\w+)-(\w+)\.txt/);
+  if (llmsMatch) {
+    if (!charLimit) charLimit = llmsMatch[1]; // minimum, origin, 1000chars 등
+    if (!language) language = llmsMatch[2].toLowerCase(); // en, ko 등
+  }
+
+  // 본문에서 링크를 통한 문서 ID들 추출 (여러 문서가 병합된 경우)
   const linkPattern = /\[([^\]]+)\]\(([^)]+)\)/g;
   let match;
-  while ((match = linkPattern.exec(content)) !== null) {
+  while ((match = linkPattern.exec(bodyContent)) !== null) {
     const url = match[2];
     // URL에서 문서 ID 추출 (마지막 세그먼트)
     const segments = url.split('/');
     const lastSegment = segments[segments.length - 1];
-    if (lastSegment && !lastSegment.startsWith('http')) {
+    if (lastSegment && !lastSegment.startsWith('http') && !documentIds.includes(lastSegment)) {
       documentIds.push(lastSegment);
     }
   }
 
-  // 텍스트에서 간접적으로 문서 ID 추출 (링크가 없는 경우)
+  // 본문에서 간접적으로 문서 ID 추출 (링크가 없는 경우)
   if (documentIds.length === 0) {
     // 제목이나 설명에서 추출 시도
     const titlePattern = /## (.+)/g;
     let titleMatch;
-    while ((titleMatch = titlePattern.exec(content)) !== null) {
+    while ((titleMatch = titlePattern.exec(bodyContent)) !== null) {
       const title = titleMatch[1].toLowerCase()
         .replace(/\s+/g, '-')
         .replace(/[^a-z0-9-]/g, '');
-      if (title && title.length > 2) {
+      if (title && title.length > 2 && !documentIds.includes(title)) {
         documentIds.push(title);
       }
     }
@@ -460,40 +508,176 @@ async function updateRelatedSummaryDocuments(
 }
 
 /**
- * 요약 문서 헤더 업데이트
+ * 요약 문서 프론트메터 업데이트 (YAML 표준 형식)
  */
 async function updateSummaryDocumentHeader(summaryPath: string, updates: Record<string, any>): Promise<void> {
   try {
     const absolutePath = path.isAbsolute(summaryPath) ? summaryPath : path.resolve(summaryPath);
     const content = await readFile(absolutePath, 'utf-8');
-    const lines = content.split('\n');
     
-    // 헤더 섹션 찾기 (첫 번째 빈 줄까지)
-    let headerEndIndex = 0;
-    for (let i = 0; i < lines.length; i++) {
-      if (lines[i].trim() === '') {
-        headerEndIndex = i;
-        break;
+    // YAML 프론트메터 업데이트
+    const updatedContent = updateYamlFrontmatter(content, updates);
+    
+    await writeFile(absolutePath, updatedContent, 'utf-8');
+  } catch (error) {
+    throw new Error(`요약 문서 프론트메터 업데이트 실패: ${error}`);
+  }
+}
+
+/**
+ * Priority JSON 변경 처리
+ */
+async function handlePriorityJsonChange(
+  priorityPath: string,
+  config: any,
+  workStatusManager: EnhancedWorkStatusManager,
+  result: SyncResult,
+  options: any
+): Promise<void> {
+  try {
+    // Priority JSON 파일에서 문서 ID와 메타데이터 추출
+    const absolutePath = path.isAbsolute(priorityPath) ? priorityPath : path.resolve(priorityPath);
+    const priorityData = JSON.parse(await readFile(absolutePath, 'utf-8'));
+    
+    const documentId = priorityData.document?.id;
+    if (!documentId) {
+      result.errors.push(`${priorityPath}: document.id가 없습니다`);
+      return;
+    }
+
+    if (!options.quiet) {
+      console.log(`📋 Priority JSON 변경 감지: ${priorityPath} (ID: ${documentId})`);
+    }
+
+    // 관련된 요약 문서들 찾기 및 업데이트
+    const priorityDir = path.dirname(absolutePath);
+    const summaryFiles = await findSummaryFilesInDirectory(priorityDir);
+    
+    for (const summaryFile of summaryFiles) {
+      if (!options.dryRun) {
+        // 요약 문서에 Priority 상태 정보 추가
+        const priorityStatus = {
+          priority_score: priorityData.priority?.score || 0,
+          priority_tier: priorityData.priority?.tier || 'reference',
+          last_priority_update: new Date().toISOString(),
+          work_status: priorityData.work_status || {},
+          completion_status: priorityData.work_status?.completion_status || 'unknown'
+        };
+        
+        await updateSummaryDocumentHeader(summaryFile, priorityStatus);
+      }
+      
+      result.updatedFrontmatters.push(summaryFile);
+      result.summary.frontmatterUpdates++;
+      
+      if (!options.quiet) {
+        console.log(`  ✅ 요약 문서 업데이트: ${summaryFile}`);
       }
     }
 
-    // 업데이트 정보를 헤더에 추가
-    const updateLines = Object.entries(updates).map(([key, value]) => 
-      `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value}`
-    );
-
-    // 기존 업데이트 정보 제거하고 새로 추가
-    const filteredLines = lines.slice(0, headerEndIndex).filter(line => 
-      !line.startsWith('LastSourceUpdate:') && !line.startsWith('RelatedDocument:')
-    );
-
-    const newHeader = [...filteredLines, ...updateLines];
-    const newContent = [...newHeader, ...lines.slice(headerEndIndex)].join('\n');
-
-    await writeFile(absolutePath, newContent, 'utf-8');
   } catch (error) {
-    throw new Error(`요약 문서 헤더 업데이트 실패: ${error}`);
+    result.errors.push(`Priority JSON 처리 오류 ${priorityPath}: ${error}`);
   }
+}
+
+/**
+ * 디렉토리에서 요약 문서 파일들 찾기
+ */
+async function findSummaryFilesInDirectory(directory: string): Promise<string[]> {
+  try {
+    const files = await readdir(directory);
+    return files
+      .filter(file => file.endsWith('.md') && (
+        file.includes('-200.md') || 
+        file.includes('-500.md') || 
+        file.includes('-1000.md') || 
+        file.includes('-minimum.md') || 
+        file.includes('-origin.md')
+      ))
+      .map(file => path.join(directory, file));
+  } catch (error) {
+    return [];
+  }
+}
+
+/**
+ * YAML 프론트메터 파싱
+ */
+function parseYamlFrontmatter(content: string): { frontmatter: Record<string, any>, content: string } {
+  const lines = content.split('\n');
+  
+  // 첫 번째 줄이 --- 인지 확인
+  if (lines[0]?.trim() !== '---') {
+    return { frontmatter: {}, content };
+  }
+  
+  // 두 번째 --- 찾기
+  let endIndex = -1;
+  for (let i = 1; i < lines.length; i++) {
+    if (lines[i]?.trim() === '---') {
+      endIndex = i;
+      break;
+    }
+  }
+  
+  if (endIndex === -1) {
+    return { frontmatter: {}, content };
+  }
+  
+  // YAML 파싱 (간단한 key: value 형식만 지원)
+  const frontmatterLines = lines.slice(1, endIndex);
+  const frontmatter: Record<string, any> = {};
+  
+  for (const line of frontmatterLines) {
+    const trimmed = line.trim();
+    if (trimmed && trimmed.includes(':')) {
+      const [key, ...valueParts] = trimmed.split(':');
+      const value = valueParts.join(':').trim();
+      
+      // 기본 타입 변환
+      if (value === 'true') {
+        frontmatter[key.trim()] = true;
+      } else if (value === 'false') {
+        frontmatter[key.trim()] = false;
+      } else if (!isNaN(Number(value)) && value !== '') {
+        frontmatter[key.trim()] = Number(value);
+      } else {
+        frontmatter[key.trim()] = value;
+      }
+    }
+  }
+  
+  // 프론트메터를 제거한 콘텐츠 반환
+  const bodyContent = lines.slice(endIndex + 1).join('\n');
+  
+  return { frontmatter, content: bodyContent };
+}
+
+/**
+ * YAML 프론트메터 생성
+ */
+function generateYamlFrontmatter(frontmatter: Record<string, any>): string {
+  const lines = ['---'];
+  
+  for (const [key, value] of Object.entries(frontmatter)) {
+    lines.push(`${key}: ${value}`);
+  }
+  
+  lines.push('---');
+  return lines.join('\n');
+}
+
+/**
+ * 프론트메터 업데이트
+ */
+function updateYamlFrontmatter(content: string, updates: Record<string, any>): string {
+  const { frontmatter, content: bodyContent } = parseYamlFrontmatter(content);
+  
+  // 프론트메터 업데이트
+  const updatedFrontmatter = { ...frontmatter, ...updates };
+  
+  // 새로운 콘텐츠 생성
+  return generateYamlFrontmatter(updatedFrontmatter) + '\n' + bodyContent;
 }
 
 /**
