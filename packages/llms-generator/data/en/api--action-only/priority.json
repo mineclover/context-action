@@ -184,6 +184,14 @@
     "completion_status": "in_progress",
     "summary_update_required": true,
     "last_summary_check": "2025-08-17T14:00:00Z",
-    "pending_tasks": ["Update 200char summary", "Sync with source document"]
+    "pending_tasks": [
+      "Update 200char summary",
+      "Sync with source document"
+    ],
+    "lastSummaryUpdate": "2025-08-17T01:15:20.539Z",
+    "summaryPath": "/Users/junwoobang/project/context-action/packages/llms-generator/data/en/api--action-only/api--action-only-200.md",
+    "charLimit": "200",
+    "language": "en",
+    "last_checked": "2025-08-17T01:15:20.539Z"
   }
 }

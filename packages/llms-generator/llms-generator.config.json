@@ -1,10 +1,10 @@
 {
   "paths": {
-    "docsDir": "./docs",
-    "llmContentDir": "./packages/llms-generator/data",
-    "outputDir": "./docs/llms",
-    "templatesDir": "./packages/llms-generator/templates",
-    "instructionsDir": "./packages/llms-generator/instructions"
+    "docsDir": "../../docs",
+    "llmContentDir": "./data",
+    "outputDir": "../../docs/llms",
+    "templatesDir": "./templates",
+    "instructionsDir": "./instructions"
   },
   "generation": {
     "supportedLanguages": [
