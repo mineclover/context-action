@@ -176,7 +176,14 @@
   },
   "metadata": {
     "created": "2025-08-16",
-    "version": "1.0",
-    "original_size": 12629
+    "version": "1.1",
+    "original_size": 12629,
+    "last_updated": "2025-08-17T14:00:00Z"
+  },
+  "work_status": {
+    "completion_status": "in_progress",
+    "summary_update_required": true,
+    "last_summary_check": "2025-08-17T14:00:00Z",
+    "pending_tasks": ["Update 200char summary", "Sync with source document"]
   }
 }
