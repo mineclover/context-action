@@ -82,7 +82,7 @@ Concept definition → Main purpose → Key benefit
 ```markdown
 <!-- 여기에 200자 이내의 요약 내용을 작성하세요 -->
 
-액션 핸들러: Provide comprehensive guidance on guide  action handlers의 핵심 개념과 Context-Action 프레임워크에서의 역할을 간단히 설명.
+액션 핸들러는 Context-Action 프레임워크에서 비즈니스 로직을 처리하는 핵심 구성요소입니다. useActionHandler 훅으로 등록하며, 액션 디스패치 시 우선순위 기반으로 실행됩니다. 컴포넌트와 분리된 로직 처리를 통해 재사용성과 테스트 용이성을 제공합니다.
 ```
 
 ---
