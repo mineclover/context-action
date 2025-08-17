@@ -80,18 +80,8 @@ Concept → Usage context → Basic example
 ## 템플릿 내용 (300자 이내)
 
 ```markdown
-<!-- 여기에 300자 이내의 요약 내용을 작성하세요 -->
-
-# 액션 핸들러
-
-Provide comprehensive guidance on guide  action handlers
-
-## 주요 특징
-- Context-Action 프레임워크의 핵심 구성요소
-- Understanding guide  action handlers을 지원
-- framework-users, beginners을 위한 설계
-
-간단한 사용 예시와 주요 이점을 포함하여 전체적인 개념을 이해할 수 있도록 구성.
+액션 핸들러는 Context-Action 프레임워크에서 비즈니스 로직을 처리하는 핵심 시스템입니다. useActionHandler 훅을 사용하여 컴포넌트와 분리된 핸들러를 등록하고, 우선순위 기반으로 실행됩니다. 
+stores를 지연 평가하여 현재 상태를 읽고, controller로 에러 처리와 결과 반환을 관리합니다. 이를 통해 확장 가능하고 유지보수가 용이한 애플리케이션을 구축할 수 있습니다.
 ```
 
 ---
