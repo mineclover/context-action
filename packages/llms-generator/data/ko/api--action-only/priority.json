@@ -178,5 +178,12 @@
     "created": "2025-08-16",
     "version": "1.0",
     "original_size": 10746
+  },
+  "work_status": {
+    "last_summary_update": "2025-08-17T12:00:00Z",
+    "last_checked": "2025-08-17T12:00:00Z",
+    "summary_docs_count": 3,
+    "completion_status": "in_progress",
+    "next_actions": ["Update API documentation", "Add code examples"]
   }
 }

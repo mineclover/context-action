@@ -1,8 +1,11 @@
 # Context-Action Framework - 문서 탐색
 
-생성일: 2025-08-16
+생성일: 2025-08-17
 유형: 최소 (탐색 링크)
 언어: KO
+LastUpdate: 2025-08-17T12:00:00Z
+CharLimit: minimum
+RelatedDocs: action-only,store-pattern,getting-started
 
 이 문서는 Context-Action 프레임워크의 모든 문서에 대한 빠른 탐색 링크를 우선순위 등급별로 정리하여 제공합니다.
 
