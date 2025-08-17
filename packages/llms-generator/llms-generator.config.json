@@ -1,21 +1,25 @@
 {
   "paths": {
-    "docsDir": "../../docs",
-    "llmContentDir": "../../data",
-    "outputDir": "../../docs/llms",
-    "templatesDir": "./templates",
-    "instructionsDir": "./instructions"
+    "docsDir": "./docs",
+    "llmContentDir": "./packages/llms-generator/data",
+    "outputDir": "./docs/llms",
+    "templatesDir": "./packages/llms-generator/templates",
+    "instructionsDir": "./packages/llms-generator/instructions"
   },
   "generation": {
     "supportedLanguages": [
       "ko",
-      "en"
+      "en",
+      "ja"
     ],
     "characterLimits": [
+      50,
       100,
       300,
+      500,
       1000,
-      2000
+      2000,
+      4000
     ],
     "defaultLanguage": "ko",
     "outputFormat": "txt"
@@ -90,6 +94,19 @@
       ],
       "color": "#6c757d",
       "icon": "📚"
+    },
+    "llms": {
+      "name": "LLM 콘텐츠",
+      "description": "LLM 최적화 콘텐츠",
+      "priority": 95,
+      "defaultStrategy": "reference-first",
+      "tags": [
+        "llms",
+        "optimized",
+        "concise"
+      ],
+      "color": "#ff6b6b",
+      "icon": "🤖"
     }
   },
   "tags": {
@@ -223,6 +240,24 @@
         "technical",
         "api",
         "lookup"
+      ]
+    },
+    "llms": {
+      "name": "LLM 최적화",
+      "description": "LLM 처리에 최적화된",
+      "weight": 1,
+      "compatibleWith": [
+        "concise",
+        "structured"
+      ]
+    },
+    "optimized": {
+      "name": "최적화",
+      "description": "성능 최적화된",
+      "weight": 1,
+      "compatibleWith": [
+        "advanced",
+        "technical"
       ]
     }
   },
