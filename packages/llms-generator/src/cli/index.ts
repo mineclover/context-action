@@ -29,6 +29,7 @@ import { createCheckPriorityStatusCommand } from './commands/check-priority-stat
 import { createSimplePriorityCheckCommand } from './commands/simple-priority-check.js';
 import { createMigrateToSimpleCommand } from './commands/migrate-to-simple.js';
 import { createSimpleLLMSGenerateCommand, createSimpleLLMSBatchCommand, createSimpleLLMSStatsCommand } from './commands/simple-llms-generate.js';
+import { InitCommand } from './commands/InitCommand.js';
 
 // Helper function to count generated files for a language
 async function countGeneratedFiles(language: string): Promise<number> {
@@ -140,6 +141,21 @@ async function main() {
     const enabledCharLimits = config.generation.characterLimits;
     
     switch (command) {
+      // Project initialization
+      case 'init':
+        const initOptions = {
+          dryRun: args.includes('--dry-run'),
+          overwrite: args.includes('--overwrite'),
+          quiet: args.includes('--quiet'),
+          skipDiscovery: args.includes('--skip-discovery'),
+          skipPriority: args.includes('--skip-priority'),
+          skipTemplates: args.includes('--skip-templates'),
+        };
+        
+        const initCommand = new InitCommand(config);
+        await initCommand.execute(initOptions);
+        break;
+        
       // Config management commands
       case 'config-init':
         const preset = (args[1] as 'minimal' | 'standard' | 'extended' | 'blog' | 'documentation') || 'standard';
@@ -1481,6 +1497,12 @@ function showHelp() {
   console.log('🚀 LLMS Generator CLI\n');
   console.log('USAGE:');
   console.log('  npx @context-action/llms-generator <command> [options]\n');
+  console.log('PROJECT INITIALIZATION:');
+  console.log('  init [options]       Complete project initialization based on config');
+  console.log('                       [--dry-run] [--overwrite] [--quiet]');
+  console.log('                       [--skip-discovery] [--skip-priority] [--skip-templates]');
+  console.log('                       Performs: discovery → priority → templates');
+  console.log('');
   console.log('CONFIGURATION MANAGEMENT:');
   console.log('  config-init [preset] [--path=config.json]');
   console.log('                       Initialize configuration with preset (minimal|standard|extended|blog|documentation)');
@@ -1600,6 +1622,11 @@ function showHelp() {
   console.log('  help                 Show this help message');
   console.log('');
   console.log('EXAMPLES:');
+  console.log('  # Project initialization (config-based)');
+  console.log('  npx @context-action/llms-generator init');
+  console.log('  npx @context-action/llms-generator init --dry-run  # Preview what would be created');
+  console.log('  npx @context-action/llms-generator init --overwrite --quiet  # Force overwrite silently');
+  console.log('');
   console.log('  # Configuration management');
   console.log('  npx @context-action/llms-generator config-init standard');
   console.log('  npx @context-action/llms-generator config-show');

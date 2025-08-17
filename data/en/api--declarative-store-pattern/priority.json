@@ -1,0 +1,238 @@
+{
+  "$schema": "../../priority-schema-enhanced.json",
+  "document": {
+    "id": "api--declarative-store-pattern",
+    "title": "Declarative Store Pattern API",
+    "source_path": "en/api/declarative-store-pattern.md",
+    "category": "api"
+  },
+  "priority": {
+    "score": 75,
+    "tier": "important",
+    "rationale": "Auto-generated priority assignment for api document"
+  },
+  "purpose": {
+    "primary_goal": "Provide comprehensive guidance on api  declarative store pattern",
+    "target_audience": [
+      "framework-users",
+      "beginners"
+    ],
+    "use_cases": [
+      "Understanding api  declarative store pattern",
+      "Implementing api  declarative store pattern patterns",
+      "Framework learning"
+    ],
+    "dependencies": []
+  },
+  "keywords": {
+    "primary": [
+      "Context-Action framework",
+      "api",
+      "declarative",
+      "store",
+      "pattern"
+    ],
+    "technical": [
+      "Context-Action",
+      "API",
+      "methods",
+      "interfaces",
+      "StoreManager",
+      "useStoreValue",
+      "createDeclarativeStorePattern",
+      "useStore",
+      "useStoreManager",
+      "includes"
+    ],
+    "patterns": [
+      "Action Only Pattern",
+      "Store Only Pattern"
+    ],
+    "avoid": [
+      "Complex implementation details",
+      "Advanced optimization techniques"
+    ]
+  },
+  "tags": {
+    "primary": [
+      "reference",
+      "technical",
+      "developer"
+    ],
+    "secondary": [
+      "state-management",
+      "reactive",
+      "design-patterns",
+      "methods",
+      "interfaces"
+    ],
+    "audience": [
+      "framework-users",
+      "beginners"
+    ],
+    "complexity": "intermediate",
+    "lastUpdated": "2025-08-17"
+  },
+  "dependencies": {
+    "prerequisites": [],
+    "references": [],
+    "followUp": [],
+    "conflicts": []
+  },
+  "extraction": {
+    "strategy": "api-first",
+    "character_limits": {
+      "100": {
+        "focus": "Primary functionality",
+        "structure": "One-sentence definition or primary use case",
+        "must_include": [
+          "main concept",
+          "framework context"
+        ],
+        "avoid": [
+          "code examples",
+          "detailed explanations"
+        ],
+        "example_structure": "Api  Declarative Store Pattern: Brief definition with Context-Action framework context"
+      },
+      "200": {
+        "focus": "Core concepts with basic context",
+        "structure": "Definition + main purpose + key benefit",
+        "must_include": [
+          "concept definition",
+          "main purpose",
+          "key benefit"
+        ],
+        "avoid": [
+          "code syntax",
+          "advanced details"
+        ],
+        "example_structure": "Concept definition → Main purpose → Key benefit"
+      },
+      "300": {
+        "focus": "Practical understanding",
+        "structure": "Concept + basic usage + simple example hint",
+        "must_include": [
+          "concept",
+          "usage context",
+          "basic example"
+        ],
+        "avoid": [
+          "detailed code",
+          "advanced topics"
+        ],
+        "example_structure": "Concept → Usage context → Basic example"
+      },
+      "500": {
+        "focus": "Comprehensive understanding with examples",
+        "structure": "Complete concept + detailed usage + code examples + best practices",
+        "must_include": [
+          "full concept explanation",
+          "detailed usage",
+          "code examples",
+          "best practices"
+        ],
+        "avoid": [
+          "unnecessary verbosity",
+          "unrelated topics"
+        ],
+        "example_structure": "Introduction → Core concepts → Usage patterns → Code examples → Best practices"
+      },
+      "1000": {
+        "focus": "Extended comprehensive coverage",
+        "structure": "Full documentation with all details",
+        "must_include": [
+          "complete documentation",
+          "all examples",
+          "edge cases",
+          "troubleshooting"
+        ],
+        "avoid": [
+          "redundancy"
+        ],
+        "example_structure": "Complete guide with all aspects covered"
+      },
+      "2000": {
+        "focus": "Extended comprehensive coverage",
+        "structure": "Full documentation with all details",
+        "must_include": [
+          "complete documentation",
+          "all examples",
+          "edge cases",
+          "troubleshooting"
+        ],
+        "avoid": [
+          "redundancy"
+        ],
+        "example_structure": "Complete guide with all aspects covered"
+      },
+      "5000": {
+        "focus": "Extended comprehensive coverage",
+        "structure": "Full documentation with all details",
+        "must_include": [
+          "complete documentation",
+          "all examples",
+          "edge cases",
+          "troubleshooting"
+        ],
+        "avoid": [
+          "redundancy"
+        ],
+        "example_structure": "Complete guide with all aspects covered"
+      },
+      "minimum": {
+        "focus": "Quick navigation and document overview",
+        "structure": "Document links + 2-3 line description + related documents",
+        "must_include": [
+          "source document link",
+          "brief purpose",
+          "related documents"
+        ],
+        "avoid": [
+          "detailed explanations",
+          "code examples"
+        ],
+        "example_structure": "Source: api/*.md | Purpose: Api  Declarative Store Pattern overview | Related: getting-started, best-practices"
+      },
+      "origin": {
+        "focus": "Complete original content preservation",
+        "structure": "Full markdown content from source file",
+        "must_include": [
+          "complete original content"
+        ],
+        "avoid": [
+          "modifications",
+          "truncations"
+        ],
+        "example_structure": "Complete copy of api/*.md"
+      }
+    },
+    "emphasis": {
+      "must_include": [
+        "Context-Action framework",
+        "Api  Declarative Store Pattern",
+        "API signature",
+        "parameters"
+      ],
+      "nice_to_have": [
+        "best practices",
+        "common use cases",
+        "usage examples",
+        "return types"
+      ]
+    }
+  },
+  "quality": {
+    "completeness_threshold": 0.8,
+    "code_examples_required": false,
+    "consistency_checks": [
+      "terminology",
+      "pattern_usage"
+    ]
+  },
+  "metadata": {
+    "created": "2025-08-17",
+    "version": "1.0",
+    "original_size": 22671
+  }
+}
