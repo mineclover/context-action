@@ -1,18 +1,25 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-# Priority JSON 검증 (config 기반)
-echo "🔍 Priority JSON 파일들을 검증합니다..."
+# YAML 프론트매터 자동 업데이트 시스템
+echo "🔍 Checking for document changes..."
 
-# 로컬 개발 환경에서 pnpm cli 사용 - 모든 설정은 llms-generator.config.json에서 로드
-cd packages/llms-generator && pnpm cli pre-commit-check --quiet
+# 변경된 문서 파일 검색
+CHANGED_DOCS=$(git diff --cached --name-only | grep -E '^docs/.+\.md$')
+CHANGED_TEMPLATES=$(git diff --cached --name-only | grep -E '^data/.+\.md$')
 
-# 검증 결과에 따라 커밋 허용/차단
-if [ $? -eq 0 ]; then
-  echo "✅ Priority JSON 검증 통과 - 커밋을 진행합니다."
-  exit 0
-else
-  echo "❌ Priority JSON 검증 실패 - 커밋이 차단되었습니다."
-  echo "상세 내용은 .husky/pre-commit-report.json을 확인하세요."
-  exit 1
+if [ -n "$CHANGED_DOCS" ]; then
+  echo "📝 Source documents changed, updating frontmatter..."
+  npx tsx packages/llms-generator/src/cli/hooks/update-frontmatter.ts --source-changed "$CHANGED_DOCS"
 fi
+
+if [ -n "$CHANGED_TEMPLATES" ]; then
+  echo "📋 Template documents changed, updating status..."
+  npx tsx packages/llms-generator/src/cli/hooks/update-frontmatter.ts --template-changed "$CHANGED_TEMPLATES"
+fi
+
+# 프론트매터 일관성 검증
+echo "✅ Validating frontmatter consistency..."
+npx tsx packages/llms-generator/src/cli/hooks/validate-frontmatter.ts
+
+echo "🎉 Frontmatter updates completed!"

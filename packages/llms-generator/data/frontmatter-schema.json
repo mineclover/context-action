@@ -1,0 +1,187 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Template Document Frontmatter Schema",
+  "description": "YAML frontmatter schema for template documents in the Context-Action framework documentation system",
+  "type": "object",
+  "required": [
+    "document_id",
+    "category", 
+    "source_path",
+    "character_limit",
+    "last_update",
+    "completion_status",
+    "workflow_stage",
+    "priority_score"
+  ],
+  "properties": {
+    "document_id": {
+      "type": "string",
+      "description": "Unique document identifier in kebab-case format",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "examples": ["guide--action-handlers", "api--store-only"]
+    },
+    "category": {
+      "type": "string", 
+      "description": "Document category classification",
+      "enum": ["guide", "api", "concept", "examples"],
+      "examples": ["guide", "api"]
+    },
+    "source_path": {
+      "type": "string",
+      "description": "Relative path to source markdown file from docs root",
+      "pattern": "^[a-z]{2}/[a-z0-9/-]+\\.md$",
+      "examples": ["en/guide/action-handlers.md", "ko/api/store-only.md"]
+    },
+    "character_limit": {
+      "type": "integer",
+      "description": "Maximum character count for this template",
+      "minimum": 50,
+      "maximum": 10000,
+      "enum": [100, 300, 500, 1000, 2000, 5000],
+      "examples": [100, 1000]
+    },
+    "last_update": {
+      "type": "string",
+      "description": "Last modification timestamp in ISO 8601 format",
+      "format": "date-time",
+      "examples": ["2025-08-17T21:25:25.986Z"]
+    },
+    "source_last_modified": {
+      "type": "string",
+      "description": "Source document last modification timestamp",
+      "format": "date-time"
+    },
+    "content_hash": {
+      "type": "string",
+      "description": "MD5 hash of source document content for change detection",
+      "pattern": "^[a-f0-9]{32}$"
+    },
+    "completion_status": {
+      "type": "string",
+      "description": "Current completion status of the template",
+      "enum": ["template", "draft", "review", "completed"],
+      "examples": ["template", "completed"]
+    },
+    "workflow_stage": {
+      "type": "string",
+      "description": "Current stage in the documentation workflow",
+      "enum": [
+        "template_generation",
+        "content_drafting", 
+        "content_review",
+        "quality_validation",
+        "final_approval",
+        "published"
+      ],
+      "examples": ["template_generation", "content_review"]
+    },
+    "update_status": {
+      "type": "string",
+      "description": "Status of recent updates",
+      "enum": [
+        "template_generated",
+        "source_updated", 
+        "content_modified",
+        "status_changed",
+        "synchronized"
+      ],
+      "examples": ["template_generated", "content_modified"]
+    },
+    "priority_score": {
+      "type": "integer",
+      "description": "Priority score for work ordering (0-100)",
+      "minimum": 0,
+      "maximum": 100,
+      "examples": [75, 90]
+    },
+    "priority_tier": {
+      "type": "string",
+      "description": "Priority classification tier",
+      "enum": ["critical", "high", "important", "normal", "low"],
+      "examples": ["important", "high"]
+    },
+    "quality_score": {
+      "type": "integer",
+      "description": "Content quality assessment score (0-100)",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "content_length": {
+      "type": "integer", 
+      "description": "Actual content length in characters",
+      "minimum": 0
+    },
+    "last_editor": {
+      "type": "string",
+      "description": "Username of last editor",
+      "examples": ["john.doe", "claude-ai"]
+    },
+    "review_required": {
+      "type": "boolean",
+      "description": "Whether manual review is required",
+      "default": false
+    },
+    "created_date": {
+      "type": "string",
+      "description": "Template creation timestamp",
+      "format": "date-time"
+    },
+    "original_size": {
+      "type": "integer",
+      "description": "Size of source document in characters",
+      "minimum": 0
+    },
+    "estimated_work_time": {
+      "type": "integer",
+      "description": "Estimated time to complete in minutes",
+      "minimum": 1
+    },
+    "tags": {
+      "type": "array",
+      "description": "Classification tags for the document",
+      "items": {
+        "type": "string"
+      },
+      "examples": [["beginner", "tutorial"], ["api", "reference"]]
+    },
+    "dependencies": {
+      "type": "array",
+      "description": "List of document IDs this template depends on",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+      }
+    },
+    "related_documents": {
+      "type": "array", 
+      "description": "List of related document IDs",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "document_id": "guide--action-handlers",
+      "category": "guide",
+      "source_path": "en/guide/action-handlers.md",
+      "character_limit": 100,
+      "last_update": "2025-08-17T21:25:25.986Z",
+      "source_last_modified": "2025-08-17T20:15:30.123Z",
+      "content_hash": "a1b2c3d4e5f6789012345678901234567",
+      "completion_status": "completed",
+      "workflow_stage": "published",
+      "update_status": "synchronized",
+      "priority_score": 85,
+      "priority_tier": "high",
+      "quality_score": 92,
+      "content_length": 98,
+      "last_editor": "technical-writer",
+      "review_required": false,
+      "tags": ["beginner", "tutorial"],
+      "dependencies": ["guide--getting-started"]
+    }
+  ]
+}
