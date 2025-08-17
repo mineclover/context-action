@@ -115,8 +115,23 @@ async function performDocumentSync(options: any, config: any): Promise<SyncResul
     const changedFiles = options.changedFiles 
       ? options.changedFiles.split(',').map((f: string) => f.trim())
       : getChangedFiles();
+    
+    // 프로젝트 루트에서 절대 경로로 변환
+    const absoluteChangedFiles = changedFiles.map(file => {
+      if (path.isAbsolute(file)) {
+        return file;
+      }
+      // Git 루트 디렉토리 찾기
+      try {
+        const gitRoot = execSync('git rev-parse --show-toplevel', { encoding: 'utf-8' }).trim();
+        return path.resolve(gitRoot, file);
+      } catch {
+        // Git 루트를 찾을 수 없으면 현재 디렉토리 기준으로 변환
+        return path.resolve(file);
+      }
+    });
 
-    if (changedFiles.length === 0) {
+    if (absoluteChangedFiles.length === 0) {
       if (!options.quiet) {
         console.log('📄 변경된 문서가 없습니다.');
       }
@@ -124,15 +139,15 @@ async function performDocumentSync(options: any, config: any): Promise<SyncResul
     }
 
     if (!options.quiet) {
-      console.log(`🔄 ${changedFiles.length}개의 변경된 파일을 분석합니다...`);
-      changedFiles.forEach(file => console.log(`  📝 ${file}`));
+      console.log(`🔄 ${absoluteChangedFiles.length}개의 변경된 파일을 분석합니다...`);
+      absoluteChangedFiles.forEach(file => console.log(`  📝 ${file}`));
     }
 
     // WorkStatusManager 초기화
     const workConfig = await ConfigManager.findAndLoadConfig();
     const workStatusManager = new EnhancedWorkStatusManager(workConfig);
 
-    for (const filePath of changedFiles) {
+    for (const filePath of absoluteChangedFiles) {
       try {
         result.processedFiles.push(filePath);
 
@@ -308,7 +323,9 @@ async function extractSummaryMetadata(summaryPath: string): Promise<{
   charLimit: string;
   documentIds: string[];
 }> {
-  const content = await readFile(summaryPath, 'utf-8');
+  // 절대 경로로 변환
+  const absolutePath = path.isAbsolute(summaryPath) ? summaryPath : path.resolve(summaryPath);
+  const content = await readFile(absolutePath, 'utf-8');
   const lines = content.split('\n');
   
   let language = '';
@@ -385,7 +402,8 @@ function extractDocumentId(filePath: string): string {
  */
 async function updatePriorityFrontmatter(priorityPath: string, updates: Record<string, any>): Promise<void> {
   try {
-    const content = await readFile(priorityPath, 'utf-8');
+    const absolutePath = path.isAbsolute(priorityPath) ? priorityPath : path.resolve(priorityPath);
+    const content = await readFile(absolutePath, 'utf-8');
     const priorityData = JSON.parse(content);
 
     // work_status 섹션 업데이트
@@ -397,7 +415,7 @@ async function updatePriorityFrontmatter(priorityPath: string, updates: Record<s
     Object.assign(priorityData.work_status, updates);
     priorityData.work_status.last_checked = new Date().toISOString();
 
-    await writeFile(priorityPath, JSON.stringify(priorityData, null, 2), 'utf-8');
+    await writeFile(absolutePath, JSON.stringify(priorityData, null, 2), 'utf-8');
   } catch (error) {
     throw new Error(`Priority JSON 업데이트 실패: ${error}`);
   }
@@ -446,7 +464,8 @@ async function updateRelatedSummaryDocuments(
  */
 async function updateSummaryDocumentHeader(summaryPath: string, updates: Record<string, any>): Promise<void> {
   try {
-    const content = await readFile(summaryPath, 'utf-8');
+    const absolutePath = path.isAbsolute(summaryPath) ? summaryPath : path.resolve(summaryPath);
+    const content = await readFile(absolutePath, 'utf-8');
     const lines = content.split('\n');
     
     // 헤더 섹션 찾기 (첫 번째 빈 줄까지)
@@ -471,7 +490,7 @@ async function updateSummaryDocumentHeader(summaryPath: string, updates: Record<
     const newHeader = [...filteredLines, ...updateLines];
     const newContent = [...newHeader, ...lines.slice(headerEndIndex)].join('\n');
 
-    await writeFile(summaryPath, newContent, 'utf-8');
+    await writeFile(absolutePath, newContent, 'utf-8');
   } catch (error) {
     throw new Error(`요약 문서 헤더 업데이트 실패: ${error}`);
   }

@@ -10,8 +10,8 @@ CHANGED_FILES=$(git diff HEAD~1 --name-only | grep -E '\.(md|txt)$' | tr '\n' ',
 if [ -n "$CHANGED_FILES" ]; then
   echo "📄 변경된 문서들: $CHANGED_FILES"
   
-  # 변경된 파일들을 명시적으로 전달하여 동기화
-  npx @context-action/llms-generator sync-docs --changed-files "$CHANGED_FILES" --quiet
+  # 로컬 개발 환경에서 pnpm cli 사용
+  cd packages/llms-generator && pnpm cli sync-docs --changed-files "$CHANGED_FILES" --quiet
   
   if [ $? -eq 0 ]; then
     echo "✅ Merge 후 문서 동기화가 완료되었습니다."

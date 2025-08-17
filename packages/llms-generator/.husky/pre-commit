@@ -4,8 +4,8 @@
 # Priority JSON 검증 (config 기반)
 echo "🔍 Priority JSON 파일들을 검증합니다..."
 
-# Pre-commit hook 실행 - 모든 설정은 llms-generator.config.json에서 로드
-npx @context-action/llms-generator pre-commit-check --quiet
+# 로컬 개발 환경에서 pnpm cli 사용 - 모든 설정은 llms-generator.config.json에서 로드
+cd packages/llms-generator && pnpm cli pre-commit-check --quiet
 
 # 검증 결과에 따라 커밋 허용/차단
 if [ $? -eq 0 ]; then
