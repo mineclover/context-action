@@ -190,21 +190,19 @@ export function createRefContext<T = any>(
     
     const store = stores.get(refNameStr)!;
     
-    // Store 구독 (React 18 useSyncExternalStore 사용)
-    const state = React.useSyncExternalStore(
-      React.useCallback(
-        (callback) => store.subscribe(callback),
-        [store]
-      ),
-      React.useCallback(
-        () => store.getSnapshot().value,
-        [store]
-      ),
-      React.useCallback(
-        () => store.getSnapshot().value,
-        [store]
-      )
-    );
+    // 간단한 React 상태로 구독 처리
+    const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0);
+    
+    // Store 구독
+    React.useEffect(() => {
+      const unsubscribe = store.subscribe(() => {
+        forceUpdate();
+      });
+      return unsubscribe;
+    }, [store]);
+    
+    // 현재 상태 가져오기
+    const currentState = store.getValue();
     
     return useMemo(() => ({
       setRef: (target: any) => {
@@ -215,7 +213,7 @@ export function createRefContext<T = any>(
           throw error;
         }
       },
-      target: state.target,
+      target: currentState.target,
       waitForMount: () => store.waitForMount(),
       withTarget: <Result>(
         operation: RefOperation<any, Result>,
@@ -223,8 +221,8 @@ export function createRefContext<T = any>(
       ): Promise<RefOperationResult<Result>> => {
         return store.withTarget(operation, options);
       },
-      isMounted: state.target !== null
-    }), [store, state, refNameStr]);
+      isMounted: currentState.target !== null
+    }), [store, currentState, refNameStr]);
   };
   
   // 여러 ref 동시 대기 함수
@@ -271,9 +269,9 @@ export function createRefContext<T = any>(
       const result: Partial<T> = {} as Partial<T>;
       
       stores.forEach((store, refName) => {
-        const snapshot = store.getSnapshot().value;
-        if (snapshot.target !== null) {
-          (result as any)[refName] = snapshot.target;
+        const state = store.getValue();
+        if (state.target !== null) {
+          (result as any)[refName] = state.target;
         }
       });
       

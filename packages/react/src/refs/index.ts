@@ -6,10 +6,10 @@
  * 
  * @example
  * ```typescript
- * import { createDeclarativeRefPattern } from '@context-action/react/refs';
+ * import { createRefContext } from '@context-action/react/refs';
  * 
  * // 범용 참조 시스템 - 모든 타입 지원
- * const { Provider, useRef } = createDeclarativeRefPattern('MyRefs', {
+ * const MyRefs = createRefContext('MyRefs', {
  *   // 어떤 객체든 관리 가능
  *   canvas: { name: 'canvas', objectType: 'dom' },
  *   gameEngine: { name: 'engine', objectType: 'custom' },
@@ -25,8 +25,7 @@ export type {
   RefOperationResult,
   RefOperationOptions,
   RefOperation,
-  RefInitConfig,
-  RefActionPayloadMap
+  RefInitConfig
 } from './types';
 
 // 핵심 클래스들
