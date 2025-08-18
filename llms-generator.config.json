@@ -2,7 +2,7 @@
   "$schema": "./packages/llms-generator/src/types/config.schema.json",
   "paths": {
     "docsDir": "./docs",
-    "llmContentDir": "./data",
+    "llmContentDir": "./llmsData",
     "outputDir": "./docs/llms",
     "templatesDir": "./packages/llms-generator/templates",
     "instructionsDir": "./packages/llms-generator/instructions"
