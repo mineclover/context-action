@@ -7,8 +7,7 @@
 
 import * as React from 'react';
 import { createContext, useContext, useCallback, useMemo, ReactNode } from 'react';
-import { ActionRegister, ActionHandler, HandlerConfig, ActionRegisterConfig } from '@context-action/core';
-import type { RefActionPayloadMap } from '../refs/types';
+import { ActionRegister, ActionHandler, HandlerConfig } from '@context-action/core';
 
 /**
  * 선언적 액션 정의 - 페이로드 타입과 설정을 통합
@@ -265,7 +264,7 @@ function createDeclarativeActionPatternImpl<
 
       // Cleanup on unmount or when dependencies change
       return unregister;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     }, [action, actionId, actionRegister]);
   };
 
