@@ -42,22 +42,14 @@ export {
 
 export type { QueueStats } from './OperationQueue';
 
-// 선언적 패턴 (메인 API)
+// 심플한 메인 API (권장)
 export { 
-  createDeclarativeRefPattern,
-  RefError,
-  RefErrorCode
-} from './declarative-ref-pattern';
+  createRefContext
+} from './createRefContext';
 
 export type { 
-  RefDefinition,
-  RefDefinitions,
-  InferRefTypes,
-  RefActionDefinitions,
-  DeclarativeRefContextReturn,
-  TypeValidator,
-  ErrorRecoveryStrategy
-} from './declarative-ref-pattern';
+  RefContextReturn
+} from './createRefContext';
 
 // 기본 헬퍼 (범용)
 export { 
