@@ -1,0 +1,17 @@
+{
+  "document_id": "guide--action-handlers",
+  "category": "guide",
+  "priority": 95,
+  "tier": "essential",
+  "character_limits": [100, 200, 300],
+  "language": "ko",
+  "last_updated": "2025-08-18T01:30:00Z",
+  "source_path": "docs/ko/guide/action-handlers.md",
+  "description": "액션 핸들러 가이드 문서",
+  "tags": ["beginner", "core", "practical"],
+  "quality_requirements": {
+    "min_completeness": 0.9,
+    "require_examples": true,
+    "require_code_samples": false
+  }
+}
