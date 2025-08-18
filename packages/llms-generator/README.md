@@ -73,6 +73,7 @@ const result = await categoryGen.generateSingle('api-spec', 'en');
 - **Batch Processing**: Generate all content with single command
 - **Priority-Based**: Intelligent document prioritization and selection
 - **Quality Control**: Built-in quality evaluation and improvement suggestions
+- **Template Auto-Fill**: Automatically populate template files with source content
 - **Markdown Generation**: Generate individual .md files with YAML frontmatter
 - **Bulk Generation**: `generate-all` command for all languages at once
 
@@ -110,6 +111,11 @@ npx llms-generator origin                   # Generate origin format
 npx llms-generator chars <limit> [lang]     # Generate specific limit
 npx llms-generator batch [options]          # Generate all formats
 
+# Template Management (NEW!)
+npx llms-generator fill-templates [lang]    # Auto-fill template files with content
+npx llms-generator fill-templates en        # Fill English templates
+npx llms-generator fill-templates ko        # Fill Korean templates
+
 # Advanced LLMS-TXT Generation (NEW!)
 npx llms-generator llms-generate [options]  # Generate with filtering & patterns
 npx llms-generator llms-generate --chars=100 --category=api  # Filter by char limit & category
@@ -137,6 +143,14 @@ npx llms-generator work-check [lang]        # Enhanced work check
 npx llms-generator compose [lang] [chars]   # Compose content
 npx llms-generator compose-batch [lang]     # Batch composition
 npx llms-generator compose-stats [lang]     # Show statistics
+```
+
+### Template Management
+```bash
+npx llms-generator fill-templates [lang]    # Auto-fill template files with content
+npx llms-generator fill-templates en        # Fill English templates only  
+npx llms-generator fill-templates ko        # Fill Korean templates only
+npx llms-generator fill-templates --dry-run # Preview changes without writing files
 ```
 
 ### Markdown Generation
@@ -317,6 +331,64 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - **Quality Scoring**: Automatic quality assessment
 - **Performance Tracking**: Generation time and resource usage
 - **Work Analytics**: Progress tracking and completion rates
+
+## 🔧 Template Management
+
+### Fill Templates Command
+
+The `fill-templates` command automatically populates template files with content extracted from source documentation. This is essential for preparing templates before LLMS generation.
+
+#### What it does:
+- **Content Extraction**: Extracts relevant content from source documents
+- **Template Population**: Fills template placeholders with actual content
+- **Character Limiting**: Respects character limits specified in template files
+- **Quality Control**: Ensures generated content meets quality standards
+- **Status Updates**: Updates template workflow status to `content_filled`
+
+#### Usage Examples:
+
+```bash
+# Fill all English templates
+npx llms-generator fill-templates en
+
+# Fill all Korean templates  
+npx llms-generator fill-templates ko
+
+# Preview changes without writing files
+npx llms-generator fill-templates en --dry-run
+
+# Fill templates with verbose output
+npx llms-generator fill-templates en --verbose
+```
+
+#### Template File Format (Standard):
+
+The system supports a simplified template format where content follows directly after the YAML frontmatter:
+
+```yaml
+---
+document_id: api--action-only
+category: api
+source_path: en/api/action-only.md
+character_limit: 100
+last_update: '2025-08-18T02:35:00.000Z'
+update_status: content_only
+priority_score: 90
+priority_tier: critical
+completion_status: completed
+workflow_stage: content_finalized
+---
+
+Action Only Pattern: Type-safe action dispatching without state management via createActionContext.
+```
+
+This simplified format is now the **standard template format**, replacing the previous structured format with "## 템플릿 내용" sections.
+
+#### Benefits:
+- **Automation**: Eliminates manual template population
+- **Consistency**: Ensures uniform content quality across templates
+- **Efficiency**: Processes multiple templates in batch operations
+- **Validation**: Automatically validates template completeness
 
 ---
 

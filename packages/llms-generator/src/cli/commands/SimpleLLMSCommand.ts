@@ -9,12 +9,15 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 import { EnhancedLLMSConfig } from '../../types/config.js';
+import { LLMSOutputPathManager } from '../../core/LLMSOutputPathManager.js';
 
 export interface SimpleLLMSOptions {
   characterLimit?: number;
   category?: string;
   language?: string;
-  pattern?: 'clean' | 'minimal' | 'raw';
+  pattern?: 'clean' | 'minimal' | 'raw' | 'origin' | 'minimum';
+  patterns?: string[]; // Multiple patterns to generate
+  generateAll?: boolean; // Generate origin, minimum, and default chars in one command
   outputDir?: string;
   dryRun?: boolean;
   verbose?: boolean;
@@ -26,10 +29,23 @@ export interface CleanDocument {
   priority: number;
   characterLimit: number;
   category: string;
+  documentId: string;
+  language: string;
+  filePath: string;
+  metadata: {
+    completion_status: string;
+    workflow_stage: string;
+    quality_score?: number;
+    content_length: number;
+  };
 }
 
 export class SimpleLLMSCommand {
-  constructor(private config: EnhancedLLMSConfig) {}
+  private pathManager: LLMSOutputPathManager;
+
+  constructor(private config: EnhancedLLMSConfig) {
+    this.pathManager = new LLMSOutputPathManager(config);
+  }
 
   async execute(options: SimpleLLMSOptions): Promise<void> {
     const {
@@ -37,10 +53,23 @@ export class SimpleLLMSCommand {
       category,
       language = this.config.generation?.defaultLanguage || 'ko',
       pattern = 'clean',
+      patterns,
+      generateAll = false,
       outputDir = this.config.paths?.outputDir || './docs/llms',
       dryRun = false,
       verbose = false
     } = options;
+
+    // Default behavior: generate origin, minimum, and default character limit files
+    if (generateAll || (!pattern && !patterns && !characterLimit)) {
+      return this.executeMultipleGeneration({
+        ...options,
+        language,
+        outputDir,
+        dryRun,
+        verbose
+      });
+    }
 
     if (verbose) {
       console.log('🚀 Generating clean LLMS-TXT file...');
@@ -71,9 +100,14 @@ export class SimpleLLMSCommand {
     // Generate content
     const content = this.generateCleanContent(documents, pattern);
     
-    // Generate filename
-    const filename = this.generateFilename(language, characterLimit, category, pattern);
-    const outputPath = path.join(outputDir, filename);
+    // Use path manager for consistent output path generation
+    const { outputPath, filename } = this.pathManager.generateOutputPath({
+      language,
+      characterLimit,
+      category,
+      pattern,
+      outputDir
+    });
 
     if (dryRun) {
       console.log('📊 Dry Run Summary:');
@@ -141,7 +175,7 @@ export class SimpleLLMSCommand {
         const filePath = path.join(folderPath, file);
         const document = await this.parseDocument(filePath, docCategory, fileCharLimit);
         
-        if (document && this.isCompleted(document)) {
+        if (document) {
           documents.push(document);
         }
       }
@@ -170,12 +204,30 @@ export class SimpleLLMSCommand {
       // Get priority
       const priority = frontmatter.priority_score || this.config.categories?.[category]?.priority || 50;
 
+      // Extract document ID from file path
+      const fileName = path.basename(filePath, '.md');
+      const documentId = fileName.replace(/-\d+$/, ''); // Remove character limit suffix
+
+      // Get language from file path structure
+      const pathParts = filePath.split(path.sep);
+      const languageIndex = pathParts.findIndex(part => ['en', 'ko'].includes(part));
+      const language = languageIndex >= 0 ? pathParts[languageIndex] : 'en';
+
       return {
         title: title.replace(/\s*\(\d+자\)/, ''), // Remove character limit from title
         content: cleanContent,
         priority,
         characterLimit,
-        category
+        category,
+        documentId,
+        language,
+        filePath,
+        metadata: {
+          completion_status: frontmatter.completion_status || frontmatter.update_status || 'template_based',
+          workflow_stage: frontmatter.workflow_stage || 'template_content',
+          quality_score: frontmatter.quality_score,
+          content_length: cleanContent.length
+        }
       };
     } catch (error) {
       return null;
@@ -183,16 +235,35 @@ export class SimpleLLMSCommand {
   }
 
   private extractCleanContent(content: string): string {
-    // Extract content from "템플릿 내용" section
-    const contentMatch = content.match(/## 템플릿 내용[^]*?```markdown\s*([\s\S]*?)\s*```/);
-    if (contentMatch && contentMatch[1]) {
-      const extracted = contentMatch[1].trim();
-      // Remove comments and clean up
-      return extracted
-        .replace(/<!--[\s\S]*?-->/g, '')
-        .replace(/^\s*#\s*.*$/gm, '') // Remove markdown headers from content
-        .trim();
+    // STANDARD FORMAT: Direct content after frontmatter (preferred for all languages)
+    const directContent = content
+      .trim()
+      .replace(/<!--[\s\S]*?-->/g, '') // Remove HTML comments
+      .replace(/^#+\s.*$/gm, '') // Remove markdown headers (if any)
+      .replace(/^\s*---\s*$/gm, '') // Remove horizontal rules
+      .replace(/\n{3,}/g, '\n\n') // Normalize line breaks
+      .trim();
+    
+    // Check if this is substantial content (not just template structure)
+    if (directContent && 
+        directContent.length > 10 && 
+        !directContent.includes('## 템플릿 내용') &&
+        !directContent.includes('Provide comprehensive guidance on')) {
+      return directContent;
     }
+    
+    // LEGACY FORMAT: Try to extract from "템플릿 내용" section with markdown code block (Korean templates)
+    const codeBlockMatch = content.match(/## 템플릿 내용[^]*?```markdown\s*([\s\S]*?)\s*```/);
+    if (codeBlockMatch && codeBlockMatch[1]) {
+      return codeBlockMatch[1].trim().replace(/<!--[\s\S]*?-->/g, '').trim();
+    }
+    
+    // LEGACY FORMAT: If no code block found, try to extract content from "템플릿 내용" section
+    const sectionMatch = content.match(/## 템플릿 내용[^]*?\n\n([\s\S]*?)(?=\n\n|$)/);
+    if (sectionMatch && sectionMatch[1]) {
+      return sectionMatch[1].trim().replace(/<!--[\s\S]*?-->/g, '').trim();
+    }
+    
     return '';
   }
 
@@ -230,34 +301,250 @@ export class SimpleLLMSCommand {
 
     switch (pattern) {
       case 'minimal':
-        // Just titles and content, no extra formatting
-        content = documents.map(doc => `${doc.title}\n\n${doc.content}`).join('\n\n---\n\n');
+        // Minimal format: All available documents with standard link format
+        content = this.generateMinimumLinkContent(documents);
         break;
         
       case 'raw':
-        // Pure content only, no titles
+        // Pure content only, no metadata
         content = documents.map(doc => doc.content).join('\n\n');
         break;
         
+      case 'origin':
+        // Origin format: Full content with document separators, no frontmatter
+        content = documents.map((doc) => {
+          let result = `===================[ DOC: ${this.getRelativeSourcePath(doc)} ]===================\n`;
+          result += `# ${doc.title}\n\n${doc.content}`;
+          return result;
+        }).join('\n\n');
+        break;
+        
       default: // 'clean'
-        // Clean format with minimal structure
-        content = documents.map((doc, index) => {
-          return `${index + 1}. ${doc.title}\n\n${doc.content}`;
-        }).join('\n\n---\n\n');
+        // Clean format without frontmatter - pure content only
+        content = documents.map((doc) => {
+          let result = `===================[ DOC: ${this.getRelativeSourcePath(doc)} ]===================\n`;
+          result += `# ${doc.title}\n\n${doc.content}`;
+          return result;
+        }).join('\n\n');
     }
 
     return content;
   }
 
+  /**
+   * Execute multiple generation patterns at once
+   */
+  private async executeMultipleGeneration(options: SimpleLLMSOptions): Promise<void> {
+    const {
+      category,
+      language = this.config.generation?.defaultLanguage || 'ko',
+      outputDir,
+      dryRun = false,
+      verbose = false
+    } = options;
+
+    if (verbose) {
+      console.log('🚀 Generating multiple LLMS files (origin, minimum, default chars)...');
+      if (dryRun) console.log('🔍 DRY RUN - No files will be created');
+    }
+
+    const generationTasks = [
+      // Origin pattern (no character limit, full content)
+      {
+        pattern: 'origin' as const,
+        characterLimit: undefined,
+        description: 'Origin (full content)'
+      },
+      // Minimum pattern (link navigation only)
+      {
+        pattern: 'minimal' as const,
+        characterLimit: undefined,
+        description: 'Minimum (link navigation)'
+      },
+      // Default character limit (from config or 500)
+      {
+        pattern: 'clean' as const,
+        characterLimit: this.getDefaultCharacterLimit(),
+        description: `Default (${this.getDefaultCharacterLimit()} chars)`
+      }
+    ];
+
+    const results: Array<{ task: typeof generationTasks[0]; success: boolean; outputPath?: string; error?: string }> = [];
+
+    for (const task of generationTasks) {
+      try {
+        const result = await this.executeSingleGeneration({
+          ...options,
+          pattern: task.pattern,
+          characterLimit: task.characterLimit,
+          language,
+          outputDir,
+          dryRun,
+          verbose: false // Suppress individual verbose output
+        });
+        
+        results.push({
+          task,
+          success: true,
+          outputPath: result.outputPath
+        });
+        
+        if (verbose) {
+          console.log(`✅ ${task.description}: ${result.filename}`);
+        }
+      } catch (error) {
+        results.push({
+          task,
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+        
+        if (verbose) {
+          console.log(`❌ ${task.description}: Failed - ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
+    }
+
+    // Summary
+    const successful = results.filter(r => r.success).length;
+    const failed = results.filter(r => !r.success).length;
+    
+    console.log('\n📊 Generation Summary:');
+    console.log(`✅ Successful: ${successful}`);
+    if (failed > 0) {
+      console.log(`❌ Failed: ${failed}`);
+    }
+    console.log(`📁 Language: ${language}`);
+    if (category) console.log(`📂 Category: ${category}`);
+    
+    if (successful > 0) {
+      console.log('\n📄 Generated Files:');
+      results.filter(r => r.success).forEach(r => {
+        console.log(`   ${r.task.description}: ${path.basename(r.outputPath || '')}`);
+      });
+    }
+
+    if (failed > 0) {
+      console.log('\n❌ Failed Generations:');
+      results.filter(r => !r.success).forEach(r => {
+        console.log(`   ${r.task.description}: ${r.error}`);
+      });
+    }
+  }
+
+  /**
+   * Execute single generation and return result info
+   */
+  private async executeSingleGeneration(options: SimpleLLMSOptions): Promise<{ outputPath: string; filename: string }> {
+    const {
+      characterLimit,
+      category,
+      language = this.config.generation?.defaultLanguage || 'ko',
+      pattern = 'clean',
+      outputDir = this.config.paths?.outputDir || './docs/llms',
+      dryRun = false
+    } = options;
+
+    // Find and parse documents
+    const documents = await this.findDocuments(language, characterLimit, category);
+    
+    if (documents.length === 0) {
+      throw new Error(`No completed documents found for ${language}${characterLimit ? ` with ${characterLimit} chars` : ''}${category ? ` in category ${category}` : ''}`);
+    }
+
+    // Generate content
+    const content = this.generateCleanContent(documents, pattern);
+    
+    // Use path manager for consistent output path generation
+    const { outputPath, filename } = this.pathManager.generateOutputPath({
+      language,
+      characterLimit,
+      category,
+      pattern,
+      outputDir
+    });
+
+    if (!dryRun) {
+      // Ensure output directory exists
+      await fs.mkdir(path.dirname(outputPath), { recursive: true });
+      
+      // Write file
+      await fs.writeFile(outputPath, content, 'utf-8');
+    }
+
+    return { outputPath, filename };
+  }
+
+  /**
+   * Get default character limit from config or fallback
+   */
+  private getDefaultCharacterLimit(): number {
+    const limits = this.config.generation?.characterLimits;
+    if (limits && limits.length > 0) {
+      // Use the middle value as default, or 500 if array is small
+      const middle = Math.floor(limits.length / 2);
+      return limits[middle] || 500;
+    }
+    return 500;
+  }
+
+  private getRelativeSourcePath(doc: CleanDocument): string {
+    return this.pathManager.getRelativeSourcePath(doc.documentId, doc.language, doc.characterLimit, doc.filePath);
+  }
+
+  private generateMinimumLinkContent(documents: CleanDocument[]): string {
+    let content = '';
+    
+    // Remove duplicates by documentId first
+    const uniqueDocuments = documents.reduce((acc: CleanDocument[], doc) => {
+      const exists = acc.find(existing => existing.documentId === doc.documentId);
+      if (!exists) {
+        acc.push(doc);
+      }
+      return acc;
+    }, []);
+    
+    // Minimal format: Show ALL available documents with standard format
+    // Sort by category first, then by priority and title for consistency
+    const sortedDocs = uniqueDocuments.sort((a, b) => {
+      if (a.category !== b.category) return a.category.localeCompare(b.category);
+      if (b.priority !== a.priority) return b.priority - a.priority;
+      return a.title.localeCompare(b.title);
+    });
+    
+    // Generate content with standard link format for all documents
+    sortedDocs.forEach((doc, index) => {
+      const sourcePath = this.getRelativeSourcePath(doc);
+      const readableTitle = this.formatReadableTitle(doc.title);
+      content += `${index + 1}. **[${readableTitle}](${sourcePath})** (${doc.category}) - Priority: ${doc.priority}\n`;
+    });
+
+    return content.trim();
+  }
+
+  private formatReadableTitle(title: string): string {
+    // Convert document IDs like "guide--action-handlers" to "Action Handlers"
+    if (title.includes('--')) {
+      const parts = title.split('--');
+      const mainPart = parts[parts.length - 1]; // Get the last part after --
+      
+      // Convert kebab-case to Title Case
+      return mainPart
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    }
+    return title;
+  }
+
   private generateFilename(language: string, characterLimit?: number, category?: string, pattern?: string): string {
-    let filename = `llms-${language}`;
-    
-    if (characterLimit) filename += `-${characterLimit}chars`;
-    if (category) filename += `-${category}`;
-    if (pattern && pattern !== 'clean') filename += `-${pattern}`;
-    
-    filename += '.txt';
-    return filename;
+    // Delegate to path manager for consistent filename generation
+    return this.pathManager.generateOutputPath({
+      language,
+      characterLimit,
+      category,
+      pattern
+    }).filename;
   }
 
   private async exists(path: string): Promise<boolean> {

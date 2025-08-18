@@ -5,8 +5,12 @@
 import { readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 import type { PriorityMetadata } from '../types/index.js';
 
 // Priority schema types based on priority-schema-enhanced.json
@@ -124,7 +128,9 @@ export class PrioritySchemaManager {
   private validate: any = null;
 
   constructor(llmContentDir: string) {
-    this.schemaPath = path.join(llmContentDir, 'priority-schema-enhanced.json');
+    // Schema is in the package data directory, not llmContentDir
+    const packageDir = path.resolve(__dirname, '../..');
+    this.schemaPath = path.join(packageDir, 'data', 'priority-schema-enhanced.json');
   }
 
   /**

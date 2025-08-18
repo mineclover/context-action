@@ -8,7 +8,8 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
-import { EnhancedLLMSConfig } from '../../types/config.js';
+import { CLIConfig } from '../types/CLITypes.js';
+import { LLMSOutputPathManager } from '../../core/LLMSOutputPathManager.js';
 
 export interface LLMSGenerateOptions {
   characterLimit?: number;
@@ -54,7 +55,11 @@ export interface LLMSGenerateResult {
 }
 
 export class LLMSGenerateCommand {
-  constructor(private config: EnhancedLLMSConfig) {}
+  private pathManager: LLMSOutputPathManager;
+
+  constructor(private config: CLIConfig) {
+    this.pathManager = new LLMSOutputPathManager(config);
+  }
 
   async execute(options: LLMSGenerateOptions = {}): Promise<void> {
     console.log('🚀 Generating LLMS-TXT file...\n');
@@ -145,7 +150,7 @@ export class LLMSGenerateCommand {
     const documents: DocumentContent[] = [];
     const language = options.language!;
     
-    const languageDataDir = path.join(this.config.paths?.llmContentDir || './data', language);
+    const languageDataDir = path.join(this.config.paths.llmContentDir, language);
     
     try {
       await fs.access(languageDataDir);
@@ -193,19 +198,68 @@ export class LLMSGenerateCommand {
     characterLimit: number
   ): Promise<DocumentContent | null> {
     try {
+      // 1. Check if priority.json exists first
+      const documentDir = path.dirname(filePath);
+      const priorityPath = path.join(documentDir, 'priority.json');
+      
+      let priorityData: any = null;
+      try {
+        const priorityContent = await fs.readFile(priorityPath, 'utf-8');
+        priorityData = JSON.parse(priorityContent);
+      } catch (error) {
+        console.warn(`⚠️ Warning: No priority.json found for ${documentId}`);
+      }
+
+      // 2. Try to extract content from source document if priority.json exists and is not template
+      if (priorityData && this.isPriorityDataValid(priorityData)) {
+        const sourceContent = await this.extractFromSourceDocument(
+          priorityData.document.source_path, 
+          characterLimit, 
+          priorityData
+        );
+        
+        if (sourceContent) {
+          // Clean up template values from priority data
+          const cleanedPriorityData = this.cleanPriorityData(priorityData);
+          
+          return {
+            documentId,
+            category,
+            language,
+            characterLimit,
+            title: cleanedPriorityData.document?.title || documentId,
+            content: sourceContent,
+            priority: cleanedPriorityData.priority?.score || 50,
+            filePath,
+            metadata: {
+              completion_status: 'generated_from_source',
+              workflow_stage: 'auto_generated',
+              quality_score: cleanedPriorityData.quality?.completeness_threshold || 0.8,
+              content_length: sourceContent.length
+            }
+          };
+        }
+      }
+
+      // 3. Fallback to template file parsing (legacy mode)
       const content = await fs.readFile(filePath, 'utf-8');
       const parsed = matter(content);
       const frontmatter = parsed.data;
 
-      // Extract template content
       const templateContent = this.extractTemplateContent(parsed.content);
       if (!templateContent) return null;
 
-      // Get priority from config or frontmatter
-      const priority = frontmatter.priority_score || this.config.categories?.[category]?.priority || 50;
+      const priority = frontmatter.priority_score || 
+                      frontmatter.priority || 
+                      priorityData?.priority?.score ||
+                      this.config.categories?.[category]?.priority || 
+                      50;
 
-      // Extract title from content
-      const title = this.extractTitle(parsed.content) || documentId;
+      const title = frontmatter.title || 
+                   frontmatter.document_id || 
+                   priorityData?.document?.title ||
+                   this.extractTitle(parsed.content) || 
+                   documentId;
 
       return {
         documentId,
@@ -217,9 +271,9 @@ export class LLMSGenerateCommand {
         priority,
         filePath,
         metadata: {
-          completion_status: frontmatter.completion_status || 'unknown',
-          workflow_stage: frontmatter.workflow_stage || 'unknown',
-          quality_score: frontmatter.quality_score,
+          completion_status: frontmatter.completion_status || frontmatter.update_status || 'template_based',
+          workflow_stage: frontmatter.workflow_stage || 'template_content',
+          quality_score: frontmatter.quality_score || priorityData?.quality?.completeness_threshold,
           content_length: templateContent.length
         }
       };
@@ -229,12 +283,225 @@ export class LLMSGenerateCommand {
     }
   }
 
-  private extractTemplateContent(content: string): string {
-    // Extract content from "템플릿 내용" section
-    const contentMatch = content.match(/## 템플릿 내용[^]*?```markdown\s*([\s\S]*?)\s*```/);
-    if (contentMatch && contentMatch[1]) {
-      return contentMatch[1].trim().replace(/<!--[\s\S]*?-->/g, '').trim();
+  private async extractFromSourceDocument(
+    sourcePath: string, 
+    characterLimit: number, 
+    priorityData: any
+  ): Promise<string | null> {
+    try {
+      // Build full path to source document
+      const fullSourcePath = path.join(this.config.paths.docsDir, sourcePath);
+      
+      if (!await this.fileExists(fullSourcePath)) {
+        console.warn(`⚠️ Warning: Source document not found: ${fullSourcePath}`);
+        return null;
+      }
+
+      const sourceContent = await fs.readFile(fullSourcePath, 'utf-8');
+      const parsed = matter(sourceContent);
+      
+      // Use priority.json extraction strategy to generate appropriate content
+      const strategy = priorityData.extraction?.character_limits?.[characterLimit];
+      if (strategy) {
+        return this.generateContentFromStrategy(parsed.content, strategy, characterLimit);
+      }
+      
+      // Fallback: simple content extraction
+      return this.extractContentByCharacterLimit(parsed.content, characterLimit);
+      
+    } catch (error) {
+      console.warn(`⚠️ Warning: Error extracting from source document: ${error}`);
+      return null;
     }
+  }
+
+  private async fileExists(filePath: string): Promise<boolean> {
+    try {
+      await fs.access(filePath);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private generateContentFromStrategy(content: string, strategy: any, characterLimit: number): string {
+    // Remove frontmatter and basic cleanup
+    const cleanContent = content
+      .replace(/^---[\s\S]*?---\n/, '') // Remove frontmatter
+      .replace(/<!--[\s\S]*?-->/g, '') // Remove comments
+      .replace(/^#+\s/gm, '') // Remove headers
+      .replace(/\n{3,}/g, '\n\n') // Normalize line breaks
+      .trim();
+
+    // Extract first few sentences based on character limit
+    const sentences = cleanContent.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    let result = '';
+    let currentLength = 0;
+    
+    for (const sentence of sentences) {
+      const trimmedSentence = sentence.trim();
+      if (currentLength + trimmedSentence.length + 1 > characterLimit * 0.9) break; // Leave some margin
+      
+      if (result) result += '. ';
+      result += trimmedSentence;
+      currentLength = result.length;
+    }
+    
+    if (result && !result.endsWith('.')) result += '.';
+    return result || cleanContent.substring(0, characterLimit - 10) + '...';
+  }
+
+  private extractContentByCharacterLimit(content: string, characterLimit: number): string {
+    const cleanContent = content
+      .replace(/^---[\s\S]*?---\n/, '')
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/^#+\s/gm, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+
+    if (cleanContent.length <= characterLimit) return cleanContent;
+    
+    // Find the last complete sentence within the limit
+    const truncated = cleanContent.substring(0, characterLimit - 3);
+    const lastSentenceEnd = Math.max(
+      truncated.lastIndexOf('.'),
+      truncated.lastIndexOf('!'),
+      truncated.lastIndexOf('?')
+    );
+    
+    return lastSentenceEnd > characterLimit * 0.5 
+      ? truncated.substring(0, lastSentenceEnd + 1)
+      : truncated + '...';
+  }
+
+  private isPriorityDataValid(priorityData: any): boolean {
+    // Check if priority.json contains actual data or just template placeholders
+    if (!priorityData.document?.source_path) return false;
+    
+    // Filter out common template/placeholder values
+    const templateIndicators = [
+      'Auto-generated priority assignment',
+      'Provide comprehensive guidance on',
+      'Understanding api ',
+      'Implementing api ',
+      'Framework learning',
+      'framework-users',
+      'beginners',
+      '<!-- Set priority score',
+      '<!-- Set tier:',
+      '<!-- Explain why',
+      '<!-- What is the main purpose',
+      '<!-- Who should read this',
+      '<!-- What to focus on'
+    ];
+    
+    const rationale = priorityData.priority?.rationale || '';
+    const primaryGoal = priorityData.purpose?.primary_goal || '';
+    const score = String(priorityData.priority?.score || '');
+    
+    // Check if contains template indicators
+    const hasTemplateContent = templateIndicators.some(indicator => 
+      rationale.includes(indicator) || 
+      primaryGoal.includes(indicator) ||
+      score.includes(indicator)
+    );
+    
+    // Check if purpose is empty object (cleaned template)
+    const isPurposeEmpty = Object.keys(priorityData.purpose || {}).length === 0;
+    
+    if (hasTemplateContent || isPurposeEmpty) {
+      console.log(`📋 Skipping template priority.json for ${priorityData.document?.id || 'unknown'}`);
+      return false;
+    }
+    
+    return true;
+  }
+
+  private cleanPriorityData(priorityData: any): any {
+    // Create a cleaned copy of priority data, removing template values
+    const cleaned = JSON.parse(JSON.stringify(priorityData));
+    
+    // Clean template rationale
+    if (cleaned.priority?.rationale?.includes('Auto-generated priority assignment')) {
+      cleaned.priority.rationale = null;
+    }
+    
+    // Clean template primary_goal
+    if (cleaned.purpose?.primary_goal?.includes('Provide comprehensive guidance on')) {
+      cleaned.purpose.primary_goal = null;
+    }
+    
+    // Clean template use_cases that contain generic patterns
+    if (cleaned.purpose?.use_cases) {
+      cleaned.purpose.use_cases = cleaned.purpose.use_cases.filter((useCase: string) => 
+        !useCase.includes('Understanding ') && 
+        !useCase.includes('Implementing ') && 
+        !useCase.includes('Framework learning')
+      );
+      
+      // If no valid use_cases left, clear the array
+      if (cleaned.purpose.use_cases.length === 0) {
+        cleaned.purpose.use_cases = null;
+      }
+    }
+    
+    // Clean template audience values
+    if (cleaned.purpose?.target_audience) {
+      cleaned.purpose.target_audience = cleaned.purpose.target_audience.filter((audience: string) => 
+        !['framework-users', 'beginners'].includes(audience)
+      );
+      
+      if (cleaned.purpose.target_audience.length === 0) {
+        cleaned.purpose.target_audience = null;
+      }
+    }
+    
+    // Clean template technical keywords that are too generic
+    if (cleaned.keywords?.technical) {
+      const genericKeywords = ['API', 'methods', 'interfaces', 'framework'];
+      cleaned.keywords.technical = cleaned.keywords.technical.filter((keyword: string) => 
+        !genericKeywords.includes(keyword)
+      );
+      
+      if (cleaned.keywords.technical.length === 0) {
+        cleaned.keywords.technical = null;
+      }
+    }
+    
+    return cleaned;
+  }
+
+  private extractTemplateContent(content: string): string {
+    // STANDARD FORMAT: Direct content after frontmatter (preferred)
+    // This is the new standard format - gray-matter already removed frontmatter
+    const directContent = content
+      .trim()
+      .replace(/<!--[\s\S]*?-->/g, '') // Remove HTML comments
+      .replace(/^#+\s.*$/gm, '') // Remove markdown headers (if any)
+      .replace(/^\s*---\s*$/gm, '') // Remove horizontal rules
+      .replace(/\n{3,}/g, '\n\n') // Normalize line breaks
+      .trim();
+    
+    // Check if this is substantial content (not just template structure)
+    if (directContent && 
+        directContent.length > 10 && 
+        !directContent.includes('## 템플릿 내용') &&
+        !directContent.includes('Provide comprehensive guidance on')) {
+      return directContent;
+    }
+    
+    // LEGACY FORMAT: Try to extract from "템플릿 내용" section with markdown code block
+    const codeBlockMatch = content.match(/## 템플릿 내용[^]*?```markdown\s*([\s\S]*?)\s*```/);
+    if (codeBlockMatch && codeBlockMatch[1]) {
+      return codeBlockMatch[1].trim().replace(/<!--[\s\S]*?-->/g, '').trim();
+    }
+    
+    // LEGACY FORMAT: If no code block found, try to extract content from "템플릿 내용" section
+    const sectionMatch = content.match(/## 템플릿 내용[^]*?\n\n([\s\S]*?)(?=\n\n|$)/);
+    if (sectionMatch && sectionMatch[1]) {
+      return sectionMatch[1].trim().replace(/<!--[\s\S]*?-->/g, '').trim();
+    }
+    
     return '';
   }
 
@@ -257,12 +524,13 @@ export class LLMSGenerateCommand {
     // Check if document has real content (not just template placeholders)
     const content = document.content;
     
-    if (content.length < 30) return false;
+    if (content.length < 10) return false;
     
     const hasPlaceholders = 
       content.includes('여기에') ||
       content.includes('작성하세요') ||
-      content.includes('Provide comprehensive guidance on');
+      content.includes('Provide comprehensive guidance on') ||
+      content.includes('Provide comprehensive guida'); // Handle truncated placeholder
     
     return !hasPlaceholders;
   }
@@ -312,28 +580,20 @@ export class LLMSGenerateCommand {
   }
 
   private generateContent(documents: DocumentContent[], options: LLMSGenerateOptions): string {
-    const { pattern, language, characterLimit, category, includeMetadata } = options;
+    const { pattern, language, characterLimit, category } = options;
     
     let content = '';
 
-    // Generate header based on pattern
-    switch (pattern) {
-      case 'minimum':
-        content += this.generateMinimumHeader(language, { characterLimit, category });
-        break;
-      case 'origin':
-        content += this.generateOriginHeader(language, { characterLimit, category });
-        break;
-      default:
-        content += this.generateStandardHeader(language, { characterLimit, category });
-    }
-
-    content += '\n\n';
-
-    // Add metadata if requested
-    if (includeMetadata) {
-      content += this.generateMetadata(documents, { characterLimit, category, language });
-      content += '\n\n';
+    // Simple header with character limit info
+    if (characterLimit) {
+      content += `# Documentation (${characterLimit} chars)\n\n`;
+      content += `Generated: ${new Date().toISOString().split('T')[0]}\n`;
+      content += `Type: ${pattern === 'minimum' ? 'Minimum' : pattern === 'origin' ? 'Origin' : 'Standard'}\n`;
+      content += `Language: ${language?.toUpperCase() || 'EN'}\n\n`;
+      
+      content += `This document contains ${characterLimit}-character summaries of the documentation.\n\n`;
+    } else {
+      content += `# Documentation\n\n`;
     }
 
     // Generate content based on pattern
@@ -348,7 +608,7 @@ export class LLMSGenerateCommand {
         content += this.generateStandardContent(documents);
     }
 
-    // Add footer
+    // Simple footer
     content += '\n\n---\n\n';
     content += `*Generated automatically on ${new Date().toISOString().split('T')[0]}*\n`;
 
@@ -356,7 +616,7 @@ export class LLMSGenerateCommand {
   }
 
   private generateStandardHeader(language: string, filters: { characterLimit?: number; category?: string }): string {
-    let title = 'Context-Action Framework';
+    let title = 'Documentation';
     
     if (filters.category) {
       title += ` - ${filters.category.charAt(0).toUpperCase() + filters.category.slice(1)}`;
@@ -373,31 +633,31 @@ export class LLMSGenerateCommand {
       `Type: Standard`,
       `Language: ${language.toUpperCase()}`,
       '',
-      `This document contains ${filters.characterLimit ? `${filters.characterLimit}-character` : 'character-limited'} summaries${filters.category ? ` from the ${filters.category} category` : ''} of the Context-Action framework documentation.`
+      `This document contains ${filters.characterLimit ? `${filters.characterLimit}-character` : 'character-limited'} summaries${filters.category ? ` from the ${filters.category} category` : ''} of the documentation.`
     ].join('\n');
   }
 
   private generateMinimumHeader(language: string, filters: { characterLimit?: number; category?: string }): string {
     return [
-      '# Context-Action Framework - Document Navigation',
+      '# Document Navigation',
       '',
       `Generated: ${new Date().toISOString().split('T')[0]}`,
       'Type: Minimum (Navigation Links)',
       `Language: ${language.toUpperCase()}`,
       '',
-      `This document provides quick navigation links to${filters.category ? ` ${filters.category}` : ''} Context-Action framework documentation${filters.characterLimit ? ` with ${filters.characterLimit}-character summaries` : ''}, organized by priority tiers.`
+      `This document provides quick navigation links to${filters.category ? ` ${filters.category}` : ''} documentation${filters.characterLimit ? ` with ${filters.characterLimit}-character summaries` : ''}, organized by priority tiers.`
     ].join('\n');
   }
 
   private generateOriginHeader(language: string, filters: { characterLimit?: number; category?: string }): string {
     return [
-      '# Context-Action Framework - Complete Documentation',
+      '# Complete Documentation',
       '',
       `Generated: ${new Date().toISOString().split('T')[0]}`,
       'Type: Origin (Full Documents)',
       `Language: ${language.toUpperCase()}`,
       '',
-      `This document contains the complete${filters.characterLimit ? ` ${filters.characterLimit}-character` : ''} content${filters.category ? ` from ${filters.category} category` : ''} of Context-Action framework documentation, organized by priority.`
+      `This document contains the complete${filters.characterLimit ? ` ${filters.characterLimit}-character` : ''} content${filters.category ? ` from ${filters.category} category` : ''} of documentation, organized by priority.`
     ].join('\n');
   }
 
@@ -427,16 +687,43 @@ export class LLMSGenerateCommand {
   }
 
   private generateStandardContent(documents: DocumentContent[]): string {
-    let content = '## Documents\n\n';
+    let content = '';
     
     documents.forEach((doc, index) => {
-      content += `### ${index + 1}. ${doc.title}\n`;
-      content += `**Category**: ${doc.category} | **Priority**: ${doc.priority} | **Length**: ${doc.metadata.content_length} chars\n\n`;
+      // Format document title to be more readable
+      const readableTitle = this.formatReadableTitle(doc.title);
+      
+      // Add document separator and content without frontmatter
+      content += `===================[ DOC: ${this.getRelativeSourcePath(doc)} ]===================\n`;
+      content += `# ${readableTitle}\n\n`;
       content += `${doc.content}\n\n`;
-      content += '---\n\n';
+      
+      // Add separator between documents
+      if (index < documents.length - 1) {
+        content += `\n`;
+      }
     });
 
-    return content;
+    return content.trim();
+  }
+
+  private formatReadableTitle(title: string): string {
+    // Convert document IDs like "guide--action-handlers" to "Action Handlers"
+    if (title.includes('--')) {
+      const parts = title.split('--');
+      const mainPart = parts[parts.length - 1]; // Get the last part after --
+      
+      // Convert kebab-case to Title Case
+      return mainPart
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    }
+    return title;
+  }
+
+  private getRelativeSourcePath(doc: DocumentContent): string {
+    return this.pathManager.getRelativeSourcePath(doc.documentId, doc.language, doc.characterLimit, doc.filePath);
   }
 
   private generateMinimumContent(documents: DocumentContent[]): string {
@@ -451,7 +738,8 @@ export class LLMSGenerateCommand {
       .slice(0, 4);
     
     topPriority.forEach((doc, index) => {
-      content += `${index + 1}. ${doc.title} (${doc.category})\n`;
+      const sourcePath = this.getRelativeSourcePath(doc);
+      content += `${index + 1}. [${doc.title}](${sourcePath}) (${doc.category}) - Priority: ${doc.priority}\n`;
     });
 
     content += '\n## Documents by Category\n\n';
@@ -461,7 +749,9 @@ export class LLMSGenerateCommand {
       content += `### ${category.charAt(0).toUpperCase() + category.slice(1)}\n\n`;
       
       categoryDocs.forEach(doc => {
-        content += `- [${doc.title}] - ${doc.content.substring(0, 100)}...\n`;
+        const sourcePath = this.getRelativeSourcePath(doc);
+        const preview = doc.content.substring(0, 80);
+        content += `- **[${this.formatReadableTitle(doc.title)}](${sourcePath})** (Priority: ${doc.priority}, ${doc.characterLimit} chars) - ${preview}...\n`;
       });
       content += '\n';
     });
@@ -473,9 +763,16 @@ export class LLMSGenerateCommand {
     let content = '## Complete Documentation Content\n\n';
     
     documents.forEach((doc, index) => {
-      content += `## ${index + 1}. ${doc.title}\n`;
-      content += `*Category: ${doc.category} | Priority: ${doc.priority}*\n\n`;
+      const readableTitle = this.formatReadableTitle(doc.title);
+      content += `===================[ DOC: ${this.getRelativeSourcePath(doc)} ]===================\n`;
+      content += `## ${readableTitle}\n`;
+      content += `*Source: [${this.getRelativeSourcePath(doc)}](${this.getRelativeSourcePath(doc)}) | Category: ${doc.category} | Priority: ${doc.priority} | Characters: ${doc.metadata.content_length}*\n\n`;
       content += `${doc.content}\n\n`;
+      
+      // Add separator between documents
+      if (index < documents.length - 1) {
+        content += `\n`;
+      }
     });
 
     return content;
@@ -484,30 +781,17 @@ export class LLMSGenerateCommand {
   private async writeOutput(content: string, options: LLMSGenerateOptions): Promise<string> {
     const { language, characterLimit, category, pattern, outputDir } = options;
     
-    // Determine output directory
-    const baseOutputDir = outputDir || path.join(this.config.paths?.outputDir || './docs/llms');
+    // Use path manager for consistent output path generation
+    const { outputPath, filename } = this.pathManager.generateOutputPath({
+      language: language || 'en',
+      characterLimit,
+      category,
+      pattern,
+      outputDir
+    });
     
-    // Create output directory if it doesn't exist
-    await fs.mkdir(baseOutputDir, { recursive: true });
-
-    // Generate filename
-    let filename = `llms-${language || 'en'}`;
-    
-    if (characterLimit) {
-      filename += `-${characterLimit}chars`;
-    }
-    
-    if (category) {
-      filename += `-${category}`;
-    }
-
-    if (pattern && pattern !== 'standard') {
-      filename += `-${pattern}`;
-    }
-
-    filename += '.txt';
-
-    const outputPath = path.join(baseOutputDir, filename);
+    // Create directory and write file
+    await fs.mkdir(path.dirname(outputPath), { recursive: true });
     await fs.writeFile(outputPath, content, 'utf-8');
 
     return outputPath;
