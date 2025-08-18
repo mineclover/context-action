@@ -18,6 +18,7 @@ export async function executeSequential<T, R = void>(
 ): Promise<void> {
 
   let i = 0;
+  const nonBlockingPromises: Promise<any>[] = [];
   
   while (i < context.handlers.length) {
     // Check for abort or termination
@@ -61,14 +62,18 @@ export async function executeSequential<T, R = void>(
       } else if (result !== undefined && !context.terminated) {
         /** Collect synchronous result */
         if (result instanceof Promise) {
-          // Non-blocking async handler - don't wait but collect result when resolved
-          result.then(asyncResult => {
+          // Non-blocking async handler - track promise for error handling
+          const promiseWithHandling = result.then(asyncResult => {
             if (asyncResult !== undefined && !context.terminated) {
               context.results.push(asyncResult);
             }
-          }).catch(() => {
-            // Ignore errors from non-blocking handlers
+            return asyncResult;
+          }).catch((error) => {
+            // Re-throw the error so it can be caught when we await all promises
+            throw error;
           });
+          
+          nonBlockingPromises.push(promiseWithHandling);
         } else {
           context.results.push(result);
         }
@@ -104,8 +109,17 @@ export async function executeSequential<T, R = void>(
       if (registration.config.blocking) {
         throw error;
       }
-      // For non-blocking handlers, continue to next handler
-      i++;
+      // For non-blocking synchronous handlers, throw immediately
+      throw error;
+    }
+  }
+  
+  // Wait for all non-blocking async handlers to complete and check for errors
+  if (nonBlockingPromises.length > 0) {
+    try {
+      await Promise.all(nonBlockingPromises);
+    } catch (error) {
+      throw error;
     }
   }
 }

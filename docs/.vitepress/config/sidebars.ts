@@ -120,6 +120,13 @@ const EXAMPLES_STRUCTURE = {
         { text: 'Store Only Pattern', link: '/en/examples/store-only' },
         { text: 'Pattern Composition', link: '/en/examples/pattern-composition' }
       ]
+    },
+    advanced: {
+      text: '🚀 Advanced Examples',
+      collapsed: false,
+      items: [
+        { text: 'DOM Element Management', link: '/en/examples/element-management' }
+      ]
     }
   },
   ko: {
@@ -131,6 +138,13 @@ const EXAMPLES_STRUCTURE = {
         { text: 'Action Only 패턴', link: '/ko/examples/action-only' },
         { text: 'Store Only 패턴', link: '/ko/examples/store-only' },
         { text: '패턴 조합', link: '/ko/examples/pattern-composition' }
+      ]
+    },
+    advanced: {
+      text: '🚀 고급 예제',
+      collapsed: false,
+      items: [
+        { text: 'DOM Element 관리', link: '/ko/examples/element-management' }
       ]
     }
   }
@@ -222,7 +236,8 @@ export function createSidebars(locale: SidebarLocale): DefaultTheme.Config['side
     
     // Examples 섹션
     [`/${locale}/examples/`]: [
-      examples.patterns
+      examples.patterns,
+      examples.advanced
     ],
     
     // LLMs 섹션

@@ -451,7 +451,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     
     try {
       await this.executePipeline(context, autoAbortController, options?.autoAbort);
+      console.log(`[ActionRegister] Pipeline execution succeeded for ${String(action)}`);
     } catch (error) {
+      console.log(`[ActionRegister] Pipeline execution failed for ${String(action)}:`, error);
       executionSuccess = false;
       throw error;
     } finally {
