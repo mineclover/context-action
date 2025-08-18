@@ -140,6 +140,11 @@ function Layout({
       label: '🔍 Enhanced Abortable Search',
       category: 'examples' as const,
     },
+    {
+      path: '/examples/element-management',
+      label: '🎯 DOM Element Management',
+      category: 'examples' as const,
+    },
   ];
 
   const isActive = (path: string) => location.pathname === path;

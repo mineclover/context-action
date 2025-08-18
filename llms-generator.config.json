@@ -3,7 +3,7 @@
   "paths": {
     "docsDir": "./docs",
     "llmContentDir": "./llmsData",
-    "outputDir": "./docs/llms",
+    "outputDir": "./docs",
     "templatesDir": "./packages/llms-generator/templates",
     "instructionsDir": "./packages/llms-generator/instructions"
   },

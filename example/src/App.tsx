@@ -23,6 +23,9 @@ import CoreAdvancedPage from './pages/core/CoreAdvancedPage';
 import CoreBasicsPage from './pages/core/CoreBasicsPage';
 import CoreFeaturesPage from './pages/core/CoreFeatures';
 import ToastConfigExamplePage from './pages/examples/ToastConfigExamplePage';
+import { ElementManagementPage } from './pages/element-management/ElementManagementPage';
+import { FormBuilderDemoPage } from './pages/element-management/FormBuilderDemoPage';
+import { CanvasDemoPage } from './pages/element-management/CanvasDemoPage';
 import HomePage from './pages/HomePage';
 import LoggerDemoPage from './pages/logger/LoggerDemoPage';
 import ReactContextPage from './pages/react/ReactContextPage';
@@ -110,6 +113,18 @@ function AppContent() {
           <Route
             path="/examples/enhanced-search"
             element={<EnhancedAbortableSearchExample />}
+          />
+          <Route
+            path="/examples/element-management"
+            element={<ElementManagementPage />}
+          />
+          <Route
+            path="/examples/element-management/form-builder"
+            element={<FormBuilderDemoPage />}
+          />
+          <Route
+            path="/examples/element-management/canvas"
+            element={<CanvasDemoPage />}
           />
           <Route
             path="/unified-pattern/demo"
