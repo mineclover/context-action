@@ -1,425 +1,339 @@
-# LLMS-TXT 생성 시스템 (llms-generate)
+# Clean LLMS Generation Command Documentation
 
-LLMS-TXT 생성 시스템은 완료된 문서들을 기반으로 다양한 필터링 옵션과 패턴을 사용하여 LLM 학습용 텍스트 파일을 생성하는 포괄적인 CLI 도구입니다.
+`clean-llms-generate` 명령어는 프론트매터 없이 순수한 내용만을 담은 LLMS-TXT 파일을 생성합니다. LLM 학습/추론에 최적화된 형태로, 다중 생성과 다양한 패턴 옵션을 제공합니다.
 
 ## 📋 목차
 
 - [개요](#개요)
 - [기본 사용법](#기본-사용법)
-- [필터링 옵션](#필터링-옵션)
-- [생성 패턴](#생성-패턴)
-- [고급 옵션](#고급-옵션)
-- [실제 사용 예시](#실제-사용-예시)
-- [출력 파일 구조](#출력-파일-구조)
+- [다중 생성 모드](#다중-생성-모드)
+- [출력 패턴](#출력-패턴)
+- [명령어 옵션](#명령어-옵션)
+- [사용 예시](#사용-예시)
+- [출력 구조](#출력-구조)
+- [성능 및 최적화](#성능-및-최적화)
 - [문제 해결](#문제-해결)
 
 ## 개요
 
-LLMS-TXT 생성 시스템은 Context-Action 프레임워크의 문서화 워크플로우에서 마지막 단계로, 완료된 요약 문서들을 수집하고 필터링하여 다양한 형태의 LLMS 학습용 텍스트 파일을 생성합니다.
+`clean-llms-generate` 명령어는 Context-Action 프레임워크 문서를 기반으로 LLM 학습에 최적화된 텍스트 파일을 생성합니다. 기본적으로 다중 생성 모드로 동작하여 3가지 주요 형태의 파일을 자동 생성합니다.
 
-### 주요 기능
+### 주요 특징
 
-- **문자 제한 필터링**: 특정 문자 수로 제한된 요약 문서만 선택
-- **카테고리 필터링**: 특정 카테고리(guide, api, concept 등)의 문서만 선택
-- **결합 필터링**: 문자 제한과 카테고리를 동시에 적용
-- **다양한 생성 패턴**: standard, minimum, origin 패턴 지원
-- **정렬 옵션**: 우선순위, 카테고리, 알파벳 순으로 정렬
-- **미리보기 모드**: 실제 파일 생성 없이 결과 확인
+- **다중 생성**: origin, minimal, 기본 문자 제한 파일을 한번에 생성
+- **깔끔한 형식**: 프론트매터 없는 순수 내용
+- **문서 구분자**: 명확한 문서 경계 표시
+- **언어별 디렉토리**: 체계적인 파일 조직
+- **중복 제거**: 고유 문서만 선별
 
 ## 기본 사용법
 
 ### 명령어 구문
 
 ```bash
-npx @context-action/llms-generator llms-generate [options]
+pnpm cli clean-llms-generate [character-limit] [options]
 ```
 
-### 기본 옵션
-
-| 옵션 | 설명 | 기본값 |
-|------|------|--------|
-| `--chars=<number>` | 문자 제한 필터링 | 모든 문자 제한 |
-| `--category=<name>` | 카테고리 필터링 | 모든 카테고리 |
-| `--lang=<language>` | 언어 선택 | 설정의 기본 언어 |
-| `--pattern=<type>` | 생성 패턴 | standard |
-| `--sort-by=<method>` | 정렬 방법 | priority |
-| `--output-dir=<path>` | 출력 디렉토리 | 설정의 출력 디렉토리 |
-| `--no-metadata` | 메타데이터 제외 | false |
-| `--dry-run` | 미리보기 모드 | false |
-| `--verbose` | 상세 정보 출력 | false |
-
-## 필터링 옵션
-
-### 문자 제한 필터링
-
-특정 문자 수로 제한된 요약 문서만 선택합니다.
+### 기본 동작 (다중 생성)
 
 ```bash
-# 100자 요약 문서만 포함
-npx @context-action/llms-generator llms-generate --chars=100
-
-# 300자 요약 문서만 포함
-npx @context-action/llms-generator llms-generate --chars=300
+# 기본 3종 파일 자동 생성
+pnpm cli clean-llms-generate --language en
 ```
 
-### 카테고리 필터링
+**자동 생성 파일**:
+- `llms-origin.txt` - 전체 내용 (문자 제한 없음)  
+- `llms-minimal.txt` - 모든 문서의 링크 네비게이션
+- `llms-500chars.txt` - 기본 500자 제한 문서
 
-특정 카테고리의 문서만 선택합니다.
+### 개별 생성
 
 ```bash
-# API 문서만 포함
-npx @context-action/llms-generator llms-generate --category=api
+# 특정 문자 제한
+pnpm cli clean-llms-generate 300 --language en
 
-# 가이드 문서만 포함
-npx @context-action/llms-generator llms-generate --category=guide
+# 특정 패턴
+pnpm cli clean-llms-generate --pattern minimal --language en
 
-# 개념 설명 문서만 포함
-npx @context-action/llms-generator llms-generate --category=concept
+# 특정 카테고리
+pnpm cli clean-llms-generate --category guide --language en
 ```
 
-### 결합 필터링
+## 다중 생성 모드
 
-문자 제한과 카테고리를 동시에 적용할 수 있습니다.
+기본 동작으로 가장 유용한 3가지 형태의 LLMS 파일을 자동 생성합니다:
 
+### 1. Origin Pattern
+- **파일**: `llms-origin.txt`
+- **내용**: 모든 문서의 전체 내용
+- **특징**: 문자 제한 없음, 문서 구분자 포함
+- **용도**: 완전한 참조 자료, 컨텍스트 검색
+
+### 2. Minimal Pattern  
+- **파일**: `llms-minimal.txt`
+- **내용**: 모든 문서의 링크 네비게이션 (102개)
+- **특징**: 표준 링크 포맷, 카테고리별 정렬
+- **용도**: 빠른 문서 탐색, 네비게이션
+
+### 3. Default Character Limit
+- **파일**: `llms-{limit}chars.txt` (예: `llms-500chars.txt`)
+- **내용**: 기본 문자 제한의 완료된 문서
+- **특징**: 설정파일 기준 제한 (일반적으로 500자)
+- **용도**: 요약된 내용, 효율적 학습
+
+### 생성 결과 예시
+
+```
+📊 Generation Summary:
+✅ Successful: 3
+📁 Language: en
+
+📄 Generated Files:
+   Origin (full content): llms-origin.txt
+   Minimum (link navigation): llms-minimal.txt  
+   Default (500 chars): llms-500chars.txt
+```
+
+## 출력 패턴
+
+### 1. `clean` (기본)
+문서 구분자와 함께 깔끔한 형태로 출력
+
+```
+===================[ DOC: en/guide/action-handlers.md ]===================
+# guide--action-handlers
+
+Action Handlers
+
+Action handlers contain the business logic of your application...
+```
+
+### 2. `minimal` 
+모든 문서의 링크 네비게이션 (표준 포맷 유지)
+
+```
+1. **[Action Only](en/api/action-only.md)** (api) - Priority: 75
+2. **[Action Registry](en/api/action-registry.md)** (api) - Priority: 75
+3. **[Action Register](en/api/core-action-register.md)** (api) - Priority: 75
+...
+102. **[Hooks](en/guide/hooks.md)** (guide) - Priority: 80
+```
+
+### 3. `origin`
+전체 문서 내용 (문자 제한 없음, 문서 구분자 포함)
+
+```
+===================[ DOC: en/guide/action-handlers.md ]===================
+# guide--action-handlers
+
+[전체 문서 내용...]
+```
+
+### 4. `raw`
+순수 내용만 (구분자, 메타데이터 없음)
+
+```
+Action Handlers
+
+Action handlers contain the business logic...
+
+Action Pipeline System
+
+The Action Pipeline System is the core...
+```
+
+## 명령어 옵션
+
+### 인수 (Arguments)
+- `[character-limit]` - 문자 제한 필터 (예: 100, 300, 1000)
+  - 지정하지 않으면 자동으로 다중 생성 모드 실행
+
+### 옵션 (Options)
+
+| 옵션 | 설명 | 기본값 | 예시 |
+|------|------|--------|------|
+| `-l, --language <lang>` | 대상 언어 (ko, en, ja) | `ko` | `--language en` |
+| `-c, --category <cat>` | 카테고리 필터 | 없음 | `--category guide` |
+| `-p, --pattern <pattern>` | 출력 패턴 | 없음 | `--pattern minimal` |
+| `--generate-all` | 강제 다중 생성 | `false` | `--generate-all` |
+| `-o, --output-dir <dir>` | 출력 디렉토리 | `docs` | `-o ./custom/output` |
+| `--dry-run` | 실제 생성 없이 미리보기 | `false` | `--dry-run` |
+| `-v, --verbose` | 상세 출력 | `false` | `--verbose` |
+
+### 다중 생성 제어
+
+**자동 다중 생성 조건**:
+- 문자 제한 없음 AND 패턴 지정 없음
+- 또는 `--generate-all` 플래그 사용
+
+**개별 생성 방법**:
+- 문자 제한 지정: `pnpm cli clean-llms-generate 300`
+- 특정 패턴 지정: `--pattern minimal`
+- 특정 카테고리 지정: `--category guide`
+
+## 사용 예시
+
+### 1. 기본 다중 생성
 ```bash
-# 100자 API 문서만 포함
-npx @context-action/llms-generator llms-generate --chars=100 --category=api
-
-# 300자 가이드 문서만 포함
-npx @context-action/llms-generator llms-generate --chars=300 --category=guide
+pnpm cli clean-llms-generate --language en
 ```
+**결과**: origin, minimal, 500chars 파일 3개 생성
 
-## 생성 패턴
-
-### Standard 패턴 (기본)
-
-표준 LLMS 형태로 문서들을 순서대로 나열합니다.
-
+### 2. 특정 문자 제한 생성
 ```bash
-npx @context-action/llms-generator llms-generate --pattern=standard
+pnpm cli clean-llms-generate 100 --language en
 ```
+**결과**: `llms-100chars.txt` 파일 생성 (102개 문서, ~21K characters)
 
-**출력 구조:**
-- 헤더 정보
-- 문서 컬렉션 메타데이터
-- 개별 문서들의 제목과 내용
-- 각 문서의 카테고리, 우선순위, 길이 정보
-
-### Minimum 패턴
-
-네비게이션 링크 형태로 문서 목록을 제공합니다.
-
+### 3. 카테고리별 생성
 ```bash
-npx @context-action/llms-generator llms-generate --pattern=minimum
+pnpm cli clean-llms-generate 300 --category guide --language en
 ```
+**결과**: 가이드 카테고리만 포함한 300자 제한 파일 생성
 
-**출력 구조:**
-- 문서 네비게이션 헤더
-- 빠른 시작 경로 (우선순위 높은 문서 4개)
-- 카테고리별 문서 목록
-- 각 문서의 간략한 설명
-
-### Origin 패턴
-
-완전한 문서 내용을 포함합니다.
-
+### 4. 미리보기 (Dry Run)
 ```bash
-npx @context-action/llms-generator llms-generate --pattern=origin
+pnpm cli clean-llms-generate --language en --dry-run --verbose
 ```
+**결과**: 실제 파일 생성 없이 상세한 생성 계획 표시
 
-**출력 구조:**
-- 완전한 문서 컬렉션 헤더
-- 각 문서의 전체 내용
-- 우선순위 및 카테고리 정보
-
-## 고급 옵션
-
-### 정렬 방법
-
-문서의 정렬 순서를 지정할 수 있습니다.
-
+### 5. 강제 다중 생성
 ```bash
-# 우선순위 순으로 정렬 (기본)
-npx @context-action/llms-generator llms-generate --sort-by=priority
-
-# 카테고리별로 정렬
-npx @context-action/llms-generator llms-generate --sort-by=category
-
-# 알파벳 순으로 정렬
-npx @context-action/llms-generator llms-generate --sort-by=alphabetical
+pnpm cli clean-llms-generate --generate-all --language ko
 ```
+**결과**: 인수가 있어도 다중 생성 모드 실행
 
-### 언어 선택
-
-특정 언어의 문서만 처리합니다.
-
+### 6. 다국어 배치 생성
 ```bash
-# 한국어 문서
-npx @context-action/llms-generator llms-generate --lang=ko
-
-# 영어 문서
-npx @context-action/llms-generator llms-generate --lang=en
+pnpm cli clean-llms-generate --language en
+pnpm cli clean-llms-generate --language ko
+pnpm cli clean-llms-generate --language ja
 ```
 
-### 출력 제어
+## 출력 구조
 
-```bash
-# 사용자 지정 출력 디렉토리
-npx @context-action/llms-generator llms-generate --output-dir=./custom-output
-
-# 메타데이터 제외
-npx @context-action/llms-generator llms-generate --no-metadata
-
-# 상세 정보와 함께 미리보기
-npx @context-action/llms-generator llms-generate --dry-run --verbose
+### 파일 위치
 ```
-
-## 실제 사용 예시
-
-### 시나리오 1: API 문서 100자 요약 생성
-
-```bash
-# 100자 API 문서들의 네비게이션 형태 LLMS 생성
-npx @context-action/llms-generator llms-generate \
-  --chars=100 \
-  --category=api \
-  --pattern=minimum \
-  --lang=ko
+docs/
+├── en/
+│   └── llms/
+│       ├── llms-origin.txt
+│       ├── llms-minimal.txt
+│       ├── llms-100chars.txt
+│       ├── llms-300chars.txt
+│       └── llms-500chars.txt
+└── ko/
+    └── llms/
+        ├── llms-origin.txt
+        └── llms-minimal.txt
 ```
-
-**출력 파일:** `llms-ko-100chars-api-minimum.txt`
-
-### 시나리오 2: 전체 가이드 문서의 완전한 내용
-
-```bash
-# 모든 가이드 문서의 완전한 내용 생성
-npx @context-action/llms-generator llms-generate \
-  --category=guide \
-  --pattern=origin \
-  --sort-by=priority \
-  --lang=ko
-```
-
-**출력 파일:** `llms-ko-guide-origin.txt`
-
-### 시나리오 3: 다국어 표준 LLMS 생성
-
-```bash
-# 영어 300자 문서들의 표준 형태 생성
-npx @context-action/llms-generator llms-generate \
-  --chars=300 \
-  --lang=en \
-  --pattern=standard \
-  --verbose
-
-# 한국어 300자 문서들의 표준 형태 생성
-npx @context-action/llms-generator llms-generate \
-  --chars=300 \
-  --lang=ko \
-  --pattern=standard \
-  --verbose
-```
-
-### 시나리오 4: 미리보기 및 검증
-
-```bash
-# 생성 예정 내용 미리보기
-npx @context-action/llms-generator llms-generate \
-  --chars=100 \
-  --category=concept \
-  --dry-run \
-  --verbose
-```
-
-**출력 예시:**
-```
-📊 Dry Run Summary:
-   Would generate LLMS file with:
-   • 5 documents
-   • 1,234 total characters
-   • Pattern: standard
-   • Language: ko
-   • Character Limit: 100
-   • Category: concept
-```
-
-## 출력 파일 구조
 
 ### 파일명 규칙
+- 기본: `llms.txt`
+- 문자 제한: `llms-{limit}chars.txt` (예: `llms-300chars.txt`)
+- 패턴: `llms-{pattern}.txt` (예: `llms-minimal.txt`)
+- 카테고리: `llms-{limit}chars-{category}.txt` (예: `llms-500chars-guide.txt`)
 
-생성되는 파일명은 다음 패턴을 따릅니다:
+### 내용 구조
 
+#### Clean/Origin 패턴
 ```
-llms-{language}[-{characterLimit}chars][-{category}][-{pattern}].txt
-```
+===================[ DOC: en/guide/action-handlers.md ]===================
+# guide--action-handlers
 
-**예시:**
-- `llms-ko.txt` - 한국어 표준 LLMS
-- `llms-en-100chars.txt` - 영어 100자 제한 LLMS
-- `llms-ko-api.txt` - 한국어 API 카테고리 LLMS
-- `llms-en-300chars-guide-minimum.txt` - 영어 300자 가이드 네비게이션 LLMS
+Action Handlers
 
-### 파일 내용 구조
+Action handlers contain the business logic of your application...
 
-#### 헤더 섹션
-```
-# Context-Action Framework - {타이틀}
+===================[ DOC: en/guide/action-pipeline.md ]===================
+# guide--action-pipeline
 
-Generated: 2025-08-17
-Type: {패턴 타입}
-Language: {언어}
-
-{설명}
+Action Pipeline System
+...
 ```
 
-#### 메타데이터 섹션 (--no-metadata가 아닌 경우)
+#### Minimal 패턴
 ```
-## Document Collection Metadata
-
-**Total Documents**: 15
-**Categories**: guide, api, concept
-**Character Limits**: 100, 300
-**Total Characters**: 4,567
-**Average Quality Score**: 85.2
-
-**Filters Applied**:
-- Language: ko
-- Character Limit: 100
-- Category: api
+1. **[Action Only](en/api/action-only.md)** (api) - Priority: 75
+2. **[Action Registry](en/api/action-registry.md)** (api) - Priority: 75
+...
+102. **[Hooks](en/guide/hooks.md)** (guide) - Priority: 80
 ```
 
-#### 콘텐츠 섹션
-패턴에 따라 다른 구조로 제공됩니다.
-
-#### 푸터
+#### Raw 패턴
 ```
----
+Action Handlers
 
-*Generated automatically on 2025-08-17*
+Action handlers contain the business logic...
+
+Action Pipeline System
+
+The Action Pipeline System is the core...
 ```
+
+## 성능 및 최적화
+
+### 성능 지표 (영어 기준)
+- **총 문서**: 714개 → 중복 제거 후 102개 고유 문서
+- **Minimal 패턴**: ~9K characters (평균 13 chars/document)
+- **100자 제한**: ~21K characters (평균 206 chars/document)
+- **Origin 패턴**: ~237K characters (전체 내용)
+
+### 최적화 팁
+1. **특정 카테고리만 필요한 경우** `--category` 옵션 사용
+2. **미리보기 확인** `--dry-run` 옵션으로 사전 검토
+3. **불필요한 문자 제한 파일** 생성 방지로 디스크 용량 절약
 
 ## 문제 해결
 
-### 문서를 찾을 수 없는 경우
+### 일반적인 오류와 해결방법
 
-```bash
-❌ No documents found matching the specified criteria
+#### 1. 문서를 찾을 수 없음
+```
+❌ No completed documents found matching the specified criteria
+```
+**해결**: 언어나 문자 제한 조건 확인, 템플릿 생성 여부 확인
 
-📋 Filter Criteria:
-   Language: ko
-   Character Limit: 100
-   Category: nonexistent
-   Pattern: standard
+#### 2. 유효하지 않은 문자 제한
+```
+❌ Invalid character limit: abc
+```
+**해결**: 숫자로 된 문자 제한 값 입력
 
-💡 Try adjusting your filters or check if documents exist with these criteria.
+#### 3. 출력 디렉토리 권한 오류
+**해결**: 출력 디렉토리 권한 확인 또는 다른 경로 지정
+
+### 고급 사용법
+
+#### 1. 설정 파일 사용자화
+`llms-generator.config.json`에서 기본값 변경:
+```json
+{
+  "generation": {
+    "defaultLanguage": "en",
+    "characterLimits": [100, 300, 500, 1000, 2000]
+  }
+}
 ```
 
-**해결 방법:**
-1. 필터 조건 확인
-2. 문서 상태 확인 (`work-next` 명령어 사용)
-3. 완료되지 않은 문서가 있는지 확인
-
-### 지원되지 않는 언어
-
+#### 2. 카스텀 출력 디렉토리
 ```bash
-❌ Unsupported language: unsupported. Supported: ko, en
+pnpm cli clean-llms-generate --output-dir ./custom/llms --language en
 ```
 
-**해결 방법:**
-1. `llms-generator.config.json`에서 지원 언어 확인
-2. 올바른 언어 코드 사용
-
-### 권한 오류
-
+#### 3. 배치 생성 (여러 언어)
 ```bash
-❌ Error: EACCES: permission denied, mkdir '/output'
-```
-
-**해결 방법:**
-1. 출력 디렉토리 권한 확인
-2. `--output-dir` 옵션으로 다른 디렉토리 지정
-3. 상대 경로 사용
-
-### 빈 파일 생성
-
-완료되지 않은 문서들은 자동으로 제외됩니다. 다음을 확인하세요:
-
-1. **템플릿 상태**: 플레이스홀더 텍스트가 있는 문서는 제외
-2. **콘텐츠 길이**: 30자 미만의 내용은 불완전으로 간주
-3. **완료 상태**: frontmatter의 `completion_status`가 `completed`인지 확인
-
-### 성능 최적화
-
-대량의 문서 처리 시:
-
-```bash
-# 메타데이터 제외로 속도 향상
-npx @context-action/llms-generator llms-generate --no-metadata
-
-# 특정 필터로 범위 축소
-npx @context-action/llms-generator llms-generate --chars=100 --category=api
-```
-
-## 모니터링 및 통계
-
-### 생성 과정 모니터링
-
-```bash
-# 상세 정보와 함께 실행
-npx @context-action/llms-generator llms-generate --verbose
-
-# 미리보기로 예상 결과 확인
-npx @context-action/llms-generator llms-generate --dry-run --verbose
-```
-
-### 문서 상태 확인
-
-LLMS 생성 전에 문서 상태를 확인하는 것이 좋습니다:
-
-```bash
-# 다음 작업할 문서 확인
-npx @context-action/llms-generator work-next
-
-# 특정 카테고리의 완료 상태 확인
-npx @context-action/llms-generator work-next --category=api --show-completed
+pnpm cli clean-llms-generate --language en
+pnpm cli clean-llms-generate --language ko
+pnpm cli clean-llms-generate --language ja
 ```
 
 ## 관련 명령어
 
-### 워크플로우 연계
+- `pnpm cli generate-templates` - 템플릿 파일 생성
+- `pnpm cli work-next` - 작업 진행 상황 확인
+- `pnpm cli llms-generate` - 레거시 LLMS 생성 (메타데이터 포함)
 
-1. **문서 상태 확인**: `work-next`
-2. **우선순위 생성**: `priority-generate`
-3. **템플릿 생성**: `template-generate`
-4. **LLMS 생성**: `llms-generate` ← 현재 명령어
+## 문의 및 지원
 
-### 기존 LLMS 생성 도구와의 차이점
-
-| 명령어 | 용도 | 필터링 | 패턴 |
-|--------|------|--------|------|
-| `llms-generate` | 포괄적 LLMS 생성 | 문자수 + 카테고리 | 3가지 패턴 |
-| `simple-llms-generate` | 단순 결합 | 문자수만 | 1가지 패턴 |
-| `minimum`/`origin` | 기본 생성 | 없음 | 고정 패턴 |
-
-## 통합 워크플로우 예시
-
-완전한 LLMS 생성 워크플로우:
-
-```bash
-# 1. 프로젝트 상태 확인
-npx @context-action/llms-generator work-next
-
-# 2. 필요시 우선순위 및 템플릿 생성
-npx @context-action/llms-generator init
-
-# 3. 미리보기로 생성 계획 확인
-npx @context-action/llms-generator llms-generate --dry-run --verbose
-
-# 4. 실제 LLMS 파일 생성
-npx @context-action/llms-generator llms-generate --chars=100 --pattern=minimum
-
-# 5. 다른 패턴으로 추가 생성
-npx @context-action/llms-generator llms-generate --category=api --pattern=origin
-```
-
-이 문서화를 통해 LLMS-TXT 생성 시스템의 모든 기능을 효과적으로 활용할 수 있습니다.
+문제가 발생하거나 개선 사항이 있으시면 프로젝트 이슈 페이지에 제보해 주세요.

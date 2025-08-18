@@ -13,10 +13,13 @@
 import path from 'path';
 import { existsSync } from 'fs';
 
-// Core command imports - temporarily using original commands
+// Core command imports - using CommandFactory pattern
 import { WorkNextCommand } from './commands/WorkNextCommand.js';
 import { LLMSGenerateCommand } from './commands/LLMSGenerateCommand.js';
+import { GenerateTemplatesCommand } from './commands/GenerateTemplatesCommand.js';
 import { createCleanLLMSGenerateCommand } from './commands/clean-llms-generate.js';
+import { CommandFactory } from './core/CommandFactory.js';
+import { CLIConfig } from './types/CLITypes.js';
 import { EnhancedConfigManager } from '../core/EnhancedConfigManager.js';
 import { DEFAULT_CONFIG } from '../shared/config/DefaultConfig.js';
 import { HelpDisplay } from './core/HelpDisplay.js';
@@ -38,9 +41,24 @@ async function main(): Promise<void> {
     const command = args[0];
     const commandArgs = args.slice(1);
 
+    // Check if it's a CommandFactory command
+    const config = await loadConfig();
+    const commandFactory = new CommandFactory();
+    const factoryCommand = commandFactory.create(command, config);
+    
+    if (factoryCommand) {
+      await factoryCommand.execute(commandArgs);
+      return;
+    }
+
+    // Fall back to original commands
     switch (command) {
       case 'work-next':
         await handleWorkNext(commandArgs, argumentParser);
+        break;
+
+      case 'generate-templates':
+        await handleGenerateTemplates(commandArgs, argumentParser);
         break;
 
       case 'clean-llms-generate':
@@ -65,12 +83,28 @@ async function handleWorkNext(args: string[], argumentParser: ArgumentParser): P
   const workNextCommand = new WorkNextCommand(config);
   
   const options = {
-    language: argumentParser.extractFlag(args, '-l', '--language') || 'ko',
+    language: argumentParser.extractFlag(args, '-l', '--language') || config.generation?.defaultLanguage || 'en',
     showCompleted: argumentParser.hasFlag(args, '--show-completed'),
     verbose: argumentParser.hasFlag(args, '-v', '--verbose')
   };
 
   await workNextCommand.execute(options);
+}
+
+async function handleGenerateTemplates(args: string[], argumentParser: ArgumentParser): Promise<void> {
+  const config = await loadConfig();
+  const generateTemplatesCommand = new GenerateTemplatesCommand(config);
+  
+  const options = {
+    language: argumentParser.extractFlag(args, '-l', '--language') || config.generation?.defaultLanguage || 'en',
+    category: argumentParser.extractFlag(args, '--category'),
+    characterLimits: argumentParser.extractFlag(args, '--character-limits')?.split(',').map(Number) || config.generation?.characterLimits,
+    overwrite: argumentParser.hasFlag(args, '--overwrite'),
+    dryRun: argumentParser.hasFlag(args, '--dry-run'),
+    verbose: argumentParser.hasFlag(args, '-v', '--verbose')
+  };
+
+  await generateTemplatesCommand.execute(options);
 }
 
 async function handleCleanLLMSGenerate(args: string[]): Promise<void> {
@@ -94,7 +128,7 @@ async function handleLLMSGenerate(args: string[], argumentParser: ArgumentParser
   const options = {
     characterLimit: argumentParser.extractNumberFlag(args, '-c', '--character-limit'),
     category: argumentParser.extractFlag(args, '--category'),
-    language: argumentParser.extractFlag(args, '-l', '--language') || 'ko',
+    language: argumentParser.extractFlag(args, '-l', '--language') || config.generation?.defaultLanguage || 'en',
     pattern: (argumentParser.extractFlag(args, '-p', '--pattern') || 'standard') as 'standard' | 'minimum' | 'origin',
     dryRun: argumentParser.hasFlag(args, '--dry-run'),
     verbose: argumentParser.hasFlag(args, '-v', '--verbose')
@@ -103,7 +137,7 @@ async function handleLLMSGenerate(args: string[], argumentParser: ArgumentParser
   await llmsGenerateCommand.execute(options);
 }
 
-async function loadConfig() {
+async function loadConfig(): Promise<CLIConfig> {
   const enhancedConfigPath = path.join(process.cwd(), 'llms-generator.config.json');
   
   if (existsSync(enhancedConfigPath)) {

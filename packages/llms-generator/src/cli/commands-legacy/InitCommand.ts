@@ -12,8 +12,8 @@
  */
 
 import { Command } from 'commander';
-import { PriorityGenerator } from '../../core/PriorityGenerator.js';
-import { TemplateGenerator } from '../../core/TemplateGenerator.js';
+import { PriorityGenerator } from '../../core-legacy/PriorityGenerator.js';
+import { TemplateGenerator } from '../../core-legacy/TemplateGenerator.js';
 import type { ResolvedConfig } from '../../types/user-config.js';
 
 export interface InitOptions {

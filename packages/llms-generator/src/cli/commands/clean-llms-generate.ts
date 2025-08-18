@@ -15,7 +15,8 @@ interface CleanLLMSOptions {
   language?: string;
   characterLimit?: number;
   category?: string;
-  pattern?: 'clean' | 'minimal' | 'raw';
+  pattern?: 'clean' | 'minimal' | 'raw' | 'origin' | 'minimum';
+  generateAll?: boolean;
   outputDir?: string;
   dryRun?: boolean;
   verbose?: boolean;
@@ -26,14 +27,23 @@ export function createCleanLLMSGenerateCommand(): Command {
   
   cmd
     .description('Generate clean LLMS-TXT files without metadata overhead')
-    .argument('[character-limit]', 'Character limit filter (e.g., 100, 300, 1000)')
+    .argument('[character-limit]', 'Character limit filter (e.g., 100, 300, 1000). If not specified, generates origin, minimum, and default chars automatically')
     .option('-l, --language <lang>', 'Target language (ko, en)', 'ko')
     .option('-c, --category <cat>', 'Category filter (guide, api, concept, examples)')
-    .option('-p, --pattern <pattern>', 'Output pattern (clean, minimal, raw)', 'clean')
+    .option('-p, --pattern <pattern>', 'Output pattern (clean, minimal, raw, origin, minimum)')
+    .option('--generate-all', 'Force generation of origin, minimum, and default character files')
     .option('-o, --output-dir <dir>', 'Output directory')
     .option('--dry-run', 'Show what would be generated without creating files')
     .option('-v, --verbose', 'Verbose output')
     .action(async (characterLimitArg: string | undefined, options: CleanLLMSOptions) => {
+      // If no specific arguments provided, show help for multiple generation
+      if (!characterLimitArg && !options.pattern && !options.generateAll && !options.category) {
+        console.log('🚀 Default: Generating origin, minimum, and default character files for all categories');
+        console.log('💡 Use specific options to generate individual files:');
+        console.log('   pnpm cli clean-llms-generate 300  # Generate 300-char limit file');
+        console.log('   pnpm cli clean-llms-generate --pattern minimal  # Generate minimal pattern');
+        console.log('   pnpm cli clean-llms-generate --category guide  # Generate for specific category\n');
+      }
       try {
         await generateCleanLLMS(characterLimitArg, options);
       } catch (error) {
@@ -49,11 +59,15 @@ async function generateCleanLLMS(characterLimitArg: string | undefined, options:
   const config = await loadConfig();
   const command = new SimpleLLMSCommand(config);
   
+  // Check if we should generate all (default behavior when no specific params are provided)
+  const shouldGenerateAll = options.generateAll || (!characterLimitArg && !options.pattern);
+  
   const simpleLLMSOptions = {
     language: options.language || 'ko',
     characterLimit: characterLimitArg ? parseInt(characterLimitArg) : undefined,
     category: options.category,
-    pattern: options.pattern || 'clean',
+    pattern: options.pattern,
+    generateAll: shouldGenerateAll,
     outputDir: options.outputDir,
     dryRun: options.dryRun || false,
     verbose: options.verbose || false
