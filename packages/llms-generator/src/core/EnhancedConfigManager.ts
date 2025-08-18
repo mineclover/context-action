@@ -11,7 +11,7 @@ import type {
   TagConfig,
   CompositionStrategyConfig,
   ExtractStrategy,
-  DocumentCategory
+  // DocumentCategory - temporarily commented out
 } from '../types/config.js';
 
 export interface ConfigPreset {

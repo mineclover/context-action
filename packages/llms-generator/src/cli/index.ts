@@ -1,24 +1,23 @@
 #!/usr/bin/env node
 
 /**
- * Refactored CLI Entry Point for LLMS Generator
+ * Clean CLI Entry Point for LLMS Generator
  * 
- * Clean, modular architecture with:
- * - Dependency injection  
- * - Clear separation of concerns
- * - Easy testing and maintenance
+ * Simplified architecture with direct command handling:
+ * - Direct command imports and execution
+ * - Minimal abstractions
+ * - Easy maintenance and debugging
  * - Type safety throughout
  */
 
 import path from 'path';
 import { existsSync } from 'fs';
 
-// Core command imports - using CommandFactory pattern
+// Core command imports
 import { WorkNextCommand } from './commands/WorkNextCommand.js';
 import { LLMSGenerateCommand } from './commands/LLMSGenerateCommand.js';
 import { GenerateTemplatesCommand } from './commands/GenerateTemplatesCommand.js';
 import { createCleanLLMSGenerateCommand } from './commands/clean-llms-generate.js';
-import { CommandFactory } from './core/CommandFactory.js';
 import { CLIConfig } from './types/CLITypes.js';
 import { EnhancedConfigManager } from '../core/EnhancedConfigManager.js';
 import { DEFAULT_CONFIG } from '../shared/config/DefaultConfig.js';
@@ -41,17 +40,7 @@ async function main(): Promise<void> {
     const command = args[0];
     const commandArgs = args.slice(1);
 
-    // Check if it's a CommandFactory command
-    const config = await loadConfig();
-    const commandFactory = new CommandFactory();
-    const factoryCommand = commandFactory.create(command, config);
-    
-    if (factoryCommand) {
-      await factoryCommand.execute(commandArgs);
-      return;
-    }
-
-    // Fall back to original commands
+    // Direct command routing
     switch (command) {
       case 'work-next':
         await handleWorkNext(commandArgs, argumentParser);

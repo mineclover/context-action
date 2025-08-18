@@ -1,11 +1,15 @@
 # @context-action/llms-generator
 
+> ⚠️ **개발 중 (Under Development)** - 이 패키지는 현재 적극적으로 개발 중입니다. API가 변경될 수 있습니다.  
+> This package is under active development. APIs may change.
+
 **Enterprise-grade LLM content generation framework for Context-Action documentation**
 
 TypeScript library and CLI tools for generating optimized content from documentation with intelligent categorization, priority-based selection, and multi-language support.
 
 [![npm version](https://badge.fury.io/js/@context-action%2Fllms-generator.svg)](https://www.npmjs.com/package/@context-action/llms-generator)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![Development Status](https://img.shields.io/badge/status-under%20development-orange)
 
 ## 🚀 Quick Start
 
