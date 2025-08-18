@@ -1,71 +1,73 @@
 #!/usr/bin/env node
 
 /**
- * Optimized CLI Entry Point for LLMS Generator
+ * Refactored CLI Entry Point for LLMS Generator
  * 
- * Simplified to include only core, tested functionality:
- * - work-next: Next document workflow
- * - clean-llms-generate: Clean LLMS generation for LLM training
- * - llms-generate: Standard LLMS generation with metadata
- * - help: Show available commands
- * 
- * Reduced from ~2000 lines to ~200 lines
+ * Clean, modular architecture with:
+ * - Dependency injection  
+ * - Clear separation of concerns
+ * - Easy testing and maintenance
+ * - Type safety throughout
  */
 
 import path from 'path';
 import { existsSync } from 'fs';
 
-// Core command imports - only tested functionality
+// Core command imports - temporarily using original commands
 import { WorkNextCommand } from './commands/WorkNextCommand.js';
 import { LLMSGenerateCommand } from './commands/LLMSGenerateCommand.js';
 import { createCleanLLMSGenerateCommand } from './commands/clean-llms-generate.js';
 import { EnhancedConfigManager } from '../core/EnhancedConfigManager.js';
-import { DEFAULT_CONFIG } from '../index.js';
+import { DEFAULT_CONFIG } from '../shared/config/DefaultConfig.js';
+import { HelpDisplay } from './core/HelpDisplay.js';
+import { ErrorHandler } from './core/ErrorHandler.js';
+import { ArgumentParser } from './utils/ArgumentParser.js';
 
-async function main() {
+async function main(): Promise<void> {
   const args = process.argv.slice(2);
+  const helpDisplay = new HelpDisplay();
+  const errorHandler = new ErrorHandler();
+  const argumentParser = new ArgumentParser();
   
-  if (args.length === 0 || args[0] === 'help' || args[0] === '--help') {
-    showHelp();
-    return;
-  }
-
-  const command = args[0];
-
   try {
+    if (args.length === 0 || args[0] === 'help' || args[0] === '--help') {
+      helpDisplay.show();
+      return;
+    }
+
+    const command = args[0];
+    const commandArgs = args.slice(1);
+
     switch (command) {
       case 'work-next':
-        await handleWorkNext(args.slice(1));
+        await handleWorkNext(commandArgs, argumentParser);
         break;
 
       case 'clean-llms-generate':
-        await handleCleanLLMSGenerate(args.slice(1));
+        await handleCleanLLMSGenerate(commandArgs);
         break;
 
       case 'llms-generate':
-        await handleLLMSGenerate(args.slice(1));
+        await handleLLMSGenerate(commandArgs, argumentParser);
         break;
 
       default:
-        console.error(`❌ Unknown command: ${command}`);
-        console.log('💡 Run "help" to see available commands');
-        process.exit(1);
+        throw new Error(`Unknown command: ${command}`);
     }
   } catch (error) {
-    console.error(`❌ Command failed:`, error);
+    errorHandler.handle(error);
     process.exit(1);
   }
 }
 
-async function handleWorkNext(args: string[]): Promise<void> {
+async function handleWorkNext(args: string[], argumentParser: ArgumentParser): Promise<void> {
   const config = await loadConfig();
   const workNextCommand = new WorkNextCommand(config);
   
-  // Parse simple flags
   const options = {
-    language: extractFlag(args, '-l', '--language') || 'ko',
-    showCompleted: args.includes('--show-completed'),
-    verbose: args.includes('-v') || args.includes('--verbose')
+    language: argumentParser.extractFlag(args, '-l', '--language') || 'ko',
+    showCompleted: argumentParser.hasFlag(args, '--show-completed'),
+    verbose: argumentParser.hasFlag(args, '-v', '--verbose')
   };
 
   await workNextCommand.execute(options);
@@ -85,25 +87,17 @@ async function handleCleanLLMSGenerate(args: string[]): Promise<void> {
   }
 }
 
-async function handleLLMSGenerate(args: string[]): Promise<void> {
+async function handleLLMSGenerate(args: string[], argumentParser: ArgumentParser): Promise<void> {
   const config = await loadConfig();
   const llmsGenerateCommand = new LLMSGenerateCommand(config);
   
-  // Parse basic options
-  const characterLimit = extractNumberFlag(args, '-c', '--character-limit');
-  const category = extractFlag(args, '--category');
-  const language = extractFlag(args, '-l', '--language') || 'ko';
-  const pattern = extractFlag(args, '-p', '--pattern') || 'standard';
-  const dryRun = args.includes('--dry-run');
-  const verbose = args.includes('-v') || args.includes('--verbose');
-
   const options = {
-    characterLimit,
-    category,
-    language,
-    pattern: pattern as 'standard' | 'minimum' | 'origin',
-    dryRun,
-    verbose
+    characterLimit: argumentParser.extractNumberFlag(args, '-c', '--character-limit'),
+    category: argumentParser.extractFlag(args, '--category'),
+    language: argumentParser.extractFlag(args, '-l', '--language') || 'ko',
+    pattern: (argumentParser.extractFlag(args, '-p', '--pattern') || 'standard') as 'standard' | 'minimum' | 'origin',
+    dryRun: argumentParser.hasFlag(args, '--dry-run'),
+    verbose: argumentParser.hasFlag(args, '-v', '--verbose')
   };
 
   await llmsGenerateCommand.execute(options);
@@ -133,7 +127,7 @@ async function loadConfig() {
         defaultLanguage: enhancedConfig.generation?.defaultLanguage || DEFAULT_CONFIG.generation.defaultLanguage,
         outputFormat: enhancedConfig.generation?.outputFormat || DEFAULT_CONFIG.generation.outputFormat
       },
-      quality: enhancedConfig.quality,
+      quality: enhancedConfig.quality || DEFAULT_CONFIG.quality,
       categories: enhancedConfig.categories
     };
   } else {
@@ -141,65 +135,7 @@ async function loadConfig() {
   }
 }
 
-function extractFlag(args: string[], shortFlag: string, longFlag?: string): string | undefined {
-  const flags = [shortFlag];
-  if (longFlag) flags.push(longFlag);
-  
-  for (const flag of flags) {
-    const index = args.indexOf(flag);
-    if (index !== -1 && index + 1 < args.length) {
-      return args[index + 1];
-    }
-  }
-  return undefined;
-}
-
-function extractNumberFlag(args: string[], shortFlag: string, longFlag?: string): number | undefined {
-  const value = extractFlag(args, shortFlag, longFlag);
-  return value ? parseInt(value) : undefined;
-}
-
-function showHelp() {
-  console.log('');
-  console.log('🚀 LLMS Generator - Core Commands (Optimized)');
-  console.log('');
-  console.log('WORKFLOW MANAGEMENT:');
-  console.log('  work-next [options]              Find next document to work on');
-  console.log('                                   [-l, --language <lang>] [--show-completed] [-v, --verbose]');
-  console.log('');
-  console.log('LLMS GENERATION:');
-  console.log('  clean-llms-generate [char-limit] [options]');
-  console.log('                                   Generate clean LLMS files for LLM training (no metadata)');
-  console.log('                                   [-l, --language <lang>] [-c, --category <cat>]');
-  console.log('                                   [-p, --pattern clean|minimal|raw] [--dry-run] [-v, --verbose]');
-  console.log('');
-  console.log('  llms-generate [options]          Generate standard LLMS files with metadata');
-  console.log('                                   [-c, --character-limit <num>] [--category <cat>]');
-  console.log('                                   [-l, --language <lang>] [-p, --pattern standard|minimum|origin]');
-  console.log('                                   [--dry-run] [-v, --verbose]');
-  console.log('');
-  console.log('EXAMPLES:');
-  console.log('  # Find next document to work on');
-  console.log('  npx @context-action/llms-generator work-next --language ko');
-  console.log('');
-  console.log('  # Generate clean LLMS for LLM training (recommended)');
-  console.log('  npx @context-action/llms-generator clean-llms-generate 300 --language ko --pattern clean');
-  console.log('  npx @context-action/llms-generator clean-llms-generate --category guide --pattern minimal');
-  console.log('  npx @context-action/llms-generator clean-llms-generate 100 --pattern raw --dry-run');
-  console.log('');
-  console.log('  # Generate standard LLMS with metadata');
-  console.log('  npx @context-action/llms-generator llms-generate --character-limit 300 --language ko');
-  console.log('  npx @context-action/llms-generator llms-generate --category guide --pattern minimum');
-  console.log('');
-  console.log('For more detailed options, use --help with specific commands:');
-  console.log('  npx @context-action/llms-generator clean-llms-generate --help');
-  console.log('');
-  console.log('💡 Note: This is the optimized CLI with only core, tested functionality');
-  console.log('   Reduced from ~2000 lines to ~200 lines for better maintainability');
-  console.log('');
-}
-
-// Run CLI
+// Run CLI only if this file is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(error => {
     console.error('Fatal error:', error);
