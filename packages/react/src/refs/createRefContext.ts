@@ -2,83 +2,126 @@
  * @fileoverview Simple Reference Context
  * 
  * 심플하고 직관적인 참조 관리 시스템
- * 불필요한 복잡성 없이 핵심 기능만 제공
+ * ref만 선언적으로 관리, 불필요한 복잡성 제거
  */
 
 import React, { createContext, useContext, useMemo, ReactNode } from 'react';
 import { RefStore, createRefStore } from './RefStore';
-import type { RefTarget, RefOperation, RefOperationOptions, RefOperationResult } from './types';
+import type { 
+  RefTarget, 
+  RefOperation, 
+  RefOperationOptions, 
+  RefOperationResult,
+  RefDefinitions
+} from './types';
 
 /**
  * RefContext 반환 타입 - 심플하고 명확한 API
  */
-export interface RefContextReturn<T extends Record<string, RefTarget>> {
+export interface RefContextReturn<T> {
   // Provider 컴포넌트
   Provider: React.FC<{ children: ReactNode }>;
   
   // 개별 ref 접근
   useRef: <K extends keyof T>(refName: K) => {
-    setRef: (target: T[K] | null) => void;
-    target: T[K] | null;
-    waitForMount: () => Promise<T[K]>;
+    /** ref 값 설정 */
+    setRef: (target: any) => void;
+    /** 현재 ref 값 */
+    target: any;
+    /** ref가 마운트될 때까지 대기 */
+    waitForMount: () => Promise<any>;
+    /** ref와 함께 안전한 작업 수행 */
     withTarget: <Result>(
-      operation: RefOperation<T[K], Result>,
+      operation: RefOperation<any, Result>,
       options?: RefOperationOptions
     ) => Promise<RefOperationResult<Result>>;
+    /** ref가 마운트되어 있는지 확인 */
+    isMounted: boolean;
   };
   
-  // 여러 ref 동시 대기
-  waitForRefs: <K extends keyof T>(...refNames: K[]) => Promise<Pick<T, K>>;
+  // 여러 ref 동시 대기 hook
+  waitForRefs: () => <K extends keyof T>(...refNames: K[]) => Promise<Partial<T>>;
+  
+  // 모든 ref 상태 가져오기 hook
+  getAllRefs: () => () => Partial<T>;
   
   // Context 이름
   contextName: string;
+  
+  // 선언적 정의 (있을 경우)
+  refDefinitions?: T extends RefDefinitions ? T : undefined;
 }
 
+// Overload 1: 심플한 타입 지원 (legacy)
+export function createRefContext<T extends Record<string, RefTarget>>(
+  contextName: string
+): RefContextReturn<T>;
+
+// Overload 2: RefDefinitions 지원 (선언적 관리)
+export function createRefContext<T extends RefDefinitions>(
+  contextName: string,
+  refDefinitions: T
+): RefContextReturn<T>;
+
 /**
- * 심플한 참조 컨텍스트 생성 함수
+ * 참조 컨텍스트 생성 함수 (구현)
  * 
  * @param contextName 컨텍스트 이름
+ * @param refDefinitions 참조 정의 (선언적 사용 시)
  * @returns RefContext API
  * 
  * @example
  * ```typescript
- * // 타입 정의와 컨텍스트 생성
+ * // 방법 1: 심플한 타입 지정 (legacy)
  * const GameRefs = createRefContext<{
  *   canvas: HTMLCanvasElement;
  *   scene: THREE.Scene;
- *   camera: THREE.Camera;
  * }>('GameRefs');
  * 
- * // 컴포넌트에서 사용
+ * // 방법 2: 선언적 정의 (권장)
+ * const GameRefs = createRefContext('GameRefs', {
+ *   canvas: { name: 'canvas', objectType: 'dom' as const },
+ *   scene: { name: 'scene', objectType: 'three' as const }
+ * });
+ * 
+ * // 사용법 (약간의 차이 있음)
  * function GameComponent() {
  *   const canvas = GameRefs.useRef('canvas');
  *   const scene = GameRefs.useRef('scene');
+ *   const waitForRefs = GameRefs.waitForRefs(); // hook이므로 먼저 호출
  *   
  *   const initGame = async () => {
  *     // 모든 ref가 준비될 때까지 대기
- *     const refs = await GameRefs.waitForRefs('canvas', 'scene', 'camera');
- *     
+ *     const refs = await waitForRefs('canvas', 'scene');
  *     // 타입 안전한 사용
- *     refs.canvas.width = 800;
- *     refs.scene.add(mesh);
+ *     refs.canvas?.focus?.();
+ *     console.log('Game initialized with:', refs);
  *   };
  *   
  *   return (
  *     <GameRefs.Provider>
  *       <canvas ref={canvas.setRef} />
- *       <button onClick={initGame}>Initialize</button>
+ *       <button onClick={initGame}>Initialize Game</button>
+ *       <button onClick={() => canvas.waitForMount().then(c => console.log('Canvas ready:', c))}>
+ *         Check Canvas
+ *       </button>
  *     </GameRefs.Provider>
  *   );
  * }
  * ```
  */
-export function createRefContext<T extends Record<string, RefTarget>>(
-  contextName: string
+export function createRefContext<T = any>(
+  contextName: string,
+  refDefinitions?: T extends RefDefinitions ? T : undefined
 ): RefContextReturn<T> {
+  
+  // RefDefinitions인지 확인
+  const hasDefinitions = Boolean(refDefinitions);
   
   // Context 타입 정의
   interface RefContextValue {
-    stores: Map<keyof T, RefStore<any>>;
+    stores: Map<string, RefStore<any>>;
+    definitions?: T extends RefDefinitions ? T : undefined;
   }
   
   // Context 생성
@@ -88,19 +131,21 @@ export function createRefContext<T extends Record<string, RefTarget>>(
   const Provider: React.FC<{ children: ReactNode }> = ({ children }) => {
     // RefStore들을 한 번만 생성
     const stores = useMemo(() => {
-      const map = new Map<keyof T, RefStore<any>>();
+      const map = new Map<string, RefStore<any>>();
       
-      // 타입의 각 키에 대해 RefStore 생성
-      const keys = Object.keys({} as T) as (keyof T)[];
-      
-      // 런타임에는 키를 알 수 없으므로, 동적으로 생성
-      // 실제 사용 시점에 lazy 생성하는 방식 사용
+      // RefDefinitions인 경우 미리 생성
+      if (hasDefinitions && refDefinitions) {
+        Object.entries(refDefinitions).forEach(([refName, definition]) => {
+          map.set(refName, createRefStore(definition as any));
+        });
+      }
       
       return map;
     }, []);
     
     const contextValue = useMemo<RefContextValue>(() => ({
-      stores
+      stores,
+      definitions: refDefinitions
     }), [stores]);
     
     return React.createElement(
@@ -121,71 +166,127 @@ export function createRefContext<T extends Record<string, RefTarget>>(
   
   // 개별 ref 사용 hook
   const useRefHook = <K extends keyof T>(refName: K) => {
-    const { stores } = useRefContext();
+    const { stores, definitions } = useRefContext();
+    
+    const refNameStr = String(refName);
     
     // Store가 없으면 생성 (lazy initialization)
-    if (!stores.has(refName)) {
-      stores.set(refName, createRefStore({
-        name: String(refName),
-        objectType: 'custom',
-        autoCleanup: true
-      }));
-    }
-    
-    const store = stores.get(refName)!;
-    
-    // Store 구독
-    const [state, setState] = React.useState(() => store.getSnapshot().value);
-    
-    React.useEffect(() => {
-      const unsubscribe = store.subscribe(() => {
-        setState(store.getSnapshot().value);
-      });
-      return unsubscribe;
-    }, [store]);
-    
-    return useMemo(() => ({
-      setRef: (target: T[K] | null) => store.setRef(target),
-      target: state.target as T[K] | null,
-      waitForMount: () => store.waitForMount() as Promise<T[K]>,
-      withTarget: <Result>(
-        operation: RefOperation<T[K], Result>,
-        options?: RefOperationOptions
-      ) => store.withTarget(operation, options)
-    }), [store, state]);
-  };
-  
-  // 여러 ref 동시 대기 (Provider 외부에서 사용 가능)
-  const waitForRefsImpl = async function<K extends keyof T>(this: RefContextValue, ...refNames: K[]): Promise<Pick<T, K>> {
-    const { stores } = this;
-    
-    const promises = refNames.map(async (refName) => {
-      if (!stores.has(refName)) {
-        stores.set(refName, createRefStore({
-          name: String(refName),
+    if (!stores.has(refNameStr)) {
+      // RefDefinitions에서 정의 찾기
+      const definition = definitions?.[refName as string];
+      
+      if (definition) {
+        // 선언적 정의 사용
+        stores.set(refNameStr, createRefStore(definition));
+      } else {
+        // 기본 설정 사용
+        stores.set(refNameStr, createRefStore({
+          name: refNameStr,
           objectType: 'custom',
           autoCleanup: true
         }));
       }
-      const store = stores.get(refName)!;
+    }
+    
+    const store = stores.get(refNameStr)!;
+    
+    // Store 구독 (React 18 useSyncExternalStore 사용)
+    const state = React.useSyncExternalStore(
+      React.useCallback(
+        (callback) => store.subscribe(callback),
+        [store]
+      ),
+      React.useCallback(
+        () => store.getSnapshot().value,
+        [store]
+      ),
+      React.useCallback(
+        () => store.getSnapshot().value,
+        [store]
+      )
+    );
+    
+    return useMemo(() => ({
+      setRef: (target: any) => {
+        try {
+          store.setRef(target);
+        } catch (error) {
+          console.error(`Error setting ref "${refNameStr}":`, error);
+          throw error;
+        }
+      },
+      target: state.target,
+      waitForMount: () => store.waitForMount(),
+      withTarget: <Result>(
+        operation: RefOperation<any, Result>,
+        options?: RefOperationOptions
+      ): Promise<RefOperationResult<Result>> => {
+        return store.withTarget(operation, options);
+      },
+      isMounted: state.target !== null
+    }), [store, state, refNameStr]);
+  };
+  
+  // 여러 ref 동시 대기 함수
+  const waitForRefsImpl = async <K extends keyof T>(
+    stores: Map<string, RefStore<any>>,
+    ...refNames: K[]
+  ): Promise<Partial<T>> => {
+    const promises = refNames.map(async (refName) => {
+      const refNameStr = String(refName);
+      if (!stores.has(refNameStr)) {
+        // 동적 생성
+        const definition = refDefinitions?.[refName as string];
+        if (definition) {
+          stores.set(refNameStr, createRefStore(definition));
+        } else {
+          stores.set(refNameStr, createRefStore({
+            name: refNameStr,
+            objectType: 'custom',
+            autoCleanup: true
+          }));
+        }
+      }
+      const store = stores.get(refNameStr)!;
       const target = await store.waitForMount();
       return [refName, target] as const;
     });
     
     const results = await Promise.all(promises);
-    return Object.fromEntries(results) as Pick<T, K>;
+    return Object.fromEntries(results) as Partial<T>;
   };
   
-  // Context를 사용하는 waitForRefs wrapper
-  const waitForRefsWrapper = <K extends keyof T>(...refNames: K[]): Promise<Pick<T, K>> => {
-    const context = useRefContext();
-    return waitForRefsImpl.call(context, ...refNames);
+  // waitForRefs hook
+  const useWaitForRefs = () => {
+    const { stores } = useRefContext();
+    return React.useCallback(<K extends keyof T>(...refNames: K[]): Promise<Partial<T>> => {
+      return waitForRefsImpl(stores, ...refNames);
+    }, [stores]);
+  };
+  
+  // getAllRefs hook
+  const useGetAllRefs = () => {
+    const { stores } = useRefContext();
+    return React.useCallback((): Partial<T> => {
+      const result: Partial<T> = {} as Partial<T>;
+      
+      stores.forEach((store, refName) => {
+        const snapshot = store.getSnapshot().value;
+        if (snapshot.target !== null) {
+          (result as any)[refName] = snapshot.target;
+        }
+      });
+      
+      return result;
+    }, [stores]);
   };
   
   return {
     Provider,
     useRef: useRefHook,
-    waitForRefs: waitForRefsWrapper,
-    contextName
+    waitForRefs: useWaitForRefs,
+    getAllRefs: useGetAllRefs,
+    contextName,
+    refDefinitions
   };
 }
