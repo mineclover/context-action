@@ -2,512 +2,540 @@
  * @fileoverview DOM + Three.js 통합 예제
  * 
  * 게임 UI에서 DOM 요소와 Three.js 객체를 함께 관리하는 실제 사용 사례
+ * createRefContext 방법 2 (선언적 정의) 사용
  */
 
 import React, { useEffect, useCallback, useState } from 'react';
 import { createRefContext } from '../../src/refs/createRefContext';
-import type { RefInitConfig, RefActionPayloadMap } from '../../src/refs/types';
-import type { 
-  ThreeScene,
-  ThreeCamera, 
-  ThreeRenderer,
-  ThreeMesh,
-  ThreeObject
-} from '../../src/refs/declarative-ref-pattern';
 
-// 별칭 (기존 코드 호환성)
-type THREE_Scene = ThreeScene;
-type THREE_Camera = ThreeCamera;  
-type THREE_WebGLRenderer = ThreeRenderer;
-type THREE_Mesh = ThreeMesh;
+// Three.js 목 타입들 (실제로는 three 패키지를 사용)
+interface ThreeObject {
+  type: string;
+  uuid: string;
+  dispose?(): void;
+}
 
-// 참조 정의
-const gameRefDefinitions = {
-  // DOM 요소들
-  gameContainer: {
-    name: 'gameContainer',
-    objectType: 'dom',
-    autoCleanup: true
-  } as RefInitConfig<HTMLDivElement>,
-  
-  uiOverlay: {
-    name: 'uiOverlay', 
-    objectType: 'dom',
-    autoCleanup: true
-  } as RefInitConfig<HTMLDivElement>,
-  
-  scoreDisplay: {
-    name: 'scoreDisplay',
-    objectType: 'dom', 
-    autoCleanup: true
-  } as RefInitConfig<HTMLSpanElement>,
-  
-  pauseModal: {
-    name: 'pauseModal',
-    objectType: 'dom',
-    autoCleanup: true
-  } as RefInitConfig<HTMLDialogElement>,
-  
-  // Three.js 객체들
-  scene: {
-    name: 'scene',
-    objectType: 'three',
-    autoCleanup: true,
-    cleanup: async (scene: THREE_Scene) => {
-      // Scene의 모든 자식 객체 정리
-      while (scene.children.length > 0) {
-        const child = scene.children[0];
-        scene.remove(child);
-        if (child.dispose) child.dispose();
+interface ThreeScene extends ThreeObject {
+  type: 'Scene';
+  background?: any;
+  add(object: ThreeObject): void;
+  remove(object: ThreeObject): void;
+  children: ThreeObject[];
+}
+
+interface ThreeCamera extends ThreeObject {
+  type: 'PerspectiveCamera';
+  position: { x: number; y: number; z: number };
+  lookAt(x: number, y: number, z: number): void;
+}
+
+interface ThreeRenderer extends ThreeObject {
+  type: 'WebGLRenderer';
+  domElement: HTMLCanvasElement;
+  setSize(width: number, height: number): void;
+  render(scene: ThreeScene, camera: ThreeCamera): void;
+  dispose(): void;
+}
+
+interface ThreeMesh extends ThreeObject {
+  type: 'Mesh';
+  position: { x: number; y: number; z: number };
+  rotation: { x: number; y: number; z: number };
+  scale: { x: number; y: number; z: number };
+  visible: boolean;
+}
+
+// 게임 UI 예제
+export function GameUIExample() {
+  // 방법 2: 선언적 RefDefinitions 사용
+  const GameRefs = createRefContext('GameUI', {
+    // DOM 요소들
+    gameContainer: {
+      name: 'gameContainer',
+      objectType: 'dom' as const,
+      autoCleanup: true
+    },
+    canvas: {
+      name: 'canvas',
+      objectType: 'dom' as const,
+      autoCleanup: true,
+      mountTimeout: 5000
+    },
+    uiOverlay: {
+      name: 'uiOverlay',
+      objectType: 'dom' as const,
+      autoCleanup: true
+    },
+    scoreDisplay: {
+      name: 'scoreDisplay',
+      objectType: 'dom' as const,
+      autoCleanup: true
+    },
+    controlPanel: {
+      name: 'controlPanel',
+      objectType: 'dom' as const,
+      autoCleanup: true
+    },
+    
+    // Three.js 객체들
+    scene: {
+      name: 'scene',
+      objectType: 'custom' as const,
+      autoCleanup: true,
+      cleanup: (scene: ThreeScene) => {
+        // Scene cleanup
+        scene.children.forEach(child => {
+          child.dispose?.();
+        });
+        console.log('Scene cleaned up');
+      }
+    },
+    camera: {
+      name: 'camera',
+      objectType: 'custom' as const,
+      autoCleanup: true,
+      cleanup: (camera: ThreeCamera) => {
+        camera.dispose?.();
+        console.log('Camera cleaned up');
+      }
+    },
+    renderer: {
+      name: 'renderer',
+      objectType: 'custom' as const,
+      autoCleanup: true,
+      cleanup: (renderer: ThreeRenderer) => {
+        renderer.dispose();
+        console.log('Renderer cleaned up');
+      }
+    },
+    playerMesh: {
+      name: 'playerMesh',
+      objectType: 'custom' as const,
+      autoCleanup: true,
+      cleanup: (mesh: ThreeMesh) => {
+        mesh.dispose?.();
+        console.log('Player mesh cleaned up');
       }
     }
-  } as RefInitConfig<THREE_Scene>,
-  
-  camera: {
-    name: 'camera',
-    objectType: 'three',
-    autoCleanup: true
-  } as RefInitConfig<THREE_Camera>,
-  
-  renderer: {
-    name: 'renderer',
-    objectType: 'three',
-    autoCleanup: true,
-    cleanup: async (renderer: THREE_WebGLRenderer) => {
-      renderer.dispose();
-    }
-  } as RefInitConfig<THREE_WebGLRenderer>,
-  
-  playerMesh: {
-    name: 'playerMesh',
-    objectType: 'three',
-    autoCleanup: true,
-    cleanup: async (mesh: THREE_Mesh) => {
-      if (mesh.geometry) mesh.geometry.dispose();
-      if (mesh.material) {
-        if (Array.isArray(mesh.material)) {
-          mesh.material.forEach(mat => mat.dispose());
-        } else {
-          mesh.material.dispose();
+  });
+
+  function GameComponent() {
+    const gameContainer = GameRefs.useRef('gameContainer');
+    const canvas = GameRefs.useRef('canvas');
+    const uiOverlay = GameRefs.useRef('uiOverlay');
+    const scoreDisplay = GameRefs.useRef('scoreDisplay');
+    const controlPanel = GameRefs.useRef('controlPanel');
+    const scene = GameRefs.useRef('scene');
+    const camera = GameRefs.useRef('camera');
+    const renderer = GameRefs.useRef('renderer');
+    const playerMesh = GameRefs.useRef('playerMesh');
+    const waitForRefs = GameRefs.waitForRefs();
+
+    const [gameState, setGameState] = useState({
+      isInitialized: false,
+      isRunning: false,
+      score: 0,
+      playerPosition: { x: 0, y: 0, z: 0 }
+    });
+
+    // Three.js Scene 초기화
+    const initializeScene = useCallback(() => {
+      const mockScene: ThreeScene = {
+        type: 'Scene',
+        uuid: 'scene-' + Math.random().toString(36).substr(2, 9),
+        background: 0x222222,
+        children: [],
+        add: function(obj: ThreeObject) {
+          this.children.push(obj);
+        },
+        remove: function(obj: ThreeObject) {
+          const index = this.children.indexOf(obj);
+          if (index > -1) {
+            this.children.splice(index, 1);
+          }
         }
+      };
+
+      scene.setRef(mockScene);
+      console.log('Scene initialized:', mockScene);
+    }, [scene]);
+
+    // Camera 초기화
+    const initializeCamera = useCallback(() => {
+      const mockCamera: ThreeCamera = {
+        type: 'PerspectiveCamera',
+        uuid: 'camera-' + Math.random().toString(36).substr(2, 9),
+        position: { x: 0, y: 5, z: 10 },
+        lookAt: (x: number, y: number, z: number) => {
+          console.log(`Camera looking at (${x}, ${y}, ${z})`);
+        }
+      };
+
+      camera.setRef(mockCamera);
+      console.log('Camera initialized:', mockCamera);
+    }, [camera]);
+
+    // Renderer 초기화
+    const initializeRenderer = useCallback(async () => {
+      if (canvas.target) {
+        const mockRenderer: ThreeRenderer = {
+          type: 'WebGLRenderer',
+          uuid: 'renderer-' + Math.random().toString(36).substr(2, 9),
+          domElement: canvas.target,
+          setSize: (width: number, height: number) => {
+            canvas.target!.width = width;
+            canvas.target!.height = height;
+            console.log(`Renderer size set to ${width}x${height}`);
+          },
+          render: (scene: ThreeScene, camera: ThreeCamera) => {
+            // Canvas에 시각적 피드백
+            const ctx = canvas.target!.getContext('2d');
+            if (ctx) {
+              ctx.fillStyle = '#333';
+              ctx.fillRect(0, 0, canvas.target!.width, canvas.target!.height);
+              ctx.fillStyle = '#0f0';
+              ctx.fillText(`Rendering... Scene: ${scene.children.length} objects`, 10, 30);
+            }
+          },
+          dispose: () => {
+            console.log('Renderer disposed');
+          }
+        };
+
+        renderer.setRef(mockRenderer);
+        
+        // 초기 크기 설정
+        mockRenderer.setSize(800, 600);
+        
+        console.log('Renderer initialized:', mockRenderer);
       }
-    }
-  } as RefInitConfig<THREE_Mesh>
-};
+    }, [canvas.target, renderer]);
 
-// 액션 정의
-interface GameActions extends RefActionPayloadMap {
-  initializeGame: void;
-  updateScore: { score: number };
-  pauseGame: void;
-  resumeGame: void;
-  movePlayer: { x: number; y: number; z: number };
-  addGameObject: { type: 'cube' | 'sphere'; position: { x: number; y: number; z: number } };
-  resizeRenderer: { width: number; height: number };
-}
+    // Player Mesh 생성
+    const createPlayerMesh = useCallback(() => {
+      if (scene.target) {
+        const mockMesh: ThreeMesh = {
+          type: 'Mesh',
+          uuid: 'player-' + Math.random().toString(36).substr(2, 9),
+          position: { x: 0, y: 0, z: 0 },
+          rotation: { x: 0, y: 0, z: 0 },
+          scale: { x: 1, y: 1, z: 1 },
+          visible: true,
+          dispose: () => {
+            console.log('Player mesh disposed');
+          }
+        };
 
-// RefContext 생성
-const GameRefs = createRefContext<typeof gameRefDefinitions, GameActions>(
-  'GameUI',
-  gameRefDefinitions
-);
+        playerMesh.setRef(mockMesh);
+        scene.target.add(mockMesh);
+        
+        console.log('Player mesh created and added to scene');
+      }
+    }, [scene.target, playerMesh]);
 
-/**
- * 게임 초기화 컴포넌트
- */
-function GameInitializer() {
-  const dispatch = GameRefs.useRefAction();
-  const refManager = GameRefs.useRefManager();
-
-  // 게임 초기화 액션 핸들러
-  GameRefs.useRefActionHandler('initializeGame', async () => {
-    console.log('🎮 게임 초기화 시작...');
-
-    // Three.js 객체들 초기화
-    const [scene, camera, renderer] = await Promise.all([
-      refManager.getStore('scene').waitForMount(),
-      refManager.getStore('camera').waitForMount(),
-      refManager.getStore('renderer').waitForMount()
-    ]);
-
-    // 카메라 설정
-    if (camera.position) {
-      camera.position.x = 0;
-      camera.position.y = 0;
-      camera.position.z = 5;
-    }
-    camera.lookAt?.(0, 0, 0);
-
-    // DOM에 렌더러 캔버스 추가
-    const gameContainer = await refManager.getStore('gameContainer').waitForMount();
-    if (renderer.domElement) {
-      gameContainer.appendChild(renderer.domElement);
-    }
-
-    // 초기 렌더링
-    renderer.render?.(scene, camera);
-
-    console.log('✅ 게임 초기화 완료');
-  });
-
-  // 점수 업데이트 핸들러
-  GameRefs.useRefActionHandler('updateScore', async ({ score }) => {
-    const scoreDisplay = await refManager.getStore('scoreDisplay').waitForMount();
-    scoreDisplay.textContent = `Score: ${score}`;
-  });
-
-  // 게임 일시정지 핸들러
-  GameRefs.useRefActionHandler('pauseGame', async () => {
-    const pauseModal = await refManager.getStore('pauseModal').waitForMount();
-    (pauseModal as HTMLDialogElement).showModal();
-  });
-
-  // 게임 재개 핸들러  
-  GameRefs.useRefActionHandler('resumeGame', async () => {
-    const pauseModal = await refManager.getStore('pauseModal').waitForMount();
-    (pauseModal as HTMLDialogElement).close();
-  });
-
-  // 플레이어 이동 핸들러
-  GameRefs.useRefActionHandler('movePlayer', async ({ x, y, z }) => {
-    const playerMesh = await refManager.getStore('playerMesh').waitForMount();
-    if (playerMesh.position) {
-      playerMesh.position.x = x;
-      playerMesh.position.y = y;
-      playerMesh.position.z = z;
-    }
-
-    // 렌더링 업데이트
-    const [scene, camera, renderer] = await Promise.all([
-      refManager.getStore('scene').waitForMount(),
-      refManager.getStore('camera').waitForMount(),
-      refManager.getStore('renderer').waitForMount()
-    ]);
-    
-    if (scene && camera && renderer && renderer.render) {
-      renderer.render(scene, camera);
-    }
-  });
-
-  // 게임 오브젝트 추가 핸들러
-  GameRefs.useRefActionHandler('addGameObject', async ({ type, position }) => {
-    const scene = await refManager.getStore('scene').waitForMount();
-    // 실제로는 Three.js 객체 생성 로직
-    const gameObject = createThreeObject(type, position);
-    scene.add(gameObject);
-
-    // 렌더링 업데이트
-    const [, camera, renderer] = await Promise.all([
-      refManager.getStore('scene').waitForMount(),
-      refManager.getStore('camera').waitForMount(),
-      refManager.getStore('renderer').waitForMount()
-    ]);
-    
-    if (scene && camera && renderer && renderer.render) {
-      renderer.render(scene, camera);
-    }
-  });
-
-  // 렌더러 크기 조정 핸들러
-  GameRefs.useRefActionHandler('resizeRenderer', async ({ width, height }) => {
-    const renderer = await refManager.getStore('renderer').waitForMount();
-    renderer.setSize(width, height);
-  });
-
-  // 컴포넌트 마운트 시 게임 초기화
-  useEffect(() => {
-    const initGame = async () => {
+    // 게임 초기화
+    const initializeGame = useCallback(async () => {
       try {
-        // 모든 참조가 준비될 때까지 대기
-        await refManager.waitForAll();
+        console.log('Initializing game...');
         
-        // 게임 초기화 실행
-        await dispatch('initializeGame');
-        
-        console.log('🚀 게임 초기화 완료');
+        // 모든 DOM 요소 준비 대기
+        await waitForRefs('gameContainer', 'canvas', 'uiOverlay', 'scoreDisplay', 'controlPanel');
+        console.log('All DOM elements ready');
+
+        // Three.js 객체들 순차 초기화
+        initializeScene();
+        initializeCamera();
+        await initializeRenderer();
+        createPlayerMesh();
+
+        setGameState(prev => ({ ...prev, isInitialized: true }));
+        console.log('Game initialization complete');
       } catch (error) {
-        console.error('❌ 게임 초기화 실패:', error);
+        console.error('Game initialization failed:', error);
       }
-    };
+    }, [waitForRefs, initializeScene, initializeCamera, initializeRenderer, createPlayerMesh]);
 
-    initGame();
-  }, [dispatch, refManager]);
+    // 게임 시작
+    const startGame = useCallback(() => {
+      if (gameState.isInitialized && !gameState.isRunning) {
+        setGameState(prev => ({ ...prev, isRunning: true }));
+        console.log('Game started');
+      }
+    }, [gameState.isInitialized, gameState.isRunning]);
 
-  return null; // 이 컴포넌트는 로직만 담당
-}
+    // 게임 정지
+    const stopGame = useCallback(() => {
+      if (gameState.isRunning) {
+        setGameState(prev => ({ ...prev, isRunning: false }));
+        console.log('Game stopped');
+      }
+    }, [gameState.isRunning]);
 
-/**
- * 게임 UI 컴포넌트
- */
-function GameUI() {
-  const gameContainer = GameRefs.useRef('gameContainer');
-  const uiOverlay = GameRefs.useRef('uiOverlay');
-  const scoreDisplay = GameRefs.useRef('scoreDisplay');
-  const pauseModal = GameRefs.useRef('pauseModal');
-  
-  const dispatch = GameRefs.useRefAction();
-  const [score, setScore] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+    // 플레이어 이동
+    const movePlayer = useCallback((direction: 'left' | 'right' | 'up' | 'down') => {
+      if (playerMesh.target && gameState.isRunning) {
+        const moveDistance = 1;
+        const newPosition = { ...playerMesh.target.position };
 
-  // 점수 업데이트
-  const handleScoreChange = useCallback((newScore: number) => {
-    setScore(newScore);
-    dispatch('updateScore', { score: newScore });
-  }, [dispatch]);
+        switch (direction) {
+          case 'left':
+            newPosition.x -= moveDistance;
+            break;
+          case 'right':
+            newPosition.x += moveDistance;
+            break;
+          case 'up':
+            newPosition.z -= moveDistance;
+            break;
+          case 'down':
+            newPosition.z += moveDistance;
+            break;
+        }
 
-  // 일시정지 토글
-  const handlePauseToggle = useCallback(() => {
-    if (isPaused) {
-      dispatch('resumeGame');
-      setIsPaused(false);
-    } else {
-      dispatch('pauseGame');
-      setIsPaused(true);
-    }
-  }, [dispatch, isPaused]);
+        playerMesh.target.position = newPosition;
+        setGameState(prev => ({ 
+          ...prev, 
+          playerPosition: newPosition,
+          score: prev.score + 10 
+        }));
 
-  // 플레이어 이동 (키보드 입력)
-  const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
-    const step = 0.5;
-    switch (event.key) {
-      case 'ArrowUp':
-        dispatch('movePlayer', { x: 0, y: step, z: 0 });
-        break;
-      case 'ArrowDown':
-        dispatch('movePlayer', { x: 0, y: -step, z: 0 });
-        break;
-      case 'ArrowLeft':
-        dispatch('movePlayer', { x: -step, y: 0, z: 0 });
-        break;
-      case 'ArrowRight':
-        dispatch('movePlayer', { x: step, y: 0, z: 0 });
-        break;
-      case ' ':
-        event.preventDefault();
-        handlePauseToggle();
-        break;
-    }
-  }, [dispatch, handlePauseToggle]);
+        console.log('Player moved:', direction, newPosition);
+      }
+    }, [playerMesh.target, gameState.isRunning]);
 
-  // 게임 오브젝트 추가
-  const handleAddCube = useCallback(() => {
-    const x = (Math.random() - 0.5) * 10;
-    const y = (Math.random() - 0.5) * 10; 
-    const z = (Math.random() - 0.5) * 10;
-    dispatch('addGameObject', { type: 'cube', position: { x, y, z } });
-  }, [dispatch]);
+    // 점수 업데이트
+    useEffect(() => {
+      if (scoreDisplay.target) {
+        scoreDisplay.target.textContent = `Score: ${gameState.score}`;
+      }
+    }, [gameState.score, scoreDisplay.target]);
 
-  // 윈도우 크기 변경 처리
-  useEffect(() => {
-    const handleResize = () => {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
-      dispatch('resizeRenderer', { width, height });
-    };
+    // 게임 루프 (렌더링)
+    useEffect(() => {
+      let animationId: number;
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [dispatch]);
-
-  return (
-    <div 
-      ref={gameContainer.setRef}
-      className="game-container"
-      tabIndex={0}
-      onKeyDown={handleKeyDown}
-      style={{ 
-        position: 'relative', 
-        width: '100vw', 
-        height: '100vh',
-        outline: 'none'
-      }}
-    >
-      {/* UI 오버레이 */}
-      <div 
-        ref={uiOverlay.setRef}
-        className="ui-overlay"
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 100,
-          padding: '20px',
-          background: 'rgba(0, 0, 0, 0.5)',
-          color: 'white'
-        }}
-      >
-        <div className="game-hud" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span ref={scoreDisplay.setRef} className="score">Score: 0</span>
-          
-          <div className="controls">
-            <button onClick={handlePauseToggle} style={{ marginRight: '10px' }}>
-              {isPaused ? '▶️ Resume' : '⏸️ Pause'}
-            </button>
-            <button onClick={handleAddCube}>
-              ➕ Add Cube
-            </button>
-            <button onClick={() => handleScoreChange(score + 10)}>
-              +10 Points
-            </button>
-          </div>
-        </div>
+      if (gameState.isRunning && renderer.target && scene.target && camera.target) {
+        const gameLoop = () => {
+          renderer.target!.render(scene.target!, camera.target!);
+          animationId = requestAnimationFrame(gameLoop);
+        };
         
-        <div className="instructions" style={{ marginTop: '10px', fontSize: '12px', opacity: 0.8 }}>
-          Use arrow keys to move, Space to pause
-        </div>
-      </div>
+        gameLoop();
+      }
 
-      {/* 일시정지 모달 */}
-      <dialog 
-        ref={pauseModal.setRef}
-        className="pause-modal"
-        style={{
-          padding: '40px',
-          border: 'none',
-          borderRadius: '10px',
-          background: 'rgba(0, 0, 0, 0.9)',
-          color: 'white',
-          textAlign: 'center'
-        }}
-      >
-        <h2>⏸️ Game Paused</h2>
-        <p>Press Resume to continue playing</p>
-        <button 
-          onClick={() => handlePauseToggle()}
+      return () => {
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+        }
+      };
+    }, [gameState.isRunning, renderer.target, scene.target, camera.target]);
+
+    // 키보드 이벤트 핸들러
+    useEffect(() => {
+      const handleKeyPress = (e: KeyboardEvent) => {
+        if (gameState.isRunning) {
+          switch (e.key) {
+            case 'ArrowLeft':
+            case 'a':
+              movePlayer('left');
+              break;
+            case 'ArrowRight':
+            case 'd':
+              movePlayer('right');
+              break;
+            case 'ArrowUp':
+            case 'w':
+              movePlayer('up');
+              break;
+            case 'ArrowDown':
+            case 's':
+              movePlayer('down');
+              break;
+          }
+        }
+      };
+
+      window.addEventListener('keydown', handleKeyPress);
+      return () => window.removeEventListener('keydown', handleKeyPress);
+    }, [gameState.isRunning, movePlayer]);
+
+    // 컴포넌트 마운트 시 초기화
+    useEffect(() => {
+      if (gameContainer.isMounted && canvas.isMounted && uiOverlay.isMounted) {
+        initializeGame();
+      }
+    }, [gameContainer.isMounted, canvas.isMounted, uiOverlay.isMounted, initializeGame]);
+
+    return (
+      <div style={{ position: 'relative', width: '100%', height: '100vh', padding: '20px' }}>
+        <h2>Game UI Example</h2>
+        <p>DOM + Three.js integration with createRefContext</p>
+
+        <div 
+          ref={gameContainer.setRef}
           style={{ 
-            padding: '10px 20px',
-            fontSize: '16px',
-            background: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer'
+            position: 'relative', 
+            width: '800px', 
+            height: '600px', 
+            border: '2px solid #333',
+            margin: '20px 0',
+            backgroundColor: '#111'
           }}
         >
-          ▶️ Resume Game
-        </button>
-      </dialog>
-    </div>
-  );
-}
+          <canvas
+            ref={canvas.setRef}
+            width={800}
+            height={600}
+            style={{ display: 'block', background: '#222' }}
+          />
 
-/**
- * Three.js 객체 생성 mock 함수
- */
-function createThreeObject(type: 'cube' | 'sphere', position: { x: number; y: number; z: number }): any {
-  // 실제로는 THREE.Mesh, THREE.BoxGeometry 등을 사용
-  return {
-    uuid: `${type}_${Date.now()}_${Math.random()}`,
-    name: type,
-    type: type === 'cube' ? 'Mesh' : 'Mesh',
-    position,
-    rotation: { x: 0, y: 0, z: 0 },
-    scale: { x: 1, y: 1, z: 1 },
-    visible: true,
-    children: [],
-    parent: null,
-    add: () => {},
-    remove: () => {},
-    traverse: () => {},
-    dispose: () => {}
-  };
-}
+          <div 
+            ref={uiOverlay.setRef}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              pointerEvents: 'none',
+              color: 'white',
+              padding: '10px'
+            }}
+          >
+            <div 
+              ref={scoreDisplay.setRef}
+              style={{ 
+                fontSize: '24px', 
+                fontWeight: 'bold',
+                pointerEvents: 'auto'
+              }}
+            >
+              Score: {gameState.score}
+            </div>
 
-/**
- * Three.js 객체들을 실제로 생성하는 mock 컴포넌트들
- */
-function ThreeObjectsSetup() {
-  const scene = GameRefs.useRef('scene');
-  const camera = GameRefs.useRef('camera'); 
-  const renderer = GameRefs.useRef('renderer');
-  const playerMesh = GameRefs.useRef('playerMesh');
+            <div style={{ 
+              position: 'absolute', 
+              bottom: '10px', 
+              left: '50%', 
+              transform: 'translateX(-50%)',
+              fontSize: '14px',
+              opacity: 0.7
+            }}>
+              Use WASD or Arrow keys to move
+            </div>
+          </div>
+        </div>
 
-  useEffect(() => {
-    // Mock Three.js 객체 생성
-    // 실제로는 new THREE.Scene(), new THREE.PerspectiveCamera() 등을 사용
+        <div 
+          ref={controlPanel.setRef}
+          style={{ 
+            display: 'flex', 
+            gap: '10px', 
+            alignItems: 'center',
+            flexWrap: 'wrap'
+          }}
+        >
+          <button
+            onClick={startGame}
+            disabled={!gameState.isInitialized || gameState.isRunning}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: gameState.isRunning ? '#6c757d' : '#28a745',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: gameState.isInitialized && !gameState.isRunning ? 'pointer' : 'not-allowed'
+            }}
+          >
+            Start Game
+          </button>
 
-    const mockScene: THREE_Scene = {
-      type: 'Scene' as const,
-      children: [],
-      add: function(object: any) { 
-        this.children.push(object); 
-        if (object) object.parent = this; 
-      },
-      remove: function(object: any) { 
-        const index = this.children.indexOf(object);
-        if (index !== -1) this.children.splice(index, 1);
-        if (object) object.parent = null;
-      }
-    };
+          <button
+            onClick={stopGame}
+            disabled={!gameState.isRunning}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: gameState.isRunning ? '#dc3545' : '#6c757d',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: gameState.isRunning ? 'pointer' : 'not-allowed'
+            }}
+          >
+            Stop Game
+          </button>
 
-    const mockCamera: THREE_Camera = {
-      type: 'PerspectiveCamera' as const,
-      position: { x: 0, y: 0, z: 5 },
-      lookAt: () => {}
-    };
+          <div style={{ marginLeft: '20px' }}>
+            Player: ({gameState.playerPosition.x}, {gameState.playerPosition.y}, {gameState.playerPosition.z})
+          </div>
+        </div>
 
-    const mockRenderer: THREE_WebGLRenderer = {
-      type: 'WebGLRenderer' as const,
-      domElement: document.createElement('canvas'),
-      setSize: function(width: number, height: number) {
-        this.domElement.width = width;
-        this.domElement.height = height;
-        this.domElement.style.width = width + 'px';
-        this.domElement.style.height = height + 'px';
-      },
-      render: () => {
-        // Mock 렌더링 - 실제로는 WebGL 렌더링
-        console.log('🎨 Rendering frame...');
-      },
-      dispose: () => {
-        console.log('🧹 Renderer disposed');
-      }
-    };
+        {/* Debug Information */}
+        <div style={{ 
+          marginTop: '30px', 
+          padding: '15px', 
+          backgroundColor: '#f8f9fa', 
+          borderRadius: '4px',
+          fontSize: '12px'
+        }}>
+          <h4>Debug Information</h4>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
+            <div>
+              <strong>DOM Elements:</strong>
+              <ul style={{ margin: '5px 0', paddingLeft: '20px' }}>
+                <li>Game Container: {gameContainer.isMounted ? '✅' : '⏳'}</li>
+                <li>Canvas: {canvas.isMounted ? '✅' : '⏳'}</li>
+                <li>UI Overlay: {uiOverlay.isMounted ? '✅' : '⏳'}</li>
+                <li>Score Display: {scoreDisplay.isMounted ? '✅' : '⏳'}</li>
+                <li>Control Panel: {controlPanel.isMounted ? '✅' : '⏳'}</li>
+              </ul>
+            </div>
+            
+            <div>
+              <strong>Three.js Objects:</strong>
+              <ul style={{ margin: '5px 0', paddingLeft: '20px' }}>
+                <li>Scene: {scene.isMounted ? '✅' : '⏳'}</li>
+                <li>Camera: {camera.isMounted ? '✅' : '⏳'}</li>
+                <li>Renderer: {renderer.isMounted ? '✅' : '⏳'}</li>
+                <li>Player Mesh: {playerMesh.isMounted ? '✅' : '⏳'}</li>
+              </ul>
+            </div>
+            
+            <div>
+              <strong>Game State:</strong>
+              <ul style={{ margin: '5px 0', paddingLeft: '20px' }}>
+                <li>Initialized: {gameState.isInitialized ? '✅' : '⏳'}</li>
+                <li>Running: {gameState.isRunning ? '✅' : '❌'}</li>
+                <li>Score: {gameState.score}</li>
+                <li>Player Position: ({gameState.playerPosition.x}, {gameState.playerPosition.y}, {gameState.playerPosition.z})</li>
+              </ul>
+            </div>
+          </div>
 
-    const mockPlayerMesh: THREE_Mesh = {
-      type: 'Mesh' as const,
-      position: { x: 0, y: 0, z: 0 },
-      rotation: { x: 0, y: 0, z: 0 },
-      geometry: { dispose: () => console.log('Geometry disposed') },
-      material: { dispose: () => console.log('Material disposed') }
-    };
+          <div style={{ marginTop: '15px' }}>
+            <strong>Ref Definitions:</strong>
+            <pre style={{ 
+              fontSize: '10px', 
+              background: 'white', 
+              padding: '10px', 
+              borderRadius: '3px',
+              overflow: 'auto',
+              maxHeight: '200px'
+            }}>
+              {JSON.stringify(GameRefs.refDefinitions, null, 2)}
+            </pre>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-    // 초기 크기 설정
-    mockRenderer.setSize(window.innerWidth, window.innerHeight);
-
-    // RefStore에 설정
-    scene.setRef(mockScene);
-    camera.setRef(mockCamera);
-    renderer.setRef(mockRenderer);
-    playerMesh.setRef(mockPlayerMesh);
-
-    // Scene에 플레이어 추가
-    mockScene.add(mockPlayerMesh);
-
-    return () => {
-      // Cleanup
-      scene.setRef(null);
-      camera.setRef(null);
-      renderer.setRef(null);
-      playerMesh.setRef(null);
-    };
-  }, [scene, camera, renderer, playerMesh]);
-
-  return null;
-}
-
-/**
- * 메인 게임 애플리케이션
- */
-export function GameApp() {
   return (
     <GameRefs.Provider>
-      <ThreeObjectsSetup />
-      <GameInitializer />
-      <GameUI />
+      <GameComponent />
     </GameRefs.Provider>
   );
 }
 
-export default GameApp;
+export default GameUIExample;
