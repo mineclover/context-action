@@ -5,7 +5,7 @@
  */
 
 import path from 'path';
-import { CLIConfig } from '../types/config.js';
+import { CLIConfig } from '../cli/types/CLITypes.js';
 
 export interface OutputPathOptions {
   language: string;

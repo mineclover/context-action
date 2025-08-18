@@ -8,8 +8,22 @@
 export { EnhancedConfigManager } from './core/EnhancedConfigManager.js';
 
 // Types (only actively used)
-export * from './types/config.js';
-export * from './shared/types/index.js';
+export type { 
+  LLMSConfig, 
+  SummaryConfig, 
+  GenerationOptions, 
+  EnhancedLLMSConfig, 
+  UIConfig 
+} from './types/config.js';
+// Export only specific types from shared to avoid conflicts
+export type { 
+  Result, 
+  OperationResult, 
+  Paginated, 
+  SortOptions, 
+  FilterOptions,
+  ValidationError
+} from './shared/types/index.js';
 
 // Default configuration
 export { DEFAULT_CONFIG } from './shared/config/DefaultConfig.js';

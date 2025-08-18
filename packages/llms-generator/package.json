@@ -27,7 +27,7 @@
     "test:adaptive": "jest test/integration/AdaptiveComposer.test.ts",
     "test:cli": "jest test/cli/generate-all.test.ts",
     "test:new-cli": "jest test/cli/new-cli.test.ts",
-    "lint": "eslint src --ext .ts,.js",
+    "lint": "eslint src",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist",
     "docs:generate": "typedoc src/index.ts --out docs/api --readme none --exclude '**/*.test.ts' --exclude '**/test/**/*'",

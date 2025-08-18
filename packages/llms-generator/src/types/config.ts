@@ -2,7 +2,8 @@
  * Configuration types for LLMS Generator
  */
 
-import { CharacterLimit, DocumentId } from '../domain/value-objects/index.js';
+// Domain types commented out - not used in this configuration
+// import { CharacterLimit, DocumentId } from '../domain/value-objects/index.js';
 import type { 
   DocumentCategory, 
   PriorityTier, 
