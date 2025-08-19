@@ -189,6 +189,7 @@ describe('Store 동시성 문제 재현 테스트', () => {
               });
             } catch (error) {
               subscriptionErrors.push(`Subscribe error ${i}: ${error}`);
+              return undefined;
             }
           });
         } else {
@@ -196,8 +197,10 @@ describe('Store 동시성 문제 재현 테스트', () => {
           return Promise.resolve().then(() => {
             try {
               eventBus.emit(`event-${i - 1}`, `data-${i}`);
+              return undefined;
             } catch (error) {
               subscriptionErrors.push(`Emit error ${i}: ${error}`);
+              return undefined;
             }
           });
         }
@@ -245,6 +248,7 @@ describe('Store 동시성 문제 재현 테스트', () => {
             return unsubscribe;
           } catch (error) {
             subscriptionIssues.push(`Subscription error ${i}: ${error}`);
+            return undefined;
           }
         });
       });

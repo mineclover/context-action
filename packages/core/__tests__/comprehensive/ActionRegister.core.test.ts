@@ -41,23 +41,28 @@ describe('ActionRegister - Core Functionality', () => {
       actionRegister.register('userLogin', handler2, { priority: 20, id: 'auth-process' });
       actionRegister.register('userLogin', handler3, { priority: 5, id: 'auth-logging' });
 
-      const handlers = actionRegister.getHandlers('userLogin');
-      expect(handlers).toHaveLength(3);
+      expect(actionRegister.getHandlerCount('userLogin')).toBe(3);
+      
+      // Check handler stats for priority sorting
+      const stats = actionRegister.getActionStats('userLogin');
+      expect(stats).not.toBeNull();
+      expect(stats!.handlerCount).toBe(3);
       
       // Should be sorted by priority (highest first)
-      expect(handlers[0].config.priority).toBe(20);
-      expect(handlers[1].config.priority).toBe(10);
-      expect(handlers[2].config.priority).toBe(5);
+      const handlersByPriority = stats!.handlersByPriority;
+      expect(handlersByPriority[0].priority).toBe(20);
+      expect(handlersByPriority[1].priority).toBe(10);
+      expect(handlersByPriority[2].priority).toBe(5);
     });
 
     it('should unregister handlers properly', () => {
       const handler = jest.fn();
       const unregister = actionRegister.register('userLogout', handler, { id: 'logout-handler' });
 
-      expect(actionRegister.getHandlers('userLogout')).toHaveLength(1);
+      expect(actionRegister.getHandlerCount('userLogout')).toBe(1);
 
       unregister();
-      expect(actionRegister.getHandlers('userLogout')).toHaveLength(0);
+      expect(actionRegister.getHandlerCount('userLogout')).toBe(0);
     });
 
     it('should handle "once" handlers correctly', async () => {
@@ -68,7 +73,7 @@ describe('ActionRegister - Core Functionality', () => {
       await actionRegister.dispatch('sendNotification', { message: 'Test2', type: 'info' });
 
       expect(handler).toHaveBeenCalledTimes(1);
-      expect(actionRegister.getHandlers('sendNotification')).toHaveLength(0);
+      expect(actionRegister.getHandlerCount('sendNotification')).toBe(0);
     });
 
     it('should respect handler conditions', async () => {
@@ -240,12 +245,12 @@ describe('ActionRegister - Core Functionality', () => {
     });
 
     it('should handle controller.setResult and getResults', async () => {
-      actionRegister.register('processPayment', (payload, controller) => {
+      actionRegister.register<'processPayment', { step: number; validated?: boolean; completed?: boolean }>('processPayment', (payload, controller) => {
         controller.setResult({ step: 1, validated: true });
         return { step: 1, completed: true };
       }, { priority: 20 });
 
-      actionRegister.register('processPayment', (payload, controller) => {
+      actionRegister.register<'processPayment', { step: number; amount?: number }>('processPayment', (payload, controller) => {
         const previousResults = controller.getResults();
         expect(previousResults).toHaveLength(1);
         expect(previousResults[0]).toEqual({ step: 1, completed: true });
@@ -261,7 +266,7 @@ describe('ActionRegister - Core Functionality', () => {
     });
 
     it('should handle early termination with controller.return', async () => {
-      actionRegister.register('userLogin', (payload, controller) => {
+      actionRegister.register<'userLogin', any>('userLogin', (payload, controller) => {
         if (payload.username === 'admin') {
           controller.return({ success: true, role: 'admin', skipValidation: true });
         }
@@ -337,8 +342,9 @@ describe('ActionRegister - Core Functionality', () => {
       actionRegister.register('userLogout', jest.fn());
 
       const stats = actionRegister.getActionStats('userLogin');
-      expect(stats.totalHandlers).toBe(2);
-      expect(stats.action).toBe('userLogin');
+      expect(stats).not.toBeNull();
+      expect(stats!.totalHandlers).toBe(2);
+      expect(stats!.action).toBe('userLogin');
 
       const allActions = actionRegister.getRegisteredActions();
       expect(allActions).toContain('userLogin');
@@ -385,7 +391,7 @@ describe('ActionRegister - Core Functionality', () => {
         actionRegister.register('updateProfile', handler, { priority: index });
       });
 
-      expect(actionRegister.getHandlers('updateProfile')).toHaveLength(handlerCount);
+      expect(actionRegister.getHandlerCount('updateProfile')).toBe(handlerCount);
     });
 
     it('should properly cleanup resources', () => {
@@ -398,12 +404,12 @@ describe('ActionRegister - Core Functionality', () => {
         unregisterFunctions.push(unregister);
       }
 
-      expect(actionRegister.getHandlers('sendNotification')).toHaveLength(10);
+      expect(actionRegister.getHandlerCount('sendNotification')).toBe(10);
 
       // Unregister half of them
       unregisterFunctions.slice(0, 5).forEach(unregister => unregister());
 
-      expect(actionRegister.getHandlers('sendNotification')).toHaveLength(5);
+      expect(actionRegister.getHandlerCount('sendNotification')).toBe(5);
     });
   });
 });

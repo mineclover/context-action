@@ -501,12 +501,12 @@ describe('ActionRegister - Advanced Features', () => {
       }
 
       expect(actionRegister.getRegisteredActions()).toHaveLength(1);
-      expect(actionRegister.getHandlers('complexWorkflow')).toHaveLength(20);
+      expect(actionRegister.getHandlerCount('complexWorkflow')).toBe(20);
 
       actionRegister.clearAll();
 
       expect(actionRegister.getRegisteredActions()).toHaveLength(0);
-      expect(actionRegister.getHandlers('complexWorkflow')).toHaveLength(0);
+      expect(actionRegister.getHandlerCount('complexWorkflow')).toBe(0);
     });
 
     it('should handle automatic cleanup for once handlers', async () => {
@@ -517,11 +517,11 @@ describe('ActionRegister - Advanced Features', () => {
         });
       }
 
-      expect(actionRegister.getHandlers('dynamicAction')).toHaveLength(5);
+      expect(actionRegister.getHandlerCount('dynamicAction')).toBe(5);
 
       await actionRegister.dispatch('dynamicAction', 'test-payload');
 
-      expect(actionRegister.getHandlers('dynamicAction')).toHaveLength(0);
+      expect(actionRegister.getHandlerCount('dynamicAction')).toBe(0);
     });
 
     it('should prevent memory leaks with large numbers of registrations/unregistrations', () => {
@@ -535,12 +535,12 @@ describe('ActionRegister - Advanced Features', () => {
         unregisterFunctions.push(unregister);
       }
 
-      expect(actionRegister.getHandlers('dynamicAction')).toHaveLength(100);
+      expect(actionRegister.getHandlerCount('dynamicAction')).toBe(100);
 
       // Unregister all
       unregisterFunctions.forEach(unregister => unregister());
 
-      expect(actionRegister.getHandlers('dynamicAction')).toHaveLength(0);
+      expect(actionRegister.getHandlerCount('dynamicAction')).toBe(0);
     });
   });
 });

@@ -186,7 +186,7 @@ describe('useActionHandler', () => {
       const dispatch = useActionDispatch();
       
       // Use handler with condition check inside to maintain hook order
-      const conditionalHandler = useCallback(async (payload) => {
+      const conditionalHandler = useCallback(async (payload: any) => {
         if (condition) {
           handlerExecuted = true;
         }

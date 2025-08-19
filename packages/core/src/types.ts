@@ -42,6 +42,30 @@ export interface ActionPayloadMap {
 }
 
 /**
+ * Utility type to extract action names from ActionPayloadMap
+ * 
+ * @template T - The ActionPayloadMap interface
+ * @example
+ * ```typescript
+ * type MyActions = ActionNames<AppActions> // 'updateUser' | 'deleteUser' | 'resetUser'
+ * ```
+ */
+export type ActionNames<T extends ActionPayloadMap> = keyof T;
+
+/**
+ * Utility type to extract payload type for a specific action
+ * 
+ * @template T - The ActionPayloadMap interface  
+ * @template K - The action name
+ * @example
+ * ```typescript
+ * type UpdateUserPayload = ActionPayload<AppActions, 'updateUser'>
+ * // { id: string; name: string; email: string }
+ * ```
+ */
+export type ActionPayload<T extends ActionPayloadMap, K extends keyof T> = T[K];
+
+/**
  * Pipeline controller interface for managing execution flow and payload modification
  * 
  * Provides action handlers with powerful control over the action pipeline execution,
@@ -196,7 +220,7 @@ export interface PipelineController<T = any, R = void> {
 export type ActionHandler<T = any, R = void> = (
   payload: T,
   controller: PipelineController<T, R>
-) => R | Promise<R>;
+) => R | Promise<R> | void | Promise<void>;
 
 /**
  * Handler configuration interface for controlling handler behavior within the pipeline
@@ -262,7 +286,7 @@ export interface HandlerConfig {
   once?: boolean;
   
   /** Condition function to determine if handler should run */
-  condition?: () => boolean;
+  condition?: (payload?: any) => boolean;
   
   /** Debounce delay in milliseconds */
   debounce?: number;
@@ -325,6 +349,7 @@ export interface HandlerConfig {
   /** Custom metadata for this handler */
   metadata?: Record<string, any>;
 }
+
 
 /**
  * Internal handler registration container
@@ -468,6 +493,12 @@ export interface ActionRegisterConfig {
     /** Maximum number of handlers per action (prevents memory leaks) */
     maxHandlers?: number;
     
+    /** Maximum number of retries for failed operations */
+    maxRetries?: number;
+    
+    /** Delay between retries in milliseconds */
+    retryDelay?: number;
+    
     /** Default execution mode for actions */
     defaultExecutionMode?: ExecutionMode;
   };
@@ -542,6 +573,12 @@ export interface DispatchOptions {
   /** Abort signal for cancelling the dispatch */
   signal?: AbortSignal;
   
+  /** Timeout for this dispatch in milliseconds */
+  timeout?: number;
+  
+  /** Number of retries for this dispatch */
+  retries?: number;
+  
   /** Auto-abort options for automatic AbortController management */
   autoAbort?: {
     /** Create and manage AbortController automatically */
@@ -590,7 +627,7 @@ export interface DispatchOptions {
     strategy?: 'first' | 'last' | 'all' | 'merge' | 'custom';
     
     /** Custom result merger function (used with 'merge' or 'custom' strategy) */
-    merger?: <R>(results: R[]) => R;
+    merger?: <R>(results: Array<R | undefined>) => R;
     
     /** Whether to collect results from all handlers */
     collect?: boolean;
@@ -636,7 +673,7 @@ export interface DispatchOptions {
  * 
  * // Check individual handler performance
  * result.handlers.forEach(handler => {
- *   if (handler.duration > 1000) {
+ *   if (handler.duration && handler.duration > 1000) {
  *     console.warn(`Slow handler ${handler.id}: ${handler.duration}ms`)
  *   }
  * })
@@ -660,8 +697,8 @@ export interface ExecutionResult<R = void> {
   /** Final result based on result strategy */
   result?: R;
   
-  /** All individual handler results */
-  results: R[];
+  /** All individual handler results (properly typed as potentially undefined) */
+  results: Array<R | undefined>;
   
   /** Execution metadata */
   execution: {
@@ -692,10 +729,10 @@ export interface ExecutionResult<R = void> {
     /** Whether this handler was executed */
     executed: boolean;
     
-    /** Handler execution duration in milliseconds */
+    /** Handler execution duration in milliseconds (only present if executed) */
     duration?: number;
     
-    /** Result returned by this handler */
+    /** Result returned by this handler (properly typed as potentially undefined) */
     result?: R;
     
     /** Error thrown by this handler if any */
@@ -737,6 +774,47 @@ export interface ExecutionResult<R = void> {
 export type UnregisterFunction = () => void;
 
 /**
+ * Helper types for better ActionDispatcher type safety
+ */
+type VoidActions<T extends ActionPayloadMap> = {
+  [K in keyof T]: T[K] extends void | undefined ? K : never
+}[keyof T];
+
+type PayloadActions<T extends ActionPayloadMap> = {
+  [K in keyof T]: T[K] extends void | undefined ? never : K
+}[keyof T];
+
+/**
+ * Type-safe dispatchWithResult interface
+ * 
+ * Provides type-safe method overloads for dispatchWithResult operations
+ * that maintain payload type checking while returning ExecutionResult.
+ * 
+ * @template T - The action payload map interface
+ */
+export interface ActionDispatcherWithResult<T extends ActionPayloadMap> {
+  /** Dispatch an action that doesn't require a payload and get result */
+  <K extends VoidActions<T>, R = any>(
+    action: K,
+    options?: DispatchOptions
+  ): Promise<ExecutionResult<R>>;
+  
+  /** Dispatch an action with optional payload parameter and get result */
+  <K extends VoidActions<T>, R = any>(
+    action: K,
+    payload?: undefined,
+    options?: DispatchOptions
+  ): Promise<ExecutionResult<R>>;
+  
+  /** Dispatch an action that requires a payload and get result */
+  <K extends PayloadActions<T>, R = any>(
+    action: K,
+    payload: T[K],
+    options?: DispatchOptions
+  ): Promise<ExecutionResult<R>>;
+}
+
+/**
  * Type-safe action dispatcher interface
  * 
  * Provides overloaded dispatch methods that enforce correct payload types
@@ -754,7 +832,7 @@ export type UnregisterFunction = () => void;
  * 
  * const dispatch: ActionDispatcher<AppActions> = register.dispatch.bind(register)
  * 
- * // No payload required
+ * // No payload required - type-checked
  * await dispatch('resetApp')
  * 
  * // Payload required and type-checked
@@ -764,11 +842,25 @@ export type UnregisterFunction = () => void;
  * @public
  */
 export interface ActionDispatcher<T extends ActionPayloadMap> {
-  /** Dispatch an action without payload */
-  <K extends keyof T>(action: T[K] extends void ? K : never, options?: DispatchOptions): Promise<void>;
+  /** Dispatch an action that doesn't require a payload */
+  <K extends VoidActions<T>>(
+    action: K,
+    options?: DispatchOptions
+  ): Promise<void>;
   
-  /** Dispatch an action with payload */
-  <K extends keyof T>(action: K, payload: T[K], options?: DispatchOptions): Promise<void>;
+  /** Dispatch an action with optional payload parameter */
+  <K extends VoidActions<T>>(
+    action: K,
+    payload?: undefined,
+    options?: DispatchOptions
+  ): Promise<void>;
+  
+  /** Dispatch an action that requires a payload */
+  <K extends PayloadActions<T>>(
+    action: K,
+    payload: T[K],
+    options?: DispatchOptions
+  ): Promise<void>;
 }
 
 /**
@@ -847,6 +939,12 @@ export interface ActionHandlerStats<T extends ActionPayloadMap> {
   
   /** Number of handlers for this action */
   handlerCount: number;
+  
+  /** Total number of handlers for this action (alias for handlerCount) */
+  totalHandlers: number;
+  
+  /** When the last handler was registered */
+  lastRegistered?: Date;
   
   /** Handler configurations grouped by priority */
   handlersByPriority: Array<{

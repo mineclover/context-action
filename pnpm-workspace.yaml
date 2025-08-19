@@ -1,6 +1,8 @@
 packages:
   - packages/core
   - packages/react
+  - packages/llms-generator
+  - packages/typedoc-vitepress-sync
   - example
 
 overrides:

@@ -231,9 +231,10 @@ export async function executeParallel<T, R = void>(
       
       let handlerResult: R | undefined;
       if (result instanceof Promise) {
-        handlerResult = await result;
+        const resolved = await result;
+        handlerResult = resolved as R | undefined;
       } else {
-        handlerResult = result;
+        handlerResult = result as R | undefined;
       }
       
       /** Collect result if handler returned something and pipeline wasn't terminated */
@@ -374,9 +375,10 @@ export async function executeRace<T, R = void>(
       
       let handlerResult: R | undefined;
       if (result instanceof Promise) {
-        handlerResult = await result;
+        const resolved = await result;
+        handlerResult = resolved as R | undefined;
       } else {
-        handlerResult = result;
+        handlerResult = result as R | undefined;
       }
       
       return { 
