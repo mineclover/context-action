@@ -247,7 +247,7 @@ export class SimpleLLMSCommand {
           content_length: cleanContent.length
         }
       };
-    } catch (_error) {
+    } catch {
       return null;
     }
   }
@@ -569,7 +569,7 @@ export class SimpleLLMSCommand {
     try {
       await fs.access(path);
       return true;
-    } catch (_error) {
+    } catch {
       return false;
     }
   }
