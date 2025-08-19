@@ -56,6 +56,9 @@ export const cardVariants = cva(
         logger: 'border-l-4 border-l-warning-600',
         actionguard: 'border-l-4 border-l-pink-600',
         examples: 'border-l-4 border-l-orange-600',
+        refs: 'border-l-4 border-l-blue-600',
+        demos: 'border-l-4 border-l-emerald-600',
+        utilities: 'border-l-4 border-l-teal-600',
         debug: 'border-l-4 border-l-indigo-600',
         default: '',
       },
@@ -269,6 +272,7 @@ export const navItemVariants = cva(
       variant: {
         default: 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
         active: 'bg-primary-100 text-primary-900 border-l-4 border-primary-600',
+        disabled: 'text-gray-400 cursor-not-allowed opacity-60',
       },
       category: {
         main: '',
@@ -278,8 +282,12 @@ export const navItemVariants = cva(
         logger: 'hover:bg-yellow-50 hover:text-yellow-900',
         actionguard: 'hover:bg-pink-50 hover:text-pink-900',
         examples: 'hover:bg-orange-50 hover:text-orange-900',
+        refs: 'hover:bg-blue-50 hover:text-blue-900',
+        demos: 'hover:bg-emerald-50 hover:text-emerald-900',
+        utilities: 'hover:bg-teal-50 hover:text-teal-900',
         debug: 'hover:bg-indigo-50 hover:text-indigo-900',
         dev: 'hover:bg-red-50 hover:text-red-900',
+        'coming-soon': 'bg-gray-50 text-gray-500',
       },
     },
     defaultVariants: {

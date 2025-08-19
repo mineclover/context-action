@@ -252,26 +252,27 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
         dispatch('restore', { id });
       }, [dispatch]),
 
-      // 선택 및 포커스 관리 (설정에 따라)
-      ...(config.enableSelection && {
-        select: useCallback((ids: string[], mode: 'replace' | 'add' | 'toggle' = 'replace') => {
-          dispatch('select', { ids, mode });
-        }, [dispatch]),
+      // 선택 관리 (조건부 처리)
+      select: useCallback((ids: string[], mode: 'replace' | 'add' | 'toggle' = 'replace') => {
+        if (!config.enableSelection) return;
+        dispatch('select', { ids, mode });
+      }, [config.enableSelection, dispatch]),
 
-        clearSelection: useCallback(() => {
-          dispatch('clearSelection');
-        }, [dispatch])
-      }),
+      clearSelection: useCallback(() => {
+        if (!config.enableSelection) return;
+        dispatch('clearSelection');
+      }, [config.enableSelection, dispatch]),
 
-      ...(config.enableFocus && {
-        focus: useCallback((id: string) => {
-          dispatch('focus', { id });
-        }, [dispatch]),
+      // 포커스 관리 (조건부 처리)
+      focus: useCallback((id: string) => {
+        if (!config.enableFocus) return;
+        dispatch('focus', { id });
+      }, [config.enableFocus, dispatch]),
 
-        clearFocus: useCallback(() => {
-          dispatch('clearFocus');
-        }, [dispatch])
-      }),
+      clearFocus: useCallback(() => {
+        if (!config.enableFocus) return;
+        dispatch('clearFocus');
+      }, [config.enableFocus, dispatch]),
 
       // 정리
       cleanup: useCallback((
@@ -451,49 +452,59 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
       await handleLifecycleChange('restore', payload);
     }, [handleLifecycleChange]));
 
-    // 선택 관리 핸들러
-    if (config.enableSelection) {
-      useObjectActionHandler('select', useCallback(async (payload) => {
-        // @ts-ignore
-        await manager.actionRegister.dispatch('select', payload);
-        
-        // Store 동기화
-        const selectedObjects = manager.getSelectedObjects();
-        const selectedObjectsStore = storeManager.getStore('selectedObjects');
-        selectedObjectsStore.setValue(selectedObjects);
-      }, [manager, storeManager]));
+    // 선택 관리 핸들러 - 조건부 처리를 핸들러 내부로 이동
+    const selectHandler = useCallback(async (payload: any) => {
+      if (!config.enableSelection) return;
+      
+      // @ts-ignore
+      await manager.actionRegister.dispatch('select', payload);
+      
+      // Store 동기화
+      const selectedObjects = manager.getSelectedObjects();
+      const selectedObjectsStore = storeManager.getStore('selectedObjects');
+      selectedObjectsStore.setValue(selectedObjects);
+    }, [config.enableSelection, manager, storeManager]);
 
-      useObjectActionHandler('clearSelection', useCallback(async () => {
-        // @ts-ignore
-        await manager.actionRegister.dispatch('clearSelection');
-        
-        // Store 동기화
-        const selectedObjectsStore = storeManager.getStore('selectedObjects');
-        selectedObjectsStore.setValue([]);
-      }, [manager, storeManager]));
-    }
+    const clearSelectionHandler = useCallback(async () => {
+      if (!config.enableSelection) return;
+      
+      // @ts-ignore
+      await manager.actionRegister.dispatch('clearSelection');
+      
+      // Store 동기화
+      const selectedObjectsStore = storeManager.getStore('selectedObjects');
+      selectedObjectsStore.setValue([]);
+    }, [config.enableSelection, manager, storeManager]);
 
-    // 포커스 관리 핸들러
-    if (config.enableFocus) {
-      useObjectActionHandler('focus', useCallback(async (payload) => {
-        // @ts-ignore
-        await manager.actionRegister.dispatch('focus', payload);
-        
-        // Store 동기화
-        const focusedObject = manager.getFocusedObject();
-        const focusedObjectStore = storeManager.getStore('focusedObject');
-        focusedObjectStore.setValue(focusedObject);
-      }, [manager, storeManager]));
+    useObjectActionHandler('select', selectHandler);
+    useObjectActionHandler('clearSelection', clearSelectionHandler);
 
-      useObjectActionHandler('clearFocus', useCallback(async () => {
-        // @ts-ignore
-        await manager.actionRegister.dispatch('clearFocus');
-        
-        // Store 동기화
-        const focusedObjectStore = storeManager.getStore('focusedObject');
-        focusedObjectStore.setValue(null);
-      }, [manager, storeManager]));
-    }
+    // 포커스 관리 핸들러 - 조건부 처리를 핸들러 내부로 이동
+    const focusHandler = useCallback(async (payload: any) => {
+      if (!config.enableFocus) return;
+      
+      // @ts-ignore
+      await manager.actionRegister.dispatch('focus', payload);
+      
+      // Store 동기화
+      const focusedObject = manager.getFocusedObject();
+      const focusedObjectStore = storeManager.getStore('focusedObject');
+      focusedObjectStore.setValue(focusedObject);
+    }, [config.enableFocus, manager, storeManager]);
+
+    const clearFocusHandler = useCallback(async () => {
+      if (!config.enableFocus) return;
+      
+      // @ts-ignore
+      await manager.actionRegister.dispatch('clearFocus');
+      
+      // Store 동기화
+      const focusedObjectStore = storeManager.getStore('focusedObject');
+      focusedObjectStore.setValue(null);
+    }, [config.enableFocus, manager, storeManager]);
+
+    useObjectActionHandler('focus', focusHandler);
+    useObjectActionHandler('clearFocus', clearFocusHandler);
 
     useObjectActionHandler('cleanup', useCallback(async (payload) => {
       // @ts-ignore
