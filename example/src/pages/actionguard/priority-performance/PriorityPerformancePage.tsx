@@ -5,7 +5,7 @@
  */
 
 import { PriorityPerformanceView } from './components/PriorityPerformanceView';
-import { PriorityPerformanceProvider } from './context/PriorityPerformanceContext';
+import { PriorityPerformanceProvider } from './test-context/PriorityPerformanceContext';
 
 /**
  * 우선순위 성능 테스트 페이지

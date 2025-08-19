@@ -12,7 +12,7 @@ import {
   usePriorityPerformanceActionDispatch,
   usePriorityPerformanceActionRegister,
   usePriorityPerformanceStore,
-} from '../context/PriorityPerformanceContext';
+} from '../test-context/PriorityPerformanceContext';
 
 /**
  * 우선순위 성능 테스트 로직 Hook
