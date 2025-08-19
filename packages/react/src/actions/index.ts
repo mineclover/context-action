@@ -4,7 +4,6 @@
  * @implements viewmodel-layer
  * @implements mvvm-pattern
  * @memberof api-terms
- * @since 1.0.0
  * 
  * Comprehensive action system including context providers, enhanced type-safe contexts,
  * utilities for business logic coordination, and various patterns for managing user 

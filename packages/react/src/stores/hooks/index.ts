@@ -4,7 +4,6 @@
  * @implements fresh-state-access
  * @implements view-layer
  * @memberof api-terms
- * @since 2.0.0
  * 
  * React hooks for store interaction. For new development, prefer using
  * createDeclarativeStores() which provides type-safe store access.

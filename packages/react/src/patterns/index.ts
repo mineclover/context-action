@@ -3,7 +3,6 @@
  * @implements separation-of-concerns
  * @implements mvvm-pattern
  * @memberof core-concepts
- * @since 2.0.0
  * 
  * Re-exports patterns for convenient access.
  * - createDeclarativeStorePattern for type-safe store management

@@ -4,7 +4,6 @@
  * @implements model-layer
  * @implements mvvm-pattern
  * @memberof core-concepts
- * @since 1.0.0
  * 
  * Core store system providing the fundamental Store class, StoreRegistry for managing
  * multiple stores, and EventBus for inter-store communication.

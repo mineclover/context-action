@@ -5,7 +5,6 @@
  * @implements separation-of-concerns
  * @implements mvvm-pattern
  * @memberof core-concepts
- * @since 2.0.0
  * 
  * Declarative Store Pattern provides type-safe store management with Action Registry-style 
  * schema definition. Offers compile-time type inference and singleton behavior for 

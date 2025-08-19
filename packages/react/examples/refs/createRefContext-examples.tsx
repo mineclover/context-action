@@ -42,10 +42,10 @@ export function SimpleRefExample() {
   }>('SimpleGameRefs');
 
   function GameComponent() {
-    const canvas = GameRefs.useRef('canvas');
-    const button = GameRefs.useRef('button');
-    const input = GameRefs.useRef('input');
-    const waitForRefs = GameRefs.waitForRefs();
+    const canvas = GameRefs.useRefHandler('canvas');
+    const button = GameRefs.useRefHandler('button');
+    const input = GameRefs.useRefHandler('input');
+    const waitForRefs = GameRefs.useWaitForRefs();
 
     const [gameState, setGameState] = useState<'loading' | 'ready' | 'playing'>('loading');
 
@@ -171,12 +171,12 @@ export function DeclarativeRefExample() {
   });
 
   function GameComponent() {
-    const canvas = GameRefs.useRef('canvas');
-    const scene = GameRefs.useRef('scene');
-    const mesh = GameRefs.useRef('mesh');
-    const controls = GameRefs.useRef('controls');
-    const waitForRefs = GameRefs.waitForRefs();
-    const getAllRefs = GameRefs.getAllRefs();
+    const canvas = GameRefs.useRefHandler('canvas');
+    const scene = GameRefs.useRefHandler('scene');
+    const mesh = GameRefs.useRefHandler('mesh');
+    const controls = GameRefs.useRefHandler('controls');
+    const waitForRefs = GameRefs.useWaitForRefs();
+    const getAllRefs = GameRefs.useGetAllRefs();
 
     const [initState, setInitState] = useState<{
       canvas: boolean;
@@ -364,11 +364,11 @@ export function FormManagementExample() {
   });
 
   function FormComponent() {
-    const form = FormRefs.useRef('form');
-    const nameInput = FormRefs.useRef('nameInput');
-    const emailInput = FormRefs.useRef('emailInput');
-    const submitButton = FormRefs.useRef('submitButton');
-    const waitForRefs = FormRefs.waitForRefs();
+    const form = FormRefs.useRefHandler('form');
+    const nameInput = FormRefs.useRefHandler('nameInput');
+    const emailInput = FormRefs.useRefHandler('emailInput');
+    const submitButton = FormRefs.useRefHandler('submitButton');
+    const waitForRefs = FormRefs.useWaitForRefs();
 
     const [formData, setFormData] = useState({ name: '', email: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);

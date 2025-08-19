@@ -39,14 +39,14 @@ export function SimpleFormExample() {
   const FormRefs = createRefContext<FormElements>('SimpleForm');
 
   function FormComponent() {
-    const nameInput = FormRefs.useRef('nameInput');
-    const emailInput = FormRefs.useRef('emailInput');
-    const messageTextarea = FormRefs.useRef('messageTextarea');
-    const submitButton = FormRefs.useRef('submitButton');
-    const statusDiv = FormRefs.useRef('statusDiv');
-    const errorDiv = FormRefs.useRef('errorDiv');
-    const waitForRefs = FormRefs.waitForRefs();
-    const getAllRefs = FormRefs.getAllRefs();
+    const nameInput = FormRefs.useRefHandler('nameInput');
+    const emailInput = FormRefs.useRefHandler('emailInput');
+    const messageTextarea = FormRefs.useRefHandler('messageTextarea');
+    const submitButton = FormRefs.useRefHandler('submitButton');
+    const statusDiv = FormRefs.useRefHandler('statusDiv');
+    const errorDiv = FormRefs.useRefHandler('errorDiv');
+    const waitForRefs = FormRefs.useWaitForRefs();
+    const getAllRefs = FormRefs.useGetAllRefs();
 
     const [formState, setFormState] = useState<FormState>({
       name: '',

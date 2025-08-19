@@ -4,7 +4,6 @@
  * @implements view-layer
  * @implements fresh-state-access
  * @memberof api-terms
- * @since 1.0.0
  * 
  * Comprehensive export of all React hooks available in the Context-Action framework.
  * This includes action hooks for dispatching actions and store hooks for state management.

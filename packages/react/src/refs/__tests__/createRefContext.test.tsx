@@ -27,9 +27,9 @@ describe('createRefContext', () => {
       }>('GameRefs');
 
       expect(GameRefs).toHaveProperty('Provider');
-      expect(GameRefs).toHaveProperty('useRef');
-      expect(GameRefs).toHaveProperty('waitForRefs');
-      expect(GameRefs).toHaveProperty('getAllRefs');
+      expect(GameRefs).toHaveProperty('useRefHandler');
+      expect(GameRefs).toHaveProperty('useWaitForRefs');
+      expect(GameRefs).toHaveProperty('useGetAllRefs');
       expect(GameRefs.contextName).toBe('GameRefs');
     });
 
@@ -39,7 +39,7 @@ describe('createRefContext', () => {
       }>('TestRefs');
 
       function TestComponent() {
-        const testDiv = TestRefs.useRef('testDiv');
+        const testDiv = TestRefs.useRefHandler('testDiv');
         
         React.useEffect(() => {
           const div = document.createElement('div');
@@ -84,9 +84,9 @@ describe('createRefContext', () => {
       });
 
       expect(GameRefs).toHaveProperty('Provider');
-      expect(GameRefs).toHaveProperty('useRef');
-      expect(GameRefs).toHaveProperty('waitForRefs');
-      expect(GameRefs).toHaveProperty('getAllRefs');
+      expect(GameRefs).toHaveProperty('useRefHandler');
+      expect(GameRefs).toHaveProperty('useWaitForRefs');
+      expect(GameRefs).toHaveProperty('useGetAllRefs');
       expect(GameRefs.contextName).toBe('GameRefs');
       expect(GameRefs.refDefinitions).toBeDefined();
     });
@@ -102,7 +102,7 @@ describe('createRefContext', () => {
       });
 
       function TestComponent() {
-        const testElement = TestRefs.useRef('testElement');
+        const testElement = TestRefs.useRefHandler('testElement');
         
         React.useEffect(() => {
           const div = document.createElement('div');
@@ -137,7 +137,7 @@ describe('createRefContext', () => {
       }>('TestRefs');
 
       function TestComponent() {
-        const asyncElement = TestRefs.useRef('asyncElement');
+        const asyncElement = TestRefs.useRefHandler('asyncElement');
         const [mountResult, setMountResult] = React.useState<HTMLDivElement | null>(null);
         
         React.useEffect(() => {
@@ -178,9 +178,9 @@ describe('createRefContext', () => {
       }>('TestRefs');
 
       function TestComponent() {
-        const element1 = TestRefs.useRef('element1');
-        const element2 = TestRefs.useRef('element2');
-        const waitForRefs = TestRefs.waitForRefs();
+        const element1 = TestRefs.useRefHandler('element1');
+        const element2 = TestRefs.useRefHandler('element2');
+        const waitForRefs = TestRefs.useWaitForRefs();
         const [allReady, setAllReady] = React.useState(false);
         
         React.useEffect(() => {
@@ -227,7 +227,7 @@ describe('createRefContext', () => {
       }>('TestRefs');
 
       function TestComponent() {
-        const targetElement = TestRefs.useRef('targetElement');
+        const targetElement = TestRefs.useRefHandler('targetElement');
         const [operationResult, setOperationResult] = React.useState<string>('');
         
         React.useEffect(() => {
@@ -278,7 +278,7 @@ describe('createRefContext', () => {
       }>('TestRefs');
 
       function TestComponent() {
-        TestRefs.useRef('element'); // This should throw
+        TestRefs.useRefHandler('element'); // This should throw
         return <div>Test</div>;
       }
 
@@ -291,7 +291,7 @@ describe('createRefContext', () => {
         expect(consoleSpy).toHaveBeenCalled();
       } catch (error) {
         // Direct error throw - this is also acceptable
-        expect(error.message).toContain('useRef must be used within TestRefs.Provider');
+        expect(error.message).toContain('useRefHandler must be used within TestRefs.Provider');
       }
       
       consoleSpy.mockRestore();
@@ -305,7 +305,7 @@ describe('createRefContext', () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
       function TestComponent() {
-        const element = TestRefs.useRef('element');
+        const element = TestRefs.useRefHandler('element');
         
         React.useEffect(() => {
           try {
@@ -341,9 +341,9 @@ describe('createRefContext', () => {
       }>('TestRefs');
 
       function TestComponent() {
-        const element1 = TestRefs.useRef('element1');
-        const element2 = TestRefs.useRef('element2');
-        const getAllRefs = TestRefs.getAllRefs();
+        const element1 = TestRefs.useRefHandler('element1');
+        const element2 = TestRefs.useRefHandler('element2');
+        const getAllRefs = TestRefs.useGetAllRefs();
         const [refCount, setRefCount] = React.useState(0);
         
         React.useEffect(() => {

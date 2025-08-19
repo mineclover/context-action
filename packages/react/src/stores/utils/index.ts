@@ -4,7 +4,6 @@
  * @implements performance-optimization
  * @implements store-immutability
  * @memberof core-concepts
- * @since 1.0.0
  * 
  * Utility functions for store operations including value comparison strategies,
  * immutability helpers, store selectors, and action handler utilities.
