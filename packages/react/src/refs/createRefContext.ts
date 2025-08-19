@@ -23,7 +23,7 @@ export interface RefContextReturn<T> {
   Provider: React.FC<{ children: ReactNode }>;
   
   // 개별 ref 접근
-  useRef: <K extends keyof T>(refName: K) => {
+  useRefHandler: <K extends keyof T>(refName: K) => {
     /** ref 값 설정 */
     setRef: (target: any) => void;
     /** 현재 ref 값 */
@@ -39,11 +39,11 @@ export interface RefContextReturn<T> {
     isMounted: boolean;
   };
   
-  // 여러 ref 동시 대기 hook
-  waitForRefs: () => <K extends keyof T>(...refNames: K[]) => Promise<Partial<T>>;
+  // 여러 ref 동시 대기 hook - 함수를 반환하여 callback에서도 사용 가능
+  useWaitForRefs: () => <K extends keyof T>(...refNames: K[]) => Promise<Partial<T>>;
   
-  // 모든 ref 상태 가져오기 hook
-  getAllRefs: () => () => Partial<T>;
+  // 모든 ref 상태 가져오기 hook - 함수를 반환하여 callback에서도 사용 가능  
+  useGetAllRefs: () => () => Partial<T>;
   
   // Context 이름
   contextName: string;
@@ -84,14 +84,16 @@ export function createRefContext<T extends RefDefinitions>(
  *   scene: { name: 'scene', objectType: 'three' as const }
  * });
  * 
- * // 사용법 (약간의 차이 있음)
+ * // 사용법 (직관적이고 간단함)
  * function GameComponent() {
- *   const canvas = GameRefs.useRef('canvas');
- *   const scene = GameRefs.useRef('scene');
- *   const waitForRefs = GameRefs.waitForRefs(); // hook이므로 먼저 호출
+ *   const canvas = GameRefs.useRefHandler('canvas');
+ *   const scene = GameRefs.useRefHandler('scene');
+ *   
+ *   // ✅ 올바른 패턴: Hook을 먼저 호출하여 함수 추출
+ *   const waitForRefs = GameRefs.useWaitForRefs();
  *   
  *   const initGame = async () => {
- *     // 모든 ref가 준비될 때까지 대기
+ *     // ✅ 추출한 함수 사용
  *     const refs = await waitForRefs('canvas', 'scene');
  *     // 타입 안전한 사용
  *     refs.canvas?.focus?.();
@@ -159,7 +161,7 @@ export function createRefContext<T = any>(
   const useRefContext = (): RefContextValue => {
     const context = useContext(RefContext);
     if (!context) {
-      throw new Error(`useRef must be used within ${contextName}.Provider`);
+      throw new Error(`useRefHandler must be used within ${contextName}.Provider`);
     }
     return context;
   };
@@ -254,7 +256,7 @@ export function createRefContext<T = any>(
     return Object.fromEntries(results) as Partial<T>;
   };
   
-  // waitForRefs hook
+  // 여러 ref 동시 대기 hook - 함수를 반환하여 callback에서도 사용 가능
   const useWaitForRefs = () => {
     const { stores } = useRefContext();
     return React.useCallback(<K extends keyof T>(...refNames: K[]): Promise<Partial<T>> => {
@@ -262,7 +264,7 @@ export function createRefContext<T = any>(
     }, [stores]);
   };
   
-  // getAllRefs hook
+  // 모든 ref 상태 가져오기 hook - 함수를 반환하여 callback에서도 사용 가능
   const useGetAllRefs = () => {
     const { stores } = useRefContext();
     return React.useCallback((): Partial<T> => {
@@ -281,9 +283,9 @@ export function createRefContext<T = any>(
   
   return {
     Provider,
-    useRef: useRefHook,
-    waitForRefs: useWaitForRefs,
-    getAllRefs: useGetAllRefs,
+    useRefHandler: useRefHook,
+    useWaitForRefs,
+    useGetAllRefs,
     contextName,
     refDefinitions
   };

@@ -4,7 +4,6 @@
  * 선언적 Store Pattern v2의 관리 예시들입니다.
  * 
  * @module store/declarative-examples
- * @since 2.0.0
  */
 
 import React from 'react';

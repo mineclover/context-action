@@ -16,8 +16,8 @@ const GameRefs = createRefContext<{
 }>('GameRefs');
 
 function GameComponent() {
-  const canvas = GameRefs.useRef('canvas');
-  const button = GameRefs.useRef('button');
+  const canvas = GameRefs.useRefHandler('canvas');
+  const button = GameRefs.useRefHandler('button');
   
   return (
     <GameRefs.Provider>
@@ -49,11 +49,11 @@ const GameRefs = createRefContext('GameRefs', {
 });
 
 function GameComponent() {
-  const canvas = GameRefs.useRef('canvas');
-  const scene = GameRefs.useRef('scene');
+  const canvas = GameRefs.useRefHandler('canvas');
+  const scene = GameRefs.useRefHandler('scene');
   
-  // 모든 ref 준비 대기
-  const waitForRefs = GameRefs.waitForRefs();
+  // ✅ 올바른 패턴: Hook을 먼저 호출하여 함수 추출
+  const waitForRefs = GameRefs.useWaitForRefs();
   
   const initGame = async () => {
     const refs = await waitForRefs('canvas', 'scene');
@@ -72,7 +72,7 @@ function GameComponent() {
 ## 🔧 주요 기능
 
 - **타입 안전성**: TypeScript 완전 지원
-- **비동기 대기**: `waitForMount()`, `waitForRefs()` 
+- **비동기 대기**: `waitForMount()`, `useWaitForRefs()` Hook을 통한 다중 ref 대기
 - **자동 정리**: 자동 cleanup 및 메모리 관리
 - **안전한 작업**: `withTarget()`으로 ref와 함께 안전한 작업 수행
 - **관리 전략**: RefDefinitions를 통한 선언적 ref 관리 전략 설정

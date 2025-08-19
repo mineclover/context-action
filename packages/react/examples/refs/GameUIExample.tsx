@@ -120,16 +120,16 @@ export function GameUIExample() {
   });
 
   function GameComponent() {
-    const gameContainer = GameRefs.useRef('gameContainer');
-    const canvas = GameRefs.useRef('canvas');
-    const uiOverlay = GameRefs.useRef('uiOverlay');
-    const scoreDisplay = GameRefs.useRef('scoreDisplay');
-    const controlPanel = GameRefs.useRef('controlPanel');
-    const scene = GameRefs.useRef('scene');
-    const camera = GameRefs.useRef('camera');
-    const renderer = GameRefs.useRef('renderer');
-    const playerMesh = GameRefs.useRef('playerMesh');
-    const waitForRefs = GameRefs.waitForRefs();
+    const gameContainer = GameRefs.useRefHandler('gameContainer');
+    const canvas = GameRefs.useRefHandler('canvas');
+    const uiOverlay = GameRefs.useRefHandler('uiOverlay');
+    const scoreDisplay = GameRefs.useRefHandler('scoreDisplay');
+    const controlPanel = GameRefs.useRefHandler('controlPanel');
+    const scene = GameRefs.useRefHandler('scene');
+    const camera = GameRefs.useRefHandler('camera');
+    const renderer = GameRefs.useRefHandler('renderer');
+    const playerMesh = GameRefs.useRefHandler('playerMesh');
+    const waitForRefs = GameRefs.useWaitForRefs();
 
     const [gameState, setGameState] = useState({
       isInitialized: false,

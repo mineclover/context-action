@@ -26,7 +26,6 @@
  * Basic subscription types for Observer pattern implementation
  * @implements observer-pattern
  * @memberof core-concepts
- * @since 1.0.0
  */
 
 /** Change notification callback function */
@@ -43,7 +42,6 @@ export type Subscribe = (listener: Listener) => Unsubscribe;
  * @implements store-snapshot
  * @implements immutable-state
  * @memberof api-terms
- * @since 1.0.0
  * 
  * Immutable snapshot of Store state used for optimization and debugging.
  * Compatible with React's useSyncExternalStore pattern.
@@ -67,7 +65,6 @@ export interface Snapshot<T = any> {
  * @implements usesyncexternalstore-compatible
  * @implements observer-pattern
  * @memberof core-concepts
- * @since 1.0.0
  * 
  * Primary interface for Store instances, compatible with React's useSyncExternalStore
  * and implementing the Observer pattern for reactive state management.
@@ -119,7 +116,6 @@ export interface IStore<T = any> {
  * @implements store-registry
  * @implements registry-pattern
  * @memberof core-concepts
- * @since 1.0.0
  * 
  * Central registry for managing multiple Store instances with dynamic access
  * and lifecycle management. Provides subscription capability for registry changes.
