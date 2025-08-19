@@ -181,17 +181,29 @@ export function verifyImmutability<T>(original: T, cloned: T): boolean {
     return original === cloned;
   }
 
-  // HTML/DOM Elements 특별 처리 - 참조가 같아야 정상
+  // 복사하지 말아야 할 특별한 객체들 - 참조가 같아야 정상
   if (typeof original === 'object' && original !== null) {
-    if (
-      (typeof Element !== 'undefined' && original instanceof Element) ||
-      (typeof Node !== 'undefined' && original instanceof Node) ||
-      (typeof HTMLElement !== 'undefined' && original instanceof HTMLElement) ||
-      (original as any).nodeType !== undefined ||
-      (original as any)._owner !== undefined ||
-      (original as any).stateNode !== undefined
-    ) {
-      // DOM elements는 동일한 참조여야 함 (cloning하지 않으므로)
+    // DOM Elements
+    if ((typeof Element !== 'undefined' && original instanceof Element) ||
+        (typeof Node !== 'undefined' && original instanceof Node) ||
+        (typeof HTMLElement !== 'undefined' && original instanceof HTMLElement) ||
+        (original as any).nodeType !== undefined) {
+      return original === cloned;
+    }
+    
+    // React Fiber nodes and related objects
+    if ((original as any)._owner !== undefined || (original as any).stateNode !== undefined) {
+      return original === cloned;
+    }
+    
+    // Functions
+    if (typeof original === 'function') {
+      return original === cloned;
+    }
+    
+    // Promise objects
+    if (original instanceof Promise || 
+        (typeof (original as any).then === 'function' && typeof (original as any).catch === 'function')) {
       return original === cloned;
     }
   }
@@ -220,19 +232,40 @@ export function safeGet<T>(value: T, enableCloning: boolean = true): T {
 
   const cloned = deepClone(value);
   
-  // 개발 모드에서 불변성 검증 (DOM 요소 제외)
+  // 개발 모드에서 불변성 검증 (특별한 객체들 제외)
   if (process.env.NODE_ENV === 'development') {
-    // DOM 요소는 불변성 검증에서 제외 (참조가 같아야 정상)
-    const isDOMElement = typeof value === 'object' && value !== null && (
-      (typeof Element !== 'undefined' && value instanceof Element) ||
-      (typeof Node !== 'undefined' && value instanceof Node) ||
-      (typeof HTMLElement !== 'undefined' && value instanceof HTMLElement) ||
-      (value as any).nodeType !== undefined ||
-      (value as any)._owner !== undefined ||
-      (value as any).stateNode !== undefined
-    );
+    // 복사하지 말아야 할 객체들을 감지하는 통합 함수
+    const isNonCloneableObject = (obj: any): boolean => {
+      if (!obj || typeof obj !== 'object') return false;
+      
+      // DOM Elements
+      if ((typeof Element !== 'undefined' && obj instanceof Element) ||
+          (typeof Node !== 'undefined' && obj instanceof Node) ||
+          (typeof HTMLElement !== 'undefined' && obj instanceof HTMLElement) ||
+          obj.nodeType !== undefined) {
+        return true;
+      }
+      
+      // React Fiber nodes and related objects
+      if (obj._owner !== undefined || obj.stateNode !== undefined) {
+        return true;
+      }
+      
+      // Functions (though they should be caught earlier)
+      if (typeof obj === 'function') {
+        return true;
+      }
+      
+      // Other special objects that might cause cloning issues
+      if (obj instanceof Promise || 
+          (typeof obj.then === 'function' && typeof obj.catch === 'function')) {
+        return true;
+      }
+      
+      return false;
+    };
     
-    if (!isDOMElement) {
+    if (!isNonCloneableObject(value)) {
       const isImmutable = verifyImmutability(value, cloned);
       if (!isImmutable && typeof value === 'object' && value !== null) {
         logger.warn('Immutability verification failed - references are identical');
