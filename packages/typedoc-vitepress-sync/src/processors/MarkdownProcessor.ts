@@ -52,7 +52,7 @@ export class MarkdownProcessor {
     }
     
     // Convert camelCase to Title Case
-    let displayName = filename
+    const displayName = filename
       .replace(/([A-Z])/g, ' $1') // Add space before capital letters
       .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
       .trim()
