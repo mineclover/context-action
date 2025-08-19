@@ -90,29 +90,66 @@ async function loadConfig() {
   
   if (existsSync(enhancedConfigPath)) {
     const enhancedConfigManager = new EnhancedConfigManager(enhancedConfigPath);
-    const enhancedConfig = await enhancedConfigManager.loadConfig();
-    
-    const projectRoot = process.cwd();
+    return await enhancedConfigManager.loadConfig();
+  } else {
+    // Return a minimal EnhancedLLMSConfig with required properties
     return {
       ...DEFAULT_CONFIG,
-      paths: {
-        docsDir: path.resolve(projectRoot, enhancedConfig.paths?.docsDir || './docs'),
-        llmContentDir: path.resolve(projectRoot, enhancedConfig.paths?.llmContentDir || './data'),
-        outputDir: path.resolve(projectRoot, enhancedConfig.paths?.outputDir || './docs/llms'),
-        templatesDir: path.resolve(projectRoot, enhancedConfig.paths?.templatesDir || './templates'),
-        instructionsDir: path.resolve(projectRoot, enhancedConfig.paths?.instructionsDir || './instructions')
+      categories: {},
+      tags: {},
+      dependencies: {
+        rules: {
+          prerequisite: { description: '', weight: 0, autoInclude: false },
+          reference: { description: '', weight: 0, autoInclude: false },
+          followup: { description: '', weight: 0, autoInclude: false },
+          complement: { description: '', weight: 0, autoInclude: false }
+        },
+        conflictResolution: {
+          strategy: 'exclude-conflicts' as const,
+          priority: 'higher-score-wins' as const,
+          allowPartialConflicts: false
+        }
       },
-      generation: {
-        ...DEFAULT_CONFIG.generation,
-        supportedLanguages: enhancedConfig.generation?.supportedLanguages || DEFAULT_CONFIG.generation.supportedLanguages,
-        characterLimits: enhancedConfig.generation?.characterLimits || DEFAULT_CONFIG.generation.characterLimits,
-        defaultLanguage: enhancedConfig.generation?.defaultLanguage || DEFAULT_CONFIG.generation.defaultLanguage,
-        outputFormat: enhancedConfig.generation?.outputFormat || DEFAULT_CONFIG.generation.outputFormat
+      composition: {
+        strategies: {},
+        defaultStrategy: 'default',
+        optimization: {
+          spaceUtilizationTarget: 0.8,
+          qualityThreshold: 0.7,
+          diversityBonus: 0.1,
+          redundancyPenalty: 0.2
+        }
       },
-      quality: enhancedConfig.quality,
-      categories: enhancedConfig.categories
+      extraction: {
+        defaultQualityThreshold: 0.7,
+        autoTagExtraction: false,
+        autoDependencyDetection: false,
+        strategies: {}
+      },
+      validation: {
+        schema: {
+          enforceTagConsistency: false,
+          validateDependencies: false,
+          checkCategoryAlignment: false
+        },
+        quality: {
+          minPriorityScore: 0,
+          maxDocumentAge: '1y',
+          requireMinimumContent: false
+        }
+      },
+      ui: {
+        dashboard: {
+          enableTagCloud: false,
+          showCategoryStats: false,
+          enableDependencyGraph: false
+        },
+        reporting: {
+          generateCompositionReports: false,
+          includeQualityMetrics: false,
+          exportFormats: ['json'] as ('json' | 'csv' | 'html')[]
+        }
+      }
     };
-  } else {
-    return DEFAULT_CONFIG;
   }
 }

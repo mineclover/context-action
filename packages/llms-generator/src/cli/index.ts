@@ -12,6 +12,7 @@
 
 import path from 'path';
 import { existsSync } from 'fs';
+import { EnhancedLLMSConfig } from '../types/config.js';
 
 // Core command imports
 import { WorkNextCommand } from './commands/WorkNextCommand.js';
@@ -68,7 +69,7 @@ async function main(): Promise<void> {
 }
 
 async function handleWorkNext(args: string[], argumentParser: ArgumentParser): Promise<void> {
-  const config = await loadConfig();
+  const config = await loadEnhancedConfig();
   const workNextCommand = new WorkNextCommand(config);
   
   const options = {
@@ -155,6 +156,76 @@ async function loadConfig(): Promise<CLIConfig> {
     };
   } else {
     return DEFAULT_CONFIG;
+  }
+}
+
+async function loadEnhancedConfig(): Promise<EnhancedLLMSConfig> {
+  const enhancedConfigPath = path.join(process.cwd(), 'llms-generator.config.json');
+  
+  if (existsSync(enhancedConfigPath)) {
+    const enhancedConfigManager = new EnhancedConfigManager(enhancedConfigPath);
+    return await enhancedConfigManager.loadConfig();
+  } else {
+    // Return a minimal EnhancedLLMSConfig with required properties
+    const baseConfig = await loadConfig();
+    return {
+      ...baseConfig,
+      categories: {},
+      tags: {},
+      dependencies: {
+        rules: {
+          prerequisite: { description: '', weight: 0, autoInclude: false },
+          reference: { description: '', weight: 0, autoInclude: false },
+          followup: { description: '', weight: 0, autoInclude: false },
+          complement: { description: '', weight: 0, autoInclude: false }
+        },
+        conflictResolution: {
+          strategy: 'exclude-conflicts',
+          priority: 'higher-score-wins',
+          allowPartialConflicts: false
+        }
+      },
+      composition: {
+        strategies: {},
+        defaultStrategy: 'default',
+        optimization: {
+          spaceUtilizationTarget: 0.8,
+          qualityThreshold: 0.7,
+          diversityBonus: 0.1,
+          redundancyPenalty: 0.2
+        }
+      },
+      extraction: {
+        defaultQualityThreshold: 0.7,
+        autoTagExtraction: false,
+        autoDependencyDetection: false,
+        strategies: {}
+      },
+      validation: {
+        schema: {
+          enforceTagConsistency: false,
+          validateDependencies: false,
+          checkCategoryAlignment: false
+        },
+        quality: {
+          minPriorityScore: 0,
+          maxDocumentAge: '1y',
+          requireMinimumContent: false
+        }
+      },
+      ui: {
+        dashboard: {
+          enableTagCloud: false,
+          showCategoryStats: false,
+          enableDependencyGraph: false
+        },
+        reporting: {
+          generateCompositionReports: false,
+          includeQualityMetrics: false,
+          exportFormats: ['json'] as ('json' | 'csv' | 'html')[]
+        }
+      }
+    };
   }
 }
 

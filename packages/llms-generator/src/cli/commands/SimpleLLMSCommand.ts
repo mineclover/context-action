@@ -8,6 +8,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
+import { CLIConfig } from '../types/CLITypes.js';
 import { EnhancedLLMSConfig } from '../../types/config.js';
 import { LLMSOutputPathManager } from '../../core/LLMSOutputPathManager.js';
 
@@ -44,7 +45,24 @@ export class SimpleLLMSCommand {
   private pathManager: LLMSOutputPathManager;
 
   constructor(private config: EnhancedLLMSConfig) {
-    this.pathManager = new LLMSOutputPathManager(config);
+    // Convert EnhancedLLMSConfig to CLIConfig for compatibility
+    const cliConfig: CLIConfig = {
+      paths: config.paths,
+      generation: {
+        supportedLanguages: config.generation.supportedLanguages,
+        characterLimits: config.generation.characterLimits,
+        defaultCharacterLimits: {
+          summary: 300,
+          detailed: 1000,
+          comprehensive: 2000
+        },
+        defaultLanguage: config.generation.defaultLanguage,
+        outputFormat: 'txt' as const
+      },
+      quality: config.quality,
+      categories: config.categories
+    };
+    this.pathManager = new LLMSOutputPathManager(cliConfig);
   }
 
   async execute(options: SimpleLLMSOptions): Promise<void> {

@@ -230,7 +230,7 @@ export class FillTemplatesCommand {
       content.includes('Provide comprehensive guidance') ||
       content.includes('<!-- ');
     
-    const hasContent = content.match(/```markdown\s*(.+?)\s*```/s)?.[1]?.length ?? 0 > 50;
+    const hasContent = (content.match(/```markdown\s*(.+?)\s*```/s)?.[1]?.length ?? 0) > 50;
     
     return hasContent && !hasPlaceholder;
   }

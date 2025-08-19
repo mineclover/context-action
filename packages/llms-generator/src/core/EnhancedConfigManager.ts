@@ -67,10 +67,10 @@ export class EnhancedConfigManager {
     if (!config.paths) {
       throw new Error('Missing paths configuration');
     }
-    if (!config.paths.docs && !config.paths.docsDir) {
+    if (!config.paths.docsDir) {
       throw new Error('Missing docs directory path');
     }
-    if (!config.paths.output && !config.paths.outputDir) {
+    if (!config.paths.outputDir) {
       throw new Error('Missing output directory path');
     }
 
@@ -78,11 +78,8 @@ export class EnhancedConfigManager {
     if (!config.generation) {
       throw new Error('Missing generation configuration section');
     }
-    if (!config.generation.defaultCharacterLimits && !config.generation.characterLimits) {
+    if (!config.generation.characterLimits) {
       throw new Error('Missing character limits in generation config');
-    }
-    if (config.generation.qualityThreshold !== undefined && config.generation.qualityThreshold < 0) {
-      throw new Error('Quality threshold must be non-negative');
     }
 
     // Validate categories
