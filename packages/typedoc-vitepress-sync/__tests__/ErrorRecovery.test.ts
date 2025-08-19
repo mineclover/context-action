@@ -41,6 +41,16 @@ describe('Error Recovery', () => {
     }
   }
 
+  // Track all sync instances created during tests
+  const syncInstances: TypeDocVitePressSync[] = []
+  
+  // Helper to create and track sync instances
+  const createSync = (config: SyncConfig): TypeDocVitePressSync => {
+    const sync = new TypeDocVitePressSync(config)
+    syncInstances.push(sync)
+    return sync
+  }
+
   beforeEach(() => {
     // Clean up test directory
     if (fs.existsSync(testDir)) {
@@ -53,7 +63,13 @@ describe('Error Recovery', () => {
     fs.mkdirSync(targetDir, { recursive: true })
   })
 
-  afterEach(() => {
+  afterEach(async () => {
+    // Destroy all sync instances
+    for (const sync of syncInstances) {
+      await sync.destroy()
+    }
+    syncInstances.length = 0
+    
     if (fs.existsSync(testDir)) {
       fs.rmSync(testDir, { recursive: true, force: true })
     }
@@ -61,7 +77,7 @@ describe('Error Recovery', () => {
 
   describe('file system errors', () => {
     it('should handle missing source files gracefully', async () => {
-      const sync = new TypeDocVitePressSync(config)
+      const sync = createSync(config)
       const errors: { error: Error; context: string }[] = []
       
       sync.on('error', (error, context) => {
@@ -83,7 +99,7 @@ describe('Error Recovery', () => {
       try {
         fs.chmodSync(targetDir, 0o444)
         
-        const sync = new TypeDocVitePressSync(config)
+        const sync = createSync(config)
         const errors: Error[] = []
         
         sync.on('error', (error) => {
@@ -103,7 +119,7 @@ describe('Error Recovery', () => {
       const packageDir = path.join(sourceDir, 'packages', 'test-package')
       fs.writeFileSync(path.join(packageDir, 'test.md'), '# Test\n\nContent')
 
-      const sync = new TypeDocVitePressSync(config)
+      const sync = createSync(config)
       const errors: Error[] = []
       
       sync.on('error', (error) => {
@@ -148,7 +164,7 @@ describe('Error Recovery', () => {
       fs.writeFileSync(path.join(packageDir, 'invalid-utf8.md'), Buffer.from([0xFF, 0xFE, 0xFD])) // Invalid UTF-8
       fs.writeFileSync(path.join(packageDir, 'huge.md'), 'x'.repeat(10 * 1024 * 1024)) // 10MB file
       
-      const sync = new TypeDocVitePressSync(config)
+      const sync = createSync(config)
       const warnings: string[] = []
       
       sync.on('warning', (message) => {
@@ -220,7 +236,7 @@ This has an external link: [Example](https://httpstat.us/500)
 And an internal link: [Internal](./other.md)
 `)
 
-      const sync = new TypeDocVitePressSync(config)
+      const sync = createSync(config)
       const warnings: string[] = []
       
       sync.on('warning', (message) => {
@@ -238,8 +254,8 @@ And an internal link: [Internal](./other.md)
       const packageDir = path.join(sourceDir, 'packages', 'test-package')
       fs.writeFileSync(path.join(packageDir, 'test.md'), '# Test\n\nContent')
 
-      const sync1 = new TypeDocVitePressSync(config)
-      const sync2 = new TypeDocVitePressSync(config)
+      const sync1 = createSync(config)
+      const sync2 = createSync(config)
 
       // Run two sync operations concurrently
       const [result1, result2] = await Promise.allSettled([
@@ -263,7 +279,7 @@ And an internal link: [Internal](./other.md)
       fs.writeFileSync(path.join(packageDir, 'problematic.md'), 'This has undefined and [broken link](./nonexistent.md)')
       fs.writeFileSync(path.join(packageDir, 'valid3.md'), '# Valid 3\n\nGood content')
 
-      const sync = new TypeDocVitePressSync(config)
+      const sync = createSync(config)
       const warnings: string[] = []
       
       sync.on('warning', (message) => {
@@ -281,7 +297,7 @@ And an internal link: [Internal](./other.md)
       const packageDir = path.join(sourceDir, 'packages', 'test-package')
       fs.writeFileSync(path.join(packageDir, 'test.md'), '# Test\n\nContent with ![](missing-alt.png)')
 
-      const sync = new TypeDocVitePressSync(config)
+      const sync = createSync(config)
       const result = await sync.sync()
 
       // Should still process files even with quality issues
@@ -312,7 +328,7 @@ And an internal link: [Internal](./other.md)
       const packageDir = path.join(sourceDir, 'packages', 'test-package')
       fs.writeFileSync(path.join(packageDir, 'test.md'), '# Test\n\nContent')
 
-      const sync = new TypeDocVitePressSync(disabledConfig)
+      const sync = createSync(disabledConfig)
       const result = await sync.sync()
 
       expect(result.filesProcessed).toBeGreaterThan(0)
@@ -330,7 +346,7 @@ And an internal link: [Internal](./other.md)
         fs.writeFileSync(path.join(packageDir, `test-${i}.md`), `# Test ${i}\n\n${'Content '.repeat(1000)}`)
       }
 
-      const sync = new TypeDocVitePressSync(config)
+      const sync = createSync(config)
       
       // Should handle large number of files without crashing
       const result = await sync.sync()
@@ -345,7 +361,7 @@ And an internal link: [Internal](./other.md)
         fs.writeFileSync(path.join(packageDir, `fd-test-${i}.md`), `# FD Test ${i}\n\nContent`)
       }
 
-      const sync = new TypeDocVitePressSync(config)
+      const sync = createSync(config)
       const result = await sync.sync()
       
       expect(result.filesProcessed).toBe(50)
@@ -373,7 +389,7 @@ And an internal link: [Internal](./other.md)
       })
 
       try {
-        const sync = new TypeDocVitePressSync(config)
+        const sync = createSync(config)
         const result = await sync.sync()
         
         expect(result.filesProcessed).toBeGreaterThan(0)
@@ -384,7 +400,7 @@ And an internal link: [Internal](./other.md)
     })
 
     it('should provide error context for debugging', async () => {
-      const sync = new TypeDocVitePressSync({
+      const sync = createSync({
         sourceDir: './nonexistent-source',
         targetDir: './nonexistent-target'
       })
@@ -410,7 +426,7 @@ And an internal link: [Internal](./other.md)
       const packageDir = path.join(sourceDir, 'packages', 'test-package')
       fs.writeFileSync(path.join(packageDir, 'valid.md'), '# Valid\n\nContent')
 
-      const sync = new TypeDocVitePressSync(config)
+      const sync = createSync(config)
       
       // Simulate failure during processing
       let fileCount = 0
@@ -457,7 +473,7 @@ And an internal link: [Internal](./other.md)
     })
 
     it('should use sensible defaults for missing config values', () => {
-      const sync = new TypeDocVitePressSync({
+      const sync = createSync({
         sourceDir: sourceDir,
         targetDir: targetDir
       })
@@ -487,7 +503,7 @@ And an internal link: [Internal](./other.md)
       }
 
       expect(() => {
-        const sync = new TypeDocVitePressSync(invalidConfig)
+        const sync = createSync(invalidConfig)
         const config = sync.getConfig()
         
         // Should use valid defaults

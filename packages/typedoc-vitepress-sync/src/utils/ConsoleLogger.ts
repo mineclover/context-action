@@ -80,4 +80,13 @@ export class ConsoleLogger implements Logger {
   setUseColors(useColors: boolean): void {
     this.useColors = useColors && process.stdout.isTTY
   }
+
+  /**
+   * Clean up logger resources
+   */
+  destroy(): void {
+    // Clear any internal state
+    // Note: We don't actually hold references to stdout/stderr,
+    // but this provides a cleanup interface for consistency
+  }
 }

@@ -26,6 +26,7 @@ export class FileProcessor {
   private markdownProcessor: MarkdownProcessor
   private logger?: Logger
   private eventEmitter?: <K extends keyof SyncEvents>(event: K, ...args: Parameters<SyncEvents[K]>) => void
+  private pendingOperations: Set<Promise<any>> = new Set()
 
   constructor(
     config: ParallelConfig,
@@ -159,9 +160,14 @@ export class FileProcessor {
 
     // Process batches sequentially (but files within batch in parallel)
     for (const batch of batches) {
-      const batchResults = await Promise.all(
-        batch.map(pair => this.processFile(pair.source, pair.target, options))
-      )
+      const batchPromises = batch.map(pair => {
+        const promise = this.processFile(pair.source, pair.target, options)
+        this.pendingOperations.add(promise)
+        promise.finally(() => this.pendingOperations.delete(promise))
+        return promise
+      })
+      
+      const batchResults = await Promise.all(batchPromises)
       results.push(...batchResults)
     }
 
@@ -293,5 +299,20 @@ export class FileProcessor {
     this.config.maxWorkers = Math.min(cpuCount, 8) // Max 8 workers
     
     this.logger?.info(`Auto-configured parallel processing: batchSize=${this.config.batchSize}, maxWorkers=${this.config.maxWorkers}`)
+  }
+
+  /**
+   * Clean up resources and wait for pending operations
+   */
+  async destroy(): Promise<void> {
+    // Wait for all pending operations to complete
+    if (this.pendingOperations.size > 0) {
+      await Promise.allSettled(Array.from(this.pendingOperations))
+      this.pendingOperations.clear()
+    }
+    
+    // Clear references
+    this.logger = undefined
+    this.eventEmitter = undefined
   }
 }
