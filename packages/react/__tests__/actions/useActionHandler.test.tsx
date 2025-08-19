@@ -174,8 +174,8 @@ describe('useActionHandler', () => {
       }
     });
 
-    // Error handling depends on implementation - test that it doesn't crash
-    expect(errorThrown).toBe(false);
+    // Error should be thrown by ActionRegister when handler fails
+    expect(errorThrown).toBe(true);
   });
 
   it('should support conditional handler registration', async () => {

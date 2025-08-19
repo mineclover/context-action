@@ -40,6 +40,21 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ### Features
 
+* **refs:** simplify ref management system to createRefContext only
+  - Simplify to declarative ref management with createRefContext
+  - Support both simple type usage and RefDefinitions for management strategies
+  - Remove deprecated createDeclarativeRefPattern and related complexity
+  - Clean up orphaned test files and update all examples
+  - Improve TypeScript support for test environments
+  - Add comprehensive RefDefinitions management strategy documentation
+
+### Bug Fixes
+
+* **tests:** resolve Jest TypeScript integration issues
+  - Add dedicated tsconfig.test.json for test environment
+  - Fix Jest global type declarations (describe, it, expect, jest)
+  - Update Jest configuration to use proper TypeScript settings
+
 * remove deprecated action handler utilities ([2861d61](https://github.com/mineclover/context-action/commit/2861d61))
   - Remove unused deprecated functions: createMultiStoreHandler, createTransactionHandler, createValidatedHandler
   - Remove ActionHandlerUtils class and related interfaces (StoreSnapshot, MultiStoreContext, TransactionContext)
