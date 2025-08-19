@@ -220,11 +220,23 @@ export function safeGet<T>(value: T, enableCloning: boolean = true): T {
 
   const cloned = deepClone(value);
   
-  // 개발 모드에서 불변성 검증
+  // 개발 모드에서 불변성 검증 (DOM 요소 제외)
   if (process.env.NODE_ENV === 'development') {
-    const isImmutable = verifyImmutability(value, cloned);
-    if (!isImmutable && typeof value === 'object' && value !== null) {
-      logger.warn('Immutability verification failed - references are identical');
+    // DOM 요소는 불변성 검증에서 제외 (참조가 같아야 정상)
+    const isDOMElement = typeof value === 'object' && value !== null && (
+      (typeof Element !== 'undefined' && value instanceof Element) ||
+      (typeof Node !== 'undefined' && value instanceof Node) ||
+      (typeof HTMLElement !== 'undefined' && value instanceof HTMLElement) ||
+      (value as any).nodeType !== undefined ||
+      (value as any)._owner !== undefined ||
+      (value as any).stateNode !== undefined
+    );
+    
+    if (!isDOMElement) {
+      const isImmutable = verifyImmutability(value, cloned);
+      if (!isImmutable && typeof value === 'object' && value !== null) {
+        logger.warn('Immutability verification failed - references are identical');
+      }
     }
   }
 
