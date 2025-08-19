@@ -580,7 +580,7 @@ export class LLMSGenerateCommand {
   }
 
   private generateContent(documents: DocumentContent[], options: LLMSGenerateOptions): string {
-    const { pattern, language, characterLimit, category } = options;
+    const { pattern, language, characterLimit } = options;
     
     let content = '';
 
@@ -782,7 +782,7 @@ export class LLMSGenerateCommand {
     const { language, characterLimit, category, pattern, outputDir } = options;
     
     // Use path manager for consistent output path generation
-    const { outputPath, filename } = this.pathManager.generateOutputPath({
+    const { outputPath } = this.pathManager.generateOutputPath({
       language: language || 'en',
       characterLimit,
       category,
@@ -806,7 +806,7 @@ export class LLMSGenerateCommand {
     console.log('\n💡 Try adjusting your filters or check if documents exist with these criteria.');
   }
 
-  private displayDocumentList(documents: DocumentContent[], options: LLMSGenerateOptions): void {
+  private displayDocumentList(documents: DocumentContent[]): void {
     console.log(`📄 Found ${documents.length} documents:\n`);
     
     documents.forEach((doc, index) => {

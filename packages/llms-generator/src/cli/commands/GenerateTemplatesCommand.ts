@@ -178,7 +178,7 @@ export class GenerateTemplatesCommand {
     return result;
   }
 
-  private async extractSourceContent(priorityData: any, language: string): Promise<string> {
+  private async extractSourceContent(priorityData: any, _language: string): Promise<string> {
     if (!priorityData.document?.source_path) {
       return '';
     }

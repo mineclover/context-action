@@ -22,7 +22,7 @@ export class FillTemplatesCommand {
   constructor(private config: CLIConfig) {}
 
   async execute(options: FillTemplatesOptions = {}): Promise<void> {
-    const { language = 'en', dryRun = false, verbose = false } = options;
+    const { language = 'en', dryRun = false } = options;
     
     console.log('🚀 Filling template files with content from source documents...\n');
     
@@ -287,7 +287,7 @@ export class FillTemplatesCommand {
   private updateTemplateContent(
     templateContent: string,
     summary: string,
-    characterLimit: number
+    _characterLimit: number
   ): string {
     // Replace the content within markdown code block
     const updatedContent = templateContent.replace(
