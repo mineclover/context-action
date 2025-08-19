@@ -121,7 +121,12 @@ export interface RefInitConfig<T extends RefTarget = RefTarget> {
   /** 참조 이름 */
   name: string;
   
-  /** 객체 타입 */
+  /** 
+   * 객체 타입 - RefStore의 처리 방식을 결정
+   * - 'dom': HTML/DOM 요소 (기본값) - 순환 참조 방지, 참조 비교만 사용
+   * - 'three': Three.js 객체 - 자동 리소스 해제
+   * - 'custom': 범용 객체 - 표준 불변성 처리
+   */
   objectType: 'dom' | 'three' | 'custom';
   
   /** 초기 메타데이터 */

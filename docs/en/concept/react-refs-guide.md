@@ -506,7 +506,81 @@ const {
 | `validator` | Type and validity checking | Critical for type safety |
 | `cleanup` | Custom cleanup function | Complex objects needing disposal |
 | `initialMetadata` | Additional ref metadata | Debugging and tracking |
-| `objectType` | Object classification | `'dom'`, `'custom'`, `'three'`, etc. |
+| `objectType` | Object classification | `'dom'`, `'custom'`, `'three'` |
+
+### Object Type Details
+
+The `objectType` property determines how the RefStore handles different types of objects:
+
+#### `'dom'` - DOM Elements (Default)
+- **Purpose**: Optimized for HTML/DOM elements
+- **Special Handling**:
+  - Prevents circular reference errors with React Fiber
+  - Uses reference comparison only (no deep cloning)
+  - Skips immutability checks for performance
+  - Handles DOM element lifecycle automatically
+- **Use Cases**: HTMLDivElement, HTMLCanvasElement, any DOM node
+- **Note**: This is the default type when not specified
+
+```typescript
+// Automatically uses 'dom' type if not specified
+const refs = createRefContext<{
+  container: HTMLDivElement;
+}>('MyRefs'); // objectType defaults to 'dom'
+
+// Or explicitly specify
+const refs = createRefContext('MyRefs', {
+  container: {
+    name: 'container',
+    objectType: 'dom', // Explicit DOM type
+    autoCleanup: true
+  }
+});
+```
+
+#### `'custom'` - Custom Objects
+- **Purpose**: General-purpose object management
+- **Special Handling**:
+  - Standard immutability handling
+  - Deep cloning for state snapshots
+  - Custom cleanup functions supported
+- **Use Cases**: Game engines, WebGL contexts, custom classes
+
+```typescript
+const refs = createRefContext('GameRefs', {
+  engine: {
+    name: 'engine',
+    objectType: 'custom',
+    cleanup: async (engine) => {
+      await engine.shutdown();
+    }
+  }
+});
+```
+
+#### `'three'` - Three.js Objects
+- **Purpose**: Three.js scene graph objects
+- **Special Handling**:
+  - Automatic disposal of geometries and materials
+  - Scene graph traversal for cleanup
+  - Resource management for textures
+- **Use Cases**: THREE.Scene, THREE.Mesh, THREE.Camera
+
+```typescript
+const refs = createRefContext('3DRefs', {
+  scene: {
+    name: 'scene',
+    objectType: 'three',
+    cleanup: (scene) => {
+      // Automatic resource disposal
+      scene.traverse(obj => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) obj.material.dispose();
+      });
+    }
+  }
+});
+```
 
 ## Complete Example: Game Component
 
