@@ -240,6 +240,26 @@ export class TypeDocVitePressSync {
   }
 
   /**
+   * Remove event listener
+   */
+  off<K extends keyof SyncEvents>(event: K, listener: SyncEvents[K]): void {
+    const listeners = this.eventListeners[event]
+    if (listeners) {
+      const index = listeners.indexOf(listener)
+      if (index !== -1) {
+        listeners.splice(index, 1)
+      }
+    }
+  }
+
+  /**
+   * Remove all event listeners
+   */
+  removeAllListeners(): void {
+    this.eventListeners = {}
+  }
+
+  /**
    * Emit event to all listeners
    */
   private emit<K extends keyof SyncEvents>(event: K, ...args: Parameters<SyncEvents[K]>): void {
@@ -354,6 +374,38 @@ export class TypeDocVitePressSync {
       this.errorHandler,
       this.logger
     )
+  }
+
+  /**
+   * Destroy the instance and clean up resources
+   */
+  async destroy(): Promise<void> {
+    // Remove all event listeners
+    this.removeAllListeners()
+    
+    // Clear any internal state
+    this.events = {}
+    
+    // Clean up components that may have pending operations
+    if (this.processor && typeof this.processor.destroy === 'function') {
+      await this.processor.destroy()
+    }
+    
+    // Clean up logger if it has cleanup method
+    if (this.logger && typeof (this.logger as any).destroy === 'function') {
+      ;(this.logger as any).destroy()
+    }
+    
+    // Force garbage collection hints
+    this.cache = null as any
+    this.validator = null as any
+    this.metrics = null as any
+    this.processor = null as any
+    this.errorHandler = null as any
+    this.logger = null as any
+    
+    // Note: Setting to null helps garbage collector
+    // identify these objects can be collected
   }
 }
 

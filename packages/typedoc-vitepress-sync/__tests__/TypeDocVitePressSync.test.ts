@@ -50,7 +50,23 @@ describe('TypeDocVitePressSync', () => {
     fs.mkdirSync(targetDir, { recursive: true })
   })
 
-  afterEach(() => {
+  // Track all sync instances created during tests
+  const syncInstances: TypeDocVitePressSync[] = []
+  
+  // Helper to create and track sync instances
+  const createSync = (config: SyncConfig): TypeDocVitePressSync => {
+    const sync = new TypeDocVitePressSync(config)
+    syncInstances.push(sync)
+    return sync
+  }
+
+  afterEach(async () => {
+    // Destroy all sync instances
+    for (const sync of syncInstances) {
+      await sync.destroy()
+    }
+    syncInstances.length = 0
+    
     if (fs.existsSync(testDir)) {
       fs.rmSync(testDir, { recursive: true, force: true })
     }
@@ -58,7 +74,7 @@ describe('TypeDocVitePressSync', () => {
 
   describe('initialization', () => {
     it('should create sync instance with valid config', () => {
-      const sync = new TypeDocVitePressSync(config)
+      const sync = createSync(config)
       expect(sync).toBeInstanceOf(TypeDocVitePressSync)
     })
 
@@ -69,7 +85,7 @@ describe('TypeDocVitePressSync', () => {
     })
 
     it('should validate configuration', () => {
-      const sync = new TypeDocVitePressSync(config)
+      const sync = createSync(config)
       const issues = sync.validateConfig()
       
       // With test setup, package directory exists so no validation issues expected
@@ -89,7 +105,7 @@ describe('TypeDocVitePressSync', () => {
     })
 
     it('should sync files successfully', async () => {
-      const sync = new TypeDocVitePressSync(config)
+      const sync = createSync(config)
       const result = await sync.sync()
       
       expect(result.filesProcessed).toBeGreaterThan(0)
@@ -102,7 +118,7 @@ describe('TypeDocVitePressSync', () => {
     })
 
     it('should utilize cache on second run', async () => {
-      const sync = new TypeDocVitePressSync(config)
+      const sync = createSync(config)
       
       // First run
       const result1 = await sync.sync()
@@ -115,7 +131,7 @@ describe('TypeDocVitePressSync', () => {
     })
 
     it('should track events', async () => {
-      const sync = new TypeDocVitePressSync(config)
+      const sync = createSync(config)
       const events: string[] = []
       
       sync.on('start', () => events.push('start'))
@@ -127,7 +143,7 @@ describe('TypeDocVitePressSync', () => {
     })
 
     it('should track file-level events', async () => {
-      const sync = new TypeDocVitePressSync(config)
+      const sync = createSync(config)
       const fileEvents: { event: string; file: string }[] = []
       
       sync.on('fileStart', (filePath) => {
@@ -148,7 +164,7 @@ describe('TypeDocVitePressSync', () => {
     })
 
     it('should handle errors and warnings', async () => {
-      const sync = new TypeDocVitePressSync(config)
+      const sync = createSync(config)
       const issues: { type: string; message: string; context: string }[] = []
       
       sync.on('error', (error, context) => {
@@ -176,7 +192,7 @@ describe('TypeDocVitePressSync', () => {
     })
 
     it('should provide cache statistics', async () => {
-      const sync = new TypeDocVitePressSync(config)
+      const sync = createSync(config)
       
       await sync.sync()
       const stats = sync.getCacheStats()
@@ -197,7 +213,7 @@ describe('TypeDocVitePressSync', () => {
     })
 
     it('should detect quality issues', async () => {
-      const sync = new TypeDocVitePressSync(config)
+      const sync = createSync(config)
       
       await sync.sync()
       const qualityStats = sync.getQualityStats()
@@ -209,7 +225,7 @@ describe('TypeDocVitePressSync', () => {
   describe('error handling', () => {
     it('should handle missing source directory gracefully', async () => {
       const badConfig = { ...config, sourceDir: './nonexistent' }
-      const sync = new TypeDocVitePressSync(badConfig)
+      const sync = createSync(badConfig)
       
       const errors = sync.getErrorSummary()
       expect(errors.warnings).toBe(0) // Should start with no errors
@@ -221,12 +237,12 @@ describe('TypeDocVitePressSync', () => {
       const packageDir = path.join(sourceDir, 'packages', 'test-package')
       fs.writeFileSync(path.join(packageDir, 'test.md'), '# Test')
       
-      const sync = new TypeDocVitePressSync(config)
+      const sync = createSync(config)
       await sync.sync()
     })
 
     it('should clean cache and generated files', async () => {
-      const sync = new TypeDocVitePressSync(config)
+      const sync = createSync(config)
       
       // Verify files exist before cleanup
       expect(fs.existsSync(targetDir)).toBe(true)
@@ -242,7 +258,7 @@ describe('TypeDocVitePressSync', () => {
 
   describe('configuration updates', () => {
     it('should allow configuration updates', () => {
-      const sync = new TypeDocVitePressSync(config)
+      const sync = createSync(config)
       
       const originalConfig = sync.getConfig()
       expect(originalConfig.cache.enabled).toBe(true)
@@ -258,7 +274,7 @@ describe('TypeDocVitePressSync', () => {
 
   describe('auto-optimization', () => {
     it('should configure auto-optimization', () => {
-      const sync = new TypeDocVitePressSync(config)
+      const sync = createSync(config)
       
       expect(() => sync.autoOptimize()).not.toThrow()
     })
@@ -283,7 +299,7 @@ describe('TypeDocVitePressSync', () => {
     })
 
     it('should process files in parallel', async () => {
-      const sync = new TypeDocVitePressSync(parallelConfig)
+      const sync = createSync(parallelConfig)
       const startTime = Date.now()
       
       const result = await sync.sync()
@@ -294,7 +310,7 @@ describe('TypeDocVitePressSync', () => {
     })
 
     it('should respect maxWorkers setting', async () => {
-      const sync = new TypeDocVitePressSync(parallelConfig)
+      const sync = createSync(parallelConfig)
       
       // Test that it doesn't throw with worker configuration
       const result = await sync.sync()
@@ -302,7 +318,7 @@ describe('TypeDocVitePressSync', () => {
     })
 
     it('should handle batch processing', async () => {
-      const sync = new TypeDocVitePressSync(parallelConfig)
+      const sync = createSync(parallelConfig)
       
       const result = await sync.sync()
       
@@ -320,7 +336,7 @@ describe('TypeDocVitePressSync', () => {
         }
       }
       
-      const sync = new TypeDocVitePressSync(sequentialConfig)
+      const sync = createSync(sequentialConfig)
       
       const result = await sync.sync()
       expect(result.filesProcessed).toBeGreaterThan(0)
@@ -334,7 +350,7 @@ describe('TypeDocVitePressSync', () => {
     })
 
     it('should collect metrics during sync', async () => {
-      const sync = new TypeDocVitePressSync(config)
+      const sync = createSync(config)
       
       const result = await sync.sync()
       
@@ -346,7 +362,7 @@ describe('TypeDocVitePressSync', () => {
     })
 
     it('should save metrics to file', async () => {
-      const sync = new TypeDocVitePressSync(config)
+      const sync = createSync(config)
       
       await sync.sync()
       
