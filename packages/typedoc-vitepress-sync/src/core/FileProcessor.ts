@@ -4,6 +4,7 @@
 
 import fs from 'fs'
 import path from 'path'
+import os from 'os'
 import type { 
   ParallelConfig,
   FileProcessResult,
@@ -26,7 +27,7 @@ export class FileProcessor {
   private markdownProcessor: MarkdownProcessor
   private logger?: Logger
   private eventEmitter?: <K extends keyof SyncEvents>(event: K, ...args: Parameters<SyncEvents[K]>) => void
-  private pendingOperations: Set<Promise<any>> = new Set()
+  private pendingOperations: Set<Promise<unknown>> = new Set()
 
   constructor(
     config: ParallelConfig,
@@ -276,8 +277,8 @@ export class FileProcessor {
    * Estimate optimal batch size based on system resources
    */
   estimateOptimalBatchSize(): number {
-    const cpuCount = require('os').cpus().length
-    const memoryGB = require('os').totalmem() / (1024 * 1024 * 1024)
+    const cpuCount = os.cpus().length
+    const memoryGB = os.totalmem() / (1024 * 1024 * 1024)
     
     // Basic heuristic: scale with CPU cores and available memory
     let optimalSize = Math.min(cpuCount * 2, Math.floor(memoryGB))
@@ -293,7 +294,7 @@ export class FileProcessor {
    */
   autoConfigureParallel(): void {
     const optimalBatchSize = this.estimateOptimalBatchSize()
-    const cpuCount = require('os').cpus().length
+    const cpuCount = os.cpus().length
     
     this.config.batchSize = optimalBatchSize
     this.config.maxWorkers = Math.min(cpuCount, 8) // Max 8 workers

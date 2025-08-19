@@ -24,8 +24,7 @@ export class ConsoleLogger implements Logger {
     return levels[level] >= levels[this.level]
   }
 
-  private formatMessage(level: LogLevel, message: string, ...args: any[]): string {
-    const timestamp = new Date().toISOString()
+  private formatMessage(level: LogLevel, message: string, ...args: unknown[]): string {
     const prefix = this.useColors ? this.getColoredPrefix(level) : `[${level.toUpperCase()}]`
     const formattedArgs = args.length > 0 ? ' ' + args.map(arg => 
       typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
@@ -45,25 +44,25 @@ export class ConsoleLogger implements Logger {
     return colors[level]
   }
 
-  debug(message: string, ...args: any[]): void {
+  debug(message: string, ...args: unknown[]): void {
     if (this.shouldLog('debug')) {
       console.debug(this.formatMessage('debug', message, ...args))
     }
   }
 
-  info(message: string, ...args: any[]): void {
+  info(message: string, ...args: unknown[]): void {
     if (this.shouldLog('info')) {
       console.info(this.formatMessage('info', message, ...args))
     }
   }
 
-  warn(message: string, ...args: any[]): void {
+  warn(message: string, ...args: unknown[]): void {
     if (this.shouldLog('warn')) {
       console.warn(this.formatMessage('warn', message, ...args))
     }
   }
 
-  error(message: string, ...args: any[]): void {
+  error(message: string, ...args: unknown[]): void {
     if (this.shouldLog('error')) {
       console.error(this.formatMessage('error', message, ...args))
     }

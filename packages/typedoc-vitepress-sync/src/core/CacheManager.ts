@@ -4,9 +4,9 @@
 
 import fs from 'fs'
 import crypto from 'crypto'
+import path from 'path'
 import type { 
   CacheConfig, 
-  CacheEntry, 
   CacheManifest, 
   CacheStats,
   Logger 
@@ -70,7 +70,7 @@ export class CacheManager {
       const data = fs.readFileSync(this.config.manifestFile, 'utf8')
       this.manifest = JSON.parse(data)
       this.logger?.info(`Cache manifest loaded: ${Object.keys(this.manifest).length} entries`)
-    } catch (error) {
+    } catch {
       this.logger?.warn('Failed to load cache manifest, starting fresh')
       this.manifest = {}
     }
@@ -224,7 +224,7 @@ export class CacheManager {
 
     try {
       // Ensure directory exists
-      const manifestDir = require('path').dirname(this.config.manifestFile)
+      const manifestDir = path.dirname(this.config.manifestFile)
       if (!fs.existsSync(manifestDir)) {
         fs.mkdirSync(manifestDir, { recursive: true })
       }

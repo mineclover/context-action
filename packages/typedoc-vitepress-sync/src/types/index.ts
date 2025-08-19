@@ -265,15 +265,15 @@ export interface SyncEvents {
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
 export interface Logger {
-  debug(message: string, ...args: any[]): void
-  info(message: string, ...args: any[]): void
-  warn(message: string, ...args: any[]): void
-  error(message: string, ...args: any[]): void
+  debug(message: string, ...args: unknown[]): void
+  info(message: string, ...args: unknown[]): void
+  warn(message: string, ...args: unknown[]): void
+  error(message: string, ...args: unknown[]): void
 }
 
 export type RecoveryStrategy = {
   message: string
-  action: () => any
+  action: () => unknown
 }
 
 export type ErrorRecoveryStrategies = {

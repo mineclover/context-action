@@ -32,7 +32,7 @@ export class MarkdownProcessor {
       // 단일 줄에 단일 대문자만 있는 경우 (예: `T`)
       .replace(/^`([A-Z])`$/gm, 'Type parameter **$1**')
       // 단일 줄에 제네릭 타입만 있는 경우 (예: `T extends Something`)
-      .replace(/^`([A-Z][A-Za-z0-9 =<>\[\]]*)`$/gm, 'Type parameter **$1**')
+      .replace(/^`([A-Z][A-Za-z0-9 =<>[\]]*)`$/gm, 'Type parameter **$1**')
       // 타입 파라미터 설명 라인들을 안전하게 처리
       .replace(/^Generic type parameter ([A-Z])$/gm, 'Type parameter **$1**')
   }

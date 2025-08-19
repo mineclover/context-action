@@ -30,7 +30,8 @@ export class SidebarGenerator {
   ): ApiStructure {
     const structure: ApiStructure = {}
     
-    for (const [packageName, targetName] of Object.entries(packageMapping)) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for (const [_packageName, targetName] of Object.entries(packageMapping)) {
       const packagePath = path.join(targetDir, targetName)
       if (!fs.existsSync(packagePath)) {
         this.logger?.warn(`Package directory not found: ${packagePath}`)
@@ -270,9 +271,6 @@ export function getApiItemsForPackage(packageName: string): any[] {
    * Sort API items by category and name
    */
   sortApiItems(items: ApiItem[]): ApiItem[] {
-    // Define category order
-    const categoryOrder = ['Overview', 'Classes', 'Functions', 'Interfaces', 'Types', 'Variables']
-    
     return items.sort((a, b) => {
       // Special case for Overview
       if (a.text === 'Overview') return -1
@@ -326,7 +324,8 @@ export function getApiItemsForPackage(packageName: string): any[] {
   createGroupedSidebar(structure: ApiStructure, locale: string = 'en'): SidebarSection[] {
     const sections: SidebarSection[] = []
     
-    for (const [packageName, packageInfo] of Object.entries(structure)) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for (const [_packageName, packageInfo] of Object.entries(structure)) {
       const groups = this.groupByCategory(packageInfo.items)
       
       // Add overview section first
