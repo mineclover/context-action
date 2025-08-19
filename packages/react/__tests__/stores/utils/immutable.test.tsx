@@ -162,7 +162,7 @@ describe('Immutable utilities', () => {
       });
 
       it('should handle large objects efficiently', () => {
-        const largeObject = {};
+        const largeObject: Record<string, any> = {};
         for (let i = 0; i < 1000; i++) {
           largeObject[`key${i}`] = { value: i, nested: { deep: i * 2 } };
         }
@@ -199,7 +199,7 @@ describe('Immutable utilities', () => {
 
       it('should handle complete cloning failure', () => {
         // Create object that can't be JSON serialized
-        const circular = { a: 1 };
+        const circular: any = { a: 1 };
         circular.self = circular;
 
         // Mock structuredClone to fail

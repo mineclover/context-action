@@ -399,7 +399,7 @@ describe('ActionRegister - Comprehensive Individual Feature Tests', () => {
       });
 
       it('should handle terminated execution', async () => {
-        actionRegister.register('testAction', (payload, controller) => {
+        actionRegister.register<'testAction', any>('testAction', (payload, controller) => {
           controller.return('early-return');
         });
 
@@ -481,7 +481,7 @@ describe('ActionRegister - Comprehensive Individual Feature Tests', () => {
 
     describe('controller.return() method', () => {
       it('should terminate with return value', async () => {
-        actionRegister.register('testAction', (payload, controller) => {
+        actionRegister.register<'testAction', any>('testAction', (payload, controller) => {
           controller.return('early-termination-value');
         });
 
@@ -505,7 +505,7 @@ describe('ActionRegister - Comprehensive Individual Feature Tests', () => {
       it('should stop subsequent handlers when terminated', async () => {
         const executedHandlers: string[] = [];
 
-        actionRegister.register('testAction', (payload, controller) => {
+        actionRegister.register<'testAction', any>('testAction', (payload, controller) => {
           executedHandlers.push('handler1');
           controller.return('terminate');
         }, { priority: 20 });
@@ -576,8 +576,8 @@ describe('ActionRegister - Comprehensive Individual Feature Tests', () => {
 
         actionRegister.register('testAction', (payload, controller) => {
           controller.modifyPayload(() => ({
-            completely: 'different',
-            payload: true
+            value: 'modified',
+            count: 999
           }));
         }, { priority: 20 });
 
@@ -635,7 +635,7 @@ describe('ActionRegister - Comprehensive Individual Feature Tests', () => {
 
     describe('controller.setResult() method', () => {
       it('should set intermediate results', async () => {
-        actionRegister.register('testAction', (payload, controller) => {
+        actionRegister.register<'testAction', { intermediate?: string; final?: string }>('testAction', (payload, controller) => {
           controller.setResult({ intermediate: 'result1' });
           controller.setResult({ intermediate: 'result2' });
           return { final: 'result' };
@@ -653,7 +653,7 @@ describe('ActionRegister - Comprehensive Individual Feature Tests', () => {
       });
 
       it('should allow null and undefined results', async () => {
-        actionRegister.register('testAction', (payload, controller) => {
+        actionRegister.register<'testAction', any>('testAction', (payload, controller) => {
           controller.setResult(null);
           controller.setResult(undefined);
         });
@@ -673,14 +673,14 @@ describe('ActionRegister - Comprehensive Individual Feature Tests', () => {
       it('should return results from previous handlers', async () => {
         let collectedResults: any[] = [];
 
-        actionRegister.register('testAction', () => 'result1', { priority: 30 });
+        actionRegister.register<'testAction', string>('testAction', () => 'result1', { priority: 30 });
 
-        actionRegister.register('testAction', (payload, controller) => {
+        actionRegister.register<'testAction', string>('testAction', (payload, controller) => {
           controller.setResult('intermediate');
           return 'result2';
         }, { priority: 20 });
 
-        actionRegister.register('testAction', (payload, controller) => {
+        actionRegister.register<'testAction', string>('testAction', (payload, controller) => {
           collectedResults = controller.getResults();
           return 'result3';
         }, { priority: 10 });

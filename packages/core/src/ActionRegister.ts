@@ -1288,6 +1288,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     return {
       action,
       handlerCount: pipeline.length,
+      totalHandlers: pipeline.length,
       handlersByPriority,
       executionStats,
     };
