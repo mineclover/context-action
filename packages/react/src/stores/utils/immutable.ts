@@ -83,6 +83,26 @@ export function deepClone<T>(value: T): T {
     return value;
   }
 
+  // HTML/DOM Elements 특별 처리 - 순환 참조 방지
+  if (typeof value === 'object' && value !== null) {
+    // DOM Element 체크 (HTMLElement, Element, Node 등)
+    if (
+      (typeof Element !== 'undefined' && value instanceof Element) ||
+      (typeof Node !== 'undefined' && value instanceof Node) ||
+      (typeof HTMLElement !== 'undefined' && value instanceof HTMLElement) ||
+      // React Fiber나 기타 DOM 관련 객체 체크
+      (value as any).nodeType !== undefined ||
+      (value as any)._owner !== undefined || // React Fiber
+      (value as any).stateNode !== undefined // React Fiber
+    ) {
+      // DOM elements는 cloning하지 않고 원본 참조 반환
+      if (process.env.NODE_ENV === 'development' && Math.random() < 0.01) {
+        logger.trace('HTML/DOM element detected, returning original reference to avoid circular references');
+      }
+      return value;
+    }
+  }
+
   try {
     // structuredClone을 사용한 깊은 복사
     // 이는 웹 표준 API로 모든 모던 브라우저와 Node.js 17+에서 지원
@@ -99,7 +119,22 @@ export function deepClone<T>(value: T): T {
     
     return cloned;
   } catch (error) {
-    // structuredClone 실패 시 폴백: JSON 기반 복사
+    // HTML elements나 circular references로 인한 실패 감지
+    const errorMessage = error?.toString() || '';
+    if (
+      errorMessage.includes('circular') ||
+      errorMessage.includes('HTMLDivElement') ||
+      errorMessage.includes('HTMLElement') ||
+      errorMessage.includes('could not be cloned')
+    ) {
+      // HTML elements/circular references는 원본 반환 (경고 없이)
+      if (process.env.NODE_ENV === 'development' && Math.random() < 0.01) {
+        logger.trace('Circular reference or HTML element detected in structuredClone, returning original reference');
+      }
+      return value;
+    }
+    
+    // 기타 구조화 복사 실패 시 폴백: JSON 기반 복사
     logger.warn('structuredClone failed, falling back to JSON clone', error);
     
     try {
@@ -109,6 +144,17 @@ export function deepClone<T>(value: T): T {
       return jsonCloned;
     } catch (jsonError) {
       // JSON도 실패하면 원본 반환 (최후의 수단)
+      const jsonErrorMessage = jsonError?.toString() || '';
+      if (
+        jsonErrorMessage.includes('circular') ||
+        jsonErrorMessage.includes('Converting circular structure')
+      ) {
+        // Circular references는 조용히 원본 반환
+        if (process.env.NODE_ENV === 'development' && Math.random() < 0.01) {
+          logger.trace('Circular reference detected in JSON fallback, returning original reference');
+        }
+        return value;
+      }
       logger.error('All cloning methods failed, returning original reference', jsonError);
       return value;
     }
@@ -135,7 +181,22 @@ export function verifyImmutability<T>(original: T, cloned: T): boolean {
     return original === cloned;
   }
 
-  // 객체나 배열의 경우 참조가 다른지 확인
+  // HTML/DOM Elements 특별 처리 - 참조가 같아야 정상
+  if (typeof original === 'object' && original !== null) {
+    if (
+      (typeof Element !== 'undefined' && original instanceof Element) ||
+      (typeof Node !== 'undefined' && original instanceof Node) ||
+      (typeof HTMLElement !== 'undefined' && original instanceof HTMLElement) ||
+      (original as any).nodeType !== undefined ||
+      (original as any)._owner !== undefined ||
+      (original as any).stateNode !== undefined
+    ) {
+      // DOM elements는 동일한 참조여야 함 (cloning하지 않으므로)
+      return original === cloned;
+    }
+  }
+
+  // 일반 객체나 배열의 경우 참조가 다른지 확인
   if (typeof original === 'object' && original !== null) {
     return original !== cloned; // 다른 참조여야 함
   }

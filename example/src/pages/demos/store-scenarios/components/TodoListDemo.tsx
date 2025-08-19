@@ -79,7 +79,7 @@ export function TodoListDemo() {
     return () => {
       unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
-  }, [todosStore]);
+  }, []); // 의존성 배열에서 todosStore 제거 - 무한 루프 방지
 
   const filteredAndSortedTodos = useMemo(() => {
     if (!todos) return [];
