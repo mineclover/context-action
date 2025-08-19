@@ -458,11 +458,10 @@ const UserEventLog: React.FC = () => {
  * 메인 사용자 관리 예제 컴포넌트
  */
 const UserManagementExample: React.FC = () => {
-  const { cleanup } = useUserManager();
+  const { cleanup, register } = useUserManager();
 
   // 샘플 데이터 추가
   useEffect(() => {
-    const { register } = useUserManager();
     
     // 샘플 사용자들 등록
     const sampleUsers = [

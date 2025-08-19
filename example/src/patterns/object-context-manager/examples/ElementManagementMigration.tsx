@@ -107,7 +107,7 @@ const useElementFocus = () => {
 
   const focusElement = useCallback((id: string) => {
     const elementObj = getObject(id);
-    if (elementObj && elementObj.element) {
+    if (elementObj?.element) {
       elementObj.element.focus();
       focus(id);
     }
@@ -115,7 +115,7 @@ const useElementFocus = () => {
 
   const clearElementFocus = useCallback(() => {
     const elementObj = focusedObject ? getObject(focusedObject) : null;
-    if (elementObj && elementObj.element) {
+    if (elementObj?.element) {
       elementObj.element.blur();
     }
     clearFocus();
