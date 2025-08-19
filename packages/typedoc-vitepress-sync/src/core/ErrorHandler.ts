@@ -64,10 +64,10 @@ export class ErrorHandler {
   /**
    * Handle error with context and recovery strategy
    */
-  handleError(error: Error, context: string): any {
+  handleError(error: Error, context: string): unknown {
     const errorInfo: ErrorInfo = {
       message: error.message,
-      code: (error as any).code,
+      code: (error as Error & { code?: string }).code,
       context,
       timestamp: new Date().toISOString(),
       stack: error.stack
@@ -204,8 +204,8 @@ export class ErrorHandler {
    * Check if error is recoverable
    */
   isRecoverable(error: Error): boolean {
-    const code = (error as any).code
-    return code ? this.recoveryStrategies.hasOwnProperty(code) : false
+    const code = (error as Error & { code?: string }).code
+    return code ? Object.prototype.hasOwnProperty.call(this.recoveryStrategies, code) : false
   }
 
   /**

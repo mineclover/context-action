@@ -267,7 +267,7 @@ export class TypeDocVitePressSync {
     if (listeners) {
       for (const listener of listeners) {
         try {
-          (listener as (...args: any[]) => void)(...args)
+          (listener as (...args: Parameters<SyncEvents[K]>) => void)(...args)
         } catch (error) {
           this.logger.error(`Error in ${event} event listener:`, error)
         }
@@ -392,17 +392,17 @@ export class TypeDocVitePressSync {
     }
     
     // Clean up logger if it has cleanup method
-    if (this.logger && typeof (this.logger as any).destroy === 'function') {
-      ;(this.logger as any).destroy()
+    if (this.logger && typeof (this.logger as Logger & { destroy?: () => void }).destroy === 'function') {
+      ;(this.logger as Logger & { destroy: () => void }).destroy()
     }
     
     // Force garbage collection hints
-    this.cache = null as any
-    this.validator = null as any
-    this.metrics = null as any
-    this.processor = null as any
-    this.errorHandler = null as any
-    this.logger = null as any
+    this.cache = null as unknown as CacheManager
+    this.validator = null as unknown as QualityValidator
+    this.metrics = null as unknown as MetricsCollector
+    this.processor = null as unknown as FileProcessor
+    this.errorHandler = null as unknown as ErrorHandler
+    this.logger = null as unknown as Logger
     
     // Note: Setting to null helps garbage collector
     // identify these objects can be collected

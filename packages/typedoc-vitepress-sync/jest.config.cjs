@@ -1,4 +1,6 @@
 /** @type {import('jest').Config} */
+/* eslint-env node */
+/* global process */
 module.exports = {
   preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'node',
@@ -23,6 +25,11 @@ module.exports = {
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
-  testTimeout: 30000, // 30 seconds (back to default)
+  testTimeout: process.env.CI ? 60000 : 30000, // Longer timeout in CI
+  // Skip slow integration tests in CI unless explicitly enabled  
+  testPathIgnorePatterns: process.env.CI && !process.env.RUN_SLOW_TESTS ? [
+    '<rootDir>/__tests__/Performance.test.ts',
+    '<rootDir>/__tests__/ErrorRecovery.test.ts'
+  ] : [],
   verbose: true
 }

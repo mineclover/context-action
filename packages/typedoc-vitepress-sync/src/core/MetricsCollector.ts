@@ -45,7 +45,7 @@ export class MetricsCollector {
       
       // Record file size for statistics
       try {
-        const stats = fs.statSync(filePath)
+        fs.statSync(filePath)
         // Store additional file metrics if needed
       } catch (error) {
         this.logger?.debug(`Could not get stats for ${filePath}:`, error)
@@ -125,7 +125,17 @@ export class MetricsCollector {
   /**
    * Calculate performance metrics
    */
-  private getPerformanceMetrics(result: SyncResult): any {
+  private getPerformanceMetrics(result: SyncResult): {
+    totalFiles: number;
+    filesPerSecond: string;
+    averageTimePerFile: string;
+    cacheEfficiency: {
+      hitRate: string;
+      timesSaved: number;
+      estimatedTimeSaved: string;
+    };
+    qualityScore: number;
+  } {
     const totalFiles = result.filesProcessed + result.filesSkipped
     const processingTimeSeconds = result.processingTime / 1000
     
@@ -170,7 +180,13 @@ export class MetricsCollector {
   /**
    * Generate human-readable summary
    */
-  private generateSummary(result: SyncResult): any {
+  private generateSummary(result: SyncResult): {
+    overview: string;
+    cache: string;
+    quality: string;
+    errors: string;
+    performance: string;
+  } {
     const totalFiles = result.filesProcessed + result.filesSkipped
     const processingTimeSeconds = (result.processingTime / 1000).toFixed(2)
     
@@ -204,7 +220,16 @@ export class MetricsCollector {
   /**
    * Get environment information
    */
-  private getEnvironmentInfo(): any {
+  private getEnvironmentInfo(): {
+    nodeVersion: string;
+    platform: string;
+    arch: string;
+    memory: {
+      used: string;
+      total: string;
+    };
+    uptime: string;
+  } {
     return {
       nodeVersion: process.version,
       platform: process.platform,
