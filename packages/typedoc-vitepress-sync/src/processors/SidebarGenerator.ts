@@ -366,4 +366,25 @@ export function getApiItemsForPackage(packageName: string): any[] {
     
     return sections
   }
+
+  /**
+   * Generate config file (alias for generateSidebarConfig)
+   */
+  generateConfigFile(outputPath: string, structure: ApiStructure): void {
+    this.generateSidebarConfig(structure, outputPath)
+  }
+
+  /**
+   * Generate API structure from source directory (alias for parseApiStructure)
+   */
+  generateApiStructure(targetDir: string, packageMapping: Record<string, string>): ApiStructure {
+    return this.parseApiStructure(targetDir, packageMapping)
+  }
+
+  /**
+   * Write TypeScript config (alias for generateSidebarConfig) 
+   */
+  writeTypeScriptConfig(outputPath: string, structure: ApiStructure): void {
+    this.generateSidebarConfig(structure, outputPath)
+  }
 }

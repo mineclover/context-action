@@ -28,6 +28,7 @@ export class TypeDocVitePressSync {
   private sidebarGenerator: SidebarGenerator
   private logger: Logger
   private events: Partial<SyncEvents> = {}
+  private eventListeners: { [K in keyof SyncEvents]?: SyncEvents[K][] } = {}
 
   constructor(config: SyncConfig, logger?: Logger) {
     this.logger = logger || new ConsoleLogger()
@@ -45,7 +46,8 @@ export class TypeDocVitePressSync {
       this.validator,
       this.metrics,
       this.errorHandler,
-      this.logger
+      this.logger,
+      this.emit.bind(this)
     )
   }
 
@@ -102,6 +104,7 @@ export class TypeDocVitePressSync {
    */
   async sync(): Promise<SyncResult> {
     this.logger.info('🚀 TypeDoc VitePress Sync starting...')
+    this.emit('start', this.config)
     this.events.start?.(this.config)
 
     try {
@@ -133,6 +136,8 @@ export class TypeDocVitePressSync {
           sourcePackagePath,
           targetPackagePath
         )
+        
+        // Note: File-level events are emitted within the processor
 
         allProcessedFiles.push(...packageFiles.filter(f => f.success).map(f => f.toString()))
       }
@@ -142,9 +147,14 @@ export class TypeDocVitePressSync {
       const targetReadme = path.join(this.config.targetDir, 'README.md')
 
       if (fs.existsSync(sourceReadme)) {
+        this.emit('fileStart', sourceReadme)
         const result = await this.processor.processFile(sourceReadme, targetReadme)
         if (result.success) {
           allProcessedFiles.push(targetReadme)
+          this.emit('fileComplete', sourceReadme, {
+            success: result.success,
+            cached: result.cached || false
+          })
         }
       }
 
@@ -172,6 +182,7 @@ export class TypeDocVitePressSync {
       // Log summary
       this.logger.info('\n' + this.metrics.createConsoleSummary(result))
       
+      this.emit('complete', result)
       this.events.complete?.(result)
       return result
 
@@ -219,6 +230,32 @@ export class TypeDocVitePressSync {
   }
 
   /**
+   * Add event listener
+   */
+  on<K extends keyof SyncEvents>(event: K, listener: SyncEvents[K]): void {
+    if (!this.eventListeners[event]) {
+      this.eventListeners[event] = []
+    }
+    this.eventListeners[event]!.push(listener)
+  }
+
+  /**
+   * Emit event to all listeners
+   */
+  private emit<K extends keyof SyncEvents>(event: K, ...args: Parameters<SyncEvents[K]>): void {
+    const listeners = this.eventListeners[event]
+    if (listeners) {
+      for (const listener of listeners) {
+        try {
+          (listener as (...args: any[]) => void)(...args)
+        } catch (error) {
+          this.logger.error(`Error in ${event} event listener:`, error)
+        }
+      }
+    }
+  }
+
+  /**
    * Get cache statistics
    */
   getCacheStats() {
@@ -239,12 +276,6 @@ export class TypeDocVitePressSync {
     return this.errorHandler.getSummary()
   }
 
-  /**
-   * Register event listeners
-   */
-  on<K extends keyof SyncEvents>(event: K, listener: SyncEvents[K]): void {
-    this.events[event] = listener
-  }
 
   /**
    * Configure auto-optimization based on system resources
@@ -269,7 +300,7 @@ export class TypeDocVitePressSync {
     }
 
     // Check package mappings
-    for (const [packageName, targetName] of Object.entries(this.config.packageMapping)) {
+    for (const [packageName] of Object.entries(this.config.packageMapping)) {
       const packagePath = path.join(this.config.sourceDir, 'packages', packageName)
       if (!fs.existsSync(packagePath)) {
         issues.push({
@@ -287,7 +318,7 @@ export class TypeDocVitePressSync {
           fs.mkdirSync(cacheDir, { recursive: true })
           fs.rmSync(cacheDir, { recursive: true })
         }
-      } catch (error) {
+      } catch {
         issues.push({
           type: 'cache-permission',
           message: `Cannot create cache directory: ${this.config.cache.dir}`
