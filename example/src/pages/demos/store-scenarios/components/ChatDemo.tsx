@@ -37,7 +37,7 @@ function ChatComponent() {
   const [currentUser, setCurrentUser] = useState('김개발');
   const [messageType, setMessageType] = useState<ChatMessage['type']>('text');
   const [isTyping, setIsTyping] = useState(false);
-  const messagesEndRef = ChatRefsContext.useRef('messagesEnd');
+  const messagesEndRef = ChatRefsContext.useRefHandler('messagesEnd');
   const logger = useActionLoggerWithToast();
 
   // 필요한 액션 핸들러들을 등록
