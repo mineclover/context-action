@@ -1,6 +1,6 @@
 {
   "name": "@context-action/typedoc-vitepress-sync",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Enhanced TypeDoc to VitePress documentation sync with smart caching, parallel processing, and quality validation",
   "type": "module",
   "main": "dist/index.js",

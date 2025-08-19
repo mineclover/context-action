@@ -1,3 +1,47 @@
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+## [0.2.3](https://github.com/mineclover/context-action/compare/v0.2.1...v0.2.3) (2025-08-19)
+
+
+### Bug Fixes
+
+* **build:** resolve llms-generator build issues and dependencies ([44ca184](https://github.com/mineclover/context-action/commit/44ca1847bd9942c7fe13b02d961cc6f8eb0e8509))
+* **ci:** standardize tsdown version across all packages ([714ab1d](https://github.com/mineclover/context-action/commit/714ab1d7f8005096f7abe2f09d8067f500168a3a))
+* **llms-generator:** resolve linting issues by adding eslint config and temporarily disabling problematic checks ([1d6cead](https://github.com/mineclover/context-action/commit/1d6cead48821f6cc26a8e1cd119b4924dab978c4))
+* **llms-generator:** resolve major TypeScript type compatibility issues ([2fb88dd](https://github.com/mineclover/context-action/commit/2fb88ddb5013c51b66c592a25a3ffe934970d12a))
+* **llms-generator:** update legacy script paths after reorganization ([774e9ef](https://github.com/mineclover/context-action/commit/774e9ef15c55502911ddd4812ef3c9479d55746b))
+* resolve lint errors and improve ActionRegister test reliability ([c0c0904](https://github.com/mineclover/context-action/commit/c0c09041e0c8398c681e01f6eb9a4c1772013c26))
+* sync-docs 명령 경로 해결 로직 개선 ([5e7aab3](https://github.com/mineclover/context-action/commit/5e7aab3f4d438683e5582948e2bf84c37f0dfa4c))
+* **ts:** resolve TypeScript compilation errors across packages ([6f583d1](https://github.com/mineclover/context-action/commit/6f583d1b4d4c2bc9f077c68b3db432d0399fb846))
+* **typedoc-vitepress-sync:** add missing ESLint config and TypeScript setup ([66b7f6a](https://github.com/mineclover/context-action/commit/66b7f6a2329635c1a87a0f441fe0aac09659d06d))
+
+
+### Features
+
+* add learning time info to getting started guide ([bbce03c](https://github.com/mineclover/context-action/commit/bbce03cbf2ed4862f454cfafae05913a228ede67))
+* complete bidirectional document synchronization with YAML frontmatter ([21e080d](https://github.com/mineclover/context-action/commit/21e080dd20808b3116015a1077cfbccf6e9b9913))
+* completely remove orphaned test files and legacy code ([00f0806](https://github.com/mineclover/context-action/commit/00f080652dcb8298c0615d50e5b2e364e5474b73))
+* enhance llms-generator testing and remove legacy scripts ([ed33d84](https://github.com/mineclover/context-action/commit/ed33d84280b18d6774f8303dc112235d9ba75ae6))
+* implement comprehensive clean LLMS generation with multi-pattern support ([f84d81d](https://github.com/mineclover/context-action/commit/f84d81dfef856515e24f38d820ff7e63345093f4))
+* implement comprehensive YAML frontmatter management system with Husky integration ([95acbaa](https://github.com/mineclover/context-action/commit/95acbaa409e900ecd5f5b8ac12c42a35b859d672))
+* implement unified init command for llms-generator project initialization ([de1a962](https://github.com/mineclover/context-action/commit/de1a962f4342c8926f055dad0948937a0b3144e5))
+* implement YAML frontmatter system and fix sync-docs workflow ([c244c99](https://github.com/mineclover/context-action/commit/c244c99a097b508fd7e4a3e1fd8bace8698a3172))
+* **llms-generator:** 테스트 완성도 및 타입 안정성 향상 ([bd09e41](https://github.com/mineclover/context-action/commit/bd09e41a1b483483daa43929a046a51aaf74aee8))
+* **llms-generator:** 포괄적 시스템 개선 및 아키텍처 고도화 ([2d4070f](https://github.com/mineclover/context-action/commit/2d4070f43c95e5cf4304ed01f2db9629168282d4))
+* **llms-generator:** add CategoryMinimumGenerator library with enhanced features ([0a8e2c3](https://github.com/mineclover/context-action/commit/0a8e2c35abd358eb2470cf0219fcf8ce396d4258))
+* **llms-generator:** Git 커밋 트리거 기반 양방향 문서 동기화 시스템 구현 ([0a5f270](https://github.com/mineclover/context-action/commit/0a5f2706dd0c124d48bbefb5cfe5ef2550abbc25))
+* **llms-generator:** implement YAML frontmatter summary generation with clean architecture ([5f9e38e](https://github.com/mineclover/context-action/commit/5f9e38eca2b0e8c78a3c66130f22244bce0e768a))
+* massive cleanup - remove 95% of unused code while preserving functionality ([f151a46](https://github.com/mineclover/context-action/commit/f151a46641ae9cc64ea568efd9d74869fc1f850d))
+* optimize CLI from 2000 lines to 200 lines with core functionality ([dd0f1c8](https://github.com/mineclover/context-action/commit/dd0f1c88236628c8010e2df1aa0ed65981192b45))
+* optimize LLMS generator by removing legacy code and improving architecture ([08dc3cd](https://github.com/mineclover/context-action/commit/08dc3cd057112ec42167183e1d9b949e54f7bb3a))
+
+
+
+
+
 # Changelog
 
 All notable changes to the @context-action/llms-generator package will be documented in this file.
