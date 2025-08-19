@@ -275,10 +275,11 @@ export class WorkNextCommand {
         case 'status':
           return this.getStatusPriority(a.status) - this.getStatusPriority(b.status);
         
-        case 'modified':
+        case 'modified': {
           const aTime = a.metadata.lastModified || '0';
           const bTime = b.metadata.lastModified || '0';
           return aTime.localeCompare(bTime);
+        }
         
         default:
           return 0;
@@ -353,7 +354,7 @@ export class WorkNextCommand {
     }
   }
 
-  private displayWorkQueue(items: WorkItem[], options: WorkNextOptions): void {
+  private displayWorkQueue(items: WorkItem[], _options: WorkNextOptions): void {
     if (items.length === 0) return;
 
     console.log(`📋 Work Queue (Next ${items.length} items)\n`);
