@@ -7,6 +7,7 @@
     "preserveSymlinks": true
   },
   "include": ["src/**/*"],
+  "exclude": ["src/patterns/**/*"],
   "references": [
     { "path": "../packages/core" },
     { "path": "../packages/react" }

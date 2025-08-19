@@ -389,6 +389,585 @@ body {
   .toast-progress-bar:hover {
     animation-play-state: paused;
   }
+
+  /* ==== Store Scenarios Demo Styles ==== */
+  
+  /* Demo Container */
+  .demo-card {
+    @apply bg-white rounded-lg border border-gray-200 p-6 shadow-sm;
+  }
+
+  .demo-card h3 {
+    @apply text-lg font-bold text-gray-900 mb-3 pb-2 border-b border-gray-100;
+  }
+
+  .demo-description {
+    @apply text-sm text-gray-600 mb-4 leading-relaxed;
+  }
+
+  /* Todo Demo Styles */
+  .todo-stats {
+    @apply grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100;
+  }
+
+  .stat-card {
+    @apply text-center p-3 bg-white/80 backdrop-blur-sm rounded-lg border border-white/50 shadow-sm transition-all hover:shadow-md;
+  }
+
+  .stat-card.urgent {
+    @apply bg-red-50 border-red-200 text-red-900;
+  }
+
+  .stat-number {
+    @apply text-2xl font-bold text-gray-900 block leading-none;
+  }
+
+  .stat-card.urgent .stat-number {
+    @apply text-red-700;
+  }
+
+  .stat-label {
+    @apply text-xs text-gray-600 mt-1 font-medium uppercase tracking-wide;
+  }
+
+  .stat-card.urgent .stat-label {
+    @apply text-red-600;
+  }
+
+  /* Todo Input Section */
+  .todo-input-section {
+    @apply mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200;
+  }
+
+  .todo-input-group {
+    @apply flex flex-col sm:flex-row gap-3;
+  }
+
+  .todo-input {
+    @apply flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white;
+  }
+
+  .priority-select {
+    @apply px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-sm min-w-[120px];
+  }
+
+  .add-todo-btn {
+    @apply px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed font-medium;
+  }
+
+  /* Todo Controls */
+  .todo-controls {
+    @apply flex flex-col sm:flex-row gap-4 mb-6 p-4 bg-white border border-gray-200 rounded-lg;
+  }
+
+  .filter-controls {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .control-label {
+    @apply text-sm font-medium text-gray-700 mr-2;
+  }
+
+  .filter-btn {
+    @apply px-3 py-1.5 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors;
+  }
+
+  .filter-btn.active {
+    @apply bg-blue-600 text-white border-blue-600;
+  }
+
+  .sort-controls {
+    @apply flex items-center gap-2;
+  }
+
+  .sort-select {
+    @apply px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white;
+  }
+
+  /* Todo List */
+  .todo-list {
+    @apply space-y-3 mb-6;
+  }
+
+  .todo-item {
+    @apply flex items-start gap-3 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-all;
+  }
+
+  .todo-item.completed {
+    @apply bg-gray-50 border-gray-300;
+  }
+
+  .todo-checkbox-section {
+    @apply flex items-center pt-1;
+  }
+
+  .todo-checkbox {
+    @apply w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer;
+  }
+
+  .todo-content {
+    @apply flex-1 min-w-0;
+  }
+
+  .todo-title-section {
+    @apply flex items-center justify-between mb-2;
+  }
+
+  .todo-title {
+    @apply text-sm font-medium text-gray-900 flex-1;
+  }
+
+  .todo-title.completed {
+    @apply line-through text-gray-500;
+  }
+
+  .todo-priority {
+    @apply ml-3;
+  }
+
+  .priority-mini-select {
+    @apply text-xs px-2 py-1 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 bg-white;
+  }
+
+  .todo-meta {
+    @apply flex flex-wrap gap-3 text-xs text-gray-600;
+  }
+
+  .todo-date {
+    @apply flex items-center gap-1;
+  }
+
+  .todo-due {
+    @apply flex items-center gap-1 text-orange-600;
+  }
+
+  .todo-due.overdue {
+    @apply text-red-600 font-medium;
+  }
+
+  .todo-priority-badge {
+    @apply px-2 py-1 rounded text-white text-xs font-medium;
+  }
+
+  .todo-actions {
+    @apply flex items-center gap-1;
+  }
+
+  .delete-todo-btn {
+    @apply p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors;
+  }
+
+  .btn-small {
+    @apply px-2 py-1 text-xs;
+  }
+
+  /* Todo Empty State */
+  .todo-empty {
+    @apply text-center py-8 px-4 text-gray-500;
+  }
+
+  .empty-icon {
+    @apply text-4xl mb-3;
+  }
+
+  .empty-message {
+    @apply text-base font-medium mb-2;
+  }
+
+  .empty-hint {
+    @apply text-sm text-gray-400;
+  }
+
+  /* Todo Progress */
+  .todo-progress {
+    @apply mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100;
+  }
+
+  .progress-info {
+    @apply flex justify-between items-center mb-2 text-sm text-green-800;
+  }
+
+  .progress-bar {
+    @apply w-full bg-green-200 rounded-full h-2;
+  }
+
+  .progress-fill {
+    @apply bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full transition-all duration-500;
+  }
+
+  /* Shopping Cart Demo Styles */
+  .cart-summary {
+    @apply mb-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-100;
+  }
+
+  .cart-stats {
+    @apply grid grid-cols-3 gap-4 text-center;
+  }
+
+  .cart-stat {
+    @apply p-3 bg-white/80 rounded-lg;
+  }
+
+  .cart-stat-number {
+    @apply text-2xl font-bold text-purple-700 block;
+  }
+
+  .cart-stat-label {
+    @apply text-xs text-purple-600 mt-1 font-medium uppercase;
+  }
+
+  .product-grid {
+    @apply grid md:grid-cols-2 gap-4 mb-6;
+  }
+
+  .product-card {
+    @apply p-4 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow bg-white;
+  }
+
+  .product-name {
+    @apply font-semibold text-gray-900 mb-1;
+  }
+
+  .product-price {
+    @apply text-lg text-purple-600 font-bold mb-3;
+  }
+
+  .product-actions {
+    @apply flex items-center justify-between;
+  }
+
+  .quantity-controls {
+    @apply flex items-center gap-2;
+  }
+
+  .quantity-btn {
+    @apply w-8 h-8 flex items-center justify-center border border-gray-300 rounded hover:bg-gray-50 text-sm font-bold;
+  }
+
+  .quantity-display {
+    @apply min-w-[40px] text-center text-sm font-medium;
+  }
+
+  .cart-items {
+    @apply space-y-3 mb-4;
+  }
+
+  .cart-item {
+    @apply flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200;
+  }
+
+  .cart-item-info {
+    @apply flex-1;
+  }
+
+  .cart-item-name {
+    @apply font-medium text-gray-900;
+  }
+
+  .cart-item-details {
+    @apply text-sm text-gray-600;
+  }
+
+  .cart-total {
+    @apply mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg;
+  }
+
+  .total-row {
+    @apply flex justify-between items-center py-1;
+  }
+
+  .total-label {
+    @apply font-medium text-gray-700;
+  }
+
+  .total-value {
+    @apply font-bold text-purple-700;
+  }
+
+  .final-total {
+    @apply text-xl font-bold text-purple-900 pt-2 border-t border-purple-200;
+  }
+
+  /* Chat Demo Styles */
+  .chat-container {
+    @apply border border-gray-200 rounded-lg overflow-hidden bg-white;
+  }
+
+  /* Enhanced Chat Header */
+  .chat-header {
+    @apply p-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-sm;
+  }
+
+  .chat-info {
+    @apply mb-3;
+  }
+
+  .chat-title {
+    @apply text-lg font-bold mb-2;
+  }
+
+  .chat-users {
+    @apply text-xs text-green-100 leading-relaxed;
+  }
+
+  .chat-user {
+    @apply inline-flex items-center gap-1;
+  }
+
+  .chat-stats {
+    @apply flex items-center justify-between text-sm;
+  }
+
+  .message-count {
+    @apply bg-green-600/30 px-2 py-1 rounded-full text-green-100 text-xs font-medium;
+  }
+
+  /* Enhanced User Selector */
+  .user-selector {
+    @apply flex flex-wrap items-center gap-2 p-4 bg-gray-50 border-b border-gray-200;
+  }
+
+  .selector-label {
+    @apply text-sm font-medium text-gray-700 mr-2;
+  }
+
+  .user-btn {
+    @apply px-3 py-2 text-sm border-2 border-gray-300 rounded-lg hover:bg-white transition-all flex items-center gap-2 font-medium;
+  }
+
+  .user-btn.active {
+    @apply bg-white shadow-sm border-opacity-80 font-semibold;
+  }
+
+  /* Enhanced Messages */
+  .chat-messages {
+    @apply h-80 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-gray-50 to-white;
+  }
+
+  .message {
+    @apply flex items-start gap-3 max-w-[85%];
+  }
+
+  .message.own {
+    @apply ml-auto flex-row-reverse;
+  }
+
+  .message.other {
+    @apply mr-auto;
+  }
+
+  .message-avatar {
+    @apply w-8 h-8 flex-shrink-0 bg-white rounded-full flex items-center justify-center text-sm shadow-sm border border-gray-200;
+  }
+
+  .message.own .message-avatar {
+    @apply bg-blue-500 text-white border-blue-500;
+  }
+
+  .message-content {
+    @apply flex-1 min-w-0;
+  }
+
+  .message.own .message-content {
+    @apply text-right;
+  }
+
+  .message-header {
+    @apply flex items-center gap-2 mb-1;
+  }
+
+  .message.own .message-header {
+    @apply justify-end;
+  }
+
+  .message-sender {
+    @apply text-xs font-semibold;
+  }
+
+  .message-time {
+    @apply text-xs text-gray-500 font-mono;
+  }
+
+  .message-type-badge {
+    @apply text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full;
+  }
+
+  .message-text {
+    @apply p-3 rounded-xl text-sm leading-relaxed shadow-sm;
+  }
+
+  .message.own .message-text {
+    @apply bg-blue-500 text-white rounded-br-md;
+  }
+
+  .message.other .message-text {
+    @apply bg-white border border-gray-200 text-gray-900 rounded-bl-md;
+  }
+
+  .message-delete {
+    @apply opacity-0 group-hover:opacity-100 p-1 text-red-500 hover:bg-red-50 rounded transition-all text-xs;
+  }
+
+  .message:hover .message-delete {
+    @apply opacity-100;
+  }
+
+  /* Chat Empty State */
+  .chat-empty {
+    @apply text-center py-12 px-4 text-gray-500;
+  }
+
+  .chat-empty .empty-icon {
+    @apply text-5xl mb-4;
+  }
+
+  .chat-empty .empty-message {
+    @apply text-lg font-medium mb-2 text-gray-700;
+  }
+
+  .chat-empty .empty-hint {
+    @apply text-sm text-gray-500;
+  }
+
+  /* Typing Indicator */
+  .typing-indicator {
+    @apply flex items-start gap-3 opacity-75;
+  }
+
+  .typing-avatar {
+    @apply w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-sm;
+  }
+
+  .typing-content {
+    @apply flex flex-col gap-1;
+  }
+
+  .typing-dots {
+    @apply flex gap-1 p-3 bg-gray-300 rounded-xl rounded-bl-md;
+  }
+
+  .typing-dots span {
+    @apply w-2 h-2 bg-gray-600 rounded-full animate-pulse;
+  }
+
+  .typing-dots span:nth-child(1) {
+    animation-delay: 0s;
+  }
+
+  .typing-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .typing-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  .typing-text {
+    @apply text-xs text-gray-500 italic;
+  }
+
+  /* Quick Messages */
+  .quick-messages {
+    @apply p-4 bg-gray-50 border-t border-gray-200;
+  }
+
+  .quick-label {
+    @apply text-sm font-medium text-gray-700 block mb-3;
+  }
+
+  .quick-buttons {
+    @apply flex flex-wrap gap-2;
+  }
+
+  .quick-msg-btn {
+    @apply px-3 py-1.5 text-xs bg-white border border-gray-300 rounded-full hover:bg-gray-50 hover:border-gray-400 transition-colors text-gray-700;
+  }
+
+  /* Enhanced Input Section */
+  .chat-input-section {
+    @apply p-4 bg-white border-t border-gray-200;
+  }
+
+  .message-type-selector {
+    @apply mb-3;
+  }
+
+  .type-select {
+    @apply text-xs px-3 py-1.5 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500;
+  }
+
+  .chat-input-group {
+    @apply flex gap-3 items-end;
+  }
+
+  .chat-input {
+    @apply flex-1 px-4 py-3 border border-gray-300 rounded-xl resize-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors bg-gray-50 focus:bg-white;
+  }
+
+  .send-btn {
+    @apply px-6 py-3 bg-green-500 text-white rounded-xl hover:bg-green-600 focus:ring-2 focus:ring-green-500 transition-all disabled:bg-gray-400 disabled:cursor-not-allowed font-medium shadow-sm;
+  }
+
+  /* User Profile Demo Styles */
+  .profile-container {
+    @apply space-y-6;
+  }
+
+  .profile-display {
+    @apply p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg border border-orange-100;
+  }
+
+  .profile-avatar {
+    @apply w-16 h-16 bg-gradient-to-r from-orange-400 to-red-400 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-4;
+  }
+
+  .profile-info {
+    @apply space-y-2;
+  }
+
+  .profile-name {
+    @apply text-xl font-bold text-gray-900;
+  }
+
+  .profile-details {
+    @apply grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600;
+  }
+
+  .profile-detail {
+    @apply flex items-center gap-2;
+  }
+
+  .profile-form {
+    @apply space-y-4 p-4 bg-white border border-gray-200 rounded-lg;
+  }
+
+  .form-field {
+    @apply space-y-1;
+  }
+
+  .field-label {
+    @apply text-sm font-medium text-gray-700;
+  }
+
+  .field-input {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors;
+  }
+
+  .field-error {
+    @apply text-xs text-red-600 mt-1;
+  }
+
+  .form-actions {
+    @apply flex gap-3 pt-4 border-t border-gray-100;
+  }
+
+  .save-btn {
+    @apply px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 focus:ring-2 focus:ring-orange-500 transition-colors disabled:bg-gray-400;
+  }
+
+  .cancel-btn {
+    @apply px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 transition-colors;
+  }
 }
 
 /* Toast progress animation */

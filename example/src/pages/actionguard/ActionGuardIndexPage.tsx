@@ -1,209 +1,149 @@
 /**
- * @fileoverview Action Guard Index Page
- *
- * Action Guard 섹션의 메인 인덱스 페이지입니다.
- * 각 데모 페이지로의 네비게이션을 제공합니다.
+ * @fileoverview ActionGuard Index Page - ActionGuard 관련 데모들의 인덱스 페이지
  */
 
 import { Link } from 'react-router-dom';
-import { DemoCard } from '../../components/ui';
 
-const demos = [
+const actionGuardDemos = [
   {
     path: '/actionguard/search',
-    title: 'Search Demo',
-    description:
-      'Real-time search with debouncing (500ms delay) to optimize API calls and reduce server load',
-    icon: '🔍',
-    technique: 'Debouncing',
-    useCase: 'Search inputs, auto-complete, form validation',
+    title: '🔍 Advanced Search Demo',
+    description: '고급 검색 기능과 abort 가능한 검색 시스템',
+    tags: ['Search', 'Abort', 'Performance'],
   },
   {
     path: '/actionguard/scroll',
-    title: 'Scroll Demo',
-    description:
-      'Smooth scroll event handling with throttling (100ms interval) for performance optimization',
-    icon: '📜',
-    technique: 'Throttling',
-    useCase: 'Scroll events, window resize, infinite scroll',
+    title: '📜 Advanced Scroll Demo',
+    description: '무한 스크롤과 가상화된 스크롤링 시스템',
+    tags: ['Scroll', 'Virtualization', 'Performance'],
   },
   {
     path: '/actionguard/api-blocking',
-    title: 'API Blocking Demo',
-    description:
-      'Prevent duplicate API calls with 2-second blocking window and rate limiting',
-    icon: '🚫',
-    technique: 'Blocking',
-    useCase: 'API calls, form submission, button clicks',
+    title: '🚫 API Blocking Demo',
+    description: 'API 요청 차단 및 중복 요청 방지 시스템',
+    tags: ['API', 'Blocking', 'Optimization'],
   },
   {
     path: '/actionguard/mouse-events',
-    title: 'Mouse Events Demo',
-    description:
-      'Optimize mouse move tracking with throttling (50ms) and movement pattern analysis',
-    icon: '🖱️',
-    technique: 'Throttling',
-    useCase: 'Mouse tracking, drag & drop, drawing apps',
-  },
-  {
-    path: '/actionguard/test',
-    title: 'Dispatch Options Test',
-    description:
-      'Comprehensive testing of all dispatch options: throttle, debounce, priority, and performance metrics',
-    icon: '🧪',
-    technique: 'All Techniques',
-    useCase: 'Testing, benchmarking, performance analysis',
+    title: '🖱️ Mouse Events Demo',
+    description: '고급 마우스 이벤트 처리 및 최적화',
+    tags: ['Mouse', 'Events', 'Interaction'],
   },
   {
     path: '/actionguard/priority-performance',
-    title: 'Priority Performance Test',
-    description:
-      'Multi-instance priority test with isolated stores for stress testing and performance comparison',
-    icon: '⚡',
-    technique: 'Priority System',
-    useCase: 'Performance testing, stress testing, scalability',
+    title: '⚡ Priority Performance Demo',
+    description: '우선순위 기반 성능 테스트 시스템',
+    tags: ['Priority', 'Performance', 'Testing'],
+  },
+  {
+    path: '/actionguard/priority-performance-advanced',
+    title: '🚀 Priority Performance Advanced',
+    description: '다중 인스턴스 우선순위 성능 테스트 (고급)',
+    tags: ['Priority', 'Multi-Instance', 'Advanced'],
   },
   {
     path: '/actionguard/throttle-comparison',
-    title: 'Throttle Comparison',
-    description:
-      'Side-by-side comparison of manual vs Context-Action throttling with detailed metrics',
-    icon: '📊',
-    technique: 'Throttling Analysis',
-    useCase: 'Performance comparison, optimization validation',
+    title: '⚖️ Throttle Comparison Demo',
+    description: '다양한 쓰로틀링 방법 비교 분석',
+    tags: ['Throttle', 'Performance', 'Comparison'],
   },
 ];
 
-export function ActionGuardIndexPage() {
+/**
+ * ActionGuard 인덱스 페이지
+ */
+export default function ActionGuardIndexPage() {
   return (
-    <div className="page-container">
+    <div className="space-y-8">
+      {/* 헤더 */}
       <header className="page-header">
-        <h1>🛡️ Action Guard System</h1>
+        <h1>🛡️ ActionGuard Demos</h1>
         <p className="page-description">
-          Learn how to implement debouncing, throttling, and action blocking
-          patterns to optimize user experience and prevent excessive action
-          execution.
+          Context-Action 프레임워크의 고급 기능들을 다룬 ActionGuard 데모 모음입니다.
+          성능 최적화, 이벤트 처리, API 관리 등 다양한 실무 시나리오를 다룹니다.
         </p>
+        <div className="flex items-center gap-4 mt-4">
+          <Link
+            to="/"
+            className="text-blue-600 hover:text-blue-800 underline text-sm"
+          >
+            🏠 홈으로 돌아가기
+          </Link>
+          <div className="text-sm text-gray-500">
+            총 <strong>{actionGuardDemos.length}개</strong> 데모
+          </div>
+        </div>
       </header>
 
-      <div className="space-y-6">
-        {/* 데모 링크 그리드 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {demos.map((demo) => (
-            <Link
-              key={demo.path}
-              to={demo.path}
-              className="block hover:no-underline"
-            >
-              <DemoCard className="h-full hover:shadow-lg transition-shadow cursor-pointer">
-                <div className="flex items-start gap-4">
-                  <span className="text-3xl">{demo.icon}</span>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {demo.title}
-                      </h3>
-                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
-                        {demo.technique}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-3">
-                      {demo.description}
-                    </p>
-                    <div className="text-xs text-gray-500">
-                      <strong>Use Cases:</strong> {demo.useCase}
-                    </div>
-                  </div>
-                </div>
-              </DemoCard>
-            </Link>
-          ))}
-        </div>
-
-        {/* 개념 설명 */}
-        <DemoCard variant="info">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Action Guard Patterns
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-2">Debouncing</h4>
-              <p>
-                Delays execution until after a period of inactivity. Perfect for
-                search inputs and form validation.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-2">Throttling</h4>
-              <p>
-                Limits execution to a fixed interval. Ideal for scroll, resize,
-                and mouse move events.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-2">Blocking</h4>
-              <p>
-                Prevents duplicate execution for a period. Essential for API
-                calls and form submissions.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-2">
-                Rate Limiting
-              </h4>
-              <p>
-                Restricts the number of executions per time window. Useful for
-                API quota management.
-              </p>
-            </div>
-          </div>
-        </DemoCard>
-
-        {/* Architecture 설명 */}
-        <DemoCard variant="info">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Architecture Pattern
-          </h3>
-          <div className="space-y-3 text-sm text-gray-700">
-            <p>
-              Each demo page follows the{' '}
-              <strong>Context → Data/Action → Hook → View</strong> architecture:
+      {/* 데모 목록 */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {actionGuardDemos.map((demo, index) => (
+          <Link
+            key={demo.path}
+            to={demo.path}
+            className="group block bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-200 p-6"
+          >
+            {/* 제목 */}
+            <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 mb-3">
+              {demo.title}
+            </h3>
+            
+            {/* 설명 */}
+            <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+              {demo.description}
             </p>
-            <ul className="space-y-2 ml-4">
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600">→</span>
-                <div>
-                  <strong>Context Layer:</strong> Defines the abstract domain
-                  and contracts
-                </div>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600">→</span>
-                <div>
-                  <strong>Data/Action Layer:</strong> Manages state (Store) and
-                  business logic (Actions)
-                </div>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600">→</span>
-                <div>
-                  <strong>Hook Layer:</strong> Bridges Data/Action with View for
-                  bidirectional data flow
-                </div>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-blue-600">→</span>
-                <div>
-                  <strong>View Layer:</strong> Renders UI components using data
-                  and actions from hooks
-                </div>
-              </li>
-            </ul>
+            
+            {/* 태그들 */}
+            <div className="flex flex-wrap gap-2">
+              {demo.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-md border border-blue-200"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+            
+            {/* 화살표 아이콘 */}
+            <div className="mt-4 flex items-center text-blue-600 group-hover:text-blue-700">
+              <span className="text-sm font-medium">데모 보기</span>
+              <svg
+                className="ml-2 w-4 h-4 transform group-hover:translate-x-1 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      {/* 추가 정보 */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <h3 className="font-semibold text-blue-900 mb-3">💡 ActionGuard 시스템</h3>
+        <div className="text-sm text-blue-800 space-y-2">
+          <div>
+            <strong>성능 최적화:</strong> 고급 성능 측정 및 최적화 기법들을 실제 시나리오에서 테스트
           </div>
-        </DemoCard>
+          <div>
+            <strong>이벤트 관리:</strong> 복잡한 사용자 상호작용과 이벤트 처리 시스템
+          </div>
+          <div>
+            <strong>API 최적화:</strong> 중복 요청 방지, 캐싱, 에러 처리 등 API 관리 시스템
+          </div>
+          <div>
+            <strong>실무 적용:</strong> 실제 프로덕션 환경에서 활용 가능한 패턴들
+          </div>
+        </div>
       </div>
     </div>
   );
 }
-
-export default ActionGuardIndexPage;

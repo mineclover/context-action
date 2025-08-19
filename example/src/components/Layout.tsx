@@ -10,6 +10,15 @@ import {
   sidebarVariants,
 } from './ui/variants';
 
+interface NavItem {
+  path: string;
+  label: string;
+  category: 'main' | 'core' | 'store' | 'react' | 'demos' | 'examples' | 'actionguard' | 'refs' | 'utilities';
+  isIndex?: boolean;
+  disabled?: boolean;
+  description?: string;
+}
+
 interface LayoutProps {
   children: React.ReactNode;
   variant?: LayoutVariants['variant'];
@@ -25,126 +34,48 @@ function Layout({
 }: LayoutProps) {
   const location = useLocation();
 
-  const navItems = [
-    { path: '/', label: 'Home', category: 'main' as const },
-    { path: '/core/basics', label: 'Core Basics', category: 'core' as const },
-    {
-      path: '/core/advanced',
-      label: 'Core Advanced',
-      category: 'core' as const,
-    },
-    {
-      path: '/core/features',
-      label: '🚀 Core Features',
-      category: 'core' as const,
-    },
-    {
-      path: '/store/basics',
-      label: 'Store Basics',
-      category: 'store' as const,
-    },
-    {
-      path: '/store/full-demo',
-      label: 'Store Full Demo',
-      category: 'store' as const,
-    },
-    {
-      path: '/store/immutability-test',
-      label: '🔒 Immutability Test',
-      category: 'store' as const,
-    },
-    {
-      path: '/react/provider',
-      label: '🔧 Unified Provider',
-      category: 'react' as const,
-    },
-    {
-      path: '/react/context',
-      label: '🏗️ React Context',
-      category: 'react' as const,
-    },
-    { path: '/react/hooks', label: 'React Hooks', category: 'react' as const },
-    {
-      path: '/react/useActionWithResult',
-      label: '✨ useActionWithResult',
-      category: 'react' as const,
-    },
-    {
-      path: '/unified-pattern/demo',
-      label: '🚀 Unified Pattern',
-      category: 'react' as const,
-    },
-    {
-      path: '/logger/demo',
-      label: 'Logger System',
-      category: 'logger' as const,
-    },
-    {
-      path: '/actionguard',
-      label: '🛡️ Action Guard System',
-      category: 'actionguard' as const,
-      isIndex: true,
-    },
-    {
-      path: '/actionguard/search',
-      label: '🔍 Search Demo',
-      category: 'actionguard' as const,
-    },
-    {
-      path: '/actionguard/scroll',
-      label: '📜 Scroll Demo',
-      category: 'actionguard' as const,
-    },
-    {
-      path: '/actionguard/api-blocking',
-      label: '🚫 API Blocking Demo',
-      category: 'actionguard' as const,
-    },
-    {
-      path: '/actionguard/mouse-events',
-      label: '🖱️ Mouse Events Demo',
-      category: 'actionguard' as const,
-    },
-    {
-      path: '/actionguard/mouse-events/context-store',
-      label: '🚀 Enhanced Context Store',
-      category: 'actionguard' as const,
-    },
-    {
-      path: '/actionguard/test',
-      label: '🧪 Dispatch Options Test',
-      category: 'actionguard' as const,
-    },
-    {
-      path: '/actionguard/priority-performance',
-      label: '⚡ Priority Performance',
-      category: 'actionguard' as const,
-    },
-    {
-      path: '/actionguard/throttle-comparison',
-      label: '⚖️ Throttle Comparison',
-      category: 'actionguard' as const,
-    },
-    {
-      path: '/examples/toast-config',
-      label: '🍞 Toast Config Example',
-      category: 'examples' as const,
-    },
-    {
-      path: '/examples/concurrent-actions',
-      label: '🔄 Concurrent Actions Test',
-      category: 'examples' as const,
-    },
-    {
-      path: '/examples/enhanced-search',
-      label: '🔍 Enhanced Abortable Search',
-      category: 'examples' as const,
-    },
-    {
-      path: '/examples/element-management',
-      label: '🎯 DOM Element Management',
-      category: 'examples' as const,
-    },
+  const navItems: NavItem[] = [
+    // === Core Concepts (기초 개념) ===
+    { path: '/', label: 'Home', category: 'main' },
+    { path: '/core/basics', label: '1. Core Basics', category: 'core' },
+    { path: '/core/advanced', label: '2. Core Advanced', category: 'core' },
+    { path: '/core/features', label: '3. 🚀 Core Features', category: 'core' },
+    
+    // === Store System (상태 관리) ===
+    { path: '/store/basics', label: '4. Store Basics', category: 'store' },
+    { path: '/store/immutability-test', label: '5. 🔒 Immutability Test', category: 'store' },
+    
+    // === React Integration (리액트 통합) ===
+    { path: '/react/provider', label: '6. 🔧 Unified Provider', category: 'react' },
+    { path: '/react/context', label: '7. 🏗️ React Context', category: 'react' },
+    { path: '/react/hooks', label: '8. React Hooks', category: 'react' },
+    { path: '/react/useActionWithResult', label: '9. ✨ useActionWithResult', category: 'react' },
+    { path: '/unified-pattern/demo', label: '10. 🚀 Unified Pattern', category: 'react' },
+    
+    // === Practical Examples (실용 예제) ===
+    { path: '/demos', label: '🎭 Context-Action Demos', category: 'demos', isIndex: true },
+    { path: '/demos/store-scenarios', label: '🏪 Complete Store Collection (4 Core Demos)', category: 'demos', description: 'Essential store patterns for real-world applications' },
+    { path: '/examples/element-management', label: '🎯 Element Management Demo', category: 'examples' },
+    
+    // === Advanced Demos (고급 데모) ===
+    { path: '/actionguard/search', label: '🔍 Advanced Search Demo', category: 'actionguard' },
+    { path: '/actionguard/scroll', label: '📜 Advanced Scroll Demo', category: 'actionguard' },
+    { path: '/actionguard/mouse-events', label: '🖱️ Mouse Events Demo', category: 'actionguard' },
+    { path: '/actionguard/api-blocking', label: '🚫 API Blocking Demo', category: 'actionguard', description: 'Working demo with unified structure' },
+    { path: '/actionguard/priority-performance', label: '⚡ Priority Performance Demo', category: 'actionguard' },
+    { path: '/actionguard/priority-performance-advanced', label: '🚀 Priority Performance Advanced', category: 'actionguard', description: 'Multi-instance advanced priority testing system' },
+    { path: '/actionguard/throttle-comparison', label: '⚖️ Throttle Comparison Demo', category: 'actionguard' },
+    
+    // === Specialized Features (전문 기능) ===
+    { path: '/refs', label: '🎯 Refs Management', category: 'refs', isIndex: true },
+    { path: '/refs/canvas', label: '🎨 Canvas Ref Demo', category: 'refs' },
+    { path: '/refs/form-builder', label: '📝 Form Builder Ref Demo', category: 'refs' },
+    
+    // === Utilities & Tools (유틸리티) ===
+    { path: '/logger/demo', label: 'Logger System', category: 'utilities' },
+    { path: '/examples/toast-config', label: '🍞 Toast Config Example', category: 'utilities' },
+    { path: '/examples/concurrent-actions', label: '🔄 Concurrent Actions Test', category: 'utilities' },
+    { path: '/examples/enhanced-search', label: '🔍 Enhanced Abortable Search', category: 'utilities' },
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -178,44 +109,224 @@ function Layout({
         <div className="p-4">
           {!collapsed && (
             <h3 className="px-3 mb-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              Navigation
+              Learning Path
             </h3>
           )}
           <nav className="space-y-1">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={cn(
-                  navItemVariants({
-                    variant: isActive(item.path) ? 'active' : 'default',
-                    category: item.category,
-                  }),
-                  item.isIndex &&
-                    'font-semibold border-l-2 border-indigo-500 bg-indigo-50 text-indigo-700'
-                )}
-                title={collapsed ? item.label : undefined}
-              >
-                {collapsed ? (
-                  <span className="text-xs font-bold">
-                    {item.label.charAt(0)}
-                  </span>
-                ) : (
-                  <span
-                    className={cn(
-                      item.isIndex && 'flex items-center gap-1'
-                    )}
-                  >
-                    {item.label}
-                    {item.isIndex && (
-                      <span className="text-xs bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-medium">
-                        Index
-                      </span>
-                    )}
-                  </span>
-                )}
-              </Link>
-            ))}
+            {/* Core Concepts Section */}
+            {!collapsed && (
+              <div className="px-3 py-2">
+                <h4 className="text-xs font-medium text-blue-600 mb-2">📚 Core Concepts</h4>
+              </div>
+            )}
+            {navItems.filter(item => ['main', 'core', 'store', 'react'].includes(item.category)).map((item) => {
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={cn(
+                    navItemVariants({
+                      variant: isActive(item.path) ? 'active' : 'default',
+                      category: item.category,
+                    }),
+                    item.isIndex &&
+                      'font-semibold border-l-2 border-indigo-500 bg-indigo-50 text-indigo-700'
+                  )}
+                  title={collapsed ? item.label : undefined}
+                >
+                  {collapsed ? (
+                    <span className="text-xs font-bold">
+                      {item.label.charAt(0)}
+                    </span>
+                  ) : (
+                    <span
+                      className={cn(
+                        item.isIndex && 'flex items-center gap-1'
+                      )}
+                    >
+                      {item.label}
+                      {item.isIndex && (
+                        <span className="text-xs bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-medium">
+                          Index
+                        </span>
+                      )}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+
+            {/* Practical Examples Section */}
+            {!collapsed && (
+              <div className="px-3 py-2 mt-4 border-t border-gray-200">
+                <h4 className="text-xs font-medium text-green-600 mb-2">🎯 Practical Examples</h4>
+              </div>
+            )}
+            {navItems.filter(item => ['demos', 'examples'].includes(item.category)).map((item) => {
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={cn(
+                    navItemVariants({
+                      variant: isActive(item.path) ? 'active' : 'default',
+                      category: item.category,
+                    }),
+                    item.isIndex &&
+                      'font-semibold border-l-2 border-indigo-500 bg-indigo-50 text-indigo-700'
+                  )}
+                  title={collapsed ? item.label : undefined}
+                >
+                  {collapsed ? (
+                    <span className="text-xs font-bold">
+                      {item.label.charAt(0)}
+                    </span>
+                  ) : (
+                    <span
+                      className={cn(
+                        item.isIndex && 'flex items-center gap-1'
+                      )}
+                    >
+                      {item.label}
+                      {item.isIndex && (
+                        <span className="text-xs bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-medium">
+                          Index
+                        </span>
+                      )}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+
+            {/* Advanced Demos Section */}
+            {!collapsed && (
+              <div className="px-3 py-2 mt-4 border-t border-gray-200">
+                <h4 className="text-xs font-medium text-purple-600 mb-2">🚀 Advanced Demos</h4>
+              </div>
+            )}
+            {navItems.filter(item => ['actionguard'].includes(item.category)).map((item) => {
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={cn(
+                    navItemVariants({
+                      variant: isActive(item.path) ? 'active' : 'default',
+                      category: item.category,
+                    }),
+                    item.isIndex &&
+                      'font-semibold border-l-2 border-indigo-500 bg-indigo-50 text-indigo-700'
+                  )}
+                  title={collapsed ? item.label : undefined}
+                >
+                  {collapsed ? (
+                    <span className="text-xs font-bold">
+                      {item.label.charAt(0)}
+                    </span>
+                  ) : (
+                    <span
+                      className={cn(
+                        item.isIndex && 'flex items-center gap-1'
+                      )}
+                    >
+                      {item.label}
+                      {item.isIndex && (
+                        <span className="text-xs bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-medium">
+                          Index
+                        </span>
+                      )}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+
+            {/* Specialized Features Section */}
+            {!collapsed && (
+              <div className="px-3 py-2 mt-4 border-t border-gray-200">
+                <h4 className="text-xs font-medium text-orange-600 mb-2">🔧 Specialized Features</h4>
+              </div>
+            )}
+            {navItems.filter(item => ['refs'].includes(item.category)).map((item) => {
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={cn(
+                    navItemVariants({
+                      variant: isActive(item.path) ? 'active' : 'default',
+                      category: item.category,
+                    }),
+                    item.isIndex &&
+                      'font-semibold border-l-2 border-indigo-500 bg-indigo-50 text-indigo-700'
+                  )}
+                  title={collapsed ? item.label : undefined}
+                >
+                  {collapsed ? (
+                    <span className="text-xs font-bold">
+                      {item.label.charAt(0)}
+                    </span>
+                  ) : (
+                    <span
+                      className={cn(
+                        item.isIndex && 'flex items-center gap-1'
+                      )}
+                    >
+                      {item.label}
+                      {item.isIndex && (
+                        <span className="text-xs bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-medium">
+                          Index
+                        </span>
+                      )}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+
+            {/* Utilities & Tools Section */}
+            {!collapsed && (
+              <div className="px-3 py-2 mt-4 border-t border-gray-200">
+                <h4 className="text-xs font-medium text-gray-500 mb-2">🛠️ Utilities & Tools</h4>
+              </div>
+            )}
+            {navItems.filter(item => ['utilities'].includes(item.category)).map((item) => {
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={cn(
+                    navItemVariants({
+                      variant: isActive(item.path) ? 'active' : 'default',
+                      category: item.category,
+                    }),
+                    item.isIndex &&
+                      'font-semibold border-l-2 border-indigo-500 bg-indigo-50 text-indigo-700'
+                  )}
+                  title={collapsed ? item.label : undefined}
+                >
+                  {collapsed ? (
+                    <span className="text-xs font-bold">
+                      {item.label.charAt(0)}
+                    </span>
+                  ) : (
+                    <span
+                      className={cn(
+                        item.isIndex && 'flex items-center gap-1'
+                      )}
+                    >
+                      {item.label}
+                      {item.isIndex && (
+                        <span className="text-xs bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-medium">
+                          Index
+                        </span>
+                      )}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
           </nav>
         </div>
       </nav>
