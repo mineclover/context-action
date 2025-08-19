@@ -154,7 +154,7 @@ export class LLMSGenerateCommand {
     
     try {
       await fs.access(languageDataDir);
-    } catch {
+    } catch (_error) {
       throw new Error(`Language directory not found: ${languageDataDir}`);
     }
 
@@ -206,7 +206,7 @@ export class LLMSGenerateCommand {
       try {
         const priorityContent = await fs.readFile(priorityPath, 'utf-8');
         priorityData = JSON.parse(priorityContent);
-      } catch {
+      } catch (_error) {
         console.warn(`⚠️ Warning: No priority.json found for ${documentId}`);
       }
 
@@ -319,7 +319,7 @@ export class LLMSGenerateCommand {
     try {
       await fs.access(filePath);
       return true;
-    } catch {
+    } catch (_error) {
       return false;
     }
   }
