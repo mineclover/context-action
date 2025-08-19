@@ -67,8 +67,9 @@ describe('EnhancedConfigManager', () => {
   describe('Configuration validation', () => {
     it('should validate config structure', () => {
       const validConfig: Partial<EnhancedLLMSConfig> = {
-        paths: { docs: 'docs', output: 'output', priority: 'priority' },
+        paths: { docsDir: 'docs', outputDir: 'output', llmContentDir: 'llmsData' },
         generation: {
+          characterLimits: [100, 300, 1000],
           defaultCharacterLimits: [100, 300, 1000],
           qualityThreshold: 70,
           defaultStrategy: 'concept-first'

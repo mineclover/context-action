@@ -198,7 +198,7 @@ export class GenerateTemplatesCommand {
         .replace(/\n{3,}/g, '\n\n') // Normalize line breaks
         .trim();
         
-    } catch (_error) {
+    } catch {
       console.warn(`⚠️ Could not read source document: ${sourcePath}`);
       return '';
     }

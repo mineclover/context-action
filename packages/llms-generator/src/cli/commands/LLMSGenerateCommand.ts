@@ -206,7 +206,7 @@ export class LLMSGenerateCommand {
       try {
         const priorityContent = await fs.readFile(priorityPath, 'utf-8');
         priorityData = JSON.parse(priorityContent);
-      } catch (_error) {
+      } catch {
         console.warn(`⚠️ Warning: No priority.json found for ${documentId}`);
       }
 
