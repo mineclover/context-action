@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [Unreleased]
+
+### Added
+- **docs:** comprehensive documentation suite including:
+  - Complete API reference with all classes and methods
+  - Advanced usage guide with custom validators and integrations
+  - Troubleshooting guide covering common issues
+  - Contributing guide for developers
+  - Architecture documentation with system design details
+  - Getting started guide for quick setup
+  - Configuration guide with all options
+
+### Fixed
+- **eslint:** resolve TypeScript parser configuration issues
+- **eslint:** fix prefer-const warning in MarkdownProcessor
+
 ## [0.2.3](https://github.com/mineclover/context-action/compare/v0.2.1...v0.2.3) (2025-08-19)
 
 
