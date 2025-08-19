@@ -46,7 +46,6 @@ export class RefStore<T extends RefTarget = RefTarget> extends Store<RefState<T>
       isReady: false,
       isMounted: false,
       mountPromise: null,
-      objectType: config.objectType,
       error: null,
       metadata: config.initialMetadata || {}
     };
@@ -56,19 +55,14 @@ export class RefStore<T extends RefTarget = RefTarget> extends Store<RefState<T>
     this.config = config;
     this.operationQueue = new OperationQueue();
 
-    // DOM 요소를 위한 특별한 비교 함수 설정
-    if (config.objectType === 'dom') {
-      this.setCustomComparator((oldState: RefState<T>, newState: RefState<T>) => {
-        // RefState의 target이 DOM 요소인 경우 참조 비교만 사용
-        if (oldState?.target && newState?.target) {
-          return Object.is(oldState.target, newState.target) &&
-                 oldState.isReady === newState.isReady &&
-                 oldState.isMounted === newState.isMounted;
-        }
-        // 일반적인 상태 비교
-        return Object.is(oldState, newState);
-      });
-    }
+    // 모든 ref는 싱글톤이므로 항상 참조 비교만 사용
+    this.setCustomComparator((oldState: RefState<T>, newState: RefState<T>) => {
+      // target은 참조 비교, 나머지는 값 비교
+      return Object.is(oldState.target, newState.target) &&
+             oldState.isReady === newState.isReady &&
+             oldState.isMounted === newState.isMounted &&
+             Object.is(oldState.error, newState.error);
+    });
 
     // 마운트 타임아웃 설정
     if (config.mountTimeout && config.mountTimeout > 0) {
@@ -224,7 +218,6 @@ export class RefStore<T extends RefTarget = RefTarget> extends Store<RefState<T>
         isReady: false,
         isMounted: false,
         mountPromise: null,
-        objectType: this.config.objectType,
         error: null,
         metadata: this.config.initialMetadata || {}
       });
@@ -268,9 +261,6 @@ export class RefStore<T extends RefTarget = RefTarget> extends Store<RefState<T>
       error: null
     }));
 
-    // 타입별 특화 처리
-    this.handleTypeSpecificMount(target);
-
     // 마운트 대기자들에게 알림
     this.mountResolvers.forEach(resolve => resolve(target));
     this.mountResolvers.clear();
@@ -303,10 +293,7 @@ export class RefStore<T extends RefTarget = RefTarget> extends Store<RefState<T>
     const currentState = this.getValue();
     
     if (currentState.target) {
-      // 타입별 특화 cleanup (sync operations only)
-      this.handleTypeSpecificUnmountSync(currentState.target);
-      
-      // autoCleanup이 활성화된 경우 메인 cleanup 함수 호출 (async)
+      // autoCleanup이 활성화된 경우 cleanup 함수 호출
       if (this.config.autoCleanup !== false && this.config.cleanup) {
         try {
           await this.config.cleanup(currentState.target);
@@ -371,64 +358,6 @@ export class RefStore<T extends RefTarget = RefTarget> extends Store<RefState<T>
     });
   }
 
-  /**
-   * DOM 타입별 특화 마운트 처리
-   */
-  private handleTypeSpecificMount(target: T): void {
-    if (this.config.objectType === 'dom') {
-      this.handleDOMMount(target as unknown as DOMRefTarget);
-    } else if (this.config.objectType === 'three') {
-      this.handleThreeMount(target as unknown as ThreeRefTarget);
-    }
-  }
-
-  /**
-   * DOM 타입별 특화 언마운트 처리 (동기적 작업만)
-   */
-  private handleTypeSpecificUnmountSync(target: T): void {
-    if (this.config.objectType === 'dom') {
-      this.handleDOMUnmount(target as unknown as DOMRefTarget);
-    } else if (this.config.objectType === 'three') {
-      this.handleThreeUnmount(target as unknown as ThreeRefTarget);
-    }
-    // custom 타입은 메인 cleanup 함수에서 처리 (async이므로)
-  }
-
-  /**
-   * DOM 특화 마운트 처리
-   */
-  private handleDOMMount(_target: DOMRefTarget): void {
-    // DOM 이벤트 리스너 자동 등록 등...
-    // 실제 구현에서는 DOMRefConfig의 autoEventListeners 등을 처리
-  }
-
-  /**
-   * DOM 특화 언마운트 처리
-   */
-  private handleDOMUnmount(_target: DOMRefTarget): void {
-    // DOM 이벤트 리스너 자동 제거 등...
-  }
-
-  /**
-   * Three.js 특화 마운트 처리
-   */
-  private handleThreeMount(_target: ThreeRefTarget): void {
-    // Scene에 자동 추가, 리소스 추적 등...
-  }
-
-  /**
-   * Three.js 특화 언마운트 처리
-   */
-  private handleThreeUnmount(target: ThreeRefTarget): void {
-    // Scene에서 제거, 리소스 해제 등...
-    if (target.dispose && typeof target.dispose === 'function') {
-      try {
-        target.dispose();
-      } catch (error) {
-        console.warn(`Failed to dispose Three.js object ${this.name}:`, error);
-      }
-    }
-  }
 
   /**
    * 이벤트 발생

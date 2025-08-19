@@ -77,13 +77,14 @@ describe('createRefContext', () => {
       const GameRefs = createRefContext('GameRefs', {
         canvas: {
           name: 'canvas',
-          objectType: 'dom' as const,
           autoCleanup: true
         },
         scene: {
           name: 'scene',
-          objectType: 'custom' as const,
-          autoCleanup: true
+          autoCleanup: true,
+          cleanup: (scene: any) => {
+            if (scene.dispose) scene.dispose();
+          }
         }
       });
 
@@ -99,7 +100,6 @@ describe('createRefContext', () => {
       const TestRefs = createRefContext('TestRefs', {
         testElement: {
           name: 'testElement',
-          objectType: 'dom' as const,
           autoCleanup: true,
           mountTimeout: 5000
         }

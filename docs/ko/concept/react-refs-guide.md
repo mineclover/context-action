@@ -46,12 +46,10 @@ const {
 } = createRefContext('GameRefs', {
   canvas: {
     name: 'canvas',
-    objectType: 'dom' as const,
     autoCleanup: true
   },
   scene: {
-    name: 'scene', 
-    objectType: 'custom' as const,
+    name: 'scene',
     autoCleanup: true,
     cleanup: (scene) => {
       scene.dispose();
@@ -69,51 +67,42 @@ const {
 | `validator` | 타입 및 유효성 검사 | 타입 안전성에 중요 |
 | `cleanup` | 커스텀 정리 함수 | 해제가 필요한 복잡한 객체 |
 | `initialMetadata` | 추가 ref 메타데이터 | 디버깅 및 추적 |
-| `objectType` | 객체 분류 | `'dom'`, `'custom'`, `'three'` |
 
-### 객체 타입 상세 설명
+### 단순화된 참조 관리
 
-`objectType` 속성은 RefStore가 다양한 유형의 객체를 처리하는 방식을 결정합니다:
+RefContext 시스템은 이제 깊은 복사나 불변성 검사 없이 모든 참조를 싱글톤 객체로 취급합니다. 이는 ref가 복제되어서는 안 되는 싱글톤 객체를 관리하기 위한 것이라는 이해를 바탕으로 합니다.
 
-#### `'dom'` - DOM 요소 (기본값)
-- **목적**: HTML/DOM 요소에 최적화
-- **특별 처리**:
-  - React Fiber와의 순환 참조 오류 방지
-  - 참조 비교만 사용 (깊은 복사 안 함)
-  - 성능을 위해 불변성 검사 건너뛰기
-  - DOM 요소 생명주기 자동 처리
-- **사용 사례**: HTMLDivElement, HTMLCanvasElement, 모든 DOM 노드
-- **참고**: 지정하지 않으면 기본 타입
+#### 핵심 원칙:
+- **복제 없음**: 모든 ref는 대상 객체에 대한 직접 참조를 유지합니다
+- **참조 비교만**: 상태 변경은 참조 동등성을 사용하여 감지됩니다
+- **범용 처리**: DOM 요소, 커스텀 객체, Three.js 객체가 모두 동일하게 처리됩니다
+- **정리 함수**: 유일한 차별화는 선택적 정리 함수를 통해서입니다
 
 ```typescript
-// 지정하지 않으면 자동으로 'dom' 타입 사용
-const refs = createRefContext<{
-  container: HTMLDivElement;
-}>('MyRefs'); // objectType은 'dom'으로 기본 설정
-
-// 또는 명시적으로 지정
-const refs = createRefContext('MyRefs', {
+// 모든 ref는 동일한 방식으로 처리됩니다 - 싱글톤 참조로
+const refs = createRefContext('AppRefs', {
+  // DOM 요소 - 특별한 처리 불필요
   container: {
     name: 'container',
-    objectType: 'dom', // 명시적 DOM 타입
     autoCleanup: true
-  }
-});
-```
-
-#### `'custom'` - 커스텀 객체
-- **목적**: 범용 객체 관리
-- **특별 처리**:
-  - 표준 불변성 처리
-  - 상태 스냅샷을 위한 깊은 복사
-  - 커스텀 정리 함수 지원
-- **사용 사례**: 게임 엔진, WebGL 컨텍스트, 커스텀 클래스
-
-```typescript
-const refs = createRefContext('GameRefs', {
+  },
+  
+  // Three.js 객체 - 필요시 정리 함수만 추가
+  scene: {
+    name: 'scene',
+    autoCleanup: true,
+    cleanup: (scene) => {
+      scene.traverse(obj => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) obj.material.dispose();
+      });
+    }
+  },
+  
+  // 커스텀 객체 - 동일한 패턴
   engine: {
     name: 'engine',
-    objectType: 'custom',
+    autoCleanup: true,
     cleanup: async (engine) => {
       await engine.shutdown();
     }
@@ -121,29 +110,11 @@ const refs = createRefContext('GameRefs', {
 });
 ```
 
-#### `'three'` - Three.js 객체
-- **목적**: Three.js 씬 그래프 객체
-- **특별 처리**:
-  - 지오메트리 및 머티리얼 자동 해제
-  - 정리를 위한 씬 그래프 순회
-  - 텍스처를 위한 리소스 관리
-- **사용 사례**: THREE.Scene, THREE.Mesh, THREE.Camera
-
-```typescript
-const refs = createRefContext('3DRefs', {
-  scene: {
-    name: 'scene',
-    objectType: 'three',
-    cleanup: (scene) => {
-      // 자동 리소스 해제
-      scene.traverse(obj => {
-        if (obj.geometry) obj.geometry.dispose();
-        if (obj.material) obj.material.dispose();
-      });
-    }
-  }
-});
-```
+이 단순화된 접근 방식의 장점:
+- React Fiber와의 순환 참조 문제 해결
+- 불필요한 복제를 피하여 성능 향상
+- 모든 ref 타입에 대해 일관된 동작 제공
+- API가 더 간단하고 예측 가능해짐
 
 ## 완전한 예제: 게임 컴포넌트
 
@@ -159,14 +130,12 @@ const {
 } = createRefContext('GameRefs', {
   canvas: {
     name: 'canvas',
-    objectType: 'dom',
     autoCleanup: true,
     validator: (el): el is HTMLCanvasElement => 
       el instanceof HTMLCanvasElement
   },
   scene: {
     name: 'scene',
-    objectType: 'three',
     autoCleanup: true,
     cleanup: (scene) => {
       scene.traverse((obj) => {
@@ -177,8 +146,8 @@ const {
   },
   engine: {
     name: 'engine',
-    objectType: 'custom',
     mountTimeout: 5000,
+    autoCleanup: true,
     cleanup: async (engine) => {
       await engine.stop();
       engine.destroy();
@@ -221,15 +190,36 @@ function GameComponent() {
 
 ## 성능 최적화 팁
 
-1. **DOM 요소는 항상 `objectType: 'dom'` 사용**: 순환 참조 오류를 방지하고 성능을 최적화합니다.
-2. **적절한 `mountTimeout` 설정**: 복잡한 객체는 더 긴 타임아웃이 필요할 수 있습니다.
-3. **커스텀 `cleanup` 함수 제공**: 리소스 누수를 방지하기 위해 복잡한 객체를 적절히 해제합니다.
-4. **`validator` 사용**: 타입 안전성을 보장하고 런타임 오류를 방지합니다.
+1. **적절한 `mountTimeout` 설정**: 복잡한 객체는 더 긴 타임아웃이 필요할 수 있습니다.
+2. **커스텀 `cleanup` 함수 제공**: 리소스 누수를 방지하기 위해 복잡한 객체를 적절히 해제합니다.
+3. **`validator` 사용**: 타입 안전성을 보장하고 런타임 오류를 방지합니다.
+4. **참조 안정성**: 모든 ref는 싱글톤 객체로 취급되어 성능이 최적화됩니다.
 
 ## 마이그레이션 가이드
 
 이전 버전에서 마이그레이션하는 경우:
 
-1. `objectType`을 지정하지 않은 모든 DOM 요소 ref는 이제 자동으로 `'dom'` 타입을 사용합니다.
-2. 커스텀 객체는 명시적으로 `objectType: 'custom'`을 지정해야 합니다.
-3. Three.js 객체는 자동 리소스 관리를 위해 `objectType: 'three'`를 사용해야 합니다.
+1. **`objectType` 제거**: 모든 ref 정의에서 `objectType` 속성을 제거하세요.
+2. **정리 함수 유지**: 복잡한 객체의 경우 `cleanup` 함수는 그대로 유지하세요.
+3. **검증 함수 유지**: `validator` 함수는 타입 안전성을 위해 계속 사용하세요.
+4. **단순화된 구성**: 모든 ref는 이제 동일한 방식으로 처리됩니다.
+
+```typescript
+// 이전 (objectType 사용)
+const refs = createRefContext('MyRefs', {
+  element: {
+    name: 'element',
+    objectType: 'dom',  // ❌ 제거 필요
+    autoCleanup: true
+  }
+});
+
+// 현재 (단순화된 접근)
+const refs = createRefContext('MyRefs', {
+  element: {
+    name: 'element',
+    // objectType 제거됨 ✅
+    autoCleanup: true
+  }
+});
+```

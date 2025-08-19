@@ -46,12 +46,10 @@ const {
 } = createRefContext('GameRefs', {
   canvas: {
     name: 'canvas',
-    objectType: 'dom' as const,
     autoCleanup: true
   },
   scene: {
     name: 'scene', 
-    objectType: 'custom' as const,
     autoCleanup: true,
     cleanup: (scene) => {
       scene.dispose();
@@ -389,7 +387,6 @@ const {
   // Simple DOM element with basic settings
   container: {
     name: 'container',
-    objectType: 'dom',
     autoCleanup: true,
     mountTimeout: 3000
   }
@@ -407,7 +404,6 @@ const {
   // Strict validation for email input
   emailInput: {
     name: 'emailInput',
-    objectType: 'dom',
     autoCleanup: true,
     mountTimeout: 2000,
     validator: (el): el is HTMLInputElement => 
@@ -417,7 +413,6 @@ const {
   // Loose management for general elements
   infoDiv: {
     name: 'infoDiv', 
-    objectType: 'dom',
     autoCleanup: false,  // Manual management
     mountTimeout: 5000   // Longer timeout
   }
@@ -435,7 +430,6 @@ const {
   // Complex cleanup for game engine
   gameEngine: {
     name: 'gameEngine',
-    objectType: 'custom',
     autoCleanup: true,
     cleanup: async (engine) => {
       await engine.stopAllSounds();
@@ -448,7 +442,6 @@ const {
   // Three.js scene management
   threeScene: {
     name: 'threeScene',
-    objectType: 'three',
     autoCleanup: true,
     cleanup: (scene) => {
       scene.traverse((object) => {
@@ -477,7 +470,6 @@ const {
 } = createRefContext('AdvancedRefs', {
   mediaPlayer: {
     name: 'mediaPlayer',
-    objectType: 'custom',
     autoCleanup: true,
     mountTimeout: 10000,
     initialMetadata: {
@@ -506,51 +498,42 @@ const {
 | `validator` | Type and validity checking | Critical for type safety |
 | `cleanup` | Custom cleanup function | Complex objects needing disposal |
 | `initialMetadata` | Additional ref metadata | Debugging and tracking |
-| `objectType` | Object classification | `'dom'`, `'custom'`, `'three'` |
 
-### Object Type Details
+### Simplified Reference Management
 
-The `objectType` property determines how the RefStore handles different types of objects:
+The RefContext system now treats all references as singleton objects without deep cloning or immutability checks. This is based on the understanding that refs are meant to manage singleton objects that should never be cloned.
 
-#### `'dom'` - DOM Elements (Default)
-- **Purpose**: Optimized for HTML/DOM elements
-- **Special Handling**:
-  - Prevents circular reference errors with React Fiber
-  - Uses reference comparison only (no deep cloning)
-  - Skips immutability checks for performance
-  - Handles DOM element lifecycle automatically
-- **Use Cases**: HTMLDivElement, HTMLCanvasElement, any DOM node
-- **Note**: This is the default type when not specified
+#### Key Principles:
+- **No Cloning**: All refs maintain direct references to their target objects
+- **Reference Comparison Only**: State changes are detected using reference equality
+- **Universal Handling**: DOM elements, custom objects, and Three.js objects are all handled identically
+- **Cleanup Functions**: The only differentiation is through optional cleanup functions
 
 ```typescript
-// Automatically uses 'dom' type if not specified
-const refs = createRefContext<{
-  container: HTMLDivElement;
-}>('MyRefs'); // objectType defaults to 'dom'
-
-// Or explicitly specify
-const refs = createRefContext('MyRefs', {
+// All refs are handled the same way - as singleton references
+const refs = createRefContext('AppRefs', {
+  // DOM element - no special handling needed
   container: {
     name: 'container',
-    objectType: 'dom', // Explicit DOM type
     autoCleanup: true
-  }
-});
-```
-
-#### `'custom'` - Custom Objects
-- **Purpose**: General-purpose object management
-- **Special Handling**:
-  - Standard immutability handling
-  - Deep cloning for state snapshots
-  - Custom cleanup functions supported
-- **Use Cases**: Game engines, WebGL contexts, custom classes
-
-```typescript
-const refs = createRefContext('GameRefs', {
+  },
+  
+  // Three.js object - just add cleanup if needed
+  scene: {
+    name: 'scene',
+    autoCleanup: true,
+    cleanup: (scene) => {
+      scene.traverse(obj => {
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) obj.material.dispose();
+      });
+    }
+  },
+  
+  // Custom object - same pattern
   engine: {
     name: 'engine',
-    objectType: 'custom',
+    autoCleanup: true,
     cleanup: async (engine) => {
       await engine.shutdown();
     }
@@ -558,29 +541,11 @@ const refs = createRefContext('GameRefs', {
 });
 ```
 
-#### `'three'` - Three.js Objects
-- **Purpose**: Three.js scene graph objects
-- **Special Handling**:
-  - Automatic disposal of geometries and materials
-  - Scene graph traversal for cleanup
-  - Resource management for textures
-- **Use Cases**: THREE.Scene, THREE.Mesh, THREE.Camera
-
-```typescript
-const refs = createRefContext('3DRefs', {
-  scene: {
-    name: 'scene',
-    objectType: 'three',
-    cleanup: (scene) => {
-      // Automatic resource disposal
-      scene.traverse(obj => {
-        if (obj.geometry) obj.geometry.dispose();
-        if (obj.material) obj.material.dispose();
-      });
-    }
-  }
-});
-```
+This simplified approach:
+- Eliminates circular reference issues with React Fiber
+- Improves performance by avoiding unnecessary cloning
+- Provides consistent behavior across all ref types
+- Makes the API simpler and more predictable
 
 ## Complete Example: Game Component
 
@@ -596,7 +561,6 @@ const {
 } = createRefContext('GameRefs', {
   canvas: {
     name: 'canvas',
-    objectType: 'dom',
     autoCleanup: true,
     validator: (el): el is HTMLCanvasElement => 
       el instanceof HTMLCanvasElement
@@ -604,7 +568,6 @@ const {
   
   scene: {
     name: 'scene',
-    objectType: 'three',
     autoCleanup: true,
     cleanup: (scene) => {
       scene.traverse((object) => {
@@ -617,7 +580,6 @@ const {
   
   renderer: {
     name: 'renderer',
-    objectType: 'three',
     autoCleanup: true,
     cleanup: (renderer) => {
       renderer.dispose();
@@ -626,7 +588,6 @@ const {
   
   gameState: {
     name: 'gameState',
-    objectType: 'custom',
     autoCleanup: true,
     cleanup: (state) => {
       state.cleanup();
@@ -744,7 +705,6 @@ const {
 } = createRefContext('ComplexRefs', {
   mediaEngine: {
     name: 'mediaEngine',
-    objectType: 'custom',
     autoCleanup: true,
     cleanup: engine => engine.destroy()
   }
@@ -786,14 +746,12 @@ const {
 } = createRefContext('AppRefs', {
   button: {
     name: 'button',
-    objectType: 'dom',
     mountTimeout: 1000
   },
   
   // Longer timeout for complex initialization
   gameEngine: {
     name: 'gameEngine', 
-    objectType: 'custom',
     mountTimeout: 10000
   }
 });
@@ -810,14 +768,12 @@ const {
   // Automatic cleanup for simple objects
   simpleResource: {
     name: 'simpleResource',
-    objectType: 'custom',
     autoCleanup: true
   },
   
   // Custom cleanup for complex objects
   complexResource: {
     name: 'complexResource',
-    objectType: 'custom', 
     autoCleanup: true,
     cleanup: async (resource) => {
       await resource.saveState();

@@ -25,25 +25,21 @@ interface BasicDOMElements {
 const domRefDefinitions = {
   input: {
     name: 'input',
-    objectType: 'dom' as const,
     autoCleanup: true
   } as RefInitConfig<HTMLInputElement>,
   
   button: {
     name: 'button',
-    objectType: 'dom' as const,
     autoCleanup: true
   } as RefInitConfig<HTMLButtonElement>,
   
   div: {
     name: 'div',
-    objectType: 'dom' as const,
     autoCleanup: true
   } as RefInitConfig<HTMLDivElement>,
   
   canvas: {
     name: 'canvas',
-    objectType: 'dom' as const,
     autoCleanup: true
   } as RefInitConfig<HTMLCanvasElement>
 };
@@ -112,20 +108,24 @@ interface MockMesh extends MockThreeObject {
 const threeRefDefinitions = {
   scene: {
     name: 'scene',
-    objectType: 'three' as const,
-    autoCleanup: true
+    autoCleanup: true,
+    cleanup: (scene: MockScene) => {
+      if (scene.dispose) scene.dispose();
+    }
   } as RefInitConfig<MockScene>,
   
   camera: {
-    name: 'camera', 
-    objectType: 'three' as const,
+    name: 'camera',
     autoCleanup: true
   } as RefInitConfig<MockCamera>,
   
   mesh: {
     name: 'mesh',
-    objectType: 'three' as const,
-    autoCleanup: true
+    autoCleanup: true,
+    cleanup: (mesh: MockMesh) => {
+      if (mesh.material && mesh.material.dispose) mesh.material.dispose();
+      if (mesh.geometry && mesh.geometry.dispose) mesh.geometry.dispose();
+    }
   } as RefInitConfig<MockMesh>
 };
 
@@ -161,26 +161,25 @@ const mixedRefDefinitions = {
   // DOM 요소들
   canvas: {
     name: 'canvas',
-    objectType: 'dom' as const,
     autoCleanup: true
   } as RefInitConfig<HTMLCanvasElement>,
   
   modal: {
     name: 'modal',
-    objectType: 'dom' as const,
     autoCleanup: true
   } as RefInitConfig<HTMLDialogElement>,
 
   // Mock Three.js 객체들  
   scene: {
     name: 'scene',
-    objectType: 'three' as const,
-    autoCleanup: true
+    autoCleanup: true,
+    cleanup: (scene: MockScene) => {
+      if (scene.dispose) scene.dispose();
+    }
   } as RefInitConfig<MockScene>,
   
   renderer: {
-    name: 'renderer', 
-    objectType: 'three' as const,
+    name: 'renderer',
     autoCleanup: true,
     cleanup: async (renderer: MockThreeObject & { dispose(): void }) => {
       renderer.dispose();
@@ -209,23 +208,30 @@ function MixedRefTest() {
   const modal = MixedRefs.useRefHandler('modal');
   // Remove non-existent methods
 
-  // Comment out non-functional code
-  // MixedRefs.useRefHandler('initializeGraphics' as any, async (_: any, controller: any) => {
-  //   // ActionHandler的第二个参数中访问refContext
-  //   console.log('Graphics initialized with controller:', controller);
-  // });
+  const handleInitGraphics = async () => {
+    try {
+      // Canvas와 다른 그래픽 리소스 초기화
+      const canvasElement = await canvas.waitForMount();
+      console.log('Graphics initialized with canvas:', canvasElement);
+    } catch (error) {
+      console.error('Graphics initialization failed:', error);
+    }
+  };
 
-  // MixedRefs.useRefHandler('showModal' as any, async ({ title, content }: any) => {
-  //   // modal ref를 직접 사용하는 방식으로 변경
-  //   const modalElement = await modal.waitForMount();
-  //   const h2 = modalElement.querySelector('h2');
-  //   const p = modalElement.querySelector('p');
-  //   
-  //   if (h2) h2.textContent = title;
-  //   if (p) p.textContent = content;
-  //   
-  //   modalElement.showModal(); // ✅ HTMLDialogElement.showModal()
-  // });
+  const handleShowModal = async (title: string, content: string) => {
+    try {
+      const modalElement = await modal.waitForMount();
+      const h2 = modalElement.querySelector('h2');
+      const p = modalElement.querySelector('p');
+      
+      if (h2) h2.textContent = title;
+      if (p) p.textContent = content;
+      
+      modalElement.showModal(); // ✅ HTMLDialogElement.showModal()
+    } catch (error) {
+      console.error('Modal show failed:', error);
+    }
+  };
 
   return (
     <MixedRefs.Provider>
@@ -236,13 +242,10 @@ function MixedRefTest() {
       </dialog>
       
       <div>
-        <button onClick={() => console.log('initializeGraphics')}>
+        <button onClick={handleInitGraphics}>
           Initialize Graphics
         </button>
-        <button onClick={() => console.log('showModal', { 
-          title: 'Hello', 
-          content: 'World!' 
-        })}>
+        <button onClick={() => handleShowModal('Hello', 'World!')}>
           Show Modal
         </button>
       </div>
