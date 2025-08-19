@@ -1,11 +1,11 @@
 /**
- * Computed Store Pattern - 파생 상태 자동화
+ * Computed Store Pattern - Automated derived state management
  * 
- * 하나 이상의 Store를 기반으로 자동으로 계산되는 파생 상태를 관리합니다.
- * 의존성이 변경될 때만 재계산되어 성능을 최적화합니다.
+ * Manages automatically computed derived state based on one or more stores.
+ * Optimizes performance by recalculating only when dependencies change.
+ * Essential for complex applications with derived data relationships.
  * 
  * @module stores/hooks/useComputedStore
- * @since 2.1.0
  */
 
 import { useMemo, useRef, useCallback, useEffect, useState } from 'react';
@@ -15,59 +15,92 @@ import { useStoreValue } from './useStoreValue';
 import { defaultEqualityFn } from './useStoreSelector';
 
 /**
- * Computed Store 설정 옵션
+ * Configuration options for computed store hooks
+ * 
+ * Comprehensive configuration interface for controlling computed store behavior,
+ * including performance optimizations, debugging, error handling, and caching strategies.
+ * 
+ * @template R - Type of the computed value
+ * 
+ * @example
+ * ```typescript
+ * const config: ComputedStoreConfig<UserSummary> = {
+ *   equalityFn: shallowEqual,
+ *   debug: true,
+ *   name: 'userSummary',
+ *   debounceMs: 300,
+ *   enableCache: true,
+ *   cacheSize: 50,
+ *   onError: (error) => console.error('Computation failed:', error)
+ * }
+ * ```
+ * 
+ * @public
  */
 export interface ComputedStoreConfig<R> {
-  /** 계산된 값의 동등성 비교 함수 */
+  /** Equality comparison function for computed values */
   equalityFn?: (a: R, b: R) => boolean;
   
-  /** 디버그 모드 활성화 */
+  /** Enable debug logging for computation tracking */
   debug?: boolean;
   
-  /** Computed Store의 이름 (디버깅용) */
+  /** Name identifier for the computed store (used in debugging) */
   name?: string;
   
-  /** 초기값 (첫 번째 계산 전까지 사용) */
+  /** Initial value used before first computation */
   initialValue?: R;
   
-  /** 에러 처리 함수 */
+  /** Error handler for computation failures */
   onError?: (error: Error) => void;
   
-  /** 계산 지연 시간 (디바운스, ms) */
+  /** Debounce delay for computation in milliseconds */
   debounceMs?: number;
   
-  /** 캐시 활성화 */
+  /** Enable result caching for performance optimization */
   enableCache?: boolean;
   
-  /** 캐시 크기 제한 */
+  /** Maximum number of cached results to maintain */
   cacheSize?: number;
 }
 
 /**
- * 단일 Store 기반 Computed Hook
+ * Hook for computed store based on a single source store
  * 
- * @template T 원본 Store의 값 타입
- * @template R 계산된 값의 타입
- * @param store 원본 Store
- * @param compute 계산 함수
- * @param config 설정 옵션
- * @returns 계산된 값
+ * Creates a derived value that automatically recalculates when the source store changes.
+ * Includes performance optimizations like caching, debouncing, and intelligent re-computation
+ * to prevent unnecessary work. Perfect for derived state patterns.
  * 
- * @example
+ * @template T - Type of the source store value
+ * @template R - Type of the computed result
+ * 
+ * @param store - Source store to derive from
+ * @param compute - Function to compute derived value from store value
+ * @param config - Optional configuration for performance and debugging
+ * 
+ * @returns The computed value that updates when source store changes
+ * 
+ * @example Basic Computed Value
  * ```typescript
  * const userStore = createStore('user', { 
  *   firstName: 'John', 
  *   lastName: 'Doe', 
  *   age: 30 
- * });
+ * })
  * 
- * // 단순 계산
+ * // Simple string computation
  * const fullName = useComputedStore(
  *   userStore,
  *   user => `${user.firstName} ${user.lastName}`
- * );
+ * )
  * 
- * // 복잡한 계산과 설정
+ * // Component re-renders only when fullName actually changes
+ * function UserGreeting() {
+ *   return <div>Hello, {fullName}!</div>
+ * }
+ * ```
+ * 
+ * @example Complex Computed Object
+ * ```typescript
  * const userSummary = useComputedStore(
  *   userStore,
  *   user => ({
@@ -77,12 +110,31 @@ export interface ComputedStoreConfig<R> {
  *     category: user.age < 18 ? 'minor' : user.age < 65 ? 'adult' : 'senior'
  *   }),
  *   {
- *     equalityFn: shallowEqual,
- *     debug: true,
- *     name: 'userSummary'
+ *     equalityFn: shallowEqual,  // Prevent re-renders for same object shape
+ *     debug: true,               // Log computation timing
+ *     name: 'userSummary'        // Name for debugging
  *   }
- * );
+ * )
  * ```
+ * 
+ * @example Performance Optimized with Caching
+ * ```typescript
+ * const expensiveComputation = useComputedStore(
+ *   dataStore,
+ *   data => performHeavyCalculation(data),
+ *   {
+ *     enableCache: true,         // Cache results for repeated inputs
+ *     cacheSize: 100,           // Keep last 100 results
+ *     debounceMs: 300,          // Wait 300ms after changes
+ *     onError: (error) => {     // Handle computation errors
+ *       console.error('Computation failed:', error)
+ *       notifyUser('Calculation error occurred')
+ *     }
+ *   }
+ * )
+ * ```
+ * 
+ * @public
  */
 export function useComputedStore<T, R>(
   store: Store<T>,

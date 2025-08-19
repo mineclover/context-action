@@ -1,6 +1,10 @@
 /**
  * @fileoverview Execution mode implementations for ActionRegister
- * Provides different execution strategies for action pipelines
+ * 
+ * Provides three different execution strategies for action handler pipelines:
+ * - Sequential: Execute handlers one after another in priority order
+ * - Parallel: Execute all handlers simultaneously
+ * - Race: First handler to complete wins, others are cancelled
  */
 
 import type { 
@@ -11,6 +15,38 @@ import type {
 
 /**
  * Execute handlers in sequential mode (one after another)
+ * 
+ * Executes action handlers one at a time in priority order (highest first).
+ * Supports both blocking and non-blocking handlers, with proper abort and
+ * termination handling. Handlers can modify payload for subsequent handlers
+ * and jump to different priority levels.
+ * 
+ * @template T - The payload type for the action
+ * @template R - The result type for handlers
+ * 
+ * @param context - Pipeline execution context containing handlers and state
+ * @param createController - Factory function for creating pipeline controllers
+ * 
+ * @throws {Error} When a blocking handler fails or validation errors occur
+ * 
+ * @example
+ * ```typescript
+ * // This is called internally by ActionRegister.dispatch()
+ * // when executionMode is 'sequential'
+ * 
+ * // Handlers execute in this order (by priority):
+ * // 1. Priority 100: Validation handler
+ * // 2. Priority 50: Business logic handler  
+ * // 3. Priority 10: Logging handler
+ * 
+ * await executeSequential(context, (registration, index) => ({
+ *   abort: (reason) => { context.aborted = true; context.abortReason = reason },
+ *   modifyPayload: (modifier) => { context.payload = modifier(context.payload) },
+ *   // ... other controller methods
+ * }))
+ * ```
+ * 
+ * @public
  */
 export async function executeSequential<T, R = void>(
   context: PipelineContext<T, R>,
@@ -122,6 +158,49 @@ export async function executeSequential<T, R = void>(
 
 /**
  * Execute handlers in parallel mode (all at once)
+ * 
+ * Executes all qualifying action handlers simultaneously using Promise.allSettled.
+ * Supports both blocking and non-blocking handlers. Blocking handlers can still
+ * fail the entire pipeline if they throw errors.
+ * 
+ * @template T - The payload type for the action
+ * @template R - The result type for handlers
+ * 
+ * @param context - Pipeline execution context containing handlers and state
+ * @param createController - Factory function for creating pipeline controllers
+ * 
+ * @throws {Error} When any blocking handler fails
+ * 
+ * @example
+ * ```typescript
+ * // This is called internally by ActionRegister.dispatch()
+ * // when executionMode is 'parallel'
+ * 
+ * // All handlers execute simultaneously:
+ * // - Analytics handler (non-blocking)
+ * // - Validation handler (blocking)
+ * // - Update handler (blocking)
+ * // - Notification handler (non-blocking)
+ * 
+ * await executeParallel(context, (registration, index) => ({
+ *   abort: (reason) => { context.aborted = true },
+ *   setResult: (result) => { context.results.push(result) },
+ *   // ... other controller methods
+ * }))
+ * ```
+ * 
+ * @example Use Case
+ * ```typescript
+ * // Perfect for independent operations
+ * register.setActionExecutionMode('logEvent', 'parallel')
+ * 
+ * // These can all run simultaneously:
+ * register.register('logEvent', analyticsHandler, { blocking: false })
+ * register.register('logEvent', metricsHandler, { blocking: false })
+ * register.register('logEvent', auditHandler, { blocking: true })
+ * ```
+ * 
+ * @public
  */
 export async function executeParallel<T, R = void>(
   context: PipelineContext<T, R>,
@@ -211,6 +290,56 @@ export async function executeParallel<T, R = void>(
 
 /**
  * Execute handlers in race mode (first to complete wins)
+ * 
+ * Executes all qualifying handlers simultaneously using Promise.race, where
+ * the first handler to complete determines the pipeline result. Other handlers
+ * are effectively cancelled. Useful for scenarios where you want the fastest
+ * response from multiple equivalent handlers.
+ * 
+ * @template T - The payload type for the action
+ * @template R - The result type for handlers
+ * 
+ * @param context - Pipeline execution context containing handlers and state
+ * @param createController - Factory function for creating pipeline controllers
+ * 
+ * @throws {Error} When the winning handler fails and is blocking
+ * 
+ * @example
+ * ```typescript
+ * // This is called internally by ActionRegister.dispatch()
+ * // when executionMode is 'race'
+ * 
+ * // Multiple data sources racing for fastest response:
+ * // - Database handler (might be slow)
+ * // - Cache handler (usually fast)
+ * // - API handler (variable speed)
+ * // 
+ * // Whichever completes first wins
+ * 
+ * await executeRace(context, (registration, index) => ({
+ *   return: (result) => { 
+ *     context.terminated = true
+ *     context.terminationResult = result 
+ *   },
+ *   // ... other controller methods
+ * }))
+ * ```
+ * 
+ * @example Use Case
+ * ```typescript
+ * // Race between multiple data sources
+ * register.setActionExecutionMode('fetchUserData', 'race')
+ * 
+ * // These handlers race for fastest response:
+ * register.register('fetchUserData', cacheHandler)     // Usually fastest
+ * register.register('fetchUserData', databaseHandler)  // Reliable fallback
+ * register.register('fetchUserData', apiHandler)       // External source
+ * 
+ * // First to complete wins, others are ignored
+ * const result = await register.dispatchWithResult('fetchUserData', { id: '123' })
+ * ```
+ * 
+ * @public
  */
 export async function executeRace<T, R = void>(
   context: PipelineContext<T, R>,

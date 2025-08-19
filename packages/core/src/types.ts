@@ -1,48 +1,105 @@
 
 /**
- * 액션 이름과 해당 페이로드 타입 간의 매핑을 정의하는 TypeScript 인터페이스입니다.
+ * Action payload mapping interface for type-safe action dispatching
  * 
- * @implements {action-payload-map}
- * @memberof core-concepts
+ * Defines the mapping between action names and their corresponding payload types.
+ * This interface serves as the foundation for type-safe action handling throughout
+ * the Context-Action framework.
  * 
- * @example
+ * @example Basic Action Mapping
  * ```typescript
  * interface AppActions extends ActionPayloadMap {
- *   updateUser: { id: string; name: string; email: string };
- *   deleteUser: { id: string };
- *   resetUser: void; // No payload required
+ *   updateUser: { id: string; name: string; email: string }
+ *   deleteUser: { id: string }
+ *   resetUser: void  // Actions without payload
+ *   fetchUsers: { page: number; limit: number }
+ *   toggleTheme: { theme: 'light' | 'dark' }
  * }
  * ```
+ * 
+ * @example Usage with ActionRegister
+ * ```typescript
+ * const register = new ActionRegister<AppActions>()
+ * 
+ * // Type-safe handler registration
+ * register.register('updateUser', async (payload, controller) => {
+ *   // payload is automatically typed as { id: string; name: string; email: string }
+ *   await userService.update(payload.id, payload)
+ * })
+ * 
+ * // Type-safe dispatch
+ * await register.dispatch('updateUser', {
+ *   id: '123',
+ *   name: 'John Doe',
+ *   email: 'john@example.com'
+ * })
+ * ```
+ * 
+ * @public
  */
 export interface ActionPayloadMap {
   [actionName: string]: unknown;
 }
 
 /**
- * 액션 핸들러에게 제공되는 파이프라인 실행 흐름 관리 및 페이로드 수정을 위한 인터페이스입니다.
+ * Pipeline controller interface for managing execution flow and payload modification
  * 
- * @implements {pipeline-controller}
- * @memberof core-concepts
+ * Provides action handlers with powerful control over the action pipeline execution,
+ * including the ability to abort execution, modify payloads, jump to specific priorities,
+ * and manage results. This is the primary interface for implementing business logic
+ * within action handlers.
  * 
- * @example
+ * @template T - The payload type for this action
+ * @template R - The result type for this action
+ * 
+ * @example Basic Pipeline Control
  * ```typescript
- * register('processData', async (payload, controller) => {
- *   // 입력 검증
- *   if (!payload.isValid) {
- *     controller.abort('Invalid payload');
- *     return;
+ * register.register('validateAndProcess', async (payload, controller) => {
+ *   // Input validation
+ *   if (!payload.email.includes('@')) {
+ *     controller.abort('Invalid email format')
+ *     return
  *   }
  *   
- *   // 페이로드 변형
- *   controller.modifyPayload(data => ({ 
- *     ...data, 
+ *   // Process and modify payload for next handlers
+ *   controller.modifyPayload(data => ({
+ *     ...data,
  *     processed: true,
- *     timestamp: Date.now()
- *   }));
+ *     timestamp: Date.now(),
+ *     normalized: data.email.toLowerCase()
+ *   }))
  *   
- *   // 핸들러가 자동으로 다음 핸들러로 진행
- * });
+ *   // Set intermediate result
+ *   controller.setResult({ validated: true, userId: payload.id })
+ * })
  * ```
+ * 
+ * @example Early Return with Result
+ * ```typescript
+ * register.register('checkCache', async (payload, controller) => {
+ *   const cached = await cache.get(payload.key)
+ *   
+ *   if (cached) {
+ *     // Return early and skip remaining handlers
+ *     controller.return({ source: 'cache', data: cached })
+ *     return
+ *   }
+ *   
+ *   // Continue to next handlers if not cached
+ * })
+ * ```
+ * 
+ * @example Priority Jumping
+ * ```typescript
+ * register.register('securityCheck', async (payload, controller) => {
+ *   if (payload.requiresElevatedPermissions) {
+ *     // Jump to high-priority security handlers
+ *     controller.jumpToPriority(1000)
+ *   }
+ * }, { priority: 50 })
+ * ```
+ * 
+ * @public
  */
 export interface PipelineController<T = any, R = void> {
   /** Abort the pipeline execution with an optional reason */
@@ -72,26 +129,69 @@ export interface PipelineController<T = any, R = void> {
 }
 
 /**
- * 파이프라인 내에서 특정 액션을 처리하는 함수로, 비즈니스 로직과 스토어 상호작용을 담당합니다.
+ * Action handler function type for processing actions within the pipeline
  * 
- * @implements {action-handler}
- * @memberof core-concepts
+ * Defines the signature for action handler functions that contain the business logic
+ * for processing specific actions. Handlers follow the Store Integration Pattern:
+ * 1. Read current state from stores
+ * 2. Execute business logic
+ * 3. Update stores with new state
  * 
- * @example
+ * @template T - The payload type for this action
+ * @template R - The return type for this handler
+ * 
+ * @param payload - The action payload data
+ * @param controller - Pipeline controller for managing execution flow
+ * 
+ * @returns The result value or Promise resolving to result
+ * 
+ * @example Store Integration Pattern
  * ```typescript
- * const updateUserHandler: ActionHandler<{id: string, name: string}> = async (payload, controller) => {
- *   // 스토어에서 현재 상태 읽기
- *   const currentUser = userStore.getValue();
- *   
- *   // 비즈니스 로직 실행
- *   const updatedUser = { ...currentUser, ...payload };
- *   
- *   // 스토어 상태 업데이트
- *   userStore.setValue(updatedUser);
- *   
- *   // 핸들러가 자동으로 다음 핸들러로 진행
- * };
+ * const updateUserHandler: ActionHandler<{id: string, name: string, email: string}> = 
+ *   async (payload, controller) => {
+ *     // 1. Read current state from stores
+ *     const currentUser = userStore.getValue()
+ *     const settings = settingsStore.getValue()
+ *     
+ *     // 2. Execute business logic
+ *     if (!settings.allowUserUpdates) {
+ *       controller.abort('User updates are disabled')
+ *       return
+ *     }
+ *     
+ *     const updatedUser = {
+ *       ...currentUser,
+ *       ...payload,
+ *       updatedAt: new Date().toISOString()
+ *     }
+ *     
+ *     // 3. Update stores
+ *     userStore.setValue(updatedUser)
+ *     
+ *     // Set result for other handlers or components
+ *     controller.setResult({ success: true, user: updatedUser })
+ *   }
  * ```
+ * 
+ * @example Async Handler with Error Handling
+ * ```typescript
+ * const saveUserHandler: ActionHandler<UserData, SaveResult> = 
+ *   async (payload, controller) => {
+ *     try {
+ *       const result = await userService.save(payload)
+ *       
+ *       // Update local store with server response
+ *       userStore.setValue(result.user)
+ *       
+ *       return { success: true, userId: result.user.id }
+ *     } catch (error) {
+ *       controller.abort(`Save failed: ${error.message}`)
+ *       return { success: false, error: error.message }
+ *     }
+ *   }
+ * ```
+ * 
+ * @public
  */
 export type ActionHandler<T = any, R = void> = (
   payload: T,
@@ -99,20 +199,54 @@ export type ActionHandler<T = any, R = void> = (
 ) => R | Promise<R>;
 
 /**
- * 파이프라인 내에서 액션 핸들러의 동작을 제어하는 설정 옵션들입니다.
+ * Handler configuration interface for controlling handler behavior within the pipeline
  * 
- * @implements {handler-configuration}
- * @memberof core-concepts
+ * Comprehensive configuration options that control how handlers are executed,
+ * including priority, timing controls, validation, metadata, and advanced features
+ * like retries and dependencies.
  * 
- * @example
+ * @example Basic Handler Configuration
  * ```typescript
- * register('searchUser', searchHandler, {
- *   priority: 100,          // 높은 우선순위로 먼저 실행
- *   debounce: 300,          // 300ms 디바운싱
- *   blocking: true,         // 완료까지 대기
- *   validation: (payload) => payload.query.length > 2
- * });
+ * register.register('searchUsers', searchHandler, {
+ *   priority: 100,                    // Execute before lower priority handlers
+ *   debounce: 300,                   // Wait 300ms after last call
+ *   throttle: 1000,                  // Limit to once per second
+ *   tags: ['search', 'user'],        // Categorization tags
+ *   category: 'query',               // Logical grouping
+ *   description: 'Search users by query',
+ *   once: false                      // Can be executed multiple times
+ * })
  * ```
+ * 
+ * @example Advanced Configuration
+ * ```typescript
+ * register.register('processPayment', paymentHandler, {
+ *   priority: 200,
+ *   timeout: 5000,                   // 5 second timeout
+ *   retries: 3,                      // Retry up to 3 times on failure
+ *   environment: 'production',       // Only in production
+ *   dependencies: ['validateCard'],  // Requires validateCard handler
+ *   conflicts: ['refundPayment'],    // Cannot coexist with refund handler
+ *   validation: (payload) => payload.amount > 0 && payload.currency,
+ *   metrics: {
+ *     collectTiming: true,
+ *     collectErrors: true,
+ *     customMetrics: { paymentProvider: 'stripe' }
+ *   }
+ * })
+ * ```
+ * 
+ * @example Conditional Handler
+ * ```typescript
+ * register.register('debugLog', debugHandler, {
+ *   priority: 10,
+ *   condition: () => process.env.NODE_ENV === 'development',
+ *   tags: ['debug', 'logging'],
+ *   category: 'development'
+ * })
+ * ```
+ * 
+ * @public
  */
 export interface HandlerConfig {
   /** Priority level (higher numbers execute first). Default: 0 */
@@ -192,43 +326,146 @@ export interface HandlerConfig {
   metadata?: Record<string, any>;
 }
 
+/**
+ * Internal handler registration container
+ * 
+ * Contains the registered handler function along with its complete configuration
+ * and unique identifier. This is used internally by ActionRegister to manage
+ * the handler pipeline.
+ * 
+ * @template T - The payload type for this handler
+ * @template R - The return type for this handler
+ * 
+ * @internal
+ */
 export interface HandlerRegistration<T = any, R = void> {
+  /** The handler function */
   handler: ActionHandler<T, R>;
+  
+  /** Complete handler configuration with all defaults applied */
   config: Required<HandlerConfig>;
+  
+  /** Unique identifier for this handler registration */
   id: string;
 }
 
+/**
+ * Execution mode for action handler pipeline
+ * 
+ * Determines how multiple handlers for the same action are executed:
+ * - `sequential`: Handlers execute one after another in priority order
+ * - `parallel`: All handlers execute simultaneously
+ * - `race`: First handler to complete wins, others are cancelled
+ * 
+ * @example
+ * ```typescript
+ * // Sequential execution (default)
+ * register.setActionExecutionMode('updateUser', 'sequential')
+ * 
+ * // Parallel execution for independent operations
+ * register.setActionExecutionMode('logEvent', 'parallel')
+ * 
+ * // Race execution for fastest response
+ * register.setActionExecutionMode('fetchData', 'race')
+ * ```
+ * 
+ * @public
+ */
 export type ExecutionMode = 'sequential' | 'parallel' | 'race';
 
+/**
+ * Internal pipeline execution context
+ * 
+ * Contains the state and metadata for a single action pipeline execution.
+ * This includes the action payload, registered handlers, execution progress,
+ * and result collection.
+ * 
+ * @template T - The payload type for this execution
+ * @template R - The result type for this execution
+ * 
+ * @internal
+ */
 export interface PipelineContext<T = any, R = void> {
+  /** The action name being executed */
   action: string;
+  
+  /** The payload for this execution */
   payload: T;
+  
+  /** Handlers to execute in this pipeline */
   handlers: HandlerRegistration<T, R>[];
+  
+  /** Whether execution has been aborted */
   aborted: boolean;
+  
+  /** Reason for abortion if aborted */
   abortReason?: string;
+  
+  /** Current handler index being executed */
   currentIndex: number;
+  
+  /** Priority level to jump to (if requested) */
   jumpToPriority?: number;
+  
+  /** Execution mode for this pipeline */
   executionMode: ExecutionMode;
   
-  // New result collection fields
+  /** Results collected from handlers */
   results: R[];
+  
+  /** Whether execution was terminated early */
   terminated: boolean;
+  
+  /** Result from terminated execution */
   terminationResult?: R;
 }
 
+/**
+ * Configuration options for ActionRegister initialization
+ * 
+ * Provides comprehensive configuration options for customizing ActionRegister
+ * behavior including debugging, handler limits, execution modes, and cleanup policies.
+ * 
+ * @example Basic Configuration
+ * ```typescript
+ * const register = new ActionRegister<AppActions>({
+ *   name: 'UserActionRegister',
+ *   registry: {
+ *     debug: true,
+ *     maxHandlers: 20,
+ *     defaultExecutionMode: 'sequential'
+ *   }
+ * })
+ * ```
+ * 
+ * @example Development Configuration
+ * ```typescript
+ * const devRegister = new ActionRegister<AppActions>({
+ *   name: 'DevRegister',
+ *   registry: {
+ *     debug: process.env.NODE_ENV === 'development',
+ *     autoCleanup: true,
+ *     maxHandlers: 50,
+ *     defaultExecutionMode: 'parallel'
+ *   }
+ * })
+ * ```
+ * 
+ * @public
+ */
 export interface ActionRegisterConfig {
   /** Name identifier for this ActionRegister instance */
   name?: string;
   
   /** Registry-specific configuration options */
   registry?: {
-    /** Debug mode for registry operations */
+    /** Debug mode for registry operations - enables detailed logging */
     debug?: boolean;
     
     /** Auto-cleanup configuration for one-time handlers */
     autoCleanup?: boolean;
     
-    /** Maximum number of handlers per action */
+    /** Maximum number of handlers per action (prevents memory leaks) */
     maxHandlers?: number;
     
     /** Default execution mode for actions */
@@ -236,6 +473,62 @@ export interface ActionRegisterConfig {
   };
 }
 
+/**
+ * Comprehensive dispatch options for controlling action execution
+ * 
+ * Provides fine-grained control over how actions are dispatched and executed,
+ * including timing controls, handler filtering, result processing, and abort handling.
+ * 
+ * @example Basic Dispatch Options
+ * ```typescript
+ * await register.dispatch('searchUsers', { query: 'john' }, {
+ *   debounce: 300,     // Wait 300ms after last call
+ *   throttle: 1000,    // Limit to once per second
+ *   executionMode: 'parallel'
+ * })
+ * ```
+ * 
+ * @example Handler Filtering
+ * ```typescript
+ * await register.dispatch('updateUser', userData, {
+ *   filter: {
+ *     tags: ['validation', 'business-logic'],  // Only these tags
+ *     excludeCategory: 'analytics',            // Skip analytics handlers
+ *     environment: 'production'                // Production handlers only
+ *   }
+ * })
+ * ```
+ * 
+ * @example Result Collection
+ * ```typescript
+ * const result = await register.dispatchWithResult('processOrder', order, {
+ *   result: {
+ *     collect: true,
+ *     strategy: 'merge',
+ *     maxResults: 5,
+ *     merger: (results) => results.reduce((acc, curr) => ({ ...acc, ...curr }), {})
+ *   }
+ * })
+ * ```
+ * 
+ * @example Abort Control
+ * ```typescript
+ * const controller = new AbortController()
+ * 
+ * // Auto-abort with custom controller
+ * await register.dispatch('longRunningTask', data, {
+ *   autoAbort: {
+ *     enabled: true,
+ *     allowHandlerAbort: true,
+ *     onControllerCreated: (ctrl) => {
+ *       setTimeout(() => ctrl.abort('Timeout'), 5000)
+ *     }
+ *   }
+ * })
+ * ```
+ * 
+ * @public
+ */
 export interface DispatchOptions {
   /** Debounce delay in milliseconds - wait for this delay after last call */
   debounce?: number;
@@ -311,7 +604,45 @@ export interface DispatchOptions {
 }
 
 /**
- * Result of pipeline execution containing detailed execution information
+ * Comprehensive result of pipeline execution with detailed execution information
+ * 
+ * Contains complete information about the pipeline execution including success status,
+ * results, timing metrics, handler details, and any errors that occurred.
+ * 
+ * @template R - The result type for this execution
+ * 
+ * @example Basic Result Handling
+ * ```typescript
+ * const result = await register.dispatchWithResult('updateUser', userData)
+ * 
+ * if (result.success) {
+ *   console.log(`Execution completed in ${result.execution.duration}ms`)
+ *   console.log(`${result.execution.handlersExecuted} handlers executed`)
+ * } else {
+ *   console.error('Execution failed:', result.abortReason)
+ * }
+ * ```
+ * 
+ * @example Advanced Result Processing
+ * ```typescript
+ * const result = await register.dispatchWithResult('processOrder', order, {
+ *   result: { collect: true, strategy: 'all' }
+ * })
+ * 
+ * // Access all handler results
+ * result.results.forEach((handlerResult, index) => {
+ *   console.log(`Handler ${index} result:`, handlerResult)
+ * })
+ * 
+ * // Check individual handler performance
+ * result.handlers.forEach(handler => {
+ *   if (handler.duration > 1000) {
+ *     console.warn(`Slow handler ${handler.id}: ${handler.duration}ms`)
+ *   }
+ * })
+ * ```
+ * 
+ * @public
  */
 export interface ExecutionResult<R = void> {
   /** Whether the execution completed successfully */
@@ -387,8 +718,51 @@ export interface ExecutionResult<R = void> {
   }>;
 }
 
+/**
+ * Function type for unregistering action handlers
+ * 
+ * Returned by the register method to allow removal of specific handlers.
+ * Calling this function removes the handler from the action pipeline.
+ * 
+ * @example
+ * ```typescript
+ * const unregister = register.register('updateUser', userHandler)
+ * 
+ * // Later, remove the handler
+ * unregister()
+ * ```
+ * 
+ * @public
+ */
 export type UnregisterFunction = () => void;
 
+/**
+ * Type-safe action dispatcher interface
+ * 
+ * Provides overloaded dispatch methods that enforce correct payload types
+ * based on the action being dispatched. Automatically handles actions
+ * that require no payload versus those that do.
+ * 
+ * @template T - The action payload map interface
+ * 
+ * @example
+ * ```typescript
+ * interface AppActions extends ActionPayloadMap {
+ *   resetApp: void
+ *   updateUser: { id: string; name: string }
+ * }
+ * 
+ * const dispatch: ActionDispatcher<AppActions> = register.dispatch.bind(register)
+ * 
+ * // No payload required
+ * await dispatch('resetApp')
+ * 
+ * // Payload required and type-checked
+ * await dispatch('updateUser', { id: '123', name: 'John' })
+ * ```
+ * 
+ * @public
+ */
 export interface ActionDispatcher<T extends ActionPayloadMap> {
   /** Dispatch an action without payload */
   <K extends keyof T>(action: T[K] extends void ? K : never, options?: DispatchOptions): Promise<void>;
@@ -400,7 +774,23 @@ export interface ActionDispatcher<T extends ActionPayloadMap> {
 /**
  * Registry information interface for ActionRegister introspection
  * 
- * Similar to DeclarativeStoreRegistry pattern for consistent registry management
+ * Provides comprehensive information about the current state of an ActionRegister
+ * instance, including registered actions, handler counts, and execution modes.
+ * Similar to DeclarativeStoreRegistry pattern for consistent registry management.
+ * 
+ * @template T - The action payload map interface
+ * 
+ * @example
+ * ```typescript
+ * const info = register.getRegistryInfo()
+ * 
+ * console.log(`Registry: ${info.name}`)
+ * console.log(`Total actions: ${info.totalActions}`)
+ * console.log(`Total handlers: ${info.totalHandlers}`)
+ * console.log(`Registered actions:`, info.registeredActions)
+ * ```
+ * 
+ * @public
  */
 export interface ActionRegistryInfo<T extends ActionPayloadMap> {
   /** Registry name */
@@ -423,7 +813,33 @@ export interface ActionRegistryInfo<T extends ActionPayloadMap> {
 }
 
 /**
- * Handler statistics for registry monitoring
+ * Handler statistics interface for registry monitoring and debugging
+ * 
+ * Provides detailed statistics about handlers for a specific action,
+ * including handler organization, execution metrics, and performance data.
+ * 
+ * @template T - The action payload map interface
+ * 
+ * @example
+ * ```typescript
+ * const stats = register.getActionStats('updateUser')
+ * 
+ * if (stats) {
+ *   console.log(`Action: ${stats.action}`)
+ *   console.log(`Handler count: ${stats.handlerCount}`)
+ *   
+ *   stats.handlersByPriority.forEach(group => {
+ *     console.log(`Priority ${group.priority}:`, group.handlers.length, 'handlers')
+ *   })
+ *   
+ *   if (stats.executionStats) {
+ *     console.log(`Success rate: ${stats.executionStats.successRate}%`)
+ *     console.log(`Average duration: ${stats.executionStats.averageDuration}ms`)
+ *   }
+ * }
+ * ```
+ * 
+ * @public
  */
 export interface ActionHandlerStats<T extends ActionPayloadMap> {
   /** Action name */

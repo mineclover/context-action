@@ -7,44 +7,86 @@ import {
 } from '../utils/comparison';
 
 /**
- * Store 클래스 - 중앙화된 상태 관리의 핵심
+ * Core Store class for centralized state management
  * 
- * 핵심 기능:
- * 1. 상태 저장 (_value) - 실제 데이터 보관
- * 2. 구독 관리 (listeners) - React 컴포넌트들의 구독 추적
- * 3. 스냅샷 관리 (_snapshot) - 불변성과 최적화를 위한 스냅샷
- * 4. 변경 알림 (_notifyListeners) - 상태 변경 시 구독자들에게 알림
+ * Provides reactive state management with subscription capabilities, optimized for
+ * React integration through useSyncExternalStore. Supports batched updates, custom
+ * comparison functions, and immutable snapshots for performance optimization.
  * 
- * @implements store-integration-pattern
- * @implements model-layer
- * @memberof core-concepts
+ * @template T - The type of value stored in this store
+ * 
+ * @example Basic Store Usage
+ * ```typescript
+ * // Create a store with initial value
+ * const counterStore = createStore('counter', 0)
+ * 
+ * // Get current value
+ * const currentCount = counterStore.getValue()
+ * 
+ * // Set new value
+ * counterStore.setValue(5)
+ * 
+ * // Update with function
+ * counterStore.update(count => count + 1)
+ * ```
+ * 
+ * @example React Integration
+ * ```typescript
+ * const userStore = createStore('user', { name: '', email: '' })
+ * 
+ * function UserComponent() {
+ *   // Subscribe to store changes
+ *   const user = useStoreValue(userStore)
+ *   
+ *   const handleUpdate = () => {
+ *     userStore.update(current => ({
+ *       ...current,
+ *       name: 'John Doe'
+ *     }))
+ *   }
+ *   
+ *   return <div>User: {user.name}</div>
+ * }
+ * ```
+ * 
+ * @example Custom Comparison
+ * ```typescript
+ * const store = createStore('items', [])
+ * 
+ * // Set custom comparator for array length-based updates
+ * store.setComparator((oldItems, newItems) => 
+ *   oldItems.length === newItems.length
+ * )
+ * ```
+ * 
+ * @public
  */
 export class Store<T = any> implements IStore<T> {
-  // 구독자 목록 - Set을 사용하여 중복 방지와 O(1) 삭제 보장
+  // Subscriber list - Set for duplicate prevention and O(1) deletion
   private listeners = new Set<Listener>();
-  // 실제 상태 값 - 단일 진실 공급원(Single Source of Truth)
+  // Actual state value - Single Source of Truth
   private _value: T;
-  // 불변 스냅샷 - React의 useSyncExternalStore와 호환
+  // Immutable snapshot - Compatible with React's useSyncExternalStore
   private _snapshot: Snapshot<T>;
 
-  // 동시성 보호를 위한 상태
+  // State for concurrency protection
   private isUpdating = false;
   private updateQueue: Array<() => void> = [];
   
-  // 알림 모드 설정
+  // Notification mode settings
   private notificationMode: 'batched' | 'immediate' = 'batched';
   private pendingNotification = false;
 
   public readonly name: string;
-  // Store별 커스텀 비교 함수
+  // Custom comparator function per store
   private customComparator?: (oldValue: T, newValue: T) => boolean;
-  // Store별 비교 옵션
+  // Comparison options per store
   private comparisonOptions?: Partial<ComparisonOptions<T>>;
 
   constructor(name: string, initialValue: T) {
     this.name = name;
     this._value = initialValue;
-    // 초기 스냅샷 생성 - 즉시 구독 가능한 상태로 만듦
+    // Create initial snapshot - make immediately subscribable
     this._snapshot = this._createSnapshot();
   }
 
@@ -335,27 +377,69 @@ export class Store<T = any> implements IStore<T> {
 }
 
 /**
- * Store 팩토리 함수 - 간편한 Store 인스턴스 생성
- * 핵심 기능: 타입 안전한 Store 인스턴스 생성을 위한 팩토리 함수
+ * Factory function for creating type-safe Store instances
  * 
- * @template T Store 값 타입
- * @param name - Store 식별자 이름
- * @param initialValue - Store 초기값
- * @returns Store 인스턴스
+ * Creates a new Store instance with the specified name and initial value.
+ * Provides type safety and integrates seamlessly with React hooks and
+ * the Context-Action framework patterns.
  * 
- * @example
+ * @template T - The type of values stored in this store
+ * 
+ * @param name - Unique identifier for the store (used for debugging)
+ * @param initialValue - Initial value to store
+ * 
+ * @returns Configured Store instance ready for use
+ * 
+ * @example Basic Store Creation
  * ```typescript
- * // 객체 Store 생성
- * const userStore = createStore('user', { id: '', name: '', email: '' });
+ * // Object store
+ * const userStore = createStore('user', {
+ *   id: '',
+ *   name: '',
+ *   email: ''
+ * })
  * 
- * // 원시값 Store 생성
- * const countStore = createStore('count', 0);
- * const themeStore = createStore('theme', 'light');
- * 
- * // Store 사용
- * userStore.setValue({ id: '1', name: 'John', email: 'john@example.com' });
- * countStore.setValue(42);
+ * // Primitive value stores
+ * const countStore = createStore('count', 0)
+ * const themeStore = createStore('theme', 'light' as 'light' | 'dark')
+ * const itemsStore = createStore('items', [] as string[])
  * ```
+ * 
+ * @example Integration with React
+ * ```typescript
+ * // Create store
+ * const userStore = createStore('user', { name: 'Guest' })
+ * 
+ * // Use in React component
+ * function UserProfile() {
+ *   const user = useStoreValue(userStore)
+ *   
+ *   const updateName = (name: string) => {
+ *     userStore.update(current => ({ ...current, name }))
+ *   }
+ *   
+ *   return <div>Hello, {user.name}!</div>
+ * }
+ * ```
+ * 
+ * @example Store Operations
+ * ```typescript
+ * const todoStore = createStore('todos', [] as Todo[])
+ * 
+ * // Set entire value
+ * todoStore.setValue([{ id: 1, text: 'Learn TypeScript', done: false }])
+ * 
+ * // Update with function
+ * todoStore.update(todos => [
+ *   ...todos,
+ *   { id: 2, text: 'Build app', done: false }
+ * ])
+ * 
+ * // Get current value
+ * const currentTodos = todoStore.getValue()
+ * ```
+ * 
+ * @public
  */
 export function createStore<T>(name: string, initialValue: T): Store<T> {
   const store = new Store<T>(name, initialValue);
