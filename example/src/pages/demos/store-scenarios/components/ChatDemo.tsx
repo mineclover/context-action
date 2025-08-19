@@ -9,9 +9,10 @@ import type { ChatMessage } from '../types';
 
 const CHAT_USERS = ['김개발', '이디자인', '박매니저', '최기획'];
 
-// Chat ref context 정의
-interface ChatRefs extends Record<string, any> {
+// Chat ref context 정의 - RefTarget 제약조건 충족
+interface ChatRefs {
   messagesEnd: HTMLDivElement;
+  readonly [key: string]: any;
 }
 
 // Chat ref context 생성
@@ -77,7 +78,7 @@ function ChatComponent() {
     return () => {
       unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
-  }, [messagesStore]);
+  }, []); // 의존성 배열에서 messagesStore 제거 - 무한 루프 방지
 
   // createRefContext를 사용한 자동 스크롤
   const scrollToBottom = useCallback(async () => {

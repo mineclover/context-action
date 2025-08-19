@@ -80,7 +80,7 @@ export function ShoppingCartDemo() {
     return () => {
       unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
-  }, [cartStore]);
+  }, []); // 의존성 배열에서 cartStore 제거 - 무한 루프 방지
 
   const totalAmount = useMemo(() => {
     if (!cart || !products) return 0;

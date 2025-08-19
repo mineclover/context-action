@@ -60,7 +60,7 @@ export function UserProfileDemo() {
     return () => {
       unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
-  }, [userStore]);
+  }, []); // 의존성 배열에서 userStore 제거 - 무한 루프 방지
 
   useEffect(() => {
     setEditForm(user);
