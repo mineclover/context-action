@@ -110,7 +110,7 @@ const {
 ```typescript
 // ❌ Avoid direct object usage (poor naming clarity)
 const GameRefs = createRefContext('GameRefs', { /* ... */ });
-const canvas = GameRefs.useRef('canvas'); // Domain unclear
+const canvas = GameRefs.useRefHandler('canvas'); // Domain unclear
 
 // ❌ Generic naming (causes confusion)
 const {

@@ -51,8 +51,8 @@ const domRefDefinitions = {
 const DOMRefs = createRefContext('BasicDOM', domRefDefinitions);
 
 function BasicDOMTest() {
-  const input = DOMRefs.useRef('input');
-  const button = DOMRefs.useRef('button');
+  const input = DOMRefs.useRefHandler('input');
+  const button = DOMRefs.useRefHandler('button');
   
   // ✅ 타입 체크: HTMLInputElement 메서드 사용 가능
   const handleClick = () => {
@@ -132,8 +132,8 @@ const threeRefDefinitions = {
 const ThreeRefs = createRefContext('BasicThree', threeRefDefinitions);
 
 function BasicThreeTest() {
-  const scene = ThreeRefs.useRef('scene');
-  const mesh = ThreeRefs.useRef('mesh');
+  const scene = ThreeRefs.useRefHandler('scene');
+  const mesh = ThreeRefs.useRefHandler('mesh');
 
   const handleAddMesh = () => {
     // ✅ 타입 체크: 여러 참조를 안전하게 조합
@@ -205,8 +205,8 @@ const MixedRefs = createRefContext<typeof mixedRefDefinitions, MixedActions>(
 );
 
 function MixedRefTest() {
-  const canvas = MixedRefs.useRef('canvas');
-  const modal = MixedRefs.useRef('modal');
+  const canvas = MixedRefs.useRefHandler('canvas');
+  const modal = MixedRefs.useRefHandler('modal');
   const dispatch = MixedRefs.useRefAction();
 
   // ✅ 액션 핸들러 타입 체크 - refContext를 올바르게 사용
@@ -273,7 +273,7 @@ function AdvancedTypeInferenceTest() {
 // =============================================================================
 
 function OptionsTest() {
-  const input = DOMRefs.useRef('input');
+  const input = DOMRefs.useRefHandler('input');
 
   const handleOperation = () => {
     // ✅ RefOperationOptions 타입 체크
