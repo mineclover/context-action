@@ -1,10 +1,11 @@
 /**
- * Store Selector Hook - 선택적 구독을 통한 성능 최적화
+ * Store Selector Hook - Performance optimization through selective subscription
  * 
- * Store의 특정 부분만 구독하여 불필요한 리렌더링을 방지합니다.
+ * Advanced store subscription hooks that prevent unnecessary re-renders by subscribing
+ * to specific parts of store data using selector functions and intelligent equality comparison.
+ * Essential for building high-performance React applications with complex state management.
  * 
  * @module stores/hooks/useStoreSelector
- * @since 2.1.0
  */
 
 import { useEffect, useRef, useState, useMemo } from 'react';
@@ -67,42 +68,57 @@ export function deepEqual<T>(a: T, b: T): boolean {
 }
 
 /**
- * Store에서 특정 값을 선택하여 구독하는 Hook
+ * Hook for selective store subscription with performance optimization
  * 
- * selector가 반환하는 값이 변경될 때만 컴포넌트가 리렌더링됩니다.
+ * Subscribes to specific parts of store data using a selector function,
+ * triggering re-renders only when the selected value actually changes.
+ * Essential for preventing unnecessary re-renders in complex applications.
  * 
- * @template T Store의 값 타입
- * @template R Selector가 반환하는 값 타입
- * @param store 구독할 Store 인스턴스
- * @param selector Store 값에서 필요한 부분을 추출하는 함수
- * @param equalityFn 이전 값과 새 값을 비교하는 함수 (기본값: Object.is)
- * @returns selector가 반환하는 값
+ * @template T - Type of the store value
+ * @template R - Type of the value returned by the selector
  * 
- * @example
+ * @param store - Store instance to subscribe to
+ * @param selector - Function to extract needed data from store value
+ * @param equalityFn - Function to compare previous and new values (default: Object.is)
+ * 
+ * @returns The value returned by the selector function
+ * 
+ * 
+ * @example Basic Selective Subscription
  * ```typescript
  * interface User {
- *   id: string;
- *   profile: { name: string; email: string; avatar?: string };
- *   preferences: { theme: 'light' | 'dark'; language: string };
- *   metadata: { lastLogin: Date; createdAt: Date };
+ *   id: string
+ *   profile: { name: string; email: string; avatar?: string }
+ *   preferences: { theme: 'light' | 'dark'; language: string }
+ *   metadata: { lastLogin: Date; createdAt: Date }
  * }
  * 
- * const userStore = createStore<User>('user', initialUser);
+ * const userStore = createStore<User>('user', initialUser)
  * 
- * // 기본 사용법 - profile.name만 구독
+ * // Subscribe only to profile.name - ignores other user changes
  * const userName = useStoreSelector(
  *   userStore, 
  *   user => user.profile.name
- * );
+ * )
  * 
- * // 얕은 비교로 객체 구독
+ * // Component re-renders only when name changes
+ * ```
+ * 
+ * @example Object Subscription with Shallow Comparison
+ * ```typescript
+ * // Subscribe to entire profile object with shallow equality
  * const userProfile = useStoreSelector(
  *   userStore, 
  *   user => user.profile,
  *   shallowEqual
- * );
+ * )
  * 
- * // 복잡한 계산된 값
+ * // Re-renders only when profile properties change
+ * // (name, email, avatar), not when preferences or metadata change
+ * ```
+ * 
+ * @example Computed Values with Performance Optimization
+ * ```typescript
  * const userDisplayInfo = useStoreSelector(
  *   userStore,
  *   user => ({
@@ -111,19 +127,23 @@ export function deepEqual<T>(a: T, b: T): boolean {
  *     avatarUrl: user.profile.avatar || '/default-avatar.png'
  *   }),
  *   shallowEqual
- * );
+ * )
+ * ```
  * 
- * // 성능 최적화: 특정 조건에서만 계산
+ * @example Conditional Computation
+ * ```typescript
  * const expensiveComputation = useStoreSelector(
  *   userStore,
  *   user => {
- *     if (!user.profile.name) return null;
+ *     if (!user.profile.name) return null
  *     
- *     // 복잡한 계산...
- *     return processUserData(user);
+ *     // Expensive calculation only when name exists
+ *     return processUserData(user)
  *   }
- * );
+ * )
  * ```
+ * 
+ * @public
  */
 export function useStoreSelector<T, R>(
   store: Store<T>,

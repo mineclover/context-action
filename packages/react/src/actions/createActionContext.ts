@@ -1,8 +1,9 @@
 /**
- * @fileoverview Simple Action Context
+ * @fileoverview Simple Action Context for React Components
  * 
- * createRefContext와 동일한 심플한 스타일의 액션 시스템
- * 불필요한 복잡성 없이 핵심 기능만 제공
+ * Provides a simple, clean action system similar to createRefContext style.
+ * Offers core functionality without unnecessary complexity, following the
+ * Action Only Pattern for pure action dispatching without state management.
  */
 
 import React, { createContext, useContext, useEffect, useId, useMemo, useRef, ReactNode } from 'react';
@@ -11,68 +12,139 @@ import { ActionRegister, ActionHandler, HandlerConfig } from '@context-action/co
 /**
  * ActionContext 반환 타입 - 심플하고 명확한 API
  */
+/**
+ * Simple Action Context return type with clean, clear API
+ * 
+ * Provides a minimal interface for action dispatching and handler registration
+ * following the Action Only Pattern. This is the return type from createActionContext.
+ * 
+ * @template T - Action payload mapping extending Record<string, any>
+ * 
+ * @example Interface Usage
+ * ```typescript
+ * interface AppActions extends Record<string, any> {
+ *   updateUser: { id: string; name: string }
+ *   deleteUser: { id: string }
+ *   resetApp: void
+ * }
+ * 
+ * const actionContext: SimpleActionContextReturn<AppActions> = 
+ *   createActionContext<AppActions>('AppActions')
+ * ```
+ * 
+ * @public
+ */
 export interface SimpleActionContextReturn<T extends Record<string, any>> {
-  // Provider 컴포넌트
+  /** Provider component for action context */
   Provider: React.FC<{ children: ReactNode }>;
   
-  // 액션 디스패치
+  /** Hook for dispatching actions */
   useAction: () => <K extends keyof T>(
     action: K,
     payload?: T[K]
   ) => Promise<void>;
   
-  // 핸들러 등록
+  /** Hook for registering action handlers */
   useActionHandler: <K extends keyof T>(
     action: K,
     handler: ActionHandler<T[K]>,
     config?: HandlerConfig
   ) => void;
   
-  // Context 이름
+  /** Context name identifier */
   contextName: string;
 }
 
 /**
- * 심플한 액션 컨텍스트 생성 함수
+ * Create a simple action context for React components
  * 
- * @param contextName 컨텍스트 이름
- * @returns ActionContext API
+ * Creates a type-safe action context following the Action Only Pattern.
+ * Provides action dispatching and handler registration without state management.
+ * Perfect for event systems, command patterns, and UI interactions.
  * 
- * @example
+ * @template T - Action payload mapping interface
+ * 
+ * @param contextName - Unique name for this action context (used in error messages)
+ * 
+ * @returns SimpleActionContextReturn with Provider, hooks, and context name
+ * 
+ * @example Basic Usage
  * ```typescript
- * // 타입 정의와 컨텍스트 생성
- * const AuthActions = createActionContext<{
- *   login: { username: string; password: string };
- *   logout: void;
- *   updateProfile: { name: string; email: string };
- * }>('AuthActions');
+ * // Define action types
+ * interface AuthActions extends Record<string, any> {
+ *   login: { username: string; password: string }
+ *   logout: void
+ *   refreshToken: { token: string }
+ *   updateProfile: { name: string; email: string }
+ * }
  * 
- * // 컴포넌트에서 사용
+ * // Create action context
+ * const AuthActions = createActionContext<AuthActions>('AuthActions')
+ * 
+ * // Use in component
  * function AuthComponent() {
- *   const dispatch = AuthActions.useAction();
+ *   const dispatch = AuthActions.useAction()
  *   
- *   // 핸들러 등록
- *   AuthActions.useActionHandler('login', async ({ username, password }) => {
- *     const response = await api.login(username, password);
- *     return response;
- *   });
+ *   // Register handlers with business logic
+ *   AuthActions.useActionHandler('login', async ({ username, password }, controller) => {
+ *     try {
+ *       const response = await authAPI.login(username, password)
+ *       controller.setResult({ success: true, user: response.user })
+ *     } catch (error) {
+ *       controller.abort('Login failed')
+ *     }
+ *   })
  *   
- *   AuthActions.useActionHandler('logout', async () => {
- *     await api.logout();
- *   });
+ *   AuthActions.useActionHandler('logout', async (_, controller) => {
+ *     await authAPI.logout()
+ *     controller.setResult({ success: true })
+ *   })
  *   
  *   return (
- *     <AuthActions.Provider>
- *       <button onClick={() => dispatch('login', { username: 'user', password: 'pass' })}>
+ *     <div>
+ *       <button onClick={() => dispatch('login', {
+ *         username: 'user@example.com',
+ *         password: 'password123'
+ *       })}>
  *         Login
  *       </button>
  *       <button onClick={() => dispatch('logout')}>
  *         Logout
  *       </button>
- *     </AuthActions.Provider>
- *   );
+ *     </div>
+ *   )
  * }
  * ```
+ * 
+ * @example With Provider Pattern
+ * ```typescript
+ * function App() {
+ *   return (
+ *     <AuthActions.Provider>
+ *       <AuthComponent />
+ *       <UserProfile />
+ *     </AuthActions.Provider>
+ *   )
+ * }
+ * ```
+ * 
+ * @example Priority-based Handlers
+ * ```typescript
+ * // High priority validation
+ * AuthActions.useActionHandler('login', async (payload, controller) => {
+ *   if (!payload.username || !payload.password) {
+ *     controller.abort('Username and password required')
+ *   }
+ * }, { priority: 100 })
+ * 
+ * // Lower priority business logic
+ * AuthActions.useActionHandler('login', async (payload, controller) => {
+ *   const result = await authService.authenticate(payload)
+ *   controller.setResult(result)
+ * }, { priority: 50 })
+ * ```
+ * 
+ * @public
  */
 export function createActionContext<T extends Record<string, any>>(
   contextName: string
@@ -88,7 +160,7 @@ export function createActionContext<T extends Record<string, any>>(
   
   // Provider 컴포넌트
   const Provider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    // ActionRegister를 한 번만 생성
+    // Create ActionRegister only once
     const actionRegister = useMemo(() => new ActionRegister<T>({ name: contextName }), []);
     
     const contextValue = useMemo<ActionContextValue>(() => ({
@@ -111,7 +183,7 @@ export function createActionContext<T extends Record<string, any>>(
     return context;
   };
   
-  // 액션 디스패치 hook
+  // Action dispatch hook
   const useAction = () => {
     const { actionRegister } = useActionContext();
     
@@ -122,7 +194,7 @@ export function createActionContext<T extends Record<string, any>>(
     }, [actionRegister]);
   };
   
-  // 핸들러 등록 hook
+  // Action handler registration hook
   const useActionHandler = <K extends keyof T>(
     action: K,
     handler: ActionHandler<T[K]>,

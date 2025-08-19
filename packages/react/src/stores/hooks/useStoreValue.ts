@@ -16,74 +16,113 @@ export function assertStoreValue<T>(value: T | undefined, storeName: string): T 
 }
 
 /**
- * 성능 최적화된 Store Value Hook
+ * Performance-optimized store value hook with advanced features
  * 
- * 기존 useStoreValue를 성능 최적화하여 불필요한 리렌더링을 방지합니다.
+ * Enhanced version of useStoreValue that prevents unnecessary re-renders through
+ * intelligent subscription management, selective updates, debouncing, throttling,
+ * and conditional subscription. Follows React best practices and hooks rules.
  * 
- * @implements store-hooks
- * @implements fresh-state-access  
- * @implements type-safety
- * @implements performance-optimized
- * @memberof api-terms
- * @since 2.1.0
- * @example
+ * @example Basic Store Subscription
  * ```typescript
- * // 기본 구독 - 성능 최적화됨
- * const counterStore = createStore('counter', 0);
- * const count = useStoreValue(counterStore); // 값이 실제 변경될 때만 리렌더
+ * const counterStore = createStore('counter', 0)
+ * const count = useStoreValue(counterStore) // Re-renders only when value actually changes
+ * ```
  * 
- * // 선택적 구독 - 특정 필드만 구독
- * const userStore = createStore('user', { id: '1', name: 'John', email: 'john@example.com' });
- * const userName = useStoreValue(userStore, user => user.name); // name 변경시만 리렌더
+ * @example Selective Subscription
+ * ```typescript
+ * const userStore = createStore('user', { 
+ *   id: '1', 
+ *   name: 'John', 
+ *   email: 'john@example.com' 
+ * })
  * 
- * // 얕은 비교로 객체 구독
- * const profileStore = createStore('profile', { name: 'John', settings: { theme: 'dark' } });
- * const profile = useStoreValue(profileStore, user => user, shallowEqual);
+ * // Only re-renders when name changes, ignores email/id changes
+ * const userName = useStoreValue(userStore, user => user.name)
+ * ```
  * 
- * // 지연 구독 - 조건에 따라 구독 시작
- * const dataStore = createStore('data', { items: [] });
+ * @example Shallow Comparison for Objects
+ * ```typescript
+ * const profileStore = createStore('profile', { 
+ *   name: 'John', 
+ *   settings: { theme: 'dark' } 
+ * })
+ * 
+ * // Uses shallow comparison to prevent unnecessary re-renders
+ * const profile = useStoreValue(profileStore, user => user, shallowEqual)
+ * ```
+ * 
+ * @example Conditional Subscription
+ * ```typescript
+ * const dataStore = createStore('data', { items: [] })
+ * 
+ * // Only subscribes when shouldSubscribe is true
  * const items = useStoreValue(dataStore, data => data.items, {
  *   lazy: true,
  *   condition: () => shouldSubscribe
- * });
+ * })
+ * ```
  * 
- * // 디바운스된 구독 - 빠른 변경을 그룹화
- * const searchStore = createStore('search', { query: '', results: [] });
+ * @example Debounced Subscription
+ * ```typescript
+ * const searchStore = createStore('search', { query: '', results: [] })
+ * 
+ * // Groups rapid changes together with 300ms debounce
  * const debouncedQuery = useStoreValue(searchStore, search => search.query, {
  *   debounce: 300
- * });
+ * })
  * ```
+ * 
+ * @public
  */
 
 /**
- * 성능 최적화 옵션
+ * Performance optimization options for useStoreValue hook
+ * 
+ * Advanced configuration options for controlling subscription behavior,
+ * comparison strategies, timing controls, and debugging features.
+ * 
+ * @template R - The type of the selected/computed value
+ * 
+ * @example
+ * ```typescript
+ * const options: StoreValueOptions<string> = {
+ *   equalityFn: (a, b) => a.trim() === b.trim(),
+ *   lazy: true,
+ *   condition: () => isActive,
+ *   debounce: 300,
+ *   debug: true,
+ *   name: 'searchQuery'
+ * }
+ * ```
+ * 
+ * @public
  */
 export interface StoreValueOptions<R> {
-  /** 동등성 비교 함수 */
+  /** Custom equality comparison function to determine when to trigger re-renders */
   equalityFn?: (a: R, b: R) => boolean;
   
-  /** 지연 구독 - 조건이 만족될 때만 구독 시작 */
+  /** Lazy subscription - only start subscribing when condition is met */
   lazy?: boolean;
   
-  /** 구독 조건 - false일 때 구독 중지 */
+  /** Subscription condition - pause subscription when false */
   condition?: () => boolean;
   
-  /** 디바운스 지연 시간 (ms) */
+  /** Debounce delay in milliseconds - groups rapid changes together */
   debounce?: number;
   
-  /** 스로틀 간격 (ms) */
+  /** Throttle interval in milliseconds - limits update frequency */
   throttle?: number;
   
-  /** 초기값 (첫 구독 전까지 사용) */
+  /** Initial value to use before first subscription */
   initialValue?: R;
   
-  /** 구독 중지 시 기본값 */
+  /** Default value when subscription is suspended */
   suspendedValue?: R;
   
-  /** 디버그 정보 출력 */
+  /** Enable debug logging for subscription behavior */
   debug?: boolean;
   
-  /** Hook 이름 (디버깅용) */
+  /** Hook name for debugging purposes */
   name?: string;
 }
 
@@ -254,34 +293,57 @@ export function useStoreValue<T, R>(
 }
 
 /**
- * Hook to get multiple values from a store using selectors
- * @implements selective-subscription
- * @memberof api-terms
+ * Hook for selecting multiple values from a store with optimized re-renders
  * 
- * Optimizes re-renders by only updating when selected values change
+ * Subscribes to multiple computed values from a single store using selector functions.
+ * Optimizes performance by only triggering re-renders when the selected values change,
+ * using shallow comparison to detect changes in the combined result object.
  * 
- * @template T Type of the store value
- * @template S Type of the selectors object
- * @param store - The store to subscribe to
- * @param selectors - Object with selector functions
- * @returns Object with selected values
+ * @template T - Type of the store value
+ * @template S - Type of the selectors object mapping keys to selector functions
  * 
- * @example
+ * @param store - The store to subscribe to (can be undefined for conditional usage)
+ * @param selectors - Object mapping result keys to selector functions
+ * 
+ * @returns Object with selected values, or undefined if store is undefined
+ * 
+ * @example Basic Multi-Selection
  * ```typescript
- * const userStore = createStore({ 
+ * const userStore = createStore('user', { 
  *   id: '1', 
  *   name: 'John', 
  *   email: 'john@example.com',
  *   settings: { theme: 'dark', notifications: true }
- * });
+ * })
  * 
  * const { name, theme } = useStoreValues(userStore, {
  *   name: user => user.name,
  *   theme: user => user.settings.theme
- * });
- * // Only re-renders when name or theme changes
+ * })
+ * 
+ * // Component only re-renders when name or theme changes
+ * // Changes to email or settings.notifications are ignored
  * ```
- */
+ * 
+ * @example Complex Selections
+ * ```typescript
+ * const appStore = createStore('app', {
+ *   user: { name: 'John', role: 'admin' },
+ *   ui: { sidebar: true, theme: 'dark' },
+ *   data: { items: [], loading: false }
+ * })
+ * 
+ * const { userName, isAdmin, itemCount, isDark } = useStoreValues(appStore, {
+ *   userName: app => app.user.name,
+ *   isAdmin: app => app.user.role === 'admin',
+ *   itemCount: app => app.data.items.length,
+ *   isDark: app => app.ui.theme === 'dark'
+ * })
+ * ```
+ * 
+ * @example Conditional Usage
+ * ```typescript\n * // Safe to use with potentially undefined stores
+ * const result = useStoreValues(maybeUndefinedStore, {\n *   value1: data => data.field1,\n *   value2: data => data.field2\n * })\n * \n * if (result) {\n *   const { value1, value2 } = result\n *   // Use selected values\n * }\n * ```\n * \n * @public\n */
 export function useStoreValues<T, S extends Record<string, (value: T) => any>>(
   store: Store<T> | undefined | null,
   selectors: S
