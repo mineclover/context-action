@@ -56,6 +56,20 @@ export class RefStore<T extends RefTarget = RefTarget> extends Store<RefState<T>
     this.config = config;
     this.operationQueue = new OperationQueue();
 
+    // DOM 요소를 위한 특별한 비교 함수 설정
+    if (config.objectType === 'dom') {
+      this.setCustomComparator((oldState: RefState<T>, newState: RefState<T>) => {
+        // RefState의 target이 DOM 요소인 경우 참조 비교만 사용
+        if (oldState?.target && newState?.target) {
+          return Object.is(oldState.target, newState.target) &&
+                 oldState.isReady === newState.isReady &&
+                 oldState.isMounted === newState.isMounted;
+        }
+        // 일반적인 상태 비교
+        return Object.is(oldState, newState);
+      });
+    }
+
     // 마운트 타임아웃 설정
     if (config.mountTimeout && config.mountTimeout > 0) {
       this.mountTimeoutId = setTimeout(() => {

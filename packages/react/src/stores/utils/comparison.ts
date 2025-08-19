@@ -281,7 +281,24 @@ export function fastCompare<T>(oldValue: T, newValue: T): boolean {
     return oldValue === newValue;
   }
 
-  // 4. JSON 직렬화 가능한 객체 - 빠른 문자열 비교 (HMR 기술 적용)
+  // 4. HTML/DOM Elements 특별 처리 - RefContext용
+  if (typeof oldValue === 'object' && oldValue !== null) {
+    const isDOMElement = (
+      (typeof Element !== 'undefined' && oldValue instanceof Element) ||
+      (typeof Node !== 'undefined' && oldValue instanceof Node) ||
+      (typeof HTMLElement !== 'undefined' && oldValue instanceof HTMLElement) ||
+      (oldValue as any).nodeType !== undefined ||
+      (oldValue as any)._owner !== undefined ||
+      (oldValue as any).stateNode !== undefined
+    );
+    
+    if (isDOMElement) {
+      // DOM 요소는 참조 비교만 사용 (JSON 직렬화 시도하지 않음)
+      return Object.is(oldValue, newValue);
+    }
+  }
+
+  // 5. JSON 직렬화 가능한 객체 - 빠른 문자열 비교 (HMR 기술 적용)
   try {
     const oldStr = JSON.stringify(oldValue);
     const newStr = JSON.stringify(newValue);
@@ -291,8 +308,19 @@ export function fastCompare<T>(oldValue: T, newValue: T): boolean {
       return oldStr === newStr;
     }
   } catch (error) {
-    // JSON 직렬화 실패 시 기존 로직으로 fallback
-    // 순환 참조, BigInt, Symbol, Function 등이 포함된 경우
+    // JSON 직렬화 실패 시 참조 비교로 안전하게 fallback
+    // 순환 참조, BigInt, Symbol, Function, DOM 요소 등이 포함된 경우
+    const errorMessage = error?.toString() || '';
+    if (
+      errorMessage.includes('circular') ||
+      errorMessage.includes('HTMLDivElement') ||
+      errorMessage.includes('HTMLElement') ||
+      errorMessage.includes('Converting circular structure')
+    ) {
+      // DOM 요소나 circular reference가 감지되면 참조 비교만 사용
+      return Object.is(oldValue, newValue);
+    }
+    
     if (process.env.NODE_ENV === 'development') {
       console.debug('[FastCompare] JSON serialization failed, using fallback comparison:', error);
     }
