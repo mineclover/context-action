@@ -229,7 +229,7 @@ export class SimpleLLMSCommand {
           content_length: cleanContent.length
         }
       };
-    } catch (error) {
+    } catch (_error) {
       return null;
     }
   }

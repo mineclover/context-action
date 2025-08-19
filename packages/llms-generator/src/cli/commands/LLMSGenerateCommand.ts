@@ -82,7 +82,7 @@ export class LLMSGenerateCommand {
     const sortedDocuments = this.sortDocuments(filteredDocuments, validatedOptions.sortBy);
 
     if (options.verbose || options.dryRun) {
-      this.displayDocumentList(sortedDocuments, validatedOptions);
+      this.displayDocumentList(sortedDocuments);
     }
 
     if (options.dryRun) {
@@ -206,7 +206,7 @@ export class LLMSGenerateCommand {
       try {
         const priorityContent = await fs.readFile(priorityPath, 'utf-8');
         priorityData = JSON.parse(priorityContent);
-      } catch (error) {
+      } catch (_error) {
         console.warn(`⚠️ Warning: No priority.json found for ${documentId}`);
       }
 

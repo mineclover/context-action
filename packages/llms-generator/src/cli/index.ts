@@ -148,7 +148,7 @@ async function loadConfig(): Promise<CLIConfig> {
         supportedLanguages: enhancedConfig.generation?.supportedLanguages || DEFAULT_CONFIG.generation.supportedLanguages,
         characterLimits: enhancedConfig.generation?.characterLimits || DEFAULT_CONFIG.generation.characterLimits,
         defaultLanguage: enhancedConfig.generation?.defaultLanguage || DEFAULT_CONFIG.generation.defaultLanguage,
-        outputFormat: enhancedConfig.generation?.outputFormat || DEFAULT_CONFIG.generation.outputFormat
+        outputFormat: (enhancedConfig.generation?.outputFormat || DEFAULT_CONFIG.generation.outputFormat) as "txt"
       },
       quality: enhancedConfig.quality || DEFAULT_CONFIG.quality,
       categories: enhancedConfig.categories
