@@ -116,11 +116,7 @@ export async function executeSequential<T, R = void>(
   
   // Wait for all non-blocking async handlers to complete and check for errors
   if (nonBlockingPromises.length > 0) {
-    try {
-      await Promise.all(nonBlockingPromises);
-    } catch (error) {
-      throw error;
-    }
+    await Promise.all(nonBlockingPromises);
   }
 }
 

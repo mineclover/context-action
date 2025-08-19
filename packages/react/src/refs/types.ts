@@ -5,7 +5,6 @@
  * 범용적인 참조 관리 타입 시스템
  */
 
-import type { ActionPayloadMap } from '@context-action/core';
 
 /**
  * 참조 가능한 객체의 기본 인터페이스
@@ -153,48 +152,6 @@ export type InferRefTypes<T extends RefDefinitions> = {
   [K in keyof T]: T[K] extends RefInitConfig<infer R> ? R : RefTarget;
 };
 
-/**
- * 참조 액션의 페이로드 맵 기본 인터페이스
- */
-export interface RefActionPayloadMap extends ActionPayloadMap {
-  // 공통 참조 액션들
-  mount: { refName: string; target: RefTarget };
-  unmount: { refName: string };
-  cleanup: { refName: string };
-  reset: { refName: string };
-  
-  // 에러 처리
-  handleError: { refName: string; error: Error };
-  retry: { refName: string; maxRetries?: number };
-}
-
-/**
- * 참조 액션 핸들러의 컨텍스트
- */
-export interface RefActionContext<T extends RefDefinitions> {
-  /** 특정 참조 가져오기 (마운트 대기 포함) */
-  getRef: <K extends keyof T>(refName: K) => Promise<InferRefTypes<T>[K]>;
-  
-  /** 참조 상태 확인 */
-  isRefReady: <K extends keyof T>(refName: K) => boolean;
-  
-  /** 모든 참조 상태 가져오기 */
-  getAllRefStates: () => Record<keyof T, RefState<any>>;
-  
-  /** 참조에 대한 안전한 작업 수행 */
-  withRef: <K extends keyof T, R>(
-    refName: K,
-    operation: RefOperation<InferRefTypes<T>[K], R>,
-    options?: RefOperationOptions
-  ) => Promise<RefOperationResult<R>>;
-  
-  /** 여러 참조에 대한 배치 작업 */
-  withRefs: <R>(
-    refNames: (keyof T)[],
-    operation: (refs: Partial<InferRefTypes<T>>) => R | Promise<R>,
-    options?: RefOperationOptions
-  ) => Promise<RefOperationResult<R>>;
-}
 
 /**
  * 참조 이벤트 타입
