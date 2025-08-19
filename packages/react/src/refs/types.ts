@@ -62,9 +62,6 @@ export interface RefState<T extends RefTarget = RefTarget> {
   /** 마운트된 시간 (타임스탬프) */
   mountedAt?: number;
   
-  /** 객체 타입 (DOM, Three.js, etc.) */
-  objectType: 'dom' | 'three' | 'custom';
-  
   /** 에러 상태 */
   error?: Error | null;
   
@@ -121,14 +118,6 @@ export interface RefInitConfig<T extends RefTarget = RefTarget> {
   /** 참조 이름 */
   name: string;
   
-  /** 
-   * 객체 타입 - RefStore의 처리 방식을 결정
-   * - 'dom': HTML/DOM 요소 (기본값) - 순환 참조 방지, 참조 비교만 사용
-   * - 'three': Three.js 객체 - 자동 리소스 해제
-   * - 'custom': 범용 객체 - 표준 불변성 처리
-   */
-  objectType: 'dom' | 'three' | 'custom';
-  
   /** 초기 메타데이터 */
   initialMetadata?: Record<string, any>;
   
@@ -177,55 +166,3 @@ export type RefEventListener<T extends RefTarget = RefTarget> = (
   event: RefEvent<T>
 ) => void;
 
-/**
- * DOM 참조를 위한 유틸리티 타입들
- */
-export interface DOMRefConfig<T extends Element = Element> extends RefInitConfig<T> {
-  objectType: 'dom';
-  
-  /** DOM 선택자 (optional, for validation) */
-  selector?: string;
-  
-  /** 필수 속성 검증 */
-  requiredAttributes?: string[];
-  
-  /** DOM 이벤트 리스너 자동 등록 */
-  autoEventListeners?: Record<string, EventListener>;
-}
-
-/**
- * Three.js 참조를 위한 유틸리티 타입들
- */
-export interface ThreeRefConfig<T extends ThreeRefTarget = ThreeRefTarget> extends RefInitConfig<T> {
-  objectType: 'three';
-  
-  /** Three.js 객체 타입 검증 */
-  expectedType?: string;
-  
-  /** Scene에 자동 추가 여부 */
-  autoAddToScene?: boolean;
-  
-  /** 자동 dispose 여부 */
-  autoDispose?: boolean;
-  
-  /** 텍스처/지오메트리/머티리얼 자동 정리 */
-  autoCleanupResources?: boolean;
-}
-
-/**
- * 커스텀 참조 설정
- */
-export interface CustomRefConfig<T extends RefTarget = RefTarget> extends RefInitConfig<T> {
-  objectType: 'custom';
-  
-  /** 커스텀 초기화 함수 */
-  initializer?: () => T | Promise<T>;
-  
-  /** 커스텀 업데이트 함수 */
-  updater?: (current: T, updates: Partial<T>) => T | Promise<T>;
-}
-
-/**
- * 통합 참조 설정 타입
- */
-export type AnyRefConfig = DOMRefConfig<any> | ThreeRefConfig<any> | CustomRefConfig<any>;

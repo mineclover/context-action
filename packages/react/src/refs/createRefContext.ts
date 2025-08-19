@@ -181,10 +181,9 @@ export function createRefContext<T = any>(
         // 선언적 정의 사용
         stores.set(refNameStr, createRefStore(definition));
       } else {
-        // 기본 설정 사용 - RefContext는 주로 DOM 요소를 위한 것이므로 'dom' 타입 기본값
+        // 기본 설정 사용
         stores.set(refNameStr, createRefStore({
           name: refNameStr,
-          objectType: 'dom',
           autoCleanup: true
         }));
       }
@@ -242,7 +241,6 @@ export function createRefContext<T = any>(
         } else {
           stores.set(refNameStr, createRefStore({
             name: refNameStr,
-            objectType: 'dom',
             autoCleanup: true
           }));
         }
