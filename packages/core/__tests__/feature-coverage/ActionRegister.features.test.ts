@@ -342,7 +342,7 @@ describe('ActionRegister - Feature Coverage Tests ✅', () => {
   });
 
   describe('🚨 Error Handling and Recovery', () => {
-    it('should handle synchronous and asynchronous errors gracefully', async () => {
+    it('should handle synchronous and asynchronous errors with fail-fast behavior', async () => {
       const executedHandlers: string[] = [];
 
       actionRegister.register('errorAction', () => {
@@ -366,12 +366,18 @@ describe('ActionRegister - Feature Coverage Tests ✅', () => {
         { result: { collect: true } }
       );
 
-      expect(result.success).toBe(true); // Pipeline succeeds despite errors
-      expect(executedHandlers).toEqual(['sync-error', 'async-error', 'success']);
-      expect(result.results).toEqual([{ recovered: true }]); // Only successful results collected
+      expect(result.success).toBe(false); // Pipeline fails on first error (fail-fast behavior)
+      expect(executedHandlers).toEqual(['sync-error']); // Only first handler executed before error
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]).toMatchObject({
+        handlerId: 'pipeline',
+        error: expect.objectContaining({
+          message: 'Synchronous error'
+        })
+      });
     });
 
-    it('should provide execution statistics even with errors', async () => {
+    it('should provide execution statistics with fail-fast error behavior', async () => {
       actionRegister.register('errorAction', () => {
         throw new Error('Handler error');
       });
@@ -382,9 +388,10 @@ describe('ActionRegister - Feature Coverage Tests ✅', () => {
 
       const result = await actionRegister.dispatchWithResult('errorAction', { shouldFail: true });
 
-      expect(result.execution.handlersExecuted).toBe(2);
+      expect(result.execution.handlersExecuted).toBe(1); // Only first handler executed before error
       expect(result.execution.duration).toBeGreaterThanOrEqual(0);
-      expect(result.success).toBe(true);
+      expect(result.success).toBe(false); // Pipeline fails on error
+      expect(result.errors).toHaveLength(1);
     });
   });
 

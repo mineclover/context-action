@@ -300,7 +300,7 @@ describe('ActionRegister - Production Test Suite ✅', () => {
   });
 
   describe('🚨 Error Handling & Recovery', () => {
-    it('should handle handler errors gracefully and continue execution', async () => {
+    it('should handle handler errors with fail-fast behavior', async () => {
       actionRegister.register('sendEmail', () => {
         throw new Error('SMTP server unavailable');
       }, { priority: 20, id: 'primary-mailer' });
@@ -314,17 +314,18 @@ describe('ActionRegister - Production Test Suite ✅', () => {
         { result: { collect: true } }
       );
 
-      // Pipeline should succeed despite one handler failing
-      expect(result.success).toBe(true);
-      expect(result.results).toHaveLength(1);
-      expect(result.results[0]).toMatchObject({ 
-        success: true, 
-        provider: 'fallback-service',
-        messageId: 'fallback-123'
+      // Pipeline should fail when first handler throws error (fail-fast behavior)
+      expect(result.success).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors[0]).toMatchObject({
+        handlerId: 'pipeline',
+        error: expect.objectContaining({
+          message: 'SMTP server unavailable'
+        })
       });
     });
 
-    it('should provide detailed execution statistics', async () => {
+    it('should provide detailed execution statistics with fail-fast behavior', async () => {
       const startTime = Date.now();
 
       actionRegister.register('processData', () => ({ step: 1, result: 'success' }));
@@ -335,10 +336,13 @@ describe('ActionRegister - Production Test Suite ✅', () => {
         { data: 'test-data' }
       );
 
-      expect(result.execution.handlersExecuted).toBe(3);
+      // Should execute first handler successfully, then fail on second handler (fail-fast)
+      expect(result.execution.handlersExecuted).toBe(2); // First executed, second failed, third not executed
       expect(result.execution.startTime).toBeGreaterThanOrEqual(startTime);
       expect(result.execution.endTime).toBeGreaterThanOrEqual(result.execution.startTime);
       expect(result.execution.duration).toBeGreaterThanOrEqual(0);
+      expect(result.success).toBe(false);
+      expect(result.errors).toHaveLength(1);
     });
   });
 

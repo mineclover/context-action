@@ -1,7 +1,0 @@
-# 목차
-
-- Api Action Only
-- Api Action Registry
-- Api Core Action Register
-- ...
-

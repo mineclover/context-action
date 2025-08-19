@@ -11,7 +11,7 @@ import type {
   TagConfig,
   CompositionStrategyConfig,
   ExtractStrategy,
-  DocumentCategory
+  // DocumentCategory - temporarily commented out
 } from '../types/config.js';
 
 export interface ConfigPreset {
@@ -34,12 +34,14 @@ export class EnhancedConfigManager {
   /**
    * Load configuration from file
    */
-  async loadConfig(): Promise<EnhancedLLMSConfig> {
-    if (!existsSync(this.configPath)) {
-      throw new Error(`Configuration file not found: ${this.configPath}`);
+  async loadConfig(customPath?: string): Promise<EnhancedLLMSConfig> {
+    const configPath = customPath || this.configPath;
+    
+    if (!existsSync(configPath)) {
+      throw new Error(`Configuration file not found: ${configPath}`);
     }
 
-    const configContent = await readFile(this.configPath, 'utf-8');
+    const configContent = await readFile(configPath, 'utf-8');
     const baseConfig = JSON.parse(configContent);
 
     // Enhance basic config with defaults if needed
@@ -51,10 +53,58 @@ export class EnhancedConfigManager {
   /**
    * Save configuration to file
    */
-  async saveConfig(config: EnhancedLLMSConfig): Promise<void> {
+  async saveConfig(config: EnhancedLLMSConfig, customPath?: string): Promise<void> {
     this.config = config;
     const jsonContent = JSON.stringify(config, null, 2);
-    await writeFile(this.configPath, jsonContent, 'utf-8');
+    await writeFile(customPath || this.configPath, jsonContent, 'utf-8');
+  }
+
+  /**
+   * Validate configuration structure
+   */
+  validateConfig(config: EnhancedLLMSConfig): void {
+    // Validate paths
+    if (!config.paths) {
+      throw new Error('Missing paths configuration');
+    }
+    if (!config.paths.docsDir) {
+      throw new Error('Missing docs directory path');
+    }
+    if (!config.paths.outputDir) {
+      throw new Error('Missing output directory path');
+    }
+
+    // Validate generation config
+    if (!config.generation) {
+      throw new Error('Missing generation configuration section');
+    }
+    if (!config.generation.characterLimits) {
+      throw new Error('Missing character limits in generation config');
+    }
+
+    // Validate categories
+    if (config.categories) {
+      for (const [key, category] of Object.entries(config.categories)) {
+        if (!category.name) {
+          throw new Error(`Category ${key} missing name`);
+        }
+        if (category.priority !== undefined && (category.priority < 0 || category.priority > 100)) {
+          throw new Error(`Category ${key} priority must be between 0 and 100`);
+        }
+      }
+    }
+
+    // Validate tags
+    if (config.tags) {
+      for (const [key, tag] of Object.entries(config.tags)) {
+        if (!tag.name) {
+          throw new Error(`Tag ${key} missing name`);
+        }
+        if (tag.weight !== undefined && tag.weight < 0) {
+          throw new Error(`Tag ${key} weight must be non-negative`);
+        }
+      }
+    }
   }
 
   /**
@@ -424,7 +474,6 @@ export class EnhancedConfigManager {
         weight: 1.2,
         compatibleWith: ['step-by-step', 'practical', 'tutorial'],
         audience: ['new-users', 'learners'],
-        estimatedTime: '5-15분'
       },
       intermediate: {
         name: '중급',
@@ -432,7 +481,6 @@ export class EnhancedConfigManager {
         weight: 1.0,
         compatibleWith: ['practical', 'implementation', 'patterns'],
         audience: ['experienced-users'],
-        estimatedTime: '15-30분'
       },
       advanced: {
         name: '고급',
@@ -440,7 +488,6 @@ export class EnhancedConfigManager {
         weight: 0.9,
         compatibleWith: ['technical', 'architecture', 'optimization'],
         audience: ['experts', 'contributors'],
-        estimatedTime: '30-60분'
       },
       core: {
         name: '핵심',
@@ -464,7 +511,6 @@ export class EnhancedConfigManager {
         weight: 1.3,
         compatibleWith: ['beginner', 'practical', 'step-by-step'],
         audience: ['new-users'],
-        estimatedTime: '5-10분'
       },
       troubleshooting: {
         name: '문제 해결',

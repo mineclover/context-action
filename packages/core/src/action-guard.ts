@@ -1,16 +1,20 @@
 /**
  * @fileoverview Action Guard system for debouncing, throttling and blocking
- * Provides rate limiting and user experience optimization for actions
+ * 
+ * Provides rate limiting and user experience optimization for actions through
+ * debouncing (wait for pause) and throttling (limit frequency) mechanisms.
+ * Used internally by ActionRegister to control action execution timing.
  */
 
 
 /**
  * Action guard state tracking for debouncing and throttling
- * @memberof core-concepts
- * @internal
- * @since 1.0.0
  * 
- * Tracks timing and execution state for action execution control
+ * Tracks timing and execution state for action execution control.
+ * Maintains separate state for each action to enable independent
+ * rate limiting per action type.
+ * 
+ * @internal
  */
 interface GuardState {
   /** Timestamp of last successful execution for throttling calculations */
@@ -34,31 +38,55 @@ interface GuardState {
 
 /**
  * Action Guard system for managing action execution timing
- * @implements action-guard
- * @implements performance-optimization  
- * @implements user-experience-optimization
- * @implements class-naming
- * @memberof core-concepts
- * @internal
- * @since 1.0.0
  * 
- * Manages action execution timing through debouncing and throttling
- * @implements performance-optimization
+ * Provides performance optimization and user experience enhancement through
+ * debouncing and throttling mechanisms. Debouncing waits for a pause in calls
+ * before executing, while throttling limits execution frequency.
  * 
- * @example
+ * @example Debouncing Search Input
  * ```typescript
- * const guard = new ActionGuard(logger);
+ * const guard = new ActionGuard()
  * 
- * // Debounce search input (wait 300ms after typing stops)
+ * // Wait 300ms after user stops typing before searching
+ * register.register('searchUsers', async (payload, controller) => {
+ *   const query = payload.query
+ *   if (query.length < 2) return
+ *   
+ *   const results = await userService.search(query)
+ *   controller.setResult(results)
+ * }, {
+ *   debounce: 300,  // Built into ActionRegister via ActionGuard
+ *   tags: ['search', 'user-input']
+ * })
+ * ```
+ * 
+ * @example Throttling High-Frequency Events
+ * ```typescript
+ * // Limit scroll position updates to once per 100ms
+ * register.register('updateScrollPosition', (payload, controller) => {
+ *   scrollState.setValue(payload.position)
+ * }, {
+ *   throttle: 100,  // Built into ActionRegister via ActionGuard
+ *   tags: ['scroll', 'performance']
+ * })
+ * ```
+ * 
+ * @example Manual Usage (Advanced)
+ * ```typescript
+ * const guard = new ActionGuard()
+ * 
+ * // Manual debouncing
  * if (await guard.debounce('search', 300)) {
- *   executeSearch();  
+ *   performSearch()  // Only executes after 300ms pause
  * }
  * 
- * // Throttle scroll handler (max once per 100ms)
+ * // Manual throttling
  * if (guard.throttle('scroll', 100)) {
- *   updateScrollPosition();
+ *   updateUI()  // Max once per 100ms
  * }
  * ```
+ * 
+ * @internal
  */
 export class ActionGuard {
   private guards = new Map<string, GuardState>();
@@ -68,10 +96,26 @@ export class ActionGuard {
   }
 
   /**
-   * Check if action should be debounced
-   * @param actionKey - Unique key for the action
-   * @param debounceMs - Debounce delay in milliseconds
-   * @returns Promise that resolves when debounce period is complete
+   * Apply debouncing to an action
+   * 
+   * Debouncing waits for a specified delay after the last call before allowing
+   * execution. Each new call resets the timer. Useful for search inputs, resize
+   * handlers, and other high-frequency user interactions.
+   * 
+   * @param actionKey - Unique identifier for the action being debounced
+   * @param debounceMs - Delay in milliseconds to wait after the last call
+   * 
+   * @returns Promise resolving to true if execution should proceed, false if cancelled
+   * 
+   * @example Search Input Debouncing
+   * ```typescript
+   * // Only search after user stops typing for 300ms
+   * if (await guard.debounce('userSearch', 300)) {
+   *   performSearch(query)
+ * }
+   * ```
+   * 
+   * @internal
    */
   async debounce(actionKey: string, debounceMs: number): Promise<boolean> {
 
@@ -89,7 +133,7 @@ export class ActionGuard {
     /** Clear any existing debounce timer to restart the delay period */
     if (state.debounceTimer) {
       clearTimeout(state.debounceTimer);
-      // 이전 debounce resolve 함수가 있으면 false로 해결
+      // Resolve previous debounce with false if exists
       if (state.debounceResolve) {
         state.debounceResolve(false);
         state.debounceResolve = undefined;
@@ -98,10 +142,10 @@ export class ActionGuard {
 
     /** Create new debounce promise */
     return new Promise<boolean>((resolve) => {
-      // 새로운 resolve 함수 저장
+      // Store new resolve function
       state!.debounceResolve = resolve;
       
-      // 새 타이머 설정
+      // Set new timer
       state!.debounceTimer = setTimeout(() => {
         /** Clean up timer and resolver references */
         state!.debounceTimer = undefined;
@@ -114,10 +158,26 @@ export class ActionGuard {
   }
 
   /**
-   * Check if action should be throttled
-   * @param actionKey - Unique key for the action
-   * @param throttleMs - Throttle delay in milliseconds
-   * @returns True if action should proceed, false if throttled
+   * Apply throttling to an action
+   * 
+   * Throttling limits execution frequency by ensuring a minimum interval between
+   * calls. Unlike debouncing, throttling executes immediately on the first call
+   * and then blocks subsequent calls until the interval expires.
+   * 
+   * @param actionKey - Unique identifier for the action being throttled
+   * @param throttleMs - Minimum interval in milliseconds between executions
+   * 
+   * @returns True if execution should proceed, false if currently throttled
+   * 
+   * @example Scroll Handler Throttling
+   * ```typescript
+   * // Update scroll position max once per 100ms
+   * if (guard.throttle('scrollUpdate', 100)) {
+   *   updateScrollPosition()
+ * }
+ * ```
+   * 
+   * @internal
    */
   throttle(actionKey: string, throttleMs: number): boolean {
 
@@ -169,8 +229,14 @@ export class ActionGuard {
   }
 
   /**
-   * Clear all guards for an action
-   * @param actionKey - Action key to clear
+   * Clear all guard state for a specific action
+   * 
+   * Removes debounce and throttle timers for the specified action,
+   * preventing memory leaks and allowing immediate re-execution.
+   * 
+   * @param actionKey - Action identifier to clear guards for
+   * 
+   * @internal
    */
   clearGuards(actionKey: string): void {
     
@@ -179,7 +245,7 @@ export class ActionGuard {
       /** Clear debounce timer if active to prevent memory leaks */
       if (state.debounceTimer) {
         clearTimeout(state.debounceTimer);
-        // 대기 중인 debounce 호출들을 취소로 해제
+        // Cancel waiting debounce calls
         if (state.debounceResolve) {
           state.debounceResolve(false);
         }
@@ -195,7 +261,12 @@ export class ActionGuard {
   }
 
   /**
-   * Clear all guards
+   * Clear all guard states for all actions
+   * 
+   * Removes all active debounce and throttle timers, useful for cleanup
+   * when shutting down the action system or resetting state.
+   * 
+   * @internal
    */
   clearAll(): void {
     
@@ -205,7 +276,7 @@ export class ActionGuard {
       /** Clear any active debounce timers */
       if (state.debounceTimer) {
         clearTimeout(state.debounceTimer);
-        // 대기 중인 debounce 호출들을 취소로 해제
+        // Cancel waiting debounce calls
         if (state.debounceResolve) {
           state.debounceResolve(false);
         }
@@ -221,15 +292,29 @@ export class ActionGuard {
   }
 
   /**
-   * Get current guard state for debugging
-   * @param actionKey - Action key to inspect
+   * Get current guard state for debugging purposes
+   * 
+   * Returns the internal state for a specific action, including timer
+   * information and execution timestamps.
+   * 
+   * @param actionKey - Action identifier to inspect
+   * @returns Guard state or undefined if no state exists
+   * 
+   * @internal
    */
   getGuardState(actionKey: string): GuardState | undefined {
     return this.guards.get(actionKey);
   }
 
   /**
-   * Get all active guards for debugging
+   * Get all active guard states for debugging purposes
+   * 
+   * Returns a copy of all current guard states, useful for monitoring
+   * and debugging rate limiting behavior across all actions.
+   * 
+   * @returns Map of action keys to their guard states
+   * 
+   * @internal
    */
   getAllGuardStates(): Map<string, GuardState> {
     return new Map(this.guards);

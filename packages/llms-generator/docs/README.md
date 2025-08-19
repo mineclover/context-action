@@ -36,19 +36,20 @@ packages/llms-generator/
 └── llms-generator.config.json  # 설정 파일
 ```
 
-## 🔧 CLI 명령어
+## 🔧 CLI 명령어 (2025 최적화됨)
 
 ```bash
-# 템플릿 생성
-npm run cli template-generate
+# 워크플로우 관리
+npx @context-action/llms-generator work-next --language ko
+npx @context-action/llms-generator work-next --show-completed
 
-# Priority 파일 생성
-npm run cli priority-generate ko
+# Clean LLMS 생성 (LLM 훈련용, 권장)
+npx @context-action/llms-generator clean-llms-generate 200 --language ko --pattern clean
+npx @context-action/llms-generator clean-llms-generate --category guide --pattern minimal
 
-# 문서 생성
-npm run cli chars 200 ko
-npm run cli chars 500 ko  
-npm run cli chars 1000 ko
+# 표준 LLMS 생성 (메타데이터 포함)
+npx @context-action/llms-generator llms-generate --character-limit 200 --language ko
+npx @context-action/llms-generator llms-generate --category guide --pattern minimum
 ```
 
 ---

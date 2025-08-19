@@ -1,50 +1,106 @@
-# TypeDoc VitePress Sync 가이드
+# TypeDoc VitePress Sync 완전 가이드
 
-TypeDoc VitePress Sync 라이브러리와 최적으로 동작하기 위한 설정 및 코드 작성 가이드입니다.
+`@context-action/typedoc-vitepress-sync` 라이브러리와 최적으로 동작하기 위한 완전한 설정 및 사용 가이드입니다.
 
-## 📋 권장 설정
+## 🚀 빠른 시작
+
+### 1. 설치
+
+```bash
+# 프로젝트 의존성으로 설치
+npm install @context-action/typedoc-vitepress-sync
+
+# 또는 전역 설치 (CLI 사용)
+npm install -g @context-action/typedoc-vitepress-sync
+```
+
+### 2. 기본 설정
+
+```bash
+# 설정 파일 초기화
+npx typedoc-vitepress-sync init
+
+# TypeDoc 출력 생성
+npx typedoc --json docs/api/generated/api.json src/
+
+# 동기화 실행
+npx typedoc-vitepress-sync sync
+```
+
+## 📋 완전한 설정 옵션
 
 ### 기본 설정 (`typedoc-vitepress-sync.config.js`)
 
 ```javascript
 export default {
   // 필수 설정
-  sourceDir: './docs/api/generated',
-  targetDir: './docs/en/api',
-  sidebarConfigPath: './docs/.vitepress/config/api-spec.ts',
+  sourceDir: './docs/api/generated',     // TypeDoc JSON 출력 디렉토리
+  targetDir: './docs/en/api',           // VitePress 마크다운 출력 디렉토리
+  sidebarConfigPath: './docs/.vitepress/config/api-spec.ts', // 사이드바 설정 출력
   
-  // 패키지 매핑 (모노레포용)
+  // 패키지 매핑 (모노레포 지원)
   packageMapping: {
-    'core': 'core',
-    'react': 'react',
-    'utils': 'utilities'
+    'core': 'core',                     // @scope/core-package → core
+    'react': 'react',                   // @scope/react-package → react
+    'utils': 'utilities'                // utils → utilities
   },
   
-  // 성능 최적화 설정
+  // 🚀 성능 최적화 설정 (67-69% 향상)
   cache: {
-    enabled: true,                    // 필수: 67% 성능 향상
-    dir: './.typedoc-vitepress-cache',
-    ttl: 24 * 60 * 60 * 1000,        // 24시간 권장
-    hashAlgorithm: 'sha256'           // 정확한 변경 감지
+    enabled: true,                      // 필수: 캐싱 활성화
+    dir: './.typedoc-vitepress-cache',  // 캐시 디렉토리
+    ttl: 24 * 60 * 60 * 1000,          // 24시간 TTL
+    hashAlgorithm: 'sha256',            // SHA256 해시 (권장)
+    manifestFile: 'manifest.json'       // 캐시 매니페스트
+  },
+  
+  // ⚡ 병렬 처리 설정
+  parallel: {
+    enabled: true,                      // 병렬 처리 활성화
+    maxWorkers: 4,                      // 워커 수 (CPU 코어 기준)
+    batchSize: 10                       // 배치 크기 (5-15 권장)
+  },
+  
+  // 🔍 품질 검증 설정
+  quality: {
+    validateLinks: true,                // 내부 링크 검증
+    validateMarkdown: true,             // 마크다운 문법 검증
+    checkAccessibility: true            // 접근성 규정 검증
+  },
+  
+  // 📊 메트릭 수집 설정
+  metrics: {
+    enabled: true,                      // 메트릭 수집 활성화
+    outputFile: './reports/sync-metrics.json' // 메트릭 출력 파일
+  }
+}
+```
+
+### 환경별 설정 최적화
+
+```javascript
+// 개발 환경 설정
+const isDev = process.env.NODE_ENV === 'development'
+const isCI = process.env.CI === 'true'
+
+export default {
+  sourceDir: './docs/api/generated',
+  targetDir: './docs/en/api',
+  
+  cache: {
+    enabled: !isDev,                   // 개발 시 비활성화
+    ttl: isDev ? 0 : 24 * 60 * 60 * 1000
   },
   
   parallel: {
-    enabled: true,                    // 대용량 프로젝트에 필수
-    maxWorkers: 4,                    // CPU 코어 수에 맞게 조정
-    batchSize: 10                     // 파일 수에 따라 5-15 권장
+    enabled: !isDev,                   // 개발 시 단일 스레드
+    maxWorkers: isDev ? 1 : (isCI ? 8 : 4)
   },
   
-  // 품질 보장 설정
   quality: {
-    validateLinks: true,              // 내부 링크 검증
-    validateMarkdown: true,           // 마크다운 문법 검증
-    checkAccessibility: true          // 접근성 검증
-  },
-  
-  // 모니터링 설정
-  metrics: {
-    enabled: true,
-    outputFile: './reports/api-sync-metrics.json'
+    validateLinks: !isDev,             // 개발 시 성능을 위해 비활성화
+    validateMarkdown: true,
+    checkAccessibility: isCI           // CI에서만 전체 검증
   }
 }
 ```
@@ -438,70 +494,325 @@ jobs:
         run: pnpm docs:build
 ```
 
+## 🛠️ CLI 사용법
+
+### 기본 명령어
+
+```bash
+# 문서 동기화
+npx typedoc-vitepress-sync sync
+
+# 상세 로그와 함께 실행
+npx typedoc-vitepress-sync sync --verbose
+
+# 캐시 무시하고 강제 실행
+npx typedoc-vitepress-sync sync --force
+
+# 미리보기 (실제 변경 없이 확인)
+npx typedoc-vitepress-sync sync --dry-run
+
+# 캐시 및 생성 파일 정리
+npx typedoc-vitepress-sync clean
+
+# 캐시 통계 확인
+npx typedoc-vitepress-sync cache stats
+
+# 캐시 초기화
+npx typedoc-vitepress-sync cache clear
+```
+
+### 설정 오버라이드
+
+```bash
+# 소스/타겟 디렉토리 지정
+npx typedoc-vitepress-sync sync \
+  --source ./custom/api/generated \
+  --target ./custom/docs/api
+
+# 기능 비활성화
+npx typedoc-vitepress-sync sync \
+  --no-cache \
+  --no-parallel \
+  --no-quality
+
+# 커스텀 설정 파일 사용
+npx typedoc-vitepress-sync sync \
+  --config ./custom-sync.config.js
+```
+
+## 🔧 프로그래밍 방식 사용법
+
+### 기본 사용
+
+```typescript
+import { TypeDocVitePressSync } from '@context-action/typedoc-vitepress-sync'
+
+const sync = new TypeDocVitePressSync({
+  sourceDir: './docs/api/generated',
+  targetDir: './docs/en/api',
+  packageMapping: {
+    'core': 'core',
+    'react': 'react'
+  }
+})
+
+// 자동 최적화 적용
+sync.autoOptimize()
+
+// 동기화 실행
+const result = await sync.sync()
+console.log(`처리된 파일: ${result.filesProcessed}개`)
+console.log(`캐시 적중률: ${result.cache.hitRate}`)
+```
+
+### 이벤트 기반 처리
+
+```typescript
+// 진행률 추적
+sync.on('start', (config) => {
+  console.log('🚀 동기화 시작')
+})
+
+sync.on('fileComplete', (filePath, result) => {
+  const status = result.cached ? '💾 캐시됨' : '🔄 처리됨'
+  console.log(`${status}: ${filePath}`)
+})
+
+sync.on('complete', (result) => {
+  console.log('✅ 동기화 완료!')
+})
+
+// 에러 처리
+sync.on('error', (error, context) => {
+  console.error(`❌ 오류 발생 (${context}):`, error.message)
+})
+
+await sync.sync()
+```
+
+### 고급 사용법
+
+```typescript
+// 커스텀 로거 사용
+class CustomLogger {
+  info(message: string) { /* 커스텀 로깅 */ }
+  warn(message: string) { /* 커스텀 경고 */ }
+  error(message: string) { /* 커스텀 에러 */ }
+  debug(message: string) { /* 커스텀 디버그 */ }
+}
+
+const sync = new TypeDocVitePressSync(config, new CustomLogger())
+
+// 설정 검증
+const issues = sync.validateConfig()
+if (issues.length > 0) {
+  console.log('설정 문제:', issues)
+}
+
+// 런타임 통계
+const cacheStats = sync.getCacheStats()
+const qualityStats = sync.getQualityStats()
+const errorSummary = sync.getErrorSummary()
+```
+
 ## 🚨 문제 해결
 
 ### 일반적인 문제와 해결책
 
-1. **캐시 관련 문제**
-   ```bash
-   # 캐시 초기화
-   npx @context-action/typedoc-vitepress-sync clean
-   
-   # 강제 재생성
-   pnpm docs:sync --force
-   ```
+#### 1. 설치 문제
+```bash
+# peer dependency 오류
+npm install typedoc vitepress @context-action/typedoc-vitepress-sync
 
-2. **링크 검증 오류**
-   - 상대 경로 사용: `./relative-path.md`
-   - 절대 경로 피하기: `/absolute/path.md` (❌)
+# 전역 설치 문제
+npm config get prefix  # PATH 확인
+npx @context-action/typedoc-vitepress-sync  # npx 사용
+```
 
-3. **마크다운 문법 오류**
-   - 코드 블록에 언어 지정 필수
-   - 테이블 컬럼 수 일치 확인
-   - 제목 레벨 순서 준수
+#### 2. 설정 문제
+```bash
+# 설정 파일이 없음
+npx typedoc-vitepress-sync init
 
-4. **성능 최적화**
-   ```javascript
-   // 대용량 프로젝트용 설정
-   export default {
-     parallel: {
-       enabled: true,
-       maxWorkers: Math.min(8, require('os').cpus().length),
-       batchSize: Math.ceil(totalFiles / 20)
-     },
-     cache: {
-       enabled: true,
-       ttl: 7 * 24 * 60 * 60 * 1000 // 1주일
-     }
-   }
-   ```
+# 경로 오류 확인
+npx typedoc-vitepress-sync sync --dry-run
 
-## 📈 모니터링
+# 설정 검증
+npx typedoc-vitepress-sync sync --verbose
+```
 
-### 메트릭 분석
+#### 3. 캐시 문제
+```bash
+# 캐시 초기화
+npx typedoc-vitepress-sync clean
 
-생성된 `reports/api-sync-metrics.json`을 통해 다음을 모니터링:
+# 캐시 상태 확인
+npx typedoc-vitepress-sync cache stats
 
-- **성능**: 파일당 평균 처리 시간
-- **캐시 효율성**: 히트율 >80% 목표
-- **품질**: 검증 오류 수 최소화
-- **처리량**: 초당 파일 처리 수
+# 강제 재생성
+npx typedoc-vitepress-sync sync --force
+```
 
-### 권장 임계값
-
+#### 4. 성능 문제
 ```javascript
-const thresholds = {
-  performance: {
-    averageTimePerFile: 20,    // 20ms 이하
-    cacheHitRate: 80,          // 80% 이상
-    filesPerSecond: 50         // 50 파일/초 이상
-  },
+// 메모리 부족 시 설정 조정
+export default {
+  parallel: {
+    maxWorkers: 2,    // 워커 수 감소
+    batchSize: 5      // 배치 크기 감소
+  }
+}
+
+// Node.js 메모리 증가
+NODE_OPTIONS="--max-old-space-size=4096" npx typedoc-vitepress-sync sync
+```
+
+#### 5. 품질 검증 오류
+```bash
+# 링크 검증 비활성화 (임시)
+npx typedoc-vitepress-sync sync --no-quality
+
+# 특정 검증만 활성화
+export default {
   quality: {
-    maxLinkErrors: 0,          // 링크 오류 0개
-    maxMarkdownErrors: 5,      // 마크다운 오류 5개 이하
-    maxAccessibilityIssues: 3  // 접근성 이슈 3개 이하
+    validateLinks: false,    // 링크 검증 비활성화
+    validateMarkdown: true,
+    checkAccessibility: false
   }
 }
 ```
 
-이 가이드를 따르면 TypeDoc VitePress Sync와 최적으로 동작하는 문서화 시스템을 구축할 수 있습니다.
+### 디버깅 기법
+
+```bash
+# 상세 로그 활성화
+DEBUG=typedoc-vitepress-sync:* npx typedoc-vitepress-sync sync
+
+# 성능 프로파일링
+npx typedoc-vitepress-sync sync --verbose > debug.log
+
+# 시스템 정보 확인
+node --version
+npm --version
+npx typedoc-vitepress-sync --version
+```
+
+## 📊 성능 모니터링
+
+### 메트릭 분석
+
+생성된 `reports/sync-metrics.json`에서 확인 가능한 정보:
+
+```json
+{
+  "filesProcessed": 76,
+  "filesSkipped": 72,
+  "processingTime": 1250,
+  "cache": {
+    "hits": 72,
+    "misses": 4,
+    "hitRate": "94.74%"
+  },
+  "quality": {
+    "totalIssues": 2,
+    "files": [...]
+  },
+  "performance": {
+    "filesPerSecond": "60.8",
+    "averageTimePerFile": "16.45ms"
+  }
+}
+```
+
+### 성능 벤치마크
+
+| 프로젝트 규모 | 파일 수 | 첫 실행 | 캐시 적용 | 개선도 |
+|-------------|--------|---------|-----------|--------|
+| 소규모 | 20개 | 150ms | 50ms | **67% 향상** |
+| 중규모 | 76개 | 300ms | 100ms | **67% 향상** |
+| 대규모 | 200+개 | 800ms | 250ms | **69% 향상** |
+
+### 권장 임계값
+
+```javascript
+const performanceTargets = {
+  cacheHitRate: 90,              // 90% 이상
+  averageTimePerFile: 20,        // 20ms 이하
+  filesPerSecond: 50,            // 50파일/초 이상
+  qualityIssues: 5               // 품질 이슈 5개 이하
+}
+```
+
+## 🤝 통합 예제
+
+### GitHub Actions 통합
+
+```yaml
+# .github/workflows/docs.yml
+name: Documentation
+
+on:
+  push:
+    branches: [main]
+    paths: ['packages/*/src/**', 'docs/**']
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      # 캐시 복원
+      - name: Cache TypeDoc VitePress Sync
+        uses: actions/cache@v3
+        with:
+          path: .typedoc-vitepress-cache
+          key: typedoc-sync-${{ runner.os }}-${{ hashFiles('packages/*/src/**/*.ts') }}
+          restore-keys: typedoc-sync-${{ runner.os }}-
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Generate TypeDoc
+        run: npm run docs:api
+      
+      - name: Sync to VitePress
+        run: npx typedoc-vitepress-sync sync --verbose
+      
+      - name: Upload metrics
+        uses: actions/upload-artifact@v3
+        with:
+          name: sync-metrics
+          path: reports/sync-metrics.json
+```
+
+### package.json 스크립트
+
+```json
+{
+  "scripts": {
+    "docs:api": "typedoc --json docs/api/generated/api.json src/",
+    "docs:sync": "typedoc-vitepress-sync sync",
+    "docs:sync:force": "typedoc-vitepress-sync sync --force",
+    "docs:clean": "typedoc-vitepress-sync clean",
+    "docs:build": "npm run docs:api && npm run docs:sync && vitepress build docs",
+    "docs:dev": "vitepress dev docs",
+    "docs:preview": "vitepress preview docs"
+  }
+}
+```
+
+## 📚 추가 리소스
+
+- **패키지 문서**: [GitHub Repository](https://github.com/mineclover/context-action/tree/main/packages/typedoc-vitepress-sync)
+- **API 참조**: [완전한 API 문서](https://github.com/mineclover/context-action/tree/main/packages/typedoc-vitepress-sync/docs/api-reference.md)
+- **고급 사용법**: [고급 기능 가이드](https://github.com/mineclover/context-action/tree/main/packages/typedoc-vitepress-sync/docs/advanced-usage.md)
+- **문제 해결**: [상세 문제 해결 가이드](https://github.com/mineclover/context-action/tree/main/packages/typedoc-vitepress-sync/docs/troubleshooting.md)
+
+이 완전 가이드를 통해 TypeDoc VitePress Sync의 모든 기능을 최대한 활용할 수 있습니다. 67-69%의 성능 향상과 포괄적인 품질 검증을 통해 고품질 문서화 워크플로우를 구축하세요.

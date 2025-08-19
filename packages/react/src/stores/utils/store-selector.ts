@@ -22,7 +22,6 @@ const CONSTANTS = {
  * @implements fresh-state-access
  * @implements performance-optimization
  * @memberof core-concepts
- * @since 1.0.0
  * 
  * 핵심 기능: selector를 사용하여 Store의 특정 부분만 구독하고 반환
  * 

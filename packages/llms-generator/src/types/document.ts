@@ -19,7 +19,6 @@ export interface DocumentStats {
   contentCharacters: number;
   wordCount: number;
   lineCount: number;
-  estimatedReadingTime: string;
 }
 
 export interface DocumentCollection {

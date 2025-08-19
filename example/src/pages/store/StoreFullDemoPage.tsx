@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { PageWithLogMonitor } from '../../components/LogMonitor/';
 import { Badge, Button, Card, CardContent } from '../../components/ui';
-import { registerStoreActions } from '../../demos/store-scenarios/actions';
+import { registerStoreActions } from '../demos/store-scenarios/actions';
 import {
   ChatDemo,
   ShoppingCartDemo,
   TodoListDemo,
   UserProfileDemo,
-} from '../../demos/store-scenarios/components';
-import { StoreScenarios } from '../../demos/store-scenarios/stores';
+} from '../demos/store-scenarios/components';
+import { StoreScenarios } from '../demos/store-scenarios/stores';
 
 /**
  * 모듈화된 Store 시스템 데모 페이지
@@ -101,17 +101,34 @@ function StoreFullDemoPage() {
     >
       <div className="page-container">
         <header className="page-header">
-          <h1>🏪 Modularized Store System</h1>
+          <h1>🏪 Modular Store System (4 Core Demos)</h1>
           <p className="page-description">
-            4개의 실제 시나리오를 모듈화하여 구현한 Store 시스템 데모입니다. 각
-            시나리오는 별도의 컴포넌트, 액션, 스토어로 분리되어 관리됩니다.
+            <strong>4개의 핵심 시나리오</strong>를 모듈화하여 구현한 Store 시스템 데모입니다. 
+            각 시나리오는 별도의 컴포넌트, 액션, 스토어로 분리되어 관리됩니다.
           </p>
+          
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4 mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-blue-600">🎯</span>
+              <span className="font-semibold text-blue-800">
+                Focus Mode: 핵심 Store 패턴 학습
+              </span>
+            </div>
+            <p className="text-blue-800 text-sm">
+              이 페이지는 <strong>탭 방식</strong>으로 각 데모를 개별 탐색하여 집중적으로 학습할 수 있습니다. 
+              모든 시나리오를 한 번에 보려면 <strong>/demos/store-scenarios</strong>를 참고하세요.
+            </p>
+          </div>
+          
           <div className="flex flex-wrap gap-2 mt-4">
             <Badge variant="outline" className="bg-blue-50 text-blue-800">
               📁 모듈 구조: /demos/store-scenarios/
             </Badge>
             <Badge variant="outline" className="bg-green-50 text-green-800">
               🔧 분리된 관심사: Types, Stores, Actions, Components
+            </Badge>
+            <Badge variant="outline" className="bg-purple-50 text-purple-800">
+              🎭 탭 형태로 개별 탐색 가능
             </Badge>
           </div>
         </header>

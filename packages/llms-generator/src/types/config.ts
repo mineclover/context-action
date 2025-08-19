@@ -2,7 +2,8 @@
  * Configuration types for LLMS Generator
  */
 
-import { CharacterLimit, DocumentId } from '../domain/value-objects/index.js';
+// Domain types commented out - not used in this configuration
+// import { CharacterLimit, DocumentId } from '../domain/value-objects/index.js';
 import type { 
   DocumentCategory, 
   PriorityTier, 
@@ -101,7 +102,6 @@ export interface TagConfig {
   weight: number;
   compatibleWith: string[];
   audience?: string[];
-  estimatedTime?: string;
   importance?: 'critical' | 'optional';
   frequency?: 'high' | 'low';
   urgency?: 'high' | 'medium' | 'low';
@@ -266,7 +266,6 @@ export interface DocumentMetadata {
     secondary: string[];
     audience: TargetAudience[];
     complexity: 'basic' | 'intermediate' | 'advanced' | 'expert';
-    estimatedReadingTime: string;
     lastUpdated?: string;
   };
   keywords?: {

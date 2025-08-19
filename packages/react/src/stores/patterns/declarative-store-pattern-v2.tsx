@@ -1,11 +1,12 @@
 /**
- * Declarative Store Pattern V2 - Simplified and Unified
+ * @fileoverview Declarative Store Pattern V2 - Simplified and Unified
  * 
  * A simplified version that focuses on store management with excellent type inference.
- * Removes complexity while maintaining all essential features.
+ * Removes complexity while maintaining all essential features. Follows the Store Only Pattern
+ * for pure state management without action dispatching.
  * 
- * @module store/declarative-store-pattern-v2
- * @since 2.1.0
+ * This pattern provides type-safe store creation with automatic inference from initial values,
+ * making it the recommended approach for state management in the Context-Action framework.
  */
 
 import React, { createContext, useContext, ReactNode, useRef } from 'react';
@@ -15,7 +16,26 @@ import type { Store } from '../core/Store';
 import type { ComparisonOptions } from '../utils/comparison';
 
 /**
- * Store Configuration - Extended to match Pattern Guide
+ * Store configuration interface for declarative store pattern
+ * 
+ * Defines configuration options for individual stores including initial values,
+ * comparison strategies, debugging options, and metadata.
+ * 
+ * @template T - The type of values stored in this store
+ * 
+ * @example
+ * ```typescript
+ * const userConfig: StoreConfig<User> = {
+ *   initialValue: { id: '', name: '', email: '' },
+ *   strategy: 'shallow',
+ *   description: 'User profile data',
+ *   debug: true,
+ *   tags: ['user', 'profile'],
+ *   version: '1.0.0'
+ * }
+ * ```
+ * 
+ * @public
  */
 export interface StoreConfig<T = any> {
   initialValue: T;
@@ -28,7 +48,30 @@ export interface StoreConfig<T = any> {
 }
 
 /**
- * Initial Stores - Direct type mapping (for generic approach)
+ * Initial stores type mapping for declarative store pattern
+ * 
+ * Maps store names to their configuration or direct initial values.
+ * Supports both full configuration objects and direct value assignment
+ * for simplified store definition.
+ * 
+ * @template T - Record of store names to their value types
+ * 
+ * @example
+ * ```typescript
+ * type AppStores = {
+ *   user: User
+ *   settings: AppSettings
+ *   theme: 'light' | 'dark'
+ * }
+ * 
+ * const stores: InitialStores<AppStores> = {
+ *   user: { initialValue: defaultUser, strategy: 'shallow' },
+ *   settings: defaultSettings,  // Direct value
+ *   theme: 'light'              // Direct value
+ * }
+ * ```
+ * 
+ * @public
  */
 export type InitialStores<T extends Record<string, any>> = {
   [K in keyof T]: StoreConfig<T[K]> | T[K];  // Allow direct value or config
@@ -36,11 +79,42 @@ export type InitialStores<T extends Record<string, any>> = {
 
 /**
  * Store definitions that can infer types from initialValue
+ * 
+ * Generic type for store definitions that supports automatic type inference.
+ * Each store can be defined with either a full configuration or a direct value.
+ * 
+ * @public
  */
 export type StoreDefinitions = Record<string, StoreConfig<any> | any>;
 
 /**
- * Infer store types from store definitions
+ * Infer store value types from store definitions
+ * 
+ * Utility type that extracts the value types from store definitions,
+ * supporting both configuration objects and direct values. Excludes
+ * functions and properly handles arrays, dates, and objects.
+ * 
+ * @template T - Store definitions record
+ * 
+ * @example
+ * ```typescript
+ * const definitions = {
+ *   user: { initialValue: { id: '', name: '' } },
+ *   count: 0,
+ *   items: [] as string[],
+ *   settings: { theme: 'light' }
+ * }
+ * 
+ * type InferredTypes = InferStoreTypes<typeof definitions>
+ * // Result: {
+ * //   user: { id: string; name: string }
+ * //   count: number
+ * //   items: string[]
+ * //   settings: { theme: string }
+ * // }
+ * ```
+ * 
+ * @public
  */
 export type InferStoreTypes<T extends StoreDefinitions> = {
   [K in keyof T]: T[K] extends StoreConfig<infer V> 
@@ -57,12 +131,25 @@ export type InferStoreTypes<T extends StoreDefinitions> = {
 };
 
 /**
- * @deprecated Use InitialStores instead
+ * @deprecated Use InitialStores instead for better type inference
+ * 
+ * Legacy type alias for backward compatibility. New code should use
+ * InitialStores<T> which provides better type inference and cleaner API.
+ * 
+ * @public
  */
 export type StoreSchema<T extends Record<string, any>> = InitialStores<T>;
 
 /**
- * Internal Registry Manager
+ * Internal store registry manager
+ * 
+ * Manages store creation, caching, and registry coordination for the
+ * declarative store pattern. Handles store lifecycle and provides
+ * type-safe access to individual stores.
+ * 
+ * @template T - Record of store names to their value types
+ * 
+ * @internal
  */
 class StoreManager<T extends Record<string, any>> {
   public readonly registry: StoreRegistry;
@@ -78,7 +165,17 @@ class StoreManager<T extends Record<string, any>> {
   }
 
   /**
-   * Get or create a store with excellent type inference
+   * Get or create a store with type-safe inference
+   * 
+   * Retrieves an existing store or creates a new one based on the initial
+   * configuration. Provides excellent type inference and caches stores
+   * for performance.
+   * 
+   * @template K - Store name key
+   * @param storeName - Name of the store to retrieve or create
+   * @returns Typed store instance
+   * 
+   * @internal
    */
   getStore<K extends keyof T>(storeName: K): Store<T[K]> {
     // Return existing store if available

@@ -9,13 +9,17 @@
   "generation": {
     "supportedLanguages": [
       "ko",
-      "en"
+      "en",
+      "ja"
     ],
     "characterLimits": [
+      50,
       100,
       300,
+      500,
       1000,
-      2000
+      2000,
+      4000
     ],
     "defaultLanguage": "ko",
     "outputFormat": "txt"
@@ -90,6 +94,19 @@
       ],
       "color": "#6c757d",
       "icon": "📚"
+    },
+    "llms": {
+      "name": "LLM 콘텐츠",
+      "description": "LLM 최적화 콘텐츠",
+      "priority": 95,
+      "defaultStrategy": "reference-first",
+      "tags": [
+        "llms",
+        "optimized",
+        "concise"
+      ],
+      "color": "#ff6b6b",
+      "icon": "🤖"
     }
   },
   "tags": {
@@ -105,8 +122,7 @@
       "audience": [
         "new-users",
         "learners"
-      ],
-      "estimatedTime": "5-15분"
+      ]
     },
     "intermediate": {
       "name": "중급",
@@ -119,8 +135,7 @@
       ],
       "audience": [
         "experienced-users"
-      ],
-      "estimatedTime": "15-30분"
+      ]
     },
     "advanced": {
       "name": "고급",
@@ -134,8 +149,7 @@
       "audience": [
         "experts",
         "contributors"
-      ],
-      "estimatedTime": "30-60분"
+      ]
     },
     "core": {
       "name": "핵심",
@@ -172,8 +186,7 @@
       ],
       "audience": [
         "new-users"
-      ],
-      "estimatedTime": "5-10분"
+      ]
     },
     "troubleshooting": {
       "name": "문제 해결",
@@ -227,6 +240,24 @@
         "technical",
         "api",
         "lookup"
+      ]
+    },
+    "llms": {
+      "name": "LLM 최적화",
+      "description": "LLM 처리에 최적화된",
+      "weight": 1,
+      "compatibleWith": [
+        "concise",
+        "structured"
+      ]
+    },
+    "optimized": {
+      "name": "최적화",
+      "description": "성능 최적화된",
+      "weight": 1,
+      "compatibleWith": [
+        "advanced",
+        "technical"
       ]
     }
   },

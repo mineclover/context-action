@@ -4,8 +4,8 @@
 # Git 커밋 후 문서 동기화 자동 실행
 echo "🔄 커밋 후 문서 동기화를 시작합니다..."
 
-# 변경된 파일들을 자동으로 감지하여 동기화 수행
-npx @context-action/llms-generator sync-docs --quiet
+# 로컬 개발 환경에서 pnpm cli 사용
+cd packages/llms-generator && pnpm cli sync-docs --quiet
 
 # 동기화 결과에 따른 메시지
 if [ $? -eq 0 ]; then

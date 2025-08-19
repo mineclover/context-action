@@ -4,7 +4,6 @@
  * @implements model-layer
  * @implements mvvm-pattern
  * @memberof core-concepts
- * @since 2.0.0
  * 
  * Core store system for Context-Action framework using Declarative Store Pattern
  * for type-safe store management similar to Action Registry pattern.

@@ -8,7 +8,8 @@ import type {
   ParallelConfig,
   FileProcessResult,
   ProcessorOptions,
-  Logger 
+  Logger,
+  SyncEvents 
 } from '../types/index.js'
 import { CacheManager } from './CacheManager.js'
 import { QualityValidator } from './QualityValidator.js'
@@ -24,6 +25,7 @@ export class FileProcessor {
   private errorHandler: ErrorHandler
   private markdownProcessor: MarkdownProcessor
   private logger?: Logger
+  private eventEmitter?: <K extends keyof SyncEvents>(event: K, ...args: Parameters<SyncEvents[K]>) => void
 
   constructor(
     config: ParallelConfig,
@@ -31,7 +33,8 @@ export class FileProcessor {
     validator: QualityValidator,
     metrics: MetricsCollector,
     errorHandler: ErrorHandler,
-    logger?: Logger
+    logger?: Logger,
+    eventEmitter?: <K extends keyof SyncEvents>(event: K, ...args: Parameters<SyncEvents[K]>) => void
   ) {
     this.config = {
       enabled: true,
@@ -45,6 +48,7 @@ export class FileProcessor {
     this.errorHandler = errorHandler
     this.markdownProcessor = new MarkdownProcessor()
     this.logger = logger
+    this.eventEmitter = eventEmitter
   }
 
   /**
@@ -55,12 +59,16 @@ export class FileProcessor {
     targetPath: string,
     options: ProcessorOptions = {}
   ): Promise<FileProcessResult> {
+    this.eventEmitter?.('fileStart', sourcePath)
+    
     try {
       // Check cache first
       if (!this.cache.shouldProcess(sourcePath, targetPath)) {
         this.logger?.debug(`Cache hit: ${path.basename(sourcePath)}`)
         this.metrics.recordFile(sourcePath, true)
-        return { success: true, cached: true }
+        const cacheResult = { success: true, cached: true }
+        this.eventEmitter?.('fileComplete', sourcePath, cacheResult)
+        return cacheResult
       }
 
       // Ensure target directory exists
@@ -90,18 +98,22 @@ export class FileProcessor {
       // Validate quality if enabled
       await this.validator.validateFile(targetPath)
 
-      return { success: true, cached: false }
+      const successResult = { success: true, cached: false }
+      this.eventEmitter?.('fileComplete', sourcePath, successResult)
+      return successResult
 
     } catch (error) {
-      const result = this.errorHandler.handleError(
+      this.errorHandler.handleError(
         error as Error, 
         `Processing file: ${sourcePath}`
       )
-      return { 
+      const errorResult = { 
         success: false, 
         cached: false, 
         error: (error as Error).message 
       }
+      this.eventEmitter?.('fileComplete', sourcePath, errorResult)
+      return errorResult
     }
   }
 

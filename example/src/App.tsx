@@ -11,18 +11,27 @@ import EnhancedAbortableSearchExample from './components/EnhancedAbortableSearch
 import Layout from './components/Layout';
 import { ToastContainer, ToastControlPanel } from './components/ToastSystem';
 import ActionGuardIndexPage from './pages/actionguard/ActionGuardIndexPage';
-import ApiBlockingPage from './pages/actionguard/api-blocking/ApiBlockingPage';
-import ActionGuardTestPage from './pages/actionguard/dispatch-options-test/DispatchOptionsTestPage';
-import { ContextStoreMouseEventsPage } from './pages/actionguard/mouse-events/ContextStoreMouseEventsPage';
-import MouseEventsPage from './pages/actionguard/mouse-events/MouseEventsPage';
-import PriorityPerformancePage from './pages/actionguard/priority-performance/PriorityPerformancePage';
-import ScrollPage from './pages/actionguard/scroll/ScrollPage';
-import SearchPage from './pages/actionguard/search/SearchPage';
-import ThrottleComparisonPage from './pages/actionguard/throttle-comparison/ThrottleComparisonPage';
+import ApiBlockingPage from './pages/actionguard/ApiBlockingPage';
+// import ActionGuardTestPage from './pages/actionguard/dispatch-options-test/DispatchOptionsTestPage';
+import { ContextStoreMouseEventsPage } from './pages/actionguard/ContextStoreMouseEventsPage';
+import MouseEventsPage from './pages/actionguard/MouseEventsPage';
+import PriorityPerformancePage from './pages/actionguard/PriorityPerformancePage';
+import { PriorityPerformancePage as NewPriorityPerformancePage } from './pages/actionguard/priority-performance/PriorityPerformancePage';
+import ScrollPage from './pages/actionguard/ScrollPage';
+import SearchPage from './pages/actionguard/SearchPage';
+import ThrottleComparisonPage from './pages/actionguard/ThrottleComparisonPage';
 import CoreAdvancedPage from './pages/core/CoreAdvancedPage';
 import CoreBasicsPage from './pages/core/CoreBasicsPage';
 import CoreFeaturesPage from './pages/core/CoreFeatures';
-import ToastConfigExamplePage from './pages/examples/ToastConfigExamplePage';
+import ToastConfigPage from './pages/examples/ToastConfigPage';
+import { ElementManagementPage } from './pages/examples/ElementManagementPage';
+import { FormBuilderDemoPage } from './pages/examples/FormBuilderDemoPage';
+import { CanvasDemoPage } from './pages/examples/CanvasDemoPage';
+import { RefsIndexPage } from './pages/refs/RefsIndexPage';
+import { CanvasRefDemoPage } from './pages/refs/CanvasRefDemoPage';
+import { FormBuilderRefDemoPage } from './pages/refs/FormBuilderRefDemoPage';
+import { DemosIndexPage } from './pages/demos/DemosIndexPage';
+import { StoreScenariosPage } from './pages/demos/StoreScenariosPage';
 import HomePage from './pages/HomePage';
 import LoggerDemoPage from './pages/logger/LoggerDemoPage';
 import ReactContextPage from './pages/react/ReactContextPage';
@@ -30,9 +39,8 @@ import ReactHooksPage from './pages/react/ReactHooksPage';
 import ReactProviderPage from './pages/react/ReactProviderPage';
 import UseActionWithResultPage from './pages/react/UseActionWithResultPage';
 import StoreBasicsPage from './pages/store/StoreBasicsPage';
-import StoreFullDemoPage from './pages/store/StoreFullDemoPage';
 import StoreImmutabilityTestPage from './pages/store/StoreImmutabilityTestPage';
-import UnifiedPatternDemoPage from './pages/unified-pattern/UnifiedPatternDemoPage';
+import UnifiedPatternPage from './pages/react/UnifiedPatternPage';
 
 // 라우트 변경 시 콘솔 클리어 (개발 환경에서만)
 function ConsoleClearer() {
@@ -62,7 +70,6 @@ function AppContent() {
           <Route path="/core/advanced" element={<CoreAdvancedPage />} />
           <Route path="/core/features" element={<CoreFeaturesPage />} />
           <Route path="/store/basics" element={<StoreBasicsPage />} />
-          <Route path="/store/full-demo" element={<StoreFullDemoPage />} />
           <Route
             path="/store/immutability-test"
             element={<StoreImmutabilityTestPage />}
@@ -90,10 +97,14 @@ function AppContent() {
             path="/actionguard/mouse-events/context-store"
             element={<ContextStoreMouseEventsPage />}
           />
-          <Route path="/actionguard/test" element={<ActionGuardTestPage />} />
+          {/* <Route path="/actionguard/test" element={<ActionGuardTestPage />} /> */}
           <Route
             path="/actionguard/priority-performance"
             element={<PriorityPerformancePage />}
+          />
+          <Route
+            path="/actionguard/priority-performance-advanced"
+            element={<NewPriorityPerformancePage />}
           />
           <Route
             path="/actionguard/throttle-comparison"
@@ -101,7 +112,7 @@ function AppContent() {
           />
           <Route
             path="/examples/toast-config"
-            element={<ToastConfigExamplePage />}
+            element={<ToastConfigPage />}
           />
           <Route
             path="/examples/concurrent-actions"
@@ -112,8 +123,25 @@ function AppContent() {
             element={<EnhancedAbortableSearchExample />}
           />
           <Route
+            path="/examples/element-management"
+            element={<ElementManagementPage />}
+          />
+          <Route
+            path="/examples/element-management/form-builder"
+            element={<FormBuilderDemoPage />}
+          />
+          <Route
+            path="/examples/element-management/canvas"
+            element={<CanvasDemoPage />}
+          />
+          <Route path="/refs" element={<RefsIndexPage />} />
+          <Route path="/refs/canvas" element={<CanvasRefDemoPage />} />
+          <Route path="/refs/form-builder" element={<FormBuilderRefDemoPage />} />
+          <Route path="/demos" element={<DemosIndexPage />} />
+          <Route path="/demos/store-scenarios" element={<StoreScenariosPage />} />
+          <Route
             path="/unified-pattern/demo"
-            element={<UnifiedPatternDemoPage />}
+            element={<UnifiedPatternPage />}
           />
         </Routes>
       </Layout>

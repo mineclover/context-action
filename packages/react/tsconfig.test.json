@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["react", "node", "jest", "@testing-library/jest-dom"],
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "src/**/*",
+    "__tests__/**/*",
+    "**/*.test.*",
+    "**/*.spec.*"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules"
+  ]
+}

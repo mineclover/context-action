@@ -6,8 +6,8 @@
 
 import { Link } from 'react-router-dom';
 import { Button } from '../../../../components/ui';
-import PriorityTestInstance from '../../performance/PriorityTestInstance';
-import { usePriorityPerformanceLogic } from '../hooks/usePriorityPerformanceLogic';
+import PriorityTestInstance from '../instance/PriorityTestInstance';
+import { usePriorityPerformanceLogic } from '../test-hooks/usePriorityPerformanceLogic';
 
 /**
  * 우선순위 성능 테스트 View 컴포넌트

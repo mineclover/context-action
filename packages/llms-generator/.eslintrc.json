@@ -1,6 +1,7 @@
 {
   "extends": [
-    "eslint:recommended"
+    "eslint:recommended",
+    "@typescript-eslint/recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint"],
@@ -13,9 +14,10 @@
     "es6": true
   },
   "rules": {
-    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
     "no-unused-vars": "off",
     "no-console": "off",
-    "no-case-declarations": "off"
+    "no-case-declarations": "off",
+    "@typescript-eslint/no-explicit-any": "warn"
   }
 }

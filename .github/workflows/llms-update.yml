@@ -1,13 +1,15 @@
 name: Update LLMs Documentation Status
 
 on:
-  push:
-    paths:
-      - 'docs/**/*.md'
-      - '!docs/**/llms/**'
-    branches:
-      - main
-      - develop
+  # Temporarily disabled - enable manually when needed
+  workflow_dispatch:
+  # push:
+  #   paths:
+  #     - 'docs/**/*.md'
+  #     - '!docs/**/llms/**'
+  #   branches:
+  #     - main
+  #     - develop
 
 jobs:
   update-llms-status:
@@ -55,8 +57,17 @@ jobs:
     
     - name: Commit status updates
       run: |
-        git config --local user.email "action@github.com"
+        git config --local user.email "mineclover@naver.com"
         git config --local user.name "GitHub Action"
-        git add packages/llms-generator/data/*/priority.json
-        git diff --staged --quiet || git commit -m "chore: update LLMs work status for modified documents"
-        git push || echo "No changes to push"
+        # Check if priority.json files exist before trying to add them
+        if ls packages/llms-generator/data/*/priority.json 1> /dev/null 2>&1; then
+          git add packages/llms-generator/data/*/priority.json
+        fi
+        # Also check for any other generated files
+        git add packages/llms-generator/data/ || true
+        if ! git diff --staged --quiet; then
+          git commit -m "chore: update LLMs work status for modified documents"
+          git push
+        else
+          echo "No changes to commit"
+        fi

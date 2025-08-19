@@ -18,33 +18,84 @@ import { ActionGuard } from './action-guard.js';
 import { OperationQueue } from './concurrency/OperationQueue.js';
 
 /**
- * 중앙화된 액션 등록 및 디스패치 시스템으로, 타입 안전한 액션 파이프라인 관리를 제공하는 핵심 클래스입니다.
+ * Action Register for managing action handlers with priority-based execution
  * 
- * @implements {ActionRegister}
- * @implements {Action Pipeline System}
- * @memberof core-concepts
+ * Central action registration and dispatch system providing type-safe action pipeline management.
+ * Supports sequential, parallel, and race execution modes with advanced handler filtering,
+ * throttling, debouncing, and comprehensive result collection.
  * 
- * @example
+ * @template TActionMap - Action payload mapping interface extending ActionPayloadMap
+ * 
+ * @example Basic Usage
  * ```typescript
  * interface AppActions extends ActionPayloadMap {
- *   updateUser: { id: string; name: string };
- *   calculateTotal: void;
+ *   updateUser: { id: string; name: string; email: string }
+ *   deleteUser: { id: string }
+ *   resetUser: void
  * }
  * 
  * const register = new ActionRegister<AppActions>({
  *   name: 'AppRegister',
- *   logLevel: LogLevel.DEBUG
- * });
+ *   registry: { debug: true, maxHandlers: 10 }
+ * })
  * 
- * // 핸들러 등록
- * register.register('updateUser', ({ id, name }, controller) => {
- *   userStore.setValue({ id, name });
- *   // 핸들러가 자동으로 다음 핸들러로 진행
- * }, { priority: 10 });
+ * // Register handler with priority
+ * register.register('updateUser', async (payload, controller) => {
+ *   await userService.update(payload.id, payload)
+ *   controller.setResult({ success: true, userId: payload.id })
+ * }, { priority: 10, tags: ['user', 'crud'] })
  * 
- * // 액션 디스패치
- * await register.dispatch('updateUser', { id: '1', name: 'John' });
+ * // Dispatch action
+ * await register.dispatch('updateUser', { 
+ *   id: '123', 
+ *   name: 'John Doe', 
+ *   email: 'john@example.com' 
+ * })
  * ```
+ * 
+ * @example With Multiple Handlers
+ * ```typescript
+ * // High priority validation handler
+ * register.register('updateUser', async (payload, controller) => {
+ *   if (!payload.email.includes('@')) {
+ *     controller.abort('Invalid email format')
+ *     return
+ *   }
+ * }, { priority: 100, category: 'validation' })
+ * 
+ * // Lower priority update handler
+ * register.register('updateUser', async (payload, controller) => {
+ *   const user = await userService.update(payload.id, payload)
+ *   controller.setResult(user)
+ * }, { priority: 50, category: 'business-logic' })
+ * ```
+ * 
+ * @example Advanced Configuration
+ * ```typescript
+ * const register = new ActionRegister<AppActions>({
+ *   name: 'AdvancedRegister',
+ *   registry: {
+ *     debug: true,
+ *     maxHandlers: 20,
+ *     defaultExecutionMode: 'parallel',
+ *     autoCleanup: true
+ *   }
+ * })
+ * 
+ * // Handler with debouncing and tags
+ * register.register('searchUsers', async (payload, controller) => {
+ *   const results = await userService.search(payload.query)
+ *   controller.setResult(results)
+ * }, {
+ *   priority: 10,
+ *   debounce: 300,
+ *   tags: ['search', 'user'],
+ *   category: 'query',
+ *   once: false
+ * })
+ * ```
+ * 
+ * @public
  */
 export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   private pipelines = new Map<keyof T, HandlerRegistration<any, any>[]>();
@@ -88,6 +139,43 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     }
   }
 
+  /**
+   * Register an action handler with optional configuration
+   * 
+   * @param action - The action type to register handler for
+   * @param handler - The handler function to execute
+   * @param config - Optional handler configuration including priority, tags, etc.
+   * 
+   * @returns Unregister function to remove this handler
+   * 
+   * @throws {Error} When maximum handlers limit is reached
+   * 
+   * @example Basic Registration
+   * ```typescript
+   * const unregister = register.register('updateUser', async (payload, controller) => {
+   *   await userService.update(payload.id, payload)
+   * })
+   * 
+   * // Later remove the handler
+   * unregister()
+   * ```
+   * 
+   * @example With Priority and Configuration
+   * ```typescript
+   * register.register('validateUser', async (payload, controller) => {
+   *   if (!payload.email) {
+   *     controller.abort('Email is required')
+   *   }
+   * }, {
+   *   priority: 100,
+   *   tags: ['validation'],
+   *   category: 'security',
+   *   once: false
+   * })
+   * ```
+   * 
+   * @public
+   */
   register<K extends keyof T, R = void>(
     action: K,
     handler: ActionHandler<T[K], R>,
@@ -308,6 +396,48 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     };
   }
 
+  /**
+   * Dispatch an action with optional execution options
+   * 
+   * @param action - The action type to dispatch
+   * @param payload - The action payload data
+   * @param options - Optional dispatch options (execution mode, filters, etc.)
+   * 
+   * @returns Promise that resolves when all handlers complete
+   * 
+   * @throws {Error} When action dispatching fails
+   * 
+   * @example Basic Dispatch
+   * ```typescript
+   * await register.dispatch('updateUser', {
+   *   id: '123',
+   *   name: 'John Doe',
+   *   email: 'john@example.com'
+   * })
+   * ```
+   * 
+   * @example With Options
+   * ```typescript
+   * await register.dispatch('updateUser', payload, {
+   *   executionMode: 'parallel',
+   *   timeout: 5000,
+   *   filter: {
+   *     tags: ['validation', 'business-logic'],
+   *     excludeCategory: 'analytics'
+   *   }
+   * })
+   * ```
+   * 
+   * @example With Throttling
+   * ```typescript
+   * await register.dispatch('searchUsers', { query: 'john' }, {
+   *   throttle: 300,
+   *   debounce: 100
+   * })
+   * ```
+   * 
+   * @public
+   */
   async dispatch<K extends keyof T>(
     action: K,
     payload?: T[K],
@@ -451,7 +581,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     
     try {
       await this.executePipeline(context, autoAbortController, options?.autoAbort);
+      console.log(`[ActionRegister] Pipeline execution succeeded for ${String(action)}`);
     } catch (error) {
+      console.log(`[ActionRegister] Pipeline execution failed for ${String(action)}:`, error);
       executionSuccess = false;
       throw error;
     } finally {
@@ -465,6 +597,43 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     }
   }
 
+  /**
+   * Dispatch an action and return detailed execution results
+   * 
+   * @param action - The action type to dispatch
+   * @param payload - The action payload data
+   * @param options - Optional dispatch options including result collection strategy
+   * 
+   * @returns Promise resolving to comprehensive execution results
+   * 
+   * @example Basic Result Collection
+   * ```typescript
+   * const result = await register.dispatchWithResult('updateUser', payload)
+   * 
+   * if (result.success) {
+   *   console.log(`Executed ${result.execution.handlersExecuted} handlers`)
+   *   console.log(`Duration: ${result.execution.duration}ms`)
+   * }
+   * ```
+   * 
+   * @example Advanced Result Processing
+   * ```typescript
+   * const result = await register.dispatchWithResult('processOrder', order, {
+   *   result: {
+   *     collect: true,
+   *     strategy: 'merge',
+   *     maxResults: 5,
+   *     merger: (results) => results.reduce((acc, curr) => ({ ...acc, ...curr }), {})
+   *   }
+   * })
+   * 
+   * if (result.terminated) {
+   *   console.log('Handler returned early:', result.result)
+   * }
+   * ```
+   * 
+   * @public
+   */
   async dispatchWithResult<K extends keyof T, R = void>(
     action: K,
     payload?: T[K],
@@ -944,27 +1113,110 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     }
   }
 
+  /**
+   * Get the number of registered handlers for an action
+   * 
+   * @param action - The action type to count handlers for
+   * 
+   * @returns Number of registered handlers
+   * 
+   * @example
+   * ```typescript
+   * register.register('updateUser', handler1)
+   * register.register('updateUser', handler2)
+   * 
+   * console.log(register.getHandlerCount('updateUser')) // 2
+   * ```
+   * 
+   * @public
+   */
   getHandlerCount<K extends keyof T>(action: K): number {
     const pipeline = this.pipelines.get(action);
     return pipeline ? pipeline.length : 0;
   }
 
+  /**
+   * Check if an action has any registered handlers
+   * 
+   * @param action - The action type to check
+   * 
+   * @returns True if action has handlers, false otherwise
+   * 
+   * @example
+   * ```typescript
+   * if (register.hasHandlers('updateUser')) {
+   *   await register.dispatch('updateUser', userData)
+   * }
+   * ```
+   * 
+   * @public
+   */
   hasHandlers<K extends keyof T>(action: K): boolean {
     return this.getHandlerCount(action) > 0;
   }
 
+  /**
+   * Get all registered action types
+   * 
+   * @returns Array of all registered action types
+   * 
+   * @example
+   * ```typescript
+   * const actions = register.getRegisteredActions()
+   * console.log('Registered actions:', actions) // ['updateUser', 'deleteUser', 'resetUser']
+   * ```
+   * 
+   * @public
+   */
   getRegisteredActions(): (keyof T)[] {
     return Array.from(this.pipelines.keys());
   }
 
+  /**
+   * Remove all handlers for a specific action
+   * 
+   * @param action - The action type to clear handlers for
+   * 
+   * @example
+   * ```typescript
+   * register.clearAction('updateUser')
+   * console.log(register.hasHandlers('updateUser')) // false
+   * ```
+   * 
+   * @public
+   */
   clearAction<K extends keyof T>(action: K): void {
     this.pipelines.delete(action);
   }
 
+  /**
+   * Remove all handlers for all actions
+   * 
+   * @example
+   * ```typescript
+   * register.clearAll()
+   * console.log(register.getRegisteredActions().length) // 0
+   * ```
+   * 
+   * @public
+   */
   clearAll(): void {
     this.pipelines.clear();
   }
 
+  /**
+   * Get the name of this action register
+   * 
+   * @returns The register name
+   * 
+   * @example
+   * ```typescript
+   * const register = new ActionRegister({ name: 'UserRegister' })
+   * console.log(register.getName()) // 'UserRegister'
+   * ```
+   * 
+   * @public
+   */
   getName(): string {
     return this.name;
   }
