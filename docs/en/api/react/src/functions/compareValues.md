@@ -8,7 +8,7 @@
 
 > **compareValues**&lt;`T`&gt;(`oldValue`, `newValue`, `options`): `boolean`
 
-Defined in: [packages/react/src/stores/utils/comparison.ts:195](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/utils/comparison.ts#L195)
+Defined in: [packages/react/src/stores/utils/comparison.ts:195](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/utils/comparison.ts#L195)
 
 ## Type Parameters
 
@@ -53,10 +53,6 @@ store-immutability
 ## Memberof
 
 core-concepts
-
-## Since
-
-1.0.0
 
 Utility functions for store operations including value comparison strategies,
 immutability helpers, store selectors, and action handler utilities.

@@ -8,6 +8,9 @@
 
 > **StoreDefinitions** = `Record`\<`string`, [`StoreConfig`](../interfaces/StoreConfig.md)&lt;`any`&gt; \| `any`\>
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:40](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L40)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:88](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L88)
 
 Store definitions that can infer types from initialValue
+
+Generic type for store definitions that supports automatic type inference.
+Each store can be defined with either a full configuration or a direct value.

@@ -1,49 +1,50 @@
 # Context-Action Framework Conventions
 
-이 문서는 Context-Action 프레임워크를 사용할 때 따라야 할 코딩 컨벤션과 베스트 프랙티스를 정의합니다.
+This document defines coding conventions and best practices when using the Context-Action framework with its three core patterns: Actions, Stores, and RefContext.
 
-## 📋 목차
+## 📋 Table of Contents
 
-1. [네이밍 컨벤션](#네이밍-컨벤션)
-2. [파일 구조](#파일-구조)
-3. [패턴 사용법](#패턴-사용법)
-4. [타입 정의](#타입-정의)
-5. [코드 스타일](#코드-스타일)
-6. [성능 가이드라인](#성능-가이드라인)
-7. [에러 핸들링](#에러-핸들링)
+1. [Naming Conventions](#naming-conventions)
+2. [File Structure](#file-structure)
+3. [Pattern Usage](#pattern-usage)
+4. [Type Definitions](#type-definitions)
+5. [Code Style](#code-style)
+6. [Performance Guidelines](#performance-guidelines)
+7. [Error Handling](#error-handling)
+8. [RefContext Conventions](#refcontext-conventions)
 
 ---
 
-## 네이밍 컨벤션
+## Naming Conventions
 
-### 🏷️ 리네이밍 패턴 (Renaming Pattern)
+### 🏷️ Renaming Pattern
 
-Context-Action 프레임워크의 핵심 컨벤션은 **도메인별 리네이밍 패턴**입니다.
+The core convention of the Context-Action framework is **domain-based renaming pattern** for all three patterns.
 
-#### ✅ Store Pattern 리네이밍
+#### ✅ Store Pattern Renaming
 ```tsx
-// ✅ 권장: 도메인별 리네이밍
+// ✅ Recommended: Domain-based renaming
 const {
   Provider: UserStoreProvider,
   useStore: useUserStore,
   useStoreManager: useUserStoreManager
 } = createDeclarativeStorePattern('User', {...});
 
-// ❌ 지양: 직접 객체 접근
+// ❌ Avoid: Direct object access
 const UserStores = createDeclarativeStorePattern('User', {...});
-const userStore = UserStores.useStore('profile'); // 도메인이 불분명
+const userStore = UserStores.useStore('profile'); // Domain unclear
 ```
 
-#### ✅ Action Pattern 리네이밍
+#### ✅ Action Pattern Renaming
 ```tsx
-// ✅ 권장: 도메인별 리네이밍 (제네릭 타입 명시)
+// ✅ Recommended: Domain-based renaming with generic type
 const {
   Provider: UserActionProvider,
   useActionDispatch: useUserAction,
   useActionHandler: useUserActionHandler
 } = createActionContext<UserActions>('UserActions');
 
-// ❌ 지양: 제네릭 이름 사용
+// ❌ Avoid: Generic names
 const {
   Provider,
   useActionDispatch,
@@ -51,156 +52,209 @@ const {
 } = createActionContext<UserActions>('UserActions');
 ```
 
-### 🎯 컨텍스트 이름 규칙
-
-#### 도메인 기반 네이밍
+#### ✅ RefContext Pattern Renaming
 ```tsx
-// ✅ 권장: 명확한 도메인 구분
-'UserProfile'     // 사용자 프로필 관련
-'ShoppingCart'    // 쇼핑카트 관련  
-'ProductCatalog'  // 상품 카탈로그 관련
-'OrderManagement' // 주문 관리 관련
-'AuthSystem'      // 인증 시스템 관련
+// ✅ Recommended: Domain-based renaming with destructured API
+const {
+  Provider: MouseProvider,
+  useRefHandler: useMouseRef
+} = createRefContext<MouseRefs>('Mouse');
 
-// ❌ 지양: 모호한 이름
-'Data'           // 너무 포괄적
-'State'          // 구체적이지 않음
-'App'            // 범위가 불분명 (루트 레벨에서만 사용)
-'Manager'        // 역할이 불분명
+// ❌ Avoid: Generic names
+const {
+  Provider,
+  useRefHandler
+} = createRefContext<MouseRefs>('Mouse');
 ```
 
-#### Action vs Store 구분
-```tsx
-// Action Context (행동/이벤트 중심)
-'UserActions'         // 사용자 액션들
-'PaymentActions'      // 결제 액션들
-'NavigationActions'   // 내비게이션 액션들
+### 🎯 Context Naming Rules
 
-// Store Context (데이터/상태 중심)  
-'UserData'           // 사용자 데이터
-'ProductCatalog'     // 상품 카탈로그
-'ShoppingCart'       // 쇼핑카트 상태
-'AppSettings'        // 앱 설정
+#### Domain-Based Naming
+```tsx
+// ✅ Recommended: Clear domain separation
+'UserProfile'     // User profile related
+'ShoppingCart'    // Shopping cart related  
+'ProductCatalog'  // Product catalog related
+'OrderManagement' // Order management related
+'AuthSystem'      // Authentication system related
+'MouseEvents'     // Mouse interaction related
+'AnimationStates' // Animation and performance related
+
+// ❌ Avoid: Ambiguous names
+'Data'           // Too broad
+'State'          // Not specific
+'App'            // Scope unclear (use only at root level)
+'Manager'        // Role unclear
+'Refs'           // Too generic
 ```
 
-### 🔤 Hook 네이밍 패턴
-
-#### Store Hook 네이밍
+#### Action vs Store vs RefContext Distinction
 ```tsx
-// ✅ 권장: use + 도메인 + Store 패턴
+// Action Context (behavior/event focused)
+'UserActions'         // User actions
+'PaymentActions'      // Payment actions
+'NavigationActions'   // Navigation actions
+
+// Store Context (data/state focused)  
+'UserData'           // User data
+'ProductCatalog'     // Product catalog
+'ShoppingCart'       // Shopping cart state
+'AppSettings'        // App settings
+
+// RefContext (performance/DOM focused)
+'MouseInteractions'  // Mouse event handling
+'AnimationRefs'      // Animation element references
+'FormElements'       // Form DOM elements
+'MediaControls'      // Media player controls
+```
+
+### 🔤 Hook Naming Patterns
+
+#### Store Hook Naming
+```tsx
+// ✅ Recommended: use + Domain + Store pattern
 const useUserStore = UserContext.useStore;
 const useProductStore = ProductContext.useStore;
 const useCartStore = CartContext.useStore;
 
-// 사용 시
+// Usage
 const profileStore = useUserStore('profile');
 const wishlistStore = useUserStore('wishlist');
 ```
 
-#### Action Hook 네이밍
+#### Action Hook Naming
 ```tsx
-// ✅ 권장: use + 도메인 + Action 패턴
+// ✅ Recommended: use + Domain + Action pattern
 const useUserAction = UserContext.useActionDispatch;
 const usePaymentAction = PaymentContext.useActionDispatch;
 const useUserActionHandler = UserContext.useActionHandler;
 
-// 사용 시
+// Usage
 const dispatch = useUserAction();
 useUserActionHandler('updateProfile', handler);
 ```
 
+#### RefContext Hook Naming
+```tsx
+// ✅ Recommended: use + Domain + Ref pattern
+const useMouseRef = MouseContext.useRefHandler;
+const useAnimationRef = AnimationContext.useRefHandler;
+const useFormRef = FormContext.useRefHandler;
+
+// Usage
+const cursor = useMouseRef('cursor');
+const trail = useMouseRef('trail');
+const container = useMouseRef('container');
+```
+
 ---
 
-## 파일 구조
+## File Structure
 
-### 📁 권장 디렉토리 구조
+### 📁 Recommended Directory Structure
 
 ```
 src/
-├── contexts/           # 컨텍스트 정의
+├── contexts/           # Context definitions
 │   ├── user/
-│   │   ├── user.actions.ts     # UserActions 인터페이스 + createActionContext
-│   │   ├── user.stores.ts      # UserData 인터페이스 + createDeclarativeStorePattern  
-│   │   └── index.ts            # 리네이밍된 exports
+│   │   ├── user.actions.ts     # UserActions interface + createActionContext
+│   │   ├── user.stores.ts      # UserData interface + createDeclarativeStorePattern
+│   │   ├── user.refs.ts        # UserRefs interface + createRefContext
+│   │   └── index.ts            # Renamed exports
 │   ├── product/
 │   │   ├── product.actions.ts
 │   │   ├── product.stores.ts
 │   │   └── index.ts
-│   └── index.ts        # 모든 컨텍스트 re-export
-├── providers/          # Provider 컴포넌트들
+│   ├── interactions/
+│   │   ├── mouse.refs.ts       # Mouse interaction RefContext
+│   │   ├── animation.refs.ts   # Animation RefContext
+│   │   └── index.ts
+│   └── index.ts        # All contexts re-export
+├── providers/          # Provider components
 │   ├── UserProvider.tsx
 │   ├── ProductProvider.tsx
-│   └── AppProvider.tsx         # 루트 Provider 조합
-├── hooks/             # 도메인별 커스텀 훅들
+│   ├── MouseProvider.tsx
+│   └── AppProvider.tsx         # Root Provider composition
+├── hooks/             # Domain-specific custom hooks
 │   ├── user/
-│   │   ├── useUserHandlers.ts   # 액션 핸들러 모음
-│   │   ├── useUserProfile.ts    # 비즈니스 로직 훅
+│   │   ├── useUserHandlers.ts   # Action handler collection
+│   │   ├── useUserProfile.ts    # Business logic hooks
+│   │   └── index.ts
+│   ├── interactions/
+│   │   ├── useMouseTracking.ts  # Mouse tracking logic
+│   │   ├── useAnimationControl.ts # Animation control logic
 │   │   └── index.ts
 │   └── index.ts
-├── types/             # 공통 타입 정의
+├── types/             # Common type definitions
 │   ├── user.types.ts
 │   ├── product.types.ts
+│   ├── interaction.types.ts     # RefContext types
 │   └── index.ts
-└── components/        # React 컴포넌트들
+└── components/        # React components
     ├── user/
     ├── product/
+    ├── interactive/     # RefContext components
     └── common/
 ```
 
-### 📄 파일명 컨벤션
+### 📄 File Naming Conventions
 
-#### Context 파일명
+#### Context File Names
 ```tsx
-// ✅ 권장
-user.actions.ts       // 액션 컨텍스트
-user.stores.ts        // 스토어 컨텍스트
-payment.actions.ts    // 결제 액션
-product.stores.ts     // 상품 스토어
+// ✅ Recommended
+user.actions.ts       // Action context
+user.stores.ts        // Store context
+user.refs.ts          // RefContext
+payment.actions.ts    // Payment actions
+product.stores.ts     // Product stores
+mouse.refs.ts         // Mouse RefContext
 
-// ❌ 지양
-userContext.ts        // 모호함 (액션인지 스토어인지 불분명)
-User.ts              // 대문자 시작 (컴포넌트와 혼동)
-userState.ts         // "state"보다는 "stores" 선호
+// ❌ Avoid
+userContext.ts        // Ambiguous (action, store, or ref?)
+User.ts              // Starts with capital (confuse with components)
+userState.ts         // Prefer "stores" over "state"
+userRefs.ts          // Prefer "refs" with lowercase
 ```
 
-#### Provider 파일명
+#### Provider File Names
 ```tsx
-// ✅ 권장
-UserProvider.tsx      // 사용자 관련 프로바이더
-ProductProvider.tsx   // 상품 관련 프로바이더
-AppProvider.tsx       // 루트 프로바이더
+// ✅ Recommended
+UserProvider.tsx      // User-related provider
+ProductProvider.tsx   // Product-related provider
+MouseProvider.tsx     // Mouse RefContext provider
+AppProvider.tsx       // Root provider
 
-// ❌ 지양  
-user-provider.tsx     // kebab-case 대신 PascalCase
-userProvider.tsx      // camelCase 대신 PascalCase
+// ❌ Avoid  
+user-provider.tsx     // Use PascalCase instead of kebab-case
+userProvider.tsx      // Use PascalCase instead of camelCase
 ```
 
 ---
 
-## 패턴 사용법
+## Pattern Usage
 
-### 🎯 패턴 선택 가이드
+### 🎯 Pattern Selection Guide
 
 #### Store Only Pattern
 ```tsx
-// ✅ 사용 시기: 순수 상태 관리가 필요한 경우
-// - 폼 데이터 관리
-// - 설정값 저장
-// - 캐시된 데이터 관리
-// - UI 상태 (모달, 토글 등)
+// ✅ Use when: Pure state management needed
+// - Form data management
+// - Settings storage
+// - Cached data management
+// - UI state (modals, toggles, etc.)
 
-// 방법 1: 타입 추론 (현재 방식)
+// Method 1: Type inference (current approach)
 const {
   Provider: SettingsStoreProvider,
   useStore: useSettingsStore,
   useStoreManager: useSettingsStoreManager
 } = createDeclarativeStorePattern('Settings', {
   theme: 'light' as 'light' | 'dark',
-  language: 'ko',
+  language: 'en',
   notifications: true
 });
 
-// 방법 2: 명시적 제네릭 타입 (새로운 방식)
+// Method 2: Explicit generic types (alternative approach)
 interface SettingsStoreTypes {
   theme: 'light' | 'dark';
   language: string;
@@ -212,19 +266,19 @@ const {
   useStore: useSettingsStore,
   useStoreManager: useSettingsStoreManager
 } = createDeclarativeStorePattern<SettingsStoreTypes>('Settings', {
-  theme: 'light',  // 타입이 SettingsStoreTypes에서 추론됨
-  language: 'ko',
+  theme: 'light',  // Type inferred from SettingsStoreTypes
+  language: 'en',
   notifications: true
 });
 ```
 
 #### Action Only Pattern  
 ```tsx
-// ✅ 사용 시기: 순수 액션 디스패치가 필요한 경우
-// - 이벤트 트래킹
-// - 로깅 시스템
-// - 알림 발송
-// - API 호출 (상태 변경 없이)
+// ✅ Use when: Pure action dispatching needed
+// - Event tracking
+// - Logging systems
+// - Notification sending
+// - API calls (without state changes)
 
 const {
   Provider: AnalyticsActionProvider,
@@ -233,55 +287,84 @@ const {
 } = createActionContext<AnalyticsActions>('Analytics');
 ```
 
+#### RefContext Only Pattern
+```tsx
+// ✅ Use when: High-performance DOM manipulation needed
+// - Real-time interactions (mouse tracking, drag & drop)
+// - Animations requiring 60fps
+// - Canvas operations
+// - Media player controls
+
+type MouseRefs = {
+  cursor: HTMLDivElement;
+  trail: HTMLDivElement;
+  container: HTMLDivElement;
+};
+
+const {
+  Provider: MouseProvider,
+  useRefHandler: useMouseRef
+} = createRefContext<MouseRefs>('Mouse');
+```
+
 #### Pattern Composition
 ```tsx
-// ✅ 사용 시기: 액션과 상태 관리가 모두 필요한 경우  
-// - 복잡한 비즈니스 로직
-// - 사용자 프로필 관리
-// - 쇼핑카트 시스템
-// - 게임 상태 관리
+// ✅ Use when: Multiple pattern types needed  
+// - Complex business logic with performance requirements
+// - User profile management with real-time interactions
+// - Shopping cart with drag & drop functionality
+// - Game state management with animations
 
 function App() {
   return (
     <UserActionProvider>
       <UserStoreProvider>
-        <UserProfile />
+        <MouseProvider>
+          <InteractiveUserProfile />
+        </MouseProvider>
       </UserStoreProvider>
     </UserActionProvider>
   );
 }
 ```
 
-### 🔄 Provider 조합 패턴
+### 🔄 Provider Composition Patterns
 
-#### HOC 패턴 (권장)
+#### HOC Pattern (Recommended)
 ```tsx
-// ✅ 권장: HOC를 이용한 자동 Provider 감싸기
+// ✅ Recommended: Automatic Provider wrapping with HOC
 const { withProvider: withUserStoreProvider } = createDeclarativeStorePattern('User', {...});
 const { withProvider: withUserActionProvider } = createActionContext<UserActions>('UserActions');
+const { withProvider: withMouseProvider } = createRefContext<MouseRefs>('Mouse');
 
-// 여러 Provider 조합
+// Multiple Provider composition
 const withUserProviders = (Component: React.ComponentType) => 
-  withUserActionProvider(withUserStoreProvider(Component));
+  withUserActionProvider(
+    withUserStoreProvider(
+      withMouseProvider(Component)
+    )
+  );
 
-const UserProfileWithProviders = withUserProviders(UserProfile);
+const InteractiveUserProfileWithProviders = withUserProviders(InteractiveUserProfile);
 
-// 사용
+// Usage
 function App() {
-  return <UserProfileWithProviders />;
+  return <InteractiveUserProfileWithProviders />;
 }
 ```
 
-#### Manual Provider 조합
+#### Manual Provider Composition
 ```tsx
-// ✅ 수동 조합 (복잡한 의존성이 있는 경우)
-function UserProvider({ children }: { children: React.ReactNode }) {
+// ✅ Manual composition (for complex dependencies)
+function InteractiveUserProvider({ children }: { children: React.ReactNode }) {
   return (
     <UserActionProvider>
       <UserStoreProvider>
-        <UserAnalyticsProvider>
-          {children}
-        </UserAnalyticsProvider>
+        <MouseProvider>
+          <UserAnalyticsProvider>
+            {children}
+          </UserAnalyticsProvider>
+        </MouseProvider>
       </UserStoreProvider>
     </UserActionProvider>
   );
@@ -290,20 +373,20 @@ function UserProvider({ children }: { children: React.ReactNode }) {
 
 ---
 
-## 타입 정의
+## Type Definitions
 
-### 🏷️ Interface 네이밍
+### 🏷️ Interface Naming
 
 #### Action Payload Map
 ```tsx
-// ✅ 권장: 도메인 + Actions 패턴 (ActionPayloadMap 확장)
+// ✅ Recommended: Domain + Actions pattern (extending ActionPayloadMap)
 interface UserActions extends ActionPayloadMap {
   updateProfile: { id: string; data: Partial<UserProfile> };
   deleteAccount: { id: string; reason?: string };
   refreshToken: void;
 }
 
-// ✅ 권장: 도메인 + Actions 패턴 (단순 인터페이스 - 미래 방식)
+// ✅ Recommended: Domain + Actions pattern (simple interface - future approach)
 interface UserActions {
   updateProfile: { id: string; data: Partial<UserProfile> };
   deleteAccount: { id: string; reason?: string };
@@ -316,14 +399,14 @@ interface PaymentActions {
   validateCard: { cardNumber: string };
 }
 
-// ❌ 지양
-interface Actions { ... }           // 너무 포괄적
-interface UserActionTypes { ... }   // 일관성 없는 이름
+// ❌ Avoid
+interface Actions { ... }           // Too broad
+interface UserActionTypes { ... }   // Inconsistent naming
 ```
 
 #### Store Data Interface
 ```tsx
-// ✅ 권장: 도메인 + Data 패턴 또는 직관적 이름
+// ✅ Recommended: Domain + Data pattern or intuitive names
 interface UserData {
   profile: UserProfile;
   preferences: UserPreferences;
@@ -336,21 +419,49 @@ interface ShoppingCartData {
   discounts: Discount[];
 }
 
-// 또는 직관적 이름
+// Or intuitive names
 interface UserState {
   profile: UserProfile;
   preferences: UserPreferences;
 }
 
-// ❌ 지양
-interface Data { ... }           // 너무 포괄적
-interface UserStoreType { ... }  // 불필요한 Type 접미사
+// ❌ Avoid
+interface Data { ... }           // Too broad
+interface UserStoreType { ... }  // Unnecessary Type suffix
 ```
 
-### 🎯 제네릭 타입 사용
+#### RefContext Type Interface
+```tsx
+// ✅ Recommended: Domain + Refs pattern
+interface MouseRefs {
+  cursor: HTMLDivElement;
+  trail: HTMLDivElement;
+  container: HTMLDivElement;
+}
+
+interface AnimationRefs {
+  target: HTMLElement;
+  trigger: HTMLButtonElement;
+  container: HTMLDivElement;
+}
+
+interface FormRefs {
+  nameInput: HTMLInputElement;
+  emailInput: HTMLInputElement;
+  submitButton: HTMLButtonElement;
+  form: HTMLFormElement;
+}
+
+// ❌ Avoid
+interface Refs { ... }           // Too broad
+interface Elements { ... }       // Not specific to RefContext
+interface MouseElements { ... }  // Prefer "Refs" suffix
+```
+
+### 🎯 Generic Type Usage
 
 ```tsx
-// ✅ 권장: 명확한 제네릭 타입 사용
+// ✅ Recommended: Clear generic type usage
 interface BaseEntity {
   id: string;
   createdAt: Date;
@@ -368,7 +479,7 @@ interface Product extends BaseEntity {
   category: string;
 }
 
-// Store 정의에서 활용 - 방법 1: 타입 추론 (권장)
+// Store definition - Method 1: Type inference (recommended)
 const {
   Provider: UserStoreProvider,
   useStore: useUserStore
@@ -377,7 +488,7 @@ const {
   currentUser: { initialValue: null as User | null }
 });
 
-// Store 정의에서 활용 - 방법 2: 명시적 제네릭
+// Store definition - Method 2: Explicit generic
 interface UserStoreTypes {
   users: User[];
   currentUser: User | null;
@@ -387,15 +498,14 @@ const {
   Provider: UserStoreProvider,
   useStore: useUserStore
 } = createDeclarativeStorePattern<UserStoreTypes>('User', {
-  // ⚠️ 주의: 명시적 제네릭 사용 시에도 InitialStores<T> 구조 필요
-  users: [],  // 직접 값 또는
-  currentUser: {  // 설정 객체
+  users: [],  // Direct value or
+  currentUser: {  // Configuration object
     initialValue: null,
     strategy: 'reference'
   }
 });
 
-// Action 정의에서 활용 - 새로운 API (contextName 우선)
+// Action definition - New API (contextName priority)
 interface UserActions {
   createUser: { userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'> };
   updateUser: { id: string; updates: Partial<User> };
@@ -408,27 +518,39 @@ const {
 } = createActionContext<UserActions>('UserActions', {
   registry: { debug: true, maxHandlers: 10 }
 });
+
+// RefContext definition
+interface InteractiveRefs {
+  cursor: HTMLDivElement;
+  trail: HTMLDivElement;
+  container: HTMLDivElement;
+}
+
+const {
+  Provider: InteractiveProvider,
+  useRefHandler: useInteractiveRef
+} = createRefContext<InteractiveRefs>('Interactive');
 ```
 
 ---
 
-## 코드 스타일
+## Code Style
 
-### ✨ 컴포넌트 패턴
+### ✨ Component Patterns
 
-#### Store 사용 패턴
+#### Store Usage Pattern
 ```tsx
-// ✅ 권장: 명확한 변수명과 구조분해
+// ✅ Recommended: Clear variable names and destructuring
 function UserProfile() {
-  // Store 접근
+  // Store access
   const profileStore = useUserStore('profile');
   const preferencesStore = useUserStore('preferences');
   
-  // 값 구독
+  // Value subscription
   const profile = useStoreValue(profileStore);
   const preferences = useStoreValue(preferencesStore);
   
-  // 로컬 상태와 구분
+  // Distinguish from local state
   const [isEditing, setIsEditing] = useState(false);
   
   return (
@@ -439,39 +561,39 @@ function UserProfile() {
   );
 }
 
-// ❌ 지양: 혼동되는 변수명
+// ❌ Avoid: Confusing variable names
 function UserProfile() {
-  const store1 = useUserStore('profile');  // 무엇인지 불분명
-  const data = useStoreValue(store1);      // 구체적이지 않음
-  const userState = useStoreValue(store2); // 혼동 가능
+  const store1 = useUserStore('profile');  // What is this?
+  const data = useStoreValue(store1);      // Not specific
+  const userState = useStoreValue(store2); // Can be confusing
 }
 ```
 
-#### Action Handler 패턴
+#### Action Handler Pattern
 ```tsx
-// ✅ 권장: useCallback과 명확한 핸들러명
+// ✅ Recommended: useCallback with clear handler names
 function UserProfile() {
   const dispatch = useUserAction();
   
-  // 핸들러 등록 (useCallback 필수)
+  // Handler registration (useCallback required)
   useUserActionHandler('updateProfile', useCallback(async (payload, controller) => {
     try {
       const profileStore = storeManager.getStore('profile');
       const currentProfile = profileStore.getValue();
       
-      // 비즈니스 로직 실행
+      // Execute business logic
       const updatedProfile = await updateUserProfile(payload.data);
       
-      // 스토어 업데이트
+      // Update store
       profileStore.setValue({ ...currentProfile, ...updatedProfile });
       
-      // 성공 알림
+      // Success notification
       dispatch('showNotification', { 
         type: 'success', 
-        message: '프로필이 업데이트되었습니다.' 
+        message: 'Profile updated successfully.' 
       });
     } catch (error) {
-      controller.abort('프로필 업데이트 실패', error);
+      controller.abort('Profile update failed', error);
     }
   }, [dispatch, storeManager]));
   
@@ -485,87 +607,141 @@ function UserProfile() {
 }
 ```
 
-### 🎨 Import 정리
+#### RefContext Usage Pattern
+```tsx
+// ✅ Recommended: Clear ref names and direct DOM manipulation
+function InteractiveMouseTracker() {
+  const cursor = useMouseRef('cursor');
+  const trail = useMouseRef('trail');
+  const container = useMouseRef('container');
+  
+  // Direct DOM manipulation with business logic
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!cursor.target || !container.target) return;
+    
+    const rect = container.target.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    // Hardware accelerated transforms
+    cursor.target.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    
+    // Trail effect with performance optimization
+    if (trail.target) {
+      trail.target.style.transform = `translate3d(${x-5}px, ${y-5}px, 0)`;
+    }
+  }, [cursor, trail, container]);
+  
+  return (
+    <div 
+      ref={container.setRef}
+      onMouseMove={handleMouseMove}
+      className="relative w-full h-96 bg-gray-100"
+    >
+      <div
+        ref={cursor.setRef}
+        className="absolute w-4 h-4 bg-blue-500 rounded-full pointer-events-none"
+      />
+      <div
+        ref={trail.setRef}
+        className="absolute w-3 h-3 bg-blue-300 rounded-full pointer-events-none"
+      />
+    </div>
+  );
+}
+
+// ❌ Avoid: Confusing ref names
+function MouseTracker() {
+  const ref1 = useMouseRef('cursor');      // What is this?
+  const element = useMouseRef('trail');    // Not specific
+  const domRef = useMouseRef('container'); // Generic naming
+}
+```
+
+### 🎨 Import Organization
 
 ```tsx
-// ✅ 권장: 그룹별 import 정리
-// 1. React 관련
+// ✅ Recommended: Group imports by category
+// 1. React related
 import React, { useCallback, useState, useEffect } from 'react';
 
-// 2. 서드파티 라이브러리
+// 2. Third-party libraries
 import { toast } from 'react-hot-toast';
 
-// 3. Context-Action 프레임워크
+// 3. Context-Action framework
 import { useStoreValue } from '@context-action/react';
 
-// 4. 로컬 컨텍스트 (리네이밍된 훅들)
+// 4. Local contexts (renamed hooks)
 import { 
   useUserStore, 
   useUserAction, 
-  useUserActionHandler 
-} from '@/contexts/user';
+  useUserActionHandler,
+  useMouseRef
+} from '@/contexts';
 
-// 5. 컴포넌트
+// 5. Components
 import { ProfileForm } from './ProfileForm';
+import { InteractiveMouseTracker } from './InteractiveMouseTracker';
 
-// 6. 타입
+// 6. Types
 import type { UserProfile } from '@/types/user.types';
+import type { MouseRefs } from '@/types/interaction.types';
 ```
 
 ---
 
-## 성능 가이드라인
+## Performance Guidelines
 
-### ⚡ Store 최적화
+### ⚡ Store Optimization
 
-#### Comparison Strategy 선택
+#### Comparison Strategy Selection
 ```tsx
-// ✅ 권장: 데이터 특성에 맞는 strategy 선택
+// ✅ Recommended: Choose strategy based on data characteristics
 const {
   Provider: DataStoreProvider,
   useStore: useDataStore
 } = createDeclarativeStorePattern('Data', {
-  // 원시값: reference (기본값)
+  // Primitive values: reference (default)
   counter: 0,
   isLoading: false,
   
-  // 객체의 속성이 변경되는 경우: shallow  
+  // Objects with property changes: shallow  
   userProfile: {
     initialValue: { name: '', email: '', age: 0 },
     strategy: 'shallow'
   },
   
-  // 중첩 객체가 자주 변경되는 경우: deep
+  // Deeply nested objects with frequent changes: deep
   complexForm: {
     initialValue: { nested: { deep: { values: {} } } },
     strategy: 'deep'
   },
   
-  // 큰 배열이나 성능이 중요한 경우: reference
+  // Large arrays or performance-critical cases: reference
   largeDataset: {
     initialValue: [] as DataItem[],
     strategy: 'reference',
-    description: '성능을 위해 reference equality 사용'
+    description: 'Use reference equality for performance'
   },
   
-  // 고급 비교 옵션 사용
+  // Advanced comparison options
   advancedData: {
     initialValue: { id: '', data: {}, lastUpdated: new Date() },
     comparisonOptions: {
       strategy: 'shallow',
-      ignoreKeys: ['lastUpdated'], // 특정 키 무시
-      maxDepth: 2,                 // 성능을 위한 깊이 제한
-      enableCircularCheck: true    // 순환 참조 방지
+      ignoreKeys: ['lastUpdated'], // Ignore specific keys
+      maxDepth: 2,                 // Limit depth for performance
+      enableCircularCheck: true    // Prevent circular references
     }
   },
   
-  // 커스텀 비교 로직
+  // Custom comparison logic
   versionedData: {
     initialValue: { version: 1, content: {} },
     comparisonOptions: {
       strategy: 'custom',
       customComparator: (oldVal, newVal) => {
-        // 버전 기반 비교
+        // Version-based comparison
         return oldVal.version === newVal.version;
       }
     }
@@ -573,21 +749,21 @@ const {
 });
 ```
 
-#### 메모이제이션 패턴
+#### Memoization Patterns
 ```tsx
-// ✅ 권장: useCallback으로 핸들러 메모이제이션
+// ✅ Recommended: Handler memoization with useCallback
 function UserComponent() {
   const profileStore = useUserStore('profile');
   const profile = useStoreValue(profileStore);
   
-  // 핸들러 메모이제이션 (의존성 배열 주의)
+  // Handler memoization (careful with dependency array)
   const updateHandler = useCallback(async (payload) => {
     profileStore.setValue({ ...profile, ...payload.data });
   }, [profile, profileStore]);
   
   useUserActionHandler('updateProfile', updateHandler);
   
-  // 계산된 값 메모이제이션
+  // Computed value memoization
   const displayName = useMemo(() => {
     return profile.firstName + ' ' + profile.lastName;
   }, [profile.firstName, profile.lastName]);
@@ -596,137 +772,244 @@ function UserComponent() {
 }
 ```
 
-### 🔄 Action 최적화
+### 🔄 Action Optimization
 
-#### Debounce/Throttle 설정
+#### Debounce/Throttle Configuration
 ```tsx
-// ✅ 권장: 적절한 debounce/throttle 사용
+// ✅ Recommended: Appropriate debounce/throttle usage
 useUserActionHandler('searchUsers', searchHandler, {
-  debounce: 300,  // 검색은 debounce
+  debounce: 300,  // Search uses debounce
   id: 'search-handler'
 });
 
 useUserActionHandler('trackScroll', scrollHandler, {
-  throttle: 100,  // 스크롤은 throttle  
+  throttle: 100,  // Scroll uses throttle  
   id: 'scroll-handler'
 });
 
 useUserActionHandler('saveForm', saveHandler, {
-  blocking: true,  // 중요한 액션은 blocking
+  blocking: true,  // Critical actions are blocking
   once: false,
   id: 'save-handler'
 });
 ```
 
+### ⚡ RefContext Performance Optimization
+
+#### Zero Re-render DOM Manipulation
+```tsx
+// ✅ Recommended: Direct DOM manipulation for performance
+function HighPerformanceMouseTracker() {
+  const cursor = useMouseRef('cursor');
+  const container = useMouseRef('container');
+  
+  // Zero React re-renders - all DOM updates are direct
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!cursor.target || !container.target) return;
+    
+    const rect = container.target.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    // Hardware accelerated transforms (GPU acceleration)
+    cursor.target.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    
+    // Use will-change for complex animations
+    if (!cursor.target.style.willChange) {
+      cursor.target.style.willChange = 'transform';
+    }
+  }, [cursor, container]);
+  
+  // Cleanup will-change on unmount for memory optimization
+  useEffect(() => {
+    return () => {
+      if (cursor.target) {
+        cursor.target.style.willChange = '';
+      }
+    };
+  }, [cursor]);
+  
+  return (
+    <div ref={container.setRef} onMouseMove={handleMouseMove}>
+      <div 
+        ref={cursor.setRef}
+        style={{ transform: 'translate3d(0, 0, 0)' }} // Initial GPU layer
+      />
+    </div>
+  );
+}
+
+// ❌ Avoid: State-driven updates causing re-renders
+function SlowMouseTracker() {
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  
+  const handleMouseMove = (e: React.MouseEvent) => {
+    // This causes re-renders on every mouse move
+    setPosition({ x: e.clientX, y: e.clientY });
+  };
+  
+  return (
+    <div onMouseMove={handleMouseMove}>
+      <div style={{ left: position.x, top: position.y }} />
+    </div>
+  );
+}
+```
+
+#### Animation Performance
+```tsx
+// ✅ Recommended: requestAnimationFrame for smooth animations
+function SmoothAnimationComponent() {
+  const target = useAnimationRef('target');
+  const animationRef = useRef<number>();
+  
+  const startAnimation = useCallback(() => {
+    const animate = (timestamp: number) => {
+      if (target.target) {
+        // Smooth animation with hardware acceleration
+        const progress = (timestamp % 2000) / 2000;
+        const x = progress * 200;
+        target.target.style.transform = `translate3d(${x}px, 0, 0)`;
+      }
+      animationRef.current = requestAnimationFrame(animate);
+    };
+    animationRef.current = requestAnimationFrame(animate);
+  }, [target]);
+  
+  const stopAnimation = useCallback(() => {
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
+  }, []);
+  
+  useEffect(() => {
+    return () => stopAnimation(); // Cleanup on unmount
+  }, [stopAnimation]);
+  
+  return (
+    <div>
+      <div ref={target.setRef} style={{ transform: 'translate3d(0, 0, 0)' }} />
+      <button onClick={startAnimation}>Start</button>
+      <button onClick={stopAnimation}>Stop</button>
+    </div>
+  );
+}
+```
+
 ---
 
-## 🧪 타입 테스트 및 검증
+## RefContext Conventions
 
-### ✅ 타입 안전성 검증
+### 🔧 RefContext-Specific Guidelines
 
-#### 컴파일 타임 타입 테스트
+#### Ref Type Definitions
 ```tsx
-// ✅ 권장: 타입 테스트 파일 작성
-// src/contexts/__tests__/user.types.test.tsx
-
-import { createDeclarativeStorePattern, createActionContext } from '@context-action/react';
-
-// 명시적 제네릭 테스트
-interface UserStores {
-  profile: { id: string; name: string; email: string };
-  settings: { theme: 'light' | 'dark'; language: string };
+// ✅ Recommended: Specific HTML element types
+interface MouseRefs {
+  cursor: HTMLDivElement;      // Specific element type
+  trail: HTMLDivElement;
+  container: HTMLDivElement;
 }
 
-// 타입 안전성 검증
-const ExplicitStores = createDeclarativeStorePattern<UserStores>('User', {
-  profile: { id: '', name: '', email: '' },  // 타입 체크됨
-  settings: {
-    initialValue: { theme: 'light', language: 'en' },
-    strategy: 'shallow'
-  }
-});
-
-// 타입 추론 테스트
-const InferredStores = createDeclarativeStorePattern('Inferred', {
-  counter: 0,  // Store<number>로 추론
-  user: { id: '', name: '' },  // Store<{id: string, name: string}>로 추론
-  isActive: false  // Store<boolean>로 추론
-});
-
-// Action Context 타입 테스트
-interface TestActions {
-  updateUser: { id: string; name: string };
-  deleteUser: { id: string };
-  refresh: void;
+interface FormRefs {
+  nameInput: HTMLInputElement;  // Input-specific type
+  emailInput: HTMLInputElement;
+  submitButton: HTMLButtonElement; // Button-specific type
+  form: HTMLFormElement;       // Form-specific type
 }
 
-const ActionContext = createActionContext<TestActions>('Test', {
-  registry: { debug: true }
-});
-
-// 사용 패턴 검증
-function TypeValidationComponent() {
-  const profileStore = ExplicitStores.useStore('profile');
-  const counterStore = InferredStores.useStore('counter');
-  const dispatch = ActionContext.useActionDispatch();
-  
-  // 올바른 타입 사용 검증
-  dispatch('updateUser', { id: '123', name: 'John' }); // ✅ 타입 안전
-  dispatch('refresh'); // ✅ void payload
-  
-  return null;
+// ❌ Avoid: Generic HTMLElement when specific type is known
+interface BadRefs {
+  cursor: HTMLElement;         // Too generic
+  input: HTMLElement;          // Should be HTMLInputElement
 }
 ```
 
-#### 런타임 에러 처리 개선
+#### Performance-Critical Patterns
 ```tsx
-// ✅ 권장: 개발 모드 디버깅 지원
-// JSON 직렬화 실패 시 자동 fallback
-
-const DataStores = createDeclarativeStorePattern('Data', {
-  // 순환 참조나 특수 타입이 포함된 데이터
-  complexData: {
-    initialValue: { /* BigInt, Symbol, Function 등 */ },
-    comparisonOptions: {
-      strategy: 'deep',
-      // 개발 모드에서 JSON 직렬화 실패 로그 출력
-      enableCircularCheck: true
+// ✅ Recommended: Separate business logic from DOM manipulation
+function useMousePositionLogic() {
+  const cursor = useMouseRef('cursor');
+  const trail = useMouseRef('trail');
+  
+  const updatePosition = useCallback((x: number, y: number) => {
+    // Direct DOM manipulation - zero re-renders
+    if (cursor.target) {
+      cursor.target.style.transform = `translate3d(${x}px, ${y}px, 0)`;
     }
-  }
-});
+    if (trail.target) {
+      trail.target.style.transform = `translate3d(${x-5}px, ${y-5}px, 0)`;
+    }
+  }, [cursor, trail]);
+  
+  const getElementPosition = useCallback(() => {
+    if (!cursor.target) return null;
+    const rect = cursor.target.getBoundingClientRect();
+    return { x: rect.left, y: rect.top };
+  }, [cursor]);
+  
+  return { updatePosition, getElementPosition };
+}
+
+// Usage in component
+function MouseComponent() {
+  const { updatePosition } = useMousePositionLogic();
+  
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    updatePosition(e.clientX, e.clientY);
+  }, [updatePosition]);
+  
+  return <div onMouseMove={handleMouseMove}>...</div>;
+}
 ```
 
-### 🔍 디버깅 도구
-
-#### 개발 모드 로깅
+#### RefContext Error Handling
 ```tsx
-// ✅ 권장: 개발 모드에서만 활성화되는 디버깅
-const DebugStores = createDeclarativeStorePattern('Debug', {
-  userData: {
-    initialValue: { id: '', profile: {} },
-    debug: true,  // 개발 모드에서 스토어 생성 로그
-    comparisonOptions: {
-      strategy: 'shallow',
-      // 비교 실패 시 개발 모드에서만 경고 출력
+// ✅ Recommended: Null checks and error handling
+function SafeRefComponent() {
+  const element = useMouseRef('target');
+  
+  const safelyUpdateElement = useCallback((value: string) => {
+    // Always check target existence
+    if (!element.target) {
+      console.warn('RefContext: Target element not yet mounted');
+      return;
     }
-  }
-});
+    
+    try {
+      element.target.textContent = value;
+    } catch (error) {
+      console.error('RefContext: Failed to update element', error);
+    }
+  }, [element]);
+  
+  // Use useWaitForRefs for critical operations
+  const { allRefsReady } = useWaitForRefs(['target']);
+  
+  useEffect(() => {
+    if (allRefsReady) {
+      safelyUpdateElement('Ready!');
+    }
+  }, [allRefsReady, safelyUpdateElement]);
+  
+  return <div ref={element.setRef}>Content</div>;
+}
 ```
 
 ---
 
-## 에러 핸들링
+## Error Handling
 
-### 🚨 Error Boundary 패턴
+### 🚨 Error Boundary Pattern
 
 ```tsx
-// ✅ 권장: 도메인별 Error Boundary
+// ✅ Recommended: Domain-specific Error Boundary
 function UserErrorBoundary({ children }: { children: React.ReactNode }) {
   return (
     <ErrorBoundary
       fallback={<UserErrorFallback />}
       onError={(error, errorInfo) => {
-        // 사용자 관련 에러 로깅
+        // User-related error logging
         console.error('User context error:', error, errorInfo);
       }}
     >
@@ -739,103 +1022,173 @@ function UserProvider({ children }: { children: React.ReactNode }) {
   return (
     <UserActionProvider>
       <UserStoreProvider>
-        <UserErrorBoundary>
-          {children}
-        </UserErrorBoundary>
+        <MouseProvider>
+          <UserErrorBoundary>
+            {children}
+          </UserErrorBoundary>
+        </MouseProvider>
       </UserStoreProvider>
     </UserActionProvider>
   );
 }
 ```
 
-### 🛡️ Action Error 처리
+### 🛡️ Action Error Handling
 
 ```tsx
-// ✅ 권장: Pipeline Controller를 이용한 에러 처리
+// ✅ Recommended: Error handling with Pipeline Controller
 useUserActionHandler('riskyOperation', useCallback(async (payload, controller) => {
   try {
-    // 1. 입력 검증
+    // 1. Input validation
     if (!payload.data || !payload.data.id) {
-      controller.abort('유효하지 않은 입력 데이터');
+      controller.abort('Invalid input data');
       return;
     }
     
-    // 2. 비즈니스 로직 실행
+    // 2. Execute business logic
     const result = await performRiskyOperation(payload.data);
     
-    // 3. 성공 시 상태 업데이트
+    // 3. Update state on success
     const store = storeManager.getStore('userData');
     store.setValue(result);
     
-    // 4. 결과 반환 (필요한 경우)
+    // 4. Return result (if needed)
     controller.setResult(result);
     
   } catch (error) {
-    // 5. 에러 처리
+    // 5. Error handling
     if (error instanceof ValidationError) {
-      controller.abort('데이터 검증 실패', error);
+      controller.abort('Data validation failed', error);
     } else if (error instanceof NetworkError) {
-      controller.abort('네트워크 오류', error);
+      controller.abort('Network error', error);
     } else {
-      controller.abort('알 수 없는 오류가 발생했습니다', error);
+      controller.abort('Unknown error occurred', error);
     }
   }
 }, [storeManager]));
 ```
 
+### 🛡️ RefContext Error Handling
+
+```tsx
+// ✅ Recommended: Safe ref operations with error handling
+function SafeRefOperations() {
+  const element = useMouseRef('target');
+  const { allRefsReady, waitForRefs } = useWaitForRefs(['target']);
+  
+  const safelyManipulateDOM = useCallback(async () => {
+    try {
+      // Wait for refs to be ready before operations
+      await waitForRefs();
+      
+      if (!element.target) {
+        throw new Error('RefContext: Target element not available');
+      }
+      
+      // Safe DOM manipulation
+      element.target.style.transform = 'translate3d(100px, 100px, 0)';
+      
+    } catch (error) {
+      console.error('RefContext operation failed:', error);
+      // Fallback behavior
+      console.warn('Falling back to alternative approach');
+    }
+  }, [element, waitForRefs]);
+  
+  // Error boundary for RefContext-specific errors
+  if (!allRefsReady) {
+    return <div>Loading refs...</div>;
+  }
+  
+  return (
+    <div ref={element.setRef} onClick={safelyManipulateDOM}>
+      Click me
+    </div>
+  );
+}
+
+// ❌ Avoid: Unsafe ref operations
+function UnsafeRefOperations() {
+  const element = useMouseRef('target');
+  
+  const unsafeOperation = () => {
+    // This can fail if element is not mounted yet
+    element.target.style.transform = 'translate3d(100px, 100px, 0)';
+  };
+  
+  return <div ref={element.setRef} onClick={unsafeOperation}>Click me</div>;
+}
+```
+
 ---
 
-## 📚 추가 리소스
+## 📚 Additional Resources
 
-### 관련 문서
-- [Pattern Guide](./pattern-guide.md) - 상세한 패턴 사용법
-- [Full Architecture Guide](./architecture-guide.md) - 완전한 아키텍처 가이드
-- [Hooks Reference](./hooks-reference.md) - Hooks 참조 문서
-- [API Reference](../../api/) - API 문서
+### Related Documentation
+- [Pattern Guide](./pattern-guide.md) - Detailed pattern usage guide
+- [Full Architecture Guide](./architecture-guide.md) - Complete architecture guide
+- [Hooks Reference](./hooks-reference.md) - Hooks reference documentation
+- [API Reference](../../api/) - API documentation
 
-### 예제 프로젝트
-- [Basic Example](../../../example/) - 기본 사용 예제
-- [Advanced Patterns](../../examples/) - 고급 패턴 예제
+### Example Projects
+- [Basic Example](../../../example/) - Basic usage examples
+- [Advanced Patterns](../../examples/) - Advanced pattern examples
 
-### 마이그레이션 가이드
-- [Legacy Pattern Migration](./pattern-guide.md#migration-guide) - 레거시 패턴에서 마이그레이션
+### Migration Guide
+- [Legacy Pattern Migration](./pattern-guide.md#migration-guide) - Migration from legacy patterns
 
 ---
 
 ## ❓ FAQ
 
-### Q: 언제 Store Only vs Action Only vs Composition을 사용해야 하나요?
-- **Store Only**: 순수 상태 관리 (폼, 설정, 캐시)
-- **Action Only**: 순수 이벤트 처리 (로깅, 트래킹, 알림)  
-- **Composition**: 복잡한 비즈니스 로직 (사용자 관리, 쇼핑카트)
+### Q: When should I use Store Only vs Action Only vs RefContext vs Composition?
+- **Store Only**: Pure state management (forms, settings, cache)
+- **Action Only**: Pure event handling (logging, tracking, notifications)
+- **RefContext Only**: High-performance DOM manipulation (animations, real-time interactions)
+- **Composition**: Complex business logic requiring multiple patterns (user management, interactive shopping cart)
 
-### Q: 리네이밍 패턴을 꼭 사용해야 하나요?
-네, 리네이밍 패턴은 Context-Action 프레임워크의 핵심 컨벤션입니다. 타입 안전성과 개발자 경험을 크게 향상시킵니다.
+### Q: Is the renaming pattern mandatory?
+Yes, the renaming pattern is a core convention of the Context-Action framework. It significantly improves type safety and developer experience.
 
-### Q: 성능 최적화는 어떻게 해야 하나요?
-1. 적절한 comparison strategy 선택
-2. useCallback으로 핸들러 메모이제이션  
-3. 큰 데이터는 reference strategy 사용
-4. 필요시 debounce/throttle 적용
+### Q: How should I approach performance optimization?
+1. Choose appropriate comparison strategy for stores
+2. Memoize handlers with useCallback
+3. Use reference strategy for large data
+4. Apply debounce/throttle when needed
+5. Use RefContext for performance-critical DOM operations
 
-### Q: 에러 처리는 어떻게 해야 하나요?
-1. Pipeline Controller의 abort() 메서드 사용
-2. 도메인별 Error Boundary 설정
-3. 적절한 에러 타입별 처리
-4. 사용자 친화적 에러 메시지 제공
+### Q: How should I handle errors?
+1. Use Pipeline Controller's abort() method for actions
+2. Set up domain-specific Error Boundaries
+3. Handle different error types appropriately
+4. Provide user-friendly error messages
+5. Always check ref.target existence before DOM manipulation
 
-### Q: 명시적 제네릭과 타입 추론 중 어떤 것을 사용해야 하나요?
-- **타입 추론 (권장)**: 대부분의 경우, 코드가 간결하고 타입 안전성 보장
-- **명시적 제네릭**: 복잡한 타입 구조나 엄격한 타입 제약이 필요한 경우
+### Q: Should I use explicit generics or type inference?
+- **Type inference (recommended)**: For most cases, code is concise and type safety is guaranteed
+- **Explicit generics**: For complex type structures or strict type constraints
 
-### Q: comparisonOptions는 언제 사용해야 하나요?
-1. **ignoreKeys**: 타임스탬프 등 특정 필드 변경을 무시하고 싶을 때
-2. **customComparator**: 비즈니스 로직에 맞는 특별한 비교가 필요할 때
-3. **maxDepth**: 성능 최적화를 위해 깊은 비교의 깊이를 제한하고 싶을 때
-4. **enableCircularCheck**: 순환 참조 가능성이 있는 객체를 다룰 때
+### Q: When should I use comparisonOptions?
+1. **ignoreKeys**: When you want to ignore specific field changes like timestamps
+2. **customComparator**: When special comparison logic is needed for business requirements
+3. **maxDepth**: To limit deep comparison depth for performance optimization
+4. **enableCircularCheck**: When dealing with objects that might have circular references
 
-### Q: 타입 테스트는 어떻게 작성해야 하나요?
-1. 명시적 제네릭과 타입 추론 모두 테스트
-2. 컴파일 타임에 타입 안전성 검증
-3. 에러 케이스도 주석으로 문서화
-4. 실제 사용 패턴을 반영한 테스트 컴포넌트 작성
+### Q: How should I write type tests?
+1. Test both explicit generics and type inference
+2. Verify type safety at compile time
+3. Document error cases with comments
+4. Write test components that reflect actual usage patterns
+5. Include RefContext type validation in component tests
+
+### Q: When should I use RefContext over regular state?
+- **Use RefContext when**: Direct DOM manipulation needed, 60fps performance required, zero re-renders critical
+- **Use regular state when**: Data needs to be displayed in UI, component re-rendering is acceptable
+- **Combine both when**: Performance-critical operations alongside data display (e.g., real-time charts)
+
+### Q: How do I ensure RefContext safety?
+1. Always check `ref.target` existence before DOM operations
+2. Use `useWaitForRefs` for operations requiring multiple refs
+3. Implement proper cleanup for animations and event listeners
+4. Use hardware acceleration (`translate3d`) for smooth animations
+5. Clean up `will-change` CSS property after animations complete

@@ -8,7 +8,7 @@
 
 > **performantSafeGet**&lt;`T`&gt;(`value`, `enableCloning`): `T`
 
-Defined in: [packages/react/src/stores/utils/immutable.ts:261](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/utils/immutable.ts#L261)
+Defined in: [packages/react/src/stores/utils/immutable.ts:513](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/utils/immutable.ts#L513)
 
 성능 측정이 포함된 안전한 getter
 

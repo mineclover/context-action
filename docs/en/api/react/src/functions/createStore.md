@@ -8,10 +8,13 @@
 
 > **createStore**&lt;`T`&gt;(`name`, `initialValue`): [`Store`](../classes/Store.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/core/Store.ts:360](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/core/Store.ts#L360)
+Defined in: [packages/react/src/stores/core/Store.ts:521](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/Store.ts#L521)
 
-Store 팩토리 함수 - 간편한 Store 인스턴스 생성
-핵심 기능: 타입 안전한 Store 인스턴스 생성을 위한 팩토리 함수
+Factory function for creating type-safe Store instances
+
+Creates a new Store instance with the specified name and initial value.
+Provides type safety and integrates seamlessly with React hooks and
+the Context-Action framework patterns.
 
 ## Type Parameters
 
@@ -19,7 +22,7 @@ Store 팩토리 함수 - 간편한 Store 인스턴스 생성
 
 Type parameter **T**
 
-Store 값 타입
+The type of values stored in this store
 
 ## Parameters
 
@@ -27,31 +30,64 @@ Store 값 타입
 
 `string`
 
-Store 식별자 이름
+Unique identifier for the store (used for debugging)
 
 ### initialValue
 
 Type parameter **T**
 
-Store 초기값
+Initial value to store
 
 ## Returns
 
 [`Store`](../classes/Store.md)&lt;`T`&gt;
 
-Store 인스턴스
+Configured Store instance ready for use
 
-## Example
+## Examples
 
 ```typescript
-// 객체 Store 생성
-const userStore = createStore('user', { id: '', name: '', email: '' });
+// Object store
+const userStore = createStore('user', {
+  id: '',
+  name: '',
+  email: ''
+})
 
-// 원시값 Store 생성
-const countStore = createStore('count', 0);
-const themeStore = createStore('theme', 'light');
+// Primitive value stores
+const countStore = createStore('count', 0)
+const themeStore = createStore('theme', 'light' as 'light' | 'dark')
+const itemsStore = createStore('items', [] as string[])
+```
 
-// Store 사용
-userStore.setValue({ id: '1', name: 'John', email: 'john@example.com' });
-countStore.setValue(42);
+```typescript
+// Create store
+const userStore = createStore('user', { name: 'Guest' })
+
+// Use in React component
+function UserProfile() {
+  const user = useStoreValue(userStore)
+  
+  const updateName = (name: string) => {
+    userStore.update(current => ({ ...current, name }))
+  }
+  
+  return <div>Hello, {user.name}!</div>
+}
+```
+
+```typescript
+const todoStore = createStore('todos', [] as Todo[])
+
+// Set entire value
+todoStore.setValue([{ id: 1, text: 'Learn TypeScript', done: false }])
+
+// Update with function
+todoStore.update(todos => [
+  ...todos,
+  { id: 2, text: 'Build app', done: false }
+])
+
+// Get current value
+const currentTodos = todoStore.getValue()
 ```

@@ -8,11 +8,13 @@
 
 > **useStoreSelector**\<`T`, `R`\>(`store`, `selector`, `equalityFn`): `R`
 
-Defined in: [packages/react/src/stores/hooks/useStoreSelector.ts:128](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/hooks/useStoreSelector.ts#L128)
+Defined in: [packages/react/src/stores/hooks/useStoreSelector.ts:148](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/hooks/useStoreSelector.ts#L148)
 
-Store에서 특정 값을 선택하여 구독하는 Hook
+Hook for selective store subscription with performance optimization
 
-selector가 반환하는 값이 변경될 때만 컴포넌트가 리렌더링됩니다.
+Subscribes to specific parts of store data using a selector function,
+triggering re-renders only when the selected value actually changes.
+Essential for preventing unnecessary re-renders in complex applications.
 
 ## Type Parameters
 
@@ -20,13 +22,13 @@ selector가 반환하는 값이 변경될 때만 컴포넌트가 리렌더링됩
 
 Type parameter **T**
 
-Store의 값 타입
+Type of the store value
 
 ### Generic type R
 
 Type parameter **R**
 
-Selector가 반환하는 값 타입
+Type of the value returned by the selector
 
 ## Parameters
 
@@ -34,52 +36,60 @@ Selector가 반환하는 값 타입
 
 [`Store`](../classes/Store.md)&lt;`T`&gt;
 
-구독할 Store 인스턴스
+Store instance to subscribe to
 
 ### selector
 
 (`value`) => `R`
 
-Store 값에서 필요한 부분을 추출하는 함수
+Function to extract needed data from store value
 
 ### equalityFn
 
 (`a`, `b`) => `boolean`
 
-이전 값과 새 값을 비교하는 함수 (기본값: Object.is)
+Function to compare previous and new values (default: Object.is)
 
 ## Returns
 
 Type parameter **R**
 
-selector가 반환하는 값
+The value returned by the selector function
 
-## Example
+## Examples
 
 ```typescript
 interface User {
-  id: string;
-  profile: { name: string; email: string; avatar?: string };
-  preferences: { theme: 'light' | 'dark'; language: string };
-  metadata: { lastLogin: Date; createdAt: Date };
+  id: string
+  profile: { name: string; email: string; avatar?: string }
+  preferences: { theme: 'light' | 'dark'; language: string }
+  metadata: { lastLogin: Date; createdAt: Date }
 }
 
-const userStore = createStore<User>('user', initialUser);
+const userStore = createStore<User>('user', initialUser)
 
-// 기본 사용법 - profile.name만 구독
+// Subscribe only to profile.name - ignores other user changes
 const userName = useStoreSelector(
   userStore, 
   user => user.profile.name
-);
+)
 
-// 얕은 비교로 객체 구독
+// Component re-renders only when name changes
+```
+
+```typescript
+// Subscribe to entire profile object with shallow equality
 const userProfile = useStoreSelector(
   userStore, 
   user => user.profile,
   shallowEqual
-);
+)
 
-// 복잡한 계산된 값
+// Re-renders only when profile properties change
+// (name, email, avatar), not when preferences or metadata change
+```
+
+```typescript
 const userDisplayInfo = useStoreSelector(
   userStore,
   user => ({
@@ -88,16 +98,17 @@ const userDisplayInfo = useStoreSelector(
     avatarUrl: user.profile.avatar || '/default-avatar.png'
   }),
   shallowEqual
-);
+)
+```
 
-// 성능 최적화: 특정 조건에서만 계산
+```typescript
 const expensiveComputation = useStoreSelector(
   userStore,
   user => {
-    if (!user.profile.name) return null;
+    if (!user.profile.name) return null
     
-    // 복잡한 계산...
-    return processUserData(user);
+    // Expensive calculation only when name exists
+    return processUserData(user)
   }
-);
+)
 ```

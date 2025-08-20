@@ -8,7 +8,7 @@
 
 > **useStorePathSelector**&lt;`T`&gt;(`store`, `path`, `equalityFn`): `any`
 
-Defined in: [packages/react/src/stores/hooks/useStoreSelector.ts:337](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/hooks/useStoreSelector.ts#L337)
+Defined in: [packages/react/src/stores/hooks/useStoreSelector.ts:357](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/hooks/useStoreSelector.ts#L357)
 
 Store의 깊은 경로에 있는 값을 선택적으로 구독하는 유틸리티 Hook
 

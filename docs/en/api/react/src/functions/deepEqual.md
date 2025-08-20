@@ -8,7 +8,7 @@
 
 > **deepEqual**&lt;`T`&gt;(`a`, `b`): `boolean`
 
-Defined in: [packages/react/src/stores/hooks/useStoreSelector.ts:47](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/hooks/useStoreSelector.ts#L47)
+Defined in: [packages/react/src/stores/hooks/useStoreSelector.ts:48](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/hooks/useStoreSelector.ts#L48)
 
 깊은 동등성 비교 함수 (주의: 성능 비용이 있으므로 필요시에만 사용)
 

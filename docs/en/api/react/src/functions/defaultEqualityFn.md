@@ -8,7 +8,7 @@
 
 > **defaultEqualityFn**&lt;`T`&gt;(`a`, `b`): `boolean`
 
-Defined in: [packages/react/src/stores/hooks/useStoreSelector.ts:16](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/hooks/useStoreSelector.ts#L16)
+Defined in: [packages/react/src/stores/hooks/useStoreSelector.ts:17](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/hooks/useStoreSelector.ts#L17)
 
 기본 동등성 비교 함수
 

@@ -6,35 +6,59 @@
 
 # Interface: PipelineController\<T, R\>
 
-Defined in: [packages/core/src/types.ts:47](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L47)
+Defined in: [packages/core/src/types.ts:128](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/core/src/types.ts#L128)
 
-액션 핸들러에게 제공되는 파이프라인 실행 흐름 관리 및 페이로드 수정을 위한 인터페이스입니다.
+Pipeline controller interface for managing execution flow and payload modification
 
-## Implements
+Provides action handlers with powerful control over the action pipeline execution,
+including the ability to abort execution, modify payloads, jump to specific priorities,
+and manage results. This is the primary interface for implementing business logic
+within action handlers.
 
-## Memberof
-
-core-concepts
-
-## Example
+## Examples
 
 ```typescript
-register('processData', async (payload, controller) => {
-  // 입력 검증
-  if (!payload.isValid) {
-    controller.abort('Invalid payload');
-    return;
+register.register('validateAndProcess', async (payload, controller) => {
+  // Input validation
+  if (!payload.email.includes('@')) {
+    controller.abort('Invalid email format')
+    return
   }
   
-  // 페이로드 변형
-  controller.modifyPayload(data => ({ 
-    ...data, 
+  // Process and modify payload for next handlers
+  controller.modifyPayload(data => ({
+    ...data,
     processed: true,
-    timestamp: Date.now()
-  }));
+    timestamp: Date.now(),
+    normalized: data.email.toLowerCase()
+  }))
   
-  // 핸들러가 자동으로 다음 핸들러로 진행
-});
+  // Set intermediate result
+  controller.setResult({ validated: true, userId: payload.id })
+})
+```
+
+```typescript
+register.register('checkCache', async (payload, controller) => {
+  const cached = await cache.get(payload.key)
+  
+  if (cached) {
+    // Return early and skip remaining handlers
+    controller.return({ source: 'cache', data: cached })
+    return
+  }
+  
+  // Continue to next handlers if not cached
+})
+```
+
+```typescript
+register.register('securityCheck', async (payload, controller) => {
+  if (payload.requiresElevatedPermissions) {
+    // Jump to high-priority security handlers
+    controller.jumpToPriority(1000)
+  }
+}, { priority: 50 })
 ```
 
 ## Type Parameters
@@ -43,9 +67,13 @@ register('processData', async (payload, controller) => {
 
 `T` = `any`
 
+The payload type for this action
+
 ### Generic type R
 
 `R` = `void`
+
+The result type for this action
 
 ## Methods
 
@@ -53,7 +81,7 @@ register('processData', async (payload, controller) => {
 
 > **abort**(`reason?`): `void`
 
-Defined in: [packages/core/src/types.ts:49](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L49)
+Defined in: [packages/core/src/types.ts:130](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/core/src/types.ts#L130)
 
 Abort the pipeline execution with an optional reason
 
@@ -73,7 +101,7 @@ Abort the pipeline execution with an optional reason
 
 > **modifyPayload**(`modifier`): `void`
 
-Defined in: [packages/core/src/types.ts:52](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L52)
+Defined in: [packages/core/src/types.ts:133](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/core/src/types.ts#L133)
 
 Modify the payload that will be passed to subsequent handlers
 
@@ -93,7 +121,7 @@ Modify the payload that will be passed to subsequent handlers
 
 > **getPayload**(): `T`
 
-Defined in: [packages/core/src/types.ts:55](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L55)
+Defined in: [packages/core/src/types.ts:136](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/core/src/types.ts#L136)
 
 Get the current payload
 
@@ -107,7 +135,7 @@ Type parameter **T**
 
 > **jumpToPriority**(`priority`): `void`
 
-Defined in: [packages/core/src/types.ts:58](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L58)
+Defined in: [packages/core/src/types.ts:139](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/core/src/types.ts#L139)
 
 Jump to a specific priority level in the pipeline
 
@@ -127,7 +155,7 @@ Jump to a specific priority level in the pipeline
 
 > **return**(`result`): `void`
 
-Defined in: [packages/core/src/types.ts:62](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L62)
+Defined in: [packages/core/src/types.ts:143](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/core/src/types.ts#L143)
 
 Return a result and terminate the pipeline
 
@@ -147,7 +175,7 @@ Type parameter **R**
 
 > **setResult**(`result`): `void`
 
-Defined in: [packages/core/src/types.ts:65](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L65)
+Defined in: [packages/core/src/types.ts:146](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/core/src/types.ts#L146)
 
 Set a result but continue pipeline execution
 
@@ -167,7 +195,7 @@ Type parameter **R**
 
 > **getResults**(): `R`[]
 
-Defined in: [packages/core/src/types.ts:68](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L68)
+Defined in: [packages/core/src/types.ts:149](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/core/src/types.ts#L149)
 
 Get all results from previously executed handlers
 
@@ -181,7 +209,7 @@ Get all results from previously executed handlers
 
 > **mergeResult**(`merger`): `void`
 
-Defined in: [packages/core/src/types.ts:71](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L71)
+Defined in: [packages/core/src/types.ts:152](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/core/src/types.ts#L152)
 
 Merge current result with previous results using a custom merger function
 

@@ -563,6 +563,228 @@ This simplified approach:
 - Provides consistent behavior across all ref types
 - Makes the API simpler and more predictable
 
+## Real-World Example: Mouse Events with RefContext
+
+Here's a practical example showing how RefContext enables high-performance mouse tracking with zero React re-renders:
+
+```typescript
+import React, { useCallback, useRef } from 'react';
+import { createRefContext } from '@context-action/react';
+
+// 1. Define mouse event types
+type MousePosition = { x: number; y: number };
+type MouseClick = { x: number; y: number; timestamp: number; button: number };
+
+// 2. Create RefContext for mouse position management
+const {
+  Provider: MousePositionProvider,
+  useRefHandler: useMousePositionRef
+} = createRefContext<{
+  cursor: HTMLDivElement;
+  trail: HTMLDivElement;
+  container: HTMLDivElement;
+}>('MousePosition');
+
+// 3. Create RefContext for visual effects
+const {
+  Provider: VisualEffectsProvider,
+  useRefHandler: useVisualEffectsRef
+} = createRefContext<{
+  clickEffectsContainer: HTMLDivElement;
+  pathSvg: SVGSVGElement;
+  pathElement: SVGPathElement;
+}>('VisualEffects');
+
+// 4. Custom hook for mouse position updates
+function useMousePositionUpdater() {
+  const cursor = useMousePositionRef('cursor');
+  const trail = useMousePositionRef('trail');
+  
+  const updatePosition = useCallback((position: MousePosition) => {
+    // Direct DOM manipulation - zero React re-renders!
+    if (cursor.target) {
+      cursor.target.style.transform = `translate3d(${position.x}px, ${position.y}px, 0)`;
+    }
+    if (trail.target) {
+      trail.target.style.transform = `translate3d(${position.x - 5}px, ${position.y - 5}px, 0)`;
+      trail.target.style.opacity = '0.7';
+    }
+  }, [cursor, trail]);
+  
+  const showCursor = useCallback((visible: boolean) => {
+    if (cursor.target) {
+      cursor.target.style.display = visible ? 'block' : 'none';
+    }
+  }, [cursor]);
+  
+  return { updatePosition, showCursor };
+}
+
+// 5. Custom hook for visual effects
+function useVisualEffectsUpdater() {
+  const clickEffectsContainer = useVisualEffectsRef('clickEffectsContainer');
+  const pathElement = useVisualEffectsRef('pathElement');
+  const pathHistoryRef = useRef<MousePosition[]>([]);
+  
+  const addClickEffect = useCallback((click: MouseClick) => {
+    if (!clickEffectsContainer.target) return;
+    
+    // Create click effect element
+    const effect = document.createElement('div');
+    effect.className = 'absolute pointer-events-none';
+    effect.style.cssText = `
+      left: ${click.x - 15}px;
+      top: ${click.y - 15}px;
+      width: 30px;
+      height: 30px;
+      border: 2px solid #ef4444;
+      border-radius: 50%;
+      transform: scale(0);
+      opacity: 1;
+      transition: all 800ms cubic-bezier(0.23, 1, 0.32, 1);
+    `;
+    
+    clickEffectsContainer.target.appendChild(effect);
+    
+    // Start animation
+    requestAnimationFrame(() => {
+      effect.style.transform = 'scale(2)';
+      effect.style.opacity = '0';
+    });
+    
+    // Clean up after animation
+    setTimeout(() => {
+      if (clickEffectsContainer.target && effect.parentNode) {
+        clickEffectsContainer.target.removeChild(effect);
+      }
+    }, 800);
+  }, [clickEffectsContainer]);
+  
+  const addPathPoint = useCallback((position: MousePosition) => {
+    pathHistoryRef.current = [position, ...pathHistoryRef.current.slice(0, 49)];
+    
+    if (pathElement.target && pathHistoryRef.current.length > 1) {
+      const pathString = generatePathString(pathHistoryRef.current);
+      pathElement.target.setAttribute('d', pathString);
+    }
+  }, [pathElement]);
+  
+  return { addClickEffect, addPathPoint };
+}
+
+// 6. Helper function for smooth path generation
+function generatePathString(points: MousePosition[]): string {
+  if (points.length < 2) return '';
+  
+  const [firstPoint, ...restPoints] = points;
+  let pathString = `M ${firstPoint.x},${firstPoint.y}`;
+  
+  for (let i = 0; i < restPoints.length; i++) {
+    const current = restPoints[i];
+    if (i === restPoints.length - 1) {
+      pathString += ` L ${current.x},${current.y}`;
+    } else {
+      const next = restPoints[i + 1];
+      const cpx = (current.x + next.x) / 2;
+      const cpy = (current.y + next.y) / 2;
+      pathString += ` Q ${current.x},${current.y} ${cpx},${cpy}`;
+    }
+  }
+  
+  return pathString;
+}
+
+// 7. Main mouse events component
+function RefContextMouseDemo() {
+  const { updatePosition, showCursor } = useMousePositionUpdater();
+  const { addClickEffect, addPathPoint } = useVisualEffectsUpdater();
+  
+  const container = useMousePositionRef('container');
+  const cursor = useMousePositionRef('cursor');
+  const trail = useMousePositionRef('trail');
+  
+  // Event handlers with direct DOM manipulation
+  const handleMouseMove = useCallback((event: React.MouseEvent) => {
+    if (!container.target) return;
+    
+    const rect = container.target.getBoundingClientRect();
+    const position: MousePosition = {
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+    };
+    
+    // Update all visual elements without React re-renders
+    updatePosition(position);
+    addPathPoint(position);
+  }, [container, updatePosition, addPathPoint]);
+  
+  const handleMouseClick = useCallback((event: React.MouseEvent) => {
+    if (!container.target) return;
+    
+    const rect = container.target.getBoundingClientRect();
+    const click: MouseClick = {
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+      timestamp: performance.now(),
+      button: event.button,
+    };
+    
+    addClickEffect(click);
+  }, [container, addClickEffect]);
+  
+  return (
+    <div
+      ref={container.setRef}
+      className="relative h-96 bg-gradient-to-br from-blue-50 to-purple-50 overflow-hidden cursor-none"
+      onMouseMove={handleMouseMove}
+      onClick={handleMouseClick}
+      onMouseEnter={() => showCursor(true)}
+      onMouseLeave={() => showCursor(false)}
+    >
+      {/* Mouse cursor */}
+      <div
+        ref={cursor.setRef}
+        className="absolute w-4 h-4 bg-blue-500 rounded-full pointer-events-none"
+        style={{ transform: 'translate3d(0, 0, 0)' }}
+      />
+      
+      {/* Mouse trail */}
+      <div
+        ref={trail.setRef}
+        className="absolute w-3 h-3 bg-blue-300 rounded-full pointer-events-none"
+        style={{ transform: 'translate3d(0, 0, 0)', opacity: 0 }}
+      />
+    </div>
+  );
+}
+
+// 8. Complete app with all providers
+function MouseEventsApp() {
+  return (
+    <MousePositionProvider>
+      <VisualEffectsProvider>
+        <div className="p-6">
+          <h2 className="text-xl font-bold mb-4">RefContext Mouse Events</h2>
+          <RefContextMouseDemo />
+          <p className="mt-4 text-sm text-gray-600">
+            Move your mouse and click to see zero React re-render performance!
+          </p>
+        </div>
+      </VisualEffectsProvider>
+    </MousePositionProvider>
+  );
+}
+```
+
+### Key Benefits of This Approach:
+
+1. **Zero React Re-renders**: All mouse movements are handled through direct DOM manipulation
+2. **Perfect Separation of Concerns**: Each RefContext manages its own domain
+3. **Hardware Acceleration**: Using `translate3d()` for smooth 60fps performance
+4. **Type Safety**: Full TypeScript support with proper ref typing
+5. **Independent Contexts**: Mouse position and visual effects are completely decoupled
+6. **Memory Efficient**: Automatic cleanup when components unmount
+
 ## Complete Example: Game Component
 
 ```typescript

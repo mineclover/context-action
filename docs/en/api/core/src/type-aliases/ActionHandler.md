@@ -6,11 +6,17 @@
 
 # Type Alias: ActionHandler()\<T, R\>
 
-> **ActionHandler**\<`T`, `R`\> = (`payload`, `controller`) => `R` \| `Promise`&lt;`R`&gt;
+> **ActionHandler**\<`T`, `R`\> = (`payload`, `controller`) => `R` \| `Promise`&lt;`R`&gt; \| `void` \| `Promise`&lt;`void`&gt;
 
-Defined in: [packages/core/src/types.ts:96](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L96)
+Defined in: [packages/core/src/types.ts:220](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/core/src/types.ts#L220)
 
-파이프라인 내에서 특정 액션을 처리하는 함수로, 비즈니스 로직과 스토어 상호작용을 담당합니다.
+Action handler function type for processing actions within the pipeline
+
+Defines the signature for action handler functions that contain the business logic
+for processing specific actions. Handlers follow the Store Integration Pattern:
+1. Read current state from stores
+2. Execute business logic
+3. Update stores with new state
 
 ## Type Parameters
 
@@ -18,9 +24,13 @@ Defined in: [packages/core/src/types.ts:96](https://github.com/mineclover/contex
 
 `T` = `any`
 
+The payload type for this action
+
 ### Generic type R
 
 `R` = `void`
+
+The return type for this handler
 
 ## Parameters
 
@@ -28,33 +38,62 @@ Defined in: [packages/core/src/types.ts:96](https://github.com/mineclover/contex
 
 Type parameter **T**
 
+The action payload data
+
 ### controller
 
 [`PipelineController`](../interfaces/PipelineController.md)\<`T`, `R`\>
 
+Pipeline controller for managing execution flow
+
 ## Returns
 
-`R` \| `Promise`&lt;`R`&gt;
+`R` \| `Promise`&lt;`R`&gt; \| `void` \| `Promise`&lt;`void`&gt;
 
-## Implements
+The result value or Promise resolving to result
 
-## Memberof
-
-core-concepts
-
-## Example
+## Examples
 
 ```typescript
-const updateUserHandler: ActionHandler<{id: string, name: string}> = async (payload, controller) => {
-  // 스토어에서 현재 상태 읽기
-  const currentUser = userStore.getValue();
-  
-  // 비즈니스 로직 실행
-  const updatedUser = { ...currentUser, ...payload };
-  
-  // 스토어 상태 업데이트
-  userStore.setValue(updatedUser);
-  
-  // 핸들러가 자동으로 다음 핸들러로 진행
-};
+const updateUserHandler: ActionHandler<{id: string, name: string, email: string}> = 
+  async (payload, controller) => {
+    // 1. Read current state from stores
+    const currentUser = userStore.getValue()
+    const settings = settingsStore.getValue()
+    
+    // 2. Execute business logic
+    if (!settings.allowUserUpdates) {
+      controller.abort('User updates are disabled')
+      return
+    }
+    
+    const updatedUser = {
+      ...currentUser,
+      ...payload,
+      updatedAt: new Date().toISOString()
+    }
+    
+    // 3. Update stores
+    userStore.setValue(updatedUser)
+    
+    // Set result for other handlers or components
+    controller.setResult({ success: true, user: updatedUser })
+  }
+```
+
+```typescript
+const saveUserHandler: ActionHandler<UserData, SaveResult> = 
+  async (payload, controller) => {
+    try {
+      const result = await userService.save(payload)
+      
+      // Update local store with server response
+      userStore.setValue(result.user)
+      
+      return { success: true, userId: result.user.id }
+    } catch (error) {
+      controller.abort(`Save failed: ${error.message}`)
+      return { success: false, error: error.message }
+    }
+  }
 ```
