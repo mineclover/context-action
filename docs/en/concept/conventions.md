@@ -1187,8 +1187,81 @@ Yes, the renaming pattern is a core convention of the Context-Action framework. 
 - **Combine both when**: Performance-critical operations alongside data display (e.g., real-time charts)
 
 ### Q: How do I ensure RefContext safety?
-1. Always check `ref.target` existence before DOM operations
-2. Use `useWaitForRefs` for operations requiring multiple refs
-3. Implement proper cleanup for animations and event listeners
-4. Use hardware acceleration (`translate3d`) for smooth animations
-5. Clean up `will-change` CSS property after animations complete
+1. **Always check `ref.target` existence before DOM operations**
+   ```tsx
+   const element = useMouseRef('cursor');
+   
+   // ✅ Correct - safe access
+   if (element.target) {
+     element.target.style.transform = 'scale(1.1)';
+   }
+   
+   // ❌ Wrong - potential error
+   element.target.style.transform = 'scale(1.1)';
+   ```
+
+2. **Use `useWaitForRefs` for operations requiring multiple refs**
+   ```tsx
+   const { allRefsReady, waitForRefs } = useWaitForRefs(['cursor', 'container']);
+   
+   const performOperation = async () => {
+     await waitForRefs(); // Wait until all refs are ready
+     // Perform safe DOM operations
+   };
+   ```
+
+3. **Implement proper cleanup for animations and event listeners**
+   ```tsx
+   useEffect(() => {
+     return () => {
+       // Clean up animations
+       if (animationFrame) {
+         cancelAnimationFrame(animationFrame);
+       }
+       // Remove event listeners
+       element.target?.removeEventListener('click', handler);
+     };
+   }, []);
+   ```
+
+4. **Error boundary handling and warning messages**
+   ```tsx
+   if (!element.target) {
+     console.warn('RefContext: Target element not yet mounted');
+     return;
+   }
+   ```
+
+### Q: How do I optimize RefContext performance?
+1. **Use `translate3d()` for hardware acceleration**
+   ```tsx
+   // ✅ Correct - GPU acceleration
+   element.target.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+   
+   // ❌ Wrong - CPU only
+   element.target.style.left = `${x}px`;
+   element.target.style.top = `${y}px`;
+   ```
+
+2. **Manage `will-change` property for animations**
+   ```tsx
+   // Before animation starts
+   element.target.style.willChange = 'transform';
+   
+   // During animation
+   element.target.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+   
+   // After animation completes (prevent memory leaks)
+   element.target.style.willChange = '';
+   ```
+
+3. **Use requestAnimationFrame for smooth animations**
+   ```tsx
+   const animate = () => {
+     if (element.target) {
+       const x = Math.sin(Date.now() * 0.001) * 100;
+       element.target.style.transform = `translate3d(${x}px, 0, 0)`;
+     }
+     requestAnimationFrame(animate);
+   };
+   ```
