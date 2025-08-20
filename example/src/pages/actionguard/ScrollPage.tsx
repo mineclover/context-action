@@ -18,10 +18,12 @@ interface ScrollActions {
   resetScroll: { element: string };
 }
 
-// 샘플 컨텐츠 데이터
+// 샘플 컨텐츠 데이터 - 전역 카운터를 사용하여 고유 ID 보장
+let globalItemCounter = 0;
+
 const generateContent = (page: number, itemsPerPage: number = 20) => {
   return Array.from({ length: itemsPerPage }, (_, i) => {
-    const id = page * itemsPerPage + i + 1;
+    const id = ++globalItemCounter; // 전역적으로 고유한 ID 생성
     return {
       id: `item-${id}`, // 문자열 키로 변경하여 React key 중복 방지
       title: `컨텐츠 아이템 #${id}`,
@@ -325,6 +327,7 @@ function ScrollDemo() {
                 
                 <button
                   onClick={() => {
+                    globalItemCounter = 0; // 카운터 리셋
                     contentStore.setValue(generateContent(0, 15));
                     currentPageStore.setValue(0);
                     scrollToTop();

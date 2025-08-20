@@ -182,7 +182,7 @@ export class Store<T = any> implements IStore<T> {
           if (value && typeof value === 'object') {
             const problematicKeys = [];
             for (const key in value) {
-              if (value.hasOwnProperty(key)) {
+              if (Object.prototype.hasOwnProperty.call(value, key)) {
                 const prop = (value as any)[key];
                 if (prop instanceof Element || prop instanceof Event || (prop && typeof prop === 'object' && prop.target)) {
                   problematicKeys.push(key);

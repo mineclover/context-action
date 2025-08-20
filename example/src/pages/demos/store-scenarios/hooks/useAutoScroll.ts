@@ -18,8 +18,8 @@ interface AutoScrollDependency {
 }
 
 /**
- * 자동 스크롤 관리 훅
- * 사용자 스크롤과 자동 스크롤을 분리하여 사이드 이펙트 방지
+ * 자동 스크롤 관리 훅 - 최적화된 버전
+ * 무한 리렌더링을 방지하면서 자동 스크롤 기능 제공
  */
 export function useAutoScroll<T extends HTMLElement>(
   containerRef: RefHandler<T>,
@@ -27,11 +27,18 @@ export function useAutoScroll<T extends HTMLElement>(
 ) {
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+  
+  // Ref를 사용하여 state를 추적 (리렌더링 방지)
+  const stateRef = useRef({
+    isUserScrolling: false,
+    shouldAutoScroll: true,
+    lastScrollTop: 0,
+    lastDependencyLength: 0
+  });
+  
   const scrollTimeoutRef = useRef<NodeJS.Timeout>();
-  const lastScrollTop = useRef<number>(0);
-  const lastDependencyLength = useRef<number>(0);
 
-  // 컨테이너가 바닥에 있는지 확인
+  // 컨테이너가 바닥에 있는지 확인 - 의존성 없음
   const isAtBottom = useCallback(async (): Promise<boolean> => {
     try {
       const container = await containerRef.waitForMount();
@@ -43,14 +50,16 @@ export function useAutoScroll<T extends HTMLElement>(
     }
   }, [containerRef]);
 
-  // 스크롤 이벤트 핸들러
+  // 스크롤 이벤트 핸들러 - 의존성 최소화
   const handleScroll = useCallback(async () => {
     try {
       const container = await containerRef.waitForMount();
       const currentScrollTop = container.scrollTop;
       
       // 사용자가 위로 스크롤했는지 감지
-      if (currentScrollTop < lastScrollTop.current) {
+      if (currentScrollTop < stateRef.current.lastScrollTop) {
+        stateRef.current.isUserScrolling = true;
+        stateRef.current.shouldAutoScroll = false;
         setIsUserScrolling(true);
         setShouldAutoScroll(false);
       }
@@ -58,17 +67,20 @@ export function useAutoScroll<T extends HTMLElement>(
       // 바닥에 도달했으면 자동 스크롤 재활성화
       const atBottom = await isAtBottom();
       if (atBottom) {
+        stateRef.current.shouldAutoScroll = true;
+        stateRef.current.isUserScrolling = false;
         setShouldAutoScroll(true);
         setIsUserScrolling(false);
       }
       
-      lastScrollTop.current = currentScrollTop;
+      stateRef.current.lastScrollTop = currentScrollTop;
       
       // 스크롤 상태 초기화 타이머
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
       }
       scrollTimeoutRef.current = setTimeout(() => {
+        stateRef.current.isUserScrolling = false;
         setIsUserScrolling(false);
       }, 1000);
       
@@ -77,9 +89,9 @@ export function useAutoScroll<T extends HTMLElement>(
     }
   }, [containerRef, isAtBottom]);
 
-  // 자동 스크롤 실행
+  // 자동 스크롤 실행 - ref 사용으로 의존성 제거
   const scrollToBottom = useCallback(async (force: boolean = false) => {
-    if (!force && (isUserScrolling || !shouldAutoScroll)) {
+    if (!force && (stateRef.current.isUserScrolling || !stateRef.current.shouldAutoScroll)) {
       return;
     }
 
@@ -92,23 +104,25 @@ export function useAutoScroll<T extends HTMLElement>(
     } catch (error) {
       console.warn('자동 스크롤 실패:', error);
     }
-  }, [containerRef, isUserScrolling, shouldAutoScroll]);
+  }, [containerRef]);
 
   // 의존성 변경 시 자동 스크롤 (새 메시지 등)
   useEffect(() => {
     const currentLength = Array.isArray(dependency) ? dependency.length : 1;
     
     // 의존성이 증가했을 때만 자동 스크롤 (새 항목 추가)
-    if (currentLength > lastDependencyLength.current) {
+    if (currentLength > stateRef.current.lastDependencyLength && stateRef.current.lastDependencyLength > 0) {
       // 잠시 후 실행하여 DOM 업데이트 완료 대기
       const timer = setTimeout(() => {
         scrollToBottom();
       }, 50);
       
+      stateRef.current.lastDependencyLength = currentLength;
       return () => clearTimeout(timer);
     }
     
-    lastDependencyLength.current = currentLength;
+    stateRef.current.lastDependencyLength = currentLength;
+    return; // 명시적으로 undefined 반환
   }, [dependency, scrollToBottom]);
 
   // 스크롤 이벤트 리스너 등록
@@ -144,8 +158,14 @@ export function useAutoScroll<T extends HTMLElement>(
     scrollToBottom,
     isAtBottom,
     // 수동 제어 함수들
-    enableAutoScroll: () => setShouldAutoScroll(true),
-    disableAutoScroll: () => setShouldAutoScroll(false),
+    enableAutoScroll: () => {
+      stateRef.current.shouldAutoScroll = true;
+      setShouldAutoScroll(true);
+    },
+    disableAutoScroll: () => {
+      stateRef.current.shouldAutoScroll = false;
+      setShouldAutoScroll(false);
+    },
     forceScrollToBottom: () => scrollToBottom(true)
   };
 }

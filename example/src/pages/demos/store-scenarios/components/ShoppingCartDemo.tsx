@@ -4,6 +4,8 @@ import { useActionLoggerWithToast } from '../../../../components/LogMonitor/';
 import { Badge, Button, Card, CardContent } from '../../../../components/ui';
 import { storeActionRegister } from '../actions';
 import { StoreScenarios } from '../stores';
+import { cartComputations } from '../modules/computations';
+import { loggingModule } from '../modules/logging';
 
 /**
  * 쇼핑카트 시스템 데모 컴포넌트
@@ -85,17 +87,18 @@ export function ShoppingCartDemo() {
   }, [addToCartHandler, removeFromCartHandler, updateCartQuantityHandler, clearCartHandler]); // 메모이제이션된 핸들러들을 의존성에 추가
 
   const totalAmount = useMemo(() => {
-    if (!cart || !products) return 0;
-    const total = cart?.reduce((total, item) => {
-      const product = products?.find((p) => p.id === item.productId);
-      return total + (product ? product.price * item.quantity : 0);
-    }, 0);
-    // 자동 계산: 실행시간, 타임스탬프가 자동으로 주입됨
-    logger.logSystem('장바구니 총액 계산', {
-      context: `items: ${cart?.length ?? 0}, total: ${total}`,
-    });
-    return total;
-  }, [cart, products, logger]);
+    return cartComputations.calculateTotal(cart || [], products || []);
+  }, [cart, products]);
+
+  // 로깅을 모듈화된 시스템으로 분리 - 무한 루프 방지
+  useEffect(() => {
+    if (cart && products && cart.length >= 0) {
+      loggingModule.logSystem('장바구니 총액 계산', {
+        items: cart.length,
+        total: totalAmount
+      });
+    }
+  }, [cart?.length, products?.length, totalAmount]);
 
   const addToCart = useCallback(
     (productId: string) => {
@@ -269,7 +272,7 @@ export function ShoppingCartDemo() {
                 variant="outline"
                 className="bg-orange-100 text-orange-800"
               >
-                총 {cart?.reduce((sum, item) => sum + item.quantity, 0) ?? 0}개
+                총 {cartComputations.getTotalItems(cart || [])}개
                 상품
               </Badge>
               {(cart?.length ?? 0) > 0 && (
@@ -380,7 +383,7 @@ export function ShoppingCartDemo() {
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-700">상품 개수:</span>
                   <span className="font-medium">
-                    {cart?.reduce((sum, item) => sum + item.quantity, 0) ?? 0}개
+                    {cartComputations.getTotalItems(cart || [])}개
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-sm">

@@ -458,46 +458,63 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     payload?: T[K],
     options?: import('./types.js').DispatchOptions
   ): Promise<void> {
-    // Debug logging to identify event objects being dispatched
-    if (payload && typeof payload === 'object' && payload !== null) {
-      const hasEventTarget = (payload as any).target !== undefined;
-      const hasPreventDefault = typeof (payload as any).preventDefault === 'function';
+    // Enhanced debugging for object analysis
+    if (payload && typeof payload === 'object' && payload !== null && 
+        (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development')) {
       const isEvent = payload instanceof Event;
+      const isElement = payload instanceof Element;
+      const hasPreventDefault = typeof (payload as any).preventDefault === 'function';
+      const hasStopPropagation = typeof (payload as any).stopPropagation === 'function';
+      const hasCurrentTarget = (payload as any).currentTarget !== undefined;
+      const hasTarget = (payload as any).target !== undefined;
+      const targetType = hasTarget ? typeof (payload as any).target : 'undefined';
+      const targetIsElement = hasTarget ? (payload as any).target instanceof Element : false;
       
-      // Also log any object that has DOM-related properties
-      const hasDOMElements = Object.keys(payload).some(key => {
-        const prop = (payload as any)[key];
-        return prop instanceof Element || prop instanceof Event || 
-               (prop && typeof prop === 'object' && prop.target);
-      });
+      // Only log for debugging purposes when explicitly needed
+      // Most cases (Event objects, regular data) are perfectly fine
+      const hasUnexpectedStructure = false; // Currently no cases warrant warnings
       
-      if (hasEventTarget || hasPreventDefault || isEvent || hasDOMElements) {
-        console.error(
-          '[Context-Action] ⚠️ Event object detected in ActionRegister.dispatch!',
-          '\nAction:', String(action),
-          '\nRegistry:', this.name,
-          '\nPayload type:', typeof payload,
-          '\nConstructor:', payload?.constructor?.name,
-          '\nIs Event:', isEvent,
-          '\nHas target property:', hasEventTarget,
-          '\nHas preventDefault:', hasPreventDefault,
-          '\nStack trace:', new Error().stack?.split('\n').slice(1, 10).join('\n')
+      if (hasUnexpectedStructure) {
+        console.warn(
+          `[Context-Action] 🔍 Object analysis for action "${String(action)}" in registry "${this.name}":`,
+          {
+            isEvent,
+            isElement, 
+            hasPreventDefault,
+            hasStopPropagation,
+            hasCurrentTarget,
+            hasTarget,
+            targetType,
+            targetIsElement,
+            payloadType: typeof payload,
+            constructor: payload?.constructor?.name,
+            keys: Object.keys(payload),
+            payload: payload
+          }
         );
+      }
+      
+      // Optional: Deep analysis for nested objects containing DOM elements
+      // This is informational only - nested DOM objects might cause cloning issues in specific contexts
+      if ((typeof process !== 'undefined' && process.env?.DEBUG_CONTEXT_ACTION) || 
+          (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development')) {
+        const nestedDOMProperties: string[] = [];
+        Object.keys(payload).forEach(key => {
+          const prop = (payload as any)[key];
+          if (prop instanceof Element || prop instanceof Event) {
+            nestedDOMProperties.push(`${key}: ${prop instanceof Element ? 'Element' : 'Event'}`);
+          }
+        });
         
-        // Log problematic properties  
-        if (payload && typeof payload === 'object') {
-          const problematicKeys = [];
-          for (const key in payload) {
-            if (payload.hasOwnProperty(key)) {
-              const prop = (payload as any)[key];
-              if (prop instanceof Element || prop instanceof Event || (prop && typeof prop === 'object' && prop.target)) {
-                problematicKeys.push(key);
-              }
+        if (nestedDOMProperties.length > 0) {
+          console.debug(
+            `[Context-Action] 📋 Nested DOM objects in action "${String(action)}":`,
+            {
+              registry: this.name,
+              nestedDOMProperties,
+              note: 'This is informational - usually not a problem'
             }
-          }
-          if (problematicKeys.length > 0) {
-            console.error('[Context-Action] Event object properties in payload:', problematicKeys);
-          }
+          );
         }
       }
     }

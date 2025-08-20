@@ -8,7 +8,8 @@ let handlersRegistered = false;
 export function registerChatHandlers() {
   if (handlersRegistered) return;
   
-  const messagesStore = StoreScenarios.Provider ? null : null; // Provider 없이는 사용 불가
+  // StoreScenarios.Provider는 컴포넌트이므로 조건문에서 제거
+  const messagesStore = null; // Provider 컨텍스트 내에서만 접근 가능
   
   storeActionRegister.register(
     'sendMessage',

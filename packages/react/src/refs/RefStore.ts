@@ -20,8 +20,6 @@ import type {
   RefInitConfig,
   RefEvent,
   RefEventListener,
-  DOMRefTarget,
-  ThreeRefTarget
 } from './types';
 
 /**
@@ -45,6 +43,10 @@ export class RefStore<T extends RefTarget = RefTarget> extends Store<RefState<T>
   private isCleaningUp = false;
   private mountTimeoutId?: NodeJS.Timeout;
   private currentMountPromise: Promise<T> | null = null;
+  
+  // RefStore specific concurrency control (to override parent's private fields)
+  private refIsUpdating = false;
+  private refUpdateQueue: Array<() => void> = [];
 
   constructor(config: RefInitConfig<T>) {
     const initialState: RefState<T> = {
@@ -406,6 +408,40 @@ export class RefStore<T extends RefTarget = RefTarget> extends Store<RefState<T>
       
       // 듀얼 모드 알림 시스템
       this._scheduleNotification();
+    }
+  }
+
+  /**
+   * RefStore는 DOM 요소를 포함하므로 불변성 복사를 비활성화
+   * update도 복사하지 않고 직접 처리
+   */
+  override update(updater: (current: RefState<T>) => RefState<T>): void {
+    // 동시성 보호: update 진행 중이면 큐에 추가
+    if (this.refIsUpdating) {
+      this.refUpdateQueue.push(() => this.update(updater));
+      return;
+    }
+
+    try {
+      this.refIsUpdating = true;
+      // RefStore는 복사하지 않고 현재 값 직접 전달
+      const currentValue = this._value;
+      
+      const updatedValue = updater(currentValue);
+      
+      // setValue로 업데이트 (복사 없이)
+      this.setValue(updatedValue);
+    } finally {
+      this.refIsUpdating = false;
+      
+      // 큐에 대기 중인 업데이트 처리
+      if (this.refUpdateQueue.length > 0) {
+        const nextUpdate = this.refUpdateQueue.shift();
+        if (nextUpdate) {
+          // 다음 마이크로태스크에서 실행하여 스택 오버플로우 방지
+          Promise.resolve().then(nextUpdate);
+        }
+      }
     }
   }
 
