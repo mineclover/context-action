@@ -198,17 +198,27 @@ describe('Immutable utilities', () => {
       });
 
       it('should handle complete cloning failure', () => {
-        // Create object that can't be JSON serialized
-        const circular: any = { a: 1 };
-        circular.self = circular;
-
+        // Create object that passes initial checks but fails both structuredClone and JSON  
+        // Use an object that has regular properties but will fail in both methods
+        const problematicObj = { 
+          a: 1, 
+          b: 'test',
+          nested: { c: 3 }
+        };
+        
         // Mock structuredClone to fail
         const originalStructuredClone = global.structuredClone;
         global.structuredClone = jest.fn(() => {
-          throw new Error('structuredClone failed');
+          throw new Error('Mock structuredClone failure');
+        });
+        
+        // Mock JSON.stringify to fail too
+        const originalStringify = JSON.stringify;
+        JSON.stringify = jest.fn(() => {
+          throw new Error('Mock JSON.stringify failure');
         });
 
-        const result = deepClone(circular);
+        const result = deepClone(problematicObj);
 
         expect(mockConsole.warn).toHaveBeenCalledWith(
           '[Context-Action] structuredClone failed, falling back to JSON clone',
@@ -218,9 +228,11 @@ describe('Immutable utilities', () => {
           '[Context-Action] All cloning methods failed, returning original reference',
           expect.any(Error)
         );
-        expect(result).toBe(circular);
+        expect(result).toBe(problematicObj);
 
+        // Restore mocks
         global.structuredClone = originalStructuredClone;
+        JSON.stringify = originalStringify;
       });
     });
   });

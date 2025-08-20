@@ -66,6 +66,7 @@ function sanitizeLogPayload(payload: unknown): unknown {
     try {
       const sanitized: any = {};
       for (const key in payload) {
+        // biome-ignore lint/suspicious/noPrototypeBuiltins: Object.hasOwn not available in ES2020 target
         if (Object.prototype.hasOwnProperty.call(payload, key)) {
           const value = (payload as any)[key];
           
