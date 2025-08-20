@@ -1050,8 +1050,81 @@ function SlowMouseTracker() {
 - **둘 다 사용 시**: 데이터 표시와 성능 중요 작업이 함께 필요 (예: 실시간 차트)
 
 ### Q: RefContext 안전성은 어떻게 보장하나요?
-1. DOM 작업 전 항상 `ref.target` 존재 여부 확인
-2. 여러 ref가 필요한 작업에는 `useWaitForRefs` 사용
-3. 애니메이션과 이벤트 리스너의 적절한 정리 구현
-4. 부드러운 애니메이션을 위한 하드웨어 가속(`translate3d`) 사용
-5. 애니메이션 완료 후 `will-change` CSS 속성 정리
+1. **DOM 작업 전 항상 `ref.target` 존재 여부 확인**
+   ```tsx
+   const element = useMouseRef('cursor');
+   
+   // ✅ 올바름 - 안전한 접근
+   if (element.target) {
+     element.target.style.transform = 'scale(1.1)';
+   }
+   
+   // ❌ 잘못됨 - 에러 발생 가능
+   element.target.style.transform = 'scale(1.1)';
+   ```
+
+2. **여러 ref가 필요한 작업에는 `useWaitForRefs` 사용**
+   ```tsx
+   const { allRefsReady, waitForRefs } = useWaitForRefs(['cursor', 'container']);
+   
+   const performOperation = async () => {
+     await waitForRefs(); // 모든 ref가 준비될 때까지 대기
+     // 안전한 DOM 조작 수행
+   };
+   ```
+
+3. **애니메이션과 이벤트 리스너의 적절한 정리 구현**
+   ```tsx
+   useEffect(() => {
+     return () => {
+       // 애니메이션 정리
+       if (animationFrame) {
+         cancelAnimationFrame(animationFrame);
+       }
+       // 이벤트 리스너 제거
+       element.target?.removeEventListener('click', handler);
+     };
+   }, []);
+   ```
+
+4. **에러 경계 처리 및 경고 메시지**
+   ```tsx
+   if (!element.target) {
+     console.warn('RefContext: 대상 요소가 아직 마운트되지 않음');
+     return;
+   }
+   ```
+
+### Q: RefContext 성능 최적화는 어떻게 하나요?
+1. **하드웨어 가속을 위한 `translate3d()` 사용**
+   ```tsx
+   // ✅ 올바름 - GPU 가속
+   element.target.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+   
+   // ❌ 잘못됨 - CPU만 사용
+   element.target.style.left = `${x}px`;
+   element.target.style.top = `${y}px`;
+   ```
+
+2. **애니메이션을 위한 `will-change` 속성 관리**
+   ```tsx
+   // 애니메이션 시작 전
+   element.target.style.willChange = 'transform';
+   
+   // 애니메이션 중
+   element.target.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+   
+   // 애니메이션 완료 후 정리 (메모리 누수 방지)
+   element.target.style.willChange = '';
+   ```
+
+3. **requestAnimationFrame을 사용한 부드러운 애니메이션**
+   ```tsx
+   const animate = () => {
+     if (element.target) {
+       const x = Math.sin(Date.now() * 0.001) * 100;
+       element.target.style.transform = `translate3d(${x}px, 0, 0)`;
+     }
+     requestAnimationFrame(animate);
+   };
+   ```
