@@ -144,7 +144,7 @@ export function useVisualEffectsUpdater() {
     }, configRef.current.clickEffectDuration);
 
     // 추가 리플 효과 (더 큰 원)
-    const ripple = createClickEffect(click, { ...configRef.current, clickEffectColor: configRef.current.clickEffectColor + '40' });
+    const ripple = createClickEffect(click, { ...configRef.current, clickEffectColor: `${configRef.current.clickEffectColor}40` });
     ripple.style.width = '60px';
     ripple.style.height = '60px';
     ripple.style.left = `${click.x - 30}px`;

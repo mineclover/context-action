@@ -26,12 +26,15 @@ describe('createRefContext', () => {
     });
 
     it('should handle ref mounting and unmounting', async () => {
-      const TestRefs = createRefContext<{
+      const {
+        Provider: TestRefsProvider,
+        useRefHandler: useTestRef
+      } = createRefContext<{
         testDiv: HTMLDivElement;
       }>('TestRefs');
 
       function TestComponent() {
-        const testDiv = TestRefs.useRefHandler('testDiv');
+        const testDiv = useTestRef('testDiv');
         const [mounted, setMounted] = React.useState(false);
         
         React.useEffect(() => {
@@ -59,9 +62,9 @@ describe('createRefContext', () => {
       }
 
       render(
-        <TestRefs.Provider>
+        <TestRefsProvider>
           <TestComponent />
-        </TestRefs.Provider>
+        </TestRefsProvider>
       );
 
       // Wait longer for the async state update
@@ -97,7 +100,10 @@ describe('createRefContext', () => {
     });
 
     it('should use definitions for ref creation', async () => {
-      const TestRefs = createRefContext('TestRefs', {
+      const {
+        Provider: TestRefsProvider,
+        useRefHandler: useTestRef
+      } = createRefContext('TestRefs', {
         testElement: {
           name: 'testElement',
           autoCleanup: true,
@@ -106,7 +112,7 @@ describe('createRefContext', () => {
       });
 
       function TestComponent() {
-        const testElement = TestRefs.useRefHandler('testElement');
+        const testElement = useTestRef('testElement');
         const [ready, setReady] = React.useState(false);
         
         React.useEffect(() => {
@@ -133,9 +139,9 @@ describe('createRefContext', () => {
       }
 
       render(
-        <TestRefs.Provider>
+        <TestRefsProvider>
           <TestComponent />
-        </TestRefs.Provider>
+        </TestRefsProvider>
       );
 
       // Wait longer for the async state update
@@ -147,12 +153,15 @@ describe('createRefContext', () => {
 
   describe('Ref operations', () => {
     it('should handle waitForMount properly', async () => {
-      const TestRefs = createRefContext<{
+      const {
+        Provider: TestRefsProvider,
+        useRefHandler: useTestRef
+      } = createRefContext<{
         asyncElement: HTMLDivElement;
       }>('TestRefs');
 
       function TestComponent() {
-        const asyncElement = TestRefs.useRefHandler('asyncElement');
+        const asyncElement = useTestRef('asyncElement');
         const [result, setResult] = React.useState<string>('waiting');
         
         React.useEffect(() => {
@@ -169,7 +178,7 @@ describe('createRefContext', () => {
               // waitForMount 사용
               const mountedElement = await asyncElement.waitForMount();
               setResult(mountedElement.id || 'async-element');
-            } catch (error) {
+            } catch {
               setResult('error');
             }
           };
@@ -181,9 +190,9 @@ describe('createRefContext', () => {
       }
 
       render(
-        <TestRefs.Provider>
+        <TestRefsProvider>
           <TestComponent />
-        </TestRefs.Provider>
+        </TestRefsProvider>
       );
 
       // Wait longer for async operations to complete
@@ -193,15 +202,19 @@ describe('createRefContext', () => {
     });
 
     it('should handle multiple waitForRefs properly', async () => {
-      const TestRefs = createRefContext<{
+      const {
+        Provider: TestRefsProvider,
+        useRefHandler: useTestRef,
+        useWaitForRefs
+      } = createRefContext<{
         element1: HTMLDivElement;
         element2: HTMLButtonElement;
       }>('TestRefs');
 
       function TestComponent() {
-        const element1 = TestRefs.useRefHandler('element1');
-        const element2 = TestRefs.useRefHandler('element2');
-        const waitForRefs = TestRefs.useWaitForRefs();
+        const element1 = useTestRef('element1');
+        const element2 = useTestRef('element2');
+        const waitForRefs = useWaitForRefs();
         const [allReady, setAllReady] = React.useState(false);
         
         React.useEffect(() => {
@@ -231,9 +244,9 @@ describe('createRefContext', () => {
       }
 
       render(
-        <TestRefs.Provider>
+        <TestRefsProvider>
           <TestComponent />
-        </TestRefs.Provider>
+        </TestRefsProvider>
       );
 
       await new Promise(resolve => setTimeout(resolve, 200));
@@ -242,12 +255,15 @@ describe('createRefContext', () => {
     });
 
     it('should handle withTarget operations', async () => {
-      const TestRefs = createRefContext<{
+      const {
+        Provider: TestRefsProvider,
+        useRefHandler: useTestRef
+      } = createRefContext<{
         targetElement: HTMLDivElement;
       }>('TestRefs');
 
       function TestComponent() {
-        const targetElement = TestRefs.useRefHandler('targetElement');
+        const targetElement = useTestRef('targetElement');
         const [operationResult, setOperationResult] = React.useState<string>('');
         
         React.useEffect(() => {
@@ -271,7 +287,7 @@ describe('createRefContext', () => {
               } else {
                 setOperationResult(`Error: ${result.error?.message}`);
               }
-            } catch (error) {
+            } catch {
               setOperationResult('Error: Operation failed');
             }
           };
@@ -287,9 +303,9 @@ describe('createRefContext', () => {
       }
 
       render(
-        <TestRefs.Provider>
+        <TestRefsProvider>
           <TestComponent />
-        </TestRefs.Provider>
+        </TestRefsProvider>
       );
 
       // Wait longer for async operations to complete
@@ -301,12 +317,14 @@ describe('createRefContext', () => {
 
   describe('Error handling', () => {
     it('should throw error when used outside Provider', () => {
-      const TestRefs = createRefContext<{
+      const {
+        useRefHandler: useTestRef
+      } = createRefContext<{
         element: HTMLDivElement;
       }>('TestRefs');
 
       function TestComponent() {
-        TestRefs.useRefHandler('element'); // This should throw
+        useTestRef('element'); // This should throw
         return <div>Test</div>;
       }
 
@@ -326,14 +344,17 @@ describe('createRefContext', () => {
     });
 
     it('should handle setRef errors gracefully', async () => {
-      const TestRefs = createRefContext<{
+      const {
+        Provider: TestRefsProvider,
+        useRefHandler: useTestRef
+      } = createRefContext<{
         element: HTMLDivElement;
       }>('TestRefs');
 
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
       function TestComponent() {
-        const element = TestRefs.useRefHandler('element');
+        const element = useTestRef('element');
         
         React.useEffect(() => {
           try {
@@ -348,9 +369,9 @@ describe('createRefContext', () => {
       }
 
       render(
-        <TestRefs.Provider>
+        <TestRefsProvider>
           <TestComponent />
-        </TestRefs.Provider>
+        </TestRefsProvider>
       );
 
       await new Promise(resolve => setTimeout(resolve, 10));
@@ -362,15 +383,19 @@ describe('createRefContext', () => {
 
   describe('Context state management', () => {
     it('should handle getAllRefs correctly', async () => {
-      const TestRefs = createRefContext<{
+      const {
+        Provider: TestRefsProvider,
+        useRefHandler: useTestRef,
+        useGetAllRefs
+      } = createRefContext<{
         element1: HTMLDivElement;
         element2: HTMLButtonElement;
       }>('TestRefs');
 
       function TestComponent() {
-        const element1 = TestRefs.useRefHandler('element1');
-        const element2 = TestRefs.useRefHandler('element2');
-        const getAllRefs = TestRefs.useGetAllRefs();
+        const element1 = useTestRef('element1');
+        const element2 = useTestRef('element2');
+        const getAllRefs = useGetAllRefs();
         const [refCount, setRefCount] = React.useState(0);
         
         React.useEffect(() => {
@@ -401,9 +426,9 @@ describe('createRefContext', () => {
       }
 
       render(
-        <TestRefs.Provider>
+        <TestRefsProvider>
           <TestComponent />
-        </TestRefs.Provider>
+        </TestRefsProvider>
       );
 
       // Wait longer for async operations to complete

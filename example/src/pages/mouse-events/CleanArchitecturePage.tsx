@@ -4,10 +4,8 @@
  * Pure Clean Architecture implementation with separated layers
  */
 
-import React from 'react';
 import { PageWithLogMonitor } from '../../components/LogMonitor';
 import { MouseEventsContainer } from './clean-architecture/containers/MouseEventsContainer';
-import { CleanMouseEventsView } from './clean-architecture/components/CleanMouseEventsView';
 
 export function CleanArchitecturePage() {
   return (
@@ -36,9 +34,7 @@ export function CleanArchitecturePage() {
           </div>
         </header>
 
-        <MouseEventsContainer>
-          <CleanMouseEventsView />
-        </MouseEventsContainer>
+        <MouseEventsContainer />
       </div>
     </PageWithLogMonitor>
   );

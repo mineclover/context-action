@@ -80,7 +80,7 @@ function RefContextMouseDemo() {
     // 속도 계산을 위해 현재 위치 가져오기
     const currentPos = getCurrentPosition();
     const velocity = Math.sqrt(
-      Math.pow(position.x - currentPos.x, 2) + Math.pow(position.y - currentPos.y, 2)
+      (position.x - currentPos.x) ** 2 + (position.y - currentPos.y) ** 2
     );
     recordMouseMove(velocity);
 

@@ -2,10 +2,8 @@
  * @fileoverview Optimized Mouse Events Page Container
  */
 
-import React from 'react';
 import { PageWithLogMonitor } from '../../components/LogMonitor';
 import { MouseEventsContainer } from './clean-architecture/containers/MouseEventsContainer';
-import { OptimizedMouseEventsView } from './clean-architecture/components/OptimizedMouseEventsView';
 
 export function OptimizedMouseEventsPage() {
   return (
@@ -24,9 +22,7 @@ export function OptimizedMouseEventsPage() {
           </p>
         </header>
 
-        <MouseEventsContainer>
-          <OptimizedMouseEventsView />
-        </MouseEventsContainer>
+        <MouseEventsContainer />
       </div>
     </PageWithLogMonitor>
   );
