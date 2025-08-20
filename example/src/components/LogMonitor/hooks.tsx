@@ -17,6 +17,68 @@ import type {
 import { getActionMessage } from './utils';
 
 /**
+ * Sanitize payload to remove DOM elements and event objects that cannot be cloned
+ */
+function sanitizeLogPayload(payload: unknown): unknown {
+  if (payload === null || payload === undefined) {
+    return payload;
+  }
+
+  // Handle primitives
+  if (typeof payload !== 'object') {
+    return payload;
+  }
+
+  // Handle DOM elements and event objects
+  if (
+    payload instanceof Element ||
+    payload instanceof Node ||
+    payload instanceof Event ||
+    (payload as any).nodeType !== undefined ||
+    (payload as any).target !== undefined ||
+    typeof (payload as any).preventDefault === 'function'
+  ) {
+    return '[DOM Element/Event Object - Removed for Cloning Safety]';
+  }
+
+  // Handle arrays
+  if (Array.isArray(payload)) {
+    return payload.map(item => sanitizeLogPayload(item));
+  }
+
+  // Handle plain objects
+  if (payload && typeof payload === 'object') {
+    try {
+      const sanitized: any = {};
+      for (const key in payload) {
+        if (payload.hasOwnProperty(key)) {
+          const value = (payload as any)[key];
+          
+          // Skip DOM elements and event objects
+          if (
+            value instanceof Element ||
+            value instanceof Node ||
+            value instanceof Event ||
+            (value && typeof value === 'object' && value.nodeType !== undefined) ||
+            (value && typeof value === 'object' && value.target !== undefined) ||
+            (value && typeof value.preventDefault === 'function')
+          ) {
+            sanitized[key] = '[DOM Element/Event Object - Removed for Cloning Safety]';
+          } else {
+            sanitized[key] = sanitizeLogPayload(value);
+          }
+        }
+      }
+      return sanitized;
+    } catch (error) {
+      return '[Object - Could not sanitize]';
+    }
+  }
+
+  return payload;
+}
+
+/**
  * Toast 시스템 인터페이스 (의존성 주입용)
  */
 export interface ToastSystem {
@@ -222,6 +284,8 @@ export function useActionLogger(
         payload?: unknown,
         options: ActionLogOptions = {}
       ) => {
+        // Sanitize payload to remove DOM elements and event objects
+        const sanitizedPayload = sanitizeLogPayload(payload);
         // 자동 계산: 실행 시작 시간 기록
         const startTime = performance.now();
 
@@ -241,7 +305,7 @@ export function useActionLogger(
 
         internalActionRegister.dispatch('_internal.log.action', {
           actionType,
-          payload,
+          payload: sanitizedPayload,
           options: {
             ...options,
             // 자동 주입: 실행 시간과 타임스탬프
@@ -261,7 +325,7 @@ export function useActionLogger(
       ) => {
         internalActionRegister.dispatch('_internal.log.error', {
           message,
-          error,
+          error: sanitizeLogPayload(error),
           options,
         });
       },

@@ -1,0 +1,94 @@
+/* 채팅 스크롤 관련 스타일 */
+
+.chat-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.scroll-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.scroll-indicator {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  animation: pulse 2s infinite;
+}
+
+.scroll-indicator.user-scroll {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* 스크롤 컨테이너 개선 */
+.chat-messages {
+  position: relative;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  /* 스크롤바 스타일링 */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+}
+
+.chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.7);
+}
+
+/* 자동 스크롤 버튼 스타일 */
+.btn.btn-secondary {
+  background: rgba(107, 114, 128, 0.1);
+  border: 1px solid rgba(107, 114, 128, 0.2);
+  color: #6b7280;
+  font-size: 12px;
+  padding: 4px 8px;
+  transition: all 0.2s ease;
+}
+
+.btn.btn-secondary:hover {
+  background: rgba(107, 114, 128, 0.2);
+  border-color: rgba(107, 114, 128, 0.3);
+  color: #4b5563;
+  transform: translateY(-1px);
+}
+
+/* 스크롤 상태에 따른 시각적 피드백 */
+.chat-messages.user-scrolling {
+  border-left: 3px solid #f59e0b;
+  transition: border-left 0.3s ease;
+}
+
+.chat-messages.auto-scrolling {
+  border-left: 3px solid #3b82f6;
+  transition: border-left 0.3s ease;
+}

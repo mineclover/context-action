@@ -55,6 +55,11 @@ export class RefStore<T extends RefTarget = RefTarget> extends Store<RefState<T>
     this.config = config;
     this.operationQueue = new OperationQueue();
 
+    // RefStore에서는 참조 비교만 사용 - DOM 요소 호환성을 위해
+    this.setComparisonOptions({ 
+      strategy: 'reference'  // 참조 비교로 복사 문제 회피
+    });
+
     // 모든 ref는 싱글톤이므로 항상 참조 비교만 사용
     this.setCustomComparator((oldState: RefState<T>, newState: RefState<T>) => {
       // target은 참조 비교, 나머지는 값 비교
@@ -370,6 +375,44 @@ export class RefStore<T extends RefTarget = RefTarget> extends Store<RefState<T>
         console.warn(`RefStore event listener error:`, error);
       }
     });
+  }
+
+  /**
+   * RefStore는 DOM 요소를 포함하므로 불변성 복사를 비활성화
+   * getValue는 원본 참조를 반환 (DOM 요소 호환성을 위해)
+   */
+  override getValue(): RefState<T> {
+    return this._value; // 복사하지 않고 원본 참조 반환
+  }
+
+  /**
+   * RefStore는 DOM 요소를 포함하므로 불변성 복사를 비활성화
+   * setValue는 복사하지 않고 직접 설정
+   */
+  override setValue(value: RefState<T>): void {
+    // 강화된 값 비교 시스템 (복사 없이)
+    const hasChanged = this._compareValues(this._value, value);
+    
+    if (hasChanged) {
+      this._value = value; // 복사하지 않고 직접 할당
+      // 새 스냅샷 생성
+      this._snapshot = this._createSnapshot();
+      
+      // 듀얼 모드 알림 시스템
+      this._scheduleNotification();
+    }
+  }
+
+  /**
+   * RefStore용 커스텀 스냅샷 생성 - DOM 요소 호환성을 위해 복사하지 않음
+   */
+  protected override _createSnapshot(): import('../stores/core/types').Snapshot<RefState<T>> {
+    // RefStore는 DOM 요소를 포함하므로 복사하지 않고 원본 참조 사용
+    return {
+      value: this._value, // 복사 없이 원본 참조 사용
+      name: this.name,
+      lastUpdate: Date.now()
+    };
   }
 
   /**

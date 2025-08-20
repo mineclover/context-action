@@ -9,7 +9,7 @@
  * making it the recommended approach for state management in the Context-Action framework.
  */
 
-import React, { createContext, useContext, ReactNode, useRef } from 'react';
+import React, { createContext, useContext, ReactNode, useRef, useMemo } from 'react';
 import { StoreRegistry } from '../core/StoreRegistry';
 import { createStore } from '../core/Store';
 import type { Store } from '../core/Store';
@@ -417,7 +417,10 @@ function createDeclarativeStorePatternImpl<T extends Record<string, any>>(
       );
     }
     
-    return context.managerRef.current.getStore(storeName);
+    // Memoize store to prevent infinite re-renders in useEffect dependencies
+    return useMemo(() => {
+      return context.managerRef.current!.getStore(storeName);
+    }, [context.managerRef, storeName]);
   }
 
   /**

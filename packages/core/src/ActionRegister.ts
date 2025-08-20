@@ -458,6 +458,50 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     payload?: T[K],
     options?: import('./types.js').DispatchOptions
   ): Promise<void> {
+    // Debug logging to identify event objects being dispatched
+    if (payload && typeof payload === 'object' && payload !== null) {
+      const hasEventTarget = (payload as any).target !== undefined;
+      const hasPreventDefault = typeof (payload as any).preventDefault === 'function';
+      const isEvent = payload instanceof Event;
+      
+      // Also log any object that has DOM-related properties
+      const hasDOMElements = Object.keys(payload).some(key => {
+        const prop = (payload as any)[key];
+        return prop instanceof Element || prop instanceof Event || 
+               (prop && typeof prop === 'object' && prop.target);
+      });
+      
+      if (hasEventTarget || hasPreventDefault || isEvent || hasDOMElements) {
+        console.error(
+          '[Context-Action] ⚠️ Event object detected in ActionRegister.dispatch!',
+          '\nAction:', String(action),
+          '\nRegistry:', this.name,
+          '\nPayload type:', typeof payload,
+          '\nConstructor:', payload?.constructor?.name,
+          '\nIs Event:', isEvent,
+          '\nHas target property:', hasEventTarget,
+          '\nHas preventDefault:', hasPreventDefault,
+          '\nStack trace:', new Error().stack?.split('\n').slice(1, 10).join('\n')
+        );
+        
+        // Log problematic properties  
+        if (payload && typeof payload === 'object') {
+          const problematicKeys = [];
+          for (const key in payload) {
+            if (payload.hasOwnProperty(key)) {
+              const prop = (payload as any)[key];
+              if (prop instanceof Element || prop instanceof Event || (prop && typeof prop === 'object' && prop.target)) {
+                problematicKeys.push(key);
+              }
+            }
+          }
+          if (problematicKeys.length > 0) {
+            console.error('[Context-Action] Event object properties in payload:', problematicKeys);
+          }
+        }
+      }
+    }
+    
     // Auto-abort: Create AbortController if enabled
     let autoAbortController: AbortController | undefined;
     let effectiveSignal = options?.signal;
