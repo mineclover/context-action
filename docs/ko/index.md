@@ -28,15 +28,15 @@ features:
   - icon: 🏪
     title: 스토어 전용 패턴
     details: 액션 없이 순수한 상태 관리, 뛰어난 타입 추론과 간소화된 API
+  - icon: ⚡
+    title: RefContext 패턴
+    details: 제로 React 리렌더링으로 고성능 DOM 조작, 하드웨어 가속 지원
   - icon: 🧩
     title: MVVM 아키텍처
     details: View(컴포넌트), ViewModel(액션 파이프라인), Model(스토어 시스템) 계층 분리
   - icon: 🛡️
     title: 타입 안전성
     details: 엄격한 타입 검사와 도메인별 훅으로 완전한 TypeScript 지원
-  - icon: ⚡
-    title: 성능 최적화
-    details: 영향받는 컴포넌트만 리렌더링, 효율적인 상태 업데이트
 ---
 
 <style>

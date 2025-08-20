@@ -1,6 +1,6 @@
 # Context-Action Framework Conventions
 
-이 문서는 Context-Action 프레임워크를 사용할 때 따라야 할 코딩 컨벤션과 베스트 프랙티스를 정의합니다.
+이 문서는 Context-Action 프레임워크의 세 가지 핵심 패턴(Actions, Stores, RefContext)을 사용할 때 따라야 할 코딩 컨벤션과 베스트 프랙티스를 정의합니다.
 
 ## 📋 목차
 
@@ -11,6 +11,7 @@
 5. [코드 스타일](#코드-스타일)
 6. [성능 가이드라인](#성능-가이드라인)
 7. [에러 핸들링](#에러-핸들링)
+8. [RefContext 컨벤션](#refcontext-컨벤션)
 
 ---
 
@@ -18,7 +19,7 @@
 
 ### 🏷️ 리네이밍 패턴 (Renaming Pattern)
 
-Context-Action 프레임워크의 핵심 컨벤션은 **도메인별 리네이밍 패턴**입니다.
+Context-Action 프레임워크의 핵심 컨벤션은 세 가지 패턴 모두에 대한 **도메인별 리네이밍 패턴**입니다.
 
 #### ✅ Store Pattern 리네이밍
 ```tsx
@@ -51,6 +52,21 @@ const {
 } = createActionContext<UserActions>('UserActions');
 ```
 
+#### ✅ RefContext Pattern 리네이밍
+```tsx
+// ✅ 권장: 구조분해된 API를 사용한 도메인별 리네이밍
+const {
+  Provider: MouseProvider,
+  useRefHandler: useMouseRef
+} = createRefContext<MouseRefs>('Mouse');
+
+// ❌ 지양: 제네릭 이름 사용
+const {
+  Provider,
+  useRefHandler
+} = createRefContext<MouseRefs>('Mouse');
+```
+
 ### 🎯 컨텍스트 이름 규칙
 
 #### 도메인 기반 네이밍
@@ -61,15 +77,18 @@ const {
 'ProductCatalog'  // 상품 카탈로그 관련
 'OrderManagement' // 주문 관리 관련
 'AuthSystem'      // 인증 시스템 관련
+'MouseEvents'     // 마우스 상호작용 관련
+'AnimationStates' // 애니메이션 및 성능 관련
 
 // ❌ 지양: 모호한 이름
 'Data'           // 너무 포괄적
 'State'          // 구체적이지 않음
 'App'            // 범위가 불분명 (루트 레벨에서만 사용)
 'Manager'        // 역할이 불분명
+'Refs'           // 너무 포괄적
 ```
 
-#### Action vs Store 구분
+#### Action vs Store vs RefContext 구분
 ```tsx
 // Action Context (행동/이벤트 중심)
 'UserActions'         // 사용자 액션들
@@ -81,6 +100,12 @@ const {
 'ProductCatalog'     // 상품 카탈로그
 'ShoppingCart'       // 쇼핑카트 상태
 'AppSettings'        // 앱 설정
+
+// RefContext (성능/DOM 중심)
+'MouseInteractions'  // 마우스 이벤트 처리
+'AnimationRefs'      // 애니메이션 요소 참조
+'FormElements'       // 폼 DOM 요소들
+'MediaControls'      // 미디어 플레이어 컨트롤
 ```
 
 ### 🔤 Hook 네이밍 패턴
@@ -107,6 +132,19 @@ const useUserActionHandler = UserContext.useActionHandler;
 // 사용 시
 const dispatch = useUserAction();
 useUserActionHandler('updateProfile', handler);
+```
+
+#### RefContext Hook 네이밍
+```tsx
+// ✅ 권장: use + 도메인 + Ref 패턴
+const useMouseRef = MouseContext.useRefHandler;
+const useAnimationRef = AnimationContext.useRefHandler;
+const useFormRef = FormContext.useRefHandler;
+
+// 사용 시
+const cursor = useMouseRef('cursor');
+const trail = useMouseRef('trail');
+const container = useMouseRef('container');
 ```
 
 ---
@@ -785,6 +823,168 @@ useUserActionHandler('riskyOperation', useCallback(async (payload, controller) =
 
 ---
 
+## RefContext 컨벤션
+
+### 🔧 RefContext 전용 가이드라인
+
+#### Ref 타입 정의
+```tsx
+// ✅ 권장: 구체적인 HTML 요소 타입
+interface MouseRefs {
+  cursor: HTMLDivElement;      // 구체적인 요소 타입
+  trail: HTMLDivElement;
+  container: HTMLDivElement;
+}
+
+interface FormRefs {
+  nameInput: HTMLInputElement;  // 입력 요소 전용 타입
+  emailInput: HTMLInputElement;
+  submitButton: HTMLButtonElement; // 버튼 전용 타입
+  form: HTMLFormElement;       // 폼 전용 타입
+}
+
+// ❌ 지양: 구체적인 타입을 알고 있는데 제네릭 HTMLElement 사용
+interface BadRefs {
+  cursor: HTMLElement;         // 너무 포괄적
+  input: HTMLElement;          // HTMLInputElement여야 함
+}
+```
+
+#### 성능 중심 패턴
+```tsx
+// ✅ 권장: 비즈니스 로직을 DOM 조작과 분리
+function useMousePositionLogic() {
+  const cursor = useMouseRef('cursor');
+  const trail = useMouseRef('trail');
+  
+  const updatePosition = useCallback((x: number, y: number) => {
+    // 직접 DOM 조작 - 제로 리렌더링
+    if (cursor.target) {
+      cursor.target.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    }
+    if (trail.target) {
+      trail.target.style.transform = `translate3d(${x-5}px, ${y-5}px, 0)`;
+    }
+  }, [cursor, trail]);
+  
+  const getElementPosition = useCallback(() => {
+    if (!cursor.target) return null;
+    const rect = cursor.target.getBoundingClientRect();
+    return { x: rect.left, y: rect.top };
+  }, [cursor]);
+  
+  return { updatePosition, getElementPosition };
+}
+
+// 컴포넌트에서 사용
+function MouseComponent() {
+  const { updatePosition } = useMousePositionLogic();
+  
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    updatePosition(e.clientX, e.clientY);
+  }, [updatePosition]);
+  
+  return <div onMouseMove={handleMouseMove}>...</div>;
+}
+```
+
+#### RefContext 에러 처리
+```tsx
+// ✅ 권장: null 체크 및 에러 처리
+function SafeRefComponent() {
+  const element = useMouseRef('target');
+  
+  const safelyUpdateElement = useCallback((value: string) => {
+    // 항상 대상 존재 여부 확인
+    if (!element.target) {
+      console.warn('RefContext: 대상 요소가 아직 마운트되지 않음');
+      return;
+    }
+    
+    try {
+      element.target.textContent = value;
+    } catch (error) {
+      console.error('RefContext: 요소 업데이트 실패', error);
+    }
+  }, [element]);
+  
+  // 중요한 작업에는 useWaitForRefs 사용
+  const { allRefsReady } = useWaitForRefs(['target']);
+  
+  useEffect(() => {
+    if (allRefsReady) {
+      safelyUpdateElement('준비 완료!');
+    }
+  }, [allRefsReady, safelyUpdateElement]);
+  
+  return <div ref={element.setRef}>콘텐츠</div>;
+}
+```
+
+### ⚡ RefContext 성능 최적화
+
+#### 제로 리렌더링 DOM 조작
+```tsx
+// ✅ 권장: 성능을 위한 직접 DOM 조작
+function HighPerformanceMouseTracker() {
+  const cursor = useMouseRef('cursor');
+  const container = useMouseRef('container');
+  
+  // React 리렌더링 제로 - 모든 DOM 업데이트는 직접적
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!cursor.target || !container.target) return;
+    
+    const rect = container.target.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    // 하드웨어 가속 변환 (GPU 가속)
+    cursor.target.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    
+    // 복잡한 애니메이션을 위한 will-change 사용
+    if (!cursor.target.style.willChange) {
+      cursor.target.style.willChange = 'transform';
+    }
+  }, [cursor, container]);
+  
+  // 메모리 최적화를 위한 언마운트 시 will-change 정리
+  useEffect(() => {
+    return () => {
+      if (cursor.target) {
+        cursor.target.style.willChange = '';
+      }
+    };
+  }, [cursor]);
+  
+  return (
+    <div ref={container.setRef} onMouseMove={handleMouseMove}>
+      <div 
+        ref={cursor.setRef}
+        style={{ transform: 'translate3d(0, 0, 0)' }} // 초기 GPU 레이어
+      />
+    </div>
+  );
+}
+
+// ❌ 지양: 리렌더링을 유발하는 상태 주도 업데이트
+function SlowMouseTracker() {
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  
+  const handleMouseMove = (e: React.MouseEvent) => {
+    // 이것은 모든 마우스 이동에서 리렌더링을 유발
+    setPosition({ x: e.clientX, y: e.clientY });
+  };
+  
+  return (
+    <div onMouseMove={handleMouseMove}>
+      <div style={{ left: position.x, top: position.y }} />
+    </div>
+  );
+}
+```
+
+---
+
 ## 📚 추가 리소스
 
 ### 관련 문서
@@ -804,10 +1004,11 @@ useUserActionHandler('riskyOperation', useCallback(async (payload, controller) =
 
 ## ❓ FAQ
 
-### Q: 언제 Store Only vs Action Only vs Composition을 사용해야 하나요?
+### Q: 언제 Store Only vs Action Only vs RefContext vs Composition을 사용해야 하나요?
 - **Store Only**: 순수 상태 관리 (폼, 설정, 캐시)
 - **Action Only**: 순수 이벤트 처리 (로깅, 트래킹, 알림)  
-- **Composition**: 복잡한 비즈니스 로직 (사용자 관리, 쇼핑카트)
+- **RefContext Only**: 고성능 DOM 조작 (애니메이션, 실시간 상호작용)
+- **Composition**: 여러 패턴이 필요한 복잡한 비즈니스 로직 (사용자 관리, 상호작용형 쇼핑카트)
 
 ### Q: 리네이밍 패턴을 꼭 사용해야 하나요?
 네, 리네이밍 패턴은 Context-Action 프레임워크의 핵심 컨벤션입니다. 타입 안전성과 개발자 경험을 크게 향상시킵니다.
@@ -817,12 +1018,14 @@ useUserActionHandler('riskyOperation', useCallback(async (payload, controller) =
 2. useCallback으로 핸들러 메모이제이션  
 3. 큰 데이터는 reference strategy 사용
 4. 필요시 debounce/throttle 적용
+5. 성능 중요한 DOM 조작에 RefContext 사용
 
 ### Q: 에러 처리는 어떻게 해야 하나요?
 1. Pipeline Controller의 abort() 메서드 사용
 2. 도메인별 Error Boundary 설정
 3. 적절한 에러 타입별 처리
 4. 사용자 친화적 에러 메시지 제공
+5. DOM 조작 전 항상 ref.target 존재 여부 확인
 
 ### Q: 명시적 제네릭과 타입 추론 중 어떤 것을 사용해야 하나요?
 - **타입 추론 (권장)**: 대부분의 경우, 코드가 간결하고 타입 안전성 보장
@@ -839,3 +1042,16 @@ useUserActionHandler('riskyOperation', useCallback(async (payload, controller) =
 2. 컴파일 타임에 타입 안전성 검증
 3. 에러 케이스도 주석으로 문서화
 4. 실제 사용 패턴을 반영한 테스트 컴포넌트 작성
+5. 컴포넌트 테스트에 RefContext 타입 검증 포함
+
+### Q: 언제 RefContext를 일반 state 대신 사용해야 하나요?
+- **RefContext 사용 시**: 직접 DOM 조작 필요, 60fps 성능 필요, 제로 리렌더링이 중요
+- **일반 state 사용 시**: 데이터를 UI에 표시해야 함, 컴포넌트 리렌더링이 허용됨
+- **둘 다 사용 시**: 데이터 표시와 성능 중요 작업이 함께 필요 (예: 실시간 차트)
+
+### Q: RefContext 안전성은 어떻게 보장하나요?
+1. DOM 작업 전 항상 `ref.target` 존재 여부 확인
+2. 여러 ref가 필요한 작업에는 `useWaitForRefs` 사용
+3. 애니메이션과 이벤트 리스너의 적절한 정리 구현
+4. 부드러운 애니메이션을 위한 하드웨어 가속(`translate3d`) 사용
+5. 애니메이션 완료 후 `will-change` CSS 속성 정리
