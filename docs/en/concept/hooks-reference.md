@@ -478,8 +478,11 @@ const computedStore = useComputedStoreInstance(
   { name: 'totalPriceStore' }
 );
 
-// Can now pass this to other components expecting a Store
-<PriceDisplay store={computedStore} />
+// Use the computed store with useStoreValue in components
+function PriceDisplay() {
+  const totalPrice = useStoreValue(computedStore);
+  return <div>Total: ${totalPrice}</div>;
+}
 ```
 
 ### 🔧 Higher-Order Components (HOCs)

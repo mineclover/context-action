@@ -27,13 +27,14 @@ Context-Action 프레임워크는 현대 상태 관리의 중요한 문제들을
 
 ### 아키텍처 구현
 
-프레임워크는 완전한 도메인 격리를 위해 **선언적 스토어 패턴**과 결합된 MVVM에서 영감을 받은 패턴을 통해 명확한 관심사 분리를 구현합니다:
+프레임워크는 완전한 도메인 격리를 위한 **세 가지 핵심 패턴**을 통해 MVVM에서 영감을 받은 패턴으로 깔끔한 관심사 분리를 구현합니다:
 
-- **액션**이 비즈니스 로직을 처리 (ViewModel 레이어)
-- **선언적 스토어 패턴**이 도메인 격리로 상태를 관리 (Model 레이어)
-- **컴포넌트**가 UI를 렌더링 (View 레이어)
-- **컨텍스트 경계**가 기능 도메인을 격리
-- **도메인별 훅**을 통한 **타입 안전한 통합**
+- **액션**은 `createActionContext`를 통해 비즈니스 로직과 조정을 처리 (ViewModel 레이어)
+- **선언적 스토어 패턴**은 `createDeclarativeStorePattern`을 통해 도메인 격리로 상태를 관리 (Model 레이어)
+- **RefContext**는 `createRefContext`를 통해 제로 리렌더링으로 직접 DOM 조작 제공 (Performance 레이어)
+- **컴포넌트**는 UI를 렌더링 (View 레이어)
+- **컨텍스트 경계**는 기능 도메인을 격리
+- **타입 안전한 통합**은 도메인별 훅을 통해 구현
 
 ### 핵심 아키텍처 흐름
 
@@ -44,19 +45,21 @@ Context-Action 프레임워크는 현대 상태 관리의 중요한 문제들을
 ### 컨텍스트 분리 전략
 
 #### 도메인 기반 컨텍스트 아키텍처
-- **비즈니스 컨텍스트**: 비즈니스 로직, 데이터 처리, 도메인 규칙
-- **UI 컨텍스트**: 화면 상태, 사용자 상호작용, 컴포넌트 동작  
-- **검증 컨텍스트**: 데이터 검증, 폼 처리, 에러 핸들링
-- **디자인 컨텍스트**: 테마 관리, 스타일링, 레이아웃, 비주얼 상태
-- **아키텍처 컨텍스트**: 시스템 설정, 인프라스트럭처, 기술적 결정
+- **비즈니스 컨텍스트**: 비즈니스 로직, 데이터 처리, 도메인 규칙 (액션 + 스토어)
+- **UI 컨텍스트**: 화면 상태, 사용자 상호작용, 컴포넌트 동작 (스토어 + RefContext)
+- **성능 컨텍스트**: 고성능 DOM 조작과 애니메이션 (RefContext)
+- **검증 컨텍스트**: 데이터 검증, 폼 처리, 오류 처리 (액션 + 스토어)
+- **디자인 컨텍스트**: 테마 관리, 스타일링, 레이아웃, 시각적 상태 (스토어 + RefContext)
+- **아키텍처 컨텍스트**: 시스템 구성, 인프라, 기술적 결정 (액션 + 스토어)
 
 #### 문서 기반 컨텍스트 설계
-각 컨텍스트는 해당하는 문서와 결과물을 관리하도록 설계됩니다:
-- **디자인 문서** → 디자인 컨텍스트 (테마, 컴포넌트 사양, 스타일 가이드)
-- **비즈니스 요구사항** → 비즈니스 컨텍스트 (워크플로, 규칙, 도메인 로직)  
-- **아키텍처 문서** → 아키텍처 컨텍스트 (시스템 설계, 기술적 결정)
-- **검증 사양** → 검증 컨텍스트 (규칙, 스키마, 에러 핸들링)
-- **UI 사양** → UI 컨텍스트 (상호작용, 상태 관리, 사용자 플로우)
+각 컨텍스트는 해당 문서와 결과물을 관리하도록 설계됩니다:
+- **디자인 문서** → Design Context (테마, 컴포넌트 사양, 스타일 가이드) → 스토어 + RefContext
+- **비즈니스 요구사항** → Business Context (워크플로, 규칙, 도메인 로직) → 액션 + 스토어
+- **성능 사양** → Performance Context (애니메이션, 상호작용) → RefContext
+- **아키텍처 문서** → Architecture Context (시스템 설계, 기술적 결정) → 액션 + 스토어
+- **검증 사양** → Validation Context (규칙, 스키마, 오류 처리) → 액션 + 스토어
+- **UI 사양** → UI Context (상호작용, 상태 관리, 사용자 플로우) → 세 패턴 모두
 
 ### 고급 핸들러 및 트리거 관리
 
@@ -74,16 +77,137 @@ Context-Action은 기존 라이브러리에서 부족한 정교한 핸들러 및
 - **조건부 트리거**: 비즈니스 규칙과 조건에 기반한 스마트 트리거
 - **트리거 정리**: 자동 정리가 메모리 누수와 오래된 참조를 방지
 
-### 주요 장점
+### 주요 이점
 
-1. **문서-아티팩트 관리**: 문서와 구현 간의 직접적인 관계
+1. **문서-아티팩트 관리**: 문서와 구현 간의 직접적 관계
 2. **도메인 격리**: 각 컨텍스트가 완전한 독립성을 유지
-3. **고급 핸들러 관리**: 정교한 트리거 시스템을 가진 우선순위 기반 핸들러 실행
-4. **타입 안전성**: 프레임워크 전반에 걸친 완전한 TypeScript 지원
-5. **성능**: 영향받는 컴포넌트만 다시 렌더링
-6. **팀 협업**: 서로 다른 팀이 서로 다른 도메인에서 작업 가능
+3. **타입 안전성**: 도메인별 훅으로 완전한 TypeScript 지원
+4. **성능**: RefContext로 제로 React 리렌더링, 스토어로 선택적 업데이트
+5. **확장성**: 기존 도메인에 영향을 주지 않고 새 도메인을 쉽게 추가
+6. **팀 협업**: 다양한 팀이 충돌 없이 서로 다른 도메인에서 작업
+7. **명확한 경계**: 문서 도메인을 기반으로 한 완벽한 관심사 분리
+8. **하드웨어 가속**: 60fps 성능을 위한 `translate3d()`로 직접 DOM 조작
 
-## MVVM 패턴 통합
+## 1.1. RefContext 성능 아키텍처
+
+### 제로 리렌더 철학
+
+RefContext 패턴은 DOM 조작을 위해 React의 렌더링 사이클을 완전히 우회하는 **성능 우선 레이어**를 도입합니다:
+
+```
+[사용자 상호작용] → [직접 DOM 조작] → [하드웨어 가속] → [60fps 업데이트]
+                                ↓
+                          [React 리렌더링 없음]
+```
+
+#### 핵심 성능 원칙
+
+1. **직접 DOM 액세스**: React 재조정을 트리거하지 않고 DOM 요소를 직접 조작
+2. **하드웨어 가속**: GPU 가속 애니메이션을 위한 `transform3d()` 사용
+3. **관심사 분리**: 시각적 업데이트를 비즈니스 로직 업데이트와 분리
+4. **메모리 효율성**: 자동 정리 및 생명주기 관리
+5. **타입 안전성**: DOM 요소 타입에 대한 완전한 TypeScript 지원
+
+#### 아키텍처 레이어
+
+```typescript
+// 성능 레이어 (RefContext)
+┌─────────────────────────────────────────┐
+│  직접 DOM 조작                          │
+│  • 하드웨어 가속                        │
+│  • 제로 React 리렌더링                  │
+│  • 60fps 성능                           │
+└─────────────────────────────────────────┘
+
+// 비즈니스 로직 레이어 (액션)
+┌─────────────────────────────────────────┐
+│  액션 파이프라인                        │
+│  • 부수 효과                            │
+│  • 조정                                 │
+│  • 이벤트 처리                          │
+└─────────────────────────────────────────┘
+
+// 상태 관리 레이어 (스토어)
+┌─────────────────────────────────────────┐
+│  반응형 상태                            │
+│  • 데이터 관리                          │
+│  • 구독                                 │
+│  • 타입 안전성                          │
+└─────────────────────────────────────────┘
+
+// 뷰 레이어 (React 컴포넌트)
+┌─────────────────────────────────────────┐
+│  React 렌더링                           │
+│  • 컴포넌트 구조                        │
+│  • 이벤트 바인딩                        │
+│  • Provider 설정                        │
+└─────────────────────────────────────────┘
+```
+
+#### 성능 비교
+
+| 접근법 | React 리렌더링 | 성능 | 메모리 | 복잡성 |
+|-------|----------------|------|-------|--------|
+| **useState** | 모든 업데이트 | ~30fps | 높은 GC | 단순 |
+| **useRef** | 수동 확인 | ~45fps | 중간 | 중간 |
+| **RefContext** | 제로 | 60fps+ | 낮음 | 최적화됨 |
+
+### RefContext 통합 패턴
+
+#### 패턴 1: 순수 성능 (RefContext만 사용)
+```typescript
+const {
+  Provider: AnimationProvider,
+  useRefHandler: useAnimationRef
+} = createRefContext<{
+  particle: HTMLDivElement;
+  canvas: HTMLCanvasElement;
+}>('Animation');
+
+// 애니메이션을 위한 제로 React 리렌더링
+function ParticleAnimation() {
+  const particle = useAnimationRef('particle');
+  
+  const animate = useCallback(() => {
+    if (particle.target) {
+      // 하드웨어 가속 애니메이션
+      particle.target.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    }
+  }, [particle]);
+  
+  return <div ref={particle.setRef} />;
+}
+```
+
+#### 패턴 2: 하이브리드 성능 (RefContext + 스토어)
+```typescript
+// 구성을 위한 상태
+const { useStore: useConfigStore } = createDeclarativeStorePattern('Config', {
+  speed: 1.0,
+  color: '#ff0000'
+});
+
+// 성능 중요 업데이트를 위한 RefContext
+const { useRefHandler: useAnimationRef } = createRefContext<{
+  element: HTMLDivElement;
+}>('Animation');
+
+function HybridComponent() {
+  const speedStore = useConfigStore('speed');
+  const element = useAnimationRef('element');
+  
+  const speed = useStoreValue(speedStore); // 구성에 대해서만 React 리렌더링
+  
+  const animate = useCallback(() => {
+    if (element.target) {
+      // 구성 상태를 사용하되 DOM을 직접 업데이트
+      element.target.style.transform = `translate3d(${x * speed}px, ${y}px, 0)`;
+    }
+  }, [element, speed]);
+}
+```
+
+## 2. MVVM 패턴 통합
 
 ### 선언적 스토어 패턴 (주요)
 
@@ -105,11 +229,62 @@ Context-Action은 기존 라이브러리에서 부족한 정교한 핸들러 및
 - 현재 상태를 위해 `stores.getStore()`로 지연 평가 사용
 - 등록 해제 함수를 사용하여 정리와 함께 핸들러 등록
 
-## 아키텍처 패턴
+## 3. 아키텍처 패턴
 
-- **Action Only 패턴**: 순수 액션 디스패칭을 위한 `createActionContext()`
-- **선언적 스토어 패턴**: 타입 안전한 상태 관리를 위한 `createDeclarativeStorePattern()`
+- **Action Only 패턴**: `createActionContext()`로 순수 액션 디스패칭
+- **선언적 스토어 패턴**: `createDeclarativeStorePattern()`으로 타입 안전한 상태 관리
+- **RefContext 패턴**: `createRefContext()`로 제로 리렌더링 DOM 조작
 - **스토어 통합 패턴**: 핸들러 구현을 위한 3단계 프로세스
 - **HOC 패턴**: 자동 컴포넌트 감싸기를 위한 `withProvider()` (Store Pattern)
-- **패턴 조합**: 복잡한 애플리케이션을 위한 Action Only + Store Only 패턴 결합
+- **패턴 조합**: 복잡한 애플리케이션을 위한 세 패턴 모두 결합
 - **Provider 격리**: 패턴별 독립적인 컨텍스트 관리
+
+### 도메인별 훅 패턴 (핵심)
+
+#### 철학: 이름 변경 훅 패턴
+
+프레임워크의 핵심 철학은 구조분해 할당을 통해 **도메인별 훅**을 만드는 것으로, 개발자 경험을 향상시키는 직관적이고 타입 안전한 API를 제공합니다.
+
+```typescript
+// ✅ 도메인별 훅 명명 패턴
+export const {
+  Provider: UserBusinessProvider,
+  useStore: useUserBusinessStore,        // 도메인별 스토어 훅
+  useStoreManager: useUserBusinessStoreManager,    // 도메인별 스토어 레지스트리 훅
+  useStoreInfo: useUserBusinessStoreInfo
+} = createDeclarativeStorePattern('UserBusiness', storeDefinitions);
+
+export const {
+  Provider: UserBusinessActionProvider,
+  useActionDispatch: useUserBusinessAction,      // 도메인별 액션 훅
+  useActionHandler: useUserBusinessActionHandler
+} = createActionContext<UserBusinessActions>('UserBusinessAction');
+
+export const {
+  Provider: MouseProvider,
+  useRefHandler: useMouseRef              // 도메인별 RefContext 훅
+} = createRefContext<MouseRefs>('Mouse');
+```
+
+#### 도메인별 명명의 이점
+
+1. **타입 안전성**: 도메인별 타입으로 완전한 TypeScript 추론
+2. **개발자 경험**: 명확하고 자동 완성 친화적인 API
+3. **유지보수성**: 훅이 어느 도메인에 속하는지 쉽게 식별
+4. **리팩토링 안전성**: 타입 오류가 즉시 주요 변경사항을 강조
+5. **팀 확장성**: 다양한 팀이 충돌 없이 서로 다른 도메인에서 작업
+
+### 패턴 액세스 전략
+
+각각 특정 사용 사례가 있는 패턴 액세스를 위한 전략:
+
+```typescript
+// 패턴 1: 도메인별 훅 (컴포넌트)
+const store = useUserBusinessStore('profile');
+const dispatch = useUserBusinessAction();
+const mouseRef = useMouseRef('cursor');
+
+// 패턴 2: 고급 사용 사례를 위한 관리자 액세스 (핸들러)
+const storeManager = useUserBusinessStoreManager();
+const store = storeManager.getStore('profile');
+```
