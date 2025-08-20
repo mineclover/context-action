@@ -35,6 +35,7 @@ import { CanvasDemoPage } from './pages/examples/CanvasDemoPage';
 import { RefsIndexPage } from './pages/refs/RefsIndexPage';
 import { CanvasRefDemoPage } from './pages/refs/CanvasRefDemoPage';
 import { FormBuilderRefDemoPage } from './pages/refs/FormBuilderRefDemoPage';
+import { WaitForRefsPerformancePage } from './pages/refs/WaitForRefsPerformancePage';
 import { DemosIndexPage } from './pages/demos/DemosIndexPage';
 import { StoreScenariosPage } from './pages/demos/StoreScenariosPage';
 import { TodoListPage } from './pages/demos/TodoListPage';
@@ -171,6 +172,7 @@ function AppContent() {
           <Route path="/refs" element={<RefsIndexPage />} />
           <Route path="/refs/canvas" element={<CanvasRefDemoPage />} />
           <Route path="/refs/form-builder" element={<FormBuilderRefDemoPage />} />
+          <Route path="/refs/waitforrefs-performance" element={<WaitForRefsPerformancePage />} />
           <Route path="/demos" element={<DemosIndexPage />} />
           <Route path="/demos/store-scenarios" element={<StoreScenariosPage />} />
           <Route path="/demos/todo-list" element={<TodoListPage />} />

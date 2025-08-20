@@ -77,6 +77,7 @@ function Layout({
     { path: '/refs', label: '🎯 Refs Management', category: 'refs', isIndex: true },
     { path: '/refs/canvas', label: '🎨 Canvas Ref Demo', category: 'refs' },
     { path: '/refs/form-builder', label: '📝 Form Builder Ref Demo', category: 'refs' },
+    { path: '/refs/waitforrefs-performance', label: '⚡ useWaitForRefs Performance', category: 'refs', description: 'Performance verification demo for useWaitForRefs optimization' },
     
     // === Utilities & Tools (유틸리티) ===
     { path: '/logger/demo', label: 'Logger System', category: 'utilities' },

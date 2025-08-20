@@ -1,10 +1,37 @@
-import { useStoreValue } from '@context-action/react';
+import { useStoreValue, createDeclarativeStorePattern, createActionContext } from '@context-action/react';
 import type React from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useActionLoggerWithToast } from '../../../../components/LogMonitor/';
 import { storeActionRegister } from '../actions';
 import { StoreScenarios } from '../stores';
 import type { TodoItem } from '../types';
+
+// UI State Management with Context-Action
+const {
+  Provider: TodoUIStoreProvider,
+  useStore: useTodoUIStore
+} = createDeclarativeStorePattern('TodoUI', {
+  newTodo: { initialValue: '' },
+  priority: { initialValue: 'medium' as TodoItem['priority'] },
+  filter: { initialValue: 'all' as 'all' | 'active' | 'completed' },
+  sortBy: { initialValue: 'created' as 'created' | 'priority' | 'title' }
+});
+
+// UI Actions for form interactions
+interface TodoUIActions {
+  updateNewTodo: { value: string };
+  setPriority: { priority: TodoItem['priority'] };
+  setFilter: { filter: 'all' | 'active' | 'completed' };
+  setSortBy: { sortBy: 'created' | 'priority' | 'title' };
+  resetForm: void;
+}
+
+const {
+  Provider: TodoUIActionProvider,
+  useActionDispatch: useTodoUIAction,
+  useActionHandler: useTodoUIActionHandler
+} = createActionContext<TodoUIActions>('TodoUI');
+
 import { todoComputations } from '../modules/computations';
 import { loggingModule } from '../modules/logging';
 
@@ -21,18 +48,25 @@ import { loggingModule } from '../modules/logging';
  * const todos = useStoreValue(todosStore);
  * @since 2.0.0
  */
-export function TodoListDemo() {
+function TodoListDemoInner() {
   const todosStore = StoreScenarios.useStore('todos'); // 자동 타입 추론: Store<TodoItem[]>
   const todos = useStoreValue(todosStore);
-  const [newTodo, setNewTodo] = useState('');
-  const [priority, setPriority] = useState<TodoItem['priority']>('medium');
-  const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
-  const [sortBy, setSortBy] = useState<'created' | 'priority' | 'title'>(
-    'created'
-  );
+  
+  // Context-Action UI state instead of React useState
+  const newTodoStore = useTodoUIStore('newTodo');
+  const priorityStore = useTodoUIStore('priority');
+  const filterStore = useTodoUIStore('filter');
+  const sortByStore = useTodoUIStore('sortBy');
+  
+  const newTodo = useStoreValue(newTodoStore);
+  const priority = useStoreValue(priorityStore);
+  const filter = useStoreValue(filterStore);
+  const sortBy = useStoreValue(sortByStore);
+  
+  const uiDispatch = useTodoUIAction();
   const logger = useActionLoggerWithToast();
 
-  // 액션 핸들러들을 useCallback으로 메모이제이션
+  // Action handlers using useCallback (keeping original pattern)
   const addTodoHandler = useCallback(
     ({ title, priority }: { title: string; priority: TodoItem['priority'] }) => {
       const newTodo: TodoItem = {
@@ -77,7 +111,7 @@ export function TodoListDemo() {
     [todosStore]
   );
 
-  // 필요한 액션 핸들러들을 등록
+  // Register action handlers with storeActionRegister
   useEffect(() => {
     const unsubscribers = [
       storeActionRegister.register('addTodo', addTodoHandler),
@@ -89,7 +123,29 @@ export function TodoListDemo() {
     return () => {
       unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
-  }, [addTodoHandler, toggleTodoHandler, deleteTodoHandler, updateTodoPriorityHandler]); // 메모이제이션된 핸들러들을 의존성에 추가
+  }, [addTodoHandler, toggleTodoHandler, deleteTodoHandler, updateTodoPriorityHandler]);
+  
+  // UI Action handlers for form interactions
+  useTodoUIActionHandler('updateNewTodo', async ({ value }) => {
+    newTodoStore.setValue(value);
+  });
+  
+  useTodoUIActionHandler('setPriority', async ({ priority }) => {
+    priorityStore.setValue(priority);
+  });
+  
+  useTodoUIActionHandler('setFilter', async ({ filter }) => {
+    filterStore.setValue(filter);
+  });
+  
+  useTodoUIActionHandler('setSortBy', async ({ sortBy }) => {
+    sortByStore.setValue(sortBy);
+  });
+  
+  useTodoUIActionHandler('resetForm', async () => {
+    newTodoStore.setValue('');
+    priorityStore.setValue('medium');
+  });
 
   const filteredAndSortedTodos = useMemo(() => {
     if (!todos) return [];
@@ -116,7 +172,7 @@ export function TodoListDemo() {
     return todoComputations.calculateStats(todos || []);
   }, [todos]);
 
-  const addTodo = useCallback(() => {
+  const addTodo = () => {
     if (newTodo.trim()) {
       logger.logAction('addTodo', {
         title: newTodo.trim(),
@@ -127,64 +183,51 @@ export function TodoListDemo() {
         title: newTodo.trim(),
         priority,
       });
-      setNewTodo('');
-      setPriority('medium');
+      uiDispatch('resetForm');
     }
-  }, [newTodo, priority, todos, logger]);
+  };
 
-  const toggleTodo = useCallback(
-    (todoId: string) => {
-      const todo = todos?.find((t) => t.id === todoId);
-      logger.logAction('toggleTodo', {
-        todoId,
-        currentStatus: todo?.completed,
-        newStatus: !todo?.completed,
-        title: todo?.title,
-      });
-      storeActionRegister.dispatch('toggleTodo', { todoId });
-    },
-    [todos, logger]
-  );
+  const toggleTodo = (todoId: string) => {
+    const todo = todos?.find((t) => t.id === todoId);
+    logger.logAction('toggleTodo', {
+      todoId,
+      currentStatus: todo?.completed,
+      newStatus: !todo?.completed,
+      title: todo?.title,
+    });
+    storeActionRegister.dispatch('toggleTodo', { todoId });
+  };
 
-  const deleteTodo = useCallback(
-    (todoId: string) => {
-      const todo = todos?.find((t) => t.id === todoId);
-      logger.logAction('deleteTodo', {
-        todoId,
-        title: todo?.title,
-        wasCompleted: todo?.completed,
-      });
-      storeActionRegister.dispatch('deleteTodo', { todoId });
-    },
-    [todos, logger]
-  );
+  const deleteTodo = (todoId: string) => {
+    const todo = todos?.find((t) => t.id === todoId);
+    logger.logAction('deleteTodo', {
+      todoId,
+      title: todo?.title,
+      wasCompleted: todo?.completed,
+    });
+    storeActionRegister.dispatch('deleteTodo', { todoId });
+  };
 
-  const updatePriority = useCallback(
-    (todoId: string, newPriority: TodoItem['priority']) => {
-      const todo = todos?.find((t) => t.id === todoId);
-      const _priorityLabels = { high: '높음', medium: '보통', low: '낮음' };
-      logger.logAction('updateTodoPriority', {
-        todoId,
-        oldPriority: todo?.priority,
-        newPriority,
-        title: todo?.title,
-      });
-      storeActionRegister.dispatch('updateTodoPriority', {
-        todoId,
-        priority: newPriority,
-      });
-    },
-    [todos, logger]
-  );
+  const updatePriority = (todoId: string, newPriority: TodoItem['priority']) => {
+    const todo = todos?.find((t) => t.id === todoId);
+    const _priorityLabels = { high: '높음', medium: '보통', low: '낮음' };
+    logger.logAction('updateTodoPriority', {
+      todoId,
+      oldPriority: todo?.priority,
+      newPriority,
+      title: todo?.title,
+    });
+    storeActionRegister.dispatch('updateTodoPriority', {
+      todoId,
+      priority: newPriority,
+    });
+  };
 
-  const handleKeyPress = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') {
-        addTodo();
-      }
-    },
-    [addTodo]
-  );
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      addTodo();
+    }
+  };
 
   const getPriorityColor = (priority: TodoItem['priority']) => {
     switch (priority) {
@@ -246,7 +289,7 @@ export function TodoListDemo() {
             type="text"
             value={newTodo}
             onChange={(e) => {
-              setNewTodo(e.target.value);
+              uiDispatch('updateNewTodo', { value: e.target.value });
               logger.logAction('typeTodoTitle', {
                 length: e.target.value.length,
               });
@@ -259,7 +302,7 @@ export function TodoListDemo() {
             value={priority}
             onChange={(e) => {
               const newPriority = e.target.value as TodoItem['priority'];
-              setPriority(newPriority);
+              uiDispatch('setPriority', { priority: newPriority });
               logger.logAction('selectTodoPriority', { priority: newPriority });
             }}
             className="priority-select"
@@ -286,7 +329,7 @@ export function TodoListDemo() {
             <button
               key={filterType}
               onClick={() => {
-                setFilter(filterType);
+                uiDispatch('setFilter', { filter: filterType });
                 logger.logAction('filterTodos', { filter: filterType });
               }}
               className={`filter-btn ${filter === filterType ? 'active' : ''}`}
@@ -312,7 +355,7 @@ export function TodoListDemo() {
                 | 'created'
                 | 'priority'
                 | 'title';
-              setSortBy(newSortBy);
+              uiDispatch('setSortBy', { sortBy: newSortBy });
               logger.logAction('sortTodos', { sortBy: newSortBy });
             }}
             className="sort-select"
@@ -433,5 +476,16 @@ export function TodoListDemo() {
         </div>
       )}
     </div>
+  );
+}
+
+// Main component with providers
+export function TodoListDemo() {
+  return (
+    <TodoUIActionProvider>
+      <TodoUIStoreProvider>
+        <TodoListDemoInner />
+      </TodoUIStoreProvider>
+    </TodoUIActionProvider>
   );
 }
