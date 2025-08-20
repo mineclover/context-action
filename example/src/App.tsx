@@ -15,6 +15,11 @@ import ApiBlockingPage from './pages/actionguard/ApiBlockingPage';
 // import ActionGuardTestPage from './pages/actionguard/dispatch-options-test/DispatchOptionsTestPage';
 import { ContextStoreMouseEventsPage } from './pages/actionguard/ContextStoreMouseEventsPage';
 import MouseEventsPage from './pages/actionguard/MouseEventsPage';
+import { OptimizedMouseEventsPage } from './pages/mouse-events/OptimizedMouseEventsPage';
+import { MouseEventsIndexPage } from './pages/mouse-events/MouseEventsIndexPage';
+import { CleanArchitecturePage } from './pages/mouse-events/CleanArchitecturePage';
+import { ContextStoreActionPage } from './pages/mouse-events/ContextStoreActionPage';
+import { EnhancedContextStorePage } from './pages/mouse-events/EnhancedContextStorePage';
 import PriorityPerformancePage from './pages/actionguard/PriorityPerformancePage';
 import { PriorityPerformancePage as NewPriorityPerformancePage } from './pages/actionguard/priority-performance/PriorityPerformancePage';
 import ScrollPage from './pages/actionguard/ScrollPage';
@@ -32,6 +37,11 @@ import { CanvasRefDemoPage } from './pages/refs/CanvasRefDemoPage';
 import { FormBuilderRefDemoPage } from './pages/refs/FormBuilderRefDemoPage';
 import { DemosIndexPage } from './pages/demos/DemosIndexPage';
 import { StoreScenariosPage } from './pages/demos/StoreScenariosPage';
+import { TodoListPage } from './pages/demos/TodoListPage';
+import { ShoppingCartPage } from './pages/demos/ShoppingCartPage';
+import { ChatPage } from './pages/demos/ChatPage';
+import { UserProfilePage } from './pages/demos/UserProfilePage';
+import { RefContextMouseEventsPage } from './pages/mouse-events/ref-context/RefContextMouseEventsPage';
 import HomePage from './pages/HomePage';
 import LoggerDemoPage from './pages/logger/LoggerDemoPage';
 import ReactContextPage from './pages/react/ReactContextPage';
@@ -91,11 +101,35 @@ function AppContent() {
           />
           <Route
             path="/actionguard/mouse-events"
+            element={<MouseEventsIndexPage />}
+          />
+          <Route
+            path="/actionguard/mouse-events/optimized"
+            element={<OptimizedMouseEventsPage />}
+          />
+          <Route
+            path="/actionguard/mouse-events/enhanced-context-store"
+            element={<EnhancedContextStorePage />}
+          />
+          <Route
+            path="/actionguard/mouse-events/context-store-action"
+            element={<ContextStoreActionPage />}
+          />
+          <Route
+            path="/actionguard/mouse-events/clean-architecture"
+            element={<CleanArchitecturePage />}
+          />
+          <Route
+            path="/actionguard/mouse-events/legacy"
             element={<MouseEventsPage />}
           />
           <Route
             path="/actionguard/mouse-events/context-store"
             element={<ContextStoreMouseEventsPage />}
+          />
+          <Route
+            path="/actionguard/mouse-events/ref-context"
+            element={<RefContextMouseEventsPage />}
           />
           {/* <Route path="/actionguard/test" element={<ActionGuardTestPage />} /> */}
           <Route
@@ -139,6 +173,10 @@ function AppContent() {
           <Route path="/refs/form-builder" element={<FormBuilderRefDemoPage />} />
           <Route path="/demos" element={<DemosIndexPage />} />
           <Route path="/demos/store-scenarios" element={<StoreScenariosPage />} />
+          <Route path="/demos/todo-list" element={<TodoListPage />} />
+          <Route path="/demos/shopping-cart" element={<ShoppingCartPage />} />
+          <Route path="/demos/chat" element={<ChatPage />} />
+          <Route path="/demos/user-profile" element={<UserProfilePage />} />
           <Route
             path="/unified-pattern/demo"
             element={<UnifiedPatternPage />}

@@ -25,8 +25,10 @@ export interface ElementRegistry {
 // Element 관리 액션 정의
 export interface ElementActions extends ActionPayloadMap {
   registerElement: { id: string; element: HTMLElement; type: ElementInfo['type']; metadata?: Record<string, any> };
+  registerElementMetadata: { id: string; type: ElementInfo['type']; metadata?: Record<string, any> };
   unregisterElement: { id: string };
   updateElement: { id: string; element?: HTMLElement; metadata?: Record<string, any> };
+  updateElementStores: { id: string; type: ElementInfo['type'] | null; metadata?: Record<string, any> | null };
   focusElement: { id: string };
   selectElements: { ids: string[] };
   clearSelection: void;

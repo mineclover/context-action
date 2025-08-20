@@ -51,32 +51,121 @@ export function DemosIndexPage() {
           </div>
         </div>
 
-        {/* Demo Categories */}
+        {/* Store Demos */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-6">🗂️ 데모 카테고리</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* Store Scenarios */}
+          <h2 className="text-2xl font-bold mb-6">🏪 Store 시나리오 데모</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Combined Store Scenarios */}
             <a 
               href="/demos/store-scenarios"
               className="group bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 hover:border-purple-300"
             >
               <div className="text-3xl mb-3 group-hover:scale-110 transition-transform">🏪</div>
               <h3 className="font-semibold text-lg mb-2 text-gray-800 group-hover:text-purple-600">
-                Store Scenarios
+                전체 Store 컬렉션
               </h3>
               <p className="text-gray-600 text-sm mb-3">
-                다양한 상태 관리 시나리오를 보여주는 실용적인 데모들. 
-                채팅, 쇼핑카트, 할일관리 등 실제 애플리케이션 패턴.
+                4개의 핵심 상태 관리 패턴을 한 페이지에서 모두 확인
               </p>
               <div className="flex flex-wrap gap-2 mb-3">
-                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">State Management</span>
-                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">Real-world</span>
-                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">Interactive</span>
+                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">All-in-One</span>
+                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">Complete</span>
+              </div>
+              <div className="text-purple-500 text-sm font-medium group-hover:underline">
+                전체 보기 →
+              </div>
+            </a>
+
+            {/* Todo List Demo */}
+            <a 
+              href="/demos/todo-list"
+              className="group bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 hover:border-blue-300"
+            >
+              <div className="text-3xl mb-3 group-hover:scale-110 transition-transform">✅</div>
+              <h3 className="font-semibold text-lg mb-2 text-gray-800 group-hover:text-blue-600">
+                Todo List Demo
+              </h3>
+              <p className="text-gray-600 text-sm mb-3">
+                기본적인 CRUD 패턴과 필터링, 정렬 기능
+              </p>
+              <div className="flex flex-wrap gap-2 mb-3">
+                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">CRUD</span>
+                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Filter & Sort</span>
+              </div>
+              <div className="text-blue-500 text-sm font-medium group-hover:underline">
+                데모 보기 →
+              </div>
+            </a>
+
+            {/* Shopping Cart Demo */}
+            <a 
+              href="/demos/shopping-cart"
+              className="group bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 hover:border-purple-300"
+            >
+              <div className="text-3xl mb-3 group-hover:scale-110 transition-transform">🛒</div>
+              <h3 className="font-semibold text-lg mb-2 text-gray-800 group-hover:text-purple-600">
+                Shopping Cart Demo
+              </h3>
+              <p className="text-gray-600 text-sm mb-3">
+                복잡한 계산과 상태 관리, 실시간 가격 업데이트
+              </p>
+              <div className="flex flex-wrap gap-2 mb-3">
+                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">Real-time Calc</span>
+                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">Commerce</span>
               </div>
               <div className="text-purple-500 text-sm font-medium group-hover:underline">
                 데모 보기 →
               </div>
             </a>
+
+            {/* Chat Demo */}
+            <a 
+              href="/demos/chat"
+              className="group bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 hover:border-green-300"
+            >
+              <div className="text-3xl mb-3 group-hover:scale-110 transition-transform">💬</div>
+              <h3 className="font-semibold text-lg mb-2 text-gray-800 group-hover:text-green-600">
+                Chat Demo
+              </h3>
+              <p className="text-gray-600 text-sm mb-3">
+                실시간 메시징과 사용자 관리, 메시지 히스토리
+              </p>
+              <div className="flex flex-wrap gap-2 mb-3">
+                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Real-time</span>
+                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Auto Scroll</span>
+              </div>
+              <div className="text-green-500 text-sm font-medium group-hover:underline">
+                데모 보기 →
+              </div>
+            </a>
+
+            {/* User Profile Demo */}
+            <a 
+              href="/demos/user-profile"
+              className="group bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 hover:border-orange-300"
+            >
+              <div className="text-3xl mb-3 group-hover:scale-110 transition-transform">👤</div>
+              <h3 className="font-semibold text-lg mb-2 text-gray-800 group-hover:text-orange-600">
+                User Profile Demo
+              </h3>
+              <p className="text-gray-600 text-sm mb-3">
+                폼 처리와 유효성 검사, 실시간 업데이트
+              </p>
+              <div className="flex flex-wrap gap-2 mb-3">
+                <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded">Form</span>
+                <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded">Validation</span>
+              </div>
+              <div className="text-orange-500 text-sm font-medium group-hover:underline">
+                데모 보기 →
+              </div>
+            </a>
+          </div>
+        </div>
+
+        {/* Other Categories */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-6">🗂️ 기타 데모 카테고리</h2>
+          <div className="grid md:grid-cols-2 gap-6">
 
             {/* Future Categories - Placeholder */}
             <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
@@ -118,28 +207,28 @@ export function DemosIndexPage() {
                   <li className="flex items-start gap-3">
                     <span className="bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-semibold">1</span>
                     <div>
-                      <div className="font-medium">Todo List Demo</div>
+                      <a href="/demos/todo-list" className="font-medium text-blue-600 hover:underline">Todo List Demo</a>
                       <div className="text-sm text-gray-600">기본적인 CRUD 패턴 학습</div>
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-semibold">2</span>
                     <div>
-                      <div className="font-medium">Shopping Cart Demo</div>
+                      <a href="/demos/shopping-cart" className="font-medium text-blue-600 hover:underline">Shopping Cart Demo</a>
                       <div className="text-sm text-gray-600">복잡한 상태 관리와 계산 로직</div>
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-semibold">3</span>
                     <div>
-                      <div className="font-medium">Chat Demo</div>
+                      <a href="/demos/chat" className="font-medium text-blue-600 hover:underline">Chat Demo</a>
                       <div className="text-sm text-gray-600">실시간 업데이트와 성능 최적화</div>
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-semibold">4</span>
                     <div>
-                      <div className="font-medium">User Profile Demo</div>
+                      <a href="/demos/user-profile" className="font-medium text-blue-600 hover:underline">User Profile Demo</a>
                       <div className="text-sm text-gray-600">폼 처리와 유효성 검사</div>
                     </div>
                   </li>

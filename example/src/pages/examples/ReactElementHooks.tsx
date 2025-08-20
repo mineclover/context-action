@@ -74,9 +74,13 @@ function ElementManagerInitializer({
     const manager = new ElementManager();
     managerRef.current = manager;
 
+    // 전역 객체에 manager 참조 저장 (React hooks에서 접근 가능하도록)
+    (window as any).__elementManager = manager;
+
     return () => {
       manager.dispose();
       managerRef.current = null;
+      delete (window as any).__elementManager;
     };
   }, []);
 
@@ -116,28 +120,31 @@ function ElementManagerInitializer({
   }, []));
 
   useElementActionHandler('unregisterElement', useCallback(async (payload) => {
-    const manager = managerRef.current;
-    if (!manager) return;
-
-    await manager.unregisterElement(payload.id);
+    console.log('[ElementManagerInitializer] unregisterElement handler called', payload);
     
-    // Store에는 메타데이터만 저장 (HTML elements 제외)
-    const registry = manager.getRegistry();
-    const metadataMap = new Map<string, ElementMetadata>();
+    // Store에서 메타데이터 제거
+    const currentMetadata = elementMetadataStore.getValue();
+    const newMetadata = new Map(currentMetadata);
     
-    for (const [id, elementInfo] of registry.elements.entries()) {
-      metadataMap.set(id, {
-        id: elementInfo.id,
-        type: elementInfo.type,
-        metadata: elementInfo.metadata,
-        createdAt: elementInfo.createdAt.toISOString(),
-        lastAccessed: elementInfo.lastAccessed?.toISOString()
+    if (newMetadata.has(payload.id)) {
+      newMetadata.delete(payload.id);
+      console.log('[ElementManagerInitializer] Removing element from metadata store', { 
+        elementId: payload.id,
+        totalElements: newMetadata.size
       });
+      elementMetadataStore.setValue(newMetadata);
     }
     
-    elementMetadataStore.setValue(metadataMap);
-    focusedElementStore.setValue(registry.focusedElement || null);
-    selectedElementsStore.setValue(registry.selectedElements);
+    // Focus 및 selection에서도 제거
+    const currentFocused = focusedElementStore.getValue();
+    if (currentFocused === payload.id) {
+      focusedElementStore.setValue(null);
+    }
+    
+    const currentSelected = selectedElementsStore.getValue();
+    if (currentSelected.includes(payload.id)) {
+      selectedElementsStore.setValue(currentSelected.filter(id => id !== payload.id));
+    }
   }, []));
 
   useElementActionHandler('focusElement', useCallback(async (payload) => {
@@ -172,6 +179,68 @@ function ElementManagerInitializer({
     selectedElementsStore.setValue([]);
   }, []));
 
+  // Store 업데이트를 위한 액션 핸들러 (HTMLElement 없이)
+  useElementActionHandler('updateElementStores', useCallback(async (payload) => {
+    const manager = managerRef.current;
+    if (!manager) return;
+
+    console.log('[ElementManagerInitializer] updateElementStores handler called', payload);
+    
+    // ElementManager에서 현재 registry 상태를 가져와 store 업데이트
+    const registry = manager.getRegistry();
+    const metadataMap = new Map<string, ElementMetadata>();
+    
+    for (const [id, elementInfo] of registry.elements.entries()) {
+      metadataMap.set(id, {
+        id: elementInfo.id,
+        type: elementInfo.type,
+        metadata: elementInfo.metadata,
+        createdAt: elementInfo.createdAt.toISOString(),
+        lastAccessed: elementInfo.lastAccessed?.toISOString()
+      });
+    }
+    
+    console.log('[ElementManagerInitializer] Updating stores after direct manager call', { 
+      metadataCount: metadataMap.size, 
+      focusedElement: registry.focusedElement, 
+      selectedElements: registry.selectedElements 
+    });
+    elementMetadataStore.setValue(metadataMap);
+    focusedElementStore.setValue(registry.focusedElement || null);
+    selectedElementsStore.setValue(registry.selectedElements);
+  }, []));
+
+  // 메타데이터만 등록하는 액션 핸들러 (HTMLElement 제외)
+  useElementActionHandler('registerElementMetadata', useCallback(async (payload) => {
+    console.log('[ElementManagerInitializer] registerElementMetadata handler called', payload);
+    
+    // DOM에서 실제 element 찾기
+    const element = document.querySelector(`[data-element-id="${payload.id}"]`) as HTMLElement;
+    if (!element) {
+      console.error(`[ElementManagerInitializer] Element with id "${payload.id}" not found in DOM`);
+      return;
+    }
+
+    // Store에만 메타데이터 저장
+    const currentMetadata = elementMetadataStore.getValue();
+    const newMetadata = new Map(currentMetadata);
+    
+    newMetadata.set(payload.id, {
+      id: payload.id,
+      type: payload.type,
+      metadata: payload.metadata,
+      createdAt: new Date().toISOString(),
+      lastAccessed: new Date().toISOString()
+    });
+    
+    console.log('[ElementManagerInitializer] Updating metadata store', { 
+      elementId: payload.id,
+      type: payload.type,
+      totalElements: newMetadata.size
+    });
+    elementMetadataStore.setValue(newMetadata);
+  }, []));
+
   return <>{children}</>;
 }
 
@@ -189,11 +258,20 @@ export function useElementRef(
 
   const refCallback = useCallback<RefCallback<HTMLElement>>((element) => {
     if (element) {
-      // Element 등록
+      // Element 등록 - ActionRegister 완전 우회
       console.log(`[useElementRef] Registering element: ${id}`, { element, type, metadata });
-      dispatch('registerElement', { id, element, type, metadata });
+      
+      // DOM에 직접 data 속성 추가
+      element.setAttribute('data-element-id', id);
+      element.setAttribute('data-element-type', type);
+      if (metadata) {
+        element.setAttribute('data-element-metadata', JSON.stringify(metadata));
+      }
+      
+      // Store에 메타데이터만 추가 (HTMLElement 없이)
+      dispatch('registerElementMetadata', { id, type, metadata });
     } else {
-      // Element 해제 - 항상 dispatch하여 관리자가 처리하도록
+      // Element 해제
       console.log(`[useElementRef] Unregistering element: ${id}`);
       dispatch('unregisterElement', { id });
     }
@@ -357,10 +435,26 @@ export function useElementManager(): {
     type: ElementInfo['type'], 
     metadata?: Record<string, any>
   ) => {
-    dispatch('registerElement', { id, element, type, metadata });
+    // DOM에 직접 data 속성 추가
+    element.setAttribute('data-element-id', id);
+    element.setAttribute('data-element-type', type);
+    if (metadata) {
+      element.setAttribute('data-element-metadata', JSON.stringify(metadata));
+    }
+    
+    // Store에 메타데이터만 추가 (HTMLElement 없이)
+    dispatch('registerElementMetadata', { id, type, metadata });
   }, [dispatch]);
 
   const unregisterElement = useCallback((id: string) => {
+    // DOM에서 element를 찾아 data 속성 제거
+    const element = document.querySelector(`[data-element-id="${id}"]`) as HTMLElement;
+    if (element) {
+      element.removeAttribute('data-element-id');
+      element.removeAttribute('data-element-type');
+      element.removeAttribute('data-element-metadata');
+    }
+    
     dispatch('unregisterElement', { id });
   }, [dispatch]);
 

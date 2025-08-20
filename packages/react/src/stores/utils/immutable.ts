@@ -19,22 +19,79 @@ const logger = {
 };
 
 /**
- * DOM element detection helper
+ * 객체나 배열에 복제 불가능한 컨텐츠가 포함되어 있는지 검사
+ * @param value 검사할 값
+ * @param depth 검사 깊이 제한 (기본값: 3)
+ * @returns 복제 불가능한 컨텐츠가 있으면 true
  */
-function isDOMElement(value: any): boolean {
+function hasUnclonableContent(value: unknown, depth: number = 3): boolean {
+  // 깊이 제한으로 성능 최적화
+  if (depth <= 0) return false;
+  
+  // 배열 검사
+  if (Array.isArray(value)) {
+    return value.some(item => isUnclonable(item) || hasUnclonableContent(item, depth - 1));
+  }
+  
+  // 객체 검사 (null 제외)
+  if (value && typeof value === 'object') {
+    // 빠른 종료 조건들
+    if (isUnclonable(value)) return true;
+    
+    try {
+      // 성능을 위해 처음 10개 속성만 검사
+      const keys = Object.keys(value).slice(0, 10);
+      return keys.some(key => {
+        const prop = (value as Record<string, unknown>)[key];
+        return isUnclonable(prop) || hasUnclonableContent(prop, depth - 1);
+      });
+    } catch {
+      // 접근할 수 없는 속성이 있으면 복제 불가능으로 간주
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+/**
+ * DOM 요소인지 검사하는 함수
+ * @param value 검사할 값
+ * @returns DOM 요소이면 true
+ */
+function isDOMElement(value: unknown): boolean {
   if (!value || typeof value !== 'object') return false;
   
   return (
     (typeof Element !== 'undefined' && value instanceof Element) ||
     (typeof Node !== 'undefined' && value instanceof Node) ||
     (typeof HTMLElement !== 'undefined' && value instanceof HTMLElement) ||
-    (typeof value.nodeType === 'number' && value.nodeType > 0) ||
-    (typeof value.nodeName === 'string') ||
-    (typeof value.tagName === 'string') ||
-    value._owner !== undefined ||  // React Fiber
-    value.stateNode !== undefined  // React Fiber
+    (typeof (value as Record<string, unknown>).nodeType === 'number' && ((value as Record<string, unknown>).nodeType as number) > 0) ||
+    (typeof (value as Record<string, unknown>).nodeName === 'string') ||
+    (typeof (value as Record<string, unknown>).tagName === 'string') ||
+    (value as Record<string, unknown>)._owner !== undefined ||  // React Fiber
+    (value as Record<string, unknown>).stateNode !== undefined  // React Fiber
   );
 }
+
+/**
+ * 단일 값이 복제 불가능한지 검사
+ */
+function isUnclonable(value: unknown): boolean {
+  if (typeof value === 'function') return true;
+  if (value instanceof Promise) return true;
+  if (value instanceof WeakMap) return true;
+  if (value instanceof WeakSet) return true;
+  
+  // DOM/Browser API 객체들
+  if (typeof Event !== 'undefined' && value instanceof Event) return true;
+  
+  // DOM 요소 검사 (통합 함수 사용)
+  if (isDOMElement(value)) return true;
+  
+  return false;
+}
+
 
 /**
  * 깊은 복사 함수 - structuredClone 기반 구현
@@ -101,29 +158,74 @@ export function deepClone<T>(value: T): T {
     return value;
   }
 
-  // HTML/DOM Elements 특별 처리 - 순환 참조 방지
+  // Promise는 복사 불가능하므로 원본 반환
+  if (value instanceof Promise) {
+    if (process.env.NODE_ENV === 'development') {
+      logger.warn('Promise objects cannot be deep cloned, returning original reference');
+    }
+    return value;
+  }
+
+  // Error 객체 특별 처리
+  if (value instanceof Error) {
+    const ErrorClass = value.constructor as new (message: string) => Error;
+    const clonedError = new ErrorClass(value.message) as T;
+    if ('stack' in value && typeof value.stack === 'string') {
+      (clonedError as any).stack = value.stack;
+    }
+    if ('cause' in value) {
+      (clonedError as any).cause = value.cause;
+    }
+    return clonedError;
+  }
+
+  // Map 객체 특별 처리
+  if (value instanceof Map) {
+    const clonedMap = new Map();
+    for (const [key, val] of value) {
+      clonedMap.set(deepClone(key), deepClone(val));
+    }
+    return clonedMap as T;
+  }
+
+  // Set 객체 특별 처리
+  if (value instanceof Set) {
+    const clonedSet = new Set();
+    for (const val of value) {
+      clonedSet.add(deepClone(val));
+    }
+    return clonedSet as T;
+  }
+
+  // WeakMap, WeakSet은 복사 불가능하므로 원본 반환
+  if (value instanceof WeakMap || value instanceof WeakSet) {
+    if (process.env.NODE_ENV === 'development') {
+      logger.warn('WeakMap/WeakSet objects cannot be deep cloned, returning original reference');
+    }
+    return value;
+  }
+
+  // 복제 불가능한 객체들을 사전 검사
   if (typeof value === 'object' && value !== null) {
-    // DOM Element 체크 - 더 포괄적인 검사
-    if (
-      (typeof Element !== 'undefined' && value instanceof Element) ||
-      (typeof Node !== 'undefined' && value instanceof Node) ||
-      (typeof HTMLElement !== 'undefined' && value instanceof HTMLElement) ||
-      (typeof (value as any).nodeType === 'number' && (value as any).nodeType > 0) || // All DOM node types
-      (typeof (value as any).nodeName === 'string') ||
-      (typeof (value as any).tagName === 'string') ||
-      // React Fiber나 기타 DOM 관련 객체 체크
-      (value as any)._owner !== undefined || // React Fiber
-      (value as any).stateNode !== undefined // React Fiber
-    ) {
+    // DOM Element 체크 - 통합 함수 사용
+    if (isDOMElement(value)) {
       // DOM elements는 cloning하지 않고 원본 참조 반환
       if (process.env.NODE_ENV === 'development' && Math.random() < 0.01) {
         logger.trace('HTML/DOM element detected, returning original reference to avoid circular references', {
           type: typeof value,
           constructor: value?.constructor?.name,
-          nodeType: (value as any)?.nodeType,
-          tagName: (value as any)?.tagName,
-          nodeName: (value as any)?.nodeName
+          nodeType: (value as Record<string, unknown>)?.nodeType,
+          tagName: (value as Record<string, unknown>)?.tagName,
+          nodeName: (value as Record<string, unknown>)?.nodeName
         });
+      }
+      return value;
+    }
+
+    // 배열이나 객체 내부의 복제 불가능한 값들을 사전 검사
+    if (hasUnclonableContent(value)) {
+      if (process.env.NODE_ENV === 'development' && Math.random() < 0.05) {
+        console.warn('[Context-Action] Object contains unclonable content (Promise, DOM, Function), returning original reference');
       }
       return value;
     }
@@ -145,44 +247,28 @@ export function deepClone<T>(value: T): T {
     
     return cloned;
   } catch (error) {
-    // HTML elements나 circular references로 인한 실패 감지
+    // structuredClone에서 복제할 수 없는 객체들 처리
     const errorMessage = error?.toString() || '';
     if (
       errorMessage.includes('circular') ||
       errorMessage.includes('HTMLDivElement') ||
       errorMessage.includes('HTMLElement') ||
-      errorMessage.includes('could not be cloned')
+      errorMessage.includes('could not be cloned') ||
+      errorMessage.includes('Promise') ||
+      errorMessage.includes('DataCloneError')
     ) {
-      // HTML elements/circular references는 원본 반환 
-      // 임시적으로 더 자주 로깅하여 디버깅 정보 수집
-      console.warn(
-        '[Context-Action] Circular reference or HTML element detected in structuredClone, returning original reference',
-        '\nValue type:', typeof value,
-        '\nConstructor:', value?.constructor?.name,
-        '\nIs DOM element:', isDOMElement(value),
-        '\nIs Event object:', value instanceof Event || (value && typeof (value as any).preventDefault === 'function'),
-        '\nError message:', errorMessage,
-        '\nStack trace:', new Error().stack?.split('\n').slice(1, 8).join('\n')
-      );
-      
-      // Also try to identify what properties contain DOM elements
-      if (value && typeof value === 'object') {
-        try {
-          const problematicKeys = [];
-          for (const key in value) {
-            if (value.hasOwnProperty(key)) {
-              const prop = value[key];
-              if (isDOMElement(prop) || (prop instanceof Event)) {
-                problematicKeys.push(key);
-              }
-            }
+      // 복제할 수 없는 객체들은 원본 반환 
+      if (process.env.NODE_ENV === 'development') {
+        console.debug(
+          '[Context-Action] Unclonable object detected, returning original reference',
+          {
+            type: typeof value,
+            constructor: value?.constructor?.name,
+            isPromise: value instanceof Promise,
+            errorType: errorMessage.includes('Promise') ? 'Promise' : 
+                      errorMessage.includes('DataCloneError') ? 'DataCloneError' : 'Other'
           }
-          if (problematicKeys.length > 0) {
-            console.warn('[Context-Action] Problematic properties containing DOM elements/Events:', problematicKeys);
-          }
-        } catch (e) {
-          console.warn('[Context-Action] Error analyzing object properties:', e);
-        }
+        );
       }
       return value;
     }
@@ -236,18 +322,8 @@ export function verifyImmutability<T>(original: T, cloned: T): boolean {
 
   // 복사하지 말아야 할 특별한 객체들 - 참조가 같아야 정상
   if (typeof original === 'object' && original !== null) {
-    // DOM Elements - 더 포괄적인 검사
-    if ((typeof Element !== 'undefined' && original instanceof Element) ||
-        (typeof Node !== 'undefined' && original instanceof Node) ||
-        (typeof HTMLElement !== 'undefined' && original instanceof HTMLElement) ||
-        (typeof (original as any).nodeType === 'number' && (original as any).nodeType > 0) ||
-        (typeof (original as any).nodeName === 'string') ||
-        (typeof (original as any).tagName === 'string')) {
-      return original === cloned;
-    }
-    
-    // React Fiber nodes and related objects
-    if ((original as any)._owner !== undefined || (original as any).stateNode !== undefined) {
+    // DOM Elements - 통합 함수 사용
+    if (isDOMElement(original)) {
       return original === cloned;
     }
     
@@ -258,7 +334,7 @@ export function verifyImmutability<T>(original: T, cloned: T): boolean {
     
     // Promise objects
     if (original instanceof Promise || 
-        (typeof (original as any).then === 'function' && typeof (original as any).catch === 'function')) {
+        (typeof (original as Record<string, unknown>).then === 'function' && typeof (original as Record<string, unknown>).catch === 'function')) {
       return original === cloned;
     }
   }
@@ -290,23 +366,11 @@ export function safeGet<T>(value: T, enableCloning: boolean = true): T {
   // 개발 모드에서 불변성 검증 (특별한 객체들 제외)
   if (process.env.NODE_ENV === 'development') {
     // 복사하지 말아야 할 객체들을 감지하는 통합 함수
-    const isNonCloneableObject = (obj: any): boolean => {
+    const isNonCloneableObject = (obj: unknown): boolean => {
       if (!obj || typeof obj !== 'object') return false;
       
-      // DOM Elements - 더 포괄적인 검사
-      if ((typeof Element !== 'undefined' && obj instanceof Element) ||
-          (typeof Node !== 'undefined' && obj instanceof Node) ||
-          (typeof HTMLElement !== 'undefined' && obj instanceof HTMLElement) ||
-          (typeof obj.nodeType === 'number' && obj.nodeType > 0) || // All DOM node types
-          (typeof obj.nodeName === 'string') ||
-          (typeof obj.tagName === 'string')) {
-        return true;
-      }
-      
-      // React Fiber nodes and related objects
-      if (obj._owner !== undefined || obj.stateNode !== undefined) {
-        return true;
-      }
+      // DOM Elements - 통합 함수 사용
+      if (isDOMElement(obj)) return true;
       
       // Functions (though they should be caught earlier)
       if (typeof obj === 'function') {
@@ -314,8 +378,9 @@ export function safeGet<T>(value: T, enableCloning: boolean = true): T {
       }
       
       // Other special objects that might cause cloning issues
-      if (obj instanceof Promise || 
-          (typeof obj.then === 'function' && typeof obj.catch === 'function')) {
+      if (obj instanceof Promise) return true;
+      const objRecord = obj as Record<string, unknown>;
+      if (typeof objRecord.then === 'function' && typeof objRecord.catch === 'function') {
         return true;
       }
       
@@ -329,9 +394,9 @@ export function safeGet<T>(value: T, enableCloning: boolean = true): T {
       logger.trace('Skipping immutability verification for special object', {
         type: typeof value,
         constructor: value?.constructor?.name,
-        nodeType: (value as any)?.nodeType,
-        tagName: (value as any)?.tagName,
-        nodeName: (value as any)?.nodeName,
+        nodeType: (value as Record<string, unknown>)?.nodeType,
+        tagName: (value as Record<string, unknown>)?.tagName,
+        nodeName: (value as Record<string, unknown>)?.nodeName,
         isElement: value instanceof Element,
         isNode: value instanceof Node,
         isHTMLElement: value instanceof HTMLElement
@@ -347,7 +412,7 @@ export function safeGet<T>(value: T, enableCloning: boolean = true): T {
           constructor: value?.constructor?.name,
           isElement: value instanceof Element,
           isNode: value instanceof Node,
-          nodeType: (value as any)?.nodeType,
+          nodeType: (value as Record<string, unknown>)?.nodeType,
           sameReference: value === cloned
         });
       }

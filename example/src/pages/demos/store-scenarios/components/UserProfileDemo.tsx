@@ -4,6 +4,7 @@ import { useActionLoggerWithToast } from '../../../../components/LogMonitor/';
 import { storeActionRegister } from '../actions';
 import { StoreScenarios } from '../stores';
 import type { User } from '../types';
+import { profileComputations } from '../modules/computations';
 
 /**
  * 사용자 프로필 관리 데모 컴포넌트
@@ -316,17 +317,7 @@ export function UserProfileDemo() {
             <div
               className="progress-fill"
               style={{
-                width: `${
-                  user
-                    ? Math.min(
-                        100,
-                        (user.name ? 25 : 0) +
-                          (user.email ? 25 : 0) +
-                          (user.preferences ? 25 : 0) +
-                          (user.lastLogin ? 25 : 0)
-                      )
-                    : 0
-                }%`,
+                width: `${profileComputations.calculateCompleteness(user)}%`,
               }}
             ></div>
           </div>

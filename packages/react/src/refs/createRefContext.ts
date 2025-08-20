@@ -203,8 +203,10 @@ export function createRefContext<T = any>(
     }, [store]);
     
     // 현재 상태 가져오기
-    const currentState = store.getValue();
+    // const currentState = store.getValue();
     
+    // 싱글톤 핸들러를 생성하고 store에만 의존
+    // currentState는 의존성에서 제거하고 필요시 직접 조회
     return useMemo(() => ({
       setRef: (target: any) => {
         try {
@@ -214,7 +216,10 @@ export function createRefContext<T = any>(
           throw error;
         }
       },
-      target: currentState.target,
+      // getter로 변경하여 항상 최신 값을 반환
+      get target() {
+        return store.getValue().target;
+      },
       waitForMount: () => store.waitForMount(),
       withTarget: <Result>(
         operation: RefOperation<any, Result>,
@@ -222,8 +227,11 @@ export function createRefContext<T = any>(
       ): Promise<RefOperationResult<Result>> => {
         return store.withTarget(operation, options);
       },
-      isMounted: currentState.target !== null
-    }), [store, currentState, refNameStr]);
+      // getter로 변경하여 항상 최신 상태를 반환
+      get isMounted() {
+        return store.getValue().target !== null;
+      }
+    }), [store, refNameStr]); // currentState 의존성 제거
   };
   
   // 여러 ref 동시 대기 함수

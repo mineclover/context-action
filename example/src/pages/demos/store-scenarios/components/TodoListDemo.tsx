@@ -5,6 +5,8 @@ import { useActionLoggerWithToast } from '../../../../components/LogMonitor/';
 import { storeActionRegister } from '../actions';
 import { StoreScenarios } from '../stores';
 import type { TodoItem } from '../types';
+import { todoComputations } from '../modules/computations';
+import { loggingModule } from '../modules/logging';
 
 /**
  * 할일 목록 관리 데모 컴포넌트
@@ -91,53 +93,27 @@ export function TodoListDemo() {
 
   const filteredAndSortedTodos = useMemo(() => {
     if (!todos) return [];
-
-    // 필터링
-    let filtered = todos;
-    if (filter === 'active') {
-      filtered = todos.filter((todo) => !todo.completed);
-    } else if (filter === 'completed') {
-      filtered = todos.filter((todo) => todo.completed);
-    }
-
-    // 정렬
-    const sorted = [...filtered].sort((a, b) => {
-      switch (sortBy) {
-        case 'priority': {
-          const priorityOrder = { high: 3, medium: 2, low: 1 };
-          return priorityOrder[b.priority] - priorityOrder[a.priority];
-        }
-        case 'title':
-          return a.title.localeCompare(b.title);
-        default:
-          return (
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-      }
-    });
-
-    logger.logSystem('할일 목록 필터링/정렬', {
-      context: `filter: ${filter}, sortBy: ${sortBy}, total: ${todos.length}, filtered: ${sorted.length}`,
-    });
-
+    
+    const filtered = todoComputations.filterTodos(todos, filter);
+    const sorted = todoComputations.sortTodos(filtered, sortBy);
+    
     return sorted;
-  }, [todos, filter, sortBy, logger]);
+  }, [todos, filter, sortBy]);
+
+  // 로깅을 모듈화된 시스템으로 분리 - 무한 루프 방지
+  useEffect(() => {
+    if (todos && todos.length > 0) {
+      loggingModule.logSystem('할일 목록 필터링/정렬', {
+        filter,
+        sortBy,
+        total: todos.length,
+        filtered: filteredAndSortedTodos.length
+      });
+    }
+  }, [todos?.length, filter, sortBy, filteredAndSortedTodos.length]);
 
   const stats = useMemo(() => {
-    if (!todos) return { total: 0, completed: 0, active: 0, highPriority: 0 };
-
-    const completed = todos.filter((todo) => todo.completed).length;
-    const active = todos.length - completed;
-    const highPriority = todos.filter(
-      (todo) => todo.priority === 'high' && !todo.completed
-    ).length;
-
-    return {
-      total: todos.length,
-      completed,
-      active,
-      highPriority,
-    };
+    return todoComputations.calculateStats(todos || []);
   }, [todos]);
 
   const addTodo = useCallback(() => {
