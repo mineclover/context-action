@@ -1,8 +1,12 @@
 /**
- * @fileoverview Universal Reference Store
+ * @fileoverview Universal Reference Store (Internal API)
  * 
  * DOM 요소, Three.js 객체 등을 위한 확장된 Store 클래스
  * 마운트 대기, 동시성 제어, 자동 cleanup을 포함
+ * 
+ * @internal
+ * @warning This is an internal API. Use `createRefContext()` instead for all ref management.
+ * Direct RefStore usage is only intended for advanced framework development.
  */
 
 import { Store } from '../stores/core/Store';
@@ -21,7 +25,9 @@ import type {
 } from './types';
 
 /**
- * 참조 전용 확장 Store 클래스
+ * 참조 전용 확장 Store 클래스 (Internal API)
+ * 
+ * @internal Use `createRefContext()` instead of directly instantiating RefStore
  * 
  * 기존 Store의 모든 기능을 상속받으며, 추가로 다음 기능을 제공:
  * 1. Promise 기반 마운트 대기
@@ -430,7 +436,10 @@ export class RefStore<T extends RefTarget = RefTarget> extends Store<RefState<T>
 }
 
 /**
- * RefStore 팩토리 함수
+ * RefStore 팩토리 함수 (Internal API)
+ * 
+ * @internal Use `createRefContext()` instead of directly creating RefStore instances
+ * @warning This function is for internal framework use only
  */
 export function createRefStore<T extends RefTarget>(
   config: RefInitConfig<T>

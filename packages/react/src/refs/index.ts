@@ -2,18 +2,17 @@
  * @fileoverview Universal Reference Management System
  * 
  * Context-Action 프레임워크를 위한 범용 참조 관리 시스템
- * 어떤 타입의 객체든 선언적으로 관리할 수 있는 경량화된 솔루션
+ * createRefContext를 통한 선언적 참조 관리 솔루션
  * 
  * @example
  * ```typescript
  * import { createRefContext } from '@context-action/react/refs';
  * 
- * // 범용 참조 시스템 - 모든 타입 지원
+ * // ✅ RECOMMENDED: Use createRefContext for all ref management
  * const MyRefs = createRefContext('MyRefs', {
- *   // 어떤 객체든 관리 가능
- *   canvas: { name: 'canvas', objectType: 'dom' },
- *   gameEngine: { name: 'engine', objectType: 'custom' },
- *   threeScene: { name: 'scene', objectType: 'custom' }
+ *   canvas: { name: 'canvas', autoCleanup: true },
+ *   gameEngine: { name: 'engine', autoCleanup: true },
+ *   threeScene: { name: 'scene', autoCleanup: true }
  * });
  * ```
  */
@@ -28,7 +27,16 @@ export type {
   RefInitConfig
 } from './types';
 
-// 핵심 클래스들
+// 주요 API - createRefContext 사용 권장
+export { 
+  createRefContext
+} from './createRefContext';
+
+export type { 
+  RefContextReturn
+} from './createRefContext';
+
+// 내부 API - 고급 사용자 전용 (일반적으로 필요 없음)
 export { 
   RefStore,
   createRefStore
@@ -41,14 +49,6 @@ export {
 
 export type { QueueStats } from './OperationQueue';
 
-// 심플한 메인 API (권장)
-export { 
-  createRefContext
-} from './createRefContext';
-
-export type { 
-  RefContextReturn
-} from './createRefContext';
 
 // 기본 헬퍼 (범용)
 export { 
