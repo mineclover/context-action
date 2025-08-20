@@ -3,6 +3,83 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.3.0](https://github.com/mineclover/context-action/compare/v0.2.1...v0.3.0) (2025-08-20)
+
+
+### Bug Fixes
+
+* add error parameter to catch blocks in llms-generator commands ([18cff4b](https://github.com/mineclover/context-action/commit/18cff4bd8e2c64a5a9a38dc2f2876714bbd883ed))
+* **build:** resolve llms-generator build issues and dependencies ([44ca184](https://github.com/mineclover/context-action/commit/44ca1847bd9942c7fe13b02d961cc6f8eb0e8509))
+* **ci:** resolve CI/CD dependency installation errors ([675641f](https://github.com/mineclover/context-action/commit/675641f814d63d639cfa375f5e8debe134828762))
+* **ci:** standardize tsdown version across all packages ([714ab1d](https://github.com/mineclover/context-action/commit/714ab1d7f8005096f7abe2f09d8067f500168a3a))
+* comprehensive RefStore DOM element handling improvements ([23844d7](https://github.com/mineclover/context-action/commit/23844d700dcbc737e3c0961c662be72220d4df05))
+* **core,react:** improve code quality and security across packages ([e7baf2f](https://github.com/mineclover/context-action/commit/e7baf2fb8bf49bc5ae0b3f92efbf567fb5d2da09))
+* **dependabot:** resolve schema validation errors and improve configuration ([07e15d5](https://github.com/mineclover/context-action/commit/07e15d5dfa6fec9f503c02a35480faca8bf69dd3))
+* **deps:** update tsdown and resolve build dependency issues ([100008a](https://github.com/mineclover/context-action/commit/100008ae67794750ab4839d3476c300275e464ca))
+* enhance non-cloneable object detection in immutable utils ([0bd7f55](https://github.com/mineclover/context-action/commit/0bd7f5511d8a588970196b000ab33e2dbaa0ff50))
+* **example:** resolve TypeScript and lint errors in example application ([732498d](https://github.com/mineclover/context-action/commit/732498db704403d0f38e55656bb91b8717a8cb6c))
+* improve code quality and resolve TypeScript/lint issues ([0afcba8](https://github.com/mineclover/context-action/commit/0afcba8a8723d45770c7bdb7cc13060d7e80dd62))
+* improve GitHub Actions workflow and disable auto-trigger ([15b0aa6](https://github.com/mineclover/context-action/commit/15b0aa6a7456c268c94cfe864394d0aeefe3e1ea))
+* **llms-generator:** resolve linting issues by adding eslint config and temporarily disabling problematic checks ([1d6cead](https://github.com/mineclover/context-action/commit/1d6cead48821f6cc26a8e1cd119b4924dab978c4))
+* **llms-generator:** resolve major TypeScript type compatibility issues ([2fb88dd](https://github.com/mineclover/context-action/commit/2fb88ddb5013c51b66c592a25a3ffe934970d12a))
+* **llms-generator:** update legacy script paths after reorganization ([774e9ef](https://github.com/mineclover/context-action/commit/774e9ef15c55502911ddd4812ef3c9479d55746b))
+* **mouse-events:** complete real-time activity status updates in Context Store Pattern ([bb4f3fa](https://github.com/mineclover/context-action/commit/bb4f3fae8b21c049d774abcc5544b9b5110f268c))
+* remove unused _error parameters in LLMS generator catch blocks ([bb7c1f3](https://github.com/mineclover/context-action/commit/bb7c1f3589512acf8f9a41d8a7d3f1a454dd3aea))
+* resolve all ESLint warnings in typedoc-vitepress-sync ([5a61e08](https://github.com/mineclover/context-action/commit/5a61e08b9adf5f60ed81abf2e1f98a604a1089c3))
+* resolve all TypeScript type compatibility issues in LLMS generator ([d523329](https://github.com/mineclover/context-action/commit/d523329ee0e6f3e5599252a63b960996f9e5f061))
+* resolve ESLint configuration issues in typedoc-vitepress-sync ([b245f26](https://github.com/mineclover/context-action/commit/b245f2639473c763b54e4d00cd3f4694fea5a00e))
+* resolve event object detection warnings for RefStore ([de9a3c2](https://github.com/mineclover/context-action/commit/de9a3c2aec135ce0bb562ee9c7d367cbe201b4e4))
+* resolve Jest hanging issue through comprehensive resource cleanup ([1734278](https://github.com/mineclover/context-action/commit/1734278063fdfb7bf4993bd78d3232d8814477cd))
+* resolve lint errors and improve ActionRegister test reliability ([c0c0904](https://github.com/mineclover/context-action/commit/c0c09041e0c8398c681e01f6eb9a4c1772013c26))
+* resolve lint errors and test failures ([01521a7](https://github.com/mineclover/context-action/commit/01521a7531832ce653dc1d52bc4c4bf3f09b9975))
+* resolve RefStore circular reference issues with HTML elements ([42af794](https://github.com/mineclover/context-action/commit/42af79466439f52414e2e0500704026e61af04e1))
+* resolve remaining ESLint errors in LLMS generator ([1a63d29](https://github.com/mineclover/context-action/commit/1a63d299923c83361eab6834cdbd80540ed17d40))
+* resolve TypeScript type checking issues in CI ([b287784](https://github.com/mineclover/context-action/commit/b287784b4679b974c3ad331d6849c2af9da82c0a))
+* **scripts:** remove non-existent jotai package from bundle size check ([aee42b9](https://github.com/mineclover/context-action/commit/aee42b959b34311c87ad17ed674f0eaacd1ebc1f))
+* sync-docs 명령 경로 해결 로직 개선 ([5e7aab3](https://github.com/mineclover/context-action/commit/5e7aab3f4d438683e5582948e2bf84c37f0dfa4c))
+* **ts:** resolve TypeScript compilation errors across packages ([6f583d1](https://github.com/mineclover/context-action/commit/6f583d1b4d4c2bc9f077c68b3db432d0399fb846))
+* **typedoc-vitepress-sync:** add missing ESLint config and TypeScript setup ([66b7f6a](https://github.com/mineclover/context-action/commit/66b7f6a2329635c1a87a0f441fe0aac09659d06d))
+* **typedoc-vitepress-sync:** add publishConfig for public npm publication ([97c3d3e](https://github.com/mineclover/context-action/commit/97c3d3efb558a8d8811d9d48ebe7bcaba3d27f5c))
+* **typedoc-vitepress-sync:** temporarily skip tests in prepublishOnly for package publication ([0db4406](https://github.com/mineclover/context-action/commit/0db4406b9dc47ad25bd88e7a163958a013f2e049))
+* update remaining useRef reference to useRefHandler in ChatDemo.tsx ([ee9ab59](https://github.com/mineclover/context-action/commit/ee9ab59ec1e80715ad1fc5cf061ba8b743bbd610))
+* update remaining useRef references to useRefHandler in tests and docs ([39f8e21](https://github.com/mineclover/context-action/commit/39f8e218023c0e8d3be91929cf362ffb5414e313))
+
+
+### Features
+
+* Action Only API 문서 업데이트 ([254d046](https://github.com/mineclover/context-action/commit/254d046f9a4551104794f0700cf215f9eb8085ca))
+* Add 200-char summary for action handlers guide ([ca85836](https://github.com/mineclover/context-action/commit/ca85836e97bfdf1c2e0646041ef9918de345c5ab))
+* add centralized configuration for typedoc-vitepress-sync ([417b20f](https://github.com/mineclover/context-action/commit/417b20f689e884dd917f12563c1c243fd7cb21ef))
+* add enhanced API documentation sync script with smart caching ([0a5b368](https://github.com/mineclover/context-action/commit/0a5b3684ae41c6057d5b9f638d81b989785d8e07))
+* add learning time info to getting started guide ([bbce03c](https://github.com/mineclover/context-action/commit/bbce03cbf2ed4862f454cfafae05913a228ede67))
+* complete bidirectional document synchronization with YAML frontmatter ([21e080d](https://github.com/mineclover/context-action/commit/21e080dd20808b3116015a1077cfbccf6e9b9913))
+* complete core LLMS generation scenario test ([2fedf3d](https://github.com/mineclover/context-action/commit/2fedf3d252b195e8eeab75365016c51a50fb7b01))
+* completely remove orphaned test files and legacy code ([00f0806](https://github.com/mineclover/context-action/commit/00f080652dcb8298c0615d50e5b2e364e5474b73))
+* enhance createRefContext with declarative ref management ([58a56e2](https://github.com/mineclover/context-action/commit/58a56e25ab48fc85f59135042c1975bef1bbbc10))
+* enhance llms-generator testing and remove legacy scripts ([ed33d84](https://github.com/mineclover/context-action/commit/ed33d84280b18d6774f8303dc112235d9ba75ae6))
+* enhance type safety and fix test implementations ([ad374a7](https://github.com/mineclover/context-action/commit/ad374a71ff98b78e4ed14d524d6c4ecc8f6ab99e))
+* implement comprehensive clean LLMS generation with multi-pattern support ([f84d81d](https://github.com/mineclover/context-action/commit/f84d81dfef856515e24f38d820ff7e63345093f4))
+* implement comprehensive YAML frontmatter management system with Husky integration ([95acbaa](https://github.com/mineclover/context-action/commit/95acbaa409e900ecd5f5b8ac12c42a35b859d672))
+* implement RefContext mouse events with zero-render architecture ([274c510](https://github.com/mineclover/context-action/commit/274c5109ccdae1883a016cd17adeda55cb5ac537))
+* implement unified init command for llms-generator project initialization ([de1a962](https://github.com/mineclover/context-action/commit/de1a962f4342c8926f055dad0948937a0b3144e5))
+* implement YAML frontmatter system and fix sync-docs workflow ([c244c99](https://github.com/mineclover/context-action/commit/c244c99a097b508fd7e4a3e1fd8bace8698a3172))
+* initialize LLMS data structure and create action handlers templates ([24c905f](https://github.com/mineclover/context-action/commit/24c905faa673b5064e23de5380ebedb157e2da2c))
+* **llms-generator:** add CategoryMinimumGenerator library with enhanced features ([0a8e2c3](https://github.com/mineclover/context-action/commit/0a8e2c35abd358eb2470cf0219fcf8ce396d4258))
+* **llms-generator:** Git 커밋 트리거 기반 양방향 문서 동기화 시스템 구현 ([0a5f270](https://github.com/mineclover/context-action/commit/0a5f2706dd0c124d48bbefb5cfe5ef2550abbc25))
+* **llms-generator:** implement YAML frontmatter summary generation with clean architecture ([5f9e38e](https://github.com/mineclover/context-action/commit/5f9e38eca2b0e8c78a3c66130f22244bce0e768a))
+* **llms-generator:** 테스트 완성도 및 타입 안정성 향상 ([bd09e41](https://github.com/mineclover/context-action/commit/bd09e41a1b483483daa43929a046a51aaf74aee8))
+* **llms-generator:** 포괄적 시스템 개선 및 아키텍처 고도화 ([2d4070f](https://github.com/mineclover/context-action/commit/2d4070f43c95e5cf4304ed01f2db9629168282d4))
+* massive cleanup - remove 95% of unused code while preserving functionality ([f151a46](https://github.com/mineclover/context-action/commit/f151a46641ae9cc64ea568efd9d74869fc1f850d))
+* optimize CLI from 2000 lines to 200 lines with core functionality ([dd0f1c8](https://github.com/mineclover/context-action/commit/dd0f1c88236628c8010e2df1aa0ed65981192b45))
+* optimize LLMS generator by removing legacy code and improving architecture ([08dc3cd](https://github.com/mineclover/context-action/commit/08dc3cd057112ec42167183e1d9b949e54f7bb3a))
+* remove deprecated action handler utilities ([2861d61](https://github.com/mineclover/context-action/commit/2861d61b4b5d930e9e7f5277983455dc296dc859))
+* **security:** major security and tooling updates ([f0d794e](https://github.com/mineclover/context-action/commit/f0d794eb007d58a301c01d0b4b36f07865da2434))
+* **typedoc-vitepress-sync:** implement enhanced TypeDoc to VitePress sync library ([17bdac7](https://github.com/mineclover/context-action/commit/17bdac7e035fdc073a092d83442c9a290b1640f0))
+
+
+
+
+
 ## [0.2.3](https://github.com/mineclover/context-action/compare/v0.2.1...v0.2.3) (2025-08-19)
 
 
