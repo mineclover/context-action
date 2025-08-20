@@ -3,6 +3,34 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.3.0](https://github.com/mineclover/context-action/compare/v0.2.1...v0.3.0) (2025-08-20)
+
+
+### Bug Fixes
+
+* **ci:** resolve CI/CD dependency installation errors ([675641f](https://github.com/mineclover/context-action/commit/675641f814d63d639cfa375f5e8debe134828762))
+* **ci:** standardize tsdown version across all packages ([714ab1d](https://github.com/mineclover/context-action/commit/714ab1d7f8005096f7abe2f09d8067f500168a3a))
+* comprehensive RefStore DOM element handling improvements ([23844d7](https://github.com/mineclover/context-action/commit/23844d700dcbc737e3c0961c662be72220d4df05))
+* **core,react:** improve code quality and security across packages ([e7baf2f](https://github.com/mineclover/context-action/commit/e7baf2fb8bf49bc5ae0b3f92efbf567fb5d2da09))
+* enhance non-cloneable object detection in immutable utils ([0bd7f55](https://github.com/mineclover/context-action/commit/0bd7f5511d8a588970196b000ab33e2dbaa0ff50))
+* improve code quality and resolve TypeScript/lint issues ([0afcba8](https://github.com/mineclover/context-action/commit/0afcba8a8723d45770c7bdb7cc13060d7e80dd62))
+* resolve event object detection warnings for RefStore ([de9a3c2](https://github.com/mineclover/context-action/commit/de9a3c2aec135ce0bb562ee9c7d367cbe201b4e4))
+* resolve RefStore circular reference issues with HTML elements ([42af794](https://github.com/mineclover/context-action/commit/42af79466439f52414e2e0500704026e61af04e1))
+* update remaining useRef references to useRefHandler in tests and docs ([39f8e21](https://github.com/mineclover/context-action/commit/39f8e218023c0e8d3be91929cf362ffb5414e313))
+
+
+### Features
+
+* enhance createRefContext with declarative ref management ([58a56e2](https://github.com/mineclover/context-action/commit/58a56e25ab48fc85f59135042c1975bef1bbbc10))
+* enhance type safety and fix test implementations ([ad374a7](https://github.com/mineclover/context-action/commit/ad374a71ff98b78e4ed14d524d6c4ecc8f6ab99e))
+* implement RefContext mouse events with zero-render architecture ([274c510](https://github.com/mineclover/context-action/commit/274c5109ccdae1883a016cd17adeda55cb5ac537))
+* remove deprecated action handler utilities ([2861d61](https://github.com/mineclover/context-action/commit/2861d61b4b5d930e9e7f5277983455dc296dc859))
+* **security:** major security and tooling updates ([f0d794e](https://github.com/mineclover/context-action/commit/f0d794eb007d58a301c01d0b4b36f07865da2434))
+
+
+
+
+
 ## [0.2.3](https://github.com/mineclover/context-action/compare/v0.2.1...v0.2.3) (2025-08-19)
 
 
