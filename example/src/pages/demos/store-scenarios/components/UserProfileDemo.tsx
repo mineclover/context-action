@@ -1,9 +1,33 @@
-import { useStoreValue } from '@context-action/react';
-import { useCallback, useEffect, useState } from 'react';
+import { useStoreValue, createDeclarativeStorePattern, createActionContext } from '@context-action/react';
+import { useCallback, useEffect } from 'react';
 import { useActionLoggerWithToast } from '../../../../components/LogMonitor/';
 import { storeActionRegister } from '../actions';
 import { StoreScenarios } from '../stores';
 import type { User } from '../types';
+
+// UI State Management with Context-Action
+const {
+  Provider: UserUIStoreProvider,
+  useStore: useUserUIStore
+} = createDeclarativeStorePattern('UserUI', {
+  isEditing: { initialValue: false },
+  editForm: { initialValue: null as User | null }
+});
+
+// UI Actions for user profile interactions
+interface UserUIActions {
+  setIsEditing: { editing: boolean };
+  setEditForm: { form: User | null };
+  updateEditFormField: { field: string; value: any };
+  updateEditFormPreference: { field: keyof User['preferences']; value: any };
+  resetEditForm: void;
+}
+
+const {
+  Provider: UserUIActionProvider,
+  useActionDispatch: useUserUIAction,
+  useActionHandler: useUserUIActionHandler
+} = createActionContext<UserUIActions>('UserUI');
 import { profileComputations } from '../modules/computations';
 
 /**
@@ -20,11 +44,18 @@ import { profileComputations } from '../modules/computations';
  * </StoreScenarios.Provider>
  * @since 2.0.0
  */
-export function UserProfileDemo() {
+function UserProfileDemoInner() {
   const userStore = StoreScenarios.useStore('user'); // 자동 타입 추론: Store<User>
   const user = useStoreValue(userStore);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState(user);
+  
+  // Context-Action UI state instead of React useState
+  const isEditingStore = useUserUIStore('isEditing');
+  const editFormStore = useUserUIStore('editForm');
+  
+  const isEditing = useStoreValue(isEditingStore);
+  const editForm = useStoreValue(editFormStore);
+  
+  const uiDispatch = useUserUIAction();
   const logger = useActionLoggerWithToast();
 
   // 액션 핸들러들을 useCallback으로 메모이제이션
@@ -66,11 +97,42 @@ export function UserProfileDemo() {
     return () => {
       unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
-  }, [updateUserHandler, updateUserThemeHandler, toggleNotificationsHandler]); // 메모이제이션된 핸들러들을 의존성에 추가
+  }, [updateUserHandler, updateUserThemeHandler, toggleNotificationsHandler]);
+  
+  // UI Action handlers for form interactions
+  useUserUIActionHandler('setIsEditing', async ({ editing }) => {
+    isEditingStore.setValue(editing);
+  });
+  
+  useUserUIActionHandler('setEditForm', async ({ form }) => {
+    editFormStore.setValue(form);
+  });
+  
+  useUserUIActionHandler('updateEditFormField', async ({ field, value }) => {
+    const currentForm = editFormStore.getValue();
+    if (currentForm) {
+      editFormStore.setValue({ ...currentForm, [field]: value });
+    }
+  });
+  
+  useUserUIActionHandler('updateEditFormPreference', async ({ field, value }) => {
+    const currentForm = editFormStore.getValue();
+    if (currentForm) {
+      editFormStore.setValue({
+        ...currentForm,
+        preferences: { ...currentForm.preferences, [field]: value }
+      });
+    }
+  });
+  
+  useUserUIActionHandler('resetEditForm', async () => {
+    const currentUser = userStore.getValue();
+    editFormStore.setValue(currentUser);
+  });
 
   useEffect(() => {
-    setEditForm(user);
-  }, [user]);
+    uiDispatch('setEditForm', { form: user });
+  }, [user, uiDispatch]);
 
   const handleSave = useCallback(() => {
     if (editForm) {
@@ -86,7 +148,7 @@ export function UserProfileDemo() {
         context: `userId: ${editForm.id}`,
       });
     }
-    setIsEditing(false);
+    uiDispatch('setIsEditing', { editing: false });
   }, [editForm, user, logger]);
 
   const handleCancel = useCallback(() => {
@@ -101,8 +163,8 @@ export function UserProfileDemo() {
         },
       }
     );
-    setEditForm(user);
-    setIsEditing(false);
+    uiDispatch('resetEditForm');
+    uiDispatch('setIsEditing', { editing: false });
   }, [user, editForm, logger]);
 
   const toggleTheme = useCallback(() => {
@@ -214,7 +276,7 @@ export function UserProfileDemo() {
             <button
               onClick={() => {
                 logger.logAction('startProfileEdit', { userId: user?.id });
-                setIsEditing(true);
+                uiDispatch('setIsEditing', { editing: true });
               }}
               className="btn btn-primary"
             >
@@ -247,7 +309,7 @@ export function UserProfileDemo() {
                   field: 'name',
                   value: newValue,
                 });
-                editForm && setEditForm({ ...editForm, name: newValue });
+                uiDispatch('updateEditFormField', { field: 'name', value: newValue });
               }}
               className="text-input"
               placeholder="Enter your full name"
@@ -265,7 +327,7 @@ export function UserProfileDemo() {
                   field: 'email',
                   value: newValue,
                 });
-                editForm && setEditForm({ ...editForm, email: newValue });
+                uiDispatch('updateEditFormField', { field: 'email', value: newValue });
               }}
               className="text-input"
               placeholder="Enter your email address"
@@ -282,14 +344,7 @@ export function UserProfileDemo() {
                   field: 'language',
                   value: newValue,
                 });
-                editForm &&
-                  setEditForm({
-                    ...editForm,
-                    preferences: {
-                      ...editForm.preferences,
-                      language: newValue,
-                    },
-                  });
+                uiDispatch('updateEditFormPreference', { field: 'language', value: newValue });
               }}
               className="text-input"
             >
@@ -324,5 +379,16 @@ export function UserProfileDemo() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Main component with providers
+export function UserProfileDemo() {
+  return (
+    <UserUIActionProvider>
+      <UserUIStoreProvider>
+        <UserProfileDemoInner />
+      </UserUIStoreProvider>
+    </UserUIActionProvider>
   );
 }
