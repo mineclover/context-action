@@ -185,6 +185,33 @@ function Component() {
                 </div>
               </div>
             </a>
+
+            {/* useWaitForRefs Performance Demo */}
+            <a 
+              href="/refs/waitforrefs-performance"
+              className="group bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 hover:border-orange-300"
+            >
+              <div className="flex items-start gap-4">
+                <div className="text-3xl group-hover:scale-110 transition-transform">⚡</div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg mb-2 text-gray-800 group-hover:text-orange-600">
+                    useWaitForRefs Performance Demo
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-3">
+                    useWaitForRefs의 성능 최적화 동작을 검증합니다. 이미 존재하는 target은 즉시 반환하고, 
+                    존재하지 않는 target은 실제 마운트까지 대기하는 것을 실시간으로 확인할 수 있습니다.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded">Performance</span>
+                    <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded">Async</span>
+                    <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded">Optimization</span>
+                  </div>
+                  <div className="mt-3 text-orange-500 text-sm font-medium group-hover:underline">
+                    성능 테스트하기 →
+                  </div>
+                </div>
+              </div>
+            </a>
           </div>
         </div>
 
