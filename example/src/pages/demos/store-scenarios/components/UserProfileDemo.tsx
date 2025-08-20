@@ -26,41 +26,46 @@ export function UserProfileDemo() {
   const [editForm, setEditForm] = useState(user);
   const logger = useActionLoggerWithToast();
 
+  // 액션 핸들러들을 useCallback으로 메모이제이션
+  const updateUserHandler = useCallback(
+    ({ user }: { user: User }) => {
+      userStore.setValue(user);
+    },
+    [userStore]
+  );
+
+  const updateUserThemeHandler = useCallback(
+    ({ theme }: { theme: User['preferences']['theme'] }) => {
+      userStore.update((prev) => ({
+        ...prev,
+        preferences: { ...prev.preferences, theme },
+      }));
+    },
+    [userStore]
+  );
+
+  const toggleNotificationsHandler = useCallback(
+    ({ enabled }: { enabled: boolean }) => {
+      userStore.update((prev) => ({
+        ...prev,
+        preferences: { ...prev.preferences, notifications: enabled },
+      }));
+    },
+    [userStore]
+  );
+
   // 필요한 액션 핸들러들을 등록
   useEffect(() => {
     const unsubscribers = [
-      storeActionRegister.register('updateUser', ({ user }, controller) => {
-        userStore.setValue(user);
-        
-      }),
-
-      storeActionRegister.register(
-        'updateUserTheme',
-        ({ theme }, controller) => {
-          userStore.update((prev) => ({
-            ...prev,
-            preferences: { ...prev.preferences, theme },
-          }));
-          
-        }
-      ),
-
-      storeActionRegister.register(
-        'toggleNotifications',
-        ({ enabled }, controller) => {
-          userStore.update((prev) => ({
-            ...prev,
-            preferences: { ...prev.preferences, notifications: enabled },
-          }));
-          
-        }
-      ),
+      storeActionRegister.register('updateUser', updateUserHandler),
+      storeActionRegister.register('updateUserTheme', updateUserThemeHandler),
+      storeActionRegister.register('toggleNotifications', toggleNotificationsHandler),
     ];
 
     return () => {
       unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
-  }, []); // 의존성 배열에서 userStore 제거 - 무한 루프 방지
+  }, [updateUserHandler, updateUserThemeHandler, toggleNotificationsHandler]); // 메모이제이션된 핸들러들을 의존성에 추가
 
   useEffect(() => {
     setEditForm(user);

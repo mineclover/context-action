@@ -30,56 +30,64 @@ export function TodoListDemo() {
   );
   const logger = useActionLoggerWithToast();
 
+  // 액션 핸들러들을 useCallback으로 메모이제이션
+  const addTodoHandler = useCallback(
+    ({ title, priority }: { title: string; priority: TodoItem['priority'] }) => {
+      const newTodo: TodoItem = {
+        id: `todo-${Date.now()}`,
+        title,
+        completed: false,
+        priority,
+        createdAt: new Date(),
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7일 후
+      };
+      todosStore.update((prev) => [...prev, newTodo]);
+    },
+    [todosStore]
+  );
+
+  const toggleTodoHandler = useCallback(
+    ({ todoId }: { todoId: string }) => {
+      todosStore.update((prev) =>
+        prev.map((todo) =>
+          todo.id === todoId ? { ...todo, completed: !todo.completed } : todo
+        )
+      );
+    },
+    [todosStore]
+  );
+
+  const deleteTodoHandler = useCallback(
+    ({ todoId }: { todoId: string }) => {
+      todosStore.update((prev) => prev.filter((todo) => todo.id !== todoId));
+    },
+    [todosStore]
+  );
+
+  const updateTodoPriorityHandler = useCallback(
+    ({ todoId, priority }: { todoId: string; priority: TodoItem['priority'] }) => {
+      todosStore.update((prev) =>
+        prev.map((todo) =>
+          todo.id === todoId ? { ...todo, priority } : todo
+        )
+      );
+    },
+    [todosStore]
+  );
+
   // 필요한 액션 핸들러들을 등록
   useEffect(() => {
     const unsubscribers = [
-      storeActionRegister.register(
-        'addTodo',
-        ({ title, priority }, controller) => {
-          const newTodo: TodoItem = {
-            id: `todo-${Date.now()}`,
-            title,
-            completed: false,
-            priority,
-            createdAt: new Date(),
-            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7일 후
-          };
-          todosStore.update((prev) => [...prev, newTodo]);
-          
-        }
-      ),
-
-      storeActionRegister.register('toggleTodo', ({ todoId }, controller) => {
-        todosStore.update((prev) =>
-          prev.map((todo) =>
-            todo.id === todoId ? { ...todo, completed: !todo.completed } : todo
-          )
-        );
-        
-      }),
-
-      storeActionRegister.register('deleteTodo', ({ todoId }, controller) => {
-        todosStore.update((prev) => prev.filter((todo) => todo.id !== todoId));
-        
-      }),
-
-      storeActionRegister.register(
-        'updateTodoPriority',
-        ({ todoId, priority }, controller) => {
-          todosStore.update((prev) =>
-            prev.map((todo) =>
-              todo.id === todoId ? { ...todo, priority } : todo
-            )
-          );
-          
-        }
-      ),
+      storeActionRegister.register('addTodo', addTodoHandler),
+      storeActionRegister.register('toggleTodo', toggleTodoHandler),
+      storeActionRegister.register('deleteTodo', deleteTodoHandler),
+      storeActionRegister.register('updateTodoPriority', updateTodoPriorityHandler),
     ];
 
     return () => {
       unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
-  }, []); // 의존성 배열에서 todosStore 제거 - 무한 루프 방지
+  }, [addTodoHandler, toggleTodoHandler, deleteTodoHandler, updateTodoPriorityHandler]); // 메모이제이션된 핸들러들을 의존성에 추가
 
   const filteredAndSortedTodos = useMemo(() => {
     if (!todos) return [];

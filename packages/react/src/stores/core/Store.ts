@@ -65,9 +65,9 @@ export class Store<T = any> implements IStore<T> {
   // Subscriber list - Set for duplicate prevention and O(1) deletion
   private listeners = new Set<Listener>();
   // Actual state value - Single Source of Truth
-  private _value: T;
+  protected _value: T;
   // Immutable snapshot - Compatible with React's useSyncExternalStore
-  private _snapshot: Snapshot<T>;
+  protected _snapshot: Snapshot<T>;
 
   // State for concurrency protection
   private isUpdating = false;
@@ -151,6 +151,52 @@ export class Store<T = any> implements IStore<T> {
    * 성능 강화: 다층 비교 시스템으로 정확한 변경 감지 및 렌더링 최적화
    */
   setValue(value: T): void {
+    // Debug logging to identify event objects being stored (but exclude RefState objects)
+    if (value && typeof value === 'object' && value !== null) {
+      // Check if this is a RefState object (which legitimately has target property for DOM elements)
+      const isRefState = (
+        (value as any).target !== undefined &&
+        (value as any).isReady !== undefined &&
+        (value as any).isMounted !== undefined &&
+        (value as any).mountPromise !== undefined
+      );
+      
+      if (!isRefState) {
+        const hasEventTarget = (value as any).target !== undefined;
+        const hasPreventDefault = typeof (value as any).preventDefault === 'function';
+        const isEvent = value instanceof Event;
+        
+        if (hasEventTarget || hasPreventDefault || isEvent) {
+          console.error(
+            '[Context-Action] ⚠️ Event object detected in Store.setValue!',
+            '\nStore name:', this.name,
+            '\nValue type:', typeof value,
+            '\nConstructor:', value?.constructor?.name,
+            '\nIs Event:', isEvent,
+            '\nHas target property:', hasEventTarget,
+            '\nHas preventDefault:', hasPreventDefault,
+            '\nStack trace:', new Error().stack?.split('\n').slice(1, 10).join('\n')
+          );
+          
+          // Log problematic properties
+          if (value && typeof value === 'object') {
+            const problematicKeys = [];
+            for (const key in value) {
+              if (value.hasOwnProperty(key)) {
+                const prop = (value as any)[key];
+                if (prop instanceof Element || prop instanceof Event || (prop && typeof prop === 'object' && prop.target)) {
+                  problematicKeys.push(key);
+                }
+              }
+            }
+            if (problematicKeys.length > 0) {
+              console.error('[Context-Action] Event object properties:', problematicKeys);
+            }
+          }
+        }
+      }
+    }
+    
     const options = getGlobalImmutabilityOptions();
     const safeValue = safeSet(value, options.enableCloning);
     
@@ -189,6 +235,37 @@ export class Store<T = any> implements IStore<T> {
       const safeCurrentValue = performantSafeGet(this._value, options.enableCloning);
       
       const updatedValue = updater(safeCurrentValue);
+      
+      // Debug logging for event objects in update method (but exclude RefState objects)
+      if (updatedValue && typeof updatedValue === 'object' && updatedValue !== null) {
+        // Check if this is a RefState object (which legitimately has target property for DOM elements)
+        const isRefState = (
+          (updatedValue as any).target !== undefined &&
+          (updatedValue as any).isReady !== undefined &&
+          (updatedValue as any).isMounted !== undefined &&
+          (updatedValue as any).mountPromise !== undefined
+        );
+        
+        if (!isRefState) {
+          const hasEventTarget = (updatedValue as any).target !== undefined;
+          const hasPreventDefault = typeof (updatedValue as any).preventDefault === 'function';
+          const isEvent = updatedValue instanceof Event;
+          
+          if (hasEventTarget || hasPreventDefault || isEvent) {
+            console.error(
+              '[Context-Action] ⚠️ Event object detected in Store.update result!',
+              '\nStore name:', this.name,
+              '\nUpdated value type:', typeof updatedValue,
+              '\nConstructor:', updatedValue?.constructor?.name,
+              '\nIs Event:', isEvent,
+              '\nHas target property:', hasEventTarget,
+              '\nHas preventDefault:', hasPreventDefault,
+              '\nStack trace:', new Error().stack?.split('\n').slice(1, 10).join('\n')
+            );
+          }
+        }
+      }
+      
       this.setValue(updatedValue);
     } finally {
       this.isUpdating = false;
@@ -286,9 +363,9 @@ export class Store<T = any> implements IStore<T> {
    * @param oldValue - 이전 값
    * @param newValue - 새로운 값
    * @returns true if values are different (change detected), false if same
-   * @private
+   * @protected
    */
-  private _compareValues(oldValue: T, newValue: T): boolean {
+  protected _compareValues(oldValue: T, newValue: T): boolean {
     let result: boolean;
 
     try {
@@ -319,7 +396,7 @@ export class Store<T = any> implements IStore<T> {
     return result;
   }
 
-  private _createSnapshot(): Snapshot<T> {
+  protected _createSnapshot(): Snapshot<T> {
     const options = getGlobalImmutabilityOptions();
     const clonedValue = safeGet(this._value, options.enableCloning);
     
@@ -348,7 +425,7 @@ export class Store<T = any> implements IStore<T> {
   /**
    * 듀얼 모드 알림 스케줄링
    */
-  private _scheduleNotification(): void {
+  protected _scheduleNotification(): void {
     if (this.notificationMode === 'immediate') {
       // 즉시 모드: 동기적으로 모든 리스너에게 알림
       this._notifyListeners();

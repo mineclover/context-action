@@ -6,11 +6,14 @@ import { useActionLoggerWithToast } from '../../../../components/LogMonitor/';
 import { storeActionRegister } from '../actions';
 import { StoreScenarios } from '../stores';
 import type { ChatMessage } from '../types';
+import { useAutoScroll } from '../hooks/useAutoScroll';
+import '../styles/chat-scroll.css';
 
 const CHAT_USERS = ['김개발', '이디자인', '박매니저', '최기획'];
 
 // Chat ref context 정의 - RefTarget 제약조건 충족
 interface ChatRefs {
+  messagesContainer: HTMLDivElement;
   messagesEnd: HTMLDivElement;
   readonly [key: string]: any;
 }
@@ -38,61 +41,61 @@ function ChatComponent() {
   const [currentUser, setCurrentUser] = useState('김개발');
   const [messageType, setMessageType] = useState<ChatMessage['type']>('text');
   const [isTyping, setIsTyping] = useState(false);
+  
+  // Ref 핸들러들 - 명확히 분리
+  const messagesContainerRef = ChatRefsContext.useRefHandler('messagesContainer');
   const messagesEndRef = ChatRefsContext.useRefHandler('messagesEnd');
+  
+  // 자동 스크롤 관리 - 사이드 이펙트 없는 분리된 로직
+  const { 
+    isUserScrolling, 
+    shouldAutoScroll, 
+    forceScrollToBottom,
+    enableAutoScroll
+  } = useAutoScroll(messagesContainerRef, messages ?? []);
+  
   const logger = useActionLoggerWithToast();
 
-  // 필요한 액션 핸들러들을 등록
+  // 액션 핸들러들을 useCallback으로 메모이제이션
+  const sendMessageHandler = useCallback(
+    ({ message, sender, type }: { message: string; sender: string; type: ChatMessage['type'] }) => {
+      const newMessage: ChatMessage = {
+        id: `msg-${Date.now()}`,
+        sender,
+        message,
+        timestamp: new Date(),
+        type,
+      };
+      messagesStore.update((prev) => [...prev, newMessage]);
+    },
+    [messagesStore]
+  );
+
+  const deleteMessageHandler = useCallback(
+    ({ messageId }: { messageId: string }) => {
+      messagesStore.update((prev) =>
+        prev.filter((msg) => msg.id !== messageId)
+      );
+    },
+    [messagesStore]
+  );
+
+  const clearChatHandler = useCallback(() => {
+    messagesStore.setValue([]);
+  }, [messagesStore]);
+
+  // 필요한 액션 핸들러들을 등록 - 컴포넌트가 마운트될 때 한 번만 실행
   useEffect(() => {
     const unsubscribers = [
-      storeActionRegister.register(
-        'sendMessage',
-        ({ message, sender, type }, controller) => {
-          const newMessage: ChatMessage = {
-            id: `msg-${Date.now()}`,
-            sender,
-            message,
-            timestamp: new Date(),
-            type,
-          };
-          messagesStore.update((prev) => [...prev, newMessage]);
-          
-        }
-      ),
-
-      storeActionRegister.register(
-        'deleteMessage',
-        ({ messageId }, controller) => {
-          messagesStore.update((prev) =>
-            prev.filter((msg) => msg.id !== messageId)
-          );
-          
-        }
-      ),
-
-      storeActionRegister.register('clearChat', (_, controller) => {
-        messagesStore.setValue([]);
-        
-      }),
+      storeActionRegister.register('sendMessage', sendMessageHandler),
+      storeActionRegister.register('deleteMessage', deleteMessageHandler),
+      storeActionRegister.register('clearChat', clearChatHandler),
     ];
 
     return () => {
       unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
-  }, []); // 의존성 배열에서 messagesStore 제거 - 무한 루프 방지
-
-  // createRefContext를 사용한 자동 스크롤
-  const scrollToBottom = useCallback(async () => {
-    try {
-      const element = await messagesEndRef.waitForMount();
-      element.scrollIntoView({ behavior: 'smooth' });
-    } catch (error) {
-      console.error('자동 스크롤 실패:', error);
-    }
-  }, [messagesEndRef]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
+  }, [sendMessageHandler, deleteMessageHandler, clearChatHandler]); // 메모이제이션된 핸들러들을 의존성에 추가
 
   // 타이핑 시뮬레이션
   const simulateTyping = useCallback(() => {
@@ -219,12 +222,12 @@ function ChatComponent() {
         type: 'text',
       });
       
-      // 빠른 메시지 전송 후 즉시 스크롤
-      setTimeout(async () => {
-        await scrollToBottom();
+      // 빠른 메시지 전송 후 강제 스크롤 (사용자 의도)
+      setTimeout(() => {
+        forceScrollToBottom();
       }, 100);
     },
-    [currentUser, logger, scrollToBottom]
+    [currentUser, logger, forceScrollToBottom]
   );
 
   return (
@@ -251,6 +254,28 @@ function ChatComponent() {
           <span className="message-count">
             메시지 {messages?.length ?? 0}개
           </span>
+          
+          {/* 스크롤 상태 표시 */}
+          <div className="scroll-status">
+            {isUserScrolling && (
+              <span className="scroll-indicator user-scroll" title="사용자가 스크롤 중">
+                📜 수동 스크롤
+              </span>
+            )}
+            {!shouldAutoScroll && !isUserScrolling && (
+              <button
+                onClick={() => {
+                  enableAutoScroll();
+                  forceScrollToBottom();
+                }}
+                className="btn btn-small btn-secondary"
+                title="자동 스크롤 재활성화"
+              >
+                ⬇️ 최신으로
+              </button>
+            )}
+          </div>
+          
           {(messages?.length ?? 0) > 0 && (
             <button
               onClick={clearChat}
@@ -285,7 +310,10 @@ function ChatComponent() {
       </div>
 
       {/* 채팅 메시지 영역 */}
-      <div className="chat-messages">
+      <div 
+        ref={messagesContainerRef.setRef} 
+        className={`chat-messages ${isUserScrolling ? 'user-scrolling' : shouldAutoScroll ? 'auto-scrolling' : ''}`}
+      >
         {messages?.length === 0 ? (
           <div className="chat-empty">
             <div className="empty-icon">💬</div>
@@ -411,7 +439,7 @@ function ChatComponent() {
                 });
               }
             }}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyPress}
             placeholder={
               messageType === 'text'
                 ? '메시지를 입력하세요... (Enter로 전송)'

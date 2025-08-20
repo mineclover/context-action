@@ -27,60 +27,62 @@ export function ShoppingCartDemo() {
   const logger = useActionLoggerWithToast();
 
   // 필요한 액션 핸들러들을 등록
+  // 액션 핸들러들을 useCallback으로 메모이제이션
+  const addToCartHandler = useCallback(
+    ({ productId, quantity }: { productId: string; quantity: number }) => {
+      cartStore.update((prev) => {
+        const existingItem = prev.find(
+          (item) => item.productId === productId
+        );
+        if (existingItem) {
+          return prev.map((item) =>
+            item.productId === productId
+              ? { ...item, quantity: item.quantity + quantity }
+              : item
+          );
+        }
+        return [...prev, { productId, quantity, addedAt: new Date() }];
+      });
+    },
+    [cartStore]
+  );
+
+  const removeFromCartHandler = useCallback(
+    ({ productId }: { productId: string }) => {
+      cartStore.update((prev) =>
+        prev.filter((item) => item.productId !== productId)
+      );
+    },
+    [cartStore]
+  );
+
+  const updateCartQuantityHandler = useCallback(
+    ({ productId, quantity }: { productId: string; quantity: number }) => {
+      cartStore.update((prev) =>
+        prev.map((item) =>
+          item.productId === productId ? { ...item, quantity } : item
+        )
+      );
+    },
+    [cartStore]
+  );
+
+  const clearCartHandler = useCallback(() => {
+    cartStore.setValue([]);
+  }, [cartStore]);
+
   useEffect(() => {
     const unsubscribers = [
-      storeActionRegister.register(
-        'addToCart',
-        ({ productId, quantity }, controller) => {
-          cartStore.update((prev) => {
-            const existingItem = prev.find(
-              (item) => item.productId === productId
-            );
-            if (existingItem) {
-              return prev.map((item) =>
-                item.productId === productId
-                  ? { ...item, quantity: item.quantity + quantity }
-                  : item
-              );
-            }
-            return [...prev, { productId, quantity, addedAt: new Date() }];
-          });
-          
-        }
-      ),
-
-      storeActionRegister.register(
-        'removeFromCart',
-        ({ productId }, controller) => {
-          cartStore.update((prev) =>
-            prev.filter((item) => item.productId !== productId)
-          );
-          
-        }
-      ),
-
-      storeActionRegister.register(
-        'updateCartQuantity',
-        ({ productId, quantity }, controller) => {
-          cartStore.update((prev) =>
-            prev.map((item) =>
-              item.productId === productId ? { ...item, quantity } : item
-            )
-          );
-          
-        }
-      ),
-
-      storeActionRegister.register('clearCart', (_, controller) => {
-        cartStore.setValue([]);
-        
-      }),
+      storeActionRegister.register('addToCart', addToCartHandler),
+      storeActionRegister.register('removeFromCart', removeFromCartHandler),
+      storeActionRegister.register('updateCartQuantity', updateCartQuantityHandler),
+      storeActionRegister.register('clearCart', clearCartHandler),
     ];
 
     return () => {
       unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
-  }, []); // 의존성 배열에서 cartStore 제거 - 무한 루프 방지
+  }, [addToCartHandler, removeFromCartHandler, updateCartQuantityHandler, clearCartHandler]); // 메모이제이션된 핸들러들을 의존성에 추가
 
   const totalAmount = useMemo(() => {
     if (!cart || !products) return 0;
