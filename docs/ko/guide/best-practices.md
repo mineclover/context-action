@@ -334,3 +334,433 @@ function BadComponent({ userId }: { userId: string }) {
   }); // useCallback과 deps의 userId 누락
 }
 ```
+
+## 고급 베스트 프랙티스
+
+### 액션 핸들러 상태 접근
+
+#### ⚠️ 중요: 스토어 값 클로저 함정 피하기
+
+액션 핸들러 내부에서 스토어 값에 접근할 때, **컴포넌트 스코프의 값을 절대 사용하지 마세요**. 클로저 함정이 발생합니다:
+
+```tsx
+// ❌ 잘못됨: 핸들러에서 컴포넌트 스코프 값 사용
+function UserComponent() {
+  const userStore = useUserStore('profile');
+  const user = useStoreValue(userStore); // 이 값이 클로저에 갇힘!
+  
+  useUserActionHandler('updateUser', async (payload) => {
+    // 🚨 버그: 이 'user'는 핸들러 등록 시점의 값, 현재 시점이 아님!
+    if (user.isActive) {  // 오래된 값!
+      await updateUserAPI(payload);
+    }
+  });
+}
+
+// ✅ 올바름: 핸들러 내부에서 스토어 값에 직접 접근
+function UserComponent() {
+  const userStore = useUserStore('profile');
+  const user = useStoreValue(userStore); // 컴포넌트 렌더링용으로만 사용
+  
+  useUserActionHandler('updateUser', useCallback(async (payload) => {
+    // ✅ 항상 스토어에서 최신 상태를 가져옴
+    const currentUser = userStore.getValue(); // 실시간 값!
+    
+    if (currentUser.isActive) {
+      await updateUserAPI(payload);
+    }
+  }, [userStore])); // 의존성에는 스토어 참조만 포함
+}
+```
+
+#### 실시간 상태 접근 패턴
+
+```tsx
+// ✅ 패턴 1: 간단한 확인을 위한 직접 store getValue()
+useActionHandler('conditionalAction', async (payload) => {
+  const currentState = someStore.getValue();
+  
+  if (currentState.isReady) {
+    // 액션 실행
+  }
+});
+
+// ✅ 패턴 2: 여러 스토어 조정
+useActionHandler('complexAction', async (payload) => {
+  const userState = userStore.getValue();
+  const settingsState = settingsStore.getValue();
+  const uiState = uiStore.getValue();
+  
+  // 모든 현재 상태를 사용하여 의사결정
+  if (userState.isLoggedIn && settingsState.apiEnabled && !uiState.isLoading) {
+    // 복잡한 로직 실행
+  }
+});
+
+// ✅ 패턴 3: 상태 검증 및 업데이트
+useActionHandler('validateAndUpdate', async (payload) => {
+  const current = dataStore.getValue();
+  
+  // 현재 상태 검증
+  if (current.version !== payload.expectedVersion) {
+    throw new Error('버전 불일치');
+  }
+  
+  // 현재 상태를 기준으로 업데이트
+  dataStore.setValue({
+    ...current,
+    ...payload.updates,
+    version: current.version + 1
+  });
+});
+```
+
+### useEffect 의존성 베스트 프랙티스
+
+#### 스토어와 Dispatch 참조는 안정적
+
+Context-Action 프레임워크는 스토어 인스턴스와 dispatch 함수가 안정적인 참조를 갖도록 보장합니다:
+
+```tsx
+// ✅ 이것들은 useEffect 의존성에서 생략해도 안전
+function MyComponent() {
+  const userStore = useUserStore('profile');  // 안정적인 참조
+  const dispatch = useUserAction();           // 안정적인 참조
+  const user = useStoreValue(userStore);
+  
+  useEffect(() => {
+    if (user.needsSync) {
+      dispatch('syncUser', { id: user.id });
+      userStore.setValue({ ...user, lastSyncAttempt: Date.now() });
+    }
+  }, [user.needsSync, user.id]); // userStore나 dispatch 포함하지 않음
+  
+  // 대안: 명시적으로 포함해도 됨 (해롭지 않음)
+  useEffect(() => {
+    if (user.needsSync) {
+      dispatch('syncUser', { id: user.id });
+    }
+  }, [user.needsSync, user.id, dispatch, userStore]); // 이것도 괜찮음
+}
+```
+
+#### 의존성 배열 가이드라인
+
+```tsx
+// ✅ 포함: 실제로 변경되고 동작에 영향을 주는 값들
+useEffect(() => {
+  if (user.isActive) {
+    startPolling();
+  }
+}, [user.isActive]); // 파생된 값들 포함
+
+// ✅ 생략: 안정적인 참조들 (하지만 포함해도 해롭지 않음)
+const stableRef = userStore;
+const stableDispatch = dispatch;
+
+useEffect(() => {
+  // 이것들은 deps에 포함할 필요 없지만, 포함해도 됨
+  stableRef.setValue(newValue);
+  stableDispatch('action', payload);
+}, []); // 빈 deps 괜찮음
+
+// ❌ 피하기: 특정 속성만 중요할 때 전체 객체 포함
+useEffect(() => {
+  updateUI();
+}, [user]); // 모든 user 변경에 재실행
+
+// ✅ 더 좋음: 관련된 속성만 포함
+useEffect(() => {
+  updateUI();
+}, [user.theme, user.language]); // 이것들이 변경될 때만 재실행
+```
+
+### 상태 이슈 디버깅
+
+#### 상태 모니터링 기법
+
+```tsx
+// ✅ 상태 변경을 추적하기 위한 디버그 로깅 추가
+useActionHandler('debugAction', async (payload) => {
+  const beforeState = store.getValue();
+  console.log('이전:', beforeState);
+  
+  // 업데이트 수행
+  store.setValue(newValue);
+  
+  const afterState = store.getValue();
+  console.log('이후:', afterState);
+  
+  // 상태 변경 확인
+  if (beforeState === afterState) {
+    console.warn('상태가 예상대로 변경되지 않았습니다!');
+  }
+});
+
+// ✅ 복잡한 상태 추적을 위한 디버그 유틸리티 생성
+const createStateLogger = (storeName: string, store: Store<any>) => ({
+  logCurrent: () => console.log(`${storeName}:`, store.getValue()),
+  logChange: (action: string) => {
+    const before = store.getValue();
+    return (after: any) => {
+      console.log(`${storeName} ${action}:`, { before, after });
+    };
+  }
+});
+```
+
+#### 일반적인 디버깅 시나리오
+
+```tsx
+// 🔍 디버그: 상태 변경 시 컴포넌트가 리렌더링되지 않음
+function DebuggingComponent() {
+  const store = useStore('data');
+  const value = useStoreValue(store);
+  
+  // 구독을 확인하기 위한 로깅 추가
+  useEffect(() => {
+    console.log('컴포넌트 리렌더링됨, 값:', value);
+  });
+  
+  // 스토어 업데이트가 작동하는지 확인
+  const testUpdate = () => {
+    console.log('업데이트 전:', store.getValue());
+    store.setValue({ ...store.getValue(), timestamp: Date.now() });
+    console.log('업데이트 후:', store.getValue());
+  };
+  
+  return (
+    <div>
+      <div>현재 값: {JSON.stringify(value)}</div>
+      <button onClick={testUpdate}>업데이트 테스트</button>
+    </div>
+  );
+}
+
+// 🔍 디버그: 액션 핸들러가 실행되지 않음
+function DebuggingActions() {
+  useActionHandler('testAction', useCallback(async (payload) => {
+    console.log('핸들러가 페이로드로 실행됨:', payload);
+    
+    // 에러를 캐치하기 위한 try-catch 추가
+    try {
+      // 여기에 로직
+    } catch (error) {
+      console.error('핸들러 에러:', error);
+      throw error; // 에러 전파를 유지하기 위해 재throw
+    }
+  }, []));
+  
+  const dispatch = useActionDispatch();
+  
+  const testDispatch = () => {
+    console.log('testAction 디스패치 중...');
+    dispatch('testAction', { test: true });
+  };
+  
+  return <button onClick={testDispatch}>액션 테스트</button>;
+}
+```
+
+### 프로덕션 디버깅 및 컴포넌트 생명주기 관리
+
+#### 치명적 이슈: 중복 액션 핸들러 등록
+
+**문제**: 동일한 액션 핸들러를 여러 번 등록하면 예측할 수 없는 동작이 발생합니다.
+
+```tsx
+// ❌ 잘못된 예: 중복 핸들러 등록
+useActionHandler('updateResults', async (payload) => {
+  store.setValue(payload.data);
+});
+useActionHandler('updateResults', async (payload) => {  // 중복!
+  store.setValue(payload.data);  // 첫 번째 핸들러를 덮어씁니다
+});
+
+// ✅ 올바른 예: 단일 핸들러 등록
+const updateResultsHandler = useCallback(async (payload) => {
+  store.setValue(payload.data);
+}, [store]);
+useActionHandler('updateResults', updateResultsHandler);
+```
+
+**디버깅 팁**: `grep -n "useActionHandler.*'actionName'" src/**/*.tsx`
+
+#### 처리 상태로 경쟁 조건 방지하기
+
+**문제**: 빠른 버튼 클릭으로 인한 경쟁 조건과 상태 불일치가 발생합니다.
+
+```tsx
+// ✅ 경쟁 조건을 방지하기 위한 처리 상태 추가
+const stores = createDeclarativeStorePattern('Demo', {
+  data: initialData,
+  isProcessing: false  // 처리 상태 추가
+});
+
+const criticalActionHandler = useCallback(async (payload) => {
+  const currentProcessing = isProcessingStore.getValue();
+  
+  if (currentProcessing) {
+    console.warn('액션이 이미 진행 중입니다. 요청을 무시합니다');
+    return; // 조기 반환으로 경쟁 조건 방지
+  }
+  
+  isProcessingStore.setValue(true);
+  try {
+    await performCriticalOperation(payload);
+  } finally {
+    isProcessingStore.setValue(false); // 항상 처리 상태 해제
+  }
+}, [isProcessingStore]);
+
+useActionHandler('criticalAction', criticalActionHandler);
+
+// ✅ 처리 상태를 반영하는 UI
+function ActionButton() {
+  const isProcessing = useStoreValue(isProcessingStore);
+  const dispatch = useActionDispatch();
+  
+  return (
+    <button
+      onClick={() => dispatch('criticalAction', payload)}
+      disabled={isProcessing}
+    >
+      {isProcessing ? '⏳ 처리 중...' : '액션 실행'}
+    </button>
+  );
+}
+```
+
+#### RefContext를 사용한 안전한 컴포넌트 언마운트
+
+**문제**: 컴포넌트 언마운트가 수동 ref 정리와 충돌합니다.
+
+```tsx
+// ❌ 잘못된 예: 컴포넌트 useEffect에서 수동 ref 정리
+function Component() {
+  const elementRef = useRefHandler('element');
+  
+  useEffect(() => {
+    return () => {
+      elementRef.setRef(null); // 이는 액션 핸들러 정리와 충돌합니다
+    };
+  }, []);
+  
+  return <div ref={elementRef.setRef} />;
+}
+
+// ✅ 올바른 예: 관심사 분리 - React는 DOM을, 액션은 상태를 처리
+function Component() {
+  const elementRef = useRefHandler('element');
+  
+  useEffect(() => {
+    console.log('컴포넌트 마운트됨');
+    return () => console.log('컴포넌트 언마운트 중');
+    // React가 DOM 정리를 자동으로 처리하도록 함
+  }, []);
+  
+  return <div ref={elementRef.setRef} />;
+}
+
+// ✅ 액션 핸들러가 상태와 ref 조정을 관리
+const unmountElementHandler = useCallback(async () => {
+  const isCurrentlyMounted = isMountedStore.getValue();
+  
+  if (isCurrentlyMounted) {
+    isMountedStore.setValue(false); // 먼저 상태 업데이트
+    
+    // React가 컴포넌트를 언마운트한 후 ref 상태 확인
+    setTimeout(() => {
+      const currentRef = elementRef.target;
+      if (currentRef) {
+        elementRef.setRef(null); // 필요한 경우에만 수동 정리
+      }
+    }, 50);
+  }
+}, [isMountedStore, elementRef]);
+
+useActionHandler('unmountElement', unmountElementHandler);
+```
+
+#### 프로덕션 디버깅 기법
+
+**상태 모니터링**: 프로덕션 이슈 진단을 위한 포괄적 상태 모니터링:
+
+```tsx
+// ✅ 다차원 상태 모니터링
+const debugStores = createDeclarativeStorePattern('Debug', {
+  actionLog: [] as string[],
+  errorCount: 0,
+  operationTimes: {} as Record<string, number>
+});
+
+const addLogHandler = useCallback(async ({ message }) => {
+  const timestamp = new Date().toLocaleTimeString();
+  const logEntry = `[${timestamp}] ${message}`;
+  
+  actionLogStore.update(prev => [
+    ...prev.slice(-49), // 최근 50개 항목 유지
+    logEntry
+  ]);
+}, [actionLogStore]);
+
+useActionHandler('addLog', addLogHandler);
+```
+
+**에러 복구**: 자동 재시도 로직으로 우아한 에러 복구:
+
+```tsx
+// ✅ 지수 백오프를 사용한 자동 재시도
+const reliableActionHandler = useCallback(async (payload) => {
+  const maxRetries = 3;
+  let attempt = 0;
+  
+  while (attempt < maxRetries) {
+    try {
+      await performOperation(payload);
+      return; // 성공
+    } catch (error) {
+      attempt++;
+      if (attempt >= maxRetries) throw error; // 최종 실패
+      
+      const delay = 100 * Math.pow(2, attempt - 1); // 지수 백오프
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+}, []);
+
+useActionHandler('reliableAction', reliableActionHandler);
+```
+
+**스트레스 테스트**: 간헐적 이슈를 재현하기 위해 프로덕션 조건을 시뮬레이션:
+
+```tsx
+// ✅ 간단한 스트레스 테스트 헬퍼
+function StressTester({ children }: { children: ReactNode }) {
+  const [isStressTesting, setIsStressTesting] = useState(false);
+  
+  useEffect(() => {
+    if (!isStressTesting) return;
+    
+    const interval = setInterval(() => {
+      if (Math.random() > 0.7) { // 사이클당 30% 확률
+        // 빠른 사용자 행동을 시뮬레이션하는 랜덤 액션 트리거
+        const actions = ['mount', 'unmount', 'waitForRef'];
+        const randomAction = actions[Math.floor(Math.random() * actions.length)];
+        console.log(`🎯 스트레스 테스트: ${randomAction}`);
+      }
+    }, 100);
+    
+    return () => clearInterval(interval);
+  }, [isStressTesting]);
+  
+  return (
+    <div>
+      <button onClick={() => setIsStressTesting(!isStressTesting)}>
+        {isStressTesting ? '🛑 중지' : '🎯 시작'} 스트레스 테스트
+      </button>
+      {children}
+    </div>
+  );
+}
+```

@@ -19,6 +19,7 @@ const GUIDE_STRUCTURE = {
         { text: 'Architecture', link: '/en/guide/architecture' },
         { text: 'Action Pipeline', link: '/en/guide/action-pipeline' },
         { text: 'React Hooks', link: '/en/guide/hooks' },
+        { text: 'Code Patterns', link: '/en/guide/code-patterns' },
         { text: 'Best Practices', link: '/en/guide/best-practices' },
         { text: 'Action Handlers', link: '/en/guide/action-handlers' }
       ]
@@ -35,6 +36,7 @@ const GUIDE_STRUCTURE = {
         { text: '아키텍처', link: '/ko/guide/architecture' },
         { text: '액션 파이프라인', link: '/ko/guide/action-pipeline' },
         { text: 'React 훅', link: '/ko/guide/hooks' },
+        { text: '코드 패턴', link: '/ko/guide/code-patterns' },
         { text: '모범 사례', link: '/ko/guide/best-practices' },
         { text: '액션 핸들러', link: '/ko/guide/action-handlers' }
       ]

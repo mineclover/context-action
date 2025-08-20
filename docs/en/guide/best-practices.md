@@ -334,3 +334,433 @@ function BadComponent({ userId }: { userId: string }) {
   }); // Missing useCallback and userId in deps
 }
 ```
+
+## Advanced Best Practices
+
+### Action Handler State Access
+
+#### ⚠️ Critical: Avoid Closure Traps with Store Values
+
+When accessing store values inside action handlers, **never use values from component scope** as they create closure traps:
+
+```tsx
+// ❌ WRONG: Using component scope values in handlers
+function UserComponent() {
+  const userStore = useUserStore('profile');
+  const user = useStoreValue(userStore); // This value gets trapped in closure!
+  
+  useUserActionHandler('updateUser', async (payload) => {
+    // 🚨 BUG: This 'user' is from handler registration time, not current time!
+    if (user.isActive) {  // Stale value!
+      await updateUserAPI(payload);
+    }
+  });
+}
+
+// ✅ CORRECT: Access store values directly inside handlers
+function UserComponent() {
+  const userStore = useUserStore('profile');
+  const user = useStoreValue(userStore); // For component rendering only
+  
+  useUserActionHandler('updateUser', useCallback(async (payload) => {
+    // ✅ Always get fresh state from store
+    const currentUser = userStore.getValue(); // Real-time value!
+    
+    if (currentUser.isActive) {
+      await updateUserAPI(payload);
+    }
+  }, [userStore])); // Only store reference in deps
+}
+```
+
+#### Real-time State Access Patterns
+
+```tsx
+// ✅ Pattern 1: Direct store getValue() for simple checks
+useActionHandler('conditionalAction', async (payload) => {
+  const currentState = someStore.getValue();
+  
+  if (currentState.isReady) {
+    // Proceed with action
+  }
+});
+
+// ✅ Pattern 2: Multiple store coordination
+useActionHandler('complexAction', async (payload) => {
+  const userState = userStore.getValue();
+  const settingsState = settingsStore.getValue();
+  const uiState = uiStore.getValue();
+  
+  // Use all current states for decision making
+  if (userState.isLoggedIn && settingsState.apiEnabled && !uiState.isLoading) {
+    // Execute complex logic
+  }
+});
+
+// ✅ Pattern 3: State validation and updates
+useActionHandler('validateAndUpdate', async (payload) => {
+  const current = dataStore.getValue();
+  
+  // Validate current state
+  if (current.version !== payload.expectedVersion) {
+    throw new Error('Version mismatch');
+  }
+  
+  // Update with current state as base
+  dataStore.setValue({
+    ...current,
+    ...payload.updates,
+    version: current.version + 1
+  });
+});
+```
+
+### useEffect Dependencies Best Practices
+
+#### Store and Dispatch References are Stable
+
+Context-Action framework ensures that store instances and dispatch functions have stable references:
+
+```tsx
+// ✅ These are safe to omit from useEffect dependencies
+function MyComponent() {
+  const userStore = useUserStore('profile');  // Stable reference
+  const dispatch = useUserAction();           // Stable reference
+  const user = useStoreValue(userStore);
+  
+  useEffect(() => {
+    if (user.needsSync) {
+      dispatch('syncUser', { id: user.id });
+      userStore.setValue({ ...user, lastSyncAttempt: Date.now() });
+    }
+  }, [user.needsSync, user.id]); // Don't include userStore or dispatch
+  
+  // Alternative: Include them if you prefer explicitness (no harm)
+  useEffect(() => {
+    if (user.needsSync) {
+      dispatch('syncUser', { id: user.id });
+    }
+  }, [user.needsSync, user.id, dispatch, userStore]); // Also fine
+}
+```
+
+#### Dependency Array Guidelines
+
+```tsx
+// ✅ Include: Values that actually change and affect behavior
+useEffect(() => {
+  if (user.isActive) {
+    startPolling();
+  }
+}, [user.isActive]); // Include derived values
+
+// ✅ Omit: Stable references (but including them doesn't hurt)
+const stableRef = userStore;
+const stableDispatch = dispatch;
+
+useEffect(() => {
+  // These don't need to be in deps, but you can include them
+  stableRef.setValue(newValue);
+  stableDispatch('action', payload);
+}, []); // Empty deps is fine
+
+// ❌ Avoid: Including whole objects when only specific properties matter
+useEffect(() => {
+  updateUI();
+}, [user]); // Re-runs on any user change
+
+// ✅ Better: Include only relevant properties
+useEffect(() => {
+  updateUI();
+}, [user.theme, user.language]); // Only re-runs when these change
+```
+
+### Debugging State Issues
+
+#### State Monitoring Techniques
+
+```tsx
+// ✅ Add debug logging to track state changes
+useActionHandler('debugAction', async (payload) => {
+  const beforeState = store.getValue();
+  console.log('Before:', beforeState);
+  
+  // Perform updates
+  store.setValue(newValue);
+  
+  const afterState = store.getValue();
+  console.log('After:', afterState);
+  
+  // Verify state change
+  if (beforeState === afterState) {
+    console.warn('State did not change as expected!');
+  }
+});
+
+// ✅ Create debug utilities for complex state tracking
+const createStateLogger = (storeName: string, store: Store<any>) => ({
+  logCurrent: () => console.log(`${storeName}:`, store.getValue()),
+  logChange: (action: string) => {
+    const before = store.getValue();
+    return (after: any) => {
+      console.log(`${storeName} ${action}:`, { before, after });
+    };
+  }
+});
+```
+
+#### Common Debugging Scenarios
+
+```tsx
+// 🔍 Debug: Component not re-rendering on state change
+function DebuggingComponent() {
+  const store = useStore('data');
+  const value = useStoreValue(store);
+  
+  // Add logging to verify subscription
+  useEffect(() => {
+    console.log('Component re-rendered, value:', value);
+  });
+  
+  // Verify store updates are working
+  const testUpdate = () => {
+    console.log('Before update:', store.getValue());
+    store.setValue({ ...store.getValue(), timestamp: Date.now() });
+    console.log('After update:', store.getValue());
+  };
+  
+  return (
+    <div>
+      <div>Current value: {JSON.stringify(value)}</div>
+      <button onClick={testUpdate}>Test Update</button>
+    </div>
+  );
+}
+
+// 🔍 Debug: Action handler not executing
+function DebuggingActions() {
+  useActionHandler('testAction', useCallback(async (payload) => {
+    console.log('Handler executed with payload:', payload);
+    
+    // Add try-catch to catch errors
+    try {
+      // Your logic here
+    } catch (error) {
+      console.error('Handler error:', error);
+      throw error; // Re-throw to maintain error propagation
+    }
+  }, []));
+  
+  const dispatch = useActionDispatch();
+  
+  const testDispatch = () => {
+    console.log('Dispatching testAction...');
+    dispatch('testAction', { test: true });
+  };
+  
+  return <button onClick={testDispatch}>Test Action</button>;
+}
+```
+
+### Production Debugging & Component Lifecycle Management
+
+#### Critical Issue: Duplicate Action Handler Registration
+
+**Problem**: Accidentally registering the same action handler multiple times causes unpredictable behavior.
+
+```tsx
+// ❌ WRONG: Duplicate handler registration
+useActionHandler('updateResults', async (payload) => {
+  store.setValue(payload.data);
+});
+useActionHandler('updateResults', async (payload) => {  // Duplicate!
+  store.setValue(payload.data);  // This overrides the first handler
+});
+
+// ✅ CORRECT: Single handler registration
+const updateResultsHandler = useCallback(async (payload) => {
+  store.setValue(payload.data);
+}, [store]);
+useActionHandler('updateResults', updateResultsHandler);
+```
+
+**Debug tip**: `grep -n "useActionHandler.*'actionName'" src/**/*.tsx`
+
+#### Preventing Race Conditions with Processing State
+
+**Problem**: Rapid button clicks cause race conditions and state inconsistencies.
+
+```tsx
+// ✅ Add processing state to prevent race conditions
+const stores = createDeclarativeStorePattern('Demo', {
+  data: initialData,
+  isProcessing: false  // Add processing state
+});
+
+const criticalActionHandler = useCallback(async (payload) => {
+  const currentProcessing = isProcessingStore.getValue();
+  
+  if (currentProcessing) {
+    console.warn('Action already in progress, ignoring request');
+    return; // Early return prevents race condition
+  }
+  
+  isProcessingStore.setValue(true);
+  try {
+    await performCriticalOperation(payload);
+  } finally {
+    isProcessingStore.setValue(false); // Always clear processing state
+  }
+}, [isProcessingStore]);
+
+useActionHandler('criticalAction', criticalActionHandler);
+
+// ✅ UI reflects processing state
+function ActionButton() {
+  const isProcessing = useStoreValue(isProcessingStore);
+  const dispatch = useActionDispatch();
+  
+  return (
+    <button
+      onClick={() => dispatch('criticalAction', payload)}
+      disabled={isProcessing}
+    >
+      {isProcessing ? '⏳ Processing...' : 'Execute Action'}
+    </button>
+  );
+}
+```
+
+#### Safe Component Unmounting with RefContext
+
+**Problem**: Component unmounting conflicts with manual ref cleanup.
+
+```tsx
+// ❌ WRONG: Manual ref cleanup in component useEffect
+function Component() {
+  const elementRef = useRefHandler('element');
+  
+  useEffect(() => {
+    return () => {
+      elementRef.setRef(null); // This conflicts with action handler cleanup
+    };
+  }, []);
+  
+  return <div ref={elementRef.setRef} />;
+}
+
+// ✅ CORRECT: Separate concerns - React handles DOM, actions handle state
+function Component() {
+  const elementRef = useRefHandler('element');
+  
+  useEffect(() => {
+    console.log('Component mounted');
+    return () => console.log('Component unmounting');
+    // Let React handle DOM cleanup automatically
+  }, []);
+  
+  return <div ref={elementRef.setRef} />;
+}
+
+// ✅ Action handler manages state and ref coordination
+const unmountElementHandler = useCallback(async () => {
+  const isCurrentlyMounted = isMountedStore.getValue();
+  
+  if (isCurrentlyMounted) {
+    isMountedStore.setValue(false); // Update state first
+    
+    // Let React unmount component, then check ref state
+    setTimeout(() => {
+      const currentRef = elementRef.target;
+      if (currentRef) {
+        elementRef.setRef(null); // Only manual cleanup if needed
+      }
+    }, 50);
+  }
+}, [isMountedStore, elementRef]);
+
+useActionHandler('unmountElement', unmountElementHandler);
+```
+
+#### Production Debugging Techniques
+
+**State Monitoring**: Create comprehensive state monitoring for production issues:
+
+```tsx
+// ✅ Multi-dimensional state monitoring
+const debugStores = createDeclarativeStorePattern('Debug', {
+  actionLog: [] as string[],
+  errorCount: 0,
+  operationTimes: {} as Record<string, number>
+});
+
+const addLogHandler = useCallback(async ({ message }) => {
+  const timestamp = new Date().toLocaleTimeString();
+  const logEntry = `[${timestamp}] ${message}`;
+  
+  actionLogStore.update(prev => [
+    ...prev.slice(-49), // Keep last 50 entries
+    logEntry
+  ]);
+}, [actionLogStore]);
+
+useActionHandler('addLog', addLogHandler);
+```
+
+**Error Recovery**: Implement graceful error recovery with automatic retry:
+
+```tsx
+// ✅ Automatic retry with exponential backoff
+const reliableActionHandler = useCallback(async (payload) => {
+  const maxRetries = 3;
+  let attempt = 0;
+  
+  while (attempt < maxRetries) {
+    try {
+      await performOperation(payload);
+      return; // Success
+    } catch (error) {
+      attempt++;
+      if (attempt >= maxRetries) throw error; // Final failure
+      
+      const delay = 100 * Math.pow(2, attempt - 1); // Exponential backoff
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+}, []);
+
+useActionHandler('reliableAction', reliableActionHandler);
+```
+
+**Stress Testing**: Simulate production conditions to reproduce intermittent issues:
+
+```tsx
+// ✅ Simple stress testing helper
+function StressTester({ children }: { children: ReactNode }) {
+  const [isStressTesting, setIsStressTesting] = useState(false);
+  
+  useEffect(() => {
+    if (!isStressTesting) return;
+    
+    const interval = setInterval(() => {
+      if (Math.random() > 0.7) { // 30% chance per cycle
+        // Trigger random actions to simulate rapid user behavior
+        const actions = ['mount', 'unmount', 'waitForRef'];
+        const randomAction = actions[Math.floor(Math.random() * actions.length)];
+        console.log(`🎯 Stress test: ${randomAction}`);
+      }
+    }, 100);
+    
+    return () => clearInterval(interval);
+  }, [isStressTesting]);
+  
+  return (
+    <div>
+      <button onClick={() => setIsStressTesting(!isStressTesting)}>
+        {isStressTesting ? '🛑 Stop' : '🎯 Start'} Stress Test
+      </button>
+      {children}
+    </div>
+  );
+}
+```

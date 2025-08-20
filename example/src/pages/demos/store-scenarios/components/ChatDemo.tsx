@@ -1,10 +1,36 @@
-import { useStoreValue } from '@context-action/react';
+import { useStoreValue, createDeclarativeStorePattern, createActionContext } from '@context-action/react';
 import { createRefContext } from '@context-action/react';
-import React, { useCallback, useEffect, useState, useRef, memo } from 'react';
+import React, { useCallback, useEffect, memo } from 'react';
 import { useActionLoggerWithToast } from '../../../../components/LogMonitor/';
 import { storeActionRegister } from '../actions';
 import { StoreScenarios } from '../stores';
 import type { ChatMessage } from '../types';
+
+// UI State Management with Context-Action
+const {
+  Provider: ChatUIStoreProvider,
+  useStore: useChatUIStore
+} = createDeclarativeStorePattern('ChatUI', {
+  newMessage: { initialValue: '' },
+  currentUser: { initialValue: '김개발' },
+  messageType: { initialValue: 'text' as ChatMessage['type'] },
+  isTyping: { initialValue: false }
+});
+
+// UI Actions for chat interactions
+interface ChatUIActions {
+  updateNewMessage: { message: string };
+  setCurrentUser: { user: string };
+  setMessageType: { type: ChatMessage['type'] };
+  setIsTyping: { typing: boolean };
+  clearNewMessage: void;
+}
+
+const {
+  Provider: ChatUIActionProvider,
+  useActionDispatch: useChatUIAction,
+  useActionHandler: useChatUIActionHandler
+} = createActionContext<ChatUIActions>('ChatUI');
 import '../styles/chat-scroll.css';
 
 const CHAT_USERS = ['김개발', '이디자인', '박매니저', '최기획'];
@@ -337,7 +363,7 @@ interface MessageInputProps {
 }
 
 const MessageInput = memo(({ newMessage, currentUser, onMessageChange, onSendMessage }: MessageInputProps) => {
-  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       onSendMessage();
@@ -350,7 +376,7 @@ const MessageInput = memo(({ newMessage, currentUser, onMessageChange, onSendMes
         <textarea
           value={newMessage}
           onChange={(e) => onMessageChange(e.target.value)}
-          onKeyPress={handleKeyPress}
+          onKeyDown={handleKeyDown}
           placeholder={`${currentUser}로 메시지 입력... (Enter로 전송, Shift+Enter로 줄바꿨)`}
           className="chat-input"
           rows={2}
@@ -384,10 +410,18 @@ function ChatComponent() {
   const messagesStore = StoreScenarios.useStore('messages');
   const messages = useStoreValue(messagesStore);
   
-  const [newMessage, setNewMessage] = useState('');
-  const [currentUser, setCurrentUser] = useState('김개발');
-  const [messageType, setMessageType] = useState<ChatMessage['type']>('text');
-  const [isTyping, setIsTyping] = useState(false);
+  // Context-Action UI state instead of React useState
+  const newMessageStore = useChatUIStore('newMessage');
+  const currentUserStore = useChatUIStore('currentUser');
+  const messageTypeStore = useChatUIStore('messageType');
+  const isTypingStore = useChatUIStore('isTyping');
+  
+  const newMessage = useStoreValue(newMessageStore);
+  const currentUser = useStoreValue(currentUserStore);
+  const messageType = useStoreValue(messageTypeStore);
+  const isTyping = useStoreValue(isTypingStore);
+  
+  const uiDispatch = useChatUIAction();
   
   // Ref 핸들러들 - createRefContext 사용
   const messagesContainerRef = ChatRefsContext.useRefHandler('messagesContainer');
@@ -435,6 +469,27 @@ function ChatComponent() {
       unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
   }, [sendMessageHandler, deleteMessageHandler, clearChatHandler]);
+  
+  // UI Action handlers for form interactions
+  useChatUIActionHandler('updateNewMessage', async ({ message }) => {
+    newMessageStore.setValue(message);
+  });
+  
+  useChatUIActionHandler('setCurrentUser', async ({ user }) => {
+    currentUserStore.setValue(user);
+  });
+  
+  useChatUIActionHandler('setMessageType', async ({ type }) => {
+    messageTypeStore.setValue(type);
+  });
+  
+  useChatUIActionHandler('setIsTyping', async ({ typing }) => {
+    isTypingStore.setValue(typing);
+  });
+  
+  useChatUIActionHandler('clearNewMessage', async () => {
+    newMessageStore.setValue('');
+  });
 
 
   // 메시지가 추가될 때마다 스크롤 - ref 의존성 제거로 무한 루프 방지
@@ -453,11 +508,11 @@ function ChatComponent() {
 
   // 타이핑 시뮬레이션
   const simulateTyping = useCallback(() => {
-    setIsTyping(true);
+    uiDispatch('setIsTyping', { typing: true });
     setTimeout(() => {
-      setIsTyping(false);
+      uiDispatch('setIsTyping', { typing: false });
     }, 2000);
-  }, []);
+  }, [uiDispatch]);
 
   const sendMessage = useCallback(() => {
     if (newMessage.trim()) {
@@ -475,7 +530,7 @@ function ChatComponent() {
         type: messageType,
       });
 
-      setNewMessage('');
+      uiDispatch('clearNewMessage');
 
       // 다른 사용자의 자동 응답 시뮬레이션 (30% 확률)
       if (Math.random() < 0.3) {
@@ -560,7 +615,7 @@ function ChatComponent() {
       
       <UserSelector
         currentUser={currentUser}
-        onUserChange={setCurrentUser}
+        onUserChange={(user) => uiDispatch('setCurrentUser', { user })}
         onUserSwitch={handleUserSwitch}
       />
       
@@ -579,13 +634,13 @@ function ChatComponent() {
       
       <MessageTypeSelector
         messageType={messageType}
-        onTypeChange={setMessageType}
+        onTypeChange={(type) => uiDispatch('setMessageType', { type })}
       />
       
       <MessageInput
         newMessage={newMessage}
         currentUser={currentUser}
-        onMessageChange={setNewMessage}
+        onMessageChange={(message) => uiDispatch('updateNewMessage', { message })}
         onSendMessage={sendMessage}
       />
     </div>
@@ -594,8 +649,12 @@ function ChatComponent() {
 
 export function ChatDemo() {
   return (
-    <ChatRefsContext.Provider>
-      <ChatComponent />
-    </ChatRefsContext.Provider>
+    <ChatUIActionProvider>
+      <ChatUIStoreProvider>
+        <ChatRefsContext.Provider>
+          <ChatComponent />
+        </ChatRefsContext.Provider>
+      </ChatUIStoreProvider>
+    </ChatUIActionProvider>
   );
 }
