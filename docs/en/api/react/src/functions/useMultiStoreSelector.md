@@ -8,7 +8,7 @@
 
 > **useMultiStoreSelector**&lt;`R`&gt;(`stores`, `selector`, `equalityFn?`): `R`
 
-Defined in: [packages/react/src/stores/hooks/useStoreSelector.ts:247](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/hooks/useStoreSelector.ts#L247)
+Defined in: [packages/react/src/stores/hooks/useStoreSelector.ts:267](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/hooks/useStoreSelector.ts#L267)
 
 여러 Store를 조합하여 선택적 구독하는 Hook
 

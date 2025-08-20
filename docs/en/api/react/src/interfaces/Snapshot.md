@@ -6,7 +6,7 @@
 
 # Interface: Snapshot\<T\>
 
-Defined in: [packages/react/src/stores/core/types.ts:53](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/core/types.ts#L53)
+Defined in: [packages/react/src/stores/core/types.ts:51](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L51)
 
 Store snapshot interface for immutable state representation
 
@@ -21,10 +21,6 @@ immutable-state
 ## Memberof
 
 api-terms
-
-## Since
-
-1.0.0
 
 Immutable snapshot of Store state used for optimization and debugging.
 Compatible with React's useSyncExternalStore pattern.
@@ -43,7 +39,7 @@ The type of the stored value
 
 > **value**: `T`
 
-Defined in: [packages/react/src/stores/core/types.ts:55](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/core/types.ts#L55)
+Defined in: [packages/react/src/stores/core/types.ts:53](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L53)
 
 The current value of the store
 
@@ -53,7 +49,7 @@ The current value of the store
 
 > **name**: `string`
 
-Defined in: [packages/react/src/stores/core/types.ts:58](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/core/types.ts#L58)
+Defined in: [packages/react/src/stores/core/types.ts:56](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L56)
 
 Unique identifier for the store
 
@@ -63,6 +59,6 @@ Unique identifier for the store
 
 > **lastUpdate**: `number`
 
-Defined in: [packages/react/src/stores/core/types.ts:61](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/core/types.ts#L61)
+Defined in: [packages/react/src/stores/core/types.ts:59](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L59)
 
 Timestamp of the last update

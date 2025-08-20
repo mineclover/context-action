@@ -8,7 +8,7 @@
 
 > **useAsyncComputedStore**&lt;`R`&gt;(`dependencies`, `compute`, `config`): `object`
 
-Defined in: [packages/react/src/stores/hooks/useComputedStore.ts:545](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/hooks/useComputedStore.ts#L545)
+Defined in: [packages/react/src/stores/hooks/useComputedStore.ts:597](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/hooks/useComputedStore.ts#L597)
 
 비동기 계산을 지원하는 Computed Store Hook
 

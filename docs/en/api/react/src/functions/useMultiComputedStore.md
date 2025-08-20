@@ -8,7 +8,7 @@
 
 > **useMultiComputedStore**&lt;`R`&gt;(`stores`, `compute`, `config?`): `R`
 
-Defined in: [packages/react/src/stores/hooks/useComputedStore.ts:276](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/hooks/useComputedStore.ts#L276)
+Defined in: [packages/react/src/stores/hooks/useComputedStore.ts:328](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/hooks/useComputedStore.ts#L328)
 
 여러 Store 기반 Computed Hook
 

@@ -8,7 +8,7 @@
 
 > **useStore**\<`T`, `R`\>(`store`, `config?`): `R`
 
-Defined in: [packages/react/src/stores/utils/store-selector.ts:53](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/utils/store-selector.ts#L53)
+Defined in: [packages/react/src/stores/utils/store-selector.ts:52](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/utils/store-selector.ts#L52)
 
 Store Selector Hook - 선택적 데이터 구독
 
@@ -66,10 +66,6 @@ performance-optimization
 ## Memberof
 
 core-concepts
-
-## Since
-
-1.0.0
 
 핵심 기능: selector를 사용하여 Store의 특정 부분만 구독하고 반환
 

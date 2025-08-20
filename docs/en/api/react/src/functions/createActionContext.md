@@ -26,10 +26,6 @@ mvvm-pattern
 
 api-terms
 
-## Since
-
-1.0.0
-
 Comprehensive action system including context providers, enhanced type-safe contexts,
 utilities for business logic coordination, and various patterns for managing user 
 interactions and business logic flow.
@@ -38,7 +34,7 @@ interactions and business logic flow.
 
 > **createActionContext**&lt;`T`&gt;(`contextName`, `config?`): [`ActionContextReturn`](../interfaces/ActionContextReturn.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/actions/ActionContext.tsx:156](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/actions/ActionContext.tsx#L156)
+Defined in: [packages/react/src/actions/ActionContext.tsx:156](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/actions/ActionContext.tsx#L156)
 
 Enhanced action context factory with automatic type inference
 
@@ -163,7 +159,7 @@ function App() {
 
 > **createActionContext**&lt;`T`&gt;(`config`): [`ActionContextReturn`](../interfaces/ActionContextReturn.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/actions/ActionContext.tsx:162](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/actions/ActionContext.tsx#L162)
+Defined in: [packages/react/src/actions/ActionContext.tsx:162](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/actions/ActionContext.tsx#L162)
 
 Enhanced action context factory with automatic type inference
 

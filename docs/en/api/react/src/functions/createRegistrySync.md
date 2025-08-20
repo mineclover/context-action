@@ -8,7 +8,7 @@
 
 > **createRegistrySync**&lt;`T`&gt;(): `object`
 
-Defined in: [packages/react/src/stores/utils/registry-sync.ts:17](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/react/src/stores/utils/registry-sync.ts#L17)
+Defined in: [packages/react/src/stores/utils/registry-sync.ts:17](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/utils/registry-sync.ts#L17)
 
 Factory for creating registry sync hooks
 핵심 기능: Registry에서 동적으로 store에 접근하는 표준화된 인터페이스 제공

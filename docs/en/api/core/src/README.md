@@ -15,8 +15,6 @@
 - [ActionPayloadMap](interfaces/ActionPayloadMap.md)
 - [PipelineController](interfaces/PipelineController.md)
 - [HandlerConfig](interfaces/HandlerConfig.md)
-- [HandlerRegistration](interfaces/HandlerRegistration.md)
-- [PipelineContext](interfaces/PipelineContext.md)
 - [ActionRegisterConfig](interfaces/ActionRegisterConfig.md)
 - [DispatchOptions](interfaces/DispatchOptions.md)
 - [ExecutionResult](interfaces/ExecutionResult.md)

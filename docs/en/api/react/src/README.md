@@ -8,6 +8,7 @@
 
 ## Classes
 
+- [OperationQueue](classes/OperationQueue.md)
 - [EventBus](classes/EventBus.md)
 - [Store](classes/Store.md)
 - [StoreRegistry](classes/StoreRegistry.md)
@@ -18,6 +19,17 @@
 - [ActionContextConfig](interfaces/ActionContextConfig.md)
 - [ActionContextType](interfaces/ActionContextType.md)
 - [ActionContextReturn](interfaces/ActionContextReturn.md)
+- [SimpleActionContextReturn](interfaces/SimpleActionContextReturn.md)
+- [ActionRefDefinitions](interfaces/ActionRefDefinitions.md)
+- [DeclarativeActionContextReturn](interfaces/DeclarativeActionContextReturn.md)
+- [DeclarativeActionRefContextReturn](interfaces/DeclarativeActionRefContextReturn.md)
+- [QueueStats](interfaces/QueueStats.md)
+- [RefContextReturn](interfaces/RefContextReturn.md)
+- [RefTarget](interfaces/RefTarget.md)
+- [RefState](interfaces/RefState.md)
+- [RefOperationResult](interfaces/RefOperationResult.md)
+- [RefOperationOptions](interfaces/RefOperationOptions.md)
+- [RefInitConfig](interfaces/RefInitConfig.md)
 - [Snapshot](interfaces/Snapshot.md)
 - [IStore](interfaces/IStore.md)
 - [IStoreRegistry](interfaces/IStoreRegistry.md)
@@ -31,6 +43,10 @@
 
 ## Type Aliases
 
+- [ActionDefinition](type-aliases/ActionDefinition.md)
+- [ActionDefinitions](type-aliases/ActionDefinitions.md)
+- [InferActionTypes](type-aliases/InferActionTypes.md)
+- [RefOperation](type-aliases/RefOperation.md)
 - [Listener](type-aliases/Listener.md)
 - [Unsubscribe](type-aliases/Unsubscribe.md)
 - [InitialStores](type-aliases/InitialStores.md)
@@ -44,6 +60,12 @@
 ## Functions
 
 - [createActionContext](functions/createActionContext.md)
+- [createSimpleActionContext](functions/createSimpleActionContext.md)
+- [action](functions/action.md)
+- [actionWithHandler](functions/actionWithHandler.md)
+- [actionWithConfig](functions/actionWithConfig.md)
+- [createRefContext](functions/createRefContext.md)
+- [customRef](functions/customRef.md)
 - [createStore](functions/createStore.md)
 - [createStoreContext](functions/createStoreContext.md)
 - [useComputedStore](functions/useComputedStore.md)
@@ -75,6 +97,7 @@
 
 ## Variables
 
+- [globalOperationQueue](variables/globalOperationQueue.md)
 - [useStoreContext](variables/useStoreContext.md)
 - [useStoreRegistry](variables/useStoreRegistry.md)
 

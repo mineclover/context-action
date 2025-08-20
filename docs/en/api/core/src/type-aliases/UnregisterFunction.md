@@ -8,8 +8,22 @@
 
 > **UnregisterFunction** = () => `void`
 
-Defined in: [packages/core/src/types.ts:390](https://github.com/mineclover/context-action/blob/08bf17d6ec1c09cfe0ffb9710189395df90c9772/packages/core/src/types.ts#L390)
+Defined in: [packages/core/src/types.ts:774](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/core/src/types.ts#L774)
+
+Function type for unregistering action handlers
+
+Returned by the register method to allow removal of specific handlers.
+Calling this function removes the handler from the action pipeline.
 
 ## Returns
 
 `void`
+
+## Example
+
+```typescript
+const unregister = register.register('updateUser', userHandler)
+
+// Later, remove the handler
+unregister()
+```

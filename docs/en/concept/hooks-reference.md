@@ -15,6 +15,65 @@ This document categorizes all available React hooks in the Context-Action framew
 
 These hooks are fundamental to using the Context-Action framework. Most applications will need these.
 
+### 🔧 RefContext Hooks (Performance)
+
+#### `createRefContext<T>()`
+**Factory function** that creates all ref-related hooks for high-performance DOM manipulation.
+- **Purpose**: Creates type-safe direct DOM manipulation system with zero React re-renders
+- **Returns**: `{ Provider, useRefHandler, useWaitForRefs, useGetAllRefs }`
+- **Essential for**: Performance-critical UI, animations, real-time interactions
+
+```tsx
+const {
+  Provider: MouseRefsProvider,
+  useRefHandler: useMouseRef
+} = createRefContext<{
+  cursor: HTMLDivElement;
+  container: HTMLDivElement;
+}>('MouseRefs');
+```
+
+#### `useRefHandler()`
+**Primary hook** for accessing typed ref handlers with direct DOM manipulation.
+- **Purpose**: Get ref handler for specific DOM element with type safety
+- **Essential for**: Direct DOM updates without React re-renders
+- **Pattern**: Performance layer bypassing React reconciliation
+
+```tsx
+function MouseTracker() {
+  const cursor = useMouseRef('cursor');
+  
+  const updatePosition = useCallback((x: number, y: number) => {
+    if (cursor.target) {
+      // Direct DOM manipulation - zero re-renders
+      cursor.target.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    }
+  }, [cursor]);
+  
+  return <div ref={cursor.setRef} />;
+}
+```
+
+#### `useWaitForRefs()`
+**Utility hook** for waiting on multiple refs to mount before executing operations.
+- **Purpose**: Coordinate operations requiring multiple DOM elements
+- **Essential for**: Complex DOM initialization sequences
+- **Pattern**: Async ref coordination
+
+```tsx
+function ComplexComponent() {
+  const canvas = useMouseRef('canvas');
+  const controls = useMouseRef('controls');
+  const waitForRefs = useWaitForRefs();
+  
+  const initialize = useCallback(async () => {
+    const refs = await waitForRefs('canvas', 'controls');
+    // Both refs guaranteed to be available
+    setupCanvasWithControls(refs.canvas, refs.controls);
+  }, [waitForRefs]);
+}
+```
+
 ### 🎯 Action Hooks (Core)
 
 #### `createActionContext<T>()`
@@ -197,8 +256,9 @@ const safeUser = assertStoreValue(user, 'userStore'); // never undefined
 - **Essential**: `useActionDispatch`, `useActionHandler`
 - **Utility**: `useActionDispatchWithResult`, `useActionRegister`
 
-#### Performance
-- **Utility**: `useStoreSelector`, `useComputedStore`, `useStoreActions`
+#### DOM Manipulation & Performance
+- **Essential**: `useRefHandler` (from RefContext)
+- **Utility**: `useWaitForRefs`, `useGetAllRefs`
 
 #### Persistence
 - **Utility**: `usePersistedStore`
