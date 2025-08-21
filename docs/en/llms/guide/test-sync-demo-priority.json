@@ -4,15 +4,24 @@
   "category": "guide",
   "language": "en",
   "priority": 0.8,
-  "tags": ["testing", "sync-docs", "workflow", "demo"],
-  "lastUpdated": "2025-08-21T00:43:09.385Z",
+  "tags": [
+    "testing",
+    "sync-docs",
+    "workflow",
+    "demo"
+  ],
+  "lastUpdated": "2025-08-21T00:50:41.029Z",
   "source": {
     "file": "docs/en/guide/test-sync-demo.md",
-    "lastModified": "2025-08-21T00:43:09.386Z"
+    "lastModified": "2025-08-21T00:44:13.328Z"
   },
   "metadata": {
     "description": "Test document demonstrating sync-docs workflow",
-    "keywords": ["llms-generator", "pre-commit", "synchronization"],
+    "keywords": [
+      "llms-generator",
+      "pre-commit",
+      "synchronization"
+    ],
     "author": "Test System"
   }
 }
