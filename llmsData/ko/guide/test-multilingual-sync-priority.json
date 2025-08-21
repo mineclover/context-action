@@ -1,0 +1,15 @@
+{
+  "documentId": "ko_guide_test-multilingual-sync",
+  "title": "다국어 동기화 테스트",
+  "category": "guide",
+  "language": "ko",
+  "priority": 0.5,
+  "tags": [
+    "bash"
+  ],
+  "lastUpdated": "2025-08-21T03:17:44.521Z",
+  "source": {
+    "file": "docs/ko/guide/test-multilingual-sync.md",
+    "lastModified": "2025-08-21T03:17:28.182Z"
+  }
+}
