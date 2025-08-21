@@ -57,6 +57,23 @@ npm install @context-action/react
 - 🏗️ **HOC Support**: `withProvider()` for automatic component wrapping and context isolation
 - 📊 **Store Registry**: Centralized store management with lifecycle handling and cleanup
 
+### [@context-action/llms-generator](./packages/llms-generator)
+
+Advanced documentation management system with AI-ready content generation and priority-driven workflows.
+
+```bash
+# Install globally for CLI usage
+npm install -g @context-action/llms-generator
+```
+
+**Features:**
+- 🤖 **LLMS-Ready Content**: Generate character-limited summaries with proper YAML frontmatter
+- 📊 **Priority Management**: Automated priority analysis with health scoring and recommendations  
+- 🌐 **Multilingual Support**: Advanced English/Korean processing with intelligent language detection
+- ⚡ **CLI Tools**: Complete command-line interface with `llms` global command
+- 🔄 **Auto-Sync**: Post-commit hooks for seamless documentation workflow
+- 🎯 **Work Management**: Priority-driven task discovery with `work-next` command
+
 
 ## 🏗️ Development Setup
 
@@ -109,7 +126,13 @@ pnpm changed
 # See diff of changes
 pnpm diff
 
-# LLMS Generator commands
+# LLMS Generator commands (using global CLI)
+llms priority-stats          # Priority analysis  
+llms priority-health         # Health check
+llms work-next              # Find next documentation work
+llms clean-llms-generate 500 # Generate 500-char LLMS files
+
+# Local development commands  
 pnpm llms:priority-stats     # Priority analysis
 pnpm llms:priority-health    # Health check
 pnpm llms:sync-docs:ko      # Korean docs only
@@ -296,35 +319,53 @@ Each context manages its corresponding documentation and deliverables:
 ```
 context-action/
 ├── packages/
-│   ├── core/                   # Core action pipeline management
+│   ├── core/                               # Core action pipeline management
 │   │   └── src/
-│   │       ├── ActionRegister.ts    # Central action processing
-│   │       ├── action-guard.ts      # Action guard system
-│   │       ├── execution-modes.ts   # Execution mode management
-│   │       ├── types.ts             # Type definitions
+│   │       ├── ActionRegister.ts           # Central action processing
+│   │       ├── action-guard.ts             # Action guard system
+│   │       ├── execution-modes.ts          # Execution mode management
+│   │       ├── types.ts                    # Type definitions
 │   │       └── index.ts
-│   └── react/                  # React integration with MVVM architecture
-│       └── src/
-│           ├── actions/                         # Action system
-│           │   ├── ActionContext.tsx            # React action context
-│           │   └── utils/                       # Action utilities (reserved)
-│           ├── stores/                          # Advanced store system
-│           │   ├── core/                        # Core store implementation
-│           │   │   ├── Store.ts                 # Store implementation
-│           │   │   ├── StoreContext.tsx         # Store context
-│           │   │   └── StoreRegistry.ts         # Store registry
-│           │   ├── hooks/                       # Store management hooks
-│           │   │   ├── useStoreValue.ts         # Store value hook
-│           │   │   ├── useComputedStore.ts      # Computed store hook
-│           │   │   └── useStoreSelector.ts      # Store selector hook
-│           │   ├── patterns/                    # Store patterns
-│           │   │   └── declarative-store-pattern-v2.tsx # Declarative pattern
-│           │   └── utils/                       # Store utilities
-│           └── index.ts
-├── example/                    # Comprehensive example application
-├── docs/                       # VitePress documentation site
-├── .github/workflows/          # CI/CD and GitHub Pages deployment
-└── scripts/                    # Build and utility scripts
+│   ├── react/                              # React integration with MVVM architecture
+│   │   └── src/
+│   │       ├── actions/                    # Action system
+│   │       │   ├── ActionContext.tsx       # React action context
+│   │       │   └── utils/                  # Action utilities (reserved)
+│   │       ├── stores/                     # Advanced store system
+│   │       │   ├── core/                   # Core store implementation
+│   │       │   │   ├── Store.ts            # Store implementation
+│   │       │   │   ├── StoreContext.tsx    # Store context
+│   │       │   │   └── StoreRegistry.ts    # Store registry
+│   │       │   ├── hooks/                  # Store management hooks
+│   │       │   │   ├── useStoreValue.ts    # Store value hook
+│   │       │   │   ├── useComputedStore.ts # Computed store hook
+│   │       │   │   └── useStoreSelector.ts # Store selector hook
+│   │       │   ├── patterns/               # Store patterns
+│   │       │   │   └── declarative-store-pattern-v2.tsx # Declarative pattern
+│   │       │   └── utils/                  # Store utilities
+│   │       └── index.ts
+│   ├── llms-generator/                     # 🆕 LLMS Generator CLI & System
+│   │   ├── src/
+│   │   │   ├── cli/                        # CLI implementation
+│   │   │   │   ├── commands/               # Command implementations
+│   │   │   │   │   ├── SimpleLLMSCommand.ts      # LLMS content generation
+│   │   │   │   │   ├── PriorityManagerCommand.ts # Priority management
+│   │   │   │   │   ├── SyncDocsCommand.ts        # Document synchronization
+│   │   │   │   │   └── WorkNextCommand.ts        # Work discovery
+│   │   │   │   └── index.ts                # CLI entry point
+│   │   │   ├── core/                       # Core LLMS functionality
+│   │   │   │   ├── EnhancedConfigManager.ts      # Configuration management
+│   │   │   │   └── LLMSOutputPathManager.ts      # Path and output management
+│   │   │   └── types/                      # Type definitions
+│   │   ├── data/                           # JSON schemas and config
+│   │   └── bin/llms                        # Global CLI binary
+│   └── typedoc-vitepress-sync/             # Documentation tooling
+├── example/                                # Comprehensive example application
+├── docs/                                   # VitePress documentation site
+├── llmsData/                               # 🆕 Generated LLMS content
+├── .github/workflows/                      # CI/CD and GitHub Pages deployment
+├── .husky/                                 # 🆕 Git hooks for LLMS auto-sync
+└── scripts/                                # Build and utility scripts
 ```
 
 ## 📚 Documentation & Conventions
@@ -364,24 +405,38 @@ The Context-Action framework provides comprehensive documentation in multiple la
 
 **[📐 Documentation Guidelines](./docs/DOCUMENTATION_GUIDELINES.md)** - 문서화 표준 및 가이드라인
 
-### 🤖 LLMS Generator - Advanced Documentation Management
+### 🤖 LLMS Generator v0.3.1 - Advanced Documentation Management
 
 The Context-Action framework includes a sophisticated **LLMS Generator** system for comprehensive documentation management and priority-driven development workflows.
+
+#### **🚀 New in v0.3.1**
+- ✅ **Global CLI Installation**: Install with `npm install -g @context-action/llms-generator`
+- ✅ **Improved YAML Frontmatter**: All LLMS files now include complete metadata
+- ✅ **Fixed File Naming**: Consistent `priority.json` naming across all templates
+- ✅ **Manual Commit Workflow**: Auto-commit disabled, manual control over LLMS updates
+- ✅ **Enhanced Link Generation**: Proper original document paths in generated content
 
 #### **Priority Management System**
 
 Automated tools for analyzing, maintaining, and optimizing documentation priorities:
 
 ```bash
-# Check priority distribution and health
+# Global CLI usage (recommended)
+llms priority-stats         # Statistical analysis
+llms priority-health        # Consistency checks
+llms priority-suggest       # Actionable recommendations
+llms priority-auto          # Auto-recalculate priorities
+llms work-next             # Find next priority work
+
+# Local development commands
 pnpm llms:priority-stats    # Statistical analysis
 pnpm llms:priority-health   # Consistency checks
 pnpm llms:priority-suggest  # Actionable recommendations
 pnpm llms:priority-auto     # Auto-recalculate priorities
 
 # Manage priority.json files themselves
-pnpm llms:priority-tasks          # Find missing/outdated/invalid priority files
-pnpm llms:priority-tasks:fix      # Auto-fix detected issues
+llms priority-tasks         # Find missing/outdated/invalid priority files
+llms priority-tasks --fix   # Auto-fix detected issues
 ```
 
 **Features:**
@@ -392,42 +447,69 @@ pnpm llms:priority-tasks:fix      # Auto-fix detected issues
 - **Smart Suggestions**: Data-driven recommendations for improvement
 - **Automated Calculation**: Configurable criteria-based priority assignment
 
+#### **LLMS Content Generation**
+
+Generate AI-ready content with proper metadata and character limits:
+
+```bash
+# Global CLI usage (recommended)
+llms clean-llms-generate 500 --language en    # Generate 500-char English files
+llms clean-llms-generate 1000 --language ko   # Generate 1000-char Korean files  
+llms clean-llms-generate --pattern minimal    # Generate minimal pattern files
+llms generate-templates --category guide      # Generate guide templates
+
+# Check generated content
+llms work-next --show-completed               # View completed documentation
+```
+
 #### **Multilingual Document Processing**
 
 Advanced language filtering and processing capabilities for English and Korean documentation:
 
 ```bash
-# Language-specific processing
+# Language-specific processing (local development)
 pnpm llms:sync-docs:ko     # Korean documents only 🇰🇷
 pnpm llms:sync-docs:en     # English documents only 🇺🇸
 pnpm llms:sync-docs:dry    # Preview mode
 
-# Advanced filtering
-node cli.js sync-docs --languages ko,en --changed-files files...
-node cli.js sync-docs --only-korean --changed-files files...
+# Advanced filtering (global CLI)
+llms sync-docs --languages ko,en --changed-files files...
+llms sync-docs --only-korean --changed-files files...
 ```
 
-**Automated Workflow:**
+**v0.3.1 Automated Workflow:**
 - **Post-commit Hook**: Automatically detects `docs/(en|ko)/**/*.md` changes
-- **Template Generation**: Creates 7 character-limited summaries (100-5000 chars)
-- **Priority Metadata**: Generates `priority.json` with title extraction and tags
-- **Separate Commits**: Clean history with dedicated LLMS commits
+- **Template Generation**: Creates 7 character-limited summaries (100-5000 chars) with YAML frontmatter
+- **Priority Metadata**: Generates `priority.json` with enhanced metadata and proper naming
+- **Manual Commit Control**: Files are staged but require manual commit for better control
 
-#### **Generated Documentation Structure**
+#### **Generated Documentation Structure (v0.3.1)**
 
 ```
 llmsData/
-├── en/guide/                    # English templates
-│   ├── example-100.md          # 100 character summary
-│   ├── example-500.md          # 500 character summary  
-│   ├── example-5000.md         # 5000 character summary
-│   └── example-priority.json   # Priority metadata
-└── ko/guide/                    # Korean templates
-    ├── example-100.md          # 100자 요약
-    ├── example-500.md          # 500자 요약
-    ├── example-5000.md         # 5000자 요약
-    └── example-priority.json   # 우선순위 메타데이터
+├── en/
+│   ├── guide--example/              # Document directory
+│   │   ├── priority.json           # ✅ Fixed naming (no prefix)
+│   │   ├── guide--example-100.md   # 100 character summary
+│   │   ├── guide--example-500.md   # 500 character summary
+│   │   ├── guide--example-1000.md  # 1000 character summary
+│   │   └── guide--example-5000.md  # 5000 character summary
+│   └── guide/                       # Alternative structure  
+│       ├── example-100.md          # 100 character summary
+│       ├── example-500.md          # 500 character summary
+│       └── example-5000.md         # 5000 character summary
+└── ko/guide--example/              # Korean templates
+    ├── priority.json               # 우선순위 메타데이터
+    ├── guide--example-100.md       # 100자 요약 (YAML 포함)
+    ├── guide--example-500.md       # 500자 요약 (YAML 포함)
+    └── guide--example-5000.md      # 5000자 요약 (YAML 포함)
 ```
+
+**v0.3.1 File Format Improvements:**
+- ✅ **YAML Frontmatter**: All `.md` files include complete metadata
+- ✅ **Consistent Naming**: `priority.json` without document prefix
+- ✅ **Proper Source Paths**: Links reference original documents (`en/guide/example.md`)
+- ✅ **Enhanced Metadata**: Priority scores, completion status, workflow stage
 
 #### **Complete CLI Reference**
 

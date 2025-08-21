@@ -17,11 +17,32 @@ TypeScript library and CLI tools for generating optimized content from documenta
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Development Status](https://img.shields.io/badge/status-under%20development-orange)
 
+## 🆕 What's New in v0.3.1
+
+- **🌍 Global CLI Installation**: Install globally with `npm install -g @context-action/llms-generator` and use `llms` command anywhere
+- **📋 Enhanced YAML Frontmatter**: Comprehensive metadata generation for all template files with `sync-docs` command
+- **🔧 Git Hook Integration**: Automatic post-commit document synchronization with status updates
+- **📁 Consistent File Naming**: Standardized `priority.json` naming convention across all documents
+- **🔄 Document Synchronization**: New `sync-docs` and `simple-sync` commands for automated workflow management
+- **✅ Improved Path Resolution**: Fixed LLMS document links to show original document paths instead of template paths
+
 ## 🚀 Quick Start
 
-### Installation
+### Global Installation (Recommended)
 
 ```bash
+# Global installation for CLI access anywhere
+npm install -g @context-action/llms-generator
+
+# Use the llms command globally
+llms config-init standard
+llms batch
+```
+
+### Local Installation
+
+```bash
+# Local project installation
 npm install @context-action/llms-generator
 # or
 pnpm add @context-action/llms-generator
@@ -30,26 +51,26 @@ pnpm add @context-action/llms-generator
 ### Basic CLI Usage
 
 ```bash
-# Initialize configuration
+# Global CLI (after global installation)
+llms config-init standard          # Initialize with standard preset
+llms batch                          # Generate all content formats
+llms chars 1000 en                  # Generate specific character limit
+llms generate-md en                 # Generate markdown with YAML frontmatter
+llms generate-all                   # Generate all languages at once
+
+# Local CLI (npx)
 npx llms-generator config-init standard
-
-# Generate all content
 npx llms-generator batch
-
-# Generate specific character limit
 npx llms-generator chars 1000 en
 
-# Generate markdown files with YAML frontmatter
-npx llms-generator generate-md en
-npx llms-generator generate-all
+# Advanced LLMS-TXT generation with filtering
+llms llms-generate --chars=100 --category=api
+llms llms-generate --pattern=minimum --lang=ko
 
-# LLMS-TXT generation with advanced filtering
-npx llms-generator llms-generate --chars=100 --category=api
-npx llms-generator llms-generate --pattern=minimum --lang=ko
-
-# Work status management
-npx llms-generator work-next
-npx llms-generator work-status ko
+# Work status and document management
+llms work-next                      # Find next work item
+llms work-status ko                 # Check Korean document status
+llms sync-docs                      # Sync and generate summaries with YAML frontmatter
 ```
 
 ### Library Usage
@@ -84,8 +105,10 @@ const result = await categoryGen.generateSingle('api-spec', 'en');
 - **Priority-Based**: Intelligent document prioritization and selection
 - **Quality Control**: Built-in quality evaluation and improvement suggestions
 - **Template Auto-Fill**: Automatically populate template files with source content
-- **Markdown Generation**: Generate individual .md files with YAML frontmatter
+- **Markdown Generation**: Generate individual .md files with comprehensive YAML frontmatter
 - **Bulk Generation**: `generate-all` command for all languages at once
+- **Document Synchronization**: Auto-sync with git hooks, YAML frontmatter generation
+- **Global CLI Access**: Use `llms` command from anywhere after global installation
 
 ### 🌐 Multi-Language Support
 - **Primary Languages**: Korean (ko), English (en)
@@ -108,28 +131,35 @@ const result = await categoryGen.generateSingle('api-spec', 'en');
 
 ### Configuration
 ```bash
-npx llms-generator config-init [preset]     # Initialize with preset
-npx llms-generator config-show              # Show current config
-npx llms-generator config-validate          # Validate configuration
-npx llms-generator config-limits            # Show character limits
+llms config-init [preset]           # Initialize with preset (minimal|standard|extended)
+llms config-show                    # Show current configuration
+llms config-validate                # Validate configuration
+llms config-limits                  # Show character limits and settings
+
+# With npx (local installation)
+npx llms-generator config-init standard
 ```
 
 ### Content Generation
 ```bash
-npx llms-generator minimum                  # Generate minimum format
-npx llms-generator origin                   # Generate origin format
-npx llms-generator chars <limit> [lang]     # Generate specific limit
-npx llms-generator batch [options]          # Generate all formats
+llms minimum                        # Generate minimum format
+llms origin                         # Generate origin format  
+llms chars <limit> [lang]           # Generate specific limit
+llms batch [options]                # Generate all formats
 
-# Template Management (NEW!)
-npx llms-generator fill-templates [lang]    # Auto-fill template files with content
-npx llms-generator fill-templates en        # Fill English templates
-npx llms-generator fill-templates ko        # Fill Korean templates
+# Template Management
+llms fill-templates [lang]          # Auto-fill template files with content
+llms fill-templates en              # Fill English templates
+llms fill-templates ko              # Fill Korean templates
 
-# Advanced LLMS-TXT Generation (NEW!)
-npx llms-generator llms-generate [options]  # Generate with filtering & patterns
-npx llms-generator llms-generate --chars=100 --category=api  # Filter by char limit & category
-npx llms-generator llms-generate --pattern=minimum --lang=ko # Use specific pattern
+# Advanced LLMS-TXT Generation
+llms llms-generate [options]        # Generate with filtering & patterns
+llms llms-generate --chars=100 --category=api    # Filter by char limit & category
+llms llms-generate --pattern=minimum --lang=ko   # Use specific pattern
+
+# Document Synchronization (NEW!)
+llms sync-docs                      # Sync docs and generate YAML frontmatter summaries
+llms generate-summaries             # Generate YAML frontmatter for all documents
 ```
 
 ### Priority & Discovery
@@ -141,11 +171,11 @@ npx llms-generator discover [lang]          # Discover documents
 
 ### Work Management
 ```bash
-npx llms-generator work-next [options]      # Identify next work item (NEW!)
-npx llms-generator work-status [lang]       # Check work status
-npx llms-generator work-context <lang> <id> # Get work context
-npx llms-generator work-list [lang]         # List work needed
-npx llms-generator work-check [lang]        # Enhanced work check
+llms work-next [options]            # Identify next work item
+llms work-status [lang]             # Check work status
+llms work-context <lang> <id>       # Get work context
+llms work-list [lang]               # List work needed
+llms work-check [lang]              # Enhanced work check
 ```
 
 ### Adaptive Composition
@@ -165,17 +195,25 @@ npx llms-generator fill-templates --dry-run # Preview changes without writing fi
 
 ### Markdown Generation
 ```bash
-npx llms-generator generate-md [lang]       # Generate .md files for specific language
-npx llms-generator generate-all             # Generate .md files for all languages
-npx llms-generator generate-all --chars=100,500,1000  # Custom character limits
+llms generate-md [lang]             # Generate .md files for specific language
+llms generate-all                   # Generate .md files for all languages
+llms generate-all --chars=100,500,1000     # Custom character limits
+
+# Document Synchronization (v0.3.1)
+llms sync-docs                      # Sync docs with comprehensive YAML frontmatter
+llms simple-sync [lang]             # Simple sync for specific language
 ```
 
 ### Advanced Features
 ```bash
-npx llms-generator extract [lang]           # Extract summaries
-npx llms-generator markdown-generate [lang] # Generate markdown (VitePress)
-npx llms-generator instruction-generate     # Generate instructions
-npx llms-generator generate-summaries       # YAML frontmatter summaries
+llms extract [lang]                 # Extract summaries
+llms markdown-generate [lang]       # Generate markdown (VitePress)
+llms instruction-generate           # Generate instructions
+llms generate-summaries             # YAML frontmatter summaries
+
+# Document Synchronization (v0.3.1)
+llms sync-docs                      # Full document sync with YAML frontmatter
+llms simple-sync [lang]             # Simple language-specific sync
 ```
 
 ## ⚙️ Configuration
@@ -283,8 +321,10 @@ pnpm test:watch                          # Watch mode testing
 pnpm lint                                # (temporarily disabled)
 pnpm clean                               # Clean build artifacts
 
-# Utilities
-pnpm cli                                 # Direct CLI access
+# Global CLI utilities (v0.3.1)
+pnpm cli                                 # Direct CLI access (local)
+npm install -g .                         # Install globally for development
+llms --version                           # Check global installation
 ```
 
 ## 🏗️ Architecture
@@ -342,7 +382,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - **Performance Tracking**: Generation time and resource usage
 - **Work Analytics**: Progress tracking and completion rates
 
-## 🔧 Template Management
+## 🔧 Template Management & Document Synchronization
 
 ### Fill Templates Command
 
@@ -355,25 +395,34 @@ The `fill-templates` command automatically populates template files with content
 - **Quality Control**: Ensures generated content meets quality standards
 - **Status Updates**: Updates template workflow status to `content_filled`
 
+### Document Synchronization (v0.3.1)
+
+The new `sync-docs` command provides comprehensive document synchronization with git integration:
+
+#### Features:
+- **Git Hook Integration**: Automatic post-commit synchronization
+- **YAML Frontmatter Generation**: Complete metadata for all template files
+- **Priority JSON Management**: Consistent `priority.json` file naming
+- **Status Tracking**: Document completion and workflow stage tracking
+- **Batch Processing**: Process multiple documents efficiently
+
 #### Usage Examples:
 
 ```bash
-# Fill all English templates
-npx llms-generator fill-templates en
+# Global CLI commands
+llms fill-templates en              # Fill all English templates
+llms fill-templates ko              # Fill all Korean templates
+llms sync-docs                      # Sync all documents with YAML frontmatter
+llms simple-sync en                 # Simple sync for English documents
 
-# Fill all Korean templates  
-npx llms-generator fill-templates ko
-
-# Preview changes without writing files
-npx llms-generator fill-templates en --dry-run
-
-# Fill templates with verbose output
-npx llms-generator fill-templates en --verbose
+# Local CLI commands
+npx llms-generator fill-templates en --dry-run    # Preview changes
+npx llms-generator sync-docs --verbose            # Verbose synchronization
 ```
 
-#### Template File Format (Standard):
+#### Enhanced Template Format (v0.3.1):
 
-The system supports a simplified template format where content follows directly after the YAML frontmatter:
+The v0.3.1 update provides comprehensive YAML frontmatter with complete document metadata:
 
 ```yaml
 ---
@@ -381,24 +430,31 @@ document_id: api--action-only
 category: api
 source_path: en/api/action-only.md
 character_limit: 100
-last_update: '2025-08-18T02:35:00.000Z'
-update_status: content_only
+last_update: '2025-08-21T10:30:00.000Z'
+update_status: auto_generated
 priority_score: 90
-priority_tier: critical
+priority_tier: high
 completion_status: completed
-workflow_stage: content_finalized
+workflow_stage: content_generated
 ---
 
 Action Only Pattern: Type-safe action dispatching without state management via createActionContext.
 ```
 
-This simplified format is now the **standard template format**, replacing the previous structured format with "## 템플릿 내용" sections.
+#### Key Improvements in v0.3.1:
+- **Comprehensive Metadata**: Complete YAML frontmatter for all generated files
+- **Consistent Naming**: Standardized `priority.json` file naming
+- **Auto-Generation**: Automatic YAML frontmatter creation via `sync-docs`
+- **Git Integration**: Seamless post-commit synchronization
+- **Global CLI**: Enhanced accessibility with global `llms` command
 
 #### Benefits:
-- **Automation**: Eliminates manual template population
-- **Consistency**: Ensures uniform content quality across templates
-- **Efficiency**: Processes multiple templates in batch operations
-- **Validation**: Automatically validates template completeness
+- **Automation**: Eliminates manual template population and synchronization
+- **Consistency**: Ensures uniform content quality and metadata across all templates
+- **Efficiency**: Processes multiple templates and documents in batch operations
+- **Validation**: Automatically validates template completeness and metadata accuracy
+- **Git Integration**: Seamless workflow with automatic post-commit synchronization
+- **Global Accessibility**: Use `llms` command from anywhere after global installation
 
 ---
 

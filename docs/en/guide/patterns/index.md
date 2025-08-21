@@ -1,23 +1,48 @@
-# Code Patterns
+# Patterns
 
-Collection of essential patterns for the Context-Action framework, focusing on RefContext and useWaitForRefs functionality.
+This section contains comprehensive code patterns and implementation guides for the Context-Action framework.
 
-## Core Patterns
+## Core Framework Patterns
 
-### [RefContext Setup](./ref-context-setup.md)
-Basic setup pattern for RefContext with proper TypeScript types and provider integration.
+### Action Patterns
+- **[Action Patterns](./action/)** - Pure action dispatching without state management
+  - [Basic Usage](./action/basic-usage.md) - Fundamental Action Only pattern implementation
+  - [Register Delegation](./action/register-delegation.md) - Advanced pattern for modular handler organization
 
-### [Conditional Await](./conditional-await.md)
-Core behavior of useWaitForRefs that conditionally waits or returns immediately based on element mount state.
+### Store Patterns  
+- **[Store Patterns](./store/)** - Type-safe state management (Recommended)
+  - [Basic Usage](./store/basic-usage.md) - Fundamental Store Only pattern with type inference
+  - [HOC Pattern](./store/hoc-pattern.md) - Higher-Order Component pattern for automatic Provider wrapping
+  - [Advanced Config](./store/advanced-config.md) - Performance optimization and custom comparison strategies
 
-### [Wait-Then-Execute](./wait-then-execute.md)
-Pattern for safely executing DOM operations after ensuring element availability.
+### Ref Patterns
+- **[Ref Patterns](./ref/)** - Direct DOM manipulation with zero re-renders
+  - [Basic Usage](./ref/basic-usage.md) - Fundamental RefContext pattern with type-safe ref management
+  - [Multi-Context](./ref/multi-context.md) - Multiple RefContext composition for complex applications
+  - [Performance](./ref/performance.md) - Hardware acceleration and performance optimization
 
-### [Real-time State Access](./real-time-state-access.md)
-Pattern for avoiding closure traps by accessing current state in real-time using `store.getValue()`.
+### Architecture Patterns
+- **[Architecture Patterns](./architecture/)** - System architecture and design patterns
+  - [MVVM](./architecture/mvvm.md) - Model-View-ViewModel architecture with layer separation
+  - [Domain Context](./architecture/domain-context.md) - Document-centric domain separation for multi-domain apps
+  - [Composition](./architecture/composition.md) - Pattern composition strategies for complex applications
 
-### [Timeout Protection](./timeout-protection.md)
-Pattern for protecting against infinite waits with timeout mechanisms and retry logic.
+### Async Patterns
+- **[Async Patterns](./async/)** - Asynchronous operation patterns and control flow
+  - [Real-time State Access](./async/real-time-state-access.md) - Avoiding closure traps with store.getValue()
+  - [Wait-Then-Execute](./async/wait-then-execute.md) - Safe DOM operations after element availability
+  - [Conditional Await](./async/conditional-await.md) - Smart waiting based on conditions
+  - [Timeout Protection](./async/timeout-protection.md) - Preventing infinite waits with fallback strategies
+
+## Quick Start Guide
+
+| Pattern | Use Case | Import | Best For |
+|---------|----------|--------|----------|
+| **🎯 Action Only** | Action dispatching without stores | `createActionContext` | Event systems, command patterns |
+| **🏪 Store Only** | State management without actions | `createDeclarativeStorePattern` | Pure state management, data layers |
+| **🔧 Ref Context** | Direct DOM manipulation with zero re-renders | `createRefContext` | High-performance UI, animations, real-time interactions |
+
+**Note**: For complex applications, compose patterns together for maximum flexibility and separation of concerns.
 
 ## Usage Guidelines
 
@@ -27,9 +52,23 @@ Each pattern includes:
 - 🎯 **Use cases** for when to apply the pattern
 - ⚡ **Performance considerations** and optimization tips
 
-## Pattern Composition
+## Architecture Decision Guide
+
+### Single Domain Applications
+1. **Simple Apps**: Start with **Store Only Pattern**
+2. **Interactive Apps**: Add **Action Only Pattern** for business logic
+3. **High-Performance Apps**: Add **RefContext Pattern** for animations
+4. **Complex Apps**: Use **MVVM Architecture** for perfect layer separation
+
+### Multi-Domain Applications
+1. **Team Boundaries**: Use **Domain Context Architecture** for business separation
+2. **Combined Approach**: Apply **MVVM Architecture** within each business domain
+3. **Enterprise Scale**: Combine all patterns with proper domain isolation
+
+## Pattern Integration
 
 These patterns can be combined for complex scenarios:
-- **RefContext Setup** + **Conditional Await** for basic element waiting
-- **Real-time State Access** + **Wait-Then-Execute** for race condition prevention
-- **Timeout Protection** + any pattern for robust error handling
+- **Action Only** + **Store Only** for complete business logic separation
+- **RefContext** + **Store Only** for high-performance state-driven animations
+- **All Three Patterns** + **Domain Architecture** for enterprise applications
+- **MVVM Architecture** for perfect architectural layer separation

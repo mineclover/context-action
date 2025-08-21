@@ -1,17 +1,23 @@
 # Code Patterns
 
-Core patterns for Context-Action framework's RefContext and useWaitForRefs functionality.
+**📁 For comprehensive patterns and implementation guides, visit: [Pattern Collection](./patterns/)**
 
-For detailed examples and implementation guidelines, see the organized pattern collection:
+This section has been reorganized into the dedicated [patterns directory](./patterns/) with clear categorization:
 
-## 📁 [Pattern Collection](./patterns/)
+## 🎯 Core Framework Patterns
+- **[Action Only Pattern](./patterns/action-only-pattern.md)** - Pure action dispatching
+- **[Store Only Pattern](./patterns/store-only-pattern.md)** - Type-safe state management  
+- **[RefContext Pattern](./patterns/ref-context-pattern.md)** - Zero re-render DOM manipulation
 
-### Core Patterns
-- **[RefContext Setup](./patterns/ref-context-setup.md)** - Basic setup with TypeScript types
-- **[Conditional Await](./patterns/conditional-await.md)** - Core useWaitForRefs behavior
-- **[Wait-Then-Execute](./patterns/wait-then-execute.md)** - Safe DOM manipulation
-- **[Real-time State Access](./patterns/real-time-state-access.md)** - Avoiding closure traps
-- **[Timeout Protection](./patterns/timeout-protection.md)** - Preventing infinite waits
+## 🏗️ Architecture Patterns
+- **[Pattern Composition](./patterns/pattern-composition.md)** - Combining patterns for complex apps
+- **[MVVM Architecture](./patterns/mvvm-architecture.md)** - Single domain architectural layers
+- **[Domain Context Architecture](./patterns/domain-context-architecture.md)** - Multi-domain business separation
+
+## ⚡ Advanced Patterns
+- **[Async Patterns](./patterns/async-patterns.md)** - Real-time state, element waiting, timeout protection
+
+> **Migration Note**: All individual pattern files have been consolidated and organized. Please use the [patterns directory](./patterns/) for the most up-to-date documentation.
 
 ## Quick Reference
 

@@ -68,8 +68,46 @@ function MyComponent() {
 }
 ```
 
+## Advanced Patterns
+
+### Multiple Store Coordination
+
+```typescript
+useActionHandler('complexAction', async (payload) => {
+  const userState = userStore.getValue();
+  const settingsState = settingsStore.getValue();
+  const uiState = uiStore.getValue();
+  
+  // Use all current states for decision making
+  if (userState.isLoggedIn && settingsState.apiEnabled && !uiState.isLoading) {
+    // Execute complex logic
+  }
+});
+```
+
+### State Validation and Updates
+
+```typescript
+useActionHandler('validateAndUpdate', async (payload) => {
+  const current = dataStore.getValue();
+  
+  // Validate current state
+  if (current.version !== payload.expectedVersion) {
+    throw new Error('Version mismatch');
+  }
+  
+  // Update with current state as base
+  dataStore.setValue({
+    ...current,
+    ...payload.updates,
+    version: current.version + 1
+  });
+});
+```
+
 ## Key Benefits
 
 - **No Stale Closures**: Always access current state
 - **Race Condition Prevention**: Real-time checks prevent conflicts
 - **Performance**: Avoid unnecessary re-renders from dependencies
+- **Reliability**: Guaranteed fresh state values
