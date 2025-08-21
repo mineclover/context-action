@@ -12,4 +12,4 @@ workflow_stage: content_generated
 ---
 액션 핸들러
 
-액션 핸들러는 애플리케이션의 비즈니스 로직을 포함합니다.
+useActionHandler 패턴으로 비즈니스 로직 구현. 순차/병렬 실행, 에러 처리, 메모리 정리 지원.
