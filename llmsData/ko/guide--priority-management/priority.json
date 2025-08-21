@@ -1,0 +1,46 @@
+{
+  "document": {
+    "id": "guide--priority-management",
+    "title": "우선순위 관리 시스템",
+    "category": "guide",
+    "source_path": "ko/guide/priority-management.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about 우선순위 관리 시스템",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing 우선순위 관리 시스템",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "bash",
+      "javascript",
+      "json",
+      "yaml",
+      "pnpm",
+      "node",
+      "typescript",
+      "react"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "우선순위 관리 시스템은 LLMS Generator 프레임워크에서 문서 우선순위를 자동으로 분석, 유지 및 최적화하는 도구를 제공합니다.",
+    "language": "ko",
+    "created_at": "2025-08-21T13:34:01.905Z"
+  }
+}

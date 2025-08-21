@@ -1,0 +1,46 @@
+{
+  "document": {
+    "id": "guide--llms-cli-comprehensive-reference",
+    "title": "LLMS Generator CLI - 종합 구현 참조서",
+    "category": "guide",
+    "source_path": "ko/guide/llms-cli-comprehensive-reference.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about llms generator cli - 종합 구현 참조서",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing llms generator cli - 종합 구현 참조서",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "bash",
+      "json",
+      "yaml",
+      "npm",
+      "pnpm",
+      "node",
+      "typescript",
+      "api"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "LLMS Generator 시스템의 모든 구현된 CLI 명령어와 기능에 대한 완전한 문서입니다.",
+    "language": "ko",
+    "created_at": "2025-08-21T13:34:01.903Z"
+  }
+}
