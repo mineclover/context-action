@@ -29,7 +29,7 @@ import type {
  * 
  * @throws {Error} When a blocking handler fails or validation errors occur
  * 
- * @see https://mineclover.github.io/context-action/en/guide/patterns/action/advanced-patterns
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/action/dispatch-patterns
  * 
  * @public
  */
@@ -156,7 +156,7 @@ export async function executeSequential<T, R = void>(
  * 
  * @throws {Error} When any blocking handler fails
  * 
- * @see https://mineclover.github.io/context-action/en/guide/patterns/action/advanced-patterns#parallel-execution
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/action/dispatch-patterns#parallel-execution
  * 
  * @public
  */
@@ -263,7 +263,7 @@ export async function executeParallel<T, R = void>(
  * 
  * @throws {Error} When the winning handler fails and is blocking
  * 
- * @see https://mineclover.github.io/context-action/en/guide/patterns/action/advanced-patterns#race-execution
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/action/dispatch-patterns#race-execution
  * 
  * @public
  */
