@@ -1,0 +1,1 @@
+RefContext로 React 리렌더링 없이 고성능 DOM 조작 구현. TypeScript 타입 안전성과 GPU 가속을 활용한 60fps 실시간 인터랙션 최적화 가이드.
