@@ -6,7 +6,7 @@
  */
 
 import { createDeclarativeStorePattern } from '../../../src/stores/patterns/declarative-store-pattern-v2';
-import { createActionContext } from '../../../src/actions/ActionContext';
+import { createActionContext } from '@context-action/react';
 import type { ActionPayloadMap } from '@context-action/core';
 
 // ============================================================================

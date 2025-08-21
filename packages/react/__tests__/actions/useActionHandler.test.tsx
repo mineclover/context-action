@@ -4,7 +4,7 @@
 
 import { renderHook, act } from '@testing-library/react';
 import React, { useCallback } from 'react';
-import { createActionContext } from '../../src/actions/ActionContext';
+import { createActionContext } from '@context-action/react';
 
 interface TestActions {
   fetchData: { id: string };

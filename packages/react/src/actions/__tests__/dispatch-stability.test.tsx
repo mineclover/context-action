@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { render, act } from '@testing-library/react';
-import { createActionContext } from '../ActionContext';
+import { createActionContext } from '@context-action/react';
 
 interface TestActions {
   testAction: { message: string };
