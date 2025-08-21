@@ -237,22 +237,55 @@ export class SyncDocsCommand {
     const priorityPath = this.getPriorityJsonPath(change);
     
     try {
-      // 이미 존재하는지 확인
-      await fs.access(priorityPath);
-      return null; // 이미 존재하면 업데이트하지 않음
-    } catch {
-      // 존재하지 않으면 기본 priority.json 생성
+      // 파일 상태 확인
+      const [priorityExists, sourceStats] = await Promise.all([
+        fs.access(priorityPath).then(() => true).catch(() => false),
+        fs.stat(change.filePath)
+      ]);
+      
+      if (priorityExists) {
+        // 기존 priority.json 읽기
+        const existingContent = await fs.readFile(priorityPath, 'utf-8');
+        const existingPriority = JSON.parse(existingContent);
+        
+        // 소스 파일이 더 최신인지 확인
+        const priorityModified = new Date(existingPriority.source?.lastModified || 0);
+        const sourceModified = new Date(sourceStats.mtime);
+        
+        if (sourceModified > priorityModified) {
+          // 업데이트 필요 - 기존 메타데이터 유지하면서 업데이트
+          const updatedPriority = {
+            ...existingPriority,
+            lastUpdated: new Date().toISOString(),
+            source: {
+              ...existingPriority.source,
+              file: change.filePath,
+              lastModified: sourceStats.mtime.toISOString()
+            }
+          };
+          
+          await fs.writeFile(priorityPath, JSON.stringify(updatedPriority, null, 2));
+          return priorityPath;
+        }
+        
+        return null; // 업데이트 불필요
+      }
+      
+      // 새로 생성
+      const sourceContent = await fs.readFile(change.filePath, 'utf-8');
+      const title = this.extractTitle(sourceContent) || path.basename(change.filePath, '.md');
+      
       const defaultPriority = {
         documentId: change.documentId,
-        title: path.basename(change.filePath, '.md'),
+        title: title,
         category: change.category,
         language: change.language,
-        priority: 0.5, // 기본 우선순위
-        tags: [],
+        priority: 0.5,
+        tags: this.extractTags(sourceContent),
         lastUpdated: new Date().toISOString(),
         source: {
           file: change.filePath,
-          lastModified: new Date().toISOString()
+          lastModified: sourceStats.mtime.toISOString()
         }
       };
 
@@ -260,18 +293,187 @@ export class SyncDocsCommand {
       await fs.writeFile(priorityPath, JSON.stringify(defaultPriority, null, 2));
       
       return priorityPath;
+    } catch (error) {
+      console.warn(`⚠️  Warning: Could not process priority.json for ${change.documentId}:`, error instanceof Error ? error.message : error);
+      return null;
     }
   }
 
-  private async updateTemplates(_change: DocumentChange, _quiet = false): Promise<string[]> {
-    // GenerateTemplatesCommand를 활용하여 특정 문서의 템플릿만 업데이트
-    // 현재는 간단한 버전으로 구현
-    return [];
+  private async updateTemplates(change: DocumentChange, quiet = false): Promise<string[]> {
+    const updatedFiles: string[] = [];
+    const characterLimits = change.affectedOutputs.templates;
+    
+    if (characterLimits.length === 0) {
+      return updatedFiles;
+    }
+    
+    try {
+      // 소스 문서 읽기
+      const sourceContent = await fs.readFile(change.filePath, 'utf-8');
+      
+      for (const limit of characterLimits) {
+        const templatePath = this.getTemplatePath(change, limit);
+        
+        // 템플릿 파일이 이미 존재하는지 확인
+        const templateExists = await fs.access(templatePath).then(() => true).catch(() => false);
+        
+        if (templateExists) {
+          // 기존 템플릿 읽기
+          const existingTemplate = await fs.readFile(templatePath, 'utf-8');
+          
+          // 템플릿이 비어있거나 placeholder인 경우에만 업데이트
+          if (this.isTemplateEmpty(existingTemplate)) {
+            const summary = this.generateSummary(sourceContent, limit);
+            await fs.writeFile(templatePath, summary);
+            updatedFiles.push(templatePath);
+            
+            if (!quiet) {
+              console.log(`   ✅ Updated template: ${path.basename(templatePath)}`);
+            }
+          }
+        } else {
+          // 새 템플릿 생성
+          const summary = this.generateSummary(sourceContent, limit);
+          await fs.mkdir(path.dirname(templatePath), { recursive: true });
+          await fs.writeFile(templatePath, summary);
+          updatedFiles.push(templatePath);
+          
+          if (!quiet) {
+            console.log(`   ✅ Created template: ${path.basename(templatePath)}`);
+          }
+        }
+      }
+    } catch (error) {
+      console.warn(`⚠️  Warning: Could not update templates for ${change.documentId}:`, error instanceof Error ? error.message : error);
+    }
+    
+    return updatedFiles;
   }
 
   private getPriorityJsonPath(change: DocumentChange): string {
     const docsDir = this.config.paths?.docsDir || './docs';
     return path.join(docsDir, change.language, 'llms', change.category, `${path.basename(change.filePath, '.md')}-priority.json`);
+  }
+  
+  private getTemplatePath(change: DocumentChange, characterLimit: number): string {
+    const docsDir = this.config.paths?.docsDir || './docs';
+    const fileName = path.basename(change.filePath, '.md');
+    return path.join(docsDir, change.language, 'llms', change.category, `${fileName}-${characterLimit}.md`);
+  }
+  
+  private extractTitle(content: string): string | null {
+    const lines = content.split('\n');
+    for (const line of lines) {
+      const match = line.match(/^#\s+(.+)$/);
+      if (match) {
+        return match[1].trim();
+      }
+    }
+    return null;
+  }
+  
+  private extractTags(content: string): string[] {
+    const tags: string[] = [];
+    
+    // Extract from keywords in headers
+    const keywordMatch = content.match(/##\s*(?:Keywords?|Tags?|Topics?)[:\s]*([^\n]+)/i);
+    if (keywordMatch) {
+      const keywords = keywordMatch[1].split(/[,;]/).map(k => k.trim().toLowerCase());
+      tags.push(...keywords.filter(k => k.length > 0));
+    }
+    
+    // Extract from code fence languages
+    const codeFences = content.match(/```(\w+)/g);
+    if (codeFences) {
+      const languages = codeFences.map(fence => fence.replace('```', '').toLowerCase());
+      tags.push(...[...new Set(languages)]);
+    }
+    
+    return [...new Set(tags)].slice(0, 10); // Limit to 10 unique tags
+  }
+  
+  private isTemplateEmpty(content: string): boolean {
+    // Check if template is empty or just a placeholder
+    const trimmed = content.trim();
+    return trimmed.length === 0 || 
+           trimmed === 'TODO' || 
+           trimmed.includes('placeholder') ||
+           trimmed.includes('PLACEHOLDER');
+  }
+  
+  private generateSummary(content: string, characterLimit: number): string {
+    // Remove markdown formatting for summary
+    let plainText = content
+      .replace(/```[\s\S]*?```/g, '') // Remove code blocks
+      .replace(/#{1,6}\s+/g, '') // Remove headers
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links but keep text
+      .replace(/[*_~`]/g, '') // Remove formatting characters
+      .replace(/\n\n+/g, ' ') // Replace multiple newlines with space
+      .replace(/\n/g, ' ') // Replace single newlines with space
+      .trim();
+    
+    // Extract title
+    const titleMatch = content.match(/^#\s+(.+)$/m);
+    const title = titleMatch ? titleMatch[1].trim() : 'Document';
+    
+    // Generate summary based on character limit
+    if (characterLimit <= 100) {
+      // Very short summary - just title and brief description
+      return this.truncateText(`${title} - ${this.getFirstSentence(plainText)}`, characterLimit);
+    } else if (characterLimit <= 300) {
+      // Short summary - title and main points
+      const mainPoints = this.extractMainPoints(content, 2);
+      const summary = `${title}\n\n${plainText.slice(0, 150)}${mainPoints.length > 0 ? '\n\nKey points:\n' + mainPoints.join('\n') : ''}`;
+      return this.truncateText(summary, characterLimit);
+    } else {
+      // Longer summary - include more detail
+      const mainPoints = this.extractMainPoints(content, Math.floor(characterLimit / 100));
+      const summary = `${title}\n\n${plainText.slice(0, characterLimit * 0.6)}${mainPoints.length > 0 ? '\n\nKey points:\n' + mainPoints.join('\n') : ''}`;
+      return this.truncateText(summary, characterLimit);
+    }
+  }
+  
+  private getFirstSentence(text: string): string {
+    const match = text.match(/^[^.!?]+[.!?]/);
+    return match ? match[0].trim() : text.slice(0, 100);
+  }
+  
+  private extractMainPoints(content: string, maxPoints: number): string[] {
+    const points: string[] = [];
+    
+    // Look for list items
+    const listItems = content.match(/^[-*+]\s+(.+)$/gm);
+    if (listItems) {
+      points.push(...listItems.slice(0, maxPoints).map(item => 
+        item.replace(/^[-*+]\s+/, '• ').trim()
+      ));
+    }
+    
+    // Look for numbered items
+    const numberedItems = content.match(/^\d+\.\s+(.+)$/gm);
+    if (numberedItems && points.length < maxPoints) {
+      points.push(...numberedItems.slice(0, maxPoints - points.length).map(item => 
+        item.replace(/^\d+\.\s+/, '• ').trim()
+      ));
+    }
+    
+    return points.slice(0, maxPoints);
+  }
+  
+  private truncateText(text: string, limit: number): string {
+    if (text.length <= limit) {
+      return text;
+    }
+    
+    // Try to cut at a word boundary
+    const truncated = text.slice(0, limit - 3);
+    const lastSpace = truncated.lastIndexOf(' ');
+    
+    if (lastSpace > limit * 0.8) {
+      return truncated.slice(0, lastSpace) + '...';
+    }
+    
+    return truncated + '...';
   }
 
   private async updateGitStaging(updatedFiles: string[], quiet = false): Promise<void> {
