@@ -12,50 +12,70 @@ Both can be used together - MVVM provides the architectural structure while Doma
 
 ### MVVM Layer Structure
 
-```typescript
-// Model Layer (Store Only Pattern - Data Management)
-┌─────────────────────────────────────────┐
-│  Reactive State Management              │
-│  • Store definitions and data          │
-│  • Type-safe state containers          │
-│  • Reactive subscriptions              │
-│  • Domain-specific data models         │
-└─────────────────────────────────────────┘
-
-// ViewModel Layer (Action Only Pattern - Business Logic)
-┌─────────────────────────────────────────┐
-│  Action Pipeline System                 │
-│  • Business logic handlers             │
-│  • Side effects coordination           │
-│  • Cross-domain communication          │
-│  • Event handling and orchestration    │
-└─────────────────────────────────────────┘
-
-// Performance Layer (RefContext Pattern - Direct DOM)
-┌─────────────────────────────────────────┐
-│  Direct DOM Manipulation               │
-│  • Zero React re-renders               │
-│  • Hardware acceleration               │
-│  • High-performance interactions       │
-│  • Real-time visual updates            │
-└─────────────────────────────────────────┘
-
-// View Layer (React Components - UI Presentation)
-┌─────────────────────────────────────────┐
-│  React Component Tree                   │
-│  • UI presentation and structure       │
-│  • Event binding and dispatching       │
-│  • Provider composition                │
-│  • Component lifecycle management      │
-└─────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph "MVVM Architecture Layers"
+        subgraph Model["🗄️ Model Layer (Store Only Pattern)"]
+            M1["📊 Reactive State Management"]
+            M2["🏪 Store definitions and data"]
+            M3["🔒 Type-safe state containers"]
+            M4["🔄 Reactive subscriptions"]
+            M5["📋 Domain-specific data models"]
+        end
+        
+        subgraph ViewModel["⚙️ ViewModel Layer (Action Only Pattern)"]
+            VM1["🚀 Action Pipeline System"]
+            VM2["🧠 Business logic handlers"]
+            VM3["🔗 Side effects coordination"]
+            VM4["📡 Cross-domain communication"]
+            VM5["🎯 Event handling and orchestration"]
+        end
+        
+        subgraph Performance["⚡ Performance Layer (RefContext Pattern)"]
+            P1["🎨 Direct DOM Manipulation"]
+            P2["🚫 Zero React re-renders"]
+            P3["🏎️ Hardware acceleration"]
+            P4["⚡ High-performance interactions"]
+            P5["📺 Real-time visual updates"]
+        end
+        
+        subgraph View["🖼️ View Layer (React Components)"]
+            V1["⚛️ React Component Tree"]
+            V2["🎭 UI presentation and structure"]
+            V3["🔘 Event binding and dispatching"]
+            V4["🔌 Provider composition"]
+            V5["♻️ Component lifecycle management"]
+        end
+    end
+    
+    View --> ViewModel
+    ViewModel --> Model
+    Model --> View
+    ViewModel --> Performance
 ```
 
 ### Core Architecture Flow
 
-```
-[View] → dispatch → [ViewModel] → handlers → [Model] → subscribe → [View]
-                         ↓
-                   [Performance] → Direct DOM → Hardware Acceleration
+```mermaid
+flowchart LR
+    View["🖼️ View Layer"]
+    ViewModel["⚙️ ViewModel Layer"]
+    Model["🗄️ Model Layer"]
+    Performance["⚡ Performance Layer"]
+    DOM["🎨 Direct DOM"]
+    Hardware["🏎️ Hardware Acceleration"]
+    
+    View -->|"dispatch"| ViewModel
+    ViewModel -->|"handlers"| Model
+    Model -->|"subscribe"| View
+    ViewModel -->|"ref access"| Performance
+    Performance --> DOM
+    DOM --> Hardware
+    
+    style View fill:#e1f5fe
+    style ViewModel fill:#f3e5f5
+    style Model fill:#e8f5e8
+    style Performance fill:#fff3e0
 ```
 
 ## Implementation Patterns
@@ -474,6 +494,63 @@ function UserMVVMHandlers() {
 
 ### Multi-Domain MVVM
 
+#### Architecture Diagram
+
+```mermaid
+graph TB
+    subgraph "Multi-Domain MVVM Architecture"
+        subgraph UserDomain["👤 User Domain MVVM"]
+            UM["🗄️ User Model"]
+            UVM["⚙️ User ViewModel"]
+            UP["⚡ User Performance"]
+            UV["🖼️ User View"]
+        end
+        
+        subgraph ProductDomain["📦 Product Domain MVVM"]
+            PM["🗄️ Product Model"]
+            PVM["⚙️ Product ViewModel"]
+            PP["⚡ Product Performance"]
+            PV["🖼️ Product View"]
+        end
+        
+        subgraph CartDomain["🛒 Cart Domain MVVM"]
+            CM["🗄️ Cart Model"]
+            CVM["⚙️ Cart ViewModel"]
+            CP["⚡ Cart Performance"]
+            CV["🖼️ Cart View"]
+        end
+        
+        subgraph Integration["🔗 Integration Layer"]
+            IVM["⚙️ Integration ViewModel"]
+        end
+        
+        App["🚀 ECommerce App"]
+    end
+    
+    UV --> UVM
+    UVM --> UM
+    PV --> PVM
+    PVM --> PM
+    CV --> CVM
+    CVM --> CM
+    
+    IVM -.->|"Cross-domain logic"| UVM
+    IVM -.->|"Cross-domain logic"| PVM
+    IVM -.->|"Cross-domain logic"| CVM
+    
+    UserDomain --> App
+    ProductDomain --> App
+    CartDomain --> App
+    Integration --> App
+    
+    style UserDomain fill:#e3f2fd
+    style ProductDomain fill:#f3e5f5
+    style CartDomain fill:#e8f5e8
+    style Integration fill:#fff8e1
+```
+
+#### Implementation
+
 ```tsx
 // Multiple domain MVVMs composed together
 function MultiDomainApp() {
@@ -629,6 +706,54 @@ describe('User ViewModel Layer', () => {
 - **View**: Minimize re-renders through selective subscriptions
 
 ## When to Use MVVM vs Domain Architecture
+
+### Architecture Comparison
+
+```mermaid
+graph TB
+    subgraph "MVVM Architecture"
+        subgraph MVVM["🏗️ Layered Architecture"]
+            M_Layer["🗄️ Model Layer<br/>Data Management"]
+            VM_Layer["⚙️ ViewModel Layer<br/>Business Logic"]
+            P_Layer["⚡ Performance Layer<br/>DOM Operations"]
+            V_Layer["🖼️ View Layer<br/>UI Components"]
+            
+            V_Layer --> VM_Layer
+            VM_Layer --> M_Layer
+            VM_Layer --> P_Layer
+        end
+    end
+    
+    subgraph "Domain Architecture"
+        subgraph Domain["🎯 Domain-Driven"]
+            B_Context["💼 Business Context<br/>Core Logic"]
+            U_Context["👥 UI Context<br/>Interface State"]
+            V_Context["✅ Validation Context<br/>Data Rules"]
+            D_Context["🎨 Design Context<br/>Visual State"]
+            
+            B_Context -.->|"coordinates"| U_Context
+            B_Context -.->|"validates"| V_Context
+            B_Context -.->|"styles"| D_Context
+        end
+    end
+    
+    subgraph "Combined Approach"
+        subgraph Enterprise["🏢 Enterprise Scale"]
+            UserDomain["👤 User Domain<br/>MVVM"]
+            ProductDomain["📦 Product Domain<br/>MVVM"]
+            OrderDomain["📋 Order Domain<br/>MVVM"]
+            
+            UserDomain -.->|"integration"| ProductDomain
+            ProductDomain -.->|"integration"| OrderDomain
+        end
+    end
+    
+    style MVVM fill:#e3f2fd
+    style Domain fill:#f3e5f5
+    style Enterprise fill:#e8f5e8
+```
+
+### Selection Guide
 
 | Pattern | Best For | Structure |
 |---------|----------|----------|

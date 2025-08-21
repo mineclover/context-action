@@ -110,60 +110,33 @@ function UserManagement() {
 
 ## Register-Based Dispatch
 
-Direct access to the ActionRegister instance for advanced use cases and non-React environments.
+Access to the ActionRegister instance through React context for advanced use cases within React applications.
 
-### Basic Register Access
-
-```typescript
-import { ActionRegister } from '@context-action/core'
-
-// Create register instance
-const register = new ActionRegister<AppActions>('MyApp')
-
-// Register handlers
-register.register('updateUser', async (payload, controller) => {
-  const user = await userService.update(payload.id, payload)
-  controller.setResult(user)
-})
-
-// Dispatch actions
-await register.dispatch('updateUser', { id: '123', name: 'John' })
-```
-
-### Register with Result Collection
+### Advanced Dispatch with Register Access
 
 ```typescript
-// Dispatch with detailed result information
-const result = await register.dispatchWithResult('updateUser', payload)
+function AdvancedDispatchComponent() {
+  const register = useActionRegister()  // From createActionContext
+  
+  const handleAdvancedDispatch = async () => {
+    if (!register) return
+    
+    // Dispatch with detailed result information
+    const result = await register.dispatchWithResult('updateUser', payload)
 
-if (result.success) {
-  console.log('Execution details:', {
-    duration: result.execution.duration,
-    handlersExecuted: result.execution.handlersExecuted,
-    results: result.results
-  })
-} else {
-  console.error('Action failed:', result.error)
+    if (result.success) {
+      console.log('Execution details:', {
+        duration: result.execution.duration,
+        handlersExecuted: result.execution.handlersExecuted,
+        results: result.results
+      })
+    } else {
+      console.error('Action failed:', result.error)
+    }
+  }
+  
+  return <button onClick={handleAdvancedDispatch}>Advanced Dispatch</button>
 }
-```
-
-### Advanced Register Configuration
-
-```typescript
-const register = new ActionRegister<AppActions>('MyApp', {
-  debug: true,
-  maxHandlers: 10,
-  defaultExecutionMode: 'sequential',
-  enableMetrics: true
-})
-
-// Register with advanced options
-register.register('complexAction', handler, {
-  priority: 100,
-  tags: ['business', 'critical'],
-  timeout: 5000,
-  debounce: 300
-})
 ```
 
 ## React Integration with Register Access
@@ -255,11 +228,10 @@ function DebugPanel() {
 - More complex error handling
 
 **Use Cases:**
-- Non-React environments (Node.js, vanilla JS)
-- Advanced dispatch configurations
-- Testing and debugging scenarios
-- Service layer implementations
+- Advanced dispatch configurations within React components
+- Testing and debugging scenarios  
 - Complex business logic requiring register metadata
+- Service layer implementations within React context
 
 ## Best Practices
 
@@ -281,14 +253,16 @@ function UserForm() {
 ### When to Use Register
 
 ```typescript
-// ✅ Service layer or utility functions
-class UserService {
-  constructor(private register: ActionRegister<UserActions>) {}
+// ✅ Service layer within React context
+function UserManagement() {
+  const register = useActionRegister()  // From createActionContext
   
-  async batchUpdateUsers(users: User[]) {
+  const batchUpdateUsers = async (users: User[]) => {
+    if (!register) return []
+    
     const results = await Promise.all(
       users.map(user => 
-        this.register.dispatchWithResult('updateUser', user, {
+        register.dispatchWithResult('updateUser', user, {
           executionMode: 'parallel',
           timeout: 10000
         })
@@ -297,29 +271,34 @@ class UserService {
     
     return results.filter(r => r.success)
   }
+  
+  return <button onClick={() => batchUpdateUsers(selectedUsers)}>Batch Update</button>
 }
 ```
 
 ### Hybrid Approach
 
 ```typescript
-// ✅ Component uses hook, calls service with register
+// ✅ Component uses both hook dispatch and register for complex operations
 function UserManagement() {
   const dispatch = useActionDispatch()  // From createActionContext
   const register = useActionRegister()  // From createActionContext
-  const userService = useMemo(() => 
-    register ? new UserService(register) : null, 
-    [register]
-  )
   
   const handleBatchUpdate = async () => {
-    if (!userService) return
+    if (!register) return
     
-    const results = await userService.batchUpdateUsers(selectedUsers)
-    dispatch('updateUser', { 
-      id: 'notification',
-      message: `Updated ${results.length} users` 
-    })
+    // Use register for complex batch operation
+    const results = await Promise.all(
+      selectedUsers.map(user => 
+        register.dispatchWithResult('updateUser', user, {
+          executionMode: 'parallel',
+          timeout: 10000
+        })
+      )
+    )
+    
+    // Use hook dispatch for simple notification action
+    dispatch('refreshData')
   }
   
   return <button onClick={handleBatchUpdate}>Batch Update</button>
@@ -350,21 +329,29 @@ function SafeComponent() {
 ### Register Error Handling
 
 ```typescript
-async function handleWithRegister(register: ActionRegister<AppActions>) {
-  try {
-    const result = await register.dispatchWithResult('updateUser', payload)
+function ComponentWithRegisterErrorHandling() {
+  const register = useActionRegister()  // From createActionContext
+  
+  const handleWithRegister = async () => {
+    if (!register) return
     
-    if (!result.success) {
-      console.error('Action failed:', result.error)
-      // Handle specific failure scenarios
-      return { success: false, error: result.error }
+    try {
+      const result = await register.dispatchWithResult('updateUser', payload)
+      
+      if (!result.success) {
+        console.error('Action failed:', result.error)
+        // Handle specific failure scenarios
+        return { success: false, error: result.error }
+      }
+      
+      return { success: true, data: result.results }
+    } catch (error) {
+      console.error('Unexpected error:', error)
+      throw error
     }
-    
-    return { success: true, data: result.results }
-  } catch (error) {
-    console.error('Unexpected error:', error)
-    throw error
   }
+  
+  return <button onClick={handleWithRegister}>Handle with Register</button>
 }
 ```
 

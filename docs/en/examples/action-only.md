@@ -79,7 +79,7 @@ import { useEventActionHandler } from '../../contexts/EventContext';
 
 export function AnalyticsHandler() {
   // Track events with Google Analytics
-  useEventActionHandler('trackEvent', useCallback(async (payload, controller) => {
+  const trackEventHandler = useCallback(async (payload, controller) => {
     try {
       // Enrich payload with metadata
       controller.modifyPayload(current => ({
@@ -115,10 +115,12 @@ export function AnalyticsHandler() {
       // Don't abort - let other analytics providers try
       return { success: false, error: (error as Error).message };
     }
-  }, []), { priority: 100, id: 'google-analytics' });
+  }, []);
+
+  useEventActionHandler('trackEvent', trackEventHandler, { priority: 100, id: 'google-analytics' });
   
   // Backup analytics provider
-  useEventActionHandler('trackEvent', useCallback(async (payload, controller) => {
+  const backupAnalyticsHandler = useCallback(async (payload, controller) => {
     const results = controller.getResults();
     const gaFailed = results.some(r => r.provider === 'google-analytics' && !r.sent);
     
@@ -129,7 +131,9 @@ export function AnalyticsHandler() {
     }
     
     return { success: true, provider: 'alternative', skipped: true };
-  }, []), { priority: 80, id: 'alternative-analytics' });
+  }, []);
+
+  useEventActionHandler('trackEvent', backupAnalyticsHandler, { priority: 80, id: 'alternative-analytics' });
   
   return null; // This component only handles events
 }
@@ -144,7 +148,7 @@ export function ErrorHandler() {
   const dispatch = useEventAction();
   
   // Error logging with different severity levels
-  useEventActionHandler('logError', useCallback(async (payload, controller) => {
+  const logErrorHandler = useCallback(async (payload, controller) => {
     const errorLog = {
       error: payload.error,
       context: payload.context,
@@ -191,7 +195,9 @@ export function ErrorHandler() {
     
     return { success: true, errorId: generateErrorId() };
     
-  }, [dispatch]), { priority: 90, id: 'error-logger' });
+  }, [dispatch]);
+
+  useEventActionHandler('logError', logErrorHandler, { priority: 90, id: 'error-logger' });
   
   return null;
 }
@@ -278,7 +284,7 @@ export function ApiManager() {
   const dispatch = useEventAction();
   
   // API call handler with comprehensive pipeline
-  useEventActionHandler('apiCall', useCallback(async (payload, controller) => {
+  const apiCallHandler = useCallback(async (payload, controller) => {
     const startTime = Date.now();
     
     try {
@@ -348,7 +354,9 @@ export function ApiManager() {
       
       controller.abort(`API call failed: ${(error as Error).message}`);
     }
-  }, [dispatch]), { priority: 100, id: 'api-handler' });
+  }, [dispatch]);
+
+  useEventActionHandler('apiCall', apiCallHandler, { priority: 100, id: 'api-handler' });
   
   return null;
 }
@@ -424,7 +432,7 @@ export function SystemMonitor() {
   const dispatch = useEventAction();
   
   // System event handler
-  useEventActionHandler('systemEvent', useCallback(async (payload, controller) => {
+  const systemEventHandler = useCallback(async (payload, controller) => {
     const systemLog = {
       type: payload.type,
       message: payload.message,
@@ -461,7 +469,9 @@ export function SystemMonitor() {
     });
     
     return systemLog;
-  }, []), { priority: 95, id: 'system-monitor' });
+  }, []);
+
+  useEventActionHandler('systemEvent', systemEventHandler, { priority: 95, id: 'system-monitor' });
   
   // Monitor page performance
   useEffect(() => {
@@ -641,7 +651,7 @@ function AdvancedEventProcessor() {
   const dispatch = useEventAction();
   
   // Stage 1: Input validation and enrichment
-  useEventActionHandler('trackEvent', useCallback((payload, controller) => {
+  const validationHandler = useCallback((payload, controller) => {
     // Validate required fields
     if (!payload.event) {
       controller.abort('Event name is required');
@@ -660,10 +670,12 @@ function AdvancedEventProcessor() {
     
     controller.setResult({ stage: 'validation', valid: true });
     return { stage: 'validation', success: true };
-  }, []), { priority: 100, id: 'validator' });
+  }, []);
+
+  useEventActionHandler('trackEvent', validationHandler, { priority: 100, id: 'validator' });
   
   // Stage 2: Rate limiting
-  useEventActionHandler('trackEvent', useCallback((payload, controller) => {
+  const rateLimitHandler = useCallback((payload, controller) => {
     const rateLimiter = getRateLimiter(payload.event);
     
     if (!rateLimiter.isAllowed()) {
@@ -675,10 +687,12 @@ function AdvancedEventProcessor() {
     rateLimiter.consume();
     controller.setResult({ stage: 'rate-limit', allowed: true });
     return { stage: 'rate-limit', success: true };
-  }, []), { priority: 90, id: 'rate-limiter' });
+  }, []);
+
+  useEventActionHandler('trackEvent', rateLimitHandler, { priority: 90, id: 'rate-limiter' });
   
   // Stage 3: Primary analytics
-  useEventActionHandler('trackEvent', useCallback(async (payload, controller) => {
+  const primaryAnalyticsHandler = useCallback(async (payload, controller) => {
     const results = controller.getResults();
     const rateLimited = results.some(r => r.stage === 'rate-limit' && !r.allowed);
     
@@ -691,10 +705,12 @@ function AdvancedEventProcessor() {
     
     controller.setResult({ stage: 'analytics', provider: 'primary', sent: true });
     return { stage: 'analytics', success: true, provider: 'primary' };
-  }, []), { priority: 80, id: 'primary-analytics' });
+  }, []);
+
+  useEventActionHandler('trackEvent', primaryAnalyticsHandler, { priority: 80, id: 'primary-analytics' });
   
   // Stage 4: Secondary analytics (backup)
-  useEventActionHandler('trackEvent', useCallback(async (payload, controller) => {
+  const backupAnalyticsHandler = useCallback(async (payload, controller) => {
     const results = controller.getResults();
     const primaryFailed = !results.some(r => 
       r.stage === 'analytics' && r.provider === 'primary' && r.sent
@@ -706,7 +722,9 @@ function AdvancedEventProcessor() {
     }
     
     return { stage: 'backup-analytics', skipped: true, reason: 'primary-succeeded' };
-  }, []), { priority: 70, id: 'backup-analytics' });
+  }, []);
+
+  useEventActionHandler('trackEvent', backupAnalyticsHandler, { priority: 70, id: 'backup-analytics' });
   
   return null;
 }
@@ -719,27 +737,33 @@ function AdvancedEventProcessor() {
 ```typescript
 function SequentialProcessor() {
   // Handler 1: Preparation
-  useEventActionHandler('processData', useCallback((payload, controller) => {
+  const preparationHandler = useCallback((payload, controller) => {
     const prepared = prepareData(payload.data);
     controller.modifyPayload(current => ({ ...current, data: prepared }));
     return { step: 'preparation', success: true };
-  }, []), { priority: 100 });
+  }, []);
+
+  useEventActionHandler('processData', preparationHandler, { priority: 100 });
   
-  // Handler 2: Validation  
-  useEventActionHandler('processData', useCallback((payload, controller) => {
+  // Handler 2: Validation
+  const validationProcessHandler = useCallback((payload, controller) => {
     const isValid = validateData(payload.data);
     if (!isValid) {
       controller.abort('Data validation failed');
       return;
     }
     return { step: 'validation', success: true };
-  }, []), { priority: 90 });
+  }, []);
+
+  useEventActionHandler('processData', validationProcessHandler, { priority: 90 });
   
   // Handler 3: Processing
-  useEventActionHandler('processData', useCallback((payload) => {
+  const processingHandler = useCallback((payload) => {
     const result = processData(payload.data);
     return { step: 'processing', success: true, result };
-  }, []), { priority: 80 });
+  }, []);
+
+  useEventActionHandler('processData', processingHandler, { priority: 80 });
   
   return null;
 }

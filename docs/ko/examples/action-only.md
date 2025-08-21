@@ -35,11 +35,13 @@ const {
 ## 이벤트 추적 시스템
 
 ```typescript
+import { useCallback } from 'react';
+
 function EventTracker() {
   const dispatch = useEventAction();
 
   // 페이지 뷰 추적 핸들러
-  useEventActionHandler('trackPageView', async (payload) => {
+  const trackPageViewHandler = useCallback(async (payload) => {
     console.log('페이지 뷰:', payload.page);
     
     // 외부 분석 서비스로 전송
@@ -52,10 +54,12 @@ function EventTracker() {
         timestamp: Date.now()
       })
     });
-  });
+  }, []);
+
+  useEventActionHandler('trackPageView', trackPageViewHandler);
 
   // 사용자 액션 추적 핸들러
-  useEventActionHandler('trackUserAction', async (payload) => {
+  const trackUserActionHandler = useCallback(async (payload) => {
     console.log('사용자 액션:', payload.action);
     
     // 여러 분석 서비스에 병렬 전송
@@ -69,10 +73,12 @@ function EventTracker() {
         body: JSON.stringify(payload)
       })
     ]);
-  });
+  }, []);
+
+  useEventActionHandler('trackUserAction', trackUserActionHandler);
 
   // 에러 로깅 핸들러
-  useEventActionHandler('logError', async (payload) => {
+  const logErrorHandler = useCallback(async (payload) => {
     console.error('에러 로그:', payload.error);
     
     // 에러 모니터링 서비스로 전송
@@ -84,7 +90,9 @@ function EventTracker() {
         userAgent: navigator.userAgent
       })
     });
-  });
+  }, []);
+
+  useEventActionHandler('logError', logErrorHandler);
 
   return null; // 이 컴포넌트는 UI를 렌더링하지 않음
 }
@@ -93,6 +101,8 @@ function EventTracker() {
 ## 알림 시스템
 
 ```typescript
+import { useCallback } from 'react';
+
 interface NotificationActions {
   showNotification: { 
     message: string; 
@@ -111,7 +121,7 @@ const {
 
 function NotificationSystem() {
   // 알림 표시 핸들러
-  useNotificationActionHandler('showNotification', (payload) => {
+  const showNotificationHandler = useCallback((payload) => {
     const id = Math.random().toString(36).substr(2, 9);
     
     // 토스트 라이브러리 사용
@@ -131,17 +141,23 @@ function NotificationSystem() {
         toast.dismiss(id);
       }, payload.duration);
     }
-  });
+  }, []);
+
+  useNotificationActionHandler('showNotification', showNotificationHandler);
 
   // 알림 숨김 핸들러
-  useNotificationActionHandler('hideNotification', (payload) => {
+  const hideNotificationHandler = useCallback((payload) => {
     toast.dismiss(payload.id);
-  });
+  }, []);
+
+  useNotificationActionHandler('hideNotification', hideNotificationHandler);
 
   // 모든 알림 지우기 핸들러
-  useNotificationActionHandler('clearAllNotifications', () => {
+  const clearAllNotificationsHandler = useCallback(() => {
     toast.dismiss();
-  });
+  }, []);
+
+  useNotificationActionHandler('clearAllNotifications', clearAllNotificationsHandler);
 
   return null;
 }
@@ -150,6 +166,8 @@ function NotificationSystem() {
 ## API 호출 시스템
 
 ```typescript
+import { useCallback } from 'react';
+
 interface ApiActions {
   fetchUserData: { userId: string };
   updateUserProfile: { userId: string; data: any };
@@ -166,8 +184,8 @@ const {
 function ApiService() {
   const notificationDispatch = useNotificationAction();
 
-  // 사용자 데이터 가져오기
-  useApiActionHandler('fetchUserData', async (payload) => {
+  // 사용자 데이터 가져오기 핸들러
+  const fetchUserDataHandler = useCallback(async (payload) => {
     try {
       const response = await fetch(`/api/users/${payload.userId}`);
       const userData = await response.json();
@@ -181,10 +199,12 @@ function ApiService() {
       });
       throw error;
     }
-  });
+  }, [notificationDispatch]);
 
-  // 사용자 프로필 업데이트
-  useApiActionHandler('updateUserProfile', async (payload) => {
+  useApiActionHandler('fetchUserData', fetchUserDataHandler);
+
+  // 사용자 프로필 업데이트 핸들러
+  const updateUserProfileHandler = useCallback(async (payload) => {
     try {
       const response = await fetch(`/api/users/${payload.userId}`, {
         method: 'PUT',
@@ -204,16 +224,20 @@ function ApiService() {
         type: 'error'
       });
     }
-  });
+  }, [notificationDispatch]);
 
-  // 캐시 새로고침
-  useApiActionHandler('refreshCache', async (payload) => {
+  useApiActionHandler('updateUserProfile', updateUserProfileHandler);
+
+  // 캐시 새로고침 핸들러
+  const refreshCacheHandler = useCallback(async (payload) => {
     await fetch(`/api/cache/refresh/${payload.key}`, {
       method: 'POST'
     });
     
     console.log(`캐시 새로고침: ${payload.key}`);
-  });
+  }, []);
+
+  useApiActionHandler('refreshCache', refreshCacheHandler);
 
   return null;
 }
