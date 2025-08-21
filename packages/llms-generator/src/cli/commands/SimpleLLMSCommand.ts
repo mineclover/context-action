@@ -161,6 +161,7 @@ export class SimpleLLMSCommand {
     const languageDir = path.join(dataDir, language);
     
     if (!await this.exists(languageDir)) {
+      console.log(`❌ Language directory does not exist: ${languageDir}`);
       return [];
     }
 
@@ -257,7 +258,6 @@ export class SimpleLLMSCommand {
     const directContent = content
       .trim()
       .replace(/<!--[\s\S]*?-->/g, '') // Remove HTML comments
-      .replace(/^#+\s.*$/gm, '') // Remove markdown headers (if any)
       .replace(/^\s*---\s*$/gm, '') // Remove horizontal rules
       .replace(/\n{3,}/g, '\n\n') // Normalize line breaks
       .trim();

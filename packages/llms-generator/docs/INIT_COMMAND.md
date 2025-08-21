@@ -1,29 +1,64 @@
-# Init Command Guide
+# Init Command Guide - 2024 Updated
+
+> **⚠️ 중요**: 이 문서는 2024년 최신 구현을 기준으로 작성되었습니다. 기존 npx 방식이 아닌 CLI 빌드 후 실행 방식을 사용합니다.
 
 LLMs Generator의 `init` 명령어는 프로젝트 문서 초기화를 위한 통합 워크플로를 제공합니다. 하나의 명령어로 전체 프로젝트를 설정하고 문서 템플릿을 생성할 수 있습니다.
 
 ## 개요
 
-`init` 명령어는 다음 3단계를 자동으로 실행합니다:
+`init` 명령어는 다음 2단계를 자동으로 실행합니다:
 
-1. **📚 Document Discovery**: 프로젝트의 모든 마크다운 문서 검색
-2. **📊 Priority JSON Generation**: 각 문서의 우선순위 및 메타데이터 생성
-3. **📝 Template Creation**: 문자 제한별 요약 템플릿 생성
+1. **📊 Priority JSON Generation**: 각 문서의 우선순위 및 메타데이터 생성
+2. **📝 Template Creation**: 문자 제한별 요약 템플릿 생성
 
 ## 기본 사용법
 
-```bash
-# 기본 실행 (전체 초기화)
-npx @context-action/llms-generator init
+### CLI 설치 및 실행
 
+**방법 1: NPM 글로벌 설치 (권장)**
+```bash
+# 전 세계 어디서든 설치 가능
+npm i -g @context-action/llms-generator
+
+# 실행
+llms init
+```
+
+**방법 2: 로컬 개발**
+```bash
+# 1. 빌드 및 설치
+cd packages/llms-generator
+pnpm build
+npm pack
+npm i -g ./context-action-llms-generator-0.3.0.tgz
+
+# 2. 실행
+llms init
+```
+
+**방법 3: pnpm 스크립트 (프로젝트 루트에서)**
+```bash
+pnpm llms:init
+```
+
+**방법 4: 직접 실행 (개발용)**
+```bash
+node packages/llms-generator/dist/cli/index.js init
+```
+
+### 기본 옵션
+```bash
 # 미리보기 (실제 파일 생성 없음)
-npx @context-action/llms-generator init --dry-run
+llms init --dry-run
 
 # 조용한 모드 (최소 출력)
-npx @context-action/llms-generator init --quiet
+llms init --quiet
 
 # 기존 파일 덮어쓰기
-npx @context-action/llms-generator init --overwrite
+llms init --overwrite
+
+# 특정 언어만
+llms init --language en
 ```
 
 ## Config 기반 동작
@@ -53,40 +88,12 @@ npx @context-action/llms-generator init --overwrite
 
 ## 실행 단계별 상세
 
-### 1단계: Document Discovery 📚
+### 1단계: Priority JSON Generation 📊
 
 ```bash
-🔍 Step 1: Document Discovery
-  📚 Discovering en documents...
-     Found 102 documents
-     - api: 87 docs
-     - concept: 5 docs
-     - example: 4 docs
-     - guide: 6 docs
-  📚 Discovering ko documents...
-     Found 26 documents
-     - api: 11 docs
-     - concept: 5 docs
-     - example: 4 docs
-     - guide: 6 docs
-   ✅ Discovery completed
-```
-
-**수행 작업:**
-- `docsDir`에서 모든 `.md` 파일 스캔
-- 카테고리별 분류 (guide, api, concept, examples)
-- 언어별 문서 개수 집계
-- 파일 크기 및 메타데이터 수집
-
-### 2단계: Priority JSON Generation 📊
-
-```bash
-📊 Step 2: Priority JSON Generation
-  🏷️  Generating priority files for en...
-📝 Generating priority for: api--action-only
-✅ Generated: /path/to/data/en/api--action-only/priority.json
-     Generated: 102
-     Skipped: 0
+📊 Step 1: Creating priority.json files for all documents
+   ✅ Created: 102 priority.json files
+   ⏭️  Skipped: 0 (already exist)
 ```
 
 **수행 작업:**
@@ -120,13 +127,12 @@ npx @context-action/llms-generator init --overwrite
 }
 ```
 
-### 3단계: Template Creation 📝
+### 2단계: Template Creation 📝
 
 ```bash
-📝 Step 3: Template Generation
-  📋 Generating individual summary templates...
-✅ Generated templates for /path/to/data/en/api--action-only/priority.json
-   ✅ Template generation completed
+📝 Step 2: Generating templates from priority.json files
+   ✅ Templates created: 714
+   ⏭️  Templates skipped: 0
 ```
 
 **수행 작업:**
@@ -152,33 +158,30 @@ data/en/api--action-only/
 ### 단계별 건너뛰기
 
 ```bash
-# Discovery 단계 건너뛰기
-npx @context-action/llms-generator init --skip-discovery
-
-# Priority 생성 건너뛰기  
-npx @context-action/llms-generator init --skip-priority
+# Priority 생성 건너뛰기
+llms init --skip-priority
 
 # Template 생성 건너뛰기
-npx @context-action/llms-generator init --skip-templates
+llms init --skip-templates
 
-# 여러 단계 조합
-npx @context-action/llms-generator init --skip-discovery --skip-priority
+# 특정 언어만 처리
+llms init --language en
 ```
 
 ### 출력 제어
 
 ```bash
 # 자세한 출력 (기본값)
-npx @context-action/llms-generator init
+llms init
 
 # 최소 출력
-npx @context-action/llms-generator init --quiet
+llms init --quiet
 
 # 미리보기 모드
-npx @context-action/llms-generator init --dry-run
+llms init --dry-run
 
 # 미리보기 + 조용한 모드
-npx @context-action/llms-generator init --dry-run --quiet
+llms init --dry-run --quiet
 ```
 
 ## 생성되는 파일 구조
@@ -211,15 +214,11 @@ project-root/
 실제 프로젝트에서의 `init` 실행 결과:
 
 ```bash
-🎉 Project initialization completed successfully!
-📋 Summary:
-┌─────────────────────────────────────────┐
-│  Component           Status              │
-├─────────────────────────────────────────┤
-│  📚 Document Discovery   ✅ Completed     │
-│  📊 Priority Generation  ✅ Completed     │
-│  📝 Template Creation    ✅ Completed     │
-└─────────────────────────────────────────┘
+📊 Initialization Summary:
+   📋 Priority files: 102
+   📝 Template files: 714
+
+✨ Project initialization completed!
 
 📁 Output Structure:
 data/
@@ -264,28 +263,30 @@ Action Only Pattern은 순수 액션 디스패칭을 위한 패턴으로, 상태
 편집이 완료된 템플릿들을 통합:
 
 ```bash
-# 모든 언어와 문자 제한으로 LLMS 파일 생성
-npx @context-action/llms-generator simple-llms-batch
+# 다중 LLMS 파일 생성 (origin, minimal, 500chars)
+llms clean-llms-generate --language en
 
-# 특정 언어만
-npx @context-action/llms-generator simple-llms-batch --language en
+# 또는 pnpm 스크립트 사용
+pnpm llms:generate:en
+pnpm llms:generate:ko
 
-# 특정 문자 제한만  
-npx @context-action/llms-generator simple-llms-batch --character-limits 100,300,1000
+# 특정 문자 제한만
+llms clean-llms-generate 1000 --language en
 ```
 
 ### 3. 작업 상태 추적
 진행 상황 모니터링:
 
 ```bash
-# 전체 작업 상태 확인
-npx @context-action/llms-generator work-check
+# 우선순위 기반 다음 작업 확인
+llms work-next --language en
 
-# 특정 언어의 작업 상태
-npx @context-action/llms-generator work-status ko
+# 상위 10개 우선순위 작업 확인
+llms work-next --limit 10 --language en
 
-# 편집이 필요한 문서 목록
-npx @context-action/llms-generator work-list en --missing
+# 또는 pnpm 스크립트 사용
+pnpm llms:work-next
+pnpm llms:work-top10
 ```
 
 ## 문제 해결
@@ -315,11 +316,11 @@ npx @context-action/llms-generator work-list en --missing
 특정 단계만 다시 실행하려면:
 
 ```bash
-# Priority JSON만 다시 생성
-npx @context-action/llms-generator priority-generate en --overwrite
-
 # 템플릿만 다시 생성
-npx @context-action/llms-generator template-generate
+llms generate-templates --language en --overwrite
+
+# 또는 pnpm 스크립트 사용
+pnpm llms:generate-templates
 ```
 
 ## 성능 최적화
@@ -330,12 +331,12 @@ npx @context-action/llms-generator template-generate
 
 ```bash
 # 단계별 실행으로 메모리 절약
-npx @context-action/llms-generator init --skip-templates
-npx @context-action/llms-generator template-generate
+llms init --skip-templates
+llms generate-templates
 
 # 언어별 분할 실행
-npx @context-action/llms-generator priority-generate en
-npx @context-action/llms-generator priority-generate ko
+llms init --language en
+llms init --language ko
 ```
 
 ### 메모리 사용량
@@ -349,20 +350,26 @@ npx @context-action/llms-generator priority-generate ko
 전체 문서 생성 워크플로:
 
 ```bash
-# 1. 프로젝트 초기화
-npx @context-action/llms-generator init
+# 1. CLI 빌드
+pnpm build:llms-generator
 
-# 2. 템플릿 편집 (수동 작업)
-# - data/{lang}/{doc-id}/*.md 파일들 편집
+# 2. 프로젝트 초기화
+llms init
+# 또는: pnpm llms:init
 
-# 3. 최종 LLMS 생성
-npx @context-action/llms-generator simple-llms-batch
+# 3. 템플릿 편집 (수동 작업)
+# - llmsData/{lang}/{doc-id}/*.md 파일들 편집
 
-# 4. 결과 확인
-ls docs/llms/
-# ├── llms-100chars-en.txt
-# ├── llms-100chars-ko.txt
-# ├── llms-200chars-en.txt
+# 4. 최종 LLMS 생성
+llms clean-llms-generate --language en
+llms clean-llms-generate --language ko
+# 또는: pnpm llms:generate:en && pnpm llms:generate:ko
+
+# 5. 결과 확인
+ls docs/en/llms/
+# ├── llms-origin.txt
+# ├── llms-minimal.txt
+# ├── llms-500chars.txt
 # └── ...
 ```
 

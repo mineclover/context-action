@@ -16,7 +16,7 @@
     }
   },
   "bin": {
-    "llms-generator": "./dist/cli/index.js"
+    "llms": "./dist/cli/index.js"
   },
   "scripts": {
     "build": "tsdown",
