@@ -2,6 +2,10 @@
 
 Complete command reference for the LLMS Generator CLI system with multilingual document processing capabilities.
 
+::: tip 📖 Comprehensive Implementation Reference
+For detailed implementation documentation covering all CLI features, architecture details, and advanced workflows, see the [**Comprehensive Implementation Reference**](./llms-cli-comprehensive-reference.md).
+:::
+
 ## Core Commands
 
 ### Document Processing
@@ -119,7 +123,7 @@ pnpm llms:init [options]
 
 #### `work-next`
 
-Find the next documentation item to work on based on priorities.
+Find the next documentation item to work on based on priorities, or show top N priority documents.
 
 ```bash
 pnpm llms:work-next [options]
@@ -129,6 +133,76 @@ pnpm llms:work-next [options]
 - `-l, --language <lang>`: Filter by language
 - `--show-completed`: Include completed items
 - `-v, --verbose`: Show detailed information
+- `-n, --limit <number>` / `--top <number>`: Show top N priority documents
+- `--sort-by <field>`: Sort by priority (default), category, status, or modified
+- `--category <cat>`: Filter by category
+- `-c, --character-limit <num>`: Filter by character limit
+
+**Examples:**
+```bash
+# Show next single work item (default)
+pnpm llms:work-next
+
+# Show top 10 priority documents
+pnpm llms:work-next --limit 10
+
+# Show top 5 guide documents with details
+pnpm llms:work-next --top 5 --category guide --verbose
+
+# Show all completed items sorted by category
+pnpm llms:work-next --show-completed --sort-by category
+```
+
+### Priority Management Commands
+
+#### `priority-tasks`
+
+Manage and analyze priority.json files themselves - find missing, outdated, or invalid priority files.
+
+```bash
+pnpm llms:priority-tasks [options]
+```
+
+**Options:**
+- `-l, --language <lang>`: Filter by language
+- `--category <cat>`: Filter by category
+- `--task-type <type>`: Filter by task type (missing, invalid, outdated, needs_review, needs_update)
+- `-n, --limit <num>`: Limit number of results
+- `-v, --verbose`: Show detailed information
+- `--fix`: Automatically fix detected issues
+- `--dry-run`: Preview changes without making them
+
+**Task Types:**
+- 🔴 **missing**: priority.json files are missing
+- ❌ **invalid**: JSON syntax errors or missing required fields
+- 🟡 **outdated**: source documents modified after priority.json
+- 🟠 **needs_review**: priority scores don't align with category standards  
+- 🔵 **needs_update**: metadata is incomplete or needs enhancement
+
+**Examples:**
+```bash
+# Check all priority.json issues
+pnpm llms:priority-tasks
+
+# Show detailed info for top 5 issues
+pnpm llms:priority-tasks --limit 5 --verbose
+
+# Fix missing priority.json files
+pnpm llms:priority-tasks --task-type missing --fix
+
+# Preview what would be fixed
+pnpm llms:priority-tasks --fix --dry-run
+
+# Check Korean documents only
+pnpm llms:priority-tasks --language ko --verbose
+```
+
+#### Additional Priority Commands
+
+- `priority-stats`: Show priority distribution statistics
+- `priority-health`: Check priority consistency and health (0-100 score)
+- `priority-suggest`: Get improvement recommendations
+- `priority-auto`: Auto-recalculate priorities with customizable criteria
 
 ## Advanced Features
 

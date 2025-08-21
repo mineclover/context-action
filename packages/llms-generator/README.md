@@ -7,6 +7,12 @@
 
 TypeScript library and CLI tools for generating optimized content from documentation with intelligent categorization, priority-based selection, and multi-language support.
 
+## 📚 Documentation
+
+- [**CLI Reference**](../../docs/en/guide/llms-cli-reference.md) - Core command reference
+- [**Comprehensive Implementation Reference**](../../docs/en/guide/llms-cli-comprehensive-reference.md) - Complete implementation guide
+- [**Korean Documentation**](../../docs/ko/guide/llms-cli-reference.md) - 한국어 문서
+
 [![npm version](https://badge.fury.io/js/@context-action%2Fllms-generator.svg)](https://www.npmjs.com/package/@context-action/llms-generator)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Development Status](https://img.shields.io/badge/status-under%20development-orange)
