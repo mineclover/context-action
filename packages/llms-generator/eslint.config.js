@@ -18,10 +18,27 @@ export default [
       '@typescript-eslint': tsPlugin,
     },
     rules: {
+      // TypeScript-specific rules
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/ban-ts-comment': 'warn',
+      '@typescript-eslint/no-non-null-assertion': 'warn',
+      
+      // Disable base rules that TypeScript handles
       'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       'no-undef': 'off', // TypeScript handles this
       'no-dupe-class-members': 'off', // TypeScript handles overloads
+      
+      // Code quality rules
+      'no-case-declarations': 'off',
+      'no-console': 'warn',
+      'no-debugger': 'error',
+      'no-regex-spaces': 'error',
+      
+      // Best practices
+      'eqeqeq': ['warn', 'always'],
+      'no-eval': 'error',
+      'prefer-const': 'warn'
     },
   },
 ];

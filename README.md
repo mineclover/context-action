@@ -378,10 +378,16 @@ pnpm llms:priority-stats    # Statistical analysis
 pnpm llms:priority-health   # Consistency checks
 pnpm llms:priority-suggest  # Actionable recommendations
 pnpm llms:priority-auto     # Auto-recalculate priorities
+
+# Manage priority.json files themselves
+pnpm llms:priority-tasks          # Find missing/outdated/invalid priority files
+pnpm llms:priority-tasks:fix      # Auto-fix detected issues
 ```
 
 **Features:**
 - **Health Scoring**: 0-100 health scores with automatic issue detection
+- **Priority Task Management**: Detect and fix missing, outdated, or invalid priority.json files
+- **Top N Priority Lists**: View top priority documents with `pnpm llms:work-top10`
 - **Statistical Analysis**: Distribution analysis across categories and languages
 - **Smart Suggestions**: Data-driven recommendations for improvement
 - **Automated Calculation**: Configurable criteria-based priority assignment
@@ -430,9 +436,10 @@ llmsData/
 
 **Core Commands:**
 - `sync-docs`: Process changed documentation with language filtering
-- `priority-*`: Priority management and health monitoring
+- `priority-*`: Priority management and health monitoring  
+- `priority-tasks`: Manage priority.json files (missing, outdated, invalid)
 - `generate-templates`: Create character-limited templates
-- `work-next`: Find next documentation work based on priorities
+- `work-next`: Find next documentation work or show top N priority items
 - `init`: Initialize LLMS Generator in new projects
 
 > **Note**: LLMS files are automatically generated and managed by the post-commit hook system. The system supports both English and Korean documentation with intelligent language detection and processing.

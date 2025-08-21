@@ -258,7 +258,7 @@ export class InitCommand {
         // Parse results from output if quiet mode
         if (options.quiet) {
           const createdMatch = output.match(/✅ Templates Created: (\d+)/);
-          const skippedMatch = output.match(/⏭️  Templates Skipped: (\d+)/);
+          const skippedMatch = output.match(/⏭️ {2}Templates Skipped: (\d+)/);
           
           if (createdMatch) totalCreated += parseInt(createdMatch[1]);
           if (skippedMatch) totalSkipped += parseInt(skippedMatch[1]);
@@ -290,7 +290,7 @@ export class InitCommand {
   }
 
   private getCategoryPriority(category: string): number {
-    const priorities = {
+    const priorities: Record<string, number> = {
       'guide': 95,
       'concept': 85,
       'api': 90,

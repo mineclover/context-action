@@ -22,6 +22,7 @@ import { createCleanLLMSGenerateCommand } from './commands/clean-llms-generate.j
 import { SyncDocsCommand } from './commands/SyncDocsCommand.js';
 import { InitCommand } from './commands/InitCommand.js';
 import { PriorityManagerCommand } from './commands/PriorityManagerCommand.js';
+import { PriorityTasksCommand } from './commands/PriorityTasksCommand.js';
 import { CLIConfig } from './types/CLITypes.js';
 import { EnhancedConfigManager } from '../core/EnhancedConfigManager.js';
 import { DEFAULT_CONFIG } from '../shared/config/DefaultConfig.js';
@@ -90,6 +91,10 @@ async function main(): Promise<void> {
         await handlePriorityManager(commandArgs, argumentParser, 'suggest');
         break;
 
+      case 'priority-tasks':
+        await handlePriorityTasks(commandArgs, argumentParser);
+        break;
+
       default:
         throw new Error(`Unknown command: ${command}`);
     }
@@ -106,7 +111,11 @@ async function handleWorkNext(args: string[], argumentParser: ArgumentParser): P
   const options = {
     language: argumentParser.extractFlag(args, '-l', '--language') || config.generation?.defaultLanguage || 'en',
     showCompleted: argumentParser.hasFlag(args, '--show-completed'),
-    verbose: argumentParser.hasFlag(args, '-v', '--verbose')
+    verbose: argumentParser.hasFlag(args, '-v', '--verbose'),
+    limit: argumentParser.extractNumberFlag(args, '-n', '--limit') || argumentParser.extractNumberFlag(args, '--top'),
+    sortBy: argumentParser.extractFlag(args, '--sort-by') as 'priority' | 'category' | 'status' | 'modified' | undefined,
+    category: argumentParser.extractFlag(args, '--category'),
+    characterLimit: argumentParser.extractNumberFlag(args, '-c', '--character-limit')
   };
 
   await workNextCommand.execute(options);
@@ -316,6 +325,23 @@ async function loadEnhancedConfig(): Promise<EnhancedLLMSConfig> {
       }
     };
   }
+}
+
+async function handlePriorityTasks(args: string[], argumentParser: ArgumentParser): Promise<void> {
+  const config = await loadEnhancedConfig();
+  const priorityTasksCommand = new PriorityTasksCommand(config);
+  
+  const options = {
+    language: argumentParser.extractFlag(args, '-l', '--language'),
+    category: argumentParser.extractFlag(args, '--category'),
+    taskType: argumentParser.extractFlag(args, '--task-type'),
+    limit: argumentParser.extractNumberFlag(args, '-n', '--limit'),
+    verbose: argumentParser.hasFlag(args, '-v', '--verbose'),
+    fix: argumentParser.hasFlag(args, '--fix'),
+    dryRun: argumentParser.hasFlag(args, '--dry-run')
+  };
+
+  await priorityTasksCommand.execute(options);
 }
 
 // Run CLI only if this file is executed directly
