@@ -129,6 +129,31 @@ pnpm llms:priority-auto [--criteria <file>] [--force] [--quiet]
 - 키워드 밀도 (20% 가중치)
 - 상호 참조 (10% 가중치)
 
+### 다국어 문서 처리
+
+시스템에서 고급 언어 필터링을 통한 문서 처리를 지원합니다:
+
+```bash
+# 한국어 문서만 처리
+pnpm llms:sync-docs:ko --changed-files docs/ko/guide/example.md
+
+# 영어 문서만 처리
+pnpm llms:sync-docs:en --changed-files docs/en/guide/example.md
+
+# 특정 언어들만 처리
+node cli.js sync-docs --languages ko,en --changed-files files...
+
+# 한국어 처리 비활성화
+node cli.js sync-docs --no-korean --changed-files files...
+```
+
+**언어 필터링 옵션:**
+- `--only-korean`: 한국어 문서만 처리 🇰🇷
+- `--only-english`: 영어 문서만 처리 🇺🇸
+- `--languages ko,en`: 쉼표로 구분된 특정 언어들 처리
+- `--include-korean` / `--no-korean`: 한국어 문서 처리 제어
+- `--quiet`: 상세한 언어 처리 출력 억제
+
 ## 우선순위 건강도 지표
 
 ### 분포 분석
@@ -202,11 +227,13 @@ pnpm llms:priority-health
 - 개인별 우선순위 분석
 - 로컬 일관성 확인
 - 개인 워크플로우 최적화
+- 언어별 필터링을 통한 다국어 문서 처리
 
 **향후 상태 (팀 통합):**
 - 공유 우선순위 서버
 - 실시간 작업 상태 추적
 - 팀 전체 일관성 강제
+- 중앙화된 다국어 문서 협업
 
 ## 설정
 
@@ -396,6 +423,57 @@ pnpm llms:work-next --language en --verbose
 - 자동 계산 전 원본 백업
 - Git 히스토리를 통한 롤백 기능
 - 누락된 파일에 대한 우아한 처리
+
+## 기존 워크플로우와의 통합
+
+### Git 훅 통합
+
+post-commit 훅이 문서 변경사항을 자동으로 처리합니다:
+
+```bash
+# 자동 워크플로우 (post-commit 훅)
+1. 변경사항 감지: docs/(en|ko)/**/*.md 파일들
+2. 변경사항 처리: 템플릿 생성 (100-5000자) + priority.json
+3. 커밋 생성: 향상된 디버깅과 함께 별도 LLMS 커밋
+4. 언어 지원: 완전한 한국어 및 영어 처리
+
+# 훅 설정 (.husky/post-commit)
+- 감지된 파일을 보여주는 향상된 디버깅 출력
+- 우아한 폴백을 통한 견고한 오류 처리
+- 자동 언어 감지 및 처리
+- 깔끔한 히스토리를 위한 별도 커밋 생성
+```
+
+### 수동 처리
+
+```bash
+# 언어별 처리
+pnpm llms:sync-docs:ko --changed-files docs/ko/guide/example.md
+pnpm llms:sync-docs:en --changed-files docs/en/guide/example.md
+
+# 고급 필터링 옵션
+node cli.js sync-docs --languages ko,en --changed-files files...
+node cli.js sync-docs --only-korean --changed-files files...
+node cli.js sync-docs --no-korean --changed-files files...
+
+# 테스팅 및 검증
+pnpm llms:sync-docs:dry --changed-files files...
+pnpm llms:priority-health --quiet
+```
+
+### CI/CD 통합
+
+```yaml
+# .github/workflows/priority-check.yml
+- name: Priority Health Check
+  run: pnpm llms:priority-health --quiet
+  
+- name: Generate Priority Report
+  run: pnpm llms:priority-stats > priority-report.txt
+
+- name: Korean Document Processing
+  run: pnpm llms:sync-docs:ko --changed-files ${{ env.KO_CHANGED_FILES }}
+```
 
 ---
 

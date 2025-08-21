@@ -129,6 +129,31 @@ pnpm llms:priority-auto [--criteria <file>] [--force] [--quiet]
 - Keyword density (20% weight)
 - Cross-references (10% weight)
 
+### Multilingual Document Processing
+
+The system now supports advanced language filtering for document processing:
+
+```bash
+# Process Korean documents only
+pnpm llms:sync-docs:ko --changed-files docs/ko/guide/example.md
+
+# Process English documents only
+pnpm llms:sync-docs:en --changed-files docs/en/guide/example.md
+
+# Process specific languages
+node cli.js sync-docs --languages ko,en --changed-files files...
+
+# Disable Korean processing
+node cli.js sync-docs --no-korean --changed-files files...
+```
+
+**Language Filtering Options:**
+- `--only-korean`: Process Korean documents only 🇰🇷
+- `--only-english`: Process English documents only 🇺🇸
+- `--languages ko,en`: Process specific comma-separated languages
+- `--include-korean` / `--no-korean`: Control Korean document processing
+- `--quiet`: Suppress detailed language processing output
+
 ## Priority Health Metrics
 
 ### Distribution Analysis
@@ -202,11 +227,13 @@ pnpm llms:priority-health
 - Individual priority analysis
 - Local consistency checking
 - Personal workflow optimization
+- Multilingual document processing with language-specific filtering
 
 **Future State (Team Integration):**
 - Shared priority server
 - Real-time work status tracking
 - Team-wide consistency enforcement
+- Centralized multilingual document coordination
 
 ## Configuration
 
@@ -471,12 +498,37 @@ interface PriorityHealth {
 ### Integration with Existing Workflows
 
 **Git Hooks Integration:**
-```bash
-# Pre-commit: Validate priority consistency
-pnpm llms:priority-health --quiet
 
-# Post-commit: Suggest priority updates for changed docs
-pnpm llms:priority-suggest --document-id <changed-doc>
+The post-commit hook automatically processes documentation changes:
+
+```bash
+# Automatic workflow (post-commit hook)
+1. Detects changes: docs/(en|ko)/**/*.md files
+2. Processes changes: Generates templates (100-5000 chars) + priority.json
+3. Creates commit: Separate LLMS commit with enhanced debugging
+4. Language support: Full Korean and English processing
+
+# Hook configuration (.husky/post-commit)
+- Enhanced debugging output showing detected files
+- Robust error handling with graceful fallbacks
+- Automatic language detection and processing
+- Separate commit creation for clean history
+```
+
+**Manual Processing:**
+```bash
+# Language-specific processing
+pnpm llms:sync-docs:ko --changed-files docs/ko/guide/example.md
+pnpm llms:sync-docs:en --changed-files docs/en/guide/example.md
+
+# Advanced filtering options
+node cli.js sync-docs --languages ko,en --changed-files files...
+node cli.js sync-docs --only-korean --changed-files files...
+node cli.js sync-docs --no-korean --changed-files files...
+
+# Testing and validation
+pnpm llms:sync-docs:dry --changed-files files...
+pnpm llms:priority-health --quiet
 ```
 
 **CI/CD Integration:**
