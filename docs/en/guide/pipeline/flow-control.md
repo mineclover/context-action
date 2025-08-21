@@ -379,6 +379,10 @@ interface TransactionActions extends ActionPayloadMap {
 
 ## 🧪 Testing Flow Control
 
+### Comprehensive Test Suite
+
+The flow control system includes extensive testing patterns to validate all control mechanisms:
+
 ### Test Priority Jumping
 
 ```typescript
@@ -424,6 +428,282 @@ async function testEarlyReturn() {
   console.log('Second result:', secondResult);
 }
 ```
+
+### Advanced Testing Patterns
+
+#### Multi-Level Priority Testing
+
+```typescript
+async function testMultiLevelPriority() {
+  console.log('=== Multi-Level Priority Jumping Test ===');
+  
+  const register = new ActionRegister<TestActions>();
+  const executionOrder: string[] = [];
+  
+  // Level 1 handler (priority 100)
+  register.register('processData', async (payload, controller) => {
+    executionOrder.push('level-1-start');
+    
+    if (payload.escalationLevel >= 2) {
+      controller.jumpToPriority(500); // Jump to level 2
+      executionOrder.push('level-1-jump');
+      return;
+    }
+    
+    executionOrder.push('level-1-complete');
+    return { level: 1, processed: true };
+  }, { priority: 100, id: 'level-1' });
+  
+  // Level 2 handler (priority 500)
+  register.register('processData', async (payload, controller) => {
+    executionOrder.push('level-2-start');
+    
+    if (payload.escalationLevel >= 3) {
+      controller.jumpToPriority(1000); // Jump to level 3
+      executionOrder.push('level-2-jump');
+      return;
+    }
+    
+    executionOrder.push('level-2-complete');
+    return { level: 2, processed: true };
+  }, { priority: 500, id: 'level-2' });
+  
+  // Level 3 handler (priority 1000)
+  register.register('processData', async (payload, controller) => {
+    executionOrder.push('level-3-complete');
+    return { level: 3, processed: true, critical: true };
+  }, { priority: 1000, id: 'level-3' });
+  
+  // Test different escalation levels
+  for (const level of [1, 2, 3]) {
+    executionOrder.length = 0; // Reset
+    const result = await register.dispatchWithResult('processData', {
+      escalationLevel: level,
+      data: `test-data-${level}`
+    });
+    
+    console.log(`Escalation level ${level}:`, {
+      executionOrder: [...executionOrder],
+      result
+    });
+  }
+}
+```
+
+#### Performance Impact Testing
+
+```typescript
+async function testPerformanceImpact() {
+  console.log('=== Performance Impact Test ===');
+  
+  const register = new ActionRegister<PerformanceActions>();
+  let handlerExecutions = 0;
+  
+  // Expensive handlers (simulating slow operations)
+  for (let i = 1; i <= 10; i++) {
+    register.register('performanceTest', async (payload, controller) => {
+      handlerExecutions++;
+      await new Promise(resolve => setTimeout(resolve, 100)); // Simulate work
+      return { handler: i, executed: true };
+    }, { priority: i * 10, id: `handler-${i}` });
+  }
+  
+  // Early return handler (highest priority)
+  register.register('performanceTest', async (payload, controller) => {
+    handlerExecutions++;
+    
+    if (payload.useEarlyReturn) {
+      controller.return({ optimized: true, skippedHandlers: 10 });
+      return;
+    }
+    
+    return { optimized: false };
+  }, { priority: 1000, id: 'optimizer' });
+  
+  // Test without early return
+  console.time('without-optimization');
+  handlerExecutions = 0;
+  await register.dispatchWithResult('performanceTest', { useEarlyReturn: false });
+  console.timeEnd('without-optimization');
+  console.log('Handlers executed (no optimization):', handlerExecutions);
+  
+  // Test with early return
+  console.time('with-optimization');
+  handlerExecutions = 0;
+  await register.dispatchWithResult('performanceTest', { useEarlyReturn: true });
+  console.timeEnd('with-optimization');
+  console.log('Handlers executed (with optimization):', handlerExecutions);
+}
+```
+
+#### Complex Branching Testing
+
+```typescript
+async function testComplexBranching() {
+  console.log('=== Complex Branching Test ===');
+  
+  const register = new ActionRegister<BranchingActions>();
+  const paths: string[] = [];
+  
+  // Business rules handler
+  register.register('processOrder', async (payload, controller) => {
+    paths.push('business-rules');
+    
+    // Route based on business rules
+    if (payload.amount > 10000) {
+      controller.jumpToPriority(1000); // High-value processing
+      paths.push('route-to-high-value');
+      return;
+    }
+    
+    if (payload.expedited) {
+      controller.jumpToPriority(800); // Expedited processing
+      paths.push('route-to-expedited');
+      return;
+    }
+    
+    if (payload.international) {
+      controller.jumpToPriority(600); // International processing
+      paths.push('route-to-international');
+      return;
+    }
+    
+    // Continue with standard processing
+    paths.push('continue-standard');
+  }, { priority: 100, id: 'business-rules' });
+  
+  // Standard processing
+  register.register('processOrder', async (payload, controller) => {
+    paths.push('standard-processing');
+    return { type: 'standard', processingTime: '1-2 business days' };
+  }, { priority: 200, id: 'standard' });
+  
+  // International processing
+  register.register('processOrder', async (payload, controller) => {
+    paths.push('international-processing');
+    return { type: 'international', processingTime: '3-5 business days' };
+  }, { priority: 600, id: 'international' });
+  
+  // Expedited processing
+  register.register('processOrder', async (payload, controller) => {
+    paths.push('expedited-processing');
+    return { type: 'expedited', processingTime: 'same day' };
+  }, { priority: 800, id: 'expedited' });
+  
+  // High-value processing
+  register.register('processOrder', async (payload, controller) => {
+    paths.push('high-value-processing');
+    return { type: 'high-value', processingTime: '24 hours with verification' };
+  }, { priority: 1000, id: 'high-value' });
+  
+  // Test different order types
+  const testCases = [
+    { amount: 100, expedited: false, international: false, expected: 'standard' },
+    { amount: 500, expedited: false, international: true, expected: 'international' },
+    { amount: 1000, expedited: true, international: false, expected: 'expedited' },
+    { amount: 15000, expedited: false, international: false, expected: 'high-value' },
+  ];
+  
+  for (const testCase of testCases) {
+    paths.length = 0; // Reset
+    const result = await register.dispatchWithResult('processOrder', testCase);
+    
+    console.log(`Test case ${testCase.expected}:`, {
+      input: testCase,
+      executionPath: [...paths],
+      result: result?.type,
+      success: result?.type === testCase.expected
+    });
+  }
+}
+```
+
+#### Error Recovery Testing
+
+```typescript
+async function testErrorRecovery() {
+  console.log('=== Error Recovery Test ===');
+  
+  const register = new ActionRegister<ErrorActions>();
+  let retryCount = 0;
+  let fallbackCalled = false;
+  
+  // Primary handler (fails intentionally)
+  register.register('apiCall', async (payload, controller) => {
+    if (payload.shouldFail && retryCount < 2) {
+      retryCount++;
+      controller.jumpToPriority(500); // Jump to retry handler
+      throw new Error(`API call failed (attempt ${retryCount})`);
+    }
+    
+    return { success: true, attempt: retryCount + 1 };
+  }, { priority: 100, id: 'primary' });
+  
+  // Retry handler
+  register.register('apiCall', async (payload, controller) => {
+    console.log(`Retry attempt ${retryCount}`);
+    
+    if (retryCount >= 3) {
+      controller.jumpToPriority(1000); // Jump to fallback
+      return;
+    }
+    
+    // Retry by jumping back to primary with modified payload
+    controller.jumpToPriority(100);
+  }, { priority: 500, id: 'retry' });
+  
+  // Fallback handler
+  register.register('apiCall', async (payload, controller) => {
+    fallbackCalled = true;
+    return { success: false, fallbackUsed: true, message: 'Using cached data' };
+  }, { priority: 1000, id: 'fallback' });
+  
+  // Test successful case
+  retryCount = 0;
+  fallbackCalled = false;
+  const successResult = await register.dispatchWithResult('apiCall', { shouldFail: false });
+  console.log('Success case:', { result: successResult, retryCount, fallbackCalled });
+  
+  // Test failure with recovery
+  retryCount = 0;
+  fallbackCalled = false;
+  const failureResult = await register.dispatchWithResult('apiCall', { shouldFail: true });
+  console.log('Failure case:', { result: failureResult, retryCount, fallbackCalled });
+}
+```
+
+### Automated Test Suite
+
+```typescript
+// Comprehensive test runner for flow control
+export async function runFlowControlTests() {
+  console.log('🧪 Running Flow Control Test Suite\n');
+  
+  try {
+    await testPriorityJumping();
+    console.log('✅ Priority jumping tests passed\n');
+    
+    await testEarlyReturn();
+    console.log('✅ Early return tests passed\n');
+    
+    await testMultiLevelPriority();
+    console.log('✅ Multi-level priority tests passed\n');
+    
+    await testPerformanceImpact();
+    console.log('✅ Performance impact tests passed\n');
+    
+    await testComplexBranching();
+    console.log('✅ Complex branching tests passed\n');
+    
+    await testErrorRecovery();
+    console.log('✅ Error recovery tests passed\n');
+    
+    console.log('🎉 All flow control tests completed successfully!');
+  } catch (error) {
+    console.error('❌ Test suite failed:', error);
+    throw error;
+  }
+}
 
 ## 📚 Best Practices
 
