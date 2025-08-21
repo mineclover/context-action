@@ -1,0 +1,124 @@
+# Action Basic Usage
+
+Fundamental Action Only pattern with type-safe dispatching and handler registration.
+
+## Import
+```typescript
+import { createActionContext } from '@context-action/react';
+```
+
+## Features
+- ✅ Type-safe action dispatching
+- ✅ Action handler registration
+- ✅ Abort support
+- ✅ Result handling
+- ✅ Lightweight (no store overhead)
+
+## Basic Usage
+```tsx
+// 1. Define Actions (ActionPayloadMap optional)
+interface EventActions {
+  userClick: { x: number; y: number };
+  userHover: { elementId: string };
+  analytics: { event: string; data: any };
+}
+
+// 2. Create Context with Renaming Pattern
+const {
+  Provider: EventActionProvider,
+  useActionDispatch: useEventAction,
+  useActionHandler: useEventActionHandler
+} = createActionContext<EventActions>('Events');
+
+// 3. Provider Setup
+function App() {
+  return (
+    <EventActionProvider>
+      <InteractiveComponent />
+    </EventActionProvider>
+  );
+}
+
+// 4. Component Usage with Renamed Hooks  
+function InteractiveComponent() {
+  const dispatch = useEventAction();
+  
+  // Register action handlers with renamed hook (properly memoized)
+  const userClickHandler = useCallback((payload, controller) => {
+    console.log('User clicked at:', payload.x, payload.y);
+    // Pure side effects, no state management
+  }, []);
+
+  const analyticsHandler = useCallback(async (payload) => {
+    await fetch('/analytics', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  }, []);
+  
+  useEventActionHandler('userClick', userClickHandler);
+  useEventActionHandler('analytics', analyticsHandler);
+  
+  const handleClick = (e: MouseEvent) => {
+    dispatch('userClick', { x: e.clientX, y: e.clientY });
+    dispatch('analytics', { event: 'click', data: { timestamp: Date.now() } });
+  };
+  
+  return <button onClick={handleClick}>Click Me</button>;
+}
+```
+
+## Advanced Features
+```tsx
+// Use the renamed context hooks for advanced features
+const { useActionDispatchWithResult: useEventActionWithResult } = createActionContext<EventActions>('Events');
+
+function AdvancedComponent() {
+  const { 
+    dispatch, 
+    dispatchWithResult, 
+    abortAll 
+  } = useEventActionWithResult();
+  
+  const handleAsyncAction = async () => {
+    try {
+      const result = await dispatchWithResult('analytics', {
+        event: 'complex-operation',
+        data: { userId: 123 }
+      });
+      console.log('Action result:', result);
+    } catch (error) {
+      console.error('Action failed:', error);
+    }
+  };
+  
+  const handleAbortAll = () => {
+    abortAll(); // Abort all pending actions
+  };
+  
+  return (
+    <div>
+      <button onClick={handleAsyncAction}>Async Action</button>
+      <button onClick={handleAbortAll}>Abort All</button>
+    </div>
+  );
+}
+```
+
+## Available Hooks
+- `useActionDispatch()` - Basic action dispatcher
+- `useActionHandler(action, handler, config?)` - Register action handlers
+- `useActionDispatchWithResult()` - Advanced dispatcher with results/abort
+- `useActionRegister()` - Access raw ActionRegister for delegation
+- `useActionContext()` - Access raw context
+
+## Best Practices
+
+1. **Always Use useCallback**: Wrap all handler functions with `useCallback` to prevent infinite re-registration
+2. **Use Renamed Hooks**: Create domain-specific hook names for clarity
+3. **Handle Side Effects**: Perfect for analytics, logging, API calls
+4. **Keep Lightweight**: No state management overhead
+5. **Error Handling**: Use controller.abort() for error cases
+6. **Async Operations**: Handle async operations with proper error boundaries
+
+> **Important**: For detailed handler registration patterns, see the [Handler Registration Guide](../../conventions.md#handler-registration)

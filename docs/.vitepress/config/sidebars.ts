@@ -23,6 +23,64 @@ const GUIDE_STRUCTURE = {
         { text: 'Best Practices', link: '/en/guide/best-practices' },
         { text: 'Action Handlers', link: '/en/guide/action-handlers' }
       ]
+    },
+    // 2. Pattern Collection - organized patterns directory
+    patterns: {
+      text: '🎯 Pattern Collection',
+      collapsed: false,
+      items: [
+        { text: 'Overview', link: '/en/guide/patterns/' },
+        {
+          text: '🎯 Action Patterns',
+          collapsed: false,
+          items: [
+            { text: 'Overview', link: '/en/guide/patterns/action/' },
+            { text: 'Basic Usage', link: '/en/guide/patterns/action/basic-usage' },
+            { text: 'Register Delegation', link: '/en/guide/patterns/action/register-delegation' }
+          ]
+        },
+        {
+          text: '🏪 Store Patterns',
+          collapsed: false,
+          items: [
+            { text: 'Overview', link: '/en/guide/patterns/store/' },
+            { text: 'Basic Usage', link: '/en/guide/patterns/store/basic-usage' },
+            { text: 'HOC Pattern', link: '/en/guide/patterns/store/hoc-pattern' },
+            { text: 'Advanced Config', link: '/en/guide/patterns/store/advanced-config' }
+          ]
+        },
+        {
+          text: '🔧 Ref Patterns',
+          collapsed: false,
+          items: [
+            { text: 'Overview', link: '/en/guide/patterns/ref/' },
+            { text: 'Basic Usage', link: '/en/guide/patterns/ref/basic-usage' },
+            { text: 'Multi-Context', link: '/en/guide/patterns/ref/multi-context' },
+            { text: 'Performance', link: '/en/guide/patterns/ref/performance' }
+          ]
+        },
+        {
+          text: '🏗️ Architecture Patterns',
+          collapsed: false,
+          items: [
+            { text: 'Overview', link: '/en/guide/patterns/architecture/' },
+            { text: 'MVVM', link: '/en/guide/patterns/architecture/mvvm' },
+            { text: 'Domain Context', link: '/en/guide/patterns/architecture/domain-context' },
+            { text: 'Composition', link: '/en/guide/patterns/architecture/composition' }
+          ]
+        },
+        {
+          text: '⚡ Async Patterns',
+          collapsed: false,
+          items: [
+            { text: 'Overview', link: '/en/guide/patterns/async/' },
+            { text: 'Real-time State Access', link: '/en/guide/patterns/async/real-time-state-access' },
+            { text: 'Wait-Then-Execute', link: '/en/guide/patterns/async/wait-then-execute' },
+            { text: 'Conditional Await', link: '/en/guide/patterns/async/conditional-await' },
+            { text: 'Timeout Protection', link: '/en/guide/patterns/async/timeout-protection' }
+          ]
+        }
+      ]
     }
   },
   
@@ -39,6 +97,64 @@ const GUIDE_STRUCTURE = {
         { text: '코드 패턴', link: '/ko/guide/code-patterns' },
         { text: '모범 사례', link: '/ko/guide/best-practices' },
         { text: '액션 핸들러', link: '/ko/guide/action-handlers' }
+      ]
+    },
+    // 2. 패턴 컬렉션 - 정리된 패턴 디렉토리
+    patterns: {
+      text: '🎯 패턴 컬렉션',
+      collapsed: false,
+      items: [
+        { text: '개요', link: '/ko/guide/patterns/' },
+        {
+          text: '🎯 액션 패턴',
+          collapsed: false,
+          items: [
+            { text: '개요', link: '/ko/guide/patterns/action/' },
+            { text: '기본 사용법', link: '/ko/guide/patterns/action/basic-usage' },
+            { text: '레지스터 위임', link: '/ko/guide/patterns/action/register-delegation' }
+          ]
+        },
+        {
+          text: '🏪 스토어 패턴',
+          collapsed: false,
+          items: [
+            { text: '개요', link: '/ko/guide/patterns/store/' },
+            { text: '기본 사용법', link: '/ko/guide/patterns/store/basic-usage' },
+            { text: 'HOC 패턴', link: '/ko/guide/patterns/store/hoc-pattern' },
+            { text: '고급 설정', link: '/ko/guide/patterns/store/advanced-config' }
+          ]
+        },
+        {
+          text: '🔧 Ref 패턴',
+          collapsed: false,
+          items: [
+            { text: '개요', link: '/ko/guide/patterns/ref/' },
+            { text: '기본 사용법', link: '/ko/guide/patterns/ref/basic-usage' },
+            { text: '멀티 컨텍스트', link: '/ko/guide/patterns/ref/multi-context' },
+            { text: '성능 최적화', link: '/ko/guide/patterns/ref/performance' }
+          ]
+        },
+        {
+          text: '🏗️ 아키텍처 패턴',
+          collapsed: false,
+          items: [
+            { text: '개요', link: '/ko/guide/patterns/architecture/' },
+            { text: 'MVVM', link: '/ko/guide/patterns/architecture/mvvm' },
+            { text: '도메인 컨텍스트', link: '/ko/guide/patterns/architecture/domain-context' },
+            { text: '패턴 조합', link: '/ko/guide/patterns/architecture/composition' }
+          ]
+        },
+        {
+          text: '⚡ 비동기 패턴',
+          collapsed: false,
+          items: [
+            { text: '개요', link: '/ko/guide/patterns/async/' },
+            { text: '실시간 상태 접근', link: '/ko/guide/patterns/async/real-time-state-access' },
+            { text: '대기 후 실행', link: '/ko/guide/patterns/async/wait-then-execute' },
+            { text: '조건부 대기', link: '/ko/guide/patterns/async/conditional-await' },
+            { text: '타임아웃 보호', link: '/ko/guide/patterns/async/timeout-protection' }
+          ]
+        }
       ]
     }
   }
@@ -221,7 +337,8 @@ export function createSidebars(locale: SidebarLocale): DefaultTheme.Config['side
   return {
     // Guide 섹션 - concept 기반으로 간소화
     [`/${locale}/guide/`]: [
-      guide.essentials
+      guide.essentials,
+      guide.patterns
     ],
     
     // Concept 섹션 - CLAUDE.md에서 중요하게 언급된 핵심 문서들
