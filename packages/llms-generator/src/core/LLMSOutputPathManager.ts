@@ -86,13 +86,36 @@ export class LLMSOutputPathManager {
       }
     }
     
-    // Fallback: use template file path
+    // Fallback: try to convert template file path back to source path
     if (filePath) {
+      // Remove llmsData prefix and get relative path
       const relativePath = filePath.replace(this.config.paths.llmContentDir, '').replace(/^\//, '');
-      return `llmsData/${relativePath}`;
+      
+      // Extract the original document info from the template path
+      // Example: en/guide--getting-started/guide--getting-started-500.md -> en/guide/getting-started.md
+      const pathParts = relativePath.split('/');
+      if (pathParts.length >= 2) {
+        const lang = pathParts[0];
+        const docDirName = pathParts[1];
+        
+        // Parse document directory name (e.g., "guide--getting-started")
+        const docParts = docDirName.split('--');
+        if (docParts.length >= 2) {
+          const category = docParts[0];
+          const pathName = docParts.slice(1).join('-');
+          return `${lang}/${category}/${pathName}.md`;
+        }
+      }
     }
     
     // Last resort: construct from document info
-    return `llmsData/${language}/${documentId}/${documentId}-${characterLimit}.md`;
+    const docParts = documentId.split('--');
+    if (docParts.length >= 2) {
+      const category = docParts[0];
+      const pathParts = docParts.slice(1).join('-');
+      return `${language}/${category}/${pathParts}.md`;
+    }
+    
+    return `${language}/${documentId}.md`;
   }
 }
