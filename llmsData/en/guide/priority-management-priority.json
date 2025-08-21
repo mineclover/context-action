@@ -1,0 +1,19 @@
+{
+  "documentId": "en_guide_priority-management",
+  "title": "Priority Management System",
+  "category": "guide",
+  "language": "en",
+  "priority": 0.5,
+  "tags": [
+    "bash",
+    "javascript",
+    "json",
+    "typescript",
+    "yaml"
+  ],
+  "lastUpdated": "2025-08-21T03:11:45.646Z",
+  "source": {
+    "file": "docs/en/guide/priority-management.md",
+    "lastModified": "2025-08-21T02:59:34.546Z"
+  }
+}
