@@ -36,5 +36,10 @@
     "description": "This is the **final version** of the test document demonstrating complete sync-docs workflow with automatic synchronization.",
     "language": "en",
     "created_at": "2025-08-21T02:13:42.328Z"
+  },
+  "lastUpdated": "2025-08-21T14:14:43.208Z",
+  "source": {
+    "file": "docs/en/guide/test-sync-demo.md",
+    "lastModified": "2025-08-21T14:14:28.351Z"
   }
 }
