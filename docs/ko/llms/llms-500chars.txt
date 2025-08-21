@@ -1,0 +1,492 @@
+===================[ DOC: ko/guide/action-handlers.md ]===================
+# guide--action-handlers
+
+액션 핸들러
+
+useActionHandler + useEffect 패턴으로 비즈니스 로직을 구현합니다. 주요 기능:
+
+• 우선순위 기반 실행 (순차/병렬/경합 모드)
+• 컨트롤러 메서드로 흐름 제어 (abort, jumpToPriority, setResult)
+• 컨텍스트와 의미있는 메시지로 강력한 에러 처리
+• unregister 함수로 메모리 정리
+• 설정 가능한 전략으로 여러 핸들러에서 결과 수집
+
+모범 사례: useCallback으로 핸들러 감싸기, 지연 스토어 평가 사용, 적절한 검증 구현, 유지보수성을 위해 도메인별로 핸들러 구성.
+
+===================[ DOC: ko/guide/action-pipeline.md ]===================
+# guide--action-pipeline
+
+액션 파이프라인 시스템
+
+액션 파이프라인 시스템은 Context-Action의 ViewModel 레이어의 핵심으로, 우선순위 기반 핸들러 실행과 정교한 파이프라인 제어를 통한 중앙집중식 액션 처리를 제공합니다.
+
+===================[ DOC: ko/guide/architecture.md ]===================
+# guide--architecture
+
+아키텍처
+
+Context-Action은 MVVM에서 영감을 받은 패턴을 통해 명확한 관심사 분리를 구현합니다. 핵심 아키텍처
+
+프레임워크는 관심사를 세 개의 명확한 레이어로 분리합니다:
+
+레이어
+
+1. View 레이어: UI를 렌더링하고 액션을 디스패치하는 React 컴포넌트
+2. ViewModel 레이어: 우선순위 기반 핸들러 실행을 가진 액션 파이프라인  
+3.
+
+===================[ DOC: ko/guide/best-practices.md ]===================
+# guide--best-practices
+
+모범 사례
+
+Context-Action 프레임워크를 사용할 때 따라야 할 컨벤션과 모범 사례입니다. 네이밍 컨벤션
+
+도메인 기반 리네이밍 패턴
+
+핵심 컨벤션은 명확한 컨텍스트 분리를 위한 도메인별 리네이밍입니다.
+
+===================[ DOC: ko/guide/code-patterns.md ]===================
+# guide--code-patterns
+
+코드 패턴
+
+Context-Action 프레임워크의 RefContext와 useWaitForRefs 핵심 기능 패턴입니다.
+
+===================[ DOC: ko/guide/conditional-await.md ]===================
+# guide--conditional-await
+
+조건부 대기 패턴
+
+useWaitForRefs의 핵심 동작으로 조건부로 대기하거나 즉시 반환하는 패턴입니다. 기본 패턴
+
+사용 사례
+
+단순 대기
+
+조건부 로직
+
+주요 이점
+
+- 자동 감지: 수동 확인 불필요
+- 성능: 요소가 이미 마운트된 경우 지연 없음
+- 안정성: await 후 요소 가용성 보장.
+
+===================[ DOC: ko/guide/getting-started.md ]===================
+# guide--getting-started
+
+시작하기
+
+Context-Action은 완벽한 관심사 분리를 통한 확장 가능한 React 애플리케이션 구축을 위한 세 가지 주요 패턴을 제공합니다. 빠른 시작
+
+사용 사례에 맞는 적합한 패턴을 선택하세요:
+
+| 패턴 | 사용 사례 | 임포트 | 최적용도 |
+|---------|----------|--------|----------|
+| 🎯 Action Only | 스토어 없이 액션 디스패칭 | createActionContext | 이벤트 시스템, 커맨드 패턴 |
+| 🏪 Store Only | 액션 없이 상태 관리 | createDeclarativeStorePattern | 순수 상태 관리, 데이터 레이어 |
+| 🔧 Ref Context | 제로 리렌더링 직접 DOM 조작 | createRefContext | 고성능 UI, 애니메이션, 실시간 인터랙션 |
+
+🎯 Action Only 패턴
+
+상태 관리 없이 순수 액션 디스패칭.
+
+===================[ DOC: ko/guide/hooks.md ]===================
+# guide--hooks
+
+React 훅
+
+Context-Action은 액션 디스패칭과 스토어 관리를 위한 React 훅을 제공합니다. 필수 훅
+
+가장 자주 사용할 핵심 훅들입니다. 액션 훅
+
+createActionContext<T>()
+모든 액션 관련 훅을 생성하는 팩토리 함수. useActionDispatch()
+핸들러에 액션을 디스패치하는 주요 훅. useActionHandler()
+액션 핸들러를 등록하는 주요 훅. 스토어 훅
+
+createDeclarativeStorePattern<T>()
+모든 스토어 관련 훅을 생성하는 팩토리 함수. useStoreValue<T>(store)
+스토어 변경 사항을 구독하는 주요 훅. useStore(name)
+이름으로 스토어에 접근하는 주요 훅. 유틸리티 훅
+
+고급 시나리오를 위한 추가 훅들. 스토어 관리
+
+useStoreManager()
+프로그래밍 방식으로 스토어를 업데이트하는 훅.
+
+===================[ DOC: ko/guide/index.md ]===================
+# guide--index
+
+코드 패턴
+
+Context-Action 프레임워크의 RefContext와 useWaitForRefs 기능에 중점을 둔 필수 패턴 모음입니다. 핵심 패턴
+
+RefContext 설정
+적절한 TypeScript 타입과 provider 통합을 위한 RefContext의 기본 설정 패턴입니다. 조건부 대기
+요소 마운트 상태에 따라 조건부로 대기하거나 즉시 반환하는 useWaitForRefs의 핵심 동작입니다. 대기 후 실행
+요소 가용성을 보장한 후 안전하게 DOM 조작을 실행하는 패턴입니다. 실시간 상태 접근
+store.getValue()를 사용하여 현재 상태에 실시간으로 접근하여 클로저 함정을 방지하는 패턴입니다. 타임아웃 보호
+타임아웃 메커니즘과 재시도 로직으로 무한 대기를 방지하는 패턴입니다.
+
+===================[ DOC: ko/guide/llms-cli-comprehensive-reference.md ]===================
+# guide--llms-cli-comprehensive-reference
+
+LLMS Generator CLI - 종합 구현 참조서
+
+LLMS Generator 시스템의 모든 구현된 CLI 명령어와 기능에 대한 완전한 문서입니다. 개요
+
+LLMS Generator CLI는 다국어 문서 관리, 우선순위 시스템, 자동화된 템플릿 생성을 위한 종합적인 도구 모음을 제공합니다. 이 문서는 구현된 모든 기능, 명령어, 워크플로우를 다룹니다.
+
+===================[ DOC: ko/guide/llms-cli-reference.md ]===================
+# guide--llms-cli-reference
+
+LLMS Generator CLI 명령어 참조
+
+다국어 문서 처리 기능을 포함한 LLMS Generator CLI 시스템의 완전한 명령어 참조서입니다. ::: tip 📖 종합 구현 참조서
+모든 CLI 기능, 아키텍처 세부사항, 고급 워크플로우를 다루는 상세한 구현 문서는 종합 구현 참조서를 참조하세요. :::
+
+핵심 명령어
+
+문서 처리
+
+sync-docs
+
+변경된 문서 파일을 자동으로 처리하고 우선순위 메타데이터와 함께 템플릿을 생성합니다.
+
+===================[ DOC: ko/guide/priority-management.md ]===================
+# guide--priority-management
+
+우선순위 관리 시스템
+
+우선순위 관리 시스템은 LLMS Generator 프레임워크에서 문서 우선순위를 자동으로 분석, 유지 및 최적화하는 도구를 제공합니다. 개요
+
+문제 정의
+
+기존 문서 관리 방식의 한계점:
+- 수동 우선순위 할당: 주관적 평가로 인한 일관성 부족
+- 팀 협업 어려움: 누가 무엇을 작업 중인지 파악 곤란
+- 우선순위 표류: 체계적 검토 없이 우선순위가 구식화
+- 확장성 문제: 수동 관리는 문서 증가에 대응 불가
+
+솔루션 아키텍처
+
+우선순위 관리 시스템이 제공하는 기능:
+- 자동화된 분석: 우선순위 분포에 대한 통계적 인사이트
+- 건강도 모니터링: 일관성 확인 및 편차 감지
+- 스마트 제안: 데이터 기반 개선 권고사항
+- 팀 협업: 외부 서버 연동을 위한 기반 구조
+
+빠른 시작
+
+기본 명령어
+
+예시 출력
+
+명령어 참조
+
+priority-stats
+
+문서의 우선순위 분포를 분석합니다.
+
+===================[ DOC: ko/guide/real-time-state-access.md ]===================
+# guide--real-time-state-access
+
+실시간 상태 접근 패턴
+
+현재 상태에 실시간으로 접근하여 클로저 함정을 방지하는 패턴입니다. 문제: 클로저 함정
+
+해결책: 실시간 접근
+
+완전한 예제
+
+주요 이점
+
+- 오래된 클로저 없음: 항상 현재 상태에 접근
+- 경쟁 조건 방지: 실시간 검사로 충돌 방지
+- 성능: 의존성으로 인한 불필요한 리렌더링 방지.
+
+===================[ DOC: ko/guide/ref-context-setup.md ]===================
+# guide--ref-context-setup
+
+RefContext 설정 패턴
+
+적절한 TypeScript 타입으로 RefContext를 설정하는 핵심 패턴입니다. 기본 설정
+
+Provider 통합
+
+Ref 등록.
+
+===================[ DOC: ko/guide/timeout-protection.md ]===================
+# guide--timeout-protection
+
+타임아웃 보호 패턴
+
+타임아웃 메커니즘으로 무한 대기를 방지하는 패턴입니다. 기본 타임아웃 패턴
+
+재시도가 포함된 고급 타임아웃
+
+액션 핸들러에서 사용
+
+에러 복구 패턴.
+
+===================[ DOC: ko/guide/wait-then-execute.md ]===================
+# guide--wait-then-execute
+
+대기 후 실행 패턴
+
+요소 가용성을 보장한 후 안전하게 DOM 조작을 실행하는 패턴입니다. 기본 패턴
+
+고급 예제
+
+액션 핸들러와 함께.
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/ko/guide/priority-management-500.md ]===================
+# Untitled
+
+우선순위 관리 시스템
+
+우선순위 관리 시스템 우선순위 관리 시스템은 LLMS Generator 프레임워크에서 문서 우선순위를 자동으로 분석, 유지 및 최적화하는 도구를 제공합니다. 개요 문제 정의 기존 문서 관리 방식의 한계점: - 수동 우선순위 할당: 주관적 평가로 인한 일관성 부족 - 팀 협업 어려움: 누가 무엇을 작업 중인지 파악 곤란 - 우선순위 표류: 체계적 검토 없이 우선순위가 구식화 - 확장성 문제: 수동 관리는 문서 증가에 대응 불가 솔루션 아키텍처 우선순위 관리 시스템이 제공하는 기능: - 자동화된 분석: 우선순위 분포에 대한 통계적 인사
+
+Key points:
+• **수동 우선순위 할당**: 주관적 평가로 인한 일관성 부족
+• **팀 협업 어려움**: 누가 무엇을 작업 중인지 파악 곤란
+• **우선순위 표류**: 체계적 검토 없이 우선순위가 구식화
+• **확장성 문제**: 수동 관리는 문서 증가에 대응 불가
+• **자동화된 분석**: 우선순위 분포에 대한...
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/ko/guide/test-multilingual-sync-500.md ]===================
+# Untitled
+
+다국어 동기화 테스트
+
+다국어 동기화 테스트 이 문서는 다국어 문서 처리 옵션을 테스트하기 위한 테스트 문서입니다. 주요 기능 - 한국어 문서 자동 처리 - 언어별 필터링 - 우선순위 자동 생성 사용법 이 기능을 통해 다국어 문서를 효율적으로 관리할 수 있습니다.
+
+Key points:
+• 한국어 문서 자동 처리
+• 언어별 필터링
+• 우선순위 자동 생성
+
+===================[ DOC: ko/concept/action-pipeline-guide.md ]===================
+# concept--action-pipeline-guide
+
+Context-Action 액션 파이프라인 시스템 가이드
+
+Context-Action 프레임워크의 핵심인 액션 파이프라인 시스템에 대한 포괄적인 가이드입니다. 개요
+
+액션 파이프라인 시스템은 Context-Action의 ViewModel 레이어의 핵심으로, 우선순위 기반 핸들러 실행과 정교한 파이프라인 제어를 통한 중앙집중식 액션 처리를 제공합니다.
+
+===================[ DOC: ko/concept/architecture-guide.md ]===================
+# concept--architecture-guide
+
+Context-Action 스토어 통합 아키텍처
+
+1. 개요 및 핵심 개념
+
+Context-Action 아키텍처란. Context-Action 프레임워크는 문서 중심의 컨텍스트 분리와 효과적인 아티팩트 관리를 통해 기존 라이브러리의 근본적인 한계를 극복하도록 설계된 혁신적인 상태 관리 시스템입니다.
+
+===================[ DOC: ko/concept/conventions.md ]===================
+# concept--conventions
+
+Context-Action Framework Conventions
+
+이 문서는 Context-Action 프레임워크의 세 가지 핵심 패턴(Actions, Stores, RefContext)을 사용할 때 따라야 할 코딩 컨벤션과 베스트 프랙티스를 정의합니다. 📋 목차
+
+1. 네이밍 컨벤션
+2. 파일 구조
+3. 패턴 사용법
+4. 타입 정의
+5. 코드 스타일
+6. 성능 가이드라인
+7. 에러 핸들링
+8. RefContext 컨벤션
+
+네이밍 컨벤션
+
+🏷️ 리네이밍 패턴 (Renaming Pattern)
+
+Context-Action 프레임워크의 핵심 컨벤션은 세 가지 패턴 모두에 대한 도메인별 리네이밍 패턴입니다.
+
+===================[ DOC: ko/concept/hooks-reference.md ]===================
+# concept--hooks-reference
+
+Context-Action React 훅 참조
+
+이 문서는 Context-Action 프레임워크에서 사용 가능한 모든 React 훅을 필수 훅 (핵심 기능)과 유틸리티 훅 (편의 및 최적화)으로 분류합니다. 📋 목차
+
+1. 필수 훅
+2. 유틸리티 훅
+3. 훅 분류
+4. 사용 가이드라인
+
+필수 훅
+
+이 훅들은 Context-Action 프레임워크를 사용하는 데 필수적입니다. 대부분의 애플리케이션에서 이러한 훅이 필요합니다. 🔧 RefContext 훅 (성능)
+
+createRefContext<T>()
+고성능 DOM 조작을 위한 모든 ref 관련 훅을 생성하는 팩토리 함수.
+
+===================[ DOC: ko/concept/pattern-guide.md ]===================
+# concept--pattern-guide
+
+@context-action/react 패턴 가이드
+
+@context-action/react 프레임워크에서 사용 가능한 세 가지 주요 패턴의 완전한 가이드입니다.
+
+===================[ DOC: ko/concept/react-refs-guide.md ]===================
+# concept--react-refs-guide
+
+React Refs 가이드
+
+Context-Action의 RefContext는 제로 React 리렌더링으로 고성능 DOM 조작을 위한 현대적 접근법을 제공합니다. RefContext란 무엇인가요. RefContext는 React 상태 업데이트를 거치지 않고 DOM 요소에 직접 접근하고 조작할 수 있게 해주는 고성능 패턴입니다. 이는 실시간 인터랙션, 애니메이션, 캔버스 작업과 같이 60fps 성능이 중요한 시나리오에서 완벽합니다.
+
+===================[ DOC: ko/example/action-only.md ]===================
+# examples--action-only
+
+Action Only 패턴 예제
+
+상태 관리 없이 순수 액션 디스패칭을 위한 Action Only 패턴의 실제 사용 예제입니다. 사용 사례
+
+Action Only 패턴은 다음과 같은 경우에 적합합니다:
+- 이벤트 추적 및 분석
+- 로깅 시스템
+- API 호출 (상태 변경 없이)
+- 알림 시스템
+- 커맨드 패턴 구현
+
+기본 설정
+
+이벤트 추적 시스템
+
+알림 시스템
+
+API 호출 시스템
+
+컴포넌트에서 사용
+
+앱 설정
+
+결과 수집 사용
+
+주요 특징
+
+1. 상태 없음: 순수 사이드 이펙트만 처리
+2. 이벤트 기반: 액션 디스패치를 통한 이벤트 처리
+3. 분리된 관심사: 각 액션 컨텍스트가 특정 도메인 담당
+4. 비동기 지원: async/await를 통한 비동기 작업 처리
+5. 에러 처리: 적절한 에러 처리 및 복구
+
+Action Only 패턴은 상태 관리 없이 비즈니스 로직을 깔끔하게 분리하는 강력한 도구입니다.
+
+===================[ DOC: ko/example/basic-setup.md ]===================
+# examples--basic-setup
+
+기본 설정
+
+이 예제는 Action Only와 Store Only 패턴을 모두 사용한 Context-Action 프레임워크의 기본 설정을 보여줍니다. 설치
+
+먼저 필요한 패키지를 설치하세요:
+
+프로젝트 구조
+
+단계 1: 액션 타입 정의
+
+액션을 위한 타입 정의를 생성하세요:
+
+단계 2: 액션 컨텍스트 생성
+
+비즈니스 로직을 위한 Action Only 패턴을 설정하세요:
+
+단계 3: 스토어 패턴 생성
+
+상태 관리를 위한 Store Only 패턴을 설정하세요:
+
+단계 4: 메인 앱 컴포넌트
+
+Provider들을 조합하여 메인 앱을 생성하세요:
+
+단계 5: 사용자 프로필 컴포넌트
+
+액션과 스토어를 모두 사용하는 컴포넌트:
+
+단계 6: 이벤트 로거 컴포넌트
+
+이벤트 추적을 위한 Action Only 패턴 사용:
+
+주요 포인트
+
+1. 패턴 분리: Action Only는 비즈니스 로직, Store Only는 상태 관리
+2.
+
+===================[ DOC: ko/example/element-management.md ]===================
+# examples--element-management
+
+DOM Element 관리
+
+Context-Action 프레임워크를 사용한 포괄적인 DOM element 관리 고급 예제입니다.
+
+===================[ DOC: ko/example/pattern-composition.md ]===================
+# examples--pattern-composition
+
+패턴 조합 예제
+
+복잡한 애플리케이션을 위해 Action Only와 Store Only 패턴을 결합하는 방법을 보여줍니다. MVVM 아키텍처에 따라 완전한 관심사 분리를 구현합니다. 아키텍처 개요
+
+완전한 애플리케이션 예제
+
+1. 액션 타입 정의
+
+2. 스토어 설정
+
+3. 컨텍스트 생성
+
+4. 액션 핸들러 컴포넌트
+
+5. 시스템 액션 핸들러
+
+6. 메인 애플리케이션 컴포넌트
+
+7. 대시보드 컴포넌트
+
+8. 모달 시스템
+
+9. 성능 모니터
+
+10. 네비게이션 컴포넌트
+
+주요 아키텍처 이점
+
+완벽한 관심사 분리
+
+1. View Layer: 컴포넌트는 순수하게 UI 렌더링과 사용자 상호작용에 집중
+2. ViewModel Layer: 액션 핸들러는 모든 비즈니스 로직과 조정을 담당
+3.
+
+===================[ DOC: ko/example/store-only.md ]===================
+# examples--store-only
+
+Store Only 패턴 예제
+
+순수 상태 관리를 위한 Store Only 패턴의 실제 사용 예제입니다. 액션 디스패치 없이 데이터 레이어, 애플리케이션 상태, 반응형 데이터 플로우에 이상적인 패턴입니다. 사용 사례
+
+- 애플리케이션 상태 관리
+- 폼 상태 및 UI 상태
+- 데이터 캐싱 및 지속성
+- 파생 상태 및 계산된 값
+- 컴포넌트 레벨 상태 관리
+
+완전한 예제
+
+1. 스토어 설정 정의
+
+2. 스토어 패턴 생성
+
+3. 프로필 관리 컴포넌트
+
+4. 설정 컴포넌트
+
+5. 애널리틱스 대시보드
+
+6. 연락처 폼 컴포넌트
+
+7.

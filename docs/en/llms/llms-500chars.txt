@@ -1,0 +1,391 @@
+===================[ DOC: en/guide/action-handlers.md ]===================
+# guide--action-handlers
+
+Action Handlers
+
+Action handlers implement business logic using the useActionHandler + useEffect pattern. Key features include:
+
+• Priority-based execution (sequential/parallel/race modes)
+• Controller methods for flow control (abort, jumpToPriority, setResult)
+• Robust error handling with context and meaningful messages
+• Memory cleanup with unregister functions
+• Result collection from multiple handlers with configurable strategies
+
+Best practices: wrap handlers with useCallback, use lazy store evaluation, implement proper validation, and organize handlers by domain for maintainability.
+
+===================[ DOC: en/guide/action-pipeline.md ]===================
+# guide--action-pipeline
+
+Action Pipeline System
+
+The Action Pipeline System is the core of Context-Action's ViewModel layer, providing centralized action processing with priority-based handler execution and sophisticated pipeline control.
+
+===================[ DOC: en/guide/architecture.md ]===================
+# guide--architecture
+
+Architecture
+
+Context-Action implements a clean separation of concerns through an MVVM-inspired pattern. Core Architecture
+
+The framework separates concerns into three clear layers:
+
+Layers
+
+1. View Layer: React components that render UI and dispatch actions
+2. ViewModel Layer: Action pipeline with priority-based handler execution  
+3.
+
+===================[ DOC: en/guide/best-practices.md ]===================
+# guide--best-practices
+
+Best Practices
+
+Follow these conventions and best practices when using the Context-Action framework. 
+
+Naming Conventions
+
+Domain-Based Renaming Pattern
+
+The core convention is domain-specific renaming for clear context separation.
+
+===================[ DOC: en/guide/code-patterns.md ]===================
+# guide--code-patterns
+
+Code Patterns
+
+Core patterns for Context-Action framework's RefContext and useWaitForRefs functionality.
+
+===================[ DOC: en/guide/conditional-await.md ]===================
+# guide--conditional-await
+
+Conditional Await Pattern
+
+Core behavior of useWaitForRefs that conditionally waits or returns immediately. Basic Pattern
+
+Use Cases
+
+Simple Wait
+
+Conditional Logic
+
+Key Benefits
+
+- Automatic Detection: No manual checking required
+- Performance: Zero delay when element is already mounted
+- Reliability: Guaranteed element availability after await.
+
+===================[ DOC: en/guide/getting-started.md ]===================
+# guide--getting-started
+
+Getting Started
+
+Context-Action provides three main patterns for building scalable React applications with perfect separation of concerns.
+
+===================[ DOC: en/guide/hooks.md ]===================
+# guide--hooks
+
+React Hooks
+
+Context-Action provides React hooks for action dispatching and store management. Essential Hooks
+
+These are the core hooks you'll use most frequently. Action Hooks
+
+createActionContext<T>()
+Factory function that creates all action-related hooks. useActionDispatch()
+Primary hook for dispatching actions to handlers. useActionHandler()
+Primary hook for registering action handlers.
+
+===================[ DOC: en/guide/index.md ]===================
+# guide--index
+
+Code Patterns
+
+Collection of essential patterns for the Context-Action framework, focusing on RefContext and useWaitForRefs functionality. Core Patterns
+
+RefContext Setup
+Basic setup pattern for RefContext with proper TypeScript types and provider integration. Conditional Await
+Core behavior of useWaitForRefs that conditionally waits or returns immediately based on element mount state. Wait-Then-Execute
+Pattern for safely executing DOM operations after ensuring element availability.
+
+===================[ DOC: en/guide/priority-management.md ]===================
+# guide--priority-management
+
+Priority Management System
+
+The Priority Management System provides automated tools for analyzing, maintaining, and optimizing documentation priorities in the LLMS Generator framework.
+
+===================[ DOC: en/guide/real-time-state-access.md ]===================
+# guide--real-time-state-access
+
+Real-time State Access Pattern
+
+Pattern for avoiding closure traps by accessing current state in real-time. The Problem: Closure Traps
+
+The Solution: Real-time Access
+
+Complete Example
+
+Key Benefits
+
+- No Stale Closures: Always access current state
+- Race Condition Prevention: Real-time checks prevent conflicts
+- Performance: Avoid unnecessary re-renders from dependencies.
+
+===================[ DOC: en/guide/ref-context-setup.md ]===================
+# guide--ref-context-setup
+
+RefContext Setup Pattern
+
+Core pattern for setting up RefContext with proper TypeScript types. Basic Setup
+
+Provider Integration
+
+Ref Registration.
+
+===================[ DOC: en/guide/test-sync-demo.md ]===================
+# guide--test-sync-demo
+
+Test Sync Demo (Final Version)
+
+This is the final version of the test document demonstrating complete sync-docs workflow with automatic synchronization. Overview
+
+This document has been modified to test:
+1. Priority JSON generation
+2. Template creation  
+3. Documentation synchronization
+4.
+
+===================[ DOC: en/guide/timeout-protection.md ]===================
+# guide--timeout-protection
+
+Timeout Protection Pattern
+
+Pattern for protecting against infinite waits with timeout mechanisms. Basic Timeout Pattern
+
+Advanced Timeout with Retry
+
+Usage in Action Handlers
+
+Error Recovery Pattern.
+
+===================[ DOC: en/guide/wait-then-execute.md ]===================
+# guide--wait-then-execute
+
+Wait-Then-Execute Pattern
+
+Pattern for safely executing DOM operations after ensuring element availability. Basic Pattern
+
+Advanced Example
+
+With Action Handlers.
+
+===================[ DOC: en/llms-architecture-guide.md ]===================
+# Untitled
+
+LLMS Generator - Architecture & Implementation Guide
+
+LLMS Generator - Architecture & Implementation Guide System Architecture The LLMS Generator is a TypeScript library for processing documentation and generating optimized content for LLM consumption. This guide provides comprehensive architecture details and implementation patterns. Core Components 1
+
+Key points:
+• **Entities**: CoreTypes (Document, WorkItem, Priority metadata)
+• **Use Cases**: Commands (WorkNextCommand,...
+
+===================[ DOC: en/priority-management.md ]===================
+# Untitled
+
+Priority Management System
+
+Priority Management System The Priority Management System provides automated tools for analyzing, maintaining, and optimizing documentation priorities in the LLMS Generator framework. Overview Problem Statement Traditional documentation management faces several challenges: - Manual Priority Assignme
+
+Key points:
+• **Manual Priority Assignment**: Subjective priority scoring leads to inconsistency
+• **Team Coordination**: Difficulty tracking who's working on what
+•...
+
+===================[ DOC: en/concept/action-pipeline-guide.md ]===================
+# concept--action-pipeline-guide
+
+Action Pipeline Guide: ActionPayloadMap & ActionRegister
+
+Complete guide to building type-safe action pipelines with Context-Action framework.
+
+===================[ DOC: en/concept/architecture-guide.md ]===================
+# concept--architecture-guide
+
+Context-Action Store Integration Architecture
+
+1. Overview & Core Concepts
+
+What is Context-Action Architecture. The Context-Action framework is a revolutionary state management system designed to overcome the fundamental limitations of existing libraries through document-centric context separation and effective artifact management.
+
+===================[ DOC: en/concept/conventions.md ]===================
+# concept--conventions
+
+Context-Action Framework Conventions
+
+This document defines coding conventions and best practices when using the Context-Action framework with its three core patterns: Actions, Stores, and RefContext. 📋 Table of Contents
+
+1. Naming Conventions
+2. File Structure
+3. Pattern Usage
+4. Type Definitions
+5. Code Style
+6. Performance Guidelines
+7. Error Handling
+8.
+
+===================[ DOC: en/concept/hooks-reference.md ]===================
+# concept--hooks-reference
+
+Context-Action React Hooks Reference
+
+This document categorizes all available React hooks in the Context-Action framework into Essential Hooks (core functionality) and Utility Hooks (convenience and optimization). 📋 Table of Contents
+
+1. Essential Hooks
+2. Utility Hooks
+3. Hook Categories
+4. Usage Guidelines
+
+Essential Hooks
+
+These hooks are fundamental to using the Context-Action framework. Most applications will need these.
+
+===================[ DOC: en/concept/pattern-guide.md ]===================
+# concept--pattern-guide
+
+@context-action/react Pattern Guide
+
+Complete guide to the three main patterns available in @context-action/react framework.
+
+===================[ DOC: en/concept/react-refs-guide.md ]===================
+# concept--react-refs-guide
+
+React Refs Management Guide
+
+This guide covers the React Refs Management System in the Context-Action framework - a simple and safe reference management system designed for managing DOM elements, custom objects, and complex component references with type safety and lifecycle management. > ⚠️ Important: Always use createRefContext() for ref management. Direct RefStore instantiation is discouraged and only intended for internal framework use.
+
+===================[ DOC: en/example/action-only.md ]===================
+# examples--action-only
+
+Action Only Pattern Example
+
+This example demonstrates the Action Only Pattern for pure action dispatching without state management, ideal for event systems, command patterns, and business logic orchestration. Use Cases
+
+- Event tracking and analytics
+- Command patterns and business logic
+- Cross-component communication
+- Side effects and API calls
+- User interaction handling
+
+Complete Example
+
+1. Define Action Types
+
+2. Create Action Context
+
+3. Event Handler Components
+
+4.
+
+===================[ DOC: en/example/basic-setup.md ]===================
+# examples--basic-setup
+
+Basic Setup
+
+This example shows the fundamental setup of Context-Action framework with both Action Only and Store Only patterns.
+
+===================[ DOC: en/example/element-management.md ]===================
+# examples--element-management
+
+DOM Element Management
+
+Advanced example demonstrating comprehensive DOM element management using the Context-Action framework. Overview
+
+This example showcases how to effectively manage DOM elements in both React and Core packages using Context-Action's Action Pipeline and Store Pattern.
+
+===================[ DOC: en/example/pattern-composition.md ]===================
+# examples--pattern-composition
+
+Pattern Composition Example
+
+This example demonstrates how to combine Action Only and Store Only patterns for complex applications with complete separation of concerns following MVVM architecture. Architecture Overview
+
+Complete Application Example
+
+1. Action Type Definitions
+
+2. Store Configuration
+
+3. Create Contexts
+
+4. Action Handler Components
+
+5. System Action Handlers
+
+6. Main Application Component
+
+7. Dashboard Component
+
+8. Modal System
+
+9. Performance Monitor
+
+10.
+
+===================[ DOC: en/example/store-only.md ]===================
+# examples--store-only
+
+Store Only Pattern Example
+
+This example demonstrates the Store Only Pattern for pure state management without action dispatching, ideal for data layers, application state, and reactive data flows. Use Cases
+
+- Application state management
+- Form state and UI state
+- Data caching and persistence
+- Derived state and computed values
+- Component-level state management
+
+Complete Example
+
+1. Define Store Configuration
+
+2. Create Store Pattern
+
+3. Profile Management Component
+
+4.
+
+===================[ DOC: en/test-llms-optional.md.md ]===================
+# test-llms-optional.md
+
+Test Llms Optional.md: Learn about Test Llms Optional.md
+
+===================[ DOC: en/test-llms-optional.md ]===================
+# Untitled
+
+Test Documentation Update
+
+Test Documentation Update This is a test file to verify the optional LLMS integration system. The system should now automatically sync documentation changes to the llmsData directory.
+
+===================[ DOC: en/test-post-commit.md ]===================
+# Untitled
+
+Test Post-Commit LLMS Integration
+
+Test Post-Commit LLMS Integration This test verifies that LLMS sync happens after commit completion. The system should: 1. Complete the original commit first 2. Then create a separate commit for LLMS updates
+
+Key points:
+• Complete the original commit first
+• Then create a separate commit for LLMS updates
+
+===================[ DOC: en/test-simple-sync.md ]===================
+# Untitled
+
+Simple Sync Test
+
+Simple Sync Test This is a test to verify the simplified LLMS sync system works correctly. Features - No force staging - Standard Git tracking - Simple directory existence check The system should automatically create LLMS summaries and commit them separately.
+
+Key points:
+• No force staging
+• Standard Git tracking
+• Simple directory existence check

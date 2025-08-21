@@ -1,0 +1,4930 @@
+===================[ DOC: en/guide/action-handlers.md ]===================
+# guide--action-handlers
+
+Action Handlers
+
+Business logic with useActionHandler pattern. Sequential/parallel execution, error handling, cleanup.
+
+===================[ DOC: en/guide/action-handlers.md ]===================
+# guide--action-handlers
+
+Action Handlers
+
+Action handlers contain the business logic of your application. Learn how to implement, register, and manage handlers effectively for scalable, maintainable applications. Handler Implementation Pattern
+
+Best Practice: useActionHandler Pattern
+
+The recommended pattern for handler registration uses useActionHandler + useEffect for optimal performance and proper cleanup:
+
+Handler Configuration Options
+
+Handler Execution Flow
+
+1. Sequential Mode (default): Handlers run in priority order
+2. Parallel Mode: All handlers execute simultaneously
+3.
+
+===================[ DOC: en/guide/action-handlers.md ]===================
+# guide--action-handlers
+
+Action Handlers
+
+Business logic implementation using useActionHandler + useEffect pattern. Features priority-based execution, error handling with controller methods, and proper cleanup for memory management.
+
+===================[ DOC: en/guide/action-handlers.md ]===================
+# guide--action-handlers
+
+Action Handlers
+
+Action handlers contain the business logic of your application. Learn how to implement, register, and manage handlers effectively for scalable, maintainable applications. Handler Implementation Pattern
+
+Best Practice: useActionHandler Pattern
+
+The recommended pattern for handler registration uses useActionHandler + useEffect for optimal performance and proper cleanup:
+
+Handler Configuration Options
+
+Handler Execution Flow
+
+1. Sequential Mode (default): Handlers run in priority order
+2. Parallel Mode: All handlers execute simultaneously
+3. Race Mode: First handler to complete wins
+
+Controller Methods
+
+The controller provides methods to manage handler execution flow:
+
+Advanced Handler Patterns
+
+Error Handling
+
+Validation Handlers
+
+Side Effects Handlers
+
+Result Collection
+
+Collect results from multiple handlers:
+
+Handler Organization Patterns
+
+Domain-Specific Handler Files
+
+Handler Composition
+
+Testing Handlers
+
+Unit Testing
+
+Performance Considerations
+
+Handler Optimization
+
+Lazy Loading
+
+Common Handler Anti-Patterns
+
+❌ Missing Cleanup
+
+❌ Stale Closures
+
+❌ Missing Error Handling
+
+Summary
+
+Effective action handler implementation requires:
+
+- Proper Registration: Use useActionHandler + useEffect pattern
+- Memory Management: Always return cleanup functions
+- Error Handling: Robust error handling with meaningful messages
+- Performance: Stable handlers with useCallback
+- Testing: Isolated unit tests for business logic
+- Organization: Domain-specific handler files
+
+Action handlers are the heart of your business logic - implement them correctly for maintainable, scalable applications. ---
+
+::: tip Next Steps
+- Learn Store Management for effective state handling
+- Explore Cross-Domain Integration for multi-domain handlers
+- See Testing Guide for comprehensive handler testing strategies
+:::.
+
+===================[ DOC: en/guide/action-handlers.md ]===================
+# guide--action-handlers
+
+Action Handlers
+
+Action handlers contain the business logic of your application. Learn how to implement, register, and manage handlers effectively for scalable, maintainable applications.
+
+===================[ DOC: en/guide/action-handlers.md ]===================
+# guide--action-handlers
+
+Action Handlers
+
+Action handlers implement business logic using the useActionHandler + useEffect pattern. Key features include:
+
+• Priority-based execution (sequential/parallel/race modes)
+• Controller methods for flow control (abort, jumpToPriority, setResult)
+• Robust error handling with context and meaningful messages
+• Memory cleanup with unregister functions
+• Result collection from multiple handlers with configurable strategies
+
+Best practices: wrap handlers with useCallback, use lazy store evaluation, implement proper validation, and organize handlers by domain for maintainability.
+
+===================[ DOC: en/guide/action-handlers.md ]===================
+# guide--action-handlers
+
+Action Handlers
+
+Action handlers contain the business logic of your application. Learn how to implement, register, and manage handlers effectively for scalable, maintainable applications. Handler Implementation Pattern
+
+Best Practice: useActionHandler Pattern
+
+The recommended pattern for handler registration uses useActionHandler + useEffect for optimal performance and proper cleanup:
+
+Handler Configuration Options
+
+Handler Execution Flow
+
+1. Sequential Mode (default): Handlers run in priority order
+2. Parallel Mode: All handlers execute simultaneously
+3. Race Mode: First handler to complete wins
+
+Controller Methods
+
+The controller provides methods to manage handler execution flow:
+
+Advanced Handler Patterns
+
+Error Handling
+
+Validation Handlers
+
+Side Effects Handlers
+
+Result Collection
+
+Collect results from multiple handlers:
+
+Handler Organization Patterns
+
+Domain-Specific Handler Files
+
+Handler Composition
+
+Testing Handlers
+
+Unit Testing
+
+Performance Considerations
+
+Handler Optimization
+
+Lazy Loading
+
+Common Handler Anti-Patterns
+
+❌ Missing Cleanup
+
+❌ Stale Closures
+
+❌ Missing Error Handling
+
+Summary
+
+Effective action handler implementation requires:
+
+- Proper Registration: Use useActionHandler + useEffect pattern
+- Memory Management: Always return cleanup functions
+- Error Handling: Robust error handling with meaningful messages
+- Performance: Stable handlers with useCallback
+- Testing: Isolated unit tests for business logic
+- Organization: Domain-specific handler files
+
+Action handlers are the heart of your business logic - implement them correctly for maintainable, scalable applications. ---
+
+::: tip Next Steps
+- Learn Store Management for effective state handling
+- Explore Cross-Domain Integration for multi-domain handlers
+- See Testing Guide for comprehensive handler testing strategies
+:::.
+
+===================[ DOC: en/guide/action-pipeline.md ]===================
+# guide--action-pipeline
+
+Action Pipeline System
+
+The Action Pipeline System is the core of Context-Action's ViewMod...
+
+===================[ DOC: en/guide/action-pipeline.md ]===================
+# guide--action-pipeline
+
+Action Pipeline System
+
+The Action Pipeline System is the core of Context-Action's ViewModel layer, providing centralized action processing with priority-based handler execution and sophisticated pipeline control.
+
+===================[ DOC: en/guide/action-pipeline.md ]===================
+# guide--action-pipeline
+
+Action Pipeline System
+
+The Action Pipeline System is the core of Context-Action's ViewModel layer, providing centralized action processing with priority-based handler execution and sophisti...
+
+===================[ DOC: en/guide/action-pipeline.md ]===================
+# guide--action-pipeline
+
+Action Pipeline System
+
+The Action Pipeline System is the core of Context-Action's ViewModel layer, providing centralized action processing with priority-based handler execution and sophisticated pipeline control. Core Concepts
+
+ActionRegister
+
+The ActionRegister class is the heart of the action pipeline system:
+
+Handler Registration
+
+Register handlers with priority-based execution:
+
+Pipeline Controller
+
+Each handler receives a PipelineController for advanced pipeline management:
+
+Priority-Based Execution
+
+Execution Order
+
+Handlers execute in descending priority order (highest first):
+
+Handler Configuration
+
+Pipeline Control Methods
+
+controller.abort()
+
+Stop pipeline execution with optional reason:
+
+controller.modifyPayload()
+
+Transform payload for subsequent handlers:
+
+controller.setResult() and getResults()
+
+Manage intermediate results across handlers:
+
+Execution Modes
+
+Sequential Mode (Default)
+
+Handlers execute one after another:
+
+Parallel Mode
+
+All handlers execute simultaneously:
+
+Race Mode
+
+First handler to complete wins:
+
+Result Collection
+
+Basic Dispatch
+
+Dispatch with Result Collection
+
+Error Handling
+
+The pipeline continues execution even when individual handlers fail:
+
+Real-World Example: Authentication Flow
+
+Integration with React
+
+The Action Pipeline integrates seamlessly with React through the Action Context pattern:
+
+Next Steps
+
+- Main Patterns - Learn about Action Only and Store Only patterns
+- API Reference - Detailed ActionRegister API documentation  
+- Examples - See Action Only pattern in practice.
+
+===================[ DOC: en/guide/action-pipeline.md ]===================
+# guide--action-pipeline
+
+Action Pipeline System
+
+The Action Pipeline System is the core of Context-Action's ViewModel layer, providing centralized action processing with priority-based handler execution and sophisticated pipeline control.
+
+===================[ DOC: en/guide/action-pipeline.md ]===================
+# guide--action-pipeline
+
+Action Pipeline System
+
+The Action Pipeline System is the core of Context-Action's ViewModel layer, providing centralized action processing with priority-based handler execution and sophisticated pipeline control.
+
+===================[ DOC: en/guide/action-pipeline.md ]===================
+# guide--action-pipeline
+
+Action Pipeline System
+
+The Action Pipeline System is the core of Context-Action's ViewModel layer, providing centralized action processing with priority-based handler execution and sophisticated pipeline control. Core Concepts
+
+ActionRegister
+
+The ActionRegister class is the heart of the action pipeline system:
+
+Handler Registration
+
+Register handlers with priority-based execution:
+
+Pipeline Controller
+
+Each handler receives a PipelineController for advanced pipeline management:
+
+Priority-Based Execution
+
+Execution Order
+
+Handlers execute in descending priority order (highest first):
+
+Handler Configuration
+
+Pipeline Control Methods
+
+controller.abort()
+
+Stop pipeline execution with optional reason:
+
+controller.modifyPayload()
+
+Transform payload for subsequent handlers:
+
+controller.setResult() and getResults()
+
+Manage intermediate results across handlers:
+
+Execution Modes
+
+Sequential Mode (Default)
+
+Handlers execute one after another:
+
+Parallel Mode
+
+All handlers execute simultaneously:
+
+Race Mode
+
+First handler to complete wins:
+
+Result Collection
+
+Basic Dispatch
+
+Dispatch with Result Collection
+
+Error Handling
+
+The pipeline continues execution even when individual handlers fail:
+
+Real-World Example: Authentication Flow
+
+Integration with React
+
+The Action Pipeline integrates seamlessly with React through the Action Context pattern:
+
+Next Steps
+
+- Main Patterns - Learn about Action Only and Store Only patterns
+- API Reference - Detailed ActionRegister API documentation  
+- Examples - See Action Only pattern in practice.
+
+===================[ DOC: en/guide/architecture.md ]===================
+# guide--architecture
+
+Architecture
+
+Context-Action implements a clean separation of concerns through an MVVM-ins...
+
+===================[ DOC: en/guide/architecture.md ]===================
+# guide--architecture
+
+Architecture
+
+Context-Action implements a clean separation of concerns through an MVVM-inspired pattern. Core Architecture
+
+The framework separates concerns into three clear layers:
+
+Layers
+
+1. View Layer: React components that render UI and dispatch actions
+2. ViewModel Layer: Action pipeline with priority-based handler execution  
+3.
+
+===================[ DOC: en/guide/architecture.md ]===================
+# guide--architecture
+
+Architecture
+
+Context-Action implements a clean separation of concerns through an MVVM-inspired pattern.
+
+===================[ DOC: en/guide/architecture.md ]===================
+# guide--architecture
+
+Architecture
+
+Context-Action implements a clean separation of concerns through an MVVM-inspired pattern. Core Architecture
+
+The framework separates concerns into three clear layers:
+
+Layers
+
+1. View Layer: React components that render UI and dispatch actions
+2. ViewModel Layer: Action pipeline with priority-based handler execution  
+3.
+
+===================[ DOC: en/guide/architecture.md ]===================
+# guide--architecture
+
+Architecture
+
+Context-Action implements a clean separation of concerns through an MVVM-inspired pattern. Core Architecture
+
+The framework separates concerns into three clear layers:
+
+Layers
+
+1. View Layer: React components that render UI and dispatch actions
+2.
+
+===================[ DOC: en/guide/architecture.md ]===================
+# guide--architecture
+
+Architecture
+
+Context-Action implements a clean separation of concerns through an MVVM-inspired pattern. Core Architecture
+
+The framework separates concerns into three clear layers:
+
+Layers
+
+1. View Layer: React components that render UI and dispatch actions
+2. ViewModel Layer: Action pipeline with priority-based handler execution  
+3.
+
+===================[ DOC: en/guide/architecture.md ]===================
+# guide--architecture
+
+Architecture
+
+Context-Action implements a clean separation of concerns through an MVVM-inspired pattern. Core Architecture
+
+The framework separates concerns into three clear layers:
+
+Layers
+
+1. View Layer: React components that render UI and dispatch actions
+2. ViewModel Layer: Action pipeline with priority-based handler execution  
+3. Model Layer: Store system with reactive state management
+
+Context Separation
+
+Context-Action organizes code into domain-specific contexts:
+
+Domain-Based Contexts
+- Business Context: Business logic, data processing, and domain rules
+- UI Context: Screen state, user interactions, and component behavior  
+- Validation Context: Data validation, form processing, and error handling
+- Design Context: Theme management, styling, layout, and visual states
+- Architecture Context: System configuration, infrastructure, and technical decisions
+
+Context Benefits
+- Domain Isolation: Each context maintains complete independence
+- Clear Boundaries: Implementation results maintain distinct, well-defined domain boundaries
+- Type Safety: Full TypeScript support with domain-specific hooks
+- Scalability: Easy to add new domains without affecting existing ones
+
+Handler Management
+
+Context-Action provides sophisticated handler and trigger management:
+
+Priority-Based Execution
+- Sequential Processing: Handlers execute in priority order with proper async handling
+- Domain Isolation: Each context maintains its own handler registry
+- Cross-Context Coordination: Controlled communication between domain contexts
+- Result Collection: Aggregate results from multiple handlers for complex workflows
+
+Trigger System
+- State-Change Triggers: Automatic triggers based on store value changes
+- Cross-Context Triggers: Domain boundaries can trigger actions in other contexts
+- Conditional Triggers: Smart triggers based on business rules and conditions
+- Trigger Cleanup: Automatic cleanup prevents memory leaks and stale references
+
+Package Structure
+
+Context-Action is organized as a TypeScript monorepo:
+
+- @context-action/core - Core action pipeline management (no React dependency)
+- @context-action/react - React integration with Context API and hooks
+
+Key Benefits
+
+1. Document-Artifact Management: Direct relationship between documentation and implementation
+2. Perfect Separation of Concerns: Clear boundaries between different domain contexts
+3. Advanced Handler Management: Priority-based handler execution with sophisticated trigger system
+4. Type Safety: Full TypeScript support throughout the framework
+5. Performance: Only affected components re-render
+6. Team Collaboration: Different teams can work on different domains.
+
+===================[ DOC: en/guide/best-practices.md ]===================
+# guide--best-practices
+
+Best Practices
+
+Follow these conventions and best practices when using the Context-Action ...
+
+===================[ DOC: en/guide/best-practices.md ]===================
+# guide--best-practices
+
+Best Practices
+
+Follow these conventions and best practices when using the Context-Action framework. 
+
+Naming Conventions
+
+Domain-Based Renaming Pattern
+
+The core convention is domain-specific renaming for clear context separation.
+
+===================[ DOC: en/guide/best-practices.md ]===================
+# guide--best-practices
+
+Best Practices
+
+Follow these conventions and best practices when using the Context-Action framework.
+
+===================[ DOC: en/guide/best-practices.md ]===================
+# guide--best-practices
+
+Best Practices
+
+Follow these conventions and best practices when using the Context-Action framework. 
+
+Naming Conventions
+
+Domain-Based Renaming Pattern
+
+The core convention is domain-specific renaming for clear context separation. Store Pattern Renaming
+
+Action Pattern Renaming
+
+Context Naming Rules
+
+Domain-Based Naming
+
+Action vs Store Distinction
+
+File Structure
+
+Recommended Directory Structure
+
+Context File Organization
+
+Pattern Usage
+
+Action Pattern Best Practices
+
+Handler Registration
+
+Error Handling
+
+Store Pattern Best Practices
+
+Store Access
+
+Store Updates
+
+Type Definitions
+
+Action Types
+
+Store Types
+
+Performance Guidelines
+
+Handler Optimization
+
+Store Subscription Optimization
+
+Pattern Composition
+
+Provider Hierarchy
+
+Cross-Pattern Communication
+
+Common Pitfalls
+
+Avoid These Patterns
+
+Advanced Best Practices
+
+Action Handler State Access
+
+⚠️ Critical: Avoid Closure Traps with Store Values
+
+When accessing store values inside action handlers, never use values from component scope as they create closure traps:
+
+Real-time State Access Patterns
+
+useEffect Dependencies Best Practices
+
+Store and Dispatch References are Stable
+
+Context-Action framework ensures that store instances and dispatch functions have stable references:
+
+Dependency Array Guidelines
+
+Debugging State Issues
+
+State Monitoring Techniques
+
+Common Debugging Scenarios
+
+Production Debugging & Component Lifecycle Management
+
+Critical Issue: Duplicate Action Handler Registration
+
+Problem: Accidentally registering the same action handler multiple times causes unpredictable behavior. Debug tip: grep -n "useActionHandler.'actionName'" src//.tsx
+
+Preventing Race Conditions with Processing State
+
+Problem: Rapid button clicks cause race conditions and state inconsistencies. Safe Component Unmounting with RefContext
+
+Problem: Component unmounting conflicts with manual ref cleanup.
+
+===================[ DOC: en/guide/best-practices.md ]===================
+# guide--best-practices
+
+Best Practices
+
+Follow these conventions and best practices when using the Context-Action framework. 
+
+Naming Conventions
+
+Domain-Based Renaming Pattern
+
+The core convention is domain-specific renaming for clear context separation.
+
+===================[ DOC: en/guide/best-practices.md ]===================
+# guide--best-practices
+
+Best Practices
+
+Follow these conventions and best practices when using the Context-Action framework. 
+
+Naming Conventions
+
+Domain-Based Renaming Pattern
+
+The core convention is domain-specific renaming for clear context separation.
+
+===================[ DOC: en/guide/code-patterns.md ]===================
+# guide--code-patterns
+
+Code Patterns
+
+Core patterns for Context-Action framework's RefContext and useWaitForRefs ...
+
+===================[ DOC: en/guide/code-patterns.md ]===================
+# guide--code-patterns
+
+Code Patterns
+
+Core patterns for Context-Action framework's RefContext and useWaitForRefs functionality. For detailed examples and implementation guidelines, see the organized pattern collection:
+
+📁 Pattern Collection
+
+Core Patterns
+- RefContext Setup - Basic setup with TypeScript types
+- Conditional Await - Core useWaitForRefs behavior
+- Wait-Then-Execute - Safe DOM manipulation
+- Real-time State Access - Avoiding closure traps
+- Timeout Protection - Preventing infinite waits
+
+Quick Reference
+
+Essential Rules
+
+✅ Do
+- Use useCallback for handlers with useWaitForRefs
+- Access real-time state with store.getValue()
+- Handle errors with try-catch
+- Test both mounted/unmounted scenarios
+
+❌ Don't
+- Use direct DOM queries (document.getElementById)
+- Rely on component scope values in handlers
+- Ignore error handling
+- Skip timeout protection for critical paths.
+
+===================[ DOC: en/guide/code-patterns.md ]===================
+# guide--code-patterns
+
+Code Patterns
+
+Core patterns for Context-Action framework's RefContext and useWaitForRefs functionality.
+
+===================[ DOC: en/guide/code-patterns.md ]===================
+# guide--code-patterns
+
+Code Patterns
+
+Core patterns for Context-Action framework's RefContext and useWaitForRefs functionality. For detailed examples and implementation guidelines, see the organized pattern collection:
+
+📁 Pattern Collection
+
+Core Patterns
+- RefContext Setup - Basic setup with TypeScript types
+- Conditional Await - Core useWaitForRefs behavior
+- Wait-Then-Execute - Safe DOM manipulation
+- Real-time State Access - Avoiding closure traps
+- Timeout Protection - Preventing infinite waits
+
+Quick Reference
+
+Essential Rules
+
+✅ Do
+- Use useCallback for handlers with useWaitForRefs
+- Access real-time state with store.getValue()
+- Handle errors with try-catch
+- Test both mounted/unmounted scenarios
+
+❌ Don't
+- Use direct DOM queries (document.getElementById)
+- Rely on component scope values in handlers
+- Ignore error handling
+- Skip timeout protection for critical paths.
+
+===================[ DOC: en/guide/code-patterns.md ]===================
+# guide--code-patterns
+
+Code Patterns
+
+Core patterns for Context-Action framework's RefContext and useWaitForRefs functionality.
+
+===================[ DOC: en/guide/code-patterns.md ]===================
+# guide--code-patterns
+
+Code Patterns
+
+Core patterns for Context-Action framework's RefContext and useWaitForRefs functionality.
+
+===================[ DOC: en/guide/code-patterns.md ]===================
+# guide--code-patterns
+
+Code Patterns
+
+Core patterns for Context-Action framework's RefContext and useWaitForRefs functionality. For detailed examples and implementation guidelines, see the organized pattern collection:
+
+📁 Pattern Collection
+
+Core Patterns
+- RefContext Setup - Basic setup with TypeScript types
+- Conditional Await - Core useWaitForRefs behavior
+- Wait-Then-Execute - Safe DOM manipulation
+- Real-time State Access - Avoiding closure traps
+- Timeout Protection - Preventing infinite waits
+
+Quick Reference
+
+Essential Rules
+
+✅ Do
+- Use useCallback for handlers with useWaitForRefs
+- Access real-time state with store.getValue()
+- Handle errors with try-catch
+- Test both mounted/unmounted scenarios
+
+❌ Don't
+- Use direct DOM queries (document.getElementById)
+- Rely on component scope values in handlers
+- Ignore error handling
+- Skip timeout protection for critical paths.
+
+===================[ DOC: en/guide/conditional-await.md ]===================
+# guide--conditional-await
+
+Conditional Await Pattern
+
+Core behavior of useWaitForRefs that conditionally waits or ret...
+
+===================[ DOC: en/guide/conditional-await.md ]===================
+# guide--conditional-await
+
+Conditional Await Pattern
+
+Core behavior of useWaitForRefs that conditionally waits or returns immediately. Basic Pattern
+
+Use Cases
+
+Simple Wait
+
+Conditional Logic
+
+Key Benefits
+
+- Automatic Detection: No manual checking required
+- Performance: Zero delay when element is already mounted
+- Reliability: Guaranteed element availability after await.
+
+===================[ DOC: en/guide/conditional-await.md ]===================
+# guide--conditional-await
+
+Conditional Await Pattern
+
+Core behavior of useWaitForRefs that conditionally waits or returns immediately.
+
+===================[ DOC: en/guide/conditional-await.md ]===================
+# guide--conditional-await
+
+Conditional Await Pattern
+
+Core behavior of useWaitForRefs that conditionally waits or returns immediately. Basic Pattern
+
+Use Cases
+
+Simple Wait
+
+Conditional Logic
+
+Key Benefits
+
+- Automatic Detection: No manual checking required
+- Performance: Zero delay when element is already mounted
+- Reliability: Guaranteed element availability after await.
+
+===================[ DOC: en/guide/conditional-await.md ]===================
+# guide--conditional-await
+
+Conditional Await Pattern
+
+Core behavior of useWaitForRefs that conditionally waits or returns immediately.
+
+===================[ DOC: en/guide/conditional-await.md ]===================
+# guide--conditional-await
+
+Conditional Await Pattern
+
+Core behavior of useWaitForRefs that conditionally waits or returns immediately. Basic Pattern
+
+Use Cases
+
+Simple Wait
+
+Conditional Logic
+
+Key Benefits
+
+- Automatic Detection: No manual checking required
+- Performance: Zero delay when element is already mounted
+- Reliability: Guaranteed element availability after await.
+
+===================[ DOC: en/guide/conditional-await.md ]===================
+# guide--conditional-await
+
+Conditional Await Pattern
+
+Core behavior of useWaitForRefs that conditionally waits or returns immediately. Basic Pattern
+
+Use Cases
+
+Simple Wait
+
+Conditional Logic
+
+Key Benefits
+
+- Automatic Detection: No manual checking required
+- Performance: Zero delay when element is already mounted
+- Reliability: Guaranteed element availability after await.
+
+===================[ DOC: en/guide/getting-started.md ]===================
+# guide--getting-started
+
+Getting Started
+
+Context-Action provides three main patterns for building scalable React a...
+
+===================[ DOC: en/guide/getting-started.md ]===================
+# guide--getting-started
+
+Getting Started
+
+Context-Action provides three main patterns for building scalable React applications with perfect separation of concerns. Quick Start
+
+Choose the right pattern for your use case:
+
+| Pattern | Use Case | Import | Best For |
+|---------|----------|--------|----------|
+| 🎯 Action Only | Action dispatching without stores | createActionContext | Event systems, command patterns |
+| 🏪 Store Only | State management without actions | createDeclarativeStorePattern | Pure state management, data layers |
+| 🔧 Ref Context | Direct DOM manipulation with zero re-renders | createRefContext | High-performance UI, animations, real-time interactions |
+
+🎯 Action Only Pattern
+
+Pure action dispatching without state management. Basic Usage
+
+🏪 Store Only Pattern
+
+Type-safe state management without action dispatching. Basic Usage
+
+🔧 Ref Context Pattern
+
+High-performance direct DOM manipulation with zero React re-renders.
+
+===================[ DOC: en/guide/getting-started.md ]===================
+# guide--getting-started
+
+Getting Started
+
+Context-Action provides three main patterns for building scalable React applications with perfect separation of concerns.
+
+===================[ DOC: en/guide/getting-started.md ]===================
+# guide--getting-started
+
+Getting Started
+
+Context-Action provides three main patterns for building scalable React applications with perfect separation of concerns. Quick Start
+
+Choose the right pattern for your use case:
+
+| Pattern | Use Case | Import | Best For |
+|---------|----------|--------|----------|
+| 🎯 Action Only | Action dispatching without stores | createActionContext | Event systems, command patterns |
+| 🏪 Store Only | State management without actions | createDeclarativeStorePattern | Pure state management, data layers |
+| 🔧 Ref Context | Direct DOM manipulation with zero re-renders | createRefContext | High-performance UI, animations, real-time interactions |
+
+🎯 Action Only Pattern
+
+Pure action dispatching without state management. Basic Usage
+
+🏪 Store Only Pattern
+
+Type-safe state management without action dispatching. Basic Usage
+
+🔧 Ref Context Pattern
+
+High-performance direct DOM manipulation with zero React re-renders. Basic Usage
+
+Advanced RefContext with Business Logic
+
+Pattern Composition
+
+For complex applications, combine all three patterns:
+
+Next Steps
+
+- React Refs Guide - Deep dive into RefContext patterns
+- Pattern Guide - Compare all three patterns with examples
+- Action Pipeline - Learn about action processing
+- Architecture - Understand the overall architecture
+- Hooks - Explore available React hooks
+- Best Practices - Follow recommended patterns
+
+Real-World Examples
+
+- Mouse Events with RefContext: See the RefContext mouse events demo in our example app
+- Store Integration: Learn how to combine stores with action handlers
+- Performance Optimization: Discover zero re-render patterns with direct DOM manipulation.
+
+===================[ DOC: en/guide/getting-started.md ]===================
+# guide--getting-started
+
+Getting Started
+
+Context-Action provides three main patterns for building scalable React applications with perfect separation of concerns.
+
+===================[ DOC: en/guide/getting-started.md ]===================
+# guide--getting-started
+
+Getting Started
+
+Context-Action provides three main patterns for building scalable React applications with perfect separation of concerns.
+
+===================[ DOC: en/guide/getting-started.md ]===================
+# guide--getting-started
+
+Getting Started
+
+Context-Action provides three main patterns for building scalable React applications with perfect separation of concerns. Quick Start
+
+Choose the right pattern for your use case:
+
+| Pattern | Use Case | Import | Best For |
+|---------|----------|--------|----------|
+| 🎯 Action Only | Action dispatching without stores | createActionContext | Event systems, command patterns |
+| 🏪 Store Only | State management without actions | createDeclarativeStorePattern | Pure state management, data layers |
+| 🔧 Ref Context | Direct DOM manipulation with zero re-renders | createRefContext | High-performance UI, animations, real-time interactions |
+
+🎯 Action Only Pattern
+
+Pure action dispatching without state management. Basic Usage
+
+🏪 Store Only Pattern
+
+Type-safe state management without action dispatching. Basic Usage
+
+🔧 Ref Context Pattern
+
+High-performance direct DOM manipulation with zero React re-renders. Basic Usage
+
+Advanced RefContext with Business Logic
+
+Pattern Composition
+
+For complex applications, combine all three patterns:
+
+Next Steps
+
+- React Refs Guide - Deep dive into RefContext patterns
+- Pattern Guide - Compare all three patterns with examples
+- Action Pipeline - Learn about action processing
+- Architecture - Understand the overall architecture
+- Hooks - Explore available React hooks
+- Best Practices - Follow recommended patterns
+
+Real-World Examples
+
+- Mouse Events with RefContext: See the RefContext mouse events demo in our example app
+- Store Integration: Learn how to combine stores with action handlers
+- Performance Optimization: Discover zero re-render patterns with direct DOM manipulation.
+
+===================[ DOC: en/guide/hooks.md ]===================
+# guide--hooks
+
+React Hooks
+
+Context-Action provides React hooks for action dispatching and store manageme...
+
+===================[ DOC: en/guide/hooks.md ]===================
+# guide--hooks
+
+React Hooks
+
+Context-Action provides React hooks for action dispatching and store management. Essential Hooks
+
+These are the core hooks you'll use most frequently. Action Hooks
+
+createActionContext<T>()
+Factory function that creates all action-related hooks. useActionDispatch()
+Primary hook for dispatching actions to handlers. useActionHandler()
+Primary hook for registering action handlers. Store Hooks
+
+createDeclarativeStorePattern<T>()
+Factory function that creates all store-related hooks. useStoreValue<T>(store)
+Primary hook for subscribing to store changes. useStore(name)
+Primary hook for accessing stores by name. Utility Hooks
+
+Additional hooks for advanced scenarios. Store Management
+
+useStoreManager()
+Hook for updating stores programmatically. Advanced Action Hooks
+
+useActionDispatchWithResult()
+Hook that provides both dispatch and result collection capabilities. Usage Guidelines
+
+Best Practices
+
+1. Use useCallback for handlers:
+
+2. Combine patterns when needed:
+
+3.
+
+===================[ DOC: en/guide/hooks.md ]===================
+# guide--hooks
+
+React Hooks
+
+Context-Action provides React hooks for action dispatching and store management. Essential Hooks
+
+These are the core hooks you'll use most frequently.
+
+===================[ DOC: en/guide/hooks.md ]===================
+# guide--hooks
+
+React Hooks
+
+Context-Action provides React hooks for action dispatching and store management. Essential Hooks
+
+These are the core hooks you'll use most frequently. Action Hooks
+
+createActionContext<T>()
+Factory function that creates all action-related hooks. useActionDispatch()
+Primary hook for dispatching actions to handlers. useActionHandler()
+Primary hook for registering action handlers. Store Hooks
+
+createDeclarativeStorePattern<T>()
+Factory function that creates all store-related hooks. useStoreValue<T>(store)
+Primary hook for subscribing to store changes. useStore(name)
+Primary hook for accessing stores by name. Utility Hooks
+
+Additional hooks for advanced scenarios. Store Management
+
+useStoreManager()
+Hook for updating stores programmatically. Advanced Action Hooks
+
+useActionDispatchWithResult()
+Hook that provides both dispatch and result collection capabilities. Usage Guidelines
+
+Best Practices
+
+1. Use useCallback for handlers:
+
+2. Combine patterns when needed:
+
+3. Type-safe store access:
+
+Performance Tips
+
+- Store subscriptions only re-render on actual value changes
+- Use specific store subscriptions rather than subscribing to entire state
+- Handler registration is optimized for minimal re-renders
+- Action dispatching is memoized automatically.
+
+===================[ DOC: en/guide/hooks.md ]===================
+# guide--hooks
+
+React Hooks
+
+Context-Action provides React hooks for action dispatching and store management. Essential Hooks
+
+These are the core hooks you'll use most frequently. Action Hooks
+
+createActionContext<T>()
+Factory function that creates all action-related hooks.
+
+===================[ DOC: en/guide/hooks.md ]===================
+# guide--hooks
+
+React Hooks
+
+Context-Action provides React hooks for action dispatching and store management. Essential Hooks
+
+These are the core hooks you'll use most frequently. Action Hooks
+
+createActionContext<T>()
+Factory function that creates all action-related hooks. useActionDispatch()
+Primary hook for dispatching actions to handlers. useActionHandler()
+Primary hook for registering action handlers.
+
+===================[ DOC: en/guide/hooks.md ]===================
+# guide--hooks
+
+React Hooks
+
+Context-Action provides React hooks for action dispatching and store management. Essential Hooks
+
+These are the core hooks you'll use most frequently. Action Hooks
+
+createActionContext<T>()
+Factory function that creates all action-related hooks. useActionDispatch()
+Primary hook for dispatching actions to handlers. useActionHandler()
+Primary hook for registering action handlers. Store Hooks
+
+createDeclarativeStorePattern<T>()
+Factory function that creates all store-related hooks. useStoreValue<T>(store)
+Primary hook for subscribing to store changes. useStore(name)
+Primary hook for accessing stores by name. Utility Hooks
+
+Additional hooks for advanced scenarios. Store Management
+
+useStoreManager()
+Hook for updating stores programmatically. Advanced Action Hooks
+
+useActionDispatchWithResult()
+Hook that provides both dispatch and result collection capabilities. Usage Guidelines
+
+Best Practices
+
+1. Use useCallback for handlers:
+
+2. Combine patterns when needed:
+
+3. Type-safe store access:
+
+Performance Tips
+
+- Store subscriptions only re-render on actual value changes
+- Use specific store subscriptions rather than subscribing to entire state
+- Handler registration is optimized for minimal re-renders
+- Action dispatching is memoized automatically.
+
+===================[ DOC: en/guide/index.md ]===================
+# guide--index
+
+Code Patterns
+
+Collection of essential patterns for the Context-Action framework, focusing...
+
+===================[ DOC: en/guide/index.md ]===================
+# guide--index
+
+Code Patterns
+
+Collection of essential patterns for the Context-Action framework, focusing on RefContext and useWaitForRefs functionality. Core Patterns
+
+RefContext Setup
+Basic setup pattern for RefContext with proper TypeScript types and provider integration. Conditional Await
+Core behavior of useWaitForRefs that conditionally waits or returns immediately based on element mount state. Wait-Then-Execute
+Pattern for safely executing DOM operations after ensuring element availability. Real-time State Access
+Pattern for avoiding closure traps by accessing current state in real-time using store.getValue(). Timeout Protection
+Pattern for protecting against infinite waits with timeout mechanisms and retry logic.
+
+===================[ DOC: en/guide/index.md ]===================
+# guide--index
+
+Code Patterns
+
+Collection of essential patterns for the Context-Action framework, focusing on RefContext and useWaitForRefs functionality.
+
+===================[ DOC: en/guide/index.md ]===================
+# guide--index
+
+Code Patterns
+
+Collection of essential patterns for the Context-Action framework, focusing on RefContext and useWaitForRefs functionality. Core Patterns
+
+RefContext Setup
+Basic setup pattern for RefContext with proper TypeScript types and provider integration. Conditional Await
+Core behavior of useWaitForRefs that conditionally waits or returns immediately based on element mount state. Wait-Then-Execute
+Pattern for safely executing DOM operations after ensuring element availability. Real-time State Access
+Pattern for avoiding closure traps by accessing current state in real-time using store.getValue(). Timeout Protection
+Pattern for protecting against infinite waits with timeout mechanisms and retry logic. Usage Guidelines
+
+Each pattern includes:
+- ✅ Best practices with working examples
+- ❌ Common pitfalls to avoid
+- 🎯 Use cases for when to apply the pattern
+- ⚡ Performance considerations and optimization tips
+
+Pattern Composition
+
+These patterns can be combined for complex scenarios:
+- RefContext Setup + Conditional Await for basic element waiting
+- Real-time State Access + Wait-Then-Execute for race condition prevention
+- Timeout Protection + any pattern for robust error handling.
+
+===================[ DOC: en/guide/index.md ]===================
+# guide--index
+
+Code Patterns
+
+Collection of essential patterns for the Context-Action framework, focusing on RefContext and useWaitForRefs functionality. Core Patterns
+
+RefContext Setup
+Basic setup pattern for RefContext with proper TypeScript types and provider integration.
+
+===================[ DOC: en/guide/index.md ]===================
+# guide--index
+
+Code Patterns
+
+Collection of essential patterns for the Context-Action framework, focusing on RefContext and useWaitForRefs functionality. Core Patterns
+
+RefContext Setup
+Basic setup pattern for RefContext with proper TypeScript types and provider integration. Conditional Await
+Core behavior of useWaitForRefs that conditionally waits or returns immediately based on element mount state. Wait-Then-Execute
+Pattern for safely executing DOM operations after ensuring element availability.
+
+===================[ DOC: en/guide/index.md ]===================
+# guide--index
+
+Code Patterns
+
+Collection of essential patterns for the Context-Action framework, focusing on RefContext and useWaitForRefs functionality. Core Patterns
+
+RefContext Setup
+Basic setup pattern for RefContext with proper TypeScript types and provider integration. Conditional Await
+Core behavior of useWaitForRefs that conditionally waits or returns immediately based on element mount state. Wait-Then-Execute
+Pattern for safely executing DOM operations after ensuring element availability. Real-time State Access
+Pattern for avoiding closure traps by accessing current state in real-time using store.getValue(). Timeout Protection
+Pattern for protecting against infinite waits with timeout mechanisms and retry logic. Usage Guidelines
+
+Each pattern includes:
+- ✅ Best practices with working examples
+- ❌ Common pitfalls to avoid
+- 🎯 Use cases for when to apply the pattern
+- ⚡ Performance considerations and optimization tips
+
+Pattern Composition
+
+These patterns can be combined for complex scenarios:
+- RefContext Setup + Conditional Await for basic element waiting
+- Real-time State Access + Wait-Then-Execute for race condition prevention
+- Timeout Protection + any pattern for robust error handling.
+
+===================[ DOC: en/guide/priority-management.md ]===================
+# guide--priority-management
+
+Priority Management System
+
+The Priority Management System provides automated tools for an...
+
+===================[ DOC: en/guide/priority-management.md ]===================
+# guide--priority-management
+
+Priority Management System
+
+The Priority Management System provides automated tools for analyzing, maintaining, and optimizing documentation priorities in the LLMS Generator framework.
+
+===================[ DOC: en/guide/priority-management.md ]===================
+# guide--priority-management
+
+Priority Management System
+
+The Priority Management System provides automated tools for analyzing, maintaining, and optimizing documentation priorities in the LLMS Generator framework.
+
+===================[ DOC: en/guide/priority-management.md ]===================
+# guide--priority-management
+
+Priority Management System
+
+The Priority Management System provides automated tools for analyzing, maintaining, and optimizing documentation priorities in the LLMS Generator framework. Overview
+
+Problem Statement
+
+Traditional documentation management faces several challenges:
+- Manual Priority Assignment: Subjective priority scoring leads to inconsistency
+- Team Coordination: Difficulty tracking who's working on what
+- Priority Drift: Priorities become outdated without systematic review
+- Scalability Issues: Manual management doesn't scale with growing documentation
+
+Solution Architecture
+
+The Priority Management System provides:
+- Automated Analysis: Statistical insights into priority distribution
+- Health Monitoring: Consistency checks and variance detection
+- Smart Suggestions: Data-driven recommendations for improvement
+- Team Collaboration: Foundation for external server integration
+
+Quick Start
+
+Basic Commands
+
+Example Output
+
+Commands Reference
+
+priority-stats
+
+Analyzes priority distribution across your documentation. Output includes:
+- Total document count and average priority score
+- Distribution by priority tier (critical, high, medium, low)
+- Breakdown by category and language
+- Statistical measures (range, standard deviation)
+
+priority-health
+
+Evaluates priority consistency and identifies issues. Health Scoring:
+- Excellent (85-100): Well-balanced, consistent priorities
+- Good (70-84): Minor inconsistencies, easily addressed
+- Fair (50-69): Noticeable issues requiring attention
+- Poor (0-49): Significant problems needing immediate action
+
+Common Issues Detected:
+- High priority variance (standard deviation > 25)
+- Similar scores across all documents (range < 20)
+- Uneven category distribution (variance > 50)
+- Language inconsistencies (variance > 30)
+
+priority-suggest
+
+Provides actionable recommendations based on current state.
+
+===================[ DOC: en/guide/priority-management.md ]===================
+# guide--priority-management
+
+Priority Management System
+
+The Priority Management System provides automated tools for analyzing, maintaining, and optimizing documentation priorities in the LLMS Generator framework.
+
+===================[ DOC: en/guide/priority-management.md ]===================
+# guide--priority-management
+
+Priority Management System
+
+The Priority Management System provides automated tools for analyzing, maintaining, and optimizing documentation priorities in the LLMS Generator framework.
+
+===================[ DOC: en/guide/priority-management.md ]===================
+# guide--priority-management
+
+Priority Management System
+
+The Priority Management System provides automated tools for analyzing, maintaining, and optimizing documentation priorities in the LLMS Generator framework. Overview
+
+Problem Statement
+
+Traditional documentation management faces several challenges:
+- Manual Priority Assignment: Subjective priority scoring leads to inconsistency
+- Team Coordination: Difficulty tracking who's working on what
+- Priority Drift: Priorities become outdated without systematic review
+- Scalability Issues: Manual management doesn't scale with growing documentation
+
+Solution Architecture
+
+The Priority Management System provides:
+- Automated Analysis: Statistical insights into priority distribution
+- Health Monitoring: Consistency checks and variance detection
+- Smart Suggestions: Data-driven recommendations for improvement
+- Team Collaboration: Foundation for external server integration
+
+Quick Start
+
+Basic Commands
+
+Example Output
+
+Commands Reference
+
+priority-stats
+
+Analyzes priority distribution across your documentation. Output includes:
+- Total document count and average priority score
+- Distribution by priority tier (critical, high, medium, low)
+- Breakdown by category and language
+- Statistical measures (range, standard deviation)
+
+priority-health
+
+Evaluates priority consistency and identifies issues. Health Scoring:
+- Excellent (85-100): Well-balanced, consistent priorities
+- Good (70-84): Minor inconsistencies, easily addressed
+- Fair (50-69): Noticeable issues requiring attention
+- Poor (0-49): Significant problems needing immediate action
+
+Common Issues Detected:
+- High priority variance (standard deviation > 25)
+- Similar scores across all documents (range < 20)
+- Uneven category distribution (variance > 50)
+- Language inconsistencies (variance > 30)
+
+priority-suggest
+
+Provides actionable recommendations based on current state. Suggestions include:
+- Immediate actions for poor health scores
+- Standardization recommendations
+- Document-specific guidance
+- Next steps for improvement
+
+priority-auto
+
+Automatically recalculates priorities based on defined criteria.
+
+===================[ DOC: en/guide/real-time-state-access.md ]===================
+# guide--real-time-state-access
+
+Real-time State Access Pattern
+
+Pattern for avoiding closure traps by accessing current st...
+
+===================[ DOC: en/guide/real-time-state-access.md ]===================
+# guide--real-time-state-access
+
+Real-time State Access Pattern
+
+Pattern for avoiding closure traps by accessing current state in real-time. The Problem: Closure Traps
+
+The Solution: Real-time Access
+
+Complete Example
+
+Key Benefits
+
+- No Stale Closures: Always access current state
+- Race Condition Prevention: Real-time checks prevent conflicts
+- Performance: Avoid unnecessary re-renders from dependencies.
+
+===================[ DOC: en/guide/real-time-state-access.md ]===================
+# guide--real-time-state-access
+
+Real-time State Access Pattern
+
+Pattern for avoiding closure traps by accessing current state in real-time.
+
+===================[ DOC: en/guide/real-time-state-access.md ]===================
+# guide--real-time-state-access
+
+Real-time State Access Pattern
+
+Pattern for avoiding closure traps by accessing current state in real-time. The Problem: Closure Traps
+
+The Solution: Real-time Access
+
+Complete Example
+
+Key Benefits
+
+- No Stale Closures: Always access current state
+- Race Condition Prevention: Real-time checks prevent conflicts
+- Performance: Avoid unnecessary re-renders from dependencies.
+
+===================[ DOC: en/guide/real-time-state-access.md ]===================
+# guide--real-time-state-access
+
+Real-time State Access Pattern
+
+Pattern for avoiding closure traps by accessing current state in real-time.
+
+===================[ DOC: en/guide/real-time-state-access.md ]===================
+# guide--real-time-state-access
+
+Real-time State Access Pattern
+
+Pattern for avoiding closure traps by accessing current state in real-time. The Problem: Closure Traps
+
+The Solution: Real-time Access
+
+Complete Example
+
+Key Benefits
+
+- No Stale Closures: Always access current state
+- Race Condition Prevention: Real-time checks prevent conflicts
+- Performance: Avoid unnecessary re-renders from dependencies.
+
+===================[ DOC: en/guide/real-time-state-access.md ]===================
+# guide--real-time-state-access
+
+Real-time State Access Pattern
+
+Pattern for avoiding closure traps by accessing current state in real-time. The Problem: Closure Traps
+
+The Solution: Real-time Access
+
+Complete Example
+
+Key Benefits
+
+- No Stale Closures: Always access current state
+- Race Condition Prevention: Real-time checks prevent conflicts
+- Performance: Avoid unnecessary re-renders from dependencies.
+
+===================[ DOC: en/guide/ref-context-setup.md ]===================
+# guide--ref-context-setup
+
+RefContext Setup Pattern
+
+Core pattern for setting up RefContext with proper TypeScript ty...
+
+===================[ DOC: en/guide/ref-context-setup.md ]===================
+# guide--ref-context-setup
+
+RefContext Setup Pattern
+
+Core pattern for setting up RefContext with proper TypeScript types. Basic Setup
+
+Provider Integration
+
+Ref Registration.
+
+===================[ DOC: en/guide/ref-context-setup.md ]===================
+# guide--ref-context-setup
+
+RefContext Setup Pattern
+
+Core pattern for setting up RefContext with proper TypeScript types. Basic Setup
+
+Provider Integration
+
+Ref Registration.
+
+===================[ DOC: en/guide/ref-context-setup.md ]===================
+# guide--ref-context-setup
+
+RefContext Setup Pattern
+
+Core pattern for setting up RefContext with proper TypeScript types. Basic Setup
+
+Provider Integration
+
+Ref Registration.
+
+===================[ DOC: en/guide/ref-context-setup.md ]===================
+# guide--ref-context-setup
+
+RefContext Setup Pattern
+
+Core pattern for setting up RefContext with proper TypeScript types. Basic Setup
+
+Provider Integration
+
+Ref Registration.
+
+===================[ DOC: en/guide/ref-context-setup.md ]===================
+# guide--ref-context-setup
+
+RefContext Setup Pattern
+
+Core pattern for setting up RefContext with proper TypeScript types. Basic Setup
+
+Provider Integration
+
+Ref Registration.
+
+===================[ DOC: en/guide/ref-context-setup.md ]===================
+# guide--ref-context-setup
+
+RefContext Setup Pattern
+
+Core pattern for setting up RefContext with proper TypeScript types. Basic Setup
+
+Provider Integration
+
+Ref Registration.
+
+===================[ DOC: en/guide/test-sync-demo.md ]===================
+# guide--test-sync-demo
+
+Test Sync Demo (Final Version)
+
+This is the final version of the test document demonstrati...
+
+===================[ DOC: en/guide/test-sync-demo.md ]===================
+# guide--test-sync-demo
+
+Test Sync Demo (Final Version)
+
+This is the final version of the test document demonstrating complete sync-docs workflow with automatic synchronization. Overview
+
+This document has been modified to test:
+1. Priority JSON generation
+2. Template creation  
+3. Documentation synchronization
+4. NEW: Automatic update propagation
+
+Features
+
+- Automatic metadata generation
+- Pre-commit hook integration
+- Real-time synchronization
+
+Example Code
+
+Conclusion
+
+This is a test document to verify the sync-docs workflow.
+
+===================[ DOC: en/guide/test-sync-demo.md ]===================
+# guide--test-sync-demo
+
+Test Sync Demo (Final Version)
+
+This is the final version of the test document demonstrating complete sync-docs workflow with automatic synchronization.
+
+===================[ DOC: en/guide/test-sync-demo.md ]===================
+# guide--test-sync-demo
+
+Test Sync Demo (Final Version)
+
+This is the final version of the test document demonstrating complete sync-docs workflow with automatic synchronization. Overview
+
+This document has been modified to test:
+1. Priority JSON generation
+2. Template creation  
+3. Documentation synchronization
+4. NEW: Automatic update propagation
+
+Features
+
+- Automatic metadata generation
+- Pre-commit hook integration
+- Real-time synchronization
+
+Example Code
+
+Conclusion
+
+This is a test document to verify the sync-docs workflow.
+
+===================[ DOC: en/guide/test-sync-demo.md ]===================
+# guide--test-sync-demo
+
+Test Sync Demo (Final Version)
+
+This is the final version of the test document demonstrating complete sync-docs workflow with automatic synchronization. Overview
+
+This document has been modified to test:
+1. Priority JSON generation
+2. Template creation  
+3. Documentation synchronization
+4.
+
+===================[ DOC: en/guide/test-sync-demo.md ]===================
+# guide--test-sync-demo
+
+Test Sync Demo (Final Version)
+
+This is the final version of the test document demonstrating complete sync-docs workflow with automatic synchronization. Overview
+
+This document has been modified to test:
+1. Priority JSON generation
+2. Template creation  
+3. Documentation synchronization
+4.
+
+===================[ DOC: en/guide/test-sync-demo.md ]===================
+# guide--test-sync-demo
+
+Test Sync Demo (Final Version)
+
+This is the final version of the test document demonstrating complete sync-docs workflow with automatic synchronization. Overview
+
+This document has been modified to test:
+1. Priority JSON generation
+2. Template creation  
+3. Documentation synchronization
+4. NEW: Automatic update propagation
+
+Features
+
+- Automatic metadata generation
+- Pre-commit hook integration
+- Real-time synchronization
+
+Example Code
+
+Conclusion
+
+This is a test document to verify the sync-docs workflow.
+
+===================[ DOC: en/guide/timeout-protection.md ]===================
+# guide--timeout-protection
+
+Timeout Protection Pattern
+
+Pattern for protecting against infinite waits with timeout mec...
+
+===================[ DOC: en/guide/timeout-protection.md ]===================
+# guide--timeout-protection
+
+Timeout Protection Pattern
+
+Pattern for protecting against infinite waits with timeout mechanisms. Basic Timeout Pattern
+
+Advanced Timeout with Retry
+
+Usage in Action Handlers
+
+Error Recovery Pattern.
+
+===================[ DOC: en/guide/timeout-protection.md ]===================
+# guide--timeout-protection
+
+Timeout Protection Pattern
+
+Pattern for protecting against infinite waits with timeout mechanisms.
+
+===================[ DOC: en/guide/timeout-protection.md ]===================
+# guide--timeout-protection
+
+Timeout Protection Pattern
+
+Pattern for protecting against infinite waits with timeout mechanisms. Basic Timeout Pattern
+
+Advanced Timeout with Retry
+
+Usage in Action Handlers
+
+Error Recovery Pattern.
+
+===================[ DOC: en/guide/timeout-protection.md ]===================
+# guide--timeout-protection
+
+Timeout Protection Pattern
+
+Pattern for protecting against infinite waits with timeout mechanisms. Basic Timeout Pattern
+
+Advanced Timeout with Retry
+
+Usage in Action Handlers
+
+Error Recovery Pattern.
+
+===================[ DOC: en/guide/timeout-protection.md ]===================
+# guide--timeout-protection
+
+Timeout Protection Pattern
+
+Pattern for protecting against infinite waits with timeout mechanisms. Basic Timeout Pattern
+
+Advanced Timeout with Retry
+
+Usage in Action Handlers
+
+Error Recovery Pattern.
+
+===================[ DOC: en/guide/timeout-protection.md ]===================
+# guide--timeout-protection
+
+Timeout Protection Pattern
+
+Pattern for protecting against infinite waits with timeout mechanisms. Basic Timeout Pattern
+
+Advanced Timeout with Retry
+
+Usage in Action Handlers
+
+Error Recovery Pattern.
+
+===================[ DOC: en/guide/wait-then-execute.md ]===================
+# guide--wait-then-execute
+
+Wait-Then-Execute Pattern
+
+Pattern for safely executing DOM operations after ensuring elem...
+
+===================[ DOC: en/guide/wait-then-execute.md ]===================
+# guide--wait-then-execute
+
+Wait-Then-Execute Pattern
+
+Pattern for safely executing DOM operations after ensuring element availability. Basic Pattern
+
+Advanced Example
+
+With Action Handlers.
+
+===================[ DOC: en/guide/wait-then-execute.md ]===================
+# guide--wait-then-execute
+
+Wait-Then-Execute Pattern
+
+Pattern for safely executing DOM operations after ensuring element availability. Basic Pattern
+
+Advanced Example
+
+With Action Handlers.
+
+===================[ DOC: en/guide/wait-then-execute.md ]===================
+# guide--wait-then-execute
+
+Wait-Then-Execute Pattern
+
+Pattern for safely executing DOM operations after ensuring element availability. Basic Pattern
+
+Advanced Example
+
+With Action Handlers.
+
+===================[ DOC: en/guide/wait-then-execute.md ]===================
+# guide--wait-then-execute
+
+Wait-Then-Execute Pattern
+
+Pattern for safely executing DOM operations after ensuring element availability. Basic Pattern
+
+Advanced Example
+
+With Action Handlers.
+
+===================[ DOC: en/guide/wait-then-execute.md ]===================
+# guide--wait-then-execute
+
+Wait-Then-Execute Pattern
+
+Pattern for safely executing DOM operations after ensuring element availability. Basic Pattern
+
+Advanced Example
+
+With Action Handlers.
+
+===================[ DOC: en/guide/wait-then-execute.md ]===================
+# guide--wait-then-execute
+
+Wait-Then-Execute Pattern
+
+Pattern for safely executing DOM operations after ensuring element availability. Basic Pattern
+
+Advanced Example
+
+With Action Handlers.
+
+===================[ DOC: en/guide/best-practices.md ]===================
+# Test change.
+
+Best Practices
+
+Follow these conventions and best practices when using the Context-Action framework. 
+
+Naming Conventions
+
+Domain-Based Renaming Pattern
+
+The core convention is domain-specific renaming for clear context separation. Store Pattern Renaming
+
+Action Pattern Renaming
+
+Context Naming Rules
+
+Domain-Based Naming
+
+Action vs Store Distinction
+
+File Structure
+
+Recommended Directory Structure
+
+Context File Organization
+
+Pattern Usage
+
+Action Pattern Best Practices
+
+Handler Registration
+
+Error Handling
+
+Store Pattern Best Practices
+
+Store Access
+
+Store Updates
+
+Type Definitions
+
+Action Types
+
+Store Types
+
+Performance Guidelines
+
+Handler Optimization
+
+Store Subscription Optimization
+
+Pattern Composition
+
+Provider Hierarchy
+
+Cross-Pattern Communication
+
+Common Pitfalls
+
+Avoid These Patterns
+
+Advanced Best Practices
+
+Action Handler State Access
+
+⚠️ Critical: Avoid Closure Traps with Store Values
+
+When accessing store values inside action handlers, never use values from component scope as they create closure traps:
+
+Real-time State Access Patterns
+
+useEffect Dependencies Best Practices
+
+Store and Dispatch References are Stable
+
+Context-Action framework ensures that store instances and dispatch functions have stable references:
+
+Dependency Array Guidelines
+
+Debugging State Issues
+
+State Monitoring Techniques
+
+Common Debugging Scenarios
+
+Production Debugging & Component Lifecycle Management
+
+Critical Issue: Duplicate Action Handler Registration
+
+Problem: Accidentally registering the same action handler multiple times causes unpredictable behavior. Debug tip: grep -n "useActionHandler.'actionName'" src//.tsx
+
+Preventing Race Conditions with Processing State
+
+Problem: Rapid button clicks cause race conditions and state inconsistencies. Safe Component Unmounting with RefContext
+
+Problem: Component unmounting conflicts with manual ref cleanup. Production Debugging Techniques
+
+State Monitoring: Create comprehensive state monitoring for production issues:
+
+Error Recovery: Implement graceful error recovery with automatic retry:
+
+Stress Testing: Simulate production conditions to reproduce intermittent issues:
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/guide/llms-architecture-guide-100.md ]===================
+# Untitled
+
+LLMS Generator - Architecture & Implementation Guide - LLMS Generator - Architecture &...
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/guide/llms-architecture-guide-1000.md ]===================
+# Untitled
+
+LLMS Generator - Architecture & Implementation Guide
+
+LLMS Generator - Architecture & Implementation Guide System Architecture The LLMS Generator is a TypeScript library for processing documentation and generating optimized content for LLM consumption. This guide provides comprehensive architecture details and implementation patterns. Core Components 1. Document Processing Pipeline 2. Clean Architecture Implementation The system follows Clean Architecture principles: - Entities: CoreTypes (Document, WorkItem, Priority metadata) - Use Cases: Commands (WorkNextCommand, LLMSGenerateCommand, PriorityTasksCommand) - Interface Adapters: CLI Adapters - 
+
+Key points:
+• **Entities**: CoreTypes (Document, WorkItem, Priority metadata)
+• **Use Cases**: Commands (WorkNextCommand, LLMSGenerateCommand, PriorityTasksCommand)
+• **Interface Adapters**: CLI Adapters
+• **Frameworks & Drivers**: CLI entry point, File system
+• **CommandFactory**: Creates command instances based on user input
+• Enables...
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/guide/llms-architecture-guide-200.md ]===================
+# Untitled
+
+LLMS Generator - Architecture & Implementation Guide
+
+LLMS Generator - Architecture & Implementation Guide System Architecture The LLMS Generator is a TypeScript library for processing...
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/guide/llms-architecture-guide-2000.md ]===================
+# Untitled
+
+LLMS Generator - Architecture & Implementation Guide
+
+LLMS Generator - Architecture & Implementation Guide System Architecture The LLMS Generator is a TypeScript library for processing documentation and generating optimized content for LLM consumption. This guide provides comprehensive architecture details and implementation patterns. Core Components 1. Document Processing Pipeline 2. Clean Architecture Implementation The system follows Clean Architecture principles: - Entities: CoreTypes (Document, WorkItem, Priority metadata) - Use Cases: Commands (WorkNextCommand, LLMSGenerateCommand, PriorityTasksCommand) - Interface Adapters: CLI Adapters - Frameworks & Drivers: CLI entry point, File system 3. Directory Structure Design Patterns Applied 1. Factory Pattern - CommandFactory: Creates command instances based on user input - Enables easy addition of new commands without modifying core logic 2. Adapter Pattern - Adapts existing command implementations to new interfaces - Maintains backward compatibility while improving architecture 3. Strategy Pattern - Document Selection Strategies: Balanced, Greedy, Hybrid, Quality-focused, Diverse - Allows runtime algorithm selection based on requirements 4. Dependency Injection - Commands receive c
+
+Key points:
+• **Entities**: CoreTypes (Document, WorkItem, Priority metadata)
+• **Use Cases**: Commands (WorkNextCommand, LLMSGenerateCommand, PriorityTasksCommand)
+• **Interface Adapters**: CLI Adapters
+• **Frameworks & Drivers**: CLI entry point, File system
+• **CommandFactory**: Creates command instances based on user input
+• Enables easy addition of new commands without modifying core logic
+• Adapts existing command implementations to new interfaces
+• Maintains backward compatibility while improving architecture
+• **Document Selection Strategies**: Balanced, Greedy, Hybrid, Quality-focused, Diverse
+• Allows runtime algorithm selection based on requirements
+• Commands receive configuration through constructor injection
+•...
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/guide/llms-architecture-guide-300.md ]===================
+# Untitled
+
+LLMS Generator - Architecture & Implementation Guide
+
+LLMS Generator - Architecture & Implementation Guide System Architecture The LLMS Generator is a TypeScript library for processing documentation and g
+
+Key points:
+• **Entities**: CoreTypes (Document, WorkItem, Priority metadata)
+• **Use...
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/guide/llms-architecture-guide-500.md ]===================
+# Untitled
+
+LLMS Generator - Architecture & Implementation Guide
+
+LLMS Generator - Architecture & Implementation Guide System Architecture The LLMS Generator is a TypeScript library for processing documentation and generating optimized content for LLM consumption. This guide provides comprehensive architecture details and implementation patterns. Core Components 1
+
+Key points:
+• **Entities**: CoreTypes (Document, WorkItem, Priority metadata)
+• **Use Cases**: Commands (WorkNextCommand,...
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/guide/llms-architecture-guide-5000.md ]===================
+# Untitled
+
+LLMS Generator - Architecture & Implementation Guide
+
+LLMS Generator - Architecture & Implementation Guide System Architecture The LLMS Generator is a TypeScript library for processing documentation and generating optimized content for LLM consumption. This guide provides comprehensive architecture details and implementation patterns. Core Components 1. Document Processing Pipeline 2. Clean Architecture Implementation The system follows Clean Architecture principles: - Entities: CoreTypes (Document, WorkItem, Priority metadata) - Use Cases: Commands (WorkNextCommand, LLMSGenerateCommand, PriorityTasksCommand) - Interface Adapters: CLI Adapters - Frameworks & Drivers: CLI entry point, File system 3. Directory Structure Design Patterns Applied 1. Factory Pattern - CommandFactory: Creates command instances based on user input - Enables easy addition of new commands without modifying core logic 2. Adapter Pattern - Adapts existing command implementations to new interfaces - Maintains backward compatibility while improving architecture 3. Strategy Pattern - Document Selection Strategies: Balanced, Greedy, Hybrid, Quality-focused, Diverse - Allows runtime algorithm selection based on requirements 4. Dependency Injection - Commands receive configuration through constructor injection - Improves testability and reduces coupling Configuration System Enhanced Configuration Management Priority Management System Priority Task Types 1. 🔴 missing: Priority.json files are missing 2. ❌ invalid: JSON syntax errors or missing required fields 3. 🟡 outdated: Source documents modified after priority.json 4. 🟠 needsreview: Priority scores don't align with standards 5. 🔵 needsupdate: Metadata is incomplete Priority Calculation Algorithm Performance Optimizations Code Optimization Results - CLI Entry Point: 2000 lines → 200 lines (90% reduction) - Commands: 30+ files → 13 core commands (56% reduction) - Modular Architecture: Single responsibility per module - Type Safety: 95% coverage with TypeScript Processing Efficiency - Change Detection: Only process modified files - Batch Operations: Group related operations - Intelligent Caching: Reuse analysis results - Parallel Processing: Multiple file processing where possible Quality Assurance SOLID Principles - S: Each class has single responsibility - O: Open for extension, closed for modification - L: Interface substitution guaranteed - I: Interface segregation prevents unnecessary dependencies - D: Depend on abstractions, not concretions Testing Strategy - Unit Tests: Core functionality testing - Integration Tests: Command interaction testing - Dry-Run Support: Preview changes before applying - Validation: Pre-operation validation checks Migration & Compatibility From Legacy CLI - All core functionality retained - Commands remain backward compatible - Configuration format unchanged - Output format consistent Breaking Changes - None - full backward compatibility maintained Best Practices Command Implementation Error Handling Integration Patterns Git Hook Integration CI/CD 
+
+Key points:
+• **Entities**: CoreTypes (Document, WorkItem, Priority metadata)
+• **Use Cases**: Commands (WorkNextCommand, LLMSGenerateCommand, PriorityTasksCommand)
+• **Interface Adapters**: CLI Adapters
+• **Frameworks & Drivers**: CLI entry point, File system
+• **CommandFactory**: Creates command instances based on user input
+• Enables easy addition of new commands without modifying core logic
+• Adapts existing command implementations to new interfaces
+• Maintains backward compatibility while improving architecture
+• **Document Selection Strategies**: Balanced, Greedy, Hybrid, Quality-focused, Diverse
+• Allows runtime algorithm selection based on requirements
+• Commands receive configuration through constructor injection
+• Improves testability and reduces coupling
+• **CLI Entry Point**: 2000 lines → 200 lines (90% reduction)
+• **Commands**: 30+ files → 13 core commands (56% reduction)
+• **Modular Architecture**: Single responsibility per module
+• **Type Safety**: 95% coverage with TypeScript
+• **Change Detection**: Only process modified files
+• **Batch Operations**: Group related operations
+• **Intelligent Caching**: Reuse analysis results
+• **Parallel Processing**: Multiple file processing where possible
+• **S**: Each class has single responsibility
+• **O**: Open for extension, closed for modification
+• **L**: Interface substitution guaranteed
+• **I**: Interface segregation prevents unnecessary dependencies
+• **D**: Depend on abstractions, not concretions
+• **Unit Tests**: Core functionality testing
+• **Integration Tests**: Command interaction testing
+• **Dry-Run Support**: Preview changes before applying
+• **Validation**: Pre-operation validation checks
+• All core functionality retained
+• Commands remain backward compatible
+• Configuration format unchanged
+• Output format consistent
+• None - full backward compatibility maintained
+• name: LLMS Generator
+• ✅ Core command implementation (Completed)
+• ✅...
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/guide/priority-management-100.md ]===================
+# Untitled
+
+Priority Management System - Priority Management System The Priority Management System provides...
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/guide/priority-management-1000.md ]===================
+# Untitled
+
+Priority Management System
+
+Priority Management System The Priority Management System provides automated tools for analyzing, maintaining, and optimizing documentation priorities in the LLMS Generator framework. Overview Problem Statement Traditional documentation management faces several challenges: - Manual Priority Assignment: Subjective priority scoring leads to inconsistency - Team Coordination: Difficulty tracking who's working on what - Priority Drift: Priorities become outdated without systematic review - Scalability Issues: Manual management doesn't scale with growing documentation Solution Architecture The Prio
+
+Key points:
+• **Manual Priority Assignment**: Subjective priority scoring leads to inconsistency
+• **Team Coordination**: Difficulty tracking who's working on what
+• **Priority Drift**: Priorities become outdated without systematic review
+• **Scalability Issues**: Manual management doesn't scale with growing documentation
+• **Automated Analysis**: Statistical...
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/guide/priority-management-200.md ]===================
+# Untitled
+
+Priority Management System
+
+Priority Management System The Priority Management System provides automated tools for analyzing, maintaining, and optimizing documentation priorities
+
+Key points:
+•...
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/guide/priority-management-2000.md ]===================
+# Untitled
+
+Priority Management System
+
+Priority Management System The Priority Management System provides automated tools for analyzing, maintaining, and optimizing documentation priorities in the LLMS Generator framework. Overview Problem Statement Traditional documentation management faces several challenges: - Manual Priority Assignment: Subjective priority scoring leads to inconsistency - Team Coordination: Difficulty tracking who's working on what - Priority Drift: Priorities become outdated without systematic review - Scalability Issues: Manual management doesn't scale with growing documentation Solution Architecture The Priority Management System provides: - Automated Analysis: Statistical insights into priority distribution - Health Monitoring: Consistency checks and variance detection - Smart Suggestions: Data-driven recommendations for improvement - Team Collaboration: Foundation for external server integration Quick Start Basic Commands Example Output Commands Reference priority-stats Analyzes priority distribution across your documentation. Output includes: - Total document count and average priority score - Distribution by priority tier (critical, high, medium, low) - Breakdown by category and language - St
+
+Key points:
+• **Manual Priority Assignment**: Subjective priority scoring leads to inconsistency
+• **Team Coordination**: Difficulty tracking who's working on what
+• **Priority Drift**: Priorities become outdated without systematic review
+• **Scalability Issues**: Manual management doesn't scale with growing documentation
+• **Automated Analysis**: Statistical insights into priority distribution
+• **Health Monitoring**: Consistency checks and variance detection
+• **Smart Suggestions**: Data-driven recommendations for improvement
+• **Team Collaboration**: Foundation for external server integration
+• Total document count and average priority score
+• Distribution by priority tier (critical, high, medium, low)
+• Breakdown by category and language
+• Statistical...
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/guide/priority-management-300.md ]===================
+# Untitled
+
+Priority Management System
+
+Priority Management System The Priority Management System provides automated tools for analyzing, maintaining, and optimizing documentation priorities
+
+Key points:
+• **Manual Priority Assignment**: Subjective priority scoring leads to inconsistency
+• **Team...
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/guide/priority-management-500.md ]===================
+# Untitled
+
+Priority Management System
+
+Priority Management System The Priority Management System provides automated tools for analyzing, maintaining, and optimizing documentation priorities in the LLMS Generator framework. Overview Problem Statement Traditional documentation management faces several challenges: - Manual Priority Assignme
+
+Key points:
+• **Manual Priority Assignment**: Subjective priority scoring leads to inconsistency
+• **Team Coordination**: Difficulty tracking who's working on what
+•...
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/guide/priority-management-5000.md ]===================
+# Untitled
+
+Priority Management System
+
+Priority Management System The Priority Management System provides automated tools for analyzing, maintaining, and optimizing documentation priorities in the LLMS Generator framework. Overview Problem Statement Traditional documentation management faces several challenges: - Manual Priority Assignment: Subjective priority scoring leads to inconsistency - Team Coordination: Difficulty tracking who's working on what - Priority Drift: Priorities become outdated without systematic review - Scalability Issues: Manual management doesn't scale with growing documentation Solution Architecture The Priority Management System provides: - Automated Analysis: Statistical insights into priority distribution - Health Monitoring: Consistency checks and variance detection - Smart Suggestions: Data-driven recommendations for improvement - Team Collaboration: Foundation for external server integration Quick Start Basic Commands Example Output Commands Reference priority-stats Analyzes priority distribution across your documentation. Output includes: - Total document count and average priority score - Distribution by priority tier (critical, high, medium, low) - Breakdown by category and language - Statistical measures (range, standard deviation) priority-health Evaluates priority consistency and identifies issues. Health Scoring: - Excellent (85-100): Well-balanced, consistent priorities - Good (70-84): Minor inconsistencies, easily addressed - Fair (50-69): Noticeable issues requiring attention - Poor (0-49): Significant problems needing immediate action Common Issues Detected: - High priority variance (standard deviation > 25) - Similar scores across all documents (range < 20) - Uneven category distribution (variance > 50) - Language inconsistencies (variance > 30) priority-suggest Provides actionable recommendations based on current state. Suggestions include: - Immediate actions for poor health scores - Standardization recommendations - Document-specific guidance - Next steps for improvement priority-auto Automatically recalculates priorities based on defined criteria. Options: - --criteria <file>: Path to custom criteria JSON file - --force: Update all priorities, even if changes are minimal - --quiet: Suppress detailed output Default Criteria: - Document size (40% weight) - Category importance (30% weight) - Keyword density (20% weight) - Cross-references (10% weight) Priority Health Metrics Distribution Analysis Variance Indicators: - Standard Deviation: Measures priority score spread - Category Balance: Even distribution across document types - Language Consistency: Similar priorities between language versions Health Thresholds: Consistency Checks Automated Detection: - Priority scores too similar (differentiation < 20 points) - Extreme variance (standard deviation > 25) - Category imbalance (one category > 60% of total) - Language drift (> 30% variance between EN/KO versions) Workflow Integration Daily Workflow Weekly Maintenance Team Coordination Current 
+
+Key points:
+• **Manual Priority Assignment**: Subjective priority scoring leads to inconsistency
+• **Team Coordination**: Difficulty tracking who's working on what
+• **Priority Drift**: Priorities become outdated without systematic review
+• **Scalability Issues**: Manual management doesn't scale with growing documentation
+• **Automated Analysis**: Statistical insights into priority distribution
+• **Health Monitoring**: Consistency checks and variance detection
+• **Smart Suggestions**: Data-driven recommendations for improvement
+• **Team Collaboration**: Foundation for external server integration
+• Total document count and average priority score
+• Distribution by priority tier (critical, high, medium, low)
+• Breakdown by category and language
+• Statistical measures (range, standard deviation)
+• **Excellent (85-100)**: Well-balanced, consistent priorities
+• **Good (70-84)**: Minor inconsistencies, easily addressed
+• **Fair (50-69)**: Noticeable issues requiring attention
+• **Poor (0-49)**: Significant problems needing immediate action
+• High priority variance (standard deviation > 25)
+• Similar scores across all documents (range < 20)
+• Uneven category distribution (variance > 50)
+• Language inconsistencies (variance > 30)
+• Immediate actions for poor health scores
+• Standardization recommendations
+• Document-specific guidance
+• Next steps for improvement
+• `--criteria <file>`: Path to custom criteria JSON file
+• `--force`: Update all priorities, even if changes are minimal
+• `--quiet`: Suppress detailed output
+• Document size (40% weight)
+• Category importance (30% weight)
+• Keyword density (20% weight)
+• Cross-references (10% weight)
+• **Standard Deviation**: Measures priority score spread
+• **Category Balance**: Even distribution across document types
+• **Language Consistency**: Similar priorities between language versions
+• Priority scores too similar (differentiation < 20 points)
+• Extreme variance (standard deviation > 25)
+•...
+
+===================[ DOC: en/concept/action-pipeline-guide.md ]===================
+# concept--action-pipeline-guide
+
+Action Pipeline Guide: ActionPayloadMap & ActionRegister
+
+Complete guide to building type-...
+
+===================[ DOC: en/concept/action-pipeline-guide.md ]===================
+# concept--action-pipeline-guide
+
+Action Pipeline Guide: ActionPayloadMap & ActionRegister
+
+Complete guide to building type-safe action pipelines with Context-Action framework. Table of Contents
+
+- Overview
+- ActionPayloadMap: Type Foundation
+- ActionRegister: Pipeline Engine
+- Handler Registration Patterns
+- Pipeline Execution Strategies
+- Advanced Pipeline Patterns
+- Real-world Examples
+- Best Practices
+- Troubleshooting
+
+Overview
+
+The Context-Action framework's action pipeline system provides type-safe, scalable business logic management through two core components:
+
+- ActionPayloadMap: TypeScript interface defining action-to-payload type mappings
+- ActionRegister: Central pipeline engine managing handler registration and execution
+
+ActionPayloadMap: Type Foundation
+
+Basic Concept
+
+ActionPayloadMap is a TypeScript interface that maps action names to their payload types, providing compile-time type safety throughout the pipeline.
+
+===================[ DOC: en/concept/action-pipeline-guide.md ]===================
+# concept--action-pipeline-guide
+
+Action Pipeline Guide: ActionPayloadMap & ActionRegister
+
+Complete guide to building type-safe action pipelines with Context-Action framework.
+
+===================[ DOC: en/concept/action-pipeline-guide.md ]===================
+# concept--action-pipeline-guide
+
+Action Pipeline Guide: ActionPayloadMap & ActionRegister
+
+Complete guide to building type-safe action pipelines with Context-Action framework. Table of Contents
+
+- Overview
+- ActionPayloadMap: Type Foundation
+- ActionRegister: Pipeline Engine
+- Handler Registration Patterns
+- Pipeline Execution Strategies
+- Advanced Pipeline Patterns
+- Real-world Examples
+- Best Practices
+- Troubleshooting
+
+Overview
+
+The Context-Action framework's action pipeline system provides type-safe, scalable business logic management through two core components:
+
+- ActionPayloadMap: TypeScript interface defining action-to-payload type mappings
+- ActionRegister: Central pipeline engine managing handler registration and execution
+
+ActionPayloadMap: Type Foundation
+
+Basic Concept
+
+ActionPayloadMap is a TypeScript interface that maps action names to their payload types, providing compile-time type safety throughout the pipeline. Advanced Type Patterns
+
+Generic Payload Types
+
+Conditional Payload Types
+
+Type Safety Benefits
+
+1. Compile-time Validation: TypeScript ensures correct payload types
+2. IntelliSense Support: Auto-completion for action names and payload properties
+3. Refactoring Safety: Renaming actions or changing payload structure is type-checked
+4.
+
+===================[ DOC: en/concept/action-pipeline-guide.md ]===================
+# concept--action-pipeline-guide
+
+Action Pipeline Guide: ActionPayloadMap & ActionRegister
+
+Complete guide to building type-safe action pipelines with Context-Action framework.
+
+===================[ DOC: en/concept/action-pipeline-guide.md ]===================
+# concept--action-pipeline-guide
+
+Action Pipeline Guide: ActionPayloadMap & ActionRegister
+
+Complete guide to building type-safe action pipelines with Context-Action framework.
+
+===================[ DOC: en/concept/action-pipeline-guide.md ]===================
+# concept--action-pipeline-guide
+
+Action Pipeline Guide: ActionPayloadMap & ActionRegister
+
+Complete guide to building type-safe action pipelines with Context-Action framework. Table of Contents
+
+- Overview
+- ActionPayloadMap: Type Foundation
+- ActionRegister: Pipeline Engine
+- Handler Registration Patterns
+- Pipeline Execution Strategies
+- Advanced Pipeline Patterns
+- Real-world Examples
+- Best Practices
+- Troubleshooting
+
+Overview
+
+The Context-Action framework's action pipeline system provides type-safe, scalable business logic management through two core components:
+
+- ActionPayloadMap: TypeScript interface defining action-to-payload type mappings
+- ActionRegister: Central pipeline engine managing handler registration and execution
+
+ActionPayloadMap: Type Foundation
+
+Basic Concept
+
+ActionPayloadMap is a TypeScript interface that maps action names to their payload types, providing compile-time type safety throughout the pipeline. Advanced Type Patterns
+
+Generic Payload Types
+
+Conditional Payload Types
+
+Type Safety Benefits
+
+1. Compile-time Validation: TypeScript ensures correct payload types
+2. IntelliSense Support: Auto-completion for action names and payload properties
+3. Refactoring Safety: Renaming actions or changing payload structure is type-checked
+4. Documentation: Types serve as living documentation of your API
+
+ActionRegister: Pipeline Engine
+
+Core Architecture
+
+ActionRegister is the central orchestrator that manages the action pipeline lifecycle:
+
+Configuration Options
+
+Pipeline Lifecycle
+
+Handler Registration Patterns
+
+Basic Handler Registration
+
+Multi-Store Coordination
+
+Async Operations with Error Handling
+
+Pipeline Execution Strategies
+
+Sequential Execution (Default)
+
+Handlers execute in priority order, waiting for each to complete:
+
+Parallel Execution
+
+All handlers execute simultaneously:
+
+Race Execution
+
+First completed handler wins:
+
+Advanced Pipeline Patterns
+
+Handler Filtering System (New)
+
+The ActionRegister now supports advanced handler filtering during dispatch:
+
+Result Collection and Processing (New)
+
+Collect and process results from multiple handlers:
+
+Auto AbortController Management (New)
+
+Automatic AbortController creation and management:
+
+Priority-based Validation Pipeline
+
+Conditional Handler Execution
+
+Dynamic Handler Registration
+
+Handler Execution Flow (Updated)
+
+ActionRegister handlers follow a natural execution flow without explicit continuation calls:
+
+Handler Termination Patterns
+
+Three Ways to End Handler Execution
+
+1. Natural Completion: Handler finishes all statements, automatically continues
+2. Early Return: Use return to exit handler early, pipeline continues
+3. Pipeline Abort: Use controller.abort() to stop entire pipeline execution
+
+Enhanced PipelineController API (Updated)
+
+The PipelineController now provides extensive control over pipeline execution:
+
+Pipeline Middleware Pattern
+
+Real-world Examples
+
+E-commerce Order Processing
+
+User Management System
+
+Registry Management & Statistics (New)
+
+Registry Information
+
+Get comprehensive information about your ActionRegister:
+
+Action Statistics
+
+Monitor individual action performance:
+
+Handler Discovery
+
+Find handlers by tags or categories:
+
+Execution Mode Management
+
+Advanced execution mode control:
+
+Statistics Management
+
+Control execution statistics:
+
+ExecutionResult Interface (New)
+
+The dispatchWithResult method returns comprehensive execution information:
+
+Best Practices
+
+1. Type Safety
+
+2. Handler Organization
+
+3. Error Handling
+
+4. Performance Optimization
+
+5. Memory Management
+
+6. Handler Organization (New)
+
+7. Handler Termination Patterns (New)
+
+8. Result Handling (New)
+
+Troubleshooting
+
+Common Issues and Solutions
+
+1. Type Errors
+
+2. Handler Not Executing
+
+3. Handler Termination Issues
+
+4. Memory Leaks
+
+Debug Tools
+
+1. Enable Debug Logging
+
+2. Registry Information for Debugging
+
+3. Handler Performance Monitoring
+
+Conclusion
+
+The ActionPayloadMap and ActionRegister system provides a powerful, type-safe foundation for building scalable business logic pipelines. With the latest enhancements, you now have comprehensive control over pipeline execution, advanced filtering capabilities, result collection, and detailed monitoring. Key takeaways:
+
+1. Type Safety First: Always define clear ActionPayloadMap interfaces
+2. Natural Handler Flow: Use natural completion, early returns, and explicit aborts for clean handler termination
+3. Advanced Configuration: Leverage the new registry configuration options for better control
+4. Handler Organization: Use tags, categories, and metadata for better organization
+5. Result Management: Take advantage of the new result collection and processing system
+6. Performance Monitoring: Use ExecutionResult and statistics APIs for comprehensive monitoring
+7. Filtering & Control: Utilize advanced filtering options for precise handler execution
+8. Error Handling: Always return after controller.abort() to prevent continued execution
+9. Memory Management: Always clean up handlers and use auto-cleanup features
+10.
+
+===================[ DOC: en/concept/architecture-guide.md ]===================
+# concept--architecture-guide
+
+Context-Action Store Integration Architecture
+
+1.
+
+===================[ DOC: en/concept/architecture-guide.md ]===================
+# concept--architecture-guide
+
+Context-Action Store Integration Architecture
+
+1. Overview & Core Concepts
+
+What is Context-Action Architecture. The Context-Action framework is a revolutionary state management system designed to overcome the fundamental limitations of existing libraries through document-centric context separation and effective artifact management.
+
+===================[ DOC: en/concept/architecture-guide.md ]===================
+# concept--architecture-guide
+
+Context-Action Store Integration Architecture
+
+1. Overview & Core Concepts
+
+What is Context-Action Architecture.
+
+===================[ DOC: en/concept/architecture-guide.md ]===================
+# concept--architecture-guide
+
+Context-Action Store Integration Architecture
+
+1. Overview & Core Concepts
+
+What is Context-Action Architecture. The Context-Action framework is a revolutionary state management system designed to overcome the fundamental limitations of existing libraries through document-centric context separation and effective artifact management.
+
+===================[ DOC: en/concept/architecture-guide.md ]===================
+# concept--architecture-guide
+
+Context-Action Store Integration Architecture
+
+1. Overview & Core Concepts
+
+What is Context-Action Architecture.
+
+===================[ DOC: en/concept/architecture-guide.md ]===================
+# concept--architecture-guide
+
+Context-Action Store Integration Architecture
+
+1. Overview & Core Concepts
+
+What is Context-Action Architecture. The Context-Action framework is a revolutionary state management system designed to overcome the fundamental limitations of existing libraries through document-centric context separation and effective artifact management.
+
+===================[ DOC: en/concept/architecture-guide.md ]===================
+# concept--architecture-guide
+
+Context-Action Store Integration Architecture
+
+1. Overview & Core Concepts
+
+What is Context-Action Architecture. The Context-Action framework is a revolutionary state management system designed to overcome the fundamental limitations of existing libraries through document-centric context separation and effective artifact management. Project Philosophy
+
+The Context-Action framework addresses critical issues in modern state management:
+
+Problems with Existing Libraries:
+- High React Coupling: Tight integration makes component modularization and props handling difficult
+- Binary State Approach: Simple global/local state dichotomy fails to handle specific scope-based separation  
+- Inadequate Handler/Trigger Management: Poor support for complex interactions and business logic processing
+
+Context-Action's Solution:
+- Document-Artifact Centered Design: Context separation based on document themes and deliverable management
+- Perfect Separation of Concerns: 
+  - View design in isolation → Design Context
+  - Development architecture in isolation → Architecture Context
+  - Business logic in isolation → Business Context  
+  - Data validation in isolation → Validation Context
+- Clear Boundaries: Implementation results maintain distinct, well-defined domain boundaries
+- Effective Document-Artifact Management: State management library that actively supports the relationship between documentation and deliverables
+
+Architecture Implementation
+
+The framework implements a clean separation of concerns through an MVVM-inspired pattern with three core patterns for complete domain isolation:
+
+- Actions handle business logic and coordination (ViewModel layer) via createActionContext
+- Declarative Store Pattern manages state with domain isolation (Model layer) via createDeclarativeStorePattern
+- RefContext provides direct DOM manipulation with zero re-renders (Performance layer) via createRefContext
+- Components render UI (View layer)
+- Context Boundaries isolate functional domains
+- Type-Safe Integration through domain-specific hooks
+
+Core Architecture Flow
+
+Context Separation Strategy
+
+Domain-Based Context Architecture
+- Business Context: Business logic, data processing, and domain rules (Actions + Stores)
+- UI Context: Screen state, user interactions, and component behavior (Stores + RefContext)
+- Performance Context: High-performance DOM manipulation and animations (RefContext)
+- Validation Context: Data validation, form processing, and error handling (Actions + Stores)
+- Design Context: Theme management, styling, layout, and visual states (Stores + RefContext)
+- Architecture Context: System configuration, infrastructure, and technical decisions (Actions + Stores)
+
+Document-Based Context Design
+Each context is designed to manage its corresponding documentation and deliverables:
+- Design Documentation → Design Context (themes, component specifications, style guides) → Stores + RefContext
+- Business Requirements → Business Context (workflows, rules, domain logic) → Actions + Stores
+- Performance Specifications → Performance Context (animations, interactions) → RefContext
+- Architecture Documents → Architecture Context (system design, technical decisions) → Actions + Stores
+- Validation Specifications → Validation Context (rules, schemas, error handling) → Actions + Stores
+- UI Specifications → UI Context (interactions, state management, user flows) → All three patterns
+
+Advanced Handler & Trigger Management
+
+Context-Action provides sophisticated handler and trigger management that existing libraries lack:
+
+Priority-Based Handler Execution
+- Sequential Processing: Handlers execute in priority order with proper async handling
+- Domain Isolation: Each context maintains its own handler registry
+- Cross-Context Coordination: Controlled communication between domain contexts
+- Result Collection: Aggregate results from multiple handlers for complex workflows
+
+Intelligent Trigger System
+- State-Change Triggers: Automatic triggers based on store value changes
+- Cross-Context Triggers: Domain boundaries can trigger actions in other contexts
+- Conditional Triggers: Smart triggers based on business rules and conditions
+- Trigger Cleanup: Automatic cleanup prevents memory leaks and stale references
+
+Key Benefits
+
+1. Document-Artifact Management: Direct relationship between documentation and implementation
+2. Domain Isolation: Each context maintains complete independence
+3. Type Safety: Full TypeScript support with domain-specific hooks
+4. Performance: Zero React re-renders with RefContext, selective updates with Stores
+5. Scalability: Easy to add new domains without affecting existing ones
+6. Team Collaboration: Different teams can work on different domains without conflicts
+7. Clear Boundaries: Perfect separation of concerns based on document domains
+8. Hardware Acceleration: Direct DOM manipulation with translate3d() for 60fps performance
+
+1.1.
+
+===================[ DOC: en/concept/conventions.md ]===================
+# concept--conventions
+
+Context-Action Framework Conventions
+
+This document defines coding conventions and best pr...
+
+===================[ DOC: en/concept/conventions.md ]===================
+# concept--conventions
+
+Context-Action Framework Conventions
+
+This document defines coding conventions and best practices when using the Context-Action framework with its three core patterns: Actions, Stores, and RefContext. 📋 Table of Contents
+
+1. Naming Conventions
+2. File Structure
+3. Pattern Usage
+4. Type Definitions
+5. Code Style
+6. Performance Guidelines
+7. Error Handling
+8. RefContext Conventions
+
+Naming Conventions
+
+🏷️ Renaming Pattern
+
+The core convention of the Context-Action framework is domain-based renaming pattern for all three patterns.
+
+===================[ DOC: en/concept/conventions.md ]===================
+# concept--conventions
+
+Context-Action Framework Conventions
+
+This document defines coding conventions and best practices when using the Context-Action framework with its three core patterns: Actions, Stores, and R...
+
+===================[ DOC: en/concept/conventions.md ]===================
+# concept--conventions
+
+Context-Action Framework Conventions
+
+This document defines coding conventions and best practices when using the Context-Action framework with its three core patterns: Actions, Stores, and RefContext. 📋 Table of Contents
+
+1. Naming Conventions
+2. File Structure
+3. Pattern Usage
+4. Type Definitions
+5. Code Style
+6. Performance Guidelines
+7. Error Handling
+8. RefContext Conventions
+
+Naming Conventions
+
+🏷️ Renaming Pattern
+
+The core convention of the Context-Action framework is domain-based renaming pattern for all three patterns.
+
+===================[ DOC: en/concept/conventions.md ]===================
+# concept--conventions
+
+Context-Action Framework Conventions
+
+This document defines coding conventions and best practices when using the Context-Action framework with its three core patterns: Actions, Stores, and RefContext. 📋 Table of Contents
+
+1. Naming Conventions
+2. File Structure
+3. Pattern Usage
+4.
+
+===================[ DOC: en/concept/conventions.md ]===================
+# concept--conventions
+
+Context-Action Framework Conventions
+
+This document defines coding conventions and best practices when using the Context-Action framework with its three core patterns: Actions, Stores, and RefContext. 📋 Table of Contents
+
+1. Naming Conventions
+2. File Structure
+3. Pattern Usage
+4. Type Definitions
+5. Code Style
+6. Performance Guidelines
+7. Error Handling
+8.
+
+===================[ DOC: en/concept/conventions.md ]===================
+# concept--conventions
+
+Context-Action Framework Conventions
+
+This document defines coding conventions and best practices when using the Context-Action framework with its three core patterns: Actions, Stores, and RefContext. 📋 Table of Contents
+
+1. Naming Conventions
+2. File Structure
+3. Pattern Usage
+4. Type Definitions
+5. Code Style
+6. Performance Guidelines
+7. Error Handling
+8. RefContext Conventions
+
+Naming Conventions
+
+🏷️ Renaming Pattern
+
+The core convention of the Context-Action framework is domain-based renaming pattern for all three patterns. ✅ Store Pattern Renaming
+
+✅ Action Pattern Renaming
+
+✅ RefContext Pattern Renaming
+
+🎯 Context Naming Rules
+
+Domain-Based Naming
+
+Action vs Store vs RefContext Distinction
+
+🔤 Hook Naming Patterns
+
+Store Hook Naming
+
+Action Hook Naming
+
+RefContext Hook Naming
+
+File Structure
+
+📁 Recommended Directory Structure
+
+📄 File Naming Conventions
+
+Context File Names
+
+Provider File Names
+
+Pattern Usage
+
+🎯 Pattern Selection Guide
+
+Store Only Pattern
+
+Action Only Pattern  
+
+RefContext Only Pattern
+
+Pattern Composition
+
+🔄 Provider Composition Patterns
+
+HOC Pattern (Recommended)
+
+Manual Provider Composition
+
+Type Definitions
+
+🏷️ Interface Naming
+
+Action Payload Map
+
+Store Data Interface
+
+RefContext Type Interface
+
+🎯 Generic Type Usage
+
+Code Style
+
+✨ Component Patterns
+
+Store Usage Pattern
+
+Action Handler Pattern
+
+RefContext Usage Pattern
+
+🎨 Import Organization
+
+Performance Guidelines
+
+⚡ Store Optimization
+
+Comparison Strategy Selection
+
+Memoization Patterns
+
+🔄 Action Optimization
+
+Debounce/Throttle Configuration
+
+⚡ RefContext Performance Optimization
+
+Zero Re-render DOM Manipulation
+
+Animation Performance
+
+RefContext Conventions
+
+🔧 RefContext-Specific Guidelines
+
+Ref Type Definitions
+
+Performance-Critical Patterns
+
+RefContext Error Handling
+
+Error Handling
+
+🚨 Error Boundary Pattern
+
+🛡️ Action Error Handling
+
+🛡️ RefContext Error Handling
+
+📚 Additional Resources
+
+Related Documentation
+- Pattern Guide - Detailed pattern usage guide
+- Full Architecture Guide - Complete architecture guide
+- Hooks Reference - Hooks reference documentation
+- API Reference - API documentation
+
+Example Projects
+- Basic Example - Basic usage examples
+- Advanced Patterns - Advanced pattern examples
+
+Migration Guide
+- Legacy Pattern Migration - Migration from legacy patterns
+
+❓ FAQ
+
+Q: When should I use Store Only vs Action Only vs RefContext vs Composition. - Store Only: Pure state management (forms, settings, cache)
+- Action Only: Pure event handling (logging, tracking, notifications)
+- RefContext Only: High-performance DOM manipulation (animations, real-time interactions)
+- Composition: Complex business logic requiring multiple patterns (user management, interactive shopping cart)
+
+Q: Is the renaming pattern mandatory. Yes, the renaming pattern is a core convention of the Context-Action framework. It significantly improves type safety and developer experience. Q: How should I approach performance optimization. 1. Choose appropriate comparison strategy for stores
+2. Memoize handlers with useCallback
+3. Use reference strategy for large data
+4. Apply debounce/throttle when needed
+5. Use RefContext for performance-critical DOM operations
+
+Q: How should I handle errors. 1. Use Pipeline Controller's abort() method for actions
+2. Set up domain-specific Error Boundaries
+3. Handle different error types appropriately
+4. Provide user-friendly error messages
+5. Always check ref.target existence before DOM manipulation
+
+Q: Should I use explicit generics or type inference. - Type inference (recommended): For most cases, code is concise and type safety is guaranteed
+- Explicit generics: For complex type structures or strict type constraints
+
+Q: When should I use comparisonOptions. 1. ignoreKeys: When you want to ignore specific field changes like timestamps
+2. customComparator: When special comparison logic is needed for business requirements
+3. maxDepth: To limit deep comparison depth for performance optimization
+4. enableCircularCheck: When dealing with objects that might have circular references
+
+Q: How should I write type tests. 1. Test both explicit generics and type inference
+2. Verify type safety at compile time
+3. Document error cases with comments
+4. Write test components that reflect actual usage patterns
+5. Include RefContext type validation in component tests
+
+Q: When should I use RefContext over regular state. - Use RefContext when: Direct DOM manipulation needed, 60fps performance required, zero re-renders critical
+- Use regular state when: Data needs to be displayed in UI, component re-rendering is acceptable
+- Combine both when: Performance-critical operations alongside data display (e.g., real-time charts)
+
+Q: How do I ensure RefContext safety. 1. Always check ref.target existence before DOM operations
+   
+
+2. Use useWaitForRefs for operations requiring multiple refs
+   
+
+3. Implement proper cleanup for animations and event listeners
+   
+
+4.
+
+===================[ DOC: en/concept/hooks-reference.md ]===================
+# concept--hooks-reference
+
+Context-Action React Hooks Reference
+
+This document categorizes all available React hooks ...
+
+===================[ DOC: en/concept/hooks-reference.md ]===================
+# concept--hooks-reference
+
+Context-Action React Hooks Reference
+
+This document categorizes all available React hooks in the Context-Action framework into Essential Hooks (core functionality) and Utility Hooks (convenience and optimization). 📋 Table of Contents
+
+1. Essential Hooks
+2. Utility Hooks
+3. Hook Categories
+4. Usage Guidelines
+
+Essential Hooks
+
+These hooks are fundamental to using the Context-Action framework. Most applications will need these. 🔧 RefContext Hooks (Performance)
+
+createRefContext<T>()
+Factory function that creates all ref-related hooks for high-performance DOM manipulation. - Purpose: Creates type-safe direct DOM manipulation system with zero React re-renders
+- Returns: { Provider, useRefHandler, useWaitForRefs, useGetAllRefs }
+- Essential for: Performance-critical UI, animations, real-time interactions
+
+useRefHandler()
+Primary hook for accessing typed ref handlers with direct DOM manipulation.
+
+===================[ DOC: en/concept/hooks-reference.md ]===================
+# concept--hooks-reference
+
+Context-Action React Hooks Reference
+
+This document categorizes all available React hooks in the Context-Action framework into Essential Hooks (core functionality) and Utility Hooks (conveni...
+
+===================[ DOC: en/concept/hooks-reference.md ]===================
+# concept--hooks-reference
+
+Context-Action React Hooks Reference
+
+This document categorizes all available React hooks in the Context-Action framework into Essential Hooks (core functionality) and Utility Hooks (convenience and optimization). 📋 Table of Contents
+
+1. Essential Hooks
+2. Utility Hooks
+3. Hook Categories
+4. Usage Guidelines
+
+Essential Hooks
+
+These hooks are fundamental to using the Context-Action framework. Most applications will need these. 🔧 RefContext Hooks (Performance)
+
+createRefContext<T>()
+Factory function that creates all ref-related hooks for high-performance DOM manipulation. - Purpose: Creates type-safe direct DOM manipulation system with zero React re-renders
+- Returns: { Provider, useRefHandler, useWaitForRefs, useGetAllRefs }
+- Essential for: Performance-critical UI, animations, real-time interactions
+
+useRefHandler()
+Primary hook for accessing typed ref handlers with direct DOM manipulation. - Purpose: Get ref handler for specific DOM element with type safety
+- Essential for: Direct DOM updates without React re-renders
+- Pattern: Performance layer bypassing React reconciliation
+
+useWaitForRefs()
+Utility hook for waiting on multiple refs to mount before executing operations. - Purpose: Coordinate operations requiring multiple DOM elements
+- Essential for: Complex DOM initialization sequences
+- Pattern: Async ref coordination
+
+🎯 Action Hooks (Core)
+
+createActionContext<T>()
+Factory function that creates all action-related hooks for a specific action context. - Purpose: Creates type-safe action dispatch and handler system
+- Returns: { Provider, useActionDispatch, useActionHandler, useActionRegister }
+- Essential for: Any action-based logic
+
+useActionDispatch()
+Primary hook for dispatching actions to handlers. - Purpose: Get dispatch function to trigger actions
+- Essential for: Component interaction with business logic
+- Pattern: ViewModel layer in MVVM architecture
+
+useActionHandler()
+Primary hook for registering action handlers.
+
+===================[ DOC: en/concept/hooks-reference.md ]===================
+# concept--hooks-reference
+
+Context-Action React Hooks Reference
+
+This document categorizes all available React hooks in the Context-Action framework into Essential Hooks (core functionality) and Utility Hooks (convenience and optimization). 📋 Table of Contents
+
+1. Essential Hooks
+2. Utility Hooks
+3.
+
+===================[ DOC: en/concept/hooks-reference.md ]===================
+# concept--hooks-reference
+
+Context-Action React Hooks Reference
+
+This document categorizes all available React hooks in the Context-Action framework into Essential Hooks (core functionality) and Utility Hooks (convenience and optimization). 📋 Table of Contents
+
+1. Essential Hooks
+2. Utility Hooks
+3. Hook Categories
+4. Usage Guidelines
+
+Essential Hooks
+
+These hooks are fundamental to using the Context-Action framework. Most applications will need these.
+
+===================[ DOC: en/concept/hooks-reference.md ]===================
+# concept--hooks-reference
+
+Context-Action React Hooks Reference
+
+This document categorizes all available React hooks in the Context-Action framework into Essential Hooks (core functionality) and Utility Hooks (convenience and optimization). 📋 Table of Contents
+
+1. Essential Hooks
+2. Utility Hooks
+3. Hook Categories
+4. Usage Guidelines
+
+Essential Hooks
+
+These hooks are fundamental to using the Context-Action framework. Most applications will need these. 🔧 RefContext Hooks (Performance)
+
+createRefContext<T>()
+Factory function that creates all ref-related hooks for high-performance DOM manipulation. - Purpose: Creates type-safe direct DOM manipulation system with zero React re-renders
+- Returns: { Provider, useRefHandler, useWaitForRefs, useGetAllRefs }
+- Essential for: Performance-critical UI, animations, real-time interactions
+
+useRefHandler()
+Primary hook for accessing typed ref handlers with direct DOM manipulation. - Purpose: Get ref handler for specific DOM element with type safety
+- Essential for: Direct DOM updates without React re-renders
+- Pattern: Performance layer bypassing React reconciliation
+
+useWaitForRefs()
+Utility hook for waiting on multiple refs to mount before executing operations. - Purpose: Coordinate operations requiring multiple DOM elements
+- Essential for: Complex DOM initialization sequences
+- Pattern: Async ref coordination
+
+🎯 Action Hooks (Core)
+
+createActionContext<T>()
+Factory function that creates all action-related hooks for a specific action context. - Purpose: Creates type-safe action dispatch and handler system
+- Returns: { Provider, useActionDispatch, useActionHandler, useActionRegister }
+- Essential for: Any action-based logic
+
+useActionDispatch()
+Primary hook for dispatching actions to handlers. - Purpose: Get dispatch function to trigger actions
+- Essential for: Component interaction with business logic
+- Pattern: ViewModel layer in MVVM architecture
+
+useActionHandler()
+Primary hook for registering action handlers. - Purpose: Register business logic for specific actions
+- Essential for: Implementing business logic
+- Best Practice: Use with useCallback for optimization
+
+🏪 Store Hooks (Core)
+
+createDeclarativeStorePattern<T>()
+Factory function that creates all store-related hooks with type safety. - Purpose: Creates type-safe store management system
+- Returns: { Provider, useStore, useStoreManager, withProvider }
+- Essential for: Any state management
+
+useStoreValue<T>(store)
+Primary hook for subscribing to store changes. - Purpose: Get reactive value from store
+- Essential for: Reading state in components
+- Performance: Only re-renders on actual value changes
+
+useStore(name) (from pattern)
+Primary hook for accessing stores by name. - Purpose: Get store instance from context
+- Essential for: Accessing stores in components
+- Type-safe: Returns properly typed store
+
+Utility Hooks
+
+These hooks provide additional functionality, optimizations, and convenience features. 🎯 Action Utility Hooks
+
+useActionDispatchWithResult()
+Utility hook for actions that need to collect results. - Purpose: Dispatch actions and collect handler results
+- Use Case: When you need return values from handlers
+- Advanced: For complex workflows requiring handler responses
+
+useActionRegister()
+Utility hook for direct access to ActionRegister instance. - Purpose: Advanced control over action registry
+- Use Case: Dynamic handler management, debugging
+- Advanced: Rarely needed in typical applications
+
+🏪 Store Utility Hooks
+
+useStoreSelector<T, R>(store, selector, equalityFn?)
+Performance hook for selective subscriptions. - Purpose: Subscribe to specific parts of store
+- Optimization: Prevents unnecessary re-renders
+- Use Case: Large objects where only part changes
+
+useComputedStore<T, R>(store, compute, config?)
+Derived state hook for computed values. - Purpose: Create derived state from stores
+- Optimization: Only recomputes when dependencies change
+- Use Case: Calculated values, aggregations
+
+useLocalStore<T>(initialValue, name?)
+Component-local store hook. - Purpose: Create store scoped to component lifecycle
+- Use Case: Complex component state
+- Benefit: Store API without global state
+
+usePersistedStore<T>(key, initialValue, options?)
+Persistence hook for browser storage. - Purpose: Auto-sync store with localStorage/sessionStorage
+- Use Case: Settings, user preferences, draft data
+- Feature: Cross-tab synchronization
+
+assertStoreValue<T>(value, storeName)
+Type assertion utility for store values. - Purpose: Runtime assertion for non-undefined values
+- Type Safety: Throws error if undefined
+- Use Case: When store must have a value
+
+🔧 Performance Optimization Hooks
+
+useMultiStoreSelector(stores, selector, equalityFn?)
+Multi-store selector for combining stores. - Purpose: Select from multiple stores efficiently
+- Optimization: Single subscription for multiple stores
+- Use Case: Cross-store computed values
+
+useStorePathSelector(store, path, equalityFn?)
+Path-based selector for nested objects.
+
+===================[ DOC: en/concept/pattern-guide.md ]===================
+# concept--pattern-guide
+
+@context-action/react Pattern Guide
+
+Complete guide to the three main patterns available i...
+
+===================[ DOC: en/concept/pattern-guide.md ]===================
+# concept--pattern-guide
+
+@context-action/react Pattern Guide
+
+Complete guide to the three main patterns available in @context-action/react framework. 📋 Quick Start Guide
+
+Choose the right pattern for your use case:
+
+| Pattern | Use Case | Import | Best For |
+|---------|----------|--------|----------|
+| 🎯 Action Only | Action dispatching without stores | createActionContext | Event systems, command patterns |
+| 🏪 Store Only | State management without actions | createDeclarativeStorePattern | Pure state management, data layers |
+| 🔧 Ref Context | Direct DOM manipulation with zero re-renders | createRefContext | High-performance UI, animations, real-time interactions |
+
+Note: For complex applications, compose patterns together for maximum flexibility and separation of concerns. ---
+
+🎯 Action Only Pattern
+
+When to use: Pure action dispatching without state management (event systems, command patterns).
+
+===================[ DOC: en/concept/pattern-guide.md ]===================
+# concept--pattern-guide
+
+@context-action/react Pattern Guide
+
+Complete guide to the three main patterns available in @context-action/react framework.
+
+===================[ DOC: en/concept/pattern-guide.md ]===================
+# concept--pattern-guide
+
+@context-action/react Pattern Guide
+
+Complete guide to the three main patterns available in @context-action/react framework. 📋 Quick Start Guide
+
+Choose the right pattern for your use case:
+
+| Pattern | Use Case | Import | Best For |
+|---------|----------|--------|----------|
+| 🎯 Action Only | Action dispatching without stores | createActionContext | Event systems, command patterns |
+| 🏪 Store Only | State management without actions | createDeclarativeStorePattern | Pure state management, data layers |
+| 🔧 Ref Context | Direct DOM manipulation with zero re-renders | createRefContext | High-performance UI, animations, real-time interactions |
+
+Note: For complex applications, compose patterns together for maximum flexibility and separation of concerns. ---
+
+🎯 Action Only Pattern
+
+When to use: Pure action dispatching without state management (event systems, command patterns). Import
+
+Features
+- ✅ Type-safe action dispatching
+- ✅ Action handler registration
+- ✅ Abort support
+- ✅ Result handling
+- ✅ Lightweight (no store overhead)
+
+Basic Usage
+
+Advanced Features
+
+Available Hooks
+- useActionDispatch() - Basic action dispatcher
+- useActionHandler(action, handler, config?) - Register action handlers
+- useActionDispatchWithResult() - Advanced dispatcher with results/abort
+- useActionRegister() - Access raw ActionRegister
+- useActionContext() - Access raw context
+
+🏪 Store Only Pattern (Recommended)
+
+When to use: Pure state management without action dispatching (data layers, simple state).
+
+===================[ DOC: en/concept/pattern-guide.md ]===================
+# concept--pattern-guide
+
+@context-action/react Pattern Guide
+
+Complete guide to the three main patterns available in @context-action/react framework.
+
+===================[ DOC: en/concept/pattern-guide.md ]===================
+# concept--pattern-guide
+
+@context-action/react Pattern Guide
+
+Complete guide to the three main patterns available in @context-action/react framework.
+
+===================[ DOC: en/concept/pattern-guide.md ]===================
+# concept--pattern-guide
+
+@context-action/react Pattern Guide
+
+Complete guide to the three main patterns available in @context-action/react framework. 📋 Quick Start Guide
+
+Choose the right pattern for your use case:
+
+| Pattern | Use Case | Import | Best For |
+|---------|----------|--------|----------|
+| 🎯 Action Only | Action dispatching without stores | createActionContext | Event systems, command patterns |
+| 🏪 Store Only | State management without actions | createDeclarativeStorePattern | Pure state management, data layers |
+| 🔧 Ref Context | Direct DOM manipulation with zero re-renders | createRefContext | High-performance UI, animations, real-time interactions |
+
+Note: For complex applications, compose patterns together for maximum flexibility and separation of concerns. ---
+
+🎯 Action Only Pattern
+
+When to use: Pure action dispatching without state management (event systems, command patterns). Import
+
+Features
+- ✅ Type-safe action dispatching
+- ✅ Action handler registration
+- ✅ Abort support
+- ✅ Result handling
+- ✅ Lightweight (no store overhead)
+
+Basic Usage
+
+Advanced Features
+
+Available Hooks
+- useActionDispatch() - Basic action dispatcher
+- useActionHandler(action, handler, config?) - Register action handlers
+- useActionDispatchWithResult() - Advanced dispatcher with results/abort
+- useActionRegister() - Access raw ActionRegister
+- useActionContext() - Access raw context
+
+🏪 Store Only Pattern (Recommended)
+
+When to use: Pure state management without action dispatching (data layers, simple state). Key Features: 
+- ✅ Excellent type inference without manual type annotations
+- ✅ Simplified API focused on store management
+- ✅ Direct value or configuration object support
+- ✅ No need for separate createStore calls
+
+Import
+
+Basic Usage
+
+Option 1: Type Inference (Current)
+
+Option 2: Explicit Generic Types (New)
+
+HOC Pattern (Advanced)
+
+Advanced Configuration
+
+Available Hooks
+- useStore(name) - Get typed store by name (primary API)
+- useStoreManager() - Access store manager (advanced use)
+- useStoreInfo() - Get registry information
+- useStoreClear() - Clear all stores
+
+🔧 Ref Context Pattern
+
+When to use: Direct DOM manipulation with zero React re-renders (high-performance UI, animations, real-time interactions). Import
+
+Features
+- ✅ Zero React re-renders for DOM manipulation
+- ✅ Hardware-accelerated transforms
+- ✅ Type-safe ref management
+- ✅ Automatic lifecycle management
+- ✅ Perfect separation of concerns
+- ✅ Memory efficient with automatic cleanup
+
+Basic Usage
+
+Advanced RefContext with Custom Hooks
+
+Multi-RefContext Architecture
+
+Available Hooks
+- useRefHandler(name) - Get typed ref handler by name
+- useWaitForRefs() - Wait for multiple refs to mount
+- useGetAllRefs() - Access all mounted refs
+- refHandler.setRef - Set ref callback
+- refHandler.target - Access current ref value
+- refHandler.isMounted - Check mount status
+- refHandler.waitForMount() - Async ref waiting
+- refHandler.withTarget() - Safe operations
+
+🔧 Pattern Composition
+
+For complex applications, compose all three patterns for maximum flexibility:
+
+🎯 Migration Guide
+
+From Legacy Action Context Pattern
+
+If you were using the removed createActionContextPattern, migrate to pattern composition:
+
+📚 Best Practices
+
+1. Pattern Selection
+- Start with Store Only for simple state management
+- Add Action Only when you need side effects or complex workflows
+- Add RefContext when you need high-performance DOM manipulation
+- Compose all three patterns for full-featured applications
+
+2. Naming Conventions
+- Use descriptive context names: UserActions, AppStores, MouseRefs
+- Rename exported hooks for clarity: useUserAction, useAppStore, useMouseRef
+- Keep store names simple: user, counter, settings
+- Use domain-specific ref names: cursor, modal, canvas
+
+3. Performance
+- Store Pattern: Use strategy: 'reference' for large datasets, 'shallow' for objects, 'deep' only when necessary
+- RefContext Pattern: Use translate3d() for hardware acceleration, batch DOM updates, avoid React re-renders
+- Action Pattern: Keep handlers lightweight, use async for heavy operations
+
+4. Type Safety
+- Actions: Use explicit interfaces for actions (ActionPayloadMap optional)
+- Stores: Let TypeScript infer store types or use explicit generics
+- Refs: Define clear ref type interfaces with proper HTML element types
+- Use as const for literal types in all patterns
+
+5. Separation of Concerns
+- Actions: Handle side effects, business logic, and coordination
+- Stores: Manage application state and data
+- RefContext: Handle DOM manipulation and performance-critical UI
+- Keep each pattern focused on its specific responsibility
+
+🔍 Examples
+
+See the examples/ directory for complete working examples of each pattern.
+
+===================[ DOC: en/concept/react-refs-guide.md ]===================
+# concept--react-refs-guide
+
+React Refs Management Guide
+
+This guide covers the React Refs Management System in the Con...
+
+===================[ DOC: en/concept/react-refs-guide.md ]===================
+# concept--react-refs-guide
+
+React Refs Management Guide
+
+This guide covers the React Refs Management System in the Context-Action framework - a simple and safe reference management system designed for managing DOM elements, custom objects, and complex component references with type safety and lifecycle management. > ⚠️ Important: Always use createRefContext() for ref management. Direct RefStore instantiation is discouraged and only intended for internal framework use. Overview
+
+The React Refs system provides declarative ref management with automatic cleanup, type safety, and advanced lifecycle features through the createRefContext() API.
+
+===================[ DOC: en/concept/react-refs-guide.md ]===================
+# concept--react-refs-guide
+
+React Refs Management Guide
+
+This guide covers the React Refs Management System in the Context-Action framework - a simple and safe reference management system designed for managing DOM elem...
+
+===================[ DOC: en/concept/react-refs-guide.md ]===================
+# concept--react-refs-guide
+
+React Refs Management Guide
+
+This guide covers the React Refs Management System in the Context-Action framework - a simple and safe reference management system designed for managing DOM elements, custom objects, and complex component references with type safety and lifecycle management. > ⚠️ Important: Always use createRefContext() for ref management. Direct RefStore instantiation is discouraged and only intended for internal framework use. Overview
+
+The React Refs system provides declarative ref management with automatic cleanup, type safety, and advanced lifecycle features through the createRefContext() API. It's particularly useful for:
+
+- DOM Element Management: Safe access to DOM elements with proper lifecycle handling
+- Custom Object References: Managing Three.js objects, game engines, or other complex instances  
+- Async Ref Operations: Waiting for refs to mount and performing safe operations
+- Memory Management: Automatic cleanup and leak prevention
+
+🎯 Recommended Usage Pattern
+
+✅ Always use createRefContext():
+
+Core Concepts
+
+RefContext System
+
+The refs system is built around createRefContext(), which provides a clean, declarative API that abstracts away internal RefStore complexity:
+
+- Type Safety: Full TypeScript support with proper type inference
+- Lifecycle Management: Automatic mounting/unmounting detection
+- Safe Operations: Protected ref access with error handling
+- Flexible Configuration: Both simple and advanced configuration options
+- Internal Optimization: Uses RefStore internally but provides a better developer experience
+
+> 🔧 Architecture Note: createRefContext() manages RefStore instances internally, providing a cleaner API while handling all the complex lifecycle management, error handling, and memory cleanup automatically. Two Configuration Approaches
+
+1. Simple Type Definition (Legacy)
+
+2.
+
+===================[ DOC: en/concept/react-refs-guide.md ]===================
+# concept--react-refs-guide
+
+React Refs Management Guide
+
+This guide covers the React Refs Management System in the Context-Action framework - a simple and safe reference management system designed for managing DOM elements, custom objects, and complex component references with type safety and lifecycle management.
+
+===================[ DOC: en/concept/react-refs-guide.md ]===================
+# concept--react-refs-guide
+
+React Refs Management Guide
+
+This guide covers the React Refs Management System in the Context-Action framework - a simple and safe reference management system designed for managing DOM elements, custom objects, and complex component references with type safety and lifecycle management. > ⚠️ Important: Always use createRefContext() for ref management. Direct RefStore instantiation is discouraged and only intended for internal framework use.
+
+===================[ DOC: en/concept/react-refs-guide.md ]===================
+# concept--react-refs-guide
+
+React Refs Management Guide
+
+This guide covers the React Refs Management System in the Context-Action framework - a simple and safe reference management system designed for managing DOM elements, custom objects, and complex component references with type safety and lifecycle management. > ⚠️ Important: Always use createRefContext() for ref management. Direct RefStore instantiation is discouraged and only intended for internal framework use. Overview
+
+The React Refs system provides declarative ref management with automatic cleanup, type safety, and advanced lifecycle features through the createRefContext() API. It's particularly useful for:
+
+- DOM Element Management: Safe access to DOM elements with proper lifecycle handling
+- Custom Object References: Managing Three.js objects, game engines, or other complex instances  
+- Async Ref Operations: Waiting for refs to mount and performing safe operations
+- Memory Management: Automatic cleanup and leak prevention
+
+🎯 Recommended Usage Pattern
+
+✅ Always use createRefContext():
+
+Core Concepts
+
+RefContext System
+
+The refs system is built around createRefContext(), which provides a clean, declarative API that abstracts away internal RefStore complexity:
+
+- Type Safety: Full TypeScript support with proper type inference
+- Lifecycle Management: Automatic mounting/unmounting detection
+- Safe Operations: Protected ref access with error handling
+- Flexible Configuration: Both simple and advanced configuration options
+- Internal Optimization: Uses RefStore internally but provides a better developer experience
+
+> 🔧 Architecture Note: createRefContext() manages RefStore instances internally, providing a cleaner API while handling all the complex lifecycle management, error handling, and memory cleanup automatically. Two Configuration Approaches
+
+1. Simple Type Definition (Legacy)
+
+2. Declarative Definitions (Recommended)
+
+Naming Conventions
+
+Following the Context-Action framework conventions, all refs contexts should use the renaming pattern for consistency and improved developer experience. ✅ Recommended: Renaming Pattern
+
+❌ Avoided: Direct Object Access
+
+🎯 Context Naming Rules
+
+Domain-Based Context Names
+
+Hook Naming Pattern
+
+Basic Usage
+
+Setting Up Refs
+
+Accessing Ref Values
+
+Advanced Features
+
+Hook Usage Pattern
+
+The refs system follows React's hook pattern where you extract the function first, then use it:
+
+✅ Correct Usage Pattern
+
+❌ Common Mistakes
+
+Why This Pattern Works
+
+Comprehensive Waiting Patterns
+
+Safe Operations with withTarget
+
+RefDefinitions Management Strategies
+
+RefDefinitions provide powerful configuration options for different ref management strategies:
+
+Basic DOM Elements
+
+Input Validation
+
+Custom Object Management
+
+Metadata and Lifecycle Management
+
+Available Management Strategies
+
+| Strategy | Purpose | Usage |
+|----------|---------|--------|
+| autoCleanup | Automatic cleanup when component unmounts | Most refs should use true |
+| mountTimeout | Maximum time to wait for ref mounting | Adjust based on complexity |
+| validator | Type and validity checking | Critical for type safety |
+| cleanup | Custom cleanup function | Complex objects needing disposal |
+| initialMetadata | Additional ref metadata | Debugging and tracking |
+
+Simplified Reference Management
+
+The RefContext system now treats all references as singleton objects without deep cloning or immutability checks. This is based on the understanding that refs are meant to manage singleton objects that should never be cloned. Key Principles:
+- No Cloning: All refs maintain direct references to their target objects
+- Reference Comparison Only: State changes are detected using reference equality
+- Universal Handling: DOM elements, custom objects, and Three.js objects are all handled identically
+- Cleanup Functions: The only differentiation is through optional cleanup functions
+
+This simplified approach:
+- Eliminates circular reference issues with React Fiber
+- Improves performance by avoiding unnecessary cloning
+- Provides consistent behavior across all ref types
+- Makes the API simpler and more predictable
+
+Real-World Example: Mouse Events with RefContext
+
+Here's a practical example showing how RefContext enables high-performance mouse tracking with zero React re-renders:
+
+Key Benefits of This Approach:
+
+1. Zero React Re-renders: All mouse movements are handled through direct DOM manipulation
+2. Perfect Separation of Concerns: Each RefContext manages its own domain
+3. Hardware Acceleration: Using translate3d() for smooth 60fps performance
+4. Type Safety: Full TypeScript support with proper ref typing
+5. Independent Contexts: Mouse position and visual effects are completely decoupled
+6. Memory Efficient: Automatic cleanup when components unmount
+
+Complete Example: Game Component
+
+Best Practices
+
+1. Choose the Right Configuration Approach
+
+2. Handle Async Operations Safely
+
+3. Configure Appropriate Timeouts
+
+4.
+
+===================[ DOC: en/example/action-only.md ]===================
+# examples--action-only
+
+Action Only Pattern Example
+
+This example demonstrates the Action Only Pattern for pure ac...
+
+===================[ DOC: en/example/action-only.md ]===================
+# examples--action-only
+
+Action Only Pattern Example
+
+This example demonstrates the Action Only Pattern for pure action dispatching without state management, ideal for event systems, command patterns, and business logic orchestration. Use Cases
+
+- Event tracking and analytics
+- Command patterns and business logic
+- Cross-component communication
+- Side effects and API calls
+- User interaction handling
+
+Complete Example
+
+1. Define Action Types
+
+2. Create Action Context
+
+3. Event Handler Components
+
+4. User Interaction Components
+
+5. API Integration Component
+
+6. Main Application
+
+7. System Monitoring
+
+8. API Testing Component
+
+9.
+
+===================[ DOC: en/example/action-only.md ]===================
+# examples--action-only
+
+Action Only Pattern Example
+
+This example demonstrates the Action Only Pattern for pure action dispatching without state management, ideal for event systems, command patterns, and business l...
+
+===================[ DOC: en/example/action-only.md ]===================
+# examples--action-only
+
+Action Only Pattern Example
+
+This example demonstrates the Action Only Pattern for pure action dispatching without state management, ideal for event systems, command patterns, and business logic orchestration. Use Cases
+
+- Event tracking and analytics
+- Command patterns and business logic
+- Cross-component communication
+- Side effects and API calls
+- User interaction handling
+
+Complete Example
+
+1. Define Action Types
+
+2. Create Action Context
+
+3. Event Handler Components
+
+4. User Interaction Components
+
+5. API Integration Component
+
+6. Main Application
+
+7. System Monitoring
+
+8. API Testing Component
+
+9. Error Testing Component
+
+Advanced Pipeline Control
+
+Multi-Stage Processing
+
+Handler Composition Patterns
+
+Sequential Processing
+
+Key Benefits
+
+✅ Type Safety: Full TypeScript support with automatic type inference  
+✅ Pipeline Control: Advanced control flow with abort, modify, and result management  
+✅ Priority Execution: Handlers execute in priority order for predictable behavior  
+✅ Error Resilience: Individual handler failures don't stop the entire pipeline  
+✅ Automatic Cleanup: React integration handles registration/cleanup automatically  
+✅ Lightweight: No state management overhead, focused on action processing
+
+Best Practices
+
+1. Use Handler Components: Create dedicated components for handler registration
+2. Priority Planning: Assign priorities based on execution order needs
+3. Error Handling: Use controller.abort() for critical failures, return errors for non-critical
+4. Payload Enrichment: Use controller.modifyPayload() to add metadata
+5. Result Sharing: Use controller.setResult() and getResults() for handler coordination
+6. useCallback: Always wrap handlers with useCallback for performance
+
+Related
+
+- Action Pipeline Guide - Comprehensive action pipeline documentation
+- ActionRegister API - Core action system
+- PipelineController API - Pipeline control methods
+- Pattern Composition Example - Combining with Store Pattern.
+
+===================[ DOC: en/example/action-only.md ]===================
+# examples--action-only
+
+Action Only Pattern Example
+
+This example demonstrates the Action Only Pattern for pure action dispatching without state management, ideal for event systems, command patterns, and business logic orchestration.
+
+===================[ DOC: en/example/action-only.md ]===================
+# examples--action-only
+
+Action Only Pattern Example
+
+This example demonstrates the Action Only Pattern for pure action dispatching without state management, ideal for event systems, command patterns, and business logic orchestration. Use Cases
+
+- Event tracking and analytics
+- Command patterns and business logic
+- Cross-component communication
+- Side effects and API calls
+- User interaction handling
+
+Complete Example
+
+1. Define Action Types
+
+2. Create Action Context
+
+3. Event Handler Components
+
+4.
+
+===================[ DOC: en/example/action-only.md ]===================
+# examples--action-only
+
+Action Only Pattern Example
+
+This example demonstrates the Action Only Pattern for pure action dispatching without state management, ideal for event systems, command patterns, and business logic orchestration. Use Cases
+
+- Event tracking and analytics
+- Command patterns and business logic
+- Cross-component communication
+- Side effects and API calls
+- User interaction handling
+
+Complete Example
+
+1. Define Action Types
+
+2. Create Action Context
+
+3. Event Handler Components
+
+4. User Interaction Components
+
+5. API Integration Component
+
+6. Main Application
+
+7. System Monitoring
+
+8. API Testing Component
+
+9. Error Testing Component
+
+Advanced Pipeline Control
+
+Multi-Stage Processing
+
+Handler Composition Patterns
+
+Sequential Processing
+
+Key Benefits
+
+✅ Type Safety: Full TypeScript support with automatic type inference  
+✅ Pipeline Control: Advanced control flow with abort, modify, and result management  
+✅ Priority Execution: Handlers execute in priority order for predictable behavior  
+✅ Error Resilience: Individual handler failures don't stop the entire pipeline  
+✅ Automatic Cleanup: React integration handles registration/cleanup automatically  
+✅ Lightweight: No state management overhead, focused on action processing
+
+Best Practices
+
+1. Use Handler Components: Create dedicated components for handler registration
+2. Priority Planning: Assign priorities based on execution order needs
+3. Error Handling: Use controller.abort() for critical failures, return errors for non-critical
+4. Payload Enrichment: Use controller.modifyPayload() to add metadata
+5. Result Sharing: Use controller.setResult() and getResults() for handler coordination
+6. useCallback: Always wrap handlers with useCallback for performance
+
+Related
+
+- Action Pipeline Guide - Comprehensive action pipeline documentation
+- ActionRegister API - Core action system
+- PipelineController API - Pipeline control methods
+- Pattern Composition Example - Combining with Store Pattern.
+
+===================[ DOC: en/example/basic-setup.md ]===================
+# examples--basic-setup
+
+Basic Setup
+
+This example shows the fundamental setup of Context-Action framework with bot...
+
+===================[ DOC: en/example/basic-setup.md ]===================
+# examples--basic-setup
+
+Basic Setup
+
+This example shows the fundamental setup of Context-Action framework with both Action Only and Store Only patterns. Installation
+
+First, install the required packages:
+
+Project Structure
+
+Step 1: Define Action Types
+
+Create type definitions for your actions:
+
+Step 2: Create Action Context
+
+Set up the Action Only pattern for business logic:
+
+Step 3: Create Store Pattern
+
+Set up the Store Only pattern for state management:
+
+Step 4: Main Application Setup
+
+Combine both patterns in your main app component:
+
+Step 5: User Profile Component
+
+Example component using both patterns:
+
+Step 6: Event Logger Component
+
+Component that handles event tracking:
+
+Step 7: Basic Styles
+
+Add some basic CSS for the example:
+
+Key Concepts Demonstrated
+
+This example demonstrates several key Context-Action concepts:
+
+1. Pattern Separation
+- Action Only Pattern for business logic and events
+- Store Only Pattern for state management
+- Clear separation between actions and state
+
+2.
+
+===================[ DOC: en/example/basic-setup.md ]===================
+# examples--basic-setup
+
+Basic Setup
+
+This example shows the fundamental setup of Context-Action framework with both Action Only and Store Only patterns.
+
+===================[ DOC: en/example/basic-setup.md ]===================
+# examples--basic-setup
+
+Basic Setup
+
+This example shows the fundamental setup of Context-Action framework with both Action Only and Store Only patterns. Installation
+
+First, install the required packages:
+
+Project Structure
+
+Step 1: Define Action Types
+
+Create type definitions for your actions:
+
+Step 2: Create Action Context
+
+Set up the Action Only pattern for business logic:
+
+Step 3: Create Store Pattern
+
+Set up the Store Only pattern for state management:
+
+Step 4: Main Application Setup
+
+Combine both patterns in your main app component:
+
+Step 5: User Profile Component
+
+Example component using both patterns:
+
+Step 6: Event Logger Component
+
+Component that handles event tracking:
+
+Step 7: Basic Styles
+
+Add some basic CSS for the example:
+
+Key Concepts Demonstrated
+
+This example demonstrates several key Context-Action concepts:
+
+1. Pattern Separation
+- Action Only Pattern for business logic and events
+- Store Only Pattern for state management
+- Clear separation between actions and state
+
+2. MVVM Architecture
+- View Layer: React components (UserProfile, EventLogger)
+- ViewModel Layer: Action handlers with business logic
+- Model Layer: Store pattern for data management
+
+3. Handler Registration
+- Handlers registered in components using useAppActionHandler
+- Priority-based execution (implicit default priority)
+- Proper cleanup with useCallback dependencies
+
+4. Store Management
+- Reactive subscriptions with useStoreValue
+- Store updates with setValue() and update()
+- Type-safe store access
+
+5. Error Handling
+- Graceful error handling in action handlers
+- Error logging and user feedback
+- Pipeline control with controller.abort()
+
+6. Event System
+- Event tracking for analytics
+- Error logging for monitoring
+- Separation of concerns between different event types
+
+Running the Example
+
+1. Set up a new React project
+2. Install the dependencies
+3. Copy the code files to your project
+4. Add the CSS styles
+5.
+
+===================[ DOC: en/example/basic-setup.md ]===================
+# examples--basic-setup
+
+Basic Setup
+
+This example shows the fundamental setup of Context-Action framework with both Action Only and Store Only patterns.
+
+===================[ DOC: en/example/basic-setup.md ]===================
+# examples--basic-setup
+
+Basic Setup
+
+This example shows the fundamental setup of Context-Action framework with both Action Only and Store Only patterns.
+
+===================[ DOC: en/example/basic-setup.md ]===================
+# examples--basic-setup
+
+Basic Setup
+
+This example shows the fundamental setup of Context-Action framework with both Action Only and Store Only patterns. Installation
+
+First, install the required packages:
+
+Project Structure
+
+Step 1: Define Action Types
+
+Create type definitions for your actions:
+
+Step 2: Create Action Context
+
+Set up the Action Only pattern for business logic:
+
+Step 3: Create Store Pattern
+
+Set up the Store Only pattern for state management:
+
+Step 4: Main Application Setup
+
+Combine both patterns in your main app component:
+
+Step 5: User Profile Component
+
+Example component using both patterns:
+
+Step 6: Event Logger Component
+
+Component that handles event tracking:
+
+Step 7: Basic Styles
+
+Add some basic CSS for the example:
+
+Key Concepts Demonstrated
+
+This example demonstrates several key Context-Action concepts:
+
+1. Pattern Separation
+- Action Only Pattern for business logic and events
+- Store Only Pattern for state management
+- Clear separation between actions and state
+
+2. MVVM Architecture
+- View Layer: React components (UserProfile, EventLogger)
+- ViewModel Layer: Action handlers with business logic
+- Model Layer: Store pattern for data management
+
+3. Handler Registration
+- Handlers registered in components using useAppActionHandler
+- Priority-based execution (implicit default priority)
+- Proper cleanup with useCallback dependencies
+
+4. Store Management
+- Reactive subscriptions with useStoreValue
+- Store updates with setValue() and update()
+- Type-safe store access
+
+5. Error Handling
+- Graceful error handling in action handlers
+- Error logging and user feedback
+- Pipeline control with controller.abort()
+
+6. Event System
+- Event tracking for analytics
+- Error logging for monitoring
+- Separation of concerns between different event types
+
+Running the Example
+
+1. Set up a new React project
+2. Install the dependencies
+3. Copy the code files to your project
+4. Add the CSS styles
+5. Start the development server
+
+Next Steps
+
+- Action Only Pattern - Deep dive into pure action dispatching
+- Store Only Pattern - Focus on state management patterns
+- Pattern Composition - Advanced pattern combinations.
+
+===================[ DOC: en/example/element-management.md ]===================
+# examples--element-management
+
+DOM Element Management
+
+Advanced example demonstrating comprehensive DOM element managemen...
+
+===================[ DOC: en/example/element-management.md ]===================
+# examples--element-management
+
+DOM Element Management
+
+Advanced example demonstrating comprehensive DOM element management using the Context-Action framework. Overview
+
+This example showcases how to effectively manage DOM elements in both React and Core packages using Context-Action's Action Pipeline and Store Pattern.
+
+===================[ DOC: en/example/element-management.md ]===================
+# examples--element-management
+
+DOM Element Management
+
+Advanced example demonstrating comprehensive DOM element management using the Context-Action framework.
+
+===================[ DOC: en/example/element-management.md ]===================
+# examples--element-management
+
+DOM Element Management
+
+Advanced example demonstrating comprehensive DOM element management using the Context-Action framework. Overview
+
+This example showcases how to effectively manage DOM elements in both React and Core packages using Context-Action's Action Pipeline and Store Pattern. It provides:
+
+- Centralized Element Registry: All DOM elements managed from a central location
+- Type-safe Element Management: Full TypeScript support for element operations
+- Reactive State Management: Real-time reactions to element state changes
+- Lifecycle Management: Automated element registration/cleanup
+- Focus & Selection Management: Built-in focus and selection state management
+
+Key Features
+
+Core Package Features
+- ElementManager Class: Centralized DOM element lifecycle management
+- Action-based API: All element operations performed through action pipeline
+- Automatic Cleanup: Periodic cleanup of removed DOM elements
+- Type-safe Management: Complete type safety using TypeScript
+
+React Package Features
+- useElementRef Hook: Hook for automatic element registration
+- Focus Management: useFocusedElement hook for focus state management
+- Selection Management: useElementSelection hook for multi-selection support
+- Type-based Queries: useElementsByType for type-specific element queries
+- Managed Components: Auto-registering ManagedInput, ManagedButton components
+
+Basic Usage
+
+1. Setup
+
+2. Element Registration & Management
+
+3. Focus Management
+
+4.
+
+===================[ DOC: en/example/element-management.md ]===================
+# examples--element-management
+
+DOM Element Management
+
+Advanced example demonstrating comprehensive DOM element management using the Context-Action framework. Overview
+
+This example showcases how to effectively manage DOM elements in both React and Core packages using Context-Action's Action Pipeline and Store Pattern.
+
+===================[ DOC: en/example/element-management.md ]===================
+# examples--element-management
+
+DOM Element Management
+
+Advanced example demonstrating comprehensive DOM element management using the Context-Action framework. Overview
+
+This example showcases how to effectively manage DOM elements in both React and Core packages using Context-Action's Action Pipeline and Store Pattern.
+
+===================[ DOC: en/example/element-management.md ]===================
+# examples--element-management
+
+DOM Element Management
+
+Advanced example demonstrating comprehensive DOM element management using the Context-Action framework. Overview
+
+This example showcases how to effectively manage DOM elements in both React and Core packages using Context-Action's Action Pipeline and Store Pattern. It provides:
+
+- Centralized Element Registry: All DOM elements managed from a central location
+- Type-safe Element Management: Full TypeScript support for element operations
+- Reactive State Management: Real-time reactions to element state changes
+- Lifecycle Management: Automated element registration/cleanup
+- Focus & Selection Management: Built-in focus and selection state management
+
+Key Features
+
+Core Package Features
+- ElementManager Class: Centralized DOM element lifecycle management
+- Action-based API: All element operations performed through action pipeline
+- Automatic Cleanup: Periodic cleanup of removed DOM elements
+- Type-safe Management: Complete type safety using TypeScript
+
+React Package Features
+- useElementRef Hook: Hook for automatic element registration
+- Focus Management: useFocusedElement hook for focus state management
+- Selection Management: useElementSelection hook for multi-selection support
+- Type-based Queries: useElementsByType for type-specific element queries
+- Managed Components: Auto-registering ManagedInput, ManagedButton components
+
+Basic Usage
+
+1. Setup
+
+2. Element Registration & Management
+
+3. Focus Management
+
+4. Selection Management
+
+Real-world Scenarios
+
+Form Builder Application
+
+Dynamic form builder with element management:
+
+Features:
+- Dynamic form field addition/removal
+- Click to select fields, Cmd/Ctrl+Click for multi-selection
+- Bulk deletion of selected fields
+- Real-time element state monitoring
+- Keyboard shortcut support
+
+Canvas Management
+
+Canvas-based graphic editor with element management:
+
+Features:
+- Canvas element registration and state management
+- Integration with graphic objects within canvas
+- Tool panel display based on selection state
+- Canvas metadata management
+
+API Reference
+
+Core API
+
+ElementManager
+
+React Hooks
+
+useElementRef
+Hook for automatic element registration
+
+useElementManager
+Comprehensive element management hook
+
+useFocusedElement
+Focus management hook
+
+useElementSelection
+Selection management hook
+
+Key Benefits
+
+1. Centralized Management
+- All DOM elements managed from a central location for consistency
+- Predictable element lifecycle management
+
+2. Type Safety
+- Complete type safety through TypeScript
+- Type-specific specialized features for each element type
+
+3. Memory Optimization
+- Automatic cleanup prevents memory leaks
+- Automatic detection and removal of stale elements
+
+4. React Integration
+- Perfect integration with React's declarative patterns
+- Hook-based API maximizes reusability
+
+5. Debugging Support
+- Real-time element state monitoring with development tools
+- Element metadata and lifecycle tracking
+
+Source Code
+
+The complete source code for this example is available in the /examples/element-management/ directory:
+
+- core-element-registry.ts - Core element management system
+- react-element-hooks.tsx - React integration hooks and components
+- integration-example.tsx - Real-world usage examples
+- README.md - Comprehensive documentation
+
+This example demonstrates how the Context-Action framework elegantly solves complex DOM element management scenarios, applicable to various real-world use cases like form builders, canvas editors, and complex UIs.
+
+===================[ DOC: en/example/pattern-composition.md ]===================
+# examples--pattern-composition
+
+Pattern Composition Example
+
+This example demonstrates how to combine Action Only and Stor...
+
+===================[ DOC: en/example/pattern-composition.md ]===================
+# examples--pattern-composition
+
+Pattern Composition Example
+
+This example demonstrates how to combine Action Only and Store Only patterns for complex applications with complete separation of concerns following MVVM architecture. Architecture Overview
+
+Complete Application Example
+
+1. Action Type Definitions
+
+2. Store Configuration
+
+3. Create Contexts
+
+4. Action Handler Components
+
+5. System Action Handlers
+
+6. Main Application Component
+
+7. Dashboard Component
+
+8. Modal System
+
+9. Performance Monitor
+
+10. Navigation Component
+
+Key Architecture Benefits
+
+Perfect Separation of Concerns
+
+1. View Layer: Components focus purely on UI rendering and user interaction
+2. ViewModel Layer: Action handlers contain all business logic and coordination
+3.
+
+===================[ DOC: en/example/pattern-composition.md ]===================
+# examples--pattern-composition
+
+Pattern Composition Example
+
+This example demonstrates how to combine Action Only and Store Only patterns for complex applications with complete separation of concerns following MVVM archite...
+
+===================[ DOC: en/example/pattern-composition.md ]===================
+# examples--pattern-composition
+
+Pattern Composition Example
+
+This example demonstrates how to combine Action Only and Store Only patterns for complex applications with complete separation of concerns following MVVM architecture. Architecture Overview
+
+Complete Application Example
+
+1. Action Type Definitions
+
+2. Store Configuration
+
+3. Create Contexts
+
+4. Action Handler Components
+
+5. System Action Handlers
+
+6. Main Application Component
+
+7. Dashboard Component
+
+8. Modal System
+
+9. Performance Monitor
+
+10. Navigation Component
+
+Key Architecture Benefits
+
+Perfect Separation of Concerns
+
+1. View Layer: Components focus purely on UI rendering and user interaction
+2. ViewModel Layer: Action handlers contain all business logic and coordination
+3. Model Layer: Stores manage data with reactive updates and computed state
+
+Pattern Composition Benefits
+
+- Action Pattern: Handles complex business logic, API calls, and cross-cutting concerns
+- Store Pattern: Manages reactive state with type safety and computed values  
+- Clean Integration: Both patterns work together without conflicts or coupling
+
+Type Safety Throughout
+
+Best Practices Demonstrated
+
+1. Handler Organization: Separate handler components for different domains
+2. Error Boundaries: Comprehensive error handling with user feedback
+3. Performance Monitoring: Built-in performance tracking and optimization
+4. State Persistence: Automatic saving and loading of application state
+5. Modal Management: Centralized modal system with type-safe data passing
+6. Loading States: Granular loading indicators for different operations
+
+Related
+
+- Action Only Pattern - Pure action dispatching examples
+- Store Only Pattern - Pure state management examples
+- Main Patterns Guide - Pattern selection and architecture
+- MVVM Architecture Guide - Architectural principles.
+
+===================[ DOC: en/example/pattern-composition.md ]===================
+# examples--pattern-composition
+
+Pattern Composition Example
+
+This example demonstrates how to combine Action Only and Store Only patterns for complex applications with complete separation of concerns following MVVM architecture. Architecture Overview
+
+Complete Application Example
+
+1. Action Type Definitions
+
+2.
+
+===================[ DOC: en/example/pattern-composition.md ]===================
+# examples--pattern-composition
+
+Pattern Composition Example
+
+This example demonstrates how to combine Action Only and Store Only patterns for complex applications with complete separation of concerns following MVVM architecture. Architecture Overview
+
+Complete Application Example
+
+1. Action Type Definitions
+
+2. Store Configuration
+
+3. Create Contexts
+
+4. Action Handler Components
+
+5. System Action Handlers
+
+6. Main Application Component
+
+7. Dashboard Component
+
+8. Modal System
+
+9. Performance Monitor
+
+10.
+
+===================[ DOC: en/example/pattern-composition.md ]===================
+# examples--pattern-composition
+
+Pattern Composition Example
+
+This example demonstrates how to combine Action Only and Store Only patterns for complex applications with complete separation of concerns following MVVM architecture. Architecture Overview
+
+Complete Application Example
+
+1. Action Type Definitions
+
+2. Store Configuration
+
+3. Create Contexts
+
+4. Action Handler Components
+
+5. System Action Handlers
+
+6. Main Application Component
+
+7. Dashboard Component
+
+8. Modal System
+
+9. Performance Monitor
+
+10. Navigation Component
+
+Key Architecture Benefits
+
+Perfect Separation of Concerns
+
+1. View Layer: Components focus purely on UI rendering and user interaction
+2. ViewModel Layer: Action handlers contain all business logic and coordination
+3. Model Layer: Stores manage data with reactive updates and computed state
+
+Pattern Composition Benefits
+
+- Action Pattern: Handles complex business logic, API calls, and cross-cutting concerns
+- Store Pattern: Manages reactive state with type safety and computed values  
+- Clean Integration: Both patterns work together without conflicts or coupling
+
+Type Safety Throughout
+
+Best Practices Demonstrated
+
+1. Handler Organization: Separate handler components for different domains
+2. Error Boundaries: Comprehensive error handling with user feedback
+3. Performance Monitoring: Built-in performance tracking and optimization
+4. State Persistence: Automatic saving and loading of application state
+5. Modal Management: Centralized modal system with type-safe data passing
+6. Loading States: Granular loading indicators for different operations
+
+Related
+
+- Action Only Pattern - Pure action dispatching examples
+- Store Only Pattern - Pure state management examples
+- Main Patterns Guide - Pattern selection and architecture
+- MVVM Architecture Guide - Architectural principles.
+
+===================[ DOC: en/example/store-only.md ]===================
+# examples--store-only
+
+Store Only Pattern Example
+
+This example demonstrates the Store Only Pattern for pure stat...
+
+===================[ DOC: en/example/store-only.md ]===================
+# examples--store-only
+
+Store Only Pattern Example
+
+This example demonstrates the Store Only Pattern for pure state management without action dispatching, ideal for data layers, application state, and reactive data flows. Use Cases
+
+- Application state management
+- Form state and UI state
+- Data caching and persistence
+- Derived state and computed values
+- Component-level state management
+
+Complete Example
+
+1. Define Store Configuration
+
+2. Create Store Pattern
+
+3. Profile Management Component
+
+4. Preferences Component
+
+3. Analytics Dashboard
+
+4. Contact Form Component
+
+5. Store Manager Utilities
+
+6.
+
+===================[ DOC: en/example/store-only.md ]===================
+# examples--store-only
+
+Store Only Pattern Example
+
+This example demonstrates the Store Only Pattern for pure state management without action dispatching, ideal for data layers, application state, and reactive data...
+
+===================[ DOC: en/example/store-only.md ]===================
+# examples--store-only
+
+Store Only Pattern Example
+
+This example demonstrates the Store Only Pattern for pure state management without action dispatching, ideal for data layers, application state, and reactive data flows. Use Cases
+
+- Application state management
+- Form state and UI state
+- Data caching and persistence
+- Derived state and computed values
+- Component-level state management
+
+Complete Example
+
+1. Define Store Configuration
+
+2. Create Store Pattern
+
+3. Profile Management Component
+
+4. Preferences Component
+
+3. Analytics Dashboard
+
+4. Contact Form Component
+
+5. Store Manager Utilities
+
+6. Main Application with HOC Pattern
+
+Advanced Store Patterns
+
+State Persistence
+
+Computed State Component
+
+Real-World Integration
+
+Form Validation Patterns
+
+State Synchronization
+
+Styling
+
+Key Benefits
+
+✅ Type Safety: Automatic type inference without manual type annotations  
+✅ Reactive Updates: Components automatically re-render on state changes  
+✅ Derived State: Computed properties update automatically when base state changes  
+✅ Validation: Built-in validation support with custom validator functions  
+✅ HOC Pattern: Clean provider integration with withProvider()  
+✅ Store Manager: Centralized management for reset, export, and bulk operations
+
+Best Practices
+
+1. Direct Values: Use direct value configuration for simple types
+2. Configuration Objects: Use for complex validation and derived state
+3. HOC Pattern: Prefer withProvider() for automatic provider wrapping
+4. Reactive Subscriptions: Always use useStoreValue() for component updates
+5. Bulk Operations: Use Store Manager for reset and bulk operations
+6. State Structure: Keep related state together in logical groupings
+
+Related
+
+- Store Pattern API - Store Pattern API reference
+- Store Manager API - Store Manager documentation  
+- Main Patterns Guide - Pattern comparison and selection
+- Pattern Composition Example - Combining with Action Pattern.
+
+===================[ DOC: en/example/store-only.md ]===================
+# examples--store-only
+
+Store Only Pattern Example
+
+This example demonstrates the Store Only Pattern for pure state management without action dispatching, ideal for data layers, application state, and reactive data flows.
+
+===================[ DOC: en/example/store-only.md ]===================
+# examples--store-only
+
+Store Only Pattern Example
+
+This example demonstrates the Store Only Pattern for pure state management without action dispatching, ideal for data layers, application state, and reactive data flows. Use Cases
+
+- Application state management
+- Form state and UI state
+- Data caching and persistence
+- Derived state and computed values
+- Component-level state management
+
+Complete Example
+
+1. Define Store Configuration
+
+2. Create Store Pattern
+
+3. Profile Management Component
+
+4.
+
+===================[ DOC: en/example/store-only.md ]===================
+# examples--store-only
+
+Store Only Pattern Example
+
+This example demonstrates the Store Only Pattern for pure state management without action dispatching, ideal for data layers, application state, and reactive data flows. Use Cases
+
+- Application state management
+- Form state and UI state
+- Data caching and persistence
+- Derived state and computed values
+- Component-level state management
+
+Complete Example
+
+1. Define Store Configuration
+
+2. Create Store Pattern
+
+3. Profile Management Component
+
+4. Preferences Component
+
+3. Analytics Dashboard
+
+4. Contact Form Component
+
+5. Store Manager Utilities
+
+6. Main Application with HOC Pattern
+
+Advanced Store Patterns
+
+State Persistence
+
+Computed State Component
+
+Real-World Integration
+
+Form Validation Patterns
+
+State Synchronization
+
+Styling
+
+Key Benefits
+
+✅ Type Safety: Automatic type inference without manual type annotations  
+✅ Reactive Updates: Components automatically re-render on state changes  
+✅ Derived State: Computed properties update automatically when base state changes  
+✅ Validation: Built-in validation support with custom validator functions  
+✅ HOC Pattern: Clean provider integration with withProvider()  
+✅ Store Manager: Centralized management for reset, export, and bulk operations
+
+Best Practices
+
+1. Direct Values: Use direct value configuration for simple types
+2. Configuration Objects: Use for complex validation and derived state
+3. HOC Pattern: Prefer withProvider() for automatic provider wrapping
+4. Reactive Subscriptions: Always use useStoreValue() for component updates
+5. Bulk Operations: Use Store Manager for reset and bulk operations
+6. State Structure: Keep related state together in logical groupings
+
+Related
+
+- Store Pattern API - Store Pattern API reference
+- Store Manager API - Store Manager documentation  
+- Main Patterns Guide - Pattern comparison and selection
+- Pattern Composition Example - Combining with Action Pattern.
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-llms-optional.md/test-llms-optional.md-100.md ]===================
+# test-llms-optional.md
+
+Test Llms Optional.md: Learn about Test Llms Optional.md
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-llms-optional.md/test-llms-optional.md-1000.md ]===================
+# test-llms-optional.md
+
+Test Llms Optional.md: Learn about Test Llms Optional.md
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-llms-optional.md/test-llms-optional.md-200.md ]===================
+# test-llms-optional.md
+
+Test Llms Optional.md: Learn about Test Llms Optional.md
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-llms-optional.md/test-llms-optional.md-2000.md ]===================
+# test-llms-optional.md
+
+Test Llms Optional.md: Learn about Test Llms Optional.md
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-llms-optional.md/test-llms-optional.md-300.md ]===================
+# test-llms-optional.md
+
+Test Llms Optional.md: Learn about Test Llms Optional.md
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-llms-optional.md/test-llms-optional.md-500.md ]===================
+# test-llms-optional.md
+
+Test Llms Optional.md: Learn about Test Llms Optional.md
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-llms-optional.md/test-llms-optional.md-5000.md ]===================
+# test-llms-optional.md
+
+Test Llms Optional.md: Learn about Test Llms Optional.md
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-llms-optional.md/test-llms-optional-100.md ]===================
+# Untitled
+
+Test Documentation Update - Test Documentation Update This is a test file to verify the optional...
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-llms-optional.md/test-llms-optional-1000.md ]===================
+# Untitled
+
+Test Documentation Update
+
+Test Documentation Update This is a test file to verify the optional LLMS integration system. The system should now automatically sync documentation changes to the llmsData directory.
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-llms-optional.md/test-llms-optional-200.md ]===================
+# Untitled
+
+Test Documentation Update
+
+Test Documentation Update This is a test file to verify the optional LLMS integration system. The system should now automatically sync documentation c
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-llms-optional.md/test-llms-optional-2000.md ]===================
+# Untitled
+
+Test Documentation Update
+
+Test Documentation Update This is a test file to verify the optional LLMS integration system. The system should now automatically sync documentation changes to the llmsData directory.
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-llms-optional.md/test-llms-optional-300.md ]===================
+# Untitled
+
+Test Documentation Update
+
+Test Documentation Update This is a test file to verify the optional LLMS integration system. The system should now automatically sync documentation c
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-llms-optional.md/test-llms-optional-500.md ]===================
+# Untitled
+
+Test Documentation Update
+
+Test Documentation Update This is a test file to verify the optional LLMS integration system. The system should now automatically sync documentation changes to the llmsData directory.
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-llms-optional.md/test-llms-optional-5000.md ]===================
+# Untitled
+
+Test Documentation Update
+
+Test Documentation Update This is a test file to verify the optional LLMS integration system. The system should now automatically sync documentation changes to the llmsData directory.
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-post-commit.md/test-post-commit-100.md ]===================
+# Untitled
+
+Test Post-Commit LLMS Integration - Test Post-Commit LLMS Integration This test verifies that...
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-post-commit.md/test-post-commit-1000.md ]===================
+# Untitled
+
+Test Post-Commit LLMS Integration
+
+Test Post-Commit LLMS Integration This test verifies that LLMS sync happens after commit completion. The system should: 1. Complete the original commit first 2. Then create a separate commit for LLMS updates
+
+Key points:
+• Complete the original commit first
+• Then create a separate commit for LLMS updates
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-post-commit.md/test-post-commit-200.md ]===================
+# Untitled
+
+Test Post-Commit LLMS Integration
+
+Test Post-Commit LLMS Integration This test verifies that LLMS sync happens after commit completion. The system should: 1. Complete the original commi
+
+Key...
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-post-commit.md/test-post-commit-2000.md ]===================
+# Untitled
+
+Test Post-Commit LLMS Integration
+
+Test Post-Commit LLMS Integration This test verifies that LLMS sync happens after commit completion. The system should: 1. Complete the original commit first 2. Then create a separate commit for LLMS updates
+
+Key points:
+• Complete the original commit first
+• Then create a separate commit for LLMS updates
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-post-commit.md/test-post-commit-300.md ]===================
+# Untitled
+
+Test Post-Commit LLMS Integration
+
+Test Post-Commit LLMS Integration This test verifies that LLMS sync happens after commit completion. The system should: 1. Complete the original commi
+
+Key points:
+• Complete the original commit first
+• Then create a separate commit for LLMS updates
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-post-commit.md/test-post-commit-500.md ]===================
+# Untitled
+
+Test Post-Commit LLMS Integration
+
+Test Post-Commit LLMS Integration This test verifies that LLMS sync happens after commit completion. The system should: 1. Complete the original commit first 2. Then create a separate commit for LLMS updates
+
+Key points:
+• Complete the original commit first
+• Then create a separate commit for LLMS updates
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-post-commit.md/test-post-commit-5000.md ]===================
+# Untitled
+
+Test Post-Commit LLMS Integration
+
+Test Post-Commit LLMS Integration This test verifies that LLMS sync happens after commit completion. The system should: 1. Complete the original commit first 2. Then create a separate commit for LLMS updates
+
+Key points:
+• Complete the original commit first
+• Then create a separate commit for LLMS updates
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-simple-sync.md/test-simple-sync-100.md ]===================
+# Untitled
+
+Simple Sync Test - Simple Sync Test This is a test to verify the simplified LLMS sync system...
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-simple-sync.md/test-simple-sync-1000.md ]===================
+# Untitled
+
+Simple Sync Test
+
+Simple Sync Test This is a test to verify the simplified LLMS sync system works correctly. Features - No force staging - Standard Git tracking - Simple directory existence check The system should automatically create LLMS summaries and commit them separately.
+
+Key points:
+• No force staging
+• Standard Git tracking
+• Simple directory existence check
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-simple-sync.md/test-simple-sync-200.md ]===================
+# Untitled
+
+Simple Sync Test
+
+Simple Sync Test This is a test to verify the simplified LLMS sync system works correctly. Features - No force staging - Standard Git tracking - Simpl
+
+Key points:
+• No force...
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-simple-sync.md/test-simple-sync-2000.md ]===================
+# Untitled
+
+Simple Sync Test
+
+Simple Sync Test This is a test to verify the simplified LLMS sync system works correctly. Features - No force staging - Standard Git tracking - Simple directory existence check The system should automatically create LLMS summaries and commit them separately.
+
+Key points:
+• No force staging
+• Standard Git tracking
+• Simple directory existence check
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-simple-sync.md/test-simple-sync-300.md ]===================
+# Untitled
+
+Simple Sync Test
+
+Simple Sync Test This is a test to verify the simplified LLMS sync system works correctly. Features - No force staging - Standard Git tracking - Simpl
+
+Key points:
+• No force staging
+• Standard Git tracking
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-simple-sync.md/test-simple-sync-500.md ]===================
+# Untitled
+
+Simple Sync Test
+
+Simple Sync Test This is a test to verify the simplified LLMS sync system works correctly. Features - No force staging - Standard Git tracking - Simple directory existence check The system should automatically create LLMS summaries and commit them separately.
+
+Key points:
+• No force staging
+• Standard Git tracking
+• Simple directory existence check
+
+===================[ DOC: llmsData/Users/junwoobang/project/context-action/llmsData/en/test-simple-sync.md/test-simple-sync-5000.md ]===================
+# Untitled
+
+Simple Sync Test
+
+Simple Sync Test This is a test to verify the simplified LLMS sync system works correctly. Features - No force staging - Standard Git tracking - Simple directory existence check The system should automatically create LLMS summaries and commit them separately.
+
+Key points:
+• No force staging
+• Standard Git tracking
+• Simple directory existence check
