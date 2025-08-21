@@ -1,0 +1,43 @@
+{
+  "document": {
+    "id": "concept--architecture-guide",
+    "title": "Context-Action 스토어 통합 아키텍처",
+    "category": "concept",
+    "source_path": "ko/concept/architecture-guide.md"
+  },
+  "priority": {
+    "score": 85,
+    "tier": "medium"
+  },
+  "purpose": {
+    "primary_goal": "Learn about context-action 스토어 통합 아키텍처",
+    "use_cases": [
+      "Understanding concept",
+      "Implementing context-action 스토어 통합 아키텍처",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "react",
+      "api",
+      "context",
+      "props"
+    ],
+    "functional": [
+      "concept",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Context-Action 프레임워크는 문서 중심의 컨텍스트 분리와 효과적인 아티팩트 관리를 통해 기존 라이브러리의 근본적인 한계를 극복하도록 설계된 **혁신적인 상태 관리 시스템**입니다.",
+    "language": "ko",
+    "created_at": "2025-08-21T02:13:42.330Z"
+  }
+}

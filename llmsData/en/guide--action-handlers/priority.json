@@ -1,0 +1,42 @@
+{
+  "document": {
+    "id": "guide--action-handlers",
+    "title": "Action Handlers",
+    "category": "guide",
+    "source_path": "en/guide/action-handlers.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about action handlers",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing action handlers",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "react",
+      "state",
+      "context"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Action handlers contain the business logic of your application. Learn how to implement, register, and manage handlers effectively for scalable, maintainable applications.",
+    "language": "en",
+    "created_at": "2025-08-21T02:13:42.322Z"
+  }
+}

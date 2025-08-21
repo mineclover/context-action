@@ -1,0 +1,42 @@
+{
+  "document": {
+    "id": "guide--action-pipeline",
+    "title": "액션 파이프라인 시스템",
+    "category": "guide",
+    "source_path": "ko/guide/action-pipeline.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about 액션 파이프라인 시스템",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing 액션 파이프라인 시스템",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "react",
+      "api",
+      "context"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "**액션 파이프라인 시스템**은 Context-Action의 ViewModel 레이어의 핵심으로, 우선순위 기반 핸들러 실행과 정교한 파이프라인 제어를 통한 중앙집중식 액션 처리를 제공합니다.",
+    "language": "ko",
+    "created_at": "2025-08-21T02:13:42.336Z"
+  }
+}

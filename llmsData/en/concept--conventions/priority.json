@@ -1,0 +1,45 @@
+{
+  "document": {
+    "id": "concept--conventions",
+    "title": "Context-Action Framework Conventions",
+    "category": "concept",
+    "source_path": "en/concept/conventions.md"
+  },
+  "priority": {
+    "score": 85,
+    "tier": "medium"
+  },
+  "purpose": {
+    "primary_goal": "Learn about context-action framework conventions",
+    "use_cases": [
+      "Understanding concept",
+      "Implementing context-action framework conventions",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "tsx",
+      "react",
+      "api",
+      "context",
+      "state",
+      "hook",
+      "component"
+    ],
+    "functional": [
+      "concept",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "This document defines coding conventions and best practices when using the Context-Action framework with its three core patterns: Actions, Stores, and RefContext.",
+    "language": "en",
+    "created_at": "2025-08-21T02:13:42.315Z"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "document": {
+    "id": "guide--ref-context-setup",
+    "title": "RefContext 설정 패턴",
+    "category": "guide",
+    "source_path": "ko/guide/patterns/ref-context-setup.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about refcontext 설정 패턴",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing refcontext 설정 패턴",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "react",
+      "context"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "적절한 TypeScript 타입으로 RefContext를 설정하는 핵심 패턴입니다.",
+    "language": "ko",
+    "created_at": "2025-08-21T02:13:42.340Z"
+  }
+}

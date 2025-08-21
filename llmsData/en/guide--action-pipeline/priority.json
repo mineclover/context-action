@@ -1,0 +1,43 @@
+{
+  "document": {
+    "id": "guide--action-pipeline",
+    "title": "Action Pipeline System",
+    "category": "guide",
+    "source_path": "en/guide/action-pipeline.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about action pipeline system",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing action pipeline system",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "react",
+      "rest",
+      "api",
+      "context"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "The **Action Pipeline System** is the core of Context-Action's ViewModel layer, providing centralized action processing with priority-based handler execution and sophisticated pipeline control.",
+    "language": "en",
+    "created_at": "2025-08-21T02:13:42.323Z"
+  }
+}

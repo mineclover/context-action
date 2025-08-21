@@ -1,0 +1,41 @@
+{
+  "document": {
+    "id": "concept--action-pipeline-guide",
+    "title": "Context-Action 액션 파이프라인 시스템 가이드",
+    "category": "concept",
+    "source_path": "ko/concept/action-pipeline-guide.md"
+  },
+  "priority": {
+    "score": 85,
+    "tier": "medium"
+  },
+  "purpose": {
+    "primary_goal": "Learn about context-action 액션 파이프라인 시스템 가이드",
+    "use_cases": [
+      "Understanding concept",
+      "Implementing context-action 액션 파이프라인 시스템 가이드",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "react",
+      "context"
+    ],
+    "functional": [
+      "concept",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Context-Action 프레임워크의 핵심인 액션 파이프라인 시스템에 대한 포괄적인 가이드입니다.",
+    "language": "ko",
+    "created_at": "2025-08-21T02:13:42.329Z"
+  }
+}

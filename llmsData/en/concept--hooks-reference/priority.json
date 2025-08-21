@@ -1,0 +1,45 @@
+{
+  "document": {
+    "id": "concept--hooks-reference",
+    "title": "Context-Action React Hooks Reference",
+    "category": "concept",
+    "source_path": "en/concept/hooks-reference.md"
+  },
+  "priority": {
+    "score": 85,
+    "tier": "medium"
+  },
+  "purpose": {
+    "primary_goal": "Learn about context-action react hooks reference",
+    "use_cases": [
+      "Understanding concept",
+      "Implementing context-action react hooks reference",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "tsx",
+      "react",
+      "api",
+      "context",
+      "hook",
+      "component",
+      "state"
+    ],
+    "functional": [
+      "concept",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "This document categorizes all available React hooks in the Context-Action framework into **Essential Hooks** (core functionality) and **Utility Hooks** (convenience and optimization).",
+    "language": "en",
+    "created_at": "2025-08-21T02:13:42.316Z"
+  }
+}

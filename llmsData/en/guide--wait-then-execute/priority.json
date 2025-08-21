@@ -1,0 +1,39 @@
+{
+  "document": {
+    "id": "guide--wait-then-execute",
+    "title": "Wait-Then-Execute Pattern",
+    "category": "guide",
+    "source_path": "en/guide/patterns/wait-then-execute.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about wait-then-execute pattern",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing wait-then-execute pattern",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Pattern for safely executing DOM operations after ensuring element availability.",
+    "language": "en",
+    "created_at": "2025-08-21T02:13:42.328Z"
+  }
+}

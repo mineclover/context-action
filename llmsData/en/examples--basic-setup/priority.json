@@ -1,0 +1,46 @@
+{
+  "document": {
+    "id": "examples--basic-setup",
+    "title": "Basic Setup",
+    "category": "examples",
+    "source_path": "en/examples/basic-setup.md"
+  },
+  "priority": {
+    "score": 80,
+    "tier": "medium"
+  },
+  "purpose": {
+    "primary_goal": "Learn about basic setup",
+    "use_cases": [
+      "Understanding examples",
+      "Implementing basic setup",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "bash",
+      "typescript",
+      "css",
+      "npm",
+      "react",
+      "pnpm",
+      "yarn",
+      "api"
+    ],
+    "functional": [
+      "examples",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "This example shows the fundamental setup of Context-Action framework with both Action Only and Store Only patterns.",
+    "language": "en",
+    "created_at": "2025-08-21T02:13:42.319Z"
+  }
+}

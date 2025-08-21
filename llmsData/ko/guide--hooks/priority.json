@@ -1,0 +1,41 @@
+{
+  "document": {
+    "id": "guide--hooks",
+    "title": "React 훅",
+    "category": "guide",
+    "source_path": "ko/guide/hooks.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about react 훅",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing react 훅",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "tsx",
+      "react",
+      "context"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Context-Action은 액션 디스패칭과 스토어 관리를 위한 React 훅을 제공합니다.",
+    "language": "ko",
+    "created_at": "2025-08-21T02:13:42.339Z"
+  }
+}

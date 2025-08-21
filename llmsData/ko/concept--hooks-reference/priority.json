@@ -1,0 +1,44 @@
+{
+  "document": {
+    "id": "concept--hooks-reference",
+    "title": "Context-Action React 훅 참조",
+    "category": "concept",
+    "source_path": "ko/concept/hooks-reference.md"
+  },
+  "priority": {
+    "score": 85,
+    "tier": "medium"
+  },
+  "purpose": {
+    "primary_goal": "Learn about context-action react 훅 참조",
+    "use_cases": [
+      "Understanding concept",
+      "Implementing context-action react 훅 참조",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "tsx",
+      "react",
+      "api",
+      "context",
+      "component",
+      "state"
+    ],
+    "functional": [
+      "concept",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "이 문서는 Context-Action 프레임워크에서 사용 가능한 모든 React 훅을 **필수 훅** (핵심 기능)과 **유틸리티 훅** (편의 및 최적화)으로 분류합니다.",
+    "language": "ko",
+    "created_at": "2025-08-21T02:13:42.331Z"
+  }
+}

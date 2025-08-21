@@ -1,0 +1,46 @@
+{
+  "document": {
+    "id": "examples--action-only",
+    "title": "Action Only Pattern Example",
+    "category": "examples",
+    "source_path": "en/examples/action-only.md"
+  },
+  "priority": {
+    "score": 80,
+    "tier": "medium"
+  },
+  "purpose": {
+    "primary_goal": "Learn about action only pattern example",
+    "use_cases": [
+      "Understanding examples",
+      "Implementing action only pattern example",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "react",
+      "api",
+      "https",
+      "state",
+      "component",
+      "context",
+      "tsx"
+    ],
+    "functional": [
+      "examples",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "This example demonstrates the **Action Only Pattern** for pure action dispatching without state management, ideal for event systems, command patterns, and business logic orchestration.",
+    "language": "en",
+    "created_at": "2025-08-21T02:13:42.318Z"
+  }
+}

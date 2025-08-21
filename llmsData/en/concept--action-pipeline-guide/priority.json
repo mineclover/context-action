@@ -1,0 +1,42 @@
+{
+  "document": {
+    "id": "concept--action-pipeline-guide",
+    "title": "Action Pipeline Guide: ActionPayloadMap & ActionRegister",
+    "category": "concept",
+    "source_path": "en/concept/action-pipeline-guide.md"
+  },
+  "priority": {
+    "score": 85,
+    "tier": "medium"
+  },
+  "purpose": {
+    "primary_goal": "Learn about action pipeline guide: actionpayloadmap & actionregister",
+    "use_cases": [
+      "Understanding concept",
+      "Implementing action pipeline guide: actionpayloadmap & actionregister",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "api",
+      "context",
+      "state"
+    ],
+    "functional": [
+      "concept",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Complete guide to building type-safe action pipelines with Context-Action framework.",
+    "language": "en",
+    "created_at": "2025-08-21T02:13:42.312Z"
+  }
+}

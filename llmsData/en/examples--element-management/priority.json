@@ -1,0 +1,45 @@
+{
+  "document": {
+    "id": "examples--element-management",
+    "title": "DOM Element Management",
+    "category": "examples",
+    "source_path": "en/examples/element-management.md"
+  },
+  "priority": {
+    "score": 80,
+    "tier": "medium"
+  },
+  "purpose": {
+    "primary_goal": "Learn about dom element management",
+    "use_cases": [
+      "Understanding examples",
+      "Implementing dom element management",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "tsx",
+      "typescript",
+      "react",
+      "api",
+      "context",
+      "state",
+      "hook"
+    ],
+    "functional": [
+      "examples",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Advanced example demonstrating comprehensive DOM element management using the Context-Action framework.",
+    "language": "en",
+    "created_at": "2025-08-21T02:13:42.320Z"
+  }
+}
