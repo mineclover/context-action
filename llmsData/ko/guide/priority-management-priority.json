@@ -1,0 +1,17 @@
+{
+  "documentId": "ko_guide_priority-management",
+  "title": "우선순위 관리 시스템",
+  "category": "guide",
+  "language": "ko",
+  "priority": 0.5,
+  "tags": [
+    "bash",
+    "javascript",
+    "json"
+  ],
+  "lastUpdated": "2025-08-21T03:13:24.288Z",
+  "source": {
+    "file": "docs/ko/guide/priority-management.md",
+    "lastModified": "2025-08-21T03:01:05.366Z"
+  }
+}

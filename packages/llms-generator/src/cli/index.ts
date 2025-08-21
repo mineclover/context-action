@@ -165,11 +165,20 @@ async function handleSyncDocs(args: string[], argumentParser: ArgumentParser): P
   const changedFilesStr = argumentParser.extractFlag(args, '--changed-files');
   const changedFiles = changedFilesStr ? changedFilesStr.split(',').map(f => f.trim()) : [];
   
+  // 언어 필터링 옵션 처리
+  const languagesStr = argumentParser.extractFlag(args, '--languages');
+  const languages = languagesStr ? languagesStr.split(',').map(l => l.trim()) : undefined;
+  
   const options = {
     changedFiles,
     quiet: argumentParser.hasFlag(args, '--quiet'),
     dryRun: argumentParser.hasFlag(args, '--dry-run'),
-    force: argumentParser.hasFlag(args, '--force')
+    force: argumentParser.hasFlag(args, '--force'),
+    languages,
+    includeKorean: argumentParser.hasFlag(args, '--include-korean') || 
+                   (argumentParser.hasFlag(args, '--no-korean') ? false : undefined),
+    onlyKorean: argumentParser.hasFlag(args, '--only-korean'),
+    onlyEnglish: argumentParser.hasFlag(args, '--only-english')
   };
 
   await syncDocsCommand.execute(options);

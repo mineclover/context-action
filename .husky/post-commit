@@ -7,8 +7,16 @@ MODIFIED_DOCS=$(git diff --name-only HEAD~1 HEAD | grep -E '^docs/(en|ko)/.*\.md
 if [ -d "llmsData" ] && [ -n "$MODIFIED_DOCS" ]; then
   echo "📝 Documentation files were modified in last commit. Updating LLM work status..."
   
-  # Run the llms-generator sync-docs command
-  node packages/llms-generator/dist/cli/index.js sync-docs --changed-files $MODIFIED_DOCS --quiet
+  # Debug: Show detected files
+  echo "🔍 Detected modified files:"
+  echo "$MODIFIED_DOCS" | sed 's/^/  - /'
+  
+  # Run the llms-generator sync-docs command with enhanced error handling
+  if node packages/llms-generator/dist/cli/index.js sync-docs --changed-files "$MODIFIED_DOCS" --quiet; then
+    echo "✅ Sync-docs completed successfully"
+  else
+    echo "⚠️  Sync-docs encountered an issue, but continuing..."
+  fi
   
   # Check if any files were actually updated
   LLMS_CHANGES=$(git status --porcelain llmsData/ 2>/dev/null || true)
