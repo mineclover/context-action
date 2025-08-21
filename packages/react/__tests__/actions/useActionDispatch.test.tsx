@@ -4,7 +4,7 @@
 
 import { renderHook, act } from '@testing-library/react';
 import React from 'react';
-import { createActionContext } from '../../src/actions/ActionContext';
+import { createActionContext } from '@context-action/react';
 
 interface TestActions {
   updateUser: { id: string; name: string };

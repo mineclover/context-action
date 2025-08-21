@@ -4,9 +4,10 @@
 
 import { renderHook, act } from '@testing-library/react';
 import React, { useCallback } from 'react';
-import { createActionContext } from '../../src/actions/ActionContext';
+import { createActionContext } from '@context-action/react';
+import type { ActionPayloadMap } from '@context-action/core';
 
-interface UserActions {
+interface UserActions extends ActionPayloadMap {
   login: { username: string; password: string };
   logout: void;
   updateProfile: { name: string; email: string };

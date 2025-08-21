@@ -121,7 +121,7 @@ All test and example files use relative imports from their location:
 import { useStoreValue } from '../../../src/stores/hooks/useStoreValue';
 
 // In __tests__/actions/createActionContext.test.tsx  
-import { createActionContext } from '../../../src/actions/ActionContext';
+import { createActionContext } from '@context-action/react';
 
 // In examples/hooks/essential/useStoreValue-example.tsx
 import { useStoreValue } from '../../../src/stores/hooks/useStoreValue';
