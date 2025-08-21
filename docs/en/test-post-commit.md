@@ -10,3 +10,8 @@ The system should:
 
 This is additional content to trigger LLMS sync in post-commit hook.
 The sync should detect this change and create a separate commit.
+
+## Debug Test
+
+Adding more content to force a meaningful change that should trigger LLMS updates.
+This should definitely create changes in the llmsData directory.
