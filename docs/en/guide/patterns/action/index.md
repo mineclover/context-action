@@ -8,13 +8,15 @@ Action patterns are perfect for event systems, command patterns, and side effect
 
 ### Available Action Patterns
 - **[Basic Usage](./basic-usage.md)** - Fundamental Action Only pattern with type-safe dispatching
-- **[Register Delegation](./register-delegation.md)** - Advanced register passing for modular handler organization
+- **[Hook Implementation](./hook-simplification.md)** - Different hook patterns from simple to advanced
+- **[Register Delegation](./register-delegation.md)** - Modular handler organization for large applications
 
 ## Quick Reference
 
 | Pattern | Purpose | Best For |
 |---------|---------|----------|
 | **Basic Usage** | Type-safe action dispatching | Event systems, analytics, API calls |
+| **Hook Implementation** | Different hook patterns | Component-level implementation strategies |
 | **Register Delegation** | Modular handler organization | Large apps, team separation, complex setup |
 
 ## When to Use Action Patterns

@@ -24,7 +24,31 @@ const GUIDE_STRUCTURE = {
         { text: 'Action Handlers', link: '/en/guide/action-handlers' }
       ]
     },
-    // 2. Pattern Collection - organized patterns directory
+    // 2. Pipeline Features - dedicated pipeline documentation
+    pipeline: {
+      text: '⚡ Pipeline Features',
+      collapsed: false,
+      items: [
+        { text: 'Overview', link: '/en/guide/pipeline/' },
+        { text: 'Priority System', link: '/en/guide/pipeline/priority' },
+        { text: 'Blocking Operations', link: '/en/guide/pipeline/blocking' },
+        { text: 'Dispatch Methods', link: '/en/guide/pipeline/dispatch' },
+        { text: 'Abort Mechanisms', link: '/en/guide/pipeline/abort' },
+        { text: 'Result Handling', link: '/en/guide/pipeline/result-handling' },
+        {
+          text: '🚀 Advanced Features',
+          collapsed: false,
+          items: [
+            { text: 'Overview', link: '/en/guide/pipeline/advanced-features' },
+            { text: 'Flow Control', link: '/en/guide/pipeline/flow-control' },
+            { text: 'Conditional Execution', link: '/en/guide/pipeline/conditional-execution' },
+            { text: 'Handler Introspection', link: '/en/guide/pipeline/introspection' },
+            { text: 'Performance Monitoring', link: '/en/guide/pipeline/performance' }
+          ]
+        }
+      ]
+    },
+    // 3. Pattern Collection - organized patterns directory
     patterns: {
       text: '🎯 Pattern Collection',
       collapsed: false,
@@ -106,7 +130,31 @@ const GUIDE_STRUCTURE = {
         { text: '액션 핸들러', link: '/ko/guide/action-handlers' }
       ]
     },
-    // 2. 패턴 컬렉션 - 정리된 패턴 디렉토리
+    // 2. 파이프라인 기능 - 전용 파이프라인 문서
+    pipeline: {
+      text: '⚡ 파이프라인 기능',
+      collapsed: false,
+      items: [
+        { text: '개요', link: '/ko/guide/pipeline/' },
+        { text: '우선순위 시스템', link: '/ko/guide/pipeline/priority' },
+        { text: '블로킹 작업', link: '/ko/guide/pipeline/blocking' },
+        { text: '디스패치 메서드', link: '/ko/guide/pipeline/dispatch' },
+        { text: '중단 메커니즘', link: '/ko/guide/pipeline/abort' },
+        { text: '결과 처리', link: '/ko/guide/pipeline/result-handling' },
+        {
+          text: '🚀 고급 기능',
+          collapsed: false,
+          items: [
+            { text: '개요', link: '/ko/guide/pipeline/advanced-features' },
+            { text: '플로우 제어', link: '/ko/guide/pipeline/flow-control' },
+            { text: '조건부 실행', link: '/ko/guide/pipeline/conditional-execution' },
+            { text: '핸들러 검사', link: '/ko/guide/pipeline/introspection' },
+            { text: '성능 모니터링', link: '/ko/guide/pipeline/performance' }
+          ]
+        }
+      ]
+    },
+    // 3. 패턴 컬렉션 - 정리된 패턴 디렉토리
     patterns: {
       text: '🎯 패턴 컬렉션',
       collapsed: false,
@@ -346,6 +394,7 @@ export function createSidebars(locale: SidebarLocale): DefaultTheme.Config['side
     // Guide 섹션 - concept 기반으로 간소화
     [`/${locale}/guide/`]: [
       guide.essentials,
+      guide.pipeline,
       guide.patterns
     ],
     

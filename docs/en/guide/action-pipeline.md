@@ -1,12 +1,22 @@
 # Action Pipeline System
 
-The **Action Pipeline System** is the core of Context-Action's ViewModel layer, providing centralized action processing with priority-based handler execution and sophisticated pipeline control.
+The **Action Pipeline System** is the core of Context-Action's ViewModel layer, providing centralized action processing with sophisticated pipeline control mechanisms.
 
-## Core Concepts
+## Overview
+
+The Action Pipeline System enables complex business logic orchestration through:
+
+- **🏆 Priority-based execution** - Critical operations run before optional ones
+- **🚧 Blocking control** - Manage execution flow and performance  
+- **🛑 Abort mechanisms** - Graceful pipeline termination for business rules
+- **📊 Result collection** - Inter-handler communication and coordination
+- **⚡ Multiple dispatch methods** - From simple fire-and-forget to comprehensive result collection
+
+## Core Architecture
 
 ### ActionRegister
 
-The `ActionRegister` class is the heart of the action pipeline system:
+The `ActionRegister` class orchestrates the entire pipeline system:
 
 ```typescript
 import { ActionRegister, type ActionPayloadMap } from '@context-action/core';
@@ -21,21 +31,10 @@ const actionRegister = new ActionRegister<MyActions>({
   name: 'MyAppActions',
   registry: {
     debug: false,
-    defaultExecutionMode: 'sequential'
+    defaultExecutionMode: 'sequential',
+    defaultBlocking: true
   }
 });
-```
-
-### Handler Registration
-
-Register handlers with priority-based execution:
-
-```typescript
-// Higher priority handlers execute first (priority 100 > 50 > 10)
-actionRegister.register('authenticate', validateCredentials, { priority: 100 });
-actionRegister.register('authenticate', checkRateLimit, { priority: 90 });
-actionRegister.register('authenticate', performAuth, { priority: 80 });
-actionRegister.register('authenticate', logAudit, { priority: 70 });
 ```
 
 ### Pipeline Controller
@@ -44,7 +43,7 @@ Each handler receives a `PipelineController` for advanced pipeline management:
 
 ```typescript
 actionRegister.register('authenticate', async (payload, controller) => {
-  // 1. Validate input
+  // 1. Validate and abort if needed
   if (!payload.username) {
     controller.abort('Username is required');
     return;
@@ -57,7 +56,7 @@ actionRegister.register('authenticate', async (payload, controller) => {
     validated: true
   }));
   
-  // 3. Set intermediate results
+  // 3. Set intermediate results for other handlers
   controller.setResult({ step: 'validation', success: true });
   
   // 4. Return final result
@@ -65,269 +64,192 @@ actionRegister.register('authenticate', async (payload, controller) => {
 });
 ```
 
-## Priority-Based Execution
-
-### Execution Order
-
-Handlers execute in **descending priority order** (highest first):
-
-```typescript
-const executionOrder: string[] = [];
-
-actionRegister.register('processData', () => {
-  executionOrder.push('low');    // Priority: 10
-}, { priority: 10 });
-
-actionRegister.register('processData', () => {
-  executionOrder.push('high');   // Priority: 100  
-}, { priority: 100 });
-
-actionRegister.register('processData', () => {
-  executionOrder.push('medium'); // Priority: 50
-}, { priority: 50 });
-
-await actionRegister.dispatch('processData', { data: 'test' });
-// executionOrder: ['high', 'medium', 'low']
-```
-
-### Handler Configuration
-
-```typescript
-actionRegister.register('uploadFile', handler, {
-  id: 'file-processor',           // Unique identifier
-  priority: 50,                   // Execution priority
-  once: false,                    // Execute multiple times
-  blocking: true,                 // Wait for completion
-  condition: (payload) => payload.filename.endsWith('.pdf'), // Conditional execution
-  metadata: {                     // Custom metadata
-    description: 'PDF file processor',
-    version: '1.0.0'
-  }
-});
-```
-
-## Pipeline Control Methods
-
-### controller.abort()
-
-Stop pipeline execution with optional reason:
-
-```typescript
-actionRegister.register('authenticate', (payload, controller) => {
-  if (!isValidUser(payload.username)) {
-    controller.abort('Invalid user credentials');
-    return;
-  }
-  // Subsequent handlers won't execute
-});
-```
-
-### controller.modifyPayload()
-
-Transform payload for subsequent handlers:
-
-```typescript
-actionRegister.register('processData', (payload, controller) => {
-  controller.modifyPayload(current => ({
-    ...current,
-    processed: true,
-    timestamp: Date.now(),
-    version: '2.0'
-  }));
-}, { priority: 100 });
-
-actionRegister.register('processData', (payload) => {
-  // payload now includes: processed, timestamp, version
-  console.log(payload.processed); // true
-}, { priority: 50 });
-```
-
-### controller.setResult() and getResults()
-
-Manage intermediate results across handlers:
-
-```typescript
-actionRegister.register('uploadFile', (payload, controller) => {
-  // Set intermediate result
-  controller.setResult({ step: 'validation', fileSize: 1024 });
-  
-  return { step: 'upload', fileId: 'file-123' };
-}, { priority: 100 });
-
-actionRegister.register('uploadFile', (payload, controller) => {
-  // Access previous results
-  const previousResults = controller.getResults();
-  console.log(previousResults); 
-  // [{ step: 'validation', fileSize: 1024 }, { step: 'upload', fileId: 'file-123' }]
-}, { priority: 50 });
-```
-
-## Execution Modes
-
-### Sequential Mode (Default)
-
-Handlers execute one after another:
-
-```typescript
-actionRegister.setActionExecutionMode('processData', 'sequential');
-
-// Handler 1 completes → Handler 2 starts → Handler 3 starts
-```
-
-### Parallel Mode
-
-All handlers execute simultaneously:
-
-```typescript
-actionRegister.setActionExecutionMode('processData', 'parallel');
-
-// Handler 1, 2, 3 all start at the same time
-```
-
-### Race Mode
-
-First handler to complete wins:
-
-```typescript
-actionRegister.setActionExecutionMode('processData', 'race');
-
-// First handler to return stops the rest
-```
-
-## Result Collection
-
-### Basic Dispatch
-
-```typescript
-const result = await actionRegister.dispatch('authenticate', {
-  username: 'john',
-  password: 'secret123'
-});
-```
-
-### Dispatch with Result Collection
-
-```typescript
-const result = await actionRegister.dispatchWithResult('uploadFile', 
-  { filename: 'document.pdf', content: 'pdf content' },
-  { result: { collect: true } }
-);
-
-console.log(result);
-// {
-//   success: true,
-//   aborted: false,
-//   terminated: false,
-//   results: [
-//     { step: 'validation', success: true },
-//     { step: 'upload', fileId: 'file-123' },
-//     { step: 'notification', sent: true }
-//   ],
-//   execution: {
-//     handlersExecuted: 3,
-//     startTime: 1640995200000,
-//     endTime: 1640995200500,
-//     duration: 500
-//   }
-// }
-```
-
-## Error Handling
-
-The pipeline continues execution even when individual handlers fail:
-
-```typescript
-actionRegister.register('processData', () => {
-  throw new Error('Handler 1 failed');
-}, { priority: 100 });
-
-actionRegister.register('processData', () => {
-  return { success: true, step: 'recovery' };
-}, { priority: 50 });
-
-const result = await actionRegister.dispatchWithResult('processData', 
-  { data: 'test' },
-  { result: { collect: true } }
-);
-
-// result.success: true (pipeline succeeds)
-// result.results: [{ success: true, step: 'recovery' }] (only successful results)
-```
-
-## Real-World Example: Authentication Flow
+## Quick Start Example
 
 ```typescript
 interface AuthActions extends ActionPayloadMap {
-  authenticate: { username: string; password: string };
+  login: { username: string; password: string };
 }
 
 const authRegister = new ActionRegister<AuthActions>();
 
-// 1. Input validation (Priority: 100)
-authRegister.register('authenticate', (payload, controller) => {
+// Priority 100: Critical validation (blocking)
+authRegister.register('login', (payload, controller) => {
   if (!payload.username || !payload.password) {
     controller.abort('Missing credentials');
     return;
   }
   return { step: 'validation', valid: true };
-}, { priority: 100, id: 'validator' });
+}, { priority: 100, blocking: true, id: 'validator' });
 
-// 2. Rate limiting (Priority: 90)
-authRegister.register('authenticate', (payload) => {
-  // Check rate limiting
-  return { step: 'rate-limiting', allowed: true };
-}, { priority: 90, id: 'rate-limiter' });
-
-// 3. Authentication (Priority: 80)
-authRegister.register('authenticate', async (payload) => {
+// Priority 80: Authentication (blocking)
+authRegister.register('login', async (payload) => {
   const user = await authenticateUser(payload.username, payload.password);
-  return { 
-    step: 'authentication', 
-    user: { id: user.id, username: user.username },
-    token: generateJWT(user)
-  };
-}, { priority: 80, id: 'authenticator' });
+  return { step: 'auth', user, token: generateJWT(user) };
+}, { priority: 80, blocking: true, id: 'authenticator' });
 
-// 4. Audit logging (Priority: 70)
-authRegister.register('authenticate', (payload) => {
-  logAuthAttempt(payload.username, true);
-  return { step: 'audit', logged: true, timestamp: Date.now() };
-}, { priority: 70, id: 'auditor' });
+// Priority 30: Analytics (non-blocking)
+authRegister.register('login', (payload) => {
+  analytics.track('login_attempt', { username: payload.username });
+  return { step: 'analytics', tracked: true };
+}, { priority: 30, blocking: false, id: 'analytics' });
 
-// Execute the complete authentication pipeline
-const result = await authRegister.dispatchWithResult('authenticate', {
-  username: 'john',
+// Execute pipeline with result collection
+const result = await authRegister.dispatchWithResult('login', {
+  username: 'john', 
   password: 'secret123'
 }, { result: { collect: true } });
 
-// Result contains all steps: validation → rate-limiting → authentication → audit
+if (result.success) {
+  console.log('Login successful:', result.results);
+} else if (result.aborted) {
+  console.log('Login failed:', result.abortReason);
+}
 ```
 
-## Integration with React
+## Pipeline Features
+
+Explore each pipeline feature in detail:
+
+### Core Features
+- **[Pipeline Overview](./pipeline/)** - Complete pipeline system guide
+- **[Priority System](./pipeline/priority.md)** - Priority-based execution order and best practices
+- **[Blocking Operations](./pipeline/blocking.md)** - Control execution flow and performance
+- **[Dispatch Methods](./pipeline/dispatch.md)** - Different ways to trigger pipelines
+- **[Abort Mechanisms](./pipeline/abort.md)** - Graceful pipeline termination
+- **[Result Handling](./pipeline/result-handling.md)** - Inter-handler communication
+
+### Integration Patterns
+- **[Action Patterns](./patterns/action/)** - Action Only pattern with pipeline features
+- **[Store Integration](./patterns/store/)** - Combining pipelines with state management
+- **[MVVM Architecture](./patterns/architecture/mvvm.md)** - Pipeline role in MVVM pattern
+
+## React Integration
 
 The Action Pipeline integrates seamlessly with React through the Action Context pattern:
 
 ```typescript
-const { Provider, useActionDispatch, useActionHandler } = createActionContext<AuthActions>('Auth');
+import { createActionContext } from '@context-action/react';
+
+const { 
+  Provider: AuthActionProvider, 
+  useActionDispatch, 
+  useActionHandler 
+} = createActionContext<AuthActions>('Auth');
 
 function AuthComponent() {
   const dispatch = useActionDispatch();
   
-  // Register handlers in components
-  useActionHandler('authenticate', async (payload) => {
-    // Handle authentication
-  });
+  // Register handlers with pipeline features
+  const loginHandler = useCallback(async (payload, controller) => {
+    // Use all pipeline features: priority, abort, results, etc.
+    if (!payload.username) {
+      controller.abort('Username required');
+      return;
+    }
+    
+    const user = await authenticateUser(payload.username, payload.password);
+    controller.setResult({ step: 'auth', userId: user.id });
+    
+    return { success: true, user };
+  }, []);
+  
+  useActionHandler('login', loginHandler, { priority: 80 });
   
   const handleLogin = async () => {
-    await dispatch('authenticate', { username: 'john', password: 'secret' });
+    await dispatch('login', { username: 'john', password: 'secret' });
   };
   
   return <button onClick={handleLogin}>Login</button>;
 }
+
+function App() {
+  return (
+    <AuthActionProvider>
+      <AuthComponent />
+    </AuthActionProvider>
+  );
+}
 ```
 
-## Next Steps
+## Advanced Pipeline Patterns
 
-- **[Main Patterns](./patterns)** - Learn about Action Only and Store Only patterns
-- **[API Reference](../api/core/action-register)** - Detailed ActionRegister API documentation  
-- **[Examples](../examples/action-only)** - See Action Only pattern in practice
+### Multi-Domain Pipeline
+
+```typescript
+interface ComplexActions extends ActionPayloadMap {
+  processTransaction: { 
+    transaction: Transaction; 
+    userId: string; 
+    options: ProcessingOptions;
+  };
+}
+
+const register = new ActionRegister<ComplexActions>();
+
+// Security domain (Priority 100)
+register.register('processTransaction', securityValidation, { 
+  priority: 100, blocking: true, id: 'security' 
+});
+
+// Business domain (Priority 80-70)  
+register.register('processTransaction', businessValidation, { 
+  priority: 80, blocking: true, id: 'business' 
+});
+register.register('processTransaction', transactionProcessing, { 
+  priority: 70, blocking: true, id: 'processor' 
+});
+
+// Integration domain (Priority 60-50)
+register.register('processTransaction', updateExternalSystems, { 
+  priority: 60, blocking: true, id: 'integration' 
+});
+register.register('processTransaction', updateLocalState, { 
+  priority: 50, blocking: true, id: 'state-updater' 
+});
+
+// Monitoring domain (Priority 30-10, non-blocking)
+register.register('processTransaction', trackAnalytics, { 
+  priority: 30, blocking: false, id: 'analytics' 
+});
+register.register('processTransaction', auditLog, { 
+  priority: 20, blocking: false, id: 'audit' 
+});
+register.register('processTransaction', cleanupResources, { 
+  priority: 10, blocking: false, id: 'cleanup' 
+});
+```
+
+## Pipeline vs Traditional Approaches
+
+### Traditional Approach
+```typescript
+// ❌ Tightly coupled, hard to test, no error isolation
+async function processOrder(order: Order) {
+  validateOrder(order);           // If this fails, everything stops
+  await chargePayment(order);     // Tightly coupled to validation
+  await updateInventory(order);   // Must handle all errors manually
+  sendConfirmation(order.email);  // Blocks response for email
+  trackAnalytics(order);          // Analytics failure affects order
+}
+```
+
+### Pipeline Approach
+```typescript
+// ✅ Decoupled, testable, resilient, configurable
+actionRegister.register('processOrder', validateOrder, { priority: 100, blocking: true });
+actionRegister.register('processOrder', chargePayment, { priority: 90, blocking: true });
+actionRegister.register('processOrder', updateInventory, { priority: 80, blocking: true });
+actionRegister.register('processOrder', sendConfirmation, { priority: 40, blocking: false });
+actionRegister.register('processOrder', trackAnalytics, { priority: 30, blocking: false });
+
+// Clean execution with automatic error isolation and result collection
+await actionRegister.dispatch('processOrder', order);
+```
+
+## Related
+
+- **[Pipeline Features](./pipeline/)** - Detailed pipeline feature documentation
+- **[Action Patterns](./patterns/action/)** - Learn Action Only pattern implementation
+- **[Store Patterns](./patterns/store/)** - Combine with state management
+- **[API Reference](../api/core/action-register)** - Complete ActionRegister API

@@ -36,19 +36,20 @@ const actionHandler = useCallback(async () => {
 
 ```typescript
 const {
-  stores,
-  Provider: StoreProvider
+  Provider: AppStoreProvider,
+  useStore: useAppStore,
+  useStoreManager: useAppStoreManager
 } = createDeclarativeStorePattern('App', {
   isMounted: { initialValue: false },
   isProcessing: { initialValue: false }
 });
 
 function MyComponent() {
-  const isMountedStore = stores.getStore('isMounted');
-  const isProcessingStore = stores.getStore('isProcessing');
+  const isMountedStore = useAppStore('isMounted');
+  const isProcessingStore = useAppStore('isProcessing');
   
   const handleAction = useCallback(async () => {
-    // Real-time state access
+    // Real-time state access - always get current values
     const currentMounted = isMountedStore.getValue();
     const currentProcessing = isProcessingStore.getValue();
     
@@ -65,6 +66,21 @@ function MyComponent() {
     
     isProcessingStore.setValue(false);
   }, [isMountedStore, isProcessingStore, waitForRefs]);
+  
+  return (
+    <div>
+      <button onClick={handleAction}>Execute Action</button>
+    </div>
+  );
+}
+
+// App setup with Provider
+function App() {
+  return (
+    <AppStoreProvider>
+      <MyComponent />
+    </AppStoreProvider>
+  );
 }
 ```
 
@@ -73,36 +89,47 @@ function MyComponent() {
 ### Multiple Store Coordination
 
 ```typescript
-useActionHandler('complexAction', async (payload) => {
-  const userState = userStore.getValue();
-  const settingsState = settingsStore.getValue();
-  const uiState = uiStore.getValue();
+function MultiStoreComponent() {
+  const userStoreManager = useUserStoreManager();
+  const settingsStoreManager = useSettingsStoreManager();
+  const uiStoreManager = useUIStoreManager();
   
-  // Use all current states for decision making
-  if (userState.isLoggedIn && settingsState.apiEnabled && !uiState.isLoading) {
-    // Execute complex logic
-  }
-});
+  useActionHandler('complexAction', useCallback(async (payload) => {
+    // Get current state from each store manager
+    const userState = userStoreManager.getStore('profile').getValue();
+    const settingsState = settingsStoreManager.getStore('api').getValue();
+    const uiState = uiStoreManager.getStore('loading').getValue();
+    
+    // Use all current states for decision making
+    if (userState.isLoggedIn && settingsState.apiEnabled && !uiState.isLoading) {
+      // Execute complex logic
+    }
+  }, [userStoreManager, settingsStoreManager, uiStoreManager]));
+}
 ```
 
 ### State Validation and Updates
 
 ```typescript
-useActionHandler('validateAndUpdate', async (payload) => {
-  const current = dataStore.getValue();
+function DataManagementComponent() {
+  const dataStore = useAppStore('data');
   
-  // Validate current state
-  if (current.version !== payload.expectedVersion) {
-    throw new Error('Version mismatch');
-  }
-  
-  // Update with current state as base
-  dataStore.setValue({
-    ...current,
-    ...payload.updates,
-    version: current.version + 1
-  });
-});
+  useActionHandler('validateAndUpdate', useCallback(async (payload) => {
+    const current = dataStore.getValue();
+    
+    // Validate current state
+    if (current.version !== payload.expectedVersion) {
+      throw new Error('Version mismatch');
+    }
+    
+    // Update with current state as base
+    dataStore.setValue({
+      ...current,
+      ...payload.updates,
+      version: current.version + 1
+    });
+  }, [dataStore]));
+}
 ```
 
 ## Key Benefits

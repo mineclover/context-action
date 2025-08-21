@@ -1,104 +1,121 @@
 # Register Delegation Pattern
 
-Advanced pattern for passing ActionRegister to external functions for modular handler organization.
+Advanced pattern for organizing action handlers in separate modules using external functions and `useActionRegister()` hook.
 
 ## Overview
 
-Register delegation allows you to organize action handlers in separate modules and register them programmatically, perfect for large applications with complex handler logic.
+Register delegation enables modular handler organization by separating handler logic into external modules. This pattern is essential for large applications with complex business logic, team-based development, and plugin architectures.
 
-## Using useActionRegister Hook
+## Basic Delegation Pattern
 
 ```tsx
+import { createActionContext } from '@context-action/react'
+
+// Create action context with renaming pattern
+const {
+  Provider: AppActionProvider,
+  useActionRegister: useAppActionRegister
+} = createActionContext<EventActions>('App')
+
 // External registration function
 function setupAnalyticsHandlers(register: ActionRegister<EventActions>) {
   // Register handlers outside of React components
-  register.registerHandler('analytics', async (payload, controller) => {
+  register.register('analytics', async (payload, controller) => {
     await analyticsAPI.track(payload.event, payload.data);
   }, {
     priority: 100,
-    id: 'analytics-handler'
+    tags: ['analytics']
   });
   
-  register.registerHandler('userClick', async (payload, controller) => {
+  register.register('userClick', async (payload, controller) => {
     await analyticsAPI.trackClick(payload.x, payload.y);
   }, {
     priority: 90,
-    id: 'click-tracker'
+    tags: ['analytics', 'interaction']
   });
 }
 
 // Component that delegates registration
 function AnalyticsSetup() {
-  const register = useActionRegister(); // Get raw ActionRegister
+  const register = useAppActionRegister()
   
   useEffect(() => {
+    if (!register) return
+    
     // Delegate registration to external function
-    setupAnalyticsHandlers(register);
+    setupAnalyticsHandlers(register)
     
     // Cleanup on unmount
     return () => {
-      register.unregisterHandler('analytics');
-      register.unregisterHandler('userClick');
-    };
-  }, [register]);
+      register.unregisterByTags(['analytics'])
+    }
+  }, [register])
   
-  return null; // Setup component
+  return null // Setup component
 }
 ```
 
 ## Modular Handler Registration
 
 ```tsx
-// utils/handlers/userHandlers.ts
+// utils/handlers/userHandlers.ts - User domain handlers
 export function registerUserHandlers(register: ActionRegister<AppActions>) {
-  register.registerHandler('updateProfile', async (payload, controller) => {
+  register.register('updateProfile', async (payload, controller) => {
     try {
-      await userAPI.updateProfile(payload);
-      controller.setResult({ success: true });
+      await userAPI.updateProfile(payload)
+      controller.setResult({ success: true })
     } catch (error) {
-      controller.abort('Profile update failed', error);
+      controller.abort('Profile update failed', error)
     }
-  });
+  }, { tags: ['user', 'profile'] })
   
-  register.registerHandler('deleteAccount', async (payload, controller) => {
-    const confirmed = await confirmDeletion(payload.confirmationCode);
+  register.register('deleteAccount', async (payload, controller) => {
+    const confirmed = await confirmDeletion(payload.confirmationCode)
     if (!confirmed) {
-      controller.abort('Account deletion not confirmed');
-      return;
+      controller.abort('Account deletion not confirmed')
+      return
     }
     
-    await userAPI.deleteAccount(payload.confirmationCode);
-  });
+    await userAPI.deleteAccount(payload.confirmationCode)
+  }, { tags: ['user', 'critical'] })
 }
 
-// utils/handlers/paymentHandlers.ts
+// utils/handlers/paymentHandlers.ts - Payment domain handlers
 export function registerPaymentHandlers(register: ActionRegister<AppActions>) {
-  register.registerHandler('processPayment', async (payload, controller) => {
+  register.register('processPayment', async (payload, controller) => {
     // Payment processing logic
-  });
+    const result = await paymentService.process(payload)
+    controller.setResult(result)
+  }, { tags: ['payment', 'financial'] })
   
-  register.registerHandler('refundPayment', async (payload, controller) => {
+  register.register('refundPayment', async (payload, controller) => {
     // Refund logic
-  });
+    const refund = await paymentService.refund(payload)
+    controller.setResult(refund)
+  }, { tags: ['payment', 'refund'] })
 }
 
 // Component that coordinates multiple handler modules
 function AppHandlerSetup() {
-  const register = useActionRegister();
+  const register = useAppActionRegister()
   
   useEffect(() => {
-    // Register handlers from different modules
-    registerUserHandlers(register);
-    registerPaymentHandlers(register);
-    registerAnalyticsHandlers(register);
+    if (!register) return
     
-    // Cleanup all handlers on unmount
+    // Register handlers from different modules
+    registerUserHandlers(register)
+    registerPaymentHandlers(register)
+    registerAnalyticsHandlers(register)
+    
+    // Cleanup by module tags on unmount
     return () => {
-      register.clearHandlers(); // Clear all handlers
-    };
-  }, [register]);
+      register.unregisterByTags(['user'])
+      register.unregisterByTags(['payment'])
+      register.unregisterByTags(['analytics'])
+    }
+  }, [register])
   
-  return null;
+  return null
 }
 ```
 
