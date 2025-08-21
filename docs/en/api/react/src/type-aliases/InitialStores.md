@@ -8,7 +8,7 @@
 
 > **InitialStores**&lt;`T`&gt; = \{ \[K in keyof T\]: StoreConfig\<T\[K\]\> \| T\[K\] \}
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:76](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L76)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:53](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L53)
 
 Initial stores type mapping for declarative store pattern
 
@@ -24,18 +24,6 @@ for simplified store definition.
 
 Record of store names to their value types
 
-## Example
+## See
 
-```typescript
-type AppStores = {
-  user: User
-  settings: AppSettings
-  theme: 'light' | 'dark'
-}
-
-const stores: InitialStores<AppStores> = {
-  user: { initialValue: defaultUser, strategy: 'shallow' },
-  settings: defaultSettings,  // Direct value
-  theme: 'light'              // Direct value
-}
-```
+https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage

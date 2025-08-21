@@ -6,7 +6,7 @@
 
 # Class: OperationQueue
 
-Defined in: [packages/react/src/refs/OperationQueue.ts:52](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/refs/OperationQueue.ts#L52)
+Defined in: [packages/react/src/refs/OperationQueue.ts:52](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/OperationQueue.ts#L52)
 
 참조별 작업 큐 관리자
 
@@ -23,7 +23,7 @@ Defined in: [packages/react/src/refs/OperationQueue.ts:52](https://github.com/mi
 
 > **new OperationQueue**(): `OperationQueue`
 
-Defined in: [packages/react/src/refs/OperationQueue.ts:59](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/refs/OperationQueue.ts#L59)
+Defined in: [packages/react/src/refs/OperationQueue.ts:59](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/OperationQueue.ts#L59)
 
 #### Returns
 
@@ -35,7 +35,7 @@ Type parameter **OperationQueue**
 
 > **enqueue**\<`T`, `R`\>(`refName`, `target`, `operation`, `options`): `Promise`\<[`RefOperationResult`](../interfaces/RefOperationResult.md)&lt;`R`&gt;\>
 
-Defined in: [packages/react/src/refs/OperationQueue.ts:72](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/refs/OperationQueue.ts#L72)
+Defined in: [packages/react/src/refs/OperationQueue.ts:72](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/OperationQueue.ts#L72)
 
 작업을 큐에 추가하고 실행 대기
 
@@ -87,7 +87,7 @@ Type parameter **T**
 
 > **cancelOperations**(`refName`): `void`
 
-Defined in: [packages/react/src/refs/OperationQueue.ts:138](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/refs/OperationQueue.ts#L138)
+Defined in: [packages/react/src/refs/OperationQueue.ts:138](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/OperationQueue.ts#L138)
 
 특정 참조의 모든 대기 중인 작업 취소
 
@@ -107,7 +107,7 @@ Defined in: [packages/react/src/refs/OperationQueue.ts:138](https://github.com/m
 
 > **shutdown**(): `void`
 
-Defined in: [packages/react/src/refs/OperationQueue.ts:157](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/refs/OperationQueue.ts#L157)
+Defined in: [packages/react/src/refs/OperationQueue.ts:157](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/OperationQueue.ts#L157)
 
 모든 작업 취소 및 큐 종료
 
@@ -121,7 +121,7 @@ Defined in: [packages/react/src/refs/OperationQueue.ts:157](https://github.com/m
 
 > **getStats**(`refName?`): [`QueueStats`](../interfaces/QueueStats.md) \| `Record`\<`string`, [`QueueStats`](../interfaces/QueueStats.md)\>
 
-Defined in: [packages/react/src/refs/OperationQueue.ts:175](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/refs/OperationQueue.ts#L175)
+Defined in: [packages/react/src/refs/OperationQueue.ts:175](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/OperationQueue.ts#L175)
 
 큐 상태 조회
 
@@ -141,7 +141,7 @@ Defined in: [packages/react/src/refs/OperationQueue.ts:175](https://github.com/m
 
 > **getPendingOperationCount**(`refName`): `number`
 
-Defined in: [packages/react/src/refs/OperationQueue.ts:191](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/refs/OperationQueue.ts#L191)
+Defined in: [packages/react/src/refs/OperationQueue.ts:191](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/OperationQueue.ts#L191)
 
 특정 참조의 대기 중인 작업 수 확인
 
@@ -161,7 +161,7 @@ Defined in: [packages/react/src/refs/OperationQueue.ts:191](https://github.com/m
 
 > **isProcessing**(`refName`): `boolean`
 
-Defined in: [packages/react/src/refs/OperationQueue.ts:199](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/refs/OperationQueue.ts#L199)
+Defined in: [packages/react/src/refs/OperationQueue.ts:199](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/OperationQueue.ts#L199)
 
 특정 참조가 현재 처리 중인지 확인
 

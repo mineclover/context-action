@@ -6,7 +6,7 @@
 
 # Class: Store\<T\>
 
-Defined in: [packages/react/src/stores/core/Store.ts:64](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/Store.ts#L64)
+Defined in: [packages/react/src/stores/core/Store.ts:26](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L26)
 
 Core Store class for centralized state management
 
@@ -14,48 +14,11 @@ Provides reactive state management with subscription capabilities, optimized for
 React integration through useSyncExternalStore. Supports batched updates, custom
 comparison functions, and immutable snapshots for performance optimization.
 
-## Examples
+## See
 
-```typescript
-// Create a store with initial value
-const counterStore = createStore('counter', 0)
-
-// Get current value
-const currentCount = counterStore.getValue()
-
-// Set new value
-counterStore.setValue(5)
-
-// Update with function
-counterStore.update(count => count + 1)
-```
-
-```typescript
-const userStore = createStore('user', { name: '', email: '' })
-
-function UserComponent() {
-  // Subscribe to store changes
-  const user = useStoreValue(userStore)
-  
-  const handleUpdate = () => {
-    userStore.update(current => ({
-      ...current,
-      name: 'John Doe'
-    }))
-  }
-  
-  return <div>User: {user.name}</div>
-}
-```
-
-```typescript
-const store = createStore('items', [])
-
-// Set custom comparator for array length-based updates
-store.setComparator((oldItems, newItems) => 
-  oldItems.length === newItems.length
-)
-```
+ - https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
+ - https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
+ - https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
 
 ## Type Parameters
 
@@ -75,7 +38,7 @@ The type of value stored in this store
 
 > **new Store**&lt;`T`&gt;(`name`, `initialValue`): `Store`&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/core/Store.ts:86](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/Store.ts#L86)
+Defined in: [packages/react/src/stores/core/Store.ts:48](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L48)
 
 #### Parameters
 
@@ -97,7 +60,7 @@ Type parameter **T**
 
 > **subscribe**(`listener`): [`Unsubscribe`](../type-aliases/Unsubscribe.md)
 
-Defined in: [packages/react/src/stores/core/Store.ts:102](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/Store.ts#L102)
+Defined in: [packages/react/src/stores/core/Store.ts:64](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L64)
 
 Store 변경사항 구독
 핵심 로직: React 컴포넌트가 Store 변경을 감지할 수 있도록 리스너 등록
@@ -134,7 +97,7 @@ api-terms
 
 > **getSnapshot**(): [`Snapshot`](../interfaces/Snapshot.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/core/Store.ts:116](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/Store.ts#L116)
+Defined in: [packages/react/src/stores/core/Store.ts:78](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L78)
 
 현재 Store 스냅샷 가져오기
 핵심 로직: React의 useSyncExternalStore가 사용하는 불변 스냅샷 제공
@@ -153,7 +116,7 @@ Defined in: [packages/react/src/stores/core/Store.ts:116](https://github.com/min
 
 > **getValue**(): `T`
 
-Defined in: [packages/react/src/stores/core/Store.ts:131](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/Store.ts#L131)
+Defined in: [packages/react/src/stores/core/Store.ts:93](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L93)
 
 현재 값 직접 가져오기 (액션 핸들러용)
 핵심 로직: 불변성을 보장하는 깊은 복사본 반환
@@ -187,7 +150,7 @@ architecture-terms
 
 > **setValue**(`value`): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:153](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/Store.ts#L153)
+Defined in: [packages/react/src/stores/core/Store.ts:115](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L115)
 
 Store 값 설정 및 구독자 알림
 핵심 로직: 
@@ -230,7 +193,7 @@ architecture-terms
 
 > **update**(`updater`): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:225](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/Store.ts#L225)
+Defined in: [packages/react/src/stores/core/Store.ts:187](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L187)
 
 Update value using updater function
 핵심 로직: 
@@ -258,7 +221,7 @@ store-immutability
 
 > **getListenerCount**(): `number`
 
-Defined in: [packages/react/src/stores/core/Store.ts:287](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/Store.ts#L287)
+Defined in: [packages/react/src/stores/core/Store.ts:249](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L249)
 
 Get number of active listeners
 
@@ -276,7 +239,7 @@ Get number of active listeners
 
 > **clearListeners**(): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:294](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/Store.ts#L294)
+Defined in: [packages/react/src/stores/core/Store.ts:256](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L256)
 
 Clear all listeners
 
@@ -290,7 +253,7 @@ Clear all listeners
 
 > **setCustomComparator**(`comparator`): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:310](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/Store.ts#L310)
+Defined in: [packages/react/src/stores/core/Store.ts:267](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L267)
 
 Store별 커스텀 비교 함수 설정
 이 Store에만 적용되는 특별한 비교 로직 설정
@@ -307,13 +270,9 @@ Store별 커스텀 비교 함수 설정
 
 `void`
 
-#### Example
+#### See
 
-```typescript
-userStore.setCustomComparator((oldUser, newUser) => 
-  oldUser.id === newUser.id && oldUser.lastModified === newUser.lastModified
-);
-```
+https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-config
 
 ***
 
@@ -321,7 +280,7 @@ userStore.setCustomComparator((oldUser, newUser) =>
 
 > **setComparisonOptions**(`options`): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:331](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/Store.ts#L331)
+Defined in: [packages/react/src/stores/core/Store.ts:278](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L278)
 
 Store별 비교 옵션 설정
 이 Store에만 적용되는 비교 전략 설정
@@ -338,18 +297,9 @@ Store별 비교 옵션 설정
 
 `void`
 
-#### Example
+#### See
 
-```typescript
-// 깊은 비교 사용
-userStore.setComparisonOptions({ strategy: 'deep', maxDepth: 3 });
-
-// 얕은 비교 사용하되 특정 키 무시
-stateStore.setComparisonOptions({ 
-  strategy: 'shallow', 
-  ignoreKeys: ['timestamp', 'lastAccess'] 
-});
-```
+https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-config
 
 ***
 
@@ -357,7 +307,7 @@ stateStore.setComparisonOptions({
 
 > **getComparisonOptions**(): `undefined` \| `Partial`\<[`ComparisonOptions`](../interfaces/ComparisonOptions.md)&lt;`T`&gt;\>
 
-Defined in: [packages/react/src/stores/core/Store.ts:338](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/Store.ts#L338)
+Defined in: [packages/react/src/stores/core/Store.ts:285](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L285)
 
 현재 비교 설정 조회
 
@@ -371,7 +321,7 @@ Defined in: [packages/react/src/stores/core/Store.ts:338](https://github.com/min
 
 > **clearCustomComparator**(): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:345](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/Store.ts#L345)
+Defined in: [packages/react/src/stores/core/Store.ts:292](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L292)
 
 커스텀 비교 함수 해제
 
@@ -385,7 +335,7 @@ Defined in: [packages/react/src/stores/core/Store.ts:345](https://github.com/min
 
 > **clearComparisonOptions**(): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:352](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/Store.ts#L352)
+Defined in: [packages/react/src/stores/core/Store.ts:299](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L299)
 
 비교 옵션 해제 (전역 설정 사용)
 
@@ -399,7 +349,7 @@ Defined in: [packages/react/src/stores/core/Store.ts:352](https://github.com/min
 
 > **setNotificationMode**(`mode`): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:414](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/Store.ts#L414)
+Defined in: [packages/react/src/stores/core/Store.ts:361](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L361)
 
 알림 모드 설정 - 테스트/디버그용
 
@@ -419,7 +369,7 @@ Defined in: [packages/react/src/stores/core/Store.ts:414](https://github.com/min
 
 > **getNotificationMode**(): `"batched"` \| `"immediate"`
 
-Defined in: [packages/react/src/stores/core/Store.ts:421](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/Store.ts#L421)
+Defined in: [packages/react/src/stores/core/Store.ts:368](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L368)
 
 현재 알림 모드 조회
 
@@ -433,7 +383,7 @@ Defined in: [packages/react/src/stores/core/Store.ts:421](https://github.com/min
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/react/src/stores/core/Store.ts:80](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/Store.ts#L80)
+Defined in: [packages/react/src/stores/core/Store.ts:42](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L42)
 
 Unique identifier for the store
 

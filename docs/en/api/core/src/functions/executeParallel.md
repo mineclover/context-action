@@ -8,7 +8,7 @@
 
 > **executeParallel**\<`T`, `R`\>(`context`, `createController`): `Promise`&lt;`void`&gt;
 
-Defined in: [packages/core/src/execution-modes.ts:205](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/core/src/execution-modes.ts#L205)
+Defined in: [packages/core/src/execution-modes.ts:163](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/execution-modes.ts#L163)
 
 Execute handlers in parallel mode (all at once)
 
@@ -52,31 +52,6 @@ Factory function for creating pipeline controllers
 
 When any blocking handler fails
 
-## Examples
+## See
 
-```typescript
-// This is called internally by ActionRegister.dispatch()
-// when executionMode is 'parallel'
-
-// All handlers execute simultaneously:
-// - Analytics handler (non-blocking)
-// - Validation handler (blocking)
-// - Update handler (blocking)
-// - Notification handler (non-blocking)
-
-await executeParallel(context, (registration, index) => ({
-  abort: (reason) => { context.aborted = true },
-  setResult: (result) => { context.results.push(result) },
-  // ... other controller methods
-}))
-```
-
-```typescript
-// Perfect for independent operations
-register.setActionExecutionMode('logEvent', 'parallel')
-
-// These can all run simultaneously:
-register.register('logEvent', analyticsHandler, { blocking: false })
-register.register('logEvent', metricsHandler, { blocking: false })
-register.register('logEvent', auditHandler, { blocking: true })
-```
+https://mineclover.github.io/context-action/en/guide/patterns/action/dispatch-patterns#parallel-execution

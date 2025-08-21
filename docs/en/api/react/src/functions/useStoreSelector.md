@@ -8,7 +8,7 @@
 
 > **useStoreSelector**\<`T`, `R`\>(`store`, `selector`, `equalityFn`): `R`
 
-Defined in: [packages/react/src/stores/hooks/useStoreSelector.ts:148](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/hooks/useStoreSelector.ts#L148)
+Defined in: [packages/react/src/stores/hooks/useStoreSelector.ts:91](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/hooks/useStoreSelector.ts#L91)
 
 Hook for selective store subscription with performance optimization
 
@@ -56,59 +56,6 @@ Type parameter **R**
 
 The value returned by the selector function
 
-## Examples
+## See
 
-```typescript
-interface User {
-  id: string
-  profile: { name: string; email: string; avatar?: string }
-  preferences: { theme: 'light' | 'dark'; language: string }
-  metadata: { lastLogin: Date; createdAt: Date }
-}
-
-const userStore = createStore<User>('user', initialUser)
-
-// Subscribe only to profile.name - ignores other user changes
-const userName = useStoreSelector(
-  userStore, 
-  user => user.profile.name
-)
-
-// Component re-renders only when name changes
-```
-
-```typescript
-// Subscribe to entire profile object with shallow equality
-const userProfile = useStoreSelector(
-  userStore, 
-  user => user.profile,
-  shallowEqual
-)
-
-// Re-renders only when profile properties change
-// (name, email, avatar), not when preferences or metadata change
-```
-
-```typescript
-const userDisplayInfo = useStoreSelector(
-  userStore,
-  user => ({
-    displayName: user.profile.name || 'Anonymous',
-    isNewUser: Date.now() - user.metadata.createdAt.getTime() < 7 * 24 * 60 * 60 * 1000,
-    avatarUrl: user.profile.avatar || '/default-avatar.png'
-  }),
-  shallowEqual
-)
-```
-
-```typescript
-const expensiveComputation = useStoreSelector(
-  userStore,
-  user => {
-    if (!user.profile.name) return null
-    
-    // Expensive calculation only when name exists
-    return processUserData(user)
-  }
-)
-```
+https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-hooks#usestoreselector-advanced-usage

@@ -8,7 +8,7 @@
 
 > **compareValues**&lt;`T`&gt;(`oldValue`, `newValue`, `options`): `boolean`
 
-Defined in: [packages/react/src/stores/utils/comparison.ts:195](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/utils/comparison.ts#L195)
+Defined in: [packages/react/src/stores/utils/comparison.ts:195](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/utils/comparison.ts#L195)
 
 ## Type Parameters
 

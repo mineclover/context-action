@@ -6,7 +6,7 @@
 
 # Interface: WithProviderConfig
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:513](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L513)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:413](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L413)
 
 Configuration for withProvider HOC
 
@@ -16,7 +16,7 @@ Configuration for withProvider HOC
 
 > `optional` **displayName**: `string`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:514](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L514)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:414](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L414)
 
 ***
 
@@ -24,4 +24,4 @@ Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx
 
 > `optional` **registryId**: `string`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:515](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L515)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:415](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L415)

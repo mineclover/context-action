@@ -8,7 +8,7 @@
 
 > **useComputedStoreInstance**&lt;`R`&gt;(`dependencies`, `compute`, `config?`): [`Store`](../classes/Store.md)&lt;`R`&gt;
 
-Defined in: [packages/react/src/stores/hooks/useComputedStore.ts:547](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/hooks/useComputedStore.ts#L547)
+Defined in: [packages/react/src/stores/hooks/useComputedStore.ts:436](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/hooks/useComputedStore.ts#L436)
 
 Computed Store 인스턴스를 생성하는 Hook
 
@@ -46,30 +46,6 @@ Type parameter **R**
 
 계산된 값을 가진 Store 인스턴스
 
-## Example
+## See
 
-```typescript
-const userStore = createStore('user', { name: 'John', score: 85 });
-const settingsStore = createStore('settings', { showBadges: true });
-
-// Computed Store 인스턴스 생성
-const userBadgeStore = useComputedStoreInstance(
-  [userStore, settingsStore],
-  ([user, settings]) => {
-    if (!settings.showBadges) return null;
-    
-    return {
-      name: user.name,
-      level: user.score >= 80 ? 'expert' : 'beginner',
-      badge: user.score >= 90 ? '🏆' : user.score >= 70 ? '🥉' : '📖'
-    };
-  },
-  { name: 'userBadge' }
-);
-
-// 다른 컴포넌트에서 구독 가능
-function BadgeDisplay() {
-  const badge = useStoreValue(userBadgeStore);
-  return badge ? <div>{badge.badge} {badge.name}</div> : null;
-}
-```
+https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-hooks#computed-store-instances

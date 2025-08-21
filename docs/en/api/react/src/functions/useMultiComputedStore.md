@@ -8,7 +8,7 @@
 
 > **useMultiComputedStore**&lt;`R`&gt;(`stores`, `compute`, `config?`): `R`
 
-Defined in: [packages/react/src/stores/hooks/useComputedStore.ts:328](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/hooks/useComputedStore.ts#L328)
+Defined in: [packages/react/src/stores/hooks/useComputedStore.ts:242](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/hooks/useComputedStore.ts#L242)
 
 여러 Store 기반 Computed Hook
 
@@ -44,27 +44,6 @@ Type parameter **R**
 
 계산된 값
 
-## Example
+## See
 
-```typescript
-const userStore = createStore('user', { name: 'John', age: 30 });
-const settingsStore = createStore('settings', { currency: 'USD', tax: 0.1 });
-const cartStore = createStore('cart', { items: [], total: 0 });
-
-// 여러 Store 조합
-const checkoutSummary = useMultiComputedStore(
-  [userStore, settingsStore, cartStore],
-  ([user, settings, cart]) => ({
-    customerName: user.name,
-    subtotal: cart.total,
-    tax: cart.total * settings.tax,
-    total: cart.total * (1 + settings.tax),
-    currency: settings.currency,
-    itemCount: cart.items.length
-  }),
-  {
-    equalityFn: shallowEqual,
-    name: 'checkoutSummary'
-  }
-);
-```
+https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-hooks#usecomputedstore-patterns

@@ -34,7 +34,7 @@ interactions and business logic flow.
 
 > **createActionContext**&lt;`T`&gt;(`contextName`, `config?`): [`ActionContextReturn`](../interfaces/ActionContextReturn.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/actions/ActionContext.tsx:156](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/actions/ActionContext.tsx#L156)
+Defined in: [packages/react/src/actions/ActionContext.tsx:30](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/actions/ActionContext.tsx#L30)
 
 Enhanced action context factory with automatic type inference
 
@@ -64,102 +64,17 @@ Configuration options for the ActionRegister
 
 Object containing Provider, hooks, and utility functions
 
-### Example
+### See
 
-```typescript
-interface MyActions extends ActionPayloadMap {
-  login: { username: string; password: string };
-  logout: void;
-}
-
-const { 
-  Provider, 
-  useAction, 
-  useActionHandler, 
-  useActionWithResult 
-} = createActionContext<MyActions>({
-  name: 'AuthActions'
-});
-
-function AuthComponent() {
-  const dispatch = useAction();
-  const dispatchWithResult = useActionWithResult();
-  
-  useActionHandler('login', async ({ username, password }) => {
-    // Handle login logic
-    return { success: true, userId: '123' };
-  });
-  
-  const handleLogin = async () => {
-    const result = await dispatchWithResult('login', 
-      { username: 'user', password: 'pass' }, 
-      { result: { collect: true } }
-    );
-    console.log('Login result:', result.results);
-  };
-  
-  return (
-    <div>
-      <button onClick={handleLogin}>
-        Login with Result
-      </button>
-      <button onClick={() => dispatch('login', { username: 'user', password: 'pass' })}>
-        Login (no result)
-      </button>
-    </div>
-  );
-}
-
-// Alternative: Using useActionRegister for direct ActionRegister access
-function AuthComponentAlt() {
-  const dispatch = useAction();
-  const register = useActionRegister();
-  
-  useEffect(() => {
-    if (!register) return;
-    
-    // Clear existing handlers if needed
-    register.clearAction('login');
-    
-    // Register handlers with full control
-    const unregisterLogin = register.register('login', async ({ username, password }) => {
-      // Handle login logic
-    }, { priority: 100 });
-    
-    // Can also use dispatchWithResult directly from register
-    const handleLoginWithResult = async () => {
-      const result = await register.dispatchWithResult('login', 
-        { username: 'user', password: 'pass' }
-      );
-      console.log('Login result:', result);
-    };
-    
-    return () => {
-      unregisterLogin();
-    };
-  }, [register]);
-  
-  return (
-    <button onClick={() => dispatch('login', { username: 'user', password: 'pass' })}>
-      Login
-    </button>
-  );
-}
-
-function App() {
-  return (
-    <Provider>
-      <AuthComponent />
-    </Provider>
-  );
-}
-```
+ - https://mineclover.github.io/context-action/en/guide/patterns/action/
+ - https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
+ - https://mineclover.github.io/context-action/en/guide/patterns/action/register-delegation
 
 ## Call Signature
 
 > **createActionContext**&lt;`T`&gt;(`config`): [`ActionContextReturn`](../interfaces/ActionContextReturn.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/actions/ActionContext.tsx:162](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/actions/ActionContext.tsx#L162)
+Defined in: [packages/react/src/actions/ActionContext.tsx:36](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/actions/ActionContext.tsx#L36)
 
 Enhanced action context factory with automatic type inference
 
@@ -185,93 +100,8 @@ Configuration options for the ActionRegister
 
 Object containing Provider, hooks, and utility functions
 
-### Example
+### See
 
-```typescript
-interface MyActions extends ActionPayloadMap {
-  login: { username: string; password: string };
-  logout: void;
-}
-
-const { 
-  Provider, 
-  useAction, 
-  useActionHandler, 
-  useActionWithResult 
-} = createActionContext<MyActions>({
-  name: 'AuthActions'
-});
-
-function AuthComponent() {
-  const dispatch = useAction();
-  const dispatchWithResult = useActionWithResult();
-  
-  useActionHandler('login', async ({ username, password }) => {
-    // Handle login logic
-    return { success: true, userId: '123' };
-  });
-  
-  const handleLogin = async () => {
-    const result = await dispatchWithResult('login', 
-      { username: 'user', password: 'pass' }, 
-      { result: { collect: true } }
-    );
-    console.log('Login result:', result.results);
-  };
-  
-  return (
-    <div>
-      <button onClick={handleLogin}>
-        Login with Result
-      </button>
-      <button onClick={() => dispatch('login', { username: 'user', password: 'pass' })}>
-        Login (no result)
-      </button>
-    </div>
-  );
-}
-
-// Alternative: Using useActionRegister for direct ActionRegister access
-function AuthComponentAlt() {
-  const dispatch = useAction();
-  const register = useActionRegister();
-  
-  useEffect(() => {
-    if (!register) return;
-    
-    // Clear existing handlers if needed
-    register.clearAction('login');
-    
-    // Register handlers with full control
-    const unregisterLogin = register.register('login', async ({ username, password }) => {
-      // Handle login logic
-    }, { priority: 100 });
-    
-    // Can also use dispatchWithResult directly from register
-    const handleLoginWithResult = async () => {
-      const result = await register.dispatchWithResult('login', 
-        { username: 'user', password: 'pass' }
-      );
-      console.log('Login result:', result);
-    };
-    
-    return () => {
-      unregisterLogin();
-    };
-  }, [register]);
-  
-  return (
-    <button onClick={() => dispatch('login', { username: 'user', password: 'pass' })}>
-      Login
-    </button>
-  );
-}
-
-function App() {
-  return (
-    <Provider>
-      <AuthComponent />
-    </Provider>
-  );
-}
-```
+ - https://mineclover.github.io/context-action/en/guide/patterns/action/
+ - https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
+ - https://mineclover.github.io/context-action/en/guide/patterns/action/register-delegation

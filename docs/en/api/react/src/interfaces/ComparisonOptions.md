@@ -6,7 +6,7 @@
 
 # Interface: ComparisonOptions\<T\>
 
-Defined in: [packages/react/src/stores/utils/comparison.ts:7](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/utils/comparison.ts#L7)
+Defined in: [packages/react/src/stores/utils/comparison.ts:7](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/utils/comparison.ts#L7)
 
 ## Type Parameters
 
@@ -20,7 +20,7 @@ Defined in: [packages/react/src/stores/utils/comparison.ts:7](https://github.com
 
 > **strategy**: [`ComparisonStrategy`](../type-aliases/ComparisonStrategy.md)
 
-Defined in: [packages/react/src/stores/utils/comparison.ts:8](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/utils/comparison.ts#L8)
+Defined in: [packages/react/src/stores/utils/comparison.ts:8](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/utils/comparison.ts#L8)
 
 ***
 
@@ -28,7 +28,7 @@ Defined in: [packages/react/src/stores/utils/comparison.ts:8](https://github.com
 
 > `optional` **customComparator**: [`CustomComparator`](../type-aliases/CustomComparator.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/utils/comparison.ts:9](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/utils/comparison.ts#L9)
+Defined in: [packages/react/src/stores/utils/comparison.ts:9](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/utils/comparison.ts#L9)
 
 ***
 
@@ -36,7 +36,7 @@ Defined in: [packages/react/src/stores/utils/comparison.ts:9](https://github.com
 
 > `optional` **maxDepth**: `number`
 
-Defined in: [packages/react/src/stores/utils/comparison.ts:10](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/utils/comparison.ts#L10)
+Defined in: [packages/react/src/stores/utils/comparison.ts:10](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/utils/comparison.ts#L10)
 
 ***
 
@@ -44,7 +44,7 @@ Defined in: [packages/react/src/stores/utils/comparison.ts:10](https://github.co
 
 > `optional` **ignoreKeys**: `string`[]
 
-Defined in: [packages/react/src/stores/utils/comparison.ts:11](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/utils/comparison.ts#L11)
+Defined in: [packages/react/src/stores/utils/comparison.ts:11](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/utils/comparison.ts#L11)
 
 ***
 
@@ -52,4 +52,4 @@ Defined in: [packages/react/src/stores/utils/comparison.ts:11](https://github.co
 
 > `optional` **enableCircularCheck**: `boolean`
 
-Defined in: [packages/react/src/stores/utils/comparison.ts:12](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/utils/comparison.ts#L12)
+Defined in: [packages/react/src/stores/utils/comparison.ts:12](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/utils/comparison.ts#L12)

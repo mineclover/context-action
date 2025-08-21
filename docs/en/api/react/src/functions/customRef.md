@@ -8,7 +8,7 @@
 
 > **customRef**&lt;`T`&gt;(`config`): [`RefInitConfig`](../interfaces/RefInitConfig.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/refs/helpers.ts:15](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/refs/helpers.ts#L15)
+Defined in: [packages/react/src/refs/helpers.ts:15](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/helpers.ts#L15)
 
 커스텀 참조 정의 헬퍼
 

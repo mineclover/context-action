@@ -8,7 +8,7 @@
 
 > **InferInitialStores**&lt;`T`&gt; = `T` *extends* [`InitialStores`](InitialStores.md)\<infer U\> ? `U` : `never`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:508](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L508)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:408](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L408)
 
 Type helper for defining initial stores with better inference
 

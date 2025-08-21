@@ -8,7 +8,7 @@
 
 > **executeRace**\<`T`, `R`\>(`context`, `createController`): `Promise`&lt;`void`&gt;
 
-Defined in: [packages/core/src/execution-modes.ts:345](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/core/src/execution-modes.ts#L345)
+Defined in: [packages/core/src/execution-modes.ts:270](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/execution-modes.ts#L270)
 
 Execute handlers in race mode (first to complete wins)
 
@@ -53,37 +53,6 @@ Factory function for creating pipeline controllers
 
 When the winning handler fails and is blocking
 
-## Examples
+## See
 
-```typescript
-// This is called internally by ActionRegister.dispatch()
-// when executionMode is 'race'
-
-// Multiple data sources racing for fastest response:
-// - Database handler (might be slow)
-// - Cache handler (usually fast)
-// - API handler (variable speed)
-// 
-// Whichever completes first wins
-
-await executeRace(context, (registration, index) => ({
-  return: (result) => { 
-    context.terminated = true
-    context.terminationResult = result 
-  },
-  // ... other controller methods
-}))
-```
-
-```typescript
-// Race between multiple data sources
-register.setActionExecutionMode('fetchUserData', 'race')
-
-// These handlers race for fastest response:
-register.register('fetchUserData', cacheHandler)     // Usually fastest
-register.register('fetchUserData', databaseHandler)  // Reliable fallback
-register.register('fetchUserData', apiHandler)       // External source
-
-// First to complete wins, others are ignored
-const result = await register.dispatchWithResult('fetchUserData', { id: '123' })
-```
+https://mineclover.github.io/context-action/en/guide/patterns/action/dispatch-patterns#race-execution

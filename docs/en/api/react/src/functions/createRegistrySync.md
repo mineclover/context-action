@@ -8,7 +8,7 @@
 
 > **createRegistrySync**&lt;`T`&gt;(): `object`
 
-Defined in: [packages/react/src/stores/utils/registry-sync.ts:17](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/utils/registry-sync.ts#L17)
+Defined in: [packages/react/src/stores/utils/registry-sync.ts:13](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/utils/registry-sync.ts#L13)
 
 Factory for creating registry sync hooks
 핵심 기능: Registry에서 동적으로 store에 접근하는 표준화된 인터페이스 제공
@@ -46,9 +46,6 @@ Registry에서 이름으로 store 값을 동적으로 가져오기
 
 `undefined` \| `T`
 
-## Example
+## See
 
-```typescript
-const sync = createRegistrySync<UserData>();
-const userData = sync.useDynamicStore(registry, 'user');
-```
+https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-hooks#dynamic-store-access

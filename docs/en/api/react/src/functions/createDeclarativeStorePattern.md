@@ -12,7 +12,7 @@ Implementation function that handles both overloads
 
 > **createDeclarativeStorePattern**&lt;`T`&gt;(`contextName`, `initialStores`): `object`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:302](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L302)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:245](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L245)
 
 Overload 1: Explicit generic types - User provides explicit type interface
 
@@ -157,32 +157,15 @@ HOC for automatic provider wrapping with optional configuration
 
 > **initialStores**: [`InitialStores`](../type-aliases/InitialStores.md)&lt;`T`&gt;
 
-### Example
+### See
 
-```typescript
-// Define types explicitly
-interface AppStores {
-  counter: number;
-  user: { id: string; name: string; email: string };
-  settings: { theme: 'light' | 'dark'; language: string };
-}
-
-// Create with explicit type and type-checked initialValue
-const AppStores = createDeclarativeStorePattern<AppStores>('App', {
-  counter: 0,  // Must match AppStores['counter'] = number
-  user: { id: '', name: '', email: '' },  // Must match AppStores['user']
-  settings: { 
-    initialValue: { theme: 'light', language: 'en' },  // Must match AppStores['settings']
-    strategy: 'shallow'
-  }
-});
-```
+https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
 
 ## Call Signature
 
 > **createDeclarativeStorePattern**&lt;`T`&gt;(`contextName`, `storeDefinitions`): `object`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:323](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L323)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:255](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L255)
 
 Overload 2: Type inference - Types inferred from store definitions
 
@@ -327,16 +310,6 @@ HOC for automatic provider wrapping with optional configuration
 
 > **initialStores**: [`InitialStores`](../type-aliases/InitialStores.md)\<[`InferStoreTypes`](../type-aliases/InferStoreTypes.md)&lt;`T`&gt;\>
 
-### Example
+### See
 
-```typescript
-// Type inference from initialValue (automatic)
-const AppStores = createDeclarativeStorePattern('App', {
-  counter: 0,  // Inferred as Store<number>
-  user: { id: '', name: '', email: '' },  // Inferred as Store<{id: string, name: string, email: string}>
-  settings: {
-    initialValue: { theme: 'light' as const, language: 'en' },
-    strategy: 'shallow'
-  }
-});
-```
+https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage

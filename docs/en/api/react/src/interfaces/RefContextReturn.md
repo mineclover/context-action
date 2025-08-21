@@ -6,7 +6,7 @@
 
 # Interface: RefContextReturn\<T\>
 
-Defined in: [packages/react/src/refs/createRefContext.ts:21](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/refs/createRefContext.ts#L21)
+Defined in: [packages/react/src/refs/createRefContext.ts:21](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/createRefContext.ts#L21)
 
 RefContext 반환 타입 - 심플하고 명확한 API
 
@@ -22,7 +22,7 @@ Type parameter **T**
 
 > **Provider**: `FC`\<\{ `children`: `ReactNode`; \}\>
 
-Defined in: [packages/react/src/refs/createRefContext.ts:23](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/refs/createRefContext.ts#L23)
+Defined in: [packages/react/src/refs/createRefContext.ts:23](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/createRefContext.ts#L23)
 
 ***
 
@@ -30,7 +30,7 @@ Defined in: [packages/react/src/refs/createRefContext.ts:23](https://github.com/
 
 > **useRefHandler**: &lt;`K`&gt;(`refName`) => `object`
 
-Defined in: [packages/react/src/refs/createRefContext.ts:26](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/refs/createRefContext.ts#L26)
+Defined in: [packages/react/src/refs/createRefContext.ts:26](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/createRefContext.ts#L26)
 
 #### Type Parameters
 
@@ -116,7 +116,7 @@ ref가 마운트되어 있는지 확인
 
 > **useWaitForRefs**: () => &lt;`K`&gt;(...`refNames`) => `Promise`\<`Partial`&lt;`T`&gt;\>
 
-Defined in: [packages/react/src/refs/createRefContext.ts:43](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/refs/createRefContext.ts#L43)
+Defined in: [packages/react/src/refs/createRefContext.ts:43](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/createRefContext.ts#L43)
 
 #### Returns
 
@@ -144,7 +144,7 @@ Defined in: [packages/react/src/refs/createRefContext.ts:43](https://github.com/
 
 > **useGetAllRefs**: () => () => `Partial`&lt;`T`&gt;
 
-Defined in: [packages/react/src/refs/createRefContext.ts:46](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/refs/createRefContext.ts#L46)
+Defined in: [packages/react/src/refs/createRefContext.ts:46](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/createRefContext.ts#L46)
 
 #### Returns
 
@@ -160,7 +160,7 @@ Defined in: [packages/react/src/refs/createRefContext.ts:46](https://github.com/
 
 > **contextName**: `string`
 
-Defined in: [packages/react/src/refs/createRefContext.ts:49](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/refs/createRefContext.ts#L49)
+Defined in: [packages/react/src/refs/createRefContext.ts:49](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/createRefContext.ts#L49)
 
 ***
 
@@ -168,4 +168,4 @@ Defined in: [packages/react/src/refs/createRefContext.ts:49](https://github.com/
 
 > `optional` **refDefinitions**: `T` *extends* `RefDefinitions` ? `T`&lt;`T`&gt; : `undefined`
 
-Defined in: [packages/react/src/refs/createRefContext.ts:52](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/refs/createRefContext.ts#L52)
+Defined in: [packages/react/src/refs/createRefContext.ts:52](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/createRefContext.ts#L52)

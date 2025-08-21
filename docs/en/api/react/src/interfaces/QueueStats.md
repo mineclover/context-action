@@ -6,7 +6,7 @@
 
 # Interface: QueueStats
 
-Defined in: [packages/react/src/refs/OperationQueue.ts:33](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/refs/OperationQueue.ts#L33)
+Defined in: [packages/react/src/refs/OperationQueue.ts:33](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/OperationQueue.ts#L33)
 
 큐 통계 정보
 
@@ -16,7 +16,7 @@ Defined in: [packages/react/src/refs/OperationQueue.ts:33](https://github.com/mi
 
 > **pending**: `number`
 
-Defined in: [packages/react/src/refs/OperationQueue.ts:34](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/refs/OperationQueue.ts#L34)
+Defined in: [packages/react/src/refs/OperationQueue.ts:34](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/OperationQueue.ts#L34)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/react/src/refs/OperationQueue.ts:34](https://github.com/mi
 
 > **processing**: `number`
 
-Defined in: [packages/react/src/refs/OperationQueue.ts:35](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/refs/OperationQueue.ts#L35)
+Defined in: [packages/react/src/refs/OperationQueue.ts:35](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/OperationQueue.ts#L35)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [packages/react/src/refs/OperationQueue.ts:35](https://github.com/mi
 
 > **completed**: `number`
 
-Defined in: [packages/react/src/refs/OperationQueue.ts:36](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/refs/OperationQueue.ts#L36)
+Defined in: [packages/react/src/refs/OperationQueue.ts:36](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/OperationQueue.ts#L36)
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: [packages/react/src/refs/OperationQueue.ts:36](https://github.com/mi
 
 > **failed**: `number`
 
-Defined in: [packages/react/src/refs/OperationQueue.ts:37](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/refs/OperationQueue.ts#L37)
+Defined in: [packages/react/src/refs/OperationQueue.ts:37](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/OperationQueue.ts#L37)
 
 ***
 
@@ -48,7 +48,7 @@ Defined in: [packages/react/src/refs/OperationQueue.ts:37](https://github.com/mi
 
 > **totalProcessingTime**: `number`
 
-Defined in: [packages/react/src/refs/OperationQueue.ts:38](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/refs/OperationQueue.ts#L38)
+Defined in: [packages/react/src/refs/OperationQueue.ts:38](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/OperationQueue.ts#L38)
 
 ***
 
@@ -56,4 +56,4 @@ Defined in: [packages/react/src/refs/OperationQueue.ts:38](https://github.com/mi
 
 > **averageProcessingTime**: `number`
 
-Defined in: [packages/react/src/refs/OperationQueue.ts:39](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/refs/OperationQueue.ts#L39)
+Defined in: [packages/react/src/refs/OperationQueue.ts:39](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/OperationQueue.ts#L39)
