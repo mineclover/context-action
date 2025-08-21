@@ -23,3 +23,7 @@ After removing auto-staging from SyncDocsCommand, this should now create a separ
 ## Testing Staged Detection
 
 This change should trigger the improved detection logic that properly handles .gitignored files.
+
+## Force Add Test
+
+Using --force flag should now properly detect changes in .gitignored llmsData directory.
