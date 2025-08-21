@@ -36,6 +36,10 @@ export class HelpDisplay {
     console.log('                                   [-l, --language <lang>] [-p, --pattern standard|minimum|origin]');
     console.log('                                   [--dry-run] [-v, --verbose]');
     console.log('');
+    console.log('DOCUMENTATION SYNC:');
+    console.log('  sync-docs [options]              Sync documentation changes (used by pre-commit hooks)');
+    console.log('                                   [--changed-files <files>] [--quiet] [--dry-run] [--force]');
+    console.log('');
     console.log('EXAMPLES:');
     console.log('  # 🚀 RECOMMENDED WORKFLOW (Complete setup)');
     console.log('  npx @context-action/llms-generator init');
@@ -66,6 +70,10 @@ export class HelpDisplay {
     console.log('  # Generate standard LLMS with metadata');
     console.log('  npx @context-action/llms-generator llms-generate --character-limit 300 --language ko');
     console.log('  npx @context-action/llms-generator llms-generate --category guide --pattern minimum');
+    console.log('');
+    console.log('  # Sync documentation changes (for pre-commit hooks)');
+    console.log('  npx @context-action/llms-generator sync-docs --changed-files="docs/en/guide/example.md" --quiet');
+    console.log('  npx @context-action/llms-generator sync-docs --changed-files="docs/ko/api/core.md,docs/en/concept/overview.md"');
     console.log('');
     console.log('INIT COMMAND DETAILS:');
     console.log('  The init command performs three main steps:');
