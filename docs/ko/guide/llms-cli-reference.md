@@ -2,6 +2,10 @@
 
 다국어 문서 처리 기능을 포함한 LLMS Generator CLI 시스템의 완전한 명령어 참조서입니다.
 
+::: tip 📖 종합 구현 참조서
+모든 CLI 기능, 아키텍처 세부사항, 고급 워크플로우를 다루는 상세한 구현 문서는 [**종합 구현 참조서**](./llms-cli-comprehensive-reference.md)를 참조하세요.
+:::
+
 ## 핵심 명령어
 
 ### 문서 처리
@@ -119,7 +123,7 @@ pnpm llms:init [옵션]
 
 #### `work-next`
 
-우선순위를 기반으로 다음에 작업할 문서 항목을 찾습니다.
+우선순위를 기반으로 다음에 작업할 문서 항목을 찾거나 상위 N개 우선순위 문서를 표시합니다.
 
 ```bash
 pnpm llms:work-next [옵션]
@@ -129,6 +133,76 @@ pnpm llms:work-next [옵션]
 - `-l, --language <lang>`: 언어별 필터링
 - `--show-completed`: 완료된 항목 포함
 - `-v, --verbose`: 상세 정보 표시
+- `-n, --limit <number>` / `--top <number>`: 상위 N개 우선순위 문서 표시
+- `--sort-by <field>`: 정렬 기준 (priority 기본값, category, status, modified)
+- `--category <cat>`: 카테고리별 필터링
+- `-c, --character-limit <num>`: 글자 수 제한별 필터링
+
+**예시:**
+```bash
+# 다음 단일 작업 항목 표시 (기본값)
+pnpm llms:work-next
+
+# 상위 10개 우선순위 문서 표시
+pnpm llms:work-next --limit 10
+
+# 상위 5개 가이드 문서를 상세 정보와 함께 표시
+pnpm llms:work-next --top 5 --category guide --verbose
+
+# 카테고리별로 정렬된 모든 완료 항목 표시
+pnpm llms:work-next --show-completed --sort-by category
+```
+
+### 우선순위 관리 명령어
+
+#### `priority-tasks`
+
+priority.json 파일 자체를 관리하고 분석 - 누락되거나 오래되거나 잘못된 우선순위 파일 찾기
+
+```bash
+pnpm llms:priority-tasks [옵션]
+```
+
+**옵션:**
+- `-l, --language <lang>`: 언어별 필터링
+- `--category <cat>`: 카테고리별 필터링
+- `--task-type <type>`: 작업 유형별 필터링 (missing, invalid, outdated, needs_review, needs_update)
+- `-n, --limit <num>`: 결과 수 제한
+- `-v, --verbose`: 상세 정보 표시
+- `--fix`: 감지된 문제 자동 수정
+- `--dry-run`: 변경사항 미리보기 (실제 수정하지 않음)
+
+**작업 유형:**
+- 🔴 **missing**: priority.json 파일이 없음
+- ❌ **invalid**: JSON 구문 오류 또는 필수 필드 누락
+- 🟡 **outdated**: priority.json 이후에 소스 문서가 수정됨
+- 🟠 **needs_review**: 우선순위 점수가 카테고리 기준과 맞지 않음
+- 🔵 **needs_update**: 메타데이터가 불완전하거나 개선이 필요함
+
+**예시:**
+```bash
+# 모든 priority.json 문제 확인
+pnpm llms:priority-tasks
+
+# 상위 5개 문제에 대한 상세 정보 표시
+pnpm llms:priority-tasks --limit 5 --verbose
+
+# 누락된 priority.json 파일 수정
+pnpm llms:priority-tasks --task-type missing --fix
+
+# 수정될 내용 미리보기
+pnpm llms:priority-tasks --fix --dry-run
+
+# 한국어 문서만 확인
+pnpm llms:priority-tasks --language ko --verbose
+```
+
+#### 추가 우선순위 명령어
+
+- `priority-stats`: 우선순위 분포 통계 표시
+- `priority-health`: 우선순위 일관성 및 건강도 확인 (0-100 점수)
+- `priority-suggest`: 개선 권고사항 제공
+- `priority-auto`: 사용자 정의 기준으로 우선순위 자동 재계산
 
 ## 고급 기능
 
