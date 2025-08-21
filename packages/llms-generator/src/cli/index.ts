@@ -21,6 +21,7 @@ import { GenerateTemplatesCommand } from './commands/GenerateTemplatesCommand.js
 import { createCleanLLMSGenerateCommand } from './commands/clean-llms-generate.js';
 import { SyncDocsCommand } from './commands/SyncDocsCommand.js';
 import { InitCommand } from './commands/InitCommand.js';
+import { PriorityManagerCommand } from './commands/PriorityManagerCommand.js';
 import { CLIConfig } from './types/CLITypes.js';
 import { EnhancedConfigManager } from '../core/EnhancedConfigManager.js';
 import { DEFAULT_CONFIG } from '../shared/config/DefaultConfig.js';
@@ -67,6 +68,26 @@ async function main(): Promise<void> {
 
       case 'sync-docs':
         await handleSyncDocs(commandArgs, argumentParser);
+        break;
+
+      case 'priority-stats':
+        await handlePriorityManager(commandArgs, argumentParser, 'stats');
+        break;
+
+      case 'priority-health':
+        await handlePriorityManager(commandArgs, argumentParser, 'health');
+        break;
+
+      case 'priority-sync':
+        await handlePriorityManager(commandArgs, argumentParser, 'sync');
+        break;
+
+      case 'priority-auto':
+        await handlePriorityManager(commandArgs, argumentParser, 'auto-calc');
+        break;
+
+      case 'priority-suggest':
+        await handlePriorityManager(commandArgs, argumentParser, 'suggest');
         break;
 
       default:
@@ -168,6 +189,22 @@ async function handleInit(args: string[], argumentParser: ArgumentParser): Promi
   };
 
   await initCommand.execute(options);
+}
+
+async function handlePriorityManager(args: string[], argumentParser: ArgumentParser, mode: 'stats' | 'health' | 'sync' | 'auto-calc' | 'suggest'): Promise<void> {
+  const enhancedConfig = await loadEnhancedConfig();
+  const priorityManager = new PriorityManagerCommand(enhancedConfig);
+  
+  const options = {
+    mode,
+    server: argumentParser.extractFlag(args, '--server'),
+    criteria: argumentParser.extractFlag(args, '--criteria'),
+    documentId: argumentParser.extractFlag(args, '--document-id'),
+    force: argumentParser.hasFlag(args, '--force'),
+    quiet: argumentParser.hasFlag(args, '--quiet')
+  };
+
+  await priorityManager.execute(options);
 }
 
 async function loadConfig(): Promise<CLIConfig> {
