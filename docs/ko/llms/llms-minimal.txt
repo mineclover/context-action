@@ -1,0 +1,29 @@
+1. **[Action Pipeline Guide](ko/concept/action-pipeline-guide.md)** (concept) - Priority: 85
+2. **[Architecture Guide](ko/concept/architecture-guide.md)** (concept) - Priority: 85
+3. **[Conventions](ko/concept/conventions.md)** (concept) - Priority: 85
+4. **[Hooks Reference](ko/concept/hooks-reference.md)** (concept) - Priority: 85
+5. **[Pattern Guide](ko/concept/pattern-guide.md)** (concept) - Priority: 85
+6. **[React Refs Guide](ko/concept/react-refs-guide.md)** (concept) - Priority: 85
+7. **[Action Only](ko/example/action-only.md)** (examples) - Priority: 80
+8. **[Basic Setup](ko/example/basic-setup.md)** (examples) - Priority: 80
+9. **[Element Management](ko/example/element-management.md)** (examples) - Priority: 80
+10. **[Pattern Composition](ko/example/pattern-composition.md)** (examples) - Priority: 80
+11. **[Store Only](ko/example/store-only.md)** (examples) - Priority: 80
+12. **[Action Handlers](ko/guide/action-handlers.md)** (guide) - Priority: 95
+13. **[Action Pipeline](ko/guide/action-pipeline.md)** (guide) - Priority: 95
+14. **[Architecture](ko/guide/architecture.md)** (guide) - Priority: 95
+15. **[Best Practices](ko/guide/best-practices.md)** (guide) - Priority: 95
+16. **[Code Patterns](ko/guide/code-patterns.md)** (guide) - Priority: 95
+17. **[Conditional Await](ko/guide/conditional-await.md)** (guide) - Priority: 95
+18. **[Getting Started](ko/guide/getting-started.md)** (guide) - Priority: 95
+19. **[Hooks](ko/guide/hooks.md)** (guide) - Priority: 95
+20. **[Index](ko/guide/index.md)** (guide) - Priority: 95
+21. **[Llms Cli Comprehensive Reference](ko/guide/llms-cli-comprehensive-reference.md)** (guide) - Priority: 95
+22. **[Llms Cli Reference](ko/guide/llms-cli-reference.md)** (guide) - Priority: 95
+23. **[Priority Management](ko/guide/priority-management.md)** (guide) - Priority: 95
+24. **[Real Time State Access](ko/guide/real-time-state-access.md)** (guide) - Priority: 95
+25. **[Ref Context Setup](ko/guide/ref-context-setup.md)** (guide) - Priority: 95
+26. **[Timeout Protection](ko/guide/timeout-protection.md)** (guide) - Priority: 95
+27. **[Wait Then Execute](ko/guide/wait-then-execute.md)** (guide) - Priority: 95
+28. **[Untitled](llmsData/Users/junwoobang/project/context-action/llmsData/ko/guide/priority-management-100.md)** (guide) - Priority: 95
+29. **[Untitled](llmsData/Users/junwoobang/project/context-action/llmsData/ko/guide/test-multilingual-sync-100.md)** (guide) - Priority: 95
