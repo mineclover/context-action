@@ -40,6 +40,7 @@
     "docs:sync": "npx @context-action/typedoc-vitepress-sync sync --config ./typedoc-vitepress-sync.config.js",
     "llms": "node packages/llms-generator/dist/cli/index.js",
     "llms:generator": "node packages/llms-generator/dist/cli/index.js",
+    "llms:init": "node packages/llms-generator/dist/cli/index.js init",
     "llms:generate-templates": "node packages/llms-generator/dist/cli/index.js generate-templates",
     "llms:minimum": "node packages/llms-generator/dist/cli/index.js minimum",
     "llms:origin": "node packages/llms-generator/dist/cli/index.js origin",
