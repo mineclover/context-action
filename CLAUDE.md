@@ -98,6 +98,7 @@ pnpm build
 # Build specific package
 pnpm build:core        # @context-action/core
 pnpm build:react       # @context-action/react
+pnpm build:llms-generator  # @context-action/llms-generator
 
 # Run tests
 pnpm test              # All packages
@@ -141,6 +142,75 @@ pnpm docs:build        # Build documentation
 pnpm docs:api          # Generate API docs with TypeDoc
 pnpm docs:sync         # Sync API docs to documentation (with smart caching)
 pnpm docs:full         # Full documentation build pipeline
+```
+
+### LLMS Generator Commands
+
+The project includes a sophisticated **LLMS Generator** system for advanced documentation management and priority-driven development workflows:
+
+```bash
+# Priority Management System
+pnpm llms:priority-stats    # Statistical analysis of documentation priorities
+pnpm llms:priority-health   # Health check with consistency validation (0-100 score)
+pnpm llms:priority-suggest  # Actionable recommendations for improvement
+pnpm llms:priority-auto     # Auto-recalculate priorities based on configurable criteria
+
+# Multilingual Document Processing
+pnpm llms:sync-docs         # Process all changed documentation with language detection
+pnpm llms:sync-docs:ko      # Korean documents only 🇰🇷
+pnpm llms:sync-docs:en      # English documents only 🇺🇸
+pnpm llms:sync-docs:dry     # Preview mode without making changes
+
+# Template Generation & Management
+pnpm llms:generate-templates  # Generate character-limited templates (100-5000 chars)
+pnpm llms:init              # Initialize LLMS system in new projects
+
+# Work Management
+pnpm llms:work-next         # Find next documentation work based on priorities
+```
+
+#### LLMS Advanced Usage
+
+```bash
+# Advanced language filtering
+node packages/llms-generator/dist/cli/index.js sync-docs --languages ko,en --changed-files files...
+node packages/llms-generator/dist/cli/index.js sync-docs --only-korean --changed-files files...
+node packages/llms-generator/dist/cli/index.js sync-docs --no-korean --changed-files files...
+
+# Custom priority criteria
+node packages/llms-generator/dist/cli/index.js priority-auto --criteria ./custom-criteria.json --force
+
+# Language-specific work management
+node packages/llms-generator/dist/cli/index.js work-next --language ko --verbose
+node packages/llms-generator/dist/cli/index.js work-next --language en --verbose
+
+# Dry run and testing
+node packages/llms-generator/dist/cli/index.js sync-docs --dry-run --changed-files files...
+```
+
+#### Automated Workflow (Post-commit Hook)
+
+The LLMS Generator system automatically processes documentation changes via a post-commit hook:
+
+1. **Detection**: Automatically detects changes in `docs/(en|ko)/**/*.md` files
+2. **Processing**: Generates 7 character-limited templates (100, 200, 300, 500, 1000, 2000, 5000 chars)
+3. **Metadata**: Creates `priority.json` with title extraction, language detection, and tag generation
+4. **Commit**: Creates separate commits for LLMS files to maintain clean history
+5. **Language Support**: Full English and Korean processing with intelligent language detection
+
+**Generated Structure:**
+```
+llmsData/
+├── en/guide/
+│   ├── example-100.md          # 100 character summary
+│   ├── example-500.md          # 500 character summary
+│   ├── example-5000.md         # 5000 character summary
+│   └── example-priority.json   # Priority metadata
+└── ko/guide/
+    ├── example-100.md          # 100자 요약
+    ├── example-500.md          # 500자 요약
+    ├── example-5000.md         # 5000자 요약
+    └── example-priority.json   # 우선순위 메타데이터
 ```
 
 ### Example Application
