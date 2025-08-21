@@ -487,20 +487,14 @@ export class SyncDocsCommand {
         'llmsData/'
       ];
 
-      for (const pattern of filesToAdd) {
-        try {
-          await execAsync(`git add ${pattern}`, { cwd: process.cwd() });
-        } catch {
-          // 파일이 없어도 에러 무시
-        }
-      }
-
+      // Git staging is now handled by post-commit hook for cleaner separation
+      
       if (!quiet) {
-        console.log(`📦 Added ${updatedFiles.length} updated file(s) to git staging`);
+        console.log(`📝 Generated ${updatedFiles.length} updated file(s) (staging handled by post-commit hook)`);
       }
     } catch (error) {
       if (!quiet) {
-        console.warn('⚠️  Warning: Could not update git staging:', error instanceof Error ? error.message : error);
+        console.warn('⚠️  Warning: Could not process files:', error instanceof Error ? error.message : error);
       }
     }
   }

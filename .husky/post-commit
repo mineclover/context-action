@@ -1,0 +1,35 @@
+#!/bin/sh
+
+# Get list of modified markdown files from the last commit
+MODIFIED_DOCS=$(git diff --name-only HEAD~1 HEAD | grep -E '^docs/(en|ko)/.*\.md$' | grep -v llms/ || true)
+
+# Check if llmsData directory exists and has been initialized
+if [ -d "llmsData" ] && [ -n "$MODIFIED_DOCS" ]; then
+  echo "📝 Documentation files were modified in last commit. Updating LLM work status..."
+  
+  # Run the llms-generator sync-docs command
+  node packages/llms-generator/dist/cli/index.js sync-docs --changed-files $MODIFIED_DOCS --quiet
+  
+  # Check if any files were actually updated by trying to add them (force to override .gitignore)
+  git add --force llmsData/ 2>/dev/null || true
+  LLMS_CHANGES=$(git status --porcelain 2>/dev/null | grep -E "^(A|M|D).*llmsData/" || true)
+  
+  if [ -n "$LLMS_CHANGES" ]; then
+    echo "🔄 Creating separate commit for LLM work status updates..."
+    # Files already staged above, just commit them
+    git commit -m "chore(llms): auto-sync documentation changes
+
+Generated summaries and priority updates for:
+$(echo "$MODIFIED_DOCS" | sed 's/^/- /')
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>" --no-verify
+    
+    echo "✅ LLM work status updated in separate commit"
+  else
+    echo "ℹ️  No LLM updates needed"
+  fi
+elif [ -n "$MODIFIED_DOCS" ] && [ ! -d "llmsData" ]; then
+  echo "ℹ️  Documentation files modified, but llmsData/ not initialized. Run 'pnpm llms:init' to enable LLM sync."
+fi
