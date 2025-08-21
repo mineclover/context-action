@@ -351,14 +351,14 @@ export class SyncDocsCommand {
   }
 
   private getPriorityJsonPath(change: DocumentChange): string {
-    const docsDir = this.config.paths?.docsDir || './docs';
-    return path.join(docsDir, change.language, 'llms', change.category, `${path.basename(change.filePath, '.md')}-priority.json`);
+    const llmsDataDir = this.config.paths?.llmContentDir || './llmsData';
+    return path.join(llmsDataDir, change.language, change.category, `${path.basename(change.filePath, '.md')}-priority.json`);
   }
   
   private getTemplatePath(change: DocumentChange, characterLimit: number): string {
-    const docsDir = this.config.paths?.docsDir || './docs';
+    const llmsDataDir = this.config.paths?.llmContentDir || './llmsData';
     const fileName = path.basename(change.filePath, '.md');
-    return path.join(docsDir, change.language, 'llms', change.category, `${fileName}-${characterLimit}.md`);
+    return path.join(llmsDataDir, change.language, change.category, `${fileName}-${characterLimit}.md`);
   }
   
   private extractTitle(content: string): string | null {
@@ -484,8 +484,7 @@ export class SyncDocsCommand {
     try {
       // 업데이트된 파일들을 Git 스테이징에 추가
       const filesToAdd = [
-        'packages/llms-generator/data/',
-        'docs/*/llms/'
+        'llmsData/'
       ];
 
       for (const pattern of filesToAdd) {
