@@ -15,3 +15,7 @@ The sync should detect this change and create a separate commit.
 
 Adding more content to force a meaningful change that should trigger LLMS updates.
 This should definitely create changes in the llmsData directory.
+
+## Final Test
+
+After removing auto-staging from SyncDocsCommand, this should now create a separate commit for LLMS updates.
