@@ -8,7 +8,7 @@ This document has been modified to test:
 1. Priority JSON generation
 2. Template creation  
 3. Documentation synchronization
-4. **NEW: Automatic update propagation**
+4. **UPDATED: Manual commit workflow (no auto-commit)**
 
 ## Features
 
