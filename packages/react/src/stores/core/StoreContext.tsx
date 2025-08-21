@@ -24,19 +24,7 @@ const CONTEXT_ERRORS = {
  * @param name - StoreRegistry 인스턴스 이름
  * @returns Provider 컴포넌트와 훅들을 포함한 객체
  * 
- * @example
- * ```typescript
- * // 독립적인 Store 영역 생성
- * const FeatureContext = createStoreContext('feature');
- * 
- * function FeatureApp() {
- *   return (
- *     <FeatureContext.Provider>
- *       <FeatureComponent />
- *     </FeatureContext.Provider>
- *   );
- * }
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-config#isolated-contexts
  */
 export function createStoreContext(name?: string): StoreContextReturn {
   const StoreContext = createContext<StoreContextType | null>(null);
@@ -100,23 +88,7 @@ export function createStoreContext(name?: string): StoreContextReturn {
 
 /**
  * Default app-level store context
- * @example
- * ```typescript
- * import { StoreProvider, useStoreRegistry } from '@context-action/react';
- * 
- * function App() {
- *   return (
- *     <StoreProvider>
- *       <MyComponent />
- *     </StoreProvider>
- *   );
- * }
- * 
- * function MyComponent() {
- *   const registry = useStoreRegistry();
- *   // Use registry...
- * }
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage#store-provider
  */
 const defaultStoreContext = createStoreContext('app');
 

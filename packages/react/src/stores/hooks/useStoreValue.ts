@@ -22,55 +22,9 @@ export function assertStoreValue<T>(value: T | undefined, storeName: string): T 
  * intelligent subscription management, selective updates, debouncing, throttling,
  * and conditional subscription. Follows React best practices and hooks rules.
  * 
- * @example Basic Store Subscription
- * ```typescript
- * const counterStore = createStore('counter', 0)
- * const count = useStoreValue(counterStore) // Re-renders only when value actually changes
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  * 
- * @example Selective Subscription
- * ```typescript
- * const userStore = createStore('user', { 
- *   id: '1', 
- *   name: 'John', 
- *   email: 'john@example.com' 
- * })
- * 
- * // Only re-renders when name changes, ignores email/id changes
- * const userName = useStoreValue(userStore, user => user.name)
- * ```
- * 
- * @example Shallow Comparison for Objects
- * ```typescript
- * const profileStore = createStore('profile', { 
- *   name: 'John', 
- *   settings: { theme: 'dark' } 
- * })
- * 
- * // Uses shallow comparison to prevent unnecessary re-renders
- * const profile = useStoreValue(profileStore, user => user, shallowEqual)
- * ```
- * 
- * @example Conditional Subscription
- * ```typescript
- * const dataStore = createStore('data', { items: [] })
- * 
- * // Only subscribes when shouldSubscribe is true
- * const items = useStoreValue(dataStore, data => data.items, {
- *   lazy: true,
- *   condition: () => shouldSubscribe
- * })
- * ```
- * 
- * @example Debounced Subscription
- * ```typescript
- * const searchStore = createStore('search', { query: '', results: [] })
- * 
- * // Groups rapid changes together with 300ms debounce
- * const debouncedQuery = useStoreValue(searchStore, search => search.query, {
- *   debounce: 300
- * })
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-hooks
  * 
  * @public
  */
@@ -83,17 +37,7 @@ export function assertStoreValue<T>(value: T | undefined, storeName: string): T 
  * 
  * @template R - The type of the selected/computed value
  * 
- * @example
- * ```typescript
- * const options: StoreValueOptions<string> = {
- *   equalityFn: (a, b) => a.trim() === b.trim(),
- *   lazy: true,
- *   condition: () => isActive,
- *   debounce: 300,
- *   debug: true,
- *   name: 'searchQuery'
- * }
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-hooks#performance-best-practices
  * 
  * @public
  */
@@ -307,43 +251,9 @@ export function useStoreValue<T, R>(
  * 
  * @returns Object with selected values, or undefined if store is undefined
  * 
- * @example Basic Multi-Selection
- * ```typescript
- * const userStore = createStore('user', { 
- *   id: '1', 
- *   name: 'John', 
- *   email: 'john@example.com',
- *   settings: { theme: 'dark', notifications: true }
- * })
- * 
- * const { name, theme } = useStoreValues(userStore, {
- *   name: user => user.name,
- *   theme: user => user.settings.theme
- * })
- * 
- * // Component only re-renders when name or theme changes
- * // Changes to email or settings.notifications are ignored
- * ```
- * 
- * @example Complex Selections
- * ```typescript
- * const appStore = createStore('app', {
- *   user: { name: 'John', role: 'admin' },
- *   ui: { sidebar: true, theme: 'dark' },
- *   data: { items: [], loading: false }
- * })
- * 
- * const { userName, isAdmin, itemCount, isDark } = useStoreValues(appStore, {
- *   userName: app => app.user.name,
- *   isAdmin: app => app.user.role === 'admin',
- *   itemCount: app => app.data.items.length,
- *   isDark: app => app.ui.theme === 'dark'
- * })
- * ```
- * 
- * @example Conditional Usage
- * ```typescript\n * // Safe to use with potentially undefined stores
- * const result = useStoreValues(maybeUndefinedStore, {\n *   value1: data => data.field1,\n *   value2: data => data.field2\n * })\n * \n * if (result) {\n *   const { value1, value2 } = result\n *   // Use selected values\n * }\n * ```\n * \n * @public\n */
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-hooks#usestoreselector-advanced-usage
+ *
+ * @public\n */
 export function useStoreValues<T, S extends Record<string, (value: T) => any>>(
   store: Store<T> | undefined | null,
   selectors: S

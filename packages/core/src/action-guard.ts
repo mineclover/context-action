@@ -4,6 +4,8 @@
  * Provides rate limiting and user experience optimization for actions through
  * debouncing (wait for pause) and throttling (limit frequency) mechanisms.
  * Used internally by ActionRegister to control action execution timing.
+ * 
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/action/
  */
 
 
@@ -43,33 +45,9 @@ interface GuardState {
  * debouncing and throttling mechanisms. Debouncing waits for a pause in calls
  * before executing, while throttling limits execution frequency.
  * 
- * @example Debouncing Search Input
- * ```typescript
- * const guard = new ActionGuard()
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
  * 
- * // Wait 300ms after user stops typing before searching
- * register.register('searchUsers', async (payload, controller) => {
- *   const query = payload.query
- *   if (query.length < 2) return
- *   
- *   const results = await userService.search(query)
- *   controller.setResult(results)
- * }, {
- *   debounce: 300,  // Built into ActionRegister via ActionGuard
- *   tags: ['search', 'user-input']
- * })
- * ```
- * 
- * @example Throttling High-Frequency Events
- * ```typescript
- * // Limit scroll position updates to once per 100ms
- * register.register('updateScrollPosition', (payload, controller) => {
- *   scrollState.setValue(payload.position)
- * }, {
- *   throttle: 100,  // Built into ActionRegister via ActionGuard
- *   tags: ['scroll', 'performance']
- * })
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
  * 
  * @example Manual Usage (Advanced)
  * ```typescript

@@ -59,95 +59,9 @@ export interface ActionContextReturn<T extends {}> {
  * @param config - Configuration options for the ActionRegister
  * @returns Object containing Provider, hooks, and utility functions
  * 
- * @example
- * ```typescript
- * interface MyActions extends ActionPayloadMap {
- *   login: { username: string; password: string };
- *   logout: void;
- * }
- * 
- * const { 
- *   Provider, 
- *   useAction, 
- *   useActionHandler, 
- *   useActionWithResult 
- * } = createActionContext<MyActions>({
- *   name: 'AuthActions'
- * });
- * 
- * function AuthComponent() {
- *   const dispatch = useAction();
- *   const dispatchWithResult = useActionWithResult();
- *   
- *   useActionHandler('login', async ({ username, password }) => {
- *     // Handle login logic
- *     return { success: true, userId: '123' };
- *   });
- *   
- *   const handleLogin = async () => {
- *     const result = await dispatchWithResult('login', 
- *       { username: 'user', password: 'pass' }, 
- *       { result: { collect: true } }
- *     );
- *     console.log('Login result:', result.results);
- *   };
- *   
- *   return (
- *     <div>
- *       <button onClick={handleLogin}>
- *         Login with Result
- *       </button>
- *       <button onClick={() => dispatch('login', { username: 'user', password: 'pass' })}>
- *         Login (no result)
- *       </button>
- *     </div>
- *   );
- * }
- * 
- * // Alternative: Using useActionRegister for direct ActionRegister access
- * function AuthComponentAlt() {
- *   const dispatch = useAction();
- *   const register = useActionRegister();
- *   
- *   useEffect(() => {
- *     if (!register) return;
- *     
- *     // Clear existing handlers if needed
- *     register.clearAction('login');
- *     
- *     // Register handlers with full control
- *     const unregisterLogin = register.register('login', async ({ username, password }) => {
- *       // Handle login logic
- *     }, { priority: 100 });
- *     
- *     // Can also use dispatchWithResult directly from register
- *     const handleLoginWithResult = async () => {
- *       const result = await register.dispatchWithResult('login', 
- *         { username: 'user', password: 'pass' }
- *       );
- *       console.log('Login result:', result);
- *     };
- *     
- *     return () => {
- *       unregisterLogin();
- *     };
- *   }, [register]);
- *   
- *   return (
- *     <button onClick={() => dispatch('login', { username: 'user', password: 'pass' })}>
- *       Login
- *     </button>
- *   );
- * }
- * 
- * function App() {
- *   return (
- *     <Provider>
- *       <AuthComponent />
- *     </Provider>
- *   );
- * }
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/action/
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/action/register-delegation
  */
 // === UNIFIED ACTION CONTEXT SYSTEM ===
 // Factory-based action context with built-in abort support
@@ -291,31 +205,7 @@ export function createActionContext<T extends {}>(
    * 
    * @returns ActionRegister instance or null if not initialized
    * 
-   * @example
-   * ```typescript
-   * function MyComponent() {
-   *   const register = useActionRegister();
-   *   
-   *   useEffect(() => {
-   *     if (!register) return;
-   *     
-   *     // Clear all handlers for an action
-   *     register.clearAction('myAction');
-   *     
-   *     // Register multiple handlers
-   *     const unregister1 = register.register('myAction', handler1, { priority: 100 });
-   *     const unregister2 = register.register('myAction', handler2, { priority: 50 });
-   *     
-   *     // Access other methods
-   *     const handlers = register.getHandlers('myAction');
-   *     
-   *     return () => {
-   *       unregister1();
-   *       unregister2();
-   *     };
-   *   }, [register]);
-   * }
-   * ```
+   * @see https://mineclover.github.io/context-action/en/guide/patterns/action/register-delegation
    */
   const useFactoryActionRegister = (): ActionRegister<T> | null => {
     const context = useFactoryActionContext();
@@ -332,28 +222,7 @@ export function createActionContext<T extends {}>(
    * 
    * @returns dispatchWithResult function with full type safety
    * 
-   * @example
-   * ```typescript
-   * function MyComponent() {
-   *   const dispatchWithResult = useActionWithResult();
-   *   
-   *   const handleAction = async () => {
-   *     const result = await dispatchWithResult('myAction', { data: 'test' }, {
-   *       result: { 
-   *         collect: true, 
-   *         strategy: 'all' 
-   *       },
-   *       filter: { 
-   *         tags: ['important'] 
-   *       }
-   *     });
-   *     
-   *     console.log('Execution successful:', result.success);
-   *     console.log('Results:', result.results);
-   *     console.log('Duration:', result.execution.duration);
-   *   };
-   * }
-   * ```
+   * @see https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
    */
 
   // Hook for enhanced dispatch with abort control

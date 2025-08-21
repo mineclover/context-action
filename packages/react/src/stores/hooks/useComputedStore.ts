@@ -22,18 +22,7 @@ import { defaultEqualityFn } from './useStoreSelector';
  * 
  * @template R - Type of the computed value
  * 
- * @example
- * ```typescript
- * const config: ComputedStoreConfig<UserSummary> = {
- *   equalityFn: shallowEqual,
- *   debug: true,
- *   name: 'userSummary',
- *   debounceMs: 300,
- *   enableCache: true,
- *   cacheSize: 50,
- *   onError: (error) => console.error('Computation failed:', error)
- * }
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-hooks#performance-optimized-with-caching
  * 
  * @public
  */
@@ -79,60 +68,7 @@ export interface ComputedStoreConfig<R> {
  * 
  * @returns The computed value that updates when source store changes
  * 
- * @example Basic Computed Value
- * ```typescript
- * const userStore = createStore('user', { 
- *   firstName: 'John', 
- *   lastName: 'Doe', 
- *   age: 30 
- * })
- * 
- * // Simple string computation
- * const fullName = useComputedStore(
- *   userStore,
- *   user => `${user.firstName} ${user.lastName}`
- * )
- * 
- * // Component re-renders only when fullName actually changes
- * function UserGreeting() {
- *   return <div>Hello, {fullName}!</div>
- * }
- * ```
- * 
- * @example Complex Computed Object
- * ```typescript
- * const userSummary = useComputedStore(
- *   userStore,
- *   user => ({
- *     displayName: user.firstName,
- *     initials: `${user.firstName[0]}${user.lastName[0]}`,
- *     isAdult: user.age >= 18,
- *     category: user.age < 18 ? 'minor' : user.age < 65 ? 'adult' : 'senior'
- *   }),
- *   {
- *     equalityFn: shallowEqual,  // Prevent re-renders for same object shape
- *     debug: true,               // Log computation timing
- *     name: 'userSummary'        // Name for debugging
- *   }
- * )
- * ```
- * 
- * @example Performance Optimized with Caching
- * ```typescript
- * const expensiveComputation = useComputedStore(
- *   dataStore,
- *   data => performHeavyCalculation(data),
- *   {
- *     enableCache: true,         // Cache results for repeated inputs
- *     cacheSize: 100,           // Keep last 100 results
- *     debounceMs: 300,          // Wait 300ms after changes
- *     onError: (error) => {     // Handle computation errors
- *       console.error('Computation failed:', error)
- *       notifyUser('Calculation error occurred')
- *     }
- *   }
- * )
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-hooks#usecomputedstore-patterns
  * 
  * @public
  */
@@ -301,29 +237,7 @@ export function useComputedStore<T, R>(
  * @param config 설정 옵션
  * @returns 계산된 값
  * 
- * @example
- * ```typescript
- * const userStore = createStore('user', { name: 'John', age: 30 });
- * const settingsStore = createStore('settings', { currency: 'USD', tax: 0.1 });
- * const cartStore = createStore('cart', { items: [], total: 0 });
- * 
- * // 여러 Store 조합
- * const checkoutSummary = useMultiComputedStore(
- *   [userStore, settingsStore, cartStore],
- *   ([user, settings, cart]) => ({
- *     customerName: user.name,
- *     subtotal: cart.total,
- *     tax: cart.total * settings.tax,
- *     total: cart.total * (1 + settings.tax),
- *     currency: settings.currency,
- *     itemCount: cart.items.length
- *   }),
- *   {
- *     equalityFn: shallowEqual,
- *     name: 'checkoutSummary'
- *   }
- * );
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-hooks#usecomputedstore-patterns
  */
 export function useMultiComputedStore<R>(
   stores: Store<any>[],
@@ -517,32 +431,7 @@ export function useMultiComputedStore<R>(
  * @param config 설정 옵션
  * @returns 계산된 값을 가진 Store 인스턴스
  * 
- * @example
- * ```typescript
- * const userStore = createStore('user', { name: 'John', score: 85 });
- * const settingsStore = createStore('settings', { showBadges: true });
- * 
- * // Computed Store 인스턴스 생성
- * const userBadgeStore = useComputedStoreInstance(
- *   [userStore, settingsStore],
- *   ([user, settings]) => {
- *     if (!settings.showBadges) return null;
- *     
- *     return {
- *       name: user.name,
- *       level: user.score >= 80 ? 'expert' : 'beginner',
- *       badge: user.score >= 90 ? '🏆' : user.score >= 70 ? '🥉' : '📖'
- *     };
- *   },
- *   { name: 'userBadge' }
- * );
- * 
- * // 다른 컴포넌트에서 구독 가능
- * function BadgeDisplay() {
- *   const badge = useStoreValue(userBadgeStore);
- *   return badge ? <div>{badge.badge} {badge.name}</div> : null;
- * }
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-hooks#computed-store-instances
  */
 export function useComputedStoreInstance<R>(
   dependencies: Store<any>[],
@@ -575,24 +464,7 @@ export function useComputedStoreInstance<R>(
 /**
  * 비동기 계산을 지원하는 Computed Store Hook
  * 
- * @example
- * ```typescript
- * const userIdStore = createStore('userId', '123');
- * 
- * const userProfile = useAsyncComputedStore(
- *   [userIdStore],
- *   async ([userId]) => {
- *     if (!userId) return null;
- *     
- *     const response = await fetch(`/api/users/${userId}`);
- *     return response.json();
- *   },
- *   {
- *     initialValue: null,
- *     name: 'userProfile'
- *   }
- * );
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-hooks#async-computed-patterns
  */
 export function useAsyncComputedStore<R>(
   dependencies: Store<any>[],
