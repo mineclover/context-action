@@ -1,0 +1,15 @@
+{
+  "documentId": "ko_concept_react-refs-guide",
+  "title": "React Refs 가이드",
+  "category": "concept",
+  "language": "ko",
+  "priority": 0.5,
+  "tags": [
+    "tsx"
+  ],
+  "lastUpdated": "2025-08-21T01:13:40.145Z",
+  "source": {
+    "file": "docs/ko/concept/react-refs-guide.md",
+    "lastModified": "2025-08-20T14:52:11.922Z"
+  }
+}
