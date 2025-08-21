@@ -11,6 +11,10 @@ export interface SyncDocsOptions {
   quiet?: boolean;           // 조용한 모드
   dryRun?: boolean;          // 미리보기 모드
   force?: boolean;           // 강제 업데이트
+  languages?: string[];      // 처리할 언어 필터 (예: ['en', 'ko'])
+  includeKorean?: boolean;   // 한국어 문서 처리 활성화 (기본: true)
+  onlyKorean?: boolean;      // 한국어 문서만 처리
+  onlyEnglish?: boolean;     // 영어 문서만 처리
 }
 
 export interface DocumentChange {
@@ -33,6 +37,17 @@ export class SyncDocsCommand {
     try {
       if (!options.quiet) {
         console.log('📝 Syncing documentation changes...');
+        
+        // 언어 필터링 정보 출력
+        if (options.onlyKorean) {
+          console.log('🇰🇷 Processing Korean documents only');
+        } else if (options.onlyEnglish) {
+          console.log('🇺🇸 Processing English documents only');
+        } else if (options.languages) {
+          console.log(`🌐 Processing languages: ${options.languages.join(', ')}`);
+        } else if (options.includeKorean === false) {
+          console.log('🇺🇸 Korean document processing disabled');
+        }
       }
 
       // 1. 입력 검증 및 필터링
@@ -40,7 +55,7 @@ export class SyncDocsCommand {
         console.log(`🔍 Input files to analyze: ${options.changedFiles.join(', ')}`);
       }
       
-      const validChangedFiles = await this.validateAndFilterChangedFiles(options.changedFiles);
+      const validChangedFiles = await this.validateAndFilterChangedFiles(options.changedFiles, options);
       
       if (!options.quiet) {
         console.log(`🔍 Valid files after filtering: ${validChangedFiles.join(', ')}`);
@@ -99,7 +114,7 @@ export class SyncDocsCommand {
     }
   }
 
-  private async validateAndFilterChangedFiles(changedFiles: string[]): Promise<string[]> {
+  private async validateAndFilterChangedFiles(changedFiles: string[], options: SyncDocsOptions): Promise<string[]> {
     const validFiles: string[] = [];
 
     for (let filePath of changedFiles) {
@@ -110,9 +125,18 @@ export class SyncDocsCommand {
       }
 
       // docs/(en|ko)/**/*.md 패턴만 처리
-      const isDocFile = /^docs\/(en|ko)\/.*\.md$/.test(filePath);
-      
-      if (!isDocFile) {
+      const docMatch = filePath.match(/^docs\/(en|ko)\/.*\.md$/);
+      if (!docMatch) {
+        continue;
+      }
+
+      const language = docMatch[1]; // 'en' 또는 'ko'
+
+      // 언어 필터링 적용
+      if (!this.shouldProcessLanguage(language, options)) {
+        if (!options.quiet) {
+          console.log(`⏭️  Skipping ${language} document: ${filePath}`);
+        }
         continue;
       }
 
@@ -132,6 +156,31 @@ export class SyncDocsCommand {
     }
 
     return validFiles;
+  }
+
+  private shouldProcessLanguage(language: string, options: SyncDocsOptions): boolean {
+    // 명시적 언어 필터가 있는 경우
+    if (options.languages && options.languages.length > 0) {
+      return options.languages.includes(language);
+    }
+
+    // 한국어만 처리
+    if (options.onlyKorean) {
+      return language === 'ko';
+    }
+
+    // 영어만 처리
+    if (options.onlyEnglish) {
+      return language === 'en';
+    }
+
+    // 한국어 처리 비활성화
+    if (options.includeKorean === false && language === 'ko') {
+      return false;
+    }
+
+    // 기본값: 모든 언어 처리
+    return true;
   }
 
   private async analyzeChanges(validFiles: string[]): Promise<DocumentChange[]> {
