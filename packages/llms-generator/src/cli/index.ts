@@ -19,6 +19,7 @@ import { WorkNextCommand } from './commands/WorkNextCommand.js';
 import { LLMSGenerateCommand } from './commands/LLMSGenerateCommand.js';
 import { GenerateTemplatesCommand } from './commands/GenerateTemplatesCommand.js';
 import { createCleanLLMSGenerateCommand } from './commands/clean-llms-generate.js';
+import { SyncDocsCommand } from './commands/SyncDocsCommand.js';
 import { CLIConfig } from './types/CLITypes.js';
 import { EnhancedConfigManager } from '../core/EnhancedConfigManager.js';
 import { DEFAULT_CONFIG } from '../shared/config/DefaultConfig.js';
@@ -57,6 +58,10 @@ async function main(): Promise<void> {
 
       case 'llms-generate':
         await handleLLMSGenerate(commandArgs, argumentParser);
+        break;
+
+      case 'sync-docs':
+        await handleSyncDocs(commandArgs, argumentParser);
         break;
 
       default:
@@ -125,6 +130,23 @@ async function handleLLMSGenerate(args: string[], argumentParser: ArgumentParser
   };
 
   await llmsGenerateCommand.execute(options);
+}
+
+async function handleSyncDocs(args: string[], argumentParser: ArgumentParser): Promise<void> {
+  const config = await loadEnhancedConfig();
+  const syncDocsCommand = new SyncDocsCommand(config);
+  
+  const changedFilesStr = argumentParser.extractFlag(args, '--changed-files');
+  const changedFiles = changedFilesStr ? changedFilesStr.split(',').map(f => f.trim()) : [];
+  
+  const options = {
+    changedFiles,
+    quiet: argumentParser.hasFlag(args, '--quiet'),
+    dryRun: argumentParser.hasFlag(args, '--dry-run'),
+    force: argumentParser.hasFlag(args, '--force')
+  };
+
+  await syncDocsCommand.execute(options);
 }
 
 async function loadConfig(): Promise<CLIConfig> {
