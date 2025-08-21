@@ -10,13 +10,12 @@ if [ -d "llmsData" ] && [ -n "$MODIFIED_DOCS" ]; then
   # Run the llms-generator sync-docs command
   node packages/llms-generator/dist/cli/index.js sync-docs --changed-files $MODIFIED_DOCS --quiet
   
-  # Check if any files were actually updated by trying to add them (force to override .gitignore)
-  git add --force llmsData/ 2>/dev/null || true
-  LLMS_CHANGES=$(git status --porcelain 2>/dev/null | grep -E "^(A|M|D).*llmsData/" || true)
+  # Check if any files were actually updated
+  LLMS_CHANGES=$(git status --porcelain llmsData/ 2>/dev/null || true)
   
   if [ -n "$LLMS_CHANGES" ]; then
     echo "🔄 Creating separate commit for LLM work status updates..."
-    # Files already staged above, just commit them
+    git add llmsData/
     git commit -m "chore(llms): auto-sync documentation changes
 
 Generated summaries and priority updates for:

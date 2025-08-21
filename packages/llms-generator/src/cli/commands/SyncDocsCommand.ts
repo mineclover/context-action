@@ -487,10 +487,10 @@ export class SyncDocsCommand {
         'llmsData/'
       ];
 
-      // Git staging is now handled by post-commit hook for cleaner separation
+      // Note: Git staging will be handled by post-commit hook
       
       if (!quiet) {
-        console.log(`📝 Generated ${updatedFiles.length} updated file(s) (staging handled by post-commit hook)`);
+        console.log(`📝 Generated ${updatedFiles.length} updated file(s)`);
       }
     } catch (error) {
       if (!quiet) {
