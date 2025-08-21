@@ -1,0 +1,17 @@
+{
+  "documentId": "en_guide_llms-architecture-guide",
+  "title": "LLMS Generator - Architecture & Implementation Guide",
+  "category": "guide",
+  "language": "en",
+  "priority": 0.5,
+  "tags": [
+    "typescript",
+    "bash",
+    "yaml"
+  ],
+  "lastUpdated": "2025-08-21T11:43:44.650Z",
+  "source": {
+    "file": "docs/en/guide/llms-architecture-guide.md",
+    "lastModified": "2025-08-21T11:42:59.819Z"
+  }
+}
