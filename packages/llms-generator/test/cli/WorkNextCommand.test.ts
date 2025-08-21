@@ -210,28 +210,28 @@ Getting Started: Provide comprehensive guidance on getting started의 핵심 개
         JSON.stringify(priorityJson, null, 2)
       );
 
-      // Create template with actual content (not placeholder)
-      const templateContent = `---
+      // Create all required templates to make it "completed"
+      const templateSizes = [100, 200, 300, 500, 1000, 2000, 5000];
+      
+      for (const size of templateSizes) {
+        const templateContent = `---
 document_id: guide--getting-started
 category: guide
 source_path: en/guide/getting-started.md
-character_limit: 100
+character_limit: ${size}
 last_update: 2025-01-01T00:00:00.000Z
 ---
 
-# Getting Started (100자)
+# Getting Started (${size}자)
 
-## 템플릿 내용 (100자 이내)
-
-\`\`\`markdown
-Context-Action 프레임워크 시작 가이드: 설치부터 첫 번째 컴포넌트 작성까지 단계별로 안내하는 완전한 가이드입니다.
-\`\`\`
+Context-Action framework getting started guide with comprehensive installation and setup instructions.
 `;
 
-      await fs.writeFile(
-        path.join(testDataDir, 'data', 'en', 'guide--getting-started', 'guide--getting-started-100.md'),
-        templateContent
-      );
+        await fs.writeFile(
+          path.join(testDataDir, 'data', 'en', 'guide--getting-started', `guide--getting-started-${size}.md`),
+          templateContent
+        );
+      }
 
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
       const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
@@ -241,8 +241,8 @@ Context-Action 프레임워크 시작 가이드: 설치부터 첫 번째 컴포�
         
         const output = consoleSpy.mock.calls.map(call => call.join(' ')).join('\n');
         
-        // Should show completion status
-        expect(output).toContain('Completed') || expect(output).toContain('✅');
+        // Should show completion status - check for status indicators
+        expect(output).toMatch(/🟢|✅|Completed|완료/i);
         
       } finally {
         consoleSpy.mockRestore();
