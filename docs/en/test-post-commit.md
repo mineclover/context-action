@@ -19,3 +19,7 @@ This should definitely create changes in the llmsData directory.
 ## Final Test
 
 After removing auto-staging from SyncDocsCommand, this should now create a separate commit for LLMS updates.
+
+## Testing Staged Detection
+
+This change should trigger the improved detection logic that properly handles .gitignored files.
