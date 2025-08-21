@@ -12,4 +12,4 @@ workflow_stage: content_generated
 ---
 Action Handlers
 
-Action handlers contain the business logic of your application.
+Business logic with useActionHandler pattern. Sequential/parallel execution, error handling, cleanup.

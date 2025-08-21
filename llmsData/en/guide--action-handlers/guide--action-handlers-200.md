@@ -12,4 +12,4 @@ workflow_stage: content_generated
 ---
 Action Handlers
 
-Action handlers contain the business logic of your application. Learn how to implement, register, and manage handlers effectively for scalable, maintainable applications.
+Business logic implementation using useActionHandler + useEffect pattern. Features priority-based execution, error handling with controller methods, and proper cleanup for memory management.
