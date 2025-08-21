@@ -20,6 +20,7 @@ import { LLMSGenerateCommand } from './commands/LLMSGenerateCommand.js';
 import { GenerateTemplatesCommand } from './commands/GenerateTemplatesCommand.js';
 import { createCleanLLMSGenerateCommand } from './commands/clean-llms-generate.js';
 import { SyncDocsCommand } from './commands/SyncDocsCommand.js';
+import { InitCommand } from './commands/InitCommand.js';
 import { CLIConfig } from './types/CLITypes.js';
 import { EnhancedConfigManager } from '../core/EnhancedConfigManager.js';
 import { DEFAULT_CONFIG } from '../shared/config/DefaultConfig.js';
@@ -44,6 +45,10 @@ async function main(): Promise<void> {
 
     // Direct command routing
     switch (command) {
+      case 'init':
+        await handleInit(commandArgs, argumentParser);
+        break;
+
       case 'work-next':
         await handleWorkNext(commandArgs, argumentParser);
         break;
@@ -147,6 +152,22 @@ async function handleSyncDocs(args: string[], argumentParser: ArgumentParser): P
   };
 
   await syncDocsCommand.execute(options);
+}
+
+async function handleInit(args: string[], argumentParser: ArgumentParser): Promise<void> {
+  const config = await loadConfig();
+  const initCommand = new InitCommand(config);
+  
+  const options = {
+    dryRun: argumentParser.hasFlag(args, '--dry-run'),
+    overwrite: argumentParser.hasFlag(args, '--overwrite'),
+    quiet: argumentParser.hasFlag(args, '--quiet'),
+    skipPriority: argumentParser.hasFlag(args, '--skip-priority'),
+    skipTemplates: argumentParser.hasFlag(args, '--skip-templates'),
+    language: argumentParser.extractFlag(args, '-l', '--language')
+  };
+
+  await initCommand.execute(options);
 }
 
 async function loadConfig(): Promise<CLIConfig> {
