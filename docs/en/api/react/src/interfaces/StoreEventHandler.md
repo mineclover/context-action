@@ -6,7 +6,7 @@
 
 # Interface: StoreEventHandler()\<T\>
 
-Defined in: [packages/react/src/stores/core/types.ts:184](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L184)
+Defined in: [packages/react/src/stores/core/types.ts:147](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L147)
 
 ## Type Parameters
 
@@ -16,7 +16,7 @@ Defined in: [packages/react/src/stores/core/types.ts:184](https://github.com/min
 
 > **StoreEventHandler**(`data`): `void`
 
-Defined in: [packages/react/src/stores/core/types.ts:185](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L185)
+Defined in: [packages/react/src/stores/core/types.ts:148](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L148)
 
 ## Parameters
 

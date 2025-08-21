@@ -6,7 +6,7 @@
 
 # Interface: StoreContextType
 
-Defined in: [packages/react/src/stores/core/types.ts:210](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L210)
+Defined in: [packages/react/src/stores/core/types.ts:173](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L173)
 
 ## Properties
 
@@ -14,4 +14,4 @@ Defined in: [packages/react/src/stores/core/types.ts:210](https://github.com/min
 
 > **storeRegistryRef**: `RefObject`\<[`IStoreRegistry`](IStoreRegistry.md)\>
 
-Defined in: [packages/react/src/stores/core/types.ts:211](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L211)
+Defined in: [packages/react/src/stores/core/types.ts:174](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L174)

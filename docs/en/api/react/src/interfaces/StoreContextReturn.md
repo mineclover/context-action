@@ -6,7 +6,7 @@
 
 # Interface: StoreContextReturn
 
-Defined in: [packages/react/src/stores/core/types.ts:214](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L214)
+Defined in: [packages/react/src/stores/core/types.ts:177](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L177)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/react/src/stores/core/types.ts:214](https://github.com/min
 
 > **Provider**: `FC`\<\{ `children`: `ReactNode`; \}\>
 
-Defined in: [packages/react/src/stores/core/types.ts:215](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L215)
+Defined in: [packages/react/src/stores/core/types.ts:178](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L178)
 
 ***
 
@@ -22,7 +22,7 @@ Defined in: [packages/react/src/stores/core/types.ts:215](https://github.com/min
 
 > **useStoreContext**: () => [`StoreContextType`](StoreContextType.md)
 
-Defined in: [packages/react/src/stores/core/types.ts:216](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L216)
+Defined in: [packages/react/src/stores/core/types.ts:179](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L179)
 
 #### Returns
 
@@ -34,7 +34,7 @@ Defined in: [packages/react/src/stores/core/types.ts:216](https://github.com/min
 
 > **useStoreRegistry**: () => [`IStoreRegistry`](IStoreRegistry.md)
 
-Defined in: [packages/react/src/stores/core/types.ts:217](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L217)
+Defined in: [packages/react/src/stores/core/types.ts:180](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L180)
 
 #### Returns
 

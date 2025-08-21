@@ -8,7 +8,7 @@
 
 > **useStoreValues**\<`T`, `S`\>(`store`, `selectors`): `undefined` \| \{ \[K in string \| number \| symbol\]: ReturnType\<S\[K\]\> \}
 
-Defined in: [packages/react/src/stores/hooks/useStoreValue.ts:347](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/hooks/useStoreValue.ts#L347)
+Defined in: [packages/react/src/stores/hooks/useStoreValue.ts:257](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/hooks/useStoreValue.ts#L257)
 
 Hook for selecting multiple values from a store with optimized re-renders
 
@@ -50,39 +50,8 @@ Object mapping result keys to selector functions
 
 Object with selected values, or undefined if store is undefined
 
-## Examples
+## See
 
-```typescript
-const userStore = createStore('user', { 
-  id: '1', 
-  name: 'John', 
-  email: 'john@example.com',
-  settings: { theme: 'dark', notifications: true }
-})
+https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-hooks#usestoreselector-advanced-usage
 
-const { name, theme } = useStoreValues(userStore, {
-  name: user => user.name,
-  theme: user => user.settings.theme
-})
-
-// Component only re-renders when name or theme changes
-// Changes to email or settings.notifications are ignored
-```
-
-```typescript
-const appStore = createStore('app', {
-  user: { name: 'John', role: 'admin' },
-  ui: { sidebar: true, theme: 'dark' },
-  data: { items: [], loading: false }
-})
-
-const { userName, isAdmin, itemCount, isDark } = useStoreValues(appStore, {
-  userName: app => app.user.name,
-  isAdmin: app => app.user.role === 'admin',
-  itemCount: app => app.data.items.length,
-  isDark: app => app.ui.theme === 'dark'
-})
-```
-
-```typescript\n * // Safe to use with potentially undefined stores
-const result = useStoreValues(maybeUndefinedStore, {\n *   value1: data => data.field1,\n *   value2: data => data.field2\n * })\n * \n * if (result) {\n *   const { value1, value2 } = result\n *   // Use selected values\n * }\n * ```\n * \n * @public\n
+@public\n

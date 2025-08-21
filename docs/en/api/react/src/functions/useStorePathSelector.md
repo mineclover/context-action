@@ -8,7 +8,7 @@
 
 > **useStorePathSelector**&lt;`T`&gt;(`store`, `path`, `equalityFn`): `any`
 
-Defined in: [packages/react/src/stores/hooks/useStoreSelector.ts:357](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/hooks/useStoreSelector.ts#L357)
+Defined in: [packages/react/src/stores/hooks/useStoreSelector.ts:272](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/hooks/useStoreSelector.ts#L272)
 
 Store의 깊은 경로에 있는 값을 선택적으로 구독하는 유틸리티 Hook
 
@@ -46,18 +46,6 @@ Store의 값 타입
 
 경로에 있는 값
 
-## Example
+## See
 
-```typescript
-const appStore = createStore('app', {
-  user: {
-    profile: { name: 'John', email: 'john@example.com' },
-    settings: { theme: 'dark' }
-  },
-  ui: { isLoading: false }
-});
-
-// 깊은 경로의 값 선택
-const userName = useStorePathSelector(appStore, ['user', 'profile', 'name']);
-const userTheme = useStorePathSelector(appStore, ['user', 'settings', 'theme']);
-```
+https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-hooks#path-based-selection

@@ -8,7 +8,7 @@
 
 > **useStore**\<`T`, `R`\>(`store`, `config?`): `R`
 
-Defined in: [packages/react/src/stores/utils/store-selector.ts:52](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/utils/store-selector.ts#L52)
+Defined in: [packages/react/src/stores/utils/store-selector.ts:41](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/utils/store-selector.ts#L41)
 
 Store Selector Hook - 선택적 데이터 구독
 
@@ -69,16 +69,6 @@ core-concepts
 
 핵심 기능: selector를 사용하여 Store의 특정 부분만 구독하고 반환
 
-## Example
+## See
 
-```typescript
-// 사용자 이름만 구독
-const userName = useStoreSelector(userStore, { 
-  selector: snapshot => snapshot.value.name 
-});
-
-// 계산된 값 구독
-const totalPrice = useStoreSelector(cartStore, {
-  selector: snapshot => snapshot.value.items.reduce((sum, item) => sum + item.price, 0)
-});
-```
+https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-hooks#selective-subscriptions

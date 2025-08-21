@@ -8,7 +8,7 @@
 
 > **useComputedStore**\<`T`, `R`\>(`store`, `compute`, `config`): `R`
 
-Defined in: [packages/react/src/stores/hooks/useComputedStore.ts:139](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/hooks/useComputedStore.ts#L139)
+Defined in: [packages/react/src/stores/hooks/useComputedStore.ts:75](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/hooks/useComputedStore.ts#L75)
 
 Hook for computed store based on a single source store
 
@@ -56,56 +56,6 @@ Type parameter **R**
 
 The computed value that updates when source store changes
 
-## Examples
+## See
 
-```typescript
-const userStore = createStore('user', { 
-  firstName: 'John', 
-  lastName: 'Doe', 
-  age: 30 
-})
-
-// Simple string computation
-const fullName = useComputedStore(
-  userStore,
-  user => `${user.firstName} ${user.lastName}`
-)
-
-// Component re-renders only when fullName actually changes
-function UserGreeting() {
-  return <div>Hello, {fullName}!</div>
-}
-```
-
-```typescript
-const userSummary = useComputedStore(
-  userStore,
-  user => ({
-    displayName: user.firstName,
-    initials: `${user.firstName[0]}${user.lastName[0]}`,
-    isAdult: user.age >= 18,
-    category: user.age < 18 ? 'minor' : user.age < 65 ? 'adult' : 'senior'
-  }),
-  {
-    equalityFn: shallowEqual,  // Prevent re-renders for same object shape
-    debug: true,               // Log computation timing
-    name: 'userSummary'        // Name for debugging
-  }
-)
-```
-
-```typescript
-const expensiveComputation = useComputedStore(
-  dataStore,
-  data => performHeavyCalculation(data),
-  {
-    enableCache: true,         // Cache results for repeated inputs
-    cacheSize: 100,           // Keep last 100 results
-    debounceMs: 300,          // Wait 300ms after changes
-    onError: (error) => {     // Handle computation errors
-      console.error('Computation failed:', error)
-      notifyUser('Calculation error occurred')
-    }
-  }
-)
-```
+https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-hooks#usecomputedstore-patterns

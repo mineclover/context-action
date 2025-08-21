@@ -19,10 +19,6 @@
 - [ActionContextConfig](interfaces/ActionContextConfig.md)
 - [ActionContextType](interfaces/ActionContextType.md)
 - [ActionContextReturn](interfaces/ActionContextReturn.md)
-- [SimpleActionContextReturn](interfaces/SimpleActionContextReturn.md)
-- [ActionRefDefinitions](interfaces/ActionRefDefinitions.md)
-- [DeclarativeActionContextReturn](interfaces/DeclarativeActionContextReturn.md)
-- [DeclarativeActionRefContextReturn](interfaces/DeclarativeActionRefContextReturn.md)
 - [QueueStats](interfaces/QueueStats.md)
 - [RefContextReturn](interfaces/RefContextReturn.md)
 - [RefTarget](interfaces/RefTarget.md)
@@ -43,9 +39,6 @@
 
 ## Type Aliases
 
-- [ActionDefinition](type-aliases/ActionDefinition.md)
-- [ActionDefinitions](type-aliases/ActionDefinitions.md)
-- [InferActionTypes](type-aliases/InferActionTypes.md)
 - [RefOperation](type-aliases/RefOperation.md)
 - [Listener](type-aliases/Listener.md)
 - [Unsubscribe](type-aliases/Unsubscribe.md)
@@ -60,10 +53,6 @@
 ## Functions
 
 - [createActionContext](functions/createActionContext.md)
-- [createSimpleActionContext](functions/createSimpleActionContext.md)
-- [action](functions/action.md)
-- [actionWithHandler](functions/actionWithHandler.md)
-- [actionWithConfig](functions/actionWithConfig.md)
 - [createRefContext](functions/createRefContext.md)
 - [customRef](functions/customRef.md)
 - [createStore](functions/createStore.md)

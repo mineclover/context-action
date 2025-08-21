@@ -6,7 +6,7 @@
 
 # Interface: Snapshot\<T\>
 
-Defined in: [packages/react/src/stores/core/types.ts:51](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L51)
+Defined in: [packages/react/src/stores/core/types.ts:51](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L51)
 
 Store snapshot interface for immutable state representation
 
@@ -39,7 +39,7 @@ The type of the stored value
 
 > **value**: `T`
 
-Defined in: [packages/react/src/stores/core/types.ts:53](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L53)
+Defined in: [packages/react/src/stores/core/types.ts:53](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L53)
 
 The current value of the store
 
@@ -49,7 +49,7 @@ The current value of the store
 
 > **name**: `string`
 
-Defined in: [packages/react/src/stores/core/types.ts:56](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L56)
+Defined in: [packages/react/src/stores/core/types.ts:56](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L56)
 
 Unique identifier for the store
 
@@ -59,6 +59,6 @@ Unique identifier for the store
 
 > **lastUpdate**: `number`
 
-Defined in: [packages/react/src/stores/core/types.ts:59](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L59)
+Defined in: [packages/react/src/stores/core/types.ts:59](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L59)
 
 Timestamp of the last update

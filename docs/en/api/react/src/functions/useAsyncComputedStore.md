@@ -8,7 +8,7 @@
 
 > **useAsyncComputedStore**&lt;`R`&gt;(`dependencies`, `compute`, `config`): `object`
 
-Defined in: [packages/react/src/stores/hooks/useComputedStore.ts:597](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/hooks/useComputedStore.ts#L597)
+Defined in: [packages/react/src/stores/hooks/useComputedStore.ts:469](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/hooks/useComputedStore.ts#L469)
 
 비동기 계산을 지원하는 Computed Store Hook
 
@@ -56,22 +56,6 @@ Type parameter **R**
 
 `void`
 
-## Example
+## See
 
-```typescript
-const userIdStore = createStore('userId', '123');
-
-const userProfile = useAsyncComputedStore(
-  [userIdStore],
-  async ([userId]) => {
-    if (!userId) return null;
-    
-    const response = await fetch(`/api/users/${userId}`);
-    return response.json();
-  },
-  {
-    initialValue: null,
-    name: 'userProfile'
-  }
-);
-```
+https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-hooks#async-computed-patterns

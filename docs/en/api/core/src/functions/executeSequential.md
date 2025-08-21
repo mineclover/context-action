@@ -8,7 +8,7 @@
 
 > **executeSequential**\<`T`, `R`\>(`context`, `createController`): `Promise`&lt;`void`&gt;
 
-Defined in: [packages/core/src/execution-modes.ts:51](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/core/src/execution-modes.ts#L51)
+Defined in: [packages/core/src/execution-modes.ts:36](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/execution-modes.ts#L36)
 
 Execute handlers in sequential mode (one after another)
 
@@ -53,20 +53,6 @@ Factory function for creating pipeline controllers
 
 When a blocking handler fails or validation errors occur
 
-## Example
+## See
 
-```typescript
-// This is called internally by ActionRegister.dispatch()
-// when executionMode is 'sequential'
-
-// Handlers execute in this order (by priority):
-// 1. Priority 100: Validation handler
-// 2. Priority 50: Business logic handler  
-// 3. Priority 10: Logging handler
-
-await executeSequential(context, (registration, index) => ({
-  abort: (reason) => { context.aborted = true; context.abortReason = reason },
-  modifyPayload: (modifier) => { context.payload = modifier(context.payload) },
-  // ... other controller methods
-}))
-```
+https://mineclover.github.io/context-action/en/guide/patterns/action/dispatch-patterns

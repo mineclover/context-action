@@ -6,7 +6,7 @@
 
 # Class: StoreRegistry
 
-Defined in: [packages/react/src/stores/core/StoreRegistry.ts:142](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/StoreRegistry.ts#L142)
+Defined in: [packages/react/src/stores/core/StoreRegistry.ts:57](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/StoreRegistry.ts#L57)
 
 Centralized store registry for managing multiple Store instances
 
@@ -22,84 +22,11 @@ Core Features:
 - Filtering and organization capabilities
 - Memory-safe cleanup with automatic garbage collection
 
-## Examples
+## See
 
-```typescript
-// Create registry
-const registry = new StoreRegistry('AppRegistry')
-
-// Register stores
-const userStore = createStore('user', { name: 'Guest' })
-const settingsStore = createStore('settings', { theme: 'light' })
-
-registry.register('user', userStore, {
-  tags: ['auth', 'profile'],
-  description: 'User profile and authentication data'
-})
-
-registry.register('settings', settingsStore, {
-  tags: ['ui', 'preferences'],
-  description: 'Application settings and user preferences'
-})
-
-// Retrieve stores
-const user = registry.getStore('user')
-const settings = registry.getStore('settings')
-```
-
-```typescript
-const registry = new StoreRegistry('ReactiveRegistry')
-
-// Subscribe to registry changes
-const unsubscribe = registry.subscribe(() => {
-  console.log(`Registry now has ${registry.getStoreCount()} stores`)
-  console.log('Stores:', registry.getStoreNames())
-})
-
-// Registry changes will trigger the subscription
-registry.register('newStore', createStore('data', []))
-registry.unregister('oldStore')
-
-// Cleanup subscription
-unsubscribe()
-```
-
-```typescript
-const registry = new StoreRegistry('OrganizedRegistry')
-
-// Register with comprehensive metadata
-registry.register('userProfile', userStore, {
-  tags: ['user', 'profile', 'auth'],
-  description: 'Complete user profile management',
-  version: '2.1.0',
-  debug: true
-})
-
-// Query metadata
-const metadata = registry.getStoreMetadata('userProfile')
-console.log('Store registered at:', new Date(metadata.registeredAt))
-
-// Update metadata
-registry.updateStoreMetadata('userProfile', {
-  version: '2.1.1',
-  debug: false
-})
-```
-
-```typescript
-const registry = new StoreRegistry('AdvancedRegistry')
-
-// Bulk operations
-registry.forEach((store, name) => {
-  console.log(`Store ${name} has ${store.getListenerCount()} subscribers`)
-})
-
-// Create filtered registry
-const userStores = registry.filter((store, name) => {
-  const metadata = registry.getStoreMetadata(name)
-  return metadata?.tags?.includes('user') ?? false
-})
-```
+ - https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
+ - https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
+ - https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
 
 ## Implements
 
@@ -111,7 +38,7 @@ const userStores = registry.filter((store, name) => {
 
 > **new StoreRegistry**(`name`): `StoreRegistry`
 
-Defined in: [packages/react/src/stores/core/StoreRegistry.ts:152](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/StoreRegistry.ts#L152)
+Defined in: [packages/react/src/stores/core/StoreRegistry.ts:67](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/StoreRegistry.ts#L67)
 
 #### Parameters
 
@@ -129,7 +56,7 @@ Type parameter **StoreRegistry**
 
 > **subscribe**(`listener`): [`Unsubscribe`](../type-aliases/Unsubscribe.md)
 
-Defined in: [packages/react/src/stores/core/StoreRegistry.ts:184](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/StoreRegistry.ts#L184)
+Defined in: [packages/react/src/stores/core/StoreRegistry.ts:99](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/StoreRegistry.ts#L99)
 
 Subscribe to registry changes for reactive updates
 
@@ -177,7 +104,7 @@ unsubscribe()
 
 > **getSnapshot**(): \[`string`, [`IStore`](../interfaces/IStore.md)&lt;`any`&gt;\][]
 
-Defined in: [packages/react/src/stores/core/StoreRegistry.ts:211](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/StoreRegistry.ts#L211)
+Defined in: [packages/react/src/stores/core/StoreRegistry.ts:126](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/StoreRegistry.ts#L126)
 
 Get current snapshot of all registered stores
 
@@ -210,7 +137,7 @@ snapshot.forEach(([name, store]) => {
 
 > **register**(`name`, `store`, `metadata?`): `void`
 
-Defined in: [packages/react/src/stores/core/StoreRegistry.ts:244](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/StoreRegistry.ts#L244)
+Defined in: [packages/react/src/stores/core/StoreRegistry.ts:159](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/StoreRegistry.ts#L159)
 
 Register a store with optional metadata
 
@@ -268,7 +195,7 @@ registry.register('userProfile', userStore, {
 
 > **unregister**(`name`): `boolean`
 
-Defined in: [packages/react/src/stores/core/StoreRegistry.ts:286](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/StoreRegistry.ts#L286)
+Defined in: [packages/react/src/stores/core/StoreRegistry.ts:201](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/StoreRegistry.ts#L201)
 
 Unregister a store from the registry
 
@@ -311,7 +238,7 @@ if (wasRemoved) {
 
 > **getStore**(`name`): `undefined` \| [`IStore`](../interfaces/IStore.md)&lt;`any`&gt;
 
-Defined in: [packages/react/src/stores/core/StoreRegistry.ts:341](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/StoreRegistry.ts#L341)
+Defined in: [packages/react/src/stores/core/StoreRegistry.ts:256](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/StoreRegistry.ts#L256)
 
 Get a specific store by name
 
@@ -367,7 +294,7 @@ const updateUserHandler = async (payload, controller) => {
 
 > **getAllStores**(): `Map`\<`string`, [`IStore`](../interfaces/IStore.md)&lt;`any`&gt;\>
 
-Defined in: [packages/react/src/stores/core/StoreRegistry.ts:365](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/StoreRegistry.ts#L365)
+Defined in: [packages/react/src/stores/core/StoreRegistry.ts:280](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/StoreRegistry.ts#L280)
 
 Get all registered stores as a new Map
 
@@ -400,7 +327,7 @@ allStores.forEach((store, name) => {
 
 > **hasStore**(`name`): `boolean`
 
-Defined in: [packages/react/src/stores/core/StoreRegistry.ts:391](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/StoreRegistry.ts#L391)
+Defined in: [packages/react/src/stores/core/StoreRegistry.ts:306](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/StoreRegistry.ts#L306)
 
 Check if a store exists in the registry
 
@@ -442,7 +369,7 @@ if (registry.hasStore('user')) {
 
 > **getStoreCount**(): `number`
 
-Defined in: [packages/react/src/stores/core/StoreRegistry.ts:415](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/StoreRegistry.ts#L415)
+Defined in: [packages/react/src/stores/core/StoreRegistry.ts:330](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/StoreRegistry.ts#L330)
 
 Get the total number of registered stores
 
@@ -476,7 +403,7 @@ const unsubscribe = registry.subscribe(() => {
 
 > **getStoreNames**(): `string`[]
 
-Defined in: [packages/react/src/stores/core/StoreRegistry.ts:440](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/StoreRegistry.ts#L440)
+Defined in: [packages/react/src/stores/core/StoreRegistry.ts:355](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/StoreRegistry.ts#L355)
 
 Get all registered store names
 
@@ -511,7 +438,7 @@ storeNames.forEach(name => {
 
 > **getStoreMetadata**(`name`): `undefined` \| `StoreMetadata`
 
-Defined in: [packages/react/src/stores/core/StoreRegistry.ts:466](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/StoreRegistry.ts#L466)
+Defined in: [packages/react/src/stores/core/StoreRegistry.ts:381](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/StoreRegistry.ts#L381)
 
 Get metadata for a specific store
 
@@ -549,7 +476,7 @@ if (metadata) {
 
 > **updateStoreMetadata**(`name`, `updates`): `boolean`
 
-Defined in: [packages/react/src/stores/core/StoreRegistry.ts:497](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/StoreRegistry.ts#L497)
+Defined in: [packages/react/src/stores/core/StoreRegistry.ts:412](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/StoreRegistry.ts#L412)
 
 Update metadata for a registered store
 
@@ -596,7 +523,7 @@ if (success) {
 
 > **clear**(): `void`
 
-Defined in: [packages/react/src/stores/core/StoreRegistry.ts:529](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/StoreRegistry.ts#L529)
+Defined in: [packages/react/src/stores/core/StoreRegistry.ts:444](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/StoreRegistry.ts#L444)
 
 Clear all registered stores
 
@@ -627,7 +554,7 @@ console.log(`Stores remaining: ${registry.getStoreCount()}`) // 0
 
 > **forEach**(`callback`): `void`
 
-Defined in: [packages/react/src/stores/core/StoreRegistry.ts:568](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/StoreRegistry.ts#L568)
+Defined in: [packages/react/src/stores/core/StoreRegistry.ts:483](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/StoreRegistry.ts#L483)
 
 Execute a function for each registered store
 
@@ -673,7 +600,7 @@ registry.forEach((store, name) => {
 
 > **filter**(`predicate`): `StoreRegistry`
 
-Defined in: [packages/react/src/stores/core/StoreRegistry.ts:606](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/StoreRegistry.ts#L606)
+Defined in: [packages/react/src/stores/core/StoreRegistry.ts:521](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/StoreRegistry.ts#L521)
 
 Create a new registry containing filtered stores
 
@@ -720,7 +647,7 @@ const activeRegistry = registry.filter((store) => {
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/react/src/stores/core/StoreRegistry.ts:151](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/StoreRegistry.ts#L151)
+Defined in: [packages/react/src/stores/core/StoreRegistry.ts:66](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/StoreRegistry.ts#L66)
 
 Unique identifier for the registry
 

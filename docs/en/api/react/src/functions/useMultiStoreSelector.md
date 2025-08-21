@@ -8,7 +8,7 @@
 
 > **useMultiStoreSelector**&lt;`R`&gt;(`stores`, `selector`, `equalityFn?`): `R`
 
-Defined in: [packages/react/src/stores/hooks/useStoreSelector.ts:267](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/hooks/useStoreSelector.ts#L267)
+Defined in: [packages/react/src/stores/hooks/useStoreSelector.ts:195](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/hooks/useStoreSelector.ts#L195)
 
 여러 Store를 조합하여 선택적 구독하는 Hook
 
@@ -44,20 +44,6 @@ Type parameter **R**
 
 selector가 반환하는 값
 
-## Example
+## See
 
-```typescript
-const userStore = createStore('user', { name: '', email: '' });
-const settingsStore = createStore('settings', { theme: 'light' });
-const uiStore = createStore('ui', { isLoading: false });
-
-const dashboardData = useMultiStoreSelector(
-  [userStore, settingsStore, uiStore],
-  ([user, settings, ui]) => ({
-    greeting: `Hello, ${user.name}!`,
-    isDarkMode: settings.theme === 'dark',
-    showLoader: ui.isLoading
-  }),
-  shallowEqual
-);
-```
+https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-hooks#multi-store-selection

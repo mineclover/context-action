@@ -6,7 +6,7 @@
 
 # Interface: IStore\<T\>
 
-Defined in: [packages/react/src/stores/core/types.ts:94](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L94)
+Defined in: [packages/react/src/stores/core/types.ts:76](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L76)
 
 Core Store interface for reactive state management
 
@@ -29,26 +29,9 @@ core-concepts
 Primary interface for Store instances, compatible with React's useSyncExternalStore
 and implementing the Observer pattern for reactive state management.
 
-## Example
+## See
 
-```typescript
-const userStore: IStore<User> = createStore('user', { 
-  id: '', 
-  name: '', 
-  email: '' 
-});
-
-// Subscribe to changes
-const unsubscribe = userStore.subscribe(() => {
-  console.log('User store updated:', userStore.getSnapshot().value);
-});
-
-// Update store value
-userStore.setValue({ id: '1', name: 'John', email: 'john@example.com' });
-
-// Get current value for action handlers
-const currentUser = userStore.getValue();
-```
+https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
 
 ## Type Parameters
 
@@ -64,7 +47,7 @@ The type of the stored value
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/react/src/stores/core/types.ts:96](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L96)
+Defined in: [packages/react/src/stores/core/types.ts:78](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L78)
 
 Unique identifier for the store
 
@@ -74,7 +57,7 @@ Unique identifier for the store
 
 > **subscribe**: `Subscribe`
 
-Defined in: [packages/react/src/stores/core/types.ts:99](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L99)
+Defined in: [packages/react/src/stores/core/types.ts:81](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L81)
 
 Subscribe to store changes (React useSyncExternalStore compatible)
 
@@ -84,7 +67,7 @@ Subscribe to store changes (React useSyncExternalStore compatible)
 
 > **getSnapshot**: () => [`Snapshot`](Snapshot.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/stores/core/types.ts:102](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L102)
+Defined in: [packages/react/src/stores/core/types.ts:84](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L84)
 
 Get immutable snapshot (React useSyncExternalStore compatible)
 
@@ -98,7 +81,7 @@ Get immutable snapshot (React useSyncExternalStore compatible)
 
 > **setValue**: (`value`) => `void`
 
-Defined in: [packages/react/src/stores/core/types.ts:105](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L105)
+Defined in: [packages/react/src/stores/core/types.ts:87](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L87)
 
 Set store value with change notification
 
@@ -118,7 +101,7 @@ Type parameter **T**
 
 > **getValue**: () => `T`
 
-Defined in: [packages/react/src/stores/core/types.ts:108](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L108)
+Defined in: [packages/react/src/stores/core/types.ts:90](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L90)
 
 Get current value directly (for action handlers)
 
@@ -132,7 +115,7 @@ Type parameter **T**
 
 > `optional` **getListenerCount**: () => `number`
 
-Defined in: [packages/react/src/stores/core/types.ts:111](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L111)
+Defined in: [packages/react/src/stores/core/types.ts:93](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L93)
 
 Get number of active listeners (debugging/monitoring)
 

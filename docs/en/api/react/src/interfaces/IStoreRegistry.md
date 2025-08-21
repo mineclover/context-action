@@ -6,7 +6,7 @@
 
 # Interface: IStoreRegistry
 
-Defined in: [packages/react/src/stores/core/types.ts:144](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L144)
+Defined in: [packages/react/src/stores/core/types.ts:107](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L107)
 
 Store Registry interface for centralized store management
 
@@ -25,27 +25,9 @@ core-concepts
 Central registry for managing multiple Store instances with dynamic access
 and lifecycle management. Provides subscription capability for registry changes.
 
-## Example
+## See
 
-```typescript
-const registry = new StoreRegistry('app-registry');
-
-// Register stores
-const userStore = createStore('user', { name: '', email: '' });
-const settingsStore = createStore('settings', { theme: 'light' });
-
-registry.register('user', userStore);
-registry.register('settings', settingsStore);
-
-// Access stores dynamically
-const user = registry.getStore('user');
-const settings = registry.getStore('settings');
-
-// Subscribe to registry changes
-registry.subscribe(() => {
-  console.log('Registry changed, store count:', registry.getStoreCount());
-});
-```
+https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-config
 
 ## Properties
 
@@ -53,7 +35,7 @@ registry.subscribe(() => {
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/react/src/stores/core/types.ts:146](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L146)
+Defined in: [packages/react/src/stores/core/types.ts:109](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L109)
 
 Unique identifier for the registry
 
@@ -63,7 +45,7 @@ Unique identifier for the registry
 
 > **subscribe**: `Subscribe`
 
-Defined in: [packages/react/src/stores/core/types.ts:149](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L149)
+Defined in: [packages/react/src/stores/core/types.ts:112](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L112)
 
 Subscribe to registry changes
 
@@ -73,7 +55,7 @@ Subscribe to registry changes
 
 > **getSnapshot**: () => \[`string`, [`IStore`](IStore.md)&lt;`any`&gt;\][]
 
-Defined in: [packages/react/src/stores/core/types.ts:152](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L152)
+Defined in: [packages/react/src/stores/core/types.ts:115](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L115)
 
 Get snapshot of all registered stores
 
@@ -87,7 +69,7 @@ Get snapshot of all registered stores
 
 > **register**: (`name`, `store`, `metadata?`) => `void`
 
-Defined in: [packages/react/src/stores/core/types.ts:155](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L155)
+Defined in: [packages/react/src/stores/core/types.ts:118](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L118)
 
 Register a store with optional metadata
 
@@ -115,7 +97,7 @@ Register a store with optional metadata
 
 > **unregister**: (`name`) => `boolean`
 
-Defined in: [packages/react/src/stores/core/types.ts:158](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L158)
+Defined in: [packages/react/src/stores/core/types.ts:121](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L121)
 
 Unregister a store by name
 
@@ -135,7 +117,7 @@ Unregister a store by name
 
 > **getStore**: (`name`) => `undefined` \| [`IStore`](IStore.md)&lt;`any`&gt;
 
-Defined in: [packages/react/src/stores/core/types.ts:161](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L161)
+Defined in: [packages/react/src/stores/core/types.ts:124](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L124)
 
 Get store by name
 
@@ -155,7 +137,7 @@ Get store by name
 
 > **getAllStores**: () => `Map`\<`string`, [`IStore`](IStore.md)&lt;`any`&gt;\>
 
-Defined in: [packages/react/src/stores/core/types.ts:164](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L164)
+Defined in: [packages/react/src/stores/core/types.ts:127](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L127)
 
 Get all registered stores as Map
 
@@ -169,7 +151,7 @@ Get all registered stores as Map
 
 > **hasStore**: (`name`) => `boolean`
 
-Defined in: [packages/react/src/stores/core/types.ts:167](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L167)
+Defined in: [packages/react/src/stores/core/types.ts:130](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L130)
 
 Check if store exists by name
 
@@ -189,7 +171,7 @@ Check if store exists by name
 
 > **getStoreCount**: () => `number`
 
-Defined in: [packages/react/src/stores/core/types.ts:170](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L170)
+Defined in: [packages/react/src/stores/core/types.ts:133](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L133)
 
 Get count of registered stores
 
@@ -203,7 +185,7 @@ Get count of registered stores
 
 > **getStoreNames**: () => `string`[]
 
-Defined in: [packages/react/src/stores/core/types.ts:173](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L173)
+Defined in: [packages/react/src/stores/core/types.ts:136](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L136)
 
 Get array of registered store names
 
@@ -217,7 +199,7 @@ Get array of registered store names
 
 > **clear**: () => `void`
 
-Defined in: [packages/react/src/stores/core/types.ts:176](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L176)
+Defined in: [packages/react/src/stores/core/types.ts:139](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L139)
 
 Clear all registered stores
 
@@ -231,7 +213,7 @@ Clear all registered stores
 
 > **forEach**: (`callback`) => `void`
 
-Defined in: [packages/react/src/stores/core/types.ts:179](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L179)
+Defined in: [packages/react/src/stores/core/types.ts:142](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L142)
 
 Iterate over all stores
 

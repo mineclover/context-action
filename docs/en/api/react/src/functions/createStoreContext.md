@@ -8,7 +8,7 @@
 
 > **createStoreContext**(`name?`): [`StoreContextReturn`](../interfaces/StoreContextReturn.md)
 
-Defined in: [packages/react/src/stores/core/StoreContext.tsx:41](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/StoreContext.tsx#L41)
+Defined in: [packages/react/src/stores/core/StoreContext.tsx:29](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/StoreContext.tsx#L29)
 
 Store Context 팩토리 함수 - 고급 사용 시나리오용
 
@@ -33,17 +33,6 @@ StoreRegistry 인스턴스 이름
 
 Provider 컴포넌트와 훅들을 포함한 객체
 
-## Example
+## See
 
-```typescript
-// 독립적인 Store 영역 생성
-const FeatureContext = createStoreContext('feature');
-
-function FeatureApp() {
-  return (
-    <FeatureContext.Provider>
-      <FeatureComponent />
-    </FeatureContext.Provider>
-  );
-}
-```
+https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-config#isolated-contexts

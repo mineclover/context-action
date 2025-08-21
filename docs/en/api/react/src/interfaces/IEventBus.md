@@ -6,7 +6,7 @@
 
 # Interface: IEventBus
 
-Defined in: [packages/react/src/stores/core/types.ts:188](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L188)
+Defined in: [packages/react/src/stores/core/types.ts:151](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L151)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [packages/react/src/stores/core/types.ts:188](https://github.com/min
 
 > **on**: &lt;`T`&gt;(`event`, `handler`) => [`Unsubscribe`](../type-aliases/Unsubscribe.md)
 
-Defined in: [packages/react/src/stores/core/types.ts:189](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L189)
+Defined in: [packages/react/src/stores/core/types.ts:152](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L152)
 
 #### Type Parameters
 
@@ -42,7 +42,7 @@ Defined in: [packages/react/src/stores/core/types.ts:189](https://github.com/min
 
 > **emit**: &lt;`T`&gt;(`event`, `data?`) => `void`
 
-Defined in: [packages/react/src/stores/core/types.ts:190](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L190)
+Defined in: [packages/react/src/stores/core/types.ts:153](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L153)
 
 #### Type Parameters
 
@@ -70,7 +70,7 @@ Type parameter **T**
 
 > **off**: (`event`, `handler?`) => `void`
 
-Defined in: [packages/react/src/stores/core/types.ts:191](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L191)
+Defined in: [packages/react/src/stores/core/types.ts:154](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L154)
 
 #### Parameters
 
@@ -92,7 +92,7 @@ Defined in: [packages/react/src/stores/core/types.ts:191](https://github.com/min
 
 > **clear**: () => `void`
 
-Defined in: [packages/react/src/stores/core/types.ts:192](https://github.com/mineclover/context-action/blob/cd08d4e3b87a65a1296f2b120f18fcabd78f2914/packages/react/src/stores/core/types.ts#L192)
+Defined in: [packages/react/src/stores/core/types.ts:155](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L155)
 
 #### Returns
 
