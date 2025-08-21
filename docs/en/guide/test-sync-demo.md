@@ -1,13 +1,14 @@
-# Test Sync Demo
+# Test Sync Demo (Updated)
 
-This is a test document to demonstrate the sync-docs functionality.
+This is an **updated** test document to demonstrate the sync-docs functionality and automatic synchronization.
 
 ## Overview
 
-This document will be used to test:
+This document has been modified to test:
 1. Priority JSON generation
-2. Template creation
+2. Template creation  
 3. Documentation synchronization
+4. **NEW: Automatic update propagation**
 
 ## Features
 
