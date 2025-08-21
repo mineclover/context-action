@@ -42,6 +42,8 @@ import { loggingModule } from '../modules/logging';
  * @implements store-integration-pattern
  * @implements action-handler
  * @memberof core-concepts
+ * @see {@link https://github.com/mineclover/context-action/blob/main/docs/en/guide/patterns/store/basic-usage.md Store Pattern Basic Usage}
+ * @see {@link https://github.com/mineclover/context-action/blob/main/docs/en/guide/patterns/action/basic-usage.md Action Pattern Basic Usage}
  * @example
  * // 할일 목록 관리를 위한 Declarative Store 패턴
  * const todosStore = StoreScenarios.useStore('todos'); // 자동 타입 추론: Store<TodoItem[]>
