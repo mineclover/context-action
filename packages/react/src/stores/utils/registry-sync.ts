@@ -8,11 +8,7 @@ import type { IStoreRegistry, IStore } from '../core/types';
  * @template T Store value type
  * @returns Registry sync methods
  * 
- * @example
- * ```typescript
- * const sync = createRegistrySync<UserData>();
- * const userData = sync.useDynamicStore(registry, 'user');
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-hooks#dynamic-store-access
  */
 export function createRegistrySync<T = any>() {
   return {

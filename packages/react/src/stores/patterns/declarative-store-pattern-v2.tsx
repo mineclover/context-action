@@ -23,17 +23,7 @@ import type { ComparisonOptions } from '../utils/comparison';
  * 
  * @template T - The type of values stored in this store
  * 
- * @example
- * ```typescript
- * const userConfig: StoreConfig<User> = {
- *   initialValue: { id: '', name: '', email: '' },
- *   strategy: 'shallow',
- *   description: 'User profile data',
- *   debug: true,
- *   tags: ['user', 'profile'],
- *   version: '1.0.0'
- * }
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/
  * 
  * @public
  */
@@ -56,20 +46,7 @@ export interface StoreConfig<T = any> {
  * 
  * @template T - Record of store names to their value types
  * 
- * @example
- * ```typescript
- * type AppStores = {
- *   user: User
- *   settings: AppSettings
- *   theme: 'light' | 'dark'
- * }
- * 
- * const stores: InitialStores<AppStores> = {
- *   user: { initialValue: defaultUser, strategy: 'shallow' },
- *   settings: defaultSettings,  // Direct value
- *   theme: 'light'              // Direct value
- * }
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  * 
  * @public
  */
@@ -96,23 +73,7 @@ export type StoreDefinitions = Record<string, StoreConfig<any> | any>;
  * 
  * @template T - Store definitions record
  * 
- * @example
- * ```typescript
- * const definitions = {
- *   user: { initialValue: { id: '', name: '' } },
- *   count: 0,
- *   items: [] as string[],
- *   settings: { theme: 'light' }
- * }
- * 
- * type InferredTypes = InferStoreTypes<typeof definitions>
- * // Result: {
- * //   user: { id: string; name: string }
- * //   count: number
- * //   items: string[]
- * //   settings: { theme: string }
- * // }
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  * 
  * @public
  */
@@ -279,25 +240,7 @@ interface StoreContextValue<T extends Record<string, any>> {
 /**
  * Overload 1: Explicit generic types - User provides explicit type interface
  * 
- * @example
- * ```typescript
- * // Define types explicitly
- * interface AppStores {
- *   counter: number;
- *   user: { id: string; name: string; email: string };
- *   settings: { theme: 'light' | 'dark'; language: string };
- * }
- * 
- * // Create with explicit type and type-checked initialValue
- * const AppStores = createDeclarativeStorePattern<AppStores>('App', {
- *   counter: 0,  // Must match AppStores['counter'] = number
- *   user: { id: '', name: '', email: '' },  // Must match AppStores['user']
- *   settings: { 
- *     initialValue: { theme: 'light', language: 'en' },  // Must match AppStores['settings']
- *     strategy: 'shallow'
- *   }
- * });
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  */
 export function createDeclarativeStorePattern<T extends Record<string, any>>(
   contextName: string,
@@ -307,18 +250,7 @@ export function createDeclarativeStorePattern<T extends Record<string, any>>(
 /**
  * Overload 2: Type inference - Types inferred from store definitions
  * 
- * @example
- * ```typescript
- * // Type inference from initialValue (automatic)
- * const AppStores = createDeclarativeStorePattern('App', {
- *   counter: 0,  // Inferred as Store<number>
- *   user: { id: '', name: '', email: '' },  // Inferred as Store<{id: string, name: string, email: string}>
- *   settings: {
- *     initialValue: { theme: 'light' as const, language: 'en' },
- *     strategy: 'shallow'
- *   }
- * });
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  */
 export function createDeclarativeStorePattern<T extends StoreDefinitions>(
   contextName: string,
@@ -338,39 +270,7 @@ export function createDeclarativeStorePattern(
 /**
  * Main implementation function - Simplified and focused on store management
  * 
- * @example
- * ```typescript
- * // Define your stores with excellent type inference
- * const AppStores = createDeclarativeStorePatternImpl('App', {
- *   // Direct value - simplest form
- *   counter: 0,
- *   
- *   // With configuration
- *   user: {
- *     initialValue: { id: '', name: '', email: '' },
- *     strategy: 'shallow'
- *   },
- *   
- *   // Complex nested structures work too
- *   settings: {
- *     initialValue: {
- *       theme: 'light' as 'light' | 'dark',
- *       language: 'en'
- *     }
- *   }
- * });
- * 
- * // Use in component
- * function MyComponent() {
- *   const counter = AppStores.useStore('counter');      // Store<number>
- *   const user = AppStores.useStore('user');           // Store<{id: string, name: string, email: string}>
- *   const settings = AppStores.useStore('settings');   // Store<{theme: 'light' | 'dark', language: string}>
- *   
- *   // Use with useStoreValue hook
- *   const count = useStoreValue(counter);
- *   const userData = useStoreValue(user);
- * }
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  */
 function createDeclarativeStorePatternImpl<T extends Record<string, any>>(
   contextName: string,

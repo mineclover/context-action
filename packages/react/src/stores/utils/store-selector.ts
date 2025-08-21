@@ -36,18 +36,7 @@ const CONSTANTS = {
  * 2. selector 적용 (있을 경우) - 필요한 부분만 추출
  * 3. useSyncExternalStore() - React와 동기화
  * 
- * @example
- * ```typescript
- * // 사용자 이름만 구독
- * const userName = useStoreSelector(userStore, { 
- *   selector: snapshot => snapshot.value.name 
- * });
- * 
- * // 계산된 값 구독
- * const totalPrice = useStoreSelector(cartStore, {
- *   selector: snapshot => snapshot.value.items.reduce((sum, item) => sum + item.price, 0)
- * });
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-hooks#selective-subscriptions
  */
 export function useStoreSelector<T, R = Snapshot<T>>(
   store: IStore<T> | undefined | null,
@@ -81,11 +70,7 @@ export function useStoreSelector<T, R = Snapshot<T>>(
  * @param store - 구독할 Store 인스턴스  
  * @returns Store의 현재 스냅샷 (value, name, lastUpdate 포함)
  * 
- * @example
- * ```typescript
- * const counterStore = new Store('counter', 0);
- * const snapshot = useStore(counterStore); // { value: 0, name: 'counter', lastUpdate: timestamp }
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage#store-subscriptions
  */
 export function useStore<T>(store: IStore<T> | undefined | null): Snapshot<T> {
   return useStoreSelector(store);

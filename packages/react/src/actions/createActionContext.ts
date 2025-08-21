@@ -20,17 +20,7 @@ import { ActionRegister, ActionHandler, HandlerConfig } from '@context-action/co
  * 
  * @template T - Action payload mapping extending Record<string, any>
  * 
- * @example Interface Usage
- * ```typescript
- * interface AppActions extends Record<string, any> {
- *   updateUser: { id: string; name: string }
- *   deleteUser: { id: string }
- *   resetApp: void
- * }
- * 
- * const actionContext: SimpleActionContextReturn<AppActions> = 
- *   createActionContext<AppActions>('AppActions')
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
  * 
  * @public
  */
@@ -68,81 +58,7 @@ export interface SimpleActionContextReturn<T extends Record<string, any>> {
  * 
  * @returns SimpleActionContextReturn with Provider, hooks, and context name
  * 
- * @example Basic Usage
- * ```typescript
- * // Define action types
- * interface AuthActions extends Record<string, any> {
- *   login: { username: string; password: string }
- *   logout: void
- *   refreshToken: { token: string }
- *   updateProfile: { name: string; email: string }
- * }
- * 
- * // Create action context
- * const AuthActions = createActionContext<AuthActions>('AuthActions')
- * 
- * // Use in component
- * function AuthComponent() {
- *   const dispatch = AuthActions.useAction()
- *   
- *   // Register handlers with business logic
- *   AuthActions.useActionHandler('login', async ({ username, password }, controller) => {
- *     try {
- *       const response = await authAPI.login(username, password)
- *       controller.setResult({ success: true, user: response.user })
- *     } catch (error) {
- *       controller.abort('Login failed')
- *     }
- *   })
- *   
- *   AuthActions.useActionHandler('logout', async (_, controller) => {
- *     await authAPI.logout()
- *     controller.setResult({ success: true })
- *   })
- *   
- *   return (
- *     <div>
- *       <button onClick={() => dispatch('login', {
- *         username: 'user@example.com',
- *         password: 'password123'
- *       })}>
- *         Login
- *       </button>
- *       <button onClick={() => dispatch('logout')}>
- *         Logout
- *       </button>
- *     </div>
- *   )
- * }
- * ```
- * 
- * @example With Provider Pattern
- * ```typescript
- * function App() {
- *   return (
- *     <AuthActions.Provider>
- *       <AuthComponent />
- *       <UserProfile />
- *     </AuthActions.Provider>
- *   )
- * }
- * ```
- * 
- * @example Priority-based Handlers
- * ```typescript
- * // High priority validation
- * AuthActions.useActionHandler('login', async (payload, controller) => {
- *   if (!payload.username || !payload.password) {
- *     controller.abort('Username and password required')
- *   }
- * }, { priority: 100 })
- * 
- * // Lower priority business logic
- * AuthActions.useActionHandler('login', async (payload, controller) => {
- *   const result = await authService.authenticate(payload)
- *   controller.setResult(result)
- * }, { priority: 50 })
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
  * 
  * @public
  */

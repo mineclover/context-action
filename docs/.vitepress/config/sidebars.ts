@@ -36,7 +36,9 @@ const GUIDE_STRUCTURE = {
           items: [
             { text: 'Overview', link: '/en/guide/patterns/action/' },
             { text: 'Basic Usage', link: '/en/guide/patterns/action/basic-usage' },
-            { text: 'Register Delegation', link: '/en/guide/patterns/action/register-delegation' }
+            { text: 'Register Delegation', link: '/en/guide/patterns/action/register-delegation' },
+            { text: 'Type System', link: '/en/guide/patterns/action/type-system' },
+            { text: 'Advanced Patterns', link: '/en/guide/patterns/action/advanced-patterns' }
           ]
         },
         {
@@ -46,7 +48,8 @@ const GUIDE_STRUCTURE = {
             { text: 'Overview', link: '/en/guide/patterns/store/' },
             { text: 'Basic Usage', link: '/en/guide/patterns/store/basic-usage' },
             { text: 'HOC Pattern', link: '/en/guide/patterns/store/hoc-pattern' },
-            { text: 'Advanced Config', link: '/en/guide/patterns/store/advanced-config' }
+            { text: 'Advanced Config', link: '/en/guide/patterns/store/advanced-config' },
+            { text: 'Advanced Hooks', link: '/en/guide/patterns/store/advanced-hooks' }
           ]
         },
         {
@@ -121,7 +124,8 @@ const GUIDE_STRUCTURE = {
             { text: '개요', link: '/ko/guide/patterns/store/' },
             { text: '기본 사용법', link: '/ko/guide/patterns/store/basic-usage' },
             { text: 'HOC 패턴', link: '/ko/guide/patterns/store/hoc-pattern' },
-            { text: '고급 설정', link: '/ko/guide/patterns/store/advanced-config' }
+            { text: '고급 설정', link: '/ko/guide/patterns/store/advanced-config' },
+            { text: '고급 훅', link: '/ko/guide/patterns/store/advanced-hooks' }
           ]
         },
         {

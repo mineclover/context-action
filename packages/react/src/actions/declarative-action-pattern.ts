@@ -20,25 +20,7 @@ import { ActionRegister, ActionHandler, HandlerConfig } from '@context-action/co
  * 
  * @template T - The payload type for this action
  * 
- * @example Simple Action Definition
- * ```typescript
- * type UserActions = {
- *   updateProfile: { name: string; email: string }  // Simple payload
- *   deleteAccount: void                             // No payload
- * }
- * ```
- * 
- * @example Extended Action Definition
- * ```typescript
- * type UserActions = {
- *   updateProfile: {
- *     payload: { name: string; email: string }
- *     handler: ActionHandler<{ name: string; email: string }>
- *     priority: 100
- *     tags: ['user', 'profile']
- *   }
- * }
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage#action-definitions
  * 
  * @public
  */
@@ -59,20 +41,7 @@ export type ActionDefinition<T = any> =
  * Maps action names to their definitions, supporting both simple payload types
  * and extended configurations. Used as the foundation for type-safe action handling.
  * 
- * @example
- * ```typescript
- * const actions: ActionDefinitions = {
- *   login: { email: string; password: string },
- *   logout: void,
- *   updateProfile: {
- *     payload: { name: string },
- *     handler: async (payload, controller) => {
- *       await userService.updateProfile(payload)
- *     },
- *     priority: 100
- *   }
- * }
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage#action-definitions
  * 
  * @public
  */
@@ -86,21 +55,7 @@ export type ActionDefinitions = Record<string, ActionDefinition<any>>;
  * 
  * @template T - Action definitions record
  * 
- * @example
- * ```typescript
- * const definitions = {
- *   updateUser: { name: string; email: string },
- *   deleteUser: { id: string },
- *   resetApp: void
- * }
- * 
- * type ActionTypes = InferActionTypes<typeof definitions>
- * // Result: {
- * //   updateUser: { name: string; email: string }
- * //   deleteUser: { id: string }
- * //   resetApp: void
- * // }
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/action/advanced-patterns#type-inference
  * 
  * @public
  */
@@ -122,20 +77,7 @@ export type InferActionTypes<T extends ActionDefinitions> = {
  * @template A - Action definitions type
  * @template R - Refs definitions type
  * 
- * @example
- * ```typescript
- * const definitions: ActionRefDefinitions<UserActions, UserRefs> = {
- *   contextName: 'UserManagement',
- *   actions: {
- *     updateProfile: { name: string; email: string },
- *     deleteAccount: void
- *   },
- *   refs: {
- *     profileForm: HTMLFormElement,
- *     avatarInput: HTMLInputElement
- *   }
- * }
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/action/advanced-patterns#unified-definitions
  * 
  * @public
  */
@@ -321,44 +263,7 @@ export function createDeclarativeActionPattern(
  * 
  * @returns Complete action context API
  * 
- * @example Basic Usage
- * ```typescript
- * const UserActions = createDeclarativeActionPattern('UserActions', {
- *   login: { email: string; password: string },
- *   logout: void,
- *   updateProfile: {
- *     payload: { name: string; avatar?: string },
- *     handler: async (payload, controller) => {
- *       const result = await userService.updateProfile(payload)
- *       controller.setResult(result)
- *     },
- *     priority: 100,
- *     tags: ['user', 'profile']
- *   }
- * })
- * 
- * function App() {
- *   return (
- *     <UserActions.Provider>
- *       <UserProfile />
- *     </UserActions.Provider>
- *   )
- * }
- * 
- * function UserProfile() {
- *   const dispatch = UserActions.useAction()
- * 
- *   const handleLogin = async () => {
- *     await dispatch('login', { email: 'user@example.com', password: 'secret' })
- *   }
- * 
- *   const handleLogout = async () => {
- *     await dispatch('logout') // No payload needed
- *   }
- * 
- *   return <div>User Profile Component</div>
- * }
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
  * 
  * @internal
  */
@@ -449,24 +354,7 @@ function createDeclarativeActionPatternImpl<
    * 
    * @returns Type-safe action dispatch function
    * 
-   * @example
-   * ```typescript
-   * function MyComponent() {
-   *   const dispatch = UserActions.useAction()
-   * 
-   *   const handleUpdate = async () => {
-   *     // Type-safe dispatch with payload validation
-   *     await dispatch('updateProfile', { name: 'John Doe' })
-   *   }
-   * 
-   *   const handleReset = async () => {
-   *     // No payload needed for void actions
-   *     await dispatch('resetData')
-   *   }
-   * 
-   *   return <button onClick={handleUpdate}>Update Profile</button>
-   * }
-   * ```
+   * @see https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage#dispatching-actions
    */
   const useAction = () => {
     const { actionRegister } = useActionContext();
@@ -491,27 +379,7 @@ function createDeclarativeActionPatternImpl<
    * @param handler - Handler function for the action
    * @param config - Optional handler configuration
    * 
-   * @example
-   * ```typescript
-   * function UserProfile() {
-   *   const dispatch = UserActions.useAction()
-   * 
-   *   // Register runtime handler with cleanup
-   *   UserActions.useActionHandler('updateProfile', async (payload, controller) => {
-   *     try {
-   *       const result = await userService.updateProfile(payload)
-   *       controller.setResult({ success: true, user: result })
-   *     } catch (error) {
-   *       controller.abort(`Update failed: ${error.message}`)
-   *     }
-   *   }, {
-   *     priority: 200, // Higher priority than predefined handlers
-   *     tags: ['runtime', 'user']
-   *   })
-   * 
-   *   return <div>Profile Component</div>
-   * }
-   * ```
+   * @see https://mineclover.github.io/context-action/en/guide/patterns/action/advanced-patterns#runtime-handlers
    */
   const useActionHandler = <K extends keyof A>(
     action: K,
@@ -550,22 +418,7 @@ function createDeclarativeActionPatternImpl<
    * 
    * @returns ActionRegister instance or null if outside Provider
    * 
-   * @example
-   * ```typescript
-   * function DebugPanel() {
-   *   const register = UserActions.useActionRegister()
-   * 
-   *   const handleInspect = () => {
-   *     if (register) {
-   *       const info = register.getRegistryInfo()
-   *       console.log('Registered actions:', info.registeredActions)
-   *       console.log('Handler count:', info.totalHandlers)
-   *     }
-   *   }
-   * 
-   *   return <button onClick={handleInspect}>Inspect Actions</button>
-   * }
-   * ```
+   * @see https://mineclover.github.io/context-action/en/guide/patterns/action/advanced-patterns#action-register-access
    */
   const useActionRegister = (): ActionRegister<InferActionTypes<A>> | null => {
     const { actionRegister } = useActionContext();
@@ -613,14 +466,7 @@ function createDeclarativeActionPatternImpl<
  * @param payload - Optional payload type (for type inference)
  * @returns Action definition
  * 
- * @example
- * ```typescript
- * const userActions = {
- *   updateName: action<{ name: string }>(),
- *   deleteAccount: action<void>(),
- *   login: action<{ email: string; password: string }>()
- * }
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage#simple-actions
  * 
  * @public
  */
@@ -641,23 +487,7 @@ export function action<T>(payload?: T): ActionDefinition<T> {
  * @param config - Optional handler configuration
  * @returns Extended action definition with handler
  * 
- * @example
- * ```typescript
- * const userActions = {
- *   login: actionWithHandler(
- *     { email: string; password: string },
- *     async (payload, controller) => {
- *       const result = await authService.login(payload)
- *       controller.setResult(result)
- *     },
- *     {
- *       priority: 100,
- *       timeout: 5000,
- *       tags: ['auth', 'login']
- *     }
- *   )
- * }
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/action/advanced-patterns#actions-with-handlers
  * 
  * @public
  */
@@ -688,22 +518,7 @@ export function actionWithHandler<T>(
  * @param config - Configuration object with optional handler and settings
  * @returns Configured action definition
  * 
- * @example
- * ```typescript
- * const userActions = {
- *   updateProfile: actionWithConfig(
- *     { name: string; avatar?: string },
- *     {
- *       handler: async (payload, controller) => {
- *         await userService.updateProfile(payload)
- *       },
- *       priority: 50,
- *       timeout: 3000,
- *       tags: ['user', 'profile', 'update']
- *     }
- *   )
- * }
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/action/advanced-patterns#configured-actions
  * 
  * @public
  */

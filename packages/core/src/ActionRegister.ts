@@ -26,74 +26,9 @@ import { OperationQueue } from './concurrency/OperationQueue.js';
  * 
  * @template TActionMap - Action payload mapping interface extending ActionPayloadMap
  * 
- * @example Basic Usage
- * ```typescript
- * interface AppActions extends ActionPayloadMap {
- *   updateUser: { id: string; name: string; email: string }
- *   deleteUser: { id: string }
- *   resetUser: void
- * }
- * 
- * const register = new ActionRegister<AppActions>({
- *   name: 'AppRegister',
- *   registry: { debug: true, maxHandlers: 10 }
- * })
- * 
- * // Register handler with priority
- * register.register('updateUser', async (payload, controller) => {
- *   await userService.update(payload.id, payload)
- *   controller.setResult({ success: true, userId: payload.id })
- * }, { priority: 10, tags: ['user', 'crud'] })
- * 
- * // Dispatch action
- * await register.dispatch('updateUser', { 
- *   id: '123', 
- *   name: 'John Doe', 
- *   email: 'john@example.com' 
- * })
- * ```
- * 
- * @example With Multiple Handlers
- * ```typescript
- * // High priority validation handler
- * register.register('updateUser', async (payload, controller) => {
- *   if (!payload.email.includes('@')) {
- *     controller.abort('Invalid email format')
- *     return
- *   }
- * }, { priority: 100, category: 'validation' })
- * 
- * // Lower priority update handler
- * register.register('updateUser', async (payload, controller) => {
- *   const user = await userService.update(payload.id, payload)
- *   controller.setResult(user)
- * }, { priority: 50, category: 'business-logic' })
- * ```
- * 
- * @example Advanced Configuration
- * ```typescript
- * const register = new ActionRegister<AppActions>({
- *   name: 'AdvancedRegister',
- *   registry: {
- *     debug: true,
- *     maxHandlers: 20,
- *     defaultExecutionMode: 'parallel',
- *     autoCleanup: true
- *   }
- * })
- * 
- * // Handler with debouncing and tags
- * register.register('searchUsers', async (payload, controller) => {
- *   const results = await userService.search(payload.query)
- *   controller.setResult(results)
- * }, {
- *   priority: 10,
- *   debounce: 300,
- *   tags: ['search', 'user'],
- *   category: 'query',
- *   once: false
- * })
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/action/
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/action/register-delegation
  * 
  * @public
  */
@@ -150,29 +85,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * 
    * @throws {Error} When maximum handlers limit is reached
    * 
-   * @example Basic Registration
-   * ```typescript
-   * const unregister = register.register('updateUser', async (payload, controller) => {
-   *   await userService.update(payload.id, payload)
-   * })
-   * 
-   * // Later remove the handler
-   * unregister()
-   * ```
-   * 
-   * @example With Priority and Configuration
-   * ```typescript
-   * register.register('validateUser', async (payload, controller) => {
-   *   if (!payload.email) {
-   *     controller.abort('Email is required')
-   *   }
-   * }, {
-   *   priority: 100,
-   *   tags: ['validation'],
-   *   category: 'security',
-   *   once: false
-   * })
-   * ```
+   * @see https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
    * 
    * @public
    */
@@ -407,34 +320,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * 
    * @throws {Error} When action dispatching fails
    * 
-   * @example Basic Dispatch
-   * ```typescript
-   * await register.dispatch('updateUser', {
-   *   id: '123',
-   *   name: 'John Doe',
-   *   email: 'john@example.com'
-   * })
-   * ```
-   * 
-   * @example With Options
-   * ```typescript
-   * await register.dispatch('updateUser', payload, {
-   *   executionMode: 'parallel',
-   *   timeout: 5000,
-   *   filter: {
-   *     tags: ['validation', 'business-logic'],
-   *     excludeCategory: 'analytics'
-   *   }
-   * })
-   * ```
-   * 
-   * @example With Throttling
-   * ```typescript
-   * await register.dispatch('searchUsers', { query: 'john' }, {
-   *   throttle: 300,
-   *   debounce: 100
-   * })
-   * ```
+   * @see https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
    * 
    * @public
    */
@@ -667,31 +553,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * 
    * @returns Promise resolving to comprehensive execution results
    * 
-   * @example Basic Result Collection
-   * ```typescript
-   * const result = await register.dispatchWithResult('updateUser', payload)
-   * 
-   * if (result.success) {
-   *   console.log(`Executed ${result.execution.handlersExecuted} handlers`)
-   *   console.log(`Duration: ${result.execution.duration}ms`)
-   * }
-   * ```
-   * 
-   * @example Advanced Result Processing
-   * ```typescript
-   * const result = await register.dispatchWithResult('processOrder', order, {
-   *   result: {
-   *     collect: true,
-   *     strategy: 'merge',
-   *     maxResults: 5,
-   *     merger: (results) => results.reduce((acc, curr) => ({ ...acc, ...curr }), {})
-   *   }
-   * })
-   * 
-   * if (result.terminated) {
-   *   console.log('Handler returned early:', result.result)
-   * }
-   * ```
+   * @see https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
    * 
    * @public
    */
@@ -1181,13 +1043,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * 
    * @returns Number of registered handlers
    * 
-   * @example
-   * ```typescript
-   * register.register('updateUser', handler1)
-   * register.register('updateUser', handler2)
-   * 
-   * console.log(register.getHandlerCount('updateUser')) // 2
-   * ```
+   * @see https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
    * 
    * @public
    */
@@ -1203,12 +1059,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * 
    * @returns True if action has handlers, false otherwise
    * 
-   * @example
-   * ```typescript
-   * if (register.hasHandlers('updateUser')) {
-   *   await register.dispatch('updateUser', userData)
-   * }
-   * ```
+   * @see https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
    * 
    * @public
    */
@@ -1221,11 +1072,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * 
    * @returns Array of all registered action types
    * 
-   * @example
-   * ```typescript
-   * const actions = register.getRegisteredActions()
-   * console.log('Registered actions:', actions) // ['updateUser', 'deleteUser', 'resetUser']
-   * ```
+   * @see https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
    * 
    * @public
    */
@@ -1238,11 +1085,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * 
    * @param action - The action type to clear handlers for
    * 
-   * @example
-   * ```typescript
-   * register.clearAction('updateUser')
-   * console.log(register.hasHandlers('updateUser')) // false
-   * ```
+   * @see https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
    * 
    * @public
    */
@@ -1253,11 +1096,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   /**
    * Remove all handlers for all actions
    * 
-   * @example
-   * ```typescript
-   * register.clearAll()
-   * console.log(register.getRegisteredActions().length) // 0
-   * ```
+   * @see https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
    * 
    * @public
    */
@@ -1270,11 +1109,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * 
    * @returns The register name
    * 
-   * @example
-   * ```typescript
-   * const register = new ActionRegister({ name: 'UserRegister' })
-   * console.log(register.getName()) // 'UserRegister'
-   * ```
+   * @see https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
    * 
    * @public
    */

@@ -106,22 +106,7 @@ function isUnclonable(value: unknown): boolean {
  * @param value - 복사할 값
  * @returns 깊은 복사된 값
  * 
- * @example
- * ```typescript
- * // Primitive 값 - 복사 불필요
- * const num = deepClone(42);           // 42 (동일한 값)
- * const str = deepClone('hello');      // 'hello' (동일한 값)
- * 
- * // 객체 - 깊은 복사
- * const user = { id: '1', profile: { name: 'John' } };
- * const clonedUser = deepClone(user);
- * clonedUser.profile.name = 'Jane';    // 원본 user는 변경되지 않음
- * 
- * // 배열 - 깊은 복사
- * const items = [{ id: 1 }, { id: 2 }];
- * const clonedItems = deepClone(items);
- * clonedItems[0].id = 999;             // 원본 items는 변경되지 않음
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-config
  */
 export function deepClone<T>(value: T): T {
   // Primitive 값들은 이미 불변이므로 그대로 반환

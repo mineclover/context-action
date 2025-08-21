@@ -71,25 +71,7 @@ export interface Snapshot<T = any> {
  * 
  * @template T The type of the stored value
  * 
- * @example
- * ```typescript
- * const userStore: IStore<User> = createStore('user', { 
- *   id: '', 
- *   name: '', 
- *   email: '' 
- * });
- * 
- * // Subscribe to changes
- * const unsubscribe = userStore.subscribe(() => {
- *   console.log('User store updated:', userStore.getSnapshot().value);
- * });
- * 
- * // Update store value
- * userStore.setValue({ id: '1', name: 'John', email: 'john@example.com' });
- * 
- * // Get current value for action handlers
- * const currentUser = userStore.getValue();
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  */
 export interface IStore<T = any> {
   /** Unique identifier for the store */
@@ -120,26 +102,7 @@ export interface IStore<T = any> {
  * Central registry for managing multiple Store instances with dynamic access
  * and lifecycle management. Provides subscription capability for registry changes.
  * 
- * @example
- * ```typescript
- * const registry = new StoreRegistry('app-registry');
- * 
- * // Register stores
- * const userStore = createStore('user', { name: '', email: '' });
- * const settingsStore = createStore('settings', { theme: 'light' });
- * 
- * registry.register('user', userStore);
- * registry.register('settings', settingsStore);
- * 
- * // Access stores dynamically
- * const user = registry.getStore('user');
- * const settings = registry.getStore('settings');
- * 
- * // Subscribe to registry changes
- * registry.subscribe(() => {
- *   console.log('Registry changed, store count:', registry.getStoreCount());
- * });
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-config
  */
 export interface IStoreRegistry {
   /** Unique identifier for the registry */

@@ -84,64 +84,7 @@ export function deepEqual<T>(a: T, b: T): boolean {
  * @returns The value returned by the selector function
  * 
  * 
- * @example Basic Selective Subscription
- * ```typescript
- * interface User {
- *   id: string
- *   profile: { name: string; email: string; avatar?: string }
- *   preferences: { theme: 'light' | 'dark'; language: string }
- *   metadata: { lastLogin: Date; createdAt: Date }
- * }
- * 
- * const userStore = createStore<User>('user', initialUser)
- * 
- * // Subscribe only to profile.name - ignores other user changes
- * const userName = useStoreSelector(
- *   userStore, 
- *   user => user.profile.name
- * )
- * 
- * // Component re-renders only when name changes
- * ```
- * 
- * @example Object Subscription with Shallow Comparison
- * ```typescript
- * // Subscribe to entire profile object with shallow equality
- * const userProfile = useStoreSelector(
- *   userStore, 
- *   user => user.profile,
- *   shallowEqual
- * )
- * 
- * // Re-renders only when profile properties change
- * // (name, email, avatar), not when preferences or metadata change
- * ```
- * 
- * @example Computed Values with Performance Optimization
- * ```typescript
- * const userDisplayInfo = useStoreSelector(
- *   userStore,
- *   user => ({
- *     displayName: user.profile.name || 'Anonymous',
- *     isNewUser: Date.now() - user.metadata.createdAt.getTime() < 7 * 24 * 60 * 60 * 1000,
- *     avatarUrl: user.profile.avatar || '/default-avatar.png'
- *   }),
- *   shallowEqual
- * )
- * ```
- * 
- * @example Conditional Computation
- * ```typescript
- * const expensiveComputation = useStoreSelector(
- *   userStore,
- *   user => {
- *     if (!user.profile.name) return null
- *     
- *     // Expensive calculation only when name exists
- *     return processUserData(user)
- *   }
- * )
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-hooks#usestoreselector-advanced-usage
  * 
  * @public
  */
@@ -247,22 +190,7 @@ export function useStoreSelector<T, R>(
  * @param equalityFn 이전 값과 새 값을 비교하는 함수
  * @returns selector가 반환하는 값
  * 
- * @example
- * ```typescript
- * const userStore = createStore('user', { name: '', email: '' });
- * const settingsStore = createStore('settings', { theme: 'light' });
- * const uiStore = createStore('ui', { isLoading: false });
- * 
- * const dashboardData = useMultiStoreSelector(
- *   [userStore, settingsStore, uiStore],
- *   ([user, settings, ui]) => ({
- *     greeting: `Hello, ${user.name}!`,
- *     isDarkMode: settings.theme === 'dark',
- *     showLoader: ui.isLoading
- *   }),
- *   shallowEqual
- * );
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-hooks#multi-store-selection
  */
 export function useMultiStoreSelector<R>(
   stores: Store<any>[],
@@ -339,20 +267,7 @@ export function useMultiStoreSelector<R>(
  * @param equalityFn 동등성 비교 함수
  * @returns 경로에 있는 값
  * 
- * @example
- * ```typescript
- * const appStore = createStore('app', {
- *   user: {
- *     profile: { name: 'John', email: 'john@example.com' },
- *     settings: { theme: 'dark' }
- *   },
- *   ui: { isLoading: false }
- * });
- * 
- * // 깊은 경로의 값 선택
- * const userName = useStorePathSelector(appStore, ['user', 'profile', 'name']);
- * const userTheme = useStorePathSelector(appStore, ['user', 'settings', 'theme']);
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-hooks#path-based-selection
  */
 export function useStorePathSelector<T>(
   store: Store<T>,

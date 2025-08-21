@@ -10,19 +10,7 @@
  * schema definition. Offers compile-time type inference and singleton behavior for 
  * consistent data management.
  * 
- * @example
- * // ✅ Declarative Store Pattern - Type-safe and clean
- * interface AppStores {
- *   user: { id: string; name: string };
- *   settings: { theme: 'light' | 'dark' };
- * }
- * 
- * const AppStores = createDeclarativeStorePattern('App', {
- *   user: { initialValue: { id: '', name: '' } },
- *   settings: { initialValue: { theme: 'light' } }
- * });
- * 
- * const userStore = AppStores.useStore('user'); // Type: Store<{id: string, name: string}>
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  */
 
 // === UNIFIED DECLARATIVE STORE PATTERN ===

@@ -70,47 +70,8 @@ export function createRefContext<T extends RefDefinitions>(
  * @param refDefinitions 참조 정의 (선언적 사용 시)
  * @returns RefContext API
  * 
- * @example
- * ```typescript
- * // 방법 1: 심플한 타입 지정 (legacy)
- * const GameRefs = createRefContext<{
- *   canvas: HTMLCanvasElement;
- *   scene: THREE.Scene;
- * }>('GameRefs');
- * 
- * // 방법 2: 선언적 정의 (권장)
- * const GameRefs = createRefContext('GameRefs', {
- *   canvas: { name: 'canvas', objectType: 'dom' as const },
- *   scene: { name: 'scene', objectType: 'three' as const }
- * });
- * 
- * // 사용법 (직관적이고 간단함)
- * function GameComponent() {
- *   const canvas = GameRefs.useRefHandler('canvas');
- *   const scene = GameRefs.useRefHandler('scene');
- *   
- *   // ✅ 올바른 패턴: Hook을 먼저 호출하여 함수 추출
- *   const waitForRefs = GameRefs.useWaitForRefs();
- *   
- *   const initGame = async () => {
- *     // ✅ 추출한 함수 사용
- *     const refs = await waitForRefs('canvas', 'scene');
- *     // 타입 안전한 사용
- *     refs.canvas?.focus?.();
- *     console.log('Game initialized with:', refs);
- *   };
- *   
- *   return (
- *     <GameRefs.Provider>
- *       <canvas ref={canvas.setRef} />
- *       <button onClick={initGame}>Initialize Game</button>
- *       <button onClick={() => canvas.waitForMount().then(c => console.log('Canvas ready:', c))}>
- *         Check Canvas
- *       </button>
- *     </GameRefs.Provider>
- *   );
- * }
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/ref/
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/ref/basic-usage
  */
 export function createRefContext<T = any>(
   contextName: string,

@@ -4,17 +4,7 @@
  * Context-Action 프레임워크를 위한 범용 참조 관리 시스템
  * createRefContext를 통한 선언적 참조 관리 솔루션
  * 
- * @example
- * ```typescript
- * import { createRefContext } from '@context-action/react/refs';
- * 
- * // ✅ RECOMMENDED: Use createRefContext for all ref management
- * const MyRefs = createRefContext('MyRefs', {
- *   canvas: { name: 'canvas', autoCleanup: true },
- *   gameEngine: { name: 'engine', autoCleanup: true },
- *   threeScene: { name: 'scene', autoCleanup: true }
- * });
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/ref/basic-usage
  */
 
 // 핵심 타입들

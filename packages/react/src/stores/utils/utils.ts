@@ -10,19 +10,7 @@ import { Store } from "../core/Store";
  * @param name - Optional name for the store (auto-generated if not provided)
  * @returns New Store instance
  * 
- * @example
- * ```typescript
- * // Simple store creation
- * const userStore = createStore<User>({
- *   id: '', 
- *   name: '', 
- *   email: '',
- *   updatedAt: 0
- * });
- * 
- * // Store with custom name
- * const counterStore = createStore(0, 'counter');
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage#creating-stores
  */
 export function createStore<T>(initialValue: T, name?: string): Store<T> {
   const storeName = name || `store_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;

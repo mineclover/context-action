@@ -6,34 +6,7 @@
  * This interface serves as the foundation for type-safe action handling throughout
  * the Context-Action framework.
  * 
- * @example Basic Action Mapping
- * ```typescript
- * interface AppActions extends ActionPayloadMap {
- *   updateUser: { id: string; name: string; email: string }
- *   deleteUser: { id: string }
- *   resetUser: void  // Actions without payload
- *   fetchUsers: { page: number; limit: number }
- *   toggleTheme: { theme: 'light' | 'dark' }
- * }
- * ```
- * 
- * @example Usage with ActionRegister
- * ```typescript
- * const register = new ActionRegister<AppActions>()
- * 
- * // Type-safe handler registration
- * register.register('updateUser', async (payload, controller) => {
- *   // payload is automatically typed as { id: string; name: string; email: string }
- *   await userService.update(payload.id, payload)
- * })
- * 
- * // Type-safe dispatch
- * await register.dispatch('updateUser', {
- *   id: '123',
- *   name: 'John Doe',
- *   email: 'john@example.com'
- * })
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/action/type-system
  * 
  * @public
  */

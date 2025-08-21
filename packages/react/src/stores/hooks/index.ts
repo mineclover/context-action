@@ -8,14 +8,7 @@
  * React hooks for store interaction. For new development, prefer using
  * createDeclarativeStores() which provides type-safe store access.
  * 
- * @example
- * // ✅ Recommended approach - Declarative Store Pattern
- * const AppStores = createDeclarativeStores('App', {
- *   user: { initialValue: { id: '', name: '' } }
- * });
- * 
- * const userStore = AppStores.useStore('user'); // Type: Store<{id: string, name: string}>
- * const user = useStoreValue(userStore);
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  */
 
 // === CORE STORE HOOKS ===

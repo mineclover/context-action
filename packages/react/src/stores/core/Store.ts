@@ -15,49 +15,11 @@ import {
  * 
  * @template T - The type of value stored in this store
  * 
- * @example Basic Store Usage
- * ```typescript
- * // Create a store with initial value
- * const counterStore = createStore('counter', 0)
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  * 
- * // Get current value
- * const currentCount = counterStore.getValue()
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  * 
- * // Set new value
- * counterStore.setValue(5)
- * 
- * // Update with function
- * counterStore.update(count => count + 1)
- * ```
- * 
- * @example React Integration
- * ```typescript
- * const userStore = createStore('user', { name: '', email: '' })
- * 
- * function UserComponent() {
- *   // Subscribe to store changes
- *   const user = useStoreValue(userStore)
- *   
- *   const handleUpdate = () => {
- *     userStore.update(current => ({
- *       ...current,
- *       name: 'John Doe'
- *     }))
- *   }
- *   
- *   return <div>User: {user.name}</div>
- * }
- * ```
- * 
- * @example Custom Comparison
- * ```typescript
- * const store = createStore('items', [])
- * 
- * // Set custom comparator for array length-based updates
- * store.setComparator((oldItems, newItems) => 
- *   oldItems.length === newItems.length
- * )
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  * 
  * @public
  */
@@ -300,12 +262,7 @@ export class Store<T = any> implements IStore<T> {
    * 이 Store에만 적용되는 특별한 비교 로직 설정
    * 
    * @param comparator - 커스텀 비교 함수 (oldValue, newValue) => boolean
-   * @example
-   * ```typescript
-   * userStore.setCustomComparator((oldUser, newUser) => 
-   *   oldUser.id === newUser.id && oldUser.lastModified === newUser.lastModified
-   * );
-   * ```
+   * @see https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-config
    */
   setCustomComparator(comparator: (oldValue: T, newValue: T) => boolean): void {
     this.customComparator = comparator;
@@ -316,17 +273,7 @@ export class Store<T = any> implements IStore<T> {
    * 이 Store에만 적용되는 비교 전략 설정
    * 
    * @param options - 비교 옵션
-   * @example
-   * ```typescript
-   * // 깊은 비교 사용
-   * userStore.setComparisonOptions({ strategy: 'deep', maxDepth: 3 });
-   * 
-   * // 얕은 비교 사용하되 특정 키 무시
-   * stateStore.setComparisonOptions({ 
-   *   strategy: 'shallow', 
-   *   ignoreKeys: ['timestamp', 'lastAccess'] 
-   * });
-   * ```
+   * @see https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-config
    */
   setComparisonOptions(options: Partial<ComparisonOptions<T>>): void {
     this.comparisonOptions = options;
@@ -467,54 +414,11 @@ export class Store<T = any> implements IStore<T> {
  * 
  * @returns Configured Store instance ready for use
  * 
- * @example Basic Store Creation
- * ```typescript
- * // Object store
- * const userStore = createStore('user', {
- *   id: '',
- *   name: '',
- *   email: ''
- * })
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  * 
- * // Primitive value stores
- * const countStore = createStore('count', 0)
- * const themeStore = createStore('theme', 'light' as 'light' | 'dark')
- * const itemsStore = createStore('items', [] as string[])
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  * 
- * @example Integration with React
- * ```typescript
- * // Create store
- * const userStore = createStore('user', { name: 'Guest' })
- * 
- * // Use in React component
- * function UserProfile() {
- *   const user = useStoreValue(userStore)
- *   
- *   const updateName = (name: string) => {
- *     userStore.update(current => ({ ...current, name }))
- *   }
- *   
- *   return <div>Hello, {user.name}!</div>
- * }
- * ```
- * 
- * @example Store Operations
- * ```typescript
- * const todoStore = createStore('todos', [] as Todo[])
- * 
- * // Set entire value
- * todoStore.setValue([{ id: 1, text: 'Learn TypeScript', done: false }])
- * 
- * // Update with function
- * todoStore.update(todos => [
- *   ...todos,
- *   { id: 2, text: 'Build app', done: false }
- * ])
- * 
- * // Get current value
- * const currentTodos = todoStore.getValue()
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  * 
  * @public
  */
@@ -568,20 +472,7 @@ export class ManagedStore<T> extends Store<T> {
  * @param config - Store configuration
  * @returns ManagedStore instance
  * 
- * @example
- * ```typescript
- * const registry = new StoreRegistry();
- * 
- * // Auto-registered store
- * const userStore = createManagedStore({
- *   name: 'user',
- *   initialValue: { id: '', name: '' },
- *   registry,
- *   autoRegister: true
- * });
- * 
- * // The store is automatically available via registry.getStore('user')
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  */
 export function createManagedStore<T>(config: StoreConfig<T>): ManagedStore<T> {
   return new ManagedStore<T>(config);

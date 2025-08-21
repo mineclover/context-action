@@ -7,17 +7,7 @@ import type { IStore, IStoreRegistry, Listener, Unsubscribe } from './types';
  * registration timestamps, categorization tags, versioning, and debugging flags.
  * Used by StoreRegistry for advanced store management and introspection.
  * 
- * @example
- * ```typescript
- * const metadata: StoreMetadata = {
- *   registeredAt: Date.now(),
- *   name: 'userStore',
- *   tags: ['user', 'authentication'],
- *   description: 'Manages user profile and session data',
- *   version: '2.1.0',
- *   debug: process.env.NODE_ENV === 'development'
- * }
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  * 
  * @public
  */
@@ -56,86 +46,11 @@ export interface StoreMetadata {
  * - Filtering and organization capabilities
  * - Memory-safe cleanup with automatic garbage collection
  * 
- * @example Basic Store Registry Usage
- * ```typescript
- * // Create registry
- * const registry = new StoreRegistry('AppRegistry')
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  * 
- * // Register stores
- * const userStore = createStore('user', { name: 'Guest' })
- * const settingsStore = createStore('settings', { theme: 'light' })
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  * 
- * registry.register('user', userStore, {
- *   tags: ['auth', 'profile'],
- *   description: 'User profile and authentication data'
- * })
- * 
- * registry.register('settings', settingsStore, {
- *   tags: ['ui', 'preferences'],
- *   description: 'Application settings and user preferences'
- * })
- * 
- * // Retrieve stores
- * const user = registry.getStore('user')
- * const settings = registry.getStore('settings')
- * ```
- * 
- * @example Registry Subscriptions
- * ```typescript
- * const registry = new StoreRegistry('ReactiveRegistry')
- * 
- * // Subscribe to registry changes
- * const unsubscribe = registry.subscribe(() => {
- *   console.log(`Registry now has ${registry.getStoreCount()} stores`)
- *   console.log('Stores:', registry.getStoreNames())
- * })
- * 
- * // Registry changes will trigger the subscription
- * registry.register('newStore', createStore('data', []))
- * registry.unregister('oldStore')
- * 
- * // Cleanup subscription
- * unsubscribe()
- * ```
- * 
- * @example Metadata and Organization
- * ```typescript
- * const registry = new StoreRegistry('OrganizedRegistry')
- * 
- * // Register with comprehensive metadata
- * registry.register('userProfile', userStore, {
- *   tags: ['user', 'profile', 'auth'],
- *   description: 'Complete user profile management',
- *   version: '2.1.0',
- *   debug: true
- * })
- * 
- * // Query metadata
- * const metadata = registry.getStoreMetadata('userProfile')
- * console.log('Store registered at:', new Date(metadata.registeredAt))
- * 
- * // Update metadata
- * registry.updateStoreMetadata('userProfile', {
- *   version: '2.1.1',
- *   debug: false
- * })
- * ```
- * 
- * @example Advanced Operations
- * ```typescript
- * const registry = new StoreRegistry('AdvancedRegistry')
- * 
- * // Bulk operations
- * registry.forEach((store, name) => {
- *   console.log(`Store ${name} has ${store.getListenerCount()} subscribers`)
- * })
- * 
- * // Create filtered registry
- * const userStores = registry.filter((store, name) => {
- *   const metadata = registry.getStoreMetadata(name)
- *   return metadata?.tags?.includes('user') ?? false
- * })
- * ```
+ * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  * 
  * @public
  */
