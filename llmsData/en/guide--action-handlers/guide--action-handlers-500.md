@@ -12,14 +12,12 @@ workflow_stage: content_generated
 ---
 Action Handlers
 
-Action handlers contain the business logic of your application. Learn how to implement, register, and manage handlers effectively for scalable, maintainable applications. Handler Implementation Pattern
+Action handlers implement business logic using the useActionHandler + useEffect pattern. Key features include:
 
-Best Practice: useActionHandler Pattern
+• Priority-based execution (sequential/parallel/race modes)
+• Controller methods for flow control (abort, jumpToPriority, setResult)
+• Robust error handling with context and meaningful messages
+• Memory cleanup with unregister functions
+• Result collection from multiple handlers with configurable strategies
 
-The recommended pattern for handler registration uses useActionHandler + useEffect for optimal performance and proper cleanup:
-
-Handler Configuration Options
-
-Handler Execution Flow
-
-1.
+Best practices: wrap handlers with useCallback, use lazy store evaluation, implement proper validation, and organize handlers by domain for maintainability.
