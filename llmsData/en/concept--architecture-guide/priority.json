@@ -1,0 +1,46 @@
+{
+  "document": {
+    "id": "concept--architecture-guide",
+    "title": "Context-Action Store Integration Architecture",
+    "category": "concept",
+    "source_path": "en/concept/architecture-guide.md"
+  },
+  "priority": {
+    "score": 85,
+    "tier": "medium"
+  },
+  "purpose": {
+    "primary_goal": "Learn about context-action store integration architecture",
+    "use_cases": [
+      "Understanding concept",
+      "Implementing context-action store integration architecture",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "tsx",
+      "mermaid",
+      "react",
+      "api",
+      "https",
+      "context",
+      "state"
+    ],
+    "functional": [
+      "concept",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "The Context-Action framework is a **revolutionary state management system** designed to overcome the fundamental limitations of existing libraries through document-centric context separation and effective artifact management.",
+    "language": "en",
+    "created_at": "2025-08-21T02:13:42.314Z"
+  }
+}

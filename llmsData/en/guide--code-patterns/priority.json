@@ -1,0 +1,42 @@
+{
+  "document": {
+    "id": "guide--code-patterns",
+    "title": "Code Patterns",
+    "category": "guide",
+    "source_path": "en/guide/code-patterns.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about code patterns",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing code patterns",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "context",
+      "state",
+      "component"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Core patterns for Context-Action framework's RefContext and useWaitForRefs functionality.",
+    "language": "en",
+    "created_at": "2025-08-21T02:13:42.324Z"
+  }
+}

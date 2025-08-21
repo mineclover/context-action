@@ -1,0 +1,42 @@
+{
+  "document": {
+    "id": "guide--architecture",
+    "title": "아키텍처",
+    "category": "guide",
+    "source_path": "ko/guide/architecture.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about 아키텍처",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing 아키텍처",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "react",
+      "typescript",
+      "api",
+      "context"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Context-Action은 MVVM에서 영감을 받은 패턴을 통해 명확한 관심사 분리를 구현합니다.",
+    "language": "ko",
+    "created_at": "2025-08-21T02:13:42.337Z"
+  }
+}

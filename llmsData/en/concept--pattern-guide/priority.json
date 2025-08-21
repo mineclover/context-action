@@ -1,0 +1,46 @@
+{
+  "document": {
+    "id": "concept--pattern-guide",
+    "title": "@context-action/react Pattern Guide",
+    "category": "concept",
+    "source_path": "en/concept/pattern-guide.md"
+  },
+  "priority": {
+    "score": 85,
+    "tier": "medium"
+  },
+  "purpose": {
+    "primary_goal": "Learn about @context-action/react pattern guide",
+    "use_cases": [
+      "Understanding concept",
+      "Implementing @context-action/react pattern guide",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "tsx",
+      "react",
+      "api",
+      "context",
+      "state",
+      "component",
+      "hook"
+    ],
+    "functional": [
+      "concept",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Complete guide to the three main patterns available in @context-action/react framework.",
+    "language": "en",
+    "created_at": "2025-08-21T02:13:42.317Z"
+  }
+}

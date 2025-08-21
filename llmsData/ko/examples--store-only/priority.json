@@ -1,0 +1,45 @@
+{
+  "document": {
+    "id": "examples--store-only",
+    "title": "Store Only 패턴 예제",
+    "category": "examples",
+    "source_path": "ko/examples/store-only.md"
+  },
+  "priority": {
+    "score": 80,
+    "tier": "medium"
+  },
+  "purpose": {
+    "primary_goal": "Learn about store only 패턴 예제",
+    "use_cases": [
+      "Understanding examples",
+      "Implementing store only 패턴 예제",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "react",
+      "api",
+      "tsx",
+      "context",
+      "component",
+      "state"
+    ],
+    "functional": [
+      "examples",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "순수 상태 관리를 위한 **Store Only 패턴**의 실제 사용 예제입니다. 액션 디스패치 없이 데이터 레이어, 애플리케이션 상태, 반응형 데이터 플로우에 이상적인 패턴입니다.",
+    "language": "ko",
+    "created_at": "2025-08-21T02:13:42.335Z"
+  }
+}

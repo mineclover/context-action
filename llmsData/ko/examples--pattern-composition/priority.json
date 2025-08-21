@@ -1,0 +1,44 @@
+{
+  "document": {
+    "id": "examples--pattern-composition",
+    "title": "패턴 조합 예제",
+    "category": "examples",
+    "source_path": "ko/examples/pattern-composition.md"
+  },
+  "priority": {
+    "score": 80,
+    "tier": "medium"
+  },
+  "purpose": {
+    "primary_goal": "Learn about 패턴 조합 예제",
+    "use_cases": [
+      "Understanding examples",
+      "Implementing 패턴 조합 예제",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "mermaid",
+      "typescript",
+      "react",
+      "api",
+      "context",
+      "tsx"
+    ],
+    "functional": [
+      "examples",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "복잡한 애플리케이션을 위해 **Action Only**와 **Store Only** 패턴을 결합하는 방법을 보여줍니다. MVVM 아키텍처에 따라 완전한 관심사 분리를 구현합니다.",
+    "language": "ko",
+    "created_at": "2025-08-21T02:13:42.335Z"
+  }
+}

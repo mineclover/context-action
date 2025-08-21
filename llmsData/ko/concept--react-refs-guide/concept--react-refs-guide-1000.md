@@ -1,0 +1,66 @@
+---
+document_id: concept--react-refs-guide
+category: concept
+source_path: ko/concept/react-refs-guide.md
+character_limit: 1000
+last_update: '2025-08-21T02:13:42.387Z'
+update_status: auto_generated
+priority_score: 85
+priority_tier: medium
+completion_status: completed
+workflow_stage: content_generated
+---
+React Refs 가이드
+
+Context-Action의 RefContext는 제로 React 리렌더링으로 고성능 DOM 조작을 위한 현대적 접근법을 제공합니다. RefContext란 무엇인가요. RefContext는 React 상태 업데이트를 거치지 않고 DOM 요소에 직접 접근하고 조작할 수 있게 해주는 고성능 패턴입니다. 이는 실시간 인터랙션, 애니메이션, 캔버스 작업과 같이 60fps 성능이 중요한 시나리오에서 완벽합니다. 주요 특징
+
+- 제로 리렌더링: DOM 업데이트가 React 리렌더링을 발생시키지 않음
+- 타입 안전성: 완전한 TypeScript 지원으로 엄격한 타입 검사
+- 하드웨어 가속: GPU 가속을 위한 translate3d() 변환 내장
+- 분리된 비즈니스 로직: DOM 조작과 비즈니스 로직의 깔끔한 분리
+
+기본 사용법
+
+간단한 RefContext 생성
+
+컴포넌트에서 사용
+
+실제 예시: 마우스 이벤트 처리
+
+다음은 관심사 분리를 보여주는 완전한 마우스 추적 시스템입니다:
+
+고급 패턴
+
+Ref 대기 및 검증
+
+성능 최적화 패턴
+
+패턴 통합
+
+Actions + Stores + RefContext
+
+모범 사례
+
+1. 항상 Ref 존재 확인
+
+2. GPU 가속 사용
+
+3. 메모리 정리
+
+4. 비즈니스 로직과 DOM 조작 분리
+
+언제 RefContext를 사용할까요. ✅ 적합한 경우:
+- 실시간 마우스/터치 인터랙션
+- 60fps 애니메이션
+- 캔버스 조작
+- 드래그 앤 드롭
+- 게임 UI 요소
+- 미디어 플레이어 컨트롤
+
+❌ 부적합한 경우:
+- 간단한 상태 표시
+- 폼 입력 처리
+- 목록 렌더링
+- 일반적인 UI 상태 관리
+
+RefContext는 성능이 중요한 특정 사용 사례를 위한 강력한 도구입니다. 일반적인 React 상태 관리와 결합하면 고성능과 개발자 경험 모두를 달성할 수 있습니다.

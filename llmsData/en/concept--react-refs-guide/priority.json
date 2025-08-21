@@ -1,0 +1,45 @@
+{
+  "document": {
+    "id": "concept--react-refs-guide",
+    "title": "React Refs Management Guide",
+    "category": "concept",
+    "source_path": "en/concept/react-refs-guide.md"
+  },
+  "priority": {
+    "score": 85,
+    "tier": "medium"
+  },
+  "purpose": {
+    "primary_goal": "Learn about react refs management guide",
+    "use_cases": [
+      "Understanding concept",
+      "Implementing react refs management guide",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "react",
+      "api",
+      "context",
+      "component",
+      "hook",
+      "state"
+    ],
+    "functional": [
+      "concept",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "This guide covers the **React Refs Management System** in the Context-Action framework - a simple and safe reference management system designed for managing DOM elements, custom objects, and complex component references with type safety and lifecycle management.",
+    "language": "en",
+    "created_at": "2025-08-21T02:13:42.317Z"
+  }
+}

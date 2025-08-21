@@ -1,0 +1,41 @@
+{
+  "document": {
+    "id": "guide--action-handlers",
+    "title": "액션 핸들러",
+    "category": "guide",
+    "source_path": "ko/guide/action-handlers.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about 액션 핸들러",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing 액션 핸들러",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "react",
+      "state"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "액션 핸들러는 애플리케이션의 비즈니스 로직을 포함합니다. 확장 가능하고 유지보수가 가능한 애플리케이션을 위해 핸들러를 효과적으로 구현, 등록, 관리하는 방법을 알아보세요.",
+    "language": "ko",
+    "created_at": "2025-08-21T02:13:42.336Z"
+  }
+}

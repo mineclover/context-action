@@ -1,0 +1,43 @@
+{
+  "document": {
+    "id": "concept--react-refs-guide",
+    "title": "React Refs 가이드",
+    "category": "concept",
+    "source_path": "ko/concept/react-refs-guide.md"
+  },
+  "priority": {
+    "score": 85,
+    "tier": "medium"
+  },
+  "purpose": {
+    "primary_goal": "Learn about react refs 가이드",
+    "use_cases": [
+      "Understanding concept",
+      "Implementing react refs 가이드",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "tsx",
+      "react",
+      "typescript",
+      "api",
+      "context"
+    ],
+    "functional": [
+      "concept",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Context-Action의 RefContext는 제로 React 리렌더링으로 고성능 DOM 조작을 위한 현대적 접근법을 제공합니다.",
+    "language": "ko",
+    "created_at": "2025-08-21T02:13:42.332Z"
+  }
+}

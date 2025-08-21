@@ -1,0 +1,40 @@
+{
+  "document": {
+    "id": "guide--test-sync-demo",
+    "title": "Test Sync Demo (Final Version)",
+    "category": "guide",
+    "source_path": "en/guide/test-sync-demo.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about test sync demo (final version)",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing test sync demo (final version)",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "javascript",
+      "hook"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "This is the **final version** of the test document demonstrating complete sync-docs workflow with automatic synchronization.",
+    "language": "en",
+    "created_at": "2025-08-21T02:13:42.328Z"
+  }
+}

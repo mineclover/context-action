@@ -1,0 +1,39 @@
+{
+  "document": {
+    "id": "guide--conditional-await",
+    "title": "조건부 대기 패턴",
+    "category": "guide",
+    "source_path": "ko/guide/patterns/conditional-await.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about 조건부 대기 패턴",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing 조건부 대기 패턴",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "useWaitForRefs의 핵심 동작으로 조건부로 대기하거나 즉시 반환하는 패턴입니다.",
+    "language": "ko",
+    "created_at": "2025-08-21T02:13:42.339Z"
+  }
+}
