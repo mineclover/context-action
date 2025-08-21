@@ -86,6 +86,11 @@ packages/llms-generator/data/**/*.txt
 packages/llms-generator/data/**/*.md
 !packages/llms-generator/data/priority-schema.json
 
+# LLMS Generator working directory (optional, generated content)
+# This directory contains AI-optimized documentation summaries
+# Exclude from repository but can be tracked if needed for team collaboration
+llmsData/
+
 # history
 .history/
 

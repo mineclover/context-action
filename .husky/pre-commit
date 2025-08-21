@@ -3,15 +3,23 @@
 # Get list of modified markdown files in docs directory
 MODIFIED_DOCS=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^docs/(en|ko)/.*\.md$' | grep -v llms/ || true)
 
-if [ -n "$MODIFIED_DOCS" ]; then
+# Check if llmsData directory exists and has been initialized
+if [ -d "llmsData" ] && [ -n "$MODIFIED_DOCS" ]; then
   echo "📝 Detected modified documentation files. Updating LLM work status..."
   
   # Run the llms-generator sync-docs command
-  node packages/llms-generator/dist/cli/index.js sync-docs --changed-files="$MODIFIED_DOCS" --quiet
+  node packages/llms-generator/dist/cli/index.js sync-docs --changed-files $MODIFIED_DOCS --quiet
   
-  # Add any updated files to the commit
+  # Add any updated files to the commit (only if llmsData is tracked)
+  if git ls-files --error-unmatch llmsData/ >/dev/null 2>&1; then
+    git add llmsData/ 2>/dev/null || true
+  fi
+  
+  # Legacy paths for backward compatibility
   git add packages/llms-generator/data/ 2>/dev/null || true
   git add docs/*/llms/ 2>/dev/null || true
   
   echo "✅ LLM work status updated"
+elif [ -n "$MODIFIED_DOCS" ] && [ ! -d "llmsData" ]; then
+  echo "ℹ️  Documentation files modified, but llmsData/ not initialized. Run 'pnpm llms:init' to enable LLM sync."
 fi
