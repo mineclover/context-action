@@ -1,0 +1,18 @@
+{
+  "documentId": "en_guide_test-sync-demo",
+  "title": "Test Sync Demo",
+  "category": "guide",
+  "language": "en",
+  "priority": 0.8,
+  "tags": ["testing", "sync-docs", "workflow", "demo"],
+  "lastUpdated": "2025-08-21T00:43:09.385Z",
+  "source": {
+    "file": "docs/en/guide/test-sync-demo.md",
+    "lastModified": "2025-08-21T00:43:09.386Z"
+  },
+  "metadata": {
+    "description": "Test document demonstrating sync-docs workflow",
+    "keywords": ["llms-generator", "pre-commit", "synchronization"],
+    "author": "Test System"
+  }
+}
