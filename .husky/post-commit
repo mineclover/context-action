@@ -22,18 +22,10 @@ if [ -d "llmsData" ] && [ -n "$MODIFIED_DOCS" ]; then
   LLMS_CHANGES=$(git status --porcelain llmsData/ 2>/dev/null || true)
   
   if [ -n "$LLMS_CHANGES" ]; then
-    echo "🔄 Creating separate commit for LLM work status updates..."
-    git add llmsData/
-    git commit -m "chore(llms): auto-sync documentation changes
-
-Generated summaries and priority updates for:
-$(echo "$MODIFIED_DOCS" | sed 's/^/- /')
-
-🤖 Generated with [Claude Code](https://claude.ai/code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>" --no-verify
-    
-    echo "✅ LLM work status updated in separate commit"
+    echo "📋 LLM work status files updated:"
+    echo "$LLMS_CHANGES" | sed 's/^/  /'
+    echo "ℹ️  Files are ready to be committed manually when desired"
+    echo "💡 To commit these changes, run: git add llmsData/ && git commit -m \"chore(llms): update documentation status\""
   else
     echo "ℹ️  No LLM updates needed"
   fi
