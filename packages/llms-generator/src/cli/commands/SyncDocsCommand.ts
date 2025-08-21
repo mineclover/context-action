@@ -372,7 +372,7 @@ export class SyncDocsCommand {
           
           // 템플릿이 비어있거나 placeholder인 경우에만 업데이트
           if (this.isTemplateEmpty(existingTemplate)) {
-            const summary = this.generateSummary(sourceContent, limit);
+            const summary = this.generateSummary(sourceContent, limit, change);
             await fs.writeFile(templatePath, summary);
             updatedFiles.push(templatePath);
             
@@ -382,7 +382,7 @@ export class SyncDocsCommand {
           }
         } else {
           // 새 템플릿 생성
-          const summary = this.generateSummary(sourceContent, limit);
+          const summary = this.generateSummary(sourceContent, limit, change);
           await fs.mkdir(path.dirname(templatePath), { recursive: true });
           await fs.writeFile(templatePath, summary);
           updatedFiles.push(templatePath);
@@ -401,7 +401,9 @@ export class SyncDocsCommand {
 
   private getPriorityJsonPath(change: DocumentChange): string {
     const llmsDataDir = this.config.paths?.llmContentDir || './llmsData';
-    return path.join(llmsDataDir, change.language, change.category, `${path.basename(change.filePath, '.md')}-priority.json`);
+    const fileName = path.basename(change.filePath, '.md');
+    const docDirName = `${change.category}--${fileName}`;
+    return path.join(llmsDataDir, change.language, docDirName, 'priority.json');
   }
   
   private getTemplatePath(change: DocumentChange, characterLimit: number): string {
@@ -450,7 +452,25 @@ export class SyncDocsCommand {
            trimmed.includes('PLACEHOLDER');
   }
   
-  private generateSummary(content: string, characterLimit: number): string {
+  private generateSummary(content: string, characterLimit: number, change: DocumentChange): string {
+    // Extract title
+    const titleMatch = content.match(/^#\s+(.+)$/m);
+    const title = titleMatch ? titleMatch[1].trim() : 'Document';
+    
+    // Generate YAML frontmatter
+    const frontmatter = `---
+document_id: ${change.documentId}
+category: ${change.category}
+source_path: ${change.filePath.replace('docs/', '')}
+character_limit: ${characterLimit}
+last_update: '${new Date().toISOString()}'
+update_status: auto_generated
+priority_score: 85
+priority_tier: high
+completion_status: completed
+workflow_stage: content_generated
+---`;
+
     // Remove markdown formatting for summary
     let plainText = content
       .replace(/```[\s\S]*?```/g, '') // Remove code blocks
@@ -461,25 +481,27 @@ export class SyncDocsCommand {
       .replace(/\n/g, ' ') // Replace single newlines with space
       .trim();
     
-    // Extract title
-    const titleMatch = content.match(/^#\s+(.+)$/m);
-    const title = titleMatch ? titleMatch[1].trim() : 'Document';
+    // Generate content summary based on character limit
+    const availableChars = characterLimit - frontmatter.length - 20; // Reserve some space
+    let contentSummary: string;
     
-    // Generate summary based on character limit
-    if (characterLimit <= 100) {
+    if (availableChars <= 100) {
       // Very short summary - just title and brief description
-      return this.truncateText(`${title} - ${this.getFirstSentence(plainText)}`, characterLimit);
-    } else if (characterLimit <= 300) {
+      contentSummary = `${title}\n\n${this.getFirstSentence(plainText)}`;
+    } else if (availableChars <= 300) {
       // Short summary - title and main points
       const mainPoints = this.extractMainPoints(content, 2);
-      const summary = `${title}\n\n${plainText.slice(0, 150)}${mainPoints.length > 0 ? '\n\nKey points:\n' + mainPoints.join('\n') : ''}`;
-      return this.truncateText(summary, characterLimit);
+      contentSummary = `${title}\n\n${plainText.slice(0, 150)}${mainPoints.length > 0 ? '\n\nKey points:\n' + mainPoints.join('\n') : ''}`;
     } else {
       // Longer summary - include more detail
-      const mainPoints = this.extractMainPoints(content, Math.floor(characterLimit / 100));
-      const summary = `${title}\n\n${plainText.slice(0, characterLimit * 0.6)}${mainPoints.length > 0 ? '\n\nKey points:\n' + mainPoints.join('\n') : ''}`;
-      return this.truncateText(summary, characterLimit);
+      const mainPoints = this.extractMainPoints(content, Math.floor(availableChars / 100));
+      contentSummary = `${title}\n\n${plainText.slice(0, availableChars * 0.6)}${mainPoints.length > 0 ? '\n\nKey points:\n' + mainPoints.join('\n') : ''}`;
     }
+    
+    // Truncate content to fit within remaining character limit
+    contentSummary = this.truncateText(contentSummary, availableChars);
+    
+    return `${frontmatter}\n${contentSummary}`;
   }
   
   private getFirstSentence(text: string): string {
