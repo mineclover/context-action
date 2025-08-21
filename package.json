@@ -49,6 +49,7 @@
     "llms:sync-docs": "node packages/llms-generator/dist/cli/index.js sync-docs",
     "llms:sync-docs:ko": "node packages/llms-generator/dist/cli/index.js sync-docs --only-korean",
     "llms:sync-docs:en": "node packages/llms-generator/dist/cli/index.js sync-docs --only-english",
+    "llms:sync-docs:dry": "node packages/llms-generator/dist/cli/index.js sync-docs --dry-run",
     "llms:minimum": "node packages/llms-generator/dist/cli/index.js minimum",
     "llms:origin": "node packages/llms-generator/dist/cli/index.js origin",
     "llms:chars": "node packages/llms-generator/dist/cli/index.js chars",
