@@ -1,0 +1,46 @@
+{
+  "document": {
+    "id": "guide--priority-management",
+    "title": "Priority Management System",
+    "category": "guide",
+    "source_path": "en/guide/priority-management.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about priority management system",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing priority management system",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "bash",
+      "javascript",
+      "json",
+      "typescript",
+      "yaml",
+      "pnpm",
+      "node",
+      "react"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "The Priority Management System provides automated tools for analyzing, maintaining, and optimizing documentation priorities in the LLMS Generator framework.",
+    "language": "en",
+    "created_at": "2025-08-21T13:34:01.900Z"
+  }
+}
