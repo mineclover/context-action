@@ -38,7 +38,11 @@ const GUIDE_STRUCTURE = {
             { text: 'Basic Usage', link: '/en/guide/patterns/action/basic-usage' },
             { text: 'Register Delegation', link: '/en/guide/patterns/action/register-delegation' },
             { text: 'Type System', link: '/en/guide/patterns/action/type-system' },
-            { text: 'Advanced Patterns', link: '/en/guide/patterns/action/advanced-patterns' }
+            { text: 'Advanced Patterns', link: '/en/guide/patterns/action/advanced-patterns' },
+            { text: 'Dispatch Patterns', link: '/en/guide/patterns/action/dispatch-patterns' },
+            { text: 'Dispatch with Result', link: '/en/guide/patterns/action/dispatch-with-result' },
+            { text: 'Register Patterns', link: '/en/guide/patterns/action/register-patterns' },
+            { text: 'Dispatch Access', link: '/en/guide/patterns/action/dispatch-access' }
           ]
         },
         {

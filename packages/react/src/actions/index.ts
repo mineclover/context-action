@@ -11,41 +11,18 @@
  */
 
 // === UNIFIED ACTION CONTEXT SYSTEM ===
-// Factory-based action context with built-in abort support
+// Factory-based action context with built-in abort support and all features
 export { 
-  // Factory function for creating typed action contexts
-  createActionContext,
-  type ActionContextConfig,
-  type ActionContextReturn
+  // Main factory function for creating typed action contexts
+  createActionContext
 } from './ActionContext';
 
-// === SIMPLE ACTION CONTEXT (권장) ===
-// createRefContext와 동일한 심플한 스타일
-export { 
-  createActionContext as createSimpleActionContext
-} from './createActionContext';
-
+// Export all types from the dedicated types file
 export type {
-  SimpleActionContextReturn
-} from './createActionContext';
-
-// === DECLARATIVE ACTION PATTERN (하위 호환성) ===
-// 선언적 Action Pattern
-export { 
-  createDeclarativeActionPattern,
-  action,
-  actionWithHandler,
-  actionWithConfig
-} from './declarative-action-pattern';
-
-export type {
-  ActionDefinition,
-  ActionDefinitions,
-  InferActionTypes,
-  ActionRefDefinitions,
-  DeclarativeActionContextReturn,
-  DeclarativeActionRefContextReturn
-} from './declarative-action-pattern';
+  ActionContextConfig,
+  ActionContextType,
+  ActionContextReturn
+} from './ActionContext.types';
 
 // === ACTION UTILITIES ===
 // Reserved for future action utilities

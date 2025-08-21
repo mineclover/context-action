@@ -1,250 +1,46 @@
 # Advanced Action Patterns
 
-Advanced patterns and techniques for the Context-Action framework, including execution modes, result collection strategies, and performance optimization.
+Overview of advanced action patterns in the Context-Action framework. For detailed implementations, see the specialized pattern guides below.
 
-## Execution Modes
+## Pattern Categories
 
-Control how multiple handlers for the same action are executed.
+The Context-Action framework provides three main categories of action patterns:
 
-### Sequential Execution (Default)
+### 🚀 Dispatch Patterns
+Basic action dispatching with execution modes, filtering, and performance optimization.
 
-```typescript
-// Handlers execute one after another in priority order
-await register.dispatch('processOrder', orderData, {
-  executionMode: 'sequential'
-})
-```
+- **Execution Modes**: Sequential, parallel, and race execution
+- **Handler Filtering**: Tag-based, category-based, and custom filtering
+- **Performance**: Timeout control and priority-based execution
 
-Handlers execute in sequence, allowing early handlers to modify payload for later ones.
+**[View Dispatch Patterns →](./dispatch-patterns.md)**
 
-### Parallel Execution
+### 📊 Result Collection Patterns
+Advanced result handling for complex business logic and data processing.
 
-```typescript
-// All handlers execute simultaneously
-await register.dispatch('broadcastEvent', eventData, {
-  executionMode: 'parallel'
-})
-```
+- **Collection Strategies**: Merge, array, and custom result processing
+- **Execution Metadata**: Timing, handler counts, and performance monitoring
+- **Business Logic**: Validation pipelines, data processing, and aggregation
 
-Best for independent operations like analytics, logging, and notifications.
+**[View Dispatch with Result Patterns →](./dispatch-with-result.md)**
 
-### Race Execution
+### ⚙️ Registration Patterns
+Handler registration with advanced configuration and lifecycle management.
 
-```typescript
-// First completed handler wins
-await register.dispatch('fastestResponse', queryData, {
-  executionMode: 'race'
-})
-```
+- **Configuration Options**: Priority, tags, conditions, and environment controls
+- **Performance Features**: Debouncing, throttling, and one-time handlers
+- **Error Handling**: Circuit breakers, graceful recovery, and validation patterns
 
-Useful for fallback mechanisms and performance-critical operations.
+**[View Register Patterns →](./register-patterns.md)**
 
-## Result Collection Strategies
+### 🔌 Dispatch Access Patterns
+Two main approaches for accessing dispatch functionality: hook-based and register-based.
 
-Advanced result handling for complex business logic.
+- **Hook-Based**: React-optimized dispatch using `useActionDispatch()` hook
+- **Register-Based**: Direct ActionRegister access for advanced scenarios
+- **Hybrid Approaches**: Combining both methods for complex applications
 
-### Basic Result Collection
-
-```typescript
-const result = await register.dispatchWithResult('updateUser', payload)
-
-if (result.success) {
-  console.log(`Executed ${result.execution.handlersExecuted} handlers`)
-  console.log(`Duration: ${result.execution.duration}ms`)
-}
-```
-
-### Advanced Result Processing
-
-```typescript
-const result = await register.dispatchWithResult('processOrder', order, {
-  result: {
-    collect: true,
-    strategy: 'merge',
-    maxResults: 5,
-    merger: (results) => results.reduce((acc, curr) => ({ ...acc, ...curr }), {})
-  }
-})
-
-console.log('Merged results:', result.results)
-```
-
-### Custom Result Strategies
-
-```typescript
-// Custom result processing
-const result = await register.dispatchWithResult('complexOperation', data, {
-  result: {
-    collect: true,
-    strategy: 'custom',
-    merger: (results) => {
-      // Custom business logic for result aggregation
-      return {
-        summary: results.length,
-        errors: results.filter(r => r.error),
-        success: results.filter(r => r.success)
-      }
-    }
-  }
-})
-```
-
-## Handler Filtering
-
-Fine-grained control over which handlers execute.
-
-### Tag-Based Filtering
-
-```typescript
-await register.dispatch('updateUser', payload, {
-  filter: {
-    tags: ['validation', 'business-logic'],
-    excludeTags: ['analytics', 'logging']
-  }
-})
-```
-
-### Category Filtering
-
-```typescript
-// Only execute security-related handlers
-await register.dispatch('sensitiveOperation', data, {
-  filter: {
-    category: 'security',
-    excludeCategory: 'analytics'
-  }
-})
-```
-
-### Custom Handler Filtering
-
-```typescript
-await register.dispatch('dynamicAction', payload, {
-  filter: {
-    custom: (config) => {
-      // Complex filtering logic
-      return config.priority > 50 && 
-             config.tags.includes('critical') &&
-             config.environment === 'production'
-    }
-  }
-})
-```
-
-## Performance Optimization
-
-### Debouncing and Throttling
-
-```typescript
-// Debounce search input (wait for pause)
-register.register('searchUsers', searchHandler, {
-  debounce: 300,  // Wait 300ms after last call
-  tags: ['search', 'user-input']
-})
-
-// Throttle scroll events (limit frequency)
-register.register('updateScrollPosition', scrollHandler, {
-  throttle: 100,  // Max once per 100ms
-  tags: ['scroll', 'performance']
-})
-```
-
-### Conditional Handlers
-
-```typescript
-register.register('premiumFeature', handler, {
-  condition: (payload, context) => {
-    return context.user?.subscription === 'premium'
-  },
-  tags: ['premium', 'conditional']
-})
-```
-
-### One-Time Handlers
-
-```typescript
-// Handler executes once then auto-removes
-register.register('initializeApp', initHandler, {
-  once: true,
-  priority: 1000,
-  tags: ['initialization']
-})
-```
-
-## Error Handling Patterns
-
-### Graceful Error Recovery
-
-```typescript
-register.register('resilientOperation', async (payload, controller) => {
-  try {
-    const result = await riskyOperation(payload)
-    controller.setResult(result)
-  } catch (error) {
-    // Log error but don't abort pipeline
-    console.error('Operation failed:', error)
-    controller.setResult({ error: error.message, fallback: true })
-  }
-})
-```
-
-### Circuit Breaker Pattern
-
-```typescript
-let failureCount = 0
-const MAX_FAILURES = 3
-
-register.register('externalAPI', async (payload, controller) => {
-  if (failureCount >= MAX_FAILURES) {
-    controller.abort('Circuit breaker open')
-    return
-  }
-  
-  try {
-    const result = await externalAPI.call(payload)
-    failureCount = 0  // Reset on success
-    controller.setResult(result)
-  } catch (error) {
-    failureCount++
-    throw error
-  }
-})
-```
-
-## Handler Configuration Options
-
-### Comprehensive Configuration
-
-```typescript
-register.register('fullConfigHandler', handler, {
-  priority: 100,           // Execution priority
-  tags: ['business', 'critical'],
-  category: 'core-logic',
-  once: false,            // Can execute multiple times
-  timeout: 5000,          // 5 second timeout
-  debounce: 200,          // Debounce calls
-  throttle: 1000,         // Throttle execution
-  environment: 'production',
-  feature: 'advanced-features',
-  condition: (payload) => payload.enabled === true
-})
-```
-
-### Development vs Production
-
-```typescript
-// Development-only handler
-register.register('debugAction', debugHandler, {
-  environment: 'development',
-  tags: ['debug', 'development']
-})
-
-// Production-only handler
-register.register('analyticsTrack', analyticsHandler, {
-  environment: 'production',
-  tags: ['analytics', 'production']
-})
-```
+**[View Dispatch Access Patterns →](./dispatch-access.md)**
 
 ## Real-World Examples
 

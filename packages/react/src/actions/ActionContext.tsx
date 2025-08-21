@@ -1,56 +1,16 @@
 import React, { createContext, ReactNode, useContext, useRef, useEffect, useId, useMemo, useCallback } from 'react';
-import {  ActionRegister, ActionHandler, HandlerConfig, ActionRegisterConfig, DispatchOptions, ExecutionResult } from '@context-action/core';
+import {  ActionRegister, ActionHandler, HandlerConfig, DispatchOptions, ExecutionResult } from '@context-action/core';
+import type {
+  ActionContextConfig,
+  ActionContextType,
+  ActionContextReturn
+} from './ActionContext.types';
 
 /**
  * @fileoverview createActionContext - Advanced type-safe action context factory
  * Provides enhanced type compatibility and automatic type inference for complex applications
  */
 
-/**
- * Configuration options for createActionContext
- */
-export interface ActionContextConfig extends ActionRegisterConfig {
-  /** Name identifier for this ActionRegister instance */
-  name?: string
-}
-
-/**
- * Context type for ActionRegister with enhanced type safety and abort support
- */
-export interface ActionContextType<T extends {}> {
-  actionRegisterRef: React.RefObject<ActionRegister<T>>;
-  // abortControllerRef: React.RefObject<AbortController | null>;
-}
-
-/**
- * Return type for createActionContext with abort support
- */
-export interface ActionContextReturn<T extends {}> {
-  Provider: React.FC<{ children: ReactNode }>;
-  useActionContext: () => ActionContextType<T>;
-  useActionDispatch: () => ActionRegister<T>['dispatch'];
-  useActionHandler: <K extends keyof T>(
-    action: K,
-    handler: ActionHandler<T[K]>,
-    config?: HandlerConfig
-  ) => void;
-  useActionRegister: () => ActionRegister<T> | null;
-  useActionDispatchWithResult: () => {
-    dispatch: <K extends keyof T>(
-      action: K,
-      payload?: T[K],
-      options?: DispatchOptions
-    ) => Promise<void>;
-    dispatchWithResult: <K extends keyof T, R = void>(
-      action: K,
-      payload?: T[K],
-      options?: DispatchOptions
-    ) => Promise<ExecutionResult<R>>;
-    abortAll: () => void;
-    resetAbortScope: () => void;
-  };
-  context: React.Context<ActionContextType<T> | null>;
-}
 
 /**
  * Enhanced action context factory with automatic type inference
@@ -125,7 +85,16 @@ export function createActionContext<T extends {}>(
     return context;
   };
 
-  // Hook to get the dispatch function with automatic abort support
+  /**
+   * Hook to get the dispatch function with automatic abort support
+   * 
+   * Returns a type-safe dispatch function for triggering actions within React components.
+   * This is the recommended approach for dispatching actions in React applications.
+   * 
+   * @returns Type-safe dispatch function
+   * 
+   * @see https://mineclover.github.io/context-action/en/guide/patterns/action/dispatch-access
+   */
   const useAction = (): ActionRegister<T>['dispatch'] => {
     const context = useFactoryActionContext();
     
@@ -205,7 +174,7 @@ export function createActionContext<T extends {}>(
    * 
    * @returns ActionRegister instance or null if not initialized
    * 
-   * @see https://mineclover.github.io/context-action/en/guide/patterns/action/register-delegation
+   * @see https://mineclover.github.io/context-action/en/guide/patterns/action/dispatch-access
    */
   const useFactoryActionRegister = (): ActionRegister<T> | null => {
     const context = useFactoryActionContext();
@@ -222,7 +191,7 @@ export function createActionContext<T extends {}>(
    * 
    * @returns dispatchWithResult function with full type safety
    * 
-   * @see https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
+   * @see https://mineclover.github.io/context-action/en/guide/patterns/action/dispatch-with-result
    */
 
   // Hook for enhanced dispatch with abort control
