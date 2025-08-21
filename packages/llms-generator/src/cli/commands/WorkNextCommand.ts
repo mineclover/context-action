@@ -48,13 +48,16 @@ export class WorkNextCommand {
       return;
     }
 
-    const nextItem = filteredItems[0];
-    this.displayNextWorkItem(nextItem);
-    
+    // If limit is specified and greater than 1, show list format
     if (options.limit && options.limit > 1) {
-      this.displayWorkQueue(filteredItems.slice(1, options.limit), options);
+      this.displayPriorityList(filteredItems.slice(0, options.limit), options);
+      this.displaySummaryStats(workItems);
+      return;
     }
 
+    // Default behavior: show single next item
+    const nextItem = filteredItems[0];
+    this.displayNextWorkItem(nextItem);
     this.displaySummaryStats(workItems);
   }
 
@@ -78,6 +81,12 @@ export class WorkNextCommand {
         if (!docDir.isDirectory()) continue;
 
         const documentId = docDir.name;
+        
+        // Skip 'guide' directory without suffix (it's not a document)
+        if (documentId === 'guide' || documentId === 'examples' || documentId === 'concept') {
+          continue;
+        }
+        
         const category = this.extractCategory(documentId);
         
         if (options.category && category !== options.category) continue;
@@ -210,21 +219,44 @@ export class WorkNextCommand {
     try {
       const content = await fs.readFile(templatePath, 'utf-8');
       
-      // Check if template has actual content beyond the generated template structure
-      const contentSection = this.extractContentSection(content);
+      // Check for completion_status in frontmatter
+      if (content.includes('completion_status: completed')) {
+        return true;
+      }
       
-      if (!contentSection) return false;
+      // Also check for actual content after the frontmatter
+      const lines = content.split('\n');
+      let inFrontmatter = false;
+      let frontmatterCount = 0;
+      let contentAfterFrontmatter = '';
       
-      // Remove comments and whitespace for analysis
-      const cleanContent = contentSection
+      for (const line of lines) {
+        if (line.trim() === '---') {
+          frontmatterCount++;
+          if (frontmatterCount === 2) {
+            inFrontmatter = false;
+            continue;
+          }
+          inFrontmatter = true;
+          continue;
+        }
+        
+        if (!inFrontmatter && frontmatterCount >= 2) {
+          contentAfterFrontmatter += line + '\n';
+        }
+      }
+      
+      // Clean and check content
+      const cleanContent = contentAfterFrontmatter
         .replace(/<!--[\s\S]*?-->/g, '') // Remove HTML comments
         .replace(/^\s*\n/gm, '') // Remove empty lines
         .trim();
       
-      // Look for actual summary content (not just template instructions)
+      // Look for actual content (not just template instructions)
       const hasRealContent = cleanContent.length > 30 && 
         !cleanContent.includes('여기에') && 
         !cleanContent.includes('작성하세요') &&
+        !cleanContent.includes('템플릿 내용') &&
         !cleanContent.includes('Provide comprehensive guidance on') && // Template placeholder text
         !cleanContent.includes('의 핵심 개념과 Context-Action 프레임워크에서의 역할을 간단히 설명'); // Korean placeholder
         
@@ -352,6 +384,71 @@ export class WorkNextCommand {
         console.log('   You can review or update the content if needed.');
         break;
     }
+  }
+
+  private displayPriorityList(items: WorkItem[], options: WorkNextOptions): void {
+    // Group items by document to avoid duplicates across character limits
+    const documentGroups = new Map<string, WorkItem[]>();
+    items.forEach(item => {
+      const key = `${item.documentId}-${item.language}`;
+      if (!documentGroups.has(key)) {
+        documentGroups.set(key, []);
+      }
+      documentGroups.get(key)!.push(item);
+    });
+
+    // Get the first item from each group (highest priority character limit)
+    const uniqueItems: WorkItem[] = [];
+    documentGroups.forEach(group => {
+      // Sort by character limit to get the smallest one that needs work
+      group.sort((a, b) => a.characterLimit - b.characterLimit);
+      uniqueItems.push(group[0]);
+    });
+
+    // Sort unique items by priority
+    uniqueItems.sort((a, b) => {
+      if (a.priority !== b.priority) {
+        return b.priority - a.priority;
+      }
+      return this.getStatusPriority(a.status) - this.getStatusPriority(b.status);
+    });
+
+    // Take only the requested limit
+    const displayItems = uniqueItems.slice(0, options.limit || 10);
+
+    const title = options.showCompleted 
+      ? `📋 Top ${displayItems.length} Priority Documents (All Statuses)`
+      : `📋 Top ${displayItems.length} Priority Documents (Pending Work)`;
+    
+    console.log(`${title}\n`);
+    console.log('Rank | Priority | Status | Lang | Category | Document ID                  | Char Limits Needed');
+    console.log('-----|----------|--------|------|----------|------------------------------|-------------------');
+    
+    displayItems.forEach((item, index) => {
+      const rank = String(index + 1).padStart(4);
+      const priority = String(item.priority).padStart(8);
+      const statusIcon = this.getStatusEmoji(item.status);
+      const status = `${statusIcon}`;
+      const lang = item.language.padEnd(4);
+      const category = item.category.padEnd(8);
+      const docId = item.documentId.substring(0, 28).padEnd(28);
+      
+      // Get all character limits that need work for this document
+      const key = `${item.documentId}-${item.language}`;
+      const group = documentGroups.get(key) || [];
+      const needsWork = group.filter(g => g.status !== 'completed');
+      const charLimits = needsWork.map(g => g.characterLimit).join(', ');
+      
+      console.log(`${rank} | ${priority} | ${status}      | ${lang} | ${category} | ${docId} | ${charLimits}`);
+    });
+    
+    console.log('\n🔧 Recommended Actions:');
+    console.log('   • Use `work-next` without --limit to see detailed information for the top item');
+    console.log('   • Add `--character-limit <num>` to focus on specific template size');
+    console.log('   • Add `--verbose` for more detailed information');
+    console.log('   • Add `--show-completed` to include completed items');
+    console.log('   • Use `--sort-by <priority|category|status|modified>` to change ordering');
+    console.log();
   }
 
   private displayWorkQueue(items: WorkItem[], _options: WorkNextOptions): void {
