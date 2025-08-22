@@ -82,28 +82,6 @@ export const mockServices = {
     };
   },
 
-  // Permission services
-  checkUserPermissions: async (userId: string, action: string) => {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    const permissions: Record<string, string[]> = {
-      'user-123': ['read', 'write'],
-      'admin-456': ['read', 'write', 'delete', 'admin'],
-      'guest-789': ['read']
-    };
-
-    const userPermissions = permissions[userId] || [];
-    const hasPermission = userPermissions.includes(action) || userPermissions.includes('admin');
-
-    return {
-      userId,
-      action,
-      allowed: hasPermission,
-      permissions: userPermissions,
-      auditId: `audit-${Date.now()}`
-    };
-  },
-
   // Business rule services
   validateCreditLimit: async (customerId: string, amount: number) => {
     await new Promise(resolve => setTimeout(resolve, 400));
@@ -151,6 +129,47 @@ export const mockServices = {
       discount,
       finalAmount,
       calculatedAt: new Date()
+    };
+  },
+
+  // Permission services
+  checkUserPermissions: async (userId: string, action: string) => {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    const permissions: Record<string, string[]> = {
+      'user-123': ['read', 'write'],
+      'admin-456': ['read', 'write', 'delete', 'admin'],
+      'guest-789': ['read']
+    };
+
+    const userPermissions = permissions[userId] || [];
+    const hasPermission = userPermissions.includes(action) || userPermissions.includes('admin');
+
+    return {
+      userId,
+      action,
+      allowed: hasPermission,
+      permissions: userPermissions,
+      auditId: `audit-${Date.now()}`
+    };
+  },
+
+  executeSecureOperation: async (action: string, userId: string, payload?: any) => {
+    await new Promise(resolve => setTimeout(resolve, 600));
+    
+    const success = Math.random() > 0.15; // 85% success rate
+    const operationId = `op-${Date.now()}`;
+    
+    return {
+      operationId,
+      action,
+      userId,
+      success,
+      result: success 
+        ? `Successfully executed ${action}` 
+        : `Operation ${action} failed - system error`,
+      executedAt: new Date(),
+      payload
     };
   },
 

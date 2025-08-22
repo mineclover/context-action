@@ -11,7 +11,13 @@ import {
   PermissionControls,
   BusinessRuleControls,
   ScheduleControls,
-  ResultsDisplay
+  ResultsDisplay,
+  TestingSuite,
+  PatternExplanations,
+  AdvancedScenarios,
+  StickyExecutionPanel,
+  HandlerManagementPanel,
+  CombinedVisualFeedback
 } from './ConditionalExecutionDemo/components';
 
 function ConditionalExecutionDemo() {
@@ -20,7 +26,13 @@ function ConditionalExecutionDemo() {
       <ConditionalActionProvider>
         <AllHandlers />
         
-        <div className="max-w-6xl mx-auto p-6">
+        {/* Visual Feedback Overlays */}
+        <CombinedVisualFeedback />
+        
+        {/* Sticky Execution Panel */}
+        <StickyExecutionPanel />
+        
+        <div className="max-w-6xl mx-auto p-6" style={{ paddingRight: '25rem' }}> {/* Add right padding for sticky panel */}
           <div className="mb-6">
             <div className="flex items-center gap-4 mb-4">
               <Link 
@@ -43,7 +55,11 @@ function ConditionalExecutionDemo() {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Pattern Deep Dive */}
+          <PatternExplanations />
+          
+          {/* Interactive Controls */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 my-6">
             <EnvironmentControls />
             <FeatureFlagControls />
             <PermissionControls />
@@ -52,7 +68,14 @@ function ConditionalExecutionDemo() {
             <div></div> {/* Empty cell for layout */}
           </div>
           
-          <ResultsDisplay />
+          {/* Testing Suite */}
+          <TestingSuite />
+          
+          {/* Handler Management Panel */}
+          <HandlerManagementPanel />
+          
+          {/* Advanced Integration Scenarios */}
+          <AdvancedScenarios />
           
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
             <h3 className="font-semibold mb-2">💡 Key Features Demonstrated</h3>
