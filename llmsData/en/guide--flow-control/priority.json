@@ -1,0 +1,15 @@
+{
+  "documentId": "en_guide_flow-control",
+  "title": "Pipeline Flow Control",
+  "category": "guide",
+  "language": "en",
+  "priority": 0.5,
+  "tags": [
+    "typescript"
+  ],
+  "lastUpdated": "2025-08-22T00:35:53.369Z",
+  "source": {
+    "file": "docs/en/guide/pipeline/flow-control.md",
+    "lastModified": "2025-08-22T00:18:42.971Z"
+  }
+}
