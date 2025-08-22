@@ -42,8 +42,12 @@ import { TodoListPage } from './pages/demos/TodoListPage';
 import { ShoppingCartPage } from './pages/demos/ShoppingCartPage';
 import { ChatPage } from './pages/demos/ChatPage';
 import { UserProfilePage } from './pages/demos/UserProfilePage';
+import { PriorityManagementDemoPage } from './pages/demos/PriorityManagementDemoPage';
+import PriorityManagementDemoPageV2 from './pages/demos/PriorityManagementDemoPageV2';
 import { RefContextMouseEventsPage } from './pages/mouse-events/ref-context/RefContextMouseEventsPage';
+import ConditionalExecutionDemo from './pages/ConditionalExecutionDemo';
 import HomePage from './pages/HomePage';
+import { FlowControlPlaygroundPage } from './pages/pipeline/FlowControlPlaygroundPage';
 import LoggerDemoPage from './pages/logger/LoggerDemoPage';
 import ReactContextPage from './pages/react/ReactContextPage';
 import ReactHooksPage from './pages/react/ReactHooksPage';
@@ -173,15 +177,22 @@ function AppContent() {
           <Route path="/refs/canvas" element={<CanvasRefDemoPage />} />
           <Route path="/refs/form-builder" element={<FormBuilderRefDemoPage />} />
           <Route path="/refs/waitforrefs-performance" element={<WaitForRefsPerformancePage />} />
+          <Route path="/pipeline/flow-control" element={<FlowControlPlaygroundPage />} />
           <Route path="/demos" element={<DemosIndexPage />} />
           <Route path="/demos/store-scenarios" element={<StoreScenariosPage />} />
           <Route path="/demos/todo-list" element={<TodoListPage />} />
           <Route path="/demos/shopping-cart" element={<ShoppingCartPage />} />
           <Route path="/demos/chat" element={<ChatPage />} />
           <Route path="/demos/user-profile" element={<UserProfilePage />} />
+          <Route path="/demos/priority-management" element={<PriorityManagementDemoPage />} />
+          <Route path="/demos/priority-management-v2" element={<PriorityManagementDemoPageV2 />} />
           <Route
             path="/unified-pattern/demo"
             element={<UnifiedPatternPage />}
+          />
+          <Route
+            path="/actionguard/conditional-execution"
+            element={<ConditionalExecutionDemo />}
           />
         </Routes>
       </Layout>

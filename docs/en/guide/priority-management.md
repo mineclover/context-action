@@ -541,6 +541,33 @@ pnpm llms:priority-health --quiet
   run: pnpm llms:priority-stats > priority-report.txt
 ```
 
+## Live Demo
+
+Interactive Priority Management System demonstration with two architectural approaches:
+
+- **Original**: `/demos/priority-management` (monolithic)
+- **Modular**: `/demos/priority-management-v2` (feature-based modules)
+
+### Modular Architecture
+
+```
+src/features/priority-management/
+├── types/         # Shared TypeScript definitions
+├── utils/         # Calculation & analysis logic  
+├── hooks/         # React state management
+└── components/    # UI components
+```
+
+**Usage:**
+```typescript
+import { usePriorityCalculation, useHealthMetrics } from '../../features/priority-management';
+
+const { documents, applyCalculation } = usePriorityCalculation(SAMPLE_DOCUMENTS);
+const { healthMetrics } = useHealthMetrics(documents);
+```
+
+**Benefits:** Type safety, code reuse, maintainability, isolated testing
+
 ---
 
 ::: tip Next Steps
