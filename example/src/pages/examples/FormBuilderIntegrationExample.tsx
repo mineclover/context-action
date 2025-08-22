@@ -315,19 +315,20 @@ function ElementInspector() {
     <div className="mb-4">
       <h4 className="font-semibold mb-2">Element Inspector</h4>
       {selectedElements.map(id => {
-        const elementInfo = getElement(id);
-        if (!elementInfo) return null;
+        const element = getElement(id) as HTMLElement;
+        if (!element) return null;
+
+        const type = element.getAttribute('data-element-type') || 'unknown';
+        const metadataStr = element.getAttribute('data-element-metadata');
+        const metadata = metadataStr ? JSON.parse(metadataStr) : null;
 
         return (
           <div key={id} className="text-xs font-mono bg-gray-100 p-2 mb-2 rounded">
-            <div><strong>ID:</strong> {elementInfo.id}</div>
-            <div><strong>Type:</strong> {elementInfo.type}</div>
-            <div><strong>Created:</strong> {new Date(elementInfo.createdAt).toLocaleTimeString()}</div>
-            {elementInfo.lastAccessed && (
-              <div><strong>Last Accessed:</strong> {new Date(elementInfo.lastAccessed).toLocaleTimeString()}</div>
-            )}
-            {elementInfo.metadata && Object.keys(elementInfo.metadata).length > 0 && (
-              <div><strong>Metadata:</strong> {JSON.stringify(elementInfo.metadata, null, 2)}</div>
+            <div><strong>ID:</strong> {id}</div>
+            <div><strong>Type:</strong> {type}</div>
+            <div><strong>Element:</strong> {element.tagName.toLowerCase()}</div>
+            {metadata && Object.keys(metadata).length > 0 && (
+              <div><strong>Metadata:</strong> {JSON.stringify(metadata, null, 2)}</div>
             )}
           </div>
         );

@@ -27,6 +27,15 @@ export function ExecutionMetrics({
         >
           {isExecuting ? 'Executing...' : 'Execute Scenario'}
         </Button>
+        <div className="mt-4 p-3 bg-gray-50 rounded text-xs">
+          <div className="font-medium mb-2">🎯 Priority Execution Order:</div>
+          <div className="space-y-1 text-gray-600">
+            <div>• High Priority (P:1000) → Low Priority (P:50)</div>
+            <div>• jumpToPriority() changes execution flow dynamically</div>
+            <div>• controller.return() exits pipeline early</div>
+            <div>• controller.abort() stops execution with error</div>
+          </div>
+        </div>
       </Card>
 
       {/* Execution Metrics */}

@@ -9,7 +9,12 @@ Ref patterns provide hardware-accelerated DOM manipulation without triggering Re
 ### Available Ref Patterns
 - **[Basic Usage](./basic-usage.md)** - Fundamental RefContext pattern with type-safe ref management
 - **[Multi-Context](./multi-context.md)** - Multiple RefContext composition for complex applications
-- **[Performance](./performance.md)** - Hardware acceleration and performance optimization techniques
+- **[Performance](./performance.md)** - Comprehensive performance optimization overview
+
+### Performance Optimization Guides
+- **[Canvas Optimization](./canvas-optimization.md)** - Real-world Canvas performance case study
+- **[Hardware Acceleration](./hardware-acceleration.md)** - GPU-accelerated DOM manipulation
+- **[Memory Optimization](./memory-optimization.md)** - Memory-efficient patterns and leak prevention
 
 ## Quick Reference
 
@@ -17,7 +22,10 @@ Ref patterns provide hardware-accelerated DOM manipulation without triggering Re
 |---------|---------|----------|
 | **Basic Usage** | Type-safe ref management | Mouse tracking, simple animations |
 | **Multi-Context** | Multiple ref domains | Complex UI, separation of concerns |
-| **Performance** | Hardware acceleration | 60fps animations, real-time interactions |
+| **Performance** | Overview & best practices | Understanding performance concepts |
+| **Canvas Optimization** | Canvas interaction performance | Drawing apps, real-time graphics |
+| **Hardware Acceleration** | GPU-accelerated operations | Smooth animations, high-frequency updates |
+| **Memory Optimization** | Memory-efficient patterns | Large apps, leak prevention |
 
 ## When to Use Ref Patterns
 
