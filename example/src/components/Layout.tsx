@@ -36,8 +36,15 @@ function Layout({
   const location = useLocation();
 
   const navItems: NavItem[] = [
-    // === Core Concepts (기초 개념) ===
+    // === Main Navigation ===
     { path: '/', label: 'Home', category: 'main' },
+    
+    // === Overview Pages (루트 개요) ===
+    { path: '/overview/core', label: '🎯 Core Concepts Overview', category: 'main', isIndex: true, description: 'Complete guide to framework fundamentals' },
+    { path: '/overview/actionguard', label: '🛡️ ActionGuard Overview', category: 'main', isIndex: true, description: 'Advanced demonstrations and patterns' },
+    { path: '/overview/examples', label: '🛠️ Examples & Utilities Overview', category: 'main', isIndex: true, description: 'Practical tools and specialized features' },
+    
+    // === Core Concepts (기초 개념) ===
     { path: '/core/basics', label: '1. Core Basics', category: 'core' },
     { path: '/core/advanced', label: '2. Core Advanced', category: 'core' },
     { path: '/core/features', label: '3. 🚀 Core Features', category: 'core' },
