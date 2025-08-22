@@ -123,5 +123,22 @@ export const mockServices = {
       processedDuring: 'off-hours',
       priority: 'low'
     };
+  },
+
+  async checkInventory(itemId: string, quantity: number): Promise<boolean> {
+    await delay(100);
+    // Simulate stock availability - randomly fail for some items
+    return Math.random() > 0.1; // 90% availability rate
+  },
+
+  async getFeatureFlag(flag: string): Promise<boolean> {
+    await delay(50);
+    const flags: Record<string, boolean> = {
+      'enhanced-user-processing': true,
+      'experimental-features': false,
+      'advanced-analytics': true,
+      'blue-green-deployment': false
+    };
+    return flags[flag] || false;
   }
 };
