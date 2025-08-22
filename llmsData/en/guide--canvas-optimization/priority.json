@@ -1,0 +1,16 @@
+{
+  "documentId": "en_guide_canvas-optimization",
+  "title": "Canvas Performance Optimization",
+  "category": "guide",
+  "language": "en",
+  "priority": 0.5,
+  "tags": [
+    "tsx",
+    "bash"
+  ],
+  "lastUpdated": "2025-08-22T06:23:12.000Z",
+  "source": {
+    "file": "docs/en/guide/patterns/ref/canvas-optimization.md",
+    "lastModified": "2025-08-22T05:37:09.895Z"
+  }
+}
