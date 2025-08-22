@@ -49,9 +49,15 @@ const actionGuardDemos = [
   },
   {
     path: '/actionguard/conditional-execution',
-    title: '🔄 Conditional Execution Demo',
-    description: '조건부 실행, 환경별 핸들러, 기능 플래그, 권한 기반 실행',
-    tags: ['Conditional', 'Environment', 'FeatureFlag', 'Permissions'],
+    title: '🔄 Conditional Execution (All-in-One)',
+    description: '통합 조건부 실행 데모 - 모든 패턴을 한 페이지에서',
+    tags: ['Conditional', 'All-in-One', 'Legacy'],
+  },
+  {
+    path: '/actionguard/conditional',
+    title: '🎯 Conditional Execution Patterns',
+    description: '패턴별 분리된 조건부 실행 데모 - 환경, 기능플래그, 권한, 비즈니스룰',
+    tags: ['Conditional', 'Patterns', 'Focused'],
   },
 ];
 
