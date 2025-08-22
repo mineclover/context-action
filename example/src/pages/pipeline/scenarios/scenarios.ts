@@ -1,9 +1,9 @@
 import type { ScenarioRegistry } from './types';
 
-// Demo scenarios configuration
+// Demo scenarios configuration  
 export const scenarios: ScenarioRegistry = {
   securityEscalation: {
-    title: "Security Escalation",
+    title: "Security Escalation (Standard User - Should Fail)",
     description: "Standard user tries to access admin function",
     payload: { 
       userId: "user-123", 
@@ -11,7 +11,31 @@ export const scenarios: ScenarioRegistry = {
       role: "standard" as const, 
       requiresElevation: true 
     },
-    expectedFlow: "standard-auth → role-check → priority-jump(1000) → admin-auth"
+    expectedFlow: "standard-auth → priority-jump(1000) → authorization-failed → abort"
+  },
+
+  securitySuccess: {
+    title: "Security Escalation (Admin User - Should Pass)",
+    description: "Admin user successfully accesses admin function",
+    payload: { 
+      userId: "admin-456", 
+      action: "delete-user", 
+      role: "admin" as const, 
+      requiresElevation: true 
+    },
+    expectedFlow: "standard-auth → priority-jump(1000) → authorization-success → elevated-token"
+  },
+
+  securityNormal: {
+    title: "Normal Security (No Elevation Needed)",
+    description: "Standard user accesses normal function",
+    payload: { 
+      userId: "user-789", 
+      action: "read-profile", 
+      role: "standard" as const, 
+      requiresElevation: false 
+    },
+    expectedFlow: "standard-auth → standard-processing → success"
   },
   
   cacheOptimization: {

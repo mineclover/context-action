@@ -69,7 +69,7 @@ export interface ApiActions extends ActionPayloadMap {
 }
 
 // Scenario configuration types
-export type ScenarioKey = 'securityEscalation' | 'cacheOptimization' | 'businessHourRouting' | 'errorRecovery';
+export type ScenarioKey = 'securityEscalation' | 'securitySuccess' | 'securityNormal' | 'cacheOptimization' | 'businessHourRouting' | 'errorRecovery';
 
 export interface ScenarioConfig<T = any> {
   title: string;
@@ -80,6 +80,8 @@ export interface ScenarioConfig<T = any> {
 
 export type ScenarioRegistry = {
   securityEscalation: ScenarioConfig<SecurityActions['processRequest']>;
+  securitySuccess: ScenarioConfig<SecurityActions['processRequest']>;
+  securityNormal: ScenarioConfig<SecurityActions['processRequest']>;
   cacheOptimization: ScenarioConfig<CacheActions['fetchData']>;
   businessHourRouting: ScenarioConfig<OrderActions['processOrder']>;
   errorRecovery: ScenarioConfig<ApiActions['apiCall']>;
