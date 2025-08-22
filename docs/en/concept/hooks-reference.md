@@ -1,6 +1,14 @@
 # Context-Action React Hooks Reference
 
-This document categorizes all available React hooks in the Context-Action framework into **Essential Hooks** (core functionality) and **Utility Hooks** (convenience and optimization).
+This document is a **comprehensive catalog** of all available React hooks in the Context-Action framework, categorized by functionality and use cases. This serves as a reference manual for developers.
+
+## Related Guides
+
+- 🎯 **[React Hooks](/en/guide/hooks)** - How to use hooks (API examples and usage patterns)
+- 🔄 **[Hooks Lifecycle](/en/guide/hooks-lifecycle)** - How hooks work internally (lifecycle, cleanup, performance)  
+- ✅ **[Best Practices](/en/guide/best-practices)** - Coding patterns and conventions
+
+---
 
 ## 📋 Table of Contents
 

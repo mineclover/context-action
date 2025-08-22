@@ -1,6 +1,12 @@
 # React Hooks
 
-Context-Action provides React hooks for action dispatching and store management.
+Context-Action provides React hooks for action dispatching and store management. This guide covers **how to use** the hooks with API examples and usage patterns.
+
+## Related Guides
+
+- 🔄 **[Hooks Lifecycle](/en/guide/hooks-lifecycle)** - How hooks work internally (lifecycle, cleanup, performance)
+- 📚 **[Hooks Reference](/en/concept/hooks-reference)** - Complete catalog of all available hooks
+- ✅ **[Best Practices](/en/guide/best-practices)** - Coding patterns and conventions
 
 ## Essential Hooks
 
@@ -206,7 +212,7 @@ function AdvancedUserComponent() {
 
 ### Best Practices
 
-1. **Use useCallback for handlers**:
+1. **Use useCallback for handlers** (see [Lifecycle Guide](/en/guide/hooks-lifecycle) for details):
 ```tsx
 useUserActionHandler('updateProfile', useCallback(async (payload) => {
   // Handler logic
@@ -232,9 +238,10 @@ const profileStore = useUserStore('profile'); // Type-safe
 const profile = useStoreValue(profileStore);   // Type-safe
 ```
 
-### Performance Tips
+### Quick Performance Notes
 
-- Store subscriptions only re-render on actual value changes
-- Use specific store subscriptions rather than subscribing to entire state
-- Handler registration is optimized for minimal re-renders
-- Action dispatching is memoized automatically
+- Store subscriptions are optimized for minimal re-renders
+- Handler registration uses stable references
+- Action dispatching is automatically memoized
+
+For detailed lifecycle understanding, see [Hooks Lifecycle Guide](/en/guide/hooks-lifecycle).
