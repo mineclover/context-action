@@ -42,8 +42,7 @@ import { TodoListPage } from './pages/demos/TodoListPage';
 import { ShoppingCartPage } from './pages/demos/ShoppingCartPage';
 import { ChatPage } from './pages/demos/ChatPage';
 import { UserProfilePage } from './pages/demos/UserProfilePage';
-import { PriorityManagementDemoPage } from './pages/demos/PriorityManagementDemoPage';
-import PriorityManagementDemoPageV2 from './pages/demos/PriorityManagementDemoPageV2';
+import { ActionPriorityDemoPage } from './pages/demos/ActionPriorityDemoPage';
 import { RefContextMouseEventsPage } from './pages/mouse-events/ref-context/RefContextMouseEventsPage';
 import ConditionalExecutionDemo from './pages/ConditionalExecutionDemo';
 import HomePage from './pages/HomePage';
@@ -184,8 +183,7 @@ function AppContent() {
           <Route path="/demos/shopping-cart" element={<ShoppingCartPage />} />
           <Route path="/demos/chat" element={<ChatPage />} />
           <Route path="/demos/user-profile" element={<UserProfilePage />} />
-          <Route path="/demos/priority-management" element={<PriorityManagementDemoPage />} />
-          <Route path="/demos/priority-management-v2" element={<PriorityManagementDemoPageV2 />} />
+          <Route path="/demos/action-priority" element={<ActionPriorityDemoPage />} />
           <Route
             path="/unified-pattern/demo"
             element={<UnifiedPatternPage />}

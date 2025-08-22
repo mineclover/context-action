@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { PageWithLogMonitor } from '../../components/LogMonitor';
-import { ElementManagementProvider } from './ReactElementHooks';
+import { ElementManagementProvider } from './CoreElementRegistry';
 import { AdvancedCanvasExample } from './AdvancedCanvasExample';
 import { FormBuilderExample } from './FormBuilderIntegrationExample';
 import {

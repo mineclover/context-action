@@ -62,9 +62,6 @@ function Layout({
     { path: '/demos/chat', label: '💬 Chat Demo', category: 'demos', description: 'Real-time messaging and auto-scroll features' },
     { path: '/demos/user-profile', label: '👤 User Profile Demo', category: 'demos', description: 'Form processing and validation patterns' },
     
-    // Priority Management Demos
-    { path: '/demos/priority-management', label: '📊 Priority Management (Original)', category: 'demos', description: 'Priority calculation and health monitoring system' },
-    { path: '/demos/priority-management-v2', label: '🏗️ Priority Management (Modular)', category: 'demos', description: 'Modular architecture with feature-based structure' },
     
     { path: '/examples/element-management', label: '🎯 Element Management Demo', category: 'examples' },
     
