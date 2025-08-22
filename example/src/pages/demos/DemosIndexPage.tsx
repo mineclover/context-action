@@ -43,6 +43,7 @@ export function DemosIndexPage() {
                     <li>• <strong>Shopping Cart</strong>: 전자상거래 장바구니</li>
                     <li>• <strong>Todo List</strong>: 할 일 관리 앱</li>
                     <li>• <strong>User Profile</strong>: 사용자 프로필 관리</li>
+                    <li>• <strong>Priority Management</strong>: LLMS 우선순위 시스템</li>
                     <li>• <strong>더 많은 데모들...</strong></li>
                   </ul>
                 </div>
@@ -156,6 +157,35 @@ export function DemosIndexPage() {
                 <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded">Validation</span>
               </div>
               <div className="text-orange-500 text-sm font-medium group-hover:underline">
+                데모 보기 →
+              </div>
+            </a>
+          </div>
+        </div>
+
+        {/* System Management Demos */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-6">🛠️ 시스템 관리 데모</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            {/* Priority Management Demo */}
+            <a 
+              href="/demos/priority-management"
+              className="group bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 hover:border-indigo-300"
+            >
+              <div className="text-3xl mb-3 group-hover:scale-110 transition-transform">📊</div>
+              <h3 className="font-semibold text-lg mb-2 text-gray-800 group-hover:text-indigo-600">
+                Priority Management System
+              </h3>
+              <p className="text-gray-600 text-sm mb-3">
+                LLMS Generator의 우선순위 관리 시스템을 시뮬레이션하는 고급 데모
+              </p>
+              <div className="flex flex-wrap gap-2 mb-3">
+                <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded">Advanced</span>
+                <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded">Analytics</span>
+                <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded">Multilingual</span>
+              </div>
+              <div className="text-indigo-500 text-sm font-medium group-hover:underline">
                 데모 보기 →
               </div>
             </a>
