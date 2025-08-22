@@ -6,11 +6,9 @@ Welcome to the Context-Action framework user guide! This comprehensive documenta
 
 ### Essential Guides
 - **[Getting Started](./getting-started.md)** - Quick start guide and installation
-- **[Architecture](./architecture.md)** - Framework architecture and design principles
-- **[Action Pipeline](./action-pipeline.md)** - Understanding the action processing system
-- **[React Hooks](./hooks.md)** - Complete hooks reference and usage
+- **[Pipeline System](./pipeline/)** - Understanding the action processing system
+- **[Hook Lifecycle](./lifecycle/)** - React hooks reference and internal behavior
 - **[Best Practices](./best-practices.md)** - Recommended patterns and conventions
-- **[Action Handlers](./action-handlers.md)** - Advanced handler patterns and configurations
 
 ## 🎯 Pattern Collection
 
@@ -34,14 +32,14 @@ The **[Pattern Collection](./patterns/)** contains all the detailed implementati
 
 ### For New Users
 1. Start with **[Getting Started](./getting-started.md)** for setup
-2. Read **[Architecture](./architecture.md)** to understand the framework
-3. Try **[Store Only Pattern](./patterns/store-only-pattern.md)** for simple state management
+2. Read **[MVVM Architecture](./patterns/architecture/mvvm.md)** to understand the framework
+3. Try **[Store Only Pattern](./patterns/store/)** for simple state management
 4. Explore **[Pattern Collection](./patterns/)** as your needs grow
 
 ### For Advanced Users
-1. Study **[MVVM Architecture](./patterns/mvvm-architecture.md)** for complex applications
-2. Learn **[Domain Architecture](./patterns/domain-context-architecture.md)** for multi-team projects
-3. Master **[Async Patterns](./patterns/async-patterns.md)** for performance-critical code
+1. Study **[Pipeline System](./pipeline/)** for complex business logic
+2. Learn **[Domain Architecture](./patterns/architecture/domain-context.md)** for multi-team projects
+3. Master **[Async Patterns](./patterns/async/)** for performance-critical code
 4. Review **[Best Practices](./best-practices.md)** for production-ready implementations
 
 ## 🔗 Related Documentation
