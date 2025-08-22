@@ -478,7 +478,7 @@ These examples demonstrate production-ready patterns for common pipeline scenari
 
 ## Related
 
-- **[Action Pipeline Guide](../action-pipeline.md)** - Core pipeline concepts
 - **[Action Patterns](../patterns/action/)** - Action Only pattern implementation
 - **[Store Integration](../patterns/store/)** - Combining pipelines with state management
 - **[MVVM Architecture](../patterns/architecture/mvvm.md)** - Pipeline role in MVVM pattern
+- **[Hook Lifecycle](../lifecycle/)** - How hooks connect to the pipeline system
