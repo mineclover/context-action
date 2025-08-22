@@ -19,10 +19,10 @@ export function setupSecurityHandlers(
     setHandlerExecutions(prev => prev + 1);
     
     if (payload.requiresElevation) {
-      controller.jumpToPriority(1000);
       console.log('⚡ Jumping to elevated security pipeline');
       setExecutionPath(prev => [...prev, 'priority-jump-to-elevated']);
-      return { level: 'standard', processed: false, timestamp: Date.now() };
+      controller.jumpToPriority(1000);
+      return; // jumpToPriority 후에는 즉시 종료
     }
     
     return { level: 'standard', processed: true, timestamp: Date.now() };
@@ -38,10 +38,14 @@ export function setupSecurityHandlers(
     await new Promise(resolve => setTimeout(resolve, 500));
     
     if (payload.role === 'standard') {
+      console.log('❌ Insufficient permissions for elevated action');
+      setExecutionPath(prev => [...prev, 'authorization-failed']);
       controller.abort('Insufficient permissions for elevated action');
-      return { level: 'elevated', authorized: false, timestamp: Date.now() };
+      return; // abort 후에는 즉시 종료
     }
     
+    console.log('✅ Elevated security check passed');
+    setExecutionPath(prev => [...prev, 'authorization-success']);
     return { 
       level: 'elevated', 
       authorized: true, 

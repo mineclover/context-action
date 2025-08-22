@@ -116,6 +116,8 @@ export function useFlowControlDemo() {
       
       switch (scenario) {
         case 'securityEscalation':
+        case 'securitySuccess':
+        case 'securityNormal':
           result = await securityRegister.dispatchWithResult('processRequest', payload);
           break;
         case 'cacheOptimization':
