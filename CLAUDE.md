@@ -201,16 +201,16 @@ The LLMS Generator system automatically processes documentation changes via a po
 **Generated Structure:**
 ```
 llmsData/
-├── en/guide/
-│   ├── example-100.md          # 100 character summary
-│   ├── example-500.md          # 500 character summary
-│   ├── example-5000.md         # 5000 character summary
-│   └── example-priority.json   # Priority metadata
-└── ko/guide/
-    ├── example-100.md          # 100자 요약
-    ├── example-500.md          # 500자 요약
-    ├── example-5000.md         # 5000자 요약
-    └── example-priority.json   # 우선순위 메타데이터
+├── en/guide--example/
+│   ├── guide--example-100.md   # 100 character summary
+│   ├── guide--example-500.md   # 500 character summary
+│   ├── guide--example-5000.md  # 5000 character summary
+│   └── priority.json           # Priority metadata
+└── ko/guide--example/
+    ├── guide--example-100.md   # 100자 요약
+    ├── guide--example-500.md   # 500자 요약
+    ├── guide--example-5000.md  # 5000자 요약
+    └── priority.json           # 우선순위 메타데이터
 ```
 
 ### Example Application
