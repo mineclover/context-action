@@ -13,7 +13,7 @@ import {
 interface NavItem {
   path: string;
   label: string;
-  category: 'main' | 'core' | 'store' | 'react' | 'demos' | 'examples' | 'actionguard' | 'refs' | 'utilities';
+  category: 'main' | 'core' | 'store' | 'react' | 'demos' | 'examples' | 'actionguard' | 'pipeline' | 'refs' | 'utilities';
   isIndex?: boolean;
   disabled?: boolean;
   description?: string;
@@ -62,6 +62,10 @@ function Layout({
     { path: '/demos/chat', label: '💬 Chat Demo', category: 'demos', description: 'Real-time messaging and auto-scroll features' },
     { path: '/demos/user-profile', label: '👤 User Profile Demo', category: 'demos', description: 'Form processing and validation patterns' },
     
+    // Priority Management Demos
+    { path: '/demos/priority-management', label: '📊 Priority Management (Original)', category: 'demos', description: 'Priority calculation and health monitoring system' },
+    { path: '/demos/priority-management-v2', label: '🏗️ Priority Management (Modular)', category: 'demos', description: 'Modular architecture with feature-based structure' },
+    
     { path: '/examples/element-management', label: '🎯 Element Management Demo', category: 'examples' },
     
     // === Advanced Demos (고급 데모) ===
@@ -69,9 +73,13 @@ function Layout({
     { path: '/actionguard/scroll', label: '📜 Advanced Scroll Demo', category: 'actionguard' },
     { path: '/actionguard/mouse-events', label: '🖱️ Mouse Events Demo', category: 'actionguard' },
     { path: '/actionguard/api-blocking', label: '🚫 API Blocking Demo', category: 'actionguard', description: 'Working demo with unified structure' },
+    { path: '/actionguard/conditional-execution', label: '🔄 Conditional Execution Demo', category: 'actionguard', description: 'Environment, feature flags, permissions, business rules' },
     { path: '/actionguard/priority-performance', label: '⚡ Priority Performance Demo', category: 'actionguard' },
     { path: '/actionguard/priority-performance-advanced', label: '🚀 Priority Performance Advanced', category: 'actionguard', description: 'Multi-instance advanced priority testing system' },
     { path: '/actionguard/throttle-comparison', label: '⚖️ Throttle Comparison Demo', category: 'actionguard' },
+    
+    // === Pipeline Features (파이프라인 기능) ===
+    { path: '/pipeline/flow-control', label: '🔀 Flow Control Playground', category: 'pipeline', description: 'Interactive priority jumping, early returns, and complex branching patterns' },
     
     // === Specialized Features (전문 기능) ===
     { path: '/refs', label: '🎯 Refs Management', category: 'refs', isIndex: true },
@@ -213,7 +221,7 @@ function Layout({
                 <h4 className="text-xs font-medium text-purple-600 mb-2">🚀 Advanced Demos</h4>
               </div>
             )}
-            {navItems.filter(item => ['actionguard'].includes(item.category)).map((item) => {
+            {navItems.filter(item => ['actionguard', 'pipeline'].includes(item.category)).map((item) => {
               return (
                 <Link
                   key={item.path}
