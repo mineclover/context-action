@@ -227,161 +227,51 @@ Experience advanced flow control patterns with real-time visualization:
 
 **[→ Flow Control Playground](https://mineclover.github.io/context-action/example/pipeline/flow-control)**
 
-This comprehensive demo includes:
+This comprehensive playground demonstrates:
 
-#### 🎯 Dynamic Priority Jumping
-Real-time priority adjustment based on system conditions:
-- **Load-Based Priority**: Automatic priority escalation when system load exceeds thresholds
-- **Business Hour Routing**: Priority changes based on time-of-day and business rules
-- **User Role Escalation**: Security-based priority jumping for different user permissions
-- **Emergency Override**: Critical situation handling with maximum priority assignment
+#### 🔒 Security Escalation Scenarios
+- Standard security checks with automatic elevation detection
+- Priority jumping from standard (priority 50) to elevated (priority 1000) security
+- Authorization failures with pipeline abort mechanisms
+- Real-time security token generation and validation
 
-#### 🚪 Smart Early Return Patterns
-Intelligent pipeline termination with performance optimization:
-- **Multi-Level Cache**: Memory cache → Redis cache → Database fallback with early returns
-- **Permission Gates**: Role-based access control with immediate rejection
-- **Feature Flags**: Configuration-driven feature enablement with bypass logic
-- **Rate Limiting**: Request throttling with early termination for quota violations
+#### 🗄️ Cache Optimization Patterns  
+- Multi-tier caching system (Memory → Redis → Database)
+- Early return optimization when cache hits occur
+- Cache busting scenarios for testing database fallback
+- Performance monitoring of cache hit rates
 
-#### 🔄 Complex Branching Logic
-Business rule-driven pipeline routing:
-- **Approval Workflows**: Document processing with conditional approval requirements
-- **Payment Processing**: Multi-gateway routing based on amount, region, and payment method
-- **Content Moderation**: AI-powered content filtering with escalation paths
-- **Order Fulfillment**: Inventory-based routing to warehouses and shipping providers
+#### 🏢 Business Hour Routing Logic
+- Dynamic priority adjustment based on business hours
+- Customer tier processing (standard → premium → enterprise)
+- Order value thresholds triggering high-value processing paths
+- International vs. domestic order routing
 
-#### 📊 Real-Time Monitoring
-Live visualization of flow control decisions:
-- **Pipeline Execution Graph**: Visual representation of handler execution paths
-- **Priority Timeline**: Real-time tracking of priority changes and jumps
-- **Decision Tree Visualization**: Business rule evaluation and branching paths
-- **Performance Metrics**: Execution time, skip rates, and optimization effectiveness
+#### 🔄 Error Recovery Mechanisms
+- API failure simulation with automatic retry logic
+- Progressive backoff strategies with priority jumping
+- Maximum retry limit handling with fallback activation
+- Real-time execution path visualization
 
-#### 🧪 Interactive Test Scenarios
-Hands-on experimentation with different flow control patterns:
+#### 🎛️ Interactive Controls
+- System load simulation affecting handler performance
+- Business hours toggle for testing time-sensitive routing
+- Cache clearing for testing cold-start scenarios
+- Real-time metrics display for handler execution counts
 
-```typescript
-// Example scenarios available in the playground
-const scenarios = {
-  // Security escalation scenario
-  securityEscalation: {
-    description: "Standard user tries to access admin function",
-    payload: { userId: "user-123", action: "delete-user", role: "standard" },
-    expectedFlow: "standard-auth → role-check → priority-jump(1000) → admin-auth"
-  },
-  
-  // Cache optimization scenario
-  cacheOptimization: {
-    description: "Data fetching with multi-level cache hierarchy",
-    payload: { key: "user-profile-456", includePreferences: true },
-    expectedFlow: "memory-cache → redis-cache → database → early-return"
-  },
-  
-  // Business hour routing scenario
-  businessHourRouting: {
-    description: "Order processing during/outside business hours",
-    payload: { orderId: "order-789", amount: 5000, priority: "standard" },
-    expectedFlow: "time-check → business-rules → priority-adjust → processing"
-  },
-  
-  // Error recovery scenario
-  errorRecovery: {
-    description: "API failure with automatic retry and fallback",
-    payload: { endpoint: "/api/payments", retryCount: 0, fallbackEnabled: true },
-    expectedFlow: "primary-api → error → retry-jump → fallback → recovery"
-  }
-};
-```
+#### 📊 Execution Visualization
+- Live execution path tracking showing handler sequence
+- Performance metrics with execution timing
+- Result aggregation from multiple pipeline stages
+- Error states and recovery pathway visualization
 
-#### 🎮 Interactive Controls
-- **Scenario Selector**: Choose from predefined flow control scenarios
-- **Parameter Tuning**: Adjust payload values and system conditions in real-time
-- **Step-by-Step Execution**: Control pipeline execution speed and observe each decision
-- **Performance Comparison**: Compare different flow control strategies side-by-side
-- **Custom Payload Editor**: Create and test your own flow control scenarios
-
-#### 📈 Analytics Dashboard
-Track and analyze flow control effectiveness:
-- **Skip Rate Analytics**: Percentage of handlers skipped via early returns
-- **Priority Distribution**: Frequency analysis of priority jumping patterns
-- **Performance Impact**: Execution time savings from flow control optimizations
-- **Error Recovery Success**: Success rates of different error recovery strategies
-
-### Workshop Scenarios
-
-#### Scenario 1: E-commerce Order Processing
-**Objective**: Implement flow control for order validation and fulfillment
-
-```typescript
-interface OrderActions extends ActionPayloadMap {
-  processOrder: {
-    orderId: string;
-    customerId: string;
-    items: Array<{ productId: string; quantity: number; price: number }>;
-    paymentMethod: 'credit' | 'debit' | 'paypal' | 'apple_pay';
-    shippingAddress: Address;
-    expedited?: boolean;
-  };
-}
-
-// Implementation includes:
-// - Inventory check with early return for out-of-stock items
-// - Payment method routing with priority jumping
-// - Fraud detection with security escalation
-// - Shipping optimization with warehouse selection
-```
-
-#### Scenario 2: Content Management System
-**Objective**: Dynamic content processing with moderation and approval workflows
-
-```typescript
-interface ContentActions extends ActionPayloadMap {
-  publishContent: {
-    contentId: string;
-    authorId: string;
-    contentType: 'article' | 'video' | 'image' | 'comment';
-    content: string;
-    tags: string[];
-    scheduledDate?: Date;
-    requiresReview?: boolean;
-  };
-}
-
-// Features demonstrated:
-// - AI content analysis with early rejection for policy violations
-// - Author permission levels with priority jumping to approval workflows
-// - Content type specific validation with conditional processing
-// - Publishing schedule optimization with time-based routing
-```
-
-#### Scenario 3: Financial Transaction Processing
-**Objective**: Multi-layered security and compliance with dynamic routing
-
-```typescript
-interface TransactionActions extends ActionPayloadMap {
-  processTransaction: {
-    transactionId: string;
-    fromAccount: string;
-    toAccount: string;
-    amount: number;
-    currency: string;
-    transactionType: 'transfer' | 'payment' | 'withdrawal' | 'deposit';
-    metadata?: Record<string, any>;
-  };
-}
-
-// Advanced patterns include:
-// - Amount-based compliance routing (small → fast, large → compliance)
-// - Real-time fraud detection with immediate blocking
-// - Regulatory compliance checks with jurisdiction-specific rules
-// - Multi-signature requirements with approval workflows
-```
+The playground features a modular architecture with:
+- **Scenario-based testing** - Pre-configured test cases for each pattern
+- **Handler isolation** - Separate modules for different business domains  
+- **Real-time feedback** - Live updates showing pipeline flow
+- **Interactive debugging** - Step-by-step execution analysis
 
 ## 🧪 Testing Flow Control
-
-### Comprehensive Test Suite
-
-The flow control system includes extensive testing patterns to validate all control mechanisms:
 
 ### Test Priority Jumping
 
@@ -429,281 +319,7 @@ async function testEarlyReturn() {
 }
 ```
 
-### Advanced Testing Patterns
-
-#### Multi-Level Priority Testing
-
-```typescript
-async function testMultiLevelPriority() {
-  console.log('=== Multi-Level Priority Jumping Test ===');
-  
-  const register = new ActionRegister<TestActions>();
-  const executionOrder: string[] = [];
-  
-  // Level 1 handler (priority 100)
-  register.register('processData', async (payload, controller) => {
-    executionOrder.push('level-1-start');
-    
-    if (payload.escalationLevel >= 2) {
-      controller.jumpToPriority(500); // Jump to level 2
-      executionOrder.push('level-1-jump');
-      return;
-    }
-    
-    executionOrder.push('level-1-complete');
-    return { level: 1, processed: true };
-  }, { priority: 100, id: 'level-1' });
-  
-  // Level 2 handler (priority 500)
-  register.register('processData', async (payload, controller) => {
-    executionOrder.push('level-2-start');
-    
-    if (payload.escalationLevel >= 3) {
-      controller.jumpToPriority(1000); // Jump to level 3
-      executionOrder.push('level-2-jump');
-      return;
-    }
-    
-    executionOrder.push('level-2-complete');
-    return { level: 2, processed: true };
-  }, { priority: 500, id: 'level-2' });
-  
-  // Level 3 handler (priority 1000)
-  register.register('processData', async (payload, controller) => {
-    executionOrder.push('level-3-complete');
-    return { level: 3, processed: true, critical: true };
-  }, { priority: 1000, id: 'level-3' });
-  
-  // Test different escalation levels
-  for (const level of [1, 2, 3]) {
-    executionOrder.length = 0; // Reset
-    const result = await register.dispatchWithResult('processData', {
-      escalationLevel: level,
-      data: `test-data-${level}`
-    });
-    
-    console.log(`Escalation level ${level}:`, {
-      executionOrder: [...executionOrder],
-      result
-    });
-  }
-}
-```
-
-#### Performance Impact Testing
-
-```typescript
-async function testPerformanceImpact() {
-  console.log('=== Performance Impact Test ===');
-  
-  const register = new ActionRegister<PerformanceActions>();
-  let handlerExecutions = 0;
-  
-  // Expensive handlers (simulating slow operations)
-  for (let i = 1; i <= 10; i++) {
-    register.register('performanceTest', async (payload, controller) => {
-      handlerExecutions++;
-      await new Promise(resolve => setTimeout(resolve, 100)); // Simulate work
-      return { handler: i, executed: true };
-    }, { priority: i * 10, id: `handler-${i}` });
-  }
-  
-  // Early return handler (highest priority)
-  register.register('performanceTest', async (payload, controller) => {
-    handlerExecutions++;
-    
-    if (payload.useEarlyReturn) {
-      controller.return({ optimized: true, skippedHandlers: 10 });
-      return;
-    }
-    
-    return { optimized: false };
-  }, { priority: 1000, id: 'optimizer' });
-  
-  // Test without early return
-  console.time('without-optimization');
-  handlerExecutions = 0;
-  await register.dispatchWithResult('performanceTest', { useEarlyReturn: false });
-  console.timeEnd('without-optimization');
-  console.log('Handlers executed (no optimization):', handlerExecutions);
-  
-  // Test with early return
-  console.time('with-optimization');
-  handlerExecutions = 0;
-  await register.dispatchWithResult('performanceTest', { useEarlyReturn: true });
-  console.timeEnd('with-optimization');
-  console.log('Handlers executed (with optimization):', handlerExecutions);
-}
-```
-
-#### Complex Branching Testing
-
-```typescript
-async function testComplexBranching() {
-  console.log('=== Complex Branching Test ===');
-  
-  const register = new ActionRegister<BranchingActions>();
-  const paths: string[] = [];
-  
-  // Business rules handler
-  register.register('processOrder', async (payload, controller) => {
-    paths.push('business-rules');
-    
-    // Route based on business rules
-    if (payload.amount > 10000) {
-      controller.jumpToPriority(1000); // High-value processing
-      paths.push('route-to-high-value');
-      return;
-    }
-    
-    if (payload.expedited) {
-      controller.jumpToPriority(800); // Expedited processing
-      paths.push('route-to-expedited');
-      return;
-    }
-    
-    if (payload.international) {
-      controller.jumpToPriority(600); // International processing
-      paths.push('route-to-international');
-      return;
-    }
-    
-    // Continue with standard processing
-    paths.push('continue-standard');
-  }, { priority: 100, id: 'business-rules' });
-  
-  // Standard processing
-  register.register('processOrder', async (payload, controller) => {
-    paths.push('standard-processing');
-    return { type: 'standard', processingTime: '1-2 business days' };
-  }, { priority: 200, id: 'standard' });
-  
-  // International processing
-  register.register('processOrder', async (payload, controller) => {
-    paths.push('international-processing');
-    return { type: 'international', processingTime: '3-5 business days' };
-  }, { priority: 600, id: 'international' });
-  
-  // Expedited processing
-  register.register('processOrder', async (payload, controller) => {
-    paths.push('expedited-processing');
-    return { type: 'expedited', processingTime: 'same day' };
-  }, { priority: 800, id: 'expedited' });
-  
-  // High-value processing
-  register.register('processOrder', async (payload, controller) => {
-    paths.push('high-value-processing');
-    return { type: 'high-value', processingTime: '24 hours with verification' };
-  }, { priority: 1000, id: 'high-value' });
-  
-  // Test different order types
-  const testCases = [
-    { amount: 100, expedited: false, international: false, expected: 'standard' },
-    { amount: 500, expedited: false, international: true, expected: 'international' },
-    { amount: 1000, expedited: true, international: false, expected: 'expedited' },
-    { amount: 15000, expedited: false, international: false, expected: 'high-value' },
-  ];
-  
-  for (const testCase of testCases) {
-    paths.length = 0; // Reset
-    const result = await register.dispatchWithResult('processOrder', testCase);
-    
-    console.log(`Test case ${testCase.expected}:`, {
-      input: testCase,
-      executionPath: [...paths],
-      result: result?.type,
-      success: result?.type === testCase.expected
-    });
-  }
-}
-```
-
-#### Error Recovery Testing
-
-```typescript
-async function testErrorRecovery() {
-  console.log('=== Error Recovery Test ===');
-  
-  const register = new ActionRegister<ErrorActions>();
-  let retryCount = 0;
-  let fallbackCalled = false;
-  
-  // Primary handler (fails intentionally)
-  register.register('apiCall', async (payload, controller) => {
-    if (payload.shouldFail && retryCount < 2) {
-      retryCount++;
-      controller.jumpToPriority(500); // Jump to retry handler
-      throw new Error(`API call failed (attempt ${retryCount})`);
-    }
-    
-    return { success: true, attempt: retryCount + 1 };
-  }, { priority: 100, id: 'primary' });
-  
-  // Retry handler
-  register.register('apiCall', async (payload, controller) => {
-    console.log(`Retry attempt ${retryCount}`);
-    
-    if (retryCount >= 3) {
-      controller.jumpToPriority(1000); // Jump to fallback
-      return;
-    }
-    
-    // Retry by jumping back to primary with modified payload
-    controller.jumpToPriority(100);
-  }, { priority: 500, id: 'retry' });
-  
-  // Fallback handler
-  register.register('apiCall', async (payload, controller) => {
-    fallbackCalled = true;
-    return { success: false, fallbackUsed: true, message: 'Using cached data' };
-  }, { priority: 1000, id: 'fallback' });
-  
-  // Test successful case
-  retryCount = 0;
-  fallbackCalled = false;
-  const successResult = await register.dispatchWithResult('apiCall', { shouldFail: false });
-  console.log('Success case:', { result: successResult, retryCount, fallbackCalled });
-  
-  // Test failure with recovery
-  retryCount = 0;
-  fallbackCalled = false;
-  const failureResult = await register.dispatchWithResult('apiCall', { shouldFail: true });
-  console.log('Failure case:', { result: failureResult, retryCount, fallbackCalled });
-}
-```
-
-### Automated Test Suite
-
-```typescript
-// Comprehensive test runner for flow control
-export async function runFlowControlTests() {
-  console.log('🧪 Running Flow Control Test Suite\n');
-  
-  try {
-    await testPriorityJumping();
-    console.log('✅ Priority jumping tests passed\n');
-    
-    await testEarlyReturn();
-    console.log('✅ Early return tests passed\n');
-    
-    await testMultiLevelPriority();
-    console.log('✅ Multi-level priority tests passed\n');
-    
-    await testPerformanceImpact();
-    console.log('✅ Performance impact tests passed\n');
-    
-    await testComplexBranching();
-    console.log('✅ Complex branching tests passed\n');
-    
-    await testErrorRecovery();
-    console.log('✅ Error recovery tests passed\n');
-    
-    console.log('🎉 All flow control tests completed successfully!');
-  } catch (error) {
-    console.error('❌ Test suite failed:', error);
-    throw error;
-  }
-}
+Complete test suites and advanced patterns are available in the [Flow Control Playground](https://mineclover.github.io/context-action/example/pipeline/flow-control).
 
 ## 📚 Best Practices
 
@@ -742,53 +358,23 @@ export async function runFlowControlTests() {
 
 ## 🚧 Future Implementation Plans
 
-### Advanced Flow Control Demo
-**Planned**: `/actionguard/flow-control` demo page
+The Context-Action framework continues to evolve with sophisticated flow control capabilities:
 
-**Features to implement**:
-- **Dynamic Priority Adjustment**: Runtime priority changes based on system load
-- **Handler Chain Interruption**: Conditional pipeline redirection 
-- **Complex Branching**: Business rule-based pipeline routing
-- **Conditional Skipping**: Smart handler bypassing with context awareness
+### Planned Features
 
-```typescript
-// Planned implementation examples
-const flowControlHandler = useCallback(async (payload, controller) => {
-  // Dynamic priority based on system load
-  if (getSystemLoad() > 0.8) {
-    controller.jumpToPriority(1000); // Emergency priority
-  }
-  
-  // Conditional category skipping
-  if (payload.skipValidation) {
-    controller.skipCategory('validation');
-  }
-  
-  // Smart routing based on business rules
-  if (isBusinessHours() && payload.requiresApproval) {
-    controller.routeTo('approval-pipeline');
-  }
-}, []);
-```
+#### 🎯 Dynamic Priority Adjustment
+Runtime priority modification based on system conditions and business rules
 
-### Handler Chain Interruption Demo
-**Planned**: Advanced interruption patterns with recovery mechanisms
+#### 🔀 Handler Category Management  
+Group handlers by categories and control execution at the category level
 
-```typescript
-// Handler chain with interruption and recovery
-const chainHandler = useCallback(async (payload, controller) => {
-  try {
-    const result = await processWithRetry(payload);
-    return result;
-  } catch (error) {
-    if (error.type === 'RECOVERABLE') {
-      controller.jumpToPriority(10); // Jump to recovery handlers
-    } else {
-      controller.abort(`Unrecoverable error: ${error.message}`);
-    }
-  }
-}, []);
-```
+#### 🚏 Pipeline Routing
+Advanced routing capabilities for complex business workflows
+
+#### 🔄 Conditional Loop Control
+Advanced looping and iteration control within pipelines
+
+See the [Flow Control Playground](https://mineclover.github.io/context-action/example/pipeline/flow-control) for experimental implementations and prototype testing.
 
 ## Related
 
