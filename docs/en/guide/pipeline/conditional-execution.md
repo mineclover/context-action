@@ -1,16 +1,25 @@
 # Conditional & Dynamic Execution
 
-Advanced conditional execution patterns and environment-based handler filtering for Context-Action pipelines.
+Advanced conditional execution patterns for Context-Action pipelines with environment-based filtering, feature flags, and dynamic business rules.
 
-## Overview
+## Core Principles
 
-Conditional execution enables sophisticated business logic patterns where handlers execute based on runtime conditions, environment settings, feature flags, and dynamic business rules.
+**Conditional Execution** enables sophisticated business logic where handlers execute based on runtime conditions. The framework provides four primary conditional patterns:
+
+1. **Environment-Based Execution** - Different handlers per deployment environment
+2. **Feature Flag Integration** - Dynamic feature control with real-time toggling  
+3. **Permission-Based Execution** - Role-based access control with audit logging
+4. **Business Rule Engine** - Tier-based discounts and dynamic pricing logic
+
+> **Live Demo**: Visit `/actionguard/conditional-execution` to see all patterns in action with interactive controls.
 
 ## 🔄 Environment-Based Execution
 
-### Environment-Specific Handlers
+### Core Mechanism
 
-Execute different handlers based on runtime environment conditions using handler filtering:
+Handler filtering enables environment-specific execution without conditional logic in handler code:
+
+**Key Principle**: Each environment runs only its designated handlers through filtering, not conditional branches.
 
 ```typescript
 interface DeploymentActions extends ActionPayloadMap {
@@ -140,7 +149,11 @@ async function testEnvironmentExecution() {
 
 ## 🎯 Feature Flag Integration
 
-### Dynamic Feature Control
+### Core Mechanism
+
+Feature flags control handler execution at runtime without code deployment:
+
+**Key Principle**: Handlers check feature state and skip execution when disabled, enabling safe gradual rollouts.
 
 ```typescript
 interface FeatureActions extends ActionPayloadMap {
@@ -204,7 +217,11 @@ featureRegister.register('processUser', async (payload, controller) => {
 
 ## 🔒 Permission-Based Execution
 
-### Role-Based Handler Execution
+### Core Mechanism
+
+Permission validation occurs early in the pipeline with automatic abort on failure:
+
+**Key Principle**: Security checks happen first, business logic only executes for authorized users.
 
 ```typescript
 interface AdminActions extends ActionPayloadMap {
@@ -289,7 +306,11 @@ adminRegister.register('manageSystem', async (payload, controller) => {
 
 ## 🕐 Time-Based Execution
 
-### Schedule-Based Handlers
+### Core Mechanism
+
+Time-based handlers use priority ordering and early returns for schedule-aware processing:
+
+**Key Principle**: Business hours handlers run first, off-hours handlers activate only when business hours logic doesn't execute.
 
 ```typescript
 interface ScheduledActions extends ActionPayloadMap {
@@ -351,9 +372,13 @@ scheduledRegister.register('processScheduledTask', async (payload, controller) =
 });
 ```
 
-## 🔀 Conditional Logic Patterns
+## 🔀 Business Rule Engine
 
-### Business Rule Engine
+### Core Mechanism
+
+Business rules execute as separate handlers with cascading logic through pipeline results:
+
+**Key Principle**: Each business rule (credit check, discount calculation) runs independently, building up context for subsequent handlers.
 
 ```typescript
 interface BusinessRuleActions extends ActionPayloadMap {
@@ -456,53 +481,28 @@ businessRegister.register('processOrder', async (payload, controller) => {
 });
 ```
 
-## 🧪 Testing Conditional Execution
+## ⚡ Pattern Implementation
 
-### Test Environment-Based Filtering
+### Real-World Usage
+
+The conditional execution patterns combine to create sophisticated business workflows:
 
 ```typescript
-async function testConditionalExecution() {
-  console.log('=== Conditional Execution Test ===');
-  
-  // Test feature flag behavior
-  console.log('--- Testing Feature Flags ---');
-  const userResult = await featureRegister.dispatchWithResult('processUser', {
-    userId: 'user-123',
-    operation: 'profile-update'
-  });
-  console.log('User processing result:', userResult);
-  
-  // Test permission-based execution
-  console.log('--- Testing Permission Checks ---');
-  try {
-    const adminResult = await adminRegister.dispatchWithResult('manageSystem', {
-      operation: 'backup',
-      userId: 'admin-456',
-      options: { includeUserData: true }
-    });
-    console.log('Admin operation result:', adminResult);
-  } catch (error) {
-    console.log('Admin operation failed:', error.message);
+// Environment + Feature + Permission integration
+const result = await actionRegister.dispatchWithResult('processOrder', orderData, {
+  filter: {
+    environment: process.env.NODE_ENV,  // Environment filtering
+    feature: 'enhanced-processing',     // Feature flag filtering  
+    permissions: ['order-management']   // Permission filtering
   }
-  
-  // Test business rules
-  console.log('--- Testing Business Rules ---');
-  const orderResult = await businessRegister.dispatchWithResult('processOrder', {
-    order: {
-      id: 'order-789',
-      amount: 1500,
-      customerId: 'customer-123',
-      items: [{ id: 'item-1', quantity: 2, price: 750 }]
-    },
-    customer: {
-      id: 'customer-123',
-      tier: 'gold',
-      creditLimit: 5000
-    }
-  });
-  console.log('Order processing result:', orderResult);
-}
+});
 ```
+
+**Integration Benefits**:
+- **Separation of Concerns**: Each conditional aspect handled independently
+- **Testability**: Individual patterns can be tested in isolation
+- **Maintainability**: Business rules exist as discrete, discoverable handlers
+- **Performance**: Early filtering prevents unnecessary handler execution
 
 ## 🛠️ Utility Functions
 
@@ -600,125 +600,68 @@ async function performCreditCheck(customerId: string, amount: number): Promise<{
 }
 ```
 
-## 🚧 Implementation Plans
+## 🎮 Live Demo
 
-### Environment-based Execution Demo
-**Planned**: `/actionguard/conditional-execution` demo page
+The complete conditional execution system is demonstrated at `/actionguard/conditional-execution` with:
 
-**Features to implement**:
-- **Multi-environment Deployment**: Development, staging, production handler selection
-- **Feature Flag Integration**: Dynamic feature control with real-time toggling
-- **User Role Management**: Permission-based handler execution
-- **Business Rule Engine**: Complex conditional logic patterns
+### Interactive Features
+- **Environment Switcher**: Change deployment environments in real-time
+- **Feature Flag Toggle**: Enable/disable features dynamically
+- **Role Selector**: Switch user roles to test permissions  
+- **Business Rule Controls**: Adjust customer tiers and order amounts
+- **Time Scheduler**: Test business hours vs off-hours processing
+- **Activity Monitor**: Real-time logging of all conditional decisions
+
+### Demo Architecture
+```typescript
+// Store-based handler coordination (no controller.setResult conflicts)
+const environmentStore = useConditionalStore('environment');
+const featureFlagStore = useConditionalStore('featureFlags');
+const permissionStore = useConditionalStore('permissions');
+
+// Handlers coordinate through stores instead of controller results
+useActionHandler('processConditionalLogic', async (payload) => {
+  const environment = environmentStore.getValue();
+  const flags = featureFlagStore.getValue();
+  
+  if (!flags.enhancedProcessing) return;
+  
+  // Environment-specific processing
+  const result = await processForEnvironment(environment, payload);
+  environmentStore.update(store => ({ ...store, lastResult: result }));
+}, []);
+```
+
+## 📚 Architecture Principles
+
+### Design Philosophy
+
+**Declarative over Imperative**: Handlers declare their conditions (environment, features, permissions) rather than implementing conditional logic.
 
 ```typescript
-// Planned implementation examples
-const environmentHandler = useCallback(async (payload, controller) => {
-  // Environment-based execution
-  if (process.env.NODE_ENV !== 'development') {
-    controller.skip();
-    return;
-  }
-  
-  // Development-only debugging logic
-  console.log('🐛 Development debug info:', payload);
-  return { environment: 'development', debugInfo: true };
-}, []);
+// ✅ Declarative approach
+useActionHandler('deployToProduction', handler, {
+  environment: ['production'],
+  permissions: ['deploy'],
+  feature: 'production-deployment'
+});
 
-useActionHandler('debugAction', environmentHandler, {
-  environment: ['development'],
-  condition: () => process.env.NODE_ENV === 'development',
-  tags: ['debug', 'development']
+// ❌ Imperative approach  
+useActionHandler('deploy', (payload) => {
+  if (env !== 'production') return;
+  if (!hasPermission('deploy')) return;
+  if (!isFeatureEnabled('production-deployment')) return;
+  // ... actual logic
 });
 ```
 
-### Feature Flag Control Demo
-**Planned**: Advanced feature flag patterns with A/B testing
+### Core Benefits
 
-```typescript
-// Feature flag with A/B testing
-const featureHandler = useCallback(async (payload, controller) => {
-  const userId = payload.userId;
-  const featureVariant = await getFeatureVariant('new-ui', userId);
-  
-  if (!featureVariant.enabled) {
-    controller.skipCategory('new-ui');
-    return;
-  }
-  
-  // Execute variant-specific logic
-  if (featureVariant.variant === 'B') {
-    controller.jumpToPriority(900); // Use B variant handlers
-  }
-  
-  return { variant: featureVariant.variant, enabled: true };
-}, []);
-```
-
-### Permission-based Execution Demo
-**Planned**: Role-based access control with audit logging
-
-```typescript
-// Permission check with audit trail
-const permissionHandler = useCallback(async (payload, controller) => {
-  const userPermissions = await getUserPermissions(payload.userId);
-  
-  if (!userPermissions.includes('admin')) {
-    // Log unauthorized access attempt
-    await auditLog({
-      action: 'unauthorized_access_attempt',
-      userId: payload.userId,
-      resource: payload.resource,
-      timestamp: Date.now()
-    });
-    
-    controller.abort('Insufficient permissions');
-    return;
-  }
-  
-  // Log authorized access
-  await auditLog({
-    action: 'authorized_access',
-    userId: payload.userId,
-    resource: payload.resource,
-    permissions: userPermissions,
-    timestamp: Date.now()
-  });
-  
-  return { authorized: true, permissions: userPermissions };
-}, []);
-```
-
-## 📚 Best Practices
-
-### Conditional Execution Guidelines
-
-✅ **Good Practices**
-- Use handler filtering for environment-specific behavior
-- Implement feature flags for gradual rollouts
-- Check permissions early in the pipeline
-- Use early returns for failed conditions
-- Document business rules clearly
-
-❌ **Avoid**
-- Complex conditional logic within handlers
-- Hardcoded environment checks
-- Bypassing security checks
-- Inconsistent business rule application
-
-### Performance Considerations
-
-- **Handler filtering** is more efficient than conditional logic in handlers
-- **Early abort** prevents unnecessary processing
-- **Feature flag caching** reduces external service calls
-- **Permission caching** improves authorization performance
-
-### Security Guidelines
-
-- Always validate permissions before sensitive operations
-- Use abort mechanisms for security failures
-- Log security-related decisions for auditing
-- Implement fail-safe defaults for authorization
+- **Separation of Concerns**: Conditions separated from business logic
+- **Handler Reusability**: Same handler works across different conditional contexts
+- **Performance**: Filtering happens before handler execution
+- **Testability**: Conditions and logic can be tested independently
+- **Maintainability**: Business rules exist as discoverable, discrete handlers
 
 ## Related
 
