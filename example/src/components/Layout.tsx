@@ -13,10 +13,11 @@ import {
 interface NavItem {
   path: string;
   label: string;
-  category: 'main' | 'core' | 'store' | 'react' | 'demos' | 'examples' | 'actionguard' | 'pipeline' | 'refs' | 'utilities';
+  category: 'main' | 'core' | 'store' | 'react' | 'demos' | 'examples' | 'actionguard' | 'conditional' | 'pipeline' | 'refs' | 'utilities';
   isIndex?: boolean;
   disabled?: boolean;
   description?: string;
+  section?: 'basic' | 'intermediate' | 'advanced' | 'expert';
 }
 
 interface LayoutProps {
@@ -69,7 +70,15 @@ function Layout({
     { path: '/actionguard/search', label: '🔍 Advanced Search Demo', category: 'actionguard' },
     { path: '/actionguard/scroll', label: '📜 Advanced Scroll Demo', category: 'actionguard' },
     { path: '/actionguard/api-blocking', label: '🚫 API Blocking Demo', category: 'actionguard', description: 'Working demo with unified structure' },
-    { path: '/actionguard/conditional-execution', label: '🔄 Conditional Execution Demo', category: 'actionguard', description: 'Environment, feature flags, permissions, business rules' },
+    // === Conditional Execution Patterns (조건부 실행 패턴) ===
+    { path: '/actionguard/conditional', label: '🔄 Conditional Patterns', category: 'conditional', isIndex: true, section: 'basic', description: 'Complete conditional execution pattern collection' },
+    { path: '/actionguard/conditional/environment', label: '🌍 Environment-Based', category: 'conditional', section: 'basic', description: 'Dev, staging, production deployment handlers' },
+    { path: '/actionguard/conditional/feature-flags', label: '🎯 Feature Flags', category: 'conditional', section: 'intermediate', description: 'Runtime feature toggles and A/B testing' },
+    { path: '/actionguard/conditional/permissions', label: '🔒 Permission-Based', category: 'conditional', section: 'intermediate', description: 'Role-based access control with audit logging' },
+    { path: '/actionguard/conditional/business-rules', label: '💼 Business Rules', category: 'conditional', section: 'advanced', description: 'Complex business logic with cascading rules' },
+    { path: '/actionguard/conditional/time-based', label: '⏰ Time-Based', category: 'conditional', section: 'basic', description: 'Schedule-aware processing with business hours' },
+    { path: '/actionguard/conditional/combined', label: '🔀 Combined Patterns', category: 'conditional', section: 'expert', description: 'Enterprise workflows with multiple patterns' },
+    { path: '/actionguard/conditional-execution', label: '🔄 Legacy All-in-One', category: 'conditional', section: 'basic', description: '[Legacy] Original comprehensive demo' },
     { path: '/actionguard/priority-performance', label: '⚡ Priority Performance Demo', category: 'actionguard' },
     { path: '/actionguard/priority-performance-advanced', label: '🚀 Priority Performance Advanced', category: 'actionguard', description: 'Multi-instance advanced priority testing system' },
     { path: '/actionguard/throttle-comparison', label: '⚖️ Throttle Comparison Demo', category: 'actionguard' },
@@ -249,6 +258,64 @@ function Layout({
                       {item.isIndex && (
                         <span className="text-xs bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-medium">
                           Index
+                        </span>
+                      )}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+
+            {/* Conditional Execution Patterns Section */}
+            {!collapsed && (
+              <div className="px-3 py-2 mt-4 border-t border-gray-200">
+                <h4 className="text-xs font-medium text-indigo-600 mb-2">🔄 Conditional Patterns</h4>
+                <p className="text-xs text-gray-500 mb-2 px-1">Environment-aware execution logic</p>
+              </div>
+            )}
+            {navItems.filter(item => item.category === 'conditional').map((item) => {
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={cn(
+                    navItemVariants({
+                      variant: isActive(item.path) ? 'active' : 'default',
+                      category: item.category,
+                    }),
+                    item.isIndex &&
+                      'font-semibold border-l-2 border-indigo-500 bg-indigo-50 text-indigo-700',
+                    item.section === 'expert' && 'border-l-2 border-red-300',
+                    item.section === 'advanced' && 'border-l-2 border-orange-300',
+                    item.section === 'intermediate' && 'border-l-2 border-yellow-300',
+                    item.section === 'basic' && 'border-l-2 border-green-300'
+                  )}
+                  title={collapsed ? item.label : undefined}
+                >
+                  {collapsed ? (
+                    <span className="text-xs font-bold">
+                      {item.label.charAt(0)}
+                    </span>
+                  ) : (
+                    <span
+                      className={cn(
+                        item.isIndex && 'flex items-center gap-1'
+                      )}
+                    >
+                      {item.label}
+                      {item.isIndex && (
+                        <span className="text-xs bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-medium">
+                          Index
+                        </span>
+                      )}
+                      {item.section && !item.isIndex && (
+                        <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ml-2 ${
+                          item.section === 'basic' ? 'bg-green-100 text-green-600' :
+                          item.section === 'intermediate' ? 'bg-yellow-100 text-yellow-600' :
+                          item.section === 'advanced' ? 'bg-orange-100 text-orange-600' :
+                          item.section === 'expert' ? 'bg-red-100 text-red-600' : ''
+                        }`}>
+                          {item.section.charAt(0).toUpperCase()}
                         </span>
                       )}
                     </span>
