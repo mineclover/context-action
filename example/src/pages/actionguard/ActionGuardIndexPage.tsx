@@ -47,6 +47,12 @@ const actionGuardDemos = [
     description: '다양한 쓰로틀링 방법 비교 분석',
     tags: ['Throttle', 'Performance', 'Comparison'],
   },
+  {
+    path: '/actionguard/conditional-execution',
+    title: '🔄 Conditional Execution Demo',
+    description: '조건부 실행, 환경별 핸들러, 기능 플래그, 권한 기반 실행',
+    tags: ['Conditional', 'Environment', 'FeatureFlag', 'Permissions'],
+  },
 ];
 
 /**
