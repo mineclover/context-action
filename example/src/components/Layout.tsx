@@ -68,7 +68,6 @@ function Layout({
     // === Advanced Demos (고급 데모) ===
     { path: '/actionguard/search', label: '🔍 Advanced Search Demo', category: 'actionguard' },
     { path: '/actionguard/scroll', label: '📜 Advanced Scroll Demo', category: 'actionguard' },
-    { path: '/actionguard/mouse-events', label: '🖱️ Mouse Events Demo', category: 'actionguard' },
     { path: '/actionguard/api-blocking', label: '🚫 API Blocking Demo', category: 'actionguard', description: 'Working demo with unified structure' },
     { path: '/actionguard/conditional-execution', label: '🔄 Conditional Execution Demo', category: 'actionguard', description: 'Environment, feature flags, permissions, business rules' },
     { path: '/actionguard/priority-performance', label: '⚡ Priority Performance Demo', category: 'actionguard' },
@@ -81,6 +80,9 @@ function Layout({
     // === Specialized Features (전문 기능) ===
     { path: '/refs', label: '🎯 Refs Management', category: 'refs', isIndex: true },
     { path: '/refs/canvas', label: '🎨 Canvas Ref Demo', category: 'refs' },
+    { path: '/actionguard/mouse-events', label: '🖱️ Mouse Events Demo', category: 'refs' },
+    { path: '/actionguard/mouse-events/ref-context', label: '🖱️ RefContext Mouse Events', category: 'refs' },
+    { path: '/actionguard/mouse-events/optimized', label: '⚡ Optimized Mouse Events', category: 'refs' },
     { path: '/refs/form-builder', label: '📝 Form Builder Ref Demo', category: 'refs' },
     { path: '/refs/waitforrefs-performance', label: '⚡ useWaitForRefs Performance', category: 'refs', description: 'Performance verification demo for useWaitForRefs optimization' },
     

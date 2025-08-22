@@ -1,12 +1,12 @@
 # Canvas Performance Optimization
 
-Real-world case study: Solving Canvas interaction lag with RefContext patterns.
+High-performance Canvas patterns with RefContext for 60fps+ interactions.
 
 ## 🎨 Live Example
 
 **[→ Try the Canvas Demo](https://mineclover.github.io/context-action/example/refs/canvas)**
 
-Experience the optimized Canvas implementation in action. The demo showcases all the performance optimizations described in this guide:
+Experience the optimized Canvas implementation in action. The demo showcases all performance patterns described in this guide:
 - Immediate visual feedback for drawing tools
 - Dual-canvas architecture for smooth interactions  
 - Real-time freehand drawing with zero lag
@@ -14,278 +14,443 @@ Experience the optimized Canvas implementation in action. The demo showcases all
 
 **Local Development**: `http://localhost:4000/refs/canvas`
 
-## Problem: State-Update-Dependent Rendering
+## Core Performance Pattern: Immediate Visual Feedback
 
-A common performance killer in React Canvas applications is **state-update-dependent rendering**, where every interaction waits for React state updates before visual feedback appears.
+The fundamental pattern for high-performance Canvas interactions is **immediate visual feedback** that bypasses React's state update cycle.
 
-### ❌ Problematic Pattern
-
-```tsx
-// SLOW: State update → React re-render → Canvas update
-const handleMouseUp = useCallback((event) => {
-  const newShape = createShape(event);
-  
-  // State update (async)
-  addShape(newShape);
-  
-  // Canvas renders AFTER state update completes
-  // This creates visible lag!
-  drawing.redrawCanvas(canvas);
-}, [addShape, drawing.redrawCanvas]);
-```
-
-**Problems**:
-- ⏱️ **Visible Lag**: 50-200ms delay between interaction and visual feedback
-- 🔄 **Double Rendering**: Overlay update + main canvas redraw = 2x cost
-- 📈 **Performance Degradation**: Gets worse with more complex shapes
-
-### ✅ Optimized RefContext Solution
-
-The **core breakthrough** was implementing **immediate visual feedback** that bypasses React's state update cycle:
+### ✅ Immediate Canvas Update Pattern
 
 ```tsx
-// FAST: Immediate Canvas update + state update in parallel
-const handleMouseUp = useCallback((event) => {
+// PERFORMANCE PATTERN: Immediate visual feedback + parallel state update
+const handleMouseUp = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
   const newShape = createShape(event);
   
-  // CRITICAL: Update state AND canvas simultaneously
-  addShape(newShape);  // Async state update
-  
-  // IMMEDIATE: Direct canvas rendering (no waiting!)
-  if (mainCanvas) {
-    const ctx = mainCanvas.getContext('2d');
+  // 1. IMMEDIATE: Direct canvas rendering for instant feedback
+  if (mainCanvas.target) {
+    const ctx = mainCanvas.target.getContext('2d');
     if (ctx) {
-      drawing.drawShape(ctx, newShape); // Instant visual feedback
+      drawing.drawShape(ctx, newShape); // <-- Instant visual response
     }
   }
-}, [addShape, drawing.drawShape]);
-```
-
-## Key Performance Optimizations Applied
-
-### 1. **Eliminate Unnecessary Redraws During Mouse Move**
-
-**Before** (Performance killer):
-```tsx
-const handleMouseMove = useCallback((event) => {
-  // Update overlay for preview
-  updateOverlay(event);
   
-  // PERFORMANCE KILLER: Full canvas redraw on every mouse move!
-  drawing.redrawCanvas(mainCanvas); // 60fps × full redraw = death
-}, [drawing.redrawCanvas]);
-```
-
-**After** (Optimized):
-```tsx
-const handleMouseMove = useCallback((event) => {
-  // Only update overlay for preview
-  updateOverlay(event);
+  // 2. PARALLEL: State update for persistence (non-blocking)
+  addShape(newShape); // <-- Async state update
   
-  // REMOVED: No main canvas redraw during mouse move
-  // Main canvas only updates on mouse up = 50-80% performance gain
-}, []);
+  // Result: User sees change immediately, state catches up
+}, [addShape, drawing.drawShape, mainCanvas]);
 ```
 
-### 2. **Dual-Canvas Architecture for Performance**
+**Key Benefits**:
+- ⚡ **Zero Lag**: <16ms visual response time
+- 🎯 **60fps Performance**: No frame drops during interactions
+- 🔄 **Non-blocking**: State updates don't affect visual feedback
+- 📈 **Scalable**: Performance remains consistent with complex shapes
+
+## Essential Performance Patterns
+
+### 1. **Selective Canvas Updates Pattern**
+
+Optimize mouse interactions by separating preview updates from persistent rendering:
 
 ```tsx
-// PERFORMANCE PATTERN: Dual canvas for optimal rendering
-return (
-  <div>
-    {/* Main Canvas: Persistent shapes only */}
-    <canvas ref={mainCanvas.setRef} />
+// PERFORMANCE PATTERN: Selective canvas updates
+const handleMouseMove = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+  if (currentTool === 'line' && isDrawing) {
+    // Update overlay canvas only for preview
+    updateOverlayPreview(event);
     
-    {/* Overlay Canvas: Temporary previews only */}
-    <canvas ref={overlayCanvas.setRef} className="pointer-events-none" />
-  </div>
-);
-```
-
-**Benefits**:
-- **Main Canvas**: Only redraws when shapes are finalized
-- **Overlay Canvas**: Lightweight preview updates only
-- **Zero Interference**: Overlays don't affect main canvas performance
-
-### 3. **Freehand Real-Time Optimization**
-
-**Before** (Batch update):
-```tsx
-// Collect all points, then redraw entire canvas
-const handleMouseMove = useCallback((event) => {
-  addFreehandPoint(pos);
-  // Wait for state update, then redraw everything
-}, []);
-```
-
-**After** (Incremental drawing):
-```tsx
-// Draw each stroke segment immediately
-const handleMouseMove = useCallback((event) => {
-  if (currentTool === 'freehand') {
-    const mainCtx = mainCanvas.getContext('2d');
-    if (mainCtx) {
-      // IMMEDIATE: Draw this stroke segment now
-      mainCtx.beginPath();
-      mainCtx.moveTo(lastPoint.x, lastPoint.y);
-      mainCtx.lineTo(pos.x, pos.y);
-      mainCtx.stroke(); // Instant visual feedback
-    }
-    addFreehandPoint(pos); // State update in parallel
+    // Key: No main canvas redraw during mouse move
+    // Main canvas updates only on completion (handleMouseUp)
   }
-}, []);
-```
+}, [currentTool, isDrawing, updateOverlayPreview]);
 
-## Performance Impact Results
-
-| Metric | Before | After | Improvement |
-|--------|--------|-------|------------|
-| **Mouse Response** | 50-200ms lag | <16ms | **80-90% faster** |
-| **Drag Performance** | 15-30fps | 60fps+ | **200% improvement** |
-| **Freehand Drawing** | Choppy | Smooth | **Real-time response** |
-| **Canvas Redraws** | Every mouse move | Only on completion | **50-80% reduction** |
-
-## The Core Breakthrough Pattern
-
-```tsx
-// PERFORMANCE BREAKTHROUGH: Immediate Visual + Async State
-function useImmediateCanvasUpdate() {
-  const updateCanvasImmediately = useCallback((shape, canvas) => {
-    // 1. IMMEDIATE: Direct canvas update for instant feedback
-    if (canvas) {
-      const ctx = canvas.getContext('2d');
+const handleMouseUp = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+  if (currentTool === 'line' && isDrawing) {
+    const newShape = createLineShape(startPoint, getMousePosition(event));
+    
+    // Immediate main canvas update
+    if (mainCanvas.target) {
+      const ctx = mainCanvas.target.getContext('2d');
       if (ctx) {
-        drawing.drawShape(ctx, shape); // <-- INSTANT visual response
+        drawing.drawShape(ctx, newShape);
       }
     }
     
-    // 2. PARALLEL: State update for persistence (doesn't block visual)
-    addShape(shape); // <-- Async, non-blocking
+    // Clear overlay preview
+    clearOverlay();
     
-    // 3. NO WAITING: User sees change immediately, state catches up
-  }, [addShape, drawing.drawShape]);
+    // State persistence
+    addShape(newShape);
+  }
+}, [currentTool, isDrawing, startPoint, mainCanvas, addShape]);
+```
+
+**Performance Gain**: 50-80% reduction in rendering operations
+
+### 2. **Dual-Canvas Architecture Pattern**
+
+Separate persistent content from temporary previews for optimal performance:
+
+```tsx
+// PERFORMANCE PATTERN: Dual-canvas architecture
+type CanvasRefs = {
+  mainCanvas: HTMLCanvasElement;
+  overlayCanvas: HTMLCanvasElement;
+  container: HTMLDivElement;
+};
+
+const {
+  Provider: CanvasRefProvider,
+  useRefHandler: useCanvasRef
+} = createRefContext<CanvasRefs>('Canvas');
+
+function OptimizedCanvas({ width = 800, height = 600 }: CanvasProps) {
+  const mainCanvas = useCanvasRef('mainCanvas');
+  const overlayCanvas = useCanvasRef('overlayCanvas');
+  const container = useCanvasRef('container');
   
-  return { updateCanvasImmediately };
+  return (
+    <div ref={container.setRef} className="relative">
+      {/* Main Canvas: Persistent shapes only */}
+      <canvas 
+        ref={mainCanvas.setRef}
+        width={width} 
+        height={height}
+        className="absolute top-0 left-0 border border-gray-300"
+      />
+      
+      {/* Overlay Canvas: Temporary previews only */}
+      <canvas 
+        ref={overlayCanvas.setRef}
+        width={width} 
+        height={height}
+        className="absolute top-0 left-0 pointer-events-none"
+      />
+    </div>
+  );
 }
 ```
 
-## Canvas-Specific Performance Patterns
+**Architecture Benefits**:
+- **Performance Isolation**: Main canvas unaffected by preview operations
+- **Optimized Rendering**: Each canvas serves specific purpose
+- **Zero Interference**: Layered architecture with no performance penalties
 
-### Efficient Canvas Sizing
+### 3. **Real-Time Freehand Drawing Pattern**
+
+For continuous drawing tools, use incremental rendering for real-time feedback:
 
 ```tsx
-// Optimize canvas resolution vs display size
-function useOptimalCanvasSize(width: number, height: number) {
+// PERFORMANCE PATTERN: Incremental freehand drawing
+const handleMouseMove = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+  if (currentTool === 'freehand' && isDrawing) {
+    const currentPos = getMousePosition(event);
+    
+    // IMMEDIATE: Draw stroke segment directly to main canvas
+    if (mainCanvas.target && lastPoint.current) {
+      const ctx = mainCanvas.target.getContext('2d');
+      if (ctx) {
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = strokeWidth;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
+        ctx.beginPath();
+        ctx.moveTo(lastPoint.current.x, lastPoint.current.y);
+        ctx.lineTo(currentPos.x, currentPos.y);
+        ctx.stroke(); // Instant visual feedback
+      }
+    }
+    
+    // PARALLEL: State update for persistence
+    addFreehandPoint(currentPos);
+    lastPoint.current = currentPos;
+  }
+}, [currentTool, isDrawing, strokeColor, strokeWidth, mainCanvas, addFreehandPoint]);
+
+const handleMouseDown = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+  if (currentTool === 'freehand') {
+    const startPos = getMousePosition(event);
+    lastPoint.current = startPos;
+    setIsDrawing(true);
+    
+    // Start new freehand shape
+    startFreehandShape(startPos);
+  }
+}, [currentTool, startFreehandShape]);
+```
+
+**Real-Time Benefits**:
+- **Zero Latency**: Each stroke segment appears immediately
+- **Smooth Curves**: Continuous drawing without interruptions  
+- **Natural Feel**: Drawing responds like physical tools
+
+## Performance Results
+
+| Metric | Implementation | Result |
+|--------|----------------|--------|
+| **Mouse Response** | Immediate visual feedback pattern | <16ms response time |
+| **Interaction Performance** | Selective canvas updates | 60fps+ sustained |
+| **Freehand Drawing** | Incremental rendering | Zero-lag real-time drawing |
+| **Canvas Operations** | Dual-canvas architecture | 50-80% fewer redraws |
+
+## Unified Performance Pattern
+
+```tsx
+// CORE PATTERN: Immediate visual feedback with RefContext
+function useOptimizedCanvasInteraction() {
+  const mainCanvas = useCanvasRef('mainCanvas');
+  const overlayCanvas = useCanvasRef('overlayCanvas');
+  
+  const performCanvasAction = useCallback((
+    action: 'draw' | 'preview' | 'clear',
+    shape: CanvasShape,
+    options?: RenderOptions
+  ) => {
+    switch (action) {
+      case 'draw':
+        // IMMEDIATE: Main canvas rendering
+        if (mainCanvas.target) {
+          const ctx = mainCanvas.target.getContext('2d');
+          if (ctx) {
+            drawing.drawShape(ctx, shape, options);
+          }
+        }
+        // PARALLEL: State persistence
+        addShape(shape);
+        break;
+        
+      case 'preview':
+        // Overlay canvas for previews only
+        if (overlayCanvas.target) {
+          const ctx = overlayCanvas.target.getContext('2d');
+          if (ctx) {
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            drawing.drawShape(ctx, shape, { ...options, isPreview: true });
+          }
+        }
+        break;
+        
+      case 'clear':
+        // Clear overlay without affecting main canvas
+        if (overlayCanvas.target) {
+          const ctx = overlayCanvas.target.getContext('2d');
+          if (ctx) {
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+          }
+        }
+        break;
+    }
+  }, [mainCanvas, overlayCanvas, addShape, drawing]);
+  
+  return { performCanvasAction };
+}
+```
+
+## Advanced Canvas Performance Patterns
+
+### 1. **High-DPI Canvas Optimization**
+
+Optimize canvas for retina displays while maintaining performance:
+
+```tsx
+// PERFORMANCE PATTERN: High-DPI canvas optimization
+function useHighDPICanvas(width: number, height: number) {
   const canvas = useCanvasRef('canvas');
   const dpr = window.devicePixelRatio || 1;
   
   useEffect(() => {
     if (!canvas.target) return;
     
-    // Set actual size in memory (high DPI)
-    canvas.target.width = width * dpr;
-    canvas.target.height = height * dpr;
+    // Optimize for device pixel ratio
+    const actualWidth = width * dpr;
+    const actualHeight = height * dpr;
     
-    // Scale back down using CSS
+    // Set canvas memory size (high resolution)
+    canvas.target.width = actualWidth;
+    canvas.target.height = actualHeight;
+    
+    // Scale display size back to intended dimensions
     canvas.target.style.width = `${width}px`;
     canvas.target.style.height = `${height}px`;
     
-    // Scale the drawing context
+    // Scale drawing context for crisp rendering
     const ctx = canvas.target.getContext('2d');
     if (ctx) {
       ctx.scale(dpr, dpr);
     }
   }, [width, height, dpr, canvas]);
+  
+  return { canvas, dpr };
 }
 ```
 
-### Smart Redraw Regions
+### 2. **Selective Region Updates**
+
+Optimize rendering by updating only changed canvas regions:
 
 ```tsx
-// Only redraw changed areas instead of entire canvas
-function usePartialCanvasRedraw() {
+// PERFORMANCE PATTERN: Selective region updates
+function useSelectiveCanvasUpdates() {
   const canvas = useCanvasRef('canvas');
-  const dirtyRegions = useRef(new Set<Region>());
+  const dirtyRegions = useRef(new Set<CanvasRegion>());
   
-  const markDirty = useCallback((region: Region) => {
+  const markRegionDirty = useCallback((region: CanvasRegion) => {
     dirtyRegions.current.add(region);
   }, []);
   
-  const redrawDirtyRegions = useCallback(() => {
+  const updateDirtyRegions = useCallback((shapes: CanvasShape[]) => {
     if (!canvas.target || dirtyRegions.current.size === 0) return;
     
     const ctx = canvas.target.getContext('2d');
     if (!ctx) return;
     
+    // Process each dirty region
     dirtyRegions.current.forEach(region => {
-      // Clear only dirty region
+      // Clear specific region only
       ctx.clearRect(region.x, region.y, region.width, region.height);
       
-      // Redraw only shapes in this region
+      // Redraw shapes that intersect with this region
       shapes.forEach(shape => {
-        if (intersects(shape, region)) {
-          drawShape(ctx, shape);
+        if (shapeIntersectsRegion(shape, region)) {
+          drawing.drawShape(ctx, shape);
         }
       });
     });
     
+    // Clear dirty regions after update
     dirtyRegions.current.clear();
-  }, [canvas, shapes]);
+  }, [canvas, drawing]);
   
-  return { markDirty, redrawDirtyRegions };
+  const updateFullCanvas = useCallback((shapes: CanvasShape[]) => {
+    if (!canvas.target) return;
+    
+    const ctx = canvas.target.getContext('2d');
+    if (!ctx) return;
+    
+    // Full canvas update when needed
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    shapes.forEach(shape => drawing.drawShape(ctx, shape));
+  }, [canvas, drawing]);
+  
+  return { 
+    markRegionDirty, 
+    updateDirtyRegions, 
+    updateFullCanvas 
+  };
+}
+
+interface CanvasRegion {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 ```
 
-### Canvas Performance Monitoring
+### 3. **Performance Monitoring Pattern**
+
+Monitor and optimize Canvas performance in real-time:
 
 ```tsx
-// Monitor canvas performance in real-time
+// PERFORMANCE PATTERN: Real-time canvas performance monitoring
 function useCanvasPerformanceMonitor() {
-  const performanceRef = useRef({ updateTimes: [] });
+  const metricsRef = useRef({
+    updateTimes: [] as number[],
+    frameCount: 0,
+    lastFPSCheck: performance.now()
+  });
   
-  const measureCanvasUpdate = useCallback((operation: () => void) => {
+  const measureCanvasOperation = useCallback((
+    operation: () => void,
+    operationType: 'draw' | 'clear' | 'update' = 'draw'
+  ) => {
     const start = performance.now();
     operation();
     const end = performance.now();
     
-    const updateTime = end - start;
-    performanceRef.current.updateTimes.push(updateTime);
+    const operationTime = end - start;
+    metricsRef.current.updateTimes.push(operationTime);
     
-    // Keep only last 100 measurements
-    if (performanceRef.current.updateTimes.length > 100) {
-      performanceRef.current.updateTimes.shift();
+    // Maintain sliding window of 100 measurements
+    if (metricsRef.current.updateTimes.length > 100) {
+      metricsRef.current.updateTimes.shift();
     }
     
-    // Warn if consistently slow
-    const average = performanceRef.current.updateTimes.reduce((a, b) => a + b, 0) / 
-                   performanceRef.current.updateTimes.length;
+    // Calculate performance metrics
+    const averageTime = metricsRef.current.updateTimes.reduce((a, b) => a + b, 0) / 
+                       metricsRef.current.updateTimes.length;
     
-    if (average > 16.67) { // Slower than 60fps
-      console.warn(`Canvas performance degraded: ${average.toFixed(2)}ms average`);
+    // Performance threshold warnings
+    const targetFrameTime = 16.67; // 60fps target
+    if (averageTime > targetFrameTime) {
+      console.warn(
+        `Canvas ${operationType} performance below 60fps: ${averageTime.toFixed(2)}ms average`
+      );
     }
+    
+    return {
+      operationTime,
+      averageTime,
+      isPerformant: averageTime <= targetFrameTime
+    };
   }, []);
   
-  return { measureCanvasUpdate };
+  const getPerformanceStats = useCallback(() => {
+    const times = metricsRef.current.updateTimes;
+    if (times.length === 0) return null;
+    
+    const average = times.reduce((a, b) => a + b, 0) / times.length;
+    const max = Math.max(...times);
+    const min = Math.min(...times);
+    
+    return {
+      averageMs: average,
+      maxMs: max,
+      minMs: min,
+      sampleCount: times.length,
+      estimatedFPS: Math.round(1000 / average)
+    };
+  }, []);
+  
+  return { 
+    measureCanvasOperation, 
+    getPerformanceStats 
+  };
 }
 ```
 
-## When to Apply Canvas Optimization
+## Canvas Optimization Use Cases
 
-- **✅ Canvas/SVG Applications**: Any direct graphics manipulation
-- **✅ Real-time Drawing Tools**: Paint apps, diagram editors, sketch tools
-- **✅ Interactive Visualizations**: Charts, graphs, data displays
-- **✅ Game Interfaces**: Any real-time user input
-- **✅ Drag & Drop Systems**: When visual feedback must be immediate
+### Ideal Applications
+- **Real-time Drawing Tools**: Paint applications, diagram editors, digital whiteboards
+- **Interactive Data Visualization**: Charts, graphs, real-time data displays
+- **Game Development**: 2D games, interactive simulations, animations
+- **Design Applications**: Vector editors, CAD tools, creative software
+- **Educational Tools**: Interactive learning applications, math visualization
 
-## Best Practices for Canvas Performance
+### Performance Benefits
+- **60fps+ Interactions**: Consistent frame rates for smooth user experience
+- **Zero-lag Drawing**: Immediate visual feedback for natural drawing feel
+- **Scalable Performance**: Performance remains consistent with complex content
+- **Memory Efficient**: Optimized canvas usage prevents memory bloat
+- **Battery Friendly**: Reduced CPU usage on mobile devices
 
-1. **Immediate Visual Feedback**: Never wait for state updates to show visual changes
-2. **Dual Canvas Pattern**: Separate persistent content from temporary overlays
-3. **Minimize Redraws**: Only redraw when absolutely necessary
-4. **Hardware Acceleration**: Use `translate3d()` and GPU-accelerated properties
-5. **Monitor Performance**: Track frame times and optimize bottlenecks
-6. **Partial Redraws**: Update only changed regions when possible
-7. **Optimize Canvas Size**: Match resolution to display requirements
+## Canvas Performance Best Practices
+
+### Essential Patterns
+1. **Immediate Visual Feedback**: Direct canvas updates bypass React re-renders
+2. **Dual-Canvas Architecture**: Separate layers for persistent and temporary content  
+3. **Selective Updates**: Update only changed regions instead of full redraws
+4. **RefContext Integration**: Use `createRefContext` for type-safe canvas access
+5. **Performance Monitoring**: Track metrics to identify bottlenecks early
+
+### Implementation Guidelines
+- **Hardware Acceleration**: Leverage GPU acceleration where available
+- **Memory Management**: Clear unused canvas regions and optimize object creation
+- **Event Optimization**: Throttle high-frequency events like mouse moves
+- **High-DPI Support**: Scale canvas appropriately for retina displays
+- **Graceful Degradation**: Fallback strategies for performance-constrained devices
 
 ## 💻 Source Code
 

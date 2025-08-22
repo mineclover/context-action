@@ -31,9 +31,8 @@ import CoreFeaturesPage from './pages/core/CoreFeatures';
 import ToastConfigPage from './pages/examples/ToastConfigPage';
 import { ElementManagementPage } from './pages/examples/ElementManagementPage';
 import { FormBuilderDemoPage } from './pages/examples/FormBuilderDemoPage';
-import { CanvasDemoPage } from './pages/examples/CanvasDemoPage';
+import { AdvancedCanvasExample } from './pages/examples/AdvancedCanvasExample';
 import { RefsIndexPage } from './pages/refs/RefsIndexPage';
-import { CanvasRefDemoPage } from './pages/refs/CanvasRefDemoPage';
 import { FormBuilderRefDemoPage } from './pages/refs/FormBuilderRefDemoPage';
 import { WaitForRefsPerformancePage } from './pages/refs/WaitForRefsPerformancePage';
 import { DemosIndexPage } from './pages/demos/DemosIndexPage';
@@ -170,10 +169,10 @@ function AppContent() {
           />
           <Route
             path="/examples/element-management/canvas"
-            element={<CanvasDemoPage />}
+            element={<AdvancedCanvasExample />}
           />
           <Route path="/refs" element={<RefsIndexPage />} />
-          <Route path="/refs/canvas" element={<CanvasRefDemoPage />} />
+          <Route path="/refs/canvas" element={<AdvancedCanvasExample />} />
           <Route path="/refs/form-builder" element={<FormBuilderRefDemoPage />} />
           <Route path="/refs/waitforrefs-performance" element={<WaitForRefsPerformancePage />} />
           <Route path="/pipeline/flow-control" element={<FlowControlPlaygroundPage />} />
