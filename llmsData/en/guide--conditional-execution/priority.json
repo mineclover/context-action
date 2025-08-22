@@ -1,0 +1,15 @@
+{
+  "documentId": "en_guide_conditional-execution",
+  "title": "Conditional & Dynamic Execution",
+  "category": "guide",
+  "language": "en",
+  "priority": 0.5,
+  "tags": [
+    "typescript"
+  ],
+  "lastUpdated": "2025-08-22T00:33:49.882Z",
+  "source": {
+    "file": "docs/en/guide/pipeline/conditional-execution.md",
+    "lastModified": "2025-08-22T00:29:16.835Z"
+  }
+}
