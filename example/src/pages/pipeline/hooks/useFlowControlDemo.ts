@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { ActionRegister } from '@context-action/core';
 import type { 
   SecurityActions, 
@@ -18,10 +18,6 @@ import {
 const memoryCache = new Map<string, any>();
 const redisCache = new Map<string, any>();
 
-// Simulated system state
-let systemLoad = 0.3;
-let isBusinessHours = true;
-
 export function useFlowControlDemo() {
   // State management
   const [selectedScenario, setSelectedScenario] = useState<ScenarioKey>('securityEscalation');
@@ -29,6 +25,8 @@ export function useFlowControlDemo() {
   const [executionPath, setExecutionPath] = useState<string[]>([]);
   const [isExecuting, setIsExecuting] = useState(false);
   const [handlerExecutions, setHandlerExecutions] = useState(0);
+  const [systemLoad, setSystemLoad] = useState(0.3);
+  const [isBusinessHours, setIsBusinessHours] = useState(true);
 
   // Action registers
   const [securityRegister] = useState(() => new ActionRegister<SecurityActions>());
@@ -36,35 +34,51 @@ export function useFlowControlDemo() {
   const [orderRegister] = useState(() => new ActionRegister<OrderActions>());
   const [apiRegister] = useState(() => new ActionRegister<ApiActions>());
 
-  // Handler dependencies
-  const handlerDeps = {
+  // Handler dependencies - memoized to prevent re-registration
+  const handlerDeps = useMemo(() => ({
     setExecutionPath,
     setHandlerExecutions,
     memoryCache,
     redisCache,
     isBusinessHours
-  };
+  }), [isBusinessHours]);
 
-  // Setup handlers
+  // Setup handlers - only once per register
   useEffect(() => {
+    console.log('🔧 Setting up security handlers');
     const cleanupSecurity = setupSecurityHandlers(securityRegister, handlerDeps);
-    return cleanupSecurity;
-  }, [securityRegister]);
+    return () => {
+      console.log('🧹 Cleaning up security handlers');
+      cleanupSecurity();
+    };
+  }, [securityRegister, handlerDeps]);
 
   useEffect(() => {
+    console.log('🔧 Setting up cache handlers');
     const cleanupCache = setupCacheHandlers(cacheRegister, handlerDeps);
-    return cleanupCache;
-  }, [cacheRegister]);
+    return () => {
+      console.log('🧹 Cleaning up cache handlers');
+      cleanupCache();
+    };
+  }, [cacheRegister, handlerDeps]);
 
   useEffect(() => {
+    console.log('🔧 Setting up order handlers');
     const cleanupOrder = setupOrderHandlers(orderRegister, handlerDeps);
-    return cleanupOrder;
-  }, [orderRegister]);
+    return () => {
+      console.log('🧹 Cleaning up order handlers');
+      cleanupOrder();
+    };
+  }, [orderRegister, handlerDeps]);
 
   useEffect(() => {
+    console.log('🔧 Setting up API handlers');
     const cleanupApi = setupApiHandlers(apiRegister, handlerDeps);
-    return cleanupApi;
-  }, [apiRegister]);
+    return () => {
+      console.log('🧹 Cleaning up API handlers');
+      cleanupApi();
+    };
+  }, [apiRegister, handlerDeps]);
 
   // System control functions
   const clearCache = useCallback(() => {
@@ -74,12 +88,15 @@ export function useFlowControlDemo() {
   }, []);
 
   const toggleBusinessHours = useCallback(() => {
-    isBusinessHours = !isBusinessHours;
-    console.log(`🕐 Business hours: ${isBusinessHours ? 'ON' : 'OFF'}`);
+    setIsBusinessHours(prev => {
+      const newValue = !prev;
+      console.log(`🕐 Business hours: ${newValue ? 'ON' : 'OFF'}`);
+      return newValue;
+    });
   }, []);
 
   const adjustSystemLoad = useCallback((load: number) => {
-    systemLoad = load;
+    setSystemLoad(load);
     console.log(`⚡ System load adjusted to: ${(load * 100).toFixed(0)}%`);
   }, []);
 
