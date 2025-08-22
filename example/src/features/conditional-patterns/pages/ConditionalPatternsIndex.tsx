@@ -1,17 +1,30 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const conditionalPatterns = [
+interface ConditionalPattern {
+  id: string;
+  title: string;
+  description: string;
+  path: string;
+  coreconcept: string;
+  features: string[];
+  difficulty: 'Basic' | 'Intermediate' | 'Advanced' | 'Expert';
+  color: string;
+  status: 'Complete' | 'Preview' | 'Coming Soon';
+}
+
+const conditionalPatterns: ConditionalPattern[] = [
   {
     id: 'environment',
     title: '🌍 Environment-Based Execution',
-    description: 'Different handlers for dev, staging, and production environments',
+    description: 'Different deployment strategies without conditional branches. Handlers filter by environment at entry point.',
     path: '/actionguard/conditional/environment',
+    coreconcept: 'Early Return Pattern',
     features: [
-      'Fast deployment for development',
-      'Integration testing for staging', 
-      'Blue-green deployment for production',
-      'Environment-specific validation'
+      'Environment filtering at handler entry',
+      'No nested conditionals in business logic',
+      'Clear separation of deployment strategies',
+      'Easy testing per environment'
     ],
     difficulty: 'Basic',
     color: 'bg-blue-50 border-blue-200 hover:bg-blue-100',
@@ -20,13 +33,14 @@ const conditionalPatterns = [
   {
     id: 'feature-flags',
     title: '🎯 Feature Flag Integration', 
-    description: 'Runtime feature toggling with gradual rollouts',
+    description: 'Runtime feature toggling without code deployment. Handlers check feature state and skip gracefully.',
     path: '/actionguard/conditional/feature-flags',
+    coreconcept: 'Runtime State Checking',
     features: [
-      'Dynamic feature enablement',
-      'A/B testing capabilities',
-      'Graceful feature degradation', 
-      'Real-time toggle controls'
+      'Feature state evaluation at runtime',
+      'Graceful degradation when disabled',
+      'A/B testing without deployment', 
+      'Safe rollout and rollback mechanisms'
     ],
     difficulty: 'Intermediate',
     color: 'bg-green-50 border-green-200 hover:bg-green-100',
@@ -35,62 +49,66 @@ const conditionalPatterns = [
   {
     id: 'permissions',
     title: '🔒 Permission-Based Execution',
-    description: 'Role-based access control with audit logging', 
+    description: 'Security-first handlers that validate permissions before execution. Clean separation of authorization logic.', 
     path: '/actionguard/conditional/permissions',
+    coreconcept: 'Security Guard Pattern',
     features: [
-      'Role-based handler execution',
-      'Early permission validation',
-      'Audit trail generation',
-      'Security-first design'
+      'Permission validation before handler logic',
+      'Role-based execution control',
+      'Automatic audit trail generation',
+      'Fail-secure by default behavior'
     ],
     difficulty: 'Intermediate', 
     color: 'bg-yellow-50 border-yellow-200 hover:bg-yellow-100',
-    status: 'Preview'
+    status: 'Complete'
   },
   {
     id: 'business-rules',
     title: '💼 Business Rule Engine',
-    description: 'Complex business logic with cascading rules',
+    description: 'Modular business rules with data-driven logic. Rules coordinate through store state for complex decisions.',
     path: '/actionguard/conditional/business-rules', 
+    coreconcept: 'Rule Chain Coordination',
     features: [
-      'Credit limit validation',
-      'Tier-based pricing',
-      'Inventory management',
-      'Dynamic discount calculation'
+      'Data-driven rule evaluation',
+      'Store-coordinated rule chains',
+      'Context-aware business logic',
+      'Transparent rule execution flow'
     ],
     difficulty: 'Advanced',
     color: 'bg-purple-50 border-purple-200 hover:bg-purple-100',
-    status: 'Preview'
+    status: 'Complete'
   },
   {
     id: 'time-based',
     title: '⏰ Time-Based Execution',
-    description: 'Schedule-aware processing with business hours logic',
+    description: 'Temporal logic handlers that execute based on time constraints. Clean separation of timing logic.',
     path: '/actionguard/conditional/time-based',
+    coreconcept: 'Temporal Guard Pattern',
     features: [
-      'Business hours detection',
-      'Off-hours processing', 
-      'Task scheduling',
-      'Time zone handling'
+      'Time constraint evaluation',
+      'Business hours vs emergency logic',
+      'Schedule-aware task processing',
+      'Timezone-independent execution'
     ],
     difficulty: 'Basic',
     color: 'bg-pink-50 border-pink-200 hover:bg-pink-100',
-    status: 'Preview'
+    status: 'Complete'
   },
   {
     id: 'combined',
     title: '🔀 Combined Patterns',
-    description: 'Real-world scenarios combining multiple patterns',
+    description: 'Enterprise scenarios where multiple conditional patterns work together. Handler orchestration for complex workflows.',
     path: '/actionguard/conditional/combined',
+    coreconcept: 'Pattern Orchestration',
     features: [
-      'Multi-pattern coordination',
-      'Complex workflows',
-      'Enterprise scenarios', 
-      'Integration examples'
+      'Multi-pattern handler coordination',
+      'Complex workflow state management',
+      'Enterprise scenario modeling', 
+      'Cross-pattern data flow'
     ],
     difficulty: 'Expert',
     color: 'bg-gray-50 border-gray-200 hover:bg-gray-100',
-    status: 'Preview'
+    status: 'Complete'
   }
 ];
 
@@ -165,8 +183,13 @@ export function ConditionalPatternsIndex() {
                 </span>
               </div>
             </div>
-            
-            <p className="text-gray-700 mb-4">{pattern.description}</p>
+
+            <div className="mb-3">
+              <div className="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-1 rounded inline-block mb-2">
+                💡 {pattern.coreconcept}
+              </div>
+              <p className="text-gray-700">{pattern.description}</p>
+            </div>
             
             <div className="space-y-2">
               <div className="text-sm font-medium text-gray-700">Key Features:</div>
