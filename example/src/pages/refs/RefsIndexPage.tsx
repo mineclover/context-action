@@ -40,6 +40,7 @@ export function RefsIndexPage() {
                   <h3 className="font-semibold text-blue-900 mb-3">📋 데모 시나리오</h3>
                   <ul className="text-blue-700 space-y-2 text-sm">
                     <li>• <strong>Canvas 그래픽</strong>: 실시간 그리기 도구</li>
+                    <li>• <strong>Mouse Events</strong>: 고성능 마우스 인터랙션</li>
                     <li>• <strong>Form Builder</strong>: 동적 폼 요소 관리</li>
                     <li>• <strong>Element Registry</strong>: 체계적인 DOM 요소 추적</li>
                     <li>• <strong>Selection System</strong>: 다중 선택과 포커스 관리</li>
@@ -131,7 +132,7 @@ function Component() {
         {/* Demo Cards */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-6">🎮 실시간 데모</h2>
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Canvas Demo */}
             <a 
               href="/refs/canvas"
@@ -153,6 +154,33 @@ function Component() {
                     <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">Interactive</span>
                   </div>
                   <div className="mt-3 text-purple-500 text-sm font-medium group-hover:underline">
+                    데모 체험하기 →
+                  </div>
+                </div>
+              </div>
+            </a>
+
+            {/* Mouse Events Demo */}
+            <a 
+              href="/actionguard/mouse-events"
+              className="group bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 hover:border-blue-300"
+            >
+              <div className="flex items-start gap-4">
+                <div className="text-3xl group-hover:scale-110 transition-transform">🖱️</div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg mb-2 text-gray-800 group-hover:text-blue-600">
+                    Mouse Events Demo
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-3">
+                    실시간 마우스 이벤트 처리와 시각적 피드백. Canvas와 유사한 DOM 요소 조작 및 
+                    고성능 인터랙션 패턴을 보여주는 예제입니다.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Mouse Events</span>
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Real-time</span>
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Visual Feedback</span>
+                  </div>
+                  <div className="mt-3 text-blue-500 text-sm font-medium group-hover:underline">
                     데모 체험하기 →
                   </div>
                 </div>
