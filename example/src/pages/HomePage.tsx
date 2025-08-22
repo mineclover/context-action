@@ -71,6 +71,42 @@ function HomePage() {
           </CardContent>
         </Card>
 
+        <Card category="pipeline" hover>
+          <CardContent>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">
+              Pipeline Features
+            </h3>
+            <p className="text-gray-600 mb-4">
+              Explore advanced pipeline flow control patterns including priority jumping, 
+              early returns, and complex branching logic.
+            </p>
+            <ul className="space-y-2 mb-6 text-gray-700">
+              <li className="flex items-start">
+                <span className="text-orange-500 mr-2">•</span>
+                Dynamic priority adjustment
+              </li>
+              <li className="flex items-start">
+                <span className="text-orange-500 mr-2">•</span>
+                Smart early return patterns
+              </li>
+              <li className="flex items-start">
+                <span className="text-orange-500 mr-2">•</span>
+                Business rule-driven routing
+              </li>
+              <li className="flex items-start">
+                <span className="text-orange-500 mr-2">•</span>
+                Real-time flow visualization
+              </li>
+            </ul>
+            <Link
+              to="/pipeline/flow-control"
+              className="inline-flex items-center text-orange-600 hover:text-orange-700 font-medium"
+            >
+              Explore Pipeline →
+            </Link>
+          </CardContent>
+        </Card>
+
         <Card category="react" hover>
           <CardContent>
             <h3 className="text-xl font-semibold text-gray-900 mb-3">

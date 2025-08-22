@@ -52,6 +52,7 @@ export const cardVariants = cva(
       category: {
         core: 'border-l-4 border-l-danger-500',
         store: 'border-l-4 border-l-success-600',
+        pipeline: 'border-l-4 border-l-orange-500',
         react: 'border-l-4 border-l-purple-600',
         logger: 'border-l-4 border-l-warning-600',
         actionguard: 'border-l-4 border-l-pink-600',
@@ -278,6 +279,7 @@ export const navItemVariants = cva(
         main: '',
         core: 'hover:bg-red-50 hover:text-red-900',
         store: 'hover:bg-green-50 hover:text-green-900',
+        pipeline: 'hover:bg-orange-50 hover:text-orange-900',
         react: 'hover:bg-purple-50 hover:text-purple-900',
         logger: 'hover:bg-yellow-50 hover:text-yellow-900',
         actionguard: 'hover:bg-pink-50 hover:text-pink-900',
