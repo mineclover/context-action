@@ -51,6 +51,9 @@ import { PermissionBasedExecution } from './features/conditional-patterns/pages/
 import { BusinessRuleExecution } from './features/conditional-patterns/pages/BusinessRuleExecution';
 import { TimeBasedExecution } from './features/conditional-patterns/pages/TimeBasedExecution';
 import { CombinedPatternsExecution } from './features/conditional-patterns/pages/CombinedPatternsExecution';
+import ActionGuardOverview from './pages/ActionGuardOverview';
+import CoreConceptsOverview from './pages/CoreConceptsOverview';
+import ExamplesUtilitiesOverview from './pages/ExamplesUtilitiesOverview';
 import HomePage from './pages/HomePage';
 import { FlowControlPlaygroundPage } from './pages/pipeline/FlowControlPlaygroundPage';
 import LoggerDemoPage from './pages/logger/LoggerDemoPage';
@@ -86,6 +89,10 @@ function AppContent() {
       <Layout>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          {/* Overview Pages */}
+          <Route path="/overview/core" element={<CoreConceptsOverview />} />
+          <Route path="/overview/actionguard" element={<ActionGuardOverview />} />
+          <Route path="/overview/examples" element={<ExamplesUtilitiesOverview />} />
           <Route path="/core/basics" element={<CoreBasicsPage />} />
           <Route path="/core/advanced" element={<CoreAdvancedPage />} />
           <Route path="/core/features" element={<CoreFeaturesPage />} />
