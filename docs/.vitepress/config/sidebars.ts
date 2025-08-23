@@ -16,15 +16,21 @@ const GUIDE_STRUCTURE = {
       collapsed: false,
       items: [
         { text: 'Getting Started', link: '/en/guide/getting-started' },
-        { text: 'Architecture', link: '/en/guide/architecture' },
-        { text: 'Action Pipeline', link: '/en/guide/action-pipeline' },
-        { text: 'React Hooks', link: '/en/guide/hooks' },
         { text: 'Code Patterns', link: '/en/guide/code-patterns' },
-        { text: 'Best Practices', link: '/en/guide/best-practices' },
-        { text: 'Action Handlers', link: '/en/guide/action-handlers' }
+        { text: 'Best Practices', link: '/en/guide/best-practices' }
       ]
     },
-    // 2. Pipeline Features - dedicated pipeline documentation
+    // 2. Hook Lifecycle - 새로운 lifecycle 폴더
+    lifecycle: {
+      text: '🔄 Hook Lifecycle',
+      collapsed: false,
+      items: [
+        { text: 'Overview', link: '/en/guide/lifecycle/' },
+        { text: 'React Hooks', link: '/en/guide/lifecycle/hooks' },
+        { text: 'Hooks Lifecycle', link: '/en/guide/lifecycle/hooks-lifecycle' }
+      ]
+    },
+    // 3. Pipeline Features - dedicated pipeline documentation
     pipeline: {
       text: '⚡ Pipeline Features',
       collapsed: false,
@@ -48,7 +54,7 @@ const GUIDE_STRUCTURE = {
         }
       ]
     },
-    // 3. Pattern Collection - organized patterns directory
+    // 4. Pattern Collection - organized patterns directory
     patterns: {
       text: '🎯 Pattern Collection',
       collapsed: false,
@@ -122,15 +128,21 @@ const GUIDE_STRUCTURE = {
       collapsed: false,
       items: [
         { text: '시작하기', link: '/ko/guide/getting-started' },
-        { text: '아키텍처', link: '/ko/guide/architecture' },
-        { text: '액션 파이프라인', link: '/ko/guide/action-pipeline' },
-        { text: 'React 훅', link: '/ko/guide/hooks' },
         { text: '코드 패턴', link: '/ko/guide/code-patterns' },
-        { text: '모범 사례', link: '/ko/guide/best-practices' },
-        { text: '액션 핸들러', link: '/ko/guide/action-handlers' }
+        { text: '모범 사례', link: '/ko/guide/best-practices' }
       ]
     },
-    // 2. 파이프라인 기능 - 전용 파이프라인 문서
+    // 2. 훅 라이프사이클 - 새로운 lifecycle 폴더
+    lifecycle: {
+      text: '🔄 훅 라이프사이클',
+      collapsed: false,
+      items: [
+        { text: '개요', link: '/ko/guide/lifecycle/' },
+        { text: 'React 훅', link: '/ko/guide/lifecycle/hooks' },
+        { text: '훅 라이프사이클', link: '/ko/guide/lifecycle/hooks-lifecycle' }
+      ]
+    },
+    // 3. 파이프라인 기능 - 전용 파이프라인 문서
     pipeline: {
       text: '⚡ 파이프라인 기능',
       collapsed: false,
@@ -154,7 +166,7 @@ const GUIDE_STRUCTURE = {
         }
       ]
     },
-    // 3. 패턴 컬렉션 - 정리된 패턴 디렉토리
+    // 4. 패턴 컬렉션 - 정리된 패턴 디렉토리
     patterns: {
       text: '🎯 패턴 컬렉션',
       collapsed: false,
@@ -394,6 +406,7 @@ export function createSidebars(locale: SidebarLocale): DefaultTheme.Config['side
     // Guide 섹션 - concept 기반으로 간소화
     [`/${locale}/guide/`]: [
       guide.essentials,
+      guide.lifecycle,
       guide.pipeline,
       guide.patterns
     ],

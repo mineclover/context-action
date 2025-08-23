@@ -4,9 +4,9 @@ Context-Action React hooks follow specific lifecycle patterns to ensure proper r
 
 ## Related Guides
 
-- 🎯 **[React Hooks](/en/guide/hooks)** - How to use hooks (API examples and usage patterns)
+- 🎯 **[React Hooks](./hooks.md)** - How to use hooks (API examples and usage patterns)
 - 📚 **[Hooks Reference](/en/concept/hooks-reference)** - Complete catalog of all available hooks  
-- ✅ **[Best Practices](/en/guide/best-practices)** - Coding patterns and conventions
+- ✅ **[Best Practices](../best-practices.md)** - Coding patterns and conventions
 
 ---
 
