@@ -4,9 +4,9 @@ Context-Action provides React hooks for action dispatching and store management.
 
 ## Related Guides
 
-- 🔄 **[Hooks Lifecycle](/en/guide/hooks-lifecycle)** - How hooks work internally (lifecycle, cleanup, performance)
+- 🔄 **[Hooks Lifecycle](./hooks-lifecycle.md)** - How hooks work internally (lifecycle, cleanup, performance)
 - 📚 **[Hooks Reference](/en/concept/hooks-reference)** - Complete catalog of all available hooks
-- ✅ **[Best Practices](/en/guide/best-practices)** - Coding patterns and conventions
+- ✅ **[Best Practices](../best-practices.md)** - Coding patterns and conventions
 
 ## Essential Hooks
 
