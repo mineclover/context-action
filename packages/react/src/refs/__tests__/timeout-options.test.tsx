@@ -1,0 +1,306 @@
+/**
+ * @fileoverview Timeout Options Tests
+ * 
+ * createRefContext의 타임아웃 비활성화 및 설정 기능을 테스트합니다.
+ */
+
+import React from 'react';
+import { render, act } from '@testing-library/react';
+import { createRefContext } from '../createRefContext';
+import type { RefInitConfig } from '../types';
+
+describe('Timeout Options', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+  });
+  describe('disableTimeout Option', () => {
+    it('should disable timeout when disableTimeout is true', async () => {
+      interface TestRefs {
+        element: HTMLElement;
+      }
+
+      const { Provider, useRefHandler } = createRefContext<TestRefs>('TimeoutTest', {
+        disableTimeout: true
+      });
+      
+      const TestComponent: React.FC = () => {
+        const handler = useRefHandler('element');
+        
+        React.useEffect(() => {
+          // 타임아웃 없이 waitForMount 호출 - 무한 대기해야 함
+          const testTimeout = async () => {
+            try {
+              // 이 호출은 타임아웃되지 않고 계속 대기해야 함
+              const startTime = Date.now();
+              
+              // 100ms 후에 ref 설정 (타임아웃보다 빠름)
+              setTimeout(() => {
+                const element = document.createElement('div');
+                element.textContent = 'test';
+                handler.setRef(element);
+              }, 100);
+              
+              const element = await handler.waitForMount();
+              const endTime = Date.now();
+              
+              expect(element.textContent).toBe('test');
+              expect(endTime - startTime).toBeGreaterThan(90); // 최소 100ms 대기
+              expect(endTime - startTime).toBeLessThan(200); // 합리적인 시간 내 완료
+            } catch (error) {
+              // 타임아웃이 비활성화되어야 하므로 에러가 발생하면 안 됨
+              throw new Error(`Unexpected timeout error: ${error}`);
+            }
+          };
+          
+          testTimeout();
+        }, [handler]);
+        
+        return <div>Test Component</div>;
+      };
+
+      await act(async () => {
+        render(
+          <Provider>
+            <TestComponent />
+          </Provider>
+        );
+      });
+      
+      // 100ms 진행 - ref 설정 트리거
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+      
+      // 성공 전파 대기
+      await act(async () => {
+        await Promise.resolve();
+      });
+    });
+  });
+
+  describe('defaultMountTimeout Option', () => {
+    it('should use defaultMountTimeout when specified', async () => {
+      interface TestRefs {
+        element: HTMLElement;
+      }
+
+      const { Provider, useRefHandler } = createRefContext<TestRefs>('DefaultTimeoutTest', {
+        defaultMountTimeout: 50 // 50ms 타임아웃
+      });
+      
+      let timeoutError: Error | null = null;
+      
+      const TestComponent: React.FC = () => {
+        const handler = useRefHandler('element');
+        
+        React.useEffect(() => {
+          const testTimeout = async () => {
+            try {
+              await handler.waitForMount();
+              // 타임아웃이 발생해야 하므로 여기에 도달하면 안 됨
+              throw new Error('Should have timed out');
+            } catch (error) {
+              expect(error).toBeInstanceOf(Error);
+              expect((error as Error).message).toContain('Mount timeout after 50ms');
+              timeoutError = error as Error;
+            }
+          };
+          
+          testTimeout();
+        }, [handler]);
+        
+        return <div>Test Component</div>;
+      };
+
+      await act(async () => {
+        render(
+          <Provider>
+            <TestComponent />
+          </Provider>
+        );
+      });
+      
+      // 타임아웃 트리거
+      act(() => {
+        jest.advanceTimersByTime(50);
+      });
+      
+      // 에러 전파 대기
+      await act(async () => {
+        await Promise.resolve();
+      });
+      
+      expect(timeoutError).toBeInstanceOf(Error);
+    });
+  });
+
+  describe('RefDefinitions with mountTimeout', () => {
+    it('should respect individual ref timeout settings', async () => {
+      const refDefinitions = {
+        quickElement: {
+          name: 'quickElement',
+          mountTimeout: 30 // 30ms 타임아웃
+        } satisfies RefInitConfig<HTMLElement>,
+        
+        slowElement: {
+          name: 'slowElement',
+          mountTimeout: 100 // 100ms 타임아웃
+        } satisfies RefInitConfig<HTMLElement>
+      };
+
+      const { Provider, useRefHandler } = createRefContext(
+        'IndividualTimeoutTest',
+        refDefinitions,
+        { defaultMountTimeout: 200 } // 기본 타임아웃은 더 길게
+      );
+      
+      const results: { quick?: Error; slow?: HTMLElement } = {};
+      
+      const TestComponent: React.FC = () => {
+        const quickHandler = useRefHandler('quickElement');
+        const slowHandler = useRefHandler('slowElement');
+        
+        React.useEffect(() => {
+          const runTests = async () => {
+            // Quick timeout 테스트
+            const quickTest = async () => {
+              try {
+                await quickHandler.waitForMount();
+                throw new Error('Quick element should have timed out');
+              } catch (error) {
+                expect((error as Error).message).toContain('Mount timeout after 30ms');
+                results.quick = error as Error;
+              }
+            };
+            
+            // Slow success 테스트
+            const slowTest = async () => {
+              try {
+                // 50ms 후에 slow element 설정 (100ms 타임아웃보다 빠름)
+                setTimeout(() => {
+                  const element = document.createElement('div');
+                  element.textContent = 'slow success';
+                  slowHandler.setRef(element);
+                }, 50);
+                
+                const element = await slowHandler.waitForMount();
+                expect(element.textContent).toBe('slow success');
+                results.slow = element;
+              } catch (error) {
+                throw new Error(`Slow element should not timeout: ${error}`);
+              }
+            };
+            
+            // 두 테스트를 동시에 실행
+            quickTest();
+            slowTest();
+          };
+          
+          runTests();
+        }, [quickHandler, slowHandler]);
+        
+        return <div>Test Component</div>;
+      };
+
+      await act(async () => {
+        render(
+          <Provider>
+            <TestComponent />
+          </Provider>
+        );
+      });
+      
+      // 30ms 진행 - quick timeout 발생
+      act(() => {
+        jest.advanceTimersByTime(30);
+      });
+      
+      // 에러 전파 대기
+      await act(async () => {
+        await Promise.resolve();
+      });
+      
+      // 50ms까지 진행 - slow element 설정
+      act(() => {
+        jest.advanceTimersByTime(20); // 총 50ms
+      });
+      
+      // slow element 성공 전파 대기
+      await act(async () => {
+        await Promise.resolve();
+      });
+      
+      expect(results.quick).toBeInstanceOf(Error);
+      expect(results.slow).toBeInstanceOf(HTMLElement);
+    });
+  });
+
+  describe('Priority of timeout settings', () => {
+    it('should prioritize disableTimeout over other settings', async () => {
+      const refDefinitions = {
+        element: {
+          name: 'element',
+          mountTimeout: 10 // 매우 짧은 타임아웃
+        } satisfies RefInitConfig<HTMLElement>
+      };
+
+      const { Provider, useRefHandler } = createRefContext(
+        'PriorityTest',
+        refDefinitions,
+        { 
+          disableTimeout: true, // 타임아웃 비활성화가 우선
+          defaultMountTimeout: 20
+        }
+      );
+      
+      const TestComponent: React.FC = () => {
+        const handler = useRefHandler('element');
+        
+        React.useEffect(() => {
+          const testDisablePriority = async () => {
+            try {
+              // 50ms 후에 ref 설정 (원래 10ms 타임아웃보다 훨씬 늦음)
+              setTimeout(() => {
+                const element = document.createElement('div');
+                element.textContent = 'disable priority test';
+                handler.setRef(element);
+              }, 50);
+              
+              const element = await handler.waitForMount();
+              expect(element.textContent).toBe('disable priority test');
+            } catch (error) {
+              throw new Error(`Should not timeout when disabled: ${error}`);
+            }
+          };
+          
+          testDisablePriority();
+        }, [handler]);
+        
+        return <div>Test Component</div>;
+      };
+
+      await act(async () => {
+        render(
+          <Provider>
+            <TestComponent />
+          </Provider>
+        );
+      });
+      
+      // 50ms 진행 - ref 설정 트리거
+      act(() => {
+        jest.advanceTimersByTime(50);
+      });
+      
+      // 성공 전파 대기
+      await act(async () => {
+        await Promise.resolve();
+      });
+    });
+  });
+});
