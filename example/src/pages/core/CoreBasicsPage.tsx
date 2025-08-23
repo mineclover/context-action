@@ -1,5 +1,5 @@
-import { type ActionPayloadMap, ActionRegister } from '@context-action/react';
-import { useCallback, useEffect, useState } from 'react';
+import { createActionContext } from '@context-action/react';
+import { useCallback, useState } from 'react';
 import {
   LogMonitor,
   LogMonitorProvider,
@@ -13,151 +13,92 @@ import {
   DemoCard,
 } from '../../components/ui';
 
-// 액션 타입 정의
-interface CoreActionMap extends ActionPayloadMap {
+// 1. Define Actions following EventActions pattern
+interface CoreBasicsActions {
   increment: undefined;
   decrement: undefined;
   setCount: number;
   reset: undefined;
-  log: string;
+  generateLog: undefined;
+  asyncOperation: string;
 }
 
-// 데모 컴포넌트
+// 2. Create Context with Renaming Pattern
+const {
+  Provider: CoreActionProvider,
+  useActionDispatch: useCoreAction,
+  useActionHandler: useCoreActionHandler,
+  useActionDispatchWithResult: useCoreActionWithResult
+} = createActionContext<CoreBasicsActions>('CoreBasics');
+
+// 4. Component Usage with Renamed Hooks
 function CoreBasicsDemo() {
   const [count, setCount] = useState(0);
-  const [actionRegister] = useState(() => new ActionRegister<CoreActionMap>());
+  const dispatch = useCoreAction();
   const { logAction, logSystem } = useActionLoggerWithToast();
 
-  useEffect(() => {
-    logSystem('ActionRegister initialized');
+  // Register action handlers with renamed hook (properly memoized)
+  const incrementHandler = useCallback((payload, controller) => {
+    setCount((prev) => prev + 1);
+    logAction('increment', undefined);
+  }, [logAction]);
 
-    // 핸들러 등록
-    const unsubscribeIncrement = actionRegister.register(
-      'increment',
-      (_, controller) => {
-        setCount((prev) => prev + 1);
-        logAction('increment', undefined);
-        
-      }
-    );
+  const decrementHandler = useCallback((payload, controller) => {
+    setCount((prev) => prev - 1);
+    logAction('decrement', undefined);
+  }, [logAction]);
 
-    const unsubscribeDecrement = actionRegister.register(
-      'decrement',
-      (_, controller) => {
-        setCount((prev) => prev - 1);
-        logAction('decrement', undefined);
-        
-      }
-    );
+  const setCountHandler = useCallback((payload, controller) => {
+    setCount(payload);
+    logAction('setCount', payload);
+  }, [logAction]);
 
-    const unsubscribeSetCount = actionRegister.register(
-      'setCount',
-      (payload, controller) => {
-        setCount(payload);
-        logAction('setCount', payload);
-        
-      }
-    );
+  const resetHandler = useCallback((payload, controller) => {
+    setCount(0);
+    logAction('reset', undefined);
+  }, [logAction]);
 
-    const unsubscribeReset = actionRegister.register(
-      'reset',
-      (_, controller) => {
-        setCount(0);
-        logAction('reset', undefined);
-        
-      }
-    );
+  const generateLogHandler = useCallback((payload, controller) => {
+    // Generate random log message
+    const adjectives = ['Amazing', 'Brilliant', 'Creative', 'Dynamic', 'Elegant'];
+    const nouns = ['Action', 'Event', 'Process', 'Operation', 'Task'];
+    const colors = ['Red', 'Blue', 'Green', 'Purple', 'Orange'];
+    
+    const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    const randomNumber = Math.floor(Math.random() * 1000) + 1;
+    
+    const message = `${randomAdjective} ${randomColor} ${randomNoun} #${randomNumber}`;
+    logAction('generateLog', message);
+  }, [logAction]);
 
-    const unsubscribeLog = actionRegister.register(
-      'log',
-      (payload, controller) => {
-        logAction('log', payload);
-        
-      }
-    );
+  useCoreActionHandler('increment', incrementHandler);
+  useCoreActionHandler('decrement', decrementHandler);
+  useCoreActionHandler('setCount', setCountHandler);
+  useCoreActionHandler('reset', resetHandler);
+  useCoreActionHandler('generateLog', generateLogHandler);
 
-    logSystem('All action handlers registered');
-
-    // 정리 함수
-    return () => {
-      unsubscribeIncrement();
-      unsubscribeDecrement();
-      unsubscribeSetCount();
-      unsubscribeReset();
-      unsubscribeLog();
-      logSystem('All handlers unregistered');
-    };
-  }, [actionRegister, logAction, logSystem]);
-
-  // 액션 디스패치 함수들
+  // Action dispatch functions using renamed hooks
   const handleIncrement = useCallback(() => {
-    actionRegister.dispatch('increment');
-  }, [actionRegister]);
+    dispatch('increment');
+  }, [dispatch]);
 
   const handleDecrement = useCallback(() => {
-    actionRegister.dispatch('decrement');
-  }, [actionRegister]);
+    dispatch('decrement');
+  }, [dispatch]);
 
   const handleSetCount = useCallback(() => {
-    actionRegister.dispatch('setCount', 10);
-  }, [actionRegister]);
+    dispatch('setCount', 10);
+  }, [dispatch]);
 
   const handleReset = useCallback(() => {
-    actionRegister.dispatch('reset');
-  }, [actionRegister]);
+    dispatch('reset');
+  }, [dispatch]);
 
-  const handleCustomLog = useCallback(() => {
-    // 랜덤 문자열 생성 함수
-    const generateRandomString = () => {
-      const adjectives = [
-        'Amazing',
-        'Brilliant',
-        'Creative',
-        'Dynamic',
-        'Elegant',
-        'Fantastic',
-        'Gorgeous',
-        'Incredible',
-        'Joyful',
-        'Magnificent',
-      ];
-      const nouns = [
-        'Action',
-        'Event',
-        'Process',
-        'Operation',
-        'Task',
-        'Function',
-        'Method',
-        'Handler',
-        'Request',
-        'Response',
-      ];
-      const colors = [
-        'Red',
-        'Blue',
-        'Green',
-        'Purple',
-        'Orange',
-        'Yellow',
-        'Pink',
-        'Cyan',
-        'Magenta',
-        'Lime',
-      ];
-
-      const randomAdjective =
-        adjectives[Math.floor(Math.random() * adjectives.length)];
-      const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
-      const randomColor = colors[Math.floor(Math.random() * colors.length)];
-      const randomNumber = Math.floor(Math.random() * 1000) + 1;
-
-      return `${randomAdjective} ${randomColor} ${randomNoun} #${randomNumber}`;
-    };
-
-    const randomMessage = generateRandomString();
-    actionRegister.dispatch('log', randomMessage);
-  }, [actionRegister]);
+  const handleGenerateLog = useCallback(() => {
+    dispatch('generateLog');
+  }, [dispatch]);
 
   return (
     <div className="space-y-6">
@@ -195,7 +136,7 @@ function CoreBasicsDemo() {
         <p className="text-gray-600 mb-4">
           Generate random log messages to test the logging system
         </p>
-        <Button onClick={handleCustomLog} variant="info">
+        <Button onClick={handleGenerateLog} variant="info">
           🎲 Generate Random Log
         </Button>
       </DemoCard>
@@ -255,61 +196,141 @@ function CoreBasicsDemo() {
         </ul>
       </DemoCard>
 
+      {/* Advanced Features Demo */}
+      <AdvancedFeaturesDemo />
+
       {/* 로그 모니터 */}
       <LogMonitor title="Core Basics - Action Log" />
     </div>
   );
 }
 
+// Advanced Features Component
+function AdvancedFeaturesDemo() {
+  const { 
+    dispatch, 
+    dispatchWithResult, 
+    abortAll 
+  } = useCoreActionWithResult();
+  const { logAction } = useActionLoggerWithToast();
+
+  // Advanced async handler
+  const asyncOperationHandler = useCallback(async (payload, controller) => {
+    // Simulate async operation
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    logAction('asyncOperation', 'Async operation completed successfully');
+    return { success: true, data: payload };
+  }, [logAction]);
+
+  useCoreActionHandler('asyncOperation', asyncOperationHandler);
+
+  const handleAsyncAction = useCallback(async () => {
+    try {
+      const result = await dispatchWithResult('asyncOperation', 'test-payload');
+      console.log('Action result:', result);
+    } catch (error) {
+      console.error('Action failed:', error);
+    }
+  }, [dispatchWithResult]);
+
+  const handleAbortAll = useCallback(() => {
+    abortAll(); // Abort all pending actions
+  }, [abortAll]);
+
+  return (
+    <DemoCard variant="warning">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        Advanced Features
+      </h3>
+      <div className="space-y-4">
+        <p className="text-gray-600">
+          Demonstrate advanced action features like result handling and abort functionality.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={handleAsyncAction} variant="secondary">
+            Async Action with Result
+          </Button>
+          <Button onClick={handleAbortAll} variant="danger">
+            Abort All Actions
+          </Button>
+        </div>
+      </div>
+    </DemoCard>
+  );
+}
+
+// 3. Provider Setup
 function CoreBasicsPage() {
   return (
     <LogMonitorProvider
       pageId="core-basics"
       initialConfig={{ enableToast: true, maxLogs: 100 }}
     >
-      <Container>
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Core ActionRegister Basics
-          </h1>
-          <p className="text-lg text-gray-600 leading-relaxed">
-            Learn the fundamentals of the ActionRegister system - creating,
-            registering handlers, and dispatching type-safe actions in your
-            application.
-          </p>
-        </header>
+      <CoreActionProvider>
+        <Container>
+          <header className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              Core Action Context Basics
+            </h1>
+            <p className="text-lg text-gray-600 leading-relaxed">
+              Learn the fundamentals of the Action Context pattern - creating context with renaming patterns,
+              registering handlers, and dispatching type-safe actions using the recommended approach.
+            </p>
+          </header>
 
-        <CoreBasicsDemo />
+          <CoreBasicsDemo />
 
         {/* 코드 예제 */}
-        <CodeExample title="ActionRegister Implementation">
+        <CodeExample title="Action Context Pattern Implementation">
           <CodeBlock>
-            {`// 1. 액션 타입 정의
-interface AppActions extends ActionPayloadMap {
+            {`// 1. Define Actions following EventActions pattern
+interface CoreBasicsActions {
   increment: undefined;
   setCount: number;
   reset: undefined;
+  generateLog: undefined;
 }
 
-// 2. ActionRegister 생성
-const actionRegister = new ActionRegister<AppActions>();
+// 2. Create Context with Renaming Pattern
+const {
+  Provider: CoreActionProvider,
+  useActionDispatch: useCoreAction,
+  useActionHandler: useCoreActionHandler,
+  useActionDispatchWithResult: useCoreActionWithResult
+} = createActionContext<CoreBasicsActions>('CoreBasics');
 
-// 3. 핸들러 등록
-const unsubscribe = actionRegister.register('increment', (_, controller) => {
-  setCount(prev => prev + 1);
-  console.log('Counter incremented');
-   // 성공적으로 완료
-});
+// 3. Provider Setup
+function App() {
+  return (
+    <CoreActionProvider>
+      <CounterComponent />
+    </CoreActionProvider>
+  );
+}
 
-// 4. 액션 디스패치
-actionRegister.dispatch('increment');
-actionRegister.dispatch('setCount', 42);
-
-// 5. 정리
-unsubscribe();`}
+// 4. Component Usage with Renamed Hooks
+function CounterComponent() {
+  const [count, setCount] = useState(0);
+  const dispatch = useCoreAction();
+  
+  // Register action handlers with renamed hook (properly memoized)
+  const incrementHandler = useCallback((payload, controller) => {
+    setCount(prev => prev + 1);
+    console.log('Counter incremented');
+  }, []);
+  
+  useCoreActionHandler('increment', incrementHandler);
+  
+  const handleClick = () => {
+    dispatch('increment');
+  };
+  
+  return <button onClick={handleClick}>Count: {count}</button>;
+}`}
           </CodeBlock>
         </CodeExample>
-      </Container>
+        </Container>
+      </CoreActionProvider>
     </LogMonitorProvider>
   );
 }

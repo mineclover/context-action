@@ -47,18 +47,17 @@ function Layout({
     // === Core Concepts (기초 개념) ===
     { path: '/core/basics', label: '1. Core Basics', category: 'core' },
     { path: '/core/advanced', label: '2. Core Advanced', category: 'core' },
-    { path: '/core/features', label: '3. 🚀 Core Features', category: 'core' },
     
     // === Store System (상태 관리) ===
-    { path: '/store/basics', label: '4. Store Basics', category: 'store' },
-    { path: '/store/immutability-test', label: '5. 🔒 Immutability Test', category: 'store' },
+    { path: '/store/basics', label: '3. Store Basics', category: 'store' },
+    { path: '/store/immutability-test', label: '4. 🔒 Immutability Test', category: 'store' },
     
     // === React Integration (리액트 통합) ===
-    { path: '/react/provider', label: '6. 🔧 Unified Provider', category: 'react' },
-    { path: '/react/context', label: '7. 🏗️ React Context', category: 'react' },
-    { path: '/react/hooks', label: '8. React Hooks', category: 'react' },
-    { path: '/react/useActionWithResult', label: '9. ✨ useActionWithResult', category: 'react' },
-    { path: '/unified-pattern/demo', label: '10. 🚀 Unified Pattern', category: 'react' },
+    { path: '/react/provider', label: '5. 🔧 Unified Provider', category: 'react' },
+    { path: '/react/context', label: '6. 🏗️ React Context', category: 'react' },
+    { path: '/react/hooks', label: '7. React Hooks', category: 'react' },
+    { path: '/react/useActionWithResult', label: '8. ✨ useActionWithResult', category: 'react' },
+    { path: '/unified-pattern/demo', label: '9. 🚀 Unified Pattern', category: 'react' },
     
     // === Practical Examples (실용 예제) ===
     { path: '/demos', label: '🎭 Context-Action Demos', category: 'demos', isIndex: true },
