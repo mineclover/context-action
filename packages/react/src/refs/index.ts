@@ -26,11 +26,7 @@ export type {
   RefContextReturn
 } from './createRefContext';
 
-// 내부 API - 고급 사용자 전용 (일반적으로 필요 없음)
-export { 
-  RefStore,
-  createRefStore
-} from './RefStore';
+// RefStore 클래스는 제거되었습니다. 모든 기능이 createRefContext에 통합되었습니다.
 
 
 // 기본 헬퍼 (범용)

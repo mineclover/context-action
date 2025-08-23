@@ -1,90 +1,83 @@
 /**
- * @fileoverview Simple Reference Context
+ * @fileoverview Simplified Reference Context V2
  * 
- * 심플하고 직관적인 참조 관리 시스템
- * ref만 선언적으로 관리, 불필요한 복잡성 제거
+ * useRef 기반의 간소화된 참조 관리 시스템
+ * RefStore 클래스 없이 직접 상태 관리
  */
 
-import React, { createContext, useContext, useMemo, useRef, ReactNode } from 'react';
-import { RefStore, createRefStore } from './RefStore';
+import React, { createContext, useContext, useMemo, useRef, useCallback, ReactNode, useState, useEffect } from 'react';
 import type { 
   RefTarget, 
   RefOperation, 
   RefOperationOptions, 
   RefOperationResult,
-  RefDefinitions
+  RefDefinitions,
+  RefInitConfig
 } from './types';
 
 /**
- * RefContext 반환 타입 - 심플하고 명확한 API
+ * 내부 Ref 상태 타입
+ */
+interface InternalRefState<T> {
+  target: T | null;
+  isMounted: boolean;
+  mountPromise: Promise<T> | null;
+  mountResolvers: Set<(target: T) => void>;
+  mountRejectors: Set<(error: Error) => void>;
+  operationInProgress: boolean;
+  listeners: Set<() => void>;
+}
+
+/**
+ * RefContext 반환 타입
  */
 export interface RefContextReturn<T> {
-  // Provider 컴포넌트
   Provider: React.FC<{ children: ReactNode }>;
   
-  // 개별 ref 접근
   useRefHandler: <K extends keyof T>(refName: K) => {
-    /** ref 값 설정 */
     setRef: (target: any) => void;
-    /** 현재 ref 값 */
     target: any;
-    /** ref가 마운트될 때까지 대기 */
     waitForMount: () => Promise<any>;
-    /** ref와 함께 안전한 작업 수행 */
     withTarget: <Result>(
       operation: RefOperation<any, Result>,
       options?: RefOperationOptions
     ) => Promise<RefOperationResult<Result>>;
-    /** ref가 마운트되어 있는지 확인 */
     isMounted: boolean;
   };
   
-  // 여러 ref 동시 대기 hook - 함수를 반환하여 callback에서도 사용 가능
   useWaitForRefs: () => <K extends keyof T>(...refNames: K[]) => Promise<Partial<T>>;
-  
-  // 모든 ref 상태 가져오기 hook - 함수를 반환하여 callback에서도 사용 가능  
   useGetAllRefs: () => () => Partial<T>;
   
-  // Context 이름
   contextName: string;
-  
-  // 선언적 정의 (있을 경우)
   refDefinitions?: T extends RefDefinitions ? T : undefined;
 }
 
-// Overload 1: 심플한 타입 지원 (legacy)
+/**
+ * 간소화된 참조 컨텍스트 생성 함수
+ */
 export function createRefContext<T extends Record<string, RefTarget>>(
   contextName: string
 ): RefContextReturn<T>;
 
-// Overload 2: RefDefinitions 지원 (선언적 관리)
 export function createRefContext<T extends RefDefinitions>(
   contextName: string,
   refDefinitions: T
 ): RefContextReturn<T>;
 
-/**
- * 참조 컨텍스트 생성 함수 (구현)
- * 
- * @param contextName 컨텍스트 이름
- * @param refDefinitions 참조 정의 (선언적 사용 시)
- * @returns RefContext API
- * 
- * @see https://mineclover.github.io/context-action/en/guide/patterns/ref/
- * @see https://mineclover.github.io/context-action/en/guide/patterns/ref/basic-usage
- */
 export function createRefContext<T = any>(
   contextName: string,
   refDefinitions?: T extends RefDefinitions ? T : undefined
 ): RefContextReturn<T> {
   
-  // RefDefinitions인지 확인
   const hasDefinitions = Boolean(refDefinitions);
   
-  // Context 타입 정의
+  // Context 타입
   interface RefContextValue {
-    storesRef: React.MutableRefObject<Map<string, RefStore<any>>>;
+    refsMapRef: React.MutableRefObject<Map<string, InternalRefState<any>>>;
     definitionsRef: React.MutableRefObject<T extends RefDefinitions ? T : undefined>;
+    subscribeToRef: (refName: string, listener: () => void) => () => void;
+    getRefState: (refName: string) => InternalRefState<any>;
+    setRefTarget: (refName: string, target: any) => void;
   }
   
   // Context 생성
@@ -92,29 +85,77 @@ export function createRefContext<T = any>(
   
   // Provider 컴포넌트
   const Provider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    // RefStore들을 ref로 관리 (한 번만 생성)
-    const storesRef = useRef<Map<string, RefStore<any>>>(null!);
+    // 모든 ref 상태를 하나의 Map으로 관리
+    const refsMapRef = useRef<Map<string, InternalRefState<any>>>(null!);
     
-    // 초기화는 한 번만
-    if (!storesRef.current) {
-      const map = new Map<string, RefStore<any>>();
+    // 초기화
+    if (!refsMapRef.current) {
+      const map = new Map<string, InternalRefState<any>>();
       
-      // RefDefinitions인 경우 미리 생성
+      // RefDefinitions가 있으면 미리 초기화
       if (hasDefinitions && refDefinitions) {
-        Object.entries(refDefinitions).forEach(([refName, definition]) => {
-          map.set(refName, createRefStore(definition as any));
+        Object.keys(refDefinitions).forEach((refName) => {
+          map.set(refName, createInitialRefState());
         });
       }
       
-      storesRef.current = map;
+      refsMapRef.current = map;
     }
     
-    const definitionsRef = useRef<T extends RefDefinitions ? T : undefined>(refDefinitions as T extends RefDefinitions ? T : undefined);
+    const definitionsRef = useRef<T extends RefDefinitions ? T : undefined>(
+      refDefinitions as T extends RefDefinitions ? T : undefined
+    );
+    
+    // ref 상태 구독 함수
+    const subscribeToRef = useCallback((refName: string, listener: () => void) => {
+      const refState = getOrCreateRefState(refsMapRef.current, refName);
+      refState.listeners.add(listener);
+      
+      return () => {
+        refState.listeners.delete(listener);
+      };
+    }, []);
+    
+    // ref 상태 가져오기
+    const getRefState = useCallback((refName: string) => {
+      return getOrCreateRefState(refsMapRef.current, refName);
+    }, []);
+    
+    // ref target 설정
+    const setRefTarget = useCallback((refName: string, target: any) => {
+      const refState = getOrCreateRefState(refsMapRef.current, refName);
+      
+      if (target === null) {
+        // Unmount
+        refState.target = null;
+        refState.isMounted = false;
+        refState.mountPromise = null;
+        
+        // 알림
+        refState.listeners.forEach(listener => listener());
+      } else {
+        // Mount
+        refState.target = target;
+        refState.isMounted = true;
+        
+        // 대기 중인 resolver들 실행
+        refState.mountResolvers.forEach(resolve => resolve(target));
+        refState.mountResolvers.clear();
+        refState.mountRejectors.clear();
+        refState.mountPromise = null;
+        
+        // 알림
+        refState.listeners.forEach(listener => listener());
+      }
+    }, []);
     
     const contextValue = useMemo<RefContextValue>(() => ({
-      storesRef,
-      definitionsRef
-    }), []);
+      refsMapRef,
+      definitionsRef,
+      subscribeToRef,
+      getRefState,
+      setRefTarget
+    }), [subscribeToRef, getRefState, setRefTarget]);
     
     return React.createElement(
       RefContext.Provider,
@@ -133,135 +174,207 @@ export function createRefContext<T = any>(
   };
   
   // 개별 ref 사용 hook
-  const useRefHook = <K extends keyof T>(refName: K) => {
-    const { storesRef, definitionsRef } = useRefContext();
-    
+  const useRefHandler = <K extends keyof T>(refName: K) => {
+    const { subscribeToRef, getRefState, setRefTarget } = useRefContext();
     const refNameStr = String(refName);
-    const stores = storesRef.current;
-    const definitions = definitionsRef.current;
     
-    // Store가 없으면 생성 (lazy initialization)
-    if (!stores.has(refNameStr)) {
-      // RefDefinitions에서 정의 찾기
-      const definition = definitions?.[refName as string];
-      
-      if (definition) {
-        // 선언적 정의 사용
-        stores.set(refNameStr, createRefStore(definition));
-      } else {
-        // 기본 설정 사용
-        stores.set(refNameStr, createRefStore({
-          name: refNameStr,
-          autoCleanup: true
-        }));
-      }
-    }
+    // 상태 변경 구독
+    const [, forceUpdate] = useState({});
     
-    const store = stores.get(refNameStr)!;
-    
-    // 간단한 React 상태로 구독 처리
-    const [, forceUpdate] = React.useReducer((x: number) => x + 1, 0);
-    
-    // Store 구독
-    React.useEffect(() => {
-      const unsubscribe = store.subscribe(() => {
-        forceUpdate();
+    useEffect(() => {
+      const unsubscribe = subscribeToRef(refNameStr, () => {
+        forceUpdate({});
       });
       return unsubscribe;
-    }, [store]);
+    }, [refNameStr, subscribeToRef]);
     
-    // 현재 상태 가져오기
-    // const currentState = store.getValue();
+    // 현재 상태
+    const refState = getRefState(refNameStr);
     
-    // 싱글톤 핸들러를 생성하고 store에만 의존
-    // currentState는 의존성에서 제거하고 필요시 직접 조회
     return useMemo(() => ({
       setRef: (target: any) => {
-        try {
-          store.setRef(target);
-        } catch (error) {
-          console.error(`Error setting ref "${refNameStr}":`, error);
-          throw error;
-        }
+        setRefTarget(refNameStr, target);
       },
-      // getter로 변경하여 항상 최신 값을 반환
       get target() {
-        return store.getValue().target;
+        return refState.target;
       },
-      waitForMount: () => store.waitForMount(),
-      withTarget: <Result>(
+      waitForMount: async () => {
+        // 이미 마운트된 경우
+        if (refState.target && refState.isMounted) {
+          return refState.target;
+        }
+        
+        // 기존 Promise가 있으면 재사용
+        if (refState.mountPromise) {
+          return refState.mountPromise;
+        }
+        
+        // 새로운 Promise 생성
+        refState.mountPromise = new Promise<any>((resolve, reject) => {
+          refState.mountResolvers.add(resolve);
+          refState.mountRejectors.add(reject);
+        });
+        
+        return refState.mountPromise;
+      },
+      withTarget: async <Result>(
         operation: RefOperation<any, Result>,
         options?: RefOperationOptions
       ): Promise<RefOperationResult<Result>> => {
-        return store.withTarget(operation, options);
-      },
-      // getter로 변경하여 항상 최신 상태를 반환
-      get isMounted() {
-        return store.getValue().target !== null;
-      }
-    }), [store, refNameStr]); // currentState 의존성 제거
-  };
-  
-  // 여러 ref 동시 대기 함수
-  const waitForRefsImpl = async <K extends keyof T>(
-    stores: Map<string, RefStore<any>>,
-    definitions: T extends RefDefinitions ? T : undefined,
-    ...refNames: K[]
-  ): Promise<Partial<T>> => {
-    const promises = refNames.map(async (refName) => {
-      const refNameStr = String(refName);
-      if (!stores.has(refNameStr)) {
-        // 동적 생성
-        const definition = definitions?.[refName as string];
-        if (definition) {
-          stores.set(refNameStr, createRefStore(definition));
-        } else {
-          stores.set(refNameStr, createRefStore({
-            name: refNameStr,
-            autoCleanup: true
-          }));
+        try {
+          // 마운트 대기
+          const target = await (async () => {
+            if (refState.target && refState.isMounted) {
+              return refState.target;
+            }
+            
+            if (refState.mountPromise) {
+              return refState.mountPromise;
+            }
+            
+            refState.mountPromise = new Promise<any>((resolve, reject) => {
+              refState.mountResolvers.add(resolve);
+              refState.mountRejectors.add(reject);
+            });
+            
+            return refState.mountPromise;
+          })();
+          
+          // 순차 실행 보장
+          while (refState.operationInProgress) {
+            await new Promise(resolve => setTimeout(resolve, 10));
+          }
+          
+          refState.operationInProgress = true;
+          const startTime = Date.now();
+          
+          try {
+            // AbortSignal 체크
+            if (options?.signal?.aborted) {
+              throw new Error('Operation aborted');
+            }
+            
+            // 타임아웃 설정
+            const timeoutPromise = options?.timeout
+              ? new Promise<never>((_, reject) => {
+                  setTimeout(() => reject(new Error('Operation timed out')), options.timeout);
+                })
+              : null;
+            
+            // 작업 실행
+            const operationPromise = operation(target, options);
+            
+            const result = timeoutPromise
+              ? await Promise.race([operationPromise, timeoutPromise])
+              : await operationPromise;
+            
+            return {
+              success: true,
+              result,
+              duration: Date.now() - startTime,
+              timestamp: Date.now()
+            };
+          } catch (error) {
+            return {
+              success: false,
+              error: error as Error,
+              duration: Date.now() - startTime,
+              timestamp: Date.now()
+            };
+          } finally {
+            refState.operationInProgress = false;
+          }
+        } catch (error) {
+          return {
+            success: false,
+            error: error as Error,
+            timestamp: Date.now()
+          };
         }
+      },
+      get isMounted() {
+        return refState.isMounted;
       }
-      const store = stores.get(refNameStr)!;
-      const target = await store.waitForMount();
-      return [refName, target] as const;
-    });
-    
-    const results = await Promise.all(promises);
-    return Object.fromEntries(results) as Partial<T>;
+    }), [refState, setRefTarget, refNameStr]);
   };
   
-  // 여러 ref 동시 대기 hook - 함수를 반환하여 callback에서도 사용 가능
+  // 여러 ref 동시 대기 hook
   const useWaitForRefs = () => {
-    const { storesRef, definitionsRef } = useRefContext();
-    return React.useCallback(<K extends keyof T>(...refNames: K[]): Promise<Partial<T>> => {
-      return waitForRefsImpl(storesRef.current, definitionsRef.current, ...refNames);
-    }, []);
+    const { getRefState } = useRefContext();
+    
+    return useCallback(async <K extends keyof T>(...refNames: K[]): Promise<Partial<T>> => {
+      const promises = refNames.map(async (refName) => {
+        const refNameStr = String(refName);
+        const refState = getRefState(refNameStr);
+        
+        // 마운트 대기
+        if (refState.target && refState.isMounted) {
+          return [refName, refState.target] as const;
+        }
+        
+        if (!refState.mountPromise) {
+          refState.mountPromise = new Promise<any>((resolve, reject) => {
+            refState.mountResolvers.add(resolve);
+            refState.mountRejectors.add(reject);
+          });
+        }
+        
+        const target = await refState.mountPromise;
+        return [refName, target] as const;
+      });
+      
+      const results = await Promise.all(promises);
+      return Object.fromEntries(results) as Partial<T>;
+    }, [getRefState]);
   };
   
-  // 모든 ref 상태 가져오기 hook - 함수를 반환하여 callback에서도 사용 가능
+  // 모든 ref 상태 가져오기 hook
   const useGetAllRefs = () => {
-    const { storesRef } = useRefContext();
-    return React.useCallback((): Partial<T> => {
+    const { refsMapRef } = useRefContext();
+    
+    return useCallback((): Partial<T> => {
       const result: Partial<T> = {} as Partial<T>;
       
-      storesRef.current.forEach((store, refName) => {
-        const state = store.getValue();
-        if (state.target !== null) {
-          (result as any)[refName] = state.target;
+      refsMapRef.current.forEach((refState, refName) => {
+        if (refState.target !== null && refState.isMounted) {
+          (result as any)[refName] = refState.target;
         }
       });
       
       return result;
-    }, []);
+    }, [refsMapRef]);
   };
   
   return {
     Provider,
-    useRefHandler: useRefHook,
+    useRefHandler,
     useWaitForRefs,
     useGetAllRefs,
     contextName,
     refDefinitions
   };
+}
+
+// 헬퍼 함수: 초기 ref 상태 생성
+function createInitialRefState<T>(): InternalRefState<T> {
+  return {
+    target: null,
+    isMounted: false,
+    mountPromise: null,
+    mountResolvers: new Set(),
+    mountRejectors: new Set(),
+    operationInProgress: false,
+    listeners: new Set()
+  };
+}
+
+// 헬퍼 함수: ref 상태 가져오기 또는 생성
+function getOrCreateRefState<T>(
+  refsMap: Map<string, InternalRefState<T>>,
+  refName: string
+): InternalRefState<T> {
+  if (!refsMap.has(refName)) {
+    refsMap.set(refName, createInitialRefState());
+  }
+  return refsMap.get(refName)!;
 }
