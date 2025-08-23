@@ -3,9 +3,9 @@
  * Context-Action 프레임워크를 활용한 완전한 Canvas 그리기 시스템
  */
 
-import { useState } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { CanvasProvider } from './canvas/CanvasContext';
-import { Canvas } from './canvas/Canvas';
+import { Canvas, type CanvasEvent } from './canvas/Canvas';
 import { CanvasToolbar } from './canvas/CanvasToolbar';
 import { CanvasStatus } from './canvas/CanvasStatus';
 
@@ -22,6 +22,51 @@ import { CanvasStatus } from './canvas/CanvasStatus';
  */
 function AdvancedCanvasContent() {
   const [canvasFocused, setCanvasFocused] = useState(false);
+  const [events, setEvents] = useState<CanvasEvent[]>([]);
+  const canvasRef = useRef<{ focusCanvas: () => void }>(null);
+  
+  // 이벤트 로깅
+  const handleEventLog = useCallback((event: CanvasEvent) => {
+    setEvents(prev => [...prev, event]);
+  }, []);
+  
+  // 테스트 액션 로깅
+  const handleTestAction = useCallback((action: string, details: string) => {
+    const testEvent: CanvasEvent = {
+      id: `test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: Date.now(),
+      type: 'mode_change', // 기본 타입, 실제로는 action에 따라 다름
+      details: `[TEST] ${details}`,
+      data: { action, source: 'toolbar' }
+    };
+    setEvents(prev => [...prev, testEvent]);
+  }, []);
+  
+  // Focus Canvas 함수
+  const handleFocusCanvas = useCallback(() => {
+    // Canvas 컨테이너 요소를 찾아서 포커스
+    const canvasContainer = document.querySelector('[tabindex="0"]') as HTMLElement;
+    if (canvasContainer) {
+      canvasContainer.focus();
+      const testEvent: CanvasEvent = {
+        id: `focus_test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        timestamp: Date.now(),
+        type: 'focus',
+        details: '[TEST] Focus 버튼 클릭 - Canvas 포커스 성공',
+        data: { source: 'focus_button', focused: true }
+      };
+      setEvents(prev => [...prev, testEvent]);
+    } else {
+      const testEvent: CanvasEvent = {
+        id: `focus_test_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        timestamp: Date.now(),
+        type: 'focus',
+        details: '[TEST] Focus 버튼 클릭 - Canvas 요소를 찾을 수 없음',
+        data: { source: 'focus_button', focused: false, error: 'canvas_not_found' }
+      };
+      setEvents(prev => [...prev, testEvent]);
+    }
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -74,7 +119,10 @@ function AdvancedCanvasContent() {
 
       {/* Canvas Toolbar - 상단 가로 배치 */}
       <div className="mb-6">
-        <CanvasToolbar />
+        <CanvasToolbar 
+          onFocusCanvas={handleFocusCanvas}
+          onTestAction={handleTestAction}
+        />
       </div>
 
       {/* Canvas Area */}
@@ -84,41 +132,69 @@ function AdvancedCanvasContent() {
             width={800} 
             height={600} 
             onFocusChange={setCanvasFocused}
+            onEventLog={handleEventLog}
           />
         </div>
       </div>
 
       {/* Canvas Status - Canvas 아래 */}
       <div className="mb-6">
-        <CanvasStatus canvasFocused={canvasFocused} />
+        <CanvasStatus 
+          canvasFocused={canvasFocused} 
+          events={events}
+          onSelectShape={(shapeId) => {
+            handleTestAction('select_from_status', `Status 패널에서 도형 선택: ${shapeId.slice(-4)}`);
+          }}
+        />
       </div>
 
       {/* Help Section */}
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">💡 Quick Help</h2>
+      <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-4">🚀 완전한 테스트 환경</h2>
+        <div className="bg-white rounded-lg p-4 mb-4 border border-green-200">
+          <h3 className="font-semibold text-green-800 mb-2">✅ 이제 테스트할 수 있는 기능들:</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <ul className="text-gray-700 space-y-1">
+              <li>• <strong>실시간 상태 시각화</strong> - 모든 상태 변화가 즉시 반영됩니다</li>
+              <li>• <strong>이벤트 로그</strong> - 모든 액션이 타임스탬프와 함께 기록됩니다</li>
+              <li>• <strong>Focus 버튼</strong> - Canvas 포커스를 명확히 제어할 수 있습니다</li>
+              <li>• <strong>도형 상세 정보</strong> - 각 도형의 ID, 위치, 크기 등을 확인할 수 있습니다</li>
+            </ul>
+            <ul className="text-gray-700 space-y-1">
+              <li>• <strong>인터랙티브 도형 선택</strong> - Status 패널에서 직접 도형을 선택할 수 있습니다</li>
+              <li>• <strong>시각적 피드백</strong> - 드래그, 선택, 포커스 상태가 시각적으로 표시됩니다</li>
+              <li>• <strong>완전한 키보드 지원</strong> - Delete, ESC 키로 도형 조작이 가능합니다</li>
+              <li>• <strong>디버깅 정보</strong> - 개발자가 내부 동작을 추적할 수 있습니다</li>
+            </ul>
+          </div>
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <h4 className="font-semibold text-gray-800 mb-2">Drawing</h4>
+            <h4 className="font-semibold text-gray-800 mb-2">🎨 Drawing</h4>
             <ul className="text-sm text-gray-600 space-y-1">
               <li>• <strong>Click & Drag:</strong> Create shapes on canvas</li>
               <li>• <strong>Select Mode:</strong> Click shapes to select them</li>
               <li>• <strong>Draw Mode:</strong> Create new shapes</li>
+              <li>• <strong>Real-time Preview:</strong> See shapes as you draw</li>
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold text-gray-800 mb-2">Keyboard Shortcuts</h4>
+            <h4 className="font-semibold text-gray-800 mb-2">⌨️ Keyboard</h4>
             <ul className="text-sm text-gray-600 space-y-1">
               <li>• <strong>Delete/Backspace:</strong> Remove selected shape</li>
               <li>• <strong>Escape:</strong> Clear selection & switch to Draw mode</li>
+              <li>• <strong>Focus Canvas:</strong> Click canvas or use Focus button</li>
+              <li>• <strong>Tab Navigation:</strong> Navigate between UI elements</li>
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold text-gray-800 mb-2">Tools</h4>
+            <h4 className="font-semibold text-gray-800 mb-2">🔧 Tools</h4>
             <ul className="text-sm text-gray-600 space-y-1">
-              <li>• <strong>Rectangle:</strong> Click and drag to create rectangles</li>
-              <li>• <strong>Circle:</strong> Click and drag to create circles</li>
-              <li>• <strong>Line:</strong> Click and drag to draw straight lines</li>
-              <li>• <strong>Freehand:</strong> Click and drag to draw freeform lines</li>
+              <li>• <strong>Rectangle:</strong> Perfect rectangular shapes</li>
+              <li>• <strong>Circle:</strong> Circular shapes with radius control</li>
+              <li>• <strong>Line:</strong> Straight lines with angle control</li>
+              <li>• <strong>Freehand:</strong> Natural drawing with mouse</li>
             </ul>
           </div>
         </div>

@@ -15,38 +15,6 @@ interface ConditionalPattern {
 
 const conditionalPatterns: ConditionalPattern[] = [
   {
-    id: 'environment',
-    title: '🌍 Environment-Based Execution',
-    description: 'Different deployment strategies without conditional branches. Handlers filter by environment at entry point.',
-    path: '/actionguard/conditional/environment',
-    coreconcept: 'Early Return Pattern',
-    features: [
-      'Environment filtering at handler entry',
-      'No nested conditionals in business logic',
-      'Clear separation of deployment strategies',
-      'Easy testing per environment'
-    ],
-    difficulty: 'Basic',
-    color: 'bg-blue-50 border-blue-200 hover:bg-blue-100',
-    status: 'Complete'
-  },
-  {
-    id: 'feature-flags',
-    title: '🎯 Feature Flag Integration', 
-    description: 'Runtime feature toggling without code deployment. Handlers check feature state and skip gracefully.',
-    path: '/actionguard/conditional/feature-flags',
-    coreconcept: 'Runtime State Checking',
-    features: [
-      'Feature state evaluation at runtime',
-      'Graceful degradation when disabled',
-      'A/B testing without deployment', 
-      'Safe rollout and rollback mechanisms'
-    ],
-    difficulty: 'Intermediate',
-    color: 'bg-green-50 border-green-200 hover:bg-green-100',
-    status: 'Complete'
-  },
-  {
     id: 'permissions',
     title: '🔒 Permission-Based Execution',
     description: 'Security-first handlers that validate permissions before execution. Clean separation of authorization logic.', 
@@ -63,51 +31,51 @@ const conditionalPatterns: ConditionalPattern[] = [
     status: 'Complete'
   },
   {
-    id: 'business-rules',
-    title: '💼 Business Rule Engine',
-    description: 'Modular business rules with data-driven logic. Rules coordinate through store state for complex decisions.',
-    path: '/actionguard/conditional/business-rules', 
-    coreconcept: 'Rule Chain Coordination',
+    id: 'form-validation',
+    title: '📝 Form Validation Pattern',
+    description: 'Real-time field validation with conditional submission. Clear visual feedback and error handling.',
+    path: '/actionguard/conditional/form-validation',
+    coreconcept: 'Conditional Validation',
     features: [
-      'Data-driven rule evaluation',
-      'Store-coordinated rule chains',
-      'Context-aware business logic',
-      'Transparent rule execution flow'
+      'Real-time field validation',
+      'Conditional form submission',
+      'Visual state feedback',
+      'Error message display'
     ],
-    difficulty: 'Advanced',
+    difficulty: 'Basic',
+    color: 'bg-blue-50 border-blue-200 hover:bg-blue-100',
+    status: 'Complete'
+  },
+  {
+    id: 'workflow-steps',
+    title: '⚡ Sequential Workflow Pattern',
+    description: 'Multi-step processes where each step conditionally triggers the next. Visual progress tracking.',
+    path: '/actionguard/conditional/workflow-steps',
+    coreconcept: 'Conditional Sequencing',
+    features: [
+      'Step-by-step conditional execution',
+      'Result-based progression',
+      'Visual progress tracking',
+      'Error handling and recovery'
+    ],
+    difficulty: 'Intermediate',
     color: 'bg-purple-50 border-purple-200 hover:bg-purple-100',
     status: 'Complete'
   },
   {
-    id: 'time-based',
-    title: '⏰ Time-Based Execution',
-    description: 'Temporal logic handlers that execute based on time constraints. Clean separation of timing logic.',
-    path: '/actionguard/conditional/time-based',
-    coreconcept: 'Temporal Guard Pattern',
+    id: 'feature-toggle',
+    title: '🎛️ Feature Toggle Pattern',
+    description: 'Environment and user-based conditional feature execution. Dynamic feature management.',
+    path: '/actionguard/conditional/feature-toggle',
+    coreconcept: 'Conditional Features',
     features: [
-      'Time constraint evaluation',
-      'Business hours vs emergency logic',
-      'Schedule-aware task processing',
-      'Timezone-independent execution'
+      'Environment-based execution',
+      'User group conditional access',
+      'Dynamic feature toggling',
+      'Execution audit trail'
     ],
     difficulty: 'Basic',
-    color: 'bg-pink-50 border-pink-200 hover:bg-pink-100',
-    status: 'Complete'
-  },
-  {
-    id: 'combined',
-    title: '🔀 Combined Patterns',
-    description: 'Enterprise scenarios where multiple conditional patterns work together. Handler orchestration for complex workflows.',
-    path: '/actionguard/conditional/combined',
-    coreconcept: 'Pattern Orchestration',
-    features: [
-      'Multi-pattern handler coordination',
-      'Complex workflow state management',
-      'Enterprise scenario modeling', 
-      'Cross-pattern data flow'
-    ],
-    difficulty: 'Expert',
-    color: 'bg-gray-50 border-gray-200 hover:bg-gray-100',
+    color: 'bg-green-50 border-green-200 hover:bg-green-100',
     status: 'Complete'
   }
 ];
@@ -151,15 +119,15 @@ export function ConditionalPatternsIndex() {
           </Link>
         </div>
         
-        <h1 className="text-4xl font-bold mb-4">🔄 Conditional & Dynamic Execution Patterns</h1>
+        <h1 className="text-4xl font-bold mb-4">🎯 Conditional Execution Patterns</h1>
         <p className="text-xl text-gray-600 mb-4">
-          Master advanced conditional execution patterns in Context-Action framework
+          Action handlers that execute conditionally based on context, state, and business rules
         </p>
-        <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-          <p className="text-sm text-indigo-800">
-            <strong>Learning Path:</strong> Each pattern demonstrates a specific conditional execution technique with focused examples,
-            interactive controls, and detailed explanations. Start with basic patterns and progress
-            to advanced combinations for enterprise-level applications.
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-blue-800">
+            <strong>Conditional Patterns:</strong> These implementations demonstrate how to build flexible, 
+            context-aware action handlers that execute conditionally based on various criteria including 
+            permissions, validation state, workflow progress, and feature flags.
           </p>
         </div>
       </div>
@@ -213,99 +181,102 @@ export function ConditionalPatternsIndex() {
         ))}
       </div>
 
-      {/* Learning Path Guide */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mb-8">
-        <h2 className="text-2xl font-semibold mb-4">📚 Recommended Learning Path</h2>
+      {/* Implementation Guide */}
+      <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-6 mb-8">
+        <h2 className="text-2xl font-semibold mb-4">🛡️ Security Implementation Guide</h2>
         <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <h3 className="font-medium text-green-700 mb-3 flex items-center">
-              <span className="text-lg mr-2">🌱</span> Beginners Start Here
+            <h3 className="font-medium text-yellow-700 mb-3 flex items-center">
+              <span className="text-lg mr-2">🔐</span> Core Security Concepts
             </h3>
             <ol className="text-sm text-gray-700 space-y-2">
               <li className="flex items-start gap-2">
-                <span className="font-semibold text-green-600">1.</span>
-                <span><strong>Environment-Based Execution</strong> - Learn handler filtering and environment-specific logic</span>
+                <span className="font-semibold text-yellow-600">1.</span>
+                <span><strong>Role Hierarchy</strong> - Level-based permission inheritance system</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-semibold text-green-600">2.</span>
-                <span><strong>Time-Based Execution</strong> - Understand schedule-aware processing patterns</span>
+                <span className="font-semibold text-yellow-600">2.</span>
+                <span><strong>Security Guard Pattern</strong> - Permission validation at handler entry point</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-semibold text-green-600">3.</span>
-                <span><strong>Feature Flags</strong> - Master dynamic behavior control and A/B testing</span>
+                <span className="font-semibold text-yellow-600">3.</span>
+                <span><strong>Audit Trail</strong> - Comprehensive security event logging and monitoring</span>
               </li>
             </ol>
           </div>
           
           <div>
             <h3 className="font-medium text-orange-700 mb-3 flex items-center">
-              <span className="text-lg mr-2">🚀</span> Advanced Path
+              <span className="text-lg mr-2">🚀</span> Enterprise Features
             </h3>
             <ol className="text-sm text-gray-700 space-y-2">
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-orange-600">1.</span>
-                <span><strong>Permission-Based Execution</strong> - Implement security patterns and access control</span>
+                <span><strong>Fail-Secure Defaults</strong> - Deny by default, explicit permissions required</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-orange-600">2.</span>
-                <span><strong>Business Rules</strong> - Build complex logic engines with cascading rules</span>
+                <span><strong>Real-time Monitoring</strong> - Live security event tracking and analysis</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-orange-600">3.</span>
-                <span><strong>Combined Patterns</strong> - Master enterprise-level pattern coordination</span>
+                <span><strong>Compliance Ready</strong> - Full audit trails for regulatory requirements</span>
               </li>
             </ol>
           </div>
         </div>
       </div>
 
-      {/* Architecture Overview */}
+      {/* Security Architecture */}
       <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
-        <h2 className="text-2xl font-semibold mb-4">🏗️ Architecture Overview</h2>
+        <h2 className="text-2xl font-semibold mb-4">🏗️ Security Architecture</h2>
         <div className="grid md:grid-cols-3 gap-6">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h3 className="font-medium text-blue-900 mb-2">Handler Registration</h3>
-            <p className="text-sm text-blue-800">
-              Handlers register with metadata (environment, features, permissions) for conditional execution based on runtime context
+          <div className="bg-red-50 p-4 rounded-lg">
+            <h3 className="font-medium text-red-900 mb-2">🛡️ Permission Guards</h3>
+            <p className="text-sm text-red-800">
+              Action handlers validate user permissions at entry point using role hierarchy. 
+              Implements fail-secure defaults with explicit permission requirements.
             </p>
           </div>
           
-          <div className="bg-green-50 p-4 rounded-lg">
-            <h3 className="font-medium text-green-900 mb-2">Pipeline Filtering</h3>
-            <p className="text-sm text-green-800">
-              Action pipeline intelligently filters handlers based on runtime conditions before execution, ensuring optimal performance
+          <div className="bg-yellow-50 p-4 rounded-lg">
+            <h3 className="font-medium text-yellow-900 mb-2">📋 Audit System</h3>
+            <p className="text-sm text-yellow-800">
+              Comprehensive audit trail captures all security events with timestamps, user context, 
+              and action details for compliance and threat monitoring.
             </p>
           </div>
           
-          <div className="bg-purple-50 p-4 rounded-lg">
-            <h3 className="font-medium text-purple-900 mb-2">Result Coordination</h3>
-            <p className="text-sm text-purple-800">
-              Multiple handlers coordinate through stores and pipeline results for complex business workflows
+          <div className="bg-orange-50 p-4 rounded-lg">
+            <h3 className="font-medium text-orange-900 mb-2">⚖️ Role Management</h3>
+            <p className="text-sm text-orange-800">
+              Hierarchical role system with inheritance. Higher-level roles automatically 
+              inherit permissions from lower levels for simplified management.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Performance & Best Practices */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-        <h2 className="text-2xl font-semibold text-yellow-900 mb-4">💡 Performance Tips & Best Practices</h2>
-        <div className="grid md:grid-cols-2 gap-6 text-sm text-yellow-800">
+      {/* Security Best Practices */}
+      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+        <h2 className="text-2xl font-semibold text-red-900 mb-4">🔒 Security Best Practices</h2>
+        <div className="grid md:grid-cols-2 gap-6 text-sm text-red-800">
           <div>
-            <h3 className="font-medium mb-2">Performance Optimization:</h3>
+            <h3 className="font-medium mb-2">Security Implementation:</h3>
             <ul className="space-y-1">
-              <li>• Use early returns to avoid unnecessary processing</li>
-              <li>• Implement handler priority for optimal execution order</li>
-              <li>• Cache expensive computations across handler calls</li>
-              <li>• Monitor execution times to identify bottlenecks</li>
+              <li>• Always validate permissions before business logic execution</li>
+              <li>• Use fail-secure defaults - deny access unless explicitly granted</li>
+              <li>• Implement comprehensive audit logging for all security events</li>
+              <li>• Cache permission results carefully to avoid stale security state</li>
             </ul>
           </div>
           <div>
-            <h3 className="font-medium mb-2">Development Strategy:</h3>
+            <h3 className="font-medium mb-2">Compliance Strategy:</h3>
             <ul className="space-y-1">
-              <li>• Start with individual patterns before combining</li>
-              <li>• Use comprehensive test scenarios for validation</li>
-              <li>• Implement proper error handling and fallbacks</li>
-              <li>• Document your conditional logic for team collaboration</li>
+              <li>• Log all access attempts with timestamp and user context</li>
+              <li>• Include IP address and user agent in audit trails</li>
+              <li>• Implement role-based access control with clear hierarchy</li>
+              <li>• Provide detailed error messages for debugging but not exploitation</li>
             </ul>
           </div>
         </div>

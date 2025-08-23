@@ -43,14 +43,11 @@ import { ChatPage } from './pages/demos/ChatPage';
 import { UserProfilePage } from './pages/demos/UserProfilePage';
 import { ActionPriorityDemoPage } from './pages/demos/ActionPriorityDemoPage';
 import { RefContextMouseEventsPage } from './pages/mouse-events/ref-context/RefContextMouseEventsPage';
-import ConditionalExecutionDemo from './pages/ConditionalExecutionDemo';
 import { ConditionalPatternsIndex } from './features/conditional-patterns/pages/ConditionalPatternsIndex';
-import { EnvironmentBasedExecution } from './features/conditional-patterns/pages/EnvironmentBasedExecution';
-import { FeatureFlagExecution } from './features/conditional-patterns/pages/FeatureFlagExecution';
 import { PermissionBasedExecution } from './features/conditional-patterns/pages/PermissionBasedExecution';
-import { BusinessRuleExecution } from './features/conditional-patterns/pages/BusinessRuleExecution';
-import { TimeBasedExecution } from './features/conditional-patterns/pages/TimeBasedExecution';
-import { CombinedPatternsExecution } from './features/conditional-patterns/pages/CombinedPatternsExecution';
+import { FormValidation } from './features/conditional-patterns/pages/FormValidation';
+import { WorkflowSteps } from './features/conditional-patterns/pages/WorkflowSteps';
+import { FeatureToggle } from './features/conditional-patterns/pages/FeatureToggle';
 import ActionGuardOverview from './pages/ActionGuardOverview';
 import CoreConceptsOverview from './pages/CoreConceptsOverview';
 import ExamplesUtilitiesOverview from './pages/ExamplesUtilitiesOverview';
@@ -203,36 +200,24 @@ function AppContent() {
           />
           {/* Conditional Execution Routes */}
           <Route
-            path="/actionguard/conditional-execution"
-            element={<ConditionalExecutionDemo />}
-          />
-          <Route
             path="/actionguard/conditional"
             element={<ConditionalPatternsIndex />}
-          />
-          <Route
-            path="/actionguard/conditional/environment"
-            element={<EnvironmentBasedExecution />}
-          />
-          <Route
-            path="/actionguard/conditional/feature-flags"
-            element={<FeatureFlagExecution />}
           />
           <Route
             path="/actionguard/conditional/permissions"
             element={<PermissionBasedExecution />}
           />
           <Route
-            path="/actionguard/conditional/business-rules"
-            element={<BusinessRuleExecution />}
+            path="/actionguard/conditional/form-validation"
+            element={<FormValidation />}
           />
           <Route
-            path="/actionguard/conditional/time-based"
-            element={<TimeBasedExecution />}
+            path="/actionguard/conditional/workflow-steps"
+            element={<WorkflowSteps />}
           />
           <Route
-            path="/actionguard/conditional/combined"
-            element={<CombinedPatternsExecution />}
+            path="/actionguard/conditional/feature-toggle"
+            element={<FeatureToggle />}
           />
         </Routes>
       </Layout>
