@@ -133,7 +133,7 @@ function PermissionHandlers() {
 
     try {
       // First check permissions
-      await mockServices.checkPermissions(payload.userId, payload.action);
+      await mockServices.checkUserPermissions(payload.userId, payload.action);
       
       // Permission passed, execute business logic
       const result = await mockServices.executeSecureOperation(payload.action, payload.payload);
