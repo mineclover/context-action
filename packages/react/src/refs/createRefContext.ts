@@ -12,7 +12,8 @@ import type {
   RefOperationOptions, 
   RefOperationResult,
   RefDefinitions,
-  RefInitConfig
+  RefInitConfig,
+  InferRefTypes
 } from './types';
 
 /**
@@ -29,23 +30,23 @@ interface InternalRefState<T> {
 }
 
 /**
- * RefContext 반환 타입
+ * RefContext 반환 타입 - 향상된 타입 추론 지원
  */
 export interface RefContextReturn<T> {
   Provider: React.FC<{ children: ReactNode }>;
   
   useRefHandler: <K extends keyof T>(refName: K) => {
-    setRef: (target: any) => void;
-    target: any;
-    waitForMount: () => Promise<any>;
+    setRef: (target: T[K]) => void;
+    target: T[K] | null;
+    waitForMount: () => Promise<T[K]>;
     withTarget: <Result>(
-      operation: RefOperation<any, Result>,
+      operation: RefOperation<T[K] & RefTarget, Result>,
       options?: RefOperationOptions
     ) => Promise<RefOperationResult<Result>>;
     isMounted: boolean;
   };
   
-  useWaitForRefs: () => <K extends keyof T>(...refNames: K[]) => Promise<Partial<T>>;
+  useWaitForRefs: () => <K extends keyof T>(...refNames: K[]) => Promise<Pick<T, K>>;
   useGetAllRefs: () => () => Partial<T>;
   
   contextName: string;
@@ -53,7 +54,7 @@ export interface RefContextReturn<T> {
 }
 
 /**
- * 간소화된 참조 컨텍스트 생성 함수
+ * 간소화된 참조 컨텍스트 생성 함수 - 향상된 타입 추론
  */
 export function createRefContext<T extends Record<string, RefTarget>>(
   contextName: string
@@ -62,12 +63,14 @@ export function createRefContext<T extends Record<string, RefTarget>>(
 export function createRefContext<T extends RefDefinitions>(
   contextName: string,
   refDefinitions: T
-): RefContextReturn<T>;
+): RefContextReturn<InferRefTypes<T>>;
 
-export function createRefContext<T = any>(
+export function createRefContext<T extends Record<string, any> | RefDefinitions>(
   contextName: string,
   refDefinitions?: T extends RefDefinitions ? T : undefined
-): RefContextReturn<T> {
+): T extends RefDefinitions 
+  ? RefContextReturn<InferRefTypes<T>>
+  : RefContextReturn<T> {
   
   const hasDefinitions = Boolean(refDefinitions);
   
@@ -192,25 +195,25 @@ export function createRefContext<T = any>(
     const refState = getRefState(refNameStr);
     
     return useMemo(() => ({
-      setRef: (target: any) => {
+      setRef: (target: T[K]) => {
         setRefTarget(refNameStr, target);
       },
-      get target() {
+      get target(): T[K] | null {
         return refState.target;
       },
-      waitForMount: async () => {
+      waitForMount: async (): Promise<T[K]> => {
         // 이미 마운트된 경우
         if (refState.target && refState.isMounted) {
-          return refState.target;
+          return refState.target as T[K];
         }
         
         // 기존 Promise가 있으면 재사용
         if (refState.mountPromise) {
-          return refState.mountPromise;
+          return refState.mountPromise as Promise<T[K]>;
         }
         
         // 새로운 Promise 생성
-        refState.mountPromise = new Promise<any>((resolve, reject) => {
+        refState.mountPromise = new Promise<T[K]>((resolve, reject) => {
           refState.mountResolvers.add(resolve);
           refState.mountRejectors.add(reject);
         });
@@ -218,7 +221,7 @@ export function createRefContext<T = any>(
         return refState.mountPromise;
       },
       withTarget: async <Result>(
-        operation: RefOperation<any, Result>,
+        operation: RefOperation<T[K] & RefTarget, Result>,
         options?: RefOperationOptions
       ): Promise<RefOperationResult<Result>> => {
         try {
@@ -302,7 +305,7 @@ export function createRefContext<T = any>(
   const useWaitForRefs = () => {
     const { getRefState } = useRefContext();
     
-    return useCallback(async <K extends keyof T>(...refNames: K[]): Promise<Partial<T>> => {
+    return useCallback(async <K extends keyof T>(...refNames: K[]): Promise<Pick<T, K>> => {
       const promises = refNames.map(async (refName) => {
         const refNameStr = String(refName);
         const refState = getRefState(refNameStr);
@@ -324,7 +327,7 @@ export function createRefContext<T = any>(
       });
       
       const results = await Promise.all(promises);
-      return Object.fromEntries(results) as Partial<T>;
+      return Object.fromEntries(results) as Pick<T, K>;
     }, [getRefState]);
   };
   
@@ -352,7 +355,9 @@ export function createRefContext<T = any>(
     useGetAllRefs,
     contextName,
     refDefinitions
-  };
+  } as T extends RefDefinitions 
+    ? RefContextReturn<InferRefTypes<T>>
+    : RefContextReturn<T>;
 }
 
 // 헬퍼 함수: 초기 ref 상태 생성
