@@ -54,23 +54,46 @@ export interface RefContextReturn<T> {
 }
 
 /**
+ * createRefContext 옵션
+ */
+export interface CreateRefContextOptions {
+  /** 글로벌 마운트 타임아웃 (ms). undefined면 타임아웃 없음 */
+  defaultMountTimeout?: number;
+  
+  /** 개별 ref의 타임아웃 설정을 무시하고 타임아웃을 비활성화 */
+  disableTimeout?: boolean;
+}
+
+/**
  * 간소화된 참조 컨텍스트 생성 함수 - 향상된 타입 추론
  */
 export function createRefContext<T extends Record<string, RefTarget>>(
-  contextName: string
+  contextName: string,
+  options?: CreateRefContextOptions
 ): RefContextReturn<T>;
 
 export function createRefContext<T extends RefDefinitions>(
   contextName: string,
-  refDefinitions: T
+  refDefinitions: T,
+  options?: CreateRefContextOptions
 ): RefContextReturn<InferRefTypes<T>>;
 
 export function createRefContext<T extends Record<string, any> | RefDefinitions>(
   contextName: string,
-  refDefinitions?: T extends RefDefinitions ? T : undefined
+  refDefinitionsOrOptions?: T extends RefDefinitions ? T : CreateRefContextOptions,
+  optionsWhenDefs?: CreateRefContextOptions
 ): T extends RefDefinitions 
   ? RefContextReturn<InferRefTypes<T>>
   : RefContextReturn<T> {
+  
+  // 파라미터 정규화 - 더 안전한 타입 처리
+  const refDefinitions = (typeof refDefinitionsOrOptions === 'object' && 
+    refDefinitionsOrOptions !== null &&
+    Object.values(refDefinitionsOrOptions as any).some(
+      (value: any) => value && typeof value === 'object' && 'name' in value
+    )) ? (refDefinitionsOrOptions as unknown) as T extends RefDefinitions ? T : undefined : undefined;
+  
+  const options = refDefinitions ? optionsWhenDefs : refDefinitionsOrOptions as CreateRefContextOptions | undefined;
   
   const hasDefinitions = Boolean(refDefinitions);
   
@@ -78,6 +101,7 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
   interface RefContextValue {
     refsMapRef: React.MutableRefObject<Map<string, InternalRefState<any>>>;
     definitionsRef: React.MutableRefObject<T extends RefDefinitions ? T : undefined>;
+    optionsRef: React.MutableRefObject<CreateRefContextOptions | undefined>;
     subscribeToRef: (refName: string, listener: () => void) => () => void;
     getRefState: (refName: string) => InternalRefState<any>;
     setRefTarget: (refName: string, target: any) => void;
@@ -108,6 +132,8 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
     const definitionsRef = useRef<T extends RefDefinitions ? T : undefined>(
       refDefinitions as T extends RefDefinitions ? T : undefined
     );
+    
+    const optionsRef = useRef<CreateRefContextOptions | undefined>(options);
     
     // ref 상태 구독 함수
     const subscribeToRef = useCallback((refName: string, listener: () => void) => {
@@ -155,6 +181,7 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
     const contextValue = useMemo<RefContextValue>(() => ({
       refsMapRef,
       definitionsRef,
+      optionsRef,
       subscribeToRef,
       getRefState,
       setRefTarget
@@ -178,7 +205,7 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
   
   // 개별 ref 사용 hook
   const useRefHandler = <K extends keyof T>(refName: K) => {
-    const { subscribeToRef, getRefState, setRefTarget } = useRefContext();
+    const { subscribeToRef, getRefState, setRefTarget, definitionsRef, optionsRef } = useRefContext();
     const refNameStr = String(refName);
     
     // 상태 변경 구독
@@ -212,10 +239,59 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
           return refState.mountPromise as Promise<T[K]>;
         }
         
+        // 타임아웃 설정 계산
+        const globalOptions = optionsRef.current;
+        const refConfig = definitionsRef.current?.[refNameStr] as RefInitConfig<any> | undefined;
+        
+        let timeoutMs: number | undefined;
+        if (globalOptions?.disableTimeout) {
+          // 글로벌 타임아웃 비활성화
+          timeoutMs = undefined;
+        } else if (refConfig?.mountTimeout !== undefined) {
+          // 개별 ref 타임아웃 설정
+          timeoutMs = refConfig.mountTimeout;
+        } else if (globalOptions?.defaultMountTimeout !== undefined) {
+          // 글로벌 기본 타임아웃
+          timeoutMs = globalOptions.defaultMountTimeout;
+        }
+        // undefined면 타임아웃 없음
+        
         // 새로운 Promise 생성
         refState.mountPromise = new Promise<T[K]>((resolve, reject) => {
           refState.mountResolvers.add(resolve);
           refState.mountRejectors.add(reject);
+          
+          // 타임아웃 설정
+          if (timeoutMs !== undefined && timeoutMs > 0) {
+            const timeoutId = setTimeout(() => {
+              // 타임아웃 발생 시 rejector들 실행
+              const error = new Error(`Mount timeout after ${timeoutMs}ms for ref '${refNameStr}'`);
+              refState.mountRejectors.forEach(rejector => rejector(error));
+              refState.mountRejectors.clear();
+              refState.mountResolvers.clear();
+              refState.mountPromise = null;
+            }, timeoutMs);
+            
+            // resolve/reject 시 타임아웃 정리
+            const originalResolve = resolve;
+            const originalReject = reject;
+            
+            const cleanupResolve = (value: T[K]) => {
+              clearTimeout(timeoutId);
+              originalResolve(value);
+            };
+            
+            const cleanupReject = (error: Error) => {
+              clearTimeout(timeoutId);
+              originalReject(error);
+            };
+            
+            // resolver/rejector 교체
+            refState.mountResolvers.delete(resolve);
+            refState.mountRejectors.delete(reject);
+            refState.mountResolvers.add(cleanupResolve);
+            refState.mountRejectors.add(cleanupReject);
+          }
         });
         
         return refState.mountPromise;
@@ -298,7 +374,7 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
       get isMounted() {
         return refState.isMounted;
       }
-    }), [refState, setRefTarget, refNameStr]);
+    }), [refState, setRefTarget, refNameStr, definitionsRef, optionsRef]);
   };
   
   // 여러 ref 동시 대기 hook
