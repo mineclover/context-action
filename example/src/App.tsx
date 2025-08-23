@@ -27,7 +27,6 @@ import SearchPage from './pages/actionguard/SearchPage';
 import ThrottleComparisonPage from './pages/actionguard/ThrottleComparisonPage';
 import CoreAdvancedPage from './pages/core/CoreAdvancedPage';
 import CoreBasicsPage from './pages/core/CoreBasicsPage';
-import CoreFeaturesPage from './pages/core/CoreFeatures';
 import ToastConfigPage from './pages/examples/ToastConfigPage';
 import { ElementManagementPage } from './pages/examples/ElementManagementPage';
 import { FormBuilderDemoPage } from './pages/examples/FormBuilderDemoPage';
@@ -92,7 +91,6 @@ function AppContent() {
           <Route path="/overview/examples" element={<ExamplesUtilitiesOverview />} />
           <Route path="/core/basics" element={<CoreBasicsPage />} />
           <Route path="/core/advanced" element={<CoreAdvancedPage />} />
-          <Route path="/core/features" element={<CoreFeaturesPage />} />
           <Route path="/store/basics" element={<StoreBasicsPage />} />
           <Route
             path="/store/immutability-test"
