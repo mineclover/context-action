@@ -10,7 +10,6 @@
  */
 
 import { Store } from '../stores/core/Store';
-import { OperationQueue } from './OperationQueue';
 import type { 
   RefTarget, 
   RefState, 
@@ -36,7 +35,7 @@ import type {
  */
 export class RefStore<T extends RefTarget = RefTarget> extends Store<RefState<T>> {
   private config: RefInitConfig<T>;
-  private operationQueue: OperationQueue;
+  private operationInProgress = false;
   private eventListeners = new Set<RefEventListener<T>>();
   private mountResolvers = new Set<(target: T) => void>();
   private mountRejectors = new Set<(error: Error) => void>();
@@ -61,7 +60,6 @@ export class RefStore<T extends RefTarget = RefTarget> extends Store<RefState<T>
     super(config.name, initialState);
     
     this.config = config;
-    this.operationQueue = new OperationQueue();
 
     // RefStore에서는 참조 비교만 사용 - DOM 요소 호환성을 위해
     this.setComparisonOptions({ 
@@ -151,13 +149,51 @@ export class RefStore<T extends RefTarget = RefTarget> extends Store<RefState<T>
       // 마운트 대기
       const target = await this.waitForMount();
       
-      // 큐를 통한 순차 실행
-      return await this.operationQueue.enqueue(
-        this.name,
-        target,
-        operation,
-        options
-      );
+      // 순차 실행을 위한 간단한 처리
+      // 동시 실행 방지
+      while (this.operationInProgress) {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
+      
+      this.operationInProgress = true;
+      const startTime = Date.now();
+      
+      try {
+        // AbortSignal 체크
+        if (options?.signal?.aborted) {
+          throw new Error('Operation aborted');
+        }
+        
+        // 타임아웃 설정
+        const timeoutPromise = options?.timeout
+          ? new Promise<never>((_, reject) => {
+              setTimeout(() => reject(new Error('Operation timed out')), options.timeout);
+            })
+          : null;
+        
+        // 작업 실행
+        const operationPromise = operation(target, options);
+        
+        const result = timeoutPromise
+          ? await Promise.race([operationPromise, timeoutPromise])
+          : await operationPromise;
+        
+        return {
+          success: true,
+          result,
+          duration: Date.now() - startTime,
+          timestamp: Date.now()
+        };
+      } catch (error) {
+        return {
+          success: false,
+          error: error as Error,
+          duration: Date.now() - startTime,
+          timestamp: Date.now()
+        };
+      } finally {
+        this.operationInProgress = false;
+      }
     } catch (error) {
       return {
         success: false,
@@ -203,8 +239,8 @@ export class RefStore<T extends RefTarget = RefTarget> extends Store<RefState<T>
         this.mountTimeoutId = undefined;
       }
 
-      // 대기 중인 모든 작업 취소
-      this.operationQueue.shutdown();
+      // 진행 중인 작업 플래그 리셋
+      this.operationInProgress = false;
 
       // 현재 참조 객체 cleanup
       const currentState = this.getValue();
