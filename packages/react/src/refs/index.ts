@@ -32,13 +32,6 @@ export {
   createRefStore
 } from './RefStore';
 
-export { 
-  OperationQueue,
-  globalOperationQueue
-} from './OperationQueue';
-
-export type { QueueStats } from './OperationQueue';
-
 
 // 기본 헬퍼 (범용)
 export { 

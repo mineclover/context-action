@@ -5,7 +5,7 @@
  * ref만 선언적으로 관리, 불필요한 복잡성 제거
  */
 
-import React, { createContext, useContext, useMemo, ReactNode } from 'react';
+import React, { createContext, useContext, useMemo, useRef, ReactNode } from 'react';
 import { RefStore, createRefStore } from './RefStore';
 import type { 
   RefTarget, 
@@ -83,8 +83,8 @@ export function createRefContext<T = any>(
   
   // Context 타입 정의
   interface RefContextValue {
-    stores: Map<string, RefStore<any>>;
-    definitions?: T extends RefDefinitions ? T : undefined;
+    storesRef: React.MutableRefObject<Map<string, RefStore<any>>>;
+    definitionsRef: React.MutableRefObject<T extends RefDefinitions ? T : undefined>;
   }
   
   // Context 생성
@@ -92,8 +92,11 @@ export function createRefContext<T = any>(
   
   // Provider 컴포넌트
   const Provider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    // RefStore들을 한 번만 생성
-    const stores = useMemo(() => {
+    // RefStore들을 ref로 관리 (한 번만 생성)
+    const storesRef = useRef<Map<string, RefStore<any>>>(null!);
+    
+    // 초기화는 한 번만
+    if (!storesRef.current) {
       const map = new Map<string, RefStore<any>>();
       
       // RefDefinitions인 경우 미리 생성
@@ -103,13 +106,15 @@ export function createRefContext<T = any>(
         });
       }
       
-      return map;
-    }, []);
+      storesRef.current = map;
+    }
+    
+    const definitionsRef = useRef<T extends RefDefinitions ? T : undefined>(refDefinitions as T extends RefDefinitions ? T : undefined);
     
     const contextValue = useMemo<RefContextValue>(() => ({
-      stores,
-      definitions: refDefinitions
-    }), [stores]);
+      storesRef,
+      definitionsRef
+    }), []);
     
     return React.createElement(
       RefContext.Provider,
@@ -119,7 +124,7 @@ export function createRefContext<T = any>(
   };
   
   // Context hook
-  const useRefContext = (): RefContextValue => {
+  const useRefContext = () => {
     const context = useContext(RefContext);
     if (!context) {
       throw new Error(`useRefHandler must be used within ${contextName}.Provider`);
@@ -129,9 +134,11 @@ export function createRefContext<T = any>(
   
   // 개별 ref 사용 hook
   const useRefHook = <K extends keyof T>(refName: K) => {
-    const { stores, definitions } = useRefContext();
+    const { storesRef, definitionsRef } = useRefContext();
     
     const refNameStr = String(refName);
+    const stores = storesRef.current;
+    const definitions = definitionsRef.current;
     
     // Store가 없으면 생성 (lazy initialization)
     if (!stores.has(refNameStr)) {
@@ -198,13 +205,14 @@ export function createRefContext<T = any>(
   // 여러 ref 동시 대기 함수
   const waitForRefsImpl = async <K extends keyof T>(
     stores: Map<string, RefStore<any>>,
+    definitions: T extends RefDefinitions ? T : undefined,
     ...refNames: K[]
   ): Promise<Partial<T>> => {
     const promises = refNames.map(async (refName) => {
       const refNameStr = String(refName);
       if (!stores.has(refNameStr)) {
         // 동적 생성
-        const definition = refDefinitions?.[refName as string];
+        const definition = definitions?.[refName as string];
         if (definition) {
           stores.set(refNameStr, createRefStore(definition));
         } else {
@@ -225,19 +233,19 @@ export function createRefContext<T = any>(
   
   // 여러 ref 동시 대기 hook - 함수를 반환하여 callback에서도 사용 가능
   const useWaitForRefs = () => {
-    const { stores } = useRefContext();
+    const { storesRef, definitionsRef } = useRefContext();
     return React.useCallback(<K extends keyof T>(...refNames: K[]): Promise<Partial<T>> => {
-      return waitForRefsImpl(stores, ...refNames);
-    }, [stores]);
+      return waitForRefsImpl(storesRef.current, definitionsRef.current, ...refNames);
+    }, []);
   };
   
   // 모든 ref 상태 가져오기 hook - 함수를 반환하여 callback에서도 사용 가능
   const useGetAllRefs = () => {
-    const { stores } = useRefContext();
+    const { storesRef } = useRefContext();
     return React.useCallback((): Partial<T> => {
       const result: Partial<T> = {} as Partial<T>;
       
-      stores.forEach((store, refName) => {
+      storesRef.current.forEach((store, refName) => {
         const state = store.getValue();
         if (state.target !== null) {
           (result as any)[refName] = state.target;
@@ -245,7 +253,7 @@ export function createRefContext<T = any>(
       });
       
       return result;
-    }, [stores]);
+    }, []);
   };
   
   return {
