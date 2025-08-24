@@ -73,6 +73,7 @@ import AsyncBasicUsagePage from './pages/async/AsyncBasicUsagePage';
 import AsyncRealtimeStatePage from './pages/async/AsyncRealtimeStatePage';
 import AsyncWaitThenExecutePage from './pages/async/AsyncWaitThenExecutePage';
 import AsyncTimeoutProtectionPage from './pages/async/AsyncTimeoutProtectionPage';
+import ModularArchitectureDemoPage from './pages/ModularArchitectureDemoPage';
 
 // 라우트 변경 시 콘솔 클리어 (개발 환경에서만)
 function ConsoleClearer() {
@@ -123,6 +124,7 @@ function AppContent() {
           <Route path="/async/realtime-state" element={<AsyncRealtimeStatePage />} />
           <Route path="/async/wait-then-execute" element={<AsyncWaitThenExecutePage />} />
           <Route path="/async/timeout-protection" element={<AsyncTimeoutProtectionPage />} />
+          <Route path="/architecture/modular-demo" element={<ModularArchitectureDemoPage />} />
           <Route path="/react/provider" element={<ReactProviderPage />} />
           <Route path="/react/context" element={<ReactContextPage />} />
           <Route path="/react/hooks" element={<ReactHooksPage />} />
