@@ -195,28 +195,30 @@ export function combineValidators(...validators: Array<() => string | null>): st
     .filter((result): result is string => result !== null);
 }
 
-// Validation Service class for centralized validation
-export class ValidationService {
-  static validateRequired = validateRequired;
-  static validateEmail = validateEmail;
-  static validateMinLength = validateMinLength;
-  static validateMaxLength = validateMaxLength;
-  static validatePattern = validatePattern;
-  static combineValidators = combineValidators;
-
-  static validateForm(fields: Record<string, any>, rules: Record<string, Array<() => string | null>>): Record<string, string[]> {
-    const errors: Record<string, string[]> = {};
-    
-    for (const [fieldName, validators] of Object.entries(rules)) {
-      const fieldErrors = combineValidators(...validators);
-      if (fieldErrors.length > 0) {
-        errors[fieldName] = fieldErrors;
-      }
+// Form validation utilities
+export function validateForm(fields: Record<string, any>, rules: Record<string, Array<() => string | null>>): Record<string, string[]> {
+  const errors: Record<string, string[]> = {};
+  
+  for (const [fieldName, validators] of Object.entries(rules)) {
+    const fieldErrors = combineValidators(...validators);
+    if (fieldErrors.length > 0) {
+      errors[fieldName] = fieldErrors;
     }
-    
-    return errors;
   }
+  
+  return errors;
 }
+
+// Legacy class wrapper for backward compatibility
+export const ValidationService = {
+  validateRequired,
+  validateEmail,
+  validateMinLength,
+  validateMaxLength,
+  validatePattern,
+  combineValidators,
+  validateForm,
+};
 
 // Async utilities service
 export function delay(ms: number): Promise<void> {
@@ -237,14 +239,13 @@ export function retry<T>(
   maxRetries: number = 3,
   delayMs: number = 1000
 ): Promise<T> {
-  return new Promise(async (resolve, reject) => {
+  const attemptRetry = async (): Promise<T> => {
     let lastError: Error = new Error('No attempts made');
     
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         const result = await fn();
-        resolve(result);
-        return;
+        return result;
       } catch (error) {
         lastError = error as Error;
         
@@ -254,8 +255,10 @@ export function retry<T>(
       }
     }
     
-    reject(lastError);
-  });
+    throw lastError;
+  };
+  
+  return attemptRetry();
 }
 
 export async function withFallback<T>(
@@ -297,49 +300,52 @@ export function throttle<T extends (...args: any[]) => any>(
   };
 }
 
-// AsyncUtils Service class for centralized async utilities
-export class AsyncUtilsService {
-  static delay = delay;
-  static timeout = timeout;
-  static retry = retry;
-  static withFallback = withFallback;
-  static debounce = debounce;
-  static throttle = throttle;
-
-  static async executeWithProgress<T>(
-    operation: () => Promise<T>,
-    onProgress?: (progress: number) => void
-  ): Promise<T> {
+// Async utility functions
+export async function executeWithProgress<T>(
+  operation: () => Promise<T>,
+  onProgress?: (progress: number) => void
+): Promise<T> {
+  onProgress?.(0);
+  
+  try {
+    const result = await operation();
+    onProgress?.(100);
+    return result;
+  } catch (error) {
     onProgress?.(0);
-    
-    try {
-      const result = await operation();
-      onProgress?.(100);
-      return result;
-    } catch (error) {
-      onProgress?.(0);
-      throw error;
-    }
-  }
-
-  static async batchExecute<T, R>(
-    items: T[],
-    processor: (item: T) => Promise<R>,
-    batchSize: number = 5,
-    delayMs: number = 100
-  ): Promise<R[]> {
-    const results: R[] = [];
-    
-    for (let i = 0; i < items.length; i += batchSize) {
-      const batch = items.slice(i, i + batchSize);
-      const batchResults = await Promise.all(batch.map(processor));
-      results.push(...batchResults);
-      
-      if (i + batchSize < items.length) {
-        await delay(delayMs);
-      }
-    }
-    
-    return results;
+    throw error;
   }
 }
+
+export async function batchExecute<T, R>(
+  items: T[],
+  processor: (item: T) => Promise<R>,
+  batchSize: number = 5,
+  delayMs: number = 100
+): Promise<R[]> {
+  const results: R[] = [];
+  
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = items.slice(i, i + batchSize);
+    const batchResults = await Promise.all(batch.map(processor));
+    results.push(...batchResults);
+    
+    if (i + batchSize < items.length) {
+      await delay(delayMs);
+    }
+  }
+  
+  return results;
+}
+
+// Legacy class wrapper for backward compatibility
+export const AsyncUtilsService = {
+  delay,
+  timeout,
+  retry,
+  withFallback,
+  debounce,
+  throttle,
+  executeWithProgress,
+  batchExecute,
+};

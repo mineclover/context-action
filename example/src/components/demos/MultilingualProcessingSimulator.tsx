@@ -671,7 +671,7 @@ export function MultilingualProcessingSimulator() {
           <div>
             <h4 className="font-medium mb-2">🔄 Automated Workflow</h4>
             <ul className="space-y-1 text-green-800">
-              <li>• <strong>Detection:</strong> docs/(en|ko)/**/*.md changes</li>
+              <li>• <strong>Detection:</strong> docs/(en|ko){/**/}*.md changes</li>
               <li>• <strong>Processing:</strong> 7 character-limited templates (100-5000)</li>
               <li>• <strong>Metadata:</strong> priority.json with language detection</li>
               <li>• <strong>Commit:</strong> Separate commits for clean history</li>

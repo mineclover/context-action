@@ -117,8 +117,7 @@ function PermissionHandlers() {
     }
   }, {
     priority: 100,
-    id: 'permission-guard',
-    tags: ['security', 'permission']
+    id: 'permission-guard'
   });
 
   // Execute Secure Action Handler
@@ -160,8 +159,7 @@ function PermissionHandlers() {
     }
   }, {
     priority: 90,
-    id: 'secure-executor',
-    tags: ['security', 'execution']
+    id: 'secure-executor'
   });
 
   return null;

@@ -17,50 +17,56 @@ export const {
 } = createRefContext<Record<string, RefTarget>>('AsyncDemo');
 
 // Realtime State Service for state management patterns
-export class RealtimeStateService {
-  private static subscriptions = new Map<string, Set<(value: any) => void>>();
-  private static state = new Map<string, any>();
+const subscriptions = new Map<string, Set<(value: any) => void>>();
+const state = new Map<string, any>();
 
-  static subscribe<T>(key: string, callback: (value: T) => void): () => void {
-    if (!this.subscriptions.has(key)) {
-      this.subscriptions.set(key, new Set());
-    }
-    
-    this.subscriptions.get(key)!.add(callback);
-    
-    return () => {
-      const callbacks = this.subscriptions.get(key);
-      if (callbacks) {
-        callbacks.delete(callback);
-        if (callbacks.size === 0) {
-          this.subscriptions.delete(key);
-        }
-      }
-    };
+export function subscribe<T>(key: string, callback: (value: T) => void): () => void {
+  if (!subscriptions.has(key)) {
+    subscriptions.set(key, new Set());
   }
-
-  static setState<T>(key: string, value: T): void {
-    this.state.set(key, value);
-    const callbacks = this.subscriptions.get(key);
+  
+  subscriptions.get(key)!.add(callback);
+  
+  return () => {
+    const callbacks = subscriptions.get(key);
     if (callbacks) {
-      callbacks.forEach(callback => callback(value));
+      callbacks.delete(callback);
+      if (callbacks.size === 0) {
+        subscriptions.delete(key);
+      }
     }
-  }
+  };
+}
 
-  static getState<T>(key: string): T | undefined {
-    return this.state.get(key);
-  }
-
-  static clearState(key?: string): void {
-    if (key) {
-      this.state.delete(key);
-      this.subscriptions.delete(key);
-    } else {
-      this.state.clear();
-      this.subscriptions.clear();
-    }
+export function setState<T>(key: string, value: T): void {
+  state.set(key, value);
+  const callbacks = subscriptions.get(key);
+  if (callbacks) {
+    callbacks.forEach(callback => callback(value));
   }
 }
+
+export function getState<T>(key: string): T | undefined {
+  return state.get(key);
+}
+
+export function clearState(key?: string): void {
+  if (key) {
+    state.delete(key);
+    subscriptions.delete(key);
+  } else {
+    state.clear();
+    subscriptions.clear();
+  }
+}
+
+// Legacy class wrapper for backward compatibility
+export const RealtimeStateService = {
+  subscribe,
+  setState,
+  getState,
+  clearState,
+};
 
 // Basic timeout utilities
 export async function basicTimeout<T>(
@@ -104,65 +110,67 @@ export async function progressiveTimeout<T>(
 }
 
 // Timeout Protection Service for advanced timeout handling
-export class TimeoutProtectionService {
-  private static performanceHistory = new Map<string, number[]>();
+const performanceHistory = new Map<string, number[]>();
+
+export async function adaptiveTimeout<T>(
+  operation: () => Promise<T>,
+  operationName: string,
+  config: {
+    minTimeout: number;
+    maxTimeout: number;
+    performanceMultiplier: number;
+    maxRetries: number;
+  }
+): Promise<T> {
+  const history = performanceHistory.get(operationName) || [];
   
-  static basicTimeout = basicTimeout;
-  static progressiveTimeout = progressiveTimeout;
+  // Calculate adaptive timeout based on history
+  let calculatedTimeout: number;
+  if (history.length === 0) {
+    calculatedTimeout = config.minTimeout;
+  } else {
+    const avgDuration = history.reduce((sum, duration) => sum + duration, 0) / history.length;
+    calculatedTimeout = Math.max(
+      config.minTimeout,
+      Math.min(config.maxTimeout, avgDuration * config.performanceMultiplier)
+    );
+  }
+
+  const startTime = performance.now();
   
-  static async adaptiveTimeout<T>(
-    operation: () => Promise<T>,
-    operationName: string,
-    config: {
-      minTimeout: number;
-      maxTimeout: number;
-      performanceMultiplier: number;
-      maxRetries: number;
-    }
-  ): Promise<T> {
-    const history = TimeoutProtectionService.performanceHistory.get(operationName) || [];
+  try {
+    const result = await timeout(operation(), calculatedTimeout);
     
-    // Calculate adaptive timeout based on history
-    let adaptiveTimeout: number;
-    if (history.length === 0) {
-      adaptiveTimeout = config.minTimeout;
-    } else {
-      const avgDuration = history.reduce((sum, duration) => sum + duration, 0) / history.length;
-      adaptiveTimeout = Math.max(
-        config.minTimeout,
-        Math.min(config.maxTimeout, avgDuration * config.performanceMultiplier)
+    // Record successful timing
+    const duration = performance.now() - startTime;
+    history.push(duration);
+    
+    // Keep only recent history
+    if (history.length > 10) {
+      history.shift();
+    }
+    performanceHistory.set(operationName, history);
+    
+    return result;
+  } catch (error) {
+    // On timeout, try with increased timeout
+    if (config.maxRetries > 0) {
+      return adaptiveTimeout(
+        operation,
+        operationName,
+        { ...config, maxRetries: config.maxRetries - 1, minTimeout: calculatedTimeout * 1.5 }
       );
     }
-
-    const startTime = performance.now();
-    
-    try {
-      const result = await timeout(operation(), adaptiveTimeout);
-      
-      // Record successful timing
-      const duration = performance.now() - startTime;
-      history.push(duration);
-      
-      // Keep only recent history
-      if (history.length > 10) {
-        history.shift();
-      }
-      TimeoutProtectionService.performanceHistory.set(operationName, history);
-      
-      return result;
-    } catch (error) {
-      // On timeout, try with increased timeout
-      if (config.maxRetries > 0) {
-        return TimeoutProtectionService.adaptiveTimeout(
-          operation,
-          operationName,
-          { ...config, maxRetries: config.maxRetries - 1, minTimeout: adaptiveTimeout * 1.5 }
-        );
-      }
-      throw error;
-    }
+    throw error;
   }
 }
+
+// Legacy class wrapper for backward compatibility
+export const TimeoutProtectionService = {
+  basicTimeout,
+  progressiveTimeout,
+  adaptiveTimeout,
+};
 
 // Circuit Breaker Pattern for async operations
 export class CircuitBreakerService {

@@ -23,9 +23,10 @@ This section contains comprehensive code patterns and implementation guides for 
 
 ### Architecture Patterns
 - **[Architecture Patterns](./architecture/)** - System architecture and design patterns
-  - [MVVM](./architecture/mvvm.md) - Model-View-ViewModel architecture with layer separation
-  - [Domain Context](./architecture/domain-context.md) - Document-centric domain separation for multi-domain apps
-  - [Composition](./architecture/composition.md) - Pattern composition strategies for complex applications
+  - [MVVM Pattern](./architecture/mvvm.md) - Model-View-ViewModel architecture with perfect layer separation
+  - [Domain Context Pattern](./architecture/domain-context.md) - Document-centric domain separation for multi-domain apps
+  - [Composition Strategies](./architecture/composition.md) - Advanced pattern composition for complex applications
+  - [Context Splitting Patterns](./architecture/context-splitting.md) - Managing and splitting large contexts for scalability
 
 ### Async Patterns
 - **[Async Patterns](./async/)** - Asynchronous operation patterns and control flow

@@ -1,0 +1,17 @@
+{
+  "documentId": "en_guide_mvvm",
+  "title": "MVVM Architecture",
+  "category": "guide",
+  "language": "en",
+  "priority": 0.5,
+  "tags": [
+    "mermaid",
+    "typescript",
+    "tsx"
+  ],
+  "lastUpdated": "2025-08-24T15:31:16.979Z",
+  "source": {
+    "file": "docs/en/guide/architecture/mvvm.md",
+    "lastModified": "2025-08-24T15:20:53.995Z"
+  }
+}

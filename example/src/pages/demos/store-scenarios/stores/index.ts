@@ -171,37 +171,30 @@ export const StoreScenarios = createDeclarativeStorePattern('StoreScenarios', {
   // With configuration for complex types
   user: {
     initialValue: defaultUser,
-    description: 'User profile and preferences',
     strategy: 'shallow',
   },
   products: {
     initialValue: initialProducts,
-    description: 'Product catalog',
     strategy: 'shallow',
   },
   todos: {
     initialValue: initialTodos,
-    description: 'Todo list items',
     strategy: 'shallow',
   },
   messages: {
     initialValue: initialMessages,
-    description: 'Chat messages',
     strategy: 'shallow',
   },
   formData: {
     initialValue: defaultFormData,
-    description: 'Form wizard data',
     strategy: 'deep',
   },
   settings: {
     initialValue: defaultSettings,
-    description: 'Application settings',
     strategy: 'deep',
   },
   notifications: {
     initialValue: initialNotifications,
-    description: 'System notifications',
     strategy: 'shallow',
   },
 });
