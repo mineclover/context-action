@@ -250,7 +250,7 @@ export class ActionGuard {
     
     /** Iterate through all guard states and clear their timers */
     /** This prevents memory leaks when clearing the entire guard system */
-    for (const [, state] of this.guards) {
+    this.guards.forEach((state) => {
       /** Clear any active debounce timers */
       if (state.debounceTimer) {
         clearTimeout(state.debounceTimer);
@@ -263,7 +263,7 @@ export class ActionGuard {
       if (state.throttleTimer) {
         clearTimeout(state.throttleTimer);
       }
-    }
+    });
     
     /** Remove all guard states from memory */
     this.guards.clear();
