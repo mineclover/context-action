@@ -4,7 +4,7 @@
  * createRefContext 기반 element lifecycle 관리
  */
 
-import React from 'react';
+import React, { useEffect, useCallback, useMemo } from 'react';
 import { createRefContext } from '@context-action/react';
 import { createActionContext, ActionPayloadMap } from '@context-action/react';
 
@@ -101,7 +101,7 @@ function ElementManagerSetup({
   const [selectedElements, setSelectedElements] = React.useState<string[]>([]);
 
   // Focus 핸들러
-  useElementActionHandler('focusElement', React.useCallback(async (payload) => {
+  useElementActionHandler('focusElement', useCallback(async (payload) => {
     const { id } = payload;
     const elements = getAllElementsFn();
     const element = elements[id] as HTMLElement;
@@ -120,7 +120,7 @@ function ElementManagerSetup({
   }, [getAllElementsFn]));
 
   // Selection 핸들러
-  useElementActionHandler('selectElements', React.useCallback(async (payload) => {
+  useElementActionHandler('selectElements', useCallback(async (payload) => {
     const { ids } = payload;
     const elements = getAllElementsFn();
     
@@ -137,13 +137,13 @@ function ElementManagerSetup({
   }, [getAllElementsFn]));
 
   // Selection 클리어 핸들러
-  useElementActionHandler('clearSelection', React.useCallback(async () => {
+  useElementActionHandler('clearSelection', useCallback(async () => {
     setSelectedElements([]);
     console.log('Selection cleared');
   }, []));
 
   // Metadata 업데이트 핸들러
-  useElementActionHandler('updateElementMetadata', React.useCallback(async (payload) => {
+  useElementActionHandler('updateElementMetadata', useCallback(async (payload) => {
     const { id, metadata } = payload;
     const elements = getAllElementsFn();
     const element = elements[id] as HTMLElement;
@@ -159,7 +159,7 @@ function ElementManagerSetup({
   }, [getAllElementsFn]));
 
   // Stale elements 정리 핸들러 - 무한 루프 방지를 위해 제거하거나 단순화
-  useElementActionHandler('cleanupStaleElements', React.useCallback(async () => {
+  useElementActionHandler('cleanupStaleElements', useCallback(async () => {
     try {
       const elements = getAllElementsFn();
       let staleCount = 0;
@@ -180,7 +180,7 @@ function ElementManagerSetup({
   }, [getAllElementsFn]));
 
   // 주기적 정리 작업 - 무한 루프 방지를 위해 임시 비활성화
-  React.useEffect(() => {
+  useEffect(() => {
     if (!enablePeriodicCleanup) return;
 
     // 드래그 드롭 중 무한 루프를 방지하기 위해 주기적 정리 비활성화
@@ -203,7 +203,7 @@ export function useElementManager() {
   const getAllElementsFn = useGetAllElements();
   const dispatch = useElementAction();
   
-  const registerElement = React.useCallback((id: string, element: HTMLElement, type: ElementInfo['type'], metadata?: Record<string, any>) => {
+  const registerElement = useCallback((id: string, element: HTMLElement, type: ElementInfo['type'], metadata?: Record<string, any>) => {
     // Set data attributes
     element.setAttribute('data-element-id', id);
     element.setAttribute('data-element-type', type);
@@ -215,20 +215,20 @@ export function useElementManager() {
     console.log(`Element registered: ${id} (${type})`);
   }, []);
   
-  const unregisterElement = React.useCallback((id: string) => {
+  const unregisterElement = useCallback((id: string) => {
     console.log(`Element unregistered: ${id}`);
   }, []);
   
-  const getElement = React.useCallback((id: string) => {
+  const getElement = useCallback((id: string) => {
     const elements = getAllElementsFn();
     return elements[id] || null;
   }, [getAllElementsFn]);
   
-  const getAllElements = React.useCallback(() => {
+  const getAllElements = useCallback(() => {
     return getAllElementsFn();
   }, [getAllElementsFn]);
   
-  const getElementsByType = React.useCallback((type: ElementInfo['type']) => {
+  const getElementsByType = useCallback((type: ElementInfo['type']) => {
     const elements = getAllElementsFn();
     return Object.entries(elements)
       .filter(([, element]) => {
@@ -238,27 +238,27 @@ export function useElementManager() {
       .map(([id, element]) => ({ id, element: element as HTMLElement }));
   }, [getAllElementsFn]);
   
-  const focusElement = React.useCallback((id: string) => {
+  const focusElement = useCallback((id: string) => {
     return dispatch('focusElement', { id });
   }, [dispatch]);
   
-  const selectElements = React.useCallback((ids: string[]) => {
+  const selectElements = useCallback((ids: string[]) => {
     return dispatch('selectElements', { ids });
   }, [dispatch]);
   
-  const clearSelection = React.useCallback(() => {
+  const clearSelection = useCallback(() => {
     return dispatch('clearSelection');
   }, [dispatch]);
   
-  const updateElementMetadata = React.useCallback((id: string, metadata: Record<string, any>) => {
+  const updateElementMetadata = useCallback((id: string, metadata: Record<string, any>) => {
     return dispatch('updateElementMetadata', { id, metadata });
   }, [dispatch]);
   
-  const cleanupStaleElements = React.useCallback(() => {
+  const cleanupStaleElements = useCallback(() => {
     return dispatch('cleanupStaleElements');
   }, [dispatch]);
   
-  return React.useMemo(() => ({
+  return useMemo(() => ({
     // Element 등록
     registerElement,
     
@@ -310,7 +310,7 @@ export function createTypedElementRef(
   return (id: string) => {
     const elementRef = useElementRef(id);
     
-    React.useEffect(() => {
+    useEffect(() => {
       if (elementRef.target) {
         const element = elementRef.target as HTMLElement;
         element.setAttribute('data-element-type', type);

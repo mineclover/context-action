@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useRef, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useRef, useState, useCallback, ReactNode } from 'react';
 
 // Canvas 도형 타입 정의
 export interface Point {

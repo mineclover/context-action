@@ -11,6 +11,7 @@ import EnhancedAbortableSearchExample from './components/EnhancedAbortableSearch
 import Layout from './components/Layout';
 import { ToastContainer, ToastControlPanel } from './components/ToastSystem';
 import ActionGuardIndexPage from './pages/actionguard/ActionGuardIndexPage';
+import ActionGuardPage from './pages/action-guard/ActionGuardPage';
 import ApiBlockingPage from './pages/actionguard/ApiBlockingPage';
 // import ActionGuardTestPage from './pages/actionguard/dispatch-options-test/DispatchOptionsTestPage';
 import { ContextStoreMouseEventsPage } from './pages/actionguard/ContextStoreMouseEventsPage';
@@ -74,6 +75,7 @@ import AsyncRealtimeStatePage from './pages/async/AsyncRealtimeStatePage';
 import AsyncWaitThenExecutePage from './pages/async/AsyncWaitThenExecutePage';
 import AsyncTimeoutProtectionPage from './pages/async/AsyncTimeoutProtectionPage';
 import ModularArchitectureDemoPage from './pages/ModularArchitectureDemoPage';
+import InteractionMouseEventsPage from './pages/interaction/MouseEventsPage';
 
 // 라우트 변경 시 콘솔 클리어 (개발 환경에서만)
 function ConsoleClearer() {
@@ -125,6 +127,7 @@ function AppContent() {
           <Route path="/async/wait-then-execute" element={<AsyncWaitThenExecutePage />} />
           <Route path="/async/timeout-protection" element={<AsyncTimeoutProtectionPage />} />
           <Route path="/architecture/modular-demo" element={<ModularArchitectureDemoPage />} />
+          <Route path="/interaction/mouse-events" element={<InteractionMouseEventsPage />} />
           <Route path="/react/provider" element={<ReactProviderPage />} />
           <Route path="/react/context" element={<ReactContextPage />} />
           <Route path="/react/hooks" element={<ReactHooksPage />} />
@@ -134,6 +137,7 @@ function AppContent() {
           />
           <Route path="/logger/demo" element={<LoggerDemoPage />} />
           <Route path="/actionguard" element={<ActionGuardIndexPage />} />
+          <Route path="/action-guard" element={<ActionGuardPage />} />
           <Route path="/actionguard/search" element={<SearchPage />} />
           <Route path="/actionguard/scroll" element={<ScrollPage />} />
           <Route

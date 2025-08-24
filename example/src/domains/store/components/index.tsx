@@ -15,7 +15,7 @@ import {
 import { useStorePerformanceTracking, useStoreDebugger } from '../hooks';
 
 // Store Value Display Component
-export function StoreValueDisplay({ 
+export const StoreValueDisplay = React.memo(({ 
   store, 
   storeName, 
   selector,
@@ -27,9 +27,21 @@ export function StoreValueDisplay({
   selector?: (value: any) => any;
   title?: string;
   className?: string;
-}) {
-  const value = useStoreValue(store, selector);
-  const displayTitle = title || `${storeName} Store Value`;
+}) => {
+  const memoizedSelector = React.useCallback(
+    selector || ((v: any) => v), 
+    [selector]
+  );
+  const value = useStoreValue(store, memoizedSelector);
+  const displayTitle = React.useMemo(
+    () => title || `${storeName} Store Value`,
+    [title, storeName]
+  );
+
+  const jsonValue = React.useMemo(
+    () => JSON.stringify(value, null, 2),
+    [value]
+  );
 
   return (
     <div className={`p-4 bg-gray-50 rounded-lg ${className}`}>
@@ -38,14 +50,22 @@ export function StoreValueDisplay({
         <PatternBadge type="store" difficulty="beginner" />
       </div>
       <pre className="bg-white p-3 rounded border text-sm overflow-auto">
-        {JSON.stringify(value, null, 2)}
+        {jsonValue}
       </pre>
     </div>
   );
-}
+});
+
+// Memoized button variant styles
+const BUTTON_VARIANTS = {
+  primary: 'bg-blue-600 text-white hover:bg-blue-700',
+  danger: 'bg-red-600 text-white hover:bg-red-700',
+  outline: 'border border-gray-300 text-gray-700 hover:bg-gray-50',
+  secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+} as const;
 
 // Store Update Controls Component
-export function StoreUpdateControls({
+export const StoreUpdateControls = React.memo(({
   store,
   storeName,
   actions,
@@ -59,23 +79,19 @@ export function StoreUpdateControls({
     variant?: 'primary' | 'secondary' | 'outline' | 'danger';
   }>;
   className?: string;
-}) {
+}) => {
+  const titleText = React.useMemo(() => `${storeName} Actions`, [storeName]);
+
   return (
     <div className={`space-y-3 ${className}`}>
-      <h4 className="font-semibold text-gray-800">{storeName} Actions</h4>
+      <h4 className="font-semibold text-gray-800">{titleText}</h4>
       <div className="flex flex-wrap gap-2">
         {actions.map((actionItem, index) => (
           <button
             key={index}
             onClick={actionItem.action}
             className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-              actionItem.variant === 'primary' 
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : actionItem.variant === 'danger'
-                ? 'bg-red-600 text-white hover:bg-red-700'
-                : actionItem.variant === 'outline'
-                ? 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-                : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+              BUTTON_VARIANTS[actionItem.variant || 'secondary']
             }`}
           >
             {actionItem.label}
@@ -84,10 +100,10 @@ export function StoreUpdateControls({
       </div>
     </div>
   );
-}
+});
 
 // Store Performance Monitor Component
-export function StorePerformanceMonitor({
+export const StorePerformanceMonitor = React.memo(({
   store,
   storeName,
   enabled = true,
@@ -97,9 +113,17 @@ export function StorePerformanceMonitor({
   storeName: string;
   enabled?: boolean;
   className?: string;
-}) {
+}) => {
   const { updateCount, getMetrics, resetMetrics } = useStorePerformanceTracking(storeName, store);
   const metrics = getMetrics();
+
+  const metricsData = React.useMemo(() => ({
+    'Updates': updateCount,
+    'Avg Duration': metrics ? `${metrics.avgResponseTime.toFixed(2)}ms` : 'N/A',
+    'Total Duration': metrics ? `${(metrics.duration || 0).toFixed(2)}ms` : 'N/A',
+    'Operations': metrics?.operations || 0,
+    'Errors': metrics?.errors || 0
+  }), [updateCount, metrics]);
 
   if (!enabled) {
     return (
@@ -125,17 +149,11 @@ export function StorePerformanceMonitor({
       
       <MetricsDisplay
         title="Store Metrics"
-        metrics={{
-          'Updates': updateCount,
-          'Avg Duration': metrics ? `${metrics.avgResponseTime.toFixed(2)}ms` : 'N/A',
-          'Total Duration': metrics ? `${(metrics.duration || 0).toFixed(2)}ms` : 'N/A',
-          'Operations': metrics?.operations || 0,
-          'Errors': metrics?.errors || 0
-        }}
+        metrics={metricsData}
       />
     </div>
   );
-}
+});
 
 // Store Debugger Component
 export function StoreDebugger({
@@ -254,7 +272,7 @@ export function StoreDebugger({
 }
 
 // Store Pattern Demo Container
-export function StorePatternDemo({
+export const StorePatternDemo = React.memo(({
   title,
   description,
   store,
@@ -280,7 +298,10 @@ export function StorePatternDemo({
   codeExample?: string;
   children?: React.ReactNode;
   className?: string;
-}) {
+}) => {
+  const stateTitle = React.useMemo(() => `${title} - Current State`, [title]);
+  const showMonitoringSection = showPerformanceMonitor || showDebugger;
+
   return (
     <DemoCard title={title} className={className}>
       <div className="space-y-6">
@@ -296,7 +317,7 @@ export function StorePatternDemo({
           <StoreValueDisplay 
             store={store} 
             storeName={storeName}
-            title={`${title} - Current State`}
+            title={stateTitle}
           />
           <StoreUpdateControls 
             store={store} 
@@ -305,7 +326,7 @@ export function StorePatternDemo({
           />
         </div>
 
-        {(showPerformanceMonitor || showDebugger) && (
+        {showMonitoringSection && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {showPerformanceMonitor && (
               <StorePerformanceMonitor store={store} storeName={storeName} />
@@ -324,7 +345,7 @@ export function StorePatternDemo({
       </div>
     </DemoCard>
   );
-}
+});
 
 // Store Comparison Component
 export function StoreComparison({

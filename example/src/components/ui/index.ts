@@ -25,6 +25,9 @@ export { Container } from './Container';
 export { DemoCard } from './DemoCard';
 export { Grid } from './Grid';
 export { Input, Textarea } from './Input';
+export { Label } from './Label';
+// Re-export from shared components for compatibility
+export { Section } from '../../domains/shared/components';
 export {
   ActionPatternBadge,
   ContextPatternBadge,

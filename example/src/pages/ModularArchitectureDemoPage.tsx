@@ -44,13 +44,13 @@ import { LoggerService } from '../domains/shared/services';
 // MVVM Architecture Demonstration Components
 
 // Model Layer (Store Domain)
-function ModelLayerDemo() {
+const ModelLayerDemo = React.memo(() => {
   const userStore = StoreContexts.DemoUser.useStore('profile');
   const settingsStore = StoreContexts.DemoUser.useStore('settings');
   const user = useStoreValue(userStore);
   const settings = useStoreValue(settingsStore);
 
-  const actions = [
+  const actions = React.useMemo(() => [
     {
       label: 'Update Name',
       action: () => userStore.update((prev: any) => ({ ...prev, name: 'Updated User' })),
@@ -69,7 +69,7 @@ function ModelLayerDemo() {
       action: () => userStore.reset(),
       variant: 'outline' as const
     }
-  ];
+  ], [userStore, settingsStore]);
 
   return (
     <Section title="Model Layer (Data Management)">
@@ -107,10 +107,10 @@ const user = useStoreValue(userStore);`}
       </div>
     </Section>
   );
-}
+});
 
 // ViewModel Layer (Action Domain)  
-function ViewModelLayerDemo() {
+const ViewModelLayerDemo = React.memo(() => {
   const logger = useActionLoggerWithToast();
   const dispatchUserActions = ActionContexts.DemoUser.useActionDispatch();
   const dispatchShoppingActions = ActionContexts.DemoShopping.useActionDispatch();
@@ -213,10 +213,10 @@ await dispatch('updateProfile', { field: 'name', value: 'New Name' });`}
       </div>
     </Section>
   );
-}
+});
 
 // View Layer (React Components)
-function ViewLayerDemo() {
+const ViewLayerDemo = React.memo(() => {
   const userStore = StoreContexts.DemoUser.useStore('profile');
   const settingsStore = StoreContexts.DemoUser.useStore('settings');
   const user = useStoreValue(userStore);
@@ -283,10 +283,10 @@ function UserProfileView() {
       </div>
     </Section>
   );
-}
+});
 
 // Cross-Domain Integration Demo
-function CrossDomainIntegrationDemo() {
+const CrossDomainIntegrationDemo = React.memo(() => {
   return (
     <Section title="Cross-Domain Integration">
       <div className="space-y-6">
@@ -332,10 +332,10 @@ function IntegratedComponent() {
       </div>
     </Section>
   );
-}
+});
 
 // Main Demo Component
-function ModularArchitectureDemoContent() {
+const ModularArchitectureDemoContent = React.memo(() => {
   const logger = LoggerService.getInstance();
   
   useEffect(() => {
@@ -442,15 +442,15 @@ src/domains/
       </ActionContexts.DemoUser.Provider>
     </StoreContexts.DemoUser.Provider>
   );
-}
+});
 
 // Page with monitoring
-function ModularArchitectureDemoPage() {
+const ModularArchitectureDemoPage = React.memo(() => {
   return (
     <PageWithLogMonitor>
       <ModularArchitectureDemoContent />
     </PageWithLogMonitor>
   );
-}
+});
 
 export default ModularArchitectureDemoPage;

@@ -215,7 +215,7 @@ export function useCanvasDrawing() {
         if (shape.points) {
           for (const shapePoint of shape.points) {
             const distance = Math.sqrt(
-              Math.pow(point.x - shapePoint.x, 2) + Math.pow(point.y - shapePoint.y, 2)
+              (point.x - shapePoint.x) ** 2 + (point.y - shapePoint.y) ** 2
             );
             if (distance <= shape.strokeWidth + 5) {
               return shape;

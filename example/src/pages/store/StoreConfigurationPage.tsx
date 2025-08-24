@@ -122,8 +122,8 @@ const {
       customComparator: (oldCoords, newCoords) => {
         // Only re-render if movement is significant (>5px)
         const distance = Math.sqrt(
-          Math.pow(newCoords.x - oldCoords.x, 2) + 
-          Math.pow(newCoords.y - oldCoords.y, 2)
+          (newCoords.x - oldCoords.x) ** 2 + 
+          (newCoords.y - oldCoords.y) ** 2
         );
         return distance < 5;
       }
@@ -468,7 +468,7 @@ function CustomComparatorDemo() {
     
     const updateCoordinates = (x: number, y: number) => {
       coordinatesStore.setValue({ x, y });
-      const distance = Math.sqrt(Math.pow(x - coordinates.x, 2) + Math.pow(y - coordinates.y, 2));
+      const distance = Math.sqrt((x - coordinates.x) ** 2 + (y - coordinates.y) ** 2);
       logger.info('📍 Coordinates updated', { 
         x, y, 
         distance: distance.toFixed(2),

@@ -1,11 +1,10 @@
 import {
   createDeclarativeStorePattern,
   createStore,
-  useStoreSelector,
+  useMultiStoreSelector,
   useStoreValue,
 } from '@context-action/react';
-import type React from 'react';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import {
   PageWithLogMonitor,
   useActionLoggerWithToast,
@@ -65,25 +64,34 @@ const {
 function BasicMultiStoreDemo() {
   const logger = useActionLoggerWithToast();
   
-  // Select from multiple stores
-  const combinedData = useStoreSelector({
-    user: userStore,
-    settings: settingsStore,
-    cart: cartStore
-  }, {
-    user: user => {
-      logger.info('🔍 User selector called', { name: user.name, email: user.email });
-      return { name: user.name, email: user.email };
+  // Memoized selector to avoid unnecessary recalculations
+  const combinedDataSelector = useCallback(
+    ([user, settings, cart]: [
+      ReturnType<typeof userStore.getValue>,
+      ReturnType<typeof settingsStore.getValue>,
+      ReturnType<typeof cartStore.getValue>
+    ]) => {
+      return {
+        user: { name: user.name, email: user.email },
+        settings: settings.theme,
+        cart: cart.items.length
+      };
     },
-    settings: settings => {
-      logger.info('🔍 Settings selector called', { theme: settings.theme });
-      return settings.theme;
-    },
-    cart: cart => {
-      logger.info('🔍 Cart selector called', { itemCount: cart.items.length });
-      return cart.items.length;
-    }
-  });
+    []
+  );
+  
+  // Select from multiple stores - selector must be pure (no side effects)
+  const combinedData = useMultiStoreSelector(
+    [userStore, settingsStore, cartStore],
+    combinedDataSelector
+  );
+
+  // Log selector results safely outside of selector
+  useEffect(() => {
+    logger.logSystem('🔍 User selector result');
+    logger.logSystem('🔍 Settings selector result');
+    logger.logSystem('🔍 Cart selector result');
+  }, [logger, combinedData]);
 
   const updateUserName = () => {
     userStore.setValue(prev => ({
@@ -149,15 +157,14 @@ function BasicMultiStoreDemo() {
         </div>
 
         <CodeExample>
-{`const combinedData = useStoreSelector({
-  user: userStore,
-  settings: settingsStore,
-  cart: cartStore
-}, {
-  user: user => ({ name: user.name, email: user.email }),
-  settings: settings => settings.theme,
-  cart: cart => cart.items.length
-});`}
+{`const combinedData = useMultiStoreSelector(
+  [userStore, settingsStore, cartStore],
+  ([user, settings, cart]) => ({
+    user: { name: user.name, email: user.email },
+    settings: settings.theme,
+    cart: cart.items.length
+  })
+);`}
         </CodeExample>
       </div>
     </DemoCard>
@@ -168,37 +175,46 @@ function BasicMultiStoreDemo() {
 function DashboardAggregationDemo() {
   const logger = useActionLoggerWithToast();
   
-  const dashboardData = useStoreSelector({
-    user: userStore,
-    cart: cartStore,
-    settings: settingsStore
-  }, {
-    user: user => {
-      logger.info('🔍 Dashboard user selector', { name: user.name, role: user.role });
+  // Memoized selector for dashboard data aggregation
+  const dashboardSelector = useCallback(
+    ([user, cart, settings]: [
+      ReturnType<typeof userStore.getValue>,
+      ReturnType<typeof cartStore.getValue>,
+      ReturnType<typeof settingsStore.getValue>
+    ]) => {
       return {
-        name: user.name,
-        role: user.role,
-        isPremium: user.membership === 'premium',
-        score: user.score
+        user: {
+          name: user.name,
+          role: user.role,
+          isPremium: user.membership === 'premium',
+          score: user.score
+        },
+        cart: {
+          totalItems: cart.items.length,
+          totalValue: cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+          isEmpty: cart.items.length === 0
+        },
+        settings: {
+          isDarkMode: settings.theme === 'dark',
+          language: settings.language,
+          hasNotifications: settings.notifications
+        }
       };
     },
-    cart: cart => {
-      logger.info('🔍 Dashboard cart selector', { itemCount: cart.items.length });
-      return {
-        totalItems: cart.items.length,
-        totalValue: cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
-        isEmpty: cart.items.length === 0
-      };
-    },
-    settings: settings => {
-      logger.info('🔍 Dashboard settings selector', { theme: settings.theme });
-      return {
-        isDarkMode: settings.theme === 'dark',
-        language: settings.language,
-        hasNotifications: settings.notifications
-      };
-    }
-  });
+    []
+  );
+  
+  const dashboardData = useMultiStoreSelector(
+    [userStore, cartStore, settingsStore],
+    dashboardSelector
+  );
+
+  // Log dashboard data changes safely outside of selector
+  useEffect(() => {
+    logger.logSystem('🔍 Dashboard user selector');
+    logger.logSystem('🔍 Dashboard cart selector');
+    logger.logSystem('🔍 Dashboard settings selector');
+  }, [logger, dashboardData]);
 
   return (
     <DemoCard title="Dashboard Data Aggregation">
@@ -243,29 +259,28 @@ function DashboardAggregationDemo() {
         </div>
 
         <CodeExample>
-{`const dashboardData = useStoreSelector({
-  user: userStore,
-  cart: cartStore,
-  settings: settingsStore
-}, {
-  user: user => ({
-    name: user.name,
-    role: user.role,
-    isPremium: user.membership === 'premium',
-    score: user.score
-  }),
-  cart: cart => ({
-    totalItems: cart.items.length,
-    totalValue: cart.items.reduce((sum, item) => 
-      sum + (item.price * item.quantity), 0),
-    isEmpty: cart.items.length === 0
-  }),
-  settings: settings => ({
-    isDarkMode: settings.theme === 'dark',
-    language: settings.language,
-    hasNotifications: settings.notifications
+{`const dashboardData = useMultiStoreSelector(
+  [userStore, cartStore, settingsStore],
+  ([user, cart, settings]) => ({
+    user: {
+      name: user.name,
+      role: user.role,
+      isPremium: user.membership === 'premium',
+      score: user.score
+    },
+    cart: {
+      totalItems: cart.items.length,
+      totalValue: cart.items.reduce((sum, item) => 
+        sum + (item.price * item.quantity), 0),
+      isEmpty: cart.items.length === 0
+    },
+    settings: {
+      isDarkMode: settings.theme === 'dark',
+      language: settings.language,
+      hasNotifications: settings.notifications
+    }
   })
-});`}
+);`}
         </CodeExample>
       </div>
     </DemoCard>
@@ -276,31 +291,44 @@ function DashboardAggregationDemo() {
 function CartSummaryDemo() {
   const logger = useActionLoggerWithToast();
   
-  const cartSummary = useStoreSelector({
-    cart: cartStore,
-    user: userStore,
-    discount: discountStore,
-    shipping: shippingStore
-  }, {
-    cart: cart => {
-      logger.info('🔍 Cart summary selector', { subtotal: cart.subtotal });
+  // Memoized selector for cart summary calculation
+  const cartSummarySelector = useCallback(
+    ([cart, user, discount, shipping]: [
+      ReturnType<typeof cartStore.getValue>,
+      ReturnType<typeof userStore.getValue>,
+      ReturnType<typeof discountStore.getValue>,
+      ReturnType<typeof shippingStore.getValue>
+    ]) => {
       return {
-        items: cart.items,
-        subtotal: cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+        cart: {
+          items: cart.items,
+          subtotal: cart.items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+        },
+        user: {
+          isPremium: user.membership === 'premium'
+        },
+        discount: {
+          code: discount.active?.code,
+          amount: discount.active?.amount || 0
+        },
+        shipping: {
+          method: shipping.method,
+          cost: shipping.cost
+        }
       };
     },
-    user: user => ({
-      isPremium: user.membership === 'premium'
-    }),
-    discount: discount => ({
-      code: discount.active?.code,
-      amount: discount.active?.amount || 0
-    }),
-    shipping: shipping => ({
-      method: shipping.method,
-      cost: shipping.cost
-    })
-  });
+    []
+  );
+  
+  const cartSummary = useMultiStoreSelector(
+    [cartStore, userStore, discountStore, shippingStore],
+    cartSummarySelector
+  );
+
+  // Log cart summary changes safely outside of selector
+  useEffect(() => {
+    logger.logSystem('🔍 Cart summary selector');
+  }, [logger, cartSummary.cart.subtotal]);
 
   const total = cartSummary.cart.subtotal - 
                 cartSummary.discount.amount + 
@@ -370,27 +398,25 @@ function CartSummaryDemo() {
         </div>
 
         <CodeExample>
-{`const cartSummary = useStoreSelector({
-  cart: cartStore,
-  user: userStore,
-  discount: discountStore,
-  shipping: shippingStore
-}, {
-  cart: cart => ({
-    items: cart.items,
-    subtotal: cart.items.reduce((sum, item) => 
-      sum + (item.price * item.quantity), 0)
-  }),
-  user: user => ({ isPremium: user.membership === 'premium' }),
-  discount: discount => ({
-    code: discount.active?.code,
-    amount: discount.active?.amount || 0
-  }),
-  shipping: shipping => ({
-    method: shipping.method,
-    cost: shipping.cost
+{`const cartSummary = useMultiStoreSelector(
+  [cartStore, userStore, discountStore, shippingStore],
+  ([cart, user, discount, shipping]) => ({
+    cart: {
+      items: cart.items,
+      subtotal: cart.items.reduce((sum, item) => 
+        sum + (item.price * item.quantity), 0)
+    },
+    user: { isPremium: user.membership === 'premium' },
+    discount: {
+      code: discount.active?.code,
+      amount: discount.active?.amount || 0
+    },
+    shipping: {
+      method: shipping.method,
+      cost: shipping.cost
+    }
   })
-});
+);
 
 const total = cartSummary.cart.subtotal - 
               cartSummary.discount.amount + 
@@ -405,14 +431,14 @@ const total = cartSummary.cart.subtotal -
 function MemoizedSelectorsDemo() {
   const logger = useActionLoggerWithToast();
   
-  const memoizedSelectors = useStoreSelector({
-    user: userStore,
-    settings: settingsStore
-  }, useCallback((stores) => ({
-    user: stores.user.name,
-    settings: stores.settings.theme,
-    computed: `${stores.user.name} prefers ${stores.settings.theme} theme`
-  }), []));
+  const memoizedSelectors = useMultiStoreSelector(
+    [userStore, settingsStore],
+    useCallback(([user, settings]) => ({
+      user: user.name,
+      settings: settings.theme,
+      computed: `${user.name} prefers ${settings.theme} theme`
+    }), [])
+  );
 
   return (
     <DemoCard title="Memoized Selectors">
@@ -426,16 +452,16 @@ function MemoizedSelectorsDemo() {
         </div>
 
         <CodeExample>
-{`const memoizedSelector = useCallback((stores) => ({
-  user: stores.user.name,
-  settings: stores.settings.theme,
-  computed: \`\${stores.user.name} prefers \${stores.settings.theme} theme\`
+{`const memoizedSelector = useCallback(([user, settings]) => ({
+  user: user.name,
+  settings: settings.theme,
+  computed: \`\${user.name} prefers \${settings.theme} theme\`
 }), []);
 
-const data = useStoreSelector({
-  user: userStore,
-  settings: settingsStore
-}, memoizedSelector);`}
+const data = useMultiStoreSelector(
+  [userStore, settingsStore],
+  memoizedSelector
+);`}
         </CodeExample>
       </div>
     </DemoCard>
@@ -453,7 +479,7 @@ function UseStoreSelectorPatternsPage() {
               useStoreSelector Patterns
             </h1>
             <p className="text-lg text-gray-600 max-w-3xl">
-              Multiple store selection patterns with useStoreSelector for combining and 
+              Multiple store selection patterns with useMultiStoreSelector for combining and 
               transforming data from multiple stores.
             </p>
           </div>

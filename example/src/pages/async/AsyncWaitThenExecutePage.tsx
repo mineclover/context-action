@@ -1,6 +1,6 @@
-import React, { useCallback, useState, useRef } from 'react';
+import { useCallback, useState, useRef } from 'react';
 import { createDeclarativeStorePattern, createActionContext, createRefContext } from '@context-action/react';
-import { LogMonitorProvider, useLogMonitor } from '../logger/LogMonitorProvider';
+import { LogMonitorProvider, useLogMonitor } from '../../components/LogMonitor';
 
 // Define action types for wait-then-execute demonstrations
 interface WaitExecuteActions {
@@ -304,7 +304,7 @@ function AnimationSequenceDemo() {
           }, 600);
           break;
           
-        case 'shake':
+        case 'shake': {
           let iterations = 0;
           const shakeInterval = setInterval(() => {
             if (element && iterations < 6) {
@@ -317,6 +317,7 @@ function AnimationSequenceDemo() {
             }
           }, 100);
           break;
+        }
       }
       
       log(`✅ Animation ${payload.animation} applied successfully`);
@@ -425,7 +426,7 @@ function MultiElementCoordinationDemo() {
       
       if (source && target) {
         switch (payload.operation) {
-          case 'transfer':
+          case 'transfer': {
             // Transfer data from source to target
             const sourceText = source.textContent || '';
             target.textContent = `Received: ${sourceText}`;
@@ -443,8 +444,9 @@ function MultiElementCoordinationDemo() {
               }
             }, 500);
             break;
+          }
             
-          case 'synchronize':
+          case 'synchronize': {
             // Synchronize both elements
             const timestamp = new Date().toLocaleTimeString();
             source.textContent = `Sync: ${timestamp}`;
@@ -464,6 +466,7 @@ function MultiElementCoordinationDemo() {
               }, 300);
             });
             break;
+          }
             
           case 'chain':
             // Chain reaction effect
@@ -988,7 +991,7 @@ function ModalOperationsDemo() {
       log(`🎭 Modal operation: ${payload.action}`);
       
       switch (payload.action) {
-        case 'open':
+        case 'open': {
           setIsModalOpen(true);
           
           // Wait for modal to be mounted
@@ -1010,8 +1013,9 @@ function ModalOperationsDemo() {
             log('✅ Modal opened and animated in');
           }
           break;
+        }
           
-        case 'focus':
+        case 'focus': {
           // Wait for modal input to be available
           await waitForRefs('modalInput');
           
@@ -1022,8 +1026,9 @@ function ModalOperationsDemo() {
             log('✅ Modal input focused');
           }
           break;
+        }
           
-        case 'close':
+        case 'close': {
           const modalToClose = modalElementRef.target;
           if (modalToClose) {
             modalToClose.style.opacity = '0';
@@ -1038,6 +1043,7 @@ function ModalOperationsDemo() {
             }, 300);
           }
           break;
+        }
       }
       
     } catch (error) {

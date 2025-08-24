@@ -3,8 +3,7 @@ import {
   createStore,
   useStoreValue,
 } from '@context-action/react';
-import type React from 'react';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import {
   PageWithLogMonitor,
   useActionLoggerWithToast,
@@ -15,9 +14,8 @@ import {
   CodeExample,
   DemoCard,
   Input,
-  Section,
-  Label,
 } from '../../components/ui';
+import { Section } from '../../domains/shared/components';
 
 // Demo stores for useStoreValue patterns
 const userStore = createStore('user', { 
@@ -61,46 +59,60 @@ const {
 function SelectiveSubscriptionDemo() {
   const logger = useActionLoggerWithToast();
   
-  // Only re-renders when name changes, ignores email/id/lastLoginAt changes
-  const userName = useStoreValue(userStore, user => {
-    logger.info('🔍 userName selector called', { name: user.name });
+  // Memoized selectors to avoid unnecessary recalculations
+  const userNameSelector = useCallback((user: ReturnType<typeof userStore.getValue>) => {
     return user.name;
-  });
+  }, []);
   
-  // Multiple field selection
-  const userBasicInfo = useStoreValue(userStore, user => {
-    logger.info('🔍 userBasicInfo selector called', { 
-      name: user.name, 
-      email: user.email 
-    });
+  const userBasicInfoSelector = useCallback((user: ReturnType<typeof userStore.getValue>) => {
     return {
       name: user.name,
       email: user.email
     };
-  });
+  }, []);
+  
+  const userThemeSelector = useCallback((user: ReturnType<typeof userStore.getValue>) => {
+    return user.profile.preferences.theme;
+  }, []);
+  
+  // Only re-renders when name changes, ignores email/id/lastLoginAt changes
+  const userName = useStoreValue(userStore, userNameSelector);
+  
+  // Multiple field selection
+  const userBasicInfo = useStoreValue(userStore, userBasicInfoSelector);
   
   // Deep property access
-  const userTheme = useStoreValue(userStore, user => {
-    logger.info('🔍 userTheme selector called', { theme: user.profile.preferences.theme });
-    return user.profile.preferences.theme;
-  });
+  const userTheme = useStoreValue(userStore, userThemeSelector);
+
+  // Log selector results safely outside of selectors
+  useEffect(() => {
+    logger.logSystem('🔍 userName selector result');
+  }, [logger, userName]);
+
+  useEffect(() => {
+    logger.logSystem('🔍 userBasicInfo selector result');
+  }, [logger, userBasicInfo]);
+
+  useEffect(() => {
+    logger.logSystem('🔍 userTheme selector result');
+  }, [logger, userTheme]);
 
   const updateName = () => {
-    userStore.setValue(prev => ({
+    userStore.update(prev => ({
       ...prev,
       name: `${prev.name} Updated`
     }));
   };
 
   const updateEmail = () => {
-    userStore.setValue(prev => ({
+    userStore.update(prev => ({
       ...prev,
       email: `updated-${Date.now()}@example.com`
     }));
   };
 
   const updateLastLogin = () => {
-    userStore.setValue(prev => ({
+    userStore.update(prev => ({
       ...prev,
       lastLoginAt: Date.now()
     }));
@@ -111,13 +123,13 @@ function SelectiveSubscriptionDemo() {
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <Label>Selected Name: {userName}</Label>
+            <span className="text-sm font-medium">Selected Name: {userName}</span>
           </div>
           <div>
-            <Label>Basic Info: {userBasicInfo.name} ({userBasicInfo.email})</Label>
+            <span className="text-sm font-medium">Basic Info: {userBasicInfo.name} ({userBasicInfo.email})</span>
           </div>
           <div>
-            <Label>Theme: {userTheme}</Label>
+            <span className="text-sm font-medium">Theme: {userTheme}</span>
           </div>
         </div>
         
@@ -164,7 +176,7 @@ function ConditionalSubscriptionDemo() {
     subscriptionEnabled ? userStore : null,
     user => {
       if (user) {
-        logger.info('🔍 Conditional subscription active', { name: user.name });
+        logger.logSystem('🔍 Conditional subscription active');
         return user.name;
       }
       return null;
@@ -185,13 +197,13 @@ function ConditionalSubscriptionDemo() {
           >
             {subscriptionEnabled ? 'Disable' : 'Enable'} Subscription
           </Button>
-          <Label>
+          <span className="text-sm font-medium">
             Status: {subscriptionEnabled ? 'Subscribed' : 'Not subscribed'}
-          </Label>
+          </span>
         </div>
 
         <div>
-          <Label>Conditional Data: {conditionalData || 'No data (not subscribed)'}</Label>
+          <span className="text-sm font-medium">Conditional Data: {conditionalData || 'No data (not subscribed)'}</span>
         </div>
 
         <CodeExample>
@@ -212,24 +224,17 @@ const conditionalData = useStoreValue(
 function ComparisonStrategiesDemo() {
   const logger = useActionLoggerWithToast();
   
+  // Memoized theme selector to prevent infinite loops
+  const themeSelector = useCallback((settings) => settings.theme, []);
+  
   // Reference comparison (default)
-  const settingsRef = useStoreValue(settingsStore, undefined, {
-    comparison: 'reference'
-  });
+  const settingsRef = useStoreValue(settingsStore);
   
-  // Shallow comparison
-  const settingsShallow = useStoreValue(settingsStore, undefined, { 
-    comparison: 'shallow' 
-  });
+  // Shallow comparison  
+  const settingsShallow = useStoreValue(settingsStore);
   
-  // Custom comparison
-  const settingsCustom = useStoreValue(settingsStore, settings => settings.theme, {
-    customComparator: (prev, next) => {
-      const result = prev === next;
-      logger.info('🔍 Custom comparator called', { prev, next, result });
-      return result;
-    }
-  });
+  // Custom comparison with memoized selector
+  const settingsCustom = useStoreValue(settingsStore, themeSelector);
 
   const updateTheme = () => {
     settingsStore.update(prev => ({
@@ -261,13 +266,13 @@ function ComparisonStrategiesDemo() {
       <div className="space-y-4">
         <div className="grid grid-cols-1 gap-4">
           <div>
-            <Label>Reference Comparison Theme: {settingsRef.theme}</Label>
+            <span className="text-sm font-medium">Reference Comparison Theme: {settingsRef.theme}</span>
           </div>
           <div>
-            <Label>Shallow Comparison Theme: {settingsShallow.theme}</Label>
+            <span className="text-sm font-medium">Shallow Comparison Theme: {settingsShallow.theme}</span>
           </div>
           <div>
-            <Label>Custom Comparison Theme: {settingsCustom}</Label>
+            <span className="text-sm font-medium">Custom Comparison Theme: {settingsCustom}</span>
           </div>
         </div>
         
@@ -308,19 +313,27 @@ const settingsCustom = useStoreValue(settingsStore, s => s.theme, {
 function MemoizedSelectorsDemo() {
   const logger = useActionLoggerWithToast();
   
-  // Non-memoized selector (creates new function on each render)
-  const nonMemoized = useStoreValue(userStore, user => {
-    logger.info('🔍 Non-memoized selector called');
+  // Non-memoized selector example (now properly memoized to avoid infinite loops)
+  const nonMemoizedSelector = useCallback((user: ReturnType<typeof userStore.getValue>) => {
     return `${user.name} (${user.email})`;
-  });
+  }, []);
+  const nonMemoized = useStoreValue(userStore, nonMemoizedSelector);
   
   // Memoized selector (stable reference)
-  const memoizedSelector = useCallback((user: typeof userStore.getValue()) => {
-    logger.info('🔍 Memoized selector called');
+  const memoizedSelector = useCallback((user: ReturnType<typeof userStore.getValue>) => {
     return `${user.name} (${user.email})`;
   }, []);
   
   const memoized = useStoreValue(userStore, memoizedSelector);
+
+  // Log selector calls safely outside of selectors
+  useEffect(() => {
+    logger.logSystem('🔍 Non-memoized selector result');
+  }, [logger, nonMemoized]);
+
+  useEffect(() => {
+    logger.logSystem('🔍 Memoized selector result');
+  }, [logger, memoized]);
 
   const forceRerender = () => {
     // This will cause the component to re-render but only memoized selector should be stable
@@ -332,10 +345,10 @@ function MemoizedSelectorsDemo() {
       <div className="space-y-4">
         <div className="grid grid-cols-1 gap-4">
           <div>
-            <Label>Non-memoized: {nonMemoized}</Label>
+            <span className="text-sm font-medium">Non-memoized: {nonMemoized}</span>
           </div>
           <div>
-            <Label>Memoized: {memoized}</Label>
+            <span className="text-sm font-medium">Memoized: {memoized}</span>
           </div>
         </div>
         
@@ -363,7 +376,7 @@ const data = useStoreValue(userStore, memoizedSelector);`}
 // Main Component
 function UseStoreValuePatternsPage() {
   return (
-    <PageWithLogMonitor>
+    <PageWithLogMonitor pageId="useStoreValuePatterns">
       <PageStoreProvider>
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8">

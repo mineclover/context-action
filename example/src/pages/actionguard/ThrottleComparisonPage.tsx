@@ -3,7 +3,7 @@
  * Context-Action framework의 스로틀링 및 디바운싱 성능 비교 데모
  */
 
-import React, { useCallback, useState, useEffect, useRef } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import { PageWithLogMonitor } from '../../components/LogMonitor';
 import { createActionContext } from '@context-action/react';
 import { Badge, Card, CardContent } from '../../components/ui';

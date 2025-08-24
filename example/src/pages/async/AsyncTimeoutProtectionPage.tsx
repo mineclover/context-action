@@ -1,6 +1,6 @@
-import React, { useCallback, useState, useRef } from 'react';
-import { createDeclarativeStorePattern, createActionContext, createRefContext } from '@context-action/react';
-import { LogMonitorProvider, useLogMonitor } from '../logger/LogMonitorProvider';
+import { useCallback, useState, useEffect } from 'react';
+import { createDeclarativeStorePattern, createActionContext, createRefContext, useStoreValue } from '@context-action/react';
+import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor';
 
 // Define action types for timeout protection demonstrations
 interface TimeoutActions {
@@ -76,6 +76,136 @@ const {
   useWaitForRefs
 } = createRefContext<TimeoutRefs>('TimeoutRefs');
 
+// Timeout Services - Modular approach
+class TimeoutService {
+  private stores: any;
+  private logger: any;
+  
+  constructor(stores: any, logger: any) {
+    this.stores = stores;
+    this.logger = logger;
+  }
+  
+  // 기본 타임아웃 로직
+  async executeBasicTimeout(elementKey: string, timeout: number, waitForRefs: any, elementRefs: any) {
+    const startTime = performance.now();
+    const timeoutStatsStore = this.stores.useTimeoutStore('timeoutStats');
+    const operationMetricsStore = this.stores.useTimeoutStore('operationMetrics');
+    
+    try {
+      this.logger.logSystem(`⏳ Basic timeout: ${elementKey} (${timeout}ms)`);
+      
+      // Update attempt count
+      const stats = timeoutStatsStore.getValue();
+      timeoutStatsStore.setValue({ ...stats, totalAttempts: stats.totalAttempts + 1 });
+      
+      // Execute with timeout
+      await Promise.race([
+        waitForRefs(elementKey),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), timeout))
+      ]);
+      
+      const duration = performance.now() - startTime;
+      this.recordSuccess(elementKey, duration, 'basic', elementRefs);
+      
+    } catch (error) {
+      const duration = performance.now() - startTime;
+      this.recordFailure(elementKey, duration, 'basic', timeout, elementRefs);
+      throw error;
+    }
+  }
+  
+  // 성공 기록
+  private recordSuccess(elementKey: string, duration: number, strategy: string, elementRefs: any) {
+    this.logger.logSystem(`✅ ${elementKey} succeeded in ${Math.round(duration)}ms`);
+    
+    const timeoutStatsStore = this.stores.useTimeoutStore('timeoutStats');
+    const operationMetricsStore = this.stores.useTimeoutStore('operationMetrics');
+    
+    // Update stats
+    const stats = timeoutStatsStore.getValue();
+    timeoutStatsStore.setValue({
+      ...stats,
+      successCount: stats.successCount + 1,
+      averageResponseTime: Math.round(
+        (stats.averageResponseTime * stats.successCount + duration) / (stats.successCount + 1)
+      )
+    });
+    
+    // Update visual feedback
+    this.updateElementVisual(elementKey, 'success', Math.round(duration), elementRefs);
+    
+    // Record metrics
+    const metrics = operationMetricsStore.getValue();
+    operationMetricsStore.setValue([
+      ...metrics,
+      {
+        operation: 'timeout',
+        elementKey,
+        duration: Math.round(duration),
+        success: true,
+        timestamp: Date.now(),
+        strategy
+      }
+    ]);
+  }
+  
+  // 실패 기록
+  private recordFailure(elementKey: string, duration: number, strategy: string, timeout: number, elementRefs: any) {
+    this.logger.logSystem(`❌ ${elementKey} timeout after ${Math.round(duration)}ms`);
+    
+    const timeoutStatsStore = this.stores.useTimeoutStore('timeoutStats');
+    const operationMetricsStore = this.stores.useTimeoutStore('operationMetrics');
+    
+    // Update stats
+    const stats = timeoutStatsStore.getValue();
+    timeoutStatsStore.setValue({
+      ...stats,
+      timeoutCount: stats.timeoutCount + 1
+    });
+    
+    // Update visual feedback
+    this.updateElementVisual(elementKey, 'failure', timeout, elementRefs);
+    
+    // Record metrics
+    const metrics = operationMetricsStore.getValue();
+    operationMetricsStore.setValue([
+      ...metrics,
+      {
+        operation: 'timeout',
+        elementKey,
+        duration: Math.round(duration),
+        success: false,
+        timestamp: Date.now(),
+        strategy
+      }
+    ]);
+  }
+  
+  // 시각적 피드백 업데이트
+  private updateElementVisual(elementKey: string, type: 'success' | 'failure', value: number, elementRefs: any) {
+    const element = elementRefs[elementKey]?.target;
+    if (!element) return;
+    
+    if (type === 'success') {
+      element.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
+      element.textContent = `✅ Success! (${value}ms)`;
+    } else {
+      element.style.background = 'linear-gradient(45deg, #f44336, #d32f2f)';
+      element.textContent = `❌ Timeout! (${value}ms exceeded)`;
+    }
+    element.style.color = 'white';
+    
+    setTimeout(() => {
+      element.style.background = '';
+      element.style.color = '';
+      if (type === 'failure') {
+        element.textContent = element.dataset.originalText || 'Element';
+      }
+    }, 2000);
+  }
+}
+
 // Circuit breaker instance
 const circuitBreaker = {
   state: 'closed' as 'closed' | 'open' | 'half-open',
@@ -119,7 +249,7 @@ const circuitBreaker = {
   }
 };
 
-function AsyncTimeoutProtectionPage() {
+function AsyncTimeoutProtectionPageContent() {
   return (
     <div className="p-8 max-w-6xl mx-auto">
       <h1 className="text-3xl font-bold mb-6 text-gray-800">Timeout Protection Pattern</h1>
@@ -128,145 +258,59 @@ function AsyncTimeoutProtectionPage() {
         Essential for production applications to handle slow or unresponsive elements gracefully.
       </p>
       
-      <LogMonitorProvider>
-        <TimeoutStoreProvider>
-          <TimeoutActionProvider>
-            <TimeoutRefProvider>
-              <div className="space-y-8">
-                <BasicTimeoutDemo />
-                <RetryWithTimeoutDemo />
-                <ProgressiveTimeoutDemo />
-                <AdaptiveTimeoutDemo />
-                <CircuitBreakerDemo />
-                <PerformanceMonitoringDemo />
-                <FallbackStrategyDemo />
-                <TimeoutMetricsDisplay />
-                <BestPracticesSection />
-              </div>
-            </TimeoutRefProvider>
-          </TimeoutActionProvider>
-        </TimeoutStoreProvider>
-      </LogMonitorProvider>
+      <TimeoutStoreProvider>
+        <TimeoutActionProvider>
+          <TimeoutRefProvider>
+            <div className="space-y-8">
+              <BasicTimeoutDemo />
+              <RetryWithTimeoutDemo />
+              <ProgressiveTimeoutDemo />
+              <AdaptiveTimeoutDemo />
+              <CircuitBreakerDemo />
+              <PerformanceMonitoringDemo />
+              <FallbackStrategyDemo />
+              <TimeoutMetricsDisplay />
+              <BestPracticesSection />
+            </div>
+          </TimeoutRefProvider>
+        </TimeoutActionProvider>
+      </TimeoutStoreProvider>
     </div>
   );
 }
 
 function BasicTimeoutDemo() {
-  const { log } = useLogMonitor();
-  const [showQuick, setShowQuick] = useState(true);
+  const logger = useActionLoggerWithToast();
+  const [showQuick] = useState(true);
   const [showSlow, setShowSlow] = useState(false);
   const dispatch = useTimeoutAction();
   const quickElementRef = useTimeoutRef('quickElement');
   const slowElementRef = useTimeoutRef('slowElement');
   const waitForRefs = useWaitForRefs();
-  const timeoutStatsStore = useTimeoutStore('timeoutStats');
-  const operationMetricsStore = useTimeoutStore('operationMetrics');
+  const stores = { useTimeoutStore }; // Store manager for lazy access
   
-  // Basic timeout handler
-  useTimeoutActionHandler('basicTimeout', useCallback(async (payload, controller) => {
-    const startTime = performance.now();
-    const stats = timeoutStatsStore.getValue();
+  // Basic timeout handler - 극도로 양준화된 의존성!
+  useTimeoutActionHandler('basicTimeout', useCallback(async (payload) => {
+    // 서비스 인스턴스 생성 (지연 평가)
+    const timeoutService = new TimeoutService(stores, logger);
     
-    try {
-      log(`⏳ Attempting to access ${payload.elementKey} with ${payload.timeout}ms timeout`);
-      
-      timeoutStatsStore.setValue({
-        ...stats,
-        totalAttempts: stats.totalAttempts + 1
-      });
-      
-      // Basic timeout pattern using Promise.race
-      await Promise.race([
-        waitForRefs(payload.elementKey as keyof TimeoutRefs),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error(`Timeout after ${payload.timeout}ms`)), payload.timeout)
-        )
-      ]);
-      
-      const duration = performance.now() - startTime;
-      log(`✅ Element ${payload.elementKey} accessed successfully in ${Math.round(duration)}ms`);
-      
-      // Update element if available
-      const element = payload.elementKey === 'quickElement' ? quickElementRef.target : slowElementRef.target;
-      if (element) {
-        element.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
-        element.textContent = `✅ Success! (${Math.round(duration)}ms)`;
-        element.style.color = 'white';
-        
-        setTimeout(() => {
-          element.style.background = '';
-          element.style.color = '';
-        }, 2000);
-      }
-      
-      // Update stats
-      const updatedStats = timeoutStatsStore.getValue();
-      timeoutStatsStore.setValue({
-        ...updatedStats,
-        successCount: updatedStats.successCount + 1,
-        averageResponseTime: Math.round(
-          (updatedStats.averageResponseTime * updatedStats.successCount + duration) / 
-          (updatedStats.successCount + 1)
-        )
-      });
-      
-      // Record metrics
-      const metrics = operationMetricsStore.getValue();
-      operationMetricsStore.setValue([
-        ...metrics,
-        {
-          operation: 'basicTimeout',
-          elementKey: payload.elementKey,
-          duration: Math.round(duration),
-          success: true,
-          timestamp: Date.now(),
-          strategy: 'basic'
-        }
-      ]);
-      
-    } catch (error) {
-      const duration = performance.now() - startTime;
-      log(`❌ Timeout: ${error}`);
-      
-      // Update stats for timeout
-      const updatedStats = timeoutStatsStore.getValue();
-      timeoutStatsStore.setValue({
-        ...updatedStats,
-        timeoutCount: updatedStats.timeoutCount + 1
-      });
-      
-      // Record failed metric
-      const metrics = operationMetricsStore.getValue();
-      operationMetricsStore.setValue([
-        ...metrics,
-        {
-          operation: 'basicTimeout',
-          elementKey: payload.elementKey,
-          duration: Math.round(duration),
-          success: false,
-          timestamp: Date.now(),
-          strategy: 'basic'
-        }
-      ]);
-      
-      // Visual feedback for timeout
-      const element = payload.elementKey === 'quickElement' ? quickElementRef.target : slowElementRef.target;
-      if (element) {
-        element.style.background = 'linear-gradient(45deg, #f44336, #d32f2f)';
-        element.textContent = `❌ Timeout! (${payload.timeout}ms exceeded)`;
-        element.style.color = 'white';
-        
-        setTimeout(() => {
-          element.style.background = '';
-          element.style.color = '';
-          element.textContent = element.dataset.originalText || 'Element';
-        }, 2000);
-      }
-    }
-  }, [waitForRefs, quickElementRef, slowElementRef, timeoutStatsStore, operationMetricsStore, log]));
+    // 요소 참조 맵 (지연 접근)
+    const elementRefs = {
+      quickElement: quickElementRef,
+      slowElement: slowElementRef
+    };
+    
+    // 모든 복잡한 로직은 서비스로 위임
+    await timeoutService.executeBasicTimeout(
+      payload.elementKey, 
+      payload.timeout, 
+      waitForRefs, 
+      elementRefs
+    );
+  }, [])); // 의존성 완전 제거!
   
   // Simulate slow element mounting
-  React.useEffect(() => {
+  useEffect(() => {
     if (showSlow) {
       const timer = setTimeout(() => {
         const element = slowElementRef.target;
@@ -379,23 +423,25 @@ function BasicTimeoutDemo() {
 }
 
 function RetryWithTimeoutDemo() {
-  const { log } = useLogMonitor();
+  const logger = useActionLoggerWithToast();
   const [showUnreliable, setShowUnreliable] = useState(false);
   const dispatch = useTimeoutAction();
   const unreliableElementRef = useTimeoutRef('unreliableElement');
   const waitForRefs = useWaitForRefs();
-  const timeoutStatsStore = useTimeoutStore('timeoutStats');
+  const stores = { useTimeoutStore };
   
-  // Retry with timeout handler
-  useTimeoutActionHandler('retryWithTimeout', useCallback(async (payload, controller) => {
+  // Retry with timeout handler - minimal dependencies
+  useTimeoutActionHandler('retryWithTimeout', useCallback(async (payload) => {
     const startTime = performance.now();
-    let finalSuccess = false;
     
-    log(`🔄 Starting retry strategy: ${payload.maxRetries} retries, ${payload.timeout}ms timeout each`);
+    // Lazy store evaluation
+    const timeoutStatsStore = stores.useTimeoutStore('timeoutStats');
+    
+    logger.logSystem(`🔄 Starting retry strategy: ${payload.maxRetries} retries, ${payload.timeout}ms timeout each`);
     
     for (let attempt = 1; attempt <= payload.maxRetries; attempt++) {
       try {
-        log(`📍 Attempt ${attempt}/${payload.maxRetries}`);
+        logger.logSystem(`📍 Attempt ${attempt}/${payload.maxRetries}`);
         
         await Promise.race([
           waitForRefs(payload.elementKey as keyof TimeoutRefs),
@@ -405,9 +451,9 @@ function RetryWithTimeoutDemo() {
         ]);
         
         const duration = performance.now() - startTime;
-        log(`✅ Success on attempt ${attempt} after ${Math.round(duration)}ms`);
+        logger.logSystem(`✅ Success on attempt ${attempt} after ${Math.round(duration)}ms`);
         
-        // Update element on success
+        // Update element on success - lazy ref access
         const element = unreliableElementRef.target;
         if (element) {
           element.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
@@ -415,9 +461,7 @@ function RetryWithTimeoutDemo() {
           element.style.color = 'white';
         }
         
-        finalSuccess = true;
-        
-        // Update stats
+        // Update stats - fresh evaluation
         const stats = timeoutStatsStore.getValue();
         timeoutStatsStore.setValue({
           ...stats,
@@ -428,13 +472,13 @@ function RetryWithTimeoutDemo() {
         break; // Exit loop on success
         
       } catch (error) {
-        log(`⚠️ Attempt ${attempt} failed: ${error}`);
+        logger.logSystem(`⚠️ Attempt ${attempt} failed: ${error}`);
         
         if (attempt === payload.maxRetries) {
           const duration = performance.now() - startTime;
-          log(`❌ All ${payload.maxRetries} attempts failed after ${Math.round(duration)}ms`);
+          logger.logSystem(`❌ All ${payload.maxRetries} attempts failed after ${Math.round(duration)}ms`);
           
-          // Update stats for failure
+          // Update stats for failure - fresh evaluation
           const stats = timeoutStatsStore.getValue();
           timeoutStatsStore.setValue({
             ...stats,
@@ -442,7 +486,7 @@ function RetryWithTimeoutDemo() {
             retryCount: stats.retryCount + payload.maxRetries
           });
           
-          // Visual feedback for failure
+          // Visual feedback for failure - lazy ref access
           const element = unreliableElementRef.target;
           if (element) {
             element.style.background = 'linear-gradient(45deg, #f44336, #d32f2f)';
@@ -451,18 +495,15 @@ function RetryWithTimeoutDemo() {
           }
         } else {
           // Wait before retry
-          log(`⏳ Waiting 500ms before retry...`);
+          logger.logSystem(`⏳ Waiting 500ms before retry...`);
           await new Promise(resolve => setTimeout(resolve, 500));
         }
       }
     }
-    
-    return { success: finalSuccess, attempts: payload.maxRetries };
-    
-  }, [waitForRefs, unreliableElementRef, timeoutStatsStore, log]));
+  }, [])); // 더 간단한 의존성!
   
   // Simulate unreliable element
-  React.useEffect(() => {
+  useEffect(() => {
     if (showUnreliable) {
       // Randomly delay element mounting
       const delay = Math.random() * 4000 + 500; // 0.5s to 4.5s random delay
@@ -581,71 +622,63 @@ function RetryWithTimeoutDemo() {
 }
 
 function ProgressiveTimeoutDemo() {
-  const { log } = useLogMonitor();
+  const logger = useActionLoggerWithToast();
   const dispatch = useTimeoutAction();
   const performanceElementRef = useTimeoutRef('performanceElement');
   const waitForRefs = useWaitForRefs();
   const [showPerformance, setShowPerformance] = useState(false);
   const [mountDelay, setMountDelay] = useState(2000);
+  const stores = { useTimeoutStore };
   
-  // Progressive timeout handler
-  useTimeoutActionHandler('progressiveTimeout', useCallback(async (payload, controller) => {
-    const timeouts = [500, 1500, 3000, 5000]; // Progressive timeouts
-    const startTime = performance.now();
-    let success = false;
+  // Progressive timeout handler - 완전히 모듈화된 패턴!
+  useTimeoutActionHandler('progressiveTimeout', useCallback(async (payload) => {
+    const timeouts = [500, 1500, 3000, 5000];
     
-    log(`📈 Starting progressive timeout strategy for ${payload.elementKey}`);
-    log(`⏱️ Timeout progression: ${timeouts.join('ms → ')}ms`);
+    logger.logSystem(`📈 Progressive timeout: ${payload.elementKey}`);
+    logger.logSystem(`⏱️ Phases: ${timeouts.join('ms → ')}ms`);
     
     for (let i = 0; i < timeouts.length; i++) {
       try {
-        log(`📍 Phase ${i + 1}: Trying with ${timeouts[i]}ms timeout`);
+        logger.logSystem(`📍 Phase ${i + 1}: ${timeouts[i]}ms timeout`);
         
         await Promise.race([
           waitForRefs(payload.elementKey as keyof TimeoutRefs),
           new Promise((_, reject) => 
-            setTimeout(() => reject(new Error(`Progressive timeout ${i + 1}`)), timeouts[i])
+            setTimeout(() => reject(new Error(`Phase ${i + 1} timeout`)), timeouts[i])
           )
         ]);
         
-        const duration = performance.now() - startTime;
-        log(`✅ Success in phase ${i + 1} after ${Math.round(duration)}ms`);
-        
+        // 성공 - 시각적 피드백
+        logger.logSystem(`✅ Success in phase ${i + 1}`);
         const element = performanceElementRef.target;
         if (element) {
           element.style.background = `linear-gradient(45deg, hsl(${120 - i * 30}, 70%, 50%), hsl(${120 - i * 30}, 70%, 40%))`;
-          element.textContent = `✅ Success in phase ${i + 1} (${Math.round(duration)}ms)`;
+          element.textContent = `✅ Phase ${i + 1} success!`;
           element.style.color = 'white';
         }
-        
-        success = true;
-        break;
+        return; // 성공 시 종료
         
       } catch (error) {
-        log(`⚠️ Phase ${i + 1} timeout at ${timeouts[i]}ms`);
+        logger.logSystem(`⚠️ Phase ${i + 1} failed`);
         
         if (i === timeouts.length - 1) {
-          log(`❌ All progressive timeouts exhausted`);
-          
+          // 마지막 시도 실패
+          logger.logSystem(`❌ All phases exhausted`);
           const element = performanceElementRef.target;
           if (element) {
             element.style.background = 'linear-gradient(45deg, #f44336, #d32f2f)';
-            element.textContent = `❌ Failed after all phases`;
+            element.textContent = `❌ All phases failed`;
             element.style.color = 'white';
           }
         } else {
-          // Brief pause before next phase
           await new Promise(resolve => setTimeout(resolve, 200));
         }
       }
     }
-    
-    return { success, phasesAttempted: timeouts.length };
-    
-  }, [waitForRefs, performanceElementRef, log]));
+  }, [])); // 의존성 완전 없음!
   
   // Simulate element with configurable delay
-  React.useEffect(() => {
+  useEffect(() => {
     if (showPerformance) {
       const timer = setTimeout(() => {
         const element = performanceElementRef.target;
@@ -737,50 +770,31 @@ function ProgressiveTimeoutDemo() {
 }
 
 function AdaptiveTimeoutDemo() {
-  const { log } = useLogMonitor();
+  const logger = useActionLoggerWithToast();
   const dispatch = useTimeoutAction();
   const [complexity, setComplexity] = useState<'simple' | 'complex' | 'heavy'>('simple');
   
-  // Adaptive timeout handler
-  useTimeoutActionHandler('adaptiveTimeout', useCallback(async (payload, controller) => {
-    const timeoutMap = {
-      simple: 1000,
-      complex: 3000,
-      heavy: 6000
-    };
+  // Adaptive timeout - 완전히 상태리스 패턴!
+  useTimeoutActionHandler('adaptiveTimeout', useCallback(async (payload) => {
+    const timeouts = { simple: 1000, complex: 3000, heavy: 6000 };
+    const delays = { simple: 500, complex: 2000, heavy: 4500 };
     
-    const timeout = timeoutMap[payload.complexity];
-    const startTime = performance.now();
+    const timeout = timeouts[payload.complexity];
+    const delay = delays[payload.complexity];
     
-    log(`🎯 Adaptive timeout for ${payload.complexity} operation: ${timeout}ms`);
+    logger.logSystem(`🎯 ${payload.complexity} timeout: ${timeout}ms`);
     
     try {
-      // Simulate operation with complexity-based delay
-      const operationDelay = {
-        simple: 500,
-        complex: 2000,
-        heavy: 4500
-      }[payload.complexity];
-      
       await Promise.race([
-        new Promise(resolve => setTimeout(resolve, operationDelay)),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error(`Adaptive timeout for ${payload.complexity} operation`)), timeout)
-        )
+        new Promise(resolve => setTimeout(resolve, delay)),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Adaptive timeout')), timeout))
       ]);
       
-      const duration = performance.now() - startTime;
-      log(`✅ ${payload.complexity} operation completed in ${Math.round(duration)}ms`);
-      
-      return { success: true, duration, complexity: payload.complexity };
-      
+      logger.logSystem(`✅ ${payload.complexity} operation completed`);
     } catch (error) {
-      const duration = performance.now() - startTime;
-      log(`❌ Adaptive timeout failed for ${payload.complexity} operation after ${Math.round(duration)}ms`);
-      
-      return { success: false, duration, complexity: payload.complexity };
+      logger.logSystem(`❌ ${payload.complexity} operation timeout`);
     }
-  }, [log]));
+  }, [])); // 상태리스함수로 의존성 제거!
   
   return (
     <section className="bg-white p-6 rounded-lg shadow">
@@ -878,20 +892,20 @@ function AdaptiveTimeoutDemo() {
 }
 
 function CircuitBreakerDemo() {
-  const { log } = useLogMonitor();
+  const logger = useActionLoggerWithToast();
   const dispatch = useTimeoutAction();
   const circuitElementRef = useTimeoutRef('circuitElement');
-  const waitForRefs = useWaitForRefs();
-  const timeoutStatsStore = useTimeoutStore('timeoutStats');
   const [failureRate, setFailureRate] = useState(0.5);
+  const stores = { useTimeoutStore };
   
-  // Circuit breaker handler
-  useTimeoutActionHandler('circuitBreaker', useCallback(async (payload, controller) => {
+  // Circuit breaker handler - 완전히 상태리스한 회로 차단기!
+  useTimeoutActionHandler('circuitBreaker', useCallback(async (payload) => {
+    const timeoutStatsStore = stores.useTimeoutStore('timeoutStats');
     const stats = timeoutStatsStore.getValue();
     
     // Check circuit breaker state
     if (!circuitBreaker.canExecute()) {
-      log(`🚫 Circuit breaker is OPEN - Fast failing operation ${payload.operationId}`);
+      logger.logSystem(`🚫 Circuit breaker is OPEN - Fast failing operation ${payload.operationId}`);
       
       timeoutStatsStore.setValue({
         ...stats,
@@ -901,8 +915,8 @@ function CircuitBreakerDemo() {
       throw new Error('Circuit breaker is open');
     }
     
-    log(`⚡ Circuit breaker state: ${circuitBreaker.getState().state.toUpperCase()}`);
-    log(`🔄 Executing operation ${payload.operationId}`);
+    logger.logSystem(`⚡ Circuit breaker state: ${circuitBreaker.getState().state.toUpperCase()}`);
+    logger.logSystem(`🔄 Executing operation ${payload.operationId}`);
     
     try {
       // Simulate operation with configurable failure rate
@@ -915,7 +929,7 @@ function CircuitBreakerDemo() {
       // Simulate successful operation
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      log(`✅ Operation ${payload.operationId} succeeded`);
+      logger.logSystem(`✅ Operation ${payload.operationId} succeeded`);
       circuitBreaker.recordSuccess();
       
       // Update visual feedback
@@ -932,14 +946,14 @@ function CircuitBreakerDemo() {
         circuitBreakerFailures: circuitBreaker.failures
       });
       
-      return { success: true, operationId: payload.operationId };
+      // Don't return anything from ActionHandler
       
     } catch (error) {
-      log(`❌ Operation ${payload.operationId} failed: ${error}`);
+      logger.logSystem(`❌ Operation ${payload.operationId} failed: ${error}`);
       circuitBreaker.recordFailure();
       
       const state = circuitBreaker.getState();
-      log(`📊 Circuit breaker: ${state.failures}/${circuitBreaker.threshold} failures`);
+      logger.logSystem(`📊 Circuit breaker: ${state.failures}/${circuitBreaker.threshold} failures`);
       
       // Update visual feedback
       const element = circuitElementRef.target;
@@ -963,13 +977,15 @@ function CircuitBreakerDemo() {
       
       throw error;
     }
-  }, [circuitElementRef, timeoutStatsStore, failureRate, log]));
+  }, [])); // 상태리스 액세스로 의존성 없음!
   
   const resetCircuitBreaker = useCallback(() => {
     circuitBreaker.state = 'closed';
     circuitBreaker.failures = 0;
     circuitBreaker.lastFailTime = 0;
     
+    // 지연 스토어 업데이트
+    const timeoutStatsStore = stores.useTimeoutStore('timeoutStats');
     const stats = timeoutStatsStore.getValue();
     timeoutStatsStore.setValue({
       ...stats,
@@ -977,8 +993,8 @@ function CircuitBreakerDemo() {
       circuitBreakerFailures: 0
     });
     
-    log('🔄 Circuit breaker reset to CLOSED state');
-  }, [timeoutStatsStore, log]);
+    logger.logSystem('🔄 Circuit breaker reset');
+  }, []); // 완전히 상태리스!
   
   return (
     <section className="bg-white p-6 rounded-lg shadow">
@@ -1044,16 +1060,16 @@ function CircuitBreakerDemo() {
 }
 
 function PerformanceMonitoringDemo() {
-  const { log } = useLogMonitor();
+  const logger = useActionLoggerWithToast();
   const dispatch = useTimeoutAction();
-  const operationMetricsStore = useTimeoutStore('operationMetrics');
+  const stores = { useTimeoutStore };
   
-  // Performance monitored timeout handler
-  useTimeoutActionHandler('performanceMonitored', useCallback(async (payload, controller) => {
+  // Performance timeout - 최소화된 의존성으로 모니터링!
+  useTimeoutActionHandler('performanceMonitored', useCallback(async (payload) => {
     const startTime = performance.now();
-    const memoryBefore = performance.memory?.usedJSHeapSize || 0;
+    const memoryBefore = (performance as any).memory?.usedJSHeapSize || 0;
     
-    log(`📊 Starting performance-monitored operation with ${payload.timeout}ms timeout`);
+    logger.logSystem(`📊 Performance monitoring: ${payload.timeout}ms timeout`);
     
     try {
       // Simulate operation with random delay
@@ -1067,21 +1083,22 @@ function PerformanceMonitoringDemo() {
       ]);
       
       const duration = performance.now() - startTime;
-      const memoryAfter = performance.memory?.usedJSHeapSize || 0;
+      const memoryAfter = (performance as any).memory?.usedJSHeapSize || 0;
       const memoryDelta = memoryAfter - memoryBefore;
       
-      log(`✅ Operation completed in ${duration.toFixed(2)}ms`);
+      logger.logSystem(`✅ Operation completed in ${duration.toFixed(2)}ms`);
       
       // Log performance metrics
       if (duration > payload.timeout * 0.8) {
-        log(`⚠️ SLOW: Operation took ${(duration / payload.timeout * 100).toFixed(0)}% of timeout`);
+        logger.logSystem(`⚠️ SLOW: Operation took ${(duration / payload.timeout * 100).toFixed(0)}% of timeout`);
       }
       
       if (memoryDelta > 1000000) { // 1MB
-        log(`⚠️ HIGH MEMORY: ${(memoryDelta / 1000000).toFixed(2)}MB allocated`);
+        logger.logSystem(`⚠️ HIGH MEMORY: ${(memoryDelta / 1000000).toFixed(2)}MB allocated`);
       }
       
-      // Record metrics
+      // Record metrics - lazy store access
+      const operationMetricsStore = stores.useTimeoutStore('operationMetrics');
       const metrics = operationMetricsStore.getValue();
       operationMetricsStore.setValue([
         ...metrics.slice(-19), // Keep last 20 metrics
@@ -1095,13 +1112,14 @@ function PerformanceMonitoringDemo() {
         }
       ]);
       
-      return { success: true, duration, memoryDelta };
+      // Don't return anything from ActionHandler
       
     } catch (error) {
       const duration = performance.now() - startTime;
-      log(`❌ Performance timeout after ${duration.toFixed(2)}ms`);
+      logger.logSystem(`❌ Performance timeout after ${duration.toFixed(2)}ms`);
       
-      // Record failure metric
+      // Record failure metric - lazy store access
+      const operationMetricsStore = stores.useTimeoutStore('operationMetrics');
       const metrics = operationMetricsStore.getValue();
       operationMetricsStore.setValue([
         ...metrics.slice(-19),
@@ -1117,7 +1135,7 @@ function PerformanceMonitoringDemo() {
       
       throw error;
     }
-  }, [operationMetricsStore, log]));
+  }, [])); // 완전히 상태리스 모니터링!
   
   return (
     <section className="bg-white p-6 rounded-lg shadow">
@@ -1157,7 +1175,7 @@ function PerformanceMonitoringDemo() {
 }
 
 function FallbackStrategyDemo() {
-  const { log } = useLogMonitor();
+  const logger = useActionLoggerWithToast();
   const dispatch = useTimeoutAction();
   const primaryElementRef = useTimeoutRef('primaryElement');
   const secondaryElementRef = useTimeoutRef('secondaryElement');
@@ -1167,8 +1185,8 @@ function FallbackStrategyDemo() {
   const [showSecondary, setShowSecondary] = useState(true);
   
   // Fallback strategy handler
-  useTimeoutActionHandler('fallbackStrategy', useCallback(async (payload, controller) => {
-    log('🔄 Starting fallback strategy workflow');
+  useTimeoutActionHandler('fallbackStrategy', useCallback(async (payload) => {
+    logger.logSystem('🔄 Starting fallback strategy workflow');
     
     const waitWithTimeout = async (elementKey: keyof TimeoutRefs, timeout: number) => {
       try {
@@ -1185,37 +1203,39 @@ function FallbackStrategyDemo() {
     };
     
     // Try primary element
-    log(`1️⃣ Attempting primary element with ${payload.timeout}ms timeout`);
+    logger.logSystem(`1️⃣ Attempting primary element with ${payload.timeout}ms timeout`);
     const primarySuccess = await waitWithTimeout(payload.primaryElement as keyof TimeoutRefs, payload.timeout);
     
     if (primarySuccess) {
-      log('✅ Primary element available - using primary strategy');
+      logger.logSystem('✅ Primary element available - using primary strategy');
       const element = primaryElementRef.target;
       if (element) {
         element.style.background = 'linear-gradient(45deg, #4CAF50, #45a049)';
         element.textContent = '✅ Primary Strategy Succeeded!';
         element.style.color = 'white';
       }
-      return { strategy: 'primary', success: true };
+      // Don't return anything from ActionHandler
+      return;
     }
     
     // Fallback to secondary element
-    log(`2️⃣ Primary failed, attempting secondary element with ${payload.timeout}ms timeout`);
+    logger.logSystem(`2️⃣ Primary failed, attempting secondary element with ${payload.timeout}ms timeout`);
     const secondarySuccess = await waitWithTimeout(payload.secondaryElement as keyof TimeoutRefs, payload.timeout);
     
     if (secondarySuccess) {
-      log('✅ Secondary element available - using fallback strategy');
+      logger.logSystem('✅ Secondary element available - using fallback strategy');
       const element = secondaryElementRef.target;
       if (element) {
         element.style.background = 'linear-gradient(45deg, #FF9800, #F57C00)';
         element.textContent = '⚠️ Using Secondary Fallback';
         element.style.color = 'white';
       }
-      return { strategy: 'secondary', success: true };
+      // Don't return anything from ActionHandler
+      return;
     }
     
     // Final fallback
-    log('3️⃣ Both primary and secondary failed - using final fallback');
+    logger.logSystem('3️⃣ Both primary and secondary failed - using final fallback');
     const element = fallbackElementRef.target;
     if (element) {
       element.style.background = 'linear-gradient(45deg, #9E9E9E, #757575)';
@@ -1223,9 +1243,8 @@ function FallbackStrategyDemo() {
       element.style.color = 'white';
     }
     
-    return { strategy: 'fallback', success: true };
-    
-  }, [waitForRefs, primaryElementRef, secondaryElementRef, fallbackElementRef, log]));
+    // Don't return anything from ActionHandler
+  }, [])); // 완전히 상태리스 폴백 전략!
   
   return (
     <section className="bg-white p-6 rounded-lg shadow">
@@ -1344,16 +1363,16 @@ function FallbackStrategyDemo() {
 
 // Helper components
 function TimeoutMetricsDisplay() {
-  const stats = useTimeoutStore('timeoutStats').getValue();
-  const metrics = useTimeoutStore('operationMetrics').getValue();
+  const timeoutStatsStore = useTimeoutStore('timeoutStats');
+  const operationMetricsStore = useTimeoutStore('operationMetrics');
+  const stats = useStoreValue(timeoutStatsStore);
+  const metrics = useStoreValue(operationMetricsStore);
   
   const successRate = stats.totalAttempts > 0 
     ? ((stats.successCount / stats.totalAttempts) * 100).toFixed(1)
     : '0.0';
   
-  const avgRetries = stats.successCount > 0
-    ? (stats.retryCount / stats.successCount).toFixed(1)
-    : '0.0';
+  // Removed unused avgRetries variable
   
   return (
     <section className="bg-gray-50 p-6 rounded-lg">
@@ -1385,7 +1404,7 @@ function TimeoutMetricsDisplay() {
         <div>
           <h3 className="font-semibold text-gray-700 mb-3">Recent Operations</h3>
           <div className="space-y-2">
-            {metrics.slice(-5).reverse().map((metric, index) => (
+            {metrics.slice(-5).reverse().map((metric) => (
               <div key={metric.timestamp} className="bg-white p-3 rounded border flex justify-between items-center text-sm">
                 <div className="flex items-center gap-3">
                   <span className={`w-2 h-2 rounded-full ${metric.success ? 'bg-green-500' : 'bg-red-500'}`} />
@@ -1408,7 +1427,8 @@ function TimeoutMetricsDisplay() {
 }
 
 function CircuitBreakerStatus() {
-  const stats = useTimeoutStore('timeoutStats').getValue();
+  const timeoutStatsStore = useTimeoutStore('timeoutStats');
+  const stats = useStoreValue(timeoutStatsStore);
   
   const stateColor = {
     closed: 'text-green-600 bg-green-50',
@@ -1436,7 +1456,8 @@ function CircuitBreakerStatus() {
 }
 
 function PerformanceMetricsChart() {
-  const metrics = useTimeoutStore('operationMetrics').getValue();
+  const operationMetricsStore = useTimeoutStore('operationMetrics');
+  const metrics = useStoreValue(operationMetricsStore);
   const performanceMetrics = metrics.filter(m => m.operation === 'performanceMonitored').slice(-10);
   
   if (performanceMetrics.length === 0) {
@@ -1453,7 +1474,7 @@ function PerformanceMetricsChart() {
     <div className="p-4 bg-purple-50 border border-purple-200 rounded">
       <h4 className="font-semibold text-purple-700 mb-3">Performance Timeline</h4>
       <div className="space-y-2">
-        {performanceMetrics.map((metric, index) => (
+        {performanceMetrics.map((metric) => (
           <div key={metric.timestamp} className="flex items-center gap-2 text-sm">
             <span className="w-20 text-xs text-gray-600">
               {new Date(metric.timestamp).toLocaleTimeString()}
@@ -1561,6 +1582,14 @@ function BestPracticesSection() {
         </div>
       </div>
     </section>
+  );
+}
+
+function AsyncTimeoutProtectionPage() {
+  return (
+    <PageWithLogMonitor pageId="async-timeout-protection">
+      <AsyncTimeoutProtectionPageContent />
+    </PageWithLogMonitor>
   );
 }
 

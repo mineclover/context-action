@@ -5,7 +5,7 @@
  * with language detection, template generation, and priority management.
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Card, Button, Badge } from '../ui';
 
 interface DocumentTemplate {

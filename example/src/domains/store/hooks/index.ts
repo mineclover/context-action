@@ -64,7 +64,7 @@ export function useStoreValueComparison<T>(
     lastComparisonTime: 0
   });
 
-  const value = useStoreValue(store, selector, options);
+  const value = useStoreValue(store, selector || ((v: T) => v), options);
 
   // Track comparison statistics
   useEffect(() => {
@@ -116,7 +116,7 @@ export function useConditionalStoreSubscription<T>(
   });
 
   const conditionalStore = condition ? store : null;
-  const value = useStoreValue(conditionalStore, selector);
+  const value = useStoreValue(conditionalStore, selector || ((v: any) => v));
 
   useEffect(() => {
     if (condition && store) {
@@ -150,6 +150,7 @@ export function useConditionalStoreSubscription<T>(
         isSubscribed: false,
         updates: 0
       }));
+      return () => {}; // 빈 cleanup 함수 반환
     }
   }, [condition, store]);
 
@@ -251,10 +252,10 @@ export function useStoreValidation<T>(
         }
         
         debounceTimeoutRef.current = setTimeout(() => {
-          validate(value);
+          validate(value as T);
         }, options.debounceMs);
       } else {
-        validate(value);
+        validate(value as T);
       }
     }
 
@@ -267,7 +268,7 @@ export function useStoreValidation<T>(
 
   return {
     ...validationState,
-    validate: (customValue?: T) => validate(customValue ?? value)
+    validate: (customValue?: T) => validate(customValue ?? (value as T))
   };
 }
 

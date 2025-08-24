@@ -4,16 +4,17 @@
  */
 
 import { createRefContext } from '@context-action/react';
+import type { RefTarget } from '@context-action/react';
 import { AsyncUtilsService } from '../../shared/services';
 import type { WaitForRefsConfig, AsyncPatternConfig } from '../../shared/types';
 
 // Async Ref Context - for DOM element management and coordination
 export const {
   Provider: AsyncRefProvider,
-  useRegisterRef: useAsyncRegisterRef,
-  useGetRefTarget: useAsyncGetRefTarget,
-  waitForRefs: waitForAsyncRefs,
-} = createRefContext('AsyncDemo');
+  useRefHandler: useAsyncRefHandler,
+  useWaitForRefs: useAsyncWaitForRefs,
+  useGetAllRefs: useAsyncGetAllRefs,
+} = createRefContext<Record<string, RefTarget>>('AsyncDemo');
 
 // Timeout Protection Patterns
 export class TimeoutProtectionService {
@@ -74,7 +75,7 @@ export class TimeoutProtectionService {
       maxRetries: number;
     }
   ): Promise<T> {
-    const history = this.performanceHistory.get(operationName) || [];
+    const history = TimeoutProtectionService.performanceHistory.get(operationName) || [];
     
     // Calculate adaptive timeout based on history
     let adaptiveTimeout: number;
@@ -101,13 +102,13 @@ export class TimeoutProtectionService {
       if (history.length > 10) {
         history.shift();
       }
-      this.performanceHistory.set(operationName, history);
+      TimeoutProtectionService.performanceHistory.set(operationName, history);
       
       return result;
     } catch (error) {
       // On timeout, try with increased timeout
       if (config.maxRetries > 0) {
-        return this.adaptiveTimeout(
+        return TimeoutProtectionService.adaptiveTimeout(
           operation,
           operationName,
           { ...config, maxRetries: config.maxRetries - 1, minTimeout: adaptiveTimeout * 1.5 }
@@ -395,7 +396,7 @@ export function useAsyncOperation<T>(
     executeWithRetry: (maxRetries: number = 3, delayMs: number = 1000) =>
       AsyncUtilsService.retry(operation, maxRetries, delayMs),
       
-    executeWithFallback: <F>(fallback: () => Promise<F> | F) =>
+    executeWithFallback: (fallback: () => Promise<T> | T) =>
       AsyncUtilsService.withFallback(operation, fallback)
   };
 }

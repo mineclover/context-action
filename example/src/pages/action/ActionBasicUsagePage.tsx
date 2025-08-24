@@ -53,8 +53,8 @@ function BasicActionDemo() {
   const [lastClick, setLastClick] = useState<{ x: number; y: number } | null>(null);
   
   // Register action handlers with proper memoization
-  const userClickHandler = useCallback((payload: { x: number; y: number }, controller) => {
-    logger.info('👆 User click handler triggered', { x: payload.x, y: payload.y });
+  const userClickHandler = useCallback((payload: { x: number; y: number }, controller: any) => {
+    logger.logSystem('👆 User click handler triggered');
     setLastClick(payload);
     setClickCount(prev => prev + 1);
     
@@ -63,7 +63,7 @@ function BasicActionDemo() {
   }, [logger]);
 
   const analyticsHandler = useCallback(async (payload: { event: string; data: any }) => {
-    logger.info('📊 Analytics handler triggered', payload);
+    logger.logSystem('📊 Analytics handler triggered');
     
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -71,7 +71,7 @@ function BasicActionDemo() {
   }, [logger]);
 
   const userHoverHandler = useCallback((payload: { elementId: string }) => {
-    logger.info('🖱️ User hover handler triggered', { elementId: payload.elementId });
+    logger.logSystem('🖱️ User hover handler triggered');
   }, [logger]);
   
   // Register handlers using renamed hooks
@@ -191,8 +191,8 @@ function AdvancedFeaturesDemo() {
   const [results, setResults] = useState<string[]>([]);
   
   // Advanced handler with result handling
-  const apiCallHandler = useCallback(async (payload: { endpoint: string; method: string }, controller) => {
-    logger.info('🌐 API call handler started', payload);
+  const apiCallHandler = useCallback(async (payload: { endpoint: string; method: string }, controller: any) => {
+    logger.log('info', '🌐 API call handler started', payload);
     
     try {
       // Simulate API call with potential abort
@@ -207,18 +207,18 @@ function AdvancedFeaturesDemo() {
       });
       
       const result = `${payload.method} ${payload.endpoint} - Success`;
-      logger.info('✅ API call completed', { result });
-      return result;
+      logger.log('info', '✅ API call completed', { result });
+      setResults(prev => [...prev, result]);
       
     } catch (error) {
-      const errorMsg = `${payload.method} ${payload.endpoint} - ${error.message}`;
-      logger.error('❌ API call failed', { error: errorMsg });
-      throw error;
+      const errorMsg = `${payload.method} ${payload.endpoint} - ${(error as Error).message}`;
+      logger.log('error', '❌ API call failed', { error: errorMsg });
+      setResults(prev => [...prev, errorMsg]);
     }
   }, [logger]);
 
   const notificationHandler = useCallback((payload: { message: string; type: string }) => {
-    logger.info('🔔 Notification handler triggered', payload);
+    logger.log('info', '🔔 Notification handler triggered', payload);
     setResults(prev => [...prev, `${payload.type.toUpperCase()}: ${payload.message}`]);
   }, [logger]);
   
@@ -345,25 +345,26 @@ function MultipleContextDemo() {
     
     // System action handlers
     const systemStartHandler = useCallback(() => {
-      logger.info('🚀 System starting...');
+      logger.log('info', '🚀 System starting...');
       setSystemStatus('running');
     }, [logger]);
 
     const systemStopHandler = useCallback(() => {
-      logger.info('🛑 System stopping...');
+      logger.log('info', '🛑 System stopping...');
       setSystemStatus('stopped');
     }, [logger]);
 
     const configUpdateHandler = useCallback((payload: { key: string; value: any }) => {
-      logger.info('⚙️ Config updated', payload);
+      logger.log('info', '⚙️ Config updated', payload);
       setConfigValues(prev => ({ ...prev, [payload.key]: payload.value }));
     }, [logger]);
 
     const healthCheckHandler = useCallback(async (payload: { service: string }) => {
-      logger.info('💓 Health check', payload);
+      logger.log('info', '💓 Health check', payload);
       // Simulate health check
       await new Promise(resolve => setTimeout(resolve, 200));
-      return { service: payload.service, status: 'healthy', timestamp: Date.now() };
+      const result = { service: payload.service, status: 'healthy', timestamp: Date.now() };
+      logger.log('info', '✅ Health check completed', result);
     }, [logger]);
     
     useSystemActionHandler('systemStart', systemStartHandler);
@@ -388,10 +389,10 @@ function MultipleContextDemo() {
 
     const handleHealthCheck = async () => {
       try {
-        const result = await systemDispatch('healthCheck', { service: 'api' });
-        logger.info('✅ Health check result', result);
+        await systemDispatch('healthCheck', { service: 'api' });
+        logger.log('info', '✅ Health check completed');
       } catch (error) {
-        logger.error('❌ Health check failed', error);
+        logger.log('error', '❌ Health check failed', error);
       }
     };
     
@@ -475,7 +476,7 @@ function SystemComponent() {
 // Main Component
 function ActionBasicUsagePage() {
   return (
-    <PageWithLogMonitor>
+    <PageWithLogMonitor pageId="action-basic-usage">
       <EventActionProvider>
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8">

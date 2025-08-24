@@ -13,7 +13,7 @@ import {
   Store,
   useStoreValue,
 } from '@context-action/react';
-import React, { ReactNode } from 'react';
+import { ReactNode } from 'react';
 
 // ============================================================================
 // Types

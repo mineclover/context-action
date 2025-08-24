@@ -218,7 +218,7 @@ export class AsyncUtilsService {
     delayMs: number = 1000
   ): Promise<T> {
     return new Promise(async (resolve, reject) => {
-      let lastError: Error;
+      let lastError: Error = new Error('No attempts made');
       
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
@@ -229,7 +229,7 @@ export class AsyncUtilsService {
           lastError = error as Error;
           
           if (attempt < maxRetries) {
-            await this.delay(delayMs * Math.pow(2, attempt)); // Exponential backoff
+            await AsyncUtilsService.delay(delayMs * 2 ** attempt); // Exponential backoff
           }
         }
       }

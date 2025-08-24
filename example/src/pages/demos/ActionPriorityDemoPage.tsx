@@ -5,7 +5,7 @@
  * priority.md에서 설명한 priority-based handler execution을 보여줍니다.
  */
 
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, Button } from '../../components/ui';
 import type { ActionPayloadMap } from '@context-action/core';

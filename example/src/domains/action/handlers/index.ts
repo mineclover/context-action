@@ -243,8 +243,8 @@ export function useDemoPerformanceActionHandlers() {
         logger.log('success', 'Benchmark completed', {
           testName: payload.testName,
           iterations: payload.iterations,
-          duration: metrics?.duration,
-          avgPerIteration: metrics ? metrics.duration / payload.iterations : 0
+          duration: metrics?.duration || 0,
+          avgPerIteration: metrics ? (metrics.duration || 0) / payload.iterations : 0
         }, 'DemoPerformanceHandler');
         
       } catch (error) {
@@ -322,6 +322,7 @@ export function useDemoApiActionHandlers() {
       } catch (error) {
         logger.log('error', 'Failed to fetch users', error, 'DemoApiHandler');
         controller.abort('Fetch users failed', error);
+        return [];
       }
     }, []),
 
@@ -357,6 +358,7 @@ export function useDemoApiActionHandlers() {
       } catch (error) {
         logger.log('error', 'Failed to create user', error, 'DemoApiHandler');
         controller.abort('User creation failed', error);
+        return null;
       }
     }, [])
   };
@@ -415,6 +417,7 @@ export function useDemoFormActionHandlers() {
       } catch (error) {
         logger.log('error', 'Form validation failed', error, 'DemoFormHandler');
         controller.abort('Form validation failed', error);
+        return { isValid: false, errors: ['Validation failed due to error'] };
       }
     }, []),
 
@@ -449,6 +452,7 @@ export function useDemoFormActionHandlers() {
       } catch (error) {
         logger.log('error', 'Form submission failed', error, 'DemoFormHandler');
         controller.abort('Form submission failed', error);
+        return { id: 'failed', timestamp: new Date().toISOString(), status: 'failed' as const };
       }
     }, [])
   };

@@ -45,7 +45,8 @@
 			},
 			"performance": {
 				"noAccumulatingSpread": "warn",
-				"noReExportAll": "off"
+				"noReExportAll": "off",
+				"noNamespaceImport": "error"
 			},
 			"nursery": {
 				"useSortedClasses": "off"
