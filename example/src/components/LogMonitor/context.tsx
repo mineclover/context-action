@@ -115,6 +115,22 @@ export function LogMonitorProvider({
         const newConfig = { ...currentConfig, ...configUpdate };
         stores.config.setValue(newConfig);
       },
+
+      log: (message: string, data?: unknown) => {
+        const logEntry = createLogEntry(pageId, {
+          level: LogLevel.INFO,
+          type: 'system',
+          message,
+          details: data,
+        });
+        const currentLogs = stores.logs.getValue();
+        const updatedLogs = maintainMaxLogs(
+          currentLogs,
+          logEntry,
+          fallbackConfig.maxLogs
+        );
+        stores.logs.setValue(updatedLogs);
+      },
     };
   }, [pageId, stores, fallbackConfig.maxLogs]);
 
@@ -143,6 +159,7 @@ export function LogMonitorProvider({
       setLogLevel: stableAPI.setLogLevel,
       config,
       updateConfig: stableAPI.updateConfig,
+      log: stableAPI.log,
     }),
     [logs, logLevel, config, stableAPI]
   );

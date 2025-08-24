@@ -16,17 +16,60 @@ export const {
   useGetAllRefs: useAsyncGetAllRefs,
 } = createRefContext<Record<string, RefTarget>>('AsyncDemo');
 
-// Timeout Protection Patterns
-// Basic timeout with simple rejection
-export function basicTimeout<T>(
-  promise: Promise<T>, 
-  timeoutMs: number,
-  timeoutMessage?: string
-): Promise<T> {
-  return timeout(promise, timeoutMs);
+// Realtime State Service for state management patterns
+export class RealtimeStateService {
+  private static subscriptions = new Map<string, Set<(value: any) => void>>();
+  private static state = new Map<string, any>();
+
+  static subscribe<T>(key: string, callback: (value: T) => void): () => void {
+    if (!this.subscriptions.has(key)) {
+      this.subscriptions.set(key, new Set());
+    }
+    
+    this.subscriptions.get(key)!.add(callback);
+    
+    return () => {
+      const callbacks = this.subscriptions.get(key);
+      if (callbacks) {
+        callbacks.delete(callback);
+        if (callbacks.size === 0) {
+          this.subscriptions.delete(key);
+        }
+      }
+    };
+  }
+
+  static setState<T>(key: string, value: T): void {
+    this.state.set(key, value);
+    const callbacks = this.subscriptions.get(key);
+    if (callbacks) {
+      callbacks.forEach(callback => callback(value));
+    }
+  }
+
+  static getState<T>(key: string): T | undefined {
+    return this.state.get(key);
+  }
+
+  static clearState(key?: string): void {
+    if (key) {
+      this.state.delete(key);
+      this.subscriptions.delete(key);
+    } else {
+      this.state.clear();
+      this.subscriptions.clear();
+    }
+  }
 }
 
-// Progressive timeout with increasing delays
+// Basic timeout utilities
+export async function basicTimeout<T>(
+  operation: () => Promise<T>,
+  timeoutMs: number
+): Promise<T> {
+  return timeout(operation(), timeoutMs);
+}
+
 export async function progressiveTimeout<T>(
   operation: () => Promise<T>,
   config: {
@@ -52,7 +95,6 @@ export async function progressiveTimeout<T>(
         throw error;
       }
       
-      // Wait before retry with exponential backoff
       await delay(currentTimeout / 2);
       currentTimeout *= config.timeoutMultiplier;
     }
@@ -61,8 +103,12 @@ export async function progressiveTimeout<T>(
   throw new Error('Max retries exceeded');
 }
 
-  // Adaptive timeout based on historical performance
+// Timeout Protection Service for advanced timeout handling
+export class TimeoutProtectionService {
   private static performanceHistory = new Map<string, number[]>();
+  
+  static basicTimeout = basicTimeout;
+  static progressiveTimeout = progressiveTimeout;
   
   static async adaptiveTimeout<T>(
     operation: () => Promise<T>,

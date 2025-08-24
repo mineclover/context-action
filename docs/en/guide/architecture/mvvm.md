@@ -80,368 +80,223 @@ flowchart LR
 
 ## Implementation Patterns
 
-### Model Layer Implementation
+### Context Definition (Types & Context Creation)
 
 ```typescript
-// models/UserModel.ts
-export interface UserModel {
-  // Business data
-  profile: {
-    id: string;
-    name: string;
-    email: string;
-    role: 'admin' | 'user' | 'guest';
-  };
-  
-  // Application state
-  session: {
-    isAuthenticated: boolean;
-    lastActivity: number;
-    permissions: string[];
-  };
-  
-  // UI state
-  preferences: {
-    theme: 'light' | 'dark';
-    language: string;
-    notifications: boolean;
-  };
+// contexts/UserContext.ts
+// 1. Store Types Definition
+export interface UserStores {
+  profile: { id: string; name: string; role: 'admin' | 'user' };
+  session: { isAuthenticated: boolean; permissions: string[] };
 }
 
-// Create Model Layer with domain-specific stores
-export const {
-  Provider: UserModelProvider,
-  useStore: useUserModel,
-  useStoreManager: useUserModelManager
-} = createDeclarativeStorePattern<UserModel>('UserModel', {
-  profile: {
-    initialValue: { id: '', name: '', email: '', role: 'guest' },
-    strategy: 'shallow', // Shallow comparison for objects
-    tags: ['user', 'profile'],
-    description: 'User profile information'
-  },
-  
-  session: {
-    initialValue: { isAuthenticated: false, lastActivity: 0, permissions: [] },
-    strategy: 'shallow',
-    tags: ['user', 'session'],
-    description: 'User session state'
-  },
-  
-  preferences: {
-    initialValue: { theme: 'light', language: 'en', notifications: true },
-    strategy: 'shallow',
-    tags: ['user', 'preferences'],
-    description: 'User preferences and settings'
-  }
-});
-```
-
-### ViewModel Layer Implementation
-
-```typescript
-// viewModels/UserViewModel.ts
-export interface UserViewModelActions {
-  // Authentication actions
+// 2. Action Types Definition
+export interface UserActions {
   login: { email: string; password: string };
   logout: void;
-  refreshSession: void;
-  
-  // Profile management
-  updateProfile: { data: Partial<UserModel['profile']> };
-  uploadAvatar: { file: File };
-  
-  // Preferences
-  updatePreferences: { preferences: Partial<UserModel['preferences']> };
-  toggleTheme: void;
-  
-  // Business logic
-  calculateUserScore: { criteria: string[] };
-  generateReport: { reportType: string; dateRange: any };
+  updateProfile: { name: string; role: string };
 }
 
-// Create ViewModel Layer
+// 3. Context Creation
 export const {
-  Provider: UserViewModelProvider,
-  useActionDispatch: useUserViewModel,
-  useActionHandler: useUserViewModelHandler,
-  useActionDispatchWithResult: useUserViewModelWithResult
-} = createActionContext<UserViewModelActions>('UserViewModel');
+  Provider: UserModelProvider,
+  useStore: useUserStore,
+  useStoreManager: useUserStoreManager
+} = createDeclarativeStorePattern<UserStores>('User', {
+  profile: {
+    initialValue: { id: '', name: '', role: 'user' },
+    strategy: 'shallow'
+  },
+  session: {
+    initialValue: { isAuthenticated: false, permissions: [] },
+    strategy: 'shallow'
+  }
+});
 
-// ViewModel business logic handlers
-export function useUserViewModelHandlers() {
-  const modelManager = useUserModelManager();
+export const {
+  Provider: UserActionProvider,
+  useActionDispatch: useUserActionDispatch,
+  useActionHandler: useUserActionHandler
+} = createActionContext<UserActions>('User');
+```
+
+### Data Subscription Hooks (모듈화된 데이터 구독)
+
+```typescript
+// hooks/useUserData.ts
+// 컴포넌트들이 사용할 데이터를 구독해서 전달
+export function useUserProfile() {
+  const profileStore = useUserStore('profile');
+  const profile = useStoreValue(profileStore);
   
-  // Login handler with business logic
+  return {
+    profile,
+    isGuest: profile.role === 'user' && !profile.id,
+    displayName: profile.name || 'Guest User',
+    roleLabel: profile.role.toUpperCase()
+  };
+}
+
+export function useUserSession() {
+  const sessionStore = useUserStore('session');
+  const session = useStoreValue(sessionStore);
+  
+  return {
+    session,
+    isAuthenticated: session.isAuthenticated,
+    canAccess: (permission: string) => session.permissions.includes(permission)
+  };
+}
+
+export function useUserAuthState() {
+  const { profile } = useUserProfile();
+  const { session } = useUserSession();
+  
+  return {
+    isLoggedIn: session.isAuthenticated && !!profile.id,
+    userInfo: { ...profile, ...session },
+    authStatus: session.isAuthenticated ? 'authenticated' : 'guest'
+  };
+}
+```
+
+### Action Hooks (지연 평가 및 핸들러 정의)
+
+```typescript
+// hooks/useUserActions.ts
+// 액션들은 필요한 데이터를 지연 평가하고 핸들러를 통해 데이터 업데이트
+export function useUserAuthActions() {
+  const storeManager = useUserStoreManager();
+  const dispatch = useUserActionDispatch();
+  
+  // 로그인 핸들러 - 지연 평가로 필요한 데이터 처리
   const loginHandler = useCallback(async (payload, controller) => {
-    const profileStore = modelManager.getStore('profile');
-    const sessionStore = modelManager.getStore('session');
-    
     try {
-      // Business logic - validation
-      if (!isValidEmail(payload.email)) {
-        controller.abort('Invalid email format');
-        return;
-      }
-      
-      // Business logic - API call
       const response = await authAPI.login(payload.email, payload.password);
       
-      // Update Model layer
+      // 지연 평가: 로그인 성공 시점에 스토어 업데이트
+      const profileStore = storeManager.getStore('profile');
+      const sessionStore = storeManager.getStore('session');
+      
       profileStore.setValue({
         id: response.user.id,
         name: response.user.name,
-        email: response.user.email,
         role: response.user.role
       });
       
       sessionStore.setValue({
         isAuthenticated: true,
-        lastActivity: Date.now(),
         permissions: response.permissions
       });
       
-      // Return result for View layer
-      return { success: true, userId: response.user.id };
-      
+      return { success: true };
     } catch (error) {
       controller.abort('Login failed', error);
-      return { success: false, error: error.message };
     }
-  }, [modelManager]);
+  }, [storeManager]);
   
-  // Register handler with ViewModel
-  useUserViewModelHandler('login', loginHandler, {
-    priority: 100,
-    blocking: true,
-    id: 'user-login-handler',
-    tags: ['authentication', 'business-logic']
-  });
+  useUserActionHandler('login', loginHandler);
   
-  // Theme toggle handler
-  const toggleThemeHandler = useCallback(async (payload, controller) => {
-    const preferencesStore = modelManager.getStore('preferences');
-    const currentPreferences = preferencesStore.getValue();
-    
-    const newTheme = currentPreferences.theme === 'light' ? 'dark' : 'light';
-    
-    preferencesStore.setValue({
-      ...currentPreferences,
-      theme: newTheme
-    });
-    
-    return { theme: newTheme };
-  }, [modelManager]);
+  // View에서 사용할 액션 함수 반환
+  const login = useCallback((email: string, password: string) => 
+    dispatch('login', { email, password }), [dispatch]);
   
-  useUserViewModelHandler('toggleTheme', toggleThemeHandler, {
-    priority: 90,
-    blocking: true,
-    id: 'toggle-theme-handler',
-    tags: ['preferences', 'ui']
-  });
+  return { login };
 }
-```
+
+export function useUserDataActions() {
+  const storeManager = useUserStoreManager();
+  const dispatch = useUserActionDispatch();
+  
+  const logoutHandler = useCallback(async (payload, controller) => {
+    await authAPI.logout();
+    
+    // 지연 평가: 로그아웃 시점에 데이터 초기화
+    const profileStore = storeManager.getStore('profile');
+    const sessionStore = storeManager.getStore('session');
+    
+    profileStore.setValue({ id: '', name: '', role: 'user' });
+    sessionStore.setValue({ isAuthenticated: false, permissions: [] });
+  }, [storeManager]);
+  
+  useUserActionHandler('logout', logoutHandler);
+  
+  const logout = useCallback(() => dispatch('logout', undefined), [dispatch]);
+  const updateProfile = useCallback((name: string, role: string) => 
+    dispatch('updateProfile', { name, role }), [dispatch]);
+  
+  return { logout, updateProfile };
+}
 
 ### Performance Layer Implementation
 
 ```typescript
 // performance/UserPerformanceLayer.ts
 export type UserPerformanceRefs = {
-  // Theme transition elements
-  themeRoot: HTMLDivElement;
-  themeOverlay: HTMLDivElement;
-  
-  // Interactive elements
-  avatar: HTMLImageElement;
   profileCard: HTMLDivElement;
-  
-  // Notification system
-  notificationContainer: HTMLDivElement;
-  toastElements: HTMLDivElement;
 };
 
-// Create Performance Layer
 export const {
   Provider: UserPerformanceProvider,
   useRefHandler: useUserPerformanceRef
 } = createRefContext<UserPerformanceRefs>('UserPerformance');
 
-// Performance handlers for zero re-render updates
-export function useUserPerformanceHandlers() {
-  const themeRoot = useUserPerformanceRef('themeRoot');
-  const themeOverlay = useUserPerformanceRef('themeOverlay');
-  const notificationContainer = useUserPerformanceRef('notificationContainer');
+export function useUserPerformanceActions() {
+  const profileCard = useUserPerformanceRef('profileCard');
   
-  // Handle theme changes with hardware acceleration
-  const themeTransitionHandler = useCallback(async (payload, controller) => {
-    const result = controller.getResult(); // Get result from previous handlers
-    
-    if (result?.theme && themeRoot.target && themeOverlay.target) {
-      // Hardware-accelerated theme transition
-      themeOverlay.target.style.background = result.theme === 'dark' 
-        ? 'linear-gradient(135deg, #1a1a1a, #2d2d2d)' 
-        : 'linear-gradient(135deg, #ffffff, #f8f9fa)';
+  const animateLoginHandler = useCallback(async (payload, controller) => {
+    if (profileCard.target) {
+      profileCard.target.style.transform = 'scale(1.05)';
+      profileCard.target.style.transition = 'transform 300ms ease-out';
       
-      themeOverlay.target.style.opacity = '0';
-      themeOverlay.target.style.transition = 'opacity 300ms ease-in-out';
-      
-      // Apply theme to root
-      themeRoot.target.setAttribute('data-theme', result.theme);
-      
-      // Fade in new theme
-      requestAnimationFrame(() => {
-        if (themeOverlay.target) {
-          themeOverlay.target.style.opacity = '1';
-        }
-      });
-    }
-  }, [themeRoot, themeOverlay]);
-
-  useUserViewModelHandler('toggleTheme', themeTransitionHandler, {
-    priority: 50, // After business logic
-    blocking: false, // Non-blocking performance update
-    id: 'theme-performance-handler',
-    tags: ['performance', 'theme', 'animation']
-  });
-  
-  // Show notifications without React re-renders
-  const showNotificationHandler = useCallback((message: string, type: 'success' | 'error') => {
-    if (!notificationContainer.target) return;
-    
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.textContent = message;
-    toast.style.transform = 'translateX(100%)';
-    toast.style.transition = 'transform 300ms ease-out';
-    
-    notificationContainer.target.appendChild(toast);
-    
-    // Hardware-accelerated slide-in animation
-    requestAnimationFrame(() => {
-      toast.style.transform = 'translateX(0)';
-    });
-    
-    // Auto-remove after 3 seconds
-    setTimeout(() => {
-      toast.style.transform = 'translateX(100%)';
       setTimeout(() => {
-        if (toast.parentNode) {
-          toast.parentNode.removeChild(toast);
+        if (profileCard.target) {
+          profileCard.target.style.transform = 'scale(1)';
         }
       }, 300);
-    }, 3000);
-  }, [notificationContainer]);
+    }
+  }, [profileCard]);
   
-  return { showNotificationHandler };
+  useUserActionHandler('login', animateLoginHandler, { priority: 50 });
+  
+  return { profileCardRef: profileCard };
 }
 ```
 
-### View Layer Implementation
+### Pure View Layer (순수하게 데이터와 함수를 받아서 렌더링)
 
 ```typescript
 // views/UserProfileView.tsx
 export function UserProfileView() {
-  // Model Layer - reactive data subscriptions
-  const profileStore = useUserModel('profile');
-  const sessionStore = useUserModel('session');
-  const preferencesStore = useUserModel('preferences');
+  // 데이터 구독 훅들 (모듈화된 데이터 전달)
+  const { displayName, roleLabel } = useUserProfile();
+  const { isAuthenticated } = useUserSession();
+  const { authStatus } = useUserAuthState();
   
-  const profile = useStoreValue(profileStore);
-  const session = useStoreValue(sessionStore);
-  const preferences = useStoreValue(preferencesStore);
+  // 액션 훅들 (필요한 함수들 전달)
+  const { login } = useUserAuthActions();
+  const { logout } = useUserDataActions();
+  const { profileCardRef } = useUserPerformanceActions();
   
-  // ViewModel Layer - business logic dispatch
-  const dispatch = useUserViewModel();
-  const { dispatchWithResult } = useUserViewModelWithResult();
-  
-  // Performance Layer - direct DOM manipulation
-  const avatarRef = useUserPerformanceRef('avatar');
-  const profileCardRef = useUserPerformanceRef('profileCard');
-  const { showNotificationHandler } = useUserPerformanceHandlers();
-  
-  // View-specific event handlers
-  const handleLogin = useCallback(async () => {
-    try {
-      const result = await dispatchWithResult('login', {
-        email: 'user@example.com',
-        password: 'password123'
-      });
-      
-      if (result?.success) {
-        showNotificationHandler('Login successful!', 'success');
-        
-        // Animate profile card appearance
-        if (profileCardRef.target) {
-          profileCardRef.target.style.transform = 'scale(0.9)';
-          profileCardRef.target.style.opacity = '0';
-          profileCardRef.target.style.transition = 'all 300ms ease-out';
-          
-          requestAnimationFrame(() => {
-            if (profileCardRef.target) {
-              profileCardRef.target.style.transform = 'scale(1)';
-              profileCardRef.target.style.opacity = '1';
-            }
-          });
-        }
-      }
-    } catch (error) {
-      showNotificationHandler('Login failed', 'error');
-    }
-  }, [dispatchWithResult, showNotificationHandler, profileCardRef]);
-  
-  const handleToggleTheme = useCallback(() => {
-    dispatch('toggleTheme', undefined); // ViewModel handles business logic and Performance handles animation
-  }, [dispatch]);
-  
-  const handleAvatarClick = useCallback(() => {
-    // Direct DOM manipulation for immediate feedback
-    if (avatarRef.target) {
-      avatarRef.target.style.transform = 'scale(1.1)';
-      avatarRef.target.style.transition = 'transform 150ms ease-out';
-      
-      setTimeout(() => {
-        if (avatarRef.target) {
-          avatarRef.target.style.transform = 'scale(1)';
-        }
-      }, 150);
-    }
-    
-    // Then dispatch business logic
-    dispatch('uploadAvatar', { file: null }); // Would open file picker
-  }, [avatarRef, dispatch]);
+  // View는 순수하게 받은 데이터와 함수를 적절히 마운트
+  const handleLogin = useCallback(() => {
+    login('user@example.com', 'password123');
+  }, [login]);
   
   return (
-    <div 
-      ref={profileCardRef.setRef}
-      className="user-profile-card"
-      data-theme={preferences.theme}
-    >
-      <img
-        ref={avatarRef.setRef}
-        src={`/avatars/${profile.id}.jpg`}
-        alt={`${profile.name} avatar`}
-        onClick={handleAvatarClick}
-        className="avatar cursor-pointer"
-      />
-      
+    <div ref={profileCardRef.setRef} className="user-profile-card">
       <div className="profile-info">
-        <h2>{profile.name || 'Guest User'}</h2>
-        <p>{profile.email}</p>
-        <span className={`role role-${profile.role}`}>
-          {profile.role.toUpperCase()}
+        <h2>{displayName}</h2>
+        <span className={`role role-${authStatus}`}>
+          {roleLabel}
         </span>
       </div>
       
       <div className="actions">
-        {session.isAuthenticated ? (
-          <>
-            <button onClick={handleToggleTheme}>
-              Toggle Theme ({preferences.theme})
-            </button>
-            <button onClick={() => dispatch('logout', undefined)}>
-              Logout
-            </button>
-          </>
+        {isAuthenticated ? (
+          <button onClick={logout}>
+            Logout
+          </button>
         ) : (
           <button onClick={handleLogin}>
             Login
@@ -482,10 +337,763 @@ function UserApp() {
   );
 }
 
-// Handler setup component
-function UserMVVMHandlers() {
-  useUserViewModelHandlers(); // Business logic handlers
-  useUserPerformanceHandlers(); // Performance handlers
+// 각 컴포넌트가 필요한 영역만 초기화하고 고유 값 전달
+function UserLoginComponent() {
+  // 로그인 컴포넌트는 인증 액션만 초기화하고 고유 설정 전달
+  useUserAuthActions({ 
+    redirectPath: '/dashboard',
+    rememberMe: true,
+    loginProvider: 'oauth'
+  });
+  
+  const { login } = useUserAuthActions();
+  const { displayName, isGuest } = useUserProfile();
+  
+  return (
+    <div className="login-form">
+      {/* 로그인 폼 UI */}
+    </div>
+  );
+}
+
+function UserProfileComponent() {
+  // 프로필 컴포넌트는 데이터 액션과 퍼포먼스 액션 초기화
+  useUserDataActions({ 
+    autoSave: true,
+    validationRules: ['email', 'name']
+  });
+  useUserPerformanceActions({
+    animationDuration: 300,
+    enableHoverEffects: true
+  });
+  
+  const { logout, updateProfile } = useUserDataActions();
+  const { profileCardRef } = useUserPerformanceActions();
+  const { displayName, roleLabel } = useUserProfile();
+  
+  return (
+    <div ref={profileCardRef.setRef} className="user-profile">
+      {/* 프로필 UI */}
+    </div>
+  );
+}
+```
+
+## Action-Based File Convention System
+
+### 선언적 스펙 기반 관리 시나리오
+
+```typescript
+// contexts/UserContext.ts - 스펙 선언
+export interface UserActions {
+  login: { email: string; password: string };          // Priority 100
+  logout: void;                                        // Priority 90
+  updateProfile: { name: string; role: string };      // Priority 80
+  deleteAccount: { confirmToken: string };            // Priority 70
+}
+```
+
+### 폴더 구조 컨벤션
+
+```
+src/
+├── contexts/
+│   └── UserContext.ts                    # 타입 스펙 선언
+├── actions/
+│   └── user/                            # 컨텍스트별 폴더
+│       ├── useLogin-100.tsx             # login 액션, priority 100
+│       ├── useLogin-50.tsx              # login 액션, priority 50 (성능 핸들러)
+│       ├── useLogout-90.tsx             # logout 액션, priority 90
+│       ├── useUpdateProfile-80.tsx      # updateProfile 액션, priority 80
+│       └── useDeleteAccount-70.tsx      # deleteAccount 액션, priority 70
+├── hooks/
+│   └── user/
+│       ├── useUserProfile.ts            # 데이터 구독 훅
+│       ├── useUserSession.ts            # 세션 구독 훅
+│       └── useUserAuthState.ts          # 통합 상태 훅
+└── components/
+    └── user/
+        ├── UserLoginComponent.tsx
+        └── UserProfileComponent.tsx
+```
+
+### 액션별 훅 구현 패턴 (선택적 구독 & 지연 평가)
+
+```typescript
+// actions/user/useLogin-100.tsx - 비즈니스 로직 (높은 우선순위)
+export function useLogin100(options?: { 
+  subscribeToProfile?: boolean;
+  subscribeToSession?: boolean; 
+  handlerId?: string;
+}) {
+  const { 
+    subscribeToProfile = false, 
+    subscribeToSession = false,
+    handlerId = 'default-login-100'
+  } = options || {};
+  
+  const storeManager = useUserStoreManager();
+  const dispatch = useUserActionDispatch();
+  
+  // 선택적 구독 - 훅 내부에서 구독 여부 결정
+  const profileStore = useUserStore('profile');
+  const sessionStore = useUserStore('session');
+  
+  // 구독이 필요한 경우에만 reactive 데이터 사용
+  const currentProfile = subscribeToProfile ? useStoreValue(profileStore) : null;
+  const currentSession = subscribeToSession ? useStoreValue(sessionStore) : null;
+  
+  const loginHandler = useCallback(async (payload: UserActions['login'], controller) => {
+    try {
+      // action 내에서 store 데이터를 지연 평가
+      const currentProfileData = storeManager.getStore('profile').getValue();
+      const currentSessionData = storeManager.getStore('session').getValue();
+      
+      // 기존 상태 체크 (지연 평가로 필요한 시점에만)
+      if (currentSessionData.isAuthenticated) {
+        controller.abort('Already logged in');
+        return;
+      }
+      
+      const response = await authAPI.login(payload.email, payload.password);
+      
+      // 지연 평가로 store 업데이트
+      storeManager.getStore('profile').setValue({
+        id: response.user.id,
+        name: response.user.name,
+        role: response.user.role
+      });
+      
+      storeManager.getStore('session').setValue({
+        isAuthenticated: true,
+        permissions: response.permissions
+      });
+      
+      return { 
+        success: true, 
+        redirectTo: '/dashboard',
+        previousProfile: currentProfileData  // 이전 상태도 반환 가능
+      };
+    } catch (error) {
+      controller.abort('Login failed', error);
+    }
+  }, [storeManager]);
+  
+  // 마운트 단위에서 고유하게 관리 - handlerId로 구분
+  useUserActionHandler('login', loginHandler, { 
+    priority: 100,
+    id: handlerId  // 같은 ID면 중복 등록 방지, 다른 ID면 여러개 등록 가능
+  });
+  
+  const login = useCallback((email: string, password: string) => 
+    dispatch('login', { email, password }), [dispatch]);
+  
+  return { 
+    login,
+    // 구독한 경우에만 reactive 데이터 제공
+    ...(subscribeToProfile && { profileData: currentProfile }),
+    ...(subscribeToSession && { sessionData: currentSession })
+  };
+}
+
+// actions/user/useLogin-50.tsx - 퍼포먼스/애니메이션 (낮은 우선순위)
+export function useLogin50(options?: { animationDuration?: number }) {
+  const profileCardRef = useUserPerformanceRef('profileCard');
+  const { animationDuration = 300 } = options || {};
+  
+  const performanceHandler = useCallback(async (payload: UserActions['login'], controller) => {
+    const result = controller.getResult(); // 이전 핸들러 결과
+    
+    if (result?.success && profileCardRef.target) {
+      profileCardRef.target.style.transform = 'scale(1.05)';
+      profileCardRef.target.style.transition = `transform ${animationDuration}ms ease-out`;
+      
+      setTimeout(() => {
+        if (profileCardRef.target) {
+          profileCardRef.target.style.transform = 'scale(1)';
+        }
+      }, animationDuration);
+    }
+  }, [profileCardRef, animationDuration]);
+  
+  useUserActionHandler('login', performanceHandler, { priority: 50 });
+  
+  return { profileCardRef };
+}
+
+// actions/user/useLogout-90.tsx
+export function useLogout90(options?: {
+  clearAllStores?: boolean;
+  handlerId?: string;
+  subscribeToSession?: boolean;
+}) {
+  const { 
+    clearAllStores = true, 
+    handlerId = 'default-logout-90',
+    subscribeToSession = false 
+  } = options || {};
+  
+  const storeManager = useUserStoreManager();
+  const dispatch = useUserActionDispatch();
+  
+  // 선택적 구독
+  const sessionStore = useUserStore('session');
+  const currentSession = subscribeToSession ? useStoreValue(sessionStore) : null;
+  
+  const logoutHandler = useCallback(async (payload: UserActions['logout'], controller) => {
+    // action 내에서 현재 상태 지연 평가
+    const currentSessionData = storeManager.getStore('session').getValue();
+    const currentProfileData = storeManager.getStore('profile').getValue();
+    
+    // 이미 로그아웃 상태인지 체크
+    if (!currentSessionData.isAuthenticated) {
+      return { success: true, message: 'Already logged out' };
+    }
+    
+    await authAPI.logout();
+    
+    // 선택적으로 store 정리
+    if (clearAllStores) {
+      storeManager.getStore('profile').setValue({ id: '', name: '', role: 'user' });
+      storeManager.getStore('session').setValue({ isAuthenticated: false, permissions: [] });
+    } else {
+      // 세션만 정리
+      storeManager.getStore('session').setValue({ isAuthenticated: false, permissions: [] });
+    }
+    
+    return { 
+      success: true, 
+      clearedProfile: clearAllStores ? currentProfileData : null 
+    };
+  }, [storeManager, clearAllStores]);
+  
+  // 마운트 단위 고유 관리
+  useUserActionHandler('logout', logoutHandler, { 
+    priority: 90,
+    id: handlerId  // 같은 ID면 중복 등록 방지
+  });
+  
+  const logout = useCallback(() => dispatch('logout', undefined), [dispatch]);
+  
+  return { 
+    logout,
+    ...(subscribeToSession && { sessionData: currentSession })
+  };
+}
+```
+
+### 핸들러 ID 전략 및 다중 등록 패턴
+
+```typescript
+// components/user/UserLoginComponent.tsx - 단일 핸들러 케이스
+function UserLoginComponent() {
+  // 단일 핸들러 예상 시: 순수 문자열 ID 사용
+  const { login, sessionData } = useLogin100({
+    subscribeToSession: true,
+    subscribeToProfile: false,
+    handlerId: 'login-business-logic'  // 단순 문자열 (액션당 1개 예상)
+  });
+  
+  const { profileCardRef } = useLogin50({ 
+    animationDuration: 250,
+    handlerId: 'login-animation'       // 단순 문자열 (액션당 1개 예상)
+  });
+  
+  const { displayName, isGuest } = useUserProfile();
+  
+  const handleLogin = useCallback(() => {
+    login('user@example.com', 'password123');
+  }, [login]);
+  
+  return (
+    <div ref={profileCardRef.setRef} className="login-form">
+      <h2>Welcome {displayName}</h2>
+      {!sessionData?.isAuthenticated && (
+        <button onClick={handleLogin}>Login</button>
+      )}
+    </div>
+  );
+}
+
+// components/user/UserListComponent.tsx - 다중 핸들러 케이스
+function UserListComponent({ users }: { users: Array<{ id: string; name: string; role: string }> }) {
+  const componentId = useId(); // React useId로 컴포넌트 고유 ID
+  
+  return (
+    <div>
+      {users.map(user => (
+        <UserListItem 
+          key={user.id} 
+          user={user} 
+          componentId={componentId}  // 컴포넌트 ID 전달
+        />
+      ))}
+    </div>
+  );
+}
+
+function UserListItem({ user, componentId }: { 
+  user: { id: string; name: string; role: string };
+  componentId: string;
+}) {
+  // 데이터 기반 식별자: 사용자별로 다른 핸들러 등록
+  const { updateProfile } = useUpdateProfile80({
+    handlerId: `update-profile-${user.id}`, // 데이터 기반 고유 ID
+    subscribeToProfile: true
+  });
+  
+  // 컴포넌트 ID + 데이터 ID 조합
+  const { logout } = useLogout90({
+    handlerId: `${componentId}-logout-${user.id}`, // 컴포넌트ID + 데이터ID
+    subscribeToSession: true
+  });
+  
+  return (
+    <div className="user-item">
+      <span>{user.name} ({user.role})</span>
+      <button onClick={() => updateProfile(user.name, user.role)}>
+        Update
+      </button>
+      <button onClick={logout}>
+        Logout This User
+      </button>
+    </div>
+  );
+}
+
+// components/user/UserProfileComponent.tsx - 다중 용도별 핸들러
+function UserProfileComponent({ userId }: { userId: string }) {
+  const componentId = useId(); // React 컴포넌트 고유 ID
+  
+  // 의도별로 다른 핸들러 등록 (같은 액션, 다른 용도)
+  const { logout: primaryLogout, sessionData } = useLogout90({
+    clearAllStores: true,
+    subscribeToSession: true,
+    handlerId: `${componentId}-primary-logout`  // useId 기반 고유성
+  });
+  
+  const { logout: securityLogout } = useLogout90({
+    clearAllStores: false,  
+    subscribeToSession: false,
+    handlerId: `${componentId}-security-logout`  // useId 기반 고유성
+  });
+  
+  // 데이터 기반 식별자 (사용자별 프로필 업데이트)
+  const { updateProfile } = useUpdateProfile80({
+    handlerId: `update-profile-${userId}`,  // 데이터 기반 고유 ID
+    subscribeToProfile: true
+  });
+  
+  const { displayName, roleLabel } = useUserProfile();
+  
+  const handleSecurityLogout = useCallback(() => {
+    securityLogout();
+  }, [securityLogout]);
+  
+  const handleFullLogout = useCallback(() => {
+    primaryLogout();
+  }, [primaryLogout]);
+  
+  return (
+    <div className="user-profile">
+      <h2>{displayName} ({roleLabel})</h2>
+      {sessionData?.isAuthenticated && (
+        <div className="actions">
+          <button onClick={() => updateProfile('New Name', 'admin')}>
+            Update Profile
+          </button>
+          <button onClick={handleFullLogout}>
+            Full Logout (Clear All)
+          </button>
+          <button onClick={handleSecurityLogout}>
+            Security Logout (Keep Profile)
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// components/user/UserModalComponent.tsx - 모달별 핸들러 격리
+function UserModalComponent({ modalId, user }: { 
+  modalId: string; 
+  user: { id: string; name: string }; 
+}) {
+  const componentId = useId();
+  
+  // 모달별 + 사용자별 고유 핸들러
+  const { updateProfile } = useUpdateProfile80({
+    handlerId: `${modalId}-${componentId}-update-${user.id}`, // 모달ID + 컴포넌트ID + 데이터ID
+    subscribeToProfile: true
+  });
+  
+  // 모달별 독립적인 로그아웃 동작
+  const { logout } = useLogout90({
+    handlerId: `${modalId}-logout-${user.id}`, // 모달ID + 데이터ID  
+    clearAllStores: false // 모달에서는 세션만 정리
+  });
+  
+  return (
+    <div className="user-modal">
+      <h3>Edit {user.name}</h3>
+      <button onClick={() => updateProfile(user.name, 'admin')}>
+        Update in Modal
+      </button>
+      <button onClick={logout}>
+        Logout from Modal
+      </button>
+    </div>
+  );
+}
+```
+
+### HandlerId 기반 관리의 핵심 장점
+
+#### 1. **함수 고유성 보장 및 생명주기 관리**
+```typescript
+// 같은 액션에 대해 서로 다른 목적의 핸들러들이 독립적으로 관리됨
+const { logout: businessLogout } = useLogout90({
+  handlerId: 'business-logout',     // 비즈니스 로직용
+  clearAllStores: true
+});
+
+const { logout: auditLogout } = useLogout90({
+  handlerId: 'audit-logout',        // 감사 로그용  
+  clearAllStores: false,
+  subscribeToSession: false
+});
+
+// 각각 독립적인 핸들러로 등록되어 서로 영향 없음
+// handlerId가 다르면 동시에 실행되고, 같으면 중복 등록 방지됨
+```
+
+#### 2. **컴포넌트 마운트/언마운트 시 안정적 정리**
+```typescript
+function UserComponent({ userId }: { userId: string }) {
+  // userId가 변경되어도 이전 핸들러는 자동으로 정리되고 새로 등록됨
+  const { updateProfile } = useUpdateProfile80({
+    handlerId: `profile-update-${userId}`,  // userId 변경 시 핸들러도 교체
+    subscribeToProfile: true
+  });
+  
+  // 컴포넌트 언마운트 시 해당 handlerId 핸들러들이 자동 정리됨
+  return <div>User: {userId}</div>;
+}
+```
+
+#### 3. **리렌더링 최적화 및 중복 등록 방지**
+```typescript
+function OptimizedComponent() {
+  const [count, setCount] = useState(0);
+  
+  // 리렌더링이 발생해도 같은 handlerId면 핸들러 재등록 없음
+  const { login } = useLogin100({
+    handlerId: 'stable-login',  // 고정 ID로 안정적 관리
+    subscribeToSession: true
+  });
+  
+  // count가 변경되어도 login 핸들러는 재등록되지 않음
+  return (
+    <div>
+      <span>Count: {count}</span>
+      <button onClick={() => setCount(c => c + 1)}>Increment</button>
+      <button onClick={() => login('user@test.com', 'pass')}>Login</button>
+    </div>
+  );
+}
+```
+
+### ActionRegister 직접 사용 패턴
+
+#### useActionHandler vs useActionRegister
+```typescript
+// 1. useActionHandler 방식 (권장) - 자동 ID 관리
+function ComponentWithHook() {
+  const loginHandler = useCallback(async (payload, controller) => {
+    // 로직
+  }, []);
+  
+  // handlerId가 자동으로 관리됨
+  useUserActionHandler('login', loginHandler, {
+    priority: 100,
+    id: 'auto-managed-id'  // 옵션으로 직접 지정 가능
+  });
+}
+
+// 2. useActionRegister 직접 사용 - 수동 ID 주입 필요
+function ComponentWithRegister() {
+  const actionRegister = useActionRegister(); // ActionRegister 직접 접근
+  const componentId = useId();
+  
+  const loginHandler = useCallback(async (payload, controller) => {
+    // 로직
+  }, []);
+  
+  useEffect(() => {
+    // 직접 등록 시 handlerId를 반드시 주입해야 안정적
+    const unregister = actionRegister.registerHandler('login', loginHandler, {
+      priority: 100,
+      id: `${componentId}-direct-login`,  // ID 직접 주입 필수!
+      blocking: true
+    });
+    
+    return unregister; // 정리 함수 반환
+  }, [actionRegister, loginHandler, componentId]);
+}
+```
+
+#### ActionRegister 직접 사용이 필요한 경우
+```typescript
+// 동적 액션 등록이 필요한 경우
+function DynamicActionComponent({ actionConfigs }: { 
+  actionConfigs: Array<{ 
+    actionName: string; 
+    priority: number; 
+    handler: Function; 
+  }> 
+}) {
+  const actionRegister = useActionRegister();
+  const componentId = useId();
+  
+  useEffect(() => {
+    const unregisterFunctions: Array<() => void> = [];
+    
+    // 동적으로 여러 액션 핸들러 등록
+    actionConfigs.forEach((config, index) => {
+      const unregister = actionRegister.registerHandler(
+        config.actionName,
+        config.handler,
+        {
+          priority: config.priority,
+          id: `${componentId}-dynamic-${config.actionName}-${index}`, // 고유 ID 주입
+          blocking: true
+        }
+      );
+      unregisterFunctions.push(unregister);
+    });
+    
+    return () => {
+      // 모든 동적 핸들러 정리
+      unregisterFunctions.forEach(unregister => unregister());
+    };
+  }, [actionRegister, actionConfigs, componentId]);
+  
+  return <div>Dynamic Actions Registered</div>;
+}
+
+// 조건부 핸들러 등록
+function ConditionalActionComponent({ isAdmin }: { isAdmin: boolean }) {
+  const actionRegister = useActionRegister();
+  const componentId = useId();
+  
+  useEffect(() => {
+    if (!isAdmin) return; // 관리자가 아니면 핸들러 등록 안함
+    
+    const adminHandler = async (payload: any, controller: any) => {
+      // 관리자 전용 로직
+      console.log('Admin action executed');
+    };
+    
+    const unregister = actionRegister.registerHandler('adminAction', adminHandler, {
+      priority: 200,
+      id: `${componentId}-admin-handler`, // 컴포넌트별 고유 관리자 핸들러
+      blocking: true
+    });
+    
+    return unregister;
+  }, [actionRegister, isAdmin, componentId]);
+  
+  return <div>Conditional Admin Actions</div>;
+}
+```
+
+#### HandlerId 주입의 중요성
+```typescript
+// ❌ 잘못된 예시 - ID 없이 직접 등록
+function BadExample() {
+  const actionRegister = useActionRegister();
+  
+  useEffect(() => {
+    const handler = async (payload: any, controller: any) => {
+      // 로직
+    };
+    
+    // ID 없이 등록 - 충돌 위험, 불안정한 관리
+    const unregister = actionRegister.registerHandler('login', handler, {
+      priority: 100
+      // id 없음 - 위험!
+    });
+    
+    return unregister;
+  }, [actionRegister]);
+}
+
+// ✅ 올바른 예시 - 고유 ID로 안정적 등록
+function GoodExample() {
+  const actionRegister = useActionRegister();
+  const componentId = useId();
+  
+  useEffect(() => {
+    const handler = async (payload: any, controller: any) => {
+      // 로직
+    };
+    
+    const unregister = actionRegister.registerHandler('login', handler, {
+      priority: 100,
+      id: `${componentId}-safe-login`, // 고유 ID로 안전한 관리
+      blocking: true
+    });
+    
+    return unregister;
+  }, [actionRegister, componentId]);
+}
+```
+
+#### 오버라이드가 필요한 경우 - 명시적 언마운트 패턴
+
+```typescript
+// 🔄 오버라이드 패턴 - 이전 핸들러를 명시적으로 제거하고 새로 등록
+function OverrideExample({ mode }: { mode: 'basic' | 'advanced' }) {
+  const actionRegister = useActionRegister();
+  const componentId = useId();
+  
+  useEffect(() => {
+    const handlerId = `${componentId}-dynamic-login`;
+    
+    // 1. 먼저 기존 핸들러가 있다면 명시적으로 찾아서 제거
+    const existingHandlers = actionRegister.getActionStats('login')?.handlersByPriority || [];
+    const existingHandler = existingHandlers
+      .flatMap(p => p.handlers)
+      .find(h => h.id === handlerId);
+    
+    if (existingHandler) {
+      // 기존 핸들러를 찾았다면 액션을 일단 클리어하고 다시 등록
+      // 또는 더 정교한 제거 로직 구현
+      console.log('기존 핸들러 발견, 교체 진행');
+    }
+    
+    // 2. 모드에 따라 다른 핸들러 등록
+    const handler = mode === 'basic' 
+      ? async (payload: any, controller: any) => {
+          console.log('Basic login logic');
+        }
+      : async (payload: any, controller: any) => {
+          console.log('Advanced login logic with validation');
+        };
+    
+    const unregister = actionRegister.registerHandler('login', handler, {
+      priority: 100,
+      id: handlerId, // 같은 ID 사용 (기존 것은 중복 방지로 무시됨)
+      blocking: true
+    });
+    
+    return unregister;
+  }, [actionRegister, componentId, mode]); // mode 변경 시 재등록
+}
+
+// 🔄 액션별 핸들러 교체 패턴 
+function HandlerReplacementExample({ userId }: { userId: string }) {
+  const actionRegister = useActionRegister();
+  const componentId = useId();
+  
+  // userId가 변경될 때마다 핸들러 교체
+  useEffect(() => {
+    const handlerId = `${componentId}-user-handler`;
+    
+    // 사용자별 맞춤 핸들러 생성
+    const userSpecificHandler = async (payload: any, controller: any) => {
+      console.log(`User ${userId} specific logic`);
+      // userId에 따른 특별한 로직
+    };
+    
+    const unregister = actionRegister.registerHandler('updateProfile', userSpecificHandler, {
+      priority: 100,
+      id: handlerId, // 같은 ID로 등록 시도 (중복 방지됨)
+      blocking: true
+    });
+    
+    return () => {
+      // 명시적 정리
+      unregister();
+      console.log(`Handler for user ${userId} unregistered`);
+    };
+  }, [actionRegister, componentId, userId]); // userId 변경 시 effect 재실행
+  
+  return <div>User Profile Handler for: {userId}</div>;
+}
+
+// 🔄 조건부 핸들러 교체 패턴
+function ConditionalHandlerReplacement({ isAdmin, userRole }: { 
+  isAdmin: boolean; 
+  userRole: string; 
+}) {
+  const actionRegister = useActionRegister();
+  const componentId = useId();
+  
+  useEffect(() => {
+    const baseHandlerId = `${componentId}-role-handler`;
+    
+    // 역할별로 다른 핸들러 등록
+    if (isAdmin) {
+      const adminHandler = async (payload: any, controller: any) => {
+        console.log('Admin-level action processing');
+      };
+      
+      const unregister = actionRegister.registerHandler('performAction', adminHandler, {
+        priority: 200, // 높은 우선순위
+        id: `${baseHandlerId}-admin`,
+        blocking: true
+      });
+      
+      return unregister;
+    } else {
+      const userHandler = async (payload: any, controller: any) => {
+        console.log(`${userRole} level action processing`);
+      };
+      
+      const unregister = actionRegister.registerHandler('performAction', userHandler, {
+        priority: 100,
+        id: `${baseHandlerId}-user`,
+        blocking: true
+      });
+      
+      return unregister;
+    }
+  }, [actionRegister, componentId, isAdmin, userRole]); // 조건 변경 시 재등록
+  
+  return <div>Role-based Handler Active</div>;
+}
+```
+
+### 자동 등록 시스템 (선택사항)
+
+```typescript
+// utils/autoRegisterActions.ts - 자동 훅 등록 유틸리티
+export function useAutoRegisterUserActions() {
+  // 파일 컨벤션에 따라 자동으로 모든 액션 훅 등록
+  useLogin100();
+  useLogin50();
+  useLogout90();
+  useUpdateProfile80();
+  useDeleteAccount70();
+}
+
+// App.tsx에서 사용
+function UserApp() {
+  return (
+    <UserModelProvider>
+      <UserActionProvider>
+        <UserPerformanceProvider>
+          <AutoRegisterActions />
+          <UserComponents />
+        </UserPerformanceProvider>
+      </UserActionProvider>
+    </UserModelProvider>
+  );
+}
+
+function AutoRegisterActions() {
+  useAutoRegisterUserActions(); // 모든 액션 자동 등록
   return null;
 }
 ```
@@ -494,92 +1102,18 @@ function UserMVVMHandlers() {
 
 ### Multi-Domain MVVM
 
-#### Architecture Diagram
-
-```mermaid
-graph TB
-    subgraph "Multi-Domain MVVM Architecture"
-        subgraph UserDomain["👤 User Domain MVVM"]
-            UM["🗄️ User Model"]
-            UVM["⚙️ User ViewModel"]
-            UP["⚡ User Performance"]
-            UV["🖼️ User View"]
-        end
-        
-        subgraph ProductDomain["📦 Product Domain MVVM"]
-            PM["🗄️ Product Model"]
-            PVM["⚙️ Product ViewModel"]
-            PP["⚡ Product Performance"]
-            PV["🖼️ Product View"]
-        end
-        
-        subgraph CartDomain["🛒 Cart Domain MVVM"]
-            CM["🗄️ Cart Model"]
-            CVM["⚙️ Cart ViewModel"]
-            CP["⚡ Cart Performance"]
-            CV["🖼️ Cart View"]
-        end
-        
-        subgraph Integration["🔗 Integration Layer"]
-            IVM["⚙️ Integration ViewModel"]
-        end
-        
-        App["🚀 ECommerce App"]
-    end
-    
-    UV --> UVM
-    UVM --> UM
-    PV --> PVM
-    PVM --> PM
-    CV --> CVM
-    CVM --> CM
-    
-    IVM -.->|"Cross-domain logic"| UVM
-    IVM -.->|"Cross-domain logic"| PVM
-    IVM -.->|"Cross-domain logic"| CVM
-    
-    UserDomain --> App
-    ProductDomain --> App
-    CartDomain --> App
-    Integration --> App
-    
-    style UserDomain fill:#e3f2fd
-    style ProductDomain fill:#f3e5f5
-    style CartDomain fill:#e8f5e8
-    style Integration fill:#fff8e1
-```
-
-#### Implementation
-
 ```tsx
 // Multiple domain MVVMs composed together
 function MultiDomainApp() {
   return (
-    // User Domain MVVM
     <UserModelProvider>
       <UserViewModelProvider>
         <UserPerformanceProvider>
-          
-          {/* Product Domain MVVM */}
           <ProductModelProvider>
             <ProductViewModelProvider>
-              <ProductPerformanceProvider>
-                
-                {/* Shopping Cart Domain MVVM */}
-                <CartModelProvider>
-                  <CartViewModelProvider>
-                    <CartPerformanceProvider>
-                      
-                      <ECommerceApp />
-                      
-                    </CartPerformanceProvider>
-                  </CartViewModelProvider>
-                </CartModelProvider>
-                
-              </ProductPerformanceProvider>
+              <ECommerceApp />
             </ProductViewModelProvider>
           </ProductModelProvider>
-          
         </UserPerformanceProvider>
       </UserViewModelProvider>
     </UserModelProvider>
@@ -590,86 +1124,28 @@ function MultiDomainApp() {
 ### Cross-Domain ViewModel Communication
 
 ```tsx
-// Integration ViewModels for cross-domain logic
-export interface IntegrationViewModelActions {
-  syncUserAndCart: { userId: string };
-  processCheckout: { cartId: string; paymentMethod: any };
-  updateUserFromOrder: { orderId: string };
-}
-
 export function useIntegrationViewModel() {
-  // Access multiple domain models
   const userManager = useUserModelManager();
   const cartManager = useCartModelManager();
   
-  // Cross-domain business logic
-  useIntegrationViewModelHandler('processCheckout', async (payload, controller) => {
-    const userProfileStore = userManager.getStore('profile');
-    const cartItemsStore = cartManager.getStore('items');
+  const processCheckoutHandler = useCallback(async (payload, controller) => {
+    const user = userManager.getStore('profile').getValue();
+    const items = cartManager.getStore('items').getValue();
     
-    const user = userProfileStore.getValue();
-    const items = cartItemsStore.getValue();
-    
-    // Cross-domain business logic
     const order = await orderAPI.create({
       userId: user.id,
       items: items,
       paymentMethod: payload.paymentMethod
     });
     
-    // Update multiple domains
-    cartItemsStore.setValue([]); // Clear cart
-    
+    cartManager.getStore('items').setValue([]);
     return order;
-  });
+  }, [userManager, cartManager]);
+  
+  useIntegrationViewModelHandler('processCheckout', processCheckoutHandler);
 }
 ```
 
-## Testing MVVM Architecture
-
-### Model Layer Testing
-
-```typescript
-// __tests__/models/UserModel.test.ts
-describe('User Model Layer', () => {
-  it('should update profile store', () => {
-    const { result } = renderHook(() => useUserModel('profile'));
-    
-    act(() => {
-      result.current.setValue({
-        id: '123',
-        name: 'John Doe',
-        email: 'john@example.com',
-        role: 'user'
-      });
-    });
-    
-    expect(result.current.getValue().name).toBe('John Doe');
-  });
-});
-```
-
-### ViewModel Layer Testing
-
-```typescript
-// __tests__/viewModels/UserViewModel.test.ts
-describe('User ViewModel Layer', () => {
-  it('should handle login action', async () => {
-    const mockController = createMockController();
-    const mockModelManager = createMockModelManager();
-    
-    const loginHandler = createLoginHandler(mockModelManager);
-    
-    const result = await loginHandler({
-      email: 'test@example.com',
-      password: 'password123'
-    }, mockController);
-    
-    expect(result.success).toBe(true);
-    expect(mockModelManager.getStore).toHaveBeenCalledWith('profile');
-  });
-});
-```
 
 ## Best Practices
 

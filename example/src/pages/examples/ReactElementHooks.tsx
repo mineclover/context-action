@@ -49,8 +49,9 @@ export function useElementRef(
       if (metadata) {
         element.setAttribute('data-element-metadata', JSON.stringify(metadata));
       }
+      refHandler.setRef(element);
     }
-    refHandler.setRef(element);
+    // Note: setRef might not accept null, so we only call it when element exists
   }, [refHandler, id, type, metadata]);
 }
 

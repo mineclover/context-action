@@ -64,7 +64,14 @@ export function useStoreValueComparison<T>(
     lastComparisonTime: 0
   });
 
-  const value = useStoreValue(store, selector || ((v: T) => v), options);
+  // Convert old options format to new StoreValueOptions format
+  const convertedOptions = options?.customComparator ? {
+    equalityFn: (a: T, b: T) => !options.customComparator!(a, b) // Invert because equalityFn returns true when equal
+  } : options?.comparison === 'shallow' ? {
+    equalityFn: (a: T, b: T) => JSON.stringify(a) === JSON.stringify(b) // Simple shallow comparison
+  } : undefined;
+
+  const value = useStoreValue(store, selector || ((v: T) => v), convertedOptions);
 
   // Track comparison statistics
   useEffect(() => {

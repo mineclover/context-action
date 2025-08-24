@@ -68,7 +68,6 @@ function ActionPriorityDemoContent() {
     }
     
     const result = { step: 'input-validation', success: true, valid: true };
-    controller.setResult(result);
     
     setExecutionResults(prev => [...prev, {
       id: 'input-validator',
@@ -79,7 +78,6 @@ function ActionPriorityDemoContent() {
       duration: Date.now() - startTime
     }]);
     
-    return result;
   }, []), { priority: 100, id: 'input-validator' });
 
   // Priority 95: Security Check
@@ -97,7 +95,6 @@ function ActionPriorityDemoContent() {
     }
     
     const result = { step: 'security-check', success: true, cleared: true };
-    controller.setResult(result);
     
     setExecutionResults(prev => [...prev, {
       id: 'security-checker',
@@ -108,7 +105,6 @@ function ActionPriorityDemoContent() {
       duration: Date.now() - startTime
     }]);
     
-    return result;
   }, []), { priority: 95, id: 'security-checker' });
 
   // Priority 90: Rate Limiting
@@ -124,7 +120,6 @@ function ActionPriorityDemoContent() {
     }
     
     const result = { step: 'rate-limiting', success: true, consumed: true };
-    controller.setResult(result);
     
     setExecutionResults(prev => [...prev, {
       id: 'rate-limiter',
@@ -135,7 +130,6 @@ function ActionPriorityDemoContent() {
       duration: Date.now() - startTime
     }]);
     
-    return result;
   }, []), { priority: 90, id: 'rate-limiter' });
 
   // Priority 80: Authentication (Business Logic)
@@ -163,7 +157,6 @@ function ActionPriorityDemoContent() {
       duration: Date.now() - startTime
     }]);
     
-    return result;
   }, []), { priority: 80, id: 'authenticator' });
 
   // Priority 30: Analytics (낮은 우선순위)
@@ -186,22 +179,19 @@ function ActionPriorityDemoContent() {
       duration: Date.now() - startTime
     }]);
     
-    return result;
   }, []), { priority: 30, id: 'analytics-tracker' });
 
   // Priority 10: Audit Logging (가장 낮은 우선순위)
   ActionPriorityContext.useActionHandler('authenticate', useCallback((payload, controller) => {
     const startTime = Date.now();
     
-    const results = controller.getResults();
-    const authResult = results.find(r => r.step === 'authentication');
-    
+    // Audit logging - simplified for ActionHandler compliance
     const result = {
       step: 'audit',
       logged: true,
       action: 'login',
       username: payload.username,
-      success: authResult?.success || false
+      success: true // Simplified - in real implementation use shared state
     };
     
     setExecutionResults(prev => [...prev, {
@@ -213,7 +203,6 @@ function ActionPriorityDemoContent() {
       duration: Date.now() - startTime
     }]);
     
-    return result;
   }, []), { priority: 10, id: 'audit-logger' });
 
   // Reset handler

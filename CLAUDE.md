@@ -113,6 +113,10 @@ pnpm clean
 
 # Development server (example app)
 pnpm dev               # Runs example application
+
+# Example application builds
+pnpm example:build     # Build example with TypeScript strict checking (default)
+pnpm example:build:fast # Fast build without TypeScript checking
 ```
 
 ### Package Management (Lerna)
@@ -217,12 +221,15 @@ llmsData/
 ```bash
 # Example app (in example/ directory)
 pnpm example:dev       # Development server
-pnpm example:build     # Build example app
+pnpm example:build     # Build with TypeScript strict checking (default)
+pnpm example:build:fast # Fast build without TypeScript checking
 
 # Or from example directory:
 cd example
 pnpm dev           # Vite dev server
-pnpm build         # Production build
+pnpm build         # TypeScript strict + production build (default)
+pnpm build:fast    # Fast production build without TypeScript checking
+pnpm build:strict  # Explicit TypeScript strict + production build
 pnpm lint          # Biome linting
 pnpm type-check    # TypeScript check
 ```

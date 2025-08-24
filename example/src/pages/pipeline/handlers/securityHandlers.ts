@@ -25,7 +25,7 @@ export function setupSecurityHandlers(
       return; // jumpToPriority 후에는 즉시 종료
     }
     
-    return { level: 'standard', processed: true, timestamp: Date.now() };
+    controller.setResult({ level: 'standard', processed: true, timestamp: Date.now() });
   }, { priority: 1000, id: 'standard-security' });
 
   // Elevated security handler (priority 50 - lower priority, jumped to)
@@ -46,12 +46,12 @@ export function setupSecurityHandlers(
     
     console.log('✅ Elevated security check passed');
     setExecutionPath(prev => [...prev, 'authorization-success']);
-    return { 
+    controller.setResult({ 
       level: 'elevated', 
       authorized: true, 
       securityToken: `elevated-token-${Date.now()}`,
       timestamp: Date.now()
-    };
+    });
   }, { priority: 50, id: 'elevated-security' });
 
   // Cleanup function

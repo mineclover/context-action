@@ -104,6 +104,10 @@ export interface StableLoggerAPI {
     options?: ActionLogOptions
   ) => void;
   logSystem: (message: string, options?: ActionLogOptions) => void;
+  log: (message: string, data?: unknown, options?: ActionLogOptions) => void;
+  info: (message: string, data?: unknown, options?: ActionLogOptions) => void;
+  warn: (message: string, data?: unknown, options?: ActionLogOptions) => void;
+  error: (message: string, error?: Error | unknown, options?: ActionLogOptions) => void;
 }
 
 /**
@@ -117,6 +121,7 @@ export interface LogMonitorContextValue {
   setLogLevel: (level: LogLevel) => void;
   config: LogMonitorConfig;
   updateConfig: (update: Partial<LogMonitorConfig>) => void;
+  log: (message: string, data?: unknown) => void;
 }
 
 /**

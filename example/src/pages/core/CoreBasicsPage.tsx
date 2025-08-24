@@ -1,4 +1,5 @@
 import { createActionContext } from '@context-action/react';
+import type { ActionHandler, PipelineController } from '@context-action/core';
 import { useCallback, useState } from 'react';
 import {
   LogMonitor,
@@ -15,11 +16,11 @@ import {
 
 // 1. Define Actions following EventActions pattern
 interface CoreBasicsActions {
-  increment: undefined;
-  decrement: undefined;
+  increment: void;
+  decrement: void;
   setCount: number;
-  reset: undefined;
-  generateLog: undefined;
+  reset: void;
+  generateLog: void;
   asyncOperation: string;
 }
 
@@ -38,27 +39,27 @@ function CoreBasicsDemo() {
   const { logAction, logSystem } = useActionLoggerWithToast();
 
   // Register action handlers with renamed hook (properly memoized)
-  const incrementHandler = useCallback((payload, controller) => {
+  const incrementHandler = useCallback<ActionHandler<void>>((payload, controller) => {
     setCount((prev) => prev + 1);
     logAction('increment', undefined);
   }, [logAction]);
 
-  const decrementHandler = useCallback((payload, controller) => {
+  const decrementHandler = useCallback<ActionHandler<void>>((payload, controller) => {
     setCount((prev) => prev - 1);
     logAction('decrement', undefined);
   }, [logAction]);
 
-  const setCountHandler = useCallback((payload, controller) => {
+  const setCountHandler = useCallback<ActionHandler<number>>((payload, controller) => {
     setCount(payload);
     logAction('setCount', payload);
   }, [logAction]);
 
-  const resetHandler = useCallback((payload, controller) => {
+  const resetHandler = useCallback<ActionHandler<void>>((payload, controller) => {
     setCount(0);
     logAction('reset', undefined);
   }, [logAction]);
 
-  const generateLogHandler = useCallback((payload, controller) => {
+  const generateLogHandler = useCallback<ActionHandler<void>>((payload, controller) => {
     // Generate random log message
     const adjectives = ['Amazing', 'Brilliant', 'Creative', 'Dynamic', 'Elegant'];
     const nouns = ['Action', 'Event', 'Process', 'Operation', 'Task'];
@@ -215,11 +216,10 @@ function AdvancedFeaturesDemo() {
   const { logAction } = useActionLoggerWithToast();
 
   // Advanced async handler
-  const asyncOperationHandler = useCallback(async (payload, controller) => {
+  const asyncOperationHandler = useCallback<ActionHandler<string>>(async (payload, controller) => {
     // Simulate async operation
     await new Promise(resolve => setTimeout(resolve, 1000));
     logAction('asyncOperation', 'Async operation completed successfully');
-    return { success: true, data: payload };
   }, [logAction]);
 
   useCoreActionHandler('asyncOperation', asyncOperationHandler);
@@ -238,7 +238,7 @@ function AdvancedFeaturesDemo() {
   }, [abortAll]);
 
   return (
-    <DemoCard variant="warning">
+    <DemoCard variant="info">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
         Advanced Features
       </h3>
