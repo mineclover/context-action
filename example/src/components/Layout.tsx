@@ -13,7 +13,7 @@ import {
 interface NavItem {
   path: string;
   label: string;
-  category: 'main' | 'core' | 'store' | 'action' | 'async' | 'react' | 'demos' | 'examples' | 'actionguard' | 'conditional' | 'pipeline' | 'refs' | 'utilities';
+  category: 'main' | 'core' | 'store' | 'action' | 'async' | 'react' | 'demos' | 'examples' | 'actionguard' | 'conditional' | 'pipeline' | 'refs' | 'utilities' | 'architecture';
   isIndex?: boolean;
   disabled?: boolean;
   description?: string;
@@ -69,6 +69,9 @@ function Layout({
     { path: '/action/basic-usage', label: '🎯 Action Basic Usage', category: 'action', description: 'Fundamental action patterns with type-safe dispatching' },
     { path: '/action/type-system', label: '🔧 Action Type System', category: 'action', description: 'Complete TypeScript integration with ActionPayloadMap' },
     { path: '/action/dispatch-patterns', label: '⚡ Action Dispatch Patterns', category: 'action', description: 'Execution modes, filtering, and performance optimization' },
+    
+    // === Architecture (아키텍처) ===
+    { path: '/architecture/modular-demo', label: '🏗️ Modular Architecture Demo', category: 'architecture', description: 'MVVM patterns with domain separation and Context-Action integration' },
     
     // === Async Patterns (비동기 패턴) ===
     { path: '/async/basic-usage', label: '⏳ Async Basic Usage', category: 'async', description: 'Comprehensive async patterns with real-time state access' },
@@ -163,7 +166,7 @@ function Layout({
                 <h4 className="text-xs font-medium text-blue-600 mb-2">📚 Core Concepts</h4>
               </div>
             )}
-            {navItems.filter(item => ['main', 'core', 'store', 'action', 'async', 'react'].includes(item.category)).map((item) => {
+            {navItems.filter(item => ['main', 'core', 'store', 'action', 'async', 'react', 'architecture'].includes(item.category)).map((item) => {
               return (
                 <Link
                   key={item.path}

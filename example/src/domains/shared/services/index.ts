@@ -1,0 +1,279 @@
+/**
+ * Shared services across all domains
+ * Business logic and utility functions
+ */
+
+import type { LogEntry, PerformanceMetrics } from '../types';
+
+// Logger service for consistent logging across domains
+export class LoggerService {
+  private static instance: LoggerService;
+  private logs: LogEntry[] = [];
+  private maxLogs = 1000;
+
+  static getInstance(): LoggerService {
+    if (!LoggerService.instance) {
+      LoggerService.instance = new LoggerService();
+    }
+    return LoggerService.instance;
+  }
+
+  log(level: LogEntry['level'], message: string, data?: any, source?: string): LogEntry {
+    const entry: LogEntry = {
+      id: Math.random().toString(36).substr(2, 9),
+      timestamp: Date.now(),
+      level,
+      message,
+      data,
+      source
+    };
+
+    this.logs.push(entry);
+    
+    // Keep only the most recent logs
+    if (this.logs.length > this.maxLogs) {
+      this.logs = this.logs.slice(-this.maxLogs);
+    }
+
+    // Also log to console for development
+    const prefix = `[${source || 'App'}] ${level.toUpperCase()}:`;
+    switch (level) {
+      case 'error':
+        console.error(prefix, message, data);
+        break;
+      case 'warn':
+        console.warn(prefix, message, data);
+        break;
+      case 'info':
+        console.info(prefix, message, data);
+        break;
+      case 'success':
+        console.log(`%c${prefix}`, 'color: green', message, data);
+        break;
+    }
+
+    return entry;
+  }
+
+  getLogs(): LogEntry[] {
+    return [...this.logs];
+  }
+
+  clearLogs(): void {
+    this.logs = [];
+  }
+
+  getLogsBySource(source: string): LogEntry[] {
+    return this.logs.filter(log => log.source === source);
+  }
+}
+
+// Performance monitoring service
+export class PerformanceService {
+  private static instance: PerformanceService;
+  private metrics: Map<string, PerformanceMetrics[]> = new Map();
+
+  static getInstance(): PerformanceService {
+    if (!PerformanceService.instance) {
+      PerformanceService.instance = new PerformanceService();
+    }
+    return PerformanceService.instance;
+  }
+
+  startMeasurement(operationName: string): string {
+    const measurementId = `${operationName}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+    performance.mark(`${measurementId}-start`);
+    return measurementId;
+  }
+
+  endMeasurement(measurementId: string, operationName: string): PerformanceMetrics | null {
+    try {
+      performance.mark(`${measurementId}-end`);
+      performance.measure(measurementId, `${measurementId}-start`, `${measurementId}-end`);
+      
+      const measure = performance.getEntriesByName(measurementId)[0] as PerformanceEntry;
+      const duration = measure.duration;
+
+      const metrics: PerformanceMetrics = {
+        startTime: measure.startTime,
+        endTime: measure.startTime + duration,
+        duration,
+        operations: 1,
+        errors: 0,
+        avgResponseTime: duration
+      };
+
+      // Store metrics
+      if (!this.metrics.has(operationName)) {
+        this.metrics.set(operationName, []);
+      }
+      this.metrics.get(operationName)!.push(metrics);
+
+      // Cleanup performance entries
+      performance.clearMarks(`${measurementId}-start`);
+      performance.clearMarks(`${measurementId}-end`);
+      performance.clearMeasures(measurementId);
+
+      return metrics;
+    } catch (error) {
+      console.error('Performance measurement error:', error);
+      return null;
+    }
+  }
+
+  getMetrics(operationName: string): PerformanceMetrics[] {
+    return this.metrics.get(operationName) || [];
+  }
+
+  getAggregatedMetrics(operationName: string): PerformanceMetrics | null {
+    const metrics = this.metrics.get(operationName);
+    if (!metrics || metrics.length === 0) return null;
+
+    const totalDuration = metrics.reduce((sum, m) => sum + (m.duration || 0), 0);
+    const totalOperations = metrics.reduce((sum, m) => sum + m.operations, 0);
+    const totalErrors = metrics.reduce((sum, m) => sum + m.errors, 0);
+
+    return {
+      startTime: metrics[0].startTime,
+      endTime: metrics[metrics.length - 1].endTime,
+      duration: totalDuration,
+      operations: totalOperations,
+      errors: totalErrors,
+      avgResponseTime: totalDuration / metrics.length
+    };
+  }
+
+  clearMetrics(operationName?: string): void {
+    if (operationName) {
+      this.metrics.delete(operationName);
+    } else {
+      this.metrics.clear();
+    }
+  }
+}
+
+// Validation service for consistent validation patterns
+export class ValidationService {
+  static validateRequired(value: any, fieldName: string): string | null {
+    if (value == null || value === '' || (Array.isArray(value) && value.length === 0)) {
+      return `${fieldName} is required`;
+    }
+    return null;
+  }
+
+  static validateEmail(email: string): string | null {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return 'Invalid email format';
+    }
+    return null;
+  }
+
+  static validateMinLength(value: string, minLength: number, fieldName: string): string | null {
+    if (value.length < minLength) {
+      return `${fieldName} must be at least ${minLength} characters`;
+    }
+    return null;
+  }
+
+  static validateMaxLength(value: string, maxLength: number, fieldName: string): string | null {
+    if (value.length > maxLength) {
+      return `${fieldName} must be no more than ${maxLength} characters`;
+    }
+    return null;
+  }
+
+  static validatePattern(value: string, pattern: RegExp, message: string): string | null {
+    if (!pattern.test(value)) {
+      return message;
+    }
+    return null;
+  }
+
+  static combineValidators(...validators: Array<() => string | null>): string[] {
+    return validators
+      .map(validator => validator())
+      .filter((result): result is string => result !== null);
+  }
+}
+
+// Async utilities service
+export class AsyncUtilsService {
+  static delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  static timeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+    return Promise.race([
+      promise,
+      new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error(`Operation timed out after ${ms}ms`)), ms)
+      )
+    ]);
+  }
+
+  static retry<T>(
+    fn: () => Promise<T>,
+    maxRetries: number = 3,
+    delayMs: number = 1000
+  ): Promise<T> {
+    return new Promise(async (resolve, reject) => {
+      let lastError: Error;
+      
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          const result = await fn();
+          resolve(result);
+          return;
+        } catch (error) {
+          lastError = error as Error;
+          
+          if (attempt < maxRetries) {
+            await this.delay(delayMs * Math.pow(2, attempt)); // Exponential backoff
+          }
+        }
+      }
+      
+      reject(lastError);
+    });
+  }
+
+  static async withFallback<T>(
+    primary: () => Promise<T>,
+    fallback: () => Promise<T> | T
+  ): Promise<T> {
+    try {
+      return await primary();
+    } catch {
+      return await fallback();
+    }
+  }
+
+  static debounce<T extends (...args: any[]) => any>(
+    func: T,
+    delay: number
+  ): (...args: Parameters<T>) => void {
+    let timeoutId: NodeJS.Timeout;
+    
+    return (...args: Parameters<T>) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => func(...args), delay);
+    };
+  }
+
+  static throttle<T extends (...args: any[]) => any>(
+    func: T,
+    delay: number
+  ): (...args: Parameters<T>) => void {
+    let lastCall = 0;
+    
+    return (...args: Parameters<T>) => {
+      const now = Date.now();
+      
+      if (now - lastCall >= delay) {
+        lastCall = now;
+        func(...args);
+      }
+    };
+  }
+}
