@@ -5,7 +5,7 @@
 
 import { createRefContext } from '@context-action/react';
 import type { RefTarget } from '@context-action/react';
-import { AsyncUtilsService } from '../../shared/services';
+import { delay, timeout, retry, withFallback } from '../../shared/services';
 import type { WaitForRefsConfig, AsyncPatternConfig } from '../../shared/types';
 
 // Async Ref Context - for DOM element management and coordination
@@ -17,50 +17,49 @@ export const {
 } = createRefContext<Record<string, RefTarget>>('AsyncDemo');
 
 // Timeout Protection Patterns
-export class TimeoutProtectionService {
-  // Basic timeout with simple rejection
-  static basicTimeout<T>(
-    promise: Promise<T>, 
-    timeoutMs: number,
-    timeoutMessage?: string
-  ): Promise<T> {
-    return AsyncUtilsService.timeout(promise, timeoutMs);
-  }
+// Basic timeout with simple rejection
+export function basicTimeout<T>(
+  promise: Promise<T>, 
+  timeoutMs: number,
+  timeoutMessage?: string
+): Promise<T> {
+  return timeout(promise, timeoutMs);
+}
 
-  // Progressive timeout with increasing delays
-  static async progressiveTimeout<T>(
-    operation: () => Promise<T>,
-    config: {
-      initialTimeout: number;
-      maxTimeout: number;
-      timeoutMultiplier: number;
-      maxRetries: number;
-    }
-  ): Promise<T> {
-    let currentTimeout = config.initialTimeout;
-    let attempt = 0;
-    
-    while (attempt <= config.maxRetries) {
-      try {
-        return await AsyncUtilsService.timeout(
-          operation(),
-          Math.min(currentTimeout, config.maxTimeout)
-        );
-      } catch (error) {
-        attempt++;
-        
-        if (attempt > config.maxRetries) {
-          throw error;
-        }
-        
-        // Wait before retry with exponential backoff
-        await AsyncUtilsService.delay(currentTimeout / 2);
-        currentTimeout *= config.timeoutMultiplier;
-      }
-    }
-    
-    throw new Error('Max retries exceeded');
+// Progressive timeout with increasing delays
+export async function progressiveTimeout<T>(
+  operation: () => Promise<T>,
+  config: {
+    initialTimeout: number;
+    maxTimeout: number;
+    timeoutMultiplier: number;
+    maxRetries: number;
   }
+): Promise<T> {
+  let currentTimeout = config.initialTimeout;
+  let attempt = 0;
+  
+  while (attempt <= config.maxRetries) {
+    try {
+      return await timeout(
+        operation(),
+        Math.min(currentTimeout, config.maxTimeout)
+      );
+    } catch (error) {
+      attempt++;
+      
+      if (attempt > config.maxRetries) {
+        throw error;
+      }
+      
+      // Wait before retry with exponential backoff
+      await delay(currentTimeout / 2);
+      currentTimeout *= config.timeoutMultiplier;
+    }
+  }
+  
+  throw new Error('Max retries exceeded');
+}
 
   // Adaptive timeout based on historical performance
   private static performanceHistory = new Map<string, number[]>();
@@ -92,7 +91,7 @@ export class TimeoutProtectionService {
     const startTime = performance.now();
     
     try {
-      const result = await AsyncUtilsService.timeout(operation(), adaptiveTimeout);
+      const result = await timeout(operation(), adaptiveTimeout);
       
       // Record successful timing
       const duration = performance.now() - startTime;
@@ -176,121 +175,117 @@ export class CircuitBreakerService {
 }
 
 // Real-time State Access Patterns
-export class RealtimeStateService {
-  // Safe state access that avoids closure traps
-  static createStateAccessor<T>(getState: () => T) {
-    return {
-      // Get current state at the moment of call
-      getCurrentState: getState,
-      
-      // Execute callback with current state
-      withCurrentState: <R>(callback: (state: T) => R): R => {
-        return callback(getState());
-      },
-      
-      // Async operation with current state
-      withCurrentStateAsync: async <R>(callback: (state: T) => Promise<R>): Promise<R> => {
-        return callback(getState());
-      }
-    };
-  }
-
-  // Prevent race conditions with state-based guards
-  static createOperationGuard<T>(
-    getState: () => T,
-    guardCondition: (state: T) => boolean,
-    operation: (state: T) => Promise<void>
-  ) {
-    let isRunning = false;
+// Safe state access that avoids closure traps
+export function createStateAccessor<T>(getState: () => T) {
+  return {
+    // Get current state at the moment of call
+    getCurrentState: getState,
     
-    return async (): Promise<boolean> => {
-      const currentState = getState();
-      
-      if (isRunning || !guardCondition(currentState)) {
-        return false;
-      }
-      
-      isRunning = true;
-      
-      try {
-        await operation(currentState);
-        return true;
-      } finally {
-        isRunning = false;
-      }
-    };
-  }
+    // Execute callback with current state
+    withCurrentState: <R>(callback: (state: T) => R): R => {
+      return callback(getState());
+    },
+    
+    // Async operation with current state
+    withCurrentStateAsync: async <R>(callback: (state: T) => Promise<R>): Promise<R> => {
+      return callback(getState());
+    }
+  };
+}
+
+// Prevent race conditions with state-based guards
+export function createOperationGuard<T>(
+  getState: () => T,
+  guardCondition: (state: T) => boolean,
+  operation: (state: T) => Promise<void>
+) {
+  let isRunning = false;
+  
+  return async (): Promise<boolean> => {
+    const currentState = getState();
+    
+    if (isRunning || !guardCondition(currentState)) {
+      return false;
+    }
+    
+    isRunning = true;
+    
+    try {
+      await operation(currentState);
+      return true;
+    } finally {
+      isRunning = false;
+    }
+  };
 }
 
 // Wait-then-Execute Patterns
-export class WaitThenExecuteService {
-  // Wait for multiple refs to be available
-  static async waitForMultipleRefs(
-    refKeys: string[],
-    waitForRefs: (key: string) => Promise<void>,
-    config?: WaitForRefsConfig
-  ): Promise<void> {
-    const promises = refKeys.map(key => 
-      AsyncUtilsService.timeout(
-        waitForRefs(key),
-        config?.maxWaitTime || 5000
-      )
+// Wait for multiple refs to be available
+export async function waitForMultipleRefs(
+  refKeys: string[],
+  waitForRefs: (key: string) => Promise<void>,
+  config?: WaitForRefsConfig
+): Promise<void> {
+  const promises = refKeys.map(key => 
+    timeout(
+      waitForRefs(key),
+      config?.maxWaitTime || 5000
+    )
+  );
+  
+  await Promise.all(promises);
+}
+
+// Sequential ref operations
+export async function sequentialRefOperations(
+  operations: Array<{
+    refKey: string;
+    operation: (element: HTMLElement) => void | Promise<void>;
+  }>,
+  waitForRefs: (key: string) => Promise<void>,
+  getRefTarget: (key: string) => HTMLElement | null,
+  config?: WaitForRefsConfig
+): Promise<void> {
+  for (const { refKey, operation } of operations) {
+    await timeout(
+      waitForRefs(refKey),
+      config?.maxWaitTime || 5000
     );
     
-    await Promise.all(promises);
-  }
-
-  // Sequential ref operations
-  static async sequentialRefOperations(
-    operations: Array<{
-      refKey: string;
-      operation: (element: HTMLElement) => void | Promise<void>;
-    }>,
-    waitForRefs: (key: string) => Promise<void>,
-    getRefTarget: (key: string) => HTMLElement | null,
-    config?: WaitForRefsConfig
-  ): Promise<void> {
-    for (const { refKey, operation } of operations) {
-      await AsyncUtilsService.timeout(
-        waitForRefs(refKey),
-        config?.maxWaitTime || 5000
-      );
-      
-      const element = getRefTarget(refKey);
-      if (!element) {
-        throw new Error(`Element not found for ref: ${refKey}`);
-      }
-      
-      await operation(element);
+    const element = getRefTarget(refKey);
+    if (!element) {
+      throw new Error(`Element not found for ref: ${refKey}`);
     }
+    
+    await operation(element);
   }
+}
 
-  // Conditional await with fallback
-  static async conditionalAwait<T>(
-    condition: () => boolean,
-    asyncOperation: () => Promise<T>,
-    fallbackOperation?: () => T | Promise<T>,
-    config?: AsyncPatternConfig
-  ): Promise<T> {
-    if (condition()) {
-      try {
-        return await AsyncUtilsService.timeout(
-          asyncOperation(),
-          config?.timeout || 5000
-        );
-      } catch (error) {
-        if (fallbackOperation && config?.fallback) {
-          config.fallback();
-          return await fallbackOperation();
-        }
-        throw error;
-      }
-    } else {
-      if (fallbackOperation) {
+// Conditional await with fallback
+export async function conditionalAwait<T>(
+  condition: () => boolean,
+  asyncOperation: () => Promise<T>,
+  fallbackOperation?: () => T | Promise<T>,
+  config?: AsyncPatternConfig
+): Promise<T> {
+  if (condition()) {
+    try {
+      return await timeout(
+        asyncOperation(),
+        config?.timeout || 5000
+      );
+    } catch (error) {
+      if (fallbackOperation && config?.fallback) {
+        config.fallback();
         return await fallbackOperation();
       }
-      throw new Error('Condition not met and no fallback provided');
+      throw error;
     }
+  } else {
+    if (fallbackOperation) {
+      return await fallbackOperation();
+    }
+    throw new Error('Condition not met and no fallback provided');
   }
 }
 
@@ -379,7 +374,7 @@ export function useAsyncOperation<T>(
     execute: async () => {
       try {
         if (config?.timeout) {
-          return await AsyncUtilsService.timeout(operation(), config.timeout);
+          return await timeout(operation(), config.timeout);
         }
         return await operation();
       } catch (error) {
@@ -394,9 +389,9 @@ export function useAsyncOperation<T>(
     },
     
     executeWithRetry: (maxRetries: number = 3, delayMs: number = 1000) =>
-      AsyncUtilsService.retry(operation, maxRetries, delayMs),
+      retry(operation, maxRetries, delayMs),
       
     executeWithFallback: (fallback: () => Promise<T> | T) =>
-      AsyncUtilsService.withFallback(operation, fallback)
+      withFallback(operation, fallback)
   };
 }

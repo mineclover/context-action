@@ -97,7 +97,7 @@ export function useStoreValueComparison<T>(
     value,
     stats: comparisonStats,
     efficiency: comparisonStats.comparisons > 0 
-      ? (comparisonStats.preventedRenders / comparisonStats.comparisons * 100).toFixed(1) + '%'
+      ? `${(comparisonStats.preventedRenders / comparisonStats.comparisons * 100).toFixed(1)}%`
       : '0%'
   };
 }

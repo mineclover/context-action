@@ -153,127 +153,123 @@ export class PerformanceService {
 }
 
 // Validation service for consistent validation patterns
-export class ValidationService {
-  static validateRequired(value: any, fieldName: string): string | null {
-    if (value == null || value === '' || (Array.isArray(value) && value.length === 0)) {
-      return `${fieldName} is required`;
-    }
-    return null;
+export function validateRequired(value: any, fieldName: string): string | null {
+  if (value == null || value === '' || (Array.isArray(value) && value.length === 0)) {
+    return `${fieldName} is required`;
   }
+  return null;
+}
 
-  static validateEmail(email: string): string | null {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return 'Invalid email format';
-    }
-    return null;
+export function validateEmail(email: string): string | null {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return 'Invalid email format';
   }
+  return null;
+}
 
-  static validateMinLength(value: string, minLength: number, fieldName: string): string | null {
-    if (value.length < minLength) {
-      return `${fieldName} must be at least ${minLength} characters`;
-    }
-    return null;
+export function validateMinLength(value: string, minLength: number, fieldName: string): string | null {
+  if (value.length < minLength) {
+    return `${fieldName} must be at least ${minLength} characters`;
   }
+  return null;
+}
 
-  static validateMaxLength(value: string, maxLength: number, fieldName: string): string | null {
-    if (value.length > maxLength) {
-      return `${fieldName} must be no more than ${maxLength} characters`;
-    }
-    return null;
+export function validateMaxLength(value: string, maxLength: number, fieldName: string): string | null {
+  if (value.length > maxLength) {
+    return `${fieldName} must be no more than ${maxLength} characters`;
   }
+  return null;
+}
 
-  static validatePattern(value: string, pattern: RegExp, message: string): string | null {
-    if (!pattern.test(value)) {
-      return message;
-    }
-    return null;
+export function validatePattern(value: string, pattern: RegExp, message: string): string | null {
+  if (!pattern.test(value)) {
+    return message;
   }
+  return null;
+}
 
-  static combineValidators(...validators: Array<() => string | null>): string[] {
-    return validators
-      .map(validator => validator())
-      .filter((result): result is string => result !== null);
-  }
+export function combineValidators(...validators: Array<() => string | null>): string[] {
+  return validators
+    .map(validator => validator())
+    .filter((result): result is string => result !== null);
 }
 
 // Async utilities service
-export class AsyncUtilsService {
-  static delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
+export function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-  static timeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-    return Promise.race([
-      promise,
-      new Promise<never>((_, reject) => 
-        setTimeout(() => reject(new Error(`Operation timed out after ${ms}ms`)), ms)
-      )
-    ]);
-  }
+export function timeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) => 
+      setTimeout(() => reject(new Error(`Operation timed out after ${ms}ms`)), ms)
+    )
+  ]);
+}
 
-  static retry<T>(
-    fn: () => Promise<T>,
-    maxRetries: number = 3,
-    delayMs: number = 1000
-  ): Promise<T> {
-    return new Promise(async (resolve, reject) => {
-      let lastError: Error = new Error('No attempts made');
-      
-      for (let attempt = 0; attempt <= maxRetries; attempt++) {
-        try {
-          const result = await fn();
-          resolve(result);
-          return;
-        } catch (error) {
-          lastError = error as Error;
-          
-          if (attempt < maxRetries) {
-            await AsyncUtilsService.delay(delayMs * 2 ** attempt); // Exponential backoff
-          }
+export function retry<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  delayMs: number = 1000
+): Promise<T> {
+  return new Promise(async (resolve, reject) => {
+    let lastError: Error = new Error('No attempts made');
+    
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const result = await fn();
+        resolve(result);
+        return;
+      } catch (error) {
+        lastError = error as Error;
+        
+        if (attempt < maxRetries) {
+          await delay(delayMs * 2 ** attempt); // Exponential backoff
         }
       }
-      
-      reject(lastError);
-    });
-  }
-
-  static async withFallback<T>(
-    primary: () => Promise<T>,
-    fallback: () => Promise<T> | T
-  ): Promise<T> {
-    try {
-      return await primary();
-    } catch {
-      return await fallback();
     }
-  }
-
-  static debounce<T extends (...args: any[]) => any>(
-    func: T,
-    delay: number
-  ): (...args: Parameters<T>) => void {
-    let timeoutId: NodeJS.Timeout;
     
-    return (...args: Parameters<T>) => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => func(...args), delay);
-    };
-  }
+    reject(lastError);
+  });
+}
 
-  static throttle<T extends (...args: any[]) => any>(
-    func: T,
-    delay: number
-  ): (...args: Parameters<T>) => void {
-    let lastCall = 0;
-    
-    return (...args: Parameters<T>) => {
-      const now = Date.now();
-      
-      if (now - lastCall >= delay) {
-        lastCall = now;
-        func(...args);
-      }
-    };
+export async function withFallback<T>(
+  primary: () => Promise<T>,
+  fallback: () => Promise<T> | T
+): Promise<T> {
+  try {
+    return await primary();
+  } catch {
+    return await fallback();
   }
+}
+
+export function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  delayMs: number
+): (...args: Parameters<T>) => void {
+  let timeoutId: NodeJS.Timeout;
+  
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delayMs);
+  };
+}
+
+export function throttle<T extends (...args: any[]) => any>(
+  func: T,
+  delayMs: number
+): (...args: Parameters<T>) => void {
+  let lastCall = 0;
+  
+  return (...args: Parameters<T>) => {
+    const now = Date.now();
+    
+    if (now - lastCall >= delayMs) {
+      lastCall = now;
+      func(...args);
+    }
+  };
 }

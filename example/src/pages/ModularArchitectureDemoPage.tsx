@@ -141,7 +141,7 @@ const ViewModelLayerDemo = React.memo(() => {
     logger.info('🛒 ViewModel: Processing add to cart business logic');
     try {
       await dispatchShoppingActions('addToCart', { 
-        productId: 'demo-product-' + Date.now(),
+        productId: `demo-product-${Date.now()}`,
         quantity: 1
       });
       logger.success('✅ ViewModel: Add to cart completed');
