@@ -290,7 +290,7 @@ function BasicTimeoutDemo() {
   const stores = { useTimeoutStore }; // Store manager for lazy access
   
   // Basic timeout handler - 극도로 양준화된 의존성!
-  useTimeoutActionHandler('basicTimeout', useCallback(async (payload) => {
+  const basicTimeoutHandler = useCallback(async (payload) => {
     // 서비스 인스턴스 생성 (지연 평가)
     const timeoutService = new TimeoutService(stores, logger);
     
@@ -307,7 +307,9 @@ function BasicTimeoutDemo() {
       waitForRefs, 
       elementRefs
     );
-  }, [])); // 의존성 완전 제거!
+  }, []);
+  
+  useTimeoutActionHandler('basicTimeout', basicTimeoutHandler);
   
   // Simulate slow element mounting
   useEffect(() => {
@@ -431,7 +433,7 @@ function RetryWithTimeoutDemo() {
   const stores = { useTimeoutStore };
   
   // Retry with timeout handler - minimal dependencies
-  useTimeoutActionHandler('retryWithTimeout', useCallback(async (payload) => {
+  const retryTimeoutHandler = useCallback(async (payload) => {
     const startTime = performance.now();
     
     // Lazy store evaluation
@@ -500,7 +502,9 @@ function RetryWithTimeoutDemo() {
         }
       }
     }
-  }, [])); // 더 간단한 의존성!
+  }, []); // 더 간단한 의존성!
+  
+  useTimeoutActionHandler('retryWithTimeout', retryTimeoutHandler);
   
   // Simulate unreliable element
   useEffect(() => {
@@ -631,7 +635,7 @@ function ProgressiveTimeoutDemo() {
   const stores = { useTimeoutStore };
   
   // Progressive timeout handler - 완전히 모듈화된 패턴!
-  useTimeoutActionHandler('progressiveTimeout', useCallback(async (payload) => {
+  const progressiveTimeoutHandler = useCallback(async (payload) => {
     const timeouts = [500, 1500, 3000, 5000];
     
     logger.logSystem(`📈 Progressive timeout: ${payload.elementKey}`);
@@ -675,7 +679,9 @@ function ProgressiveTimeoutDemo() {
         }
       }
     }
-  }, [])); // 의존성 완전 없음!
+  }, []); // 의존성 완전 없음!
+  
+  useTimeoutActionHandler('progressiveTimeout', progressiveTimeoutHandler);
   
   // Simulate element with configurable delay
   useEffect(() => {
@@ -775,7 +781,7 @@ function AdaptiveTimeoutDemo() {
   const [complexity, setComplexity] = useState<'simple' | 'complex' | 'heavy'>('simple');
   
   // Adaptive timeout - 완전히 상태리스 패턴!
-  useTimeoutActionHandler('adaptiveTimeout', useCallback(async (payload) => {
+  const adaptiveTimeoutHandler = useCallback(async (payload) => {
     const timeouts = { simple: 1000, complex: 3000, heavy: 6000 };
     const delays = { simple: 500, complex: 2000, heavy: 4500 };
     
@@ -794,7 +800,9 @@ function AdaptiveTimeoutDemo() {
     } catch (error) {
       logger.logSystem(`❌ ${payload.complexity} operation timeout`);
     }
-  }, [])); // 상태리스함수로 의존성 제거!
+  }, []); // 상태리스함수로 의존성 제거!
+  
+  useTimeoutActionHandler('adaptiveTimeout', adaptiveTimeoutHandler);
   
   return (
     <section className="bg-white p-6 rounded-lg shadow">
@@ -899,7 +907,7 @@ function CircuitBreakerDemo() {
   const stores = { useTimeoutStore };
   
   // Circuit breaker handler - 완전히 상태리스한 회로 차단기!
-  useTimeoutActionHandler('circuitBreaker', useCallback(async (payload) => {
+  const circuitBreakerHandler = useCallback(async (payload) => {
     const timeoutStatsStore = stores.useTimeoutStore('timeoutStats');
     const stats = timeoutStatsStore.getValue();
     
@@ -977,7 +985,9 @@ function CircuitBreakerDemo() {
       
       throw error;
     }
-  }, [])); // 상태리스 액세스로 의존성 없음!
+  }, []); // 상태리스 액세스로 의존성 없음!
+  
+  useTimeoutActionHandler('circuitBreaker', circuitBreakerHandler);
   
   const resetCircuitBreaker = useCallback(() => {
     circuitBreaker.state = 'closed';
@@ -1065,7 +1075,7 @@ function PerformanceMonitoringDemo() {
   const stores = { useTimeoutStore };
   
   // Performance timeout - 최소화된 의존성으로 모니터링!
-  useTimeoutActionHandler('performanceMonitored', useCallback(async (payload) => {
+  const performanceMonitoredHandler = useCallback(async (payload) => {
     const startTime = performance.now();
     const memoryBefore = (performance as any).memory?.usedJSHeapSize || 0;
     
@@ -1135,7 +1145,9 @@ function PerformanceMonitoringDemo() {
       
       throw error;
     }
-  }, [])); // 완전히 상태리스 모니터링!
+  }, []); // 완전히 상태리스 모니터링!
+  
+  useTimeoutActionHandler('performanceMonitored', performanceMonitoredHandler);
   
   return (
     <section className="bg-white p-6 rounded-lg shadow">
@@ -1185,7 +1197,7 @@ function FallbackStrategyDemo() {
   const [showSecondary, setShowSecondary] = useState(true);
   
   // Fallback strategy handler
-  useTimeoutActionHandler('fallbackStrategy', useCallback(async (payload) => {
+  const fallbackStrategyHandler = useCallback(async (payload) => {
     logger.logSystem('🔄 Starting fallback strategy workflow');
     
     const waitWithTimeout = async (elementKey: keyof TimeoutRefs, timeout: number) => {
@@ -1244,7 +1256,9 @@ function FallbackStrategyDemo() {
     }
     
     // Don't return anything from ActionHandler
-  }, [])); // 완전히 상태리스 폴백 전략!
+  }, []); // 완전히 상태리스 폴백 전략!
+  
+  useTimeoutActionHandler('fallbackStrategy', fallbackStrategyHandler);
   
   return (
     <section className="bg-white p-6 rounded-lg shadow">

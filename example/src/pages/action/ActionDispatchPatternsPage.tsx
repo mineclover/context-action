@@ -158,7 +158,7 @@ function BasicDispatchDemo() {
     
     try {
       const result = await dispatch('processOrder', {
-        orderId: 'ORDER-' + Date.now(),
+        orderId: `ORDER-${Date.now()}`,
         items: [{ id: 'item1', quantity: 2 }, { id: 'item2', quantity: 1 }]
       });
       

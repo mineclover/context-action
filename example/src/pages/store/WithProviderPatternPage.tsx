@@ -35,67 +35,66 @@ const {
   modal: { initialValue: { isOpen: false, content: null } }
 });
 
-// Basic HOC Usage Demo
-function BasicHOCDemo() {
+// App Content Component (moved outside to avoid nested definition)
+function AppContent() {
   const logger = useActionLoggerWithToast();
+  const profileStore = useUserStore('profile');
+  const preferencesStore = useUserStore('preferences');
+  const profile = useStoreValue(profileStore);
+  const preferences = useStoreValue(preferencesStore);
   
-  // Inner component that uses stores
-  function AppContent() {
-    const profileStore = useUserStore('profile');
-    const preferencesStore = useUserStore('preferences');
-    const profile = useStoreValue(profileStore);
-    const preferences = useStoreValue(preferencesStore);
-    
-    // Log in useEffect to avoid side effects during render
-    useEffect(() => {
-      logger.logSystem('🎯 AppContent rendered with HOC-provided stores');
-    }, [logger, profile.name, preferences.theme]);
-    
-    const updateProfile = () => {
-      profileStore.update(prev => ({
-        ...prev,
-        name: prev.name === 'John Doe' ? 'Jane Smith' : 'John Doe'
-      }));
-    };
-    
-    const toggleTheme = () => {
-      preferencesStore.update(prev => ({
-        ...prev,
-        theme: prev.theme === 'light' ? 'dark' : 'light'
-      }));
-    };
-    
-    return (
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-3 bg-blue-50 rounded-lg">
-            <div className="font-semibold">User Profile</div>
-            <div className="text-sm space-y-1">
-              <div>Name: {profile.name}</div>
-              <div>Email: {profile.email}</div>
-            </div>
-          </div>
-          <div className="p-3 bg-green-50 rounded-lg">
-            <div className="font-semibold">Preferences</div>
-            <div className="text-sm space-y-1">
-              <div>Theme: {preferences.theme}</div>
-              <div>Notifications: {preferences.notifications ? 'ON' : 'OFF'}</div>
-            </div>
+  // Log in useEffect to avoid side effects during render
+  useEffect(() => {
+    logger.logSystem('🎯 AppContent rendered with HOC-provided stores');
+  }, [logger, profile.name, preferences.theme]);
+  
+  const updateProfile = () => {
+    profileStore.update(prev => ({
+      ...prev,
+      name: prev.name === 'John Doe' ? 'Jane Smith' : 'John Doe'
+    }));
+  };
+  
+  const toggleTheme = () => {
+    preferencesStore.update(prev => ({
+      ...prev,
+      theme: prev.theme === 'light' ? 'dark' : 'light'
+    }));
+  };
+  
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-3 bg-blue-50 rounded-lg">
+          <div className="font-semibold">User Profile</div>
+          <div className="text-sm space-y-1">
+            <div>Name: {profile.name}</div>
+            <div>Email: {profile.email}</div>
           </div>
         </div>
-        
-        <div className="flex gap-2">
-          <Button onClick={updateProfile} variant="primary" size="sm">
-            Toggle Name
-          </Button>
-          <Button onClick={toggleTheme} variant="secondary" size="sm">
-            Toggle Theme
-          </Button>
+        <div className="p-3 bg-green-50 rounded-lg">
+          <div className="font-semibold">Preferences</div>
+          <div className="text-sm space-y-1">
+            <div>Theme: {preferences.theme}</div>
+            <div>Notifications: {preferences.notifications ? 'ON' : 'OFF'}</div>
+          </div>
         </div>
       </div>
-    );
-  }
-  
+      
+      <div className="flex gap-2">
+        <Button onClick={updateProfile} variant="primary" size="sm">
+          Toggle Name
+        </Button>
+        <Button onClick={toggleTheme} variant="secondary" size="sm">
+          Toggle Theme
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// Basic HOC Usage Demo
+function BasicHOCDemo() {
   // Wrap with HOC - no manual Provider needed!
   const AppWithStores = withUserStoreProvider(AppContent);
   
@@ -131,58 +130,58 @@ function Root() {
   );
 }
 
-// Multiple HOC Composition Demo
-function MultipleHOCCompositionDemo() {
+// Multi Store Component (moved outside to avoid nested definition)
+function MultiStoreComponent() {
   const logger = useActionLoggerWithToast();
+  const profileStore = useUserStore('profile');
+  const navigationStore = useAppStore('navigation');
+  const profile = useStoreValue(profileStore);
+  const navigation = useStoreValue(navigationStore);
   
-  // Component that uses stores from multiple contexts
-  function MultiStoreComponent() {
-    const profileStore = useUserStore('profile');
-    const navigationStore = useAppStore('navigation');
-    const profile = useStoreValue(profileStore);
-    const navigation = useStoreValue(navigationStore);
+  // Log in useEffect to avoid side effects during render
+  useEffect(() => {
+    logger.logSystem('🔧 MultiStoreComponent rendered');
+  }, [logger, profile.name, navigation.currentPage]);
+  
+  const navigateToPage = () => {
+    const pages = ['home', 'profile', 'settings'];
+    const currentIndex = pages.indexOf(navigation.currentPage);
+    const nextPage = pages[(currentIndex + 1) % pages.length];
     
-    // Log in useEffect to avoid side effects during render
-    useEffect(() => {
-      logger.logSystem('🔧 MultiStoreComponent rendered');
-    }, [logger, profile.name, navigation.currentPage]);
-    
-    const navigateToPage = () => {
-      const pages = ['home', 'profile', 'settings'];
-      const currentIndex = pages.indexOf(navigation.currentPage);
-      const nextPage = pages[(currentIndex + 1) % pages.length];
-      
-      navigationStore.update(prev => ({
-        ...prev,
-        currentPage: nextPage,
-        breadcrumbs: [...prev.breadcrumbs, nextPage]
-      }));
-    };
-    
-    return (
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-3 bg-purple-50 rounded-lg">
-            <div className="font-semibold">User Context</div>
-            <div className="text-sm">
-              <div>User: {profile.name}</div>
-            </div>
-          </div>
-          <div className="p-3 bg-orange-50 rounded-lg">
-            <div className="font-semibold">App Context</div>
-            <div className="text-sm">
-              <div>Page: {navigation.currentPage}</div>
-              <div>Breadcrumbs: {navigation.breadcrumbs.join(' > ')}</div>
-            </div>
+    navigationStore.update(prev => ({
+      ...prev,
+      currentPage: nextPage,
+      breadcrumbs: [...prev.breadcrumbs, nextPage]
+    }));
+  };
+  
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-3 bg-purple-50 rounded-lg">
+          <div className="font-semibold">User Context</div>
+          <div className="text-sm">
+            <div>User: {profile.name}</div>
           </div>
         </div>
-        
-        <Button onClick={navigateToPage} variant="primary" size="sm">
-          Navigate to Next Page
-        </Button>
+        <div className="p-3 bg-orange-50 rounded-lg">
+          <div className="font-semibold">App Context</div>
+          <div className="text-sm">
+            <div>Page: {navigation.currentPage}</div>
+            <div>Breadcrumbs: {navigation.breadcrumbs.join(' > ')}</div>
+          </div>
+        </div>
       </div>
-    );
-  }
+      
+      <Button onClick={navigateToPage} variant="primary" size="sm">
+        Navigate to Next Page
+      </Button>
+    </div>
+  );
+}
+
+// Multiple HOC Composition Demo
+function MultipleHOCCompositionDemo() {
   
   // Compose multiple HOCs
   const AppWithAllStores = withUserStoreProvider(
@@ -251,6 +250,26 @@ const AppWithComposedStores = composeProviders(
   );
 }
 
+// Conditional Component (moved outside to avoid nested definition)
+function ConditionalComponent() {
+  // This will work if stores are enabled, fail gracefully if not
+  try {
+    const profileStore = useUserStore('profile');
+    const profile = useStoreValue(profileStore);
+    return (
+      <div className="p-3 bg-green-50 rounded-lg">
+        <div>✅ Stores enabled: {profile.name}</div>
+      </div>
+    );
+  } catch (error) {
+    return (
+      <div className="p-3 bg-yellow-50 rounded-lg">
+        <div>⚠️ Stores disabled: Running without store context</div>
+      </div>
+    );
+  }
+}
+
 // Conditional and Lazy HOC Demo
 function ConditionalLazyHOCDemo() {
   const logger = useActionLoggerWithToast();
@@ -265,24 +284,7 @@ function ConditionalLazyHOCDemo() {
         };
   }
   
-  function ConditionalComponent() {
-    // This will work if stores are enabled, fail gracefully if not
-    try {
-      const profileStore = useUserStore('profile');
-      const profile = useStoreValue(profileStore);
-      return (
-        <div className="p-3 bg-green-50 rounded-lg">
-          <div>✅ Stores enabled: {profile.name}</div>
-        </div>
-      );
-    } catch (error) {
-      return (
-        <div className="p-3 bg-yellow-50 rounded-lg">
-          <div>⚠️ Stores disabled: Running without store context</div>
-        </div>
-      );
-    }
-  }
+  // ConditionalComponent now defined outside the function
   
   // Create conditional HOCs
   const featureEnabled = true;

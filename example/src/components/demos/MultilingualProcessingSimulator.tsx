@@ -301,7 +301,7 @@ export function MultilingualProcessingSimulator() {
       
       setTimeout(() => {
         const truncatedContent = document.content.length > limit 
-          ? document.content.substring(0, limit - 3) + '...'
+          ? `${document.content.substring(0, limit - 3)}...`
           : document.content;
 
         const template: DocumentTemplate = {
