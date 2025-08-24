@@ -8,16 +8,26 @@ Store patterns provide excellent type inference and simplified API for pure stat
 
 ### Available Store Patterns
 - **[Basic Usage](./basic-usage.md)** - Fundamental Store Only pattern with type inference
-- **[HOC Pattern](./hoc-pattern.md)** - Higher-Order Component pattern for automatic Provider wrapping
-- **[Advanced Config](./advanced-config.md)** - Performance optimization and custom comparison strategies
+- **[useStoreValue Patterns](./useStoreValue-patterns.md)** - Core `useStoreValue` subscription patterns
+- **[useStoreSelector Patterns](./useStoreSelector-patterns.md)** - Multiple store selection with `useStoreSelector`
+- **[useComputedStore Patterns](./useComputedStore-patterns.md)** - Computed values with `useComputedStore`
+- **[useStoreManager API](./useStoreManager-api.md)** - Low-level store access with `useStoreManager` hook
+- **[Performance Patterns](./performance-patterns.md)** - Performance optimization and best practices
+- **[withProvider Pattern](./withProvider-pattern.md)** - Higher-Order Component pattern for automatic Provider wrapping
+- **[Store Configuration](./store-configuration.md)** - Store configuration and comparison strategies
 
 ## Quick Reference
 
 | Pattern | Purpose | Best For |
 |---------|---------|----------|
 | **Basic Usage** | Type-safe state management | Data layers, simple state |
-| **HOC Pattern** | Automatic Provider wrapping | Clean component composition |
-| **Advanced Config** | Performance optimization | Large datasets, complex objects |
+| **useStoreValue Patterns** | Core store subscriptions | Selective updates, conditional subscriptions |
+| **useStoreSelector Patterns** | Multiple store selection | Combining data from multiple stores |
+| **useComputedStore Patterns** | Derived state calculations | Computed values, reactive calculations |
+| **useStoreManager API** | Low-level store access | Advanced operations, multiple store updates |
+| **Performance Patterns** | Optimization techniques | Memoization, batching, debugging |
+| **withProvider Pattern** | Automatic Provider wrapping | Clean component composition |
+| **Store Configuration** | Store configuration | Custom comparisons, advanced settings |
 
 ## When to Use Store Patterns
 

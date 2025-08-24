@@ -96,13 +96,25 @@ Built-in metrics collection and performance analysis.
 
 ### Basic Flow Control
 ```typescript
-// Priority jumping for security escalation
+// Priority-based handler registration for security escalation
 securityRegister.register('processRequest', async (payload, controller) => {
+  // Use controller.abort to stop pipeline if security violation detected
+  if (payload.securityViolation) {
+    controller.abort('Security violation detected');
+    return;
+  }
+  // Use controller.return to terminate pipeline with specific result
   if (payload.requiresElevation) {
-    controller.jumpToPriority(1000); // Jump to high-priority security handlers
+    controller.return({ elevated: true, handled: true });
     return;
   }
   // Continue normal processing
+}, { priority: 100 }); // Higher priority executes first
+
+// Lower priority handlers for normal processing
+securityRegister.register('processRequest', async (payload, controller) => {
+  // Normal business logic
+  console.log('Processing request normally');
 }, { priority: 50 });
 ```
 
@@ -113,24 +125,56 @@ const result = await register.dispatchWithResult('generateReport', data, {
   result: { 
     collect: true, 
     strategy: 'merge',
-    merger: (results) => ({ sections: results, summary: {...} })
+    merger: (results) => ({ sections: results, summary: { total: results.length } })
   }
 });
+
+// Individual handlers can set results using controller
+register.register('generateReport', (payload, controller) => {
+  const report = generateSection(payload);
+  controller.setResult(report); // Add result to collection
+}, { priority: 1 });
 ```
 
 ### Handler Introspection
 ```typescript
 // Analyze handler performance and configuration
 const stats = register.getActionStats('processData');
-console.log(`Average duration: ${stats.executionStats.averageDuration}ms`);
-console.log(`Success rate: ${stats.executionStats.successRate}%`);
+if (stats?.executionStats) {
+  console.log(`Average duration: ${stats.executionStats.averageDuration}ms`);
+  console.log(`Success rate: ${stats.executionStats.successRate}%`);
+  console.log(`Total executions: ${stats.executionStats.totalExecutions}`);
+}
+
+// Get registry information
+const registryInfo = register.getRegistryInfo();
+console.log(`Registry: ${registryInfo.name}`);
+console.log(`Total actions: ${registryInfo.totalActions}`);
+console.log(`Total handlers: ${registryInfo.totalHandlers}`);
 ```
 
 ### Environment Filtering
 ```typescript
-// Run different handlers based on environment
+// Register handlers with environment tags
+register.register('deploy', deployProd, { 
+  priority: 1, 
+  environment: 'production',
+  tags: ['deployment', 'prod'] 
+});
+register.register('deploy', deployDev, { 
+  priority: 1, 
+  environment: 'development',
+  tags: ['deployment', 'dev'] 
+});
+
+// Filter by environment during dispatch
 await register.dispatchWithResult('deploy', deployData, {
   filter: { environment: 'production' } // Only production handlers
+});
+
+// Filter by tags
+await register.dispatch('deploy', deployData, {
+  filter: { tags: ['prod'] } // Only handlers with 'prod' tag
 });
 ```
 

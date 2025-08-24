@@ -34,6 +34,14 @@ This section contains comprehensive code patterns and implementation guides for 
   - [Conditional Await](./async/conditional-await.md) - Smart waiting based on conditions
   - [Timeout Protection](./async/timeout-protection.md) - Preventing infinite waits with fallback strategies
 
+### Performance Patterns
+- **[Performance Patterns](./performance/)** - Performance optimization techniques and strategies
+  - [Optimization Techniques](./performance/optimization-techniques.md) - Store optimization, memoization, and RefContext performance
+
+### Debug Patterns
+- **[Debug Patterns](./debug/)** - Production debugging and troubleshooting patterns
+  - [Production Debugging](./debug/production-debugging.md) - Critical issues, state monitoring, error recovery, and stress testing
+
 ## Quick Start Guide
 
 | Pattern | Use Case | Import | Best For |

@@ -42,6 +42,15 @@ Two main approaches for accessing dispatch functionality: hook-based and registe
 
 **[View Dispatch Access Patterns →](./dispatch-access.md)**
 
+### 🔧 Handler State Access Patterns
+Advanced patterns for accessing and managing state within action handlers, including critical closure trap avoidance.
+
+- **Closure Trap Prevention**: Avoiding stale state references in handlers
+- **Real-time State Access**: Patterns for accessing fresh state data
+- **Dependency Management**: useEffect best practices with stable references
+
+**[View Handler State Access Patterns →](./handler-state-access.md)**
+
 ## Real-World Examples
 
 - [Priority Performance Demo](https://github.com/mineclover/context-action/tree/main/example/src/pages/actionguard/priority-performance) - Priority-based handler execution
