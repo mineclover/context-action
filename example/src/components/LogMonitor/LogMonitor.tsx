@@ -4,7 +4,7 @@
  */
 
 import { LogLevel } from '../../utils/logger';
-import React from 'react';
+import { useEffect } from 'react';
 import { cn } from '../../lib/utils';
 import {
   buttonVariants,
@@ -34,7 +34,7 @@ export function LogMonitor({
     useLogMonitor();
 
   // 설정 업데이트
-  React.useEffect(() => {
+  useEffect(() => {
     if (config) {
       updateConfig(config);
     }

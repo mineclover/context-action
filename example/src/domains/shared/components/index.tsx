@@ -73,44 +73,57 @@ export function CodeExample({ children, language = 'typescript' }: CodeExamplePr
   );
 }
 
+// Memoized constants to prevent recreation on every render
+const TYPE_COLORS = {
+  store: 'bg-blue-100 text-blue-800',
+  action: 'bg-green-100 text-green-800', 
+  async: 'bg-purple-100 text-purple-800',
+  ref: 'bg-orange-100 text-orange-800',
+  integration: 'bg-gray-100 text-gray-800',
+  performance: 'bg-red-100 text-red-800',
+  api: 'bg-cyan-100 text-cyan-800',
+  search: 'bg-emerald-100 text-emerald-800',
+  interaction: 'bg-indigo-100 text-indigo-800'
+} as const;
+
+const DIFFICULTY_COLORS = {
+  beginner: 'bg-emerald-100 text-emerald-800',
+  intermediate: 'bg-yellow-100 text-yellow-800',
+  advanced: 'bg-red-100 text-red-800'
+} as const;
+
 // Pattern Badge - indicates pattern complexity and type
-export function PatternBadge({ 
+export const PatternBadge = React.memo(({ 
   type, 
   difficulty = 'intermediate',
   className = ''
 }: {
-  type: 'store' | 'action' | 'async' | 'ref' | 'integration';
+  type: 'store' | 'action' | 'async' | 'ref' | 'integration' | 'performance' | 'api' | 'search' | 'interaction';
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
   className?: string;
-}) {
-  const typeColors = {
-    store: 'bg-blue-100 text-blue-800',
-    action: 'bg-green-100 text-green-800', 
-    async: 'bg-purple-100 text-purple-800',
-    ref: 'bg-orange-100 text-orange-800',
-    integration: 'bg-gray-100 text-gray-800'
-  };
-
-  const difficultyColors = {
-    beginner: 'bg-emerald-100 text-emerald-800',
-    intermediate: 'bg-yellow-100 text-yellow-800',
-    advanced: 'bg-red-100 text-red-800'
-  };
-
+}) => {
   return (
     <div className={`flex gap-2 ${className}`}>
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${typeColors[type]}`}>
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${TYPE_COLORS[type]}`}>
         {type.toUpperCase()}
       </span>
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${difficultyColors[difficulty]}`}>
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${DIFFICULTY_COLORS[difficulty]}`}>
         {difficulty.toUpperCase()}
       </span>
     </div>
   );
-}
+});
+
+// Memoized status configuration to prevent recreation
+const STATUS_CONFIG = {
+  idle: { icon: '⚪', color: 'text-gray-500', bg: 'bg-gray-100' },
+  loading: { icon: '🔄', color: 'text-blue-500', bg: 'bg-blue-100' },
+  success: { icon: '✅', color: 'text-green-500', bg: 'bg-green-100' },
+  error: { icon: '❌', color: 'text-red-500', bg: 'bg-red-100' }
+} as const;
 
 // Status Indicator - shows operation status
-export function StatusIndicator({ 
+export const StatusIndicator = React.memo(({ 
   status,
   message,
   className = ''
@@ -118,15 +131,8 @@ export function StatusIndicator({
   status: 'idle' | 'loading' | 'success' | 'error';
   message?: string;
   className?: string;
-}) {
-  const statusConfig = {
-    idle: { icon: '⚪', color: 'text-gray-500', bg: 'bg-gray-100' },
-    loading: { icon: '🔄', color: 'text-blue-500', bg: 'bg-blue-100' },
-    success: { icon: '✅', color: 'text-green-500', bg: 'bg-green-100' },
-    error: { icon: '❌', color: 'text-red-500', bg: 'bg-red-100' }
-  };
-
-  const config = statusConfig[status];
+}) => {
+  const config = STATUS_CONFIG[status];
 
   return (
     <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${config.bg} ${config.color} ${className}`}>
@@ -134,10 +140,10 @@ export function StatusIndicator({
       {message && <span className="text-sm font-medium">{message}</span>}
     </div>
   );
-}
+});
 
 // Metrics Display - shows performance or usage metrics
-export function MetricsDisplay({
+export const MetricsDisplay = React.memo(({
   metrics,
   title = 'Metrics',
   className = ''
@@ -145,12 +151,16 @@ export function MetricsDisplay({
   metrics: Record<string, string | number>;
   title?: string;
   className?: string;
-}) {
+}) => {
+  const metricEntries = React.useMemo(() => 
+    Object.entries(metrics), [metrics]
+  );
+
   return (
     <div className={`bg-gray-50 rounded-lg p-4 ${className}`}>
       <h4 className="text-sm font-semibold text-gray-700 mb-3">{title}</h4>
       <div className="grid grid-cols-2 gap-3">
-        {Object.entries(metrics).map(([key, value]) => (
+        {metricEntries.map(([key, value]) => (
           <div key={key} className="flex justify-between">
             <span className="text-sm text-gray-600">{key}:</span>
             <span className="text-sm font-medium text-gray-900">{value}</span>
@@ -159,7 +169,7 @@ export function MetricsDisplay({
       </div>
     </div>
   );
-}
+});
 
 // Error Boundary for domain components
 export class DomainErrorBoundary extends React.Component<
@@ -216,20 +226,21 @@ export class DomainErrorBoundary extends React.Component<
   }
 }
 
-// Loading Spinner component
-export function LoadingSpinner({ size = 'md', className = '' }: { size?: 'sm' | 'md' | 'lg'; className?: string }) {
-  const sizeClasses = {
-    sm: 'w-4 h-4',
-    md: 'w-6 h-6', 
-    lg: 'w-8 h-8'
-  };
+// Memoized size classes
+const SIZE_CLASSES = {
+  sm: 'w-4 h-4',
+  md: 'w-6 h-6', 
+  lg: 'w-8 h-8'
+} as const;
 
+// Loading Spinner component
+export const LoadingSpinner = React.memo(({ size = 'md', className = '' }: { size?: 'sm' | 'md' | 'lg'; className?: string }) => {
   return (
-    <div className={`inline-block animate-spin rounded-full border-2 border-solid border-current border-r-transparent motion-reduce:animate-[spin_1.5s_linear_infinite] ${sizeClasses[size]} ${className}`}>
+    <div className={`inline-block animate-spin rounded-full border-2 border-solid border-current border-r-transparent motion-reduce:animate-[spin_1.5s_linear_infinite] ${SIZE_CLASSES[size]} ${className}`}>
       <span className="sr-only">Loading...</span>
     </div>
   );
-}
+});
 
 // Empty State component
 export function EmptyState({ 

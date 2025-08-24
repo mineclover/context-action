@@ -4,7 +4,7 @@
  * Demonstrates the most important store hook for subscribing to store values
  */
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { createStore } from '../../../src/stores/core/Store';
 import { useStoreValue, useStoreValues } from '../../../src/stores/hooks/useStoreValue';
 import { shallowEqual } from '../../../src/stores/hooks/useStoreSelector';
@@ -59,9 +59,14 @@ function BasicCounter() {
 
 // Example 2: useStoreValue with selector
 function UserProfile() {
-  const userName = useStoreValue(userStore, user => user.name);
-  const userEmail = useStoreValue(userStore, user => user.email);
-  const userAvatar = useStoreValue(userStore, user => user.profile.avatar);
+  // Memoized selectors to prevent infinite loops
+  const nameSelector = useCallback((user: any) => user.name, []);
+  const emailSelector = useCallback((user: any) => user.email, []);
+  const avatarSelector = useCallback((user: any) => user.profile.avatar, []);
+  
+  const userName = useStoreValue(userStore, nameSelector);
+  const userEmail = useStoreValue(userStore, emailSelector);
+  const userAvatar = useStoreValue(userStore, avatarSelector);
   
   return (
     <div className="example-section">
@@ -92,7 +97,9 @@ function UserStatsOptimized() {
   const [selectedStat, setSelectedStat] = useState<'posts' | 'followers' | 'following'>('posts');
   
   // Only subscribes to the selected stat
-  const statValue = useStoreValue(userStore, user => user.stats[selectedStat]);
+  // Memoized selector with selectedStat dependency
+  const statSelector = useCallback((user: any) => user.stats[selectedStat], [selectedStat]);
+  const statValue = useStoreValue(userStore, statSelector);
   
   return (
     <div className="example-section">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useCanvas } from './CanvasContext';
 import type { CanvasEvent } from './Canvas';
 

@@ -81,13 +81,13 @@ export function AsyncOperationStatus({
 }
 
 // Timeout Protection Demo Component
-export function TimeoutProtectionDemo({
+export const TimeoutProtectionDemo = React.memo(({
   title = 'Timeout Protection',
   className = ''
 }: {
   title?: string;
   className?: string;
-}) {
+}) => {
   const [basicState, setBasicState] = useState<{ isRunning: boolean; result?: any; error?: Error; duration?: number }>({
     isRunning: false
   });
@@ -96,7 +96,7 @@ export function TimeoutProtectionDemo({
     isRunning: false
   });
 
-  const runBasicTimeout = async () => {
+  const runBasicTimeout = React.useCallback(async () => {
     setBasicState({ isRunning: true });
     const startTime = performance.now();
     
@@ -124,7 +124,7 @@ export function TimeoutProtectionDemo({
         duration: performance.now() - startTime
       });
     }
-  };
+  }, []);
 
   const runProgressiveTimeout = async () => {
     setProgressiveState({ isRunning: true });
@@ -232,7 +232,7 @@ const result = await TimeoutProtectionService.progressiveTimeout(
       </div>
     </DemoCard>
   );
-}
+});
 
 // Circuit Breaker Demo Component
 export function CircuitBreakerDemo({
@@ -385,7 +385,8 @@ export function AsyncPerformanceMonitorDemo({
   const [isRunning, setIsRunning] = useState(false);
 
   const updateMetrics = useCallback(() => {
-    setMetrics(monitor.getMetrics());
+    const currentMetrics = monitor.getMetrics();
+    setMetrics(currentMetrics || {});
   }, [monitor]);
 
   const runMonitoredOperation = async (operationName: string) => {
@@ -523,29 +524,31 @@ export function WaitForRefsDemo({
     error: null as Error | null
   });
 
-  const performWaitOperation = execute(async () => {
-    // Wait for element to be available
-    await waitForRefs('demo-target');
-    
-    const element = getRefTarget('demo-target');
-    if (!element) {
-      throw new Error('Element not found after waiting');
-    }
+  const performWaitOperation = React.useCallback(async () => {
+    return await execute(async () => {
+      // Wait for element to be available
+      await waitForRefs('demo-target');
+      
+      const element = getRefTarget('demo-target');
+      if (!element) {
+        throw new Error('Element not found after waiting');
+      }
 
-    // Perform DOM operations
-    element.style.backgroundColor = '#f0f9ff';
-    element.style.border = '2px solid #3b82f6';
-    element.textContent = 'Element found and modified!';
-    
-    // Reset after delay
-    setTimeout(() => {
-      element.style.backgroundColor = '';
-      element.style.border = '';
-      element.textContent = 'Demo Target Element';
-    }, 2000);
-    
-    return 'DOM operation completed successfully';
-  });
+      // Perform DOM operations
+      element.style.backgroundColor = '#f0f9ff';
+      element.style.border = '2px solid #3b82f6';
+      element.textContent = 'Element found and modified!';
+      
+      // Reset after delay
+      setTimeout(() => {
+        element.style.backgroundColor = '';
+        element.style.border = '';
+        element.textContent = 'Demo Target Element';
+      }, 2000);
+      
+      return 'DOM operation completed successfully';
+    });
+  }, [execute, waitForRefs, getRefTarget]);
 
   return (
     <DemoCard title={title} className={className}>
@@ -559,7 +562,9 @@ export function WaitForRefsDemo({
 
         <div className="space-y-4">
           <button
-            onClick={performWaitOperation}
+            onClick={() => {
+              performWaitOperation().catch(console.error);
+            }}
             disabled={isRunning}
             className="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
           >

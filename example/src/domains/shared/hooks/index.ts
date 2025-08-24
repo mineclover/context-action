@@ -162,7 +162,7 @@ export function useSafeTimeout() {
 
 // Local storage hook with type safety
 export function useLocalStorage<T>(key: string, defaultValue: T) {
-  const [value, setValue] = useState<T>(() => {
+  const [storedValue, setValue] = useState<T>(() => {
     try {
       const item = window.localStorage.getItem(key);
       return item ? JSON.parse(item) : defaultValue;
@@ -173,7 +173,7 @@ export function useLocalStorage<T>(key: string, defaultValue: T) {
 
   const setStoredValue = useCallback((value: T | ((val: T) => T)) => {
     try {
-      const valueToStore = value instanceof Function ? value(value) : value;
+      const valueToStore = value instanceof Function ? value(storedValue) : value;
       setValue(valueToStore);
       window.localStorage.setItem(key, JSON.stringify(valueToStore));
     } catch (error) {
@@ -181,5 +181,5 @@ export function useLocalStorage<T>(key: string, defaultValue: T) {
     }
   }, [key]);
 
-  return [value, setStoredValue] as const;
+  return [storedValue, setStoredValue] as const;
 }

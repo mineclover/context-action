@@ -1,4 +1,5 @@
 import { useStoreValue } from '@context-action/react';
+import { useCallback } from 'react';
 import { cn } from '../../lib/utils';
 import { toastContainerVariants } from '../ui/variants';
 import { toastActionRegister } from './actions';
@@ -29,9 +30,9 @@ export function ToastContainer() {
   // maxToasts 설정에 따라 표시할 토스트 수 제한 (최신 것들만)
   const displayToasts = sortedToasts.slice(0, config?.maxToasts || 4);
 
-  const handleClearAll = () => {
+  const handleClearAll = useCallback(() => {
     toastActionRegister.dispatch('clearAllToasts', {});
-  };
+  }, []);
 
   // 토스트가 없으면 컨테이너를 숨김
   if (displayToasts.length === 0) {

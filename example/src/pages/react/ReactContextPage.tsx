@@ -4,7 +4,7 @@ import {
   createDeclarativeStorePattern,
   useStoreValue,
 } from '@context-action/react';
-import React from 'react';
+import { useEffect } from 'react';
 import {
   PageWithLogMonitor,
   useActionLoggerWithToast,
@@ -229,7 +229,7 @@ function ChildALogicRegistration() {
 
   const childId = 'child-a-counter';
 
-  React.useEffect(() => {
+  useEffect(() => {
     // 🎯 핵심: 하위 컴포넌트가 상위 ActionRegister에 자신의 로직을 등록
     parentDispatch('onChildRegistered', {
       childId,
@@ -427,7 +427,7 @@ function ChildBLogicRegistration() {
 
   const childId = 'child-b-text';
 
-  React.useEffect(() => {
+  useEffect(() => {
     // 🎯 핵심: 하위 컴포넌트가 상위 ActionRegister에 자신의 로직을 등록
     parentDispatch('onChildRegistered', {
       childId,

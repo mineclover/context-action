@@ -62,7 +62,7 @@ function BasicStoreManagerDemo() {
   const user = useStoreValue(userStore);
   const settings = useStoreValue(settingsStore);
 
-  const updateUserWithManager = () => {
+  const updateUserWithManager = useCallback(() => {
     // Get store instance directly
     const userStore = manager.getStore('user');
     const currentUser = userStore.getValue();
@@ -75,9 +75,9 @@ function BasicStoreManagerDemo() {
     });
     
     logger.info('✅ User updated via StoreManager');
-  };
+  }, [manager, logger]);
 
-  const updateUserEmail = () => {
+  const updateUserEmail = useCallback(() => {
     const userStore = manager.getStore('user');
     userStore.update(current => ({
       ...current,
@@ -85,18 +85,18 @@ function BasicStoreManagerDemo() {
     }));
     
     logger.info('✅ User email updated via functional update');
-  };
+  }, [manager, logger]);
 
-  const resetUser = () => {
+  const resetUser = useCallback(() => {
     const userStore = manager.getStore('user');
     userStore.reset();
     logger.info('🔄 User store reset to initial value');
-  };
+  }, [manager, logger]);
 
-  const getManagerInfo = () => {
+  const getManagerInfo = useCallback(() => {
     const info = manager.getInfo();
     logger.info('📊 Manager info', info);
-  };
+  }, [manager, logger]);
 
   return (
     <DemoCard title="Basic Store Manager Usage">

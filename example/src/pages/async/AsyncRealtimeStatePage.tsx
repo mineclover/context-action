@@ -1,6 +1,6 @@
-import React, { useCallback, useState, useRef, useEffect } from 'react';
+import { useCallback, useState, useRef, useEffect } from 'react';
 import { createDeclarativeStorePattern, createActionContext } from '@context-action/react';
-import { LogMonitorProvider, useLogMonitor } from '../logger/LogMonitorProvider';
+import { LogMonitorProvider, useLogMonitor } from '../../components/LogMonitor';
 
 // Define action types for real-time state demonstrations
 interface RealtimeActions {

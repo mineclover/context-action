@@ -3,7 +3,7 @@
  * Context-Action framework의 우선순위 기반 성능 최적화 데모
  */
 
-import React, { useCallback, useState, useEffect, useMemo } from 'react';
+import { useCallback, useState, useEffect, useMemo } from 'react';
 import { PageWithLogMonitor } from '../../components/LogMonitor';
 import { createActionContext } from '@context-action/react';
 import { Badge, Card, CardContent } from '../../components/ui';

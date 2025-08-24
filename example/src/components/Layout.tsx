@@ -6,6 +6,7 @@ import {
   layoutVariants,
   mainContentVariants,
   navItemVariants,
+  type NavItemVariants,
   type SidebarVariants,
   sidebarVariants,
 } from './ui/variants';
@@ -13,7 +14,7 @@ import {
 interface NavItem {
   path: string;
   label: string;
-  category: 'main' | 'core' | 'store' | 'action' | 'async' | 'react' | 'demos' | 'examples' | 'actionguard' | 'conditional' | 'pipeline' | 'refs' | 'utilities' | 'architecture';
+  category: NonNullable<NavItemVariants['category']>;
   isIndex?: boolean;
   disabled?: boolean;
   description?: string;
@@ -73,6 +74,9 @@ function Layout({
     // === Architecture (아키텍처) ===
     { path: '/architecture/modular-demo', label: '🏗️ Modular Architecture Demo', category: 'architecture', description: 'MVVM patterns with domain separation and Context-Action integration' },
     
+    // === Interaction Patterns (인터랙션 패턴) ===
+    { path: '/interaction/mouse-events', label: '🖱️ Mouse Events & Tracking', category: 'interaction', description: 'Advanced mouse interaction patterns with real-time tracking and visualization' },
+    
     // === Async Patterns (비동기 패턴) ===
     { path: '/async/basic-usage', label: '⏳ Async Basic Usage', category: 'async', description: 'Comprehensive async patterns with real-time state access' },
     { path: '/async/realtime-state', label: '🔄 Real-time State Access', category: 'async', description: 'Avoiding closure traps with store.getValue() patterns' },
@@ -93,6 +97,7 @@ function Layout({
     { path: '/examples/element-management', label: '🎯 Element Management Demo', category: 'examples' },
     
     // === Advanced Demos (고급 데모) ===
+    { path: '/action-guard', label: '🛡️ ActionGuard (Standardized)', category: 'actionguard', isIndex: true, description: 'New standardized ActionGuard demonstrations with unified structure' },
     { path: '/actionguard/search', label: '🔍 Advanced Search Demo', category: 'actionguard' },
     { path: '/actionguard/scroll', label: '📜 Advanced Scroll Demo', category: 'actionguard' },
     { path: '/actionguard/api-blocking', label: '🚫 API Blocking Demo', category: 'actionguard', description: 'Working demo with unified structure' },
@@ -166,7 +171,7 @@ function Layout({
                 <h4 className="text-xs font-medium text-blue-600 mb-2">📚 Core Concepts</h4>
               </div>
             )}
-            {navItems.filter(item => ['main', 'core', 'store', 'action', 'async', 'react', 'architecture'].includes(item.category)).map((item) => {
+            {navItems.filter(item => ['main', 'core', 'store', 'action', 'async', 'react', 'architecture', 'interaction'].includes(item.category)).map((item) => {
               return (
                 <Link
                   key={item.path}

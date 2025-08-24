@@ -2,8 +2,7 @@ import {
   createDeclarativeStorePattern,
   useStoreValue,
 } from '@context-action/react';
-import type React from 'react';
-import { useEffect, lazy, Suspense } from 'react';
+import { useEffect, lazy, Suspense, useCallback } from 'react';
 import {
   PageWithLogMonitor,
   useActionLoggerWithToast,
@@ -12,9 +11,8 @@ import {
   Button,
   CodeExample,
   DemoCard,
-  Section,
-  Label,
 } from '../../components/ui';
+import { Section } from '../../domains/shared/components';
 
 // Demo store patterns for HOC examples
 const {
@@ -48,10 +46,10 @@ function BasicHOCDemo() {
     const profile = useStoreValue(profileStore);
     const preferences = useStoreValue(preferencesStore);
     
-    logger.info('🎯 AppContent rendered with HOC-provided stores', { 
-      profile: profile.name, 
-      theme: preferences.theme 
-    });
+    // Log in useEffect to avoid side effects during render
+    useEffect(() => {
+      logger.logSystem('🎯 AppContent rendered with HOC-provided stores');
+    }, [logger, profile.name, preferences.theme]);
     
     const updateProfile = () => {
       profileStore.update(prev => ({
@@ -71,14 +69,14 @@ function BasicHOCDemo() {
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-3 bg-blue-50 rounded-lg">
-            <Label className="font-semibold">User Profile</Label>
+            <div className="font-semibold">User Profile</div>
             <div className="text-sm space-y-1">
               <div>Name: {profile.name}</div>
               <div>Email: {profile.email}</div>
             </div>
           </div>
           <div className="p-3 bg-green-50 rounded-lg">
-            <Label className="font-semibold">Preferences</Label>
+            <div className="font-semibold">Preferences</div>
             <div className="text-sm space-y-1">
               <div>Theme: {preferences.theme}</div>
               <div>Notifications: {preferences.notifications ? 'ON' : 'OFF'}</div>
@@ -144,10 +142,10 @@ function MultipleHOCCompositionDemo() {
     const profile = useStoreValue(profileStore);
     const navigation = useStoreValue(navigationStore);
     
-    logger.info('🔧 MultiStoreComponent rendered', { 
-      user: profile.name, 
-      currentPage: navigation.currentPage 
-    });
+    // Log in useEffect to avoid side effects during render
+    useEffect(() => {
+      logger.logSystem('🔧 MultiStoreComponent rendered');
+    }, [logger, profile.name, navigation.currentPage]);
     
     const navigateToPage = () => {
       const pages = ['home', 'profile', 'settings'];
@@ -165,13 +163,13 @@ function MultipleHOCCompositionDemo() {
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-3 bg-purple-50 rounded-lg">
-            <Label className="font-semibold">User Context</Label>
+            <div className="font-semibold">User Context</div>
             <div className="text-sm">
               <div>User: {profile.name}</div>
             </div>
           </div>
           <div className="p-3 bg-orange-50 rounded-lg">
-            <Label className="font-semibold">App Context</Label>
+            <div className="font-semibold">App Context</div>
             <div className="text-sm">
               <div>Page: {navigation.currentPage}</div>
               <div>Breadcrumbs: {navigation.breadcrumbs.join(' > ')}</div>
@@ -214,14 +212,14 @@ function MultipleHOCCompositionDemo() {
         
         <div className="space-y-4">
           <div>
-            <Label className="font-semibold">Manual Composition</Label>
+            <div className="font-semibold">Manual Composition</div>
             <div className="border rounded-lg p-4 bg-gray-50 mt-2">
               <AppWithAllStores />
             </div>
           </div>
           
           <div>
-            <Label className="font-semibold">Helper Function Composition</Label>
+            <div className="font-semibold">Helper Function Composition</div>
             <div className="border rounded-lg p-4 bg-gray-50 mt-2">
               <AppWithComposedStores />
             </div>
@@ -262,7 +260,7 @@ function ConditionalLazyHOCDemo() {
     return condition 
       ? withUserStoreProvider
       : (Component: React.ComponentType) => {
-          logger.info('🚫 Conditional HOC: stores disabled, using pass-through');
+          logger.logSystem('🚫 Conditional HOC: stores disabled, using pass-through');
           return Component;
         };
   }
@@ -317,21 +315,21 @@ function ConditionalLazyHOCDemo() {
       <div className="space-y-4">
         <div className="space-y-3">
           <div>
-            <Label className="font-semibold">Conditional HOC (Enabled)</Label>
+            <div className="font-semibold">Conditional HOC (Enabled)</div>
             <div className="mt-2">
               <ConditionalAppEnabled />
             </div>
           </div>
           
           <div>
-            <Label className="font-semibold">Conditional HOC (Disabled)</Label>
+            <div className="font-semibold">Conditional HOC (Disabled)</div>
             <div className="mt-2">
               <ConditionalAppDisabled />
             </div>
           </div>
           
           <div>
-            <Label className="font-semibold">Lazy HOC</Label>
+            <div className="font-semibold">Lazy HOC</div>
             <div className="mt-2">
               <Suspense fallback={<div className="p-3 bg-gray-100 rounded-lg">Loading stores...</div>}>
                 <LazyStoreComponent />
@@ -386,7 +384,7 @@ function PropsBasedHOCDemo() {
         const userManager = useUserStoreManager();
         
         useEffect(() => {
-          logger.info('🔧 Initializing stores from props', props);
+          logger.logSystem('🔧 Initializing stores from props', props);
           
           // Initialize stores based on props
           if ('userId' in props) {
@@ -434,14 +432,14 @@ function PropsBasedHOCDemo() {
         
         <div className="space-y-3">
           <div>
-            <Label className="font-semibold">Light Theme User</Label>
+            <div className="font-semibold">Light Theme User</div>
             <div className="mt-2">
               <AppWithPropsInit userId="user-light-123" theme="light" />
             </div>
           </div>
           
           <div>
-            <Label className="font-semibold">Dark Theme User</Label>
+            <div className="font-semibold">Dark Theme User</div>
             <div className="mt-2">
               <AppWithPropsInit userId="user-dark-456" theme="dark" />
             </div>
@@ -480,7 +478,7 @@ function createPropsInitializedHOC<T extends Record<string, any>>(
 // Main Component
 function WithProviderPatternPage() {
   return (
-    <PageWithLogMonitor>
+    <PageWithLogMonitor pageId="withProviderPattern">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">

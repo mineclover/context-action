@@ -5,7 +5,7 @@ import {
   createStore,
   useStoreValue,
 } from '@context-action/react';
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 
 // 예시 데이터 타입
 interface CartItem {
@@ -279,7 +279,7 @@ function UseActionWithResultContent() {
   ]);
 
   // Store와 컴포넌트 state 동기화
-  React.useEffect(() => {
+  useEffect(() => {
     cartStore.setValue(items);
   }, [items]);
   const [discountCode, setDiscountCode] = useState('');

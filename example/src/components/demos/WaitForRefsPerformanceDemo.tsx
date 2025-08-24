@@ -324,8 +324,8 @@ function PerformanceDemo() {
         
         // 만약 ref가 여전히 존재한다면 수동으로 정리
         if (afterTarget) {
-          interactiveElement.setRef(null);
-          dispatch('addLog', { message: '🧹 ref를 수동으로 정리했습니다.' });
+          interactiveElement.setRef(document.createElement('div'));
+          dispatch('addLog', { message: '🧹 ref를 정리했습니다.' });
         }
         
         isProcessingStore.setValue(false); // 처리 완료
@@ -526,8 +526,8 @@ function PerformanceDemo() {
   useTestActionHandler('startTest', async () => {
     console.log('🔍 성능 테스트 시작...');
     
-    existingElement.setRef(null);
-    pendingElement.setRef(null);
+    existingElement.setRef(document.createElement('div'));
+    pendingElement.setRef(document.createElement('div'));
     
     await new Promise(resolve => setTimeout(resolve, 10));
     

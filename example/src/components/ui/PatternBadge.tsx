@@ -13,6 +13,13 @@ const patternBadgeVariants = cva(
         unified: 'bg-indigo-100 text-indigo-800 border-indigo-200',
         store: 'bg-cyan-100 text-cyan-800 border-cyan-200',
         action: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+        async: 'bg-purple-100 text-purple-800 border-purple-200',
+        ref: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        integration: 'bg-pink-100 text-pink-800 border-pink-200',
+        performance: 'bg-red-100 text-red-800 border-red-200',
+        api: 'bg-blue-100 text-blue-800 border-blue-200',
+        search: 'bg-green-100 text-green-800 border-green-200',
+        interaction: 'bg-indigo-100 text-indigo-800 border-indigo-200',
         custom: 'bg-gray-100 text-gray-800 border-gray-200',
       },
       size: {
@@ -109,3 +116,40 @@ export const ActionPatternBadge = ({
     Pattern: Action
   </PatternBadge>
 );
+
+// 동적 PatternBadge 컴포넌트 - type과 difficulty를 받아서 처리
+interface DynamicPatternBadgeProps {
+  type?: 'store' | 'action' | 'async' | 'ref' | 'integration' | 'performance' | 'api' | 'search' | 'interaction';
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  size?: 'sm' | 'md' | 'lg';
+}
+
+export const DynamicPatternBadge = ({ 
+  type = 'integration', 
+  difficulty = 'intermediate',
+  size = 'md' 
+}: DynamicPatternBadgeProps) => {
+  const typeIcons = {
+    store: '🗄️',
+    action: '⚡',
+    async: '⏳',
+    ref: '📌',
+    integration: '🔗',
+    performance: '🚀',
+    api: '🌐',
+    search: '🔍',
+    interaction: '👆',
+  };
+
+  const difficultyLabels = {
+    beginner: 'Beginner',
+    intermediate: 'Intermediate',
+    advanced: 'Advanced',
+  };
+
+  return (
+    <PatternBadge pattern={type} size={size} icon={typeIcons[type]}>
+      {difficultyLabels[difficulty]}
+    </PatternBadge>
+  );
+};
