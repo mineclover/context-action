@@ -124,30 +124,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         id: handlerId,
         blocking: config.blocking ?? false,
         once: config.once ?? false,
-        condition: config.condition || (() => true),
         debounce: config.debounce ?? undefined,
         throttle: config.throttle ?? undefined,
-        validation: config.validation ?? undefined,
-        middleware: config.middleware ?? false,
         
-        // New metadata fields
-        tags: config.tags ?? [],
-        category: config.category ?? undefined,
-        description: config.description ?? undefined,
-        version: config.version ?? undefined,
-        returnType: config.returnType ?? 'value',
-        timeout: config.timeout ?? undefined,
-        retries: config.retries ?? 0,
-        dependencies: config.dependencies ?? [],
-        conflicts: config.conflicts ?? [],
-        environment: config.environment ?? undefined,
-        feature: config.feature ?? undefined,
-        metrics: config.metrics ?? {
-          collectTiming: false,
-          collectErrors: false,
-          customMetrics: {}
-        },
-        metadata: config.metadata ?? {},
       } as Required<HandlerConfig>,
       id: handlerId,
     };
@@ -183,8 +162,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       console.log(`🎯 Handler registered: ${String(action)}`, {
         handlerId,
         priority: config.priority,
-        tags: config.tags,
-        category: config.category,
         totalHandlers: pipeline.length,
         registry: this.name
       });
@@ -727,38 +704,11 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     return handlers.filter(registration => {
       const config = registration.config;
 
-      // Check include filters
-      if (filterOptions.tags && filterOptions.tags.length > 0) {
-        const hasMatchingTag = filterOptions.tags.some(tag => config.tags.includes(tag));
-        if (!hasMatchingTag) return false;
-      }
-
-      if (filterOptions.category && config.category !== filterOptions.category) {
-        return false;
-      }
-
+      // Only support handler ID filtering
       if (filterOptions.handlerIds && filterOptions.handlerIds.length > 0) {
         if (!filterOptions.handlerIds.includes(config.id)) {
           return false;
         }
-      }
-
-      if (filterOptions.environment && config.environment !== filterOptions.environment) {
-        return false;
-      }
-
-      if (filterOptions.feature && config.feature !== filterOptions.feature) {
-        return false;
-      }
-
-      // Check exclude filters
-      if (filterOptions.excludeTags && filterOptions.excludeTags.length > 0) {
-        const hasExcludedTag = filterOptions.excludeTags.some(tag => config.tags.includes(tag));
-        if (hasExcludedTag) return false;
-      }
-
-      if (filterOptions.excludeCategory && config.category === filterOptions.excludeCategory) {
-        return false;
       }
 
       if (filterOptions.excludeHandlerIds && filterOptions.excludeHandlerIds.length > 0) {
@@ -1064,10 +1014,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         priority,
         handlers: handlers.map(h => ({
           id: h.config.id,
-          tags: h.config.tags,
-          category: h.config.category,
-          description: h.config.description,
-          version: h.config.version,
         }))
       }));
 
@@ -1100,49 +1046,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       .filter((stats): stats is ActionHandlerStats<T> => stats !== null);
   }
 
-  /**
-   * Get handlers by tag across all actions
-   * 
-   * @param tag Tag to filter handlers by
-   * @returns Map of actions to handlers with the specified tag
-   */
-  getHandlersByTag(tag: string): Map<keyof T, HandlerRegistration<any, any>[]> {
-    const result = new Map<keyof T, HandlerRegistration<any, any>[]>();
-    
-    for (const [action, pipeline] of this.pipelines.entries()) {
-      const matchingHandlers = pipeline.filter(handler => 
-        handler.config.tags.includes(tag)
-      );
-      
-      if (matchingHandlers.length > 0) {
-        result.set(action, matchingHandlers);
-      }
-    }
-    
-    return result;
-  }
-
-  /**
-   * Get handlers by category across all actions
-   * 
-   * @param category Category to filter handlers by
-   * @returns Map of actions to handlers with the specified category
-   */
-  getHandlersByCategory(category: string): Map<keyof T, HandlerRegistration<any, any>[]> {
-    const result = new Map<keyof T, HandlerRegistration<any, any>[]>();
-    
-    for (const [action, pipeline] of this.pipelines.entries()) {
-      const matchingHandlers = pipeline.filter(handler => 
-        handler.config.category === category
-      );
-      
-      if (matchingHandlers.length > 0) {
-        result.set(action, matchingHandlers);
-      }
-    }
-    
-    return result;
-  }
 
   /**
    * Set execution mode for a specific action

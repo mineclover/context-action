@@ -27,7 +27,7 @@ import type {
  * @param context - Pipeline execution context containing handlers and state
  * @param createController - Factory function for creating pipeline controllers
  * 
- * @throws {Error} When a blocking handler fails or validation errors occur
+ * @throws {Error} When a blocking handler fails
  * 
  * @see https://mineclover.github.io/context-action/en/guide/patterns/action/dispatch-patterns
  * 
@@ -50,17 +50,6 @@ export async function executeSequential<T, R = void>(
     const registration = context.handlers[i];
     context.currentIndex = i;
 
-    /** Check condition if provided */
-    if (registration.config.condition && !registration.config.condition()) {
-      i++;
-      continue;
-    }
-
-    /** Check validation if provided */
-    if (registration.config.validation && !registration.config.validation(context.payload)) {
-      i++;
-      continue;
-    }
 
     const controller = createController(registration, i);
 
@@ -78,7 +67,7 @@ export async function executeSequential<T, R = void>(
         
         /** Collect result if handler returned something and wasn't terminated */
         if (handlerResult !== undefined && !context.terminated) {
-          context.results.push(handlerResult);
+          context.results.push(handlerResult as R);
         }
       } else if (result !== undefined && !context.terminated) {
         /** Collect synchronous result */
@@ -86,7 +75,7 @@ export async function executeSequential<T, R = void>(
           // Non-blocking async handler - track promise for error handling
           const promiseWithHandling = result.then(asyncResult => {
             if (asyncResult !== undefined && !context.terminated) {
-              context.results.push(asyncResult);
+              context.results.push(asyncResult as R);
             }
             return asyncResult;
           }).catch((error) => {
@@ -96,7 +85,7 @@ export async function executeSequential<T, R = void>(
           
           nonBlockingPromises.push(promiseWithHandling);
         } else {
-          context.results.push(result);
+          context.results.push(result as R);
         }
       }
 
@@ -165,20 +154,8 @@ export async function executeParallel<T, R = void>(
   createController: (registration: HandlerRegistration<T, R>, index: number) => PipelineController<T, R>
 ): Promise<void> {
 
-  /** Filter handlers that should run */
-  const runnableHandlers = context.handlers.filter((registration, _index) => {
-    /** Check condition */
-    if (registration.config.condition && !registration.config.condition()) {
-      return false;
-    }
-
-    /** Check validation */
-    if (registration.config.validation && !registration.config.validation(context.payload)) {
-      return false;
-    }
-
-    return true;
-  });
+  /** All handlers are runnable */
+  const runnableHandlers = context.handlers;
 
   /** Create promises for all handlers */
   const handlerPromises = runnableHandlers.map(async (registration, _index) => {
@@ -272,20 +249,8 @@ export async function executeRace<T, R = void>(
   createController: (registration: HandlerRegistration<T, R>, index: number) => PipelineController<T, R>
 ): Promise<void> {
 
-  /** Filter handlers that should run */
-  const runnableHandlers = context.handlers.filter((registration, _index) => {
-    /** Check condition */
-    if (registration.config.condition && !registration.config.condition()) {
-      return false;
-    }
-
-    /** Check validation */
-    if (registration.config.validation && !registration.config.validation(context.payload)) {
-      return false;
-    }
-
-    return true;
-  });
+  /** All handlers are runnable */
+  const runnableHandlers = context.handlers;
 
   if (runnableHandlers.length === 0) {
     return;

@@ -198,9 +198,8 @@ export type ActionHandler<T = any, R = void> = (
 /**
  * Handler configuration interface for controlling handler behavior within the pipeline
  * 
- * Comprehensive configuration options that control how handlers are executed,
- * including priority, timing controls, validation, metadata, and advanced features
- * like retries and dependencies.
+ * Configuration options that control how handlers are executed,
+ * including priority, timing controls, and execution behavior.
  * 
  * @example Basic Handler Configuration
  * ```typescript
@@ -208,38 +207,16 @@ export type ActionHandler<T = any, R = void> = (
  *   priority: 100,                    // Execute before lower priority handlers
  *   debounce: 300,                   // Wait 300ms after last call
  *   throttle: 1000,                  // Limit to once per second
- *   tags: ['search', 'user'],        // Categorization tags
- *   category: 'query',               // Logical grouping
- *   description: 'Search users by query',
  *   once: false                      // Can be executed multiple times
  * })
  * ```
  * 
- * @example Advanced Configuration
+ * @example Production Handler
  * ```typescript
  * register.register('processPayment', paymentHandler, {
  *   priority: 200,
- *   timeout: 5000,                   // 5 second timeout
- *   retries: 3,                      // Retry up to 3 times on failure
- *   environment: 'production',       // Only in production
- *   dependencies: ['validateCard'],  // Requires validateCard handler
- *   conflicts: ['refundPayment'],    // Cannot coexist with refund handler
- *   validation: (payload) => payload.amount > 0 && payload.currency,
- *   metrics: {
- *     collectTiming: true,
- *     collectErrors: true,
- *     customMetrics: { paymentProvider: 'stripe' }
- *   }
- * })
- * ```
- * 
- * @example Conditional Handler
- * ```typescript
- * register.register('debugLog', debugHandler, {
- *   priority: 10,
- *   condition: () => process.env.NODE_ENV === 'development',
- *   tags: ['debug', 'logging'],
- *   category: 'development'
+ *   blocking: true,                  // Wait for completion
+ *   id: 'payment-handler'           // Custom ID
  * })
  * ```
  * 
@@ -258,69 +235,11 @@ export interface HandlerConfig {
   /** Whether this handler should run once and then be removed. Default: false */
   once?: boolean;
   
-  /** Condition function to determine if handler should run */
-  condition?: (payload?: any) => boolean;
-  
   /** Debounce delay in milliseconds */
   debounce?: number;
   
   /** Throttle delay in milliseconds */
   throttle?: number;
-  
-  /** Validation function that must return true for handler to execute */
-  validation?: (payload: any) => boolean;
-  
-  /** Mark this handler as middleware */
-  middleware?: boolean;
-  
-  // New metadata fields
-  /** Tags for categorizing and filtering handlers */
-  tags?: string[];
-  
-  /** Category for grouping related handlers */
-  category?: string;
-  
-  /** Human-readable description of what this handler does */
-  description?: string;
-  
-  /** Version identifier for this handler */
-  version?: string;
-  
-  /** How to handle the result from this handler */
-  returnType?: 'value' | 'merge' | 'collect';
-  
-  /** Timeout for this specific handler in milliseconds */
-  timeout?: number;
-  
-  /** Number of retries if handler fails */
-  retries?: number;
-  
-  /** Other handler IDs that this handler depends on */
-  dependencies?: string[];
-  
-  /** Handler IDs that conflict with this handler */
-  conflicts?: string[];
-  
-  /** Environment where this handler should run */
-  environment?: 'development' | 'production' | 'test';
-  
-  /** Feature flag to control handler availability */
-  feature?: string;
-  
-  /** Metrics collection configuration */
-  metrics?: {
-    /** Whether to collect timing information */
-    collectTiming?: boolean;
-    
-    /** Whether to collect error information */
-    collectErrors?: boolean;
-    
-    /** Custom metrics to collect */
-    customMetrics?: Record<string, any>;
-  };
-  
-  /** Custom metadata for this handler */
-  metadata?: Record<string, any>;
 }
 
 
@@ -466,11 +385,6 @@ export interface ActionRegisterConfig {
     /** Maximum number of handlers per action (prevents memory leaks) */
     maxHandlers?: number;
     
-    /** Maximum number of retries for failed operations */
-    maxRetries?: number;
-    
-    /** Delay between retries in milliseconds */
-    retryDelay?: number;
     
     /** Default execution mode for actions */
     defaultExecutionMode?: ExecutionMode;
@@ -546,11 +460,6 @@ export interface DispatchOptions {
   /** Abort signal for cancelling the dispatch */
   signal?: AbortSignal;
   
-  /** Timeout for this dispatch in milliseconds */
-  timeout?: number;
-  
-  /** Number of retries for this dispatch */
-  retries?: number;
   
   /** Auto-abort options for automatic AbortController management */
   autoAbort?: {
@@ -566,29 +475,11 @@ export interface DispatchOptions {
   
   /** Handler filtering options */
   filter?: {
-    /** Only execute handlers with these tags */
-    tags?: string[];
-    
-    /** Only execute handlers in this category */
-    category?: string;
-    
     /** Only execute handlers with these IDs */
     handlerIds?: string[];
     
-    /** Exclude handlers with these tags */
-    excludeTags?: string[];
-    
-    /** Exclude handlers in this category */
-    excludeCategory?: string;
-    
     /** Exclude handlers with these IDs */
     excludeHandlerIds?: string[];
-    
-    /** Only execute handlers matching this environment */
-    environment?: 'development' | 'production' | 'test';
-    
-    /** Only execute handlers with this feature flag enabled */
-    feature?: string;
     
     /** Custom filter function */
     custom?: (config: Required<HandlerConfig>) => boolean;
@@ -605,8 +496,6 @@ export interface DispatchOptions {
     /** Whether to collect results from all handlers */
     collect?: boolean;
     
-    /** Timeout for result collection */
-    timeout?: number;
     
     /** Maximum number of results to collect */
     maxResults?: number;
@@ -617,7 +506,7 @@ export interface DispatchOptions {
  * Comprehensive result of pipeline execution with detailed execution information
  * 
  * Contains complete information about the pipeline execution including success status,
- * results, timing metrics, handler details, and any errors that occurred.
+ * results, handler details, and any errors that occurred.
  * 
  * @template R - The result type for this execution
  * 
@@ -881,7 +770,7 @@ export interface ActionRegistryInfo<T extends ActionPayloadMap> {
  * Handler statistics interface for registry monitoring and debugging
  * 
  * Provides detailed statistics about handlers for a specific action,
- * including handler organization, execution metrics, and performance data.
+ * including handler organization and basic execution data.
  * 
  * @template T - The action payload map interface
  * 
@@ -924,10 +813,6 @@ export interface ActionHandlerStats<T extends ActionPayloadMap> {
     priority: number;
     handlers: Array<{
       id: string;
-      tags: string[];
-      category?: string;
-      description?: string;
-      version?: string;
     }>;
   }>;
   

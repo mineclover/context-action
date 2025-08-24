@@ -8,6 +8,39 @@ The Context-Action framework implements a modern MVVM (Model-View-ViewModel) arc
 
 Both can be used together - MVVM provides the architectural structure while Domain Architecture provides business separation.
 
+## 📋 Table of Contents
+
+### 🏗️ Architecture Foundation
+1. [Architecture Overview](#architecture-overview) - MVVM 레이어 구조와 흐름
+2. [Implementation Patterns](#implementation-patterns) - 각 레이어별 구현 패턴
+
+### 🔧 Context & Action System
+3. [Context Definition](#context-definition-types--context-creation) - 타입과 컨텍스트 생성
+4. [Data Subscription Hooks](#data-subscription-hooks-모듈화된-데이터-구독) - 모듈화된 데이터 구독
+5. [Action Hooks](#action-hooks-지연-평가-및-핸들러-정의) - 지연 평가 및 핸들러 정의
+
+### 📁 File Convention System  
+6. [Action-Based File Convention](#action-based-file-convention-system) - 선언적 스펙 기반 관리
+   - [Folder Structure Convention](#폴더-구조-컨벤션)
+   - [Action Hook Implementation](#액션별-훅-구현-패턴-선택적-구독--지연-평가)
+   - [Component Usage Patterns](#핸들러-id-전략-및-다중-등록-패턴)
+
+### 🔑 Handler ID Management
+7. [HandlerId Core Benefits](#handlerid-기반-관리의-핵심-장점) - 함수 고유성과 생명주기 관리
+8. [ActionRegister Direct Usage](#actionregister-직접-사용-패턴) - 수동 등록과 ID 주입 전략
+9. [Override Patterns](#오버라이드가-필요한-경우---명시적-언마운트-패턴) - 명시적 언마운트를 통한 핸들러 교체
+
+### 🚀 Advanced Patterns
+10. [Multi-Domain MVVM](#advanced-mvvm-patterns) - 다중 도메인 아키텍처
+11. [Cross-Domain Communication](#cross-domain-viewmodel-communication) - 도메인 간 통신
+12. [Auto-Registration System](#자동-등록-시스템-선택사항) - 자동 훅 등록 시스템
+
+### 📖 Best Practices & Guidelines
+13. [Best Practices](#best-practices) - 레이어 분리와 통신 패턴
+14. [Architecture Comparison](#when-to-use-mvvm-vs-domain-architecture) - MVVM vs Domain 선택 가이드
+
+---
+
 ## Architecture Overview
 
 ### MVVM Layer Structure
@@ -227,6 +260,7 @@ export function useUserDataActions() {
   
   return { logout, updateProfile };
 }
+```
 
 ### Performance Layer Implementation
 
@@ -439,9 +473,13 @@ export function useLogin100(options?: {
   const profileStore = useUserStore('profile');
   const sessionStore = useUserStore('session');
   
-  // 구독이 필요한 경우에만 reactive 데이터 사용
-  const currentProfile = subscribeToProfile ? useStoreValue(profileStore) : null;
-  const currentSession = subscribeToSession ? useStoreValue(sessionStore) : null;
+  // useStoreValue의 condition 옵션을 활용한 조건부 구독
+  const currentProfile = useStoreValue(profileStore, { 
+    condition: () => subscribeToProfile 
+  });
+  const currentSession = useStoreValue(sessionStore, { 
+    condition: () => subscribeToSession 
+  });
   
   const loginHandler = useCallback(async (payload: UserActions['login'], controller) => {
     try {
@@ -490,9 +528,9 @@ export function useLogin100(options?: {
   
   return { 
     login,
-    // 구독한 경우에만 reactive 데이터 제공
-    ...(subscribeToProfile && { profileData: currentProfile }),
-    ...(subscribeToSession && { sessionData: currentSession })
+    // 구독한 경우에만 reactive 데이터 제공 (undefined일 수 있음)
+    ...(subscribeToProfile && currentProfile && { profileData: currentProfile }),
+    ...(subscribeToSession && currentSession && { sessionData: currentSession })
   };
 }
 
@@ -523,12 +561,12 @@ export function useLogin50(options?: { animationDuration?: number }) {
 
 // actions/user/useLogout-90.tsx
 export function useLogout90(options?: {
-  clearAllStores?: boolean;
+  clearProfileData?: boolean;  // 실제 가능한 옵션으로 수정
   handlerId?: string;
   subscribeToSession?: boolean;
 }) {
   const { 
-    clearAllStores = true, 
+    clearProfileData = true,   // 프로필 데이터도 함께 정리할지 여부
     handlerId = 'default-logout-90',
     subscribeToSession = false 
   } = options || {};
@@ -536,9 +574,11 @@ export function useLogout90(options?: {
   const storeManager = useUserStoreManager();
   const dispatch = useUserActionDispatch();
   
-  // 선택적 구독
+  // useStoreValue의 condition 옵션을 활용한 조건부 구독
   const sessionStore = useUserStore('session');
-  const currentSession = subscribeToSession ? useStoreValue(sessionStore) : null;
+  const currentSession = useStoreValue(sessionStore, { 
+    condition: () => subscribeToSession 
+  });
   
   const logoutHandler = useCallback(async (payload: UserActions['logout'], controller) => {
     // action 내에서 현재 상태 지연 평가
@@ -553,7 +593,7 @@ export function useLogout90(options?: {
     await authAPI.logout();
     
     // 선택적으로 store 정리
-    if (clearAllStores) {
+    if (clearProfileData) {
       storeManager.getStore('profile').setValue({ id: '', name: '', role: 'user' });
       storeManager.getStore('session').setValue({ isAuthenticated: false, permissions: [] });
     } else {
@@ -563,9 +603,9 @@ export function useLogout90(options?: {
     
     return { 
       success: true, 
-      clearedProfile: clearAllStores ? currentProfileData : null 
+      clearedProfile: clearProfileData ? currentProfileData : null 
     };
-  }, [storeManager, clearAllStores]);
+  }, [storeManager, clearProfileData]);
   
   // 마운트 단위 고유 관리
   useUserActionHandler('logout', logoutHandler, { 
@@ -577,7 +617,8 @@ export function useLogout90(options?: {
   
   return { 
     logout,
-    ...(subscribeToSession && { sessionData: currentSession })
+    // 구독한 경우에만 reactive 데이터 제공 (undefined일 수 있음)
+    ...(subscribeToSession && currentSession && { sessionData: currentSession })
   };
 }
 ```
@@ -667,13 +708,13 @@ function UserProfileComponent({ userId }: { userId: string }) {
   
   // 의도별로 다른 핸들러 등록 (같은 액션, 다른 용도)
   const { logout: primaryLogout, sessionData } = useLogout90({
-    clearAllStores: true,
+    clearProfileData: true,
     subscribeToSession: true,
     handlerId: `${componentId}-primary-logout`  // useId 기반 고유성
   });
   
   const { logout: securityLogout } = useLogout90({
-    clearAllStores: false,  
+    clearProfileData: false,  
     subscribeToSession: false,
     handlerId: `${componentId}-security-logout`  // useId 기반 고유성
   });
@@ -730,7 +771,7 @@ function UserModalComponent({ modalId, user }: {
   // 모달별 독립적인 로그아웃 동작
   const { logout } = useLogout90({
     handlerId: `${modalId}-logout-${user.id}`, // 모달ID + 데이터ID  
-    clearAllStores: false // 모달에서는 세션만 정리
+    clearProfileData: false // 모달에서는 세션만 정리
   });
   
   return (
@@ -754,12 +795,12 @@ function UserModalComponent({ modalId, user }: {
 // 같은 액션에 대해 서로 다른 목적의 핸들러들이 독립적으로 관리됨
 const { logout: businessLogout } = useLogout90({
   handlerId: 'business-logout',     // 비즈니스 로직용
-  clearAllStores: true
+  clearProfileData: true
 });
 
 const { logout: auditLogout } = useLogout90({
   handlerId: 'audit-logout',        // 감사 로그용  
-  clearAllStores: false,
+  clearProfileData: false,
   subscribeToSession: false
 });
 
@@ -830,11 +871,16 @@ function ComponentWithRegister() {
   }, []);
   
   useEffect(() => {
-    // 직접 등록 시 handlerId를 반드시 주입해야 안정적
-    const unregister = actionRegister.registerHandler('login', loginHandler, {
+    // 직접 등록 시 실제 사용 가능한 옵션들만 사용
+    const unregister = actionRegister.register('login', loginHandler, {
       priority: 100,
       id: `${componentId}-direct-login`,  // ID 직접 주입 필수!
-      blocking: true
+      blocking: true,
+      tags: ['authentication', 'user'],   // 실제 지원되는 옵션
+      category: 'auth',                    // 실제 지원되는 옵션  
+      description: 'User login handler',   // 실제 지원되는 옵션
+      timeout: 5000,                       // 실제 지원되는 옵션 (5초 타임아웃)
+      retries: 1                          // 실제 지원되는 옵션 (1회 재시도)
     });
     
     return unregister; // 정리 함수 반환
@@ -843,42 +889,81 @@ function ComponentWithRegister() {
 ```
 
 #### ActionRegister 직접 사용이 필요한 경우
+
+**동적 액션 등록과 고급 핸들러 옵션 활용:**
+
 ```typescript
-// 동적 액션 등록이 필요한 경우
-function DynamicActionComponent({ actionConfigs }: { 
-  actionConfigs: Array<{ 
-    actionName: string; 
-    priority: number; 
-    handler: Function; 
-  }> 
-}) {
+// 고급 핸들러 옵션을 활용한 동적 액션 등록
+function AdvancedHandlerComponent() {
+  const actionRegister = useActionRegister();
+  const componentId = useId();
+  
+  useEffect(() => {
+    // 실제 ActionRegister 스펙에 맞는 고급 옵션 활용
+    const unregister = actionRegister.register('advancedAction', 
+      async (payload, controller) => {
+        // 핸들러 로직
+        return { success: true, data: payload };
+      }, 
+      {
+        priority: 100,
+        id: `${componentId}-advanced-handler`,
+        blocking: true,                      // 비동기 대기
+        once: false,                         // 반복 실행 허용
+        debounce: 300,                       // 300ms 디바운스
+        throttle: 1000                       // 1초 스로틀
+      }
+    );
+    
+    return unregister;
+  }, [actionRegister, componentId]);
+  
+  return <div>Advanced Handler Component</div>;
+}
+
+// 간단한 핸들러 등록 예제
+function SimpleHandlerComponent() {
   const actionRegister = useActionRegister();
   const componentId = useId();
   
   useEffect(() => {
     const unregisterFunctions: Array<() => void> = [];
     
-    // 동적으로 여러 액션 핸들러 등록
-    actionConfigs.forEach((config, index) => {
-      const unregister = actionRegister.registerHandler(
-        config.actionName,
-        config.handler,
+    // 개발 환경에서만 디버그 핸들러 등록 (조건문으로 제어)
+    if (process.env.NODE_ENV === 'development') {
+      const debugUnregister = actionRegister.register('debugAction', 
+        async (payload, controller) => {
+          console.log('Debug action:', payload);
+          return payload;
+        }, 
         {
-          priority: config.priority,
-          id: `${componentId}-dynamic-${config.actionName}-${index}`, // 고유 ID 주입
-          blocking: true
+          priority: 50,
+          id: `${componentId}-debug-handler`
         }
       );
-      unregisterFunctions.push(unregister);
-    });
+      unregisterFunctions.push(debugUnregister);
+    }
+    
+    // 분석 핸들러 (스로틀링 적용)
+    const analyticsUnregister = actionRegister.register('analyticsAction', 
+      async (payload, controller) => {
+        await sendAnalytics(payload);
+        return { tracked: true };
+      }, 
+      {
+        priority: 90,
+        id: `${componentId}-analytics-handler`,
+        throttle: 5000               // 5초 스로틀링
+      }
+    );
+    unregisterFunctions.push(analyticsUnregister);
     
     return () => {
-      // 모든 동적 핸들러 정리
       unregisterFunctions.forEach(unregister => unregister());
     };
-  }, [actionRegister, actionConfigs, componentId]);
+  }, [actionRegister, componentId]);
   
-  return <div>Dynamic Actions Registered</div>;
+  return <div>Simple handlers registered</div>;
 }
 
 // 조건부 핸들러 등록
@@ -894,7 +979,7 @@ function ConditionalActionComponent({ isAdmin }: { isAdmin: boolean }) {
       console.log('Admin action executed');
     };
     
-    const unregister = actionRegister.registerHandler('adminAction', adminHandler, {
+    const unregister = actionRegister.register('adminAction', adminHandler, {
       priority: 200,
       id: `${componentId}-admin-handler`, // 컴포넌트별 고유 관리자 핸들러
       blocking: true
@@ -905,6 +990,36 @@ function ConditionalActionComponent({ isAdmin }: { isAdmin: boolean }) {
   
   return <div>Conditional Admin Actions</div>;
 }
+```
+
+#### 중복 ID 처리 동작 (중요!)
+
+**실제 ActionRegister 동작**: 
+```typescript
+// ActionRegister.ts 내부 로직
+const existingIndex = pipeline.findIndex(reg => reg.id === handlerId);
+if (existingIndex !== -1) {
+  // ❌ 중복 ID 발견 시: 등록하지 않고 no-op 함수 반환
+  return () => {}; // 아무것도 하지 않는 함수
+}
+```
+
+**핵심**: 같은 ID로 재등록 시도하면 **무시되고 기존 핸들러 유지**됩니다!
+
+> ⚠️ **주의**: 같은 ID로 핸들러 등록 시 조용히 무시됩니다. 예상과 다른 동작이 발생할 수 있으니 고유한 ID 사용을 권장합니다.
+
+```typescript
+// ⚠️ 경고 상황: 중복 ID로 인한 등록 무시
+const unregister1 = actionRegister.register('login', handler1, { 
+  id: 'duplicate-id' 
+}); // ✅ 정상 등록
+
+const unregister2 = actionRegister.register('login', handler2, { 
+  id: 'duplicate-id' 
+}); // ❌ 무시됨! handler1이 계속 실행
+
+// 실제로는 handler1만 실행되고 handler2는 호출되지 않음
+dispatch('login', payload); // handler1만 실행
 ```
 
 #### HandlerId 주입의 중요성
@@ -919,7 +1034,7 @@ function BadExample() {
     };
     
     // ID 없이 등록 - 충돌 위험, 불안정한 관리
-    const unregister = actionRegister.registerHandler('login', handler, {
+    const unregister = actionRegister.register('login', handler, {
       priority: 100
       // id 없음 - 위험!
     });
@@ -938,7 +1053,7 @@ function GoodExample() {
       // 로직
     };
     
-    const unregister = actionRegister.registerHandler('login', handler, {
+    const unregister = actionRegister.register('login', handler, {
       priority: 100,
       id: `${componentId}-safe-login`, // 고유 ID로 안전한 관리
       blocking: true
@@ -958,21 +1073,10 @@ function OverrideExample({ mode }: { mode: 'basic' | 'advanced' }) {
   const componentId = useId();
   
   useEffect(() => {
-    const handlerId = `${componentId}-dynamic-login`;
+    // ✅ 올바른 방법: mode별로 다른 ID 사용하여 등록 충돌 방지
+    const handlerId = `${componentId}-${mode}-login`; // mode 포함하여 고유성 보장
     
-    // 1. 먼저 기존 핸들러가 있다면 명시적으로 찾아서 제거
-    const existingHandlers = actionRegister.getActionStats('login')?.handlersByPriority || [];
-    const existingHandler = existingHandlers
-      .flatMap(p => p.handlers)
-      .find(h => h.id === handlerId);
-    
-    if (existingHandler) {
-      // 기존 핸들러를 찾았다면 액션을 일단 클리어하고 다시 등록
-      // 또는 더 정교한 제거 로직 구현
-      console.log('기존 핸들러 발견, 교체 진행');
-    }
-    
-    // 2. 모드에 따라 다른 핸들러 등록
+    // 모드에 따라 다른 핸들러 등록
     const handler = mode === 'basic' 
       ? async (payload: any, controller: any) => {
           console.log('Basic login logic');
@@ -981,13 +1085,13 @@ function OverrideExample({ mode }: { mode: 'basic' | 'advanced' }) {
           console.log('Advanced login logic with validation');
         };
     
-    const unregister = actionRegister.registerHandler('login', handler, {
+    const unregister = actionRegister.register('login', handler, {
       priority: 100,
-      id: handlerId, // 같은 ID 사용 (기존 것은 중복 방지로 무시됨)
+      id: handlerId, // ✅ mode별 고유 ID로 충돌 없음
       blocking: true
     });
     
-    return unregister;
+    return unregister; // mode 변경 시 이전 핸들러 자동 정리
   }, [actionRegister, componentId, mode]); // mode 변경 시 재등록
 }
 
@@ -998,7 +1102,8 @@ function HandlerReplacementExample({ userId }: { userId: string }) {
   
   // userId가 변경될 때마다 핸들러 교체
   useEffect(() => {
-    const handlerId = `${componentId}-user-handler`;
+    // ✅ userId 포함하여 고유성 보장
+    const handlerId = `${componentId}-user-${userId}-handler`;
     
     // 사용자별 맞춤 핸들러 생성
     const userSpecificHandler = async (payload: any, controller: any) => {
@@ -1006,9 +1111,9 @@ function HandlerReplacementExample({ userId }: { userId: string }) {
       // userId에 따른 특별한 로직
     };
     
-    const unregister = actionRegister.registerHandler('updateProfile', userSpecificHandler, {
+    const unregister = actionRegister.register('updateProfile', userSpecificHandler, {
       priority: 100,
-      id: handlerId, // 같은 ID로 등록 시도 (중복 방지됨)
+      id: handlerId, // ✅ userId 포함한 고유 ID
       blocking: true
     });
     
@@ -1039,7 +1144,7 @@ function ConditionalHandlerReplacement({ isAdmin, userRole }: {
         console.log('Admin-level action processing');
       };
       
-      const unregister = actionRegister.registerHandler('performAction', adminHandler, {
+      const unregister = actionRegister.register('performAction', adminHandler, {
         priority: 200, // 높은 우선순위
         id: `${baseHandlerId}-admin`,
         blocking: true
@@ -1051,7 +1156,7 @@ function ConditionalHandlerReplacement({ isAdmin, userRole }: {
         console.log(`${userRole} level action processing`);
       };
       
-      const unregister = actionRegister.registerHandler('performAction', userHandler, {
+      const unregister = actionRegister.register('performAction', userHandler, {
         priority: 100,
         id: `${baseHandlerId}-user`,
         blocking: true
