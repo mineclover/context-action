@@ -1343,3 +1343,15 @@ graph TB
 | **Combined Approach** | Enterprise applications | MVVM layers within each business domain |
 
 The MVVM architecture provides perfect separation of concerns while maintaining type safety and optimal performance characteristics.
+
+## Related Code Patterns
+
+For complete implementation examples and detailed code patterns, see:
+
+- **[MVVM Pattern Guide](../patterns/architecture/mvvm.md)** - Complete MVVM implementation patterns with detailed examples
+- **[Store Only Pattern](../patterns/store/basic-usage.md)** - Model Layer implementation patterns
+- **[Action Only Pattern](../patterns/action/basic-usage.md)** - ViewModel Layer implementation patterns  
+- **[RefContext Pattern](../patterns/ref/basic-usage.md)** - Performance Layer implementation patterns
+- **[Domain Context Architecture](../patterns/architecture/domain-context.md)** - Alternative for multi-domain applications
+- **[Pattern Composition](../patterns/architecture/composition.md)** - Advanced architectural composition strategies
+- **[Context Splitting Patterns](../patterns/architecture/context-splitting.md)** - Managing and splitting large contexts when applications grow complex

@@ -227,9 +227,6 @@ function CartHandlers() {
     validateCartHandler as ActionHandler<{ items: CartItem[] }>,
     {
       priority: 100,
-      tags: ['validation', 'business-logic'],
-      category: 'cart-validation',
-      returnType: 'value',
     }
   );
 
@@ -241,9 +238,6 @@ function CartHandlers() {
     }>,
     {
       priority: 90,
-      tags: ['calculation', 'business-logic'],
-      category: 'cart-calculation',
-      returnType: 'value',
     }
   );
 
@@ -255,17 +249,12 @@ function CartHandlers() {
     }>,
     {
       priority: 80,
-      tags: ['processing', 'business-logic'],
-      category: 'order-processing',
-      returnType: 'value',
       blocking: true, // 완료까지 대기
     }
   );
 
   useCartHandler('clearCart', clearCartHandler, {
     priority: 70,
-    tags: ['cleanup'],
-    category: 'cart-management',
   });
 
   return null;
@@ -886,7 +875,7 @@ const result = await dispatchWithResult(
   { items }, 
   {
     result: { collect: true },
-    filter: { tags: ['calculation'] }
+    filter: { priority: 90 }
   }
 );
 

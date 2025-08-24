@@ -142,7 +142,6 @@ export const {
   application: {
     initialValue: {
       name: 'Context-Action Demo',
-      version: '1.0.0',
       environment: 'development' as 'development' | 'staging' | 'production',
       buildTime: Date.now(),
       features: {

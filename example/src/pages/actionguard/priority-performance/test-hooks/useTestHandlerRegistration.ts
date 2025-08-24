@@ -93,7 +93,6 @@ export function useTestHandlerRegistration(
         {
           priority: 200,
           id: 'initializer',
-          tags: ['priority-test', 'initializer'],
           blocking: true,
         }
       );
@@ -188,7 +187,6 @@ export function useTestHandlerRegistration(
           {
             priority: config.priority,
             id: config.id,
-            tags: ['priority-test', config.label],
             blocking: true,
           }
         );
@@ -212,7 +210,6 @@ export function useTestHandlerRegistration(
         {
           priority: 0,
           id: 'finalizer',
-          tags: ['priority-test', 'finalizer'],
           blocking: true,
         }
       );
