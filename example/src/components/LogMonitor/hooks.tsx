@@ -370,6 +370,38 @@ export function useActionLogger(
           options,
         });
       },
+
+      log: (message: string, data?: unknown, options: ActionLogOptions = {}) => {
+        internalActionRegister.dispatch('_internal.log.info', {
+          message,
+          data: sanitizeLogPayload(data),
+          options,
+        });
+      },
+
+      info: (message: string, data?: unknown, options: ActionLogOptions = {}) => {
+        internalActionRegister.dispatch('_internal.log.info', {
+          message,
+          data: sanitizeLogPayload(data),
+          options,
+        });
+      },
+
+      warn: (message: string, data?: unknown, options: ActionLogOptions = {}) => {
+        internalActionRegister.dispatch('_internal.log.warn', {
+          message,
+          data: sanitizeLogPayload(data),
+          options,
+        });
+      },
+
+      error: (message: string, error?: Error | unknown, options: ActionLogOptions = {}) => {
+        internalActionRegister.dispatch('_internal.log.error', {
+          message,
+          error: sanitizeLogPayload(error),
+          options,
+        });
+      },
     }),
     [internalActionRegister]
   );

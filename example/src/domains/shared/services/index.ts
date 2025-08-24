@@ -195,6 +195,29 @@ export function combineValidators(...validators: Array<() => string | null>): st
     .filter((result): result is string => result !== null);
 }
 
+// Validation Service class for centralized validation
+export class ValidationService {
+  static validateRequired = validateRequired;
+  static validateEmail = validateEmail;
+  static validateMinLength = validateMinLength;
+  static validateMaxLength = validateMaxLength;
+  static validatePattern = validatePattern;
+  static combineValidators = combineValidators;
+
+  static validateForm(fields: Record<string, any>, rules: Record<string, Array<() => string | null>>): Record<string, string[]> {
+    const errors: Record<string, string[]> = {};
+    
+    for (const [fieldName, validators] of Object.entries(rules)) {
+      const fieldErrors = combineValidators(...validators);
+      if (fieldErrors.length > 0) {
+        errors[fieldName] = fieldErrors;
+      }
+    }
+    
+    return errors;
+  }
+}
+
 // Async utilities service
 export function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -272,4 +295,51 @@ export function throttle<T extends (...args: any[]) => any>(
       func(...args);
     }
   };
+}
+
+// AsyncUtils Service class for centralized async utilities
+export class AsyncUtilsService {
+  static delay = delay;
+  static timeout = timeout;
+  static retry = retry;
+  static withFallback = withFallback;
+  static debounce = debounce;
+  static throttle = throttle;
+
+  static async executeWithProgress<T>(
+    operation: () => Promise<T>,
+    onProgress?: (progress: number) => void
+  ): Promise<T> {
+    onProgress?.(0);
+    
+    try {
+      const result = await operation();
+      onProgress?.(100);
+      return result;
+    } catch (error) {
+      onProgress?.(0);
+      throw error;
+    }
+  }
+
+  static async batchExecute<T, R>(
+    items: T[],
+    processor: (item: T) => Promise<R>,
+    batchSize: number = 5,
+    delayMs: number = 100
+  ): Promise<R[]> {
+    const results: R[] = [];
+    
+    for (let i = 0; i < items.length; i += batchSize) {
+      const batch = items.slice(i, i + batchSize);
+      const batchResults = await Promise.all(batch.map(processor));
+      results.push(...batchResults);
+      
+      if (i + batchSize < items.length) {
+        await delay(delayMs);
+      }
+    }
+    
+    return results;
+  }
 }

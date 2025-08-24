@@ -13,6 +13,7 @@
     "dev": "cd example && pnpm dev",
     "example:dev": "cd example && pnpm dev",
     "example:build": "cd example && pnpm build",
+    "example:build:fast": "cd example && pnpm build:fast",
     "test": "lerna run test",
     "test:core": "lerna run test --scope=@context-action/core",
     "test:react": "lerna run test --scope=@context-action/react",

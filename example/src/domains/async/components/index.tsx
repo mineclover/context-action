@@ -107,9 +107,8 @@ export const TimeoutProtectionDemo = React.memo(({
       );
       
       const result = await TimeoutProtectionService.basicTimeout(
-        slowOperation(),
-        3000, // 3 second timeout
-        'Operation timed out'
+        slowOperation,
+        3000 // 3 second timeout
       );
       
       setBasicState({

@@ -113,7 +113,7 @@ const examplesUtilities: ExampleUtility[] = [
     path: '/refs/waitforrefs-performance',
     category: 'specialized',
     features: ['Performance verification', 'Optimization patterns', 'Benchmarking', 'Memory management'],
-    difficulty: 'Expert',
+    difficulty: 'Advanced',
     status: 'Complete',
     icon: '⚡'
   },
@@ -215,7 +215,7 @@ function ExamplesUtilitiesOverview() {
           <div className="text-sm text-gray-600">Specialized</div>
         </div>
         <div className="bg-white rounded-lg border p-4 text-center">
-          <div className="text-2xl font-bold text-orange-600">{examplesUtilities.filter(e => e.difficulty === 'Advanced' || e.difficulty === 'Expert').length}</div>
+          <div className="text-2xl font-bold text-orange-600">{examplesUtilities.filter(e => e.difficulty === 'Advanced').length}</div>
           <div className="text-sm text-gray-600">Advanced</div>
         </div>
       </div>

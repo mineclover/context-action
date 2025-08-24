@@ -52,13 +52,6 @@ function Layout({
     // === Store System (상태 관리) ===
     { path: '/store/basics', label: '3. Store Basics', category: 'store' },
     { path: '/store/immutability-test', label: '4. 🔒 Immutability Test', category: 'store' },
-    { path: '/store/useStoreValue-patterns', label: '🎯 useStoreValue Patterns', category: 'store', description: 'Selective subscriptions and comparison strategies' },
-    { path: '/store/useStoreSelector-patterns', label: '🔍 useStoreSelector Patterns', category: 'store', description: 'Multi-store selection and data transformation' },
-    { path: '/store/useStoreManager-api', label: '⚙️ useStoreManager API', category: 'store', description: 'Low-level store access and management' },
-    { path: '/store/useComputedStore-patterns', label: '🧮 useComputedStore Patterns', category: 'store', description: 'Computed values and derived state' },
-    { path: '/store/withProvider-pattern', label: '🔧 withProvider Pattern', category: 'store', description: 'HOC pattern for automatic Provider wrapping' },
-    { path: '/store/store-configuration', label: '⚙️ Store Configuration', category: 'store', description: 'Performance optimization and comparison strategies' },
-    { path: '/store/performance-patterns', label: '⚡ Performance Patterns', category: 'store', description: 'Memoization, batching, and optimization' },
     
     // === React Integration (리액트 통합) ===
     { path: '/react/provider', label: '5. 🔧 Unified Provider', category: 'react' },
@@ -66,22 +59,6 @@ function Layout({
     { path: '/react/hooks', label: '7. React Hooks', category: 'react' },
     { path: '/react/useActionWithResult', label: '8. ✨ useActionWithResult', category: 'react' },
     
-    // === Action Patterns (액션 패턴) ===
-    { path: '/action/basic-usage', label: '🎯 Action Basic Usage', category: 'action', description: 'Fundamental action patterns with type-safe dispatching' },
-    { path: '/action/type-system', label: '🔧 Action Type System', category: 'action', description: 'Complete TypeScript integration with ActionPayloadMap' },
-    { path: '/action/dispatch-patterns', label: '⚡ Action Dispatch Patterns', category: 'action', description: 'Execution modes, filtering, and performance optimization' },
-    
-    // === Architecture (아키텍처) ===
-    { path: '/architecture/modular-demo', label: '🏗️ Modular Architecture Demo', category: 'architecture', description: 'MVVM patterns with domain separation and Context-Action integration' },
-    
-    // === Interaction Patterns (인터랙션 패턴) ===
-    { path: '/interaction/mouse-events', label: '🖱️ Mouse Events & Tracking', category: 'interaction', description: 'Advanced mouse interaction patterns with real-time tracking and visualization' },
-    
-    // === Async Patterns (비동기 패턴) ===
-    { path: '/async/basic-usage', label: '⏳ Async Basic Usage', category: 'async', description: 'Comprehensive async patterns with real-time state access' },
-    { path: '/async/realtime-state', label: '🔄 Real-time State Access', category: 'async', description: 'Avoiding closure traps with store.getValue() patterns' },
-    { path: '/async/wait-then-execute', label: '🎯 Wait-Then-Execute', category: 'async', description: 'Safe DOM operations after element availability' },
-    { path: '/async/timeout-protection', label: '⏰ Timeout Protection', category: 'async', description: 'Preventing infinite waits with fallback strategies' },
     
     // === Practical Examples (실용 예제) ===
     { path: '/demos', label: '🎭 Context-Action Demos', category: 'demos', isIndex: true },
@@ -171,7 +148,7 @@ function Layout({
                 <h4 className="text-xs font-medium text-blue-600 mb-2">📚 Core Concepts</h4>
               </div>
             )}
-            {navItems.filter(item => ['main', 'core', 'store', 'action', 'async', 'react', 'architecture', 'interaction'].includes(item.category)).map((item) => {
+            {navItems.filter(item => ['main', 'core', 'store', 'react'].includes(item.category)).map((item) => {
               return (
                 <Link
                   key={item.path}
