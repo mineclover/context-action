@@ -7,9 +7,19 @@ Pure action dispatching patterns without state management overhead.
 Action patterns are perfect for event systems, command patterns, and side effects handling.
 
 ### Available Action Patterns
+
+#### Core Patterns
 - **[Basic Usage](./basic-usage.md)** - Fundamental Action Only pattern with type-safe dispatching
-- **[Hook Implementation](./hook-simplification.md)** - Different hook patterns from simple to advanced
+- **[Type System](./type-system.md)** - TypeScript integration and type safety
 - **[Register Delegation](./register-delegation.md)** - Modular handler organization for large applications
+
+#### Advanced Patterns
+- **[Advanced Patterns](./advanced-patterns.md)** - Overview of all advanced action patterns
+- **[Dispatch Patterns](./dispatch-patterns.md)** - Execution modes, filtering, and performance
+- **[Dispatch with Result](./dispatch-with-result.md)** - Result collection and processing
+- **[Register Patterns](./register-patterns.md)** - Advanced handler registration
+- **[Dispatch Access](./dispatch-access.md)** - Hook-based vs register-based access
+- **[Handler State Access](./handler-state-access.md)** - ⚠️ **Critical**: Avoiding closure traps in handlers
 
 ## Quick Reference
 

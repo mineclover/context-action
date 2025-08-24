@@ -1,6 +1,6 @@
-# HOC Pattern
+# withProvider Pattern
 
-Higher-Order Component pattern for automatic Provider wrapping in Store Only pattern.
+Higher-Order Component pattern using `withProvider` for automatic Provider wrapping in Store Only pattern.
 
 ## Overview
 

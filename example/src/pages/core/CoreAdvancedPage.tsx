@@ -1270,33 +1270,79 @@ function CoreAdvancedPage() {
       <DemoCard title="ActionRegister 고급 패턴 코드">
         <CodeExample>
           <CodeBlock>
-            {`// 1. 우선순위별 핸들러 등록
-actionRegister.register('priorityTest', handler1, { priority: 3 }); // 높은 우선순위
-actionRegister.register('priorityTest', handler2, { priority: 2 }); // 중간 우선순위  
-actionRegister.register('priorityTest', handler3, { priority: 1 }); // 낮은 우선순위
+            {`// 1. 우선순위별 핸들러 등록 (높은 숫자가 먼저 실행됨)
+actionRegister.register('priorityTest', ({ level }, controller) => {
+  logSystem('🥇 첫 번째 우선순위 핸들러 실행 (priority: 3)');
+  // 첫 번째로 실행되는 높은 우선순위 핸들러
+}, { priority: 3 }); // 가장 높은 우선순위
 
-// 2. 비동기 액션 핸들러
+actionRegister.register('priorityTest', ({ level }, controller) => {
+  logSystem('🥈 두 번째 우선순위 핸들러 실행 (priority: 2)');
+  // 두 번째로 실행되는 중간 우선순위 핸들러
+}, { priority: 2 }); // 중간 우선순위
+
+actionRegister.register('priorityTest', ({ level }, controller) => {
+  logSystem('🥉 세 번째 우선순위 핸들러 실행 (priority: 1)');
+  // 마지막으로 실행되는 낮은 우선순위 핸들러
+}, { priority: 1 }); // 가장 낮은 우선순위
+
+// 2. 비동기 액션 핸들러 (지연 작업과 Toast 알림)
 actionRegister.register('delayedAction', async ({ delay, message }, controller) => {
+  // 시작 알림
+  logSystem(\`지연 액션 시작: \${delay}ms 후 실행\`, {
+    toast: {
+      type: 'info',
+      title: '지연 액션 시작',
+      message: \`\${delay}ms 후에 실행됩니다\`
+    }
+  });
+
+  // 지연 실행
   await new Promise(resolve => setTimeout(resolve, delay));
-  console.log(message);
   
+  // 완료 알림
+  logSystem(\`지연 액션 완료: \${message}\`, {
+    toast: {
+      type: 'success', 
+      title: '지연 액션 완료',
+      message: \`"\${message}" 작업이 완료되었습니다\`
+    }
+  });
 });
 
-// 3. 조건부 로직과 파이프라인 제어
+// 3. 조건부 로직과 파이프라인 제어 (Toast 피드백 포함)
 actionRegister.register('conditionalAction', ({ condition, value }, controller) => {
   if (condition) {
     setState(value);
-     // 다음 핸들러로 진행
+    
+    // 성공 Toast 피드백
+    logSystem(\`조건부 액션 성공: 값을 \${value}로 설정\`, {
+      toast: {
+        type: 'success',
+        title: '조건부 액션 성공',
+        message: \`값이 \${value}로 설정되었습니다\`
+      }
+    });
   } else {
-    controller.abort('Condition not met'); // 파이프라인 중단
+    // 실패 Toast 피드백
+    logSystem('조건부 액션 실패: 조건이 만족되지 않음', {
+      toast: {
+        type: 'error',
+        title: '조건부 액션 실패', 
+        message: '조건이 만족되지 않아 실행되지 않았습니다'
+      }
+    });
+    
+    controller.abort('Condition not met - 조건 불만족으로 액션 중단');
   }
 });
 
-// 4. 액션 체이닝 패턴
+// 4. 액션 체이닝 패턴 (자동 순차 실행)
 actionRegister.register('chainedAction', ({ step, data }, controller) => {
-  console.log(\`Step \${step}: \${data}\`);
-  
-  // 다음 체인 자동 실행
+  setChainStep(step);
+  logSystem(\`📋 [단계 \${step}] \${data} - 체인 액션 실행 중\`);
+
+  // 다음 체인 자동 실행 (최대 3단계)
   if (step < 3) {
     setTimeout(() => {
       actionRegister.dispatch('chainedAction', { 
@@ -1304,31 +1350,61 @@ actionRegister.register('chainedAction', ({ step, data }, controller) => {
         data: \`Chain step \${step + 1}\` 
       });
     }, 1000);
+  } else {
+    logSystem('🎉 [체인 완료] 모든 3단계 완료 - Chain action completed');
   }
-  
-  
 });
 
-// 5. 인터셉터 패턴 (액션 가로채기)
-actionRegister.register('interceptorTest', ({ data }, controller) => {
-  if (enableInterceptor) {
-    // 액션을 가로채어 별도 처리
-    interceptedActions.push(\`Intercepted: \${data}\`);
-    console.log('Action intercepted and logged');
+// 5. 인터셉터 패턴 (고급 보안 검사)
+// 높은 우선순위 인터셉터 - 보안 검사
+actionRegister.register('secureOperation', ({ operation, userId }, controller) => {
+  if (enableInterceptor && !hasPermission(userId, operation)) {
+    // 권한 없는 접근 차단
+    logSystem(\`🛡️ 보안 인터셉터: \${operation} 작업이 차단됨 (사용자: \${userId})\`);
+    controller.abort(\`Security interceptor blocked \${operation} for user \${userId}\`);
+    return;
   }
-  
-  
-});
+  logSystem(\`✅ 보안 검사 통과: \${operation} 작업 승인 (사용자: \${userId})\`);
+}, { priority: 100 }); // 보안 검사는 최고 우선순위
 
-// 6. 에러 처리와 복구
+// 실제 비즈니스 로직 핸들러 (낮은 우선순위)
+actionRegister.register('secureOperation', ({ operation, userId }, controller) => {
+  logSystem(\`🎯 보안 작업 실행: \${operation} (사용자: \${userId})\`);
+  setState(prev => prev + 10); // 실제 작업 수행
+}, { priority: 1 });
+
+// 6. 에러 처리와 복구 (Toast 알림 포함)
 actionRegister.register('errorAction', (_, controller) => {
   try {
-    // 위험한 작업 실행
-    throw new Error('Simulated error');
+    throw new Error('Intentional error for testing');
   } catch (error) {
-    logger.error('Action failed:', error);
-    controller.abort('Handler error occurred');
+    logError('Action handler error', error);
+    controller.abort('Handler error occurred - 핸들러에서 에러 발생');
   }
+});
+
+// 7. 블로킹 패턴 (조건부 차단)
+actionRegister.register('blockingTest', ({ shouldBlock }, controller) => {
+  if (shouldBlock) {
+    logSystem('블로킹 테스트: 액션이 차단됨', {
+      toast: {
+        type: 'error',
+        title: '액션 차단됨',
+        message: '사용자 설정에 의해 작업이 차단되었습니다'
+      }
+    });
+    controller.abort('Action blocked by user setting');
+    return;
+  }
+
+  logSystem('블로킹 테스트: 액션이 통과됨', {
+    toast: {
+      type: 'success',
+      title: '액션 통과',
+      message: 'Count가 +10 증가했습니다'
+    }
+  });
+  setState(prev => prev + 10);
 });`}
           </CodeBlock>
         </CodeExample>

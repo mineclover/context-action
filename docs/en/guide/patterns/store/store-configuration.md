@@ -1,4 +1,4 @@
-# Store Advanced Configuration
+# Store Configuration
 
 Performance optimization and custom comparison strategies for complex store scenarios.
 
