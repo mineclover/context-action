@@ -2,6 +2,12 @@
 
 Multiple RefContext composition for complex applications with separated concerns.
 
+## Prerequisites
+
+For RefContext setup patterns and multi-domain configuration, see **[RefContext Setup](../setup/ref-context-setup.md)**.
+
+For provider composition patterns, see **[Provider Composition Setup](../setup/provider-composition-setup.md)**.
+
 ## Overview
 
 Multi-RefContext architecture allows you to separate different types of DOM manipulations into isolated contexts, providing better organization and performance for complex applications.
@@ -9,35 +15,34 @@ Multi-RefContext architecture allows you to separate different types of DOM mani
 ## Basic Multi-Context Setup
 
 ```tsx
-// Separate concerns with multiple RefContexts
+// Using multi-domain RefContext patterns from setup guide
+// References: setup/ref-context-setup.md#multi-domain-refcontext-setup
 const {
-  Provider: VisualEffectsProvider,
-  useRefHandler: useVisualEffectsRef
-} = createRefContext<{
-  clickEffects: HTMLDivElement;
-  pathSvg: SVGSVGElement;
-}>('VisualEffects');
+  Provider: MediaRefProvider,
+  useRefHandler: useMediaRef
+} = createRefContext<MediaRefs>('Media');
 
 const {
-  Provider: PerformanceProvider,
+  Provider: PerformanceRefProvider,
   useRefHandler: usePerformanceRef
 } = createRefContext<{
   fpsDisplay: HTMLDivElement;
   metricsPanel: HTMLDivElement;
 }>('Performance');
 
-// Compose multiple RefContexts
-function ComplexMouseApp() {
+// Using provider composition patterns
+// Reference: setup/provider-composition-setup.md#multi-domain-composition
+const RefProviders = composeProviders([
+  MediaRefProvider,
+  PerformanceRefProvider
+]);
+
+function ComplexApp() {
   return (
-    <MouseProvider>
-      <VisualEffectsProvider>
-        <PerformanceProvider>
-          <MouseTracker />
-          <VisualEffects />
-          <PerformanceMetrics />
-        </PerformanceProvider>
-      </VisualEffectsProvider>
-    </MouseProvider>
+    <RefProviders>
+      <MediaComponents />
+      <PerformanceMetrics />
+    </RefProviders>
   );
 }
 ```
@@ -45,19 +50,18 @@ function ComplexMouseApp() {
 ## Domain Separation Pattern
 
 ```tsx
-// UI Layout Context
+// Using the UI and Performance domain patterns from setup guide
+// Reference: setup/ref-context-setup.md#type-definitions
 const {
-  Provider: LayoutProvider,
-  useRefHandler: useLayoutRef
-} = createRefContext<{
-  header: HTMLHeaderElement;
-  sidebar: HTMLAsideElement;
-  mainContent: HTMLMainElement;
-  footer: HTMLFooterElement;
-}>('Layout');
+  Provider: UIRefProvider,
+  useRefHandler: useUIRef
+} = createRefContext<UIRefs>('UI');
 
-// Interactive Elements Context
+// Performance domain from setup guide
 const {
+  Provider: PerformanceRefProvider,
+  useRefHandler: usePerformanceRef
+} = createRefContext<{
   Provider: InteractiveProvider,
   useRefHandler: useInteractiveRef
 } = createRefContext<{

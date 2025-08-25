@@ -8,6 +8,7 @@ Ref patterns provide hardware-accelerated DOM manipulation without triggering Re
 
 ### Available Ref Patterns
 - **[Basic Usage](./basic-usage.md)** - Fundamental RefContext pattern with type-safe ref management
+- **[Context Singleton Handling](./singleton-handling.md)** - Managing context singletons and external resources with lazy evaluation
 - **[Multi-Context](./multi-context.md)** - Multiple RefContext composition for complex applications
 - **[Performance](./performance.md)** - Comprehensive performance optimization overview
 
@@ -21,6 +22,7 @@ Ref patterns provide hardware-accelerated DOM manipulation without triggering Re
 | Pattern | Purpose | Best For |
 |---------|---------|----------|
 | **Basic Usage** | Type-safe ref management | Mouse tracking, simple animations |
+| **Context Singleton Handling** | Context-scoped resource management | User databases, context-specific services, testing mocks |
 | **Multi-Context** | Multiple ref domains | Complex UI, separation of concerns |
 | **Performance** | Overview & best practices | Understanding performance concepts |
 | **Canvas Optimization** | Canvas interaction performance | Drawing apps, real-time graphics |
@@ -34,6 +36,7 @@ Ref patterns provide hardware-accelerated DOM manipulation without triggering Re
 - **Hardware Acceleration**: GPU-accelerated transforms and animations
 - **Real-time Interactions**: Mouse tracking, gesture recognition
 - **Canvas/SVG Operations**: Direct manipulation of graphics elements
+- **Context Singleton Management**: Context-scoped services, user-specific connections, testing isolation
 
 ## Key Features
 

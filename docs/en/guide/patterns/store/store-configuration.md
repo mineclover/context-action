@@ -2,6 +2,14 @@
 
 Performance optimization and custom comparison strategies for complex store scenarios.
 
+## Prerequisites
+
+For basic store setup and configuration patterns, see **[Basic Store Setup](../setup/basic-store-setup.md)**.
+
+This document demonstrates advanced configuration using the store setup:
+- Basic configuration → [Type Inference Configurations](../setup/basic-store-setup.md#type-inference-configurations)
+- Context creation → [Single Domain Store Context](../setup/basic-store-setup.md#single-domain-store-context)
+
 ## Overview
 
 Advanced configuration provides fine-grained control over store behavior, comparison strategies, and performance optimization for complex applications.
@@ -9,29 +17,27 @@ Advanced configuration provides fine-grained control over store behavior, compar
 ## Performance-Optimized Configuration
 
 ```tsx
-// Advanced store configuration with renaming pattern
+// Advanced store configuration using established patterns
 const {
-  Provider: AdvancedStoreProvider,
-  useStore: useAdvancedStore,
-  useStoreManager: useAdvancedStoreManager
-} = createDeclarativeStorePattern('Advanced', {
-  // Performance-optimized store
+  Provider: PerformanceStoreProvider,
+  useStore: usePerformanceStore,
+  useStoreManager: usePerformanceStoreManager
+} = createDeclarativeStorePattern('Performance', {
+  // Performance-optimized store following setup patterns
   largeDataset: {
     initialValue: [] as DataItem[],
-    strategy: 'reference',  // Reference equality for performance
-    debug: true,           // Enable debug logging
-    tags: ['performance', 'data'],
-    version: '1.0.0',
+    strategy: 'reference' as const,  // Reference equality for performance
+    debug: true,                     // Enable debug logging
     description: 'Large dataset with reference equality'
   },
   
   // Deep comparison store
   complexObject: {
     initialValue: { nested: { deep: { value: 0 } } },
-    strategy: 'deep',      // Deep comparison for nested changes
+    strategy: 'deep' as const,       // Deep comparison for nested changes
     comparisonOptions: {
-      ignoreKeys: ['timestamp'],  // Ignore specific keys
-      maxDepth: 5                 // Limit comparison depth
+      ignoreKeys: ['timestamp'],     // Ignore specific keys
+      maxDepth: 5                    // Limit comparison depth
     }
   },
   
@@ -53,10 +59,14 @@ const {
 ### Reference Strategy
 ```tsx
 // Best for: Large arrays, objects where reference changes indicate updates
-const stores = createDeclarativeStorePattern('Performance', {
+// Using the UserStores pattern from setup guide with reference strategy
+const {
+  Provider: DataStoreProvider,
+  useStore: useDataStore
+} = createDeclarativeStorePattern('Data', {
   bigDataArray: {
     initialValue: [] as LargeDataItem[],
-    strategy: 'reference' // Only re-render if array reference changes
+    strategy: 'reference' as const // Only re-render if array reference changes
   },
   
   immutableData: {

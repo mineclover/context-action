@@ -2,31 +2,18 @@
 
 Two main approaches for accessing action dispatch functionality in the Context-Action framework: register-based access and hook-based access.
 
+## Prerequisites
+
+For complete setup instructions, see **[Basic Action Setup](../setup/basic-action-setup.md)**.
+
+This document uses the `AppActions` pattern from the setup guide:
+- Type definitions → [Extended Action Interface](../setup/basic-action-setup.md#extended-action-interface)
+- Context creation → [Single Domain Context](../setup/basic-action-setup.md#single-domain-context)
+- Provider setup → [Single Provider Setup](../setup/basic-action-setup.md#single-provider-setup)
+
 ## Hook-Based Dispatch (Recommended)
 
 Use React hooks from `createActionContext` to access dispatch functionality within components. This is the recommended approach for React applications.
-
-### Setup Action Context
-
-First, create an action context with your action definitions:
-
-```typescript
-import { createActionContext } from '@context-action/react'
-
-interface AppActions extends ActionPayloadMap {
-  updateUser: { id: string; name: string; email: string }
-  deleteUser: { id: string }
-  saveUser: { name: string; email: string }
-  refreshData: void
-}
-
-const {
-  Provider: AppActionProvider,
-  useActionDispatch,
-  useActionDispatchWithResult,
-  useActionRegister
-} = createActionContext<AppActions>('App')
-```
 
 ### Basic Hook Usage
 
@@ -69,17 +56,9 @@ function UserProfile() {
 }
 ```
 
-### Complete Setup with Provider
+### Complete Component Implementation
 
 ```typescript
-function App() {
-  return (
-    <AppActionProvider>
-      <UserManagement />
-    </AppActionProvider>
-  )
-}
-
 function UserManagement() {
   const dispatch = useActionDispatch()
   
@@ -110,7 +89,7 @@ function UserManagement() {
 
 ## Register-Based Dispatch
 
-Access to the ActionRegister instance through React context for advanced use cases within React applications.
+Access the ActionRegister instance through React context for advanced use cases within React applications.
 
 ### Advanced Dispatch with Register Access
 
@@ -240,7 +219,7 @@ function DebugPanel() {
 ```typescript
 // ✅ Standard component interactions
 function UserForm() {
-  const dispatch = useActionDispatch()  // From createActionContext
+  const dispatch = useActionDispatch()
   
   const handleSubmit = (formData) => {
     dispatch('updateUser', formData)
@@ -255,7 +234,7 @@ function UserForm() {
 ```typescript
 // ✅ Service layer within React context
 function UserManagement() {
-  const register = useActionRegister()  // From createActionContext
+  const register = useActionRegister()
   
   const batchUpdateUsers = async (users: User[]) => {
     if (!register) return []

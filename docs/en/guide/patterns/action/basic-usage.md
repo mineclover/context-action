@@ -14,36 +14,22 @@ import { createActionContext } from '@context-action/react';
 - ✅ Result handling
 - ✅ Lightweight (no store overhead)
 
+## Prerequisites
+
+For complete setup instructions including type definitions, context creation, and provider configuration, see **[Basic Action Setup](../setup/basic-action-setup.md)**.
+
+This document uses the `EventActions` pattern from the setup guide:
+- Type definitions → [Event Actions Pattern](../setup/basic-action-setup.md#common-action-patterns)
+- Context creation → [Single Domain Context](../setup/basic-action-setup.md#single-domain-context)
+- Provider setup → [Single Provider Setup](../setup/basic-action-setup.md#single-provider-setup)
+
 ## Basic Usage
 ```tsx
-// 1. Define Actions (ActionPayloadMap optional)
-interface EventActions {
-  userClick: { x: number; y: number };
-  userHover: { elementId: string };
-  analytics: { event: string; data: any };
-}
-
-// 2. Create Context with Renaming Pattern
-const {
-  Provider: EventActionProvider,
-  useActionDispatch: useEventAction,
-  useActionHandler: useEventActionHandler
-} = createActionContext<EventActions>('Events');
-
-// 3. Provider Setup
-function App() {
-  return (
-    <EventActionProvider>
-      <InteractiveComponent />
-    </EventActionProvider>
-  );
-}
-
-// 4. Component Usage with Renamed Hooks  
+// Component implementation using the configured context
 function InteractiveComponent() {
   const dispatch = useEventAction();
   
-  // Register action handlers with renamed hook (properly memoized)
+  // Register action handlers (properly memoized)
   const userClickHandler = useCallback((payload, controller) => {
     console.log('User clicked at:', payload.x, payload.y);
     // Pure side effects, no state management
@@ -124,11 +110,11 @@ function AdvancedComponent() {
 
 ## Best Practices
 
+### ✅ Best Practices
 1. **Always Use useCallback**: Wrap all handler functions with `useCallback` to prevent infinite re-registration
-2. **Use Renamed Hooks**: Create domain-specific hook names for clarity
-3. **Handle Side Effects**: Perfect for analytics, logging, API calls
-4. **Keep Lightweight**: No state management overhead
-5. **Error Handling**: Use controller.abort() for error cases
-6. **Async Operations**: Handle async operations with proper error boundaries
+2. **Handle Side Effects**: Perfect for analytics, logging, API calls
+3. **Keep Lightweight**: No state management overhead
+4. **Error Handling**: Use controller.abort() for error cases
+5. **Async Operations**: Handle async operations with proper error boundaries
 
 > **Important**: For detailed handler registration patterns, see the [Handler Registration Guide](../../conventions.md#handler-registration)

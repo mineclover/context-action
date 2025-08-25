@@ -65,42 +65,50 @@ graph TB
     style Architecture fill:#fce4ec
 ```
 
-## Implementation Example
+## Prerequisites
 
-### Step 1: Business Context (Core Domain)
+For complete domain context setup instructions including type definitions, multi-domain contexts, and provider composition, see **[Multi-Context Setup - Domain Context Architecture](../setup/multi-context-setup.md#domain-context-architecture-setup)**.
+
+This document demonstrates implementation patterns using the domain context setup:
+- Type definitions → [Business Domain Setup](../setup/multi-context-setup.md#business-domain-setup)
+- Context creation → [Validation Domain Setup](../setup/multi-context-setup.md#validation-domain-setup)
+- Provider composition → [Domain-Based Composition](../setup/multi-context-setup.md#domain-based-composition)
+
+## Domain Implementation Patterns
+
+### Business Context Implementation
 
 ```typescript
-// contexts/BusinessContext.ts
-export interface BusinessStores {
-  orders: Order[];
-  inventory: InventoryItem[];
-  customers: Customer[];
+// Business domain implementation using configured contexts
+function useBusinessLogic() {
+  const businessDispatch = useBusinessActionDispatch();
+  const businessManager = useBusinessStoreManager();
+  
+  const processOrderHandler = useCallback(async (payload, controller) => {
+    try {
+      const ordersStore = businessManager.getStore('orders');
+      const inventoryStore = businessManager.getStore('inventory');
+      
+      // Business logic implementation
+      const order = await orderAPI.create(payload);
+      ordersStore.update(orders => [...orders, order]);
+      
+      // Update inventory
+      inventoryStore.update(inventory => 
+        updateInventoryAfterOrder(inventory, payload.items)
+      );
+      
+    } catch (error) {
+      controller.abort('Order processing failed', error);
+    }
+  }, [businessManager]);
+  
+  useBusinessActionHandler('processOrder', processOrderHandler);
 }
-
-export interface BusinessActions {
-  processOrder: { customerId: string; items: OrderItem[] };
-  updateInventory: { itemId: string; quantity: number };
-  validateCustomer: { customerId: string };
-}
-
-export const {
-  Provider: BusinessModelProvider,
-  useStore: useBusinessStore,
-  useStoreManager: useBusinessStoreManager
-} = createDeclarativeStorePattern<BusinessStores>('Business', {
-  orders: { initialValue: [] },
-  inventory: { initialValue: [] },
-  customers: { initialValue: [] }
-});
-
-export const {
-  Provider: BusinessActionProvider,
-  useActionDispatch: useBusinessActionDispatch,
-  useActionHandler: useBusinessActionHandler
-} = createActionContext<BusinessActions>('Business');
+```
 ```
 
-### Step 2: UI Context (Interface State)
+### UI Context Implementation
 
 ```typescript
 // contexts/UIContext.ts  

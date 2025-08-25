@@ -43,3 +43,14 @@ export {
 // Store registry synchronization utilities
 export { createRegistrySync, RegistryUtils } from './registry-sync';
 
+// === PROVIDER COMPOSITION ===
+// Provider composition utilities for managing multiple contexts
+export { 
+  composeProviders,
+  groupProviders,
+  conditionalProviders,
+  environmentProviders,
+  logProviderTree,
+  type WithProviderHOC
+} from './provider-composition';
+

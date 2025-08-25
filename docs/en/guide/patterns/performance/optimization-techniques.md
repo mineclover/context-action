@@ -2,6 +2,14 @@
 
 Comprehensive performance optimization patterns and techniques for the Context-Action framework.
 
+## Prerequisites
+
+For setup patterns used in these optimizations, see:
+- **[Basic Store Setup](../setup/basic-store-setup.md)** - Store performance configurations
+- **[Basic Action Setup](../setup/basic-action-setup.md)** - Action optimization patterns
+- **[RefContext Setup](../setup/ref-context-setup.md)** - DOM performance optimization
+- **[Provider Composition Setup](../setup/provider-composition-setup.md)** - Provider optimization
+
 ## 📋 Table of Contents
 
 1. [Store Optimization](#store-optimization)
@@ -18,31 +26,32 @@ Comprehensive performance optimization patterns and techniques for the Context-A
 Choose the right comparison strategy based on your data characteristics:
 
 ```tsx
-// ✅ Recommended: Choose strategy based on data characteristics
+// ✅ Using performance-optimized patterns from setup guide
+// Reference: setup/basic-store-setup.md#type-inference-configurations
 const {
-  Provider: DataStoreProvider,
-  useStore: useDataStore
-} = createDeclarativeStorePattern('Data', {
+  Provider: PerformanceStoreProvider,
+  useStore: usePerformanceStore
+} = createDeclarativeStorePattern('Performance', {
   // Primitive values: reference (default)
   counter: 0,
   isLoading: false,
   
   // Objects with property changes: shallow  
   userProfile: {
-    initialValue: { name: '', email: '', age: 0 },
-    strategy: 'shallow'
+    initialValue: { id: '', name: '', email: '', role: 'guest' as const },
+    strategy: 'shallow' as const
   },
   
   // Deeply nested objects with frequent changes: deep
   complexForm: {
     initialValue: { nested: { deep: { values: {} } } },
-    strategy: 'deep'
+    strategy: 'deep' as const
   },
   
   // Large arrays or performance-critical cases: reference
   largeDataset: {
     initialValue: [] as DataItem[],
-    strategy: 'reference',
+    strategy: 'reference' as const,
     description: 'Use reference equality for performance'
   },
   
