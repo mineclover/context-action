@@ -2,6 +2,18 @@
 
 Memory-efficient patterns and techniques for optimal RefContext performance.
 
+## Prerequisites
+
+Before implementing memory optimization patterns, ensure you have proper RefContext setup:
+
+👉 **Setup Guide**: [RefContext Setup](../setup/ref-context-setup.md)
+
+This guide uses the following predefined types from the Setup specification:
+- **WorkerRefs**: Web Worker management for background processing
+- **ServiceRefs**: External service and library management
+- **CanvasRefs**: Canvas element management for graphics
+- **MediaRefs**: Media element and stream management
+
 ## Memory Management Fundamentals
 
 RefContext provides automatic cleanup, but understanding memory patterns helps optimize for large-scale applications.
@@ -11,9 +23,9 @@ RefContext provides automatic cleanup, but understanding memory patterns helps o
 ### Memory-Efficient Event Delegation
 
 ```tsx
-// Memory-efficient event delegation
+// Memory-efficient event delegation using Setup CanvasRefs
 function useOptimizedEventHandler() {
-  const container = useContainerRef('container');
+  const mainCanvas = useCanvasRef('mainCanvas'); // From Setup CanvasRefs
   const lastFrameTime = useRef(0);
   const frameId = useRef<number>();
   
@@ -31,11 +43,15 @@ function useOptimizedEventHandler() {
     
     frameId.current = requestAnimationFrame(() => {
       // Perform DOM updates here
-      if (container.target) {
-        container.target.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
+      if (mainCanvas.target) {
+        const ctx = mainCanvas.target.getContext('2d');
+        if (ctx) {
+          ctx.clearRect(0, 0, mainCanvas.target.width, mainCanvas.target.height);
+          ctx.fillRect(e.clientX, e.clientY, 10, 10);
+        }
       }
     });
-  }, [container]);
+  }, [mainCanvas]);
   
   // Cleanup on unmount
   useEffect(() => {
@@ -53,46 +69,46 @@ function useOptimizedEventHandler() {
 ### Event Listener Cleanup
 
 ```tsx
-// Automatic event listener cleanup
+// Automatic event listener cleanup using Setup UIRefs
 function useEventListenerCleanup() {
-  const elementRef = useElementRef('element');
+  const modal = useUIRef('modal'); // From Setup UIRefs
   const listeners = useRef(new Map<string, EventListener>());
   
   const addEventListener = useCallback((event: string, handler: EventListener) => {
-    if (!elementRef.target) return;
+    if (!modal.target) return;
     
     // Remove existing listener if present
     const existingHandler = listeners.current.get(event);
     if (existingHandler) {
-      elementRef.target.removeEventListener(event, existingHandler);
+      modal.target.removeEventListener(event, existingHandler);
     }
     
     // Add new listener
-    elementRef.target.addEventListener(event, handler);
+    modal.target.addEventListener(event, handler);
     listeners.current.set(event, handler);
-  }, [elementRef]);
+  }, [modal]);
   
   const removeEventListener = useCallback((event: string) => {
-    if (!elementRef.target) return;
+    if (!modal.target) return;
     
     const handler = listeners.current.get(event);
     if (handler) {
-      elementRef.target.removeEventListener(event, handler);
+      modal.target.removeEventListener(event, handler);
       listeners.current.delete(event);
     }
-  }, [elementRef]);
+  }, [modal]);
   
   // Cleanup all listeners on unmount
   useEffect(() => {
     return () => {
-      if (elementRef.target) {
+      if (modal.target) {
         listeners.current.forEach((handler, event) => {
-          elementRef.target!.removeEventListener(event, handler);
+          modal.target!.removeEventListener(event, handler);
         });
       }
       listeners.current.clear();
     };
-  }, [elementRef]);
+  }, [modal]);
   
   return { addEventListener, removeEventListener };
 }
@@ -149,11 +165,11 @@ function useRefPool<T extends HTMLElement>(size: number = 100) {
 ### Component Pool for Dynamic Elements
 
 ```tsx
-// Pool components for dynamic content
+// Pool components for dynamic content using Setup CanvasRefs
 function useDynamicElementPool() {
   const elementPool = useRef<HTMLElement[]>([]);
   const activeElements = useRef(new Set<HTMLElement>());
-  const container = useContainerRef('container');
+  const overlayCanvas = useCanvasRef('overlayCanvas'); // From Setup CanvasRefs
   
   const createElement = useCallback((type: string): HTMLElement | null => {
     // Try to reuse from pool first
@@ -168,14 +184,14 @@ function useDynamicElementPool() {
     }
     
     // Create new element if pool is empty
-    if (container.target) {
+    if (overlayCanvas.target) {
       const element = document.createElement(type);
       activeElements.current.add(element);
       return element;
     }
     
     return null;
-  }, [container]);
+  }, [overlayCanvas]);
   
   const releaseElement = useCallback((element: HTMLElement) => {
     if (!activeElements.current.has(element)) return;
@@ -211,13 +227,13 @@ function useDynamicElementPool() {
 ### Memory Usage Tracking
 
 ```tsx
-// Monitor ref memory usage
+// Monitor ref memory usage using Setup ServiceRefs
 function useMemoryMonitor() {
-  const metricsPanel = usePerformanceRef('metricsPanel');
+  const chartEngine = useServiceRef('chartEngine'); // From Setup ServiceRefs for metrics display
   const memoryHistory = useRef<number[]>([]);
   
   const updateMemoryStats = useCallback(() => {
-    if (!metricsPanel.target) return;
+    if (!chartEngine.target) return;
     
     // Get memory info (if available)
     const memory = (performance as any).memory;
@@ -235,18 +251,17 @@ function useMemoryMonitor() {
       const trend = calculateMemoryTrend(memoryHistory.current);
       const leakWarning = trend > 0.1 ? ' ⚠️ Possible leak' : '';
       
-      metricsPanel.target.innerHTML = `
-        <div>Memory: ${used}MB / ${total}MB</div>
-        <div>Usage: ${Math.round((used / total) * 100)}%${leakWarning}</div>
-        <div>Trend: ${trend > 0 ? '+' : ''}${(trend * 100).toFixed(1)}%</div>
-      `;
-      
-      // Color code based on usage
+      // Update chart with memory metrics
       const usage = used / total;
-      metricsPanel.target.style.color = usage > 0.8 ? 'red' : 
-                                       usage > 0.6 ? 'orange' : 'green';
+      if (chartEngine.target && chartEngine.target.data) {
+        chartEngine.target.data.datasets[0].data.push(used);
+        chartEngine.target.update();
+      }
+      
+      // Log memory stats
+      console.log(`Memory: ${used}MB / ${total}MB (${Math.round(usage * 100)}%)${leakWarning}`);
     }
-  }, [metricsPanel]);
+  }, [chartEngine]);
   
   // Update every 5 seconds
   useEffect(() => {
@@ -311,11 +326,8 @@ function useRefLeakDetection() {
   return { registerRef, unregisterRef, checkForLeaks };
 }
 
-interface RefInfo {
-  name: string;
-  createdAt: number;
-  component?: string;
-}
+// RefInfo type follows Setup specification patterns
+// See: ref-context-setup.md for complete type definitions
 ```
 
 ## Garbage Collection Optimization
@@ -323,15 +335,21 @@ interface RefInfo {
 ### Weak References Pattern
 
 ```tsx
-// Use WeakMap/WeakSet for automatic cleanup
+// Use WeakMap/WeakSet for automatic cleanup with Setup types
 function useWeakReferenceCache() {
   const elementCache = useRef(new WeakMap<HTMLElement, CachedData>());
   const elementSets = useRef(new WeakSet<HTMLElement>());
+  const cacheManager = useServiceRef('cacheManager'); // From Setup DatabaseRefs
   
   const cacheData = useCallback((element: HTMLElement, data: CachedData) => {
     elementCache.current.set(element, data);
     elementSets.current.add(element);
-  }, []);
+    
+    // Also store in browser cache if available
+    if (cacheManager.target) {
+      cacheManager.target.put(`element-${element.id}`, new Response(JSON.stringify(data)));
+    }
+  }, [cacheManager]);
   
   const getCachedData = useCallback((element: HTMLElement): CachedData | undefined => {
     return elementCache.current.get(element);
@@ -342,14 +360,12 @@ function useWeakReferenceCache() {
   }, []);
   
   // No cleanup needed - WeakMap/WeakSet handle GC automatically
+  // Browser cache cleanup handled by setup patterns
   return { cacheData, getCachedData, hasElement };
 }
 
-interface CachedData {
-  computedStyles?: CSSStyleDeclaration;
-  dimensions?: DOMRect;
-  lastUpdate?: number;
-}
+// CachedData type uses Setup specification patterns
+// See: ref-context-setup.md for complete cache type definitions
 ```
 
 ### Manual GC Triggers
@@ -382,28 +398,31 @@ function useGarbageCollectionTrigger() {
 ### Lazy Ref Initialization
 
 ```tsx
-// Lazy initialization for better memory usage
-function useLazyRef<T extends HTMLElement>(name: string) {
+// Lazy initialization for better memory usage using Setup WorkerRefs
+function useLazyWorkerRef(workerName: keyof WorkerRefs) {
   const [isInitialized, setIsInitialized] = useState(false);
-  const refHandler = useConditionalRef(name, isInitialized);
+  const workerRef = useWorkerRef(workerName); // From Setup WorkerRefs
   
-  const initializeRef = useCallback(() => {
-    if (!isInitialized) {
+  const initializeWorker = useCallback(() => {
+    if (!isInitialized && !workerRef.target) {
+      const worker = new Worker(`/workers/${workerName}.js`);
+      workerRef.setRef(worker);
       setIsInitialized(true);
     }
-  }, [isInitialized]);
+  }, [isInitialized, workerRef, workerName]);
   
-  const destroyRef = useCallback(() => {
-    if (isInitialized) {
+  const destroyWorker = useCallback(() => {
+    if (isInitialized && workerRef.target) {
+      workerRef.target.terminate();
       setIsInitialized(false);
     }
-  }, [isInitialized]);
+  }, [isInitialized, workerRef]);
   
   return {
-    ...refHandler,
+    worker: workerRef.target,
     isInitialized,
-    initializeRef,
-    destroyRef
+    initializeWorker,
+    destroyWorker
   };
 }
 ```
@@ -411,55 +430,90 @@ function useLazyRef<T extends HTMLElement>(name: string) {
 ### Conditional Ref Loading
 
 ```tsx
-// Load refs only when needed
-function useConditionalRefLoading() {
-  const [loadedRefs, setLoadedRefs] = useState(new Set<string>());
-  const refs = useRef(new Map<string, RefHandler<HTMLElement>>());
+// Load service refs only when needed using Setup ServiceRefs
+function useConditionalServiceLoading() {
+  const [loadedServices, setLoadedServices] = useState(new Set<keyof ServiceRefs>());
+  const mapService = useServiceRef('mapService');
+  const chartEngine = useServiceRef('chartEngine');
+  const paymentService = useServiceRef('paymentService');
   
-  const loadRef = useCallback((name: string) => {
-    if (loadedRefs.has(name)) return refs.current.get(name);
+  const loadService = useCallback(async (serviceName: keyof ServiceRefs) => {
+    if (loadedServices.has(serviceName)) return;
     
-    const refHandler = createRefHandler<HTMLElement>(name);
-    refs.current.set(name, refHandler);
-    setLoadedRefs(prev => new Set([...prev, name]));
-    
-    return refHandler;
-  }, [loadedRefs]);
-  
-  const unloadRef = useCallback((name: string) => {
-    const refHandler = refs.current.get(name);
-    if (refHandler) {
-      // Cleanup ref
-      refHandler.cleanup?.();
-      refs.current.delete(name);
-      setLoadedRefs(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(name);
-        return newSet;
-      });
+    switch (serviceName) {
+      case 'mapService':
+        if (!mapService.target) {
+          const maps = await import('google-maps');
+          mapService.setRef(maps.default);
+        }
+        break;
+      case 'chartEngine':
+        if (!chartEngine.target) {
+          const Chart = await import('chart.js');
+          chartEngine.setRef(Chart.default);
+        }
+        break;
+      case 'paymentService':
+        if (!paymentService.target) {
+          const { loadStripe } = await import('@stripe/stripe-js');
+          const stripe = await loadStripe(process.env.REACT_APP_STRIPE_KEY!);
+          paymentService.setRef(stripe);
+        }
+        break;
     }
-  }, []);
+    
+    setLoadedServices(prev => new Set([...prev, serviceName]));
+  }, [loadedServices, mapService, chartEngine, paymentService]);
   
-  return { loadRef, unloadRef, loadedRefs };
+  const unloadService = useCallback((serviceName: keyof ServiceRefs) => {
+    switch (serviceName) {
+      case 'mapService':
+        mapService.setRef(null);
+        break;
+      case 'chartEngine':
+        if (chartEngine.target && chartEngine.target.destroy) {
+          chartEngine.target.destroy();
+        }
+        chartEngine.setRef(null);
+        break;
+      case 'paymentService':
+        paymentService.setRef(null);
+        break;
+    }
+    
+    setLoadedServices(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(serviceName);
+      return newSet;
+    });
+  }, [mapService, chartEngine, paymentService]);
+  
+  return { loadService, unloadService, loadedServices };
 }
 ```
 
 ## Memory Optimization Best Practices
 
-1. **Use WeakMap/WeakSet**: Automatic cleanup when elements are removed
-2. **Throttle High-Frequency Events**: Prevent memory pressure from rapid updates
-3. **Pool Frequently Created Objects**: Reuse elements instead of creating new ones
-4. **Monitor Memory Usage**: Track trends to detect leaks early
-5. **Cleanup Event Listeners**: Always remove listeners on unmount
-6. **Avoid Closures with Large Objects**: Prevent accidental retention
-7. **Use Lazy Loading**: Only create refs when actually needed
+### Setup-Based Optimization
+1. **Reuse Setup Types**: Use predefined WorkerRefs, ServiceRefs, CanvasRefs, and MediaRefs
+2. **Follow Setup Patterns**: Implement lazy initialization from Setup guide
+3. **Use Setup Cleanup**: Follow cleanup patterns defined in Setup specification
+
+### Memory Management
+4. **Use WeakMap/WeakSet**: Automatic cleanup when elements are removed
+5. **Throttle High-Frequency Events**: Prevent memory pressure from rapid updates
+6. **Pool Frequently Created Objects**: Reuse elements instead of creating new ones
+7. **Monitor Memory Usage**: Track trends to detect leaks early
+8. **Cleanup Event Listeners**: Always remove listeners on unmount
+9. **Avoid Closures with Large Objects**: Prevent accidental retention
+10. **Use Lazy Loading**: Only create refs when actually needed
 
 ## Memory Performance Patterns
 
 ### Efficient Batch Processing
 
 ```tsx
-// Process large datasets efficiently
+// Process large datasets efficiently using Setup WorkerRefs
 function useBatchProcessor<T>(
   items: T[],
   batchSize: number = 100,
@@ -467,19 +521,31 @@ function useBatchProcessor<T>(
 ) {
   const [processedItems, setProcessedItems] = useState<T[]>([]);
   const processingRef = useRef<number>();
+  const dataWorker = useWorkerRef('dataProcessingWorker'); // From Setup WorkerRefs
   
   const processBatch = useCallback(() => {
     const startIndex = processedItems.length;
     const endIndex = Math.min(startIndex + batchSize, items.length);
     const batch = items.slice(startIndex, endIndex);
     
-    setProcessedItems(prev => [...prev, ...batch]);
+    // Use worker for heavy processing if available
+    if (dataWorker.target) {
+      dataWorker.target.postMessage({ type: 'PROCESS_BATCH', batch });
+      dataWorker.target.onmessage = (e) => {
+        if (e.data.type === 'BATCH_PROCESSED') {
+          setProcessedItems(prev => [...prev, ...e.data.result]);
+        }
+      };
+    } else {
+      // Fallback to main thread processing
+      setProcessedItems(prev => [...prev, ...batch]);
+    }
     
     // Continue processing if more items remain
     if (endIndex < items.length) {
       processingRef.current = setTimeout(processBatch, processingDelay);
     }
-  }, [items, processedItems, batchSize, processingDelay]);
+  }, [items, processedItems, batchSize, processingDelay, dataWorker]);
   
   useEffect(() => {
     // Reset and start processing
@@ -499,6 +565,12 @@ function useBatchProcessor<T>(
 
 ## Related Patterns
 
-- [Hardware Acceleration](./hardware-acceleration.md) - GPU optimization techniques
-- [Canvas Optimization](./canvas-optimization.md) - Canvas-specific performance
-- [Basic Usage](./basic-usage.md) - RefContext fundamentals
+### Setup Integration
+- **[RefContext Setup](../setup/ref-context-setup.md)** - Complete setup patterns and type definitions
+- **[Multi-Context Setup](../setup/multi-context-setup.md)** - Complex architecture integration
+- **[Provider Composition Setup](../setup/provider-composition-setup.md)** - Advanced composition
+
+### Performance Optimization
+- **[Hardware Acceleration](./hardware-acceleration.md)** - GPU optimization techniques
+- **[Canvas Optimization](./canvas-optimization.md)** - Canvas-specific performance
+- **[Basic Usage](./basic-usage.md)** - RefContext fundamentals
