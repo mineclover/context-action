@@ -106,144 +106,101 @@ function useBusinessLogic() {
   useBusinessActionHandler('processOrder', processOrderHandler);
 }
 ```
-```
 
 ### UI Context Implementation
 
-```typescript
-// contexts/UIContext.ts  
-export interface UIStores {
-  screenState: { 
-    currentScreen: 'orders' | 'inventory' | 'customers';
-    isLoading: boolean;
-    notifications: Notification[];
-  };
-  modals: {
-    orderModal: { isOpen: boolean; orderId?: string };
-    customerModal: { isOpen: boolean; customerId?: string };
-  };
-}
-
-export interface UIActions {
-  navigateToScreen: { screen: string };
-  showNotification: { message: string; type: 'success' | 'error' };
-  openModal: { modalType: string; data?: any };
-  closeModal: { modalType: string };
-}
-
-export const {
-  Provider: UIModelProvider,
-  useStore: useUIStore,
-  useStoreManager: useUIStoreManager
-} = createDeclarativeStorePattern<UIStores>('UI', {
-  screenState: {
-    initialValue: {
-      currentScreen: 'orders',
-      isLoading: false,
-      notifications: []
-    }
-  },
-  modals: {
-    initialValue: {
-      orderModal: { isOpen: false },
-      customerModal: { isOpen: false }
-    }
-  }
-});
-
-export const {
-  Provider: UIActionProvider,
-  useActionDispatch: useUIActionDispatch,
-  useActionHandler: useUIActionHandler
-} = createActionContext<UIActions>('UI');
-```
-
-### Step 3: Validation Context (Data Rules)
+UI Context uses the specifications from **[Multi-Context Setup - UI Domain](../setup/multi-context-setup.md#ui-domain)**:
 
 ```typescript
-// contexts/ValidationContext.ts
-export interface ValidationStores {
-  fieldErrors: Record<string, string[]>;
-  validationRules: Record<string, ValidationRule[]>;
-  isValid: boolean;
+// UI Context implementation using setup specifications
+function useUILogic() {
+  const uiDispatch = useUIActionDispatch();
+  const uiManager = useUIStoreManager();
+  
+  const showModalHandler = useCallback(async (payload) => {
+    const modalStore = uiManager.getStore('modal');
+    modalStore.setValue({ isOpen: true, type: payload.type, data: payload.data });
+  }, [uiManager]);
+  
+  const hideModalHandler = useCallback(async () => {
+    const modalStore = uiManager.getStore('modal');
+    modalStore.setValue({ isOpen: false, type: undefined, data: undefined });
+  }, [uiManager]);
+  
+  useUIActionHandler('showModal', showModalHandler);
+  useUIActionHandler('hideModal', hideModalHandler);
 }
-
-export interface ValidationActions {
-  validateField: { fieldName: string; value: any };
-  clearFieldErrors: { fieldName: string };
-  validateForm: { formData: Record<string, any> };
-}
-
-export const {
-  Provider: ValidationModelProvider,
-  useStore: useValidationStore,
-  useStoreManager: useValidationStoreManager
-} = createDeclarativeStorePattern<ValidationStores>('Validation', {
-  fieldErrors: { initialValue: {} },
-  validationRules: { initialValue: {} },
-  isValid: { initialValue: false }
-});
-
-export const {
-  Provider: ValidationActionProvider,
-  useActionDispatch: useValidationActionDispatch,
-  useActionHandler: useValidationActionHandler
-} = createActionContext<ValidationActions>('Validation');
 ```
 
-### Step 4: Design Context (Visual State)
+### Validation Context Implementation
+
+Validation Context uses the specifications from **[Multi-Context Setup - Validation Domain](../setup/multi-context-setup.md#validation-domain-setup)**:
 
 ```typescript
-// contexts/DesignContext.ts
-export interface DesignStores {
-  theme: {
-    mode: 'light' | 'dark';
-    primaryColor: string;
-    fontSize: 'small' | 'medium' | 'large';
-  };
-  layout: {
-    sidebarCollapsed: boolean;
-    gridView: boolean;
-    screenSize: 'mobile' | 'tablet' | 'desktop';
-  };
-}
-
-export interface DesignActions {
-  toggleTheme: void;
-  updateThemeColor: { color: string };
-  toggleSidebar: void;
-  setScreenSize: { size: 'mobile' | 'tablet' | 'desktop' };
-}
-
-export const {
-  Provider: DesignModelProvider,
-  useStore: useDesignStore,
-  useStoreManager: useDesignStoreManager
-} = createDeclarativeStorePattern<DesignStores>('Design', {
-  theme: {
-    initialValue: {
-      mode: 'light',
-      primaryColor: '#2196f3',
-      fontSize: 'medium'
+// Validation Context implementation using setup specifications
+function useValidationLogic() {
+  const validationDispatch = useValidationActionDispatch();
+  const validationManager = useValidationStoreManager();
+  
+  const validateFieldHandler = useCallback(async (payload) => {
+    const { fieldName, value, rules } = payload;
+    const validationResults = await validateFieldValue(value, rules);
+    
+    const fieldStatusesStore = validationManager.getStore('fieldStatuses');
+    const formErrorsStore = validationManager.getStore('formErrors');
+    
+    if (validationResults.isValid) {
+      fieldStatusesStore.update(statuses => ({ ...statuses, [fieldName]: 'valid' }));
+      formErrorsStore.update(errors => {
+        const newErrors = { ...errors };
+        delete newErrors[fieldName];
+        return newErrors;
+      });
+    } else {
+      fieldStatusesStore.update(statuses => ({ ...statuses, [fieldName]: 'invalid' }));
+      formErrorsStore.update(errors => ({ 
+        ...errors, 
+        [fieldName]: validationResults.errors 
+      }));
     }
-  },
-  layout: {
-    initialValue: {
-      sidebarCollapsed: false,
-      gridView: false,
-      screenSize: 'desktop'
-    }
-  }
-});
-
-export const {
-  Provider: DesignActionProvider,
-  useActionDispatch: useDesignActionDispatch,
-  useActionHandler: useDesignActionHandler
-} = createActionContext<DesignActions>('Design');
+  }, [validationManager]);
+  
+  useValidationActionHandler('validateField', validateFieldHandler);
+}
 ```
 
-### Step 5: Cross-Domain Coordination
+### Design Context Implementation
+
+Design Context uses the specifications from **[Multi-Context Setup - Design System Context](../setup/multi-context-setup.md#design-system-context-setup)**:
+
+```typescript
+// Design Context implementation using setup specifications
+function useDesignLogic() {
+  const designDispatch = useDesignActionDispatch();
+  const designManager = useDesignStoreManager();
+  
+  const changeColorSchemeHandler = useCallback(async (payload) => {
+    const colorSchemeStore = designManager.getStore('colorScheme');
+    colorSchemeStore.setValue(payload.scheme);
+    
+    // Update theme based on color scheme
+    const themeStore = designManager.getStore('theme');
+    const currentTheme = themeStore.getValue();
+    const updatedTheme = applyColorScheme(currentTheme, payload.scheme);
+    themeStore.setValue(updatedTheme);
+  }, [designManager]);
+  
+  const updateBreakpointHandler = useCallback(async (payload) => {
+    const breakpointStore = designManager.getStore('breakpoint');
+    breakpointStore.setValue(payload.breakpoint);
+  }, [designManager]);
+  
+  useDesignActionHandler('changeColorScheme', changeColorSchemeHandler);
+  useDesignActionHandler('updateBreakpoint', updateBreakpointHandler);
+}
+```
+
+### Cross-Domain Coordination
 
 ```typescript
 // hooks/useCrossDomainActions.ts
@@ -293,44 +250,42 @@ export function useOrderProcessingWorkflow() {
 }
 ```
 
-### Step 6: Application Composition
+### Application Composition
+
+Uses **[Multi-Context Setup - Domain-Based Composition](../setup/multi-context-setup.md#domain-based-composition)**:
 
 ```tsx
-// App.tsx - Multi-domain composition
-function MultiDomainApp() {
+// App.tsx - Domain-based composition using setup specifications
+function DomainContextApp() {
+  // Use composed providers from setup specifications
+  const DomainProviders = composeProviders([
+    // Core Business Domain
+    BusinessModelProvider,
+    BusinessViewModelProvider,
+    
+    // User Interface Domain  
+    UIModelProvider,
+    UIViewModelProvider,
+    
+    // Validation Domain
+    ValidationModelProvider,
+    ValidationViewModelProvider,
+    
+    // Design System Domain
+    DesignModelProvider,
+    DesignViewModelProvider
+  ]);
+  
   return (
-    {/* Business Domain - Core Logic */}
-    <BusinessModelProvider>
-      <BusinessActionProvider>
-        
-        {/* UI Domain - Interface State */}
-        <UIModelProvider>
-          <UIActionProvider>
-            
-            {/* Validation Domain - Data Rules */}
-            <ValidationModelProvider>
-              <ValidationActionProvider>
-                
-                {/* Design Domain - Visual State */}
-                <DesignModelProvider>
-                  <DesignActionProvider>
-                    
-                    {/* Cross-Domain Coordination */}
-                    <CrossDomainHandlers />
-                    
-                    {/* Application Components */}
-                    <OrderManagementScreen />
-                    <InventoryScreen />
-                    <CustomerScreen />
-                    
-                  </DesignActionProvider>
-                </DesignModelProvider>
-              </ValidationActionProvider>
-            </ValidationModelProvider>
-          </UIActionProvider>
-        </UIModelProvider>
-      </BusinessActionProvider>
-    </BusinessModelProvider>
+    <DomainProviders>
+      {/* Cross-Domain Coordination */}
+      <CrossDomainHandlers />
+      
+      {/* Application Components */}
+      <OrderManagementScreen />
+      <InventoryScreen />
+      <CustomerScreen />
+    </DomainProviders>
   );
 }
 
