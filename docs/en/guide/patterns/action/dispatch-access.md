@@ -2,14 +2,36 @@
 
 Two main approaches for accessing action dispatch functionality in the Context-Action framework: register-based access and hook-based access.
 
+## Import
+```typescript
+import { createActionContext, ActionPayloadMap } from '@context-action/react';
+```
+
 ## Prerequisites
 
-For complete setup instructions, see **[Basic Action Setup](../setup/basic-action-setup.md)**.
+For complete setup instructions including type definitions, context creation, and provider configuration, see **[Basic Action Setup](../setup/basic-action-setup.md)**.
 
 This document uses the `AppActions` pattern from the setup guide:
 - Type definitions → [Extended Action Interface](../setup/basic-action-setup.md#extended-action-interface)
-- Context creation → [Single Domain Context](../setup/basic-action-setup.md#single-domain-context)
+- Context creation → [Single Domain Context](../setup/basic-action-setup.md#single-domain-context)  
 - Provider setup → [Single Provider Setup](../setup/basic-action-setup.md#single-provider-setup)
+
+The examples assume you have configured the following context:
+```typescript
+interface AppActions extends ActionPayloadMap {
+  updateUser: { id: string; name: string; email: string };
+  deleteUser: { id: string };
+  refreshData: void;
+}
+
+const {
+  Provider: AppActionProvider,
+  useActionDispatch: useAppDispatch,
+  useActionHandler: useAppHandler,
+  useActionDispatchWithResult: useAppDispatchWithResult,
+  useActionRegister: useAppRegister
+} = createActionContext<AppActions>('App');
+```
 
 ## Hook-Based Dispatch (Recommended)
 
@@ -19,7 +41,7 @@ Use React hooks from `createActionContext` to access dispatch functionality with
 
 ```typescript
 function UserComponent() {
-  const dispatch = useActionDispatch()
+  const dispatch = useAppDispatch()
   
   const handleUpdate = () => {
     dispatch('updateUser', { id: '123', name: 'John', email: 'john@example.com' })
@@ -33,13 +55,13 @@ function UserComponent() {
 
 ```typescript
 function UserProfile() {
-  const { dispatch } = useActionDispatchWithResult()
+  const { dispatch } = useAppDispatchWithResult()
   const [loading, setLoading] = useState(false)
   
   const handleSave = async () => {
     setLoading(true)
     try {
-      const result = await dispatch('saveUser', userData)
+      const result = await dispatch('updateUser', { id: '123', name: 'John', email: 'john@example.com' })
       if (result.success) {
         console.log('User saved successfully')
       }
@@ -60,7 +82,7 @@ function UserProfile() {
 
 ```typescript
 function UserManagement() {
-  const dispatch = useActionDispatch()
+  const dispatch = useAppDispatch()
   
   const updateProfile = (data: { name: string; email: string }) => {
     // Fully type-safe dispatch
@@ -95,13 +117,17 @@ Access the ActionRegister instance through React context for advanced use cases 
 
 ```typescript
 function AdvancedDispatchComponent() {
-  const register = useActionRegister()  // From createActionContext
+  const register = useAppRegister()  // From createActionContext
   
   const handleAdvancedDispatch = async () => {
     if (!register) return
     
     // Dispatch with detailed result information
-    const result = await register.dispatchWithResult('updateUser', payload)
+    const result = await register.dispatchWithResult('updateUser', {
+      id: '123', 
+      name: 'John', 
+      email: 'john@example.com'
+    })
 
     if (result.success) {
       console.log('Execution details:', {
@@ -126,13 +152,17 @@ Access the underlying register instance within React components when needed.
 
 ```typescript
 function AdvancedComponent() {
-  const register = useActionRegister()  // From createActionContext
+  const register = useAppRegister()  // From createActionContext
   
   const handleComplexOperation = async () => {
     if (!register) return
     
     // Direct register access for advanced operations
-    const result = await register.dispatchWithResult('updateUser', payload, {
+    const result = await register.dispatchWithResult('updateUser', {
+      id: '123', 
+      name: 'John', 
+      email: 'john@example.com'
+    }, {
       executionMode: 'parallel',
       filter: {
         tags: ['critical'],
@@ -151,7 +181,7 @@ function AdvancedComponent() {
 
 ```typescript
 function DebugPanel() {
-  const register = useActionRegister()  // From createActionContext
+  const register = useAppRegister()  // From createActionContext
   
   const showRegistryInfo = () => {
     if (!register) return
@@ -219,7 +249,7 @@ function DebugPanel() {
 ```typescript
 // ✅ Standard component interactions
 function UserForm() {
-  const dispatch = useActionDispatch()
+  const dispatch = useAppDispatch()
   
   const handleSubmit = (formData) => {
     dispatch('updateUser', formData)
@@ -234,7 +264,7 @@ function UserForm() {
 ```typescript
 // ✅ Service layer within React context
 function UserManagement() {
-  const register = useActionRegister()
+  const register = useAppRegister()
   
   const batchUpdateUsers = async (users: User[]) => {
     if (!register) return []
@@ -260,8 +290,8 @@ function UserManagement() {
 ```typescript
 // ✅ Component uses both hook dispatch and register for complex operations
 function UserManagement() {
-  const dispatch = useActionDispatch()  // From createActionContext
-  const register = useActionRegister()  // From createActionContext
+  const dispatch = useAppDispatch()  // From createActionContext
+  const register = useAppRegister()  // From createActionContext
   
   const handleBatchUpdate = async () => {
     if (!register) return
@@ -290,11 +320,11 @@ function UserManagement() {
 
 ```typescript
 function SafeComponent() {
-  const dispatch = useActionDispatch()  // From createActionContext
+  const dispatch = useAppDispatch()  // From createActionContext
   
   const handleAction = async () => {
     try {
-      await dispatch('updateUser', payload)
+      await dispatch('updateUser', { id: '123', name: 'John', email: 'john@example.com' })
     } catch (error) {
       // Handle dispatch errors - use an action that exists in AppActions
       console.error('Action failed:', error.message)
@@ -309,13 +339,17 @@ function SafeComponent() {
 
 ```typescript
 function ComponentWithRegisterErrorHandling() {
-  const register = useActionRegister()  // From createActionContext
+  const register = useAppRegister()  // From createActionContext
   
   const handleWithRegister = async () => {
     if (!register) return
     
     try {
-      const result = await register.dispatchWithResult('updateUser', payload)
+      const result = await register.dispatchWithResult('updateUser', {
+        id: '123', 
+        name: 'John', 
+        email: 'john@example.com'
+      })
       
       if (!result.success) {
         console.error('Action failed:', result.error)

@@ -2,6 +2,16 @@
 
 Type-safe state management patterns without action dispatching overhead.
 
+## Prerequisites
+
+For complete setup instructions including store definitions, context creation, and provider configuration, see **[Basic Store Setup](../setup/basic-store-setup.md)**.
+
+All store pattern examples reference the shared setup guide for:
+- Store type definitions and configurations
+- Context creation patterns and naming conventions  
+- Provider composition and organization
+- Export patterns and integration strategies
+
 ## Overview
 
 Store patterns provide excellent type inference and simplified API for pure state management scenarios.

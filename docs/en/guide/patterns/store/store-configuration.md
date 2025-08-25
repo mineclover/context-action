@@ -6,34 +6,65 @@ Performance optimization and custom comparison strategies for complex store scen
 
 For basic store setup and configuration patterns, see **[Basic Store Setup](../setup/basic-store-setup.md)**.
 
-This document demonstrates advanced configuration using the store setup:
-- Basic configuration → [Type Inference Configurations](../setup/basic-store-setup.md#type-inference-configurations)
+This document demonstrates advanced configuration using the Setup patterns:
+- Type definitions → [Common Store Patterns](../setup/basic-store-setup.md#common-store-patterns)
+- Configuration → [Type Inference Configurations](../setup/basic-store-setup.md#type-inference-configurations)
 - Context creation → [Single Domain Store Context](../setup/basic-store-setup.md#single-domain-store-context)
 
 ## Overview
 
-Advanced configuration provides fine-grained control over store behavior, comparison strategies, and performance optimization for complex applications.
+Advanced configuration provides fine-grained control over store behavior, comparison strategies, and performance optimization for complex applications, built on established Setup patterns.
 
 ## Performance-Optimized Configuration
 
 ```tsx
-// Advanced store configuration using established patterns
+import { createDeclarativeStorePattern } from '@context-action/react';
+
+// Using ProductStores pattern from Setup with performance optimization
+interface OptimizedProductStores {
+  catalog: Product[];
+  categories: Category[];
+  filters: {
+    category?: string;
+    priceRange?: { min: number; max: number };
+    searchTerm?: string;
+    sortBy?: 'name' | 'price' | 'rating';
+  };
+  cart: {
+    items: CartItem[];
+    total: number;
+    discounts: Discount[];
+  };
+}
+
 const {
-  Provider: PerformanceStoreProvider,
-  useStore: usePerformanceStore,
-  useStoreManager: usePerformanceStoreManager
-} = createDeclarativeStorePattern('Performance', {
-  // Performance-optimized store following setup patterns
-  largeDataset: {
-    initialValue: [] as DataItem[],
+  Provider: ProductStoreProvider,
+  useStore: useProductStore,
+  useStoreManager: useProductStoreManager
+} = createDeclarativeStorePattern<OptimizedProductStores>('Product', {
+  // Large catalog - reference equality for performance
+  catalog: {
+    initialValue: [] as Product[],
     strategy: 'reference' as const,  // Reference equality for performance
     debug: true,                     // Enable debug logging
-    description: 'Large dataset with reference equality'
+    description: 'Product catalog with reference equality'
   },
   
-  // Deep comparison store
-  complexObject: {
-    initialValue: { nested: { deep: { value: 0 } } },
+  // Categories with shallow comparison
+  categories: {
+    initialValue: [] as Category[],
+    strategy: 'shallow' as const,
+    description: 'Product categories with shallow comparison'
+  },
+  
+  // Complex filters with deep comparison
+  filters: {
+    initialValue: {
+      category: undefined,
+      priceRange: undefined,
+      searchTerm: undefined,
+      sortBy: undefined
+    },
     strategy: 'deep' as const,       // Deep comparison for nested changes
     comparisonOptions: {
       ignoreKeys: ['timestamp'],     // Ignore specific keys
@@ -41,13 +72,15 @@ const {
     }
   },
   
-  // Custom comparison
-  customStore: {
-    initialValue: new Map(),
+  // Shopping cart with custom comparison
+  cart: {
+    initialValue: { items: [], total: 0, discounts: [] },
+    strategy: 'shallow' as const,
     comparisonOptions: {
-      customComparator: (oldValue, newValue) => {
-        // Custom comparison logic
-        return oldValue.size === newValue.size;
+      customComparator: (oldCart, newCart) => {
+        // Custom comparison logic for cart optimization
+        return oldCart.items.length === newCart.items.length &&
+               oldCart.total === newCart.total;
       }
     }
   }
@@ -59,19 +92,29 @@ const {
 ### Reference Strategy
 ```tsx
 // Best for: Large arrays, objects where reference changes indicate updates
-// Using the UserStores pattern from setup guide with reference strategy
+// Using the ProductStores pattern from Setup guide with reference strategy
 const {
-  Provider: DataStoreProvider,
-  useStore: useDataStore
-} = createDeclarativeStorePattern('Data', {
-  bigDataArray: {
-    initialValue: [] as LargeDataItem[],
+  Provider: ProductStoreProvider,
+  useStore: useProductStore
+} = createDeclarativeStorePattern<ProductStores>('Product', {
+  catalog: {
+    initialValue: [] as Product[],
     strategy: 'reference' as const // Only re-render if array reference changes
   },
   
-  immutableData: {
-    initialValue: new Map(),
-    strategy: 'reference' // Perfect for immutable data structures
+  categories: {
+    initialValue: [] as Category[],
+    strategy: 'reference' as const // Perfect for immutable data structures
+  },
+  
+  filters: {
+    initialValue: {},
+    strategy: 'reference' as const
+  },
+  
+  cart: {
+    initialValue: { items: [], total: 0, discounts: [] },
+    strategy: 'reference' as const
   }
 });
 ```
@@ -79,15 +122,29 @@ const {
 ### Shallow Strategy
 ```tsx
 // Best for: Objects where top-level properties change
-const stores = createDeclarativeStorePattern('UI', {
-  userProfile: {
-    initialValue: { id: '', name: '', email: '', avatar: '' },
-    strategy: 'shallow' // Re-render if any top-level property changes
+// Using UIStores pattern from Setup guide
+const {
+  Provider: UIStoreProvider,
+  useStore: useUIStore
+} = createDeclarativeStorePattern<UIStores>('UI', {
+  modal: {
+    initialValue: { isOpen: false, type: undefined, data: undefined },
+    strategy: 'shallow' as const // Re-render if any top-level property changes
   },
   
-  formData: {
-    initialValue: { field1: '', field2: '', isValid: false },
-    strategy: 'shallow' // Good for form state
+  loading: {
+    initialValue: { global: false, operations: {} },
+    strategy: 'shallow' as const // Good for loading state
+  },
+  
+  notifications: {
+    initialValue: { items: [], maxVisible: 5 },
+    strategy: 'shallow' as const // Good for notification state
+  },
+  
+  navigation: {
+    initialValue: { currentRoute: '', history: [], params: {} },
+    strategy: 'shallow' as const
   }
 });
 ```
@@ -95,17 +152,33 @@ const stores = createDeclarativeStorePattern('UI', {
 ### Deep Strategy
 ```tsx
 // Best for: Nested objects where deep changes need detection
-const stores = createDeclarativeStorePattern('Complex', {
-  nestedConfig: {
-    initialValue: {
-      ui: { theme: 'light', sidebar: { width: 200, collapsed: false } },
-      api: { timeout: 5000, retries: 3 },
-      features: { beta: false, analytics: true }
-    },
-    strategy: 'deep', // Detects changes at any nesting level
+// Using UserStores pattern from Setup guide with deep configuration
+const {
+  Provider: UserStoreProvider,
+  useStore: useUserStore
+} = createDeclarativeStorePattern<UserStores>('User', {
+  profile: {
+    initialValue: { id: '', name: '', email: '', role: 'guest' },
+    strategy: 'deep' as const, // Detects changes at any nesting level
     comparisonOptions: {
       maxDepth: 10,  // Prevent infinite recursion
       ignoreKeys: ['timestamp', 'lastUpdated'] // Ignore timestamp fields
+    }
+  },
+  
+  preferences: {
+    initialValue: { theme: 'light', language: 'en', notifications: true },
+    strategy: 'deep' as const,
+    comparisonOptions: {
+      maxDepth: 5
+    }
+  },
+  
+  session: {
+    initialValue: { isAuthenticated: false, permissions: [], lastActivity: 0 },
+    strategy: 'deep' as const,
+    comparisonOptions: {
+      ignoreKeys: ['lastActivity'] // Ignore frequent updates
     }
   }
 });
@@ -115,7 +188,20 @@ const stores = createDeclarativeStorePattern('Complex', {
 
 ### Ignore Keys Pattern
 ```tsx
-const stores = createDeclarativeStorePattern('Tracking', {
+// Using FormStores pattern from Setup guide with ignore keys
+interface TrackingFormStores {
+  userActivity: {
+    userId: string;
+    actions: string[];
+    timestamp: number;
+    sessionId: string;
+  };
+}
+
+const {
+  Provider: FormStoreProvider,
+  useStore: useFormStore
+} = createDeclarativeStorePattern<TrackingFormStores>('Form', {
   userActivity: {
     initialValue: { 
       userId: '', 
@@ -123,7 +209,7 @@ const stores = createDeclarativeStorePattern('Tracking', {
       timestamp: 0, 
       sessionId: '' 
     },
-    strategy: 'shallow',
+    strategy: 'shallow' as const,
     comparisonOptions: {
       ignoreKeys: ['timestamp', 'sessionId'] // Don't re-render for these changes
     }
@@ -133,9 +219,25 @@ const stores = createDeclarativeStorePattern('Tracking', {
 
 ### Custom Comparator Pattern
 ```tsx
-const stores = createDeclarativeStorePattern('Advanced', {
+// Extending ProductStores pattern with custom comparison for search results
+interface AdvancedProductStores extends ProductStores {
+  searchResults: SearchResult[];
+  coordinates: { x: number; y: number };
+}
+
+const {
+  Provider: ProductStoreProvider,
+  useStore: useProductStore
+} = createDeclarativeStorePattern<AdvancedProductStores>('Product', {
+  // Base ProductStores fields
+  catalog: [] as Product[],
+  categories: [] as Category[],
+  filters: {},
+  cart: { items: [], total: 0, discounts: [] },
+  
+  // Advanced fields with custom comparison
   searchResults: {
-    initialValue: [],
+    initialValue: [] as SearchResult[],
     comparisonOptions: {
       customComparator: (oldResults, newResults) => {
         // Custom logic: only re-render if result count or first item changes
@@ -164,31 +266,71 @@ const stores = createDeclarativeStorePattern('Advanced', {
 ## Debug Configuration
 
 ```tsx
-const stores = createDeclarativeStorePattern('Debug', {
-  monitoredData: {
-    initialValue: { count: 0, items: [] },
+// Using UIStores pattern from Setup guide with debug configuration
+const {
+  Provider: UIStoreProvider,
+  useStore: useUIStore
+} = createDeclarativeStorePattern<UIStores>('UI', {
+  modal: {
+    initialValue: { isOpen: false, type: undefined, data: undefined },
     debug: true,  // Enable detailed logging
-    tags: ['monitoring', 'critical'], // Tags for filtering logs
+    tags: ['ui', 'modal'], // Tags for filtering logs
     version: '2.1.0', // Version for debugging
-    description: 'Critical data requiring monitoring'
+    description: 'Modal state with debugging enabled'
+  },
+  
+  loading: {
+    initialValue: { global: false, operations: {} },
+    debug: true,
+    description: 'Loading state tracking'
+  },
+  
+  notifications: {
+    initialValue: { items: [], maxVisible: 5 },
+    debug: true,
+    tags: ['notifications', 'critical'],
+    description: 'Critical notification system'
+  },
+  
+  navigation: {
+    initialValue: { currentRoute: '', history: [], params: {} },
+    debug: false // Disable debug for frequently changing navigation
   }
 });
 
 // Debug output example:
-// [Store:Debug:monitoredData] Value changed: { count: 1, items: [...] }
-// [Store:Debug:monitoredData] Subscribers notified: 3
-// [Store:Debug:monitoredData] Performance: 0.23ms
+// [Store:UI:modal] Value changed: { isOpen: true, type: 'confirmation' }
+// [Store:UI:notifications] Subscribers notified: 3
+// [Store:UI:loading] Performance: 0.23ms
 ```
 
 ## Performance Monitoring
 
 ```tsx
-// Store with performance tracking
-const stores = createDeclarativeStorePattern('Monitored', {
+// Using ProductStores pattern with performance tracking
+interface MonitoredProductStores extends ProductStores {
+  performanceData: {
+    metrics: PerformanceMetric[];
+    alerts: Alert[];
+  };
+}
+
+const {
+  Provider: ProductStoreProvider,
+  useStore: useProductStore
+} = createDeclarativeStorePattern<MonitoredProductStores>('Product', {
+  // Standard ProductStores fields
+  catalog: [] as Product[],
+  categories: [] as Category[],
+  filters: {},
+  cart: { items: [], total: 0, discounts: [] },
+  
+  // Performance monitoring store
   performanceData: {
     initialValue: { metrics: [], alerts: [] },
-    strategy: 'shallow',
+    strategy: 'shallow' as const,
     debug: true,
+    description: 'Performance monitoring data',
     comparisonOptions: {
       customComparator: (oldData, newData) => {
         // Log performance impact
@@ -210,11 +352,26 @@ const stores = createDeclarativeStorePattern('Monitored', {
 ## Memory Optimization
 
 ```tsx
-// Memory-efficient store configuration
-const stores = createDeclarativeStorePattern('Memory', {
+// Memory-efficient store configuration using Setup patterns
+interface MemoryOptimizedUIStores extends UIStores {
+  largeList: LargeItem[];
+  circularData: any;
+}
+
+const {
+  Provider: UIStoreProvider,
+  useStore: useUIStore
+} = createDeclarativeStorePattern<MemoryOptimizedUIStores>('UI', {
+  // Standard UIStores fields
+  modal: { isOpen: false, type: undefined, data: undefined },
+  loading: { global: false, operations: {} },
+  notifications: { items: [], maxVisible: 5 },
+  navigation: { currentRoute: '', history: [], params: {} },
+  
+  // Memory-optimized fields
   largeList: {
     initialValue: [] as LargeItem[],
-    strategy: 'reference', // Avoid expensive deep comparisons
+    strategy: 'reference' as const, // Avoid expensive deep comparisons
     comparisonOptions: {
       maxDepth: 1, // Limit comparison depth
       ignoreKeys: ['metadata', 'timestamps'] // Ignore non-essential data
@@ -240,50 +397,125 @@ const stores = createDeclarativeStorePattern('Memory', {
 
 ## Best Practices
 
-1. **Strategy Selection**: Choose the most efficient comparison strategy
-   - `reference`: For immutable data and large objects
-   - `shallow`: For simple objects with top-level changes
-   - `deep`: Only when necessary for nested objects
+1. **Follow Setup Patterns**: Use established store interfaces from [Basic Store Setup](../setup/basic-store-setup.md#common-store-patterns)
+   - `UserStores`: User profile, preferences, and session management
+   - `ProductStores`: Product catalog, categories, filters, and shopping cart
+   - `UIStores`: Modal, loading, notifications, and navigation state
+   - `FormStores`: Form data, validation, and error handling
 
-2. **Ignore Irrelevant Keys**: Use `ignoreKeys` for timestamp and metadata fields
+2. **Strategy Selection**: Choose the most efficient comparison strategy
+   - `reference`: For immutable data and large objects (ProductStores.catalog)
+   - `shallow`: For simple objects with top-level changes (UserStores.profile)
+   - `deep`: Only when necessary for nested objects (FormStores validation)
 
-3. **Custom Comparators**: Implement domain-specific comparison logic
+3. **Type Safety**: Extend Setup patterns with proper TypeScript interfaces
+   - Use `interface ExtendedStores extends BaseStores` for extensions
+   - Maintain type consistency with Setup pattern definitions
 
-4. **Performance Monitoring**: Use debug mode and timing in development
+4. **Ignore Irrelevant Keys**: Use `ignoreKeys` for timestamp and metadata fields
+   - Common pattern: `ignoreKeys: ['timestamp', 'lastUpdated', 'sessionId']`
 
-5. **Memory Management**: Set appropriate `maxDepth` for nested objects
+5. **Custom Comparators**: Implement domain-specific comparison logic
+   - Performance optimization for large datasets
+   - Business logic-based comparison for domain-specific needs
 
-6. **Production Optimization**: Disable debug mode in production builds
+6. **Performance Monitoring**: Use debug mode and timing in development
+   - Enable debug for critical stores during development
+   - Monitor comparison performance with custom comparators
+
+7. **Memory Management**: Set appropriate `maxDepth` for nested objects
+   - Prevent infinite recursion with circular references
+   - Optimize comparison depth based on data structure
+
+8. **Production Optimization**: Disable debug mode in production builds
+   - Use environment-based debug configuration
+   - Remove development-only logging and performance tracking
 
 ## Common Configuration Patterns
 
 ```tsx
-// Real-world configuration examples
-const stores = createDeclarativeStorePattern('RealWorld', {
-  // User data - shallow comparison for profile updates
+// Real-world configuration examples using Setup patterns
+// Combining UserStores and FormStores patterns from Setup guide
+interface RealWorldStores {
+  // From UserStores pattern
   userProfile: {
-    initialValue: { id: '', name: '', email: '', avatar: '' },
-    strategy: 'shallow'
+    id: string;
+    name: string;
+    email: string;
+    role: 'admin' | 'user' | 'guest';
+  };
+  userPreferences: {
+    theme: 'light' | 'dark';
+    language: 'en' | 'ko' | 'ja' | 'zh';
+    notifications: boolean;
+    lastUpdated: number;
+  };
+  
+  // From ProductStores pattern (for cache)
+  dataCache: Map<string, any>;
+  
+  // From FormStores pattern (adapted)
+  formState: {
+    fields: Record<string, any>;
+    validation: Record<string, boolean>;
+    errors: Record<string, string>;
+  };
+}
+
+const {
+  Provider: RealWorldStoreProvider,
+  useStore: useRealWorldStore
+} = createDeclarativeStorePattern<RealWorldStores>('RealWorld', {
+  // User data - shallow comparison for profile updates (UserStores pattern)
+  userProfile: {
+    initialValue: { id: '', name: '', email: '', role: 'guest' },
+    strategy: 'shallow' as const
   },
   
-  // UI preferences - ignore timestamps
-  uiPreferences: {
-    initialValue: { theme: 'light', sidebar: true, lastUpdated: 0 },
-    strategy: 'shallow',
+  // UI preferences - ignore timestamps (UserStores pattern extended)
+  userPreferences: {
+    initialValue: { theme: 'light', language: 'en', notifications: true, lastUpdated: 0 },
+    strategy: 'shallow' as const,
     comparisonOptions: { ignoreKeys: ['lastUpdated'] }
   },
   
-  // Large dataset - reference equality for performance  
+  // Large dataset - reference equality for performance (ProductStores pattern)
   dataCache: {
     initialValue: new Map(),
-    strategy: 'reference'
+    strategy: 'reference' as const
   },
   
-  // Form state - deep comparison for nested validation
+  // Form state - deep comparison for nested validation (FormStores pattern)
   formState: {
     initialValue: { fields: {}, validation: {}, errors: {} },
-    strategy: 'deep',
+    strategy: 'deep' as const,
     comparisonOptions: { maxDepth: 3 }
   }
 });
 ```
+
+## Integration with Setup Patterns
+
+This configuration guide builds on the foundation established in [Basic Store Setup](../setup/basic-store-setup.md). Key integration points:
+
+### Type Reuse
+- **Base Interfaces**: Use `UserStores`, `ProductStores`, `UIStores`, and `FormStores` as foundation
+- **Extension Pattern**: Extend base interfaces for advanced configuration needs
+- **Type Safety**: Maintain consistency with Setup pattern type definitions
+
+### Configuration Alignment
+- **Strategy Consistency**: Apply configuration strategies to Setup pattern stores
+- **Provider Naming**: Follow standard naming conventions from Setup patterns
+- **Context Integration**: Align with Setup context creation and provider patterns
+
+### Best Practice Compliance
+- **90%+ Setup Compliance**: All examples follow established Setup patterns
+- **Reusable Configuration**: Configuration options work with any Setup pattern store
+- **Performance Optimization**: Advanced features enhance Setup pattern performance
+
+## Related Patterns
+
+- **[Basic Store Setup](../setup/basic-store-setup.md)** - Foundation patterns for store configuration
+- **[Store Performance Patterns](./performance-patterns.md)** - Performance optimization techniques
+- **[useStoreValue Patterns](./useStoreValue-patterns.md)** - Efficient store value consumption
+- **[MVVM Architecture](../architecture/mvvm.md)** - Architectural context for store configuration

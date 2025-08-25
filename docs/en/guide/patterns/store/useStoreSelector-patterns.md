@@ -2,6 +2,13 @@
 
 Advanced store selection patterns with `useStoreSelector` for selective subscription and performance optimization.
 
+## Prerequisites
+
+This guide builds upon the Setup specification. Ensure you have:
+- Basic understanding of [Store Setup Patterns](../setup/store-setup.md)
+- Familiarity with `UserStores` and `ProductStores` naming patterns
+- Knowledge of [Store Provider Setup](../setup/provider-setup.md)
+
 ## Core Features
 
 The `useStoreSelector` hook provides:
@@ -17,23 +24,35 @@ The `useStoreSelector` hook provides:
 ```tsx
 import { useStoreSelector, useMultiStoreSelector } from '@context-action/react';
 
-// ✅ This works efficiently without useCallback!
-const userName = useStoreSelector(userStore, user => user.name);
+// Using Setup-based UserStores pattern
+const { useUserStore } = UserStores();
+const { useProductStore } = ProductStores();
 
-// ✅ Inline selectors are automatically stabilized
-const userDisplay = useStoreSelector(userStore, user => 
-  `${user.firstName} ${user.lastName} (${user.role})`
-);
+function UserProfile() {
+  const userStore = useUserStore('user');
+  const settingsStore = useUserStore('settings');
+  const productStore = useProductStore('cart');
 
-// ✅ Multi-store selectors also work without memoization
-const dashboardData = useMultiStoreSelector(
-  [userStore, settingsStore, cartStore],
-  ([user, settings, cart]) => ({
-    user: { name: user.name, role: user.role },
-    theme: settings.theme,
-    cartItems: cart.items.length
-  })
-);
+  // ✅ This works efficiently without useCallback!
+  const userName = useStoreSelector(userStore, user => user.name);
+
+  // ✅ Inline selectors are automatically stabilized
+  const userDisplay = useStoreSelector(userStore, user => 
+    `${user.firstName} ${user.lastName} (${user.role})`
+  );
+
+  // ✅ Multi-store selectors also work without memoization
+  const dashboardData = useMultiStoreSelector(
+    [userStore, settingsStore, productStore],
+    ([user, settings, cart]) => ({
+      user: { name: user.name, role: user.role },
+      theme: settings.theme,
+      cartItems: cart.items.length
+    })
+  );
+
+  return <div>{userDisplay} - Cart: {dashboardData.cartItems}</div>;
+}
 ```
 
 **How it works internally**:
@@ -44,65 +63,126 @@ const dashboardData = useMultiStoreSelector(
 
 ## Basic Single Store Selection
 
+Using Setup-based UserStores pattern:
+
 ```tsx
-// Select specific field
-const userName = useStoreSelector(userStore, user => user.name);
+function UserProfile() {
+  const { useUserStore } = UserStores();
+  const userStore = useUserStore('user');
+  const settingsStore = useUserStore('settings');
 
-// Select computed value
-const userDisplayName = useStoreSelector(
-  userStore, 
-  user => `${user.firstName} ${user.lastName}`
-);
+  // Select specific field
+  const userName = useStoreSelector(userStore, user => user.name);
 
-// Select nested properties
-const userTheme = useStoreSelector(
-  userStore, 
-  user => user.profile.preferences.theme
-);
+  // Select computed value
+  const userDisplayName = useStoreSelector(
+    userStore, 
+    user => `${user.firstName} ${user.lastName}`
+  );
+
+  // Select nested properties
+  const userTheme = useStoreSelector(
+    settingsStore, 
+    settings => settings.preferences.theme
+  );
+
+  return (
+    <div>
+      <h2>{userDisplayName}</h2>
+      <p>Theme: {userTheme}</p>
+    </div>
+  );
+}
 ```
 
 ## Multi-Store Selection with useMultiStoreSelector
 
-```tsx
-// Combine data from multiple stores
-const dashboardData = useMultiStoreSelector(
-  [userStore, settingsStore, notificationStore],
-  ([user, settings, notifications]) => ({
-    userName: user.name,
-    theme: settings.theme,
-    unreadCount: notifications.filter(n => !n.read).length
-  })
-);
+Combining UserStores and ProductStores patterns:
 
-// Cart with user context
-const cartSummary = useMultiStoreSelector(
-  [cartStore, userStore],
-  ([cart, user]) => ({
-    itemCount: cart.items.length,
-    total: cart.total,
-    isPremium: user.membership === 'premium'
-  })
-);
+```tsx
+function Dashboard() {
+  const { useUserStore } = UserStores();
+  const { useProductStore } = ProductStores();
+  
+  const userStore = useUserStore('user');
+  const settingsStore = useUserStore('settings');
+  const notificationStore = useUserStore('notifications');
+  const cartStore = useProductStore('cart');
+
+  // Combine data from multiple stores
+  const dashboardData = useMultiStoreSelector(
+    [userStore, settingsStore, notificationStore],
+    ([user, settings, notifications]) => ({
+      userName: user.name,
+      theme: settings.theme,
+      unreadCount: notifications.filter(n => !n.read).length
+    })
+  );
+
+  // Cart with user context
+  const cartSummary = useMultiStoreSelector(
+    [cartStore, userStore],
+    ([cart, user]) => ({
+      itemCount: cart.items.length,
+      total: cart.total,
+      isPremium: user.membership === 'premium'
+    })
+  );
+
+  return (
+    <div>
+      <h1>Welcome {dashboardData.userName}</h1>
+      <p>Theme: {dashboardData.theme}</p>
+      <p>Notifications: {dashboardData.unreadCount}</p>
+      <p>Cart: {cartSummary.itemCount} items (${cartSummary.total})</p>
+      {cartSummary.isPremium && <span>Premium Member</span>}
+    </div>
+  );
+}
 ```
 
 ## Advanced Selection Patterns
 
 ### Path-based Selection with useStorePathSelector
 
+Using Setup-based store access:
+
 ```tsx
-// Access nested properties by path
-const userTheme = useStorePathSelector(userStore, ['profile', 'preferences', 'theme']);
-const emailEnabled = useStorePathSelector(settingsStore, ['notifications', 'email']);
+function UserSettings() {
+  const { useUserStore } = UserStores();
+  const userStore = useUserStore('user');
+  const settingsStore = useUserStore('settings');
+
+  // Access nested properties by path
+  const userTheme = useStorePathSelector(userStore, ['profile', 'preferences', 'theme']);
+  const emailEnabled = useStorePathSelector(settingsStore, ['notifications', 'email']);
+
+  return (
+    <div>
+      <p>Current theme: {userTheme}</p>
+      <p>Email notifications: {emailEnabled ? 'On' : 'Off'}</p>
+    </div>
+  );
+}
 ```
 
 ### Conditional Store Selection
 
+Using Setup-based conditional access:
+
 ```tsx
-// Conditional subscription
-const userData = useStoreSelector(
-  shouldLoad ? userStore : null,
-  user => user?.name || 'Not loaded'
-);
+function ConditionalUserData({ shouldLoad }) {
+  const { useUserStore } = UserStores();
+  const userStore = useUserStore('user');
+
+  // Conditional subscription
+  const userData = useStoreSelector(
+    shouldLoad ? userStore : null,
+    user => user?.name || 'Not loaded'
+  );
+
+  return <div>{userData}</div>;
+}
 ```
 
 ## Performance Optimization
@@ -112,18 +192,31 @@ const userData = useStoreSelector(
 ```tsx
 import { shallowEqual, deepEqual } from '@context-action/react';
 
-// Reference equality (default) - fastest
-const userName = useStoreSelector(userStore, user => user.name);
+function PerformanceOptimizedUser() {
+  const { useUserStore } = UserStores();
+  const userStore = useUserStore('user');
 
-// Shallow equality for objects
-const userInfo = useStoreSelector(
-  userStore,
-  user => ({ name: user.name, email: user.email }),
-  shallowEqual
-);
+  // Reference equality (default) - fastest
+  const userName = useStoreSelector(userStore, user => user.name);
 
-// Deep equality (use sparingly)
-const nestedData = useStoreSelector(userStore, user => user.profile, deepEqual);
+  // Shallow equality for objects
+  const userInfo = useStoreSelector(
+    userStore,
+    user => ({ name: user.name, email: user.email }),
+    shallowEqual
+  );
+
+  // Deep equality (use sparingly)
+  const nestedData = useStoreSelector(userStore, user => user.profile, deepEqual);
+
+  return (
+    <div>
+      <h2>{userName}</h2>
+      <p>Email: {userInfo.email}</p>
+      <div>Profile: {JSON.stringify(nestedData)}</div>
+    </div>
+  );
+}
 ```
 
 ### External Selectors (Best Performance)
@@ -138,11 +231,21 @@ const dashboardSelector = ([user, notifications]) => ({
 });
 
 function UserDashboard() {
+  const { useUserStore } = UserStores();
+  const userStore = useUserStore('user');
+  const notificationStore = useUserStore('notifications');
+  
   const userName = useStoreSelector(userStore, userNameSelector);
   const userStats = useStoreSelector(userStore, userStatsSelector);
   const dashboard = useMultiStoreSelector([userStore, notificationStore], dashboardSelector);
   
-  return <div>{userName}: {dashboard.unreadCount} unread</div>;
+  return (
+    <div>
+      <h2>{userName}</h2>
+      <p>Posts: {userStats.posts}, Followers: {userStats.followers}</p>
+      <p>{dashboard.unreadCount} unread notifications</p>
+    </div>
+  );
 }
 ```
 
@@ -150,6 +253,9 @@ function UserDashboard() {
 
 ```tsx
 function UserProfile({ userId }) {
+  const { useUserStore } = UserStores();
+  const userStore = useUserStore('user');
+  
   // useCallback for prop-dependent selectors
   const userSelector = useCallback(
     user => user.id === userId ? user : null,
@@ -164,28 +270,45 @@ function UserProfile({ userId }) {
 ## Quick Reference
 
 ```tsx
-// Single store selection
-const userName = useStoreSelector(userStore, user => user.name);
+function QuickReferenceExample() {
+  const { useUserStore } = UserStores();
+  const { useProductStore } = ProductStores();
+  
+  const userStore = useUserStore('user');
+  const settingsStore = useUserStore('settings');
+  const cartStore = useProductStore('cart');
 
-// Multi-store selection
-const summary = useMultiStoreSelector(
-  [userStore, cartStore], 
-  ([user, cart]) => ({ name: user.name, items: cart.items.length })
-);
+  // Single store selection
+  const userName = useStoreSelector(userStore, user => user.name);
 
-// Path selection
-const theme = useStorePathSelector(userStore, ['preferences', 'theme']);
+  // Multi-store selection
+  const summary = useMultiStoreSelector(
+    [userStore, cartStore], 
+    ([user, cart]) => ({ name: user.name, items: cart.items.length })
+  );
 
-// External selectors (best performance)
-const nameSelector = (user) => user.name;
-const userName = useStoreSelector(userStore, nameSelector);
+  // Path selection
+  const theme = useStorePathSelector(settingsStore, ['preferences', 'theme']);
 
-// Equality control
-const userInfo = useStoreSelector(
-  userStore,
-  user => ({ name: user.name, email: user.email }),
-  shallowEqual
-);
+  // External selectors (best performance)
+  const nameSelector = (user) => user.name;
+  const displayName = useStoreSelector(userStore, nameSelector);
+
+  // Equality control
+  const userInfo = useStoreSelector(
+    userStore,
+    user => ({ name: user.name, email: user.email }),
+    shallowEqual
+  );
+
+  return (
+    <div>
+      <p>User: {userName}</p>
+      <p>Cart: {summary.items} items</p>
+      <p>Theme: {theme}</p>
+    </div>
+  );
+}
 ```
 
 ## Best Practices
@@ -193,43 +316,65 @@ const userInfo = useStoreSelector(
 ### 1. Keep Selectors Pure
 
 ```tsx
-// ✅ Good: Pure selector
-const userData = useStoreSelector(
-  userStore,
-  user => ({ name: user.name, email: user.email })
-);
+function PureSelectorExample() {
+  const { useUserStore } = UserStores();
+  const userStore = useUserStore('user');
 
-// ❌ Avoid: Side effects in selector
-const userData = useStoreSelector(userStore, user => {
-  console.log('User accessed'); // Side effect
-  return { name: user.name };
-});
+  // ✅ Good: Pure selector
+  const userData = useStoreSelector(
+    userStore,
+    user => ({ name: user.name, email: user.email })
+  );
+
+  // ❌ Avoid: Side effects in selector
+  const badUserData = useStoreSelector(userStore, user => {
+    console.log('User accessed'); // Side effect
+    return { name: user.name };
+  });
+
+  return <div>{userData.name}</div>;
+}
 ```
 
 ### 2. Minimize Selected Data
 
 ```tsx
-// ✅ Good: Select only what you need
-const userName = useStoreSelector(userStore, user => user.name);
+function MinimalSelectionExample() {
+  const { useUserStore } = UserStores();
+  const userStore = useUserStore('user');
 
-// ❌ Avoid: Selecting entire objects unnecessarily
-const user = useStoreSelector(userStore, user => user); // Returns entire user object
+  // ✅ Good: Select only what you need
+  const userName = useStoreSelector(userStore, user => user.name);
+
+  // ❌ Avoid: Selecting entire objects unnecessarily
+  const user = useStoreSelector(userStore, user => user); // Returns entire user object
+
+  return <div>{userName}</div>;
+}
 ```
 
 ### 3. Choose the Right Pattern
 
 ```tsx
-// Single store, simple selector
-const userName = useStoreSelector(userStore, user => user.name);
+function PatternSelectionExample() {
+  const { useUserStore } = UserStores();
+  const userStore = useUserStore('user');
+  const settingsStore = useUserStore('settings');
 
-// Multiple stores, combined data
-const dashboard = useMultiStoreSelector(
-  [userStore, settingsStore], 
-  ([user, settings]) => ({ user: user.name, theme: settings.theme })
-);
+  // Single store, simple selector
+  const userName = useStoreSelector(userStore, user => user.name);
 
-// Deep nested access
-const userTheme = useStorePathSelector(userStore, ['profile', 'preferences', 'theme']);
+  // Multiple stores, combined data
+  const dashboard = useMultiStoreSelector(
+    [userStore, settingsStore], 
+    ([user, settings]) => ({ user: user.name, theme: settings.theme })
+  );
+
+  // Deep nested access
+  const userTheme = useStorePathSelector(settingsStore, ['preferences', 'theme']);
+
+  return <div>{userName} - {dashboard.theme}</div>;
+}
 ```
 
 ### 4. Prefer External Selectors When Possible
@@ -240,6 +385,9 @@ const userNameSelector = (user) => user.name;
 const userEmailSelector = (user) => user.email;
 
 function UserComponent() {
+  const { useUserStore } = UserStores();
+  const userStore = useUserStore('user');
+  
   const userName = useStoreSelector(userStore, userNameSelector);
   const userEmail = useStoreSelector(userStore, userEmailSelector);
   
@@ -247,7 +395,10 @@ function UserComponent() {
 }
 
 // ✅ GOOD: Inline selectors (works with internal stabilization)
-function UserComponent() {
+function UserComponentInline() {
+  const { useUserStore } = UserStores();
+  const userStore = useUserStore('user');
+  
   const userName = useStoreSelector(userStore, user => user.name);
   const userEmail = useStoreSelector(userStore, user => user.email);
   
@@ -256,6 +407,9 @@ function UserComponent() {
 
 // ✅ Use inline for prop-dependent selectors
 function UserProfile({ showEmail }) {
+  const { useUserStore } = UserStores();
+  const userStore = useUserStore('user');
+  
   const displayInfo = useStoreSelector(userStore, user => ({
     name: user.name,
     email: showEmail ? user.email : null
@@ -275,8 +429,11 @@ export const userSelectors = {
   isAdmin: (user) => user.role === 'admin'
 };
 
-// Use in components
+// Use in components with Setup pattern
 function UserProfile() {
+  const { useUserStore } = UserStores();
+  const userStore = useUserStore('user');
+  
   const userName = useStoreSelector(userStore, userSelectors.name);
   const isAdmin = useStoreSelector(userStore, userSelectors.isAdmin);
   

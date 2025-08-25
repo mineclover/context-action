@@ -2,6 +2,10 @@
 
 Pattern for avoiding closure traps by accessing current state in real-time.
 
+## Prerequisites
+
+See [Basic Store Setup](../setup/basic-store-setup.md) for store context configuration and naming conventions.
+
 ## The Problem: Closure Traps
 
 ```typescript
@@ -35,18 +39,27 @@ const actionHandler = useCallback(async () => {
 ## Complete Example
 
 ```typescript
+// Using Basic Store Setup pattern with proper configurations
 const {
-  Provider: AppStoreProvider,
-  useStore: useAppStore,
-  useStoreManager: useAppStoreManager
-} = createDeclarativeStorePattern('App', {
-  isMounted: { initialValue: false },
-  isProcessing: { initialValue: false }
+  Provider: UIStoreProvider,
+  useStore: useUIStore,
+  useStoreManager: useUIStoreManager
+} = createDeclarativeStorePattern('UI', {
+  isMounted: { 
+    initialValue: false,
+    strategy: 'shallow' as const,
+    description: 'Component mount state tracking'
+  },
+  isProcessing: { 
+    initialValue: false,
+    strategy: 'shallow' as const,
+    description: 'Processing operation state'
+  }
 });
 
 function MyComponent() {
-  const isMountedStore = useAppStore('isMounted');
-  const isProcessingStore = useAppStore('isProcessing');
+  const isMountedStore = useUIStore('isMounted');
+  const isProcessingStore = useUIStore('isProcessing');
   
   const handleAction = useCallback(async () => {
     // Real-time state access - always get current values
@@ -74,12 +87,12 @@ function MyComponent() {
   );
 }
 
-// App setup with Provider
+// App setup with Provider (following Basic Store Setup pattern)
 function App() {
   return (
-    <AppStoreProvider>
+    <UIStoreProvider>
       <MyComponent />
-    </AppStoreProvider>
+    </UIStoreProvider>
   );
 }
 ```
@@ -111,8 +124,21 @@ function MultiStoreComponent() {
 ### State Validation and Updates
 
 ```typescript
+// Additional store configuration for data management
+const {
+  Provider: DataStoreProvider,
+  useStore: useDataStore,
+  useStoreManager: useDataStoreManager
+} = createDeclarativeStorePattern('Data', {
+  data: {
+    initialValue: { version: 1, content: {} },
+    strategy: 'shallow' as const,
+    description: 'Application data with versioning'
+  }
+});
+
 function DataManagementComponent() {
-  const dataStore = useAppStore('data');
+  const dataStore = useDataStore('data');
   
   useActionHandler('validateAndUpdate', useCallback(async (payload) => {
     const current = dataStore.getValue();

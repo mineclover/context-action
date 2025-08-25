@@ -98,12 +98,7 @@ export interface UIActions {
 ### MVVM Context Creation
 ```typescript
 // User Domain - Model Layer (Store Only Pattern)
-export const {
-  Provider: UserModelProvider,
-  useStore: useUserStore,
-  useStoreManager: useUserStoreManager,
-  withProvider: withUserModel
-} = createDeclarativeStorePattern('User', {
+export const UserModelContext = createDeclarativeStorePattern('User', {
   profile: {
     initialValue: { id: '', name: '', email: '', role: 'guest' as const },
     strategy: 'shallow' as const
@@ -119,19 +114,10 @@ export const {
 });
 
 // User Domain - ViewModel Layer (Action Only Pattern)
-export const {
-  Provider: UserViewModelProvider,
-  useActionDispatch: useUserActionDispatch,
-  useActionHandler: useUserActionHandler,
-  useActionDispatchWithResult: useUserActionDispatchWithResult,
-  useActionRegister: useUserActionRegister
-} = createActionContext<UserActions>('User');
+export const UserViewModelContext = createActionContext<UserActions>('User');
 
 // User Domain - Performance Layer (RefContext Pattern)
-export const {
-  Provider: UserPerformanceProvider,
-  useRefHandler: useUserPerformanceRef
-} = createRefContext<UserPerformanceRefs>('UserPerformance');
+export const UserPerformanceContext = createRefContext<UserPerformanceRefs>('UserPerformance');
 
 // Product Domain - Complete Setup
 export const ProductModelContext = createDeclarativeStorePattern('Product', {

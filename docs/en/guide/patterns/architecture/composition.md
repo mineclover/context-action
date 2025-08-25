@@ -2,6 +2,17 @@
 
 Advanced pattern composition techniques for building complex, scalable applications with the Context-Action framework.
 
+## Prerequisites
+
+Before implementing composition strategies, ensure you have completed the foundational setup:
+
+- **[Multi-Context Setup](../setup/multi-context-setup.md)** - Complete MVVM and Domain Context architecture setup patterns
+- **[Provider Composition Setup](../setup/provider-composition-setup.md)** - Advanced provider composition utilities and patterns
+- **[Basic Action Setup](../setup/basic-action-setup.md)** - Single action context patterns  
+- **[Basic Store Setup](../setup/basic-store-setup.md)** - Single store context patterns
+
+These setup guides provide the context definitions, provider configurations, and composition utilities used throughout this document.
+
 ## Composition Overview
 
 Pattern composition allows you to combine different architectural approaches based on your application's specific needs:
@@ -18,16 +29,24 @@ Pattern composition allows you to combine different architectural approaches bas
 Perfect for complex single-domain applications requiring all three core patterns.
 
 ```typescript
-// Complete single domain setup
+// Complete single domain setup using Multi-Context Setup patterns
+// Reference: multi-context-setup.md - UserModelProvider, UserViewModelProvider, UserPerformanceProvider
+
+import { 
+  UserModelProvider,
+  UserViewModelProvider as UserActionProvider,
+  UserPerformanceProvider
+} from '../setup/contexts/UserDomain';
+
 function SingleDomainApp() {
   return (
-    {/* State Management Layer */}
+    {/* State Management Layer - from Multi-Context Setup */}
     <UserModelProvider>
       
-      {/* Business Logic Layer */}
+      {/* Business Logic Layer - from Multi-Context Setup */}
       <UserActionProvider>
         
-        {/* Performance Layer */}
+        {/* Performance Layer - from Multi-Context Setup */}
         <UserPerformanceProvider>
           
           {/* Application Components */}
@@ -54,21 +73,35 @@ Ideal for applications with distinct business domains, each requiring different 
 
 ```typescript
 // Multi-domain with selective pattern usage
+// Reference: multi-context-setup.md - Domain-specific provider patterns
+
+import {
+  UserModelProvider,
+  UserViewModelProvider as UserActionProvider,
+  UserPerformanceProvider,
+  ProductModelProvider,
+  ProductViewModelProvider as ProductActionProvider,
+  // Order domain uses Store Only Pattern - reference: basic-store-setup.md
+  OrderModelProvider,
+  // Analytics uses Action Only Pattern - reference: basic-action-setup.md
+  AnalyticsActionProvider
+} from '../setup/contexts';
+
 function MultiDomainApp() {
   return (
-    {/* User Domain - Full MVVM */}
+    {/* User Domain - Full MVVM from Multi-Context Setup */}
     <UserModelProvider>
       <UserActionProvider>
         <UserPerformanceProvider>
           
-          {/* Product Domain - Store + Action Only */}
+          {/* Product Domain - Store + Action from Multi-Context Setup */}
           <ProductModelProvider>
             <ProductActionProvider>
               
-              {/* Order Domain - Store Only */}
+              {/* Order Domain - Store Only Pattern */}
               <OrderModelProvider>
                 
-                {/* Analytics Domain - Action Only */}
+                {/* Analytics Domain - Action Only Pattern */}
                 <AnalyticsActionProvider>
                   
                   <ECommerceApp />
@@ -98,24 +131,41 @@ function MultiDomainApp() {
 Large-scale applications combining MVVM layers with Domain contexts.
 
 ```typescript
-// Enterprise-scale composition
+// Enterprise-scale composition using Domain Context Architecture Setup
+// Reference: multi-context-setup.md - Domain Context Architecture Setup
+
+import {
+  // Business Domain from Domain Context Architecture Setup
+  BusinessModelProvider,
+  BusinessViewModelProvider as BusinessActionProvider,
+  // UI Domain from MVVM Architecture Setup
+  UIModelProvider,
+  UIViewModelProvider as UIActionProvider,
+  UserPerformanceProvider as UIPerformanceProvider,
+  // Validation Domain from Domain Context Architecture Setup
+  ValidationModelProvider,
+  ValidationViewModelProvider as ValidationActionProvider,
+  // Design System Context from Domain Context Architecture Setup
+  DesignModelProvider
+} from '../setup/contexts';
+
 function EnterpriseApp() {
   return (
-    {/* Business Domain MVVM */}
+    {/* Business Domain MVVM - from Domain Context Architecture Setup */}
     <BusinessModelProvider>
       <BusinessActionProvider>
         <BusinessPerformanceProvider>
           
-          {/* UI Domain MVVM */}
+          {/* UI Domain MVVM - from MVVM Architecture Setup */}
           <UIModelProvider>
             <UIActionProvider>
               <UIPerformanceProvider>
                 
-                {/* Validation Domain - Store + Action */}
+                {/* Validation Domain - from Domain Context Architecture Setup */}
                 <ValidationModelProvider>
                   <ValidationActionProvider>
                     
-                    {/* Design Domain - Store Only */}
+                    {/* Design Domain - from Design System Context Setup */}
                     <DesignModelProvider>
                       
                       <EnterpriseApplication />
@@ -181,19 +231,33 @@ function HybridApp() {
 
 ```typescript
 // Integration layer for cross-domain communication
+// Reference: multi-context-setup.md - Cross-Context Communication Setup
+
+import {
+  useBusinessStoreManager,
+  useUIStoreManager,
+  useValidationStoreManager,
+  useBusinessActionHandler,
+  useContextBridge  // Cross-context communication utility
+} from '../setup/contexts';
+
 export function useIntegrationLayer() {
+  // Using Context Bridge pattern from Multi-Context Setup
+  const contextBridge = useContextBridge();
+  
+  // Alternative: Direct manager access
   const businessManager = useBusinessStoreManager();
   const uiManager = useUIStoreManager();
   const validationManager = useValidationStoreManager();
   
   const integratedWorkflow = useCallback(async (payload, controller) => {
-    // Coordinate across multiple domains
-    const validationResult = await validateAcrossDomains(payload);
-    const businessResult = await processBusinessLogic(payload);
-    const uiUpdate = await updateUserInterface(businessResult);
+    // Coordinate across multiple domains using Context Bridge
+    const validationResult = await contextBridge.validation.actions('validateAcrossDomains', payload);
+    const businessResult = await contextBridge.business.actions('processBusinessLogic', payload);
+    const uiUpdate = await contextBridge.ui.actions('updateUserInterface', businessResult);
     
     return { validationResult, businessResult, uiUpdate };
-  }, [businessManager, uiManager, validationManager]);
+  }, [contextBridge, businessManager, uiManager, validationManager]);
   
   // Register in appropriate action context
   useBusinessActionHandler('integratedWorkflow', integratedWorkflow);
@@ -204,16 +268,26 @@ export function useIntegrationLayer() {
 
 ```typescript
 // Conditional provider composition based on features
+// Reference: multi-context-setup.md - Conditional Multi-Context Setup
+
+import {
+  ValidationModelProvider,
+  ValidationViewModelProvider as ValidationActionProvider,
+  UserPerformanceProvider as PerformanceProvider,
+  EventBusProvider as IntegrationActionProvider  // from Cross-Context Communication Setup
+} from '../setup/contexts';
+
 interface AppConfig {
   enablePerformanceOptimizations: boolean;
   enableAdvancedValidation: boolean;
   enableCrossDomainFeatures: boolean;
 }
 
+// Following Enterprise Configuration pattern from Multi-Context Setup
 function ConfigurableApp({ config }: { config: AppConfig }) {
   let app = <CoreApp />;
   
-  // Wrap with performance layer if enabled
+  // Wrap with performance layer if enabled - from Multi-Context Setup RefContext patterns
   if (config.enablePerformanceOptimizations) {
     app = (
       <PerformanceProvider>
@@ -222,7 +296,7 @@ function ConfigurableApp({ config }: { config: AppConfig }) {
     );
   }
   
-  // Add validation layer if enabled
+  // Add validation layer if enabled - from Domain Context Architecture Setup
   if (config.enableAdvancedValidation) {
     app = (
       <ValidationModelProvider>
@@ -233,7 +307,7 @@ function ConfigurableApp({ config }: { config: AppConfig }) {
     );
   }
   
-  // Add cross-domain features if enabled
+  // Add cross-domain features if enabled - from Cross-Context Communication Setup
   if (config.enableCrossDomainFeatures) {
     app = (
       <IntegrationActionProvider>
@@ -250,34 +324,51 @@ function ConfigurableApp({ config }: { config: AppConfig }) {
 
 ```typescript
 // Runtime composition based on user roles or features
+// Reference: provider-composition-setup.md - Dynamic Provider Composition
+
+import { composeProviders } from '@context-action/react';  // from Provider Composition Setup
+import {
+  UIModelProvider as CoreModelProvider,
+  UIViewModelProvider as CoreActionProvider,
+  // Admin providers would be defined in Multi-Context Setup
+  AdminModelProvider,
+  AdminActionProvider,
+  UserPerformanceProvider as PerformanceProvider,
+  ValidationModelProvider,
+  ValidationViewModelProvider as ValidationActionProvider
+} from '../setup/contexts';
+
 function DynamicApp({ userRole, features }: { 
   userRole: 'admin' | 'user' | 'guest';
   features: string[];
 }) {
   const providers: React.ComponentType<any>[] = [];
   
-  // Base providers for all users
+  // Base providers for all users - from Multi-Context Setup
   providers.push(CoreModelProvider, CoreActionProvider);
   
-  // Add admin-specific providers
+  // Add admin-specific providers - from Multi-Context Setup Enterprise Config
   if (userRole === 'admin') {
     providers.push(AdminModelProvider, AdminActionProvider);
   }
   
-  // Add performance providers for specific features
+  // Add performance providers for specific features - from Multi-Context Setup Performance Layer
   if (features.includes('animations')) {
     providers.push(PerformanceProvider);
   }
   
-  // Add validation providers for forms
+  // Add validation providers for forms - from Domain Context Architecture Setup
   if (features.includes('forms')) {
     providers.push(ValidationModelProvider, ValidationActionProvider);
   }
   
-  // Compose providers dynamically
-  return providers.reduceRight(
-    (acc, Provider) => <Provider>{acc}</Provider>,
-    <AppContent />
+  // Use composeProviders utility from Provider Composition Setup
+  const DynamicProviders = composeProviders(providers);
+  
+  return (
+    <DynamicProviders>
+      <AppContent />
+    </DynamicProviders>
   );
 }
 ```
@@ -396,6 +487,21 @@ function DynamicApp({ userRole, features }: {
    - Track provider tree depth
    - Measure memory usage
    - Profile complex compositions
+
+## Integration with Setup Guides
+
+This composition guide builds upon several setup documents:
+
+### Foundation Setup Guides
+- **[Multi-Context Setup](../setup/multi-context-setup.md)** - Complete MVVM and Domain Context setup patterns used in all examples
+- **[Provider Composition Setup](../setup/provider-composition-setup.md)** - `composeProviders` utility and composition patterns
+- **[Basic Action Setup](../setup/basic-action-setup.md)** - Single action context setup for Action Only domains
+- **[Basic Store Setup](../setup/basic-store-setup.md)** - Single store context setup for Store Only domains
+
+### Architecture Integration
+- **[MVVM Architecture](./mvvm.md)** - Uses complete MVVM setup from Multi-Context Setup
+- **[Domain Context Architecture](./domain-context.md)** - Uses domain separation from Multi-Context Setup
+- **[Context Splitting Patterns](./context-splitting.md)** - Uses provider composition from Provider Composition Setup
 
 ## Related Patterns
 

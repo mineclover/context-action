@@ -62,6 +62,12 @@ const {
   Provider: PerformanceRefProvider,
   useRefHandler: usePerformanceRef
 } = createRefContext<{
+  fpsDisplay: HTMLDivElement;
+  metricsPanel: HTMLDivElement;
+}>('Performance');
+
+// Interactive Context
+const {
   Provider: InteractiveProvider,
   useRefHandler: useInteractiveRef
 } = createRefContext<{
@@ -79,6 +85,16 @@ const {
   trail: HTMLCanvasElement;
   overlay: HTMLDivElement;
 }>('Animation');
+
+// Layout Context for structural elements
+const {
+  Provider: LayoutProvider,
+  useRefHandler: useLayoutRef
+} = createRefContext<{
+  sidebar: HTMLDivElement;
+  mainContent: HTMLDivElement;
+  header: HTMLHeaderElement;
+}>('Layout');
 ```
 
 ## Cross-Context Communication
