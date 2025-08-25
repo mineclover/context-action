@@ -1,7 +1,7 @@
 {
   "name": "@context-action/llms-generator",
-  "version": "0.3.1",
-  "description": "LLMsTXT format document generator for Context-Action framework with priority-based summarization",
+  "version": "0.3.2",
+  "description": "Enterprise-grade LLM content generation framework with mismatch detection and integrity management",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

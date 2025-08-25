@@ -65,6 +65,8 @@
     "llms:work-top20": "node packages/llms-generator/dist/cli/index.js work-next --limit 20",
     "llms:priority-tasks": "node packages/llms-generator/dist/cli/index.js priority-tasks",
     "llms:priority-tasks:fix": "node packages/llms-generator/dist/cli/index.js priority-tasks --fix",
+    "llms:detect-mismatches": "node packages/llms-generator/dist/cli/index.js detect-mismatches",
+    "llms:detect-mismatches:verbose": "node packages/llms-generator/dist/cli/index.js detect-mismatches --verbose",
     "priority": "node packages/llms-generator/dist/cli/index.js priority-stats",
     "docs:full": "pnpm docs:api && pnpm docs:sync && pnpm llms:minimum && pnpm docs:build",
     "docs:deploy": "lerna run build && pnpm docs:build",

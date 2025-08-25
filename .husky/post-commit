@@ -3,32 +3,76 @@
 # Get list of modified markdown files from the last commit
 MODIFIED_DOCS=$(git diff --name-only HEAD~1 HEAD | grep -E '^docs/(en|ko)/.*\.md$' | grep -v llms/ || true)
 
+# Get list of all changed files (including deleted) to detect potential mismatches
+ALL_DOC_CHANGES=$(git diff --name-only HEAD~1 HEAD | grep -E '^docs/(en|ko)/.*\.md$' | grep -v llms/ || true)
+DELETED_DOCS=$(git diff --name-status HEAD~1 HEAD | grep '^D' | grep -E 'docs/(en|ko)/.*\.md$' | grep -v llms/ | cut -f2 || true)
+
 # Check if llmsData directory exists and has been initialized
-if [ -d "llmsData" ] && [ -n "$MODIFIED_DOCS" ]; then
-  echo "📝 Documentation files were modified in last commit. Updating LLM work status..."
-  
-  # Debug: Show detected files
-  echo "🔍 Detected modified files:"
-  echo "$MODIFIED_DOCS" | sed 's/^/  - /'
-  
-  # Run the llms-generator sync-docs command with enhanced error handling
-  if node packages/llms-generator/dist/cli/index.js sync-docs --changed-files "$MODIFIED_DOCS" --quiet; then
-    echo "✅ Sync-docs completed successfully"
-  else
-    echo "⚠️  Sync-docs encountered an issue, but continuing..."
+if [ -d "llmsData" ]; then
+  if [ -n "$MODIFIED_DOCS" ]; then
+    echo "📝 Documentation files were modified in last commit. Updating LLM work status..."
+    
+    # Debug: Show detected files
+    echo "🔍 Detected modified files:"
+    echo "$MODIFIED_DOCS" | sed 's/^/  - /'
+    
+    # Run the llms-generator sync-docs command with enhanced error handling
+    if node packages/llms-generator/dist/cli/index.js sync-docs --changed-files "$MODIFIED_DOCS" --quiet; then
+      echo "✅ Sync-docs completed successfully"
+    else
+      echo "⚠️  Sync-docs encountered an issue, but continuing..."
+    fi
+    
+    # Check if any files were actually updated
+    LLMS_CHANGES=$(git status --porcelain llmsData/ 2>/dev/null || true)
+    
+    if [ -n "$LLMS_CHANGES" ]; then
+      echo "📋 LLM work status files updated:"
+      echo "$LLMS_CHANGES" | sed 's/^/  /'
+      echo "ℹ️  Files are ready to be committed manually when desired"
+      echo "💡 To commit these changes, run: git add llmsData/ && git commit -m \"chore(llms): update documentation status\""
+    else
+      echo "ℹ️  No LLM updates needed"
+    fi
   fi
   
-  # Check if any files were actually updated
-  LLMS_CHANGES=$(git status --porcelain llmsData/ 2>/dev/null || true)
-  
-  if [ -n "$LLMS_CHANGES" ]; then
-    echo "📋 LLM work status files updated:"
-    echo "$LLMS_CHANGES" | sed 's/^/  /'
-    echo "ℹ️  Files are ready to be committed manually when desired"
-    echo "💡 To commit these changes, run: git add llmsData/ && git commit -m \"chore(llms): update documentation status\""
-  else
-    echo "ℹ️  No LLM updates needed"
+  # Check for potential mismatches if there were any document changes (including deletions)
+  if [ -n "$ALL_DOC_CHANGES" ] || [ -n "$DELETED_DOCS" ]; then
+    echo "🔍 Checking for documentation/LLMS mismatches..."
+    
+    # Run mismatch detection with check-only mode (no file generation)
+    if node packages/llms-generator/dist/cli/index.js detect-mismatches --check-only --quiet 2>/dev/null; then
+      MISMATCH_COUNT=0
+    else
+      MISMATCH_COUNT=$?
+    fi
+    
+    # If mismatches found, generate a report
+    if [ $MISMATCH_COUNT -ne 0 ]; then
+      echo "⚠️  Found documentation/LLMS mismatches. Generating report..."
+      
+      if node packages/llms-generator/dist/cli/index.js detect-mismatches --output docs/llms-mismatch-report.md --quiet; then
+        echo "📄 Mismatch report generated: docs/llms-mismatch-report.md"
+        echo "💡 Review the report and run suggested commands to fix mismatches"
+        
+        # Check if the report file was created and add it to git status info
+        if [ -f "docs/llms-mismatch-report.md" ]; then
+          echo "💡 To commit the mismatch report, run: git add docs/llms-mismatch-report.md && git commit -m \"docs: add LLMS mismatch report\""
+        fi
+      else
+        echo "⚠️  Could not generate mismatch report, but continuing..."
+      fi
+    else
+      echo "✅ No documentation/LLMS mismatches detected"
+      
+      # Clean up old mismatch report if it exists and no mismatches found
+      if [ -f "docs/llms-mismatch-report.md" ]; then
+        echo "🧹 Removing outdated mismatch report"
+        rm -f "docs/llms-mismatch-report.md"
+      fi
+    fi
   fi
+  
 elif [ -n "$MODIFIED_DOCS" ] && [ ! -d "llmsData" ]; then
   echo "ℹ️  Documentation files modified, but llmsData/ not initialized. Run 'pnpm llms:init' to enable LLM sync."
 fi

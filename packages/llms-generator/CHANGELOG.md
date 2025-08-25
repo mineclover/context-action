@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.3.2] - 2025-08-26
+
+### Added
+
+- **🔍 Mismatch Detection System**: New `detect-mismatches` command for comprehensive integrity checking
+  - Identifies orphaned LLMS files when source documents are deleted
+  - Detects missing LLMS data for existing source documents  
+  - Finds structural inconsistencies in LLMS directories
+- **📄 Automated Mismatch Reporting**: Generates detailed Markdown reports with severity classification and batch fix commands
+- **🔧 Enhanced Post-Commit Hook**: Automatic mismatch detection when documentation changes occur
+- **⚡ Shell Script Integration**: Smart exit codes and `--check-only` mode for CI/CD integration
+- **📊 New Package Scripts**: `llms:detect-mismatches` and `llms:detect-mismatches:verbose`
+
+### Enhanced
+
+- **MismatchDetectionCommand**: Comprehensive integrity checking between `docs/` and `llmsData/`
+- **CLI Help System**: Updated to include new mismatch detection commands
+- **Post-Commit Hook**: Enhanced with deleted file detection and automatic report generation
+- **Package Description**: Updated to reflect enterprise-grade capabilities with integrity management
+
+### Security
+
+- **Safe File Operations**: Never automatically deletes files - always requires manual review
+- **Manual Confirmation Required**: All suggested deletion commands include safety warnings
+
 ## [0.3.1](https://github.com/mineclover/context-action/compare/v0.2.1...v0.3.1) (2025-08-21)
 
 
