@@ -23,6 +23,7 @@ import { SyncDocsCommand } from './commands/SyncDocsCommand.js';
 import { InitCommand } from './commands/InitCommand.js';
 import { PriorityManagerCommand } from './commands/PriorityManagerCommand.js';
 import { PriorityTasksCommand } from './commands/PriorityTasksCommand.js';
+import { MismatchDetectionCommand } from './commands/MismatchDetectionCommand.js';
 import { CLIConfig } from './types/CLITypes.js';
 import { EnhancedConfigManager } from '../core/EnhancedConfigManager.js';
 import { DEFAULT_CONFIG } from '../shared/config/DefaultConfig.js';
@@ -93,6 +94,10 @@ async function main(): Promise<void> {
 
       case 'priority-tasks':
         await handlePriorityTasks(commandArgs, argumentParser);
+        break;
+
+      case 'detect-mismatches':
+        await handleDetectMismatches(commandArgs, argumentParser);
         break;
 
       default:
@@ -342,6 +347,20 @@ async function handlePriorityTasks(args: string[], argumentParser: ArgumentParse
   };
 
   await priorityTasksCommand.execute(options);
+}
+
+async function handleDetectMismatches(args: string[], argumentParser: ArgumentParser): Promise<void> {
+  const config = await loadEnhancedConfig();
+  const mismatchDetectionCommand = new MismatchDetectionCommand(config);
+  
+  const options = {
+    outputFile: argumentParser.extractFlag(args, '-o', '--output') || 'docs/llms-mismatch-report.md',
+    autoFix: argumentParser.hasFlag(args, '--auto-fix'),
+    verbose: argumentParser.hasFlag(args, '-v', '--verbose'),
+    checkOnly: argumentParser.hasFlag(args, '--check-only')
+  };
+
+  await mismatchDetectionCommand.execute(options);
 }
 
 // Run CLI only if this file is executed directly

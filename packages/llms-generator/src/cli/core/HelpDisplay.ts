@@ -55,6 +55,10 @@ export class HelpDisplay {
     console.log('  sync-docs [options]              Sync documentation changes (used by pre-commit hooks)');
     console.log('                                   [--changed-files <files>] [--quiet] [--dry-run] [--force]');
     console.log('');
+    console.log('MISMATCH DETECTION:');
+    console.log('  detect-mismatches [options]      Detect mismatches between docs/ and llmsData/');
+    console.log('                                   [-o, --output <file>] [--auto-fix] [-v, --verbose] [--check-only]');
+    console.log('');
     console.log('EXAMPLES:');
     console.log('  # 🚀 RECOMMENDED WORKFLOW (Complete setup)');
     console.log('  llms init');
@@ -97,6 +101,10 @@ export class HelpDisplay {
     console.log('  # Sync documentation changes (for pre-commit hooks)');
     console.log('  llms sync-docs --changed-files="docs/en/guide/example.md" --quiet');
     console.log('  llms sync-docs --changed-files="docs/ko/api/core.md,docs/en/concept/overview.md"');
+    console.log('');
+    console.log('  # Detect mismatches between source docs and LLMS data');
+    console.log('  llms detect-mismatches --verbose');
+    console.log('  llms detect-mismatches --output reports/mismatch-report.md --check-only');
     console.log('');
     console.log('INIT COMMAND DETAILS:');
     console.log('  The init command performs three main steps:');

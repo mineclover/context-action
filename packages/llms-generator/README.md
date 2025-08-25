@@ -17,7 +17,16 @@ TypeScript library and CLI tools for generating optimized content from documenta
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Development Status](https://img.shields.io/badge/status-under%20development-orange)
 
-## 🆕 What's New in v0.3.1
+## 🆕 What's New in v0.3.2
+
+- **🔍 Mismatch Detection System**: New `detect-mismatches` command identifies orphaned LLMS files, missing LLMS data, and structural inconsistencies
+- **📄 Automated Mismatch Reporting**: Generates comprehensive Markdown reports with suggested fix commands
+- **🔧 Enhanced Post-Commit Hook**: Automatic mismatch detection when documents are deleted or modified
+- **⚡ Smart Exit Codes**: Integration-friendly exit codes for shell scripts and CI/CD pipelines
+- **🧹 Cleanup Automation**: Intelligent cleanup of outdated mismatch reports when no issues exist
+- **📊 Batch Fix Commands**: Auto-generated commands for bulk resolution of common mismatch scenarios
+
+### Previous Updates (v0.3.1)
 
 - **🌍 Global CLI Installation**: Install globally with `npm install -g @context-action/llms-generator` and use `llms` command anywhere
 - **📋 Enhanced YAML Frontmatter**: Comprehensive metadata generation for all template files with `sync-docs` command
@@ -71,6 +80,10 @@ llms llms-generate --pattern=minimum --lang=ko
 llms work-next                      # Find next work item
 llms work-status ko                 # Check Korean document status
 llms sync-docs                      # Sync and generate summaries with YAML frontmatter
+
+# Mismatch detection and maintenance
+llms detect-mismatches              # Check for docs/LLMS mismatches
+llms detect-mismatches --verbose    # Detailed mismatch analysis
 ```
 
 ### Library Usage
@@ -109,6 +122,13 @@ const result = await categoryGen.generateSingle('api-spec', 'en');
 - **Bulk Generation**: `generate-all` command for all languages at once
 - **Document Synchronization**: Auto-sync with git hooks, YAML frontmatter generation
 - **Global CLI Access**: Use `llms` command from anywhere after global installation
+
+### 🔍 Integrity & Maintenance  
+- **Mismatch Detection**: Identify orphaned LLMS files and missing source documents
+- **Automated Reports**: Generate detailed Markdown reports with fix suggestions
+- **Batch Cleanup**: Auto-generated commands for bulk issue resolution
+- **Git Integration**: Post-commit hook integration for automatic integrity checks
+- **Safe Operations**: Never auto-delete files - always require manual confirmation
 
 ### 🌐 Multi-Language Support
 - **Primary Languages**: Korean (ko), English (en)
@@ -178,6 +198,20 @@ llms work-list [lang]               # List work needed
 llms work-check [lang]              # Enhanced work check
 ```
 
+### Integrity & Maintenance
+```bash
+llms detect-mismatches [options]    # Detect docs/LLMS mismatches
+llms detect-mismatches --verbose    # Detailed mismatch analysis
+llms detect-mismatches --check-only # Check without generating report
+llms detect-mismatches --output path/to/report.md  # Custom report location
+
+# Priority and Task Management
+llms priority-stats                 # Show priority distribution statistics
+llms priority-health                # Check priority consistency and health  
+llms priority-tasks                 # Manage priority.json files
+llms priority-tasks --fix           # Automatically fix priority issues
+```
+
 ### Adaptive Composition
 ```bash
 npx llms-generator compose [lang] [chars]   # Compose content
@@ -214,6 +248,10 @@ llms generate-summaries             # YAML frontmatter summaries
 # Document Synchronization (v0.3.1)
 llms sync-docs                      # Full document sync with YAML frontmatter
 llms simple-sync [lang]             # Simple language-specific sync
+
+# Integrity Management (v0.3.2)
+llms detect-mismatches              # Full mismatch detection with report
+llms detect-mismatches --check-only --quiet  # Silent integrity check for scripts
 ```
 
 ## ⚙️ Configuration
@@ -321,10 +359,14 @@ pnpm test:watch                          # Watch mode testing
 pnpm lint                                # (temporarily disabled)
 pnpm clean                               # Clean build artifacts
 
-# Global CLI utilities (v0.3.1)
+# Global CLI utilities (v0.3.2) 
 pnpm cli                                 # Direct CLI access (local)
 npm install -g .                         # Install globally for development
 llms --version                           # Check global installation
+
+# Integrity and maintenance (v0.3.2)
+pnpm llms:detect-mismatches              # Check for documentation mismatches
+pnpm llms:detect-mismatches:verbose      # Detailed mismatch analysis
 ```
 
 ## 🏗️ Architecture
@@ -381,6 +423,84 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - **Quality Scoring**: Automatic quality assessment
 - **Performance Tracking**: Generation time and resource usage
 - **Work Analytics**: Progress tracking and completion rates
+
+## 🔍 Mismatch Detection & Integrity Management (v0.3.2)
+
+### Mismatch Detection System
+
+The `detect-mismatches` command provides comprehensive integrity checking between source documentation (`docs/`) and LLMS data (`llmsData/`). This system automatically identifies and reports inconsistencies that can occur when files are deleted, moved, or modified.
+
+#### Types of Mismatches Detected:
+
+1. **🔴 Orphaned LLMS Files** (Medium Severity)
+   - LLMS data exists but corresponding source document is missing
+   - Usually occurs when source documents are deleted or moved
+   - Requires manual review before cleanup
+
+2. **🟡 Missing LLMS Data** (Low Severity) 
+   - Source documents exist but LLMS data is missing
+   - Can be automatically fixed with `sync-docs` command
+   - Common when new documents are added
+
+3. **🔵 Inconsistent Structure** (Low Severity)
+   - LLMS directories missing required files (priority.json, templates)
+   - Directory exists but contents are incomplete or corrupted
+   - Can be fixed by regenerating missing components
+
+#### Command Options:
+
+```bash
+llms detect-mismatches                    # Generate full report
+llms detect-mismatches --verbose          # Detailed analysis output
+llms detect-mismatches --check-only       # Check without generating report file
+llms detect-mismatches --output path.md   # Custom report location
+llms detect-mismatches --check-only --quiet  # Silent mode for scripts
+```
+
+#### Generated Report Features:
+
+- **Severity Classification**: High/Medium/Low severity with appropriate actions
+- **Batch Fix Commands**: Auto-generated commands for bulk resolution
+- **Safety Warnings**: Clear warnings for potentially destructive operations
+- **Detailed Context**: Full paths, categories, languages for each mismatch
+- **Action Guidance**: Specific steps to resolve each type of issue
+
+#### Git Integration:
+
+The post-commit hook automatically runs mismatch detection when documentation changes:
+
+```bash
+# Triggered automatically on git commit with doc changes
+# Creates docs/llms-mismatch-report.md if issues found
+# Removes outdated reports when no issues exist
+```
+
+#### Example Report Output:
+
+```markdown
+# LLMS Data Mismatch Report
+
+**Generated at:** 2025-08-26 07:29:08
+**Total mismatches:** 149
+
+## Summary
+- **Orphaned LLMS files:** 4 (LLMS data without source documents)
+- **Missing LLMS data:** 85 (Source documents without LLMS data) 
+- **Inconsistent structures:** 60 (Structural issues in LLMS directories)
+
+## Batch Fix Commands
+
+### For missing LLMS data:
+```bash
+pnpm llms:sync-docs --changed-files "docs/en/guide/example.md docs/ko/api/core.md"
+```
+
+### For orphaned LLMS files:
+```bash  
+# ⚠️ Review each case manually:
+# rm -rf "llmsData/en/guide--deleted-doc"  # Check: docs/en/guide/deleted-doc.md
+```
+```
 
 ## 🔧 Template Management & Document Synchronization
 
@@ -441,7 +561,15 @@ workflow_stage: content_generated
 Action Only Pattern: Type-safe action dispatching without state management via createActionContext.
 ```
 
-#### Key Improvements in v0.3.1:
+#### Key Improvements in v0.3.2:
+- **Mismatch Detection**: Comprehensive integrity checking between docs/ and llmsData/
+- **Automated Reporting**: Generates detailed Markdown reports with fix suggestions  
+- **Safe Operations**: Never auto-deletes files - always requires manual confirmation
+- **Git Hook Integration**: Automatic mismatch detection on document changes
+- **Batch Commands**: Auto-generated commands for efficient issue resolution
+- **Exit Code Support**: Integration-friendly exit codes for shell scripts and CI/CD
+
+#### Previous Improvements (v0.3.1):
 - **Comprehensive Metadata**: Complete YAML frontmatter for all generated files
 - **Consistent Naming**: Standardized `priority.json` file naming
 - **Auto-Generation**: Automatic YAML frontmatter creation via `sync-docs`
@@ -449,12 +577,15 @@ Action Only Pattern: Type-safe action dispatching without state management via c
 - **Global CLI**: Enhanced accessibility with global `llms` command
 
 #### Benefits:
+- **Integrity Assurance**: Automatically detects and reports documentation inconsistencies
+- **Safe Operations**: Never auto-deletes files - always requires manual review and confirmation
 - **Automation**: Eliminates manual template population and synchronization
 - **Consistency**: Ensures uniform content quality and metadata across all templates
 - **Efficiency**: Processes multiple templates and documents in batch operations
 - **Validation**: Automatically validates template completeness and metadata accuracy
-- **Git Integration**: Seamless workflow with automatic post-commit synchronization
+- **Git Integration**: Seamless workflow with automatic post-commit synchronization and mismatch detection
 - **Global Accessibility**: Use `llms` command from anywhere after global installation
+- **CI/CD Ready**: Exit code support for integration with automated workflows
 
 ---
 
