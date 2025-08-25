@@ -1,0 +1,13 @@
+{
+  "documentId": "en_concept_redux-comparison",
+  "title": "Context-Action vs Redux: Feature Comparison",
+  "category": "concept",
+  "language": "en",
+  "priority": 0.5,
+  "tags": [],
+  "lastUpdated": "2025-08-25T09:07:45.103Z",
+  "source": {
+    "file": "docs/en/concept/redux-comparison.md",
+    "lastModified": "2025-08-25T05:34:11.027Z"
+  }
+}
