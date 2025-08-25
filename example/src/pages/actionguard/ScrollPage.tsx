@@ -5,8 +5,7 @@
 
 import React, { useCallback, useState, useEffect, useRef, useMemo } from 'react';
 import { PageWithLogMonitor } from '../../components/LogMonitor';
-import { createActionContext } from '@context-action/react';
-import { createStore, useStoreValue } from '@context-action/react';
+import { createActionContext, createDeclarativeStorePattern, useStoreValue } from '@context-action/react';
 import { Badge, Card, CardContent } from '../../components/ui';
 
 // Scroll 관련 액션 타입 정의
@@ -35,18 +34,24 @@ const generateContent = (page: number, itemsPerPage: number = 20) => {
   });
 };
 
-// Store 생성
-const scrollDataStore = createStore('scrollData', {
-  scrollTop: 0,
-  scrollLeft: 0,
-  element: ''
+// Store Pattern using Declarative Store Pattern (recommended approach)
+const {
+  Provider: ScrollStoreProvider,
+  useStore: useScrollStore,
+  useStoreManager: useScrollStoreManager
+} = createDeclarativeStorePattern('Scroll', {
+  scrollData: {
+    scrollTop: 0,
+    scrollLeft: 0,
+    element: ''
+  },
+  content: generateContent(0, 15),
+  loading: false,
+  currentPage: 0
 });
-const contentStore = createStore('content', generateContent(0, 15));
-const loadingStore = createStore('loading', false);
-const currentPageStore = createStore('currentPage', 0);
 
 // Action Context 생성
-const { Provider: ScrollProvider, useActionDispatch, useActionHandler } = 
+const { Provider: ScrollActionProvider, useActionDispatch, useActionHandler } = 
   createActionContext<ScrollActions>('Scroll');
 
 // 메인 컴포넌트
@@ -81,9 +86,11 @@ export function ScrollPage() {
           </div>
         </header>
 
-        <ScrollProvider>
-          <ScrollDemo />
-        </ScrollProvider>
+        <ScrollStoreProvider>
+          <ScrollActionProvider>
+            <ScrollDemo />
+          </ScrollActionProvider>
+        </ScrollStoreProvider>
       </div>
     </PageWithLogMonitor>
   );
@@ -96,7 +103,12 @@ function ScrollDemo() {
   const [isAutoScrolling, setIsAutoScrolling] = useState(false);
   const [scrollSpeed, setScrollSpeed] = useState(1);
   
-  // Store 구독
+  // Store 구독 using Declarative Store Pattern
+  const scrollDataStore = useScrollStore('scrollData');
+  const contentStore = useScrollStore('content');
+  const loadingStore = useScrollStore('loading');
+  const currentPageStore = useScrollStore('currentPage');
+  
   const scrollData = useStoreValue(scrollDataStore);
   const content = useStoreValue(contentStore);
   const loading = useStoreValue(loadingStore);
@@ -105,7 +117,7 @@ function ScrollDemo() {
   // Action Handlers 등록
   useActionHandler('updateScrollPosition', useCallback(async (payload, controller) => {
     scrollDataStore.setValue(payload);
-  }, []));
+  }, [scrollDataStore]));
 
   useActionHandler('reachScrollEnd', useCallback(async (payload, controller) => {
     if (payload.direction === 'bottom' && !loading) {
@@ -114,7 +126,7 @@ function ScrollDemo() {
         itemsPerPage: 10 
       });
     }
-  }, [dispatch, loading]));
+  }, [dispatch, loading, currentPageStore]));
 
   useActionHandler('loadMoreContent', useCallback(async (payload, controller) => {
     loadingStore.setValue(true);
@@ -128,7 +140,7 @@ function ScrollDemo() {
     contentStore.setValue([...currentContent, ...newContent]);
     currentPageStore.setValue(payload.page);
     loadingStore.setValue(false);
-  }, []));
+  }, [loadingStore, contentStore, currentPageStore]));
 
   useActionHandler('smoothScrollTo', useCallback(async (payload, controller) => {
     const container = scrollContainerRef.current;

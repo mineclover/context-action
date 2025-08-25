@@ -5,8 +5,7 @@
 
 import { useCallback, useState, useEffect, useMemo } from 'react';
 import { PageWithLogMonitor } from '../../components/LogMonitor';
-import { createActionContext } from '@context-action/react';
-import { createStore, useStoreValue } from '@context-action/react';
+import { createActionContext, createDeclarativeStorePattern, useStoreValue } from '@context-action/react';
 import { Badge, Card, CardContent } from '../../components/ui';
 
 // 검색 관련 액션 타입 정의
@@ -31,14 +30,20 @@ const sampleData = [
   { id: '8', title: 'State Synchronization', category: 'Documentation', tags: ['state', 'sync', 'real-time'], author: 'Alex Kim', date: '2024-02-20' },
 ];
 
-// Store 생성
-const searchQueryStore = createStore('searchQuery', '');
-const searchFiltersStore = createStore('searchFilters', {} as Record<string, string>);
-const searchResultsStore = createStore('searchResults', sampleData);
-const selectedResultStore = createStore('selectedResult', null as any);
+// Store Pattern using Declarative Store Pattern (recommended approach)
+const {
+  Provider: SearchStoreProvider,
+  useStore: useSearchStore,
+  useStoreManager: useSearchStoreManager
+} = createDeclarativeStorePattern('Search', {
+  query: '',
+  filters: {} as Record<string, string>,
+  results: sampleData,
+  selectedResult: null as any
+});
 
 // Action Context 생성
-const { Provider: SearchProvider, useActionDispatch, useActionHandler } = 
+const { Provider: SearchActionProvider, useActionDispatch, useActionHandler } = 
   createActionContext<SearchActions>('Search');
 
 // 메인 컴포넌트
@@ -73,9 +78,11 @@ export function SearchPage() {
           </div>
         </header>
 
-        <SearchProvider>
-          <SearchDemo />
-        </SearchProvider>
+        <SearchStoreProvider>
+          <SearchActionProvider>
+            <SearchDemo />
+          </SearchActionProvider>
+        </SearchStoreProvider>
       </div>
     </PageWithLogMonitor>
   );
@@ -86,21 +93,26 @@ function SearchDemo() {
   const dispatch = useActionDispatch();
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   
-  // Store 구독
-  const query = useStoreValue(searchQueryStore) || '';
-  const filters = useStoreValue(searchFiltersStore) || {};
-  const results = useStoreValue(searchResultsStore) || [];
+  // Store 구독 using Declarative Store Pattern
+  const queryStore = useSearchStore('query');
+  const filtersStore = useSearchStore('filters');
+  const resultsStore = useSearchStore('results');
+  const selectedResultStore = useSearchStore('selectedResult');
+  
+  const query = useStoreValue(queryStore) || '';
+  const filters = useStoreValue(filtersStore) || {};
+  const results = useStoreValue(resultsStore) || [];
   const selectedResult = useStoreValue(selectedResultStore);
 
   // Action Handlers 등록
   useActionHandler('updateQuery', useCallback(async (payload, controller) => {
-    searchQueryStore.setValue(payload.query);
+    queryStore.setValue(payload.query);
     
     // 검색 기록 업데이트
     if (payload.query.trim() && !searchHistory.includes(payload.query)) {
       setSearchHistory(prev => [payload.query, ...prev].slice(0, 5));
     }
-  }, [searchHistory]));
+  }, [searchHistory, queryStore]));
 
   useActionHandler('performSearch', useCallback(async (payload, controller) => {
     const { query, filters } = payload;
@@ -130,37 +142,37 @@ function SearchDemo() {
       }
     });
     
-    searchResultsStore.setValue(filteredResults);
-  }, []));
+    resultsStore.setValue(filteredResults);
+  }, [resultsStore]));
 
   useActionHandler('addFilter', useCallback(async (payload, controller) => {
-    const currentFilters = searchFiltersStore.getValue();
+    const currentFilters = filtersStore.getValue();
     const newFilters = { ...currentFilters, [payload.key]: payload.value };
-    searchFiltersStore.setValue(newFilters);
+    filtersStore.setValue(newFilters);
     
     // 필터 변경 시 자동 검색
-    dispatch('performSearch', { query: searchQueryStore.getValue(), filters: newFilters });
-  }, [dispatch]));
+    dispatch('performSearch', { query: queryStore.getValue(), filters: newFilters });
+  }, [dispatch, filtersStore, queryStore]));
 
   useActionHandler('removeFilter', useCallback(async (payload, controller) => {
-    const currentFilters = searchFiltersStore.getValue();
+    const currentFilters = filtersStore.getValue();
     const { [payload.key]: removed, ...newFilters } = currentFilters;
-    searchFiltersStore.setValue(newFilters);
+    filtersStore.setValue(newFilters);
     
     // 필터 제거 시 자동 검색
-    dispatch('performSearch', { query: searchQueryStore.getValue(), filters: newFilters });
-  }, [dispatch]));
+    dispatch('performSearch', { query: queryStore.getValue(), filters: newFilters });
+  }, [dispatch, filtersStore, queryStore]));
 
   useActionHandler('clearFilters', useCallback(async (_, controller) => {
-    searchFiltersStore.setValue({});
+    filtersStore.setValue({});
     
     // 필터 초기화 시 자동 검색
-    dispatch('performSearch', { query: searchQueryStore.getValue(), filters: {} });
-  }, [dispatch]));
+    dispatch('performSearch', { query: queryStore.getValue(), filters: {} });
+  }, [dispatch, filtersStore, queryStore]));
 
   useActionHandler('selectResult', useCallback(async (payload, controller) => {
     selectedResultStore.setValue(payload.item);
-  }, []));
+  }, [selectedResultStore]));
 
   // 검색 실행
   const handleSearch = useCallback((searchQuery: string) => {
