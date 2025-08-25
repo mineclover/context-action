@@ -7,10 +7,10 @@
 
 import { createActionContext } from '@context-action/react';
 import { useState, useCallback } from 'react';
-import type { AppActions } from '../types/actions';
-import { Button } from './ui/Button';
-import { Card } from './ui/Card';
-import { Status } from './ui/Status';
+import type { AppActions } from '../../types/actions';
+import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
+import { Status } from '../../components/ui/Status';
 
 // Create typed action context with enhanced logging
 const {

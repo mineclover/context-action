@@ -6,12 +6,12 @@ import {
   Routes,
   useLocation,
 } from 'react-router-dom';
-import ConcurrentActionTestPage from './components/ConcurrentActionTestPage';
+import ConcurrentActionTestPage from './pages/examples/ConcurrentActionTestPage';
 import EnhancedAbortableSearchExample from './components/EnhancedAbortableSearchExample';
 import Layout from './components/Layout';
 import { ToastContainer, ToastControlPanel } from './components/ToastSystem';
 import ActionGuardIndexPage from './pages/actionguard/ActionGuardIndexPage';
-import ActionGuardPage from './pages/action-guard/ActionGuardPage';
+import ActionGuardPage from './pages/actionguard/ActionGuardPage';
 import ApiBlockingPage from './pages/actionguard/ApiBlockingPage';
 // import ActionGuardTestPage from './pages/actionguard/dispatch-options-test/DispatchOptionsTestPage';
 import { ContextStoreMouseEventsPage } from './pages/actionguard/ContextStoreMouseEventsPage';
@@ -21,8 +21,8 @@ import { MouseEventsIndexPage } from './pages/mouse-events/MouseEventsIndexPage'
 import { CleanArchitecturePage } from './pages/mouse-events/CleanArchitecturePage';
 import { ContextStoreActionPage } from './pages/mouse-events/ContextStoreActionPage';
 import { EnhancedContextStorePage } from './pages/mouse-events/EnhancedContextStorePage';
-import PriorityPerformancePage from './pages/actionguard/PriorityPerformancePage';
-import { PriorityPerformancePage as NewPriorityPerformancePage } from './pages/actionguard/priority-performance/PriorityPerformancePage';
+import PriorityPerformanceBasicPage from './pages/actionguard/PriorityPerformancePage';
+import { PriorityPerformancePage } from './pages/actionguard/priority-performance/PriorityPerformancePage';
 import ScrollPage from './pages/actionguard/ScrollPage';
 import SearchPage from './pages/actionguard/SearchPage';
 import ThrottleComparisonPage from './pages/actionguard/ThrottleComparisonPage';
@@ -147,11 +147,11 @@ function AppContent() {
           {/* <Route path="/actionguard/test" element={<ActionGuardTestPage />} /> */}
           <Route
             path="/actionguard/priority-performance"
-            element={<PriorityPerformancePage />}
+            element={<PriorityPerformanceBasicPage />}
           />
           <Route
             path="/actionguard/priority-performance-advanced"
-            element={<NewPriorityPerformancePage />}
+            element={<PriorityPerformancePage />}
           />
           <Route
             path="/actionguard/throttle-comparison"
