@@ -23,7 +23,7 @@ const { Provider: PriorityProvider, useActionDispatch, useActionHandler } =
   createActionContext<PriorityActions>('Priority');
 
 // 메인 컴포넌트
-export function PriorityPerformancePage() {
+export function PriorityPerformanceBasicPage() {
   return (
     <PageWithLogMonitor
       pageId="priority-performance"
@@ -471,4 +471,4 @@ function PriorityPerformanceDemo() {
   );
 }
 
-export default PriorityPerformancePage;
+export default PriorityPerformanceBasicPage;
