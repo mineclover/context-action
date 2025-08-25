@@ -8,7 +8,7 @@ MVVM provides a structured approach to building complex applications with clear 
 
 - **Model Layer**: Store Only Pattern for reactive state management
 - **ViewModel Layer**: Action Only Pattern for business logic and coordination  
-- **Performance Layer**: RefContext Pattern for direct DOM manipulation
+- **Performance Layer**: RefContext Pattern for direct DOM manipulation and singleton object management
 - **View Layer**: Pure React components for UI presentation
 
 ## Architecture Flow
@@ -33,59 +33,19 @@ flowchart LR
     style Performance fill:#fff3e0
 ```
 
-## Implementation Example
+## Prerequisites
 
-### Step 1: Define Types and Contexts
+For complete MVVM setup instructions including type definitions, multi-layer contexts, and provider composition, see **[Multi-Context Setup - MVVM Architecture](../setup/multi-context-setup.md#mvvm-architecture-setup)**.
 
-```typescript
-// contexts/UserContext.ts
-export interface UserStores {
-  profile: { id: string; name: string; role: 'admin' | 'user' };
-  session: { isAuthenticated: boolean; permissions: string[] };
-}
+This document demonstrates implementation patterns using the MVVM setup:
+- Type definitions → [Complete Type Definitions](../setup/multi-context-setup.md#complete-type-definitions)
+- Context creation → [MVVM Context Creation](../setup/multi-context-setup.md#mvvm-context-creation)  
+- Provider composition → [Layer-Based Composition](../setup/multi-context-setup.md#layer-based-composition-mvvm)
 
-export interface UserActions {
-  login: { email: string; password: string };
-  logout: void;
-  updateProfile: { name: string; role: string };
-}
-
-// Model Layer (Store Only Pattern)
-export const {
-  Provider: UserModelProvider,
-  useStore: useUserStore,
-  useStoreManager: useUserStoreManager
-} = createDeclarativeStorePattern<UserStores>('User', {
-  profile: {
-    initialValue: { id: '', name: '', role: 'user' },
-    strategy: 'shallow'
-  },
-  session: {
-    initialValue: { isAuthenticated: false, permissions: [] },
-    strategy: 'shallow'
-  }
-});
-
-// ViewModel Layer (Action Only Pattern)
-export const {
-  Provider: UserViewModelProvider,
-  useActionDispatch: useUserActionDispatch,
-  useActionHandler: useUserActionHandler
-} = createActionContext<UserActions>('User');
-
-// Performance Layer (RefContext Pattern)
-export type UserPerformanceRefs = {
-  profileCard: HTMLDivElement;
-  loginButton: HTMLButtonElement;
-};
-
-export const {
-  Provider: UserPerformanceProvider,
-  useRefHandler: useUserPerformanceRef
-} = createRefContext<UserPerformanceRefs>('UserPerformance');
+## Layer Implementation Patterns
 ```
 
-### Step 2: Model Layer (Data Management)
+### Model Layer (Data Management)
 
 ```typescript
 // hooks/useUserData.ts - Data subscription hooks
@@ -300,6 +260,8 @@ function UserApp() {
 - ✅ Hardware acceleration
 - ✅ Real-time interactions
 - ✅ Performance-critical updates
+- ✅ Singleton object management
+- ✅ External resource lazy evaluation
 - ❌ Business logic
 - ❌ State management
 - ❌ UI presentation logic
@@ -315,7 +277,7 @@ function UserApp() {
 
 ## Best Practices
 
-### ✅ Do's
+### ✅ Implementation Best Practices
 
 1. **Clear Layer Separation**
    - Keep business logic in ViewModel layer

@@ -16,8 +16,9 @@ This section contains comprehensive code patterns and implementation guides for 
   - [Advanced Config](./store/advanced-config.md) - Performance optimization and custom comparison strategies
 
 ### Ref Patterns
-- **[Ref Patterns](./ref/)** - Direct DOM manipulation with zero re-renders
+- **[Ref Patterns](./ref/)** - Direct DOM manipulation with zero re-renders and context singleton management
   - [Basic Usage](./ref/basic-usage.md) - Fundamental RefContext pattern with type-safe ref management
+  - [Context Singleton Handling](./ref/singleton-handling.md) - Managing context singletons and external resources with lazy evaluation
   - [Multi-Context](./ref/multi-context.md) - Multiple RefContext composition for complex applications
   - [Performance](./ref/performance.md) - Hardware acceleration and performance optimization
 
@@ -49,7 +50,7 @@ This section contains comprehensive code patterns and implementation guides for 
 |---------|----------|--------|----------|
 | **🎯 Action Only** | Action dispatching without stores | `createActionContext` | Event systems, command patterns |
 | **🏪 Store Only** | State management without actions | `createDeclarativeStorePattern` | Pure state management, data layers |
-| **🔧 Ref Context** | Direct DOM manipulation with zero re-renders | `createRefContext` | High-performance UI, animations, real-time interactions |
+| **🔧 Ref Context** | Direct DOM manipulation and singleton object management | `createRefContext` | High-performance UI, animations, external services |
 
 **Note**: For complex applications, compose patterns together for maximum flexibility and separation of concerns.
 

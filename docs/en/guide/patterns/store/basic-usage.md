@@ -4,7 +4,8 @@ Fundamental Store Only pattern with excellent type inference and simplified API.
 
 ## Import
 ```typescript
-import { createDeclarativeStorePattern } from '@context-action/react';
+import { useStoreValue } from '@context-action/react';
+import { useUserStore, useUserStoreManager } from '../setup/stores'; // From setup guide
 ```
 
 ## Key Features
@@ -13,41 +14,50 @@ import { createDeclarativeStorePattern } from '@context-action/react';
 - ✅ Direct value or configuration object support
 - ✅ No need for separate `createStore` calls
 
-## Basic Usage
+## Prerequisites
 
-### Option 1: Type Inference (Recommended)
+For complete setup instructions including store definitions, context creation, and provider configuration, see **[Basic Store Setup](../setup/basic-store-setup.md)**.
+
+This document demonstrates usage patterns using the store setup:
+- Store definitions → [Type Inference Configurations](../setup/basic-store-setup.md#type-inference-configurations)
+- Context creation → [Single Domain Store Context](../setup/basic-store-setup.md#single-domain-store-context)
+- Provider setup → [Single Provider Setup](../setup/basic-store-setup.md#single-provider-setup)
+
+## Usage Patterns
+
+### Basic Store Access Pattern
 ```tsx
-// 1. Define stores with renaming pattern for type-safe access
-const {
-  Provider: AppStoreProvider,
-  useStore: useAppStore,
-  useStoreManager: useAppStoreManager
-} = createDeclarativeStorePattern('App', {
-  // Simple direct values - cleanest syntax
-  counter: 0,
-  userName: '',
-  isLoggedIn: false,
+// Component implementation using configured stores from setup guide
+function UserProfile() {
+  const profileStore = useUserStore('profile');
+  const preferencesStore = useUserStore('preferences');
   
-  // With configuration for complex types
-  user: {
-    initialValue: { id: '', name: '', email: '' },
-    strategy: 'shallow',
-    description: 'User profile data'
-  },
+  const profile = useStoreValue(profileStore);
+  const preferences = useStoreValue(preferencesStore);
   
-  // Nested structures with type safety
-  settings: {
-    initialValue: {
-      theme: 'light' as 'light' | 'dark',
-      language: 'en',
-      notifications: true
-    },
-    strategy: 'shallow'
-  }
-});
+  const updateProfile = () => {
+    profileStore.setValue({ id: '1', name: 'John', email: 'john@example.com', role: 'user' });
+  };
+  
+  const toggleTheme = () => {
+    preferencesStore.update(prefs => ({
+      ...prefs,
+      theme: prefs.theme === 'light' ? 'dark' : 'light'
+    }));
+  };
+  
+  return (
+    <div data-theme={preferences.theme}>
+      <h2>{profile.name || 'Guest'}</h2>
+      <p>Theme: {preferences.theme}</p>
+      <button onClick={updateProfile}>Update Profile</button>
+      <button onClick={toggleTheme}>Toggle Theme</button>
+    </div>
+  );
+}
 ```
 
-### Option 2: Explicit Generic Types
+### Explicit Generic Types Pattern
 ```tsx
 // 1. Define store types explicitly
 interface AppStoreTypes {
@@ -58,7 +68,7 @@ interface AppStoreTypes {
   settings: { theme: 'light' | 'dark'; language: string; notifications: boolean };
 }
 
-// 2. Create stores with explicit types
+// 2. Create stores with explicit types (using renaming pattern from setup guide)
 const {
   Provider: AppStoreProvider,
   useStore: useAppStore,
@@ -81,12 +91,15 @@ const {
 ## Provider Setup
 
 ```tsx
+// Using UserStoreProvider from setup guide
+import { UserStoreProvider } from '../setup/stores';
+
 function App() {
   return (
-    <AppStoreProvider>
+    <UserStoreProvider>
       <UserProfile />
       <Settings />
-    </AppStoreProvider>
+    </UserStoreProvider>
   );
 }
 ```
@@ -96,53 +109,60 @@ function App() {
 ```tsx
 function UserProfile() {
   // Perfect type inference - no manual type annotations needed!
-  const counterStore = useAppStore('counter');      // Store<number>
-  const userStore = useAppStore('user');           // Store<{id: string, name: string, email: string}>
-  const settingsStore = useAppStore('settings');   // Store<{theme: 'light' | 'dark', language: string, notifications: boolean}>
+  // Using renamed hooks from setup guide
+  const profileStore = useUserStore('profile');      // Store<UserProfile>
+  const preferencesStore = useUserStore('preferences'); // Store<UserPreferences>
+  const sessionStore = useUserStore('session');      // Store<UserSession>
   
   // Subscribe to values
-  const counter = useStoreValue(counterStore);
-  const user = useStoreValue(userStore);
-  const settings = useStoreValue(settingsStore);
+  const profile = useStoreValue(profileStore);
+  const preferences = useStoreValue(preferencesStore);
+  const session = useStoreValue(sessionStore);
   
-  const incrementCounter = () => {
-    counterStore.setValue(counter + 1);
-  };
-  
-  const updateUser = () => {
-    userStore.setValue({
-      ...user,
+  const updateProfile = () => {
+    profileStore.setValue({
+      ...profile,
       name: 'John Doe',
       email: 'john@example.com'
     });
   };
   
   const toggleTheme = () => {
-    settingsStore.setValue({
-      ...settings,
-      theme: settings.theme === 'light' ? 'dark' : 'light'
+    preferencesStore.setValue({
+      ...preferences,
+      theme: preferences.theme === 'light' ? 'dark' : 'light'
+    });
+  };
+  
+  const logout = () => {
+    sessionStore.setValue({
+      isAuthenticated: false,
+      permissions: [],
+      lastActivity: Date.now()
     });
   };
   
   return (
-    <div data-theme={settings.theme}>
-      <div>Counter: {counter}</div>
-      <div>User: {user.name} ({user.email})</div>
-      <div>Theme: {settings.theme}</div>
+    <div data-theme={preferences.theme}>
+      <div>User: {profile.name} ({profile.email})</div>
+      <div>Role: {profile.role}</div>
+      <div>Theme: {preferences.theme}</div>
+      <div>Language: {preferences.language}</div>
+      <div>Authenticated: {session.isAuthenticated ? 'Yes' : 'No'}</div>
       
-      <button onClick={incrementCounter}>+1</button>
-      <button onClick={updateUser}>Update User</button>
+      <button onClick={updateProfile}>Update Profile</button>
       <button onClick={toggleTheme}>Toggle Theme</button>
+      <button onClick={logout}>Logout</button>
     </div>
   );
 }
 ```
 
 ## Available Hooks
-- `useStore(name)` - Get typed store by name (primary API)
-- `useStoreManager()` - Access store manager (advanced use)
-- `useStoreInfo()` - Get registry information
-- `useStoreClear()` - Clear all stores
+- `useUserStore(name)` - Get typed user domain store by name (primary API)
+- `useUserStoreManager()` - Access user store manager (advanced use)
+- `useStoreInfo()` - Get registry information (from setup context)
+- `useStoreClear()` - Clear all stores (from setup context)
 
 ## Real-World Examples
 
@@ -163,16 +183,18 @@ function UserProfile() {
 5. **Subscription Management**: Only subscribe to stores you actually need to prevent unnecessary re-renders
 
 ```typescript
-// ✅ Good - Functional update pattern
-const updateUser = useCallback(() => {
-  userStore.setValue(prev => ({
+// ✅ Good - Functional update pattern with renamed hooks
+const updateProfile = useCallback(() => {
+  const profileStore = useUserStore('profile');
+  profileStore.update(prev => ({
     ...prev,
     name: 'Updated Name',
-    updatedAt: Date.now()
+    email: 'updated@example.com'
   }));
-}, [userStore]);
+}, []);
 
-// ✅ Good - Only subscribe to needed stores
-const userName = useStoreValue(useAppStore('user')); // Only subscribes to user changes
-// Don't subscribe to all stores if you only need one value
+// ✅ Good - Only subscribe to needed stores using renamed hooks
+const profileName = useStoreValue(useUserStore('profile')).name; // Only subscribes to profile changes
+const currentTheme = useStoreValue(useUserStore('preferences')).theme; // Only theme updates
+// Don't subscribe to all stores if you only need specific values
 ```

@@ -191,6 +191,92 @@ export interface UIStateActions {
 
 Split contexts based on application features or modules.
 
+### Strategy 4: Resource-Based Split (RefContext Pattern)
+
+Split contexts based on external resources and singleton objects that need lazy evaluation and lifecycle management.
+
+```typescript
+// Database Resource Context
+export interface DatabaseRefs {
+  connection: DatabaseConnection;
+  queryBuilder: QueryBuilder;
+  migrationManager: MigrationManager;
+}
+
+export const {
+  Provider: DatabaseRefProvider,
+  useRefHandler: useDatabaseRef
+} = createRefContext<DatabaseRefs>('Database');
+
+// External Services Context  
+export interface ServiceRefs {
+  analytics: AnalyticsSDK;
+  logger: LoggerService;
+  eventTracker: EventTracker;
+  notificationService: NotificationAPI;
+}
+
+export const {
+  Provider: ServiceRefProvider,
+  useRefHandler: useServiceRef
+} = createRefContext<ServiceRefs>('Services');
+
+// Third-Party Libraries Context
+export interface LibraryRefs {
+  chartEngine: ChartEngineInstance;
+  mapService: MapSDK;
+  videoPlayer: VideoPlayerAPI;
+  audioContext: AudioContext;
+}
+
+export const {
+  Provider: LibraryRefProvider,
+  useRefHandler: useLibraryRef
+} = createRefContext<LibraryRefs>('Libraries');
+
+// Resource initialization with lazy evaluation
+function useResourceInitialization() {
+  const connection = useDatabaseRef('connection');
+  const analytics = useServiceRef('analytics');
+  const chartEngine = useLibraryRef('chartEngine');
+  
+  useEffect(() => {
+    // Lazy initialization of database connection
+    if (!connection.target) {
+      const dbConnection = new DatabaseConnection({
+        host: process.env.DB_HOST,
+        port: process.env.DB_PORT
+      });
+      connection.setRef({ current: dbConnection });
+    }
+    
+    // Lazy initialization of analytics service
+    if (!analytics.target) {
+      AnalyticsSDK.initialize({
+        apiKey: process.env.ANALYTICS_KEY
+      }).then(sdk => {
+        analytics.setRef({ current: sdk });
+      });
+    }
+    
+    // Conditional chart engine loading
+    if (!chartEngine.target && shouldLoadCharts()) {
+      import('expensive-chart-library').then(ChartEngine => {
+        const engine = new ChartEngine.default();
+        chartEngine.setRef({ current: engine });
+      });
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      connection.target?.close();
+      analytics.target?.dispose();
+      chartEngine.target?.destroy();
+    };
+  }, [connection, analytics, chartEngine]);
+}
+```
+
 ```typescript
 // Authentication Feature
 export interface AuthStores {
@@ -297,8 +383,10 @@ function UserProfile() {
 
 ### Context Composition Patterns
 
+#### Manual Provider Composition (Verbose)
+
 ```typescript
-// Compose split contexts back together for full app
+// ❌ Problematic: Too many nested providers - hard to read and maintain
 function App() {
   return (
     {/* Core Infrastructure Contexts */}
@@ -343,6 +431,45 @@ function App() {
       </DataActionProvider>
     </DataModelProvider>
   );
+}
+```
+
+#### Provider Composition Utilities (Recommended)
+
+The Context-Action framework provides the `composeProviders` utility to eliminate Provider nesting hell. Instead of manually nesting multiple providers, you can compose them into a single JSX-compatible component.
+
+For detailed implementation examples and advanced patterns, see the [`composeProviders` documentation](../../../packages/react/src/stores/utils/provider-composition.ts).
+
+#### Advanced Provider Composition Patterns
+
+The `composeProviders` utility supports advanced composition patterns including:
+
+- **Domain-grouped composition**: Group providers by business domain or technical layer
+- **Conditional composition**: Include providers based on feature flags or configuration  
+- **Environment-specific composition**: Different provider sets for development/production
+- **Nested composition**: Compose multiple composed providers together
+
+For complete examples of these advanced patterns, see the [`composeProviders` source code](../../../packages/react/src/stores/utils/provider-composition.ts).
+
+#### Provider Tree Visualization Utility
+
+```typescript
+// Development utility to visualize provider composition
+function createProviderTree(providerNames: string[]) {
+  console.log('Provider Tree:');
+  providerNames.forEach((name, index) => {
+    const indent = '  '.repeat(index);
+    console.log(`${indent}├─ ${name}Provider`);
+  });
+  console.log(`${'  '.repeat(providerNames.length)}└─ AppContent`);
+}
+
+// Usage in development
+if (process.env.NODE_ENV === 'development') {
+  createProviderTree([
+    'Data', 'User', 'Product', 'Order', 
+    'UI', 'Auth', 'Shopping', 'Analytics'
+  ]);
 }
 ```
 
@@ -622,17 +749,23 @@ export function useContextLoader(requiredContexts: string[]) {
    - Consider team ownership and responsibilities  
    - Plan for future growth and changes
 
-2. **Gradual Migration**
+2. **Provider Composition**
+   - Use patterns from [Provider Composition Setup](../setup/provider-composition-setup.md)
+   - Create reusable provider composition with JSX-compatible components  
+   - Group providers by domain or functionality for maintainability
+   - Use conditional composition for feature flags and environment differences
+
+3. **Gradual Migration**
    - Split contexts incrementally
    - Maintain backward compatibility during transition
    - Test thoroughly at each migration step
 
-3. **Clear Communication Patterns**
+4. **Clear Communication Patterns**
    - Use explicit event systems for cross-context communication
    - Document context relationships and dependencies
    - Create clear bridges between related contexts
 
-4. **Optimize Per Context**
+5. **Optimize Per Context**
    - Use appropriate comparison strategies for each context
    - Implement context-specific performance optimizations
    - Monitor context-specific performance metrics
@@ -672,4 +805,5 @@ export function useContextLoader(requiredContexts: string[]) {
 - **[Domain Context Architecture](./domain-context.md)** - Business domain separation strategies
 - **[MVVM Architecture](./mvvm.md)** - Layer-based context organization
 - **[Pattern Composition](./composition.md)** - Combining multiple contexts effectively
+- **[withProvider HOC Pattern](../store/withProvider-pattern.md)** - Provider composition utilities and HOC patterns
 - **[Performance Patterns](../store/performance-patterns.md)** - Context-specific performance optimization

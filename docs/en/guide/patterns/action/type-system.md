@@ -2,6 +2,14 @@
 
 Complete guide to the Context-Action framework's type system for actions, including ActionPayloadMap, type safety, and TypeScript integration.
 
+## Prerequisites
+
+For action type definitions and context setup, see **[Basic Action Setup](../setup/basic-action-setup.md)**.
+
+This document demonstrates type system patterns using the action setup:
+- Type definitions → [Extended Action Interface](../setup/basic-action-setup.md#extended-action-interface)
+- Common patterns → [Common Action Patterns](../setup/basic-action-setup.md#common-action-patterns)
+
 ## ActionPayloadMap Interface
 
 The foundation of type-safe action handling in the Context-Action framework.
@@ -9,12 +17,12 @@ The foundation of type-safe action handling in the Context-Action framework.
 ### Basic Action Mapping
 
 ```typescript
+// Using the AppActions pattern from setup guide
 interface AppActions extends ActionPayloadMap {
-  updateUser: { id: string; name: string; email: string }
-  deleteUser: { id: string }
-  resetUser: void  // Actions without payload
-  fetchUsers: { page: number; limit: number }
-  toggleTheme: { theme: 'light' | 'dark' }
+  updateUser: { id: string; name: string; email: string };
+  deleteUser: { id: string };
+  saveUser: { name: string; email: string };
+  refreshData: void;
 }
 ```
 
@@ -23,7 +31,7 @@ interface AppActions extends ActionPayloadMap {
 ```typescript
 const register = new ActionRegister<AppActions>()
 
-// Type-safe handler registration
+// Type-safe handler registration using setup pattern
 register.register('updateUser', async (payload, controller) => {
   // payload is automatically typed as { id: string; name: string; email: string }
   await userService.update(payload.id, payload)

@@ -15,6 +15,15 @@ import { createRefContext } from '@context-action/react';
 - ✅ Perfect separation of concerns
 - ✅ Memory efficient with automatic cleanup
 
+## Prerequisites
+
+For complete RefContext setup patterns, see **[RefContext Setup](../setup/ref-context-setup.md)**.
+
+This document demonstrates usage patterns using the RefContext setup:
+- Type definitions → [DOM Element Refs](../setup/ref-context-setup.md#dom-element-refs)
+- Context creation → [Basic RefContext Setup](../setup/ref-context-setup.md#basic-refcontext-setup)
+- Provider setup → [Single RefContext Provider](../setup/ref-context-setup.md#single-refcontext-provider)
+
 ## Setup Pattern
 
 ### Basic Setup
@@ -22,17 +31,12 @@ import { createRefContext } from '@context-action/react';
 ```typescript
 import { createRefContext } from '@context-action/react';
 
-type AppRefs = {
-  targetElement: HTMLDivElement;
-  inputElement: HTMLInputElement;
-  modalElement: HTMLDialogElement;
-};
-
+// Using the UIRefs pattern from setup guide
 const {
-  Provider: RefProvider,
-  useRefHandler: useAppRef,
+  Provider: UIRefProvider,
+  useRefHandler: useUIRef,
   useWaitForRefs
-} = createRefContext<AppRefs>('App');
+} = createRefContext<UIRefs>('UI');
 ```
 
 ### Provider Integration
@@ -40,9 +44,9 @@ const {
 ```typescript
 function App() {
   return (
-    <RefProvider>
+    <UIRefProvider>
       <YourComponents />
-    </RefProvider>
+    </UIRefProvider>
   );
 }
 ```
@@ -51,7 +55,8 @@ function App() {
 
 ```typescript
 function MyComponent() {
-  const targetRef = useAppRef('targetElement');
+  const modalRef = useUIRef('modal');
+  const dropdownRef = useUIRef('dropdown');
   
   return <div ref={targetRef.setRef}>Target Element</div>;
 }

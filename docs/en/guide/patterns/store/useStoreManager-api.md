@@ -2,6 +2,14 @@
 
 The `useStoreManager` hook provides low-level access to the internal StoreManager instance for advanced store management scenarios in the Declarative Store Pattern.
 
+## Prerequisites
+
+For basic store setup and context creation, see **[Basic Store Setup](../setup/basic-store-setup.md)**.
+
+This document demonstrates API usage using the store setup:
+- Store configuration → [Type Inference Configurations](../setup/basic-store-setup.md#type-inference-configurations)
+- Context creation → [Single Domain Store Context](../setup/basic-store-setup.md#single-domain-store-context)
+
 ## Basic Usage
 
 ### Getting Store Manager
@@ -9,22 +17,23 @@ The `useStoreManager` hook provides low-level access to the internal StoreManage
 ```tsx
 import { createDeclarativeStorePattern, useStoreValue } from '@context-action/react';
 
+// Using the established store patterns from setup guide
 const {
-  Provider: AppStoreProvider,
-  useStore: useAppStore,
-  useStoreManager: useAppStoreManager
-} = createDeclarativeStorePattern('App', {
-  user: { initialValue: { name: '', email: '' } },
-  settings: { initialValue: { theme: 'light', notifications: true } },
-  cart: { initialValue: { items: [], total: 0 } }
+  Provider: UserStoreProvider,
+  useStore: useUserStore,
+  useStoreManager: useUserStoreManager
+} = createDeclarativeStorePattern('User', {
+  profile: { initialValue: { id: '', name: '', email: '', role: 'guest' } },
+  preferences: { initialValue: { theme: 'light', language: 'en', notifications: true } },
+  session: { initialValue: { isAuthenticated: false, permissions: [], lastActivity: 0 } }
 });
 
 function MyComponent() {
-  const manager = useAppStoreManager();
+  const manager = useUserStoreManager();
   
-  // Get store instances directly
-  const userStore = manager.getStore('user');
-  const settingsStore = manager.getStore('settings');
+  // Get store instances directly using setup pattern
+  const profileStore = manager.getStore('profile');
+  const preferencesStore = manager.getStore('preferences');
   
   // Component logic here
 }
@@ -34,9 +43,9 @@ function MyComponent() {
 
 ```tsx
 function UserManager() {
-  const manager = useAppStoreManager();
-  const userStore = useAppStore('user');
-  const user = useStoreValue(userStore);
+  const manager = useUserStoreManager();
+  const profileStore = useUserStore('profile');
+  const profile = useStoreValue(profileStore);
   
   const updateUserName = (newName: string) => {
     const userStore = manager.getStore('user');
