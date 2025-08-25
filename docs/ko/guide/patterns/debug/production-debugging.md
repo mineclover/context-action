@@ -1,46 +1,46 @@
-# Production Debugging Migration Guide
+# 프로덕션 디버깅 마이그레이션 가이드
 
-Suggestion-migration process for implementing advanced debugging patterns in Context-Action framework applications.
+Context-Action 프레임워크 애플리케이션에서 고급 디버깅 패턴 구현을 위한 제안-마이그레이션 프로세스입니다.
 
-## Prerequisites
+## 전제조건
 
-**Required Setup**: This guide builds upon established setup patterns. Please configure your base contexts first:
+**필수 설정**: 이 가이드는 설정된 설정 패턴을 기반으로 합니다. 먼저 기본 컨텍스트를 구성하세요:
 
-- **[Basic Action Setup](../setup/basic-action-setup.md)** - Action context configuration with debugging actions
-- **[Basic Store Setup](../setup/basic-store-setup.md)** - Store context configuration for debug state management
-- **[Multi-Context Setup](../setup/multi-context-setup.md)** - For complex debugging scenarios requiring multiple contexts
+- **[기본 액션 설정](../setup/basic-action-setup.md)** - 디버깅 액션이 포함된 액션 컨텍스트 구성
+- **[기본 스토어 설정](../setup/basic-store-setup.md)** - 디버그 상태 관리를 위한 스토어 컨텍스트 구성
+- **[다중 컨텍스트 설정](../setup/multi-context-setup.md)** - 다중 컨텍스트가 필요한 복잡한 디버깅 시나리오
 
-**Proposed Enhancement**: See **[Debug Store Types Proposal](../proposals/debug-store-types.md)** for advanced type definitions and monitoring capabilities.
+**제안된 개선사항**: 고급 타입 정의 및 모니터링 기능은 **[디버그 스토어 타입 제안](../proposals/debug-store-types.md)**을 참조하세요.
 
-## 📋 Migration Process
+## 📋 마이그레이션 프로세스
 
-1. [Core Issues Migration](#core-issues-migration)
-2. [Monitoring Integration](#monitoring-integration)  
-3. [Recovery Pattern Implementation](#recovery-pattern-implementation)
-4. [Testing Infrastructure Setup](#testing-infrastructure-setup)
-5. [Common Scenario Solutions](#common-scenario-solutions)
+1. [핵심 이슈 마이그레이션](#핵심-이슈-마이그레이션)
+2. [모니터링 통합](#모니터링-통합)  
+3. [복구 패턴 구현](#복구-패턴-구현)
+4. [테스팅 인프라 설정](#테스팅-인프라-설정)
+5. [일반적인 시나리오 솔루션](#일반적인-시나리오-솔루션)
 
 ---
 
-## Core Issues Migration
+## 핵심 이슈 마이그레이션
 
-### Migration from Ad-hoc to Systematic Debugging
+### 임시적에서 체계적 디버깅으로 마이그레이션
 
-**Current Problem**: Inconsistent debugging approaches across development teams.
+**현재 문제**: 개발 팀 간 일관되지 않은 디버깅 접근 방식.
 
-**Migration Strategy**: Standardize debugging patterns using Context-Action framework conventions.
+**마이그레이션 전략**: Context-Action 프레임워크 컨벤션을 사용하여 디버깅 패턴을 표준화합니다.
 
-### ⚠️ Action Handler Registration Pattern
+### ⚠️ 액션 핸들러 등록 패턴
 
-**Problem**: Inconsistent handler registration leading to debugging difficulties.
+**문제**: 일관되지 않은 핸들러 등록으로 디버깅이 어려움.
 
-**Setup Integration**: Following [Basic Action Setup](../setup/basic-action-setup.md) naming conventions:
+**설정 통합**: [기본 액션 설정](../setup/basic-action-setup.md) 네이밍 컨벤션을 따름:
 
 ```tsx
-// ✅ STANDARD: Using setup-based action pattern
+// ✅ 표준: 설정 기반 액션 패턴 사용
 import { useEventHandler } from '../actions/EventActions';
 
-// From Basic Action Setup - EventActions pattern
+// 기본 액션 설정에서 - EventActions 패턴
 interface DebugEventActions {
   updateResults: { data: any; debugInfo?: { timestamp: number; source: string } };
   trackError: { error: Error; context: string };
@@ -50,7 +50,7 @@ interface DebugEventActions {
 const updateResultsHandler = useCallback(async (payload) => {
   const { data, debugInfo } = payload;
   
-  // Log debug information if provided
+  // 디버그 정보가 제공된 경우 로그
   if (debugInfo && process.env.NODE_ENV === 'development') {
     console.log(`[${debugInfo.timestamp}] Update from: ${debugInfo.source}`);
   }
@@ -61,19 +61,19 @@ const updateResultsHandler = useCallback(async (payload) => {
 useEventHandler('updateResults', updateResultsHandler);
 ```
 
-**Migration Command**: `grep -rn "useActionHandler" src/ | grep -v "useCallback"`
+**마이그레이션 명령**: `grep -rn "useActionHandler" src/ | grep -v "useCallback"`
 
-### 🔄 Race Condition Prevention Pattern
+### 🔄 경쟁 상태 방지 패턴
 
-**Problem**: Concurrent operations causing state inconsistencies.
+**문제**: 동시 작업으로 인한 상태 불일치.
 
-**Setup Integration**: Using [Basic Store Setup](../setup/basic-store-setup.md) patterns:
+**설정 통합**: [기본 스토어 설정](../setup/basic-store-setup.md) 패턴 사용:
 
 ```tsx
-// ✅ STANDARD: Following store setup conventions
+// ✅ 표준: 스토어 설정 컨벤션 따름
 import { useUIStore, useUIStoreManager } from '../stores/UIStores';
 
-// From Basic Store Setup - UIStores pattern
+// 기본 스토어 설정에서 - UIStores 패턴
 const {  
   Provider: DebugUIStoreProvider,
   useStore: useDebugUIStore,
@@ -102,7 +102,7 @@ const criticalActionHandler = useCallback(async (payload) => {
   const currentState = operationStore.getValue();
   
   if (currentState.isProcessing) {
-    // Queue the operation instead of ignoring
+    // 무시하는 대신 작업을 큐에 추가
     operationStore.update(prev => ({
       ...prev,
       operationQueue: [...prev.operationQueue, payload.operationId]
@@ -120,7 +120,7 @@ const criticalActionHandler = useCallback(async (payload) => {
   try {
     await performCriticalOperation(payload);
     
-    // Update metrics
+    // 메트릭 업데이트
     const duration = performance.now() - startTime;
     const metricsStore = useDebugUIStore('debugMetrics');
     metricsStore.update(prev => ({
@@ -129,7 +129,7 @@ const criticalActionHandler = useCallback(async (payload) => {
       errorCount: prev.errorCount
     }));
   } catch (error) {
-    // Handle error and update metrics
+    // 오류 처리 및 메트릭 업데이트
     const metricsStore = useDebugUIStore('debugMetrics');
     metricsStore.update(prev => ({ ...prev, errorCount: prev.errorCount + 1 }));
     throw error;
@@ -142,7 +142,7 @@ const criticalActionHandler = useCallback(async (payload) => {
   }
 }, []);
 
-// ✅ STANDARD: Component follows naming conventions
+// ✅ 표준: 컴포넌트가 네이밍 컨벤션을 따름
 function DebugActionButton() {
   const operationStore = useDebugUIStore('operationState');
   const metricsStore = useDebugUIStore('debugMetrics');
@@ -167,14 +167,14 @@ function DebugActionButton() {
 }
 ```
 
-### 🔧 Lifecycle Management Pattern
+### 🔧 라이프사이클 관리 패턴
 
-**Problem**: Component lifecycle conflicts with debugging state management.
+**문제**: 컴포넌트 라이프사이클과 디버깅 상태 관리 간의 충돌.
 
-**Setup Integration**: Following [RefContext Setup](../setup/ref-context-setup.md) conventions:
+**설정 통합**: [RefContext 설정](../setup/ref-context-setup.md) 컨벤션을 따름:
 
 ```tsx
-// ✅ STANDARD: Using ref context setup pattern
+// ✅ 표준: ref context 설정 패턴 사용
 import { useRefHandler } from '../contexts/RefContext';
 import { useDebugUIStore } from '../stores/DebugUIStores';
 
@@ -183,7 +183,7 @@ function DebugComponent({ componentId }: { componentId: string }) {
   const lifecycleStore = useDebugUIStore('lifecycle');
   
   useEffect(() => {
-    // Track component lifecycle for debugging
+    // 디버깅을 위한 컴포넌트 라이프사이클 추적
     lifecycleStore.update(prev => ({
       ...prev,
       mountedComponents: {
@@ -197,7 +197,7 @@ function DebugComponent({ componentId }: { componentId: string }) {
     }));
     
     return () => {
-      // Track unmounting for debugging
+      // 언마운팅 추적
       lifecycleStore.update(prev => ({
         ...prev,
         mountedComponents: {
@@ -212,17 +212,17 @@ function DebugComponent({ componentId }: { componentId: string }) {
     };
   }, [componentId, lifecycleStore]);
   
-  // Let React handle DOM, actions handle business logic
+  // React가 DOM을 처리하고, 액션이 비즈니스 로직 처리
   return <div ref={elementRef.setRef} data-debug-id={componentId} />;
 }
 
-// ✅ STANDARD: Action handler follows naming conventions
+// ✅ 표준: 액션 핸들러가 네이밍 컨벤션을 따름
 const cleanupComponentHandler = useCallback(async ({ componentId }) => {
   const lifecycleStore = useDebugUIStore('lifecycle');
   const currentState = lifecycleStore.getValue();
   
   if (currentState.mountedComponents[componentId]) {
-    // Update lifecycle state first
+    // 먼저 라이프사이클 상태 업데이트
     lifecycleStore.update(prev => ({
       ...prev,
       mountedComponents: {
@@ -235,7 +235,7 @@ const cleanupComponentHandler = useCallback(async ({ componentId }) => {
       }
     }));
     
-    // Optional: Clean ref state if needed for debugging
+    // 선택사항: 디버깅이 필요한 경우 ref 상태 정리
     const elementRef = useRefHandler(componentId);
     if (elementRef.target) {
       console.log(`[Debug] Cleaning up ref for ${componentId}`);
@@ -249,20 +249,20 @@ useEventHandler('cleanupComponent', cleanupComponentHandler);
 
 ---
 
-## Monitoring Integration
+## 모니터링 통합
 
-### Systematic State Monitoring Migration
+### 체계적인 상태 모니터링 마이그레이션
 
-**Current Problem**: Scattered monitoring logic across components.
+**현재 문제**: 컴포넌트 전반에 흩어진 모니터링 로직.
 
-**Migration Strategy**: Centralize monitoring using established store patterns.
+**마이그레이션 전략**: 설정된 스토어 패턴을 사용하여 모니터링을 중앙화합니다.
 
-### 📊 Monitoring Store Integration
+### 📊 모니터링 스토어 통합
 
-**Setup Integration**: Following [Basic Store Setup](../setup/basic-store-setup.md) type patterns:
+**설정 통합**: [기본 스토어 설정](../setup/basic-store-setup.md) 타입 패턴을 따름:
 
 ```tsx
-// ✅ STANDARD: Following store setup type conventions
+// ✅ 표준: 스토어 설정 타입 컨벤션을 따름
 interface MonitoringStores {
   actionLog: {
     entries: Array<{
@@ -297,7 +297,7 @@ interface MonitoringStores {
   };
 }
 
-// Using store setup pattern
+// 스토어 설정 패턴 사용
 const {
   Provider: MonitoringStoreProvider,
   useStore: useMonitoringStore,
@@ -329,7 +329,7 @@ const {
   }
 });
 
-// Action handler follows naming conventions
+// 액션 핸들러가 네이밍 컨벤션을 따름
 const logActionHandler = useCallback(async ({ actionType, payload, duration }) => {
   const actionLogStore = useMonitoringStore('actionLog');
   const currentLog = actionLogStore.getValue();
@@ -356,12 +356,12 @@ const logActionHandler = useCallback(async ({ actionType, payload, duration }) =
 useEventHandler('logAction', logActionHandler);
 ```
 
-### 🔍 Debug Utility Integration
+### 🔍 디버그 유틸리티 통합
 
-**Setup Integration**: Utility functions following framework conventions:
+**설정 통합**: 프레임워크 컨벤션을 따르는 유틸리티 함수들:
 
 ```tsx
-// ✅ STANDARD: Debug utilities following naming conventions
+// ✅ 표준: 네이밍 컨벤션을 따르는 디버그 유틸리티
 interface StateLogger<T> {
   storeName: string;
   logCurrent: () => void;
@@ -370,7 +370,7 @@ interface StateLogger<T> {
   exportSnapshot: () => { storeName: string; value: T; timestamp: number };
 }
 
-// Following store manager patterns from setup
+// 설정의 스토어 매니저 패턴을 따름
 const createDebugStateLogger = <T>(
   storeName: string, 
   store: Store<T>,
@@ -382,7 +382,7 @@ const createDebugStateLogger = <T>(
       const value = store.getValue();
       console.log(`[${storeName}] Current:`, value);
       
-      // Log to monitoring store
+      // 모니터링 스토어에 로그
       const actionLogStore = monitoringManager.getStore('actionLog');
       const logEntry = {
         id: crypto.randomUUID(),
@@ -401,7 +401,7 @@ const createDebugStateLogger = <T>(
       return (after: T) => {
         console.log(`[${storeName}] ${action}:`, { before, after });
         
-        // Track state changes
+        // 상태 변경 추적
         const performanceStore = monitoringManager.getStore('performanceMetrics');
         performanceStore.update(prev => ({
           ...prev,
@@ -409,7 +409,7 @@ const createDebugStateLogger = <T>(
             ...prev.operations,
             [`${storeName}_${action}`]: {
               totalCalls: (prev.operations[`${storeName}_${action}`]?.totalCalls || 0) + 1,
-              averageTime: 0, // Would be calculated from actual timing
+              averageTime: 0, // 실제 타이밍에서 계산됨
               lastCall: Date.now()
             }
           }
@@ -430,7 +430,7 @@ const createDebugStateLogger = <T>(
   };
 };
 
-// Usage with proper typing
+// 적절한 타이핑과 함께 사용
 const userStoreLogger = createDebugStateLogger(
   'user',
   userStore,
@@ -441,20 +441,20 @@ const userStoreLogger = createDebugStateLogger(
 
 ---
 
-## Recovery Pattern Implementation
+## 복구 패턴 구현
 
-### Error Recovery Migration
+### 오류 복구 마이그레이션
 
-**Current Problem**: Inconsistent error handling across action handlers.
+**현재 문제**: 액션 핸들러 전반에 일관되지 않은 오류 처리.
 
-**Migration Strategy**: Standardize recovery patterns using action context conventions.
+**마이그레이션 전략**: 액션 컨텍스트 컨벤션을 사용하여 복구 패턴을 표준화합니다.
 
-### 🔄 Recovery Action Pattern
+### 🔄 복구 액션 패턴
 
-**Setup Integration**: Following [Basic Action Setup](../setup/basic-action-setup.md) error handling patterns:
+**설정 통합**: [기본 액션 설정](../setup/basic-action-setup.md) 오류 처리 패턴을 따름:
 
 ```tsx
-// ✅ STANDARD: Recovery actions following setup conventions
+// ✅ 표준: 설정 컨벤션을 따르는 복구 액션
 interface RecoveryActions {
   executeWithRetry: {
     operation: string;
@@ -468,7 +468,7 @@ interface RecoveryActions {
     attempt: number;
   };
   resetErrorState: {
-    operation?: string; // Reset specific operation or all
+    operation?: string; // 특정 작업 또는 전체 리셋
   };
 }
 
@@ -488,7 +488,7 @@ const executeWithRetryHandler = useCallback(async ({
     try {
       const result = await performOperation(operation, payload);
       
-      // Track successful recovery
+      // 성공적인 복구 추적
       const duration = performance.now() - startTime;
       performanceStore.update(prev => ({
         ...prev,
@@ -506,12 +506,12 @@ const executeWithRetryHandler = useCallback(async ({
     } catch (error) {
       attempt++;
       
-      // Record failure attempt
+      // 실패 시도 기록
       const dispatch = useEventDispatch();
       dispatch('recordFailure', { operation, error, attempt });
       
       if (attempt >= maxRetries) {
-        // Final failure - log to error tracking
+        // 최종 실패 - 오류 추적에 로그
         errorTrackingStore.update(prev => ({
           ...prev,
           errors: [
@@ -529,7 +529,7 @@ const executeWithRetryHandler = useCallback(async ({
         throw error;
       }
       
-      // Calculate delay based on strategy
+      // 전략에 따른 지연 계산
       const delay = backoffStrategy === 'exponential'
         ? 100 * Math.pow(2, attempt - 1)
         : 100 * attempt;
@@ -561,7 +561,7 @@ const recordFailureHandler = useCallback(async ({ operation, error, attempt }) =
   }));
 }, []);
 
-// Register handlers following naming conventions
+// 네이밍 컨벤션을 따르는 핸들러 등록
 useEventHandler('executeWithRetry', executeWithRetryHandler);
 useEventHandler('recordFailure', recordFailureHandler);
 ```
@@ -569,20 +569,20 @@ useEventHandler('recordFailure', recordFailureHandler);
 
 ---
 
-## Testing Infrastructure Setup
+## 테스팅 인프라 설정
 
-### Testing Component Integration
+### 테스팅 컴포넌트 통합
 
-**Current Problem**: Manual testing without systematic stress testing capabilities.
+**현재 문제**: 체계적인 스트레스 테스팅 기능 없이 수동 테스팅.
 
-**Migration Strategy**: Create reusable testing components following framework patterns.
+**마이그레이션 전략**: 프레임워크 패턴을 따르는 재사용 가능한 테스팅 컴포넌트를 생성합니다.
 
-### 🎯 Stress Testing Component Pattern
+### 🎯 스트레스 테스팅 컴포넌트 패턴
 
-**Setup Integration**: Following component and action patterns:
+**설정 통합**: 컴포넌트 및 액션 패턴을 따름:
 
 ```tsx
-// ✅ STANDARD: Stress testing following framework conventions
+// ✅ 표준: 프레임워크 컨벤션을 따르는 스트레스 테스팅
 interface StressTestingStores {
   testState: {
     isActive: boolean;
@@ -628,7 +628,7 @@ const {
   }
 });
 
-// Action handlers for stress testing
+// 스트레스 테스팅을 위한 액션 핸들러
 const startStressTestHandler = useCallback(async ({ testType, interval }) => {
   const testStateStore = useStressTestStore('testState');
   
@@ -650,7 +650,7 @@ const executeTestActionHandler = useCallback(async ({ actionType }) => {
   const startTime = performance.now();
   
   try {
-    // Execute the test action
+    // 테스트 액션 실행
     switch (actionType) {
       case 'updateUser':
         dispatch('updateUser', { id: 'test', name: `User${Date.now()}` });
@@ -667,7 +667,7 @@ const executeTestActionHandler = useCallback(async ({ actionType }) => {
     
     const duration = performance.now() - startTime;
     
-    // Update test results
+    // 테스트 결과 업데이트
     resultsStore.update(prev => ({
       totalActions: prev.totalActions + 1,
       successfulActions: prev.successfulActions + 1,
@@ -688,11 +688,11 @@ const executeTestActionHandler = useCallback(async ({ actionType }) => {
   }
 }, []);
 
-// Register stress test handlers
+// 스트레스 테스트 핸들러 등록
 useEventHandler('startStressTest', startStressTestHandler);
 useEventHandler('executeTestAction', executeTestActionHandler);
 
-// Stress testing component
+// 스트레스 테스팅 컴포넌트
 function StressTestController({ children }: { children: ReactNode }) {
   const testStateStore = useStressTestStore('testState');
   const resultsStore = useStressTestStore('testResults');
@@ -743,34 +743,34 @@ function StressTestController({ children }: { children: ReactNode }) {
 
 ---
 
-## Common Scenario Solutions
+## 일반적인 시나리오 솔루션
 
-### Scenario-Based Debugging Migration
+### 시나리오 기반 디버깅 마이그레이션
 
-**Current Problem**: Reactive debugging instead of systematic issue resolution.
+**현재 문제**: 체계적인 이슈 해결 대신 반응적 디버깅.
 
-**Migration Strategy**: Provide standardized debugging patterns for common scenarios.
+**마이그레이션 전략**: 일반적인 시나리오에 대한 표준화된 디버깅 패턴을 제공합니다.
 
-### 🔍 Re-render Debugging Pattern
+### 🔍 리렌더링 디버깅 패턴
 
-**Setup Integration**: Following store access patterns from [Basic Store Setup](../setup/basic-store-setup.md):
+**설정 통합**: [기본 스토어 설정](../setup/basic-store-setup.md)의 스토어 접근 패턴을 따름:
 
 ```tsx
-// ✅ STANDARD: Debugging component following naming conventions
+// ✅ 표준: 네이밍 컨벤션을 따르는 디버깅 컴포넌트
 function RenderDebuggingComponent({ storeKey }: { storeKey: string }) {
-  // Using proper store access pattern
+  // 적절한 스토어 접근 패턴 사용
   const debugStore = useMonitoringStore('performanceMetrics');
-  const userStore = useUserStore('profile'); // From Basic Store Setup
+  const userStore = useUserStore('profile'); // 기본 스토어 설정에서
   const userProfile = useStoreValue(userStore);
   
-  // Track render cycles for debugging
+  // 디버깅을 위한 렌더 사이클 추적
   const renderCount = useRef(0);
   const lastValue = useRef(userProfile);
   
   useEffect(() => {
     renderCount.current += 1;
     
-    // Log render information
+    // 렌더 정보 로그
     console.log(`[Render Debug] Component rendered #${renderCount.current}`);
     console.log(`[Render Debug] Value changed:`, {
       previous: lastValue.current,
@@ -779,7 +779,7 @@ function RenderDebuggingComponent({ storeKey }: { storeKey: string }) {
       deepEqual: JSON.stringify(lastValue.current) === JSON.stringify(userProfile)
     });
     
-    // Update debug metrics
+    // 디버그 메트릭 업데이트
     debugStore.update(prev => ({
       ...prev,
       renderCount: prev.renderCount + 1
@@ -788,11 +788,11 @@ function RenderDebuggingComponent({ storeKey }: { storeKey: string }) {
     lastValue.current = userProfile;
   });
   
-  // Test store updates with debugging
+  // 디버깅과 함께 스토어 업데이트 테스트
   const testStoreUpdate = useCallback(() => {
     console.log('[Store Debug] Before update:', userStore.getValue());
     
-    // Update with new object reference
+    // 새로운 객체 참조로 업데이트
     const newProfile = {
       ...userStore.getValue(),
       timestamp: Date.now(),
@@ -802,7 +802,7 @@ function RenderDebuggingComponent({ storeKey }: { storeKey: string }) {
     userStore.setValue(newProfile);
     console.log('[Store Debug] After update:', userStore.getValue());
     
-    // Verify subscription is working
+    // 구독이 작동하는지 확인
     setTimeout(() => {
       console.log('[Store Debug] Subscription check:', {
         storeValue: userStore.getValue(),
@@ -834,18 +834,18 @@ function RenderDebuggingComponent({ storeKey }: { storeKey: string }) {
 }
 ```
 
-### 🔍 Action Handler Debugging Pattern
+### 🔍 액션 핸들러 디버깅 패턴
 
-**Setup Integration**: Following [Basic Action Setup](../setup/basic-action-setup.md) handler patterns:
+**설정 통합**: [기본 액션 설정](../setup/basic-action-setup.md) 핸들러 패턴을 따름:
 
 ```tsx
-// ✅ STANDARD: Action debugging following setup conventions
+// ✅ 표준: 설정 컨벤션을 따르는 액션 디버깅
 function ActionDebuggingComponent() {
   const actionLogStore = useMonitoringStore('actionLog');
   const errorTrackingStore = useMonitoringStore('errorTracking');
   const dispatch = useEventDispatch();
   
-  // Debug action handler with comprehensive logging
+  // 포괄적인 로깅을 갖춘 디버그 액션 핸들러
   const debugTestActionHandler = useCallback(async (payload) => {
     const startTime = performance.now();
     const actionId = crypto.randomUUID();
@@ -857,7 +857,7 @@ function ActionDebuggingComponent() {
       timestamp: Date.now()
     });
     
-    // Log to monitoring store
+    // 모니터링 스토어에 로그
     actionLogStore.update(prev => ({
       ...prev,
       entries: [
@@ -872,10 +872,10 @@ function ActionDebuggingComponent() {
     }));
     
     try {
-      // Simulate some business logic
+      // 일부 비즈니스 로직 시뮬레이션
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      // Update some state for testing
+      // 테스트를 위한 상태 업데이트
       const userStore = useUserStore('profile');
       userStore.update(prev => ({
         ...prev,
@@ -893,7 +893,7 @@ function ActionDebuggingComponent() {
         success: true
       });
       
-      // Log success
+      // 성공 로그
       actionLogStore.update(prev => ({
         ...prev,
         entries: [
@@ -917,7 +917,7 @@ function ActionDebuggingComponent() {
         stack: error.stack
       });
       
-      // Log error to tracking store
+      // 추적 스토어에 오류 로그
       errorTrackingStore.update(prev => ({
         ...prev,
         errors: [
@@ -933,14 +933,14 @@ function ActionDebuggingComponent() {
         totalCount: prev.totalCount + 1
       }));
       
-      throw error; // Re-throw to maintain error propagation
+      throw error; // 오류 전파를 유지하기 위해 다시 throw
     }
   }, [actionLogStore, errorTrackingStore]);
   
-  // Register the debug handler
+  // 디버그 핸들러 등록
   useEventHandler('debugTestAction', debugTestActionHandler);
   
-  // Test dispatch with debugging
+  // 디버깅과 함께 디스패치 테스트
   const testActionDispatch = useCallback(() => {
     const dispatchPayload = {
       test: true,
@@ -956,7 +956,7 @@ function ActionDebuggingComponent() {
       payload: dispatchPayload
     });
     
-    // Log dispatch attempt
+    // 디스패치 시도 로그
     actionLogStore.update(prev => ({
       ...prev,
       entries: [
@@ -983,7 +983,7 @@ function ActionDebuggingComponent() {
   );
 }
 
-// Helper component to view action logs
+// 액션 로그 보기를 위한 헬퍼 컴포넌트
 function ActionLogViewer() {
   const actionLogStore = useMonitoringStore('actionLog');
   const actionLog = useStoreValue(actionLogStore);
@@ -1008,18 +1008,18 @@ function ActionLogViewer() {
 
 ---
 
-## Provider Setup Integration
+## 프로바이더 설정 통합
 
-**Complete Provider Setup**: Integrate all debugging capabilities:
+**완전한 프로바이더 설정**: 모든 디버깅 기능을 통합:
 
 ```tsx
-// ✅ STANDARD: Complete debugging provider setup
+// ✅ 표준: 완전한 디버깅 프로바이더 설정
 import { composeProviders } from '@context-action/react';
 
 const DebugProviders = composeProviders([
   MonitoringStoreProvider,
   StressTestStoreProvider,
-  EventActionProvider  // From Basic Action Setup
+  EventActionProvider  // 기본 액션 설정에서
 ]);
 
 function DebugApp() {
@@ -1037,62 +1037,62 @@ function DebugApp() {
 
 ---
 
-## Migration Checklist
+## 마이그레이션 체크리스트
 
-### ✅ Setup Integration (Target: 90%+ compliance)
-- [ ] All debugging patterns reference established Setup guides
-- [ ] Action handlers follow Basic Action Setup naming conventions
-- [ ] Store patterns follow Basic Store Setup type definitions
-- [ ] Provider composition uses recommended patterns
-- [ ] Component naming follows framework conventions
+### ✅ 설정 통합 (목표: 90%+ 준수)
+- [ ] 모든 디버깅 패턴이 설정된 설정 가이드를 참조함
+- [ ] 액션 핸들러가 기본 액션 설정 네이밍 컨벤션을 따름
+- [ ] 스토어 패턴이 기본 스토어 설정 타입 정의를 따름
+- [ ] 프로바이더 구성이 권장 패턴을 사용함
+- [ ] 컴포넌트 네이밍이 프레임워크 컨벤션을 따름
 
-### ✅ Type Definition Organization
-- [ ] Debug-specific types moved to [Debug Store Types Proposal](../proposals/debug-store-types.md)
-- [ ] Existing pattern types extended rather than redefined
-- [ ] Interface consistency maintained across debugging features
-- [ ] Proper TypeScript integration with framework types
+### ✅ 타입 정의 구조화
+- [ ] 디버그 전용 타입을 [디버그 스토어 타입 제안](../proposals/debug-store-types.md)으로 이동
+- [ ] 기존 패턴 타입을 재정의하지 않고 확장
+- [ ] 디버깅 기능 전반에서 인터페이스 일관성 유지
+- [ ] 프레임워크 타입과의 적절한 TypeScript 통합
 
-### ✅ Pattern Standardization
-- [ ] Consistent naming conventions (e.g., `useDebugStore`, `DebugStoreProvider`)
-- [ ] Standard action payload structures following ActionPayloadMap
-- [ ] Uniform error handling patterns across all handlers
-- [ ] Consistent store configuration strategies
+### ✅ 패턴 표준화
+- [ ] 일관된 네이밍 컨벤션 (예: `useDebugStore`, `DebugStoreProvider`)
+- [ ] ActionPayloadMap을 따르는 표준 액션 페이로드 구조
+- [ ] 모든 핸들러에서 통일된 오류 처리 패턴
+- [ ] 일관된 스토어 구성 전략
 
-### ✅ Documentation Improvements
-- [ ] Clear Prerequisites section with Setup guide references
-- [ ] Migration-focused content rather than new pattern introduction
-- [ ] Improved code examples following established conventions
-- [ ] Better integration with existing pattern ecosystem
-
----
-
-## 📚 Related Patterns
-
-**Prerequisites (Required)**:
-- **[Basic Action Setup](../setup/basic-action-setup.md)** - Foundation for debug actions
-- **[Basic Store Setup](../setup/basic-store-setup.md)** - Foundation for debug state management
-- **[Multi-Context Setup](../setup/multi-context-setup.md)** - Complex debugging scenarios
-
-**Advanced Patterns**:
-- **[Real-time State Access](../async/real-time-state-access.md)** - Fresh state access in debug handlers
-- **[Advanced Action Patterns](../action/advanced-patterns.md)** - Complex debugging action patterns
-- **[Timeout Protection](../async/timeout-protection.md)** - Debug-safe timeout handling
-
-**Enhancement Proposals**:
-- **[Debug Store Types Proposal](../proposals/debug-store-types.md)** - Advanced debugging type definitions
+### ✅ 문서화 개선
+- [ ] 설정 가이드 참조를 포함한 명확한 전제조건 섹션
+- [ ] 새로운 패턴 도입보다는 마이그레이션 중심 콘텐츠
+- [ ] 기존 컨벤션을 따르는 향상된 코드 예제
+- [ ] 기존 패턴 생태계와의 더 나은 통합
 
 ---
 
-## 💡 Migration Success Criteria
+## 📚 관련 패턴
 
-### ✅ From Ad-hoc to Systematic (60% → 90%+)
-1. **Standardized Patterns**: All debugging follows framework conventions
-2. **Setup Integration**: Clear references to established setup guides
-3. **Type Safety**: Comprehensive TypeScript coverage for debug features
-4. **Performance**: Debug features don't impact production performance
-5. **Maintainability**: Debug code follows same quality standards as application code
+**전제조건 (필수)**:
+- **[기본 액션 설정](../setup/basic-action-setup.md)** - 디버그 액션을 위한 기반
+- **[기본 스토어 설정](../setup/basic-store-setup.md)** - 디버그 상태 관리를 위한 기반
+- **[다중 컨텍스트 설정](../setup/multi-context-setup.md)** - 복잡한 디버깅 시나리오
 
-### ✅ Implementation Priority
-1. **High Priority**: Core issue patterns (race conditions, handler registration)
-2. **Medium Priority**: Monitoring and recovery patterns
-3. **Low Priority**: Stress testing and advanced debugging utilities
+**고급 패턴**:
+- **[실시간 상태 접근](../async/real-time-state-access.md)** - 디버그 핸들러에서 최신 상태 접근
+- **[고급 액션 패턴](../action/advanced-patterns.md)** - 복잡한 디버깅 액션 패턴
+- **[타임아웃 보호](../async/timeout-protection.md)** - 디버그 안전 타임아웃 처리
+
+**개선 제안**:
+- **[디버그 스토어 타입 제안](../proposals/debug-store-types.md)** - 고급 디버깅 타입 정의
+
+---
+
+## 💡 마이그레이션 성공 기준
+
+### ✅ 임시적에서 체계적으로 (60% → 90%+)
+1. **표준화된 패턴**: 모든 디버깅이 프레임워크 컨벤션을 따름
+2. **설정 통합**: 설정된 설정 가이드에 대한 명확한 참조
+3. **타입 안전성**: 디버그 기능에 대한 포괄적인 TypeScript 커버리지
+4. **성능**: 디버그 기능이 프로덕션 성능에 영향을 주지 않음
+5. **유지보수성**: 디버그 코드가 애플리케이션 코드와 동일한 품질 기준을 따름
+
+### ✅ 구현 우선순위
+1. **높은 우선순위**: 핵심 이슈 패턴 (경쟁 상태, 핸들러 등록)
+2. **중간 우선순위**: 모니터링 및 복구 패턴
+3. **낮은 우선순위**: 스트레스 테스팅 및 고급 디버깅 유틸리티
