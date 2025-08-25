@@ -16,12 +16,55 @@ import { createActionContext } from '@context-action/react';
 
 ## Prerequisites
 
-For complete setup instructions including type definitions, context creation, and provider configuration, see **[Basic Action Setup](../setup/basic-action-setup.md)**.
+**Required Setup**: Complete the following setup before using this pattern:
 
-This document uses the `EventActions` pattern from the setup guide:
-- Type definitions → [Event Actions Pattern](../setup/basic-action-setup.md#common-action-patterns)
-- Context creation → [Single Domain Context](../setup/basic-action-setup.md#single-domain-context)
-- Provider setup → [Single Provider Setup](../setup/basic-action-setup.md#single-provider-setup)
+1. **Type Definitions** - Define your action interfaces using the standard patterns
+2. **Context Creation** - Create typed action contexts with proper hook renaming
+3. **Provider Configuration** - Set up action providers in your app structure
+
+For detailed setup instructions, see **[Basic Action Setup](../../setup/basic-action-setup.md)**.
+
+### Required Action Types
+This document uses the `EventActions` specification from the setup guide:
+
+```typescript
+// From: Basic Action Setup → Common Action Patterns
+interface EventActions {
+  userClick: { x: number; y: number };
+  userHover: { elementId: string };
+  analytics: { event: string; data: any };
+  trackInteraction: { type: string; metadata?: Record<string, any> };
+}
+```
+
+### Required Context Setup
+This document assumes you have created the Event action context:
+
+```typescript
+// From: Basic Action Setup → Single Domain Context
+const {
+  Provider: EventActionProvider,
+  useActionDispatch: useEventAction,              // ← Renamed hook used in examples
+  useActionHandler: useEventActionHandler,        // ← Renamed hook used in examples  
+  useActionDispatchWithResult: useEventActionWithResult  // ← For advanced features
+} = createActionContext<EventActions>('Events');
+```
+
+### Required Provider Setup
+This document assumes your app is wrapped with the Event action provider:
+
+```typescript
+// From: Basic Action Setup → Single Provider Setup
+function App() {
+  return (
+    <EventActionProvider>
+      <AppContent />
+    </EventActionProvider>
+  );
+}
+```
+
+> **Setup Reference**: [Basic Action Setup Guide](../../setup/basic-action-setup.md#event-actions-ui-interactions)
 
 ## Basic Usage
 ```tsx
@@ -56,9 +99,7 @@ function InteractiveComponent() {
 
 ## Advanced Features
 ```tsx
-// Use the renamed context hooks for advanced features
-const { useActionDispatchWithResult: useEventActionWithResult } = createActionContext<EventActions>('Events');
-
+// Using the pre-configured context from Prerequisites setup
 function AdvancedComponent() {
   const { 
     dispatch, 
@@ -92,6 +133,13 @@ function AdvancedComponent() {
 ```
 
 ## Available Hooks
+
+### From Prerequisites Setup
+- `useEventAction()` - Basic action dispatcher (renamed from useActionDispatch)
+- `useEventActionHandler()` - Register action handlers (renamed from useActionHandler)  
+- `useEventActionWithResult()` - Advanced dispatcher with results/abort (renamed from useActionDispatchWithResult)
+
+### Generic Pattern (before renaming)
 - `useActionDispatch()` - Basic action dispatcher
 - `useActionHandler(action, handler, config?)` - Register action handlers
 - `useActionDispatchWithResult()` - Advanced dispatcher with results/abort

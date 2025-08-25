@@ -1,5 +1,20 @@
 # Context Singleton Handling
 
+Context singleton management patterns using RefContext for lazy evaluation and proper lifecycle control in the Context-Action framework.
+
+## Prerequisites
+
+Refer to **[RefContext Setup](../setup/ref-context-setup.md)** for:
+- Import statements and basic setup
+- Type definitions (ServiceRefs, ManagerRefs, etc.)
+- Provider composition patterns
+- Initialization patterns
+
+## Import
+```typescript
+import { createRefContext } from '@context-action/react';
+```
+
 ## Definition
 
 **Context Singleton**: An object that exists as a single instance within a specific React context boundary, managed through RefContext for lazy evaluation and proper lifecycle control.
@@ -90,39 +105,235 @@
 
 ## Implementation Patterns
 
-### Reference Management Pattern
+### Service Singleton Pattern
 
-**Pattern**: RefContext provides reference holders with `target` property for accessing singleton objects.
+**Setup**: Uses ServiceRefs from RefContext setup for external service management.
 
-**Structure**:
-- `ref.target`: Current singleton instance (null if uninitialized)
-- `ref.setRef()`: Method to assign singleton instance
-- `ref.current`: Direct access to wrapped object (discouraged)
+```typescript
+// Service singleton management
+interface ServiceRefs {
+  apiClient: any; // REST API client instance
+  websocketManager: WebSocket;
+  cacheService: Cache;
+  analyticsTracker: any; // Analytics service instance
+}
 
-### Initialization Patterns
+const {
+  Provider: ServiceRefProvider,
+  useRefHandler: useServiceRef
+} = createRefContext<ServiceRefs>('Services');
 
-**On-Demand Initialization**: Create singleton when first accessed in business logic
-- Most common pattern
-- Triggered by user actions or system events
+function useServiceSingletons() {
+  const apiClient = useServiceRef('apiClient');
+  const websocket = useServiceRef('websocketManager');
+  const cache = useServiceRef('cacheService');
+  const analytics = useServiceRef('analyticsTracker');
+  
+  // Lazy initialization pattern
+  const initializeServices = useCallback(() => {
+    if (!apiClient.target) {
+      apiClient.setRef(new APIClient({
+        baseURL: process.env.REACT_APP_API_URL,
+        timeout: 10000,
+        retries: 3
+      }));
+    }
+    
+    if (!websocket.target && shouldEnableRealtime) {
+      const ws = new WebSocket(process.env.REACT_APP_WS_URL!);
+      ws.onopen = () => console.log('WebSocket connected');
+      ws.onclose = () => console.log('WebSocket disconnected');
+      websocket.setRef(ws);
+    }
+    
+    if (!cache.target) {
+      caches.open('app-cache-v1').then(cache => {
+        cache.setRef(cache);
+      });
+    }
+  }, [apiClient, websocket, cache]);
+  
+  return { initializeServices };
+}
+```
 
-**Context Mount Initialization**: Create singleton when context mounts  
-- For singletons that must exist throughout context lifetime
-- Triggered by useEffect in context setup
+### Manager Singleton Pattern
 
-**Conditional Initialization**: Create different singletons based on runtime conditions
-- Feature flags determine singleton type
-- User permissions determine singleton configuration
+**Setup**: Uses ManagerRefs for heavy computational objects.
 
-### Lifecycle Patterns  
+```typescript
+// Manager singleton for heavy computation
+interface ManagerRefs {
+  dataProcessor: any; // Heavy data processing engine
+  reportGenerator: any; // Report generation service
+  fileManager: any; // File operation manager
+  notificationManager: any; // Notification service
+}
 
-**Cleanup on Unmount**: Essential pattern for resource management
-- Dispose of connections, files, timers
-- Prevent memory leaks
-- Release external resources
+const {
+  Provider: ManagerRefProvider,
+  useRefHandler: useManagerRef
+} = createRefContext<ManagerRefs>('Managers');
 
-**Lazy Disposal**: Defer cleanup until necessary
-- Keep singletons alive across component re-renders
-- Clean up only on context unmount or replacement
+function useManagerSingletons() {
+  const dataProcessor = useManagerRef('dataProcessor');
+  const reportGenerator = useManagerRef('reportGenerator');
+  const fileManager = useManagerRef('fileManager');
+  const notifications = useManagerRef('notificationManager');
+  
+  // On-demand initialization with configuration
+  const initializeManagers = useCallback((userConfig: any) => {
+    if (!dataProcessor.target) {
+      // Heavy initialization only when needed
+      import('../services/DataProcessor').then(({ DataProcessor }) => {
+        const processor = new DataProcessor({
+          workerCount: navigator.hardwareConcurrency || 4,
+          memoryLimit: userConfig.memoryLimit,
+          useWebAssembly: userConfig.enableWASM
+        });
+        dataProcessor.setRef(processor);
+      });
+    }
+    
+    if (!reportGenerator.target) {
+      import('../services/ReportGenerator').then(({ ReportGenerator }) => {
+        const generator = new ReportGenerator({
+          templates: userConfig.reportTemplates,
+          outputFormats: ['pdf', 'excel', 'csv'],
+          maxConcurrentJobs: 3
+        });
+        reportGenerator.setRef(generator);
+      });
+    }
+  }, [dataProcessor, reportGenerator, userConfig]);
+  
+  return { initializeManagers };
+}
+```
+
+### Context-Specific Singleton Pattern
+
+**Setup**: Different singleton configurations per context boundary.
+
+```typescript
+// User-specific singleton configuration
+interface UserSingletons {
+  userDataService: any;
+  userPreferences: any;
+  userNotifications: any;
+}
+
+function UserContextProvider({ children, userId }: { children: React.ReactNode; userId: string }) {
+  const {
+    Provider: UserRefProvider,
+    useRefHandler: useUserRef
+  } = createRefContext<UserSingletons>('UserContext');
+  
+  return (
+    <UserRefProvider>
+      <UserSingletonInitializer userId={userId} />
+      {children}
+    </UserRefProvider>
+  );
+}
+
+function UserSingletonInitializer({ userId }: { userId: string }) {
+  const userDataService = useUserRef('userDataService');
+  const userPreferences = useUserRef('userPreferences');
+  const userNotifications = useUserRef('userNotifications');
+  
+  useEffect(() => {
+    // Context-specific initialization
+    if (!userDataService.target) {
+      userDataService.setRef(new UserDataService({
+        userId,
+        cachePolicy: 'user-specific',
+        syncInterval: 30000
+      }));
+    }
+    
+    if (!userPreferences.target) {
+      userPreferences.setRef(new UserPreferencesManager({
+        userId,
+        autoSave: true,
+        localBackup: true
+      }));
+    }
+    
+    if (!userNotifications.target) {
+      userNotifications.setRef(new NotificationManager({
+        userId,
+        channels: ['push', 'email', 'sms'],
+        preferences: userPreferences.target?.getNotificationSettings()
+      }));
+    }
+    
+    // Cleanup on user context change
+    return () => {
+      userDataService.target?.cleanup();
+      userPreferences.target?.save();
+      userNotifications.target?.disconnect();
+    };
+  }, [userId, userDataService, userPreferences, userNotifications]);
+  
+  return null;
+}
+```
+
+### Lifecycle Management Patterns  
+
+**Cleanup on Unmount**: Essential pattern for resource management with proper singleton disposal.
+
+```typescript
+// Comprehensive cleanup pattern
+function useSingletonCleanup() {
+  const services = useServiceRef();
+  const managers = useManagerRef();
+  
+  useEffect(() => {
+    return () => {
+      // Service cleanup
+      services.apiClient?.target?.disconnect();
+      services.websocketManager?.target?.close();
+      services.cacheService?.target?.clear();
+      services.analyticsTracker?.target?.flush();
+      
+      // Manager cleanup
+      managers.dataProcessor?.target?.terminate();
+      managers.reportGenerator?.target?.cancelAllJobs();
+      managers.fileManager?.target?.cleanup();
+      managers.notificationManager?.target?.unsubscribeAll();
+    };
+  }, [services, managers]);
+}
+```
+
+**Lazy Disposal**: Defer cleanup until necessary with smart resource management.
+
+```typescript
+// Smart cleanup with resource monitoring
+function useSmartSingletonDisposal() {
+  const [resourceUsage, setResourceUsage] = useState(0);
+  const services = useServiceRef();
+  
+  useEffect(() => {
+    const monitor = setInterval(() => {
+      // Monitor resource usage
+      const usage = performance.memory?.usedJSHeapSize || 0;
+      setResourceUsage(usage);
+      
+      // Lazy disposal when resources are high
+      if (usage > MEMORY_THRESHOLD) {
+        // Dispose non-critical singletons
+        services.cacheService?.target?.cleanup();
+        services.analyticsTracker?.target?.pause();
+      }
+    }, 5000);
+    
+    return () => clearInterval(monitor);
+  }, [services]);
+}
+```
 
 ## Conceptual Boundaries
 
@@ -172,7 +383,81 @@
 - **Performance**: Lazy evaluation reduces unnecessary resource consumption
 - **Maintainability**: Clear separation between singleton types and responsibilities
 
+## Multi-Context Singleton Management
+
+### Singleton Sharing Across Contexts
+
+```typescript
+// Shared singleton pool pattern
+interface SharedSingletons {
+  globalCache: Cache;
+  systemLogger: any;
+  configManager: any;
+}
+
+interface DomainSingletons {
+  domainService: any;
+  domainProcessor: any;
+}
+
+// Global shared singletons
+const {
+  Provider: SharedRefProvider,
+  useRefHandler: useSharedRef
+} = createRefContext<SharedSingletons>('Shared');
+
+// Domain-specific singletons
+const {
+  Provider: DomainRefProvider,
+  useRefHandler: useDomainRef
+} = createRefContext<DomainSingletons>('Domain');
+
+function MultiContextApp() {
+  return (
+    <SharedRefProvider>
+      <DomainRefProvider>
+        <DomainAComponents />
+      </DomainRefProvider>
+      <DomainRefProvider>
+        <DomainBComponents />
+      </DomainRefProvider>
+    </SharedRefProvider>
+  );
+}
+```
+
+### Environment-Specific Singletons
+
+```typescript
+// Environment-based singleton configuration
+function createEnvironmentSingletons(environment: 'development' | 'staging' | 'production') {
+  const config = {
+    development: {
+      apiUrl: 'http://localhost:3001',
+      enableMocking: true,
+      logLevel: 'debug'
+    },
+    staging: {
+      apiUrl: 'https://staging-api.example.com',
+      enableMocking: false,
+      logLevel: 'info'
+    },
+    production: {
+      apiUrl: 'https://api.example.com',
+      enableMocking: false,
+      logLevel: 'error'
+    }
+  }[environment];
+  
+  return createRefContext<ServiceRefs>(`Services-${environment}`);
+}
+
+const EnvironmentServices = createEnvironmentSingletons(process.env.NODE_ENV);
+```
+
 ## Related Patterns
 
+- **[RefContext Setup](../setup/ref-context-setup.md)** - Complete setup patterns and type definitions
 - **[Context Splitting](../architecture/context-splitting.md)** - Managing singleton objects across split contexts
 - **[RefContext Basic Usage](./basic-usage.md)** - Foundation RefContext patterns
+- **[Memory Optimization](./memory-optimization.md)** - Singleton lifecycle and memory management

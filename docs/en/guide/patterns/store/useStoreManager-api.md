@@ -23,9 +23,18 @@ const {
   useStore: useUserStore,
   useStoreManager: useUserStoreManager
 } = createDeclarativeStorePattern('User', {
-  profile: { initialValue: { id: '', name: '', email: '', role: 'guest' } },
-  preferences: { initialValue: { theme: 'light', language: 'en', notifications: true } },
-  session: { initialValue: { isAuthenticated: false, permissions: [], lastActivity: 0 } }
+  profile: {
+    initialValue: { id: '', name: '', email: '', role: 'guest' as const },
+    strategy: 'shallow' as const
+  },
+  preferences: {
+    initialValue: { theme: 'light' as const, language: 'en', notifications: true },
+    strategy: 'shallow' as const
+  },
+  session: {
+    initialValue: { isAuthenticated: false, permissions: [], lastActivity: 0 },
+    strategy: 'shallow' as const
+  }
 });
 
 function MyComponent() {
@@ -48,24 +57,24 @@ function UserManager() {
   const profile = useStoreValue(profileStore);
   
   const updateUserName = (newName: string) => {
-    const userStore = manager.getStore('user');
-    const currentUser = userStore.getValue();
-    userStore.setValue({ ...currentUser, name: newName });
+    const profileStore = manager.getStore('profile');
+    const currentProfile = profileStore.getValue();
+    profileStore.setValue({ ...currentProfile, name: newName });
   };
   
   const updateUserEmail = (newEmail: string) => {
-    const userStore = manager.getStore('user');
-    userStore.update(current => ({ ...current, email: newEmail }));
+    const profileStore = manager.getStore('profile');
+    profileStore.update(current => ({ ...current, email: newEmail }));
   };
   
   return (
     <div>
       <input 
-        value={user.name}
+        value={profile.name}
         onChange={e => updateUserName(e.target.value)}
       />
       <input 
-        value={user.email}
+        value={profile.email}
         onChange={e => updateUserEmail(e.target.value)}
       />
     </div>
@@ -80,17 +89,17 @@ function UserManager() {
 Get a typed store instance by name. This is the primary method for accessing stores.
 
 ```tsx
-const manager = useAppStoreManager();
+const manager = useUserStoreManager();
 
 // Get store instances with full type safety
-const userStore = manager.getStore('user');     // Store<User>
-const settingsStore = manager.getStore('settings'); // Store<Settings>
-const cartStore = manager.getStore('cart');     // Store<Cart>
+const profileStore = manager.getStore('profile');     // Store<UserProfile>
+const preferencesStore = manager.getStore('preferences'); // Store<UserPreferences>
+const sessionStore = manager.getStore('session');     // Store<UserSession>
 
 // Use store methods directly
-const currentUser = userStore.getValue();
-userStore.setValue(newUser);
-userStore.update(user => ({ ...user, name: 'John' }));
+const currentProfile = profileStore.getValue();
+profileStore.setValue(newProfile);
+profileStore.update(profile => ({ ...profile, name: 'John' }));
 ```
 
 ### Store Instance Methods
@@ -98,37 +107,37 @@ userStore.update(user => ({ ...user, name: 'John' }));
 Once you have a store instance, you can use these methods:
 
 ```tsx
-const userStore = manager.getStore('user');
+const profileStore = manager.getStore('profile');
 
 // Get current value
-const currentUser = userStore.getValue();
+const currentProfile = profileStore.getValue();
 
 // Set new value directly
-userStore.setValue({ name: 'John', email: 'john@example.com' });
+profileStore.setValue({ id: '123', name: 'John', email: 'john@example.com', role: 'user' });
 
 // Update with function
-userStore.update(current => ({
+profileStore.update(current => ({
   ...current,
-  lastLoginAt: new Date()
+  name: 'John Doe'
 }));
 
 // Subscribe to changes
-const unsubscribe = userStore.subscribe((newValue, previousValue) => {
-  console.log('User changed:', { newValue, previousValue });
+const unsubscribe = profileStore.subscribe((newValue, previousValue) => {
+  console.log('Profile changed:', { newValue, previousValue });
 });
 
 // Reset to initial value
-userStore.reset();
+profileStore.reset();
 ```
 
 ### Manager Utility Methods
 
 ```tsx
-const manager = useAppStoreManager();
+const manager = useUserStoreManager();
 
 // Get manager info
 const info = manager.getInfo();
-console.log(info); // { name: 'App', storeCount: 3, availableStores: ['user', 'settings', 'cart'] }
+console.log(info); // { name: 'User', storeCount: 3, availableStores: ['profile', 'preferences', 'session'] }
 
 // Clear all stores (advanced use case)
 manager.clear();
@@ -140,31 +149,32 @@ manager.clear();
 
 ```tsx
 function BulkOperations() {
-  const manager = useAppStoreManager();
+  const manager = useUserStoreManager();
   
   const handleBulkUpdate = async () => {
     // Update multiple stores in sequence
-    const userStore = manager.getStore('user');
-    const settingsStore = manager.getStore('settings');
-    const cartStore = manager.getStore('cart');
+    const profileStore = manager.getStore('profile');
+    const preferencesStore = manager.getStore('preferences');
+    const sessionStore = manager.getStore('session');
     
-    userStore.setValue({ name: 'John Doe', email: 'john@example.com' });
-    settingsStore.update(current => ({ ...current, theme: 'dark' }));
-    cartStore.update(current => ({ 
+    profileStore.setValue({ id: '123', name: 'John Doe', email: 'john@example.com', role: 'user' });
+    preferencesStore.update(current => ({ ...current, theme: 'dark' }));
+    sessionStore.update(current => ({ 
       ...current, 
-      items: [...current.items, newItem] 
+      isAuthenticated: true,
+      lastActivity: Date.now()
     }));
   };
   
   const handleResetAll = () => {
     // Reset all stores to initial values
-    const userStore = manager.getStore('user');
-    const settingsStore = manager.getStore('settings');
-    const cartStore = manager.getStore('cart');
+    const profileStore = manager.getStore('profile');
+    const preferencesStore = manager.getStore('preferences');
+    const sessionStore = manager.getStore('session');
     
-    userStore.reset();
-    settingsStore.reset();
-    cartStore.reset();
+    profileStore.reset();
+    preferencesStore.reset();
+    sessionStore.reset();
   };
   
   return (
@@ -180,26 +190,26 @@ function BulkOperations() {
 
 ```tsx
 function ConditionalUpdates() {
-  const manager = useAppStoreManager();
+  const manager = useUserStoreManager();
   
-  const updateUserIfValid = (newUser: User) => {
-    const userStore = manager.getStore('user');
-    const currentUser = userStore.getValue();
+  const updateProfileIfValid = (newProfile: UserProfile) => {
+    const profileStore = manager.getStore('profile');
+    const currentProfile = profileStore.getValue();
     
-    // Only update if user is different
-    if (JSON.stringify(currentUser) !== JSON.stringify(newUser)) {
-      userStore.setValue(newUser);
+    // Only update if profile is different
+    if (JSON.stringify(currentProfile) !== JSON.stringify(newProfile)) {
+      profileStore.setValue(newProfile);
     }
   };
   
-  const updateSettingsIfAllowed = (newSettings: Settings) => {
-    const userStore = manager.getStore('user');
-    const settingsStore = manager.getStore('settings');
-    const user = userStore.getValue();
+  const updatePreferencesIfAllowed = (newPreferences: UserPreferences) => {
+    const profileStore = manager.getStore('profile');
+    const preferencesStore = manager.getStore('preferences');
+    const profile = profileStore.getValue();
     
     // Only update if user has permission
-    if (user.role === 'admin') {
-      settingsStore.setValue(newSettings);
+    if (profile.role === 'admin') {
+      preferencesStore.setValue(newPreferences);
     }
   };
   
@@ -215,32 +225,32 @@ function ConditionalUpdates() {
 
 ```tsx
 function ValidatedStoreManager() {
-  const manager = useAppStoreManager();
+  const manager = useUserStoreManager();
   
-  const updateUserWithValidation = (updates: Partial<User>) => {
-    const userStore = manager.getStore('user');
-    const currentUser = userStore.getValue();
-    const newUser = { ...currentUser, ...updates };
+  const updateProfileWithValidation = (updates: Partial<UserProfile>) => {
+    const profileStore = manager.getStore('profile');
+    const currentProfile = profileStore.getValue();
+    const newProfile = { ...currentProfile, ...updates };
     
     // Validate before updating
-    if (isValidUser(newUser)) {
-      userStore.setValue(newUser);
+    if (isValidProfile(newProfile)) {
+      profileStore.setValue(newProfile);
       return { success: true };
     } else {
-      return { success: false, error: 'Invalid user data' };
+      return { success: false, error: 'Invalid profile data' };
     }
   };
   
-  const updateSettingsWithDefaults = (settings: Partial<Settings>) => {
-    const settingsStore = manager.getStore('settings');
-    settingsStore.update(current => ({
+  const updatePreferencesWithDefaults = (preferences: Partial<UserPreferences>) => {
+    const preferencesStore = manager.getStore('preferences');
+    preferencesStore.update(current => ({
       // Apply defaults first
       theme: 'light',
       notifications: true,
       language: 'en',
       // Then apply updates
       ...current,
-      ...settings
+      ...preferences
     }));
   };
   
@@ -259,21 +269,21 @@ Store Manager works seamlessly with Action Context for complex business logic:
 ```tsx
 // Action handler using Store Manager
 function UserActions() {
-  const manager = useAppStoreManager();
+  const manager = useUserStoreManager();
   
   useEventActionHandler('updateUserProfile', async (payload) => {
-    const userStore = manager.getStore('user');
-    const settingsStore = manager.getStore('settings');
-    const currentUser = userStore.getValue();
+    const profileStore = manager.getStore('profile');
+    const preferencesStore = manager.getStore('preferences');
+    const currentProfile = profileStore.getValue();
     
     // Business logic
-    const updatedUser = await processUserUpdate(currentUser, payload);
+    const updatedProfile = await processUserUpdate(currentProfile, payload);
     
     // Update stores
-    userStore.setValue(updatedUser);
-    settingsStore.update(settings => ({
-      ...settings,
-      lastUpdatedBy: updatedUser.id
+    profileStore.setValue(updatedProfile);
+    preferencesStore.update(preferences => ({
+      ...preferences,
+      language: updatedProfile.role === 'admin' ? 'en' : preferences.language
     }));
   });
   
@@ -287,18 +297,18 @@ function UserActions() {
 
 ```tsx
 function OptimizedUpdates() {
-  const manager = useAppStoreManager();
+  const manager = useUserStoreManager();
   
   const handleBatchUpdate = () => {
     // These updates happen in sequence but are optimized
     React.unstable_batchedUpdates(() => {
-      const userStore = manager.getStore('user');
-      const settingsStore = manager.getStore('settings');
-      const cartStore = manager.getStore('cart');
+      const profileStore = manager.getStore('profile');
+      const preferencesStore = manager.getStore('preferences');
+      const sessionStore = manager.getStore('session');
       
-      userStore.setValue(newUser);
-      settingsStore.setValue(newSettings);
-      cartStore.setValue(newCart);
+      profileStore.setValue(newProfile);
+      preferencesStore.setValue(newPreferences);
+      sessionStore.setValue(newSession);
     });
   };
   
@@ -314,22 +324,22 @@ function OptimizedUpdates() {
 
 ```tsx
 function MemoizedUpdates() {
-  const manager = useAppStoreManager();
+  const manager = useUserStoreManager();
   
-  const updateUserMemoized = useCallback((updates: Partial<User>) => {
-    const userStore = manager.getStore('user');
-    userStore.update(current => ({ ...current, ...updates }));
+  const updateProfileMemoized = useCallback((updates: Partial<UserProfile>) => {
+    const profileStore = manager.getStore('profile');
+    profileStore.update(current => ({ ...current, ...updates }));
   }, [manager]);
   
-  const resetUserMemoized = useCallback(() => {
-    const userStore = manager.getStore('user');
-    userStore.reset();
+  const resetProfileMemoized = useCallback(() => {
+    const profileStore = manager.getStore('profile');
+    profileStore.reset();
   }, [manager]);
   
   return (
     <UserForm 
-      onUpdate={updateUserMemoized}
-      onReset={resetUserMemoized}
+      onUpdate={updateProfileMemoized}
+      onReset={resetProfileMemoized}
     />
   );
 }
@@ -341,11 +351,11 @@ function MemoizedUpdates() {
 
 ```tsx
 function SafeStoreManager() {
-  const manager = useAppStoreManager();
+  const manager = useUserStoreManager();
   
-  const safeUpdateStore = <K extends keyof StoreTypes>(
+  const safeUpdateStore = <K extends keyof UserStores>(
     storeName: K, 
-    value: StoreTypes[K]
+    value: UserStores[K]
   ) => {
     try {
       const store = manager.getStore(storeName);
@@ -357,7 +367,7 @@ function SafeStoreManager() {
     }
   };
   
-  const safeGetStoreValue = <K extends keyof StoreTypes>(storeName: K) => {
+  const safeGetStoreValue = <K extends keyof UserStores>(storeName: K) => {
     try {
       const store = manager.getStore(storeName);
       return { success: true, value: store.getValue() };
@@ -380,42 +390,55 @@ function SafeStoreManager() {
 Store Manager provides full type safety:
 
 ```tsx
-interface User {
+interface UserProfile {
+  id: string;
   name: string;
   email: string;
+  role: 'admin' | 'user' | 'guest';
 }
 
-interface Settings {
+interface UserPreferences {
   theme: 'light' | 'dark';
+  language: 'en' | 'ko' | 'ja' | 'zh';
   notifications: boolean;
 }
 
-interface Cart {
-  items: Array<{ id: string; name: string; price: number }>;
-  total: number;
+interface UserSession {
+  isAuthenticated: boolean;
+  permissions: string[];
+  lastActivity: number;
 }
 
 const {
-  useStoreManager: useAppStoreManager
-} = createDeclarativeStorePattern('App', {
-  user: { initialValue: { name: '', email: '' } as User },
-  settings: { initialValue: { theme: 'light', notifications: true } as Settings },
-  cart: { initialValue: { items: [], total: 0 } as Cart }
+  useStoreManager: useUserStoreManager
+} = createDeclarativeStorePattern('User', {
+  profile: {
+    initialValue: { id: '', name: '', email: '', role: 'guest' as const },
+    strategy: 'shallow' as const
+  },
+  preferences: {
+    initialValue: { theme: 'light' as const, language: 'en', notifications: true },
+    strategy: 'shallow' as const
+  },
+  session: {
+    initialValue: { isAuthenticated: false, permissions: [], lastActivity: 0 },
+    strategy: 'shallow' as const
+  }
 });
 
 function TypeSafeComponent() {
-  const manager = useAppStoreManager();
+  const manager = useUserStoreManager();
   
   // TypeScript knows the exact type of each store
-  const updateUser = (user: User) => {
-    const userStore = manager.getStore('user'); // Returns Store<User>
-    userStore.setValue(user); // ✅ Type-safe
-    // userStore.setValue('invalid'); // ❌ TypeScript error
+  const updateProfile = (profile: UserProfile) => {
+    const profileStore = manager.getStore('profile'); // Returns Store<UserProfile>
+    profileStore.setValue(profile); // ✅ Type-safe
+    // profileStore.setValue('invalid'); // ❌ TypeScript error
   };
   
-  const getUserData = () => {
-    const userStore = manager.getStore('user'); // Returns Store<User>
-    return userStore.getValue(); // Returns User
+  const getProfileData = () => {
+    const profileStore = manager.getStore('profile'); // Returns Store<UserProfile>
+    return profileStore.getValue(); // Returns UserProfile
   };
   
   return <div>{/* Component JSX */}</div>;
@@ -427,55 +450,54 @@ function TypeSafeComponent() {
 ### 1. Use Functional Updates for Complex State
 
 ```tsx
-const manager = useAppStoreManager();
+const manager = useUserStoreManager();
 
 // ✅ Good: Functional update
-const cartStore = manager.getStore('cart');
-cartStore.update(cart => ({
-  ...cart,
-  items: cart.items.map(item => 
-    item.id === productId 
-      ? { ...item, quantity: item.quantity + 1 }
-      : item
-  )
+const sessionStore = manager.getStore('session');
+sessionStore.update(session => ({
+  ...session,
+  permissions: session.permissions.includes('read') 
+    ? session.permissions 
+    : [...session.permissions, 'read']
 }));
 
 // ❌ Avoid: Reading current state separately
-const cart = cartStore.getValue();
-cartStore.setValue({
-  ...cart,
-  items: cart.items.map(/* ... */)
+const session = sessionStore.getValue();
+sessionStore.setValue({
+  ...session,
+  permissions: [...session.permissions, 'read']
 });
 ```
 
 ### 2. Combine with useCallback for Performance
 
 ```tsx
-const manager = useAppStoreManager();
+const manager = useUserStoreManager();
 
-const updateUserName = useCallback((name: string) => {
-  const userStore = manager.getStore('user');
-  userStore.update(user => ({ ...user, name }));
+const updateProfileName = useCallback((name: string) => {
+  const profileStore = manager.getStore('profile');
+  profileStore.update(profile => ({ ...profile, name }));
 }, [manager]);
 ```
 
 ### 3. Use Store Manager for Related Updates
 
 ```tsx
-const manager = useAppStoreManager();
+const manager = useUserStoreManager();
 
 const handleUserLogin = useCallback(async (credentials) => {
   const user = await login(credentials);
   
   // Update related stores together
-  const userStore = manager.getStore('user');
-  const settingsStore = manager.getStore('settings');
+  const profileStore = manager.getStore('profile');
+  const sessionStore = manager.getStore('session');
   
-  userStore.setValue(user);
-  settingsStore.update(settings => ({
-    ...settings,
-    isLoggedIn: true,
-    lastLoginAt: new Date()
+  profileStore.setValue({ id: user.id, name: user.name, email: user.email, role: user.role });
+  sessionStore.update(session => ({
+    ...session,
+    isAuthenticated: true,
+    lastActivity: Date.now(),
+    permissions: user.permissions
   }));
 }, [manager]);
 ```
@@ -484,17 +506,17 @@ const handleUserLogin = useCallback(async (credentials) => {
 
 ```tsx
 // ✅ Good: Using manager for multiple operations
-const manager = useAppStoreManager();
-const userStore = manager.getStore('user');
-const settingsStore = manager.getStore('settings');
+const manager = useUserStoreManager();
+const profileStore = manager.getStore('profile');
+const preferencesStore = manager.getStore('preferences');
 
 // Perform multiple operations efficiently
-userStore.setValue(newUser);
-settingsStore.update(settings => ({ ...settings, lastUpdated: Date.now() }));
+profileStore.setValue(newProfile);
+preferencesStore.update(preferences => ({ ...preferences, language: 'en' }));
 
 // ❌ Less efficient: Multiple hook calls
-const userStore = useAppStore('user');
-const settingsStore = useAppStore('settings');
+const profileStore = useUserStore('profile');
+const preferencesStore = useUserStore('preferences');
 ```
 
 ## Real-World Examples

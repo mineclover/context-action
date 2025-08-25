@@ -38,12 +38,11 @@ flowchart LR
 For complete MVVM setup instructions including type definitions, multi-layer contexts, and provider composition, see **[Multi-Context Setup - MVVM Architecture](../setup/multi-context-setup.md#mvvm-architecture-setup)**.
 
 This document demonstrates implementation patterns using the MVVM setup:
-- Type definitions → [Complete Type Definitions](../setup/multi-context-setup.md#complete-type-definitions)
-- Context creation → [MVVM Context Creation](../setup/multi-context-setup.md#mvvm-context-creation)  
-- Provider composition → [Layer-Based Composition](../setup/multi-context-setup.md#layer-based-composition-mvvm)
+- **Type definitions** → [Complete Type Definitions](../setup/multi-context-setup.md#complete-type-definitions)
+- **Context creation** → [MVVM Context Creation](../setup/multi-context-setup.md#mvvm-context-creation)  
+- **Provider composition** → [Layer-Based Composition](../setup/multi-context-setup.md#layer-based-composition-mvvm)
 
 ## Layer Implementation Patterns
-```
 
 ### Model Layer (Data Management)
 
@@ -55,7 +54,7 @@ export function useUserProfile() {
   
   return {
     profile,
-    isGuest: profile.role === 'user' && !profile.id,
+    isGuest: profile.role === 'guest' && !profile.id,
     displayName: profile.name || 'Guest User',
     roleLabel: profile.role.toUpperCase()
   };
@@ -73,7 +72,7 @@ export function useUserSession() {
 }
 ```
 
-### Step 3: ViewModel Layer (Business Logic)
+### ViewModel Layer (Business Logic)
 
 ```typescript
 // hooks/useUserActions.ts - Business logic handlers
@@ -92,12 +91,14 @@ export function useUserAuthActions() {
       profileStore.setValue({
         id: response.user.id,
         name: response.user.name,
+        email: response.user.email,
         role: response.user.role
       });
       
       sessionStore.setValue({
         isAuthenticated: true,
-        permissions: response.permissions
+        permissions: response.permissions,
+        lastActivity: Date.now()
       });
       
       return { success: true };
@@ -115,7 +116,7 @@ export function useUserAuthActions() {
 }
 ```
 
-### Step 4: Performance Layer (DOM Manipulation)
+### Performance Layer (DOM Manipulation)
 
 ```typescript
 // hooks/useUserPerformanceActions.ts - Direct DOM operations
@@ -158,7 +159,7 @@ export function useUserPerformanceActions() {
 }
 ```
 
-### Step 5: View Layer (UI Presentation)
+### View Layer (UI Presentation)
 
 ```typescript
 // components/UserProfileView.tsx - Pure presentation component
@@ -169,6 +170,7 @@ export function UserProfileView() {
   
   // Action functions (ViewModel Layer)
   const { login } = useUserAuthActions();
+  const dispatch = useUserActionDispatch();
   
   // Performance refs (Performance Layer)
   const { profileCardRef, loginButtonRef } = useUserPerformanceActions();
@@ -177,6 +179,10 @@ export function UserProfileView() {
   const handleLogin = useCallback(() => {
     login('user@example.com', 'password123');
   }, [login]);
+  
+  const handleLogout = useCallback(() => {
+    dispatch('logout', undefined);
+  }, [dispatch]);
   
   return (
     <div ref={profileCardRef.setRef} className="user-profile-card">
@@ -189,7 +195,7 @@ export function UserProfileView() {
       
       <div className="actions">
         {isAuthenticated ? (
-          <button onClick={() => dispatch('logout', undefined)}>
+          <button onClick={handleLogout}>
             Logout
           </button>
         ) : (
@@ -206,26 +212,18 @@ export function UserProfileView() {
 }
 ```
 
-### Step 6: Application Setup
+### Application Setup
 
 ```tsx
 // App.tsx - Complete MVVM setup
 function UserApp() {
   return (
-    {/* Model Layer - Foundation */}
     <UserModelProvider>
-      
-      {/* ViewModel Layer - Business Logic */}
       <UserViewModelProvider>
-        
-        {/* Performance Layer - Direct DOM */}
         <UserPerformanceProvider>
-          
-          {/* View Layer - UI Components */}
           <UserProfileView />
           <UserDashboard />
           <UserSettings />
-          
         </UserPerformanceProvider>
       </UserViewModelProvider>
     </UserModelProvider>

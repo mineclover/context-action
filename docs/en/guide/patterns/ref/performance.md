@@ -2,6 +2,25 @@
 
 Comprehensive performance patterns and optimization techniques for 60fps+ interactions.
 
+## Prerequisites
+
+Before implementing performance patterns, ensure proper RefContext setup:
+
+```typescript
+import { createRefContext } from '@context-action/react';
+```
+
+**Required Setup**: Review **[RefContext Setup](../setup/ref-context-setup.md)** for:
+- Performance Domain RefContext creation
+- Provider composition patterns  
+- Lazy initialization techniques
+- Service and worker management
+
+**Type Definitions**: Use pre-defined types from setup:
+- `PerformanceRefs` - Canvas, worker, WASM module refs
+- `WorkerRefs` - Background processing workers
+- `WASMRefs` - WebAssembly module refs
+
 ## Overview
 
 RefContext performance patterns focus on achieving consistent 60fps performance through hardware acceleration, efficient DOM manipulation, and zero React re-renders.
@@ -61,19 +80,26 @@ Memory-efficient patterns and techniques for optimal RefContext performance.
 
 ### Built-in Performance Tools
 
-RefContext includes built-in performance monitoring capabilities:
+RefContext includes built-in performance monitoring capabilities using setup-defined types:
 
 ```tsx
-// Simple performance monitoring setup
+// Performance monitoring with PerformanceRefs setup
 function usePerformanceMonitoring() {
-  const monitor = usePerformanceRef('monitor');
+  const canvas = usePerformanceRef('canvas');
+  const worker = usePerformanceRef('worker');
+  const wasmModule = usePerformanceRef('wasmModule');
   
   useEffect(() => {
-    if (monitor.target) {
+    if (canvas.target) {
       // Enable built-in FPS monitoring
-      monitor.target.setAttribute('data-perf-monitor', 'true');
+      canvas.target.setAttribute('data-perf-monitor', 'true');
     }
-  }, [monitor]);
+    
+    // Monitor worker performance
+    if (worker.target) {
+      worker.target.postMessage({ type: 'ENABLE_MONITORING' });
+    }
+  }, [canvas, worker]);
 }
 ```
 
@@ -125,26 +151,147 @@ Use [Memory Optimization](./memory-optimization.md) for:
 ## Quick Performance Wins
 
 ```tsx
-// Essential performance optimizations for any RefContext usage
+// Essential performance optimizations using PerformanceRefs setup
 function useQuickPerformanceWins() {
-  const element = useElementRef('element');
+  const canvas = usePerformanceRef('canvas');
+  const worker = usePerformanceRef('worker');
   
   useEffect(() => {
-    if (!element.target) return;
+    if (!canvas.target) return;
     
-    // 1. Hardware acceleration
-    element.target.style.willChange = 'transform';
-    element.target.style.transform = 'translate3d(0, 0, 0)';
+    // 1. Hardware acceleration for canvas
+    canvas.target.style.willChange = 'transform';
+    canvas.target.style.transform = 'translate3d(0, 0, 0)';
     
     // 2. Optimize for compositing
-    element.target.style.backfaceVisibility = 'hidden';
+    canvas.target.style.backfaceVisibility = 'hidden';
     
-    // 3. Cleanup on unmount
+    // 3. Enable GPU acceleration
+    const ctx = canvas.target.getContext('2d', { alpha: false });
+    if (ctx) {
+      ctx.imageSmoothingEnabled = false; // For crisp pixel art
+    }
+    
+    // 4. Cleanup on unmount
     return () => {
-      if (element.target) {
-        element.target.style.willChange = 'auto';
+      if (canvas.target) {
+        canvas.target.style.willChange = 'auto';
+      }
+      if (worker.target) {
+        worker.target.terminate();
       }
     };
-  }, [element]);
+  }, [canvas, worker]);
+}
+```
+
+## Advanced Performance Patterns
+
+### Multi-Domain Performance Setup
+
+```tsx
+// Using multi-domain refs from setup for comprehensive performance optimization
+function useAdvancedPerformanceSetup() {
+  // Performance domain refs
+  const canvas = usePerformanceRef('canvas');
+  const worker = usePerformanceRef('worker');
+  const wasmModule = usePerformanceRef('wasmModule');
+  
+  // Worker domain refs
+  const dataWorker = useWorkerRef('dataProcessingWorker');
+  const imageWorker = useWorkerRef('imageProcessingWorker');
+  
+  useEffect(() => {
+    // Initialize performance-critical canvas
+    if (canvas.target && !worker.target) {
+      // Create dedicated rendering worker
+      const renderWorker = new Worker('/workers/canvas-renderer.js');
+      worker.setRef(renderWorker);
+      
+      // Setup offscreen canvas for worker
+      const offscreen = canvas.target.transferControlToOffscreen();
+      renderWorker.postMessage({ canvas: offscreen }, [offscreen]);
+    }
+    
+    // Initialize WebAssembly for heavy computations
+    if (!wasmModule.target) {
+      import('/wasm/performance-module.wasm').then(module => {
+        wasmModule.setRef(module.instance);
+      });
+    }
+    
+    // Cleanup
+    return () => {
+      worker.target?.terminate();
+      dataWorker.target?.terminate();
+      imageWorker.target?.terminate();
+    };
+  }, [canvas, worker, wasmModule, dataWorker, imageWorker]);
+  
+  return {
+    canvas: canvas.target,
+    isReady: !!(canvas.target && worker.target && wasmModule.target)
+  };
+}
+```
+
+### Performance Monitoring with Setup Types
+
+```tsx
+// Comprehensive performance monitoring using setup patterns
+function usePerformanceAnalytics() {
+  const canvas = usePerformanceRef('canvas');
+  const worker = usePerformanceRef('worker');
+  const [metrics, setMetrics] = useState({
+    fps: 0,
+    renderTime: 0,
+    memoryUsage: 0
+  });
+  
+  useEffect(() => {
+    if (!canvas.target || !worker.target) return;
+    
+    let animationId: number;
+    let lastTime = 0;
+    let frameCount = 0;
+    
+    const measurePerformance = (currentTime: number) => {
+      frameCount++;
+      
+      if (currentTime - lastTime >= 1000) {
+        const fps = frameCount;
+        frameCount = 0;
+        lastTime = currentTime;
+        
+        // Measure memory usage
+        const memoryInfo = (performance as any).memory;
+        const memoryUsage = memoryInfo?.usedJSHeapSize || 0;
+        
+        setMetrics(prev => ({
+          ...prev,
+          fps,
+          memoryUsage: memoryUsage / 1024 / 1024 // MB
+        }));
+        
+        // Send metrics to worker for analysis
+        worker.target!.postMessage({
+          type: 'PERFORMANCE_METRICS',
+          metrics: { fps, memoryUsage }
+        });
+      }
+      
+      animationId = requestAnimationFrame(measurePerformance);
+    };
+    
+    animationId = requestAnimationFrame(measurePerformance);
+    
+    return () => {
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
+    };
+  }, [canvas, worker]);
+  
+  return metrics;
 }
 ```

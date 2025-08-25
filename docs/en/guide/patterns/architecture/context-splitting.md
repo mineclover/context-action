@@ -62,129 +62,129 @@ interface MassiveAppActions {
 
 Split contexts based on business domains or logical boundaries.
 
+**Prerequisites**: This pattern uses type definitions and setup patterns from [Multi-Context Setup Guide](../setup/multi-context-setup.md).
+
 ```typescript
 // ✅ Good: Split by business domains
-// User Domain Context
-export interface UserStores {
-  profile: UserProfile;
-  preferences: UserPreferences;
-  notifications: Notification[];
-}
+// Use domain type definitions from Multi-Context Setup
+import {
+  UserStores, UserActions, UserPerformanceRefs,
+  ProductStores, ProductActions, ProductPerformanceRefs,
+  UIStores, UIActions
+} from '../setup/multi-context-setup';
 
-export interface UserActions {
-  updateProfile: { data: Partial<UserProfile> };
-  updatePreferences: { preferences: Partial<UserPreferences> };
-  markNotificationRead: { notificationId: string };
-}
+// Create domain contexts using setup specifications
+export const UserDomainContexts = {
+  model: createDeclarativeStorePattern<UserStores>('User', {
+    profile: { 
+      initialValue: { id: '', name: '', email: '', role: 'guest' as const },
+      strategy: 'shallow' as const
+    },
+    session: {
+      initialValue: { isAuthenticated: false, permissions: [], lastActivity: 0 },
+      strategy: 'shallow' as const
+    },
+    preferences: {
+      initialValue: { theme: 'light' as const, language: 'en', notifications: true },
+      strategy: 'shallow' as const
+    }
+  }),
+  viewModel: createActionContext<UserActions>('User'),
+  performance: createRefContext<UserPerformanceRefs>('UserPerformance')
+};
 
-// Product Domain Context
-export interface ProductStores {
-  catalog: Product[];
-  categories: Category[];
-  filters: ProductFilters;
-  cart: CartItem[];
-}
+export const ProductDomainContexts = {
+  model: createDeclarativeStorePattern<ProductStores>('Product', {
+    catalog: [] as Product[],
+    categories: [] as Category[],
+    filters: { initialValue: {}, strategy: 'shallow' as const },
+    cart: { 
+      initialValue: { items: [], total: 0 },
+      strategy: 'shallow' as const
+    },
+    wishlist: [] as Product[]
+  }),
+  viewModel: createActionContext<ProductActions>('Product'),
+  performance: createRefContext<ProductPerformanceRefs>('ProductPerformance')
+};
 
-export interface ProductActions {
-  loadProducts: { categoryId?: string };
-  addToCart: { productId: string; quantity: number };
-  updateFilters: { filters: Partial<ProductFilters> };
-  clearCart: void;
-}
-
-// Order Domain Context
-export interface OrderStores {
-  history: Order[];
-  tracking: TrackingInfo[];
-  payments: Payment[];
-}
-
-export interface OrderActions {
-  processOrder: { orderData: OrderData };
-  trackOrder: { orderId: string };
-  refundOrder: { orderId: string; reason: string };
-}
-
-// UI Domain Context (Cross-cutting concerns)
-export interface UIStores {
-  modals: ModalState;
-  notifications: UINotification[];
-  loading: LoadingState;
-  errors: ErrorState;
-}
-
-export interface UIActions {
-  showModal: { modalType: string; data: any };
-  hideModal: { modalType: string };
-  setLoading: { key: string; loading: boolean };
-  showError: { error: string; context?: string };
-}
+export const UIDomainContexts = {
+  model: createDeclarativeStorePattern<UIStores>('UI', {
+    modal: { isOpen: false, type: undefined, data: undefined },
+    sidebar: { isOpen: false, activePanel: undefined },
+    loading: { 
+      initialValue: { global: false, operations: {} },
+      strategy: 'shallow' as const
+    },
+    notifications: {
+      initialValue: { items: [], maxVisible: 5 },
+      strategy: 'shallow' as const
+    },
+    navigation: {
+      initialValue: { currentRoute: '/', breadcrumbs: [] },
+      strategy: 'shallow' as const
+    }
+  }),
+  viewModel: createActionContext<UIActions>('UI')
+};
 ```
 
 ### Strategy 2: Layer-Based Split
 
 Split contexts based on architectural layers or technical concerns.
 
+**Prerequisites**: This pattern uses setup patterns from [Multi-Context Setup Guide](../setup/multi-context-setup.md).
+
 ```typescript
-// Data Layer Context
-export interface DataStores {
-  entities: {
-    users: Record<string, User>;
-    products: Record<string, Product>;
-    orders: Record<string, Order>;
-  };
-  collections: {
-    usersList: string[];
-    productsList: string[];
-    ordersList: string[];
-  };
-  cache: {
-    lastFetch: Record<string, number>;
-    expiry: Record<string, number>;
-  };
-}
+// Layer-based context splitting using Multi-Context Setup specifications
+import {
+  BusinessStores, BusinessActions,
+  ValidationStores, ValidationActions,
+  DesignStores, DesignActions
+} from '../setup/multi-context-setup';
 
-export interface DataActions {
-  fetchEntity: { type: string; id: string };
-  updateEntity: { type: string; id: string; data: any };
-  deleteEntity: { type: string; id: string };
-  invalidateCache: { keys: string[] };
-}
+// Data Layer Context (using Business domain setup)
+export const DataLayerContexts = {
+  model: createDeclarativeStorePattern<BusinessStores>('Data', {
+    orders: [] as Order[],
+    inventory: [] as InventoryItem[],
+    customers: [] as Customer[],
+    analytics: {
+      initialValue: { revenue: 0, orders: 0, customers: 0 },
+      strategy: 'shallow' as const
+    }
+  }),
+  viewModel: createActionContext<BusinessActions>('Data')
+};
 
-// Business Logic Layer Context
-export interface BusinessStores {
-  workflows: {
-    orderProcessing: WorkflowState;
-    userOnboarding: WorkflowState;
-    paymentProcessing: WorkflowState;
-  };
-  rules: {
-    validationRules: ValidationRule[];
-    businessRules: BusinessRule[];
-    permissionRules: PermissionRule[];
-  };
-}
+// Validation Layer Context (using Validation domain setup)
+export const ValidationLayerContexts = {
+  model: createDeclarativeStorePattern<ValidationStores>('Validation', {
+    validationRules: [] as ValidationRule[],
+    validationResults: [] as ValidationResult[],
+    formErrors: {} as Record<string, string[]>,
+    fieldStatuses: {} as Record<string, 'valid' | 'invalid' | 'pending'>
+  }),
+  viewModel: createActionContext<ValidationActions>('Validation')
+};
 
-export interface BusinessActions {
-  startWorkflow: { workflowType: string; data: any };
-  validateData: { data: any; rules: string[] };
-  checkPermissions: { userId: string; resource: string; action: string };
-}
-
-// UI State Layer Context
-export interface UIStateStores {
-  navigation: NavigationState;
-  forms: Record<string, FormState>;
-  interactions: InteractionState;
-  preferences: UIPreferences;
-}
-
-export interface UIStateActions {
-  navigate: { route: string; params?: any };
-  updateForm: { formId: string; field: string; value: any };
-  setInteraction: { type: string; active: boolean };
-  updatePreferences: { preferences: Partial<UIPreferences> };
-}
+// Design Layer Context (using Design domain setup)
+export const DesignLayerContexts = {
+  model: createDeclarativeStorePattern<DesignStores>('Design', {
+    theme: {
+      initialValue: defaultTheme,
+      strategy: 'deep' as const
+    },
+    breakpoint: 'desktop' as const,
+    colorScheme: 'light' as const,
+    animations: {
+      initialValue: { enabled: true, duration: 300 },
+      strategy: 'shallow' as const
+    },
+    layouts: {} as Record<string, LayoutConfig>
+  }),
+  viewModel: createActionContext<DesignActions>('Design')
+};
 ```
 
 ### Strategy 3: Feature-Based Split
@@ -744,28 +744,33 @@ export function useContextLoader(requiredContexts: string[]) {
 
 ### ✅ Do's
 
-1. **Plan Domain Boundaries**
+1. **Follow Setup Specifications**
+   - Use type definitions from [Multi-Context Setup Guide](../setup/multi-context-setup.md) for consistency
+   - Follow established patterns for domain and layer separation
+   - Reuse setup specifications for 90%+ pattern compliance
+
+2. **Plan Domain Boundaries**
    - Identify clear business or technical boundaries
    - Consider team ownership and responsibilities  
    - Plan for future growth and changes
 
-2. **Provider Composition**
-   - Use patterns from [Provider Composition Setup](../setup/provider-composition-setup.md)
+3. **Provider Composition**
+   - Use patterns from [Multi-Context Setup Guide](../setup/multi-context-setup.md)
    - Create reusable provider composition with JSX-compatible components  
    - Group providers by domain or functionality for maintainability
    - Use conditional composition for feature flags and environment differences
 
-3. **Gradual Migration**
+4. **Gradual Migration**
    - Split contexts incrementally
    - Maintain backward compatibility during transition
    - Test thoroughly at each migration step
 
-4. **Clear Communication Patterns**
+5. **Clear Communication Patterns**
    - Use explicit event systems for cross-context communication
    - Document context relationships and dependencies
    - Create clear bridges between related contexts
 
-5. **Optimize Per Context**
+6. **Optimize Per Context**
    - Use appropriate comparison strategies for each context
    - Implement context-specific performance optimizations
    - Monitor context-specific performance metrics
@@ -800,8 +805,14 @@ export function useContextLoader(requiredContexts: string[]) {
 - [ ] Document new architecture and patterns
 - [ ] Remove legacy context code
 
-## Related Patterns
+## Prerequisites and Related Patterns
 
+### Prerequisites
+- **[Multi-Context Setup Guide](../setup/multi-context-setup.md)** - Complete type definitions and setup patterns used in this guide
+- **[Basic Action Setup](../setup/basic-action-setup.md)** - Foundation action context patterns
+- **[Basic Store Setup](../setup/basic-store-setup.md)** - Foundation store context patterns
+
+### Related Architecture Patterns
 - **[Domain Context Architecture](./domain-context.md)** - Business domain separation strategies
 - **[MVVM Architecture](./mvvm.md)** - Layer-based context organization
 - **[Pattern Composition](./composition.md)** - Combining multiple contexts effectively

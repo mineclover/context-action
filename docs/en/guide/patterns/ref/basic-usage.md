@@ -17,12 +17,13 @@ import { createRefContext } from '@context-action/react';
 
 ## Prerequisites
 
-For complete RefContext setup patterns, see **[RefContext Setup](../setup/ref-context-setup.md)**.
+**Required Reading**: **[RefContext Setup Guide](../setup/ref-context-setup.md)**
 
-This document demonstrates usage patterns using the RefContext setup:
-- Type definitions → [DOM Element Refs](../setup/ref-context-setup.md#dom-element-refs)
-- Context creation → [Basic RefContext Setup](../setup/ref-context-setup.md#basic-refcontext-setup)
-- Provider setup → [Single RefContext Provider](../setup/ref-context-setup.md#single-refcontext-provider)
+This document demonstrates usage patterns using standardized setup patterns:
+- **Type definitions** → [DOM Element Refs](../setup/ref-context-setup.md#dom-element-refs)
+- **Context creation** → [Basic RefContext Setup](../setup/ref-context-setup.md#basic-refcontext-setup)
+- **Provider setup** → [Single RefContext Provider](../setup/ref-context-setup.md#single-refcontext-provider)
+- **Initialization patterns** → [Lazy Initialization](../setup/ref-context-setup.md#lazy-initialization)
 
 ## Setup Pattern
 
@@ -58,74 +59,110 @@ function MyComponent() {
   const modalRef = useUIRef('modal');
   const dropdownRef = useUIRef('dropdown');
   
-  return <div ref={targetRef.setRef}>Target Element</div>;
+  return <div ref={modalRef.setRef}>Modal Element</div>;
 }
 ```
 
 ## Basic Usage Example
 
 ```tsx
-// 1. Define ref types
-type MouseRefs = {
-  cursor: HTMLDivElement;
-  container: HTMLDivElement;
-  trail: HTMLDivElement;
-};
+// 1. Import UIRefs from setup guide
+import { createRefContext } from '@context-action/react';
+
+// UIRefs from setup specification
+interface UIRefs {
+  modal: HTMLDialogElement;
+  dropdown: HTMLDivElement;
+  tooltip: HTMLSpanElement;
+  sidebar: HTMLElement;
+}
 
 // 2. Create RefContext with renaming pattern
 const {
-  Provider: MouseProvider,
-  useRefHandler: useMouseRef
-} = createRefContext<MouseRefs>('Mouse');
+  Provider: UIRefProvider,
+  useRefHandler: useUIRef
+} = createRefContext<UIRefs>('UI');
 
 // 3. Provider setup
 function App() {
   return (
-    <MouseProvider>
-      <MouseTracker />
-    </MouseProvider>
+    <UIRefProvider>
+      <InteractiveUI />
+    </UIRefProvider>
   );
 }
 
 // 4. Component with direct DOM manipulation
-function MouseTracker() {
-  const cursor = useMouseRef('cursor');
-  const container = useMouseRef('container');
-  const trail = useMouseRef('trail');
+function InteractiveUI() {
+  const modal = useUIRef('modal');
+  const dropdown = useUIRef('dropdown');
+  const tooltip = useUIRef('tooltip');
   
   // Direct DOM manipulation - zero React re-renders!
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!cursor.target || !container.target) return;
+    if (!tooltip.target) return;
     
-    const rect = container.target.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = e.clientX;
+    const y = e.clientY;
     
     // Hardware accelerated transforms
-    cursor.target.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    tooltip.target.style.transform = `translate3d(${x + 10}px, ${y - 10}px, 0)`;
+    tooltip.target.style.opacity = '1';
+  }, [tooltip]);
+  
+  const handleMouseLeave = useCallback(() => {
+    if (!tooltip.target) return;
+    tooltip.target.style.opacity = '0';
+  }, [tooltip]);
+  
+  const toggleDropdown = useCallback(() => {
+    if (!dropdown.target) return;
     
-    if (trail.target) {
-      trail.target.style.transform = `translate3d(${x-5}px, ${y-5}px, 0)`;
-      trail.target.style.opacity = '0.7';
+    // Direct DOM manipulation without re-renders
+    const isOpen = dropdown.target.classList.contains('open');
+    if (isOpen) {
+      dropdown.target.style.transform = 'translateY(-10px)';
+      dropdown.target.style.opacity = '0';
+      setTimeout(() => dropdown.target?.classList.remove('open'), 150);
+    } else {
+      dropdown.target.classList.add('open');
+      dropdown.target.style.transform = 'translateY(0)';
+      dropdown.target.style.opacity = '1';
     }
-  }, [cursor, container, trail]);
+  }, [dropdown]);
   
   return (
     <div
-      ref={container.setRef}
       onMouseMove={handleMouseMove}
-      className="relative w-full h-96 bg-gray-100 overflow-hidden"
+      onMouseLeave={handleMouseLeave}
+      className="relative w-full h-96 bg-gray-100 p-4"
     >
+      <button
+        onClick={toggleDropdown}
+        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+      >
+        Toggle Dropdown
+      </button>
+      
       <div
-        ref={cursor.setRef}
-        className="absolute w-4 h-4 bg-blue-500 rounded-full pointer-events-none"
+        ref={dropdown.setRef}
+        className="absolute top-12 left-0 bg-white shadow-lg rounded-md p-4 opacity-0 transform -translate-y-2 transition-all duration-150"
+        style={{ transform: 'translateY(-10px)', opacity: 0 }}
+      >
+        <div className="space-y-2">
+          <div className="px-3 py-2 hover:bg-gray-100 cursor-pointer">Option 1</div>
+          <div className="px-3 py-2 hover:bg-gray-100 cursor-pointer">Option 2</div>
+          <div className="px-3 py-2 hover:bg-gray-100 cursor-pointer">Option 3</div>
+        </div>
+      </div>
+      
+      <span
+        ref={tooltip.setRef}
+        className="fixed bg-black text-white px-2 py-1 rounded text-sm pointer-events-none opacity-0 transition-opacity z-50"
         style={{ transform: 'translate3d(0, 0, 0)' }}
-      />
-      <div
-        ref={trail.setRef}
-        className="absolute w-3 h-3 bg-blue-300 rounded-full pointer-events-none"
-        style={{ transform: 'translate3d(0, 0, 0)', opacity: 0 }}
-      />
+      >
+        Interactive Tooltip
+      </span>
     </div>
   );
 }
@@ -134,65 +171,138 @@ function MouseTracker() {
 ## Custom Hooks Pattern
 
 ```tsx
-// Custom hook for business logic separation
-function useMouseUpdater() {
-  const cursor = useMouseRef('cursor');
-  const trail = useMouseRef('trail');
-  const positionHistory = useRef<Array<{x: number, y: number}>>([]);
+// Custom hook for UI interaction business logic
+function useUIInteractionManager() {
+  const modal = useUIRef('modal');
+  const tooltip = useUIRef('tooltip');
+  const sidebar = useUIRef('sidebar');
+  const interactionHistory = useRef<Array<{type: string, timestamp: number}>>([]);
   
-  const updatePosition = useCallback((x: number, y: number) => {
-    // Direct DOM manipulation
-    if (cursor.target) {
-      cursor.target.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-    }
-    if (trail.target) {
-      trail.target.style.transform = `translate3d(${x-5}px, ${y-5}px, 0)`;
-      trail.target.style.opacity = '0.7';
-    }
+  const showModal = useCallback((content: string) => {
+    if (!modal.target) return;
     
-    // Business logic - track position history
-    positionHistory.current.push({ x, y });
-    if (positionHistory.current.length > 100) {
-      positionHistory.current.shift();
-    }
-  }, [cursor, trail]);
+    // Direct DOM manipulation without re-renders
+    modal.target.innerHTML = content;
+    modal.target.style.transform = 'scale(0.9)';
+    modal.target.style.opacity = '0';
+    modal.target.showModal();
+    
+    // Animate in
+    setTimeout(() => {
+      if (modal.target) {
+        modal.target.style.transform = 'scale(1)';
+        modal.target.style.opacity = '1';
+        modal.target.style.transition = 'all 0.3s ease-out';
+      }
+    }, 10);
+    
+    // Track interaction
+    interactionHistory.current.push({ type: 'modal_opened', timestamp: Date.now() });
+  }, [modal]);
   
-  const getVelocity = useCallback(() => {
-    const history = positionHistory.current;
-    if (history.length < 2) return 0;
+  const hideModal = useCallback(() => {
+    if (!modal.target) return;
     
-    const current = history[history.length - 1];
-    const previous = history[history.length - 2];
-    return Math.sqrt((current.x - previous.x) ** 2 + (current.y - previous.y) ** 2);
+    modal.target.style.transform = 'scale(0.9)';
+    modal.target.style.opacity = '0';
+    
+    setTimeout(() => {
+      modal.target?.close();
+    }, 300);
+    
+    interactionHistory.current.push({ type: 'modal_closed', timestamp: Date.now() });
+  }, [modal]);
+  
+  const updateTooltip = useCallback((text: string, x: number, y: number) => {
+    if (!tooltip.target) return;
+    
+    tooltip.target.textContent = text;
+    tooltip.target.style.transform = `translate3d(${x + 10}px, ${y - 10}px, 0)`;
+    tooltip.target.style.opacity = '1';
+  }, [tooltip]);
+  
+  const toggleSidebar = useCallback((isOpen: boolean) => {
+    if (!sidebar.target) return;
+    
+    sidebar.target.style.transform = isOpen 
+      ? 'translateX(0)' 
+      : 'translateX(-100%)';
+    sidebar.target.style.transition = 'transform 0.3s ease-in-out';
+    
+    interactionHistory.current.push({ 
+      type: isOpen ? 'sidebar_opened' : 'sidebar_closed', 
+      timestamp: Date.now() 
+    });
+  }, [sidebar]);
+  
+  const getInteractionStats = useCallback(() => {
+    const recent = interactionHistory.current.filter(
+      interaction => Date.now() - interaction.timestamp < 60000 // Last minute
+    );
+    return {
+      total: interactionHistory.current.length,
+      recent: recent.length,
+      types: [...new Set(recent.map(i => i.type))]
+    };
   }, []);
   
-  return { updatePosition, getVelocity };
+  return { 
+    showModal, 
+    hideModal, 
+    updateTooltip, 
+    toggleSidebar, 
+    getInteractionStats 
+  };
 }
 
 // Usage in component
-function AdvancedMouseTracker() {
-  const { updatePosition, getVelocity } = useMouseUpdater();
-  const container = useMouseRef('container');
+function AdvancedUIManager() {
+  const { showModal, hideModal, updateTooltip, toggleSidebar, getInteractionStats } = useUIInteractionManager();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  const handleShowModal = useCallback(() => {
+    showModal('<h2>Dynamic Content</h2><p>This modal was populated without React re-renders!</p>');
+  }, [showModal]);
+  
+  const handleToggleSidebar = useCallback(() => {
+    const newState = !sidebarOpen;
+    setSidebarOpen(newState);
+    toggleSidebar(newState);
+  }, [sidebarOpen, toggleSidebar]);
   
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!container.target) return;
+    updateTooltip('Hover tooltip updated via direct DOM manipulation', e.clientX, e.clientY);
+  }, [updateTooltip]);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const stats = getInteractionStats();
+      console.log('UI Interaction Stats:', stats);
+    }, 5000);
     
-    const rect = container.target.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    updatePosition(x, y);
-    
-    // Log velocity without triggering re-renders
-    console.log('Mouse velocity:', getVelocity());
-  }, [container, updatePosition, getVelocity]);
+    return () => clearInterval(interval);
+  }, [getInteractionStats]);
   
   return (
-    <div
-      ref={container.setRef}
+    <div 
       onMouseMove={handleMouseMove}
-      className="w-full h-96 bg-gradient-to-br from-blue-50 to-purple-50"
-    />
+      className="w-full h-96 bg-gradient-to-br from-blue-50 to-purple-50 p-4"
+    >
+      <div className="space-x-4">
+        <button 
+          onClick={handleShowModal}
+          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+        >
+          Show Modal
+        </button>
+        <button 
+          onClick={handleToggleSidebar}
+          className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+        >
+          Toggle Sidebar
+        </button>
+      </div>
+    </div>
   );
 }
 ```

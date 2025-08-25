@@ -2,6 +2,23 @@
 
 High-performance Canvas patterns with RefContext for 60fps+ interactions.
 
+## Prerequisites
+
+**Required Setup**: Before using these Canvas optimization patterns, you need to set up RefContext with Canvas types.
+
+```typescript
+// Follow the setup guide for Canvas RefContext
+import { CanvasRefs, CanvasRefProvider, useCanvasRef } from '../setup/ref-context-setup';
+
+// CanvasRefs interface from setup includes:
+// - mainCanvas: HTMLCanvasElement
+// - overlayCanvas: HTMLCanvasElement  
+// - chartCanvas: HTMLCanvasElement
+// - animationCanvas: HTMLCanvasElement
+```
+
+**Setup Reference**: [RefContext Setup Guide](../setup/ref-context-setup.md) - See "Canvas and Graphics Refs" section for complete type definitions and provider setup patterns.
+
 ## 🎨 Live Example
 
 **[→ Try the Canvas Demo](https://mineclover.github.io/context-action/example/refs/canvas)**
@@ -93,24 +110,19 @@ Separate persistent content from temporary previews for optimal performance:
 
 ```tsx
 // PERFORMANCE PATTERN: Dual-canvas architecture
-type CanvasRefs = {
-  mainCanvas: HTMLCanvasElement;
-  overlayCanvas: HTMLCanvasElement;
-  container: HTMLDivElement;
-};
+// Uses CanvasRefs from setup (mainCanvas, overlayCanvas, chartCanvas, animationCanvas)
 
 const {
   Provider: CanvasRefProvider,
   useRefHandler: useCanvasRef
 } = createRefContext<CanvasRefs>('Canvas');
 
-function OptimizedCanvas({ width = 800, height = 600 }: CanvasProps) {
+function OptimizedCanvas({ width = 800, height = 600 }: { width?: number; height?: number }) {
   const mainCanvas = useCanvasRef('mainCanvas');
   const overlayCanvas = useCanvasRef('overlayCanvas');
-  const container = useCanvasRef('container');
   
   return (
-    <div ref={container.setRef} className="relative">
+    <div className="relative">
       {/* Main Canvas: Persistent shapes only */}
       <canvas 
         ref={mainCanvas.setRef}
@@ -204,8 +216,8 @@ function useOptimizedCanvasInteraction() {
   
   const performCanvasAction = useCallback((
     action: 'draw' | 'preview' | 'clear',
-    shape: CanvasShape,
-    options?: RenderOptions
+    shape: any, // Use your app's shape type
+    options?: any // Use your app's render options
   ) => {
     switch (action) {
       case 'draw':
@@ -256,32 +268,32 @@ Optimize canvas for retina displays while maintaining performance:
 ```tsx
 // PERFORMANCE PATTERN: High-DPI canvas optimization
 function useHighDPICanvas(width: number, height: number) {
-  const canvas = useCanvasRef('canvas');
+  const mainCanvas = useCanvasRef('mainCanvas');
   const dpr = window.devicePixelRatio || 1;
   
   useEffect(() => {
-    if (!canvas.target) return;
+    if (!mainCanvas.target) return;
     
     // Optimize for device pixel ratio
     const actualWidth = width * dpr;
     const actualHeight = height * dpr;
     
     // Set canvas memory size (high resolution)
-    canvas.target.width = actualWidth;
-    canvas.target.height = actualHeight;
+    mainCanvas.target.width = actualWidth;
+    mainCanvas.target.height = actualHeight;
     
     // Scale display size back to intended dimensions
-    canvas.target.style.width = `${width}px`;
-    canvas.target.style.height = `${height}px`;
+    mainCanvas.target.style.width = `${width}px`;
+    mainCanvas.target.style.height = `${height}px`;
     
     // Scale drawing context for crisp rendering
-    const ctx = canvas.target.getContext('2d');
+    const ctx = mainCanvas.target.getContext('2d');
     if (ctx) {
       ctx.scale(dpr, dpr);
     }
-  }, [width, height, dpr, canvas]);
+  }, [width, height, dpr, mainCanvas]);
   
-  return { canvas, dpr };
+  return { mainCanvas, dpr };
 }
 ```
 
@@ -292,17 +304,17 @@ Optimize rendering by updating only changed canvas regions:
 ```tsx
 // PERFORMANCE PATTERN: Selective region updates
 function useSelectiveCanvasUpdates() {
-  const canvas = useCanvasRef('canvas');
-  const dirtyRegions = useRef(new Set<CanvasRegion>());
+  const mainCanvas = useCanvasRef('mainCanvas');
+  const dirtyRegions = useRef(new Set<{ x: number; y: number; width: number; height: number }>());
   
-  const markRegionDirty = useCallback((region: CanvasRegion) => {
+  const markRegionDirty = useCallback((region: { x: number; y: number; width: number; height: number }) => {
     dirtyRegions.current.add(region);
   }, []);
   
-  const updateDirtyRegions = useCallback((shapes: CanvasShape[]) => {
-    if (!canvas.target || dirtyRegions.current.size === 0) return;
+  const updateDirtyRegions = useCallback((shapes: any[]) => {
+    if (!mainCanvas.target || dirtyRegions.current.size === 0) return;
     
-    const ctx = canvas.target.getContext('2d');
+    const ctx = mainCanvas.target.getContext('2d');
     if (!ctx) return;
     
     // Process each dirty region
@@ -320,31 +332,24 @@ function useSelectiveCanvasUpdates() {
     
     // Clear dirty regions after update
     dirtyRegions.current.clear();
-  }, [canvas, drawing]);
+  }, [mainCanvas, drawing]);
   
-  const updateFullCanvas = useCallback((shapes: CanvasShape[]) => {
-    if (!canvas.target) return;
+  const updateFullCanvas = useCallback((shapes: any[]) => {
+    if (!mainCanvas.target) return;
     
-    const ctx = canvas.target.getContext('2d');
+    const ctx = mainCanvas.target.getContext('2d');
     if (!ctx) return;
     
     // Full canvas update when needed
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     shapes.forEach(shape => drawing.drawShape(ctx, shape));
-  }, [canvas, drawing]);
+  }, [mainCanvas, drawing]);
   
   return { 
     markRegionDirty, 
     updateDirtyRegions, 
     updateFullCanvas 
   };
-}
-
-interface CanvasRegion {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
 }
 ```
 

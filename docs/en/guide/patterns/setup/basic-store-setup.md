@@ -447,7 +447,7 @@ function UserProfile() {
   const preferencesStore = useUserStore('preferences');
   
   const profile = useStoreValue(profileStore);
-  const preferences = useStoreValue(preferences Store);
+  const preferences = useStoreValue(preferencesStore);
   
   const updateProfile = (newData: Partial<UserProfile>) => {
     profileStore.update(current => ({ ...current, ...newData }));

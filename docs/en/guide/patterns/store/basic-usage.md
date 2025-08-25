@@ -59,30 +59,26 @@ function UserProfile() {
 
 ### Explicit Generic Types Pattern
 ```tsx
-// 1. Define store types explicitly
-interface AppStoreTypes {
-  counter: number;
-  userName: string;
-  isLoggedIn: boolean;
-  user: { id: string; name: string; email: string };
-  settings: { theme: 'light' | 'dark'; language: string; notifications: boolean };
-}
+// Using UserStores interface from setup guide for type validation
+import type { UserStores } from '../setup/basic-store-setup';
 
-// 2. Create stores with explicit types (using renaming pattern from setup guide)
+// Create stores with explicit type control using UserStores specification
 const {
-  Provider: AppStoreProvider,
-  useStore: useAppStore,
-  useStoreManager: useAppStoreManager
-} = createDeclarativeStorePattern<AppStoreTypes>('App', {
-  // Types validated against AppStoreTypes interface
-  counter: 0,  // Must match AppStoreTypes['counter'] = number
-  userName: '', // Must match AppStoreTypes['userName'] = string
-  isLoggedIn: false,
-  
-  // Complex types with configuration
-  user: { id: '', name: '', email: '' },
-  settings: {
+  Provider: UserStoreProvider,
+  useStore: useUserStore,
+  useStoreManager: useUserStoreManager
+} = createDeclarativeStorePattern<UserStores>('User', {
+  // Types validated against UserStores interface
+  profile: {
+    initialValue: { id: '', name: '', email: '', role: 'guest' },
+    strategy: 'shallow'
+  },
+  preferences: {
     initialValue: { theme: 'light', language: 'en', notifications: true },
+    strategy: 'shallow'
+  },
+  session: {
+    initialValue: { isAuthenticated: false, permissions: [], lastActivity: 0 },
     strategy: 'shallow'
   }
 });

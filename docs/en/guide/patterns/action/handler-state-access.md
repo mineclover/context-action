@@ -2,6 +2,26 @@
 
 Advanced patterns for accessing and managing state within action handlers, including critical best practices to avoid common pitfalls.
 
+## Import
+
+```typescript
+// Framework import
+import { useActionHandler } from '@context-action/react';
+// Setup import (가상의 setup 참조)
+import { useUserAction, useUserActionHandler, UserActionProvider } from '../setup/actions';
+```
+
+## Prerequisites
+
+🎯 **스펙 재사용**: For complete action handler setup patterns, see **[Basic Action Setup](../setup/basic-action-setup.md)**.
+
+📖 **이 문서의 모든 예제**는 아래 setup 스펙을 재사용합니다:
+- 🎯 Action types → [EventActions, UserActions](../setup/basic-action-setup.md#type-definitions)
+- 🎯 Hook naming → [useEventAction Pattern](../setup/basic-action-setup.md#context-creation)
+- 🎯 Handler patterns → [Action Handler Setup](../setup/basic-action-setup.md#action-handler-patterns)
+
+💡 **일관된 학습**: Setup 가이드를 먼저 읽으면 이 문서의 모든 예제를 **즉시 이해**할 수 있습니다.
+
 ## 📋 Table of Contents
 
 1. [Critical: Avoid Closure Traps](#critical-avoid-closure-traps)
@@ -22,9 +42,9 @@ function UserComponent() {
   const userStore = useUserStore('profile');
   const user = useStoreValue(userStore); // This value gets trapped in closure!
   
-  useUserActionHandler('updateUser', async (payload) => {
+  useUserActionHandler('updateProfile', async (payload) => {
     // 🚨 BUG: This 'user' is from handler registration time, not current time!
-    if (user.isActive) {  // Stale value!
+    if (user.name) {  // Stale value!
       await updateUserAPI(payload);
     }
   });
@@ -35,11 +55,11 @@ function UserComponent() {
   const userStore = useUserStore('profile');
   const user = useStoreValue(userStore); // For component rendering only
   
-  useUserActionHandler('updateUser', useCallback(async (payload) => {
+  useUserActionHandler('updateProfile', useCallback(async (payload) => {
     // ✅ Always get fresh state from store
     const currentUser = userStore.getValue(); // Real-time value!
     
-    if (currentUser.isActive) {
+    if (currentUser.name) {
       await updateUserAPI(payload);
     }
   }, [userStore])); // Only store reference in deps
@@ -61,12 +81,12 @@ function UserComponent() {
 **Use for simple state checks and single store access:**
 
 ```tsx
-useActionHandler('conditionalAction', async (payload) => {
-  const currentState = someStore.getValue();
+useUserActionHandler('updateProfile', async (payload) => {
+  const currentProfile = profileStore.getValue();
   
-  if (currentState.isReady) {
+  if (currentProfile.email) {
     // Proceed with action using current state
-    await performAction(payload, currentState);
+    await updateUserProfile(payload, currentProfile);
   }
 });
 ```
@@ -76,14 +96,13 @@ useActionHandler('conditionalAction', async (payload) => {
 **Use for complex logic requiring multiple store states:**
 
 ```tsx
-useActionHandler('complexAction', async (payload) => {
-  const userState = userStore.getValue();
-  const settingsState = settingsStore.getValue();
-  const uiState = uiStore.getValue();
+useUserActionHandler('login', async (payload) => {
+  const profileState = profileStore.getValue();
+  const preferencesState = preferencesStore.getValue();
   
   // Use all current states for decision making
-  if (userState.isLoggedIn && settingsState.apiEnabled && !uiState.isLoading) {
-    await executeComplexLogic(payload, { userState, settingsState, uiState });
+  if (profileState.email && preferencesState.theme) {
+    await executeLoginLogic(payload, { profileState, preferencesState });
   }
 });
 ```
@@ -93,19 +112,18 @@ useActionHandler('complexAction', async (payload) => {
 **Use for validating current state before updates:**
 
 ```tsx
-useActionHandler('validateAndUpdate', async (payload) => {
-  const current = dataStore.getValue();
+useUserActionHandler('changePassword', async (payload) => {
+  const current = profileStore.getValue();
   
   // Validate current state
-  if (current.version !== payload.expectedVersion) {
-    throw new Error('Version mismatch');
+  if (!current.email || current.role === 'guest') {
+    throw new Error('Insufficient permissions');
   }
   
   // Update with current state as base
-  dataStore.setValue({
+  profileStore.setValue({
     ...current,
-    ...payload.updates,
-    version: current.version + 1
+    lastPasswordChange: Date.now()
   });
 });
 ```
@@ -121,23 +139,23 @@ Context-Action framework ensures that store instances and dispatch functions hav
 ```tsx
 // ✅ These are safe to omit from useEffect dependencies
 function MyComponent() {
-  const userStore = useUserStore('profile');  // Stable reference
-  const dispatch = useUserAction();           // Stable reference
-  const user = useStoreValue(userStore);
+  const profileStore = useUserStore('profile');  // Stable reference
+  const dispatch = useUserAction();              // Stable reference
+  const profile = useStoreValue(profileStore);
   
   useEffect(() => {
-    if (user.needsSync) {
-      dispatch('syncUser', { id: user.id });
-      userStore.setValue({ ...user, lastSyncAttempt: Date.now() });
+    if (profile.email && !profile.name) {
+      dispatch('updateProfile', { name: 'Default Name', email: profile.email });
+      profileStore.setValue({ ...profile, lastSyncAttempt: Date.now() });
     }
-  }, [user.needsSync, user.id]); // Don't include userStore or dispatch
+  }, [profile.email, profile.name]); // Don't include profileStore or dispatch
   
   // Alternative: Include them if you prefer explicitness (no harm)
   useEffect(() => {
-    if (user.needsSync) {
-      dispatch('syncUser', { id: user.id });
+    if (profile.email && !profile.name) {
+      dispatch('updateProfile', { name: 'Default Name', email: profile.email });
     }
-  }, [user.needsSync, user.id, dispatch, userStore]); // Also fine
+  }, [profile.email, profile.name, dispatch, profileStore]); // Also fine
 }
 ```
 
@@ -146,30 +164,30 @@ function MyComponent() {
 ```tsx
 // ✅ Include: Values that actually change and affect behavior
 useEffect(() => {
-  if (user.isActive) {
+  if (profile.role === 'admin') {
     startPolling();
   }
-}, [user.isActive]); // Include derived values
+}, [profile.role]); // Include derived values
 
 // ✅ Omit: Stable references (but including them doesn't hurt)
-const stableRef = userStore;
+const stableRef = profileStore;
 const stableDispatch = dispatch;
 
 useEffect(() => {
   // These don't need to be in deps, but you can include them
   stableRef.setValue(newValue);
-  stableDispatch('action', payload);
+  stableDispatch('updateProfile', payload);
 }, []); // Empty deps is fine
 
 // ❌ Avoid: Including whole objects when only specific properties matter
 useEffect(() => {
   updateUI();
-}, [user]); // Re-runs on any user change
+}, [profile]); // Re-runs on any profile change
 
 // ✅ Better: Include only relevant properties
 useEffect(() => {
   updateUI();
-}, [user.theme, user.language]); // Only re-runs when these change
+}, [preferences.theme, preferences.language]); // Only re-runs when these change
 ```
 
 ---
@@ -180,36 +198,34 @@ useEffect(() => {
 
 ```tsx
 function UserComponent() {
-  const userStore = useUserStore('profile');
+  const profileStore = useUserStore('profile');
   const dispatch = useUserAction();
   
   // ✅ CORRECT: Handler with proper dependencies
   const updateProfileHandler = useCallback(async (payload) => {
     // Always get fresh state
-    const currentProfile = userStore.getValue();
+    const currentProfile = profileStore.getValue();
     
     try {
       // Execute business logic with current state
       const updatedProfile = await updateUserProfile({
         ...currentProfile,
-        ...payload.data
+        ...payload
       });
       
       // Update store with fresh data
-      userStore.setValue(updatedProfile);
+      profileStore.setValue(updatedProfile);
       
-      // Notify success
-      dispatch('showNotification', {
-        type: 'success',
-        message: 'Profile updated successfully'
+      // Notify success (using EventActions pattern from setup)
+      dispatch('updateProfile', {
+        name: updatedProfile.name,
+        email: updatedProfile.email
       });
     } catch (error) {
-      dispatch('showNotification', {
-        type: 'error', 
-        message: 'Failed to update profile'
-      });
+      // Handle error appropriately
+      console.error('Failed to update profile:', error);
     }
-  }, [userStore, dispatch]);
+  }, [profileStore, dispatch]);
   
   useUserActionHandler('updateProfile', updateProfileHandler);
 }
@@ -228,11 +244,13 @@ function BadComponent({ userId }: { userId: string }) {
 
 // ✅ CORRECT: Use store or pass through payload
 function GoodComponent({ userId }: { userId: string }) {
+  const profileStore = useUserStore('profile');
+  
   useUserActionHandler('updateProfile', useCallback(async (payload) => {
     // Either get from store or pass through payload
-    const currentUserId = payload.userId || userIdStore.getValue();
-    await updateUserProfile(currentUserId, payload);
-  }, []));
+    const currentProfile = profileStore.getValue();
+    await updateUserProfile(currentProfile.id || payload.id, payload);
+  }, [profileStore]));
 }
 ```
 
@@ -240,9 +258,9 @@ function GoodComponent({ userId }: { userId: string }) {
 
 ## 📚 Related Patterns
 
-- [Real-time State Access](../async/real-time-state-access.md) - Async state access patterns
-- [Production Debugging](../debug/production-debugging.md) - Debugging state issues
-- [Register Patterns](./register-patterns.md) - Advanced handler registration
+- **[Basic Action Setup](../setup/basic-action-setup.md)** - Complete action context setup patterns
+- **[Action Basic Usage](./basic-usage.md)** - Fundamental action dispatching patterns
+- **[Dispatch Access Patterns](./dispatch-access.md)** - Advanced dispatch usage patterns
 
 ---
 
