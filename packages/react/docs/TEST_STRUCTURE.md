@@ -18,7 +18,7 @@ packages/react/
 │       │   ├── useStoreSelector.test.tsx
 │       │   └── useStoreValue.test.tsx
 │       ├── patterns/      # Pattern tests
-│       │   └── createDeclarativeStorePattern.test.tsx
+│       │   └── createStoreContext.test.tsx
 │       └── utils/         # Utility tests
 │           └── comparison.test.tsx
 │
@@ -65,7 +65,7 @@ packages/react/
 Tests and examples mirror the source structure:
 - `src/actions/ActionContext.tsx` → `__tests__/actions/createActionContext.test.tsx`
 - `src/stores/hooks/useStoreValue.ts` → `__tests__/stores/hooks/useStoreValue.test.tsx`
-- `src/stores/patterns/` → `__tests__/stores/patterns/createDeclarativeStorePattern.test.tsx`
+- `src/stores/patterns/` → `__tests__/stores/patterns/createStoreContext.test.tsx`
 
 ## Running Tests
 
@@ -94,7 +94,7 @@ The framework has comprehensive test coverage with **40+ passing tests** across 
 - **useLocalStore** (4 tests): Component-local stores, lifecycle management, value updates
 - **useStoreSelector** (3 tests): Selective subscriptions, equality functions, optimization
 - **useComputedStore** (5 tests): Derived state, memoization, dependency tracking
-- **createDeclarativeStorePattern** (2 tests): Pattern creation, type safety
+- **createStoreContext** (2 tests): Pattern creation, type safety
 
 ### Utility Tests (13 tests)
 - **comparison utilities** (13 tests): Shallow/deep equality, custom comparators, edge cases

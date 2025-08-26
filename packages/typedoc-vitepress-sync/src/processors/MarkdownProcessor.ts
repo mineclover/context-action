@@ -110,7 +110,7 @@ export class MarkdownProcessor {
       'executeRace': 'Execute Race',
       'executeSequential': 'Execute Sequential',
       'createActionContext': 'createActionContext',
-      'createDeclarativeStorePattern': 'Create Declarative Store Pattern',
+      'createStoreContext': 'Create Store Context',
       'createComputedStore': 'createComputedStore',
       'createLogger': 'createLogger',
       'createRegistrySync': 'createRegistrySync',
