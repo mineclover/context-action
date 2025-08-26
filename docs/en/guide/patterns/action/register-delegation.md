@@ -68,7 +68,8 @@ function AnalyticsSetup() {
     
     // Cleanup on unmount
     return () => {
-      register.unregisterByTags(['analytics']);
+      register.clearAction('analytics');
+      register.clearAction('userClick');
     };
   }, [register]);
   
@@ -139,11 +140,14 @@ function AppHandlerSetup() {
     registerAPIHandlers(apiRegister);
     setupAnalyticsHandlers(eventRegister);
     
-    // Cleanup by module tags on unmount
+    // Cleanup registered handlers on unmount
     return () => {
-      userRegister.unregisterByTags(['user']);
-      apiRegister.unregisterByTags(['api']);
-      eventRegister.unregisterByTags(['analytics']);
+      userRegister.clearAction('updateProfile');
+      userRegister.clearAction('changePassword');
+      apiRegister.clearAction('fetchData');
+      apiRegister.clearAction('uploadFile');
+      eventRegister.clearAction('analytics');
+      eventRegister.clearAction('userClick');
     };
   }, [userRegister, apiRegister, eventRegister]);
   
@@ -180,7 +184,7 @@ function DynamicHandlerSetup() {
     
     // Return cleanup function
     return () => {
-      register.clearHandlers();
+      register.clearAll();
     };
   }, [register, config.enableAnalytics, config.enableNotifications, config.debugMode]);
   
@@ -236,9 +240,12 @@ function TeamHandlerCoordinator() {
     registerNotificationHandlers(notificationRegister);
     
     return () => {
-      userRegister.unregisterByTags(['auth']);
-      apiRegister.unregisterByTags(['products']);
-      notificationRegister.unregisterByTags(['orders']);
+      userRegister.clearAction('login');
+      userRegister.clearAction('logout');
+      apiRegister.clearAction('fetchData');
+      apiRegister.clearAction('postData');
+      notificationRegister.clearAction('showNotification');
+      notificationRegister.clearAction('hideNotification');
     };
   }, [userRegister, apiRegister, notificationRegister]);
   

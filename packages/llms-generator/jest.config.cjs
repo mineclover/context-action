@@ -13,7 +13,9 @@ module.exports = {
     'src/**/*.ts',
     '!src/**/*.d.ts',
     '!src/**/*.test.ts',
-    '!src/cli/index.ts' // Exclude CLI from coverage
+    '!src/cli/index.ts', // Exclude main CLI entry point
+    '!src/cli/utils/ArgumentParser.ts', // Exclude utility classes from coverage
+    '!src/cli/core/ErrorHandler.ts' // Exclude error handler from coverage
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html']

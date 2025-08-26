@@ -173,7 +173,7 @@ function PerformanceHandlerSetup() {
       controller.setResult(results);
     }, {
       debounce: 300,  // 마지막 호출 후 300ms 대기
-      tags: ['search', 'user-input']
+      id: 'searchUsersHandler'
     });
     
     // 스크롤 이벤트 스로틀 (빈도 제한)
@@ -183,7 +183,7 @@ function PerformanceHandlerSetup() {
       controller.setResult({ updated: true });
     }, {
       throttle: 100,  // 100ms당 최대 한 번
-      tags: ['scroll', 'performance']
+      id: 'updateScrollPositionHandler'
     });
     
     return () => {
@@ -208,10 +208,8 @@ function ConditionalHandlerSetup() {
       const result = await premiumService.executePremiumFeature(payload);
       controller.setResult(result);
     }, {
-      condition: (payload, context) => {
-        return context.user?.subscription === 'premium';
-      },
-      tags: ['premium', 'conditional']
+      priority: 100,
+      id: 'premiumFeatureHandler'
     });
     
     // 환경별 핸들러
@@ -220,16 +218,16 @@ function ConditionalHandlerSetup() {
       debugService.log(payload);
       controller.setResult({ debugged: true });
     }, {
-      environment: 'development',
-      tags: ['debug', 'development']
+      priority: 50,
+      id: 'debugActionHandler'
     });
     
     const unregisterAnalytics = register.register('analyticsTrack', async (payload, controller) => {
       await analyticsService.track(payload.event, payload.data);
       controller.setResult({ tracked: true });
     }, {
-      environment: 'production',
-      tags: ['analytics', 'production']
+      priority: 80,
+      id: 'analyticsTrackHandler'
     });
     
     return () => {
@@ -257,7 +255,7 @@ function OneTimeHandlerSetup() {
     }, {
       once: true,
       priority: 1000,
-      tags: ['initialization']
+      id: 'initializeAppHandler'
     });
     
     // 일회성 핸들러에는 unregister 호출 불필요
@@ -283,20 +281,12 @@ function FullConfigurationSetup() {
       const result = await businessService.processData(payload);
       controller.setResult(result);
     }, {
-      priority: 100,           // 실행 우선순위
-      tags: ['business', 'critical'],
-      category: 'core-logic',
+      priority: 100,          // 실행 우선순위
+      id: 'fullConfigHandler', // 핸들러 고유 식별자
+      blocking: true,         // 비동기 핸들러 완료 대기
       once: false,            // 여러 번 실행 가능
-      timeout: 5000,          // 5초 타임아웃
-      debounce: 200,          // 호출 디바운스
-      throttle: 1000,         // 실행 스로틀
-      environment: 'production',
-      feature: 'advanced-features',
-      condition: (payload) => payload.enabled === true,
-      description: '핵심 비즈니스 로직 핸들러',
-      version: '1.0.0',
-      dependencies: ['validateHandler'],
-      conflicts: ['legacyHandler']
+      debounce: 200,          // 호출 디바운스 (ms)
+      throttle: 1000          // 실행 스로틀 (ms)
     });
     
     return unregister;
@@ -319,9 +309,9 @@ function DependencyHandlerSetup() {
       const processedData = await dataService.process(payload);
       controller.setResult(processedData);
     }, {
-      dependencies: ['validationHandler', 'authHandler'],
       priority: 50,
-      tags: ['dependent']
+      id: 'dependentHandler',
+      blocking: true
     });
     
     // 충돌 핸들러 (하나만 실행됨)
@@ -329,9 +319,9 @@ function DependencyHandlerSetup() {
       const result = await modernService.process(payload);
       controller.setResult(result);
     }, {
-      conflicts: ['legacyHandler'],
       priority: 100,
-      tags: ['modern']
+      id: 'modernHandler',
+      blocking: false
     });
     
     return () => {

@@ -72,7 +72,8 @@ const GUIDE_STRUCTURE = {
             { text: 'Dispatch Patterns', link: '/en/guide/patterns/action/dispatch-patterns' },
             { text: 'Dispatch with Result', link: '/en/guide/patterns/action/dispatch-with-result' },
             { text: 'Register Patterns', link: '/en/guide/patterns/action/register-patterns' },
-            { text: 'Dispatch Access', link: '/en/guide/patterns/action/dispatch-access' }
+            { text: 'Dispatch Access', link: '/en/guide/patterns/action/dispatch-access' },
+            { text: 'Handler State Access', link: '/en/guide/patterns/action/handler-state-access' }
           ]
         },
         {
@@ -81,9 +82,13 @@ const GUIDE_STRUCTURE = {
           items: [
             { text: 'Overview', link: '/en/guide/patterns/store/' },
             { text: 'Basic Usage', link: '/en/guide/patterns/store/basic-usage' },
-            { text: 'HOC Pattern', link: '/en/guide/patterns/store/hoc-pattern' },
-            { text: 'Advanced Config', link: '/en/guide/patterns/store/advanced-config' },
-            { text: 'Advanced Hooks', link: '/en/guide/patterns/store/advanced-hooks' }
+            { text: 'Store Configuration', link: '/en/guide/patterns/store/store-configuration' },
+            { text: 'Performance Patterns', link: '/en/guide/patterns/store/performance-patterns' },
+            { text: 'useStoreValue Patterns', link: '/en/guide/patterns/store/useStoreValue-patterns' },
+            { text: 'useStoreSelector Patterns', link: '/en/guide/patterns/store/useStoreSelector-patterns' },
+            { text: 'useComputedStore Patterns', link: '/en/guide/patterns/store/useComputedStore-patterns' },
+            { text: 'useStoreManager API', link: '/en/guide/patterns/store/useStoreManager-api' },
+            { text: 'withProvider Pattern', link: '/en/guide/patterns/store/withProvider-pattern' }
           ]
         },
         {
@@ -93,7 +98,11 @@ const GUIDE_STRUCTURE = {
             { text: 'Overview', link: '/en/guide/patterns/ref/' },
             { text: 'Basic Usage', link: '/en/guide/patterns/ref/basic-usage' },
             { text: 'Multi-Context', link: '/en/guide/patterns/ref/multi-context' },
-            { text: 'Performance', link: '/en/guide/patterns/ref/performance' }
+            { text: 'Performance', link: '/en/guide/patterns/ref/performance' },
+            { text: 'Canvas Optimization', link: '/en/guide/patterns/ref/canvas-optimization' },
+            { text: 'Hardware Acceleration', link: '/en/guide/patterns/ref/hardware-acceleration' },
+            { text: 'Memory Optimization', link: '/en/guide/patterns/ref/memory-optimization' },
+            { text: 'Singleton Handling', link: '/en/guide/patterns/ref/singleton-handling' }
           ]
         },
         {
@@ -103,7 +112,8 @@ const GUIDE_STRUCTURE = {
             { text: 'Overview', link: '/en/guide/patterns/architecture/' },
             { text: 'MVVM', link: '/en/guide/patterns/architecture/mvvm' },
             { text: 'Domain Context', link: '/en/guide/patterns/architecture/domain-context' },
-            { text: 'Composition', link: '/en/guide/patterns/architecture/composition' }
+            { text: 'Composition', link: '/en/guide/patterns/architecture/composition' },
+            { text: 'Context Splitting', link: '/en/guide/patterns/architecture/context-splitting' }
           ]
         },
         {
@@ -115,6 +125,41 @@ const GUIDE_STRUCTURE = {
             { text: 'Wait-Then-Execute', link: '/en/guide/patterns/async/wait-then-execute' },
             { text: 'Conditional Await', link: '/en/guide/patterns/async/conditional-await' },
             { text: 'Timeout Protection', link: '/en/guide/patterns/async/timeout-protection' }
+          ]
+        },
+        {
+          text: '🔧 Setup Patterns',
+          collapsed: false,
+          items: [
+            { text: 'Overview', link: '/en/guide/patterns/setup/' },
+            { text: 'Basic Action Setup', link: '/en/guide/patterns/setup/basic-action-setup' },
+            { text: 'Basic Store Setup', link: '/en/guide/patterns/setup/basic-store-setup' },
+            { text: 'Multi-Context Setup', link: '/en/guide/patterns/setup/multi-context-setup' },
+            { text: 'Provider Composition Setup', link: '/en/guide/patterns/setup/provider-composition-setup' },
+            { text: 'Ref Context Setup', link: '/en/guide/patterns/setup/ref-context-setup' }
+          ]
+        },
+        {
+          text: '⚡ Performance Patterns',
+          collapsed: false,
+          items: [
+            { text: 'Overview', link: '/en/guide/patterns/performance/' },
+            { text: 'Optimization Techniques', link: '/en/guide/patterns/performance/optimization-techniques' }
+          ]
+        },
+        {
+          text: '🐛 Debug Patterns',
+          collapsed: false,
+          items: [
+            { text: 'Overview', link: '/en/guide/patterns/debug/' },
+            { text: 'Production Debugging', link: '/en/guide/patterns/debug/production-debugging' }
+          ]
+        },
+        {
+          text: '💡 Proposals',
+          collapsed: false,
+          items: [
+            { text: 'Debug Store Types', link: '/en/guide/patterns/proposals/debug-store-types' }
           ]
         }
       ]
@@ -178,7 +223,14 @@ const GUIDE_STRUCTURE = {
           items: [
             { text: '개요', link: '/ko/guide/patterns/action/' },
             { text: '기본 사용법', link: '/ko/guide/patterns/action/basic-usage' },
-            { text: '레지스터 위임', link: '/ko/guide/patterns/action/register-delegation' }
+            { text: '레지스터 위임', link: '/ko/guide/patterns/action/register-delegation' },
+            { text: '타입 시스템', link: '/ko/guide/patterns/action/type-system' },
+            { text: '고급 패턴', link: '/ko/guide/patterns/action/advanced-patterns' },
+            { text: '디스패치 패턴', link: '/ko/guide/patterns/action/dispatch-patterns' },
+            { text: '결과와 함께 디스패치', link: '/ko/guide/patterns/action/dispatch-with-result' },
+            { text: '레지스터 패턴', link: '/ko/guide/patterns/action/register-patterns' },
+            { text: '디스패치 접근', link: '/ko/guide/patterns/action/dispatch-access' },
+            { text: '핸들러 상태 접근', link: '/ko/guide/patterns/action/handler-state-access' }
           ]
         },
         {
@@ -187,9 +239,13 @@ const GUIDE_STRUCTURE = {
           items: [
             { text: '개요', link: '/ko/guide/patterns/store/' },
             { text: '기본 사용법', link: '/ko/guide/patterns/store/basic-usage' },
-            { text: 'HOC 패턴', link: '/ko/guide/patterns/store/hoc-pattern' },
-            { text: '고급 설정', link: '/ko/guide/patterns/store/advanced-config' },
-            { text: '고급 훅', link: '/ko/guide/patterns/store/advanced-hooks' }
+            { text: '스토어 설정', link: '/ko/guide/patterns/store/store-configuration' },
+            { text: '성능 패턴', link: '/ko/guide/patterns/store/performance-patterns' },
+            { text: 'useStoreValue 패턴', link: '/ko/guide/patterns/store/useStoreValue-patterns' },
+            { text: 'useStoreSelector 패턴', link: '/ko/guide/patterns/store/useStoreSelector-patterns' },
+            { text: 'useComputedStore 패턴', link: '/ko/guide/patterns/store/useComputedStore-patterns' },
+            { text: 'useStoreManager API', link: '/ko/guide/patterns/store/useStoreManager-api' },
+            { text: 'withProvider 패턴', link: '/ko/guide/patterns/store/withProvider-pattern' }
           ]
         },
         {
@@ -199,7 +255,11 @@ const GUIDE_STRUCTURE = {
             { text: '개요', link: '/ko/guide/patterns/ref/' },
             { text: '기본 사용법', link: '/ko/guide/patterns/ref/basic-usage' },
             { text: '멀티 컨텍스트', link: '/ko/guide/patterns/ref/multi-context' },
-            { text: '성능 최적화', link: '/ko/guide/patterns/ref/performance' }
+            { text: '성능 최적화', link: '/ko/guide/patterns/ref/performance' },
+            { text: '캔버스 최적화', link: '/ko/guide/patterns/ref/canvas-optimization' },
+            { text: '하드웨어 가속', link: '/ko/guide/patterns/ref/hardware-acceleration' },
+            { text: '메모리 최적화', link: '/ko/guide/patterns/ref/memory-optimization' },
+            { text: '싱글톤 처리', link: '/ko/guide/patterns/ref/singleton-handling' }
           ]
         },
         {
@@ -209,7 +269,8 @@ const GUIDE_STRUCTURE = {
             { text: '개요', link: '/ko/guide/patterns/architecture/' },
             { text: 'MVVM', link: '/ko/guide/patterns/architecture/mvvm' },
             { text: '도메인 컨텍스트', link: '/ko/guide/patterns/architecture/domain-context' },
-            { text: '패턴 조합', link: '/ko/guide/patterns/architecture/composition' }
+            { text: '패턴 조합', link: '/ko/guide/patterns/architecture/composition' },
+            { text: '컨텍스트 분할', link: '/ko/guide/patterns/architecture/context-splitting' }
           ]
         },
         {
@@ -221,6 +282,41 @@ const GUIDE_STRUCTURE = {
             { text: '대기 후 실행', link: '/ko/guide/patterns/async/wait-then-execute' },
             { text: '조건부 대기', link: '/ko/guide/patterns/async/conditional-await' },
             { text: '타임아웃 보호', link: '/ko/guide/patterns/async/timeout-protection' }
+          ]
+        },
+        {
+          text: '🔧 설정 패턴',
+          collapsed: false,
+          items: [
+            { text: '개요', link: '/ko/guide/patterns/setup/' },
+            { text: '기본 액션 설정', link: '/ko/guide/patterns/setup/basic-action-setup' },
+            { text: '기본 스토어 설정', link: '/ko/guide/patterns/setup/basic-store-setup' },
+            { text: '멀티 컨텍스트 설정', link: '/ko/guide/patterns/setup/multi-context-setup' },
+            { text: 'Provider 조합 설정', link: '/ko/guide/patterns/setup/provider-composition-setup' },
+            { text: 'Ref 컨텍스트 설정', link: '/ko/guide/patterns/setup/ref-context-setup' }
+          ]
+        },
+        {
+          text: '⚡ 성능 패턴',
+          collapsed: false,
+          items: [
+            { text: '개요', link: '/ko/guide/patterns/performance/' },
+            { text: '최적화 기법', link: '/ko/guide/patterns/performance/optimization-techniques' }
+          ]
+        },
+        {
+          text: '🐛 디버그 패턴',
+          collapsed: false,
+          items: [
+            { text: '개요', link: '/ko/guide/patterns/debug/' },
+            { text: '운영 디버깅', link: '/ko/guide/patterns/debug/production-debugging' }
+          ]
+        },
+        {
+          text: '💡 제안사항',
+          collapsed: false,
+          items: [
+            { text: '디버그 스토어 타입', link: '/ko/guide/patterns/proposals/debug-store-types' }
           ]
         }
       ]
