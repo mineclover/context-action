@@ -8,12 +8,20 @@ import { PageWithLogMonitor } from '../../components/LogMonitor';
 import { createActionContext } from '@context-action/react';
 import { Badge, Card, CardContent } from '../../components/ui';
 
+// Task 데이터 타입
+interface TaskData {
+  name: string;
+  payload?: Record<string, unknown>;
+  executionTime?: number;
+  timestamp?: number;
+}
+
 // Priority Performance 관련 액션 타입 정의
 interface PriorityActions {
-  executeHighPriority: { taskId: string; data: any };
-  executeMediumPriority: { taskId: string; data: any };
-  executeLowPriority: { taskId: string; data: any };
-  batchExecute: { tasks: Array<{ id: string; priority: 'high' | 'medium' | 'low'; data: any }> };
+  executeHighPriority: { taskId: string; data: TaskData };
+  executeMediumPriority: { taskId: string; data: TaskData };
+  executeLowPriority: { taskId: string; data: TaskData };
+  batchExecute: { tasks: Array<{ id: string; priority: 'high' | 'medium' | 'low'; data: TaskData }> };
   clearTasks: void;
   measurePerformance: { operation: string; duration: number };
 }

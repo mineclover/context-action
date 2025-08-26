@@ -8,18 +8,28 @@ import { PageWithLogMonitor } from '../../components/LogMonitor';
 import { createActionContext, createStoreContext, useStoreValue } from '@context-action/react';
 import { Badge, Card, CardContent } from '../../components/ui';
 
+// 검색 결과 아이템 타입
+interface SearchItem {
+  id: string;
+  title: string;
+  category: string;
+  tags: string[];
+  author: string;
+  date: string;
+}
+
 // 검색 관련 액션 타입 정의
 interface SearchActions {
-  performSearch: { query: string; filters: any };
+  performSearch: { query: string; filters: Record<string, string> };
   updateQuery: { query: string };
   addFilter: { key: string; value: string };
   removeFilter: { key: string };
   clearFilters: void;
-  selectResult: { id: string; item: any };
+  selectResult: { id: string; item: SearchItem };
 }
 
 // 샘플 데이터
-const sampleData = [
+const sampleData: SearchItem[] = [
   { id: '1', title: 'React Hooks Guide', category: 'Tutorial', tags: ['react', 'hooks', 'javascript'], author: 'John Doe', date: '2024-01-15' },
   { id: '2', title: 'TypeScript Best Practices', category: 'Guide', tags: ['typescript', 'javascript', 'best-practices'], author: 'Jane Smith', date: '2024-01-20' },
   { id: '3', title: 'Context-Action Framework', category: 'Documentation', tags: ['context-action', 'react', 'state-management'], author: 'Dev Team', date: '2024-01-25' },
@@ -39,7 +49,7 @@ const {
   query: '',
   filters: {} as Record<string, string>,
   results: sampleData,
-  selectedResult: null as any
+  selectedResult: null as SearchItem | null
 });
 
 // Action Context 생성
