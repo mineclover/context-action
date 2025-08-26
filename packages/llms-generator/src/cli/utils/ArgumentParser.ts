@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /**
  * Argument Parser - Utility for parsing CLI arguments
  */
