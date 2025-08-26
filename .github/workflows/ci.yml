@@ -169,16 +169,35 @@ jobs:
         run: |
           echo "📦 Bundle Size Report"
           echo "===================="
+          echo ""
+          
+          # Check if any dist directories exist
+          if ! ls packages/*/dist/ > /dev/null 2>&1; then
+            echo "❌ No dist directories found. Build may have failed."
+            exit 1
+          fi
+          
+          # Count packages processed
+          processed=0
           
           for package in packages/*/dist/index.js; do
             if [ -f "$package" ]; then
               size=$(ls -lah "$package" | awk '{print $5}')
-              gzip_size=$(gzip -c "$package" | wc -c | awk '{print $1}')
+              gzip_size=$(gzip -c "$package" | wc -c)
               package_name=$(echo "$package" | sed 's|packages/||' | sed 's|/dist/index.js||')
               
               echo "📋 $package_name:"
               echo "   - Raw: $size"
               echo "   - Gzipped: ${gzip_size} bytes"
               echo ""
+              
+              processed=$((processed + 1))
             fi
           done
+          
+          if [ $processed -eq 0 ]; then
+            echo "❌ No package bundles found to analyze."
+            exit 1
+          fi
+          
+          echo "✅ Analyzed $processed package(s) successfully."
