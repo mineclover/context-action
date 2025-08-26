@@ -29,7 +29,7 @@ export * from './utils';
 // Common imports expected from the main store module
 
 // Primary factory functions
-export { createStoreContext, createDeclarativeStorePattern, createDeclarativeStores } from './patterns';
+export { createStoreContext } from './patterns';
 
 // Store Context Pattern types
 export type {

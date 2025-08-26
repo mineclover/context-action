@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { render, act } from '@testing-library/react';
-import { createStoreContext as createDeclarativeStorePattern } from '../declarative-store-pattern-v2';
+import { createStoreContext } from '../declarative-store-pattern-v2';
 
 interface TestStores {
   counter: number;
@@ -10,7 +10,7 @@ interface TestStores {
 
 describe('store reference stability', () => {
   it('should maintain stable reference for store instances across re-renders', () => {
-    const { Provider, useStore } = createDeclarativeStorePattern<TestStores>('TestStability', {
+    const { Provider, useStore } = createStoreContext<TestStores>('TestStability', {
       counter: 0,
       user: { name: '', email: '' },
       settings: { theme: 'light' }
@@ -74,7 +74,7 @@ describe('store reference stability', () => {
   });
 
   it('should maintain stable reference in useEffect dependency array', () => {
-    const { Provider, useStore } = createDeclarativeStorePattern<TestStores>('TestUseEffect', {
+    const { Provider, useStore } = createStoreContext<TestStores>('TestUseEffect', {
       counter: 0,
       user: { name: '', email: '' },
       settings: { theme: 'light' }
@@ -135,7 +135,7 @@ describe('store reference stability', () => {
   });
 
   it('should cache stores properly and return same instance', () => {
-    const { Provider, useStore } = createDeclarativeStorePattern<TestStores>('TestCaching', {
+    const { Provider, useStore } = createStoreContext<TestStores>('TestCaching', {
       counter: 0,
       user: { name: '', email: '' },
       settings: { theme: 'light' }
@@ -186,7 +186,7 @@ describe('store reference stability', () => {
   });
 
   it('should detect unstable store references (stress test)', () => {
-    const { Provider, useStore } = createDeclarativeStorePattern<TestStores>('TestUnstable', {
+    const { Provider, useStore } = createStoreContext<TestStores>('TestUnstable', {
       counter: 0,
       user: { name: '', email: '' },
       settings: { theme: 'light' }
@@ -248,7 +248,7 @@ describe('store reference stability', () => {
   });
 
   it('should handle Provider re-creation correctly', () => {
-    const { Provider, useStore } = createDeclarativeStorePattern<TestStores>('TestProviderRecreation', {
+    const { Provider, useStore } = createStoreContext<TestStores>('TestProviderRecreation', {
       counter: 0,
       user: { name: '', email: '' },
       settings: { theme: 'light' }
@@ -311,7 +311,7 @@ describe('store reference stability', () => {
   });
 
   it('should maintain stability across store value changes', () => {
-    const { Provider, useStore } = createDeclarativeStorePattern<TestStores>('TestValueChanges', {
+    const { Provider, useStore } = createStoreContext<TestStores>('TestValueChanges', {
       counter: 0,
       user: { name: '', email: '' },
       settings: { theme: 'light' }
