@@ -146,7 +146,25 @@ function CanvasContent({ width = 800, height = 600, onFocusChange, onEventLog }:
     if (mainCanvas.target) {
       drawing.redrawCanvas(mainCanvas.target);
     }
-  }, [shapes, selectedShapeId, drawing.redrawCanvas, mainCanvas.target]);
+    
+    // shapes가 비어있을 때 overlay canvas도 클리어
+    if (shapes.length === 0 && overlayCanvas.target) {
+      const ctx = overlayCanvas.target.getContext('2d');
+      if (ctx) {
+        ctx.clearRect(0, 0, overlayCanvas.target.width, overlayCanvas.target.height);
+      }
+    }
+  }, [shapes, selectedShapeId, drawing.redrawCanvas, mainCanvas.target, overlayCanvas.target]);
+
+  // 드래그 종료시 overlay canvas 클리어
+  useEffect(() => {
+    if (!isDragging && overlayCanvas.target) {
+      const ctx = overlayCanvas.target.getContext('2d');
+      if (ctx) {
+        ctx.clearRect(0, 0, overlayCanvas.target.width, overlayCanvas.target.height);
+      }
+    }
+  }, [isDragging, overlayCanvas.target]);
 
   // 키보드 이벤트 리스너
   useEffect(() => {

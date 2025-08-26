@@ -183,16 +183,11 @@ export function useCanvasEvents(
         y: dragShape.y + deltaY,
       };
       
-      // 상태 업데이트
+      // Context-Action을 통한 상태 업데이트 (자동 렌더링됨)
       updateShape(dragShape.id, {
         x: updatedShape.x,
         y: updatedShape.y,
       });
-
-      // 즉시 Canvas에 반영 - 상태 업데이트를 기다리지 않음
-      if (mainCanvas) {
-        drawing.redrawCanvas(mainCanvas);
-      }
       
     } else if (currentMode === 'draw') {
       // 새 도형 생성 완료
@@ -209,19 +204,11 @@ export function useCanvasEvents(
             strokeWidth: strokeWidth
           };
           
-          // 상태 업데이트
+          // Context-Action을 통한 상태 업데이트 (자동 렌더링됨)
           addShape(newShape);
-          
-          // 즉시 Canvas에 새 도형 그리기 - 상태 업데이트를 기다리지 않음
-          if (mainCanvas) {
-            const ctx = mainCanvas.getContext('2d');
-            if (ctx) {
-              drawing.drawShape(ctx, newShape);
-            }
-          }
         }
       } else if (freehandPoints.length > 1) {
-        // Freehand 도형 생성 - 이미 실시간으로 그려졌으므로 상태만 업데이트
+        // Freehand 도형 생성 - Context-Action으로 상태 관리
         const newShape: CanvasShape = {
           id: `freehand-${Date.now()}`,
           type: 'freehand',
@@ -234,8 +221,13 @@ export function useCanvasEvents(
           points: [...freehandPoints, pos]
         };
         
+        // Context-Action을 통한 상태 업데이트 (자동 렌더링으로 Freehand 중복 방지)
         addShape(newShape);
-        // Freehand는 이미 실시간으로 그려졌으므로 추가 렌더링 불필요
+        
+        // 메인 Canvas를 한 번 더 그려서 실시간 그리기 위에 깔끔하게 정리
+        if (mainCanvas) {
+          drawing.redrawCanvas(mainCanvas);
+        }
       }
     }
 

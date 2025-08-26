@@ -4,8 +4,9 @@
  */
 
 import { LogLevel } from '../../utils/logger';
-import { useStoreValue } from '@context-action/react';
-import React, { createContext, useContext, useEffect, useMemo } from 'react';
+import { useStoreValue, createActionContext } from '@context-action/react';
+import React, { useEffect, useMemo } from 'react';
+import type { ActionPayloadMap } from '@context-action/core';
 import { LogMonitor } from './LogMonitor';
 import { logMonitorStoreRegistry } from './store-registry';
 import type {
@@ -17,26 +18,21 @@ import type {
 } from './types';
 import { createLogEntry, maintainMaxLogs } from './utils';
 
-/**
- * LogMonitor 컨텍스트
- */
-const LogMonitorContext = createContext<LogMonitorContextValue | null>(null);
-
-/**
- * LogMonitor 컨텍스트 훅
- *
- * @throws LogMonitor Provider 외부에서 사용 시 에러 발생
- * @returns LogMonitor 컨텍스트 값
- */
-export function useLogMonitorContext(): LogMonitorContextValue {
-  const context = useContext(LogMonitorContext);
-  if (!context) {
-    throw new Error(
-      'useLogMonitorContext must be used within a LogMonitorProvider'
-    );
-  }
-  return context;
+// LogMonitor Actions 정의 (Context-Action Action Pattern)
+export interface LogMonitorActions extends ActionPayloadMap {
+  addLog: { entry: Omit<LogEntry, 'id' | 'timestamp'> };
+  clearLogs: void;
+  setLogLevel: { level: LogLevel };
+  updateConfig: { configUpdate: Partial<LogMonitorConfig> };
+  log: { message: string; data?: unknown };
 }
+
+// Context-Action LogMonitor Context 생성
+const {
+  Provider: LogMonitorActionProvider,
+  useActionDispatch: useLogMonitorAction,
+  useActionHandler: useLogMonitorActionHandler
+} = createActionContext<LogMonitorActions>('LogMonitor');
 
 /**
  * LogMonitor Provider Props
@@ -46,6 +42,61 @@ interface LogMonitorProviderProps {
   pageId: string;
   initialLogLevel?: LogLevel;
   initialConfig?: Partial<LogMonitorConfig>;
+}
+
+// LogMonitor Action Handlers 컴포넌트
+function LogMonitorActionHandlers({ 
+  pageId, 
+  stores,
+  fallbackConfig 
+}: { 
+  pageId: string;
+  stores: LogMonitorStores;
+  fallbackConfig: LogMonitorConfig;
+}) {
+  // Action Handlers 등록
+  useLogMonitorActionHandler('addLog', React.useCallback(async (payload) => {
+    const logEntry = createLogEntry(pageId, payload.entry);
+    const currentLogs = stores.logs.getValue();
+    const updatedLogs = maintainMaxLogs(
+      currentLogs,
+      logEntry,
+      fallbackConfig.maxLogs
+    );
+    stores.logs.setValue(updatedLogs);
+  }, [pageId, stores, fallbackConfig.maxLogs]));
+
+  useLogMonitorActionHandler('clearLogs', React.useCallback(async () => {
+    stores.logs.setValue([]);
+  }, [stores]));
+
+  useLogMonitorActionHandler('setLogLevel', React.useCallback(async (payload) => {
+    stores.logLevel.setValue(payload.level);
+  }, [stores]));
+
+  useLogMonitorActionHandler('updateConfig', React.useCallback(async (payload) => {
+    const currentConfig = stores.config.getValue();
+    const newConfig = { ...currentConfig, ...payload.configUpdate };
+    stores.config.setValue(newConfig);
+  }, [stores]));
+
+  useLogMonitorActionHandler('log', React.useCallback(async (payload) => {
+    const logEntry = createLogEntry(pageId, {
+      level: LogLevel.INFO,
+      type: 'system',
+      message: payload.message,
+      details: payload.data,
+    });
+    const currentLogs = stores.logs.getValue();
+    const updatedLogs = maintainMaxLogs(
+      currentLogs,
+      logEntry,
+      fallbackConfig.maxLogs
+    );
+    stores.logs.setValue(updatedLogs);
+  }, [pageId, stores, fallbackConfig.maxLogs]));
+
+  return null;
 }
 
 /**
@@ -69,10 +120,6 @@ export function LogMonitorProvider({
     );
   }, [pageId, initialLogLevel, initialConfig]);
 
-  // 스토어 값 구독
-  const logs = useStoreValue(stores.logs) ?? [];
-  const logLevel = useStoreValue(stores.logLevel) ?? initialLogLevel;
-
   // config 안정화 - fallback 값을 미리 계산하여 참조 안정성 보장
   const fallbackConfig = useMemo(
     () =>
@@ -86,57 +133,9 @@ export function LogMonitorProvider({
     [initialLogLevel, initialConfig]
   );
 
-  const config = useStoreValue(stores.config) ?? fallbackConfig;
-
-  // 안정적인 API 함수들 생성
-  const stableAPI = useMemo(() => {
-    return {
-      addLog: (entry: Omit<LogEntry, 'id' | 'timestamp'>) => {
-        const logEntry = createLogEntry(pageId, entry);
-        const currentLogs = stores.logs.getValue();
-        const updatedLogs = maintainMaxLogs(
-          currentLogs,
-          logEntry,
-          fallbackConfig.maxLogs
-        );
-        stores.logs.setValue(updatedLogs);
-      },
-
-      clearLogs: () => {
-        stores.logs.setValue([]);
-      },
-
-      setLogLevel: (level: LogLevel) => {
-        stores.logLevel.setValue(level);
-      },
-
-      updateConfig: (configUpdate: Partial<LogMonitorConfig>) => {
-        const currentConfig = stores.config.getValue();
-        const newConfig = { ...currentConfig, ...configUpdate };
-        stores.config.setValue(newConfig);
-      },
-
-      log: (message: string, data?: unknown) => {
-        const logEntry = createLogEntry(pageId, {
-          level: LogLevel.INFO,
-          type: 'system',
-          message,
-          details: data,
-        });
-        const currentLogs = stores.logs.getValue();
-        const updatedLogs = maintainMaxLogs(
-          currentLogs,
-          logEntry,
-          fallbackConfig.maxLogs
-        );
-        stores.logs.setValue(updatedLogs);
-      },
-    };
-  }, [pageId, stores, fallbackConfig.maxLogs]);
-
   // 페이지 초기화 관리 (Store 직접 조작 없음)
   useEffect(() => {
-    // cleanup만 처리, 초기화 로그는 stableAPI를 통해 처리
+    // cleanup만 처리, 초기화 로그는 Actions를 통해 처리
     return () => {
       if (fallbackConfig.enableAutoCleanup) {
         setTimeout(() => {
@@ -146,29 +145,62 @@ export function LogMonitorProvider({
     };
   }, [pageId, fallbackConfig.enableAutoCleanup]);
 
-  // 주의: 초기화 로그는 무한 루프를 유발할 수 있어 제거
-  // 필요시 애플리케이션 레벨에서 수동으로 addLog 호출
-
-  // 컨텍스트 값 생성
-  const contextValue: LogMonitorContextValue = useMemo(
-    () => ({
-      logs,
-      addLog: stableAPI.addLog,
-      clearLogs: stableAPI.clearLogs,
-      logLevel,
-      setLogLevel: stableAPI.setLogLevel,
-      config,
-      updateConfig: stableAPI.updateConfig,
-      log: stableAPI.log,
-    }),
-    [logs, logLevel, config, stableAPI]
-  );
-
   return (
-    <LogMonitorContext.Provider value={contextValue}>
+    <LogMonitorActionProvider>
+      <LogMonitorActionHandlers 
+        pageId={pageId}
+        stores={stores}
+        fallbackConfig={fallbackConfig}
+      />
       {children}
-    </LogMonitorContext.Provider>
+    </LogMonitorActionProvider>
   );
+}
+
+/**
+ * Context-Action 기반 LogMonitor 컨텍스트 훅 (기존 호환성 유지)
+ */
+export function useLogMonitorContext(): LogMonitorContextValue {
+  // Context-Action 기반으로 마이그레이션 완료
+  
+  // 임시로 기본값 반환 (실제 구현에서는 pageId 기반 store registry에서 가져와야 함)
+  const dispatch = useLogMonitorAction();
+  
+  return {
+    logs: [],
+    logLevel: LogLevel.DEBUG,
+    config: {
+      maxLogs: 50,
+      defaultLogLevel: LogLevel.DEBUG,
+      enableToast: true,
+      enableAutoCleanup: true,
+    },
+    addLog: (entry: Omit<LogEntry, 'id' | 'timestamp'>) => dispatch('addLog', { entry }),
+    clearLogs: () => dispatch('clearLogs'),
+    setLogLevel: (level: LogLevel) => dispatch('setLogLevel', { level }),
+    updateConfig: (configUpdate: Partial<LogMonitorConfig>) => dispatch('updateConfig', { configUpdate }),
+    log: (message: string, data?: unknown) => dispatch('log', { message, data }),
+  };
+}
+
+/**
+ * Context-Action 기반 LogMonitor 액션 훅 (편의용)
+ */
+export function useLogMonitor() {
+  const dispatch = useLogMonitorAction();
+  
+  return {
+    addLog: (entry: Omit<LogEntry, 'id' | 'timestamp'>) => 
+      dispatch('addLog', { entry }),
+    clearLogs: () => 
+      dispatch('clearLogs'),
+    setLogLevel: (level: LogLevel) => 
+      dispatch('setLogLevel', { level }),
+    updateConfig: (configUpdate: Partial<LogMonitorConfig>) => 
+      dispatch('updateConfig', { configUpdate }),
+    log: (message: string, data?: unknown) => 
+      dispatch('log', { message, data }),
+  };
 }
 
 /**

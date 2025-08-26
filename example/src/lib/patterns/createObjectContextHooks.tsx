@@ -61,8 +61,15 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
     useActionHandler: useObjectActionHandler
   } = createActionContext<BaseObjectActions<T>>(`ObjectContext_${config.contextName}_Actions`);
 
-  // Manager Context 생성 (Core ObjectContextManager 인스턴스 공유)
-  const ObjectManagerContext = createContext<ObjectContextManager<T> | null>(null);
+  // Manager Store 생성 (Core ObjectContextManager 인스턴스 공유를 위한 Store)
+  const {
+    Provider: ObjectManagerProvider,
+    useStore: useObjectManagerStore,
+  } = createStoreContext(`ObjectManager_${config.contextName}`, {
+    manager: { 
+      initialValue: null as ObjectContextManager<T> | null 
+    }
+  });
 
   /**
    * Core Store Hook - 순수 상태 조회
@@ -293,7 +300,8 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
    * Manager Hook - ObjectContextManager 인스턴스 접근
    */
   const useObjectContextManager = () => {
-    const manager = useContext(ObjectManagerContext);
+    const managerStore = useObjectManagerStore('manager');
+    const manager = useStoreValue(managerStore);
     if (!manager) {
       throw new Error(`useObjectContextManager must be used within ObjectContextProvider for context '${config.contextName}'`);
     }
@@ -535,13 +543,15 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
   };
 
   /**
-   * Provider 컴포넌트
+   * Provider 컴포넌트 (Manager 초기화)
    */
-  const ObjectContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const ObjectManagerInitializer: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const managerStore = useObjectManagerStore('manager');
     const managerRef = useRef<ObjectContextManager<T>>();
     
     if (!managerRef.current) {
       managerRef.current = new ObjectContextManager<T>(config);
+      managerStore.setValue(managerRef.current);
     }
 
     useEffect(() => {
@@ -549,20 +559,30 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
         // Cleanup on unmount
         if (managerRef.current) {
           managerRef.current.dispose();
+          managerStore.setValue(null);
         }
       };
-    }, []);
+    }, [managerStore]);
 
+    return <>{children}</>;
+  };
+
+  /**
+   * Provider 컴포넌트
+   */
+  const ObjectContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     return (
-      <ObjectManagerContext.Provider value={managerRef.current}>
+      <ObjectManagerProvider>
         <ObjectStoreProvider>
           <ObjectActionProvider>
-            <ObjectContextSyncProvider>
-              {children}
-            </ObjectContextSyncProvider>
+            <ObjectManagerInitializer>
+              <ObjectContextSyncProvider>
+                {children}
+              </ObjectContextSyncProvider>
+            </ObjectManagerInitializer>
           </ObjectActionProvider>
         </ObjectStoreProvider>
-      </ObjectManagerContext.Provider>
+      </ObjectManagerProvider>
     );
   };
 
@@ -585,15 +605,14 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
     useObjectManager, // Facade Hook
     useObjectContextEvents,
     
-    // Context Objects (for advanced usage)
-    ObjectManagerContext,
-    
     // Store and Action Providers (for selective usage)
     ObjectStoreProvider,
     ObjectActionProvider,
+    ObjectManagerProvider,
     useObjectStore,
     useObjectAction,
     useObjectActionHandler,
+    useObjectManagerStore,
     
     // Configuration
     config
