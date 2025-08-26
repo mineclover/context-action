@@ -38,7 +38,7 @@ export function usePersistedStore<T>(
     deserialize = JSON.parse          // 기본값: JSON 역직렬화
   } = options;
   
-  const storeRef = useRef<Store<T>>();
+  const storeRef = useRef<Store<T> | null>(null);
   
   // Store 초기화 - 저장된 값 또는 초기값 사용
   if (!storeRef.current) {

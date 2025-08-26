@@ -234,7 +234,7 @@ class StoreManager<T extends Record<string, any>> {
  * Context type for the store pattern
  */
 interface StoreContextValue<T extends Record<string, any>> {
-  managerRef: React.RefObject<StoreManager<T>>;
+  managerRef: React.RefObject<StoreManager<T> | null>;
 }
 
 /**

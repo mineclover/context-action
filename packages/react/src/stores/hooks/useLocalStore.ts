@@ -7,7 +7,7 @@ export function useLocalStore<T>(
   initialValue: T, 
   name?: string
 ): Snapshot<T> & { store: Store<T> } {
-  const storeRef = useRef<Store<T>>();
+  const storeRef = useRef<Store<T> | null>(null);
   
   if (!storeRef.current) {
     const storeName = name || `localStore_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
