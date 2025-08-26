@@ -6,7 +6,6 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-// import { useActionLoggerWithToast } from '../../../../components/LogMonitor';
 import {
   aggregateMouseEventsState,
   type MousePosition,

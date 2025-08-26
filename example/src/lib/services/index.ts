@@ -210,16 +210,6 @@ export function validateForm(fields: Record<string, any>, rules: Record<string, 
   return errors;
 }
 
-// Legacy class wrapper for backward compatibility
-export const ValidationService = {
-  validateRequired,
-  validateEmail,
-  validateMinLength,
-  validateMaxLength,
-  validatePattern,
-  combineValidators,
-  validateForm,
-};
 
 // Async utilities service
 export function delay(ms: number): Promise<void> {
@@ -339,14 +329,3 @@ export async function batchExecute<T, R>(
   return results;
 }
 
-// Legacy class wrapper for backward compatibility
-export const AsyncUtilsService = {
-  delay,
-  timeout,
-  retry,
-  withFallback,
-  debounce,
-  throttle,
-  executeWithProgress,
-  batchExecute,
-};

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Card, CardContent, PageLayout } from '../components/ui';
+import { Card, CardContent } from '../components/ui';
+import { PageLayout } from '../components/layout/PageLayout';
 
 function HomePage() {
   return (

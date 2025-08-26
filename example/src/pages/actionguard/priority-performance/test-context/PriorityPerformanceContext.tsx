@@ -97,10 +97,9 @@ export const usePriorityPerformanceActionHandler =
   PriorityPerformanceActionContext.useActionHandler;
 export const usePriorityPerformanceStore = PriorityPerformanceStores.useStore;
 
-// Legacy exports (deprecated)
+// Legacy exports (deprecated) - temporarily restored for compatibility
 export const usePriorityPerformanceActionRegister =
   PriorityPerformanceActionContext.useActionRegister;
-// usePriorityPerformanceRegistry removed - not needed in new pattern
 
 /**
  * 통합 Provider

@@ -33,16 +33,13 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
+        // Hybrid approach: Manual splitting for stable vendors, auto for app code
         manualChunks: {
-          // React 관련 라이브러리를 별도 청크로 분리
-          vendor: ['react', 'react-dom'],
-          // React Router를 별도 청크로 분리
-          router: ['react-router-dom'],
-          // Context-Action 프레임워크를 별도 청크로 분리
-          'context-action': [
-            '@context-action/core', 
-            '@context-action/react'
-          ],
+          // Stable vendor libraries (rarely change)
+          'react-vendor': ['react', 'react-dom'],
+          'router-vendor': ['react-router-dom'],
+          // Context-Action framework
+          'context-action': ['@context-action/core', '@context-action/react'],
         },
       },
     },
