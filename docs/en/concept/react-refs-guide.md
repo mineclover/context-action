@@ -313,7 +313,7 @@ function AsyncRefOperations() {
   // ✅ Extract function for reuse (Pattern 1 - Recommended)
   const waitForRefs = useGameWaitForRefs();
   
-  // Wait for single ref
+  // Wait for single ref with default timeout (1 second)
   const initCanvas = async () => {
     try {
       const canvasElement = await canvas.waitForMount();
@@ -325,7 +325,7 @@ function AsyncRefOperations() {
     }
   };
   
-  // Wait for multiple refs using extracted function
+  // Wait for multiple refs with default timeout (1 second each)
   const initGame = async () => {
     try {
       const refs = await waitForRefs('canvas', 'scene');
@@ -340,6 +340,20 @@ function AsyncRefOperations() {
     }
   };
   
+  // Wait with custom timeout (5 seconds)
+  const initGameWithLongerTimeout = async () => {
+    try {
+      const refs = await waitForRefs(5000, 'canvas', 'scene');
+      console.log('All refs ready with 5s timeout:', refs);
+    } catch (error) {
+      if (error.message.includes('timeout')) {
+        console.error('Refs took too long to mount (>5s)');
+      } else {
+        console.error('Unexpected error:', error);
+      }
+    }
+  };
+  
   // ❌ WRONG: This violates hook rules - don't do this
   // const quickCheck = async () => {
   //   const waitForRefs = useGameWaitForRefs(); // Hook in callback = violation
@@ -349,8 +363,9 @@ function AsyncRefOperations() {
   return (
     <div>
       <canvas ref={canvas.setRef} />
-      <button onClick={initCanvas}>Initialize Canvas</button>
-      <button onClick={initGame}>Initialize Game</button>
+      <button onClick={initCanvas}>Initialize Canvas (1s timeout)</button>
+      <button onClick={initGame}>Initialize Game (1s timeout)</button>
+      <button onClick={initGameWithLongerTimeout}>Initialize Game (5s timeout)</button>
     </div>
   );
 }
@@ -510,10 +525,37 @@ const {
 | Strategy | Purpose | Usage |
 |----------|---------|--------|
 | `autoCleanup` | Automatic cleanup when component unmounts | Most refs should use `true` |
-| `mountTimeout` | Maximum time to wait for ref mounting | Adjust based on complexity |
+| `mountTimeout` | Maximum time to wait for ref mounting | Adjust based on complexity (default: 1000ms) |
 | `validator` | Type and validity checking | Critical for type safety |
 | `cleanup` | Custom cleanup function | Complex objects needing disposal |
 | `initialMetadata` | Additional ref metadata | Debugging and tracking |
+
+### Timeout Configuration
+
+The refs system now includes automatic timeout protection for all `waitForRefs` operations:
+
+- **Default Timeout**: 1000ms (1 second) when no timeout is specified
+- **Custom Timeout**: First parameter when using `waitForRefs(timeout, ...refNames)`
+- **Per-Ref Timeout**: Configure individual timeouts in RefDefinitions
+
+```typescript
+// Example timeout configurations
+const refs = createRefContext('AppRefs', {
+  quickButton: {
+    name: 'quickButton',
+    mountTimeout: 500  // Fast mounting expected
+  },
+  complexEngine: {
+    name: 'complexEngine', 
+    mountTimeout: 10000  // Allow longer initialization
+  }
+});
+
+// Usage examples
+await waitForRefs('quickButton');           // Uses 1s default timeout
+await waitForRefs(3000, 'complexEngine');   // Uses 3s custom timeout
+await waitForRefs('quickButton', 'complexEngine'); // Both use 1s default
+```
 
 ### Simplified Reference Management
 
@@ -844,7 +886,7 @@ function GameComponent() {
   
   const initializeGame = async () => {
     try {
-      // Wait for all essential refs using extracted function
+      // Wait for all essential refs with default 1s timeout each
       const refs = await waitForRefs('canvas', 'scene', 'renderer');
       
       if (!refs.canvas) throw new Error('Canvas not available');
