@@ -437,24 +437,57 @@ function DelayedMountPatternDemo() {
   }, [delayedMountTimer, isDelayedMountedStore, addLog, delayedMountTimerStore]);
   
   // waitForRefs를 사용한 지연 마운트 대기 (성공 시나리오)
-  const testWaitForDelayedMount = useCallback(async () => {
+  // ❌ 잘못된 사용법: 동기적으로 waitForRefs 호출 (블로킹 예시)
+  const testWaitForRefsBlocking = useCallback(() => {
+    addLog('❌ 블로킹 예시: 동기적 waitForRefs 호출...');
+    
+    // 이렇게 하면 안됨: Promise를 기다리지 않고 동기적으로 처리하려고 시도
+    let isComplete = false;
+    let result: any = null;
+    
+    // 동기적으로 Promise 결과를 기다리려고 함 (안티패턴)
+    waitForRefs(5000, 'delayedElement').then(refs => {
+      isComplete = true;
+      result = refs;
+      addLog('🔄 동기적 처리 시도 완료... 하지만 UI가 멈춤');
+    }).catch(error => {
+      isComplete = true;
+      addLog(`❌ 동기적 처리 오류: ${error}`);
+    });
+    
+    // 결과를 기다리기 위해 busy waiting (CPU를 점유하며 UI 블로킹)
+    const startTime = Date.now();
+    while (!isComplete && Date.now() - startTime < 6000) {
+      // 빈 루프로 CPU 점유 - UI 블로킹 발생!
+      // 이런 식으로 하면 절대 안됨
+    }
+    
+    if (isComplete && result) {
+      addLog('⚠️  동기적 처리가 완료되었지만 UI가 6초간 멈췄습니다');
+    } else {
+      addLog('⚠️  동기적 처리 타임아웃 - UI가 6초간 멈췄습니다');
+    }
+  }, [waitForRefs, addLog]);
+
+  // ✅ 올바른 사용법: 비동기적으로 waitForRefs 호출 (non-blocking)
+  const testWaitForRefsNonBlocking = useCallback(async () => {
     try {
-      addLog('⏳ waitForRefs로 지연 마운트 대기 시작... (10초 타임아웃)');
+      addLog('✅ Non-blocking 예시: 비동기 waitForRefs 시작...');
       const startTime = Date.now();
       
-      // 10초 타임아웃으로 대기 - 지연 마운트는 5초이므로 성공할 것
+      // 올바른 방법: async/await로 비동기 처리
       const refs = await waitForRefs(10000, 'delayedElement');
       
       const duration = Date.now() - startTime;
-      addLog(`✅ waitForRefs 완료! (${duration}ms 소요)`);
+      addLog(`✅ Non-blocking waitForRefs 완료! (${duration}ms, UI 반응성 유지)`);
       
       // 마운트된 요소 조작
       refs.delayedElement.style.backgroundColor = '#10b981';
-      refs.delayedElement.textContent = `✅ waitForRefs로 대기 완료! (${duration}ms)`;
+      refs.delayedElement.textContent = `✅ Non-blocking 완료! (${duration}ms)`;
       
     } catch (error) {
       const duration = Date.now() - Date.now();
-      addLog(`❌ waitForRefs 타임아웃: ${error} (${duration}ms)`);
+      addLog(`❌ Non-blocking waitForRefs 타임아웃: ${error}`);
     }
   }, [waitForRefs, addLog]);
   
@@ -498,9 +531,9 @@ function DelayedMountPatternDemo() {
   
   return (
     <div className="p-4 border rounded-lg bg-yellow-50">
-      <h3 className="text-lg font-bold mb-3">3. waitForRefs 지연 마운트 패턴</h3>
+      <h3 className="text-lg font-bold mb-3">3. waitForRefs 블로킹 vs Non-blocking</h3>
       <p className="text-sm text-gray-600 mb-3">
-        마운트가 보장되지만 지연되는 상황에서 waitForRefs 활용
+        ❌ 잘못된 동기적 사용 (UI 블로킹) vs ✅ 올바른 비동기 사용 (UI 반응성 유지)
       </p>
       
       <div className="space-y-3">
@@ -514,10 +547,17 @@ function DelayedMountPatternDemo() {
           </button>
           
           <button
-            onClick={testWaitForDelayedMount}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            onClick={testWaitForRefsBlocking}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
           >
-            waitForRefs 성공 테스트
+            ❌ 블로킹 예시 (CPU 점유)
+          </button>
+          
+          <button
+            onClick={testWaitForRefsNonBlocking}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          >
+            ✅ Non-blocking 예시
           </button>
           
           <button
