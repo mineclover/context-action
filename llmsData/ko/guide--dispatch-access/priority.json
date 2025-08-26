@@ -1,0 +1,44 @@
+{
+  "document": {
+    "id": "guide--dispatch-access",
+    "title": "디스패치 접근 패턴",
+    "category": "guide",
+    "source_path": "ko/guide/patterns/action/dispatch-access.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about 디스패치 접근 패턴",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing 디스패치 접근 패턴",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "react",
+      "javascript",
+      "https",
+      "context",
+      "tsx"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Context-Action 프레임워크에서 액션 디스패치 기능에 접근하는 두 가지 주요 방법: 등록 기반 접근과 훅 기반 접근입니다.",
+    "language": "ko",
+    "created_at": "2025-08-26T00:34:27.234Z"
+  }
+}

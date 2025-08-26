@@ -1,0 +1,46 @@
+{
+  "document": {
+    "id": "guide--basic-usage",
+    "title": "Action Basic Usage",
+    "category": "guide",
+    "source_path": "en/guide/patterns/action/basic-usage.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about action basic usage",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing action basic usage",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "tsx",
+      "react",
+      "https",
+      "api",
+      "context",
+      "hook",
+      "component"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Fundamental Action Only pattern with type-safe dispatching and handler registration.",
+    "language": "en",
+    "created_at": "2025-08-26T00:34:27.205Z"
+  }
+}

@@ -1,0 +1,27 @@
+---
+document_id: guide--singleton-handling
+category: guide
+source_path: en/guide/patterns/ref/singleton-handling.md
+character_limit: 1000
+last_update: '2025-08-26T00:34:27.322Z'
+update_status: auto_generated
+priority_score: 95
+priority_tier: high
+completion_status: completed
+workflow_stage: content_generated
+---
+Context Singleton Handling
+
+Context singleton management patterns using RefContext for lazy evaluation and proper lifecycle control in the Context-Action framework. Prerequisites
+
+Refer to RefContext Setup for:
+- Import statements and basic setup
+- Type definitions (ServiceRefs, ManagerRefs, etc.)
+- Provider composition patterns
+- Initialization patterns
+
+Import
+
+Definition
+
+Context Singleton: An object that exists as a single instance within a specific React context boundary, managed through RefContext for lazy evaluation and proper lifecycle control.

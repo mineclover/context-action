@@ -1,0 +1,46 @@
+{
+  "document": {
+    "id": "guide--singleton-handling",
+    "title": "Context Singleton Handling",
+    "category": "guide",
+    "source_path": "en/guide/patterns/ref/singleton-handling.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about context singleton handling",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing context singleton handling",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "react",
+      "rest",
+      "api",
+      "websocket",
+      "http",
+      "https",
+      "context"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Context singleton management patterns using RefContext for lazy evaluation and proper lifecycle control in the Context-Action framework.",
+    "language": "en",
+    "created_at": "2025-08-26T00:34:27.218Z"
+  }
+}

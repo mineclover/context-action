@@ -1,0 +1,46 @@
+{
+  "document": {
+    "id": "guide--useStoreManager-api",
+    "title": "useStoreManager API",
+    "category": "guide",
+    "source_path": "en/guide/patterns/store/useStoreManager-api.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about usestoremanager api",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing usestoremanager api",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "tsx",
+      "react",
+      "typescript",
+      "api",
+      "https",
+      "hook",
+      "context",
+      "component"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "The `useStoreManager` hook provides low-level access to the internal StoreManager instance for advanced store management scenarios in the Declarative Store Pattern.",
+    "language": "en",
+    "created_at": "2025-08-26T00:34:27.224Z"
+  }
+}

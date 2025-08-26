@@ -1,0 +1,43 @@
+{
+  "document": {
+    "id": "guide--provider-composition-setup",
+    "title": "Provider Composition Setup",
+    "category": "guide",
+    "source_path": "en/guide/patterns/setup/provider-composition-setup.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about provider composition setup",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing provider composition setup",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "react",
+      "context",
+      "component",
+      "state"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Advanced provider composition utilities and patterns for managing multiple contexts in the Context-Action framework.",
+    "language": "en",
+    "created_at": "2025-08-26T00:34:27.220Z"
+  }
+}

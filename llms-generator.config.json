@@ -5,7 +5,12 @@
     "llmContentDir": "./llmsData",
     "outputDir": "./docs",
     "templatesDir": "./packages/llms-generator/templates",
-    "instructionsDir": "./packages/llms-generator/instructions"
+    "instructionsDir": "./packages/llms-generator/instructions",
+    "excludePatterns": [
+      "**/api/core/src/**/*.md",
+      "**/api/react/src/**/*.md",
+      "**/api/jotai/src/**/*.md"
+    ]
   },
   "generation": {
     "supportedLanguages": ["en", "ko"],

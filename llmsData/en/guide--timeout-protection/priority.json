@@ -3,7 +3,7 @@
     "id": "guide--timeout-protection",
     "title": "Timeout Protection Pattern",
     "category": "guide",
-    "source_path": "en/guide/patterns/timeout-protection.md"
+    "source_path": "en/guide/patterns/async/timeout-protection.md"
   },
   "priority": {
     "score": 95,
@@ -23,7 +23,12 @@
   },
   "keywords": {
     "technical": [
-      "typescript"
+      "typescript",
+      "react",
+      "api",
+      "context",
+      "component",
+      "state"
     ],
     "functional": [
       "guide",
@@ -32,8 +37,8 @@
     ]
   },
   "metadata": {
-    "description": "Pattern for protecting against infinite waits with timeout mechanisms.",
+    "description": "Pattern for protecting against infinite waits with timeout mechanisms in RefContext operations.",
     "language": "en",
-    "created_at": "2025-08-21T02:13:42.327Z"
+    "created_at": "2025-08-26T00:34:27.212Z"
   }
 }

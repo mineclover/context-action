@@ -1,19 +1,19 @@
 {
   "document": {
     "id": "guide--ref-context-setup",
-    "title": "RefContext Setup Pattern",
+    "title": "RefContext Setup",
     "category": "guide",
-    "source_path": "en/guide/patterns/ref-context-setup.md"
+    "source_path": "en/guide/patterns/setup/ref-context-setup.md"
   },
   "priority": {
     "score": 95,
     "tier": "high"
   },
   "purpose": {
-    "primary_goal": "Learn about refcontext setup pattern",
+    "primary_goal": "Learn about refcontext setup",
     "use_cases": [
       "Understanding guide",
-      "Implementing refcontext setup pattern",
+      "Implementing refcontext setup",
       "Framework learning"
     ],
     "target_audience": [
@@ -25,7 +25,10 @@
     "technical": [
       "typescript",
       "react",
-      "context"
+      "websocket",
+      "https",
+      "context",
+      "component"
     ],
     "functional": [
       "guide",
@@ -34,8 +37,8 @@
     ]
   },
   "metadata": {
-    "description": "Core pattern for setting up RefContext with proper TypeScript types.",
+    "description": "Shared RefContext setup patterns for direct DOM manipulation and singleton object management in the Context-Action framework.",
     "language": "en",
-    "created_at": "2025-08-21T02:13:42.327Z"
+    "created_at": "2025-08-26T00:34:27.221Z"
   }
 }

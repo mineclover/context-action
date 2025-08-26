@@ -1,0 +1,45 @@
+{
+  "document": {
+    "id": "guide--useComputedStore-patterns",
+    "title": "useComputedStore Patterns",
+    "category": "guide",
+    "source_path": "en/guide/patterns/store/useComputedStore-patterns.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about usecomputedstore patterns",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing usecomputedstore patterns",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "tsx",
+      "react",
+      "api",
+      "state",
+      "context",
+      "component"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Computed value patterns using `useComputedStore` for derived state, performance optimization, and reactive calculations.",
+    "language": "en",
+    "created_at": "2025-08-26T00:34:27.223Z"
+  }
+}

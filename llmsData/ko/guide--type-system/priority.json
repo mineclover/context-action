@@ -1,0 +1,42 @@
+{
+  "document": {
+    "id": "guide--type-system",
+    "title": "액션 타입 시스템",
+    "category": "guide",
+    "source_path": "ko/guide/patterns/action/type-system.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about 액션 타입 시스템",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing 액션 타입 시스템",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "https",
+      "context",
+      "tsx"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "ActionPayloadMap, 타입 안전성, TypeScript 통합을 포함한 Context-Action 프레임워크의 액션 타입 시스템에 대한 완전한 가이드입니다.",
+    "language": "ko",
+    "created_at": "2025-08-26T00:34:27.238Z"
+  }
+}

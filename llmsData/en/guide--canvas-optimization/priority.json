@@ -1,16 +1,46 @@
 {
-  "documentId": "en_guide_canvas-optimization",
-  "title": "Canvas Performance Optimization",
-  "category": "guide",
-  "language": "en",
-  "priority": 0.5,
-  "tags": [
-    "tsx",
-    "bash"
-  ],
-  "lastUpdated": "2025-08-22T06:23:12.000Z",
-  "source": {
-    "file": "docs/en/guide/patterns/ref/canvas-optimization.md",
-    "lastModified": "2025-08-22T05:37:09.895Z"
+  "document": {
+    "id": "guide--canvas-optimization",
+    "title": "Canvas Performance Optimization",
+    "category": "guide",
+    "source_path": "en/guide/patterns/ref/canvas-optimization.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about canvas performance optimization",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing canvas performance optimization",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "tsx",
+      "bash",
+      "react",
+      "npm",
+      "https",
+      "http",
+      "context"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "High-performance Canvas patterns with RefContext for 60fps+ interactions.",
+    "language": "en",
+    "created_at": "2025-08-26T00:34:27.215Z"
   }
 }

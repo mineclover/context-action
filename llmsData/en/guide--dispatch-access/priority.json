@@ -1,0 +1,46 @@
+{
+  "document": {
+    "id": "guide--dispatch-access",
+    "title": "Dispatch Access Patterns",
+    "category": "guide",
+    "source_path": "en/guide/patterns/action/dispatch-access.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about dispatch access patterns",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing dispatch access patterns",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "react",
+      "javascript",
+      "https",
+      "context",
+      "hook",
+      "component",
+      "tsx"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Two main approaches for accessing action dispatch functionality in the Context-Action framework: register-based access and hook-based access.",
+    "language": "en",
+    "created_at": "2025-08-26T00:34:27.206Z"
+  }
+}

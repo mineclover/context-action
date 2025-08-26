@@ -1,18 +1,21 @@
 ---
 document_id: guide--index
 category: guide
-source_path: ko/guide/patterns/index.md
+source_path: ko/guide/patterns/action/index.md
 character_limit: 200
-last_update: '2025-08-21T02:13:42.405Z'
+last_update: '2025-08-26T00:34:27.360Z'
 update_status: auto_generated
 priority_score: 95
 priority_tier: high
 completion_status: completed
 workflow_stage: content_generated
 ---
-코드 패턴
+액션 패턴
 
-Context-Action 프레임워크의 RefContext와 useWaitForRefs 기능에 중점을 둔 필수 패턴 모음입니다. 핵심 패턴
+상태 관리 오버헤드 없이 순수한 액션 디스패칭 패턴입니다. 개요
 
-RefContext 설정
-적절한 TypeScript 타입과 provider 통합을 위한 RefContext의 기본 설정 패턴입니다.
+액션 패턴은 이벤트 시스템, 커맨드 패턴, 부수 효과 처리에 완벽합니다. 모든 액션 패턴은 기본 액션 설정 가이드의 표준화된 설정 명세를 기반으로 구축됩니다. 필수 조건
+
+액션 패턴을 구현하기 전에 설정 과정을 완료하세요:
+
+1.

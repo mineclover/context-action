@@ -1,0 +1,43 @@
+{
+  "document": {
+    "id": "guide--useStoreSelector-patterns",
+    "title": "useStoreSelector Patterns",
+    "category": "guide",
+    "source_path": "en/guide/patterns/store/useStoreSelector-patterns.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about usestoreselector patterns",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing usestoreselector patterns",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "tsx",
+      "typescript",
+      "react",
+      "hook",
+      "context"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Advanced store selection patterns with `useStoreSelector` for selective subscription and performance optimization.",
+    "language": "en",
+    "created_at": "2025-08-26T00:34:27.224Z"
+  }
+}

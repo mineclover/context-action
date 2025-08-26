@@ -1,0 +1,43 @@
+{
+  "document": {
+    "id": "guide--performance-patterns",
+    "title": "Performance Patterns",
+    "category": "guide",
+    "source_path": "en/guide/patterns/store/performance-patterns.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about performance patterns",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing performance patterns",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "tsx",
+      "react",
+      "api",
+      "state",
+      "component"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Performance optimization patterns for store hooks including memoization, batching, debugging, and best practices.",
+    "language": "en",
+    "created_at": "2025-08-26T00:34:27.221Z"
+  }
+}

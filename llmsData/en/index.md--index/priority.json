@@ -1,0 +1,23 @@
+{
+  "document": {
+    "id": "index.md--index",
+    "title": "Context-Action Framework Documentation",
+    "category": "index.md",
+    "language": "en",
+    "lastModified": "2025-08-26T00:34:00.000Z"
+  },
+  "priority": {
+    "score": 90,
+    "reason": "Main documentation index page",
+    "factors": {
+      "importance": 100,
+      "urgency": 80,
+      "impact": 90
+    }
+  },
+  "tags": [
+    "documentation",
+    "index",
+    "overview"
+  ]
+}

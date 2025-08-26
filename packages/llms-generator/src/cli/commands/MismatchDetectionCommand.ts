@@ -278,7 +278,7 @@ export class MismatchDetectionCommand {
 
       // 템플릿 파일들 확인 (기본 character limits)
       const expectedLimits = this.config.generation?.characterLimits || [100, 300, 500, 1000];
-      const templateFiles = entries.filter(name => name.match(/^\w+-\d+\.md$/));
+      const templateFiles = entries.filter(name => name.match(/-\d+\.md$/));
 
       if (templateFiles.length === 0) {
         issues.push({

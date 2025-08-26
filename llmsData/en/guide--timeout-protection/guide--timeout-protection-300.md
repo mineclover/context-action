@@ -1,9 +1,9 @@
 ---
 document_id: guide--timeout-protection
 category: guide
-source_path: en/guide/patterns/timeout-protection.md
+source_path: en/guide/patterns/async/timeout-protection.md
 character_limit: 300
-last_update: '2025-08-21T02:13:42.375Z'
+last_update: '2025-08-26T00:34:27.324Z'
 update_status: auto_generated
 priority_score: 95
 priority_tier: high
@@ -12,10 +12,4 @@ workflow_stage: content_generated
 ---
 Timeout Protection Pattern
 
-Pattern for protecting against infinite waits with timeout mechanisms. Basic Timeout Pattern
-
-Advanced Timeout with Retry
-
-Usage in Action Handlers
-
-Error Recovery Pattern.
+Pattern for protecting against infinite waits with timeout mechanisms in RefContext operations.

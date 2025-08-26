@@ -1,0 +1,41 @@
+{
+  "document": {
+    "id": "guide--multi-context",
+    "title": "Multi-Context RefContext Architecture",
+    "category": "guide",
+    "source_path": "en/guide/patterns/ref/multi-context.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about multi-context refcontext architecture",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing multi-context refcontext architecture",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "tsx",
+      "context",
+      "hook"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Multiple RefContext composition for complex applications with separated concerns.",
+    "language": "en",
+    "created_at": "2025-08-26T00:34:27.217Z"
+  }
+}

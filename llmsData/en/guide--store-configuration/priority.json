@@ -1,0 +1,43 @@
+{
+  "document": {
+    "id": "guide--store-configuration",
+    "title": "Store Configuration",
+    "category": "guide",
+    "source_path": "en/guide/patterns/store/store-configuration.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about store configuration",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing store configuration",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "tsx",
+      "react",
+      "typescript",
+      "context",
+      "state"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Performance optimization and custom comparison strategies for complex store scenarios.",
+    "language": "en",
+    "created_at": "2025-08-26T00:34:27.222Z"
+  }
+}

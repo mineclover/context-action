@@ -1,0 +1,23 @@
+{
+  "document": {
+    "id": "index.md--index",
+    "title": "Context-Action 프레임워크 문서",
+    "category": "index.md",
+    "language": "ko",
+    "lastModified": "2025-08-26T00:34:00.000Z"
+  },
+  "priority": {
+    "score": 90,
+    "reason": "메인 문서 인덱스 페이지",
+    "factors": {
+      "importance": 100,
+      "urgency": 80,
+      "impact": 90
+    }
+  },
+  "tags": [
+    "문서",
+    "인덱스",
+    "개요"
+  ]
+}
