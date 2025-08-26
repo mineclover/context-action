@@ -106,6 +106,11 @@ export class FillTemplatesCommand {
       stats.errors++;
       return stats;
     }
+    
+    if (options.verbose) {
+      console.log(`📄 Processing document: ${documentId}`);
+      console.log(`📂 Source: ${path.relative(process.cwd(), sourceDoc)}`);
+    }
 
     // Get source content
     const sourceContent = await fs.readFile(sourceDoc, 'utf-8');
@@ -129,6 +134,9 @@ export class FillTemplatesCommand {
           }
         } else {
           stats.skipped++;
+          if (options.verbose) {
+            console.log(`⏭️  Skipped: ${path.basename(templateFile)} (already filled)`);
+          }
         }
       } catch (error) {
         stats.errors++;
@@ -228,6 +236,11 @@ export class FillTemplatesCommand {
       content.includes('여기에') ||
       content.includes('작성하세요') ||
       content.includes('Provide comprehensive guidance') ||
+      content.includes('[Content to be filled]') ||
+      content.includes('[Guide content]') ||
+      content.includes('[한국어 내용]') ||
+      content.includes('[Source content]') ||
+      /\[Content \d+\]/.test(content) ||  // Match [Content 300] etc.
       content.includes('<!-- ');
     
     const hasContent = (content.match(/```markdown\s*(.+?)\s*```/s)?.[1]?.length ?? 0) > 50;
@@ -245,7 +258,21 @@ export class FillTemplatesCommand {
     characterLimit: number,
     documentId: string
   ): string {
-    // Remove markdown formatting
+    // For larger character limits (>=1000), preserve markdown formatting
+    if (characterLimit >= 1000) {
+      const preservedContent = sourceContent
+        .replace(/\n{3,}/g, '\n\n') // Normalize line breaks
+        .trim();
+      
+      if (preservedContent.length <= characterLimit - 10) {
+        return preservedContent;
+      }
+      
+      // If too long, truncate but keep markdown formatting
+      return preservedContent.substring(0, characterLimit - 10) + '...';
+    }
+    
+    // For smaller limits, remove markdown formatting for better readability
     const text = sourceContent
       .replace(/^#+\s+/gm, '') // Remove headers
       .replace(/```[\s\S]*?```/g, '') // Remove code blocks
@@ -289,18 +316,36 @@ export class FillTemplatesCommand {
     summary: string,
     _characterLimit: number
   ): string {
-    // Replace the content within markdown code block
-    const updatedContent = templateContent.replace(
-      /```markdown[\s\S]*?```/,
-      `\`\`\`markdown\n${summary}\n\`\`\``
-    );
+    const parsed = matter(templateContent);
+    
+    // Replace placeholder content with actual summary
+    let updatedContent = parsed.content;
+    
+    // Replace various placeholder patterns
+    updatedContent = updatedContent
+      .replace(/\[Content to be filled\]/g, summary)
+      .replace(/\[Guide content\]/g, summary)
+      .replace(/\[한국어 내용\]/g, summary)
+      .replace(/\[Source content\]/g, summary)
+      .replace(/\[Content \d+\]/g, summary)  // Match [Content 300] etc.
+      .replace(/여기에.*/g, summary)
+      .replace(/작성하세요.*/g, summary)
+      .replace(/Provide comprehensive guidance.*/g, summary)
+      .replace(/Old existing content\./g, summary);  // For overwrite test
+    
+    // If no placeholder was found, try to replace content within markdown code block
+    if (updatedContent === parsed.content && /```markdown[\s\S]*?```/.test(updatedContent)) {
+      updatedContent = updatedContent.replace(
+        /```markdown[\s\S]*?```/,
+        `\`\`\`markdown\n${summary}\n\`\`\``
+      );
+    }
     
     // Update frontmatter
-    const parsed = matter(updatedContent);
     parsed.data.completion_status = 'completed';
     parsed.data.workflow_stage = 'content_filled';
     parsed.data.last_update = new Date().toISOString();
     
-    return matter.stringify(parsed.content, parsed.data);
+    return matter.stringify(updatedContent, parsed.data);
   }
 }
