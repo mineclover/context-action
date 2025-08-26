@@ -122,7 +122,8 @@ body {
   }
 
   .how-it-works-list {
-    @apply space-y-3 text-sm text-gray-700 counter-reset list-decimal list-inside;
+    @apply space-y-3 text-sm text-gray-700 list-decimal list-inside;
+    counter-reset: list-counter;
   }
 
   .how-it-works-list li {
