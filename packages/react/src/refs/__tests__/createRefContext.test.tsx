@@ -328,19 +328,17 @@ describe('createRefContext', () => {
         return <div>Test</div>;
       }
 
-      // jsdom에서 unhandled exception으로 처리되므로 console.error spy로 확인
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      // Suppress console errors for this test
+      const originalConsoleError = console.error;
+      console.error = jest.fn();
       
-      try {
+      // Expect the render to throw
+      expect(() => {
         render(<TestComponent />);
-        // If we get here, the error was caught differently than expected
-        expect(consoleSpy).toHaveBeenCalled();
-      } catch (error) {
-        // Direct error throw - this is also acceptable
-        expect((error as Error).message).toContain('useRefHandler must be used within TestRefs.Provider');
-      }
+      }).toThrow('useRefHandler must be used within TestRefs.Provider');
       
-      consoleSpy.mockRestore();
+      // Restore console.error
+      console.error = originalConsoleError;
     });
 
     it('should handle setRef errors gracefully', async () => {

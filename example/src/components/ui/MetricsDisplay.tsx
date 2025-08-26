@@ -14,7 +14,7 @@ export interface Metric {
 }
 
 export interface MetricsDisplayProps {
-  metrics: Metric[];
+  metrics: Metric[] | Record<string, string | number>;
   title?: string;
   className?: string;
   layout?: 'grid' | 'list';
@@ -62,6 +62,11 @@ export function MetricsDisplay({
               </span>
               {getTrendIcon(metric.trend)}
             </div>
+          </div>
+        )) : metrics && typeof metrics === 'object' ? Object.entries(metrics).map(([key, value], index) => (
+          <div key={index} className="flex items-center justify-between">
+            <span className="text-sm text-gray-600">{key}:</span>
+            <span className="font-medium">{value}</span>
           </div>
         )) : (
           <div className="text-sm text-gray-500 text-center py-4">

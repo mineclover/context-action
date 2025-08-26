@@ -82,6 +82,14 @@ export class GenerateTemplatesCommand {
     const priorityFiles: string[] = [];
 
     try {
+      // Check if directory exists first
+      try {
+        await fs.access(llmsDataDir);
+      } catch {
+        // Directory doesn't exist, return empty array silently
+        return priorityFiles;
+      }
+
       const entries = await fs.readdir(llmsDataDir, { withFileTypes: true });
       
       for (const entry of entries) {
@@ -105,6 +113,7 @@ export class GenerateTemplatesCommand {
         }
       }
     } catch (error) {
+      // Only log as error for truly unexpected issues
       console.error(`❌ Error reading directory ${llmsDataDir}: ${error}`);
     }
 

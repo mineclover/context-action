@@ -7,13 +7,15 @@ import React from 'react';
 import { cn } from '../../lib/utils';
 
 export interface StatusIndicatorProps {
-  status: 'success' | 'error' | 'warning' | 'info' | 'loading';
+  status: 'success' | 'error' | 'warning' | 'info' | 'loading' | 'idle';
+  message?: string;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
 
 export function StatusIndicator({
   status,
+  message,
   size = 'md',
   className
 }: StatusIndicatorProps) {
@@ -28,17 +30,24 @@ export function StatusIndicator({
     error: 'bg-red-500',
     warning: 'bg-yellow-500',
     info: 'bg-blue-500',
-    loading: 'bg-gray-400 animate-pulse'
+    loading: 'bg-gray-400 animate-pulse',
+    idle: 'bg-gray-300'
   };
 
   return (
-    <div
-      className={cn(
-        'rounded-full inline-block',
-        sizeClasses[size],
-        statusClasses[status],
-        className
+    <div className={cn('flex items-center gap-2', className)}>
+      <div
+        className={cn(
+          'rounded-full',
+          sizeClasses[size],
+          statusClasses[status]
+        )}
+      />
+      {message && (
+        <span className="text-sm font-medium">
+          {message}
+        </span>
       )}
-    />
+    </div>
   );
 }
