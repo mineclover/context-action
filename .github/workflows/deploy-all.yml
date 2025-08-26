@@ -10,6 +10,10 @@ on:
       - '.github/workflows/deploy-all.yml'
       - 'package.json'
   workflow_dispatch:
+  workflow_run:
+    workflows: ["CI"]
+    branches: [main]
+    types: [completed]
 
 permissions:
   contents: read
@@ -32,7 +36,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -43,7 +47,7 @@ jobs:
         run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
       - name: Setup pnpm cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ env.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
@@ -59,7 +63,17 @@ jobs:
             pnpm install --no-frozen-lockfile
           fi
 
-      - name: Build packages
+      # CI에서 빌드 아티팩트 재사용 시도, 실패 시 직접 빌드
+      - name: Try to download CI build artifacts
+        id: download-artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts-22
+          path: .
+        continue-on-error: true
+        
+      - name: Build packages (if artifacts not available)
+        if: steps.download-artifacts.outcome == 'failure'
         run: pnpm build
 
       # Build documentation
