@@ -12,21 +12,24 @@ const CONTEXT_ERRORS = {
 } as const;
 
 /**
- * Store Context 팩토리 함수 - 고급 사용 시나리오용
+ * @deprecated This legacy createStoreContext function is deprecated.
+ * Use createStoreContext from './patterns' instead for the new Store Context Pattern.
+ * 
+ * Store Context 팩토리 함수 - 고급 사용 시나리오용 (레거시)
  * 
  * 핵심 기능: 독립적인 StoreRegistry 인스턴스를 가진 Context 생성
  * 사용 시나리오: 
  * - 여러 독립적인 Store 영역이 필요한 경우
  * - 라이브러리에서 격리된 Store 컨텍스트가 필요한 경우
  * 
- * 참고: 일반적인 사용에는 StoreProvider를 권장
+ * 참고: 일반적인 사용에는 새로운 createStoreContext 패턴을 권장
  * 
  * @param name - StoreRegistry 인스턴스 이름
  * @returns Provider 컴포넌트와 훅들을 포함한 객체
  * 
  * @see https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-config#isolated-contexts
  */
-export function createStoreContext(name?: string): StoreContextReturn {
+export function createLegacyStoreContext(name?: string): StoreContextReturn {
   const StoreContext = createContext<StoreContextType | null>(null);
 
   /**
@@ -87,10 +90,10 @@ export function createStoreContext(name?: string): StoreContextReturn {
 }
 
 /**
- * Default app-level store context
+ * Default app-level store context (legacy)
  * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage#store-provider
  */
-const defaultStoreContext = createStoreContext('app');
+const defaultStoreContext = createLegacyStoreContext('app');
 
 export const StoreProvider = defaultStoreContext.Provider;
 export const useStoreContext = defaultStoreContext.useStoreContext;

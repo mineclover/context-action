@@ -1,5 +1,5 @@
 /**
- * @fileoverview Declarative Store Pattern V2 - Simplified and Unified
+ * @fileoverview Store Context Pattern - Simplified and Unified Store Management
  * 
  * A simplified version that focuses on store management with excellent type inference.
  * Removes complexity while maintaining all essential features. Follows the Store Only Pattern
@@ -16,7 +16,7 @@ import type { Store } from '../core/Store';
 import type { ComparisonOptions } from '../utils/comparison';
 
 /**
- * Store configuration interface for declarative store pattern
+ * Store configuration interface for store context pattern
  * 
  * Defines configuration options for individual stores including initial values,
  * comparison strategies, debugging options, and metadata.
@@ -105,7 +105,7 @@ export type StoreSchema<T extends Record<string, any>> = InitialStores<T>;
  * Internal store registry manager
  * 
  * Manages store creation, caching, and registry coordination for the
- * declarative store pattern. Handles store lifecycle and provides
+ * store context pattern. Handles store lifecycle and provides
  * type-safe access to individual stores.
  * 
  * @template T - Record of store names to their value types
@@ -194,7 +194,7 @@ class StoreManager<T extends Record<string, any>> {
 
     // Debug logging if enabled
     if (debug && process.env.NODE_ENV === 'development') {
-      console.log(`🏪 Declarative store created: ${String(storeName)}`, {
+      console.log(`🏪 Store context store created: ${String(storeName)}`, {
         strategy,
         tags,
         version,
@@ -242,29 +242,29 @@ interface StoreContextValue<T extends Record<string, any>> {
  * 
  * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  */
-export function createDeclarativeStorePattern<T extends Record<string, any>>(
+export function createStoreContext<T extends Record<string, any>>(
   contextName: string,
   initialStores: InitialStores<T>
-): ReturnType<typeof createDeclarativeStorePatternImpl<T>>;
+): ReturnType<typeof createStoreContextImpl<T>>;
 
 /**
  * Overload 2: Type inference - Types inferred from store definitions
  * 
  * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  */
-export function createDeclarativeStorePattern<T extends StoreDefinitions>(
+export function createStoreContext<T extends StoreDefinitions>(
   contextName: string,
   storeDefinitions: T
-): ReturnType<typeof createDeclarativeStorePatternImpl<InferStoreTypes<T>>>;
+): ReturnType<typeof createStoreContextImpl<InferStoreTypes<T>>>;
 
 /**
  * Implementation function that handles both overloads
  */
-export function createDeclarativeStorePattern(
+export function createStoreContext(
   contextName: string,
   initialStores: any
 ): any {
-  return createDeclarativeStorePatternImpl(contextName, initialStores);
+  return createStoreContextImpl(contextName, initialStores);
 }
 
 /**
@@ -272,7 +272,7 @@ export function createDeclarativeStorePattern(
  * 
  * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  */
-function createDeclarativeStorePatternImpl<T extends Record<string, any>>(
+function createStoreContextImpl<T extends Record<string, any>>(
   contextName: string,
   initialStores: InitialStores<T>
 ) {

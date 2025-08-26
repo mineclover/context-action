@@ -4,7 +4,7 @@
 
 import { renderHook, act, render } from '@testing-library/react';
 import React from 'react';
-import { createDeclarativeStorePattern } from '../../../src/stores/patterns/declarative-store-pattern-v2';
+import { createStoreContext as createDeclarativeStorePattern } from '../../../src/stores/patterns/declarative-store-pattern-v2';
 import { useStoreValue } from '../../../src/stores/hooks/useStoreValue';
 
 describe('createDeclarativeStorePattern', () => {

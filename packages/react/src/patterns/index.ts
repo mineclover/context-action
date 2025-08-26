@@ -5,7 +5,7 @@
  * @memberof core-concepts
  * 
  * Re-exports patterns for convenient access.
- * - createDeclarativeStorePattern for type-safe store management
+ * - createStoreContext for type-safe store management
  * - createActionContext for action-only management  
  * - Pattern composition for complex applications
  */

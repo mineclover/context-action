@@ -18,8 +18,8 @@ export { StoreRegistry } from './StoreRegistry';
 // Event system for store communication
 export { EventBus } from './EventBus';
 
-// Store Context functions for React integration
-export { createStoreContext, useStoreContext, useStoreRegistry } from './StoreContext';
+// Store Context functions for React integration (legacy)
+export { createLegacyStoreContext, useStoreContext, useStoreRegistry } from './StoreContext';
 
 // Core type definitions
 export type {
