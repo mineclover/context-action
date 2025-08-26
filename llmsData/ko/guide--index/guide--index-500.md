@@ -1,22 +1,25 @@
 ---
 document_id: guide--index
 category: guide
-source_path: ko/guide/patterns/index.md
+source_path: ko/guide/patterns/action/index.md
 character_limit: 500
-last_update: '2025-08-21T02:13:42.405Z'
+last_update: '2025-08-26T00:34:27.360Z'
 update_status: auto_generated
 priority_score: 95
 priority_tier: high
 completion_status: completed
 workflow_stage: content_generated
 ---
-코드 패턴
+액션 패턴
 
-Context-Action 프레임워크의 RefContext와 useWaitForRefs 기능에 중점을 둔 필수 패턴 모음입니다. 핵심 패턴
+상태 관리 오버헤드 없이 순수한 액션 디스패칭 패턴입니다. 개요
 
-RefContext 설정
-적절한 TypeScript 타입과 provider 통합을 위한 RefContext의 기본 설정 패턴입니다. 조건부 대기
-요소 마운트 상태에 따라 조건부로 대기하거나 즉시 반환하는 useWaitForRefs의 핵심 동작입니다. 대기 후 실행
-요소 가용성을 보장한 후 안전하게 DOM 조작을 실행하는 패턴입니다. 실시간 상태 접근
-store.getValue()를 사용하여 현재 상태에 실시간으로 접근하여 클로저 함정을 방지하는 패턴입니다. 타임아웃 보호
-타임아웃 메커니즘과 재시도 로직으로 무한 대기를 방지하는 패턴입니다.
+액션 패턴은 이벤트 시스템, 커맨드 패턴, 부수 효과 처리에 완벽합니다. 모든 액션 패턴은 기본 액션 설정 가이드의 표준화된 설정 명세를 기반으로 구축됩니다. 필수 조건
+
+액션 패턴을 구현하기 전에 설정 과정을 완료하세요:
+
+1. 타입 정의 → 공통 액션 패턴
+2. 컨텍스트 생성 → 컨텍스트 생성 패턴  
+3. 프로바이더 설정 → 프로바이더 설정 패턴
+
+액션 패턴 문서의 모든 예제는 표준화된 설정 패턴을 사용합니다.

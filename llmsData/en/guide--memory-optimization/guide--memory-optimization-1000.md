@@ -1,0 +1,29 @@
+---
+document_id: guide--memory-optimization
+category: guide
+source_path: en/guide/patterns/ref/memory-optimization.md
+character_limit: 1000
+last_update: '2025-08-26T00:34:27.307Z'
+update_status: auto_generated
+priority_score: 95
+priority_tier: high
+completion_status: completed
+workflow_stage: content_generated
+---
+Memory Optimization with RefContext
+
+Memory-efficient patterns and techniques for optimal RefContext performance. Prerequisites
+
+Before implementing memory optimization patterns, ensure you have proper RefContext setup:
+
+👉 Setup Guide: RefContext Setup
+
+This guide uses the following predefined types from the Setup specification:
+- WorkerRefs: Web Worker management for background processing
+- ServiceRefs: External service and library management
+- CanvasRefs: Canvas element management for graphics
+- MediaRefs: Media element and stream management
+
+Memory Management Fundamentals
+
+RefContext provides automatic cleanup, but understanding memory patterns helps optimize for large-scale applications.

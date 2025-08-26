@@ -1,0 +1,44 @@
+{
+  "document": {
+    "id": "guide--advanced-patterns",
+    "title": "Advanced Action Patterns",
+    "category": "guide",
+    "source_path": "en/guide/patterns/action/advanced-patterns.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about advanced action patterns",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing advanced action patterns",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "https",
+      "context",
+      "hook",
+      "state",
+      "tsx"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Overview of advanced action patterns in the Context-Action framework built on multi-context setup foundations.",
+    "language": "en",
+    "created_at": "2025-08-26T00:34:27.205Z"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "document": {
+    "id": "guide--performance",
+    "title": "RefContext 성능 최적화",
+    "category": "guide",
+    "source_path": "ko/guide/patterns/ref/performance.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about refcontext 성능 최적화",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing refcontext 성능 최적화",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "tsx",
+      "react",
+      "https",
+      "context"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "60fps+ 상호작용을 위한 종합적인 성능 패턴과 최적화 기술입니다.",
+    "language": "ko",
+    "created_at": "2025-08-26T00:34:27.251Z"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "document": {
+    "id": "guide--memory-optimization",
+    "title": "Memory Optimization with RefContext",
+    "category": "guide",
+    "source_path": "en/guide/patterns/ref/memory-optimization.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about memory optimization with refcontext",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing memory optimization with refcontext",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "tsx",
+      "context",
+      "component"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Memory-efficient patterns and techniques for optimal RefContext performance.",
+    "language": "en",
+    "created_at": "2025-08-26T00:34:27.216Z"
+  }
+}

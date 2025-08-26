@@ -1,0 +1,40 @@
+{
+  "document": {
+    "id": "guide--multi-context",
+    "title": "멀티 컨텍스트 RefContext 아키텍처",
+    "category": "guide",
+    "source_path": "ko/guide/patterns/ref/multi-context.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about 멀티 컨텍스트 refcontext 아키텍처",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing 멀티 컨텍스트 refcontext 아키텍처",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "tsx",
+      "context"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "분리된 관심사를 가진 복잡한 애플리케이션을 위한 다중 RefContext 구성입니다.",
+    "language": "ko",
+    "created_at": "2025-08-26T00:34:27.248Z"
+  }
+}

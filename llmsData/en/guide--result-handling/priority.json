@@ -1,0 +1,42 @@
+{
+  "document": {
+    "id": "guide--result-handling",
+    "title": "Advanced Result Handling",
+    "category": "guide",
+    "source_path": "en/guide/pipeline/result-handling.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about advanced result handling",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing advanced result handling",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "react",
+      "https",
+      "context"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Sophisticated result collection, merging, and processing strategies for Context-Action pipelines, enabling complex data aggregation and transformation patterns.",
+    "language": "en",
+    "created_at": "2025-08-26T00:34:27.231Z"
+  }
+}

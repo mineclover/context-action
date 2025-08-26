@@ -1,17 +1,46 @@
 {
-  "documentId": "en_guide_mvvm",
-  "title": "MVVM Architecture",
-  "category": "guide",
-  "language": "en",
-  "priority": 0.5,
-  "tags": [
-    "mermaid",
-    "typescript",
-    "tsx"
-  ],
-  "lastUpdated": "2025-08-24T15:31:16.979Z",
-  "source": {
-    "file": "docs/en/guide/architecture/mvvm.md",
-    "lastModified": "2025-08-24T15:20:53.995Z"
+  "document": {
+    "id": "guide--mvvm",
+    "title": "MVVM Architecture",
+    "category": "guide",
+    "source_path": "en/guide/architecture/mvvm.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about mvvm architecture",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing mvvm architecture",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "mermaid",
+      "typescript",
+      "tsx",
+      "react",
+      "context",
+      "hook",
+      "component",
+      "state"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "The Context-Action framework implements a modern MVVM (Model-View-ViewModel) architecture using the three core patterns. This is the **recommended approach** for complex applications requiring perfect separation of concerns.",
+    "language": "en",
+    "created_at": "2025-08-26T00:34:27.203Z"
   }
 }

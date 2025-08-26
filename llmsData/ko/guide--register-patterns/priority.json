@@ -1,0 +1,44 @@
+{
+  "document": {
+    "id": "guide--register-patterns",
+    "title": "등록 패턴",
+    "category": "guide",
+    "source_path": "ko/guide/patterns/action/register-patterns.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about 등록 패턴",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing 등록 패턴",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "react",
+      "api",
+      "https",
+      "context",
+      "tsx"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Context-Action 프레임워크를 위한 핸들러 등록 패턴과 고급 구성 옵션입니다.",
+    "language": "ko",
+    "created_at": "2025-08-26T00:34:27.237Z"
+  }
+}

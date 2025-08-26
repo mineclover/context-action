@@ -1,0 +1,41 @@
+{
+  "document": {
+    "id": "guide--provider-composition-setup",
+    "title": "프로바이더 구성 설정",
+    "category": "guide",
+    "source_path": "ko/guide/patterns/setup/provider-composition-setup.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about 프로바이더 구성 설정",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing 프로바이더 구성 설정",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "react",
+      "context"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Context-Action 프레임워크에서 다중 컨텍스트 관리를 위한 고급 프로바이더 구성 유틸리티 및 패턴입니다.",
+    "language": "ko",
+    "created_at": "2025-08-26T00:34:27.258Z"
+  }
+}

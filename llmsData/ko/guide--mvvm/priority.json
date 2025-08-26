@@ -1,0 +1,43 @@
+{
+  "document": {
+    "id": "guide--mvvm",
+    "title": "MVVM 아키텍처 패턴",
+    "category": "guide",
+    "source_path": "ko/guide/patterns/architecture/mvvm.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about mvvm 아키텍처 패턴",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing mvvm 아키텍처 패턴",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "mermaid",
+      "typescript",
+      "tsx",
+      "react",
+      "context"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Context-Action 프레임워크의 세 가지 핵심 패턴을 사용한 Model-View-ViewModel (MVVM) 아키텍처 패턴으로 완벽한 레이어 분리를 구현합니다.",
+    "language": "ko",
+    "created_at": "2025-08-26T00:34:27.241Z"
+  }
+}

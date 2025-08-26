@@ -1,0 +1,46 @@
+{
+  "document": {
+    "id": "guide--register-patterns",
+    "title": "Register Patterns",
+    "category": "guide",
+    "source_path": "en/guide/patterns/action/register-patterns.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about register patterns",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing register patterns",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "react",
+      "api",
+      "https",
+      "context",
+      "component",
+      "hook",
+      "state"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Handler registration patterns and advanced configuration options for the Context-Action framework.",
+    "language": "en",
+    "created_at": "2025-08-26T00:34:27.209Z"
+  }
+}

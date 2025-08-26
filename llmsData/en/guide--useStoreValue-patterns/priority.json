@@ -1,0 +1,43 @@
+{
+  "document": {
+    "id": "guide--useStoreValue-patterns",
+    "title": "useStoreValue Patterns",
+    "category": "guide",
+    "source_path": "en/guide/patterns/store/useStoreValue-patterns.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about usestorevalue patterns",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing usestorevalue patterns",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "tsx",
+      "react",
+      "api",
+      "context"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Core `useStoreValue` patterns for subscribing to store changes with selective updates, conditional subscriptions, and comparison strategies.",
+    "language": "en",
+    "created_at": "2025-08-26T00:34:27.225Z"
+  }
+}

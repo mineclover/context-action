@@ -1,9 +1,9 @@
 ---
 document_id: guide--hooks
 category: guide
-source_path: en/guide/hooks.md
+source_path: en/guide/lifecycle/hooks.md
 character_limit: 2000
-last_update: '2025-08-21T02:13:42.368Z'
+last_update: '2025-08-26T00:34:27.303Z'
 update_status: auto_generated
 priority_score: 95
 priority_tier: high
@@ -12,7 +12,13 @@ workflow_stage: content_generated
 ---
 React Hooks
 
-Context-Action provides React hooks for action dispatching and store management. Essential Hooks
+Context-Action provides React hooks for action dispatching and store management. This guide covers how to use the hooks with API examples and usage patterns. Related Guides
+
+- 🔄 Hooks Lifecycle - How hooks work internally (lifecycle, cleanup, performance)
+- 📚 Hooks Reference - Complete catalog of all available hooks
+- ✅ Best Practices - Coding patterns and conventions
+
+Essential Hooks
 
 These are the core hooks you'll use most frequently. Action Hooks
 
@@ -36,15 +42,16 @@ Hook that provides both dispatch and result collection capabilities. Usage Guide
 
 Best Practices
 
-1. Use useCallback for handlers:
+1. Use useCallback for handlers (see Lifecycle Guide for details):
 
 2. Combine patterns when needed:
 
 3. Type-safe store access:
 
-Performance Tips
+Quick Performance Notes
 
-- Store subscriptions only re-render on actual value changes
-- Use specific store subscriptions rather than subscribing to entire state
-- Handler registration is optimized for minimal re-renders
-- Action dispatching is memoized automatically.
+- Store subscriptions are optimized for minimal re-renders
+- Handler registration uses stable references
+- Action dispatching is automatically memoized
+
+For detailed lifecycle understanding, see Hooks Lifecycle Guide.

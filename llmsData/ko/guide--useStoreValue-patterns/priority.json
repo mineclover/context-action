@@ -1,0 +1,43 @@
+{
+  "document": {
+    "id": "guide--useStoreValue-patterns",
+    "title": "useStoreValue 패턴",
+    "category": "guide",
+    "source_path": "ko/guide/patterns/store/useStoreValue-patterns.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about usestorevalue 패턴",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing usestorevalue 패턴",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "tsx",
+      "react",
+      "api",
+      "context"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "선택적 업데이트, 조건부 구독, 비교 전략을 통한 스토어 변경 구독을 위한 핵심 `useStoreValue` 패턴.",
+    "language": "ko",
+    "created_at": "2025-08-26T00:34:27.263Z"
+  }
+}

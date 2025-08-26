@@ -1,0 +1,45 @@
+{
+  "document": {
+    "id": "guide--hooks-lifecycle",
+    "title": "Hooks Lifecycle",
+    "category": "guide",
+    "source_path": "en/guide/lifecycle/hooks-lifecycle.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about hooks lifecycle",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing hooks lifecycle",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "tsx",
+      "react",
+      "api",
+      "context",
+      "hook",
+      "component",
+      "state"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Context-Action React hooks follow specific lifecycle patterns to ensure proper resource management, memory cleanup, and optimal performance. This guide explains **how hooks work internally** - their lifecycle, cleanup mechanisms, and performance characteristics.",
+    "language": "en",
+    "created_at": "2025-08-26T00:34:27.203Z"
+  }
+}

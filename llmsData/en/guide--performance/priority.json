@@ -1,0 +1,44 @@
+{
+  "document": {
+    "id": "guide--performance",
+    "title": "RefContext Performance Optimization",
+    "category": "guide",
+    "source_path": "en/guide/patterns/ref/performance.md"
+  },
+  "priority": {
+    "score": 95,
+    "tier": "high"
+  },
+  "purpose": {
+    "primary_goal": "Learn about refcontext performance optimization",
+    "use_cases": [
+      "Understanding guide",
+      "Implementing refcontext performance optimization",
+      "Framework learning"
+    ],
+    "target_audience": [
+      "framework-users",
+      "developers"
+    ]
+  },
+  "keywords": {
+    "technical": [
+      "typescript",
+      "tsx",
+      "react",
+      "https",
+      "context",
+      "state"
+    ],
+    "functional": [
+      "guide",
+      "framework",
+      "context-action"
+    ]
+  },
+  "metadata": {
+    "description": "Comprehensive performance patterns and optimization techniques for 60fps+ interactions.",
+    "language": "en",
+    "created_at": "2025-08-26T00:34:27.217Z"
+  }
+}

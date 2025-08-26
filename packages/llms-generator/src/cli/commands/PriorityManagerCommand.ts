@@ -118,9 +118,17 @@ export class PriorityManagerCommand {
       const priority = await this.loadPriorityFile(filePath);
       const newScore = await this.calculatePriorityScore(priority, criteria);
       
-      if (force || Math.abs(priority.priority.score - newScore) > 5) {
-        priority.priority.score = newScore;
-        priority.priority.tier = this.scoreToPriorityTier(newScore);
+      const currentScore = this.getPriorityScore(priority);
+      if (force || Math.abs(currentScore - newScore) > 5) {
+        // Update priority in the appropriate format
+        if (priority.priority && typeof priority.priority === 'object') {
+          // New format
+          priority.priority.score = newScore;
+          priority.priority.tier = this.scoreToPriorityTier(newScore);
+        } else {
+          // Old format
+          priority.priority = newScore;
+        }
         await this.savePriorityFile(filePath, priority);
         updated++;
       }
@@ -150,22 +158,22 @@ export class PriorityManagerCommand {
       priorityFiles.map(filePath => this.loadPriorityFile(filePath))
     );
 
-    const scores = priorities.map(p => p.priority.score);
+    const scores = priorities.map(p => this.getPriorityScore(p));
     const byTier: Record<string, number> = {};
     const byCategory: Record<string, number> = {};
     const byLanguage: Record<string, number> = {};
 
     for (const priority of priorities) {
       // Count by tier
-      const tier = priority.priority.tier || 'unknown';
+      const tier = this.getPriorityTier(priority);
       byTier[tier] = (byTier[tier] || 0) + 1;
 
       // Count by category
-      const category = priority.document.category || 'unknown';
+      const category = this.getPriorityCategory(priority);
       byCategory[category] = (byCategory[category] || 0) + 1;
 
       // Count by language
-      const language = priority.metadata.language || 'unknown';
+      const language = this.getPriorityLanguage(priority);
       byLanguage[language] = (byLanguage[language] || 0) + 1;
     }
 
@@ -355,6 +363,60 @@ export class PriorityManagerCommand {
     return JSON.parse(content);
   }
 
+  // Helper methods to handle both old and new priority.json formats
+  private getPriorityScore(priority: any): number {
+    // New format: priority.priority.score
+    if (priority.priority && typeof priority.priority.score === 'number') {
+      return priority.priority.score;
+    }
+    // Old format: priority as number
+    if (typeof priority.priority === 'number') {
+      return priority.priority;
+    }
+    return 0;
+  }
+
+  private getPriorityTier(priority: any): string {
+    // New format: priority.priority.tier
+    if (priority.priority && typeof priority.priority.tier === 'string') {
+      return priority.priority.tier;
+    }
+    // Derive from score
+    const score = this.getPriorityScore(priority);
+    return this.scoreToPriorityTier(score);
+  }
+
+  private getPriorityCategory(priority: any): string {
+    // New format: priority.document.category
+    if (priority.document && priority.document.category) {
+      return priority.document.category;
+    }
+    // Old format: priority.category
+    if (priority.category) {
+      return priority.category;
+    }
+    return 'unknown';
+  }
+
+  private getPriorityLanguage(priority: any): string {
+    // New format: priority.metadata.language
+    if (priority.metadata && priority.metadata.language) {
+      return priority.metadata.language;
+    }
+    // Old format: priority.language
+    if (priority.language) {
+      return priority.language;
+    }
+    return 'unknown';
+  }
+
+  private scoreToPriorityTier(score: number): string {
+    if (score >= 80) return 'high';
+    if (score >= 60) return 'medium';
+    if (score >= 40) return 'low';
+    return 'minimal';
+  }
+
   private async savePriorityFile(filePath: string, priority: any): Promise<void> {
     await fs.writeFile(filePath, JSON.stringify(priority, null, 2));
   }
@@ -381,8 +443,9 @@ export class PriorityManagerCommand {
     let score = 50; // Base score
 
     // Category-based scoring
-    if (criteria.category && priority.document.category) {
-      const categoryScore = criteria.category.values[priority.document.category] || 50;
+    const category = this.getPriorityCategory(priority);
+    if (criteria.category && category && category !== 'unknown') {
+      const categoryScore = criteria.category.values[category] || 50;
       score += (categoryScore - 50) * criteria.category.weight;
     }
 

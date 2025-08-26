@@ -3,7 +3,7 @@
     "id": "guide--wait-then-execute",
     "title": "Wait-Then-Execute Pattern",
     "category": "guide",
-    "source_path": "en/guide/patterns/wait-then-execute.md"
+    "source_path": "en/guide/patterns/async/wait-then-execute.md"
   },
   "priority": {
     "score": 95,
@@ -23,7 +23,9 @@
   },
   "keywords": {
     "technical": [
-      "typescript"
+      "typescript",
+      "context",
+      "state"
     ],
     "functional": [
       "guide",
@@ -34,6 +36,6 @@
   "metadata": {
     "description": "Pattern for safely executing DOM operations after ensuring element availability.",
     "language": "en",
-    "created_at": "2025-08-21T02:13:42.328Z"
+    "created_at": "2025-08-26T00:34:27.212Z"
   }
 }

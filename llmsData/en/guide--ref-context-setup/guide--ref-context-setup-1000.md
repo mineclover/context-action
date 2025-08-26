@@ -1,19 +1,15 @@
 ---
 document_id: guide--ref-context-setup
 category: guide
-source_path: en/guide/patterns/ref-context-setup.md
+source_path: en/guide/patterns/setup/ref-context-setup.md
 character_limit: 1000
-last_update: '2025-08-21T02:13:42.372Z'
+last_update: '2025-08-26T00:34:27.318Z'
 update_status: auto_generated
 priority_score: 95
 priority_tier: high
 completion_status: completed
 workflow_stage: content_generated
 ---
-RefContext Setup Pattern
+RefContext Setup
 
-Core pattern for setting up RefContext with proper TypeScript types. Basic Setup
-
-Provider Integration
-
-Ref Registration.
+Shared RefContext setup patterns for direct DOM manipulation and singleton object management in the Context-Action framework.
