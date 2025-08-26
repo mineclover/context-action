@@ -147,13 +147,13 @@ const handleClick = async () => {
       </details>
       
       <div className="space-y-3">
-        <div className="space-x-2">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={startDelayedMount}
             disabled={!!delayedMountTimer}
             className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 disabled:opacity-50"
           >
-            5초 후 지연 마운트 시작
+            ⏰ 5초 후 지연 마운트 시작
           </button>
           
           <button
@@ -173,17 +173,35 @@ const handleClick = async () => {
           <button
             onClick={cancelDelayedMount}
             disabled={!delayedMountTimer}
-            className="px-2 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm disabled:opacity-50"
+            className="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm disabled:opacity-50"
           >
-            취소
+            ⏹️ 취소
           </button>
           
           <button
             onClick={clearLogs}
-            className="px-2 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm"
+            className="px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm"
           >
             로그 지우기
           </button>
+        </div>
+        
+        <div className="grid grid-cols-3 gap-3 text-sm">
+          <div className="p-2 bg-white rounded border">
+            <div className="font-medium">지연 마운트 상태</div>
+            <div>타이머: {delayedMountTimer ? '🔄 진행중' : '⏹️ 중지'}</div>
+            <div>마운트: {isDelayedMounted ? '✅' : '❌'}</div>
+          </div>
+          <div className="p-2 bg-white rounded border">
+            <div className="font-medium">RefContext 상태</div>
+            <div>isMounted: {delayedElement.isMounted ? '✅' : '❌'}</div>
+            <div>hasTarget: {delayedElement.target ? '✅' : '❌'}</div>
+          </div>
+          <div className="p-2 bg-white rounded border">
+            <div className="font-medium">테스트 가이드</div>
+            <div>1. 지연 마운트 시작</div>
+            <div>2. 블로킹/Non-blocking 테스트</div>
+          </div>
         </div>
         
         {isDelayedMounted && (

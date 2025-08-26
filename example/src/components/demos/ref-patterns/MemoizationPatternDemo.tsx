@@ -63,6 +63,18 @@ export function MemoizationPatternDemo() {
     addLog(isMountToggled ? '🔄 요소 언마운트...' : '🔄 요소 재마운트...');
   }, [isMountToggled, addLog]);
 
+  const forceUnmount = useCallback(() => {
+    if (memoTestRef.isMounted) {
+      addLog('🚫 강제 언마운트 (setRef(null))');
+      memoTestRef.setRef(null as any);
+    }
+  }, [memoTestRef, addLog]);
+
+  const resetCounters = useCallback(() => {
+    setFunctionCallCount(0);
+    addLog('🔄 호출 카운터 리셋됨');
+  }, [addLog]);
+
   const codeExample = `// 메모이제이션된 함수에서 최신 값 접근
 const memoizedCheck = useCallback(() => {
   return {
@@ -101,21 +113,36 @@ console.log(capturedElement.isMounted); // 항상 최신 상태!`;
               isMountToggled ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
             }`}
           >
-            {isMountToggled ? '언마운트' : '재마운트'}
+            {isMountToggled ? '🔄 언마운트' : '🔄 재마운트'}
+          </button>
+          
+          <button
+            onClick={forceUnmount}
+            disabled={!memoTestRef.isMounted}
+            className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50"
+          >
+            🚫 강제 언마운트
           </button>
           
           <button
             onClick={testMemoizedFunction}
             className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
           >
-            메모이제이션 함수 테스트
+            🧪 메모이제이션 함수 테스트
           </button>
           
           <button
             onClick={testCapturedVsDirect}
             className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
           >
-            포착된 객체 vs 직접 접근
+            🆚 포착된 객체 vs 직접 접근
+          </button>
+          
+          <button
+            onClick={resetCounters}
+            className="px-3 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 text-sm"
+          >
+            🔄 카운터 리셋
           </button>
           
           <button
@@ -128,19 +155,22 @@ console.log(capturedElement.isMounted); // 항상 최신 상태!`;
         
         <div className="grid grid-cols-3 gap-3 text-sm">
           <div className="p-2 bg-white rounded border">
-            <div className="font-medium">현재 상태</div>
-            <div>마운트: {memoTestRef.isMounted ? '✅' : '❌'}</div>
-            <div>타겟: {memoTestRef.target ? '✅' : '❌'}</div>
+            <div className="font-medium">RefContext 상태</div>
+            <div>isMounted: {memoTestRef.isMounted ? '✅' : '❌'}</div>
+            <div>hasTarget: {memoTestRef.target ? '✅' : '❌'}</div>
+            <div>React 마운트: {isMountToggled ? '✅' : '❌'}</div>
           </div>
           <div className="p-2 bg-white rounded border">
             <div className="font-medium">메모이제이션 함수</div>
             <div>호출 횟수: {functionCallCount}</div>
             <div>함수 참조: 동일 유지</div>
+            <div>deps 배열: []</div>
           </div>
           <div className="p-2 bg-white rounded border">
             <div className="font-medium">포착된 객체</div>
             <div>생성: 최초 렌더링</div>
-            <div>값: 지연 평가</div>
+            <div>값: 지연 평가 ✨</div>
+            <div>캐시: useMemo</div>
           </div>
         </div>
         
