@@ -115,7 +115,6 @@ export class MarkdownProcessor {
       'createLogger': 'createLogger',
       'createRegistrySync': 'createRegistrySync',
       'createStore': 'createStore',
-      'createStoreContext': 'createStoreContext',
       
       // Store and Event System
       'ConsoleLogger': 'Console Logger',
