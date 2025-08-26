@@ -94,3 +94,6 @@ packages/llms-generator/data/**/*.md
 
 # Nx cache
 .nx/
+
+# Test deployment directory
+test-deploy/
