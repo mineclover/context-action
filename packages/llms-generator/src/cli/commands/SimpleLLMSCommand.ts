@@ -232,7 +232,7 @@ export class SimpleLLMSCommand {
       const languageIndex = pathParts.findIndex(part => ['en', 'ko'].includes(part));
       const language = languageIndex >= 0 ? pathParts[languageIndex] : 'en';
 
-      return {
+      const document: CleanDocument = {
         title: title.replace(/\s*\(\d+자\)/, ''), // Remove character limit from title
         content: cleanContent,
         priority,
@@ -248,6 +248,13 @@ export class SimpleLLMSCommand {
           content_length: cleanContent.length
         }
       };
+
+      // Filter out incomplete or placeholder content
+      if (!this.isCompleted(document)) {
+        return null;
+      }
+
+      return document;
     } catch {
       return null;
     }
@@ -303,8 +310,8 @@ export class SimpleLLMSCommand {
       'placeholder'
     ];
 
-    // Must have substantial content (more than 30 characters)
-    if (content.length < 30) return false;
+    // Must have substantial content (more than 15 characters)
+    if (content.length < 15) return false;
 
     // Must not contain placeholder patterns
     for (const pattern of placeholderPatterns) {
