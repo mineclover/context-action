@@ -312,6 +312,87 @@ function PerformanceOptimizedComponent() {
 }
 ```
 
+### 메모이제이션과 지연 평가
+
+RefContext의 속성들(`isMounted`, `isWaitingForMount`, `target`)은 **지연 평가(lazy evaluation)**를 사용하여 항상 최신 상태를 반환합니다. 이는 React의 메모이제이션 패턴과 함께 사용될 때도 예상대로 동작합니다.
+
+```tsx
+function MemoizationTestComponent() {
+  const element = useDemoRef('element');
+  
+  // 빈 deps 배열이지만 항상 최신 값을 반환
+  const memoizedCheck = useCallback(() => {
+    return {
+      isMounted: element.isMounted,       // 항상 최신 상태
+      isWaiting: element.isWaitingForMount, // 항상 최신 상태
+      hasTarget: !!element.target         // 항상 최신 상태
+    };
+  }, []); // 빈 deps - 함수 자체는 재생성되지 않음
+  
+  // useMemo로 포착된 객체 vs 직접 접근 테스트
+  const capturedElement = useMemo(() => element, []); // 최초 렌더링 시점에 포착
+  
+  const testCapturedVsDirect = useCallback(() => {
+    console.log('직접 접근:', element.isMounted);
+    console.log('포착된 객체:', capturedElement.isMounted); // 동일한 값!
+    // 둘 다 같은 값을 반환 (지연 평가 덕분)
+  }, [element, capturedElement]);
+  
+  return (
+    <div>
+      <div ref={element.setRef}>테스트 요소</div>
+      <button onClick={testCapturedVsDirect}>
+        메모이제이션 테스트
+      </button>
+    </div>
+  );
+}
+```
+
+**핵심 원리:**
+- RefContext 속성들은 **getter 함수**로 구현되어 있습니다
+- 호출 시점에 실제 상태를 계산하여 반환합니다
+- 메모이제이션된 함수 내에서도 항상 최신 값을 제공합니다
+- React의 의존성 배열에 ref 객체를 포함할 필요가 없습니다
+
+```tsx
+// ✅ 올바른 사용법 - deps 배열이 비어있어도 최신 값 보장
+const checkMount = useCallback(() => {
+  return element.isMounted; // 항상 최신 상태
+}, []);
+
+// ❌ 불필요한 패턴 - element를 deps에 포함할 필요 없음
+const checkMount = useCallback(() => {
+  return element.isMounted;
+}, [element]); // element 객체는 변하지 않으므로 불필요
+```
+
+**실제 활용 예시:**
+```tsx
+function OptimizedInteraction() {
+  const button = useMouseRef('button');
+  
+  // 성능 최적화된 이벤트 핸들러 (메모이제이션 + 지연 평가)
+  const handleClick = useCallback(() => {
+    // 클릭 시점에 마운트 상태 확인 (항상 최신)
+    if (button.isMounted && button.target) {
+      button.target.style.transform = 'scale(0.95)';
+      
+      setTimeout(() => {
+        // 타이머 실행 시점에도 최신 상태 확인
+        if (button.isMounted && button.target) {
+          button.target.style.transform = '';
+        }
+      }, 150);
+    }
+  }, []); // 빈 deps 배열로 성능 최적화
+  
+  return <button ref={button.setRef} onClick={handleClick}>
+    클릭해보세요
+  </button>;
+}
+```
+
 ## 패턴 통합
 
 ### Actions + Stores + RefContext

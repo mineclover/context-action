@@ -1216,4 +1216,85 @@ function NewComponent() {
 }
 ```
 
+## Memoization and Lazy Evaluation
+
+RefContext properties (`isMounted`, `isWaitingForMount`, `target`) use **lazy evaluation** to always return the latest state. This works correctly even when used with React's memoization patterns.
+
+```tsx
+function MemoizationTestComponent() {
+  const element = useDemoRef('element');
+  
+  // Empty deps array but always returns latest values
+  const memoizedCheck = useCallback(() => {
+    return {
+      isMounted: element.isMounted,       // Always latest state
+      isWaiting: element.isWaitingForMount, // Always latest state  
+      hasTarget: !!element.target         // Always latest state
+    };
+  }, []); // Empty deps - function itself never recreated
+  
+  // useMemo captured object vs direct access test
+  const capturedElement = useMemo(() => element, []); // Captured at first render
+  
+  const testCapturedVsDirect = useCallback(() => {
+    console.log('Direct access:', element.isMounted);
+    console.log('Captured object:', capturedElement.isMounted); // Same value!
+    // Both return the same value (thanks to lazy evaluation)
+  }, [element, capturedElement]);
+  
+  return (
+    <div>
+      <div ref={element.setRef}>Test Element</div>
+      <button onClick={testCapturedVsDirect}>
+        Test Memoization
+      </button>
+    </div>
+  );
+}
+```
+
+**Key Principles:**
+- RefContext properties are implemented as **getter functions**
+- Values are computed at access time, not storage time
+- Memoized functions always receive the latest values  
+- No need to include ref objects in React dependency arrays
+
+```tsx
+// ✅ Correct usage - empty deps array still guarantees latest values
+const checkMount = useCallback(() => {
+  return element.isMounted; // Always latest state
+}, []);
+
+// ❌ Unnecessary pattern - no need to include element in deps
+const checkMount = useCallback(() => {
+  return element.isMounted;
+}, [element]); // element object never changes, so unnecessary
+```
+
+**Practical Usage Example:**
+```tsx
+function OptimizedInteraction() {
+  const button = useMouseRef('button');
+  
+  // Performance-optimized event handler (memoization + lazy evaluation)
+  const handleClick = useCallback(() => {
+    // Check mount status at click time (always latest)
+    if (button.isMounted && button.target) {
+      button.target.style.transform = 'scale(0.95)';
+      
+      setTimeout(() => {
+        // Check mount status at timer execution time (always latest)
+        if (button.isMounted && button.target) {
+          button.target.style.transform = '';
+        }
+      }, 150);
+    }
+  }, []); // Empty deps array for performance optimization
+  
+  return <button ref={button.setRef} onClick={handleClick}>
+    Click Me
+  </button>;
+}
+```
+
 The React Refs Management System provides a powerful, type-safe, and lifecycle-aware approach to managing references in React applications, with seamless integration into the Context-Action framework's architecture patterns.
