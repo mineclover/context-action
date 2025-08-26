@@ -7,9 +7,9 @@ This guide provides migration instructions for updating example files to follow 
 ## 🎯 Current Status
 
 ### ✅ Updated Files (Using Latest Patterns)
-- `src/pages/actionguard/SearchPage.tsx` - ✅ Updated to createDeclarativeStorePattern
-- `src/pages/actionguard/ScrollPage.tsx` - ✅ Updated to createDeclarativeStorePattern  
-- `src/pages/store/StoreBasicsPage.tsx` - ✅ Already using createDeclarativeStorePattern
+- `src/pages/actionguard/SearchPage.tsx` - ✅ Updated to createStoreContext
+- `src/pages/actionguard/ScrollPage.tsx` - ✅ Updated to createStoreContext  
+- `src/pages/store/StoreBasicsPage.tsx` - ✅ Already using createStoreContext
 - Multiple files in `/pages/demos/store-scenarios/` - ✅ Already using latest patterns
 
 ### ⚠️ Files Requiring Updates
@@ -53,14 +53,14 @@ function Component() {
 
 ### After (Recommended Pattern)
 ```typescript
-import { createDeclarativeStorePattern, useStoreValue } from '@context-action/react';
+import { createStoreContext, useStoreValue } from '@context-action/react';
 
 // Unified store pattern
 const {
   Provider: AppStoreProvider,
   useStore: useAppStore,
   useStoreManager: useAppStoreManager
-} = createDeclarativeStorePattern('App', {
+} = createStoreContext('App', {
   user: { name: '', email: '' },
   settings: { theme: 'light' as const },
   data: [] as any[]
@@ -102,7 +102,7 @@ function Component() {
 import { createStore, useStoreValue } from '@context-action/react';
 
 // Add
-import { createDeclarativeStorePattern, useStoreValue } from '@context-action/react';
+import { createStoreContext, useStoreValue } from '@context-action/react';
 ```
 
 ### Step 2: Convert Store Creation
@@ -115,7 +115,7 @@ const store2 = createStore('name2', initialValue2);
 const {
   Provider: StoreProvider,
   useStore: useAppStore
-} = createDeclarativeStorePattern('App', {
+} = createStoreContext('App', {
   name1: initialValue1,
   name2: initialValue2
 });
@@ -245,7 +245,7 @@ function App() {
 
 For each file requiring migration:
 
-- [ ] Update imports to include `createDeclarativeStorePattern`
+- [ ] Update imports to include `createStoreContext`
 - [ ] Convert individual `createStore` calls to unified pattern  
 - [ ] Add appropriate Provider to component tree
 - [ ] Update component store access to use hooks
@@ -256,7 +256,7 @@ For each file requiring migration:
 ## 📚 Related Documentation
 
 - [Store Basic Usage](docs/en/guide/patterns/store/basic-usage.md)
-- [createDeclarativeStorePattern Reference](docs/en/guide/patterns/store/store-configuration.md)
+- [createStoreContext Reference](docs/en/guide/patterns/store/store-configuration.md)
 - [Setup 스펙 가이드](docs/en/guide/patterns/setup/basic-store-setup.md)
 - [Best Practices](docs/en/guide/patterns/store/withProvider-pattern.md)
 

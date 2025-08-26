@@ -14,7 +14,7 @@ import React, {
   useRef
 } from 'react';
 import { createActionContext, useStoreValue } from '@context-action/react';
-import { createDeclarativeStorePattern } from '@context-action/react';
+import { createStoreContext } from '@context-action/react';
 import {
   ManagedObject,
   ObjectMetadata,
@@ -39,7 +39,7 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
     Provider: ObjectStoreProvider,
     useStore: useObjectStore,
     useStoreManager: useObjectStoreManager
-  } = createDeclarativeStorePattern(`ObjectContext_${config.contextName}`, {
+  } = createStoreContext(`ObjectContext_${config.contextName}`, {
     objects: { 
       initialValue: new Map<string, ObjectMetadata<T>>()
     },

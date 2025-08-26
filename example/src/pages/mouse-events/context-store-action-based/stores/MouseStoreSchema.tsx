@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { createActionContext, createDeclarativeStorePattern } from '@context-action/react';
+import { createActionContext, createStoreContext } from '@context-action/react';
 
 // ================================
 // 📊 기본 타입 정의
@@ -163,7 +163,7 @@ const MouseActionContext = createActionContext<MouseActions>({
   name: 'Mouse-actions',
 });
 
-const MouseStoreContext = createDeclarativeStorePattern('Mouse-stores', {
+const MouseStoreContext = createStoreContext('Mouse-stores', {
   'mouseState': {
     initialValue: initialMouseState,
     strategy: 'shallow',

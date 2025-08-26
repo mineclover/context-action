@@ -1,5 +1,5 @@
 import {
-  createDeclarativeStorePattern,
+  createStoreContext,
   type InitialStores,
 } from '@context-action/react';
 import type {
@@ -164,7 +164,7 @@ export const initialNotifications: NotificationItem[] = [
 ];
 
 // Simplified store configuration using the new v2 pattern
-export const StoreScenarios = createDeclarativeStorePattern('StoreScenarios', {
+export const StoreScenarios = createStoreContext('StoreScenarios', {
   // Simple direct values
   cart: [] as CartItem[],
 

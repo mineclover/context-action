@@ -1,4 +1,4 @@
-import { useStoreValue, createDeclarativeStorePattern, createActionContext } from '@context-action/react';
+import { useStoreValue, createStoreContext, createActionContext } from '@context-action/react';
 import type React from 'react';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useActionLoggerWithToast } from '../../../../components/LogMonitor/';
@@ -10,7 +10,7 @@ import type { TodoItem } from '../types';
 const {
   Provider: TodoUIStoreProvider,
   useStore: useTodoUIStore
-} = createDeclarativeStorePattern('TodoUI', {
+} = createStoreContext('TodoUI', {
   newTodo: { initialValue: '' },
   priority: { initialValue: 'medium' as TodoItem['priority'] },
   filter: { initialValue: 'all' as 'all' | 'active' | 'completed' },

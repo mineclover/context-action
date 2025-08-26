@@ -7,7 +7,7 @@
  */
 
 import { useEffect } from 'react';
-import { createRefContext, createDeclarativeStorePattern, createActionContext, useStoreValue } from '@context-action/react';
+import { createRefContext, createStoreContext, createActionContext, useStoreValue } from '@context-action/react';
 
 type DemoRefs = {
   existingElement: HTMLDivElement;
@@ -26,7 +26,7 @@ const {
 const {
   Provider: ResultsStoreProvider,
   useStore: useResultsStore
-} = createDeclarativeStorePattern('PerformanceResults', {
+} = createStoreContext('PerformanceResults', {
   existingTime: { initialValue: 0 },
   pendingTime: { initialValue: 0 },
   testComplete: { initialValue: false },

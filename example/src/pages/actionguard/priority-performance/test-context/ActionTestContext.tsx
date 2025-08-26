@@ -1,7 +1,7 @@
 import type { ActionPayloadMap } from '@context-action/core';
 import {
   createActionContext,
-  createDeclarativeStorePattern,
+  createStoreContext,
 } from '@context-action/react';
 import type React from 'react';
 
@@ -51,7 +51,7 @@ export const PriorityTestActionContext: React.Context<any> =
   PriorityTestAction.context;
 
 // Stores 인스턴스 생성 - 새로운 패턴으로 자동 타입 추론
-const PriorityStores = createDeclarativeStorePattern('PriorityTestManager', {
+const PriorityStores = createStoreContext('PriorityTestManager', {
   priorityCounts: {
     initialValue: {} as Record<number, number>,
     description: 'Priority execution counts',

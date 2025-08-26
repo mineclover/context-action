@@ -5,7 +5,7 @@
 
 import React, { useCallback, useState, useEffect, useRef, useMemo } from 'react';
 import { PageWithLogMonitor } from '../../components/LogMonitor';
-import { createActionContext, createDeclarativeStorePattern, useStoreValue } from '@context-action/react';
+import { createActionContext, createStoreContext, useStoreValue } from '@context-action/react';
 import { Badge, Card, CardContent } from '../../components/ui';
 
 // Scroll 관련 액션 타입 정의
@@ -39,7 +39,7 @@ const {
   Provider: ScrollStoreProvider,
   useStore: useScrollStore,
   useStoreManager: useScrollStoreManager
-} = createDeclarativeStorePattern('Scroll', {
+} = createStoreContext('Scroll', {
   scrollData: {
     scrollTop: 0,
     scrollLeft: 0,

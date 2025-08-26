@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { createActionContext, createDeclarativeStorePattern, useStoreValue } from '@context-action/react';
+import { createActionContext, createStoreContext, useStoreValue } from '@context-action/react';
 
 interface WorkflowData {
   userId: string;
@@ -24,7 +24,7 @@ interface WorkflowActions {
 
 const { Provider: WorkflowActionProvider, useActionDispatch: useWorkflowAction, useActionHandler: useWorkflowHandler } = createActionContext<WorkflowActions>('WorkflowSteps');
 
-const { Provider: WorkflowStoreProvider, useStore: useWorkflowStore } = createDeclarativeStorePattern('WorkflowSteps', {
+const { Provider: WorkflowStoreProvider, useStore: useWorkflowStore } = createStoreContext('WorkflowSteps', {
   currentStep: { initialValue: 0 },
   workflowData: { initialValue: null as WorkflowData | null },
   stepResults: { initialValue: [] as StepResult[] },
