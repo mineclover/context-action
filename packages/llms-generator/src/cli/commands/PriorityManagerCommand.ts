@@ -606,12 +606,12 @@ export class PriorityManagerCommand {
   private isOldFormat(priority: PriorityData | LegacyPriorityData | Record<string, unknown>): boolean {
     // Old format characteristics:
     // 1. Has priority as a number (not an object)
-    // 2. Has category at root level (not in document object)
-    // 3. Missing document structure
+    // 2. Has category at root level (not in metadata object)  
+    // 3. Missing metadata structure or has old document structure
     return (
       typeof priority.priority === 'number' ||
-      (priority.category && !priority.document) ||
-      !priority.document?.id
+      (priority.category && !priority.metadata) ||
+      ('document' in priority && priority.document)
     );
   }
 

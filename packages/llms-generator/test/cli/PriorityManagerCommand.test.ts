@@ -423,14 +423,16 @@ describe('PriorityManagerCommand', () => {
       // Should have new format
       expect(upgradedData.priority).toBeInstanceOf(Object);
       expect(upgradedData.priority.score).toBe(85);
-      expect(upgradedData.priority.factors).toBeDefined();
+      expect(upgradedData.priority.tier).toBeDefined();
+      expect(upgradedData.metadata).toBeDefined();
+      expect(upgradedData.metadata.language).toBe('en');
     });
 
     it('should skip files already in new format', async () => {
       // Create new format priority.json
       const newFormat = {
-        document: { id: 'guide--getting-started', category: 'guide', language: 'en' },
-        priority: { score: 95, tier: 'high', factors: { importance: 100, urgency: 90 } }
+        priority: { score: 95, tier: 'high', reasoning: 'Important getting started guide' },
+        metadata: { title: 'Getting Started', language: 'en', category: 'guide' }
       };
 
       await fs.writeFile(
