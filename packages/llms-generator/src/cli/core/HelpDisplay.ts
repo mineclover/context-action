@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Help Display - Manages help text display
  */

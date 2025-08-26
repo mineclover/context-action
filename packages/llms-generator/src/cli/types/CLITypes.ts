@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * CLI Types - Common types for CLI system
  */

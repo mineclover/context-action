@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Fill Templates Command
  * 
@@ -246,7 +247,7 @@ export class FillTemplatesCommand {
     documentId: string
   ): string {
     // Remove markdown formatting
-    let text = sourceContent
+    const text = sourceContent
       .replace(/^#+\s+/gm, '') // Remove headers
       .replace(/```[\s\S]*?```/g, '') // Remove code blocks
       .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links

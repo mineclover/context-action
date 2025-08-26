@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * LLMS Generation Command
  * 
