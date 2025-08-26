@@ -394,7 +394,10 @@ export class WorkNextCommand {
       if (!documentGroups.has(key)) {
         documentGroups.set(key, []);
       }
-      documentGroups.get(key)!.push(item);
+      const group = documentGroups.get(key);
+      if (group) {
+        group.push(item);
+      }
     });
 
     // Get the first item from each group (highest priority character limit)

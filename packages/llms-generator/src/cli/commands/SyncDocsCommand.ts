@@ -1,10 +1,10 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { EnhancedLLMSConfig } from '../../types/config.js';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-
-const execAsync = promisify(exec);
+// Note: exec utilities available but not currently used
+// import { exec } from 'child_process';
+// import { promisify } from 'util';
+// const execAsync = promisify(exec);
 
 export interface SyncDocsOptions {
   changedFiles: string[];     // 변경된 문서 파일 목록
@@ -553,12 +553,8 @@ workflow_stage: content_generated
     }
 
     try {
-      // 업데이트된 파일들을 Git 스테이징에 추가
-      const filesToAdd = [
-        'llmsData/'
-      ];
-
       // Note: Git staging will be handled by post-commit hook
+      // Files will be automatically staged: llmsData/
       
       if (!quiet) {
         console.log(`📝 Generated ${updatedFiles.length} updated file(s)`);
