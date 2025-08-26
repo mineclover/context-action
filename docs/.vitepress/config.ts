@@ -38,6 +38,10 @@ export default defineConfig({
       dangerLabel: '🚨 Danger',
       infoLabel: 'ℹ️ Info',
       detailsLabel: 'Details'
+    },
+    // Vue 컴포넌트 활성화 비활성화
+    config: (md) => {
+      md.options.html = false
     }
   },
   
