@@ -7,7 +7,7 @@
  * 3. waitForRefs - 지연 마운트 시나리오에 최적화
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { createRefContext, createStoreContext, useStoreValue } from '@context-action/react';
 
 type DemoRefs = {
@@ -210,6 +210,196 @@ function ConditionalPatternDemo() {
   );
 }
 
+// 메모이제이션과 지연 평가 테스트 컴포넌트
+function MemoizationTestDemo() {
+  const memoTestRef = useDemoRef('delayedElement');
+  const [memoTestLog, setMemoTestLog] = useState<string[]>([]);
+  const [renderCount, setRenderCount] = useState(0);
+  const [callCount, setCallCount] = useState(0);
+  
+  // 메모이제이션된 함수 - deps가 없어서 한 번만 생성됨
+  const memoizedCheckFunction = useCallback(() => {
+    // 이 함수는 메모이제이션되었지만, ref 속성들은 항상 최신 값을 반환해야 함
+    const currentTime = new Date().toLocaleTimeString();
+    const isMounted = memoTestRef.isMounted;
+    const isWaiting = memoTestRef.isWaitingForMount;
+    const target = memoTestRef.target;
+    
+    const logEntry = `[${currentTime}] 메모이제이션된 함수 호출 #${callCount + 1}:
+      - isMounted: ${isMounted}
+      - isWaitingForMount: ${isWaiting}
+      - target: ${target ? 'DOM Element' : 'null'}
+      - 함수 참조: ${memoizedCheckFunction.toString().substring(0, 30)}... (동일 참조)`;
+    
+    setMemoTestLog(prev => [...prev, logEntry]);
+    setCallCount(prev => prev + 1);
+    
+    return {
+      isMounted,
+      isWaiting,
+      hasTarget: !!target
+    };
+  }, []); // 빈 deps - 함수는 재생성되지 않음
+  
+  // 또 다른 메모이제이션 테스트 - element 객체를 캡처
+  const elementCapture = useMemo(() => {
+    // element 객체 자체를 캡처
+    return memoTestRef;
+  }, []); // 빈 deps - 한 번만 실행
+  
+  // 캡처된 element를 사용하는 메모이제이션된 함수
+  const memoizedWithCapture = useCallback(() => {
+    const currentTime = new Date().toLocaleTimeString();
+    // 캡처된 element 객체의 속성들도 항상 최신 값을 반환해야 함
+    const logEntry = `[${currentTime}] 캡처된 element 사용:
+      - elementCapture.isMounted: ${elementCapture.isMounted}
+      - elementCapture.isWaitingForMount: ${elementCapture.isWaitingForMount}
+      - 객체 참조 동일성: ${elementCapture === memoTestRef}`;
+    
+    setMemoTestLog(prev => [...prev, logEntry]);
+    
+    return elementCapture.isMounted;
+  }, [elementCapture]); // elementCapture를 deps에 포함
+  
+  // 마운트/언마운트 시뮬레이션
+  const [showDelayedElement, setShowDelayedElement] = useState(false);
+  
+  const testMemoization = () => {
+    setRenderCount(prev => prev + 1);
+    const result = memoizedCheckFunction();
+    console.log('메모이제이션 테스트 결과:', result);
+  };
+  
+  const testCapturedElement = () => {
+    const result = memoizedWithCapture();
+    console.log('캡처된 element 테스트 결과:', result);
+  };
+  
+  const clearMemoLog = () => {
+    setMemoTestLog([]);
+    setCallCount(0);
+    setRenderCount(0);
+  };
+  
+  // waitForMount 테스트
+  const testWaitForMount = useCallback(async () => {
+    const currentTime = new Date().toLocaleTimeString();
+    setMemoTestLog(prev => [...prev, `[${currentTime}] waitForMount 시작...`]);
+    
+    try {
+      const target = await memoTestRef.waitForMount();
+      setMemoTestLog(prev => [...prev, `[${currentTime}] waitForMount 성공! DOM Element 획득`]);
+    } catch (error) {
+      setMemoTestLog(prev => [...prev, `[${currentTime}] waitForMount 실패: ${error}`]);
+    }
+  }, [memoTestRef]);
+  
+  return (
+    <div className="p-4 border rounded-lg bg-purple-50">
+      <h3 className="text-lg font-bold mb-3">4. 메모이제이션과 지연 평가 테스트</h3>
+      <p className="text-sm text-gray-600 mb-3">
+        메모이제이션된 함수 내에서 ref 상태가 항상 최신 값으로 평가되는지 확인
+      </p>
+      
+      <div className="space-y-3">
+        <div className="p-3 bg-yellow-100 rounded text-sm">
+          <strong>🔍 테스트 포인트:</strong>
+          <ul className="mt-1 text-xs">
+            <li>• useCallback으로 메모이제이션된 함수는 재생성되지 않음</li>
+            <li>• 하지만 ref.isMounted, ref.isWaitingForMount는 항상 최신 값 반환</li>
+            <li>• 캡처된 element 객체도 동일하게 동작</li>
+          </ul>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => setShowDelayedElement(!showDelayedElement)}
+            className="px-3 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+          >
+            {showDelayedElement ? '요소 언마운트' : '요소 마운트'}
+          </button>
+          
+          <button
+            onClick={testMemoization}
+            className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            메모이제이션 함수 호출
+          </button>
+          
+          <button
+            onClick={testCapturedElement}
+            className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          >
+            캡처된 Element 테스트
+          </button>
+          
+          <button
+            onClick={testWaitForMount}
+            className="px-3 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+          >
+            waitForMount 테스트
+          </button>
+          
+          <button
+            onClick={clearMemoLog}
+            className="px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 col-span-2"
+          >
+            로그 클리어
+          </button>
+        </div>
+        
+        {showDelayedElement && (
+          <div
+            ref={memoTestRef.setRef}
+            className="p-4 border-2 rounded bg-white text-center"
+          >
+            메모이제이션 테스트용 요소
+          </div>
+        )}
+        
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          <div className="p-2 bg-gray-100 rounded">
+            <strong>렌더 횟수:</strong> {renderCount}
+          </div>
+          <div className="p-2 bg-gray-100 rounded">
+            <strong>함수 호출 횟수:</strong> {callCount}
+          </div>
+        </div>
+        
+        <div className="text-sm">
+          <strong>실시간 상태 (지연 평가):</strong>
+          <div className="grid grid-cols-3 gap-2 mt-1">
+            <div className={`p-2 rounded text-xs ${memoTestRef.isMounted ? 'bg-green-100' : 'bg-red-100'}`}>
+              isMounted: {String(memoTestRef.isMounted)}
+            </div>
+            <div className={`p-2 rounded text-xs ${memoTestRef.isWaitingForMount ? 'bg-yellow-100' : 'bg-gray-100'}`}>
+              isWaiting: {String(memoTestRef.isWaitingForMount)}
+            </div>
+            <div className={`p-2 rounded text-xs ${memoTestRef.target ? 'bg-blue-100' : 'bg-gray-100'}`}>
+              target: {memoTestRef.target ? '✓' : '✗'}
+            </div>
+          </div>
+        </div>
+        
+        <div className="text-sm">
+          <strong>메모이제이션 테스트 로그:</strong>
+          <div className="max-h-48 overflow-y-auto bg-gray-100 p-2 rounded font-mono text-xs">
+            {memoTestLog.length === 0 ? (
+              <div className="text-gray-500">아직 로그가 없습니다</div>
+            ) : (
+              memoTestLog.map((entry, i) => (
+                <div key={i} className="mb-2 pb-2 border-b border-gray-300 last:border-0">
+                  <pre className="whitespace-pre-wrap">{entry}</pre>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // waitForRefs 지연 마운트 패턴 데모 컴포넌트
 function DelayedMountPatternDemo() {
   const delayedLogStore = useDemoStore('delayedLog');
@@ -231,7 +421,7 @@ function DelayedMountPatternDemo() {
   // 지연된 마운트 시뮬레이션
   const startDelayedMount = useCallback(() => {
     if (delayedMountTimer) {
-      clearTimeout(delayedMountTimer);
+      clearTimeout(delayedMountTimer as any);
     }
     
     isDelayedMountedStore.setValue(false);
@@ -243,7 +433,7 @@ function DelayedMountPatternDemo() {
       delayedMountTimerStore.setValue(null);
     }, 5000);
     
-    delayedMountTimerStore.setValue(timer);
+    delayedMountTimerStore.setValue(timer as any);
   }, [delayedMountTimer, isDelayedMountedStore, addLog, delayedMountTimerStore]);
   
   // waitForRefs를 사용한 지연 마운트 대기 (성공 시나리오)
@@ -293,7 +483,7 @@ function DelayedMountPatternDemo() {
   
   const cancelDelayedMount = useCallback(() => {
     if (delayedMountTimer) {
-      clearTimeout(delayedMountTimer);
+      clearTimeout(delayedMountTimer as any);
       delayedMountTimerStore.setValue(null);
       addLog('⏹️ 지연 마운트가 취소됨');
     }
@@ -406,6 +596,7 @@ function WaitForRefsPerformanceDemo() {
             <OnMountPatternDemo />
             <ConditionalPatternDemo />
             <DelayedMountPatternDemo />
+            <MemoizationTestDemo />
           </div>
           
           <div className="mt-8 p-4 bg-gray-100 rounded-lg">
