@@ -47,10 +47,6 @@ export { createRegistrySync, RegistryUtils } from './registry-sync';
 // Provider composition utilities for managing multiple contexts
 export { 
   composeProviders,
-  groupProviders,
-  conditionalProviders,
-  environmentProviders,
-  logProviderTree,
-  type WithProviderHOC
+  type ProviderComponent
 } from './provider-composition';
 

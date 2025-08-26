@@ -93,7 +93,7 @@ async function main(): Promise<void> {
         break;
 
       case 'priority-upgrade':
-        await handlePriorityManager(commandArgs, argumentParser, 'upgrade');
+        await handlePriorityManager(commandArgs, argumentParser, 'auto-calc');
         break;
 
       case 'priority-tasks':
