@@ -1,0 +1,42 @@
+{
+  "//": "TypeScript 리팩토링용 Path Mapping 설정",
+  "//": "기존 tsconfig.json의 compilerOptions에 추가할 설정",
+  
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "~/*": ["src/*"],
+      
+      "@/lib/*": ["src/lib/*"],
+      "@/pages/*": ["src/pages/*"],  
+      "@/components/*": ["src/components/*"],
+      "@/types/*": ["src/types/*"],
+      "@/styles/*": ["src/styles/*"],
+      "@/utils/*": ["src/utils/*"],
+      
+      "@/lib/templates/*": ["src/lib/templates/*"],
+      "@/lib/patterns/*": ["src/lib/patterns/*"],
+      "@/lib/hooks/*": ["src/lib/hooks/*"],
+      "@/lib/services/*": ["src/lib/services/*"]
+    }
+  }
+}
+
+// 기존 tsconfig.json의 compilerOptions에 아래 설정을 추가하세요:
+/*
+{
+  "compilerOptions": {
+    // ... 기존 설정
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@/lib/*": ["src/lib/*"],
+      "@/pages/*": ["src/pages/*"],
+      "@/components/*": ["src/components/*"],
+      "@/types/*": ["src/types/*"]
+    }
+    // ... 기존 설정
+  }
+}
+*/
