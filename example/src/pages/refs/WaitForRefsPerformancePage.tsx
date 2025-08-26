@@ -1,12 +1,12 @@
 /**
- * useWaitForRefs 성능 검증 데모 페이지
+ * RefContext 패턴 데모 페이지
  */
-import { WaitForRefsPerformanceDemo } from '../../components/demos/WaitForRefsPerformanceDemo';
+import { WaitForRefsPatternDemo } from '../../components/demos/WaitForRefsPatternDemo';
 
 export function WaitForRefsPerformancePage() {
   return (
     <div>
-      <WaitForRefsPerformanceDemo />
+      <WaitForRefsPatternDemo />
     </div>
   );
 }

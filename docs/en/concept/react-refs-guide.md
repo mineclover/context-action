@@ -1216,6 +1216,52 @@ function NewComponent() {
 }
 ```
 
+## waitForRefs Blocking vs Non-blocking Patterns
+
+`waitForRefs` itself is Promise-based and asynchronous, so when used correctly it doesn't block the UI. Problems arise when developers incorrectly try to handle it synchronously.
+
+### ❌ Incorrect Usage (UI Blocking)
+
+```typescript
+// Anti-pattern: busy waiting blocks UI
+const handleClick = () => {
+  let isComplete = false;
+  let result = null;
+  
+  waitForRefs(5000, 'element').then(refs => {
+    isComplete = true;
+    result = refs;
+  });
+  
+  // DON'T DO THIS: CPU-intensive loop blocks UI
+  const startTime = Date.now();
+  while (!isComplete && Date.now() - startTime < 6000) {
+    // Empty loop - UI freezes!
+  }
+};
+```
+
+### ✅ Correct Usage (Non-blocking)
+
+```typescript
+// Recommended: async/await for asynchronous handling
+const handleClick = async () => {
+  try {
+    const refs = await waitForRefs(10000, 'element');
+    // Maintains UI responsiveness during processing
+    refs.element.style.backgroundColor = '#10b981';
+  } catch (error) {
+    console.error('Timeout:', error);
+  }
+};
+```
+
+**Key Points:**
+- `waitForRefs` internally uses `Promise.race` and asynchronous processing
+- Proper `async/await` patterns maintain UI responsiveness
+- Only avoid synchronous handling attempts (`while` loops, etc.)
+- Promise-based design doesn't block the event loop
+
 ## Memoization and Lazy Evaluation
 
 RefContext properties (`isMounted`, `isWaitingForMount`, `target`) use **lazy evaluation** to always return the latest state. This works correctly even when used with React's memoization patterns.
