@@ -6,17 +6,17 @@
  * @implements mvvm-pattern
  * @memberof core-concepts
  * 
- * Declarative Store Pattern provides type-safe store management with Action Registry-style 
+ * Store Context Pattern provides type-safe store management with Action Registry-style 
  * schema definition. Offers compile-time type inference and singleton behavior for 
  * consistent data management.
  * 
  * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  */
 
-// === UNIFIED DECLARATIVE STORE PATTERN ===
+// === UNIFIED STORE CONTEXT PATTERN ===
 // Simplified and unified store management with excellent type inference
 export { 
-  createDeclarativeStorePattern,
+  createStoreContext,
   type InitialStores,
   type StoreConfig,
   type StoreDefinitions,
@@ -27,9 +27,10 @@ export {
 } from './declarative-store-pattern-v2';
 
 // === LEGACY COMPATIBILITY ===
-// @deprecated Use createDeclarativeStorePattern instead
+// @deprecated Use createStoreContext instead
 export { 
-  createDeclarativeStorePattern as createDeclarativeStores,
+  createStoreContext as createDeclarativeStorePattern,
+  createStoreContext as createDeclarativeStores,
   type StoreConfig as StoreSchema
 } from './declarative-store-pattern-v2';
 

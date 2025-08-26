@@ -5,11 +5,11 @@
  * @implements mvvm-pattern
  * @memberof core-concepts
  * 
- * Core store system for Context-Action framework using Declarative Store Pattern
+ * Core store system for Context-Action framework using Store Context Pattern
  * for type-safe store management similar to Action Registry pattern.
  */
 
-// === DECLARATIVE STORE PATTERN ===
+// === STORE CONTEXT PATTERN ===
 // Primary pattern for type-safe store management
 export * from './patterns';
 
@@ -29,9 +29,9 @@ export * from './utils';
 // Common imports expected from the main store module
 
 // Primary factory functions
-export { createDeclarativeStorePattern, createDeclarativeStores } from './patterns';
+export { createStoreContext, createDeclarativeStorePattern, createDeclarativeStores } from './patterns';
 
-// Declarative Store Pattern types
+// Store Context Pattern types
 export type {
   StoreConfig,
   StoreSchema,
