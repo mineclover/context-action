@@ -3,6 +3,26 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.4.0](https://github.com/mineclover/context-action/compare/v0.3.1...v0.4.0) (2025-08-26)
+
+
+### Bug Fixes
+
+* remove unused deprecated code and fix LLMS generator test ([315b163](https://github.com/mineclover/context-action/commit/315b163fa452ae86c8859166687f6d33d4f5c6d3))
+* resolve existing TypeScript compilation errors ([a92b76d](https://github.com/mineclover/context-action/commit/a92b76d52a394dfb0982b7d0c461d8e940201b45))
+* resolve LLMS documentation system mismatches and restore data integrity ([949298c](https://github.com/mineclover/context-action/commit/949298c90d2801f4d7033ab2c32b6ebeaf1fdae4))
+* update llms-generator mismatch report ([205b40c](https://github.com/mineclover/context-action/commit/205b40cf5268716e50c9b76ae1e7303cff1f10d0))
+
+
+### Features
+
+* Add comprehensive CLI test suites for LLMS Generator ([a774b0f](https://github.com/mineclover/context-action/commit/a774b0fd36c78bf58def91bc678bd9d1be332314))
+* add mismatch detection system and enhance post-commit hook ([a157dbc](https://github.com/mineclover/context-action/commit/a157dbcd9087a3295f0add9937de91e4adf8bf4b))
+
+
+
+
+
 ## [0.3.2] - 2025-08-26
 
 ### Added

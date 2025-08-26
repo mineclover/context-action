@@ -3,6 +3,56 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.4.0](https://github.com/mineclover/context-action/compare/v0.3.1...v0.4.0) (2025-08-26)
+
+
+### Bug Fixes
+
+* add LogMonitorProvider to FlowControlPlaygroundPage ([5dd0c25](https://github.com/mineclover/context-action/commit/5dd0c25dc0445c3be14a4756179557f664a2f06e))
+* prevent infinite handler re-registration in useFlowControlDemo ([85107e2](https://github.com/mineclover/context-action/commit/85107e2a34f2e45c262868e3cd29648bf436bb7e))
+* remove unused deprecated code and fix LLMS generator test ([315b163](https://github.com/mineclover/context-action/commit/315b163fa452ae86c8859166687f6d33d4f5c6d3))
+* resolve action-guard page rendering issues and add missing UI components ([98700d1](https://github.com/mineclover/context-action/commit/98700d1f5525d7a3b52c91df31d55a3ea7c6e41f))
+* resolve critical documentation issues identified in verification ([f30e7b4](https://github.com/mineclover/context-action/commit/f30e7b4be08f50fa0e562ad19ea2ff8b4ad9d426))
+* resolve existing TypeScript compilation errors ([a92b76d](https://github.com/mineclover/context-action/commit/a92b76d52a394dfb0982b7d0c461d8e940201b45))
+* resolve infinite loop in priority jump and add comprehensive security scenarios ([f1bc268](https://github.com/mineclover/context-action/commit/f1bc268ea2431a0200e49934a36b1bb280a0d13b))
+* resolve LLMS documentation system mismatches and restore data integrity ([949298c](https://github.com/mineclover/context-action/commit/949298c90d2801f4d7033ab2c32b6ebeaf1fdae4))
+* resolve major lint errors ([c36751a](https://github.com/mineclover/context-action/commit/c36751a439f8f3f1bf5e3570f4ef46624dd2ce96))
+* resolve VitePress Vue compiler error with TSX code blocks ([ea34107](https://github.com/mineclover/context-action/commit/ea34107d7177222f52e3a6895e7760bb40336f87))
+* update llms-generator mismatch report ([205b40c](https://github.com/mineclover/context-action/commit/205b40cf5268716e50c9b76ae1e7303cff1f10d0))
+
+
+### Features
+
+* **actionguard:** add conditional patterns to navigation ([398acee](https://github.com/mineclover/context-action/commit/398aceec17d9c1ff1081251fd9a60fcfaf301e04))
+* Add comprehensive CLI test suites for LLMS Generator ([a774b0f](https://github.com/mineclover/context-action/commit/a774b0fd36c78bf58def91bc678bd9d1be332314))
+* add comprehensive documentation for Context-Action framework ([2ee3948](https://github.com/mineclover/context-action/commit/2ee3948118721cd0b633bc71f6d5884808970306))
+* add comprehensive pattern examples with async, action, and store implementations ([6820a26](https://github.com/mineclover/context-action/commit/6820a266d0ca298f5172c15a80a73e1fcb82f38f))
+* add comprehensive refactoring execution plan and automation scripts ([ed55982](https://github.com/mineclover/context-action/commit/ed55982d599bfacc76f03b4af24455ec0cb70299))
+* add Flow Control Playground to sidebar navigation ([eadfd29](https://github.com/mineclover/context-action/commit/eadfd293022d5838deaa230c60cc086f56e334cb))
+* add mismatch detection system and enhance post-commit hook ([a157dbc](https://github.com/mineclover/context-action/commit/a157dbcd9087a3295f0add9937de91e4adf8bf4b))
+* add mount timeout options to createRefContext ([0266f02](https://github.com/mineclover/context-action/commit/0266f024abe0b3265cb86411cf2118cb0749ce2a))
+* **architecture:** implement feature-based directory structure ([55a612a](https://github.com/mineclover/context-action/commit/55a612ab8a8608305537e2a04757aa6001673aec))
+* cleanup core pages and fix selector infinite loops ([641b03d](https://github.com/mineclover/context-action/commit/641b03d2b06c806bd062f546ea4f4dd0e38c340f))
+* cleanup legacy interfaces and fix lint errors ([ba7b2ed](https://github.com/mineclover/context-action/commit/ba7b2edd6d913e924fcd0dcd24399977042f9f5c))
+* complete Korean translation of patterns documentation ([3b47308](https://github.com/mineclover/context-action/commit/3b4730813ad308c5c8397baeb08a2aa368ef6801))
+* comprehensive dead code cleanup via parallel sub-agents ([5277475](https://github.com/mineclover/context-action/commit/527747507cee630c7b9530906f10e2587d0d9dc7))
+* **conditional-patterns:** implement comprehensive conditional execution patterns ([b560cfa](https://github.com/mineclover/context-action/commit/b560cfa46b76347d706caa40b38927b4237330bc))
+* consolidate ActionContext implementations and reorganize documentation ([b621f50](https://github.com/mineclover/context-action/commit/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65))
+* enhance task prompt documentation and introduce Context-Action comparison ([9af7bdd](https://github.com/mineclover/context-action/commit/9af7bddeba385bba2191275f9cc62b75ea284ee5))
+* enhance type inference system for createRefContext ([63e2521](https://github.com/mineclover/context-action/commit/63e2521ce0eaf531ba2602b8416661d9993558c4))
+* implement conditional execution demo and migrate to static imports ([3680e5a](https://github.com/mineclover/context-action/commit/3680e5ac4bbaf53a747c86c583155283af7629cb))
+* implement modular domain-driven architecture with MVVM patterns ([6a77791](https://github.com/mineclover/context-action/commit/6a77791cab77500b0696f4ef53c0e2a24ea64b00))
+* modularize FlowControlPlaygroundPage for better maintainability ([31ee447](https://github.com/mineclover/context-action/commit/31ee447ef52c339cdefee58c74a28bfef38069c5))
+* modularize Priority Management Demo with comprehensive architecture ([cca0c13](https://github.com/mineclover/context-action/commit/cca0c13ec5b4c71c0a354924aba4bb5a011fe0a8))
+* **navigation:** implement comprehensive overview page system ([7522298](https://github.com/mineclover/context-action/commit/75222981984fb8c6194cf0b1b5e1053874788138))
+* remove legacy pages and improve ActionHandler types ([b5f4732](https://github.com/mineclover/context-action/commit/b5f473252d647a2769fc220c12e5e3ab0cd9288e))
+* **routing:** update imports to use feature-based structure ([a8366c5](https://github.com/mineclover/context-action/commit/a8366c565e0f507a9731a74fb6bff258aac9fd09))
+* **ui:** add conditional patterns category support ([c9b82dd](https://github.com/mineclover/context-action/commit/c9b82dd6765767ff95785721feaae91c7a9c13a2))
+
+
+
+
+
 ## [0.3.1](https://github.com/mineclover/context-action/compare/v0.2.1...v0.3.1) (2025-08-21)
 
 
