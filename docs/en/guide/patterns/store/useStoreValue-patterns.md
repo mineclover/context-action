@@ -9,14 +9,14 @@ This guide uses store contexts from the [Basic Store Setup](../setup/basic-store
 ### Required Store Setup
 
 ```typescript
-import { createDeclarativeStorePattern, useStoreValue } from '@context-action/react';
+import { createStoreContext, useStoreValue } from '@context-action/react';
 
 // User Domain Stores
 const {
   Provider: UserStoreProvider,
   useStore: useUserStore,
   useStoreManager: useUserStoreManager
-} = createDeclarativeStorePattern('User', {
+} = createStoreContext('User', {
   profile: {
     initialValue: { id: '', name: '', email: '', role: 'guest' as const },
     strategy: 'shallow' as const
@@ -36,7 +36,7 @@ const {
   Provider: ProductStoreProvider,
   useStore: useProductStore,
   useStoreManager: useProductStoreManager
-} = createDeclarativeStorePattern('Product', {
+} = createStoreContext('Product', {
   catalog: [] as Product[],
   cart: {
     initialValue: { items: [], total: 0, discounts: [] },

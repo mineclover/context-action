@@ -30,7 +30,7 @@ Context-Action 프레임워크는 현대 상태 관리의 중요한 문제들을
 프레임워크는 완전한 도메인 격리를 위한 **세 가지 핵심 패턴**을 통해 MVVM에서 영감을 받은 패턴으로 깔끔한 관심사 분리를 구현합니다:
 
 - **액션**은 `createActionContext`를 통해 비즈니스 로직과 조정을 처리 (ViewModel 레이어)
-- **선언적 스토어 패턴**은 `createDeclarativeStorePattern`을 통해 도메인 격리로 상태를 관리 (Model 레이어)
+- **선언적 스토어 패턴**은 `createStoreContext`을 통해 도메인 격리로 상태를 관리 (Model 레이어)
 - **RefContext**는 `createRefContext`를 통해 제로 리렌더링으로 직접 DOM 조작 제공 (Performance 레이어)
 - **컴포넌트**는 UI를 렌더링 (View 레이어)
 - **컨텍스트 경계**는 기능 도메인을 격리
@@ -182,7 +182,7 @@ function ParticleAnimation() {
 #### 패턴 2: 하이브리드 성능 (RefContext + 스토어)
 ```typescript
 // 구성을 위한 상태
-const { useStore: useConfigStore } = createDeclarativeStorePattern('Config', {
+const { useStore: useConfigStore } = createStoreContext('Config', {
   speed: 1.0,
   color: '#ff0000'
 });
@@ -232,7 +232,7 @@ function HybridComponent() {
 ## 3. 아키텍처 패턴
 
 - **Action Only 패턴**: `createActionContext()`로 순수 액션 디스패칭
-- **선언적 스토어 패턴**: `createDeclarativeStorePattern()`으로 타입 안전한 상태 관리
+- **선언적 스토어 패턴**: `createStoreContext()`으로 타입 안전한 상태 관리
 - **RefContext 패턴**: `createRefContext()`로 제로 리렌더링 DOM 조작
 - **스토어 통합 패턴**: 핸들러 구현을 위한 3단계 프로세스
 - **HOC 패턴**: 자동 컴포넌트 감싸기를 위한 `withProvider()` (Store Pattern)
@@ -252,7 +252,7 @@ export const {
   useStore: useUserBusinessStore,        // 도메인별 스토어 훅
   useStoreManager: useUserBusinessStoreManager,    // 도메인별 스토어 레지스트리 훅
   useStoreInfo: useUserBusinessStoreInfo
-} = createDeclarativeStorePattern('UserBusiness', storeDefinitions);
+} = createStoreContext('UserBusiness', storeDefinitions);
 
 export const {
   Provider: UserBusinessActionProvider,

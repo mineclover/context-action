@@ -9,14 +9,14 @@
 ### 필수 스토어 설정
 
 ```typescript
-import { createDeclarativeStorePattern, useStoreValue } from '@context-action/react';
+import { createStoreContext, useStoreValue } from '@context-action/react';
 
 // 사용자 도메인 스토어
 const {
   Provider: UserStoreProvider,
   useStore: useUserStore,
   useStoreManager: useUserStoreManager
-} = createDeclarativeStorePattern('User', {
+} = createStoreContext('User', {
   profile: {
     initialValue: { id: '', name: '', email: '', role: 'guest' as const },
     strategy: 'shallow' as const
@@ -36,7 +36,7 @@ const {
   Provider: ProductStoreProvider,
   useStore: useProductStore,
   useStoreManager: useProductStoreManager
-} = createDeclarativeStorePattern('Product', {
+} = createStoreContext('Product', {
   catalog: [] as Product[],
   cart: {
     initialValue: { items: [], total: 0, discounts: [] },

@@ -104,7 +104,7 @@ const {
 
 ### 🏪 Store 훅 (핵심)
 
-#### `createDeclarativeStorePattern<T>()`
+#### `createStoreContext<T>()`
 타입 안전성을 갖춘 모든 스토어 관련 훅을 생성하는 **팩토리 함수**.
 - **목적**: 타입 안전한 스토어 관리 시스템 생성
 - **반환**: `{ Provider, useStore, useStoreManager, withProvider }`
@@ -115,7 +115,7 @@ const {
   Provider: UserStoreProvider,
   useStore: useUserStore,
   useStoreManager: useUserStoreManager
-} = createDeclarativeStorePattern('User', {
+} = createStoreContext('User', {
   profile: { id: '', name: '' }
 });
 ```
@@ -564,7 +564,7 @@ function CriticalComponent() {
 
 이 훅들은 팩토리 함수에 의해 생성됩니다:
 
-#### `createDeclarativeStorePattern()`에서
+#### `createStoreContext()`에서
 - `Provider` - 컴텍스트 프로바이더 컴포넌트
 - `useStore(name)` - 이름으로 스토어 가져오기
 - `useStoreManager()` - 스토어 매니저 인스턴스 가져오기
@@ -624,7 +624,7 @@ function CriticalComponent() {
 ## 요약
 
 ### 필수 훅 (반드시 학습)
-- **팩토리 함수**: `createActionContext`, `createDeclarativeStorePattern`, `createRefContext`
+- **팩토리 함수**: `createActionContext`, `createStoreContext`, `createRefContext`
 - **핵심 훅**: `useStoreValue`, `useActionDispatch`, `useActionHandler`, `useStore`, `useRefHandler`
 
 ### 유틸리티 훅 (필요에 따라 학습)

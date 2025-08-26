@@ -67,7 +67,7 @@ const {
   Provider: UserStoreProvider,
   useStore: useUserStore,
   useStoreManager: useUserStoreManager
-} = createDeclarativeStorePattern<UserStores>('User', {
+} = createStoreContext<UserStores>('User', {
   // Types validated against UserStores interface
   profile: {
     initialValue: { id: '', name: '', email: '', role: 'guest' },

@@ -19,7 +19,7 @@ src/domains/
 ```typescript
 // domains/store/contexts/index.ts
 export const { Provider, useStore, useStoreManager } = 
-  createDeclarativeStorePattern('YourDomain', {
+  createStoreContext('YourDomain', {
     data: { initialValue: initialData }
   });
 
@@ -157,7 +157,7 @@ function IntegratedComponent() {
 ```typescript
 // domains/store/patterns/UserManagement.ts
 export function createUserStorePattern(initialUser: User) {
-  return createDeclarativeStorePattern('User', {
+  return createStoreContext('User', {
     profile: { initialValue: initialUser },
     preferences: { initialValue: { theme: 'light' } },
     activity: { initialValue: { lastLogin: Date.now() } }

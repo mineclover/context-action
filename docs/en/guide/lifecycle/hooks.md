@@ -73,17 +73,17 @@ function UserComponent() {
 
 ### Store Hooks
 
-#### `createDeclarativeStorePattern<T>()`
+#### `createStoreContext<T>()`
 Factory function that creates all store-related hooks.
 
 ```tsx
-import { createDeclarativeStorePattern } from '@context-action/react';
+import { createStoreContext } from '@context-action/react';
 
 const {
   Provider: UserStoreProvider,
   useStore: useUserStore,
   useStoreManager: useUserStoreManager
-} = createDeclarativeStorePattern('User', {
+} = createStoreContext('User', {
   profile: { initialValue: { id: '', name: '', email: '' } },
   settings: { initialValue: { theme: 'light', notifications: true } }
 });

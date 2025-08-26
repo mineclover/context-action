@@ -337,7 +337,7 @@ const {
   Provider: AppStoreProvider,
   useStore: useAppStore,
   useStoreManager: useAppStoreManager
-} = createDeclarativeStorePattern('App', {
+} = createStoreContext('App', {
   user: { initialValue: { name: '', email: '' } },
   settings: { initialValue: { theme: 'light' } }
 });
@@ -417,7 +417,7 @@ function EventComponent() {
 - **Features**: Type-safe action dispatching, action handler registration, abort support, result handling, lightweight (no store overhead)
 
 #### 🏪 Store Only Pattern (Recommended)
-**Import**: `createDeclarativeStorePattern` from `@context-action/react`
+**Import**: `createStoreContext` from `@context-action/react`
 - **Use Case**: Pure state management without action dispatching (data layers, simple state)
 - **Features**: Excellent type inference without manual type annotations, simplified API focused on store management, direct value or configuration object support
 
@@ -445,7 +445,7 @@ Use `useActionHandler` + `useEffect` pattern for optimal performance and proper 
 ### Architecture Patterns
 
 - **Action Only Pattern**: `createActionContext()` for pure action dispatching
-- **Declarative Store Pattern**: `createDeclarativeStorePattern()` for type-safe state management
+- **Declarative Store Pattern**: `createStoreContext()` for type-safe state management
 - **Store Integration Pattern**: 3-step process for handler implementation
 - **HOC Pattern**: `withProvider()` for automatic component wrapping (Store Pattern)
 - **Pattern Composition**: Combine Action Only + Store Only patterns for complex applications

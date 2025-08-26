@@ -86,7 +86,7 @@ Context-Action 프레임워크를 사용하여 확장 가능한 애플리케이�
 // 주요 설정 접근 방식 선택
 import { 
   // MVVM용: 레이어 기반 설정
-  createDeclarativeStorePattern,    // 모델 레이어
+  createStoreContext,    // 모델 레이어
   createActionContext,              // 뷰모델 레이어
   createRefContext,                 // 성능 레이어
 

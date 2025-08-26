@@ -18,7 +18,7 @@
 ## 성능 최적화 설정
 
 ```tsx
-import { createDeclarativeStorePattern } from '@context-action/react';
+import { createStoreContext } from '@context-action/react';
 
 // 성능 최적화된 설정과 ProductStores 패턴 사용
 interface OptimizedProductStores {
@@ -41,7 +41,7 @@ const {
   Provider: ProductStoreProvider,
   useStore: useProductStore,
   useStoreManager: useProductStoreManager
-} = createDeclarativeStorePattern<OptimizedProductStores>('Product', {
+} = createStoreContext<OptimizedProductStores>('Product', {
   // 대용량 카탈로그 - 성능을 위한 참조 등가성
   catalog: {
     initialValue: [] as Product[],
@@ -96,7 +96,7 @@ const {
 const {
   Provider: ProductStoreProvider,
   useStore: useProductStore
-} = createDeclarativeStorePattern<ProductStores>('Product', {
+} = createStoreContext<ProductStores>('Product', {
   catalog: {
     initialValue: [] as Product[],
     strategy: 'reference' as const // 배열 참조가 변경된 경우에만 재렌더링
@@ -126,7 +126,7 @@ const {
 const {
   Provider: UIStoreProvider,
   useStore: useUIStore
-} = createDeclarativeStorePattern<UIStores>('UI', {
+} = createStoreContext<UIStores>('UI', {
   modal: {
     initialValue: { isOpen: false, type: undefined, data: undefined },
     strategy: 'shallow' as const // 최상위 속성이 변경된 경우 재렌더링
@@ -156,7 +156,7 @@ const {
 const {
   Provider: UserStoreProvider,
   useStore: useUserStore
-} = createDeclarativeStorePattern<UserStores>('User', {
+} = createStoreContext<UserStores>('User', {
   profile: {
     initialValue: { id: '', name: '', email: '', role: 'guest' },
     strategy: 'deep' as const, // 모든 중첩 레벨에서 변경 감지
@@ -201,7 +201,7 @@ interface TrackingFormStores {
 const {
   Provider: FormStoreProvider,
   useStore: useFormStore
-} = createDeclarativeStorePattern<TrackingFormStores>('Form', {
+} = createStoreContext<TrackingFormStores>('Form', {
   userActivity: {
     initialValue: { 
       userId: '', 
@@ -228,7 +228,7 @@ interface AdvancedProductStores extends ProductStores {
 const {
   Provider: ProductStoreProvider,
   useStore: useProductStore
-} = createDeclarativeStorePattern<AdvancedProductStores>('Product', {
+} = createStoreContext<AdvancedProductStores>('Product', {
   // 기본 ProductStores 필드
   catalog: [] as Product[],
   categories: [] as Category[],
@@ -270,7 +270,7 @@ const {
 const {
   Provider: UIStoreProvider,
   useStore: useUIStore
-} = createDeclarativeStorePattern<UIStores>('UI', {
+} = createStoreContext<UIStores>('UI', {
   modal: {
     initialValue: { isOpen: false, type: undefined, data: undefined },
     debug: true,  // 상세한 로깅 활성화
@@ -318,7 +318,7 @@ interface MonitoredProductStores extends ProductStores {
 const {
   Provider: ProductStoreProvider,
   useStore: useProductStore
-} = createDeclarativeStorePattern<MonitoredProductStores>('Product', {
+} = createStoreContext<MonitoredProductStores>('Product', {
   // 표준 ProductStores 필드
   catalog: [] as Product[],
   categories: [] as Category[],
@@ -361,7 +361,7 @@ interface MemoryOptimizedUIStores extends UIStores {
 const {
   Provider: UIStoreProvider,
   useStore: useUIStore
-} = createDeclarativeStorePattern<MemoryOptimizedUIStores>('UI', {
+} = createStoreContext<MemoryOptimizedUIStores>('UI', {
   // 표준 UIStores 필드
   modal: { isOpen: false, type: undefined, data: undefined },
   loading: { global: false, operations: {} },
@@ -465,7 +465,7 @@ interface RealWorldStores {
 const {
   Provider: RealWorldStoreProvider,
   useStore: useRealWorldStore
-} = createDeclarativeStorePattern<RealWorldStores>('RealWorld', {
+} = createStoreContext<RealWorldStores>('RealWorld', {
   // 사용자 데이터 - 프로필 업데이트를 위한 얕은 비교 (UserStores 패턴)
   userProfile: {
     initialValue: { id: '', name: '', email: '', role: 'guest' },

@@ -9,7 +9,7 @@
 | 패턴 | 사용 사례 | 임포트 | 최적용도 |
 |---------|----------|--------|----------|
 | **🎯 Action Only** | 스토어 없이 액션 디스패칭 | `createActionContext` | 이벤트 시스템, 커맨드 패턴 |
-| **🏪 Store Only** | 액션 없이 상태 관리 | `createDeclarativeStorePattern` | 순수 상태 관리, 데이터 레이어 |
+| **🏪 Store Only** | 액션 없이 상태 관리 | `createStoreContext` | 순수 상태 관리, 데이터 레이어 |
 | **🔧 Ref Context** | 제로 리렌더링 직접 DOM 조작 | `createRefContext` | 고성능 UI, 애니메이션, 실시간 인터랙션 |
 
 **참고**: 복잡한 애플리케이션의 경우, 최대한의 유연성과 관심사 분리를 위해 패턴들을 조합하여 사용하세요.
@@ -89,7 +89,7 @@ function InteractiveComponent() {
 
 ### 임포트
 ```typescript
-import { createDeclarativeStorePattern } from '@context-action/react';
+import { createStoreContext } from '@context-action/react';
 ```
 
 ### 기능
@@ -105,7 +105,7 @@ const {
   Provider: AppStoreProvider,
   useStore: useAppStore,
   useStoreManager: useAppStoreManager
-} = createDeclarativeStorePattern('App', {
+} = createStoreContext('App', {
   user: { initialValue: { name: '', email: '' } },
   settings: { initialValue: { theme: 'light' } },
   counter: 0  // 직접 값도 지원
@@ -338,7 +338,7 @@ const {
   Provider: AppStoreProvider,
   useStore: useAppStore,
   useStoreManager: useAppStoreManager
-} = createDeclarativeStorePattern('App', {
+} = createStoreContext('App', {
   user: { id: '', name: '' },
   counter: 0
 });

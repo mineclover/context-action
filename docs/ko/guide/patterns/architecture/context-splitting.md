@@ -75,7 +75,7 @@ import {
 
 // 설정 명세를 사용하여 도메인 컨텍스트 생성
 export const UserDomainContexts = {
-  model: createDeclarativeStorePattern<UserStores>('User', {
+  model: createStoreContext<UserStores>('User', {
     profile: { 
       initialValue: { id: '', name: '', email: '', role: 'guest' as const },
       strategy: 'shallow' as const
@@ -94,7 +94,7 @@ export const UserDomainContexts = {
 };
 
 export const ProductDomainContexts = {
-  model: createDeclarativeStorePattern<ProductStores>('Product', {
+  model: createStoreContext<ProductStores>('Product', {
     catalog: [] as Product[],
     categories: [] as Category[],
     filters: { initialValue: {}, strategy: 'shallow' as const },
@@ -109,7 +109,7 @@ export const ProductDomainContexts = {
 };
 
 export const UIDomainContexts = {
-  model: createDeclarativeStorePattern<UIStores>('UI', {
+  model: createStoreContext<UIStores>('UI', {
     modal: { isOpen: false, type: undefined, data: undefined },
     sidebar: { isOpen: false, activePanel: undefined },
     loading: { 
@@ -145,7 +145,7 @@ import {
 
 // 데이터 레이어 컨텍스트 (비즈니스 도메인 설정 사용)
 export const DataLayerContexts = {
-  model: createDeclarativeStorePattern<BusinessStores>('Data', {
+  model: createStoreContext<BusinessStores>('Data', {
     orders: [] as Order[],
     inventory: [] as InventoryItem[],
     customers: [] as Customer[],
@@ -159,7 +159,7 @@ export const DataLayerContexts = {
 
 // 유효성 검사 레이어 컨텍스트 (유효성 검사 도메인 설정 사용)
 export const ValidationLayerContexts = {
-  model: createDeclarativeStorePattern<ValidationStores>('Validation', {
+  model: createStoreContext<ValidationStores>('Validation', {
     validationRules: [] as ValidationRule[],
     validationResults: [] as ValidationResult[],
     formErrors: {} as Record<string, string[]>,
@@ -170,7 +170,7 @@ export const ValidationLayerContexts = {
 
 // 디자인 레이어 컨텍스트 (디자인 도메인 설정 사용)
 export const DesignLayerContexts = {
-  model: createDeclarativeStorePattern<DesignStores>('Design', {
+  model: createStoreContext<DesignStores>('Design', {
     theme: {
       initialValue: defaultTheme,
       strategy: 'deep' as const
@@ -330,7 +330,7 @@ const {
   Provider: LegacyAppProvider,
   useStore: useLegacyAppStore,
   useStoreManager: useLegacyAppStoreManager
-} = createDeclarativeStorePattern<MassiveAppStores>('LegacyApp', {
+} = createStoreContext<MassiveAppStores>('LegacyApp', {
   // ... 기존 구성
 });
 
@@ -339,7 +339,7 @@ const {
   Provider: UserModelProvider,
   useStore: useUserStore,
   useStoreManager: useUserStoreManager
-} = createDeclarativeStorePattern<UserStores>('User', {
+} = createStoreContext<UserStores>('User', {
   profile: { initialValue: defaultUserProfile },
   preferences: { initialValue: defaultPreferences },
   notifications: { initialValue: [] }

@@ -2,15 +2,15 @@
 
 ***
 
-[context-action-monorepo](../../../../README.md) / [packages/react/src](../README.md) / createDeclarativeStorePattern
+[context-action-monorepo](../../../../README.md) / [packages/react/src](../README.md) / createStoreContext
 
-# Function: createDeclarativeStorePattern()
+# Function: createStoreContext()
 
 Implementation function that handles both overloads
 
 ## Call Signature
 
-> **createDeclarativeStorePattern**&lt;`T`&gt;(`contextName`, `initialStores`): `object`
+> **createStoreContext**&lt;`T`&gt;(`contextName`, `initialStores`): `object`
 
 Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:245](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L245)
 
@@ -163,7 +163,7 @@ https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
 
 ## Call Signature
 
-> **createDeclarativeStorePattern**&lt;`T`&gt;(`contextName`, `storeDefinitions`): `object`
+> **createStoreContext**&lt;`T`&gt;(`contextName`, `storeDefinitions`): `object`
 
 Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:255](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L255)
 

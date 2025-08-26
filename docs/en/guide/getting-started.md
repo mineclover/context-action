@@ -9,7 +9,7 @@ Choose the right pattern for your use case:
 | Pattern | Use Case | Import | Best For |
 |---------|----------|--------|----------|
 | **🎯 Action Only** | Action dispatching without stores | `createActionContext` | Event systems, command patterns |
-| **🏪 Store Only** | State management without actions | `createDeclarativeStorePattern` | Pure state management, data layers |
+| **🏪 Store Only** | State management without actions | `createStoreContext` | Pure state management, data layers |
 | **🔧 Ref Context** | Direct DOM manipulation with zero re-renders | `createRefContext` | High-performance UI, animations, real-time interactions |
 
 ## 🎯 Action Only Pattern
@@ -64,14 +64,14 @@ Type-safe state management without action dispatching.
 
 ### Basic Usage
 ```tsx
-import { createDeclarativeStorePattern } from '@context-action/react';
+import { createStoreContext } from '@context-action/react';
 
 // 1. Create Pattern
 const {
   Provider: AppStoreProvider,
   useStore: useAppStore,
   useStoreManager: useAppStoreManager
-} = createDeclarativeStorePattern('App', {
+} = createStoreContext('App', {
   user: { initialValue: { name: '', email: '' } },
   settings: { initialValue: { theme: 'light' } }
 });

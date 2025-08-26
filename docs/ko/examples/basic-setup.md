@@ -75,13 +75,13 @@ export const {
 
 ```typescript
 // src/contexts/stores.tsx
-import { createDeclarativeStorePattern } from '@context-action/react';
+import { createStoreContext } from '@context-action/react';
 
 export const {
   Provider: AppStoreProvider,
   useStore: useAppStore,
   useStoreManager: useAppStoreManager
-} = createDeclarativeStorePattern('App', {
+} = createStoreContext('App', {
   user: {
     initialValue: {
       name: '',

@@ -49,7 +49,7 @@ This section contains comprehensive code patterns and implementation guides for 
 | Pattern | Use Case | Import | Best For |
 |---------|----------|--------|----------|
 | **🎯 Action Only** | Action dispatching without stores | `createActionContext` | Event systems, command patterns |
-| **🏪 Store Only** | State management without actions | `createDeclarativeStorePattern` | Pure state management, data layers |
+| **🏪 Store Only** | State management without actions | `createStoreContext` | Pure state management, data layers |
 | **🔧 Ref Context** | Direct DOM manipulation and singleton object management | `createRefContext` | High-performance UI, animations, external services |
 
 **Note**: For complex applications, compose patterns together for maximum flexibility and separation of concerns.

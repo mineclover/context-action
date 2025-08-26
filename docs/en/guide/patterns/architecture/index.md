@@ -86,7 +86,7 @@ Choose architecture based on **Setup Complexity** and **Application Scale**:
 // Choose your primary setup approach
 import { 
   // For MVVM: Layer-based setup
-  createDeclarativeStorePattern,    // Model layer
+  createStoreContext,    // Model layer
   createActionContext,              // ViewModel layer
   createRefContext,                 // Performance layer
 

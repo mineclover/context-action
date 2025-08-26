@@ -170,13 +170,13 @@ pnpm release:major  # Bump major version and publish
 For pure state management without action dispatching:
 
 ```typescript
-import { createDeclarativeStorePattern } from '@context-action/react';
+import { createStoreContext } from '@context-action/react';
 
 const {
   Provider: AppStoreProvider,
   useStore: useAppStore,
   useStoreManager: useAppStoreManager
-} = createDeclarativeStorePattern('App', {
+} = createStoreContext('App', {
   user: { initialValue: { name: '', email: '' } },
   settings: { initialValue: { theme: 'light' } }
 });
@@ -241,7 +241,7 @@ function EventComponent() {
 For complex applications needing both actions and state management, compose the patterns:
 
 ```typescript
-import { createActionContext, createDeclarativeStorePattern } from '@context-action/react';
+import { createActionContext, createStoreContext } from '@context-action/react';
 import { ActionPayloadMap } from '@context-action/core';
 
 // Define separate contexts
@@ -257,7 +257,7 @@ const {
   useActionHandler: useUserActionHandler
 } = createActionContext<UserActions>('UserActions');
 
-const UserStores = createDeclarativeStorePattern('UserStores', {
+const UserStores = createStoreContext('UserStores', {
   profile: { id: '', name: '', email: '' },
   preferences: { theme: 'light' as const }
 });

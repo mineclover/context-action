@@ -15,14 +15,14 @@
 ### 스토어 매니저 가져오기
 
 ```tsx
-import { createDeclarativeStorePattern, useStoreValue } from '@context-action/react';
+import { createStoreContext, useStoreValue } from '@context-action/react';
 
 // 설정 가이드에서 확립된 스토어 패턴 사용
 const {
   Provider: UserStoreProvider,
   useStore: useUserStore,
   useStoreManager: useUserStoreManager
-} = createDeclarativeStorePattern('User', {
+} = createStoreContext('User', {
   profile: {
     initialValue: { id: '', name: '', email: '', role: 'guest' as const },
     strategy: 'shallow' as const
@@ -411,7 +411,7 @@ interface UserSession {
 
 const {
   useStoreManager: useUserStoreManager
-} = createDeclarativeStorePattern('User', {
+} = createStoreContext('User', {
   profile: {
     initialValue: { id: '', name: '', email: '', role: 'guest' as const },
     strategy: 'shallow' as const

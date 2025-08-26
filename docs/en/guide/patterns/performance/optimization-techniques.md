@@ -31,7 +31,7 @@ Choose the right comparison strategy based on your data characteristics:
 const {
   Provider: PerformanceStoreProvider,
   useStore: usePerformanceStore
-} = createDeclarativeStorePattern('Performance', {
+} = createStoreContext('Performance', {
   // Primitive values: reference (default)
   counter: 0,
   isLoading: false,

@@ -14,7 +14,7 @@ Context-Action 프레임워크에서 비동기 작업, 엘리먼트 대기, DOM 
 ```typescript
 import { 
   createActionContext, 
-  createDeclarativeStorePattern,
+  createStoreContext,
   createRefContext,
   useWaitForRefs
 } from '@context-action/react';
@@ -41,7 +41,7 @@ const { useActionHandler, useActionDispatch } = createActionContext<AsyncActions
 비동기 작업 상태 관리를 위해:
 
 ```typescript
-const { useStore } = createDeclarativeStorePattern('AsyncState', {
+const { useStore } = createStoreContext('AsyncState', {
   isProcessing: { initialValue: false },
   retryCount: { initialValue: 0 },
   operationResults: { initialValue: {} as Record<string, any> },
@@ -125,7 +125,7 @@ const {
 const { 
   Provider: AsyncStateProvider,
   useStore: useAsyncStore 
-} = createDeclarativeStorePattern('AsyncState', {
+} = createStoreContext('AsyncState', {
   isProcessing: { initialValue: false },
   retryCount: { initialValue: 0 },
   operationResults: { initialValue: {} as Record<string, any> },

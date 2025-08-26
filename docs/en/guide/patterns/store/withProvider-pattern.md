@@ -22,7 +22,7 @@ const {
   useStore: useAppStore,
   useStoreManager: useAppStoreManager,
   withProvider: withAppStoreProvider
-} = createDeclarativeStorePattern('App', {
+} = createStoreContext('App', {
   user: {
     initialValue: { id: '', name: '', email: '' },
     strategy: 'shallow' as const
@@ -73,7 +73,7 @@ const {
   useStore: useUserStore,
   useStoreManager: useUserStoreManager,
   withProvider: withUserStoreProvider
-} = createDeclarativeStorePattern('User', {
+} = createStoreContext('User', {
   profile: {
     initialValue: { id: '', name: '', email: '' },
     strategy: 'shallow' as const
@@ -89,7 +89,7 @@ const {
   useStore: useAppStore,
   useStoreManager: useAppStoreManager,
   withProvider: withAppStoreProvider  
-} = createDeclarativeStorePattern('App', {
+} = createStoreContext('App', {
   navigation: {
     initialValue: { currentPage: 'home', history: [] },
     strategy: 'shallow' as const

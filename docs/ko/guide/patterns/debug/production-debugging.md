@@ -78,7 +78,7 @@ const {
   Provider: DebugUIStoreProvider,
   useStore: useDebugUIStore,
   useStoreManager: useDebugUIStoreManager
-} = createDeclarativeStorePattern('DebugUI', {
+} = createStoreContext('DebugUI', {
   operationState: {
     initialValue: {
       isProcessing: false,
@@ -302,7 +302,7 @@ const {
   Provider: MonitoringStoreProvider,
   useStore: useMonitoringStore,
   useStoreManager: useMonitoringStoreManager
-} = createDeclarativeStorePattern('Monitoring', {
+} = createStoreContext('Monitoring', {
   actionLog: {
     initialValue: {
       entries: [],
@@ -605,7 +605,7 @@ const {
   Provider: StressTestStoreProvider,
   useStore: useStressTestStore,
   useStoreManager: useStressTestStoreManager
-} = createDeclarativeStorePattern('StressTest', {
+} = createStoreContext('StressTest', {
   testState: {
     initialValue: {
       isActive: false,

@@ -15,10 +15,10 @@ const {
   Provider: UserStoreProvider,
   useStore: useUserStore,
   useStoreManager: useUserStoreManager
-} = createDeclarativeStorePattern('User', {...});
+} = createStoreContext('User', {...});
 
 // ❌ 지양: 직접 객체 접근
-const UserStores = createDeclarativeStorePattern('User', {...});
+const UserStores = createStoreContext('User', {...});
 const userStore = UserStores.useStore('profile'); // 도메인이 불분명
 ```
 
@@ -103,14 +103,14 @@ export const {
 } = createActionContext<UserActions>('UserActions');
 
 // contexts/user/UserStores.tsx
-import { createDeclarativeStorePattern } from '@context-action/react';
+import { createStoreContext } from '@context-action/react';
 import type { UserStoreConfig } from './types';
 
 export const {
   Provider: UserStoreProvider,
   useStore: useUserStore,
   useStoreManager: useUserStoreManager
-} = createDeclarativeStorePattern('User', userStoreConfig);
+} = createStoreContext('User', userStoreConfig);
 ```
 
 ## 패턴 사용법
@@ -592,7 +592,7 @@ useActionHandler('updateResults', updateResultsHandler);
 
 ```tsx
 // ✅ 경쟁 조건을 방지하기 위한 처리 상태 추가
-const stores = createDeclarativeStorePattern('Demo', {
+const stores = createStoreContext('Demo', {
   data: initialData,
   isProcessing: false  // 처리 상태 추가
 });
@@ -688,7 +688,7 @@ useActionHandler('unmountElement', unmountElementHandler);
 
 ```tsx
 // ✅ 다차원 상태 모니터링
-const debugStores = createDeclarativeStorePattern('Debug', {
+const debugStores = createStoreContext('Debug', {
   actionLog: [] as string[],
   errorCount: 0,
   operationTimes: {} as Record<string, number>

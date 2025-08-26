@@ -112,7 +112,7 @@ const {
 
 ### 🏪 Store Hooks (Core)
 
-#### `createDeclarativeStorePattern<T>()`
+#### `createStoreContext<T>()`
 **Factory function** that creates all store-related hooks with type safety.
 - **Purpose**: Creates type-safe store management system
 - **Returns**: `{ Provider, useStore, useStoreManager, withProvider }`
@@ -123,7 +123,7 @@ const {
   Provider: UserStoreProvider,
   useStore: useUserStore,
   useStoreManager: useUserStoreManager
-} = createDeclarativeStorePattern('User', {
+} = createStoreContext('User', {
   profile: { id: '', name: '' }
 });
 ```
@@ -573,7 +573,7 @@ function CriticalComponent() {
 
 These hooks are created by factory functions:
 
-#### From `createDeclarativeStorePattern()`
+#### From `createStoreContext()`
 - `Provider` - Context provider component
 - `useStore(name)` - Get store by name
 - `useStoreManager()` - Get store manager instance
@@ -633,7 +633,7 @@ These hooks are created by factory functions:
 ## Summary
 
 ### Essential Hooks (Must Learn)
-- **Factory Functions**: `createActionContext`, `createDeclarativeStorePattern`
+- **Factory Functions**: `createActionContext`, `createStoreContext`
 - **Core Hooks**: `useStoreValue`, `useActionDispatch`, `useActionHandler`, `useStore`
 
 ### Utility Hooks (Learn As Needed)

@@ -89,7 +89,7 @@ Proper async patterns for accessing current state values.
 const { useActionDispatch, useActionHandler } = createActionContext<Actions>('MyActions');
 
 // 🏪 Store Only: Pure state management (Recommended)
-const { useStore, useStoreManager } = createDeclarativeStorePattern('MyStores', {
+const { useStore, useStoreManager } = createStoreContext('MyStores', {
   data: initialData,
   isLoading: false
 });

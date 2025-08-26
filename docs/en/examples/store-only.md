@@ -106,7 +106,7 @@ export const userStoreConfig = {
 
 ```typescript
 // stores/UserStores.tsx
-import { createDeclarativeStorePattern } from '@context-action/react';
+import { createStoreContext } from '@context-action/react';
 import { userStoreConfig } from './UserStoreConfig';
 
 export const {
@@ -114,7 +114,7 @@ export const {
   useStore: useUserStore,
   useStoreManager: useUserStoreManager,
   withProvider: withUserStoreProvider
-} = createDeclarativeStorePattern('User', userStoreConfig);
+} = createStoreContext('User', userStoreConfig);
 
 export type UserStores = typeof userStoreConfig;
 ```
