@@ -10,7 +10,7 @@ import {
   FeatureComparison,
   BestPracticesSection
 } from './StandardPageTemplate';
-import { DemoCard, Section } from '../components';
+import { DemoCard, Section } from '@/components/ui';
 
 // Domain configuration interfaces
 export interface DomainDemoConfig {

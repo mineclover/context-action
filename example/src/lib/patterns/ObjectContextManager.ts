@@ -57,72 +57,60 @@ export class ObjectContextManager<T extends ManagedObject> {
   private setupActionHandlers(): void {
     // 객체 등록
     this.actionRegister.register('register', this.handleRegister.bind(this), {
-      priority: 100,
-      description: 'Register a new managed object'
+      priority: 100
     });
 
     // 객체 해제
     this.actionRegister.register('unregister', this.handleUnregister.bind(this), {
-      priority: 100,
-      description: 'Unregister a managed object'
+      priority: 100
     });
 
     // 객체 업데이트
     this.actionRegister.register('update', this.handleUpdate.bind(this), {
       priority: 90,
-      description: 'Update managed object'
     });
 
     // 생명주기 관리
     this.actionRegister.register('activate', this.handleActivate.bind(this), {
       priority: 80,
-      description: 'Activate object'
     });
 
     this.actionRegister.register('deactivate', this.handleDeactivate.bind(this), {
       priority: 80,
-      description: 'Deactivate object'
     });
 
     this.actionRegister.register('archive', this.handleArchive.bind(this), {
       priority: 80,
-      description: 'Archive object'
     });
 
     this.actionRegister.register('restore', this.handleRestore.bind(this), {
       priority: 80,
-      description: 'Restore archived object'
     });
 
     // 선택 및 포커스 관리
     if (this.config.enableSelection) {
       this.actionRegister.register('select', this.handleSelect.bind(this), {
         priority: 70,
-        description: 'Select objects'
       });
 
       this.actionRegister.register('clearSelection', this.handleClearSelection.bind(this), {
         priority: 70,
-        description: 'Clear object selection'
       });
     }
 
     if (this.config.enableFocus) {
       this.actionRegister.register('focus', this.handleFocus.bind(this), {
         priority: 70,
-        description: 'Focus object'
       });
 
       this.actionRegister.register('clearFocus', this.handleClearFocus.bind(this), {
         priority: 70,
-        description: 'Clear object focus'
       });
     }
 
     // 정리
     this.actionRegister.register('cleanup', this.handleCleanup.bind(this), {
       priority: 30,
-      description: 'Clean up objects'
     });
   }
 

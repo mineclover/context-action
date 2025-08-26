@@ -75,7 +75,7 @@ const UserList: React.FC = () => {
     ...(filterRole !== 'all' && { 
       metadata: { role: filterRole } 
     }),
-    sortBy: sortBy === 'name' ? 'id' : sortBy, // name으로 정렬은 id로 대체 (예제용)
+    sortBy: (sortBy === 'name' || sortBy === 'email') ? 'id' : sortBy as 'createdAt', // name과 email 정렬은 id로 대체 (예제용)
     sortOrder: 'asc'
   });
 
@@ -126,10 +126,10 @@ const UserList: React.FC = () => {
             >
               <div className="flex justify-between items-start">
                 <div>
-                  <div className="font-medium">{userMetadata.metadata?.name || userMetadata.id}</div>
-                  <div className="text-sm text-gray-600">{userMetadata.metadata?.email}</div>
+                  <div className="font-medium">{(userMetadata.metadata?.name as string) || userMetadata.id}</div>
+                  <div className="text-sm text-gray-600">{(userMetadata.metadata?.email as string) || 'N/A'}</div>
                   <div className="text-xs text-gray-500">
-                    {userMetadata.metadata?.department} • {userMetadata.lifecycleState}
+                    {(userMetadata.metadata?.department as string) || 'N/A'} • {userMetadata.lifecycleState}
                   </div>
                 </div>
                 <div className="text-xs text-gray-400">
@@ -337,7 +337,7 @@ const SelectedUserActions: React.FC = () => {
         <div className="space-y-1">
           {selectedObjectsInfo.map((userMetadata) => (
             <div key={userMetadata.id} className="text-sm bg-blue-50 p-2 rounded">
-              {userMetadata.metadata?.name || userMetadata.id} ({userMetadata.lifecycleState})
+              {(userMetadata.metadata?.name as string) || userMetadata.id} ({userMetadata.lifecycleState})
             </div>
           ))}
         </div>

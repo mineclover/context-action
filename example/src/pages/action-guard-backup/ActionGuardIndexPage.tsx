@@ -10,7 +10,7 @@ import {
   FeatureComparison,
   BestPracticesSection
 } from '@/lib/templates';
-import { DemoCard, Section } from '../../domains/shared/components';
+import { DemoCard } from '@/components/ui';
 import { Link } from 'react-router-dom';
 
 // ActionGuard demo configurations

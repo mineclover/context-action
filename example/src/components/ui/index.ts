@@ -38,5 +38,8 @@ export {
   UnifiedPatternBadge,
 } from './PatternBadge';
 export { Status } from './Status';
+export { Section } from './Section';
+export { StatusIndicator } from './StatusIndicator';
+export { MetricsDisplay } from './MetricsDisplay';
 // Export variants and types
 export * from './variants';

@@ -3,7 +3,13 @@
  * Business logic and utility functions
  */
 
-import type { LogEntry, PerformanceMetrics } from '../types';
+import type { LogEntry, PerformanceMetrics } from '../hooks/types';
+import { LogLevel } from '@/utils/logger';
+
+// Helper to get log level name
+const getLogLevelName = (level: LogLevel): string => {
+  return LogLevel[level] || 'UNKNOWN';
+};
 
 // Logger service for consistent logging across domains
 export class LoggerService {
@@ -36,20 +42,15 @@ export class LoggerService {
     }
 
     // Also log to console for development
-    const prefix = `[${source || 'App'}] ${level.toUpperCase()}:`;
-    switch (level) {
-      case 'error':
-        console.error(prefix, message, data);
-        break;
-      case 'warn':
-        console.warn(prefix, message, data);
-        break;
-      case 'info':
-        console.info(prefix, message, data);
-        break;
-      case 'success':
-        console.log(`%c${prefix}`, 'color: green', message, data);
-        break;
+    const prefix = `[${source || 'App'}] ${getLogLevelName(level)}:`;
+    if (level >= LogLevel.ERROR) {
+      console.error(prefix, message, data);
+    } else if (level >= LogLevel.WARN) {
+      console.warn(prefix, message, data);
+    } else if (level >= LogLevel.INFO) {
+      console.info(prefix, message, data);
+    } else {
+      console.log(prefix, message, data);
     }
 
     return entry;

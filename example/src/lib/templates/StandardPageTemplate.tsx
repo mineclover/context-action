@@ -7,14 +7,14 @@ import React, { useCallback, useEffect } from 'react';
 import {
   PageWithLogMonitor,
   useActionLoggerWithToast,
-} from '../../../components/LogMonitor/';
+} from '@/components/LogMonitor';
 import {
-  DomainLayout,
-  Section,
+  // DomainLayout, // Missing component - commented out
   DemoCard,
   CodeExample,
-  PatternBadge
-} from '../components';
+  PatternBadge,
+  Section
+} from '@/components/ui';
 
 // Template props interface
 export interface StandardPageTemplateProps {
@@ -69,13 +69,16 @@ export function StandardPageTemplate({
   
   return (
     <PageWithLogMonitor pageId={pageId}>
-      <DomainLayout
-        title={title}
-        description={description}
-        className={className}
-      >
-        {children}
-      </DomainLayout>
+      {/* Temporarily replaced DomainLayout with div until component is available */}
+      <div className={`domain-layout ${className || ''}`}>
+        <div className="domain-layout-header">
+          <h1>{title}</h1>
+          {description && <p>{description}</p>}
+        </div>
+        <div className="domain-layout-content">
+          {children}
+        </div>
+      </div>
     </PageWithLogMonitor>
   );
 }

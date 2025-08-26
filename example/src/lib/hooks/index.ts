@@ -4,7 +4,13 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { LogEntry, PerformanceMetrics } from '../types';
+import type { LogEntry, PerformanceMetrics } from './types';
+import { LogLevel } from '@/utils/logger';
+
+// Helper to get log level name
+const getLogLevelName = (level: LogLevel): string => {
+  return LogLevel[level] || 'UNKNOWN';
+};
 
 // Common logging hook pattern
 export function useLogger(source?: string) {
@@ -18,7 +24,7 @@ export function useLogger(source?: string) {
       source
     };
     
-    console.log(`[${source || 'App'}] ${level.toUpperCase()}: ${message}`, data || '');
+    console.log(`[${source || 'App'}] ${getLogLevelName(level)}: ${message}`, data || '');
     return entry;
   }, [source]);
 }
