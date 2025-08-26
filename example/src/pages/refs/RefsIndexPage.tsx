@@ -3,7 +3,6 @@
  * Context-Action 프레임워크의 ref 관리 시스템 종합 가이드
  */
 
-import React from 'react';
 import { PageLayout } from '../../components/layout/PageLayout';
 
 export function RefsIndexPage() {

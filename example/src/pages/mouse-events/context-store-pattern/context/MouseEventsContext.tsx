@@ -280,7 +280,7 @@ export const useMouseEventsStore = MouseEventsStores.useStore;
 export const useMouseEventsStoreInfo = MouseEventsStores.useStoreInfo;
 export const useMouseEventsStoreClear = MouseEventsStores.useStoreClear;
 
-// Legacy exports (deprecated)
+// Legacy exports (deprecated) - temporarily restored for compatibility
 export const useMouseEventsActionRegister =
   MouseEventsActionContext.useActionRegister;
 

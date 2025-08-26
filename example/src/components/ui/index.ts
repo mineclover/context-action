@@ -2,10 +2,10 @@
 
 // Export utilities
 export { cn } from '../../lib/utils';
-// Export layout components
+// Export layout components - PageLayout removed to avoid circular dependency
+// Import PageLayout directly from '../layout/PageLayout' instead
 export {
   FeatureHighlight,
-  PageLayout,
   PageSection,
 } from '../layout/PageLayout';
 export { Badge } from './Badge';
@@ -26,8 +26,6 @@ export { DemoCard } from './DemoCard';
 export { Grid } from './Grid';
 export { Input, Textarea } from './Input';
 export { Label } from './Label';
-// Re-export from shared components for compatibility
-// export { Section } from '../../domains/shared/components'; // Removed - domain restructured
 export {
   ActionPatternBadge,
   ContextPatternBadge,

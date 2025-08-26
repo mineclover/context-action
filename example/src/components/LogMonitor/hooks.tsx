@@ -167,7 +167,7 @@ export function useActionLogger(
     // 액션 로그 핸들러
     register.register(
       '_internal.log.action',
-      ({ actionType, payload, options = {} }, controller) => {
+      ({ actionType, payload, options = {} }, _controller) => {
         // 자동 계산된 데이터 추출
         const autoCalc =
           options._autoCalculated ||
@@ -236,7 +236,7 @@ export function useActionLogger(
     // 에러 로그 핸들러
     register.register(
       '_internal.log.error',
-      ({ message, error, options = {} }, controller) => {
+      ({ message, error, options = {} }, _controller) => {
         addLog({
           level: LogLevel.ERROR,
           type: 'error',
@@ -276,7 +276,7 @@ export function useActionLogger(
     // 시스템 로그 핸들러
     register.register(
       '_internal.log.system',
-      ({ message, options = {} }, controller) => {
+      ({ message, options = {} }, _controller) => {
         addLog({
           level: LogLevel.INFO,
           type: 'system',

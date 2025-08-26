@@ -43,7 +43,7 @@ export const ActionTestProvider: React.FC<{ children: React.ReactNode }> =
 export const usePriorityActionDispatch = PriorityTestAction.useActionDispatch;
 export const usePriorityActionHandler = PriorityTestAction.useActionHandler;
 
-// Legacy exports (deprecated)
+// Legacy exports (deprecated) - temporarily restored for compatibility
 export const usePriorityActionRegister = PriorityTestAction.useActionRegister;
 export const usePriorityActionContext: () => any =
   PriorityTestAction.useActionContext;

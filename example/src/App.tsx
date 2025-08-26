@@ -1,65 +1,67 @@
 import { LogArtHelpers } from './utils/logger';
-import { useEffect } from 'react';
+import { useEffect, Suspense, lazy } from 'react';
 import {
   Route,
   BrowserRouter as Router,
   Routes,
   useLocation,
 } from 'react-router-dom';
-import ConcurrentActionTestPage from './pages/examples/ConcurrentActionTestPage';
-import EnhancedAbortableSearchExample from './components/EnhancedAbortableSearchExample';
+// Core components - keep as regular imports
 import Layout from './components/Layout';
 import { ToastContainer, ToastControlPanel } from './components/ToastSystem';
-import ActionGuardIndexPage from './pages/actionguard/ActionGuardIndexPage';
-import ActionGuardPage from './pages/actionguard/ActionGuardPage';
-import ApiBlockingPage from './pages/actionguard/ApiBlockingPage';
-// import ActionGuardTestPage from './pages/actionguard/dispatch-options-test/DispatchOptionsTestPage';
-import { ContextStoreMouseEventsPage } from './pages/actionguard/ContextStoreMouseEventsPage';
-import MouseEventsPage from './pages/actionguard/MouseEventsPage';
-import { OptimizedMouseEventsPage } from './pages/mouse-events/OptimizedMouseEventsPage';
-import { MouseEventsIndexPage } from './pages/mouse-events/MouseEventsIndexPage';
-import { CleanArchitecturePage } from './pages/mouse-events/CleanArchitecturePage';
-import { ContextStoreActionPage } from './pages/mouse-events/ContextStoreActionPage';
-import { EnhancedContextStorePage } from './pages/mouse-events/EnhancedContextStorePage';
-import PriorityPerformanceBasicPage from './pages/actionguard/PriorityPerformancePage';
-import { PriorityPerformancePage } from './pages/actionguard/priority-performance/PriorityPerformancePage';
-import ScrollPage from './pages/actionguard/ScrollPage';
-import SearchPage from './pages/actionguard/SearchPage';
-import ThrottleComparisonPage from './pages/actionguard/ThrottleComparisonPage';
-import CoreAdvancedPage from './pages/core/CoreAdvancedPage';
-import CoreBasicsPage from './pages/core/CoreBasicsPage';
-import ToastConfigPage from './pages/examples/ToastConfigPage';
-import { ElementManagementPage } from './pages/examples/ElementManagementPage';
-import { FormBuilderDemoPage } from './pages/examples/FormBuilderDemoPage';
-import { AdvancedCanvasExample } from './pages/examples/AdvancedCanvasExample';
-import { RefsIndexPage } from './pages/refs/RefsIndexPage';
-import { FormBuilderRefDemoPage } from './pages/refs/FormBuilderRefDemoPage';
-import { WaitForRefsPerformancePage } from './pages/refs/WaitForRefsPerformancePage';
-import { DemosIndexPage } from './pages/demos/DemosIndexPage';
-import { StoreScenariosPage } from './pages/demos/StoreScenariosPage';
-import { TodoListPage } from './pages/demos/TodoListPage';
-import { ShoppingCartPage } from './pages/demos/ShoppingCartPage';
-import { ChatPage } from './pages/demos/ChatPage';
-import { UserProfilePage } from './pages/demos/UserProfilePage';
-import { ActionPriorityDemoPage } from './pages/demos/ActionPriorityDemoPage';
-import { RefContextMouseEventsPage } from './pages/mouse-events/ref-context/RefContextMouseEventsPage';
-import { ConditionalPatternsIndex } from '@/pages/conditional-patterns/ConditionalPatternsIndex';
-import { PermissionBasedExecution } from '@/pages/conditional-patterns/PermissionBasedExecution';
-import { FormValidation } from '@/pages/conditional-patterns/FormValidation';
-import { WorkflowSteps } from '@/pages/conditional-patterns/WorkflowSteps';
-import { FeatureToggle } from '@/pages/conditional-patterns/FeatureToggle';
-import ActionGuardOverview from './pages/ActionGuardOverview';
-import CoreConceptsOverview from './pages/CoreConceptsOverview';
-import ExamplesUtilitiesOverview from './pages/ExamplesUtilitiesOverview';
-import HomePage from './pages/HomePage';
-import { FlowControlPlaygroundPage } from './pages/pipeline/FlowControlPlaygroundPage';
-import LoggerDemoPage from './pages/logger/LoggerDemoPage';
-import ReactContextPage from './pages/react/ReactContextPage';
-import ReactHooksPage from './pages/react/ReactHooksPage';
-import ReactProviderPage from './pages/react/ReactProviderPage';
-import UseActionWithResultPage from './pages/react/UseActionWithResultPage';
-import StoreBasicsPage from './pages/store/StoreBasicsPage';
-import StoreImmutabilityTestPage from './pages/store/StoreImmutabilityTestPage';
+
+// Lazy load large page components
+const ConcurrentActionTestPage = lazy(() => import('./pages/examples/ConcurrentActionTestPage'));
+const EnhancedAbortableSearchExample = lazy(() => import('./components/EnhancedAbortableSearchExample'));
+const ActionGuardIndexPage = lazy(() => import('./pages/actionguard/ActionGuardIndexPage'));
+const ActionGuardPage = lazy(() => import('./pages/actionguard/ActionGuardPage'));
+const ApiBlockingPage = lazy(() => import('./pages/actionguard/ApiBlockingPage'));
+const ContextStoreMouseEventsPage = lazy(() => import('./pages/actionguard/ContextStoreMouseEventsPage').then(m => ({ default: m.ContextStoreMouseEventsPage })));
+const MouseEventsPage = lazy(() => import('./pages/actionguard/MouseEventsPage'));
+const OptimizedMouseEventsPage = lazy(() => import('./pages/mouse-events/OptimizedMouseEventsPage').then(m => ({ default: m.OptimizedMouseEventsPage })));
+const MouseEventsIndexPage = lazy(() => import('./pages/mouse-events/MouseEventsIndexPage').then(m => ({ default: m.MouseEventsIndexPage })));
+const CleanArchitecturePage = lazy(() => import('./pages/mouse-events/CleanArchitecturePage').then(m => ({ default: m.CleanArchitecturePage })));
+const ContextStoreActionPage = lazy(() => import('./pages/mouse-events/ContextStoreActionPage').then(m => ({ default: m.ContextStoreActionPage })));
+const EnhancedContextStorePage = lazy(() => import('./pages/mouse-events/EnhancedContextStorePage').then(m => ({ default: m.EnhancedContextStorePage })));
+const PriorityPerformanceBasicPage = lazy(() => import('./pages/actionguard/PriorityPerformancePage'));
+const PriorityPerformancePage = lazy(() => import('./pages/actionguard/priority-performance/PriorityPerformancePage').then(m => ({ default: m.PriorityPerformancePage })));
+const ScrollPage = lazy(() => import('./pages/actionguard/ScrollPage'));
+const SearchPage = lazy(() => import('./pages/actionguard/SearchPage'));
+const ThrottleComparisonPage = lazy(() => import('./pages/actionguard/ThrottleComparisonPage'));
+const CoreAdvancedPage = lazy(() => import('./pages/core/CoreAdvancedPage'));
+const CoreBasicsPage = lazy(() => import('./pages/core/CoreBasicsPage'));
+const ToastConfigPage = lazy(() => import('./pages/examples/ToastConfigPage'));
+const ElementManagementPage = lazy(() => import('./pages/examples/ElementManagementPage').then(m => ({ default: m.ElementManagementPage })));
+const FormBuilderDemoPage = lazy(() => import('./pages/examples/FormBuilderDemoPage').then(m => ({ default: m.FormBuilderDemoPage })));
+const AdvancedCanvasExample = lazy(() => import('./pages/examples/AdvancedCanvasExample').then(m => ({ default: m.AdvancedCanvasExample })));
+const RefsIndexPage = lazy(() => import('./pages/refs/RefsIndexPage').then(m => ({ default: m.RefsIndexPage })));
+const FormBuilderRefDemoPage = lazy(() => import('./pages/refs/FormBuilderRefDemoPage').then(m => ({ default: m.FormBuilderRefDemoPage })));
+const WaitForRefsPerformancePage = lazy(() => import('./pages/refs/WaitForRefsPerformancePage').then(m => ({ default: m.WaitForRefsPerformancePage })));
+const DemosIndexPage = lazy(() => import('./pages/demos/DemosIndexPage').then(m => ({ default: m.DemosIndexPage })));
+const StoreScenariosPage = lazy(() => import('./pages/demos/StoreScenariosPage').then(m => ({ default: m.StoreScenariosPage })));
+const TodoListPage = lazy(() => import('./pages/demos/TodoListPage').then(m => ({ default: m.TodoListPage })));
+const ShoppingCartPage = lazy(() => import('./pages/demos/ShoppingCartPage').then(m => ({ default: m.ShoppingCartPage })));
+const ChatPage = lazy(() => import('./pages/demos/ChatPage').then(m => ({ default: m.ChatPage })));
+const UserProfilePage = lazy(() => import('./pages/demos/UserProfilePage').then(m => ({ default: m.UserProfilePage })));
+const ActionPriorityDemoPage = lazy(() => import('./pages/demos/ActionPriorityDemoPage').then(m => ({ default: m.ActionPriorityDemoPage })));
+const RefContextMouseEventsPage = lazy(() => import('./pages/mouse-events/ref-context/RefContextMouseEventsPage').then(m => ({ default: m.RefContextMouseEventsPage })));
+const ConditionalPatternsIndex = lazy(() => import('@/pages/conditional-patterns/ConditionalPatternsIndex').then(m => ({ default: m.ConditionalPatternsIndex })));
+const PermissionBasedExecution = lazy(() => import('@/pages/conditional-patterns/PermissionBasedExecution').then(m => ({ default: m.PermissionBasedExecution })));
+const FormValidation = lazy(() => import('@/pages/conditional-patterns/FormValidation').then(m => ({ default: m.FormValidation })));
+const WorkflowSteps = lazy(() => import('@/pages/conditional-patterns/WorkflowSteps').then(m => ({ default: m.WorkflowSteps })));
+const FeatureToggle = lazy(() => import('@/pages/conditional-patterns/FeatureToggle').then(m => ({ default: m.FeatureToggle })));
+const ActionGuardOverview = lazy(() => import('./pages/ActionGuardOverview'));
+const CoreConceptsOverview = lazy(() => import('./pages/CoreConceptsOverview'));
+const ExamplesUtilitiesOverview = lazy(() => import('./pages/ExamplesUtilitiesOverview'));
+const HomePage = lazy(() => import('./pages/HomePage'));
+const FlowControlPlaygroundPage = lazy(() => import('./pages/pipeline/FlowControlPlaygroundPage').then(m => ({ default: m.FlowControlPlaygroundPage })));
+const LoggerDemoPage = lazy(() => import('./pages/logger/LoggerDemoPage'));
+const ReactContextPage = lazy(() => import('./pages/react/ReactContextPage'));
+const ReactHooksPage = lazy(() => import('./pages/react/ReactHooksPage'));
+const ReactProviderPage = lazy(() => import('./pages/react/ReactProviderPage'));
+const UseActionWithResultPage = lazy(() => import('./pages/react/UseActionWithResultPage'));
+const StoreBasicsPage = lazy(() => import('./pages/store/StoreBasicsPage'));
+const StoreImmutabilityTestPage = lazy(() => import('./pages/store/StoreImmutabilityTestPage'));
 
 // 라우트 변경 시 콘솔 클리어 (개발 환경에서만)
 function ConsoleClearer() {
@@ -83,7 +85,10 @@ function AppContent() {
     <>
       <ConsoleClearer />
       <Layout>
-        <Routes>
+        <Suspense fallback={<div className="flex items-center justify-center min-h-screen">
+          <div className="text-lg">Loading page...</div>
+        </div>}>
+          <Routes>
           <Route path="/" element={<HomePage />} />
           {/* Overview Pages */}
           <Route path="/overview/core" element={<CoreConceptsOverview />} />
@@ -214,7 +219,8 @@ function AppContent() {
             path="/actionguard/conditional/feature-toggle"
             element={<FeatureToggle />}
           />
-        </Routes>
+          </Routes>
+        </Suspense>
       </Layout>
 
       {/* 글로벌 토스트 시스템 */}

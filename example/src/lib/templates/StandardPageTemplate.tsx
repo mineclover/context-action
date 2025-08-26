@@ -9,7 +9,6 @@ import {
   useActionLoggerWithToast,
 } from '@/components/LogMonitor';
 import {
-  // DomainLayout, // Missing component - commented out
   DemoCard,
   CodeExample,
   DynamicPatternBadge,
