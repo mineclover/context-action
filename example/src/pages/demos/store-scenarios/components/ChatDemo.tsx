@@ -1,4 +1,4 @@
-import { useStoreValue, createDeclarativeStorePattern, createActionContext } from '@context-action/react';
+import { useStoreValue, createStoreContext, createActionContext } from '@context-action/react';
 import { createRefContext } from '@context-action/react';
 import React, { useCallback, useEffect, memo } from 'react';
 import { useActionLoggerWithToast } from '../../../../components/LogMonitor/';
@@ -10,7 +10,7 @@ import type { ChatMessage } from '../types';
 const {
   Provider: ChatUIStoreProvider,
   useStore: useChatUIStore
-} = createDeclarativeStorePattern('ChatUI', {
+} = createStoreContext('ChatUI', {
   newMessage: { initialValue: '' },
   currentUser: { initialValue: '김개발' },
   messageType: { initialValue: 'text' as ChatMessage['type'] },

@@ -7,7 +7,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { ActionPayloadMap } from '@context-action/core';
 import {
   createActionContext,
-  createDeclarativeStorePattern,
+  createStoreContext,
   useStoreValue,
 } from '@context-action/react';
 import { PageWithLogMonitor, useActionLoggerWithToast } from '../../components/LogMonitor';
@@ -76,7 +76,7 @@ export interface ApiBlockingActions extends ActionPayloadMap {
 }
 
 // Store & Action Context 생성
-const ApiBlockingStores = createDeclarativeStorePattern(
+const ApiBlockingStores = createStoreContext(
   'ApiBlockingStoreManager',
   {
     blockingState: {

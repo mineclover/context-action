@@ -8,7 +8,7 @@
 import type { ActionPayloadMap } from '@context-action/core';
 import {
   createActionContext,
-  createDeclarativeStorePattern,
+  createStoreContext,
 } from '@context-action/react';
 import type React from 'react';
 
@@ -33,7 +33,7 @@ export interface PriorityPerformanceStateData {
 }
 
 // 새로운 패턴으로 변경 - 자동 타입 추론
-const PriorityPerformanceStores = createDeclarativeStorePattern(
+const PriorityPerformanceStores = createStoreContext(
   'PriorityPerformanceStoreManager',
   {
     performanceState: {

@@ -9,7 +9,7 @@ import { LogLevel } from '../../../../utils/logger';
 import {
   ActionPayloadMap,
   createActionContext,
-  createDeclarativeStorePattern,
+  createStoreContext,
   Store,
   useStoreValue,
 } from '@context-action/react';
@@ -121,7 +121,7 @@ const MouseEventsActions = createActionContext<MouseActions>({
   name: 'MouseEvents-actions',
 });
 
-const MouseEventsStores = createDeclarativeStorePattern('MouseEvents-stores', {
+const MouseEventsStores = createStoreContext('MouseEvents-stores', {
   position: { initialValue: { x: 0, y: 0 } as MousePosition },
   movement: {
     initialValue: {

@@ -1,7 +1,7 @@
 import {
   type ActionPayloadMap,
   ActionRegister,
-  createDeclarativeStorePattern,
+  createStoreContext,
   useStoreValue,
 } from '@context-action/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -28,14 +28,14 @@ interface HooksOptimizationMap extends ActionPayloadMap {
  * @memberof core-concepts
  * @example
  * // React Hooks 최적화를 위한 Store Only 패턴
- * const HooksStores = createDeclarativeStorePattern('ReactHooks', {});
+ * const HooksStores = createStoreContext('ReactHooks', {});
  *
  * // 컴포넌트에서 Store 사용 (동적 생성)
  * const calculationStore = HooksStores.useStoreManager().getStore('calculation');
  * const memoryStore = HooksStores.useStoreManager().getStore('memory');
  * @since 1.0.0
  */
-const HooksStores = createDeclarativeStorePattern('ReactHooks', {});
+const HooksStores = createStoreContext('ReactHooks', {});
 
 // Store 생성 헬퍼 함수
 function useHooksStore<T>(storeName: string, initialValue: T) {

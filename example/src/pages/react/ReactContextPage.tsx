@@ -1,7 +1,7 @@
 import {
   type ActionPayloadMap,
   createActionContext,
-  createDeclarativeStorePattern,
+  createStoreContext,
   useStoreValue,
 } from '@context-action/react';
 import { useEffect } from 'react';
@@ -43,7 +43,7 @@ interface ChildBActions extends ActionPayloadMap {
 const ParentActionContext = createActionContext<ParentActions>({
   name: 'ParentContext-actions'
 });
-const ParentStores = createDeclarativeStorePattern('ParentContext-stores', {
+const ParentStores = createStoreContext('ParentContext-stores', {
   'registered-children': { initialValue: [] as Array<{ childId: string; childType: string }> },
   'data-log': { initialValue: [] as Array<{ source: string; data: any; timestamp: number }> },
   'parent-counter': { initialValue: 0 }
@@ -52,14 +52,14 @@ const ParentStores = createDeclarativeStorePattern('ParentContext-stores', {
 const ChildAActionContext = createActionContext<ChildAActions>({
   name: 'ChildAContext-actions'
 });
-const ChildAStores = createDeclarativeStorePattern('ChildAContext-stores', {
+const ChildAStores = createStoreContext('ChildAContext-stores', {
   'counter': { initialValue: 0 }
 });
 
 const ChildBActionContext = createActionContext<ChildBActions>({
   name: 'ChildBContext-actions'
 });
-const ChildBStores = createDeclarativeStorePattern('ChildBContext-stores', {
+const ChildBStores = createStoreContext('ChildBContext-stores', {
   'text': { initialValue: 'Hello World' }
 });
 

@@ -8,7 +8,7 @@
 import type { ActionPayloadMap } from '@context-action/core';
 import {
   createActionContext,
-  createDeclarativeStorePattern,
+  createStoreContext,
 } from '@context-action/react';
 import type React from 'react';
 
@@ -111,7 +111,7 @@ interface MouseEventsStores {
 }
 
 // 새로운 패턴으로 변경 - 자동 타입 추론 사용
-const MouseEventsStores = createDeclarativeStorePattern(
+const MouseEventsStores = createStoreContext(
   'MouseEventsStoreManager',
   {
     position: {

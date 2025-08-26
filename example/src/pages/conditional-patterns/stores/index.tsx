@@ -1,5 +1,5 @@
 import React from 'react';
-import { createActionContext, createDeclarativeStorePattern } from '@context-action/react';
+import { createActionContext, createStoreContext } from '@context-action/react';
 
 // =============================================================================
 // Type Definitions
@@ -70,7 +70,7 @@ export interface LogEntry {
 // Store Pattern Setup
 // =============================================================================
 
-const storePattern = createDeclarativeStorePattern('ConditionalPatterns', {
+const storePattern = createStoreContext('ConditionalPatterns', {
   // Environment Configuration
   environment: { 
     initialValue: 'development' as 'development' | 'staging' | 'production' 

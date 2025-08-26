@@ -1,7 +1,7 @@
 import {
   type ActionPayloadMap,
   createActionContext,
-  createDeclarativeStorePattern,
+  createStoreContext,
   useStoreValue,
 } from '@context-action/react';
 import type React from 'react';
@@ -25,7 +25,7 @@ interface ProviderActions extends ActionPayloadMap {
 const ProviderActions = createActionContext<ProviderActions>({
   name: 'ReactProviderDemo-actions'
 });
-const ProviderStores = createDeclarativeStorePattern('ReactProviderDemo-stores', {
+const ProviderStores = createStoreContext('ReactProviderDemo-stores', {
   'counter': { initialValue: 0 },
   'message': { initialValue: 'Hello from Provider!' },
   'activities': { initialValue: [] as string[] }
@@ -449,7 +449,7 @@ function ProviderApp() {
                   </div>
                   <div className="text-sm text-gray-600">
                     const MyActions = createActionContext&lt;Actions&gt;(...);<br/>
-                    const MyStores = createDeclarativeStorePattern(...);
+                    const MyStores = createStoreContext(...);
                   </div>
                 </div>
               </div>
@@ -536,7 +536,7 @@ function ReactProviderPage() {
 const ProviderActions = createActionContext<ProviderActions>({
   name: 'ReactProviderDemo-actions'
 });
-const ProviderStores = createDeclarativeStorePattern('ReactProviderDemo-stores', {
+const ProviderStores = createStoreContext('ReactProviderDemo-stores', {
   'counter': { initialValue: 0 },
   'message': { initialValue: 'Hello from Provider!' }
 });

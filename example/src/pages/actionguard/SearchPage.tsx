@@ -5,7 +5,7 @@
 
 import { useCallback, useState, useEffect, useMemo } from 'react';
 import { PageWithLogMonitor } from '../../components/LogMonitor';
-import { createActionContext, createDeclarativeStorePattern, useStoreValue } from '@context-action/react';
+import { createActionContext, createStoreContext, useStoreValue } from '@context-action/react';
 import { Badge, Card, CardContent } from '../../components/ui';
 
 // 검색 관련 액션 타입 정의
@@ -30,12 +30,12 @@ const sampleData = [
   { id: '8', title: 'State Synchronization', category: 'Documentation', tags: ['state', 'sync', 'real-time'], author: 'Alex Kim', date: '2024-02-20' },
 ];
 
-// Store Pattern using Declarative Store Pattern (recommended approach)
+// Store Pattern using Store Context Pattern (recommended approach)
 const {
   Provider: SearchStoreProvider,
   useStore: useSearchStore,
   useStoreManager: useSearchStoreManager
-} = createDeclarativeStorePattern('Search', {
+} = createStoreContext('Search', {
   query: '',
   filters: {} as Record<string, string>,
   results: sampleData,

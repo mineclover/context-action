@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { createActionContext, createDeclarativeStorePattern, useStoreValue } from '@context-action/react';
+import { createActionContext, createStoreContext, useStoreValue } from '@context-action/react';
 
 interface FeatureFlag {
   key: string;
@@ -25,7 +25,7 @@ interface FeatureActions {
 
 const { Provider: FeatureActionProvider, useActionDispatch: useFeatureAction, useActionHandler: useFeatureHandler } = createActionContext<FeatureActions>('FeatureToggle');
 
-const { Provider: FeatureStoreProvider, useStore: useFeatureStore } = createDeclarativeStorePattern('FeatureToggle', {
+const { Provider: FeatureStoreProvider, useStore: useFeatureStore } = createStoreContext('FeatureToggle', {
   features: { 
     initialValue: {
       'advanced-analytics': {

@@ -1,4 +1,4 @@
-import { useStoreValue, createDeclarativeStorePattern, createActionContext } from '@context-action/react';
+import { useStoreValue, createStoreContext, createActionContext } from '@context-action/react';
 import { useCallback, useEffect } from 'react';
 import { useActionLoggerWithToast } from '../../../../components/LogMonitor/';
 import { storeActionRegister } from '../actions';
@@ -9,7 +9,7 @@ import type { User } from '../types';
 const {
   Provider: UserUIStoreProvider,
   useStore: useUserUIStore
-} = createDeclarativeStorePattern('UserUI', {
+} = createStoreContext('UserUI', {
   isEditing: { initialValue: false },
   editForm: { initialValue: null as User | null }
 });

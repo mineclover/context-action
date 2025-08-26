@@ -1,5 +1,5 @@
 import {
-  createDeclarativeStorePattern,
+  createStoreContext,
   useStoreValue,
 } from '@context-action/react';
 import type React from 'react';
@@ -17,7 +17,7 @@ import {
 } from '../../components/ui';
 
 // Store Basics 데모용 Store Only 패턴
-const PageStores = createDeclarativeStorePattern('StoreBasics', {});
+const PageStores = createStoreContext('StoreBasics', {});
 
 // Dynamic store creation helper for Store Only pattern
 function usePageStore<T>(storeName: string, initialValue: T, options?: any) {
@@ -464,9 +464,9 @@ function StoreBasicsPage() {
           <CodeExample title="Store Only Pattern">
             <CodeBlock>
               {`// 1. Create Store Only Pattern for automatic registry isolation
-import { createDeclarativeStorePattern, useStoreValue } from '@context-action/react';
+import { createStoreContext, useStoreValue } from '@context-action/react';
 
-const PageStores = createDeclarativeStorePattern('MyPage', {});
+const PageStores = createStoreContext('MyPage', {});
 
 // Dynamic store creation helper
 function usePageStore(storeName, initialValue, options) {

@@ -399,7 +399,7 @@ function CoreConceptsOverview() {
             <div className="bg-white p-4 rounded-lg">
               <h3 className="font-medium text-amber-800 mb-2">🏪 Store Only Pattern</h3>
               <p className="text-sm text-gray-600 mb-2">
-                <code className="bg-amber-100 px-2 py-1 rounded text-xs">createDeclarativeStorePattern</code>
+                <code className="bg-amber-100 px-2 py-1 rounded text-xs">createStoreContext</code>
               </p>
               <ul className="text-sm text-gray-600 space-y-1">
                 <li>• 순수 상태 관리 (액션 디스패치 없음)</li>
@@ -641,7 +641,7 @@ function CoreConceptsOverview() {
             </h3>
             <ul className="text-sm text-gray-700 space-y-1">
               <li>• React hooks 및 providers</li>
-              <li>• <code>createDeclarativeStorePattern</code></li>
+              <li>• <code>createStoreContext</code></li>
               <li>• Context API 통합</li>
               <li>• 컴포넌트 아키텍처</li>
               <li>• 반응형 상태 구독</li>

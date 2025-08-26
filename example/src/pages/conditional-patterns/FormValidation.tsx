@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { createActionContext, createDeclarativeStorePattern, useStoreValue } from '@context-action/react';
+import { createActionContext, createStoreContext, useStoreValue } from '@context-action/react';
 
 interface FormData {
   email: string;
@@ -16,7 +16,7 @@ interface ValidationActions {
 
 const { Provider: ValidationActionProvider, useActionDispatch: useValidationAction, useActionHandler: useValidationHandler } = createActionContext<ValidationActions>('FormValidation');
 
-const { Provider: FormStoreProvider, useStore: useFormStore } = createDeclarativeStorePattern('FormValidation', {
+const { Provider: FormStoreProvider, useStore: useFormStore } = createStoreContext('FormValidation', {
   formData: { initialValue: { email: '', password: '', confirmPassword: '' } as FormData },
   fieldErrors: { initialValue: {} as Record<keyof FormData, string> },
   isValid: { initialValue: false },
