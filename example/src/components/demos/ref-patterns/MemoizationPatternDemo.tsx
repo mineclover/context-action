@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useRef } from 'react';
 import { useDemoRef } from '../../../hooks/useDemoRef';
 
 export function MemoizationPatternDemo() {
@@ -6,6 +6,7 @@ export function MemoizationPatternDemo() {
   const [logs, setLogs] = useState<string[]>([]);
   const [isMountToggled, setIsMountToggled] = useState(true);
   const [functionCallCount, setFunctionCallCount] = useState(0);
+  const callCountRef = useRef(0);
   
   const addLog = useCallback((message: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -18,14 +19,16 @@ export function MemoizationPatternDemo() {
 
   // 빈 deps 배열이지만 항상 최신 값을 반환하는 메모이제이션 함수
   const memoizedCheckFunction = useCallback(() => {
-    const callCount = functionCallCount + 1;
-    setFunctionCallCount(callCount);
+    // useRef를 통해 최신 카운트를 관리 (클로저 문제 해결)
+    callCountRef.current += 1;
+    setFunctionCallCount(callCountRef.current);
     
     const isMounted = memoTestRef.isMounted;
     const isWaiting = memoTestRef.isWaitingForMount;
     const target = memoTestRef.target;
     
-    addLog(`🔍 메모이제이션 함수 호출 #${callCount}: isMounted=${isMounted}, hasTarget=${!!target}`);
+    addLog(`🔍 메모이제이션 함수 호출 #${callCountRef.current}: isMounted=${isMounted}, hasTarget=${!!target}`);
+    addLog(`💡 함수 참조는 동일하지만 RefContext 값은 최신! (지연 평가)`);
     
     return { isMounted, isWaiting, hasTarget: !!target };
   }, []); // 빈 deps - 함수 자체는 재생성되지 않음
@@ -71,22 +74,29 @@ export function MemoizationPatternDemo() {
   }, [memoTestRef, addLog]);
 
   const resetCounters = useCallback(() => {
+    callCountRef.current = 0;
     setFunctionCallCount(0);
     addLog('🔄 호출 카운터 리셋됨');
   }, [addLog]);
 
-  const codeExample = `// 메모이제이션된 함수에서 최신 값 접근
+  const codeExample = `// 메모이제이션된 함수에서 최신 값 접근 + 카운터
+const callCountRef = useRef(0);
+
 const memoizedCheck = useCallback(() => {
+  // useRef로 클로저 문제 해결 (카운터)
+  callCountRef.current += 1;
+  
   return {
-    isMounted: element.isMounted,       // 항상 최신 상태
-    isWaiting: element.isWaitingForMount, // 항상 최신 상태  
-    hasTarget: !!element.target         // 항상 최신 상태
+    isMounted: element.isMounted,       // 항상 최신 상태 (지연 평가)
+    isWaiting: element.isWaitingForMount, // 항상 최신 상태 (지연 평가)
+    hasTarget: !!element.target,        // 항상 최신 상태 (지연 평가)
+    callCount: callCountRef.current     // 증가하는 카운터
   };
-}, []); // 빈 deps - 함수 자체는 재생성되지 않음
+}, []); // 빈 deps - 함수 참조는 동일하지만 내부 값은 최신!
 
 // useMemo로 포착된 객체도 지연 평가로 최신 값 반환
 const capturedElement = useMemo(() => element, []); // 최초 렌더링에서만 포착
-console.log(capturedElement.isMounted); // 항상 최신 상태!`;
+console.log(capturedElement.isMounted); // 항상 최신 상태! (지연 평가)`;
 
   return (
     <div className="p-4 border rounded-lg bg-purple-50">
