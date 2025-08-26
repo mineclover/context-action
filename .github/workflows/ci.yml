@@ -29,11 +29,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          registry-url: 'https://registry.npmjs.org'
+          
+      - name: Clear npm config before pnpm setup
+        run: |
+          # NPM_CONFIG_USERCONFIG 환경변수 제거
+          unset NPM_CONFIG_USERCONFIG
+          # 기존 .npmrc 제거
+          rm -f ~/.npmrc
           
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
+          version: latest
           run_install: false
           
       - name: Get pnpm store directory
@@ -47,13 +54,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
             
-      - name: Create .npmrc file with token
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+      - name: Configure npm registry (if token exists)
+        if: ${{ secrets.NPM_TOKEN != '' }}
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+          echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
         
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           
       - name: Build packages
         run: pnpm build
@@ -101,15 +109,23 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
         
-      - name: Create .npmrc file with token
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+      - name: Clear npm config before pnpm setup
+        run: |
+          unset NPM_CONFIG_USERCONFIG
+          rm -f ~/.npmrc
           
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
+          version: latest
           run_install: false
+        
+      - name: Configure npm registry (if token exists)
+        if: ${{ secrets.NPM_TOKEN != '' }}
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+          echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
           
       - name: Get pnpm store directory
         run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
@@ -140,15 +156,23 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
         
-      - name: Create .npmrc file with token
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+      - name: Clear npm config before pnpm setup
+        run: |
+          unset NPM_CONFIG_USERCONFIG
+          rm -f ~/.npmrc
           
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
+          version: latest
           run_install: false
+        
+      - name: Configure npm registry (if token exists)
+        if: ${{ secrets.NPM_TOKEN != '' }}
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+          echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
           
       - name: Get pnpm store directory
         run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
@@ -310,9 +334,15 @@ jobs:
         with:
           node-version: '22'
       
+      - name: Clear npm config before pnpm setup
+        run: |
+          unset NPM_CONFIG_USERCONFIG
+          rm -f ~/.npmrc
+      
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
+          version: latest
           run_install: false
       
       - name: Install dependencies
@@ -354,9 +384,15 @@ jobs:
         with:
           node-version: '22'
       
+      - name: Clear npm config before pnpm setup
+        run: |
+          unset NPM_CONFIG_USERCONFIG
+          rm -f ~/.npmrc
+      
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
+          version: latest
           run_install: false
       
       - name: Install dependencies
