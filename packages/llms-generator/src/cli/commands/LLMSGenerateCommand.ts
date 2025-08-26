@@ -148,7 +148,11 @@ export class LLMSGenerateCommand {
 
   private async collectDocuments(options: LLMSGenerateOptions): Promise<DocumentContent[]> {
     const documents: DocumentContent[] = [];
-    const language = options.language!;
+    const language = options.language;
+    
+    if (!language) {
+      throw new Error('Language is required for document collection');
+    }
     
     const languageDataDir = path.join(this.config.paths.llmContentDir, language);
     
@@ -666,7 +670,7 @@ export class LLMSGenerateCommand {
       totalDocuments: documents.length,
       categories: [...new Set(documents.map(d => d.category))],
       characterLimits: [...new Set(documents.map(d => d.characterLimit))],
-      averageQuality: documents.filter(d => d.metadata.quality_score).reduce((sum, d) => sum + d.metadata.quality_score!, 0) / documents.filter(d => d.metadata.quality_score).length || 0,
+      averageQuality: documents.filter(d => d.metadata.quality_score).reduce((sum, d) => sum + (d.metadata.quality_score || 0), 0) / documents.filter(d => d.metadata.quality_score).length || 0,
       totalCharacters: documents.reduce((sum, d) => sum + d.metadata.content_length, 0)
     };
 

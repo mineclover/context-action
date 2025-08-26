@@ -2,6 +2,41 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { EnhancedLLMSConfig } from '../../types/config.js';
 
+// Priority data structure types
+export interface PriorityData {
+  priority: {
+    score: number;
+    tier: string;
+    reasoning?: string;
+  };
+  metadata?: {
+    title: string;
+    language: string;
+    category?: string;
+    tags?: string[];
+  };
+  // Legacy format support
+  language?: string;
+  [key: string]: unknown;
+}
+
+export interface LegacyPriorityData {
+  priority: number;
+  language: string;
+  [key: string]: unknown;
+}
+
+export interface PriorityCriteria {
+  documentSize: { weight: number; method: string };
+  category: { 
+    weight: number; 
+    values: Record<string, number>;
+  };
+  keywordDensity: { weight: number; method: string };
+  relationships: { weight: number; method: string };
+  [key: string]: unknown;
+}
+
 export interface PriorityManagerOptions {
   mode: 'stats' | 'health' | 'sync' | 'auto-calc' | 'suggest' | 'upgrade';
   server?: string;
@@ -361,69 +396,78 @@ export class PriorityManagerCommand {
     return files;
   }
 
-  private async loadPriorityFile(filePath: string): Promise<any> {
+  private async loadPriorityFile(filePath: string): Promise<PriorityData | LegacyPriorityData> {
     const content = await fs.readFile(filePath, 'utf-8');
-    return JSON.parse(content);
+    return JSON.parse(content) as PriorityData | LegacyPriorityData;
   }
 
   // Helper methods to handle both old and new priority.json formats
-  private getPriorityScore(priority: any): number {
-    // New format: priority.priority.score
-    if (priority.priority && typeof priority.priority.score === 'number') {
-      return priority.priority.score;
+  private getPriorityScore(priority: PriorityData | LegacyPriorityData): number {
+    // Check if it's the new format
+    if ('priority' in priority && typeof priority.priority === 'object' && priority.priority !== null) {
+      const newFormat = priority as PriorityData;
+      if (typeof newFormat.priority.score === 'number') {
+        return newFormat.priority.score;
+      }
     }
-    // Old format: priority as number
-    if (typeof priority.priority === 'number') {
-      return priority.priority;
+    // Check if it's the legacy format
+    if ('priority' in priority && typeof priority.priority === 'number') {
+      const legacyFormat = priority as LegacyPriorityData;
+      return legacyFormat.priority;
     }
     return 0;
   }
 
-  private getPriorityTier(priority: any): string {
-    // New format: priority.priority.tier
-    if (priority.priority && typeof priority.priority.tier === 'string') {
-      return priority.priority.tier;
+  private getPriorityTier(priority: PriorityData | LegacyPriorityData): string {
+    // Check if it's the new format
+    if ('priority' in priority && typeof priority.priority === 'object' && priority.priority !== null) {
+      const newFormat = priority as PriorityData;
+      if (typeof newFormat.priority.tier === 'string') {
+        return newFormat.priority.tier;
+      }
     }
-    // Derive from score
+    // Derive from score for legacy format
     const score = this.getPriorityScore(priority);
     return this.scoreToPriorityTier(score);
   }
 
-  private getPriorityCategory(priority: any): string {
-    // New format: priority.document.category
-    if (priority.document && priority.document.category) {
-      return priority.document.category;
+  private getPriorityCategory(priority: PriorityData | LegacyPriorityData): string {
+    // New format: priority.metadata.category
+    const newFormat = priority as PriorityData;
+    if (newFormat.metadata?.category) {
+      return newFormat.metadata.category;
     }
-    // Old format: priority.category
-    if (priority.category) {
-      return priority.category;
+    // Check if it has category property directly (legacy or unknown format)
+    if ('category' in priority && priority.category) {
+      return priority.category as string;
     }
     return 'unknown';
   }
 
-  private getPriorityLanguage(priority: any): string {
+  private getPriorityLanguage(priority: PriorityData | LegacyPriorityData): string {
     // New format: priority.metadata.language
-    if (priority.metadata && priority.metadata.language) {
-      return priority.metadata.language;
+    const newFormat = priority as PriorityData;
+    if (newFormat.metadata?.language) {
+      return newFormat.metadata.language;
     }
     // Old format: priority.language
-    if (priority.language) {
+    if ('language' in priority && priority.language) {
       return priority.language;
     }
     return 'unknown';
   }
 
 
-  private async savePriorityFile(filePath: string, priority: any): Promise<void> {
+  private async savePriorityFile(filePath: string, priority: PriorityData | LegacyPriorityData): Promise<void> {
     await fs.writeFile(filePath, JSON.stringify(priority, null, 2));
   }
 
-  private async loadCriteria(criteriaFile: string): Promise<any> {
+  private async loadCriteria(criteriaFile: string): Promise<PriorityCriteria> {
     const content = await fs.readFile(criteriaFile, 'utf-8');
-    return JSON.parse(content);
+    return JSON.parse(content) as PriorityCriteria;
   }
 
-  private getDefaultCriteria(): any {
+  private getDefaultCriteria(): PriorityCriteria {
     return {
       documentSize: { weight: 0.4, method: 'linear' },
       category: { 
@@ -435,7 +479,7 @@ export class PriorityManagerCommand {
     };
   }
 
-  private async calculatePriorityScore(priority: any, criteria: any): Promise<number> {
+  private async calculatePriorityScore(priority: PriorityData | LegacyPriorityData, criteria: PriorityCriteria): Promise<number> {
     // Simplified priority calculation
     let score = 50; // Base score
 
@@ -559,7 +603,7 @@ export class PriorityManagerCommand {
     }
   }
 
-  private isOldFormat(priority: any): boolean {
+  private isOldFormat(priority: PriorityData | LegacyPriorityData | Record<string, unknown>): boolean {
     // Old format characteristics:
     // 1. Has priority as a number (not an object)
     // 2. Has category at root level (not in document object)
@@ -571,43 +615,27 @@ export class PriorityManagerCommand {
     );
   }
 
-  private convertToNewFormat(oldData: any): any {
-    const timestamp = new Date().toISOString();
+  private convertToNewFormat(oldData: Record<string, unknown>): PriorityData {
     const score = typeof oldData.priority === 'number' ? oldData.priority : 50;
     const category = oldData.category || 'guide';
-    const id = oldData.id || 'unknown';
     const title = oldData.title || 'Document Title';
     const language = oldData.language || 'en';
 
     return {
-      document: {
-        id,
-        title,
-        category,
-        language,
-        lastModified: timestamp,
-        ...(oldData.source_path && { source_path: oldData.source_path })
-      },
       priority: {
         score,
-        reason: oldData.reason || 'Upgraded from old format',
-        factors: {
-          importance: Math.min(100, Math.max(0, score + 10)),
-          urgency: Math.min(100, Math.max(0, score - 10)),
-          impact: score
-        },
-        ...(oldData.tier && { tier: oldData.tier })
+        tier: (oldData.tier as string) || this.scoreToPriorityTier(score),
+        reasoning: (oldData.reason as string) || 'Upgraded from old format'
       },
-      tags: oldData.tags || ['documentation'],
-      ...(oldData.purpose && { purpose: oldData.purpose }),
-      ...(oldData.keywords && { keywords: oldData.keywords }),
       metadata: {
-        description: oldData.description || oldData.metadata?.description || 'Document description',
-        language,
-        created_at: oldData.created_at || oldData.metadata?.created_at || timestamp,
-        upgraded_at: timestamp,
-        ...(oldData.metadata && { ...oldData.metadata })
-      }
+        title: (title as string),
+        language: (language as string),
+        category: (category as string),
+        tags: (oldData.tags as string[]) || ['documentation']
+      },
+      ...(oldData.source_path && { source_path: oldData.source_path }),
+      ...(oldData.purpose && { purpose: oldData.purpose }),
+      ...(oldData.keywords && { keywords: oldData.keywords })
     };
   }
 
