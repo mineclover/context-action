@@ -1,15 +1,15 @@
 /**
- * @fileoverview Tests for createDeclarativeStorePattern factory
+ * @fileoverview Tests for createStoreContext factory
  */
 
 import { renderHook, act, render } from '@testing-library/react';
 import React from 'react';
-import { createStoreContext as createDeclarativeStorePattern } from '../../../src/stores/patterns/declarative-store-pattern-v2';
+import { createStoreContext } from '../../../src/stores/patterns/declarative-store-pattern-v2';
 import { useStoreValue } from '../../../src/stores/hooks/useStoreValue';
 
-describe('createDeclarativeStorePattern', () => {
+describe('createStoreContext', () => {
   it('should create pattern with initial values', () => {
-    const AppStores = createDeclarativeStorePattern('App', {
+    const AppStores = createStoreContext('App', {
       user: { initialValue: { id: '', name: '' } },
       count: { initialValue: 0 },
       settings: { initialValue: { theme: 'light' } }
@@ -22,7 +22,7 @@ describe('createDeclarativeStorePattern', () => {
   });
 
   it('should provide type-safe store access', () => {
-    const TestStores = createDeclarativeStorePattern('Test', {
+    const TestStores = createStoreContext('Test', {
       message: { initialValue: 'hello' },
       counter: { initialValue: 42 }
     });
@@ -52,7 +52,7 @@ describe('createDeclarativeStorePattern', () => {
   });
 
   it('should handle store updates correctly', async () => {
-    const AppStores = createDeclarativeStorePattern('App', {
+    const AppStores = createStoreContext('App', {
       user: { initialValue: { name: 'John', age: 30 } },
       counter: { initialValue: 0 }
     });
@@ -111,7 +111,7 @@ describe('createDeclarativeStorePattern', () => {
   });
 
   it('should provide store manager access', () => {
-    const TestStores = createDeclarativeStorePattern('Test', {
+    const TestStores = createStoreContext('Test', {
       data: { initialValue: { value: 'test' } }
     });
 
@@ -133,7 +133,7 @@ describe('createDeclarativeStorePattern', () => {
   });
 
   it('should work with withProvider HOC', async () => {
-    const UserStores = createDeclarativeStorePattern('User', {
+    const UserStores = createStoreContext('User', {
       profile: { initialValue: { name: 'Test User' } }
     });
 
@@ -155,7 +155,7 @@ describe('createDeclarativeStorePattern', () => {
   });
 
   it('should support complex nested initial values', () => {
-    const ComplexStores = createDeclarativeStorePattern('Complex', {
+    const ComplexStores = createStoreContext('Complex', {
       app: { 
         initialValue: {
           ui: { theme: 'dark', sidebar: true },
@@ -187,11 +187,11 @@ describe('createDeclarativeStorePattern', () => {
   });
 
   it('should handle multiple pattern instances independently', async () => {
-    const StoreA = createDeclarativeStorePattern('A', {
+    const StoreA = createStoreContext('A', {
       value: { initialValue: 'A' }
     });
 
-    const StoreB = createDeclarativeStorePattern('B', {
+    const StoreB = createStoreContext('B', {
       value: { initialValue: 'B' }
     });
 

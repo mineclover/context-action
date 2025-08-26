@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { render, act, renderHook } from '@testing-library/react';
-import { createDeclarativeStorePattern } from '../../../src/stores/patterns/declarative-store-pattern-v2';
+import { createStoreContext } from '../../../src/stores/patterns/declarative-store-pattern-v2';
 import { createActionContext } from '../../../src/actions';
 import type { ActionPayloadMap } from '@context-action/core';
 
@@ -61,12 +61,12 @@ interface MouseActions extends ActionPayloadMap {
 }
 
 describe('High-frequency store updates', () => {
-  let TestStorePattern: ReturnType<typeof createDeclarativeStorePattern>;
+  let TestStorePattern: ReturnType<typeof createStoreContext>;
   let TestActionContext: ReturnType<typeof createActionContext<MouseActions>>;
   
   beforeEach(() => {
     // Create fresh store pattern for each test
-    TestStorePattern = createDeclarativeStorePattern('HighFrequencyTest', {
+    TestStorePattern = createStoreContext('HighFrequencyTest', {
       position: {
         initialValue: { x: 0, y: 0 },
         description: 'Mouse position',
@@ -279,7 +279,7 @@ describe('High-frequency store updates', () => {
 
     it('should handle mixed store strategies without performance issues', async () => {
       // Create a pattern with different strategies to test mixed scenarios
-      const MixedStorePattern = createDeclarativeStorePattern('MixedTest', {
+      const MixedStorePattern = createStoreContext('MixedTest', {
         shallow: {
           initialValue: { count: 0 },
           strategy: 'shallow'

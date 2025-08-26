@@ -5,7 +5,7 @@
  * works correctly with both explicit generics and type inference.
  */
 
-import { createDeclarativeStorePattern } from '../../../src/stores/patterns/declarative-store-pattern-v2';
+import { createStoreContext } from '../../../src/stores/patterns/declarative-store-pattern-v2';
 import { createActionContext } from '@context-action/react';
 import type { ActionPayloadMap } from '@context-action/core';
 
@@ -43,7 +43,7 @@ interface TestActions extends ActionPayloadMap {
  * ✅ CORRECT: Explicit generics with direct values
  * 명시적 제네릭 + 직접 값 제공 (InitialStores<T> 구조)
  */
-const ExplicitGenericWithDirectValues = createDeclarativeStorePattern<UserStores>('UserApp', {
+const ExplicitGenericWithDirectValues = createStoreContext<UserStores>('UserApp', {
   // 직접 값 제공 - UserStores 타입과 일치해야 함
   profile: { id: '', name: '', email: '' },
   settings: { theme: 'light', language: 'en' },
@@ -54,7 +54,7 @@ const ExplicitGenericWithDirectValues = createDeclarativeStorePattern<UserStores
  * ✅ CORRECT: Explicit generics with config objects
  * 명시적 제네릭 + 설정 객체 제공 (InitialStores<T> 구조)
  */
-const ExplicitGenericWithConfig = createDeclarativeStorePattern<UserStores>('UserAppConfig', {
+const ExplicitGenericWithConfig = createStoreContext<UserStores>('UserAppConfig', {
   // 설정 객체 사용 - initialValue가 UserStores 타입과 일치해야 함
   profile: {
     initialValue: { id: '', name: '', email: '' },
@@ -74,7 +74,7 @@ const ExplicitGenericWithConfig = createDeclarativeStorePattern<UserStores>('Use
  * ✅ CORRECT: Explicit generics with mixed direct values and config
  * 명시적 제네릭 + 직접 값과 설정 객체 혼합
  */
-const ExplicitGenericMixed = createDeclarativeStorePattern<AppStores>('AppMixed', {
+const ExplicitGenericMixed = createStoreContext<AppStores>('AppMixed', {
   counter: 0,  // 직접 값
   user: { id: '', name: '' },  // 직접 값
   todos: [],  // 직접 값 (빈 배열)
@@ -92,7 +92,7 @@ const ExplicitGenericMixed = createDeclarativeStorePattern<AppStores>('AppMixed'
  * ✅ CORRECT: Type inference with direct values
  * 타입 추론 + 직접 값 제공
  */
-const TypeInferenceDirectValues = createDeclarativeStorePattern('InferredApp', {
+const TypeInferenceDirectValues = createStoreContext('InferredApp', {
   counter: 0,  // 추론: Store<number>
   user: { id: '', name: '', email: '' },  // 추론: Store<{id: string, name: string, email: string}>
   isLoggedIn: false,  // 추론: Store<boolean>
@@ -104,7 +104,7 @@ const TypeInferenceDirectValues = createDeclarativeStorePattern('InferredApp', {
  * ✅ CORRECT: Type inference with config objects
  * 타입 추론 + 설정 객체 제공
  */
-const TypeInferenceWithConfig = createDeclarativeStorePattern('InferredConfig', {
+const TypeInferenceWithConfig = createStoreContext('InferredConfig', {
   counter: {
     initialValue: 0,
     strategy: 'reference'
@@ -124,7 +124,7 @@ const TypeInferenceWithConfig = createDeclarativeStorePattern('InferredConfig', 
  * ✅ CORRECT: Type inference with complex nested types
  * 타입 추론 + 복잡한 중첩 타입
  */
-const TypeInferenceComplex = createDeclarativeStorePattern('ComplexInferred', {
+const TypeInferenceComplex = createStoreContext('ComplexInferred', {
   // 중첩 객체
   appState: {
     ui: { loading: false, error: null as string | null },
@@ -256,14 +256,14 @@ function typeValidationTests() {
  */
 /*
 // ❌ ERROR: Wrong type for explicit generic
-const WrongExplicitType = createDeclarativeStorePattern<UserStores>('Wrong', {
+const WrongExplicitType = createStoreContext<UserStores>('Wrong', {
   profile: { id: 123, name: '', email: '' }, // ❌ id should be string, not number
   settings: { theme: 'invalid', language: 'en' }, // ❌ theme should be 'light' | 'dark'
   preferences: { notifications: 'yes', autoSave: false } // ❌ notifications should be boolean
 });
 
 // ❌ ERROR: Missing required properties
-const MissingProperties = createDeclarativeStorePattern<UserStores>('Missing', {
+const MissingProperties = createStoreContext<UserStores>('Missing', {
   profile: { id: '', name: '' }, // ❌ Missing email property
   settings: { theme: 'light' }, // ❌ Missing language property
   // ❌ Missing preferences entirely
@@ -301,13 +301,13 @@ export {
  * TYPE TEST SUMMARY
  * 
  * ✅ Explicit Generic Tests (명시적 제네릭):
- * - Direct values: createDeclarativeStorePattern<T>(name, directValues)
- * - Config objects: createDeclarativeStorePattern<T>(name, configObjects)
- * - Mixed approach: createDeclarativeStorePattern<T>(name, mixedValues)
+ * - Direct values: createStoreContext<T>(name, directValues)
+ * - Config objects: createStoreContext<T>(name, configObjects)
+ * - Mixed approach: createStoreContext<T>(name, mixedValues)
  * 
  * ✅ Type Inference Tests (타입 추론):
- * - Direct values: createDeclarativeStorePattern(name, directValues)
- * - Config objects: createDeclarativeStorePattern(name, configObjects)
+ * - Direct values: createStoreContext(name, directValues)
+ * - Config objects: createStoreContext(name, configObjects)
  * - Complex types: Arrays, Dates, nested objects
  * 
  * ✅ Action Context Tests:

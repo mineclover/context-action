@@ -26,11 +26,9 @@ export {
   type WithProviderConfig
 } from './declarative-store-pattern-v2';
 
-// === LEGACY COMPATIBILITY ===
-// @deprecated Use createStoreContext instead
+// === TYPE ALIASES ===
+// For consistency
 export { 
-  createStoreContext as createDeclarativeStorePattern,
-  createStoreContext as createDeclarativeStores,
   type StoreConfig as StoreSchema
 } from './declarative-store-pattern-v2';
 
