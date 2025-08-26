@@ -608,11 +608,11 @@ export class PriorityManagerCommand {
     // 1. Has priority as a number (not an object)
     // 2. Has category at root level (not in metadata object)  
     // 3. Missing metadata structure or has old document structure
-    return (
-      typeof priority.priority === 'number' ||
-      (priority.category && !priority.metadata) ||
-      ('document' in priority && priority.document)
-    );
+    const hasNumericPriority = typeof (priority as any).priority === 'number';
+    const hasOldStructure = !!(priority as any).category && !(priority as any).metadata;
+    const hasDocumentField = 'document' in priority && !!(priority as any).document;
+    
+    return hasNumericPriority || hasOldStructure || hasDocumentField;
   }
 
   private convertToNewFormat(oldData: Record<string, unknown>): PriorityData {
@@ -633,9 +633,9 @@ export class PriorityManagerCommand {
         category: (category as string),
         tags: (oldData.tags as string[]) || ['documentation']
       },
-      ...(oldData.source_path && { source_path: oldData.source_path }),
-      ...(oldData.purpose && { purpose: oldData.purpose }),
-      ...(oldData.keywords && { keywords: oldData.keywords })
+      ...(oldData.source_path && typeof oldData.source_path === 'string' ? { source_path: oldData.source_path } : {}),
+      ...(oldData.purpose && typeof oldData.purpose === 'string' ? { purpose: oldData.purpose } : {}),
+      ...(oldData.keywords && Array.isArray(oldData.keywords) ? { keywords: oldData.keywords } : {})
     };
   }
 

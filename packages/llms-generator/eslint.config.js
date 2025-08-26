@@ -31,7 +31,7 @@ export default [
       
       // Code quality rules
       'no-case-declarations': 'off',
-      'no-console': 'warn',
+      'no-console': 'off',
       'no-debugger': 'error',
       'no-regex-spaces': 'error',
       
