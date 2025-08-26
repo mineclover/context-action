@@ -216,45 +216,58 @@ function PermissionBasedExecutionContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pr-80">
+    <div className="min-h-screen bg-gray-50">
       <PermissionHandlers />
       
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-6 lg:pr-80">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-6">
             <Link 
               to="/actionguard/conditional" 
-              className="text-blue-600 hover:text-blue-800 underline text-sm"
+              className="text-blue-600 hover:text-blue-800 underline text-sm font-medium transition-colors"
             >
               ← Back to Conditional Execution
             </Link>
+            <span className="hidden sm:inline text-gray-300">|</span>
             <Link 
               to="/" 
-              className="text-gray-600 hover:text-gray-800 underline text-sm"
+              className="text-gray-600 hover:text-gray-800 underline text-sm font-medium transition-colors"
             >
               🏠 Home
             </Link>
           </div>
           
-          <h1 className="text-3xl font-bold mb-4">🔒 Permission-Based Execution</h1>
-          <p className="text-lg text-gray-600 mb-4">
-            Security-first handlers with role-based access control and comprehensive audit logging.
-          </p>
-          
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <p className="text-sm text-yellow-800">
-              <strong>🛡️ Security Guard Pattern:</strong> Handlers validate permissions before execution. 
-              All access attempts are logged with fail-secure by default behavior.
+          <div className="mb-6">
+            <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              🔒 Permission-Based Execution
+            </h1>
+            <p className="text-xl text-gray-600 leading-relaxed">
+              Security-first handlers with role-based access control and comprehensive audit logging.
             </p>
+          </div>
+          
+          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-5 shadow-sm">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">🛡️</span>
+              <div>
+                <h3 className="font-semibold text-yellow-800 mb-1">Security Guard Pattern</h3>
+                <p className="text-sm text-yellow-700 leading-relaxed">
+                  Handlers validate permissions before execution. All access attempts are logged with fail-secure by default behavior.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 mb-8">
+        <div className="space-y-6 mb-8">
           {/* Permission Control Panel */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold mb-4">🎛️ Access Control Test</h2>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+              <span>🎛️</span>
+              <span>Access Control Test</span>
+            </h2>
             
             {/* Current Role */}
             <div className="mb-4">
@@ -333,8 +346,11 @@ function PermissionBasedExecutionContent() {
           </div>
 
           {/* Role Hierarchy */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold mb-4">👥 Role Hierarchy</h2>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+              <span>👥</span>
+              <span>Role Hierarchy</span>
+            </h2>
             <div className="space-y-3">
               {[
                 { role: 'superadmin', level: 4, desc: 'System configuration, all privileges', color: 'bg-red-100 text-red-800' },
@@ -343,14 +359,25 @@ function PermissionBasedExecutionContent() {
                 { role: 'user', level: 1, desc: 'Create and update content', color: 'bg-green-100 text-green-800' },
                 { role: 'guest', level: 0, desc: 'Read-only access', color: 'bg-gray-100 text-gray-800' }
               ].map((item) => (
-                <div key={item.role} className="flex items-center justify-between p-3 border rounded">
-                  <div>
-                    <span className={`px-2 py-1 rounded text-xs ${item.color}`}>
-                      Level {item.level}: {item.role}
-                    </span>
-                    <div className="text-sm text-gray-600 mt-1">{item.desc}</div>
+                <div key={item.role} className={`flex items-center justify-between p-4 border rounded-lg transition-all ${
+                  userRole === item.role 
+                    ? 'border-blue-300 bg-blue-50 shadow-sm' 
+                    : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                }`}>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${item.color}`}>
+                        Level {item.level}: {item.role}
+                      </span>
+                      {userRole === item.role && (
+                        <span className="flex items-center gap-1 text-blue-600 text-sm font-medium">
+                          <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                          Current
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-sm text-gray-600">{item.desc}</div>
                   </div>
-                  {userRole === item.role && <span className="text-blue-600">← Current</span>}
                 </div>
               ))}
             </div>
@@ -358,10 +385,13 @@ function PermissionBasedExecutionContent() {
         </div>
 
         {/* Results Section */}
-        <div className="grid md:grid-cols-2 gap-8 mb-8">
+        <div className="space-y-6 mb-8">
           {/* Permission Results */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold mb-4">🔐 Permission Results</h3>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <span>🔐</span>
+              <span>Permission Results</span>
+            </h3>
             {permissionResults.length === 0 ? (
               <p className="text-gray-500">No permission checks yet. Test an action above.</p>
             ) : (
@@ -389,8 +419,11 @@ function PermissionBasedExecutionContent() {
           </div>
 
           {/* Audit Trail */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold mb-4">📋 Security Audit Trail</h3>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <span>📋</span>
+              <span>Security Audit Trail</span>
+            </h3>
             {auditLogs.length === 0 ? (
               <p className="text-gray-500">No audit entries yet. Perform security actions to see audit trail.</p>
             ) : (
@@ -419,8 +452,11 @@ function PermissionBasedExecutionContent() {
         </div>
 
         {/* Execution Log */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold mb-4">📋 Execution Log</h3>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow mb-8">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <span>📋</span>
+            <span>Execution Log</span>
+          </h3>
           {logs.length === 0 ? (
             <p className="text-gray-500">No activity yet. Test security actions above.</p>
           ) : (
@@ -448,9 +484,12 @@ function PermissionBasedExecutionContent() {
         </div>
 
         {/* Architecture Description */}
-        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-6 mt-8">
-          <h2 className="text-xl font-semibold text-yellow-900 mb-4">🏗️ Security Guard Pattern Implementation</h2>
-          <div className="grid md:grid-cols-2 gap-6 text-sm">
+        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-8 shadow-sm">
+          <h2 className="text-2xl font-semibold text-yellow-900 mb-6 flex items-center gap-3">
+            <span>🏗️</span>
+            <span>Security Guard Pattern Implementation</span>
+          </h2>
+          <div className="grid lg:grid-cols-2 gap-8 text-sm">
             <div>
               <h3 className="font-medium text-yellow-800 mb-2">Pattern Features:</h3>
               <ul className="text-yellow-700 space-y-1">

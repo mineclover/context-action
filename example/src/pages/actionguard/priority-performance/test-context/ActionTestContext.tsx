@@ -45,10 +45,8 @@ export const usePriorityActionHandler = PriorityTestAction.useActionHandler;
 
 // Legacy exports (deprecated) - temporarily restored for compatibility
 export const usePriorityActionRegister = PriorityTestAction.useActionRegister;
-export const usePriorityActionContext: () => any =
-  PriorityTestAction.useActionContext;
-export const PriorityTestActionContext: React.Context<any> =
-  PriorityTestAction.context;
+export const usePriorityActionContext = PriorityTestAction.useActionContext;
+export const PriorityTestActionContext = PriorityTestAction.context;
 
 // Stores 인스턴스 생성 - 새로운 패턴으로 자동 타입 추론
 const PriorityStores = createStoreContext('PriorityTestManager', {

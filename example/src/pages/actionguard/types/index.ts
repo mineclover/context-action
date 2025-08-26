@@ -20,15 +20,104 @@ export interface PriorityConfig {
   retryCount: number;
 }
 
-export interface ActionPerformanceData {
-  actionId: string;
-  startTime: number;
-  endTime: number;
-  duration: number;
-  priority: number;
-  status: 'pending' | 'executing' | 'completed' | 'failed' | 'timeout';
-  result?: any;
-  error?: Error;
+// =============================================================================
+// CONTEXT-ACTION BASED PERFORMANCE TRACKING SYSTEM
+// =============================================================================
+// Context-Action 라이브러리를 직접 사용한 성능 추적 시스템
+
+import type { ActionPayloadMap, HandlerConfig, ExecutionResult } from '@context-action/core';
+
+// Performance tracking action types using Context-Action
+export interface PerformanceTrackingActions extends ActionPayloadMap {
+  // Action execution tracking
+  startActionExecution: {
+    actionId: string;
+    actionType: string;
+    priority: number;
+    payload?: unknown;
+    metadata?: ActionExecutionMetadata;
+  };
+  
+  completeActionExecution: {
+    actionId: string;
+    result?: unknown;
+    duration: number;
+    success: boolean;
+  };
+  
+  failActionExecution: {
+    actionId: string;
+    error: Error;
+    duration: number;
+  };
+  
+  // Performance analytics
+  recordPerformanceMetrics: {
+    actionType: string;
+    executionTime: number;
+    memoryUsage: number;
+    priority: number;
+  };
+  
+  // Queue management
+  addToQueue: {
+    actionId: string;
+    priority: number;
+    queueTime: number;
+  };
+  
+  removeFromQueue: {
+    actionId: string;
+    dequeueTime: number;
+  };
+}
+
+// Enhanced ActionPerformanceData using Context-Action patterns
+export interface ActionPerformanceData<TPayload = unknown, TResult = unknown> {
+  // Core identification
+  readonly actionId: string;
+  readonly actionType: string;
+  
+  // Context-Action integration
+  readonly handlerConfig?: HandlerConfig;    // Uses Context-Action's HandlerConfig
+  readonly executionResult?: ExecutionResult<TResult>; // Uses Context-Action's ExecutionResult
+  
+  // Timing (all in milliseconds)
+  readonly startTime: number;
+  readonly endTime: number;
+  readonly duration: number;
+  readonly queueTime?: number;
+  
+  // Status tracking
+  readonly status: ActionExecutionStatus;
+  readonly priority: number; // Uses Context-Action's priority system
+  
+  // Data
+  readonly payload?: TPayload;
+  readonly result?: TResult;
+  readonly error?: Error;
+  
+  // Enhanced metadata
+  readonly metadata?: ActionExecutionMetadata;
+}
+
+// Action execution status (simplified but comprehensive)
+type ActionExecutionStatus = 
+  | 'queued'      // Added to execution queue
+  | 'executing'   // Currently being processed
+  | 'completed'   // Successfully completed
+  | 'failed'      // Failed with error
+  | 'aborted'     // Manually aborted
+  | 'timeout';    // Exceeded timeout
+
+// Execution metadata for Context-Action integration
+export interface ActionExecutionMetadata {
+  readonly component?: string;    // React component that triggered action
+  readonly userId?: string;       // User identifier
+  readonly sessionId?: string;    // Session identifier
+  readonly source: 'user' | 'system' | 'background';
+  readonly tags?: readonly string[];        // Tags for filtering and categorization
+  readonly context?: Record<string, unknown>; // Additional context data
 }
 
 // API management types
@@ -36,14 +125,14 @@ export interface ApiRequestConfig {
   url: string;
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   headers?: Record<string, string>;
-  body?: any;
+  body?: string | Record<string, unknown> | FormData | null;
   timeout?: number;
   retries?: number;
   cacheKey?: string;
   cacheTtl?: number;
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   data: T;
   status: number;
   headers: Record<string, string>;
@@ -51,7 +140,7 @@ export interface ApiResponse<T = any> {
   executionTime: number;
 }
 
-export interface CacheEntry<T = any> {
+export interface CacheEntry<T = unknown> {
   data: T;
   timestamp: number;
   ttl: number;
@@ -65,10 +154,10 @@ export interface SearchConfig {
   minLength: number;
   maxResults: number;
   includeHighlight: boolean;
-  filters?: Record<string, any>;
+  filters?: Record<string, string | number | boolean>;
 }
 
-export interface SearchResult<T = any> {
+export interface SearchResult<T = unknown> {
   items: T[];
   totalCount: number;
   executionTime: number;
@@ -97,7 +186,7 @@ export interface EventMetrics {
 export interface ExecutionCondition {
   type: 'permission' | 'feature-flag' | 'business-rule' | 'environment';
   key: string;
-  value: any;
+  value: string | number | boolean;
   operator: 'equals' | 'not-equals' | 'contains' | 'greater-than' | 'less-than';
 }
 
@@ -170,12 +259,26 @@ export interface UseSearchReturn {
   clearResults: () => void;
 }
 
+// Context-Action 기반 Priority Execution Hook 반환 타입
 export interface UsePriorityExecutionReturn {
-  execute: <T>(actionId: string, payload: any, priority?: number) => Promise<T>;
-  queue: ActionPerformanceData[];
-  isExecuting: boolean;
+  // Context-Action의 dispatch 패턴을 활용
+  executeWithPriority: <T = unknown, P = unknown>(
+    actionType: keyof PerformanceTrackingActions,
+    payload: P, 
+    priority?: number
+  ) => Promise<T>;
+  
+  // Performance tracking data
+  performanceQueue: ActionPerformanceData[];
   metrics: PerformanceMetrics[];
+  
+  // State
+  isExecuting: boolean;
+  
+  // Management functions
   clearQueue: () => void;
+  getMetricsByType: (actionType: string) => PerformanceMetrics[];
+  getAverageExecutionTime: (actionType?: string) => number;
 }
 
 // Configuration types

@@ -7,6 +7,7 @@ import React, { useCallback, useState, useRef, useEffect, useMemo } from 'react'
 import { PageWithLogMonitor } from '../../components/LogMonitor';
 import { createActionContext } from '@context-action/react';
 import { Badge, Card, CardContent } from '../../components/ui';
+import { ContextActionDemo } from './components';
 
 // Mouse Events 관련 액션 타입 정의
 interface BasicMouseActions {
@@ -63,7 +64,7 @@ export function MouseEventsPage() {
 }
 
 // Throttle utility for performance optimization
-const useThrottle = <T extends (...args: any[]) => any>(callback: T, delay: number) => {
+const useThrottle = <T extends (...args: any[]) => any>(callback: T, delay: number): T => {
   const lastRun = useRef(0);
   const timeoutRef = useRef<NodeJS.Timeout>();
 
@@ -81,7 +82,7 @@ const useThrottle = <T extends (...args: any[]) => any>(callback: T, delay: numb
         lastRun.current = Date.now();
       }, delay - (now - lastRun.current));
     }
-  }, [callback, delay]);
+  }, [callback, delay]) as T;
 };
 
 // 통계 컴포넌트 - 렌더링 격리
@@ -547,6 +548,20 @@ function MouseEventsDemo() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Context-Action Performance Demo */}
+      <div className="mt-12 pt-8 border-t border-gray-200">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            🎯 Context-Action Performance Tracking Demo
+          </h2>
+          <p className="text-gray-700">
+            ActionPerformanceData를 Context-Action 프레임워크로 구현한 데모입니다. 
+            실제 Context-Action 패턴을 활용하여 성능 추적 시스템을 보여줍니다.
+          </p>
+        </div>
+        <ContextActionDemo />
+      </div>
 
       {/* 사용법 안내 */}
       <Card>
