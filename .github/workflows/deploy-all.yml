@@ -102,10 +102,14 @@ jobs:
           # Create deployment directory
           mkdir -p deploy-dist
           
-          # Copy documentation as root
+          # Copy documentation directly
+          # VitePress already builds with base: '/context-action/' 
+          # so internal links and assets are already correctly pathed
           cp -r docs/.vitepress/dist/* deploy-dist/
           
-          # Copy example to subdirectory
+          # Add example application to /example subdirectory
+          # The example app is built with base: '/context-action/example/'
+          # so we just need to put it in the example/ subdirectory
           mkdir -p deploy-dist/example
           cp -r example/dist/* deploy-dist/example/
           
