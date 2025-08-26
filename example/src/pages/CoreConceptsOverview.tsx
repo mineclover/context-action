@@ -50,7 +50,7 @@ const coreConcepts: CoreConcept[] = [
   },
   {
     id: 'immutability',
-    title: 'Immutability Test',
+    title: 'Store Immutability Test',
     description: 'Deep dive into immutability patterns and state safety verification with performance analysis',
     path: '/store/immutability-test',
     category: 'integration',
@@ -60,124 +60,14 @@ const coreConcepts: CoreConcept[] = [
     icon: '🔒'
   },
   {
-    id: 'useStoreValue-patterns',
-    title: 'useStoreValue Patterns',
-    description: 'Core useStoreValue patterns for selective subscriptions, conditional updates, and comparison strategies',
-    path: '/store/useStoreValue-patterns',
-    category: 'patterns',
-    concepts: ['Selective Subscriptions', 'Conditional Updates', 'Comparison Strategies', 'Performance Optimization'],
-    difficulty: 'Intermediate',
-    order: 5,
-    icon: '🎯'
-  },
-  {
-    id: 'useStoreSelector-patterns',
-    title: 'useStoreSelector Patterns',
-    description: 'Multiple store selection patterns for combining and transforming data from multiple stores',
-    path: '/store/useStoreSelector-patterns',
-    category: 'patterns',
-    concepts: ['Multi-Store Selection', 'Data Transformation', 'Complex Aggregation', 'Memoized Selectors'],
-    difficulty: 'Advanced',
-    order: 6,
-    icon: '🔍'
-  },
-  {
-    id: 'useStoreManager-api',
-    title: 'useStoreManager API',
-    description: 'Low-level store access for advanced operations, bulk updates, and direct store management',
-    path: '/store/useStoreManager-api',
-    category: 'patterns',
-    concepts: ['Direct Store Access', 'Bulk Operations', 'Advanced Management', 'Performance Patterns'],
-    difficulty: 'Advanced',
-    order: 7,
-    icon: '⚙️'
-  },
-  {
-    id: 'useComputedStore-patterns',
-    title: 'useComputedStore Patterns',
-    description: 'Computed value patterns with useComputedStore for derived state and reactive calculations',
-    path: '/store/useComputedStore-patterns',
-    category: 'patterns',
-    concepts: ['Derived State', 'Reactive Calculations', 'Multi-Store Computations', 'Performance Optimization'],
-    difficulty: 'Intermediate',
-    order: 8,
-    icon: '🧮'
-  },
-  {
-    id: 'withProvider-pattern',
-    title: 'withProvider Pattern',
-    description: 'Higher-Order Component pattern for automatic Provider wrapping and clean component trees',
-    path: '/store/withProvider-pattern',
-    category: 'patterns',
-    concepts: ['HOC Pattern', 'Provider Composition', 'Component Wrapping', 'Clean Architecture'],
-    difficulty: 'Advanced',
-    order: 9,
-    icon: '🔧'
-  },
-  {
-    id: 'store-configuration',
-    title: 'Store Configuration',
-    description: 'Performance optimization and custom comparison strategies for complex store scenarios',
-    path: '/store/store-configuration',
-    category: 'patterns',
-    concepts: ['Comparison Strategies', 'Performance Tuning', 'Custom Comparators', 'Memory Optimization'],
-    difficulty: 'Advanced',
-    order: 10,
-    icon: '⚙️'
-  },
-  {
-    id: 'performance-patterns',
-    title: 'Performance Patterns',
-    description: 'Performance optimization patterns including memoization, batching, and debugging techniques',
-    path: '/store/performance-patterns',
-    category: 'patterns',
-    concepts: ['Memoization', 'Batched Updates', 'Subscription Optimization', 'Performance Monitoring'],
-    difficulty: 'Advanced',
-    order: 11,
-    icon: '⚡'
-  },
-  {
-    id: 'action-basic-usage',
-    title: 'Action Basic Usage',
-    description: 'Fundamental action patterns with type-safe dispatching and handler registration',
-    path: '/action/basic-usage',
-    category: 'patterns',
-    concepts: ['Action Dispatching', 'Handler Registration', 'Result Handling', 'Multiple Contexts'],
-    difficulty: 'Basic',
-    order: 12,
-    icon: '🎯'
-  },
-  {
-    id: 'action-type-system',
-    title: 'Action Type System',
-    description: 'Complete TypeScript integration with ActionPayloadMap and type safety patterns',
-    path: '/action/type-system',
-    category: 'patterns',
-    concepts: ['Type Safety', 'ActionPayloadMap', 'Generic Types', 'IntelliSense Support'],
-    difficulty: 'Intermediate',
-    order: 13,
-    icon: '🔧'
-  },
-  {
-    id: 'action-dispatch-patterns',
-    title: 'Action Dispatch Patterns',
-    description: 'Advanced dispatching with execution modes, filtering, and performance optimization',
-    path: '/action/dispatch-patterns',
-    category: 'patterns',
-    concepts: ['Execution Modes', 'Handler Filtering', 'Performance Optimization', 'Batch Processing'],
-    difficulty: 'Advanced',
-    order: 14,
-    icon: '⚡'
-  },
-  {
     id: 'provider',
-    title: 'Unified Provider',
+    title: 'React Provider',
     description: 'React integration with unified provider patterns and context management architecture',
     path: '/react/provider',
     category: 'integration',
     concepts: ['Provider Patterns', 'Context Integration', 'Unified Architecture', 'Component Isolation'],
     difficulty: 'Intermediate',
-    order: 15,
+    order: 5,
     icon: '🔧'
   },
   {
@@ -188,7 +78,7 @@ const coreConcepts: CoreConcept[] = [
     category: 'integration',
     concepts: ['Context API', 'Provider Trees', 'Context Consumption', 'Performance Optimization'],
     difficulty: 'Intermediate',
-    order: 16,
+    order: 6,
     icon: '🏗️'
   },
   {
@@ -199,7 +89,7 @@ const coreConcepts: CoreConcept[] = [
     category: 'integration',
     concepts: ['useActionDispatch', 'useStoreValue', 'useActionHandler', 'Custom Hooks'],
     difficulty: 'Basic',
-    order: 17,
+    order: 7,
     icon: '🎣'
   },
   {
@@ -210,52 +100,8 @@ const coreConcepts: CoreConcept[] = [
     category: 'patterns',
     concepts: ['Result Collection', 'Sequential Execution', 'Parallel Execution', 'Result Strategies'],
     difficulty: 'Advanced',
-    order: 18,
+    order: 8,
     icon: '✨'
-  },
-  {
-    id: 'async-basic-usage',
-    title: 'Async Basic Usage',
-    description: 'Comprehensive async patterns with real-time state access and timeout protection',
-    path: '/async/basic-usage',
-    category: 'patterns',
-    concepts: ['Real-time State', 'Wait-then-Execute', 'Timeout Protection', 'Conditional Await'],
-    difficulty: 'Intermediate',
-    order: 19,
-    icon: '⏳'
-  },
-  {
-    id: 'async-realtime-state',
-    title: 'Real-time State Access',
-    description: 'Avoiding closure traps with store.getValue() patterns and race condition prevention',
-    path: '/async/realtime-state',
-    category: 'patterns',
-    concepts: ['Closure Traps', 'Race Conditions', 'Multi-Store Coordination', 'State Validation'],
-    difficulty: 'Intermediate',
-    order: 20,
-    icon: '🔄'
-  },
-  {
-    id: 'async-wait-execute',
-    title: 'Wait-Then-Execute',
-    description: 'Safe DOM operations after element availability with sequential coordination',
-    path: '/async/wait-then-execute',
-    category: 'patterns',
-    concepts: ['Element Waiting', 'Sequential Operations', 'Animation Coordination', 'Form Validation'],
-    difficulty: 'Intermediate',
-    order: 21,
-    icon: '🎯'
-  },
-  {
-    id: 'async-timeout-protection',
-    title: 'Timeout Protection',
-    description: 'Preventing infinite waits with fallback strategies and circuit breaker patterns',
-    path: '/async/timeout-protection',
-    category: 'patterns',
-    concepts: ['Timeout Strategies', 'Circuit Breaker', 'Fallback Patterns', 'Performance Monitoring'],
-    difficulty: 'Advanced',
-    order: 22,
-    icon: '⏰'
   }
 ];
 
