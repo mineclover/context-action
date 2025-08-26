@@ -312,6 +312,52 @@ function PerformanceOptimizedComponent() {
 }
 ```
 
+### waitForRefs 블로킹 vs Non-blocking 패턴
+
+`waitForRefs` 자체는 비동기 Promise 기반이므로 올바르게 사용하면 UI를 블로킹하지 않습니다. 문제는 개발자가 잘못된 방식으로 동기적 처리를 시도할 때 발생합니다.
+
+#### ❌ 잘못된 사용법 (UI 블로킹)
+
+```typescript
+// 안티패턴: busy waiting으로 UI 블로킹
+const handleClick = () => {
+  let isComplete = false;
+  let result = null;
+  
+  waitForRefs(5000, 'element').then(refs => {
+    isComplete = true;
+    result = refs;
+  });
+  
+  // 이렇게 하면 안됨: CPU 점유로 UI 블로킹
+  const startTime = Date.now();
+  while (!isComplete && Date.now() - startTime < 6000) {
+    // 빈 루프 - UI가 멈춤!
+  }
+};
+```
+
+#### ✅ 올바른 사용법 (Non-blocking)
+
+```typescript
+// 권장: async/await로 비동기 처리
+const handleClick = async () => {
+  try {
+    const refs = await waitForRefs(10000, 'element');
+    // UI 반응성을 유지하며 처리
+    refs.element.style.backgroundColor = '#10b981';
+  } catch (error) {
+    console.error('타임아웃:', error);
+  }
+};
+```
+
+**핵심 포인트:**
+- `waitForRefs`는 내부적으로 `Promise.race`와 비동기 처리 사용
+- 올바른 `async/await` 패턴으로 UI 반응성 유지 가능
+- 동기적 처리 시도(`while` 루프 등)만 피하면 됨
+- Promise 기반이므로 이벤트 루프를 블로킹하지 않음
+
 ### 메모이제이션과 지연 평가
 
 RefContext의 속성들(`isMounted`, `isWaitingForMount`, `target`)은 **지연 평가(lazy evaluation)**를 사용하여 항상 최신 상태를 반환합니다. 이는 React의 메모이제이션 패턴과 함께 사용될 때도 예상대로 동작합니다.
