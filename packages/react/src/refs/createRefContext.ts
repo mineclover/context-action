@@ -27,6 +27,7 @@ interface InternalRefState<T> {
   mountRejectors: Set<(error: Error) => void>;
   operationInProgress: boolean;
   listeners: Set<() => void>;
+  mountCallbacks: Set<(target: T) => void>;
 }
 
 /**
@@ -44,10 +45,32 @@ export interface RefContextReturn<T> {
       options?: RefOperationOptions
     ) => Promise<RefOperationResult<Result>>;
     isMounted: boolean;
+    isWaitingForMount: boolean;
+    onMount: (callback: (target: T[K]) => void) => () => void;
+    executeIfMounted: <Result>(
+      operation: (target: T[K] & RefTarget) => Result
+    ) => Result | null;
   };
   
-  useWaitForRefs: () => <K extends keyof T>(...refNames: K[]) => Promise<Pick<T, K>>;
+  useWaitForRefs: () => {
+    <K extends keyof T>(...refNames: K[]): Promise<Pick<T, K>>;
+    <K extends keyof T>(timeout: number, ...refNames: K[]): Promise<Pick<T, K>>;
+  };
   useGetAllRefs: () => () => Partial<T>;
+  useRefPolling: () => <K extends keyof T>(
+    refName: K,
+    options?: {
+      interval?: number;
+      timeout?: number;
+      onTick?: (elapsed: number, isMounted: boolean) => void;
+      onTimeout?: (elapsed: number) => void;
+      onSuccess?: (elapsed: number, target: T[K]) => void;
+    }
+  ) => {
+    promise: Promise<T[K]>;
+    cancel: () => void;
+    isMounted: () => boolean;
+  };
   
   contextName: string;
   refDefinitions?: T extends RefDefinitions ? T : undefined;
@@ -172,6 +195,15 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
         refState.mountResolvers.clear();
         refState.mountRejectors.clear();
         refState.mountPromise = null;
+        
+        // 마운트 콜백들 실행
+        refState.mountCallbacks.forEach(callback => {
+          try {
+            callback(target);
+          } catch (error) {
+            console.error('Error in mount callback:', error);
+          }
+        });
         
         // 알림
         refState.listeners.forEach(listener => listener());
@@ -375,6 +407,36 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
       },
       get isMounted() {
         return refState.isMounted;
+      },
+      get isWaitingForMount() {
+        return !refState.isMounted && refState.mountPromise !== null;
+      },
+      onMount: (callback: (target: T[K]) => void) => {
+        refState.mountCallbacks.add(callback);
+        
+        // 이미 마운트된 상태라면 즉시 실행
+        if (refState.isMounted && refState.target) {
+          callback(refState.target as T[K]);
+        }
+        
+        // cleanup 함수 반환
+        return () => {
+          refState.mountCallbacks.delete(callback);
+        };
+      },
+      // 조건부 마운트 검증 후 실행
+      executeIfMounted: <Result>(
+        operation: (target: T[K] & RefTarget) => Result
+      ): Result | null => {
+        if (refState.target && refState.isMounted) {
+          try {
+            return operation(refState.target);
+          } catch (error) {
+            console.error('Error in executeIfMounted:', error);
+            return null;
+          }
+        }
+        return null;
       }
     }), [refState, setRefTarget, refNameStr, definitionsRef, optionsRef]);
   };
@@ -383,7 +445,18 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
   const useWaitForRefs = () => {
     const { getRefState } = useRefContext();
     
-    return useCallback(async <K extends keyof T>(...refNames: K[]): Promise<Pick<T, K>> => {
+    return useCallback(async <K extends keyof T>(...args: [number, ...K[]] | K[]): Promise<Pick<T, K>> => {
+      // 첫 번째 인수가 숫자인지 확인하여 timeout과 refNames 분리
+      let timeout: number | undefined;
+      let refNames: K[];
+      
+      if (typeof args[0] === 'number') {
+        timeout = args[0];
+        refNames = args.slice(1) as K[];
+      } else {
+        timeout = 1000; // 기본 1초 타임아웃
+        refNames = args as K[];
+      }
       const promises = refNames.map(async (refName) => {
         const refNameStr = String(refName);
         const refState = getRefState(refNameStr);
@@ -400,7 +473,14 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
           });
         }
         
-        const target = await refState.mountPromise;
+        // 타임아웃 처리 (항상 적용됨)
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => {
+            reject(new Error(`Mount timeout after ${timeout}ms for ref '${refNameStr}'`));
+          }, timeout);
+        });
+        
+        const target = await Promise.race([refState.mountPromise, timeoutPromise]);
         return [refName, target] as const;
       });
       
@@ -426,11 +506,104 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
     }, [refsMapRef]);
   };
   
+  // ref 폴링 유틸리티 hook
+  const useRefPolling = () => {
+    const { getRefState } = useRefContext();
+    
+    return useCallback(<K extends keyof T>(
+      refName: K,
+      options: {
+        interval?: number;
+        timeout?: number;
+        onTick?: (elapsed: number, isMounted: boolean) => void;
+        onTimeout?: (elapsed: number) => void;
+        onSuccess?: (elapsed: number, target: T[K]) => void;
+      } = {}
+    ) => {
+      const {
+        interval = 100,
+        timeout = 4000,
+        onTick,
+        onTimeout,
+        onSuccess
+      } = options;
+      
+      let cancelled = false;
+      let startTime = performance.now();
+      let intervalId: NodeJS.Timeout;
+      let timeoutId: NodeJS.Timeout;
+      
+      const refNameStr = String(refName);
+      const refState = getRefState(refNameStr);
+      
+      const getCurrentMountedState = () => {
+        const currentRefState = getRefState(refNameStr);
+        return currentRefState.isMounted && currentRefState.target !== null;
+      };
+      
+      const promise = new Promise<T[K]>((resolve, reject) => {
+        // 이미 마운트된 경우 즉시 반환
+        if (getCurrentMountedState()) {
+          const elapsed = performance.now() - startTime;
+          const target = refState.target as T[K];
+          onSuccess?.(elapsed, target);
+          resolve(target);
+          return;
+        }
+        
+        // 타임아웃 설정
+        timeoutId = setTimeout(() => {
+          if (!cancelled) {
+            cancelled = true;
+            clearInterval(intervalId);
+            const elapsed = performance.now() - startTime;
+            onTimeout?.(elapsed);
+            reject(new Error(`Ref polling timeout after ${elapsed.toFixed(0)}ms for ref '${refNameStr}'`));
+          }
+        }, timeout);
+        
+        // 폴링 시작
+        intervalId = setInterval(() => {
+          if (cancelled) return;
+          
+          const elapsed = performance.now() - startTime;
+          const isMounted = getCurrentMountedState();
+          
+          onTick?.(elapsed, isMounted);
+          
+          if (isMounted) {
+            cancelled = true;
+            clearInterval(intervalId);
+            clearTimeout(timeoutId);
+            
+            const currentRefState = getRefState(refNameStr);
+            const target = currentRefState.target as T[K];
+            onSuccess?.(elapsed, target);
+            resolve(target);
+          }
+        }, interval);
+      });
+      
+      return {
+        promise,
+        cancel: () => {
+          if (!cancelled) {
+            cancelled = true;
+            clearInterval(intervalId);
+            clearTimeout(timeoutId);
+          }
+        },
+        isMounted: getCurrentMountedState
+      };
+    }, [getRefState]);
+  };
+  
   return {
     Provider,
     useRefHandler,
     useWaitForRefs,
     useGetAllRefs,
+    useRefPolling,
     contextName,
     refDefinitions
   } as T extends RefDefinitions 
@@ -447,7 +620,8 @@ function createInitialRefState<T>(): InternalRefState<T> {
     mountResolvers: new Set(),
     mountRejectors: new Set(),
     operationInProgress: false,
-    listeners: new Set()
+    listeners: new Set(),
+    mountCallbacks: new Set()
   };
 }
 
