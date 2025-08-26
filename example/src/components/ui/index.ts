@@ -27,7 +27,7 @@ export { Grid } from './Grid';
 export { Input, Textarea } from './Input';
 export { Label } from './Label';
 // Re-export from shared components for compatibility
-export { Section } from '../../domains/shared/components';
+// export { Section } from '../../domains/shared/components'; // Removed - domain restructured
 export {
   ActionPatternBadge,
   ContextPatternBadge,
