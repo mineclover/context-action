@@ -68,7 +68,8 @@ function AnalyticsSetup() {
     
     // 언마운트 시 정리
     return () => {
-      register.unregisterByTags(['analytics']);
+      register.clearAction('analytics');
+      register.clearAction('userClick');
     };
   }, [register]);
   
@@ -139,11 +140,14 @@ function AppHandlerSetup() {
     registerAPIHandlers(apiRegister);
     setupAnalyticsHandlers(eventRegister);
     
-    // 언마운트 시 모듈 태그로 정리
+    // 언마운트 시 등록된 핸들러들 정리
     return () => {
-      userRegister.unregisterByTags(['user']);
-      apiRegister.unregisterByTags(['api']);
-      eventRegister.unregisterByTags(['analytics']);
+      userRegister.clearAction('updateProfile');
+      userRegister.clearAction('changePassword');
+      apiRegister.clearAction('fetchData');
+      apiRegister.clearAction('uploadFile');
+      eventRegister.clearAction('analytics');
+      eventRegister.clearAction('userClick');
     };
   }, [userRegister, apiRegister, eventRegister]);
   
@@ -180,7 +184,7 @@ function DynamicHandlerSetup() {
     
     // 정리 함수 반환
     return () => {
-      register.clearHandlers();
+      register.clearAll();
     };
   }, [register, config.enableAnalytics, config.enableNotifications, config.debugMode]);
   
@@ -236,9 +240,12 @@ function TeamHandlerCoordinator() {
     registerNotificationHandlers(notificationRegister);
     
     return () => {
-      userRegister.unregisterByTags(['auth']);
-      apiRegister.unregisterByTags(['products']);
-      notificationRegister.unregisterByTags(['orders']);
+      userRegister.clearAction('login');
+      userRegister.clearAction('logout');
+      apiRegister.clearAction('fetchData');
+      apiRegister.clearAction('postData');
+      notificationRegister.clearAction('showNotification');
+      notificationRegister.clearAction('hideNotification');
     };
   }, [userRegister, apiRegister, notificationRegister]);
   

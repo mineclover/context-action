@@ -3,7 +3,7 @@ import path from 'path';
 import { EnhancedLLMSConfig } from '../../types/config.js';
 
 export interface PriorityManagerOptions {
-  mode: 'stats' | 'health' | 'sync' | 'auto-calc' | 'suggest';
+  mode: 'stats' | 'health' | 'sync' | 'auto-calc' | 'suggest' | 'upgrade';
   server?: string;
   criteria?: string;
   documentId?: string;
@@ -56,6 +56,9 @@ export class PriorityManagerCommand {
           break;
         case 'suggest':
           await this.suggestPriorities(options.documentId, options.quiet);
+          break;
+        case 'upgrade':
+          await this.upgradeOldFormatPriorities(options.quiet, options.force);
           break;
         default:
           throw new Error(`Unknown mode: ${options.mode}`);
@@ -470,5 +473,156 @@ export class PriorityManagerCommand {
     const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
     
     return variance;
+  }
+
+  async upgradeOldFormatPriorities(quiet = false, force = false): Promise<void> {
+    // Use the correct LLMS data directory from config or default to ./llmsData
+    const outputDir = this.config.paths?.llmContentDir || './llmsData';
+    const llmsDataDir = path.resolve(outputDir);
+    const languages = ['en', 'ko'];
+    let totalFiles = 0;
+    let upgradedFiles = 0;
+    let oldFormatFiles: string[] = [];
+
+    if (!quiet) {
+      console.log('🔄 Scanning for old format priority.json files...');
+    }
+
+    // First, scan for old format files
+    for (const lang of languages) {
+      const langDir = path.join(llmsDataDir, lang);
+      if (await this.pathExists(langDir)) {
+        const directories = await fs.readdir(langDir, { withFileTypes: true });
+        
+        for (const dirent of directories) {
+          if (dirent.isDirectory()) {
+            const priorityPath = path.join(langDir, dirent.name, 'priority.json');
+            if (await this.pathExists(priorityPath)) {
+              totalFiles++;
+              const priorityData = JSON.parse(await fs.readFile(priorityPath, 'utf-8'));
+              
+              if (this.isOldFormat(priorityData)) {
+                oldFormatFiles.push(priorityPath);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (!quiet) {
+      console.log(`📊 Found ${totalFiles} priority.json files`);
+      console.log(`🔴 Found ${oldFormatFiles.length} old format files that need upgrading`);
+    }
+
+    if (oldFormatFiles.length === 0) {
+      if (!quiet) {
+        console.log('✅ All priority.json files are already in the new format!');
+      }
+      return;
+    }
+
+    if (!force && !quiet) {
+      console.log('⚠️  This will modify the following files:');
+      oldFormatFiles.forEach(file => console.log(`   - ${path.relative(process.cwd(), file)}`));
+      console.log('\n💡 Use --force to proceed with the upgrade');
+      return;
+    }
+
+    // Upgrade old format files
+    if (!quiet) {
+      console.log('🔄 Upgrading old format priority.json files...');
+    }
+
+    for (const priorityPath of oldFormatFiles) {
+      try {
+        const oldData = JSON.parse(await fs.readFile(priorityPath, 'utf-8'));
+        const newData = this.convertToNewFormat(oldData);
+        
+        await fs.writeFile(priorityPath, JSON.stringify(newData, null, 2), 'utf-8');
+        upgradedFiles++;
+        
+        if (!quiet) {
+          console.log(`✅ Upgraded: ${path.relative(process.cwd(), priorityPath)}`);
+        }
+      } catch (error) {
+        if (!quiet) {
+          console.error(`❌ Failed to upgrade ${priorityPath}:`, error instanceof Error ? error.message : error);
+        }
+      }
+    }
+
+    if (!quiet) {
+      console.log(`\n📊 Upgrade Summary:`);
+      console.log(`   Total files scanned: ${totalFiles}`);
+      console.log(`   Old format detected: ${oldFormatFiles.length}`);
+      console.log(`   Successfully upgraded: ${upgradedFiles}`);
+      console.log(`   Failed upgrades: ${oldFormatFiles.length - upgradedFiles}`);
+      
+      if (upgradedFiles === oldFormatFiles.length) {
+        console.log('✅ All old format files successfully upgraded to new format!');
+      }
+    }
+  }
+
+  private isOldFormat(priority: any): boolean {
+    // Old format characteristics:
+    // 1. Has priority as a number (not an object)
+    // 2. Has category at root level (not in document object)
+    // 3. Missing document structure
+    return (
+      typeof priority.priority === 'number' ||
+      (priority.category && !priority.document) ||
+      !priority.document?.id
+    );
+  }
+
+  private convertToNewFormat(oldData: any): any {
+    const timestamp = new Date().toISOString();
+    const score = typeof oldData.priority === 'number' ? oldData.priority : 50;
+    const category = oldData.category || 'guide';
+    const id = oldData.id || 'unknown';
+    const title = oldData.title || 'Document Title';
+    const language = oldData.language || 'en';
+
+    return {
+      document: {
+        id,
+        title,
+        category,
+        language,
+        lastModified: timestamp,
+        ...(oldData.source_path && { source_path: oldData.source_path })
+      },
+      priority: {
+        score,
+        reason: oldData.reason || 'Upgraded from old format',
+        factors: {
+          importance: Math.min(100, Math.max(0, score + 10)),
+          urgency: Math.min(100, Math.max(0, score - 10)),
+          impact: score
+        },
+        ...(oldData.tier && { tier: oldData.tier })
+      },
+      tags: oldData.tags || ['documentation'],
+      ...(oldData.purpose && { purpose: oldData.purpose }),
+      ...(oldData.keywords && { keywords: oldData.keywords }),
+      metadata: {
+        description: oldData.description || oldData.metadata?.description || 'Document description',
+        language,
+        created_at: oldData.created_at || oldData.metadata?.created_at || timestamp,
+        upgraded_at: timestamp,
+        ...(oldData.metadata && { ...oldData.metadata })
+      }
+    };
+  }
+
+  private async pathExists(filePath: string): Promise<boolean> {
+    try {
+      await fs.access(filePath);
+      return true;
+    } catch {
+      return false;
+    }
   }
 }

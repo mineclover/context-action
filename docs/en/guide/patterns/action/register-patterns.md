@@ -173,7 +173,7 @@ function PerformanceHandlerSetup() {
       controller.setResult(results);
     }, {
       debounce: 300,  // Wait 300ms after last call
-      tags: ['search', 'user-input']
+      id: 'searchUsersHandler'
     });
     
     // Throttle scroll events (limit frequency)
@@ -183,7 +183,7 @@ function PerformanceHandlerSetup() {
       controller.setResult({ updated: true });
     }, {
       throttle: 100,  // Max once per 100ms
-      tags: ['scroll', 'performance']
+      id: 'updateScrollPositionHandler'
     });
     
     return () => {
@@ -208,10 +208,8 @@ function ConditionalHandlerSetup() {
       const result = await premiumService.executePremiumFeature(payload);
       controller.setResult(result);
     }, {
-      condition: (payload, context) => {
-        return context.user?.subscription === 'premium';
-      },
-      tags: ['premium', 'conditional']
+      priority: 100,
+      id: 'premiumFeatureHandler'
     });
     
     // Environment-specific handlers
@@ -220,16 +218,16 @@ function ConditionalHandlerSetup() {
       debugService.log(payload);
       controller.setResult({ debugged: true });
     }, {
-      environment: 'development',
-      tags: ['debug', 'development']
+      priority: 50,
+      id: 'debugActionHandler'
     });
     
     const unregisterAnalytics = register.register('analyticsTrack', async (payload, controller) => {
       await analyticsService.track(payload.event, payload.data);
       controller.setResult({ tracked: true });
     }, {
-      environment: 'production',
-      tags: ['analytics', 'production']
+      priority: 80,
+      id: 'analyticsTrackHandler'
     });
     
     return () => {
@@ -257,7 +255,7 @@ function OneTimeHandlerSetup() {
     }, {
       once: true,
       priority: 1000,
-      tags: ['initialization']
+      id: 'initializeAppHandler'
     });
     
     // No need to call unregister for one-time handlers
@@ -283,20 +281,12 @@ function FullConfigurationSetup() {
       const result = await businessService.processData(payload);
       controller.setResult(result);
     }, {
-      priority: 100,           // Execution priority
-      tags: ['business', 'critical'],
-      category: 'core-logic',
+      priority: 100,          // Execution priority
+      id: 'fullConfigHandler', // Handler unique identifier
+      blocking: true,         // Wait for async handlers to complete
       once: false,            // Can execute multiple times
-      timeout: 5000,          // 5 second timeout
-      debounce: 200,          // Debounce calls
-      throttle: 1000,         // Throttle execution
-      environment: 'production',
-      feature: 'advanced-features',
-      condition: (payload) => payload.enabled === true,
-      description: 'Core business logic handler',
-      version: '1.0.0',
-      dependencies: ['validateHandler'],
-      conflicts: ['legacyHandler']
+      debounce: 200,          // Debounce calls (ms)
+      throttle: 1000          // Throttle execution (ms)
     });
     
     return unregister;
@@ -319,9 +309,9 @@ function DependencyHandlerSetup() {
       const processedData = await dataService.process(payload);
       controller.setResult(processedData);
     }, {
-      dependencies: ['validationHandler', 'authHandler'],
       priority: 50,
-      tags: ['dependent']
+      id: 'dependentHandler',
+      blocking: true
     });
     
     // Conflicting handlers (only one will execute)
@@ -329,9 +319,9 @@ function DependencyHandlerSetup() {
       const result = await modernService.process(payload);
       controller.setResult(result);
     }, {
-      conflicts: ['legacyHandler'],
       priority: 100,
-      tags: ['modern']
+      id: 'modernHandler',
+      blocking: false
     });
     
     return () => {

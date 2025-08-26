@@ -30,6 +30,8 @@ export class HelpDisplay {
     console.log('  priority-tasks [options]         Manage priority.json files (missing, outdated, invalid)');
     console.log('                                   [-l, --language <lang>] [--category <cat>] [--task-type <type>]');
     console.log('                                   [-n, --limit <num>] [-v, --verbose] [--fix] [--dry-run]');
+    console.log('  priority-upgrade [options]       Upgrade old format priority.json files to new format');
+    console.log('                                   [--force] [--quiet]');
     console.log('');
     console.log('TEMPLATE MANAGEMENT (RECOMMENDED DEFAULT):');
     console.log('  generate-templates [options]     Generate template files for all documents (DEFAULT WORKFLOW)');
@@ -79,6 +81,7 @@ export class HelpDisplay {
     console.log('  llms priority-health');
     console.log('  llms priority-tasks --verbose');
     console.log('  llms priority-tasks --task-type missing --fix');
+    console.log('  llms priority-upgrade --force  # Upgrade all old format files');
     console.log('');
     console.log('  # Generate template files (batch creation)');
     console.log('  llms generate-templates --language en');
