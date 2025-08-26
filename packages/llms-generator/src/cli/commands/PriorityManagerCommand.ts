@@ -413,12 +413,6 @@ export class PriorityManagerCommand {
     return 'unknown';
   }
 
-  private scoreToPriorityTier(score: number): string {
-    if (score >= 80) return 'high';
-    if (score >= 60) return 'medium';
-    if (score >= 40) return 'low';
-    return 'minimal';
-  }
 
   private async savePriorityFile(filePath: string, priority: any): Promise<void> {
     await fs.writeFile(filePath, JSON.stringify(priority, null, 2));
