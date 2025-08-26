@@ -927,7 +927,7 @@ Choose the right pattern for your use case:
 | Pattern | Use Case | Import | Best For |
 |---------|----------|--------|----------|
 | 🎯 Action Only | Action dispatching without stores | createActionContext | Event systems, command patterns |
-| 🏪 Store Only | State management without actions | createDeclarativeStorePattern | Pure state management, data layers |
+| 🏪 Store Only | State management without actions | createStoreContext | Pure state management, data layers |
 | 🔧 Ref Context | Direct DOM manipulation with zero re-renders | createRefContext | High-performance UI, animations, real-time interactions |
 
 🎯 Action Only Pattern
@@ -961,7 +961,7 @@ Choose the right pattern for your use case:
 | Pattern | Use Case | Import | Best For |
 |---------|----------|--------|----------|
 | 🎯 Action Only | Action dispatching without stores | createActionContext | Event systems, command patterns |
-| 🏪 Store Only | State management without actions | createDeclarativeStorePattern | Pure state management, data layers |
+| 🏪 Store Only | State management without actions | createStoreContext | Pure state management, data layers |
 | 🔧 Ref Context | Direct DOM manipulation with zero re-renders | createRefContext | High-performance UI, animations, real-time interactions |
 
 🎯 Action Only Pattern
@@ -1023,7 +1023,7 @@ Choose the right pattern for your use case:
 | Pattern | Use Case | Import | Best For |
 |---------|----------|--------|----------|
 | 🎯 Action Only | Action dispatching without stores | createActionContext | Event systems, command patterns |
-| 🏪 Store Only | State management without actions | createDeclarativeStorePattern | Pure state management, data layers |
+| 🏪 Store Only | State management without actions | createStoreContext | Pure state management, data layers |
 | 🔧 Ref Context | Direct DOM manipulation with zero re-renders | createRefContext | High-performance UI, animations, real-time interactions |
 
 🎯 Action Only Pattern
@@ -1080,7 +1080,7 @@ Factory function that creates all action-related hooks. useActionDispatch()
 Primary hook for dispatching actions to handlers. useActionHandler()
 Primary hook for registering action handlers. Store Hooks
 
-createDeclarativeStorePattern<T>()
+createStoreContext<T>()
 Factory function that creates all store-related hooks. useStoreValue<T>(store)
 Primary hook for subscribing to store changes. useStore(name)
 Primary hook for accessing stores by name. Utility Hooks
@@ -1124,7 +1124,7 @@ Factory function that creates all action-related hooks. useActionDispatch()
 Primary hook for dispatching actions to handlers. useActionHandler()
 Primary hook for registering action handlers. Store Hooks
 
-createDeclarativeStorePattern<T>()
+createStoreContext<T>()
 Factory function that creates all store-related hooks. useStoreValue<T>(store)
 Primary hook for subscribing to store changes. useStore(name)
 Primary hook for accessing stores by name. Utility Hooks
@@ -1192,7 +1192,7 @@ Factory function that creates all action-related hooks. useActionDispatch()
 Primary hook for dispatching actions to handlers. useActionHandler()
 Primary hook for registering action handlers. Store Hooks
 
-createDeclarativeStorePattern<T>()
+createStoreContext<T>()
 Factory function that creates all store-related hooks. useStoreValue<T>(store)
 Primary hook for subscribing to store changes. useStore(name)
 Primary hook for accessing stores by name. Utility Hooks
@@ -2628,7 +2628,7 @@ Architecture Implementation
 The framework implements a clean separation of concerns through an MVVM-inspired pattern with three core patterns for complete domain isolation:
 
 - Actions handle business logic and coordination (ViewModel layer) via createActionContext
-- Declarative Store Pattern manages state with domain isolation (Model layer) via createDeclarativeStorePattern
+- Declarative Store Pattern manages state with domain isolation (Model layer) via createStoreContext
 - RefContext provides direct DOM manipulation with zero re-renders (Performance layer) via createRefContext
 - Components render UI (View layer)
 - Context Boundaries isolate functional domains
@@ -3122,7 +3122,7 @@ Primary hook for registering action handlers. - Purpose: Register business logic
 
 🏪 Store Hooks (Core)
 
-createDeclarativeStorePattern<T>()
+createStoreContext<T>()
 Factory function that creates all store-related hooks with type safety. - Purpose: Creates type-safe store management system
 - Returns: { Provider, useStore, useStoreManager, withProvider }
 - Essential for: Any state management
@@ -3207,7 +3207,7 @@ Choose the right pattern for your use case:
 | Pattern | Use Case | Import | Best For |
 |---------|----------|--------|----------|
 | 🎯 Action Only | Action dispatching without stores | createActionContext | Event systems, command patterns |
-| 🏪 Store Only | State management without actions | createDeclarativeStorePattern | Pure state management, data layers |
+| 🏪 Store Only | State management without actions | createStoreContext | Pure state management, data layers |
 | 🔧 Ref Context | Direct DOM manipulation with zero re-renders | createRefContext | High-performance UI, animations, real-time interactions |
 
 Note: For complex applications, compose patterns together for maximum flexibility and separation of concerns. ---
@@ -3235,7 +3235,7 @@ Choose the right pattern for your use case:
 | Pattern | Use Case | Import | Best For |
 |---------|----------|--------|----------|
 | 🎯 Action Only | Action dispatching without stores | createActionContext | Event systems, command patterns |
-| 🏪 Store Only | State management without actions | createDeclarativeStorePattern | Pure state management, data layers |
+| 🏪 Store Only | State management without actions | createStoreContext | Pure state management, data layers |
 | 🔧 Ref Context | Direct DOM manipulation with zero re-renders | createRefContext | High-performance UI, animations, real-time interactions |
 
 Note: For complex applications, compose patterns together for maximum flexibility and separation of concerns. ---
@@ -3292,7 +3292,7 @@ Choose the right pattern for your use case:
 | Pattern | Use Case | Import | Best For |
 |---------|----------|--------|----------|
 | 🎯 Action Only | Action dispatching without stores | createActionContext | Event systems, command patterns |
-| 🏪 Store Only | State management without actions | createDeclarativeStorePattern | Pure state management, data layers |
+| 🏪 Store Only | State management without actions | createStoreContext | Pure state management, data layers |
 | 🔧 Ref Context | Direct DOM manipulation with zero re-renders | createRefContext | High-performance UI, animations, real-time interactions |
 
 Note: For complex applications, compose patterns together for maximum flexibility and separation of concerns. ---

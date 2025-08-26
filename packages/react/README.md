@@ -26,7 +26,7 @@ pnpm add @context-action/react @context-action/core
 
 ```tsx
 import { 
-  createDeclarativeStorePattern,
+  createStoreContext,
   createActionContext,
   useStoreValue,
   ActionPayloadMap 
@@ -50,7 +50,7 @@ const {
   Provider: UserStoreProvider,
   useStore: useUserStore,
   withProvider
-} = createDeclarativeStorePattern('User', {
+} = createStoreContext('User', {
   profile: { initialValue: { name: 'John Doe', email: 'john@example.com' } }
 });
 
@@ -100,7 +100,7 @@ function App() {
 Create type-safe stores with excellent inference:
 
 ```tsx
-const AppStores = createDeclarativeStorePattern('App', {
+const AppStores = createStoreContext('App', {
   user: { initialValue: { id: '', name: '' } },
   settings: { initialValue: { theme: 'light' } },
   data: { initialValue: [] }
@@ -191,7 +191,7 @@ function OptimizedComponent() {
 
 ### Factory Functions
 - `createActionContext<T>()` - Creates type-safe action system
-- `createDeclarativeStorePattern()` - Creates type-safe store management
+- `createStoreContext()` - Creates type-safe store management
 
 ### Core Hooks
 - `useStoreValue(store)` - Subscribe to store changes
@@ -226,11 +226,11 @@ Each pattern instance provides complete isolation:
 
 ```tsx
 // Independent store contexts
-const FeatureAStores = createDeclarativeStorePattern('FeatureA', {
+const FeatureAStores = createStoreContext('FeatureA', {
   data: { initialValue: [] }
 });
 
-const FeatureBStores = createDeclarativeStorePattern('FeatureB', {
+const FeatureBStores = createStoreContext('FeatureB', {
   data: { initialValue: [] }
 });
 
@@ -297,7 +297,7 @@ function UserComponent() {
 }
 
 // After (Declarative Store Pattern)
-const UserStores = createDeclarativeStorePattern('User', {
+const UserStores = createStoreContext('User', {
   profile: { initialValue: { name: '' } }
 });
 
@@ -367,7 +367,7 @@ Full type safety with excellent inference:
 
 ```typescript
 // Excellent type inference
-const UserStores = createDeclarativeStorePattern('User', {
+const UserStores = createStoreContext('User', {
   profile: { initialValue: { id: '', name: '' } }
 });
 

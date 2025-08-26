@@ -73,17 +73,17 @@ function UserComponent() {
 
 ### 스토어 훅
 
-#### `createDeclarativeStorePattern<T>()`
+#### `createStoreContext<T>()`
 모든 스토어 관련 훅을 생성하는 팩토리 함수입니다.
 
 \`\`\`tsx
-import { createDeclarativeStorePattern } from '@context-action/react';
+import { createStoreContext } from '@context-action/react';
 
 const {
   Provider: UserStoreProvider,
   useStore: useUserStore,
   useStoreManager: useUserStoreManager
-} = createDeclarativeStorePattern('User', {
+} = createStoreContext('User', {
   profile: { initialValue: { id: '', name: '', email: '' } },
   settings: { initialValue: { theme: 'light', notifications: true } }
 });

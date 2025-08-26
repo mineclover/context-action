@@ -73,7 +73,7 @@ const hookCategories = {
     description: 'Factory functions that create multiple hooks',
     hooks: [
       {
-        name: 'createDeclarativeStorePattern',
+        name: 'createStoreContext',
         description: 'Type-safe store pattern factory',
         component: () => <div>Coming soon...</div>,
         frequency: 'High (>80%)',

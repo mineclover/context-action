@@ -5,14 +5,14 @@
  */
 
 import React from 'react';
-import { createDeclarativeStorePattern } from '../../../src/stores/patterns/declarative-store-pattern-v2';
+import { createStoreContext } from '../../../src/stores/patterns/declarative-store-pattern-v2';
 import { useStoreValue } from '../../../src/stores/hooks/useStoreValue';
 
 /**
  * Example 1: Simple Direct Values
  * The cleanest and simplest way to define stores
  */
-const SimpleStores = createDeclarativeStorePattern('Simple', {
+const SimpleStores = createStoreContext('Simple', {
   // Direct primitive values - no boilerplate needed
   counter: 0,
   userName: 'Guest',
@@ -55,7 +55,7 @@ function SimpleExample() {
  * Example 2: Mixed Configuration
  * Combine direct values with configured stores for flexibility
  */
-const MixedStores = createDeclarativeStorePattern('Mixed', {
+const MixedStores = createStoreContext('Mixed', {
   // Simple values for straightforward data
   count: 0,
   message: 'Hello',
@@ -111,7 +111,7 @@ function MixedExample() {
  * Example 3: Type-Safe Complex Structures
  * Demonstrates excellent type inference with complex nested types
  */
-const ComplexStores = createDeclarativeStorePattern('Complex', {
+const ComplexStores = createStoreContext('Complex', {
   // Complex nested structure with full type safety
   appState: {
     initialValue: {
@@ -206,7 +206,7 @@ function ComplexExample() {
  * Example 4: Using HOC Pattern
  * Demonstrates automatic provider wrapping with withProvider
  */
-const FeatureStores = createDeclarativeStorePattern('Feature', {
+const FeatureStores = createStoreContext('Feature', {
   featureFlags: {
     betaAccess: false,
     newDashboard: true,

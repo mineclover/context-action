@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import { createDeclarativeStorePattern } from '../../../src/stores/patterns/declarative-store-pattern-v2';
+import { createStoreContext } from '../../../src/stores/patterns/declarative-store-pattern-v2';
 import { useStoreValue } from '../../../src/stores/hooks/useStoreValue';
 
 /**
@@ -17,7 +17,7 @@ import { useStoreValue } from '../../../src/stores/hooks/useStoreValue';
  */
 
 // 선언적 Store 패턴 생성 - 자동 타입 추론
-export const UserStores = createDeclarativeStorePattern('User', {
+export const UserStores = createStoreContext('User', {
   profile: {
     initialValue: { id: '', name: '', email: '' },
     description: 'User profile information',
@@ -64,7 +64,7 @@ export const UserProfile: React.FC = () => {
  * 전자상거래 애플리케이션을 위한 복합 Store 패턴
  */
 
-export const ShoppingStores = createDeclarativeStorePattern('Shopping', {
+export const ShoppingStores = createStoreContext('Shopping', {
   products: {
     initialValue: [] as Array<{
       id: string;
@@ -141,7 +141,7 @@ export const ShoppingCart = ShoppingStores.withProvider(ShoppingCartComponent, {
  * 대시보드 분석을 위한 성능 최적화된 Store 패턴
  */
 
-export const DashboardStores = createDeclarativeStorePattern('Dashboard', {
+export const DashboardStores = createStoreContext('Dashboard', {
   metrics: {
     initialValue: { views: 0, users: 0, revenue: 0, conversions: 0 },
     description: 'Analytics metrics',

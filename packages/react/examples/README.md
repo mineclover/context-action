@@ -33,7 +33,7 @@ examples/
 - **`usePersistedStore`**: Browser storage synchronization
 
 ### Pattern Hooks (For Larger Apps)
-- **`createDeclarativeStorePattern`**: Type-safe store pattern factory
+- **`createStoreContext`**: Type-safe store pattern factory
 - **`createActionContext`**: Action context factory for business logic
 
 ## 🚀 Getting Started
@@ -84,7 +84,7 @@ When you need better performance:
 
 ### 3. Use Pattern Hooks
 For larger applications:
-- `createDeclarativeStorePattern` - Type-safe store management
+- `createStoreContext` - Type-safe store management
 - `createActionContext` - Business logic separation
 
 ### 4. Add Specialized Features
