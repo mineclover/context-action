@@ -7,9 +7,9 @@ import { useEffect } from 'react';
 import { 
   PerformanceDomainTemplate,
   createPerformanceTemplate
-} from '../../domains/shared/templates';
+} from '@/lib/templates';
 import { ActionGuardDemos } from './components';
-import { usePageLogger } from '../../domains/shared/templates';
+import { usePageLogger } from '@/lib/templates';
 
 // Demo configurations for the performance template
 const demos = [

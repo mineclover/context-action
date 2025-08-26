@@ -54,7 +54,13 @@ export default defineConfig({
   resolve: {
     alias: {
       '@context-action/core': path.resolve(__dirname, '../packages/core/src/index.ts'),
-      '@context-action/react': path.resolve(__dirname, '../packages/react/src/index.ts')
+      '@context-action/react': path.resolve(__dirname, '../packages/react/src/index.ts'),
+      // Path mapping for refactored directories
+      '@': path.resolve(__dirname, './src'),
+      '@/lib': path.resolve(__dirname, './src/lib'),
+      '@/pages': path.resolve(__dirname, './src/pages'),
+      '@/components': path.resolve(__dirname, './src/components'),
+      '@/types': path.resolve(__dirname, './src/types')
     }
   },
   // CSS 최적화

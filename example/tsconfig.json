@@ -4,10 +4,17 @@
     "composite": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "preserveSymlinks": true
+    "preserveSymlinks": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@/lib/*": ["src/lib/*"],
+      "@/pages/*": ["src/pages/*"],
+      "@/components/*": ["src/components/*"],
+      "@/types/*": ["src/types/*"]
+    }
   },
   "include": ["src/**/*"],
-  "exclude": ["src/patterns/**/*"],
   "references": [
     { "path": "../packages/core" },
     { "path": "../packages/react" }

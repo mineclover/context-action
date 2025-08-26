@@ -9,7 +9,7 @@ import {
   StructuredPageContent,
   FeatureComparison,
   BestPracticesSection
-} from '../../domains/shared/templates';
+} from '@/lib/templates';
 import { DemoCard, Section } from '../../domains/shared/components';
 import { Link } from 'react-router-dom';
 
