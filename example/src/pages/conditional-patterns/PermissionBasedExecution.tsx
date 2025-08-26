@@ -8,9 +8,9 @@ import {
   useConditionalAction,
   useConditionalActionHandler,
   useConditionalStoreManager
-} from '../stores';
-import { mockServices } from '../mockServices';
-import { addLog } from '../utils';
+} from './stores';
+import { mockServices } from './mockServices';
+import { addLog } from './utils';
 
 function PermissionHandlers() {
   const stores = useConditionalStoreManager();

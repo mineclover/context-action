@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { DemoCard, MetricsDisplay, StatusIndicator } from '../../../domains/shared/components';
+import { DemoCard, Container, StatusIndicator, MetricsDisplay } from '@/components/ui';
 import { 
   useActionPerformanceMonitor,
   useApiManager,

@@ -77,10 +77,11 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
     const selectedObjects = useStoreValue(selectedObjectsStore);
     const focusedObject = useStoreValue(focusedObjectStore);
     const lastCleanup = useStoreValue(lastCleanupStore);
+    const manager = useObjectContextManager();
 
     // Computed values
     const objectsMap = useMemo(() => {
-      return objects instanceof Map ? objects : new Map(Object.entries(objects as any));
+      return objects instanceof Map ? objects as Map<string, ObjectMetadata<T>> : new Map(Object.entries(objects as Record<string, ObjectMetadata<T>>));
     }, [objects]);
 
     const selectedObjectsInfo = useMemo(() => {
@@ -174,9 +175,12 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
       // Query function
       queryObjects,
       
-      // Getters
+      // Getters (Metadata)
       getObject: useCallback((id: string) => objectsMap.get(id) || null, [objectsMap]),
       getAllObjects: useCallback(() => objectsMap, [objectsMap]),
+      
+      // Getters (Actual Objects)
+      getActualObject: useCallback((id: string) => manager.getObject(id), [manager]),
       
       // Statistics
       getStats: useCallback(() => {

@@ -3,13 +3,11 @@
  * Comprehensive demonstration of advanced action handling and performance optimization patterns
  */
 
-import { useEffect } from 'react';
 import { 
   PerformanceDomainTemplate,
   createPerformanceTemplate
 } from '@/lib/templates';
 import { ActionGuardDemos } from './components';
-import { usePageLogger } from '@/lib/templates';
 
 // Demo configurations for the performance template
 const demos = [
@@ -274,12 +272,6 @@ const bestPractices = [
  * Demonstrates advanced action handling patterns and performance optimization techniques
  */
 export default function ActionGuardPage() {
-  const { logPageAction } = usePageLogger('ActionGuard');
-
-  useEffect(() => {
-    logPageAction('ActionGuard page loaded');
-  }, [logPageAction]);
-
   // Create the template configuration
   const templateConfig = createPerformanceTemplate({
     title: '🛡️ ActionGuard - Advanced Action Management',

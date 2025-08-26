@@ -4,7 +4,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useSafeTimeout, usePerformanceMonitor } from '../../../domains/shared/hooks';
+import { useSafeTimeout, usePerformanceMonitor } from '@/lib/hooks';
 import type {
   PerformanceMetrics,
   ActionPerformanceData,

@@ -24,6 +24,11 @@ interface DOMElementObject extends ManagedObject {
   };
 }
 
+// Type guard for DOMElement metadata
+const isDOMElementMetadata = (metadata: Record<string, unknown> | undefined): metadata is DOMElementObject['metadata'] => {
+  return metadata !== undefined;
+};
+
 // Element 관리 컨텍스트 생성
 const {
   ObjectContextProvider: ElementContextProvider,
@@ -60,7 +65,9 @@ const createDOMElementObject = (
     metadata: {
       tag: element.tagName.toLowerCase(),
       className: element.className,
-      dataset: { ...element.dataset },
+      dataset: Object.fromEntries(
+        Object.entries(element.dataset).filter(([_, value]) => value !== undefined) as [string, string][]
+      ),
       attributes: {},
       position: { x: rect.left, y: rect.top },
       size: { width: rect.width, height: rect.height }
@@ -103,23 +110,23 @@ const useElementRef = (
  */
 const useElementFocus = () => {
   const { focusedObject, focus, clearFocus } = useElementManager();
-  const { getObject } = useElementStore();
+  const { getActualObject } = useElementStore();
 
   const focusElement = useCallback((id: string) => {
-    const elementObj = getObject(id);
+    const elementObj = getActualObject(id);
     if (elementObj?.element) {
       elementObj.element.focus();
       focus(id);
     }
-  }, [getObject, focus]);
+  }, [getActualObject, focus]);
 
   const clearElementFocus = useCallback(() => {
-    const elementObj = focusedObject ? getObject(focusedObject) : null;
+    const elementObj = focusedObject ? getActualObject(focusedObject) : null;
     if (elementObj?.element) {
       elementObj.element.blur();
     }
     clearFocus();
-  }, [focusedObject, getObject, clearFocus]);
+  }, [focusedObject, getActualObject, clearFocus]);
 
   return {
     focusedElementId: focusedObject,
@@ -138,7 +145,8 @@ const useElementSelection = () => {
   const selectedElementsInfo = queryObjects().filter(meta => selectedObjects.includes(meta.id));
 
   return {
-    selectedElements: selectedObjects,
+    selectedObjects: selectedObjects,
+    selectedElements: selectedObjects, // Keep both for compatibility
     selectedElementsInfo,
     selectElements: select,
     clearSelection
@@ -217,7 +225,7 @@ const ElementInspector: React.FC = () => {
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div><strong>ID:</strong> {elementMetadata.id}</div>
               <div><strong>Type:</strong> {elementMetadata.type}</div>
-              <div><strong>Tag:</strong> {elementMetadata.metadata?.tag}</div>
+              <div><strong>Tag:</strong> {isDOMElementMetadata(elementMetadata.metadata) ? (elementMetadata.metadata?.tag || 'N/A') : 'N/A'}</div>
               <div><strong>State:</strong> {elementMetadata.lifecycleState}</div>
               <div className="col-span-2">
                 <strong>Created:</strong> {new Date(elementMetadata.createdAt).toLocaleTimeString()}
@@ -227,12 +235,12 @@ const ElementInspector: React.FC = () => {
                   <strong>Last Accessed:</strong> {new Date(elementMetadata.lastAccessed).toLocaleTimeString()}
                 </div>
               )}
-              {elementMetadata.metadata?.position && (
+              {isDOMElementMetadata(elementMetadata.metadata) && elementMetadata.metadata?.position && (
                 <div className="col-span-2">
                   <strong>Position:</strong> x: {elementMetadata.metadata.position.x}, y: {elementMetadata.metadata.position.y}
                 </div>
               )}
-              {elementMetadata.metadata?.size && (
+              {isDOMElementMetadata(elementMetadata.metadata) && elementMetadata.metadata?.size && (
                 <div className="col-span-2">
                   <strong>Size:</strong> {elementMetadata.metadata.size.width}x{elementMetadata.metadata.size.height}
                 </div>
@@ -283,7 +291,7 @@ const ElementList: React.FC = () => {
                 <div className="flex-1" onClick={() => select([elementMetadata.id], 'toggle')}>
                   <div className="font-medium">{elementMetadata.id}</div>
                   <div className="text-sm text-gray-600">
-                    {elementMetadata.type} • {elementMetadata.metadata?.tag} • {elementMetadata.lifecycleState}
+                    {elementMetadata.type} • {isDOMElementMetadata(elementMetadata.metadata) ? (elementMetadata.metadata?.tag || 'N/A') : 'N/A'} • {elementMetadata.lifecycleState}
                   </div>
                   <div className="text-xs text-gray-500">
                     {new Date(elementMetadata.createdAt).toLocaleString()}
@@ -333,7 +341,7 @@ const ElementActionPanel: React.FC = () => {
       return;
     }
 
-    selectedObjects.forEach(id => {
+    selectedObjects.forEach((id: string) => {
       switch (action) {
         case 'activate':
           activate(id);
