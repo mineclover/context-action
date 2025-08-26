@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { promises as fs } from 'fs';
 import path from 'path';
 import { EnhancedLLMSConfig } from '../../types/config.js';
@@ -472,7 +473,7 @@ workflow_stage: content_generated
 ---`;
 
     // Remove markdown formatting for summary
-    let plainText = content
+    const plainText = content
       .replace(/```[\s\S]*?```/g, '') // Remove code blocks
       .replace(/#{1,6}\s+/g, '') // Remove headers
       .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links but keep text

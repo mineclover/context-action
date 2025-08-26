@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { promises as fs } from 'fs';
 import path from 'path';
 import { EnhancedLLMSConfig } from '../../types/config.js';
@@ -476,7 +477,7 @@ export class PriorityManagerCommand {
     const languages = ['en', 'ko'];
     let totalFiles = 0;
     let upgradedFiles = 0;
-    let oldFormatFiles: string[] = [];
+    const oldFormatFiles: string[] = [];
 
     if (!quiet) {
       console.log('🔄 Scanning for old format priority.json files...');

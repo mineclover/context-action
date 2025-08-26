@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Error Handler - Centralized error handling for CLI
  */
