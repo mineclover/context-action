@@ -6,11 +6,11 @@ updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"  # 주간 → 월간으로 변경
       day: "monday"
       time: "09:00"
       timezone: "Asia/Seoul"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5  # 10 → 5로 줄임
     commit-message:
       prefix: "deps"
       prefix-development: "deps-dev"
@@ -22,6 +22,59 @@ updates:
       # Major version updates require manual review
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+    # Dependency grouping for batch updates
+    groups:
+      # Development tools (bundlers, linters, formatters)
+      dev-tools:
+        patterns:
+          - "@biomejs/*"
+          - "biome"
+          - "eslint*"
+          - "prettier*"
+          - "typescript"
+          - "ts-node"
+          - "@types/*"
+          - "tsdown"
+          - "rolldown"
+          - "vite*"
+          - "@vitejs/*"
+          - "vitest*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Testing frameworks
+      testing:
+        patterns:
+          - "jest*"
+          - "@jest/*"
+          - "@testing-library/*"
+          - "vitest*"
+          - "@vitest/*"
+        update-types:
+          - "minor" 
+          - "patch"
+      
+      # Documentation tools
+      docs:
+        patterns:
+          - "vitepress*"
+          - "typedoc*"
+          - "@vitepress/*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Build and bundling tools
+      build-tools:
+        patterns:
+          - "lerna"
+          - "tsdown"
+          - "rolldown" 
+          - "@rolldown/*"
+        update-types:
+          - "minor"
+          - "patch"
     # Security updates are always enabled
     allow:
       - dependency-type: "all"
@@ -30,11 +83,11 @@ updates:
   - package-ecosystem: "npm"
     directory: "/packages/core"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
       day: "monday"
       time: "09:00"
       timezone: "Asia/Seoul"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 2  # 5 → 2로 줄임
     commit-message:
       prefix: "deps(core)"
       prefix-development: "deps-dev(core)"
@@ -45,6 +98,13 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+    groups:
+      all-dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
     allow:
       - dependency-type: "all"
 
@@ -52,11 +112,11 @@ updates:
   - package-ecosystem: "npm"
     directory: "/packages/react"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
       day: "monday"
       time: "09:00"
       timezone: "Asia/Seoul"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 2
     commit-message:
       prefix: "deps(react)"
       prefix-development: "deps-dev(react)"
@@ -67,6 +127,19 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+    groups:
+      react-deps:
+        patterns:
+          - "react*"
+          - "@types/react*"
+        update-types:
+          - "patch"
+      dev-deps:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
     allow:
       - dependency-type: "all"
 
@@ -74,11 +147,11 @@ updates:
   - package-ecosystem: "npm"
     directory: "/packages/llms-generator"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
       day: "monday"
       time: "09:00"
       timezone: "Asia/Seoul"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 2
     commit-message:
       prefix: "deps(llms-generator)"
       prefix-development: "deps-dev(llms-generator)"
@@ -96,11 +169,11 @@ updates:
   - package-ecosystem: "npm"
     directory: "/example"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
       day: "monday"
       time: "09:00"
       timezone: "Asia/Seoul"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
     commit-message:
       prefix: "deps(example)"
       prefix-development: "deps-dev(example)"
@@ -111,6 +184,41 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+    groups:
+      # UI and styling
+      ui-styling:
+        patterns:
+          - "tailwindcss*"
+          - "@tailwindcss/*"
+          - "class-variance-authority"
+          - "clsx"
+          - "tailwind-merge"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # React and routing
+      react-ecosystem:
+        patterns:
+          - "react*"
+          - "@types/react*"
+          - "react-dom"
+          - "react-router*"
+        update-types:
+          - "patch"
+      
+      # Development tools
+      dev-tools:
+        patterns:
+          - "@biomejs/*" 
+          - "biome"
+          - "vite*"
+          - "@vitejs/*"
+          - "typescript"
+          - "@types/*"
+        update-types:
+          - "minor"
+          - "patch"
     allow:
       - dependency-type: "all"
 
@@ -118,11 +226,11 @@ updates:
   - package-ecosystem: "npm"
     directory: "/docs"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
       day: "monday"
       time: "09:00"
       timezone: "Asia/Seoul"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 2
     commit-message:
       prefix: "deps(docs)"
       prefix-development: "deps-dev(docs)"
@@ -140,11 +248,11 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
       day: "monday"
       time: "09:00"
       timezone: "Asia/Seoul"
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 2
     commit-message:
       prefix: "ci"
       include: "scope"
@@ -154,5 +262,12 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+    groups:
+      actions:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
     allow:
       - dependency-type: "all"

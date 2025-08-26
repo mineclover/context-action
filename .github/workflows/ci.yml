@@ -41,8 +41,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
             
+      - name: Create .npmrc file with token
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+        
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           
       - name: Build packages
         run: pnpm build
@@ -92,8 +97,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
           
+      - name: Create .npmrc file with token
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+          
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         
       - name: Security audit
         run: |
@@ -144,8 +154,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
           
+      - name: Create .npmrc file with token
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+          
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         
       - name: Build packages
         run: pnpm build
