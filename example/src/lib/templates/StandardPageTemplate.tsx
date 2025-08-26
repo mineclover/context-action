@@ -12,7 +12,7 @@ import {
   // DomainLayout, // Missing component - commented out
   DemoCard,
   CodeExample,
-  PatternBadge,
+  DynamicPatternBadge,
   Section
 } from '@/components/ui';
 
@@ -120,7 +120,7 @@ export function DemoSection({
       <div className="space-y-6">
         {/* Section header */}
         <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
-          <PatternBadge type={patternType} difficulty={difficulty} />
+          <DynamicPatternBadge type={patternType} difficulty={difficulty} />
           <div className="flex-1">
             <p className="text-gray-700">{description}</p>
           </div>

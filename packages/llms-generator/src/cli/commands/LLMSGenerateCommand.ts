@@ -180,14 +180,16 @@ export class LLMSGenerateCommand {
           if (characterLimit === null) continue;
 
           const filePath = path.join(documentPath, templateFile);
-          const document = await this.parseDocument(filePath, documentId, category, language, characterLimit);
+          const document = await this.parseDocument(filePath, documentId, category, language, characterLimit, options);
           
           if (document && this.isDocumentComplete(document)) {
             documents.push(document);
           }
         }
       } catch (error) {
-        console.warn(`⚠️ Warning: Error processing ${documentId}: ${error}`);
+        if (options.verbose) {
+          console.warn(`⚠️ Warning: Error processing ${documentId}: ${error}`);
+        }
       }
     }
 
@@ -199,7 +201,8 @@ export class LLMSGenerateCommand {
     documentId: string,
     category: string,
     language: string,
-    characterLimit: number
+    characterLimit: number,
+    options: LLMSGenerateOptions
   ): Promise<DocumentContent | null> {
     try {
       // 1. Check if priority.json exists first
@@ -282,7 +285,9 @@ export class LLMSGenerateCommand {
         }
       };
     } catch (error) {
-      console.warn(`⚠️ Warning: Error parsing ${filePath}: ${error}`);
+      if (options.verbose) {
+        console.warn(`⚠️ Warning: Error parsing ${filePath}: ${error}`);
+      }
       return null;
     }
   }

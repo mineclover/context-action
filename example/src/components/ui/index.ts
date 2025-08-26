@@ -31,6 +31,7 @@ export { Label } from './Label';
 export {
   ActionPatternBadge,
   ContextPatternBadge,
+  DynamicPatternBadge,
   HOCPatternBadge,
   PatternBadge,
   ProviderPatternBadge,
