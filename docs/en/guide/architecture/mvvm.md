@@ -135,7 +135,7 @@ export const {
   Provider: UserModelProvider,
   useStore: useUserStore,
   useStoreManager: useUserStoreManager
-} = createDeclarativeStorePattern<UserStores>('User', {
+} = createStoreContext<UserStores>('User', {
   profile: {
     initialValue: { id: '', name: '', role: 'user' },
     strategy: 'shallow'

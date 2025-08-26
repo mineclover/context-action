@@ -1079,7 +1079,7 @@ The refs system integrates seamlessly with the Context-Action framework's other 
 const {
   Provider: AppStoresProvider,
   useStore: useAppStore
-} = createDeclarativeStorePattern('App', {
+} = createStoreContext('App', {
   gameState: { level: 1, score: 0, playing: false }
 });
 

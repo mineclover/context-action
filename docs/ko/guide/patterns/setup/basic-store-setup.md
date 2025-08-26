@@ -4,7 +4,7 @@ Context-Action 프레임워크를 위한 공유 스토어 컨텍스트 설정 �
 
 ## 임포트
 ```typescript
-import { createDeclarativeStorePattern, useStoreValue } from '@context-action/react';
+import { createStoreContext, useStoreValue } from '@context-action/react';
 ```
 
 ## 타입 정의
@@ -146,7 +146,7 @@ const {
   useStore: useUserStore,
   useStoreManager: useUserStoreManager,
   withProvider: withUserStoreProvider
-} = createDeclarativeStorePattern('User', {
+} = createStoreContext('User', {
   profile: {
     initialValue: { id: '', name: '', email: '', role: 'guest' as const },
     strategy: 'shallow' as const
@@ -165,14 +165,14 @@ const {
 ### 다중 도메인 스토어 설정
 ```typescript
 // 사용자 도메인
-const UserStoreContext = createDeclarativeStorePattern('User', {
+const UserStoreContext = createStoreContext('User', {
   profile: { id: '', name: '', email: '', role: 'guest' as const },
   preferences: { theme: 'light' as const, language: 'en', notifications: true },
   session: { isAuthenticated: false, permissions: [], lastActivity: 0 }
 });
 
 // 제품 도메인
-const ProductStoreContext = createDeclarativeStorePattern('Product', {
+const ProductStoreContext = createStoreContext('Product', {
   catalog: [] as Product[],
   categories: [] as Category[],
   filters: {
@@ -186,7 +186,7 @@ const ProductStoreContext = createDeclarativeStorePattern('Product', {
 });
 
 // UI 도메인
-const UIStoreContext = createDeclarativeStorePattern('UI', {
+const UIStoreContext = createStoreContext('UI', {
   modal: { isOpen: false, type: undefined, data: undefined },
   loading: { 
     initialValue: { global: false, operations: {} },
@@ -231,7 +231,7 @@ const {
   Provider: ExplicitUserStoreProvider,
   useStore: useExplicitUserStore,
   useStoreManager: useExplicitUserStoreManager
-} = createDeclarativeStorePattern<ExplicitUserStores>('ExplicitUser', {
+} = createStoreContext<ExplicitUserStores>('ExplicitUser', {
   profile: {
     initialValue: { id: '', name: '', email: '', role: 'guest' },
     strategy: 'shallow'
@@ -372,7 +372,7 @@ export const {
   useStore: useUserStore,
   useStoreManager: useUserStoreManager,
   withProvider: withUserStoreProvider
-} = createDeclarativeStorePattern('User', {
+} = createStoreContext('User', {
   profile: { id: '', name: '', email: '', role: 'guest' as const },
   preferences: { theme: 'light' as const, language: 'en', notifications: true },
   session: { isAuthenticated: false, permissions: [], lastActivity: 0 }
@@ -406,9 +406,9 @@ import {
 ### 스토어 번들 내보내기
 ```typescript
 // stores/StoreContexts.ts - 모든 스토어 컨텍스트를 하나의 파일에
-export const UserStoreContext = createDeclarativeStorePattern('User', userConfig);
-export const ProductStoreContext = createDeclarativeStorePattern('Product', productConfig);
-export const UIStoreContext = createDeclarativeStorePattern('UI', uiConfig);
+export const UserStoreContext = createStoreContext('User', userConfig);
+export const ProductStoreContext = createStoreContext('Product', productConfig);
+export const UIStoreContext = createStoreContext('UI', uiConfig);
 
 // 사용
 import { UserStoreContext, ProductStoreContext } from '../stores/StoreContexts';

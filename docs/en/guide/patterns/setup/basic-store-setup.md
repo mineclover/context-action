@@ -4,7 +4,7 @@ Shared store context setup patterns for the Context-Action framework.
 
 ## Import
 ```typescript
-import { createDeclarativeStorePattern, useStoreValue } from '@context-action/react';
+import { createStoreContext, useStoreValue } from '@context-action/react';
 ```
 
 ## Type Definitions
@@ -146,7 +146,7 @@ const {
   useStore: useUserStore,
   useStoreManager: useUserStoreManager,
   withProvider: withUserStoreProvider
-} = createDeclarativeStorePattern('User', {
+} = createStoreContext('User', {
   profile: {
     initialValue: { id: '', name: '', email: '', role: 'guest' as const },
     strategy: 'shallow' as const
@@ -165,14 +165,14 @@ const {
 ### Multi-Domain Store Setup
 ```typescript
 // User Domain
-const UserStoreContext = createDeclarativeStorePattern('User', {
+const UserStoreContext = createStoreContext('User', {
   profile: { id: '', name: '', email: '', role: 'guest' as const },
   preferences: { theme: 'light' as const, language: 'en', notifications: true },
   session: { isAuthenticated: false, permissions: [], lastActivity: 0 }
 });
 
 // Product Domain
-const ProductStoreContext = createDeclarativeStorePattern('Product', {
+const ProductStoreContext = createStoreContext('Product', {
   catalog: [] as Product[],
   categories: [] as Category[],
   filters: {
@@ -186,7 +186,7 @@ const ProductStoreContext = createDeclarativeStorePattern('Product', {
 });
 
 // UI Domain
-const UIStoreContext = createDeclarativeStorePattern('UI', {
+const UIStoreContext = createStoreContext('UI', {
   modal: { isOpen: false, type: undefined, data: undefined },
   loading: { 
     initialValue: { global: false, operations: {} },
@@ -231,7 +231,7 @@ const {
   Provider: ExplicitUserStoreProvider,
   useStore: useExplicitUserStore,
   useStoreManager: useExplicitUserStoreManager
-} = createDeclarativeStorePattern<ExplicitUserStores>('ExplicitUser', {
+} = createStoreContext<ExplicitUserStores>('ExplicitUser', {
   profile: {
     initialValue: { id: '', name: '', email: '', role: 'guest' },
     strategy: 'shallow'
@@ -372,7 +372,7 @@ export const {
   useStore: useUserStore,
   useStoreManager: useUserStoreManager,
   withProvider: withUserStoreProvider
-} = createDeclarativeStorePattern('User', {
+} = createStoreContext('User', {
   profile: { id: '', name: '', email: '', role: 'guest' as const },
   preferences: { theme: 'light' as const, language: 'en', notifications: true },
   session: { isAuthenticated: false, permissions: [], lastActivity: 0 }
@@ -406,9 +406,9 @@ import {
 ### Store Bundle Exports
 ```typescript
 // stores/StoreContexts.ts - All store contexts in one file
-export const UserStoreContext = createDeclarativeStorePattern('User', userConfig);
-export const ProductStoreContext = createDeclarativeStorePattern('Product', productConfig);
-export const UIStoreContext = createDeclarativeStorePattern('UI', uiConfig);
+export const UserStoreContext = createStoreContext('User', userConfig);
+export const ProductStoreContext = createStoreContext('Product', productConfig);
+export const UIStoreContext = createStoreContext('UI', uiConfig);
 
 // Usage
 import { UserStoreContext, ProductStoreContext } from '../stores/StoreContexts';

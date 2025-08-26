@@ -84,7 +84,7 @@ const {
   Provider: UserStoreProvider,      // {Domain}StoreProvider
   useStore: useUserStore,          // use{Domain}Store
   useStoreManager: useUserStoreManager  // use{Domain}StoreManager
-} = createDeclarativeStorePattern('User', userStoreConfig);
+} = createStoreContext('User', userStoreConfig);
 
 // ❌ 패턴 문서에서 새로운 타입 정의 금지
 // basic-usage.md: interface MyStores { ... }  ← 금지
@@ -396,7 +396,7 @@ proposals/[feature].md 생성 → 임시 타입 정의 → 리뷰 → Setup에 �
 interface [Domain]Stores { ... }
 
 ## Context Creation  
-const { Provider, useStore, useStoreManager } = createDeclarativeStorePattern('[Domain]', config);
+const { Provider, useStore, useStoreManager } = createStoreContext('[Domain]', config);
 ```
 
 ### 패턴 문서 템플릿

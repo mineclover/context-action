@@ -49,7 +49,7 @@
 | 패턴 | 사용 사례 | 임포트 | 최적 용도 |
 |---------|----------|--------|----------|
 | **🎯 Action Only** | 스토어 없는 액션 디스패칭 | `createActionContext` | 이벤트 시스템, 명령 패턴 |
-| **🏪 Store Only** | 액션 없는 상태 관리 | `createDeclarativeStorePattern` | 순수 상태 관리, 데이터 레이어 |
+| **🏪 Store Only** | 액션 없는 상태 관리 | `createStoreContext` | 순수 상태 관리, 데이터 레이어 |
 | **🔧 Ref Context** | 직접 DOM 조작 및 싱글톤 객체 관리 | `createRefContext` | 고성능 UI, 애니메이션, 외부 서비스 |
 
 **참고**: 복잡한 애플리케이션의 경우 최대 유연성과 관심사 분리를 위해 패턴들을 조합하여 사용하세요.

@@ -50,7 +50,7 @@ export const {
   Provider: UserBusinessStoreProvider,
   useStore: useUserBusinessStore,
   useStoreManager: useUserBusinessStoreManager
-} = createDeclarativeStorePattern('UserBusiness', {
+} = createStoreContext('UserBusiness', {
   profile: { 
     initialValue: { id: '', name: '', email: '', role: 'guest' },
     strategy: 'shallow'
@@ -95,7 +95,7 @@ export interface UserUIActions {
 export const {
   Provider: UserUIStoreProvider,
   useStore: useUserUIStore
-} = createDeclarativeStorePattern('UserUI', {
+} = createStoreContext('UserUI', {
   viewState: {
     initialValue: { isEditing: false, activeTab: 'profile', selectedItems: [] },
     strategy: 'shallow'
@@ -148,7 +148,7 @@ export interface DesignSystemData {
 export const {
   Provider: DesignSystemStoreProvider,
   useStore: useDesignSystemStore
-} = createDeclarativeStorePattern('DesignSystem', {
+} = createStoreContext('DesignSystem', {
   theme: {
     initialValue: {
       colors: { primary: '#007bff', secondary: '#6c757d' },

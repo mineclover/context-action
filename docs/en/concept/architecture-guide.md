@@ -30,7 +30,7 @@ The Context-Action framework addresses critical issues in modern state managemen
 The framework implements a clean separation of concerns through an MVVM-inspired pattern with **three core patterns** for complete domain isolation:
 
 - **Actions** handle business logic and coordination (ViewModel layer) via `createActionContext`
-- **Declarative Store Pattern** manages state with domain isolation (Model layer) via `createDeclarativeStorePattern`
+- **Declarative Store Pattern** manages state with domain isolation (Model layer) via `createStoreContext`
 - **RefContext** provides direct DOM manipulation with zero re-renders (Performance layer) via `createRefContext`
 - **Components** render UI (View layer)
 - **Context Boundaries** isolate functional domains

@@ -105,7 +105,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 // 2. Context-Action 프레임워크
 import {
   createActionContext,
-  createDeclarativeStorePattern,
+  createStoreContext,
   useStoreValue
 } from '@context-action/react';
 

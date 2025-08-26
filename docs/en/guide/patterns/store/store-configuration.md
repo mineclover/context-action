@@ -18,7 +18,7 @@ Advanced configuration provides fine-grained control over store behavior, compar
 ## Performance-Optimized Configuration
 
 ```tsx
-import { createDeclarativeStorePattern } from '@context-action/react';
+import { createStoreContext } from '@context-action/react';
 
 // Using ProductStores pattern from Setup with performance optimization
 interface OptimizedProductStores {
@@ -41,7 +41,7 @@ const {
   Provider: ProductStoreProvider,
   useStore: useProductStore,
   useStoreManager: useProductStoreManager
-} = createDeclarativeStorePattern<OptimizedProductStores>('Product', {
+} = createStoreContext<OptimizedProductStores>('Product', {
   // Large catalog - reference equality for performance
   catalog: {
     initialValue: [] as Product[],
@@ -96,7 +96,7 @@ const {
 const {
   Provider: ProductStoreProvider,
   useStore: useProductStore
-} = createDeclarativeStorePattern<ProductStores>('Product', {
+} = createStoreContext<ProductStores>('Product', {
   catalog: {
     initialValue: [] as Product[],
     strategy: 'reference' as const // Only re-render if array reference changes
@@ -126,7 +126,7 @@ const {
 const {
   Provider: UIStoreProvider,
   useStore: useUIStore
-} = createDeclarativeStorePattern<UIStores>('UI', {
+} = createStoreContext<UIStores>('UI', {
   modal: {
     initialValue: { isOpen: false, type: undefined, data: undefined },
     strategy: 'shallow' as const // Re-render if any top-level property changes
@@ -156,7 +156,7 @@ const {
 const {
   Provider: UserStoreProvider,
   useStore: useUserStore
-} = createDeclarativeStorePattern<UserStores>('User', {
+} = createStoreContext<UserStores>('User', {
   profile: {
     initialValue: { id: '', name: '', email: '', role: 'guest' },
     strategy: 'deep' as const, // Detects changes at any nesting level
@@ -201,7 +201,7 @@ interface TrackingFormStores {
 const {
   Provider: FormStoreProvider,
   useStore: useFormStore
-} = createDeclarativeStorePattern<TrackingFormStores>('Form', {
+} = createStoreContext<TrackingFormStores>('Form', {
   userActivity: {
     initialValue: { 
       userId: '', 
@@ -228,7 +228,7 @@ interface AdvancedProductStores extends ProductStores {
 const {
   Provider: ProductStoreProvider,
   useStore: useProductStore
-} = createDeclarativeStorePattern<AdvancedProductStores>('Product', {
+} = createStoreContext<AdvancedProductStores>('Product', {
   // Base ProductStores fields
   catalog: [] as Product[],
   categories: [] as Category[],
@@ -270,7 +270,7 @@ const {
 const {
   Provider: UIStoreProvider,
   useStore: useUIStore
-} = createDeclarativeStorePattern<UIStores>('UI', {
+} = createStoreContext<UIStores>('UI', {
   modal: {
     initialValue: { isOpen: false, type: undefined, data: undefined },
     debug: true,  // Enable detailed logging
@@ -318,7 +318,7 @@ interface MonitoredProductStores extends ProductStores {
 const {
   Provider: ProductStoreProvider,
   useStore: useProductStore
-} = createDeclarativeStorePattern<MonitoredProductStores>('Product', {
+} = createStoreContext<MonitoredProductStores>('Product', {
   // Standard ProductStores fields
   catalog: [] as Product[],
   categories: [] as Category[],
@@ -361,7 +361,7 @@ interface MemoryOptimizedUIStores extends UIStores {
 const {
   Provider: UIStoreProvider,
   useStore: useUIStore
-} = createDeclarativeStorePattern<MemoryOptimizedUIStores>('UI', {
+} = createStoreContext<MemoryOptimizedUIStores>('UI', {
   // Standard UIStores fields
   modal: { isOpen: false, type: undefined, data: undefined },
   loading: { global: false, operations: {} },
@@ -465,7 +465,7 @@ interface RealWorldStores {
 const {
   Provider: RealWorldStoreProvider,
   useStore: useRealWorldStore
-} = createDeclarativeStorePattern<RealWorldStores>('RealWorld', {
+} = createStoreContext<RealWorldStores>('RealWorld', {
   // User data - shallow comparison for profile updates (UserStores pattern)
   userProfile: {
     initialValue: { id: '', name: '', email: '', role: 'guest' },

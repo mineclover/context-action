@@ -9,7 +9,7 @@ Context-Action은 완벽한 관심사 분리를 통한 확장 가능한 React �
 | 패턴 | 사용 사례 | 임포트 | 최적용도 |
 |---------|----------|--------|----------|
 | **🎯 Action Only** | 스토어 없이 액션 디스패칭 | `createActionContext` | 이벤트 시스템, 커맨드 패턴 |
-| **🏪 Store Only** | 액션 없이 상태 관리 | `createDeclarativeStorePattern` | 순수 상태 관리, 데이터 레이어 |
+| **🏪 Store Only** | 액션 없이 상태 관리 | `createStoreContext` | 순수 상태 관리, 데이터 레이어 |
 | **🔧 Ref Context** | 제로 리렌더링 직접 DOM 조작 | `createRefContext` | 고성능 UI, 애니메이션, 실시간 인터랙션 |
 
 ## 🎯 Action Only 패턴
@@ -64,14 +64,14 @@ function InteractiveComponent() {
 
 ### 기본 사용법
 ```tsx
-import { createDeclarativeStorePattern } from '@context-action/react';
+import { createStoreContext } from '@context-action/react';
 
 // 1. 패턴 생성
 const {
   Provider: AppStoreProvider,
   useStore: useAppStore,
   useStoreManager: useAppStoreManager
-} = createDeclarativeStorePattern('App', {
+} = createStoreContext('App', {
   user: { initialValue: { name: '', email: '' } },
   settings: { initialValue: { theme: 'light' } }
 });

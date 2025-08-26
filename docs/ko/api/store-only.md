@@ -1,6 +1,6 @@
 # Store Only 메서드
 
-`createDeclarativeStorePattern`에서 제공하는 Store Only 패턴 메서드의 완전한 API 레퍼런스입니다.
+`createStoreContext`에서 제공하는 Store Only 패턴 메서드의 완전한 API 레퍼런스입니다.
 
 ## 개요
 
@@ -8,7 +8,7 @@ Store Only 패턴은 액션 디스패치 없이 타입 안전한 상태 관리�
 
 ## 핵심 메서드
 
-### `createDeclarativeStorePattern<T>(contextName, storeConfig)`
+### `createStoreContext<T>(contextName, storeConfig)`
 
 타입 안전한 상태 관리로 선언형 스토어 패턴을 생성합니다.
 
@@ -29,7 +29,7 @@ Store Only 패턴은 액션 디스패치 없이 타입 안전한 상태 관리�
 **예제:**
 ```typescript
 const { Provider, useStore, useStoreManager, withProvider } = 
-  createDeclarativeStorePattern('App', {
+  createStoreContext('App', {
     user: { id: '', name: '', email: '' },
     settings: { theme: 'light', language: 'ko' }
   });

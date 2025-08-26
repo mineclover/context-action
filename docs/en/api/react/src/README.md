@@ -72,7 +72,7 @@
 - [assertStoreValue](functions/assertStoreValue.md)
 - [useStoreValue](functions/useStoreValue.md)
 - [useStoreValues](functions/useStoreValues.md)
-- [createDeclarativeStorePattern](functions/createDeclarativeStorePattern.md)
+- [createStoreContext](functions/createStoreContext.md)
 - [setGlobalComparisonOptions](functions/setGlobalComparisonOptions.md)
 - [getGlobalComparisonOptions](functions/getGlobalComparisonOptions.md)
 - [compareValues](functions/compareValues.md)
@@ -94,7 +94,7 @@
 
 ### createDeclarativeStores
 
-Renames and re-exports [createDeclarativeStorePattern](functions/createDeclarativeStorePattern.md)
+Renames and re-exports [createStoreContext](functions/createStoreContext.md)
 
 ***
 

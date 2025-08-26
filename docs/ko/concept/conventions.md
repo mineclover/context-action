@@ -28,10 +28,10 @@ const {
   Provider: UserStoreProvider,
   useStore: useUserStore,
   useStoreManager: useUserStoreManager
-} = createDeclarativeStorePattern('User', {...});
+} = createStoreContext('User', {...});
 
 // ❌ 지양: 직접 객체 접근
-const UserStores = createDeclarativeStorePattern('User', {...});
+const UserStores = createStoreContext('User', {...});
 const userStore = UserStores.useStore('profile'); // 도메인이 불분명
 ```
 
@@ -158,7 +158,7 @@ src/
 ├── contexts/           # 컨텍스트 정의
 │   ├── user/
 │   │   ├── user.actions.ts     # UserActions 인터페이스 + createActionContext
-│   │   ├── user.stores.ts      # UserData 인터페이스 + createDeclarativeStorePattern  
+│   │   ├── user.stores.ts      # UserData 인터페이스 + createStoreContext  
 │   │   └── index.ts            # 리네이밍된 exports
 │   ├── product/
 │   │   ├── product.actions.ts
@@ -232,7 +232,7 @@ const {
   Provider: SettingsStoreProvider,
   useStore: useSettingsStore,
   useStoreManager: useSettingsStoreManager
-} = createDeclarativeStorePattern('Settings', {
+} = createStoreContext('Settings', {
   theme: 'light' as 'light' | 'dark',
   language: 'ko',
   notifications: true
@@ -249,7 +249,7 @@ const {
   Provider: SettingsStoreProvider,
   useStore: useSettingsStore,
   useStoreManager: useSettingsStoreManager
-} = createDeclarativeStorePattern<SettingsStoreTypes>('Settings', {
+} = createStoreContext<SettingsStoreTypes>('Settings', {
   theme: 'light',  // 타입이 SettingsStoreTypes에서 추론됨
   language: 'ko',
   notifications: true
@@ -295,7 +295,7 @@ function App() {
 #### HOC 패턴 (권장)
 ```tsx
 // ✅ 권장: HOC를 이용한 자동 Provider 감싸기
-const { withProvider: withUserStoreProvider } = createDeclarativeStorePattern('User', {...});
+const { withProvider: withUserStoreProvider } = createStoreContext('User', {...});
 const { withProvider: withUserActionProvider } = createActionContext<UserActions>('UserActions');
 
 // 여러 Provider 조합
@@ -410,7 +410,7 @@ interface Product extends BaseEntity {
 const {
   Provider: UserStoreProvider,
   useStore: useUserStore
-} = createDeclarativeStorePattern('User', {
+} = createStoreContext('User', {
   users: { initialValue: [] as User[] },
   currentUser: { initialValue: null as User | null }
 });
@@ -424,7 +424,7 @@ interface UserStoreTypes {
 const {
   Provider: UserStoreProvider,
   useStore: useUserStore
-} = createDeclarativeStorePattern<UserStoreTypes>('User', {
+} = createStoreContext<UserStoreTypes>('User', {
   // ⚠️ 주의: 명시적 제네릭 사용 시에도 InitialStores<T> 구조 필요
   users: [],  // 직접 값 또는
   currentUser: {  // 설정 객체
@@ -562,7 +562,7 @@ import type { UserProfile } from '@/types/user.types';
 const {
   Provider: DataStoreProvider,
   useStore: useDataStore
-} = createDeclarativeStorePattern('Data', {
+} = createStoreContext('Data', {
   // 원시값: reference (기본값)
   counter: 0,
   isLoading: false,
@@ -667,7 +667,7 @@ useUserActionHandler('saveForm', saveHandler, {
 // ✅ 권장: 타입 테스트 파일 작성
 // src/contexts/__tests__/user.types.test.tsx
 
-import { createDeclarativeStorePattern, createActionContext } from '@context-action/react';
+import { createStoreContext, createActionContext } from '@context-action/react';
 
 // 명시적 제네릭 테스트
 interface UserStores {
@@ -676,7 +676,7 @@ interface UserStores {
 }
 
 // 타입 안전성 검증
-const ExplicitStores = createDeclarativeStorePattern<UserStores>('User', {
+const ExplicitStores = createStoreContext<UserStores>('User', {
   profile: { id: '', name: '', email: '' },  // 타입 체크됨
   settings: {
     initialValue: { theme: 'light', language: 'en' },
@@ -685,7 +685,7 @@ const ExplicitStores = createDeclarativeStorePattern<UserStores>('User', {
 });
 
 // 타입 추론 테스트
-const InferredStores = createDeclarativeStorePattern('Inferred', {
+const InferredStores = createStoreContext('Inferred', {
   counter: 0,  // Store<number>로 추론
   user: { id: '', name: '' },  // Store<{id: string, name: string}>로 추론
   isActive: false  // Store<boolean>로 추론
@@ -721,7 +721,7 @@ function TypeValidationComponent() {
 // ✅ 권장: 개발 모드 디버깅 지원
 // JSON 직렬화 실패 시 자동 fallback
 
-const DataStores = createDeclarativeStorePattern('Data', {
+const DataStores = createStoreContext('Data', {
   // 순환 참조나 특수 타입이 포함된 데이터
   complexData: {
     initialValue: { /* BigInt, Symbol, Function 등 */ },
@@ -739,7 +739,7 @@ const DataStores = createDeclarativeStorePattern('Data', {
 #### 개발 모드 로깅
 ```tsx
 // ✅ 권장: 개발 모드에서만 활성화되는 디버깅
-const DebugStores = createDeclarativeStorePattern('Debug', {
+const DebugStores = createStoreContext('Debug', {
   userData: {
     initialValue: { id: '', profile: {} },
     debug: true,  // 개발 모드에서 스토어 생성 로그

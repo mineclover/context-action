@@ -192,7 +192,7 @@ export const appStoreConfig = {
 ```typescript
 // contexts/AppContexts.tsx
 import { createActionContext } from '@context-action/react';
-import { createDeclarativeStorePattern } from '@context-action/react';
+import { createStoreContext } from '@context-action/react';
 import type { UserActions, SystemActions } from '../types/AppActions';
 import { appStoreConfig } from '../stores/AppStoreConfig';
 
@@ -215,7 +215,7 @@ export const {
   useStore: useAppStore,
   useStoreManager: useAppStoreManager,
   withProvider: withAppStoreProvider
-} = createDeclarativeStorePattern('App', appStoreConfig);
+} = createStoreContext('App', appStoreConfig);
 
 export type AppStores = typeof appStoreConfig;
 ```

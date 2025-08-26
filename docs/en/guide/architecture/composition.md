@@ -24,7 +24,7 @@ const {
   Provider: AppStoreProvider,
   useStore: useAppStore,
   useStoreManager: useAppStoreManager
-} = createDeclarativeStorePattern('App', {
+} = createStoreContext('App', {
   user: { id: '', name: '' },
   counter: 0
 });
@@ -213,7 +213,7 @@ export function useUserEditor() {
 
 ```tsx
 // Model Layer (Store Only Pattern)
-const ModelLayer = createDeclarativeStorePattern('Model', {
+const ModelLayer = createStoreContext('Model', {
   userData: { id: '', name: '', email: '' },
   appState: { loading: false, error: null }
 });
@@ -285,7 +285,7 @@ const AnimationLayer = createRefContext<{
 }>('Animation');
 
 // State Layer: Selective updates for data
-const DataLayer = createDeclarativeStorePattern('Data', {
+const DataLayer = createStoreContext('Data', {
   particleCount: 100,
   animationSpeed: 1.0,
   // Use reference equality for large datasets
@@ -373,7 +373,7 @@ const {
   Provider: UserStoreProvider,
   useStore: useUserStore,
   useStoreManager: useUserStoreManager
-} = createDeclarativeStorePattern('UserStores', {
+} = createStoreContext('UserStores', {
   profile: { id: '', name: '', email: '' },
   preferences: { theme: 'light' as const }
 });

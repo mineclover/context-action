@@ -8,7 +8,7 @@
 
 ## 패턴 생성
 
-### `createDeclarativeStorePattern(contextName, storeConfig)`
+### `createStoreContext(contextName, storeConfig)`
 
 자동 타입 추론을 통해 선언형 스토어 패턴을 생성합니다.
 
@@ -32,7 +32,7 @@
 ```typescript
 // 자동 타입 추론이 있는 설정
 const { Provider, useStore, useStoreManager, withProvider } = 
-  createDeclarativeStorePattern('App', {
+  createStoreContext('App', {
     // 단순 값 - string 타입으로 추론
     username: '',
     
@@ -91,7 +91,7 @@ const simpleConfig = {
   items: [] as Array<{ id: string; name: string }>
 };
 
-const { useStore } = createDeclarativeStorePattern('Simple', simpleConfig);
+const { useStore } = createStoreContext('Simple', simpleConfig);
 
 // TypeScript가 정확한 타입을 인식:
 const titleStore = useStore('title');      // Store<string>
@@ -152,7 +152,7 @@ const advancedConfig = {
   }
 };
 
-const { useStore } = createDeclarativeStorePattern('Advanced', advancedConfig);
+const { useStore } = createStoreContext('Advanced', advancedConfig);
 ```
 
 ## 프로바이더 패턴
@@ -487,7 +487,7 @@ const {
   useStore: useTodoStore,
   useStoreManager: useTodoStoreManager,
   withProvider: withTodoStoreProvider
-} = createDeclarativeStorePattern('TodoApp', appStoreConfig);
+} = createStoreContext('TodoApp', appStoreConfig);
 
 // 패턴을 사용하는 컴포넌트
 const TodoApp = withTodoStoreProvider(() => {
@@ -793,7 +793,7 @@ const typedConfig = createTypedStoreConfig({
   }
 });
 
-const { useStore, withProvider } = createDeclarativeStorePattern('Shop', typedConfig);
+const { useStore, withProvider } = createStoreContext('Shop', typedConfig);
 ```
 
 ## 외부 시스템과의 통합

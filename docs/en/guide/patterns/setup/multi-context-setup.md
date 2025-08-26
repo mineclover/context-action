@@ -6,7 +6,7 @@ Complex architecture setup patterns combining multiple contexts for large-scale 
 ```typescript
 import { 
   createActionContext, 
-  createDeclarativeStorePattern, 
+  createStoreContext, 
   createRefContext,
   composeProviders
 } from '@context-action/react';
@@ -98,7 +98,7 @@ export interface UIActions {
 ### MVVM Context Creation
 ```typescript
 // User Domain - Model Layer (Store Only Pattern)
-export const UserModelContext = createDeclarativeStorePattern('User', {
+export const UserModelContext = createStoreContext('User', {
   profile: {
     initialValue: { id: '', name: '', email: '', role: 'guest' as const },
     strategy: 'shallow' as const
@@ -120,7 +120,7 @@ export const UserViewModelContext = createActionContext<UserActions>('User');
 export const UserPerformanceContext = createRefContext<UserPerformanceRefs>('UserPerformance');
 
 // Product Domain - Complete Setup
-export const ProductModelContext = createDeclarativeStorePattern('Product', {
+export const ProductModelContext = createStoreContext('Product', {
   catalog: [] as Product[],
   categories: [] as Category[],
   filters: { initialValue: {}, strategy: 'shallow' as const },
@@ -135,7 +135,7 @@ export const ProductViewModelContext = createActionContext<ProductActions>('Prod
 export const ProductPerformanceContext = createRefContext<ProductPerformanceRefs>('ProductPerformance');
 
 // UI Domain - Complete Setup
-export const UIModelContext = createDeclarativeStorePattern('UI', {
+export const UIModelContext = createStoreContext('UI', {
   modal: { isOpen: false, type: undefined, data: undefined },
   sidebar: { isOpen: false, activePanel: undefined },
   loading: { 
@@ -226,7 +226,7 @@ export interface BusinessActions {
   generateReport: { type: string; dateRange: DateRange };
 }
 
-export const BusinessModelContext = createDeclarativeStorePattern('Business', {
+export const BusinessModelContext = createStoreContext('Business', {
   orders: [] as Order[],
   inventory: [] as InventoryItem[],
   customers: [] as Customer[],
@@ -264,7 +264,7 @@ export interface ValidationActions {
   setFieldStatus: { fieldName: string; status: 'valid' | 'invalid' | 'pending' };
 }
 
-export const ValidationModelContext = createDeclarativeStorePattern('Validation', {
+export const ValidationModelContext = createStoreContext('Validation', {
   validationRules: [] as ValidationRule[],
   validationResults: [] as ValidationResult[],
   formErrors: {} as Record<string, string[]>,
@@ -293,7 +293,7 @@ export interface DesignActions {
   setLayout: { layoutId: string; config: LayoutConfig };
 }
 
-export const DesignModelContext = createDeclarativeStorePattern('Design', {
+export const DesignModelContext = createStoreContext('Design', {
   theme: {
     initialValue: defaultTheme,
     strategy: 'deep' as const

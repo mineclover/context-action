@@ -11,7 +11,7 @@ Choose the right pattern for your use case:
 | Pattern | Use Case | Import | Best For |
 |---------|----------|--------|----------|
 | **🎯 Action Only** | Action dispatching without stores | `createActionContext` | Event systems, command patterns |
-| **🏪 Store Only** | State management without actions | `createDeclarativeStorePattern` | Pure state management, data layers |
+| **🏪 Store Only** | State management without actions | `createStoreContext` | Pure state management, data layers |
 | **🔧 Ref Context** | Direct DOM manipulation with zero re-renders | `createRefContext` | High-performance UI, animations, real-time interactions |
 
 **For complex applications, compose patterns together for maximum flexibility and separation of concerns.**
@@ -56,7 +56,7 @@ const {
   Provider: UserStoreProvider,
   useStore: useUserStore,
   useStoreManager: useUserStoreManager
-} = createDeclarativeStorePattern('UserStores', {
+} = createStoreContext('UserStores', {
   profile: { id: '', name: '', email: '' },
   preferences: { theme: 'light' as const }
 });

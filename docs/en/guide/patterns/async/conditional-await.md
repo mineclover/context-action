@@ -14,7 +14,7 @@ Before implementing conditional await patterns, ensure you have proper Context-A
 ```typescript
 import { createRefContext } from '@context-action/react';
 import { createActionContext, ActionPayloadMap } from '@context-action/react';
-import { createDeclarativeStorePattern, useStoreValue } from '@context-action/react';
+import { createStoreContext, useStoreValue } from '@context-action/react';
 ```
 
 ### RefContext Setup
@@ -67,7 +67,7 @@ const {
 const {
   Provider: AppStateProvider,
   useStore: useAppStateStore
-} = createDeclarativeStorePattern('AppState', {
+} = createStoreContext('AppState', {
   isReady: { initialValue: false },
   needsSetup: { initialValue: true },
   dataLoaded: { initialValue: false }
@@ -76,21 +76,21 @@ const {
 const {
   Provider: UserStateProvider,
   useStore: useUserStateStore
-} = createDeclarativeStorePattern('UserState', {
+} = createStoreContext('UserState', {
   isLoggedIn: { initialValue: false }
 });
 
 const {
   Provider: FeatureProvider,
   useStore: useFeatureStore
-} = createDeclarativeStorePattern('Feature', {
+} = createStoreContext('Feature', {
   betaUI: { initialValue: false }
 });
 
 const {
   Provider: CapabilityProvider,
   useStore: useCapabilityStore
-} = createDeclarativeStorePattern('Capability', {
+} = createStoreContext('Capability', {
   hasAdvancedFeatures: { initialValue: false },
   hasAnimations: { initialValue: true }
 });
@@ -98,7 +98,7 @@ const {
 const {
   Provider: PreferencesProvider,
   useStore: usePreferencesStore
-} = createDeclarativeStorePattern('Preferences', {
+} = createStoreContext('Preferences', {
   showSidebar: { initialValue: true },
   showToolbar: { initialValue: true },
   showStatusBar: { initialValue: false }

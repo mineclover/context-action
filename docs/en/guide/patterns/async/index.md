@@ -14,7 +14,7 @@ Complete setup guide for handling asynchronous operations, element waiting, and 
 ```typescript
 import { 
   createActionContext, 
-  createDeclarativeStorePattern,
+  createStoreContext,
   createRefContext,
   useWaitForRefs
 } from '@context-action/react';
@@ -41,7 +41,7 @@ const { useActionHandler, useActionDispatch } = createActionContext<AsyncActions
 For managing async operation state:
 
 ```typescript
-const { useStore } = createDeclarativeStorePattern('AsyncState', {
+const { useStore } = createStoreContext('AsyncState', {
   isProcessing: { initialValue: false },
   retryCount: { initialValue: 0 },
   operationResults: { initialValue: {} as Record<string, any> },
@@ -125,7 +125,7 @@ const {
 const { 
   Provider: AsyncStateProvider,
   useStore: useAsyncStore 
-} = createDeclarativeStorePattern('AsyncState', {
+} = createStoreContext('AsyncState', {
   isProcessing: { initialValue: false },
   retryCount: { initialValue: 0 },
   operationResults: { initialValue: {} as Record<string, any> },

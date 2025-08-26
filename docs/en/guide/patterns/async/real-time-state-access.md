@@ -44,7 +44,7 @@ const {
   Provider: UIStoreProvider,
   useStore: useUIStore,
   useStoreManager: useUIStoreManager
-} = createDeclarativeStorePattern('UI', {
+} = createStoreContext('UI', {
   isMounted: { 
     initialValue: false,
     strategy: 'shallow' as const,
@@ -129,7 +129,7 @@ const {
   Provider: DataStoreProvider,
   useStore: useDataStore,
   useStoreManager: useDataStoreManager
-} = createDeclarativeStorePattern('Data', {
+} = createStoreContext('Data', {
   data: {
     initialValue: { version: 1, content: {} },
     strategy: 'shallow' as const,

@@ -67,7 +67,7 @@ const {
   Provider: UserStoreProvider,
   useStore: useUserStore,
   useStoreManager: useUserStoreManager
-} = createDeclarativeStorePattern<UserStores>('User', {
+} = createStoreContext<UserStores>('User', {
   // UserStores 인터페이스에 대해 검증된 타입
   profile: {
     initialValue: { id: '', name: '', email: '', role: 'guest' },

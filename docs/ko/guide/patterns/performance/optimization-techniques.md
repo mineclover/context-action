@@ -31,7 +31,7 @@ Context-Action 프레임워크를 위한 포괄적인 성능 최적화 패턴 �
 const {
   Provider: PerformanceStoreProvider,
   useStore: usePerformanceStore
-} = createDeclarativeStorePattern('Performance', {
+} = createStoreContext('Performance', {
   // 원시값: reference (기본값)
   counter: 0,
   isLoading: false,

@@ -1,16 +1,16 @@
 # 스토어 패턴 API
 
-스토어 패턴은 `createDeclarativeStorePattern` 함수를 통해 타입 안전한 상태 관리를 제공하며, 뛰어난 타입 추론과 반응형 상태 관리에 중점을 둔 단순화된 API를 제공합니다.
+스토어 패턴은 `createStoreContext` 함수를 통해 타입 안전한 상태 관리를 제공하며, 뛰어난 타입 추론과 반응형 상태 관리에 중점을 둔 단순화된 API를 제공합니다.
 
 ## 임포트
 
 ```typescript
-import { createDeclarativeStorePattern, useStoreValue } from '@context-action/react';
+import { createStoreContext, useStoreValue } from '@context-action/react';
 ```
 
-## createDeclarativeStorePattern
+## createStoreContext
 
-### `createDeclarativeStorePattern<T>(name, config)`
+### `createStoreContext<T>(name, config)`
 
 Provider, 훅, 스토어 관리 기능을 갖춘 완전한 스토어 패턴을 생성합니다.
 
@@ -42,7 +42,7 @@ const {
   useStore: useUserStore,
   useStoreManager: useUserStoreManager,
   withProvider: withUserStoreProvider
-} = createDeclarativeStorePattern('User', {
+} = createStoreContext('User', {
   // 직접 값 - 타입이 자동으로 추론됨
   profile: { name: '', email: '', avatar: '' },
   preferences: { theme: 'light', language: 'ko' },
@@ -57,7 +57,7 @@ const {
   Provider: AppStoreProvider,
   useStore: useAppStore,
   useStoreManager: useAppStoreManager
-} = createDeclarativeStorePattern('App', {
+} = createStoreContext('App', {
   // initialValue를 가진 설정
   user: {
     initialValue: { id: '', name: '', email: '', isAuthenticated: false }
@@ -340,7 +340,7 @@ function UtilityComponent() {
 ### 파생 상태
 
 ```typescript
-const { useStore } = createDeclarativeStorePattern('Analytics', {
+const { useStore } = createStoreContext('Analytics', {
   events: {
     initialValue: [] as Array<{ type: string; timestamp: number }>,
     derived: {
@@ -369,7 +369,7 @@ function AnalyticsComponent() {
 ### 스토어 검증
 
 ```typescript
-const { useStore } = createDeclarativeStorePattern('Settings', {
+const { useStore } = createStoreContext('Settings', {
   config: {
     initialValue: { apiUrl: '', timeout: 5000, retries: 3 },
     validator: (value) => {

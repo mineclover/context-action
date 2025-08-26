@@ -28,10 +28,10 @@ const {
   Provider: UserStoreProvider,
   useStore: useUserStore,
   useStoreManager: useUserStoreManager
-} = createDeclarativeStorePattern('User', {...});
+} = createStoreContext('User', {...});
 
 // ❌ Avoid: Direct object access
-const UserStores = createDeclarativeStorePattern('User', {...});
+const UserStores = createStoreContext('User', {...});
 const userStore = UserStores.useStore('profile'); // Domain unclear
 ```
 
@@ -158,7 +158,7 @@ src/
 ├── contexts/           # Context definitions
 │   ├── user/
 │   │   ├── user.actions.ts     # UserActions interface + createActionContext
-│   │   ├── user.stores.ts      # UserData interface + createDeclarativeStorePattern
+│   │   ├── user.stores.ts      # UserData interface + createStoreContext
 │   │   ├── user.refs.ts        # UserRefs interface + createRefContext
 │   │   └── index.ts            # Renamed exports
 │   ├── product/
@@ -248,7 +248,7 @@ const {
   Provider: SettingsStoreProvider,
   useStore: useSettingsStore,
   useStoreManager: useSettingsStoreManager
-} = createDeclarativeStorePattern('Settings', {
+} = createStoreContext('Settings', {
   theme: 'light' as 'light' | 'dark',
   language: 'en',
   notifications: true
@@ -265,7 +265,7 @@ const {
   Provider: SettingsStoreProvider,
   useStore: useSettingsStore,
   useStoreManager: useSettingsStoreManager
-} = createDeclarativeStorePattern<SettingsStoreTypes>('Settings', {
+} = createStoreContext<SettingsStoreTypes>('Settings', {
   theme: 'light',  // Type inferred from SettingsStoreTypes
   language: 'en',
   notifications: true
@@ -333,7 +333,7 @@ function App() {
 #### HOC Pattern (Recommended)
 ```tsx
 // ✅ Recommended: Automatic Provider wrapping with HOC
-const { withProvider: withUserStoreProvider } = createDeclarativeStorePattern('User', {...});
+const { withProvider: withUserStoreProvider } = createStoreContext('User', {...});
 const { withProvider: withUserActionProvider } = createActionContext<UserActions>('UserActions');
 const { withProvider: withMouseProvider } = createRefContext<MouseRefs>('Mouse');
 
@@ -483,7 +483,7 @@ interface Product extends BaseEntity {
 const {
   Provider: UserStoreProvider,
   useStore: useUserStore
-} = createDeclarativeStorePattern('User', {
+} = createStoreContext('User', {
   users: { initialValue: [] as User[] },
   currentUser: { initialValue: null as User | null }
 });
@@ -497,7 +497,7 @@ interface UserStoreTypes {
 const {
   Provider: UserStoreProvider,
   useStore: useUserStore
-} = createDeclarativeStorePattern<UserStoreTypes>('User', {
+} = createStoreContext<UserStoreTypes>('User', {
   users: [],  // Direct value or
   currentUser: {  // Configuration object
     initialValue: null,
@@ -700,7 +700,7 @@ import type { MouseRefs } from '@/types/interaction.types';
 const {
   Provider: DataStoreProvider,
   useStore: useDataStore
-} = createDeclarativeStorePattern('Data', {
+} = createStoreContext('Data', {
   // Primitive values: reference (default)
   counter: 0,
   isLoading: false,

@@ -75,14 +75,14 @@ Set up the Store Only pattern for state management:
 
 ```typescript
 // src/contexts/stores.tsx
-import { createDeclarativeStorePattern } from '@context-action/react';
+import { createStoreContext } from '@context-action/react';
 
 export const {
   Provider: AppStoreProvider,
   useStore: useAppStore,
   useStoreManager: useAppStoreManager,
   withProvider: withAppStoreProvider
-} = createDeclarativeStorePattern('App', {
+} = createStoreContext('App', {
   // User state
   user: {
     id: '',

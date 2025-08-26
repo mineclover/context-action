@@ -242,7 +242,7 @@ const {
   Provider: DebugStoreProvider,
   useStore: useDebugStore,
   useStoreManager: useDebugStoreManager
-} = createDeclarativeStorePattern('Debug', debugStoreConfig);
+} = createStoreContext('Debug', debugStoreConfig);
 ```
 
 ### 디버그 액션 컨텍스트
