@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.4.0](https://github.com/mineclover/context-action/compare/v0.3.1...v0.4.0) (2025-08-26)
+
+
+### Bug Fixes
+
+* remove unused deprecated code and fix LLMS generator test ([315b163](https://github.com/mineclover/context-action/commit/315b163fa452ae86c8859166687f6d33d4f5c6d3))
+
+
+### Features
+
+* consolidate ActionContext implementations and reorganize documentation ([b621f50](https://github.com/mineclover/context-action/commit/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65))
+
+
+
+
+
 ## [0.3.1](https://github.com/mineclover/context-action/compare/v0.2.1...v0.3.1) (2025-08-21)
 
 

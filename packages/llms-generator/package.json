@@ -1,6 +1,6 @@
 {
   "name": "@context-action/llms-generator",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "Enterprise-grade LLM content generation framework with mismatch detection and integrity management",
   "type": "module",
   "main": "./dist/index.js",
@@ -27,7 +27,7 @@
     "test:cli": "jest test/cli/ --coverage",
     "test:cli:watch": "jest test/cli/ --watch",
     "test:cli:init": "jest test/cli/InitCommand.test.ts",
-    "test:cli:work-next": "jest test/cli/WorkNextCommand.test.ts", 
+    "test:cli:work-next": "jest test/cli/WorkNextCommand.test.ts",
     "test:cli:priority": "jest test/cli/PriorityManagerCommand.test.ts test/cli/PriorityTasksCommand.test.ts",
     "test:cli:generate": "jest test/cli/GenerateTemplatesCommand.test.ts test/cli/LLMSGenerateCommand.test.ts",
     "test:cli:sync": "jest test/cli/SyncDocsCommand.test.ts test/cli/MismatchDetectionCommand.test.ts",

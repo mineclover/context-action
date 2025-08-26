@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.4.0](https://github.com/mineclover/context-action/compare/v0.3.1...v0.4.0) (2025-08-26)
+
+
+### Bug Fixes
+
+* resolve existing TypeScript compilation errors ([a92b76d](https://github.com/mineclover/context-action/commit/a92b76d52a394dfb0982b7d0c461d8e940201b45))
+
+
+### Features
+
+* add comprehensive documentation for Context-Action framework ([2ee3948](https://github.com/mineclover/context-action/commit/2ee3948118721cd0b633bc71f6d5884808970306))
+* add comprehensive pattern examples with async, action, and store implementations ([6820a26](https://github.com/mineclover/context-action/commit/6820a266d0ca298f5172c15a80a73e1fcb82f38f))
+* add mount timeout options to createRefContext ([0266f02](https://github.com/mineclover/context-action/commit/0266f024abe0b3265cb86411cf2118cb0749ce2a))
+* cleanup core pages and fix selector infinite loops ([641b03d](https://github.com/mineclover/context-action/commit/641b03d2b06c806bd062f546ea4f4dd0e38c340f))
+* consolidate ActionContext implementations and reorganize documentation ([b621f50](https://github.com/mineclover/context-action/commit/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65))
+* enhance type inference system for createRefContext ([63e2521](https://github.com/mineclover/context-action/commit/63e2521ce0eaf531ba2602b8416661d9993558c4))
+
+
+
+
+
 ## [0.3.1](https://github.com/mineclover/context-action/compare/v0.2.1...v0.3.1) (2025-08-21)
 
 
