@@ -34,7 +34,6 @@ import { OperationQueue } from './concurrency/OperationQueue.js';
  */
 export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   private pipelines = new Map<keyof T, HandlerRegistration<any, any>[]>();
-  private handlerCounter = 0;
   private readonly actionGuard: ActionGuard;
   private executionMode: ExecutionMode = 'sequential';
   private actionExecutionModes = new Map<keyof T, ExecutionMode>();
@@ -47,31 +46,44 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     errorCount: number;
   }>();
 
-  // 🆕 동시성 문제 해결을 위한 큐 시스템
-  private registrationQueue: OperationQueue;
-  private dispatchQueue: OperationQueue;
+  // 🆕 Performance optimizations
+  private readonly isDebugMode: boolean;
+  private actionCounters = new Map<keyof T, number>();
+
+  // 🆕 동시성 문제 해결을 위한 큐 시스템 (conditional)
+  private registrationQueue?: OperationQueue;
+  private dispatchQueue?: OperationQueue;
 
   constructor(config: ActionRegisterConfig = {}) {
     this.name = config.name || 'ActionRegister';
     this.registryConfig = config.registry;
-    this.actionGuard = new ActionGuard();
     
-    // 🆕 큐 시스템 초기화
-    this.registrationQueue = new OperationQueue(`${this.name}-Registration`);
-    this.dispatchQueue = new OperationQueue(`${this.name}-Dispatch`);
+    // 🆕 Environment variable check cached (performance optimization)
+    this.isDebugMode = Boolean(
+      this.registryConfig?.debug && 
+      process.env.NODE_ENV === 'development'
+    );
+    
+    // Guard creation with improved cleanup handling
+    this.actionGuard = new ActionGuard(this.registryConfig?.autoCleanup !== false);
+    
+    // 🆕 Conditional queue system initialization
+    if (config.registry?.useConcurrencyQueue !== false) {
+      this.registrationQueue = new OperationQueue(`${this.name}-Registration`);
+      this.dispatchQueue = new OperationQueue(`${this.name}-Dispatch`);
+    }
     
     if (this.registryConfig?.defaultExecutionMode) {
       this.executionMode = this.registryConfig.defaultExecutionMode;
     }
     
-    if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
-      console.log(`🎯 ActionRegister created: ${this.name}`, {
-        defaultExecutionMode: this.executionMode,
-        maxHandlers: this.registryConfig.maxHandlers,
-        autoCleanup: this.registryConfig.autoCleanup ?? true,
-        concurrencyProtection: true // 🆕 동시성 보호 활성화
-      });
-    }
+    this.log('ActionRegister initialized', {
+      defaultExecutionMode: this.executionMode,
+      maxHandlers: this.registryConfig?.maxHandlers,
+      autoCleanup: this.registryConfig?.autoCleanup !== false,
+      concurrencyQueue: Boolean(this.dispatchQueue),
+      debugMode: this.isDebugMode
+    });
   }
 
   /**
@@ -97,13 +109,33 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     // 🔄 임시로 기존 구현 유지하되 개선된 방식 적용
     // 동기적 API를 유지하면서 내부적으로만 동시성 보호
     
-    // Generate unique handler ID with security consideration
-    const handlerId = config.id || `handler_${++this.handlerCounter}_${Math.random().toString(36).substr(2, 5)}`;
+    // 🆕 Optimized handler ID generation
+    const handlerId = config.id || this.generateHandlerId(action);
     
     // 🆕 즉시 등록 수행하되 정렬까지 한 번에 처리
     const unregisterFn = this._performRegistrationSync(action, handler, config, handlerId);
     
     return unregisterFn;
+  }
+
+  /**
+   * 🆕 Unified logging method with cached debug mode check
+   */
+  private log(message: string, data?: any, level: 'log' | 'warn' | 'error' = 'log') {
+    if (this.isDebugMode) {
+      const timestamp = new Date().toISOString();
+      console[level](`🎯 [${timestamp}] [${this.name}] ${message}`, data || '');
+    }
+  }
+
+  /**
+   * 🆕 Optimized handler ID generation with per-action counters
+   */
+  private generateHandlerId<K extends keyof T>(action: K): string {
+    const count = (this.actionCounters.get(action) || 0) + 1;
+    this.actionCounters.set(action, count);
+    // Remove Math.random() for performance - use counter only
+    return `${String(action)}_h${count}`;
   }
 
   /**
@@ -119,14 +151,13 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     const registration: HandlerRegistration<T[K], R> = {
       handler,
       config: {
-        // Existing fields
         priority: config.priority ?? 0,
         id: handlerId,
         blocking: config.blocking ?? false,
         once: config.once ?? false,
         debounce: config.debounce ?? undefined,
         throttle: config.throttle ?? undefined,
-        
+        replaceExisting: config.replaceExisting ?? false,
       } as Required<HandlerConfig>,
       id: handlerId,
     };
@@ -137,12 +168,39 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     }
 
     const pipeline = this.pipelines.get(action)!;
-    
-    // Check for duplicate handler IDs and prevent duplicate registration
     const existingIndex = pipeline.findIndex(reg => reg.id === handlerId);
+
+    // 🆕 Enhanced duplicate ID handling with replaceExisting support
     if (existingIndex !== -1) {
-      // Return a no-op unregister function for the duplicate
-      return () => {};
+      if (config.replaceExisting) {
+        // Replace existing handler
+        pipeline[existingIndex] = registration;
+        
+        // Re-sort pipeline since priority might have changed
+        pipeline.sort((a, b) => b.config.priority - a.config.priority);
+        
+        this.log(`Handler replaced: ${String(action)}`, {
+          handlerId,
+          priority: config.priority,
+          totalHandlers: pipeline.length
+        });
+
+        // Return unregister function for the replaced registration
+        return () => {
+          const index = pipeline.findIndex(reg => reg.id === handlerId && reg === registration);
+          if (index !== -1) {
+            pipeline.splice(index, 1);
+            this.log(`Replaced handler unregistered: ${String(action)}`, { handlerId });
+          }
+        };
+      } else {
+        // Default mode: reject duplicate (backward compatibility)
+        this.log(`Handler duplicate ignored: ${String(action)}`, {
+          handlerId,
+          note: 'Use replaceExisting:true to replace'
+        }, 'warn');
+        return () => {}; // No-op unregister
+      }
     }
     
     // Check maximum handlers limit
@@ -158,28 +216,21 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     // 🆕 즉시 정렬 (동시성 보호)
     pipeline.sort((a, b) => b.config.priority - a.config.priority);
     
-    if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
-      console.log(`🎯 Handler registered: ${String(action)}`, {
-        handlerId,
-        priority: config.priority,
-        totalHandlers: pipeline.length,
-        registry: this.name
-      });
-    }
+    this.log(`Handler registered: ${String(action)}`, {
+      handlerId,
+      priority: config.priority,
+      totalHandlers: pipeline.length
+    });
 
     // Return unregister function that removes this specific registration
     return () => {
       const index = pipeline.findIndex((reg) => reg.id === handlerId && reg === registration);
       if (index !== -1) {
         pipeline.splice(index, 1);
-        
-        if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
-          console.log(`🎯 Handler unregistered: ${String(action)}`, {
-            handlerId,
-            remainingHandlers: pipeline.length,
-            registry: this.name
-          });
-        }
+        this.log(`Handler unregistered: ${String(action)}`, {
+          handlerId,
+          remainingHandlers: pipeline.length
+        });
       }
     };
   }
@@ -205,11 +256,16 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     payload?: T[K],
     options?: import('./types.js').DispatchOptions
   ): Promise<void> {
-    // 🆕 디스패치를 큐에 추가하여 동시성 보호
-    // 모든 디스패치가 순차적으로 실행되어 race condition 방지
-    return this.dispatchQueue.enqueue(async () => {
+    // 🆕 Conditional queue usage for performance
+    if (options?.immediate || !this.dispatchQueue) {
+      // Bypass queue for immediate execution or when queues disabled
       return this._performDispatch(action, payload, options);
-    });
+    } else {
+      // Use queue for concurrency protection
+      return this.dispatchQueue.enqueue(async () => {
+        return this._performDispatch(action, payload, options);
+      });
+    }
   }
 
   /**
@@ -316,8 +372,10 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       return;
     }
 
-    // Apply handler filtering first
-    const filteredHandlers = this.filterHandlers([...pipeline], options?.filter);
+    // 🆕 Optimize filtering - only copy array if filtering is needed
+    const filteredHandlers = options?.filter 
+      ? this.filterHandlers(pipeline, options.filter)
+      : pipeline;
 
     // Apply ActionGuard controls - check both dispatch options and handler configs
     const actionKey = String(action);
@@ -404,9 +462,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     
     try {
       await this.executePipeline(context, autoAbortController, options?.autoAbort);
-      console.log(`[ActionRegister] Pipeline execution succeeded for ${String(action)}`);
+      this.log(`Pipeline execution succeeded for ${String(action)}`);
     } catch (error) {
-      console.log(`[ActionRegister] Pipeline execution failed for ${String(action)}:`, error);
+      this.log(`Pipeline execution failed for ${String(action)}`, error, 'error');
       executionSuccess = false;
       throw error;
     } finally {
@@ -509,8 +567,10 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       };
     }
 
-    // Apply handler filtering first
-    const filteredHandlers = this.filterHandlers([...pipeline], options?.filter);
+    // 🆕 Optimize filtering - only copy array if filtering is needed
+    const filteredHandlers = options?.filter 
+      ? this.filterHandlers(pipeline, options.filter)
+      : pipeline;
 
     // Apply ActionGuard controls - check both dispatch options and handler configs
     const actionKey = String(action);
@@ -1123,6 +1183,33 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * @returns Whether debug mode is enabled
    */
   isDebugEnabled(): boolean {
-    return Boolean(this.registryConfig?.debug && process.env.NODE_ENV === 'development');
+    return this.isDebugMode;
+  }
+
+  /**
+   * 🆕 Destroy method for comprehensive cleanup
+   * 
+   * Cleans up all internal resources including pipelines, guards, queues, and statistics.
+   * Should be called when the ActionRegister is no longer needed to prevent memory leaks.
+   * 
+   * @public
+   */
+  destroy(): void {
+    // Clean up all pipelines
+    this.pipelines.clear();
+    
+    // Clean up guard system
+    this.actionGuard.destroy();
+    
+    // Clean up queues if they exist
+    this.registrationQueue?.clear?.();
+    this.dispatchQueue?.clear?.();
+    
+    // Clean up statistics and counters
+    this.executionStats.clear();
+    this.actionCounters.clear();
+    this.actionExecutionModes.clear();
+    
+    this.log('ActionRegister destroyed');
   }
 }

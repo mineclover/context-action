@@ -96,6 +96,9 @@ importers:
       gsap:
         specifier: 3.13.0
         version: 3.13.0
+      immer:
+        specifier: 10.1.1
+        version: 10.1.1
       jotai:
         specifier: ^2.13.1
         version: 2.13.1(@babel/core@7.28.3)(@babel/template@7.27.2)(@types/react@18.3.23)(react@18.3.1)
@@ -242,6 +245,9 @@ importers:
       '@context-action/core':
         specifier: workspace:*
         version: link:../core
+      immer:
+        specifier: 10.1.1
+        version: 10.1.1
     devDependencies:
       '@eslint/js':
         specifier: 9.34.0
@@ -3495,6 +3501,9 @@ packages:
   ignore@7.0.5:
     resolution: {integrity: sha512-Hs59xBNfUIunMFgWAbGX5cq6893IbWg4KnrjbYwX3tx0ztorVgTDA6B2sxf8ejHJ4wz8BqGUMYlnzNBer5NvGg==}
     engines: {node: '>= 4'}
+
+  immer@10.1.1:
+    resolution: {integrity: sha512-s2MPrmjovJcoMaHtx6K11Ra7oD05NT97w1IC5zpMkT6Atjr7H8LjaDd81iIxUYpMKSRRNMJE703M1Fhr/TctHw==}
 
   import-fresh@3.3.1:
     resolution: {integrity: sha512-TR3KfrTZTYLPB6jUjfx6MF9WcWrHL9su5TObK4ZkYgBdWKPOFoSoQIdEuTuR82pmtxH2spWG9h6etwfr1pLBqQ==}
@@ -9313,6 +9322,8 @@ snapshots:
   ignore@5.3.2: {}
 
   ignore@7.0.5: {}
+
+  immer@10.1.1: {}
 
   import-fresh@3.3.1:
     dependencies:

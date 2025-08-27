@@ -68,9 +68,45 @@ interface GuardState {
  */
 export class ActionGuard {
   private guards = new Map<string, GuardState>();
+  private cleanupInterval?: NodeJS.Timeout;
+  private readonly maxIdleTime: number = 60000; // 1 minute
+  private readonly cleanupIntervalMs: number = 30000; // 30 seconds
 
-  constructor() {
-    // ActionGuard without logger
+  constructor(autoCleanup: boolean = true) {
+    if (autoCleanup) {
+      this.startAutoCleanup();
+    }
+  }
+
+  /**
+   * Start automatic cleanup of idle guard states
+   * 
+   * @internal
+   */
+  private startAutoCleanup(): void {
+    this.cleanupInterval = setInterval(() => {
+      const now = Date.now();
+      const keysToDelete: string[] = [];
+      
+      // Collect keys to delete (avoid modifying map during iteration)
+      this.guards.forEach((state, key) => {
+        const isIdle = now - state.lastExecuted > this.maxIdleTime;
+        const hasActiveTimers = state.debounceTimer || state.throttleTimer;
+        
+        if (isIdle && !hasActiveTimers) {
+          keysToDelete.push(key);
+        }
+      });
+      
+      // Batch delete idle guards
+      if (keysToDelete.length > 0) {
+        keysToDelete.forEach(key => this.guards.delete(key));
+        // Optional debug logging for cleanup
+        if (typeof process !== 'undefined' && process.env?.DEBUG_CONTEXT_ACTION) {
+          console.debug(`[ActionGuard] Cleaned up ${keysToDelete.length} idle guards`);
+        }
+      }
+    }, this.cleanupIntervalMs);
   }
 
   /**
@@ -226,11 +262,14 @@ export class ActionGuard {
         // Cancel waiting debounce calls
         if (state.debounceResolve) {
           state.debounceResolve(false);
+          state.debounceResolve = undefined;
         }
+        state.debounceTimer = undefined;
       }
       /** Clear throttle timer if active to prevent memory leaks */
       if (state.throttleTimer) {
         clearTimeout(state.throttleTimer);
+        state.throttleTimer = undefined;
       }
       /** Remove guard state from memory */
       this.guards.delete(actionKey);
@@ -296,5 +335,45 @@ export class ActionGuard {
    */
   getAllGuardStates(): Map<string, GuardState> {
     return new Map(this.guards);
+  }
+
+  /**
+   * 🆕 Explicit destroy method for comprehensive cleanup
+   * 
+   * Cleans up all timers, promises, and intervals to prevent memory leaks.
+   * Should be called when ActionGuard is no longer needed.
+   * 
+   * @internal
+   */
+  destroy(): void {
+    // Stop auto cleanup interval
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = undefined;
+    }
+    
+    // Clear all existing guards
+    this.clearAll();
+  }
+
+  /**
+   * 🆕 Get statistics about active guards
+   * 
+   * @returns Statistics about guard usage
+   * 
+   * @internal
+   */
+  getStats(): { activeGuards: number; withTimers: number } {
+    let withTimers = 0;
+    this.guards.forEach(state => {
+      if (state.debounceTimer || state.throttleTimer) {
+        withTimers++;
+      }
+    });
+    
+    return {
+      activeGuards: this.guards.size,
+      withTimers
+    };
   }
 }
