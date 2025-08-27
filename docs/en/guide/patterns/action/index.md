@@ -36,8 +36,9 @@ All examples in Action pattern documents use the standardized setup patterns, pa
   - *Uses AppActions extended interface pattern from setup*
 - **[Dispatch with Result](./dispatch-with-result.md)** - Result collection and processing
   - *Built on setup patterns with result handling extensions*
-- **[Register Patterns](./register-patterns.md)** - Advanced handler registration
+- **[Register Patterns](./register-patterns.md)** - Advanced handler registration and memory management
   - *Uses conditional provider setup patterns for complex scenarios*
+  - *Includes memory management and handler limit configuration*
 - **[Dispatch Access](./dispatch-access.md)** - Hook-based vs register-based access
   - *Demonstrates setup pattern variations for different access strategies*
 - **[Handler State Access](./handler-state-access.md)** - ⚠️ **Critical**: Avoiding closure traps in handlers
@@ -118,6 +119,7 @@ Action patterns provide these capabilities through standardized setup:
 - ✅ Priority-based handler execution (through proper context creation)
 - ✅ Abort support and error handling (built into setup patterns)
 - ✅ Result handling with async support (via useActionDispatchWithResult)
+- ✅ Memory management and handler limits (configurable limits and monitoring)
 - ✅ Lightweight (no store overhead, setup-optimized)
 - ✅ Modular handler organization (through multi-domain setup patterns)
 

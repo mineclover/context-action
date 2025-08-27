@@ -74,7 +74,22 @@ export class EventBus implements IEventBus {
         try {
           handler(data);
         } catch (error) {
-          console.error(`Error in event handler for "${event}":`, error);
+          // Use standardized error handling (dynamic import)
+          import('../utils/error-handling')
+            .then(({ ErrorHandlers }) => {
+              ErrorHandlers.store(
+                `Error in event handler for "${event}"`,
+                { 
+                  event,
+                  handlerCount: handlers.size
+                },
+                error instanceof Error ? error : undefined
+              );
+            })
+            .catch(() => {
+              // Fallback to console.error if error handling module fails
+              console.error(`Error in event handler for "${event}":`, error);
+            });
         }
       });
     }
@@ -154,9 +169,42 @@ export class EventBus implements IEventBus {
   }
 
   private _addToHistory(event: string, data: any): void {
+    // Create a safe data reference to prevent memory leaks
+    let safeData = data;
+    
+    // Check for potentially problematic objects that can cause memory leaks
+    if (data && typeof data === 'object') {
+      // Detect DOM elements, React components, or other memory-heavy objects
+      if (
+        (typeof Element !== 'undefined' && data instanceof Element) ||
+        (typeof Node !== 'undefined' && data instanceof Node) ||
+        data?.nodeType !== undefined ||
+        data?._reactInternalFiber !== undefined ||
+        data?._owner !== undefined ||
+        data?.$$typeof !== undefined
+      ) {
+        // Store only essential information for DOM elements/React components
+        safeData = {
+          __eventBusDataType: 'DOMElement',
+          tagName: data.tagName || data.constructor?.name,
+          id: data.id,
+          className: data.className,
+          timestamp: Date.now()
+        };
+      } else if (data.constructor && data.constructor.name !== 'Object' && data.constructor.name !== 'Array') {
+        // For other complex objects, store minimal representation
+        safeData = {
+          __eventBusDataType: data.constructor.name,
+          summary: typeof data.toString === 'function' ? data.toString().slice(0, 100) : '[Object]',
+          timestamp: Date.now()
+        };
+      }
+      // For plain objects and arrays, store as-is (they should be safe)
+    }
+    
     this.eventHistory.push({
       event,
-      data,
+      data: safeData,
       timestamp: Date.now()
     });
     

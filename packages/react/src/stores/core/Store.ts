@@ -43,7 +43,7 @@ export class Store<T = any> implements IStore<T> {
   
   // 배치 업데이트 최적화
   private batchedUpdates = new Set<() => void>();
-  private batchTimeoutId: number | null = null;
+  private batchTimeoutId: ReturnType<typeof requestAnimationFrame> | null = null;
   private readonly BATCH_DELAY_MS = 16; // ~60fps
 
   public readonly name: string;
@@ -125,22 +125,22 @@ export class Store<T = any> implements IStore<T> {
         const hasPreventDefault = TypeGuards.isEventLike(value);
         const isEvent = TypeGuards.isDOMEvent(value);
         
-        console.error(
-          '[Context-Action] ⚠️ Event object detected in Store.setValue!',
-          '\nStore name:', this.name,
-          '\nValue type:', typeof value,
-          '\nConstructor:', value?.constructor?.name,
-          '\nIs Event:', isEvent,
-          '\nHas target property:', hasEventTarget,
-          '\nHas preventDefault:', hasPreventDefault,
-          '\nStack trace:', new Error().stack?.split('\n').slice(1, 10).join('\n')
+        // Prevent event objects from being stored
+        ErrorHandlers.store(
+          'Event object detected in Store.setValue - this may cause memory leaks',
+          {
+            storeName: this.name,
+            valueType: typeof value,
+            constructorName: value?.constructor?.name,
+            isEvent,
+            hasTargetProperty: hasEventTarget,
+            hasPreventDefault,
+            problematicProperties: TypeGuards.findProblematicProperties(value)
+          }
         );
         
-        // Log problematic properties
-        const problematicKeys = TypeGuards.findProblematicProperties(value);
-        if (problematicKeys.length > 0) {
-          console.error('[Context-Action] Event object properties:', problematicKeys);
-        }
+        // Return early to prevent storing the event object
+        return;
       }
     }
     
@@ -191,16 +191,22 @@ export class Store<T = any> implements IStore<T> {
           const hasPreventDefault = TypeGuards.isEventLike(updatedValue);
           const isEvent = TypeGuards.isDOMEvent(updatedValue);
           
-          console.error(
-            '[Context-Action] ⚠️ Event object detected in Store.update result!',
-            '\nStore name:', this.name,
-            '\nUpdated value type:', typeof updatedValue,
-            '\nConstructor:', updatedValue?.constructor?.name,
-            '\nIs Event:', isEvent,
-            '\nHas target property:', hasEventTarget,
-            '\nHas preventDefault:', hasPreventDefault,
-            '\nStack trace:', new Error().stack?.split('\n').slice(1, 10).join('\n')
+          // Prevent event objects from being stored
+          ErrorHandlers.store(
+            'Event object detected in Store.update result - this may cause memory leaks',
+            {
+              storeName: this.name,
+              updatedValueType: typeof updatedValue,
+              constructorName: updatedValue?.constructor?.name,
+              isEvent,
+              hasTargetProperty: hasEventTarget,
+              hasPreventDefault,
+              problematicProperties: TypeGuards.findProblematicProperties(updatedValue)
+            }
           );
+          
+          // Return early to prevent storing the event object
+          return;
         }
       }
       

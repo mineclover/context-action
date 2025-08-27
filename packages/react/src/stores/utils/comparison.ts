@@ -129,7 +129,11 @@ export function deepEquals<T>(
 
     // 순환 참조 체크
     if (visited) {
-      if (visited.has(a) || visited.has(b)) {
+      // 각 값에 대해 개별적으로 순환 참조 확인
+      if (visited.has(a)) {
+        return Object.is(a, b);
+      }
+      if (visited.has(b)) {
         return Object.is(a, b);
       }
       visited.add(a);

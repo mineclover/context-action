@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.4.1](https://github.com/mineclover/context-action/compare/v0.4.0...v0.4.1) (2025-08-27)
+
+### Bug Fixes
+
+* **Store**: Fix timeout ID type compatibility for browser/Node.js environments ([Store.ts:46](packages/react/src/stores/core/Store.ts))
+  - Changed `batchTimeoutId` type to `ReturnType<typeof requestAnimationFrame>` for cross-platform compatibility
+* **comparison**: Fix circular reference detection bug in comparison utilities ([comparison.ts:131-140](packages/react/src/stores/utils/comparison.ts))
+  - Improved circular reference checking to validate each value individually
+* **EventBus**: Prevent memory leaks in event history storage ([EventBus.ts:156-200](packages/react/src/stores/core/EventBus.ts))
+  - Added safe data reference handling for DOM elements and React components
+  - Only stores essential metadata for memory-heavy objects
+* **error-handling**: Standardize error handling across all modules
+  - Replaced direct `console.error` calls with centralized `ErrorHandlers` system
+  - Improved error context and consistency throughout the framework
+* **Store**: Complete event object detection and prevention ([Store.ts:129-143, 195-209](packages/react/src/stores/core/Store.ts))
+  - Enhanced event object detection to prevent memory leaks
+  - Added early return to prevent storing potentially problematic event objects
+  - Improved error reporting with detailed context information
+
+### Performance Improvements
+
+* **EventBus**: Reduced memory usage by preventing storage of large DOM/React objects
+* **Store**: Enhanced event object detection prevents memory retention issues
+* **comparison**: Improved circular reference detection algorithm efficiency
+
 # [0.4.0](https://github.com/mineclover/context-action/compare/v0.3.1...v0.4.0) (2025-08-26)
 
 

@@ -133,8 +133,60 @@ For step-by-step implementation details, see:
 3. **Race Conditions**: Use processing state flags for critical actions
 4. **Memory Leaks**: Clean up refs, animations, and event listeners
 5. **Stale State**: Always use `store.getValue()` for current state
+6. **Event Object Storage**: Never store DOM events or React event objects in stores
+7. **Cross-Platform Compatibility**: Use proper timeout types for browser/Node.js environments
 
 **📖 Detailed Solutions**: [Production Debugging](./patterns/debug/production-debugging.md)
+
+### 🔧 Security & Performance Guidelines
+
+#### Event Object Handling
+Never store DOM event objects in stores as they can cause memory leaks:
+
+```tsx
+// ❌ WRONG: Storing event objects causes memory leaks
+function BadHandler() {
+  useActionHandler('handleClick', async (event) => {
+    // This will trigger an error and prevent storage
+    store.setValue({ clickEvent: event }); 
+  });
+}
+
+// ✅ CORRECT: Extract needed data from events
+function GoodHandler() {
+  useActionHandler('handleClick', async (event) => {
+    // Extract only the data you need
+    const clickData = {
+      clientX: event.clientX,
+      clientY: event.clientY,
+      target: event.target?.tagName,
+      timestamp: Date.now()
+    };
+    store.setValue({ clickData });
+  });
+}
+```
+
+#### Memory Management
+The framework automatically handles memory-heavy objects:
+
+```tsx
+// EventBus automatically prevents memory leaks by:
+// 1. Detecting DOM elements and React components
+// 2. Storing only essential metadata instead of full objects
+// 3. Cleaning up problematic references automatically
+```
+
+#### Error Handling
+Use the centralized error handling system:
+
+```tsx
+// Framework provides ErrorHandlers for:
+// - Store operation errors
+// - Event handler failures  
+// - Ref mount callback errors
+// - Async operation failures with proper context
+```
 
 ## 🎯 Migration Guide
 
