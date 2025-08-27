@@ -48,9 +48,16 @@ await actions.dispatch('setCount', 42);
 // Configure handler limits for memory safety (v0.4.1+)
 const actions = new ActionRegister<MyActions>({
   registry: {
-    maxHandlersPerAction: 1000  // Default: 1000, prevents memory issues
+    maxHandlersPerAction: 1000      // Default: 1000, prevents memory issues
+    // maxHandlersPerAction: 5000   // Higher limit for complex applications
+    // maxHandlersPerAction: Infinity // Disable limit (use with caution)
   }
 });
+
+// Use cases for different limits:
+// - 1000 (default): Most applications
+// - 5000-10000: Large enterprise applications  
+// - Infinity: Only for controlled environments with trusted code
 ```
 
 ## 🚀 New Features (v0.4.0+)
