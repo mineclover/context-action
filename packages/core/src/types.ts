@@ -389,7 +389,7 @@ export interface ActionRegisterConfig {
     /** Use concurrency queue for thread safety. Default: true */
     useConcurrencyQueue?: boolean;
     
-    /** Maximum number of handlers per action. Default: 1000 */
+    /** Maximum number of handlers per action. Default: 1000. Use Infinity to disable limit (not recommended) */
     maxHandlersPerAction?: number;
     
     /** Global error handler for unhandled errors */

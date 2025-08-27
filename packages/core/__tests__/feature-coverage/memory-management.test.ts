@@ -99,6 +99,25 @@ describe('Memory Management Tests - v0.4.1', () => {
       customRegister.destroy();
     });
 
+    it('should allow unlimited handlers when maxHandlersPerAction is Infinity', () => {
+      const unlimitedRegister = new ActionRegister<MemoryTestActions>({
+        registry: { maxHandlersPerAction: Infinity }
+      });
+      
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      
+      // Register many handlers (should not be limited)
+      for (let i = 0; i < 2000; i++) {
+        unlimitedRegister.register('testAction', jest.fn());
+      }
+      
+      expect(unlimitedRegister.getHandlerCount('testAction')).toBe(2000);
+      expect(consoleSpy).not.toHaveBeenCalled(); // No warnings
+      
+      consoleSpy.mockRestore();
+      unlimitedRegister.destroy();
+    });
+
     it('should allow unregistering to make room for new handlers', () => {
       const limitedRegister = new ActionRegister<MemoryTestActions>({
         registry: { maxHandlersPerAction: 3 }
