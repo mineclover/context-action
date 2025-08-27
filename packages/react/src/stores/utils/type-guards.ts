@@ -101,16 +101,63 @@ export function isArray(value: unknown): value is unknown[] {
  * 복합 타입 가드: Event 객체로 의심되는 객체인지 확인
  * RefState가 아니면서 Event 관련 속성을 가진 객체를 감지
  */
-export function isSuspiciousEventObject(value: unknown): boolean {
+export function isSuspiciousEventObject(value: unknown, checkNested = true): boolean {
   if (!isObject(value) || isRefState(value)) {
+    return false;
+  }
+
+  // Check the object itself
+  if (isEventLikeObject(value)) {
+    return true;
+  }
+  
+  // Check nested objects if enabled
+  if (checkNested) {
+    for (const key in value) {
+      if (Object.prototype.hasOwnProperty.call(value, key)) {
+        const nestedValue = value[key];
+        if (isEventLikeObject(nestedValue)) {
+          return true;
+        }
+      }
+    }
+  }
+  
+  return false;
+}
+
+/**
+ * 단일 객체가 이벤트와 같은지 확인
+ */
+function isEventLikeObject(value: unknown): boolean {
+  if (!isObject(value)) {
     return false;
   }
 
   const hasEventTarget = hasTargetProperty(value);
   const hasPreventDefault = isEventLike(value);
   const isEvent = isDOMEvent(value);
-
-  return hasEventTarget || hasPreventDefault || isEvent;
+  
+  // Check for event-like properties that indicate this might be an event object
+  const hasEventType = 'type' in value && typeof (value as any).type === 'string';
+  const hasEventProperties = hasEventType && (hasEventTarget || hasPreventDefault);
+  
+  // Check for React synthetic event markers
+  const hasReactMarkers = ('nativeEvent' in value) || ('persist' in value) || ('$$typeof' in value) || ('_reactInternalFiber' in value) || ('_owner' in value);
+  
+  // Check constructor name for event-like objects
+  const constructorName = value?.constructor?.name;
+  const hasEventConstructor = constructorName && (
+    constructorName.includes('Event') || 
+    constructorName === 'SyntheticEvent' ||
+    constructorName.includes('MouseEvent') ||
+    constructorName.includes('KeyboardEvent') ||
+    constructorName.includes('TouchEvent') ||
+    constructorName.includes('FocusEvent') ||
+    constructorName.includes('SubmitEvent')
+  );
+  
+  return isEvent || hasEventProperties || hasReactMarkers || hasEventConstructor;
 }
 
 /**

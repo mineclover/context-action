@@ -650,6 +650,257 @@ function RegistryInfoComponent() {
 }
 ```
 
+## Memory Management and Handler Limits
+
+### Configuring Handler Limits
+
+The Context-Action framework includes memory management features to prevent excessive handler registration and potential memory leaks.
+
+```typescript
+function MemoryManagedSetup() {
+  // Configure ActionRegister with memory management
+  const actionRegister = new ActionRegister<AppActions>({
+    registry: {
+      maxHandlersPerAction: 1000,    // Default: 1000 handlers per action
+      debug: false                   // Disable debug for production
+    }
+  });
+  
+  return (
+    <AppActionProvider actionRegister={actionRegister}>
+      <AppContent />
+    </AppActionProvider>
+  );
+}
+```
+
+### Different Memory Strategies
+
+```typescript
+function MemoryStrategies() {
+  // Small applications - Conservative limits
+  const smallAppRegister = new ActionRegister<AppActions>({
+    registry: {
+      maxHandlersPerAction: 100,     // Conservative limit
+      debug: false
+    }
+  });
+  
+  // Enterprise applications - Higher limits
+  const enterpriseRegister = new ActionRegister<AppActions>({
+    registry: {
+      maxHandlersPerAction: 10000,   // Higher limit for complex systems
+      debug: false
+    }
+  });
+  
+  // Development/Testing - Unlimited (use with caution)
+  const devRegister = new ActionRegister<AppActions>({
+    registry: {
+      maxHandlersPerAction: Infinity, // No limits - for controlled environments only
+      debug: true
+    }
+  });
+  
+  return <div>Memory strategies configured</div>;
+}
+```
+
+### Handling Handler Limit Warnings
+
+```typescript
+function HandlerLimitManagement() {
+  const register = useAppRegister();
+  const [handlerCount, setHandlerCount] = useState(0);
+  
+  const addHandler = useCallback(() => {
+    const unregister = register.register('testAction', async (payload, controller) => {
+      // Handler logic
+      controller.setResult({ processed: true });
+    }, {
+      id: `handler-${Date.now()}` // Unique ID to prevent replacement
+    });
+    
+    // Check current handler count
+    const count = register.getHandlerCount('testAction');
+    setHandlerCount(count);
+    
+    return unregister;
+  }, [register]);
+  
+  const getStats = useCallback(() => {
+    const stats = register.getActionStats('testAction');
+    console.log('Handler stats:', {
+      handlerCount: stats?.handlerCount || 0,
+      maxLimit: 1000 // Default limit
+    });
+  }, [register]);
+  
+  return (
+    <div>
+      <p>Current handlers: {handlerCount}</p>
+      <button onClick={addHandler}>Add Handler</button>
+      <button onClick={getStats}>Check Stats</button>
+    </div>
+  );
+}
+```
+
+### Memory-Efficient Handler Patterns
+
+```typescript
+function MemoryEfficientHandlers() {
+  const register = useAppRegister();
+  
+  // Pattern 1: Use handler replacement instead of accumulation
+  useEffect(() => {
+    const unregister = register.register('userAction', async (payload, controller) => {
+      // Handler logic
+      controller.setResult(await userService.process(payload));
+    }, {
+      id: 'user-handler',
+      replaceExisting: true  // Replace instead of adding new handlers
+    });
+    
+    return unregister;
+  }, [register]);
+  
+  // Pattern 2: Cleanup handlers when no longer needed
+  const [isFeatureEnabled, setIsFeatureEnabled] = useState(false);
+  
+  useEffect(() => {
+    if (!isFeatureEnabled) return;
+    
+    const unregister = register.register('featureAction', async (payload, controller) => {
+      // Feature-specific logic
+      controller.setResult(await featureService.execute(payload));
+    }, {
+      id: 'feature-handler'
+    });
+    
+    return unregister; // Auto-cleanup when feature is disabled
+  }, [register, isFeatureEnabled]);
+  
+  // Pattern 3: Use once handlers for initialization
+  useEffect(() => {
+    const unregister = register.register('initAction', async (payload, controller) => {
+      await appInitService.initialize();
+      controller.setResult({ initialized: true });
+    }, {
+      once: true, // Auto-removes after first execution
+      id: 'init-handler'
+    });
+    
+    return unregister;
+  }, [register]);
+  
+  return (
+    <div>
+      <button onClick={() => setIsFeatureEnabled(!isFeatureEnabled)}>
+        Toggle Feature: {isFeatureEnabled ? 'ON' : 'OFF'}
+      </button>
+    </div>
+  );
+}
+```
+
+### Production Memory Management
+
+```typescript
+function ProductionMemorySetup() {
+  // Production-optimized configuration
+  const productionRegister = new ActionRegister<AppActions>({
+    name: 'ProductionApp',
+    registry: {
+      debug: false,                    // Disable debug logging
+      maxHandlersPerAction: 500,       // Conservative limit for production
+      autoCleanup: true,               // Enable automatic cleanup
+      useConcurrencyQueue: true        // Enable thread-safe operations
+    }
+  });
+  
+  return (
+    <AppActionProvider actionRegister={productionRegister}>
+      <ProductionApp />
+    </AppActionProvider>
+  );
+}
+```
+
+### Memory Monitoring and Alerts
+
+```typescript
+function MemoryMonitoring() {
+  const register = useAppRegister();
+  const [memoryStats, setMemoryStats] = useState<any>(null);
+  
+  const checkMemoryUsage = useCallback(() => {
+    const registryInfo = register.getRegistryInfo();
+    const stats = {
+      totalHandlers: registryInfo.totalHandlers,
+      totalActions: registryInfo.totalActions,
+      averageHandlersPerAction: registryInfo.totalHandlers / Math.max(registryInfo.totalActions, 1),
+      registeredActions: registryInfo.registeredActions
+    };
+    
+    // Alert if memory usage is high
+    if (stats.totalHandlers > 5000) {
+      console.warn('High handler count detected:', stats.totalHandlers);
+    }
+    
+    setMemoryStats(stats);
+  }, [register]);
+  
+  // Monitor memory usage periodically
+  useEffect(() => {
+    const interval = setInterval(checkMemoryUsage, 30000); // Check every 30 seconds
+    checkMemoryUsage(); // Initial check
+    
+    return () => clearInterval(interval);
+  }, [checkMemoryUsage]);
+  
+  return (
+    <div>
+      <h4>Memory Usage Statistics</h4>
+      {memoryStats && (
+        <div>
+          <p>Total Handlers: {memoryStats.totalHandlers}</p>
+          <p>Total Actions: {memoryStats.totalActions}</p>
+          <p>Avg Handlers/Action: {memoryStats.averageHandlersPerAction.toFixed(2)}</p>
+          <p>Actions: {memoryStats.registeredActions.join(', ')}</p>
+        </div>
+      )}
+      <button onClick={checkMemoryUsage}>Refresh Stats</button>
+    </div>
+  );
+}
+```
+
+### Use Case Guidelines
+
+| Application Type | Recommended Limit | Use Case |
+|------------------|-------------------|----------|
+| **Small Apps** | 100-500 | Simple applications, limited features |
+| **Medium Apps** | 1000 (default) | Most standard applications |
+| **Large Apps** | 5000-10000 | Enterprise applications, complex workflows |
+| **Development** | Infinity | Testing environments only (not recommended for production) |
+
+### Memory Best Practices
+
+✅ **Recommended practices:**
+- Use meaningful handler IDs and `replaceExisting: true` for predictable behavior
+- Clean up handlers when components unmount or features are disabled
+- Use `once: true` for initialization handlers
+- Monitor handler counts in production environments
+- Set appropriate limits based on your application's complexity
+
+❌ **Anti-patterns to avoid:**
+- Unlimited handlers (`Infinity`) in production environments
+- Accumulating handlers without cleanup
+- Missing handler IDs leading to handler duplication
+- Registering handlers in render loops
+- Ignoring memory limit warnings
+
 ## Real-World Examples
 
 - [Todo List Demo](https://github.com/mineclover/context-action/blob/main/example/src/pages/demos/store-scenarios/components/TodoListDemo.tsx) - Complex handler registration

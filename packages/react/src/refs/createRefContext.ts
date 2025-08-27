@@ -229,7 +229,22 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
           try {
             callback(target);
           } catch (error) {
-            console.error('Error in mount callback:', error);
+            // Use standardized error handling (dynamic import)
+            import('../stores/utils/error-handling')
+              .then(({ ErrorHandlers }) => {
+                ErrorHandlers.ref(
+                  'Error in mount callback',
+                  { 
+                    refName: String(refName),
+                    targetType: typeof target
+                  },
+                  error instanceof Error ? error : undefined
+                );
+              })
+              .catch(() => {
+                // Fallback to console.error if error handling module fails
+                console.error('Error in mount callback:', error);
+              });
           }
         });
         

@@ -2,6 +2,55 @@
 
 Context-Action 프레임워크를 사용할 때 따라야 할 컨벤션과 모범 사례입니다.
 
+## 🔧 보안 및 성능 가이드라인
+
+### 이벤트 객체 처리
+DOM 이벤트 객체를 스토어에 저장하지 마세요. 메모리 누수를 유발할 수 있습니다:
+
+```tsx
+// ❌ 잘못된 방법: 메모리 누수 유발
+function BadHandler() {
+  useActionHandler('handleClick', async (event) => {
+    // 오류가 발생하고 저장이 차단됩니다
+    store.setValue({ clickEvent: event }); 
+  });
+}
+
+// ✅ 올바른 방법: 필요한 데이터만 추출
+function GoodHandler() {
+  useActionHandler('handleClick', async (event) => {
+    const clickData = {
+      clientX: event.clientX,
+      clientY: event.clientY,
+      target: event.target?.tagName,
+      timestamp: Date.now()
+    };
+    store.setValue({ clickData });
+  });
+}
+```
+
+### 메모리 관리
+프레임워크가 메모리 집약적 객체를 자동으로 처리합니다:
+
+```tsx
+// EventBus가 자동으로 메모리 누수를 방지하는 방법:
+// 1. DOM 요소 및 React 컴포넌트 감지
+// 2. 전체 객체 대신 필수 메타데이터만 저장
+// 3. 문제가 될 수 있는 참조 자동 정리
+```
+
+### 오류 처리
+중앙화된 오류 처리 시스템을 사용하세요:
+
+```tsx
+// 프레임워크가 제공하는 ErrorHandlers:
+// - 스토어 작업 오류
+// - 이벤트 핸들러 실패
+// - Ref 마운트 콜백 오류  
+// - 적절한 컨텍스트가 포함된 비동기 작업 실패
+```
+
 ## 네이밍 컨벤션
 
 ### 도메인 기반 리네이밍 패턴
