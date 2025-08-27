@@ -4,20 +4,22 @@ Technical deep-dive into Context-Action's immutability and change detection arch
 
 ## System Architecture Overview
 
-### Dual-Layer Processing Pipeline
+### Per-Store Dual-Layer Processing Pipeline
+
+Each store instance operates independently with its own dual-layer system:
 
 ```mermaid
 graph TD
-    A[User Action] --> B[setValue/update]
-    B --> C[Layer 1: Immer Processing]
-    C --> D[deepClone with produce]
-    D --> E[Layer 2: Change Detection]
-    E --> F[_compareValues]
-    F --> G{Changed?}
-    G -->|Yes| H[Update State & Notify]
-    G -->|No| I[Skip Update]
-    H --> J[React Re-render]
-    I --> K[No Re-render]
+    A[User Action on Specific Store] --> B[store.setValue/update]
+    B --> C[Layer 1: Immer Processing - This Store Only]
+    C --> D[deepClone with produce - This Store's Value Only]
+    D --> E[Layer 2: Change Detection - This Store Only]
+    E --> F[_compareValues - This Store's Previous vs New]
+    F --> G{This Store Changed?}
+    G -->|Yes| H[Update This Store & Notify Subscribers]
+    G -->|No| I[Skip Update - This Store Only]
+    H --> J[React Re-render - Components Using This Store]
+    I --> K[No Re-render - This Store Unchanged]
 ```
 
 ### Core Components
@@ -81,37 +83,42 @@ export function fastCompare<T>(oldValue: T, newValue: T): boolean {
 
 ```typescript
 // packages/react/src/stores/core/Store.ts
+// Each Store instance has its own setValue method
 setValue(value: T): void {
-  // Security validation
+  // Security validation for this store's value
   if (TypeGuards.isDOMEvent(value)) {
-    ErrorHandlers.store('DOM event object detected', { /* context */ });
+    ErrorHandlers.store('DOM event object detected', { storeName: this.name });
     return;
   }
 
-  // Layer 1: Immutability processing
+  // Layer 1: Immutability processing - only for this store's value
   const safeValue = deepClone(value);
   
-  // Layer 2: Change detection
+  // Layer 2: Change detection - only comparing this store's previous vs new value
   const hasChanged = this._compareValues(this._value, safeValue);
   
   if (hasChanged) {
-    // State update
+    // State update - only this store's state
     this._value = safeValue;
     
-    // Subscriber notification (React integration)
+    // Subscriber notification - only notifies this store's subscribers
     this._notifyListeners();
     
-    // Event system integration
+    // Event system integration - only emits event for this specific store
     this.eventBus.emit('store:changed', {
-      storeName: this.name,
+      storeName: this.name,  // This specific store's name
       previousValue: this._previousValue,
       currentValue: safeValue
     });
   }
   
-  // Performance metrics (development)
+  // Performance metrics - only for this store's operations
   if (process.env.NODE_ENV === 'development') {
-    this._recordMetrics({ hasChanged, comparisonStrategy: this._getActiveStrategy() });
+    this._recordMetrics({ 
+      storeName: this.name,
+      hasChanged, 
+      comparisonStrategy: this._getActiveStrategy() 
+    });
   }
 }
 ```
@@ -119,8 +126,9 @@ setValue(value: T): void {
 ### Store.update() Implementation
 
 ```typescript
+// Each Store instance has its own update method
 update(updater: (current: T) => T): void {
-  // Concurrency protection
+  // Concurrency protection - only for this store's updates
   if (this.isUpdating) {
     this.updateQueue.push(() => this.update(updater));
     return;
@@ -129,24 +137,27 @@ update(updater: (current: T) => T): void {
   try {
     this.isUpdating = true;
     
-    // Create safe copy for updater function
+    // Create safe copy for updater function - only this store's current value
     const safeCurrentValue = deepClone(this._value);
     
-    // Apply user's update function on safe copy
+    // Apply user's update function on safe copy of this store's value
     const updatedValue = updater(safeCurrentValue);
     
-    // Security: Detect problematic return values
+    // Security: Detect problematic return values for this store
     if (TypeGuards.isSuspiciousEventObject(updatedValue)) {
-      ErrorHandlers.store('Event object in update result', { /* context */ });
+      ErrorHandlers.store('Event object in update result', { 
+        storeName: this.name,
+        operation: 'update'
+      });
       return;
     }
     
-    // Delegate to setValue for consistency
+    // Delegate to setValue for consistency - affects only this store
     this.setValue(updatedValue);
     
   } finally {
     this.isUpdating = false;
-    this._processUpdateQueue();
+    this._processUpdateQueue(); // Process this store's update queue
   }
 }
 ```
@@ -174,12 +185,14 @@ console.log(updated.users === largeState.users); // true - reused!
 console.log(updated.settings === largeState.settings); // false - new object
 ```
 
-#### Structural Sharing Visualization
+#### Structural Sharing Visualization (Per Store)
 ```
-Original:     { users: [Array], settings: {obj}, metadata: {obj} }
-Updated:      { users: [Array], settings: {new}, metadata: {obj} }
-                     ↑            ↑              ↑
-                   reused       new copy       reused
+Store's Original Value: { users: [Array], settings: {obj}, metadata: {obj} }
+Store's Updated Value:  { users: [Array], settings: {new}, metadata: {obj} }
+                               ↑            ↑              ↑
+                             reused       new copy       reused
+
+Note: This optimization happens independently within each store instance
 ```
 
 ### 2. Comparison Optimizations
@@ -224,26 +237,27 @@ export function fastCompare<T>(oldValue: T, newValue: T): boolean {
 
 ### 3. Integration Optimizations
 
-#### React Integration
+#### React Integration (Per Store)
 ```typescript
-// useSyncExternalStore integration
+// useSyncExternalStore integration - each store operates independently
 const getSnapshot = useCallback(() => {
-  // Direct access to current value (no comparison needed)
-  return store._value;
+  // Direct access to THIS store's current value (no comparison needed)
+  return store._value;  // Only this specific store's value
 }, [store]);
 
 const getServerSnapshot = useCallback(() => {
-  // Server-side rendering support
-  return store.getInitialValue();
+  // Server-side rendering support for THIS store
+  return store.getInitialValue();  // Only this specific store's initial value
 }, [store]);
 
 const subscribe = useCallback((onStoreChange) => {
-  // Only notified when comparison detects actual changes
-  return store.subscribe(onStoreChange);
+  // Only notified when THIS store's comparison detects actual changes
+  return store.subscribe(onStoreChange);  // Only this specific store's changes
 }, [store]);
 
-// React's built-in optimization + our change detection
+// React's built-in optimization + this store's change detection
 const value = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+// Components only re-render when THIS specific store changes
 ```
 
 ## Memory Management

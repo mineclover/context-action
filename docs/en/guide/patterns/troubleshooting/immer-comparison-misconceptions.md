@@ -15,44 +15,48 @@ This guide addresses the most common misconceptions developers have when working
 // "Since we use Immer, comparison logic is redundant"
 setValue(newValue) {
   this._value = produce(newValue, draft => {});
-  this._notifyListeners(); // Always notify!
+  this._notifyListeners(); // Always notify! - WRONG: affects this store's subscribers unnecessarily
 }
 ```
 
 **Why it's wrong:**
-- Would trigger React re-render even when value hasn't changed
-- Breaks performance optimization for identical values
-- Ignores React's `useSyncExternalStore` optimization patterns
+- Would trigger React re-render even when THIS store's value hasn't changed
+- Breaks performance optimization for identical values in THIS store
+- Ignores React's `useSyncExternalStore` optimization patterns for THIS store
+- Components subscribed to THIS store would re-render unnecessarily
 
 **✅ Correct understanding:**
 ```typescript
 setValue(newValue) {
-  // Layer 1: Immer ensures safe immutability
+  // Layer 1: Immer ensures safe immutability for THIS store's value
   const safeValue = produce(newValue, draft => {});
   
-  // Layer 2: Comparison prevents unnecessary re-renders
+  // Layer 2: Comparison prevents unnecessary re-renders for THIS store
   if (this._compareValues(this._value, safeValue)) {
     this._value = safeValue;
-    this._notifyListeners(); // Only when actually changed
+    this._notifyListeners(); // Only when THIS store actually changed
   }
 }
 ```
 
 **Real-world impact:**
 ```typescript
-// Without comparison - always re-renders
+// Without comparison - always re-renders when userStore is updated
 const UserProfile = () => {
-  const user = useStoreValue(userStore);
-  console.log('Rendered'); // Logs every time, even for identical data
+  const user = useStoreValue(userStore);  // Subscribed to userStore
+  console.log('Rendered'); // Logs every time userStore is updated, even for identical data
   return <div>{user.name}</div>;
 };
 
-// With comparison - optimized re-renders
+// With comparison - optimized re-renders for userStore
 const OptimizedUserProfile = () => {
-  const user = useStoreValue(userStore);
-  console.log('Rendered'); // Only logs when user data actually changes
+  const user = useStoreValue(userStore);  // Subscribed to userStore
+  console.log('Rendered'); // Only logs when userStore data actually changes
   return <div>{user.name}</div>;
 };
+
+// Important: Other stores (cartStore, settingsStore, etc.) are unaffected
+// Each store operates independently with its own Immer + Comparison system
 ```
 
 ### ❌ Misconception #2: "Immer's same reference check eliminates need for comparison"

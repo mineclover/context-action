@@ -4,38 +4,38 @@ Comprehensive guide to understanding how Immer-based immutability and comparison
 
 ## Overview
 
-Context-Action uses a **dual-layer optimization system** combining:
-- **Immer**: For safe immutable updates (Copy-on-Write)
-- **Comparison Logic**: For change detection and re-render optimization
+Context-Action uses a **dual-layer optimization system** within each individual store:
+- **Immer**: For safe immutable updates (Copy-on-Write) per store
+- **Comparison Logic**: For change detection and re-render optimization per store
 
-These two systems solve **different problems** and work together, not as replacements for each other.
+These two systems solve **different problems** and work together **within each store independently**, not as replacements for each other.
 
 ## Architecture Overview
 
 ### Two-Layer System Design
 
 ```typescript
-// Store Update Flow
+// Individual Store Update Flow (each store operates independently)
 setValue(newValue) {
-  // Layer 1: Immutability (Immer)
+  // Layer 1: Immutability (Immer) - only for this store's value
   const safeValue = deepClone(newValue);  // Uses Immer internally
   
-  // Layer 2: Change Detection (Comparison)
+  // Layer 2: Change Detection (Comparison) - only for this store's value
   const hasChanged = this._compareValues(this._value, safeValue);
   
   if (hasChanged) {
     this._value = safeValue;
-    this._notifyListeners();  // Triggers React re-renders
+    this._notifyListeners();  // Triggers React re-renders for this store only
   }
 }
 ```
 
 ### Why Both Are Needed
 
-| System | Purpose | Problem Solved |
-|--------|---------|----------------|
-| **Immer** | Immutability | Prevents mutation bugs, ensures safe copies |
-| **Comparison** | Change Detection | Prevents unnecessary re-renders, optimizes performance |
+| System | Purpose | Problem Solved | Scope |
+|--------|---------|----------------|-------|
+| **Immer** | Immutability | Prevents mutation bugs, ensures safe copies | Per individual store |
+| **Comparison** | Change Detection | Prevents unnecessary re-renders, optimizes performance | Per individual store |
 
 ## Immer Integration Details
 
