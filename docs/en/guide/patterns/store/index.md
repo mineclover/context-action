@@ -31,6 +31,7 @@ Store patterns provide excellent type inference and simplified API for pure stat
 
 #### Performance & Optimization
 - **[Store Performance Overview](./performance-patterns.md)** - Performance optimization guide
+- **[Immutability & Comparison Integration](./immutability-comparison-integration.md)** - **Key integration guide**
 - **[Memoization Patterns](./memoization-patterns.md)** - Prevent unnecessary re-renders
 - **[Batching Patterns](./batching-patterns.md)** - Batch multiple updates
 - **[Subscription Optimization](./subscription-optimization.md)** - Optimize subscriptions
@@ -87,3 +88,17 @@ Store patterns work best when combined with:
 - **[Action Patterns](../action/)** for business logic
 - **[Ref Patterns](../ref/)** for DOM manipulation
 - **[Async Patterns](../async/)** for safe async operations
+
+## Architecture & Troubleshooting
+
+### Technical Architecture
+- **[Immutability Architecture](../architecture/immutability-architecture.md)** - Deep technical dive into Immer and comparison system integration
+
+### Common Issues
+- **[Immer & Comparison Misconceptions](../troubleshooting/immer-comparison-misconceptions.md)** - Common misconceptions and solutions
+
+### Key Learning Path
+1. **Start with**: [Basic Usage](./basic-usage.md) and [useStoreValue Patterns](./useStoreValue-patterns.md)
+2. **Understand integration**: [Immutability & Comparison Integration](./immutability-comparison-integration.md)
+3. **Optimize performance**: [Store Performance Overview](./performance-patterns.md)
+4. **Troubleshoot issues**: [Common Misconceptions](../troubleshooting/immer-comparison-misconceptions.md)

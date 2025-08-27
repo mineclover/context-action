@@ -123,10 +123,38 @@ Robust error handling and recovery patterns:
 - Deep comparisons unless absolutely necessary
 - Ignoring subscription cleanup
 
+## Architecture Integration
+
+### Immer and Comparison System
+
+Context-Action uses a **dual-layer optimization system**:
+- **Immer Layer**: Safe immutable updates with Copy-on-Write optimization
+- **Comparison Layer**: Change detection and re-render optimization
+
+**Why both are needed:**
+- **Immer**: Prevents mutation bugs, ensures safe copies
+- **Comparison**: Prevents unnecessary re-renders, optimizes performance
+
+**Key insight**: Immer handles immutability, comparison handles change detection. They solve different problems and work together.
+
+For detailed technical information, see:
+- [Immutability & Comparison Integration](./immutability-comparison-integration.md) - Complete integration guide
+- [Immutability Architecture](../architecture/immutability-architecture.md) - Technical deep-dive
+
+### Performance Impact
+
+| System | Performance Benefit | When Active |
+|--------|-------------------|-------------|
+| **Immer Copy-on-Write** | Avoid unnecessary object creation | All store updates |
+| **Comparison Optimization** | Skip re-renders for identical values | setValue() calls |
+| **Combined System** | Maximum efficiency | Both layers working together |
+
 ## Related Patterns
 
+- [Immutability & Comparison Integration](./immutability-comparison-integration.md) - **Start here for integration details**
 - [useStoreValue Patterns](./useStoreValue-patterns.md) - Basic subscription patterns
 - [useStoreSelector Patterns](./useStoreSelector-patterns.md) - Multiple store selection
 - [useComputedStore Patterns](./useComputedStore-patterns.md) - Computed value patterns
 - [Store Configuration](./store-configuration.md) - Configure store behavior
+- [Immutability Architecture](../architecture/immutability-architecture.md) - Technical architecture
 - [Production Debugging](../debug/production-debugging.md) - Production debugging techniques
