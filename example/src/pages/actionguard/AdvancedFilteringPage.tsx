@@ -131,48 +131,94 @@ function FixedExecutionFlowDisplay({ results }: { results: Record<string, Execut
     { id: 'audit-log', label: '📝 Audit', priority: 20, blocking: false }
   ];
 
-  // Get the most recent execution result to show current state
-  const latestResult = Object.values(results).reverse().find(r => r !== null);
+  // Get all execution results to show cumulative state
+  const allResults = Object.values(results).filter(r => r !== null);
+  const latestResult = allResults[allResults.length - 1];
   
-  // Extract executed handler IDs from the latest results
+  // Extract executed handler IDs from all results (improved logic)
   const executedHandlerIds = new Set<string>();
   
-  if (latestResult?.results) {
-    Object.entries(latestResult.results).forEach(([key, handlerResult]) => {
-      if (typeof handlerResult === 'object' && handlerResult !== null) {
-        if ((handlerResult as any).handlerId) {
-          executedHandlerIds.add((handlerResult as any).handlerId);
+  allResults.forEach(result => {
+    if (result?.results) {
+      // Direct handler ID matching - this is the most reliable method
+      Object.keys(result.results).forEach(key => {
+        const handler = handlers.find(h => h.id === key);
+        if (handler) {
+          executedHandlerIds.add(handler.id);
+        }
+      });
+      
+      // Alternative matching for different result key formats
+      handlers.forEach(handler => {
+        const resultKeys = Object.keys(result.results || {});
+        
+        // Check various possible key formats
+        const possibleKeys = [
+          handler.id,                           // 'security-check'
+          handler.id.replace('-', ''),          // 'securitycheck'
+          handler.label.split(' ')[1]?.toLowerCase(),  // 'security'
+          handler.label.split(' ')[0]          // '🔐'
+        ].filter(Boolean);
+        
+        if (possibleKeys.some(key => resultKeys.includes(key))) {
+          executedHandlerIds.add(handler.id);
         }
         
-        const resultKeys = Object.keys(handlerResult as object);
-        resultKeys.forEach(resultKey => {
-          handlers.forEach(handler => {
-            if (resultKey === handler.id.split('-')[0] || 
-                resultKey === handler.label.split(' ')[1]?.toLowerCase() || 
-                resultKey === handler.id) {
-              executedHandlerIds.add(handler.id);
+        // Check if any result contains expected handler response patterns
+        Object.values(result.results || {}).forEach(resultValue => {
+          if (typeof resultValue === 'object' && resultValue !== null) {
+            const resultObj = resultValue as Record<string, any>;
+            
+            // Pattern matching for specific handlers
+            if (handler.id === 'security-check' && resultObj.security) {
+              executedHandlerIds.add('security-check');
+            } else if (handler.id === 'analytics' && resultObj.analytics) {
+              executedHandlerIds.add('analytics');
+            } else if (handler.id === 'database-save' && resultObj.database) {
+              executedHandlerIds.add('database-save');
+            } else if (handler.id === 'notification' && resultObj.notification) {
+              executedHandlerIds.add('notification');
+            } else if (handler.id === 'audit-log' && resultObj.audit) {
+              executedHandlerIds.add('audit-log');
             }
-          });
+          }
         });
-      }
-    });
-  }
+      });
+    }
+  });
 
   return (
     <div className="sticky top-4 z-10 bg-white rounded-xl border border-gray-300 shadow-lg p-6 mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-          <span className="mr-2">🔄</span>
-          Handler Execution Flow
-        </h3>
-        {latestResult && (
-          <div className="flex items-center space-x-2">
-            <span className="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
-              Last: {latestResult.duration}ms
-            </span>
-            <span className="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full">
-              {executedHandlerIds.size}/{handlers.length} handlers
-            </span>
+      <div className="mb-6">
+        {/* Title */}
+        <div className="text-center mb-4">
+          <h3 className="text-xl font-bold text-gray-900 flex items-center justify-center">
+            <span className="mr-3 text-2xl">🎭</span>
+            Handler Execution Flow
+            <span className="ml-3 text-2xl">🎭</span>
+          </h3>
+          <p className="text-sm text-gray-600 mt-1">
+            Real-time visualization of handler execution states
+          </p>
+        </div>
+        
+        {/* Statistics */}
+        {Object.keys(results).length > 0 && (
+          <div className="flex items-center justify-center space-x-4 mb-4">
+            <div className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold border border-green-300">
+              ✅ {executedHandlerIds.size} Executed
+            </div>
+            <div className="bg-gray-100 text-gray-600 px-4 py-2 rounded-full text-sm font-semibold border border-gray-300">
+              ⏸️ {handlers.length - executedHandlerIds.size} Skipped
+            </div>
+            {latestResult?.duration && (
+              <div className="bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-semibold border border-blue-300">
+                ⚡ {latestResult.duration}ms Total
+              </div>
+            )}
+            <div className="bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-semibold border border-purple-300">
+              📊 {Object.keys(results).length} Demos Run
+            </div>
           </div>
         )}
       </div>
@@ -185,14 +231,14 @@ function FixedExecutionFlowDisplay({ results }: { results: Record<string, Execut
           return (
             <Fragment key={handler.id}>
               <div
-                className={`relative flex flex-col items-center p-4 rounded-xl border-2 transition-all duration-300 min-w-0 ${
+                className={`relative flex flex-col items-center p-5 rounded-2xl border-3 transition-all duration-500 min-w-[110px] max-w-[110px] ${
                   isExecuted 
-                    ? 'bg-green-100 border-green-400 shadow-lg scale-110 animate-pulse' 
-                    : 'bg-gray-100 border-gray-300 opacity-60'
+                    ? 'bg-gradient-to-b from-green-50 to-green-100 border-green-500 shadow-xl transform scale-110 ring-2 ring-green-300' 
+                    : 'bg-gradient-to-b from-gray-50 to-gray-100 border-gray-300 opacity-60 hover:opacity-80'
                 }`}
               >
                 {/* Handler Icon */}
-                <div className={`text-3xl mb-2 ${isExecuted ? 'animate-bounce' : ''}`}>
+                <div className={`text-4xl mb-3 transition-all duration-500 ${isExecuted ? 'animate-bounce scale-125 drop-shadow-lg' : 'scale-90 grayscale'}`}>
                   {handler.label.split(' ')[0]}
                 </div>
                 
@@ -204,47 +250,49 @@ function FixedExecutionFlowDisplay({ results }: { results: Record<string, Execut
                 </div>
                 
                 {/* Priority */}
-                <div className={`text-xs mt-1 font-mono ${
-                  isExecuted ? 'text-green-700' : 'text-gray-500'
-                }`}>
+                <div className={`text-xs mt-2 px-2 py-1 rounded-full font-mono font-semibold ${isExecuted ? 'bg-green-200 text-green-800 border border-green-400' : 'bg-gray-200 text-gray-600'}`}>
                   P{handler.priority}
                 </div>
 
                 {/* Blocking Indicator */}
                 {isBlocking && (
-                  <div className="absolute -top-2 -right-2 bg-yellow-400 text-xs px-1.5 py-0.5 rounded-full font-bold shadow">
-                    ⚡
+                  <div className="absolute -top-3 -right-3 bg-yellow-400 text-yellow-900 text-xs px-2 py-1 rounded-full font-bold shadow-lg border border-yellow-500 animate-pulse">
+                    ⚡BLOCK
                   </div>
                 )}
 
                 {/* Execution Success Indicator */}
                 {isExecuted && (
-                  <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold shadow animate-pulse">
-                    ✓ DONE
+                  <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg animate-pulse border border-green-400">
+                    ✓ EXECUTED
                   </div>
                 )}
 
                 {/* Handler Status */}
-                <div className={`mt-2 text-xs text-center ${
-                  isExecuted ? 'text-green-600 font-semibold' : 'text-gray-400'
+                <div className="absolute top-2 left-2 w-3 h-3 rounded-full ${isExecuted ? 'bg-green-500 animate-ping' : 'bg-gray-400'}"></div>
+                
+                <div className={`mt-4 text-xs font-semibold text-center ${
+                  isExecuted ? 'text-green-700' : 'text-gray-500'
                 }`}>
-                  {isExecuted ? 'Executed' : 'Waiting'}
+                  {isExecuted ? '✅ DONE' : '⏳ WAIT'}
                 </div>
               </div>
               
               {/* Connection Line */}
               {index < handlers.length - 1 && (
-                <div className="flex flex-col items-center">
-                  <div className={`w-12 h-1 rounded transition-all duration-300 ${
-                    isExecuted && executedHandlerIds.has(handlers[index + 1]?.id) 
-                      ? 'bg-green-400 shadow-md' 
-                      : isExecuted
-                        ? 'bg-yellow-300'
-                        : 'bg-gray-300'
-                  }`} />
-                  <div className="text-xs text-gray-500 mt-1">
-                    {isExecuted && executedHandlerIds.has(handlers[index + 1]?.id) ? '✓' : '→'}
+                <div className="flex flex-col items-center justify-center mx-2">
+                  <div className={`text-3xl transition-all duration-500 ${
+                    isExecuted 
+                      ? 'text-green-500 animate-pulse transform scale-125 drop-shadow-lg' 
+                      : 'text-gray-300'
+                  }`}>
+                    →
                   </div>
+                  <div className={`w-16 h-1 mt-1 rounded-full transition-all duration-500 ${
+                    isExecuted 
+                      ? 'bg-green-400 shadow-lg' 
+                      : 'bg-gray-300'
+                  }`}></div>
                 </div>
               )}
             </Fragment>
@@ -253,27 +301,23 @@ function FixedExecutionFlowDisplay({ results }: { results: Record<string, Execut
       </div>
 
       {/* Overall Status */}
-      <div className="mt-4 text-center">
+      <div className="mt-6 text-center">
         {executedHandlerIds.size === 0 ? (
-          <p className="text-gray-500 text-sm">
-            🎭 No handlers executed yet. Click a demo button to see the flow in action!
-          </p>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <p className="text-yellow-700 text-sm font-medium flex items-center justify-center">
+              <span className="mr-2 text-lg">🎯</span>
+              Ready to execute! Click any demo button below to see the handler flow in action.
+              <span className="ml-2 text-lg">🚀</span>
+            </p>
+          </div>
         ) : (
-          <div className="flex items-center justify-center space-x-4 text-sm">
-            <span className="flex items-center text-green-600">
-              <span className="mr-1">✅</span>
-              {executedHandlerIds.size} Executed
-            </span>
-            <span className="flex items-center text-gray-500">
-              <span className="mr-1">⏸️</span>
-              {handlers.length - executedHandlerIds.size} Skipped
-            </span>
-            {latestResult?.duration && (
-              <span className="flex items-center text-blue-600">
-                <span className="mr-1">⚡</span>
-                {latestResult.duration}ms total
-              </span>
-            )}
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="text-green-800 text-sm font-semibold mb-1">
+              🎉 Execution Complete!
+            </div>
+            <p className="text-green-700 text-xs">
+              Last execution processed {executedHandlerIds.size} of {handlers.length} handlers in {latestResult?.duration}ms
+            </p>
           </div>
         )}
       </div>
