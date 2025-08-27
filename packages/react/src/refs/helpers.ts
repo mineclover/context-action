@@ -13,13 +13,12 @@ import type {
  * 커스텀 참조 정의 헬퍼
  */
 export function customRef<T extends RefTarget>(
-  config: Partial<Omit<RefInitConfig<T>, 'objectType'>> & { 
+  config: Partial<RefInitConfig<T>> & { 
     name: string;
     cleanup?: (target: T) => void | Promise<void>;
   }
 ): RefInitConfig<T> {
   return {
-    objectType: 'custom',
     autoCleanup: true,
     ...config
   } as RefInitConfig<T>;

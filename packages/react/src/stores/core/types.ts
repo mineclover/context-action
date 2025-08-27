@@ -91,6 +91,9 @@ export interface IStore<T = any> {
   
   /** Get number of active listeners (debugging/monitoring) */
   getListenerCount?: () => number;
+  
+  /** Dispose store and clean up resources */
+  dispose?: () => void;
 }
 
 /**
