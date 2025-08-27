@@ -156,13 +156,126 @@ function AdvancedComponent() {
 - **[Search Page](https://github.com/mineclover/context-action/blob/main/example/src/pages/actionguard/SearchPage.tsx)** - Abortable search actions
 - **[API Blocking Page](https://github.com/mineclover/context-action/blob/main/example/src/pages/actionguard/ApiBlockingPage.tsx)** - Blocking action patterns
 
+## Error Handling Best Practices
+
+### Centralized Error Handling
+
+```tsx
+// ✅ CORRECT: Use framework's centralized error handling
+function ErrorHandlingComponent() {
+  const dispatch = useEventAction();
+  
+  // Error-prone handler with proper error handling
+  const riskyOperationHandler = useCallback(async (payload, controller) => {
+    try {
+      // Perform risky operation
+      const result = await performRiskyAPICall(payload);
+      
+      // Success case
+      console.log('Operation successful:', result);
+      
+    } catch (error) {
+      // Framework provides centralized error handling
+      // No need for manual console.error - it's handled automatically
+      
+      // Use controller to abort with context
+      controller.abort('Risky operation failed', error);
+    }
+  }, []);
+
+  // Event handler with error prevention  
+  const safeEventHandler = useCallback(async (payload, controller) => {
+    // Never store DOM events or React synthetic events
+    const { clientX, clientY, timestamp } = payload;
+    
+    // Extract only needed data, never store the event object itself
+    const eventData = {
+      position: { x: clientX, y: clientY },
+      timestamp,
+      action: 'user-interaction'
+    };
+    
+    // Safe to process extracted data
+    await processEventData(eventData);
+  }, []);
+  
+  useEventActionHandler('riskyOperation', riskyOperationHandler);
+  useEventActionHandler('safeEvent', safeEventHandler);
+  
+  const handleClick = (event: MouseEvent) => {
+    // Extract event data before dispatching
+    dispatch('safeEvent', {
+      clientX: event.clientX,
+      clientY: event.clientY,
+      timestamp: Date.now()
+      // Don't pass the event object itself!
+    });
+  };
+  
+  return <button onClick={handleClick}>Safe Click Handler</button>;
+}
+```
+
+### Async Error Recovery
+
+```tsx
+// ✅ CORRECT: Robust async error handling with retry logic
+function AsyncErrorRecoveryComponent() {
+  const dispatch = useEventAction();
+  
+  const retryableOperationHandler = useCallback(async (payload, controller) => {
+    const maxRetries = 3;
+    let attempt = 0;
+    
+    while (attempt < maxRetries) {
+      try {
+        const result = await performAsyncOperation(payload);
+        
+        // Success - break retry loop
+        console.log(`Operation succeeded on attempt ${attempt + 1}`);
+        return result;
+        
+      } catch (error) {
+        attempt++;
+        
+        if (attempt >= maxRetries) {
+          // Final failure - let framework handle error centrally
+          controller.abort(`Operation failed after ${maxRetries} attempts`, error);
+          return;
+        }
+        
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        console.log(`Retrying operation, attempt ${attempt + 1}/${maxRetries}`);
+      }
+    }
+  }, []);
+  
+  useEventActionHandler('retryableOperation', retryableOperationHandler);
+  
+  return (
+    <button onClick={() => dispatch('retryableOperation', { data: 'test' })}>
+      Retry Operation
+    </button>
+  );
+}
+```
+
 ## Best Practices
 
 ### ✅ Best Practices
 1. **Always Use useCallback**: Wrap all handler functions with `useCallback` to prevent infinite re-registration
 2. **Handle Side Effects**: Perfect for analytics, logging, API calls
 3. **Keep Lightweight**: No state management overhead
-4. **Error Handling**: Use controller.abort() for error cases
-5. **Async Operations**: Handle async operations with proper error boundaries
+4. **Centralized Error Handling**: Let framework handle errors automatically instead of manual console.error
+5. **Event Data Extraction**: Extract needed data from DOM events, never store event objects
+6. **Async Error Recovery**: Implement retry logic with proper error boundaries
+7. **Controller Usage**: Use controller.abort() for error cases with context
+
+### ❌ Avoid
+- Storing DOM events or React synthetic events in state or dispatching them
+- Using direct console.error instead of letting framework handle errors centrally
+- Blocking the main thread with heavy computations in handlers
+- Missing cleanup for async operations or timers
 
 > **Important**: For detailed handler registration patterns, see the [Handler Registration Guide](../../conventions.md#handler-registration)

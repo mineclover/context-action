@@ -7,7 +7,7 @@ Performance optimization patterns and techniques for Context-Action framework ap
 ### Core Optimization Techniques
 - **[Optimization Techniques](./optimization-techniques.md)** - Comprehensive performance optimization guide
   - Store optimization strategies
-  - Action handler optimization
+  - Action handler optimization and memory management
   - Memoization patterns
   - RefContext performance techniques
 
@@ -18,7 +18,7 @@ Performance optimization patterns and techniques for Context-Action framework ap
 | Area | Technique | Best Practice |
 |------|-----------|---------------|
 | **Store** | Comparison Strategy | Choose based on data characteristics |
-| **Actions** | Handler Memoization | Use useCallback with stable deps |
+| **Actions** | Handler Memoization + Memory Limits | Use useCallback with stable deps, configure maxHandlersPerAction |
 | **RefContext** | Direct DOM | Zero re-renders with hardware acceleration |
 | **Components** | Memoization | Memoize expensive computations |
 
@@ -54,9 +54,12 @@ versionData: {
 - Missing useCallback for handlers
 - Unnecessary deep comparison strategies
 - Not cleaning up animations and event listeners
+- Excessive handler registration without proper limits
+- Ignoring memory management in action patterns
 
 ## 📚 Related Documentation
 
 - [RefContext Performance](../ref/performance.md)
 - [Hardware Acceleration](../ref/hardware-acceleration.md)
 - [Memory Optimization](../ref/memory-optimization.md)
+- [Action Memory Management](../action/register-patterns.md#memory-management-and-handler-limits)

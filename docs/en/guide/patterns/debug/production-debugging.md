@@ -1083,6 +1083,108 @@ function DebugApp() {
 
 ---
 
+## 🔧 Framework Issue Resolution
+
+### Memory Leak Prevention (v0.4.1+)
+
+**Issue**: EventBus storing large DOM/React objects causing memory leaks
+
+**Resolution**: Framework automatically detects and safely handles:
+- DOM elements
+- React components and synthetic events  
+- Circular references
+- Large object structures
+
+```tsx
+// ✅ SAFE: Framework handles automatically
+function SafeEventHandling() {
+  const [eventBus] = useState(() => new EventBus());
+  
+  const handleDOMEvent = useCallback((event: Event) => {
+    // EventBus automatically extracts safe metadata
+    // No memory leaks from DOM object retention
+    eventBus.emit('dom-interaction', event);
+  }, [eventBus]);
+  
+  return <div onClick={handleDOMEvent}>Safe Event Handling</div>;
+}
+```
+
+### Cross-Platform Compatibility (v0.4.1+)
+
+**Issue**: Timeout type mismatches between browser and Node.js environments
+
+**Resolution**: Framework uses `ReturnType<typeof requestAnimationFrame>` for compatibility
+
+```tsx
+// ✅ COMPATIBLE: Works in both browser and Node.js
+function useCrossPlatformOperation() {
+  const [timeoutId, setTimeoutId] = useState<ReturnType<typeof requestAnimationFrame> | null>(null);
+  
+  const scheduleOperation = useCallback((callback: () => void) => {
+    const id = requestAnimationFrame(callback);
+    setTimeoutId(id);
+    
+    return () => {
+      if (id !== null) {
+        cancelAnimationFrame(id);
+      }
+    };
+  }, []);
+  
+  return scheduleOperation;
+}
+```
+
+### Centralized Error Handling (v0.4.1+)
+
+**Issue**: Inconsistent error handling across modules
+
+**Resolution**: Framework provides `ErrorHandlers` for centralized error management
+
+```tsx
+// ✅ CENTRALIZED: Framework handles all errors consistently
+import { ErrorHandlers } from '@context-action/react';
+
+function useFrameworkErrorHandling() {
+  const handleError = useCallback((error: Error, context: any) => {
+    // Framework automatically:
+    // - Logs with proper context
+    // - Tracks error statistics
+    // - Provides recovery mechanisms
+    // - Prevents error spamming
+    
+    ErrorHandlers.store('Operation failed', context, error);
+  }, []);
+  
+  return { handleError };
+}
+```
+
+## 📚 Related Troubleshooting
+
+### Quick Issue Resolution
+For immediate solutions to common problems, see:
+👉 **[Troubleshooting Guide](../../troubleshooting.md)**
+
+**Common Issues Covered**:
+- Store subscription not updating
+- Action handler not triggering  
+- Ref not mounting properly
+- Memory leaks and performance issues
+- Cross-platform compatibility problems
+- Error handling and debugging
+
+### Systematic Problem Solving
+For systematic debugging approaches:
+👉 **[Best Practices Guide](../../best-practices.md#security--performance-guidelines)**
+
+**Prevention Strategies**:
+- Event object handling
+- Memory management
+- Error prevention
+- Performance optimization
+
 ## 💡 Migration Success Criteria
 
 ### ✅ From Ad-hoc to Systematic (60% → 90%+)
@@ -1091,8 +1193,9 @@ function DebugApp() {
 3. **Type Safety**: Comprehensive TypeScript coverage for debug features
 4. **Performance**: Debug features don't impact production performance
 5. **Maintainability**: Debug code follows same quality standards as application code
+6. **Framework Integration**: Use built-in error handling and memory management
 
 ### ✅ Implementation Priority
-1. **High Priority**: Core issue patterns (race conditions, handler registration)
-2. **Medium Priority**: Monitoring and recovery patterns
+1. **High Priority**: Core issue patterns (race conditions, handler registration, memory leaks)
+2. **Medium Priority**: Monitoring and recovery patterns (cross-platform compatibility)
 3. **Low Priority**: Stress testing and advanced debugging utilities
