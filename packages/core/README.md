@@ -42,6 +42,17 @@ await actions.dispatch('increment');
 await actions.dispatch('setCount', 42);
 ```
 
+### Memory Management
+
+```typescript
+// Configure handler limits for memory safety (v0.4.1+)
+const actions = new ActionRegister<MyActions>({
+  registry: {
+    maxHandlersPerAction: 1000  // Default: 1000, prevents memory issues
+  }
+});
+```
+
 ## 🚀 New Features (v0.4.0+)
 
 ### Advanced Filtering System
@@ -189,9 +200,7 @@ const registry = new ActionRegister<MyActions>({
   registry: {
     debug: true,
     autoCleanup: true,
-    maxHandlers: 50,
     defaultExecutionMode: 'sequential',
-    collectStats: true,
     useConcurrencyQueue: true,
     errorHandler: (error, context) => {
       console.error('Unhandled action error:', error);
