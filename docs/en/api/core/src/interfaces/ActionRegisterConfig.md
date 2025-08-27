@@ -33,7 +33,13 @@ const devRegister = new ActionRegister<AppActions>({
     debug: process.env.NODE_ENV === 'development',
     autoCleanup: true,
     maxHandlers: 50,
-    defaultExecutionMode: 'parallel'
+    defaultExecutionMode: 'parallel',
+    collectStats: true,
+    useConcurrencyQueue: true,
+    errorHandler: (error, context) => {
+      console.error('Unhandled action error:', error);
+      // Log to monitoring service
+    }
   }
 })
 ```
@@ -93,3 +99,57 @@ Delay between retries in milliseconds
 > `optional` **defaultExecutionMode**: [`ExecutionMode`](../type-aliases/ExecutionMode.md)
 
 Default execution mode for actions
+
+#### collectStats?
+
+> `optional` **collectStats**: `boolean`
+
+Whether to collect execution statistics for performance monitoring. Default: false
+
+#### useConcurrencyQueue?
+
+> `optional` **useConcurrencyQueue**: `boolean`
+
+Use concurrency queue for thread-safe operations. Default: false
+
+#### errorHandler?
+
+> `optional` **errorHandler**: (`error`, `context`) => `void`
+
+Global error handler for unhandled action errors
+
+##### Parameters
+
+###### error
+
+`Error`
+
+The error that occurred
+
+###### context
+
+`object`
+
+Error context information
+
+####### action
+
+`string`
+
+The action name where the error occurred
+
+####### handlerId?
+
+`string`
+
+The handler ID where the error occurred
+
+####### payload
+
+`any`
+
+The action payload
+
+##### Returns
+
+`void`

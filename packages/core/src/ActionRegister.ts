@@ -761,23 +761,33 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       return handlers;
     }
 
+    // 🆕 Use filter method directly (already returns new array)
     return handlers.filter(registration => {
       const config = registration.config;
 
-      // Only support handler ID filtering
-      if (filterOptions.handlerIds && filterOptions.handlerIds.length > 0) {
-        if (!filterOptions.handlerIds.includes(config.id)) {
+      // 🆕 Short-circuit evaluation for performance
+      if (filterOptions.handlerIds?.length && 
+          !filterOptions.handlerIds.includes(config.id)) {
+        return false;
+      }
+
+      if (filterOptions.excludeHandlerIds?.length && 
+          filterOptions.excludeHandlerIds.includes(config.id)) {
+        return false;
+      }
+
+      // 🆕 Enhanced priority filtering
+      if (filterOptions.priority) {
+        if (filterOptions.priority.min !== undefined && 
+            config.priority < filterOptions.priority.min) {
+          return false;
+        }
+        if (filterOptions.priority.max !== undefined && 
+            config.priority > filterOptions.priority.max) {
           return false;
         }
       }
 
-      if (filterOptions.excludeHandlerIds && filterOptions.excludeHandlerIds.length > 0) {
-        if (filterOptions.excludeHandlerIds.includes(config.id)) {
-          return false;
-        }
-      }
-
-      // Custom filter
       if (filterOptions.custom && !filterOptions.custom(config)) {
         return false;
       }

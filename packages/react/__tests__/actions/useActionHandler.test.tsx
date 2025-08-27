@@ -148,13 +148,16 @@ describe('useActionHandler', () => {
     expect(handlerExecuted).toBe(false);
   });
 
-  it('should handle handler errors gracefully', async () => {
+  it('should handle handler errors gracefully (non-blocking)', async () => {
+    let handlerExecuted = false;
     let errorThrown = false;
 
     const TestComponent = () => {
       const dispatch = useActionDispatch();
       
+      // Non-blocking handlers (default) do not throw errors to caller
       useActionHandler('fetchData', useCallback(async (payload) => {
+        handlerExecuted = true;
         throw new Error('Handler error');
       }, []));
       
@@ -165,7 +168,7 @@ describe('useActionHandler', () => {
       wrapper: createWrapper()
     });
 
-    // Should not throw error at call site
+    // Non-blocking handlers should not throw errors to dispatch caller
     await act(async () => {
       try {
         await result.current.dispatch('fetchData', { id: 'test' });
@@ -174,8 +177,46 @@ describe('useActionHandler', () => {
       }
     });
 
-    // Error should be thrown by ActionRegister when handler fails
+    // Handler should have executed, but error should not be thrown to caller
+    expect(handlerExecuted).toBe(true);
+    expect(errorThrown).toBe(false);
+  });
+
+  it('should propagate errors from blocking handlers', async () => {
+    let handlerExecuted = false;
+    let errorThrown = false;
+    let caughtError: Error | null = null;
+
+    const TestComponent = () => {
+      const dispatch = useActionDispatch();
+      
+      // Blocking handlers throw errors to caller
+      useActionHandler('fetchData', useCallback(async (payload) => {
+        handlerExecuted = true;
+        throw new Error('Blocking handler error');
+      }, []), { blocking: true });
+      
+      return { dispatch };
+    };
+
+    const { result } = renderHook(() => TestComponent(), {
+      wrapper: createWrapper()
+    });
+
+    // Blocking handlers should throw errors to dispatch caller
+    await act(async () => {
+      try {
+        await result.current.dispatch('fetchData', { id: 'test' });
+      } catch (error) {
+        errorThrown = true;
+        caughtError = error as Error;
+      }
+    });
+
+    // Handler should have executed, and error should be thrown to caller
+    expect(handlerExecuted).toBe(true);
     expect(errorThrown).toBe(true);
+    expect(caughtError?.message).toBe('Blocking handler error');
   });
 
   it('should support conditional handler registration', async () => {
