@@ -10,6 +10,14 @@ export * from './hooks';
 
 export * from './refs';
 
+// Error Handling System
+export * from './utils/error-boundary';
+
+// DevTools System  
+export * from './devtools';
+
+// Testing Utilities
+export * from './testing';
 
 export type {
 	ActionPayloadMap,

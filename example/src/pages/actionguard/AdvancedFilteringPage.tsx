@@ -135,89 +135,103 @@ function FixedExecutionFlowDisplay({ results }: { results: Record<string, Execut
   const allResults = Object.values(results).filter(r => r !== null);
   const latestResult = allResults[allResults.length - 1];
   
+  // Debug logging
+  console.log('🔍 FixedExecutionFlowDisplay Debug:', {
+    resultsKeys: Object.keys(results),
+    allResults: allResults.length,
+    latestResult: latestResult,
+    latestResultKeys: latestResult?.results ? Object.keys(latestResult.results) : 'none'
+  });
+  
   // Extract executed handler IDs from all results (improved logic)
   const executedHandlerIds = new Set<string>();
   
   allResults.forEach(result => {
     if (result?.results) {
-      // Direct handler ID matching - this is the most reliable method
+      console.log('🔍 Processing result:', result);
+      
+      // Method 1: Direct handler ID from result keys
       Object.keys(result.results).forEach(key => {
         const handler = handlers.find(h => h.id === key);
         if (handler) {
+          console.log('✅ Direct match found:', handler.id);
           executedHandlerIds.add(handler.id);
         }
       });
       
-      // Alternative matching for different result key formats
-      handlers.forEach(handler => {
-        const resultKeys = Object.keys(result.results || {});
+      // Method 2: Check handler results for handlerId field or result patterns
+      Object.entries(result.results).forEach(([key, resultValue]) => {
+        console.log(`🔍 Checking result key: ${key}`, resultValue);
         
-        // Check various possible key formats
-        const possibleKeys = [
-          handler.id,                           // 'security-check'
-          handler.id.replace('-', ''),          // 'securitycheck'
-          handler.label.split(' ')[1]?.toLowerCase(),  // 'security'
-          handler.label.split(' ')[0]          // '🔐'
-        ].filter(Boolean);
-        
-        if (possibleKeys.some(key => resultKeys.includes(key))) {
-          executedHandlerIds.add(handler.id);
-        }
-        
-        // Check if any result contains expected handler response patterns
-        Object.values(result.results || {}).forEach(resultValue => {
-          if (typeof resultValue === 'object' && resultValue !== null) {
-            const resultObj = resultValue as Record<string, any>;
-            
-            // Pattern matching for specific handlers
-            if (handler.id === 'security-check' && resultObj.security) {
-              executedHandlerIds.add('security-check');
-            } else if (handler.id === 'analytics' && resultObj.analytics) {
-              executedHandlerIds.add('analytics');
-            } else if (handler.id === 'database-save' && resultObj.database) {
-              executedHandlerIds.add('database-save');
-            } else if (handler.id === 'notification' && resultObj.notification) {
-              executedHandlerIds.add('notification');
-            } else if (handler.id === 'audit-log' && resultObj.audit) {
-              executedHandlerIds.add('audit-log');
+        if (typeof resultValue === 'object' && resultValue !== null) {
+          const resultObj = resultValue as Record<string, any>;
+          
+          // Check for handlerId field in result
+          if (resultObj.handlerId) {
+            const handler = handlers.find(h => h.id === resultObj.handlerId);
+            if (handler) {
+              console.log('✅ HandlerId match found:', resultObj.handlerId);
+              executedHandlerIds.add(handler.id);
             }
           }
-        });
+          
+          // Check for specific response patterns
+          handlers.forEach(handler => {
+            const patterns = {
+              'security-check': resultObj.security,
+              'analytics': resultObj.analytics, 
+              'database-save': resultObj.database,
+              'notification': resultObj.notification,
+              'audit-log': resultObj.audit
+            };
+            
+            if (patterns[handler.id as keyof typeof patterns]) {
+              console.log('✅ Pattern match found:', handler.id);
+              executedHandlerIds.add(handler.id);
+            }
+          });
+        }
+        
+        // Method 3: Check if result key matches handler ID directly
+        const handler = handlers.find(h => h.id === key);
+        if (handler) {
+          console.log('✅ Key match found:', handler.id);
+          executedHandlerIds.add(handler.id);
+        }
       });
     }
   });
+  
+  console.log('🎯 Final executed handler IDs:', Array.from(executedHandlerIds));
 
   return (
     <div className="sticky top-4 z-10 bg-white rounded-xl border border-gray-300 shadow-lg p-6 mb-6">
       <div className="mb-6">
         {/* Title */}
-        <div className="text-center mb-4">
-          <h3 className="text-xl font-bold text-gray-900 flex items-center justify-center">
-            <span className="mr-3 text-2xl">🎭</span>
-            Handler Execution Flow
-            <span className="ml-3 text-2xl">🎭</span>
+        <div className="text-center mb-3">
+          <h3 className="text-lg font-bold text-gray-900 flex items-center justify-center">
+            <span className="mr-2">🔄</span>
+            Handler Flow
+            <span className="ml-2">🔄</span>
           </h3>
-          <p className="text-sm text-gray-600 mt-1">
-            Real-time visualization of handler execution states
-          </p>
         </div>
         
         {/* Statistics */}
         {Object.keys(results).length > 0 && (
-          <div className="flex items-center justify-center space-x-4 mb-4">
-            <div className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold border border-green-300">
-              ✅ {executedHandlerIds.size} Executed
+          <div className="flex items-center justify-center space-x-2 mb-3 text-xs">
+            <div className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold">
+              ✅ {executedHandlerIds.size}
             </div>
-            <div className="bg-gray-100 text-gray-600 px-4 py-2 rounded-full text-sm font-semibold border border-gray-300">
-              ⏸️ {handlers.length - executedHandlerIds.size} Skipped
+            <div className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-semibold">
+              ⏸️ {handlers.length - executedHandlerIds.size}
             </div>
             {latestResult?.duration && (
-              <div className="bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-semibold border border-blue-300">
-                ⚡ {latestResult.duration}ms Total
+              <div className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-semibold">
+                ⚡ {latestResult.duration}ms
               </div>
             )}
-            <div className="bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-semibold border border-purple-300">
-              📊 {Object.keys(results).length} Demos Run
+            <div className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-semibold">
+              📊 {Object.keys(results).length}
             </div>
           </div>
         )}
@@ -231,68 +245,63 @@ function FixedExecutionFlowDisplay({ results }: { results: Record<string, Execut
           return (
             <Fragment key={handler.id}>
               <div
-                className={`relative flex flex-col items-center p-5 rounded-2xl border-3 transition-all duration-500 min-w-[110px] max-w-[110px] ${
+                className={`relative flex flex-col items-center p-3 rounded-xl border-2 transition-all duration-500 min-w-[80px] max-w-[80px] ${
                   isExecuted 
                     ? 'bg-gradient-to-b from-green-50 to-green-100 border-green-500 shadow-xl transform scale-110 ring-2 ring-green-300' 
                     : 'bg-gradient-to-b from-gray-50 to-gray-100 border-gray-300 opacity-60 hover:opacity-80'
                 }`}
               >
                 {/* Handler Icon */}
-                <div className={`text-4xl mb-3 transition-all duration-500 ${isExecuted ? 'animate-bounce scale-125 drop-shadow-lg' : 'scale-90 grayscale'}`}>
+                <div className={`text-2xl mb-2 transition-all duration-500 ${isExecuted ? 'animate-bounce scale-110 drop-shadow-lg' : 'scale-90 grayscale'}`}>
                   {handler.label.split(' ')[0]}
                 </div>
                 
                 {/* Handler Name */}
-                <div className={`text-sm font-semibold text-center ${
+                <div className={`text-xs font-semibold text-center ${
                   isExecuted ? 'text-green-800' : 'text-gray-600'
                 }`}>
                   {handler.label.split(' ')[1]}
                 </div>
                 
                 {/* Priority */}
-                <div className={`text-xs mt-2 px-2 py-1 rounded-full font-mono font-semibold ${isExecuted ? 'bg-green-200 text-green-800 border border-green-400' : 'bg-gray-200 text-gray-600'}`}>
+                <div className={`text-xs mt-1 px-1.5 py-0.5 rounded font-mono font-semibold ${isExecuted ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-600'}`}>
                   P{handler.priority}
                 </div>
 
                 {/* Blocking Indicator */}
                 {isBlocking && (
-                  <div className="absolute -top-3 -right-3 bg-yellow-400 text-yellow-900 text-xs px-2 py-1 rounded-full font-bold shadow-lg border border-yellow-500 animate-pulse">
-                    ⚡BLOCK
+                  <div className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 text-xs px-1 py-0.5 rounded font-bold shadow">
+                    ⚡
                   </div>
                 )}
 
                 {/* Execution Success Indicator */}
                 {isExecuted && (
-                  <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg animate-pulse border border-green-400">
-                    ✓ EXECUTED
+                  <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-xs px-2 py-0.5 rounded font-bold shadow animate-pulse">
+                    ✓
                   </div>
                 )}
 
                 {/* Handler Status */}
-                <div className="absolute top-2 left-2 w-3 h-3 rounded-full ${isExecuted ? 'bg-green-500 animate-ping' : 'bg-gray-400'}"></div>
+                <div className="absolute top-1 left-1 w-2 h-2 rounded-full ${isExecuted ? 'bg-green-500 animate-ping' : 'bg-gray-400'}"></div>
                 
-                <div className={`mt-4 text-xs font-semibold text-center ${
+                <div className={`mt-2 text-xs font-semibold text-center ${
                   isExecuted ? 'text-green-700' : 'text-gray-500'
                 }`}>
-                  {isExecuted ? '✅ DONE' : '⏳ WAIT'}
+                  {isExecuted ? '✅' : '⏳'}
                 </div>
               </div>
               
               {/* Connection Line */}
               {index < handlers.length - 1 && (
-                <div className="flex flex-col items-center justify-center mx-2">
-                  <div className={`text-3xl transition-all duration-500 ${
+                <div className="flex items-center justify-center mx-1">
+                  <div className={`text-xl transition-all duration-500 ${
                     isExecuted 
-                      ? 'text-green-500 animate-pulse transform scale-125 drop-shadow-lg' 
+                      ? 'text-green-500 animate-pulse' 
                       : 'text-gray-300'
                   }`}>
                     →
                   </div>
-                  <div className={`w-16 h-1 mt-1 rounded-full transition-all duration-500 ${
-                    isExecuted 
-                      ? 'bg-green-400 shadow-lg' 
-                      : 'bg-gray-300'
-                  }`}></div>
                 </div>
               )}
             </Fragment>
