@@ -33,30 +33,24 @@ import { OperationQueue } from './concurrency/OperationQueue.js';
  * @public
  */
 export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
-  private pipelines = new Map<keyof T, HandlerRegistration<any, any>[]>();
+  private pipelines = new Map<keyof T, Array<HandlerRegistration<any, any>>>();
   private readonly actionGuard: ActionGuard;
   private executionMode: ExecutionMode = 'sequential';
   private actionExecutionModes = new Map<keyof T, ExecutionMode>();
   public readonly name: string;
   private readonly registryConfig: ActionRegisterConfig['registry'];
-  private executionStats = new Map<keyof T, {
-    totalExecutions: number;
-    totalDuration: number;
-    successCount: number;
-    errorCount: number;
-  }>();
 
   // 🆕 Performance optimizations
   private readonly isDebugMode: boolean;
-  private actionCounters = new Map<keyof T, number>();
+  private readonly maxHandlersPerAction: number;
 
   // 🆕 동시성 문제 해결을 위한 큐 시스템 (conditional)
-  private registrationQueue?: OperationQueue;
   private dispatchQueue?: OperationQueue;
 
   constructor(config: ActionRegisterConfig = {}) {
     this.name = config.name || 'ActionRegister';
     this.registryConfig = config.registry;
+    this.maxHandlersPerAction = config.registry?.maxHandlersPerAction ?? 1000;
     
     // 🆕 Environment variable check cached (performance optimization)
     this.isDebugMode = Boolean(
@@ -69,7 +63,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     
     // 🆕 Conditional queue system initialization
     if (config.registry?.useConcurrencyQueue !== false) {
-      this.registrationQueue = new OperationQueue(`${this.name}-Registration`);
       this.dispatchQueue = new OperationQueue(`${this.name}-Dispatch`);
     }
     
@@ -79,7 +72,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     
     this.log('ActionRegister initialized', {
       defaultExecutionMode: this.executionMode,
-      maxHandlers: this.registryConfig?.maxHandlers,
       autoCleanup: this.registryConfig?.autoCleanup !== false,
       concurrencyQueue: Boolean(this.dispatchQueue),
       debugMode: this.isDebugMode
@@ -112,7 +104,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     // 🆕 Optimized handler ID generation
     const handlerId = config.id || this.generateHandlerId(action);
     
-    // 🆕 즉시 등록 수행하되 정렬까지 한 번에 처리
+    // 🆕 Direct synchronous registration
     const unregisterFn = this._performRegistrationSync(action, handler, config, handlerId);
     
     return unregisterFn;
@@ -121,7 +113,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   /**
    * 🆕 Unified logging method with cached debug mode check
    */
-  private log(message: string, data?: any, level: 'log' | 'warn' | 'error' = 'log') {
+  private log(message: string, data?: unknown, level: 'log' | 'warn' | 'error' = 'log') {
     if (this.isDebugMode) {
       const timestamp = new Date().toISOString();
       console[level](`🎯 [${timestamp}] [${this.name}] ${message}`, data || '');
@@ -129,17 +121,16 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   }
 
   /**
-   * 🆕 Optimized handler ID generation with per-action counters
+   * 🆕 Generate unique handler ID using crypto
    */
   private generateHandlerId<K extends keyof T>(action: K): string {
-    const count = (this.actionCounters.get(action) || 0) + 1;
-    this.actionCounters.set(action, count);
-    // Remove Math.random() for performance - use counter only
-    return `${String(action)}_h${count}`;
+    // Use crypto.randomUUID() for guaranteed uniqueness
+    const uuid = crypto.randomUUID();
+    return `${String(action)}_${uuid.slice(0, 8)}`;
   }
 
   /**
-   * 🆕 동기적 등록 수행 (개선된 버전)
+   * 🆕 Perform synchronous handler registration
    */
   private _performRegistrationSync<K extends keyof T, R = void>(
     action: K,
@@ -168,6 +159,12 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     }
 
     const pipeline = this.pipelines.get(action)!;
+    
+    // Check handler limit
+    if (pipeline.length >= this.maxHandlersPerAction) {
+      console.warn(`Handler limit (${this.maxHandlersPerAction}) reached for action "${String(action)}". Registration ignored.`);
+      return () => {}; // No-op unregister
+    }
     const existingIndex = pipeline.findIndex(reg => reg.id === handlerId);
 
     // 🆕 Enhanced duplicate ID handling with replaceExisting support
@@ -203,13 +200,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       }
     }
     
-    // Check maximum handlers limit
-    if (this.registryConfig?.maxHandlers && pipeline.length >= this.registryConfig.maxHandlers) {
-      throw new Error(
-        `Maximum number of handlers (${this.registryConfig.maxHandlers}) reached for action '${String(action)}' in registry '${this.name}'`
-      );
-    }
-
     // Add handler to pipeline
     pipeline.push(registration);
     
@@ -276,65 +266,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     payload?: T[K],
     options?: import('./types.js').DispatchOptions
   ): Promise<void> {
-    // Enhanced debugging for object analysis
-    if (payload && typeof payload === 'object' && payload !== null && 
-        (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development')) {
-      const isEvent = payload instanceof Event;
-      const isElement = payload instanceof Element;
-      const hasPreventDefault = typeof (payload as any).preventDefault === 'function';
-      const hasStopPropagation = typeof (payload as any).stopPropagation === 'function';
-      const hasCurrentTarget = (payload as any).currentTarget !== undefined;
-      const hasTarget = (payload as any).target !== undefined;
-      const targetType = hasTarget ? typeof (payload as any).target : 'undefined';
-      const targetIsElement = hasTarget ? (payload as any).target instanceof Element : false;
-      
-      // Only log for debugging purposes when explicitly needed
-      // Most cases (Event objects, regular data) are perfectly fine
-      const hasUnexpectedStructure = false; // Currently no cases warrant warnings
-      
-      if (hasUnexpectedStructure) {
-        console.warn(
-          `[Context-Action] 🔍 Object analysis for action "${String(action)}" in registry "${this.name}":`,
-          {
-            isEvent,
-            isElement, 
-            hasPreventDefault,
-            hasStopPropagation,
-            hasCurrentTarget,
-            hasTarget,
-            targetType,
-            targetIsElement,
-            payloadType: typeof payload,
-            constructor: payload?.constructor?.name,
-            keys: Object.keys(payload),
-            payload: payload
-          }
-        );
-      }
-      
-      // Optional: Deep analysis for nested objects containing DOM elements
-      // This is informational only - nested DOM objects might cause cloning issues in specific contexts
-      if ((typeof process !== 'undefined' && process.env?.DEBUG_CONTEXT_ACTION) || 
-          (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development')) {
-        const nestedDOMProperties: string[] = [];
-        Object.keys(payload).forEach(key => {
-          const prop = (payload as any)[key];
-          if (prop instanceof Element || prop instanceof Event) {
-            nestedDOMProperties.push(`${key}: ${prop instanceof Element ? 'Element' : 'Event'}`);
-          }
-        });
-        
-        if (nestedDOMProperties.length > 0) {
-          console.debug(
-            `[Context-Action] 📋 Nested DOM objects in action "${String(action)}":`,
-            {
-              registry: this.name,
-              nestedDOMProperties,
-              note: 'This is informational - usually not a problem'
-            }
-          );
-        }
-      }
+    // Simple Event object detection for development
+    if (payload instanceof Event && process.env.NODE_ENV === 'development') {
+      console.warn(`Event object passed to action "${String(action)}"`, payload.type);
     }
     
     // Auto-abort: Create AbortController if enabled
@@ -472,9 +406,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       if (effectiveSignal && abortHandler) {
         effectiveSignal.removeEventListener('abort', abortHandler);
       }
-      // Track execution statistics
-      const duration = Date.now() - startTime;
-      this.updateExecutionStats(action, executionSuccess, duration);
     }
   }
 
@@ -721,8 +652,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     const endTime = Date.now();
     const executionSuccess = !executionError && !context.aborted;
     
-    // Track execution statistics
-    this.updateExecutionStats(action, executionSuccess, endTime - startTime);
 
     // Process results based on options
     const processedResult = this.processResults(context, options?.result);
@@ -754,9 +683,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   }
 
   private filterHandlers<K extends keyof T>(
-    handlers: HandlerRegistration<T[K], any>[],
+    handlers: HandlerRegistration<any, any>[],
     filterOptions?: import('./types.js').DispatchOptions['filter']
-  ): HandlerRegistration<T[K], any>[] {
+  ): HandlerRegistration<any, any>[] {
     if (!filterOptions) {
       return handlers;
     }
@@ -904,7 +833,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     this.cleanupOneTimeHandlers(context.action as K, context.handlers);
   }
 
-  private cleanupOneTimeHandlers<K extends keyof T>(action: K, executedHandlers: HandlerRegistration<T[K], any>[]): void {
+  private cleanupOneTimeHandlers<K extends keyof T>(action: K, executedHandlers: HandlerRegistration<any, any>[]): void {
     const pipeline = this.pipelines.get(action);
     if (!pipeline) return;
 
@@ -927,33 +856,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     });
   }
 
-  /**
-   * Update execution statistics for an action
-   * 
-   * @param action Action name
-   * @param success Whether execution was successful
-   * @param duration Execution duration in milliseconds
-   */
-  private updateExecutionStats<K extends keyof T>(action: K, success: boolean, duration: number): void {
-    if (!this.executionStats.has(action)) {
-      this.executionStats.set(action, {
-        totalExecutions: 0,
-        totalDuration: 0,
-        successCount: 0,
-        errorCount: 0,
-      });
-    }
-
-    const stats = this.executionStats.get(action)!;
-    stats.totalExecutions++;
-    stats.totalDuration += duration;
-    
-    if (success) {
-      stats.successCount++;
-    } else {
-      stats.errorCount++;
-    }
-  }
 
   /**
    * Get the number of registered handlers for an action
@@ -1087,14 +989,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         }))
       }));
 
-    // Get execution statistics if available
-    const stats = this.executionStats.get(action);
-    const executionStats = stats ? {
-      totalExecutions: stats.totalExecutions,
-      averageDuration: stats.totalExecutions > 0 ? stats.totalDuration / stats.totalExecutions : 0,
-      successRate: stats.totalExecutions > 0 ? (stats.successCount / stats.totalExecutions) * 100 : 0,
-      errorCount: stats.errorCount,
-    } : undefined;
+    // Execution statistics are no longer tracked
+    const executionStats = undefined;
 
     return {
       action,
@@ -1154,29 +1050,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     }
   }
 
-  /**
-   * Clear execution statistics for all actions
-   */
-  clearExecutionStats(): void {
-    this.executionStats.clear();
-    
-    if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
-      console.log(`🎯 Execution statistics cleared for registry: ${this.name}`);
-    }
-  }
-
-  /**
-   * Clear execution statistics for a specific action
-   * 
-   * @param action Action name
-   */
-  clearActionExecutionStats<K extends keyof T>(action: K): void {
-    this.executionStats.delete(action);
-    
-    if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
-      console.log(`🎯 Execution statistics cleared for action: ${String(action)}`);
-    }
-  }
 
   /**
    * Get registry configuration (for debugging and inspection)
@@ -1212,12 +1085,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     this.actionGuard.destroy();
     
     // Clean up queues if they exist
-    this.registrationQueue?.clear?.();
     this.dispatchQueue?.clear?.();
     
-    // Clean up statistics and counters
-    this.executionStats.clear();
-    this.actionCounters.clear();
     this.actionExecutionModes.clear();
     
     this.log('ActionRegister destroyed');

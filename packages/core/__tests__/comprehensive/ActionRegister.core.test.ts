@@ -369,7 +369,6 @@ describe('ActionRegister - Core Functionality', () => {
         name: 'DebugRegister',
         registry: {
           debug: true,
-          maxHandlers: 5,
           autoCleanup: true,
           defaultExecutionMode: 'parallel'
         }

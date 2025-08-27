@@ -344,7 +344,7 @@ export interface PipelineContext<T = any, R = void> {
  * Configuration options for ActionRegister initialization
  * 
  * Provides comprehensive configuration options for customizing ActionRegister
- * behavior including debugging, handler limits, execution modes, and cleanup policies.
+ * behavior including debugging, execution modes, and cleanup policies.
  * 
  * @example Basic Configuration
  * ```typescript
@@ -352,7 +352,6 @@ export interface PipelineContext<T = any, R = void> {
  *   name: 'UserActionRegister',
  *   registry: {
  *     debug: true,
- *     maxHandlers: 20,
  *     defaultExecutionMode: 'sequential'
  *   }
  * })
@@ -365,7 +364,6 @@ export interface PipelineContext<T = any, R = void> {
  *   registry: {
  *     debug: process.env.NODE_ENV === 'development',
  *     autoCleanup: true,
- *     maxHandlers: 50,
  *     defaultExecutionMode: 'parallel'
  *   }
  * })
@@ -385,20 +383,17 @@ export interface ActionRegisterConfig {
     /** Auto-cleanup configuration for one-time handlers */
     autoCleanup?: boolean;
     
-    /** Maximum number of handlers per action (prevents memory leaks) */
-    maxHandlers?: number;
-    
     /** Default execution mode for actions */
     defaultExecutionMode?: ExecutionMode;
-    
-    /** Statistics collection enabled. Default: true */
-    collectStats?: boolean;
     
     /** Use concurrency queue for thread safety. Default: true */
     useConcurrencyQueue?: boolean;
     
+    /** Maximum number of handlers per action. Default: 1000 */
+    maxHandlersPerAction?: number;
+    
     /** Global error handler for unhandled errors */
-    errorHandler?: (error: Error, context: any) => void;
+    errorHandler?: (error: Error, context: unknown) => void;
   };
 }
 
@@ -655,6 +650,18 @@ export interface ExecutionResult<R = void> {
 }
 
 /**
+ * Handler error information for unified error handling
+ * 
+ * @public
+ */
+export interface HandlerError {
+  handlerId: string;
+  error: Error;
+  timestamp: number;
+  severity: 'blocking' | 'non-blocking';
+}
+
+/**
  * Function type for unregistering action handlers
  * 
  * Returned by the register method to allow removal of specific handlers.
@@ -853,20 +860,8 @@ export interface ActionHandlerStats<T extends ActionPayloadMap> {
     }>;
   }>;
   
-  /** Execution statistics */
-  executionStats?: {
-    /** Total number of executions */
-    totalExecutions: number;
-    
-    /** Average execution duration in milliseconds */
-    averageDuration: number;
-    
-    /** Success rate percentage */
-    successRate: number;
-    
-    /** Error count */
-    errorCount: number;
-  };
+  /** Execution statistics - removed in favor of simplified architecture */
+  executionStats?: undefined;
 }
 
 
