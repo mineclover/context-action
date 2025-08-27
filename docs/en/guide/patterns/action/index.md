@@ -34,6 +34,8 @@ All examples in Action pattern documents use the standardized setup patterns, pa
   - *Showcases multiple setup patterns for complex architectures*
 - **[Dispatch Patterns](./dispatch-patterns.md)** - Execution modes, filtering, and performance
   - *Uses AppActions extended interface pattern from setup*
+- **[Advanced Filtering](./advanced-filtering.md)** - Sophisticated handler filtering strategies
+  - *Handler ID, priority ranges, custom logic, and combined filtering patterns*
 - **[Dispatch with Result](./dispatch-with-result.md)** - Result collection and processing
   - *Built on setup patterns with result handling extensions*
 - **[Register Patterns](./register-patterns.md)** - Advanced handler registration and memory management
@@ -97,6 +99,7 @@ function InteractiveComponent() {
 |---------|------------------|----------|
 | **Basic Usage** | EventActions + Single Domain | Event systems, analytics, API calls |
 | **Advanced Patterns** | Multi-Domain Setup | Complex applications, domain separation |
+| **Advanced Filtering** | ProcessActions + Handler Registry | Conditional execution, workflow control, performance optimization |
 | **Register Delegation** | Multi-Context Setup | Large apps, team separation, modular architecture |
 
 ## When to Use Action Patterns

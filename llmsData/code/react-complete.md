@@ -1,7 +1,7 @@
 # Context-Action React Package - Complete Code
 
 Total Files: 34
-Total Lines: 4037
+Total Lines: 3882
 
 ## Type Definitions
 
@@ -144,6 +144,7 @@ export interface IStore<T = any> {
   setValue: (value: T) => void;
   getValue: () => T;
   getListenerCount?: () => number;
+  dispose?: () => void;
 }
 export interface IStoreRegistry {
   readonly name: string;
@@ -335,7 +336,7 @@ export function createActionContext<T extends {}>(
         }
       };
       return register.dispatchWithResult<K, R>(action, payload, dispatchOptions);
-    }, []); 
+    }, [context.actionRegisterRef]);
     const abortAll = useCallback(() => {
       activeControllersRef.current.forEach(controller => {
         if (!controller.signal.aborted) {
@@ -596,7 +597,20 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
           try {
             callback(target);
           } catch (error) {
-            console.error('Error in mount callback:', error);
+            import('../stores/utils/error-handling')
+              .then(({ ErrorHandlers }) => {
+                ErrorHandlers.ref(
+                  'Error in mount callback',
+                  { 
+                    refName: String(refName),
+                    targetType: typeof target
+                  },
+                  error instanceof Error ? error : undefined
+                );
+              })
+              .catch(() => {
+                console.error('Error in mount callback:', error);
+              });
           }
         });
         refState.listeners.forEach(listener => listener());
@@ -943,13 +957,12 @@ import type {
   RefTarget
 } from './types';
 export function customRef<T extends RefTarget>(
-  config: Partial<Omit<RefInitConfig<T>, 'objectType'>> & { 
+  config: Partial<RefInitConfig<T>> & { 
     name: string;
     cleanup?: (target: T) => void | Promise<void>;
   }
 ): RefInitConfig<T> {
   return {
-    objectType: 'custom',
     autoCleanup: true,
     ...config
   } as RefInitConfig<T>;
@@ -1279,7 +1292,20 @@ export class EventBus implements IEventBus {
         try {
           handler(data);
         } catch (error) {
-          console.error(`Error in event handler for "${event}":`, error);
+          import('../utils/error-handling')
+            .then(({ ErrorHandlers }) => {
+              ErrorHandlers.store(
+                `Error in event handler for "${event}"`,
+                { 
+                  event,
+                  handlerCount: handlers.size
+                },
+                error instanceof Error ? error : undefined
+              );
+            })
+            .catch(() => {
+              console.error(`Error in event handler for "${event}":`, error);
+            });
         }
       });
     }
@@ -1324,9 +1350,34 @@ export class EventBus implements IEventBus {
     return new ScopedEventBus(this, prefix);
   }
   private _addToHistory(event: string, data: any): void {
+    let safeData = data;
+    if (data && typeof data === 'object') {
+      if (
+        (typeof Element !== 'undefined' && data instanceof Element) ||
+        (typeof Node !== 'undefined' && data instanceof Node) ||
+        data?.nodeType !== undefined ||
+        data?._reactInternalFiber !== undefined ||
+        data?._owner !== undefined ||
+        data?.$$typeof !== undefined
+      ) {
+        safeData = {
+          __eventBusDataType: 'DOMElement',
+          tagName: data.tagName || data.constructor?.name,
+          id: data.id,
+          className: data.className,
+          timestamp: Date.now()
+        };
+      } else if (data.constructor && data.constructor.name !== 'Object' && data.constructor.name !== 'Array') {
+        safeData = {
+          __eventBusDataType: data.constructor.name,
+          summary: typeof data.toString === 'function' ? data.toString().slice(0, 100) : '[Object]',
+          timestamp: Date.now()
+        };
+      }
+    }
     this.eventHistory.push({
       event,
-      data,
+      data: safeData,
       timestamp: Date.now()
     });
     if (this.eventHistory.length > this.maxHistorySize) {
@@ -1380,7 +1431,7 @@ export type {
 
 ```typescript
 import type { IStore, Listener, Snapshot, Unsubscribe } from './types';
-import { safeGet, safeSet, getGlobalImmutabilityOptions, performantSafeGet } from '../utils/immutable';
+import { deepClone } from '../utils/immutable';
 import { 
   compareValues, 
   fastCompare, 
@@ -1397,7 +1448,7 @@ export class Store<T = any> implements IStore<T> {
   private notificationMode: 'batched' | 'immediate' = 'batched';
   private pendingNotification = false;
   private batchedUpdates = new Set<() => void>();
-  private batchTimeoutId: number | null = null;
+  private batchTimeoutId: ReturnType<typeof requestAnimationFrame> | null = null;
   private readonly BATCH_DELAY_MS = 16; 
   public readonly name: string;
   private customComparator?: (oldValue: T, newValue: T) => boolean;
@@ -1417,9 +1468,7 @@ export class Store<T = any> implements IStore<T> {
     return this._snapshot;
   };
   getValue(): T {
-    const options = getGlobalImmutabilityOptions();
-    const clonedValue = performantSafeGet(this._value, options.enableCloning);
-    return clonedValue;
+    return deepClone(this._value);
   }
   setValue(value: T): void {
     if (TypeGuards.isObject(value)) {
@@ -1427,24 +1476,22 @@ export class Store<T = any> implements IStore<T> {
         const hasEventTarget = TypeGuards.hasTargetProperty(value);
         const hasPreventDefault = TypeGuards.isEventLike(value);
         const isEvent = TypeGuards.isDOMEvent(value);
-        console.error(
-          '[Context-Action] ⚠️ Event object detected in Store.setValue!',
-          '\nStore name:', this.name,
-          '\nValue type:', typeof value,
-          '\nConstructor:', value?.constructor?.name,
-          '\nIs Event:', isEvent,
-          '\nHas target property:', hasEventTarget,
-          '\nHas preventDefault:', hasPreventDefault,
-          '\nStack trace:', new Error().stack?.split('\n').slice(1, 10).join('\n')
+        ErrorHandlers.store(
+          'Event object detected in Store.setValue - this may cause memory leaks',
+          {
+            storeName: this.name,
+            valueType: typeof value,
+            constructorName: value?.constructor?.name,
+            isEvent,
+            hasTargetProperty: hasEventTarget,
+            hasPreventDefault,
+            problematicProperties: TypeGuards.findProblematicProperties(value)
+          }
         );
-        const problematicKeys = TypeGuards.findProblematicProperties(value);
-        if (problematicKeys.length > 0) {
-          console.error('[Context-Action] Event object properties:', problematicKeys);
-        }
+        return;
       }
     }
-    const options = getGlobalImmutabilityOptions();
-    const safeValue = safeSet(value, options.enableCloning);
+    const safeValue = deepClone(value);
     const hasChanged = this._compareValues(this._value, safeValue);
     if (hasChanged) {
       this._value = safeValue;
@@ -1459,24 +1506,26 @@ export class Store<T = any> implements IStore<T> {
     }
     try {
       this.isUpdating = true;
-      const options = getGlobalImmutabilityOptions();
-      const safeCurrentValue = performantSafeGet(this._value, options.enableCloning);
+      const safeCurrentValue = deepClone(this._value);
       const updatedValue = updater(safeCurrentValue);
       if (TypeGuards.isObject(updatedValue)) {
         if (!TypeGuards.isRefState(updatedValue) && TypeGuards.isSuspiciousEventObject(updatedValue)) {
           const hasEventTarget = TypeGuards.hasTargetProperty(updatedValue);
           const hasPreventDefault = TypeGuards.isEventLike(updatedValue);
           const isEvent = TypeGuards.isDOMEvent(updatedValue);
-          console.error(
-            '[Context-Action] ⚠️ Event object detected in Store.update result!',
-            '\nStore name:', this.name,
-            '\nUpdated value type:', typeof updatedValue,
-            '\nConstructor:', updatedValue?.constructor?.name,
-            '\nIs Event:', isEvent,
-            '\nHas target property:', hasEventTarget,
-            '\nHas preventDefault:', hasPreventDefault,
-            '\nStack trace:', new Error().stack?.split('\n').slice(1, 10).join('\n')
+          ErrorHandlers.store(
+            'Event object detected in Store.update result - this may cause memory leaks',
+            {
+              storeName: this.name,
+              updatedValueType: typeof updatedValue,
+              constructorName: updatedValue?.constructor?.name,
+              isEvent,
+              hasTargetProperty: hasEventTarget,
+              hasPreventDefault,
+              problematicProperties: TypeGuards.findProblematicProperties(updatedValue)
+            }
           );
+          return;
         }
       }
       this.setValue(updatedValue);
@@ -1546,8 +1595,7 @@ export class Store<T = any> implements IStore<T> {
     return result;
   }
   protected _createSnapshot(): Snapshot<T> {
-    const options = getGlobalImmutabilityOptions();
-    const clonedValue = safeGet(this._value, options.enableCloning);
+    const clonedValue = deepClone(this._value);
     return {
       value: clonedValue,
       name: this.name,
@@ -1690,8 +1738,8 @@ export class StoreRegistry implements IStoreRegistry {
   unregister(name: string): boolean {
     const store = this.stores.get(name);
     if (store) {
-      if ('destroy' in store && typeof store.destroy === 'function') {
-        store.destroy();
+      if ('dispose' in store && typeof store.dispose === 'function') {
+        store.dispose();
       }
       this.stores.delete(name);
       this._updateSnapshot();
@@ -1732,8 +1780,8 @@ export class StoreRegistry implements IStoreRegistry {
   }
   clear(): void {
     this.stores.forEach((store) => {
-      if ('destroy' in store && typeof store.destroy === 'function') {
-        store.destroy();
+      if ('dispose' in store && typeof store.dispose === 'function') {
+        store.dispose();
       }
     });
     this.stores.clear();
@@ -2249,7 +2297,7 @@ export function usePersistedStore<T>(
 ### stores/hooks/useStoreSelector.ts
 
 ```typescript
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo, useId } from 'react';
 import type { Store } from '../core/Store';
 function defaultEqualityFn<T>(a: T, b: T): boolean {
   return Object.is(a, b);
@@ -2289,6 +2337,7 @@ export function useStoreSelector<T, R>(
   selector: (value: T) => R,
   equalityFn: (a: R, b: R) => boolean = defaultEqualityFn
 ): R {
+  const selectorId = useId();
   const selectorRef = useRef(selector);
   const equalityFnRef = useRef(equalityFn);
   const selectorWarningShownRef = useRef(false);
@@ -2332,15 +2381,16 @@ export function useStoreSelector<T, R>(
       try {
         const newSelectedValue = selectorRef.current(newStoreValue);
         if (!equalityFnRef.current(selectedValueRef.current, newSelectedValue)) {
-          setSelectedValue(newSelectedValue);
-          selectedValueRef.current = newSelectedValue;
           if (process.env.NODE_ENV === 'development') {
             console.debug('useStoreSelector: Value updated', {
+              selectorId: selectorId,
               storeName: store.name,
               previousValue: selectedValueRef.current,
               newValue: newSelectedValue
             });
           }
+          setSelectedValue(newSelectedValue);
+          selectedValueRef.current = newSelectedValue;
         }
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {
@@ -2969,7 +3019,10 @@ export function deepEquals<T>(
       return a === b;
     }
     if (visited) {
-      if (visited.has(a) || visited.has(b)) {
+      if (visited.has(a)) {
+        return Object.is(a, b);
+      }
+      if (visited.has(b)) {
         return Object.is(a, b);
       }
       visited.add(a);
@@ -3421,51 +3474,37 @@ export function getFilteredErrors(
 ### stores/utils/immutable.ts
 
 ```typescript
+import { produce, isDraft, original, current } from 'immer';
 const logger = {
   warn: (message: string, ...args: any[]) => console.warn(`[Context-Action] ${message}`, ...args),
-  trace: (message: string, ...args: any[]) => console.debug(`[Context-Action] ${message}`, ...args),
+  trace: (message: string, ...args: any[]) => console.trace(`[Context-Action] ${message}`, ...args),
   error: (message: string, ...args: any[]) => console.error(`[Context-Action] ${message}`, ...args),
   debug: (message: string, ...args: any[]) => console.debug(`[Context-Action] ${message}`, ...args)
 };
-function hasUnclonableContent(value: unknown, depth: number = 3): boolean {
-  if (depth <= 0) return false;
-  if (Array.isArray(value)) {
-    return value.some(item => isUnclonable(item) || hasUnclonableContent(item, depth - 1));
-  }
-  if (value && typeof value === 'object') {
-    if (isUnclonable(value)) return true;
-    try {
-      const keys = Object.keys(value).slice(0, 10);
-      return keys.some(key => {
-        const prop = (value as Record<string, unknown>)[key];
-        return isUnclonable(prop) || hasUnclonableContent(prop, depth - 1);
-      });
-    } catch {
-      return true;
-    }
-  }
-  return false;
+export interface ImmutabilityOptions {
+  enableCloning?: boolean;      
+  enableVerification?: boolean; 
+  warnOnFallback?: boolean;     
 }
-function isDOMElement(value: unknown): boolean {
+let globalImmutabilityOptions: ImmutabilityOptions = {
+  enableCloning: true,
+  enableVerification: process.env.NODE_ENV === 'development',
+  warnOnFallback: true
+};
+function isNonCloneableType(value: unknown): boolean {
   if (!value || typeof value !== 'object') return false;
-  return (
-    (typeof Element !== 'undefined' && value instanceof Element) ||
-    (typeof Node !== 'undefined' && value instanceof Node) ||
-    (typeof HTMLElement !== 'undefined' && value instanceof HTMLElement) ||
-    (typeof (value as Record<string, unknown>).nodeType === 'number' && ((value as Record<string, unknown>).nodeType as number) > 0) ||
-    (typeof (value as Record<string, unknown>).nodeName === 'string') ||
-    (typeof (value as Record<string, unknown>).tagName === 'string') ||
-    (value as Record<string, unknown>)._owner !== undefined ||  
-    (value as Record<string, unknown>).stateNode !== undefined  
-  );
-}
-function isUnclonable(value: unknown): boolean {
+  if (typeof Element !== 'undefined' && value instanceof Element) return true;
+  if (typeof Node !== 'undefined' && value instanceof Node) return true;
+  if (typeof HTMLElement !== 'undefined' && value instanceof HTMLElement) return true;
+  const record = value as Record<string, unknown>;
+  if (typeof record.nodeType === 'number' && record.nodeType > 0) return true;
+  if (typeof record.nodeName === 'string') return true;
+  if (typeof record.tagName === 'string') return true;
+  if (record._owner !== undefined || record.stateNode !== undefined) return true;
   if (typeof value === 'function') return true;
   if (value instanceof Promise) return true;
-  if (value instanceof WeakMap) return true;
-  if (value instanceof WeakSet) return true;
-  if (typeof Event !== 'undefined' && value instanceof Event) return true;
-  if (isDOMElement(value)) return true;
+  if (typeof record.then === 'function' && typeof record.catch === 'function') return true;
+  if (value instanceof WeakMap || value instanceof WeakSet) return true;
   return false;
 }
 export function deepClone<T>(value: T): T {
@@ -3479,115 +3518,31 @@ export function deepClone<T>(value: T): T {
   ) {
     return value;
   }
-  if (value instanceof Date) {
-    return new Date(value.getTime()) as T;
-  }
-  if (value instanceof RegExp) {
-    return new RegExp(value.source, value.flags) as T;
-  }
   if (typeof value === 'function') {
-    logger.warn('Functions cannot be deep cloned, returning original reference');
+    if (process.env.NODE_ENV === 'development') {
+      logger.warn('Functions cannot be deep cloned, returning original reference');
+    }
     return value;
   }
   if (typeof value === 'symbol') {
-    logger.warn('Symbols cannot be deep cloned, returning original reference');
-    return value;
-  }
-  if (value instanceof Promise) {
     if (process.env.NODE_ENV === 'development') {
-      logger.warn('Promise objects cannot be deep cloned, returning original reference');
+      logger.warn('Symbols cannot be deep cloned, returning original reference');
     }
     return value;
   }
-  if (value instanceof Error) {
-    const ErrorClass = value.constructor as new (message: string) => Error;
-    const clonedError = new ErrorClass(value.message) as T;
-    if ('stack' in value && typeof value.stack === 'string') {
-      (clonedError as any).stack = value.stack;
-    }
-    if ('cause' in value) {
-      (clonedError as any).cause = value.cause;
-    }
-    return clonedError;
-  }
-  if (value instanceof Map) {
-    const clonedMap = new Map();
-    for (const [key, val] of value) {
-      clonedMap.set(deepClone(key), deepClone(val));
-    }
-    return clonedMap as T;
-  }
-  if (value instanceof Set) {
-    const clonedSet = new Set();
-    for (const val of value) {
-      clonedSet.add(deepClone(val));
-    }
-    return clonedSet as T;
-  }
-  if (value instanceof WeakMap || value instanceof WeakSet) {
-    if (process.env.NODE_ENV === 'development') {
-      logger.warn('WeakMap/WeakSet objects cannot be deep cloned, returning original reference');
-    }
+  if (isNonCloneableType(value)) {
     return value;
-  }
-  if (typeof value === 'object' && value !== null) {
-    if (isDOMElement(value)) {
-      if (process.env.NODE_ENV === 'development' && Math.random() < 0.01) {
-        logger.trace('HTML/DOM element detected, returning original reference to avoid circular references', {
-          type: typeof value,
-          constructor: value?.constructor?.name,
-          nodeType: (value as Record<string, unknown>)?.nodeType,
-          tagName: (value as Record<string, unknown>)?.tagName,
-          nodeName: (value as Record<string, unknown>)?.nodeName
-        });
-      }
-      return value;
-    }
-    if (hasUnclonableContent(value)) {
-      if (process.env.NODE_ENV === 'development' && Math.random() < 0.05) {
-        console.warn('[Context-Action] Object contains unclonable content (Promise, DOM, Function), returning original reference');
-      }
-      return value;
-    }
   }
   try {
-    const cloned = structuredClone(value);
-    if (process.env.NODE_ENV === 'development' && Math.random() < 0.001) {
-      logger.trace('Deep clone successful', { 
-        type: typeof value,
-        isArray: Array.isArray(value),
-        constructor: value?.constructor?.name 
-      });
-    }
-    return cloned;
+    return produce(value, (draft) => {
+    });
   } catch (error) {
-    const errorMessage = error?.toString() || '';
-    if (
-      errorMessage.includes('circular') ||
-      errorMessage.includes('HTMLDivElement') ||
-      errorMessage.includes('HTMLElement') ||
-      errorMessage.includes('could not be cloned') ||
-      errorMessage.includes('Promise') ||
-      errorMessage.includes('DataCloneError')
-    ) {
-      if (process.env.NODE_ENV === 'development') {
-        console.debug(
-          '[Context-Action] Unclonable object detected, returning original reference',
-          {
-            type: typeof value,
-            constructor: value?.constructor?.name,
-            isPromise: value instanceof Promise,
-            errorType: errorMessage.includes('Promise') ? 'Promise' : 
-                      errorMessage.includes('DataCloneError') ? 'DataCloneError' : 'Other'
-          }
-        );
-      }
-      return value;
+    if (process.env.NODE_ENV === 'development') {
+      logger.warn('structuredClone failed, falling back to circular-safe JSON clone', error);
     }
-    logger.warn('structuredClone failed, falling back to circular-safe JSON clone', error);
     try {
       const visited = new WeakSet();
-      const circularSafeStringify = (obj: any, space?: string | number): string => {
+      const circularSafeStringify = (obj: any): string => {
         return JSON.stringify(obj, function(key, val) {
           if (val !== null && typeof val === 'object') {
             if (visited.has(val)) {
@@ -3596,120 +3551,17 @@ export function deepClone<T>(value: T): T {
             visited.add(val);
           }
           return val;
-        }, space);
+        });
       };
       const jsonString = circularSafeStringify(value);
-      const jsonCloned = JSON.parse(jsonString);
-      if (process.env.NODE_ENV === 'development') {
-        logger.warn('Used circular-safe JSON fallback for deep clone - some data types may be lost');
-      }
-      return jsonCloned;
+      return JSON.parse(jsonString);
     } catch (jsonError) {
-      logger.warn('JSON fallback failed, trying manual clone', jsonError);
-      try {
-        const manualCloned = manualDeepClone(value, new WeakMap());
-        return manualCloned;
-      } catch (manualError) {
-        logger.error('All cloning methods failed, returning original reference', manualError);
-        return value;
+      if (process.env.NODE_ENV === 'development') {
+        logger.error('All cloning methods failed, returning original reference', jsonError);
       }
+      return value;
     }
   }
-}
-function manualDeepClone<T>(value: T, visited: WeakMap<object, any>): T {
-  if (
-    value === null ||
-    value === undefined ||
-    typeof value === 'string' ||
-    typeof value === 'number' ||
-    typeof value === 'boolean' ||
-    typeof value === 'bigint' ||
-    typeof value === 'symbol'
-  ) {
-    return value;
-  }
-  if (typeof value === 'function') {
-    return value;
-  }
-  if (value instanceof Promise || value instanceof WeakMap || value instanceof WeakSet) {
-    return value;
-  }
-  if (isDOMElement(value)) {
-    return value;
-  }
-  if (typeof value === 'object' && value !== null) {
-    if (visited.has(value)) {
-      return visited.get(value);
-    }
-  }
-  if (value instanceof Date) {
-    return new Date(value.getTime()) as T;
-  }
-  if (value instanceof RegExp) {
-    return new RegExp(value.source, value.flags) as T;
-  }
-  if (value instanceof Error) {
-    const ErrorClass = value.constructor as new (message: string) => Error;
-    const clonedError = new ErrorClass(value.message) as T;
-    if ('stack' in value && typeof value.stack === 'string') {
-      (clonedError as any).stack = value.stack;
-    }
-    return clonedError;
-  }
-  if (Array.isArray(value)) {
-    const clonedArray: any[] = [];
-    visited.set(value, clonedArray);
-    for (let i = 0; i < value.length; i++) {
-      try {
-        clonedArray[i] = manualDeepClone(value[i], visited);
-      } catch {
-        clonedArray[i] = value[i];
-      }
-    }
-    return clonedArray as T;
-  }
-  if (value instanceof Map) {
-    const clonedMap = new Map();
-    visited.set(value, clonedMap);
-    for (const [key, val] of value) {
-      try {
-        clonedMap.set(
-          manualDeepClone(key, visited),
-          manualDeepClone(val, visited)
-        );
-      } catch {
-        clonedMap.set(key, val);
-      }
-    }
-    return clonedMap as T;
-  }
-  if (value instanceof Set) {
-    const clonedSet = new Set();
-    visited.set(value, clonedSet);
-    for (const val of value) {
-      try {
-        clonedSet.add(manualDeepClone(val, visited));
-      } catch {
-        clonedSet.add(val);
-      }
-    }
-    return clonedSet as T;
-  }
-  if (typeof value === 'object' && value !== null) {
-    const clonedObj: any = {};
-    visited.set(value, clonedObj);
-    for (const key in value) {
-      if (Object.prototype.hasOwnProperty.call(value, key)) {
-        try {
-          clonedObj[key] = manualDeepClone((value as any)[key], visited);
-        } catch {
-          clonedObj[key] = (value as any)[key];
-        }
-      }
-    }
-    return clonedObj as T;
-  }
-  return value;
 }
 export function verifyImmutability<T>(original: T, cloned: T): boolean {
   if (
@@ -3718,71 +3570,41 @@ export function verifyImmutability<T>(original: T, cloned: T): boolean {
     typeof original === 'string' ||
     typeof original === 'number' ||
     typeof original === 'boolean' ||
-    typeof original === 'bigint'
+    typeof original === 'bigint' ||
+    typeof original === 'symbol'
   ) {
     return original === cloned;
   }
-  if (typeof original === 'object' && original !== null) {
-    if (isDOMElement(original)) {
-      return original === cloned;
-    }
-    if (typeof original === 'function') {
-      return original === cloned;
-    }
-    if (original instanceof Promise || 
-        (typeof (original as Record<string, unknown>).then === 'function' && typeof (original as Record<string, unknown>).catch === 'function')) {
-      return original === cloned;
-    }
+  if (isNonCloneableType(original)) {
+    return original === cloned;
+  }
+  if (typeof original === 'function') {
+    return original === cloned;
   }
   if (typeof original === 'object' && original !== null) {
-    return original !== cloned; 
+    return true; 
   }
   return false;
 }
 export function safeGet<T>(value: T, enableCloning: boolean = true): T {
   if (!enableCloning) {
-    logger.trace('Cloning disabled, returning original reference');
+    if (process.env.NODE_ENV === 'development') {
+      logger.trace('Cloning disabled, returning original reference');
+    }
     return value;
   }
   const cloned = deepClone(value);
-  if (process.env.NODE_ENV === 'development') {
-    const isNonCloneableObject = (obj: unknown): boolean => {
-      if (!obj || typeof obj !== 'object') return false;
-      if (isDOMElement(obj)) return true;
-      if (typeof obj === 'function') {
-        return true;
-      }
-      if (obj instanceof Promise) return true;
-      const objRecord = obj as Record<string, unknown>;
-      if (typeof objRecord.then === 'function' && typeof objRecord.catch === 'function') {
-        return true;
-      }
-      return false;
-    };
-    const shouldSkipVerification = isNonCloneableObject(value);
-    if (shouldSkipVerification && Math.random() < 0.1) {
-      logger.trace('Skipping immutability verification for special object', {
-        type: typeof value,
-        constructor: value?.constructor?.name,
-        nodeType: (value as Record<string, unknown>)?.nodeType,
-        tagName: (value as Record<string, unknown>)?.tagName,
-        nodeName: (value as Record<string, unknown>)?.nodeName,
-        isElement: value instanceof Element,
-        isNode: value instanceof Node,
-        isHTMLElement: value instanceof HTMLElement
-      });
-    }
-    if (!shouldSkipVerification) {
+  if (process.env.NODE_ENV === 'development' && globalImmutabilityOptions.enableVerification) {
+    if (!isNonCloneableType(value)) {
       const isImmutable = verifyImmutability(value, cloned);
       if (!isImmutable && typeof value === 'object' && value !== null) {
-        logger.warn('Immutability verification failed - references are identical', {
-          type: typeof value,
-          constructor: value?.constructor?.name,
-          isElement: value instanceof Element,
-          isNode: value instanceof Node,
-          nodeType: (value as Record<string, unknown>)?.nodeType,
-          sameReference: value === cloned
-        });
+        if (Math.random() < 0.01) { 
+          logger.debug('Immer optimization: same reference returned for unchanged object', {
+            type: typeof value,
+            constructor: value?.constructor?.name,
+            isArray: Array.isArray(value)
+          });
+        }
       }
     }
   }
@@ -3790,23 +3612,13 @@ export function safeGet<T>(value: T, enableCloning: boolean = true): T {
 }
 export function safeSet<T>(value: T, enableCloning: boolean = true): T {
   if (!enableCloning) {
-    logger.trace('Cloning disabled for setter, returning original reference');
+    if (process.env.NODE_ENV === 'development') {
+      logger.trace('Cloning disabled for setter, returning original reference');
+    }
     return value;
   }
   return deepClone(value);
 }
-export interface ImmutabilityOptions {
-  enableCloning?: boolean;      
-  enableVerification?: boolean; 
-  warnOnFallback?: boolean;     
-  shallowCloneThreshold?: number; 
-}
-let globalImmutabilityOptions: ImmutabilityOptions = {
-  enableCloning: true,
-  enableVerification: process.env.NODE_ENV === 'development',
-  warnOnFallback: true,
-  shallowCloneThreshold: 3
-};
 export function setGlobalImmutabilityOptions(options: Partial<ImmutabilityOptions>): void {
   globalImmutabilityOptions = { ...globalImmutabilityOptions, ...options };
   logger.debug('Global immutability options updated', globalImmutabilityOptions);
@@ -3814,24 +3626,12 @@ export function setGlobalImmutabilityOptions(options: Partial<ImmutabilityOption
 export function getGlobalImmutabilityOptions(): ImmutabilityOptions {
   return { ...globalImmutabilityOptions };
 }
-function optimizedClone<T>(value: T): T {
-  return deepClone(value);
-}
-export interface PerformanceProfile {
-  averageCloneTime: number;    
-  totalOperations: number;     
-  recommendations: string[];   
-}
-let performanceData: { times: number[]; operations: number } = {
-  times: [],
-  operations: 0
-};
 export function performantSafeGet<T>(value: T, enableCloning: boolean = true): T {
   if (!enableCloning) {
     return value;
   }
   const startTime = performance.now();
-  const result = optimizedClone(value);
+  const result = deepClone(value);
   const endTime = performance.now();
   const duration = endTime - startTime;
   performanceData.times.push(duration);
@@ -3841,22 +3641,26 @@ export function performantSafeGet<T>(value: T, enableCloning: boolean = true): T
   }
   return result;
 }
+export interface PerformanceProfile {
+  averageCloneTime: number;
+  totalOperations: number;
+  recommendations: string[];
+}
+let performanceData: { times: number[]; operations: number } = {
+  times: [],
+  operations: 0
+};
 export function getPerformanceProfile(): PerformanceProfile {
   const { times, operations } = performanceData;
   const averageTime = times.length > 0 ? times.reduce((a, b) => a + b, 0) / times.length : 0;
-  const recommendations: string[] = [];
-  if (averageTime > 5) {
-    recommendations.push('복사 시간이 5ms를 초과합니다. 얕은 복사 임계값 조정을 고려하세요.');
-  }
-  if (operations > 100) {
-    recommendations.push('많은 복사 작업이 감지되었습니다. 복사 빈도를 줄일 수 있는지 검토하세요.');
-  }
+  const recommendations: string[] = ['Immer를 사용하여 최적화된 불변성 보장'];
   return {
     averageCloneTime: averageTime,
     totalOperations: operations,
     recommendations
   };
 }
+export { produce, isDraft, original, current } from 'immer';
 ```
 
 ### stores/utils/index.ts
@@ -4040,14 +3844,46 @@ export function isObject(value: unknown): value is Record<string, unknown> {
 export function isArray(value: unknown): value is unknown[] {
   return Array.isArray(value);
 }
-export function isSuspiciousEventObject(value: unknown): boolean {
+export function isSuspiciousEventObject(value: unknown, checkNested = true): boolean {
   if (!isObject(value) || isRefState(value)) {
+    return false;
+  }
+  if (isEventLikeObject(value)) {
+    return true;
+  }
+  if (checkNested) {
+    for (const key in value) {
+      if (Object.prototype.hasOwnProperty.call(value, key)) {
+        const nestedValue = value[key];
+        if (isEventLikeObject(nestedValue)) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+function isEventLikeObject(value: unknown): boolean {
+  if (!isObject(value)) {
     return false;
   }
   const hasEventTarget = hasTargetProperty(value);
   const hasPreventDefault = isEventLike(value);
   const isEvent = isDOMEvent(value);
-  return hasEventTarget || hasPreventDefault || isEvent;
+  const hasEventType = 'type' in value && typeof (value as any).type === 'string';
+  const hasEventProperties = hasEventType && (hasEventTarget || hasPreventDefault);
+  const hasReactMarkers = ('nativeEvent' in value) || ('persist' in value) || ('$$typeof' in value) || ('_reactInternalFiber' in value) || ('_owner' in value);
+  const constructorName = value?.constructor?.name;
+  const hasEventConstructor = constructorName ? (
+    constructorName.includes('Event') || 
+    constructorName === 'SyntheticEvent' ||
+    constructorName.includes('MouseEvent') ||
+    constructorName.includes('KeyboardEvent') ||
+    constructorName.includes('TouchEvent') ||
+    constructorName.includes('FocusEvent') ||
+    constructorName.includes('SubmitEvent')
+  ) : false;
+  return isEvent || hasEventProperties || hasReactMarkers || hasEventConstructor;
 }
 export function findProblematicProperties(value: unknown): string[] {
   if (!isObject(value)) {
@@ -4199,17 +4035,26 @@ export class StoreUtils {
 		name: string,
 		sourceStore: IStore<T>,
 		delay: number,
-	): Store<T> {
+	): Store<T> & { cleanup: () => void } {
 		const debouncedStore = new Store(name, sourceStore.getSnapshot().value);
-		let timeoutId: any;
-		sourceStore.subscribe(() => {
-			clearTimeout(timeoutId);
+		let timeoutId: NodeJS.Timeout | null = null;
+		const unsubscribe = sourceStore.subscribe(() => {
+			if (timeoutId) clearTimeout(timeoutId);
 			timeoutId = setTimeout(() => {
 				const { value } = sourceStore.getSnapshot();
 				debouncedStore.setValue(value);
+				timeoutId = null;
 			}, delay);
 		});
-		return debouncedStore;
+		return Object.assign(debouncedStore, {
+			cleanup: () => {
+				unsubscribe();
+				if (timeoutId) {
+					clearTimeout(timeoutId);
+					timeoutId = null;
+				}
+			}
+		});
 	}
 }
 ```

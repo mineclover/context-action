@@ -147,7 +147,7 @@ function isEventLikeObject(value: unknown): boolean {
   
   // Check constructor name for event-like objects
   const constructorName = value?.constructor?.name;
-  const hasEventConstructor = constructorName && (
+  const hasEventConstructor = constructorName ? (
     constructorName.includes('Event') || 
     constructorName === 'SyntheticEvent' ||
     constructorName.includes('MouseEvent') ||
@@ -155,7 +155,7 @@ function isEventLikeObject(value: unknown): boolean {
     constructorName.includes('TouchEvent') ||
     constructorName.includes('FocusEvent') ||
     constructorName.includes('SubmitEvent')
-  );
+  ) : false;
   
   return isEvent || hasEventProperties || hasReactMarkers || hasEventConstructor;
 }

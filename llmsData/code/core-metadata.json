@@ -1,29 +1,29 @@
 {
   "package": "core",
-  "generatedAt": "2025-08-27T07:14:29.828Z",
+  "generatedAt": "2025-08-27T15:38:26.734Z",
   "statistics": {
-    "totalFiles": 7,
+    "totalFiles": 8,
     "typeFiles": 1,
-    "codeFiles": 6,
-    "totalLines": 1289,
-    "typeLines": 171,
-    "codeLines": 1118
+    "codeFiles": 7,
+    "totalLines": 1499,
+    "typeLines": 187,
+    "codeLines": 1312
   },
   "files": [
     {
       "path": "types.ts",
       "isType": true,
-      "lines": 171
+      "lines": 187
     },
     {
       "path": "action-guard.ts",
       "isType": false,
-      "lines": 101
+      "lines": 148
     },
     {
       "path": "ActionRegister.ts",
       "isType": false,
-      "lines": 752
+      "lines": 711
     },
     {
       "path": "concurrency/index.ts",
@@ -33,17 +33,22 @@
     {
       "path": "concurrency/OperationQueue.ts",
       "isType": false,
-      "lines": 79
+      "lines": 82
     },
     {
       "path": "execution-modes.ts",
       "isType": false,
-      "lines": 167
+      "lines": 192
     },
     {
       "path": "index.ts",
       "isType": false,
-      "lines": 17
+      "lines": 25
+    },
+    {
+      "path": "react-helpers.ts",
+      "isType": false,
+      "lines": 152
     }
   ]
 }

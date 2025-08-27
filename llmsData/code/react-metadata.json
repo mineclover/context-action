@@ -1,13 +1,13 @@
 {
   "package": "react",
-  "generatedAt": "2025-08-27T07:14:29.833Z",
+  "generatedAt": "2025-08-27T15:38:26.740Z",
   "statistics": {
     "totalFiles": 34,
     "typeFiles": 3,
     "codeFiles": 31,
-    "totalLines": 4037,
-    "typeLines": 167,
-    "codeLines": 3870
+    "totalLines": 3882,
+    "typeLines": 168,
+    "codeLines": 3714
   },
   "files": [
     {
@@ -23,7 +23,7 @@
     {
       "path": "stores/core/types.ts",
       "isType": true,
-      "lines": 56
+      "lines": 57
     },
     {
       "path": "actions/ActionContext.tsx",
@@ -53,12 +53,12 @@
     {
       "path": "refs/createRefContext.ts",
       "isType": false,
-      "lines": 495
+      "lines": 508
     },
     {
       "path": "refs/helpers.ts",
       "isType": false,
-      "lines": 16
+      "lines": 15
     },
     {
       "path": "refs/index.ts",
@@ -73,7 +73,7 @@
     {
       "path": "stores/core/EventBus.ts",
       "isType": false,
-      "lines": 115
+      "lines": 153
     },
     {
       "path": "stores/core/index.ts",
@@ -83,7 +83,7 @@
     {
       "path": "stores/core/Store.ts",
       "isType": false,
-      "lines": 265
+      "lines": 262
     },
     {
       "path": "stores/core/StoreRegistry.ts",
@@ -113,7 +113,7 @@
     {
       "path": "stores/hooks/useStoreSelector.ts",
       "isType": false,
-      "lines": 187
+      "lines": 189
     },
     {
       "path": "stores/hooks/useStoreValue.ts",
@@ -138,7 +138,7 @@
     {
       "path": "stores/utils/comparison.ts",
       "isType": false,
-      "lines": 291
+      "lines": 294
     },
     {
       "path": "stores/utils/error-handling.ts",
@@ -148,7 +148,7 @@
     {
       "path": "stores/utils/immutable.ts",
       "isType": false,
-      "lines": 436
+      "lines": 187
     },
     {
       "path": "stores/utils/index.ts",
@@ -173,12 +173,12 @@
     {
       "path": "stores/utils/type-guards.ts",
       "isType": false,
-      "lines": 92
+      "lines": 124
     },
     {
       "path": "stores/utils/utils.ts",
       "isType": false,
-      "lines": 130
+      "lines": 139
     }
   ]
 }

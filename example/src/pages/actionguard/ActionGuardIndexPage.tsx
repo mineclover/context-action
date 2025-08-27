@@ -59,6 +59,12 @@ const actionGuardDemos = [
     description: '패턴별 분리된 조건부 실행 데모 - 환경, 기능플래그, 권한, 비즈니스룰',
     tags: ['Conditional', 'Patterns', 'Focused'],
   },
+  {
+    path: '/actionguard/advanced-filtering',
+    title: '🎛️ Advanced Filtering Demo',
+    description: '고급 필터링 패턴 - 핸들러 ID, 우선순위, 커스텀 로직, 결합 필터링',
+    tags: ['Filtering', 'Advanced', 'Control'],
+  },
 ];
 
 /**

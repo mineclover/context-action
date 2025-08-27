@@ -50,6 +50,7 @@ const PermissionBasedExecution = lazy(() => import('@/pages/conditional-patterns
 const FormValidation = lazy(() => import('@/pages/conditional-patterns/FormValidation').then(m => ({ default: m.FormValidation })));
 const WorkflowSteps = lazy(() => import('@/pages/conditional-patterns/WorkflowSteps').then(m => ({ default: m.WorkflowSteps })));
 const FeatureToggle = lazy(() => import('@/pages/conditional-patterns/FeatureToggle').then(m => ({ default: m.FeatureToggle })));
+const AdvancedFilteringPage = lazy(() => import('./pages/actionguard/AdvancedFilteringPage'));
 const ActionGuardOverview = lazy(() => import('./pages/ActionGuardOverview'));
 const CoreConceptsOverview = lazy(() => import('./pages/CoreConceptsOverview'));
 const ExamplesUtilitiesOverview = lazy(() => import('./pages/ExamplesUtilitiesOverview'));
@@ -218,6 +219,10 @@ function AppContent() {
           <Route
             path="/actionguard/conditional/feature-toggle"
             element={<FeatureToggle />}
+          />
+          <Route
+            path="/actionguard/advanced-filtering"
+            element={<AdvancedFilteringPage />}
           />
           </Routes>
         </Suspense>
