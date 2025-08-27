@@ -6,41 +6,67 @@
     "source_path": "en/concept/pattern-guide.md"
   },
   "priority": {
-    "score": 85,
-    "tier": "medium"
+    "score": 95,
+    "tier": "high"
   },
   "purpose": {
-    "primary_goal": "Learn about @context-action/react pattern guide",
+    "primary_goal": "Master Context-Action framework patterns through code examples",
     "use_cases": [
-      "Understanding concept",
-      "Implementing @context-action/react pattern guide",
-      "Framework learning"
+      "Pattern implementation with code examples",
+      "Understanding createActionContext, createStoreContext, createRefContext APIs",
+      "Learning MVVM architecture through practical examples",
+      "Framework pattern selection and composition",
+      "Copy-paste ready code snippets"
     ],
     "target_audience": [
-      "framework-users",
-      "developers"
+      "developers-implementing-patterns",
+      "framework-users-seeking-examples",
+      "architects-designing-systems"
     ]
+  },
+  "content_focus": {
+    "core_strength": "code_examples_and_definitions",
+    "key_elements": [
+      "Complete code examples for 3 core patterns",
+      "API definitions and usage patterns",
+      "Real pattern composition implementations",
+      "TypeScript interface definitions",
+      "Production-ready examples"
+    ],
+    "code_density": "high",
+    "example_completeness": "comprehensive"
   },
   "keywords": {
     "technical": [
+      "createActionContext",
+      "createStoreContext", 
+      "createRefContext",
+      "useActionHandler",
+      "useStoreValue",
       "typescript",
       "tsx",
       "react",
-      "api",
-      "context",
-      "state",
-      "component",
-      "hook"
+      "mvvm"
     ],
     "functional": [
-      "concept",
-      "framework",
+      "pattern-implementation",
+      "code-examples",
+      "api-reference",
+      "framework-patterns",
       "context-action"
+    ],
+    "pattern_specific": [
+      "Action-Only-Pattern",
+      "Store-Only-Pattern", 
+      "RefContext-Pattern",
+      "Pattern-Composition"
     ]
   },
   "metadata": {
-    "description": "Complete guide to the three main patterns available in @context-action/react framework.",
+    "description": "Practical guide providing complete code examples and API definitions for three core patterns",
     "language": "en",
-    "created_at": "2025-08-21T02:13:42.317Z"
+    "created_at": "2025-08-21T02:13:42.317Z",
+    "updated_at": "2025-08-27T00:00:00.000Z",
+    "content_type": "code_examples_and_definitions"
   }
 }

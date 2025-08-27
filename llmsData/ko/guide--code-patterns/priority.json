@@ -6,36 +6,66 @@
     "source_path": "ko/guide/code-patterns.md"
   },
   "priority": {
-    "score": 95,
+    "score": 88,
     "tier": "high"
   },
   "purpose": {
-    "primary_goal": "Learn about 코드 패턴",
+    "primary_goal": "Master RefContext code patterns through practical implementations",
     "use_cases": [
-      "Understanding guide",
-      "Implementing 코드 패턴",
-      "Framework learning"
+      "RefContext and useWaitForRefs implementation patterns",
+      "Direct DOM manipulation code examples",
+      "Zero re-render performance patterns",
+      "RefContext lifecycle management code",
+      "Production-ready ref handling examples"
     ],
     "target_audience": [
-      "framework-users",
-      "developers"
+      "performance-focused-developers",
+      "ref-pattern-specialists",
+      "dom-manipulation-experts"
     ]
+  },
+  "content_focus": {
+    "core_strength": "code_examples_and_definitions",
+    "key_elements": [
+      "RefContext 구현 패턴과 코드 예시",
+      "useWaitForRefs 사용법과 실제 구현",
+      "Direct DOM 조작 최적화 패턴",
+      "Ref 생명주기 관리 코드",
+      "성능 중심 Ref 처리 예제"
+    ],
+    "code_density": "high",
+    "example_completeness": "comprehensive"
   },
   "keywords": {
     "technical": [
+      "createRefContext",
+      "useWaitForRefs",
+      "useRefHandler",
+      "dom-manipulation",
+      "ref-lifecycle",
+      "zero-rerender",
       "typescript",
-      "context",
-      "state"
+      "performance-optimization"
     ],
     "functional": [
-      "guide",
-      "framework",
+      "ref-patterns",
+      "dom-patterns",
+      "performance-patterns",
+      "lifecycle-patterns",
       "context-action"
+    ],
+    "pattern_specific": [
+      "RefContext-Patterns",
+      "DOM-Manipulation-Patterns",
+      "Ref-Lifecycle-Management",
+      "Zero-Rerender-Patterns"
     ]
   },
   "metadata": {
-    "description": "Context-Action 프레임워크의 RefContext와 useWaitForRefs 핵심 기능 패턴입니다.",
+    "description": "RefContext와 useWaitForRefs 핵심 기능의 실무 구현 패턴과 코드 예시",
     "language": "ko",
-    "created_at": "2025-08-21T02:13:42.338Z"
+    "created_at": "2025-08-21T02:13:42.338Z",
+    "updated_at": "2025-08-27T00:00:00.000Z",
+    "content_type": "code_examples_and_definitions"
   }
 }

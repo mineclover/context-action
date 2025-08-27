@@ -85,6 +85,109 @@ Context-Action provides sophisticated handler and trigger management that existi
 
 **React Integration**: Components use `useActionDispatch()` to dispatch actions and `useStoreValue()` to subscribe to store changes, maintaining clean separation of concerns.
 
+## 🎯 Context-Action Quick Example
+
+Here's a practical example showing the core Context-Action pattern:
+
+```tsx
+// 1. Define Actions (Business Logic)
+interface UserActions {
+  updateProfile: { name: string; email: string };
+  logout: void;
+}
+
+// 2. Create Action Context (Business Logic Layer)
+const {
+  Provider: UserActionProvider,
+  useActionDispatch: useUserAction,
+  useActionHandler: useUserActionHandler
+} = createActionContext<UserActions>('UserActions');
+
+// 3. Create Store Context (Data Layer)
+const {
+  Provider: UserStoreProvider,
+  useStore: useUserStore
+} = createStoreContext('UserStores', {
+  profile: { name: '', email: '', isLoggedIn: false },
+  preferences: { theme: 'light' as const }
+});
+
+// 4. Business Logic Component
+function UserLogic({ children }) {
+  const profileStore = useUserStore('profile');
+  
+  // Action Handler: Business logic separated from UI
+  useUserActionHandler('updateProfile', useCallback(async (payload) => {
+    // Step 1: Read current state
+    const currentProfile = profileStore.getValue();
+    
+    // Step 2: Execute business logic
+    const updatedProfile = {
+      ...currentProfile,
+      name: payload.name,
+      email: payload.email,
+      isLoggedIn: true
+    };
+    
+    // Step 3: Update store
+    profileStore.setValue(updatedProfile);
+    
+    // Additional business logic (API calls, validation, etc.)
+    await saveToAPI(updatedProfile);
+  }, [profileStore]));
+  
+  useUserActionHandler('logout', useCallback(async () => {
+    profileStore.setValue({ name: '', email: '', isLoggedIn: false });
+    await clearSession();
+  }, [profileStore]));
+  
+  return children;
+}
+
+// 5. UI Component (Pure Presentation)
+function UserProfile() {
+  const dispatch = useUserAction();
+  const profileStore = useUserStore('profile');
+  const profile = useStoreValue(profileStore);
+  
+  return (
+    <div>
+      <h1>User: {profile.name}</h1>
+      <p>Email: {profile.email}</p>
+      <button onClick={() => dispatch('updateProfile', {
+        name: 'John Doe',
+        email: 'john@example.com'
+      })}>
+        Update Profile
+      </button>
+      <button onClick={() => dispatch('logout')}>
+        Logout
+      </button>
+    </div>
+  );
+}
+
+// 6. App Structure (MVVM Pattern)
+function App() {
+  return (
+    <UserActionProvider>      {/* ViewModel Layer */}
+      <UserStoreProvider>     {/* Model Layer */}
+        <UserLogic>           {/* Business Logic */}
+          <UserProfile />     {/* View Layer */}
+        </UserLogic>
+      </UserStoreProvider>
+    </UserActionProvider>
+  );
+}
+```
+
+**Key Benefits Shown:**
+- **Separation of Concerns**: UI, Business Logic, and Data are completely separate
+- **Type Safety**: Full TypeScript support throughout the pipeline
+- **Testability**: Business logic in handlers can be tested independently
+- **Scalability**: Easy to add new actions and stores without touching UI
+- **Clean Architecture**: Clear MVVM pattern with distinct responsibilities
+
 ## Development Commands
 
 ### Root Level Commands
@@ -150,7 +253,14 @@ pnpm docs:full         # Full documentation build pipeline
 
 ### LLMS Generator Commands
 
-The project includes a sophisticated **LLMS Generator** system for advanced documentation management and priority-driven development workflows:
+The project includes a sophisticated **LLMS Generator** system that automatically converts long documentation into multiple summary lengths (100-5000 characters) with priority management.
+
+**🎯 Quick Overview:**
+- **Purpose**: Converts `docs/ko/concept/pattern-guide.md` → `llmsData/ko/concept--pattern-guide/` with 7 different summary lengths
+- **Auto-trigger**: Git post-commit hook processes changed docs automatically
+- **Most used**: `pnpm llms:sync-docs --changed-files docs/path/to/file.md`
+
+**Core Commands:**
 
 ```bash
 # Priority Management System

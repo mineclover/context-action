@@ -6,38 +6,67 @@
     "source_path": "ko/concept/pattern-guide.md"
   },
   "priority": {
-    "score": 85,
-    "tier": "medium"
+    "score": 95,
+    "tier": "high"
   },
   "purpose": {
-    "primary_goal": "Learn about @context-action/react 패턴 가이드",
+    "primary_goal": "Master Context-Action framework patterns through code examples",
     "use_cases": [
-      "Understanding concept",
-      "Implementing @context-action/react 패턴 가이드",
-      "Framework learning"
+      "Pattern implementation with code examples",
+      "Understanding createActionContext, createStoreContext, createRefContext APIs",
+      "Learning MVVM architecture through practical examples",
+      "Framework pattern selection and composition",
+      "Copy-paste ready code snippets"
     ],
     "target_audience": [
-      "framework-users",
-      "developers"
+      "developers-implementing-patterns",
+      "framework-users-seeking-examples",
+      "architects-designing-systems"
     ]
+  },
+  "content_focus": {
+    "core_strength": "code_examples_and_definitions",
+    "key_elements": [
+      "3개 패턴별 완전한 코드 예시",
+      "API 정의와 사용법",
+      "패턴 조합 실제 구현",
+      "TypeScript 인터페이스 정의",
+      "실무 적용 가능한 예제"
+    ],
+    "code_density": "high",
+    "example_completeness": "comprehensive"
   },
   "keywords": {
     "technical": [
+      "createActionContext",
+      "createStoreContext", 
+      "createRefContext",
+      "useActionHandler",
+      "useStoreValue",
       "typescript",
       "tsx",
       "react",
-      "api",
-      "context"
+      "mvvm"
     ],
     "functional": [
-      "concept",
-      "framework",
+      "pattern-implementation",
+      "code-examples",
+      "api-reference",
+      "framework-patterns",
       "context-action"
+    ],
+    "pattern_specific": [
+      "Action-Only-Pattern",
+      "Store-Only-Pattern", 
+      "RefContext-Pattern",
+      "Pattern-Composition"
     ]
   },
   "metadata": {
-    "description": "@context-action/react 프레임워크에서 사용 가능한 세 가지 주요 패턴의 완전한 가이드입니다.",
+    "description": "세 가지 핵심 패턴의 완전한 코드 예시와 API 정의를 제공하는 실무 중심 가이드",
     "language": "ko",
-    "created_at": "2025-08-21T02:13:42.332Z"
+    "created_at": "2025-08-21T02:13:42.332Z",
+    "updated_at": "2025-08-27T00:00:00.000Z",
+    "content_type": "code_examples_and_definitions"
   }
 }
