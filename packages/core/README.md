@@ -1,33 +1,18 @@
 # @context-action/core
 
-Type-safe action pipeline management library for JavaScript/TypeScript applications.
+Type-safe action pipeline management library for JavaScript/TypeScript applications with advanced filtering, performance optimizations, and React integration support.
 
 ## Installation
 
 ```bash
-npm install @context-action/core dotenv
+npm install @context-action/core
+# or
+pnpm install @context-action/core
 ```
 
 ## Quick Start
 
-### 1. Setup Environment Configuration
-
-```bash
-# Copy sample configuration
-cp .env.sample .env
-
-# Quick setup for maximum debugging detail
-echo "NODE_ENV=development" >> .env
-echo "CONTEXT_ACTION_TRACE=true" >> .env
-echo "CONTEXT_ACTION_DEBUG=true" >> .env
-echo "CONTEXT_ACTION_LOGGER_NAME=MyApp" >> .env
-```
-
-### 2. Basic Usage
-
 ```typescript
-// Load environment variables first
-import 'dotenv/config';
 import { ActionRegister } from '@context-action/core';
 
 // Define your action types
@@ -38,235 +23,452 @@ interface MyActions {
 }
 
 // Create action register
-const actions = new ActionRegister<MyActions>();
+const actions = new ActionRegister<MyActions>({
+  name: 'MyApp',
+  registry: { debug: true }
+});
 
-// Register handlers
-actions.register('increment', (_, controller) => {
+// Register handlers with priorities
+actions.register('increment', () => {
   console.log('Increment called');
-  // Handler automatically continues to next handler
-});
+}, { priority: 10 });
 
-actions.register('setCount', (count, controller) => {
+actions.register('setCount', (count) => {
   console.log(`Setting count to: ${count}`);
-  // Handler automatically continues to next handler
-});
+}, { priority: 5 });
 
 // Dispatch actions
 await actions.dispatch('increment');
 await actions.dispatch('setCount', 42);
 ```
 
-## Environment Variables
+## 🚀 New Features (v0.4.0+)
 
-| Variable | Description | Default | Max Detail |
-|----------|-------------|---------|------------|
-| `CONTEXT_ACTION_TRACE` | Enable detailed trace logging | `false` | `true` |
-| `CONTEXT_ACTION_DEBUG` | Enable debug mode | `false` | `true` |
-| `CONTEXT_ACTION_LOG_LEVEL` | Set specific log level (`TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`, `NONE`) | `ERROR` | `TRACE` |
-| `CONTEXT_ACTION_LOGGER_NAME` | Custom logger name | `ActionRegister` | `YourAppName` |
-| `NODE_ENV` | Auto-configure logging (`development` = DEBUG, `production` = ERROR) | - | `development` |
+### Advanced Filtering System
 
-**💡 Tip**: For maximum debugging detail, set all variables in the "Max Detail" column.
-
-## Features
-
-- **Type-safe actions** - Full TypeScript support with compile-time checking
-- **Priority-based execution** - Control handler execution order
-- **Pipeline control** - Abort, modify payloads, conditional execution
-- **Event system** - Listen to action lifecycle events
-- **Comprehensive logging** - Detailed trace logging for debugging
-- **Environment-based configuration** - Easy .env setup
-
-## Advanced Usage
-
-### Handler Configuration
+Filter handlers by priority, ID, or custom conditions:
 
 ```typescript
-actions.register('myAction', handler, {
-  priority: 10,        // Higher priority executes first
-  blocking: true,      // Wait for async handlers
-  once: true,         // Remove after first execution
-  condition: () => shouldRun, // Conditional execution
-  id: 'my-handler'    // Custom handler ID
+// Filter by priority range
+await actions.dispatch('updateUser', userData, {
+  filter: {
+    priority: { min: 10, max: 50 }  // Only handlers with priority 10-50
+  }
+});
+
+// Filter by specific handler IDs
+await actions.dispatch('processData', data, {
+  filter: {
+    handlerIds: ['validation', 'logging'],  // Only these handlers
+    excludeHandlerIds: ['analytics']        // Exclude analytics handler
+  }
+});
+
+// Custom filtering logic
+await actions.dispatch('secureAction', data, {
+  filter: {
+    custom: (config) => config.blocking === true  // Only blocking handlers
+  }
+});
+
+// Combined filtering
+await actions.dispatch('complexAction', data, {
+  filter: {
+    priority: { min: 20 },
+    excludeHandlerIds: ['debug'],
+    custom: (config) => !config.id.includes('test')
+  }
 });
 ```
 
-### Pipeline Control
+### Enhanced Handler Configuration
+
+```typescript
+actions.register('myAction', handler, {
+  priority: 10,
+  id: 'my-handler',
+  blocking: true,
+  once: false,
+  debounce: 300,
+  throttle: 1000,
+  replaceExisting: true  // 🆕 Replace handler with same ID (great for React HMR)
+});
+```
+
+### Immediate Execution & Queue Control
+
+```typescript
+// Bypass queue for immediate execution
+await actions.dispatch('urgentAction', data, {
+  immediate: true
+});
+
+// Queue with custom priority
+await actions.dispatch('backgroundTask', data, {
+  queuePriority: 5
+});
+
+// Execution timeout
+await actions.dispatch('timedAction', data, {
+  timeout: 5000
+});
+```
+
+### Result Collection with Strategies
+
+```typescript
+const result = await actions.dispatchWithResult('processData', data, {
+  result: {
+    collect: true,
+    strategy: 'all',      // 'first' | 'last' | 'all' | 'merge' | 'custom'
+    maxResults: 10,
+    includeErrors: true
+  }
+});
+
+console.log('Results:', result.results);
+console.log('Execution time:', result.execution.duration);
+console.log('Success:', result.success);
+```
+
+### React Integration Helpers
+
+```typescript
+import { 
+  useActionHandler, 
+  createReactDispatcher,
+  ReactDevUtils 
+} from '@context-action/core';
+
+// React hook pattern
+function MyComponent() {
+  const registry = useActionRegister();
+  
+  // Auto-cleanup on unmount, HMR support
+  const handlerConfig = useActionHandler(
+    registry,
+    'userAction', 
+    async (payload) => {
+      // Handler logic
+    },
+    { priority: 10 },
+    [] // dependencies
+  );
+  
+  // React-optimized dispatcher
+  const dispatch = createReactDispatcher(registry, (error, action) => {
+    console.error(`Failed to dispatch ${action}:`, error);
+  });
+}
+
+// Development utilities
+ReactDevUtils.enableDebugMode();
+const stats = ReactDevUtils.getStats(registry);
+```
+
+## Core Features
+
+### 🎯 Type-Safe Action Pipeline
+- **Full TypeScript support** with compile-time type checking
+- **Priority-based execution** with configurable handler ordering
+- **Pipeline control** - abort, modify payloads, conditional execution
+- **Multiple execution modes** - sequential, parallel, race
+
+### ⚡ Performance & Memory Optimizations
+- **Cached environment checks** for better performance
+- **Optimized handler ID generation** without random numbers
+- **Smart array filtering** - only copies when needed
+- **Automatic memory cleanup** with idle handler cleanup
+- **Optional concurrency queues** for thread safety
+
+### 🔧 Advanced Configuration
+
+```typescript
+const registry = new ActionRegister<MyActions>({
+  name: 'MyApp',
+  registry: {
+    debug: true,
+    autoCleanup: true,
+    maxHandlers: 50,
+    defaultExecutionMode: 'sequential',
+    collectStats: true,
+    useConcurrencyQueue: true,
+    errorHandler: (error, context) => {
+      console.error('Unhandled action error:', error);
+    }
+  }
+});
+```
+
+### 🎛️ Pipeline Controller
+
+Full control over pipeline execution:
 
 ```typescript
 actions.register('validate', (data, controller) => {
+  // Abort pipeline
   if (!data.isValid) {
     controller.abort('Validation failed');
     return;
   }
   
-  // Modify data for next handlers
-  controller.modifyPayload(data => ({ ...data, validated: true }));
-  // Handler automatically continues to next handler
+  // Modify payload for next handlers
+  controller.modifyPayload(data => ({ 
+    ...data, 
+    validated: true,
+    timestamp: Date.now()
+  }));
+  
+  // Jump to high-priority handlers
+  if (data.urgent) {
+    controller.jumpToPriority(100);
+  }
+  
+  // Set result for collection
+  controller.setResult({ validation: 'passed' });
+  
+  // Early return with result
+  if (data.fastPath) {
+    controller.return({ fastPath: true });
+  }
 });
 ```
 
-### Event Listeners
+## Advanced Usage
+
+### Action Guard (Debounce/Throttle)
 
 ```typescript
-actions.on('action:start', ({ action, payload }) => {
-  console.log(`Starting ${action}`, payload);
+// Built-in debounce/throttle support
+actions.register('searchUsers', searchHandler, {
+  debounce: 300  // Wait 300ms after last call
 });
 
-actions.on('action:complete', ({ action, metrics }) => {
-  console.log(`Completed ${action} in ${metrics.executionTime}ms`);
+actions.register('scrollHandler', updateUI, {
+  throttle: 100  // Max once per 100ms
+});
+
+// Via dispatch options
+await actions.dispatch('search', query, {
+  debounce: 500
 });
 ```
 
-## Debugging
+### Execution Modes
 
-### Maximum Detail Logging
+```typescript
+// Set execution mode per action
+actions.setActionExecutionMode('logEvent', 'parallel');
+actions.setActionExecutionMode('fetchData', 'race');
 
-For the most comprehensive debugging experience, use this .env configuration:
-
-```bash
-# .env - Maximum detail logging configuration
-NODE_ENV=development
-CONTEXT_ACTION_TRACE=true
-CONTEXT_ACTION_DEBUG=true
-CONTEXT_ACTION_LOGGER_NAME=DetailedApp
-
-# This configuration will show:
-# - Every function call and return
-# - Handler registration and execution details
-# - Pipeline flow and state changes
-# - Payload modifications and conditions
-# - Performance metrics and timing
-# - Error details and stack traces
-```
-
-### Common Debug Configurations
-
-```bash
-# Development - Balanced detail
-NODE_ENV=development
-CONTEXT_ACTION_DEBUG=true
-CONTEXT_ACTION_LOGGER_NAME=DevApp
-
-# Production Debug - Errors only with context
-NODE_ENV=production
-CONTEXT_ACTION_LOG_LEVEL=ERROR
-CONTEXT_ACTION_DEBUG=true
-CONTEXT_ACTION_LOGGER_NAME=ProdApp
-
-# Issue Investigation - Specific level
-CONTEXT_ACTION_LOG_LEVEL=DEBUG
-CONTEXT_ACTION_DEBUG=true
-CONTEXT_ACTION_LOGGER_NAME=InvestigationSession
-```
-
-### Test Your Configuration
-
-After setting up your .env file, test that maximum detail logging is working:
-
-```bash
-# Create a quick test file
-echo "import 'dotenv/config';
-import { ActionRegister } from '@context-action/core';
-
-const actions = new ActionRegister();
-actions.register('test', (payload, controller) => {
-  console.log('Handler executed:', payload);
-  // Handler automatically continues to next handler
+// Override via dispatch options
+await actions.dispatch('processFiles', files, {
+  executionMode: 'parallel'
 });
-await actions.dispatch('test', { message: 'Hello!' });" > test-logging.js
-
-# Run the test
-node test-logging.js
 ```
 
-You should see detailed TRACE and DEBUG output if configured correctly.
+### Error Handling & Recovery
 
-### Troubleshooting
+```typescript
+actions.register('riskyOperation', async (data, controller) => {
+  try {
+    const result = await riskyAPI(data);
+    return result;
+  } catch (error) {
+    if (error.retryable) {
+      // Let other handlers try
+      return undefined;
+    } else {
+      // Abort pipeline for critical errors
+      controller.abort(`Critical error: ${error.message}`);
+    }
+  }
+});
 
-**Not seeing trace output?**
+// With retry configuration
+await actions.dispatch('apiCall', data, {
+  retryOnError: {
+    maxAttempts: 3,
+    delay: 1000
+  }
+});
+```
 
-1. **Check dependencies**: Make sure `dotenv` is installed
-   ```bash
-   npm install dotenv
-   # or
-   pnpm install dotenv
-   ```
+### Statistics & Monitoring
 
-2. **Verify .env file**: Confirm your .env file exists and has the correct settings
-   ```bash
-   cat .env
-   # Should show: CONTEXT_ACTION_TRACE=true
-   ```
+```typescript
+// Registry information
+const info = actions.getRegistryInfo();
+console.log(`Total actions: ${info.totalActions}`);
+console.log(`Total handlers: ${info.totalHandlers}`);
 
-3. **Check import order**: `dotenv/config` must be imported first
-   ```typescript
-   import 'dotenv/config'; // MUST be first
-   import { ActionRegister } from '@context-action/core';
-   ```
+// Action-specific statistics
+const stats = actions.getActionStats('updateUser');
+if (stats) {
+  console.log(`Handler count: ${stats.handlerCount}`);
+  console.log(`Success rate: ${stats.executionStats?.successRate}%`);
+  console.log(`Average duration: ${stats.executionStats?.averageDuration}ms`);
+}
 
-4. **Rebuild if needed**: After installing dotenv, rebuild the project if using a bundler
+// Clear statistics
+actions.clearExecutionStats();
+```
 
-For detailed debugging information, see [TRACE_LOGGING.md](./TRACE_LOGGING.md).
+### Cleanup & Resource Management
+
+```typescript
+// Explicit cleanup when done
+const registry = new ActionRegister({ name: 'MyApp' });
+
+// Use the registry...
+
+// Clean up all resources
+registry.destroy(); // Cleans up pipelines, guards, queues, stats
+```
 
 ## API Reference
 
 ### ActionRegister<T>
 
-Main class for managing action pipelines.
-
+#### Registration Methods
 - `register<K>(action, handler, config?)` - Register action handler
-- `dispatch<K>(action, payload?)` - Dispatch action through pipeline
-- `getHandlerCount(action)` - Get number of handlers for action
-- `hasHandlers(action)` - Check if action has handlers
-- `clearAction(action)` - Remove all handlers for action
+- `clearAction(action)` - Remove all handlers for action  
 - `clearAll()` - Remove all handlers
-- `on(event, handler)` - Add event listener
 
-### Configuration Options
+#### Dispatch Methods
+- `dispatch<K>(action, payload?, options?)` - Dispatch action
+- `dispatchWithResult<K>(action, payload?, options?)` - Dispatch with detailed results
+
+#### Information Methods
+- `getHandlerCount(action)` - Get handler count for action
+- `hasHandlers(action)` - Check if action has handlers
+- `getRegisteredActions()` - Get all registered action names
+- `getRegistryInfo()` - Get comprehensive registry information
+- `getActionStats(action)` - Get detailed action statistics
+
+#### Execution Mode Methods
+- `setActionExecutionMode(action, mode)` - Set execution mode for action
+- `getActionExecutionMode(action)` - Get execution mode for action
+- `removeActionExecutionMode(action)` - Reset to default execution mode
+
+#### Utility Methods
+- `getName()` - Get registry name
+- `isDebugEnabled()` - Check if debug mode is enabled
+- `destroy()` - Clean up all resources
+
+### Configuration Interfaces
 
 ```typescript
-interface ActionRegisterConfig {
-  logger?: Logger;           // Custom logger implementation
-  logLevel?: LogLevel;       // Log filtering level
-  name?: string;            // Logger name
-  debug?: boolean;          // Enable debug mode
+interface HandlerConfig {
+  priority?: number;           // Handler priority (higher = first)
+  id?: string;                // Unique handler identifier
+  blocking?: boolean;          // Wait for async completion
+  once?: boolean;             // Remove after first execution  
+  debounce?: number;          // Debounce delay in ms
+  throttle?: number;          // Throttle delay in ms
+  replaceExisting?: boolean;   // Replace handler with same ID
+}
+
+interface DispatchOptions {
+  debounce?: number;
+  throttle?: number;
+  executionMode?: 'sequential' | 'parallel' | 'race';
+  signal?: AbortSignal;
+  immediate?: boolean;         // Bypass queue
+  queuePriority?: number;      // Queue priority
+  timeout?: number;           // Execution timeout
+  
+  retryOnError?: {
+    maxAttempts: number;
+    delay: number;
+  };
+  
+  filter?: {
+    handlerIds?: string[];
+    excludeHandlerIds?: string[];
+    priority?: { min?: number; max?: number };
+    custom?: (config: HandlerConfig) => boolean;
+  };
+  
+  result?: {
+    strategy?: 'first' | 'last' | 'all' | 'merge' | 'custom';
+    merger?: <R>(results: R[]) => R;
+    collect?: boolean;
+    maxResults?: number;
+    includeErrors?: boolean;
+  };
 }
 ```
 
 ## TypeScript Support
 
-Full TypeScript support with compile-time type checking:
+Full type safety with excellent IntelliSense support:
 
 ```typescript
 interface AppActions {
-  // Action without payload
+  // Void actions
   reset: void;
+  logout: void;
   
-  // Action with payload
-  setUser: { id: string; name: string };
+  // Actions with payloads
+  setUser: { id: string; name: string; email: string };
+  updatePreferences: { theme: 'light' | 'dark'; language: string };
   
-  // Action with optional payload
-  navigate: string | undefined;
+  // Union type payloads
+  navigate: { route: string } | { url: URL };
 }
 
 const actions = new ActionRegister<AppActions>();
 
-// ✅ Type-safe dispatch
+// ✅ Type-safe - all good
 await actions.dispatch('reset');
-await actions.dispatch('setUser', { id: '1', name: 'John' });
+await actions.dispatch('setUser', { id: '1', name: 'John', email: 'john@example.com' });
 
-// ❌ TypeScript error - missing payload
-await actions.dispatch('setUser');
-
-// ❌ TypeScript error - wrong payload type
-await actions.dispatch('setUser', 'invalid');
+// ❌ TypeScript errors
+await actions.dispatch('setUser');              // Missing required payload
+await actions.dispatch('setUser', { id: '1' }); // Missing required fields
+await actions.dispatch('invalidAction');        // Unknown action
 ```
+
+## Migration from v0.3.x
+
+Most existing code works without changes. New features are opt-in:
+
+```typescript
+// v0.3.x code - still works
+const actions = new ActionRegister();
+actions.register('myAction', handler);
+await actions.dispatch('myAction', payload);
+
+// v0.4.x - new features available
+actions.register('myAction', handler, { 
+  replaceExisting: true  // New option
+});
+
+await actions.dispatch('myAction', payload, {
+  filter: { priority: { min: 10 } }  // New filtering
+});
+
+// Clean up when done (recommended)
+actions.destroy();
+```
+
+## Performance Tips
+
+1. **Use handler IDs** for better debugging and filtering
+2. **Enable replaceExisting** for React components to prevent duplicates
+3. **Use immediate: false** (default) to benefit from queue optimizations  
+4. **Call destroy()** when registry is no longer needed
+5. **Use priority filtering** instead of excludeHandlerIds for better performance
+6. **Cache ActionRegister instances** - don't create new ones frequently
 
 ## License
 
 Apache-2.0
 
-## Contributing
+## Links
 
-See the main [repository](https://github.com/mineclover/context-action) for contribution guidelines.
+- [Main Repository](https://github.com/mineclover/context-action)
+- [Documentation](https://mineclover.github.io/context-action/)
+- [React Package](../react/README.md)
+- [Examples](../../example/README.md)

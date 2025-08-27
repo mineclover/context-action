@@ -48,10 +48,6 @@ export interface StoreMetadata {
  * 
  * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  * 
- * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
- * 
- * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
- * 
  * @public
  */
 export class StoreRegistry implements IStoreRegistry {
