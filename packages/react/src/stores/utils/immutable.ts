@@ -258,31 +258,188 @@ export function deepClone<T>(value: T): T {
       return value;
     }
     
-    // 기타 구조화 복사 실패 시 폴백: JSON 기반 복사
-    logger.warn('structuredClone failed, falling back to JSON clone', error);
+    // 기타 구조화 복사 실패 시 폴백: 순환 참조 감지 JSON 기반 복사
+    logger.warn('structuredClone failed, falling back to circular-safe JSON clone', error);
     
     try {
-      // JSON 기반 폴백 (함수, Symbol, undefined 등은 손실됨)
-      const jsonCloned = JSON.parse(JSON.stringify(value));
-      logger.warn('Used JSON fallback for deep clone - some data types may be lost');
+      // 순환 참조 감지를 위한 WeakSet
+      const visited = new WeakSet();
+      
+      const circularSafeStringify = (obj: any, space?: string | number): string => {
+        return JSON.stringify(obj, function(key, val) {
+          if (val !== null && typeof val === 'object') {
+            if (visited.has(val)) {
+              return '[Circular]';
+            }
+            visited.add(val);
+          }
+          return val;
+        }, space);
+      };
+      
+      // 순환 참조가 안전한 JSON 직렬화
+      const jsonString = circularSafeStringify(value);
+      const jsonCloned = JSON.parse(jsonString);
+      
+      if (process.env.NODE_ENV === 'development') {
+        logger.warn('Used circular-safe JSON fallback for deep clone - some data types may be lost');
+      }
       return jsonCloned;
     } catch (jsonError) {
-      // JSON도 실패하면 원본 반환 (최후의 수단)
-      const jsonErrorMessage = jsonError?.toString() || '';
-      if (
-        jsonErrorMessage.includes('circular') ||
-        jsonErrorMessage.includes('Converting circular structure')
-      ) {
-        // Circular references는 조용히 원본 반환
-        if (process.env.NODE_ENV === 'development' && Math.random() < 0.01) {
-          logger.trace('Circular reference detected in JSON fallback, returning original reference');
-        }
+      // JSON도 실패하면 수동 복사 시도
+      logger.warn('JSON fallback failed, trying manual clone', jsonError);
+      
+      try {
+        const manualCloned = manualDeepClone(value, new WeakMap());
+        return manualCloned;
+      } catch (manualError) {
+        // 모든 방법이 실패하면 원본 반환 (최후의 수단)
+        logger.error('All cloning methods failed, returning original reference', manualError);
         return value;
       }
-      logger.error('All cloning methods failed, returning original reference', jsonError);
-      return value;
     }
   }
+}
+
+/**
+ * 수동 깊은 복사 함수 - 순환 참조 안전 버전
+ * WeakMap을 사용하여 순환 참조를 추적하고 처리
+ * 
+ * @template T 복사할 값의 타입
+ * @param value - 복사할 값
+ * @param visited - 이미 방문한 객체들을 추적하는 WeakMap
+ * @returns 깊은 복사된 값
+ */
+function manualDeepClone<T>(value: T, visited: WeakMap<object, any>): T {
+  // Primitive 값들은 그대로 반환
+  if (
+    value === null ||
+    value === undefined ||
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean' ||
+    typeof value === 'bigint' ||
+    typeof value === 'symbol'
+  ) {
+    return value;
+  }
+  
+  // 함수는 원본 반환
+  if (typeof value === 'function') {
+    return value;
+  }
+  
+  // 복사할 수 없는 객체들은 원본 반환
+  if (value instanceof Promise || value instanceof WeakMap || value instanceof WeakSet) {
+    return value;
+  }
+  
+  // DOM 요소는 원본 반환
+  if (isDOMElement(value)) {
+    return value;
+  }
+  
+  // 순환 참조 확인
+  if (typeof value === 'object' && value !== null) {
+    if (visited.has(value)) {
+      // 순환 참조 발견 시 이미 복사된 객체 반환
+      return visited.get(value);
+    }
+  }
+  
+  // Date 객체
+  if (value instanceof Date) {
+    return new Date(value.getTime()) as T;
+  }
+  
+  // RegExp 객체
+  if (value instanceof RegExp) {
+    return new RegExp(value.source, value.flags) as T;
+  }
+  
+  // Error 객체
+  if (value instanceof Error) {
+    const ErrorClass = value.constructor as new (message: string) => Error;
+    const clonedError = new ErrorClass(value.message) as T;
+    if ('stack' in value && typeof value.stack === 'string') {
+      (clonedError as any).stack = value.stack;
+    }
+    return clonedError;
+  }
+  
+  // 배열 복사
+  if (Array.isArray(value)) {
+    const clonedArray: any[] = [];
+    // 먼저 빈 배열을 visited에 추가하여 순환 참조 방지
+    visited.set(value, clonedArray);
+    
+    for (let i = 0; i < value.length; i++) {
+      try {
+        clonedArray[i] = manualDeepClone(value[i], visited);
+      } catch {
+        // 개별 요소 복사 실패 시 원본 사용
+        clonedArray[i] = value[i];
+      }
+    }
+    return clonedArray as T;
+  }
+  
+  // Map 객체
+  if (value instanceof Map) {
+    const clonedMap = new Map();
+    visited.set(value, clonedMap);
+    
+    for (const [key, val] of value) {
+      try {
+        clonedMap.set(
+          manualDeepClone(key, visited),
+          manualDeepClone(val, visited)
+        );
+      } catch {
+        // 개별 키-값 복사 실패 시 원본 사용
+        clonedMap.set(key, val);
+      }
+    }
+    return clonedMap as T;
+  }
+  
+  // Set 객체
+  if (value instanceof Set) {
+    const clonedSet = new Set();
+    visited.set(value, clonedSet);
+    
+    for (const val of value) {
+      try {
+        clonedSet.add(manualDeepClone(val, visited));
+      } catch {
+        // 개별 요소 복사 실패 시 원본 사용
+        clonedSet.add(val);
+      }
+    }
+    return clonedSet as T;
+  }
+  
+  // 일반 객체 복사
+  if (typeof value === 'object' && value !== null) {
+    const clonedObj: any = {};
+    // 먼저 빈 객체를 visited에 추가하여 순환 참조 방지
+    visited.set(value, clonedObj);
+    
+    for (const key in value) {
+      if (Object.prototype.hasOwnProperty.call(value, key)) {
+        try {
+          clonedObj[key] = manualDeepClone((value as any)[key], visited);
+        } catch {
+          // 개별 속성 복사 실패 시 원본 사용
+          clonedObj[key] = (value as any)[key];
+        }
+      }
+    }
+    return clonedObj as T;
+  }
+  
+  // 기타의 경우 원본 반환
+  return value;
 }
 
 /**

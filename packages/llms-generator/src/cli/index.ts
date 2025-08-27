@@ -24,6 +24,7 @@ import { InitCommand } from './commands/InitCommand.js';
 import { PriorityManagerCommand } from './commands/PriorityManagerCommand.js';
 import { PriorityTasksCommand } from './commands/PriorityTasksCommand.js';
 import { MismatchDetectionCommand } from './commands/MismatchDetectionCommand.js';
+import { CodeModeCommand } from './commands/CodeModeCommand.js';
 import { CLIConfig } from './types/CLITypes.js';
 import { EnhancedConfigManager } from '../core/EnhancedConfigManager.js';
 import { DEFAULT_CONFIG } from '../shared/config/DefaultConfig.js';
@@ -102,6 +103,10 @@ async function main(): Promise<void> {
 
       case 'detect-mismatches':
         await handleDetectMismatches(commandArgs, argumentParser);
+        break;
+
+      case 'code-mode':
+        await handleCodeMode(commandArgs, argumentParser);
         break;
 
       default:
@@ -365,6 +370,35 @@ async function handleDetectMismatches(args: string[], argumentParser: ArgumentPa
   };
 
   await mismatchDetectionCommand.execute(options);
+}
+
+async function handleCodeMode(args: string[], argumentParser: ArgumentParser): Promise<void> {
+  const config = await loadEnhancedConfig();
+  const codeModeCommand = new CodeModeCommand(config);
+  
+  // Parse targets from arguments (e.g., code-mode core react ./src/utils)
+  const targets = args.filter(arg => !arg.startsWith('-'));
+  
+  // Parse extension flags
+  const extensionFlag = argumentParser.extractFlag(args, '--extensions');
+  const extensions = extensionFlag 
+    ? extensionFlag.split(',').map(ext => ext.trim().startsWith('.') ? ext.trim() : `.${ext.trim()}`)
+    : undefined;
+  
+  const options = {
+    targets: targets.length > 0 ? targets : undefined, // defaults to ['core', 'react']
+    packages: undefined, // Legacy support - will be handled by targets
+    paths: undefined,    // Will be handled by targets
+    quiet: argumentParser.hasFlag(args, '-q', '--quiet'),
+    dryRun: argumentParser.hasFlag(args, '--dry-run'),
+    force: argumentParser.hasFlag(args, '-f', '--force'),
+    excludeTests: !argumentParser.hasFlag(args, '--include-tests'),
+    stripComments: !argumentParser.hasFlag(args, '--keep-comments'),
+    singleFile: !argumentParser.hasFlag(args, '--multiple-files'),
+    extensions
+  };
+
+  await codeModeCommand.execute(options);
 }
 
 // Run CLI only if this file is executed directly

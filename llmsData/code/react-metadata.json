@@ -1,0 +1,184 @@
+{
+  "package": "react",
+  "generatedAt": "2025-08-27T07:14:29.833Z",
+  "statistics": {
+    "totalFiles": 34,
+    "typeFiles": 3,
+    "codeFiles": 31,
+    "totalLines": 4037,
+    "typeLines": 167,
+    "codeLines": 3870
+  },
+  "files": [
+    {
+      "path": "actions/ActionContext.types.ts",
+      "isType": true,
+      "lines": 41
+    },
+    {
+      "path": "refs/types.ts",
+      "isType": true,
+      "lines": 70
+    },
+    {
+      "path": "stores/core/types.ts",
+      "isType": true,
+      "lines": 56
+    },
+    {
+      "path": "actions/ActionContext.tsx",
+      "isType": false,
+      "lines": 183
+    },
+    {
+      "path": "actions/index.ts",
+      "isType": false,
+      "lines": 15
+    },
+    {
+      "path": "hooks/index.ts",
+      "isType": false,
+      "lines": 4
+    },
+    {
+      "path": "index.ts",
+      "isType": false,
+      "lines": 17
+    },
+    {
+      "path": "patterns/index.ts",
+      "isType": false,
+      "lines": 2
+    },
+    {
+      "path": "refs/createRefContext.ts",
+      "isType": false,
+      "lines": 495
+    },
+    {
+      "path": "refs/helpers.ts",
+      "isType": false,
+      "lines": 16
+    },
+    {
+      "path": "refs/index.ts",
+      "isType": false,
+      "lines": 17
+    },
+    {
+      "path": "stores/components/StoreErrorBoundary.tsx",
+      "isType": false,
+      "lines": 256
+    },
+    {
+      "path": "stores/core/EventBus.ts",
+      "isType": false,
+      "lines": 115
+    },
+    {
+      "path": "stores/core/index.ts",
+      "isType": false,
+      "lines": 12
+    },
+    {
+      "path": "stores/core/Store.ts",
+      "isType": false,
+      "lines": 265
+    },
+    {
+      "path": "stores/core/StoreRegistry.ts",
+      "isType": false,
+      "lines": 118
+    },
+    {
+      "path": "stores/hooks/index.ts",
+      "isType": false,
+      "lines": 18
+    },
+    {
+      "path": "stores/hooks/useComputedStore.ts",
+      "isType": false,
+      "lines": 360
+    },
+    {
+      "path": "stores/hooks/useLocalStore.ts",
+      "isType": false,
+      "lines": 19
+    },
+    {
+      "path": "stores/hooks/usePersistedStore.ts",
+      "isType": false,
+      "lines": 60
+    },
+    {
+      "path": "stores/hooks/useStoreSelector.ts",
+      "isType": false,
+      "lines": 187
+    },
+    {
+      "path": "stores/hooks/useStoreValue.ts",
+      "isType": false,
+      "lines": 165
+    },
+    {
+      "path": "stores/index.ts",
+      "isType": false,
+      "lines": 24
+    },
+    {
+      "path": "stores/patterns/declarative-store-pattern-v2.tsx",
+      "isType": false,
+      "lines": 215
+    },
+    {
+      "path": "stores/patterns/index.ts",
+      "isType": false,
+      "lines": 13
+    },
+    {
+      "path": "stores/utils/comparison.ts",
+      "isType": false,
+      "lines": 291
+    },
+    {
+      "path": "stores/utils/error-handling.ts",
+      "isType": false,
+      "lines": 242
+    },
+    {
+      "path": "stores/utils/immutable.ts",
+      "isType": false,
+      "lines": 436
+    },
+    {
+      "path": "stores/utils/index.ts",
+      "isType": false,
+      "lines": 20
+    },
+    {
+      "path": "stores/utils/provider-composition.ts",
+      "isType": false,
+      "lines": 12
+    },
+    {
+      "path": "stores/utils/registry-sync.ts",
+      "isType": false,
+      "lines": 29
+    },
+    {
+      "path": "stores/utils/store-selector.ts",
+      "isType": false,
+      "lines": 42
+    },
+    {
+      "path": "stores/utils/type-guards.ts",
+      "isType": false,
+      "lines": 92
+    },
+    {
+      "path": "stores/utils/utils.ts",
+      "isType": false,
+      "lines": 130
+    }
+  ]
+}

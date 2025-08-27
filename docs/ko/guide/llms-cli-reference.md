@@ -233,6 +233,63 @@ pnpm llms:priority-tasks --language ko --verbose
 - `priority-suggest`: 개선 권고사항 제공
 - `priority-auto`: 사용자 정의 기준으로 우선순위 자동 재계산
 
+### 소스 코드 문서화
+
+#### `code-mode` 🆕
+
+LLM이 이해할 수 있도록 완전한 소스 코드 문서를 생성합니다. 주석이 제거되고 타입 정의가 우선 배치됩니다.
+
+```bash
+# 기본 사용법 (core, react 패키지)
+pnpm llms:code-mode
+
+# 특정 패키지만
+pnpm llms:code-mode core
+pnpm llms:code-mode react
+
+# 사용자 정의 경로
+pnpm llms:code-mode ./example/src
+pnpm llms:code-mode ./packages/llms-generator/src
+
+# 여러 타겟
+pnpm llms:code-mode core ./custom/path
+
+# 파일 확장자 지정
+pnpm llms:code-mode --extensions=js,jsx,ts,tsx
+
+# 미리보기 모드
+pnpm llms:code-mode --dry-run
+
+# 모든 옵션
+pnpm llms:code-mode core ./src --extensions=ts,tsx --keep-comments --include-tests
+```
+
+**옵션:**
+- `targets`: 패키지명, 경로, 또는 파일 (기본값: core, react)
+- `--extensions=<확장자들>`: 처리할 파일 확장자 (기본값: .ts,.tsx)
+- `--keep-comments`: 주석 유지 (기본: 제거)
+- `--include-tests`: 테스트 파일 포함 (기본: 제외)
+- `--multiple-files`: 여러 파일로 출력 (기본: 단일 파일)
+- `-q, --quiet`: 조용한 모드
+- `--dry-run`: 미리보기 모드
+- `-f, --force`: 기존 파일 덮어쓰기
+
+**생성되는 파일:**
+```
+llmsData/code/
+├── core-complete.md         # Core 패키지 완전한 코드 (~43KB)
+├── core-metadata.json       # Core 패키지 통계
+├── react-complete.md        # React 패키지 완전한 코드 (~113KB)
+└── react-metadata.json      # React 패키지 통계
+```
+
+**특징:**
+- **주석 제거**: 모든 주석, JSDoc, 빈 줄 자동 제거
+- **타입 우선 배치**: types.ts 파일이 구현 코드보다 먼저 위치
+- **단일 파일 출력**: 각 패키지별로 하나의 마크다운 파일로 통합
+- **테스트 제외**: `*.test.*`, `*.spec.*`, `__tests__/` 디렉토리 자동 제외
+- **메타데이터**: 파일별 줄 수 및 구조 정보 JSON 파일 생성
+
 ## 고급 기능
 
 ### 언어 처리 매트릭스
@@ -243,6 +300,9 @@ pnpm llms:priority-tasks --language ko --verbose
 | `generate-templates` | ✅ | ✅ | ✅ | ✅ |
 | `priority-*` | ✅ | ✅ | ✅ | ❌ |
 | `work-next` | ✅ | ✅ | ❌ | ✅ |
+| `code-mode` | N/A | N/A | N/A | 🎯 |
+
+> `code-mode`는 소스 코드 처리이므로 언어별 문서 처리와는 다른 개념입니다.
 
 ### 자동화 워크플로우
 

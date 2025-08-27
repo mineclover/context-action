@@ -5,6 +5,8 @@ import {
   fastCompare, 
   ComparisonOptions
 } from '../utils/comparison';
+import { TypeGuards } from '../utils/type-guards';
+import { ErrorHandlers } from '../utils/error-handling';
 
 /**
  * Core Store class for centralized state management
@@ -38,6 +40,11 @@ export class Store<T = any> implements IStore<T> {
   // Notification mode settings
   private notificationMode: 'batched' | 'immediate' = 'batched';
   private pendingNotification = false;
+  
+  // 배치 업데이트 최적화
+  private batchedUpdates = new Set<() => void>();
+  private batchTimeoutId: number | null = null;
+  private readonly BATCH_DELAY_MS = 16; // ~60fps
 
   public readonly name: string;
   // Custom comparator function per store
@@ -114,47 +121,28 @@ export class Store<T = any> implements IStore<T> {
    */
   setValue(value: T): void {
     // Debug logging to identify event objects being stored (but exclude RefState objects)
-    if (value && typeof value === 'object' && value !== null) {
+    if (TypeGuards.isObject(value)) {
       // Check if this is a RefState object (which legitimately has target property for DOM elements)
-      const isRefState = (
-        (value as any).target !== undefined &&
-        (value as any).isReady !== undefined &&
-        (value as any).isMounted !== undefined &&
-        (value as any).mountPromise !== undefined
-      );
-      
-      if (!isRefState) {
-        const hasEventTarget = (value as any).target !== undefined;
-        const hasPreventDefault = typeof (value as any).preventDefault === 'function';
-        const isEvent = value instanceof Event;
+      if (!TypeGuards.isRefState(value) && TypeGuards.isSuspiciousEventObject(value)) {
+        const hasEventTarget = TypeGuards.hasTargetProperty(value);
+        const hasPreventDefault = TypeGuards.isEventLike(value);
+        const isEvent = TypeGuards.isDOMEvent(value);
         
-        if (hasEventTarget || hasPreventDefault || isEvent) {
-          console.error(
-            '[Context-Action] ⚠️ Event object detected in Store.setValue!',
-            '\nStore name:', this.name,
-            '\nValue type:', typeof value,
-            '\nConstructor:', value?.constructor?.name,
-            '\nIs Event:', isEvent,
-            '\nHas target property:', hasEventTarget,
-            '\nHas preventDefault:', hasPreventDefault,
-            '\nStack trace:', new Error().stack?.split('\n').slice(1, 10).join('\n')
-          );
-          
-          // Log problematic properties
-          if (value && typeof value === 'object') {
-            const problematicKeys = [];
-            for (const key in value) {
-              if (Object.prototype.hasOwnProperty.call(value, key)) {
-                const prop = (value as any)[key];
-                if (prop instanceof Element || prop instanceof Event || (prop && typeof prop === 'object' && prop.target)) {
-                  problematicKeys.push(key);
-                }
-              }
-            }
-            if (problematicKeys.length > 0) {
-              console.error('[Context-Action] Event object properties:', problematicKeys);
-            }
-          }
+        console.error(
+          '[Context-Action] ⚠️ Event object detected in Store.setValue!',
+          '\nStore name:', this.name,
+          '\nValue type:', typeof value,
+          '\nConstructor:', value?.constructor?.name,
+          '\nIs Event:', isEvent,
+          '\nHas target property:', hasEventTarget,
+          '\nHas preventDefault:', hasPreventDefault,
+          '\nStack trace:', new Error().stack?.split('\n').slice(1, 10).join('\n')
+        );
+        
+        // Log problematic properties
+        const problematicKeys = TypeGuards.findProblematicProperties(value);
+        if (problematicKeys.length > 0) {
+          console.error('[Context-Action] Event object properties:', problematicKeys);
         }
       }
     }
@@ -199,32 +187,23 @@ export class Store<T = any> implements IStore<T> {
       const updatedValue = updater(safeCurrentValue);
       
       // Debug logging for event objects in update method (but exclude RefState objects)
-      if (updatedValue && typeof updatedValue === 'object' && updatedValue !== null) {
+      if (TypeGuards.isObject(updatedValue)) {
         // Check if this is a RefState object (which legitimately has target property for DOM elements)
-        const isRefState = (
-          (updatedValue as any).target !== undefined &&
-          (updatedValue as any).isReady !== undefined &&
-          (updatedValue as any).isMounted !== undefined &&
-          (updatedValue as any).mountPromise !== undefined
-        );
-        
-        if (!isRefState) {
-          const hasEventTarget = (updatedValue as any).target !== undefined;
-          const hasPreventDefault = typeof (updatedValue as any).preventDefault === 'function';
-          const isEvent = updatedValue instanceof Event;
+        if (!TypeGuards.isRefState(updatedValue) && TypeGuards.isSuspiciousEventObject(updatedValue)) {
+          const hasEventTarget = TypeGuards.hasTargetProperty(updatedValue);
+          const hasPreventDefault = TypeGuards.isEventLike(updatedValue);
+          const isEvent = TypeGuards.isDOMEvent(updatedValue);
           
-          if (hasEventTarget || hasPreventDefault || isEvent) {
-            console.error(
-              '[Context-Action] ⚠️ Event object detected in Store.update result!',
-              '\nStore name:', this.name,
-              '\nUpdated value type:', typeof updatedValue,
-              '\nConstructor:', updatedValue?.constructor?.name,
-              '\nIs Event:', isEvent,
-              '\nHas target property:', hasEventTarget,
-              '\nHas preventDefault:', hasPreventDefault,
-              '\nStack trace:', new Error().stack?.split('\n').slice(1, 10).join('\n')
-            );
-          }
+          console.error(
+            '[Context-Action] ⚠️ Event object detected in Store.update result!',
+            '\nStore name:', this.name,
+            '\nUpdated value type:', typeof updatedValue,
+            '\nConstructor:', updatedValue?.constructor?.name,
+            '\nIs Event:', isEvent,
+            '\nHas target property:', hasEventTarget,
+            '\nHas preventDefault:', hasPreventDefault,
+            '\nStack trace:', new Error().stack?.split('\n').slice(1, 10).join('\n')
+          );
         }
       }
       
@@ -255,6 +234,24 @@ export class Store<T = any> implements IStore<T> {
    */
   clearListeners(): void {
     this.listeners.clear();
+  }
+
+  /**
+   * Store 정리 (메모리 누수 방지)
+   */
+  dispose(): void {
+    // 리스너 정리
+    this.clearListeners();
+    
+    // 배치 업데이트 정리
+    if (this.batchTimeoutId !== null) {
+      cancelAnimationFrame(this.batchTimeoutId);
+      this.batchTimeoutId = null;
+    }
+    this.batchedUpdates.clear();
+    
+    // 업데이트 큐 정리
+    this.updateQueue.length = 0;
   }
 
   /**
@@ -334,8 +331,13 @@ export class Store<T = any> implements IStore<T> {
         result = !areEqual;
         
       }
-    } catch {
+    } catch (error) {
       // 비교 중 에러 발생 시 안전한 fallback (참조 비교)
+      ErrorHandlers.store(
+        'Error during value comparison, falling back to reference comparison',
+        { storeName: this.name },
+        error instanceof Error ? error : undefined
+      );
       result = !Object.is(oldValue, newValue);
     }
 
@@ -370,21 +372,56 @@ export class Store<T = any> implements IStore<T> {
   }
 
   /**
-   * 듀얼 모드 알림 스케줄링
+   * 듀얼 모드 알림 스케줄링 (개선된 배치 시스템)
    */
   protected _scheduleNotification(): void {
     if (this.notificationMode === 'immediate') {
       // 즉시 모드: 동기적으로 모든 리스너에게 알림
       this._notifyListeners();
     } else {
-      // 배치 모드: requestAnimationFrame으로 최적화된 알림
-      if (!this.pendingNotification) {
-        this.pendingNotification = true;
-        requestAnimationFrame(() => {
-          this.pendingNotification = false;
-          this._notifyListeners();
-        });
-      }
+      // 배치 모드: 최적화된 배치 알림 시스템
+      this._addToBatch(() => this._notifyListeners());
+    }
+  }
+
+  /**
+   * 배치 업데이트 시스템
+   */
+  private _addToBatch(updateFn: () => void): void {
+    this.batchedUpdates.add(updateFn);
+    
+    if (this.batchTimeoutId === null) {
+      this.batchTimeoutId = requestAnimationFrame(() => {
+        this._flushBatchedUpdates();
+      });
+    }
+  }
+
+  /**
+   * 배치된 업데이트들을 실행
+   */
+  private _flushBatchedUpdates(): void {
+    this.batchTimeoutId = null;
+    
+    if (this.batchedUpdates.size > 0) {
+      const updates = Array.from(this.batchedUpdates);
+      this.batchedUpdates.clear();
+      
+      // 모든 배치된 업데이트를 한 번에 실행
+      updates.forEach(updateFn => {
+        try {
+          updateFn();
+        } catch (error) {
+          ErrorHandlers.store(
+            'Error during batched update execution',
+            { 
+              storeName: this.name,
+              batchSize: updates.length
+            },
+            error instanceof Error ? error : undefined
+          );
+        }
+      });
     }
   }
 
@@ -393,8 +430,16 @@ export class Store<T = any> implements IStore<T> {
     this.listeners.forEach(listener => {
       try {
         listener();
-      } catch {
-        // Silent catch for listener errors
+      } catch (error) {
+        // 리스너 에러를 표준화된 방식으로 처리
+        ErrorHandlers.store(
+          'Error in store listener execution',
+          { 
+            storeName: this.name,
+            listenerCount: this.listeners.size
+          },
+          error instanceof Error ? error : undefined
+        );
       }
     });
   }

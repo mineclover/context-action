@@ -374,18 +374,6 @@ For existing projects:
 
 ## Additional Hooks and Utilities
 
-### 🔍 Context Hooks
-
-#### `useStoreContext()`
-**Low-level context hook** for accessing store context directly.
-- **Purpose**: Direct access to store context internals
-- **Use Case**: Custom store patterns, debugging
-- **Advanced**: Rarely needed in applications
-
-```tsx
-const context = useStoreContext();
-// Access to internal store context structure
-```
 
 ### 📊 Multiple Store Hooks
 
@@ -619,7 +607,6 @@ These hooks are created by factory functions:
 - `useActionContext` - Access context
 
 #### Utilities & Helpers
-- `useStoreContext` - Store context access
 - `assertStoreValue` - Value assertion
 - `shallowEqual` - Shallow comparison
 - `deepEqual` - Deep comparison
@@ -646,7 +633,7 @@ These hooks are created by factory functions:
 - **Async**: `useAsyncComputedStore`
 - **Path Selection**: `useStorePathSelector`
 - **Type Safety**: `assertStoreValue`
-- **Low-Level**: `useStoreContext`, `useActionContext`
+- **Low-Level**: `useActionContext`
 
 ### Helper Functions
 - **Equality**: `shallowEqual`, `deepEqual`, `defaultEqualityFn`

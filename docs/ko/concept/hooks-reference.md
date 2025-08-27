@@ -365,18 +365,6 @@ function OptimizedUserProfile() {
 
 ## 추가 훅 및 유틸리티
 
-### 🔍 컨텍스트 훅
-
-#### `useStoreContext()`
-스토어 컨텍스트에 직접 액세스하는 **저수준 컨텍스트 훅**.
-- **목적**: 스토어 컨텍스트 내부에 직접 액세스
-- **사용 사례**: 커스텀 스토어 패턴, 디버깅
-- **고급**: 애플리케이션에서는 거의 필요하지 않음
-
-```tsx
-const context = useStoreContext();
-// 내부 스토어 컨텍스트 구조에 액세스
-```
 
 ### 📊 다중 스토어 훅
 
@@ -610,7 +598,6 @@ function CriticalComponent() {
 - `useActionContext` - 컴텍스트 액세스
 
 #### 유틸리티 및 헬퍼
-- `useStoreContext` - 스토어 컴텍스트 액세스
 - `assertStoreValue` - 값 어서션
 - `shallowEqual` - 얘은 비교
 - `deepEqual` - 깊은 비교
@@ -637,7 +624,7 @@ function CriticalComponent() {
 - **비동기**: `useAsyncComputedStore`
 - **경로 선택**: `useStorePathSelector`
 - **타입 안전성**: `assertStoreValue`
-- **저수준**: `useStoreContext`, `useActionContext`
+- **저수준**: `useActionContext`
 - **RefContext**: `useWaitForRefs`, `useGetAllRefs`
 
 ### 헬퍼 함수
