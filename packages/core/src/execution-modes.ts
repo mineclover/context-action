@@ -39,7 +39,8 @@ export async function executeSequential<T, R = void>(
 ): Promise<void> {
 
   let i = 0;
-  const nonBlockingPromises: Promise<any>[] = [];
+  const nonBlockingPromises: Array<Promise<any>> = [];
+  const errors: Array<{ handlerId: string; error: Error; timestamp: number }> = [];
   
   while (i < context.handlers.length) {
     // Check for abort or termination
@@ -49,8 +50,6 @@ export async function executeSequential<T, R = void>(
 
     const registration = context.handlers[i];
     context.currentIndex = i;
-
-
     const controller = createController(registration, i);
 
     try {
@@ -61,30 +60,36 @@ export async function executeSequential<T, R = void>(
       
       const result = registration.handler(context.payload, controller);
 
-      /** Wait for async handlers if they're blocking */
-      if (registration.config.blocking && result instanceof Promise) {
-        const handlerResult = await result;
-        
-        /** Collect result if handler returned something and wasn't terminated */
+      if (registration.config.blocking) {
+        // 🆕 Blocking handlers: Wait for completion (sync or async)
+        const handlerResult = result instanceof Promise ? await result : result;
         if (handlerResult !== undefined && !context.terminated) {
           context.results.push(handlerResult as R);
         }
-      } else if (result !== undefined && !context.terminated) {
-        /** Collect synchronous result */
+      } else {
+        // 🆕 Non-blocking handlers: Handle differently for sync vs async
         if (result instanceof Promise) {
-          // Non-blocking async handler - track promise for error handling
-          const promiseWithHandling = result.then(asyncResult => {
-            if (asyncResult !== undefined && !context.terminated) {
-              context.results.push(asyncResult as R);
-            }
-            return asyncResult;
-          }).catch((error) => {
-            // Re-throw the error so it can be caught when we await all promises
-            throw error;
-          });
+          // Non-blocking async: Track promise with error handling
+          const promiseWithErrorHandling = result
+            .then(asyncResult => {
+              if (asyncResult !== undefined && !context.terminated) {
+                context.results.push(asyncResult as R);
+              }
+              return asyncResult;
+            })
+            .catch(error => {
+              // 🆕 Non-blocking async handler error collection
+              errors.push({
+                handlerId: registration.id,
+                error: error instanceof Error ? error : new Error(String(error)),
+                timestamp: Date.now()
+              });
+              return undefined; // Return undefined for failed non-blocking handlers
+            });
           
-          nonBlockingPromises.push(promiseWithHandling);
-        } else {
+          nonBlockingPromises.push(promiseWithErrorHandling);
+        } else if (result !== undefined && !context.terminated) {
+          // Non-blocking sync: Immediately collect result
           context.results.push(result as R);
         }
       }
@@ -101,32 +106,34 @@ export async function executeSequential<T, R = void>(
         );
         
         if (jumpIndex !== -1) {
-          // Jump to the target index directly (position movement)
           i = jumpIndex;
           context.jumpToPriority = undefined;
-          continue; // Continue to execute the handler at jump destination
+          continue;
         } else {
-          // Invalid jump target, clear and continue normally
           context.jumpToPriority = undefined;
           i++;
         }
       } else {
-        // Normal progression to next handler
         i++;
       }
 
     } catch (error: any) {
-      if (registration.config.blocking) {
-        throw error;
-      }
-      // For non-blocking synchronous handlers, throw immediately
-      throw error;
+      // 🆕 Maintain backward compatibility: any sync error fails pipeline
+      const errorObj = error instanceof Error ? error : new Error(String(error));
+      
+      // For backward compatibility: all synchronous errors fail the pipeline
+      throw errorObj;
     }
   }
   
-  // Wait for all non-blocking async handlers to complete and check for errors
+  // 🆕 Wait for all non-blocking promises with error collection
   if (nonBlockingPromises.length > 0) {
-    await Promise.all(nonBlockingPromises);
+    await Promise.allSettled(nonBlockingPromises);
+  }
+
+  // 🆕 Store collected errors in context for ExecutionResult
+  if (errors.length > 0) {
+    (context as any).collectedErrors = errors;
   }
 }
 
@@ -185,11 +192,14 @@ export async function executeParallel<T, R = void>(
       };
       
     } catch (error: any) {
+      // 🆕 Consistent error object creation
+      const errorObj = error instanceof Error ? error : new Error(String(error));
+      
       if (registration.config.blocking) {
-        throw error;
+        throw errorObj;
       }
       
-      return { success: false, handlerId: registration.id, error };
+      return { success: false, handlerId: registration.id, error: errorObj };
     }
   });
 
@@ -280,7 +290,9 @@ export async function executeRace<T, R = void>(
       };
       
     } catch (error: any) {
-      return { success: false, handlerId: registration.id, error, registration };
+      // 🆕 Consistent error object creation
+      const errorObj = error instanceof Error ? error : new Error(String(error));
+      return { success: false, handlerId: registration.id, error: errorObj, registration };
     }
   });
 

@@ -19,4 +19,13 @@ export { ActionGuard } from './action-guard.js';
 
 export { executeSequential, executeParallel, executeRace } from './execution-modes.js';
 
+// 🆕 React integration helpers (optional)
+export {
+  useActionHandler,
+  createReactHandlerConfig,
+  createReactDispatcher,
+  ReactDevUtils,
+  ReactActionError,
+  isReactActionError
+} from './react-helpers.js';
 

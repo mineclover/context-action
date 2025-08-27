@@ -1,5 +1,5 @@
 import type { IStore, Listener, Snapshot, Unsubscribe } from './types';
-import { safeGet, safeSet, getGlobalImmutabilityOptions, performantSafeGet } from '../utils/immutable';
+import { deepClone } from '../utils/immutable';
 import { 
   compareValues, 
   fastCompare, 
@@ -98,11 +98,8 @@ export class Store<T = any> implements IStore<T> {
    * 보안 강화: 외부에서 반환된 값을 수정해도 Store 내부 상태는 보호됨
    */
   getValue(): T {
-    const options = getGlobalImmutabilityOptions();
-    const clonedValue = performantSafeGet(this._value, options.enableCloning);
-    
-    
-    return clonedValue;
+    // Immer의 Copy-on-Write로 효율적인 불변성 보장
+    return deepClone(this._value);
   }
 
   /**
@@ -147,8 +144,8 @@ export class Store<T = any> implements IStore<T> {
       }
     }
     
-    const options = getGlobalImmutabilityOptions();
-    const safeValue = safeSet(value, options.enableCloning);
+    // Immer를 사용한 안전한 불변성 보장
+    const safeValue = deepClone(value);
     
     // 강화된 값 비교 시스템
     const hasChanged = this._compareValues(this._value, safeValue);
@@ -181,8 +178,8 @@ export class Store<T = any> implements IStore<T> {
 
     try {
       this.isUpdating = true;
-      const options = getGlobalImmutabilityOptions();
-      const safeCurrentValue = performantSafeGet(this._value, options.enableCloning);
+      // Immer의 Copy-on-Write로 안전한 현재 값 제공
+      const safeCurrentValue = deepClone(this._value);
       
       const updatedValue = updater(safeCurrentValue);
       
@@ -346,8 +343,8 @@ export class Store<T = any> implements IStore<T> {
   }
 
   protected _createSnapshot(): Snapshot<T> {
-    const options = getGlobalImmutabilityOptions();
-    const clonedValue = safeGet(this._value, options.enableCloning);
+    // Immer의 Copy-on-Write 최적화로 불변성 보장
+    const clonedValue = deepClone(this._value);
     
     
     return {

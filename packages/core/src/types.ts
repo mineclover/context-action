@@ -240,6 +240,9 @@ export interface HandlerConfig {
   
   /** Throttle delay in milliseconds */
   throttle?: number;
+  
+  /** Replace existing handler with same ID. Default: false for backward compatibility */
+  replaceExisting?: boolean;
 }
 
 
@@ -385,9 +388,17 @@ export interface ActionRegisterConfig {
     /** Maximum number of handlers per action (prevents memory leaks) */
     maxHandlers?: number;
     
-    
     /** Default execution mode for actions */
     defaultExecutionMode?: ExecutionMode;
+    
+    /** Statistics collection enabled. Default: true */
+    collectStats?: boolean;
+    
+    /** Use concurrency queue for thread safety. Default: true */
+    useConcurrencyQueue?: boolean;
+    
+    /** Global error handler for unhandled errors */
+    errorHandler?: (error: Error, context: any) => void;
   };
 }
 
@@ -460,6 +471,22 @@ export interface DispatchOptions {
   /** Abort signal for cancelling the dispatch */
   signal?: AbortSignal;
   
+  /** Bypass queue and execute immediately */
+  immediate?: boolean;
+  
+  /** Priority in dispatch queue (higher = earlier execution) */
+  queuePriority?: number;
+  
+  /** Execution timeout in milliseconds */
+  timeout?: number;
+  
+  /** Retry configuration for error recovery */
+  retryOnError?: {
+    /** Maximum retry attempts */
+    maxAttempts: number;
+    /** Delay between retries in milliseconds */
+    delay: number;
+  };
   
   /** Auto-abort options for automatic AbortController management */
   autoAbort?: {
@@ -481,6 +508,14 @@ export interface DispatchOptions {
     /** Exclude handlers with these IDs */
     excludeHandlerIds?: string[];
     
+    /** Priority-based filtering */
+    priority?: {
+      /** Minimum priority threshold */
+      min?: number;
+      /** Maximum priority threshold */
+      max?: number;
+    };
+    
     /** Custom filter function */
     custom?: (config: Required<HandlerConfig>) => boolean;
   };
@@ -496,9 +531,11 @@ export interface DispatchOptions {
     /** Whether to collect results from all handlers */
     collect?: boolean;
     
-    
     /** Maximum number of results to collect */
     maxResults?: number;
+    
+    /** Include errors in results */
+    includeErrors?: boolean;
   };
 }
 
