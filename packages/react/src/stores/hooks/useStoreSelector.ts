@@ -8,7 +8,7 @@
  * @module stores/hooks/useStoreSelector
  */
 
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo, useId } from 'react';
 import type { Store } from '../core/Store';
 
 /**
@@ -93,6 +93,9 @@ export function useStoreSelector<T, R>(
   selector: (value: T) => R,
   equalityFn: (a: R, b: R) => boolean = defaultEqualityFn
 ): R {
+  // 각 useStoreSelector 인스턴스를 구분하기 위한 고유 ID
+  const selectorId = useId();
+  
   // Selector와 equalityFn을 참조로 안정화
   const selectorRef = useRef(selector);
   const equalityFnRef = useRef(equalityFn);
@@ -148,16 +151,17 @@ export function useStoreSelector<T, R>(
         
         // 동등성 검사로 불필요한 업데이트 방지
         if (!equalityFnRef.current(selectedValueRef.current, newSelectedValue)) {
-          setSelectedValue(newSelectedValue);
-          selectedValueRef.current = newSelectedValue;
-          
           if (process.env.NODE_ENV === 'development') {
             console.debug('useStoreSelector: Value updated', {
+              selectorId: selectorId,
               storeName: store.name,
               previousValue: selectedValueRef.current,
               newValue: newSelectedValue
             });
           }
+          
+          setSelectedValue(newSelectedValue);
+          selectedValueRef.current = newSelectedValue;
         }
       } catch (error) {
         if (process.env.NODE_ENV === 'development') {

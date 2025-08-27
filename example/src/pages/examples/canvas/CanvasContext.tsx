@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, ReactNode } from 'react';
+import { useRef, useState, useCallback, ReactNode, useMemo } from 'react';
 import { createActionContext, createStoreContext, useStoreValue } from '@context-action/react';
 import type { ActionPayloadMap } from '@context-action/core';
 
@@ -84,6 +84,10 @@ const {
   useActionHandler: useCanvasActionHandler
 } = createActionContext<CanvasActions>('Canvas');
 
+// 참조 안정성을 위한 상수 정의
+const EMPTY_POINTS_ARRAY: Point[] = [];
+const EMPTY_SHAPES_ARRAY: CanvasShape[] = [];
+
 // 통합 Canvas Provider 컴포넌트
 export function CanvasProvider({ children }: { children: ReactNode }) {
   return (
@@ -136,7 +140,7 @@ function CanvasActionHandlers() {
   }, [stores]));
 
   useCanvasActionHandler('clearAllShapes', useCallback(async () => {
-    stores.getStore('shapes').setValue([]);
+    stores.getStore('shapes').setValue(EMPTY_SHAPES_ARRAY);
     stores.getStore('selectedShapeId').setValue(null);
   }, [stores]));
 
@@ -179,7 +183,7 @@ function CanvasActionHandlers() {
   useCanvasActionHandler('endDrag', useCallback(async () => {
     stores.getStore('isDragging').setValue(false);
     stores.getStore('dragShape').setValue(null);
-    stores.getStore('freehandPoints').setValue([]);
+    stores.getStore('freehandPoints').setValue(EMPTY_POINTS_ARRAY);
   }, [stores]));
 
   // Freehand 포인트 관리 핸들러들
@@ -190,25 +194,61 @@ function CanvasActionHandlers() {
   }, [stores]));
 
   useCanvasActionHandler('clearFreehandPoints', useCallback(async () => {
-    stores.getStore('freehandPoints').setValue([]);
+    stores.getStore('freehandPoints').setValue(EMPTY_POINTS_ARRAY);
   }, [stores]));
 
   return null; // 이 컴포넌트는 핸들러만 등록하고 UI를 렌더링하지 않음
 }
 
-// Context-Action 기반 Canvas 사용 훅들
+// 선택적 Canvas 상태 구독 훅 (필요한 상태만 구독)
+export function useCanvasState(keys?: Array<keyof CanvasStoreState>) {
+  // 기본값: 모든 store 구독 (기존 호환성 유지)
+  const defaultKeys: Array<keyof CanvasStoreState> = [
+    'shapes', 'selectedShapeId', 'currentMode', 'currentTool', 'currentColor',
+    'strokeWidth', 'isDragging', 'dragStart', 'dragShape', 'freehandPoints'
+  ];
+  
+  const storeKeys = keys || defaultKeys;
+  
+  // 선택된 store들만 구독
+  const stores = storeKeys.reduce((acc, key) => {
+    acc[key] = useCanvasStore(key as any);
+    return acc;
+  }, {} as Record<string, any>);
+  
+  const values = storeKeys.reduce((acc, key) => {
+    acc[key] = useStoreValue(stores[key]);
+    return acc;
+  }, {} as Record<string, any>);
+  
+  return values as Pick<CanvasStoreState, typeof storeKeys[number]>;
+}
+
+// Context-Action 기반 Canvas 사용 훅들 (기존 호환성을 위해 유지)
 export function useCanvas() {
+  // Store들을 선언적으로 가져오기
+  const shapesStore = useCanvasStore('shapes');
+  const selectedShapeIdStore = useCanvasStore('selectedShapeId');
+  const currentModeStore = useCanvasStore('currentMode');
+  const currentToolStore = useCanvasStore('currentTool');
+  const currentColorStore = useCanvasStore('currentColor');
+  const strokeWidthStore = useCanvasStore('strokeWidth');
+  const isDraggingStore = useCanvasStore('isDragging');
+  const dragStartStore = useCanvasStore('dragStart');
+  const dragShapeStore = useCanvasStore('dragShape');
+  const freehandPointsStore = useCanvasStore('freehandPoints');
+  
   // Store 값들을 구독
-  const shapes = useStoreValue(useCanvasStore('shapes'));
-  const selectedShapeId = useStoreValue(useCanvasStore('selectedShapeId'));
-  const currentMode = useStoreValue(useCanvasStore('currentMode'));
-  const currentTool = useStoreValue(useCanvasStore('currentTool'));
-  const currentColor = useStoreValue(useCanvasStore('currentColor'));
-  const strokeWidth = useStoreValue(useCanvasStore('strokeWidth'));
-  const isDragging = useStoreValue(useCanvasStore('isDragging'));
-  const dragStart = useStoreValue(useCanvasStore('dragStart'));
-  const dragShape = useStoreValue(useCanvasStore('dragShape'));
-  const freehandPoints = useStoreValue(useCanvasStore('freehandPoints'));
+  const shapes = useStoreValue(shapesStore);
+  const selectedShapeId = useStoreValue(selectedShapeIdStore);
+  const currentMode = useStoreValue(currentModeStore);
+  const currentTool = useStoreValue(currentToolStore);
+  const currentColor = useStoreValue(currentColorStore);
+  const strokeWidth = useStoreValue(strokeWidthStore);
+  const isDragging = useStoreValue(isDraggingStore);
+  const dragStart = useStoreValue(dragStartStore);
+  const dragShape = useStoreValue(dragShapeStore);
+  const freehandPoints = useStoreValue(freehandPointsStore);
 
   // Action dispatch 함수
   const dispatch = useCanvasAction();

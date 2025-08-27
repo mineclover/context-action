@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
-import { useCanvas } from './CanvasContext';
+import { useCanvasStore, useCanvasAction } from './CanvasContext';
+import { useStoreValue, useStoreSelector } from '@context-action/react';
 
 interface CanvasToolbarProps {
   onFocusCanvas?: () => void;
@@ -7,25 +8,37 @@ interface CanvasToolbarProps {
 }
 
 export function CanvasToolbar({ onFocusCanvas, onTestAction }: CanvasToolbarProps) {
-  const {
-    currentMode,
-    currentTool,
-    currentColor,
-    strokeWidth,
-    shapes,
-    selectedShapeId,
-    setMode,
-    setTool,
-    setColor,
-    setStrokeWidth,
-    clearAllShapes,
-  } = useCanvas();
+  // 필요한 store만 구독 - 성능 최적화
+  const currentModeStore = useCanvasStore('currentMode');
+  const currentToolStore = useCanvasStore('currentTool');
+  const currentColorStore = useCanvasStore('currentColor');
+  const strokeWidthStore = useCanvasStore('strokeWidth');
+  const shapesStore = useCanvasStore('shapes');
+  const selectedShapeIdStore = useCanvasStore('selectedShapeId');
+  
+  const currentMode = useStoreValue(currentModeStore);
+  const currentTool = useStoreValue(currentToolStore);
+  const currentColor = useStoreValue(currentColorStore);
+  const strokeWidth = useStoreValue(strokeWidthStore);
+  // shapes 배열의 길이만 필요하므로 selector 사용
+  const shapesCount = useStoreSelector(shapesStore, (shapes) => shapes.length);
+  const selectedShapeId = useStoreValue(selectedShapeIdStore);
+  
+  // Action dispatch 함수
+  const dispatch = useCanvasAction();
+  
+  // 편의를 위한 액션 래퍼 함수들
+  const setMode = (mode: 'draw' | 'select') => dispatch('setMode', { mode });
+  const setTool = (tool: 'rectangle' | 'circle' | 'line' | 'freehand') => dispatch('setTool', { tool });
+  const setColor = (color: string) => dispatch('setColor', { color });
+  const setStrokeWidth = (width: number) => dispatch('setStrokeWidth', { width });
+  const clearAllShapes = () => dispatch('clearAllShapes');
   
   // 테스트 액션들
   const handleClearAll = useCallback(() => {
     clearAllShapes();
-    onTestAction?.('clear', `모든 도형 삭제 - 이전 개수: ${shapes.length}`);
-  }, [clearAllShapes, shapes.length, onTestAction]);
+    onTestAction?.('clear', `모든 도형 삭제 - 이전 개수: ${shapesCount}`);
+  }, [clearAllShapes, shapesCount, onTestAction]);
   
   const handleModeChange = useCallback((mode: 'draw' | 'select') => {
     setMode(mode);
@@ -56,10 +69,10 @@ export function CanvasToolbar({ onFocusCanvas, onTestAction }: CanvasToolbarProp
           <button 
             className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleClearAll}
-            disabled={shapes.length === 0}
-            title={shapes.length === 0 ? "삭제할 도형이 없습니다" : `${shapes.length}개 도형을 모두 삭제합니다`}
+            disabled={shapesCount === 0}
+            title={shapesCount === 0 ? "삭제할 도형이 없습니다" : `${shapesCount}개 도형을 모두 삭제합니다`}
           >
-            🗑️ Clear All {shapes.length > 0 && `(${shapes.length})`}
+            🗑️ Clear All {shapesCount > 0 && `(${shapesCount})`}
           </button>
         </div>
 
