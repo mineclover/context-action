@@ -206,7 +206,82 @@ const customComparison = useStoreValue(userStore, user => user.profile, {
 });
 ```
 
+### Circular Reference Safe Comparison
+
+```tsx
+// ✅ CORRECT: Safe handling of circular references
+const circularSafeComparison = useStoreValue(complexStore, undefined, {
+  customComparator: (prev, next) => {
+    // The framework automatically handles circular references in deep comparison
+    // But for custom comparators, use safe comparison patterns
+    
+    try {
+      // Use JSON.stringify for simple circular reference detection
+      const prevStr = JSON.stringify(prev, (key, value) => {
+        if (typeof value === 'object' && value !== null) {
+          if (seenObjects.has(value)) return '[Circular]';
+          seenObjects.add(value);
+        }
+        return value;
+      });
+      
+      const nextStr = JSON.stringify(next, (key, value) => {
+        if (typeof value === 'object' && value !== null) {
+          if (seenObjects.has(value)) return '[Circular]';
+          seenObjects.add(value);
+        }
+        return value;
+      });
+      
+      return prevStr === nextStr;
+    } catch {
+      // Fallback to reference comparison for complex circular structures
+      return Object.is(prev, next);
+    }
+  }
+});
+
+// Helper for circular reference detection
+const seenObjects = new WeakSet();
+```
+
 ## Memory Management
+
+### Event Object Storage Prevention
+
+```tsx
+// ❌ WRONG: Storing event objects causes memory leaks
+function BadEventHandler() {
+  const eventStore = useAppStore('events');
+  
+  const handleClick = (event) => {
+    // This will cause memory leaks - DOM events retain references
+    eventStore.setValue({ lastEvent: event }); // Don't do this!
+  };
+  
+  return <button onClick={handleClick}>Bad Click</button>;
+}
+
+// ✅ CORRECT: Extract only needed data from events
+function GoodEventHandler() {
+  const eventStore = useAppStore('events');
+  
+  const handleClick = useCallback((event) => {
+    // Extract only the data you need
+    const eventData = {
+      clientX: event.clientX,
+      clientY: event.clientY,
+      target: event.target?.tagName,
+      timestamp: Date.now(),
+      type: event.type
+    };
+    
+    eventStore.setValue({ lastEventData: eventData });
+  }, [eventStore]);
+  
+  return <button onClick={handleClick}>Good Click</button>;
+}
+```
 
 ### Cleanup Subscriptions
 
@@ -226,6 +301,48 @@ function UserComponent() {
   }, [userStore]);
   
   return <div>User Component</div>;
+}
+```
+
+### Cross-Platform Timeout Handling
+
+```tsx
+// ✅ CORRECT: Cross-platform compatible timeout handling
+function useCrossPlatformTimeout() {
+  const [timeoutId, setTimeoutId] = useState<ReturnType<typeof requestAnimationFrame> | null>(null);
+  
+  const scheduleUpdate = useCallback((callback: () => void, delay: number = 0) => {
+    // Cancel existing timeout
+    if (timeoutId) {
+      if (typeof timeoutId === 'number' && typeof window !== 'undefined') {
+        cancelAnimationFrame(timeoutId);
+      } else {
+        clearTimeout(timeoutId);
+      }
+    }
+    
+    // Schedule new update - use requestAnimationFrame for better performance
+    const newTimeoutId = delay === 0 
+      ? requestAnimationFrame(callback)
+      : setTimeout(callback, delay) as any;
+    
+    setTimeoutId(newTimeoutId);
+  }, [timeoutId]);
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutId) {
+        if (typeof timeoutId === 'number' && typeof window !== 'undefined') {
+          cancelAnimationFrame(timeoutId);
+        } else {
+          clearTimeout(timeoutId);
+        }
+      }
+    };
+  }, [timeoutId]);
+  
+  return scheduleUpdate;
 }
 ```
 
@@ -435,6 +552,71 @@ function OptimizedDataTable() {
 }
 ```
 
+## Error Handling & Recovery
+
+### Centralized Error Handling
+
+```tsx
+// ✅ CORRECT: Use framework's centralized error handling
+import { ErrorHandlers } from '@context-action/react';
+
+function useStoreErrorHandling() {
+  const handleStoreError = useCallback((error: Error, context: any) => {
+    // Framework provides centralized error handling
+    ErrorHandlers.store('Store operation failed', {
+      storeName: context.storeName,
+      operation: context.operation,
+      timestamp: Date.now()
+    }, error);
+  }, []);
+
+  return { handleStoreError };
+}
+
+// Store operations with error handling
+function useSafeStoreOperations() {
+  const userStore = useAppStore('user');
+  
+  const safeUpdate = useCallback(async (userData: any) => {
+    try {
+      userStore.setValue(userData);
+    } catch (error) {
+      // Framework automatically handles this through centralized error system
+      // No need for manual console.error - it's handled centrally
+      throw error; // Re-throw to maintain error propagation
+    }
+  }, [userStore]);
+  
+  return { safeUpdate };
+}
+```
+
+### EventBus Memory Safety
+
+```tsx
+// ✅ CORRECT: EventBus automatically handles memory-heavy objects
+function useEventBusSafety() {
+  const [eventBus] = useState(() => new EventBus());
+  
+  const emitSafeEvent = useCallback((eventName: string, data: any) => {
+    // EventBus automatically detects and safely handles:
+    // - DOM elements
+    // - React components  
+    // - Large objects
+    // - Circular references
+    
+    eventBus.emit(eventName, data);
+  }, [eventBus]);
+  
+  const handleDOMEvent = useCallback((event: Event) => {
+    // Safe to pass DOM events - EventBus extracts only essential metadata
+    eventBus.emit('dom-interaction', event);
+  }, [eventBus]);
+  
+  return { emitSafeEvent, handleDOMEvent };
+}
+```
+
 ## Best Practices Summary
 
 ### ✅ Do
@@ -445,6 +627,9 @@ function OptimizedDataTable() {
 - Enable debug mode in development
 - Monitor performance in complex applications
 - Use lazy evaluation for expensive operations
+- Extract data from DOM events instead of storing event objects
+- Use framework's centralized error handling system
+- Handle circular references in custom comparators
 
 ### ❌ Avoid
 
@@ -454,6 +639,9 @@ function OptimizedDataTable() {
 - Ignoring subscription cleanup
 - Side effects in computed values
 - Excessive debugging in production
+- Storing DOM events or React synthetic events in stores
+- Using direct console.error instead of centralized error handling
+- Assuming timeout types are consistent across platforms
 
 ## Related Patterns
 

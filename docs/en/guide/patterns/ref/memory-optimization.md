@@ -393,6 +393,53 @@ function useGarbageCollectionTrigger() {
 }
 ```
 
+### Cross-Platform Timeout Management
+
+```tsx
+// Cross-platform compatible timeout management for refs
+function useCrossPlatformRefCleanup() {
+  const timeoutsRef = useRef<Array<ReturnType<typeof requestAnimationFrame> | NodeJS.Timeout>>([]);
+  
+  const scheduleCleanup = useCallback((callback: () => void, delay: number = 0) => {
+    // Use appropriate timer based on environment
+    const timeoutId = delay === 0
+      ? requestAnimationFrame(callback)
+      : setTimeout(callback, delay);
+    
+    timeoutsRef.current.push(timeoutId);
+    return timeoutId;
+  }, []);
+  
+  const clearScheduledCleanup = useCallback((timeoutId: ReturnType<typeof requestAnimationFrame> | NodeJS.Timeout) => {
+    // Handle both requestAnimationFrame and setTimeout IDs
+    if (typeof timeoutId === 'number' && typeof window !== 'undefined') {
+      cancelAnimationFrame(timeoutId);
+    } else {
+      clearTimeout(timeoutId as NodeJS.Timeout);
+    }
+    
+    // Remove from tracking array
+    timeoutsRef.current = timeoutsRef.current.filter(id => id !== timeoutId);
+  }, []);
+  
+  // Cleanup all timers on unmount
+  useEffect(() => {
+    return () => {
+      timeoutsRef.current.forEach(timeoutId => {
+        if (typeof timeoutId === 'number' && typeof window !== 'undefined') {
+          cancelAnimationFrame(timeoutId);
+        } else {
+          clearTimeout(timeoutId as NodeJS.Timeout);
+        }
+      });
+      timeoutsRef.current = [];
+    };
+  }, []);
+  
+  return { scheduleCleanup, clearScheduledCleanup };
+}
+```
+
 ## Performance-Aware Ref Management
 
 ### Lazy Ref Initialization
@@ -507,6 +554,9 @@ function useConditionalServiceLoading() {
 8. **Cleanup Event Listeners**: Always remove listeners on unmount
 9. **Avoid Closures with Large Objects**: Prevent accidental retention
 10. **Use Lazy Loading**: Only create refs when actually needed
+11. **Cross-Platform Timeouts**: Use proper timeout types for browser/Node.js compatibility
+12. **Centralized Error Handling**: Let framework handle ref errors automatically
+13. **Event Data Extraction**: Never store DOM event objects in refs, extract needed data only
 
 ## Memory Performance Patterns
 

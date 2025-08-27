@@ -141,6 +141,7 @@ All architecture patterns integrate seamlessly with the Context-Action framework
 
 ### Action Integration
 - **Action Patterns**: Reference [Action Pattern Documentation](../action/index.md)
+- **Memory Management**: Action patterns include advanced memory management with handler limits
 - **Setup Foundation**: Use [Basic Action Setup](../setup/basic-action-setup.md) as foundation
 
 ### Store Integration  

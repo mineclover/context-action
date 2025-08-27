@@ -5,8 +5,9 @@ This section contains comprehensive code patterns and implementation guides for 
 ## Core Framework Patterns
 
 ### Action Patterns
-- **[Action Patterns](./action/)** - Pure action dispatching without state management
+- **[Action Patterns](./action/)** - Pure action dispatching with memory management and performance optimization
   - [Basic Usage](./action/basic-usage.md) - Fundamental Action Only pattern implementation
+  - [Register Patterns](./action/register-patterns.md) - Advanced handler registration and memory management
   - [Register Delegation](./action/register-delegation.md) - Advanced pattern for modular handler organization
 
 ### Store Patterns  
@@ -39,6 +40,7 @@ This section contains comprehensive code patterns and implementation guides for 
 ### Performance Patterns
 - **[Performance Patterns](./performance/)** - Performance optimization techniques and strategies
   - [Optimization Techniques](./performance/optimization-techniques.md) - Store optimization, memoization, and RefContext performance
+  - Handler memory management and limits (see [Action Register Patterns](./action/register-patterns.md#memory-management-and-handler-limits))
 
 ### Debug Patterns
 - **[Debug Patterns](./debug/)** - Production debugging and troubleshooting patterns
@@ -48,7 +50,7 @@ This section contains comprehensive code patterns and implementation guides for 
 
 | Pattern | Use Case | Import | Best For |
 |---------|----------|--------|----------|
-| **🎯 Action Only** | Action dispatching without stores | `createActionContext` | Event systems, command patterns |
+| **🎯 Action Only** | Action dispatching with memory management | `createActionContext` | Event systems, command patterns, large applications |
 | **🏪 Store Only** | State management without actions | `createStoreContext` | Pure state management, data layers |
 | **🔧 Ref Context** | Direct DOM manipulation and singleton object management | `createRefContext` | High-performance UI, animations, external services |
 
