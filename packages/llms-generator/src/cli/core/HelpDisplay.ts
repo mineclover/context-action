@@ -61,6 +61,13 @@ export class HelpDisplay {
     console.log('  detect-mismatches [options]      Detect mismatches between docs/ and llmsData/');
     console.log('                                   [-o, --output <file>] [--auto-fix] [-v, --verbose] [--check-only]');
     console.log('');
+    console.log('CODE MODE (SOURCE CODE DOCUMENTATION):');
+    console.log('  code-mode [targets] [options]    Generate complete code documentation for LLM understanding');
+    console.log('                                   [targets: packages, paths, or files - defaults to core react]');
+    console.log('                                   [-q, --quiet] [--dry-run] [-f, --force]');
+    console.log('                                   [--include-tests] [--keep-comments] [--multiple-files]');
+    console.log('                                   [--extensions <ext1,ext2>] (default: .ts,.tsx)');
+    console.log('');
     console.log('EXAMPLES:');
     console.log('  # 🚀 RECOMMENDED WORKFLOW (Complete setup)');
     console.log('  llms init');
@@ -108,6 +115,14 @@ export class HelpDisplay {
     console.log('  # Detect mismatches between source docs and LLMS data');
     console.log('  llms detect-mismatches --verbose');
     console.log('  llms detect-mismatches --output reports/mismatch-report.md --check-only');
+    console.log('');
+    console.log('  # Generate complete code documentation for LLM understanding');
+    console.log('  llms code-mode  # Generate for both core and react packages');
+    console.log('  llms code-mode core  # Generate only for core package');
+    console.log('  llms code-mode ./src/utils  # Generate for custom path');
+    console.log('  llms code-mode core ./custom/path --dry-run  # Multiple targets');
+    console.log('  llms code-mode --extensions js,jsx  # Include JavaScript files');
+    console.log('  llms code-mode --keep-comments --include-tests  # Include all content');
     console.log('');
     console.log('INIT COMMAND DETAILS:');
     console.log('  The init command performs three main steps:');

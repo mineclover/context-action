@@ -320,12 +320,57 @@ llmsData/
 │   ├── guide--example-500.md   # 500 character summary
 │   ├── guide--example-5000.md  # 5000 character summary
 │   └── priority.json           # Priority metadata
-└── ko/guide--example/
-    ├── guide--example-100.md   # 100자 요약
-    ├── guide--example-500.md   # 500자 요약
-    ├── guide--example-5000.md  # 5000자 요약
-    └── priority.json           # 우선순위 메타데이터
+├── ko/guide--example/
+│   ├── guide--example-100.md   # 100자 요약
+│   ├── guide--example-500.md   # 500자 요약
+│   ├── guide--example-5000.md  # 5000자 요약
+│   └── priority.json           # 우선순위 메타데이터
+└── code/                        # Source code documentation
+    ├── core-complete.md         # Complete core package code
+    ├── core-metadata.json       # Core package statistics
+    ├── react-complete.md        # Complete react package code
+    └── react-metadata.json      # React package statistics
 ```
+
+#### Code Mode - Source Code Documentation
+
+The LLMS Generator includes a **Code Mode** feature that generates complete source code documentation for LLM understanding:
+
+```bash
+# Generate code documentation for both core and react packages
+pnpm llms:code-mode
+
+# Generate for specific package only
+pnpm llms:code-mode core
+pnpm llms:code-mode react
+
+# Generate for custom paths (any directory or file)
+pnpm llms:code-mode ./example/src
+pnpm llms:code-mode ./packages/llms-generator/src
+pnpm llms:code-mode ./src/utils ./src/types
+
+# Specify file extensions
+pnpm llms:code-mode --extensions=js,jsx,ts,tsx
+
+# Preview without generating
+pnpm llms:code-mode --dry-run
+
+# Include comments and test files (not recommended for LLM)
+pnpm llms:code-mode --keep-comments --include-tests
+```
+
+**Code Mode Features:**
+- **Comment Stripping**: Automatically removes all comments, JSDoc, and empty lines for cleaner code
+- **Type-First Organization**: Places type definitions before implementation code
+- **Single File Output**: Combines all source files into one markdown document per package
+- **Metadata Generation**: Creates JSON files with file statistics and structure information
+- **Test Exclusion**: Automatically excludes test files (*.test.*, *.spec.*, __tests__/)
+
+**Generated Output Example:**
+- `llmsData/code/core-complete.md` (~43KB, ~1,300 lines) - Complete core package implementation
+- `llmsData/code/react-complete.md` (~113KB, ~3,300 lines) - Complete react package implementation
+
+This provides LLMs with direct access to the actual implementation, ensuring accurate API understanding and code generation.
 
 ### Example Application
 ```bash

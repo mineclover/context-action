@@ -97,19 +97,26 @@ export function useStoreSelector<T, R>(
   const selectorRef = useRef(selector);
   const equalityFnRef = useRef(equalityFn);
   
-  // 개발 모드에서 selector 변경 감지
+  // 개발 모드에서 selector 변경 감지 - 성능 최적화를 위해 한 번만 경고
+  const selectorWarningShownRef = useRef(false);
+  const equalityWarningShownRef = useRef(false);
+  
   if (process.env.NODE_ENV === 'development') {
-    if (selectorRef.current !== selector) {
+    if (selectorRef.current !== selector && !selectorWarningShownRef.current) {
       console.warn(
         'useStoreSelector: selector function changed. ' +
-        'Consider wrapping it with useCallback to avoid unnecessary recalculations.'
+        'Consider wrapping it with useCallback to avoid unnecessary recalculations.',
+        'Store:', store.name
       );
+      selectorWarningShownRef.current = true;
     }
-    if (equalityFnRef.current !== equalityFn) {
+    if (equalityFnRef.current !== equalityFn && !equalityWarningShownRef.current) {
       console.warn(
         'useStoreSelector: equalityFn changed. ' +
-        'Consider using a stable reference or defining it outside the component.'
+        'Consider using a stable reference or defining it outside the component.',
+        'Store:', store.name
       );
+      equalityWarningShownRef.current = true;
     }
   }
   

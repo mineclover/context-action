@@ -10,7 +10,7 @@ hero:
   image:
     src: /logo.svg
     alt: Context Action
-  
+
 features:
   - icon: 🇰🇷
     title: 한국어
@@ -23,50 +23,3 @@ features:
     link: /en/guide/overview
     linkText: View English Documentation
 ---
-
-<style>
-.VPFeature .link {
-  color: var(--vp-c-brand-1);
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.VPFeature .link:hover {
-  color: var(--vp-c-brand-2);
-}
-
-.VPFeatures .VPFeature {
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.VPFeatures .VPFeature:hover {
-  transform: translateY(-2px);
-}
-</style>
-
-<script setup>
-import { onMounted } from 'vue'
-
-onMounted(() => {
-  // 자동 리다이렉트 옵션 (필요시 true로 변경)
-  const autoRedirect = false
-  
-  if (autoRedirect) {
-    const userLang = navigator.language || navigator.languages[0]
-    if (userLang.startsWith('ko')) {
-      window.location.href = '/context-action/ko/guide/overview'
-    } else {
-      window.location.href = '/context-action/en/guide/overview'
-    }
-  }
-  
-  // 언어 선택 클릭 이벤트 처리
-  document.querySelectorAll('.VPFeature').forEach((feature, index) => {
-    feature.addEventListener('click', () => {
-      const links = ['/context-action/ko/guide/overview', '/context-action/en/guide/overview']
-      window.location.href = links[index]
-    })
-  })
-})
-</script>

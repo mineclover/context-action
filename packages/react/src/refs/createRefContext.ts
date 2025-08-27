@@ -158,6 +158,34 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
     
     const optionsRef = useRef<CreateRefContextOptions | undefined>(options);
     
+    // Provider 언마운트 시 모든 리소스 정리
+    useEffect(() => {
+      return () => {
+        // 모든 ref 상태 정리
+        if (refsMapRef.current) {
+          refsMapRef.current.forEach((refState) => {
+            // 진행 중인 Promise들 정리
+            refState.mountRejectors.forEach(reject => {
+              reject(new Error('Context provider unmounted'));
+            });
+            refState.mountResolvers.clear();
+            refState.mountRejectors.clear();
+            refState.mountPromise = null;
+            
+            // 콜백과 리스너 정리
+            refState.mountCallbacks.clear();
+            refState.listeners.clear();
+            
+            // 상태 초기화
+            refState.target = null;
+            refState.isMounted = false;
+            refState.operationInProgress = false;
+          });
+          refsMapRef.current.clear();
+        }
+      };
+    }, []);
+    
     // ref 상태 구독 함수
     const subscribeToRef = useCallback((refName: string, listener: () => void) => {
       const refState = getOrCreateRefState(refsMapRef.current, refName);

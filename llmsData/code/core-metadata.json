@@ -1,0 +1,49 @@
+{
+  "package": "core",
+  "generatedAt": "2025-08-27T07:14:29.828Z",
+  "statistics": {
+    "totalFiles": 7,
+    "typeFiles": 1,
+    "codeFiles": 6,
+    "totalLines": 1289,
+    "typeLines": 171,
+    "codeLines": 1118
+  },
+  "files": [
+    {
+      "path": "types.ts",
+      "isType": true,
+      "lines": 171
+    },
+    {
+      "path": "action-guard.ts",
+      "isType": false,
+      "lines": 101
+    },
+    {
+      "path": "ActionRegister.ts",
+      "isType": false,
+      "lines": 752
+    },
+    {
+      "path": "concurrency/index.ts",
+      "isType": false,
+      "lines": 2
+    },
+    {
+      "path": "concurrency/OperationQueue.ts",
+      "isType": false,
+      "lines": 79
+    },
+    {
+      "path": "execution-modes.ts",
+      "isType": false,
+      "lines": 167
+    },
+    {
+      "path": "index.ts",
+      "isType": false,
+      "lines": 17
+    }
+  ]
+}

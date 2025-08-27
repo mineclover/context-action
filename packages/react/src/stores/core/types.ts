@@ -168,17 +168,6 @@ export interface HookOptions<T> {
   dependencies?: React.DependencyList;  // React useEffect 의존성
 }
 
-// === Context 타입 ===
-// 핵심 설계: React Context API를 통한 Store 공유
-export interface StoreContextType {
-  storeRegistryRef: React.RefObject<IStoreRegistry>;  // Registry 참조 (RefObject 패턴)
-}
-
-export interface StoreContextReturn {
-  Provider: React.FC<{ children: React.ReactNode }>;  // Context Provider 컴포넌트
-  useStoreContext: () => StoreContextType;            // Context 접근 Hook
-  useStoreRegistry: () => IStoreRegistry;             // Registry 접근 Hook
-}
 
 // === Registry 동기화 타입 ===
 // 핵심 설계: 동적 Store 접근 및 생성 옵션
