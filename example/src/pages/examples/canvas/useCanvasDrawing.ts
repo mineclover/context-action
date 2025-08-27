@@ -1,9 +1,16 @@
 import { useCallback, useRef } from 'react';
-import { useCanvas, CanvasShape, Point } from './CanvasContext';
+import { useCanvasStore, CanvasShape, Point } from './CanvasContext';
+import { useStoreValue } from '@context-action/react';
 
 export function useCanvasDrawing() {
-  const canvas = useCanvas();
-  const { shapes, selectedShapeId, currentMode } = canvas;
+  // 필요한 store만 구독 - 성능 최적화
+  const shapesStore = useCanvasStore('shapes');
+  const selectedShapeIdStore = useCanvasStore('selectedShapeId');
+  const currentModeStore = useCanvasStore('currentMode');
+  
+  const shapes = useStoreValue(shapesStore);
+  const selectedShapeId = useStoreValue(selectedShapeIdStore);
+  const currentMode = useStoreValue(currentModeStore);
   
   // Ref로 최신 상태 접근 (무한 루프 방지)
   const shapesRef = useRef<CanvasShape[]>([]);

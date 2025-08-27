@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useCanvas } from './CanvasContext';
+import { useCanvasStore, useCanvasAction } from './CanvasContext';
+import { useStoreValue } from '@context-action/react';
 import type { CanvasEvent } from './Canvas';
 
 interface CanvasStatusProps {
@@ -9,16 +10,26 @@ interface CanvasStatusProps {
 }
 
 export function CanvasStatus({ canvasFocused, events = [], onSelectShape }: CanvasStatusProps) {
-  const {
-    shapes,
-    selectedShapeId,
-    currentMode,
-    currentTool,
-    selectShape,
-    isDragging,
-    currentColor,
-    strokeWidth,
-  } = useCanvas();
+  // 필요한 store만 구독 - 성능 최적화
+  const shapesStore = useCanvasStore('shapes');
+  const selectedShapeIdStore = useCanvasStore('selectedShapeId');
+  const currentModeStore = useCanvasStore('currentMode');
+  const currentToolStore = useCanvasStore('currentTool');
+  const isDraggingStore = useCanvasStore('isDragging');
+  const currentColorStore = useCanvasStore('currentColor');
+  const strokeWidthStore = useCanvasStore('strokeWidth');
+  
+  const shapes = useStoreValue(shapesStore);
+  const selectedShapeId = useStoreValue(selectedShapeIdStore);
+  const currentMode = useStoreValue(currentModeStore);
+  const currentTool = useStoreValue(currentToolStore);
+  const isDragging = useStoreValue(isDraggingStore);
+  const currentColor = useStoreValue(currentColorStore);
+  const strokeWidth = useStoreValue(strokeWidthStore);
+  
+  // Action dispatch 함수
+  const dispatch = useCanvasAction();
+  const selectShape = (id: string | null) => dispatch('selectShape', { id });
 
   const selectedShape = shapes.find(s => s.id === selectedShapeId);
   const [showEventLog, setShowEventLog] = useState(false);
