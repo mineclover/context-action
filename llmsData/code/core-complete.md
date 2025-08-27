@@ -1,7 +1,7 @@
 # Context-Action Core Package - Complete Code
 
-Total Files: 7
-Total Lines: 1289
+Total Files: 8
+Total Lines: 1499
 
 ## Type Definitions
 
@@ -34,6 +34,7 @@ export interface HandlerConfig {
   once?: boolean;
   debounce?: number;
   throttle?: number;
+  replaceExisting?: boolean;
 }
 export interface HandlerRegistration<T = any, R = void> {
   handler: ActionHandler<T, R>;
@@ -59,8 +60,10 @@ export interface ActionRegisterConfig {
   registry?: {
     debug?: boolean;
     autoCleanup?: boolean;
-    maxHandlers?: number;
     defaultExecutionMode?: ExecutionMode;
+    useConcurrencyQueue?: boolean;
+    maxHandlersPerAction?: number;
+    errorHandler?: (error: Error, context: unknown) => void;
   };
 }
 export interface DispatchOptions {
@@ -68,6 +71,13 @@ export interface DispatchOptions {
   throttle?: number;
   executionMode?: ExecutionMode;
   signal?: AbortSignal;
+  immediate?: boolean;
+  queuePriority?: number;
+  timeout?: number;
+  retryOnError?: {
+    maxAttempts: number;
+    delay: number;
+  };
   autoAbort?: {
     enabled: boolean;
     onControllerCreated?: (controller: AbortController) => void;
@@ -76,6 +86,10 @@ export interface DispatchOptions {
   filter?: {
     handlerIds?: string[];
     excludeHandlerIds?: string[];
+    priority?: {
+      min?: number;
+      max?: number;
+    };
     custom?: (config: Required<HandlerConfig>) => boolean;
   };
   result?: {
@@ -83,6 +97,7 @@ export interface DispatchOptions {
     merger?: <R>(results: Array<R | undefined>) => R;
     collect?: boolean;
     maxResults?: number;
+    includeErrors?: boolean;
   };
 }
 export interface ExecutionResult<R = void> {
@@ -113,6 +128,12 @@ export interface ExecutionResult<R = void> {
     error: Error;
     timestamp: number;
   }>;
+}
+export interface HandlerError {
+  handlerId: string;
+  error: Error;
+  timestamp: number;
+  severity: 'blocking' | 'non-blocking';
 }
 export type UnregisterFunction = () => void;
 type VoidActions<T extends ActionPayloadMap> = {
@@ -172,12 +193,7 @@ export interface ActionHandlerStats<T extends ActionPayloadMap> {
       id: string;
     }>;
   }>;
-  executionStats?: {
-    totalExecutions: number;
-    averageDuration: number;
-    successRate: number;
-    errorCount: number;
-  };
+  executionStats?: undefined;
 }
 ```
 
@@ -196,7 +212,32 @@ interface GuardState {
 }
 export class ActionGuard {
   private guards = new Map<string, GuardState>();
-  constructor() {
+  private cleanupInterval?: NodeJS.Timeout;
+  private readonly maxIdleTime: number = 60000; 
+  private readonly cleanupIntervalMs: number = 30000; 
+  constructor(autoCleanup: boolean = true) {
+    if (autoCleanup) {
+      this.startAutoCleanup();
+    }
+  }
+  private startAutoCleanup(): void {
+    this.cleanupInterval = setInterval(() => {
+      const now = Date.now();
+      const keysToDelete: string[] = [];
+      this.guards.forEach((state, key) => {
+        const isIdle = now - state.lastExecuted > this.maxIdleTime;
+        const hasActiveTimers = state.debounceTimer || state.throttleTimer;
+        if (isIdle && !hasActiveTimers) {
+          keysToDelete.push(key);
+        }
+      });
+      if (keysToDelete.length > 0) {
+        keysToDelete.forEach(key => this.guards.delete(key));
+        if (typeof process !== 'undefined' && process.env?.DEBUG_CONTEXT_ACTION) {
+          console.debug(`[ActionGuard] Cleaned up ${keysToDelete.length} idle guards`);
+        }
+      }
+    }, this.cleanupIntervalMs);
   }
   async debounce(actionKey: string, debounceMs: number): Promise<boolean> {
     let state = this.guards.get(actionKey);
@@ -258,10 +299,13 @@ export class ActionGuard {
         clearTimeout(state.debounceTimer);
         if (state.debounceResolve) {
           state.debounceResolve(false);
+          state.debounceResolve = undefined;
         }
+        state.debounceTimer = undefined;
       }
       if (state.throttleTimer) {
         clearTimeout(state.throttleTimer);
+        state.throttleTimer = undefined;
       }
       this.guards.delete(actionKey);
     }
@@ -285,6 +329,25 @@ export class ActionGuard {
   }
   getAllGuardStates(): Map<string, GuardState> {
     return new Map(this.guards);
+  }
+  destroy(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = undefined;
+    }
+    this.clearAll();
+  }
+  getStats(): { activeGuards: number; withTimers: number } {
+    let withTimers = 0;
+    this.guards.forEach(state => {
+      if (state.debounceTimer || state.throttleTimer) {
+        withTimers++;
+      }
+    });
+    return {
+      activeGuards: this.guards.size,
+      withTimers
+    };
   }
 }
 ```
@@ -310,47 +373,55 @@ import { executeSequential, executeParallel, executeRace } from './execution-mod
 import { ActionGuard } from './action-guard.js';
 import { OperationQueue } from './concurrency/OperationQueue.js';
 export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
-  private pipelines = new Map<keyof T, HandlerRegistration<any, any>[]>();
-  private handlerCounter = 0;
+  private pipelines = new Map<keyof T, Array<HandlerRegistration<any, any>>>();
   private readonly actionGuard: ActionGuard;
   private executionMode: ExecutionMode = 'sequential';
   private actionExecutionModes = new Map<keyof T, ExecutionMode>();
   public readonly name: string;
   private readonly registryConfig: ActionRegisterConfig['registry'];
-  private executionStats = new Map<keyof T, {
-    totalExecutions: number;
-    totalDuration: number;
-    successCount: number;
-    errorCount: number;
-  }>();
-  private registrationQueue: OperationQueue;
-  private dispatchQueue: OperationQueue;
+  private readonly isDebugMode: boolean;
+  private readonly maxHandlersPerAction: number;
+  private dispatchQueue?: OperationQueue;
   constructor(config: ActionRegisterConfig = {}) {
     this.name = config.name || 'ActionRegister';
     this.registryConfig = config.registry;
-    this.actionGuard = new ActionGuard();
-    this.registrationQueue = new OperationQueue(`${this.name}-Registration`);
-    this.dispatchQueue = new OperationQueue(`${this.name}-Dispatch`);
+    this.maxHandlersPerAction = config.registry?.maxHandlersPerAction ?? 1000;
+    this.isDebugMode = Boolean(
+      this.registryConfig?.debug && 
+      process.env.NODE_ENV === 'development'
+    );
+    this.actionGuard = new ActionGuard(this.registryConfig?.autoCleanup !== false);
+    if (config.registry?.useConcurrencyQueue !== false) {
+      this.dispatchQueue = new OperationQueue(`${this.name}-Dispatch`);
+    }
     if (this.registryConfig?.defaultExecutionMode) {
       this.executionMode = this.registryConfig.defaultExecutionMode;
     }
-    if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
-      console.log(`🎯 ActionRegister created: ${this.name}`, {
-        defaultExecutionMode: this.executionMode,
-        maxHandlers: this.registryConfig.maxHandlers,
-        autoCleanup: this.registryConfig.autoCleanup ?? true,
-        concurrencyProtection: true 
-      });
-    }
+    this.log('ActionRegister initialized', {
+      defaultExecutionMode: this.executionMode,
+      autoCleanup: this.registryConfig?.autoCleanup !== false,
+      concurrencyQueue: Boolean(this.dispatchQueue),
+      debugMode: this.isDebugMode
+    });
   }
   register<K extends keyof T, R = void>(
     action: K,
     handler: ActionHandler<T[K], R>,
     config: HandlerConfig = {}
   ): UnregisterFunction {
-    const handlerId = config.id || `handler_${++this.handlerCounter}_${Math.random().toString(36).substr(2, 5)}`;
+    const handlerId = config.id || this.generateHandlerId(action);
     const unregisterFn = this._performRegistrationSync(action, handler, config, handlerId);
     return unregisterFn;
+  }
+  private log(message: string, data?: unknown, level: 'log' | 'warn' | 'error' = 'log') {
+    if (this.isDebugMode) {
+      const timestamp = new Date().toISOString();
+      console[level](`🎯 [${timestamp}] [${this.name}] ${message}`, data || '');
+    }
+  }
+  private generateHandlerId<K extends keyof T>(action: K): string {
+    const uuid = crypto.randomUUID();
+    return `${String(action)}_${uuid.slice(0, 8)}`;
   }
   private _performRegistrationSync<K extends keyof T, R = void>(
     action: K,
@@ -367,6 +438,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         once: config.once ?? false,
         debounce: config.debounce ?? undefined,
         throttle: config.throttle ?? undefined,
+        replaceExisting: config.replaceExisting ?? false,
       } as Required<HandlerConfig>,
       id: handlerId,
     };
@@ -374,36 +446,50 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       this.pipelines.set(action, []);
     }
     const pipeline = this.pipelines.get(action)!;
+    if (pipeline.length >= this.maxHandlersPerAction) {
+      console.warn(`Handler limit (${this.maxHandlersPerAction}) reached for action "${String(action)}". Registration ignored.`);
+      return () => {}; 
+    }
     const existingIndex = pipeline.findIndex(reg => reg.id === handlerId);
     if (existingIndex !== -1) {
-      return () => {};
-    }
-    if (this.registryConfig?.maxHandlers && pipeline.length >= this.registryConfig.maxHandlers) {
-      throw new Error(
-        `Maximum number of handlers (${this.registryConfig.maxHandlers}) reached for action '${String(action)}' in registry '${this.name}'`
-      );
+      if (config.replaceExisting) {
+        pipeline[existingIndex] = registration;
+        pipeline.sort((a, b) => b.config.priority - a.config.priority);
+        this.log(`Handler replaced: ${String(action)}`, {
+          handlerId,
+          priority: config.priority,
+          totalHandlers: pipeline.length
+        });
+        return () => {
+          const index = pipeline.findIndex(reg => reg.id === handlerId && reg === registration);
+          if (index !== -1) {
+            pipeline.splice(index, 1);
+            this.log(`Replaced handler unregistered: ${String(action)}`, { handlerId });
+          }
+        };
+      } else {
+        this.log(`Handler duplicate ignored: ${String(action)}`, {
+          handlerId,
+          note: 'Use replaceExisting:true to replace'
+        }, 'warn');
+        return () => {}; 
+      }
     }
     pipeline.push(registration);
     pipeline.sort((a, b) => b.config.priority - a.config.priority);
-    if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
-      console.log(`🎯 Handler registered: ${String(action)}`, {
-        handlerId,
-        priority: config.priority,
-        totalHandlers: pipeline.length,
-        registry: this.name
-      });
-    }
+    this.log(`Handler registered: ${String(action)}`, {
+      handlerId,
+      priority: config.priority,
+      totalHandlers: pipeline.length
+    });
     return () => {
       const index = pipeline.findIndex((reg) => reg.id === handlerId && reg === registration);
       if (index !== -1) {
         pipeline.splice(index, 1);
-        if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
-          console.log(`🎯 Handler unregistered: ${String(action)}`, {
-            handlerId,
-            remainingHandlers: pipeline.length,
-            registry: this.name
-          });
-        }
+        this.log(`Handler unregistered: ${String(action)}`, {
+          handlerId,
+          remainingHandlers: pipeline.length
+        });
       }
     };
   }
@@ -412,65 +498,21 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     payload?: T[K],
     options?: import('./types.js').DispatchOptions
   ): Promise<void> {
-    return this.dispatchQueue.enqueue(async () => {
+    if (options?.immediate || !this.dispatchQueue) {
       return this._performDispatch(action, payload, options);
-    });
+    } else {
+      return this.dispatchQueue.enqueue(async () => {
+        return this._performDispatch(action, payload, options);
+      });
+    }
   }
   private async _performDispatch<K extends keyof T>(
     action: K,
     payload?: T[K],
     options?: import('./types.js').DispatchOptions
   ): Promise<void> {
-    if (payload && typeof payload === 'object' && payload !== null && 
-        (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development')) {
-      const isEvent = payload instanceof Event;
-      const isElement = payload instanceof Element;
-      const hasPreventDefault = typeof (payload as any).preventDefault === 'function';
-      const hasStopPropagation = typeof (payload as any).stopPropagation === 'function';
-      const hasCurrentTarget = (payload as any).currentTarget !== undefined;
-      const hasTarget = (payload as any).target !== undefined;
-      const targetType = hasTarget ? typeof (payload as any).target : 'undefined';
-      const targetIsElement = hasTarget ? (payload as any).target instanceof Element : false;
-      const hasUnexpectedStructure = false; 
-      if (hasUnexpectedStructure) {
-        console.warn(
-          `[Context-Action] 🔍 Object analysis for action "${String(action)}" in registry "${this.name}":`,
-          {
-            isEvent,
-            isElement, 
-            hasPreventDefault,
-            hasStopPropagation,
-            hasCurrentTarget,
-            hasTarget,
-            targetType,
-            targetIsElement,
-            payloadType: typeof payload,
-            constructor: payload?.constructor?.name,
-            keys: Object.keys(payload),
-            payload: payload
-          }
-        );
-      }
-      if ((typeof process !== 'undefined' && process.env?.DEBUG_CONTEXT_ACTION) || 
-          (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development')) {
-        const nestedDOMProperties: string[] = [];
-        Object.keys(payload).forEach(key => {
-          const prop = (payload as any)[key];
-          if (prop instanceof Element || prop instanceof Event) {
-            nestedDOMProperties.push(`${key}: ${prop instanceof Element ? 'Element' : 'Event'}`);
-          }
-        });
-        if (nestedDOMProperties.length > 0) {
-          console.debug(
-            `[Context-Action] 📋 Nested DOM objects in action "${String(action)}":`,
-            {
-              registry: this.name,
-              nestedDOMProperties,
-              note: 'This is informational - usually not a problem'
-            }
-          );
-        }
-      }
+    if (payload instanceof Event && process.env.NODE_ENV === 'development') {
+      console.warn(`Event object passed to action "${String(action)}"`, payload.type);
     }
     let autoAbortController: AbortController | undefined;
     let effectiveSignal = options?.signal;
@@ -497,7 +539,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     if (!pipeline || pipeline.length === 0) {
       return;
     }
-    const filteredHandlers = this.filterHandlers([...pipeline], options?.filter);
+    const filteredHandlers = options?.filter 
+      ? this.filterHandlers(pipeline, options.filter)
+      : pipeline;
     const actionKey = String(action);
     let throttleMs: number | undefined;
     let debounceMs: number | undefined;
@@ -560,17 +604,15 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     }
     try {
       await this.executePipeline(context, autoAbortController, options?.autoAbort);
-      console.log(`[ActionRegister] Pipeline execution succeeded for ${String(action)}`);
+      this.log(`Pipeline execution succeeded for ${String(action)}`);
     } catch (error) {
-      console.log(`[ActionRegister] Pipeline execution failed for ${String(action)}:`, error);
+      this.log(`Pipeline execution failed for ${String(action)}`, error, 'error');
       executionSuccess = false;
       throw error;
     } finally {
       if (effectiveSignal && abortHandler) {
         effectiveSignal.removeEventListener('abort', abortHandler);
       }
-      const duration = Date.now() - startTime;
-      this.updateExecutionStats(action, executionSuccess, duration);
     }
   }
   async dispatchWithResult<K extends keyof T, R = void>(
@@ -637,7 +679,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         errors: [],
       };
     }
-    const filteredHandlers = this.filterHandlers([...pipeline], options?.filter);
+    const filteredHandlers = options?.filter 
+      ? this.filterHandlers(pipeline, options.filter)
+      : pipeline;
     const actionKey = String(action);
     let throttleMs: number | undefined;
     let debounceMs: number | undefined;
@@ -760,7 +804,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     }
     const endTime = Date.now();
     const executionSuccess = !executionError && !context.aborted;
-    this.updateExecutionStats(action, executionSuccess, endTime - startTime);
     const processedResult = this.processResults(context, options?.result);
     const executionResult: ExecutionResult<R> = {
       success: !executionError && !context.aborted,
@@ -784,21 +827,29 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     return executionResult;
   }
   private filterHandlers<K extends keyof T>(
-    handlers: HandlerRegistration<T[K], any>[],
+    handlers: HandlerRegistration<any, any>[],
     filterOptions?: import('./types.js').DispatchOptions['filter']
-  ): HandlerRegistration<T[K], any>[] {
+  ): HandlerRegistration<any, any>[] {
     if (!filterOptions) {
       return handlers;
     }
     return handlers.filter(registration => {
       const config = registration.config;
-      if (filterOptions.handlerIds && filterOptions.handlerIds.length > 0) {
-        if (!filterOptions.handlerIds.includes(config.id)) {
+      if (filterOptions.handlerIds?.length && 
+          !filterOptions.handlerIds.includes(config.id)) {
+        return false;
+      }
+      if (filterOptions.excludeHandlerIds?.length && 
+          filterOptions.excludeHandlerIds.includes(config.id)) {
+        return false;
+      }
+      if (filterOptions.priority) {
+        if (filterOptions.priority.min !== undefined && 
+            config.priority < filterOptions.priority.min) {
           return false;
         }
-      }
-      if (filterOptions.excludeHandlerIds && filterOptions.excludeHandlerIds.length > 0) {
-        if (filterOptions.excludeHandlerIds.includes(config.id)) {
+        if (filterOptions.priority.max !== undefined && 
+            config.priority > filterOptions.priority.max) {
           return false;
         }
       }
@@ -900,7 +951,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     }
     this.cleanupOneTimeHandlers(context.action as K, context.handlers);
   }
-  private cleanupOneTimeHandlers<K extends keyof T>(action: K, executedHandlers: HandlerRegistration<T[K], any>[]): void {
+  private cleanupOneTimeHandlers<K extends keyof T>(action: K, executedHandlers: HandlerRegistration<any, any>[]): void {
     const pipeline = this.pipelines.get(action);
     if (!pipeline) return;
     const oneTimeHandlers = executedHandlers.filter(reg => reg.config.once);
@@ -918,24 +969,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         }
       }
     });
-  }
-  private updateExecutionStats<K extends keyof T>(action: K, success: boolean, duration: number): void {
-    if (!this.executionStats.has(action)) {
-      this.executionStats.set(action, {
-        totalExecutions: 0,
-        totalDuration: 0,
-        successCount: 0,
-        errorCount: 0,
-      });
-    }
-    const stats = this.executionStats.get(action)!;
-    stats.totalExecutions++;
-    stats.totalDuration += duration;
-    if (success) {
-      stats.successCount++;
-    } else {
-      stats.errorCount++;
-    }
   }
   getHandlerCount<K extends keyof T>(action: K): number {
     const pipeline = this.pipelines.get(action);
@@ -990,13 +1023,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
           id: h.config.id,
         }))
       }));
-    const stats = this.executionStats.get(action);
-    const executionStats = stats ? {
-      totalExecutions: stats.totalExecutions,
-      averageDuration: stats.totalExecutions > 0 ? stats.totalDuration / stats.totalExecutions : 0,
-      successRate: stats.totalExecutions > 0 ? (stats.successCount / stats.totalExecutions) * 100 : 0,
-      errorCount: stats.errorCount,
-    } : undefined;
+    const executionStats = undefined;
     return {
       action,
       handlerCount: pipeline.length,
@@ -1025,23 +1052,18 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       console.log(`🎯 Execution mode reset for action '${String(action)}' to default: ${this.executionMode}`);
     }
   }
-  clearExecutionStats(): void {
-    this.executionStats.clear();
-    if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
-      console.log(`🎯 Execution statistics cleared for registry: ${this.name}`);
-    }
-  }
-  clearActionExecutionStats<K extends keyof T>(action: K): void {
-    this.executionStats.delete(action);
-    if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
-      console.log(`🎯 Execution statistics cleared for action: ${String(action)}`);
-    }
-  }
   getRegistryConfig(): ActionRegisterConfig['registry'] {
     return this.registryConfig;
   }
   isDebugEnabled(): boolean {
-    return Boolean(this.registryConfig?.debug && process.env.NODE_ENV === 'development');
+    return this.isDebugMode;
+  }
+  destroy(): void {
+    this.pipelines.clear();
+    this.actionGuard.destroy();
+    this.dispatchQueue?.clear?.();
+    this.actionExecutionModes.clear();
+    this.log('ActionRegister destroyed');
   }
 }
 ```
@@ -1060,13 +1082,13 @@ export interface QueuedOperation<T = any> {
   id: string;
   operation: () => T | Promise<T>;
   resolve: (value: T) => void;
-  reject: (error: any) => void;
+  reject: (error: unknown) => void;
   priority?: number;
   timestamp: number;
 }
 export class OperationQueue {
   private queue: QueuedOperation[] = [];
-  private isProcessing = false;
+  private processingPromise: Promise<void> | null = null;
   private operationCounter = 0;
   constructor(private name: string = 'OperationQueue') {}
   enqueue<T>(operation: () => T | Promise<T>, priority: number = 0): Promise<T> {
@@ -1091,29 +1113,32 @@ export class OperationQueue {
     });
   }
   private async processQueue(): Promise<void> {
-    if (this.isProcessing || this.queue.length === 0) {
-      return;
+    if (this.processingPromise) {
+      return this.processingPromise;
     }
-    this.isProcessing = true;
+    this.processingPromise = this._doProcess();
     try {
-      while (this.queue.length > 0) {
-        const operation = this.queue.shift()!;
-        try {
-          const result = await Promise.resolve(operation.operation());
-          operation.resolve(result);
-        } catch (error) {
-          operation.reject(error);
-        }
-      }
+      await this.processingPromise;
     } finally {
-      this.isProcessing = false;
+      this.processingPromise = null;
+    }
+  }
+  private async _doProcess(): Promise<void> {
+    while (this.queue.length > 0) {
+      const operation = this.queue.shift()!;
+      try {
+        const result = await Promise.resolve(operation.operation());
+        operation.resolve(result);
+      } catch (error) {
+        operation.reject(error);
+      }
     }
   }
   getQueueInfo() {
     return {
       name: this.name,
       queueLength: this.queue.length,
-      isProcessing: this.isProcessing,
+      isProcessing: Boolean(this.processingPromise),
       operations: this.queue.map(op => ({
         id: op.id,
         priority: op.priority,
@@ -1126,13 +1151,13 @@ export class OperationQueue {
       operation.reject(new Error('Queue cleared'));
     });
     this.queue = [];
-    this.isProcessing = false;
+    this.processingPromise = null;
   }
   get size(): number {
     return this.queue.length;
   }
   get processing(): boolean {
-    return this.isProcessing;
+    return Boolean(this.processingPromise);
   }
 }
 ```
@@ -1143,14 +1168,28 @@ export class OperationQueue {
 import type { 
   HandlerRegistration, 
   PipelineContext, 
-  PipelineController
+  PipelineController,
+  HandlerError
 } from './types.js';
+function handleExecutionError<T, R>(
+  error: any,
+  registration: HandlerRegistration<T, R>
+): HandlerError {
+  const errorObj = error instanceof Error ? error : new Error(String(error));
+  return {
+    handlerId: registration.id,
+    error: errorObj,
+    timestamp: Date.now(),
+    severity: registration.config.blocking ? 'blocking' : 'non-blocking'
+  };
+}
 export async function executeSequential<T, R = void>(
   context: PipelineContext<T, R>,
   createController: (registration: HandlerRegistration<T, R>, index: number) => PipelineController<T, R>
 ): Promise<void> {
   let i = 0;
-  const nonBlockingPromises: Promise<any>[] = [];
+  const nonBlockingPromises: Array<Promise<any>> = [];
+  const errors: Array<{ handlerId: string; error: Error; timestamp: number }> = [];
   while (i < context.handlers.length) {
     if (context.aborted || context.terminated) {
       break;
@@ -1163,23 +1202,31 @@ export async function executeSequential<T, R = void>(
         break;
       }
       const result = registration.handler(context.payload, controller);
-      if (registration.config.blocking && result instanceof Promise) {
-        const handlerResult = await result;
+      if (registration.config.blocking) {
+        const handlerResult = result instanceof Promise ? await result : result;
         if (handlerResult !== undefined && !context.terminated) {
           context.results.push(handlerResult as R);
         }
-      } else if (result !== undefined && !context.terminated) {
+      } else {
         if (result instanceof Promise) {
-          const promiseWithHandling = result.then(asyncResult => {
-            if (asyncResult !== undefined && !context.terminated) {
-              context.results.push(asyncResult as R);
-            }
-            return asyncResult;
-          }).catch((error) => {
-            throw error;
-          });
-          nonBlockingPromises.push(promiseWithHandling);
-        } else {
+          const promiseWithErrorHandling = result
+            .then(asyncResult => {
+              if (asyncResult !== undefined && !context.terminated) {
+                context.results.push(asyncResult as R);
+              }
+              return asyncResult;
+            })
+            .catch(error => {
+              const handlerError = handleExecutionError(error, registration);
+              errors.push({
+                handlerId: handlerError.handlerId,
+                error: handlerError.error,
+                timestamp: handlerError.timestamp
+              });
+              return undefined; 
+            });
+          nonBlockingPromises.push(promiseWithErrorHandling);
+        } else if (result !== undefined && !context.terminated) {
           context.results.push(result as R);
         }
       }
@@ -1193,7 +1240,7 @@ export async function executeSequential<T, R = void>(
         if (jumpIndex !== -1) {
           i = jumpIndex;
           context.jumpToPriority = undefined;
-          continue; 
+          continue;
         } else {
           context.jumpToPriority = undefined;
           i++;
@@ -1202,14 +1249,15 @@ export async function executeSequential<T, R = void>(
         i++;
       }
     } catch (error: any) {
-      if (registration.config.blocking) {
-        throw error;
-      }
-      throw error;
+      const handlerError = handleExecutionError(error, registration);
+      throw handlerError.error;
     }
   }
   if (nonBlockingPromises.length > 0) {
-    await Promise.all(nonBlockingPromises);
+    await Promise.allSettled(nonBlockingPromises);
+  }
+  if (errors.length > 0) {
+    (context as any).collectedErrors = errors;
   }
 }
 export async function executeParallel<T, R = void>(
@@ -1238,10 +1286,11 @@ export async function executeParallel<T, R = void>(
         terminated: context.terminated 
       };
     } catch (error: any) {
-      if (registration.config.blocking) {
-        throw error;
+      const handlerError = handleExecutionError(error, registration);
+      if (handlerError.severity === 'blocking') {
+        throw handlerError.error;
       }
-      return { success: false, handlerId: registration.id, error };
+      return { success: false, handlerId: registration.id, error: handlerError.error };
     }
   });
   const results = await Promise.allSettled(handlerPromises);
@@ -1292,7 +1341,8 @@ export async function executeRace<T, R = void>(
         terminated: context.terminated
       };
     } catch (error: any) {
-      return { success: false, handlerId: registration.id, error, registration };
+      const handlerError = handleExecutionError(error, registration);
+      return { success: false, handlerId: registration.id, error: handlerError.error, registration };
     }
   });
   const winner = await Promise.race(handlerPromises);
@@ -1329,4 +1379,169 @@ export type {
 } from './types.js';
 export { ActionGuard } from './action-guard.js';
 export { executeSequential, executeParallel, executeRace } from './execution-modes.js';
+export {
+  useActionHandler,
+  createReactHandlerConfig,
+  createReactDispatcher,
+  ReactDevUtils,
+  ReactActionError,
+  isReactActionError
+} from './react-helpers.js';
+```
+
+### react-helpers.ts
+
+```typescript
+import type { 
+  ActionPayloadMap, 
+  ActionHandler, 
+  HandlerConfig 
+} from './types.js';
+import type { ActionRegister } from './ActionRegister.js';
+export function useActionHandler<T extends ActionPayloadMap, K extends keyof T>(
+  registry: ActionRegister<T>,
+  action: K,
+  handler: ActionHandler<T[K]>,
+  config?: HandlerConfig,
+  deps: any[] = []
+) {
+  return {
+    registry,
+    action,
+    handler,
+    config: {
+      ...config,
+      replaceExisting: true,
+      id: config?.id || `react_${String(action)}_${Math.random().toString(36).substr(2, 9)}`
+    },
+    deps
+  };
+}
+export function createReactHandlerConfig<T extends ActionPayloadMap, K extends keyof T>(
+  action: K,
+  componentId?: string,
+  config: HandlerConfig = {}
+): Required<HandlerConfig> {
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substr(2, 5);
+  return {
+    priority: config.priority ?? 0,
+    id: config.id || `${componentId || 'react'}_${String(action)}_${timestamp}_${random}`,
+    blocking: config.blocking ?? false,
+    once: config.once ?? false,
+    debounce: config.debounce ?? undefined,
+    throttle: config.throttle ?? undefined,
+    replaceExisting: true, 
+  } as Required<HandlerConfig>;
+}
+export function createReactDispatcher<T extends ActionPayloadMap>(
+  registry: ActionRegister<T>,
+  errorHandler?: (error: Error, action: keyof T, payload?: any) => void
+) {
+  return async <K extends keyof T>(
+    action: K,
+    payload?: T[K],
+    options?: Parameters<ActionRegister<T>['dispatch']>[2]
+  ): Promise<void> => {
+    try {
+      await registry.dispatch(action, payload, {
+        immediate: false, 
+        ...options
+      });
+    } catch (error) {
+      const errorObj = error instanceof Error ? error : new Error(String(error));
+      if (errorHandler) {
+        errorHandler(errorObj, action, payload);
+      } else {
+        console.error(`[ActionRegister] Dispatch failed for action '${String(action)}':`, errorObj);
+      }
+    }
+  };
+}
+export const ReactDevUtils = {
+  enableDebugMode(): void {
+    if (typeof window !== 'undefined') {
+      (window as any).__CONTEXT_ACTION_REACT_DEBUG__ = true;
+    }
+  },
+  disableDebugMode(): void {
+    if (typeof window !== 'undefined') {
+      (window as any).__CONTEXT_ACTION_REACT_DEBUG__ = false;
+    }
+  },
+  isDebugMode(): boolean {
+    return typeof window !== 'undefined' && 
+           Boolean((window as any).__CONTEXT_ACTION_REACT_DEBUG__);
+  },
+  log(component: string, action: string, message: string, data?: any): void {
+    if (this.isDebugMode()) {
+      console.log(`🎯 [React-ActionRegister] [${component}] ${action}: ${message}`, data || '');
+    }
+  },
+  getStats(registry: ActionRegister<any>): {
+    totalHandlers: number;
+    reactHandlers: number;
+    registryInfo: ReturnType<ActionRegister<any>['getRegistryInfo']>;
+  } {
+    const registryInfo = registry.getRegistryInfo();
+    let reactHandlers = 0;
+    registry.getRegisteredActions().forEach((action: keyof any) => {
+      const stats = registry.getActionStats(action);
+      if (stats) {
+        stats.handlersByPriority.forEach((priorityGroup: any) => {
+          priorityGroup.handlers.forEach((handler: any) => {
+            if (handler.id.includes('react')) {
+              reactHandlers++;
+            }
+          });
+        });
+      }
+    });
+    return {
+      totalHandlers: registryInfo.totalHandlers,
+      reactHandlers,
+      registryInfo
+    };
+  }
+};
+export class ReactActionError extends Error {
+  public readonly action: string;
+  public readonly payload?: any;
+  public readonly handlerId?: string;
+  public readonly timestamp: number;
+  constructor(
+    message: string,
+    action: string,
+    payload?: any,
+    handlerId?: string,
+    originalError?: Error
+  ) {
+    super(message);
+    this.name = 'ReactActionError';
+    this.action = action;
+    this.payload = payload;
+    this.handlerId = handlerId;
+    this.timestamp = Date.now();
+    if (originalError && originalError.stack) {
+      this.stack = originalError.stack;
+    }
+  }
+  static fromActionError(
+    originalError: Error,
+    action: string,
+    payload?: any,
+    handlerId?: string
+  ): ReactActionError {
+    return new ReactActionError(
+      `Action '${action}' failed: ${originalError.message}`,
+      action,
+      payload,
+      handlerId,
+      originalError
+    );
+  }
+}
+export function isReactActionError(error: any): error is ReactActionError {
+  return error instanceof ReactActionError;
+}
 ```

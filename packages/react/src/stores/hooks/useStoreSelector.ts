@@ -187,7 +187,7 @@ export function useStoreSelector<T, R>(
     }
     
     return unsubscribe;
-  }, [store]);
+  }, [store, selectorId]);
   
   return selectedValue;
 }

@@ -9,6 +9,7 @@ Welcome to the Context-Action framework user guide! This comprehensive documenta
 - **[Pipeline System](./pipeline/)** - Understanding the action processing system
 - **[Hook Lifecycle](./lifecycle/)** - React hooks reference and internal behavior
 - **[Best Practices](./best-practices.md)** - Recommended patterns and conventions
+- **[Troubleshooting](./troubleshooting.md)** - Common issues and memory management
 
 ## 🎯 Pattern Collection
 
@@ -20,13 +21,13 @@ The **[Pattern Collection](./patterns/)** contains all the detailed implementati
 
 | Pattern | Use Case | Best For |
 |---------|----------|----------|
-| **[Action Only](./patterns/action-only-pattern.md)** | Action dispatching without stores | Event systems, command patterns |
-| **[Store Only](./patterns/store-only-pattern.md)** | State management without actions | Pure state management, data layers |
-| **[RefContext](./patterns/ref-context-pattern.md)** | Direct DOM manipulation | High-performance UI, animations |
-| **[Pattern Composition](./patterns/pattern-composition.md)** | Combining patterns | Complex applications |
-| **[MVVM Architecture](./patterns/mvvm-architecture.md)** | Architectural layers | Single domain apps |
-| **[Domain Architecture](./patterns/domain-context-architecture.md)** | Business separation | Multi-domain apps |
-| **[Async Patterns](./patterns/async-patterns.md)** | Safe async operations | Element waiting, timeouts |
+| **[Action Only](./patterns/action/)** | Action dispatching with memory management | Event systems, command patterns |
+| **[Store Only](./patterns/store/)** | State management without actions | Pure state management, data layers |
+| **[RefContext](./patterns/ref/)** | Direct DOM manipulation | High-performance UI, animations |
+| **[Setup Patterns](./patterns/setup/)** | Foundation patterns | All implementations |
+| **[Architecture](./patterns/architecture/)** | System design | Complex applications |
+| **[Performance](./patterns/performance/)** | Optimization techniques | High-performance apps |
+| **[Async Patterns](./patterns/async/)** | Safe async operations | Element waiting, timeouts |
 
 ## 📖 Learning Path
 
@@ -53,13 +54,13 @@ The **[Pattern Collection](./patterns/)** contains all the detailed implementati
 
 Looking for something specific?
 
-- **State Management** → [Store Only Pattern](./patterns/store-only-pattern.md)
-- **Business Logic** → [Action Only Pattern](./patterns/action-only-pattern.md)
-- **Performance** → [RefContext Pattern](./patterns/ref-context-pattern.md)
-- **Complex Apps** → [Pattern Composition](./patterns/pattern-composition.md)
-- **Architecture** → [MVVM](./patterns/mvvm-architecture.md) or [Domain](./patterns/domain-context-architecture.md)
-- **Async Operations** → [Async Patterns](./patterns/async-patterns.md)
-- **Troubleshooting** → [Best Practices](./best-practices.md)
+- **State Management** → [Store Patterns](./patterns/store/)
+- **Business Logic** → [Action Patterns](./patterns/action/) (includes memory management)
+- **Performance** → [Performance Patterns](./patterns/performance/) or [RefContext](./patterns/ref/)
+- **Complex Apps** → [Architecture Patterns](./patterns/architecture/)
+- **Foundation** → [Setup Patterns](./patterns/setup/)
+- **Async Operations** → [Async Patterns](./patterns/async/)
+- **Troubleshooting** → [Best Practices](./best-practices.md) or [Troubleshooting](./troubleshooting.md)
 
 ---
 

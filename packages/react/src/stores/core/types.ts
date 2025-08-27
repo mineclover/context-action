@@ -86,6 +86,9 @@ export interface IStore<T = any> {
   /** Set store value with change notification */
   setValue: (value: T) => void;
   
+  /** Update store value with function (for functional updates) */
+  update: (updater: (current: T) => T) => void;
+  
   /** Get current value directly (for action handlers) */
   getValue: () => T;
   

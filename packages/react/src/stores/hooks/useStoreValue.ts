@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo, useDeferredValue } from 'react';
 import { useStoreSelector, shallowEqual, defaultEqualityFn } from './useStoreSelector';
 import type { Store } from '../core/Store';
+import type { React18Options } from '../../hooks/react18-hooks';
 
 /**
  * Create a type assertion helper for stores created with initial values
@@ -33,7 +34,7 @@ export function assertStoreValue<T>(value: T | undefined, storeName: string): T 
  * Performance optimization options for useStoreValue hook
  * 
  * Advanced configuration options for controlling subscription behavior,
- * comparison strategies, timing controls, and debugging features.
+ * comparison strategies, timing controls, debugging features, and React 18+ optimizations.
  * 
  * @template R - The type of the selected/computed value
  * 
@@ -68,6 +69,9 @@ export interface StoreValueOptions<R> {
   
   /** Hook name for debugging purposes */
   name?: string;
+
+  /** React 18+ optimizations */
+  react18?: React18Options;
 }
 
 // Store가 확정된 경우 - 기본 구독
@@ -114,7 +118,8 @@ export function useStoreValue<T, R>(
     initialValue,
     suspendedValue,
     debug = false,
-    name = store?.name || 'unknown'
+    name = store?.name || 'unknown',
+    react18 = {}
   } = finalOptions;
   
   // Hook 규칙을 지키기 위해 모든 Hook을 조건부 이전에 호출
@@ -223,6 +228,39 @@ export function useStoreValue<T, R>(
     
     return currentStoreValue;
   }, [currentStoreValue, isActive, debounce, throttle, debouncedValue, suspendedValue, initialValue, debug, name]);
+
+  // React 18+ 최적화 적용
+  const {
+    enableDeferred = false,
+    priorityThreshold = 1000
+  } = react18;
+
+  // Deferred value 적용 (대용량 객체나 복잡한 상태에 대해)
+  const deferredProcessedValue = useDeferredValue(processedValue);
+
+  // 복잡도에 따른 지연 처리 결정
+  const finalValue = useMemo(() => {
+    if (!enableDeferred) return processedValue;
+    
+    // 복잡도 계산 - 객체 크기나 배열 길이로 판단
+    const shouldDefer = (() => {
+      if (typeof processedValue === 'object' && processedValue !== null) {
+        try {
+          const size = JSON.stringify(processedValue).length;
+          return size > priorityThreshold;
+        } catch {
+          return true; // JSON 변환 불가능한 복잡한 객체
+        }
+      }
+      return false;
+    })();
+
+    if (shouldDefer && debug) {
+      console.debug(`useStoreValue [${name}]: Using deferred value for complex state`);
+    }
+
+    return shouldDefer ? deferredProcessedValue : processedValue;
+  }, [processedValue, deferredProcessedValue, enableDeferred, priorityThreshold, debug, name]);
   
   // 정리
   useEffect(() => {
@@ -233,7 +271,7 @@ export function useStoreValue<T, R>(
     };
   }, []);
   
-  return processedValue;
+  return finalValue;
 }
 
 /**

@@ -8,6 +8,7 @@
  * @memberof core-concepts
  */
 
+// Tree-shaking 최적화: 필요한 것만 정적 import
 import { produce, isDraft, original, current } from 'immer';
 
 // Simple logger replacement
@@ -70,14 +71,16 @@ function isNonCloneableType(value: unknown): boolean {
 }
 
 /**
- * Immer를 사용한 안전한 깊은 복사
+ * 최적화된 Immer 기반 깊은 복사
+ * Tree-shaking과 성능을 고려한 구현
  * 
  * @template T 복사할 값의 타입
  * @param value 복사할 값
+ * @param options 복사 옵션
  * @returns 불변성이 보장된 복사본
  */
-export function deepClone<T>(value: T): T {
-  // Primitive 값들은 이미 불변이므로 그대로 반환 (symbol은 경고 메시지를 위해 별도 처리)
+export function deepClone<T>(value: T, options?: { skipProducer?: boolean }): T {
+  // Fast path: Primitive 값들은 이미 불변이므로 그대로 반환
   if (
     value === null ||
     value === undefined ||
@@ -110,44 +113,88 @@ export function deepClone<T>(value: T): T {
     return value;
   }
 
+  // 성능 최적화: 간단한 객체는 직접 복사
+  if (options?.skipProducer && isSimpleObject(value)) {
+    return simpleClone(value);
+  }
+
   try {
     // Immer의 produce를 사용하여 불변 복사본 생성
-    // 기존 테스트와의 호환성을 위해 항상 새로운 복사본을 강제로 생성
-    return produce(value, (draft) => {
-      // Immer의 Copy-on-Write 최적화를 그대로 활용
+    // Tree-shaking 최적화로 produce만 사용
+    return produce(value, (_draft: any) => {
+      // Copy-on-Write 최적화를 위해 빈 함수 사용
       // 변경사항이 없으면 원본을 반환하고, 변경이 있으면 새 객체를 반환
-      // 이것이 Immer의 핵심 철학이므로 강제로 복사를 만들지 않음
     });
   } catch (error) {
     // Immer가 처리할 수 없는 객체의 경우 폴백 처리
     if (process.env.NODE_ENV === 'development') {
-      logger.warn('structuredClone failed, falling back to circular-safe JSON clone', error);
+      logger.warn('Immer produce failed, falling back to simple clone', error);
     }
 
-    // JSON fallback
-    try {
-      const visited = new WeakSet();
-      const circularSafeStringify = (obj: any): string => {
-        return JSON.stringify(obj, function(key, val) {
-          if (val !== null && typeof val === 'object') {
-            if (visited.has(val)) {
-              return '[Circular]';
-            }
-            visited.add(val);
-          }
-          return val;
-        });
-      };
-      
-      const jsonString = circularSafeStringify(value);
-      return JSON.parse(jsonString);
-    } catch (jsonError) {
-      // 모든 방법이 실패하면 원본 반환
-      if (process.env.NODE_ENV === 'development') {
-        logger.error('All cloning methods failed, returning original reference', jsonError);
-      }
-      return value;
+    return fallbackClone(value);
+  }
+}
+
+/**
+ * 간단한 객체인지 확인
+ */
+function isSimpleObject(value: unknown): value is Record<string, unknown> {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    value.constructor === Object &&
+    Object.getPrototypeOf(value) === Object.prototype
+  );
+}
+
+/**
+ * 성능 최적화된 간단한 객체 복사
+ */
+function simpleClone<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map(item => 
+      typeof item === 'object' && item !== null ? simpleClone(item) : item
+    ) as T;
+  }
+
+  if (isSimpleObject(value)) {
+    const cloned = {} as Record<string, unknown>;
+    for (const [key, val] of Object.entries(value)) {
+      cloned[key] = typeof val === 'object' && val !== null ? simpleClone(val) : val;
     }
+    return cloned as T;
+  }
+
+  return value;
+}
+
+/**
+ * 폴백 복사 함수 (Immer가 실패한 경우)
+ */
+function fallbackClone<T>(value: T): T {
+  // JSON fallback with circular reference handling
+  try {
+    const visited = new WeakSet();
+    const circularSafeStringify = (obj: unknown): string => {
+      return JSON.stringify(obj, function(key, val) {
+        if (val !== null && typeof val === 'object') {
+          if (visited.has(val)) {
+            return '[Circular]';
+          }
+          visited.add(val);
+        }
+        return val;
+      });
+    };
+    
+    const jsonString = circularSafeStringify(value);
+    return JSON.parse(jsonString);
+  } catch (jsonError) {
+    // 모든 방법이 실패하면 원본 반환
+    if (process.env.NODE_ENV === 'development') {
+      logger.error('All cloning methods failed, returning original reference', jsonError);
+    }
+    return value;
   }
 }
 
@@ -324,5 +371,26 @@ export function getPerformanceProfile(): PerformanceProfile {
   };
 }
 
-// Immer 유틸리티 함수들 내보내기 (필요한 경우)
-export { produce, isDraft, original, current } from 'immer';
+/**
+ * Tree-shaking 최적화된 Immer 유틸리티 함수들
+ * 정적 import로 번들러가 최적화 가능
+ */
+export const ImmerUtils = {
+  /**
+   * Draft 객체인지 확인
+   */
+  isDraft,
+
+  /**
+   * Draft의 원본 객체 가져오기
+   */
+  original,
+
+  /**
+   * Draft의 현재 상태 가져오기
+   */
+  current,
+};
+
+// 핵심 Immer 함수들을 직접 export (Tree-shaking 최적화)
+export { produce, isDraft, original, current };

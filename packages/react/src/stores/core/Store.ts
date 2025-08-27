@@ -105,9 +105,10 @@ export class Store<T = any> implements IStore<T> {
   /**
    * Store 값 설정 및 구독자 알림
    * 핵심 로직: 
-   * 1. 입력값의 불변성 보장을 위한 깊은 복사
+   * 1. 입력값의 불변성 보장을 위한 깊은 복사 (선택적 skip 가능)
    * 2. 강화된 값 비교 시스템으로 불필요한 리렌더링 방지
-   * 3. 값 변경 시에만 스냅샷 재생성 및 알림
+   * 3. Structural sharing을 통한 성능 최적화
+   * 4. 값 변경 시에만 스냅샷 재생성 및 알림
    * 
    * @implements unidirectional-data-flow
    * @implements store-immutability
@@ -116,7 +117,7 @@ export class Store<T = any> implements IStore<T> {
    * 보안 강화: 입력값을 복사하여 Store 내부 상태가 외부 참조에 의해 변경되지 않도록 보호
    * 성능 강화: 다층 비교 시스템으로 정확한 변경 감지 및 렌더링 최적화
    */
-  setValue(value: T): void {
+  setValue(value: T, options?: { skipClone?: boolean; skipComparison?: boolean }): void {
     // Debug logging to identify event objects being stored (but exclude RefState objects)
     if (TypeGuards.isObject(value)) {
       // Check if this is a RefState object (which legitimately has target property for DOM elements)
@@ -144,19 +145,25 @@ export class Store<T = any> implements IStore<T> {
       }
     }
     
-    // Immer를 사용한 안전한 불변성 보장
-    const safeValue = deepClone(value);
+    // 성능 최적화된 불변성 보장
+    const safeValue = options?.skipClone ? value : deepClone(value);
     
-    // 강화된 값 비교 시스템
-    const hasChanged = this._compareValues(this._value, safeValue);
+    // 강화된 값 비교 시스템 (선택적 skip 가능)
+    let hasChanged = true;
+    if (!options?.skipComparison) {
+      hasChanged = this._compareValues(this._value, safeValue);
+    }
     
     if (hasChanged) {
-      this._value = safeValue;
-      // 새 스냅샷 생성 - 불변성 보장
-      this._snapshot = this._createSnapshot();
-      
-      // 듀얼 모드 알림 시스템
-      this._scheduleNotification();
+      // Structural sharing 최적화: 실제로 변경된 경우에만 새 값 할당
+      if (!this._structuralCompare(this._value, safeValue)) {
+        this._value = safeValue;
+        // 새 스냅샷 생성 - 불변성 보장
+        this._snapshot = this._createSnapshot();
+        
+        // 듀얼 모드 알림 시스템
+        this._scheduleNotification();
+      }
     }
   }
 
@@ -298,6 +305,55 @@ export class Store<T = any> implements IStore<T> {
    */
   clearComparisonOptions(): void {
     this.comparisonOptions = undefined;
+  }
+
+  /**
+   * Structural sharing을 위한 shallow 비교
+   * 객체의 참조가 동일한지 빠르게 확인하여 성능 최적화
+   * 
+   * @param oldValue - 이전 값
+   * @param newValue - 새로운 값  
+   * @returns true if structurally same, false if different
+   * @private
+   */
+  private _structuralCompare(oldValue: T, newValue: T): boolean {
+    // 참조가 동일하면 structural sharing 가능
+    if (Object.is(oldValue, newValue)) {
+      return true;
+    }
+    
+    // 원시값이면 이미 위에서 비교됨
+    if (typeof oldValue !== 'object' || typeof newValue !== 'object') {
+      return false;
+    }
+    
+    // null 체크
+    if (oldValue === null || newValue === null) {
+      return oldValue === newValue;
+    }
+    
+    // 배열의 경우 간단한 shallow 비교
+    if (Array.isArray(oldValue) && Array.isArray(newValue)) {
+      if (oldValue.length !== newValue.length) return false;
+      for (let i = 0; i < oldValue.length; i++) {
+        if (!Object.is(oldValue[i], newValue[i])) return false;
+      }
+      return true;
+    }
+    
+    // 객체의 경우 간단한 shallow 비교
+    const oldKeys = Object.keys(oldValue);
+    const newKeys = Object.keys(newValue);
+    
+    if (oldKeys.length !== newKeys.length) return false;
+    
+    for (const key of oldKeys) {
+      if (!newKeys.includes(key) || !Object.is((oldValue as any)[key], (newValue as any)[key])) {
+        return false;
+      }
+    }
+    
+    return true;
   }
 
   /**
