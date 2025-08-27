@@ -145,9 +145,9 @@ For detailed technical information, see:
 
 | System | Performance Benefit | When Active |
 |--------|-------------------|-------------|
-| **Immer Copy-on-Write** | Avoid unnecessary object creation | All store updates |
-| **Comparison Optimization** | Skip re-renders for identical values | setValue() calls |
-| **Combined System** | Maximum efficiency | Both layers working together |
+| **Immer Copy-on-Write** | Avoid unnecessary object creation | Individual store updates |
+| **Comparison Optimization** | Skip re-renders for identical values | Individual store setValue() calls |
+| **Combined System** | Maximum efficiency | Each store operates independently |
 
 ## Related Patterns
 
