@@ -6,41 +6,66 @@
     "source_path": "en/guide/patterns/action/register-patterns.md"
   },
   "priority": {
-    "score": 95,
+    "score": 83,
     "tier": "high"
   },
   "purpose": {
-    "primary_goal": "Learn about register patterns",
+    "primary_goal": "Master action handler registration patterns through practical implementations",
     "use_cases": [
-      "Understanding guide",
-      "Implementing register patterns",
-      "Framework learning"
+      "useActionHandler registration with advanced configuration",
+      "Dynamic handler registration and cleanup patterns",
+      "Priority-based handler execution code examples",
+      "Handler lifecycle management and performance optimization",
+      "Production-ready registration strategies"
     ],
     "target_audience": [
-      "framework-users",
-      "developers"
+      "action-handler-specialists",
+      "lifecycle-management-experts",
+      "performance-focused-developers"
     ]
+  },
+  "content_focus": {
+    "core_strength": "code_examples_and_definitions",
+    "key_elements": [
+      "useActionHandler registration patterns and configurations",
+      "Dynamic handler registration and cleanup code",
+      "Priority-based execution and ordering examples",
+      "Handler lifecycle and performance optimization",
+      "Advanced registration configuration options"
+    ],
+    "code_density": "high",
+    "example_completeness": "comprehensive"
   },
   "keywords": {
     "technical": [
+      "useActionHandler",
+      "handler-registration",
+      "dynamic-registration",
+      "priority-execution",
+      "handler-lifecycle",
+      "cleanup-patterns",
       "typescript",
-      "react",
-      "api",
-      "https",
-      "context",
-      "component",
-      "hook",
-      "state"
+      "performance-optimization"
     ],
     "functional": [
-      "guide",
-      "framework",
+      "registration-patterns",
+      "handler-patterns",
+      "lifecycle-patterns",
+      "cleanup-patterns",
       "context-action"
+    ],
+    "pattern_specific": [
+      "Handler-Registration-Patterns",
+      "Dynamic-Registration",
+      "Priority-Execution-Patterns",
+      "Lifecycle-Management-Patterns"
     ]
   },
   "metadata": {
-    "description": "Handler registration patterns and advanced configuration options for the Context-Action framework.",
+    "description": "Handler registration patterns and advanced configuration options with practical implementation examples",
     "language": "en",
-    "created_at": "2025-08-26T00:34:27.209Z"
+    "created_at": "2025-08-26T00:34:27.209Z",
+    "updated_at": "2025-08-27T00:00:00.000Z",
+    "content_type": "code_examples_and_definitions"
   }
 }

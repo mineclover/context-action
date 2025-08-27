@@ -6,38 +6,66 @@
     "source_path": "ko/guide/patterns/action/advanced-patterns.md"
   },
   "priority": {
-    "score": 95,
+    "score": 90,
     "tier": "high"
   },
   "purpose": {
-    "primary_goal": "Learn about 고급 액션 패턴",
+    "primary_goal": "Master advanced action patterns through comprehensive code implementations",
     "use_cases": [
-      "Understanding guide",
-      "Implementing 고급 액션 패턴",
-      "Framework learning"
+      "Advanced action handler implementations",
+      "Multi-context action coordination patterns",
+      "Complex business logic with action pipelines",
+      "Error handling and retry patterns in actions",
+      "Performance-optimized action implementations"
     ],
     "target_audience": [
-      "framework-users",
-      "developers"
+      "senior-developers",
+      "action-pattern-specialists",
+      "performance-focused-developers"
     ]
+  },
+  "content_focus": {
+    "core_strength": "code_examples_and_definitions",
+    "key_elements": [
+      "고급 액션 핸들러 구현 패턴",
+      "멀티 컨텍스트 액션 조정 코드",
+      "복잡한 비즈니스 로직 파이프라인",
+      "에러 처리 및 재시도 패턴 구현",
+      "성능 최적화된 액션 예제"
+    ],
+    "code_density": "high",
+    "example_completeness": "comprehensive"
   },
   "keywords": {
     "technical": [
+      "useActionHandler",
+      "ActionRegister",
+      "multi-context-actions",
+      "action-pipeline",
+      "error-handling",
+      "retry-patterns",
       "typescript",
-      "https",
-      "context",
-      "state",
-      "tsx"
+      "performance-optimization"
     ],
     "functional": [
-      "guide",
-      "framework",
+      "advanced-patterns",
+      "action-coordination",
+      "business-logic-patterns",
+      "error-recovery",
       "context-action"
+    ],
+    "pattern_specific": [
+      "Multi-Context-Actions",
+      "Action-Pipeline-Patterns",
+      "Error-Handling-Patterns",
+      "Retry-Mechanisms"
     ]
   },
   "metadata": {
-    "description": "멀티 컨텍스트 설정 기반을 기반으로 구축된 Context-Action 프레임워크의 고급 액션 패턴 개요입니다.",
+    "description": "고급 액션 패턴의 실무 구현 - 멀티 컨텍스트, 에러 처리, 성능 최적화 중심",
     "language": "ko",
-    "created_at": "2025-08-26T00:34:27.233Z"
+    "created_at": "2025-08-26T00:34:27.233Z",
+    "updated_at": "2025-08-27T00:00:00.000Z",
+    "content_type": "code_examples_and_definitions"
   }
 }

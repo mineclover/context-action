@@ -6,35 +6,66 @@
     "source_path": "ko/guide/patterns/async/wait-then-execute.md"
   },
   "priority": {
-    "score": 95,
+    "score": 84,
     "tier": "high"
   },
   "purpose": {
-    "primary_goal": "Learn about 대기-후-실행 패턴",
+    "primary_goal": "안전한 실행 구현을 통한 비동기 DOM 작업 패턴 마스터",
     "use_cases": [
-      "Understanding guide",
-      "Implementing 대기-후-실행 패턴",
-      "Framework learning"
+      "엘리먼트 가용성 확보 후 안전한 DOM 조작",
+      "useWaitForRefs 구현 패턴 및 코드 예시",
+      "스토어 통합을 통한 비동기 조정 패턴",
+      "엘리먼트 생명주기 관리 및 타이밍 코드",
+      "실무 적용 가능한 비동기 DOM 작업 전략"
     ],
     "target_audience": [
-      "framework-users",
-      "developers"
+      "비동기 패턴 전문가",
+      "DOM 안전성 전문가",
+      "생명주기 관리 개발자"
     ]
+  },
+  "content_focus": {
+    "core_strength": "code_examples_and_definitions",
+    "key_elements": [
+      "useWaitForRefs 구현 및 사용 패턴",
+      "안전한 DOM 작업 타이밍 및 조정 코드",
+      "비동기 엘리먼트 가용성 확인 예시",
+      "스토어 통합을 통한 비동기 DOM 패턴",
+      "DOM 작업 에러 처리 및 복구"
+    ],
+    "code_density": "high",
+    "example_completeness": "comprehensive"
   },
   "keywords": {
     "technical": [
+      "useWaitForRefs",
+      "async-dom-operations",
+      "element-lifecycle",
+      "safe-dom-manipulation",
+      "timing-coordination",
+      "store-integration",
       "typescript",
-      "context"
+      "error-handling"
     ],
     "functional": [
-      "guide",
-      "framework",
+      "async-patterns",
+      "dom-safety-patterns",
+      "lifecycle-patterns",
+      "coordination-patterns",
       "context-action"
+    ],
+    "pattern_specific": [
+      "Wait-Then-Execute-Patterns",
+      "Async-DOM-Patterns",
+      "Element-Availability-Patterns",
+      "Safe-Execution-Patterns"
     ]
   },
   "metadata": {
-    "description": "엘리먼트 가용성을 확보한 후 안전하게 DOM 조작을 실행하는 패턴입니다.",
+    "description": "엘리먼트 가용성을 확보한 후 비동기 조정으로 안전하게 DOM 조작을 실행하는 패턴",
     "language": "ko",
-    "created_at": "2025-08-26T00:34:27.243Z"
+    "created_at": "2025-08-26T00:34:27.243Z",
+    "updated_at": "2025-08-27T00:00:00.000Z",
+    "content_type": "code_examples_and_definitions"
   }
 }

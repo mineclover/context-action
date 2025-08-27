@@ -2,6 +2,35 @@
 
 다국어 문서 처리 기능을 포함한 LLMS Generator CLI 시스템의 완전한 명령어 참조서입니다.
 
+## 🎯 빠른 이해 (30초)
+
+**LLMS Generator는?** 긴 문서를 7가지 길이(100자~5000자)로 자동 요약하는 시스템
+
+**동작 원리:**
+```
+docs/ko/concept/pattern-guide.md (원본)
+        ↓ 자동변환 ↓
+llmsData/ko/concept--pattern-guide/
+├── priority.json                          # 메타데이터
+├── concept--pattern-guide-100.md          # 100자 요약
+├── concept--pattern-guide-500.md          # 500자 요약
+└── concept--pattern-guide-2000.md         # 2000자 요약
+```
+
+**가장 많이 쓰는 명령어:**
+```bash
+# 1. 문서 수정 후 처리
+pnpm llms:sync-docs --changed-files docs/ko/guide/내문서.md
+
+# 2. 다음 작업 문서 찾기  
+pnpm llms:work-next
+
+# 3. 시스템 상태 확인
+pnpm llms:priority-health
+```
+
+---
+
 ::: tip 📖 종합 구현 참조서
 모든 CLI 기능, 아키텍처 세부사항, 고급 워크플로우를 다루는 상세한 구현 문서는 [**종합 구현 참조서**](./llms-cli-comprehensive-reference.md)를 참조하세요.
 :::

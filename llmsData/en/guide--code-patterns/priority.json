@@ -6,37 +6,66 @@
     "source_path": "en/guide/code-patterns.md"
   },
   "priority": {
-    "score": 95,
+    "score": 88,
     "tier": "high"
   },
   "purpose": {
-    "primary_goal": "Learn about code patterns",
+    "primary_goal": "Master RefContext code patterns through practical implementations",
     "use_cases": [
-      "Understanding guide",
-      "Implementing code patterns",
-      "Framework learning"
+      "RefContext and useWaitForRefs implementation patterns",
+      "Direct DOM manipulation code examples",
+      "Zero re-render performance patterns",
+      "RefContext lifecycle management code",
+      "Production-ready ref handling examples"
     ],
     "target_audience": [
-      "framework-users",
-      "developers"
+      "performance-focused-developers",
+      "ref-pattern-specialists",
+      "dom-manipulation-experts"
     ]
+  },
+  "content_focus": {
+    "core_strength": "code_examples_and_definitions",
+    "key_elements": [
+      "RefContext implementation patterns and code examples",
+      "useWaitForRefs usage and practical implementations",
+      "Direct DOM manipulation optimization patterns",
+      "Ref lifecycle management code",
+      "Performance-focused ref handling examples"
+    ],
+    "code_density": "high",
+    "example_completeness": "comprehensive"
   },
   "keywords": {
     "technical": [
+      "createRefContext",
+      "useWaitForRefs",
+      "useRefHandler",
+      "dom-manipulation",
+      "ref-lifecycle",
+      "zero-rerender",
       "typescript",
-      "context",
-      "state",
-      "component"
+      "performance-optimization"
     ],
     "functional": [
-      "guide",
-      "framework",
+      "ref-patterns",
+      "dom-patterns",
+      "performance-patterns",
+      "lifecycle-patterns",
       "context-action"
+    ],
+    "pattern_specific": [
+      "RefContext-Patterns",
+      "DOM-Manipulation-Patterns",
+      "Ref-Lifecycle-Management",
+      "Zero-Rerender-Patterns"
     ]
   },
   "metadata": {
-    "description": "Core patterns for Context-Action framework's RefContext and useWaitForRefs functionality.",
+    "description": "RefContext and useWaitForRefs core functionality practical implementation patterns and code examples",
     "language": "en",
-    "created_at": "2025-08-21T02:13:42.324Z"
+    "created_at": "2025-08-21T02:13:42.324Z",
+    "updated_at": "2025-08-27T00:00:00.000Z",
+    "content_type": "code_examples_and_definitions"
   }
 }
