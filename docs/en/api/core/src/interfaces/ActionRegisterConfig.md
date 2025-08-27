@@ -32,9 +32,7 @@ const devRegister = new ActionRegister<AppActions>({
   registry: {
     debug: process.env.NODE_ENV === 'development',
     autoCleanup: true,
-    maxHandlers: 50,
     defaultExecutionMode: 'parallel',
-    collectStats: true,
     useConcurrencyQueue: true,
     errorHandler: (error, context) => {
       console.error('Unhandled action error:', error);
@@ -99,12 +97,6 @@ Delay between retries in milliseconds
 > `optional` **defaultExecutionMode**: [`ExecutionMode`](../type-aliases/ExecutionMode.md)
 
 Default execution mode for actions
-
-#### collectStats?
-
-> `optional` **collectStats**: `boolean`
-
-Whether to collect execution statistics for performance monitoring. Default: false
 
 #### useConcurrencyQueue?
 
