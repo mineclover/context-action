@@ -178,7 +178,7 @@ export class StoreRegistry implements IStoreRegistry {
   /**
    * Unregister a store from the registry
    * 
-   * Removes a store from the registry and calls its destroy method if available.
+   * Removes a store from the registry and calls its dispose method if available.
    * Triggers registry change notifications for subscribers. Metadata is automatically
    * garbage collected when the store is no longer referenced.
    * 
@@ -202,9 +202,9 @@ export class StoreRegistry implements IStoreRegistry {
     const store = this.stores.get(name);
     
     if (store) {
-      // Call destroy if available
-      if ('destroy' in store && typeof store.destroy === 'function') {
-        store.destroy();
+      // Call dispose if available
+      if ('dispose' in store && typeof store.dispose === 'function') {
+        store.dispose();
       }
       
       this.stores.delete(name);
@@ -427,7 +427,7 @@ export class StoreRegistry implements IStoreRegistry {
   /**
    * Clear all registered stores
    * 
-   * Removes all stores from the registry and calls their destroy methods
+   * Removes all stores from the registry and calls their dispose methods
    * if available. Triggers registry change notifications. Use with caution
    * as this will affect all parts of the application using these stores.
    * 
@@ -442,10 +442,10 @@ export class StoreRegistry implements IStoreRegistry {
    * @public
    */
   clear(): void {
-    // Call destroy on all stores if available
+    // Call dispose on all stores if available
     this.stores.forEach((store) => {
-      if ('destroy' in store && typeof store.destroy === 'function') {
-        store.destroy();
+      if ('dispose' in store && typeof store.dispose === 'function') {
+        store.dispose();
       }
     });
     

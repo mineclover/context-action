@@ -35,12 +35,10 @@ function GameComponent() {
 const GameRefs = createRefContext('GameRefs', {
   canvas: {
     name: 'canvas',
-    objectType: 'dom' as const,
     autoCleanup: true
   },
   scene: {
-    name: 'scene', 
-    objectType: 'custom' as const,
+    name: 'scene',
     autoCleanup: true,
     cleanup: (scene) => {
       scene.dispose();
@@ -86,7 +84,6 @@ const AppRefs = createRefContext('AppRefs', {
   // 엄격한 검증이 필요한 입력 필드
   emailInput: {
     name: 'emailInput',
-    objectType: 'dom',
     autoCleanup: true,
     mountTimeout: 2000,
     validator: (el): el is HTMLInputElement => 
@@ -95,8 +92,7 @@ const AppRefs = createRefContext('AppRefs', {
   
   // 느슨한 관리가 필요한 일반 요소
   infoDiv: {
-    name: 'infoDiv', 
-    objectType: 'dom',
+    name: 'infoDiv',
     autoCleanup: false,  // 수동 관리
     mountTimeout: 5000   // 긴 대기시간
   },
@@ -104,7 +100,6 @@ const AppRefs = createRefContext('AppRefs', {
   // 복잡한 정리가 필요한 커스텀 객체
   gameEngine: {
     name: 'gameEngine',
-    objectType: 'custom',
     autoCleanup: true,
     cleanup: async (engine) => {
       await engine.stopAllSounds();

@@ -192,31 +192,41 @@ export class StoreUtils {
 
 
 	/**
-	 * 디바운스 Store 생성
+	 * 디바운스 Store 생성 (메모리 누수 수정)
 	 * 핵심 기능: 소스 Store 변경을 지연시켜 과도한 업데이트 방지
 	 * 
 	 * @param name Store 이름
 	 * @param sourceStore 소스 Store
 	 * @param delay 지연 시간 (밀리초)
-	 * @returns 디바운스된 Store
+	 * @returns 디바운스된 Store와 cleanup 함수
 	 */
 	static createDebouncedStore<T>(
 		name: string,
 		sourceStore: IStore<T>,
 		delay: number,
-	): Store<T> {
+	): Store<T> & { cleanup: () => void } {
 		const debouncedStore = new Store(name, sourceStore.getSnapshot().value);
-		let timeoutId: any;
+		let timeoutId: NodeJS.Timeout | null = null;
 
 		// 디바운스 로직 - 마지막 변경 후 delay 시간 대기
-		sourceStore.subscribe(() => {
-			clearTimeout(timeoutId);
+		const unsubscribe = sourceStore.subscribe(() => {
+			if (timeoutId) clearTimeout(timeoutId);
 			timeoutId = setTimeout(() => {
 				const { value } = sourceStore.getSnapshot();
 				debouncedStore.setValue(value);
+				timeoutId = null;
 			}, delay);
 		});
 
-		return debouncedStore;
+		// Store에 cleanup 함수 추가
+		return Object.assign(debouncedStore, {
+			cleanup: () => {
+				unsubscribe();
+				if (timeoutId) {
+					clearTimeout(timeoutId);
+					timeoutId = null;
+				}
+			}
+		});
 	}
 }
