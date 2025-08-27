@@ -8,7 +8,7 @@ export interface QueuedOperation<T = any> {
   id: string;
   operation: () => T | Promise<T>;
   resolve: (value: T) => void;
-  reject: (error: any) => void;
+  reject: (error: unknown) => void;
   priority?: number;
   timestamp: number;
 }
@@ -24,7 +24,7 @@ export interface QueuedOperation<T = any> {
  */
 export class OperationQueue {
   private queue: QueuedOperation[] = [];
-  private isProcessing = false;
+  private processingPromise: Promise<void> | null = null;
   private operationCounter = 0;
   
   constructor(private name: string = 'OperationQueue') {}
@@ -69,28 +69,30 @@ export class OperationQueue {
    * 한 번에 하나씩 순서대로 작업을 실행하여 동시성 문제 방지
    */
   private async processQueue(): Promise<void> {
-    // 이미 처리 중이거나 큐가 비어있으면 종료
-    if (this.isProcessing || this.queue.length === 0) {
-      return;
+    if (this.processingPromise) {
+      return this.processingPromise;
     }
-
-    this.isProcessing = true;
-
+    
+    this.processingPromise = this._doProcess();
     try {
-      while (this.queue.length > 0) {
-        const operation = this.queue.shift()!;
-        
-        try {
-          // 작업 실행 (동기/비동기 모두 지원)
-          const result = await Promise.resolve(operation.operation());
-          operation.resolve(result);
-        } catch (error) {
-          // 개별 작업 실패는 전체 큐에 영향 주지 않음
-          operation.reject(error);
-        }
-      }
+      await this.processingPromise;
     } finally {
-      this.isProcessing = false;
+      this.processingPromise = null;
+    }
+  }
+  
+  private async _doProcess(): Promise<void> {
+    while (this.queue.length > 0) {
+      const operation = this.queue.shift()!;
+      
+      try {
+        // 작업 실행 (동기/비동기 모두 지원)
+        const result = await Promise.resolve(operation.operation());
+        operation.resolve(result);
+      } catch (error) {
+        // 개별 작업 실패는 전체 큐에 영향 주지 않음
+        operation.reject(error);
+      }
     }
   }
 
@@ -101,7 +103,7 @@ export class OperationQueue {
     return {
       name: this.name,
       queueLength: this.queue.length,
-      isProcessing: this.isProcessing,
+      isProcessing: Boolean(this.processingPromise),
       operations: this.queue.map(op => ({
         id: op.id,
         priority: op.priority,
@@ -120,7 +122,7 @@ export class OperationQueue {
     });
     
     this.queue = [];
-    this.isProcessing = false;
+    this.processingPromise = null;
   }
 
   /**
@@ -134,6 +136,6 @@ export class OperationQueue {
    * 처리 중 여부 조회  
    */
   get processing(): boolean {
-    return this.isProcessing;
+    return Boolean(this.processingPromise);
   }
 }

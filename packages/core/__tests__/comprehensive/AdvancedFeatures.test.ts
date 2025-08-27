@@ -28,7 +28,6 @@ describe('ActionRegister - Advanced Features', () => {
       name: 'AdvancedTestRegister',
       registry: {
         debug: false,
-        maxHandlers: 50,
         autoCleanup: true
       }
     });

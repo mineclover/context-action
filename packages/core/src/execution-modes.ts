@@ -10,8 +10,31 @@
 import type { 
   HandlerRegistration, 
   PipelineContext, 
-  PipelineController
+  PipelineController,
+  HandlerError
 } from './types.js';
+
+/**
+ * Create standardized error handling for handlers
+ * 
+ * @param error - The error that occurred
+ * @param registration - The handler registration that failed
+ * @returns Standardized HandlerError object
+ * 
+ * @internal
+ */
+function handleExecutionError<T, R>(
+  error: any,
+  registration: HandlerRegistration<T, R>
+): HandlerError {
+  const errorObj = error instanceof Error ? error : new Error(String(error));
+  return {
+    handlerId: registration.id,
+    error: errorObj,
+    timestamp: Date.now(),
+    severity: registration.config.blocking ? 'blocking' : 'non-blocking'
+  };
+}
 
 /**
  * Execute handlers in sequential mode (one after another)
@@ -79,10 +102,11 @@ export async function executeSequential<T, R = void>(
             })
             .catch(error => {
               // 🆕 Non-blocking async handler error collection
+              const handlerError = handleExecutionError(error, registration);
               errors.push({
-                handlerId: registration.id,
-                error: error instanceof Error ? error : new Error(String(error)),
-                timestamp: Date.now()
+                handlerId: handlerError.handlerId,
+                error: handlerError.error,
+                timestamp: handlerError.timestamp
               });
               return undefined; // Return undefined for failed non-blocking handlers
             });
@@ -119,10 +143,10 @@ export async function executeSequential<T, R = void>(
 
     } catch (error: any) {
       // 🆕 Maintain backward compatibility: any sync error fails pipeline
-      const errorObj = error instanceof Error ? error : new Error(String(error));
+      const handlerError = handleExecutionError(error, registration);
       
       // For backward compatibility: all synchronous errors fail the pipeline
-      throw errorObj;
+      throw handlerError.error;
     }
   }
   
@@ -193,13 +217,13 @@ export async function executeParallel<T, R = void>(
       
     } catch (error: any) {
       // 🆕 Consistent error object creation
-      const errorObj = error instanceof Error ? error : new Error(String(error));
+      const handlerError = handleExecutionError(error, registration);
       
-      if (registration.config.blocking) {
-        throw errorObj;
+      if (handlerError.severity === 'blocking') {
+        throw handlerError.error;
       }
       
-      return { success: false, handlerId: registration.id, error: errorObj };
+      return { success: false, handlerId: registration.id, error: handlerError.error };
     }
   });
 
@@ -291,8 +315,8 @@ export async function executeRace<T, R = void>(
       
     } catch (error: any) {
       // 🆕 Consistent error object creation
-      const errorObj = error instanceof Error ? error : new Error(String(error));
-      return { success: false, handlerId: registration.id, error: errorObj, registration };
+      const handlerError = handleExecutionError(error, registration);
+      return { success: false, handlerId: registration.id, error: handlerError.error, registration };
     }
   });
 
