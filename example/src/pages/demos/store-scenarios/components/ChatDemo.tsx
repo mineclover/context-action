@@ -429,9 +429,14 @@ function ChatComponent() {
   
   const logger = useActionLoggerWithToast();
 
-  // 액션 핸들러들을 useCallback으로 정의
-  const sendMessageHandler = useCallback(
-    ({ message, sender, type }: { message: string; sender: string; type: ChatMessage['type'] }) => {
+  // 🔧 Fix 1: Debouncing for automatic responses
+  const autoResponseTimeoutRef = useRef<NodeJS.Timeout>();
+  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
+  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+
+  // 🔧 Fix 3: Stable action handlers - use refs to avoid re-registration
+  const handlersRef = useRef({
+    sendMessage: ({ message, sender, type }: { message: string; sender: string; type: ChatMessage['type'] }) => {
       const newMessage: ChatMessage = {
         id: `msg-${Date.now()}`,
         sender,
@@ -441,23 +446,46 @@ function ChatComponent() {
       };
       messagesStore.update((prev) => [...prev, newMessage]);
     },
-    [messagesStore]
-  );
-
-  const deleteMessageHandler = useCallback(
-    ({ messageId }: { messageId: string }) => {
+    deleteMessage: ({ messageId }: { messageId: string }) => {
       messagesStore.update((prev) =>
         prev.filter((msg) => msg.id !== messageId)
       );
     },
-    [messagesStore]
-  );
+    clearChat: () => {
+      messagesStore.setValue([]);
+    }
+  });
 
-  const clearChatHandler = useCallback(() => {
-    messagesStore.setValue([]);
+  // Keep handlers updated with latest store references
+  useEffect(() => {
+    handlersRef.current = {
+      sendMessage: ({ message, sender, type }: { message: string; sender: string; type: ChatMessage['type'] }) => {
+        const newMessage: ChatMessage = {
+          id: `msg-${Date.now()}`,
+          sender,
+          message,
+          timestamp: new Date(),
+          type,
+        };
+        messagesStore.update((prev) => [...prev, newMessage]);
+      },
+      deleteMessage: ({ messageId }: { messageId: string }) => {
+        messagesStore.update((prev) =>
+          prev.filter((msg) => msg.id !== messageId)
+        );
+      },
+      clearChat: () => {
+        messagesStore.setValue([]);
+      }
+    };
   }, [messagesStore]);
 
-  // 액션 핸들러 등록 - useEffect 사용
+  // Stable wrapper functions
+  const sendMessageHandler = useCallback((payload: any) => handlersRef.current.sendMessage(payload), []);
+  const deleteMessageHandler = useCallback((payload: any) => handlersRef.current.deleteMessage(payload), []);
+  const clearChatHandler = useCallback(() => handlersRef.current.clearChat(), []);
+
+  // 🔧 Fix 3: Stabilize action handler registration - register only once
   useEffect(() => {
     const unsubscribers = [
       storeActionRegister.register('sendMessage', sendMessageHandler),
@@ -467,8 +495,18 @@ function ChatComponent() {
 
     return () => {
       unsubscribers.forEach((unsubscribe) => unsubscribe());
+      // 🔧 Fix 2: Clean up all timers on unmount
+      if (autoResponseTimeoutRef.current) {
+        clearTimeout(autoResponseTimeoutRef.current);
+      }
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
     };
-  }, [sendMessageHandler, deleteMessageHandler, clearChatHandler]);
+  }, []); // 🔧 Remove dependencies to prevent re-registration
   
   // UI Action handlers for form interactions
   useChatUIActionHandler('updateNewMessage', async ({ message }) => {
@@ -492,9 +530,14 @@ function ChatComponent() {
   });
 
 
-  // 메시지가 추가될 때마다 스크롤 - ref 의존성 제거로 무한 루프 방지
+  // 🔧 Fix 2: Improved scroll management with timer cleanup
   useEffect(() => {
-    const timer = setTimeout(() => {
+    // Clear existing scroll timer
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    
+    scrollTimeoutRef.current = setTimeout(() => {
       messagesContainerRef.withTarget((container) => {
         container.scrollTo({
           top: container.scrollHeight,
@@ -503,13 +546,22 @@ function ChatComponent() {
       });
     }, 100);
     
-    return () => clearTimeout(timer);
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
   }, [messages?.length]); // messagesContainerRef 의존성 제거
 
-  // 타이핑 시뮬레이션
+  // 🔧 Fix 2: Improved typing simulation with timer cleanup
   const simulateTyping = useCallback(() => {
+    // Clear existing typing timer
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
     uiDispatch('setIsTyping', { typing: true });
-    setTimeout(() => {
+    typingTimeoutRef.current = setTimeout(() => {
       uiDispatch('setIsTyping', { typing: false });
     }, 2000);
   }, [uiDispatch]);
@@ -532,8 +584,13 @@ function ChatComponent() {
 
       uiDispatch('clearNewMessage');
 
-      // 다른 사용자의 자동 응답 시뮬레이션 (30% 확률)
+      // 🔧 Fix 1: Debounced automatic response simulation (30% chance with debouncing)
       if (Math.random() < 0.3) {
+        // Clear existing auto response timer to prevent multiple responses
+        if (autoResponseTimeoutRef.current) {
+          clearTimeout(autoResponseTimeoutRef.current);
+        }
+        
         const otherUsers = CHAT_USERS.filter((user) => user !== currentUser);
         const randomUser =
           otherUsers[Math.floor(Math.random() * otherUsers.length)];
@@ -552,7 +609,7 @@ function ChatComponent() {
 
         simulateTyping();
 
-        setTimeout(() => {
+        autoResponseTimeoutRef.current = setTimeout(() => {
           storeActionRegister.dispatch('sendMessage', {
             message: randomResponse,
             sender: randomUser,
