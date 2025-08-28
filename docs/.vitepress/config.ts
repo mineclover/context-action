@@ -141,10 +141,25 @@ export default defineConfig({
   head: [
     // /example 경로에서 외부 URL로 리디렉션하는 스크립트
     ['script', {}, `
-      if (window.location.pathname.startsWith('/context-action/example')) {
-        const path = window.location.pathname.replace('/context-action/example', '');
-        window.location.href = 'https://mineclover.github.io/context-action/example' + path;
-      }
+      // 페이지 로드 시 즉시 실행
+      (function() {
+        if (window.location.pathname.startsWith('/context-action/example')) {
+          // /context-action/example 부분을 제거하고 나머지 경로만 추출
+          const remainingPath = window.location.pathname.replace('/context-action/example', '');
+          // 쿼리 파라미터와 해시도 포함
+          const queryString = window.location.search;
+          const hash = window.location.hash;
+          
+          // 최종 리디렉션 URL 구성
+          const redirectUrl = 'https://mineclover.github.io/context-action/example' + remainingPath + queryString + hash;
+          
+          console.log('Redirecting from:', window.location.href);
+          console.log('Redirecting to:', redirectUrl);
+          
+          // 즉시 리디렉션
+          window.location.replace(redirectUrl);
+        }
+      })();
     `]
   ]
 })
