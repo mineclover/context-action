@@ -109,6 +109,29 @@ const {
 - **Purpose**: Register business logic for specific actions
 - **Essential for**: Implementing business logic
 - **Best Practice**: Use with `useCallback` for optimization
+- **Handler Updates**: Automatically updates when handler function changes
+- **Internal Memoization**: Maintains stable reference while allowing handler updates
+
+**Handler Update Patterns:**
+```tsx
+// ✅ State-based dynamic handler (recommended)
+const [mode, setMode] = useState('create');
+const handler = useCallback(async (payload) => {
+  if (mode === 'create') return createUser(payload);
+  return editUser(payload);
+}, [mode]); // Handler updates when mode changes
+
+useActionHandler('userAction', handler);
+
+// ✅ Manual replacement using ActionRegister
+const register = useActionRegister();
+const replaceHandler = (newHandler) => {
+  register.clearAction('myAction');
+  register.register('myAction', newHandler);
+};
+```
+
+📖 **See**: [Handler Runtime Updates](/en/guide/patterns/action/handler-updates) for comprehensive patterns
 
 ### 🏪 Store Hooks (Core)
 

@@ -237,7 +237,8 @@ interface UserActions extends ActionPayloadMap {
 ### 📖 Complete Guides
 - **[📚 Official Documentation](https://mineclover.github.io/context-action/)** - Complete API reference
 - **[🚀 Quick Start Guide](https://mineclover.github.io/context-action/en/guide/quick-start)** - 5-minute setup
-- **[🏗️ MVVM Architecture](https://mineclover.github.io/context-action/en/guide/full)** - Complete architecture guide
+- **[🏗️ MVVM Core Architecture](https://mineclover.github.io/context-action/en/concept/mvvm-core-architecture)** - Practical MVVM implementation guide
+- **[📋 Architecture Overview](https://mineclover.github.io/context-action/en/concept/architecture-guide)** - Framework concepts
 - **[⚡ Best Practices](https://mineclover.github.io/context-action/en/guide/best-practices)** - Production patterns
 
 ### 🌏 Multi-Language Support

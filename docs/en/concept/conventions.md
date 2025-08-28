@@ -553,9 +553,207 @@ function App() {
 
 ### 🔄 Provider Composition Patterns
 
-#### HOC Pattern (Recommended)
+#### ✅ **Context Separation Pattern** (MVVM Requirement)
 ```tsx
-// ✅ Recommended: Automatic Provider wrapping with HOC
+// ✅ REQUIRED: Separate Providers for different contexts to avoid hook conflicts
+// Each context must have its own Provider to maintain proper isolation
+
+// WRONG ❌ - Single Provider with multiple contexts causes conflicts
+function WrongProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <SharedContextProvider>  {/* This causes useActionDispatch conflicts */}
+      <MemoizedWidget />
+      <NonMemoizedWidget />
+    </SharedContextProvider>
+  );
+}
+
+// CORRECT ✅ - Separate Providers for isolated context usage
+function CorrectProviders({ children }: { children: React.ReactNode }) {
+  return (
+    <ComparisonStoreProvider>           {/* Shared state layer */}
+      <PerformanceControlProvider>      {/* Control state layer */}
+        <PerformanceControlActionProvider>  {/* Control actions */}
+          
+          {/* Performance Control Widget - uses control contexts */}
+          <PerformanceControlWidget />
+          
+          {/* Comparison Grid - each widget has its own action context */}
+          <div className="grid grid-cols-2 gap-6">
+            
+            {/* Memoized Handler Widget with its own action context */}
+            <MemoizedActionProvider>
+              <MemoizedHandlerWidget />
+            </MemoizedActionProvider>
+            
+            {/* Non-Memoized Handler Widget with its own action context */}
+            <NonMemoizedActionProvider>
+              <NonMemoizedHandlerWidget />
+            </NonMemoizedActionProvider>
+            
+          </div>
+          
+        </PerformanceControlActionProvider>
+      </PerformanceControlProvider>
+    </ComparisonStoreProvider>
+  );
+}
+```
+
+#### 🎯 **Context Separation Rules**
+
+##### **Rule 1: Provider Hierarchy for Context Isolation**
+```tsx
+// ✅ MUST: Use separate action contexts for different business domains
+// This prevents useActionDispatch hook conflicts and maintains clean separation
+
+// Model Definitions (separate contexts)
+const {
+  Provider: MemoizedActionProvider,
+  useActionDispatch: useMemoizedActionDispatch,  // Different dispatch hook
+  useActionHandler: useMemoizedActionHandler
+} = createActionContext<ComparisonActions>('MemoizedComparison');
+
+const {
+  Provider: NonMemoizedActionProvider,
+  useActionDispatch: useNonMemoizedActionDispatch,  // Different dispatch hook
+  useActionHandler: useNonMemoizedActionHandler  
+} = createActionContext<ComparisonActions>('NonMemoizedComparison');
+
+// Provider Hierarchy
+<SharedStoreProvider>               {/* Shared data layer */}
+  <MemoizedActionProvider>          {/* Memoized business logic */}
+    <MemoizedWidget />              {/* Uses useMemoizedActionDispatch */}
+  </MemoizedActionProvider>
+  
+  <NonMemoizedActionProvider>       {/* Non-memoized business logic */}
+    <NonMemoizedWidget />           {/* Uses useNonMemoizedActionDispatch */}
+  </NonMemoizedActionProvider>
+</SharedStoreProvider>
+```
+
+##### **Rule 2: Hook Isolation Pattern**
+```tsx
+// ✅ MUST: Create separate hooks for each context to avoid conflicts
+// File: src/hooks/useComparisonActions.ts
+
+export function useMemoizedActions() {
+  const dispatch = useMemoizedActionDispatch();  // Specific to memoized context
+  
+  return {
+    increment: () => dispatch('increment'),
+    decrement: () => dispatch('decrement'),
+    calculate: (multiplier: number) => dispatch('complexCalculation', { multiplier })
+  };
+}
+
+export function useNonMemoizedActions() {
+  const dispatch = useNonMemoizedActionDispatch();  // Specific to non-memoized context
+  
+  return {
+    increment: () => dispatch('increment'),
+    decrement: () => dispatch('decrement'),
+    calculate: (multiplier: number) => dispatch('complexCalculation', { multiplier })
+  };
+}
+
+// ❌ FORBIDDEN: Using same hook name that conflicts
+function ConflictingHook() {
+  const dispatch = useActionDispatch();  // Which context? Causes conflicts!
+  return { actions };
+}
+```
+
+##### **Rule 3: Business Logic Isolation**
+```tsx
+// ✅ MUST: Separate action handlers for different contexts
+// File: src/hooks/useMemoizedHandlers.ts
+
+export function useMemoizedHandlers() {
+  const memoizedStore = useComparisonStore('memoized');
+  
+  // Memoized business logic - functions created once and reused
+  const handleIncrement = useCallback(async () => {
+    const current = memoizedStore.getValue();  // Lazy evaluation
+    memoizedStore.setValue({ ...current, counter: current.counter + 1 });
+  }, [memoizedStore]);  // Empty deps for memoization
+  
+  useMemoizedActionHandler('increment', handleIncrement);
+  
+  return { handlersRegistered: true };
+}
+
+// File: src/hooks/useNonMemoizedHandlers.ts
+export function useNonMemoizedHandlers() {
+  const nonMemoizedStore = useComparisonStore('nonMemoized');
+  
+  // Non-memoized business logic - functions recreated every render
+  const handleIncrement = async () => {  // No useCallback
+    const current = nonMemoizedStore.getValue();
+    nonMemoizedStore.setValue({ ...current, counter: current.counter + 1 });
+  };
+  
+  useNonMemoizedActionHandler('increment', handleIncrement);
+  
+  return { handlersRegistered: true };
+}
+```
+
+#### composeProviders Utility (Recommended)
+```tsx
+// ✅ Recommended: Clean composition using composeProviders utility
+import { composeProviders } from '@context-action/react';
+
+const AllProviders = composeProviders([
+  UserStoreProvider,
+  UserActionProvider,
+  ProductStoreProvider,
+  ProductActionProvider,
+  MouseProvider,
+  UserAnalyticsProvider
+]);
+
+function App() {
+  return (
+    <AllProviders>
+      <AppContent />
+    </AllProviders>
+  );
+}
+
+// Advanced: Build-time conditional composition (recommended)
+const isProduction = process.env.NODE_ENV === 'production';
+const hasAnalytics = process.env.REACT_APP_ANALYTICS === 'true';
+
+function createAppProviders() {
+  const providers = [
+    // Model Layer - Core stores (MVVM compliant order)
+    UIStoreProvider,
+    UserStoreProvider,
+    
+    // Optional stores based on build config
+    ...(hasAnalytics ? [AnalyticsStoreProvider] : []),
+    ...(isProduction ? [ErrorTrackingStoreProvider] : [DebugStoreProvider]),
+    
+    // ViewModel Layer - Core actions
+    UIActionProvider,
+    UserActionProvider,
+    
+    // Optional actions based on build config
+    ...(hasAnalytics ? [AnalyticsActionProvider] : []),
+    ...(isProduction ? [ErrorTrackingActionProvider] : [DebugActionProvider])
+  ];
+  
+  return composeProviders(providers);
+}
+
+// Static composition - evaluated once at app initialization
+const AppProviders = createAppProviders();
+```
+
+#### withProvider HOC Pattern (Convenience)
+```tsx
+// ✅ Convenience: Automatic Provider wrapping with HOC (sugar syntax)
 const { withProvider: withUserStoreProvider } = createStoreContext('User', {...});
 const { withProvider: withUserActionProvider } = createActionContext<UserActions>('UserActions');
 const { withProvider: withMouseProvider } = createRefContext<MouseRefs>('Mouse');
@@ -578,18 +776,28 @@ function App() {
 
 #### Manual Provider Composition
 ```tsx
-// ✅ Manual composition (for complex dependencies)
-function InteractiveUserProvider({ children }: { children: React.ReactNode }) {
+// ✅ MVVM-compliant manual composition (for complex dependencies)
+function MVVMUserProvider({ children }: { children: React.ReactNode }) {
   return (
-    <UserActionProvider>
-      <UserStoreProvider>
-        <MouseProvider>
-          <UserAnalyticsProvider>
-            {children}
-          </UserAnalyticsProvider>
-        </MouseProvider>
-      </UserStoreProvider>
-    </UserActionProvider>
+    {/* Model Layer - Outermost */}
+    <UserStoreProvider>
+      <ProductStoreProvider>
+        <UIStoreProvider>
+          
+          {/* ViewModel Layer */}
+          <UserActionProvider>
+            <ProductActionProvider>
+              <UIActionProvider>
+                
+                {/* View Layer - Innermost */}
+                {children}
+                
+              </UIActionProvider>
+            </ProductActionProvider>
+          </UserActionProvider>
+        </UIStoreProvider>
+      </ProductStoreProvider>
+    </UserStoreProvider>
   );
 }
 ```

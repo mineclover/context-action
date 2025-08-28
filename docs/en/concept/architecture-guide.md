@@ -93,18 +93,18 @@ Context-Action provides sophisticated handler and trigger management that existi
 **Note**: Detailed implementation patterns and examples have been moved to the [Patterns section](../guide/patterns/index.md) for better organization.
 
 ### Core Patterns
-- **[🎯 Action Only Pattern](../guide/patterns/action-only-pattern.md)** - Pure action dispatching without state management
-- **[🏪 Store Only Pattern](../guide/patterns/store-only-pattern.md)** - Type-safe state management without actions
-- **[🔧 Ref Context Pattern](../guide/patterns/ref-context-pattern.md)** - Direct DOM manipulation with zero re-renders
+- **[🎯 Action Only Pattern](../guide/patterns/action/basic-usage.md)** - Pure action dispatching without state management
+- **[🏪 Store Only Pattern](../guide/patterns/store/basic-usage.md)** - Type-safe state management without actions
+- **[🔧 Ref Context Pattern](../guide/patterns/ref/basic-usage.md)** - Direct DOM manipulation with zero re-renders
 
 ### Architecture Patterns
-- **[Pattern Composition](../guide/patterns/pattern-composition.md)** - Combining patterns for complex applications
-- **[Domain Context Architecture](../guide/patterns/domain-context-architecture.md)** - Document-centric context separation
-- **[MVVM Architecture](../guide/patterns/mvvm-architecture.md)** - Complete Model-View-ViewModel implementation
+- **[Pattern Composition](../guide/patterns/architecture/composition.md)** - Combining patterns for complex applications
+- **[Domain Context Architecture](../guide/patterns/architecture/domain-context.md)** - Document-centric context separation
+- **[MVVM Architecture](../guide/patterns/architecture/mvvm.md)** - Complete Model-View-ViewModel implementation
 
 ### Implementation Guides
-- **[Real-time State Access](../guide/patterns/real-time-state-access.md)** - Avoiding closure traps in handlers
-- **[Ref Context Setup](../guide/patterns/ref-context-setup.md)** - High-performance DOM manipulation setup
+- **[Real-time State Access](../guide/patterns/async/real-time-state-access.md)** - Avoiding closure traps in handlers
+- **[Provider Composition Setup](../guide/patterns/setup/provider-composition-setup.md)** - Advanced provider composition patterns
 
 ## RefContext Performance Architecture
 
@@ -126,13 +126,26 @@ The RefContext pattern introduces a **performance-first layer** that bypasses Re
 4. **Memory Efficiency**: Automatic cleanup and lifecycle management
 5. **Type Safety**: Full TypeScript support for DOM element types
 
-#### Performance Comparison
+#### Performance Characteristics
 
-| Approach | React Re-renders | Performance | Memory | Complexity |
-|----------|------------------|-------------|---------|------------|
-| **useState** | Every update | ~30fps | High GC | Simple |
-| **useRef** | Manual checks | ~45fps | Medium | Medium |
-| **RefContext** | Zero | 60fps+ | Low | Optimized |
+RefContext is specifically designed for **high-performance scenarios** requiring direct DOM control:
+
+| Approach | Use Case | React Re-renders | DOM Access |
+|----------|----------|------------------|------------|
+| **useState** | Standard UI interactions | Triggers reconciliation | React-managed |
+| **useRef** | Basic DOM manipulation | Manual control required | Direct reference |
+| **RefContext** | **High-performance graphics, animations** | Zero re-renders | Direct manipulation |
+
+**RefContext advantages:**
+- **Zero React Re-renders**: Direct DOM manipulation without reconciliation
+- **Hardware Acceleration**: Enables GPU-optimized animations
+
+**Primary targets for RefContext:**
+- ✅ Canvas animations and Three.js graphics
+- ✅ WebGL rendering and game engines
+- ✅ High-frequency DOM updates
+
+**Note**: For data management, use **Store contexts** instead of useState for better scalability and type safety.
 
 ## Best Practices Summary
 
@@ -159,8 +172,8 @@ The RefContext pattern introduces a **performance-first layer** that bypasses Re
 For detailed implementation examples and step-by-step guides, see:
 
 - **[Pattern Guide Index](../guide/patterns/index.md)** - Complete pattern documentation
-- **[Action Only Pattern](../guide/patterns/action-only-pattern.md)** - Start with pure actions
-- **[Store Only Pattern](../guide/patterns/store-only-pattern.md)** - Recommended starting point
-- **[Pattern Composition](../guide/patterns/pattern-composition.md)** - Combining patterns
+- **[Action Only Pattern](../guide/patterns/action/basic-usage.md)** - Start with pure actions
+- **[Store Only Pattern](../guide/patterns/store/basic-usage.md)** - Recommended starting point
+- **[Pattern Composition](../guide/patterns/architecture/composition.md)** - Combining patterns
 
 For more information and updates, visit the project repository.

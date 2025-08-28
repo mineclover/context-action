@@ -12,6 +12,34 @@ Context-Action Framework implements a **pure MVVM architecture** where:
 ### Core Principle
 **"Declarative Context Definition + Hook-Based Injection = Pure MVVM"**
 
+### MVVM Architecture Flow
+
+```mermaid
+graph LR
+    V[View Layer<br/>Components] --> VM[ViewModel Layer<br/>Actions]
+    VM --> M[Model Layer<br/>Stores]
+    M --> V
+    
+    subgraph "Provider Composition Order"
+        direction TB
+        M1[Model Providers<br/>Outermost] --> VM1[ViewModel Providers] --> V1[View Components<br/>Innermost]
+    end
+```
+
+**Provider Composition Order** (Outer → Inner):
+1. **Model Layer**: Store Providers (Data management)
+2. **ViewModel Layer**: Action Providers (Business logic) 
+3. **View Layer**: Components (UI rendering)
+
+```tsx
+// MVVM Provider Structure
+<ModelProviders>      {/* Stores - Outermost */}
+  <ViewModelProviders> {/* Actions */}
+    <ViewComponents /> {/* Components - Innermost */}
+  </ViewModelProviders>
+</ModelProviders>
+```
+
 ---
 
 ## 📐 Three-Layer Architecture
@@ -352,26 +380,128 @@ export function DataTable({ columns, data, onRowSelect }: {
 
 ---
 
-## 🏗️ **App Architecture**: Provider Composition
+## 🏗️ **Provider Composition**: MVVM Architecture
 
-**Role**: Compose all contexts and business logic at the app level
+**Role**: Compose contexts following MVVM layer order for optimal architecture
 
+### 🎯 **Core Composition Methods**
+
+#### 1. **composeProviders Utility** (Recommended)
 ```typescript
-// App: MVVM Architecture composition
+import { composeProviders } from '@context-action/react';
+
+// MVVM-compliant provider composition
+const AppProviders = composeProviders([
+  // Model Layer (outermost) - Data management
+  UserStoreProvider,
+  ProductStoreProvider,
+  UIStoreProvider,
+  
+  // ViewModel Layer - Business logic
+  UserActionProvider,
+  ProductActionProvider,
+  UIActionProvider
+]);
+
 function App() {
   return (
-    <UserStoreProvider>         {/* Model Layer */}
-      <UserActionProvider>      {/* Model Layer */}
-        <UserBusinessLogic>     {/* Business Logic Layer */}
-          <Router>
-            <Route path="/profile" element={<UserProfile />} />
-          </Router>
-        </UserBusinessLogic>
-      </UserActionProvider>
+    <AppProviders>
+      {/* View Layer - Components */}
+      <UserBusinessLogic>
+        <Router>
+          <Route path="/profile" element={<UserProfile />} />
+          <Route path="/products" element={<ProductList />} />
+        </Router>
+      </UserBusinessLogic>
+    </AppProviders>
+  );
+}
+```
+
+#### 2. **Manual MVVM Composition** (Advanced Control)
+```typescript
+// MVVM-compliant manual composition
+function MVVMApp() {
+  return (
+    {/* Model Layer - Outermost */}
+    <UserStoreProvider>
+      <ProductStoreProvider>
+        <UIStoreProvider>
+          
+          {/* ViewModel Layer */}
+          <UserActionProvider>
+            <ProductActionProvider>
+              <UIActionProvider>
+                
+                {/* Business Logic Layer */}
+                <UserBusinessLogic>
+                  <ProductBusinessLogic>
+                    
+                    {/* View Layer - Innermost */}
+                    <Router>
+                      <Route path="/profile" element={<UserProfile />} />
+                    </Router>
+                    
+                  </ProductBusinessLogic>
+                </UserBusinessLogic>
+              </UIActionProvider>
+            </ProductActionProvider>
+          </UserActionProvider>
+        </UIStoreProvider>
+      </ProductStoreProvider>
     </UserStoreProvider>
   );
 }
 ```
+
+#### 3. **Conditional MVVM Composition** (Build-time)
+```typescript
+// Build-time conditional composition (recommended over runtime)
+const isProduction = process.env.NODE_ENV === 'production';
+const hasAnalytics = process.env.REACT_APP_ANALYTICS === 'true';
+
+function createMVVMProviders() {
+  const providers = [
+    // Model Layer - Core stores
+    UserStoreProvider,
+    UIStoreProvider,
+    
+    // Optional stores based on build config
+    ...(hasAnalytics ? [AnalyticsStoreProvider] : []),
+    ...(isProduction ? [ErrorTrackingStoreProvider] : [DebugStoreProvider]),
+    
+    // ViewModel Layer - Core actions
+    UserActionProvider,
+    UIActionProvider,
+    
+    // Optional actions based on build config
+    ...(hasAnalytics ? [AnalyticsActionProvider] : []),
+    ...(isProduction ? [ErrorTrackingActionProvider] : [DebugActionProvider])
+  ];
+  
+  return composeProviders(providers);
+}
+
+// Static composition - evaluated once at app initialization
+const MVVMProviders = createMVVMProviders();
+
+function App() {
+  return (
+    <MVVMProviders>
+      <UserBusinessLogic>
+        <AppContent />
+      </UserBusinessLogic>
+    </MVVMProviders>
+  );
+}
+```
+
+### 🎗️ **Provider Composition Best Practices**
+
+1. **Layer Order**: Model (Stores) → ViewModel (Actions) → View (Components)
+2. **Static Composition**: Prefer build-time over runtime composition
+3. **Domain Grouping**: Group related providers by business domain
+4. **Avoid Deep Nesting**: Use `composeProviders` for cleaner composition
 
 ---
 

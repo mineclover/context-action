@@ -101,6 +101,29 @@ const {
 - **목적**: 특정 액션에 대한 비즈니스 로직 등록
 - **필수 용도**: 비즈니스 로직 구현
 - **모범 사례**: 최적화를 위해 `useCallback`과 함께 사용
+- **핸들러 업데이트**: 핸들러 함수가 변경될 때 자동으로 업데이트
+- **내부 메모이제이션**: 안정적인 참조를 유지하면서 핸들러 업데이트 허용
+
+**핸들러 업데이트 패턴:**
+```tsx
+// ✅ 상태 기반 동적 핸들러 (권장)
+const [mode, setMode] = useState('create');
+const handler = useCallback(async (payload) => {
+  if (mode === 'create') return createUser(payload);
+  return editUser(payload);
+}, [mode]); // mode 변경 시 핸들러 업데이트
+
+useActionHandler('userAction', handler);
+
+// ✅ ActionRegister를 사용한 수동 교체
+const register = useActionRegister();
+const replaceHandler = (newHandler) => {
+  register.clearAction('myAction');
+  register.register('myAction', newHandler);
+};
+```
+
+📖 **참조**: [핸들러 런타임 업데이트](/ko/guide/patterns/action/handler-updates) 종합적인 패턴 가이드
 
 ### 🏪 Store 훅 (핵심)
 
