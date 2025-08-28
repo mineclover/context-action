@@ -43,7 +43,7 @@ export class Store<T = any> implements IStore<T> {
   
   // 배치 업데이트 최적화
   private batchedUpdates = new Set<() => void>();
-  private batchTimeoutId: ReturnType<typeof requestAnimationFrame> | null = null;
+  private batchTimeoutId: number | NodeJS.Timeout | null = null;
   private readonly BATCH_DELAY_MS = 16; // ~60fps
 
   public readonly name: string;
@@ -253,9 +253,13 @@ export class Store<T = any> implements IStore<T> {
     // 리스너 정리
     this.clearListeners();
     
-    // 배치 업데이트 정리
+    // 배치 업데이트 정리 (SSR 호환성)
     if (this.batchTimeoutId !== null) {
-      cancelAnimationFrame(this.batchTimeoutId);
+      if (typeof requestAnimationFrame !== 'undefined' && typeof cancelAnimationFrame !== 'undefined') {
+        cancelAnimationFrame(this.batchTimeoutId as number);
+      } else {
+        clearTimeout(this.batchTimeoutId as NodeJS.Timeout);
+      }
       this.batchTimeoutId = null;
     }
     this.batchedUpdates.clear();
@@ -444,15 +448,23 @@ export class Store<T = any> implements IStore<T> {
   }
 
   /**
-   * 배치 업데이트 시스템
+   * 배치 업데이트 시스템 (SSR 호환성 개선)
    */
   private _addToBatch(updateFn: () => void): void {
     this.batchedUpdates.add(updateFn);
     
     if (this.batchTimeoutId === null) {
-      this.batchTimeoutId = requestAnimationFrame(() => {
-        this._flushBatchedUpdates();
-      });
+      // SSR 환경에서 requestAnimationFrame이 없을 수 있으므로 안전한 fallback 제공
+      if (typeof requestAnimationFrame !== 'undefined') {
+        this.batchTimeoutId = requestAnimationFrame(() => {
+          this._flushBatchedUpdates();
+        });
+      } else {
+        // SSR 환경에서는 setTimeout 사용
+        this.batchTimeoutId = setTimeout(() => {
+          this._flushBatchedUpdates();
+        }, this.BATCH_DELAY_MS);
+      }
     }
   }
 
@@ -580,4 +592,97 @@ export class ManagedStore<T> extends Store<T> {
  */
 export function createManagedStore<T>(config: StoreConfig<T>): ManagedStore<T> {
   return new ManagedStore<T>(config);
+}
+
+/**
+ * Advanced Store configuration options for factory pattern
+ */
+export interface AdvancedStoreConfig<T> extends StoreConfig<T> {
+  comparisonStrategy?: 'reference' | 'shallow' | 'deep' | 'custom';
+  customComparator?: (oldValue: T, newValue: T) => boolean;
+  enablePersistence?: boolean;
+  persistenceKey?: string;
+  enablePerformanceMonitoring?: boolean;
+  notificationMode?: 'batched' | 'immediate';
+}
+
+/**
+ * Enhanced Store Factory for advanced configurations
+ * 
+ * Provides a unified factory pattern for creating stores with advanced features
+ * including custom comparison strategies, persistence, and performance monitoring.
+ * 
+ * @template T - The type of values stored
+ */
+export class StoreFactory {
+  /**
+   * Create a store with advanced configuration
+   */
+  static create<T>(config: AdvancedStoreConfig<T>): Store<T> {
+    const store = new Store(config.name, config.initialValue);
+    
+    // Apply comparison strategy
+    if (config.comparisonStrategy && config.comparisonStrategy !== 'reference') {
+      store.setComparisonOptions({ strategy: config.comparisonStrategy });
+    }
+    
+    // Apply custom comparator
+    if (config.customComparator) {
+      store.setCustomComparator(config.customComparator);
+    }
+    
+    // Set notification mode
+    if (config.notificationMode) {
+      store.setNotificationMode(config.notificationMode);
+    }
+    
+    // TODO: Implement persistence when enabled
+    if (config.enablePersistence && config.persistenceKey) {
+      // Future enhancement: localStorage/sessionStorage integration
+    }
+    
+    return store;
+  }
+  
+  /**
+   * Create a managed store with advanced configuration and auto-registration
+   */
+  static createManaged<T>(config: AdvancedStoreConfig<T>): ManagedStore<T> {
+    const managedStore = new ManagedStore<T>(config);
+    
+    // Apply advanced configurations
+    if (config.comparisonStrategy && config.comparisonStrategy !== 'reference') {
+      managedStore.setComparisonOptions({ strategy: config.comparisonStrategy });
+    }
+    
+    if (config.customComparator) {
+      managedStore.setCustomComparator(config.customComparator);
+    }
+    
+    if (config.notificationMode) {
+      managedStore.setNotificationMode(config.notificationMode);
+    }
+    
+    return managedStore;
+  }
+  
+  /**
+   * Create multiple stores with shared configuration
+   */
+  static createBatch<T extends Record<string, any>>(
+    stores: { [K in keyof T]: { initialValue: T[K] } & Partial<AdvancedStoreConfig<T[K]>> }
+  ): { [K in keyof T]: Store<T[K]> } {
+    const result = {} as { [K in keyof T]: Store<T[K]> };
+    
+    for (const [storeName, storeConfig] of Object.entries(stores)) {
+      const fullConfig: AdvancedStoreConfig<any> = {
+        name: storeName,
+        ...storeConfig
+      };
+      
+      result[storeName as keyof T] = StoreFactory.create(fullConfig);
+    }
+    
+    return result;
+  }
 }

@@ -50,3 +50,46 @@ export {
   type ProviderComponent
 } from './provider-composition';
 
+// === SUBSCRIPTION MANAGEMENT ===
+// Enhanced subscription management for memory leak prevention
+export {
+  SubscriptionManager,
+  useSubscriptionManager,
+  globalSubscriptionTracker,
+  type SubscriptionEntry,
+  type SubscriptionStats
+} from './subscription-manager';
+
+// === PERFORMANCE MONITORING ===
+// Centralized performance tracking and optimization
+export {
+  performanceMonitor,
+  measurePerformance,
+  type StorePerformanceMetrics,
+  type PerformanceStats,
+  type PerformanceThresholds
+} from './performance-monitor';
+
+// === TYPE HELPERS ===
+// Enhanced type utilities and helpers
+export {
+  isStore,
+  isValidStoreValue,
+  extractStoreValue,
+  extractStoreValues,
+  createSafeEqualityFn,
+  createStoreConfig,
+  TypeUtils,
+  type StoreValue,
+  type StoresValues,
+  type StoreRecordValues,
+  type StoreSelector,
+  type EqualityFunction,
+  type StoreListener,
+  type StoreUpdater,
+  type DeepReadonly,
+  type StoreInitConfig,
+  type PartialBy,
+  type RequiredBy
+} from './type-helpers';
+

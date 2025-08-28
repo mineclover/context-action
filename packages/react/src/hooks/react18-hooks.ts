@@ -56,14 +56,34 @@ export function useStoreValueOptimized<T>(
   // Deferred value로 성능 최적화
   const deferredValue = useDeferredValue(currentValue);
 
-  // 우선순위 업데이트 결정
+  // 우선순위 업데이트 결정 (성능 최적화)
   const shouldUseDeferred = useMemo(() => {
     if (!enableDeferred) return false;
     
     // 복잡한 객체나 대용량 데이터는 지연 업데이트 사용
     if (typeof currentValue === 'object' && currentValue !== null) {
-      const objectSize = JSON.stringify(currentValue).length;
-      return objectSize > 1000; // 1KB 이상 객체는 지연 처리
+      // JSON.stringify 대신 더 효율적인 크기 추정
+      try {
+        // 간단한 객체 크기 추정 (속성 개수 기반)
+        const keys = Object.keys(currentValue);
+        const estimatedSize = keys.length * 50; // 대략적인 크기 추정
+        
+        // 배열인 경우 길이 기반 추정
+        if (Array.isArray(currentValue)) {
+          return currentValue.length > 100; // 100개 이상 배열은 지연 처리
+        }
+        
+        // 속성이 많거나 추정 크기가 큰 경우만 JSON 직렬화 시도
+        if (keys.length > 10 || estimatedSize > 1000) {
+          const objectSize = JSON.stringify(currentValue).length;
+          return objectSize > 1000; // 1KB 이상 객체는 지연 처리
+        }
+        
+        return false;
+      } catch {
+        // JSON 직렬화 실패 시 복잡한 객체로 간주하여 지연 처리
+        return true;
+      }
     }
     
     return false;
@@ -128,13 +148,30 @@ export function useStoreUpdateSmart<T>(
   const smartUpdate = useCallback((
     newValue: T | ((prev: T) => T)
   ) => {
-    // 업데이트 복잡도 계산 - Hook을 callback 밖으로 이동
+    // 업데이트 복잡도 계산 (성능 최적화)
     let isComplex = false;
     if (typeof newValue === 'function') {
       isComplex = true; // 함수 업데이트는 복잡하다고 가정
     } else if (typeof newValue === 'object' && newValue !== null) {
-      const size = JSON.stringify(newValue).length;
-      isComplex = size > priorityThreshold;
+      try {
+        // 효율적인 복잡도 추정
+        if (Array.isArray(newValue)) {
+          isComplex = newValue.length > (priorityThreshold / 10); // 배열 길이 기반
+        } else {
+          const keys = Object.keys(newValue);
+          if (keys.length > 10) {
+            // 속성이 많은 경우에만 JSON 직렬화 시도
+            const size = JSON.stringify(newValue).length;
+            isComplex = size > priorityThreshold;
+          } else {
+            // 속성이 적은 경우 간단한 객체로 간주
+            isComplex = false;
+          }
+        }
+      } catch {
+        // JSON 직렬화 실패 시 복잡한 업데이트로 간주
+        isComplex = true;
+      }
     }
 
     // 복잡한 업데이트는 transition 사용

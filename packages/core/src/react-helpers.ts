@@ -11,15 +11,17 @@
 import type { 
   ActionPayloadMap, 
   ActionHandler, 
-  HandlerConfig 
+  HandlerConfig,
+  UnregisterFunction
 } from './types.js';
 import type { ActionRegister } from './ActionRegister.js';
 
 /**
- * 🆕 React hook for automatic handler registration with cleanup
+ * 🔧 Create action handler registration configuration for React components
  * 
- * Automatically registers an action handler on mount and unregisters on unmount.
- * Handles React's development mode double-mounting and Hot Module Replacement.
+ * Creates a configuration object that can be used with React's useEffect to properly
+ * register and unregister action handlers with lifecycle management and cleanup.
+ * This is NOT a hook - it's a factory function for React hook integration.
  * 
  * @template T - ActionPayloadMap type
  * @template K - Action key type
@@ -28,12 +30,13 @@ import type { ActionRegister } from './ActionRegister.js';
  * @param action - Action name to register handler for
  * @param handler - Handler function (should be memoized with useCallback)
  * @param config - Handler configuration
- * @param deps - Dependency array (similar to useEffect)
  * 
- * @example Basic Usage
+ * @returns Configuration object with register/unregister functions
+ * 
+ * @example Basic Usage with useEffect
  * ```tsx
- * import { useCallback } from 'react';
- * import { useActionHandler } from '@context-action/core/react-helpers';
+ * import { useCallback, useEffect } from 'react';
+ * import { createActionHandler } from '@context-action/core/react-helpers';
  * 
  * function MyComponent() {
  *   const registry = useActionRegister();
@@ -42,59 +45,101 @@ import type { ActionRegister } from './ActionRegister.js';
  *     // Handler logic here
  *   }, []);
  *   
- *   useActionHandler(
- *     registry,
- *     'updateUser',
- *     handleUserUpdate,
- *     { priority: 10 },
- *     [] // dependencies
- *   );
+ *   useEffect(() => {
+ *     const { register, unregister } = createActionHandler(
+ *       registry,
+ *       'updateUser',
+ *       handleUserUpdate,
+ *       { priority: 10 }
+ *     );
+ *     
+ *     const cleanup = register();
+ *     return () => {
+ *       cleanup();
+ *       unregister();
+ *     };
+ *   }, [registry, handleUserUpdate]);
  * }
  * ```
  * 
- * @example With Dependencies
+ * @example With Automatic Cleanup
  * ```tsx
  * const [userId, setUserId] = useState('123');
  * 
  * const handleUserUpdate = useCallback(async (payload, controller) => {
- *   // Use userId in handler
  *   console.log('Updating user:', userId, payload);
  * }, [userId]);
  * 
- * useActionHandler(
- *   registry,
- *   'updateUser',
- *   handleUserUpdate,
- *   { priority: 10 },
- *   [userId] // Re-register when userId changes
- * );
+ * useEffect(() => {
+ *   const handlerManager = createActionHandler(
+ *     registry,
+ *     'updateUser',
+ *     handleUserUpdate,
+ *     { priority: 10 }
+ *   );
+ *   
+ *   // Simplified registration with automatic cleanup
+ *   return handlerManager.registerWithCleanup();
+ * }, [registry, handleUserUpdate, userId]);
  * ```
  * 
  * @public
  */
-export function useActionHandler<T extends ActionPayloadMap, K extends keyof T>(
+export function createActionHandler<T extends ActionPayloadMap, K extends keyof T>(
   registry: ActionRegister<T>,
   action: K,
   handler: ActionHandler<T[K]>,
-  config?: HandlerConfig,
-  deps: any[] = []
-) {
-  // This is a TypeScript interface/utility function that would be used with React hooks
-  // The actual React hook implementation would be in the @context-action/react package
+  config?: HandlerConfig
+): {
+  register: () => UnregisterFunction;
+  unregister: () => void;
+  registerWithCleanup: () => () => void;
+  config: Required<HandlerConfig>;
+} {
+  const finalConfig = createReactHandlerConfig(String(action), undefined, config);
+  let currentUnregister: UnregisterFunction | undefined;
+  let isRegistered = false;
   
-  // Return a configuration object that can be used with React's useEffect
   return {
-    registry,
-    action,
-    handler,
-    config: {
-      ...config,
-      // 🆕 React environment: always replace existing handlers
-      replaceExisting: true,
-      // Auto-generate unique ID per component instance if not provided
-      id: config?.id || `react_${String(action)}_${Math.random().toString(36).substr(2, 9)}`
+    /**
+     * Register the handler and return cleanup function
+     */
+    register(): UnregisterFunction {
+      if (isRegistered && currentUnregister) {
+        // Clean up previous registration
+        currentUnregister();
+      }
+      
+      currentUnregister = registry.register(action, handler, finalConfig);
+      isRegistered = true;
+      
+      return currentUnregister;
     },
-    deps
+    
+    /**
+     * Unregister the handler if currently registered
+     */
+    unregister(): void {
+      if (isRegistered && currentUnregister) {
+        currentUnregister();
+        currentUnregister = undefined;
+        isRegistered = false;
+      }
+    },
+    
+    /**
+     * Register and return cleanup function (React useEffect pattern)
+     */
+    registerWithCleanup(): () => void {
+      const unregisterFn = this.register();
+      
+      return () => {
+        unregisterFn();
+        this.unregister();
+      };
+    },
+    
+    config: finalConfig
   };
 }
 
@@ -131,8 +176,8 @@ export function useActionHandler<T extends ActionPayloadMap, K extends keyof T>(
  * 
  * @public
  */
-export function createReactHandlerConfig<T extends ActionPayloadMap, K extends keyof T>(
-  action: K,
+export function createReactHandlerConfig(
+  action: string,
   componentId?: string,
   config: HandlerConfig = {}
 ): Required<HandlerConfig> {
@@ -141,7 +186,7 @@ export function createReactHandlerConfig<T extends ActionPayloadMap, K extends k
   
   return {
     priority: config.priority ?? 0,
-    id: config.id || `${componentId || 'react'}_${String(action)}_${timestamp}_${random}`,
+    id: config.id || `${componentId || 'react'}_${action}_${timestamp}_${random}`,
     blocking: config.blocking ?? false,
     once: config.once ?? false,
     debounce: config.debounce ?? undefined,

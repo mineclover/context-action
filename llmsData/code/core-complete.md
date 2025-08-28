@@ -1,7 +1,7 @@
 # Context-Action Core Package - Complete Code
 
 Total Files: 8
-Total Lines: 1499
+Total Lines: 1651
 
 ## Type Definitions
 
@@ -106,7 +106,13 @@ export interface ExecutionResult<R = void> {
   abortReason?: string;
   terminated: boolean;
   result?: R;
+  successResults: R[];
   results: Array<R | undefined>;
+  failedResults: Array<{
+    handlerId: string;
+    error: Error;
+    expectedType: string;
+  }>;
   execution: {
     duration: number;
     handlersExecuted: number;
@@ -123,11 +129,7 @@ export interface ExecutionResult<R = void> {
     error?: Error;
     metadata?: Record<string, any>;
   }>;
-  errors: Array<{
-    handlerId: string;
-    error: Error;
-    timestamp: number;
-  }>;
+  errors: HandlerError[];
 }
 export interface HandlerError {
   handlerId: string;
@@ -382,6 +384,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   private readonly isDebugMode: boolean;
   private readonly maxHandlersPerAction: number;
   private dispatchQueue?: OperationQueue;
+  private filterCache = new Map<string, HandlerRegistration<any, any>[]>();
+  private filterCacheMaxSize = 100; 
   constructor(config: ActionRegisterConfig = {}) {
     this.name = config.name || 'ActionRegister';
     this.registryConfig = config.registry;
@@ -423,6 +427,54 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     const uuid = crypto.randomUUID();
     return `${String(action)}_${uuid.slice(0, 8)}`;
   }
+  private createAbortSignal(options?: import('./types.js').DispatchOptions): [
+    AbortSignal | undefined, 
+    AbortController | undefined, 
+    () => void
+  ] {
+    const signals: AbortSignal[] = [];
+    const cleanups: (() => void)[] = [];
+    let autoAbortController: AbortController | undefined;
+    if (options?.signal) {
+      signals.push(options.signal);
+    }
+    if (options?.autoAbort?.enabled) {
+      autoAbortController = new AbortController();
+      signals.push(autoAbortController.signal);
+    }
+    if (signals.length === 0) {
+      return [undefined, autoAbortController, () => {}];
+    }
+    if (signals.length === 1) {
+      return [signals[0], autoAbortController, () => cleanups.forEach(c => c())];
+    }
+    let effectiveSignal: AbortSignal;
+    if (typeof AbortSignal.any === 'function') {
+      effectiveSignal = AbortSignal.any(signals);
+    } else {
+      const mergedController = new AbortController();
+      effectiveSignal = mergedController.signal;
+      signals.forEach(signal => {
+        if (signal.aborted) {
+          mergedController.abort();
+        } else {
+          const abortHandler = () => mergedController.abort();
+          signal.addEventListener('abort', abortHandler, { once: true });
+          cleanups.push(() => signal.removeEventListener('abort', abortHandler));
+        }
+      });
+    }
+    const cleanup = () => {
+      cleanups.forEach(c => {
+        try {
+          c();
+        } catch (error) {
+          this.log('Cleanup error during AbortSignal cleanup', error, 'warn');
+        }
+      });
+    };
+    return [effectiveSignal, autoAbortController, cleanup];
+  }
   private _performRegistrationSync<K extends keyof T, R = void>(
     action: K,
     handler: ActionHandler<T[K], R>,
@@ -453,17 +505,28 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     const existingIndex = pipeline.findIndex(reg => reg.id === handlerId);
     if (existingIndex !== -1) {
       if (config.replaceExisting) {
+        const oldRegistration = pipeline[existingIndex];
+        if (oldRegistration && typeof (oldRegistration as any).cleanup === 'function') {
+          try {
+            (oldRegistration as any).cleanup();
+          } catch (cleanupError) {
+            this.log(`Cleanup error for replaced handler: ${String(action)}`, cleanupError, 'warn');
+          }
+        }
         pipeline[existingIndex] = registration;
         pipeline.sort((a, b) => b.config.priority - a.config.priority);
+        this.invalidateFilterCache();
         this.log(`Handler replaced: ${String(action)}`, {
           handlerId,
           priority: config.priority,
-          totalHandlers: pipeline.length
+          totalHandlers: pipeline.length,
+          oldHandlerCleaned: Boolean((oldRegistration as any).cleanup)
         });
         return () => {
           const index = pipeline.findIndex(reg => reg.id === handlerId && reg === registration);
           if (index !== -1) {
             pipeline.splice(index, 1);
+            this.invalidateFilterCache();
             this.log(`Replaced handler unregistered: ${String(action)}`, { handlerId });
           }
         };
@@ -477,6 +540,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     }
     pipeline.push(registration);
     pipeline.sort((a, b) => b.config.priority - a.config.priority);
+    this.invalidateFilterCache();
     this.log(`Handler registered: ${String(action)}`, {
       handlerId,
       priority: config.priority,
@@ -486,6 +550,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       const index = pipeline.findIndex((reg) => reg.id === handlerId && reg === registration);
       if (index !== -1) {
         pipeline.splice(index, 1);
+        this.invalidateFilterCache();
         this.log(`Handler unregistered: ${String(action)}`, {
           handlerId,
           remainingHandlers: pipeline.length
@@ -514,23 +579,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     if (payload instanceof Event && process.env.NODE_ENV === 'development') {
       console.warn(`Event object passed to action "${String(action)}"`, payload.type);
     }
-    let autoAbortController: AbortController | undefined;
-    let effectiveSignal = options?.signal;
-    if (options?.autoAbort?.enabled) {
-      autoAbortController = new AbortController();
-      effectiveSignal = autoAbortController.signal;
-      if (options.autoAbort.onControllerCreated) {
-        options.autoAbort.onControllerCreated(autoAbortController);
-      }
-      if (options?.signal) {
-        const originalSignal = options.signal;
-        if (originalSignal.aborted) {
-          autoAbortController.abort();
-        } else {
-          const abortHandler = () => autoAbortController!.abort();
-          originalSignal.addEventListener('abort', abortHandler, { once: true });
-        }
-      }
+    const [effectiveSignal, autoAbortController, cleanup] = this.createAbortSignal(options);
+    if (options?.autoAbort?.onControllerCreated && autoAbortController) {
+      options.autoAbort.onControllerCreated(autoAbortController);
     }
     if (effectiveSignal?.aborted) {
       return;
@@ -610,9 +661,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       executionSuccess = false;
       throw error;
     } finally {
-      if (effectiveSignal && abortHandler) {
-        effectiveSignal.removeEventListener('abort', abortHandler);
-      }
+      cleanup();
     }
   }
   async dispatchWithResult<K extends keyof T, R = void>(
@@ -621,23 +670,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     options?: import('./types.js').DispatchOptions
   ): Promise<ExecutionResult<R>> {
     const startTime = Date.now();
-    let autoAbortController: AbortController | undefined;
-    let effectiveSignal = options?.signal;
-    if (options?.autoAbort?.enabled) {
-      autoAbortController = new AbortController();
-      effectiveSignal = autoAbortController.signal;
-      if (options.autoAbort.onControllerCreated) {
-        options.autoAbort.onControllerCreated(autoAbortController);
-      }
-      if (options?.signal) {
-        const originalSignal = options.signal;
-        if (originalSignal.aborted) {
-          autoAbortController.abort();
-        } else {
-          const abortHandler = () => autoAbortController!.abort();
-          originalSignal.addEventListener('abort', abortHandler, { once: true });
-        }
-      }
+    const [effectiveSignal, autoAbortController, cleanup] = this.createAbortSignal(options);
+    if (options?.autoAbort?.onControllerCreated && autoAbortController) {
+      options.autoAbort.onControllerCreated(autoAbortController);
     }
     if (effectiveSignal?.aborted) {
       return {
@@ -645,8 +680,10 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         aborted: true,
         abortReason: 'Action dispatch aborted by signal',
         terminated: false,
-        result: undefined,
+        result: undefined as any,
+        successResults: [] as any,
         results: [],
+        failedResults: [],
         execution: {
           duration: 0,
           handlersExecuted: 0,
@@ -665,8 +702,10 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         success: true,
         aborted: false,
         terminated: false,
-        result: undefined,
+        result: undefined as any,
+        successResults: [] as any,
         results: [],
+        failedResults: [],
         execution: {
           duration: 0,
           handlersExecuted: 0,
@@ -713,8 +752,10 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
           aborted: true,
           abortReason: 'Debounced execution',
           terminated: false,
-          result: undefined,
+          result: undefined as any,
+          successResults: [] as any,
           results: [],
+          failedResults: [],
           execution: {
             duration: Date.now() - startTime,
             handlersExecuted: 0,
@@ -736,8 +777,10 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
           aborted: true,
           abortReason: 'Throttled execution',
           terminated: false,
-          result: undefined,
+          result: undefined as any,
+          successResults: [] as any,
           results: [],
+          failedResults: [],
           execution: {
             duration: Date.now() - startTime,
             handlersExecuted: 0,
@@ -798,20 +841,26 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         timestamp: Date.now(),
       });
     } finally {
-      if (effectiveSignal && abortHandler) {
-        effectiveSignal.removeEventListener('abort', abortHandler);
-      }
+      cleanup();
     }
     const endTime = Date.now();
     const executionSuccess = !executionError && !context.aborted;
     const processedResult = this.processResults(context, options?.result);
+    const successResults = context.results.filter((result): result is R => result !== undefined);
+    const failedResults = errors.map(err => ({
+      handlerId: err.handlerId,
+      error: err.error,
+      expectedType: typeof processedResult || 'unknown'
+    }));
     const executionResult: ExecutionResult<R> = {
       success: !executionError && !context.aborted,
       aborted: context.aborted,
       abortReason: context.abortReason,
       terminated: context.terminated,
       result: processedResult,
+      successResults: successResults,
       results: context.results,
+      failedResults,
       execution: {
         duration: endTime - startTime,
         handlersExecuted: context.currentIndex + (context.aborted ? 0 : 1),
@@ -820,11 +869,32 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         startTime,
         endTime,
       },
-      handlers: handlerResults,
-      errors,
+      handlers: handlerResults as any, 
+      errors: errors.map(err => ({
+        handlerId: err.handlerId,
+        error: err.error,
+        timestamp: err.timestamp,
+        severity: 'non-blocking' as const
+      })),
     };
     this.cleanupOneTimeHandlers(action, context.handlers);
     return executionResult;
+  }
+  private generateFilterCacheKey(filterOptions?: import('./types.js').DispatchOptions['filter']): string {
+    if (!filterOptions) {
+      return 'no-filter';
+    }
+    const key = [
+      filterOptions.handlerIds?.sort().join(',') || 'none',
+      filterOptions.excludeHandlerIds?.sort().join(',') || 'none',
+      filterOptions.priority?.min?.toString() || 'none',
+      filterOptions.priority?.max?.toString() || 'none',
+      filterOptions.custom ? 'custom' : 'none'
+    ].join('|');
+    return key;
+  }
+  private invalidateFilterCache(): void {
+    this.filterCache.clear();
   }
   private filterHandlers<K extends keyof T>(
     handlers: HandlerRegistration<any, any>[],
@@ -833,7 +903,14 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     if (!filterOptions) {
       return handlers;
     }
-    return handlers.filter(registration => {
+    const cacheKey = this.generateFilterCacheKey(filterOptions);
+    if (!filterOptions.custom) {
+      const cached = this.filterCache.get(cacheKey);
+      if (cached) {
+        return cached;
+      }
+    }
+    const filtered = handlers.filter(registration => {
       const config = registration.config;
       if (filterOptions.handlerIds?.length && 
           !filterOptions.handlerIds.includes(config.id)) {
@@ -858,6 +935,16 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       }
       return true;
     });
+    if (!filterOptions.custom) {
+      if (this.filterCache.size >= this.filterCacheMaxSize) {
+        const firstKey = this.filterCache.keys().next().value;
+        if (firstKey) {
+          this.filterCache.delete(firstKey);
+        }
+      }
+      this.filterCache.set(cacheKey, filtered);
+    }
+    return filtered;
   }
   private processResults<R>(
     context: PipelineContext<any, R>,
@@ -982,9 +1069,11 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   }
   clearAction<K extends keyof T>(action: K): void {
     this.pipelines.delete(action);
+    this.invalidateFilterCache();
   }
   clearAll(): void {
     this.pipelines.clear();
+    this.invalidateFilterCache();
   }
   getName(): string {
     return this.name;
@@ -1063,6 +1152,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     this.actionGuard.destroy();
     this.dispatchQueue?.clear?.();
     this.actionExecutionModes.clear();
+    this.filterCache.clear();
     this.log('ActionRegister destroyed');
   }
 }
@@ -1090,7 +1180,15 @@ export class OperationQueue {
   private queue: QueuedOperation[] = [];
   private processingPromise: Promise<void> | null = null;
   private operationCounter = 0;
-  constructor(private name: string = 'OperationQueue') {}
+  private activeOperations = 0;
+  private readonly maxConcurrency: number;
+  private readonly runningOperations = new Set<Promise<any>>();
+  constructor(
+    private name: string = 'OperationQueue', 
+    maxConcurrency: number = 1
+  ) {
+    this.maxConcurrency = Math.max(1, maxConcurrency);
+  }
   enqueue<T>(operation: () => T | Promise<T>, priority: number = 0): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       const queuedOperation: QueuedOperation<T> = {
@@ -1124,14 +1222,28 @@ export class OperationQueue {
     }
   }
   private async _doProcess(): Promise<void> {
-    while (this.queue.length > 0) {
-      const operation = this.queue.shift()!;
-      try {
-        const result = await Promise.resolve(operation.operation());
-        operation.resolve(result);
-      } catch (error) {
-        operation.reject(error);
+    while (this.queue.length > 0 || this.runningOperations.size > 0) {
+      while (this.queue.length > 0 && this.activeOperations < this.maxConcurrency) {
+        const operation = this.queue.shift()!;
+        this.activeOperations++;
+        const operationPromise = this.executeOperation(operation);
+        this.runningOperations.add(operationPromise);
+        operationPromise.finally(() => {
+          this.activeOperations--;
+          this.runningOperations.delete(operationPromise);
+        });
       }
+      if (this.runningOperations.size > 0) {
+        await Promise.race(this.runningOperations);
+      }
+    }
+  }
+  private async executeOperation<T>(operation: QueuedOperation<T>): Promise<void> {
+    try {
+      const result = await Promise.resolve(operation.operation());
+      operation.resolve(result);
+    } catch (error) {
+      operation.reject(error);
     }
   }
   getQueueInfo() {
@@ -1139,11 +1251,23 @@ export class OperationQueue {
       name: this.name,
       queueLength: this.queue.length,
       isProcessing: Boolean(this.processingPromise),
+      activeOperations: this.activeOperations,
+      maxConcurrency: this.maxConcurrency,
+      runningOperationsCount: this.runningOperations.size,
       operations: this.queue.map(op => ({
         id: op.id,
         priority: op.priority,
         timestamp: op.timestamp
       }))
+    };
+  }
+  getConcurrencyInfo() {
+    return {
+      maxConcurrency: this.maxConcurrency,
+      activeOperations: this.activeOperations,
+      availableSlots: this.maxConcurrency - this.activeOperations,
+      queuedOperations: this.queue.length,
+      efficiency: this.activeOperations / this.maxConcurrency
     };
   }
   clear(): void {
@@ -1257,7 +1381,13 @@ export async function executeSequential<T, R = void>(
     await Promise.allSettled(nonBlockingPromises);
   }
   if (errors.length > 0) {
-    (context as any).collectedErrors = errors;
+    const handlerErrors: HandlerError[] = errors.map(err => ({
+      handlerId: err.handlerId,
+      error: err.error,
+      timestamp: err.timestamp,
+      severity: 'non-blocking' as const
+    }));
+    (context as PipelineContext<any, any> & { collectedErrors?: HandlerError[] }).collectedErrors = handlerErrors;
   }
 }
 export async function executeParallel<T, R = void>(
@@ -1380,7 +1510,7 @@ export type {
 export { ActionGuard } from './action-guard.js';
 export { executeSequential, executeParallel, executeRace } from './execution-modes.js';
 export {
-  useActionHandler,
+  createActionHandler,
   createReactHandlerConfig,
   createReactDispatcher,
   ReactDevUtils,
@@ -1395,30 +1525,52 @@ export {
 import type { 
   ActionPayloadMap, 
   ActionHandler, 
-  HandlerConfig 
+  HandlerConfig,
+  UnregisterFunction
 } from './types.js';
 import type { ActionRegister } from './ActionRegister.js';
-export function useActionHandler<T extends ActionPayloadMap, K extends keyof T>(
+export function createActionHandler<T extends ActionPayloadMap, K extends keyof T>(
   registry: ActionRegister<T>,
   action: K,
   handler: ActionHandler<T[K]>,
-  config?: HandlerConfig,
-  deps: any[] = []
-) {
+  config?: HandlerConfig
+): {
+  register: () => UnregisterFunction;
+  unregister: () => void;
+  registerWithCleanup: () => () => void;
+  config: Required<HandlerConfig>;
+} {
+  const finalConfig = createReactHandlerConfig(String(action), undefined, config);
+  let currentUnregister: UnregisterFunction | undefined;
+  let isRegistered = false;
   return {
-    registry,
-    action,
-    handler,
-    config: {
-      ...config,
-      replaceExisting: true,
-      id: config?.id || `react_${String(action)}_${Math.random().toString(36).substr(2, 9)}`
+    register(): UnregisterFunction {
+      if (isRegistered && currentUnregister) {
+        currentUnregister();
+      }
+      currentUnregister = registry.register(action, handler, finalConfig);
+      isRegistered = true;
+      return currentUnregister;
     },
-    deps
+    unregister(): void {
+      if (isRegistered && currentUnregister) {
+        currentUnregister();
+        currentUnregister = undefined;
+        isRegistered = false;
+      }
+    },
+    registerWithCleanup(): () => void {
+      const unregisterFn = this.register();
+      return () => {
+        unregisterFn();
+        this.unregister();
+      };
+    },
+    config: finalConfig
   };
 }
-export function createReactHandlerConfig<T extends ActionPayloadMap, K extends keyof T>(
-  action: K,
+export function createReactHandlerConfig(
+  action: string,
   componentId?: string,
   config: HandlerConfig = {}
 ): Required<HandlerConfig> {
@@ -1426,7 +1578,7 @@ export function createReactHandlerConfig<T extends ActionPayloadMap, K extends k
   const random = Math.random().toString(36).substr(2, 5);
   return {
     priority: config.priority ?? 0,
-    id: config.id || `${componentId || 'react'}_${String(action)}_${timestamp}_${random}`,
+    id: config.id || `${componentId || 'react'}_${action}_${timestamp}_${random}`,
     blocking: config.blocking ?? false,
     once: config.once ?? false,
     debounce: config.debounce ?? undefined,

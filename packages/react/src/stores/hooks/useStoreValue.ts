@@ -176,9 +176,33 @@ export function useStoreValue<T, R>(
   // store가 null/undefined인 경우를 처리하면서 Hook 규칙 준수
   const dummyStore = useMemo(() => {
     if (store) return store;
-    // Dummy store for Hook rules compliance
-    return { getValue: () => undefined, subscribe: () => () => {}, getSnapshot: () => ({ value: undefined }) } as any;
-  }, [store]);
+    
+    // Type-safe null store implementation
+    const nullStore: Store<T> = {
+      name: 'null-store',
+      subscribe: () => () => {},
+      getSnapshot: () => ({
+        value: initialValue as T,
+        name: 'null-store',
+        lastUpdate: 0
+      }),
+      setValue: () => {},
+      update: () => {},
+      getValue: () => initialValue as T,
+      getListenerCount: () => 0,
+      clearListeners: () => {},
+      dispose: () => {},
+      setCustomComparator: () => {},
+      setComparisonOptions: () => {},
+      getComparisonOptions: () => undefined,
+      clearCustomComparator: () => {},
+      clearComparisonOptions: () => {},
+      setNotificationMode: () => {},
+      getNotificationMode: () => 'batched' as const
+    } as Store<T>;
+    
+    return nullStore;
+  }, [store, initialValue]);
   
   const rawStoreValue = useStoreSelector(dummyStore, selectorFunction, equalityFn as (a: R, b: R) => boolean);
   
@@ -310,8 +334,32 @@ export function useStoreValues<T, S extends Record<string, (value: T) => any>>(
   // store가 null/undefined인 경우를 처리하면서 Hook 규칙 준수
   const dummyStoreForValues = useMemo(() => {
     if (store) return store;
-    // Dummy store for Hook rules compliance
-    return { getValue: () => undefined as any, subscribe: () => () => {}, getSnapshot: () => ({ value: undefined }) } as any;
+    
+    // Type-safe null store for values implementation
+    const nullStore: Store<T> = {
+      name: 'null-store-values',
+      subscribe: () => () => {},
+      getSnapshot: () => ({
+        value: undefined as any,
+        name: 'null-store-values',
+        lastUpdate: 0
+      }),
+      setValue: () => {},
+      update: () => {},
+      getValue: () => undefined as any,
+      getListenerCount: () => 0,
+      clearListeners: () => {},
+      dispose: () => {},
+      setCustomComparator: () => {},
+      setComparisonOptions: () => {},
+      getComparisonOptions: () => undefined,
+      clearCustomComparator: () => {},
+      clearComparisonOptions: () => {},
+      setNotificationMode: () => {},
+      getNotificationMode: () => 'batched' as const
+    } as Store<T>;
+    
+    return nullStore;
   }, [store]);
   
   const storeValue = useStoreSelector(dummyStoreForValues, selectorFunction, shallowEqual);

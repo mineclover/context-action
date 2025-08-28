@@ -71,6 +71,7 @@ export interface ErrorHandlingConfig {
   enableStackTrace: boolean;
   maxLogEntries: number;
   suppressRepeatedErrors: boolean;
+  logErrors: boolean;
 }
 
 /**
@@ -81,7 +82,8 @@ const defaultErrorConfig: ErrorHandlingConfig = {
   throwOnError: process.env.NODE_ENV === 'development',
   enableStackTrace: true,
   maxLogEntries: 100,
-  suppressRepeatedErrors: true
+  suppressRepeatedErrors: true,
+  logErrors: true
 };
 
 /**
@@ -145,6 +147,18 @@ export function handleError(
   }
   
   return error;
+}
+
+/**
+ * 표준화된 Context-Action 에러 처리 (개선된 버전)
+ */
+export function handleContextActionError(
+  type: ContextActionErrorType,
+  message: string,
+  context?: Record<string, unknown>,
+  originalError?: Error
+): ContextActionError {
+  return handleError(type, message, context, originalError);
 }
 
 /**

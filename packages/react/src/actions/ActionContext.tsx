@@ -86,25 +86,25 @@ export function createActionContext<T extends {}>(
   };
 
   /**
-   * Hook to get the dispatch function with automatic abort support
+   * Optimized hook to get stable dispatch functions
    * 
-   * Returns a type-safe dispatch function for triggering actions within React components.
-   * This is the recommended approach for dispatching actions in React applications.
+   * Returns stable dispatch functions that prevent re-renders and maintain
+   * reference equality across component renders.
    * 
-   * @returns Type-safe dispatch function
+   * @returns Object with dispatch and dispatchWithResult functions
    * 
    * @see https://mineclover.github.io/context-action/en/guide/patterns/action/dispatch-access
    */
-  const useAction = (): ActionRegister<T>['dispatch'] => {
-    const context = useFactoryActionContext();
+  const useActionDispatcher = () => {
+    const { actionRegisterRef } = useFactoryActionContext();
     
-    // Create wrapped dispatch that uses core's autoAbort feature
-    const wrappedDispatch = useCallback(<K extends keyof T>(
+    // Stable dispatch function with useCallback optimization
+    const dispatch = useCallback(<K extends keyof T>(
       action: K,
       payload?: T[K],
       options?: DispatchOptions
     ): Promise<void> => {
-      const register = context.actionRegisterRef.current;
+      const register = actionRegisterRef.current;
       if (!register) {
         throw new Error(
           'ActionRegister is not initialized. ' +
@@ -115,7 +115,6 @@ export function createActionContext<T extends {}>(
       // Use core's autoAbort feature if no signal is provided
       const dispatchOptions: DispatchOptions = {
         ...options,
-        // Enable autoAbort if no signal is provided
         autoAbort: options?.signal ? undefined : {
           enabled: true,
           allowHandlerAbort: true
@@ -123,26 +122,62 @@ export function createActionContext<T extends {}>(
       };
       
       return register.dispatch(action, payload, dispatchOptions);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // actionRegisterRef는 ref이므로 의존성에 포함하지 않음
-    
-    return wrappedDispatch as ActionRegister<T>['dispatch'];
+    }, []); // No dependencies - actionRegisterRef is stable
+
+    // Stable dispatchWithResult function
+    const dispatchWithResult = useCallback(<K extends keyof T, R = void>(
+      action: K,
+      payload?: T[K],
+      options?: DispatchOptions
+    ): Promise<ExecutionResult<R>> => {
+      const register = actionRegisterRef.current;
+      if (!register) {
+        throw new Error('ActionRegister not initialized');
+      }
+      
+      const dispatchOptions: DispatchOptions = {
+        ...options,
+        autoAbort: options?.signal ? undefined : {
+          enabled: true,
+          allowHandlerAbort: true
+        }
+      };
+      
+      return register.dispatchWithResult<K, R>(action, payload, dispatchOptions);
+    }, []);
+
+    return { dispatch, dispatchWithResult };
   };
 
-  // Hook to register action handlers with automatic cleanup
+  // Legacy hook for backwards compatibility
+  const useAction = (): ActionRegister<T>['dispatch'] => {
+    const { dispatch } = useActionDispatcher();
+    return dispatch;
+  };
+
+  // Hook to register action handlers with automatic cleanup and ref optimization
   const useActionHandler = <K extends keyof T>(
     action: K,
     handler: ActionHandler<T[K]>,
     config?: HandlerConfig
   ): void => {
     const { actionRegisterRef } = useFactoryActionContext();
+    const unregisterRef = useRef<() => void | null>(null);
     const handlerRef = useRef(handler);
-    const configRef = useRef(config);
     const actionId = useId();
 
-    // Update refs when dependencies change
-    handlerRef.current = handler;
-    configRef.current = config;
+    // Update handler ref to prevent stale closures
+    useEffect(() => {
+      handlerRef.current = handler;
+    }, [handler]);
+
+    // Create stable handler wrapper that always uses current handler
+    const stableHandler = useCallback<ActionHandler<T[K]>>(
+      (payload, controller) => {
+        return handlerRef.current(payload, controller);
+      },
+      [] // No dependencies - always same reference
+    );
 
     useEffect(() => {
       const register = actionRegisterRef.current;
@@ -150,17 +185,30 @@ export function createActionContext<T extends {}>(
         return;
       }
 
-      // Register the handler with a unique ID
-      const unregister = register.register(
+      // Clean up previous handler
+      if (unregisterRef.current) {
+        unregisterRef.current();
+      }
+
+      // Register new handler with stable wrapper
+      unregisterRef.current = register.register(
         action,
-        handlerRef.current,
-        { ...configRef.current, id: actionId }
+        stableHandler,
+        {
+          ...config,
+          replaceExisting: true,
+          id: config?.id || `react_${String(action)}_${actionId}`
+        }
       );
 
-      // Cleanup on unmount or when dependencies change
-      return unregister;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [action, actionId]); // actionRegisterRef는 ref이므로 의존성에 포함하지 않음
+      // Cleanup on unmount or dependencies change
+      return () => {
+        if (unregisterRef.current) {
+          unregisterRef.current();
+          unregisterRef.current = null;
+        }
+      };
+    }, [action, actionId, stableHandler, config]);
   };
 
   /**

@@ -1,7 +1,7 @@
 # Context-Action React Package - Complete Code
 
-Total Files: 45
-Total Lines: 5719
+Total Files: 40
+Total Lines: 4983
 
 ## Type Definitions
 
@@ -399,6 +399,51 @@ export type {
 } from '@context-action/core';
 ```
 
+### advanced.ts
+
+```typescript
+export { StoreRegistry } from './stores/core/StoreRegistry';
+export { EventBus } from './stores/core/EventBus';
+export type { 
+  DynamicStoreOptions,
+  HookOptions,
+  StoreSyncConfig
+} from './stores/core/types';
+export { useComputedStore } from './stores/hooks/useComputedStore';
+export { useStoreSelector } from './stores/hooks/useStoreSelector';
+export { usePersistedStore } from './stores/hooks/usePersistedStore';
+export { useLocalStore } from './stores/hooks/useLocalStore';
+export { StoreErrorBoundary } from './stores/components/StoreErrorBoundary';
+export type { 
+  StoreErrorBoundaryProps 
+} from './stores/components/StoreErrorBoundary';
+export { 
+  composeProviders
+} from './stores/utils/provider-composition';
+export type {
+  ProviderComponent
+} from './stores/utils/provider-composition';
+export { 
+  deepClone,
+  deepCloneWithImmer,
+  preloadImmer,
+  ImmerUtils,
+  safeGet,
+  safeSet,
+  performantSafeGet,
+  performantSafeGetWithImmer
+} from './stores/utils/immutable';
+export {
+  ContextActionError,
+  ContextActionErrorType,
+  handleError as handleContextActionError,
+  safeAsync,
+  safeSync
+} from './stores/utils/error-handling';
+export * from './patterns';
+export * from './hooks';
+```
+
 ### hooks/index.ts
 
 ```typescript
@@ -444,8 +489,20 @@ export function useStoreValueOptimized<T>(
   const shouldUseDeferred = useMemo(() => {
     if (!enableDeferred) return false;
     if (typeof currentValue === 'object' && currentValue !== null) {
-      const objectSize = JSON.stringify(currentValue).length;
-      return objectSize > 1000; 
+      try {
+        const keys = Object.keys(currentValue);
+        const estimatedSize = keys.length * 50; 
+        if (Array.isArray(currentValue)) {
+          return currentValue.length > 100; 
+        }
+        if (keys.length > 10 || estimatedSize > 1000) {
+          const objectSize = JSON.stringify(currentValue).length;
+          return objectSize > 1000; 
+        }
+        return false;
+      } catch {
+        return true;
+      }
     }
     return false;
   }, [currentValue, enableDeferred]);
@@ -492,8 +549,21 @@ export function useStoreUpdateSmart<T>(
     if (typeof newValue === 'function') {
       isComplex = true; 
     } else if (typeof newValue === 'object' && newValue !== null) {
-      const size = JSON.stringify(newValue).length;
-      isComplex = size > priorityThreshold;
+      try {
+        if (Array.isArray(newValue)) {
+          isComplex = newValue.length > (priorityThreshold / 10); 
+        } else {
+          const keys = Object.keys(newValue);
+          if (keys.length > 10) {
+            const size = JSON.stringify(newValue).length;
+            isComplex = size > priorityThreshold;
+          } else {
+            isComplex = false;
+          }
+        }
+      } catch {
+        isComplex = true;
+      }
     }
     if (enableTransition && isComplex) {
       startTransition(() => {
@@ -628,24 +698,27 @@ export function useReact18Compatibility() {
 ### index.ts
 
 ```typescript
-export * from './actions';
-export * from './stores';
-export * from './patterns';
-export * from './hooks';
-export * from './refs';
-export * from './testing';
+export { createActionContext } from './actions/ActionContext';
+export type { 
+  ActionContextConfig,
+  ActionContextReturn
+} from './actions/ActionContext.types';
+export { createStore, Store } from './stores/core/Store';
+export { useStoreValue } from './stores/hooks/useStoreValue';
+export type { IStore, Snapshot } from './stores/core/types';
+export { createStoreContext } from './stores/patterns/declarative-store-pattern-v2';
+export { createRefContext } from './refs/createRefContext';
+export type { RefContextReturn, CreateRefContextOptions } from './refs/createRefContext';
 export type {
-	ActionPayloadMap,
-	ActionHandler,
-	HandlerConfig,
-	PipelineController,
-	ActionRegisterConfig,
-	ExecutionMode,
-	UnregisterFunction
-} from "@context-action/core";
-export { 
-	ActionRegister,
-} from "@context-action/core";
+  ActionPayloadMap,
+  ActionHandler,
+  HandlerConfig,
+  PipelineController,
+  ActionRegisterConfig,
+  ExecutionMode,
+  UnregisterFunction
+} from '@context-action/core';
+export { ActionRegister } from '@context-action/core';
 ```
 
 ### patterns/index.ts
@@ -653,6 +726,12 @@ export {
 ```typescript
 export * from '../stores/patterns';
 export * from '../actions/ActionContext';
+```
+
+### react18.ts
+
+```typescript
+export * from './hooks/react18-hooks';
 ```
 
 ### refs/createRefContext.ts
@@ -1667,7 +1746,7 @@ export class Store<T = any> implements IStore<T> {
   private notificationMode: 'batched' | 'immediate' = 'batched';
   private pendingNotification = false;
   private batchedUpdates = new Set<() => void>();
-  private batchTimeoutId: ReturnType<typeof requestAnimationFrame> | null = null;
+  private batchTimeoutId: number | NodeJS.Timeout | null = null;
   private readonly BATCH_DELAY_MS = 16; 
   public readonly name: string;
   private customComparator?: (oldValue: T, newValue: T) => boolean;
@@ -1772,7 +1851,11 @@ export class Store<T = any> implements IStore<T> {
   dispose(): void {
     this.clearListeners();
     if (this.batchTimeoutId !== null) {
-      cancelAnimationFrame(this.batchTimeoutId);
+      if (typeof requestAnimationFrame !== 'undefined' && typeof cancelAnimationFrame !== 'undefined') {
+        cancelAnimationFrame(this.batchTimeoutId as number);
+      } else {
+        clearTimeout(this.batchTimeoutId as NodeJS.Timeout);
+      }
       this.batchTimeoutId = null;
     }
     this.batchedUpdates.clear();
@@ -1869,9 +1952,15 @@ export class Store<T = any> implements IStore<T> {
   private _addToBatch(updateFn: () => void): void {
     this.batchedUpdates.add(updateFn);
     if (this.batchTimeoutId === null) {
-      this.batchTimeoutId = requestAnimationFrame(() => {
-        this._flushBatchedUpdates();
-      });
+      if (typeof requestAnimationFrame !== 'undefined') {
+        this.batchTimeoutId = requestAnimationFrame(() => {
+          this._flushBatchedUpdates();
+        });
+      } else {
+        this.batchTimeoutId = setTimeout(() => {
+          this._flushBatchedUpdates();
+        }, this.BATCH_DELAY_MS);
+      }
     }
   }
   private _flushBatchedUpdates(): void {
@@ -1942,6 +2031,57 @@ export class ManagedStore<T> extends Store<T> {
 }
 export function createManagedStore<T>(config: StoreConfig<T>): ManagedStore<T> {
   return new ManagedStore<T>(config);
+}
+export interface AdvancedStoreConfig<T> extends StoreConfig<T> {
+  comparisonStrategy?: 'reference' | 'shallow' | 'deep' | 'custom';
+  customComparator?: (oldValue: T, newValue: T) => boolean;
+  enablePersistence?: boolean;
+  persistenceKey?: string;
+  enablePerformanceMonitoring?: boolean;
+  notificationMode?: 'batched' | 'immediate';
+}
+export class StoreFactory {
+  static create<T>(config: AdvancedStoreConfig<T>): Store<T> {
+    const store = new Store(config.name, config.initialValue);
+    if (config.comparisonStrategy && config.comparisonStrategy !== 'reference') {
+      store.setComparisonOptions({ strategy: config.comparisonStrategy });
+    }
+    if (config.customComparator) {
+      store.setCustomComparator(config.customComparator);
+    }
+    if (config.notificationMode) {
+      store.setNotificationMode(config.notificationMode);
+    }
+    if (config.enablePersistence && config.persistenceKey) {
+    }
+    return store;
+  }
+  static createManaged<T>(config: AdvancedStoreConfig<T>): ManagedStore<T> {
+    const managedStore = new ManagedStore<T>(config);
+    if (config.comparisonStrategy && config.comparisonStrategy !== 'reference') {
+      managedStore.setComparisonOptions({ strategy: config.comparisonStrategy });
+    }
+    if (config.customComparator) {
+      managedStore.setCustomComparator(config.customComparator);
+    }
+    if (config.notificationMode) {
+      managedStore.setNotificationMode(config.notificationMode);
+    }
+    return managedStore;
+  }
+  static createBatch<T extends Record<string, any>>(
+    stores: { [K in keyof T]: { initialValue: T[K] } & Partial<AdvancedStoreConfig<T[K]>> }
+  ): { [K in keyof T]: Store<T[K]> } {
+    const result = {} as { [K in keyof T]: Store<T[K]> };
+    for (const [storeName, storeConfig] of Object.entries(stores)) {
+      const fullConfig: AdvancedStoreConfig<any> = {
+        name: storeName,
+        ...storeConfig
+      };
+      result[storeName as keyof T] = StoreFactory.create(fullConfig);
+    }
+    return result;
+  }
 }
 ```
 
@@ -2846,8 +2986,30 @@ export function useStoreValue<T, R>(
   }, [selector]);
   const dummyStore = useMemo(() => {
     if (store) return store;
-    return { getValue: () => undefined, subscribe: () => () => {}, getSnapshot: () => ({ value: undefined }) } as any;
-  }, [store]);
+    const nullStore: Store<T> = {
+      name: 'null-store',
+      subscribe: () => () => {},
+      getSnapshot: () => ({
+        value: initialValue as T,
+        name: 'null-store',
+        lastUpdate: 0
+      }),
+      setValue: () => {},
+      update: () => {},
+      getValue: () => initialValue as T,
+      getListenerCount: () => 0,
+      clearListeners: () => {},
+      dispose: () => {},
+      setCustomComparator: () => {},
+      setComparisonOptions: () => {},
+      getComparisonOptions: () => undefined,
+      clearCustomComparator: () => {},
+      clearComparisonOptions: () => {},
+      setNotificationMode: () => {},
+      getNotificationMode: () => 'batched' as const
+    } as Store<T>;
+    return nullStore;
+  }, [store, initialValue]);
   const rawStoreValue = useStoreSelector(dummyStore, selectorFunction, equalityFn as (a: R, b: R) => boolean);
   const currentStoreValue = useMemo(() => {
     if (!isActive) {
@@ -2932,7 +3094,29 @@ export function useStoreValues<T, S extends Record<string, (value: T) => any>>(
   }, [selectors]);
   const dummyStoreForValues = useMemo(() => {
     if (store) return store;
-    return { getValue: () => undefined as any, subscribe: () => () => {}, getSnapshot: () => ({ value: undefined }) } as any;
+    const nullStore: Store<T> = {
+      name: 'null-store-values',
+      subscribe: () => () => {},
+      getSnapshot: () => ({
+        value: undefined as any,
+        name: 'null-store-values',
+        lastUpdate: 0
+      }),
+      setValue: () => {},
+      update: () => {},
+      getValue: () => undefined as any,
+      getListenerCount: () => 0,
+      clearListeners: () => {},
+      dispose: () => {},
+      setCustomComparator: () => {},
+      setComparisonOptions: () => {},
+      getComparisonOptions: () => undefined,
+      clearCustomComparator: () => {},
+      clearComparisonOptions: () => {},
+      setNotificationMode: () => {},
+      getNotificationMode: () => 'batched' as const
+    } as Store<T>;
+    return nullStore;
   }, [store]);
   const storeValue = useStoreSelector(dummyStoreForValues, selectorFunction, shallowEqual);
   return store ? storeValue : undefined;
@@ -3282,8 +3466,10 @@ export function deepEquals<T>(
   } = {}
 ): boolean {
   const { maxDepth = 5, ignoreKeys = [], enableCircularCheck = true } = options;
-  const visited = enableCircularCheck ? new WeakSet() : null;
-  function deepCompare(a: any, b: any, depth: number): boolean {
+  const visitedA = enableCircularCheck ? new WeakSet() : null;
+  const visitedB = enableCircularCheck ? new WeakSet() : null;
+  const pairPath = enableCircularCheck ? new Map() : null;
+  function deepCompare(a: any, b: any, depth: number, path = ''): boolean {
     if (depth > maxDepth) {
       return Object.is(a, b);
     }
@@ -3299,15 +3485,17 @@ export function deepEquals<T>(
     if (typeof a !== 'object') {
       return a === b;
     }
-    if (visited) {
-      if (visited.has(a)) {
+    if (visitedA && visitedB && pairPath) {
+      if (visitedA.has(a) || visitedB.has(b)) {
         return Object.is(a, b);
       }
-      if (visited.has(b)) {
+      if (pairPath.has(a) && pairPath.get(a).has(b)) {
         return Object.is(a, b);
       }
-      visited.add(a);
-      visited.add(b);
+      visitedA.add(a);
+      visitedB.add(b);
+      if (!pairPath.has(a)) pairPath.set(a, new WeakSet());
+      pairPath.get(a).add(b);
     }
     if (a instanceof Date && b instanceof Date) {
       return a.getTime() === b.getTime();
@@ -3320,7 +3508,7 @@ export function deepEquals<T>(
         return false;
       }
       for (let i = 0; i < a.length; i++) {
-        if (!deepCompare(a[i], b[i], depth + 1)) {
+        if (!deepCompare(a[i], b[i], depth + 1, `${path}[${i}]`)) {
           return false;
         }
       }
@@ -3338,7 +3526,7 @@ export function deepEquals<T>(
       if (!bKeys.includes(key)) {
         return false;
       }
-      if (!deepCompare(a[key], b[key], depth + 1)) {
+      if (!deepCompare(a[key], b[key], depth + 1, `${path}.${key}`)) {
         return false;
       }
     }
@@ -3553,13 +3741,15 @@ export interface ErrorHandlingConfig {
   enableStackTrace: boolean;
   maxLogEntries: number;
   suppressRepeatedErrors: boolean;
+  logErrors: boolean;
 }
 const defaultErrorConfig: ErrorHandlingConfig = {
   logLevel: process.env.NODE_ENV === 'development' ? ErrorLogLevel.DEBUG : ErrorLogLevel.ERROR,
   throwOnError: process.env.NODE_ENV === 'development',
   enableStackTrace: true,
   maxLogEntries: 100,
-  suppressRepeatedErrors: true
+  suppressRepeatedErrors: true,
+  logErrors: true
 };
 let currentErrorConfig: ErrorHandlingConfig = { ...defaultErrorConfig };
 interface ErrorLogEntry {
@@ -3590,6 +3780,14 @@ export function handleError(
     throw error;
   }
   return error;
+}
+export function handleContextActionError(
+  type: ContextActionErrorType,
+  message: string,
+  context?: Record<string, unknown>,
+  originalError?: Error
+): ContextActionError {
+  return handleError(type, message, context, originalError);
 }
 function logError(error: ContextActionError): void {
   const signature = createErrorSignature(error);
@@ -3761,7 +3959,36 @@ export function getFilteredErrors(
 ### stores/utils/immutable.ts
 
 ```typescript
-import { produce, isDraft, original, current } from 'immer';
+type ImmerModule = typeof import('immer');
+let immerModule: ImmerModule | null = null;
+async function getImmer(): Promise<ImmerModule> {
+  if (!immerModule) {
+    immerModule = await import('immer');
+  }
+  return immerModule;
+}
+function isPrimitive(value: unknown): boolean {
+  return (
+    value === null ||
+    value === undefined ||
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean' ||
+    typeof value === 'bigint' ||
+    typeof value === 'symbol'
+  );
+}
+function isComplexObject(value: unknown): boolean {
+  if (!value || typeof value !== 'object') return false;
+  if (Array.isArray(value)) return true;
+  if (value.constructor === Object) {
+    const obj = value as Record<string, unknown>;
+    return Object.values(obj).some(val => 
+      typeof val === 'object' && val !== null
+    );
+  }
+  return value.constructor !== Object;
+}
 const logger = {
   warn: (message: string, ...args: any[]) => console.warn(`[Context-Action] ${message}`, ...args),
   trace: (message: string, ...args: any[]) => console.trace(`[Context-Action] ${message}`, ...args),
@@ -3795,14 +4022,7 @@ function isNonCloneableType(value: unknown): boolean {
   return false;
 }
 export function deepClone<T>(value: T, options?: { skipProducer?: boolean }): T {
-  if (
-    value === null ||
-    value === undefined ||
-    typeof value === 'string' ||
-    typeof value === 'number' ||
-    typeof value === 'boolean' ||
-    typeof value === 'bigint'
-  ) {
+  if (isPrimitive(value)) {
     return value;
   }
   if (typeof value === 'function') {
@@ -3811,19 +4031,29 @@ export function deepClone<T>(value: T, options?: { skipProducer?: boolean }): T 
     }
     return value;
   }
-  if (typeof value === 'symbol') {
-    if (process.env.NODE_ENV === 'development') {
-      logger.warn('Symbols cannot be deep cloned, returning original reference');
-    }
-    return value;
-  }
   if (isNonCloneableType(value)) {
     return value;
   }
-  if (options?.skipProducer && isSimpleObject(value)) {
+  if (typeof structuredClone !== 'undefined') {
+    try {
+      return structuredClone(value);
+    } catch (error) {
+    }
+  }
+  if (!isComplexObject(value)) {
     return simpleClone(value);
   }
+  return fallbackClone(value);
+}
+export async function deepCloneWithImmer<T>(value: T): Promise<T> {
+  if (isPrimitive(value)) {
+    return value;
+  }
+  if (isNonCloneableType(value) || typeof value === 'function') {
+    return value;
+  }
   try {
+    const { produce } = await getImmer();
     return produce(value, (_draft: any) => {
     });
   } catch (error) {
@@ -3947,7 +4177,22 @@ export function performantSafeGet<T>(value: T, enableCloning: boolean = true): T
     return value;
   }
   const startTime = performance.now();
-  const result = deepClone(value);
+  const result = deepClone(value); 
+  const endTime = performance.now();
+  const duration = endTime - startTime;
+  performanceData.times.push(duration);
+  performanceData.operations++;
+  if (performanceData.times.length > 100) {
+    performanceData.times.shift();
+  }
+  return result;
+}
+export async function performantSafeGetWithImmer<T>(value: T, enableCloning: boolean = true): Promise<T> {
+  if (!enableCloning) {
+    return value;
+  }
+  const startTime = performance.now();
+  const result = await deepCloneWithImmer(value);
   const endTime = performance.now();
   const duration = endTime - startTime;
   performanceData.times.push(duration);
@@ -3977,11 +4222,61 @@ export function getPerformanceProfile(): PerformanceProfile {
   };
 }
 export const ImmerUtils = {
-  isDraft,
-  original,
-  current,
+  async isDraft(value: unknown): Promise<boolean> {
+    const { isDraft } = await getImmer();
+    return isDraft(value);
+  },
+  async original<T>(value: T): Promise<T | undefined> {
+    const { original } = await getImmer();
+    return original(value);
+  },
+  async current<T>(value: T): Promise<T> {
+    const { current } = await getImmer();
+    return current(value);
+  },
+  async produce<T>(baseState: T, producer: (draft: T) => void | T): Promise<T> {
+    const { produce } = await getImmer();
+    return produce(baseState, producer);
+  }
 };
-export { produce, isDraft, original, current };
+let syncImmerCache: ImmerModule | null = null;
+export async function preloadImmer(): Promise<void> {
+  if (!syncImmerCache) {
+    syncImmerCache = await getImmer();
+  }
+}
+export function produce<T>(baseState: T, producer: (draft: T) => void | T): T {
+  if (!syncImmerCache) {
+    throw new Error(
+      'Immer not loaded. Call preloadImmer() first or use ImmerUtils.produce() instead.'
+    );
+  }
+  return syncImmerCache.produce(baseState, producer);
+}
+export function isDraft(value: unknown): boolean {
+  if (!syncImmerCache) {
+    throw new Error(
+      'Immer not loaded. Call preloadImmer() first or use ImmerUtils.isDraft() instead.'
+    );
+  }
+  return syncImmerCache.isDraft(value);
+}
+export function original<T>(value: T): T | undefined {
+  if (!syncImmerCache) {
+    throw new Error(
+      'Immer not loaded. Call preloadImmer() first or use ImmerUtils.original() instead.'
+    );
+  }
+  return syncImmerCache.original(value);
+}
+export function current<T>(value: T): T {
+  if (!syncImmerCache) {
+    throw new Error(
+      'Immer not loaded. Call preloadImmer() first or use ImmerUtils.current() instead.'
+    );
+  }
+  return syncImmerCache.current(value);
+}
 ```
 
 ### stores/utils/index.ts
@@ -4007,6 +4302,206 @@ export {
   composeProviders,
   type ProviderComponent
 } from './provider-composition';
+export {
+  SubscriptionManager,
+  useSubscriptionManager,
+  globalSubscriptionTracker,
+  type SubscriptionEntry,
+  type SubscriptionStats
+} from './subscription-manager';
+export {
+  performanceMonitor,
+  measurePerformance,
+  type StorePerformanceMetrics,
+  type PerformanceStats,
+  type PerformanceThresholds
+} from './performance-monitor';
+export {
+  isStore,
+  isValidStoreValue,
+  extractStoreValue,
+  extractStoreValues,
+  createSafeEqualityFn,
+  createStoreConfig,
+  TypeUtils,
+  type StoreValue,
+  type StoresValues,
+  type StoreRecordValues,
+  type StoreSelector,
+  type EqualityFunction,
+  type StoreListener,
+  type StoreUpdater,
+  type DeepReadonly,
+  type StoreInitConfig,
+  type PartialBy,
+  type RequiredBy
+} from './type-helpers';
+```
+
+### stores/utils/performance-monitor.ts
+
+```typescript
+export interface StorePerformanceMetrics {
+  operationType: 'setValue' | 'update' | 'subscribe' | 'getSnapshot';
+  storeName: string;
+  duration: number;
+  timestamp: number;
+  payload?: {
+    valueSize?: number;
+    listenerCount?: number;
+    batchSize?: number;
+  };
+}
+export interface PerformanceStats {
+  totalOperations: number;
+  averageDuration: number;
+  slowestOperation: StorePerformanceMetrics | null;
+  operationsByType: Record<string, number>;
+  operationsByStore: Record<string, number>;
+  recentOperations: StorePerformanceMetrics[];
+}
+export interface PerformanceThresholds {
+  setValue: number;
+  update: number;
+  subscribe: number;
+  getSnapshot: number;
+  batchUpdate: number;
+}
+const DEFAULT_THRESHOLDS: PerformanceThresholds = {
+  setValue: 10,
+  update: 15,
+  subscribe: 5,
+  getSnapshot: 2,
+  batchUpdate: 20
+};
+class PerformanceMonitor {
+  private metrics: StorePerformanceMetrics[] = [];
+  private thresholds: PerformanceThresholds = { ...DEFAULT_THRESHOLDS };
+  private maxMetrics = 1000;
+  private isEnabled = process.env.NODE_ENV === 'development';
+  setEnabled(enabled: boolean): void {
+    this.isEnabled = enabled;
+    if (!enabled) {
+      this.clear();
+    }
+  }
+  setThresholds(thresholds: Partial<PerformanceThresholds>): void {
+    this.thresholds = { ...this.thresholds, ...thresholds };
+  }
+  record(metric: StorePerformanceMetrics): void {
+    if (!this.isEnabled) return;
+    this.metrics.push(metric);
+    if (this.metrics.length > this.maxMetrics) {
+      this.metrics.shift();
+    }
+    const threshold = this.thresholds[metric.operationType];
+    if (metric.duration > threshold) {
+      console.warn(
+        `[Context-Action] Performance warning: ${metric.operationType} on "${metric.storeName}" took ${metric.duration}ms (threshold: ${threshold}ms)`,
+        metric
+      );
+    }
+  }
+  measure<T>(
+    operationType: StorePerformanceMetrics['operationType'],
+    storeName: string,
+    operation: () => T,
+    payload?: StorePerformanceMetrics['payload']
+  ): T {
+    if (!this.isEnabled) {
+      return operation();
+    }
+    const startTime = performance.now();
+    try {
+      const result = operation();
+      const duration = performance.now() - startTime;
+      this.record({
+        operationType,
+        storeName,
+        duration,
+        timestamp: Date.now(),
+        payload
+      });
+      return result;
+    } catch (error) {
+      const duration = performance.now() - startTime;
+      this.record({
+        operationType,
+        storeName,
+        duration,
+        timestamp: Date.now(),
+        payload: { ...payload, error: true }
+      });
+      throw error;
+    }
+  }
+  getStats(): PerformanceStats {
+    const recentOperations = this.metrics.slice(-50); 
+    const operationsByType: Record<string, number> = {};
+    const operationsByStore: Record<string, number> = {};
+    let totalDuration = 0;
+    let slowestOperation: StorePerformanceMetrics | null = null;
+    this.metrics.forEach(metric => {
+      operationsByType[metric.operationType] = (operationsByType[metric.operationType] || 0) + 1;
+      operationsByStore[metric.storeName] = (operationsByStore[metric.storeName] || 0) + 1;
+      totalDuration += metric.duration;
+      if (!slowestOperation || metric.duration > slowestOperation.duration) {
+        slowestOperation = metric;
+      }
+    });
+    return {
+      totalOperations: this.metrics.length,
+      averageDuration: this.metrics.length > 0 ? totalDuration / this.metrics.length : 0,
+      slowestOperation,
+      operationsByType,
+      operationsByStore,
+      recentOperations
+    };
+  }
+  getWarnings(): string[] {
+    const warnings: string[] = [];
+    const stats = this.getStats();
+    if (stats.averageDuration > 5) {
+      warnings.push(`Average operation duration is high: ${stats.averageDuration.toFixed(2)}ms`);
+    }
+    for (const [storeName] of Object.entries(stats.operationsByStore)) {
+      const storeMetrics = this.metrics.filter(m => m.storeName === storeName);
+      const averageDuration = storeMetrics.reduce((sum, m) => sum + m.duration, 0) / storeMetrics.length;
+      if (averageDuration > 10) {
+        warnings.push(`Store "${storeName}" has slow operations: ${averageDuration.toFixed(2)}ms average`);
+      }
+    }
+    return warnings;
+  }
+  clear(): void {
+    this.metrics = [];
+  }
+  exportMetrics(): StorePerformanceMetrics[] {
+    return [...this.metrics];
+  }
+}
+export const performanceMonitor = new PerformanceMonitor();
+export function measurePerformance<T extends (...args: any[]) => any>(
+  operationType: StorePerformanceMetrics['operationType'],
+  storeName: string
+) {
+  return function (target: any, propertyName: string, descriptor: TypedPropertyDescriptor<T>) {
+    const method = descriptor.value!;
+    descriptor.value = function (...args: any[]) {
+      return performanceMonitor.measure(
+        operationType,
+        storeName,
+        () => method.apply(this, args),
+        {
+          listenerCount: (this as any).getListenerCount?.(),
+        }
+      );
+    } as T;
+  };
+}
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  (window as any).__contextActionPerformance = performanceMonitor;
+}
 ```
 
 ### stores/utils/provider-composition.ts
@@ -4104,6 +4599,213 @@ export function createTypedStoreHooks<T>() {
       return useStoreSelector(store);
     }
   };
+}
+```
+
+### stores/utils/subscription-manager.ts
+
+```typescript
+import type { Store } from '../core/Store';
+import { ErrorHandlers } from './error-handling';
+export interface SubscriptionEntry {
+  unsubscribe: () => void;
+  storeName: string;
+  createdAt: number;
+  isActive: boolean;
+}
+export interface SubscriptionStats {
+  totalSubscriptions: number;
+  activeSubscriptions: number;
+  averageAge: number;
+  oldestSubscription: number;
+  subscriptionsByStore: Record<string, number>;
+}
+export class SubscriptionManager {
+  private subscriptions = new Map<string, SubscriptionEntry>();
+  private subscriptionCounter = 0;
+  private isDisposed = false;
+  add(unsubscribe: () => void, storeName: string = 'unknown'): string {
+    if (this.isDisposed) {
+      throw new Error('SubscriptionManager has been disposed');
+    }
+    const subscriptionId = `sub_${++this.subscriptionCounter}_${Date.now()}`;
+    const entry: SubscriptionEntry = {
+      unsubscribe,
+      storeName,
+      createdAt: Date.now(),
+      isActive: true
+    };
+    this.subscriptions.set(subscriptionId, entry);
+    return subscriptionId;
+  }
+  addStoreSubscription<T>(store: Store<T>, listener: () => void): string {
+    try {
+      const unsubscribe = store.subscribe(listener);
+      return this.add(unsubscribe, store.name);
+    } catch (error) {
+      ErrorHandlers.store(
+        'Failed to create store subscription',
+        { storeName: store.name },
+        error instanceof Error ? error : undefined
+      );
+      throw error;
+    }
+  }
+  remove(subscriptionId: string): boolean {
+    const entry = this.subscriptions.get(subscriptionId);
+    if (!entry) {
+      return false;
+    }
+    if (entry.isActive) {
+      try {
+        entry.unsubscribe();
+        entry.isActive = false;
+      } catch (error) {
+        ErrorHandlers.store(
+          'Error during subscription cleanup',
+          { 
+            subscriptionId,
+            storeName: entry.storeName 
+          },
+          error instanceof Error ? error : undefined
+        );
+      }
+    }
+    this.subscriptions.delete(subscriptionId);
+    return true;
+  }
+  removeByStore(storeName: string): number {
+    let removed = 0;
+    for (const [id, entry] of this.subscriptions.entries()) {
+      if (entry.storeName === storeName) {
+        if (this.remove(id)) {
+          removed++;
+        }
+      }
+    }
+    return removed;
+  }
+  removeOlderThan(maxAge: number): number {
+    const cutoffTime = Date.now() - maxAge;
+    let removed = 0;
+    for (const [id, entry] of this.subscriptions.entries()) {
+      if (entry.createdAt < cutoffTime) {
+        if (this.remove(id)) {
+          removed++;
+        }
+      }
+    }
+    return removed;
+  }
+  cleanupAll(): void {
+    const subscriptionIds = Array.from(this.subscriptions.keys());
+    subscriptionIds.forEach(id => {
+      this.remove(id);
+    });
+  }
+  getStats(): SubscriptionStats {
+    const now = Date.now();
+    const activeSubscriptions = Array.from(this.subscriptions.values()).filter(s => s.isActive);
+    const subscriptionsByStore: Record<string, number> = {};
+    let totalAge = 0;
+    let oldestTime = now;
+    activeSubscriptions.forEach(entry => {
+      subscriptionsByStore[entry.storeName] = (subscriptionsByStore[entry.storeName] || 0) + 1;
+      const age = now - entry.createdAt;
+      totalAge += age;
+      oldestTime = Math.min(oldestTime, entry.createdAt);
+    });
+    return {
+      totalSubscriptions: this.subscriptions.size,
+      activeSubscriptions: activeSubscriptions.length,
+      averageAge: activeSubscriptions.length > 0 ? totalAge / activeSubscriptions.length : 0,
+      oldestSubscription: activeSubscriptions.length > 0 ? now - oldestTime : 0,
+      subscriptionsByStore
+    };
+  }
+  checkForLeaks(): string[] {
+    const warnings: string[] = [];
+    const stats = this.getStats();
+    if (stats.activeSubscriptions > 50) {
+      warnings.push(`High subscription count: ${stats.activeSubscriptions}`);
+    }
+    if (stats.oldestSubscription > 5 * 60 * 1000) { 
+      warnings.push(`Old subscriptions detected: oldest is ${Math.round(stats.oldestSubscription / 1000)}s old`);
+    }
+    for (const [storeName, count] of Object.entries(stats.subscriptionsByStore)) {
+      if (count > 10) {
+        warnings.push(`Store "${storeName}" has ${count} subscriptions`);
+      }
+    }
+    return warnings;
+  }
+  dispose(): void {
+    if (this.isDisposed) {
+      return;
+    }
+    this.cleanupAll();
+    this.subscriptions.clear();
+    this.isDisposed = true;
+  }
+  isManagerDisposed(): boolean {
+    return this.isDisposed;
+  }
+}
+export function useSubscriptionManager(): SubscriptionManager {
+  const { useRef, useEffect } = require('react');
+  const managerRef = useRef<SubscriptionManager | null>(null);
+  if (!managerRef.current) {
+    managerRef.current = new SubscriptionManager();
+  }
+  useEffect(() => {
+    return () => {
+      if (managerRef.current) {
+        managerRef.current.dispose();
+        managerRef.current = null;
+      }
+    };
+  }, []);
+  return managerRef.current;
+}
+class GlobalSubscriptionTracker {
+  private managers = new Set<SubscriptionManager>();
+  register(manager: SubscriptionManager): void {
+    this.managers.add(manager);
+  }
+  unregister(manager: SubscriptionManager): void {
+    this.managers.delete(manager);
+  }
+  getGlobalStats(): {
+    totalManagers: number;
+    totalSubscriptions: number;
+    warnings: string[];
+  } {
+    let totalSubscriptions = 0;
+    const allWarnings: string[] = [];
+    for (const manager of this.managers) {
+      if (!manager.isManagerDisposed()) {
+        const stats = manager.getStats();
+        totalSubscriptions += stats.activeSubscriptions;
+        const warnings = manager.checkForLeaks();
+        allWarnings.push(...warnings);
+      }
+    }
+    return {
+      totalManagers: this.managers.size,
+      totalSubscriptions,
+      warnings: allWarnings
+    };
+  }
+  dispose(): void {
+    for (const manager of this.managers) {
+      manager.dispose();
+    }
+    this.managers.clear();
+  }
+}
+export const globalSubscriptionTracker = new GlobalSubscriptionTracker();
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  (window as any).__contextActionSubscriptions = globalSubscriptionTracker;
 }
 ```
 
@@ -4233,6 +4935,114 @@ export const TypeGuards = {
   isArray,
   isSuspiciousEventObject,
   findProblematicProperties
+} as const;
+```
+
+### stores/utils/type-helpers.ts
+
+```typescript
+import type { Store } from '../core/Store';
+export type StoreValue<S> = S extends Store<infer T> ? T : never;
+export type StoresValues<S extends readonly Store<any>[]> = {
+  [K in keyof S]: StoreValue<S[K]>
+};
+export type StoreRecordValues<S extends Record<string, Store<any>>> = {
+  [K in keyof S]: StoreValue<S[K]>
+};
+export type StoreSelector<T, R> = (value: T) => R;
+export type EqualityFunction<T> = (a: T, b: T) => boolean;
+export type StoreListener = () => void;
+export type StoreUpdater<T> = (current: T) => T;
+export function isStore<T = any>(value: any): value is Store<T> {
+  return (
+    value != null &&
+    typeof value === 'object' &&
+    'subscribe' in value &&
+    'getSnapshot' in value &&
+    'setValue' in value &&
+    'getValue' in value &&
+    'name' in value &&
+    typeof value.subscribe === 'function' &&
+    typeof value.getSnapshot === 'function' &&
+    typeof value.setValue === 'function' &&
+    typeof value.getValue === 'function' &&
+    typeof value.name === 'string'
+  );
+}
+export function isValidStoreValue<T>(value: unknown): value is T {
+  return value !== undefined;
+}
+export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+export type RequiredBy<T, K extends keyof T> = T & Required<Pick<T, K>>;
+export type DeepReadonly<T> = {
+  readonly [P in keyof T]: T[P] extends (infer U)[]
+    ? DeepReadonlyArray<U>
+    : T[P] extends object
+    ? DeepReadonly<T[P]>
+    : T[P];
+};
+interface DeepReadonlyArray<T> extends ReadonlyArray<DeepReadonly<T>> {}
+export interface StoreInitConfig<T> {
+  name: string;
+  initialValue: T;
+  validateValue?: (value: unknown) => value is T;
+  transformValue?: (value: unknown) => T;
+}
+export function createStoreConfig<T>(config: StoreInitConfig<T>): StoreInitConfig<T> {
+  return {
+    ...config,
+    validateValue: config.validateValue || isValidStoreValue,
+  };
+}
+export function extractStoreValue<T>(store: Store<T> | undefined | null): T | undefined {
+  if (!store || !isStore(store)) {
+    return undefined;
+  }
+  try {
+    return store.getValue();
+  } catch {
+    return undefined;
+  }
+}
+export function extractStoreValues<S extends Record<string, Store<any>>>(
+  stores: S
+): Partial<StoreRecordValues<S>> {
+  const result = {} as Partial<StoreRecordValues<S>>;
+  for (const [key, store] of Object.entries(stores)) {
+    const value = extractStoreValue(store);
+    if (value !== undefined) {
+      (result as any)[key] = value;
+    }
+  }
+  return result;
+}
+export function createSafeEqualityFn<T>(
+  customFn?: EqualityFunction<T>
+): EqualityFunction<T> {
+  return (a: T, b: T) => {
+    try {
+      return customFn ? customFn(a, b) : Object.is(a, b);
+    } catch {
+      return Object.is(a, b);
+    }
+  };
+}
+export const TypeUtils = {
+  validateStoreConfig<T>(config: any): config is StoreInitConfig<T> {
+    return (
+      config != null &&
+      typeof config === 'object' &&
+      typeof config.name === 'string' &&
+      config.name.length > 0 &&
+      'initialValue' in config
+    );
+  },
+  validateStore<T>(store: any): store is Store<T> {
+    return isStore(store);
+  },
+  getSafeValue<T>(value: unknown, fallback: T): T {
+    return value !== undefined && value !== null ? value as T : fallback;
+  }
 } as const;
 ```
 
@@ -4377,1576 +5187,5 @@ export class StoreUtils {
 			}
 		});
 	}
-}
-```
-
-### testing/assertions.ts
-
-```typescript
-import { Store } from '../stores/core/Store';
-import { MockStore } from './mock-store';
-export const StoreAssertions = {
-  toHaveValue<T>(store: Store<T> | MockStore<T>, expectedValue: T): void {
-    const actualValue = store.getValue();
-    expect(actualValue).toEqual(expectedValue);
-  },
-  toSatisfyCondition<T>(store: Store<T> | MockStore<T>, predicate: (value: T) => boolean): void {
-    const value = store.getValue();
-    expect(predicate(value)).toBe(true);
-  },
-  toHaveSetValueCalls(mockStore: MockStore<any>, expectedCount: number): void {
-    if (!('getStats' in mockStore)) {
-      throw new Error('toHaveSetValueCalls can only be used with MockStore');
-    }
-    const stats = mockStore.getStats();
-    expect(stats.setValueCalls).toBe(expectedCount);
-  },
-  toHaveUpdateCalls(mockStore: MockStore<any>, expectedCount: number): void {
-    if (!('getStats' in mockStore)) {
-      throw new Error('toHaveUpdateCalls can only be used with MockStore');
-    }
-    const stats = mockStore.getStats();
-    expect(stats.updateCalls).toBe(expectedCount);
-  },
-  toHaveListeners(store: Store<any> | MockStore<any>, expectedCount?: number): void {
-    const actualCount = store.getListenerCount();
-    if (expectedCount !== undefined) {
-      expect(actualCount).toBe(expectedCount);
-    } else {
-      expect(actualCount).toBeGreaterThan(0);
-    }
-  }
-};
-export const ActionAssertions = {
-  toHaveBeenCalledWithPayload(mockFn: jest.MockedFunction<any>, expectedPayload: any): void {
-    expect(mockFn).toHaveBeenCalledWith(expectedPayload, expect.any(Object));
-  },
-  toHaveBeenCalledTimes(mockFn: jest.MockedFunction<any>, expectedTimes: number): void {
-    expect(mockFn).toHaveBeenCalledTimes(expectedTimes);
-  },
-  async toCompleteSuccessfully(actionPromise: Promise<any>): Promise<void> {
-    await expect(actionPromise).resolves.not.toThrow();
-  },
-  async toFailWith(actionPromise: Promise<any>, expectedError: string | RegExp): Promise<void> {
-    await expect(actionPromise).rejects.toThrow(expectedError);
-  }
-};
-export const TestMatchers = {
-  toHaveStoreValue<T>(received: Store<T> | MockStore<T>, expectedValue: T) {
-    const actualValue = received.getValue();
-    const pass = JSON.stringify(actualValue) === JSON.stringify(expectedValue);
-    if (pass) {
-      return {
-        message: () => `Expected store not to have value ${JSON.stringify(expectedValue)}`,
-        pass: true
-      };
-    } else {
-      return {
-        message: () => `Expected store to have value ${JSON.stringify(expectedValue)}, but got ${JSON.stringify(actualValue)}`,
-        pass: false
-      };
-    }
-  },
-  toHaveBeenCalledTimes(received: MockStore<any>, expectedSetValue: number, expectedUpdate?: number) {
-    if (!('getStats' in received)) {
-      return {
-        message: () => 'toHaveBeenCalledTimes can only be used with MockStore',
-        pass: false
-      };
-    }
-    const stats = received.getStats();
-    const setValuePass = stats.setValueCalls === expectedSetValue;
-    const updatePass = expectedUpdate === undefined || stats.updateCalls === expectedUpdate;
-    const pass = setValuePass && updatePass;
-    if (pass) {
-      return {
-        message: () => `Expected MockStore not to have setValue: ${expectedSetValue}, update: ${expectedUpdate || 'any'}`,
-        pass: true
-      };
-    } else {
-      return {
-        message: () => `Expected MockStore to have setValue: ${expectedSetValue}, update: ${expectedUpdate || 'any'}, but got setValue: ${stats.setValueCalls}, update: ${stats.updateCalls}`,
-        pass: false
-      };
-    }
-  },
-  toHaveListeners(received: Store<any> | MockStore<any>, expectedCount?: number) {
-    const actualCount = received.getListenerCount();
-    const pass = expectedCount === undefined 
-      ? actualCount > 0 
-      : actualCount === expectedCount;
-    if (pass) {
-      return {
-        message: () => expectedCount === undefined
-          ? `Expected store not to have listeners`
-          : `Expected store not to have ${expectedCount} listeners`,
-        pass: true
-      };
-    } else {
-      return {
-        message: () => expectedCount === undefined
-          ? `Expected store to have listeners, but got ${actualCount}`
-          : `Expected store to have ${expectedCount} listeners, but got ${actualCount}`,
-        pass: false
-      };
-    }
-  }
-};
-declare global {
-  namespace jest {
-    interface Matchers<R> {
-      toHaveStoreValue<T>(expectedValue: T): R;
-      toHaveBeenCalledTimes(expectedSetValue: number, expectedUpdate?: number): R;
-      toHaveListeners(expectedCount?: number): R;
-    }
-  }
-}
-export function setupTestMatchers(): void {
-  if (typeof expect !== 'undefined' && expect.extend) {
-    expect.extend(TestMatchers);
-  }
-}
-```
-
-### testing/async-helpers.ts
-
-```typescript
-import { Store } from '../stores/core/Store';
-import { MockStore } from './mock-store';
-export interface TestTimeouts {
-  default: number;
-  fast: number;
-  slow: number;
-  extended: number;
-}
-export const DEFAULT_TIMEOUTS: TestTimeouts = {
-  default: 1000,
-  fast: 100,
-  slow: 5000,
-  extended: 10000
-};
-export async function flushPromises(): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, 0);
-  });
-}
-export function delay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-export function waitForStoreUpdate<T>(
-  store: Store<T> | MockStore<T>,
-  predicate: (value: T) => boolean,
-  timeout: number = DEFAULT_TIMEOUTS.default,
-  interval: number = 10
-): Promise<T> {
-  return new Promise((resolve, reject) => {
-    let timeoutId: NodeJS.Timeout;
-    let intervalId: NodeJS.Timeout;
-    const cleanup = () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      if (intervalId) clearInterval(intervalId);
-    };
-    timeoutId = setTimeout(() => {
-      cleanup();
-      reject(new Error(`waitForStoreUpdate timed out after ${timeout}ms`));
-    }, timeout);
-    const currentValue = store.getValue();
-    if (predicate(currentValue)) {
-      cleanup();
-      resolve(currentValue);
-      return;
-    }
-    intervalId = setInterval(() => {
-      try {
-        const value = store.getValue();
-        if (predicate(value)) {
-          cleanup();
-          resolve(value);
-        }
-      } catch (error) {
-        cleanup();
-        reject(error);
-      }
-    }, interval);
-  });
-}
-export function waitForStoreValue<T>(
-  store: Store<T> | MockStore<T>,
-  expectedValue: T,
-  timeout: number = DEFAULT_TIMEOUTS.default,
-  interval: number = 10
-): Promise<T> {
-  return waitForStoreUpdate(
-    store,
-    (value) => JSON.stringify(value) === JSON.stringify(expectedValue),
-    timeout,
-    interval
-  );
-}
-export function waitForStoreChange<T>(
-  store: Store<T> | MockStore<T>,
-  timeout: number = DEFAULT_TIMEOUTS.default
-): Promise<T> {
-  return new Promise((resolve, reject) => {
-    let timeoutId: NodeJS.Timeout;
-    let unsubscribe: (() => void) | null = null;
-    const cleanup = () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      if (unsubscribe) unsubscribe();
-    };
-    timeoutId = setTimeout(() => {
-      cleanup();
-      reject(new Error(`waitForStoreChange timed out after ${timeout}ms`));
-    }, timeout);
-    unsubscribe = store.subscribe(() => {
-      try {
-        const value = store.getValue();
-        cleanup();
-        resolve(value);
-      } catch (error) {
-        cleanup();
-        reject(error);
-      }
-    });
-  });
-}
-export async function waitForMultipleStores(
-  storePredicates: Array<{
-    store: Store<any> | MockStore<any>;
-    predicate: (value: any) => boolean;
-    name?: string;
-  }>,
-  timeout: number = DEFAULT_TIMEOUTS.default
-): Promise<any[]> {
-  const promises = storePredicates.map(({ store, predicate, name }, index) => {
-    return waitForStoreUpdate(store, predicate, timeout).catch(error => {
-      throw new Error(`Store ${name || index} failed: ${error.message}`);
-    });
-  });
-  return Promise.all(promises);
-}
-export function waitForActionComplete(
-  mockStore: MockStore<any>,
-  expectedCalls: { setValue?: number; update?: number },
-  timeout: number = DEFAULT_TIMEOUTS.default
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    let timeoutId: NodeJS.Timeout;
-    let intervalId: NodeJS.Timeout;
-    const cleanup = () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      if (intervalId) clearInterval(intervalId);
-    };
-    timeoutId = setTimeout(() => {
-      cleanup();
-      const stats = mockStore.getStats();
-      reject(new Error(
-        `waitForActionComplete timed out. Expected: ${JSON.stringify(expectedCalls)}, ` +
-        `Actual: { setValue: ${stats.setValueCalls}, update: ${stats.updateCalls} }`
-      ));
-    }, timeout);
-    const checkCondition = () => {
-      const stats = mockStore.getStats();
-      const setValueMatch = expectedCalls.setValue === undefined || stats.setValueCalls >= expectedCalls.setValue;
-      const updateMatch = expectedCalls.update === undefined || stats.updateCalls >= expectedCalls.update;
-      if (setValueMatch && updateMatch) {
-        cleanup();
-        resolve();
-      }
-    };
-    checkCondition();
-    intervalId = setInterval(checkCondition, 10);
-  });
-}
-export async function expectWithinTime<T>(
-  asyncOperation: () => Promise<T>,
-  timeout: number = DEFAULT_TIMEOUTS.default,
-  errorMessage?: string
-): Promise<T> {
-  return Promise.race([
-    asyncOperation(),
-    delay(timeout).then(() => {
-      throw new Error(errorMessage || `Operation timed out after ${timeout}ms`);
-    })
-  ]);
-}
-export function pollUntil<T>(
-  condition: () => T | Promise<T>,
-  predicate: (result: T) => boolean,
-  options: {
-    timeout?: number;
-    interval?: number;
-    maxAttempts?: number;
-  } = {}
-): Promise<T> {
-  const {
-    timeout = DEFAULT_TIMEOUTS.default,
-    interval = 100,
-    maxAttempts = Math.floor(timeout / interval)
-  } = options;
-  return new Promise((resolve, reject) => {
-    let attempts = 0;
-    const startTime = Date.now();
-    const poll = async () => {
-      attempts++;
-      try {
-        const result = await condition();
-        if (predicate(result)) {
-          resolve(result);
-          return;
-        }
-        if (Date.now() - startTime >= timeout) {
-          reject(new Error(`pollUntil timed out after ${timeout}ms`));
-          return;
-        }
-        if (attempts >= maxAttempts) {
-          reject(new Error(`pollUntil exceeded max attempts (${maxAttempts})`));
-          return;
-        }
-        setTimeout(poll, interval);
-      } catch (error) {
-        reject(error);
-      }
-    };
-    poll();
-  });
-}
-export class TestTimers {
-  private static isUsingFakeTimers = false;
-  static useFakeTimers(): void {
-    if (typeof jest !== 'undefined') {
-      jest.useFakeTimers();
-      TestTimers.isUsingFakeTimers = true;
-    }
-  }
-  static useRealTimers(): void {
-    if (typeof jest !== 'undefined') {
-      jest.useRealTimers();
-      TestTimers.isUsingFakeTimers = false;
-    }
-  }
-  static runAllTimers(): void {
-    if (typeof jest !== 'undefined' && TestTimers.isUsingFakeTimers) {
-      jest.runAllTimers();
-    }
-  }
-  static runOnlyPendingTimers(): void {
-    if (typeof jest !== 'undefined' && TestTimers.isUsingFakeTimers) {
-      jest.runOnlyPendingTimers();
-    }
-  }
-  static advanceTimersByTime(ms: number): void {
-    if (typeof jest !== 'undefined' && TestTimers.isUsingFakeTimers) {
-      jest.advanceTimersByTime(ms);
-    }
-  }
-  static isFakeTimers(): boolean {
-    return TestTimers.isUsingFakeTimers;
-  }
-}
-export class BatchAsyncManager {
-  private promises: Array<{
-    promise: Promise<any>;
-    name: string;
-    timeout: number;
-  }> = [];
-  add<T>(promise: Promise<T>, name: string = 'unnamed', timeout: number = DEFAULT_TIMEOUTS.default): this {
-    this.promises.push({
-      promise: expectWithinTime(() => promise, timeout, `${name} timed out`),
-      name,
-      timeout
-    });
-    return this;
-  }
-  addStoreUpdate<T>(
-    store: Store<T> | MockStore<T>,
-    predicate: (value: T) => boolean,
-    name: string = 'store-update',
-    timeout: number = DEFAULT_TIMEOUTS.default
-  ): this {
-    this.add(
-      waitForStoreUpdate(store, predicate, timeout),
-      name,
-      timeout
-    );
-    return this;
-  }
-  async waitAll(): Promise<any[]> {
-    const results = await Promise.all(this.promises.map(p => p.promise));
-    this.promises = []; 
-    return results;
-  }
-  async waitAny(): Promise<any> {
-    const result = await Promise.race(this.promises.map(p => p.promise));
-    this.promises = []; 
-    return result;
-  }
-  getPendingCount(): number {
-    return this.promises.length;
-  }
-  clear(): void {
-    this.promises = [];
-  }
-}
-export function createBatchAsyncManager(): BatchAsyncManager {
-  return new BatchAsyncManager();
-}
-```
-
-### testing/compatibility.ts
-
-```typescript
-import { MockStore, createMockStore as newCreateMockStore } from './mock-store';
-import { waitForStoreUpdate, flushPromises as newFlushPromises } from './async-helpers';
-import { Store } from '../stores/core/Store';
-import { StoreRegistry } from '../stores/core/StoreRegistry';
-import type { ActionPayloadMap } from '@context-action/core';
-export function createMockStore<T>(
-  name: string, 
-  initialValue: T,
-  options: {
-    enableSpying?: boolean;
-    mockMethods?: (keyof Store<T>)[];
-  } = {}
-): Store<T> & { 
-  __testUtils: {
-    getCallHistory: () => Array<{ method: string; args: any[]; timestamp: number }>;
-    clearCallHistory: () => void;
-    triggerListener: () => void;
-    getInternalState: () => any;
-  }
-} {
-  const mockStore = newCreateMockStore({
-    initialValue,
-    name,
-    enableLogging: options.enableSpying || false
-  });
-  const store = mockStore as any;
-  store.__testUtils = {
-    getCallHistory: () => {
-      const stats = mockStore.getStats();
-      return [
-        ...Array(stats.setValueCalls).fill(0).map((_, i) => ({
-          method: 'setValue',
-          args: [],
-          timestamp: Date.now() - (stats.setValueCalls - i) * 100
-        })),
-        ...Array(stats.updateCalls).fill(0).map((_, i) => ({
-          method: 'update', 
-          args: [],
-          timestamp: Date.now() - (stats.updateCalls - i) * 100
-        }))
-      ];
-    },
-    clearCallHistory: () => {
-      mockStore.resetStats();
-    },
-    triggerListener: () => {
-      mockStore.triggerNotification();
-    },
-    getInternalState: () => {
-      const stats = mockStore.getStats();
-      return {
-        listeners: { size: stats.listenerCount },
-        value: mockStore.getValue(),
-        snapshot: mockStore.getSnapshot(),
-        isUpdating: false,
-        updateQueue: []
-      };
-    }
-  };
-  return store;
-}
-export function waitForStoreChange<T>(
-  store: Store<T>,
-  predicate: (value: T) => boolean,
-  timeout: number = 1000
-): Promise<T> {
-  return waitForStoreUpdate(store, predicate, timeout);
-}
-export const flushPromises = newFlushPromises;
-export function createTestStoreRegistry(): StoreRegistry {
-  return new StoreRegistry('test-registry');
-}
-export function waitForMultipleStoreChanges<T extends Record<string, any>>(
-  stores: { [K in keyof T]: Store<T[K]> },
-  predicate: (values: T) => boolean,
-  timeout: number = 1000
-): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const storeNames = Object.keys(stores) as (keyof T)[];
-    const unsubscribes: (() => void)[] = [];
-    const timeoutId = setTimeout(() => {
-      unsubscribes.forEach(unsub => unsub());
-      reject(new Error(`Timeout waiting for multiple store changes after ${timeout}ms`));
-    }, timeout);
-    const checkPredicate = () => {
-      const values = {} as T;
-      storeNames.forEach(name => {
-        values[name] = stores[name].getValue();
-      });
-      if (predicate(values)) {
-        clearTimeout(timeoutId);
-        unsubscribes.forEach(unsub => unsub());
-        resolve(values);
-      }
-    };
-    storeNames.forEach(name => {
-      const unsubscribe = stores[name].subscribe(checkPredicate);
-      unsubscribes.push(unsubscribe);
-    });
-    checkPredicate();
-  });
-}
-export function createTestWrapper<TStores extends Record<string, Store<any>>, TActions extends ActionPayloadMap>(
-  stores: TStores,
-  actions?: TActions
-) {
-  return {
-    stores,
-    actions,
-    cleanup: () => {
-      Object.values(stores).forEach(store => {
-        if ('dispose' in store && typeof store.dispose === 'function') {
-          store.dispose();
-        }
-      });
-    }
-  };
-}
-export function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-export class StorePerformanceMeter<T> {
-  private store: Store<T> | MockStore<T>;
-  private startTime: number;
-  private mockStore?: MockStore<T>;
-  constructor(store: Store<T>) {
-    this.store = store;
-    this.startTime = performance.now();
-    if (store instanceof MockStore) {
-      this.mockStore = store;
-    }
-  }
-  getMetrics() {
-    if (this.mockStore) {
-      const stats = this.mockStore.getStats();
-      const elapsedTime = performance.now() - this.startTime;
-      return {
-        subscription: {
-          avg: elapsedTime / Math.max(stats.listenerCount, 1),
-          min: 0,
-          max: elapsedTime,
-          count: stats.listenerCount
-        },
-        update: {
-          avg: elapsedTime / Math.max(stats.setValueCalls + stats.updateCalls, 1),
-          min: 0,
-          max: elapsedTime,
-          count: stats.setValueCalls + stats.updateCalls
-        },
-        notification: {
-          avg: elapsedTime / Math.max(stats.notificationCount, 1),
-          min: 0,
-          max: elapsedTime,
-          count: stats.notificationCount
-        }
-      };
-    }
-    return {
-      subscription: { avg: 0, min: 0, max: 0, count: 0 },
-      update: { avg: 0, min: 0, max: 0, count: 0 },
-      notification: { avg: 0, min: 0, max: 0, count: 0 }
-    };
-  }
-  reset(): void {
-    this.startTime = performance.now();
-    if (this.mockStore) {
-      this.mockStore.resetStats();
-    }
-  }
-}
-export class StoreValueTracker<T> {
-  private history: Array<{ value: T; timestamp: number }> = [];
-  private unsubscribe?: () => void;
-  constructor(store: Store<T>) {
-    this.history.push({
-      value: store.getValue(),
-      timestamp: Date.now()
-    });
-    this.unsubscribe = store.subscribe(() => {
-      this.history.push({
-        value: store.getValue(),
-        timestamp: Date.now()
-      });
-    });
-  }
-  getHistory(): Array<{ value: T; timestamp: number }> {
-    return [...this.history];
-  }
-  getLatestValue(): T | undefined {
-    return this.history[this.history.length - 1]?.value;
-  }
-  getChangeCount(): number {
-    return this.history.length - 1;
-  }
-  hasChangedSince(timestamp: number): boolean {
-    return this.history.some(entry => entry.timestamp > timestamp);
-  }
-  clear(): void {
-    this.history = [];
-  }
-  dispose(): void {
-    this.unsubscribe?.();
-    this.clear();
-  }
-}
-export const TestUtils = {
-  createMockStore,
-  createTestStoreRegistry,
-  waitForStoreChange,
-  waitForMultipleStoreChanges,
-  createTestWrapper,
-  flushPromises,
-  sleep,
-  StorePerformanceMeter,
-  StoreValueTracker
-} as const;
-```
-
-### testing/index.ts
-
-```typescript
-export { createMockStore } from './mock-store';
-export type { MockStoreConfig } from './mock-store';
-export { TestProvider } from './test-provider';
-export type { TestProviderProps } from './test-provider';
-export { createTestRegistry } from './test-registry';
-export { 
-  renderWithStore, 
-  renderWithStores
-} from './render-helpers';
-export type {
-  RenderWithStoreOptions,
-  RenderWithStoresOptions
-} from './render-helpers';
-export { 
-  waitForStoreUpdate,
-  waitForActionComplete,
-  flushPromises
-} from './async-helpers';
-export type { TestTimeouts } from './async-helpers';
-export { 
-  mockActionHandler
-} from './mock-actions';
-export type {
-  MockActionHandlerConfig,
-  ActionHandlerMock
-} from './mock-actions';
-export type {
-  StoreAssertions,
-  ActionAssertions,
-  TestMatchers
-} from './assertions';
-export {
-  createStoreSnapshot,
-  restoreStoreSnapshot
-} from './snapshot-helpers';
-export type { StoreSnapshot } from './snapshot-helpers';
-```
-
-### testing/mock-actions.ts
-
-```typescript
-export interface MockActionHandlerConfig {
-  name: string;
-  implementation?: (...args: any[]) => any;
-  autoResolve?: boolean;
-  resolveDelay?: number;
-  enableLogging?: boolean;
-}
-export interface ActionHandlerMock {
-  mockFn: jest.MockedFunction<any>;
-  getCallCount: () => number;
-  getLastCall: () => any[];
-  getAllCalls: () => any[][];
-  reset: () => void;
-  mockResolveValue: (value: any) => void;
-  mockRejectValue: (error: Error) => void;
-}
-export function mockActionHandler(config: MockActionHandlerConfig): ActionHandlerMock {
-  const {
-    name,
-    implementation,
-    autoResolve = true,
-    resolveDelay = 0,
-    enableLogging = process.env.NODE_ENV === 'test'
-  } = config;
-  const mockFn = jest.fn();
-  if (implementation) {
-    mockFn.mockImplementation(implementation);
-  } else if (autoResolve) {
-    if (resolveDelay > 0) {
-      mockFn.mockImplementation((...args) => {
-        if (enableLogging) {
-          console.log(`Mock action handler [${name}] called with:`, args);
-        }
-        return new Promise(resolve => setTimeout(resolve, resolveDelay));
-      });
-    } else {
-      mockFn.mockResolvedValue(undefined);
-    }
-  }
-  const mock: ActionHandlerMock = {
-    mockFn,
-    getCallCount: () => mockFn.mock.calls.length,
-    getLastCall: () => mockFn.mock.calls[mockFn.mock.calls.length - 1] || [],
-    getAllCalls: () => mockFn.mock.calls,
-    reset: () => mockFn.mockReset(),
-    mockResolveValue: (value: any) => mockFn.mockResolvedValue(value),
-    mockRejectValue: (error: Error) => mockFn.mockRejectedValue(error)
-  };
-  return mock;
-}
-```
-
-### testing/mock-store.ts
-
-```typescript
-import { Store } from '../stores/core/Store';
-import type { Listener, Unsubscribe } from '../stores/core/types';
-export interface MockStoreConfig<T> {
-  initialValue: T;
-  name?: string;
-  autoNotify?: boolean;
-  enableLogging?: boolean;
-}
-export interface MockStoreStats {
-  setValueCalls: number;
-  updateCalls: number;
-  listenerCount: number;
-  notificationCount: number;
-  valueHistory: { value: any; timestamp: number }[];
-}
-export class MockStore<T> extends Store<T> {
-  private stats: MockStoreStats;
-  private config: Required<MockStoreConfig<T>>;
-  private manualMode = false;
-  constructor(config: MockStoreConfig<T>) {
-    const finalConfig: Required<MockStoreConfig<T>> = {
-      name: 'MockStore',
-      autoNotify: true,
-      enableLogging: process.env.NODE_ENV === 'test',
-      ...config
-    };
-    super(finalConfig.name, config.initialValue);
-    this.config = finalConfig;
-    this.stats = this.createInitialStats(config.initialValue);
-  }
-  private createInitialStats(initialValue: T): MockStoreStats {
-    return {
-      setValueCalls: 0,
-      updateCalls: 0,
-      listenerCount: 0,
-      notificationCount: 0,
-      valueHistory: [{ value: initialValue, timestamp: Date.now() }]
-    };
-  }
-  setValue(value: T, options?: { skipClone?: boolean; skipComparison?: boolean }): void {
-    this.stats.setValueCalls++;
-    this.stats.valueHistory.push({ value, timestamp: Date.now() });
-    if (this.config.enableLogging) {
-      console.log(`MockStore [${this.name}]: setValue called`, { value, options });
-    }
-    super.setValue(value, options);
-    if (!this.manualMode && this.config.autoNotify) {
-      this.stats.notificationCount++;
-    }
-  }
-  update(updater: (current: T) => T): void {
-    this.stats.updateCalls++;
-    if (this.config.enableLogging) {
-      console.log(`MockStore [${this.name}]: update called`);
-    }
-    super.update(updater);
-    if (!this.manualMode && this.config.autoNotify) {
-      this.stats.notificationCount++;
-    }
-  }
-  subscribe = (listener: Listener): Unsubscribe => {
-    const originalSubscribe = Object.getPrototypeOf(Object.getPrototypeOf(this)).subscribe;
-    const originalUnsubscribe = originalSubscribe.call(this, listener);
-    this.stats.listenerCount++;
-    if (this.config.enableLogging) {
-      console.log(`MockStore [${this.name}]: subscription added. Total: ${this.stats.listenerCount}`);
-    }
-    return () => {
-      originalUnsubscribe();
-      this.stats.listenerCount--;
-      if (this.config.enableLogging) {
-        console.log(`MockStore [${this.name}]: subscription removed. Total: ${this.stats.listenerCount}`);
-      }
-    };
-  };
-  setManualMode(enabled: boolean): void {
-    this.manualMode = enabled;
-    if (this.config.enableLogging) {
-      console.log(`MockStore [${this.name}]: Manual mode ${enabled ? 'enabled' : 'disabled'}`);
-    }
-  }
-  triggerNotification(): void {
-    this.stats.notificationCount++;
-    this._scheduleNotification();
-    if (this.config.enableLogging) {
-      console.log(`MockStore [${this.name}]: Manual notification triggered`);
-    }
-  }
-  getStats(): MockStoreStats {
-    return { ...this.stats };
-  }
-  resetStats(): void {
-    const currentValue = this.getValue();
-    this.stats = this.createInitialStats(currentValue);
-    if (this.config.enableLogging) {
-      console.log(`MockStore [${this.name}]: Stats reset`);
-    }
-  }
-  getValueHistory(): Array<{ value: T; timestamp: number }> {
-    return [...this.stats.valueHistory];
-  }
-  getRecentValueHistory(count: number): Array<{ value: T; timestamp: number }> {
-    return this.stats.valueHistory.slice(-count);
-  }
-  getValueChangeCount(value: T): number {
-    return this.stats.valueHistory.filter(entry => 
-      JSON.stringify(entry.value) === JSON.stringify(value)
-    ).length;
-  }
-  setValueSilent(value: T): void {
-    this._value = value;
-    this._snapshot = this._createSnapshot();
-    this.stats.valueHistory.push({ value, timestamp: Date.now() });
-    if (this.config.enableLogging) {
-      console.log(`MockStore [${this.name}]: Silent value set`, { value });
-    }
-  }
-  clearAllListeners(): void {
-    super.clearListeners();
-    this.stats.listenerCount = 0;
-    if (this.config.enableLogging) {
-      console.log(`MockStore [${this.name}]: All listeners cleared`);
-    }
-  }
-  resetToInitial(): void {
-    const initialValue = this.config.initialValue;
-    this.setValueSilent(initialValue);
-    this.resetStats();
-    if (this.config.enableLogging) {
-      console.log(`MockStore [${this.name}]: Reset to initial value`, { initialValue });
-    }
-  }
-  createSpies() {
-    const originalSetValue = this.setValue.bind(this);
-    const originalUpdate = this.update.bind(this);
-    const spies = {
-      setValue: jest.fn().mockImplementation(originalSetValue),
-      update: jest.fn().mockImplementation(originalUpdate)
-    };
-    this.setValue = spies.setValue;
-    this.update = spies.update;
-    return spies;
-  }
-  restoreSpies(): void {
-    this.setValue = super.setValue.bind(this);
-    this.update = super.update.bind(this);
-  }
-}
-export function createMockStore<T>(config: MockStoreConfig<T>): MockStore<T> {
-  return new MockStore<T>(config);
-}
-export function createMockStores<T extends Record<string, any>>(
-  configs: { [K in keyof T]: MockStoreConfig<T[K]> }
-): { [K in keyof T]: MockStore<T[K]> } {
-  const stores = {} as { [K in keyof T]: MockStore<T[K]> };
-  for (const [key, config] of Object.entries(configs)) {
-    stores[key as keyof T] = createMockStore(config as MockStoreConfig<T[keyof T]>);
-  }
-  return stores;
-}
-export function asMockStore<T>(store: MockStore<T>): Store<T> {
-  return store as unknown as Store<T>;
-}
-export class MockStoreBatch<T> {
-  private stores: MockStore<T>[] = [];
-  add(store: MockStore<T>): MockStoreBatch<T> {
-    this.stores.push(store);
-    return this;
-  }
-  setManualMode(enabled: boolean): MockStoreBatch<T> {
-    this.stores.forEach(store => store.setManualMode(enabled));
-    return this;
-  }
-  triggerNotifications(): MockStoreBatch<T> {
-    this.stores.forEach(store => store.triggerNotification());
-    return this;
-  }
-  resetStats(): MockStoreBatch<T> {
-    this.stores.forEach(store => store.resetStats());
-    return this;
-  }
-  resetToInitial(): MockStoreBatch<T> {
-    this.stores.forEach(store => store.resetToInitial());
-    return this;
-  }
-  getTotalStats(): { totalSetValueCalls: number; totalUpdateCalls: number; totalListeners: number } {
-    return this.stores.reduce(
-      (acc, store) => {
-        const stats = store.getStats();
-        return {
-          totalSetValueCalls: acc.totalSetValueCalls + stats.setValueCalls,
-          totalUpdateCalls: acc.totalUpdateCalls + stats.updateCalls,
-          totalListeners: acc.totalListeners + stats.listenerCount
-        };
-      },
-      { totalSetValueCalls: 0, totalUpdateCalls: 0, totalListeners: 0 }
-    );
-  }
-}
-export function createMockStoreBatch<T>(): MockStoreBatch<T> {
-  return new MockStoreBatch<T>();
-}
-```
-
-### testing/render-helpers.tsx
-
-```typescript
-import React from 'react';
-import { render, RenderOptions, RenderResult } from '@testing-library/react';
-import { Store } from '../stores/core/Store';
-import { MockStore } from './mock-store';
-import { TestProvider } from './test-provider';
-export interface RenderWithStoreOptions<T> extends Omit<RenderOptions, 'wrapper'> {
-  store: Store<T> | MockStore<T>;
-  storeName?: string;
-  wrapper?: React.ComponentType<{ children: React.ReactNode }>;
-  onAfterRender?: (result: RenderResult) => void;
-}
-export interface RenderWithStoresOptions extends Omit<RenderOptions, 'wrapper'> {
-  stores: Record<string, Store<any> | MockStore<any>>;
-  wrapper?: React.ComponentType<{ children: React.ReactNode }>;
-  onAfterRender?: (result: RenderResult) => void;
-}
-export function renderWithStore<T>(
-  ui: React.ReactElement,
-  options: RenderWithStoreOptions<T>
-): RenderResult & {
-  store: Store<T> | MockStore<T>;
-  rerenderWithStore: (element: React.ReactElement) => void;
-} {
-  const { store, storeName = 'testStore', wrapper: UserWrapper, onAfterRender, ...renderOptions } = options;
-  const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    return (
-      <TestProvider stores={{ [storeName]: store }}>
-        {UserWrapper ? <UserWrapper>{children}</UserWrapper> : children}
-      </TestProvider>
-    );
-  };
-  const result = render(ui, {
-    wrapper: Wrapper,
-    ...renderOptions
-  });
-  if (onAfterRender) {
-    onAfterRender(result);
-  }
-  const rerenderWithStore = (element: React.ReactElement) => {
-    result.rerender(element);
-  };
-  return {
-    ...result,
-    store,
-    rerenderWithStore
-  };
-}
-export function renderWithStores(
-  ui: React.ReactElement,
-  options: RenderWithStoresOptions
-): RenderResult & {
-  stores: Record<string, Store<any> | MockStore<any>>;
-  rerenderWithStores: (element: React.ReactElement) => void;
-} {
-  const { stores, wrapper: UserWrapper, onAfterRender, ...renderOptions } = options;
-  const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    return (
-      <TestProvider stores={stores}>
-        {UserWrapper ? <UserWrapper>{children}</UserWrapper> : children}
-      </TestProvider>
-    );
-  };
-  const result = render(ui, {
-    wrapper: Wrapper,
-    ...renderOptions
-  });
-  if (onAfterRender) {
-    onAfterRender(result);
-  }
-  const rerenderWithStores = (element: React.ReactElement) => {
-    result.rerender(element);
-  };
-  return {
-    ...result,
-    stores,
-    rerenderWithStores
-  };
-}
-export interface TestStoreProviderProps {
-  children: React.ReactNode;
-  stores: Record<string, Store<any> | MockStore<any>>;
-  config?: {
-    debug?: boolean;
-    logUpdates?: boolean;
-  };
-}
-export const TestStoreProvider: React.FC<TestStoreProviderProps> = ({
-  children,
-  stores,
-  config = {}
-}) => {
-  return (
-    <TestProvider stores={stores} config={config}>
-      {children}
-    </TestProvider>
-  );
-};
-export function renderHookWithStore<T, R>(
-  hook: () => R,
-  options: RenderWithStoreOptions<T>
-): {
-  result: { current: R };
-  rerender: (hook?: () => R) => void;
-  unmount: () => void;
-  store: Store<T> | MockStore<T>;
-} {
-  const { renderHook } = require('@testing-library/react');
-  const { store, storeName = 'testStore', wrapper: UserWrapper } = options;
-  const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    return (
-      <TestProvider stores={{ [storeName]: store }}>
-        {UserWrapper ? <UserWrapper>{children}</UserWrapper> : children}
-      </TestProvider>
-    );
-  };
-  const result = renderHook(hook, {
-    wrapper: Wrapper
-  });
-  return {
-    ...result,
-    store
-  };
-}
-export function renderHookWithStores<R>(
-  hook: () => R,
-  options: RenderWithStoresOptions
-): {
-  result: { current: R };
-  rerender: (hook?: () => R) => void;
-  unmount: () => void;
-  stores: Record<string, Store<any> | MockStore<any>>;
-} {
-  const { renderHook } = require('@testing-library/react');
-  const { stores, wrapper: UserWrapper } = options;
-  const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    return (
-      <TestProvider stores={stores}>
-        {UserWrapper ? <UserWrapper>{children}</UserWrapper> : children}
-      </TestProvider>
-    );
-  };
-  const result = renderHook(hook, {
-    wrapper: Wrapper
-  });
-  return {
-    ...result,
-    stores
-  };
-}
-export class TestScenario<T extends Record<string, any>> {
-  private stores: { [K in keyof T]: Store<T[K]> | MockStore<T[K]> };
-  private currentResult: RenderResult | null = null;
-  constructor(stores: { [K in keyof T]: Store<T[K]> | MockStore<T[K]> }) {
-    this.stores = stores;
-  }
-  render(ui: React.ReactElement, options?: Omit<RenderWithStoresOptions, 'stores'>): this {
-    const result = renderWithStores(ui, {
-      stores: this.stores,
-      ...options
-    });
-    this.currentResult = result;
-    return this;
-  }
-  updateStore<K extends keyof T>(storeName: K, value: T[K]): this {
-    const store = this.stores[storeName];
-    if ('setValue' in store) {
-      store.setValue(value);
-    }
-    return this;
-  }
-  updateStoreWith<K extends keyof T>(storeName: K, updater: (current: T[K]) => T[K]): this {
-    const store = this.stores[storeName];
-    if ('update' in store) {
-      store.update(updater);
-    }
-    return this;
-  }
-  getResult(): RenderResult {
-    if (!this.currentResult) {
-      throw new Error('No component has been rendered yet. Call render() first.');
-    }
-    return this.currentResult;
-  }
-  getStore<K extends keyof T>(storeName: K): Store<T[K]> | MockStore<T[K]> {
-    return this.stores[storeName];
-  }
-  getStoreStats<K extends keyof T>(storeName: K): any {
-    const store = this.stores[storeName];
-    if ('getStats' in store) {
-      return store.getStats();
-    }
-    throw new Error(`Store ${String(storeName)} is not a MockStore`);
-  }
-}
-export function createTestScenario<T extends Record<string, any>>(
-  stores: { [K in keyof T]: Store<T[K]> | MockStore<T[K]> }
-): TestScenario<T> {
-  return new TestScenario<T>(stores);
-}
-```
-
-### testing/snapshot-helpers.ts
-
-```typescript
-import { Store } from '../stores/core/Store';
-import { MockStore } from './mock-store';
-import { StoreRegistry } from '../stores/core/StoreRegistry';
-import type { IStore } from '../stores/core/types';
-export interface StoreSnapshot<T = any> {
-  timestamp: number;
-  storeName: string;
-  value: T;
-  metadata?: Record<string, any>;
-}
-export interface RegistrySnapshot {
-  timestamp: number;
-  registryName: string;
-  stores: Record<string, StoreSnapshot>;
-}
-export function createStoreSnapshot<T>(
-  store: Store<T> | MockStore<T> | IStore<T>,
-  storeName?: string,
-  metadata?: Record<string, any>
-): StoreSnapshot<T> {
-  return {
-    timestamp: Date.now(),
-    storeName: storeName || store.name,
-    value: store.getValue(),
-    metadata
-  };
-}
-export function restoreStoreSnapshot<T>(
-  store: Store<T> | MockStore<T> | IStore<T>,
-  snapshot: StoreSnapshot<T>
-): void {
-  if ('setValueSilent' in store) {
-    store.setValueSilent(snapshot.value);
-  } else {
-    store.setValue(snapshot.value);
-  }
-}
-export function createStoresSnapshot(
-  stores: Record<string, Store<any> | MockStore<any>>,
-  metadata?: Record<string, any>
-): Record<string, StoreSnapshot> {
-  const snapshots: Record<string, StoreSnapshot> = {};
-  for (const [name, store] of Object.entries(stores)) {
-    snapshots[name] = createStoreSnapshot(store, name, metadata);
-  }
-  return snapshots;
-}
-export function restoreStoresSnapshot(
-  stores: Record<string, Store<any> | MockStore<any>>,
-  snapshots: Record<string, StoreSnapshot>
-): void {
-  for (const [name, snapshot] of Object.entries(snapshots)) {
-    const store = stores[name];
-    if (store) {
-      restoreStoreSnapshot(store, snapshot);
-    }
-  }
-}
-export function createRegistrySnapshot(
-  registry: StoreRegistry,
-  metadata?: Record<string, any>
-): RegistrySnapshot {
-  const allStores = registry.getAllStores();
-  const storeSnapshots: Record<string, StoreSnapshot> = {};
-  for (const [name, store] of allStores.entries()) {
-    storeSnapshots[name] = createStoreSnapshot(store, name, metadata);
-  }
-  return {
-    timestamp: Date.now(),
-    registryName: registry.name,
-    stores: storeSnapshots
-  };
-}
-export function restoreRegistrySnapshot(
-  registry: StoreRegistry,
-  snapshot: RegistrySnapshot
-): void {
-  for (const [name, storeSnapshot] of Object.entries(snapshot.stores)) {
-    const store = registry.getStore(name);
-    if (store) {
-      restoreStoreSnapshot(store, storeSnapshot);
-    }
-  }
-}
-export class SnapshotManager {
-  private snapshots = new Map<string, StoreSnapshot>();
-  private registrySnapshots = new Map<string, RegistrySnapshot>();
-  saveStore<T>(
-    key: string,
-    store: Store<T> | MockStore<T>,
-    metadata?: Record<string, any>
-  ): void {
-    const snapshot = createStoreSnapshot(store, store.name, metadata);
-    this.snapshots.set(key, snapshot);
-  }
-  restoreStore<T>(
-    key: string,
-    store: Store<T> | MockStore<T>
-  ): boolean {
-    const snapshot = this.snapshots.get(key);
-    if (snapshot) {
-      restoreStoreSnapshot(store, snapshot);
-      return true;
-    }
-    return false;
-  }
-  saveRegistry(
-    key: string,
-    registry: StoreRegistry,
-    metadata?: Record<string, any>
-  ): void {
-    const snapshot = createRegistrySnapshot(registry, metadata);
-    this.registrySnapshots.set(key, snapshot);
-  }
-  restoreRegistry(
-    key: string,
-    registry: StoreRegistry
-  ): boolean {
-    const snapshot = this.registrySnapshots.get(key);
-    if (snapshot) {
-      restoreRegistrySnapshot(registry, snapshot);
-      return true;
-    }
-    return false;
-  }
-  clear(): void {
-    this.snapshots.clear();
-    this.registrySnapshots.clear();
-  }
-  getSnapshotKeys(): {
-    stores: string[];
-    registries: string[];
-  } {
-    return {
-      stores: Array.from(this.snapshots.keys()),
-      registries: Array.from(this.registrySnapshots.keys())
-    };
-  }
-  deleteSnapshot(key: string): boolean {
-    const storeDeleted = this.snapshots.delete(key);
-    const registryDeleted = this.registrySnapshots.delete(key);
-    return storeDeleted || registryDeleted;
-  }
-}
-export const globalSnapshotManager = new SnapshotManager();
-export const SnapshotTestHelpers = {
-  beforeEach: (
-    stores: Record<string, Store<any> | MockStore<any>>,
-    key: string = 'beforeEach'
-  ) => {
-    for (const [name, store] of Object.entries(stores)) {
-      globalSnapshotManager.saveStore(`${key}-${name}`, store);
-    }
-  },
-  afterEach: (
-    stores: Record<string, Store<any> | MockStore<any>>,
-    key: string = 'beforeEach'
-  ) => {
-    for (const [name, store] of Object.entries(stores)) {
-      globalSnapshotManager.restoreStore(`${key}-${name}`, store);
-    }
-  },
-  beforeEachRegistry: (
-    registry: StoreRegistry,
-    key: string = 'beforeEach'
-  ) => {
-    globalSnapshotManager.saveRegistry(key, registry);
-  },
-  afterEachRegistry: (
-    registry: StoreRegistry,
-    key: string = 'beforeEach'
-  ) => {
-    globalSnapshotManager.restoreRegistry(key, registry);
-  }
-};
-export function setupSnapshotTests(
-  stores: Record<string, Store<any> | MockStore<any>>,
-  options: {
-    beforeEachKey?: string;
-    afterEachKey?: string;
-    clearOnStart?: boolean;
-  } = {}
-): void {
-  const {
-    beforeEachKey = 'test-setup',
-    afterEachKey = beforeEachKey,
-    clearOnStart = true
-  } = options;
-  if (clearOnStart) {
-    globalSnapshotManager.clear();
-  }
-  beforeEach(() => {
-    SnapshotTestHelpers.beforeEach(stores, beforeEachKey);
-  });
-  afterEach(() => {
-    SnapshotTestHelpers.afterEach(stores, afterEachKey);
-  });
-}
-export function setupRegistrySnapshotTests(
-  registry: StoreRegistry,
-  options: {
-    beforeEachKey?: string;
-    afterEachKey?: string;
-    clearOnStart?: boolean;
-  } = {}
-): void {
-  const {
-    beforeEachKey = 'registry-setup',
-    afterEachKey = beforeEachKey,
-    clearOnStart = true
-  } = options;
-  if (clearOnStart) {
-    globalSnapshotManager.clear();
-  }
-  beforeEach(() => {
-    SnapshotTestHelpers.beforeEachRegistry(registry, beforeEachKey);
-  });
-  afterEach(() => {
-    SnapshotTestHelpers.afterEachRegistry(registry, afterEachKey);
-  });
-}
-```
-
-### testing/test-provider.tsx
-
-```typescript
-import React, { createContext, useContext, useMemo } from 'react';
-import { Store } from '../stores/core/Store';
-import { MockStore } from './mock-store';
-import { StoreRegistry } from '../stores/core/StoreRegistry';
-export interface TestProviderProps {
-  children: React.ReactNode;
-  stores: Record<string, Store<any> | MockStore<any>>;
-  config?: {
-    debug?: boolean;
-    logUpdates?: boolean;
-    testMode?: boolean;
-  };
-}
-interface TestContextValue {
-  registry: StoreRegistry;
-  stores: Record<string, Store<any> | MockStore<any>>;
-  config: Required<NonNullable<TestProviderProps['config']>>;
-}
-const TestContext = createContext<TestContextValue | null>(null);
-export const TestProvider: React.FC<TestProviderProps> = ({
-  children,
-  stores,
-  config = {}
-}) => {
-  const finalConfig = useMemo(() => ({
-    debug: false,
-    logUpdates: false,
-    testMode: true,
-    ...config
-  }), [config]);
-  const registry = useMemo(() => {
-    const testRegistry = new StoreRegistry('test-registry');
-    Object.entries(stores).forEach(([name, store]) => {
-      testRegistry.register(name, store, {
-        tags: ['test'],
-        description: `Test store: ${name}`,
-        debug: finalConfig.debug
-      });
-    });
-    return testRegistry;
-  }, [stores, finalConfig.debug]);
-  React.useEffect(() => {
-    if (!finalConfig.logUpdates) return;
-    const unsubscribers: Array<() => void> = [];
-    Object.entries(stores).forEach(([name, store]) => {
-      if ('subscribe' in store) {
-        const unsubscribe = store.subscribe(() => {
-          if (finalConfig.debug) {
-            console.log(`[TestProvider] Store ${name} updated:`, store.getValue());
-          }
-        });
-        unsubscribers.push(unsubscribe);
-      }
-    });
-    return () => {
-      unsubscribers.forEach(unsub => unsub());
-    };
-  }, [stores, finalConfig.logUpdates, finalConfig.debug]);
-  const contextValue = useMemo<TestContextValue>(() => ({
-    registry,
-    stores,
-    config: finalConfig
-  }), [registry, stores, finalConfig]);
-  return (
-    <TestContext.Provider value={contextValue}>
-      {children}
-    </TestContext.Provider>
-  );
-};
-export function useTestContext(): TestContextValue {
-  const context = useContext(TestContext);
-  if (!context) {
-    throw new Error('useTestContext must be used within a TestProvider');
-  }
-  return context;
-}
-export function useTestStore<T>(storeName: string): Store<T> | MockStore<T> {
-  const { stores } = useTestContext();
-  const store = stores[storeName];
-  if (!store) {
-    throw new Error(`Store "${storeName}" not found in test context. Available stores: ${Object.keys(stores).join(', ')}`);
-  }
-  return store;
-}
-export function useTestRegistry(): StoreRegistry {
-  const { registry } = useTestContext();
-  return registry;
-}
-export function useTestConfig(): Required<NonNullable<TestProviderProps['config']>> {
-  const { config } = useTestContext();
-  return config;
-}
-export function useIsInTestMode(): boolean {
-  const context = useContext(TestContext);
-  if (!context) {
-    return false;
-  }
-  return context.config.testMode;
-}
-export function withTestProvider<P extends object>(
-  Component: React.ComponentType<P>,
-  stores: Record<string, Store<any> | MockStore<any>>,
-  config?: TestProviderProps['config']
-) {
-  const WrappedComponent = (props: P) => (
-    <TestProvider stores={stores} config={config}>
-      <Component {...props} />
-    </TestProvider>
-  );
-  WrappedComponent.displayName = `withTestProvider(${Component.displayName || Component.name})`;
-  return WrappedComponent;
-}
-export interface ProviderConfig {
-  component: React.ComponentType<any>;
-  props?: any;
-}
-export function composeProviders(
-  providers: ProviderConfig[],
-  children: React.ReactNode
-): React.ReactElement {
-  return providers.reduceRight(
-    (acc, { component: Provider, props = {} }) => (
-      <Provider {...props}>{acc}</Provider>
-    ),
-    <>{children}</>
-  );
-}
-export function createTestProviderComposer() {
-  const providers: ProviderConfig[] = [];
-  const composer = {
-    add: (component: React.ComponentType<any>, props: any = {}) => {
-      providers.push({ component, props });
-      return composer;
-    },
-    addTestProvider: (stores: Record<string, Store<any> | MockStore<any>>, config?: TestProviderProps['config']) => {
-      providers.push({ 
-        component: TestProvider, 
-        props: { stores, config } 
-      });
-      return composer;
-    },
-    render: (children: React.ReactNode) => composeProviders(providers, children)
-  };
-  return composer;
-}
-export interface ConditionalTestProviderProps extends TestProviderProps {
-  condition: boolean;
-  fallback?: React.ComponentType<{ children: React.ReactNode }>;
-}
-export const ConditionalTestProvider: React.FC<ConditionalTestProviderProps> = ({
-  condition,
-  fallback: Fallback,
-  children,
-  ...testProviderProps
-}) => {
-  if (condition) {
-    return <TestProvider {...testProviderProps}>{children}</TestProvider>;
-  }
-  if (Fallback) {
-    return <Fallback>{children}</Fallback>;
-  }
-  return <>{children}</>;
-};
-```
-
-### testing/test-registry.ts
-
-```typescript
-import { StoreRegistry } from '../stores/core/StoreRegistry';
-import { Store } from '../stores/core/Store';
-import { MockStore } from './mock-store';
-export function createTestRegistry(name: string = 'test-registry'): StoreRegistry {
-  return new StoreRegistry(name);
-}
-export function createRegistryWithStores<T extends Record<string, any>>(
-  storeConfigs: { [K in keyof T]: { initialValue: T[K]; isMock?: boolean } },
-  registryName: string = 'test-registry'
-): {
-  registry: StoreRegistry;
-  stores: { [K in keyof T]: Store<T[K]> | MockStore<T[K]> };
-} {
-  const registry = createTestRegistry(registryName);
-  const stores = {} as { [K in keyof T]: Store<T[K]> | MockStore<T[K]> };
-  for (const [storeName, config] of Object.entries(storeConfigs)) {
-    const store = config.isMock 
-      ? new MockStore({ 
-          initialValue: config.initialValue, 
-          name: storeName,
-          enableLogging: process.env.NODE_ENV === 'test'
-        })
-      : new Store(storeName, config.initialValue);
-    stores[storeName as keyof T] = store;
-    registry.register(storeName, store, {
-      tags: ['test'],
-      description: `Test store: ${storeName}`
-    });
-  }
-  return { registry, stores };
 }
 ```

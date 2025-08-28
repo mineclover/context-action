@@ -47,6 +47,10 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   // 🆕 동시성 문제 해결을 위한 큐 시스템 (conditional)
   private dispatchQueue?: OperationQueue;
 
+  // 🔧 Performance optimization: Filter cache
+  private filterCache = new Map<string, HandlerRegistration<any, any>[]>();
+  private filterCacheMaxSize = 100; // Prevent memory bloat
+
   constructor(config: ActionRegisterConfig = {}) {
     this.name = config.name || 'ActionRegister';
     this.registryConfig = config.registry;
@@ -130,6 +134,77 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   }
 
   /**
+   * 🔧 Create and merge AbortSignal instances with proper cleanup
+   * 
+   * @param options Dispatch options containing signal and autoAbort configuration
+   * @returns [effectiveSignal, autoAbortController, cleanupFunction]
+   */
+  private createAbortSignal(options?: import('./types.js').DispatchOptions): [
+    AbortSignal | undefined, 
+    AbortController | undefined, 
+    () => void
+  ] {
+    const signals: AbortSignal[] = [];
+    const cleanups: (() => void)[] = [];
+    let autoAbortController: AbortController | undefined;
+
+    // Add existing signal if provided
+    if (options?.signal) {
+      signals.push(options.signal);
+    }
+
+    // Create auto-abort controller if enabled
+    if (options?.autoAbort?.enabled) {
+      autoAbortController = new AbortController();
+      signals.push(autoAbortController.signal);
+    }
+
+    // No signals to merge
+    if (signals.length === 0) {
+      return [undefined, autoAbortController, () => {}];
+    }
+
+    // Single signal - no merge needed
+    if (signals.length === 1) {
+      return [signals[0], autoAbortController, () => cleanups.forEach(c => c())];
+    }
+
+    // Multiple signals - use AbortSignal.any() if available, fallback to manual merge
+    let effectiveSignal: AbortSignal;
+    
+    if (typeof AbortSignal.any === 'function') {
+      // Modern browsers with AbortSignal.any()
+      effectiveSignal = AbortSignal.any(signals);
+    } else {
+      // Fallback: Create controller and link all signals
+      const mergedController = new AbortController();
+      effectiveSignal = mergedController.signal;
+      
+      signals.forEach(signal => {
+        if (signal.aborted) {
+          mergedController.abort();
+        } else {
+          const abortHandler = () => mergedController.abort();
+          signal.addEventListener('abort', abortHandler, { once: true });
+          cleanups.push(() => signal.removeEventListener('abort', abortHandler));
+        }
+      });
+    }
+
+    const cleanup = () => {
+      cleanups.forEach(c => {
+        try {
+          c();
+        } catch (error) {
+          this.log('Cleanup error during AbortSignal cleanup', error, 'warn');
+        }
+      });
+    };
+
+    return [effectiveSignal, autoAbortController, cleanup];
+  }
+
+  /**
    * 🆕 Perform synchronous handler registration
    */
   private _performRegistrationSync<K extends keyof T, R = void>(
@@ -167,19 +242,35 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     }
     const existingIndex = pipeline.findIndex(reg => reg.id === handlerId);
 
-    // 🆕 Enhanced duplicate ID handling with replaceExisting support
+    // 🆕 Enhanced duplicate ID handling with replaceExisting support and cleanup
     if (existingIndex !== -1) {
       if (config.replaceExisting) {
+        // 🔧 Memory leak fix: Clean up existing handler before replacement
+        const oldRegistration = pipeline[existingIndex];
+        
+        // Call cleanup if available on the old handler
+        if (oldRegistration && typeof (oldRegistration as any).cleanup === 'function') {
+          try {
+            (oldRegistration as any).cleanup();
+          } catch (cleanupError) {
+            this.log(`Cleanup error for replaced handler: ${String(action)}`, cleanupError, 'warn');
+          }
+        }
+        
         // Replace existing handler
         pipeline[existingIndex] = registration;
         
         // Re-sort pipeline since priority might have changed
         pipeline.sort((a, b) => b.config.priority - a.config.priority);
         
+        // 🔧 Invalidate filter cache when pipeline changes
+        this.invalidateFilterCache();
+        
         this.log(`Handler replaced: ${String(action)}`, {
           handlerId,
           priority: config.priority,
-          totalHandlers: pipeline.length
+          totalHandlers: pipeline.length,
+          oldHandlerCleaned: Boolean((oldRegistration as any).cleanup)
         });
 
         // Return unregister function for the replaced registration
@@ -187,6 +278,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
           const index = pipeline.findIndex(reg => reg.id === handlerId && reg === registration);
           if (index !== -1) {
             pipeline.splice(index, 1);
+            // 🔧 Invalidate filter cache when pipeline changes
+            this.invalidateFilterCache();
             this.log(`Replaced handler unregistered: ${String(action)}`, { handlerId });
           }
         };
@@ -206,6 +299,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     // 🆕 즉시 정렬 (동시성 보호)
     pipeline.sort((a, b) => b.config.priority - a.config.priority);
     
+    // 🔧 Invalidate filter cache when pipeline changes
+    this.invalidateFilterCache();
+    
     this.log(`Handler registered: ${String(action)}`, {
       handlerId,
       priority: config.priority,
@@ -217,6 +313,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       const index = pipeline.findIndex((reg) => reg.id === handlerId && reg === registration);
       if (index !== -1) {
         pipeline.splice(index, 1);
+        // 🔧 Invalidate filter cache when pipeline changes
+        this.invalidateFilterCache();
         this.log(`Handler unregistered: ${String(action)}`, {
           handlerId,
           remainingHandlers: pipeline.length
@@ -271,29 +369,11 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       console.warn(`Event object passed to action "${String(action)}"`, payload.type);
     }
     
-    // Auto-abort: Create AbortController if enabled
-    let autoAbortController: AbortController | undefined;
-    let effectiveSignal = options?.signal;
+    // 🔧 Improved AbortSignal handling with cleaner merge logic
+    const [effectiveSignal, autoAbortController, cleanup] = this.createAbortSignal(options);
     
-    if (options?.autoAbort?.enabled) {
-      autoAbortController = new AbortController();
-      effectiveSignal = autoAbortController.signal;
-      
-      // Provide access to the created controller
-      if (options.autoAbort.onControllerCreated) {
-        options.autoAbort.onControllerCreated(autoAbortController);
-      }
-      
-      // If original signal exists, link them together
-      if (options?.signal) {
-        const originalSignal = options.signal;
-        if (originalSignal.aborted) {
-          autoAbortController.abort();
-        } else {
-          const abortHandler = () => autoAbortController!.abort();
-          originalSignal.addEventListener('abort', abortHandler, { once: true });
-        }
-      }
+    if (options?.autoAbort?.onControllerCreated && autoAbortController) {
+      options.autoAbort.onControllerCreated(autoAbortController);
     }
     
     // Check if dispatch is aborted before starting
@@ -402,10 +482,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       executionSuccess = false;
       throw error;
     } finally {
-      // Clean up abort listener
-      if (effectiveSignal && abortHandler) {
-        effectiveSignal.removeEventListener('abort', abortHandler);
-      }
+      // 🔧 Use cleanup function from createAbortSignal
+      cleanup();
     }
   }
 
@@ -429,29 +507,11 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   ): Promise<ExecutionResult<R>> {
     const startTime = Date.now();
     
-    // Auto-abort: Create AbortController if enabled (same as dispatch)
-    let autoAbortController: AbortController | undefined;
-    let effectiveSignal = options?.signal;
+    // 🔧 Improved AbortSignal handling with cleaner merge logic (same as dispatch)
+    const [effectiveSignal, autoAbortController, cleanup] = this.createAbortSignal(options);
     
-    if (options?.autoAbort?.enabled) {
-      autoAbortController = new AbortController();
-      effectiveSignal = autoAbortController.signal;
-      
-      // Provide access to the created controller
-      if (options.autoAbort.onControllerCreated) {
-        options.autoAbort.onControllerCreated(autoAbortController);
-      }
-      
-      // If original signal exists, link them together
-      if (options?.signal) {
-        const originalSignal = options.signal;
-        if (originalSignal.aborted) {
-          autoAbortController.abort();
-        } else {
-          const abortHandler = () => autoAbortController!.abort();
-          originalSignal.addEventListener('abort', abortHandler, { once: true });
-        }
-      }
+    if (options?.autoAbort?.onControllerCreated && autoAbortController) {
+      options.autoAbort.onControllerCreated(autoAbortController);
     }
     
     // Check if dispatch is aborted before starting
@@ -461,8 +521,10 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         aborted: true,
         abortReason: 'Action dispatch aborted by signal',
         terminated: false,
-        result: undefined,
+        result: undefined as any,
+        successResults: [] as any,
         results: [],
+        failedResults: [],
         execution: {
           duration: 0,
           handlersExecuted: 0,
@@ -483,8 +545,10 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         success: true,
         aborted: false,
         terminated: false,
-        result: undefined,
+        result: undefined as any,
+        successResults: [] as any,
         results: [],
+        failedResults: [],
         execution: {
           duration: 0,
           handlersExecuted: 0,
@@ -544,8 +608,10 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
           aborted: true,
           abortReason: 'Debounced execution',
           terminated: false,
-          result: undefined,
+          result: undefined as any,
+          successResults: [] as any,
           results: [],
+          failedResults: [],
           execution: {
             duration: Date.now() - startTime,
             handlersExecuted: 0,
@@ -569,8 +635,10 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
           aborted: true,
           abortReason: 'Throttled execution',
           terminated: false,
-          result: undefined,
+          result: undefined as any,
+          successResults: [] as any,
           results: [],
+          failedResults: [],
           execution: {
             duration: Date.now() - startTime,
             handlersExecuted: 0,
@@ -643,27 +711,34 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         timestamp: Date.now(),
       });
     } finally {
-      // Clean up abort listener
-      if (effectiveSignal && abortHandler) {
-        effectiveSignal.removeEventListener('abort', abortHandler);
-      }
+      // 🔧 Use cleanup function from createAbortSignal
+      cleanup();
     }
 
     const endTime = Date.now();
     const executionSuccess = !executionError && !context.aborted;
     
-
     // Process results based on options
     const processedResult = this.processResults(context, options?.result);
 
-    // Build execution result
+    // 🔧 Type safety: Separate successful results from failed ones
+    const successResults = context.results.filter((result): result is R => result !== undefined);
+    const failedResults = errors.map(err => ({
+      handlerId: err.handlerId,
+      error: err.error,
+      expectedType: typeof processedResult || 'unknown'
+    }));
+
+    // Build execution result with improved type safety
     const executionResult: ExecutionResult<R> = {
       success: !executionError && !context.aborted,
       aborted: context.aborted,
       abortReason: context.abortReason,
       terminated: context.terminated,
       result: processedResult,
+      successResults: successResults,
       results: context.results,
+      failedResults,
       execution: {
         duration: endTime - startTime,
         handlersExecuted: context.currentIndex + (context.aborted ? 0 : 1),
@@ -672,14 +747,46 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         startTime,
         endTime,
       },
-      handlers: handlerResults,
-      errors,
+      handlers: handlerResults as any, // Type assertion needed for handlers array
+      errors: errors.map(err => ({
+        handlerId: err.handlerId,
+        error: err.error,
+        timestamp: err.timestamp,
+        severity: 'non-blocking' as const
+      })),
     };
 
     /** Clean up one-time handlers after execution */
     this.cleanupOneTimeHandlers(action, context.handlers);
 
     return executionResult;
+  }
+
+  /**
+   * 🔧 Generate cache key for filter options
+   */
+  private generateFilterCacheKey(filterOptions?: import('./types.js').DispatchOptions['filter']): string {
+    if (!filterOptions) {
+      return 'no-filter';
+    }
+    
+    // Create deterministic cache key from filter options
+    const key = [
+      filterOptions.handlerIds?.sort().join(',') || 'none',
+      filterOptions.excludeHandlerIds?.sort().join(',') || 'none',
+      filterOptions.priority?.min?.toString() || 'none',
+      filterOptions.priority?.max?.toString() || 'none',
+      filterOptions.custom ? 'custom' : 'none'
+    ].join('|');
+    
+    return key;
+  }
+
+  /**
+   * 🔧 Clear filter cache when pipelines change
+   */
+  private invalidateFilterCache(): void {
+    this.filterCache.clear();
   }
 
   private filterHandlers<K extends keyof T>(
@@ -690,8 +797,19 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       return handlers;
     }
 
+    // 🔧 Performance optimization: Use cache for filter results
+    const cacheKey = this.generateFilterCacheKey(filterOptions);
+    
+    // Skip cache for custom filter functions (can't be cached safely)
+    if (!filterOptions.custom) {
+      const cached = this.filterCache.get(cacheKey);
+      if (cached) {
+        return cached;
+      }
+    }
+
     // 🆕 Use filter method directly (already returns new array)
-    return handlers.filter(registration => {
+    const filtered = handlers.filter(registration => {
       const config = registration.config;
 
       // 🆕 Short-circuit evaluation for performance
@@ -723,6 +841,22 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
 
       return true;
     });
+
+    // 🔧 Cache the result if no custom filter
+    if (!filterOptions.custom) {
+      // Prevent cache bloat
+      if (this.filterCache.size >= this.filterCacheMaxSize) {
+        // Remove oldest entries (simple LRU approximation)
+        const firstKey = this.filterCache.keys().next().value;
+        if (firstKey) {
+          this.filterCache.delete(firstKey);
+        }
+      }
+      
+      this.filterCache.set(cacheKey, filtered);
+    }
+
+    return filtered;
   }
 
   private processResults<R>(
@@ -912,6 +1046,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    */
   clearAction<K extends keyof T>(action: K): void {
     this.pipelines.delete(action);
+    // 🔧 Invalidate filter cache when pipeline changes
+    this.invalidateFilterCache();
   }
 
   /**
@@ -923,6 +1059,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    */
   clearAll(): void {
     this.pipelines.clear();
+    // 🔧 Invalidate filter cache when pipeline changes
+    this.invalidateFilterCache();
   }
 
   /**
@@ -1088,6 +1226,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     this.dispatchQueue?.clear?.();
     
     this.actionExecutionModes.clear();
+    
+    // 🔧 Clean up performance caches
+    this.filterCache.clear();
     
     this.log('ActionRegister destroyed');
   }
