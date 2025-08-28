@@ -3,7 +3,7 @@
  * @module LogMonitorUtils
  */
 
-import { LogLevel } from '../../utils/logger';
+import { LogLevel } from '@/utils/logger';
 import type {
   ActionMessageMap,
   LogEntry,

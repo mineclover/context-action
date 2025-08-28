@@ -3,7 +3,7 @@
  * @module LogMonitor
  */
 
-import { LogLevel } from '../../utils/logger';
+import { LogLevel } from '@/utils/logger';
 import { useEffect } from 'react';
 import { cn } from '../../lib/utils';
 import {

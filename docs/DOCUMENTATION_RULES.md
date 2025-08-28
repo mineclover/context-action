@@ -133,11 +133,11 @@ import { useUserStore, UserStoreProvider } from '../setup/stores';
 - **Reference Only**: Setup 가이드에서 정의한 스펙만 **참조하여 재사용**
 - **Consistent Usage**: 모든 예제는 Setup 스펙과 **100% 일치**
 
-#### 🔄 **새로운 타입이 필요한 경우: 제안 → 마이그레이션 프로세스**
+#### 🔄 **새로운 스펙이 필요한 경우: 제안 → 검토 → 마이그레이션**
 
 기존 Setup 스펙으로 설명하기 어려운 기능이 있을 때의 체계적 접근법:
 
-##### 1️⃣ **제안 문서 생성** (`proposals/` 디렉토리)
+##### 1️⃣ **제안 문서 생성** (`docs/en/guide/patterns/proposals/` 디렉토리)
 ```markdown
 # 새로운 기능 설명을 위한 임시 타입 정의
 
@@ -211,16 +211,24 @@ interface Proposed[Domain]Types {
 이 문서의 타입은 **임시 제안용**이며, 실제 프로젝트에서는 공식 Setup 스펙 사용을 권장합니다.
 ```
 
-##### 4️⃣ **디렉토리 구조**
+##### 4️⃣ **디렉토리 구조** 
 ```
 docs/en/guide/patterns/
 ├── setup/                    # 🏗️ 공식 스펙 정의소
 │   ├── basic-store-setup.md
-│   └── ...
-├── proposals/                # 🚧 임시 제안 문서
-│   ├── advanced-store-types.md
-│   ├── real-time-patterns.md
-│   └── ...
+│   ├── basic-action-setup.md
+│   ├── ref-context-setup.md
+│   └── multi-context-setup.md
+├── proposals/                # 🚧 임시 제안 문서 (현재 존재)
+│   └── debug-store-types.md  # 실제 예시
+├── store/                    # 📚 Store 패턴들 (스펙 재사용)
+│   ├── basic-usage.md        # ← basic-store-setup 스펙 재사용 ✅
+│   ├── store-configuration.md
+│   └── useStoreManager-api.md
+├── action/                   # 📚 Action 패턴들 (스펙 재사용)
+│   ├── basic-usage.md        # ← basic-action-setup 스펙 재사용 필요
+│   ├── dispatch-access.md
+│   └── type-system.md
 └── archived-proposals/       # 📦 마이그레이션 완료된 제안들
     └── ...
 ```
@@ -433,6 +441,26 @@ interface Proposed[Domain]Types { [newFeature]: { ... }; }
 
 ⚠️ **주의**: 실제 프로젝트에서는 공식 Setup 스펙 사용 권장
 ```
+
+---
+
+## 🎯 **성공 사례 검증**
+
+### ✅ **현재 구현 성공 사례**
+1. **[Store Basic Usage](../docs/en/guide/patterns/store/basic-usage.md)**: 완벽한 스펙 재사용 구현
+   - Setup 스펙 정확한 Import: `import { useUserStore } from '../setup/stores'`
+   - Prerequisites 섹션: Setup 가이드 올바른 참조
+   - 예제 일관성: UserStores 타입만 사용, 새 타입 정의 없음
+
+### 🔄 **개선 중인 사례**
+2. **Action 패턴 문서들**: Setup 스펙 재사용으로 마이그레이션 중
+   - `action/basic-usage.md` → `basic-action-setup.md` 스펙 재사용 적용
+   - `action/dispatch-access.md` → 일관된 EventActions 패턴 사용
+
+### 📊 **스펙 재사용 효과**
+- **학습 효율성**: Setup 1번 학습 → 모든 패턴 문서 즉시 이해
+- **개발 생산성**: Copy-paste 시 바로 동작하는 코드 예제
+- **유지보수성**: Setup 가이드 1곳 수정 → 전체 문서 자동 일관성 유지
 
 ---
 

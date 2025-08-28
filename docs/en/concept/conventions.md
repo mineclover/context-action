@@ -4,14 +4,160 @@ This document defines coding conventions and best practices when using the Conte
 
 ## 📋 Table of Contents
 
-1. [Naming Conventions](#naming-conventions)
-2. [File Structure](#file-structure)
-3. [Pattern Usage](#pattern-usage)
-4. [Type Definitions](#type-definitions)
-5. [Code Style](#code-style)
-6. [Performance Guidelines](#performance-guidelines)
-7. [Error Handling](#error-handling)
-8. [RefContext Conventions](#refcontext-conventions)
+1. [MVVM Architecture Conventions](#mvvm-architecture-conventions)
+2. [Naming Conventions](#naming-conventions)
+3. [File Structure](#file-structure)
+4. [Pattern Usage](#pattern-usage)
+5. [Type Definitions](#type-definitions)
+6. [Code Style](#code-style)
+7. [Performance Guidelines](#performance-guidelines)
+8. [Error Handling](#error-handling)
+9. [RefContext Conventions](#refcontext-conventions)
+
+---
+
+## MVVM Architecture Conventions
+
+### 🏗️ **Core Architecture Pattern**
+
+Context-Action Framework follows **strict MVVM architecture** with clear layer separation:
+
+- **Model Layer**: `create~Context` declarations (`src/models/`)
+- **ViewModel Layer**: Custom hooks for behavior injection (`src/viewmodels/`)
+- **Business Logic Layer**: Action handlers for domain rules (`src/business/`)
+- **View Layer**: Pure components consuming ViewModels (`src/components/`, `src/pages/`)
+- **Shared Layer**: Pure view components with explicit props (`src/shared/`)
+
+### 📁 **Directory Structure Pattern**
+
+```
+src/
+├── models/           # Model Layer - Context declarations
+│   ├── UserModel.ts           # createStoreContext
+│   ├── UserActionModel.ts     # createActionContext
+│   └── UserRefModel.ts        # createRefContext
+├── viewmodels/       # ViewModel Layer - Hook-based injection
+│   ├── useUserProfile.ts      # Profile behavior injection
+│   ├── useUserPreferences.ts  # Preferences behavior injection
+│   └── useUserAuth.ts         # Auth behavior injection
+├── business/         # Business Logic Layer - Action handlers
+│   ├── UserBusinessLogic.tsx  # User domain business rules
+│   └── AuthBusinessLogic.tsx  # Auth domain business rules
+├── pages/            # View Layer - Page components
+│   ├── UserProfilePage.tsx    # Profile page (ViewModel consumption)
+│   └── SettingsPage.tsx       # Settings page (ViewModel consumption)
+├── components/       # View Layer - Feature components
+│   ├── UserProfile.tsx        # Profile component (ViewModel consumption)
+│   └── UserSettings.tsx       # Settings component (ViewModel consumption)
+└── shared/           # Shared Layer - Pure view components
+    ├── Button.tsx             # Pure button with explicit props
+    ├── Card.tsx               # Pure card with explicit props
+    └── Form.tsx               # Pure form with explicit props
+```
+
+### 🎯 **Layer Responsibility Rules**
+
+#### ✅ **Model Layer** - Context Declarations Only
+```typescript
+// ✅ MUST: Declare contexts with domain-specific naming
+export const {
+  Provider: UserStoreProvider,
+  useStore: useUserStore,
+  useStoreManager: useUserStoreManager
+} = createStoreContext('User', userStoreConfig);
+
+// ❌ FORBIDDEN: Business logic in models
+// No useEffect, no API calls, no business rules
+```
+
+#### ✅ **ViewModel Layer** - Behavior Injection Only
+```typescript
+// ✅ MUST: Create hooks that inject state and behavior
+export function useUserProfile() {
+  const profileStore = useUserStore('profile');
+  const dispatch = useUserDispatch();
+  
+  const profile = useStoreValue(profileStore);
+  
+  const updateProfile = useCallback((data) => {
+    dispatch('updateProfile', data);
+  }, [dispatch]);
+  
+  return { profile, updateProfile, displayName: profile.name || 'Guest' };
+}
+
+// ❌ FORBIDDEN: Direct API calls or business validation in ViewModels
+// ❌ FORBIDDEN: JSX or component rendering
+```
+
+#### ✅ **Business Logic Layer** - Domain Rules Only  
+```typescript
+// ✅ MUST: Implement business logic through action handlers
+export function UserBusinessLogic({ children }) {
+  useUserActionHandler('updateProfile', useCallback(async (payload) => {
+    // Business validation
+    if (!payload.email.includes('@')) {
+      throw new Error('Invalid email');
+    }
+    
+    // Business logic implementation
+    const updated = { ...current, ...payload };
+    profileStore.setValue(updated);
+    
+    // Side effects
+    await saveToAPI(updated);
+  }, [profileStore]));
+  
+  return children;
+}
+
+// ❌ FORBIDDEN: JSX rendering (except children passthrough)
+// ❌ FORBIDDEN: UI state management
+```
+
+#### ✅ **View Layer** - ViewModel Consumption Only
+```typescript
+// ✅ MUST: Consume ViewModels through hooks
+export function UserProfile() {
+  const { profile, updateProfile, displayName } = useUserProfile();
+  const { theme, toggleTheme } = useUserPreferences();
+  
+  return (
+    <div data-theme={theme}>
+      <h1>{displayName}</h1>
+      <button onClick={() => updateProfile({ name: 'New Name' })}>
+        Update
+      </button>
+    </div>
+  );
+}
+
+// ❌ FORBIDDEN: Direct context consumption (useUserStore, useUserDispatch)
+// ❌ FORBIDDEN: Business logic or API calls
+// ❌ FORBIDDEN: Complex internal state management
+```
+
+#### ✅ **Shared Layer** - Pure View Only
+```typescript
+// ✅ MUST: Pure components with explicit props
+interface ButtonProps {
+  variant: 'primary' | 'secondary';
+  onClick?: () => void;
+  children: ReactNode;
+}
+
+export function Button({ variant, onClick, children }: ButtonProps) {
+  return (
+    <button className={`btn btn-${variant}`} onClick={onClick}>
+      {children}
+    </button>
+  );
+}
+
+// ❌ FORBIDDEN: Any hooks or context consumption
+// ❌ FORBIDDEN: Internal state management
+// ❌ FORBIDDEN: Business logic
+```
 
 ---
 
@@ -151,82 +297,159 @@ const container = useMouseRef('container');
 
 ## File Structure
 
-### 📁 Recommended Directory Structure
+### 📁 **MVVM Directory Structure** (Recommended)
 
 ```
 src/
-├── contexts/           # Context definitions
+├── models/             # Model Layer - Context declarations
+│   ├── UserModel.ts           # User domain contexts (Store, Action, Ref)
+│   ├── ProductModel.ts        # Product domain contexts
+│   ├── InteractionModel.ts    # UI interaction contexts (Mouse, Animation)
+│   └── index.ts              # All model exports
+├── viewmodels/         # ViewModel Layer - Behavior injection hooks
 │   ├── user/
-│   │   ├── user.actions.ts     # UserActions interface + createActionContext
-│   │   ├── user.stores.ts      # UserData interface + createStoreContext
-│   │   ├── user.refs.ts        # UserRefs interface + createRefContext
-│   │   └── index.ts            # Renamed exports
+│   │   ├── useUserProfile.ts       # Profile behavior injection
+│   │   ├── useUserPreferences.ts   # Preferences behavior injection
+│   │   └── useUserAuth.ts          # Auth behavior injection
 │   ├── product/
-│   │   ├── product.actions.ts
-│   │   ├── product.stores.ts
-│   │   └── index.ts
-│   ├── interactions/
-│   │   ├── mouse.refs.ts       # Mouse interaction RefContext
-│   │   ├── animation.refs.ts   # Animation RefContext
-│   │   └── index.ts
-│   └── index.ts        # All contexts re-export
-├── providers/          # Provider components
-│   ├── UserProvider.tsx
-│   ├── ProductProvider.tsx
-│   ├── MouseProvider.tsx
-│   └── AppProvider.tsx         # Root Provider composition
-├── hooks/             # Domain-specific custom hooks
+│   │   ├── useProductCatalog.ts    # Catalog behavior injection
+│   │   └── useShoppingCart.ts      # Cart behavior injection
+│   ├── interaction/
+│   │   ├── useMouseTracking.ts     # Mouse behavior injection
+│   │   └── useAnimationControl.ts  # Animation behavior injection
+│   └── index.ts              # All ViewModel exports
+├── business/           # Business Logic Layer - Action handlers
+│   ├── UserBusinessLogic.tsx       # User domain business rules
+│   ├── ProductBusinessLogic.tsx    # Product domain business rules
+│   ├── AuthBusinessLogic.tsx       # Auth domain business rules
+│   └── index.ts                   # All business logic exports
+├── pages/              # View Layer - Page components
 │   ├── user/
-│   │   ├── useUserHandlers.ts   # Action handler collection
-│   │   ├── useUserProfile.ts    # Business logic hooks
-│   │   └── index.ts
-│   ├── interactions/
-│   │   ├── useMouseTracking.ts  # Mouse tracking logic
-│   │   ├── useAnimationControl.ts # Animation control logic
-│   │   └── index.ts
-│   └── index.ts
-├── types/             # Common type definitions
-│   ├── user.types.ts
-│   ├── product.types.ts
-│   ├── interaction.types.ts     # RefContext types
-│   └── index.ts
-└── components/        # React components
-    ├── user/
-    ├── product/
-    ├── interactive/     # RefContext components
-    └── common/
+│   │   ├── UserProfilePage.tsx     # Profile page
+│   │   └── UserSettingsPage.tsx    # Settings page
+│   ├── product/
+│   │   ├── ProductCatalogPage.tsx  # Catalog page
+│   │   └── ShoppingCartPage.tsx    # Cart page
+│   └── index.ts              # All page exports
+├── components/         # View Layer - Feature components
+│   ├── user/
+│   │   ├── UserProfile.tsx         # Profile component
+│   │   ├── UserSettings.tsx        # Settings component
+│   │   └── UserAuth.tsx           # Auth component
+│   ├── product/
+│   │   ├── ProductList.tsx         # Product list
+│   │   ├── ProductCard.tsx         # Product card
+│   │   └── CartSummary.tsx         # Cart summary
+│   └── index.ts              # All component exports
+├── shared/             # Shared Layer - Pure view components
+│   ├── Button.tsx              # Pure button component
+│   ├── Card.tsx                # Pure card component
+│   ├── Form.tsx                # Pure form component
+│   ├── Modal.tsx               # Pure modal component
+│   └── index.ts                # All shared component exports
+├── types/              # Type definitions
+│   ├── user.types.ts           # User domain types
+│   ├── product.types.ts        # Product domain types
+│   ├── ui.types.ts            # UI-specific types
+│   └── index.ts               # All type exports
+└── providers/          # Provider composition
+    └── AppProvider.tsx         # Root provider composition
 ```
 
-### 📄 File Naming Conventions
+### 📁 **Legacy Directory Structure** (Migration Reference)
 
-#### Context File Names
-```tsx
-// ✅ Recommended
-user.actions.ts       // Action context
-user.stores.ts        // Store context
-user.refs.ts          // RefContext
-payment.actions.ts    // Payment actions
-product.stores.ts     // Product stores
-mouse.refs.ts         // Mouse RefContext
-
-// ❌ Avoid
-userContext.ts        // Ambiguous (action, store, or ref?)
-User.ts              // Starts with capital (confuse with components)
-userState.ts         // Prefer "stores" over "state"
-userRefs.ts          // Prefer "refs" with lowercase
+```
+src/
+├── contexts/           # Old structure - migrate to models/
+│   ├── user/
+│   │   ├── user.actions.ts     # → models/UserModel.ts
+│   │   ├── user.stores.ts      # → models/UserModel.ts
+│   │   ├── user.refs.ts        # → models/UserModel.ts
+│   │   └── index.ts
+│   └── index.ts
+├── hooks/             # Old structure - migrate to viewmodels/
+│   ├── user/
+│   │   ├── useUserProfile.ts    # → viewmodels/user/useUserProfile.ts
+│   │   └── index.ts
+│   └── index.ts
+└── components/        # Keep as View Layer
+    └── ...
 ```
 
-#### Provider File Names
-```tsx
-// ✅ Recommended
-UserProvider.tsx      // User-related provider
-ProductProvider.tsx   // Product-related provider
-MouseProvider.tsx     // Mouse RefContext provider
-AppProvider.tsx       // Root provider
+### 📄 **MVVM File Naming Conventions**
 
-// ❌ Avoid  
-user-provider.tsx     // Use PascalCase instead of kebab-case
-userProvider.tsx      // Use PascalCase instead of camelCase
+#### **Model Layer Files** (`src/models/`)
+```typescript
+// ✅ MVVM Recommended - Domain-based models
+UserModel.ts          // User domain (Store + Action + Ref contexts)
+ProductModel.ts       // Product domain contexts
+InteractionModel.ts   // UI interaction contexts
+AuthModel.ts          // Authentication contexts
+
+// ❌ Avoid - Separate context files
+user.actions.ts       // Split contexts reduce maintainability
+user.stores.ts        // Prefer consolidated domain models
+user.refs.ts          // Keep related contexts together
+```
+
+#### **ViewModel Layer Files** (`src/viewmodels/`)
+```typescript
+// ✅ MVVM Recommended - Hook-based behavior injection
+useUserProfile.ts     // Profile behavior injection
+useUserPreferences.ts // Preferences behavior injection  
+useUserAuth.ts        // Auth behavior injection
+useProductCatalog.ts  // Product catalog behavior
+useShoppingCart.ts    // Shopping cart behavior
+
+// ❌ Avoid - Generic or vague names
+useUser.ts           // Too generic, unclear responsibility
+userHooks.ts         // Not specific about injected behavior
+profileManager.ts    // Not following hook convention
+```
+
+#### **Business Logic Layer Files** (`src/business/`)
+```typescript
+// ✅ MVVM Recommended - Business domain logic
+UserBusinessLogic.tsx     // User domain business rules
+ProductBusinessLogic.tsx  // Product domain business rules
+AuthBusinessLogic.tsx     // Authentication business rules
+PaymentBusinessLogic.tsx  // Payment domain business rules
+
+// ❌ Avoid - Generic or unclear names
+BusinessLogic.tsx    // Too generic, unclear domain
+userHandlers.ts      // Not component-based business logic
+UserManager.tsx      // Vague responsibility
+```
+
+#### **View Layer Files** (`src/components/`, `src/pages/`)
+```typescript
+// ✅ MVVM Recommended - ViewModel consumption
+UserProfile.tsx      // Profile component (consumes useUserProfile)
+UserSettings.tsx     // Settings component (consumes useUserPreferences)
+ProductList.tsx      // Product list (consumes useProductCatalog)
+ShoppingCart.tsx     // Cart component (consumes useShoppingCart)
+
+// Pages
+UserProfilePage.tsx  // Profile page
+ProductCatalogPage.tsx // Catalog page
+
+// ❌ Avoid - Direct context reference in names
+UserStoreComponent.tsx   // Should not reference implementation detail
+UserActionComponent.tsx  // Focus on business purpose, not technical detail
+```
+
+#### **Shared Layer Files** (`src/shared/`)
+```typescript
+// ✅ MVVM Recommended - Pure view components
+Button.tsx           // Pure button with explicit props
+Card.tsx             // Pure card with explicit props
+Modal.tsx            // Pure modal with explicit props
+Form.tsx             // Pure form with explicit props
+Input.tsx            // Pure input with explicit props
+
+// ❌ Avoid - Context consumption in shared
+SmartButton.tsx      // Shared components should be "dumb"
+ConnectedCard.tsx    // No context consumption in shared layer
 ```
 
 ---
@@ -1265,3 +1488,68 @@ Yes, the renaming pattern is a core convention of the Context-Action framework. 
      requestAnimationFrame(animate);
    };
    ```
+
+---
+
+## 📚 **Related Documentation**
+
+### 🏗️ **Architecture Guides**
+- **[MVVM Core Architecture](./mvvm-core-architecture.md)** - Complete MVVM implementation guide with practical examples
+- **[Architecture Guide](./architecture-guide.md)** - Overall framework architecture concepts
+- **[Pattern Guide](./pattern-guide.md)** - Comprehensive pattern usage guide
+
+### 📋 **Setup & Implementation**
+- **[Setup Patterns](../guide/patterns/setup/index.md)** - Context creation patterns and configurations
+- **[Store Patterns](../guide/patterns/store/index.md)** - State management implementation patterns
+- **[Action Patterns](../guide/patterns/action/index.md)** - Business logic implementation patterns
+- **[RefContext Patterns](../guide/patterns/ref/index.md)** - DOM manipulation and performance patterns
+
+### 🎯 **Best Practices**
+- **[Documentation Rules](../../DOCUMENTATION_RULES.md)** - Framework documentation standards
+- **[Getting Started](../guide/getting-started.md)** - Quick start guide for new users
+
+---
+
+## 🎯 **Quick Reference for MVVM Implementation**
+
+### **Model Layer** → Context Declarations
+```typescript
+// src/models/UserModel.ts
+export const { Provider, useStore, useActionDispatch } = create~Context();
+```
+
+### **ViewModel Layer** → Behavior Injection  
+```typescript
+// src/viewmodels/useUserProfile.ts
+export function useUserProfile() {
+  return { state, actions, computed };
+}
+```
+
+### **Business Logic Layer** → Domain Rules
+```typescript
+// src/business/UserBusinessLogic.tsx
+export function UserBusinessLogic({ children }) {
+  useActionHandler('action', businessLogic);
+  return children;
+}
+```
+
+### **View Layer** → Pure Components
+```typescript
+// src/components/UserProfile.tsx
+export function UserProfile() {
+  const { state, actions } = useUserProfile();
+  return <UI />;
+}
+```
+
+### **Shared Layer** → Reusable Components
+```typescript  
+// src/shared/Button.tsx
+export function Button({ variant, onClick, children }: ButtonProps) {
+  return <button className={variant} onClick={onClick}>{children}</button>;
+}
+```
+
+**Follow this architecture for scalable, maintainable, and type-safe applications with Context-Action Framework.**

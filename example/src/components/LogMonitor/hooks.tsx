@@ -3,8 +3,8 @@
  * @module LogMonitorHooks
  */
 
-import type { Logger } from '../../utils/logger';
-import { createLogger, LogLevel } from '../../utils/logger';
+import type { Logger } from '@/utils/logger';
+import { createLogger, LogLevel } from '@/utils/logger';
 import { ActionRegister } from '@context-action/react';
 import { useMemo } from 'react';
 import { toastActionRegister } from '../ToastSystem/actions';

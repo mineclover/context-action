@@ -3,7 +3,7 @@
  * @module LogMonitorTypes
  */
 
-import type { LogLevel } from '../../utils/logger';
+import type { LogLevel } from '@/utils/logger';
 import type { ActionPayloadMap, Store } from '@context-action/react';
 
 /**

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Card, CardContent } from '../components/ui';
-import { PageLayout } from '../components/layout/PageLayout';
+import { Card, CardContent } from '@/components/ui';
+import { PageLayout } from '@/components/layout/PageLayout';
 
 function HomePage() {
   return (
@@ -33,10 +33,10 @@ function HomePage() {
               </li>
             </ul>
             <Link
-              to="/core/basics"
+              to="/foundations/core/basics"
               className="inline-flex items-center text-danger-600 hover:text-danger-700 font-medium"
             >
-              Explore Core →
+              Explore Foundations →
             </Link>
           </CardContent>
         </Card>
@@ -64,7 +64,7 @@ function HomePage() {
               </li>
             </ul>
             <Link
-              to="/store/basics"
+              to="/foundations/store/basics"
               className="inline-flex items-center text-success-600 hover:text-success-700 font-medium"
             >
               Explore Stores →
@@ -100,10 +100,10 @@ function HomePage() {
               </li>
             </ul>
             <Link
-              to="/pipeline/flow-control"
+              to="/patterns/pipeline/flow-control"
               className="inline-flex items-center text-orange-600 hover:text-orange-700 font-medium"
             >
-              Explore Pipeline →
+              Explore Patterns →
             </Link>
           </CardContent>
         </Card>
@@ -132,7 +132,7 @@ function HomePage() {
               </li>
             </ul>
             <Link
-              to="/react/provider"
+              to="/foundations/react/provider"
               className="inline-flex items-center text-purple-600 hover:text-purple-700 font-medium"
             >
               Explore React →
@@ -149,14 +149,14 @@ function HomePage() {
           <p className="text-gray-600 leading-relaxed">
             Start with{' '}
             <Link
-              to="/core/basics"
+              to="/foundations/core/basics"
               className="text-primary-600 hover:text-primary-700 font-medium"
             >
-              Core Basics
+              Foundations
             </Link>{' '}
             to understand the fundamental concepts, then explore{' '}
             <Link
-              to="/store/basics"
+              to="/performance/action-guard"
               className="text-primary-600 hover:text-primary-700 font-medium"
             >
               Store System
