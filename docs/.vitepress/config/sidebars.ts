@@ -530,6 +530,32 @@ export function createSidebars(locale: SidebarLocale): DefaultTheme.Config['side
       llms.resources
     ],
     
+    // Troubleshooting 섹션
+    [`/${locale}/troubleshooting/`]: [
+      {
+        text: locale === 'en' ? '🚨 Critical Issues' : '🚨 중요 문제들',
+        collapsed: false,
+        items: [
+          { 
+            text: locale === 'en' ? 'Performance & Infinite Loops' : '성능 및 무한 루프', 
+            link: `/${locale}/troubleshooting/performance-issues` 
+          },
+          { 
+            text: locale === 'en' ? 'Action System Issues' : '액션 시스템 문제', 
+            link: `/${locale}/troubleshooting/action-issues` 
+          },
+          { 
+            text: locale === 'en' ? 'Store & State Issues' : '스토어 및 상태 문제', 
+            link: `/${locale}/troubleshooting/store-issues` 
+          },
+          { 
+            text: locale === 'en' ? 'Ref System Issues' : 'Ref 시스템 문제', 
+            link: `/${locale}/troubleshooting/ref-issues` 
+          }
+        ]
+      }
+    ],
+    
     // 기본 경로는 Guide로 리다이렉트
     [`/${locale}/`]: [
       guide.essentials

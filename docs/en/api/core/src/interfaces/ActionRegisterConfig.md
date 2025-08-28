@@ -80,6 +80,38 @@ Auto-cleanup configuration for one-time handlers
 
 Maximum number of handlers per action (prevents memory leaks)
 
+#### maxHandlersPerAction?
+
+> `optional` **maxHandlersPerAction**: `number`
+
+⭐ **NEW in v0.4.1**: Memory safety limit for handlers per action (default: 1000)
+
+Prevents DoS attacks and excessive memory usage by limiting the number of handlers
+that can be registered for a single action. When the limit is exceeded, new handler
+registrations will be rejected with a warning.
+
+**Usage Examples**:
+```typescript
+// Default: 1000 handlers per action (recommended for most apps)
+const registry = new ActionRegister({ registry: {} });
+
+// Higher limit for enterprise applications
+const registry = new ActionRegister({
+  registry: { maxHandlersPerAction: 5000 }
+});
+
+// Disable limit (use with caution in trusted environments)
+const registry = new ActionRegister({
+  registry: { maxHandlersPerAction: Infinity }
+});
+```
+
+**Recommended Limits**:
+- **Small apps**: 100-500
+- **Standard apps**: 1000 (default)  
+- **Enterprise apps**: 5000-10000
+- **Trusted environments**: Infinity (memory risk)
+
 #### maxRetries?
 
 > `optional` **maxRetries**: `number`

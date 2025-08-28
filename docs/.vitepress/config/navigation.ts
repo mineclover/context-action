@@ -108,6 +108,10 @@ export function createNavigation(locale: NavigationLocale) {
         ]
       },
       {
+        text: 'Troubleshooting',
+        link: '/en/troubleshooting/'
+      },
+      {
         text: 'LLMs',
         link: '/en/llms/'
       }
@@ -196,6 +200,10 @@ export function createNavigation(locale: NavigationLocale) {
             ]
           }
         ]
+      },
+      {
+        text: '문제 해결',
+        link: '/ko/troubleshooting/'
       },
       {
         text: 'LLMs',
