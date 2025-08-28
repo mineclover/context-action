@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.5.0](https://github.com/mineclover/context-action/compare/v0.4.0...v0.5.0) (2025-08-28)
+
+
+### Bug Fixes
+
+* resolve type inconsistencies and improve code quality in packages/react ([303829f](https://github.com/mineclover/context-action/commit/303829faedbfe276d88512236612e8e49daeb916))
+
+
+
+
+
 # [0.4.0](https://github.com/mineclover/context-action/compare/v0.3.1...v0.4.0) (2025-08-26)
 
 **Note:** Version bump only for package @context-action/typedoc-vitepress-sync

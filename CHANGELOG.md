@@ -3,6 +3,61 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.5.0](https://github.com/mineclover/context-action/compare/v0.4.0...v0.5.0) (2025-08-28)
+
+
+### Bug Fixes
+
+* apply Dependabot updates and resolve pnpm/React compatibility issues ([f494532](https://github.com/mineclover/context-action/commit/f49453287c9aa2f1df5fe54fb38a42727f831f67)), closes [#17](https://github.com/mineclover/context-action/issues/17)
+* correct error handling test expectations for non-blocking handlers ([85a2538](https://github.com/mineclover/context-action/commit/85a2538eb8ccb9ec33c19ca6330d3d47592fa6f4))
+* **demo:** resolve memoization counter closure issue with useRef ([ab879dc](https://github.com/mineclover/context-action/commit/ab879dc041f303e0c9976bad99ab0f2e8b33d6be))
+* **docs:** clarify per-store Immer and comparison scope ([89b71b7](https://github.com/mineclover/context-action/commit/89b71b7c461bfb1ef37ed92748e1d0c19067070f))
+* improve lint configuration without eslint-disable comments ([e74a160](https://github.com/mineclover/context-action/commit/e74a160cb64aac3875d74bf466a0a1c3328621bc))
+* maintain React 18.3 compatibility across all packages ([388a53a](https://github.com/mineclover/context-action/commit/388a53aefdffb4141e5d658c7aa5a79f76a40abd))
+* maintain React 18.3 compatibility and consolidate Dependabot updates ([9cbef8f](https://github.com/mineclover/context-action/commit/9cbef8fd99bdb880bc4f1fc67e1a7a2a771d7963))
+* pnpm ci build error ([cd29610](https://github.com/mineclover/context-action/commit/cd29610863c18ec5a372f0f633e3a4dbc5a0354b))
+* **react:** export error handling and DevTools modules ([c7443ad](https://github.com/mineclover/context-action/commit/c7443ad2a8d598770f29df1e53af18e8fb08331b))
+* remove non-existent routing links from CoreConceptsOverview ([1ecccce](https://github.com/mineclover/context-action/commit/1ecccce18c60ed6e045d8e03789ed0235dfeec29))
+* resolve all 16 FillTemplatesCommand test failures ([ccb69bd](https://github.com/mineclover/context-action/commit/ccb69bdbd7168222c7f433a15db994de1bb4645e))
+* resolve all 24 SimpleLLMSCommand test failures ([8e05f99](https://github.com/mineclover/context-action/commit/8e05f993a00a4a08151eb938ef73fe10a9033296))
+* resolve infinite toast loops and chat demo performance issues ([f85bf65](https://github.com/mineclover/context-action/commit/f85bf65abe319e84177835269f99744f767bea29))
+* resolve lint errors for CI/CD ([a5dd247](https://github.com/mineclover/context-action/commit/a5dd247a5f80168f0681da025f8dfdb1be345336))
+* resolve pnpm setup error in GitHub Actions ([e2811be](https://github.com/mineclover/context-action/commit/e2811be579de97a60b7bd51dc81f4f1b9e4ea3f4))
+* resolve TailwindCSS v4 errors by downgrading to stable v3.4.15 ([b9fdbc6](https://github.com/mineclover/context-action/commit/b9fdbc636ce55219be83814854d428929aad3664))
+* resolve type inconsistencies and improve code quality in packages/react ([303829f](https://github.com/mineclover/context-action/commit/303829faedbfe276d88512236612e8e49daeb916))
+* update pnpm-lock.yaml and GitHub Actions workflow for TailwindCSS compatibility ([3b3ddf8](https://github.com/mineclover/context-action/commit/3b3ddf84d09455c392f665363b7ced2c9eddf202))
+* update PriorityManagerCommand tests for new type interfaces ([5207865](https://github.com/mineclover/context-action/commit/52078650bdc50569d8f0a4ea35c98eb13ba1cbe9))
+* update React and React-DOM versions to 18.3.1 and adjust pnpm setup ([d988403](https://github.com/mineclover/context-action/commit/d9884033a5e13384bc9f1ad40cdb64c66fb1a250))
+
+
+### Features
+
+* **actionguard:** enhance performance tracking with Context-Action framework ([106b548](https://github.com/mineclover/context-action/commit/106b548befcd0d62dbc9a1716619b40833ba090c))
+* **canvas:** optimize store subscriptions and add selector tracking ([2cba895](https://github.com/mineclover/context-action/commit/2cba89585b7ef9c674cd964fe156ad3cdb93781f))
+* comprehensive React library improvements and LLMS code documentation ([7c96735](https://github.com/mineclover/context-action/commit/7c967357c3571c435a66bdae174c7ca29678842b))
+* **core:** implement v0.4.1 performance and architecture improvements ([e86e22b](https://github.com/mineclover/context-action/commit/e86e22b1649388d64762a22bb59d7b03c77bfd6b))
+* **demo:** add blocking vs non-blocking waitForRefs comparison ([bc63015](https://github.com/mineclover/context-action/commit/bc6301549cb49110d3cab5672e7dc71d9bb5a6fd))
+* **demo:** enhance RefContext pattern demos with comprehensive mount/unmount controls ([8baf3e3](https://github.com/mineclover/context-action/commit/8baf3e3663eca4e841b26c913a33c608f2d28c3f))
+* **docs:** comprehensive immer and comparison integration documentation ([a5f271d](https://github.com/mineclover/context-action/commit/a5f271d199d3145d0164a221271def342d9183a7))
+* **docs:** split store performance patterns into focused single-concept documents ([cbce6b6](https://github.com/mineclover/context-action/commit/cbce6b62d0ba181ca2f97380da7b5a75a337079f))
+* enhance UI components and improve data handling ([9a91959](https://github.com/mineclover/context-action/commit/9a9195976012629d6eec3ec75ffd616a8821a66b))
+* **example:** comprehensive error handling system demonstrations ([518aeba](https://github.com/mineclover/context-action/commit/518aeba2e73745906f7c08bb6bc94e5ef86e4662))
+* implement RefContext onMount and executeIfMounted patterns ([f00b99f](https://github.com/mineclover/context-action/commit/f00b99f66a42b41362d7fd44adab9c744d7e73ba))
+* **llms:** enhance pattern documentation priority.json files with code-focused structure ([1a9b384](https://github.com/mineclover/context-action/commit/1a9b384598ad5ab3d8e47864cff73c3f5fe01a63))
+* migrate React context patterns to Context-Action framework ([300c0e4](https://github.com/mineclover/context-action/commit/300c0e4ed62bbf3e11dd54755c221b9394e7053c))
+* **react:** add memoization test demo for RefContext lazy evaluation ([c9d712c](https://github.com/mineclover/context-action/commit/c9d712c2f1068c20b09dc232ce374c9b66ba4ba7))
+* **react:** comprehensive package enhancements with zero lint warnings ([a71af3c](https://github.com/mineclover/context-action/commit/a71af3c4dd781136f912f91bae90d1279b6f5096))
+* **react:** comprehensive testing utilities, DevTools, and error handling systems ([9560c75](https://github.com/mineclover/context-action/commit/9560c752ab46962a16fdd3ff2284e383494c4e5a))
+* **react:** enhance ActionContext with optimized dispatch and handler patterns ([49c94dc](https://github.com/mineclover/context-action/commit/49c94dc28237d572670b3b4855acceeee295f47c))
+* **react:** enhance ref patterns and store components with new hook utilities ([42486a5](https://github.com/mineclover/context-action/commit/42486a55d5f2bb2cb01f937f2c3c3cce89b69c1c))
+* **react:** optimize bundle size with selective loading and tree-shaking ([af6f7b4](https://github.com/mineclover/context-action/commit/af6f7b43e3575c9006e6118c13dd183c3be325e1))
+* replace complex immutability system with Immer for enhanced performance ([059e0c9](https://github.com/mineclover/context-action/commit/059e0c942a2bd8900ce94778179452eed041e22f))
+* **tests:** add comprehensive test management system ([70ec8bb](https://github.com/mineclover/context-action/commit/70ec8bbef6e6bbe301d3d0e1aede745f08a39da9))
+
+
+
+
+
 # [0.4.0](https://github.com/mineclover/context-action/compare/v0.3.1...v0.4.0) (2025-08-26)
 
 

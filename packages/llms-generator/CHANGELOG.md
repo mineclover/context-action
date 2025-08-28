@@ -3,6 +3,32 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.5.0](https://github.com/mineclover/context-action/compare/v0.4.0...v0.5.0) (2025-08-28)
+
+
+### Bug Fixes
+
+* correct error handling test expectations for non-blocking handlers ([85a2538](https://github.com/mineclover/context-action/commit/85a2538eb8ccb9ec33c19ca6330d3d47592fa6f4))
+* improve lint configuration without eslint-disable comments ([e74a160](https://github.com/mineclover/context-action/commit/e74a160cb64aac3875d74bf466a0a1c3328621bc))
+* resolve all 16 FillTemplatesCommand test failures ([ccb69bd](https://github.com/mineclover/context-action/commit/ccb69bdbd7168222c7f433a15db994de1bb4645e))
+* resolve all 24 SimpleLLMSCommand test failures ([8e05f99](https://github.com/mineclover/context-action/commit/8e05f993a00a4a08151eb938ef73fe10a9033296))
+* resolve lint errors for CI/CD ([a5dd247](https://github.com/mineclover/context-action/commit/a5dd247a5f80168f0681da025f8dfdb1be345336))
+* resolve type inconsistencies and improve code quality in packages/react ([303829f](https://github.com/mineclover/context-action/commit/303829faedbfe276d88512236612e8e49daeb916))
+* update PriorityManagerCommand tests for new type interfaces ([5207865](https://github.com/mineclover/context-action/commit/52078650bdc50569d8f0a4ea35c98eb13ba1cbe9))
+
+
+### Features
+
+* comprehensive React library improvements and LLMS code documentation ([7c96735](https://github.com/mineclover/context-action/commit/7c967357c3571c435a66bdae174c7ca29678842b))
+* enhance UI components and improve data handling ([9a91959](https://github.com/mineclover/context-action/commit/9a9195976012629d6eec3ec75ffd616a8821a66b))
+* **react:** comprehensive testing utilities, DevTools, and error handling systems ([9560c75](https://github.com/mineclover/context-action/commit/9560c752ab46962a16fdd3ff2284e383494c4e5a))
+* **react:** enhance ActionContext with optimized dispatch and handler patterns ([49c94dc](https://github.com/mineclover/context-action/commit/49c94dc28237d572670b3b4855acceeee295f47c))
+* **react:** enhance ref patterns and store components with new hook utilities ([42486a5](https://github.com/mineclover/context-action/commit/42486a55d5f2bb2cb01f937f2c3c3cce89b69c1c))
+
+
+
+
+
 # [0.4.0](https://github.com/mineclover/context-action/compare/v0.3.1...v0.4.0) (2025-08-26)
 
 

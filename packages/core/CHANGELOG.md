@@ -3,6 +3,26 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.5.0](https://github.com/mineclover/context-action/compare/v0.4.0...v0.5.0) (2025-08-28)
+
+
+### Bug Fixes
+
+* correct error handling test expectations for non-blocking handlers ([85a2538](https://github.com/mineclover/context-action/commit/85a2538eb8ccb9ec33c19ca6330d3d47592fa6f4))
+
+
+### Features
+
+* **core:** implement v0.4.1 performance and architecture improvements ([e86e22b](https://github.com/mineclover/context-action/commit/e86e22b1649388d64762a22bb59d7b03c77bfd6b))
+* **react:** comprehensive testing utilities, DevTools, and error handling systems ([9560c75](https://github.com/mineclover/context-action/commit/9560c752ab46962a16fdd3ff2284e383494c4e5a))
+* **react:** enhance ActionContext with optimized dispatch and handler patterns ([49c94dc](https://github.com/mineclover/context-action/commit/49c94dc28237d572670b3b4855acceeee295f47c))
+* replace complex immutability system with Immer for enhanced performance ([059e0c9](https://github.com/mineclover/context-action/commit/059e0c942a2bd8900ce94778179452eed041e22f))
+* **tests:** add comprehensive test management system ([70ec8bb](https://github.com/mineclover/context-action/commit/70ec8bbef6e6bbe301d3d0e1aede745f08a39da9))
+
+
+
+
+
 # [0.4.1](https://github.com/mineclover/context-action/compare/v0.4.0...v0.4.1) (2025-08-27)
 
 ## 🚀 Performance & Architecture Improvements
