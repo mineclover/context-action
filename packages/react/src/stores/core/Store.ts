@@ -56,10 +56,8 @@ export class Store<T = unknown> implements IStore<T> {
   private notificationMode: 'batched' | 'immediate' = 'batched';
   private pendingNotification = false;
   
-  // 배치 업데이트 최적화
-  private batchedUpdates = new Set<() => void>();
-  private batchTimeoutId: ReturnType<typeof setTimeout> | null = null;
-  private readonly BATCH_DELAY_MS = 16; // ~60fps
+  // 🚀 requestAnimationFrame 기반 알림 시스템
+  private animationFrameId: number | null = null;
   
   // 🧹 Advanced Cleanup and Memory Management
   private cleanupTasks = new Set<() => void>();
@@ -420,12 +418,12 @@ export class Store<T = unknown> implements IStore<T> {
       this.subscriptionRegistry = new WeakMap();
       this.clearListeners();
       
-      // Clean batch update system
-      if (this.batchTimeoutId !== null) {
-        clearTimeout(this.batchTimeoutId);
-        this.batchTimeoutId = null;
+      // Clean requestAnimationFrame
+      if (this.animationFrameId !== null) {
+        cancelAnimationFrame(this.animationFrameId);
+        this.animationFrameId = null;
       }
-      this.batchedUpdates.clear();
+      this.pendingNotification = false;
       
       // Clear update queue
       this.updateQueue.length = 0;
@@ -644,58 +642,51 @@ export class Store<T = unknown> implements IStore<T> {
   }
 
   /**
-   * 듀얼 모드 알림 스케줄링 (개선된 배치 시스템)
+   * requestAnimationFrame 기반 알림 스케줄링
+   * 브라우저의 다음 프레임에서 리스너 알림 실행
    */
   protected _scheduleNotification(): void {
     if (this.notificationMode === 'immediate') {
       // 즉시 모드: 동기적으로 모든 리스너에게 알림
       this._notifyListeners();
     } else {
-      // 배치 모드: 최적화된 배치 알림 시스템
-      this._addToBatch(() => this._notifyListeners());
+      // requestAnimationFrame 모드: 다음 프레임에서 알림
+      this._scheduleWithRAF();
     }
   }
 
   /**
-   * 배치 업데이트 시스템 (환경 독립적 타이머 처리)
+   * requestAnimationFrame을 사용한 알림 스케줄링
    */
-  private _addToBatch(updateFn: () => void): void {
-    this.batchedUpdates.add(updateFn);
-    
-    if (this.batchTimeoutId === null) {
-      this.batchTimeoutId = setTimeout(() => {
-        this._flushBatchedUpdates();
-      }, this.BATCH_DELAY_MS);
+  private _scheduleWithRAF(): void {
+    if (this.pendingNotification) {
+      // 이미 스케줄된 알림이 있으면 중복 방지
+      return;
     }
+
+    this.pendingNotification = true;
+    
+    // 기존 animation frame 정리
+    if (this.animationFrameId !== null) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
+    
+    // 다음 프레임에서 알림 실행
+    this.animationFrameId = requestAnimationFrame(() => {
+      this._executeNotification();
+    });
   }
 
   /**
-   * 배치된 업데이트들을 실행
+   * 스케줄된 알림 실행
    */
-  private _flushBatchedUpdates(): void {
-    this.batchTimeoutId = null;
-    
-    if (this.batchedUpdates.size > 0) {
-      const updates = Array.from(this.batchedUpdates);
-      this.batchedUpdates.clear();
-      
-      // 모든 배치된 업데이트를 한 번에 실행
-      updates.forEach(updateFn => {
-        try {
-          updateFn();
-        } catch (error) {
-          ErrorHandlers.store(
-            'Error during batched update execution',
-            { 
-              storeName: this.name,
-              batchSize: updates.length
-            },
-            error instanceof Error ? error : undefined
-          );
-        }
-      });
-    }
+  private _executeNotification(): void {
+    this.pendingNotification = false;
+    this.animationFrameId = null;
+    this._notifyListeners();
   }
+
+
 
   /**
    * Handle listener execution errors with recovery strategies
