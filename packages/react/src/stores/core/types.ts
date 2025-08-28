@@ -48,7 +48,7 @@ export type Subscribe = (listener: Listener) => Unsubscribe;
  * 
  * @template T The type of the stored value
  */
-export interface Snapshot<T = any> {
+export interface Snapshot<T = unknown> {
   /** The current value of the store */
   value: T;
   
@@ -73,7 +73,7 @@ export interface Snapshot<T = any> {
  * 
  * @see https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
  */
-export interface IStore<T = any> {
+export interface IStore<T = unknown> {
   /** Unique identifier for the store */
   readonly name: string;
   
@@ -84,7 +84,7 @@ export interface IStore<T = any> {
   getSnapshot: () => Snapshot<T>;
   
   /** Set store value with change notification */
-  setValue: (value: T) => void;
+  setValue: (value: T, options?: StoreSetValueOptions<T>) => void;
   
   /** Update store value with function (for functional updates) */
   update: (updater: (current: T) => T) => void;
@@ -150,13 +150,13 @@ export interface IStoreRegistry {
 
 // === 이벤트 시스템 타입 ===
 // 핵심 설계: Store 간 비동기 통신을 위한 Pub-Sub 패턴
-export interface EventHandler<T = any> {
+export interface EventHandler<T = unknown> {
   (data: T): void;  // 이벤트 핸들러 시그니처
 }
 
 export interface IEventBus {
-  on: <T = any>(event: string, handler: EventHandler<T>) => Unsubscribe;  // 이벤트 구독
-  emit: <T = any>(event: string, data?: T) => void;                       // 이벤트 발행
+  on: <T = unknown>(event: string, handler: EventHandler<T>) => Unsubscribe;  // 이벤트 구독
+  emit: <T = unknown>(event: string, data?: T) => void;                       // 이벤트 발행
   off: (event: string, handler?: EventHandler) => void;                   // 구독 해제
   clear: () => void;                                                      // 전체 정리
 }
@@ -174,11 +174,25 @@ export interface HookOptions<T> {
   dependencies?: React.DependencyList;  // React useEffect 의존성
 }
 
+/**
+ * Store 값 설정 시 옵션
+ */
+export interface StoreSetValueOptions<T> {
+  /** 깊은 복사 스킵 여부 (성능 최적화) */
+  skipClone?: boolean;
+  /** 값 비교 스킵 여부 (강제 업데이트) */
+  skipComparison?: boolean;
+  /** 이벤트 객체 처리 방식 */
+  eventHandling?: 'block' | 'transform' | 'allow';
+  /** 이벤트 객체 변환 함수 */
+  eventTransform?: (event: any) => T;
+}
+
 
 // === Registry 동기화 타입 ===
 // 핵심 설계: 동적 Store 접근 및 생성 옵션
 export interface RegistryStoreMap {
-  [key: string]: any;  // 타입 유연성을 위한 맵 타입
+  [key: string]: unknown;  // 타입 유연성을 위한 맵 타입
 }
 
 export interface DynamicStoreOptions<T> {

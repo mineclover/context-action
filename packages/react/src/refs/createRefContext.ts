@@ -15,20 +15,9 @@ import type {
   RefInitConfig,
   InferRefTypes
 } from './types';
+import { useRefMount, useRefOperation, useRefPolling as useRefPollingHook, type InternalRefState, type RefPollingOptions } from './hooks';
 
-/**
- * 내부 Ref 상태 타입
- */
-interface InternalRefState<T> {
-  target: T | null;
-  isMounted: boolean;
-  mountPromise: Promise<T> | null;
-  mountResolvers: Set<(target: T) => void>;
-  mountRejectors: Set<(error: Error) => void>;
-  operationInProgress: boolean;
-  listeners: Set<() => void>;
-  mountCallbacks: Set<(target: T) => void>;
-}
+// InternalRefState is now imported from ./hooks
 
 /**
  * RefContext 반환 타입 - 향상된 타입 추론 지원
@@ -59,13 +48,7 @@ export interface RefContextReturn<T> {
   useGetAllRefs: () => () => Partial<T>;
   useRefPolling: () => <K extends keyof T>(
     refName: K,
-    options?: {
-      interval?: number;
-      timeout?: number;
-      onTick?: (elapsed: number, isMounted: boolean) => void;
-      onTimeout?: (elapsed: number) => void;
-      onSuccess?: (elapsed: number, target: T[K]) => void;
-    }
+    options?: RefPollingOptions
   ) => {
     promise: Promise<T[K]>;
     cancel: () => void;
@@ -280,7 +263,7 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
 
 
   
-  // 개별 ref 사용 hook
+  // 개별 ref 사용 hook - 리팩터링된 버전 (분리된 hooks 사용)
   const useRefHandler = <K extends keyof T>(refName: K) => {
     const { subscribeToRef, getRefState, setRefTarget, definitionsRef, optionsRef } = useRefContext();
     const refNameStr = String(refName);
@@ -298,6 +281,16 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
     // 현재 상태
     const refState = getRefState(refNameStr);
     
+    // 분리된 hooks 사용
+    const { waitForMount, onMount, isMounted, isWaitingForMount } = useRefMount(
+      refState, 
+      refNameStr, 
+      optionsRef, 
+      definitionsRef
+    );
+    
+    const { withTarget, executeIfMounted } = useRefOperation(refState);
+    
     return useMemo(() => ({
       setRef: (target: T[K]) => {
         setRefTarget(refNameStr, target);
@@ -305,183 +298,18 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
       get target(): T[K] | null {
         return refState.target;
       },
-      waitForMount: async (): Promise<T[K]> => {
-        // 이미 마운트된 경우
-        if (refState.target && refState.isMounted) {
-          return refState.target as T[K];
-        }
-        
-        // 기존 Promise가 있으면 재사용
-        if (refState.mountPromise) {
-          return refState.mountPromise as Promise<T[K]>;
-        }
-        
-        // 타임아웃 설정 계산
-        const globalOptions = optionsRef.current;
-        const refConfig = definitionsRef.current?.[refNameStr] as RefInitConfig<any> | undefined;
-        
-        let timeoutMs: number | undefined;
-        if (globalOptions?.disableTimeout) {
-          // 글로벌 타임아웃 비활성화
-          timeoutMs = undefined;
-        } else if (refConfig?.mountTimeout !== undefined) {
-          // 개별 ref 타임아웃 설정
-          timeoutMs = refConfig.mountTimeout;
-        } else if (globalOptions?.defaultMountTimeout !== undefined) {
-          // 글로벌 기본 타임아웃
-          timeoutMs = globalOptions.defaultMountTimeout;
-        }
-        // undefined면 타임아웃 없음
-        
-        // 새로운 Promise 생성
-        refState.mountPromise = new Promise<T[K]>((resolve, reject) => {
-          refState.mountResolvers.add(resolve);
-          refState.mountRejectors.add(reject);
-          
-          // 타임아웃 설정
-          if (timeoutMs !== undefined && timeoutMs > 0) {
-            const timeoutId = setTimeout(() => {
-              // 타임아웃 발생 시 rejector들 실행
-              const error = new Error(`Mount timeout after ${timeoutMs}ms for ref '${refNameStr}'`);
-              refState.mountRejectors.forEach(rejector => rejector(error));
-              refState.mountRejectors.clear();
-              refState.mountResolvers.clear();
-              refState.mountPromise = null;
-            }, timeoutMs);
-            
-            // resolve/reject 시 타임아웃 정리
-            const originalResolve = resolve;
-            const originalReject = reject;
-            
-            const cleanupResolve = (value: T[K]) => {
-              clearTimeout(timeoutId);
-              originalResolve(value);
-            };
-            
-            const cleanupReject = (error: Error) => {
-              clearTimeout(timeoutId);
-              originalReject(error);
-            };
-            
-            // resolver/rejector 교체
-            refState.mountResolvers.delete(resolve);
-            refState.mountRejectors.delete(reject);
-            refState.mountResolvers.add(cleanupResolve);
-            refState.mountRejectors.add(cleanupReject);
-          }
-        });
-        
-        return refState.mountPromise;
-      },
-      withTarget: async <Result>(
+      waitForMount: () => waitForMount() as Promise<T[K]>,
+      withTarget: withTarget as <Result>(
         operation: RefOperation<T[K] & RefTarget, Result>,
         options?: RefOperationOptions
-      ): Promise<RefOperationResult<Result>> => {
-        try {
-          // 마운트 대기
-          const target = await (async () => {
-            if (refState.target && refState.isMounted) {
-              return refState.target;
-            }
-            
-            if (refState.mountPromise) {
-              return refState.mountPromise;
-            }
-            
-            refState.mountPromise = new Promise<any>((resolve, reject) => {
-              refState.mountResolvers.add(resolve);
-              refState.mountRejectors.add(reject);
-            });
-            
-            return refState.mountPromise;
-          })();
-          
-          // 순차 실행 보장
-          while (refState.operationInProgress) {
-            await new Promise(resolve => setTimeout(resolve, 10));
-          }
-          
-          refState.operationInProgress = true;
-          const startTime = Date.now();
-          
-          try {
-            // AbortSignal 체크
-            if (options?.signal?.aborted) {
-              throw new Error('Operation aborted');
-            }
-            
-            // 타임아웃 설정
-            const timeoutPromise = options?.timeout
-              ? new Promise<never>((_, reject) => {
-                  setTimeout(() => reject(new Error('Operation timed out')), options.timeout);
-                })
-              : null;
-            
-            // 작업 실행
-            const operationPromise = operation(target, options);
-            
-            const result = timeoutPromise
-              ? await Promise.race([operationPromise, timeoutPromise])
-              : await operationPromise;
-            
-            return {
-              success: true,
-              result,
-              duration: Date.now() - startTime,
-              timestamp: Date.now()
-            };
-          } catch (error) {
-            return {
-              success: false,
-              error: error as Error,
-              duration: Date.now() - startTime,
-              timestamp: Date.now()
-            };
-          } finally {
-            refState.operationInProgress = false;
-          }
-        } catch (error) {
-          return {
-            success: false,
-            error: error as Error,
-            timestamp: Date.now()
-          };
-        }
-      },
-      get isMounted() {
-        return refState.isMounted;
-      },
-      get isWaitingForMount() {
-        return !refState.isMounted && refState.mountPromise !== null;
-      },
-      onMount: (callback: (target: T[K]) => void) => {
-        refState.mountCallbacks.add(callback);
-        
-        // 이미 마운트된 상태라면 즉시 실행
-        if (refState.isMounted && refState.target) {
-          callback(refState.target as T[K]);
-        }
-        
-        // cleanup 함수 반환
-        return () => {
-          refState.mountCallbacks.delete(callback);
-        };
-      },
-      // 조건부 마운트 검증 후 실행
-      executeIfMounted: <Result>(
+      ) => Promise<RefOperationResult<Result>>,
+      isMounted,
+      isWaitingForMount,
+      onMount: (callback: (target: T[K]) => void) => onMount(callback as (target: any) => void),
+      executeIfMounted: executeIfMounted as <Result>(
         operation: (target: T[K] & RefTarget) => Result
-      ): Result | null => {
-        if (refState.target && refState.isMounted) {
-          try {
-            return operation(refState.target);
-          } catch (error) {
-            console.error('Error in executeIfMounted:', error);
-            return null;
-          }
-        }
-        return null;
-      }
-    }), [refState, setRefTarget, refNameStr, definitionsRef, optionsRef]);
+      ) => Result | null
+    }), [refState, setRefTarget, refNameStr, waitForMount, withTarget, executeIfMounted, onMount, isMounted, isWaitingForMount]);
   };
   
   // 여러 ref 동시 대기 hook
@@ -549,96 +377,24 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
     }, [refsMapRef]);
   };
   
-  // ref 폴링 유틸리티 hook
+  // ref 폴링 유틸리티 hook - 리팩터링된 버전 (분리된 hook 사용)
   const useRefPolling = () => {
     const { getRefState } = useRefContext();
+    const createPolling = useRefPollingHook();
     
     return useCallback(<K extends keyof T>(
       refName: K,
-      options: {
-        interval?: number;
-        timeout?: number;
-        onTick?: (elapsed: number, isMounted: boolean) => void;
-        onTimeout?: (elapsed: number) => void;
-        onSuccess?: (elapsed: number, target: T[K]) => void;
-      } = {}
+      options: RefPollingOptions = {}
     ) => {
-      const {
-        interval = 100,
-        timeout = 4000,
-        onTick,
-        onTimeout,
-        onSuccess
-      } = options;
-      
-      let cancelled = false;
-      let startTime = performance.now();
-      let intervalId: NodeJS.Timeout;
-      let timeoutId: NodeJS.Timeout;
-      
       const refNameStr = String(refName);
       const refState = getRefState(refNameStr);
       
-      const getCurrentMountedState = () => {
-        const currentRefState = getRefState(refNameStr);
-        return currentRefState.isMounted && currentRefState.target !== null;
+      return createPolling(refState, refNameStr, options) as {
+        promise: Promise<T[K]>;
+        cancel: () => void;
+        isMounted: () => boolean;
       };
-      
-      const promise = new Promise<T[K]>((resolve, reject) => {
-        // 이미 마운트된 경우 즉시 반환
-        if (getCurrentMountedState()) {
-          const elapsed = performance.now() - startTime;
-          const target = refState.target as T[K];
-          onSuccess?.(elapsed, target);
-          resolve(target);
-          return;
-        }
-        
-        // 타임아웃 설정
-        timeoutId = setTimeout(() => {
-          if (!cancelled) {
-            cancelled = true;
-            clearInterval(intervalId);
-            const elapsed = performance.now() - startTime;
-            onTimeout?.(elapsed);
-            reject(new Error(`Ref polling timeout after ${elapsed.toFixed(0)}ms for ref '${refNameStr}'`));
-          }
-        }, timeout);
-        
-        // 폴링 시작
-        intervalId = setInterval(() => {
-          if (cancelled) return;
-          
-          const elapsed = performance.now() - startTime;
-          const isMounted = getCurrentMountedState();
-          
-          onTick?.(elapsed, isMounted);
-          
-          if (isMounted) {
-            cancelled = true;
-            clearInterval(intervalId);
-            clearTimeout(timeoutId);
-            
-            const currentRefState = getRefState(refNameStr);
-            const target = currentRefState.target as T[K];
-            onSuccess?.(elapsed, target);
-            resolve(target);
-          }
-        }, interval);
-      });
-      
-      return {
-        promise,
-        cancel: () => {
-          if (!cancelled) {
-            cancelled = true;
-            clearInterval(intervalId);
-            clearTimeout(timeoutId);
-          }
-        },
-        isMounted: getCurrentMountedState
-      };
-    }, [getRefState]);
+    }, [getRefState, createPolling]);
   };
   
   return {

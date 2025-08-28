@@ -1,13 +1,13 @@
 {
   "package": "react",
-  "generatedAt": "2025-08-28T01:27:21.007Z",
+  "generatedAt": "2025-08-28T02:00:18.865Z",
   "statistics": {
-    "totalFiles": 40,
+    "totalFiles": 45,
     "typeFiles": 3,
-    "codeFiles": 37,
-    "totalLines": 4983,
-    "typeLines": 169,
-    "codeLines": 4814
+    "codeFiles": 42,
+    "totalLines": 5167,
+    "typeLines": 175,
+    "codeLines": 4992
   },
   "files": [
     {
@@ -23,12 +23,12 @@
     {
       "path": "stores/core/types.ts",
       "isType": true,
-      "lines": 58
+      "lines": 64
     },
     {
       "path": "actions/ActionContext.tsx",
       "isType": false,
-      "lines": 183
+      "lines": 224
     },
     {
       "path": "actions/index.ts",
@@ -38,7 +38,7 @@
     {
       "path": "advanced.ts",
       "isType": false,
-      "lines": 40
+      "lines": 45
     },
     {
       "path": "hooks/index.ts",
@@ -53,7 +53,7 @@
     {
       "path": "index.ts",
       "isType": false,
-      "lines": 21
+      "lines": 23
     },
     {
       "path": "patterns/index.ts",
@@ -68,7 +68,7 @@
     {
       "path": "refs/createRefContext.ts",
       "isType": false,
-      "lines": 508
+      "lines": 318
     },
     {
       "path": "refs/helpers.ts",
@@ -76,9 +76,34 @@
       "lines": 15
     },
     {
+      "path": "refs/hooks/index.ts",
+      "isType": false,
+      "lines": 3
+    },
+    {
+      "path": "refs/hooks/useRefMount.ts",
+      "isType": false,
+      "lines": 81
+    },
+    {
+      "path": "refs/hooks/useRefOperation.ts",
+      "isType": false,
+      "lines": 84
+    },
+    {
+      "path": "refs/hooks/useRefPolling.ts",
+      "isType": false,
+      "lines": 101
+    },
+    {
       "path": "refs/index.ts",
       "isType": false,
       "lines": 17
+    },
+    {
+      "path": "stores/components/index.ts",
+      "isType": false,
+      "lines": 9
     },
     {
       "path": "stores/components/StoreErrorBoundary.tsx",
@@ -98,7 +123,7 @@
     {
       "path": "stores/core/Store.ts",
       "isType": false,
-      "lines": 355
+      "lines": 395
     },
     {
       "path": "stores/core/StoreRegistry.ts",
@@ -153,7 +178,7 @@
     {
       "path": "stores/utils/comparison.ts",
       "isType": false,
-      "lines": 298
+      "lines": 300
     },
     {
       "path": "stores/utils/error-handling.ts",

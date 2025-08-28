@@ -1,5 +1,5 @@
-import type { IStore, Listener, Snapshot, Unsubscribe } from './types';
-import { deepClone } from '../utils/immutable';
+import type { IStore, Listener, Snapshot, Unsubscribe, StoreSetValueOptions } from './types';
+import { safeGet, safeSet } from '../utils/immutable';
 import { 
   compareValues, 
   fastCompare, 
@@ -25,7 +25,7 @@ import { ErrorHandlers } from '../utils/error-handling';
  * 
  * @public
  */
-export class Store<T = any> implements IStore<T> {
+export class Store<T = unknown> implements IStore<T> {
   // Subscriber list - Set for duplicate prevention and O(1) deletion
   private listeners = new Set<Listener>();
   // Actual state value - Single Source of Truth
@@ -43,7 +43,7 @@ export class Store<T = any> implements IStore<T> {
   
   // 배치 업데이트 최적화
   private batchedUpdates = new Set<() => void>();
-  private batchTimeoutId: number | NodeJS.Timeout | null = null;
+  private batchTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private readonly BATCH_DELAY_MS = 16; // ~60fps
 
   public readonly name: string;
@@ -51,6 +51,8 @@ export class Store<T = any> implements IStore<T> {
   private customComparator?: (oldValue: T, newValue: T) => boolean;
   // Comparison options per store
   private comparisonOptions?: Partial<ComparisonOptions<T>>;
+  // Performance optimization: disable cloning for this store
+  private cloningEnabled: boolean = true;
 
   constructor(name: string, initialValue: T) {
     this.name = name;
@@ -98,8 +100,8 @@ export class Store<T = any> implements IStore<T> {
    * 보안 강화: 외부에서 반환된 값을 수정해도 Store 내부 상태는 보호됨
    */
   getValue(): T {
-    // Immer의 Copy-on-Write로 효율적인 불변성 보장
-    return deepClone(this._value);
+    // 최적화된 불변성 보장 with optional cloning
+    return safeGet(this._value, this.cloningEnabled);
   }
 
   /**
@@ -117,36 +119,67 @@ export class Store<T = any> implements IStore<T> {
    * 보안 강화: 입력값을 복사하여 Store 내부 상태가 외부 참조에 의해 변경되지 않도록 보호
    * 성능 강화: 다층 비교 시스템으로 정확한 변경 감지 및 렌더링 최적화
    */
-  setValue(value: T, options?: { skipClone?: boolean; skipComparison?: boolean }): void {
-    // Debug logging to identify event objects being stored (but exclude RefState objects)
+  setValue(value: T, options?: StoreSetValueOptions<T>): void {
+    // 향상된 이벤트 객체 처리 시스템
     if (TypeGuards.isObject(value)) {
-      // Check if this is a RefState object (which legitimately has target property for DOM elements)
+      // RefState 객체는 제외 (DOM 요소를 위한 정당한 target 속성 보유)
       if (!TypeGuards.isRefState(value) && TypeGuards.isSuspiciousEventObject(value)) {
+        const eventHandling = options?.eventHandling || 'block';
         const hasEventTarget = TypeGuards.hasTargetProperty(value);
         const hasPreventDefault = TypeGuards.isEventLike(value);
         const isEvent = TypeGuards.isDOMEvent(value);
         
-        // Prevent event objects from being stored
-        ErrorHandlers.store(
-          'Event object detected in Store.setValue - this may cause memory leaks',
-          {
-            storeName: this.name,
-            valueType: typeof value,
-            constructorName: value?.constructor?.name,
-            isEvent,
-            hasTargetProperty: hasEventTarget,
-            hasPreventDefault,
-            problematicProperties: TypeGuards.findProblematicProperties(value)
-          }
-        );
-        
-        // Return early to prevent storing the event object
-        return;
+        switch (eventHandling) {
+          case 'allow':
+            // 이벤트 객체를 그대로 허용 (개발자 책임)
+            break;
+            
+          case 'transform':
+            if (options?.eventTransform) {
+              try {
+                value = options.eventTransform(value);
+              } catch (error) {
+                ErrorHandlers.store(
+                  'Event transformation failed in Store.setValue',
+                  {
+                    storeName: this.name,
+                    valueType: typeof value,
+                    error: error instanceof Error ? error.message : String(error)
+                  }
+                );
+                return;
+              }
+            } else {
+              ErrorHandlers.store(
+                'Event transformation requested but no transform function provided',
+                { storeName: this.name, valueType: typeof value }
+              );
+              return;
+            }
+            break;
+            
+          case 'block':
+          default:
+            // 기존 차단 로직
+            ErrorHandlers.store(
+              'Event object detected in Store.setValue - this may cause memory leaks',
+              {
+                storeName: this.name,
+                valueType: typeof value,
+                constructorName: value?.constructor?.name,
+                isEvent,
+                hasTargetProperty: hasEventTarget,
+                hasPreventDefault,
+                problematicProperties: TypeGuards.findProblematicProperties(value)
+              }
+            );
+            return;
+        }
       }
     }
     
-    // 성능 최적화된 불변성 보장
-    const safeValue = options?.skipClone ? value : deepClone(value);
+    // 성능 최적화된 불변성 보장 with optional cloning
+    const safeValue = options?.skipClone ? value : safeSet(value, this.cloningEnabled);
     
     // 강화된 값 비교 시스템 (선택적 skip 가능)
     let hasChanged = true;
@@ -185,20 +218,18 @@ export class Store<T = any> implements IStore<T> {
 
     try {
       this.isUpdating = true;
-      // Immer의 Copy-on-Write로 안전한 현재 값 제공
-      const safeCurrentValue = deepClone(this._value);
+      // 최적화된 안전한 현재 값 제공
+      const safeCurrentValue = safeGet(this._value, this.cloningEnabled);
       
       const updatedValue = updater(safeCurrentValue);
       
-      // Debug logging for event objects in update method (but exclude RefState objects)
+      // 이벤트 객체 감지 및 기본 처리 (update 메소드는 block 모드만 지원)
       if (TypeGuards.isObject(updatedValue)) {
-        // Check if this is a RefState object (which legitimately has target property for DOM elements)
         if (!TypeGuards.isRefState(updatedValue) && TypeGuards.isSuspiciousEventObject(updatedValue)) {
           const hasEventTarget = TypeGuards.hasTargetProperty(updatedValue);
           const hasPreventDefault = TypeGuards.isEventLike(updatedValue);
           const isEvent = TypeGuards.isDOMEvent(updatedValue);
           
-          // Prevent event objects from being stored
           ErrorHandlers.store(
             'Event object detected in Store.update result - this may cause memory leaks',
             {
@@ -212,7 +243,6 @@ export class Store<T = any> implements IStore<T> {
             }
           );
           
-          // Return early to prevent storing the event object
           return;
         }
       }
@@ -253,13 +283,9 @@ export class Store<T = any> implements IStore<T> {
     // 리스너 정리
     this.clearListeners();
     
-    // 배치 업데이트 정리 (SSR 호환성)
+    // 배치 업데이트 정리 (환경 독립적)
     if (this.batchTimeoutId !== null) {
-      if (typeof requestAnimationFrame !== 'undefined' && typeof cancelAnimationFrame !== 'undefined') {
-        cancelAnimationFrame(this.batchTimeoutId as number);
-      } else {
-        clearTimeout(this.batchTimeoutId as NodeJS.Timeout);
-      }
+      clearTimeout(this.batchTimeoutId);
       this.batchTimeoutId = null;
     }
     this.batchedUpdates.clear();
@@ -312,6 +338,31 @@ export class Store<T = any> implements IStore<T> {
   }
 
   /**
+   * 성능 최적화: Store별 복사 동작 제어
+   * 
+   * @param enabled - true: 복사 활성화 (안전), false: 복사 비활성화 (성능 우선)
+   * @see https://mineclover.github.io/context-action/en/guide/patterns/store/performance
+   */
+  setCloningEnabled(enabled: boolean): void {
+    this.cloningEnabled = enabled;
+  }
+
+  /**
+   * 현재 복사 설정 조회
+   */
+  isCloningEnabled(): boolean {
+    return this.cloningEnabled;
+  }
+
+  /**
+   * 성능 최적화된 getValue (복사 없음)
+   * ⚠️ 주의: 반환된 값을 수정하면 Store 내부 상태가 변경될 수 있음
+   */
+  getValueUnsafe(): T {
+    return this._value;
+  }
+
+  /**
    * Structural sharing을 위한 shallow 비교
    * 객체의 참조가 동일한지 빠르게 확인하여 성능 최적화
    * 
@@ -352,7 +403,10 @@ export class Store<T = any> implements IStore<T> {
     if (oldKeys.length !== newKeys.length) return false;
     
     for (const key of oldKeys) {
-      if (!newKeys.includes(key) || !Object.is((oldValue as any)[key], (newValue as any)[key])) {
+      if (!newKeys.includes(key) || !Object.is(
+        (oldValue as Record<string, unknown>)[key], 
+        (newValue as Record<string, unknown>)[key]
+      )) {
         return false;
       }
     }
@@ -409,8 +463,8 @@ export class Store<T = any> implements IStore<T> {
   }
 
   protected _createSnapshot(): Snapshot<T> {
-    // Immer의 Copy-on-Write 최적화로 불변성 보장
-    const clonedValue = deepClone(this._value);
+    // 최적화된 불변성 보장 with selective cloning
+    const clonedValue = safeGet(this._value, this.cloningEnabled);
     
     
     return {
@@ -448,23 +502,15 @@ export class Store<T = any> implements IStore<T> {
   }
 
   /**
-   * 배치 업데이트 시스템 (SSR 호환성 개선)
+   * 배치 업데이트 시스템 (환경 독립적 타이머 처리)
    */
   private _addToBatch(updateFn: () => void): void {
     this.batchedUpdates.add(updateFn);
     
     if (this.batchTimeoutId === null) {
-      // SSR 환경에서 requestAnimationFrame이 없을 수 있으므로 안전한 fallback 제공
-      if (typeof requestAnimationFrame !== 'undefined') {
-        this.batchTimeoutId = requestAnimationFrame(() => {
-          this._flushBatchedUpdates();
-        });
-      } else {
-        // SSR 환경에서는 setTimeout 사용
-        this.batchTimeoutId = setTimeout(() => {
-          this._flushBatchedUpdates();
-        }, this.BATCH_DELAY_MS);
-      }
+      this.batchTimeoutId = setTimeout(() => {
+        this._flushBatchedUpdates();
+      }, this.BATCH_DELAY_MS);
     }
   }
 
@@ -547,7 +593,7 @@ export function createStore<T>(name: string, initialValue: T): Store<T> {
 /**
  * Store configuration options for HOC patterns
  */
-export interface StoreConfig<T = any> {
+export interface StoreConfig<T = unknown> {
   name: string;
   initialValue: T;
   registry?: import('./StoreRegistry').StoreRegistry;
@@ -604,6 +650,7 @@ export interface AdvancedStoreConfig<T> extends StoreConfig<T> {
   persistenceKey?: string;
   enablePerformanceMonitoring?: boolean;
   notificationMode?: 'batched' | 'immediate';
+  enableCloning?: boolean;
 }
 
 /**
@@ -636,6 +683,11 @@ export class StoreFactory {
       store.setNotificationMode(config.notificationMode);
     }
     
+    // Set cloning behavior
+    if (config.enableCloning !== undefined) {
+      store.setCloningEnabled(config.enableCloning);
+    }
+    
     // TODO: Implement persistence when enabled
     if (config.enablePersistence && config.persistenceKey) {
       // Future enhancement: localStorage/sessionStorage integration
@@ -663,6 +715,10 @@ export class StoreFactory {
       managedStore.setNotificationMode(config.notificationMode);
     }
     
+    if (config.enableCloning !== undefined) {
+      managedStore.setCloningEnabled(config.enableCloning);
+    }
+    
     return managedStore;
   }
   
@@ -675,7 +731,7 @@ export class StoreFactory {
     const result = {} as { [K in keyof T]: Store<T[K]> };
     
     for (const [storeName, storeConfig] of Object.entries(stores)) {
-      const fullConfig: AdvancedStoreConfig<any> = {
+      const fullConfig: AdvancedStoreConfig<T[keyof T]> = {
         name: storeName,
         ...storeConfig
       };
