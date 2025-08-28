@@ -312,7 +312,7 @@ export function fastCompare<T>(oldValue: T, newValue: T): boolean {
     }
   }
 
-  // 5. JSON 직렬화 가능한 객체 - 빠른 문자열 비교 (HMR 기술 적용)
+  // 6. JSON serializable objects - fast string comparison (HMR technique)
   try {
     const oldStr = JSON.stringify(oldValue);
     const newStr = JSON.stringify(newValue);
@@ -411,4 +411,221 @@ export function measureComparison<T>(
   };
 
   return metrics;
+}
+
+// Enhanced security validation utilities
+
+/**
+ * Check if an object is a DOM element with comprehensive validation
+ * 
+ * @param value - Value to check
+ * @returns true if value is a DOM element
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function isDOMElement(value: unknown): boolean {
+  if (typeof value !== 'object' || value === null) return false;
+  
+  const obj = value as Record<string, unknown>;
+  
+  // Check for standard DOM interfaces
+  if (typeof Element !== 'undefined' && value instanceof Element) return true;
+  if (typeof Node !== 'undefined' && value instanceof Node) return true;
+  if (typeof HTMLElement !== 'undefined' && value instanceof HTMLElement) return true;
+  
+  // Check for DOM-like properties
+  return (
+    typeof obj.nodeType === 'number' ||
+    typeof obj.nodeName === 'string' ||
+    obj._owner !== undefined ||  // React fiber node
+    obj.stateNode !== undefined  // React fiber node
+  );
+}
+
+/**
+ * Enhanced security validation for potentially unsafe objects
+ * 
+ * Detects objects that might contain malicious properties or patterns
+ * that could lead to prototype pollution or XSS attacks.
+ * 
+ * @param value - Value to validate
+ * @returns true if object is potentially unsafe
+ */
+function isUnsafeObject(value: unknown): boolean {
+  if (typeof value !== 'object' || value === null) return false;
+  
+  const obj = value as Record<string, unknown>;
+  
+  // Check for prototype pollution attempts
+  const dangerousKeys = ['__proto__', 'constructor', 'prototype'];
+  if (dangerousKeys.some(key => Object.prototype.hasOwnProperty.call(obj, key))) {
+    const protoValue = obj.__proto__;
+    const constructorValue = obj.constructor;
+    
+    // Allow legitimate cases
+    if (protoValue === Object.prototype || protoValue === Array.prototype) {
+      // Standard object/array prototypes are safe
+    } else if (constructorValue === Object || constructorValue === Array) {
+      // Standard constructors are safe
+    } else {
+      return true; // Potentially unsafe modification
+    }
+  }
+  
+  // Check for suspicious patterns that might indicate XSS attempts
+  const stringValues = Object.values(obj).filter((v): v is string => typeof v === 'string');
+  const hasScriptTags = stringValues.some(str => 
+    /<script[^>]*>|javascript:|data:text\/html|eval\(|Function\(/i.test(str)
+  );
+  
+  if (hasScriptTags) {
+    console.warn('Potentially unsafe string content detected in object comparison');
+    return true;
+  }
+  
+  // Check for excessive nesting that might indicate DoS attempts
+  try {
+    const serialized = JSON.stringify(obj);
+    if (serialized.length > 100000) { // >100KB
+      console.warn('Extremely large object detected in comparison');
+      return true;
+    }
+  } catch {
+    // Circular reference or other serialization issues
+    // Not necessarily unsafe, but requires careful handling
+  }
+  
+  return false;
+}
+
+/**
+ * Sanitize value to prevent XSS and prototype pollution
+ * 
+ * @param value - Value to sanitize
+ * @returns Sanitized value
+ */
+export function sanitizeValue<T>(value: T): T {
+  if (typeof value === 'string') {
+    // Basic HTML entity encoding for string values
+    const sanitizedString = value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;');
+    return sanitizedString as T;
+  }
+  
+  if (typeof value !== 'object' || value === null) {
+    return value;
+  }
+  
+  // For objects, create a clean copy without dangerous properties
+  try {
+    const sanitized = JSON.parse(JSON.stringify(value));
+    
+    // Remove dangerous properties recursively
+    function cleanObject(obj: Record<string, unknown>): Record<string, unknown> {
+      const dangerousKeys = ['__proto__', 'constructor', 'prototype'];
+      const clean = { ...obj };
+      
+      dangerousKeys.forEach(key => {
+        delete clean[key];
+      });
+      
+      // Recursively clean nested objects
+      Object.keys(clean).forEach(key => {
+        if (typeof clean[key] === 'object' && clean[key] !== null) {
+          clean[key] = cleanObject(clean[key] as Record<string, unknown>);
+        }
+      });
+      
+      return clean;
+    }
+    
+    return cleanObject(sanitized as Record<string, unknown>) as T;
+  } catch (error) {
+    console.warn('Failed to sanitize value, returning original:', error);
+    return value;
+  }
+}
+
+/**
+ * Validate value against security constraints
+ * 
+ * @param value - Value to validate
+ * @param options - Security validation options
+ * @returns true if value is safe, false otherwise
+ */
+export function validateSecurity<T>(value: T, options: SecurityOptions = {}): boolean {
+  const {
+    preventPrototypePollution = true,
+    preventXSS = true,
+    maxDepth = 10,
+    maxStringLength = 10000
+  } = options;
+  
+  if (typeof value !== 'object' || value === null) {
+    // For primitive values, just check string length
+    if (typeof value === 'string' && value.length > maxStringLength) {
+      return false;
+    }
+    return true;
+  }
+  
+  // Check object depth to prevent DoS
+  let currentDepth = 0;
+  function checkDepth(obj: unknown): boolean {
+    if (currentDepth > maxDepth) return false;
+    
+    if (typeof obj === 'object' && obj !== null) {
+      currentDepth++;
+      
+      if (Array.isArray(obj)) {
+        return obj.every(item => checkDepth(item));
+      } else {
+        return Object.values(obj as Record<string, unknown>).every(val => checkDepth(val));
+      }
+    }
+    
+    return true;
+  }
+  
+  if (!checkDepth(value)) {
+    console.warn('Object depth exceeds security limit');
+    return false;
+  }
+  
+  // Check for prototype pollution
+  if (preventPrototypePollution && isUnsafeObject(value)) {
+    return false;
+  }
+  
+  // Check for XSS patterns
+  if (preventXSS) {
+    const stringValues = JSON.stringify(value);
+    if (/<script|javascript:|data:text\/html|eval\(|Function\(/i.test(stringValues)) {
+      console.warn('Potentially unsafe content detected');
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+/**
+ * Security options interface moved from types.ts for better organization
+ */
+export interface SecurityOptions {
+  /** Enable prototype pollution detection */
+  preventPrototypePollution?: boolean;
+  /** Enable XSS prevention */
+  preventXSS?: boolean;
+  /** Maximum object depth allowed */
+  maxDepth?: number;
+  /** Maximum string length allowed */
+  maxStringLength?: number;
+  /** Allowed property names pattern */
+  allowedProperties?: RegExp;
+  /** Blocked property names pattern */
+  blockedProperties?: RegExp;
 }

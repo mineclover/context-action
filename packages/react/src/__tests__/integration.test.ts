@@ -4,14 +4,13 @@
  */
 
 import { createMockStore } from '../testing/mock-store';
-import { waitForStoreUpdate, BatchAsyncManager, createBatchAsyncManager } from '../testing/async-helpers';
+import { waitForStoreUpdate, createBatchAsyncManager } from '../testing/async-helpers';
 import { Store } from '../stores/core/Store';
 import { StoreRegistry } from '../stores/core/StoreRegistry';
-import React from 'react';
 
 // Mock React for testing
 jest.mock('react', () => ({
-  useEffect: jest.fn((effect, deps) => {
+  useEffect: jest.fn((effect, _deps) => {
     const cleanup = effect();
     return cleanup;
   }),
@@ -61,13 +60,13 @@ describe('Integration: Testing Utilities', () => {
       const batchManager = createBatchAsyncManager();
 
       // Batch multiple async operations
-      const promise1 = batchManager.add(async () => {
+      batchManager.add(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
         mockStore.setValue(10);
         return 10;
       });
 
-      const promise2 = batchManager.add(async () => {
+      batchManager.add(async () => {
         await new Promise(resolve => setTimeout(resolve, 50));
         mockStore.update(v => v + 5);
         return 5;

@@ -17,6 +17,7 @@ export interface StorePerformanceMetrics {
     valueSize?: number;
     listenerCount?: number;
     batchSize?: number;
+    hasError?: boolean;
   };
 }
 
@@ -138,7 +139,7 @@ class PerformanceMonitor {
         storeName,
         duration,
         timestamp: Date.now(),
-        payload: { ...payload, error: true }
+        payload: { ...payload, hasError: true }
       });
       
       throw error;
@@ -237,13 +238,13 @@ export function measurePerformance<T extends (...args: any[]) => any>(
   return function (target: any, propertyName: string, descriptor: TypedPropertyDescriptor<T>) {
     const method = descriptor.value!;
     
-    descriptor.value = function (...args: any[]) {
+    descriptor.value = function (this: any, ...args: any[]) {
       return performanceMonitor.measure(
         operationType,
         storeName,
         () => method.apply(this, args),
         {
-          listenerCount: (this as any).getListenerCount?.(),
+          listenerCount: this.getListenerCount?.(),
         }
       );
     } as T;

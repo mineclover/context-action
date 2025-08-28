@@ -12,6 +12,7 @@ export type {
 // Store System (Core functionality)
 export { createStore, Store } from './stores/core/Store';
 export { useStoreValue } from './stores/hooks/useStoreValue';
+export { useStoreSelector } from './stores/hooks/useStoreSelector';
 export type { IStore, Snapshot } from './stores/core/types';
 
 // Store Error Boundary (Essential for production apps)

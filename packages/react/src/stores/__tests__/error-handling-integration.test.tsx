@@ -202,7 +202,6 @@ describe('Error Handling Integration', () => {
     });
     
     test('should filter errors by time', async () => {
-      const _startTime = Date.now();
       
       ErrorHandlers.store('Old error', { time: 'old' });
       
@@ -335,7 +334,6 @@ describe('Error Handling Integration', () => {
       // This test verifies the system remains stable
       
       const eventBus = new EventBus();
-      let _asyncErrorCaught = false;
       
       // Add async handler that throws (wrapped to catch async errors)
       eventBus.on('async-test', (_data) => {
@@ -346,7 +344,6 @@ describe('Error Handling Integration', () => {
             throw new Error('Async error');
           })
           .catch(error => {
-            _asyncErrorCaught = true;
             // In real implementation, this would use ErrorHandlers
             ErrorHandlers.store('Async operation failed', { 
               event: 'async-test',

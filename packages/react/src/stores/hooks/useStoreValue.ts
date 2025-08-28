@@ -178,7 +178,7 @@ export function useStoreValue<T, R>(
     if (store) return store;
     
     // Type-safe null store implementation
-    const nullStore: Store<T> = {
+    const nullStore = {
       name: 'null-store',
       subscribe: () => () => {},
       getSnapshot: () => ({
@@ -199,9 +199,9 @@ export function useStoreValue<T, R>(
       clearComparisonOptions: () => {},
       setNotificationMode: () => {},
       getNotificationMode: () => 'batched' as const
-    } as Store<T>;
+    };
     
-    return nullStore;
+    return nullStore as unknown as Store<T>;
   }, [store, initialValue]);
   
   const rawStoreValue = useStoreSelector(dummyStore, selectorFunction, equalityFn as (a: R, b: R) => boolean);
@@ -336,7 +336,7 @@ export function useStoreValues<T, S extends Record<string, (value: T) => any>>(
     if (store) return store;
     
     // Type-safe null store for values implementation
-    const nullStore: Store<T> = {
+    const nullStore = {
       name: 'null-store-values',
       subscribe: () => () => {},
       getSnapshot: () => ({
@@ -357,9 +357,9 @@ export function useStoreValues<T, S extends Record<string, (value: T) => any>>(
       clearComparisonOptions: () => {},
       setNotificationMode: () => {},
       getNotificationMode: () => 'batched' as const
-    } as Store<T>;
+    };
     
-    return nullStore;
+    return nullStore as unknown as Store<T>;
   }, [store]);
   
   const storeValue = useStoreSelector(dummyStoreForValues, selectorFunction, shallowEqual);
