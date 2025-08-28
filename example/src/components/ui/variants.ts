@@ -292,6 +292,7 @@ export const navItemVariants = cva(
         examples: 'hover:bg-orange-50 hover:text-orange-900',
         refs: 'hover:bg-blue-50 hover:text-blue-900',
         demos: 'hover:bg-emerald-50 hover:text-emerald-900',
+        performance: 'hover:bg-red-50 hover:text-red-900',
         utilities: 'hover:bg-teal-50 hover:text-teal-900',
         debug: 'hover:bg-indigo-50 hover:text-indigo-900',
         dev: 'hover:bg-red-50 hover:text-red-900',

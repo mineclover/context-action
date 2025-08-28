@@ -21,6 +21,15 @@ export function MouseEventsIndexPage() {
       color: 'blue'
     },
     {
+      path: '/actionguard/mouse-events/canvas-ref-demo',
+      title: '🎨 Canvas Ref Demo',
+      description: 'createRefContext with direct DOM manipulation for maximum performance',
+      features: ['Direct DOM access', 'GPU acceleration', 'Real-time tracking', 'Type-safe refs'],
+      performance: 'Excellent',
+      complexity: 'Advanced',
+      color: 'emerald'
+    },
+    {
       path: '/actionguard/mouse-events/context-store-action',
       title: '⚡ Context Store Action-Based',
       description: 'Action-based state management with reactive updates',
@@ -127,6 +136,7 @@ export function MouseEventsIndexPage() {
             </div>
           </div>
         </div>
+
       </div>
     </PageWithLogMonitor>
   );

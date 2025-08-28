@@ -27,8 +27,8 @@ const UseActionWithResultPage = lazy(() => import('./pages/foundations/react/Use
 const ActionGuardIndexPage = lazy(() => import('./pages/performance/action-guard/ActionGuardIndexPage'));
 const ActionGuardPage = lazy(() => import('./pages/performance/action-guard/ActionGuardPage'));
 const ApiBlockingPage = lazy(() => import('./pages/performance/action-guard/ApiBlockingPage'));
-const ContextStoreMouseEventsPage = lazy(() => import('./pages/performance/action-guard/ContextStoreMouseEventsPage').then(m => ({ default: m.ContextStoreMouseEventsPage })));
-const MouseEventsPage = lazy(() => import('./pages/performance/action-guard/MouseEventsPage'));
+const ContextStoreMouseEventsPage = lazy(() => import('./pages/performance/mouse-events/ActionGuardContextStoreMouseEventsPage').then(m => ({ default: m.ContextStoreMouseEventsPage })));
+const MouseEventsPage = lazy(() => import('./pages/performance/mouse-events/LegacyMouseEventsPage'));
 const ScrollPage = lazy(() => import('./pages/performance/action-guard/ScrollPage'));
 const SearchPage = lazy(() => import('./pages/performance/action-guard/SearchPage'));
 const ThrottleComparisonPage = lazy(() => import('./pages/performance/action-guard/ThrottleComparisonPage'));
@@ -37,7 +37,14 @@ const PriorityPerformancePage = lazy(() => import('./pages/performance/priority/
 const ActionPriorityDemoPage = lazy(() => import('./pages/performance/priority/DemoPage'));
 const MouseEventsIndexPage = lazy(() => import('./pages/performance/mouse-events/MouseEventsIndexPage').then(m => ({ default: m.MouseEventsIndexPage })));
 const ContextStoreActionPage = lazy(() => import('./pages/performance/mouse-events/ContextStoreActionPage').then(m => ({ default: m.ContextStoreActionPage })));
-const EnhancedContextStorePage = lazy(() => import('./pages/performance/mouse-events/EnhancedContextStorePage').then(m => ({ default: m.EnhancedContextStorePage })));
+const EnhancedContextStorePage = lazy(() => import('./pages/performance/mouse-events/enhanced-context-store/EnhancedContextStorePage'));
+const CanvasRefDemoPage = lazy(() => import('./pages/performance/mouse-events/CanvasRefDemoPage').then(m => ({ default: m.CanvasRefDemoPage })));
+
+// Memoization Performance
+const MemoizationPerformancePage = lazy(() => import('./pages/performance/memoization/MemoizationPerformancePage'));
+const MemoizationDemoPage = lazy(() => import('./pages/performance/memoization/DemoPage'));
+const MemoizationAnalysisPage = lazy(() => import('./pages/performance/memoization/AnalysisPage'));
+const MemoizationGuidelinesPage = lazy(() => import('./pages/performance/memoization/GuidelinesPage'));
 
 // Patterns
 const ConditionalPatternsIndex = lazy(() => import('./pages/patterns/conditional/ConditionalPatternsIndex').then(m => ({ default: m.ConditionalPatternsIndex })));
@@ -66,10 +73,17 @@ const ToastConfigPage = lazy(() => import('./pages/utilities/dev-tools/ToastConf
 const StoreScenariosPage = lazy(() => import('./pages/utilities/dev-tools/StoreScenariosPage').then(m => ({ default: m.StoreScenariosPage })));
 
 // Overview Pages (keep in root)
-const ActionGuardOverview = lazy(() => import('./pages/ActionGuardOverview'));
-const CoreConceptsOverview = lazy(() => import('./pages/CoreConceptsOverview'));
-const ExamplesUtilitiesOverview = lazy(() => import('./pages/ExamplesUtilitiesOverview'));
+const ActionGuardOverview = lazy(() => import('./pages/catalog/performance/ActionGuardOverview'));
+const CoreConceptsOverview = lazy(() => import('./pages/catalog/foundations/CoreConceptsOverview'));
+const ExamplesUtilitiesOverview = lazy(() => import('./pages/catalog/utilities/ExamplesUtilitiesOverview'));
 const HomePage = lazy(() => import('./pages/HomePage'));
+
+// Catalog Overview Pages
+const FoundationsOverview = lazy(() => import('./pages/catalog/foundations/FoundationsOverview'));
+const PerformanceOverview = lazy(() => import('./pages/catalog/performance/PerformanceOverview'));
+const PatternsOverview = lazy(() => import('./pages/catalog/patterns/PatternsOverview'));
+const IntegrationsOverview = lazy(() => import('./pages/catalog/integrations/IntegrationsOverview'));
+const UtilitiesOverview = lazy(() => import('./pages/catalog/utilities/UtilitiesOverview'));
 
 // Legacy components
 const EnhancedAbortableSearchExample = lazy(() => import('./components/EnhancedAbortableSearchExample'));
@@ -106,7 +120,14 @@ function AppContent() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             
-            {/* Overview Pages */}
+            {/* 📚 CATALOG - Main overview pages with better organization */}
+            <Route path="/catalog/foundations" element={<FoundationsOverview />} />
+            <Route path="/catalog/performance" element={<PerformanceOverview />} />
+            <Route path="/catalog/patterns" element={<PatternsOverview />} />
+            <Route path="/catalog/integrations" element={<IntegrationsOverview />} />
+            <Route path="/catalog/utilities" element={<UtilitiesOverview />} />
+            
+            {/* Legacy Overview Pages (backward compatibility) */}
             <Route path="/overview/core" element={<CoreConceptsOverview />} />
             <Route path="/overview/actionguard" element={<ActionGuardOverview />} />
             <Route path="/overview/examples" element={<ExamplesUtilitiesOverview />} />
@@ -133,8 +154,16 @@ function AppContent() {
             <Route path="/performance/mouse-events" element={<MouseEventsIndexPage />} />
             <Route path="/performance/mouse-events/enhanced-context-store" element={<EnhancedContextStorePage />} />
             <Route path="/performance/mouse-events/context-store-action" element={<ContextStoreActionPage />} />
+            <Route path="/performance/mouse-events/canvas-ref-demo" element={<CanvasRefDemoPage />} />
             <Route path="/performance/mouse-events/legacy" element={<MouseEventsPage />} />
             <Route path="/performance/mouse-events/context-store" element={<ContextStoreMouseEventsPage />} />
+            
+            {/* Memoization Performance Routes */}
+            <Route path="/performance" element={<MemoizationPerformancePage />} />
+            <Route path="/performance/memoization" element={<MemoizationPerformancePage />} />
+            <Route path="/performance/memoization/demo" element={<MemoizationDemoPage />} />
+            <Route path="/performance/memoization/analysis" element={<MemoizationAnalysisPage />} />
+            <Route path="/performance/memoization/guidelines" element={<MemoizationGuidelinesPage />} />
             
             {/* 🎛️ PATTERNS - Advanced patterns, conditional execution */}
             <Route path="/patterns/conditional" element={<ConditionalPatternsIndex />} />
@@ -183,6 +212,7 @@ function AppContent() {
             <Route path="/actionguard/mouse-events" element={<MouseEventsIndexPage />} />
             <Route path="/actionguard/mouse-events/enhanced-context-store" element={<EnhancedContextStorePage />} />
             <Route path="/actionguard/mouse-events/context-store-action" element={<ContextStoreActionPage />} />
+            <Route path="/actionguard/mouse-events/canvas-ref-demo" element={<CanvasRefDemoPage />} />
             <Route path="/actionguard/mouse-events/legacy" element={<MouseEventsPage />} />
             <Route path="/actionguard/mouse-events/context-store" element={<ContextStoreMouseEventsPage />} />
             <Route path="/actionguard/conditional" element={<ConditionalPatternsIndex />} />

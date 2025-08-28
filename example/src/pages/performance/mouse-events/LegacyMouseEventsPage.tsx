@@ -5,9 +5,9 @@
 
 import React, { useCallback, useState, useRef, useEffect, useMemo } from 'react';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
-import { createActionContext } from '@context-action/react';
+import { createActionContext, createRefContext } from '@context-action/react';
 import { Badge, Card, CardContent } from '@/components/ui';
-import { ContextActionDemo } from './components';
+import { ContextActionDemo } from '../action-guard/components';
 
 // Mouse Events 관련 액션 타입 정의
 interface BasicMouseActions {
@@ -549,6 +549,20 @@ function MouseEventsDemo() {
         </CardContent>
       </Card>
 
+      {/* createRefContext Canvas Drawing Demo */}
+      <div className="mt-12 pt-8 border-t border-gray-200">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            🎨 createRefContext Canvas Drawing Demo
+          </h2>
+          <p className="text-gray-700">
+            createRefContext를 사용한 Canvas Drawing 시스템입니다. 
+            Ref 관리와 Canvas API를 조합하여 실시간 드로잉 기능을 구현합니다.
+          </p>
+        </div>
+        <CanvasDrawingDemo />
+      </div>
+
       {/* Context-Action Performance Demo */}
       <div className="mt-12 pt-8 border-t border-gray-200">
         <div className="mb-6">
@@ -591,6 +605,461 @@ function MouseEventsDemo() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+// Canvas Drawing Demo using createRefContext
+function CanvasDrawingDemo() {
+  // createRefContext를 사용한 Canvas 관련 Ref 관리
+  const CanvasRefs = createRefContext('CanvasDrawing', {
+    canvas: {
+      name: 'canvas',
+      objectType: 'dom' as const,
+      autoCleanup: true,
+      mountTimeout: 5000
+    },
+    colorPicker: {
+      name: 'colorPicker',
+      objectType: 'dom' as const,
+      autoCleanup: true
+    },
+    brushSize: {
+      name: 'brushSize',
+      objectType: 'dom' as const,
+      autoCleanup: true
+    },
+    toolbar: {
+      name: 'toolbar',
+      objectType: 'dom' as const,
+      autoCleanup: true
+    }
+  });
+
+  function CanvasComponent() {
+    const canvas = CanvasRefs.useRefHandler('canvas');
+    const colorPicker = CanvasRefs.useRefHandler('colorPicker');
+    const brushSize = CanvasRefs.useRefHandler('brushSize');
+    const toolbar = CanvasRefs.useRefHandler('toolbar');
+    const waitForRefs = CanvasRefs.useWaitForRefs();
+    const getAllRefs = CanvasRefs.useGetAllRefs();
+
+    const [drawingState, setDrawingState] = useState({
+      isDrawing: false,
+      currentColor: '#007bff',
+      currentBrushSize: 3,
+      canvasReady: false
+    });
+
+    const [drawingHistory, setDrawingHistory] = useState<Array<{
+      id: string;
+      action: string;
+      timestamp: number;
+      details: string;
+    }>>([]);
+
+    const drawingContextRef = useRef<CanvasRenderingContext2D | null>(null);
+    const lastPositionRef = useRef<{ x: number; y: number } | null>(null);
+
+    // Canvas 초기화
+    const initializeCanvas = useCallback(async () => {
+      try {
+        await canvas.withTarget(async (canvasEl) => {
+          const ctx = canvasEl.getContext('2d');
+          if (ctx) {
+            // Canvas 배경 설정
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvasEl.width, canvasEl.height);
+            
+            // 드로잉 설정
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.imageSmoothingEnabled = true;
+            
+            drawingContextRef.current = ctx;
+            setDrawingState(prev => ({ ...prev, canvasReady: true }));
+            
+            // 초기화 로그 추가
+            setDrawingHistory(prev => [{
+              id: `init_${Date.now()}`,
+              action: 'Canvas Initialized',
+              timestamp: Date.now(),
+              details: `Size: ${canvasEl.width}x${canvasEl.height}`
+            }, ...prev].slice(0, 10));
+          }
+        });
+      } catch (error) {
+        console.error('Failed to initialize canvas:', error);
+      }
+    }, [canvas]);
+
+    // 모든 ref가 마운트되면 초기화
+    useEffect(() => {
+      if (canvas.isMounted && colorPicker.isMounted && brushSize.isMounted && toolbar.isMounted) {
+        initializeCanvas();
+      }
+    }, [canvas.isMounted, colorPicker.isMounted, brushSize.isMounted, toolbar.isMounted, initializeCanvas]);
+
+    // 색상 변경
+    const handleColorChange = useCallback(async () => {
+      await colorPicker.withTarget(async (colorEl) => {
+        const newColor = (colorEl as HTMLInputElement).value;
+        setDrawingState(prev => ({ ...prev, currentColor: newColor }));
+        
+        setDrawingHistory(prev => [{
+          id: `color_${Date.now()}`,
+          action: 'Color Changed',
+          timestamp: Date.now(),
+          details: `Color: ${newColor}`
+        }, ...prev].slice(0, 10));
+      });
+    }, [colorPicker]);
+
+    // 브러시 크기 변경
+    const handleBrushSizeChange = useCallback(async () => {
+      await brushSize.withTarget(async (sizeEl) => {
+        const newSize = parseInt((sizeEl as HTMLInputElement).value, 10);
+        setDrawingState(prev => ({ ...prev, currentBrushSize: newSize }));
+        
+        setDrawingHistory(prev => [{
+          id: `brush_${Date.now()}`,
+          action: 'Brush Size Changed',
+          timestamp: Date.now(),
+          details: `Size: ${newSize}px`
+        }, ...prev].slice(0, 10));
+      });
+    }, [brushSize]);
+
+    // 캔버스 지우기
+    const clearCanvas = useCallback(async () => {
+      const result = await canvas.withTarget(async (canvasEl) => {
+        const ctx = canvasEl.getContext('2d');
+        if (ctx) {
+          ctx.fillStyle = 'white';
+          ctx.fillRect(0, 0, canvasEl.width, canvasEl.height);
+          return 'Canvas cleared';
+        }
+        return 'Failed to clear';
+      });
+      
+      if (result.success) {
+        setDrawingHistory(prev => [{
+          id: `clear_${Date.now()}`,
+          action: 'Canvas Cleared',
+          timestamp: Date.now(),
+          details: result.result || 'Canvas cleared successfully'
+        }, ...prev].slice(0, 10));
+      }
+    }, [canvas]);
+
+    // 마우스 위치 계산
+    const getMousePosition = useCallback((event: React.MouseEvent<HTMLCanvasElement>): { x: number; y: number } | null => {
+      if (!canvas.target) return null;
+      
+      const rect = (canvas.target as HTMLCanvasElement).getBoundingClientRect();
+      const scaleX = (canvas.target as HTMLCanvasElement).width / rect.width;
+      const scaleY = (canvas.target as HTMLCanvasElement).height / rect.height;
+      
+      return {
+        x: (event.clientX - rect.left) * scaleX,
+        y: (event.clientY - rect.top) * scaleY
+      };
+    }, [canvas.target]);
+
+    // 드로잉 시작
+    const startDrawing = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+      if (!drawingState.canvasReady || !drawingContextRef.current) return;
+      
+      const pos = getMousePosition(event);
+      if (!pos) return;
+      
+      setDrawingState(prev => ({ ...prev, isDrawing: true }));
+      lastPositionRef.current = pos;
+      
+      // 드로잉 컨텍스트 설정
+      drawingContextRef.current.strokeStyle = drawingState.currentColor;
+      drawingContextRef.current.lineWidth = drawingState.currentBrushSize;
+      drawingContextRef.current.beginPath();
+      drawingContextRef.current.moveTo(pos.x, pos.y);
+    }, [drawingState.canvasReady, drawingState.currentColor, drawingState.currentBrushSize, getMousePosition]);
+
+    // 드로잉 중
+    const draw = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+      if (!drawingState.isDrawing || !drawingContextRef.current || !lastPositionRef.current) return;
+      
+      const pos = getMousePosition(event);
+      if (!pos) return;
+      
+      drawingContextRef.current.lineTo(pos.x, pos.y);
+      drawingContextRef.current.stroke();
+      
+      lastPositionRef.current = pos;
+    }, [drawingState.isDrawing, getMousePosition]);
+
+    // 드로잉 종료
+    const stopDrawing = useCallback(() => {
+      if (drawingState.isDrawing) {
+        setDrawingState(prev => ({ ...prev, isDrawing: false }));
+        lastPositionRef.current = null;
+        
+        if (drawingContextRef.current) {
+          drawingContextRef.current.closePath();
+        }
+        
+        setDrawingHistory(prev => [{
+          id: `draw_${Date.now()}`,
+          action: 'Drawing Stroke',
+          timestamp: Date.now(),
+          details: `Color: ${drawingState.currentColor}, Size: ${drawingState.currentBrushSize}px`
+        }, ...prev].slice(0, 10));
+      }
+    }, [drawingState.isDrawing, drawingState.currentColor, drawingState.currentBrushSize]);
+
+    // Ref 상태 디버깅
+    const showRefStatus = useCallback(() => {
+      const allRefs = getAllRefs();
+      console.log('Canvas Refs Status:', {
+        mounted: Object.keys(allRefs),
+        canvasReady: drawingState.canvasReady,
+        drawingContext: !!drawingContextRef.current
+      });
+      alert(`Mounted refs: ${Object.keys(allRefs).join(', ')}\nCanvas ready: ${drawingState.canvasReady}`);
+    }, [getAllRefs, drawingState.canvasReady]);
+
+    return (
+      <div className="space-y-6">
+        {/* Canvas Drawing Area */}
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                🎨 Canvas Drawing with createRefContext
+              </h3>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <span className={`inline-block w-2 h-2 rounded-full ${
+                  drawingState.canvasReady ? 'bg-green-500' : 'bg-red-500'
+                }`}></span>
+                {drawingState.canvasReady ? 'Ready' : 'Initializing...'}
+              </div>
+            </div>
+            
+            <div className="border-2 border-gray-200 rounded-lg p-4 bg-gray-50">
+              <canvas
+                ref={(el) => el && canvas.setRef(el)}
+                width={600}
+                height={400}
+                className="border border-gray-300 bg-white cursor-crosshair block mx-auto rounded shadow-sm"
+                onMouseDown={startDrawing}
+                onMouseMove={draw}
+                onMouseUp={stopDrawing}
+                onMouseLeave={stopDrawing}
+                style={{
+                  cursor: drawingState.isDrawing ? 'crosshair' : 'default'
+                }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Drawing Controls */}
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">🎨 Drawing Controls</h3>
+            
+            <div ref={(el) => el && toolbar.setRef(el)} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Color:
+                </label>
+                <input
+                  ref={(el) => el && colorPicker.setRef(el)}
+                  type="color"
+                  value={drawingState.currentColor}
+                  onChange={handleColorChange}
+                  className="w-full h-10 border border-gray-300 rounded cursor-pointer"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Brush Size: {drawingState.currentBrushSize}px
+                </label>
+                <input
+                  ref={(el) => el && brushSize.setRef(el)}
+                  type="range"
+                  min="1"
+                  max="20"
+                  value={drawingState.currentBrushSize}
+                  onChange={handleBrushSizeChange}
+                  className="w-full"
+                />
+              </div>
+              
+              <div>
+                <button
+                  onClick={clearCanvas}
+                  className="w-full px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                >
+                  🗑️ Clear Canvas
+                </button>
+              </div>
+              
+              <div>
+                <button
+                  onClick={showRefStatus}
+                  className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm"
+                >
+                  🔍 Show Refs
+                </button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Drawing History & Status */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Drawing History */}
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">📈 Drawing History</h3>
+              
+              <div className="max-h-64 overflow-y-auto">
+                {drawingHistory.length === 0 ? (
+                  <div className="text-center text-gray-400 py-8">
+                    <div className="mb-2">📋</div>
+                    <div>No drawing actions yet</div>
+                    <div className="text-sm">Start drawing on the canvas!</div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {drawingHistory.map((entry) => (
+                      <div key={entry.id} className="flex justify-between items-center p-3 bg-gray-50 rounded text-sm">
+                        <div className="flex items-center gap-3">
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            entry.action.includes('Canvas') ? 'bg-blue-100 text-blue-700' :
+                            entry.action.includes('Color') ? 'bg-purple-100 text-purple-700' :
+                            entry.action.includes('Brush') ? 'bg-green-100 text-green-700' :
+                            'bg-orange-100 text-orange-700'
+                          }`}>
+                            {entry.action}
+                          </span>
+                          <span className="font-mono text-xs">{entry.details}</span>
+                        </div>
+                        <span className="text-gray-500 font-mono text-xs">
+                          {new Date(entry.timestamp).toLocaleTimeString()}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Ref Mount Status */}
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">🔍 Ref Mount Status</h3>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                  <span className="font-medium">Canvas:</span>
+                  <span className={`px-2 py-1 rounded text-sm ${
+                    canvas.isMounted ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                  }`}>
+                    {canvas.isMounted ? '✓ Mounted' : '⏳ Waiting'}
+                  </span>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                  <span className="font-medium">Color Picker:</span>
+                  <span className={`px-2 py-1 rounded text-sm ${
+                    colorPicker.isMounted ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                  }`}>
+                    {colorPicker.isMounted ? '✓ Mounted' : '⏳ Waiting'}
+                  </span>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                  <span className="font-medium">Brush Size:</span>
+                  <span className={`px-2 py-1 rounded text-sm ${
+                    brushSize.isMounted ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                  }`}>
+                    {brushSize.isMounted ? '✓ Mounted' : '⏳ Waiting'}
+                  </span>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                  <span className="font-medium">Toolbar:</span>
+                  <span className={`px-2 py-1 rounded text-sm ${
+                    toolbar.isMounted ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                  }`}>
+                    {toolbar.isMounted ? '✓ Mounted' : '⏳ Waiting'}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="mt-4 p-3 bg-blue-50 rounded">
+                <div className="text-sm font-medium text-blue-800 mb-1">Current Drawing State:</div>
+                <div className="text-xs text-blue-600">
+                  <div>Drawing: {drawingState.isDrawing ? 'Active' : 'Inactive'}</div>
+                  <div>Color: {drawingState.currentColor}</div>
+                  <div>Brush Size: {drawingState.currentBrushSize}px</div>
+                  <div>Canvas Ready: {drawingState.canvasReady ? 'Yes' : 'No'}</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Usage Guide */}
+        <Card>
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">📚 createRefContext Usage Guide</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-blue-600 mb-3">🎨 Drawing Features</h4>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li>• <strong>Mouse Drawing</strong>: Click and drag to draw</li>
+                  <li>• <strong>Color Selection</strong>: Pick any color from the color picker</li>
+                  <li>• <strong>Brush Size</strong>: Adjust brush size from 1-20px</li>
+                  <li>• <strong>Clear Canvas</strong>: Reset the drawing surface</li>
+                  <li>• <strong>Real-time Feedback</strong>: See drawing actions in history</li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-semibold text-green-600 mb-3">⚙️ createRefContext Benefits</h4>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li>• <strong>Type-Safe Refs</strong>: Full TypeScript support</li>
+                  <li>• <strong>Mount Management</strong>: Wait for ref availability</li>
+                  <li>• <strong>withTarget</strong>: Safe target operations</li>
+                  <li>• <strong>Auto Cleanup</strong>: Automatic resource management</li>
+                  <li>• <strong>Mount Tracking</strong>: Real-time mount status</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="mt-6 p-4 bg-gray-100 rounded">
+              <h4 className="font-semibold text-gray-800 mb-2">Key createRefContext Patterns Used:</h4>
+              <div className="text-sm text-gray-600 space-y-1">
+                <div>• <code className="bg-white px-2 py-1 rounded">useRefHandler()</code> - Individual ref management</div>
+                <div>• <code className="bg-white px-2 py-1 rounded">waitForRefs()</code> - Wait for multiple refs to mount</div>
+                <div>• <code className="bg-white px-2 py-1 rounded">withTarget()</code> - Safe operations on ref targets</div>
+                <div>• <code className="bg-white px-2 py-1 rounded">getAllRefs()</code> - Get all currently mounted refs</div>
+                <div>• <code className="bg-white px-2 py-1 rounded">isMounted</code> - Check individual ref mount status</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <CanvasRefs.Provider>
+      <CanvasComponent />
+    </CanvasRefs.Provider>
   );
 }
 

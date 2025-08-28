@@ -1,7 +1,11 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { HandlerComparisonDemo } from './components/HandlerComparisonDemo'
+import { HandlerComparisonDemoRefactored } from './components/HandlerComparisonDemoRefactored'
 
 const DemoPage: React.FC = () => {
+  const [demoVersion, setDemoVersion] = useState<'original' | 'mvvm'>('mvvm');
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -29,62 +33,77 @@ const DemoPage: React.FC = () => {
         </div>
 
         <div className="bg-white shadow rounded-lg p-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            실시간 성능 비교 데모
-          </h1>
-          
-          <p className="text-gray-600 mb-6">
-            메모이제이션 사용 여부에 따른 성능 차이를 실시간으로 확인할 수 있습니다.
-          </p>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* 메모이제이션 미사용 섹션 */}
-            <div className="bg-red-50 rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-red-900 mb-4">
-                메모이제이션 미사용
-              </h2>
-              <div className="space-y-4">
-                {/* 여기에 메모이제이션 미사용 컴포넌트들이 들어갈 예정 */}
-                <div className="bg-white rounded p-4">
-                  <p className="text-gray-600">컴포넌트가 여기에 렌더링됩니다.</p>
-                </div>
-              </div>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                실시간 성능 비교 데모
+              </h1>
+              <p className="text-gray-600">
+                메모이제이션 사용 여부에 따른 성능 차이를 실시간으로 확인할 수 있습니다.
+              </p>
             </div>
-
-            {/* 메모이제이션 사용 섹션 */}
-            <div className="bg-green-50 rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-green-900 mb-4">
-                메모이제이션 사용
-              </h2>
-              <div className="space-y-4">
-                {/* 여기에 메모이제이션 사용 컴포넌트들이 들어갈 예정 */}
-                <div className="bg-white rounded p-4">
-                  <p className="text-gray-600">컴포넌트가 여기에 렌더링됩니다.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 성능 지표 섹션 */}
-          <div className="mt-8 bg-blue-50 rounded-lg p-6">
-            <h2 className="text-xl font-semibold text-blue-900 mb-4">
-              성능 지표
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white rounded p-4">
-                <h3 className="font-medium text-gray-900">렌더링 횟수</h3>
-                <p className="text-2xl font-bold text-blue-600">0</p>
-              </div>
-              <div className="bg-white rounded p-4">
-                <h3 className="font-medium text-gray-900">평균 렌더링 시간</h3>
-                <p className="text-2xl font-bold text-blue-600">0ms</p>
-              </div>
-              <div className="bg-white rounded p-4">
-                <h3 className="font-medium text-gray-900">메모리 사용량</h3>
-                <p className="text-2xl font-bold text-blue-600">0MB</p>
-              </div>
+            
+            {/* Architecture Version Toggle */}
+            <div className="flex bg-gray-100 p-1 rounded-lg">
+              <button
+                onClick={() => setDemoVersion('mvvm')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  demoVersion === 'mvvm'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                MVVM 아키텍처
+              </button>
+              <button
+                onClick={() => setDemoVersion('original')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  demoVersion === 'original'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                기존 구조
+              </button>
             </div>
           </div>
+
+          {/* Architecture Description */}
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            {demoVersion === 'mvvm' ? (
+              <div>
+                <h3 className="font-semibold text-blue-900 mb-2">🏗️ MVVM 아키텍처 (Context-Action)</h3>
+                <p className="text-blue-800 text-sm mb-2">
+                  완전한 관심사 분리로 구현된 MVVM 패턴을 사용합니다.
+                </p>
+                <ul className="text-blue-700 text-xs space-y-1">
+                  <li>• <strong>Model:</strong> createStoreContext, createActionContext로 데이터 계층 관리</li>
+                  <li>• <strong>ViewModel:</strong> hooks를 통한 비즈니스 로직 주입</li>
+                  <li>• <strong>View:</strong> 순수 UI 컴포넌트 + Widget 조합</li>
+                  <li>• <strong>특징:</strong> useEffect, dispatch 직접 사용 금지, context-action 기반 복잡도 해소</li>
+                </ul>
+              </div>
+            ) : (
+              <div>
+                <h3 className="font-semibold text-blue-900 mb-2">🏗️ 기존 구조 (React Hooks)</h3>
+                <p className="text-blue-800 text-sm mb-2">
+                  전통적인 React hooks 패턴으로 구현된 버전입니다.
+                </p>
+                <ul className="text-blue-700 text-xs space-y-1">
+                  <li>• <strong>상태 관리:</strong> useState, useEffect 직접 사용</li>
+                  <li>• <strong>비즈니스 로직:</strong> 컴포넌트 내부에 포함</li>
+                  <li>• <strong>특징:</strong> 단순한 구조, 전통적인 React 패턴</li>
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* Demo Component */}
+          {demoVersion === 'mvvm' ? (
+            <HandlerComparisonDemoRefactored />
+          ) : (
+            <HandlerComparisonDemo />
+          )}
         </div>
       </div>
     </div>

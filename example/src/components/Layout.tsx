@@ -99,6 +99,13 @@ function Layout({
     { path: '/refs/waitforrefs-performance', label: '⚡ useWaitForRefs Performance', category: 'refs', description: 'Performance verification demo for useWaitForRefs optimization' },
     
     
+    // === Performance (성능) ===
+    { path: '/performance', label: '⚡ Performance', category: 'performance', isIndex: true, description: 'Performance testing and optimization' },
+    { path: '/performance/memoization', label: '🧠 Memoization Overview', category: 'performance', description: 'Memoization performance comparison' },
+    { path: '/performance/memoization/demo', label: '🎯 Memoization Demo', category: 'performance', description: 'Real-time memoization comparison demo' },
+    { path: '/performance/memoization/analysis', label: '📊 Analysis Report', category: 'performance', description: 'Performance analysis and reports' },
+    { path: '/performance/memoization/guidelines', label: '📚 Guidelines', category: 'performance', description: 'Best practices and guidelines' },
+    
     // === Utilities & Tools (유틸리티) ===
     { path: '/logger/demo', label: 'Logger System', category: 'utilities' },
     { path: '/examples/toast-config', label: '🍞 Toast Config Example', category: 'utilities' },
@@ -320,6 +327,49 @@ function Layout({
                           item.section === 'expert' ? 'bg-red-100 text-red-600' : ''
                         }`}>
                           {item.section.charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+
+            {/* Performance Section */}
+            {!collapsed && (
+              <div className="px-3 py-2 mt-4 border-t border-gray-200">
+                <h4 className="text-xs font-medium text-red-600 mb-2">⚡ Performance</h4>
+              </div>
+            )}
+            {navItems.filter(item => item.category === 'performance').map((item) => {
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={cn(
+                    navItemVariants({
+                      variant: isActive(item.path) ? 'active' : 'default',
+                      category: item.category,
+                    }),
+                    item.isIndex &&
+                      'font-semibold border-l-2 border-red-500 bg-red-50 text-red-700'
+                  )}
+                  title={collapsed ? item.label : undefined}
+                >
+                  {collapsed ? (
+                    <span className="text-xs font-bold">
+                      {item.label.charAt(0)}
+                    </span>
+                  ) : (
+                    <span
+                      className={cn(
+                        item.isIndex && 'flex items-center gap-1'
+                      )}
+                    >
+                      {item.label}
+                      {item.isIndex && (
+                        <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full font-medium">
+                          Index
                         </span>
                       )}
                     </span>
