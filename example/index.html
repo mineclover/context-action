@@ -6,9 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Context Action Test App</title>
     <!-- GitHub Pages용 base URL 설정 (프로덕션만) -->
-    <% if (process.env.NODE_ENV === 'production') { %>
-    <base href="/context-action/example/" />
-    <% } %>
+    <script>
+      // 프로덕션 환경에서만 base URL 설정
+      if (window.location.hostname === 'mineclover.github.io') {
+        const base = document.createElement('base');
+        base.href = '/context-action/example/';
+        document.head.appendChild(base);
+      }
+    </script>
     
     <!-- GitHub Pages SPA 라우팅 지원 스크립트 -->
     <script>
