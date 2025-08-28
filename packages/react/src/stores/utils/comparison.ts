@@ -98,10 +98,12 @@ export function deepEquals<T>(
 ): boolean {
   const { maxDepth = 5, ignoreKeys = [], enableCircularCheck = true } = options;
   
-  // 순환 참조 감지를 위한 WeakSet
-  const visited = enableCircularCheck ? new WeakSet() : null;
+  // 강화된 순환 참조 감지 시스템
+  const visitedA = enableCircularCheck ? new WeakSet() : null;
+  const visitedB = enableCircularCheck ? new WeakSet() : null;
+  const pairPath = enableCircularCheck ? new Map() : null;
   
-  function deepCompare(a: any, b: any, depth: number): boolean {
+  function deepCompare(a: any, b: any, depth: number, path = ''): boolean {
     // 최대 깊이 초과 시 참조 비교로 fallback
     if (depth > maxDepth) {
       return Object.is(a, b);
@@ -127,17 +129,23 @@ export function deepEquals<T>(
       return a === b;
     }
 
-    // 순환 참조 체크
-    if (visited) {
-      // 각 값에 대해 개별적으로 순환 참조 확인
-      if (visited.has(a)) {
+    // 강화된 순환 참조 체크
+    if (visitedA && visitedB && pairPath) {
+      // 개별 객체 순환 참조 확인
+      if (visitedA.has(a) || visitedB.has(b)) {
         return Object.is(a, b);
       }
-      if (visited.has(b)) {
+      
+      // 비교 쌍의 순환 참조 확인 (더 정교한 감지)
+      if (pairPath.has(a) && pairPath.get(a).has(b)) {
         return Object.is(a, b);
       }
-      visited.add(a);
-      visited.add(b);
+      
+      // 방문 기록 추가
+      visitedA.add(a);
+      visitedB.add(b);
+      if (!pairPath.has(a)) pairPath.set(a, new WeakSet());
+      pairPath.get(a).add(b);
     }
 
     // Date 객체 처리
@@ -157,7 +165,7 @@ export function deepEquals<T>(
       }
       
       for (let i = 0; i < a.length; i++) {
-        if (!deepCompare(a[i], b[i], depth + 1)) {
+        if (!deepCompare(a[i], b[i], depth + 1, `${path}[${i}]`)) {
           return false;
         }
       }
@@ -183,7 +191,7 @@ export function deepEquals<T>(
         return false;
       }
       
-      if (!deepCompare(a[key], b[key], depth + 1)) {
+      if (!deepCompare(a[key], b[key], depth + 1, `${path}.${key}`)) {
         return false;
       }
     }

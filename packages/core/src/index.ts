@@ -21,7 +21,7 @@ export { executeSequential, executeParallel, executeRace } from './execution-mod
 
 // 🆕 React integration helpers (optional)
 export {
-  useActionHandler,
+  createActionHandler,
   createReactHandlerConfig,
   createReactDispatcher,
   ReactDevUtils,

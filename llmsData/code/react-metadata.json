@@ -1,13 +1,13 @@
 {
   "package": "react",
-  "generatedAt": "2025-08-28T00:46:35.013Z",
+  "generatedAt": "2025-08-28T01:27:21.007Z",
   "statistics": {
-    "totalFiles": 45,
+    "totalFiles": 40,
     "typeFiles": 3,
-    "codeFiles": 42,
-    "totalLines": 5719,
+    "codeFiles": 37,
+    "totalLines": 4983,
     "typeLines": 169,
-    "codeLines": 5550
+    "codeLines": 4814
   },
   "files": [
     {
@@ -36,6 +36,11 @@
       "lines": 15
     },
     {
+      "path": "advanced.ts",
+      "isType": false,
+      "lines": 40
+    },
+    {
       "path": "hooks/index.ts",
       "isType": false,
       "lines": 4
@@ -43,17 +48,22 @@
     {
       "path": "hooks/react18-hooks.ts",
       "isType": false,
-      "lines": 212
+      "lines": 237
     },
     {
       "path": "index.ts",
       "isType": false,
-      "lines": 18
+      "lines": 21
     },
     {
       "path": "patterns/index.ts",
       "isType": false,
       "lines": 2
+    },
+    {
+      "path": "react18.ts",
+      "isType": false,
+      "lines": 1
     },
     {
       "path": "refs/createRefContext.ts",
@@ -88,7 +98,7 @@
     {
       "path": "stores/core/Store.ts",
       "isType": false,
-      "lines": 294
+      "lines": 355
     },
     {
       "path": "stores/core/StoreRegistry.ts",
@@ -123,7 +133,7 @@
     {
       "path": "stores/hooks/useStoreValue.ts",
       "isType": false,
-      "lines": 191
+      "lines": 235
     },
     {
       "path": "stores/index.ts",
@@ -143,22 +153,27 @@
     {
       "path": "stores/utils/comparison.ts",
       "isType": false,
-      "lines": 294
+      "lines": 298
     },
     {
       "path": "stores/utils/error-handling.ts",
       "isType": false,
-      "lines": 248
+      "lines": 258
     },
     {
       "path": "stores/utils/immutable.ts",
       "isType": false,
-      "lines": 221
+      "lines": 318
     },
     {
       "path": "stores/utils/index.ts",
       "isType": false,
-      "lines": 20
+      "lines": 54
+    },
+    {
+      "path": "stores/utils/performance-monitor.ts",
+      "isType": false,
+      "lines": 161
     },
     {
       "path": "stores/utils/provider-composition.ts",
@@ -176,64 +191,24 @@
       "lines": 42
     },
     {
+      "path": "stores/utils/subscription-manager.ts",
+      "isType": false,
+      "lines": 202
+    },
+    {
       "path": "stores/utils/type-guards.ts",
       "isType": false,
       "lines": 124
     },
     {
+      "path": "stores/utils/type-helpers.ts",
+      "isType": false,
+      "lines": 103
+    },
+    {
       "path": "stores/utils/utils.ts",
       "isType": false,
       "lines": 139
-    },
-    {
-      "path": "testing/assertions.ts",
-      "isType": false,
-      "lines": 123
-    },
-    {
-      "path": "testing/async-helpers.ts",
-      "isType": false,
-      "lines": 280
-    },
-    {
-      "path": "testing/compatibility.ts",
-      "isType": false,
-      "lines": 216
-    },
-    {
-      "path": "testing/index.ts",
-      "isType": false,
-      "lines": 36
-    },
-    {
-      "path": "testing/mock-actions.ts",
-      "isType": false,
-      "lines": 50
-    },
-    {
-      "path": "testing/mock-store.ts",
-      "isType": false,
-      "lines": 202
-    },
-    {
-      "path": "testing/render-helpers.tsx",
-      "isType": false,
-      "lines": 199
-    },
-    {
-      "path": "testing/snapshot-helpers.ts",
-      "isType": false,
-      "lines": 221
-    },
-    {
-      "path": "testing/test-provider.tsx",
-      "isType": false,
-      "lines": 163
-    },
-    {
-      "path": "testing/test-registry.ts",
-      "isType": false,
-      "lines": 31
     }
   ]
 }

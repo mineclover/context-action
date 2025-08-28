@@ -560,8 +560,8 @@ export interface DispatchOptions {
  *   result: { collect: true, strategy: 'all' }
  * })
  * 
- * // Access all handler results
- * result.results.forEach((handlerResult, index) => {
+ * // Access all handler results - now properly typed
+ * result.successResults.forEach((handlerResult, index) => {
  *   console.log(`Handler ${index} result:`, handlerResult)
  * })
  * 
@@ -588,11 +588,22 @@ export interface ExecutionResult<R = void> {
   /** Whether the execution was terminated early via controller.return() */
   terminated: boolean;
   
-  /** Final result based on result strategy */
+  /** Final result based on result strategy - only present for non-void results */
   result?: R;
   
-  /** All individual handler results (properly typed as potentially undefined) */
+  /** 🔧 Type safety fix: Separate successful results from failed ones */
+  /** All successful handler results (guaranteed non-undefined) */
+  successResults: R[];
+  
+  /** All handler results including undefined from failed handlers (legacy compatibility) */
   results: Array<R | undefined>;
+  
+  /** Failed handler results with error context */
+  failedResults: Array<{
+    handlerId: string;
+    error: Error;
+    expectedType: string;
+  }>;
   
   /** Execution metadata */
   execution: {
@@ -626,7 +637,7 @@ export interface ExecutionResult<R = void> {
     /** Handler execution duration in milliseconds (only present if executed) */
     duration?: number;
     
-    /** Result returned by this handler (properly typed as potentially undefined) */
+    /** Result returned by this handler - properly typed for success/failure */
     result?: R;
     
     /** Error thrown by this handler if any */
@@ -637,16 +648,7 @@ export interface ExecutionResult<R = void> {
   }>;
   
   /** Errors that occurred during execution */
-  errors: Array<{
-    /** ID of the handler that caused the error */
-    handlerId: string;
-    
-    /** The error that occurred */
-    error: Error;
-    
-    /** Timestamp when the error occurred */
-    timestamp: number;
-  }>;
+  errors: HandlerError[];
 }
 
 /**

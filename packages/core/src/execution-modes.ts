@@ -155,9 +155,18 @@ export async function executeSequential<T, R = void>(
     await Promise.allSettled(nonBlockingPromises);
   }
 
-  // 🆕 Store collected errors in context for ExecutionResult
+  // 🔧 Store collected errors in context for ExecutionResult with proper typing
   if (errors.length > 0) {
-    (context as any).collectedErrors = errors;
+    // Convert to proper HandlerError format
+    const handlerErrors: HandlerError[] = errors.map(err => ({
+      handlerId: err.handlerId,
+      error: err.error,
+      timestamp: err.timestamp,
+      severity: 'non-blocking' as const
+    }));
+    
+    // Add to context with proper typing
+    (context as PipelineContext<any, any> & { collectedErrors?: HandlerError[] }).collectedErrors = handlerErrors;
   }
 }
 
