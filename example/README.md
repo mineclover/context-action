@@ -1,222 +1,244 @@
-# Test App
+# Context-Action Example Application
 
-Development and testing environment for the [@context-action/core](../context-action) library.
+Comprehensive demonstration and testing environment for the Context-Action framework, showcasing practical implementations through a **catalog-based architecture**.
 
 ## 🎯 Purpose
 
-This test application serves as:
-- **Development Environment**: Live testing during library development
-- **Usage Examples**: Demonstrates how to use the library
-- **Integration Testing**: Validates library functionality in a real React application
-- **Documentation**: Shows practical implementation patterns
+This example application serves as:
+- **Learning Catalog**: Organized by expertise level and use case
+- **Live Documentation**: Interactive examples of Context-Action patterns
+- **Development Environment**: Testing playground during framework development  
+- **Implementation Reference**: Production-ready code examples and best practices
+
+## 📚 5-Catalog Architecture
+
+The application is organized into **5 specialized catalogs**, each designed for specific learning paths and use cases:
+
+### 🏗️ **Foundations** (`/foundations/`)
+**Target**: New users, developers learning Context-Action basics
+- **Core** - ActionRegister, pipeline fundamentals
+- **Store** - State management, declarative patterns  
+- **React** - Context integration, hooks, providers
+
+### ⚡ **Performance** (`/performance/`) 
+**Target**: Developers solving performance problems
+- **Action Guard** - Debouncing, throttling, advanced filtering
+- **Priority** - Handler execution order, performance metrics
+- **Mouse Events** - High-frequency event optimization
+
+### 🎛️ **Patterns** (`/patterns/`)
+**Target**: Experienced developers implementing complex workflows  
+- **Conditional** - Permission-based execution, form validation
+- **Pipeline** - Flow control, workflow orchestration
+- **Refs** - Advanced reference patterns, performance optimization
+
+### 🧩 **Integrations** (`/integrations/`)
+**Target**: Developers building real applications
+- **Business** - Todo lists, shopping carts, chat systems
+- **Advanced** - Canvas drawing, concurrent actions, form builders
+
+### 🛠️ **Utilities** (`/utilities/`)
+**Target**: Developers improving development workflow
+- **Dev Tools** - Logging, debugging, toast systems
+- **Testing** - Test patterns, validation utilities
 
 ## 🚀 Getting Started
 
-### Prerequisites
-
-- Node.js >= 18.0.0
-- pnpm >= 8.0.0
-
-### Installation
+### Quick Start
 
 From the monorepo root:
+```bash
+pnpm install && pnpm dev
+```
+
+### Development Commands
 
 ```bash
-# Install all dependencies
-pnpm install
+# Development server
+pnpm dev                 # Start development server
+pnpm example:dev         # Alternative command
 
-# Start the development server
-pnpm dev
+# Build commands  
+pnpm build              # TypeScript strict + production build (default)
+pnpm build:fast         # Fast build without TypeScript checking
+pnpm example:build      # Build with TypeScript strict checking
+pnpm example:build:fast # Fast build without TypeScript checking
+
+# Quality assurance
+pnpm lint               # Biome linting 
+pnpm type-check         # TypeScript checking
 ```
 
-Or from this directory:
+### Navigation
 
-```bash
-# Install dependencies (if not already done from root)
-pnpm install
+Visit the application and explore catalogs based on your needs:
+- **New to Context-Action?** → Start with Foundations
+- **Performance issues?** → Jump to Performance catalog
+- **Complex workflows?** → Explore Patterns catalog
+- **Building real apps?** → Check Integrations catalog
+- **Development tools?** → Browse Utilities catalog
 
-# Start development server
-pnpm dev
+## 🏛️ Architecture Patterns Demonstrated
 
-# Build for production
-pnpm build
+### Primary Patterns
 
-# Preview production build
-pnpm preview
-```
-
-## 📱 Application Features
-
-The test app demonstrates the following @context-action/core features:
-
-### 1. **Counter Component**
-- Increment/decrement actions
-- Set specific value action
-- Reset action
-- State management through action pipeline
-
-### 2. **Logger Component**
-- Action event logging
-- Pipeline observer pattern
-- Priority-based handler execution
-
-### 3. **Type Safety**
-- Strict TypeScript integration
-- Action payload type checking
-- IntelliSense support
-
-## 🧩 Code Examples
-
-### Action Type Definition
-
+#### **Action Only Pattern**
+Pure action dispatching without state management
 ```typescript
-interface AppActionMap extends ActionPayloadMap {
-  increment: void;
-  decrement: void;
-  setCount: number;
-  reset: void;
-}
+const { Provider, useActionDispatch, useActionHandler } = createActionContext<EventActions>('Events')
 ```
 
-### Context Setup
+#### **Store Only Pattern** (Recommended)
+Type-safe state management with excellent inference
+```typescript  
+const { Provider, useStore, useStoreManager } = createStoreContext('App', {
+  user: { name: '', email: '' },
+  settings: { theme: 'light' }
+})
+```
 
+#### **MVVM Integration**
+Complete separation of concerns:
+- **View**: React components (presentation)
+- **ViewModel**: Action handlers (business logic)  
+- **Model**: Stores (data management)
+
+### Advanced Patterns
+
+#### **Store Integration 3-Step Process**
+Standard pattern for action handlers:
 ```typescript
-const { Provider, useAction, useActionHandler } = createActionContext<AppActionMap>()
+useActionHandler('updateUser', async (payload) => {
+  // 1. Read current state
+  const currentUser = userStore.getValue()
+  
+  // 2. Execute business logic
+  const updatedUser = { ...currentUser, ...payload }
+  
+  // 3. Update stores
+  userStore.setValue(updatedUser)
+})
 ```
 
-### Handler Registration
+#### **Pattern Composition**
+Combine Action Only + Store Only patterns for complex applications with independent context management per pattern.
 
-```typescript
-// High priority handler (runs first)
-useActionHandler('increment', () => {
-  setCount(prev => prev + 1)
-  console.log('Counter incremented')
-}, { priority: 10 })
+## 📂 Catalog Structure
 
-// Low priority logger (runs after)
-useActionHandler('increment', () => {
-  console.log('Logger: Increment action detected')
-}, { priority: 1 })
+```
+src/pages/
+├── foundations/          🏗️ Core concepts & basic usage
+│   ├── core/            ActionRegister, pipeline fundamentals
+│   ├── store/           Store management, declarative patterns
+│   └── react/           Context integration, hooks
+│
+├── performance/          ⚡ Optimization & action guards
+│   ├── action-guard/    Debouncing, throttling, filtering
+│   ├── priority/        Handler execution order  
+│   └── mouse-events/    High-frequency event handling
+│
+├── patterns/             🎛️ Advanced patterns & workflows
+│   ├── conditional/     Permission-based execution
+│   ├── pipeline/        Flow control, orchestration
+│   └── refs/            Advanced reference patterns
+│
+├── integrations/         🧩 Real-world applications
+│   ├── business/        Todo, shopping, chat examples
+│   └── advanced/        Canvas, concurrent actions
+│
+├── utilities/            🛠️ Development tools
+│   ├── dev-tools/       Logging, debugging, toasts
+│   └── testing/         Test patterns, validation
+│
+└── shared/               Common components & utilities
+    ├── components/      Reusable UI components
+    ├── lib/             Library code & patterns
+    ├── hooks/           Shared hooks
+    └── utils/           Utility functions
 ```
 
-### Action Dispatching
+## 🎯 Key Features Demonstrated
 
-```typescript
-const action = useAction()
+### Type Safety & Developer Experience
+- **Strict TypeScript Integration**: Full type checking across all patterns
+- **IntelliSense Support**: Complete autocompletion for actions and stores
+- **Action Payload Validation**: Compile-time payload type checking
+- **Store Type Inference**: Automatic type inference without manual annotations
 
-// Dispatch actions
-dispatch('increment')
-dispatch('setCount', 42)
-dispatch('reset')
-```
+### Performance Optimization  
+- **Action Guards**: Prevent excessive handler execution
+- **Priority System**: Control handler execution order
+- **Event Optimization**: Handle high-frequency events efficiently
+- **Memory Management**: Proper cleanup and lifecycle handling
+
+### Business Logic Patterns
+- **Handler Registration**: `useActionHandler` + `useCallback` pattern
+- **Store Updates**: Reactive state management with `useStoreValue`
+- **Error Handling**: Pipeline controller abort and error management  
+- **Async Operations**: Async handler support with proper error boundaries
+
+### Development Tools
+- **Live Logging**: Real-time action pipeline monitoring
+- **Toast System**: User feedback and debugging utilities
+- **Performance Metrics**: Handler execution timing and statistics
+- **Debug Components**: Development workflow optimization tools
 
 ## 🔧 Development Workflow
 
-1. **Make Changes**: Edit library code in `../context-action/src/`
-2. **Hot Reload**: Vite automatically reloads the test app
-3. **Test Functionality**: Interact with the UI to test changes
-4. **Check Console**: Monitor action pipeline execution
-5. **Iterate**: Repeat the process
+### For Framework Development
+1. **Edit Core**: Make changes in `packages/core/src/` or `packages/react/src/`
+2. **Hot Reload**: Vite automatically reloads with your changes
+3. **Test Examples**: Navigate to relevant catalog pages to test functionality
+4. **Monitor Console**: Watch action pipeline execution and performance metrics
+5. **Iterate**: Refine and test across multiple catalog examples
 
-## 📂 File Structure
+### For Learning Context-Action
+1. **Start with Foundations**: Learn core concepts systematically
+2. **Explore by Use Case**: Jump to specific catalogs based on your needs
+3. **Copy Patterns**: Use catalog examples as templates for your projects
+4. **Experiment**: Modify examples to understand behavior
+5. **Build Applications**: Apply learned patterns to real projects
 
-```
-packages/test-app/
-├── src/
-│   ├── App.tsx           # Main test application
-│   ├── main.tsx          # React app entry point
-│   └── vite-env.d.ts     # Vite type definitions
-├── index.html            # HTML template
-├── package.json          # Package configuration
-├── tsconfig.json         # TypeScript configuration
-├── vite.config.ts        # Vite configuration
-└── README.md            # This file
-```
+## 🧪 Testing & Quality
 
-## ⚙️ Configuration
+### Built-in Testing Features
+- **Type Safety Validation**: Comprehensive TypeScript strict mode
+- **Hot Module Replacement**: Fast development feedback
+- **Live Error Monitoring**: Real-time error detection and reporting
+- **Performance Profiling**: Handler execution timing and metrics
 
-### Vite Configuration
+### Quality Assurance
+- **Biome Linting**: Modern, fast linting with auto-fixes
+- **TypeScript Checking**: Strict type validation
+- **Build Verification**: Production build testing
+- **Pattern Validation**: Verify patterns work across all catalogs
 
-The app is configured to:
-- Use React with TypeScript
-- Hot reload on changes
-- Resolve `@context-action/core` to the local source code
-- Serve on port 3000
+## 📖 Learning Path Recommendations
 
-### TypeScript Configuration
+### Beginner Path
+1. **Foundations/Core** - Understand ActionRegister basics
+2. **Foundations/Store** - Learn state management patterns  
+3. **Foundations/React** - Master React integration
+4. **Utilities/Dev-Tools** - Set up debugging workflow
 
-- Extends the monorepo root configuration
-- References the library package for proper type resolution
-- Enables strict type checking
+### Intermediate Path
+1. **Performance/Action-Guard** - Optimize user interactions
+2. **Patterns/Conditional** - Implement business rules
+3. **Integrations/Business** - Build complete features
+4. **Performance/Priority** - Fine-tune execution order
 
-## 🧪 Testing Scenarios
+### Advanced Path  
+1. **Patterns/Pipeline** - Orchestrate complex workflows
+2. **Integrations/Advanced** - Handle sophisticated use cases
+3. **Performance/Mouse-Events** - Optimize high-frequency events
+4. **Patterns/Refs** - Master advanced reference patterns
 
-### Basic Functionality
-- ✅ Action dispatching works
-- ✅ Handlers execute in priority order
-- ✅ State updates correctly
-- ✅ Type safety is enforced
+## 🔗 Related Documentation
 
-### Advanced Features
-- ✅ Multiple handlers per action
-- ✅ Pipeline controller methods
-- ✅ Error handling and abort mechanisms
-- ✅ Async handler support
-
-### Integration
-- ✅ React Context integration
-- ✅ Component lifecycle compatibility
-- ✅ TypeScript inference
-- ✅ Hot module replacement
-
-## 🐛 Debugging
-
-### Console Logging
-The app includes comprehensive logging:
-- Action dispatch events
-- Handler execution order
-- State change notifications
-
-### React DevTools
-Use React DevTools to inspect:
-- Component tree structure
-- Context value changes
-- Hook dependencies
-
-### Browser DevTools
-Monitor:
-- Network requests (none expected)
-- Performance metrics
-- JavaScript errors
-
-## 📝 Adding New Tests
-
-To add new test scenarios:
-
-1. **Define new actions** in the `AppActionMap` interface
-2. **Create handler components** that register for the actions
-3. **Add UI controls** to dispatch the actions
-4. **Test the complete flow** from UI to state update
-
-Example:
-
-```typescript
-// 1. Add to action map
-interface AppActionMap extends ActionPayloadMap {
-  // ... existing actions
-  newAction: { data: string };
-}
-
-// 2. Create handler
-useActionHandler('newAction', (payload) => {
-  console.log('New action:', payload.data);
-});
-
-// 3. Add UI
-<button onClick={() => dispatch('newAction', { data: 'test' })}>
-  Test New Action
-</button>
-```
+- [Framework Documentation](../docs/) - Complete Context-Action documentation
+- [Core Package](../packages/core/) - @context-action/core source code
+- [React Package](../packages/react/) - @context-action/react source code
+- [Monorepo Root](../README.md) - Project overview and development setup
 
 ## 🔗 Related
 

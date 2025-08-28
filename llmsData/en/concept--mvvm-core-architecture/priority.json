@@ -1,0 +1,16 @@
+{
+  "documentId": "en_concept_mvvm-core-architecture",
+  "title": "Context-Action MVVM Core Architecture",
+  "category": "concept",
+  "language": "en",
+  "priority": 0.5,
+  "tags": [
+    "typescript",
+    "bash"
+  ],
+  "lastUpdated": "2025-08-28T07:34:22.264Z",
+  "source": {
+    "file": "docs/en/concept/mvvm-core-architecture.md",
+    "lastModified": "2025-08-28T07:30:54.998Z"
+  }
+}
