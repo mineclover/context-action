@@ -25,6 +25,7 @@ npm install @context-action/core  # Pure TypeScript
 ### 30-Second Example
 ```typescript
 import { createStoreContext, useStoreValue } from '@context-action/react';
+import { useCallback } from 'react';
 
 // 1. Create context
 const { Provider, useStore } = createStoreContext('User', {
@@ -112,10 +113,12 @@ const { Provider, useActionDispatch, useActionHandler } =
   createActionContext<UserActions>('UserActions');
 
 function UserLogic() {
-  useActionHandler('updateUser', async (payload) => {
+  const updateUserHandler = useCallback(async (payload) => {
     // Business logic here
     await updateAPI(payload);
-  });
+  }, []);
+  
+  useActionHandler('updateUser', updateUserHandler);
   
   return null; // Logic component
 }
@@ -175,9 +178,11 @@ const user = useStoreValue(userStore); // Reactive subscription
 #### `useActionHandler(action, handler)`
 Register business logic handlers for actions.  
 ```typescript
-useActionHandler('updateUser', async (payload) => {
+const updateUserHandler = useCallback(async (payload) => {
   // Business logic here
-});
+}, []);
+
+useActionHandler('updateUser', updateUserHandler);
 ```
 
 #### `useActionDispatch()`

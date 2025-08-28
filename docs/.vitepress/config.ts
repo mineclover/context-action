@@ -135,5 +135,16 @@ export default defineConfig({
   // 빌드 최적화
   cleanUrls: true,
   lastUpdated: true,
-  metaChunk: true
+  metaChunk: true,
+
+  // 전역 head 설정
+  head: [
+    // /example 경로에서 외부 URL로 리디렉션하는 스크립트
+    ['script', {}, `
+      if (window.location.pathname.startsWith('/context-action/example')) {
+        const path = window.location.pathname.replace('/context-action/example', '');
+        window.location.href = 'https://mineclover.github.io/context-action/example' + path;
+      }
+    `]
+  ]
 })
