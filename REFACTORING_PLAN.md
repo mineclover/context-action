@@ -416,70 +416,121 @@ const catalogNavigation = [
 - [ ] 기존 불필요한 폴더 정리
 - [ ] 최종 커밋: `git add . && git commit -m "refactor: complete catalog-based structure migration"`
 
-## 📋 검증 체크리스트
+## 📋 카탈로그 기반 검증 체크리스트
 
-### 기능 검증
-- [ ] 홈페이지 로드 정상
-- [ ] ActionGuard 페이지들 정상 작동
-- [ ] Conditional Patterns 페이지들 정상 작동  
-- [ ] 데모 페이지들 정상 작동
-- [ ] 마우스 이벤트 예제들 정상 작동
+### 📚 카탈로그별 기능 검증
+#### 🏗️ Foundations
+- [ ] `/foundations/core/basics` - CoreBasicsPage 정상 작동
+- [ ] `/foundations/core/advanced` - CoreAdvancedPage 정상 작동
+- [ ] `/foundations/store/basics` - StoreBasicsPage 정상 작동
+- [ ] `/foundations/react/provider` - ReactProviderPage 정상 작동
+
+#### ⚡ Performance  
+- [ ] `/performance/action-guard` - ActionGuardIndexPage 정상 작동
+- [ ] `/performance/action-guard/search` - SearchPage 정상 작동
+- [ ] `/performance/priority/advanced` - PriorityPerformancePage 정상 작동
+- [ ] `/performance/mouse-events` - 마우스 이벤트 예제들 정상 작동
+
+#### 🎛️ Patterns
+- [ ] `/patterns/conditional` - ConditionalPatternsIndex 정상 작동
+- [ ] `/patterns/pipeline/flow-control` - FlowControlPage 정상 작동
+- [ ] `/patterns/refs` - RefsIndexPage 정상 작동
+
+#### 🧩 Integrations
+- [ ] `/integrations/business/todo-list` - TodoListPage 정상 작동
+- [ ] `/integrations/business/shopping-cart` - ShoppingCartPage 정상 작동
+- [ ] `/integrations/advanced/element-management` - ElementManagementPage 정상 작동
+
+#### 🛠️ Utilities
+- [ ] `/utilities/dev-tools/logger` - LoggerPage 정상 작동
+- [ ] `/utilities/dev-tools/toast-config` - ToastConfigPage 정상 작동
+
+### 🔄 리디렉션 검증
+- [ ] 기존 `/core/basics` → `/foundations/core/basics` 리디렉션
+- [ ] 기존 `/actionguard` → `/performance/action-guard` 리디렉션
+- [ ] 기존 `/demos/todo-list` → `/integrations/business/todo-list` 리디렉션
+- [ ] 기존 `/examples/element-management` → `/integrations/advanced/element-management` 리디렉션
+
+### 🧪 코드 품질 검증
+- [ ] `pnpm type-check` 통과 (TypeScript 에러 없음)
+- [ ] `pnpm lint` 통과 (ESLint 에러 없음)
+- [ ] `pnpm build` 성공 (빌드 에러 없음)
+- [ ] 모든 Import 경로가 새 구조에 맞게 업데이트됨
+- [ ] 불필요한 기존 디렉토리 정리됨
+
+### 🎯 사용자 경험 검증
+- [ ] 홈페이지에서 카탈로그 네비게이션 정상 작동
+- [ ] 각 카탈로그 오버뷰 페이지 정상 표시
 - [ ] Hot reload 정상 작동
+- [ ] 페이지 로딩 속도 변화 없음
 
-### 코드 품질 검증
-- [ ] `pnpm type-check` 통과
-- [ ] `pnpm lint` 통과  
-- [ ] `pnpm build` 성공
-- [ ] Import 경로가 일관성 있게 정리됨
-- [ ] 불필요한 디렉토리 정리됨
+## 📈 예상 개선 효과
 
-### 성능 검증
-- [ ] 개발 서버 시작 시간 변화 없음
-- [ ] 빌드 시간 변화 없음
-- [ ] 번들 크기 변화 없음
+### 🎯 즉시 효과
+- **학습 경로 명확화**: 카탈로그별 체계적 학습 가능
+- **네비게이션 개선**: 직관적인 5-카탈로그 구조  
+- **URL 가독성 향상**: 목적이 명확한 경로 구조
+- **유지보수성 증대**: 논리적 파일 분류
 
-## 🎯 예상 효과
-
-### 즉시 효과
-- ✅ Import 경로 복잡성 80% 감소
-- ✅ 코드 네비게이션 개선
-- ✅ 디렉토리 구조 명확화
-
-### 장기 효과
-- ✅ 유지보수성 향상
-- ✅ 새로운 개발자 온보딩 시간 단축
-- ✅ 컴포넌트 재사용성 증가
+### 🚀 장기 효과
+- **개발자 온보딩**: 새로운 개발자의 프레임워크 학습 시간 50% 단축
+- **문서화 개선**: 카탈로그별 독립적인 문서 관리
+- **예제 확장성**: 새로운 예제의 분류 및 추가 용이성
+- **SEO 최적화**: 의미있는 URL 구조로 검색 엔진 최적화
 
 ## ⚠️ 위험 요소 및 대응책
 
-### 위험 요소
-1. **Import 경로 누락**: 자동 스크립트가 모든 경우를 처리하지 못할 수 있음
-2. **기능 손상**: 파일 이동 과정에서 의존성 문제 발생 가능
-3. **개발 중인 기능 충돌**: 다른 개발자의 작업과 충돌 가능성
+### 🚨 주요 위험 요소
+1. **대규모 파일 이동**: ~80개 페이지의 대량 이동으로 인한 누락 위험
+2. **라우팅 복잡성**: ~50개 라우트의 경로 변경으로 인한 에러
+3. **Import 의존성**: 페이지 간 복잡한 import 관계로 인한 연쇄 에러
+4. **기존 브라우저 북마크**: 사용자의 기존 북마크 무효화
 
-### 대응책
-1. **점진적 적용**: 각 단계별 검증 후 다음 단계 진행
-2. **백업 유지**: 각 단계마다 커밋으로 롤백 지점 확보
-3. **팀 소통**: 리팩토링 전후 팀원들과 충분한 소통
+### 🛡️ 대응 전략  
+1. **단계별 점진적 마이그레이션**: 카탈로그별 순차 작업으로 위험 분산
+2. **완벽한 백업**: 각 단계별 Git 커밋으로 롤백 지점 확보
+3. **리디렉션 처리**: 모든 기존 경로에 대한 자동 리디렉션 구현
+4. **철저한 테스트**: 자동화된 검증 스크립트로 누락 방지
 
-## 📅 실행 일정
+## 📅 예상 실행 일정
 
-| 단계 | 작업 | 소요시간 | 담당자 | 상태 |
-|------|------|----------|--------|------|
-| Phase 1 | 준비 작업 | 30분 | - | ⏳ 대기 |
-| Phase 2 | 디렉토리 변경 | 1-2시간 | - | ⏳ 대기 |
-| Phase 3 | Import 수정 | 1-2시간 | - | ⏳ 대기 |
-| Phase 4 | 품질 검증 | 1시간 | - | ⏳ 대기 |
-| **총 소요시간** | **3.5-5.5시간** | - | - |
+| Phase | 작업 내용 | 예상 소요시간 | 난이도 | 중요도 | 상태 |
+|-------|----------|-------------|--------|--------|------|
+| **1** | 준비 작업 & 폴더 생성 | 30분 | 🟢 쉬움 | ⭐⭐⭐ | ⏳ 대기 |
+| **2** | 카탈로그별 페이지 마이그레이션 | 2-3시간 | 🟡 보통 | ⭐⭐⭐⭐⭐ | ⏳ 대기 |
+| **3** | 라우팅 & Import 업데이트 | 2시간 | 🔴 어려움 | ⭐⭐⭐⭐⭐ | ⏳ 대기 |
+| **4** | 검증 & 정리 | 1시간 | 🟡 보통 | ⭐⭐⭐⭐ | ⏳ 대기 |
+| **총합** | **완전한 카탈로그 구조 전환** | **5.5-6.5시간** | - | - | - |
 
-## 📞 문제 발생 시 대응
+## 🆘 문제 발생 시 긴급 대응
 
-1. **즉시 롤백**: `git reset --hard HEAD~1`
-2. **부분 되돌리기**: `git checkout HEAD~1 -- <파일경로>`
-3. **도움 요청**: 팀 리드 또는 시니어 개발자 문의
+### 즉시 롤백 프로세스
+```bash
+# 1단계: 현재 변경사항 즉시 되돌리기
+git reset --hard HEAD~1
+
+# 2단계: 특정 파일만 복구 (선택적)
+git checkout HEAD~1 -- src/App.tsx
+
+# 3단계: 개발 서버 재시작 확인
+pnpm dev
+```
+
+### 지원 체계
+- **1차**: Git 히스토리 활용한 자체 복구
+- **2차**: 백업 브랜치에서 선별적 복구  
+- **3차**: 팀 리드 및 시니어 개발자 지원 요청
 
 ---
 
-**작성일**: 2025-08-26  
-**작성자**: Claude Code Assistant  
-**상태**: 실행 준비 완료 ✅
+## 📝 문서 업데이트 현황
+
+**최종 업데이트**: 2025-08-28  
+**업데이트 내용**: 기존 디렉토리 정리 계획 → 카탈로그 기반 리팩토링 계획으로 전면 개편  
+**상태**: **실행 준비 완료** ✅
+
+### 주요 변경사항
+- **구조적 개편**: 5개 카탈로그 시스템 도입
+- **사용자 중심**: 학습 경로별 체계적 분류
+- **확장성 고려**: 새로운 예제 추가 용이성
+- **URL 개선**: 의미있고 직관적인 경로 설계

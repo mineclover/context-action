@@ -1,0 +1,15 @@
+{
+  "documentId": "en_guide_troubleshooting",
+  "title": "Troubleshooting Guide",
+  "category": "guide",
+  "language": "en",
+  "priority": 0.5,
+  "tags": [
+    "tsx"
+  ],
+  "lastUpdated": "2025-08-28T06:28:37.918Z",
+  "source": {
+    "file": "docs/en/guide/troubleshooting.md",
+    "lastModified": "2025-08-28T05:42:02.741Z"
+  }
+}
