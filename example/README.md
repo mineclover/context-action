@@ -25,6 +25,7 @@ The application is organized into **5 specialized catalogs**, each designed for 
 - **Action Guard** - Debouncing, throttling, advanced filtering
 - **Priority** - Handler execution order, performance metrics
 - **Mouse Events** - High-frequency event optimization
+- **Memoization** - Performance comparison with/without memoization
 
 ### 🎛️ **Patterns** (`/patterns/`)
 **Target**: Experienced developers implementing complex workflows  
@@ -135,7 +136,8 @@ src/pages/
 ├── performance/          ⚡ Optimization & action guards
 │   ├── action-guard/    Debouncing, throttling, filtering
 │   ├── priority/        Handler execution order  
-│   └── mouse-events/    High-frequency event handling
+│   ├── mouse-events/    High-frequency event handling
+│   └── memoization/     Performance comparison with/without memoization
 │
 ├── patterns/             🎛️ Advanced patterns & workflows
 │   ├── conditional/     Permission-based execution
@@ -169,6 +171,7 @@ src/pages/
 - **Action Guards**: Prevent excessive handler execution
 - **Priority System**: Control handler execution order
 - **Event Optimization**: Handle high-frequency events efficiently
+- **Memoization**: Performance comparison with/without memoization
 - **Memory Management**: Proper cleanup and lifecycle handling
 
 ### Business Logic Patterns
