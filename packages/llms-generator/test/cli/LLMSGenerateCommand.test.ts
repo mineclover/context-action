@@ -30,7 +30,9 @@ describe('LLMSGenerateCommand', () => {
       categories: {
         guide: { priority: 95 },
         api: { priority: 90 },
-        concept: { priority: 85 }
+        concept: { priority: 85 },
+        reference: { priority: 88 },
+        example: { priority: 80 }
       }
     } as CLIConfig;
 
@@ -406,12 +408,29 @@ This is the content.`;
     it('should generate origin pattern with content only', async () => {
       const priority = {
         document: { id: 'guide--getting-started', category: 'guide', language: 'en' },
-        priority: { score: 95, tier: 'high' }
+        priority: { score: 95, tier: 'high' },
+        source: {
+          file: 'docs/en/guide/getting-started.md',
+          lastModified: new Date().toISOString()
+        }
       };
 
       await fs.writeFile(
         path.join(testDataDir, 'llmsData', 'en', 'guide--getting-started', 'priority.json'),
         JSON.stringify(priority, null, 2)
+      );
+
+      // Create the original source file for origin pattern
+      await fs.mkdir(path.join(testDataDir, 'docs', 'en', 'guide'), { recursive: true });
+      const originalContent = `# Getting Started
+
+This is the pure content without metadata.
+
+Origin pattern reads from the original source file.`;
+      
+      await fs.writeFile(
+        path.join(testDataDir, 'docs', 'en', 'guide', 'getting-started.md'),
+        originalContent
       );
 
       const template = `---
@@ -422,7 +441,7 @@ character_limit: 100
 
 # Getting Started
 
-This is the pure content without metadata.`;
+This is template content.`;
 
       await fs.writeFile(
         path.join(testDataDir, 'llmsData', 'en', 'guide--getting-started', 'guide--getting-started-100.md'),
@@ -436,9 +455,10 @@ This is the pure content without metadata.`;
         'utf-8'
       );
 
-      // Should have content only, no metadata
+      // Should have content from original source file
       expect(llmsContent).toContain('Getting Started');
       expect(llmsContent).toContain('pure content without metadata');
+      expect(llmsContent).toContain('Origin pattern reads from');
     });
   });
 
@@ -663,7 +683,11 @@ Content.`;
     it('should preserve markdown formatting in content', async () => {
       const priority = {
         document: { id: 'guide--getting-started', category: 'guide', language: 'en' },
-        priority: { score: 95, tier: 'high' }
+        priority: { score: 95, tier: 'high' },
+        source: {
+          file: 'docs/en/guide/getting-started.md',
+          lastModified: new Date().toISOString()
+        }
       };
 
       await fs.writeFile(
@@ -671,13 +695,9 @@ Content.`;
         JSON.stringify(priority, null, 2)
       );
 
-      const template = `---
-document_id: guide--getting-started
-category: guide
-character_limit: 300
----
-
-# Getting Started
+      // Create the original source file for origin pattern
+      await fs.mkdir(path.join(testDataDir, 'docs', 'en', 'guide'), { recursive: true });
+      const originalContent = `# Getting Started
 
 This guide covers:
 
@@ -689,6 +709,21 @@ This guide covers:
 ## Next Steps
 
 Follow the [advanced guide](./advanced.md) for more information.`;
+      
+      await fs.writeFile(
+        path.join(testDataDir, 'docs', 'en', 'guide', 'getting-started.md'),
+        originalContent
+      );
+
+      const template = `---
+document_id: guide--getting-started
+category: guide
+character_limit: 300
+---
+
+# Getting Started
+
+Template content here.`;
 
       await fs.writeFile(
         path.join(testDataDir, 'llmsData', 'en', 'guide--getting-started', 'guide--getting-started-300.md'),
@@ -702,12 +737,550 @@ Follow the [advanced guide](./advanced.md) for more information.`;
         'utf-8'
       );
 
-      // Should preserve markdown formatting
+      // Should preserve markdown formatting from original source
       expect(llmsContent).toContain('Getting Started');
       expect(llmsContent).toContain('- Installation steps');
       expect(llmsContent).toContain('**Important**');
       expect(llmsContent).toContain('`code examples`');
       expect(llmsContent).toContain('[advanced guide](./advanced.md)');
+    });
+  });
+
+  describe('multiple category support', () => {
+    beforeEach(async () => {
+      // Create additional test directories for multiple category tests
+      await fs.mkdir(path.join(testDataDir, 'llmsData', 'en', 'concept--architecture-guide'), { recursive: true });
+      await fs.mkdir(path.join(testDataDir, 'llmsData', 'en', 'example--basic-usage'), { recursive: true });
+      await fs.mkdir(path.join(testDataDir, 'llmsData', 'en', 'reference--api-hooks'), { recursive: true });
+    });
+
+    it('should filter documents by primary category', async () => {
+      // Create documents with different primary categories
+      const conceptPriority = {
+        document: { 
+          id: 'concept--architecture-guide', 
+          category: 'concept', 
+          language: 'en',
+          title: 'Context-Action Store Integration Architecture'
+        },
+        priority: { score: 85, tier: 'medium' },
+        tags: {
+          primary: ['core', 'architecture', 'advanced'],
+          secondary: ['guide', 'reference', 'mvvm'],
+          audience: ['framework-users', 'developers', 'intermediate']
+        }
+      };
+
+      const guidePriority = {
+        document: { 
+          id: 'guide--getting-started', 
+          category: 'guide', 
+          language: 'en',
+          title: 'Getting Started Guide'
+        },
+        priority: { score: 95, tier: 'high' },
+        tags: {
+          primary: ['beginner', 'quick-start'],
+          secondary: ['tutorial', 'setup'],
+          audience: ['new-users', 'beginners']
+        }
+      };
+
+      const examplePriority = {
+        document: { 
+          id: 'example--basic-usage', 
+          category: 'example', 
+          language: 'en',
+          title: 'Basic Usage Example'
+        },
+        priority: { score: 80, tier: 'medium' },
+        tags: {
+          primary: ['practical', 'code', 'sample'],
+          secondary: ['tutorial', 'beginner'],
+          audience: ['developers', 'beginners']
+        }
+      };
+
+      // Write priority files
+      await fs.writeFile(
+        path.join(testDataDir, 'llmsData', 'en', 'concept--architecture-guide', 'priority.json'),
+        JSON.stringify(conceptPriority, null, 2)
+      );
+
+      await fs.writeFile(
+        path.join(testDataDir, 'llmsData', 'en', 'guide--getting-started', 'priority.json'),
+        JSON.stringify(guidePriority, null, 2)
+      );
+
+      await fs.writeFile(
+        path.join(testDataDir, 'llmsData', 'en', 'example--basic-usage', 'priority.json'),
+        JSON.stringify(examplePriority, null, 2)
+      );
+
+      // Create template files
+      const conceptTemplate = `---
+document_id: concept--architecture-guide
+category: concept
+character_limit: 200
+---
+
+# Architecture Guide
+
+Concept content about architecture.`;
+
+      const guideTemplate = `---
+document_id: guide--getting-started
+category: guide
+character_limit: 200
+---
+
+# Getting Started
+
+Guide content for beginners.`;
+
+      const exampleTemplate = `---
+document_id: example--basic-usage
+category: example
+character_limit: 200
+---
+
+# Basic Usage
+
+Example code and usage.`;
+
+      await fs.writeFile(
+        path.join(testDataDir, 'llmsData', 'en', 'concept--architecture-guide', 'concept--architecture-guide-200.md'),
+        conceptTemplate
+      );
+
+      await fs.writeFile(
+        path.join(testDataDir, 'llmsData', 'en', 'guide--getting-started', 'guide--getting-started-200.md'),
+        guideTemplate
+      );
+
+      await fs.writeFile(
+        path.join(testDataDir, 'llmsData', 'en', 'example--basic-usage', 'example--basic-usage-200.md'),
+        exampleTemplate
+      );
+
+      // Test filtering by concept category
+      await llmsGenerateCommand.execute({ category: 'concept' });
+
+      // Check if LLMS file was generated
+      const llmsFiles = [
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms.txt'),
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms-concept.txt')
+      ];
+
+      let conceptLLMSContent = '';
+      let foundFile = false;
+      
+      for (const filePath of llmsFiles) {
+        try {
+          conceptLLMSContent = await fs.readFile(filePath, 'utf-8');
+          foundFile = true;
+          break;
+        } catch {
+          // Try next file
+        }
+      }
+
+      expect(foundFile).toBe(true);
+      
+      // Should contain concept content
+      expect(conceptLLMSContent).toContain('Architecture Guide');
+      expect(conceptLLMSContent).toContain('Concept content about architecture');
+
+      // Should not contain guide or example content
+      expect(conceptLLMSContent).not.toContain('Getting Started');
+      expect(conceptLLMSContent).not.toContain('Basic Usage');
+    });
+
+    it('should include documents in multiple categories via tags.secondary', async () => {
+      // Create a concept document that should also appear in guide and reference categories
+      const conceptPriority = {
+        document: { 
+          id: 'concept--architecture-guide', 
+          category: 'concept', 
+          language: 'en',
+          title: 'Architecture Guide with Multiple Tags'
+        },
+        priority: { score: 85, tier: 'medium' },
+        tags: {
+          primary: ['core', 'architecture', 'advanced'],
+          secondary: ['guide', 'reference', 'mvvm'], // Should appear in guide and reference filters
+          audience: ['framework-users', 'developers', 'intermediate']
+        }
+      };
+
+      const referencePriority = {
+        document: { 
+          id: 'reference--api-hooks', 
+          category: 'reference', 
+          language: 'en',
+          title: 'API Hooks Reference'
+        },
+        priority: { score: 90, tier: 'high' },
+        tags: {
+          primary: ['reference', 'technical', 'api'],
+          secondary: ['hooks', 'developer'],
+          audience: ['developers', 'advanced']
+        }
+      };
+
+      await fs.writeFile(
+        path.join(testDataDir, 'llmsData', 'en', 'concept--architecture-guide', 'priority.json'),
+        JSON.stringify(conceptPriority, null, 2)
+      );
+
+      await fs.writeFile(
+        path.join(testDataDir, 'llmsData', 'en', 'reference--api-hooks', 'priority.json'),
+        JSON.stringify(referencePriority, null, 2)
+      );
+
+      // Create template files
+      const conceptTemplate = `---
+document_id: concept--architecture-guide
+category: concept
+character_limit: 300
+---
+
+# Architecture Guide
+
+This concept document also serves as a guide and reference.`;
+
+      const referenceTemplate = `---
+document_id: reference--api-hooks
+category: reference
+character_limit: 300
+---
+
+# API Hooks Reference
+
+Comprehensive API hooks documentation.`;
+
+      await fs.writeFile(
+        path.join(testDataDir, 'llmsData', 'en', 'concept--architecture-guide', 'concept--architecture-guide-300.md'),
+        conceptTemplate
+      );
+
+      await fs.writeFile(
+        path.join(testDataDir, 'llmsData', 'en', 'reference--api-hooks', 'reference--api-hooks-300.md'),
+        referenceTemplate
+      );
+
+      // Test filtering by reference category - should include both documents
+      await llmsGenerateCommand.execute({ category: 'reference' });
+
+      // Check if LLMS file was generated
+      const llmsFiles = [
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms.txt'),
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms-reference.txt')
+      ];
+
+      let referenceLLMSContent = '';
+      let foundFile = false;
+      
+      for (const filePath of llmsFiles) {
+        try {
+          referenceLLMSContent = await fs.readFile(filePath, 'utf-8');
+          foundFile = true;
+          break;
+        } catch {
+          // Try next file
+        }
+      }
+
+      expect(foundFile).toBe(true);
+      
+      // Should contain both documents:
+      // 1. reference--api-hooks (primary category = reference)
+      // 2. concept--architecture-guide (secondary tags includes 'reference')
+      expect(referenceLLMSContent).toContain('Api Hooks'); // This is from the template content
+      expect(referenceLLMSContent).toContain('Architecture Guide');
+      expect(referenceLLMSContent).toContain('serves as a guide and reference');
+      expect(referenceLLMSContent).toContain('Comprehensive API hooks documentation');
+    });
+
+    it('should handle missing tags gracefully', async () => {
+      // Create documents with and without tags structure
+      const withTagsPriority = {
+        document: { 
+          id: 'concept--architecture-guide', 
+          category: 'concept', 
+          language: 'en'
+        },
+        priority: { score: 85, tier: 'medium' },
+        tags: {
+          primary: ['core'],
+          secondary: ['guide']
+        }
+      };
+
+      const withoutTagsPriority = {
+        document: { 
+          id: 'guide--getting-started', 
+          category: 'guide', 
+          language: 'en'
+        },
+        priority: { score: 95, tier: 'high' }
+        // No tags property
+      };
+
+      await fs.writeFile(
+        path.join(testDataDir, 'llmsData', 'en', 'concept--architecture-guide', 'priority.json'),
+        JSON.stringify(withTagsPriority, null, 2)
+      );
+
+      await fs.writeFile(
+        path.join(testDataDir, 'llmsData', 'en', 'guide--getting-started', 'priority.json'),
+        JSON.stringify(withoutTagsPriority, null, 2)
+      );
+
+      const conceptTemplate = `---
+document_id: concept--architecture-guide
+category: concept
+character_limit: 200
+---
+
+# Architecture Guide
+
+Content with tags.`;
+
+      const guideTemplate = `---
+document_id: guide--getting-started
+category: guide
+character_limit: 200
+---
+
+# Getting Started
+
+Content without tags.`;
+
+      await fs.writeFile(
+        path.join(testDataDir, 'llmsData', 'en', 'concept--architecture-guide', 'concept--architecture-guide-200.md'),
+        conceptTemplate
+      );
+
+      await fs.writeFile(
+        path.join(testDataDir, 'llmsData', 'en', 'guide--getting-started', 'guide--getting-started-200.md'),
+        guideTemplate
+      );
+
+      // Test filtering by guide category - should include both:
+      // 1. guide--getting-started (primary category = guide)
+      // 2. concept--architecture-guide (secondary tags includes 'guide')
+      await llmsGenerateCommand.execute({ category: 'guide' });
+
+      // Check if LLMS file was generated
+      const llmsFiles = [
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms.txt'),
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms-guide.txt')
+      ];
+
+      let guideLLMSContent = '';
+      let foundFile = false;
+      
+      for (const filePath of llmsFiles) {
+        try {
+          guideLLMSContent = await fs.readFile(filePath, 'utf-8');
+          foundFile = true;
+          break;
+        } catch {
+          // Try next file
+        }
+      }
+
+      expect(foundFile).toBe(true);
+
+      expect(guideLLMSContent).toContain('Getting Started');
+      expect(guideLLMSContent).toContain('Architecture Guide');
+      expect(guideLLMSContent).toContain('Content without tags');
+      expect(guideLLMSContent).toContain('Content with tags');
+    });
+
+    it('should handle empty tags.secondary arrays', async () => {
+      const priority = {
+        document: { 
+          id: 'concept--architecture-guide', 
+          category: 'concept', 
+          language: 'en'
+        },
+        priority: { score: 85, tier: 'medium' },
+        tags: {
+          primary: ['core'],
+          secondary: [] // Empty secondary tags
+        }
+      };
+
+      await fs.writeFile(
+        path.join(testDataDir, 'llmsData', 'en', 'concept--architecture-guide', 'priority.json'),
+        JSON.stringify(priority, null, 2)
+      );
+
+      const template = `---
+document_id: concept--architecture-guide
+category: concept
+character_limit: 200
+---
+
+# Architecture Guide
+
+Content with empty secondary tags.`;
+
+      await fs.writeFile(
+        path.join(testDataDir, 'llmsData', 'en', 'concept--architecture-guide', 'concept--architecture-guide-200.md'),
+        template
+      );
+
+      // Test filtering by concept category - should include the document
+      await llmsGenerateCommand.execute({ category: 'concept' });
+
+      // Check if LLMS file was generated
+      const llmsFiles = [
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms.txt'),
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms-concept.txt')
+      ];
+
+      let conceptLLMSContent = '';
+      let foundFile = false;
+      
+      for (const filePath of llmsFiles) {
+        try {
+          conceptLLMSContent = await fs.readFile(filePath, 'utf-8');
+          foundFile = true;
+          break;
+        } catch {
+          // Try next file
+        }
+      }
+
+      expect(foundFile).toBe(true);
+      
+      expect(conceptLLMSContent).toContain('Architecture Guide');
+      expect(conceptLLMSContent).toContain('empty secondary tags');
+    });
+
+    it('should filter correctly when category not found in any tags', async () => {
+      const priority = {
+        document: { 
+          id: 'concept--architecture-guide', 
+          category: 'concept', 
+          language: 'en'
+        },
+        priority: { score: 85, tier: 'medium' },
+        tags: {
+          primary: ['core'],
+          secondary: ['advanced'] // Does not include 'api' category
+        }
+      };
+
+      await fs.writeFile(
+        path.join(testDataDir, 'llmsData', 'en', 'concept--architecture-guide', 'priority.json'),
+        JSON.stringify(priority, null, 2)
+      );
+
+      const template = `---
+document_id: concept--architecture-guide
+category: concept
+character_limit: 200
+---
+
+# Architecture Guide
+
+Concept content.`;
+
+      await fs.writeFile(
+        path.join(testDataDir, 'llmsData', 'en', 'concept--architecture-guide', 'concept--architecture-guide-200.md'),
+        template
+      );
+
+      // Test filtering by 'api' category - should not include this document
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+
+      try {
+        await llmsGenerateCommand.execute({ category: 'api' });
+        
+        const output = consoleSpy.mock.calls.map(call => call.join(' ')).join('\n');
+        
+        // Should show that no documents were found for 'api' category
+        expect(output.includes('Documents: 0') || output.includes('No documents found') || output.includes('0 documents found')).toBe(true);
+        
+      } finally {
+        consoleSpy.mockRestore();
+      }
+
+      // Check that no LLMS file was generated or file is empty/minimal
+      const llmsFiles = [
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms.txt'),
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms-api.txt')
+      ];
+
+      for (const filePath of llmsFiles) {
+        const llmsExists = await fs.access(filePath).then(() => true).catch(() => false);
+        
+        if (llmsExists) {
+          const llmsContent = await fs.readFile(filePath, 'utf-8');
+          // If file exists, it should not contain the concept document
+          expect(llmsContent).not.toContain('Architecture Guide');
+        }
+      }
+    });
+
+    it('should handle malformed priority.json files during category filtering', async () => {
+      // Create a malformed priority.json file
+      const malformedPriorityJson = `{
+  "document": {
+    "id": "concept--architecture-guide",
+    "category": "concept",
+    "language": "en"
+  },
+  "priority": {
+    "score": 85,
+    "tier": "medium"
+  },
+  "tags": {
+    "primary": ["core"],
+    "secondary": ["guide" // Missing closing bracket
+  }
+}`;
+
+      await fs.writeFile(
+        path.join(testDataDir, 'llmsData', 'en', 'concept--architecture-guide', 'priority.json'),
+        malformedPriorityJson
+      );
+
+      const template = `---
+document_id: concept--architecture-guide
+category: concept
+character_limit: 200
+---
+
+# Architecture Guide
+
+Content with malformed priority.json.`;
+
+      await fs.writeFile(
+        path.join(testDataDir, 'llmsData', 'en', 'concept--architecture-guide', 'concept--architecture-guide-200.md'),
+        template
+      );
+
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      try {
+        // Should handle malformed JSON gracefully
+        await llmsGenerateCommand.execute({ category: 'concept' });
+        
+        // Should not crash and handle the error gracefully
+        expect(true).toBe(true);
+        
+      } finally {
+        consoleSpy.mockRestore();
+        consoleWarnSpy.mockRestore();
+        consoleErrorSpy.mockRestore();
+      }
     });
   });
 });

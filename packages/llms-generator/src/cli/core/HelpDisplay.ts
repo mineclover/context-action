@@ -48,10 +48,11 @@ export class HelpDisplay {
     console.log('                                   [-l, --language <lang>] [-c, --category <cat>]');
     console.log('                                   [-p, --pattern clean|minimal|raw] [--dry-run] [-v, --verbose]');
     console.log('');
-    console.log('  llms-generate [options]          Generate standard LLMS files with metadata');
+    console.log('  llms-generate [options]          Generate combined LLMS files with optional total size limit');
     console.log('                                   [-c, --character-limit <num>] [--category <cat>]');
     console.log('                                   [-l, --language <lang>] [-p, --pattern standard|minimum|origin]');
     console.log('                                   [--dry-run] [-v, --verbose]');
+    console.log('                                   Note: --character-limit sets the final output file size limit');
     console.log('');
     console.log('DOCUMENTATION SYNC:');
     console.log('  sync-docs [options]              Sync documentation changes (used by pre-commit hooks)');
@@ -104,9 +105,10 @@ export class HelpDisplay {
     console.log('  llms clean-llms-generate --category guide --pattern minimal');
     console.log('  llms clean-llms-generate 100 --pattern raw --dry-run');
     console.log('');
-    console.log('  # Generate standard LLMS with metadata');
-    console.log('  llms llms-generate --character-limit 300 --language ko');
-    console.log('  llms llms-generate --category guide --pattern minimum');
+    console.log('  # Generate combined LLMS files (character-limit = total output size)');
+    console.log('  llms llms-generate --character-limit 5000 --language ko  # 5000 chars total');
+    console.log('  llms llms-generate --category guide --pattern origin     # Original docs combined');
+    console.log('  llms llms-generate --pattern minimum                     # Priority-based summary');
     console.log('');
     console.log('  # Sync documentation changes (for pre-commit hooks)');
     console.log('  llms sync-docs --changed-files="docs/en/guide/example.md" --quiet');

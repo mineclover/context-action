@@ -38,9 +38,31 @@
       "context-action"
     ]
   },
+  "tags": {
+    "primary": [
+      "core",
+      "architecture",
+      "advanced"
+    ],
+    "secondary": [
+      "guide",
+      "reference",
+      "mvvm"
+    ],
+    "audience": [
+      "framework-users",
+      "developers",
+      "intermediate"
+    ]
+  },
   "metadata": {
     "description": "The Context-Action framework is a **revolutionary state management system** designed to overcome the fundamental limitations of existing libraries through document-centric context separation and effective artifact management.",
     "language": "en",
     "created_at": "2025-08-21T02:13:42.314Z"
+  },
+  "lastUpdated": "2025-08-28T12:06:03.830Z",
+  "source": {
+    "file": "docs/en/concept/architecture-guide.md",
+    "lastModified": "2025-08-28T08:44:08.619Z"
   }
 }

@@ -175,15 +175,59 @@ export class LLMSGenerateCommand {
         const files = await fs.readdir(documentPath);
         const templateFiles = files.filter(f => f.endsWith('.md') && f.includes(documentId));
 
-        for (const templateFile of templateFiles) {
-          const characterLimit = this.extractCharacterLimit(templateFile);
-          if (characterLimit === null) continue;
-
-          const filePath = path.join(documentPath, templateFile);
-          const document = await this.parseDocument(filePath, documentId, category, language, characterLimit, options);
-          
-          if (document && this.isDocumentComplete(document)) {
+        // For origin pattern, we'll collect document info but read from original source
+        if (options.pattern === 'origin') {
+          // Just collect one representative document per source to get metadata
+          const priorityFile = path.join(documentPath, 'priority.json');
+          try {
+            const priorityData = JSON.parse(await fs.readFile(priorityFile, 'utf-8'));
+            const document: DocumentContent = {
+              documentId,
+              category,
+              language,
+              characterLimit: 0, // Not relevant for origin pattern
+              title: priorityData.document?.title || documentId,
+              content: '', // Will be filled from original source
+              priority: priorityData.priority?.score || 50,
+              filePath: '', // Not used
+              metadata: {
+                completion_status: 'completed',
+                workflow_stage: 'content_generated',
+                content_length: 0
+              }
+            };
             documents.push(document);
+          } catch (priorityError) {
+            // Fallback to first template file if priority.json doesn't exist
+            if (templateFiles.length > 0) {
+              const templateFile = templateFiles[0];
+              const characterLimit = this.extractCharacterLimit(templateFile);
+              if (characterLimit !== null) {
+                const filePath = path.join(documentPath, templateFile);
+                const document = await this.parseDocument(filePath, documentId, category, language, characterLimit, options);
+                if (document) {
+                  documents.push(document);
+                }
+              }
+            }
+          }
+        } else {
+          // For other patterns, collect all template files (existing behavior)
+          for (const templateFile of templateFiles) {
+            const characterLimit = this.extractCharacterLimit(templateFile);
+            if (characterLimit === null) continue;
+
+            // If character limit is specified, only collect matching templates
+            if (options.characterLimit && characterLimit !== options.characterLimit) {
+              continue;
+            }
+
+            const filePath = path.join(documentPath, templateFile);
+            const document = await this.parseDocument(filePath, documentId, category, language, characterLimit, options);
+            
+            if (document && this.isDocumentComplete(document)) {
+              documents.push(document);
+            }
           }
         }
       } catch (error) {
@@ -552,12 +596,49 @@ export class LLMSGenerateCommand {
       filtered = filtered.filter(doc => doc.characterLimit === options.characterLimit);
     }
 
-    // Filter by category
+    // Filter by category (enhanced with tags support)
     if (options.category) {
-      filtered = filtered.filter(doc => doc.category === options.category);
+      filtered = filtered.filter(doc => {
+        // Check primary category
+        if (doc.category === options.category) {
+          return true;
+        }
+
+        // Check tags.secondary for additional categories
+        try {
+          const priorityPath = this.getPriorityJsonPath(doc);
+          if (this.fileExistsSync(priorityPath)) {
+            const priorityData = require('fs').readFileSync(priorityPath, 'utf-8');
+            const priority = JSON.parse(priorityData);
+            
+            if (priority.tags && priority.tags.secondary) {
+              return priority.tags.secondary.includes(options.category);
+            }
+          }
+        } catch (error) {
+          // Fallback to primary category only
+        }
+
+        return false;
+      });
     }
 
     return filtered;
+  }
+
+  private getPriorityJsonPath(doc: DocumentContent): string {
+    // Construct path to priority.json for this document
+    const documentDir = path.join(this.config.paths.llmContentDir, doc.language, doc.documentId);
+    return path.join(documentDir, 'priority.json');
+  }
+
+  private fileExistsSync(filePath: string): boolean {
+    try {
+      require('fs').accessSync(filePath);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   private sortDocuments(documents: DocumentContent[], sortBy: string): DocumentContent[] {
@@ -595,27 +676,40 @@ export class LLMSGenerateCommand {
 
     // Simple header with character limit info
     if (characterLimit) {
-      content += `# Documentation (${characterLimit} chars)\n\n`;
+      content += `# Documentation (${characterLimit} chars limit)\n\n`;
       content += `Generated: ${new Date().toISOString().split('T')[0]}\n`;
       content += `Type: ${pattern === 'minimum' ? 'Minimum' : pattern === 'origin' ? 'Origin' : 'Standard'}\n`;
       content += `Language: ${language?.toUpperCase() || 'EN'}\n\n`;
-      
-      content += `This document contains ${characterLimit}-character summaries of the documentation.\n\n`;
     } else {
       content += `# Documentation\n\n`;
     }
 
     // Generate content based on pattern
+    let mainContent = '';
     switch (pattern) {
       case 'minimum':
-        content += this.generateMinimumContent(documents);
+        mainContent = this.generateMinimumContent(documents);
         break;
       case 'origin':
-        content += this.generateOriginContent(documents);
+        mainContent = this.generateOriginContent(documents, options);
         break;
       default:
-        content += this.generateStandardContent(documents);
+        mainContent = this.generateStandardContent(documents);
     }
+
+    // Apply character limit if specified
+    if (characterLimit) {
+      // Reserve space for header and footer
+      const headerLength = content.length;
+      const footerLength = '\n\n---\n\n*Generated automatically on 2025-08-28*\n'.length;
+      const availableSpace = characterLimit - headerLength - footerLength;
+      
+      if (availableSpace > 0 && mainContent.length > availableSpace) {
+        mainContent = mainContent.substring(0, availableSpace - 3) + '...';
+      }
+    }
+    
+    content += mainContent;
 
     // Simple footer
     content += '\n\n---\n\n';
@@ -768,23 +862,73 @@ export class LLMSGenerateCommand {
     return content;
   }
 
-  private generateOriginContent(documents: DocumentContent[]): string {
-    let content = '## Complete Documentation Content\n\n';
+  private generateOriginContent(documents: DocumentContent[], options: LLMSGenerateOptions): string {
+    let content = '';
     
-    documents.forEach((doc, index) => {
-      const readableTitle = this.formatReadableTitle(doc.title);
-      content += `===================[ DOC: ${this.getRelativeSourcePath(doc)} ]===================\n`;
-      content += `## ${readableTitle}\n`;
-      content += `*Source: [${this.getRelativeSourcePath(doc)}](${this.getRelativeSourcePath(doc)}) | Category: ${doc.category} | Priority: ${doc.priority} | Characters: ${doc.metadata.content_length}*\n\n`;
-      content += `${doc.content}\n\n`;
-      
-      // Add separator between documents
-      if (index < documents.length - 1) {
-        content += `\n`;
+    // Group documents by their original source path
+    const documentsBySource = new Map<string, DocumentContent[]>();
+    
+    documents.forEach(doc => {
+      const sourcePath = this.getOriginalSourcePath(doc);
+      if (!documentsBySource.has(sourcePath)) {
+        documentsBySource.set(sourcePath, []);
       }
+      documentsBySource.get(sourcePath)!.push(doc);
     });
 
+    // Process each unique source document once
+    let processedCount = 0;
+    for (const [sourcePath, docs] of documentsBySource) {
+      // Take the highest priority document for this source
+      const bestDoc = docs.sort((a, b) => b.priority - a.priority)[0];
+      
+      try {
+        // Try to read the original source file
+        const originalContent = this.readOriginalSourceFile(sourcePath);
+        if (originalContent) {
+          content += originalContent;
+        } else {
+          // Fallback to processed content without metadata
+          content += bestDoc.content;
+        }
+      } catch (error) {
+        // Fallback to processed content without metadata
+        content += bestDoc.content;
+      }
+      
+      // Add separator between documents (but not at the end)
+      processedCount++;
+      if (processedCount < documentsBySource.size) {
+        content += '\n\n';
+      }
+    }
+
     return content;
+  }
+
+  private getOriginalSourcePath(doc: DocumentContent): string {
+    // Extract the original source path from document metadata or reconstruct it
+    const parts = doc.documentId.split('--');
+    if (parts.length >= 2) {
+      const category = parts[0];
+      const filename = parts.slice(1).join('-');
+      return `${doc.language}/${category}/${filename}.md`;
+    }
+    return `${doc.language}/${doc.category}/${doc.documentId}.md`;
+  }
+
+  private readOriginalSourceFile(relativePath: string): string | null {
+    try {
+      // Construct the full path to the original source file
+      const fullPath = path.join(this.config.paths.docsDir, relativePath);
+      const fileContent = require('fs').readFileSync(fullPath, 'utf-8');
+      
+      // Remove frontmatter if present
+      const { content } = matter(fileContent);
+      return content;
+    } catch (error) {
+      return null;
+    }
   }
 
   private async writeOutput(content: string, options: LLMSGenerateOptions): Promise<string> {

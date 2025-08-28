@@ -256,9 +256,11 @@ pnpm docs:full         # Full documentation build pipeline
 The project includes a sophisticated **LLMS Generator** system that automatically converts long documentation into multiple summary lengths (100-5000 characters) with priority management.
 
 **🎯 Quick Overview:**
-- **Purpose**: Converts `docs/ko/concept/pattern-guide.md` → `llmsData/ko/concept--pattern-guide/` with 7 different summary lengths
+- **Template Generation**: Converts `docs/ko/concept/pattern-guide.md` → `llmsData/ko/concept--pattern-guide/` with 7 different summary lengths
+- **Document Combination**: Creates single LLMS files by combining multiple documents with size limits
 - **Auto-trigger**: Git post-commit hook processes changed docs automatically
-- **Most used**: `pnpm llms:sync-docs --changed-files docs/path/to/file.md`
+- **Most used**: `pnpm llms:sync-docs --changed-files docs/path/to/file.md` (templates)
+- **New feature**: `llms-generate --character-limit 1000 --pattern origin` (combined files)
 
 **Core Commands:**
 
@@ -278,6 +280,17 @@ pnpm llms:sync-docs:dry     # Preview mode without making changes
 # Template Generation & Management
 pnpm llms:generate-templates  # Generate character-limited templates (100-5000 chars)
 pnpm llms:init              # Initialize LLMS system in new projects
+
+# LLMS File Generation (Combine Documents)
+node packages/llms-generator/dist/cli/index.js llms-generate [options]
+# Options:
+# --character-limit <num>     Set total output file size limit (e.g., 1000, 5000)
+# --pattern <type>           Choose generation pattern:
+#   - standard: Template-based document sections with metadata
+#   - minimum: Priority-based summary with category organization
+#   - origin: Original source documents combined (no processing)
+# --category <cat>           Filter by category (concept, guide, examples)
+# --language <lang>          Filter by language (en, ko)
 
 # Work Management
 pnpm llms:work-next         # Find next documentation work based on priorities
@@ -300,6 +313,25 @@ node packages/llms-generator/dist/cli/index.js work-next --language en --verbose
 
 # Dry run and testing
 node packages/llms-generator/dist/cli/index.js sync-docs --dry-run --changed-files files...
+
+# LLMS File Generation Examples
+node packages/llms-generator/dist/cli/index.js llms-generate --character-limit 1000 --pattern standard
+# → Creates 1000-character combined file with all documents
+
+node packages/llms-generator/dist/cli/index.js llms-generate --character-limit 5000 --pattern origin
+# → Creates 5000-character file with original source documents combined
+
+node packages/llms-generator/dist/cli/index.js llms-generate --category concept --pattern origin
+# → Combines only concept category documents (no size limit)
+
+node packages/llms-generator/dist/cli/index.js llms-generate --pattern minimum --language ko
+# → Creates priority-based summary for Korean documents
+
+# Recommended Usage Patterns:
+# For LLM training: --pattern origin (clean source text)
+# For documentation overview: --pattern minimum (priority summary)  
+# For template-based content: --pattern standard (structured format)
+# For size-constrained contexts: --character-limit 1000-5000
 ```
 
 #### Automated Workflow (Post-commit Hook)
