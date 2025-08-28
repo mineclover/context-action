@@ -25,7 +25,47 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      has-changes: ${{ steps.check.outputs.has-changes }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for relevant changes
+        id: check
+        run: |
+          # 마지막 배포 이후 변경된 파일들 확인
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+          
+          # 관련 파일들이 변경되었는지 확인
+          RELEVANT_CHANGES=false
+          
+          if echo "$CHANGED_FILES" | grep -E "(docs/|example/|packages/.*/src/|package\.json)"; then
+            RELEVANT_CHANGES=true
+          fi
+          
+          # 문서나 예제 관련 파일이 변경되었는지 확인
+          if echo "$CHANGED_FILES" | grep -E "(\.md$|\.tsx?$|\.jsx?$|\.css$|\.html$)"; then
+            RELEVANT_CHANGES=true
+          fi
+          
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+          echo "has-changes=$RELEVANT_CHANGES" >> $GITHUB_OUTPUT
+          
+          if [ "$RELEVANT_CHANGES" = "true" ]; then
+            echo "✅ Relevant changes detected, proceeding with deployment"
+          else
+            echo "⏭️ No relevant changes detected, skipping deployment"
+          fi
+
   build:
+    needs: check-changes
+    if: needs.check-changes.outputs.has-changes == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -133,11 +173,11 @@ jobs:
           path: deploy-dist
 
   deploy:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && needs.check-changes.outputs.has-changes == 'true'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    needs: build
+    needs: [check-changes, build]
     runs-on: ubuntu-latest
     name: Deploy
     steps:
