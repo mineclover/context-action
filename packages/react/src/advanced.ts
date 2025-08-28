@@ -17,11 +17,7 @@ export { useStoreSelector } from './stores/hooks/useStoreSelector';
 export { usePersistedStore } from './stores/hooks/usePersistedStore';
 export { useLocalStore } from './stores/hooks/useLocalStore';
 
-// Store Components
-export { StoreErrorBoundary } from './stores/components/StoreErrorBoundary';
-export type { 
-  StoreErrorBoundaryProps 
-} from './stores/components/StoreErrorBoundary';
+
 
 // Provider Composition Utilities
 export { 
@@ -51,6 +47,17 @@ export {
   safeAsync,
   safeSync
 } from './stores/utils/error-handling';
+
+// Error Boundary Components
+export {
+  StoreErrorBoundary,
+  withStoreErrorBoundary,
+  createStoreErrorBoundary
+} from './stores/components/StoreErrorBoundary';
+export type {
+  StoreErrorBoundaryProps,
+  StoreErrorBoundaryState
+} from './stores/components/StoreErrorBoundary';
 
 // All patterns from patterns index
 export * from './patterns';

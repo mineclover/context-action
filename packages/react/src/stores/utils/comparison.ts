@@ -2,9 +2,9 @@
 
 export type ComparisonStrategy = 'reference' | 'shallow' | 'deep' | 'custom';
 
-export type CustomComparator<T = any> = (oldValue: T, newValue: T) => boolean;
+export type CustomComparator<T = unknown> = (oldValue: T, newValue: T) => boolean;
 
-export interface ComparisonOptions<T = any> {
+export interface ComparisonOptions<T = unknown> {
   strategy: ComparisonStrategy;
   customComparator?: CustomComparator<T>;
   maxDepth?: number;
@@ -67,8 +67,8 @@ export function shallowEquals<T>(oldValue: T, newValue: T, ignoreKeys: string[] 
   }
 
   // 객체 처리
-  const oldKeys = Object.keys(oldValue as any).filter(key => !ignoreKeys.includes(key));
-  const newKeys = Object.keys(newValue as any).filter(key => !ignoreKeys.includes(key));
+  const oldKeys = Object.keys(oldValue as Record<string, unknown>).filter(key => !ignoreKeys.includes(key));
+  const newKeys = Object.keys(newValue as Record<string, unknown>).filter(key => !ignoreKeys.includes(key));
 
   if (oldKeys.length !== newKeys.length) {
     return false;
@@ -79,7 +79,7 @@ export function shallowEquals<T>(oldValue: T, newValue: T, ignoreKeys: string[] 
       return false;
     }
     
-    if (!Object.is((oldValue as any)[key], (newValue as any)[key])) {
+    if (!Object.is((oldValue as Record<string, unknown>)[key], (newValue as Record<string, unknown>)[key])) {
       return false;
     }
   }
@@ -98,12 +98,10 @@ export function deepEquals<T>(
 ): boolean {
   const { maxDepth = 5, ignoreKeys = [], enableCircularCheck = true } = options;
   
-  // 강화된 순환 참조 감지 시스템
-  const visitedA = enableCircularCheck ? new WeakSet() : null;
-  const visitedB = enableCircularCheck ? new WeakSet() : null;
-  const pairPath = enableCircularCheck ? new Map() : null;
+  // 개선된 순환 참조 감지 시스템
+  const visitedPairs = enableCircularCheck ? new WeakMap<object, WeakSet<object>>() : null;
   
-  function deepCompare(a: any, b: any, depth: number, path = ''): boolean {
+  function deepCompare(a: unknown, b: unknown, depth: number, path = ''): boolean {
     // 최대 깊이 초과 시 참조 비교로 fallback
     if (depth > maxDepth) {
       return Object.is(a, b);
@@ -129,23 +127,27 @@ export function deepEquals<T>(
       return a === b;
     }
 
-    // 강화된 순환 참조 체크
-    if (visitedA && visitedB && pairPath) {
-      // 개별 객체 순환 참조 확인
-      if (visitedA.has(a) || visitedB.has(b)) {
-        return Object.is(a, b);
-      }
-      
-      // 비교 쌍의 순환 참조 확인 (더 정교한 감지)
-      if (pairPath.has(a) && pairPath.get(a).has(b)) {
-        return Object.is(a, b);
+    // 개선된 순환 참조 체크
+    if (visitedPairs && typeof a === 'object' && typeof b === 'object' && a !== null && b !== null) {
+      // 비교 쌍의 순환 참조 확인
+      if (visitedPairs.has(a)) {
+        const pairedSet = visitedPairs.get(a)!;
+        if (pairedSet.has(b)) {
+          return Object.is(a, b);
+        }
       }
       
       // 방문 기록 추가
-      visitedA.add(a);
-      visitedB.add(b);
-      if (!pairPath.has(a)) pairPath.set(a, new WeakSet());
-      pairPath.get(a).add(b);
+      if (!visitedPairs.has(a)) {
+        visitedPairs.set(a, new WeakSet());
+      }
+      visitedPairs.get(a)!.add(b);
+      
+      // 반대 방향도 기록 (대칭적 추적)
+      if (!visitedPairs.has(b)) {
+        visitedPairs.set(b, new WeakSet());
+      }
+      visitedPairs.get(b)!.add(a);
     }
 
     // Date 객체 처리
@@ -179,8 +181,8 @@ export function deepEquals<T>(
     }
 
     // 객체 처리
-    const aKeys = Object.keys(a).filter(key => !ignoreKeys.includes(key));
-    const bKeys = Object.keys(b).filter(key => !ignoreKeys.includes(key));
+    const aKeys = Object.keys(a as Record<string, unknown>).filter(key => !ignoreKeys.includes(key));
+    const bKeys = Object.keys(b as Record<string, unknown>).filter(key => !ignoreKeys.includes(key));
 
     if (aKeys.length !== bKeys.length) {
       return false;
@@ -191,7 +193,7 @@ export function deepEquals<T>(
         return false;
       }
       
-      if (!deepCompare(a[key], b[key], depth + 1, `${path}.${key}`)) {
+      if (!deepCompare((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key], depth + 1, `${path}.${key}`)) {
         return false;
       }
     }
@@ -350,13 +352,13 @@ export function fastCompare<T>(oldValue: T, newValue: T): boolean {
   }
 
   // 6. 작은 객체의 경우 얕은 비교
-  const oldKeys = Object.keys(oldValue as any);
+  const oldKeys = Object.keys(oldValue as Record<string, unknown>);
   if (oldKeys.length <= 5) { // 프로퍼티가 5개 이하인 작은 객체
-    const newKeys = Object.keys(newValue as any);
+    const newKeys = Object.keys(newValue as Record<string, unknown>);
     if (oldKeys.length === newKeys.length) {
       return oldKeys.every(key => 
         newKeys.includes(key) && 
-        Object.is((oldValue as any)[key], (newValue as any)[key])
+        Object.is((oldValue as Record<string, unknown>)[key], (newValue as Record<string, unknown>)[key])
       );
     }
   }

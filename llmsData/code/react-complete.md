@@ -1,7 +1,7 @@
 # Context-Action React Package - Complete Code
 
-Total Files: 40
-Total Lines: 4983
+Total Files: 45
+Total Lines: 5167
 
 ## Type Definitions
 
@@ -132,16 +132,16 @@ export type RefEventListener<T extends RefTarget = RefTarget> = (
 export type Listener = () => void;
 export type Unsubscribe = () => void;
 export type Subscribe = (listener: Listener) => Unsubscribe;
-export interface Snapshot<T = any> {
+export interface Snapshot<T = unknown> {
   value: T;
   name: string;
   lastUpdate: number;
 }
-export interface IStore<T = any> {
+export interface IStore<T = unknown> {
   readonly name: string;
   subscribe: Subscribe;
   getSnapshot: () => Snapshot<T>;
-  setValue: (value: T) => void;
+  setValue: (value: T, options?: StoreSetValueOptions<T>) => void;
   update: (updater: (current: T) => T) => void;
   getValue: () => T;
   getListenerCount?: () => number;
@@ -161,12 +161,12 @@ export interface IStoreRegistry {
   clear: () => void;
   forEach: (callback: (store: IStore, name: string) => void) => void;
 }
-export interface EventHandler<T = any> {
+export interface EventHandler<T = unknown> {
   (data: T): void;  
 }
 export interface IEventBus {
-  on: <T = any>(event: string, handler: EventHandler<T>) => Unsubscribe;  
-  emit: <T = any>(event: string, data?: T) => void;                       
+  on: <T = unknown>(event: string, handler: EventHandler<T>) => Unsubscribe;  
+  emit: <T = unknown>(event: string, data?: T) => void;                       
   off: (event: string, handler?: EventHandler) => void;                   
   clear: () => void;                                                      
 }
@@ -179,8 +179,14 @@ export interface HookOptions<T> {
   onError?: (error: Error) => void;     
   dependencies?: React.DependencyList;  
 }
+export interface StoreSetValueOptions<T> {
+  skipClone?: boolean;
+  skipComparison?: boolean;
+  eventHandling?: 'block' | 'transform' | 'allow';
+  eventTransform?: (event: any) => T;
+}
 export interface RegistryStoreMap {
-  [key: string]: any;  
+  [key: string]: unknown;  
 }
 export interface DynamicStoreOptions<T> {
   defaultValue?: T;                              
@@ -240,14 +246,14 @@ export function createActionContext<T extends {}>(
     }
     return context;
   };
-  const useAction = (): ActionRegister<T>['dispatch'] => {
-    const context = useFactoryActionContext();
-    const wrappedDispatch = useCallback(<K extends keyof T>(
+  const useActionDispatcher = () => {
+    const { actionRegisterRef } = useFactoryActionContext();
+    const dispatch = useCallback(<K extends keyof T>(
       action: K,
       payload?: T[K],
       options?: DispatchOptions
     ): Promise<void> => {
-      const register = context.actionRegisterRef.current;
+      const register = actionRegisterRef.current;
       if (!register) {
         throw new Error(
           'ActionRegister is not initialized. ' +
@@ -263,7 +269,29 @@ export function createActionContext<T extends {}>(
       };
       return register.dispatch(action, payload, dispatchOptions);
     }, []); 
-    return wrappedDispatch as ActionRegister<T>['dispatch'];
+    const dispatchWithResult = useCallback(<K extends keyof T, R = void>(
+      action: K,
+      payload?: T[K],
+      options?: DispatchOptions
+    ): Promise<ExecutionResult<R>> => {
+      const register = actionRegisterRef.current;
+      if (!register) {
+        throw new Error('ActionRegister not initialized');
+      }
+      const dispatchOptions: DispatchOptions = {
+        ...options,
+        autoAbort: options?.signal ? undefined : {
+          enabled: true,
+          allowHandlerAbort: true
+        }
+      };
+      return register.dispatchWithResult<K, R>(action, payload, dispatchOptions);
+    }, []);
+    return { dispatch, dispatchWithResult };
+  };
+  const useAction = (): ActionRegister<T>['dispatch'] => {
+    const { dispatch } = useActionDispatcher();
+    return dispatch;
   };
   const useActionHandler = <K extends keyof T>(
     action: K,
@@ -271,23 +299,42 @@ export function createActionContext<T extends {}>(
     config?: HandlerConfig
   ): void => {
     const { actionRegisterRef } = useFactoryActionContext();
+    const unregisterRef = useRef<() => void | null>(null);
     const handlerRef = useRef(handler);
-    const configRef = useRef(config);
     const actionId = useId();
-    handlerRef.current = handler;
-    configRef.current = config;
+    useEffect(() => {
+      handlerRef.current = handler;
+    }, [handler]);
+    const stableHandler = useCallback<ActionHandler<T[K]>>(
+      (payload, controller) => {
+        return handlerRef.current(payload, controller);
+      },
+      [] 
+    );
     useEffect(() => {
       const register = actionRegisterRef.current;
       if (!register) {
         return;
       }
-      const unregister = register.register(
+      if (unregisterRef.current) {
+        unregisterRef.current();
+      }
+      unregisterRef.current = register.register(
         action,
-        handlerRef.current,
-        { ...configRef.current, id: actionId }
+        stableHandler,
+        {
+          ...config,
+          replaceExisting: true,
+          id: config?.id || `react_${String(action)}_${actionId}`
+        }
       );
-      return unregister;
-    }, [action, actionId]); 
+      return () => {
+        if (unregisterRef.current) {
+          unregisterRef.current();
+          unregisterRef.current = null;
+        }
+      };
+    }, [action, actionId, stableHandler, config]);
   };
   const useFactoryActionRegister = (): ActionRegister<T> | null => {
     const context = useFactoryActionContext();
@@ -413,10 +460,6 @@ export { useComputedStore } from './stores/hooks/useComputedStore';
 export { useStoreSelector } from './stores/hooks/useStoreSelector';
 export { usePersistedStore } from './stores/hooks/usePersistedStore';
 export { useLocalStore } from './stores/hooks/useLocalStore';
-export { StoreErrorBoundary } from './stores/components/StoreErrorBoundary';
-export type { 
-  StoreErrorBoundaryProps 
-} from './stores/components/StoreErrorBoundary';
 export { 
   composeProviders
 } from './stores/utils/provider-composition';
@@ -440,6 +483,15 @@ export {
   safeAsync,
   safeSync
 } from './stores/utils/error-handling';
+export {
+  StoreErrorBoundary,
+  withStoreErrorBoundary,
+  createStoreErrorBoundary
+} from './stores/components/StoreErrorBoundary';
+export type {
+  StoreErrorBoundaryProps,
+  StoreErrorBoundaryState
+} from './stores/components/StoreErrorBoundary';
 export * from './patterns';
 export * from './hooks';
 ```
@@ -706,6 +758,8 @@ export type {
 export { createStore, Store } from './stores/core/Store';
 export { useStoreValue } from './stores/hooks/useStoreValue';
 export type { IStore, Snapshot } from './stores/core/types';
+export { StoreErrorBoundary } from './stores/components/StoreErrorBoundary';
+export type { StoreErrorBoundaryProps } from './stores/components/StoreErrorBoundary';
 export { createStoreContext } from './stores/patterns/declarative-store-pattern-v2';
 export { createRefContext } from './refs/createRefContext';
 export type { RefContextReturn, CreateRefContextOptions } from './refs/createRefContext';
@@ -747,16 +801,7 @@ import type {
   RefInitConfig,
   InferRefTypes
 } from './types';
-interface InternalRefState<T> {
-  target: T | null;
-  isMounted: boolean;
-  mountPromise: Promise<T> | null;
-  mountResolvers: Set<(target: T) => void>;
-  mountRejectors: Set<(error: Error) => void>;
-  operationInProgress: boolean;
-  listeners: Set<() => void>;
-  mountCallbacks: Set<(target: T) => void>;
-}
+import { useRefMount, useRefOperation, useRefPolling as useRefPollingHook, type InternalRefState, type RefPollingOptions } from './hooks';
 export interface RefContextReturn<T> {
   Provider: React.FC<{ children: ReactNode }>;
   useRefHandler: <K extends keyof T>(refName: K) => {
@@ -781,13 +826,7 @@ export interface RefContextReturn<T> {
   useGetAllRefs: () => () => Partial<T>;
   useRefPolling: () => <K extends keyof T>(
     refName: K,
-    options?: {
-      interval?: number;
-      timeout?: number;
-      onTick?: (elapsed: number, isMounted: boolean) => void;
-      onTimeout?: (elapsed: number) => void;
-      onSuccess?: (elapsed: number, target: T[K]) => void;
-    }
+    options?: RefPollingOptions
   ) => {
     promise: Promise<T[K]>;
     cancel: () => void;
@@ -946,6 +985,13 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
       return unsubscribe;
     }, [refNameStr, subscribeToRef]);
     const refState = getRefState(refNameStr);
+    const { waitForMount, onMount, isMounted, isWaitingForMount } = useRefMount(
+      refState, 
+      refNameStr, 
+      optionsRef, 
+      definitionsRef
+    );
+    const { withTarget, executeIfMounted } = useRefOperation(refState);
     return useMemo(() => ({
       setRef: (target: T[K]) => {
         setRefTarget(refNameStr, target);
@@ -953,141 +999,18 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
       get target(): T[K] | null {
         return refState.target;
       },
-      waitForMount: async (): Promise<T[K]> => {
-        if (refState.target && refState.isMounted) {
-          return refState.target as T[K];
-        }
-        if (refState.mountPromise) {
-          return refState.mountPromise as Promise<T[K]>;
-        }
-        const globalOptions = optionsRef.current;
-        const refConfig = definitionsRef.current?.[refNameStr] as RefInitConfig<any> | undefined;
-        let timeoutMs: number | undefined;
-        if (globalOptions?.disableTimeout) {
-          timeoutMs = undefined;
-        } else if (refConfig?.mountTimeout !== undefined) {
-          timeoutMs = refConfig.mountTimeout;
-        } else if (globalOptions?.defaultMountTimeout !== undefined) {
-          timeoutMs = globalOptions.defaultMountTimeout;
-        }
-        refState.mountPromise = new Promise<T[K]>((resolve, reject) => {
-          refState.mountResolvers.add(resolve);
-          refState.mountRejectors.add(reject);
-          if (timeoutMs !== undefined && timeoutMs > 0) {
-            const timeoutId = setTimeout(() => {
-              const error = new Error(`Mount timeout after ${timeoutMs}ms for ref '${refNameStr}'`);
-              refState.mountRejectors.forEach(rejector => rejector(error));
-              refState.mountRejectors.clear();
-              refState.mountResolvers.clear();
-              refState.mountPromise = null;
-            }, timeoutMs);
-            const originalResolve = resolve;
-            const originalReject = reject;
-            const cleanupResolve = (value: T[K]) => {
-              clearTimeout(timeoutId);
-              originalResolve(value);
-            };
-            const cleanupReject = (error: Error) => {
-              clearTimeout(timeoutId);
-              originalReject(error);
-            };
-            refState.mountResolvers.delete(resolve);
-            refState.mountRejectors.delete(reject);
-            refState.mountResolvers.add(cleanupResolve);
-            refState.mountRejectors.add(cleanupReject);
-          }
-        });
-        return refState.mountPromise;
-      },
-      withTarget: async <Result>(
+      waitForMount: () => waitForMount() as Promise<T[K]>,
+      withTarget: withTarget as <Result>(
         operation: RefOperation<T[K] & RefTarget, Result>,
         options?: RefOperationOptions
-      ): Promise<RefOperationResult<Result>> => {
-        try {
-          const target = await (async () => {
-            if (refState.target && refState.isMounted) {
-              return refState.target;
-            }
-            if (refState.mountPromise) {
-              return refState.mountPromise;
-            }
-            refState.mountPromise = new Promise<any>((resolve, reject) => {
-              refState.mountResolvers.add(resolve);
-              refState.mountRejectors.add(reject);
-            });
-            return refState.mountPromise;
-          })();
-          while (refState.operationInProgress) {
-            await new Promise(resolve => setTimeout(resolve, 10));
-          }
-          refState.operationInProgress = true;
-          const startTime = Date.now();
-          try {
-            if (options?.signal?.aborted) {
-              throw new Error('Operation aborted');
-            }
-            const timeoutPromise = options?.timeout
-              ? new Promise<never>((_, reject) => {
-                  setTimeout(() => reject(new Error('Operation timed out')), options.timeout);
-                })
-              : null;
-            const operationPromise = operation(target, options);
-            const result = timeoutPromise
-              ? await Promise.race([operationPromise, timeoutPromise])
-              : await operationPromise;
-            return {
-              success: true,
-              result,
-              duration: Date.now() - startTime,
-              timestamp: Date.now()
-            };
-          } catch (error) {
-            return {
-              success: false,
-              error: error as Error,
-              duration: Date.now() - startTime,
-              timestamp: Date.now()
-            };
-          } finally {
-            refState.operationInProgress = false;
-          }
-        } catch (error) {
-          return {
-            success: false,
-            error: error as Error,
-            timestamp: Date.now()
-          };
-        }
-      },
-      get isMounted() {
-        return refState.isMounted;
-      },
-      get isWaitingForMount() {
-        return !refState.isMounted && refState.mountPromise !== null;
-      },
-      onMount: (callback: (target: T[K]) => void) => {
-        refState.mountCallbacks.add(callback);
-        if (refState.isMounted && refState.target) {
-          callback(refState.target as T[K]);
-        }
-        return () => {
-          refState.mountCallbacks.delete(callback);
-        };
-      },
-      executeIfMounted: <Result>(
+      ) => Promise<RefOperationResult<Result>>,
+      isMounted,
+      isWaitingForMount,
+      onMount: (callback: (target: T[K]) => void) => onMount(callback as (target: any) => void),
+      executeIfMounted: executeIfMounted as <Result>(
         operation: (target: T[K] & RefTarget) => Result
-      ): Result | null => {
-        if (refState.target && refState.isMounted) {
-          try {
-            return operation(refState.target);
-          } catch (error) {
-            console.error('Error in executeIfMounted:', error);
-            return null;
-          }
-        }
-        return null;
-      }
-    }), [refState, setRefTarget, refNameStr, definitionsRef, optionsRef]);
+      ) => Result | null
+    }), [refState, setRefTarget, refNameStr, waitForMount, withTarget, executeIfMounted, onMount, isMounted, isWaitingForMount]);
   };
   const useWaitForRefs = () => {
     const { getRefState } = useRefContext();
@@ -1139,78 +1062,19 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
   };
   const useRefPolling = () => {
     const { getRefState } = useRefContext();
+    const createPolling = useRefPollingHook();
     return useCallback(<K extends keyof T>(
       refName: K,
-      options: {
-        interval?: number;
-        timeout?: number;
-        onTick?: (elapsed: number, isMounted: boolean) => void;
-        onTimeout?: (elapsed: number) => void;
-        onSuccess?: (elapsed: number, target: T[K]) => void;
-      } = {}
+      options: RefPollingOptions = {}
     ) => {
-      const {
-        interval = 100,
-        timeout = 4000,
-        onTick,
-        onTimeout,
-        onSuccess
-      } = options;
-      let cancelled = false;
-      let startTime = performance.now();
-      let intervalId: NodeJS.Timeout;
-      let timeoutId: NodeJS.Timeout;
       const refNameStr = String(refName);
       const refState = getRefState(refNameStr);
-      const getCurrentMountedState = () => {
-        const currentRefState = getRefState(refNameStr);
-        return currentRefState.isMounted && currentRefState.target !== null;
+      return createPolling(refState, refNameStr, options) as {
+        promise: Promise<T[K]>;
+        cancel: () => void;
+        isMounted: () => boolean;
       };
-      const promise = new Promise<T[K]>((resolve, reject) => {
-        if (getCurrentMountedState()) {
-          const elapsed = performance.now() - startTime;
-          const target = refState.target as T[K];
-          onSuccess?.(elapsed, target);
-          resolve(target);
-          return;
-        }
-        timeoutId = setTimeout(() => {
-          if (!cancelled) {
-            cancelled = true;
-            clearInterval(intervalId);
-            const elapsed = performance.now() - startTime;
-            onTimeout?.(elapsed);
-            reject(new Error(`Ref polling timeout after ${elapsed.toFixed(0)}ms for ref '${refNameStr}'`));
-          }
-        }, timeout);
-        intervalId = setInterval(() => {
-          if (cancelled) return;
-          const elapsed = performance.now() - startTime;
-          const isMounted = getCurrentMountedState();
-          onTick?.(elapsed, isMounted);
-          if (isMounted) {
-            cancelled = true;
-            clearInterval(intervalId);
-            clearTimeout(timeoutId);
-            const currentRefState = getRefState(refNameStr);
-            const target = currentRefState.target as T[K];
-            onSuccess?.(elapsed, target);
-            resolve(target);
-          }
-        }, interval);
-      });
-      return {
-        promise,
-        cancel: () => {
-          if (!cancelled) {
-            cancelled = true;
-            clearInterval(intervalId);
-            clearTimeout(timeoutId);
-          }
-        },
-        isMounted: getCurrentMountedState
-      };
-    }, [getRefState]);
+    }, [getRefState, createPolling]);
   };
   return {
     Provider,
@@ -1267,6 +1131,295 @@ export function customRef<T extends RefTarget>(
 }
 ```
 
+### refs/hooks/index.ts
+
+```typescript
+export { useRefMount, type InternalRefState } from './useRefMount';
+export { useRefOperation } from './useRefOperation';
+export { useRefPolling, type RefPollingOptions, type RefPollingReturn } from './useRefPolling';
+```
+
+### refs/hooks/useRefMount.ts
+
+```typescript
+import { useCallback } from 'react';
+import type { RefInitConfig } from '../types';
+import type { CreateRefContextOptions } from '../createRefContext';
+export interface InternalRefState<T> {
+  target: T | null;
+  isMounted: boolean;
+  mountPromise: Promise<T> | null;
+  mountResolvers: Set<(target: T) => void>;
+  mountRejectors: Set<(error: Error) => void>;
+  operationInProgress: boolean;
+  listeners: Set<() => void>;
+  mountCallbacks: Set<(target: T) => void>;
+}
+export function useRefMount<T>(
+  refState: InternalRefState<T>,
+  refNameStr: string,
+  optionsRef: React.MutableRefObject<CreateRefContextOptions | undefined>,
+  definitionsRef: React.MutableRefObject<any>
+) {
+  const waitForMount = useCallback(async (): Promise<T> => {
+    if (refState.target && refState.isMounted) {
+      return refState.target;
+    }
+    if (refState.mountPromise) {
+      return refState.mountPromise;
+    }
+    const globalOptions = optionsRef.current;
+    const refConfig = definitionsRef.current?.[refNameStr] as RefInitConfig<any> | undefined;
+    let timeoutMs: number | undefined;
+    if (globalOptions?.disableTimeout) {
+      timeoutMs = undefined;
+    } else if (refConfig?.mountTimeout !== undefined) {
+      timeoutMs = refConfig.mountTimeout;
+    } else if (globalOptions?.defaultMountTimeout !== undefined) {
+      timeoutMs = globalOptions.defaultMountTimeout;
+    }
+    refState.mountPromise = new Promise<T>((resolve, reject) => {
+      refState.mountResolvers.add(resolve);
+      refState.mountRejectors.add(reject);
+      if (timeoutMs !== undefined && timeoutMs > 0) {
+        const timeoutId = setTimeout(() => {
+          const error = new Error(`Mount timeout after ${timeoutMs}ms for ref '${refNameStr}'`);
+          refState.mountRejectors.forEach(rejector => rejector(error));
+          refState.mountRejectors.clear();
+          refState.mountResolvers.clear();
+          refState.mountPromise = null;
+        }, timeoutMs);
+        const originalResolve = resolve;
+        const originalReject = reject;
+        const cleanupResolve = (value: T) => {
+          clearTimeout(timeoutId);
+          originalResolve(value);
+        };
+        const cleanupReject = (error: Error) => {
+          clearTimeout(timeoutId);
+          originalReject(error);
+        };
+        refState.mountResolvers.delete(resolve);
+        refState.mountRejectors.delete(reject);
+        refState.mountResolvers.add(cleanupResolve);
+        refState.mountRejectors.add(cleanupReject);
+      }
+    });
+    return refState.mountPromise;
+  }, [refState, refNameStr, optionsRef, definitionsRef]);
+  const onMount = useCallback((callback: (target: T) => void) => {
+    refState.mountCallbacks.add(callback);
+    if (refState.isMounted && refState.target) {
+      callback(refState.target);
+    }
+    return () => {
+      refState.mountCallbacks.delete(callback);
+    };
+  }, [refState]);
+  return {
+    waitForMount,
+    onMount,
+    isMounted: refState.isMounted,
+    isWaitingForMount: !refState.isMounted && refState.mountPromise !== null
+  };
+}
+```
+
+### refs/hooks/useRefOperation.ts
+
+```typescript
+import { useCallback } from 'react';
+import type { RefOperation, RefOperationOptions, RefOperationResult, RefTarget } from '../types';
+import type { InternalRefState } from './useRefMount';
+export function useRefOperation<T>(
+  refState: InternalRefState<T>
+) {
+  const withTarget = useCallback(async <Result>(
+    operation: RefOperation<T & RefTarget, Result>,
+    options?: RefOperationOptions
+  ): Promise<RefOperationResult<Result>> => {
+    try {
+      const target = await (async () => {
+        if (refState.target && refState.isMounted) {
+          return refState.target;
+        }
+        if (refState.mountPromise) {
+          return refState.mountPromise;
+        }
+        refState.mountPromise = new Promise<T>((resolve, reject) => {
+          refState.mountResolvers.add(resolve);
+          refState.mountRejectors.add(reject);
+        });
+        return refState.mountPromise;
+      })();
+      while (refState.operationInProgress) {
+        await new Promise(resolve => setTimeout(resolve, 10));
+      }
+      refState.operationInProgress = true;
+      const startTime = Date.now();
+      try {
+        if (options?.signal?.aborted) {
+          throw new Error('Operation aborted');
+        }
+        const timeoutPromise = options?.timeout
+          ? new Promise<never>((_, reject) => {
+              setTimeout(() => reject(new Error('Operation timed out')), options.timeout);
+            })
+          : null;
+        const operationPromise = operation(target as T & RefTarget, options);
+        const result = timeoutPromise
+          ? await Promise.race([operationPromise, timeoutPromise])
+          : await operationPromise;
+        return {
+          success: true,
+          result,
+          duration: Date.now() - startTime,
+          timestamp: Date.now()
+        };
+      } catch (error) {
+        return {
+          success: false,
+          error: error as Error,
+          duration: Date.now() - startTime,
+          timestamp: Date.now()
+        };
+      } finally {
+        refState.operationInProgress = false;
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error as Error,
+        timestamp: Date.now()
+      };
+    }
+  }, [refState]);
+  const executeIfMounted = useCallback(<Result>(
+    operation: (target: T & RefTarget) => Result
+  ): Result | null => {
+    if (refState.target && refState.isMounted) {
+      try {
+        return operation(refState.target);
+      } catch (error) {
+        console.error('Error in executeIfMounted:', error);
+        return null;
+      }
+    }
+    return null;
+  }, [refState]);
+  return {
+    withTarget,
+    executeIfMounted
+  };
+}
+```
+
+### refs/hooks/useRefPolling.ts
+
+```typescript
+import { useCallback } from 'react';
+import type { InternalRefState } from './useRefMount';
+export interface RefPollingOptions {
+  interval?: number;
+  timeout?: number;
+  onTick?: (elapsed: number, isMounted: boolean) => void;
+  onTimeout?: (elapsed: number) => void;
+  onSuccess?: (elapsed: number, target: any) => void;
+}
+export interface RefPollingReturn<T> {
+  promise: Promise<T>;
+  cancel: () => void;
+  isMounted: () => boolean;
+}
+export function useRefPolling() {
+  const createPolling = useCallback(<T>(
+    refState: InternalRefState<T>,
+    refName: string,
+    options: RefPollingOptions = {}
+  ): RefPollingReturn<T> => {
+    const {
+      interval = 100,
+      timeout,
+      onTick,
+      onTimeout,
+      onSuccess
+    } = options;
+    let cancelled = false;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    const startTime = Date.now();
+    const promise = new Promise<T>((resolve, reject) => {
+      const cleanup = () => {
+        if (intervalId) {
+          clearInterval(intervalId);
+          intervalId = null;
+        }
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+      };
+      const check = () => {
+        if (cancelled) {
+          cleanup();
+          reject(new Error('Polling cancelled'));
+          return;
+        }
+        const elapsed = Date.now() - startTime;
+        const isMounted = refState.isMounted && refState.target !== null;
+        if (onTick) {
+          try {
+            onTick(elapsed, isMounted);
+          } catch (error) {
+            console.error('Error in polling onTick callback:', error);
+          }
+        }
+        if (isMounted && refState.target) {
+          cleanup();
+          if (onSuccess) {
+            try {
+              onSuccess(elapsed, refState.target);
+            } catch (error) {
+              console.error('Error in polling onSuccess callback:', error);
+            }
+          }
+          resolve(refState.target);
+          return;
+        }
+      };
+      if (timeout && timeout > 0) {
+        timeoutId = setTimeout(() => {
+          cleanup();
+          const elapsed = Date.now() - startTime;
+          if (onTimeout) {
+            try {
+              onTimeout(elapsed);
+            } catch (error) {
+              console.error('Error in polling onTimeout callback:', error);
+            }
+          }
+          reject(new Error(`Polling timeout after ${timeout}ms for ref '${refName}'`));
+        }, timeout);
+      }
+      check();
+      intervalId = setInterval(check, interval);
+    });
+    const cancel = () => {
+      cancelled = true;
+    };
+    const isMounted = () => {
+      return refState.isMounted && refState.target !== null;
+    };
+    return {
+      promise,
+      cancel,
+      isMounted
+    };
+  }, []);
+  return createPolling;
+}
+```
+
 ### refs/index.ts
 
 ```typescript
@@ -1287,6 +1440,20 @@ export type {
 export { 
   customRef
 } from './helpers';
+```
+
+### stores/components/index.ts
+
+```typescript
+export {
+  StoreErrorBoundary,
+  withStoreErrorBoundary,
+  createStoreErrorBoundary
+} from './StoreErrorBoundary';
+export type {
+  StoreErrorBoundaryProps,
+  StoreErrorBoundaryState
+} from './StoreErrorBoundary';
 ```
 
 ### stores/components/StoreErrorBoundary.tsx
@@ -1728,8 +1895,8 @@ export type {
 ### stores/core/Store.ts
 
 ```typescript
-import type { IStore, Listener, Snapshot, Unsubscribe } from './types';
-import { deepClone } from '../utils/immutable';
+import type { IStore, Listener, Snapshot, Unsubscribe, StoreSetValueOptions } from './types';
+import { safeGet, safeSet } from '../utils/immutable';
 import { 
   compareValues, 
   fastCompare, 
@@ -1737,7 +1904,7 @@ import {
 } from '../utils/comparison';
 import { TypeGuards } from '../utils/type-guards';
 import { ErrorHandlers } from '../utils/error-handling';
-export class Store<T = any> implements IStore<T> {
+export class Store<T = unknown> implements IStore<T> {
   private listeners = new Set<Listener>();
   protected _value: T;
   protected _snapshot: Snapshot<T>;
@@ -1746,11 +1913,12 @@ export class Store<T = any> implements IStore<T> {
   private notificationMode: 'batched' | 'immediate' = 'batched';
   private pendingNotification = false;
   private batchedUpdates = new Set<() => void>();
-  private batchTimeoutId: number | NodeJS.Timeout | null = null;
+  private batchTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private readonly BATCH_DELAY_MS = 16; 
   public readonly name: string;
   private customComparator?: (oldValue: T, newValue: T) => boolean;
   private comparisonOptions?: Partial<ComparisonOptions<T>>;
+  private cloningEnabled: boolean = true;
   constructor(name: string, initialValue: T) {
     this.name = name;
     this._value = initialValue;
@@ -1766,30 +1934,60 @@ export class Store<T = any> implements IStore<T> {
     return this._snapshot;
   };
   getValue(): T {
-    return deepClone(this._value);
+    return safeGet(this._value, this.cloningEnabled);
   }
-  setValue(value: T, options?: { skipClone?: boolean; skipComparison?: boolean }): void {
+  setValue(value: T, options?: StoreSetValueOptions<T>): void {
     if (TypeGuards.isObject(value)) {
       if (!TypeGuards.isRefState(value) && TypeGuards.isSuspiciousEventObject(value)) {
+        const eventHandling = options?.eventHandling || 'block';
         const hasEventTarget = TypeGuards.hasTargetProperty(value);
         const hasPreventDefault = TypeGuards.isEventLike(value);
         const isEvent = TypeGuards.isDOMEvent(value);
-        ErrorHandlers.store(
-          'Event object detected in Store.setValue - this may cause memory leaks',
-          {
-            storeName: this.name,
-            valueType: typeof value,
-            constructorName: value?.constructor?.name,
-            isEvent,
-            hasTargetProperty: hasEventTarget,
-            hasPreventDefault,
-            problematicProperties: TypeGuards.findProblematicProperties(value)
-          }
-        );
-        return;
+        switch (eventHandling) {
+          case 'allow':
+            break;
+          case 'transform':
+            if (options?.eventTransform) {
+              try {
+                value = options.eventTransform(value);
+              } catch (error) {
+                ErrorHandlers.store(
+                  'Event transformation failed in Store.setValue',
+                  {
+                    storeName: this.name,
+                    valueType: typeof value,
+                    error: error instanceof Error ? error.message : String(error)
+                  }
+                );
+                return;
+              }
+            } else {
+              ErrorHandlers.store(
+                'Event transformation requested but no transform function provided',
+                { storeName: this.name, valueType: typeof value }
+              );
+              return;
+            }
+            break;
+          case 'block':
+          default:
+            ErrorHandlers.store(
+              'Event object detected in Store.setValue - this may cause memory leaks',
+              {
+                storeName: this.name,
+                valueType: typeof value,
+                constructorName: value?.constructor?.name,
+                isEvent,
+                hasTargetProperty: hasEventTarget,
+                hasPreventDefault,
+                problematicProperties: TypeGuards.findProblematicProperties(value)
+              }
+            );
+            return;
+        }
       }
     }
-    const safeValue = options?.skipClone ? value : deepClone(value);
+    const safeValue = options?.skipClone ? value : safeSet(value, this.cloningEnabled);
     let hasChanged = true;
     if (!options?.skipComparison) {
       hasChanged = this._compareValues(this._value, safeValue);
@@ -1809,7 +2007,7 @@ export class Store<T = any> implements IStore<T> {
     }
     try {
       this.isUpdating = true;
-      const safeCurrentValue = deepClone(this._value);
+      const safeCurrentValue = safeGet(this._value, this.cloningEnabled);
       const updatedValue = updater(safeCurrentValue);
       if (TypeGuards.isObject(updatedValue)) {
         if (!TypeGuards.isRefState(updatedValue) && TypeGuards.isSuspiciousEventObject(updatedValue)) {
@@ -1851,11 +2049,7 @@ export class Store<T = any> implements IStore<T> {
   dispose(): void {
     this.clearListeners();
     if (this.batchTimeoutId !== null) {
-      if (typeof requestAnimationFrame !== 'undefined' && typeof cancelAnimationFrame !== 'undefined') {
-        cancelAnimationFrame(this.batchTimeoutId as number);
-      } else {
-        clearTimeout(this.batchTimeoutId as NodeJS.Timeout);
-      }
+      clearTimeout(this.batchTimeoutId);
       this.batchTimeoutId = null;
     }
     this.batchedUpdates.clear();
@@ -1875,6 +2069,15 @@ export class Store<T = any> implements IStore<T> {
   }
   clearComparisonOptions(): void {
     this.comparisonOptions = undefined;
+  }
+  setCloningEnabled(enabled: boolean): void {
+    this.cloningEnabled = enabled;
+  }
+  isCloningEnabled(): boolean {
+    return this.cloningEnabled;
+  }
+  getValueUnsafe(): T {
+    return this._value;
   }
   private _structuralCompare(oldValue: T, newValue: T): boolean {
     if (Object.is(oldValue, newValue)) {
@@ -1897,7 +2100,10 @@ export class Store<T = any> implements IStore<T> {
     const newKeys = Object.keys(newValue);
     if (oldKeys.length !== newKeys.length) return false;
     for (const key of oldKeys) {
-      if (!newKeys.includes(key) || !Object.is((oldValue as any)[key], (newValue as any)[key])) {
+      if (!newKeys.includes(key) || !Object.is(
+        (oldValue as Record<string, unknown>)[key], 
+        (newValue as Record<string, unknown>)[key]
+      )) {
         return false;
       }
     }
@@ -1929,7 +2135,7 @@ export class Store<T = any> implements IStore<T> {
     return result;
   }
   protected _createSnapshot(): Snapshot<T> {
-    const clonedValue = deepClone(this._value);
+    const clonedValue = safeGet(this._value, this.cloningEnabled);
     return {
       value: clonedValue,
       name: this.name,
@@ -1952,15 +2158,9 @@ export class Store<T = any> implements IStore<T> {
   private _addToBatch(updateFn: () => void): void {
     this.batchedUpdates.add(updateFn);
     if (this.batchTimeoutId === null) {
-      if (typeof requestAnimationFrame !== 'undefined') {
-        this.batchTimeoutId = requestAnimationFrame(() => {
-          this._flushBatchedUpdates();
-        });
-      } else {
-        this.batchTimeoutId = setTimeout(() => {
-          this._flushBatchedUpdates();
-        }, this.BATCH_DELAY_MS);
-      }
+      this.batchTimeoutId = setTimeout(() => {
+        this._flushBatchedUpdates();
+      }, this.BATCH_DELAY_MS);
     }
   }
   private _flushBatchedUpdates(): void {
@@ -2005,7 +2205,7 @@ export function createStore<T>(name: string, initialValue: T): Store<T> {
   const store = new Store<T>(name, initialValue);
   return store;
 }
-export interface StoreConfig<T = any> {
+export interface StoreConfig<T = unknown> {
   name: string;
   initialValue: T;
   registry?: import('./StoreRegistry').StoreRegistry;
@@ -2039,6 +2239,7 @@ export interface AdvancedStoreConfig<T> extends StoreConfig<T> {
   persistenceKey?: string;
   enablePerformanceMonitoring?: boolean;
   notificationMode?: 'batched' | 'immediate';
+  enableCloning?: boolean;
 }
 export class StoreFactory {
   static create<T>(config: AdvancedStoreConfig<T>): Store<T> {
@@ -2051,6 +2252,9 @@ export class StoreFactory {
     }
     if (config.notificationMode) {
       store.setNotificationMode(config.notificationMode);
+    }
+    if (config.enableCloning !== undefined) {
+      store.setCloningEnabled(config.enableCloning);
     }
     if (config.enablePersistence && config.persistenceKey) {
     }
@@ -2067,6 +2271,9 @@ export class StoreFactory {
     if (config.notificationMode) {
       managedStore.setNotificationMode(config.notificationMode);
     }
+    if (config.enableCloning !== undefined) {
+      managedStore.setCloningEnabled(config.enableCloning);
+    }
     return managedStore;
   }
   static createBatch<T extends Record<string, any>>(
@@ -2074,7 +2281,7 @@ export class StoreFactory {
   ): { [K in keyof T]: Store<T[K]> } {
     const result = {} as { [K in keyof T]: Store<T[K]> };
     for (const [storeName, storeConfig] of Object.entries(stores)) {
-      const fullConfig: AdvancedStoreConfig<any> = {
+      const fullConfig: AdvancedStoreConfig<T[keyof T]> = {
         name: storeName,
         ...storeConfig
       };
@@ -3394,8 +3601,8 @@ export {
 
 ```typescript
 export type ComparisonStrategy = 'reference' | 'shallow' | 'deep' | 'custom';
-export type CustomComparator<T = any> = (oldValue: T, newValue: T) => boolean;
-export interface ComparisonOptions<T = any> {
+export type CustomComparator<T = unknown> = (oldValue: T, newValue: T) => boolean;
+export interface ComparisonOptions<T = unknown> {
   strategy: ComparisonStrategy;
   customComparator?: CustomComparator<T>;
   maxDepth?: number;
@@ -3441,8 +3648,8 @@ export function shallowEquals<T>(oldValue: T, newValue: T, ignoreKeys: string[] 
     }
     return true;
   }
-  const oldKeys = Object.keys(oldValue as any).filter(key => !ignoreKeys.includes(key));
-  const newKeys = Object.keys(newValue as any).filter(key => !ignoreKeys.includes(key));
+  const oldKeys = Object.keys(oldValue as Record<string, unknown>).filter(key => !ignoreKeys.includes(key));
+  const newKeys = Object.keys(newValue as Record<string, unknown>).filter(key => !ignoreKeys.includes(key));
   if (oldKeys.length !== newKeys.length) {
     return false;
   }
@@ -3450,7 +3657,7 @@ export function shallowEquals<T>(oldValue: T, newValue: T, ignoreKeys: string[] 
     if (!newKeys.includes(key)) {
       return false;
     }
-    if (!Object.is((oldValue as any)[key], (newValue as any)[key])) {
+    if (!Object.is((oldValue as Record<string, unknown>)[key], (newValue as Record<string, unknown>)[key])) {
       return false;
     }
   }
@@ -3466,10 +3673,8 @@ export function deepEquals<T>(
   } = {}
 ): boolean {
   const { maxDepth = 5, ignoreKeys = [], enableCircularCheck = true } = options;
-  const visitedA = enableCircularCheck ? new WeakSet() : null;
-  const visitedB = enableCircularCheck ? new WeakSet() : null;
-  const pairPath = enableCircularCheck ? new Map() : null;
-  function deepCompare(a: any, b: any, depth: number, path = ''): boolean {
+  const visitedPairs = enableCircularCheck ? new WeakMap<object, WeakSet<object>>() : null;
+  function deepCompare(a: unknown, b: unknown, depth: number, path = ''): boolean {
     if (depth > maxDepth) {
       return Object.is(a, b);
     }
@@ -3485,17 +3690,21 @@ export function deepEquals<T>(
     if (typeof a !== 'object') {
       return a === b;
     }
-    if (visitedA && visitedB && pairPath) {
-      if (visitedA.has(a) || visitedB.has(b)) {
-        return Object.is(a, b);
+    if (visitedPairs && typeof a === 'object' && typeof b === 'object' && a !== null && b !== null) {
+      if (visitedPairs.has(a)) {
+        const pairedSet = visitedPairs.get(a)!;
+        if (pairedSet.has(b)) {
+          return Object.is(a, b);
+        }
       }
-      if (pairPath.has(a) && pairPath.get(a).has(b)) {
-        return Object.is(a, b);
+      if (!visitedPairs.has(a)) {
+        visitedPairs.set(a, new WeakSet());
       }
-      visitedA.add(a);
-      visitedB.add(b);
-      if (!pairPath.has(a)) pairPath.set(a, new WeakSet());
-      pairPath.get(a).add(b);
+      visitedPairs.get(a)!.add(b);
+      if (!visitedPairs.has(b)) {
+        visitedPairs.set(b, new WeakSet());
+      }
+      visitedPairs.get(b)!.add(a);
     }
     if (a instanceof Date && b instanceof Date) {
       return a.getTime() === b.getTime();
@@ -3517,8 +3726,8 @@ export function deepEquals<T>(
     if (Array.isArray(a) || Array.isArray(b)) {
       return false;
     }
-    const aKeys = Object.keys(a).filter(key => !ignoreKeys.includes(key));
-    const bKeys = Object.keys(b).filter(key => !ignoreKeys.includes(key));
+    const aKeys = Object.keys(a as Record<string, unknown>).filter(key => !ignoreKeys.includes(key));
+    const bKeys = Object.keys(b as Record<string, unknown>).filter(key => !ignoreKeys.includes(key));
     if (aKeys.length !== bKeys.length) {
       return false;
     }
@@ -3526,7 +3735,7 @@ export function deepEquals<T>(
       if (!bKeys.includes(key)) {
         return false;
       }
-      if (!deepCompare(a[key], b[key], depth + 1, `${path}.${key}`)) {
+      if (!deepCompare((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key], depth + 1, `${path}.${key}`)) {
         return false;
       }
     }
@@ -3641,13 +3850,13 @@ export function fastCompare<T>(oldValue: T, newValue: T): boolean {
       return oldValue.every((item, index) => Object.is(item, newValue[index]));
     }
   }
-  const oldKeys = Object.keys(oldValue as any);
+  const oldKeys = Object.keys(oldValue as Record<string, unknown>);
   if (oldKeys.length <= 5) { 
-    const newKeys = Object.keys(newValue as any);
+    const newKeys = Object.keys(newValue as Record<string, unknown>);
     if (oldKeys.length === newKeys.length) {
       return oldKeys.every(key => 
         newKeys.includes(key) && 
-        Object.is((oldValue as any)[key], (newValue as any)[key])
+        Object.is((oldValue as Record<string, unknown>)[key], (newValue as Record<string, unknown>)[key])
       );
     }
   }
