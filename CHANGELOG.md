@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.5.1](https://github.com/mineclover/context-action/compare/v0.5.0...v0.5.1) (2025-08-28)
+
+
+### Bug Fixes
+
+* **build:** resolve HTML template and dynamic import issues ([5e73d73](https://github.com/mineclover/context-action/commit/5e73d733dfe1e4d7d6ec25727e9056ff4de2ec3c))
+
+
+
+
+
 # [0.5.0](https://github.com/mineclover/context-action/compare/v0.4.0...v0.5.0) (2025-08-28)
 
 
