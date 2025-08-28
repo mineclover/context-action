@@ -165,22 +165,62 @@ export function setupActionToastInterceptor(actionRegister: any) {
 
 /**
  * 특정 액션들만 선택적으로 토스트 표시
+ * 🔧 Fix: Added optional rate limiting (disabled by default)
  */
 export function setupSelectiveActionToast(
   actionRegister: any,
-  trackedActions: string[] = []
+  trackedActions: string[] = [],
+  options: { enableRateLimit?: boolean; maxToasts?: number; resetInterval?: number } = {}
 ) {
   const originalDispatch = actionRegister.dispatch.bind(actionRegister);
+  
+  // 🔧 Optional rate limiting - disabled by default
+  const enableRateLimit = options.enableRateLimit ?? false;
+  const actionCallCounts = new Map<string, { count: number; lastReset: number }>();
+  const MAX_TOASTS_PER_ACTION = options.maxToasts ?? 10;
+  const RESET_INTERVAL = options.resetInterval ?? 1000;
+
+  const shouldShowToast = (actionType: string): boolean => {
+    // 🔧 Skip rate limiting if disabled
+    if (!enableRateLimit) {
+      return true;
+    }
+
+    const now = Date.now();
+    const current = actionCallCounts.get(actionType);
+    
+    if (!current || (now - current.lastReset) > RESET_INTERVAL) {
+      // Reset or initialize counter
+      actionCallCounts.set(actionType, { count: 1, lastReset: now });
+      return true;
+    }
+    
+    if (current.count >= MAX_TOASTS_PER_ACTION) {
+      return false; // Only block extreme spam when enabled
+    }
+    
+    current.count++;
+    return true;
+  };
 
   actionRegister.dispatch = (actionType: string, payload: any) => {
-    // 추적할 액션이 아니거나 토스트 시스템 액션인 경우 그냥 실행
-    if (!trackedActions.includes(actionType) || actionType.includes('toast')) {
+    // 🔧 Fix: Exclude toast system actions and removal actions from tracking
+    const isToastAction = actionType.includes('toast') || actionType.includes('Toast');
+    const isRemovalAction = actionType.includes('remove') || actionType.includes('delete') || actionType.includes('clear');
+    
+    // 추적할 액션이 아니거나 토스트/제거 관련 액션인 경우 그냥 실행
+    if (!trackedActions.includes(actionType) || isToastAction || isRemovalAction) {
+      return originalDispatch(actionType, payload);
+    }
+
+    // 🔧 Check rate limit before showing toast
+    if (!shouldShowToast(actionType)) {
       return originalDispatch(actionType, payload);
     }
 
     const startTime = Date.now();
 
-    // 액션 시작 표시
+    // 액션 시작 표시 (rate limited)
     toastActionRegister.dispatch('addActionToast', {
       actionType,
       executionStep: 'start',
@@ -190,7 +230,7 @@ export function setupSelectiveActionToast(
     try {
       const result = originalDispatch(actionType, payload);
 
-      // 성공 표시
+      // 성공 표시 (rate limited)
       const executionTime = Date.now() - startTime;
       toastActionRegister.dispatch('addActionToast', {
         actionType,
@@ -201,7 +241,7 @@ export function setupSelectiveActionToast(
 
       return result;
     } catch (error) {
-      // 에러 표시
+      // 에러 표시 (always show errors regardless of rate limit)
       toastActionRegister.dispatch('addActionToast', {
         actionType,
         executionStep: 'error',

@@ -29,6 +29,7 @@ export const storeActionRegister = new ActionRegister<StoreFullActionMap>({
 });
 
 // 토스트 시스템과 연동 - 주요 액션들만 추적
+// 🔧 Fixed: Removal actions now safely excluded in setupSelectiveActionToast
 const trackedActions = [
   'updateProfile',
   'toggleTheme',
@@ -46,6 +47,13 @@ const trackedActions = [
 ];
 
 setupSelectiveActionToast(storeActionRegister, trackedActions);
+
+// 💡 Rate limiting 활성화 (필요시):
+// setupSelectiveActionToast(storeActionRegister, trackedActions, { 
+//   enableRateLimit: true,
+//   maxToasts: 5,        // 1초당 최대 5개
+//   resetInterval: 1000  // 1초마다 리셋
+// });
 
 // 액션 핸들러는 이제 각 컴포넌트에서 개별적으로 등록됩니다.
 // Context Store 패턴을 사용하여 각 컴포넌트가 필요한 스토어에 직접 접근합니다.
