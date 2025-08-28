@@ -38,3 +38,16 @@ export {
   useComputedStoreInstance,
   useAsyncComputedStore 
 } from './useComputedStore';
+
+// === ADVANCED PERFORMANCE HOOKS ===
+// Enhanced performance optimization features (v2.2.0+)
+export {
+  useOptimizedStoreValue,
+  useBulkStoreValues,
+  useConditionalStoreValue,
+  useStoreValuePath,
+  useLazyStoreValue,
+  useStoreMetrics,
+  type OptimizedStoreOptions,
+  type SubscriptionMetrics
+} from './useOptimizedStoreValue';

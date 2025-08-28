@@ -126,7 +126,7 @@ function isNonCloneableType(value: unknown): boolean {
  * @param options 복사 옵션
  * @returns 불변성이 보장된 복사본
  */
-export function deepClone<T>(value: T, options?: { skipProducer?: boolean }): T {
+export function deepClone<T>(value: T, _options?: { skipProducer?: boolean }): T {
   // Fast path: Primitive values are already immutable
   if (isPrimitive(value)) {
     return value;
@@ -149,7 +149,7 @@ export function deepClone<T>(value: T, options?: { skipProducer?: boolean }): T 
   if (typeof structuredClone !== 'undefined') {
     try {
       return structuredClone(value);
-    } catch (error) {
+    } catch {
       // Fall through to other methods
     }
   }

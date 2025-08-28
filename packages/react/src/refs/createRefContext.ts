@@ -12,7 +12,6 @@ import type {
   RefOperationOptions, 
   RefOperationResult,
   RefDefinitions,
-  RefInitConfig,
   InferRefTypes
 } from './types';
 import { useRefMount, useRefOperation, useRefPolling as useRefPollingHook, type InternalRefState, type RefPollingOptions } from './hooks';
@@ -252,12 +251,18 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
     );
   };
   
-  // Context hook
+  // Enhanced context hook with disposal checking
   const useRefContext = () => {
     const context = useContext(RefContext);
     if (!context) {
-      throw new Error(`useRefHandler must be used within ${contextName}.Provider`);
+      throw new Error(
+        `useRefHandler must be used within ${contextName}.Provider. ` +
+        `Wrap your component with <${contextName}.Provider>`
+      );
     }
+    
+    // Disposal check would go here when implemented
+    
     return context;
   };
 

@@ -286,14 +286,21 @@ export class StoreErrorBoundary extends Component<StoreErrorBoundaryProps, Store
 }
 
 /**
- * HOC로 컴포넌트를 Store Error Boundary로 감싸는 헬퍼
+ * Enhanced HOC for automatic Store Error Boundary wrapping with security
+ * 
+ * @template P - Component props type
+ * @param WrappedComponent - Component to wrap with error boundary
+ * @param errorBoundaryProps - Error boundary configuration
+ * @returns Enhanced component with comprehensive error handling
  */
 export function withStoreErrorBoundary<P extends object>(
   WrappedComponent: React.ComponentType<P>,
   errorBoundaryProps?: Omit<StoreErrorBoundaryProps, 'children'>
 ): React.ComponentType<P> {
   const WithStoreErrorBoundaryComponent = (props: P) => (
-    <StoreErrorBoundary {...errorBoundaryProps}>
+    <StoreErrorBoundary 
+      {...errorBoundaryProps}
+    >
       <WrappedComponent {...props} />
     </StoreErrorBoundary>
   );

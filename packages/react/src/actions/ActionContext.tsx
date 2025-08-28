@@ -122,7 +122,7 @@ export function createActionContext<T extends {}>(
       };
       
       return register.dispatch(action, payload, dispatchOptions);
-    }, []); // No dependencies - actionRegisterRef is stable
+    }, [actionRegisterRef]); // Include actionRegisterRef dependency
 
     // Stable dispatchWithResult function
     const dispatchWithResult = useCallback(<K extends keyof T, R = void>(
@@ -144,7 +144,7 @@ export function createActionContext<T extends {}>(
       };
       
       return register.dispatchWithResult<K, R>(action, payload, dispatchOptions);
-    }, []);
+    }, [actionRegisterRef]);
 
     return { dispatch, dispatchWithResult };
   };
@@ -191,7 +191,7 @@ export function createActionContext<T extends {}>(
       }
 
       // Register new handler with stable wrapper
-      unregisterRef.current = register.register(
+      const unregister = register.register(
         action,
         stableHandler,
         {
@@ -200,15 +200,16 @@ export function createActionContext<T extends {}>(
           id: config?.id || `react_${String(action)}_${actionId}`
         }
       );
+      (unregisterRef as any).current = unregister;
 
       // Cleanup on unmount or dependencies change
       return () => {
-        if (unregisterRef.current) {
-          unregisterRef.current();
-          unregisterRef.current = null;
-        }
+        // Copy current unregister function at the time of effect creation
+        const cleanupUnregister = unregister;
+        cleanupUnregister();
+        (unregisterRef as any).current = null;
       };
-    }, [action, actionId, stableHandler, config]);
+    }, [action, actionId, stableHandler, config, actionRegisterRef]);
   };
 
   /**

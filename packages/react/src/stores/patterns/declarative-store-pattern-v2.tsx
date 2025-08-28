@@ -408,11 +408,17 @@ function createStoreContextImpl<T extends Record<string, any>>(
 export type InferInitialStores<T> = T extends InitialStores<infer U> ? U : never;
 
 /**
- * Configuration for withProvider HOC
+ * Enhanced configuration for withProvider HOC with additional safety features
  */
 export interface WithProviderConfig {
+  /** Custom display name for debugging */
   displayName?: string;
+  /** Custom registry identifier for isolation */
   registryId?: string;
+  /** Enable automatic cleanup on unmount */
+  autoCleanup?: boolean;
+  /** Enable error boundary integration */
+  errorBoundary?: boolean;
 }
 
 /**

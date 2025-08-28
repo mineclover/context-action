@@ -264,7 +264,7 @@ export function useSubscriptionManager(): SubscriptionManager {
   // Import React here to avoid module-level import
   const { useRef, useEffect } = require('react');
   
-  const managerRef = useRef<SubscriptionManager | null>(null);
+  const managerRef = useRef(null as SubscriptionManager | null);
   
   if (!managerRef.current) {
     managerRef.current = new SubscriptionManager();

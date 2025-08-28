@@ -1,50 +1,94 @@
 /**
- * @fileoverview Store System Core Type Definitions
+ * @fileoverview Enhanced Store System Core Type Definitions
  * @implements store-integration-pattern
  * @implements model-layer
  * @implements reactive-state-management
  * @memberof core-concepts
  * 
- * Comprehensive type definitions for the Context-Action framework's Store system,
- * providing reactive state management with React integration and type safety.
+ * Comprehensive type definitions for the Context-Action framework's enhanced Store system,
+ * featuring advanced memory management, security hardening, and error recovery capabilities.
  * 
- * Core Type Categories:
- * - Store interfaces for reactive state management
- * - Registry types for multi-store coordination  
- * - Event system types for store communication
- * - React integration types for Context API usage
- * - Performance optimization interfaces
+ * Enhanced Type Categories:
+ * - Store interfaces with memory management and cleanup
+ * - Registry types with health monitoring and lifecycle management
+ * - Event system types with security validation and error recovery
+ * - React integration types with performance optimization
+ * - Security interfaces for XSS and prototype pollution prevention
+ * - Performance monitoring and metrics collection
+ * - Resource management and automatic cleanup systems
  * 
  * Key Design Patterns:
- * - Observer pattern for store subscriptions
- * - Registry pattern for store lifecycle management
- * - Pub-Sub pattern for store-to-store communication
- * - Context pattern for React integration
+ * - Observer pattern with error recovery for store subscriptions
+ * - Registry pattern with health monitoring for store lifecycle management
+ * - Pub-Sub pattern with security validation for store-to-store communication
+ * - Context pattern with performance optimization for React integration
+ * - Cleanup pattern for automatic resource management
+ * - Circuit Breaker pattern for error recovery and resilience
+ * 
+ * Security Features:
+ * - XSS prevention through value sanitization
+ * - Prototype pollution detection and prevention
+ * - Input validation with customizable rules
+ * - Trust levels and security metadata tracking
+ * 
+ * Performance Features:
+ * - Automatic resource monitoring and cleanup
+ * - Memory usage tracking and optimization
+ * - Performance metrics collection and analysis
+ * - Subscription throttling and debouncing
+ * - Selective updates with path-based subscriptions
  */
 
 /**
- * Basic subscription types for Observer pattern implementation
+ * Enhanced subscription types for resilient Observer pattern implementation
  * @implements observer-pattern
+ * @implements error-recovery-pattern
+ * @implements resource-management-pattern
  * @memberof core-concepts
  */
 
 /** Change notification callback function */
 export type Listener = () => void;
 
-/** Unsubscribe function returned by subscribe methods */
+/** Enhanced listener with error handling context */
+export type EnhancedListener = {
+  /** The actual listener function */
+  listener: Listener;
+  /** Error count for this listener */
+  errorCount: number;
+  /** Last error timestamp */
+  lastError?: number;
+  /** Component name for debugging */
+  componentName?: string;
+};
+
+/** Enhanced unsubscribe function with metadata */
 export type Unsubscribe = () => void;
 
 /** Subscribe function signature for observer pattern */
 export type Subscribe = (listener: Listener) => Unsubscribe;
 
+/** Enhanced subscribe function with options */
+export type EnhancedSubscribe = (
+  listener: Listener,
+  options?: {
+    /** Enable error recovery for this subscription */
+    enableRetry?: boolean;
+    /** Maximum retry attempts */
+    maxRetries?: number;
+    /** Component name for debugging */
+    componentName?: string;
+  }
+) => Unsubscribe;
+
 /**
- * Store snapshot interface for immutable state representation
+ * Enhanced store snapshot with metadata and validation
  * @implements store-snapshot
  * @implements immutable-state
  * @memberof api-terms
  * 
- * Immutable snapshot of Store state used for optimization and debugging.
- * Compatible with React's useSyncExternalStore pattern.
+ * Enhanced immutable snapshot with comprehensive metadata, validation status,
+ * and performance metrics for advanced debugging and monitoring.
  * 
  * @template T The type of the stored value
  */
@@ -57,17 +101,46 @@ export interface Snapshot<T = unknown> {
   
   /** Timestamp of the last update */
   lastUpdate: number;
+  
+  /** Snapshot version for optimistic updates */
+  version?: number;
+  
+  /** Validation status of the current value */
+  isValid?: boolean;
+  
+  /** Error message if validation failed */
+  validationError?: string;
+  
+  /** Performance metrics for this snapshot */
+  metrics?: {
+    /** Time taken to create this snapshot (ms) */
+    creationTime: number;
+    /** Memory size estimate (bytes) */
+    sizeEstimate?: number;
+    /** Number of listeners notified */
+    notificationCount?: number;
+  };
+  
+  /** Security metadata */
+  security?: {
+    /** Whether value passed security validation */
+    validated: boolean;
+    /** Sanitization applied */
+    sanitized?: boolean;
+    /** Trust level (0-100) */
+    trustLevel?: number;
+  };
 }
 
 /**
- * Core Store interface for reactive state management
+ * Enhanced Store interface with advanced memory management and error recovery
  * @implements store-interface
  * @implements usesyncexternalstore-compatible
  * @implements observer-pattern
  * @memberof core-concepts
  * 
- * Primary interface for Store instances, compatible with React's useSyncExternalStore
- * and implementing the Observer pattern for reactive state management.
+ * Enhanced Store interface with comprehensive resource management, automatic cleanup,
+ * error recovery strategies, and advanced security features.
  * 
  * @template T The type of the stored value
  * 
@@ -83,7 +156,7 @@ export interface IStore<T = unknown> {
   /** Get immutable snapshot (React useSyncExternalStore compatible) */
   getSnapshot: () => Snapshot<T>;
   
-  /** Set store value with change notification */
+  /** Set store value with enhanced options and validation */
   setValue: (value: T, options?: StoreSetValueOptions<T>) => void;
   
   /** Update store value with function (for functional updates) */
@@ -95,18 +168,39 @@ export interface IStore<T = unknown> {
   /** Get number of active listeners (debugging/monitoring) */
   getListenerCount?: () => number;
   
-  /** Dispose store and clean up resources */
+  /** Enhanced disposal with comprehensive cleanup */
   dispose?: () => void;
+  
+  // 🧹 Enhanced Cleanup System
+  /** Register cleanup task for automatic execution on disposal */
+  registerCleanup?: (task: () => void) => () => void;
+  
+  /** Check if store is disposed */
+  isStoreDisposed?: () => boolean;
+  
+  // 📊 Performance and Monitoring
+  /** Get store performance metrics */
+  getMetrics?: () => StoreMetrics;
+  
+  /** Reset performance metrics */
+  resetMetrics?: () => void;
+  
+  // 🔧 Advanced Configuration
+  /** Set security options */
+  setSecurityOptions?: (options: SecurityOptions) => void;
+  
+  /** Get current security options */
+  getSecurityOptions?: () => SecurityOptions | undefined;
 }
 
 /**
- * Store Registry interface for centralized store management
+ * Enhanced Store Registry interface with advanced lifecycle management
  * @implements store-registry
  * @implements registry-pattern
  * @memberof core-concepts
  * 
- * Central registry for managing multiple Store instances with dynamic access
- * and lifecycle management. Provides subscription capability for registry changes.
+ * Enhanced registry with comprehensive store lifecycle management, automatic cleanup,
+ * health monitoring, and advanced security features.
  * 
  * @see https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-config
  */
@@ -120,10 +214,10 @@ export interface IStoreRegistry {
   /** Get snapshot of all registered stores */
   getSnapshot: () => Array<[string, IStore]>;
   
-  /** Register a store with optional metadata */
+  /** Register a store with optional metadata and validation */
   register: (name: string, store: IStore, metadata?: any) => void;
   
-  /** Unregister a store by name */
+  /** Unregister a store by name with cleanup */
   unregister: (name: string) => boolean;
   
   /** Get store by name */
@@ -141,41 +235,113 @@ export interface IStoreRegistry {
   /** Get array of registered store names */
   getStoreNames: () => string[];
   
-  /** Clear all registered stores */
+  /** Clear all registered stores with proper cleanup */
   clear: () => void;
   
   /** Iterate over all stores */
   forEach: (callback: (store: IStore, name: string) => void) => void;
+  
+  // 🧹 Enhanced Lifecycle Management
+  /** Dispose registry and all stores */
+  dispose?: () => void;
+  
+  /** Check if registry is disposed */
+  isDisposed?: () => boolean;
+  
+  /** Register cleanup task for the registry */
+  registerCleanup?: (task: () => void) => () => void;
+  
+  // 🏥 Health Monitoring
+  /** Get registry health status */
+  getHealthStatus?: () => {
+    totalStores: number;
+    healthyStores: number;
+    errorStores: number;
+    disposedStores: number;
+    memoryUsage?: number;
+  };
+  
+  /** Perform health check on all stores */
+  performHealthCheck?: () => Promise<Map<string, boolean>>;
+  
+  // 🔧 Advanced Configuration
+  /** Set registry-wide security options */
+  setSecurityOptions?: (options: SecurityOptions) => void;
+  
+  /** Enable/disable automatic cleanup */
+  setAutoCleanup?: (enabled: boolean) => void;
 }
 
-// === 이벤트 시스템 타입 ===
-// 핵심 설계: Store 간 비동기 통신을 위한 Pub-Sub 패턴
+// === Enhanced Event System Types ===
+// Enhanced Pub-Sub pattern with security and error recovery
 export interface EventHandler<T = unknown> {
-  (data: T): void;  // 이벤트 핸들러 시그니처
+  (data: T): void;  // Event handler signature
 }
 
+/**
+ * Enhanced event bus interface with security and monitoring
+ */
 export interface IEventBus {
-  on: <T = unknown>(event: string, handler: EventHandler<T>) => Unsubscribe;  // 이벤트 구독
-  emit: <T = unknown>(event: string, data?: T) => void;                       // 이벤트 발행
-  off: (event: string, handler?: EventHandler) => void;                   // 구독 해제
-  clear: () => void;                                                      // 전체 정리
+  /** Subscribe to events with enhanced error handling */
+  on: <T = unknown>(event: string, handler: EventHandler<T>) => Unsubscribe;
+  /** Emit events with optional validation */
+  emit: <T = unknown>(event: string, data?: T) => void;
+  /** Unsubscribe from events */
+  off: (event: string, handler?: EventHandler) => void;
+  /** Clear all event handlers */
+  clear: () => void;
+  /** Get event statistics */
+  getStats?: () => {
+    totalEvents: number;
+    activeHandlers: number;
+    errorCount: number;
+  };
+  /** Set security options for event validation */
+  setSecurityOptions?: (options: SecurityOptions) => void;
 }
 
-// === Hook 설정 타입 ===
-// 핵심 설계: React Hook 옵틸마이제이션 및 에러 처리
+// === Enhanced Hook Configuration Types ===
+// Advanced React Hook optimization and error handling
 export interface StoreSyncConfig<T, R = Snapshot<T>> {
-  defaultValue?: T;                           // 기본값 (초기 렌더링용)
-  selector?: (snapshot: Snapshot<T>) => R;    // 선택적 구독 (성능 최적화)
+  /** 기본값 (초기 렌더링용) */
+  defaultValue?: T;
+  /** 선택적 구독 (성능 최적화) */
+  selector?: (snapshot: Snapshot<T>) => R;
+  /** Equality function for selector results */
+  isEqual?: (prev: R, next: R) => boolean;
+  /** Enable error boundary integration */
+  errorBoundary?: boolean;
+  /** Suspension support for concurrent features */
+  suspense?: boolean;
 }
 
+/**
+ * Enhanced hook options with error recovery and performance features
+ */
 export interface HookOptions<T> {
-  defaultValue?: T;                     // 기본값
-  onError?: (error: Error) => void;     // 에러 핸들러
-  dependencies?: React.DependencyList;  // React useEffect 의존성
+  /** 기본값 */
+  defaultValue?: T;
+  /** Enhanced error handler with retry capability */
+  onError?: (error: Error, retryCount?: number) => void | boolean;
+  /** React useEffect 의존성 */
+  dependencies?: React.DependencyList;
+  /** Enable automatic error recovery */
+  enableRetry?: boolean;
+  /** Maximum retry attempts */
+  maxRetries?: number;
+  /** Retry delay in milliseconds */
+  retryDelay?: number;
+  /** Enable performance monitoring */
+  enableMetrics?: boolean;
+  /** Throttle updates (milliseconds) */
+  throttle?: number;
+  /** Debounce updates (milliseconds) */
+  debounce?: number;
 }
 
 /**
  * Store 값 설정 시 옵션
+ * Enhanced with security and performance features
  */
 export interface StoreSetValueOptions<T> {
   /** 깊은 복사 스킵 여부 (성능 최적화) */
@@ -186,17 +352,140 @@ export interface StoreSetValueOptions<T> {
   eventHandling?: 'block' | 'transform' | 'allow';
   /** 이벤트 객체 변환 함수 */
   eventTransform?: (event: any) => T;
+  /** Value sanitization function */
+  sanitizer?: (value: T) => T;
+  /** Validation function */
+  validator?: (value: T) => boolean | string;
+}
+
+/**
+ * Subscription metadata for enhanced error tracking
+ */
+export interface SubscriptionMetadata {
+  /** When the subscription was created */
+  subscribedAt: number;
+  /** Number of errors encountered by this subscription */
+  errorCount: number;
+  /** Enhanced listener with error handling */
+  enhancedListener: () => void;
+  /** Component name or identifier (optional) */
+  componentName?: string;
+}
+
+/**
+ * Resource monitoring interface for memory management
+ */
+export interface ResourceMonitor {
+  /** Current memory usage estimate */
+  memoryUsage: number;
+  /** Number of active subscriptions */
+  activeSubscriptions: number;
+  /** Number of pending operations */
+  pendingOperations: number;
+  /** Last activity timestamp */
+  lastActivity: number;
+  /** Cleanup monitor resources */
+  dispose(): void;
+}
+
+/**
+ * Store performance metrics
+ */
+export interface StoreMetrics {
+  /** Total number of setValue calls */
+  totalSets: number;
+  /** Total number of getValue calls */
+  totalGets: number;
+  /** Total number of updates */
+  totalUpdates: number;
+  /** Total number of notifications sent */
+  totalNotifications: number;
+  /** Average time per operation (ms) */
+  averageOperationTime: number;
+  /** Peak listener count */
+  peakListenerCount: number;
+  /** Total errors encountered */
+  totalErrors: number;
+}
+
+/**
+ * Enhanced cleanup task interface
+ */
+export interface CleanupTask {
+  /** The cleanup function */
+  task: () => void;
+  /** Task identifier for debugging */
+  id?: string;
+  /** Priority level (higher = more important) */
+  priority?: number;
+  /** Optional timeout for task execution (ms) */
+  timeout?: number;
+}
+
+/**
+ * Security validation options
+ */
+export interface SecurityOptions {
+  /** Enable prototype pollution detection */
+  preventPrototypePollution?: boolean;
+  /** Enable XSS prevention */
+  preventXSS?: boolean;
+  /** Maximum object depth allowed */
+  maxDepth?: number;
+  /** Maximum string length allowed */
+  maxStringLength?: number;
+  /** Allowed property names pattern */
+  allowedProperties?: RegExp;
+  /** Blocked property names pattern */
+  blockedProperties?: RegExp;
 }
 
 
 // === Registry 동기화 타입 ===
 // 핵심 설계: 동적 Store 접근 및 생성 옵션
+/**
+ * Type-safe registry store map with strict type constraints
+ */
 export interface RegistryStoreMap {
   [key: string]: unknown;  // 타입 유연성을 위한 맵 타입
 }
 
+/**
+ * Strict store registry map with enhanced type safety
+ */
+export type StrictStoreDefinitions<T extends Record<string, unknown>> = {
+  [K in keyof T]: {
+    initialValue: T[K];
+  } | T[K];
+};
+
+/**
+ * Context return type with strict typing
+ */
+export interface StrictStoreContextReturn<T extends Record<string, unknown>> {
+  Provider: React.ComponentType<{ children: React.ReactNode }>;
+  useStore: <K extends keyof T>(name: K) => IStore<T[K]>;
+  useStoreManager?: () => {
+    getStore: <K extends keyof T>(name: K) => IStore<T[K]> | undefined;
+    getAllStores: () => Map<string, IStore>;
+    hasStore: (name: string) => boolean;
+  };
+}
+
+/**
+ * Enhanced dynamic store options with advanced features
+ */
 export interface DynamicStoreOptions<T> {
-  defaultValue?: T;                              // 기본값
-  createIfNotExists?: boolean;                   // 없을 때 자동 생성 여부
-  onNotFound?: (storeName: string) => void;      // Store 찾기 실패 콜백
+  /** 기본값 */
+  defaultValue?: T;
+  /** 없을 때 자동 생성 여부 */
+  createIfNotExists?: boolean;
+  /** Store 찾기 실패 콜백 */
+  onNotFound?: (storeName: string) => void;
+  /** Security options for auto-created stores */
+  securityOptions?: SecurityOptions;
+  /** Cleanup options for auto-created stores */
+  autoCleanup?: boolean;
+  /** Performance monitoring for auto-created stores */
+  enableMetrics?: boolean;
 }
