@@ -142,24 +142,24 @@ export default defineConfig({
     // /example 경로에서 외부 URL로 리디렉션하는 스크립트
     ['script', {}, `
       // 페이지 로드 시 즉시 실행
-      (function() {
-        if (window.location.pathname.startsWith('/context-action/example')) {
-          // /context-action/example 부분을 제거하고 나머지 경로만 추출
-          const remainingPath = window.location.pathname.replace('/context-action/example', '');
-          // 쿼리 파라미터와 해시도 포함
-          const queryString = window.location.search;
-          const hash = window.location.hash;
-          
-          // 최종 리디렉션 URL 구성
-          const redirectUrl = 'https://mineclover.github.io/context-action/example' + remainingPath + queryString + hash;
-          
-          console.log('Redirecting from:', window.location.href);
-          console.log('Redirecting to:', redirectUrl);
-          
-          // 즉시 리디렉션
-          window.location.replace(redirectUrl);
-        }
-      })();
+              (function() {
+          if (window.location.pathname.startsWith('/context-action/example')) {
+            // 원래 경로 정보 추출
+            const originalPath = window.location.pathname.replace('/context-action/example', '');
+            const queryString = window.location.search;
+            const hash = window.location.hash;
+            
+            // SPA 루트로 리디렉션하되, 원래 경로 정보를 쿼리 파라미터로 전달
+            const redirectUrl = 'https://mineclover.github.io/context-action/example/?redirect=' + 
+              encodeURIComponent(originalPath + queryString + hash);
+            
+            console.log('Redirecting SPA from:', window.location.href);
+            console.log('Redirecting SPA to:', redirectUrl);
+            
+            // 즉시 리디렉션
+            window.location.replace(redirectUrl);
+          }
+        })();
     `]
   ]
 })

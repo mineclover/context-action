@@ -6,6 +6,7 @@ import {
   Routes,
   useLocation,
 } from 'react-router-dom';
+import { useVitePressRedirect } from './hooks/useVitePressRedirect';
 // Core components - keep as regular imports
 import Layout from './components/Layout';
 import { ToastContainer, ToastControlPanel } from './components/ToastSystem';
@@ -92,6 +93,9 @@ function ConsoleClearer() {
 }
 
 function AppContent() {
+  // VitePress에서 전달된 리디렉션 처리
+  useVitePressRedirect();
+
   return (
     <>
       <ConsoleClearer />
