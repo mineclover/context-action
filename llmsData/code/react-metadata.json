@@ -1,13 +1,13 @@
 {
   "package": "react",
-  "generatedAt": "2025-08-27T15:38:26.740Z",
+  "generatedAt": "2025-08-28T00:46:35.013Z",
   "statistics": {
-    "totalFiles": 34,
+    "totalFiles": 45,
     "typeFiles": 3,
-    "codeFiles": 31,
-    "totalLines": 3882,
-    "typeLines": 168,
-    "codeLines": 3714
+    "codeFiles": 42,
+    "totalLines": 5719,
+    "typeLines": 169,
+    "codeLines": 5550
   },
   "files": [
     {
@@ -23,7 +23,7 @@
     {
       "path": "stores/core/types.ts",
       "isType": true,
-      "lines": 57
+      "lines": 58
     },
     {
       "path": "actions/ActionContext.tsx",
@@ -41,9 +41,14 @@
       "lines": 4
     },
     {
+      "path": "hooks/react18-hooks.ts",
+      "isType": false,
+      "lines": 212
+    },
+    {
       "path": "index.ts",
       "isType": false,
-      "lines": 17
+      "lines": 18
     },
     {
       "path": "patterns/index.ts",
@@ -83,12 +88,12 @@
     {
       "path": "stores/core/Store.ts",
       "isType": false,
-      "lines": 262
+      "lines": 294
     },
     {
       "path": "stores/core/StoreRegistry.ts",
       "isType": false,
-      "lines": 118
+      "lines": 122
     },
     {
       "path": "stores/hooks/index.ts",
@@ -118,7 +123,7 @@
     {
       "path": "stores/hooks/useStoreValue.ts",
       "isType": false,
-      "lines": 165
+      "lines": 191
     },
     {
       "path": "stores/index.ts",
@@ -143,12 +148,12 @@
     {
       "path": "stores/utils/error-handling.ts",
       "isType": false,
-      "lines": 242
+      "lines": 248
     },
     {
       "path": "stores/utils/immutable.ts",
       "isType": false,
-      "lines": 187
+      "lines": 221
     },
     {
       "path": "stores/utils/index.ts",
@@ -179,6 +184,56 @@
       "path": "stores/utils/utils.ts",
       "isType": false,
       "lines": 139
+    },
+    {
+      "path": "testing/assertions.ts",
+      "isType": false,
+      "lines": 123
+    },
+    {
+      "path": "testing/async-helpers.ts",
+      "isType": false,
+      "lines": 280
+    },
+    {
+      "path": "testing/compatibility.ts",
+      "isType": false,
+      "lines": 216
+    },
+    {
+      "path": "testing/index.ts",
+      "isType": false,
+      "lines": 36
+    },
+    {
+      "path": "testing/mock-actions.ts",
+      "isType": false,
+      "lines": 50
+    },
+    {
+      "path": "testing/mock-store.ts",
+      "isType": false,
+      "lines": 202
+    },
+    {
+      "path": "testing/render-helpers.tsx",
+      "isType": false,
+      "lines": 199
+    },
+    {
+      "path": "testing/snapshot-helpers.ts",
+      "isType": false,
+      "lines": 221
+    },
+    {
+      "path": "testing/test-provider.tsx",
+      "isType": false,
+      "lines": 163
+    },
+    {
+      "path": "testing/test-registry.ts",
+      "isType": false,
+      "lines": 31
     }
   ]
 }

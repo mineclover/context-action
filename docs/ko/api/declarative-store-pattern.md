@@ -798,20 +798,23 @@ const { useStore, withProvider } = createStoreContext('Shop', typedConfig);
 
 ## 외부 시스템과의 통합
 
-### Redux DevTools 통합
+### 개발 도구 통합 (콘솔 로깅)
 
 ```typescript
+import { setupDevTools } from '@context-action/react';
+
 function DevToolsIntegration() {
   const storeManager = useStoreManager();
   
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.__REDUX_DEVTOOLS_EXTENSION__) {
-      const devTools = window.__REDUX_DEVTOOLS_EXTENSION__.connect({
-        name: 'Context-Action Stores'
+    if (process.env.NODE_ENV === 'development') {
+      // 콘솔 기반 DevTools 설정
+      setupDevTools({
+        enabled: true,
+        enableActionLogging: true,
+        enableStoreLogging: true,
+        enablePerformanceMonitoring: true
       });
-      
-      // 초기 상태 전송
-      devTools.init(storeManager.exportState());
       
       // 모든 스토어 변경사항 구독
       const stores = storeManager.getAllStores();
@@ -819,10 +822,11 @@ function DevToolsIntegration() {
       
       for (const [storeName, store] of stores) {
         const unsubscribe = store.subscribe((newValue, previousValue) => {
-          devTools.send(
-            { type: `UPDATE_${storeName.toUpperCase()}`, payload: newValue },
-            storeManager.exportState()
-          );
+          console.group(`🔄 Store 업데이트: ${storeName}`);
+          console.log('이전 값:', previousValue);
+          console.log('새로운 값:', newValue);
+          console.log('전체 상태:', storeManager.exportState());
+          console.groupEnd();
         });
         
         unsubscribers.push(unsubscribe);
@@ -830,7 +834,6 @@ function DevToolsIntegration() {
       
       return () => {
         unsubscribers.forEach(unsub => unsub());
-        devTools.disconnect();
       };
     }
   }, [storeManager]);

@@ -3,15 +3,8 @@
  * 
  * 일관된 에러 처리를 위한 유틸리티 함수들
  * Context-Action 프레임워크 전반에 걸친 표준화된 에러 처리 패턴
- * 
- * 통합된 에러 경계 시스템 사용 (error-boundary.ts와 통합)
  */
 
-import { 
-  globalErrorBoundary, 
-  ErrorHandlerUtils,
-  type ErrorContext as BoundaryErrorContext 
-} from '../../utils/error-boundary';
 
 /**
  * Context-Action 프레임워크의 에러 유형 정의
@@ -143,23 +136,11 @@ export function handleError(
 ): ContextActionError {
   const error = new ContextActionError(type, message, context, originalError);
   
-  // 레거시 로깅
+  // 에러 로깅
   logError(error);
   
-  // 새로운 에러 바운더리 시스템으로 전달
-  const boundaryContext: BoundaryErrorContext = {
-    operation: type,
-    store: (context?.storeName || context?.store) as string,
-    component: (context?.componentName || context?.component) as string,
-    action: (context?.actionName || context?.action) as string,
-    metadata: { ...context, errorType: type }
-  };
-  
-  // globalErrorBoundary를 통한 통합 에러 처리
-  globalErrorBoundary.handleError(error, boundaryContext);
-  
-  // 설정에 따라 에러 throw (에러 바운더리의 shouldPropagate 사용)
-  if (currentErrorConfig.throwOnError || globalErrorBoundary.shouldPropagate(error)) {
+  // 설정에 따라 에러 throw
+  if (currentErrorConfig.throwOnError) {
     throw error;
   }
   
@@ -234,53 +215,55 @@ function logError(error: ContextActionError): void {
 }
 
 /**
- * 비동기 작업의 안전한 실행 래퍼 (통합된 에러 바운더리 사용)
+ * 비동기 작업의 안전한 실행 래퍼
  */
 export async function safeAsync<T>(
   operation: () => Promise<T>,
   errorType: ContextActionErrorType,
   context?: Record<string, unknown>
 ): Promise<T | null> {
-  const boundaryContext: BoundaryErrorContext = {
-    operation: errorType,
-    store: (context?.storeName || context?.store) as string,
-    component: (context?.componentName || context?.component) as string,
-    action: (context?.actionName || context?.action) as string,
-    metadata: { ...context, errorType }
-  };
-  
-  const result = await ErrorHandlerUtils.safeExecuteAsync(
-    operation,
-    boundaryContext,
-    null
-  );
-  
-  return result as T | null;
+  try {
+    return await operation();
+  } catch (error) {
+    const contextError = handleContextActionError(
+      errorType,
+      error instanceof Error ? error.message : 'Unknown async error',
+      context,
+      error instanceof Error ? error : undefined
+    );
+    
+    if (currentErrorConfig.logErrors) {
+      console.error(`[${errorType}] Async operation failed:`, contextError);
+    }
+    
+    return null;
+  }
 }
 
 /**
- * 동기 작업의 안전한 실행 래퍼 (통합된 에러 바운더리 사용)
+ * 동기 작업의 안전한 실행 래퍼
  */
 export function safeSync<T>(
   operation: () => T,
   errorType: ContextActionErrorType,
   context?: Record<string, unknown>
 ): T | null {
-  const boundaryContext: BoundaryErrorContext = {
-    operation: errorType,
-    store: (context?.storeName || context?.store) as string,
-    component: (context?.componentName || context?.component) as string,
-    action: (context?.actionName || context?.action) as string,
-    metadata: { ...context, errorType }
-  };
-  
-  const result = ErrorHandlerUtils.safeExecute(
-    operation,
-    boundaryContext,
-    null
-  );
-  
-  return result as T | null;
+  try {
+    return operation();
+  } catch (error) {
+    const contextError = handleContextActionError(
+      errorType,
+      error instanceof Error ? error.message : 'Unknown sync error',
+      context,
+      error instanceof Error ? error : undefined
+    );
+    
+    if (currentErrorConfig.logErrors) {
+      console.error(`[${errorType}] Sync operation failed:`, contextError);
+    }
+    
+    return null;
+  }
 }
 
 /**

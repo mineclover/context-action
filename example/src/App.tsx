@@ -55,12 +55,6 @@ const ActionGuardOverview = lazy(() => import('./pages/ActionGuardOverview'));
 const CoreConceptsOverview = lazy(() => import('./pages/CoreConceptsOverview'));
 const ExamplesUtilitiesOverview = lazy(() => import('./pages/ExamplesUtilitiesOverview'));
 const HomePage = lazy(() => import('./pages/HomePage'));
-// Error Handling Pages
-const ErrorHandlingIndexPage = lazy(() => import('./pages/error-handling/ErrorHandlingIndexPage').then(m => ({ default: m.ErrorHandlingIndexPage })));
-const BasicErrorBoundaryPage = lazy(() => import('./pages/error-handling/BasicErrorBoundaryPage').then(m => ({ default: m.BasicErrorBoundaryPage })));
-const StoreErrorManagementPage = lazy(() => import('./pages/error-handling/StoreErrorManagementPage').then(m => ({ default: m.StoreErrorManagementPage })));
-const AsyncErrorHandlingPage = lazy(() => import('./pages/error-handling/AsyncErrorHandlingPage').then(m => ({ default: m.AsyncErrorHandlingPage })));
-const ComprehensiveErrorDemo = lazy(() => import('./pages/error-handling/ComprehensiveErrorDemo').then(m => ({ default: m.ComprehensiveErrorDemo })));
 const FlowControlPlaygroundPage = lazy(() => import('./pages/pipeline/FlowControlPlaygroundPage').then(m => ({ default: m.FlowControlPlaygroundPage })));
 const LoggerDemoPage = lazy(() => import('./pages/logger/LoggerDemoPage'));
 const ReactContextPage = lazy(() => import('./pages/react/ReactContextPage'));
@@ -230,12 +224,6 @@ function AppContent() {
             path="/actionguard/advanced-filtering"
             element={<AdvancedFilteringPage />}
           />
-          {/* Error Handling Routes */}
-          <Route path="/error-handling" element={<ErrorHandlingIndexPage />} />
-          <Route path="/error-handling/basic" element={<BasicErrorBoundaryPage />} />
-          <Route path="/error-handling/store-errors" element={<StoreErrorManagementPage />} />
-          <Route path="/error-handling/async-errors" element={<AsyncErrorHandlingPage />} />
-          <Route path="/error-handling/comprehensive" element={<ComprehensiveErrorDemo />} />
           </Routes>
         </Suspense>
       </Layout>

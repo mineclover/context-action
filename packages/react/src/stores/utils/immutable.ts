@@ -8,8 +8,55 @@
  * @memberof core-concepts
  */
 
-// Tree-shaking 최적화: 필요한 것만 정적 import
-import { produce, isDraft, original, current } from 'immer';
+// Dynamic Immer import for bundle size optimization
+type ImmerModule = typeof import('immer');
+let immerModule: ImmerModule | null = null;
+
+/**
+ * Lazy load Immer module
+ */
+async function getImmer(): Promise<ImmerModule> {
+  if (!immerModule) {
+    immerModule = await import('immer');
+  }
+  return immerModule;
+}
+
+/**
+ * Check if value is a primitive type
+ */
+function isPrimitive(value: unknown): boolean {
+  return (
+    value === null ||
+    value === undefined ||
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean' ||
+    typeof value === 'bigint' ||
+    typeof value === 'symbol'
+  );
+}
+
+/**
+ * Check if value is a complex object that needs Immer
+ */
+function isComplexObject(value: unknown): boolean {
+  if (!value || typeof value !== 'object') return false;
+  
+  // Arrays are complex
+  if (Array.isArray(value)) return true;
+  
+  // Objects with nested properties
+  if (value.constructor === Object) {
+    const obj = value as Record<string, unknown>;
+    return Object.values(obj).some(val => 
+      typeof val === 'object' && val !== null
+    );
+  }
+  
+  // Class instances, Maps, Sets etc.
+  return value.constructor !== Object;
+}
 
 // Simple logger replacement
 const logger = {
@@ -80,15 +127,8 @@ function isNonCloneableType(value: unknown): boolean {
  * @returns 불변성이 보장된 복사본
  */
 export function deepClone<T>(value: T, options?: { skipProducer?: boolean }): T {
-  // Fast path: Primitive 값들은 이미 불변이므로 그대로 반환
-  if (
-    value === null ||
-    value === undefined ||
-    typeof value === 'string' ||
-    typeof value === 'number' ||
-    typeof value === 'boolean' ||
-    typeof value === 'bigint'
-  ) {
+  // Fast path: Primitive values are already immutable
+  if (isPrimitive(value)) {
     return value;
   }
 
@@ -100,37 +140,53 @@ export function deepClone<T>(value: T, options?: { skipProducer?: boolean }): T 
     return value;
   }
 
-  // Symbol은 복사 불가능하므로 경고 후 원본 반환
-  if (typeof value === 'symbol') {
-    if (process.env.NODE_ENV === 'development') {
-      logger.warn('Symbols cannot be deep cloned, returning original reference');
-    }
-    return value;
-  }
-
   // 복사하지 않아야 할 특별한 객체들
   if (isNonCloneableType(value)) {
     return value;
   }
 
-  // 성능 최적화: 간단한 객체는 직접 복사
-  if (options?.skipProducer && isSimpleObject(value)) {
+  // Use native structuredClone if available (Chrome 98+, Node 17+)
+  if (typeof structuredClone !== 'undefined') {
+    try {
+      return structuredClone(value);
+    } catch (error) {
+      // Fall through to other methods
+    }
+  }
+
+  // For simple objects, use optimized simple clone
+  if (!isComplexObject(value)) {
     return simpleClone(value);
   }
 
+  // For complex objects, use fallback clone (JSON-based)
+  return fallbackClone(value);
+}
+
+/**
+ * Async version with Immer for complex scenarios
+ * Only loads Immer when actually needed
+ */
+export async function deepCloneWithImmer<T>(value: T): Promise<T> {
+  // Fast path for primitives
+  if (isPrimitive(value)) {
+    return value;
+  }
+
+  // Skip non-cloneable types
+  if (isNonCloneableType(value) || typeof value === 'function') {
+    return value;
+  }
+
   try {
-    // Immer의 produce를 사용하여 불변 복사본 생성
-    // Tree-shaking 최적화로 produce만 사용
+    const { produce } = await getImmer();
     return produce(value, (_draft: any) => {
-      // Copy-on-Write 최적화를 위해 빈 함수 사용
-      // 변경사항이 없으면 원본을 반환하고, 변경이 있으면 새 객체를 반환
+      // Empty function for copy-on-write optimization
     });
   } catch (error) {
-    // Immer가 처리할 수 없는 객체의 경우 폴백 처리
     if (process.env.NODE_ENV === 'development') {
       logger.warn('Immer produce failed, falling back to simple clone', error);
     }
-
     return fallbackClone(value);
   }
 }
@@ -325,7 +381,7 @@ export function performantSafeGet<T>(value: T, enableCloning: boolean = true): T
 
   // Performance tracking for compatibility
   const startTime = performance.now();
-  const result = deepClone(value);
+  const result = deepClone(value); // Uses optimized sync version
   const endTime = performance.now();
   
   const duration = endTime - startTime;
@@ -333,6 +389,29 @@ export function performantSafeGet<T>(value: T, enableCloning: boolean = true): T
   performanceData.operations++;
   
   // 최근 100개 작업만 유지
+  if (performanceData.times.length > 100) {
+    performanceData.times.shift();
+  }
+
+  return result;
+}
+
+/**
+ * Async version with Immer for complex scenarios
+ */
+export async function performantSafeGetWithImmer<T>(value: T, enableCloning: boolean = true): Promise<T> {
+  if (!enableCloning) {
+    return value;
+  }
+
+  const startTime = performance.now();
+  const result = await deepCloneWithImmer(value);
+  const endTime = performance.now();
+  
+  const duration = endTime - startTime;
+  performanceData.times.push(duration);
+  performanceData.operations++;
+  
   if (performanceData.times.length > 100) {
     performanceData.times.shift();
   }
@@ -372,25 +451,101 @@ export function getPerformanceProfile(): PerformanceProfile {
 }
 
 /**
- * Tree-shaking 최적화된 Immer 유틸리티 함수들
- * 정적 import로 번들러가 최적화 가능
+ * Dynamic Immer utilities - only loaded when needed
  */
 export const ImmerUtils = {
   /**
-   * Draft 객체인지 확인
+   * Check if value is a Draft object (async)
    */
-  isDraft,
+  async isDraft(value: unknown): Promise<boolean> {
+    const { isDraft } = await getImmer();
+    return isDraft(value);
+  },
 
   /**
-   * Draft의 원본 객체 가져오기
+   * Get original object from Draft (async)
    */
-  original,
+  async original<T>(value: T): Promise<T | undefined> {
+    const { original } = await getImmer();
+    return original(value);
+  },
 
   /**
-   * Draft의 현재 상태 가져오기
+   * Get current state of Draft (async)
    */
-  current,
+  async current<T>(value: T): Promise<T> {
+    const { current } = await getImmer();
+    return current(value);
+  },
+
+  /**
+   * Produce new state with Immer (async)
+   */
+  async produce<T>(baseState: T, producer: (draft: T) => void | T): Promise<T> {
+    const { produce } = await getImmer();
+    return produce(baseState, producer);
+  }
 };
 
-// 핵심 Immer 함수들을 직접 export (Tree-shaking 최적화)
-export { produce, isDraft, original, current };
+/**
+ * Synchronous Immer utilities for backwards compatibility
+ * These will throw if Immer is not pre-loaded
+ */
+let syncImmerCache: ImmerModule | null = null;
+
+/**
+ * Pre-load Immer for synchronous usage
+ */
+export async function preloadImmer(): Promise<void> {
+  if (!syncImmerCache) {
+    syncImmerCache = await getImmer();
+  }
+}
+
+/**
+ * Synchronous produce (requires preloadImmer to be called first)
+ */
+export function produce<T>(baseState: T, producer: (draft: T) => void | T): T {
+  if (!syncImmerCache) {
+    throw new Error(
+      'Immer not loaded. Call preloadImmer() first or use ImmerUtils.produce() instead.'
+    );
+  }
+  return syncImmerCache.produce(baseState, producer);
+}
+
+/**
+ * Synchronous isDraft (requires preloadImmer to be called first)
+ */
+export function isDraft(value: unknown): boolean {
+  if (!syncImmerCache) {
+    throw new Error(
+      'Immer not loaded. Call preloadImmer() first or use ImmerUtils.isDraft() instead.'
+    );
+  }
+  return syncImmerCache.isDraft(value);
+}
+
+/**
+ * Synchronous original (requires preloadImmer to be called first)
+ */
+export function original<T>(value: T): T | undefined {
+  if (!syncImmerCache) {
+    throw new Error(
+      'Immer not loaded. Call preloadImmer() first or use ImmerUtils.original() instead.'
+    );
+  }
+  return syncImmerCache.original(value);
+}
+
+/**
+ * Synchronous current (requires preloadImmer to be called first)
+ */
+export function current<T>(value: T): T {
+  if (!syncImmerCache) {
+    throw new Error(
+      'Immer not loaded. Call preloadImmer() first or use ImmerUtils.current() instead.'
+    );
+  }
+  return syncImmerCache.current(value);
+}
