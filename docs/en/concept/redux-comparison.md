@@ -52,7 +52,7 @@
 
 | Feature | Redux | Context-Action | Notes |
 |---------|-------|----------------|-------|
-| **DevTools** | ✅ Redux DevTools | ❌ No specific tools | Redux: Mature debugging ecosystem<br/>Context-Action: Standard React DevTools |
+| **DevTools** | ✅ Redux DevTools | ✅ Console logging | Redux: Mature debugging ecosystem<br/>Context-Action: Browser console + React DevTools |
 | **Time Travel Debugging** | ✅ Native support | ❌ Not supported | Redux: Built-in time travel<br/>Context-Action: No historical state tracking |
 | **Hot Reloading** | ✅ Established | ✅ React-based | Redux: Reducer hot reloading<br/>Context-Action: React Fast Refresh |
 | **Learning Curve** | ⚠️ Steep | ✅ Moderate | Redux: Complex concepts (reducers, immutability)<br/>Context-Action: Familiar React patterns |

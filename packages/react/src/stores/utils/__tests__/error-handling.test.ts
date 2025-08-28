@@ -17,7 +17,6 @@ import {
   clearErrorLog,
   getFilteredErrors
 } from '../error-handling';
-import { globalErrorBoundary } from '../../utils/error-boundary';
 
 // Mock console methods
 const originalConsoleError = console.error;

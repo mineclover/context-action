@@ -1,868 +1,592 @@
-/**
- * @fileoverview Advanced Filtering Demo Page - 고급 필터링 패턴 데모
- */
-
-import React, { useEffect, useCallback, useState, Fragment } from 'react';
-import { createActionContext, ActionPayloadMap } from '@context-action/react';
+import React, { useState, useCallback, useEffect, Fragment } from 'react';
+import { createActionContext, createStoreContext, useStoreValue } from '@context-action/react';
 
 // Types
-interface ProcessActions extends ActionPayloadMap {
+interface ProcessActions {
   processData: { userId: string; data: any; action?: string };
+}
+
+interface ExecutionResult {
+  results?: any[];
+  duration?: number;
+  error?: string;
+  execution?: {
+    handlersExecuted: number;
+    duration: number;
+    startTime: number;
+    endTime: number;
+  };
+  success?: boolean;
 }
 
 // Context setup
 const {
   Provider: ProcessActionProvider,
   useActionDispatch: useProcessDispatch,
+  useActionDispatchWithResult: useProcessDispatchWithResult,
   useActionHandler: useProcessHandler,
   useActionRegister: useProcessRegister
 } = createActionContext<ProcessActions>('DataProcess');
 
-// Handler Registration Component
-function HandlerRegistration() {
-  const register = useProcessRegister();
-  
-  useEffect(() => {
-    if (!register) return;
+// Store setup for managing execution results and state
+const {
+  Provider: DemoStoreProvider,
+  useStore: useDemoStore
+} = createStoreContext('FilteringDemo', {
+  executionResults: {} as Record<string, ExecutionResult | null>,
+  executionState: {
+    handlersExecuted: 0,
+    totalDuration: 0,
+    isRunning: false,
+    executedHandlers: [] as string[],
+    currentDemo: null as string | null
+  },
+  isLoading: false
+});
 
-    // High priority security validation (blocking)
-    const unregisterSecurity = register.register('processData', 
-      async (payload: any, controller: any) => {
-        console.log('🔐 Security validation for:', payload.userId);
-        // Simulate validation logic
-        if (!payload.userId) {
-          controller.abort('Invalid user ID');
-          return;
-        }
-        await new Promise(resolve => setTimeout(resolve, 50)); // Simulate async work
-        return { security: 'validated', handlerId: 'security-check' };
-      }, 
-      { 
-        id: 'security-check', 
-        priority: 100, 
-        blocking: true 
-      }
-    );
+// Store-Based Execution Flow Visualization
+function ExecutionFlowVisualization() {
+  const executionStateStore = useDemoStore('executionState');
+  const executionState = useStoreValue(executionStateStore);
 
-    // Medium priority analytics (non-blocking)
-    const unregisterAnalytics = register.register('processData',
-      async (payload: any, controller: any) => {
-        console.log('📊 Analytics tracking for:', payload.userId);
-        await new Promise(resolve => setTimeout(resolve, 30)); // Simulate async work
-        return { analytics: 'tracked', handlerId: 'analytics' };
-      },
-      { 
-        id: 'analytics', 
-        priority: 80, 
-        blocking: false 
-      }
-    );
-
-    // Medium priority database save (blocking)
-    const unregisterDatabase = register.register('processData',
-      async (payload: any, controller: any) => {
-        console.log('💾 Database save for:', payload.userId);
-        await new Promise(resolve => setTimeout(resolve, 80)); // Simulate async work
-        return { database: 'saved', handlerId: 'database-save' };
-      },
-      { 
-        id: 'database-save', 
-        priority: 60, 
-        blocking: true 
-      }
-    );
-
-    // Low priority notification (non-blocking)
-    const unregisterNotification = register.register('processData',
-      async (payload: any, controller: any) => {
-        console.log('🔔 Notification sent for:', payload.userId);
-        await new Promise(resolve => setTimeout(resolve, 40)); // Simulate async work
-        return { notification: 'sent', handlerId: 'notification' };
-      },
-      { 
-        id: 'notification', 
-        priority: 40, 
-        blocking: false 
-      }
-    );
-
-    // Lowest priority audit log (non-blocking)
-    const unregisterAudit = register.register('processData',
-      async (payload: any, controller: any) => {
-        console.log('📝 Audit log for:', payload.userId);
-        await new Promise(resolve => setTimeout(resolve, 20)); // Simulate async work
-        return { audit: 'logged', handlerId: 'audit-log' };
-      },
-      { 
-        id: 'audit-log', 
-        priority: 20, 
-        blocking: false 
-      }
-    );
-
-    // Cleanup function
-    return () => {
-      unregisterSecurity();
-      unregisterAnalytics();
-      unregisterDatabase();
-      unregisterNotification();
-      unregisterAudit();
-    };
-  }, [register]);
-
-  return null;
-}
-
-// Results Display Component
-interface ExecutionResult {
-  results?: Record<string, any>;
-  duration?: number;
-  error?: string;
-  executedHandlers?: string[];
-}
-
-// Fixed Execution Flow Visualization Component (Always visible at top)
-function FixedExecutionFlowDisplay({ results }: { results: Record<string, ExecutionResult | null> }) {
   const handlers = [
-    { id: 'security-check', label: '🔐 Security', priority: 100, blocking: true },
-    { id: 'analytics', label: '📊 Analytics', priority: 80, blocking: false },
-    { id: 'database-save', label: '💾 Database', priority: 60, blocking: true },
-    { id: 'notification', label: '🔔 Notification', priority: 40, blocking: false },
-    { id: 'audit-log', label: '📝 Audit', priority: 20, blocking: false }
+    { id: 'security-check', name: 'Security', icon: '🔐', priority: 100 },
+    { id: 'analytics', name: 'Analytics', icon: '📊', priority: 80 },
+    { id: 'database-save', name: 'Database', icon: '💾', priority: 60 },
+    { id: 'notification', name: 'Notification', icon: '🔔', priority: 40 },
+    { id: 'audit-log', name: 'Audit', icon: '📝', priority: 20 }
   ];
 
-  // Get all execution results to show cumulative state
-  const allResults = Object.values(results).filter(r => r !== null);
-  const latestResult = allResults[allResults.length - 1];
-  
-  // Debug logging
-  console.log('🔍 FixedExecutionFlowDisplay Debug:', {
-    resultsKeys: Object.keys(results),
-    allResults: allResults.length,
-    latestResult: latestResult,
-    latestResultKeys: latestResult?.results ? Object.keys(latestResult.results) : 'none'
-  });
-  
-  // Extract executed handler IDs from all results (improved logic)
-  const executedHandlerIds = new Set<string>();
-  
-  allResults.forEach(result => {
-    if (result?.results) {
-      console.log('🔍 Processing result:', result);
-      
-      // Method 1: Direct handler ID from result keys
-      Object.keys(result.results).forEach(key => {
-        const handler = handlers.find(h => h.id === key);
-        if (handler) {
-          console.log('✅ Direct match found:', handler.id);
-          executedHandlerIds.add(handler.id);
-        }
-      });
-      
-      // Method 2: Check handler results for handlerId field or result patterns
-      Object.entries(result.results).forEach(([key, resultValue]) => {
-        console.log(`🔍 Checking result key: ${key}`, resultValue);
-        
-        if (typeof resultValue === 'object' && resultValue !== null) {
-          const resultObj = resultValue as Record<string, any>;
-          
-          // Check for handlerId field in result
-          if (resultObj.handlerId) {
-            const handler = handlers.find(h => h.id === resultObj.handlerId);
-            if (handler) {
-              console.log('✅ HandlerId match found:', resultObj.handlerId);
-              executedHandlerIds.add(handler.id);
-            }
-          }
-          
-          // Check for specific response patterns
-          handlers.forEach(handler => {
-            const patterns = {
-              'security-check': resultObj.security,
-              'analytics': resultObj.analytics, 
-              'database-save': resultObj.database,
-              'notification': resultObj.notification,
-              'audit-log': resultObj.audit
-            };
-            
-            if (patterns[handler.id as keyof typeof patterns]) {
-              console.log('✅ Pattern match found:', handler.id);
-              executedHandlerIds.add(handler.id);
-            }
-          });
-        }
-        
-        // Method 3: Check if result key matches handler ID directly
-        const handler = handlers.find(h => h.id === key);
-        if (handler) {
-          console.log('✅ Key match found:', handler.id);
-          executedHandlerIds.add(handler.id);
-        }
-      });
-    }
-  });
-  
-  console.log('🎯 Final executed handler IDs:', Array.from(executedHandlerIds));
-
   return (
-    <div className="sticky top-4 z-10 bg-white rounded-xl border border-gray-300 shadow-lg p-6 mb-6">
-      <div className="mb-6">
-        {/* Title */}
-        <div className="text-center mb-3">
-          <h3 className="text-lg font-bold text-gray-900 flex items-center justify-center">
-            <span className="mr-2">🔄</span>
-            Handler Flow
-            <span className="ml-2">🔄</span>
-          </h3>
-        </div>
+    <div className="bg-white rounded-xl border shadow-lg p-4 mb-6 max-w-[600px] mx-auto">
+      <div className="text-center mb-4">
+        <h3 className="text-lg font-bold text-gray-900 flex items-center justify-center">
+          <span className="mr-2">🔄</span>
+          Handler Execution Flow
+          <span className="ml-2">🔄</span>
+        </h3>
         
-        {/* Statistics */}
-        {Object.keys(results).length > 0 && (
-          <div className="flex items-center justify-center space-x-2 mb-3 text-xs">
-            <div className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold">
-              ✅ {executedHandlerIds.size}
-            </div>
-            <div className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-semibold">
-              ⏸️ {handlers.length - executedHandlerIds.size}
-            </div>
-            {latestResult?.duration && (
-              <div className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-semibold">
-                ⚡ {latestResult.duration}ms
-              </div>
-            )}
-            <div className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-semibold">
-              📊 {Object.keys(results).length}
-            </div>
+        {/* Stats */}
+        <div className="flex justify-center space-x-3 mt-2">
+          <div className="bg-green-100 text-green-700 px-3 py-1 rounded font-semibold text-sm">
+            ✅ {executionState.handlersExecuted}
           </div>
-        )}
+          <div className="bg-gray-100 text-gray-600 px-3 py-1 rounded font-semibold text-sm">
+            ⏸️ {handlers.length - executionState.handlersExecuted}  
+          </div>
+          {executionState.totalDuration > 0 && (
+            <div className="bg-blue-100 text-blue-700 px-3 py-1 rounded font-semibold text-sm">
+              ⚡ {executionState.totalDuration}ms
+            </div>
+          )}
+        </div>
       </div>
-      
-      <div className="flex items-center justify-center space-x-3 overflow-x-auto pb-2">
+
+      {/* Handler Flow */}
+      <div className="flex justify-center items-center space-x-2 overflow-x-auto">
         {handlers.map((handler, index) => {
-          const isExecuted = executedHandlerIds.has(handler.id);
-          const isBlocking = handler.blocking;
+          const isExecuted = executionState.executedHandlers.includes(handler.id);
+          const isNext = index === executionState.handlersExecuted && executionState.isRunning;
           
           return (
             <Fragment key={handler.id}>
-              <div
-                className={`relative flex flex-col items-center p-3 rounded-xl border-2 transition-all duration-500 min-w-[80px] max-w-[80px] ${
-                  isExecuted 
-                    ? 'bg-gradient-to-b from-green-50 to-green-100 border-green-500 shadow-xl transform scale-110 ring-2 ring-green-300' 
-                    : 'bg-gradient-to-b from-gray-50 to-gray-100 border-gray-300 opacity-60 hover:opacity-80'
-                }`}
-              >
-                {/* Handler Icon */}
-                <div className={`text-2xl mb-2 transition-all duration-500 ${isExecuted ? 'animate-bounce scale-110 drop-shadow-lg' : 'scale-90 grayscale'}`}>
-                  {handler.label.split(' ')[0]}
+              {/* Handler Card */}
+              <div className={`
+                flex flex-col items-center p-3 rounded-xl border-2 transition-all duration-500
+                min-w-[80px] max-w-[80px]
+                ${isExecuted 
+                  ? 'bg-gradient-to-b from-green-50 to-green-100 border-green-500 shadow-lg scale-110 ring-2 ring-green-300' 
+                  : isNext
+                    ? 'bg-gradient-to-b from-blue-50 to-blue-100 border-blue-500 shadow-md animate-pulse'
+                    : 'bg-gradient-to-b from-gray-50 to-gray-100 border-gray-300 opacity-60'
+                }
+              `}>
+                <div className={`text-2xl mb-1 transition-all duration-500 ${isExecuted ? 'animate-bounce' : ''}`}>
+                  {handler.icon}
                 </div>
-                
-                {/* Handler Name */}
-                <div className={`text-xs font-semibold text-center ${
-                  isExecuted ? 'text-green-800' : 'text-gray-600'
-                }`}>
-                  {handler.label.split(' ')[1]}
+                <div className="text-xs font-medium text-center leading-tight">
+                  {handler.name}
                 </div>
-                
-                {/* Priority */}
-                <div className={`text-xs mt-1 px-1.5 py-0.5 rounded font-mono font-semibold ${isExecuted ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-600'}`}>
+                <div className="text-xs text-gray-500">
                   P{handler.priority}
-                </div>
-
-                {/* Blocking Indicator */}
-                {isBlocking && (
-                  <div className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 text-xs px-1 py-0.5 rounded font-bold shadow">
-                    ⚡
-                  </div>
-                )}
-
-                {/* Execution Success Indicator */}
-                {isExecuted && (
-                  <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-xs px-2 py-0.5 rounded font-bold shadow animate-pulse">
-                    ✓
-                  </div>
-                )}
-
-                {/* Handler Status */}
-                <div className="absolute top-1 left-1 w-2 h-2 rounded-full ${isExecuted ? 'bg-green-500 animate-ping' : 'bg-gray-400'}"></div>
-                
-                <div className={`mt-2 text-xs font-semibold text-center ${
-                  isExecuted ? 'text-green-700' : 'text-gray-500'
-                }`}>
-                  {isExecuted ? '✅' : '⏳'}
                 </div>
               </div>
               
-              {/* Connection Line */}
+              {/* Arrow */}
               {index < handlers.length - 1 && (
-                <div className="flex items-center justify-center mx-1">
-                  <div className={`text-xl transition-all duration-500 ${
-                    isExecuted 
-                      ? 'text-green-500 animate-pulse' 
-                      : 'text-gray-300'
-                  }`}>
-                    →
-                  </div>
+                <div className={`
+                  transition-all duration-300 text-2xl
+                  ${isExecuted ? 'text-green-500 animate-pulse' : 'text-gray-300'}
+                `}>
+                  →
                 </div>
               )}
             </Fragment>
           );
         })}
       </div>
-
-      {/* Overall Status */}
-      <div className="mt-6 text-center">
-        {executedHandlerIds.size === 0 ? (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <p className="text-yellow-700 text-sm font-medium flex items-center justify-center">
-              <span className="mr-2 text-lg">🎯</span>
-              Ready to execute! Click any demo button below to see the handler flow in action.
-              <span className="ml-2 text-lg">🚀</span>
-            </p>
-          </div>
-        ) : (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="text-green-800 text-sm font-semibold mb-1">
-              🎉 Execution Complete!
-            </div>
-            <p className="text-green-700 text-xs">
-              Last execution processed {executedHandlerIds.size} of {handlers.length} handlers in {latestResult?.duration}ms
-            </p>
-          </div>
-        )}
-      </div>
     </div>
   );
 }
 
-// Handler Execution Summary Component
-function HandlerSummary({ results }: { results: Record<string, ExecutionResult | null> }) {
-  const totalExecutions = Object.keys(results).filter(k => results[k] !== null).length;
-  const successfulExecutions = Object.keys(results).filter(k => results[k] && !results[k].error).length;
-  const failedExecutions = totalExecutions - successfulExecutions;
-  const averageTime = totalExecutions > 0 
-    ? Math.round(Object.values(results)
-        .filter(r => r?.duration)
-        .reduce((sum, r) => sum + (r?.duration || 0), 0) / totalExecutions)
-    : 0;
+// Handler Registration
+function HandlerRegistration() {
+  const register = useProcessRegister();
+  
+  useEffect(() => {
+    if (!register) return;
 
-  if (totalExecutions === 0) {
-    return (
-      <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 mb-6 text-center">
-        <div className="text-gray-400 text-4xl mb-2">🎭</div>
-        <h3 className="font-semibold text-gray-700 mb-2">No executions yet</h3>
-        <p className="text-gray-500 text-sm">Click any demo button below to see filtering in action!</p>
-      </div>
-    );
-  }
+    const unregisterFunctions = [
+      register.register('processData', async (payload, controller) => {
+        console.log('🔐 Security validation for:', payload.userId);
+        await new Promise(resolve => setTimeout(resolve, 50));
+        return { security: 'validated', handlerId: 'security-check' };
+      }, { id: 'security-check', priority: 100, blocking: true }),
 
-  return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6 shadow-sm">
-      <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
-        <span className="mr-2">📊</span>
-        Execution Summary
-        <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-          {totalExecutions} test{totalExecutions !== 1 ? 's' : ''} completed
-        </span>
-      </h3>
-      <div className="grid grid-cols-4 gap-4 text-center">
-        <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-          <div className="text-2xl font-bold text-blue-600">{totalExecutions}</div>
-          <div className="text-xs text-blue-800 font-medium">Total</div>
-        </div>
-        <div className="bg-green-50 rounded-lg p-3 border border-green-200">
-          <div className="text-2xl font-bold text-green-600">{successfulExecutions}</div>
-          <div className="text-xs text-green-800 font-medium">Success</div>
-        </div>
-        <div className="bg-red-50 rounded-lg p-3 border border-red-200">
-          <div className="text-2xl font-bold text-red-600">{failedExecutions}</div>
-          <div className="text-xs text-red-800 font-medium">Failed</div>
-        </div>
-        <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
-          <div className="text-2xl font-bold text-purple-600">{averageTime}ms</div>
-          <div className="text-xs text-purple-800 font-medium">Avg. Time</div>
-        </div>
-      </div>
-    </div>
-  );
+      register.register('processData', async (payload, controller) => {
+        console.log('📊 Analytics tracking for:', payload.userId);
+        await new Promise(resolve => setTimeout(resolve, 30));
+        return { analytics: 'tracked', handlerId: 'analytics' };
+      }, { id: 'analytics', priority: 80, blocking: false }),
+
+      register.register('processData', async (payload, controller) => {
+        console.log('💾 Database save for:', payload.userId);
+        await new Promise(resolve => setTimeout(resolve, 80));
+        return { database: 'saved', handlerId: 'database-save' };
+      }, { id: 'database-save', priority: 60, blocking: true }),
+
+      register.register('processData', async (payload, controller) => {
+        console.log('🔔 Notification sent for:', payload.userId);
+        await new Promise(resolve => setTimeout(resolve, 40));
+        return { notification: 'sent', handlerId: 'notification' };
+      }, { id: 'notification', priority: 40, blocking: false }),
+
+      register.register('processData', async (payload, controller) => {
+        console.log('📝 Audit log for:', payload.userId);
+        await new Promise(resolve => setTimeout(resolve, 20));
+        return { audit: 'logged', handlerId: 'audit-log' };
+      }, { id: 'audit-log', priority: 20, blocking: false })
+    ];
+
+    return () => {
+      unregisterFunctions.forEach(fn => fn());
+    };
+  }, [register]);
+
+  return null;
 }
 
-interface FilterOptions {
-  handlerIds?: string[];
-  excludeHandlerIds?: string[];
-  priority?: { min?: number; max?: number };
-  custom?: (config: any) => boolean;
-}
+// Demo Component with Store Management
+function FilteringDemo() {
+  const { dispatchWithResult } = useProcessDispatchWithResult();
+  const resultsStore = useDemoStore('executionResults');
+  const executionStateStore = useDemoStore('executionState');
+  const isLoadingStore = useDemoStore('isLoading');
+  
+  const results = useStoreValue(resultsStore);
+  const isLoading = useStoreValue(isLoadingStore);
 
-function ResultsDisplay({ 
-  result, 
-  title, 
-  filterOptions 
-}: { 
-  result: ExecutionResult | null; 
-  title: string;
-  filterOptions?: FilterOptions;
-}) {
-  if (!result) return null;
+  const handlers = [
+    { id: 'security-check', name: 'Security', icon: '🔐', priority: 100 },
+    { id: 'analytics', name: 'Analytics', icon: '📊', priority: 80 },
+    { id: 'database-save', name: 'Database', icon: '💾', priority: 60 },
+    { id: 'notification', name: 'Notification', icon: '🔔', priority: 40 },
+    { id: 'audit-log', name: 'Audit', icon: '📝', priority: 20 }
+  ];
 
-  // Generate filter description
-  const getFilterDescription = () => {
-    if (!filterOptions) return 'No filters applied - all handlers executed';
-    
-    const descriptions: string[] = [];
-    
-    if (filterOptions.handlerIds && filterOptions.handlerIds.length > 0) {
-      descriptions.push(`🎯 Only handlers: ${filterOptions.handlerIds.join(', ')}`);
-    }
-    
-    if (filterOptions.excludeHandlerIds && filterOptions.excludeHandlerIds.length > 0) {
-      descriptions.push(`❌ Exclude handlers: ${filterOptions.excludeHandlerIds.join(', ')}`);
-    }
-    
-    if (filterOptions.priority) {
-      if (filterOptions.priority.min && filterOptions.priority.max) {
-        descriptions.push(`📊 Priority range: ${filterOptions.priority.min}-${filterOptions.priority.max}`);
-      } else if (filterOptions.priority.min) {
-        descriptions.push(`📈 Priority >= ${filterOptions.priority.min}`);
-      } else if (filterOptions.priority.max) {
-        descriptions.push(`📉 Priority <= ${filterOptions.priority.max}`);
-      }
-    }
-    
-    if (filterOptions.custom) {
-      descriptions.push(`⚙️ Custom logic: ${filterOptions.custom.toString().includes('blocking') ? 'blocking-based filter' : 'custom filter'}`);
-    }
-    
-    return descriptions.length > 0 
-      ? descriptions.join(' • ') 
-      : 'No specific filters applied';
-  };
+  const runDemo = useCallback(async (demoKey: string, filterOptions?: any) => {
+    // Clear all previous results and reset state
+    resultsStore.setValue({});
+    executionStateStore.setValue({
+      handlersExecuted: 0,
+      totalDuration: 0,
+      isRunning: false,
+      executedHandlers: [],
+      currentDemo: demoKey
+    });
+    isLoadingStore.setValue(true);
 
-  // Generate filter code for code example
-  const generateFilterCode = () => {
-    if (!filterOptions) {
-      return <div className="text-gray-400 ml-4">// No filter applied</div>;
-    }
-
-    return (
-      <div className="text-white ml-4">
-        filter: {`{`}
-        {filterOptions.handlerIds && (
-          <div className="ml-4 text-cyan-300">
-            handlerIds: [{filterOptions.handlerIds.map(id => `'${id}'`).join(', ')}],
-          </div>
-        )}
-        {filterOptions.excludeHandlerIds && (
-          <div className="ml-4 text-red-300">
-            excludeHandlerIds: [{filterOptions.excludeHandlerIds.map(id => `'${id}'`).join(', ')}],
-          </div>
-        )}
-        {filterOptions.priority && (
-          <div className="ml-4 text-yellow-300">
-            priority: {`{`}
-            {filterOptions.priority.min && ` min: ${filterOptions.priority.min}`}
-            {filterOptions.priority.max && `, max: ${filterOptions.priority.max}`}
-            {` }`},
-          </div>
-        )}
-        {filterOptions.custom && (
-          <div className="ml-4 text-purple-300">
-            custom: (config) =&gt; config.blocking === {filterOptions.custom.toString().includes('false') ? 'false' : 'true'}
-          </div>
-        )}
-        <div className="text-white">{`}`}</div>
-      </div>
-    );
-  };
-
-  return (
-    <div className="mt-4 space-y-3">
-      <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
-        <div className="flex items-center justify-between mb-3">
-          <h4 className="font-medium text-gray-900">{title}</h4>
-          {result.duration && (
-            <span className="text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-semibold">
-              ⏱️ {result.duration}ms
-            </span>
-          )}
-        </div>
-        
-        {/* Filter Options Display */}
-        <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-          <div className="text-sm text-blue-800">
-            <span className="font-semibold">🔍 Filter Applied:</span>
-          </div>
-          <div className="text-sm text-blue-700 mt-1">
-            {getFilterDescription()}
-          </div>
-        </div>
-        
-        {result.error ? (
-          <div className="text-red-600 text-sm flex items-center p-3 bg-red-50 rounded-lg border border-red-200">
-            <span className="mr-2">❌</span>
-            <span>Error: {result.error}</span>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {/* Results Summary */}
-            <div className="flex items-center space-x-4 text-sm">
-              <span className="flex items-center text-green-600">
-                <span className="mr-1">✅</span>
-                {Object.keys(result.results || {}).length} handlers executed
-              </span>
-              <span className="flex items-center text-blue-600">
-                <span className="mr-1">⚡</span>
-                {result.duration}ms total
-              </span>
-            </div>
-            
-            {/* Code Example (Collapsible) */}
-            <div className="text-sm">
-              <details className="group border border-gray-200 rounded-md">
-                <summary className="cursor-pointer font-medium text-gray-700 hover:text-gray-900 p-3 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors flex items-center justify-between">
-                  <span className="flex items-center">
-                    <span className="mr-2">💻</span>
-                    Implementation Example (Click to expand)
-                  </span>
-                  <span className="group-open:rotate-90 transition-transform">▶</span>
-                </summary>
-                <div className="p-3 bg-white border-t border-gray-200">
-                  <div className="bg-gray-900 rounded-lg p-4 text-green-400 font-mono text-xs overflow-auto max-h-60">
-                    <div className="text-yellow-400 mb-2">// Implementation Code</div>
-                    <div className="text-blue-300">const result = await dispatch('processData', payload, {`{`}</div>
-                    <div className="text-white ml-4">result: {`{`} collect: true, strategy: 'all' {`}`},</div>
-                    {generateFilterCode()}
-                    <div className="text-blue-300">{`});`}</div>
-                    <div className="mt-3 text-yellow-400">// Execution Results</div>
-                    {Object.entries(result.results || {}).map(([handlerId, handlerResult]) => (
-                      <div key={handlerId} className="text-green-300">
-                        <span className="text-cyan-400">{handlerId}:</span> {JSON.stringify(handlerResult)}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </details>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// Main Demo Component
-function FilteringDemoComponent() {
-  const dispatch = useProcessDispatch();
-  const [results, setResults] = useState<Record<string, ExecutionResult | null>>({});
-  const [isLoading, setIsLoading] = useState<Record<string, boolean>>({});
-
-  const executeWithResult = useCallback(async (
-    key: string, 
-    title: string, 
-    payload: any, 
-    options: any = {}
-  ) => {
-    setIsLoading(prev => ({ ...prev, [key]: true }));
-    setResults(prev => ({ ...prev, [key]: null }));
-    
-    const startTime = performance.now();
-    
     try {
-      const result = await dispatch('processData', payload, {
-        result: { collect: true, strategy: 'all' },
-        ...options
-      });
-      
-      const duration = Math.round(performance.now() - startTime);
-      
-      setResults(prev => ({
-        ...prev,
-        [key]: {
-          results: (result as any)?.results || result,
-          duration
+      const result = await dispatchWithResult('processData', 
+        { userId: `user-${Date.now()}`, data: { demo: demoKey } },
+        {
+          result: { collect: true, strategy: 'all' },
+          ...filterOptions
         }
-      }));
-    } catch (error) {
-      const duration = Math.round(performance.now() - startTime);
-      setResults(prev => ({
-        ...prev,
-        [key]: {
-          error: error instanceof Error ? error.message : String(error),
-          duration
-        }
-      }));
-    } finally {
-      setIsLoading(prev => ({ ...prev, [key]: false }));
-    }
-  }, [dispatch]);
+      );
 
-  const filteringDemos = [
-    {
-      key: 'no-filter',
-      title: '🔄 No Filter (All Handlers)',
-      description: 'Execute all registered handlers without any filtering',
+      console.log('✅ Demo Result:', result);
+      
+      const executionResult: ExecutionResult = {
+        execution: result.execution,
+        results: result.results,
+        success: result.success,
+        duration: result.execution?.duration
+      };
+
+      // Update results store with new result
+      resultsStore.setValue({ [demoKey]: executionResult });
+
+      // Update execution state based on result
+      const executed = result.execution?.handlersExecuted || 0;
+      const executedHandlers = handlers.slice(0, executed).map(h => h.id);
+
+      executionStateStore.setValue({
+        handlersExecuted: executed,
+        totalDuration: result.execution?.duration || 0,
+        isRunning: executed > 0,
+        executedHandlers,
+        currentDemo: demoKey
+      });
+
+    } catch (error) {
+      console.error('❌ Demo Error:', error);
+      
+      const errorResult: ExecutionResult = {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        execution: { handlersExecuted: 0, duration: 0, startTime: 0, endTime: 0 }
+      };
+
+      resultsStore.setValue({ [demoKey]: errorResult });
+      
+      executionStateStore.setValue({
+        handlersExecuted: 0,
+        totalDuration: 0,
+        isRunning: false,
+        executedHandlers: [],
+        currentDemo: demoKey
+      });
+    } finally {
+      isLoadingStore.setValue(false);
+    }
+  }, [dispatchWithResult, resultsStore, executionStateStore, isLoadingStore, handlers]);
+
+  const demos = [
+    // Basic filtering
+    { 
+      key: 'no-filter', 
+      title: '🔄 All Handlers', 
+      description: 'Execute all 5 handlers without any filtering',
       filterOptions: undefined,
-      action: () => executeWithResult(
-        'no-filter',
-        'All Handlers Execution',
-        { userId: 'user-123', data: { action: 'all-handlers' } }
-      )
+      category: 'Basic'
     },
-    {
-      key: 'handler-ids',
-      title: '🎯 Handler ID Filtering',
-      description: 'Execute only security and database handlers',
-      filterOptions: { handlerIds: ['security-check', 'database-save'] },
-      action: () => executeWithResult(
-        'handler-ids',
-        'Handler ID Filtering',
-        { userId: 'user-456', data: { action: 'critical' } },
-        {
-          filter: {
-            handlerIds: ['security-check', 'database-save']
-          }
-        }
-      )
+    
+    // Handler ID filtering
+    { 
+      key: 'critical-only', 
+      title: '🔐 Critical Security + DB', 
+      description: 'Only security validation and database save',
+      filterOptions: { filter: { handlerIds: ['security-check', 'database-save'] } },
+      category: 'Handler IDs'
     },
-    {
-      key: 'priority-range',
-      title: '📊 Priority Range Filtering',
-      description: 'Execute handlers with priority between 50-90',
-      filterOptions: { priority: { min: 50, max: 90 } },
-      action: () => executeWithResult(
-        'priority-range',
-        'Priority Range Filtering',
-        { userId: 'user-789', data: { action: 'medium-priority' } },
-        {
-          filter: {
-            priority: { min: 50, max: 90 }
-          }
-        }
-      )
+    { 
+      key: 'analytics-only', 
+      title: '📊 Analytics Only', 
+      description: 'Execute only analytics tracking handler',
+      filterOptions: { filter: { handlerIds: ['analytics'] } },
+      category: 'Handler IDs'
     },
-    {
-      key: 'high-priority',
-      title: '⚡ High Priority Only',
-      description: 'Execute only high-priority handlers (>=80)',
-      filterOptions: { priority: { min: 80 } },
-      action: () => executeWithResult(
-        'high-priority',
-        'High Priority Filtering',
-        { userId: 'user-321', data: { action: 'urgent' } },
-        {
-          filter: {
-            priority: { min: 80 }
-          }
-        }
-      )
+    { 
+      key: 'non-blocking', 
+      title: '⚡ Non-blocking Handlers', 
+      description: 'Analytics, notification, and audit (non-blocking)',
+      filterOptions: { filter: { handlerIds: ['analytics', 'notification', 'audit-log'] } },
+      category: 'Handler IDs'
     },
-    {
-      key: 'custom-blocking',
-      title: '🚧 Custom Filter (Blocking Only)',
-      description: 'Execute only blocking handlers using custom filter',
-      filterOptions: { custom: (config: any) => config.blocking === true },
-      action: () => executeWithResult(
-        'custom-blocking',
-        'Custom Blocking Filter',
-        { userId: 'user-654', data: { action: 'blocking-only' } },
-        {
-          filter: {
-            custom: (config: any) => config.blocking === true
-          }
-        }
-      )
+    
+    // Priority-based filtering
+    { 
+      key: 'high-priority', 
+      title: '🚀 High Priority (≥80)', 
+      description: 'Security and analytics handlers',
+      filterOptions: { filter: { priority: { min: 80 } } },
+      category: 'Priority'
     },
-    {
-      key: 'custom-non-blocking',
-      title: '🌊 Custom Filter (Non-blocking + High Priority)',
-      description: 'Execute high-priority, non-blocking handlers only',
-      filterOptions: { custom: (config: any) => config.priority >= 70 && config.blocking === false },
-      action: () => executeWithResult(
-        'custom-non-blocking',
-        'Custom Non-blocking Filter',
-        { userId: 'user-987', data: { action: 'non-blocking-priority' } },
-        {
-          filter: {
-            custom: (config: any) => config.priority >= 70 && config.blocking === false
-          }
-        }
-      )
+    { 
+      key: 'medium-priority', 
+      title: '📊 Medium Priority (50-90)', 
+      description: 'Analytics, database, and notification',
+      filterOptions: { filter: { priority: { min: 50, max: 90 } } },
+      category: 'Priority'
     },
-    {
-      key: 'combined',
-      title: '🔗 Combined Filtering',
-      description: 'Priority >= 50 + Exclude analytics + Only non-blocking',
+    { 
+      key: 'low-priority', 
+      title: '📝 Low Priority (≤50)', 
+      description: 'Notification and audit logging',
+      filterOptions: { filter: { priority: { max: 50 } } },
+      category: 'Priority'
+    },
+    
+    // Exclusion filtering
+    { 
+      key: 'no-analytics', 
+      title: '🚫 Exclude Analytics', 
+      description: 'All handlers except analytics tracking',
+      filterOptions: { filter: { excludeHandlerIds: ['analytics'] } },
+      category: 'Exclusion'
+    },
+    { 
+      key: 'no-notifications', 
+      title: '🔕 Skip Notifications', 
+      description: 'All handlers except notification and audit',
+      filterOptions: { filter: { excludeHandlerIds: ['notification', 'audit-log'] } },
+      category: 'Exclusion'
+    },
+    
+    // Custom filtering (business logic)
+    { 
+      key: 'blocking-only', 
+      title: '⏳ Blocking Handlers', 
+      description: 'Only handlers that block execution (security + database)',
       filterOptions: { 
-        priority: { min: 50 }, 
-        excludeHandlerIds: ['analytics'], 
-        custom: (config: any) => config.blocking === false 
+        filter: { 
+          custom: (config: any) => config.blocking === true 
+        } 
       },
-      action: () => executeWithResult(
-        'combined',
-        'Combined Filtering',
-        { userId: 'user-111', data: { action: 'combined' } },
-        {
-          filter: {
-            priority: { min: 50 },
-            excludeHandlerIds: ['analytics'],
-            custom: (config: any) => config.blocking === false
-          }
-        }
-      )
+      category: 'Custom Logic'
     },
-    {
-      key: 'exclude',
-      title: '❌ Exclude Filtering',
-      description: 'Run all handlers except analytics and audit',
-      filterOptions: { excludeHandlerIds: ['analytics', 'audit-log'] },
-      action: () => executeWithResult(
-        'exclude',
-        'Exclude Filtering',
-        { userId: 'user-555', data: { action: 'no-tracking' } },
-        {
-          filter: {
-            excludeHandlerIds: ['analytics', 'audit-log']
-          }
-        }
-      )
+    { 
+      key: 'essential-flow', 
+      title: '✅ Essential Flow', 
+      description: 'Security validation → Database save → Audit log',
+      filterOptions: { 
+        filter: { 
+          custom: (config: any) => ['security-check', 'database-save', 'audit-log'].includes(config.id)
+        } 
+      },
+      category: 'Custom Logic'
+    },
+    
+    // Combined filtering
+    { 
+      key: 'high-priority-no-analytics', 
+      title: '🎯 High Priority + No Analytics', 
+      description: 'Priority ≥80 excluding analytics',
+      filterOptions: { 
+        filter: { 
+          priority: { min: 80 },
+          excludeHandlerIds: ['analytics']
+        } 
+      },
+      category: 'Combined'
+    },
+    
+    // Edge cases
+    { 
+      key: 'impossible-filter', 
+      title: '❌ Impossible Filter', 
+      description: 'Priority >200 (no handlers match)',
+      filterOptions: { filter: { priority: { min: 200 } } },
+      category: 'Edge Cases'
+    },
+    { 
+      key: 'single-handler', 
+      title: '🎯 Single Handler Test', 
+      description: 'Only notification handler',
+      filterOptions: { 
+        filter: { 
+          handlerIds: ['notification'],
+          priority: { min: 30, max: 50 }
+        } 
+      },
+      category: 'Edge Cases'
     }
   ];
 
-  // Clear all results handler
-  const clearAllResults = useCallback(() => {
-    setResults({});
-  }, []);
+  // Group demos by category
+  const demosByCategory = demos.reduce((acc, demo) => {
+    if (!acc[demo.category]) {
+      acc[demo.category] = [];
+    }
+    acc[demo.category].push(demo);
+    return acc;
+  }, {} as Record<string, typeof demos>);
 
   return (
     <div className="space-y-8">
-      {/* Fixed Execution Flow Visualization at Top */}
-      <FixedExecutionFlowDisplay results={results} />
-
-      {/* Summary Dashboard with Clear Button */}
-      <div className="flex justify-between items-start gap-4">
-        <div className="flex-grow">
-          <HandlerSummary results={results} />
-        </div>
-        {Object.keys(results).length > 0 && (
-          <button
-            onClick={clearAllResults}
-            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2 mt-4"
-          >
-            <span>🗑️</span>
-            <span>Clear All Results</span>
-          </button>
-        )}
+      <ExecutionFlowVisualization />
+      
+      {/* Quick Actions */}
+      <div className="flex flex-wrap gap-3 justify-center">
+        <button
+          onClick={() => runDemo('no-filter', undefined)}
+          disabled={isLoading}
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 flex items-center gap-2"
+        >
+          🔄 Run All Handlers
+        </button>
+        <button
+          onClick={() => runDemo('critical-only', { filter: { handlerIds: ['security-check', 'database-save'] } })}
+          disabled={isLoading}
+          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50 flex items-center gap-2"
+        >
+          🔐 Critical Only
+        </button>
+        <button
+          onClick={() => {
+            resultsStore.setValue({});
+            executionStateStore.setValue({
+              handlersExecuted: 0,
+              totalDuration: 0,
+              isRunning: false,
+              executedHandlers: [],
+              currentDemo: null
+            });
+          }}
+          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center gap-2"
+        >
+          🗑️ Clear Results
+        </button>
       </div>
 
-      {/* Info Panel */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="font-semibold text-blue-900 mb-3">📋 Registered Handlers</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div>
-            <div className="text-blue-800">
-              <strong>🔐 security-check</strong> (Priority: 100, Blocking)
-            </div>
-            <div className="text-blue-800">
-              <strong>📊 analytics</strong> (Priority: 80, Non-blocking)
-            </div>
-            <div className="text-blue-800">
-              <strong>💾 database-save</strong> (Priority: 60, Blocking)
-            </div>
-          </div>
-          <div>
-            <div className="text-blue-800">
-              <strong>🔔 notification</strong> (Priority: 40, Non-blocking)
-            </div>
-            <div className="text-blue-800">
-              <strong>📝 audit-log</strong> (Priority: 20, Non-blocking)
-            </div>
-          </div>
-        </div>
-        <div className="mt-4 text-sm text-blue-700">
-          💡 Check the browser console to see detailed handler execution logs
-        </div>
-      </div>
-
-      {/* Demo Grid */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {filteringDemos.map((demo) => (
-          <div key={demo.key} className="bg-white border rounded-lg p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2">{demo.title}</h3>
-                <p className="text-sm text-gray-600">{demo.description}</p>
+      {/* Category-based Demo Grid */}
+      {Object.entries(demosByCategory).map(([category, categoryDemos]) => (
+        <div key={category} className="space-y-4">
+          <h3 className="text-xl font-bold text-gray-800 border-b border-gray-300 pb-2">
+            📂 {category} Filtering
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {categoryDemos.map(demo => (
+              <div key={demo.key} className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-shadow">
+                <div className="mb-3">
+                  <h4 className="font-semibold text-gray-900 mb-1">{demo.title}</h4>
+                  <p className="text-sm text-gray-600 line-clamp-2">{demo.description}</p>
+                </div>
+                
+                <button
+                  onClick={() => runDemo(demo.key, demo.filterOptions)}
+                  disabled={isLoading}
+                  className="w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors text-sm font-medium"
+                >
+                  {isLoading && results[demo.key] === null ? 'Running...' : 'Execute'}
+                </button>
+                
+                {results[demo.key] && (
+                  <div className="mt-3 p-2 rounded-lg bg-gray-50">
+                    {results[demo.key]?.error ? (
+                      <div className="text-red-600 text-sm flex items-center gap-1">
+                        <span>❌</span>
+                        <span>Error: {results[demo.key]?.error}</span>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <div className="text-green-600 text-sm flex items-center gap-1">
+                          <span>✅</span>
+                          <span>{results[demo.key]?.execution?.handlersExecuted || 0} handlers executed</span>
+                        </div>
+                        <div className="text-blue-600 text-sm flex items-center gap-1">
+                          <span>⚡</span>
+                          <span>{results[demo.key]?.execution?.duration || 0}ms duration</span>
+                        </div>
+                        {results[demo.key]?.success === false && (
+                          <div className="text-orange-600 text-sm flex items-center gap-1">
+                            <span>⚠️</span>
+                            <span>Pipeline failed</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-            </div>
-            
-            <button
-              onClick={demo.action}
-              disabled={isLoading[demo.key]}
-              className={`w-full px-4 py-2 rounded-md font-medium transition-colors ${
-                isLoading[demo.key]
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
-            >
-              {isLoading[demo.key] ? '🔄 Executing...' : 'Execute Demo'}
-            </button>
-
-            <ResultsDisplay 
-              result={results[demo.key]} 
-              title={demo.title}
-              filterOptions={demo.filterOptions}
-            />
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
+      
+      {/* Summary Statistics */}
+      {Object.keys(results).length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+          <h3 className="font-bold text-blue-900 mb-4 flex items-center gap-2">
+            <span>📊</span>
+            Execution Summary
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div className="bg-white rounded-lg p-3">
+              <div className="text-2xl font-bold text-green-600">
+                {Object.values(results).filter(r => r && !r.error).length}
+              </div>
+              <div className="text-sm text-gray-600">Successful</div>
+            </div>
+            <div className="bg-white rounded-lg p-3">
+              <div className="text-2xl font-bold text-red-600">
+                {Object.values(results).filter(r => r?.error).length}
+              </div>
+              <div className="text-sm text-gray-600">Failed</div>
+            </div>
+            <div className="bg-white rounded-lg p-3">
+              <div className="text-2xl font-bold text-blue-600">
+                {Object.values(results).reduce((sum, r) => sum + (r?.execution?.handlersExecuted || 0), 0)}
+              </div>
+              <div className="text-sm text-gray-600">Total Handlers</div>
+            </div>
+            <div className="bg-white rounded-lg p-3">
+              <div className="text-2xl font-bold text-purple-600">
+                {Math.round(Object.values(results).reduce((sum, r) => sum + (r?.execution?.duration || 0), 0))}ms
+              </div>
+              <div className="text-sm text-gray-600">Total Duration</div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-// Main Page Component
-export default function AdvancedFilteringPage() {
+// Main Component
+export default function NewAdvancedFilteringPage() {
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <header className="page-header">
-        <h1>🎛️ Advanced Filtering Demo</h1>
-        <p className="page-description">
-          Context-Action 프레임워크의 고급 필터링 패턴을 실제로 체험해보세요.
-          다양한 필터링 전략을 통해 정확한 핸들러 실행 제어를 경험할 수 있습니다.
-        </p>
-        <div className="flex items-center gap-4 mt-4">
-          <a
-            href="/actionguard"
-            className="text-blue-600 hover:text-blue-800 underline text-sm"
-          >
-            ← ActionGuard 목록으로
-          </a>
-          <a
-            href="https://github.com/mineclover/context-action/blob/main/docs/en/guide/patterns/action/advanced-filtering.md"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:text-blue-800 underline text-sm"
-          >
-            📖 Documentation
-          </a>
-        </div>
-      </header>
-
-      {/* Demo Content */}
-      <ProcessActionProvider>
+    <ProcessActionProvider>
+      <DemoStoreProvider>
         <HandlerRegistration />
-        <FilteringDemoComponent />
-      </ProcessActionProvider>
-
-      {/* Additional Info */}
-      <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-        <h3 className="font-semibold text-green-900 mb-3">🎯 Filtering Strategies</h3>
-        <div className="text-sm text-green-800 space-y-2">
-          <div><strong>Handler ID Filtering:</strong> Execute specific handlers by their unique identifiers</div>
-          <div><strong>Priority Range Filtering:</strong> Filter handlers based on priority thresholds</div>
-          <div><strong>Custom Logic Filtering:</strong> Apply complex conditional logic for handler selection</div>
-          <div><strong>Combined Filtering:</strong> Use multiple filter types for precise control</div>
-          <div><strong>Exclude Filtering:</strong> Skip specific handlers while running others</div>
+        <div className="container mx-auto px-4 py-8">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            🎯 Advanced Filtering Demo
+          </h1>
+          <p className="text-gray-600 mb-6">
+            Real-time handler execution visualization with state-based tracking
+          </p>
+          
+          {/* Handler Information Panel */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-6 max-w-4xl mx-auto">
+            <h3 className="font-bold text-blue-900 mb-4 flex items-center justify-center gap-2">
+              <span>🔧</span>
+              Registered Handlers (Priority Order)
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+              {[
+                { id: 'security-check', name: 'Security', icon: '🔐', priority: 100, blocking: true, color: 'red' },
+                { id: 'analytics', name: 'Analytics', icon: '📊', priority: 80, blocking: false, color: 'blue' },
+                { id: 'database-save', name: 'Database', icon: '💾', priority: 60, blocking: true, color: 'green' },
+                { id: 'notification', name: 'Notification', icon: '🔔', priority: 40, blocking: false, color: 'yellow' },
+                { id: 'audit-log', name: 'Audit', icon: '📝', priority: 20, blocking: false, color: 'purple' }
+              ].map(handler => (
+                <div key={handler.id} className={`bg-white border-2 rounded-lg p-3 text-center ${
+                  handler.color === 'red' ? 'border-red-200' :
+                  handler.color === 'blue' ? 'border-blue-200' :
+                  handler.color === 'green' ? 'border-green-200' :
+                  handler.color === 'yellow' ? 'border-yellow-200' :
+                  'border-purple-200'
+                }`}>
+                  <div className="text-2xl mb-1">{handler.icon}</div>
+                  <div className="font-semibold text-sm text-gray-900">{handler.name}</div>
+                  <div className="text-xs text-gray-500">P{handler.priority}</div>
+                  <div className={`text-xs px-2 py-1 rounded mt-1 ${
+                    handler.blocking 
+                      ? 'bg-red-100 text-red-700' 
+                      : 'bg-green-100 text-green-700'
+                  }`}>
+                    {handler.blocking ? '⏳ Blocking' : '⚡ Non-blocking'}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+        <FilteringDemo />
+        </div>
+      </DemoStoreProvider>
+    </ProcessActionProvider>
   );
 }

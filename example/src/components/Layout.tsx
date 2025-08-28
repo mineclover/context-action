@@ -101,12 +101,6 @@ function Layout({
     { path: '/refs/form-builder', label: '📝 Form Builder Ref Demo', category: 'refs' },
     { path: '/refs/waitforrefs-performance', label: '⚡ useWaitForRefs Performance', category: 'refs', description: 'Performance verification demo for useWaitForRefs optimization' },
     
-    // === Error Handling System (에러 처리 시스템) ===
-    { path: '/error-handling', label: '🛡️ Error Handling System', category: 'error-handling', isIndex: true, description: 'Comprehensive error handling patterns and recovery mechanisms' },
-    { path: '/error-handling/basic', label: '🚨 Basic Error Boundary', category: 'error-handling', description: 'Component error catching and fallback UI patterns' },
-    { path: '/error-handling/store-errors', label: '🏪 Store Error Management', category: 'error-handling', description: 'Store-level error state management and recovery' },
-    { path: '/error-handling/async-errors', label: '⚡ Async Error Handling', category: 'error-handling', description: 'Async error handling with retry and timeout mechanisms' },
-    { path: '/error-handling/comprehensive', label: '🛒 Comprehensive Demo', category: 'error-handling', description: 'Real-world E-commerce scenario with complete error handling' },
     
     // === Utilities & Tools (유틸리티) ===
     { path: '/logger/demo', label: 'Logger System', category: 'utilities' },
@@ -380,49 +374,6 @@ function Layout({
               );
             })}
 
-            {/* Error Handling System Section */}
-            {!collapsed && (
-              <div className="px-3 py-2 mt-4 border-t border-gray-200">
-                <h4 className="text-xs font-medium text-red-600 mb-2">🛡️ Error Handling System</h4>
-                <p className="text-xs text-gray-500 mb-2 px-1">Production-ready error recovery patterns</p>
-              </div>
-            )}
-            {navItems.filter(item => item.category === 'error-handling').map((item) => {
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={cn(
-                    navItemVariants({
-                      variant: isActive(item.path) ? 'active' : 'default',
-                      category: item.category,
-                    }),
-                    item.isIndex &&
-                      'font-semibold border-l-2 border-indigo-500 bg-indigo-50 text-indigo-700'
-                  )}
-                  title={collapsed ? item.label : undefined}
-                >
-                  {collapsed ? (
-                    <span className="text-xs font-bold">
-                      {item.label.charAt(0)}
-                    </span>
-                  ) : (
-                    <span
-                      className={cn(
-                        item.isIndex && 'flex items-center gap-1'
-                      )}
-                    >
-                      {item.label}
-                      {item.isIndex && (
-                        <span className="text-xs bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-medium">
-                          Index
-                        </span>
-                      )}
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
 
             {/* Utilities & Tools Section */}
             {!collapsed && (
