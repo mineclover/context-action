@@ -84,7 +84,6 @@ function Layout({
     { path: '/actionguard/conditional/form-validation', label: '📝 Form Validation', category: 'conditional', section: 'basic', description: 'Real-time validation with conditional submission' },
     { path: '/actionguard/conditional/workflow-steps', label: '⚡ Sequential Workflow', category: 'conditional', section: 'intermediate', description: 'Multi-step conditional execution with progress tracking' },
     { path: '/actionguard/conditional/feature-toggle', label: '🎛️ Feature Toggle', category: 'conditional', section: 'basic', description: 'Environment and user-based conditional features' },
-    { path: '/actionguard/priority-performance', label: '⚡ Priority Performance Demo', category: 'actionguard' },
     { path: '/actionguard/advanced-filtering', label: '🎛️ Advanced Filtering Demo', category: 'actionguard', description: 'Sophisticated handler filtering strategies with result collection' },
     { path: '/actionguard/priority-performance-advanced', label: '🚀 Priority Performance Advanced', category: 'actionguard', description: 'Multi-instance advanced priority testing system' },
     { path: '/actionguard/throttle-comparison', label: '⚖️ Throttle Comparison Demo', category: 'actionguard' },
@@ -96,8 +95,6 @@ function Layout({
     { path: '/refs', label: '🎯 Refs Management', category: 'refs', isIndex: true },
     { path: '/refs/canvas', label: '🎨 Canvas Ref Demo', category: 'refs' },
     { path: '/actionguard/mouse-events', label: '🖱️ Mouse Events Demo', category: 'refs' },
-    { path: '/actionguard/mouse-events/ref-context', label: '🖱️ RefContext Mouse Events', category: 'refs' },
-    { path: '/actionguard/mouse-events/optimized', label: '⚡ Optimized Mouse Events', category: 'refs' },
     { path: '/refs/form-builder', label: '📝 Form Builder Ref Demo', category: 'refs' },
     { path: '/refs/waitforrefs-performance', label: '⚡ useWaitForRefs Performance', category: 'refs', description: 'Performance verification demo for useWaitForRefs optimization' },
     

@@ -3,10 +3,7 @@
  * Comprehensive demonstration of advanced action handling and performance optimization patterns
  */
 
-import { 
-  PerformanceDomainTemplate,
-  createPerformanceTemplate
-} from '@/lib/templates';
+import { createPerformanceTemplate } from '@/lib/templates';
 import { ActionGuardDemos } from './components';
 
 // Demo configurations for the performance template
@@ -282,12 +279,21 @@ export default function ActionGuardPage() {
   });
 
   return (
-    <PerformanceDomainTemplate
-      {...templateConfig}
-      features={actionGuardFeatures}
-      bestPractices={bestPractices}
-      performanceMetrics={performanceMetrics}
-      benchmarks={benchmarks}
-    />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto">
+          <header className="text-center mb-12">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+              {templateConfig.title}
+            </h1>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+              {templateConfig.description}
+            </p>
+          </header>
+          
+          <ActionGuardDemos />
+        </div>
+      </div>
+    </div>
   );
 }

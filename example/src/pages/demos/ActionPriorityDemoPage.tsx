@@ -267,12 +267,6 @@ function ActionPriorityDemoContent() {
               >
                 📋 Back to Demos
               </Link>
-              <Link
-                to="/actionguard/priority-performance"
-                className="text-purple-600 hover:text-purple-800 underline text-sm"
-              >
-                ⚡ View Performance Demo
-              </Link>
             </div>
           </header>
 

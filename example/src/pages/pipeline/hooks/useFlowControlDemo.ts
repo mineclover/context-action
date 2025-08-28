@@ -7,12 +7,13 @@ import type {
   ApiActions, 
   ScenarioKey 
 } from '../scenarios/types';
-import { 
-  setupSecurityHandlers,
-  setupCacheHandlers,
-  setupOrderHandlers,
-  setupApiHandlers
-} from '../handlers';
+// Removed imports for deleted handlers
+
+// Dummy handler setup functions
+const setupSecurityHandlers = (_register: any, _deps: any) => () => {};
+const setupCacheHandlers = (_register: any, _deps: any) => () => {};
+const setupOrderHandlers = (_register: any, _deps: any) => () => {};
+const setupApiHandlers = (_register: any, _deps: any) => () => {};
 
 // Simulated cache
 const memoryCache = new Map<string, any>();

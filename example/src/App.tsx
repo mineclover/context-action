@@ -18,12 +18,9 @@ const ActionGuardPage = lazy(() => import('./pages/actionguard/ActionGuardPage')
 const ApiBlockingPage = lazy(() => import('./pages/actionguard/ApiBlockingPage'));
 const ContextStoreMouseEventsPage = lazy(() => import('./pages/actionguard/ContextStoreMouseEventsPage').then(m => ({ default: m.ContextStoreMouseEventsPage })));
 const MouseEventsPage = lazy(() => import('./pages/actionguard/MouseEventsPage'));
-const OptimizedMouseEventsPage = lazy(() => import('./pages/mouse-events/OptimizedMouseEventsPage').then(m => ({ default: m.OptimizedMouseEventsPage })));
 const MouseEventsIndexPage = lazy(() => import('./pages/mouse-events/MouseEventsIndexPage').then(m => ({ default: m.MouseEventsIndexPage })));
-const CleanArchitecturePage = lazy(() => import('./pages/mouse-events/CleanArchitecturePage').then(m => ({ default: m.CleanArchitecturePage })));
 const ContextStoreActionPage = lazy(() => import('./pages/mouse-events/ContextStoreActionPage').then(m => ({ default: m.ContextStoreActionPage })));
 const EnhancedContextStorePage = lazy(() => import('./pages/mouse-events/EnhancedContextStorePage').then(m => ({ default: m.EnhancedContextStorePage })));
-const PriorityPerformanceBasicPage = lazy(() => import('./pages/actionguard/PriorityPerformancePage'));
 const PriorityPerformancePage = lazy(() => import('./pages/actionguard/priority-performance/PriorityPerformancePage').then(m => ({ default: m.PriorityPerformancePage })));
 const ScrollPage = lazy(() => import('./pages/actionguard/ScrollPage'));
 const SearchPage = lazy(() => import('./pages/actionguard/SearchPage'));
@@ -44,7 +41,6 @@ const ShoppingCartPage = lazy(() => import('./pages/demos/ShoppingCartPage').the
 const ChatPage = lazy(() => import('./pages/demos/ChatPage').then(m => ({ default: m.ChatPage })));
 const UserProfilePage = lazy(() => import('./pages/demos/UserProfilePage').then(m => ({ default: m.UserProfilePage })));
 const ActionPriorityDemoPage = lazy(() => import('./pages/demos/ActionPriorityDemoPage').then(m => ({ default: m.ActionPriorityDemoPage })));
-const RefContextMouseEventsPage = lazy(() => import('./pages/mouse-events/ref-context/RefContextMouseEventsPage').then(m => ({ default: m.RefContextMouseEventsPage })));
 const ConditionalPatternsIndex = lazy(() => import('@/pages/conditional-patterns/ConditionalPatternsIndex').then(m => ({ default: m.ConditionalPatternsIndex })));
 const PermissionBasedExecution = lazy(() => import('@/pages/conditional-patterns/PermissionBasedExecution').then(m => ({ default: m.PermissionBasedExecution })));
 const FormValidation = lazy(() => import('@/pages/conditional-patterns/FormValidation').then(m => ({ default: m.FormValidation })));
@@ -123,20 +119,12 @@ function AppContent() {
             element={<MouseEventsIndexPage />}
           />
           <Route
-            path="/actionguard/mouse-events/optimized"
-            element={<OptimizedMouseEventsPage />}
-          />
-          <Route
             path="/actionguard/mouse-events/enhanced-context-store"
             element={<EnhancedContextStorePage />}
           />
           <Route
             path="/actionguard/mouse-events/context-store-action"
             element={<ContextStoreActionPage />}
-          />
-          <Route
-            path="/actionguard/mouse-events/clean-architecture"
-            element={<CleanArchitecturePage />}
           />
           <Route
             path="/actionguard/mouse-events/legacy"
@@ -146,15 +134,7 @@ function AppContent() {
             path="/actionguard/mouse-events/context-store"
             element={<ContextStoreMouseEventsPage />}
           />
-          <Route
-            path="/actionguard/mouse-events/ref-context"
-            element={<RefContextMouseEventsPage />}
-          />
           {/* <Route path="/actionguard/test" element={<ActionGuardTestPage />} /> */}
-          <Route
-            path="/actionguard/priority-performance"
-            element={<PriorityPerformanceBasicPage />}
-          />
           <Route
             path="/actionguard/priority-performance-advanced"
             element={<PriorityPerformancePage />}
@@ -236,8 +216,11 @@ function AppContent() {
 }
 
 function App() {
+  // 환경에 따라 basename 설정
+  const basename = process.env.NODE_ENV === 'production' ? '/context-action/example' : '/';
+  
   return (
-    <Router>
+    <Router basename={basename}>
       <AppContent />
     </Router>
   );

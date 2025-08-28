@@ -113,6 +113,11 @@ jobs:
           mkdir -p deploy-dist/example
           cp -r example/dist/* deploy-dist/example/
           
+          # Copy 404.html for GitHub Pages SPA routing support
+          if [ -f example/dist/404.html ]; then
+            cp example/dist/404.html deploy-dist/example/404.html
+          fi
+          
           # Verify structure
           echo "📁 Deployment structure:"
           ls -la deploy-dist/

@@ -86,6 +86,143 @@ ErrorHandlers.store('Error in event handler', {
 }, error);
 ```
 
+## 🚨 Critical Performance Issues
+
+### Infinite Loop Prevention
+
+#### Toast System Infinite Loops
+**Issue**: Application freezes when toast limit is reached, causing infinite HMR updates.
+
+**Root Cause**: When `maxToasts` limit is reached, removing old toasts triggers tracked actions that create new toasts:
+
+```tsx
+// ❌ PROBLEM: Creates infinite loop
+if (currentToasts.length >= config.maxToasts) {
+  // This dispatch is tracked and creates a new toast!
+  toastActionRegister.dispatch('removeToast', { toastId: oldestToast.id });
+}
+```
+
+**Symptoms**:
+- Browser DevTools shows continuous HMR updates
+- Application becomes unresponsive after 4-5 consecutive actions
+- Console logs show: `Current toast state: {currentToastsCount: 4, maxToasts: 4, stackIndex: 14}`
+
+**Solution**: Use direct store updates instead of dispatching actions:
+
+```tsx
+// ✅ SOLUTION: Direct store update prevents loop
+if (currentToasts.length >= config.maxToasts) {
+  clearToastTimers(oldestToast.id);
+  const filteredToasts = currentToasts.filter(toast => toast.id !== oldestToast.id);
+  toastsStore.setValue(filteredToasts); // Direct update - no action dispatch
+}
+```
+
+#### Action Handler Re-registration Loops
+**Issue**: Handlers constantly re-registering causing performance degradation.
+
+**Root Cause**: `useCallback` dependencies changing on every render:
+
+```tsx
+// ❌ PROBLEM: Dependencies cause re-registration
+useEffect(() => {
+  const unsubscribe = register('action', handler);
+  return unsubscribe;
+}, [handler, store]); // These change every render!
+```
+
+**Solution**: Use stable references with refs:
+
+```tsx
+// ✅ SOLUTION: Stable handler registration
+const handlersRef = useRef({ /* handlers */ });
+
+useEffect(() => {
+  handlersRef.current = { /* updated handlers */ };
+}, [store]);
+
+const stableHandler = useCallback((payload) => 
+  handlersRef.current.handler(payload), []);
+
+useEffect(() => {
+  return register('action', stableHandler);
+}, []); // Empty deps - register only once
+```
+
+#### Timer Cascade Problems
+**Issue**: Multiple timers creating cascading effects in rapid succession.
+
+**Root Cause**: Each action creates multiple timers without cleanup:
+
+```tsx
+// ❌ PROBLEM: Timer accumulation
+function sendMessage() {
+  setTimeout(() => simulateTyping(), 100);    // Timer 1
+  setTimeout(() => autoScroll(), 150);        // Timer 2
+  if (shouldAutoRespond) {
+    setTimeout(() => respond(), 1500);        // Timer 3
+  }
+} // No cleanup mechanism!
+```
+
+**Solution**: Centralized timer management:
+
+```tsx
+// ✅ SOLUTION: Managed timers
+const timersRef = useRef<NodeJS.Timeout[]>([]);
+
+const addTimer = (timer: NodeJS.Timeout) => {
+  timersRef.current.push(timer);
+};
+
+const clearAllTimers = () => {
+  timersRef.current.forEach(clearTimeout);
+  timersRef.current = [];
+};
+
+useEffect(() => () => clearAllTimers(), []); // Cleanup on unmount
+```
+
+### Rate Limiting and Toast Management
+
+#### Toast Spam Prevention
+**Issue**: Rapid consecutive actions creating too many toasts.
+
+**Configuration**: Rate limiting is disabled by default to avoid blocking legitimate user interactions:
+
+```tsx
+// Default: No rate limiting - all toasts shown
+setupSelectiveActionToast(actionRegister, trackedActions);
+
+// Optional: Enable rate limiting for high-traffic scenarios
+setupSelectiveActionToast(actionRegister, trackedActions, {
+  enableRateLimit: true,
+  maxToasts: 5,        // Max 5 toasts per second
+  resetInterval: 1000  // Reset counter every 1 second
+});
+```
+
+**Prevention Strategy**: Instead of aggressive rate limiting, use action filtering:
+
+```tsx
+// ✅ SOLUTION: Exclude problematic action types
+const trackedActions = [
+  'sendMessage',    // Track important actions
+  'addToCart',
+  // Exclude removal actions that can cause loops:
+  // 'deleteMessage', 'removeFromCart', 'clearChat'
+];
+```
+
+#### Memory Leak Prevention
+**Best Practices**:
+
+1. **Timer Cleanup**: Always clean up timers
+2. **Action Filtering**: Exclude removal actions from toast tracking  
+3. **Direct Store Updates**: Use store operations instead of action dispatches for internal operations
+4. **Duplicate Prevention**: Prevent identical toasts within short timeframes
+
 ## 🚨 Common Runtime Issues
 
 ### Handler State Access Problems

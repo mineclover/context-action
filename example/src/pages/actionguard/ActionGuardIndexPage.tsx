@@ -30,12 +30,6 @@ const actionGuardDemos = [
     tags: ['Mouse', 'Events', 'Interaction'],
   },
   {
-    path: '/actionguard/priority-performance',
-    title: '⚡ Priority Performance Demo',
-    description: '우선순위 기반 성능 테스트 시스템',
-    tags: ['Priority', 'Performance', 'Testing'],
-  },
-  {
     path: '/actionguard/priority-performance-advanced',
     title: '🚀 Priority Performance Advanced',
     description: '다중 인스턴스 우선순위 성능 테스트 (고급)',

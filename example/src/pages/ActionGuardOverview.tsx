@@ -60,28 +60,6 @@ const actionGuardDemos: ActionGuardDemo[] = [
     icon: '🔄'
   },
   {
-    id: 'priority-performance',
-    title: 'Priority Performance',
-    description: 'Handler priority system demonstration with performance metrics',
-    path: '/actionguard/priority-performance',
-    category: 'performance',
-    features: ['Priority ordering', 'Performance metrics', 'Handler coordination', 'Real-time monitoring'],
-    difficulty: 'Intermediate',
-    status: 'Complete',
-    icon: '⚡'
-  },
-  {
-    id: 'priority-advanced',
-    title: 'Advanced Priority Performance',
-    description: 'Multi-instance priority testing with comprehensive analytics',
-    path: '/actionguard/priority-performance-advanced',
-    category: 'performance',
-    features: ['Multi-instance testing', 'Advanced analytics', 'Performance benchmarking', 'Comparison tools'],
-    difficulty: 'Expert',
-    status: 'Complete',
-    icon: '🚀'
-  },
-  {
     id: 'throttle',
     title: 'Throttle Comparison',
     description: 'Compare different throttling strategies and their performance characteristics',
@@ -102,6 +80,17 @@ const actionGuardDemos: ActionGuardDemo[] = [
     difficulty: 'Basic',
     status: 'Complete',
     icon: '🖱️'
+  },
+  {
+    id: 'priority-advanced',
+    title: 'Advanced Priority Performance',
+    description: 'Multi-instance priority testing with comprehensive analytics',
+    path: '/actionguard/priority-performance-advanced',
+    category: 'performance',
+    features: ['Multi-instance testing', 'Advanced analytics', 'Performance benchmarking', 'Comparison tools'],
+    difficulty: 'Expert',
+    status: 'Complete',
+    icon: '🚀'
   }
 ];
 

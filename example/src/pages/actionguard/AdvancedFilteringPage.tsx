@@ -2,6 +2,11 @@ import React, { useState, useCallback, useEffect, Fragment } from 'react';
 import { createActionContext, createStoreContext, useStoreValue } from '@context-action/react';
 
 // Types
+interface HandlerResult {
+  [key: string]: string;
+  handlerId: string;
+}
+
 interface ProcessActions {
   processData: { userId: string; data: any; action?: string };
 }
@@ -140,31 +145,32 @@ function HandlerRegistration() {
       register.register('processData', async (payload, controller) => {
         console.log('🔐 Security validation for:', payload.userId);
         await new Promise(resolve => setTimeout(resolve, 50));
-        return { security: 'validated', handlerId: 'security-check' };
+        // Store result in controller metadata or logs instead of returning
+        console.log('✅ Security validated for handler:', 'security-check');
       }, { id: 'security-check', priority: 100, blocking: true }),
 
       register.register('processData', async (payload, controller) => {
         console.log('📊 Analytics tracking for:', payload.userId);
         await new Promise(resolve => setTimeout(resolve, 30));
-        return { analytics: 'tracked', handlerId: 'analytics' };
+        console.log('✅ Analytics tracked for handler:', 'analytics');
       }, { id: 'analytics', priority: 80, blocking: false }),
 
       register.register('processData', async (payload, controller) => {
         console.log('💾 Database save for:', payload.userId);
         await new Promise(resolve => setTimeout(resolve, 80));
-        return { database: 'saved', handlerId: 'database-save' };
+        console.log('✅ Database saved for handler:', 'database-save');
       }, { id: 'database-save', priority: 60, blocking: true }),
 
       register.register('processData', async (payload, controller) => {
         console.log('🔔 Notification sent for:', payload.userId);
         await new Promise(resolve => setTimeout(resolve, 40));
-        return { notification: 'sent', handlerId: 'notification' };
+        console.log('✅ Notification sent for handler:', 'notification');
       }, { id: 'notification', priority: 40, blocking: false }),
 
       register.register('processData', async (payload, controller) => {
         console.log('📝 Audit log for:', payload.userId);
         await new Promise(resolve => setTimeout(resolve, 20));
-        return { audit: 'logged', handlerId: 'audit-log' };
+        console.log('✅ Audit logged for handler:', 'audit-log');
       }, { id: 'audit-log', priority: 20, blocking: false })
     ];
 

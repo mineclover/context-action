@@ -3,43 +3,7 @@
  * Comprehensive export of all reusable page and domain templates
  */
 
-// Standard templates
-export {
-  StandardPageTemplate,
-  StructuredPageContent,
-  DemoSection,
-  FeatureComparison,
-  BestPracticesSection,
-  usePageLogger
-} from './StandardPageTemplate';
-
-export type {
-  StandardPageTemplateProps,
-  PageContentProps,
-  PageSection,
-  DemoSectionProps,
-  DemoCardConfig,
-  FeatureComparisonProps,
-  BestPracticesSectionProps
-} from './StandardPageTemplate';
-
-// Domain-specific templates
-export {
-  PerformanceDomainTemplate,
-  ApiDomainTemplate,
-  SearchDomainTemplate,
-  InteractiveDomainTemplate
-} from './DomainTemplates';
-
-export type {
-  DomainDemoConfig,
-  DomainFeature,
-  DomainBestPractice,
-  PerformanceDomainTemplateProps,
-  ApiDomainTemplateProps,
-  SearchDomainTemplateProps,
-  InteractiveDomainTemplateProps
-} from './DomainTemplates';
+// Note: Standard and Domain templates have been removed as they were not used in the application
 
 // Template utilities and patterns
 export const TEMPLATE_PATTERNS = {

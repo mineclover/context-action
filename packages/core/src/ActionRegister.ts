@@ -461,8 +461,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       terminationResult: undefined,
     };
 
-    const startTime = Date.now();
-    let executionSuccess = true;
+    const _startTime = Date.now();
+    let _executionSuccess = true;
     
     // Add abort listener if signal provided (use effectiveSignal for auto-abort)
     const abortHandler = effectiveSignal ? () => {
@@ -479,7 +479,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       this.log(`Pipeline execution succeeded for ${String(action)}`);
     } catch (error) {
       this.log(`Pipeline execution failed for ${String(action)}`, error, 'error');
-      executionSuccess = false;
+      _executionSuccess = false;
       throw error;
     } finally {
       // 🔧 Use cleanup function from createAbortSignal
@@ -505,7 +505,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     payload?: T[K],
     options?: import('./types.js').DispatchOptions
   ): Promise<ExecutionResult<R>> {
-    const startTime = Date.now();
+    const _startTime = Date.now();
     
     // 🔧 Improved AbortSignal handling with cleaner merge logic (same as dispatch)
     const [effectiveSignal, autoAbortController, cleanup] = this.createAbortSignal(options);
@@ -530,8 +530,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
           handlersExecuted: 0,
           handlersSkipped: 0,
           handlersFailed: 0,
-          startTime,
-          endTime: startTime,
+          startTime: _startTime,
+          endTime: _startTime,
         },
         handlers: [],
         errors: [],
@@ -554,8 +554,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
           handlersExecuted: 0,
           handlersSkipped: 0,
           handlersFailed: 0,
-          startTime,
-          endTime: startTime,
+          startTime: _startTime,
+          endTime: _startTime,
         },
         handlers: [],
         errors: [],
@@ -613,11 +613,11 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
           results: [],
           failedResults: [],
           execution: {
-            duration: Date.now() - startTime,
+            duration: Date.now() - _startTime,
             handlersExecuted: 0,
             handlersSkipped: pipeline.length,
             handlersFailed: 0,
-            startTime,
+            startTime: _startTime,
             endTime: Date.now(),
           },
           handlers: [],
@@ -640,11 +640,11 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
           results: [],
           failedResults: [],
           execution: {
-            duration: Date.now() - startTime,
+            duration: Date.now() - _startTime,
             handlersExecuted: 0,
             handlersSkipped: pipeline.length,
             handlersFailed: 0,
-            startTime,
+            startTime: _startTime,
             endTime: Date.now(),
           },
           handlers: [],
@@ -716,7 +716,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     }
 
     const endTime = Date.now();
-    const executionSuccess = !executionError && !context.aborted;
+    const _executionSuccess = !executionError && !context.aborted;
     
     // Process results based on options
     const processedResult = this.processResults(context, options?.result);
@@ -726,7 +726,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     const failedResults = errors.map(err => ({
       handlerId: err.handlerId,
       error: err.error,
-      expectedType: typeof processedResult || 'unknown'
+      expectedType: typeof processedResult
     }));
 
     // Build execution result with improved type safety
@@ -740,11 +740,11 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       results: context.results,
       failedResults,
       execution: {
-        duration: endTime - startTime,
+        duration: endTime - _startTime,
         handlersExecuted: context.currentIndex + (context.aborted ? 0 : 1),
         handlersSkipped: Math.max(0, filteredHandlers.length - (context.currentIndex + 1)),
         handlersFailed: errors.length,
-        startTime,
+        startTime: _startTime,
         endTime,
       },
       handlers: handlerResults as any, // Type assertion needed for handlers array
@@ -789,7 +789,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     this.filterCache.clear();
   }
 
-  private filterHandlers<K extends keyof T>(
+  private filterHandlers<_K extends keyof T>(
     handlers: HandlerRegistration<any, any>[],
     filterOptions?: import('./types.js').DispatchOptions['filter']
   ): HandlerRegistration<any, any>[] {

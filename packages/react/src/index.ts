@@ -6,7 +6,8 @@
 export { createActionContext } from './actions/ActionContext';
 export type { 
   ActionContextConfig,
-  ActionContextReturn
+  ActionContextReturn,
+  ActionContextType
 } from './actions/ActionContext.types';
 
 // Store System (Core functionality)
@@ -21,10 +22,12 @@ export type { StoreErrorBoundaryProps } from './stores/components/StoreErrorBoun
 
 // Declarative Store Pattern (Most commonly used)
 export { createStoreContext } from './stores/patterns/declarative-store-pattern-v2';
+export type { InitialStores, StoreConfig } from './stores/patterns/declarative-store-pattern-v2';
 
 // Ref System (Core functionality)
 export { createRefContext } from './refs/createRefContext';
 export type { RefContextReturn, CreateRefContextOptions } from './refs/createRefContext';
+export type { RefTarget, RefOperationOptions, RefOperationResult } from './refs/types';
 
 // Core types from @context-action/core
 export type {
