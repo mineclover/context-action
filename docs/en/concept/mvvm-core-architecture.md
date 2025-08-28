@@ -254,43 +254,20 @@ export function UserBusinessLogic({ children }: { children: ReactNode }) {
   useUserActionHandler('updateProfile', useCallback(async (payload) => {
     const current = profileStore.getValue();
     
-    // Business validation
     if (!payload.email.includes('@')) {
       throw new Error('Invalid email format');
     }
     
-    // Business logic
-    const updated = {
-      ...current,
-      ...payload,
-      lastActivity: Date.now()
-    };
-    
-    // State update
+    const updated = { ...current, ...payload };
     profileStore.setValue(updated);
-    
-    // Side effects
     await saveToAPI(updated);
-    
-    // Session update
-    sessionStore.update(session => ({
-      ...session,
-      lastActivity: Date.now()
-    }));
-  }, [profileStore, sessionStore]));
+  }, [profileStore]));
   
-  // Business Logic: Logout with cleanup
+  // Business Logic: Logout
   useUserActionHandler('logout', useCallback(async () => {
-    // Business cleanup
-    profileStore.setValue({ id: '', name: '', email: '', role: 'guest' });
-    sessionStore.setValue({ isAuthenticated: false, permissions: [], lastActivity: 0 });
-    
-    // API cleanup
+    profileStore.setValue({ id: '', name: '', email: '' });
     await clearSession();
-    
-    // Navigation
-    window.location.href = '/login';
-  }, [profileStore, sessionStore]));
+  }, [profileStore]));
   
   return <>{children}</>;
 }
@@ -329,164 +306,48 @@ export function Button({ variant, size, disabled, loading, children, onClick }: 
 }
 ```
 
-### 🧩 **Complex Shared Components**: Smart Widgets with Context-Action
+### 🧩 **Smart Widget Pattern**
 ```typescript
-// Complex shared: Smart widgets with Context-Action for complexity resolution
-// File: src/shared/DataTable/DataTableModel.ts
-export const {
-  Provider: DataTableProvider,
-  useStore: useDataTableStore,
-  useActionDispatch: useDataTableDispatch
-} = createStoreContext('DataTable', {
-  data: [] as any[],
-  pagination: { page: 1, size: 10, total: 0 },
-  sorting: { field: '', direction: 'asc' as 'asc' | 'desc' },
-  filtering: {},
-  selection: [] as any[],
-  loading: false
-});
-
-export const {
-  Provider: DataTableActionProvider,
-  useActionHandler: useDataTableHandler
-} = createActionContext<DataTableActions>('DataTableActions');
-
-// File: src/shared/DataTable/useDataTable.ts
-export function useDataTable() {
-  const dataStore = useDataTableStore('data');
-  const paginationStore = useDataTableStore('pagination');
-  const sortingStore = useDataTableStore('sorting');
-  const filteringStore = useDataTableStore('filtering');
-  const selectionStore = useDataTableStore('selection');
-  const loadingStore = useDataTableStore('loading');
+// Smart Widget Hook: All complexity in hook
+function useDataTable(initialData: any[]) {
+  const [data, setData] = useState(initialData);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
   
-  const dispatch = useDataTableDispatch();
+  const changePage = useCallback((newPage: number) => {
+    setLoading(true);
+    setPage(newPage);
+    // Load data logic here
+    setLoading(false);
+  }, []);
   
-  // State injection
-  const data = useStoreValue(dataStore);
-  const pagination = useStoreValue(paginationStore);
-  const sorting = useStoreValue(sortingStore);
-  const filtering = useStoreValue(filteringStore);
-  const selection = useStoreValue(selectionStore);
-  const loading = useStoreValue(loadingStore);
-  
-  // Action injection
-  const changePage = useCallback((page: number) => {
-    dispatch('changePage', { page });
-  }, [dispatch]);
-  
-  const changeSort = useCallback((field: string, direction: 'asc' | 'desc') => {
-    dispatch('changeSort', { field, direction });
-  }, [dispatch]);
-  
-  const applyFilter = useCallback((filters: Record<string, any>) => {
-    dispatch('applyFilter', { filters });
-  }, [dispatch]);
-  
-  const selectRow = useCallback((id: any) => {
-    dispatch('selectRow', { id });
-  }, [dispatch]);
-  
-  return {
-    // State
-    data,
-    pagination,
-    sorting,
-    filtering,
-    selection,
-    loading,
-    
-    // Actions
-    changePage,
-    changeSort,
-    applyFilter,
-    selectRow,
-    
-    // Computed
-    hasData: data.length > 0,
-    totalPages: Math.ceil(pagination.total / pagination.size),
-    selectedCount: selection.length,
-    isAllSelected: selection.length === data.length
-  };
+  return { data, page, loading, changePage };
 }
 
-// File: src/shared/DataTable/DataTable.tsx
-interface DataTableProps {
+// Smart Widget Component: Pure consumption
+export function DataTable({ columns, data, onRowSelect }: {
   columns: Column[];
-  initialData?: any[];
+  data: any[];
   onRowSelect?: (row: any) => void;
-  onFilter?: (filters: Record<string, any>) => void;
-  // Complex widget can accept external configuration
-}
-
-export function DataTable({ columns, initialData, onRowSelect, onFilter }: DataTableProps) {
-  // Smart Widget: Uses Context-Action to manage internal complexity
-  const {
-    data, pagination, sorting, selection, loading,
-    changePage, changeSort, selectRow,
-    hasData, totalPages, selectedCount
-  } = useDataTable();
+}) {
+  const table = useDataTable(data);
   
-  // Initialize data if provided
-  useEffect(() => {
-    if (initialData) {
-      // Dispatch to update internal state
-      dispatch('setData', { data: initialData });
-    }
-  }, [initialData]);
-  
-  // Complex rendering logic handled cleanly
   return (
-    <div className="data-table">
-      <div className="data-table-header">
-        <span>{selectedCount} selected</span>
-        <FilterControls onFilter={onFilter} />
-      </div>
-      
+    <div>
       <table>
-        <thead>
-          {columns.map(column => (
-            <th 
-              key={column.key}
-              onClick={() => changeSort(column.key, sorting.direction === 'asc' ? 'desc' : 'asc')}
-            >
-              {column.title}
-              {sorting.field === column.key && (
-                <SortIcon direction={sorting.direction} />
-              )}
-            </th>
-          ))}
-        </thead>
         <tbody>
-          {data.map(row => (
-            <tr 
-              key={row.id}
-              className={selection.includes(row.id) ? 'selected' : ''}
-              onClick={() => {
-                selectRow(row.id);
-                onRowSelect?.(row);
-              }}
-            >
-              {columns.map(column => (
-                <td key={column.key}>
-                  {column.render ? column.render(row[column.key], row) : row[column.key]}
-                </td>
-              ))}
+          {table.data.map((row, i) => (
+            <tr key={i} onClick={() => table.changePage(table.page + 1)}>
+              {columns.map(col => <td key={col.key}>{row[col.key]}</td>)}
             </tr>
           ))}
         </tbody>
       </table>
-      
-      <Pagination 
-        current={pagination.page}
-        total={totalPages}
-        onPageChange={changePage}
-      />
-      
-      {loading && <LoadingOverlay />}
+      {table.loading && <div>Loading...</div>}
     </div>
   );
 }
+
 ```
 
 ---
@@ -496,22 +357,16 @@ export function DataTable({ columns, initialData, onRowSelect, onFilter }: DataT
 **Role**: Compose all contexts and business logic at the app level
 
 ```typescript
-// App: Full architecture composition
-// File: src/App.tsx
+// App: MVVM Architecture composition
 function App() {
   return (
-    <UserStoreProvider>          {/* Model Layer */}
-      <UserActionProvider>       {/* Model Layer */}
-        <UserRefProvider>        {/* Model Layer */}
-          <UserBusinessLogic>    {/* Business Logic Layer */}
-            <Router>
-              <Routes>
-                <Route path="/profile" element={<UserProfile />} />    {/* View Layer */}
-                <Route path="/settings" element={<UserSettings />} />  {/* View Layer */}
-              </Routes>
-            </Router>
-          </UserBusinessLogic>
-        </UserRefProvider>
+    <UserStoreProvider>         {/* Model Layer */}
+      <UserActionProvider>      {/* Model Layer */}
+        <UserBusinessLogic>     {/* Business Logic Layer */}
+          <Router>
+            <Route path="/profile" element={<UserProfile />} />
+          </Router>
+        </UserBusinessLogic>
       </UserActionProvider>
     </UserStoreProvider>
   );
@@ -671,69 +526,18 @@ Smart Widgets: DataTable, RichTextEditor, MediaPlayer, Dashboard
 Simple Components: Button, Input, Card, Modal, Icon
 ```
 
-### 📊 **Complexity Resolution Examples**
+### 🎯 **Key Rules**
 
-#### **Smart Widget: Advanced Form**
-```typescript
-// Complex form that would normally have lots of internal state
-// File: src/shared/AdvancedForm/AdvancedFormModel.ts
-export const { 
-  Provider: AdvancedFormProvider,
-  useStore: useAdvancedFormStore 
-} = createStoreContext('AdvancedForm', {
-  fields: {} as Record<string, any>,
-  validation: {} as Record<string, string[]>,
-  isDirty: false,
-  isSubmitting: false,
-  errors: {} as Record<string, string>
-});
+**Components Rules:**
+- ❌ Never use `dispatch` or `useEffect` in components
+- ❌ Never consume Context-Action directly in components  
+- ✅ Only consume custom hooks
+- ✅ Focus purely on rendering
 
-// File: src/shared/AdvancedForm/useAdvancedForm.ts
-export function useAdvancedForm() {
-  // Complex form logic handled through Context-Action
-  const fieldsStore = useAdvancedFormStore('fields');
-  const validationStore = useAdvancedFormStore('validation');
-  // ... other stores
-  
-  return {
-    // Form state
-    fields: useStoreValue(fieldsStore),
-    // ... other state
-    
-    // Form actions
-    updateField: (name: string, value: any) => {
-      fieldsStore.update(fields => ({ ...fields, [name]: value }));
-    },
-    validateField: (name: string) => { /* validation logic */ },
-    submitForm: () => { /* submit logic */ }
-  };
-}
-
-// File: src/shared/AdvancedForm/AdvancedForm.tsx
-export function AdvancedForm({ schema, onSubmit }: AdvancedFormProps) {
-  // Smart Widget: Uses Context-Action to manage complexity
-  const { fields, validation, updateField, validateField, submitForm } = useAdvancedForm();
-  
-  // Complex rendering made simple through proper state management
-  return (
-    <AdvancedFormProvider>
-      <form onSubmit={submitForm}>
-        {schema.fields.map(fieldConfig => (
-          <FieldRenderer
-            key={fieldConfig.name}
-            config={fieldConfig}
-            value={fields[fieldConfig.name]}
-            errors={validation[fieldConfig.name]}
-            onChange={(value) => updateField(fieldConfig.name, value)}
-            onBlur={() => validateField(fieldConfig.name)}
-          />
-        ))}
-        <Button type="submit">Submit</Button>
-      </form>
-    </AdvancedFormProvider>
-  );
-}
-```
+**Hook Rules:**
+- ✅ All logic, effects, and dispatch calls in hooks
+- ✅ Compose hooks for complex requirements
+- ✅ Return only what components need
 
 ---
 
