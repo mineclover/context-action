@@ -154,7 +154,7 @@ export class LLMSGenerateCommand {
       throw new Error('Language is required for document collection');
     }
     
-    const languageDataDir = path.join(this.config.paths.llmContentDir, language);
+    const languageDataDir = this.pathManager.getLLMSDataDir(language);
     
     try {
       await fs.access(languageDataDir);
@@ -169,7 +169,7 @@ export class LLMSGenerateCommand {
 
       const documentId = docDir.name;
       const category = this.extractCategory(documentId);
-      const documentPath = path.join(languageDataDir, documentId);
+      const documentPath = this.pathManager.getDocumentDir(language, documentId);
 
       try {
         const files = await fs.readdir(documentPath);
@@ -628,8 +628,7 @@ export class LLMSGenerateCommand {
 
   private getPriorityJsonPath(doc: DocumentContent): string {
     // Construct path to priority.json for this document
-    const documentDir = path.join(this.config.paths.llmContentDir, doc.language, doc.documentId);
-    return path.join(documentDir, 'priority.json');
+    return this.pathManager.getPriorityFilePath(doc.language, doc.documentId);
   }
 
   private fileExistsSync(filePath: string): boolean {

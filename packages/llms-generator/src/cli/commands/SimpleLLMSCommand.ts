@@ -157,8 +157,7 @@ export class SimpleLLMSCommand {
   }
 
   private async findDocuments(language: string, characterLimit?: number, category?: string): Promise<CleanDocument[]> {
-    const dataDir = path.resolve(this.config.paths?.llmContentDir || './data');
-    const languageDir = path.join(dataDir, language);
+    const languageDir = this.pathManager.getLLMSDataDir(language);
     
     if (!await this.exists(languageDir)) {
       console.log(`❌ Language directory does not exist: ${languageDir}`);
@@ -169,7 +168,7 @@ export class SimpleLLMSCommand {
     const folders = await fs.readdir(languageDir);
 
     for (const folder of folders) {
-      const folderPath = path.join(languageDir, folder);
+      const folderPath = this.pathManager.getDocumentDir(language, folder);
       const stats = await fs.stat(folderPath);
       
       if (!stats.isDirectory()) continue;

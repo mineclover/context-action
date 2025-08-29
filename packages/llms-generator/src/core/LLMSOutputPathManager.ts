@@ -1,7 +1,7 @@
 /**
  * LLMS Output Path Manager
  * 
- * Manages output path generation for LLMS files with consistent language-specific directory structure
+ * Centralized path generation for all LLMS operations with consistent directory structure
  */
 
 import path from 'path';
@@ -61,6 +61,70 @@ export class LLMSOutputPathManager {
     
     filename += '.txt';
     return filename;
+  }
+
+  /**
+   * Generate LLMS data directory path for templates
+   * Format: {llmContentDir}/{language}
+   */
+  getLLMSDataDir(language: string): string {
+    return path.join(this.config.paths.llmContentDir, language);
+  }
+
+  /**
+   * Generate document directory path in LLMS data
+   * Format: {llmContentDir}/{language}/{documentId}
+   */
+  getDocumentDir(language: string, documentId: string): string {
+    return path.join(this.config.paths.llmContentDir, language, documentId);
+  }
+
+  /**
+   * Generate template file path
+   * Format: {llmContentDir}/{language}/{documentId}/{documentId}-{characterLimit}.md
+   */
+  getTemplateFilePath(language: string, documentId: string, characterLimit: number): string {
+    const docDir = this.getDocumentDir(language, documentId);
+    return path.join(docDir, `${documentId}-${characterLimit}.md`);
+  }
+
+  /**
+   * Generate priority.json file path
+   * Format: {llmContentDir}/{language}/{documentId}/priority.json
+   */
+  getPriorityFilePath(language: string, documentId: string): string {
+    const docDir = this.getDocumentDir(language, documentId);
+    return path.join(docDir, 'priority.json');
+  }
+
+  /**
+   * Generate source docs directory path
+   * Format: {docsDir}/{language}
+   */
+  getSourceDocsDir(language: string): string {
+    return path.join(this.config.paths.docsDir, language);
+  }
+
+  /**
+   * Generate source document path from document info
+   * Format: {docsDir}/{language}/{category}/{fileName}.md
+   */
+  getSourceDocPath(language: string, category: string, fileName: string): string {
+    return path.join(this.config.paths.docsDir, language, category, `${fileName}.md`);
+  }
+
+  /**
+   * Convert document ID back to source file path
+   */
+  documentIdToSourcePath(documentId: string, language: string): string {
+    const parts = documentId.split('--');
+    if (parts.length >= 2) {
+      const category = parts[0];
+      const fileName = parts.slice(1).join('-');
+      return this.getSourceDocPath(language, category, fileName);
+    }
+    // Fallback for simple document IDs
+    return path.join(this.config.paths.docsDir, language, `${documentId}.md`);
   }
 
   /**
