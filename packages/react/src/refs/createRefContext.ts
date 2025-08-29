@@ -26,7 +26,7 @@ export interface RefContextReturn<T> {
   Provider: React.FC<{ children: ReactNode }>;
   
   useRefHandler: <K extends keyof T>(refName: K) => {
-    setRef: (target: T[K]) => void;
+    setRef: (target: T[K] | null) => void;
     target: T[K] | null;
     waitForMount: () => Promise<T[K]>;
     withTarget: <Result>(
@@ -291,7 +291,7 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
     const { withTarget, executeIfMounted } = useRefOperation(refState);
     
     return useMemo(() => ({
-      setRef: (target: T[K]) => {
+      setRef: (target: T[K] | null) => {
         setRefTarget(refNameStr, target);
       },
       get target(): T[K] | null {

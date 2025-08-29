@@ -58,6 +58,7 @@ export class Store<T = unknown> implements IStore<T> {
   
   // 🚀 requestAnimationFrame 기반 알림 시스템
   private animationFrameId: number | null = null;
+  private pendingUpdatesCount = 0; // 누적된 업데이트 수 추적
   
   // 🧹 Advanced Cleanup and Memory Management
   private cleanupTasks = new Set<() => void>();
@@ -657,24 +658,23 @@ export class Store<T = unknown> implements IStore<T> {
 
   /**
    * requestAnimationFrame을 사용한 알림 스케줄링
+   * 누적 가능한 배치 시스템으로 개선
    */
   private _scheduleWithRAF(): void {
-    if (this.pendingNotification) {
-      // 이미 스케줄된 알림이 있으면 중복 방지
-      return;
-    }
-
-    this.pendingNotification = true;
+    // 누적된 업데이트 수 증가 (모든 호출을 추적)
+    this.pendingUpdatesCount++;
     
-    // 기존 animation frame 정리
-    if (this.animationFrameId !== null) {
-      cancelAnimationFrame(this.animationFrameId);
+    // 스케줄된 알림이 없을 때만 새로운 프레임 요청
+    if (!this.pendingNotification) {
+      this.pendingNotification = true;
+      
+      // 다음 프레임에서 알림 실행
+      this.animationFrameId = requestAnimationFrame(() => {
+        this._executeNotification();
+      });
     }
     
-    // 다음 프레임에서 알림 실행
-    this.animationFrameId = requestAnimationFrame(() => {
-      this._executeNotification();
-    });
+    // 🎯 모든 중간 업데이트가 누적되어 다음 프레임에서 한 번에 처리됨
   }
 
   /**
@@ -683,7 +683,18 @@ export class Store<T = unknown> implements IStore<T> {
   private _executeNotification(): void {
     this.pendingNotification = false;
     this.animationFrameId = null;
+    
+    // 누적된 업데이트 수 리셋하고 로깅 (디버깅용)
+    const batchedUpdates = this.pendingUpdatesCount;
+    this.pendingUpdatesCount = 0;
+    
+    // 실제 리스너 알림 실행
     this._notifyListeners();
+    
+    // 개발 환경에서 배치 크기 로깅 (성능 모니터링)
+    if (process.env.NODE_ENV === 'development' && batchedUpdates > 1) {
+      console.debug(`[Store:${this.name}] Batched ${batchedUpdates} updates in single frame`);
+    }
   }
 
 
