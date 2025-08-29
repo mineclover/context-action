@@ -67,7 +67,7 @@ export function useMouseEventsLogic() {
           if (index === 0) return sum;
           const prev = array[index - 1];
           const distance = Math.sqrt(
-            Math.pow(point.x - prev.x, 2) + Math.pow(point.y - prev.y, 2)
+            (point.x - prev.x) ** 2 + (point.y - prev.y) ** 2
           );
           const deltaTime = point.timestamp - prev.timestamp;
           return sum + (deltaTime > 0 ? distance / deltaTime : 0);

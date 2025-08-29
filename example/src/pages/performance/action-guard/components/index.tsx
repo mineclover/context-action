@@ -431,7 +431,7 @@ function PriorityExecutionDemoInternal({
         
         // Simulate execution with delays to show priority order
         const sortedActions = [...currentRegisteredActions].sort((a, b) => a.priority - b.priority);
-        let resultWords: string[] = [];
+        const resultWords: string[] = [];
         
         console.log('📋 Sorted actions for execution:', sortedActions);
         

@@ -36,7 +36,7 @@ export const processLargeDataSet = (data: number[]): { id: number; value: number
 // 공통 계산 로직
 export const createExpensiveCalculation = (baseValue: number): number[] => {
   return Array.from({ length: baseValue * 100 }, (_, i) => 
-    Math.pow(i + baseValue, 2) + Math.sqrt(baseValue)
+    (i + baseValue) ** 2 + Math.sqrt(baseValue)
   );
 };
 

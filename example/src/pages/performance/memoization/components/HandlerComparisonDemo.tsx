@@ -130,7 +130,7 @@ function MemoizedHandlerComponent() {
   const expensiveCalculator = useCallback((baseValue: number) => {
     console.log('💰 Memoized: Expensive calculation');
     return Array.from({ length: baseValue * 100 }, (_, i) => 
-      Math.pow(i + baseValue, 2) + Math.sqrt(baseValue)
+      (i + baseValue) ** 2 + Math.sqrt(baseValue)
     );
   }, []); // 빈 의존성 배열로 완전히 메모이제이션
 
@@ -309,7 +309,7 @@ function NonMemoizedHandlerComponent() {
     const expensiveCalculator = (baseValue: number) => {
       console.log('💸 Non-Memoized: Expensive calculation EVERY RENDER!');
       return Array.from({ length: baseValue * 100 }, (_, i) => 
-        Math.pow(i + baseValue, 2) + Math.sqrt(baseValue)
+        (i + baseValue) ** 2 + Math.sqrt(baseValue)
       );
     }; // 💥 이 함수는 매번 새로 생성됨!
     

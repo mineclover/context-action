@@ -515,7 +515,7 @@ function CanvasRefDemoView() {
     ? realTimeMovement.path.reduce((sum, p, i, arr) => {
         if (i === 0) return sum;
         const prev = arr[i - 1];
-        const distance = Math.sqrt(Math.pow(p.x - prev.x, 2) + Math.pow(p.y - prev.y, 2));
+        const distance = Math.sqrt((p.x - prev.x) ** 2 + (p.y - prev.y) ** 2);
         // Use estimated time since we don't have timestamps in real-time path
         const deltaTime = 16; // Assume 60fps (16ms between points)
         return sum + (deltaTime > 0 ? distance / deltaTime : 0);

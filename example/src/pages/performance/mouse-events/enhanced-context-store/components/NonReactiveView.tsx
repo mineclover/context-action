@@ -8,7 +8,7 @@
  * - Store는 순수 데이터 저장소 역할만
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useMouseEventsLogic } from '../hooks/useMouseEventsLogic';
 import { useAdvancedCanvasControl } from '../hooks/useAdvancedCanvasControl';
 import { useNonReactiveMetrics } from '../hooks/useNonReactiveMetrics';
@@ -36,8 +36,7 @@ export function NonReactiveView() {
   const metrics = useNonReactiveMetrics();
   
   // === Local UI State (React 상태 - 비즈니스와 무관) ===
-  const [showInfo, setShowInfo] = useState(true);
-  const [animationSpeed, setAnimationSpeed] = useState(1);
+  // const [animationSpeed, setAnimationSpeed] = useState(1); // Removed for now
   
   // Hook 초기화 대기
   if (!initialized) {
@@ -65,8 +64,8 @@ export function NonReactiveView() {
         }
       `}</style>
       
-      {/* 헤더 및 컨트롤 */}
-      <div className="flex items-center justify-between mb-6">
+      {/* 헤더 */}
+      <div className="mb-6">
         <div className="flex items-center gap-3">
           <span className="text-3xl">🚀</span>
           <div>
@@ -74,75 +73,61 @@ export function NonReactiveView() {
             <p className="text-sm text-purple-600">Zero React re-renders • Pure RefContext DOM control</p>
           </div>
         </div>
-        
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowInfo(!showInfo)}
-            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition-colors flex items-center gap-2"
-          >
-            <span>{showInfo ? '🙈' : '👁️'}</span>
-            {showInfo ? 'Hide Info' : 'Show Info'}
-          </button>
-        </div>
       </div>
       
       {/* Non-Reactive 아키텍처 설명 */}
-      {showInfo && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-          <h3 className="font-semibold text-green-800 mb-2">🚀 Non-Reactive MVVM Features:</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-green-700">
-            <div>
-              <h4 className="font-medium mb-1">Model Layer</h4>
-              <ul className="space-y-1 text-xs">
-                <li>• Store contexts (data only)</li>
-                <li>• No reactive subscriptions</li>
-                <li>• getValue() on-demand access</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-medium mb-1">ViewModel Layer</h4>
-              <ul className="space-y-1 text-xs">
-                <li>• RefContext direct DOM control</li>
-                <li>• Zero React re-renders</li>
-                <li>• 60fps GPU acceleration</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-medium mb-1">View Layer</h4>
-              <ul className="space-y-1 text-xs">
-                <li>• Non-reactive components</li>
-                <li>• Manual refresh only</li>
-                <li>• Pure performance</li>
-              </ul>
-            </div>
+      <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+        <h3 className="font-semibold text-green-800 mb-2">🚀 Non-Reactive MVVM Features:</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-green-700">
+          <div>
+            <h4 className="font-medium mb-1">Model Layer</h4>
+            <ul className="space-y-1 text-xs">
+              <li>• Store contexts (data only)</li>
+              <li>• No reactive subscriptions</li>
+              <li>• getValue() on-demand access</li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-medium mb-1">ViewModel Layer</h4>
+            <ul className="space-y-1 text-xs">
+              <li>• RefContext direct DOM control</li>
+              <li>• Zero React re-renders</li>
+              <li>• 60fps GPU acceleration</li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-medium mb-1">View Layer</h4>
+            <ul className="space-y-1 text-xs">
+              <li>• Non-reactive components</li>
+              <li>• Manual refresh only</li>
+              <li>• Pure performance</li>
+            </ul>
           </div>
         </div>
-      )}
+      </div>
 
       {/* 성능 비교 정보 */}
-      {showInfo && (
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <h4 className="font-semibold text-red-800 mb-2">❌ Traditional Reactive Pattern</h4>
-            <div className="space-y-1 text-xs text-red-700">
-              <p>• Store subscriptions → React re-renders</p>
-              <p>• Path drawing via useState → Performance hit</p>
-              <p>• Click markers via React state → Re-render cascade</p>
-              <p>• Continuous useStoreValue() subscriptions</p>
-            </div>
-          </div>
-          
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <h4 className="font-semibold text-green-800 mb-2">✅ Non-Reactive Pattern</h4>
-            <div className="space-y-1 text-xs text-green-700">
-              <p>• Zero React re-renders</p>
-              <p>• Path drawing via direct DOM → 60fps</p>
-              <p>• Click markers via createElement → Instant</p>
-              <p>• store.getValue() on-demand only</p>
-            </div>
+      <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <h4 className="font-semibold text-red-800 mb-2">❌ Traditional Reactive Pattern</h4>
+          <div className="space-y-1 text-xs text-red-700">
+            <p>• Store subscriptions → React re-renders</p>
+            <p>• Path drawing via useState → Performance hit</p>
+            <p>• Click markers via React state → Re-render cascade</p>
+            <p>• Continuous useStoreValue() subscriptions</p>
           </div>
         </div>
-      )}
+        
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <h4 className="font-semibold text-green-800 mb-2">✅ Non-Reactive Pattern</h4>
+          <div className="space-y-1 text-xs text-green-700">
+            <p>• Zero React re-renders</p>
+            <p>• Path drawing via direct DOM → 60fps</p>
+            <p>• Click markers via createElement → Instant</p>
+            <p>• store.getValue() on-demand only</p>
+          </div>
+        </div>
+      </div>
 
       {/* Non-Reactive Canvas */}
       <div className="p-6 border border-purple-200 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg">

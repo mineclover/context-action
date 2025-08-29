@@ -24,4 +24,4 @@ export { createObjectContextHooks } from './createObjectContextHooks';
 
 // Examples
 export { default as UserManagementExample } from './examples/UserManagementExample';
-export { default as ElementManagementMigration } from './examples/ElementManagementMigration';
+// export { default as ElementManagementMigration } from './examples/ElementManagementMigration'; // File not found
