@@ -96,6 +96,7 @@ function Layout({
     { path: '/actionguard/mouse-events', label: '🖱️ Mouse Events Demo', category: 'refs' },
     { path: '/refs/form-builder', label: '📝 Form Builder Ref Demo', category: 'refs' },
     { path: '/refs/waitforrefs-performance', label: '⚡ useWaitForRefs Performance', category: 'refs', description: 'Performance verification demo for useWaitForRefs optimization' },
+    { path: '/refs/use-ref-mount-state-test', label: '🎯 useRefMountState Test', category: 'refs', description: 'Isolated test page for useRefMountState hook functionality' },
     
     
     // === Performance (성능) ===

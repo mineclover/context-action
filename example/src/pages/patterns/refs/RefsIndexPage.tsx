@@ -244,6 +244,33 @@ function Component() {
                 </div>
               </div>
             </a>
+
+            {/* useRefMountState Test Demo */}
+            <a 
+              href="/refs/use-ref-mount-state-test"
+              className="group bg-white p-6 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 hover:border-blue-300"
+            >
+              <div className="flex items-start gap-4">
+                <div className="text-3xl group-hover:scale-110 transition-transform">🎯</div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg mb-2 text-gray-800 group-hover:text-blue-600">
+                    useRefMountState Test Demo
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-3">
+                    useRefMountState 훅의 리액티브 구독 기능을 격리된 환경에서 테스트합니다. 
+                    useSyncExternalStore 기반의 실시간 상태 감지와 자동 리렌더링을 검증할 수 있습니다.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Reactive</span>
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Isolated Test</span>
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">useSyncExternalStore</span>
+                  </div>
+                  <div className="mt-3 text-blue-500 text-sm font-medium group-hover:underline">
+                    리액티브 테스트하기 →
+                  </div>
+                </div>
+              </div>
+            </a>
           </div>
         </div>
 

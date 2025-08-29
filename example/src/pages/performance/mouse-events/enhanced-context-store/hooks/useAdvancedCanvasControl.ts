@@ -35,29 +35,15 @@ export function useAdvancedCanvasControl() {
   // === 마운트 상태에 따른 시각적 피드백 ===
   useEffect(() => {
     if (isContainerMounted && containerElement) {
-      console.log('🎯 [useAdvancedCanvasControl] Container mounted via reactive state');
       containerElement.style.border = '2px solid #10b981';
     } else if (!isContainerMounted) {
-      console.log('🔄 [useAdvancedCanvasControl] Container unmounted');
       // 언마운트 시 border 제거
       if (containerRef.target) {
         containerRef.target.style.border = '';
       }
     }
-  }, [isContainerMounted, containerElement, containerRef]);
+  }, [isContainerMounted, containerElement]);
   
-  // === 반응형 마운트 상태에 따른 기능 활성화 ===
-  useEffect(() => {
-    if (isContainerMounted) {
-      console.log('🚀 [useAdvancedCanvasControl] Container is mounted, activating canvas controls');
-      // 여기서 실제 기능들을 활성화할 수 있음
-    }
-  }, [isContainerMounted]);
-  
-  // === 🔧 Direct Mount Check for DOM Operations ===
-  const isContainerReady = useCallback(() => {
-    return containerRef.target !== null;
-  }, [containerRef]);
   
   // Canvas 직접 조작용 상태 (Store 완전 우회)
   const pathPointsRef = useRef<Array<{ x: number; y: number; timestamp: number }>>([]);
@@ -66,15 +52,6 @@ export function useAdvancedCanvasControl() {
   const lastPositionRef = useRef<{ x: number; y: number }>({ x: -999, y: -999 });
   const clickCounterRef = useRef<number>(0);
   
-  // === 🎯 반응형 안전한 액션 디스패치 ===
-  const safeDispatch = useCallback((action: any, payload?: any) => {
-    console.log(`🚀 [safeDispatch] Dispatching '${action}' (reactiveMount: ${isContainerMounted}, containerReady: ${!!containerElement})`);
-    if (isContainerMounted && containerElement) {
-      dispatch(action, payload);
-    } else {
-      console.log(`⚠️ [safeDispatch] Skipping '${action}' - container not ready (reactiveMount: ${isContainerMounted}, element: ${!!containerElement})`);
-    }
-  }, [dispatch, isContainerMounted, containerElement]);
   
   // === 클릭 마커 직접 생성 (React 없이) ===
   const createClickMarkerDirect = useCallback((x: number, y: number, timestamp: number) => {
@@ -191,11 +168,11 @@ export function useAdvancedCanvasControl() {
     }
     
     throttleTimeoutRef.current = window.setTimeout(() => {
-      safeDispatch('updatePosition', { x, y, timestamp });
+      dispatch('updatePosition', { x, y, timestamp });
     }, 33);
     
     lastPositionRef.current = { x, y };
-  }, [containerRef, safeDispatch, updateCursorDirect, updatePathDirect]);
+  }, [containerRef, dispatch, updateCursorDirect, updatePathDirect]);
   
   // === 마우스 클릭 핸들러 (마커 직접 생성) ===
   const handleMouseClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -212,12 +189,12 @@ export function useAdvancedCanvasControl() {
     clickCounterRef.current++;
     
     // Store는 데이터 저장만
-    safeDispatch('recordClick', {
+    dispatch('recordClick', {
       x, y,
       button: e.button,
       timestamp
     });
-  }, [containerRef, safeDispatch, createClickMarkerDirect]);
+  }, [containerRef, dispatch, createClickMarkerDirect]);
   
   // === 마우스 진입 핸들러 ===
   const handleMouseEnter = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -230,9 +207,9 @@ export function useAdvancedCanvasControl() {
     const timestamp = Date.now();
     
     updateCursorDirect(x, y);
-    safeDispatch('enterArea', { x, y, timestamp });
+    dispatch('enterArea', { x, y, timestamp });
     lastPositionRef.current = { x, y };
-  }, [containerRef, safeDispatch, updateCursorDirect]);
+  }, [containerRef, dispatch, updateCursorDirect]);
   
   // === 마우스 이탈 핸들러 ===
   const handleMouseLeave = useCallback(() => {
@@ -250,9 +227,9 @@ export function useAdvancedCanvasControl() {
       clearTimeout(throttleTimeoutRef.current);
     }
     
-    safeDispatch('leaveArea', { timestamp: Date.now() });
+    dispatch('leaveArea', { timestamp: Date.now() });
     pathPointsRef.current = [];
-  }, [cursorRef, coordinatesRef, pathSvgRef, safeDispatch]);
+  }, [cursorRef, coordinatesRef, pathSvgRef, dispatch]);
   
   // === 리셋 핸들러 (모든 마커 제거) ===
   const handleReset = useCallback(() => {
@@ -283,30 +260,23 @@ export function useAdvancedCanvasControl() {
     clickCounterRef.current = 0;
     
     // Store 리셋
-    safeDispatch('reset');
-  }, [pathSvgRef, cursorRef, coordinatesRef, clickMarkersRef, safeDispatch]);
+    dispatch('reset');
+  }, [pathSvgRef, cursorRef, coordinatesRef, clickMarkersRef, dispatch]);
   
   // === Non-Reactive 데이터 조회 ===
   const getActivityStatus = useCallback(() => {
     const activity = storeData.stores.activity.getValue();
     return {
       isActive: activity.isInsideArea,
-      statusText: activity.current.toUpperCase(),
-      // 반응형 마운트 상태 정보 추가
-      reactiveMount: isContainerMounted,
-      containerReady: !!containerElement
+      statusText: activity.current.toUpperCase()
     };
-  }, [storeData, isContainerMounted, containerElement]);
+  }, [storeData]);
   
   const refreshMetrics = useCallback(() => {
     const allData = storeData.dumpAllStoreData();
-    console.log('📊 Non-Reactive Metrics (with Reactive Mount):', {
-      ...allData,
-      reactiveMount: isContainerMounted,
-      containerElement: !!containerElement
-    });
+    console.log('📊 Non-Reactive Metrics:', allData);
     return allData;
-  }, [storeData, isContainerMounted, containerElement]);
+  }, [storeData]);
   
   // === DOM 참조 설정 함수들 ===
   const setContainerRef = useCallback((el: HTMLDivElement | null) => {

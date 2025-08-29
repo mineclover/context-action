@@ -83,7 +83,15 @@ export function useNonReactiveMetrics() {
   
   // === 컴포넌트용 표시 데이터 ===
   const getDisplayData = useCallback(() => {
-    const current = lastSnapshot || refreshMetrics();
+    // refreshMetrics 호출하지 않고 lastSnapshot만 사용하거나 null 반환
+    const current = lastSnapshot;
+    if (!current) {
+      return {
+        activity: { isActive: false, statusText: 'IDLE', statusColor: 'gray' },
+        clicks: { recent: [], totalText: '0 clicks', recentText: '0 recent' },
+        summary: { hasActivity: false, isTracking: false, lastUpdate: 0 }
+      };
+    }
     
     return {
       // Activity 상태
@@ -108,7 +116,7 @@ export function useNonReactiveMetrics() {
         lastUpdate: lastUpdateTime
       }
     };
-  }, [lastSnapshot, lastUpdateTime, refreshMetrics]);
+  }, [lastSnapshot, lastUpdateTime]);
   
   return {
     // 수동 새로고침

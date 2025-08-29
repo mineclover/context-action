@@ -55,6 +55,7 @@ const FlowControlPlaygroundPage = lazy(() => import('./pages/patterns/pipeline/F
 const RefsIndexPage = lazy(() => import('./pages/patterns/refs/RefsIndexPage').then(m => ({ default: m.RefsIndexPage })));
 const FormBuilderRefDemoPage = lazy(() => import('./pages/patterns/refs/FormBuilderRefDemoPage').then(m => ({ default: m.FormBuilderRefDemoPage })));
 const WaitForRefsPerformancePage = lazy(() => import('./pages/patterns/refs/WaitForRefsPerformancePage').then(m => ({ default: m.WaitForRefsPerformancePage })));
+const UseRefMountStateTestPage = lazy(() => import('./pages/patterns/refs/UseRefMountStateTestPage').then(m => ({ default: m.UseRefMountStateTestPage })));
 
 // Integrations
 const TodoListPage = lazy(() => import('./pages/integrations/business/TodoListPage').then(m => ({ default: m.TodoListPage })));
@@ -172,6 +173,7 @@ function AppContent() {
             <Route path="/patterns/refs" element={<RefsIndexPage />} />
             <Route path="/patterns/refs/form-builder" element={<FormBuilderRefDemoPage />} />
             <Route path="/patterns/refs/waitforrefs-performance" element={<WaitForRefsPerformancePage />} />
+            <Route path="/patterns/refs/use-ref-mount-state-test" element={<UseRefMountStateTestPage />} />
             <Route path="/patterns/refs/canvas" element={<AdvancedCanvasExample />} />
             
             {/* 🧩 INTEGRATIONS - Real-world use cases */}
@@ -221,6 +223,7 @@ function AppContent() {
             <Route path="/refs" element={<RefsIndexPage />} />
             <Route path="/refs/form-builder" element={<FormBuilderRefDemoPage />} />
             <Route path="/refs/waitforrefs-performance" element={<WaitForRefsPerformancePage />} />
+            <Route path="/refs/use-ref-mount-state-test" element={<UseRefMountStateTestPage />} />
             <Route path="/refs/canvas" element={<AdvancedCanvasExample />} />
             <Route path="/demos/todo-list" element={<TodoListPage />} />
             <Route path="/demos/shopping-cart" element={<ShoppingCartPage />} />
