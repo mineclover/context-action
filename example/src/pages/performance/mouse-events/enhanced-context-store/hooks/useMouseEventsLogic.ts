@@ -39,6 +39,65 @@ export function useMouseEventsLogic() {
   // 성능 추적용 refs
   const lastUpdateTime = useRef<number>(Date.now());
   const renderStartTime = useRef<number>(0);
+  const lastComputedUpdateTime = useRef<number>(0);
+  
+  // === 내부 헬퍼 함수들 ===
+  
+  const updateComputedMetrics = useCallback(() => {
+    const movement = movementStore.getValue();
+    const activity = activityStore.getValue();
+    const clicks = clicksStore.getValue();
+    
+    const now = Date.now();
+    const sessionDuration = (now - activity.sessionStartTime) / 1000;
+    const totalEvents = movement.moveCount + clicks.total;
+    
+    // 평균 속도 계산
+    const averageVelocity = movement.path.length > 1
+      ? movement.path.reduce((sum, point, index, array) => {
+          if (index === 0) return sum;
+          const prev = array[index - 1];
+          const distance = Math.sqrt(
+            Math.pow(point.x - prev.x, 2) + Math.pow(point.y - prev.y, 2)
+          );
+          const deltaTime = point.timestamp - prev.timestamp;
+          return sum + (deltaTime > 0 ? distance / deltaTime : 0);
+        }, 0) / (movement.path.length - 1)
+      : 0;
+    
+    // 최대 속도 추적
+    const currentComputed = computedStore.getValue();
+    const maxVelocity = Math.max(currentComputed.maxVelocity, movement.velocity);
+    
+    const newComputed: ComputedMetrics = {
+      averageVelocity,
+      maxVelocity,
+      totalDistance: movement.distance,
+      sessionDuration,
+      eventsPerSecond: sessionDuration > 0 ? totalEvents / sessionDuration : 0
+    };
+    
+    computedStore.setValue(newComputed);
+  }, [movementStore, activityStore, clicksStore, computedStore]);
+  
+  const updatePerformanceMetrics = useCallback(() => {
+    const renderEndTime = performance.now();
+    const renderTime = renderEndTime - renderStartTime.current;
+    const currentPerf = performanceStore.getValue();
+    
+    const newRenderCount = currentPerf.renderCount + 1;
+    const avgRenderTime = (
+      (currentPerf.avgRenderTime * currentPerf.renderCount + renderTime) / 
+      newRenderCount
+    );
+    
+    performanceStore.setValue({
+      renderCount: newRenderCount,
+      lastRenderTime: renderTime,
+      avgRenderTime,
+      memoryUsage: (performance as any).memory?.usedJSHeapSize || 0
+    });
+  }, [performanceStore]);
   
   // === 액션 핸들러: updatePosition ===
   const handleUpdatePosition = useCallback(async (payload: { x: number; y: number; timestamp: number }) => {
@@ -82,14 +141,18 @@ export function useMouseEventsLogic() {
       
       activityStore.setValue(newActivity);
       
-      // 4. 계산된 메트릭스 업데이트 (throttled)
-      updateComputedMetrics();
+      // 4. 계산된 메트릭스 업데이트 (throttled to 500ms for performance)
+      const now = Date.now();
+      if (now - lastComputedUpdateTime.current >= 500) {
+        updateComputedMetrics();
+        lastComputedUpdateTime.current = now;
+      }
     }
     
     // 성능 메트릭 업데이트
     updatePerformanceMetrics();
     
-  }, [positionStore, movementStore, activityStore]);
+  }, [positionStore, movementStore, activityStore, updateComputedMetrics]);
   
   // === 액션 핸들러: recordClick ===
   const handleRecordClick = useCallback(async (payload: MouseClick) => {
@@ -195,64 +258,6 @@ export function useMouseEventsLogic() {
     
   }, [positionStore, movementStore, clicksStore, activityStore, computedStore, performanceStore]);
   
-  // === 내부 헬퍼 함수들 ===
-  
-  const updateComputedMetrics = useCallback(() => {
-    const movement = movementStore.getValue();
-    const activity = activityStore.getValue();
-    const clicks = clicksStore.getValue();
-    
-    const now = Date.now();
-    const sessionDuration = (now - activity.sessionStartTime) / 1000;
-    const totalEvents = movement.moveCount + clicks.total;
-    
-    // 평균 속도 계산
-    const averageVelocity = movement.path.length > 1
-      ? movement.path.reduce((sum, point, index, array) => {
-          if (index === 0) return sum;
-          const prev = array[index - 1];
-          const distance = Math.sqrt(
-            Math.pow(point.x - prev.x, 2) + Math.pow(point.y - prev.y, 2)
-          );
-          const deltaTime = point.timestamp - prev.timestamp;
-          return sum + (deltaTime > 0 ? distance / deltaTime : 0);
-        }, 0) / (movement.path.length - 1)
-      : 0;
-    
-    // 최대 속도 추적
-    const currentComputed = computedStore.getValue();
-    const maxVelocity = Math.max(currentComputed.maxVelocity, movement.velocity);
-    
-    const newComputed: ComputedMetrics = {
-      averageVelocity,
-      maxVelocity,
-      totalDistance: movement.distance,
-      sessionDuration,
-      eventsPerSecond: sessionDuration > 0 ? totalEvents / sessionDuration : 0
-    };
-    
-    computedStore.setValue(newComputed);
-  }, [movementStore, activityStore, clicksStore, computedStore]);
-  
-  const updatePerformanceMetrics = useCallback(() => {
-    const renderEndTime = performance.now();
-    const renderTime = renderEndTime - renderStartTime.current;
-    const currentPerf = performanceStore.getValue();
-    
-    const newRenderCount = currentPerf.renderCount + 1;
-    const avgRenderTime = (
-      (currentPerf.avgRenderTime * currentPerf.renderCount + renderTime) / 
-      newRenderCount
-    );
-    
-    performanceStore.setValue({
-      renderCount: newRenderCount,
-      lastRenderTime: renderTime,
-      avgRenderTime,
-      memoryUsage: (performance as any).memory?.usedJSHeapSize || 0
-    });
-  }, [performanceStore]);
-  
   // === 액션 핸들러 등록 ===
   useMouseActionHandler('updatePosition', handleUpdatePosition);
   useMouseActionHandler('recordClick', handleRecordClick);
@@ -260,14 +265,8 @@ export function useMouseEventsLogic() {
   useMouseActionHandler('leaveArea', handleLeaveArea);
   useMouseActionHandler('reset', handleReset);
   
-  // === 주기적 메트릭스 업데이트 ===
-  useEffect(() => {
-    const interval = setInterval(() => {
-      updateComputedMetrics();
-    }, 1000);
-    
-    return () => clearInterval(interval);
-  }, [updateComputedMetrics]);
+  // === 주기적 메트릭스 업데이트 제거 ===
+  // 메트릭스는 사용자 액션 시에만 업데이트 (updatePosition 핸들러에서 처리)
   
   // Hook이 초기화되었음을 알림
   return {
