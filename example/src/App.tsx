@@ -43,8 +43,6 @@ const CanvasRefDemoPage = lazy(() => import('./pages/performance/mouse-events/Ca
 // Memoization Performance
 const MemoizationPerformancePage = lazy(() => import('./pages/performance/memoization/MemoizationPerformancePage'));
 const MemoizationDemoPage = lazy(() => import('./pages/performance/memoization/DemoPage'));
-const MemoizationAnalysisPage = lazy(() => import('./pages/performance/memoization/AnalysisPage'));
-const MemoizationGuidelinesPage = lazy(() => import('./pages/performance/memoization/GuidelinesPage'));
 
 // Patterns
 const ConditionalPatternsIndex = lazy(() => import('./pages/patterns/conditional/ConditionalPatternsIndex').then(m => ({ default: m.ConditionalPatternsIndex })));
@@ -162,8 +160,6 @@ function AppContent() {
             <Route path="/performance" element={<MemoizationPerformancePage />} />
             <Route path="/performance/memoization" element={<MemoizationPerformancePage />} />
             <Route path="/performance/memoization/demo" element={<MemoizationDemoPage />} />
-            <Route path="/performance/memoization/analysis" element={<MemoizationAnalysisPage />} />
-            <Route path="/performance/memoization/guidelines" element={<MemoizationGuidelinesPage />} />
             
             {/* 🎛️ PATTERNS - Advanced patterns, conditional execution */}
             <Route path="/patterns/conditional" element={<ConditionalPatternsIndex />} />

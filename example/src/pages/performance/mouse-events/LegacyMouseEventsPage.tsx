@@ -33,23 +33,23 @@ export function MouseEventsPage() {
     >
       <div className="page-container">
         <header className="page-header">
-          <h1>🖱️ Mouse Events Demo</h1>
+          <h1>🖱️ Legacy Mouse Events Demo</h1>
           <p className="page-description">
-            Context-Action 프레임워크의 <strong>마우스 이벤트 처리</strong> 기본 데모입니다.
+            Context-Action 프레임워크의 <strong>Legacy 마우스 이벤트 처리</strong> 데모입니다.
             다양한 마우스 이벤트를 Action Pipeline을 통해 처리하고 실시간 피드백을 제공합니다.
           </p>
           
           <div className="flex flex-wrap gap-2 mt-4">
-            <Badge variant="outline" className="bg-blue-50 text-blue-800">
+            <Badge variant="outline" className="bg-purple-50 text-purple-800">
               🖱️ 기본 마우스 이벤트
             </Badge>
-            <Badge variant="outline" className="bg-green-50 text-green-800">
+            <Badge variant="outline" className="bg-pink-50 text-pink-800">
               ⚡ Action Pipeline
             </Badge>
-            <Badge variant="outline" className="bg-purple-50 text-purple-800">
+            <Badge variant="outline" className="bg-cyan-50 text-cyan-800">
               📱 반응형 UI
             </Badge>
-            <Badge variant="outline" className="bg-orange-50 text-orange-800">
+            <Badge variant="outline" className="bg-indigo-50 text-indigo-800">
               🎯 실시간 피드백
             </Badge>
           </div>
@@ -98,37 +98,37 @@ const MouseStats = React.memo(({
   activeZoneCount: number;
 }) => (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-    <Card>
+    <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200 shadow-md hover:shadow-lg transition-all duration-300">
       <CardContent className="p-4">
-        <h4 className="font-semibold text-sm text-gray-600 mb-2">마우스 위치</h4>
-        <div className="text-xl font-bold text-blue-600 font-mono">
+        <h4 className="font-semibold text-sm text-purple-700 mb-2">마우스 위치</h4>
+        <div className="text-xl font-bold text-purple-600 font-mono">
           {mousePosition.x}, {mousePosition.y}
         </div>
       </CardContent>
     </Card>
     
-    <Card>
+    <Card className="bg-gradient-to-br from-pink-50 to-cyan-50 border-pink-200 shadow-md hover:shadow-lg transition-all duration-300">
       <CardContent className="p-4">
-        <h4 className="font-semibold text-sm text-gray-600 mb-2">총 클릭 수</h4>
-        <div className="text-xl font-bold text-green-600">
+        <h4 className="font-semibold text-sm text-pink-700 mb-2">총 클릭 수</h4>
+        <div className="text-xl font-bold text-pink-600">
           {clickCount}
         </div>
       </CardContent>
     </Card>
     
-    <Card>
+    <Card className="bg-gradient-to-br from-cyan-50 to-indigo-50 border-cyan-200 shadow-md hover:shadow-lg transition-all duration-300">
       <CardContent className="p-4">
-        <h4 className="font-semibold text-sm text-gray-600 mb-2">이벤트 로그</h4>
-        <div className="text-xl font-bold text-purple-600">
+        <h4 className="font-semibold text-sm text-cyan-700 mb-2">이벤트 로그</h4>
+        <div className="text-xl font-bold text-cyan-600">
           {eventLogCount}
         </div>
       </CardContent>
     </Card>
     
-    <Card>
+    <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200 shadow-md hover:shadow-lg transition-all duration-300">
       <CardContent className="p-4">
-        <h4 className="font-semibold text-sm text-gray-600 mb-2">활성 존</h4>
-        <div className="text-xl font-bold text-orange-600">
+        <h4 className="font-semibold text-sm text-indigo-700 mb-2">활성 존</h4>
+        <div className="text-xl font-bold text-indigo-600">
           {activeZoneCount}
         </div>
       </CardContent>
@@ -157,15 +157,19 @@ const EventLogDisplay = React.memo(({
   }, []);
 
   return (
-    <Card>
+    <Card className="bg-gradient-to-br from-pink-50 to-purple-50 border-pink-200 shadow-lg">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">📝 이벤트 로그</h3>
+          <h3 className="text-lg font-semibold text-pink-900 flex items-center gap-2">
+            <span className="text-xl">📝</span>
+            이벤트 로그
+          </h3>
           <button
             onClick={onClear}
-            className="px-3 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition-colors"
+            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm transition-colors flex items-center gap-2"
           >
-            🗑️ 로그 지우기
+            <span>🗑️</span>
+            로그 지우기
           </button>
         </div>
         
@@ -421,14 +425,19 @@ function MouseEventsDemo() {
       {/* 마우스 이벤트 테스트 영역 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 기본 이벤트 영역 */}
-        <Card>
+        <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200 shadow-lg">
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">🖱️ 기본 마우스 이벤트</h3>
+            <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center gap-2">
+              <span className="text-xl">🖱️</span>
+              Legacy 마우스 이벤트
+            </h3>
             
             <div 
               ref={containerRef}
-              className={`relative bg-gradient-to-br from-blue-50 to-indigo-100 border-2 rounded-lg p-8 cursor-pointer transition-all ${
-                hoverZones['main-area'] ? 'border-blue-500 shadow-lg' : 'border-gray-300'
+              className={`relative bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 border-2 rounded-xl p-8 cursor-crosshair transition-all shadow-inner ${
+                hoverZones['main-area'] 
+                  ? 'border-purple-500 shadow-lg bg-gradient-to-br from-purple-100 via-pink-100 to-cyan-100' 
+                  : 'border-purple-300'
               }`}
               style={{ height: '300px' }}
               onClick={(e) => handleClick(e, 'main-area')}
@@ -438,77 +447,107 @@ function MouseEventsDemo() {
               onDoubleClick={(e) => handleDoubleClick(e, 'main-area')}
               onContextMenu={(e) => handleContextMenu(e, 'main-area')}
             >
-              <div className="absolute top-2 left-2 text-sm text-gray-600">
+              <div className="absolute top-2 left-2 text-sm text-purple-700 font-medium">
                 클릭, 이동, 더블클릭, 우클릭 테스트
               </div>
               
-              <div className="absolute bottom-2 right-2 text-xs text-gray-500 font-mono">
+              <div className="absolute bottom-2 right-2 text-xs text-purple-600 font-mono bg-white/70 px-2 py-1 rounded-md shadow-sm">
                 ({mousePosition.x}, {mousePosition.y})
               </div>
               
               {/* 마우스 포인터 표시 */}
               <div 
-                className="absolute w-2 h-2 bg-red-500 rounded-full pointer-events-none transform -translate-x-1/2 -translate-y-1/2 transition-all duration-100"
+                className="absolute w-4 h-4 bg-purple-500 border-2 border-white rounded-full pointer-events-none transform -translate-x-1/2 -translate-y-1/2 transition-all duration-100 shadow-lg"
                 style={{ 
                   left: mousePosition.x, 
                   top: mousePosition.y,
                   opacity: hoverZones['main-area'] ? 1 : 0
                 }}
-              />
+              >
+                <div className="w-full h-full rounded-full animate-pulse bg-purple-400" />
+              </div>
+              
+              {/* 안내 메시지 */}
+              {!hoverZones['main-area'] && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="text-center p-6 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-purple-200">
+                    <div className="text-4xl mb-3 animate-bounce">🖱️</div>
+                    <h4 className="text-lg font-semibold text-purple-800 mb-2">
+                      Legacy Mouse Events Demo
+                    </h4>
+                    <p className="text-sm text-gray-700 mb-2">
+                      Move mouse and click to see traditional action handling
+                    </p>
+                    <div className="text-xs text-gray-600 space-y-1">
+                      <p className="flex items-center justify-center gap-1">
+                        <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                        Basic Action Context
+                      </p>
+                      <p className="flex items-center justify-center gap-1">
+                        <span className="w-2 h-2 bg-pink-500 rounded-full"></span>
+                        Legacy Implementation
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
 
         {/* 특별 이벤트 영역들 */}
-        <Card>
+        <Card className="bg-gradient-to-br from-cyan-50 to-indigo-50 border-cyan-200 shadow-lg">
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">🎯 특별 이벤트 영역</h3>
+            <h3 className="text-lg font-semibold text-cyan-900 mb-4 flex items-center gap-2">
+              <span className="text-xl">🎯</span>
+              특별 이벤트 영역
+            </h3>
             
             <div className="space-y-4">
               {/* 호버 감지 영역 */}
               <div 
-                className={`p-4 border-2 rounded-lg text-center cursor-pointer transition-all ${
+                className={`p-4 border-2 rounded-xl text-center cursor-pointer transition-all duration-300 ${
                   hoverZones['hover-zone'] 
-                    ? 'border-green-500 bg-green-50 shadow-md' 
-                    : 'border-gray-300 bg-gray-50'
+                    ? 'border-pink-500 bg-gradient-to-r from-pink-100 to-purple-100 shadow-lg transform scale-105' 
+                    : 'border-cyan-300 bg-gradient-to-r from-cyan-50 to-indigo-50 hover:shadow-md'
                 }`}
                 onMouseEnter={() => handleMouseEnter('hover-zone')}
                 onMouseLeave={() => handleMouseLeave('hover-zone')}
                 onClick={(e) => handleClick(e, 'hover-zone')}
               >
-                <div className="font-medium text-sm">
+                <div className="font-medium text-sm text-cyan-800">
                   {hoverZones['hover-zone'] ? '✅ 호버됨!' : '👆 호버 감지 영역'}
                 </div>
               </div>
 
               {/* 더블클릭 영역 */}
               <div 
-                className={`p-4 border-2 rounded-lg text-center cursor-pointer transition-all ${
+                className={`p-4 border-2 rounded-xl text-center cursor-pointer transition-all duration-300 ${
                   hoverZones['double-click-zone'] 
-                    ? 'border-purple-500 bg-purple-50 shadow-md' 
-                    : 'border-gray-300 bg-gray-50'
+                    ? 'border-purple-500 bg-gradient-to-r from-purple-100 to-pink-100 shadow-lg transform scale-105' 
+                    : 'border-cyan-300 bg-gradient-to-r from-cyan-50 to-indigo-50 hover:shadow-md'
                 }`}
                 onMouseEnter={() => handleMouseEnter('double-click-zone')}
                 onMouseLeave={() => handleMouseLeave('double-click-zone')}
                 onDoubleClick={(e) => handleDoubleClick(e, 'double-click-zone')}
               >
-                <div className="font-medium text-sm">
+                <div className="font-medium text-sm text-cyan-800">
                   🖱️ 더블클릭 테스트 영역
                 </div>
               </div>
 
               {/* 우클릭 영역 */}
               <div 
-                className={`p-4 border-2 rounded-lg text-center cursor-context-menu transition-all ${
+                className={`p-4 border-2 rounded-xl text-center cursor-context-menu transition-all duration-300 ${
                   hoverZones['right-click-zone'] 
-                    ? 'border-orange-500 bg-orange-50 shadow-md' 
-                    : 'border-gray-300 bg-gray-50'
+                    ? 'border-indigo-500 bg-gradient-to-r from-indigo-100 to-cyan-100 shadow-lg transform scale-105' 
+                    : 'border-cyan-300 bg-gradient-to-r from-cyan-50 to-indigo-50 hover:shadow-md'
                 }`}
                 onMouseEnter={() => handleMouseEnter('right-click-zone')}
                 onMouseLeave={() => handleMouseLeave('right-click-zone')}
                 onContextMenu={(e) => handleContextMenu(e, 'right-click-zone')}
               >
-                <div className="font-medium text-sm">
+                <div className="font-medium text-sm text-cyan-800">
                   🖱️ 우클릭 테스트 영역
                 </div>
               </div>
@@ -521,27 +560,30 @@ function MouseEventsDemo() {
       <EventLogDisplay eventLog={eventLog} onClear={clearLog} />
 
       {/* 성능 모니터링 */}
-      <Card>
+      <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200 shadow-lg">
         <CardContent className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">📊 성능 모니터링</h3>
+          <h3 className="text-lg font-semibold text-indigo-900 mb-4 flex items-center gap-2">
+            <span className="text-xl">📊</span>
+            성능 모니터링
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-semibold text-blue-700 mb-2">평균 처리 시간</h4>
-              <div className="text-2xl font-bold text-blue-600">
+            <div className="p-4 bg-gradient-to-br from-purple-100 to-pink-100 border border-purple-200 rounded-xl shadow-md">
+              <h4 className="font-semibold text-purple-700 mb-2">평균 처리 시간</h4>
+              <div className="text-2xl font-bold text-purple-600">
                 {stats.performance.averageEventProcessingTime.toFixed(2)}ms
               </div>
             </div>
             
-            <div className="p-4 bg-green-50 rounded-lg">
-              <h4 className="font-semibold text-green-700 mb-2">이벤트 처리율</h4>
-              <div className="text-2xl font-bold text-green-600">
+            <div className="p-4 bg-gradient-to-br from-pink-100 to-cyan-100 border border-pink-200 rounded-xl shadow-md">
+              <h4 className="font-semibold text-pink-700 mb-2">이벤트 처리율</h4>
+              <div className="text-2xl font-bold text-pink-600">
                 {stats.performance.eventRate.toFixed(1)}/s
               </div>
             </div>
             
-            <div className="p-4 bg-purple-50 rounded-lg">
-              <h4 className="font-semibold text-purple-700 mb-2">마우스 이동 수</h4>
-              <div className="text-2xl font-bold text-purple-600">
+            <div className="p-4 bg-gradient-to-br from-cyan-100 to-indigo-100 border border-cyan-200 rounded-xl shadow-md">
+              <h4 className="font-semibold text-cyan-700 mb-2">마우스 이동 수</h4>
+              <div className="text-2xl font-bold text-cyan-600">
                 {stats.mouseMoveCount}
               </div>
             </div>
@@ -550,12 +592,13 @@ function MouseEventsDemo() {
       </Card>
 
       {/* createRefContext Canvas Drawing Demo */}
-      <div className="mt-12 pt-8 border-t border-gray-200">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            🎨 createRefContext Canvas Drawing Demo
+      <div className="mt-12 pt-8 border-t border-purple-200">
+        <div className="mb-6 p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200">
+          <h2 className="text-2xl font-bold text-purple-900 mb-2 flex items-center gap-2">
+            <span className="text-3xl">🎨</span>
+            createRefContext Canvas Drawing Demo
           </h2>
-          <p className="text-gray-700">
+          <p className="text-purple-700">
             createRefContext를 사용한 Canvas Drawing 시스템입니다. 
             Ref 관리와 Canvas API를 조합하여 실시간 드로잉 기능을 구현합니다.
           </p>
@@ -564,12 +607,13 @@ function MouseEventsDemo() {
       </div>
 
       {/* Context-Action Performance Demo */}
-      <div className="mt-12 pt-8 border-t border-gray-200">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            🎯 Context-Action Performance Tracking Demo
+      <div className="mt-12 pt-8 border-t border-cyan-200">
+        <div className="mb-6 p-6 bg-gradient-to-r from-cyan-50 to-indigo-50 rounded-xl border border-cyan-200">
+          <h2 className="text-2xl font-bold text-cyan-900 mb-2 flex items-center gap-2">
+            <span className="text-3xl">🎯</span>
+            Context-Action Performance Tracking Demo
           </h2>
-          <p className="text-gray-700">
+          <p className="text-cyan-700">
             ActionPerformanceData를 Context-Action 프레임워크로 구현한 데모입니다. 
             실제 Context-Action 패턴을 활용하여 성능 추적 시스템을 보여줍니다.
           </p>
@@ -578,13 +622,19 @@ function MouseEventsDemo() {
       </div>
 
       {/* 사용법 안내 */}
-      <Card>
+      <Card className="bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 border-purple-200 shadow-lg">
         <CardContent className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">💡 사용법 및 최적화</h3>
+          <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center gap-2">
+            <span className="text-xl">💡</span>
+            Legacy 사용법 및 최적화
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-semibold text-blue-600 mb-3">🖱️ 마우스 동작</h4>
-              <ul className="space-y-2 text-sm text-gray-700">
+            <div className="p-4 bg-white/50 rounded-xl border border-purple-200">
+              <h4 className="font-semibold text-purple-700 mb-3 flex items-center gap-2">
+                <span>🖱️</span>
+                마우스 동작
+              </h4>
+              <ul className="space-y-2 text-sm text-purple-600">
                 <li>• <strong>클릭</strong>: 좌클릭으로 기본 클릭 이벤트</li>
                 <li>• <strong>더블클릭</strong>: 빠르게 두 번 클릭</li>
                 <li>• <strong>우클릭</strong>: 컨텍스트 메뉴 방지 및 이벤트 기록</li>
@@ -592,14 +642,32 @@ function MouseEventsDemo() {
               </ul>
             </div>
 
-            <div>
-              <h4 className="font-semibold text-green-600 mb-3">⚡ 성능 최적화</h4>
-              <ul className="space-y-2 text-sm text-gray-700">
+            <div className="p-4 bg-white/50 rounded-xl border border-cyan-200">
+              <h4 className="font-semibold text-cyan-700 mb-3 flex items-center gap-2">
+                <span>⚡</span>
+                성능 최적화
+              </h4>
+              <ul className="space-y-2 text-sm text-cyan-600">
                 <li>• <strong>쓰로틀링</strong>: 마우스 이동 이벤트 60fps 제한</li>
                 <li>• <strong>렌더링 격리</strong>: 컴포넌트 분리로 리렌더링 최소화</li>
                 <li>• <strong>가상 스크롤링</strong>: 이벤트 로그 최대 50개 렌더링</li>
                 <li>• <strong>메모화</strong>: 비용 높은 계산 최적화</li>
               </ul>
+            </div>
+          </div>
+          
+          {/* Legacy 구조 설명 추가 */}
+          <div className="mt-6 p-4 bg-gradient-to-r from-pink-100 to-purple-100 rounded-xl border border-pink-200">
+            <h4 className="font-semibold text-pink-800 mb-2 flex items-center gap-2">
+              <span>🏛️</span>
+              Legacy Implementation Features
+            </h4>
+            <div className="text-sm text-pink-700 space-y-1">
+              <p>✨ <strong>Traditional Action Context:</strong> Basic createActionContext implementation</p>
+              <p>🔄 <strong>useState Management:</strong> Component-level state with React hooks</p>
+              <p>📦 <strong>Single Provider:</strong> MouseActionProvider for action handling</p>
+              <p>🎯 <strong>Direct Event Handlers:</strong> Straightforward event handling patterns</p>
+              <p>⚡ <strong>Performance Throttling:</strong> Manual throttling implementation</p>
             </div>
           </div>
         </CardContent>
@@ -828,13 +896,14 @@ function CanvasDrawingDemo() {
     return (
       <div className="space-y-6">
         {/* Canvas Drawing Area */}
-        <Card>
+        <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200 shadow-lg">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
-                🎨 Canvas Drawing with createRefContext
+              <h3 className="text-lg font-semibold text-purple-900 flex items-center gap-2">
+                <span className="text-xl">🎨</span>
+                Canvas Drawing with createRefContext
               </h3>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-2 text-sm text-purple-700 bg-white/70 px-3 py-1 rounded-full">
                 <span className={`inline-block w-2 h-2 rounded-full ${
                   drawingState.canvasReady ? 'bg-green-500' : 'bg-red-500'
                 }`}></span>
@@ -861,9 +930,12 @@ function CanvasDrawingDemo() {
         </Card>
 
         {/* Drawing Controls */}
-        <Card>
+        <Card className="bg-gradient-to-br from-pink-50 to-cyan-50 border-pink-200 shadow-lg">
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">🎨 Drawing Controls</h3>
+            <h3 className="text-lg font-semibold text-pink-900 mb-4 flex items-center gap-2">
+              <span className="text-xl">🎨</span>
+              Drawing Controls
+            </h3>
             
             <div ref={(el) => el && toolbar.setRef(el)} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
               <div>
@@ -918,9 +990,12 @@ function CanvasDrawingDemo() {
         {/* Drawing History & Status */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Drawing History */}
-          <Card>
+          <Card className="bg-gradient-to-br from-cyan-50 to-indigo-50 border-cyan-200 shadow-lg">
             <CardContent className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">📈 Drawing History</h3>
+              <h3 className="text-lg font-semibold text-cyan-900 mb-4 flex items-center gap-2">
+                <span className="text-xl">📈</span>
+                Drawing History
+              </h3>
               
               <div className="max-h-64 overflow-y-auto">
                 {drawingHistory.length === 0 ? (
@@ -956,9 +1031,12 @@ function CanvasDrawingDemo() {
           </Card>
 
           {/* Ref Mount Status */}
-          <Card>
+          <Card className="bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-200 shadow-lg">
             <CardContent className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">🔍 Ref Mount Status</h3>
+              <h3 className="text-lg font-semibold text-indigo-900 mb-4 flex items-center gap-2">
+                <span className="text-xl">🔍</span>
+                Ref Mount Status
+              </h3>
               
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
@@ -1012,14 +1090,20 @@ function CanvasDrawingDemo() {
         </div>
 
         {/* Usage Guide */}
-        <Card>
+        <Card className="bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 border-purple-200 shadow-lg">
           <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">📚 createRefContext Usage Guide</h3>
+            <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center gap-2">
+              <span className="text-xl">📚</span>
+              createRefContext Usage Guide
+            </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="font-semibold text-blue-600 mb-3">🎨 Drawing Features</h4>
-                <ul className="space-y-2 text-sm text-gray-700">
+              <div className="p-4 bg-white/50 rounded-xl border border-purple-200">
+                <h4 className="font-semibold text-purple-700 mb-3 flex items-center gap-2">
+                  <span>🎨</span>
+                  Drawing Features
+                </h4>
+                <ul className="space-y-2 text-sm text-purple-600">
                   <li>• <strong>Mouse Drawing</strong>: Click and drag to draw</li>
                   <li>• <strong>Color Selection</strong>: Pick any color from the color picker</li>
                   <li>• <strong>Brush Size</strong>: Adjust brush size from 1-20px</li>
@@ -1028,9 +1112,12 @@ function CanvasDrawingDemo() {
                 </ul>
               </div>
 
-              <div>
-                <h4 className="font-semibold text-green-600 mb-3">⚙️ createRefContext Benefits</h4>
-                <ul className="space-y-2 text-sm text-gray-700">
+              <div className="p-4 bg-white/50 rounded-xl border border-cyan-200">
+                <h4 className="font-semibold text-cyan-700 mb-3 flex items-center gap-2">
+                  <span>⚙️</span>
+                  createRefContext Benefits
+                </h4>
+                <ul className="space-y-2 text-sm text-cyan-600">
                   <li>• <strong>Type-Safe Refs</strong>: Full TypeScript support</li>
                   <li>• <strong>Mount Management</strong>: Wait for ref availability</li>
                   <li>• <strong>withTarget</strong>: Safe target operations</li>
@@ -1040,14 +1127,17 @@ function CanvasDrawingDemo() {
               </div>
             </div>
             
-            <div className="mt-6 p-4 bg-gray-100 rounded">
-              <h4 className="font-semibold text-gray-800 mb-2">Key createRefContext Patterns Used:</h4>
-              <div className="text-sm text-gray-600 space-y-1">
-                <div>• <code className="bg-white px-2 py-1 rounded">useRefHandler()</code> - Individual ref management</div>
-                <div>• <code className="bg-white px-2 py-1 rounded">waitForRefs()</code> - Wait for multiple refs to mount</div>
-                <div>• <code className="bg-white px-2 py-1 rounded">withTarget()</code> - Safe operations on ref targets</div>
-                <div>• <code className="bg-white px-2 py-1 rounded">getAllRefs()</code> - Get all currently mounted refs</div>
-                <div>• <code className="bg-white px-2 py-1 rounded">isMounted</code> - Check individual ref mount status</div>
+            <div className="mt-6 p-4 bg-gradient-to-r from-pink-100 to-purple-100 rounded-xl border border-pink-200">
+              <h4 className="font-semibold text-pink-800 mb-2 flex items-center gap-2">
+                <span>🔑</span>
+                Key createRefContext Patterns Used
+              </h4>
+              <div className="text-sm text-pink-700 space-y-1">
+                <div>• <code className="bg-white/70 px-2 py-1 rounded text-purple-700">useRefHandler()</code> - Individual ref management</div>
+                <div>• <code className="bg-white/70 px-2 py-1 rounded text-purple-700">waitForRefs()</code> - Wait for multiple refs to mount</div>
+                <div>• <code className="bg-white/70 px-2 py-1 rounded text-purple-700">withTarget()</code> - Safe operations on ref targets</div>
+                <div>• <code className="bg-white/70 px-2 py-1 rounded text-purple-700">getAllRefs()</code> - Get all currently mounted refs</div>
+                <div>• <code className="bg-white/70 px-2 py-1 rounded text-purple-700">isMounted</code> - Check individual ref mount status</div>
               </div>
             </div>
           </CardContent>

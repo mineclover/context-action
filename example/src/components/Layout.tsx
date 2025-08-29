@@ -103,8 +103,6 @@ function Layout({
     { path: '/performance', label: '⚡ Performance', category: 'performance', isIndex: true, description: 'Performance testing and optimization' },
     { path: '/performance/memoization', label: '🧠 Memoization Overview', category: 'performance', description: 'Memoization performance comparison' },
     { path: '/performance/memoization/demo', label: '🎯 Memoization Demo', category: 'performance', description: 'Real-time memoization comparison demo' },
-    { path: '/performance/memoization/analysis', label: '📊 Analysis Report', category: 'performance', description: 'Performance analysis and reports' },
-    { path: '/performance/memoization/guidelines', label: '📚 Guidelines', category: 'performance', description: 'Best practices and guidelines' },
     
     // === Utilities & Tools (유틸리티) ===
     { path: '/logger/demo', label: 'Logger System', category: 'utilities' },
