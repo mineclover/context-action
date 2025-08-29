@@ -49,18 +49,47 @@ const {
   isLoading: false
 });
 
+// Dedicated store for execution visualization
+const {
+  Provider: VisualizationStoreProvider,
+  useStore: useVisualizationStore
+} = createStoreContext('ExecutionVisualization', {
+  executedHandlers: [] as string[],
+  isRunning: false,
+  totalExecuted: 0,
+  totalDuration: 0,
+  currentDemo: null as string | null
+});
+
+// Handler definitions (sorted by priority for consistent display)
+const HANDLERS = [
+  { id: 'security-check', name: 'Security', icon: '🔐', priority: 100 },
+  { id: 'analytics', name: 'Analytics', icon: '📊', priority: 80 },
+  { id: 'database-save', name: 'Database', icon: '💾', priority: 60 },
+  { id: 'notification', name: 'Notification', icon: '🔔', priority: 40 },
+  { id: 'audit-log', name: 'Audit', icon: '📝', priority: 20 }
+].sort((a, b) => b.priority - a.priority); // Sort by priority (highest first)
+
 // Store-Based Execution Flow Visualization
 function ExecutionFlowVisualization() {
-  const executionStateStore = useDemoStore('executionState');
-  const executionState = useStoreValue(executionStateStore);
+  const executedHandlersStore = useVisualizationStore('executedHandlers');
+  const isRunningStore = useVisualizationStore('isRunning');
+  const totalExecutedStore = useVisualizationStore('totalExecuted');
+  const totalDurationStore = useVisualizationStore('totalDuration');
+  
+  const executedHandlers = useStoreValue(executedHandlersStore);
+  const isRunning = useStoreValue(isRunningStore);
+  const totalExecuted = useStoreValue(totalExecutedStore);
+  const totalDuration = useStoreValue(totalDurationStore);
 
-  const handlers = [
-    { id: 'security-check', name: 'Security', icon: '🔐', priority: 100 },
-    { id: 'analytics', name: 'Analytics', icon: '📊', priority: 80 },
-    { id: 'database-save', name: 'Database', icon: '💾', priority: 60 },
-    { id: 'notification', name: 'Notification', icon: '🔔', priority: 40 },
-    { id: 'audit-log', name: 'Audit', icon: '📝', priority: 20 }
-  ];
+  const handlers = HANDLERS;
+
+  // 디버깅을 위한 로그
+  console.log('🔍 [ExecutionFlowVisualization] Current state:', {
+    executedHandlers,
+    totalExecuted,
+    handlersLength: handlers.length
+  });
 
   return (
     <div className="bg-white rounded-xl border shadow-lg p-4 mb-6 max-w-[600px] mx-auto">
@@ -74,14 +103,14 @@ function ExecutionFlowVisualization() {
         {/* Stats */}
         <div className="flex justify-center space-x-3 mt-2">
           <div className="bg-green-100 text-green-700 px-3 py-1 rounded font-semibold text-sm">
-            ✅ {executionState.handlersExecuted}
+            ✅ {totalExecuted}
           </div>
           <div className="bg-gray-100 text-gray-600 px-3 py-1 rounded font-semibold text-sm">
-            ⏸️ {handlers.length - executionState.handlersExecuted}  
+            ⏸️ {handlers.length - totalExecuted}  
           </div>
-          {executionState.totalDuration > 0 && (
+          {totalDuration > 0 && (
             <div className="bg-blue-100 text-blue-700 px-3 py-1 rounded font-semibold text-sm">
-              ⚡ {executionState.totalDuration}ms
+              ⚡ {totalDuration}ms
             </div>
           )}
         </div>
@@ -90,8 +119,8 @@ function ExecutionFlowVisualization() {
       {/* Handler Flow */}
       <div className="flex justify-center items-center space-x-2 overflow-x-auto">
         {handlers.map((handler, index) => {
-          const isExecuted = executionState.executedHandlers.includes(handler.id);
-          const isNext = index === executionState.handlersExecuted && executionState.isRunning;
+          const isExecuted = executedHandlers.includes(handler.id);
+          const isNext = index === totalExecuted && isRunning;
           
           return (
             <Fragment key={handler.id}>
@@ -121,7 +150,11 @@ function ExecutionFlowVisualization() {
               {index < handlers.length - 1 && (
                 <div className={`
                   transition-all duration-300 text-2xl
-                  ${isExecuted ? 'text-green-500 animate-pulse' : 'text-gray-300'}
+                  ${isExecuted && executedHandlers.includes(handlers[index + 1].id) 
+                    ? 'text-green-500 animate-pulse' 
+                    : isExecuted 
+                      ? 'text-yellow-500' 
+                      : 'text-gray-300'}
                 `}>
                   →
                 </div>
@@ -189,16 +222,17 @@ function FilteringDemo() {
   const executionStateStore = useDemoStore('executionState');
   const isLoadingStore = useDemoStore('isLoading');
   
+  // Visualization stores
+  const executedHandlersStore = useVisualizationStore('executedHandlers');
+  const isRunningStore = useVisualizationStore('isRunning');
+  const totalExecutedStore = useVisualizationStore('totalExecuted');
+  const totalDurationStore = useVisualizationStore('totalDuration');
+  const currentDemoStore = useVisualizationStore('currentDemo');
+  
   const results = useStoreValue(resultsStore);
   const isLoading = useStoreValue(isLoadingStore);
 
-  const handlers = [
-    { id: 'security-check', name: 'Security', icon: '🔐', priority: 100 },
-    { id: 'analytics', name: 'Analytics', icon: '📊', priority: 80 },
-    { id: 'database-save', name: 'Database', icon: '💾', priority: 60 },
-    { id: 'notification', name: 'Notification', icon: '🔔', priority: 40 },
-    { id: 'audit-log', name: 'Audit', icon: '📝', priority: 20 }
-  ];
+  const handlers = HANDLERS;
 
   const runDemo = useCallback(async (demoKey: string, filterOptions?: any) => {
     // Clear all previous results and reset state
@@ -210,6 +244,14 @@ function FilteringDemo() {
       executedHandlers: [],
       currentDemo: demoKey
     });
+    
+    // Reset visualization state
+    executedHandlersStore.setValue([]);
+    isRunningStore.setValue(false);
+    totalExecutedStore.setValue(0);
+    totalDurationStore.setValue(0);
+    currentDemoStore.setValue(demoKey);
+    
     isLoadingStore.setValue(true);
 
     try {
@@ -222,6 +264,7 @@ function FilteringDemo() {
       );
 
       console.log('✅ Demo Result:', result);
+      console.log('🔍 [runDemo] Full result structure:', JSON.stringify(result, null, 2));
       
       const executionResult: ExecutionResult = {
         execution: result.execution,
@@ -235,7 +278,17 @@ function FilteringDemo() {
 
       // Update execution state based on result
       const executed = result.execution?.handlersExecuted || 0;
-      const executedHandlers = handlers.slice(0, executed).map(h => h.id);
+      // Get actually executed handler IDs from the result
+      const executedHandlers = result.handlers 
+        ? result.handlers.filter(h => h.executed).map(h => h.id)
+        : [];
+
+      console.log('✅ [runDemo] ActionRegister fix successful! Handler tracking working:', {
+        executed,
+        executedHandlers,
+        handlersData: result.handlers?.map(h => ({ id: h.id, executed: h.executed })),
+        resultSuccess: result.success
+      });
 
       executionStateStore.setValue({
         handlersExecuted: executed,
@@ -244,6 +297,12 @@ function FilteringDemo() {
         executedHandlers,
         currentDemo: demoKey
       });
+      
+      // Update visualization state with the same data
+      executedHandlersStore.setValue(executedHandlers);
+      isRunningStore.setValue(false);
+      totalExecutedStore.setValue(executed);
+      totalDurationStore.setValue(result.execution?.duration || 0);
 
     } catch (error) {
       console.error('❌ Demo Error:', error);
@@ -262,10 +321,27 @@ function FilteringDemo() {
         executedHandlers: [],
         currentDemo: demoKey
       });
+      
+      // Reset visualization state on error
+      executedHandlersStore.setValue([]);
+      isRunningStore.setValue(false);
+      totalExecutedStore.setValue(0);
+      totalDurationStore.setValue(0);
     } finally {
       isLoadingStore.setValue(false);
     }
-  }, [dispatchWithResult, resultsStore, executionStateStore, isLoadingStore, handlers]);
+  }, [
+    dispatchWithResult, 
+    resultsStore, 
+    executionStateStore, 
+    isLoadingStore, 
+    executedHandlersStore,
+    isRunningStore,
+    totalExecutedStore,
+    totalDurationStore,
+    currentDemoStore,
+    handlers
+  ]);
 
   const demos = [
     // Basic filtering
@@ -544,6 +620,7 @@ export default function NewAdvancedFilteringPage() {
   return (
     <ProcessActionProvider>
       <DemoStoreProvider>
+        <VisualizationStoreProvider>
         <HandlerRegistration />
         <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
@@ -561,37 +638,42 @@ export default function NewAdvancedFilteringPage() {
               Registered Handlers (Priority Order)
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-              {[
-                { id: 'security-check', name: 'Security', icon: '🔐', priority: 100, blocking: true, color: 'red' },
-                { id: 'analytics', name: 'Analytics', icon: '📊', priority: 80, blocking: false, color: 'blue' },
-                { id: 'database-save', name: 'Database', icon: '💾', priority: 60, blocking: true, color: 'green' },
-                { id: 'notification', name: 'Notification', icon: '🔔', priority: 40, blocking: false, color: 'yellow' },
-                { id: 'audit-log', name: 'Audit', icon: '📝', priority: 20, blocking: false, color: 'purple' }
-              ].map(handler => (
+              {HANDLERS.map(handler => {
+                const handlerConfig = {
+                  'security-check': { blocking: true, color: 'red' },
+                  'analytics': { blocking: false, color: 'blue' },
+                  'database-save': { blocking: true, color: 'green' },
+                  'notification': { blocking: false, color: 'yellow' },
+                  'audit-log': { blocking: false, color: 'purple' }
+                }[handler.id] || { blocking: false, color: 'gray' };
+                
+                return (
                 <div key={handler.id} className={`bg-white border-2 rounded-lg p-3 text-center ${
-                  handler.color === 'red' ? 'border-red-200' :
-                  handler.color === 'blue' ? 'border-blue-200' :
-                  handler.color === 'green' ? 'border-green-200' :
-                  handler.color === 'yellow' ? 'border-yellow-200' :
+                  handlerConfig.color === 'red' ? 'border-red-200' :
+                  handlerConfig.color === 'blue' ? 'border-blue-200' :
+                  handlerConfig.color === 'green' ? 'border-green-200' :
+                  handlerConfig.color === 'yellow' ? 'border-yellow-200' :
                   'border-purple-200'
                 }`}>
                   <div className="text-2xl mb-1">{handler.icon}</div>
                   <div className="font-semibold text-sm text-gray-900">{handler.name}</div>
                   <div className="text-xs text-gray-500">P{handler.priority}</div>
                   <div className={`text-xs px-2 py-1 rounded mt-1 ${
-                    handler.blocking 
+                    handlerConfig.blocking 
                       ? 'bg-red-100 text-red-700' 
                       : 'bg-green-100 text-green-700'
                   }`}>
-                    {handler.blocking ? '⏳ Blocking' : '⚡ Non-blocking'}
+                    {handlerConfig.blocking ? '⏳ Blocking' : '⚡ Non-blocking'}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
         <FilteringDemo />
         </div>
+        </VisualizationStoreProvider>
       </DemoStoreProvider>
     </ProcessActionProvider>
   );

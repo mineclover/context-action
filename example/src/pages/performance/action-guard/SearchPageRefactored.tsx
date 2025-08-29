@@ -108,7 +108,9 @@ function ArchitectureSection() {
     <section className="bg-white rounded-2xl shadow-xl p-8">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl">
-          <Search className="w-8 h-8 text-white" />
+          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
         </div>
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Advanced Search System</h1>
@@ -117,7 +119,7 @@ function ArchitectureSection() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
-        <div className="lg:col-Search-2 space-y-6">
+        <div className="lg:col-span-2 space-y-6">
           <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
             <h3 className="text-xl font-semibold text-blue-900 mb-4">🎯 System Architecture</h3>
             <div className="space-y-4 text-blue-800">
@@ -147,30 +149,42 @@ function ArchitectureSection() {
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2 text-green-800">
                 <div className="flex items-center gap-2">
-                  <Search className="w-4 h-4" />
-                  <Search>실시간 검색 with debouncing</Search>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <span>실시간 검색 with debouncing</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Search className="w-4 h-4" />
-                  <Search>다중 필터링 시스템</Search>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <span>다중 필터링 시스템</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Search className="w-4 h-4" />
-                  <Search>검색 기록 관리</Search>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <span>검색 기록 관리</span>
                 </div>
               </div>
               <div className="space-y-2 text-green-800">
                 <div className="flex items-center gap-2">
-                  <Search className="w-4 h-4" />
-                  <Search>고급 메트릭스 추적</Search>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <span>고급 메트릭스 추적</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Search className="w-4 h-4" />
-                  <Search>Abort 가능한 검색</Search>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <span>Abort 가능한 검색</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Search className="w-4 h-4" />
-                  <Search>관련도 기반 정렬</Search>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <span>관련도 기반 정렬</span>
                 </div>
               </div>
             </div>
@@ -183,21 +197,21 @@ function ArchitectureSection() {
             <div className="space-y-3 text-sm text-purple-800">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-purple-400 rounded-full" />
-                <Search>User Input</Search>
-                <Search className="w-4 h-4" />
-                <Search>Action</Search>
+                <span>User Input</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                <span>Action</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-pink-400 rounded-full" />
-                <Search>Handler</Search>
-                <Search className="w-4 h-4" />
-                <Search>Search Logic</Search>
+                <span>Handler</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                <span>Search Logic</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-indigo-400 rounded-full" />
-                <Search>Store Update</Search>
-                <Search className="w-4 h-4" />
-                <Search>UI Refresh</Search>
+                <span>Store Update</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                <span>UI Refresh</span>
               </div>
             </div>
           </div>
@@ -226,7 +240,7 @@ function DemoSection() {
         <h2 className="text-2xl font-bold text-gray-900">🎯 Interactive Search Demo</h2>
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          <Search>Live Demo Active</Search>
+          <span>Live Demo Active</span>
         </div>
       </div>
       
@@ -384,7 +398,7 @@ function SearchDemoInterface() {
       <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl">
         <div className="flex gap-4 mb-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             <input
               type="text"
               value={query}
@@ -394,7 +408,7 @@ function SearchDemoInterface() {
               disabled={isSearching}
             />
             {isSearching && (
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-500 w-5 h-5 animate-spin" />
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-500 w-5 h-5 animate-spin">⏳</div>
             )}
           </div>
           <button
@@ -417,7 +431,7 @@ function SearchDemoInterface() {
                   onClick={() => handleSearch(historyQuery)}
                   className="px-3 py-1 bg-white text-gray-700 rounded-full text-sm hover:bg-gray-50 transition-colors border"
                 >
-                  <Search className="w-3 h-3 inline mr-1" />
+                  <span className="w-3 h-3 inline mr-1" />
                   {historyQuery}
                 </button>
               ))}
@@ -449,10 +463,10 @@ function SearchDemoInterface() {
       {/* Searchs and Results */}
       <div className="grid lg:grid-cols-4 gap-6">
         {/* Searchs */}
-        <div className="lg:col-Search-1">
+        <div className="lg:col-span-1">
           <div className="bg-gray-50 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Search className="w-5 h-5" />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
               필터
             </h3>
             
@@ -471,7 +485,7 @@ function SearchDemoInterface() {
                 <div className="space-y-1">
                   {Object.entries(filters).map(([key, value]) => (
                     <div key={key} className="flex justify-between items-center p-2 bg-blue-50 rounded text-sm">
-                      <Search><strong>{key}</strong>: {value}</Search>
+                      <span><strong>{key}</strong>: {value}</span>
                       <button
                         onClick={() => dispatch('removeSearch', { key })}
                         className="text-red-500 hover:text-red-700 text-xs"
@@ -510,7 +524,7 @@ function SearchDemoInterface() {
                     onClick={() => dispatch('addSearch', { key: 'tag', value: tag })}
                     className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs hover:bg-gray-200 transition-colors"
                   >
-                    <Search className="w-3 h-3 inline mr-1" />
+                    <span className="w-3 h-3 inline mr-1" />
                     {tag}
                   </button>
                 ))}
@@ -520,22 +534,22 @@ function SearchDemoInterface() {
         </div>
 
         {/* Results */}
-        <div className="lg:col-Search-3">
+        <div className="lg:col-span-3">
           <div className="bg-gray-50 rounded-lg p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <Search className="w-5 h-5" />
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 검색 결과
               </h3>
-              <Search className="text-sm text-gray-600">
+              <span className="text-sm text-gray-600">
                 {results.length}개 결과 ({metrics?.averageSearchTime?.toFixed(0)}ms 평균)
-              </Search>
+              </span>
             </div>
             
             <div className="space-y-4">
               {results.length === 0 ? (
                 <div className="text-center text-gray-400 py-12">
-                  <Search className="w-12 h-12 mx-auto mb-4" />
+                  <span className="w-12 h-12 mx-auto mb-4" />
                   <div className="text-lg mb-2">검색 결과가 없습니다</div>
                   <div className="text-sm text-gray-500">
                     다른 키워드로 검색해보거나 필터를 조정해보세요
@@ -557,37 +571,37 @@ function SearchDemoInterface() {
                         {item.title}
                       </h4>
                       <div className="flex items-center gap-2">
-                        <Search className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                        <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
                           {item.category}
-                        </Search>
+                        </span>
                         {item.relevance && (
-                          <Search className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
+                          <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">
                             {Math.round(item.relevance * 100)}% 관련도
-                          </Search>
+                          </span>
                         )}
                       </div>
                     </div>
                     
                     <div className="flex items-center gap-4 mb-3 text-sm text-gray-600">
-                      <Search className="flex items-center gap-1">
-                        <Search className="w-4 h-4" />
+                      <span className="flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                         {item.author}
-                      </Search>
-                      <Search className="flex items-center gap-1">
-                        <Search className="w-4 h-4" />
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                         {item.date}
-                      </Search>
-                      <Search className="flex items-center gap-1">
-                        <Search className="w-4 h-4" />
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                         {item.popularity}% 인기도
-                      </Search>
+                      </span>
                     </div>
                     
                     <div className="flex flex-wrap gap-1">
                       {item.tags.map(tag => (
-                        <Search key={tag} className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
+                        <span key={tag} className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
                           #{tag}
-                        </Search>
+                        </span>
                       ))}
                     </div>
                   </div>
@@ -603,7 +617,7 @@ function SearchDemoInterface() {
         <div className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
           <div className="flex justify-between items-start mb-4">
             <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-              <Search className="w-6 h-6" />
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
               선택된 항목
             </h3>
             <button
@@ -621,34 +635,34 @@ function SearchDemoInterface() {
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 text-sm">
               <div>
-                <Search className="font-medium text-gray-600">카테고리:</Search>
+                <span className="font-medium text-gray-600">카테고리:</span>
                 <div className="mt-1">
-                  <Search className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
+                  <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
                     {selectedResult.category}
-                  </Search>
+                  </span>
                 </div>
               </div>
               <div>
-                <Search className="font-medium text-gray-600">저자:</Search>
+                <span className="font-medium text-gray-600">저자:</span>
                 <div className="mt-1 text-gray-900">{selectedResult.author}</div>
               </div>
               <div>
-                <Search className="font-medium text-gray-600">날짜:</Search>
+                <span className="font-medium text-gray-600">날짜:</span>
                 <div className="mt-1 text-gray-900">{selectedResult.date}</div>
               </div>
               <div>
-                <Search className="font-medium text-gray-600">인기도:</Search>
+                <span className="font-medium text-gray-600">인기도:</span>
                 <div className="mt-1 text-gray-900">{selectedResult.popularity}%</div>
               </div>
             </div>
             
             <div>
-              <Search className="font-medium text-gray-600 block mb-2">태그:</Search>
+              <span className="font-medium text-gray-600 block mb-2">태그:</span>
               <div className="flex flex-wrap gap-2">
                 {selectedResult.tags.map((tag: string) => (
-                  <Search key={tag} className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">
+                  <span key={tag} className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">
                     #{tag}
-                  </Search>
+                  </span>
                 ))}
               </div>
             </div>
@@ -673,7 +687,7 @@ function StatusSection() {
     <section className="bg-white rounded-2xl shadow-xl p-8">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-3 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl">
-          <Search className="w-8 h-8 text-white" />
+          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
         </div>
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Search Analytics & Metrics</h2>
@@ -682,22 +696,22 @@ function StatusSection() {
       </div>
 
       <div className="grid lg:grid-cols-4 gap-6">
-        <div className="lg:col-Search-3 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Performance Metrics */}
           <div className="p-6 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl">
             <h3 className="text-lg font-semibold text-blue-900 mb-4">🚀 성능 메트릭스</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <Search className="text-blue-700">총 검색 수행</Search>
-                <Search className="font-bold text-blue-900">{metrics?.totalSearches || 0}</Search>
+                <span className="text-blue-700">총 검색 수행</span>
+                <span className="font-bold text-blue-900">{metrics?.totalSearches || 0}</span>
               </div>
               <div className="flex justify-between items-center">
-                <Search className="text-blue-700">평균 응답시간</Search>
-                <Search className="font-bold text-blue-900">{metrics?.averageSearchTime?.toFixed(0) || 0}ms</Search>
+                <span className="text-blue-700">평균 응답시간</span>
+                <span className="font-bold text-blue-900">{metrics?.averageSearchTime?.toFixed(0) || 0}ms</span>
               </div>
               <div className="flex justify-between items-center">
-                <Search className="text-blue-700">활성 필터 수</Search>
-                <Search className="font-bold text-blue-900">{Object.keys(filters).length}</Search>
+                <span className="text-blue-700">활성 필터 수</span>
+                <span className="font-bold text-blue-900">{Object.keys(filters).length}</span>
               </div>
             </div>
           </div>
@@ -707,18 +721,18 @@ function StatusSection() {
             <h3 className="text-lg font-semibold text-green-900 mb-4">📊 검색 결과</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <Search className="text-green-700">현재 결과 수</Search>
-                <Search className="font-bold text-green-900">{results.length}</Search>
+                <span className="text-green-700">현재 결과 수</span>
+                <span className="font-bold text-green-900">{results.length}</span>
               </div>
               <div className="flex justify-between items-center">
-                <Search className="text-green-700">전체 데이터 수</Search>
-                <Search className="font-bold text-green-900">{sampleData.length}</Search>
+                <span className="text-green-700">전체 데이터 수</span>
+                <span className="font-bold text-green-900">{sampleData.length}</span>
               </div>
               <div className="flex justify-between items-center">
-                <Search className="text-green-700">검색 적중률</Search>
-                <Search className="font-bold text-green-900">
+                <span className="text-green-700">검색 적중률</span>
+                <span className="font-bold text-green-900">
                   {sampleData.length > 0 ? Math.round((results.length / sampleData.length) * 100) : 0}%
-                </Search>
+                </span>
               </div>
             </div>
           </div>
@@ -729,8 +743,8 @@ function StatusSection() {
             <div className="space-y-2">
               {Object.entries(metrics?.searchHits || {}).slice(0, 5).map(([query, count], index) => (
                 <div key={query} className="flex justify-between items-center text-sm">
-                  <Search className="text-purple-700 truncate">{query || '(빈 검색어)'}</Search>
-                  <Search className="font-bold text-purple-900 ml-2">{count}</Search>
+                  <span className="text-purple-700 truncate">{query || '(빈 검색어)'}</span>
+                  <span className="font-bold text-purple-900 ml-2">{count}</span>
                 </div>
               ))}
               {Object.keys(metrics?.searchHits || {}).length === 0 && (
@@ -746,15 +760,15 @@ function StatusSection() {
             <div className="space-y-3 text-sm">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
-                <Search className="text-orange-700">시스템 정상 동작</Search>
+                <span className="text-orange-700">시스템 정상 동작</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-blue-500 rounded-full" />
-                <Search className="text-orange-700">검색 기능 활성</Search>
+                <span className="text-orange-700">검색 기능 활성</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-purple-500 rounded-full" />
-                <Search className="text-orange-700">필터링 활성</Search>
+                <span className="text-orange-700">필터링 활성</span>
               </div>
             </div>
           </div>
@@ -764,8 +778,8 @@ function StatusSection() {
             <div className="space-y-3 text-sm">
               <div>
                 <div className="flex justify-between mb-1">
-                  <Search className="text-gray-700">검색 속도</Search>
-                  <Search className="text-gray-900 font-medium">95%</Search>
+                  <span className="text-gray-700">검색 속도</span>
+                  <span className="text-gray-900 font-medium">95%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div className="bg-green-500 h-2 rounded-full" style={{ width: '95%' }} />
@@ -773,8 +787,8 @@ function StatusSection() {
               </div>
               <div>
                 <div className="flex justify-between mb-1">
-                  <Search className="text-gray-700">결과 정확도</Search>
-                  <Search className="text-gray-900 font-medium">98%</Search>
+                  <span className="text-gray-700">결과 정확도</span>
+                  <span className="text-gray-900 font-medium">98%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div className="bg-blue-500 h-2 rounded-full" style={{ width: '98%' }} />
@@ -794,7 +808,7 @@ function CodeSection() {
     <section className="bg-white rounded-2xl shadow-xl p-8">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-3 bg-gradient-to-r from-purple-500 to-violet-600 rounded-xl">
-          <Search className="w-8 h-8 text-white" />
+          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
         </div>
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Implementation Details</h2>
@@ -919,23 +933,23 @@ function CodeSection() {
             <ul className="space-y-2 text-blue-800 text-sm">
               <li className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                <Search>AbortController를 통한 검색 취소 지원</Search>
+                <span>AbortController를 통한 검색 취소 지원</span>
               </li>
               <li className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-indigo-500 rounded-full" />
-                <Search>실시간 메트릭스 추적 및 성능 모니터링</Search>
+                <span>실시간 메트릭스 추적 및 성능 모니터링</span>
               </li>
               <li className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-purple-500 rounded-full" />
-                <Search>관련도 기반 결과 정렬</Search>
+                <span>관련도 기반 결과 정렬</span>
               </li>
               <li className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-pink-500 rounded-full" />
-                <Search>검색 기록 관리 및 재검색</Search>
+                <span>검색 기록 관리 및 재검색</span>
               </li>
               <li className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-red-500 rounded-full" />
-                <Search>다중 필터링 시스템</Search>
+                <span>다중 필터링 시스템</span>
               </li>
             </ul>
           </div>

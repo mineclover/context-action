@@ -25,9 +25,9 @@ const useAPIDispatch = APIContext.useActionDispatchWithResult;     // APIActions
 
 ```typescript
 // 설정 패턴의 EventActions 사용
-const dispatch = useEventDispatch();
+const { dispatchWithResult } = useEventDispatch();
 
-const result = await dispatch.dispatchWithResult('analytics', {
+const result = await dispatchWithResult('analytics', {
   event: 'user-interaction',
   data: { timestamp: Date.now() }
 });
@@ -45,9 +45,9 @@ if (result.success) {
 
 ```typescript
 // 설정 패턴의 UserActions 사용  
-const dispatch = useUserDispatch();
+const { dispatchWithResult } = useUserDispatch();
 
-const result = await dispatch.dispatchWithResult('updateProfile', {
+const result = await dispatchWithResult('updateProfile', {
   name: 'John Doe',
   email: 'john@example.com'
 }, {
@@ -66,9 +66,9 @@ console.log('병합된 결과:', result.results);
 
 ```typescript
 // 설정 패턴의 APIActions 사용
-const dispatch = useAPIDispatch();
+const { dispatchWithResult } = useAPIDispatch();
 
-const result = await dispatch.dispatchWithResult('fetchData', {
+const result = await dispatchWithResult('fetchData', {
   endpoint: '/api/users',
   params: { limit: 10 }
 }, {
@@ -89,9 +89,9 @@ result.results.forEach((handlerResult, index) => {
 
 ```typescript
 // 복잡한 분석 처리를 위한 EventActions 사용
-const dispatch = useEventDispatch();
+const { dispatchWithResult } = useEventDispatch();
 
-const result = await dispatch.dispatchWithResult('analytics', {
+const result = await dispatchWithResult('analytics', {
   event: 'complex-operation',
   data: { userId: 123, feature: 'dashboard' }
 }, {
@@ -119,9 +119,9 @@ const result = await dispatch.dispatchWithResult('analytics', {
 
 ```typescript
 // 추적을 위한 EventActions 사용
-const dispatch = useEventDispatch();
+const { dispatchWithResult } = useEventDispatch();
 
-const result = await dispatch.dispatchWithResult('trackInteraction', {
+const result = await dispatchWithResult('trackInteraction', {
   type: 'button_click',
   metadata: { component: 'header', section: 'navigation' }
 });
@@ -138,9 +138,9 @@ console.log('실행 메타데이터:', {
 
 ```typescript
 // 자세한 분석을 위한 EventActions 사용
-const dispatch = useEventDispatch();
+const { dispatchWithResult } = useEventDispatch();
 
-const result = await dispatch.dispatchWithResult('analytics', {
+const result = await dispatchWithResult('analytics', {
   event: 'detailed-operation',
   data: { timestamp: Date.now(), userId: 'user123' }
 }, {
@@ -166,9 +166,9 @@ result.results.forEach((handlerResult, index) => {
 
 ```typescript
 // 성능 모니터링을 위한 APIActions 사용
-const dispatch = useAPIDispatch();
+const { dispatchWithResult } = useAPIDispatch();
 
-const result = await dispatch.dispatchWithResult('fetchData', {
+const result = await dispatchWithResult('fetchData', {
   endpoint: '/api/performance-test',
   params: { size: 'large' }
 });
@@ -186,11 +186,11 @@ if (result.execution.duration > 1000) {
 
 ```typescript
 // 신뢰성 테스트를 위한 APIActions 사용
-const dispatch = useAPIDispatch();
+const { dispatchWithResult } = useAPIDispatch();
 const results = [];
 
 for (let i = 0; i < 100; i++) {
-  const result = await dispatch.dispatchWithResult('fetchData', {
+  const result = await dispatchWithResult('fetchData', {
     endpoint: '/api/reliability-test',
     params: { attempt: i }
   });
@@ -207,9 +207,9 @@ console.log(`성공률: ${(successRate * 100).toFixed(2)}%`);
 
 ```typescript
 // 프로필 검증을 위한 UserActions 사용
-const dispatch = useUserDispatch();
+const { dispatchWithResult } = useUserDispatch();
 
-const result = await dispatch.dispatchWithResult('updateProfile', {
+const result = await dispatchWithResult('updateProfile', {
   name: 'John Doe',
   email: 'john@example.com'
 }, {
@@ -231,9 +231,9 @@ if (!result.success) {
 
 ```typescript
 // 데이터 변환을 위한 APIActions 사용
-const dispatch = useAPIDispatch();
+const { dispatchWithResult } = useAPIDispatch();
 
-const result = await dispatch.dispatchWithResult('postData', {
+const result = await dispatchWithResult('postData', {
   endpoint: '/api/process-pipeline',
   data: rawData
 }, {
@@ -257,9 +257,9 @@ console.log('처리된 데이터:', result.results);
 
 ```typescript
 // 지표 집계를 위한 APIActions 사용
-const dispatch = useAPIDispatch();
+const { dispatchWithResult } = useAPIDispatch();
 
-const result = await dispatch.dispatchWithResult('fetchData', {
+const result = await dispatchWithResult('fetchData', {
   endpoint: '/api/metrics-aggregate',
   params: { period: 'monthly', includeDetails: true }
 }, {
@@ -282,9 +282,9 @@ const result = await dispatch.dispatchWithResult('fetchData', {
 
 ```typescript
 // 배치 처리를 위한 APIActions 사용
-const dispatch = useAPIDispatch();
+const { dispatchWithResult } = useAPIDispatch();
 
-const result = await dispatch.dispatchWithResult('postData', {
+const result = await dispatchWithResult('postData', {
   endpoint: '/api/batch-process',
   data: items
 }, {
@@ -307,11 +307,11 @@ console.log(`${result.results.successful.length}/${result.results.total} 항목 
 
 ```typescript
 // 재시도 패턴이 있는 APIActions 사용
-const dispatch = useAPIDispatch();
+const { dispatchWithResult } = useAPIDispatch();
 
 async function fetchDataWithRetry(endpoint: string, params: any, maxRetries = 3) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    const result = await dispatch.dispatchWithResult('fetchData', {
+    const result = await dispatchWithResult('fetchData', {
       endpoint,
       params
     });

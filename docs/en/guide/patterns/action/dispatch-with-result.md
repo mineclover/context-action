@@ -14,9 +14,9 @@ This document uses the following patterns from the setup guide:
 ### Setup Context Hooks Used
 ```typescript
 // From setup patterns - these hooks are available after context creation:
-const useEventDispatch = EventContext.useActionDispatch; // EventActions
-const useUserDispatch = UserContext.useActionDispatch;   // UserActions  
-const useAPIDispatch = APIContext.useActionDispatch;     // APIActions
+const useEventDispatch = EventContext.useActionDispatchWithResult; // EventActions
+const useUserDispatch = UserContext.useActionDispatchWithResult;   // UserActions  
+const useAPIDispatch = APIContext.useActionDispatchWithResult;     // APIActions
 ```
 
 ## Core Concepts
@@ -26,13 +26,13 @@ const useAPIDispatch = APIContext.useActionDispatch;     // APIActions
 **Key Difference**: `dispatchWithResult()` **always** collects handler results in the `results` array, regardless of options.
 
 ```typescript
-const dispatch = useEventDispatch();
+const { dispatch, dispatchWithResult } = useEventDispatch();
 
 // Regular dispatch - returns void
 await dispatch('analytics', { event: 'click' });
 
 // dispatchWithResult - always returns ExecutionResult with results array
-const result = await dispatch.dispatchWithResult('analytics', { event: 'click' });
+const result = await dispatchWithResult('analytics', { event: 'click' });
 
 console.log(result.results); // Always contains handler results (even without collect: true)
 console.log(result.result);  // undefined (unless collect: true is specified)
@@ -43,15 +43,15 @@ console.log(result.result);  // undefined (unless collect: true is specified)
 The `collect: true` option affects **result processing**, not result collection:
 
 ```typescript
-const dispatch = useEventDispatch();
+const { dispatchWithResult } = useEventDispatch();
 
 // Without collect: true
-const result1 = await dispatch.dispatchWithResult('analytics', data);
+const result1 = await dispatchWithResult('analytics', data);
 console.log(result1.results); // [result1, result2, result3] - Always collected!
 console.log(result1.result);  // undefined - No processing
 
 // With collect: true  
-const result2 = await dispatch.dispatchWithResult('analytics', data, {
+const result2 = await dispatchWithResult('analytics', data, {
   result: { collect: true, strategy: 'first' }
 });
 console.log(result2.results); // [result1, result2, result3] - Same as above
@@ -63,9 +63,9 @@ console.log(result2.result);  // result1 - Processed using 'first' strategy
 Every `dispatchWithResult()` call provides comprehensive execution metadata:
 
 ```typescript
-const dispatch = useEventDispatch();
+const { dispatchWithResult } = useEventDispatch();
 
-const result = await dispatch.dispatchWithResult('analytics', {
+const result = await dispatchWithResult('analytics', {
   event: 'user-interaction',
   data: { timestamp: Date.now() }
 });
@@ -92,14 +92,14 @@ Strategies control how the `result` field is processed from the raw `results` ar
 ### Strategy Overview
 
 ```typescript
-const dispatch = useUserDispatch();
+const { dispatchWithResult } = useUserDispatch();
 
 // Register multiple handlers
 register.register('updateProfile', () => ({ step: 'validation', success: true }), { priority: 30 });
 register.register('updateProfile', () => ({ step: 'database', id: 123 }), { priority: 20 });
 register.register('updateProfile', () => ({ step: 'notification', sent: true }), { priority: 10 });
 
-const result = await dispatch.dispatchWithResult('updateProfile', userData, {
+const result = await dispatchWithResult('updateProfile', userData, {
   result: { collect: true, strategy: 'first' }
 });
 
@@ -112,7 +112,7 @@ console.log(result.result);  // Only first result (due to 'first' strategy)
 Get the result from the highest priority handler:
 
 ```typescript
-const result = await dispatch.dispatchWithResult('updateProfile', userData, {
+const result = await dispatchWithResult('updateProfile', userData, {
   result: { collect: true, strategy: 'first' }
 });
 
@@ -124,7 +124,7 @@ console.log(result.result); // { step: 'validation', success: true } (highest pr
 Get the result from the lowest priority handler:
 
 ```typescript
-const result = await dispatch.dispatchWithResult('updateProfile', userData, {
+const result = await dispatchWithResult('updateProfile', userData, {
   result: { collect: true, strategy: 'last' }
 });
 
@@ -136,7 +136,7 @@ console.log(result.result); // { step: 'notification', sent: true } (lowest prio
 Get all handler results as an array:
 
 ```typescript
-const result = await dispatch.dispatchWithResult('updateProfile', userData, {
+const result = await dispatchWithResult('updateProfile', userData, {
   result: { collect: true, strategy: 'all' }
 });
 
@@ -148,7 +148,7 @@ console.log(result.result); // Array of all 3 results
 Combine results using a custom merger function:
 
 ```typescript
-const result = await dispatch.dispatchWithResult('updateProfile', userData, {
+const result = await dispatchWithResult('updateProfile', userData, {
   result: {
     collect: true,
     strategy: 'merge',
@@ -165,7 +165,7 @@ console.log(result.result);
 Apply custom processing logic:
 
 ```typescript
-const result = await dispatch.dispatchWithResult('analytics', eventData, {
+const result = await dispatchWithResult('analytics', eventData, {
   result: {
     collect: true,
     strategy: 'custom',
@@ -197,7 +197,7 @@ for (let i = 1; i <= 5; i++) {
     { priority: 50 - i * 5 });
 }
 
-const result = await dispatch.dispatchWithResult('fetchData', params, {
+const result = await dispatchWithResult('fetchData', params, {
   result: { collect: true, maxResults: 3, strategy: 'all' }
 });
 
@@ -216,7 +216,7 @@ Control whether errors are included in result processing:
 register.register('riskyOperation', () => { throw new Error('Handler failed'); });
 register.register('riskyOperation', () => ({ success: true }));
 
-const result = await dispatch.dispatchWithResult('riskyOperation', data, {
+const result = await dispatchWithResult('riskyOperation', data, {
   result: { 
     collect: true, 
     includeErrors: true,  // Include errors in processing
@@ -245,7 +245,7 @@ register.register('dataProcessor', (payload, controller) => {
   return { step: 'complete', success: true };
 });
 
-const result = await dispatch.dispatchWithResult('dataProcessor', data);
+const result = await dispatchWithResult('dataProcessor', data);
 
 console.log(result.results.length); // 3 - two setResult() calls + return value
 ```
@@ -267,7 +267,7 @@ register.register('processor', () => {
   return { processed: true }; // This won't execute if validation fails
 }, { priority: 10 });
 
-const result = await dispatch.dispatchWithResult('processData', invalidData, {
+const result = await dispatchWithResult('processData', invalidData, {
   result: { collect: true }
 });
 
@@ -292,7 +292,7 @@ register.register('processor', (payload, controller) => {
   return { completed: true };
 });
 
-const result = await dispatch.dispatchWithResult('processData', { shouldAbort: true });
+const result = await dispatchWithResult('processData', { shouldAbort: true });
 
 console.log(result.success);         // false (aborted)
 console.log(result.aborted);         // true
@@ -307,9 +307,9 @@ Access detailed execution information.
 ### Basic Metadata
 
 ```typescript
-const dispatch = useEventDispatch();
+const { dispatchWithResult } = useEventDispatch();
 
-const result = await dispatch.dispatchWithResult('trackInteraction', {
+const result = await dispatchWithResult('trackInteraction', {
   type: 'button_click',
   metadata: { component: 'header', section: 'navigation' }
 });
@@ -341,7 +341,7 @@ register.register('processData', (payload) => {
   return { sync: true, immediate: true };
 }, { priority: 10 });
 
-const result = await dispatch.dispatchWithResult('processData', data);
+const result = await dispatchWithResult('processData', data);
 
 console.log(result.results.length); // 2 - both sync and async results
 console.log(result.success);        // true - both handlers completed successfully
@@ -368,7 +368,7 @@ register.register('safeSync', () => {
   return { success: true };
 }, { blocking: true }); // Blocking
 
-const result = await dispatch.dispatchWithResult('mixedOperation', data, {
+const result = await dispatchWithResult('mixedOperation', data, {
   result: { collect: true, includeErrors: true }
 });
 
@@ -384,9 +384,9 @@ console.log(result.results.length); // 1 - only successful results in results ar
 Track execution performance and identify bottlenecks:
 
 ```typescript
-const dispatch = useAPIDispatch();
+const { dispatchWithResult } = useAPIDispatch();
 
-const result = await dispatch.dispatchWithResult('complexOperation', data);
+const result = await dispatchWithResult('complexOperation', data);
 
 // Performance analysis
 if (result.execution.duration > 1000) {
@@ -407,7 +407,7 @@ console.log(`Operation success: ${isSuccess ? 'OK' : 'FAILED'}`);
 Sequential validation with early failure detection:
 
 ```typescript
-const dispatch = useUserDispatch();
+const { dispatchWithResult } = useUserDispatch();
 
 // Register validators in priority order
 register.register('validateUser', (userData, controller) => {
@@ -424,7 +424,7 @@ register.register('validateUser', (userData, controller) => {
   return { ageValid: true };
 }, { priority: 20 });
 
-const result = await dispatch.dispatchWithResult('validateUser', userData, {
+const result = await dispatchWithResult('validateUser', userData, {
   executionMode: 'sequential',
   result: { collect: true, strategy: 'first' }
 });
@@ -441,7 +441,7 @@ console.log('All validations passed:', result.results);
 Transform data through multiple processing stages:
 
 ```typescript
-const dispatch = useAPIDispatch();
+const { dispatchWithResult } = useAPIDispatch();
 
 // Each handler transforms the data
 register.register('processOrder', (order) => {
@@ -456,7 +456,7 @@ register.register('processOrder', (order) => {
   return { ...order, formatted: `$${order.taxApplied.toFixed(2)}` };
 }, { priority: 10 });
 
-const result = await dispatch.dispatchWithResult('processOrder', rawOrder, {
+const result = await dispatchWithResult('processOrder', rawOrder, {
   executionMode: 'sequential',
   result: { collect: true, strategy: 'last' }
 });
@@ -469,11 +469,11 @@ console.log('Final processed order:', result.result);
 Handle large datasets with partial success tracking:
 
 ```typescript
-const dispatch = useAPIDispatch();
+const { dispatchWithResult } = useAPIDispatch();
 
 const batchItems = Array.from({ length: 100 }, (_, i) => ({ id: i, data: `item-${i}` }));
 
-const result = await dispatch.dispatchWithResult('processBatch', batchItems, {
+const result = await dispatchWithResult('processBatch', batchItems, {
   result: {
     collect: true,
     includeErrors: true,
@@ -501,14 +501,14 @@ console.log('Batch processing summary:', result.result);
 Collect and aggregate analytics from multiple handlers:
 
 ```typescript
-const dispatch = useEventDispatch();
+const { dispatchWithResult } = useEventDispatch();
 
 // Multiple analytics handlers
 register.register('trackEvent', (event) => ({ platform: 'web', event }));
 register.register('trackEvent', (event) => ({ database: 'logged', timestamp: Date.now() }));
 register.register('trackEvent', (event) => ({ cache: 'updated', key: event.type }));
 
-const result = await dispatch.dispatchWithResult('trackEvent', eventData, {
+const result = await dispatchWithResult('trackEvent', eventData, {
   executionMode: 'parallel',
   result: {
     collect: true,
@@ -530,7 +530,7 @@ console.log('Analytics collected:', result.result);
 Implement graceful error handling with fallback results:
 
 ```typescript
-const dispatch = useAPIDispatch();
+const { dispatchWithResult } = useAPIDispatch();
 
 // Primary + fallback handlers
 register.register('fetchUserData', async (userId) => {
@@ -546,7 +546,7 @@ register.register('fetchUserData', async (userId) => {
   return await cacheService.getUser(userId) || { id: userId, cached: true };
 }, { priority: 10 });
 
-const result = await dispatch.dispatchWithResult('fetchUserData', userId, {
+const result = await dispatchWithResult('fetchUserData', userId, {
   result: { collect: true, strategy: 'first', includeErrors: false }
 });
 
@@ -560,9 +560,9 @@ console.log('Source:', result.errors.length > 0 ? 'fallback' : 'primary');
 Debug handler execution and results:
 
 ```typescript
-const dispatch = useEventDispatch();
+const { dispatchWithResult } = useEventDispatch();
 
-const result = await dispatch.dispatchWithResult('debugAction', testData);
+const result = await dispatchWithResult('debugAction', testData);
 
 // Comprehensive debugging info
 console.log('Execution Summary:', {
@@ -589,13 +589,13 @@ result.results.forEach((handlerResult, index) => {
 ### 1. Use `collect: true` for Result Processing
 ```typescript
 // Good: Use collect when you need processed results
-const result = await dispatch.dispatchWithResult('action', data, {
+const result = await dispatchWithResult('action', data, {
   result: { collect: true, strategy: 'merge' }
 });
 console.log(result.result); // Processed result
 
 // Also good: Access raw results without collect
-const result2 = await dispatch.dispatchWithResult('action', data);
+const result2 = await dispatchWithResult('action', data);
 console.log(result2.results); // All handler results
 ```
 
@@ -620,7 +620,7 @@ register.register('optional', optionalHandler, { blocking: false });
 
 ### 4. Monitor Performance
 ```typescript
-const result = await dispatch.dispatchWithResult('action', data);
+const result = await dispatchWithResult('action', data);
 if (result.execution.duration > 1000) {
   console.warn('Slow action:', result.execution);
 }

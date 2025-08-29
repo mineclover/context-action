@@ -715,6 +715,14 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       timestamp: number;
     }> = [];
 
+    // Initialize handler tracking - all handlers start as not executed
+    filteredHandlers.forEach(handler => {
+      handlerResults.push({
+        id: handler.config.id,
+        executed: false,
+      });
+    });
+
     // Add abort listener if signal provided (use effectiveSignal for auto-abort)
     const abortHandler = effectiveSignal ? () => {
       context.aborted = true;
@@ -727,6 +735,17 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     
     try {
       await this.executePipeline(context, autoAbortController, options?.autoAbort);
+      
+      // Mark executed handlers based on context.currentIndex
+      // In sequential mode, handlers 0 to currentIndex were executed
+      // In parallel/race mode, all handlers that didn't error were executed
+      const executedCount = Math.min(context.currentIndex + (context.aborted ? 0 : 1), filteredHandlers.length);
+      for (let i = 0; i < executedCount; i++) {
+        const handlerResult = handlerResults.find(hr => hr.id === filteredHandlers[i].config.id);
+        if (handlerResult) {
+          handlerResult.executed = true;
+        }
+      }
     } catch (error) {
       executionError = error instanceof Error ? error : new Error(String(error));
       errors.push({
@@ -734,6 +753,15 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         error: executionError,
         timestamp: Date.now(),
       });
+      
+      // Mark executed handlers even when there's an error
+      const executedCount = Math.min(context.currentIndex + 1, filteredHandlers.length);
+      for (let i = 0; i < executedCount; i++) {
+        const handlerResult = handlerResults.find(hr => hr.id === filteredHandlers[i].config.id);
+        if (handlerResult) {
+          handlerResult.executed = true;
+        }
+      }
     } finally {
       // 🔧 Use cleanup function from createAbortSignal
       cleanup();
@@ -770,7 +798,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         startTime: _startTime,
         endTime,
       },
-      handlers: handlerResults as any, // Type assertion needed for handlers array
+      handlers: handlerResults,
       errors: errors.map(err => ({
         handlerId: err.handlerId,
         error: err.error,
