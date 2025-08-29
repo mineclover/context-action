@@ -69,6 +69,13 @@ export class HelpDisplay {
     console.log('                                   [--include-tests] [--keep-comments] [--multiple-files]');
     console.log('                                   [--extensions <ext1,ext2>] (default: .ts,.tsx)');
     console.log('');
+    console.log('REFERENCE COMBINATION:');
+    console.log('  combine-references <source> [options]');
+    console.log('                                   Combine a document with all its referenced documents');
+    console.log('                                   [-o, --output <path>] [--exclude-source] [--max-depth <num>]');
+    console.log('                                   [-p, --pattern standard|clean|minimal] [--follow-nested]');
+    console.log('                                   [--dry-run] [-v, --verbose]');
+    console.log('');
     console.log('EXAMPLES:');
     console.log('  # 🚀 RECOMMENDED WORKFLOW (Complete setup)');
     console.log('  llms init');
@@ -125,6 +132,12 @@ export class HelpDisplay {
     console.log('  llms code-mode core ./custom/path --dry-run  # Multiple targets');
     console.log('  llms code-mode --extensions js,jsx  # Include JavaScript files');
     console.log('  llms code-mode --keep-comments --include-tests  # Include all content');
+    console.log('');
+    console.log('  # Combine documents with their references');
+    console.log('  llms combine-references docs/en/concept/architecture-guide.md');
+    console.log('  llms combine-references docs/ko/guide/patterns/action/index.md --dry-run');
+    console.log('  llms combine-references docs/en/guide/index.md --pattern clean --follow-nested');
+    console.log('  llms combine-references docs/en/concept/conventions.md --output combined-guide.md');
     console.log('');
     console.log('INIT COMMAND DETAILS:');
     console.log('  The init command performs three main steps:');

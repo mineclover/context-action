@@ -25,6 +25,7 @@ import { PriorityManagerCommand } from './commands/PriorityManagerCommand.js';
 import { PriorityTasksCommand } from './commands/PriorityTasksCommand.js';
 import { MismatchDetectionCommand } from './commands/MismatchDetectionCommand.js';
 import { CodeModeCommand } from './commands/CodeModeCommand.js';
+import { CombineReferencesCommand } from './commands/CombineReferencesCommand.js';
 import { CLIConfig } from './types/CLITypes.js';
 import { EnhancedConfigManager } from '../core/EnhancedConfigManager.js';
 import { DEFAULT_CONFIG } from '../shared/config/DefaultConfig.js';
@@ -107,6 +108,10 @@ async function main(): Promise<void> {
 
       case 'code-mode':
         await handleCodeMode(commandArgs, argumentParser);
+        break;
+
+      case 'combine-references':
+        await handleCombineReferences(commandArgs, argumentParser);
         break;
 
       default:
@@ -399,6 +404,30 @@ async function handleCodeMode(args: string[], argumentParser: ArgumentParser): P
   };
 
   await codeModeCommand.execute(options);
+}
+
+async function handleCombineReferences(args: string[], argumentParser: ArgumentParser): Promise<void> {
+  const config = await loadConfig();
+  const combineReferencesCommand = new CombineReferencesCommand(config);
+  
+  // Get source document from first argument
+  const sourceDocument = args.find(arg => !arg.startsWith('-'));
+  if (!sourceDocument) {
+    throw new Error('Source document path is required. Usage: combine-references <source-document> [options]');
+  }
+  
+  const options = {
+    sourceDocument,
+    outputPath: argumentParser.extractFlag(args, '-o', '--output'),
+    includeSource: !argumentParser.hasFlag(args, '--exclude-source'),
+    maxDepth: argumentParser.extractNumberFlag(args, '--max-depth') || 1,
+    pattern: (argumentParser.extractFlag(args, '-p', '--pattern') || 'standard') as 'standard' | 'clean' | 'minimal',
+    dryRun: argumentParser.hasFlag(args, '--dry-run'),
+    verbose: argumentParser.hasFlag(args, '-v', '--verbose'),
+    followNestedReferences: argumentParser.hasFlag(args, '--follow-nested')
+  };
+
+  await combineReferencesCommand.execute(options);
 }
 
 // Run CLI only if this file is executed directly
