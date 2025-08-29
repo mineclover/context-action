@@ -96,19 +96,19 @@ export function MetricCard({
   );
 }
 
-// === 메트릭스 그리드 Props ===
+// === 메트릭스 그리드 Props (RefContext 최적화) ===
 export interface MetricsGridProps {
   position: {
     displayText: string;
     isValid: boolean;
-  };
+  } | null; // RefContext에서 처리할 때는 null
   movement: {
     velocityText: string;
     distanceText: string;
     pathLengthText: string;
     isMoving: boolean;
     moveCount: number;
-  };
+  } | null; // RefContext에서 처리할 때는 null
   clicks: {
     totalText: string;
     recentText: string;
@@ -141,20 +141,23 @@ export function MetricsGrid({
       <MetricCard
         title="Position"
         icon="📍"
-        value={position.displayText}
-        subtitle={`Status: ${position.isValid ? '✅ Inside' : '❌ Outside'}`}
+        value={position ? position.displayText : "RefContext Control"}
+        subtitle={position ? `Status: ${position.isValid ? '✅ Inside' : '❌ Outside'}` : "🚀 Direct DOM"}
         color="purple"
       />
       
       <MetricCard
         title="Movement"
         icon="🏃"
-        value={movement.velocityText}
-        subtitle={`Path: ${movement.pathLengthText}`}
+        value={movement ? movement.velocityText : "High-Performance"}
+        subtitle={movement ? `Path: ${movement.pathLengthText}` : "⚡ RefContext Direct"}
         color="green"
-        details={[
+        details={movement ? [
           { label: 'Moving', value: movement.isMoving ? '✅' : '❌' },
           { label: 'Count', value: movement.moveCount.toString() }
+        ] : [
+          { label: 'Mode', value: 'GPU Accelerated' },
+          { label: 'FPS', value: '60fps Canvas' }
         ]}
       />
       

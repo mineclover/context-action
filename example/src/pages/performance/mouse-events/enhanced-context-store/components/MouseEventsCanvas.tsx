@@ -1,39 +1,34 @@
 /**
- * @fileoverview Mouse Events Canvas Component
+ * @fileoverview Mouse Events Canvas Component - RefContext 최적화
  * 
- * View Layer: 마우스 이벤트 캔버스 순수 컴포넌트
- * - DOM 이벤트 핸들러를 Props로 주입받음
- * - 직접적인 상태 관리 없이 순수한 렌더링
- * - 재사용 가능한 캔버스 UI
+ * View Layer: RefContext 기반 고성능 캔버스
+ * - Store 구독 최소화 (클릭 마커만)
+ * - 시각적 업데이트는 RefContext 직접 조작
+ * - Path 그리기는 Store 상태 변경과 무관
  */
 
-import React, { useEffect } from 'react';
+import React from 'react';
 
-// === 캔버스 Props 타입 정의 ===
+// === RefContext 기반 캔버스 Props ===
 export interface MouseEventsCanvasProps {
-  // DOM 이벤트 핸들러들 (Triggers Hook에서 주입)
+  // DOM 이벤트 핸들러들 (Canvas Control Hook에서 주입)
   onMouseMove: (e: React.MouseEvent<HTMLDivElement>) => void;
   onMouseClick: (e: React.MouseEvent<HTMLDivElement>) => void;
   onMouseEnter: (e: React.MouseEvent<HTMLDivElement>) => void;
   onMouseLeave: () => void;
   onReset: () => void;
   
-  // DOM 참조 설정 함수들 (Ref Hook에서 주입)
+  // DOM 참조 설정 함수들 (RefContext)
   setContainerRef: (el: HTMLDivElement | null) => void;
   setCursorRef: (el: HTMLDivElement | null) => void;
   setPathSvgRef: (el: SVGPathElement | null) => void;
   setCoordinatesRef: (el: HTMLDivElement | null) => void;
   
-  // View 상태 (ViewState Hook에서 주입)
+  // 최소 View 상태 (메트릭만)
   activity: {
     isActive: boolean;
     statusText: string;
     statusColor: string;
-  };
-  movement: {
-    path: Array<{ x: number; y: number; timestamp: number }>;
-    isMoving: boolean;
-    velocity: number;
   };
   clicks: {
     recent: Array<{ x: number; y: number; timestamp: number }>;
@@ -42,9 +37,6 @@ export interface MouseEventsCanvasProps {
     hasActivity: boolean;
   };
   
-  // Path 업데이트 함수 (Triggers Hook에서 주입)
-  updatePath: (path: Array<{ x: number; y: number; timestamp: number }>) => void;
-  
   // 설정
   width?: number;
   height?: number;
@@ -52,8 +44,10 @@ export interface MouseEventsCanvasProps {
 }
 
 /**
- * 마우스 이벤트를 시각화하는 캔버스 컴포넌트
- * 순수 컴포넌트로 모든 로직은 Props를 통해 주입받음
+ * RefContext 기반 고성능 캔버스 컴포넌트
+ * - Path 그리기: RefContext 직접 조작 (Store 무관)
+ * - 클릭 마커: Store 구독 (React 렌더링)
+ * - 커서/좌표: RefContext 직접 조작 (Store 무관)
  */
 export function MouseEventsCanvas({
   onMouseMove,
@@ -66,21 +60,12 @@ export function MouseEventsCanvas({
   setPathSvgRef,
   setCoordinatesRef,
   activity,
-  movement,
   clicks,
   summary,
-  updatePath,
   width = 800,
   height = 400,
   animationSpeed = 1
 }: MouseEventsCanvasProps) {
-  
-  // Path 업데이트 side effect
-  useEffect(() => {
-    if (movement.path.length > 1) {
-      updatePath(movement.path);
-    }
-  }, [movement.path, updatePath]);
   
   return (
     <div className="p-6 border border-purple-200 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg">
@@ -136,20 +121,7 @@ export function MouseEventsCanvas({
               <div className="w-4 h-4 bg-purple-500 border-2 border-white rounded-full shadow-lg animate-pulse" />
             </div>
             
-            {/* Velocity 인디케이터 */}
-            {movement.velocity > 5 && (
-              <div
-                className="absolute pointer-events-none transition-all duration-150"
-                style={{
-                  left: -Math.min(movement.velocity, 20),
-                  top: -Math.min(movement.velocity, 20),
-                  width: Math.min(movement.velocity * 2, 40),
-                  height: Math.min(movement.velocity * 2, 40),
-                }}
-              >
-                <div className="w-full h-full rounded-full bg-purple-300/30 border border-purple-400/50 animate-ping" />
-              </div>
-            )}
+            {/* Velocity 인디케이터 제거 - Non-reactive 패턴에서는 RefContext로 직접 처리 */}
             
             {/* 실시간 좌표 표시 */}
             <div
@@ -160,66 +132,62 @@ export function MouseEventsCanvas({
           </>
         )}
         
-        {/* 고성능 실시간 path 시각화 */}
-        {(movement.path.length > 1 || clicks.recent.length > 1) && (
-          <svg className="absolute inset-0 w-full h-full pointer-events-none">
-            <defs>
-              <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="rgba(147, 51, 234, 1.0)" />
-                <stop offset="50%" stopColor="rgba(168, 85, 247, 0.8)" />
-                <stop offset="100%" stopColor="rgba(219, 39, 119, 0.6)" />
-              </linearGradient>
-              <linearGradient id="clickConnectionGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="rgba(59, 130, 246, 0.8)" />
-                <stop offset="50%" stopColor="rgba(99, 102, 241, 0.6)" />
-                <stop offset="100%" stopColor="rgba(139, 92, 246, 0.4)" />
-              </linearGradient>
-              <filter id="glow">
-                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-                <feMerge> 
-                  <feMergeNode in="coloredBlur"/>
-                  <feMergeNode in="SourceGraphic"/> 
-                </feMerge>
-              </filter>
-            </defs>
-            
-            {/* 실시간 path (부드러운 선) */}
-            {movement.path.length > 1 && (
-              <path
-                ref={setPathSvgRef}
-                stroke="url(#pathGradient)"
-                strokeWidth="3"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                filter="url(#glow)"
-                style={{
-                  transition: 'none',
-                  opacity: activity.isActive ? 1 : 0.7,
-                }}
-              />
-            )}
-            
-            {/* 클릭 연결선 */}
-            {clicks.recent.length > 1 && (
-              <path
-                d={clicks.recent
-                  .slice(0, 5)
-                  .map((click, index) => `${index === 0 ? 'M' : 'L'} ${click.x} ${click.y}`)
-                  .join(' ')
-                }
-                stroke="url(#clickConnectionGradient)"
-                strokeWidth="2"
-                strokeDasharray="8,4"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                opacity="0.8"
-                className="animate-pulse"
-              />
-            )}
-          </svg>
-        )}
+        {/* 고성능 RefContext 기반 path 시각화 */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none">
+          <defs>
+            <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgba(147, 51, 234, 1.0)" />
+              <stop offset="50%" stopColor="rgba(168, 85, 247, 0.8)" />
+              <stop offset="100%" stopColor="rgba(219, 39, 119, 0.6)" />
+            </linearGradient>
+            <linearGradient id="clickConnectionGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgba(59, 130, 246, 0.8)" />
+              <stop offset="50%" stopColor="rgba(99, 102, 241, 0.6)" />
+              <stop offset="100%" stopColor="rgba(139, 92, 246, 0.4)" />
+            </linearGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+              <feMerge> 
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/> 
+              </feMerge>
+            </filter>
+          </defs>
+          
+          {/* RefContext 직접 조작 Path (Store 상태 무관) */}
+          <path
+            ref={setPathSvgRef}
+            stroke="url(#pathGradient)"
+            strokeWidth="3"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            filter="url(#glow)"
+            style={{
+              transition: 'none',
+              opacity: activity.isActive ? 1 : 0.7,
+            }}
+          />
+          
+          {/* 클릭 연결선 (Store 기반) */}
+          {clicks.recent.length > 1 && (
+            <path
+              d={clicks.recent
+                .slice(0, 5)
+                .map((click, index) => `${index === 0 ? 'M' : 'L'} ${click.x} ${click.y}`)
+                .join(' ')
+              }
+              stroke="url(#clickConnectionGradient)"
+              strokeWidth="2"
+              strokeDasharray="8,4"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity="0.8"
+              className="animate-pulse"
+            />
+          )}
+        </svg>
         
         {/* 클릭 인디케이터들 */}
         {clicks.recent.slice(0, 8).map((click, index) => {
@@ -228,7 +196,7 @@ export function MouseEventsCanvas({
           
           return (
             <div
-              key={`${click.x}-${click.y}-${click.timestamp}`}
+              key={`click-${click.timestamp}-${index}`}
               className="absolute pointer-events-none"
               style={{
                 left: click.x - 16,

@@ -9,8 +9,8 @@
 
 import React, { useState } from 'react';
 import { useMouseEventsLogic } from '../hooks/useMouseEventsLogic';
-import { useMouseEventsViewState } from '../hooks/useMouseEventsViewState';
-import { useMouseEventsTriggers } from '../hooks/useMouseEventsTriggers';
+import { useCanvasDirectControl } from '../hooks/useCanvasDirectControl';
+import { useMetricsOnly } from '../hooks/useMetricsOnly';
 import { MetricsGrid, DetailedMetrics } from './MouseEventsMetrics';
 import { MouseEventsCanvas } from './MouseEventsCanvas';
 
@@ -23,16 +23,16 @@ import { MouseEventsCanvas } from './MouseEventsCanvas';
  * - View: 이 컴포넌트 (순수 렌더링)
  */
 export function EnhancedContextStoreView() {
-  // === ViewModel Layer - Hook 기반 상태 및 이벤트 주입 ===
+  // === ViewModel Layer - RefContext 중심 아키텍처 ===
   
-  // 비즈니스 로직 초기화
+  // 비즈니스 로직 초기화 (Store 관리)
   const { initialized } = useMouseEventsLogic();
   
-  // View 상태 주입
-  const viewState = useMouseEventsViewState();
+  // RefContext 기반 Canvas 직접 제어
+  const canvasControl = useCanvasDirectControl();
   
-  // DOM 이벤트 핸들러 주입
-  const triggers = useMouseEventsTriggers();
+  // 최소 Store 구독 (메트릭만)
+  const metricsState = useMetricsOnly();
   
   // === Local UI State (비즈니스 로직과 무관한 View 상태) ===
   const [showDetails, setShowDetails] = useState(false);
@@ -138,46 +138,42 @@ export function EnhancedContextStoreView() {
         </div>
       </div>
 
-      {/* 메트릭스 그리드 - Props 기반 순수 컴포넌트 */}
+      {/* 메트릭스 그리드 - 최소 Store 구독 */}
       <MetricsGrid
-        position={viewState.position}
-        movement={viewState.movement}
-        clicks={viewState.clicks}
-        activity={viewState.activity}
-        performance={viewState.performance}
+        position={null} // RefContext에서 처리하므로 불필요
+        movement={null} // RefContext에서 처리하므로 불필요
+        clicks={metricsState.clicks}
+        activity={metricsState.activity}
+        performance={metricsState.performance}
       />
 
       {/* 상세 메트릭스 (조건부 표시) */}
       {showDetails && (
         <DetailedMetrics
-          computed={viewState.computed}
-          summary={viewState.summary}
+          computed={metricsState.computed}
+          summary={metricsState.summary}
         />
       )}
 
-      {/* 메인 캔버스 - Props 기반 순수 컴포넌트 */}
+      {/* 메인 캔버스 - RefContext 기반 고성능 */}
       <MouseEventsCanvas
-        // DOM 이벤트 핸들러들 (ViewModel에서 주입)
-        onMouseMove={triggers.handleMouseMove}
-        onMouseClick={triggers.handleMouseClick}
-        onMouseEnter={triggers.handleMouseEnter}
-        onMouseLeave={triggers.handleMouseLeave}
-        onReset={triggers.handleReset}
+        // DOM 이벤트 핸들러들 (RefContext Canvas Control)
+        onMouseMove={canvasControl.handleMouseMove}
+        onMouseClick={canvasControl.handleMouseClick}
+        onMouseEnter={canvasControl.handleMouseEnter}
+        onMouseLeave={canvasControl.handleMouseLeave}
+        onReset={canvasControl.handleReset}
         
-        // DOM 참조 설정 함수들 (ViewModel에서 주입)
-        setContainerRef={triggers.refs.container.setRef}
-        setCursorRef={triggers.refs.cursor.setRef}
-        setPathSvgRef={triggers.refs.pathSvg.setRef}
-        setCoordinatesRef={triggers.refs.coordinates.setRef}
+        // DOM 참조 설정 함수들 (RefContext)
+        setContainerRef={canvasControl.setContainerRef}
+        setCursorRef={canvasControl.setCursorRef}
+        setPathSvgRef={canvasControl.setPathSvgRef}
+        setCoordinatesRef={canvasControl.setCoordinatesRef}
         
-        // View 상태 (ViewModel에서 주입)
-        activity={viewState.activity}
-        movement={viewState.movement}
-        clicks={viewState.clicks}
-        summary={viewState.summary}
-        
-        // 유틸리티 함수 (ViewModel에서 주입)
-        updatePath={triggers.updatePath}
+        // 최소 View 상태 (메트릭만)
+        activity={metricsState.activity}
+        clicks={metricsState.clicks}
+        summary={metricsState.summary}
         
         // UI 설정
         width={800}
