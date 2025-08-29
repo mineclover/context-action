@@ -38,6 +38,7 @@ const ActionPriorityDemoPage = lazy(() => import('./pages/performance/priority/D
 const MouseEventsIndexPage = lazy(() => import('./pages/performance/mouse-events/MouseEventsIndexPage').then(m => ({ default: m.MouseEventsIndexPage })));
 const ContextStoreActionPage = lazy(() => import('./pages/performance/mouse-events/ContextStoreActionPage').then(m => ({ default: m.ContextStoreActionPage })));
 const EnhancedContextStorePage = lazy(() => import('./pages/performance/mouse-events/enhanced-context-store/EnhancedContextStorePage'));
+const NonReactiveContextStorePage = lazy(() => import('./pages/performance/mouse-events/enhanced-context-store/NonReactiveContextStorePage'));
 const CanvasRefDemoPage = lazy(() => import('./pages/performance/mouse-events/CanvasRefDemoPage').then(m => ({ default: m.CanvasRefDemoPage })));
 
 // Memoization Performance
@@ -150,10 +151,11 @@ function AppContent() {
             <Route path="/performance/priority/advanced" element={<PriorityPerformancePage />} />
             <Route path="/performance/priority/demo" element={<ActionPriorityDemoPage />} />
             <Route path="/performance/mouse-events" element={<MouseEventsIndexPage />} />
-            <Route path="/performance/mouse-events/enhanced-context-store" element={<EnhancedContextStorePage />} />
+            <Route path="/performance/mouse-events/legacy" element={<MouseEventsPage />} />
+            <Route path="/performance/mouse-events/reactive" element={<EnhancedContextStorePage />} />
+            <Route path="/performance/mouse-events/non-reactive" element={<NonReactiveContextStorePage />} />
             <Route path="/performance/mouse-events/context-store-action" element={<ContextStoreActionPage />} />
             <Route path="/performance/mouse-events/canvas-ref-demo" element={<CanvasRefDemoPage />} />
-            <Route path="/performance/mouse-events/legacy" element={<MouseEventsPage />} />
             <Route path="/performance/mouse-events/context-store" element={<ContextStoreMouseEventsPage />} />
             
             {/* Memoization Performance Routes */}
@@ -206,10 +208,11 @@ function AppContent() {
             <Route path="/actionguard/advanced-filtering" element={<AdvancedFilteringPage />} />
             <Route path="/actionguard/priority-performance-advanced" element={<PriorityPerformancePage />} />
             <Route path="/actionguard/mouse-events" element={<MouseEventsIndexPage />} />
-            <Route path="/actionguard/mouse-events/enhanced-context-store" element={<EnhancedContextStorePage />} />
+            <Route path="/actionguard/mouse-events/legacy" element={<MouseEventsPage />} />
+            <Route path="/actionguard/mouse-events/reactive" element={<EnhancedContextStorePage />} />
+            <Route path="/actionguard/mouse-events/non-reactive" element={<NonReactiveContextStorePage />} />
             <Route path="/actionguard/mouse-events/context-store-action" element={<ContextStoreActionPage />} />
             <Route path="/actionguard/mouse-events/canvas-ref-demo" element={<CanvasRefDemoPage />} />
-            <Route path="/actionguard/mouse-events/legacy" element={<MouseEventsPage />} />
             <Route path="/actionguard/mouse-events/context-store" element={<ContextStoreMouseEventsPage />} />
             <Route path="/actionguard/conditional" element={<ConditionalPatternsIndex />} />
             <Route path="/actionguard/conditional/permissions" element={<PermissionBasedExecution />} />

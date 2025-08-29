@@ -656,22 +656,114 @@ function MouseEventsDemo() {
             </div>
           </div>
           
-          {/* Legacy 구조 설명 추가 */}
-          <div className="mt-6 p-4 bg-gradient-to-r from-pink-100 to-purple-100 rounded-xl border border-pink-200">
-            <h4 className="font-semibold text-pink-800 mb-2 flex items-center gap-2">
-              <span>🏛️</span>
-              Legacy Implementation Features
-            </h4>
-            <div className="text-sm text-pink-700 space-y-1">
-              <p>✨ <strong>Traditional Action Context:</strong> Basic createActionContext implementation</p>
-              <p>🔄 <strong>useState Management:</strong> Component-level state with React hooks</p>
-              <p>📦 <strong>Single Provider:</strong> MouseActionProvider for action handling</p>
-              <p>🎯 <strong>Direct Event Handlers:</strong> Straightforward event handling patterns</p>
-              <p>⚡ <strong>Performance Throttling:</strong> Manual throttling implementation</p>
-            </div>
-          </div>
         </CardContent>
       </Card>
+      
+      {/* Legacy Architecture Documentation - 페이지 최하단 */}
+      <div className="mt-12 pt-8 border-t border-purple-200">
+        <Card className="bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 border-pink-200 shadow-lg">
+          <CardContent className="p-8">
+            <h2 className="text-2xl font-bold text-pink-800 mb-6 flex items-center gap-3">
+              <span className="text-3xl">🏗️</span>
+              Legacy Architecture Pattern
+            </h2>
+            
+            {/* 아키텍처 구조 설명 - 1열 레이아웃 */}
+            <div className="space-y-6">
+              {/* Action Context Pattern */}
+              <div className="bg-white/70 rounded-xl border border-pink-200 p-6">
+                <h3 className="font-semibold text-pink-800 mb-4 flex items-center gap-2 text-lg">
+                  <span>📦</span>
+                  Action Only Pattern
+                </h3>
+                <div className="bg-gray-50 p-4 rounded-lg text-sm font-mono text-gray-800 mb-4 overflow-x-auto">
+                  <pre>{`// 1. 단순한 Action Context 생성
+interface BasicMouseActions {
+  handleMouseClick: { x: number; y: number; button: string; target: string };
+  handleMouseMove: { x: number; y: number; movementX: number; movementY: number };
+}
+
+const { Provider: MouseActionProvider, useActionDispatch, useActionHandler } = 
+  createActionContext<BasicMouseActions>('BasicMouse');`}</pre>
+                </div>
+              </div>
+
+              {/* Component State Management */}
+              <div className="bg-white/70 rounded-xl border border-purple-200 p-6">
+                <h3 className="font-semibold text-purple-800 mb-4 flex items-center gap-2 text-lg">
+                  <span>🔄</span>
+                  Component State Management
+                </h3>
+                <div className="bg-gray-50 p-4 rounded-lg text-sm font-mono text-gray-800 mb-4 overflow-x-auto">
+                  <pre>{`// 2. 컴포넌트 레벨 상태 관리
+function MouseEventsDemo() {
+  const dispatch = useActionDispatch();
+  const [eventLog, setEventLog] = useState([]);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [hoverZones, setHoverZones] = useState({});
+  const [clickCount, setClickCount] = useState(0);
+  
+  // 모든 상태가 컴포넌트 내부에 위치
+}`}</pre>
+                </div>
+              </div>
+
+              {/* Direct Action Handlers */}
+              <div className="bg-white/70 rounded-xl border border-cyan-200 p-6">
+                <h3 className="font-semibold text-cyan-800 mb-4 flex items-center gap-2 text-lg">
+                  <span>🎯</span>
+                  Direct Action Handlers
+                </h3>
+                <div className="bg-gray-50 p-4 rounded-lg text-sm font-mono text-gray-800 mb-4 overflow-x-auto">
+                  <pre>{`// 3. 직접적인 Action Handler 등록 및 상태 업데이트
+useActionHandler('handleMouseMove', useCallback(async (payload) => {
+  // 직접 상태 업데이트
+  throttledUpdatePosition(payload.x, payload.y);
+  
+  // 로그 상태 직접 변경
+  if (shouldLogMovement) {
+    setEventLog(prev => [newLogEntry, ...prev]);
+  }
+}, [throttledUpdatePosition]));
+
+useActionHandler('handleMouseClick', useCallback(async (payload) => {
+  setEventLog(prev => [logEntry, ...prev]);
+  setClickCount(prev => prev + 1); // 카운터 직접 증가
+}, []));`}</pre>
+                </div>
+              </div>
+
+              {/* Architecture Characteristics */}
+              <div className="bg-white/70 rounded-xl border border-indigo-200 p-6">
+                <h3 className="font-semibold text-indigo-800 mb-4 flex items-center gap-2 text-lg">
+                  <span>🏛️</span>
+                  Legacy 아키텍처 특징
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold text-indigo-700 mb-3">✅ 장점</h4>
+                    <ul className="space-y-2 text-sm text-indigo-600">
+                      <li>• <strong>단순함:</strong> 이해하기 쉬운 직관적 구조</li>
+                      <li>• <strong>빠른 개발:</strong> 최소한의 설정으로 빠른 구현</li>
+                      <li>• <strong>디버깅 용이:</strong> 명확한 데이터 흐름</li>
+                      <li>• <strong>학습 비용 낮음:</strong> React 기본 패턴 활용</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-red-700 mb-3">⚠️ 한계</h4>
+                    <ul className="space-y-2 text-sm text-red-600">
+                      <li>• <strong>성능 이슈:</strong> 불필요한 리렌더링 발생</li>
+                      <li>• <strong>상태 분산:</strong> 컴포넌트별 상태 관리 복잡성</li>
+                      <li>• <strong>재사용성 제한:</strong> 컴포넌트 간 로직 공유 어려움</li>
+                      <li>• <strong>확장성 부족:</strong> 복잡한 상태 관계 처리 한계</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

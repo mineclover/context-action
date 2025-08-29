@@ -12,40 +12,31 @@ import { Badge } from '@/components/ui';
 export function MouseEventsIndexPage() {
   const implementations = [
     {
-      path: '/actionguard/mouse-events/enhanced-context-store',
-      title: '🏪 Enhanced Context Store',
-      description: 'Advanced Context Store with real-time debugging',
-      features: ['Individual store access', 'Real-time debugger', 'Performance metrics', 'Fine-grained reactivity'],
-      performance: 'Very Good',
-      complexity: 'Advanced',
-      color: 'blue'
-    },
-    {
-      path: '/actionguard/mouse-events/canvas-ref-demo',
-      title: '🎨 Canvas Ref Demo',
-      description: 'createRefContext with direct DOM manipulation for maximum performance',
-      features: ['Direct DOM access', 'GPU acceleration', 'Real-time tracking', 'Type-safe refs'],
-      performance: 'Excellent',
-      complexity: 'Advanced',
-      color: 'emerald'
-    },
-    {
-      path: '/actionguard/mouse-events/context-store-action',
-      title: '⚡ Context Store Action-Based',
-      description: 'Action-based state management with reactive updates',
-      features: ['Action handlers', 'Store integration', 'Event-driven', 'Reactive updates'],
-      performance: 'Good',
-      complexity: 'Intermediate',
+      path: '/actionguard/mouse-events/legacy',
+      title: '📜 Legacy Pattern',
+      description: 'Action Context + useState - Simple action dispatching with local state',
+      features: ['Action dispatching', 'useState hook', 'Component state', 'Simple structure'],
+      performance: 'Basic',
+      complexity: 'Simple',
       color: 'purple'
     },
     {
-      path: '/actionguard/mouse-events/legacy',
-      title: '📜 Legacy Implementation',
-      description: 'Original implementation with React state management',
-      features: ['React state', 'Traditional hooks', 'Component-based', 'Simple structure'],
-      performance: 'Basic',
-      complexity: 'Simple',
-      color: 'gray'
+      path: '/actionguard/mouse-events/reactive',
+      title: '🔔 Reactive Pattern',
+      description: 'MVVM + Store Context + useStoreValue - Traditional React rendering with Store subscriptions',
+      features: ['Store subscriptions', 'React re-renders', 'MVVM architecture', 'Reactive updates'],
+      performance: 'Very Good',
+      complexity: 'Advanced',
+      color: 'purple'
+    },
+    {
+      path: '/actionguard/mouse-events/non-reactive',
+      title: '🚀 Non-Reactive Pattern',
+      description: 'MVVM + Store Context + RefContext - Zero React re-renders with direct DOM manipulation',
+      features: ['Zero re-renders', 'Direct DOM', 'RefContext optimization', 'Maximum performance'],
+      performance: 'Excellent',
+      complexity: 'Advanced',
+      color: 'green'
     }
   ];
 
@@ -57,10 +48,11 @@ export function MouseEventsIndexPage() {
     >
       <div className="page-container">
         <header className="page-header">
-          <h1>🖱️ Mouse Events Implementations</h1>
+          <h1>🖱️ Mouse Events Architecture Patterns</h1>
           <p className="page-description">
-            Explore different approaches to mouse event handling with varying optimization strategies.
-            Each implementation showcases different architectural patterns and performance techniques.
+            Compare three distinct architectural patterns for mouse event handling: Legacy (Action Context), 
+            Reactive (Store subscriptions), and Non-Reactive (RefContext optimization). Each demonstrates 
+            different trade-offs between simplicity, reactivity, and performance.
           </p>
         </header>
 
@@ -111,28 +103,38 @@ export function MouseEventsIndexPage() {
 
         <div className="mt-8 bg-gray-50 border border-gray-200 rounded-lg p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            🎯 Performance Comparison Guide
+            🎯 Architecture Pattern Comparison
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-            <div className="bg-emerald-100 p-3 rounded-lg">
-              <h3 className="font-semibold text-emerald-800 mb-1">Excellent</h3>
-              <p className="text-emerald-700">Zero React re-renders, hardware acceleration, 60fps+</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="bg-purple-100 p-4 rounded-lg">
+              <h3 className="font-semibold text-purple-800 mb-2">📜 Legacy Pattern</h3>
+              <div className="space-y-2 text-purple-700">
+                <p><strong>Architecture:</strong> Action Context + useState</p>
+                <p><strong>Performance:</strong> Basic (frequent re-renders)</p>
+                <p><strong>Complexity:</strong> Simple</p>
+                <p><strong>Best for:</strong> Learning, prototyping</p>
+              </div>
             </div>
             
-            <div className="bg-blue-100 p-3 rounded-lg">
-              <h3 className="font-semibold text-blue-800 mb-1">Very Good</h3>
-              <p className="text-blue-700">Optimized subscriptions, selective updates, good performance</p>
+            <div className="bg-purple-100 p-4 rounded-lg">
+              <h3 className="font-semibold text-purple-800 mb-2">🔔 Reactive Pattern</h3>
+              <div className="space-y-2 text-purple-700">
+                <p><strong>Architecture:</strong> MVVM + Store + useStoreValue</p>
+                <p><strong>Performance:</strong> Very Good (optimized subscriptions)</p>
+                <p><strong>Complexity:</strong> Advanced</p>
+                <p><strong>Best for:</strong> Production, complex state</p>
+              </div>
             </div>
             
-            <div className="bg-purple-100 p-3 rounded-lg">
-              <h3 className="font-semibold text-purple-800 mb-1">Good</h3>
-              <p className="text-purple-700">Decent optimization, some re-renders, acceptable performance</p>
-            </div>
-            
-            <div className="bg-gray-100 p-3 rounded-lg">
-              <h3 className="font-semibold text-gray-800 mb-1">Basic</h3>
-              <p className="text-gray-700">Traditional React patterns, frequent re-renders, simple approach</p>
+            <div className="bg-green-100 p-4 rounded-lg">
+              <h3 className="font-semibold text-green-800 mb-2">🚀 Non-Reactive Pattern</h3>
+              <div className="space-y-2 text-green-700">
+                <p><strong>Architecture:</strong> MVVM + Store + RefContext</p>
+                <p><strong>Performance:</strong> Excellent (zero re-renders)</p>
+                <p><strong>Complexity:</strong> Advanced</p>
+                <p><strong>Best for:</strong> High-frequency updates, animations</p>
+              </div>
             </div>
           </div>
         </div>

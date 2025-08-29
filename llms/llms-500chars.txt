@@ -1,0 +1,837 @@
+===================[ DOC: en/guide/abort.md ]===================
+# guide--abort
+
+Abort Mechanisms
+
+Stop pipeline execution when critical conditions are not met or errors occur.
+
+===================[ DOC: en/guide/advanced-features.md ]===================
+# guide--advanced-features
+
+Advanced Pipeline Features
+
+Comprehensive guide to the advanced capabilities of the Context-Action pipeline engine for sophisticated business logic orchestration. Overview
+
+The Context-Action pipeline engine provides enterprise-grade features for complex application scenarios. These advanced features enable sophisticated workflows, conditional execution, performance monitoring, and runtime introspection.
+
+===================[ DOC: en/guide/advanced-patterns.md ]===================
+# guide--advanced-patterns
+
+Advanced Action Patterns
+
+Overview of advanced action patterns in the Context-Action framework built on multi-context setup foundations. Prerequisites
+
+This guide builds on the complete multi-context setup patterns.
+
+===================[ DOC: en/guide/basic-action-setup.md ]===================
+# guide--basic-action-setup
+
+Basic Action Setup
+
+Shared action context setup patterns for the Context-Action framework. Import
+
+Type Definitions
+
+Common Action Patterns
+
+Extended Action Interface
+
+Context Creation Patterns
+
+Single Domain Context
+
+Multi-Domain Context Setup
+
+Provider Setup Patterns
+
+Single Provider Setup
+
+Multiple Provider Setup
+
+Conditional Provider Setup
+
+Export Patterns
+
+Named Exports (Recommended)
+
+Barrel Exports
+
+Context Bundle Exports
+
+Best Practices
+
+Type Organization
+1.
+
+===================[ DOC: en/guide/basic-store-setup.md ]===================
+# guide--basic-store-setup
+
+Basic Store Setup
+
+Shared store context setup patterns for the Context-Action framework.
+
+===================[ DOC: en/guide/basic-usage.md ]===================
+# guide--basic-usage
+
+Action Basic Usage
+
+Fundamental Action Only pattern with type-safe dispatching and handler registration. Import
+
+Features
+- ✅ Type-safe action dispatching
+- ✅ Action handler registration
+- ✅ Abort support
+- ✅ Result handling
+- ✅ Lightweight (no store overhead)
+
+Prerequisites
+
+Required Setup: Complete the following setup before using this pattern:
+
+1. Type Definitions - Define your action interfaces using the standard patterns
+2.
+
+===================[ DOC: en/guide/best-practices.md ]===================
+# guide--best-practices
+
+Best Practices
+
+Follow these conventions and best practices when using the Context-Action framework. 
+
+Naming Conventions
+
+Domain-Based Renaming Pattern
+
+The core convention is domain-specific renaming for clear context separation.
+
+===================[ DOC: en/guide/blocking.md ]===================
+# guide--blocking
+
+Blocking Operations
+
+Control pipeline execution flow with blocking and non-blocking handler configurations.
+
+===================[ DOC: en/guide/canvas-optimization.md ]===================
+# guide--canvas-optimization
+
+Canvas Performance Optimization
+
+High-performance Canvas patterns with RefContext for 60fps+ interactions. Prerequisites
+
+Required Setup: Before using these Canvas optimization patterns, you need to set up RefContext with Canvas types. Setup Reference: RefContext Setup Guide - See "Canvas and Graphics Refs" section for complete type definitions and provider setup patterns. 🎨 Live Example
+
+→ Try the Canvas Demo
+
+Experience the optimized Canvas implementation in action.
+
+===================[ DOC: en/guide/code-patterns.md ]===================
+# guide--code-patterns
+
+Code Patterns
+
+Core patterns for Context-Action framework's RefContext and useWaitForRefs functionality.
+
+===================[ DOC: en/guide/composition.md ]===================
+# guide--composition
+
+Pattern Composition
+
+For complex applications, compose all three patterns for maximum flexibility and separation of concerns.
+
+===================[ DOC: en/guide/conditional-await.md ]===================
+# guide--conditional-await
+
+Conditional Await Pattern
+
+Core behavior of useWaitForRefs that conditionally waits or returns immediately.
+
+===================[ DOC: en/guide/conditional-execution.md ]===================
+# guide--conditional-execution
+
+Conditional & Dynamic Execution
+
+Advanced conditional execution patterns for Context-Action pipelines with environment-based filtering, feature flags, and dynamic business rules. Core Principles
+
+Conditional Execution enables sophisticated business logic where handlers execute based on runtime conditions. The framework provides four primary conditional patterns:
+
+1. Environment-Based Execution - Different handlers per deployment environment
+2.
+
+===================[ DOC: en/guide/context-splitting.md ]===================
+# guide--context-splitting
+
+Context Splitting Patterns
+
+Strategies for splitting and managing large contexts when applications grow complex and context providers become unwieldy. When to Split Contexts
+
+Signs You Need Context Splitting
+
+1. Provider Hierarchy Depth - More than 5-7 nested providers
+2. Store Complexity - Single context managing 10+ different store types
+3. Action Overload - 15+ different action types in one context
+4. Team Boundaries - Different teams working on the same context
+5.
+
+===================[ DOC: en/guide/debug-store-types.md ]===================
+# guide--debug-store-types
+
+Debug Store Types Proposal
+
+Proposed type definitions and store patterns for advanced debugging capabilities in the Context-Action framework. 📋 Proposal Overview
+
+This document proposes new type definitions and store patterns to support comprehensive debugging functionality, including state monitoring, error tracking, and performance analysis.
+
+===================[ DOC: en/guide/dispatch.md ]===================
+# guide--dispatch
+
+Dispatch Methods
+
+Different ways to trigger action pipelines with varying levels of control and result collection.
+
+===================[ DOC: en/guide/dispatch-access.md ]===================
+# guide--dispatch-access
+
+Dispatch Access Patterns
+
+Two main approaches for accessing action dispatch functionality in the Context-Action framework: register-based access and hook-based access. Import
+
+Prerequisites
+
+For complete setup instructions including type definitions, context creation, and provider configuration, see Basic Action Setup.
+
+===================[ DOC: en/guide/dispatch-patterns.md ]===================
+# guide--dispatch-patterns
+
+Dispatch Patterns
+
+Core action dispatching patterns for the Context-Action framework, including execution modes, filtering, and performance optimization. Import
+
+Prerequisites
+
+For complete setup instructions including type definitions, context creation, and provider configuration, see Basic Action Setup.
+
+===================[ DOC: en/guide/dispatch-with-result.md ]===================
+# guide--dispatch-with-result
+
+Dispatch with Result Patterns
+
+Advanced result collection and processing patterns for the Context-Action framework. Prerequisites
+
+For complete setup instructions including type definitions, context creation, and provider configuration, see Basic Action Setup.
+
+===================[ DOC: en/guide/domain-context.md ]===================
+# guide--domain-context
+
+Domain Context Architecture
+
+The Context-Action framework implements document-centric context separation for perfect domain isolation and effective artifact management. This is the recommended approach for multi-domain applications and large teams.
+
+===================[ DOC: en/guide/flow-control.md ]===================
+# guide--flow-control
+
+Pipeline Flow Control
+
+Advanced flow control mechanisms for Context-Action pipeline execution, enabling dynamic pipeline management and conditional execution paths. Overview
+
+Pipeline flow control provides sophisticated mechanisms to alter the normal sequential execution of handlers. These features enable complex business logic patterns, conditional processing, and early termination scenarios.
+
+===================[ DOC: en/guide/getting-started.md ]===================
+# guide--getting-started
+
+Getting Started
+
+Context-Action provides three main patterns for building scalable React applications with perfect separation of concerns.
+
+===================[ DOC: en/guide/handler-state-access.md ]===================
+# guide--handler-state-access
+
+Action Handler State Access Patterns
+
+Advanced patterns for accessing and managing state within action handlers, including critical best practices to avoid common pitfalls. Import
+
+Prerequisites
+
+🎯 스펙 재사용: For complete action handler setup patterns, see Basic Action Setup.
+
+===================[ DOC: en/guide/hardware-acceleration.md ]===================
+# guide--hardware-acceleration
+
+Hardware Acceleration with RefContext
+
+GPU-accelerated DOM manipulation patterns for 60fps+ performance. Prerequisites
+
+Before using hardware acceleration patterns, set up RefContext with GPU and performance references:
+
+Required Setup: RefContext Setup - Configure GPURefs, WASMRefs, and WorkerRefs
+
+Hardware Acceleration Fundamentals
+
+RefContext enables direct DOM manipulation that can leverage GPU acceleration for smooth, high-performance interactions.
+
+===================[ DOC: en/guide/hooks.md ]===================
+# guide--hooks
+
+React Hooks
+
+Context-Action provides React hooks for action dispatching and store management. This guide covers how to use the hooks with API examples and usage patterns. Related Guides
+
+- 🔄 Hooks Lifecycle - How hooks work internally (lifecycle, cleanup, performance)
+- 📚 Hooks Reference - Complete catalog of all available hooks
+- ✅ Best Practices - Coding patterns and conventions
+
+Essential Hooks
+
+These are the core hooks you'll use most frequently.
+
+===================[ DOC: en/guide/hooks-lifecycle.md ]===================
+# guide--hooks-lifecycle
+
+Hooks Lifecycle
+
+Context-Action React hooks follow specific lifecycle patterns to ensure proper resource management, memory cleanup, and optimal performance. This guide explains how hooks work internally - their lifecycle, cleanup mechanisms, and performance characteristics.
+
+===================[ DOC: en/guide/index.md ]===================
+# guide--index
+
+Code Patterns
+
+Collection of essential patterns for the Context-Action framework, focusing on RefContext and useWaitForRefs functionality. Core Patterns
+
+RefContext Setup
+Basic setup pattern for RefContext with proper TypeScript types and provider integration. Conditional Await
+Core behavior of useWaitForRefs that conditionally waits or returns immediately based on element mount state. Wait-Then-Execute
+Pattern for safely executing DOM operations after ensuring element availability.
+
+===================[ DOC: en/guide/introspection.md ]===================
+# guide--introspection
+
+Handler Introspection & Metadata
+
+Runtime discovery and analysis of registered handlers with comprehensive metadata support for debugging, monitoring, and system analysis. Overview
+
+Handler introspection provides powerful capabilities to examine registered handlers at runtime, analyze their configuration, and gather detailed statistics about handler execution and performance.
+
+===================[ DOC: en/guide/llms-priority-management.md ]===================
+# guide--llms-priority-management
+
+Priority Management System
+
+The Priority Management System provides automated tools for analyzing, maintaining, and optimizing documentation priorities in the LLMS Generator framework.
+
+===================[ DOC: en/guide/memory-optimization.md ]===================
+# guide--memory-optimization
+
+Memory Optimization with RefContext
+
+Memory-efficient patterns and techniques for optimal RefContext performance.
+
+===================[ DOC: en/guide/multi-context.md ]===================
+# guide--multi-context
+
+Multi-Context RefContext Architecture
+
+Multiple RefContext composition for complex applications with separated concerns. Prerequisites
+
+For RefContext setup patterns and multi-domain configuration, see RefContext Setup. For provider composition patterns, see Provider Composition Setup. Overview
+
+Multi-RefContext architecture allows you to separate different types of DOM manipulations into isolated contexts, providing better organization and performance for complex applications.
+
+===================[ DOC: en/guide/multi-context-setup.md ]===================
+# guide--multi-context-setup
+
+Multi-Context Setup
+
+Complex architecture setup patterns combining multiple contexts for large-scale applications.
+
+===================[ DOC: en/guide/mvvm.md ]===================
+# guide--mvvm
+
+MVVM Architecture
+
+The Context-Action framework implements a modern MVVM (Model-View-ViewModel) architecture using the three core patterns. This is the recommended approach for complex applications requiring perfect separation of concerns.
+
+===================[ DOC: en/guide/optimization-techniques.md ]===================
+# guide--optimization-techniques
+
+Performance Optimization Techniques
+
+Comprehensive performance optimization patterns and techniques for the Context-Action framework. Prerequisites
+
+For setup patterns used in these optimizations, see:
+- Basic Store Setup - Store performance configurations
+- Basic Action Setup - Action optimization patterns
+- RefContext Setup - DOM performance optimization
+- Provider Composition Setup - Provider optimization
+
+📋 Table of Contents
+
+1. Store Optimization
+2. Action Optimization
+3.
+
+===================[ DOC: en/guide/performance.md ]===================
+# guide--performance
+
+RefContext Performance Optimization
+
+Comprehensive performance patterns and optimization techniques for 60fps+ interactions.
+
+===================[ DOC: en/guide/performance-patterns.md ]===================
+# guide--performance-patterns
+
+Performance Patterns
+
+Performance optimization patterns for store hooks including memoization, batching, debugging, and best practices.
+
+===================[ DOC: en/guide/priority.md ]===================
+# guide--priority
+
+Priority-Based Handler Execution
+
+Priority-based execution ensures handlers run in the correct order for proper business logic flow.
+
+===================[ DOC: en/guide/production-debugging.md ]===================
+# guide--production-debugging
+
+Production Debugging Migration Guide
+
+Suggestion-migration process for implementing advanced debugging patterns in Context-Action framework applications. Prerequisites
+
+Required Setup: This guide builds upon established setup patterns.
+
+===================[ DOC: en/guide/provider-composition-setup.md ]===================
+# guide--provider-composition-setup
+
+Provider Composition Setup
+
+Advanced provider composition utilities and patterns for managing multiple contexts in the Context-Action framework. Import
+
+Overview
+
+The composeProviders utility solves "Provider hell" by composing multiple Provider components into a single, clean component. This is essential for applications using multiple contexts (Store, Action, and RefContext).
+
+===================[ DOC: en/guide/real-time-state-access.md ]===================
+# guide--real-time-state-access
+
+Real-time State Access Pattern
+
+Pattern for avoiding closure traps by accessing current state in real-time. Prerequisites
+
+See Basic Store Setup for store context configuration and naming conventions.
+
+===================[ DOC: en/guide/ref-context-setup.md ]===================
+# guide--ref-context-setup
+
+RefContext Setup
+
+Shared RefContext setup patterns for direct DOM manipulation and singleton object management in the Context-Action framework.
+
+===================[ DOC: en/guide/register-delegation.md ]===================
+# guide--register-delegation
+
+Register Delegation Pattern
+
+Advanced pattern for organizing action handlers in separate modules using external functions and useActionRegister() hook. Import
+
+Features
+- ✅ Modular handler organization
+- ✅ External function delegation
+- ✅ Team-based development support
+- ✅ Plugin architecture enablement
+- ✅ Cleanup management
+
+Prerequisites
+
+🎯 스펙 재사용: For complete setup instructions including type definitions, context creation, and provider configuration, see Basic Action Setup.
+
+===================[ DOC: en/guide/register-patterns.md ]===================
+# guide--register-patterns
+
+Register Patterns
+
+Handler registration patterns and advanced configuration options for the Context-Action framework. Prerequisites
+
+This pattern guide assumes you have a basic action context setup. If not, refer to Basic Action Setup first. Import
+
+Setup Patterns
+
+Basic Action Context Setup
+
+Action Register Access
+
+Basic Handler Registration
+
+Register action handlers with type safety and configuration options.
+
+===================[ DOC: en/guide/result-handling.md ]===================
+# guide--result-handling
+
+Advanced Result Handling
+
+Sophisticated result collection, merging, and processing strategies for Context-Action pipelines, enabling complex data aggregation and transformation patterns.
+
+===================[ DOC: en/guide/singleton-handling.md ]===================
+# guide--singleton-handling
+
+Context Singleton Handling
+
+Context singleton management patterns using RefContext for lazy evaluation and proper lifecycle control in the Context-Action framework.
+
+===================[ DOC: en/guide/store-configuration.md ]===================
+# guide--store-configuration
+
+Store Configuration
+
+Performance optimization and custom comparison strategies for complex store scenarios. Prerequisites
+
+For basic store setup and configuration patterns, see Basic Store Setup.
+
+===================[ DOC: en/guide/test-sync-demo.md ]===================
+# guide--test-sync-demo
+
+Test Sync Demo (Final Version)
+
+This is the final version of the test document demonstrating complete sync-docs workflow with automatic synchronization. Overview
+
+This document has been modified to test:
+1. Priority JSON generation
+2. Template creation  
+3. Documentation synchronization
+4.
+
+===================[ DOC: en/guide/timeout-protection.md ]===================
+# guide--timeout-protection
+
+Timeout Protection Pattern
+
+Pattern for protecting against infinite waits with timeout mechanisms in RefContext operations.
+
+===================[ DOC: en/guide/type-system.md ]===================
+# guide--type-system
+
+Action Type System
+
+Complete guide to the Context-Action framework's type system for actions, including ActionPayloadMap, type safety, and TypeScript integration. Prerequisites
+
+For action type definitions and context setup, see Basic Action Setup.
+
+===================[ DOC: en/guide/useComputedStore-patterns.md ]===================
+# guide--useComputedStore-patterns
+
+useComputedStore Patterns
+
+Computed value patterns using useComputedStore for derived state, performance optimization, and reactive calculations. Import
+
+Prerequisites
+
+For complete setup instructions including store definitions, context creation, and provider configuration, see Basic Store Setup.
+
+===================[ DOC: en/guide/useStoreManager-api.md ]===================
+# guide--useStoreManager-api
+
+useStoreManager API
+
+The useStoreManager hook provides low-level access to the internal StoreManager instance for advanced store management scenarios in the Declarative Store Pattern. Prerequisites
+
+For basic store setup and context creation, see Basic Store Setup.
+
+===================[ DOC: en/guide/useStoreSelector-patterns.md ]===================
+# guide--useStoreSelector-patterns
+
+useStoreSelector Patterns
+
+Advanced store selection patterns with useStoreSelector for selective subscription and performance optimization. Prerequisites
+
+This guide builds upon the Setup specification.
+
+===================[ DOC: en/guide/useStoreValue-patterns.md ]===================
+# guide--useStoreValue-patterns
+
+useStoreValue Patterns
+
+Core useStoreValue patterns for subscribing to store changes with selective updates, conditional subscriptions, and comparison strategies. Prerequisites
+
+This guide uses store contexts from the Basic Store Setup guide.
+
+===================[ DOC: en/guide/wait-then-execute.md ]===================
+# guide--wait-then-execute
+
+Wait-Then-Execute Pattern
+
+Pattern for safely executing DOM operations after ensuring element availability. Prerequisites
+
+Required Setup: For complete RefContext setup instructions including type definitions, DOM element refs, and provider configuration, see RefContext Setup.
+
+===================[ DOC: en/guide/withProvider-pattern.md ]===================
+# guide--withProvider-pattern
+
+withProvider Pattern
+
+Higher-Order Component pattern using withProvider for automatic Provider wrapping in Store Only pattern. Prerequisites
+
+Before using this pattern, you need to set up your store contexts.
+
+===================[ DOC: en/index.md/index.md ]===================
+# index.md--index
+
+Context-Action Framework Documentation - 500 character summary
+
+===================[ DOC: en/concept/action-pipeline-guide.md ]===================
+# concept--action-pipeline-guide
+
+Action Pipeline Guide: ActionPayloadMap & ActionRegister
+
+Complete guide to building type-safe action pipelines with Context-Action framework.
+
+===================[ DOC: en/concept/architecture-guide.md ]===================
+# concept--architecture-guide
+
+Context-Action Store Integration Architecture
+
+1. Overview & Core Concepts
+
+What is Context-Action Architecture. The Context-Action framework is a revolutionary state management system designed to overcome the fundamental limitations of existing libraries through document-centric context separation and effective artifact management.
+
+===================[ DOC: en/concept/conventions.md ]===================
+# concept--conventions
+
+Context-Action Framework Conventions
+
+This document defines coding conventions and best practices when using the Context-Action framework with its three core patterns: Actions, Stores, and RefContext. 📋 Table of Contents
+
+1. Naming Conventions
+2. File Structure
+3. Pattern Usage
+4. Type Definitions
+5. Code Style
+6. Performance Guidelines
+7. Error Handling
+8.
+
+===================[ DOC: en/concept/hooks-reference.md ]===================
+# concept--hooks-reference
+
+Context-Action React Hooks Reference
+
+This document categorizes all available React hooks in the Context-Action framework into Essential Hooks (core functionality) and Utility Hooks (convenience and optimization). 📋 Table of Contents
+
+1. Essential Hooks
+2. Utility Hooks
+3. Hook Categories
+4. Usage Guidelines
+
+Essential Hooks
+
+These hooks are fundamental to using the Context-Action framework. Most applications will need these.
+
+===================[ DOC: en/concept/pattern-guide.md ]===================
+# concept--pattern-guide
+
+@context-action/react Pattern Guide
+
+Complete guide to the three main patterns available in @context-action/react framework.
+
+===================[ DOC: en/concept/react-refs-guide.md ]===================
+# concept--react-refs-guide
+
+React Refs Management Guide
+
+This guide covers the React Refs Management System in the Context-Action framework - a simple and safe reference management system designed for managing DOM elements, custom objects, and complex component references with type safety and lifecycle management. > ⚠️ Important: Always use createRefContext() for ref management. Direct RefStore instantiation is discouraged and only intended for internal framework use.
+
+===================[ DOC: en/architecture-guide.md ]===================
+# en_concept_architecture-guide
+
+Context-Action Store Integration Architecture
+
+Context-Action Store Integration Architecture 1. Overview & Core Concepts What is Context-Action Architecture? The...
+
+===================[ DOC: en/mvvm-core-architecture.md ]===================
+# en_concept_mvvm-core-architecture
+
+Context-Action MVVM Core Architecture
+
+Context-Action MVVM Core Architecture Practical MVVM Implementation Guide for Prompt-Based Development 🎯 Architecture...
+
+===================[ DOC: en/troubleshooting.md ]===================
+# en_guide_troubleshooting
+
+Troubleshooting Guide
+
+Troubleshooting Guide Common issues and solutions for the Context-Action framework. 🔧 Common Framework Issues Memory Leak Issues Event Object Storage
+
+Key...
+
+===================[ DOC: en/example/action-only.md ]===================
+# examples--action-only
+
+Action Only Pattern Example
+
+This example demonstrates the Action Only Pattern for pure action dispatching without state management, ideal for event systems, command patterns, and business logic orchestration. Use Cases
+
+- Event tracking and analytics
+- Command patterns and business logic
+- Cross-component communication
+- Side effects and API calls
+- User interaction handling
+
+Complete Example
+
+1. Define Action Types
+
+2. Create Action Context
+
+3. Event Handler Components
+
+4.
+
+===================[ DOC: en/example/basic-setup.md ]===================
+# examples--basic-setup
+
+Basic Setup
+
+This example shows the fundamental setup of Context-Action framework with both Action Only and Store Only patterns.
+
+===================[ DOC: en/example/CODE_STRUCTURE_GUIDE.md ]===================
+# examples--CODE_STRUCTURE_GUIDE
+
+Code Structure Guide
+
+일관된 코드 구조 표준
+
+페이지 구조 패턴
+
+기본 페이지 구조
+
+명명 규칙
+
+파일 명명
+- 페이지: [PageName]Page.tsx (PascalCase + Page 접미사)
+- 컴포넌트: [ComponentName].tsx (PascalCase)
+- 훅: use[HookName].ts (camelCase + use 접두사)
+- 컨텍스트: [ContextName]Context.tsx (PascalCase + Context 접미사)
+- 타입: [TypeName].ts (PascalCase)
+
+디렉토리 명명
+- 도메인 디렉토리: kebab-case (예: action-guard, store-patterns)
+- 기능별 디렉토리: 복수형 사용 (components, hooks, contexts, types)
+
+컴포넌트 구조 표준
+
+페이지 컴포넌트 템플릿
+
+Import 순서 표준
+
+코드 스타일 가이드
+
+컴포넌트 선언
+
+Props 인...
+
+===================[ DOC: en/example/element-management.md ]===================
+# examples--element-management
+
+DOM Element Management
+
+Advanced example demonstrating comprehensive DOM element management using the Context-Action framework. Overview
+
+This example showcases how to effectively manage DOM elements in both React and Core packages using Context-Action's Action Pipeline and Store Pattern.
+
+===================[ DOC: en/example/IMPLEMENTATION_GUIDE.md ]===================
+# examples--IMPLEMENTATION_GUIDE
+
+Implementation Guide - Domain-Driven Architecture
+
+This guide provides practical steps for implementing the Context-Action framework's modular architecture. Quick Start Checklist
+
+1. Domain Structure Setup
+
+2.
+
+===================[ DOC: en/example/pattern-composition.md ]===================
+# examples--pattern-composition
+
+Pattern Composition Example
+
+This example demonstrates how to combine Action Only and Store Only patterns for complex applications with complete separation of concerns following MVVM architecture. Architecture Overview
+
+Complete Application Example
+
+1. Action Type Definitions
+
+2. Store Configuration
+
+3. Create Contexts
+
+4. Action Handler Components
+
+5. System Action Handlers
+
+6. Main Application Component
+
+7. Dashboard Component
+
+8. Modal System
+
+9. Performance Monitor
+
+10.
+
+===================[ DOC: en/example/README.md ]===================
+# examples--README
+
+Context-Action Example Architecture
+
+Architecture Overview
+
+This example application demonstrates the Context-Action framework following a Document-Centric Domain Architecture with clear separation of concerns based on MVVM principles. Core Architecture Principles
+
+1.
+
+===================[ DOC: en/example/REORGANIZATION_SUMMARY.md ]===================
+# examples--REORGANIZATION_SUMMARY
+
+Code Structure Reorganization Summary
+
+📊 Project Overview
+
+This document summarizes the comprehensive code structure reorganization performed on the Context-Action framework example application. The reorganization follows domain-driven design principles and establishes consistent patterns across all components. 🎯 Goals Achieved
+
+✅ 1.
+
+===================[ DOC: en/example/store-only.md ]===================
+# examples--store-only
+
+Store Only Pattern Example
+
+This example demonstrates the Store Only Pattern for pure state management without action dispatching, ideal for data layers, application state, and reactive data flows. Use Cases
+
+- Application state management
+- Form state and UI state
+- Data caching and persistence
+- Derived state and computed values
+- Component-level state management
+
+Complete Example
+
+1. Define Store Configuration
+
+2. Create Store Pattern
+
+3. Profile Management Component
+
+4.
+
+===================[ DOC: en/concept/mvvm-core-architecture.md ]===================
+# concept--mvvm-core-architecture
+
+concept--mvvm-core-architecture - 500 character summary
+
+===================[ DOC: en/concept/redux-comparison.md ]===================
+# concept--redux-comparison
+
+concept--redux-comparison - 500 character summary
+
+===================[ DOC: en/guide/troubleshooting.md ]===================
+# guide--troubleshooting
+
+guide--troubleshooting - 500 character summary

@@ -1,0 +1,1634 @@
+# Documentation
+
+## Complete Documentation Content
+
+===================[ DOC: en/concept/pattern-guide.md ]===================
+## @context-action/react Pattern Guide
+*Source: [en/concept/pattern-guide.md](en/concept/pattern-guide.md) | Category: concept | Priority: 95 | Characters: 100*
+
+@context-action/react Pattern Guide
+
+Complete guide to the three main patterns available in @cont...
+
+
+===================[ DOC: en/concept/pattern-guide.md ]===================
+## @context-action/react Pattern Guide
+*Source: [en/concept/pattern-guide.md](en/concept/pattern-guide.md) | Category: concept | Priority: 95 | Characters: 968*
+
+@context-action/react Pattern Guide
+
+Complete guide to the three main patterns available in @context-action/react framework.
+
+**Note**: This guide has been moved to the [Patterns section](../guide/patterns/index.md) for better organization.
+
+📋 Quick Reference
+
+Choose the right pattern for your use case:
+
+| Pattern | Use Case | Import | Best For |
+|---------|----------|--------|----------|
+| **🎯 Action Only** | Action dispatching without stores | `createActionContext` | Event systems, command patterns |
+| **🏪 Store Only** | State management without actions | `createStoreContext` | Pure state management, data layers |
+| **🔧 Ref Context** | Direct DOM manipulation with zero re-renders | `createRefContext` | High-performance UI, animations, real-time interactions |
+
+**For complex applications, compose patterns together for maximum flexibility and separation of concerns.**
+
+📚 Detailed Documentation
+
+Core Framework Patterns
+- **[🎯 Action Only Pattern](..
+
+
+===================[ DOC: en/concept/pattern-guide.md ]===================
+## @context-action/react Pattern Guide
+*Source: [en/concept/pattern-guide.md](en/concept/pattern-guide.md) | Category: concept | Priority: 95 | Characters: 190*
+
+@context-action/react Pattern Guide
+
+Complete guide to the three main patterns available in @context-action/react framework.
+
+**Note**: This guide has been moved to the [Patterns section](..
+
+
+===================[ DOC: en/concept/pattern-guide.md ]===================
+## @context-action/react Pattern Guide
+*Source: [en/concept/pattern-guide.md](en/concept/pattern-guide.md) | Category: concept | Priority: 95 | Characters: 1967*
+
+@context-action/react Pattern Guide
+
+Complete guide to the three main patterns available in @context-action/react framework.
+
+**Note**: This guide has been moved to the [Patterns section](../guide/patterns/index.md) for better organization.
+
+📋 Quick Reference
+
+Choose the right pattern for your use case:
+
+| Pattern | Use Case | Import | Best For |
+|---------|----------|--------|----------|
+| **🎯 Action Only** | Action dispatching without stores | `createActionContext` | Event systems, command patterns |
+| **🏪 Store Only** | State management without actions | `createStoreContext` | Pure state management, data layers |
+| **🔧 Ref Context** | Direct DOM manipulation with zero re-renders | `createRefContext` | High-performance UI, animations, real-time interactions |
+
+**For complex applications, compose patterns together for maximum flexibility and separation of concerns.**
+
+📚 Detailed Documentation
+
+Core Framework Patterns
+- **[🎯 Action Only Pattern](../guide/patterns/action-only-pattern.md)** - Pure action dispatching without state management
+- **[🏪 Store Only Pattern](../guide/patterns/store-only-pattern.md)** - Type-safe state management without actions (Recommended)
+- **[🔧 Ref Context Pattern](../guide/patterns/ref-context-pattern.md)** - Direct DOM manipulation with zero re-renders
+
+Advanced Patterns
+- **[Pattern Composition](../guide/patterns/pattern-composition.md)** - Combining all three patterns for complex applications
+- **[Domain Context Architecture](../guide/patterns/domain-context-architecture.md)** - Document-centric context separation
+- **[MVVM Architecture](../guide/patterns/mvvm-architecture.md)** - Modern Model-View-ViewModel implementation
+
+Implementation Patterns
+- **[Real-time State Access](../guide/patterns/real-time-state-access.md)** - Patterns for accessing real-time state
+- **[Ref Context Setup](../guide/patterns/ref-context-setup.md)** - High-performance DOM manipulation setup
+- **[Wait Then Execute](..
+
+
+===================[ DOC: en/concept/pattern-guide.md ]===================
+## @context-action/react Pattern Guide
+*Source: [en/concept/pattern-guide.md](en/concept/pattern-guide.md) | Category: concept | Priority: 95 | Characters: 240*
+
+@context-action/react Pattern Guide
+
+Complete guide to the three main patterns available in @context-action/react framework.
+
+**Note**: This guide has been moved to the [Patterns section](../guide/patterns/index.md) for better organization.
+
+
+===================[ DOC: en/concept/pattern-guide.md ]===================
+## @context-action/react Pattern Guide
+*Source: [en/concept/pattern-guide.md](en/concept/pattern-guide.md) | Category: concept | Priority: 95 | Characters: 500*
+
+@context-action/react Pattern Guide
+
+Complete guide to the three main patterns available in @context-action/react framework.
+
+**Note**: This guide has been moved to the [Patterns section](../guide/patterns/index.md) for better organization.
+
+📋 Quick Reference
+
+Choose the right pattern for your use case:
+
+| Pattern | Use Case | Import | Best For |
+|---------|----------|--------|----------|
+| **🎯 Action Only** | Action dispatching without stores | `createActionContext` | Event systems, comman...
+
+
+===================[ DOC: en/concept/pattern-guide.md ]===================
+## @context-action/react Pattern Guide
+*Source: [en/concept/pattern-guide.md](en/concept/pattern-guide.md) | Category: concept | Priority: 95 | Characters: 3329*
+
+@context-action/react Pattern Guide
+
+Complete guide to the three main patterns available in @context-action/react framework.
+
+**Note**: This guide has been moved to the [Patterns section](../guide/patterns/index.md) for better organization.
+
+📋 Quick Reference
+
+Choose the right pattern for your use case:
+
+| Pattern | Use Case | Import | Best For |
+|---------|----------|--------|----------|
+| **🎯 Action Only** | Action dispatching without stores | `createActionContext` | Event systems, command patterns |
+| **🏪 Store Only** | State management without actions | `createStoreContext` | Pure state management, data layers |
+| **🔧 Ref Context** | Direct DOM manipulation with zero re-renders | `createRefContext` | High-performance UI, animations, real-time interactions |
+
+**For complex applications, compose patterns together for maximum flexibility and separation of concerns.**
+
+📚 Detailed Documentation
+
+Core Framework Patterns
+- **[🎯 Action Only Pattern](../guide/patterns/action-only-pattern.md)** - Pure action dispatching without state management
+- **[🏪 Store Only Pattern](../guide/patterns/store-only-pattern.md)** - Type-safe state management without actions (Recommended)
+- **[🔧 Ref Context Pattern](../guide/patterns/ref-context-pattern.md)** - Direct DOM manipulation with zero re-renders
+
+Advanced Patterns
+- **[Pattern Composition](../guide/patterns/pattern-composition.md)** - Combining all three patterns for complex applications
+- **[Domain Context Architecture](../guide/patterns/domain-context-architecture.md)** - Document-centric context separation
+- **[MVVM Architecture](../guide/patterns/mvvm-architecture.md)** - Modern Model-View-ViewModel implementation
+
+Implementation Patterns
+- **[Real-time State Access](../guide/patterns/real-time-state-access.md)** - Patterns for accessing real-time state
+- **[Ref Context Setup](../guide/patterns/ref-context-setup.md)** - High-performance DOM manipulation setup
+- **[Wait Then Execute](../guide/patterns/wait-then-execute.md)** - Waiting and execution patterns
+- **[Conditional Await](../guide/patterns/conditional-await.md)** - Conditional waiting patterns
+- **[Timeout Protection](../guide/patterns/timeout-protection.md)** - Timeout protection in async operations
+
+Migration Guide
+
+From Legacy Action Context Pattern
+
+If you were using the removed `createActionContextPattern`, migrate to pattern composition:
+
+```tsx
+// ❌ Old (removed)
+// const UserContext = createActionContextPattern<UserActions>('User');
+
+// ✅ New (compose patterns with renaming)
+const { 
+  Provider: UserActionProvider, 
+  useActionDispatch: useUserAction,
+  useActionHandler: useUserActionHandler
+} = createActionContext<UserActions>('UserActions');
+
+const {
+  Provider: UserStoreProvider,
+  useStore: useUserStore,
+  useStoreManager: useUserStoreManager
+} = createStoreContext('UserStores', {
+  profile: { id: '', name: '', email: '' },
+  preferences: { theme: 'light' as const }
+});
+
+// Compose providers
+function App() {
+  return (
+    <UserActionProvider>
+      <UserStoreProvider>
+        <UserComponent />
+      </UserStoreProvider>
+    </UserActionProvider>
+  );
+}
+```
+
+🔍 Examples
+
+See the `examples/` directory for complete working examples of each pattern and the [Pattern Guide documentation](../guide/patterns/index.md) for comprehensive implementation details.
+
+
+===================[ DOC: en/concept/action-pipeline-guide.md ]===================
+## Action Pipeline Guide: ActionPayloadMap & ActionRegister
+*Source: [en/concept/action-pipeline-guide.md](en/concept/action-pipeline-guide.md) | Category: concept | Priority: 85 | Characters: 100*
+
+Action Pipeline Guide: ActionPayloadMap & ActionRegister
+
+Complete guide to building type-safe ac...
+
+
+===================[ DOC: en/concept/action-pipeline-guide.md ]===================
+## Action Pipeline Guide: ActionPayloadMap & ActionRegister
+*Source: [en/concept/action-pipeline-guide.md](en/concept/action-pipeline-guide.md) | Category: concept | Priority: 85 | Characters: 1000*
+
+Action Pipeline Guide: ActionPayloadMap & ActionRegister
+
+Complete guide to building type-safe action pipelines with Context-Action framework.
+
+Table of Contents
+
+- [Overview](#overview)
+- [ActionPayloadMap: Type Foundation](#actionpayloadmap-type-foundation)
+- [ActionRegister: Pipeline Engine](#actionregister-pipeline-engine)
+- [Handler Registration Patterns](#handler-registration-patterns)
+- [Pipeline Execution Strategies](#pipeline-execution-strategies)
+- [Advanced Pipeline Patterns](#advanced-pipeline-patterns)
+- [Real-world Examples](#real-world-examples)
+- [Best Practices](#best-practices)
+- [Troubleshooting](#troubleshooting)
+
+Overview
+
+The Context-Action framework's action pipeline system provides type-safe, scalable business logic management through two core components:
+
+- **ActionPayloadMap**: TypeScript interface defining action-to-payload type mappings
+- **ActionRegister**: Central pipeline engine managing handler registration and execution
+
+```typescript
+// The complete...
+
+
+===================[ DOC: en/concept/action-pipeline-guide.md ]===================
+## Action Pipeline Guide: ActionPayloadMap & ActionRegister
+*Source: [en/concept/action-pipeline-guide.md](en/concept/action-pipeline-guide.md) | Category: concept | Priority: 85 | Characters: 142*
+
+Action Pipeline Guide: ActionPayloadMap & ActionRegister
+
+Complete guide to building type-safe action pipelines with Context-Action framework.
+
+
+===================[ DOC: en/concept/action-pipeline-guide.md ]===================
+## Action Pipeline Guide: ActionPayloadMap & ActionRegister
+*Source: [en/concept/action-pipeline-guide.md](en/concept/action-pipeline-guide.md) | Category: concept | Priority: 85 | Characters: 1533*
+
+Action Pipeline Guide: ActionPayloadMap & ActionRegister
+
+Complete guide to building type-safe action pipelines with Context-Action framework.
+
+Table of Contents
+
+- [Overview](#overview)
+- [ActionPayloadMap: Type Foundation](#actionpayloadmap-type-foundation)
+- [ActionRegister: Pipeline Engine](#actionregister-pipeline-engine)
+- [Handler Registration Patterns](#handler-registration-patterns)
+- [Pipeline Execution Strategies](#pipeline-execution-strategies)
+- [Advanced Pipeline Patterns](#advanced-pipeline-patterns)
+- [Real-world Examples](#real-world-examples)
+- [Best Practices](#best-practices)
+- [Troubleshooting](#troubleshooting)
+
+Overview
+
+The Context-Action framework's action pipeline system provides type-safe, scalable business logic management through two core components:
+
+- **ActionPayloadMap**: TypeScript interface defining action-to-payload type mappings
+- **ActionRegister**: Central pipeline engine managing handler registration and execution
+
+```typescript
+// The complete pipeline flow
+ActionPayloadMap → ActionRegister → Handler Registration → Pipeline Execution
+```
+
+ActionPayloadMap: Type Foundation
+
+Basic Concept
+
+ActionPayloadMap is a TypeScript interface that maps action names to their payload types, providing compile-time type safety throughout the pipeline.
+
+```typescript
+import { ActionPayloadMap } from '@context-action/core';
+
+// Define your application's actions
+interface AppActions extends ActionPayloadMap {
+  // Action with object payload
+  updateUser: { id: string; name: string; email?
+
+
+===================[ DOC: en/concept/action-pipeline-guide.md ]===================
+## Action Pipeline Guide: ActionPayloadMap & ActionRegister
+*Source: [en/concept/action-pipeline-guide.md](en/concept/action-pipeline-guide.md) | Category: concept | Priority: 85 | Characters: 300*
+
+Action Pipeline Guide: ActionPayloadMap & ActionRegister
+
+Complete guide to building type-safe action pipelines with Context-Action framework.
+
+Table of Contents
+
+- [Overview](#overview)
+- [ActionPayloadMap: Type Foundation](#actionpayloadmap-type-foundation)
+- [ActionRegister: Pipeline Engine](#...
+
+
+===================[ DOC: en/concept/action-pipeline-guide.md ]===================
+## Action Pipeline Guide: ActionPayloadMap & ActionRegister
+*Source: [en/concept/action-pipeline-guide.md](en/concept/action-pipeline-guide.md) | Category: concept | Priority: 85 | Characters: 500*
+
+Action Pipeline Guide: ActionPayloadMap & ActionRegister
+
+Complete guide to building type-safe action pipelines with Context-Action framework.
+
+Table of Contents
+
+- [Overview](#overview)
+- [ActionPayloadMap: Type Foundation](#actionpayloadmap-type-foundation)
+- [ActionRegister: Pipeline Engine](#actionregister-pipeline-engine)
+- [Handler Registration Patterns](#handler-registration-patterns)
+- [Pipeline Execution Strategies](#pipeline-execution-strategies)
+- [Advanced Pipeline Patterns](#adva...
+
+
+===================[ DOC: en/concept/action-pipeline-guide.md ]===================
+## Action Pipeline Guide: ActionPayloadMap & ActionRegister
+*Source: [en/concept/action-pipeline-guide.md](en/concept/action-pipeline-guide.md) | Category: concept | Priority: 85 | Characters: 4945*
+
+Action Pipeline Guide: ActionPayloadMap & ActionRegister
+
+Complete guide to building type-safe action pipelines with Context-Action framework.
+
+Table of Contents
+
+- [Overview](#overview)
+- [ActionPayloadMap: Type Foundation](#actionpayloadmap-type-foundation)
+- [ActionRegister: Pipeline Engine](#actionregister-pipeline-engine)
+- [Handler Registration Patterns](#handler-registration-patterns)
+- [Pipeline Execution Strategies](#pipeline-execution-strategies)
+- [Advanced Pipeline Patterns](#advanced-pipeline-patterns)
+- [Real-world Examples](#real-world-examples)
+- [Best Practices](#best-practices)
+- [Troubleshooting](#troubleshooting)
+
+Overview
+
+The Context-Action framework's action pipeline system provides type-safe, scalable business logic management through two core components:
+
+- **ActionPayloadMap**: TypeScript interface defining action-to-payload type mappings
+- **ActionRegister**: Central pipeline engine managing handler registration and execution
+
+```typescript
+// The complete pipeline flow
+ActionPayloadMap → ActionRegister → Handler Registration → Pipeline Execution
+```
+
+ActionPayloadMap: Type Foundation
+
+Basic Concept
+
+ActionPayloadMap is a TypeScript interface that maps action names to their payload types, providing compile-time type safety throughout the pipeline.
+
+```typescript
+import { ActionPayloadMap } from '@context-action/core';
+
+// Define your application's actions
+interface AppActions extends ActionPayloadMap {
+  // Action with object payload
+  updateUser: { id: string; name: string; email?: string };
+  
+  // Action with primitive payload
+  setTheme: 'light' | 'dark';
+  
+  // Action without payload
+  logout: void;
+  
+  // Action with complex payload
+  submitOrder: {
+    items: Array<{ id: string; quantity: number; price: number }>;
+    shipping: { address: string; method: 'standard' | 'express' };
+    payment: { method: 'card' | 'paypal'; token: string };
+  };
+  
+  // Action with union types
+  showNotification: {
+    type: 'success' | 'error' | 'warning' | 'info';
+    message: string;
+    duration?: number;
+  };
+}
+```
+
+Advanced Type Patterns
+
+Generic Payload Types
+
+```typescript
+interface CrudActions<T> extends ActionPayloadMap {
+  create: T;
+  update: { id: string } & Partial<T>;
+  delete: { id: string };
+  fetch: { id: string };
+  list: { 
+    filters?: Record<string, any>;
+    pagination?: { page: number; limit: number };
+  };
+}
+
+// Usage with specific types
+interface UserActions extends CrudActions<User> {
+  // Inherits: create: User, update: { id: string } & Partial<User>, etc.
+  
+  // Additional user-specific actions
+  changePassword: { oldPassword: string; newPassword: string };
+  uploadAvatar: { file: File };
+}
+```
+
+Conditional Payload Types
+
+```typescript
+interface ConditionalActions extends ActionPayloadMap {
+  // Payload type depends on mode
+  saveData: {
+    mode: 'auto';
+  } | {
+    mode: 'manual';
+    data: any;
+    validation: boolean;
+  };
+  
+  // Optional payload based on context
+  refresh: {
+    force?: boolean;
+    scope?: 'all' | 'current' | string[];
+  } | void;
+}
+```
+
+Type Safety Benefits
+
+1. **Compile-time Validation**: TypeScript ensures correct payload types
+2. **IntelliSense Support**: Auto-completion for action names and payload properties
+3. **Refactoring Safety**: Renaming actions or changing payload structure is type-checked
+4. **Documentation**: Types serve as living documentation of your API
+
+ActionRegister: Pipeline Engine
+
+Core Architecture
+
+ActionRegister is the central orchestrator that manages the action pipeline lifecycle:
+
+```typescript
+import { ActionRegister, ActionRegisterConfig } from '@context-action/core';
+
+// Create typed ActionRegister
+const actionRegister = new ActionRegister<AppActions>({
+  name: 'AppActionRegister',
+  registry: {
+    debug: true,
+    autoCleanup: true,
+    maxHandlers: 50,
+    defaultExecutionMode: 'sequential'
+  }
+});
+```
+
+Configuration Options
+
+```typescript
+interface ActionRegisterConfig {
+  /** Name identifier for this ActionRegister instance */
+  name?: string;
+  
+  /** Registry-specific configuration options */
+  registry?: {
+    /** Debug mode for registry operations */
+    debug?: boolean;
+    
+    /** Auto-cleanup configuration for one-time handlers */
+    autoCleanup?: boolean;
+    
+    /** Maximum number of handlers per action */
+    maxHandlers?: number;
+    
+    /** Default execution mode for actions */
+    defaultExecutionMode?: ExecutionMode;
+  };
+}
+```
+
+Pipeline Lifecycle
+
+```typescript
+// 1. Handler Registration Phase
+actionRegister.register('updateUser', handler, config);
+
+// 2. Pipeline Dispatch Phase  
+await actionRegister.dispatch('updateUser', payload);
+
+// 3. Pipeline Execution Phase (internal)
+//    - Priority sorting
+//    - Condition evaluation
+//    - Handler execution
+//    - Flow control
+//    - Cleanup
+```
+
+Handler Registration Patterns
+
+Basic Handler Registration
+
+```typescript
+// Simple handler
+const unregisterUpdateUser = actionRegister.
+
+
+===================[ DOC: en/concept/architecture-guide.md ]===================
+## Context-Action Store Integration Architecture
+*Source: [en/concept/architecture-guide.md](en/concept/architecture-guide.md) | Category: concept | Priority: 85 | Characters: 100*
+
+Context-Action Store Integration Architecture
+
+1. Overview & Core Concepts
+
+What is Context-Actio...
+
+
+===================[ DOC: en/concept/architecture-guide.md ]===================
+## Context-Action Store Integration Architecture
+*Source: [en/concept/architecture-guide.md](en/concept/architecture-guide.md) | Category: concept | Priority: 85 | Characters: 1000*
+
+Context-Action Store Integration Architecture
+
+1. Overview & Core Concepts
+
+What is Context-Action Architecture?
+
+The Context-Action framework is a **revolutionary state management system** designed to overcome the fundamental limitations of existing libraries through document-centric context separation and effective artifact management.
+
+Project Philosophy
+
+The Context-Action framework addresses critical issues in modern state management:
+
+**Problems with Existing Libraries:**
+- **High React Coupling**: Tight integration makes component modularization and props handling difficult
+- **Binary State Approach**: Simple global/local state dichotomy fails to handle specific scope-based separation  
+- **Inadequate Handler/Trigger Management**: Poor support for complex interactions and business logic processing
+
+**Context-Action's Solution:**
+- **Document-Artifact Centered Design**: Context separation based on document themes and deliverable management
+- **Perfect Separation of Concerns**:...
+
+
+===================[ DOC: en/concept/architecture-guide.md ]===================
+## Context-Action Store Integration Architecture
+*Source: [en/concept/architecture-guide.md](en/concept/architecture-guide.md) | Category: concept | Priority: 85 | Characters: 112*
+
+Context-Action Store Integration Architecture
+
+1. Overview & Core Concepts
+
+What is Context-Action Architecture?
+
+
+===================[ DOC: en/concept/architecture-guide.md ]===================
+## Context-Action Store Integration Architecture
+*Source: [en/concept/architecture-guide.md](en/concept/architecture-guide.md) | Category: concept | Priority: 85 | Characters: 2000*
+
+Context-Action Store Integration Architecture
+
+1. Overview & Core Concepts
+
+What is Context-Action Architecture?
+
+The Context-Action framework is a **revolutionary state management system** designed to overcome the fundamental limitations of existing libraries through document-centric context separation and effective artifact management.
+
+Project Philosophy
+
+The Context-Action framework addresses critical issues in modern state management:
+
+**Problems with Existing Libraries:**
+- **High React Coupling**: Tight integration makes component modularization and props handling difficult
+- **Binary State Approach**: Simple global/local state dichotomy fails to handle specific scope-based separation  
+- **Inadequate Handler/Trigger Management**: Poor support for complex interactions and business logic processing
+
+**Context-Action's Solution:**
+- **Document-Artifact Centered Design**: Context separation based on document themes and deliverable management
+- **Perfect Separation of Concerns**: 
+  - View design in isolation → Design Context
+  - Development architecture in isolation → Architecture Context
+  - Business logic in isolation → Business Context  
+  - Data validation in isolation → Validation Context
+- **Clear Boundaries**: Implementation results maintain distinct, well-defined domain boundaries
+- **Effective Document-Artifact Management**: State management library that actively supports the relationship between documentation and deliverables
+
+Architecture Implementation
+
+The framework implements a clean separation of concerns through an MVVM-inspired pattern with **three core patterns** for complete domain isolation:
+
+- **Actions** handle business logic and coordination (ViewModel layer) via `createActionContext`
+- **Declarative Store Pattern** manages state with domain isolation (Model layer) via `createStoreContext`
+- **RefContext** provides direct DOM manipulation with zero re-renders (Performance layer) via `createRefContext`
+- **Components** render UI (View la...
+
+
+===================[ DOC: en/concept/architecture-guide.md ]===================
+## Context-Action Store Integration Architecture
+*Source: [en/concept/architecture-guide.md](en/concept/architecture-guide.md) | Category: concept | Priority: 85 | Characters: 300*
+
+Context-Action Store Integration Architecture
+
+1. Overview & Core Concepts
+
+What is Context-Action Architecture?
+
+The Context-Action framework is a **revolutionary state management system** designed to overcome the fundamental limitations of existing libraries through document-centric context sep...
+
+
+===================[ DOC: en/concept/architecture-guide.md ]===================
+## Context-Action Store Integration Architecture
+*Source: [en/concept/architecture-guide.md](en/concept/architecture-guide.md) | Category: concept | Priority: 85 | Characters: 339*
+
+Context-Action Store Integration Architecture
+
+1. Overview & Core Concepts
+
+What is Context-Action Architecture?
+
+The Context-Action framework is a **revolutionary state management system** designed to overcome the fundamental limitations of existing libraries through document-centric context separation and effective artifact management.
+
+
+===================[ DOC: en/concept/architecture-guide.md ]===================
+## Context-Action Store Integration Architecture
+*Source: [en/concept/architecture-guide.md](en/concept/architecture-guide.md) | Category: concept | Priority: 85 | Characters: 4907*
+
+Context-Action Store Integration Architecture
+
+1. Overview & Core Concepts
+
+What is Context-Action Architecture?
+
+The Context-Action framework is a **revolutionary state management system** designed to overcome the fundamental limitations of existing libraries through document-centric context separation and effective artifact management.
+
+Project Philosophy
+
+The Context-Action framework addresses critical issues in modern state management:
+
+**Problems with Existing Libraries:**
+- **High React Coupling**: Tight integration makes component modularization and props handling difficult
+- **Binary State Approach**: Simple global/local state dichotomy fails to handle specific scope-based separation  
+- **Inadequate Handler/Trigger Management**: Poor support for complex interactions and business logic processing
+
+**Context-Action's Solution:**
+- **Document-Artifact Centered Design**: Context separation based on document themes and deliverable management
+- **Perfect Separation of Concerns**: 
+  - View design in isolation → Design Context
+  - Development architecture in isolation → Architecture Context
+  - Business logic in isolation → Business Context  
+  - Data validation in isolation → Validation Context
+- **Clear Boundaries**: Implementation results maintain distinct, well-defined domain boundaries
+- **Effective Document-Artifact Management**: State management library that actively supports the relationship between documentation and deliverables
+
+Architecture Implementation
+
+The framework implements a clean separation of concerns through an MVVM-inspired pattern with **three core patterns** for complete domain isolation:
+
+- **Actions** handle business logic and coordination (ViewModel layer) via `createActionContext`
+- **Declarative Store Pattern** manages state with domain isolation (Model layer) via `createStoreContext`
+- **RefContext** provides direct DOM manipulation with zero re-renders (Performance layer) via `createRefContext`
+- **Components** render UI (View layer)
+- **Context Boundaries** isolate functional domains
+- **Type-Safe Integration** through domain-specific hooks
+
+Core Architecture Flow
+
+```
+[Component] → dispatch → [Action Pipeline] → handlers → [Store] → subscribe → [Component]
+```
+
+Context Separation Strategy
+
+Domain-Based Context Architecture
+- **Business Context**: Business logic, data processing, and domain rules (Actions + Stores)
+- **UI Context**: Screen state, user interactions, and component behavior (Stores + RefContext)
+- **Performance Context**: High-performance DOM manipulation and animations (RefContext)
+- **Validation Context**: Data validation, form processing, and error handling (Actions + Stores)
+- **Design Context**: Theme management, styling, layout, and visual states (Stores + RefContext)
+- **Architecture Context**: System configuration, infrastructure, and technical decisions (Actions + Stores)
+
+Document-Based Context Design
+Each context is designed to manage its corresponding documentation and deliverables:
+- **Design Documentation** → Design Context (themes, component specifications, style guides) → Stores + RefContext
+- **Business Requirements** → Business Context (workflows, rules, domain logic) → Actions + Stores
+- **Performance Specifications** → Performance Context (animations, interactions) → RefContext
+- **Architecture Documents** → Architecture Context (system design, technical decisions) → Actions + Stores
+- **Validation Specifications** → Validation Context (rules, schemas, error handling) → Actions + Stores
+- **UI Specifications** → UI Context (interactions, state management, user flows) → All three patterns
+
+Advanced Handler & Trigger Management
+
+Context-Action provides sophisticated handler and trigger management that existing libraries lack:
+
+Priority-Based Handler Execution
+- **Sequential Processing**: Handlers execute in priority order with proper async handling
+- **Domain Isolation**: Each context maintains its own handler registry
+- **Cross-Context Coordination**: Controlled communication between domain contexts
+- **Result Collection**: Aggregate results from multiple handlers for complex workflows
+
+Intelligent Trigger System
+- **State-Change Triggers**: Automatic triggers based on store value changes
+- **Cross-Context Triggers**: Domain boundaries can trigger actions in other contexts
+- **Conditional Triggers**: Smart triggers based on business rules and conditions
+- **Trigger Cleanup**: Automatic cleanup prevents memory leaks and stale references
+
+Key Benefits
+
+1. **Document-Artifact Management**: Direct relationship between documentation and implementation
+2. **Domain Isolation**: Each context maintains complete independence
+3. **Type Safety**: Full TypeScript support with domain-specific hooks
+4. **Performance**: Zero React re-renders with RefContext, selective updates with Stores
+5. **Scalability**: Easy to add new domains without affecting existing ones
+6.
+
+
+===================[ DOC: en/concept/conventions.md ]===================
+## Context-Action Framework Conventions
+*Source: [en/concept/conventions.md](en/concept/conventions.md) | Category: concept | Priority: 85 | Characters: 100*
+
+Context-Action Framework Conventions
+
+This document defines coding conventions and best practices...
+
+
+===================[ DOC: en/concept/conventions.md ]===================
+## Context-Action Framework Conventions
+*Source: [en/concept/conventions.md](en/concept/conventions.md) | Category: concept | Priority: 85 | Characters: 570*
+
+Context-Action Framework Conventions
+
+This document defines coding conventions and best practices when using the Context-Action framework with its three core patterns: Actions, Stores, and RefContext.
+
+📋 Table of Contents
+
+1. [MVVM Architecture Conventions](#mvvm-architecture-conventions)
+2. [Naming Conventions](#naming-conventions)
+3. [File Structure](#file-structure)
+4. [Pattern Usage](#pattern-usage)
+5. [Type Definitions](#type-definitions)
+6. [Code Style](#code-style)
+7. [Performance Guidelines](#performance-guidelines)
+8. [Error Handling](#error-handling)
+9.
+
+
+===================[ DOC: en/concept/conventions.md ]===================
+## Context-Action Framework Conventions
+*Source: [en/concept/conventions.md](en/concept/conventions.md) | Category: concept | Priority: 85 | Characters: 200*
+
+Context-Action Framework Conventions
+
+This document defines coding conventions and best practices when using the Context-Action framework with its three core patterns: Actions, Stores, and RefConte...
+
+
+===================[ DOC: en/concept/conventions.md ]===================
+## Context-Action Framework Conventions
+*Source: [en/concept/conventions.md](en/concept/conventions.md) | Category: concept | Priority: 85 | Characters: 1938*
+
+Context-Action Framework Conventions
+
+This document defines coding conventions and best practices when using the Context-Action framework with its three core patterns: Actions, Stores, and RefContext.
+
+📋 Table of Contents
+
+1. [MVVM Architecture Conventions](#mvvm-architecture-conventions)
+2. [Naming Conventions](#naming-conventions)
+3. [File Structure](#file-structure)
+4. [Pattern Usage](#pattern-usage)
+5. [Type Definitions](#type-definitions)
+6. [Code Style](#code-style)
+7. [Performance Guidelines](#performance-guidelines)
+8. [Error Handling](#error-handling)
+9. [RefContext Conventions](#refcontext-conventions)
+
+---
+
+MVVM Architecture Conventions
+
+🏗️ **Core Architecture Pattern**
+
+Context-Action Framework follows **strict MVVM architecture** with clear layer separation:
+
+- **Model Layer**: `create~Context` declarations (`src/models/`)
+- **ViewModel Layer**: Custom hooks for behavior injection (`src/viewmodels/`)
+- **Business Logic Layer**: Action handlers for domain rules (`src/business/`)
+- **View Layer**: Pure components consuming ViewModels (`src/components/`, `src/pages/`)
+- **Shared Layer**: Pure view components with explicit props (`src/shared/`)
+
+📁 **Directory Structure Pattern**
+
+```
+src/
+├── models/           # Model Layer - Context declarations
+│   ├── UserModel.ts           # createStoreContext
+│   ├── UserActionModel.ts     # createActionContext
+│   └── UserRefModel.ts        # createRefContext
+├── viewmodels/       # ViewModel Layer - Hook-based injection
+│   ├── useUserProfile.ts      # Profile behavior injection
+│   ├── useUserPreferences.ts  # Preferences behavior injection
+│   └── useUserAuth.ts         # Auth behavior injection
+├── business/         # Business Logic Layer - Action handlers
+│   ├── UserBusinessLogic.tsx  # User domain business rules
+│   └── AuthBusinessLogic.tsx  # Auth domain business rules
+├── pages/            # View Layer - Page components
+│   ├── UserProfilePage.
+
+
+===================[ DOC: en/concept/conventions.md ]===================
+## Context-Action Framework Conventions
+*Source: [en/concept/conventions.md](en/concept/conventions.md) | Category: concept | Priority: 85 | Characters: 293*
+
+Context-Action Framework Conventions
+
+This document defines coding conventions and best practices when using the Context-Action framework with its three core patterns: Actions, Stores, and RefContext.
+
+📋 Table of Contents
+
+1. [MVVM Architecture Conventions](#mvvm-architecture-conventions)
+2.
+
+
+===================[ DOC: en/concept/conventions.md ]===================
+## Context-Action Framework Conventions
+*Source: [en/concept/conventions.md](en/concept/conventions.md) | Category: concept | Priority: 85 | Characters: 480*
+
+Context-Action Framework Conventions
+
+This document defines coding conventions and best practices when using the Context-Action framework with its three core patterns: Actions, Stores, and RefContext.
+
+📋 Table of Contents
+
+1. [MVVM Architecture Conventions](#mvvm-architecture-conventions)
+2. [Naming Conventions](#naming-conventions)
+3. [File Structure](#file-structure)
+4. [Pattern Usage](#pattern-usage)
+5. [Type Definitions](#type-definitions)
+6. [Code Style](#code-style)
+7.
+
+
+===================[ DOC: en/concept/conventions.md ]===================
+## Context-Action Framework Conventions
+*Source: [en/concept/conventions.md](en/concept/conventions.md) | Category: concept | Priority: 85 | Characters: 4996*
+
+Context-Action Framework Conventions
+
+This document defines coding conventions and best practices when using the Context-Action framework with its three core patterns: Actions, Stores, and RefContext.
+
+📋 Table of Contents
+
+1. [MVVM Architecture Conventions](#mvvm-architecture-conventions)
+2. [Naming Conventions](#naming-conventions)
+3. [File Structure](#file-structure)
+4. [Pattern Usage](#pattern-usage)
+5. [Type Definitions](#type-definitions)
+6. [Code Style](#code-style)
+7. [Performance Guidelines](#performance-guidelines)
+8. [Error Handling](#error-handling)
+9. [RefContext Conventions](#refcontext-conventions)
+
+---
+
+MVVM Architecture Conventions
+
+🏗️ **Core Architecture Pattern**
+
+Context-Action Framework follows **strict MVVM architecture** with clear layer separation:
+
+- **Model Layer**: `create~Context` declarations (`src/models/`)
+- **ViewModel Layer**: Custom hooks for behavior injection (`src/viewmodels/`)
+- **Business Logic Layer**: Action handlers for domain rules (`src/business/`)
+- **View Layer**: Pure components consuming ViewModels (`src/components/`, `src/pages/`)
+- **Shared Layer**: Pure view components with explicit props (`src/shared/`)
+
+📁 **Directory Structure Pattern**
+
+```
+src/
+├── models/           # Model Layer - Context declarations
+│   ├── UserModel.ts           # createStoreContext
+│   ├── UserActionModel.ts     # createActionContext
+│   └── UserRefModel.ts        # createRefContext
+├── viewmodels/       # ViewModel Layer - Hook-based injection
+│   ├── useUserProfile.ts      # Profile behavior injection
+│   ├── useUserPreferences.ts  # Preferences behavior injection
+│   └── useUserAuth.ts         # Auth behavior injection
+├── business/         # Business Logic Layer - Action handlers
+│   ├── UserBusinessLogic.tsx  # User domain business rules
+│   └── AuthBusinessLogic.tsx  # Auth domain business rules
+├── pages/            # View Layer - Page components
+│   ├── UserProfilePage.tsx    # Profile page (ViewModel consumption)
+│   └── SettingsPage.tsx       # Settings page (ViewModel consumption)
+├── components/       # View Layer - Feature components
+│   ├── UserProfile.tsx        # Profile component (ViewModel consumption)
+│   └── UserSettings.tsx       # Settings component (ViewModel consumption)
+└── shared/           # Shared Layer - Pure view components
+    ├── Button.tsx             # Pure button with explicit props
+    ├── Card.tsx               # Pure card with explicit props
+    └── Form.tsx               # Pure form with explicit props
+```
+
+🎯 **Layer Responsibility Rules**
+
+✅ **Model Layer** - Context Declarations Only
+```typescript
+// ✅ MUST: Declare contexts with domain-specific naming
+export const {
+  Provider: UserStoreProvider,
+  useStore: useUserStore,
+  useStoreManager: useUserStoreManager
+} = createStoreContext('User', userStoreConfig);
+
+// ❌ FORBIDDEN: Business logic in models
+// No useEffect, no API calls, no business rules
+```
+
+✅ **ViewModel Layer** - Behavior Injection Only
+```typescript
+// ✅ MUST: Create hooks that inject state and behavior
+export function useUserProfile() {
+  const profileStore = useUserStore('profile');
+  const dispatch = useUserDispatch();
+  
+  const profile = useStoreValue(profileStore);
+  
+  const updateProfile = useCallback((data) => {
+    dispatch('updateProfile', data);
+  }, [dispatch]);
+  
+  return { profile, updateProfile, displayName: profile.name || 'Guest' };
+}
+
+// ❌ FORBIDDEN: Direct API calls or business validation in ViewModels
+// ❌ FORBIDDEN: JSX or component rendering
+```
+
+✅ **Business Logic Layer** - Domain Rules Only  
+```typescript
+// ✅ MUST: Implement business logic through action handlers
+export function UserBusinessLogic({ children }) {
+  useUserActionHandler('updateProfile', useCallback(async (payload) => {
+    // Business validation
+    if (!payload.email.includes('@')) {
+      throw new Error('Invalid email');
+    }
+    
+    // Business logic implementation
+    const updated = { ...current, ...payload };
+    profileStore.setValue(updated);
+    
+    // Side effects
+    await saveToAPI(updated);
+  }, [profileStore]));
+  
+  return children;
+}
+
+// ❌ FORBIDDEN: JSX rendering (except children passthrough)
+// ❌ FORBIDDEN: UI state management
+```
+
+✅ **View Layer** - ViewModel Consumption Only
+```typescript
+// ✅ MUST: Consume ViewModels through hooks
+export function UserProfile() {
+  const { profile, updateProfile, displayName } = useUserProfile();
+  const { theme, toggleTheme } = useUserPreferences();
+  
+  return (
+    <div data-theme={theme}>
+      <h1>{displayName}</h1>
+      <button onClick={() => updateProfile({ name: 'New Name' })}>
+        Update
+      </button>
+    </div>
+  );
+}
+
+// ❌ FORBIDDEN: Direct context consumption (useUserStore, useUserDispatch)
+// ❌ FORBIDDEN: Business logic or API calls
+// ❌ FORBIDDEN: Complex internal state management
+```
+
+✅ **Shared Layer** - Pure View Only
+```typescript
+// ✅ MUST: Pure components with explicit props
+interface ButtonProps {
+  variant: 'primary' | 'secondary';
+  onClick?
+
+
+===================[ DOC: en/concept/hooks-reference.md ]===================
+## Context-Action React Hooks Reference
+*Source: [en/concept/hooks-reference.md](en/concept/hooks-reference.md) | Category: concept | Priority: 85 | Characters: 100*
+
+Context-Action React Hooks Reference
+
+This document is a **comprehensive catalog** of all availab...
+
+
+===================[ DOC: en/concept/hooks-reference.md ]===================
+## Context-Action React Hooks Reference
+*Source: [en/concept/hooks-reference.md](en/concept/hooks-reference.md) | Category: concept | Priority: 85 | Characters: 858*
+
+Context-Action React Hooks Reference
+
+This document is a **comprehensive catalog** of all available React hooks in the Context-Action framework, categorized by functionality and use cases. This serves as a reference manual for developers.
+
+Related Guides
+
+- 🎯 **[React Hooks](/en/guide/hooks)** - How to use hooks (API examples and usage patterns)
+- 🔄 **[Hooks Lifecycle](/en/guide/hooks-lifecycle)** - How hooks work internally (lifecycle, cleanup, performance)  
+- ✅ **[Best Practices](/en/guide/best-practices)** - Coding patterns and conventions
+
+---
+
+📋 Table of Contents
+
+1. [Essential Hooks](#essential-hooks)
+2. [Utility Hooks](#utility-hooks)
+3. [Hook Categories](#hook-categories)
+4. [Usage Guidelines](#usage-guidelines)
+
+---
+
+Essential Hooks
+
+These hooks are fundamental to using the Context-Action framework. Most applications will need these.
+
+
+===================[ DOC: en/concept/hooks-reference.md ]===================
+## Context-Action React Hooks Reference
+*Source: [en/concept/hooks-reference.md](en/concept/hooks-reference.md) | Category: concept | Priority: 85 | Characters: 188*
+
+Context-Action React Hooks Reference
+
+This document is a **comprehensive catalog** of all available React hooks in the Context-Action framework, categorized by functionality and use cases.
+
+
+===================[ DOC: en/concept/hooks-reference.md ]===================
+## Context-Action React Hooks Reference
+*Source: [en/concept/hooks-reference.md](en/concept/hooks-reference.md) | Category: concept | Priority: 85 | Characters: 1982*
+
+Context-Action React Hooks Reference
+
+This document is a **comprehensive catalog** of all available React hooks in the Context-Action framework, categorized by functionality and use cases. This serves as a reference manual for developers.
+
+Related Guides
+
+- 🎯 **[React Hooks](/en/guide/hooks)** - How to use hooks (API examples and usage patterns)
+- 🔄 **[Hooks Lifecycle](/en/guide/hooks-lifecycle)** - How hooks work internally (lifecycle, cleanup, performance)  
+- ✅ **[Best Practices](/en/guide/best-practices)** - Coding patterns and conventions
+
+---
+
+📋 Table of Contents
+
+1. [Essential Hooks](#essential-hooks)
+2. [Utility Hooks](#utility-hooks)
+3. [Hook Categories](#hook-categories)
+4. [Usage Guidelines](#usage-guidelines)
+
+---
+
+Essential Hooks
+
+These hooks are fundamental to using the Context-Action framework. Most applications will need these.
+
+🔧 RefContext Hooks (Performance)
+
+`createRefContext<T>()`
+**Factory function** that creates all ref-related hooks for high-performance DOM manipulation.
+- **Purpose**: Creates type-safe direct DOM manipulation system with zero React re-renders
+- **Returns**: `{ Provider, useRefHandler, useWaitForRefs, useGetAllRefs }`
+- **Essential for**: Performance-critical UI, animations, real-time interactions
+
+```tsx
+const {
+  Provider: MouseRefsProvider,
+  useRefHandler: useMouseRef
+} = createRefContext<{
+  cursor: HTMLDivElement;
+  container: HTMLDivElement;
+}>('MouseRefs');
+```
+
+`useRefHandler()`
+**Primary hook** for accessing typed ref handlers with direct DOM manipulation.
+- **Purpose**: Get ref handler for specific DOM element with type safety
+- **Essential for**: Direct DOM updates without React re-renders
+- **Pattern**: Performance layer bypassing React reconciliation
+
+```tsx
+function MouseTracker() {
+  const cursor = useMouseRef('cursor');
+  
+  const updatePosition = useCallback((x: number, y: number) => {
+    if (cursor.target) {
+      // Direct DOM manipulation - zero re-renders
+      cursor.target.style.
+
+
+===================[ DOC: en/concept/hooks-reference.md ]===================
+## Context-Action React Hooks Reference
+*Source: [en/concept/hooks-reference.md](en/concept/hooks-reference.md) | Category: concept | Priority: 85 | Characters: 238*
+
+Context-Action React Hooks Reference
+
+This document is a **comprehensive catalog** of all available React hooks in the Context-Action framework, categorized by functionality and use cases. This serves as a reference manual for developers.
+
+
+===================[ DOC: en/concept/hooks-reference.md ]===================
+## Context-Action React Hooks Reference
+*Source: [en/concept/hooks-reference.md](en/concept/hooks-reference.md) | Category: concept | Priority: 85 | Characters: 500*
+
+Context-Action React Hooks Reference
+
+This document is a **comprehensive catalog** of all available React hooks in the Context-Action framework, categorized by functionality and use cases. This serves as a reference manual for developers.
+
+Related Guides
+
+- 🎯 **[React Hooks](/en/guide/hooks)** - How to use hooks (API examples and usage patterns)
+- 🔄 **[Hooks Lifecycle](/en/guide/hooks-lifecycle)** - How hooks work internally (lifecycle, cleanup, performance)  
+- ✅ **[Best Practices](/en/gui...
+
+
+===================[ DOC: en/concept/hooks-reference.md ]===================
+## Context-Action React Hooks Reference
+*Source: [en/concept/hooks-reference.md](en/concept/hooks-reference.md) | Category: concept | Priority: 85 | Characters: 4915*
+
+Context-Action React Hooks Reference
+
+This document is a **comprehensive catalog** of all available React hooks in the Context-Action framework, categorized by functionality and use cases. This serves as a reference manual for developers.
+
+Related Guides
+
+- 🎯 **[React Hooks](/en/guide/hooks)** - How to use hooks (API examples and usage patterns)
+- 🔄 **[Hooks Lifecycle](/en/guide/hooks-lifecycle)** - How hooks work internally (lifecycle, cleanup, performance)  
+- ✅ **[Best Practices](/en/guide/best-practices)** - Coding patterns and conventions
+
+---
+
+📋 Table of Contents
+
+1. [Essential Hooks](#essential-hooks)
+2. [Utility Hooks](#utility-hooks)
+3. [Hook Categories](#hook-categories)
+4. [Usage Guidelines](#usage-guidelines)
+
+---
+
+Essential Hooks
+
+These hooks are fundamental to using the Context-Action framework. Most applications will need these.
+
+🔧 RefContext Hooks (Performance)
+
+`createRefContext<T>()`
+**Factory function** that creates all ref-related hooks for high-performance DOM manipulation.
+- **Purpose**: Creates type-safe direct DOM manipulation system with zero React re-renders
+- **Returns**: `{ Provider, useRefHandler, useWaitForRefs, useGetAllRefs }`
+- **Essential for**: Performance-critical UI, animations, real-time interactions
+
+```tsx
+const {
+  Provider: MouseRefsProvider,
+  useRefHandler: useMouseRef
+} = createRefContext<{
+  cursor: HTMLDivElement;
+  container: HTMLDivElement;
+}>('MouseRefs');
+```
+
+`useRefHandler()`
+**Primary hook** for accessing typed ref handlers with direct DOM manipulation.
+- **Purpose**: Get ref handler for specific DOM element with type safety
+- **Essential for**: Direct DOM updates without React re-renders
+- **Pattern**: Performance layer bypassing React reconciliation
+
+```tsx
+function MouseTracker() {
+  const cursor = useMouseRef('cursor');
+  
+  const updatePosition = useCallback((x: number, y: number) => {
+    if (cursor.target) {
+      // Direct DOM manipulation - zero re-renders
+      cursor.target.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    }
+  }, [cursor]);
+  
+  return <div ref={cursor.setRef} />;
+}
+```
+
+`useWaitForRefs()`
+**Utility hook** for waiting on multiple refs to mount before executing operations.
+- **Purpose**: Coordinate operations requiring multiple DOM elements
+- **Essential for**: Complex DOM initialization sequences
+- **Pattern**: Async ref coordination
+
+```tsx
+function ComplexComponent() {
+  const canvas = useMouseRef('canvas');
+  const controls = useMouseRef('controls');
+  const waitForRefs = useWaitForRefs();
+  
+  const initialize = useCallback(async () => {
+    const refs = await waitForRefs('canvas', 'controls');
+    // Both refs guaranteed to be available
+    setupCanvasWithControls(refs.canvas, refs.controls);
+  }, [waitForRefs]);
+}
+```
+
+🎯 Action Hooks (Core)
+
+`createActionContext<T>()`
+**Factory function** that creates all action-related hooks for a specific action context.
+- **Purpose**: Creates type-safe action dispatch and handler system
+- **Returns**: `{ Provider, useActionDispatch, useActionHandler, useActionRegister }`
+- **Essential for**: Any action-based logic
+
+```tsx
+const { 
+  Provider: UserActionProvider,
+  useActionDispatch: useUserAction,
+  useActionHandler: useUserActionHandler
+} = createActionContext<UserActions>('UserActions');
+```
+
+`useActionDispatch()`
+**Primary hook** for dispatching actions to handlers.
+- **Purpose**: Get dispatch function to trigger actions
+- **Essential for**: Component interaction with business logic
+- **Pattern**: ViewModel layer in MVVM architecture
+
+`useActionHandler()`
+**Primary hook** for registering action handlers.
+- **Purpose**: Register business logic for specific actions
+- **Essential for**: Implementing business logic
+- **Best Practice**: Use with `useCallback` for optimization
+
+🏪 Store Hooks (Core)
+
+`createStoreContext<T>()`
+**Factory function** that creates all store-related hooks with type safety.
+- **Purpose**: Creates type-safe store management system
+- **Returns**: `{ Provider, useStore, useStoreManager, withProvider }`
+- **Essential for**: Any state management
+
+```tsx
+const {
+  Provider: UserStoreProvider,
+  useStore: useUserStore,
+  useStoreManager: useUserStoreManager
+} = createStoreContext('User', {
+  profile: { id: '', name: '' }
+});
+```
+
+`useStoreValue<T>(store)`
+**Primary hook** for subscribing to store changes.
+- **Purpose**: Get reactive value from store
+- **Essential for**: Reading state in components
+- **Performance**: Only re-renders on actual value changes
+
+```tsx
+const userStore = useUserStore('profile');
+const user = useStoreValue(userStore);
+```
+
+`useStore(name)` (from pattern)
+**Primary hook** for accessing stores by name.
+- **Purpose**: Get store instance from context
+- **Essential for**: Accessing stores in components
+- **Type-safe**: Returns properly typed store
+
+---
+
+Utility Hooks
+
+These hooks provide additional functionality, optimizations, and convenience features.
+
+
+===================[ DOC: en/concept/react-refs-guide.md ]===================
+## React Refs Management Guide
+*Source: [en/concept/react-refs-guide.md](en/concept/react-refs-guide.md) | Category: concept | Priority: 85 | Characters: 100*
+
+React Refs Management Guide
+
+This guide covers the **React Refs Management System** in the Contex...
+
+
+===================[ DOC: en/concept/react-refs-guide.md ]===================
+## React Refs Management Guide
+*Source: [en/concept/react-refs-guide.md](en/concept/react-refs-guide.md) | Category: concept | Priority: 85 | Characters: 805*
+
+React Refs Management Guide
+
+This guide covers the **React Refs Management System** in the Context-Action framework - a simple and safe reference management system designed for managing DOM elements, custom objects, and complex component references with type safety and lifecycle management.
+
+> **⚠️ Important**: Always use `createRefContext()` for ref management. Direct `RefStore` instantiation is discouraged and only intended for internal framework use.
+
+Overview
+
+The React Refs system provides declarative ref management with automatic cleanup, type safety, and advanced lifecycle features through the **`createRefContext()` API**. It's particularly useful for:
+
+- **DOM Element Management**: Safe access to DOM elements with proper lifecycle handling
+- **Custom Object References**: Managing Three.
+
+
+===================[ DOC: en/concept/react-refs-guide.md ]===================
+## React Refs Management Guide
+*Source: [en/concept/react-refs-guide.md](en/concept/react-refs-guide.md) | Category: concept | Priority: 85 | Characters: 200*
+
+React Refs Management Guide
+
+This guide covers the **React Refs Management System** in the Context-Action framework - a simple and safe reference management system designed for managing DOM element...
+
+
+===================[ DOC: en/concept/react-refs-guide.md ]===================
+## React Refs Management Guide
+*Source: [en/concept/react-refs-guide.md](en/concept/react-refs-guide.md) | Category: concept | Priority: 85 | Characters: 1329*
+
+React Refs Management Guide
+
+This guide covers the **React Refs Management System** in the Context-Action framework - a simple and safe reference management system designed for managing DOM elements, custom objects, and complex component references with type safety and lifecycle management.
+
+> **⚠️ Important**: Always use `createRefContext()` for ref management. Direct `RefStore` instantiation is discouraged and only intended for internal framework use.
+
+Overview
+
+The React Refs system provides declarative ref management with automatic cleanup, type safety, and advanced lifecycle features through the **`createRefContext()` API**. It's particularly useful for:
+
+- **DOM Element Management**: Safe access to DOM elements with proper lifecycle handling
+- **Custom Object References**: Managing Three.js objects, game engines, or other complex instances  
+- **Async Ref Operations**: Waiting for refs to mount and performing safe operations
+- **Memory Management**: Automatic cleanup and leak prevention
+
+🎯 Recommended Usage Pattern
+
+**✅ Always use `createRefContext()`**:
+```typescript
+// ✅ RECOMMENDED: Use createRefContext for all ref management
+const MyRefs = createRefContext('MyRefs', { /* ... */ });
+
+// ❌ AVOID: Direct RefStore usage (internal API)
+// const store = new RefStore({ name: 'myRef' }); // Don't do this!
+
+
+===================[ DOC: en/concept/react-refs-guide.md ]===================
+## React Refs Management Guide
+*Source: [en/concept/react-refs-guide.md](en/concept/react-refs-guide.md) | Category: concept | Priority: 85 | Characters: 291*
+
+React Refs Management Guide
+
+This guide covers the **React Refs Management System** in the Context-Action framework - a simple and safe reference management system designed for managing DOM elements, custom objects, and complex component references with type safety and lifecycle management.
+
+
+===================[ DOC: en/concept/react-refs-guide.md ]===================
+## React Refs Management Guide
+*Source: [en/concept/react-refs-guide.md](en/concept/react-refs-guide.md) | Category: concept | Priority: 85 | Characters: 457*
+
+React Refs Management Guide
+
+This guide covers the **React Refs Management System** in the Context-Action framework - a simple and safe reference management system designed for managing DOM elements, custom objects, and complex component references with type safety and lifecycle management.
+
+> **⚠️ Important**: Always use `createRefContext()` for ref management. Direct `RefStore` instantiation is discouraged and only intended for internal framework use.
+
+
+===================[ DOC: en/concept/react-refs-guide.md ]===================
+## React Refs Management Guide
+*Source: [en/concept/react-refs-guide.md](en/concept/react-refs-guide.md) | Category: concept | Priority: 85 | Characters: 4538*
+
+React Refs Management Guide
+
+This guide covers the **React Refs Management System** in the Context-Action framework - a simple and safe reference management system designed for managing DOM elements, custom objects, and complex component references with type safety and lifecycle management.
+
+> **⚠️ Important**: Always use `createRefContext()` for ref management. Direct `RefStore` instantiation is discouraged and only intended for internal framework use.
+
+Overview
+
+The React Refs system provides declarative ref management with automatic cleanup, type safety, and advanced lifecycle features through the **`createRefContext()` API**. It's particularly useful for:
+
+- **DOM Element Management**: Safe access to DOM elements with proper lifecycle handling
+- **Custom Object References**: Managing Three.js objects, game engines, or other complex instances  
+- **Async Ref Operations**: Waiting for refs to mount and performing safe operations
+- **Memory Management**: Automatic cleanup and leak prevention
+
+🎯 Recommended Usage Pattern
+
+**✅ Always use `createRefContext()`**:
+```typescript
+// ✅ RECOMMENDED: Use createRefContext for all ref management
+const MyRefs = createRefContext('MyRefs', { /* ... */ });
+
+// ❌ AVOID: Direct RefStore usage (internal API)
+// const store = new RefStore({ name: 'myRef' }); // Don't do this!
+```
+
+Core Concepts
+
+RefContext System
+
+The refs system is built around `createRefContext()`, which provides a clean, declarative API that abstracts away internal `RefStore` complexity:
+
+- **Type Safety**: Full TypeScript support with proper type inference
+- **Lifecycle Management**: Automatic mounting/unmounting detection
+- **Safe Operations**: Protected ref access with error handling
+- **Flexible Configuration**: Both simple and advanced configuration options
+- **Internal Optimization**: Uses `RefStore` internally but provides a better developer experience
+
+> **🔧 Architecture Note**: `createRefContext()` manages `RefStore` instances internally, providing a cleaner API while handling all the complex lifecycle management, error handling, and memory cleanup automatically.
+
+Two Configuration Approaches
+
+1. Simple Type Definition (Legacy)
+```typescript
+import { createRefContext } from '@context-action/react/refs';
+
+// Simple type specification
+const GameRefs = createRefContext<{
+  canvas: HTMLCanvasElement;
+  button: HTMLButtonElement;
+}>('GameRefs');
+```
+
+2. Declarative Definitions (Recommended)
+```typescript
+// ✅ Recommended: Renaming Pattern with declarative configuration
+const {
+  Provider: GameRefsProvider,
+  useRefHandler: useGameRefHandler,
+  useWaitForRefs: useGameWaitForRefs,  // Direct hook usage - much more intuitive!
+  useGetAllRefs: useGameGetAllRefs
+} = createRefContext('GameRefs', {
+  canvas: {
+    name: 'canvas',
+    autoCleanup: true
+  },
+  scene: {
+    name: 'scene', 
+    autoCleanup: true,
+    cleanup: (scene) => {
+      scene.dispose();
+    }
+  }
+});
+
+// Usage example:
+function GameComponent() {
+  const canvas = useGameRefHandler('canvas');
+  const scene = useGameRefHandler('scene');
+  
+  // ✅ CORRECT: Extract function at component level
+  const waitForRefs = useGameWaitForRefs();
+  
+  const initGame = async () => {
+    // ✅ Use the extracted function
+    const refs = await waitForRefs('canvas', 'scene');
+    console.log('All refs ready:', refs);
+  };
+  
+  return (
+    <GameRefsProvider>
+      <canvas ref={canvas.setRef} />
+      <button onClick={initGame}>Initialize Game</button>
+    </GameRefsProvider>
+  );
+}
+```
+
+Naming Conventions
+
+Following the Context-Action framework conventions, **all refs contexts should use the renaming pattern** for consistency and improved developer experience.
+
+✅ Recommended: Renaming Pattern
+
+```typescript
+// ✅ Domain-specific renaming pattern
+const {
+  Provider: GameRefsProvider,
+  useRefHandler: useGameRefHandler,
+  useWaitForRefs: useGameWaitForRefs,
+  useGetAllRefs: useGameGetAllRefs
+} = createRefContext('GameRefs', { /* ... */ });
+
+const {
+  Provider: FormRefsProvider,
+  useRefHandler: useFormRefHandler,
+  useWaitForRefs: useFormWaitForRefs,
+  useGetAllRefs: useFormGetAllRefs  
+} = createRefContext('FormRefs', { /* ... */ });
+```
+
+❌ Avoided: Direct Object Access
+
+```typescript
+// ❌ Avoid direct object usage (poor naming clarity)
+const GameRefs = createRefContext('GameRefs', { /* ... */ });
+const canvas = GameRefs.useRefHandler('canvas'); // Domain unclear
+
+// ❌ Generic naming (causes confusion)
+const {
+  Provider,
+  useRef,
+  useWaitForRefs,
+  useGetAllRefs
+} = createRefContext('GameRefs', { /* ...
+
+
+===================[ DOC: en/concept/mvvm-core-architecture.md ]===================
+## Mvvm Core Architecture
+*Source: [en/concept/mvvm-core-architecture.md](en/concept/mvvm-core-architecture.md) | Category: concept | Priority: 50 | Characters: 55*
+
+concept--mvvm-core-architecture - 100 character summary
+
+
+===================[ DOC: en/concept/mvvm-core-architecture.md ]===================
+## Mvvm Core Architecture
+*Source: [en/concept/mvvm-core-architecture.md](en/concept/mvvm-core-architecture.md) | Category: concept | Priority: 50 | Characters: 56*
+
+concept--mvvm-core-architecture - 1000 character summary
+
+
+===================[ DOC: en/concept/mvvm-core-architecture.md ]===================
+## Mvvm Core Architecture
+*Source: [en/concept/mvvm-core-architecture.md](en/concept/mvvm-core-architecture.md) | Category: concept | Priority: 50 | Characters: 55*
+
+concept--mvvm-core-architecture - 200 character summary
+
+
+===================[ DOC: en/concept/mvvm-core-architecture.md ]===================
+## Mvvm Core Architecture
+*Source: [en/concept/mvvm-core-architecture.md](en/concept/mvvm-core-architecture.md) | Category: concept | Priority: 50 | Characters: 56*
+
+concept--mvvm-core-architecture - 2000 character summary
+
+
+===================[ DOC: en/concept/mvvm-core-architecture.md ]===================
+## Mvvm Core Architecture
+*Source: [en/concept/mvvm-core-architecture.md](en/concept/mvvm-core-architecture.md) | Category: concept | Priority: 50 | Characters: 55*
+
+concept--mvvm-core-architecture - 300 character summary
+
+
+===================[ DOC: en/concept/mvvm-core-architecture.md ]===================
+## Mvvm Core Architecture
+*Source: [en/concept/mvvm-core-architecture.md](en/concept/mvvm-core-architecture.md) | Category: concept | Priority: 50 | Characters: 55*
+
+concept--mvvm-core-architecture - 500 character summary
+
+
+===================[ DOC: en/concept/mvvm-core-architecture.md ]===================
+## Mvvm Core Architecture
+*Source: [en/concept/mvvm-core-architecture.md](en/concept/mvvm-core-architecture.md) | Category: concept | Priority: 50 | Characters: 56*
+
+concept--mvvm-core-architecture - 5000 character summary
+
+
+===================[ DOC: en/concept/redux-comparison.md ]===================
+## Redux Comparison
+*Source: [en/concept/redux-comparison.md](en/concept/redux-comparison.md) | Category: concept | Priority: 50 | Characters: 49*
+
+concept--redux-comparison - 100 character summary
+
+
+===================[ DOC: en/concept/redux-comparison.md ]===================
+## Redux Comparison
+*Source: [en/concept/redux-comparison.md](en/concept/redux-comparison.md) | Category: concept | Priority: 50 | Characters: 50*
+
+concept--redux-comparison - 1000 character summary
+
+
+===================[ DOC: en/concept/redux-comparison.md ]===================
+## Redux Comparison
+*Source: [en/concept/redux-comparison.md](en/concept/redux-comparison.md) | Category: concept | Priority: 50 | Characters: 49*
+
+concept--redux-comparison - 200 character summary
+
+
+===================[ DOC: en/concept/redux-comparison.md ]===================
+## Redux Comparison
+*Source: [en/concept/redux-comparison.md](en/concept/redux-comparison.md) | Category: concept | Priority: 50 | Characters: 50*
+
+concept--redux-comparison - 2000 character summary
+
+
+===================[ DOC: en/concept/redux-comparison.md ]===================
+## Redux Comparison
+*Source: [en/concept/redux-comparison.md](en/concept/redux-comparison.md) | Category: concept | Priority: 50 | Characters: 49*
+
+concept--redux-comparison - 300 character summary
+
+
+===================[ DOC: en/concept/redux-comparison.md ]===================
+## Redux Comparison
+*Source: [en/concept/redux-comparison.md](en/concept/redux-comparison.md) | Category: concept | Priority: 50 | Characters: 49*
+
+concept--redux-comparison - 500 character summary
+
+
+===================[ DOC: en/concept/redux-comparison.md ]===================
+## Redux Comparison
+*Source: [en/concept/redux-comparison.md](en/concept/redux-comparison.md) | Category: concept | Priority: 50 | Characters: 50*
+
+concept--redux-comparison - 5000 character summary
+
+
+
+---
+
+*Generated automatically on 2025-08-28*
