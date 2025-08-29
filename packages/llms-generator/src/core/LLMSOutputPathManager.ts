@@ -19,8 +19,8 @@ export class LLMSOutputPathManager {
   constructor(private config: CLIConfig) {}
 
   /**
-   * Generate output path with simple directory structure
-   * Format: {outputDir}/{filename}
+   * Generate output path with language-specific directory structure
+   * Format: {outputDir}/{language}/llms/{filename}
    */
   generateOutputPath(options: OutputPathOptions): { outputPath: string; filename: string } {
     const {
@@ -34,9 +34,9 @@ export class LLMSOutputPathManager {
     // Generate filename
     const filename = this.generateFilename(language, characterLimit, category, pattern);
     
-    // Use simple output directory structure
+    // Use language-specific directory structure
     const baseOutputDir = outputDir || this.config.paths.outputDir;
-    const outputPath = path.join(baseOutputDir, filename);
+    const outputPath = path.join(baseOutputDir, language, 'llms', filename);
 
     return { outputPath, filename };
   }
