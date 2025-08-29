@@ -5,8 +5,8 @@
  * Verifies proper error context, logging, and recovery mechanisms.
  */
 
-import { EventBus } from '../core/EventBus';
-import { createStore } from '../core/Store';
+import { EventBus } from '../../src/stores/core/EventBus';
+import { createStore } from '../../src/stores/core/Store';
 import { 
   setErrorHandlingConfig, 
   clearErrorLog, 
@@ -14,36 +14,91 @@ import {
   getFilteredErrors,
   ErrorHandlers,
   ContextActionErrorType 
-} from '../utils/error-handling';
+} from '../../src/stores/utils/error-handling';
 
 describe('Error Handling Integration', () => {
   let mockConsoleError: jest.SpyInstance;
   let mockConsoleWarn: jest.SpyInstance;
+  let mockConsoleInfo: jest.SpyInstance;
+  let mockConsoleDebug: jest.SpyInstance;
+  let globalErrorBoundaryMock: any;
+  let originalGlobalErrorBoundary: any;
+  let testCounter: number;
   
   beforeEach(() => {
-    // Configure error handling for testing
+    // Initialize test counter for unique naming
+    testCounter = Date.now() + Math.floor(Math.random() * 1000);
+    
+    // Save original globalErrorBoundary
+    originalGlobalErrorBoundary = (globalThis as any).globalErrorBoundary;
+    
+    // Create isolated mock for each test
+    let mockErrorCount = 0;
+    let mockLastError: any = null;
+    
+    globalErrorBoundaryMock = {
+      reset: jest.fn(() => {
+        mockErrorCount = 0;
+        mockLastError = null;
+      }),
+      getErrorCount: jest.fn(() => mockErrorCount),
+      getLastError: jest.fn(() => mockLastError),
+      reportError: jest.fn((error) => {
+        mockErrorCount++;
+        mockLastError = error;
+      }),
+    };
+    
+    // Set up isolated globalErrorBoundary for this test
+    (globalThis as any).globalErrorBoundary = globalErrorBoundaryMock;
+    
+    // Configure error handling for testing - isolated config
     setErrorHandlingConfig({
       throwOnError: false,
       logLevel: 4, // DEBUG level to capture all
       suppressRepeatedErrors: true,
-      maxLogEntries: 100
+      maxLogEntries: 100,
+      enableStackTrace: true,
+      logErrors: true
     });
     
+    // Clear error log to ensure isolation
     clearErrorLog();
     
-    // Mock console methods
+    // Mock console methods with isolation
     mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
     mockConsoleWarn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    mockConsoleInfo = jest.spyOn(console, 'info').mockImplementation(() => {});
+    mockConsoleDebug = jest.spyOn(console, 'debug').mockImplementation(() => {});
   });
   
   afterEach(() => {
+    // Restore console methods
     mockConsoleError.mockRestore();
     mockConsoleWarn.mockRestore();
+    mockConsoleInfo.mockRestore();
+    mockConsoleDebug.mockRestore();
+    
+    // Restore original globalErrorBoundary
+    (globalThis as any).globalErrorBoundary = originalGlobalErrorBoundary;
+    
+    // Clear error log for next test
+    clearErrorLog();
+    
+    // Reset error handling config to defaults
+    setErrorHandlingConfig({
+      throwOnError: false,
+      logLevel: 1, // ERROR level
+      suppressRepeatedErrors: true,
+      maxLogEntries: 100,
+      enableStackTrace: true,
+      logErrors: true
+    });
   });
   
   describe('Store Error Integration', () => {
     test('should use centralized error handling for comparison errors', () => {
-      const store = createStore('error-test', { data: 'initial' });
+      const store = createStore(`error-test-${testCounter}`, { data: 'initial' });
       
       // Set up a custom comparator that throws
       store.setCustomComparator(() => {
@@ -62,7 +117,7 @@ describe('Error Handling Integration', () => {
     });
     
     test('should handle listener execution errors', async () => {
-      const store = createStore('listener-error-test', { value: 0 });
+      const store = createStore(`listener-error-test-${testCounter}`, { value: 0 });
       
       // Add a listener that throws
       const unsubscribe = store.subscribe(() => {
@@ -86,7 +141,7 @@ describe('Error Handling Integration', () => {
     });
     
     test('should handle batch update errors', async () => {
-      const store = createStore('batch-error-test', { items: [] });
+      const store = createStore(`batch-error-test-${testCounter}`, { items: [] as number[] });
       
       // Add multiple listeners, one that throws
       store.subscribe(() => {
@@ -160,7 +215,7 @@ describe('Error Handling Integration', () => {
       );
       
       expect(error).toBeDefined();
-      expect(error.context).toEqual(
+      expect(error?.context).toEqual(
         expect.objectContaining({
           event: 'context-test',
           handlerCount: 1
@@ -198,7 +253,7 @@ describe('Error Handling Integration', () => {
       
       expect(storeErrors).toHaveLength(1);
       expect(actionErrors).toHaveLength(1);
-      expect(storeErrors[0].error.type).toBe(ContextActionErrorType.STORE_ERROR);
+      expect(storeErrors[0]?.error.type).toBe(ContextActionErrorType.STORE_ERROR);
     });
     
     test('should filter errors by time', async () => {
@@ -213,7 +268,7 @@ describe('Error Handling Integration', () => {
       
       const recentErrors = getFilteredErrors({ since: midTime });
       expect(recentErrors).toHaveLength(1);
-      expect(recentErrors[0].error.context?.time).toBe('new');
+      expect(recentErrors[0]?.error.context?.time).toBe('new');
     });
     
     test('should limit error results', () => {
@@ -225,11 +280,18 @@ describe('Error Handling Integration', () => {
       expect(limitedErrors).toHaveLength(5);
       
       // Should be the most recent 5
-      expect(limitedErrors[4].error.context?.index).toBe(9);
+      expect(limitedErrors[4]?.error.context?.index).toBe(9);
     });
   });
   
   describe('Error Suppression and Deduplication', () => {
+    beforeEach(() => {
+      // Additional isolation for suppression tests
+      clearErrorLog();
+      globalErrorBoundaryMock.reset();
+      jest.clearAllMocks();
+    });
+    
     test('should suppress repeated errors', () => {
       const errorMessage = 'Repeated error';
       const context = { component: 'test' };
@@ -243,7 +305,7 @@ describe('Error Handling Integration', () => {
       
       // Should only have 1 unique error entry
       expect(stats.mostFrequentErrors).toHaveLength(1);
-      expect(stats.mostFrequentErrors[0].count).toBe(15);
+      expect(stats.mostFrequentErrors[0]?.count).toBe(15);
       
       // Should have warned about repeated errors (every 10th occurrence)
       expect(mockConsoleWarn).toHaveBeenCalled();
@@ -262,8 +324,14 @@ describe('Error Handling Integration', () => {
   });
   
   describe('Error Recovery and Graceful Degradation', () => {
+    beforeEach(() => {
+      // Additional isolation for recovery tests
+      clearErrorLog();
+      globalErrorBoundaryMock.reset();
+    });
+    
     test('should maintain functionality after errors', () => {
-      const store = createStore('recovery-test', { data: 'initial' });
+      const store = createStore(`recovery-test-${testCounter}`, { data: 'initial' });
       
       // Cause an error in comparison
       store.setCustomComparator(() => {
@@ -289,7 +357,7 @@ describe('Error Handling Integration', () => {
         throw new Error('Error handler error');
       });
       
-      const store = createStore('meta-error-test', { value: 0 });
+      const store = createStore(`meta-error-test-${testCounter}`, { value: 0 });
       
       // Should not crash even if error handling fails
       expect(() => {

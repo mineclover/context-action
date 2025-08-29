@@ -5,9 +5,9 @@
  * Verifies safe handling of DOM elements, React components, and timeout IDs.
  */
 
-import { EventBus } from '../core/EventBus';
-import { createStore } from '../core/Store';
-import { setErrorHandlingConfig } from '../utils/error-handling';
+import { EventBus } from '../../src/stores/core/EventBus';
+import { createStore } from '../../src/stores/core/Store';
+import { setErrorHandlingConfig } from '../../src/stores/utils/error-handling';
 
 describe('Memory Leak Prevention', () => {
   beforeEach(() => {
@@ -43,10 +43,11 @@ describe('Memory Leak Prevention', () => {
       expect(history.length).toBe(1);
       
       const eventData = history[0];
-      expect(eventData.event).toBe('domElementEvent');
+      expect(eventData).toBeDefined();
+      expect(eventData!.event).toBe('domElementEvent');
       
       // Should store safe metadata, not the full element
-      expect(eventData.data).toEqual({
+      expect(eventData!.data).toEqual({
         __eventBusDataType: 'DOMElement',
         tagName: 'DIV',
         id: 'test-div',
@@ -55,7 +56,7 @@ describe('Memory Leak Prevention', () => {
       });
       
       // Should not retain reference to original element
-      expect(eventData.data).not.toBe(divElement);
+      expect(eventData!.data).not.toBe(divElement);
     });
     
     test('should safely handle React components', () => {
@@ -71,9 +72,10 @@ describe('Memory Leak Prevention', () => {
       
       const history = eventBus.getHistory();
       const eventData = history[0];
+      expect(eventData).toBeDefined();
       
       // React components are detected as DOMElement type due to React markers
-      expect(eventData.data).toEqual({
+      expect(eventData!.data).toEqual({
         __eventBusDataType: 'DOMElement',
         tagName: 'ReactElement',
         id: undefined,
@@ -81,7 +83,7 @@ describe('Memory Leak Prevention', () => {
         timestamp: expect.any(Number)
       });
       
-      expect(eventData.data).not.toBe(mockReactComponent);
+      expect(eventData!.data).not.toBe(mockReactComponent);
     });
     
     test('should safely handle complex objects', () => {
@@ -99,8 +101,9 @@ describe('Memory Leak Prevention', () => {
       
       const history = eventBus.getHistory();
       const eventData = history[0];
+      expect(eventData).toBeDefined();
       
-      expect(eventData.data).toEqual({
+      expect(eventData!.data).toEqual({
         __eventBusDataType: 'CustomClass',
         summary: 'CustomClass(test value with a very long string that should be truncated)',
         timestamp: expect.any(Number)
@@ -122,8 +125,10 @@ describe('Memory Leak Prevention', () => {
       const history = eventBus.getHistory();
       
       // Plain objects should be stored as-is
-      expect(history[0].data).toEqual(plainObject);
-      expect(history[1].data).toEqual(plainArray);
+      expect(history[0]).toBeDefined();
+      expect(history[1]).toBeDefined();
+      expect(history[0]!.data).toEqual(plainObject);
+      expect(history[1]!.data).toEqual(plainArray);
     });
     
     test('should handle null and primitive values normally', () => {
@@ -134,10 +139,14 @@ describe('Memory Leak Prevention', () => {
       
       const history = eventBus.getHistory();
       
-      expect(history[0].data).toBe(null);
-      expect(history[1].data).toBe('test string');
-      expect(history[2].data).toBe(42);
-      expect(history[3].data).toBe(true);
+      expect(history[0]).toBeDefined();
+      expect(history[1]).toBeDefined();
+      expect(history[2]).toBeDefined();
+      expect(history[3]).toBeDefined();
+      expect(history[0]!.data).toBe(null);
+      expect(history[1]!.data).toBe('test string');
+      expect(history[2]!.data).toBe(42);
+      expect(history[3]!.data).toBe(true);
     });
     
     test('should limit history size to prevent unbounded growth', () => {
@@ -155,8 +164,10 @@ describe('Memory Leak Prevention', () => {
       expect(history.length).toBe(maxSize);
       
       // Should contain the most recent events
-      expect(history[0].data.index).toBe(5); // First kept event
-      expect(history[maxSize - 1].data.index).toBe(maxSize + 4); // Last event
+      expect(history[0]).toBeDefined();
+      expect(history[maxSize - 1]).toBeDefined();
+      expect(history[0]!.data.index).toBe(5); // First kept event
+      expect(history[maxSize - 1]!.data.index).toBe(maxSize + 4); // Last event
     });
   });
   
@@ -211,8 +222,10 @@ describe('Memory Leak Prevention', () => {
         store.setValue(obj2);
       }).not.toThrow();
       
-      // Should properly detect that objects are different
-      expect(store.getValue()).toBe(obj2);
+      // Should properly handle circular references by converting them to safe format
+      const storedValue = store.getValue();
+      expect(storedValue.name).toBe('obj2');
+      expect(storedValue.ref).toMatchObject({ name: 'obj1', ref: '[Circular]' });
     });
     
     test('should handle self-referencing objects', () => {

@@ -6,8 +6,8 @@
 
 import React from 'react';
 import { render, act } from '@testing-library/react';
-import { createRefContext } from '../createRefContext';
-import type { RefInitConfig } from '../types';
+import { createRefContext } from '../../src/refs/createRefContext';
+import type { RefInitConfig } from '../../src/refs/types';
 
 describe('Timeout Options', () => {
   beforeEach(() => {

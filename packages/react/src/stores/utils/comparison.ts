@@ -249,7 +249,7 @@ export function compareValues<T>(
         result = shallowEquals(oldValue, newValue, ignoreKeys);
         break;
         
-      case 'deep':
+      case 'deep': {
         const deepOptions = {
           ...(maxDepth !== undefined && { maxDepth }),
           ...(ignoreKeys !== undefined && { ignoreKeys }),
@@ -257,6 +257,7 @@ export function compareValues<T>(
         };
         result = deepEquals(oldValue, newValue, deepOptions);
         break;
+      }
         
       case 'custom':
         if (!customComparator) {

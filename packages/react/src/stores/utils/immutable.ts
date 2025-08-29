@@ -145,12 +145,19 @@ export function deepClone<T>(value: T, _options?: { skipProducer?: boolean }): T
     return value;
   }
 
+  // RefState 객체는 DOM 요소를 포함하므로 복사하지 않고 원본 반환
+  // DOM 요소는 JSON serialization에서 빈 객체로 변환되므로 원본 유지 필요
+  if (typeof value === 'object' && value !== null && 
+      '__contextActionRefState' in value && value.__contextActionRefState === true) {
+    return value;
+  }
+
   // Use native structuredClone if available (Chrome 98+, Node 17+)
   if (typeof structuredClone !== 'undefined') {
     try {
       return structuredClone(value);
     } catch {
-      // Fall through to other methods
+      // Fall through to other methods if structuredClone fails
     }
   }
 
@@ -206,18 +213,45 @@ function isSimpleObject(value: unknown): value is Record<string, unknown> {
 /**
  * 성능 최적화된 간단한 객체 복사
  */
-function simpleClone<T>(value: T): T {
+function simpleClone<T>(value: T, visited = new WeakSet()): T {
+  // 순환 참조 감지
+  if (typeof value === 'object' && value !== null && visited.has(value)) {
+    return '[Circular]' as any;
+  }
+
   if (Array.isArray(value)) {
-    return value.map(item => 
-      typeof item === 'object' && item !== null ? simpleClone(item) : item
-    ) as T;
+    visited.add(value);
+    const result = value.map(item => {
+      if (typeof item === 'object' && item !== null) {
+        // RefState 객체는 복사하지 않고 원본 유지 (DOM 요소 보존)
+        if ('__contextActionRefState' in item && item.__contextActionRefState === true) {
+          return item;
+        } else {
+          return simpleClone(item, visited);
+        }
+      }
+      return item;
+    }) as T;
+    // visited에서 제거하지 않음 - 전체 cloning이 끝날 때까지 유지
+    return result;
   }
 
   if (isSimpleObject(value)) {
+    visited.add(value);
     const cloned = {} as Record<string, unknown>;
     for (const [key, val] of Object.entries(value)) {
-      cloned[key] = typeof val === 'object' && val !== null ? simpleClone(val) : val;
+      if (typeof val === 'object' && val !== null) {
+        // RefState 객체는 복사하지 않고 원본 유지 (DOM 요소 보존)
+        if ('__contextActionRefState' in val && val.__contextActionRefState === true) {
+          cloned[key] = val;
+        } else {
+          cloned[key] = simpleClone(val, visited);
+        }
+      } else {
+        cloned[key] = val;
+      }
     }
+    // visited에서 제거하지 않음 - 전체 cloning이 끝날 때까지 유지
     return cloned as T;
   }
 
@@ -228,23 +262,88 @@ function simpleClone<T>(value: T): T {
  * 폴백 복사 함수 (Immer가 실패한 경우)
  */
 function fallbackClone<T>(value: T): T {
-  // JSON fallback with circular reference handling
+  // RefState를 보존하면서 복사하는 로직
   try {
     const visited = new WeakSet();
+    const refStateObjects = new Map<string, object>();
+    let refStateId = 0;
+    
+    // RefState 객체들을 먼저 수집하고 ID 부여
+    const collectRefStates = (obj: any) => {
+      if (typeof obj !== 'object' || obj === null || visited.has(obj)) return;
+      visited.add(obj);
+      
+      if ('__contextActionRefState' in obj && obj.__contextActionRefState === true) {
+        const id = `refstate_${refStateId++}`;
+        refStateObjects.set(id, obj);
+      }
+      
+      try {
+        if (Array.isArray(obj)) {
+          obj.forEach(collectRefStates);
+        } else {
+          for (const val of Object.values(obj)) {
+            collectRefStates(val);
+          }
+        }
+      } catch {
+        // Silently handle errors in RefState collection
+      }
+    };
+    
+    try {
+      collectRefStates(value);
+      // Note: WeakSet doesn't have clear() method, and we don't need to clear it
+    } catch {
+      // Silently handle errors during RefState collection
+    }
+    
+    // JSON 변환 시 RefState 객체는 ID로 교체
     const circularSafeStringify = (obj: unknown): string => {
+      const jsonVisited = new WeakSet(); // 새로운 WeakSet을 JSON 직렬화용으로 사용
       return JSON.stringify(obj, function(key, val) {
         if (val !== null && typeof val === 'object') {
-          if (visited.has(val)) {
+          if (jsonVisited.has(val)) {
             return '[Circular]';
           }
-          visited.add(val);
+          jsonVisited.add(val);
+          
+          // RefState 객체는 ID 마커로 교체
+          if ('__contextActionRefState' in val && val.__contextActionRefState === true) {
+            for (const [id, refStateObj] of refStateObjects) {
+              if (refStateObj === val) {
+                return { __REFSTATE_PLACEHOLDER__: id };
+              }
+            }
+          }
         }
         return val;
       });
     };
     
     const jsonString = circularSafeStringify(value);
-    return JSON.parse(jsonString);
+    const parsed = JSON.parse(jsonString);
+    
+    // RefState 플레이스홀더를 원본으로 복원
+    const restoreRefStates = (obj: any): any => {
+      if (typeof obj !== 'object' || obj === null) return obj;
+      
+      if (obj.__REFSTATE_PLACEHOLDER__ && refStateObjects.has(obj.__REFSTATE_PLACEHOLDER__)) {
+        return refStateObjects.get(obj.__REFSTATE_PLACEHOLDER__);
+      }
+      
+      if (Array.isArray(obj)) {
+        return obj.map(restoreRefStates);
+      }
+      
+      const result = {} as any;
+      for (const [key, val] of Object.entries(obj)) {
+        result[key] = restoreRefStates(val);
+      }
+      return result;
+    };
+    
+    return restoreRefStates(parsed);
   } catch (jsonError) {
     // 모든 방법이 실패하면 원본 반환
     if (process.env.NODE_ENV === 'development') {

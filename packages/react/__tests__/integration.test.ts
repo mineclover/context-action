@@ -3,9 +3,9 @@
  * - Testing Utilities (MockStore, async helpers)
  */
 
-import { createMockStore, waitForStoreChange, sleep } from '../../__tests__/utils/test-utils';
-import { Store } from '../stores/core/Store';
-import { StoreRegistry } from '../stores/core/StoreRegistry';
+import { createMockStore, waitForStoreChange, sleep } from './utils/test-utils';
+import { Store } from '../src/stores/core/Store';
+import { StoreRegistry } from '../src/stores/core/StoreRegistry';
 
 // Mock React for testing
 jest.mock('react', () => ({

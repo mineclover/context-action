@@ -9,19 +9,11 @@ module.exports = {
     '^(.+)\\.js$': '$1'
   },
   testMatch: [
-    '**/__tests__/**/*.test.{ts,tsx}',
-    '**/src/**/__tests__/**/*.test.{ts,tsx}'
+    '**/__tests__/**/*.test.{ts,tsx}'
   ],
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
-      tsconfig: {
-        esModuleInterop: true,
-        allowSyntheticDefaultImports: true,
-        module: 'commonjs',
-        target: 'es2020',
-        jsx: 'react-jsx',
-        types: ['jest', 'node']
-      }
+      tsconfig: '__tests__/tsconfig.json'
     }]
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],

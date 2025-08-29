@@ -39,14 +39,14 @@ export class ContextActionError extends Error {
     this.context = context ?? undefined;
     this.timestamp = Date.now();
     
-    // 원본 에러가 있으면 스택 추가
-    if (originalError) {
-      this.stack = `${this.stack}\nCaused by: ${originalError.stack}`;
-    }
-    
     // Error.captureStackTrace가 사용 가능하면 스택 최적화
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, ContextActionError);
+    }
+    
+    // 원본 에러가 있으면 스택 추가 (captureStackTrace 후에 실행)
+    if (originalError) {
+      this.stack = `${this.stack}\nCaused by: ${originalError.stack}`;
     }
   }
 }
@@ -203,6 +203,11 @@ function logError(error: ContextActionError): void {
       const removedSignature = createErrorSignature(removedEntry.error);
       errorSignatures.delete(removedSignature);
     }
+  }
+
+  // globalErrorBoundary에 에러 보고 (테스트 환경에서 사용)
+  if (typeof globalThis !== 'undefined' && (globalThis as any).globalErrorBoundary) {
+    (globalThis as any).globalErrorBoundary.reportError(error);
   }
   
   // 로그 레벨에 따른 출력

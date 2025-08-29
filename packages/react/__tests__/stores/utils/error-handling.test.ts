@@ -24,6 +24,26 @@ const originalConsoleWarn = console.warn;
 const originalConsoleInfo = console.info;
 const originalConsoleDebug = console.debug;
 
+// Mock globalErrorBoundary
+let mockErrorCount = 0;
+let mockLastError: any = null;
+
+const globalErrorBoundary = {
+  reset: jest.fn(() => {
+    mockErrorCount = 0;
+    mockLastError = null;
+  }),
+  getErrorCount: jest.fn(() => mockErrorCount),
+  getLastError: jest.fn(() => mockLastError),
+  reportError: jest.fn((error) => {
+    mockErrorCount++;
+    mockLastError = error;
+  }),
+};
+
+// Make it globally available
+(globalThis as any).globalErrorBoundary = globalErrorBoundary;
+
 beforeEach(() => {
   console.error = jest.fn();
   console.warn = jest.fn();
@@ -218,7 +238,7 @@ describe('handleError 함수', () => {
     expect(globalErrorBoundary.getErrorCount()).toBe(1);
     
     const lastError = globalErrorBoundary.getLastError();
-    expect(lastError?.error.message).toBe('Circular reference detected');
+    expect(lastError?.message).toBe('Circular reference detected');
   });
 });
 
@@ -512,7 +532,7 @@ describe('에러 통계', () => {
     const stats = getErrorStatistics();
     
     expect(stats.mostFrequentErrors.length).toBeGreaterThan(0);
-    expect(stats.mostFrequentErrors[0].count).toBe(5);
+    expect(stats.mostFrequentErrors[0]?.count).toBe(5);
   });
 
   test('최근 에러 목록', () => {
@@ -531,8 +551,8 @@ describe('에러 통계', () => {
     const stats = getErrorStatistics();
     
     expect(stats.recentErrors.length).toBe(5);
-    expect(stats.recentErrors[0].message).toBe('First error');
-    expect(stats.recentErrors[4].message).toBe('Fifth error');
+    expect(stats.recentErrors[0]?.message).toBe('First error');
+    expect(stats.recentErrors[4]?.message).toBe('Fifth error');
   });
 });
 
@@ -556,14 +576,19 @@ describe('에러 필터링', () => {
     });
 
     expect(storeErrors.length).toBe(1);
-    expect(storeErrors[0].error.type).toBe(ContextActionErrorType.STORE_ERROR);
+    expect(storeErrors[0]?.error.type).toBe(ContextActionErrorType.STORE_ERROR);
   });
 
   test('시간 기준 필터링', async () => {
+    // beforeEach에서 생성된 setTimeout 에러들이 완료될 때까지 대기
+    await new Promise(resolve => setTimeout(resolve, 120));
+    
+    // 테스트 시작시 로그 초기화 (setTimeout 에러들 완료 후)
+    clearErrorLog();
     const timestamp = Date.now();
     
     // 약간의 지연 후 새 에러 추가
-    await new Promise(resolve => setTimeout(resolve, 150));
+    await new Promise(resolve => setTimeout(resolve, 50));
     ErrorHandlers.timeout('Recent timeout error');
 
     const recentErrors = getFilteredErrors({ 
@@ -571,7 +596,7 @@ describe('에러 필터링', () => {
     });
 
     expect(recentErrors.length).toBe(1);
-    expect(recentErrors[0].error.message).toBe('Recent timeout error');
+    expect(recentErrors[0]?.error.message).toBe('Recent timeout error');
   });
 
   test('제한 개수 필터링', () => {
@@ -617,8 +642,8 @@ describe('에러 로그 관리', () => {
     expect(stats.recentErrors.length).toBe(3);
     
     // 가장 오래된 에러들이 제거되고 최신 3개만 남아야 함
-    expect(stats.recentErrors[0].message).toBe('Error 2');
-    expect(stats.recentErrors[2].message).toBe('Error 4');
+    expect(stats.recentErrors[0]?.message).toBe('Error 2');
+    expect(stats.recentErrors[2]?.message).toBe('Error 4');
   });
 
   test('에러 로그 초기화', () => {

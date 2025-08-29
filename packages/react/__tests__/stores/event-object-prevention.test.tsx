@@ -5,8 +5,8 @@
  * Verifies that DOM events and React events are blocked from being stored.
  */
 
-import { createStore } from '../core/Store';
-import { setErrorHandlingConfig, clearErrorLog, getErrorStatistics } from '../utils/error-handling';
+import { createStore } from '../../src/stores/core/Store';
+import { setErrorHandlingConfig, clearErrorLog, getErrorStatistics } from '../../src/stores/utils/error-handling';
 
 describe('Event Object Prevention', () => {
   let store: ReturnType<typeof createStore>;
