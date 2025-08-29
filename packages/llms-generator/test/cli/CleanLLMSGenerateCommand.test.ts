@@ -311,8 +311,8 @@ describe('CleanLLMSGenerateCommand', () => {
       try {
         await cmd.parseAsync(['node', 'test', '300', '--output-dir', customOutput, '--verbose']);
         
-        // Check that files were created in custom directory
-        const outputPath = path.join(customOutput, 'llms-300chars.txt');
+        // Check that files were created in custom directory with language structure
+        const outputPath = path.join(customOutput, 'ko', 'llms', 'llms-300chars.txt');
         const fileExists = await fs.access(outputPath).then(() => true).catch(() => false);
         
         expect(fileExists).toBe(true);
@@ -494,8 +494,8 @@ describe('CleanLLMSGenerateCommand', () => {
         expect(output).toContain('Generated Files:');
         
         // Check that multiple files were created
-        const originFile = path.join(testDataDir, 'output', 'llms-origin.txt');
-        const minimalFile = path.join(testDataDir, 'output', 'llms-minimal.txt');
+        const originFile = path.join(testDataDir, 'output', 'ko', 'llms', 'llms-origin.txt');
+        const minimalFile = path.join(testDataDir, 'output', 'ko', 'llms', 'llms-minimal.txt');
         
         const originExists = await fs.access(originFile).then(() => true).catch(() => false);
         const minimalExists = await fs.access(minimalFile).then(() => true).catch(() => false);
@@ -554,7 +554,7 @@ describe('CleanLLMSGenerateCommand', () => {
         expect(output).toContain('Clean LLMS file generated successfully');
         
         // Check that file was actually created  
-        const outputPath = path.join(testDataDir, 'output', 'llms-300chars.txt');
+        const outputPath = path.join(testDataDir, 'output', 'ko', 'llms', 'llms-300chars.txt');
         const fileExists = await fs.access(outputPath).then(() => true).catch(() => false);
         expect(fileExists).toBe(true);
         
@@ -584,7 +584,7 @@ describe('CleanLLMSGenerateCommand', () => {
         expect(output).toContain('Clean LLMS file generated successfully');
         
         // Check that file was created with correct pattern (including category in filename)
-        const outputPath = path.join(testDataDir, 'output', 'llms-300chars-guide-raw.txt');
+        const outputPath = path.join(testDataDir, 'output', 'ko', 'llms', 'llms-300chars-guide-raw.txt');
         const fileExists = await fs.access(outputPath).then(() => true).catch(() => false);
         expect(fileExists).toBe(true);
         

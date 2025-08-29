@@ -108,7 +108,7 @@ Features include action pipeline system, store integration, and MVVM architectur
 
       // Check that LLMS files were generated
       const llmsStandard = await fs.readFile(
-        path.join(testDataDir, 'output', 'llms.txt'),
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms.txt'),
         'utf-8'
       );
 
@@ -164,12 +164,12 @@ Much longer content for 1000 character limit with detailed explanations.`;
 
       // Check that character limited file was generated
       const llms100Exists = await fs.access(
-        path.join(testDataDir, 'output', 'llms-100chars.txt')
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms-100chars.txt')
       ).then(() => true).catch(() => false);
 
       // For character limits, it should generate the llms.txt file as well
       const llmsStandardExists = await fs.access(
-        path.join(testDataDir, 'output', 'llms.txt')
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms.txt')
       ).then(() => true).catch(() => false);
 
       // At least one of them should exist based on console output
@@ -237,7 +237,7 @@ character_limit: 100
       // Since language filtering is applied, only Korean content should be used
       // Check that file was generated (language filter affects content, not path)
       const llmsExists = await fs.access(
-        path.join(testDataDir, 'output', 'llms.txt')
+        path.join(testDataDir, 'output', 'ko', 'llms', 'llms.txt')
       ).then(() => true).catch(() => false);
 
       expect(llmsExists).toBe(true);
@@ -302,7 +302,7 @@ API documentation content.`;
 
       // Check that only guide files were generated
       const guideLLMSExists = await fs.access(
-        path.join(testDataDir, 'output', 'llms.txt')
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms.txt')
       ).then(() => true).catch(() => false);
 
       // Check that guide category worked - file should have been generated
@@ -355,7 +355,7 @@ This is the content.`;
       await llmsGenerateCommand.execute({ pattern: 'standard' });
 
       const llmsContent = await fs.readFile(
-        path.join(testDataDir, 'output', 'llms.txt'),
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms.txt'),
         'utf-8'
       );
 
@@ -393,7 +393,7 @@ This is the content.`;
       await llmsGenerateCommand.execute({ pattern: 'minimum' });
 
       const llmsContent = await fs.readFile(
-        path.join(testDataDir, 'output', 'llms-minimum.txt'),
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms-minimum.txt'),
         'utf-8'
       );
 
@@ -448,7 +448,7 @@ This is template content.`;
       await llmsGenerateCommand.execute({ pattern: 'origin' });
 
       const llmsContent = await fs.readFile(
-        path.join(testDataDir, 'output', 'llms-origin.txt'),
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms-origin.txt'),
         'utf-8'
       );
 
@@ -730,7 +730,7 @@ Template content here.`;
       await llmsGenerateCommand.execute({ pattern: 'origin' });
 
       const llmsContent = await fs.readFile(
-        path.join(testDataDir, 'output', 'llms-origin.txt'),
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms-origin.txt'),
         'utf-8'
       );
 
@@ -865,8 +865,8 @@ Example code and usage.`;
 
       // Check if LLMS file was generated
       const llmsFiles = [
-        path.join(testDataDir, 'output', 'llms.txt'),
-        path.join(testDataDir, 'output', 'llms-concept.txt')
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms.txt'),
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms-concept.txt')
       ];
 
       let conceptLLMSContent = '';
@@ -971,8 +971,8 @@ Comprehensive API hooks documentation.`;
 
       // Check if LLMS file was generated
       const llmsFiles = [
-        path.join(testDataDir, 'output', 'llms.txt'),
-        path.join(testDataDir, 'output', 'llms-reference.txt')
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms.txt'),
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms-reference.txt')
       ];
 
       let referenceLLMSContent = '';
@@ -1071,8 +1071,8 @@ Content without tags.`;
 
       // Check if LLMS file was generated
       const llmsFiles = [
-        path.join(testDataDir, 'output', 'llms.txt'),
-        path.join(testDataDir, 'output', 'llms-guide.txt')
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms.txt'),
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms-guide.txt')
       ];
 
       let guideLLMSContent = '';
@@ -1135,8 +1135,8 @@ Content with empty secondary tags.`;
 
       // Check if LLMS file was generated
       const llmsFiles = [
-        path.join(testDataDir, 'output', 'llms.txt'),
-        path.join(testDataDir, 'output', 'llms-concept.txt')
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms.txt'),
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms-concept.txt')
       ];
 
       let conceptLLMSContent = '';
@@ -1209,8 +1209,8 @@ Concept content.`;
 
       // Check that no LLMS file was generated or file is empty/minimal
       const llmsFiles = [
-        path.join(testDataDir, 'output', 'llms.txt'),
-        path.join(testDataDir, 'output', 'llms-api.txt')
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms.txt'),
+        path.join(testDataDir, 'output', 'en', 'llms', 'llms-api.txt')
       ];
 
       for (const filePath of llmsFiles) {
