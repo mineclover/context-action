@@ -1,14 +1,14 @@
 /**
  * @fileoverview Hook for subscribing to ref mount state changes
  * 
- * Provides reactive subscription to isMounted state changes
+ * Provides reactive subscription to isMounted state changes using useSyncExternalStore
  */
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useSyncExternalStore, useCallback, useRef } from 'react';
 import type { InternalRefState } from './useRefMount';
 
 /**
- * Hook that subscribes to ref mount state changes
+ * Hook that subscribes to ref mount state changes using useSyncExternalStore
  * Returns reactive isMounted state that triggers re-renders
  */
 export function useRefMountState<T>(refState: InternalRefState<T>): {
@@ -16,65 +16,91 @@ export function useRefMountState<T>(refState: InternalRefState<T>): {
   isWaitingForMount: boolean;
   mountedTarget: T | null;
 } {
-  // Reactive state for mount status
-  const [isMounted, setIsMounted] = useState(refState.isMounted);
-  const [mountedTarget, setMountedTarget] = useState<T | null>(refState.isMounted ? refState.target : null);
-  
-  useEffect(() => {
-    // Initialize state
-    setIsMounted(refState.isMounted);
-    setMountedTarget(refState.isMounted ? refState.target : null);
-    
-    // Create listener
-    const listener = () => {
-      setIsMounted(refState.isMounted);
-      setMountedTarget(refState.isMounted ? refState.target : null);
-    };
+  // Subscribe function for useSyncExternalStore
+  const subscribe = useCallback((callback: () => void) => {
+    if (!refState) return () => {};
     
     // Add listener to refState
-    refState.listeners.add(listener);
+    refState.listeners.add(callback);
     
-    // Cleanup
+    // Return cleanup function
     return () => {
-      refState.listeners.delete(listener);
+      refState.listeners.delete(callback);
     };
   }, [refState]);
   
-  const isWaitingForMount = !isMounted && refState.mountPromise !== null;
+  // Cached snapshot reference - React 18 compatibility
+  const cachedSnapshotRef = useRef<{
+    isMounted: boolean;
+    isWaitingForMount: boolean;
+    mountedTarget: T | null;
+  }>();
+
+  // Get snapshot function for current state with caching
+  const getSnapshot = useCallback(() => {
+    if (!refState) {
+      const snapshot = {
+        isMounted: false,
+        isWaitingForMount: false,
+        mountedTarget: null as T | null
+      };
+      cachedSnapshotRef.current = snapshot;
+      return snapshot;
+    }
+    
+    const isWaitingForMount = !refState.isMounted && refState.mountPromise !== null;
+    
+    const newSnapshot = {
+      isMounted: refState.isMounted,
+      isWaitingForMount,
+      mountedTarget: refState.isMounted ? refState.target : null as T | null
+    };
+    
+    // Cache comparison to prevent infinite loops
+    if (cachedSnapshotRef.current &&
+        cachedSnapshotRef.current.isMounted === newSnapshot.isMounted &&
+        cachedSnapshotRef.current.isWaitingForMount === newSnapshot.isWaitingForMount &&
+        cachedSnapshotRef.current.mountedTarget === newSnapshot.mountedTarget) {
+      return cachedSnapshotRef.current;
+    }
+    
+    cachedSnapshotRef.current = newSnapshot;
+    return newSnapshot;
+  }, [refState]);
   
-  return {
-    isMounted,
-    isWaitingForMount,
-    mountedTarget
-  };
+  // Server snapshot (for SSR) - cached static reference
+  const serverSnapshotRef = useRef({
+    isMounted: false,
+    isWaitingForMount: false,
+    mountedTarget: null as T | null
+  });
+  
+  const getServerSnapshot = useCallback(() => {
+    return serverSnapshotRef.current;
+  }, []);
+  
+  // Use React's useSyncExternalStore for reactive subscriptions
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
 /**
  * Hook that provides a callback when mount state changes
+ * Uses useSyncExternalStore internally for consistent behavior
  */
 export function useOnMountStateChange<T>(
   refState: InternalRefState<T>,
   callback: (mounted: boolean, target: T | null) => void
 ): void {
+  // Get the current mount state using our reactive hook
+  const { isMounted, mountedTarget } = useRefMountState(refState);
+  
+  // Use a stable callback to avoid unnecessary re-subscriptions
+  const stableCallback = useCallback(callback, [callback]);
+  
+  // Call the callback when mount state changes
   useEffect(() => {
-    // Create listener
-    const listener = () => {
-      callback(refState.isMounted, refState.target);
-    };
-    
-    // Add listener
-    refState.listeners.add(listener);
-    
-    // Call initially if mounted
-    if (refState.isMounted && refState.target) {
-      callback(true, refState.target);
-    }
-    
-    // Cleanup
-    return () => {
-      refState.listeners.delete(listener);
-    };
-  }, [refState, callback]);
+    stableCallback(isMounted, mountedTarget);
+  }, [isMounted, mountedTarget, stableCallback]);
 }
 
 /**

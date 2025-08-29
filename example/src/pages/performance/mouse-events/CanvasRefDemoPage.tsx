@@ -23,7 +23,8 @@ type CanvasRefTypes = {
  */
 const {
   Provider: CanvasRefProvider,
-  useRefHandler: useCanvasRef
+  useRefHandler: useCanvasRef,
+  useRefMountState: useCanvasRefMountState
 } = createRefContext<CanvasRefTypes>('CanvasDrawing');
 
 /**
@@ -97,6 +98,10 @@ function CanvasRefDemoView() {
   const coordinates = useCanvasRef('coordinates');
   const pathSvg = useCanvasRef('pathSvg');
   
+  // 🎯 Reactive mount state - container 마운트 상태 감지
+  const containerMountState = useCanvasRefMountState('container');
+  const { isMounted: isContainerMounted, mountedTarget: containerElement } = containerMountState;
+  
   // Store hooks for reactive state updates
   const realTimePositionStore = useMouseStore('realTimePosition');
   const realTimeMovementStore = useMouseStore('realTimeMovement');
@@ -144,6 +149,27 @@ function CanvasRefDemoView() {
     lastPosition: { x: -999, y: -999 },
     lastMoveTime: 0
   });
+  
+  // === 반응형 마운트 상태에 따른 시각적 피드백 ===
+  useEffect(() => {
+    if (isContainerMounted && containerElement) {
+      console.log('🎯 [CanvasRefDemoView] Container mounted via reactive state');
+      containerElement.style.border = '2px solid #10b981';
+    } else if (!isContainerMounted) {
+      console.log('🔄 [CanvasRefDemoView] Container unmounted');
+      // 언마운트 시 정리 작업은 container.target이 있을 때만 수행
+      if (container.target) {
+        container.target.style.border = '';
+      }
+    }
+  }, [isContainerMounted, containerElement, container]);
+  
+  // === 반응형 마운트 상태에 따른 기능 활성화 ===
+  useEffect(() => {
+    if (isContainerMounted) {
+      console.log('🚀 [CanvasRefDemoView] Container is mounted, canvas features activated');
+    }
+  }, [isContainerMounted]);
   
   // Real-time activity status update using createStoreContext pattern
   useEffect(() => {
@@ -197,12 +223,19 @@ function CanvasRefDemoView() {
     return () => clearInterval(interval);
   }, [realTimeActivityStore, realTimeMovementStore, realTimeClicksStore]);
   
+  // === 🎯 반응형 안전한 DOM 조작 ===
+  const safeWithContainer = useCallback((callback: (container: HTMLDivElement) => void) => {
+    if (isContainerMounted && containerElement) {
+      callback(containerElement);
+    }
+  }, [isContainerMounted, containerElement]);
+
   // Performance optimized mouse move handler using createStoreContext + createRefContext
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const containerRef = container.target;
-    if (!containerRef) return;
+    // 🎯 안전한 컨테이너 접근 - 마운트 상태 확인
+    if (!isContainerMounted || !containerElement) return;
     
-    const rect = containerRef.getBoundingClientRect();
+    const rect = containerElement.getBoundingClientRect();
     const x = Math.round(e.clientX - rect.left);
     const y = Math.round(e.clientY - rect.top);
     const timestamp = Date.now();
@@ -293,14 +326,14 @@ function CanvasRefDemoView() {
         containerRenderCount: prev.containerRenderCount + 1
       }));
     }, 16); // ~60fps throttling
-  }, [container, cursor, coordinates, pathSvg, showDetails, realTimePositionStore, realTimeMovementStore, realTimeActivityStore]);
+  }, [isContainerMounted, containerElement, cursor, coordinates, pathSvg, showDetails, realTimePositionStore, realTimeMovementStore, realTimeActivityStore]);
   
   // Mouse click handler using createStoreContext + createRefContext pattern
   const handleMouseClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const containerRef = container.target;
-    if (!containerRef) return;
+    // 🎯 안전한 컨테이너 접근 - 마운트 상태 확인
+    if (!isContainerMounted || !containerElement) return;
     
-    const rect = containerRef.getBoundingClientRect();
+    const rect = containerElement.getBoundingClientRect();
     const x = Math.round(e.clientX - rect.left);
     const y = Math.round(e.clientY - rect.top);
     const timestamp = Date.now();
@@ -327,14 +360,14 @@ function CanvasRefDemoView() {
       clickHistory: [{ x, y, button: e.button, timestamp }, ...prev.clickHistory].slice(0, 10),
       totalEvents: prev.totalEvents + 1
     }));
-  }, [container, realTimeClicksStore, realTimeActivityStore]);
+  }, [isContainerMounted, containerElement, realTimeClicksStore, realTimeActivityStore]);
   
   // Mouse enter handler
   const handleMouseEnter = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const containerRef = container.target;
-    if (!containerRef) return;
+    // 🎯 안전한 컨테이너 접근 - 마운트 상태 확인
+    if (!isContainerMounted || !containerElement) return;
     
-    const rect = containerRef.getBoundingClientRect();
+    const rect = containerElement.getBoundingClientRect();
     const x = Math.round(e.clientX - rect.left);
     const y = Math.round(e.clientY - rect.top);
     const timestamp = Date.now();
@@ -370,16 +403,18 @@ function CanvasRefDemoView() {
       isInsideArea: true,
       totalEvents: prev.totalEvents + 1
     }));
-  }, [container, cursor, realTimePositionStore, realTimeActivityStore, realTimeMovementStore]);
+  }, [isContainerMounted, containerElement, cursor, realTimePositionStore, realTimeActivityStore, realTimeMovementStore]);
   
   // Mouse leave handler
   const handleMouseLeave = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const containerRef = container.target;
-    if (!containerRef) return;
+    // 🎯 안전한 컨테이너 접근 - 마운트 상태 확인 (leave는 필수 아님)
+    let x = -999, y = -999;
     
-    const rect = containerRef.getBoundingClientRect();
-    const x = Math.round(e.clientX - rect.left);
-    const y = Math.round(e.clientY - rect.top);
+    if (isContainerMounted && containerElement) {
+      const rect = containerElement.getBoundingClientRect();
+      x = Math.round(e.clientX - rect.left);
+      y = Math.round(e.clientY - rect.top);
+    }
     
     // 🎯 Update stores for real-time reactivity
     realTimePositionStore.setValue({ x: -999, y: -999 });
@@ -426,7 +461,7 @@ function CanvasRefDemoView() {
       isInsideArea: false,
       totalEvents: prev.totalEvents + 1
     }));
-  }, [container, cursor, coordinates, pathSvg, realTimePositionStore, realTimeActivityStore, realTimeMovementStore]);
+  }, [isContainerMounted, containerElement, cursor, coordinates, pathSvg, realTimePositionStore, realTimeActivityStore, realTimeMovementStore]);
   
   // Reset handler
   const handleReset = useCallback(() => {

@@ -1,0 +1,15 @@
+{
+  "documentId": "en_concept_ref-mount-subscription",
+  "title": "RefContext Mount State Subscription",
+  "category": "concept",
+  "language": "en",
+  "priority": 0.5,
+  "tags": [
+    "typescript"
+  ],
+  "lastUpdated": "2025-08-29T04:23:12.775Z",
+  "source": {
+    "file": "docs/en/concept/ref-mount-subscription.md",
+    "lastModified": "2025-08-29T04:17:43.636Z"
+  }
+}

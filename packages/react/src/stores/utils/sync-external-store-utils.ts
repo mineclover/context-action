@@ -50,14 +50,14 @@ export function createEnhancedSubscriber<T>(
         return;
       }
 
-      const now = Date.now();
+      const now = performance.now();
 
       // 스로틀링 처리
       if (throttle && throttle > 0) {
         if (now - lastThrottleTime < throttle) {
           if (throttleTimer) clearTimeout(throttleTimer);
           throttleTimer = setTimeout(() => {
-            lastThrottleTime = Date.now();
+            lastThrottleTime = performance.now();
             callback();
           }, throttle - (now - lastThrottleTime));
           return;
@@ -133,7 +133,7 @@ export function useSafeStoreSubscription<T, R = T>(
     return store.subscribe(callback);
   }, [store, subscriptionOptions]);
 
-  // 스냅샷 가져오기 함수
+  // 스냅샷 가져오기 함수 - 안정적인 참조 유지
   const getSnapshot = useCallback((): R | T | undefined => {
     if (!store) return initialValue;
     
@@ -143,31 +143,35 @@ export function useSafeStoreSubscription<T, R = T>(
     return value as R | T;
   }, [store, selector, initialValue]);
 
+  // 캐시된 스냅샷 함수 - React 18 호환성 향상
+  const cachedSnapshotRef = useRef<R | T | undefined>();
+  const stableGetSnapshot = useCallback((): R | T | undefined => {
+    const currentSnapshot = getSnapshot();
+    
+    // 이전 값과 비교하여 실제로 변경된 경우에만 새 값 반환
+    if (equalityFn && cachedSnapshotRef.current !== undefined) {
+      if (equalityFn(cachedSnapshotRef.current as R, currentSnapshot as R)) {
+        return cachedSnapshotRef.current;
+      }
+    }
+    
+    cachedSnapshotRef.current = currentSnapshot;
+    return currentSnapshot;
+  }, [getSnapshot, equalityFn]);
+
   // 서버 사이드 스냅샷
   const getServerSnapshot = useCallback((): R | T | undefined => {
     return initialValue;
   }, [initialValue]);
 
-  // React의 useSyncExternalStore 사용
+  // React의 useSyncExternalStore 사용 - 캐시된 스냅샷 함수 사용
   const currentValue = useSyncExternalStore(
     subscribe,
-    getSnapshot,
+    equalityFn ? stableGetSnapshot : getSnapshot,
     getServerSnapshot
   );
 
-  // 동등성 비교가 필요한 경우 추가 최적화
-  const previousValueRef = useRef<R | T | undefined>(currentValue);
-  const optimizedValue = useMemo(() => {
-    if (equalityFn && previousValueRef.current !== undefined) {
-      if (equalityFn(previousValueRef.current as R, currentValue as R)) {
-        return previousValueRef.current;
-      }
-    }
-    previousValueRef.current = currentValue;
-    return currentValue;
-  }, [currentValue, equalityFn]);
-
-  return equalityFn ? optimizedValue : currentValue;
+  return currentValue;
 }
 
 /**

@@ -104,13 +104,22 @@ export function createActionContext<T extends {}>(
       payload?: T[K],
       options?: DispatchOptions
     ): Promise<void> => {
+      console.log(`🎬 [DEBUG] React dispatch called for '${String(action)}':`, {
+        hasPayload: payload !== undefined,
+        hasOptions: options !== undefined,
+        timestamp: new Date().toISOString()
+      });
+      
       const register = actionRegisterRef.current;
       if (!register) {
+        console.error(`❌ [DEBUG] ActionRegister not initialized for dispatch of '${String(action)}'`);
         throw new Error(
           'ActionRegister is not initialized. ' +
           'Make sure the ActionContext Provider is properly set up.'
         );
       }
+      
+      console.log(`🔗 [DEBUG] ActionRegister found, dispatching '${String(action)}'`);
       
       // Use core's autoAbort feature if no signal is provided
       const dispatchOptions: DispatchOptions = {
@@ -182,13 +191,25 @@ export function createActionContext<T extends {}>(
     useEffect(() => {
       const register = actionRegisterRef.current;
       if (!register) {
+        console.log(`⚠️ [DEBUG] ActionRegister not available for handler registration of '${String(action)}'`);
         return;
       }
 
       // Clean up previous handler
       if (unregisterRef.current) {
+        console.log(`🗑️ [DEBUG] Cleaning up previous handler for '${String(action)}'`);
         unregisterRef.current();
       }
+
+      const handlerId = config?.id || `react_${String(action)}_${actionId}`;
+      
+      console.log(`📝 [DEBUG] Registering React handler for '${String(action)}':`, {
+        handlerId,
+        priority: config?.priority || 0,
+        replaceExisting: true,
+        registerExists: Boolean(register),
+        timestamp: new Date().toISOString()
+      });
 
       // Register new handler with stable wrapper
       const unregister = register.register(
@@ -197,13 +218,16 @@ export function createActionContext<T extends {}>(
         {
           ...config,
           replaceExisting: true,
-          id: config?.id || `react_${String(action)}_${actionId}`
+          id: handlerId
         }
       );
       (unregisterRef as any).current = unregister;
+      
+      console.log(`✅ [DEBUG] Handler registered successfully for '${String(action)}' with ID '${handlerId}'`);
 
       // Cleanup on unmount or dependencies change
       return () => {
+        console.log(`🧹 [DEBUG] Cleanup effect triggered for '${String(action)}' handler '${handlerId}'`);
         // Copy current unregister function at the time of effect creation
         const cleanupUnregister = unregister;
         cleanupUnregister();

@@ -61,17 +61,6 @@ const examplesUtilities: ExampleUtility[] = [
     icon: '📝'
   },
   // Practical Examples
-  {
-    id: 'element-management',
-    title: 'Element Management',
-    description: 'Dynamic element creation and management with React integration',
-    path: '/examples/element-management',
-    category: 'practical',
-    features: ['Dynamic elements', 'Element lifecycle', 'Integration patterns', 'Performance optimization'],
-    difficulty: 'Intermediate',
-    status: 'Complete',
-    icon: '🎯'
-  },
   // Specialized Features
   {
     id: 'refs-management',

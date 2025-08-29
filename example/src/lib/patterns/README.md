@@ -221,13 +221,7 @@ function UserActions() {
 
 실행: `UserManagementExample.tsx` 참조
 
-### 2. Element 관리 마이그레이션
-- 기존 element-management 패턴을 새로운 시스템으로 마이그레이션
-- DOM Element 자동 등록
-- 포커스 및 선택 관리
-- Element 생명주기 추적
 
-실행: `ElementManagementMigration.tsx` 참조
 
 ## 🔧 설정 옵션
 

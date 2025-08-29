@@ -414,31 +414,34 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
   };
   
   // 새로운 mount state subscription hooks
-  const useRefMountStateHook = useCallback(<K extends keyof T>(refName: K) => {
+  const useRefMountStateHook = <K extends keyof T>(refName: K) => {
+    const { getRefState } = useRefContext();
     const refState = getRefState(String(refName));
     return useRefMountState(refState) as {
       isMounted: boolean;
       isWaitingForMount: boolean;
       mountedTarget: T[K] | null;
     };
-  }, [getRefState]);
+  };
   
-  const useOnMountStateChangeHook = useCallback(<K extends keyof T>(
+  const useOnMountStateChangeHook = <K extends keyof T>(
     refName: K,
     callback: (mounted: boolean, target: T[K] | null) => void
   ) => {
+    const { getRefState } = useRefContext();
     const refState = getRefState(String(refName));
     useOnMountStateChange(refState, callback);
-  }, [getRefState]);
+  };
   
-  const useRefMountCheckerHook = useCallback(<K extends keyof T>(refName: K) => {
+  const useRefMountCheckerHook = <K extends keyof T>(refName: K) => {
+    const { getRefState } = useRefContext();
     const refState = getRefState(String(refName));
     return useRefMountChecker(refState) as () => {
       isMounted: boolean;
       isWaitingForMount: boolean;
       target: T[K] | null;
     };
-  }, [getRefState]);
+  };
 
   return {
     Provider,

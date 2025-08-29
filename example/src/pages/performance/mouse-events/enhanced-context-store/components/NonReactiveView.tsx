@@ -25,8 +25,9 @@ import { NonReactiveCanvas } from './NonReactiveCanvas';
 export function NonReactiveView() {
   // === ViewModel Layer - 완전한 Non-Reactive ===
   
-  // 비즈니스 로직 초기화 (Store 관리만)
-  const { initialized } = useMouseEventsLogic();
+  // 비즈니스 로직 초기화 (Store 관리만) - TEMPORARILY DISABLED FOR DEBUGGING
+  // const { initialized } = useMouseEventsLogic();
+  const initialized = true; // Force initialized for debugging
   
   // 고급 Canvas 직접 제어 (클릭 마커 포함)
   const canvasControl = useAdvancedCanvasControl();
@@ -144,30 +145,22 @@ export function NonReactiveView() {
       )}
 
       {/* Non-Reactive Canvas */}
-      <NonReactiveCanvas
-        // 고급 Canvas 제어 (클릭 마커 포함)
-        onMouseMove={canvasControl.handleMouseMove}
-        onMouseClick={canvasControl.handleMouseClick}
-        onMouseEnter={canvasControl.handleMouseEnter}
-        onMouseLeave={canvasControl.handleMouseLeave}
-        onReset={canvasControl.handleReset}
-        
-        // RefContext DOM 참조들
-        setContainerRef={canvasControl.setContainerRef}
-        setCursorRef={canvasControl.setCursorRef}
-        setPathSvgRef={canvasControl.setPathSvgRef}
-        setCoordinatesRef={canvasControl.setCoordinatesRef}
-        setClickMarkersRef={canvasControl.setClickMarkersRef}
-        
-        // Non-reactive 데이터 조회
-        getActivityStatus={canvasControl.getActivityStatus}
-        refreshMetrics={canvasControl.refreshMetrics}
-        
-        // UI 설정
-        width={800}
-        height={400}
-        animationSpeed={animationSpeed}
-      />
+      <div className="p-6 border border-purple-200 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 shadow-lg">
+        <NonReactiveCanvas 
+          onMouseMove={canvasControl.handleMouseMove}
+          onMouseClick={canvasControl.handleMouseClick}
+          onMouseEnter={canvasControl.handleMouseEnter}
+          onMouseLeave={canvasControl.handleMouseLeave}
+          onReset={canvasControl.handleReset}
+          setContainerRef={canvasControl.setContainerRef}
+          setCursorRef={canvasControl.setCursorRef}
+          setPathSvgRef={canvasControl.setPathSvgRef}
+          setCoordinatesRef={canvasControl.setCoordinatesRef}
+          setClickMarkersRef={canvasControl.setClickMarkersRef}
+          getActivityStatus={canvasControl.getActivityStatus}
+          refreshMetrics={canvasControl.refreshMetrics}
+        />
+      </div>
 
       {/* 실시간 상태 정보 (수동 새로고침) */}
       <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
@@ -179,8 +172,8 @@ export function NonReactiveView() {
             </h4>
             <button
               onClick={() => {
-                const data = canvasControl.refreshMetrics();
-                console.log('🔄 Manual refresh:', data);
+                const newData = metrics.refreshMetrics();
+                console.log('🔄 Manual refresh:', newData);
               }}
               className="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600"
             >

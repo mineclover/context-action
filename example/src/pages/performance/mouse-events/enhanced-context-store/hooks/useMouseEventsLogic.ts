@@ -11,6 +11,8 @@ import { useCallback, useEffect, useRef } from 'react';
 import { 
   useMouseStore, 
   useMouseActionHandler,
+  useMouseRef,
+  useMouseRefMountState,
   type MousePosition,
   type MouseClick,
   type MouseMovement,
@@ -19,7 +21,7 @@ import {
 } from '../context/MouseEventsModel';
 
 /**
- * 마우스 이벤트 비즈니스 로직을 관리하는 Hook
+ * 마우스 이벤트 비즈니스 로직을 관리하는 Hook - 진짜 반응형 마운트 상태 기반
  * 
  * 역할:
  * - 액션 핸들러 등록
@@ -35,6 +37,13 @@ export function useMouseEventsLogic() {
   const computedStore = useMouseStore('computed');
   const activityStore = useMouseStore('activity');
   const performanceStore = useMouseStore('performance');
+  
+  // Container 참조 (마운트 상태 확인용)
+  const containerRef = useMouseRef('container');
+  
+  // 🎯 진짜 반응형 마운트 상태 - RefContext 기본 제공
+  const containerMountState = useMouseRefMountState('container');
+  const { isMounted: isContainerMounted, mountedTarget: containerElement } = containerMountState;
   
   // 성능 추적용 refs
   const lastUpdateTime = useRef<number>(Date.now());
@@ -258,7 +267,16 @@ export function useMouseEventsLogic() {
     
   }, [positionStore, movementStore, clicksStore, activityStore, computedStore, performanceStore]);
   
-  // === 액션 핸들러 등록 ===
+  // === 반응형 마운트 상태에 따른 핸들러 활성화 ===
+  useEffect(() => {
+    if (isContainerMounted && containerElement) {
+      console.log('🎯 [useMouseEventsLogic] Container mounted via reactive state');
+      console.log('🚀 [useMouseEventsLogic] Handlers are now ready');
+    } else {
+      console.log('🔄 [useMouseEventsLogic] Container unmounted, handlers deactivated');
+    }
+  }, [isContainerMounted, containerElement]);
+  
   useMouseActionHandler('updatePosition', handleUpdatePosition);
   useMouseActionHandler('recordClick', handleRecordClick);
   useMouseActionHandler('enterArea', handleEnterArea);
@@ -268,8 +286,13 @@ export function useMouseEventsLogic() {
   // === 주기적 메트릭스 업데이트 제거 ===
   // 메트릭스는 사용자 액션 시에만 업데이트 (updatePosition 핸들러에서 처리)
   
-  // Hook이 초기화되었음을 알림
+  // 🎯 반응형 Hook 초기화 상태 반환 - 진짜 마운트 상태 기반
   return {
-    initialized: true
+    initialized: true,
+    containerMounted: isContainerMounted,
+    isWaitingForMount: containerMountState.isWaitingForMount, // RefContext 기본 제공
+    containerElement: containerElement,
+    // 추가 반응형 정보
+    reactiveState: containerMountState
   };
 }

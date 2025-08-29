@@ -71,7 +71,6 @@ function Layout({
     { path: '/demos/user-profile', label: '👤 User Profile Demo', category: 'demos', description: 'Form processing and validation patterns' },
     
     
-    { path: '/examples/element-management', label: '🎯 Element Management Demo', category: 'examples' },
     
     // === Advanced Demos (고급 데모) ===
     { path: '/action-guard', label: '🛡️ ActionGuard (Standardized)', category: 'actionguard', isIndex: true, description: 'New standardized ActionGuard demonstrations with unified structure' },

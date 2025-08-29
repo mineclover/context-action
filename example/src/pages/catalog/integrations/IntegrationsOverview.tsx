@@ -25,18 +25,6 @@ export default function IntegrationsOverview() {
               <p className="text-gray-600">실제 비즈니스 로직이 적용된 애플리케이션</p>
             </div>
           </li>
-          <li className="flex items-center">
-            <span className="bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-semibold">2</span>
-            <div>
-              <Link 
-                to="/integrations/advanced/element-management" 
-                className="text-green-600 hover:text-green-800 font-medium text-lg"
-              >
-                Advanced Examples
-              </Link>
-              <p className="text-gray-600">복잡한 상호작용과 고급 패턴 구현</p>
-            </div>
-          </li>
         </ol>
       </div>
 
@@ -80,12 +68,6 @@ export default function IntegrationsOverview() {
             고급 기능과 복잡한 상호작용을 보여주는 실험적 구현들
           </p>
           <ul className="space-y-2">
-            <li>
-              <Link to="/integrations/advanced/element-management" className="text-green-600 hover:underline">
-                🎯 Element Management
-              </Link>
-              <span className="text-xs text-gray-500 ml-2">Dynamic DOM</span>
-            </li>
             <li>
               <Link to="/integrations/advanced/form-builder" className="text-green-600 hover:underline">
                 📋 Form Builder

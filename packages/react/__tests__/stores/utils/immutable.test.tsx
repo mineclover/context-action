@@ -14,7 +14,8 @@ import {
   getGlobalImmutabilityOptions,
   performantSafeGet,
   getPerformanceProfile,
-  produce
+  produce,
+  preloadImmer
 } from '../../../src/stores/utils/immutable';
 
 // Mock console methods
@@ -34,6 +35,11 @@ const originalConsole = {
 };
 
 describe('Immer-based Immutable utilities', () => {
+  beforeAll(async () => {
+    // Preload Immer for synchronous usage
+    await preloadImmer();
+  });
+  
   beforeEach(() => {
     // Replace console methods with mocks
     console.warn = mockConsole.warn;
@@ -50,6 +56,9 @@ describe('Immer-based Immutable utilities', () => {
       enableVerification: true,
       warnOnFallback: true
     });
+    
+    // Set NODE_ENV to development for console calls
+    process.env.NODE_ENV = 'development';
   });
 
   afterEach(() => {
@@ -79,10 +88,10 @@ describe('Immer-based Immutable utilities', () => {
         const original = { a: 1, b: { c: 2 } };
         const cloned = deepClone(original);
         
-        // Immer의 최적화: 변경사항이 없으면 원본 반환
+        // deepClone은 현재 structuredClone/simpleClone을 사용하므로 새로운 참조를 반환
         expect(cloned).toEqual(original);
-        // 이것이 Immer의 핵심 최적화이므로 정상적인 동작
-        expect(cloned === original).toBe(true);
+        // deepClone은 항상 새로운 참조를 반환 (Immer produce와 다름)
+        expect(cloned === original).toBe(false);
       });
 
       it('should create new reference when actual changes happen', () => {
@@ -125,9 +134,8 @@ describe('Immer-based Immutable utilities', () => {
         const cloned = deepClone(original);
         
         expect(cloned).toBe(original);
-        expect(mockConsole.warn).toHaveBeenCalledWith(
-          '[Context-Action] Symbols cannot be deep cloned, returning original reference'
-        );
+        // Symbols are primitives and are returned as-is without warnings
+        expect(mockConsole.warn).not.toHaveBeenCalled();
       });
 
       it('should handle DOM elements by returning original reference', () => {

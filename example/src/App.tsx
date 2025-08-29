@@ -61,7 +61,6 @@ const TodoListPage = lazy(() => import('./pages/integrations/business/TodoListPa
 const ShoppingCartPage = lazy(() => import('./pages/integrations/business/ShoppingCartPage').then(m => ({ default: m.ShoppingCartPage })));
 const ChatPage = lazy(() => import('./pages/integrations/business/ChatPage').then(m => ({ default: m.ChatPage })));
 const UserProfilePage = lazy(() => import('./pages/integrations/business/UserProfilePage').then(m => ({ default: m.UserProfilePage })));
-const ElementManagementPage = lazy(() => import('./pages/integrations/advanced/ElementManagementPage').then(m => ({ default: m.ElementManagementPage })));
 const FormBuilderDemoPage = lazy(() => import('./pages/integrations/advanced/FormBuilderPage').then(m => ({ default: m.FormBuilderDemoPage })));
 const AdvancedCanvasExample = lazy(() => import('./pages/integrations/advanced/CanvasPage').then(m => ({ default: m.AdvancedCanvasExample })));
 const ConcurrentActionTestPage = lazy(() => import('./pages/integrations/advanced/ConcurrentActionsPage'));
@@ -180,7 +179,6 @@ function AppContent() {
             <Route path="/integrations/business/shopping-cart" element={<ShoppingCartPage />} />
             <Route path="/integrations/business/chat" element={<ChatPage />} />
             <Route path="/integrations/business/user-profile" element={<UserProfilePage />} />
-            <Route path="/integrations/advanced/element-management" element={<ElementManagementPage />} />
             <Route path="/integrations/advanced/form-builder" element={<FormBuilderDemoPage />} />
             <Route path="/integrations/advanced/canvas" element={<AdvancedCanvasExample />} />
             <Route path="/integrations/advanced/concurrent-actions" element={<ConcurrentActionTestPage />} />
@@ -230,9 +228,6 @@ function AppContent() {
             <Route path="/demos/user-profile" element={<UserProfilePage />} />
             <Route path="/demos/action-priority" element={<ActionPriorityDemoPage />} />
             <Route path="/demos/store-scenarios" element={<StoreScenariosPage />} />
-            <Route path="/examples/element-management" element={<ElementManagementPage />} />
-            <Route path="/examples/element-management/form-builder" element={<FormBuilderDemoPage />} />
-            <Route path="/examples/element-management/canvas" element={<AdvancedCanvasExample />} />
             <Route path="/examples/concurrent-actions" element={<ConcurrentActionTestPage />} />
             <Route path="/examples/toast-config" element={<ToastConfigPage />} />
             <Route path="/examples/enhanced-search" element={<EnhancedAbortableSearchExample />} />
