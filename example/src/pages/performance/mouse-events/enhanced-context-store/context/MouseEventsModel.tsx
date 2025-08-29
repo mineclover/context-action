@@ -61,11 +61,12 @@ export interface PerformanceMetrics {
 }
 
 // === DOM 참조 타입 정의 ===
-export interface MouseEventRefs {
+export interface MouseEventRefs extends Record<string, HTMLElement | SVGElement> {
   container: HTMLDivElement;
   cursor: HTMLDivElement;
   pathSvg: SVGPathElement;
   coordinates: HTMLDivElement;
+  clickMarkers: HTMLDivElement; // 클릭 마커 컨테이너
 }
 
 // === 액션 타입 정의 ===

@@ -32,6 +32,9 @@ export function useMouseEventsTriggers() {
   const throttleTimeoutRef = useRef<number>();
   const lastMoveTimeRef = useRef<number>(0);
   
+  // Path 직접 그리기용 상태 (Store 우회)
+  const pathPointsRef = useRef<Array<{ x: number; y: number; timestamp: number }>>([]);
+  
   // === 마우스 움직임 핸들러 ===
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const container = containerRef.target;
@@ -45,14 +48,14 @@ export function useMouseEventsTriggers() {
     // 직접적인 DOM 조작 - 커서 위치 업데이트 (GPU 가속)
     const cursor = cursorRef.target;
     if (cursor) {
-      cursor.style.transform = `translate(${x - 8}px, ${y - 8}px)`;
+      cursor.style.transform = `translate3d(${x - 8}px, ${y - 8}px, 0)`;
     }
     
     // 좌표 표시 업데이트
     const coordinates = coordinatesRef.target;
     if (coordinates) {
       coordinates.textContent = `(${x}, ${y})`;
-      coordinates.style.transform = `translate(${x + 16}px, ${y - 32}px)`;
+      coordinates.style.transform = `translate3d(${x + 16}px, ${y - 32}px, 0)`;
     }
     
     // Action dispatch (throttled)
@@ -63,7 +66,7 @@ export function useMouseEventsTriggers() {
     throttleTimeoutRef.current = window.setTimeout(() => {
       dispatch('updatePosition', { x, y, timestamp });
       lastMoveTimeRef.current = timestamp;
-    }, 16); // ~60fps
+    }, 33); // ~30fps for store updates (DOM is still 60fps via direct manipulation)
     
   }, [dispatch, containerRef, cursorRef, coordinatesRef]);
   
@@ -99,7 +102,7 @@ export function useMouseEventsTriggers() {
     const cursor = cursorRef.target;
     if (cursor) {
       cursor.style.opacity = '1';
-      cursor.style.transform = `translate(${x - 8}px, ${y - 8}px)`;
+      cursor.style.transform = `translate3d(${x - 8}px, ${y - 8}px, 0)`;
     }
     
     // 좌표 표시
@@ -107,7 +110,7 @@ export function useMouseEventsTriggers() {
     if (coordinates) {
       coordinates.style.opacity = '1';
       coordinates.textContent = `(${x}, ${y})`;
-      coordinates.style.transform = `translate(${x + 16}px, ${y - 32}px)`;
+      coordinates.style.transform = `translate3d(${x + 16}px, ${y - 32}px, 0)`;
     }
     
     dispatch('enterArea', { x, y, timestamp });
