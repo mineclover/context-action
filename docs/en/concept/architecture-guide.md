@@ -27,11 +27,12 @@ The Context-Action framework addresses critical issues in modern state managemen
 
 ### Architecture Implementation
 
-The framework implements a clean separation of concerns through an MVVM-inspired pattern with **three core patterns** for complete domain isolation:
+The framework implements a clean separation of concerns through an MVVM-inspired pattern with **four core architectural strategies** for complete domain isolation:
 
 - **Actions** handle business logic and coordination (ViewModel layer) via `createActionContext`
 - **Declarative Store Pattern** manages state with domain isolation (Model layer) via `createStoreContext`
 - **RefContext** provides direct DOM manipulation with zero re-renders (Performance layer) via `createRefContext`
+- **Selective Subscription** optimizes performance through strategic subscription management (Optimization layer)
 - **Components** render UI (View layer)
 - **Context Boundaries** isolate functional domains
 - **Type-Safe Integration** through domain-specific hooks
@@ -47,7 +48,7 @@ The framework implements a clean separation of concerns through an MVVM-inspired
 #### Domain-Based Context Architecture
 - **Business Context**: Business logic, data processing, and domain rules (Actions + Stores)
 - **UI Context**: Screen state, user interactions, and component behavior (Stores + RefContext)
-- **Performance Context**: High-performance DOM manipulation and animations (RefContext)
+- **Performance Context**: High-performance DOM manipulation and animations (RefContext + Selective Subscription)
 - **Validation Context**: Data validation, form processing, and error handling (Actions + Stores)
 - **Design Context**: Theme management, styling, layout, and visual states (Stores + RefContext)
 - **Architecture Context**: System configuration, infrastructure, and technical decisions (Actions + Stores)
@@ -82,7 +83,7 @@ Context-Action provides sophisticated handler and trigger management that existi
 1. **Document-Artifact Management**: Direct relationship between documentation and implementation
 2. **Domain Isolation**: Each context maintains complete independence
 3. **Type Safety**: Full TypeScript support with domain-specific hooks
-4. **Performance**: Zero React re-renders with RefContext, selective updates with Stores
+4. **Performance**: Zero React re-renders with RefContext, selective subscriptions for optimization, hardware-accelerated animations
 5. **Scalability**: Easy to add new domains without affecting existing ones
 6. **Team Collaboration**: Different teams can work on different domains without conflicts
 7. **Clear Boundaries**: Perfect separation of concerns based on document domains
@@ -147,6 +148,68 @@ RefContext is specifically designed for **high-performance scenarios** requiring
 
 **Note**: For data management, use **Store contexts** instead of useState for better scalability and type safety.
 
+## Selective Subscription Performance Architecture
+
+### Pre-Memoization Optimization Strategy
+
+The **Selective Subscription Pattern** represents a fundamental shift in performance optimization philosophy - optimizing **before** memoization becomes necessary by strategically eliminating unnecessary reactive subscriptions:
+
+```
+Traditional: [Store Subscribe] → [React Re-render] → [Memoization] → [Optimization]
+Selective:   [Store getValue()] → [Direct DOM Update] → [Zero Re-renders] → [Maximum Performance]
+```
+
+#### Performance Architecture Layers
+
+1. **Reactive Layer**: Traditional useStoreValue() subscriptions for business logic
+2. **Non-Reactive Layer**: store.getValue() for high-frequency visual updates  
+3. **Hybrid Layer**: Strategic combination based on use case requirements
+
+```typescript
+// Performance-optimized architecture
+function HighPerformanceComponent() {
+  // Reactive for business logic (low frequency)
+  const userSettings = useStoreValue(settingsStore);
+  
+  // Non-reactive for visual updates (high frequency) 
+  const visualData = useStoreDataAccess();
+  
+  // RefContext for direct DOM manipulation
+  const canvasRef = useCanvasRef('main');
+  
+  const handleHighFrequencyUpdate = useCallback(() => {
+    // Direct DOM update - no React re-renders
+    if (canvasRef.isMounted) {
+      canvasRef.target.style.transform = 'translate3d(...)';
+    }
+    
+    // Store update for data persistence only
+    visualData.updatePosition(newPosition);
+  }, [canvasRef, visualData]);
+  
+  return <canvas ref={canvasRef.setRef} />;
+}
+```
+
+#### Subscription Decision Matrix
+
+| Update Frequency | Data Type | Pattern Choice | Performance Impact |
+|------------------|-----------|----------------|------------------|
+| **>30fps** | Visual updates | Non-reactive + RefContext | Zero re-renders |
+| **1-10fps** | Business logic | Reactive | Standard React |
+| **Manual** | Debug/Admin | Manual refresh | On-demand only |
+| **Mixed** | Hybrid apps | Selective combination | Optimized per use case |
+
+#### Architecture Benefits
+
+1. **Zero React Re-renders**: Visual updates bypass React entirely
+2. **Hardware Acceleration**: GPU-accelerated animations via direct DOM
+3. **Memory Efficiency**: No subscription overhead for high-frequency updates
+4. **Debugging Support**: Manual refresh patterns for development tools
+5. **Progressive Enhancement**: Start reactive, optimize selectively where needed
+
+For detailed implementation patterns, see [Selective Subscription Patterns](./selective-subscription-patterns.md).
+
 ## Best Practices Summary
 
 ### Architecture Design
@@ -159,7 +222,8 @@ RefContext is specifically designed for **high-performance scenarios** requiring
 5. **Start with Store Only** for simple state management
 6. **Add Action Only** when you need side effects or complex workflows
 7. **Add RefContext** when you need high-performance DOM manipulation
-8. **Compose all patterns** for full-featured applications
+8. **Apply Selective Subscription** for performance-critical applications
+9. **Compose all patterns** for full-featured applications
 
 ### Implementation
 9. **Always use domain-specific hooks** for type safety and clarity
@@ -174,6 +238,7 @@ For detailed implementation examples and step-by-step guides, see:
 - **[Pattern Guide Index](../guide/patterns/index.md)** - Complete pattern documentation
 - **[Action Only Pattern](../guide/patterns/action/basic-usage.md)** - Start with pure actions
 - **[Store Only Pattern](../guide/patterns/store/basic-usage.md)** - Recommended starting point
+- **[Selective Subscription Patterns](./selective-subscription-patterns.md)** - Pre-memoization performance optimization
 - **[Pattern Composition](../guide/patterns/architecture/composition.md)** - Combining patterns
 
 For more information and updates, visit the project repository.

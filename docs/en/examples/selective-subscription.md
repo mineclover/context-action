@@ -95,7 +95,105 @@ function useStoreDataAccess() {
 }
 ```
 
-## Example 2: Selective Metrics Dashboard
+## Example 2: Eliminating Periodic Refresh Patterns
+
+Before applying selective subscription patterns, many applications use periodic refresh logic that wastes resources.
+
+### Problem: Unnecessary Periodic Updates
+
+```tsx
+// ❌ PERFORMANCE PROBLEM: Constant background processing
+function TraditionalMetrics() {
+  const [metrics, setMetrics] = useState(null);
+  
+  // Periodic refresh every 2 seconds - UNNECESSARY!
+  useEffect(() => {
+    const interval = setInterval(() => {
+      updateComputedMetrics(); // Runs even when no user activity
+    }, 2000);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  // Auto-refresh function that's never needed
+  const startAutoRefresh = useCallback((intervalMs = 1000) => {
+    const interval = setInterval(() => {
+      refreshEssentials(); // More unnecessary polling
+    }, intervalMs);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  return <div>Constantly refreshing metrics...</div>;
+}
+```
+
+### Solution: Event-Driven Updates Only
+
+```tsx
+// ✅ OPTIMIZED: Updates only when needed
+function OptimizedMetrics() {
+  const storeData = useStoreDataAccess(); // Non-reactive access
+  const [displayData, setDisplayData] = useState(null);
+  
+  // NO periodic updates - eliminated entirely
+  // Metrics update only on user actions via handlers:
+  
+  const refreshMetricsOnDemand = useCallback(() => {
+    // Manual refresh only when explicitly requested
+    const freshData = storeData.dumpAllStoreData();
+    setDisplayData(freshData);
+  }, [storeData]);
+  
+  return (
+    <div>
+      <button onClick={refreshMetricsOnDemand}>🔄 Refresh Metrics</button>
+      <pre>{JSON.stringify(displayData, null, 2)}</pre>
+      {/* Metrics update automatically via action handlers, no polling needed */}
+    </div>
+  );
+}
+
+// Action handler updates metrics when actual user events occur
+function useOptimizedMouseLogic() {
+  const positionStore = useMouseStore('position');
+  const computedStore = useMouseStore('computed');
+  
+  const handleUpdatePosition = useCallback(async (payload) => {
+    // Update position
+    positionStore.setValue(payload);
+    
+    // Update computed metrics ONLY when position actually changes
+    // No periodic background updates needed
+    const movement = calculateMovementMetrics(payload);
+    computedStore.setValue(movement);
+  }, [positionStore, computedStore]);
+  
+  useMouseActionHandler('updatePosition', handleUpdatePosition);
+}
+```
+
+### Performance Impact
+
+**Before (Periodic Pattern):**
+```
+- Background timer: every 2000ms → updateComputedMetrics()
+- Auto-refresh function: every 1000ms → refreshEssentials() 
+- CPU usage: Constant background processing
+- Memory: Growing timer references
+- Battery: Continuous wake-ups on mobile
+```
+
+**After (Event-Driven Pattern):**
+```
+- Background timers: 0 (eliminated)
+- Updates: Only on actual user actions
+- CPU usage: Idle when no user activity
+- Memory: No timer overhead
+- Battery: Sleep-friendly, no unnecessary wake-ups
+```
+
+## Example 3: Selective Metrics Dashboard
 
 Dashboard that combines reactive and non-reactive patterns strategically.
 
@@ -169,7 +267,7 @@ function useNonReactiveMetrics() {
 }
 ```
 
-## Example 3: Toggle Between Patterns
+## Example 4: Toggle Between Patterns
 
 Comparative implementation showing pattern switching.
 
@@ -228,16 +326,16 @@ function PerformanceComparison() {
 }
 ```
 
-## Example 4: Gaming Performance
+## Example 5: Gaming Performance
 
-High-performance game loop with selective subscriptions.
+High-performance game loop with selective subscriptions. This pattern eliminates all periodic background updates in favor of the requestAnimationFrame game loop.
 
 ```tsx
 function GameCanvas() {
   const gameState = useGameStoreAccess(); // Non-reactive
   const gameRefs = useGameRefs(); // RefContext
   
-  // Game loop with RAF
+  // Game loop with RAF - NO setInterval, NO periodic updates
   useEffect(() => {
     let animationFrame: number;
     
@@ -334,11 +432,17 @@ useEffect(() => {
     clearTimeout(throttleRef.current);
     // Cancel animation frames
     cancelAnimationFrame(animationRef.current);
-    // Clear intervals
+    // Clear intervals (prefer eliminating them entirely)
     clearInterval(intervalRef.current);
   };
 }, []);
 ```
+
+**Periodic Update Elimination Strategy**:
+- Replace `setInterval()` with event-driven updates
+- Use `requestAnimationFrame()` for visual updates instead of timers
+- Prefer user action triggers over background polling
+- Store only data, not update mechanisms
 
 ### 3. Debugging Support
 

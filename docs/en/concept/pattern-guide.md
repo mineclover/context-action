@@ -13,6 +13,7 @@ Choose the right pattern for your use case:
 | **🎯 Action Only** | Action dispatching without stores | `createActionContext` | Event systems, command patterns |
 | **🏪 Store Only** | State management without actions | `createStoreContext` | Pure state management, data layers |
 | **🔧 Ref Context** | Direct DOM manipulation with zero re-renders | `createRefContext` | High-performance UI, animations, real-time interactions |
+| **⚡ Selective Subscription** | Performance optimization through strategic subscription management | Pattern combination | High-frequency updates, performance-critical apps |
 
 **For complex applications, compose patterns together for maximum flexibility and separation of concerns.**
 
@@ -25,6 +26,7 @@ Choose the right pattern for your use case:
 
 ### Advanced Patterns
 - **[Pattern Composition](../guide/patterns/pattern-composition.md)** - Combining all three patterns for complex applications
+- **[Selective Subscription Patterns](./selective-subscription-patterns.md)** - Pre-memoization optimization through strategic subscription management
 - **[Domain Context Architecture](../guide/patterns/domain-context-architecture.md)** - Document-centric context separation
 - **[MVVM Architecture](../guide/patterns/mvvm-architecture.md)** - Modern Model-View-ViewModel implementation
 

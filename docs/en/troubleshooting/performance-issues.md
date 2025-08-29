@@ -214,3 +214,231 @@ setInterval(() => {
 - **Memory Monitoring**: Watch for memory growth over time
 - **Timer Auditing**: Check for timer accumulation
 - **HMR Stability**: Ensure no continuous updates in development
+
+## ⚡ Selective Subscription Patterns
+
+### High-Frequency Update Performance Issues
+
+#### The Problem
+**Symptoms:**
+- Laggy animations and visual updates
+- High React re-render counts (50+ per second)
+- Browser performance warnings
+- Memory usage growth during interactions
+- Console shows: `useStoreSelector: Value updated` at high frequency
+
+```typescript
+// ❌ PROBLEM: Every mouse move triggers React re-render
+const position = useStoreValue(positionStore); // 60fps = 60 re-renders/sec
+const movement = useStoreValue(movementStore);
+
+useEffect(() => {
+  updateCanvas(position, movement);
+}, [position, movement]); // Re-renders on every position change
+```
+
+#### Root Cause Analysis
+Traditional reactive patterns create performance bottlenecks for high-frequency updates:
+
+1. **Store Subscription Overhead**: `useStoreValue()` creates reactive subscriptions
+2. **React Re-render Cascade**: Each store update triggers component re-render
+3. **Virtual DOM Processing**: Unnecessary diff calculations for visual updates
+4. **State Update Batching**: Multiple rapid updates overwhelm React's batching
+
+#### The Solution: Non-Reactive Patterns
+
+Transform stores from reactive state managers into pure data repositories:
+
+```typescript
+// ✅ SOLUTION: Non-reactive data access pattern
+export function useStoreDataAccess() {
+  const positionStore = useMouseStore('position');
+  const movementStore = useMouseStore('movement');
+  
+  // No useStoreValue() subscriptions - pure data access
+  const getCurrentPosition = useCallback(() => 
+    positionStore.getValue(), [positionStore]);
+  
+  const dumpAllStoreData = useCallback(() => ({
+    position: getCurrentPosition(),
+    movement: movementStore.getValue(),
+    timestamp: Date.now()
+  }), [getCurrentPosition]);
+  
+  return { getCurrentPosition, dumpAllStoreData };
+}
+
+// ✅ SOLUTION: RefContext for direct DOM manipulation
+export function useAdvancedCanvasControl() {
+  const storeData = useStoreDataAccess(); // Non-reactive access
+  const pathSvgRef = useMouseRef('pathSvg');
+  
+  // Direct DOM updates (60fps, no React re-renders)
+  const updatePathDirect = useCallback((newPoint) => {
+    const pathSvg = pathSvgRef.target;
+    if (!pathSvg) return;
+    
+    // Direct SVG manipulation
+    const pathData = pathPoints
+      .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
+      .join(' ');
+    pathSvg.setAttribute('d', pathData);
+  }, [pathSvgRef]);
+  
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    // Immediate visual update (RefContext - 60fps)
+    updatePathDirect({ x: e.clientX, y: e.clientY });
+    
+    // Store update (throttled to 30fps)
+    throttledDispatch('updatePosition', { 
+      x: e.clientX, 
+      y: e.clientY, 
+      timestamp: Date.now() 
+    });
+  }, [updatePathDirect]);
+  
+  return { handleMouseMove };
+}
+```
+
+### React Key Duplication Issues
+
+#### The Problem
+**Symptoms:**
+- Console warning: `Encountered two children with the same key`
+- Duplicated or missing list items
+- Inconsistent rendering behavior
+
+```typescript
+// ❌ PROBLEM: Non-unique keys based on position
+{clicks.recent.map((click, index) => (
+  <div key={`${click.x}-${click.y}-${click.timestamp}`}> // Duplicate when same position
+    Click at ({click.x}, {click.y})
+  </div>
+))}
+```
+
+#### The Fix
+Use timestamp + index for guaranteed uniqueness:
+
+```typescript
+// ✅ SOLUTION: Unique key generation
+{clicks.recent.map((click, index) => (
+  <div key={`click-${click.timestamp}-${index}`}> // Always unique
+    Click at ({click.x}, {click.y})
+  </div>
+))}
+```
+
+### Performance Pattern Guidelines
+
+#### When to Use Non-Reactive Patterns
+1. **High-frequency visual updates** (>30fps animations)
+2. **Real-time graphics** (canvas, drawing, games)  
+3. **Performance-critical interactions** (drag & drop, gestures)
+4. **Large datasets** (virtualized lists, data visualization)
+
+#### When to Keep Reactive Patterns
+1. **Form state management** (inputs, validation)
+2. **Business logic state** (user data, settings)
+3. **Low-frequency updates** (<10 updates per second)
+4. **UI component state** (modals, dropdowns)
+
+#### Hybrid Architecture Implementation
+
+```typescript
+// ✅ SOLUTION: Conditional pattern selection
+export function PerformancePage() {
+  const [useNonReactive, setUseNonReactive] = useState(false);
+  
+  return (
+    <MouseEventsModelProvider>
+      {useNonReactive ? (
+        <NonReactiveView />    // RefContext + getValue() pattern
+      ) : (
+        <ReactiveView />       // Traditional useStoreValue() pattern
+      )}
+    </MouseEventsModelProvider>
+  );
+}
+```
+
+### Memory Management for Non-Reactive Patterns
+
+```typescript
+// ✅ Proper cleanup in non-reactive patterns
+export function useAdvancedCanvasControl() {
+  const throttleTimeoutRef = useRef<number>();
+  const animationFrameRef = useRef<number>();
+  
+  useEffect(() => {
+    return () => {
+      // Clear all pending timeouts and RAF
+      if (throttleTimeoutRef.current) {
+        clearTimeout(throttleTimeoutRef.current);
+      }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, []);
+  
+  // ... rest of implementation
+}
+```
+
+### Performance Monitoring
+
+```typescript
+// Monitor pattern performance
+const performanceTracker = {
+  reactiveReRenders: 0,
+  nonReactiveUpdates: 0,
+  startTime: Date.now()
+};
+
+// In reactive components
+useEffect(() => {
+  performanceTracker.reactiveReRenders++;
+}, [storeValue]);
+
+// In non-reactive handlers
+const handleUpdate = useCallback(() => {
+  performanceTracker.nonReactiveUpdates++;
+  // Direct DOM update
+}, []);
+```
+
+### Debugging Selective Patterns
+
+```typescript
+// Debug store access patterns
+const debugStoreAccess = () => {
+  const stores = storeManager.getAllStores();
+  stores.forEach((store, name) => {
+    console.log(`Store ${name}:`, {
+      subscribers: store.getSubscriberCount?.() || 0,
+      lastUpdate: store.getLastUpdateTime?.() || 0,
+      currentValue: store.getValue()
+    });
+  });
+};
+
+// Performance comparison helper
+const measurePatternPerformance = (patternName: string, fn: () => void) => {
+  const start = performance.now();
+  fn();
+  const end = performance.now();
+  console.log(`${patternName} took ${end - start} milliseconds`);
+};
+```
+
+For detailed implementation guidance, see [Selective Subscription Patterns](../concept/selective-subscription-patterns.md).
+
+### Testing Strategies
+- **Stress Testing**: Rapid consecutive actions (10+ in 1 second)
+- **Memory Monitoring**: Watch for memory growth over time
+- **Timer Auditing**: Check for timer accumulation
+- **HMR Stability**: Ensure no continuous updates in development
+- **Pattern Performance**: Compare reactive vs non-reactive performance
+- **Re-render Tracking**: Monitor React DevTools for excessive re-renders

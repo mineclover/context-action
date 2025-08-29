@@ -12,6 +12,7 @@ The React Refs system provides declarative ref management with automatic cleanup
 - **Custom Object References**: Managing Three.js objects, game engines, or other complex instances  
 - **Async Ref Operations**: Waiting for refs to mount and performing safe operations
 - **Memory Management**: Automatic cleanup and leak prevention
+- **High-Performance UI**: Direct DOM manipulation for animations and real-time updates
 
 ### 🎯 Recommended Usage Pattern
 
@@ -1342,5 +1343,61 @@ function OptimizedInteraction() {
   </button>;
 }
 ```
+
+## Related Patterns
+
+### High-Performance UI with RefContext
+
+For applications requiring high-frequency updates (animations, real-time graphics), RefContext can be combined with selective subscription patterns to achieve zero React re-renders:
+
+```tsx
+// High-performance canvas control with RefContext
+function useCanvasControl() {
+  const canvasRef = useGameRef('canvas');
+  
+  // Direct DOM manipulation (60fps, no React re-renders)
+  const updateCanvas = useCallback((x: number, y: number) => {
+    if (canvasRef.isMounted && canvasRef.target) {
+      // Direct style updates bypass React
+      canvasRef.target.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    }
+  }, []);
+  
+  return { updateCanvas, canvasRef };
+}
+```
+
+For detailed performance optimization strategies, see [Selective Subscription Patterns](./selective-subscription-patterns.md).
+
+### RefContext with Store Integration
+
+RefContext works seamlessly with Context-Action stores for hybrid reactive/non-reactive architectures:
+
+```tsx
+// Store for data persistence, RefContext for visual updates
+function useHybridPattern() {
+  const storeData = useStoreDataAccess(); // Non-reactive store access
+  const elementRef = useGameRef('element');
+  
+  const handleUpdate = useCallback((newValue: number) => {
+    // Store update (data persistence)
+    storeData.updateValue(newValue);
+    
+    // RefContext update (visual feedback)
+    if (elementRef.isMounted && elementRef.target) {
+      elementRef.target.style.opacity = String(newValue / 100);
+    }
+  }, [storeData, elementRef]);
+  
+  return { handleUpdate };
+}
+```
+
+## Further Reading
+
+- [Selective Subscription Patterns](./selective-subscription-patterns.md) - Performance optimization strategies
+- [Pattern Guide](./pattern-guide.md) - Context-Action architectural patterns
+- [Performance Issues Troubleshooting](../troubleshooting/performance-issues.md#selective-subscription-patterns) - Debugging performance problems
+- [MVVM Architecture](./mvvm-core-architecture.md) - Overall architectural context
 
 The React Refs Management System provides a powerful, type-safe, and lifecycle-aware approach to managing references in React applications, with seamless integration into the Context-Action framework's architecture patterns.
