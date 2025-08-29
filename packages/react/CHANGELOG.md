@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.6.0](https://github.com/mineclover/context-action/compare/v0.5.1...v0.6.0) (2025-08-29)
+
+
+### Bug Fixes
+
+* resolve React 18 infinite loop in store subscriptions and ref mount state ([fa652e3](https://github.com/mineclover/context-action/commit/fa652e3018a3e63bf3c1fd2b9564a1cf17f59e6a))
+
+
+### Features
+
+* **core:** enhance RefContext and Store for selective subscription patterns ([01a4491](https://github.com/mineclover/context-action/commit/01a4491d4c1e52b744162c299206b71c6a0532e3))
+* **refs:** add RefContext mount state subscription capabilities ([695a456](https://github.com/mineclover/context-action/commit/695a456911b308a4bb696b61b9236d665912f595))
+
+
+
+
+
 ## [0.5.1](https://github.com/mineclover/context-action/compare/v0.5.0...v0.5.1) (2025-08-28)
 
 

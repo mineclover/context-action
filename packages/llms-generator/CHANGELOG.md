@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.6.0](https://github.com/mineclover/context-action/compare/v0.5.1...v0.6.0) (2025-08-29)
+
+
+### Bug Fixes
+
+* **llms-generator:** complete test path updates for language-specific directory structure ([29ffcd8](https://github.com/mineclover/context-action/commit/29ffcd8a50b310ddf3ad787c81bdbaf6f0b0f442))
+* **llms-generator:** restore language-specific directory structure ([276058e](https://github.com/mineclover/context-action/commit/276058e2aec6518fb88df307ae94d74a4b5a7d7d))
+* **llms-generator:** update test file paths to match new output structure ([43da9f1](https://github.com/mineclover/context-action/commit/43da9f181e1e94f06041b2b4f9a7a357ae955ac3))
+* **llms-generator:** update test paths to match language-specific directory structure ([6f5c482](https://github.com/mineclover/context-action/commit/6f5c482d67ab32dc971c3b2ac61382b03521be51))
+* resolve React 18 infinite loop in store subscriptions and ref mount state ([fa652e3](https://github.com/mineclover/context-action/commit/fa652e3018a3e63bf3c1fd2b9564a1cf17f59e6a))
+
+
+### Features
+
+* **example:** add Non-Reactive Context Store page and update navigation ([f82217b](https://github.com/mineclover/context-action/commit/f82217b188f9c314b7133e91c13f5580d63bc7e9))
+* **llms-generator:** add comprehensive multiple category support with tests ([e24c3b8](https://github.com/mineclover/context-action/commit/e24c3b8531a7dd59d8a8dacbc93780b6585be576))
+
+
+
+
+
 ## [0.5.1](https://github.com/mineclover/context-action/compare/v0.5.0...v0.5.1) (2025-08-28)
 
 

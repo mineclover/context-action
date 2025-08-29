@@ -3,6 +3,46 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.6.0](https://github.com/mineclover/context-action/compare/v0.5.1...v0.6.0) (2025-08-29)
+
+
+### Bug Fixes
+
+* **docs:** enhance redirection script for improved user experience ([ef4f401](https://github.com/mineclover/context-action/commit/ef4f4016e6dc0ef52dedde5c6c2ce60b3d6f165a))
+* **example:** resolve TypeScript type errors and improve mouse events demo ([717194f](https://github.com/mineclover/context-action/commit/717194f9c624d767bfcd89cc51916453b7fd8a7d))
+* **llms-generator:** complete test path updates for language-specific directory structure ([29ffcd8](https://github.com/mineclover/context-action/commit/29ffcd8a50b310ddf3ad787c81bdbaf6f0b0f442))
+* **llms-generator:** restore language-specific directory structure ([276058e](https://github.com/mineclover/context-action/commit/276058e2aec6518fb88df307ae94d74a4b5a7d7d))
+* **llms-generator:** update test file paths to match new output structure ([43da9f1](https://github.com/mineclover/context-action/commit/43da9f181e1e94f06041b2b4f9a7a357ae955ac3))
+* **llms-generator:** update test paths to match language-specific directory structure ([6f5c482](https://github.com/mineclover/context-action/commit/6f5c482d67ab32dc971c3b2ac61382b03521be51))
+* replace lucide-react with emojis in ActionGuard refactored pages ([393adf5](https://github.com/mineclover/context-action/commit/393adf5a0f87c86a7ecbff0c310eb412d8354c75))
+* resolve ActionGuard handler visualization and fix SearchPageRefactored TypeScript errors ([80ea9fb](https://github.com/mineclover/context-action/commit/80ea9fbfa22f4c39ea8182dddb155eb8b337c9b9))
+* resolve React 18 infinite loop in store subscriptions and ref mount state ([fa652e3](https://github.com/mineclover/context-action/commit/fa652e3018a3e63bf3c1fd2b9564a1cf17f59e6a))
+
+
+### Features
+
+* **actionguard:** refactor pages with sophisticated template convention ([a0d5556](https://github.com/mineclover/context-action/commit/a0d555626f3659d3b267e627c9895be9fa2cc467))
+* **ci:** add check-changes job to optimize deployment process ([f72f44f](https://github.com/mineclover/context-action/commit/f72f44f56d1c37f7e7f918f597631c698b8543b1))
+* **core:** enhance RefContext and Store for selective subscription patterns ([01a4491](https://github.com/mineclover/context-action/commit/01a4491d4c1e52b744162c299206b71c6a0532e3))
+* **docs:** add Selective Subscription Patterns concept guide ([3c34e42](https://github.com/mineclover/context-action/commit/3c34e4261d3add250cf05ccf3ae2b042057ad73d))
+* **docs:** integrate selective subscription patterns across documentation ([0691430](https://github.com/mineclover/context-action/commit/0691430d6c7512b1aa4b0ae5156417c67e49daa4))
+* **example:** add non-reactive components for selective subscription demo ([2197842](https://github.com/mineclover/context-action/commit/21978421156dccda166403bdb9e2678feccf048b))
+* **example:** add Non-Reactive Context Store page and update navigation ([f82217b](https://github.com/mineclover/context-action/commit/f82217b188f9c314b7133e91c13f5580d63bc7e9))
+* **example:** enhance Enhanced Context Store with selective subscription patterns ([fcf1b11](https://github.com/mineclover/context-action/commit/fcf1b117e91e39fa6cf23bbb968c1f897b96e9db))
+* **example:** implement non-reactive hooks for selective subscription patterns ([ae2862d](https://github.com/mineclover/context-action/commit/ae2862dd98def67077679bb9c90b6c0c71cefd07))
+* **example:** update app navigation for selective subscription patterns ([e213050](https://github.com/mineclover/context-action/commit/e213050ade37ee93cd04d48276a8203347efee53))
+* **example:** update MouseEvents context for selective subscription support ([f385653](https://github.com/mineclover/context-action/commit/f3856539b86dabbdbba96cf4e07889a44d49a02e))
+* **llms-generator:** add comprehensive multiple category support with tests ([e24c3b8](https://github.com/mineclover/context-action/commit/e24c3b8531a7dd59d8a8dacbc93780b6585be576))
+* **memoization:** add performance comparison section with new pages and components ([926eb82](https://github.com/mineclover/context-action/commit/926eb8238521237289b5f12493ddd44778b3f8f6))
+* **mouse-events:** refactor ActionGuard page with sophisticated visualization ([5c28e43](https://github.com/mineclover/context-action/commit/5c28e43a958761cb66ff1c4f1af484fdb171832f))
+* **performance:** enhance performance section with new pages and components ([b37481e](https://github.com/mineclover/context-action/commit/b37481ec09e24693859e65e254880bb1f70faa0d))
+* **refs:** add RefContext mount state subscription capabilities ([695a456](https://github.com/mineclover/context-action/commit/695a456911b308a4bb696b61b9236d665912f595))
+* VitePress에서 /example/* 경로 리디렉션 개선 ([7a9bcf0](https://github.com/mineclover/context-action/commit/7a9bcf0ef994bce905fb73269c549a9f98c5c323))
+
+
+
+
+
 ## [0.5.1](https://github.com/mineclover/context-action/compare/v0.5.0...v0.5.1) (2025-08-28)
 
 
