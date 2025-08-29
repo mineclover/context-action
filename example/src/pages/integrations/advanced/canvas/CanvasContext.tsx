@@ -210,18 +210,51 @@ export function useCanvasState(keys?: Array<keyof CanvasStoreState>) {
   
   const storeKeys = keys || defaultKeys;
   
-  // 선택된 store들만 구독
-  const stores = storeKeys.reduce((acc, key) => {
-    acc[key] = useCanvasStore(key as any);
-    return acc;
-  }, {} as Record<string, any>);
+  // 모든 store들을 먼저 가져오기 (hooks는 최상위에서만)
+  const shapesStore = useCanvasStore('shapes');
+  const selectedShapeIdStore = useCanvasStore('selectedShapeId');
+  const currentModeStore = useCanvasStore('currentMode');
+  const currentToolStore = useCanvasStore('currentTool');
+  const currentColorStore = useCanvasStore('currentColor');
+  const strokeWidthStore = useCanvasStore('strokeWidth');
+  const isDraggingStore = useCanvasStore('isDragging');
+  const dragStartStore = useCanvasStore('dragStart');
+  const dragShapeStore = useCanvasStore('dragShape');
+  const freehandPointsStore = useCanvasStore('freehandPoints');
   
-  const values = storeKeys.reduce((acc, key) => {
-    acc[key] = useStoreValue(stores[key]);
-    return acc;
-  }, {} as Record<string, any>);
+  // 모든 값들을 구독
+  const shapesValue = useStoreValue(shapesStore);
+  const selectedShapeIdValue = useStoreValue(selectedShapeIdStore);
+  const currentModeValue = useStoreValue(currentModeStore);
+  const currentToolValue = useStoreValue(currentToolStore);
+  const currentColorValue = useStoreValue(currentColorStore);
+  const strokeWidthValue = useStoreValue(strokeWidthStore);
+  const isDraggingValue = useStoreValue(isDraggingStore);
+  const dragStartValue = useStoreValue(dragStartStore);
+  const dragShapeValue = useStoreValue(dragShapeStore);
+  const freehandPointsValue = useStoreValue(freehandPointsStore);
   
-  return values as Pick<CanvasStoreState, typeof storeKeys[number]>;
+  // 모든 값들의 매핑
+  const allValues = {
+    shapes: shapesValue,
+    selectedShapeId: selectedShapeIdValue,
+    currentMode: currentModeValue,
+    currentTool: currentToolValue,
+    currentColor: currentColorValue,
+    strokeWidth: strokeWidthValue,
+    isDragging: isDraggingValue,
+    dragStart: dragStartValue,
+    dragShape: dragShapeValue,
+    freehandPoints: freehandPointsValue
+  };
+  
+  // 선택된 키들만 반환
+  const result = {} as any;
+  for (const key of storeKeys) {
+    result[key] = allValues[key];
+  }
+  
+  return result as Pick<CanvasStoreState, typeof storeKeys[number]>;
 }
 
 // Context-Action 기반 Canvas 사용 훅들 (기존 호환성을 위해 유지)

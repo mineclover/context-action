@@ -107,7 +107,7 @@ export function useAdvancedCanvasControl() {
     // 최대 8개 마커 유지
     if (activeClickMarkersRef.current.length > 8) {
       const oldMarker = activeClickMarkersRef.current.shift();
-      if (oldMarker && oldMarker.parentNode) {
+      if (oldMarker?.parentNode) {
         oldMarker.parentNode.removeChild(oldMarker);
       }
     }
