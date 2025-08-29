@@ -42,16 +42,16 @@ const {
   memoized: { 
     counter: 0, 
     calcResult: 0, 
-    heavyData: [],
-    processedResults: [],
-    memoryLeakData: []
+    heavyData: [] as number[],
+    processedResults: [] as { id: number; value: number; timestamp: number }[],
+    memoryLeakData: [] as any[]
   },
   nonMemoized: { 
     counter: 0, 
     calcResult: 0,
-    heavyData: [],
-    processedResults: [],
-    memoryLeakData: []
+    heavyData: [] as number[],
+    processedResults: [] as { id: number; value: number; timestamp: number }[],
+    memoryLeakData: [] as any[]
   },
 });
 

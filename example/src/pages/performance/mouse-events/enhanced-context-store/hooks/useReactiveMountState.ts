@@ -91,7 +91,7 @@ export function useOnMountCallback() {
   }, [containerRef]);
   
   // 🆕 새로운 방식 - mount state change 콜백
-  MouseEventsModel.useOnMountStateChange('container', useCallback((mounted, target) => {
+  MouseEventsModel.useOnMountStateChange('container', useCallback((mounted: boolean, target: HTMLDivElement | null) => {
     console.log('🔔 [useOnMountCallback] Mount state changed:', { mounted, target });
     
     if (mounted && target) {

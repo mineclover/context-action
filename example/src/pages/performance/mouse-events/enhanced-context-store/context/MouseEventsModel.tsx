@@ -150,7 +150,10 @@ export const {
  */
 export const {
   Provider: MouseRefProvider,
-  useRefHandler: useMouseRef
+  useRefHandler: useMouseRef,
+  useRefMountState: useMouseRefMountState,
+  useOnMountStateChange: useMouseOnMountStateChange,
+  useRefMountChecker: useMouseRefMountChecker
 } = createRefContext<MouseEventRefs>('MouseEvents');
 
 /**
@@ -167,3 +170,24 @@ export function MouseEventsModelProvider({ children }: { children: React.ReactNo
     </MouseStoreProvider>
   );
 }
+
+/**
+ * MouseEventsModel 객체 - 모든 hooks를 포함하는 네임스페이스
+ */
+export const MouseEventsModel = {
+  // Store hooks
+  useStore: useMouseStore,
+  
+  // Action hooks  
+  useActionDispatch: useMouseAction,
+  useActionHandler: useMouseActionHandler,
+  
+  // Ref hooks
+  useRefHandler: useMouseRef,
+  useRefMountState: useMouseRefMountState,
+  useOnMountStateChange: useMouseOnMountStateChange,
+  useRefMountChecker: useMouseRefMountChecker,
+  
+  // Providers
+  Provider: MouseEventsModelProvider
+};
