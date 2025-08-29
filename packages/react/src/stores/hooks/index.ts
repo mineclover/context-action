@@ -16,6 +16,16 @@
 export { useStoreSelector as useStore } from '../utils/store-selector';
 export { useStoreValue, useStoreValues, assertStoreValue } from './useStoreValue';
 
+// === COMMON UTILITIES ===
+// Shared utilities for all store hooks
+export { 
+  useSafeStoreSubscription,
+  useConditionalStoreSubscription,
+  useMultiStoreSubscription,
+  equalityFunctions,
+  type EnhancedSubscriptionOptions
+} from '../utils/sync-external-store-utils';
+
 // === SPECIALIZED HOOKS ===
 // Optional but useful patterns
 export { useLocalStore } from './useLocalStore';

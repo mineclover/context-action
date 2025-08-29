@@ -307,6 +307,14 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       priority: config.priority,
       totalHandlers: pipeline.length
     });
+    
+    // 🔍 추가 디버그: 등록 즉시 파이프라인 상태 출력
+    console.log(`🔍 [DEBUG] Action '${String(action)}' pipeline after registration:`, {
+      totalHandlers: pipeline.length,
+      handlers: pipeline.map(h => ({ id: h.config.id, priority: h.config.priority })),
+      pipelineExists: this.pipelines.has(action),
+      canDispatch: this.hasHandlers(action)
+    });
 
     // Return unregister function that removes this specific registration
     return () => {
@@ -364,6 +372,14 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     payload?: T[K],
     options?: import('./types.js').DispatchOptions
   ): Promise<void> {
+    // 🔍 디스패치 시작 디버그
+    console.log(`🚀 [DEBUG] Starting dispatch for action '${String(action)}':`, {
+      hasPayload: payload !== undefined,
+      payloadType: payload?.constructor?.name || typeof payload,
+      options: options ? Object.keys(options) : 'none',
+      timestamp: new Date().toISOString()
+    });
+    
     // Simple Event object detection for development
     if (payload instanceof Event && process.env.NODE_ENV === 'development') {
       console.warn(`Event object passed to action "${String(action)}"`, payload.type);
@@ -378,11 +394,22 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     
     // Check if dispatch is aborted before starting
     if (effectiveSignal?.aborted) {
+      console.log(`🚫 [DEBUG] Dispatch aborted before execution for '${String(action)}'`);
       return;
     }
     
     const pipeline = this.pipelines.get(action);
+    
+    // 🔍 파이프라인 존재 여부 디버그
+    console.log(`🔍 [DEBUG] Pipeline lookup for '${String(action)}':`, {
+      pipelineExists: Boolean(pipeline),
+      handlersCount: pipeline?.length || 0,
+      allRegisteredActions: Array.from(this.pipelines.keys()),
+      pipelineMap: Object.fromEntries(Array.from(this.pipelines.entries()).map(([k, v]) => [k, v.length]))
+    });
+    
     if (!pipeline || pipeline.length === 0) {
+      console.log(`⚠️ [DEBUG] No handlers found for action '${String(action)}', dispatch cancelled`);
       return;
     }
 
@@ -461,8 +488,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       terminationResult: undefined,
     };
 
-    const _startTime = Date.now();
-    let _executionSuccess = true;
     
     // Add abort listener if signal provided (use effectiveSignal for auto-abort)
     const abortHandler = effectiveSignal ? () => {
@@ -479,7 +504,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       this.log(`Pipeline execution succeeded for ${String(action)}`);
     } catch (error) {
       this.log(`Pipeline execution failed for ${String(action)}`, error, 'error');
-      _executionSuccess = false;
       throw error;
     } finally {
       // 🔧 Use cleanup function from createAbortSignal
@@ -716,7 +740,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     }
 
     const endTime = Date.now();
-    const _executionSuccess = !executionError && !context.aborted;
     
     // Process results based on options
     const processedResult = this.processResults(context, options?.result);
@@ -789,7 +812,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     this.filterCache.clear();
   }
 
-  private filterHandlers<_K extends keyof T>(
+  private filterHandlers(
     handlers: HandlerRegistration<any, any>[],
     filterOptions?: import('./types.js').DispatchOptions['filter']
   ): HandlerRegistration<any, any>[] {

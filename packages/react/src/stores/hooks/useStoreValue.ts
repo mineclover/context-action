@@ -1,7 +1,10 @@
-import { useEffect, useRef, useState, useMemo, useDeferredValue } from 'react';
-import { useStoreSelector, shallowEqual, defaultEqualityFn } from './useStoreSelector';
+import { useMemo, useDeferredValue } from 'react';
+import { shallowEqual, defaultEqualityFn } from './useStoreSelector';
 import type { Store } from '../core/Store';
 import type { React18Options } from '../../hooks/react18-hooks';
+import { 
+  useSafeStoreSubscription
+} from '../utils/sync-external-store-utils';
 
 /**
  * Create a type assertion helper for stores created with initial values
@@ -122,136 +125,29 @@ export function useStoreValue<T, R>(
     react18 = {}
   } = finalOptions;
   
-  // Hook 규칙을 지키기 위해 모든 Hook을 조건부 이전에 호출
-  const [isActive, setIsActive] = useState(() => store && !lazy && (!condition || condition()));
-  const conditionRef = useRef(condition);
-  conditionRef.current = condition;
   
-  // 조건 체크
-  useEffect(() => {
-    if (!condition) return;
-    
-    const checkCondition = () => {
-      const shouldBeActive = condition();
-      setIsActive(current => {
-        if (current !== shouldBeActive) {
-          if (debug) {
-            console.debug(`useStoreValue [${name}]: Subscription ${shouldBeActive ? 'activated' : 'suspended'}`);
-          }
-          return shouldBeActive;
-        }
-        return current;
-      });
-    };
-    
-    // 즉시 체크
-    checkCondition();
-    
-    // 주기적 체크 (최적화 필요시 조건에 따라 조정)
-    const interval = setInterval(checkCondition, 100);
-    return () => clearInterval(interval);
-  }, [condition, debug, name]);
-  
-  // 지연 활성화
-  useEffect(() => {
-    if (lazy && !isActive && (!condition || condition())) {
-      setIsActive(true);
+  // useSyncExternalStore 기반 구독
+  const rawValue = useSafeStoreSubscription(
+    store,
+    selector,
+    {
+      debounce,
+      throttle,
+      condition: condition || (lazy ? () => false : undefined), // lazy 처리
+      debug,
+      name,
+      equalityFn: equalityFn as (a: R, b: R) => boolean,
+      initialValue: initialValue as R
     }
-  }, [lazy, isActive, condition]);
+  );
   
-  // 디바운스/스로틀 관리
-  const [debouncedValue, setDebouncedValue] = useState<T | R | undefined>(initialValue);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const throttleLastExecRef = useRef<number>(0);
-  const latestValueRef = useRef<T | R | undefined>(initialValue);
-  
-  // 실제 Store 구독 - Hook 규칙 준수: 모든 Hook을 조건부 이전에 호출
-  const selectorFunction = useMemo(() => {
-    if (selector) {
-      return selector;
-    }
-    return (value: T) => value as unknown as R;
-  }, [selector]);
-  
-  // store가 null/undefined인 경우를 처리하면서 Hook 규칙 준수
-  const dummyStore = useMemo(() => {
-    if (store) return store;
-    
-    // Type-safe null store implementation
-    const nullStore = {
-      name: 'null-store',
-      subscribe: () => () => {},
-      getSnapshot: () => ({
-        value: initialValue as T,
-        name: 'null-store',
-        lastUpdate: 0
-      }),
-      setValue: () => {},
-      update: () => {},
-      getValue: () => initialValue as T,
-      getListenerCount: () => 0,
-      clearListeners: () => {},
-      dispose: () => {},
-      setCustomComparator: () => {},
-      setComparisonOptions: () => {},
-      getComparisonOptions: () => undefined,
-      clearCustomComparator: () => {},
-      clearComparisonOptions: () => {},
-      setNotificationMode: () => {},
-      getNotificationMode: () => 'batched' as const
-    };
-    
-    return nullStore as unknown as Store<T>;
-  }, [store, initialValue]);
-  
-  const rawStoreValue = useStoreSelector(dummyStore, selectorFunction, equalityFn as (a: R, b: R) => boolean);
-  
-  const currentStoreValue = useMemo(() => {
-    if (!isActive) {
-      return suspendedValue !== undefined ? suspendedValue : initialValue;
-    }
-    return rawStoreValue;
-  }, [rawStoreValue, isActive, suspendedValue, initialValue]);
-  
-  // 디바운스/스로틀 처리
+  // 구독이 비활성화된 경우 처리
   const processedValue = useMemo(() => {
-    if (!isActive) {
+    if (lazy && condition && !condition()) {
       return suspendedValue !== undefined ? suspendedValue : initialValue;
     }
-    
-    latestValueRef.current = currentStoreValue as T | R | undefined;
-    
-    // 디바운스 처리
-    if (debounce && debounce > 0) {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-      
-      debounceTimerRef.current = setTimeout(() => {
-        setDebouncedValue(latestValueRef.current);
-        if (debug) {
-          console.debug(`useStoreValue [${name}]: Debounced value updated after ${debounce}ms`);
-        }
-      }, debounce);
-      
-      return debouncedValue;
-    }
-    
-    // 스로틀 처리  
-    if (throttle && throttle > 0) {
-      const now = Date.now();
-      if (now - throttleLastExecRef.current >= throttle) {
-        throttleLastExecRef.current = now;
-        if (debug) {
-          console.debug(`useStoreValue [${name}]: Throttled value updated`);
-        }
-        return currentStoreValue;
-      }
-      return debouncedValue; // 이전 값 유지
-    }
-    
-    return currentStoreValue;
-  }, [currentStoreValue, isActive, debounce, throttle, debouncedValue, suspendedValue, initialValue, debug, name]);
+    return rawValue;
+  }, [rawValue, lazy, condition, suspendedValue, initialValue]);
 
   // React 18+ 최적화 적용
   const {
@@ -286,15 +182,6 @@ export function useStoreValue<T, R>(
     return shouldDefer ? deferredProcessedValue : processedValue;
   }, [processedValue, deferredProcessedValue, enableDeferred, priorityThreshold, debug, name]);
   
-  // 정리
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, []);
-  
   return finalValue;
 }
 
@@ -320,7 +207,7 @@ export function useStoreValues<T, S extends Record<string, (value: T) => any>>(
   store: Store<T> | undefined | null,
   selectors: S
 ): { [K in keyof S]: ReturnType<S[K]> } | undefined {
-  // Hook 규칙 준수: 조건부 이전에 모든 Hook 호출
+  // 통합 선택자 함수 생성
   const selectorFunction = useMemo(() => {
     return (value: T) => {
       const result = {} as { [K in keyof S]: ReturnType<S[K]> };
@@ -331,38 +218,15 @@ export function useStoreValues<T, S extends Record<string, (value: T) => any>>(
     };
   }, [selectors]);
   
-  // store가 null/undefined인 경우를 처리하면서 Hook 규칙 준수
-  const dummyStoreForValues = useMemo(() => {
-    if (store) return store;
-    
-    // Type-safe null store for values implementation
-    const nullStore = {
-      name: 'null-store-values',
-      subscribe: () => () => {},
-      getSnapshot: () => ({
-        value: undefined as any,
-        name: 'null-store-values',
-        lastUpdate: 0
-      }),
-      setValue: () => {},
-      update: () => {},
-      getValue: () => undefined as any,
-      getListenerCount: () => 0,
-      clearListeners: () => {},
-      dispose: () => {},
-      setCustomComparator: () => {},
-      setComparisonOptions: () => {},
-      getComparisonOptions: () => undefined,
-      clearCustomComparator: () => {},
-      clearComparisonOptions: () => {},
-      setNotificationMode: () => {},
-      getNotificationMode: () => 'batched' as const
-    };
-    
-    return nullStore as unknown as Store<T>;
-  }, [store]);
-  
-  const storeValue = useStoreSelector(dummyStoreForValues, selectorFunction, shallowEqual);
+  // useSyncExternalStore 기반 구독
+  const storeValue = useSafeStoreSubscription(
+    store,
+    selectorFunction,
+    {
+      equalityFn: shallowEqual,
+      name: `${store?.name || 'unknown'}-values`
+    }
+  ) as { [K in keyof S]: ReturnType<S[K]> } | undefined;
   
   return store ? storeValue : undefined;
 }

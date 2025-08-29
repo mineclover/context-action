@@ -107,9 +107,11 @@ describe('useStoreSelector', () => {
       ]
     });
     
+    // 이제 3번째 매개변수 없이도 배열 비교가 잘 동작해야 함
     const { result } = renderHook(() => 
-      useStoreSelector(store, (state: any) => 
-        state.users.filter((u: any) => u.active)
+      useStoreSelector(
+        store, 
+        (state: any) => state.users.filter((u: any) => u.active)
       )
     );
     

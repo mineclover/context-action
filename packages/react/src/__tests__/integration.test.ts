@@ -3,8 +3,7 @@
  * - Testing Utilities (MockStore, async helpers)
  */
 
-import { createMockStore } from '../testing/mock-store';
-import { waitForStoreUpdate, createBatchAsyncManager } from '../testing/async-helpers';
+import { createMockStore, waitForStoreChange, sleep } from '../../__tests__/utils/test-utils';
 import { Store } from '../stores/core/Store';
 import { StoreRegistry } from '../stores/core/StoreRegistry';
 
@@ -29,61 +28,58 @@ beforeEach(() => {
 
 describe('Integration: Testing Utilities', () => {
   describe('MockStore with Async Helpers', () => {
-    test('MockStore works with waitForStoreUpdate', async () => {
+    test('MockStore works with waitForStoreChange', async () => {
       // Create MockStore
-      const mockStore = createMockStore({
-        initialValue: { count: 0, status: 'idle' },
-        enableLogging: true
-      });
+      const mockStore = createMockStore(
+        'test-store', 
+        { count: 0, status: 'idle' },
+        { enableSpying: true }
+      );
 
-      // Test async update with waitForStoreUpdate
+      // Test async update with waitForStoreChange
       setTimeout(() => {
         mockStore.setValue({ count: 1, status: 'active' });
       }, 100);
 
-      const newValue = await waitForStoreUpdate(mockStore, 200);
+      const newValue = await waitForStoreChange(mockStore, (value) => value.count === 1, 200);
       expect(newValue).toEqual({ count: 1, status: 'active' });
 
-      // Check MockStore stats
-      const stats = mockStore.getStats();
-      expect(stats.setValueCalls).toBe(1);
-
-      mockStore.dispose?.();
+      // Check MockStore call history
+      const history = mockStore.__testUtils.getCallHistory();
+      expect(history.some(call => call.method === 'setValue')).toBe(true);
     });
 
-    test('BatchAsyncManager with MockStore', async () => {
-      const mockStore = createMockStore({
-        initialValue: 0,
-        enableLogging: true
-      });
+    test('Async operations with MockStore', async () => {
+      const mockStore = createMockStore(
+        'async-store',
+        0,
+        { enableSpying: true }
+      );
 
-      const batchManager = createBatchAsyncManager();
-
-      // Batch multiple async operations
-      batchManager.add(async () => {
-        await new Promise(resolve => setTimeout(resolve, 100));
+      // Simulate async operations
+      const asyncOp1 = async () => {
+        await sleep(100);
         mockStore.setValue(10);
         return 10;
-      });
+      };
 
-      batchManager.add(async () => {
-        await new Promise(resolve => setTimeout(resolve, 50));
+      const asyncOp2 = async () => {
+        await sleep(50);
         mockStore.update(v => v + 5);
         return 5;
-      });
+      };
 
-      const results = await batchManager.waitAll();
+      // Run operations in parallel
+      const results = await Promise.all([asyncOp1(), asyncOp2()]);
       expect(results).toEqual([10, 5]);
 
       // Final value should be 15 (10 + 5)
       expect(mockStore.getValue()).toBe(15);
 
-      // Check MockStore stats
-      const stats = mockStore.getStats();
-      expect(stats.setValueCalls).toBe(1);
-      expect(stats.updateCalls).toBe(1);
-
-      mockStore.dispose?.();
+      // Check MockStore call history
+      const history = mockStore.__testUtils.getCallHistory();
+      expect(history.some(call => call.method === 'setValue')).toBe(true);
+      expect(history.some(call => call.method === 'update')).toBe(true);
     });
   });
 
@@ -93,10 +89,11 @@ describe('Integration: Testing Utilities', () => {
       
       // Create stores
       const store1 = new Store('store1', { value: 0 });
-      const store2 = createMockStore({
-        initialValue: { data: 'initial' },
-        enableLogging: true
-      });
+      const store2 = createMockStore(
+        'store2',
+        { data: 'initial' },
+        { enableSpying: true }
+      );
 
       registry.register('store1', store1);
       registry.register('store2', store2);
@@ -113,72 +110,53 @@ describe('Integration: Testing Utilities', () => {
       expect(store1.getValue()).toEqual({ value: 10 });
       expect(store2.getValue()).toEqual({ data: 'updated' });
 
-      // Check MockStore stats
-      const stats = store2.getStats();
-      expect(stats.setValueCalls).toBe(1);
-
-      // Cleanup
-      store1.dispose?.();
-      store2.dispose?.();
+      // Check MockStore call history
+      const history = store2.__testUtils.getCallHistory();
+      expect(history.some(call => call.method === 'setValue')).toBe(true);
     });
   });
 
   describe('Complex Async Scenarios', () => {
     test('Multiple stores with async updates', async () => {
-      const userStore = createMockStore({
-        initialValue: { id: null, name: '', status: 'idle' },
-        enableLogging: true
-      });
-
-      const dataStore = createMockStore({
-        initialValue: { items: [] as any[] },
-        enableLogging: true
-      });
-
-      const manager = createBatchAsyncManager();
-
-      // Add store update watchers
-      manager.addStoreUpdate(
-        userStore,
-        (value) => value.status === 'loaded',
-        'user-load'
+      const userStore = createMockStore(
+        'user-store',
+        { id: null, name: '', status: 'idle' },
+        { enableSpying: true }
       );
 
-      manager.addStoreUpdate(
-        dataStore,
-        (value) => value.items.length > 0,
-        'data-load'
+      const dataStore = createMockStore(
+        'data-store',
+        { items: [] as any[] },
+        { enableSpying: true }
       );
 
       // Simulate async operations
-      setTimeout(() => {
-        userStore.setValue({ id: 1, name: 'John', status: 'loaded' });
-      }, 50);
+      const userUpdatePromise = new Promise<void>((resolve) => {
+        setTimeout(() => {
+          userStore.setValue({ id: 1, name: 'John', status: 'loaded' });
+          resolve();
+        }, 50);
+      });
 
-      setTimeout(() => {
-        dataStore.setValue({ items: [{ id: 1, name: 'Item 1' }] });
-      }, 100);
+      const dataUpdatePromise = new Promise<void>((resolve) => {
+        setTimeout(() => {
+          dataStore.setValue({ items: [{ id: 1, name: 'Item 1' }] });
+          resolve();
+        }, 100);
+      });
 
-      // Wait for any to complete
-      const firstResult = await manager.waitAny();
-      expect(firstResult).toBeDefined();
-
-      // Wait for all to complete
-      const allResults = await manager.waitAll(200);
-      expect(allResults).toHaveLength(2);
+      // Wait for both operations to complete
+      await Promise.all([userUpdatePromise, dataUpdatePromise]);
 
       // Verify final states
       expect(userStore.getValue().status).toBe('loaded');
       expect(dataStore.getValue().items).toHaveLength(1);
 
-      // Check stats
-      const userStats = userStore.getStats();
-      const dataStats = dataStore.getStats();
-      expect(userStats.setValueCalls).toBe(1);
-      expect(dataStats.setValueCalls).toBe(1);
-
-      userStore.dispose?.();
-      dataStore.dispose?.();
+      // Check call history
+      const userHistory = userStore.__testUtils.getCallHistory();
+      const dataHistory = dataStore.__testUtils.getCallHistory();
+      expect(userHistory.some(call => call.method === 'setValue')).toBe(true);
+      expect(dataHistory.some(call => call.method === 'setValue')).toBe(true);
     });
   });
 });

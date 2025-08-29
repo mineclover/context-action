@@ -22,6 +22,7 @@
 
 import { useSyncExternalStore, useCallback, useMemo, useRef, useEffect } from 'react';
 import type { Store } from '../core/Store';
+import { useSafeStoreSubscription } from '../utils/sync-external-store-utils';
 
 /**
  * Enhanced store subscription options with performance features
@@ -143,7 +144,8 @@ export function useOptimizedStoreValue<T, R = T>(
     maxCacheSize = 10,
     defaultValue,
     enableRetry = true,
-    maxRetries = 3
+    maxRetries = 3,
+    enableMetrics = false
   } = options;
 
   // Validate timing parameters at runtime for type safety
@@ -184,13 +186,11 @@ export function useOptimizedStoreValue<T, R = T>(
 
   // Memoization cache
   const cacheRef = useRef<CacheEntry<T, R>[]>([]);
-  const throttleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastValueRef = useRef<R | undefined>();
   const errorCountRef = useRef(0);
 
   // Enhanced selector with memoization and performance tracking
-  const optimizedSelector = useCallback((snapshot: { value: T; name: string; lastUpdate: number }): R => {
+  const optimizedSelector = useCallback((value: T): R => {
     const startTime = performance.now();
     
     try {
@@ -200,7 +200,7 @@ export function useOptimizedStoreValue<T, R = T>(
         // Check memoization cache first
         if (enableMemoization) {
           const cached = cacheRef.current.find(entry => 
-            Object.is(entry.input, snapshot.value)
+            Object.is(entry.input, value)
           );
           
           if (cached) {
@@ -210,11 +210,11 @@ export function useOptimizedStoreValue<T, R = T>(
             result = cached.output;
           } else {
             metricsRef.current.cacheMisses++;
-            result = selector(snapshot.value);
+            result = selector(value);
             
             // Add to cache
             const entry: CacheEntry<T, R> = {
-              input: snapshot.value,
+              input: value,
               output: result,
               timestamp: Date.now(),
               hitCount: 1
@@ -230,10 +230,10 @@ export function useOptimizedStoreValue<T, R = T>(
             }
           }
         } else {
-          result = selector(snapshot.value);
+          result = selector(value);
         }
       } else {
-        result = snapshot.value as unknown as R;
+        result = value as unknown as R;
       }
       
       // Reset error count on successful execution
@@ -255,117 +255,46 @@ export function useOptimizedStoreValue<T, R = T>(
       
       throw error; // Re-throw after max retries
     } finally {
-      const duration = performance.now() - startTime;
-      
-      // Update performance metrics
-      const metrics = metricsRef.current;
-      metrics.averageSelectorTime = 
-        (metrics.averageSelectorTime * metrics.totalUpdates + duration) / 
-        (metrics.totalUpdates + 1);
-      metrics.totalUpdates++;
-      metrics.lastUpdate = Date.now();
+      if (enableMetrics) {
+        const duration = performance.now() - startTime;
+        
+        // Update performance metrics
+        const metrics = metricsRef.current;
+        metrics.averageSelectorTime = 
+          (metrics.averageSelectorTime * metrics.totalUpdates + duration) / 
+          (metrics.totalUpdates + 1);
+        metrics.totalUpdates++;
+        metrics.lastUpdate = Date.now();
+      }
     }
-  }, [selector, enableMemoization, maxCacheSize, defaultValue, enableRetry, maxRetries]);
+  }, [selector, enableMemoization, maxCacheSize, defaultValue, enableRetry, maxRetries, enableMetrics]);
 
-  // Enhanced subscribe function with throttling and debouncing
-  const subscribe = useCallback((listener: () => void) => {
-    let lastCallTime = 0;
-    
-    const enhancedListener = () => {
-      const now = Date.now();
-      
-      // Throttling logic
-      if (throttle && now - lastCallTime < throttle) {
-        metricsRef.current.throttledUpdates++;
-        
-        if (throttleTimeoutRef.current) {
-          clearTimeout(throttleTimeoutRef.current);
-        }
-        
-        throttleTimeoutRef.current = setTimeout(() => {
-          lastCallTime = Date.now();
-          listener();
-          throttleTimeoutRef.current = null;
-        }, throttle - (now - lastCallTime));
-        
-        return;
-      }
-      
-      // Debouncing logic
-      if (debounce) {
-        metricsRef.current.debouncedUpdates++;
-        
-        if (debounceTimeoutRef.current) {
-          clearTimeout(debounceTimeoutRef.current);
-        }
-        
-        debounceTimeoutRef.current = setTimeout(() => {
-          lastCallTime = Date.now();
-          listener();
-          debounceTimeoutRef.current = null;
-        }, debounce);
-        
-        return;
-      }
-      
-      // Direct execution
-      lastCallTime = now;
-      listener();
-    };
-    
-    const unsubscribe = store.subscribe(enhancedListener);
-    
-    return () => {
-      // Cleanup timeouts on unsubscribe
-      if (throttleTimeoutRef.current) {
-        clearTimeout(throttleTimeoutRef.current);
-        throttleTimeoutRef.current = null;
-      }
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-        debounceTimeoutRef.current = null;
-      }
-      
-      unsubscribe();
-    };
-  }, [store, throttle, debounce]);
-
-  // Get snapshot with error recovery
-  const getSnapshot = useCallback(() => {
-    try {
-      return optimizedSelector(store.getSnapshot());
-    } catch (error) {
-      console.warn('Error in getSnapshot, using fallback:', error);
-      return lastValueRef.current ?? (defaultValue as R);
+  // Use common utility with enhanced subscription options
+  const currentValue = useSafeStoreSubscription(
+    store,
+    optimizedSelector,
+    {
+      throttle,
+      debounce,
+      debug: enableMetrics,
+      name: `optimized-${store.name}`,
+      equalityFn: isEqual as (a: R, b: R) => boolean,
+      initialValue: defaultValue as R
     }
-  }, [store, optimizedSelector, defaultValue]);
+  ) as R;
 
-  // Server-side rendering support
-  const getServerSnapshot = useCallback(() => {
-    return defaultValue as R;
-  }, [defaultValue]);
-
-  // Subscribe with optimizations
-  const currentValue = useSyncExternalStore(
-    subscribe,
-    getSnapshot,
-    getServerSnapshot
-  );
-
-  // Update last value reference
+  // Update last value reference and handle metrics
   useEffect(() => {
     lastValueRef.current = currentValue;
-  }, [currentValue]);
+    if (enableMetrics && currentValue !== undefined) {
+      const metrics = metricsRef.current;
+      metrics.totalUpdates++;
+    }
+  }, [currentValue, enableMetrics]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (throttleTimeoutRef.current) {
-        clearTimeout(throttleTimeoutRef.current);
-      }
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
       // Clear cache
       cacheRef.current = [];
     };
@@ -397,7 +326,7 @@ export function useStoreMetrics(): SubscriptionMetrics | null {
  */
 export function useBulkStoreValues<T extends Record<string, unknown>>(
   stores: { readonly [K in keyof T]: Store<T[K]> },
-  _options: OptimizedStoreOptions<unknown> = {}
+  options: OptimizedStoreOptions<unknown> = {}
 ): T {
   // Validate stores parameter
   if (!stores || typeof stores !== 'object') {
@@ -407,34 +336,36 @@ export function useBulkStoreValues<T extends Record<string, unknown>>(
   if (Object.keys(stores).length === 0) {
     throw new Error('stores object cannot be empty');
   }
-  const storeEntries = useMemo(() => Object.entries(stores), [stores]);
-  const valuesRef = useRef<T>({} as T);
+
+  const storeArray = useMemo(() => Object.values(stores) as Store<unknown>[], [stores]);
+  const storeKeys = useMemo(() => Object.keys(stores), [stores]);
   
-  // Subscribe to all stores efficiently
-  const subscribe = useCallback((listener: () => void) => {
-    const unsubscribes = storeEntries.map(([key, store]) => {
-      return (store as Store<unknown>).subscribe(() => {
-        // Update the specific value
-        const newValue = (store as Store<unknown>).getValue();
-        (valuesRef.current as Record<string, unknown>)[key] = newValue;
-        listener();
-      });
-    });
+  // Use multi-store subscription utility
+  return useSyncExternalStore(
+    // subscribe
+    useCallback((callback: () => void) => {
+      const unsubscribes = storeArray.map(store => store.subscribe(callback));
+      return () => unsubscribes.forEach(unsub => unsub());
+    }, [storeArray]),
     
-    return () => {
-      unsubscribes.forEach(unsub => unsub());
-    };
-  }, [storeEntries]);
-  
-  const getSnapshot = useCallback(() => {
-    const snapshot = {} as T;
-    storeEntries.forEach(([key, store]) => {
-      (snapshot as Record<string, unknown>)[key] = (store as Store<unknown>).getValue();
-    });
-    return snapshot;
-  }, [storeEntries]);
-  
-  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+    // getSnapshot
+    useCallback((): T => {
+      const result = {} as T;
+      storeKeys.forEach((key, index) => {
+        (result as Record<string, unknown>)[key] = storeArray[index].getValue();
+      });
+      return result;
+    }, [storeArray, storeKeys]),
+    
+    // getServerSnapshot
+    useCallback((): T => {
+      const result = {} as T;
+      storeKeys.forEach(key => {
+        (result as Record<string, unknown>)[key] = options.defaultValue;
+      });
+      return result;
+    }, [storeKeys, options.defaultValue])
+  );
 }
 
 /**
@@ -458,23 +389,16 @@ export function useConditionalStoreValue<T>(
   if (typeof condition !== 'boolean') {
     throw new TypeError('condition must be a boolean');
   }
-  const { defaultValue } = options;
   
-  const conditionalSubscribe = useCallback((listener: () => void) => {
-    if (!condition) {
-      return () => {}; // No-op unsubscribe
+  // Use common conditional subscription utility
+  return useSafeStoreSubscription(
+    condition ? store : null,
+    undefined,
+    {
+      initialValue: options.defaultValue as T,
+      name: `conditional-${store.name}`
     }
-    return store.subscribe(listener);
-  }, [store, condition]);
-  
-  const getSnapshot = useCallback(() => {
-    if (!condition) {
-      return defaultValue;
-    }
-    return store.getValue();
-  }, [store, condition, defaultValue]);
-  
-  return useSyncExternalStore(conditionalSubscribe, getSnapshot, getSnapshot);
+  );
 }
 
 /**
@@ -506,6 +430,8 @@ export function useStoreValuePath<
   if (path.includes('..') || path.startsWith('.') || path.endsWith('.')) {
     throw new Error('path cannot contain relative path components or start/end with dots');
   }
+  
+  // Path 기반 selector 생성
   const pathSelector = useCallback((value: T) => {
     const pathParts = path.split('.');
     let result: unknown = value;
@@ -521,10 +447,16 @@ export function useStoreValuePath<
     return result;
   }, [path]);
   
-  return useOptimizedStoreValue(store, {
-    ...options,
-    selector: pathSelector
-  } as OptimizedStoreOptions<T, unknown>);
+  // 공통 유틸리티 사용
+  return useSafeStoreSubscription(
+    store,
+    pathSelector,
+    {
+      equalityFn: options.isEqual as (a: unknown, b: unknown) => boolean,
+      initialValue: options.defaultValue,
+      name: `path-${store.name}-${path}`
+    }
+  );
 }
 
 /**
