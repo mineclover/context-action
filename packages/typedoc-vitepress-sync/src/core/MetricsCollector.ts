@@ -17,7 +17,7 @@ export class MetricsCollector {
   private config: Required<MetricsConfig>
   private startTime: number
   private metrics: Partial<SyncResult>
-  private logger?: Logger
+  private logger: Logger | undefined
 
   constructor(config: MetricsConfig, logger?: Logger) {
     this.config = {
@@ -25,7 +25,7 @@ export class MetricsCollector {
       outputFile: './reports/typedoc-vitepress-sync-metrics.json',
       ...config
     }
-    this.logger = logger
+    this.logger = logger ?? undefined
     this.startTime = Date.now()
     this.metrics = {
       filesProcessed: 0,

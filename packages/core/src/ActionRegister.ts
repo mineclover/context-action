@@ -12,6 +12,7 @@ import {
   ExecutionResult,
   ActionRegistryInfo,
   ActionHandlerStats,
+  DispatchOptions,
 } from './types.js';
 import { executeSequential, executeParallel, executeRace } from './execution-modes.js';
 import { ActionGuard } from './action-guard.js';
@@ -139,7 +140,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * @param options Dispatch options containing signal and autoAbort configuration
    * @returns [effectiveSignal, autoAbortController, cleanupFunction]
    */
-  private createAbortSignal(options?: import('./types.js').DispatchOptions): [
+  private createAbortSignal(options?: DispatchOptions): [
     AbortSignal | undefined, 
     AbortController | undefined, 
     () => void
@@ -350,7 +351,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   async dispatch<K extends keyof T>(
     action: K,
     payload?: T[K],
-    options?: import('./types.js').DispatchOptions
+    options?: DispatchOptions
   ): Promise<void> {
     // 🆕 Conditional queue usage for performance
     if (options?.immediate || !this.dispatchQueue) {
@@ -370,7 +371,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   private async _performDispatch<K extends keyof T>(
     action: K,
     payload?: T[K],
-    options?: import('./types.js').DispatchOptions
+    options?: DispatchOptions
   ): Promise<void> {
     // 🔍 디스패치 시작 디버그
     console.log(`🚀 [DEBUG] Starting dispatch for action '${String(action)}':`, {
@@ -477,15 +478,15 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       payload: payload as T[K],
       handlers: filteredHandlers, // Use filtered handlers
       aborted: false,
-      abortReason: undefined,
+      abortReason: undefined as string | undefined,
       currentIndex: 0,
-      jumpToPriority: undefined,
+      jumpToPriority: undefined as number | undefined,
       executionMode: currentExecutionMode,
       
       // New result collection fields
       results: [],
       terminated: false,
-      terminationResult: undefined,
+      terminationResult: undefined as any,
     };
 
     
@@ -527,7 +528,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   async dispatchWithResult<K extends keyof T, R = void>(
     action: K,
     payload?: T[K],
-    options?: import('./types.js').DispatchOptions
+    options?: DispatchOptions
   ): Promise<ExecutionResult<R>> {
     const _startTime = Date.now();
     
@@ -568,6 +569,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       return {
         success: true,
         aborted: false,
+        abortReason: undefined as string | undefined,
         terminated: false,
         result: undefined as any,
         successResults: [] as any,
@@ -688,25 +690,25 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       payload: payload as T[K],
       handlers: filteredHandlers,
       aborted: false,
-      abortReason: undefined,
+      abortReason: undefined as string | undefined,
       currentIndex: 0,
-      jumpToPriority: undefined,
+      jumpToPriority: undefined as number | undefined,
       executionMode: currentExecutionMode,
       
       // Result collection fields
       results: [],
       terminated: false,
-      terminationResult: undefined,
+      terminationResult: undefined as R | undefined,
     };
 
     let executionError: Error | undefined;
     const handlerResults: Array<{
       id: string;
       executed: boolean;
-      duration?: number;
-      result?: R;
-      error?: Error;
-      metadata?: Record<string, any>;
+      duration: number | undefined;
+      result: R | undefined;
+      error: Error | undefined;
+      metadata: Record<string, any> | undefined;
     }> = [];
 
     const errors: Array<{
@@ -720,6 +722,10 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       handlerResults.push({
         id: handler.config.id,
         executed: false,
+        duration: undefined as number | undefined,
+        result: undefined as R | undefined,
+        error: undefined as Error | undefined,
+        metadata: undefined as Record<string, any> | undefined,
       });
     });
 
@@ -741,7 +747,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       // In parallel/race mode, all handlers that didn't error were executed
       const executedCount = Math.min(context.currentIndex + (context.aborted ? 0 : 1), filteredHandlers.length);
       for (let i = 0; i < executedCount; i++) {
-        const handlerResult = handlerResults.find(hr => hr.id === filteredHandlers[i].config.id);
+        const handler = filteredHandlers[i];
+        if (!handler) continue;
+        const handlerResult = handlerResults.find(hr => hr.id === handler.config.id);
         if (handlerResult) {
           handlerResult.executed = true;
         }
@@ -757,7 +765,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       // Mark executed handlers even when there's an error
       const executedCount = Math.min(context.currentIndex + 1, filteredHandlers.length);
       for (let i = 0; i < executedCount; i++) {
-        const handlerResult = handlerResults.find(hr => hr.id === filteredHandlers[i].config.id);
+        const handler = filteredHandlers[i];
+        if (!handler) continue;
+        const handlerResult = handlerResults.find(hr => hr.id === handler.config.id);
         if (handlerResult) {
           handlerResult.executed = true;
         }
@@ -816,7 +826,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   /**
    * 🔧 Generate cache key for filter options
    */
-  private generateFilterCacheKey(filterOptions?: import('./types.js').DispatchOptions['filter']): string {
+  private generateFilterCacheKey(filterOptions?: DispatchOptions['filter']): string {
     if (!filterOptions) {
       return 'no-filter';
     }
@@ -842,7 +852,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
 
   private filterHandlers(
     handlers: HandlerRegistration<any, any>[],
-    filterOptions?: import('./types.js').DispatchOptions['filter']
+    filterOptions?: DispatchOptions['filter']
   ): HandlerRegistration<any, any>[] {
     if (!filterOptions) {
       return handlers;
@@ -912,7 +922,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
 
   private processResults<R>(
     context: PipelineContext<any, R>,
-    resultOptions?: import('./types.js').DispatchOptions['result']
+    resultOptions?: DispatchOptions['result']
   ): R | undefined {
     if (!resultOptions || !resultOptions.collect) {
       return undefined;

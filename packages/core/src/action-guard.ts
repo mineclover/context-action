@@ -23,19 +23,19 @@ interface GuardState {
   lastExecuted: number;
   
   /** Active debounce timer - cleared when new debounce requests arrive */
-  debounceTimer?: NodeJS.Timeout;
+  debounceTimer: NodeJS.Timeout | undefined;
   
   /** Active throttle timer - tracks when throttle period will end */
-  throttleTimer?: NodeJS.Timeout;
+  throttleTimer: NodeJS.Timeout | undefined;
   
   /** Flag indicating if action is currently in throttled state */
   isThrottled: boolean;
   
   /** Current debounce promise - reused for concurrent calls */
-  debouncePromise?: Promise<boolean>;
+  debouncePromise: Promise<boolean> | undefined;
   
   /** Resolve function for current debounce promise */
-  debounceResolve?: (value: boolean) => void;
+  debounceResolve: ((value: boolean) => void) | undefined;
 }
 
 /**
@@ -68,7 +68,7 @@ interface GuardState {
  */
 export class ActionGuard {
   private guards = new Map<string, GuardState>();
-  private cleanupInterval?: NodeJS.Timeout;
+  private cleanupInterval: NodeJS.Timeout | undefined;
   private readonly maxIdleTime: number = 60000; // 1 minute
   private readonly cleanupIntervalMs: number = 30000; // 30 seconds
 
@@ -139,7 +139,11 @@ export class ActionGuard {
       /** Initialize new guard state with default values */
       state = {
         lastExecuted: 0,
-        isThrottled: false
+        isThrottled: false,
+        debounceTimer: undefined as NodeJS.Timeout | undefined,
+        throttleTimer: undefined as NodeJS.Timeout | undefined,
+        debouncePromise: undefined as Promise<boolean> | undefined,
+        debounceResolve: undefined as ((value: boolean) => void) | undefined,
       };
       this.guards.set(actionKey, state);
     }
@@ -150,7 +154,7 @@ export class ActionGuard {
       // Resolve previous debounce with false if exists
       if (state.debounceResolve) {
         state.debounceResolve(false);
-        state.debounceResolve = undefined;
+        state.debounceResolve = undefined as ((value: boolean) => void) | undefined;
       }
     }
 
@@ -162,8 +166,8 @@ export class ActionGuard {
       // Set new timer
       state!.debounceTimer = setTimeout(() => {
         /** Clean up timer and resolver references */
-        state!.debounceTimer = undefined;
-        state!.debounceResolve = undefined;
+        state!.debounceTimer = undefined as NodeJS.Timeout | undefined;
+        state!.debounceResolve = undefined as ((value: boolean) => void) | undefined;
         /** Update last execution timestamp */
         state!.lastExecuted = Date.now();
         resolve(true);
@@ -201,7 +205,11 @@ export class ActionGuard {
       /** Initialize new guard state with default values */
       state = {
         lastExecuted: 0,
-        isThrottled: false
+        isThrottled: false,
+        debounceTimer: undefined as NodeJS.Timeout | undefined,
+        throttleTimer: undefined as NodeJS.Timeout | undefined,
+        debouncePromise: undefined as Promise<boolean> | undefined,
+        debounceResolve: undefined as ((value: boolean) => void) | undefined,
       };
       this.guards.set(actionKey, state);
     }
@@ -235,7 +243,7 @@ export class ActionGuard {
     state.throttleTimer = setTimeout(() => {
       /** Clear throttled state and timer reference */
       state!.isThrottled = false;
-      state!.throttleTimer = undefined;
+      state!.throttleTimer = undefined as NodeJS.Timeout | undefined;
     }, remainingTime);
 
 
@@ -262,14 +270,14 @@ export class ActionGuard {
         // Cancel waiting debounce calls
         if (state.debounceResolve) {
           state.debounceResolve(false);
-          state.debounceResolve = undefined;
+          state.debounceResolve = undefined as ((value: boolean) => void) | undefined;
         }
         state.debounceTimer = undefined;
       }
       /** Clear throttle timer if active to prevent memory leaks */
       if (state.throttleTimer) {
         clearTimeout(state.throttleTimer);
-        state.throttleTimer = undefined;
+        state.throttleTimer = undefined as NodeJS.Timeout | undefined;
       }
       /** Remove guard state from memory */
       this.guards.delete(actionKey);
@@ -349,7 +357,7 @@ export class ActionGuard {
     // Stop auto cleanup interval
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
-      this.cleanupInterval = undefined;
+      this.cleanupInterval = undefined as NodeJS.Timeout | undefined;
     }
     
     // Clear all existing guards

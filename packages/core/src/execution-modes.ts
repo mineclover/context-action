@@ -72,6 +72,9 @@ export async function executeSequential<T, R = void>(
     }
 
     const registration = context.handlers[i];
+    if (!registration) {
+      continue; // Skip if handler not found
+    }
     context.currentIndex = i;
     const controller = createController(registration, i);
 
@@ -243,7 +246,7 @@ export async function executeParallel<T, R = void>(
   const failures = results.filter((result, index) => {
     if (result.status === 'rejected') {
       const registration = runnableHandlers[index];
-      return registration.config.blocking;
+      return registration?.config.blocking ?? false;
     }
     return false;
   });

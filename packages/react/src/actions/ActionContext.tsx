@@ -124,10 +124,12 @@ export function createActionContext<T extends {}>(
       // Use core's autoAbort feature if no signal is provided
       const dispatchOptions: DispatchOptions = {
         ...options,
-        autoAbort: options?.signal ? undefined : {
-          enabled: true,
-          allowHandlerAbort: true
-        }
+        ...(options?.signal ? {} : {
+          autoAbort: {
+            enabled: true,
+            allowHandlerAbort: true
+          }
+        })
       };
       
       return register.dispatch(action, payload, dispatchOptions);
@@ -146,10 +148,12 @@ export function createActionContext<T extends {}>(
       
       const dispatchOptions: DispatchOptions = {
         ...options,
-        autoAbort: options?.signal ? undefined : {
-          enabled: true,
-          allowHandlerAbort: true
-        }
+        ...(options?.signal ? {} : {
+          autoAbort: {
+            enabled: true,
+            allowHandlerAbort: true
+          }
+        })
       };
       
       return register.dispatchWithResult<K, R>(action, payload, dispatchOptions);
@@ -286,13 +290,15 @@ export function createActionContext<T extends {}>(
       const dispatchOptions: DispatchOptions = {
         ...options,
         // Enable autoAbort if no signal is provided
-        autoAbort: options?.signal ? undefined : {
-          enabled: true,
-          allowHandlerAbort: true,
-          onControllerCreated: (controller) => {
-            activeControllersRef.current.add(controller);
+        ...(options?.signal ? {} : {
+          autoAbort: {
+            enabled: true,
+            allowHandlerAbort: true,
+            onControllerCreated: (controller) => {
+              activeControllersRef.current.add(controller);
+            }
           }
-        }
+        })
       };
       return register.dispatch(action, payload, dispatchOptions);
     }, [context.actionRegisterRef]);
@@ -311,13 +317,15 @@ export function createActionContext<T extends {}>(
       const dispatchOptions: DispatchOptions = {
         ...options,
         // Enable autoAbort if no signal is provided
-        autoAbort: options?.signal ? undefined : {
-          enabled: true,
-          allowHandlerAbort: true,
-          onControllerCreated: (controller) => {
-            activeControllersRef.current.add(controller);
+        ...(options?.signal ? {} : {
+          autoAbort: {
+            enabled: true,
+            allowHandlerAbort: true,
+            onControllerCreated: (controller) => {
+              activeControllersRef.current.add(controller);
+            }
           }
-        }
+        })
       };
       return register.dispatchWithResult<K, R>(action, payload, dispatchOptions);
     }, [context.actionRegisterRef]);

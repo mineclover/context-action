@@ -21,7 +21,7 @@ export class CacheManager {
     expired: 0,
     total: 0
   }
-  private logger?: Logger
+  private logger: Logger | undefined
 
   constructor(config: CacheConfig, logger?: Logger) {
     this.config = {

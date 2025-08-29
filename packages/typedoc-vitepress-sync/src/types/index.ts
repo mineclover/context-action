@@ -125,13 +125,13 @@ export interface ErrorInfo {
   /** Error message */
   message: string
   /** Error code */
-  code?: string
+  code: string | undefined
   /** Context where error occurred */
   context: string
   /** Timestamp of error */
   timestamp: string
   /** Error stack trace */
-  stack?: string
+  stack: string | undefined
 }
 
 export interface WarningInfo {

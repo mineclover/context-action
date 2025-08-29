@@ -15,7 +15,8 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
-    "noUncheckedIndexedAccess": false,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -26,6 +27,7 @@
     { "path": "./packages/core" },
     { "path": "./packages/react" },
     { "path": "./packages/llms-generator" },
+    { "path": "./packages/typedoc-vitepress-sync" },
     { "path": "./example" }
   ],
   "files": []

@@ -13,7 +13,7 @@ import type {
 export class ErrorHandler {
   private errors: ErrorInfo[] = []
   private warnings: WarningInfo[] = []
-  private logger?: Logger
+  private logger: Logger | undefined
 
   private recoveryStrategies: ErrorRecoveryStrategies = {
     'ENOENT': {
@@ -58,7 +58,7 @@ export class ErrorHandler {
   }
 
   constructor(logger?: Logger) {
-    this.logger = logger
+    this.logger = logger ?? undefined
   }
 
   /**
@@ -67,10 +67,10 @@ export class ErrorHandler {
   handleError(error: Error, context: string): unknown {
     const errorInfo: ErrorInfo = {
       message: error.message,
-      code: (error as Error & { code?: string }).code,
+      code: (error as Error & { code?: string }).code ?? undefined,
       context,
       timestamp: new Date().toISOString(),
-      stack: error.stack
+      stack: error.stack ?? undefined
     }
 
     this.errors.push(errorInfo)

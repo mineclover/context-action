@@ -123,13 +123,15 @@ class PerformanceMonitor {
       const result = operation();
       
       const duration = performance.now() - startTime;
-      this.record({
+      const metrics = {
         operationType,
         storeName,
         duration,
         timestamp: Date.now(),
-        payload
-      });
+        ...(payload && { payload })
+      };
+      
+      this.record(metrics);
       
       return result;
     } catch (error) {

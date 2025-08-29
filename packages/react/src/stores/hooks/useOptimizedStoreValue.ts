@@ -270,17 +270,19 @@ export function useOptimizedStoreValue<T, R = T>(
   }, [selector, enableMemoization, maxCacheSize, defaultValue, enableRetry, maxRetries, enableMetrics]);
 
   // Use common utility with enhanced subscription options
+  const subscriptionOptions = {
+    debug: enableMetrics,
+    name: `optimized-${store.name}`,
+    equalityFn: isEqual as (a: R, b: R) => boolean,
+    initialValue: defaultValue as R,
+    ...(throttle !== undefined && { throttle }),
+    ...(debounce !== undefined && { debounce })
+  };
+  
   const currentValue = useSafeStoreSubscription(
     store,
     optimizedSelector,
-    {
-      throttle,
-      debounce,
-      debug: enableMetrics,
-      name: `optimized-${store.name}`,
-      equalityFn: isEqual as (a: R, b: R) => boolean,
-      initialValue: defaultValue as R
-    }
+    subscriptionOptions
   ) as R;
 
   // Update last value reference and handle metrics
@@ -352,7 +354,10 @@ export function useBulkStoreValues<T extends Record<string, unknown>>(
     useCallback((): T => {
       const result = {} as T;
       storeKeys.forEach((key, index) => {
-        (result as Record<string, unknown>)[key] = storeArray[index].getValue();
+        const store = storeArray[index];
+        if (store) {
+          (result as Record<string, unknown>)[key] = store.getValue();
+        }
       });
       return result;
     }, [storeArray, storeKeys]),

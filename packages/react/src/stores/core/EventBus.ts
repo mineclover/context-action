@@ -1,4 +1,5 @@
 import type { EventHandler, IEventBus, Unsubscribe } from './types';
+import { ErrorHandlers } from '../utils/error-handling';
 
 /**
  * EventBus 클래스 - Store 간 비동기 통신
@@ -74,22 +75,15 @@ export class EventBus implements IEventBus {
         try {
           handler(data);
         } catch (error) {
-          // Use standardized error handling (dynamic import)
-          import('../utils/error-handling')
-            .then(({ ErrorHandlers }) => {
-              ErrorHandlers.store(
-                `Error in event handler for "${event}"`,
-                { 
-                  event,
-                  handlerCount: handlers.size
-                },
-                error instanceof Error ? error : undefined
-              );
-            })
-            .catch(() => {
-              // Fallback to console.error if error handling module fails
-              console.error(`Error in event handler for "${event}":`, error);
-            });
+          // Use standardized error handling (static import)
+          ErrorHandlers.store(
+            `Error in event handler for "${event}"`,
+            { 
+              event,
+              handlerCount: handlers.size
+            },
+            error instanceof Error ? error : undefined
+          );
         }
       });
     }

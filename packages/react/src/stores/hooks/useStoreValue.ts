@@ -127,18 +127,21 @@ export function useStoreValue<T, R>(
   
   
   // useSyncExternalStore 기반 구독
+  const subscriptionOptions = {
+    debug,
+    name,
+    equalityFn: equalityFn as (a: R, b: R) => boolean,
+    initialValue: initialValue as R,
+    ...(debounce !== undefined && { debounce }),
+    ...(throttle !== undefined && { throttle }),
+    ...(condition && { condition }),
+    ...(lazy && !condition && { condition: () => false })
+  };
+  
   const rawValue = useSafeStoreSubscription(
     store,
     selector,
-    {
-      debounce,
-      throttle,
-      condition: condition || (lazy ? () => false : undefined), // lazy 처리
-      debug,
-      name,
-      equalityFn: equalityFn as (a: R, b: R) => boolean,
-      initialValue: initialValue as R
-    }
+    subscriptionOptions
   );
   
   // 구독이 비활성화된 경우 처리

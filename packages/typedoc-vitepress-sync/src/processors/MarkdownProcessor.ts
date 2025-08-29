@@ -245,6 +245,7 @@ export class MarkdownProcessor {
     
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
+      if (!line) continue;
       
       if (line.startsWith('```')) {
         if (!inCodeBlock) {
@@ -285,6 +286,7 @@ export class MarkdownProcessor {
     
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i]
+      if (!line) continue;
       
       // Check for title (H1)
       if (line.startsWith('# ')) {
@@ -295,7 +297,7 @@ export class MarkdownProcessor {
       
       // Check heading hierarchy
       const headingMatch = line.match(/^(#{2,6}) /)
-      if (headingMatch) {
+      if (headingMatch && headingMatch[1]) {
         const level = headingMatch[1].length
         if (level > prevHeadingLevel + 1) {
           issues.push({

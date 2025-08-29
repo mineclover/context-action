@@ -184,13 +184,15 @@ class StoreManager<T extends Record<string, any>> {
     store.setComparisonOptions(finalComparisonOptions);
 
     // Register in StoreRegistry with extended metadata
-    this.registry.register(String(storeName), store, {
+    const metadata = {
       name: String(storeName),
       tags,
       description: description || `Store: ${String(storeName)}`,
-      version,
-      debug
-    });
+      debug,
+      ...(version !== undefined && { version })
+    };
+    
+    this.registry.register(String(storeName), store, metadata);
 
     // Debug logging if enabled
     if (debug && process.env.NODE_ENV === 'development') {

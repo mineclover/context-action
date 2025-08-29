@@ -14,7 +14,7 @@ import type {
 export class QualityValidator {
   private config: Required<QualityConfig>
   private issues: QualityIssue[] = []
-  private logger?: Logger
+  private logger: Logger | undefined
 
   constructor(config: QualityConfig, logger?: Logger) {
     this.config = {
@@ -23,7 +23,7 @@ export class QualityValidator {
       checkAccessibility: true,
       ...config
     }
-    this.logger = logger
+    this.logger = logger ?? undefined
   }
 
   /**
@@ -106,12 +106,18 @@ export class QualityValidator {
       // Check for malformed tables
       const tableRows = content.split('\n').filter(line => line.includes('|'))
       if (tableRows.length > 0) {
-        const firstRowCols = (tableRows[0].match(/\|/g) || []).length
-        for (let i = 1; i < tableRows.length; i++) {
-          const currentRowCols = (tableRows[i].match(/\|/g) || []).length
-          if (currentRowCols !== firstRowCols) {
-            issues.push(`Inconsistent table column count at line ${i + 1}`)
-            break
+        const firstRow = tableRows[0];
+        if (firstRow) {
+          const firstRowCols = (firstRow.match(/\|/g) || []).length
+          for (let i = 1; i < tableRows.length; i++) {
+            const currentRow = tableRows[i];
+            if (currentRow) {
+              const currentRowCols = (currentRow.match(/\|/g) || []).length
+              if (currentRowCols !== firstRowCols) {
+                issues.push(`Inconsistent table column count at line ${i + 1}`)
+                break
+              }
+            }
           }
         }
       }
@@ -119,8 +125,9 @@ export class QualityValidator {
       // Check for very long lines (readability)
       const lines = content.split('\n')
       for (let i = 0; i < lines.length; i++) {
-        if (lines[i].length > 200 && !lines[i].startsWith('```')) {
-          issues.push(`Very long line (${lines[i].length} chars) at line ${i + 1}`)
+        const line = lines[i];
+        if (line && line.length > 200 && !line.startsWith('```')) {
+          issues.push(`Very long line (${line.length} chars) at line ${i + 1}`)
           break // Only report first occurrence
         }
       }
@@ -147,6 +154,10 @@ export class QualityValidator {
         const linkText = match[1]
         const linkPath = match[2]
         
+        if (!linkText || !linkPath) {
+          continue;
+        }
+        
         // Skip external links
         if (linkPath.startsWith('http://') || linkPath.startsWith('https://')) {
           continue
@@ -172,7 +183,7 @@ export class QualityValidator {
           // Remove anchor part if present
           const cleanPath = absolutePath.split('#')[0]
 
-          if (!fs.existsSync(cleanPath)) {
+          if (cleanPath && !fs.existsSync(cleanPath)) {
             // Try with .md extension if not present
             if (!cleanPath.endsWith('.md') && !fs.existsSync(cleanPath + '.md')) {
               issues.push(`Broken link: "${linkPath}" -> ${cleanPath}`)
@@ -221,6 +232,8 @@ export class QualityValidator {
 
       for (let i = 0; i < headings.length; i++) {
         const heading = headings[i]
+        if (!heading) continue;
+        
         const level = heading.match(/^#+/)?.[0]?.length || 0
         
         if (level > prevLevel + 1 && prevLevel !== 0) {
@@ -246,6 +259,8 @@ export class QualityValidator {
         
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i]
+          if (!line) continue;
+          
           const isListItem = /^[\s]*[-*+]\s/.test(line) || /^[\s]*\d+\.\s/.test(line)
           
           if (isListItem) {
@@ -268,7 +283,7 @@ export class QualityValidator {
       const tables = content.match(/\|.*\|\s*\n\s*\|[-\s:|]+\|/g) || []
       for (const table of tables) {
         const headerRow = table.split('\n')[0]
-        if (!headerRow.includes('|') || headerRow.split('|').length < 3) {
+        if (headerRow && (!headerRow.includes('|') || headerRow.split('|').length < 3)) {
           issues.push('Table with insufficient header structure found')
         }
       }

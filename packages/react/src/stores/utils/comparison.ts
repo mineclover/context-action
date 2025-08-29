@@ -250,11 +250,12 @@ export function compareValues<T>(
         break;
         
       case 'deep':
-        result = deepEquals(oldValue, newValue, { 
-          maxDepth, 
-          ignoreKeys, 
-          enableCircularCheck 
-        });
+        const deepOptions = {
+          ...(maxDepth !== undefined && { maxDepth }),
+          ...(ignoreKeys !== undefined && { ignoreKeys }),
+          ...(enableCircularCheck !== undefined && { enableCircularCheck })
+        };
+        result = deepEquals(oldValue, newValue, deepOptions);
         break;
         
       case 'custom':

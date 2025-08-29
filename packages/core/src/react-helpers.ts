@@ -336,14 +336,14 @@ export const ReactDevUtils = {
 export class ReactActionError extends Error {
   public readonly action: string;
   public readonly payload?: any;
-  public readonly handlerId?: string;
+  public readonly handlerId: string | undefined;
   public readonly timestamp: number;
 
   constructor(
     message: string,
     action: string,
     payload?: any,
-    handlerId?: string,
+    handlerId: string | undefined = undefined,
     originalError?: Error
   ) {
     super(message);

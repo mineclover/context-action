@@ -61,7 +61,8 @@ export class OperationQueue {
       // 우선순위에 따라 삽입 위치 결정
       let insertIndex = this.queue.length;
       for (let i = 0; i < this.queue.length; i++) {
-        if ((this.queue[i].priority || 0) < priority) {
+        const item = this.queue[i];
+        if (item && (item.priority || 0) < priority) {
           insertIndex = i;
           break;
         }

@@ -9,7 +9,13 @@
     "sourceMap": true,
     "noEmit": false,
     "removeComments": true,
-    "types": ["node"]
+    "types": ["node"],
+    
+    "allowImportingTsExtensions": false,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipDefaultLibCheck": false
   },
   "include": ["src/**/*"],
   "exclude": ["dist", "node_modules", "__tests__", "**/*.test.*", "**/*.spec.*"]

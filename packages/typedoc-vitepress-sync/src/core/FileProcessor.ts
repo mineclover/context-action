@@ -25,8 +25,8 @@ export class FileProcessor {
   private metrics: MetricsCollector
   private errorHandler: ErrorHandler
   private markdownProcessor: MarkdownProcessor
-  private logger?: Logger
-  private eventEmitter?: <K extends keyof SyncEvents>(event: K, ...args: Parameters<SyncEvents[K]>) => void
+  private logger: Logger | undefined
+  private eventEmitter: (<K extends keyof SyncEvents>(event: K, ...args: Parameters<SyncEvents[K]>) => void) | undefined
   private pendingOperations: Set<Promise<unknown>> = new Set()
 
   constructor(
@@ -49,8 +49,8 @@ export class FileProcessor {
     this.metrics = metrics
     this.errorHandler = errorHandler
     this.markdownProcessor = new MarkdownProcessor()
-    this.logger = logger
-    this.eventEmitter = eventEmitter
+    this.logger = logger ?? undefined
+    this.eventEmitter = eventEmitter ?? undefined
   }
 
   /**

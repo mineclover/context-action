@@ -1,4 +1,5 @@
 import type { IStore, Listener, Snapshot, Unsubscribe, StoreSetValueOptions } from './types';
+import type { StoreRegistry } from './StoreRegistry';
 import { safeGet, safeSet } from '../utils/immutable';
 import { 
   compareValues, 
@@ -79,9 +80,9 @@ export class Store<T = unknown> implements IStore<T> {
 
   public readonly name: string;
   // Custom comparator function per store
-  private customComparator?: (oldValue: T, newValue: T) => boolean;
+  private customComparator: ((oldValue: T, newValue: T) => boolean) | undefined;
   // Comparison options per store
-  private comparisonOptions?: Partial<ComparisonOptions<T>>;
+  private comparisonOptions: Partial<ComparisonOptions<T>> | undefined;
   // Performance optimization: disable cloning for this store
   private cloningEnabled: boolean = true;
 
@@ -792,7 +793,7 @@ export function createStore<T>(name: string, initialValue: T): Store<T> {
 export interface StoreConfig<T = unknown> {
   name: string;
   initialValue: T;
-  registry?: import('./StoreRegistry').StoreRegistry;
+  registry?: StoreRegistry;
   autoRegister?: boolean;
 }
 
@@ -800,12 +801,12 @@ export interface StoreConfig<T = unknown> {
  * Enhanced store with auto-registration capability
  */
 export class ManagedStore<T> extends Store<T> {
-  private registry?: import('./StoreRegistry').StoreRegistry;
+  private registry: StoreRegistry | undefined;
   private autoRegister: boolean;
 
   constructor(config: StoreConfig<T>) {
     super(config.name, config.initialValue);
-    this.registry = config.registry;
+    this.registry = config.registry ?? undefined;
     this.autoRegister = config.autoRegister ?? true;
     
     if (this.autoRegister && this.registry) {

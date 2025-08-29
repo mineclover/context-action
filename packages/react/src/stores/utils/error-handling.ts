@@ -24,7 +24,7 @@ export enum ContextActionErrorType {
  */
 export class ContextActionError extends Error {
   public readonly type: ContextActionErrorType;
-  public readonly context?: Record<string, unknown>;
+  public readonly context: Record<string, unknown> | undefined;
   public readonly timestamp: number;
 
   constructor(
@@ -36,7 +36,7 @@ export class ContextActionError extends Error {
     super(message);
     this.name = 'ContextActionError';
     this.type = type;
-    this.context = context;
+    this.context = context ?? undefined;
     this.timestamp = Date.now();
     
     // 원본 에러가 있으면 스택 추가

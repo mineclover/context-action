@@ -319,13 +319,13 @@ export interface PipelineContext<T = any, R = void> {
   aborted: boolean;
   
   /** Reason for abortion if aborted */
-  abortReason?: string;
+  abortReason: string | undefined;
   
   /** Current handler index being executed */
   currentIndex: number;
   
   /** Priority level to jump to (if requested) */
-  jumpToPriority?: number;
+  jumpToPriority: number | undefined;
   
   /** Execution mode for this pipeline */
   executionMode: ExecutionMode;
@@ -337,7 +337,7 @@ export interface PipelineContext<T = any, R = void> {
   terminated: boolean;
   
   /** Result from terminated execution */
-  terminationResult?: R;
+  terminationResult: R | undefined;
 }
 
 /**
@@ -583,13 +583,13 @@ export interface ExecutionResult<R = void> {
   aborted: boolean;
   
   /** Reason for abortion if aborted */
-  abortReason?: string;
+  abortReason: string | undefined;
   
   /** Whether the execution was terminated early via controller.return() */
   terminated: boolean;
   
   /** Final result based on result strategy - only present for non-void results */
-  result?: R;
+  result: R | undefined;
   
   /** 🔧 Type safety fix: Separate successful results from failed ones */
   /** All successful handler results (guaranteed non-undefined) */
@@ -635,16 +635,16 @@ export interface ExecutionResult<R = void> {
     executed: boolean;
     
     /** Handler execution duration in milliseconds (only present if executed) */
-    duration?: number;
+    duration: number | undefined;
     
     /** Result returned by this handler - properly typed for success/failure */
-    result?: R;
+    result: R | undefined;
     
     /** Error thrown by this handler if any */
-    error?: Error;
+    error: Error | undefined;
     
     /** Custom metadata for this handler */
-    metadata?: Record<string, any>;
+    metadata: Record<string, any> | undefined;
   }>;
   
   /** Errors that occurred during execution */

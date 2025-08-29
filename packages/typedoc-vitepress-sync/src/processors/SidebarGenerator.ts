@@ -14,11 +14,11 @@ import { MarkdownProcessor } from './MarkdownProcessor.js'
 
 export class SidebarGenerator {
   private markdownProcessor: MarkdownProcessor
-  private logger?: Logger
+  private logger: Logger | undefined
 
   constructor(logger?: Logger) {
     this.markdownProcessor = new MarkdownProcessor()
-    this.logger = logger
+    this.logger = logger ?? undefined
   }
 
   /**
@@ -298,20 +298,20 @@ export function getApiItemsForPackage(packageName: string): any[] {
       const path = item.path.toLowerCase()
       
       if (item.text === 'Overview' || path.includes('readme')) {
-        groups.overview.push(item)
+        groups.overview?.push(item)
       } else if (path.includes('/classes/')) {
-        groups.classes.push(item)
+        groups.classes?.push(item)
       } else if (path.includes('/functions/')) {
-        groups.functions.push(item)
+        groups.functions?.push(item)
       } else if (path.includes('/interfaces/')) {
-        groups.interfaces.push(item)
+        groups.interfaces?.push(item)
       } else if (path.includes('/type-aliases/')) {
-        groups.types.push(item)
+        groups.types?.push(item)
       } else if (path.includes('/variables/')) {
-        groups.variables.push(item)
+        groups.variables?.push(item)
       } else {
         // Default to functions if unclear
-        groups.functions.push(item)
+        groups.functions?.push(item)
       }
     }
     
@@ -329,7 +329,7 @@ export function getApiItemsForPackage(packageName: string): any[] {
       const groups = this.groupByCategory(packageInfo.items)
       
       // Add overview section first
-      if (groups.overview.length > 0) {
+      if (groups.overview && groups.overview.length > 0) {
         sections.push({
           text: `${packageInfo.text} - Overview`,
           collapsed: false,
@@ -350,11 +350,12 @@ export function getApiItemsForPackage(packageName: string): any[] {
       }
       
       for (const [category, title] of Object.entries(categoryTitles)) {
-        if (groups[category].length > 0) {
+        const categoryItems = groups[category];
+        if (categoryItems && categoryItems.length > 0) {
           sections.push({
             text: `${packageInfo.text} - ${title}`,
             collapsed: true,
-            items: this.sortApiItems(groups[category]).map(item => ({
+            items: this.sortApiItems(categoryItems).map(item => ({
               text: item.text,
               link: `/${locale}${item.path}`
             }))
