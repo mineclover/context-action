@@ -404,6 +404,40 @@ pnpm llms:code-mode --keep-comments --include-tests
 
 This provides LLMs with direct access to the actual implementation, ensuring accurate API understanding and code generation.
 
+#### Reference Combination - NEW FEATURE
+
+The LLMS Generator now includes a **Reference Combination** feature that parses a source document to find cross-references and combines all referenced documents into a single unified document:
+
+```bash
+# Combine a document with all its referenced documents
+node packages/llms-generator/dist/cli/index.js combine-references docs/en/concept/architecture-guide.md
+
+# Preview combination without creating files
+node packages/llms-generator/dist/cli/index.js combine-references docs/ko/guide/patterns/action/index.md --dry-run
+
+# Clean pattern removes comments and normalizes whitespace
+node packages/llms-generator/dist/cli/index.js combine-references docs/en/guide/index.md --pattern clean
+
+# Follow nested references up to specified depth
+node packages/llms-generator/dist/cli/index.js combine-references docs/en/concept/conventions.md --follow-nested --max-depth 2
+
+# Specify custom output path
+node packages/llms-generator/dist/cli/index.js combine-references docs/en/concept/architecture-guide.md --output combined-architecture.md
+
+# Exclude source document from output (only include referenced documents)
+node packages/llms-generator/dist/cli/index.js combine-references docs/en/guide/index.md --exclude-source
+
+# Verbose output to see all parsed references
+node packages/llms-generator/dist/cli/index.js combine-references docs/en/concept/architecture-guide.md --verbose
+```
+
+**Reference Combination Features:**
+- **Markdown Link Parsing**: Automatically detects `[text](url)` patterns and additional reference formats
+- **Flexible Reference Resolution**: Supports local, relative, and absolute path references
+- **Content Patterns**: `standard` (full content), `clean` (remove comments), `minimal` (remove headers)
+- **Nested Reference Following**: Option to recursively process references in referenced documents
+- **Smart Path Resolution**: Handles various path formats relative to docs directory
+
 ### Example Application
 ```bash
 # Example app (in example/ directory)
