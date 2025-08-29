@@ -14,7 +14,7 @@ import type {
   RefDefinitions,
   InferRefTypes
 } from './types';
-import { useRefMount, useRefOperation, useRefPolling as useRefPollingHook, type InternalRefState, type RefPollingOptions } from './hooks';
+import { useRefMount, useRefOperation, useRefPolling as useRefPollingHook, useRefMountState, useOnMountStateChange, useRefMountChecker, type InternalRefState, type RefPollingOptions } from './hooks';
 import { ErrorHandlers } from '../stores/utils/error-handling';
 
 // InternalRefState is now imported from ./hooks
@@ -53,6 +53,23 @@ export interface RefContextReturn<T> {
     promise: Promise<T[K]>;
     cancel: () => void;
     isMounted: () => boolean;
+  };
+  
+  useRefMountState: <K extends keyof T>(refName: K) => {
+    isMounted: boolean;
+    isWaitingForMount: boolean;
+    mountedTarget: T[K] | null;
+  };
+  
+  useOnMountStateChange: <K extends keyof T>(
+    refName: K,
+    callback: (mounted: boolean, target: T[K] | null) => void
+  ) => void;
+  
+  useRefMountChecker: <K extends keyof T>(refName: K) => () => {
+    isMounted: boolean;
+    isWaitingForMount: boolean;
+    target: T[K] | null;
   };
   
   contextName: string;
@@ -396,12 +413,42 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
     }, [getRefState, createPolling]);
   };
   
+  // 새로운 mount state subscription hooks
+  const useRefMountStateHook = useCallback(<K extends keyof T>(refName: K) => {
+    const refState = getRefState(String(refName));
+    return useRefMountState(refState) as {
+      isMounted: boolean;
+      isWaitingForMount: boolean;
+      mountedTarget: T[K] | null;
+    };
+  }, [getRefState]);
+  
+  const useOnMountStateChangeHook = useCallback(<K extends keyof T>(
+    refName: K,
+    callback: (mounted: boolean, target: T[K] | null) => void
+  ) => {
+    const refState = getRefState(String(refName));
+    useOnMountStateChange(refState, callback);
+  }, [getRefState]);
+  
+  const useRefMountCheckerHook = useCallback(<K extends keyof T>(refName: K) => {
+    const refState = getRefState(String(refName));
+    return useRefMountChecker(refState) as () => {
+      isMounted: boolean;
+      isWaitingForMount: boolean;
+      target: T[K] | null;
+    };
+  }, [getRefState]);
+
   return {
     Provider,
     useRefHandler,
     useWaitForRefs,
     useGetAllRefs,
     useRefPolling,
+    useRefMountState: useRefMountStateHook,
+    useOnMountStateChange: useOnMountStateChangeHook,
+    useRefMountChecker: useRefMountCheckerHook,
     contextName,
     refDefinitions
   } as T extends RefDefinitions 

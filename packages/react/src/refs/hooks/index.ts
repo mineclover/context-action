@@ -11,3 +11,4 @@
 export { useRefMount, type InternalRefState } from './useRefMount';
 export { useRefOperation } from './useRefOperation';
 export { useRefPolling, type RefPollingOptions, type RefPollingReturn } from './useRefPolling';
+export { useRefMountState, useOnMountStateChange, useRefMountChecker } from './useRefMountState';
