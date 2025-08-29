@@ -263,7 +263,7 @@ describe('SimpleLLMSCommand', () => {
       });
       
       // Read generated file
-      const outputPath = path.join(testDataDir, 'output', 'llms-300chars.txt');
+      const outputPath = path.join(testDataDir, 'output', 'ko', 'llms', 'llms-300chars.txt');
       const content = await fs.readFile(outputPath, 'utf-8');
       
       // Should contain document separators and titles
@@ -282,7 +282,7 @@ describe('SimpleLLMSCommand', () => {
       });
       
       // Read generated file
-      const outputPath = path.join(testDataDir, 'output', 'llms-300chars-raw.txt');
+      const outputPath = path.join(testDataDir, 'output', 'ko', 'llms', 'llms-300chars-raw.txt');
       const content = await fs.readFile(outputPath, 'utf-8');
       
       // Should contain only content, no separators
@@ -298,7 +298,7 @@ describe('SimpleLLMSCommand', () => {
       });
       
       // Read generated file
-      const outputPath = path.join(testDataDir, 'output', 'llms-minimal.txt');
+      const outputPath = path.join(testDataDir, 'output', 'ko', 'llms', 'llms-minimal.txt');
       const content = await fs.readFile(outputPath, 'utf-8');
       
       // Should contain link format
@@ -317,7 +317,7 @@ describe('SimpleLLMSCommand', () => {
       });
       
       // Read generated file
-      const outputPath = path.join(testDataDir, 'output', 'llms-300chars-origin.txt');
+      const outputPath = path.join(testDataDir, 'output', 'ko', 'llms', 'llms-300chars-origin.txt');
       const content = await fs.readFile(outputPath, 'utf-8');
       
       // Should contain document separators and full content
@@ -356,9 +356,9 @@ describe('SimpleLLMSCommand', () => {
         expect(output).toContain('Default (500 chars)');
         
         // Check that files were created
-        const originFile = path.join(testDataDir, 'output', 'llms-origin.txt');
-        const minimalFile = path.join(testDataDir, 'output', 'llms-minimal.txt');
-        const defaultFile = path.join(testDataDir, 'output', 'llms-500chars.txt');
+        const originFile = path.join(testDataDir, 'output', 'ko', 'llms', 'llms-origin.txt');
+        const minimalFile = path.join(testDataDir, 'output', 'ko', 'llms', 'llms-minimal.txt');
+        const defaultFile = path.join(testDataDir, 'output', 'ko', 'llms', 'llms-500chars.txt');
         
         expect(await fs.access(originFile).then(() => true).catch(() => false)).toBe(true);
         expect(await fs.access(minimalFile).then(() => true).catch(() => false)).toBe(true);
@@ -432,7 +432,7 @@ describe('SimpleLLMSCommand', () => {
       }
 
       // Check that no files were actually created
-      const outputPath = path.join(testDataDir, 'output', 'llms-300chars.txt');
+      const outputPath = path.join(testDataDir, 'output', 'ko', 'llms', 'llms-300chars.txt');
       const fileExists = await fs.access(outputPath).then(() => true).catch(() => false);
       expect(fileExists).toBe(false);
     });
@@ -554,7 +554,7 @@ describe('SimpleLLMSCommand', () => {
       });
       
       // Read generated file
-      const outputPath = path.join(testDataDir, 'output', 'llms-300chars.txt');
+      const outputPath = path.join(testDataDir, 'output', 'ko', 'llms', 'llms-300chars.txt');
       const content = await fs.readFile(outputPath, 'utf-8');
       
       // Should extract and use the proper title
@@ -620,7 +620,7 @@ describe('SimpleLLMSCommand', () => {
           expectedFileName = 'llms-300chars.txt';
         }
         
-        const outputPath = path.join(testDataDir, 'output', expectedFileName);
+        const outputPath = path.join(testDataDir, 'output', 'ko', 'llms', expectedFileName);
         const fileExists = await fs.access(outputPath).then(() => true).catch(() => false);
         expect(fileExists).toBe(true);
       }
@@ -642,7 +642,7 @@ describe('SimpleLLMSCommand', () => {
       });
       
       // Check that file was created in custom directory
-      const outputPath = path.join(customOutputDir, 'llms-300chars.txt');
+      const outputPath = path.join(customOutputDir, 'ko', 'llms', 'llms-300chars.txt');
       const fileExists = await fs.access(outputPath).then(() => true).catch(() => false);
       expect(fileExists).toBe(true);
     });
@@ -740,7 +740,7 @@ describe('SimpleLLMSCommand', () => {
       });
       
       // Read generated file
-      const outputPath = path.join(testDataDir, 'output', 'llms-300chars-raw.txt');
+      const outputPath = path.join(testDataDir, 'output', 'ko', 'llms', 'llms-300chars-raw.txt');
       const content = await fs.readFile(outputPath, 'utf-8');
       
       // Should remove comments and normalize content
@@ -772,7 +772,7 @@ describe('SimpleLLMSCommand', () => {
       });
       
       // Read generated file
-      const outputPath = path.join(testDataDir, 'output', 'llms-300chars.txt');
+      const outputPath = path.join(testDataDir, 'output', 'ko', 'llms', 'llms-300chars.txt');
       const content = await fs.readFile(outputPath, 'utf-8');
       
       // High priority document should come first
