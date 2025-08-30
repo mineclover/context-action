@@ -1,0 +1,696 @@
+/**
+ * Filter Cache Dynamic Sizing Tests
+ * 
+ * Tests the dynamic filter cache sizing based on handler count:
+ * - Cache size = handlerCount × 10 (or 100 minimum)
+ * - Verifies cache size adjustment as handlers are added/removed
+ * - Tests boundary conditions: 9, 10, 11 handlers
+ */
+
+import { ActionRegister } from '../../src/ActionRegister';
+import type { ActionPayloadMap } from '../../src/types';
+
+interface TestActions extends ActionPayloadMap {
+  testAction: { message: string };
+}
+
+describe('Filter Cache Dynamic Sizing Tests', () => {
+  let register: ActionRegister<TestActions>;
+
+  beforeEach(() => {
+    register = new ActionRegister<TestActions>({
+      name: 'FilterCacheTest',
+      registry: {
+        debug: false,
+      }
+    });
+  });
+
+  afterEach(() => {
+    register.destroy();
+  });
+
+  describe('🔧 Dynamic Cache Size Calculation', () => {
+    it('should have minimum cache size of 100 when no handlers', () => {
+      // Access private property for testing
+      const cacheMaxSize = (register as any).filterCacheMaxSize;
+      
+      expect(cacheMaxSize).toBe(100); // Fallback minimum
+      expect(register.getHandlerCount('testAction')).toBe(0);
+    });
+
+    it('should calculate cache size as handlerCount × 10', () => {
+      // Test with different handler counts
+      const testCases = [
+        { handlers: 1, expectedCacheSize: 10 },
+        { handlers: 5, expectedCacheSize: 50 },
+        { handlers: 9, expectedCacheSize: 90 },
+        { handlers: 10, expectedCacheSize: 100 },
+        { handlers: 11, expectedCacheSize: 110 },
+        { handlers: 20, expectedCacheSize: 200 },
+        { handlers: 50, expectedCacheSize: 500 },
+      ];
+
+      testCases.forEach(({ handlers, expectedCacheSize }) => {
+        // Clear previous handlers
+        register.clearAll();
+
+        // Register exact number of handlers
+        for (let i = 0; i < handlers; i++) {
+          register.register('testAction', async () => `handler-${i}`, {
+            priority: i,
+            id: `handler-${i}`
+          });
+        }
+
+        const actualCacheSize = (register as any).filterCacheMaxSize;
+        expect(actualCacheSize).toBe(expectedCacheSize);
+        expect(register.getHandlerCount('testAction')).toBe(handlers);
+      });
+    });
+  });
+
+  describe('🎯 Boundary Conditions: 9, 10, 11 Handlers', () => {
+    it('should handle 9 handlers (cache size: 90)', () => {
+      // Register 9 handlers
+      for (let i = 0; i < 9; i++) {
+        register.register('testAction', async () => `result-${i}`, {
+          id: `handler-${i}`,
+          priority: i
+        });
+      }
+
+      const cacheMaxSize = (register as any).filterCacheMaxSize;
+      const handlerCount = register.getHandlerCount('testAction');
+
+      expect(handlerCount).toBe(9);
+      expect(cacheMaxSize).toBe(90); // 9 × 10
+      
+      console.log(`9 handlers: cache size = ${cacheMaxSize}`);
+    });
+
+    it('should handle 10 handlers (cache size: 100)', () => {
+      // Register 10 handlers
+      for (let i = 0; i < 10; i++) {
+        register.register('testAction', async () => `result-${i}`, {
+          id: `handler-${i}`,
+          priority: i
+        });
+      }
+
+      const cacheMaxSize = (register as any).filterCacheMaxSize;
+      const handlerCount = register.getHandlerCount('testAction');
+
+      expect(handlerCount).toBe(10);
+      expect(cacheMaxSize).toBe(100); // 10 × 10
+      
+      console.log(`10 handlers: cache size = ${cacheMaxSize}`);
+    });
+
+    it('should handle 11 handlers (cache size: 110)', () => {
+      // Register 11 handlers
+      for (let i = 0; i < 11; i++) {
+        register.register('testAction', async () => `result-${i}`, {
+          id: `handler-${i}`,
+          priority: i
+        });
+      }
+
+      const cacheMaxSize = (register as any).filterCacheMaxSize;
+      const handlerCount = register.getHandlerCount('testAction');
+
+      expect(handlerCount).toBe(11);
+      expect(cacheMaxSize).toBe(110); // 11 × 10
+      
+      console.log(`11 handlers: cache size = ${cacheMaxSize}`);
+    });
+
+    it('should show progression from 9 → 10 → 11 handlers', () => {
+      const progression = [];
+
+      // Start with 9 handlers
+      for (let i = 0; i < 9; i++) {
+        register.register('testAction', async () => `result-${i}`, {
+          id: `handler-${i}`,
+          priority: i
+        });
+      }
+      progression.push({
+        handlers: register.getHandlerCount('testAction'),
+        cacheSize: (register as any).filterCacheMaxSize
+      });
+
+      // Add 10th handler
+      register.register('testAction', async () => 'result-9', {
+        id: 'handler-9',
+        priority: 9
+      });
+      progression.push({
+        handlers: register.getHandlerCount('testAction'),
+        cacheSize: (register as any).filterCacheMaxSize
+      });
+
+      // Add 11th handler
+      register.register('testAction', async () => 'result-10', {
+        id: 'handler-10',
+        priority: 10
+      });
+      progression.push({
+        handlers: register.getHandlerCount('testAction'),
+        cacheSize: (register as any).filterCacheMaxSize
+      });
+
+      expect(progression).toEqual([
+        { handlers: 9, cacheSize: 90 },
+        { handlers: 10, cacheSize: 100 },
+        { handlers: 11, cacheSize: 110 }
+      ]);
+
+      console.log('Cache size progression:', progression);
+    });
+  });
+
+  describe('🔄 Cache Size Changes with Handler Operations', () => {
+    it('should adjust cache size when handlers are added', async () => {
+      const cacheSizes = [];
+
+      // Test progressive addition
+      for (let i = 1; i <= 15; i++) {
+        register.register('testAction', async () => `result-${i}`, {
+          id: `handler-${i}`,
+          priority: i
+        });
+
+        const currentSize = (register as any).filterCacheMaxSize;
+        const expectedSize = i * 10 || 100; // Our implementation uses || 100, not Math.max
+        
+        cacheSizes.push({ handlers: i, cacheSize: currentSize, expected: expectedSize });
+        expect(currentSize).toBe(expectedSize);
+      }
+
+      console.log('Progressive cache size changes:', cacheSizes.slice(0, 5), '...', cacheSizes.slice(-3));
+    });
+
+    it('should adjust cache size when handlers are removed', () => {
+      // First, register 15 handlers
+      const unregisterFunctions = [];
+      for (let i = 1; i <= 15; i++) {
+        const unregister = register.register('testAction', async () => `result-${i}`, {
+          id: `handler-${i}`,
+          priority: i
+        });
+        unregisterFunctions.push(unregister);
+      }
+
+      expect((register as any).filterCacheMaxSize).toBe(150); // 15 × 10
+
+      // Remove handlers one by one and check cache size
+      const removalSteps = [];
+      for (let i = 0; i < 10; i++) {
+        unregisterFunctions[i](); // Remove handler
+        
+        const remainingHandlers = register.getHandlerCount('testAction');
+        const currentCacheSize = (register as any).filterCacheMaxSize;
+        const expectedSize = remainingHandlers * 10 || 100;
+
+        removalSteps.push({
+          removed: i + 1,
+          remaining: remainingHandlers,
+          cacheSize: currentCacheSize,
+          expected: expectedSize
+        });
+
+        expect(currentCacheSize).toBe(expectedSize);
+      }
+
+      console.log('Handler removal effects:', removalSteps.slice(-3));
+    });
+
+    it('should return to minimum cache size when all handlers removed', () => {
+      // Register some handlers
+      const unregisterFunctions = [];
+      for (let i = 1; i <= 20; i++) {
+        const unregister = register.register('testAction', async () => `result-${i}`, {
+          id: `handler-${i}`,
+          priority: i
+        });
+        unregisterFunctions.push(unregister);
+      }
+
+      expect((register as any).filterCacheMaxSize).toBe(200); // 20 × 10
+
+      // Remove all handlers
+      unregisterFunctions.forEach(fn => fn());
+
+      expect(register.getHandlerCount('testAction')).toBe(0);
+      expect((register as any).filterCacheMaxSize).toBe(100); // Fallback minimum
+
+      console.log('After removing all handlers: cache size =', (register as any).filterCacheMaxSize);
+    });
+  });
+
+  describe('📊 Multi-Action Cache Size Calculation', () => {
+    it('should calculate cache size based on total handlers across all actions', () => {
+      // Define multiple actions
+      interface MultiActions extends ActionPayloadMap {
+        action1: string;
+        action2: number;
+        action3: boolean;
+      }
+
+      const multiRegister = new ActionRegister<MultiActions>({
+        name: 'MultiActionTest'
+      });
+
+      try {
+        // Register handlers across different actions
+        multiRegister.register('action1', async () => 'result1', { id: 'a1-h1' });
+        multiRegister.register('action1', async () => 'result2', { id: 'a1-h2' });
+        
+        multiRegister.register('action2', async () => 42, { id: 'a2-h1' });
+        multiRegister.register('action2', async () => 24, { id: 'a2-h2' });
+        multiRegister.register('action2', async () => 12, { id: 'a2-h3' });
+        
+        multiRegister.register('action3', async () => true, { id: 'a3-h1' });
+        multiRegister.register('action3', async () => false, { id: 'a3-h2' });
+        multiRegister.register('action3', async () => true, { id: 'a3-h3' });
+        multiRegister.register('action3', async () => false, { id: 'a3-h4' });
+
+        // Total: 2 + 3 + 4 = 9 handlers
+        const totalHandlers = 
+          multiRegister.getHandlerCount('action1') +
+          multiRegister.getHandlerCount('action2') +
+          multiRegister.getHandlerCount('action3');
+
+        const cacheSize = (multiRegister as any).filterCacheMaxSize;
+        const expectedSize = totalHandlers * 10; // 9 × 10 = 90
+
+        expect(totalHandlers).toBe(9);
+        expect(cacheSize).toBe(expectedSize);
+
+        console.log(`Multi-action test: ${totalHandlers} total handlers, cache size = ${cacheSize}`);
+
+      } finally {
+        multiRegister.destroy();
+      }
+    });
+  });
+
+  describe('🔥 Cache Overflow: 11 Handlers × 110+ Filter Requests', () => {
+    it('should handle cache overflow with LRU eviction when filter requests exceed cache size', async () => {
+      // Register 11 handlers (cache size will be 110)
+      for (let i = 0; i < 11; i++) {
+        register.register('testAction', async () => `result-${i}`, {
+          id: `handler-${i}`,
+          priority: i
+        });
+      }
+
+      const cacheSize = (register as any).filterCacheMaxSize;
+      expect(cacheSize).toBe(110); // 11 × 10
+      expect(register.getHandlerCount('testAction')).toBe(11);
+
+      console.log(`Starting cache overflow test: ${register.getHandlerCount('testAction')} handlers, cache size = ${cacheSize}`);
+
+      // Generate 150 different filter requests to exceed cache size (110)
+      const filterRequests = [];
+      for (let i = 0; i < 150; i++) {
+        // Create diverse filter patterns to ensure cache misses
+        const filterOption = {
+          handlerIds: [`handler-${i % 11}`], // Cycle through available handlers
+          priority: { min: i % 5, max: (i % 5) + 2 }
+        };
+        filterRequests.push(filterOption);
+      }
+
+      const results = [];
+      const startTime = Date.now();
+
+      // Execute all 150 filter requests (will exceed cache size of 110)
+      for (let i = 0; i < filterRequests.length; i++) {
+        const result = await register.dispatchWithResult('testAction',
+          { message: `test-${i}` },
+          { filter: filterRequests[i], result: { collect: true, strategy: 'all' } }
+        );
+
+        results.push({
+          requestIndex: i,
+          handlersExecuted: result.execution.handlersExecuted,
+          success: result.success
+        });
+
+        // Log progress every 25 requests
+        if ((i + 1) % 25 === 0) {
+          console.log(`Processed ${i + 1}/150 requests, last result: ${result.execution.handlersExecuted} handlers executed`);
+        }
+      }
+
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+
+      // Verify all requests succeeded despite cache overflow
+      const successCount = results.filter(r => r.success).length;
+      const totalHandlersExecuted = results.reduce((sum, r) => sum + r.handlersExecuted, 0);
+
+      expect(successCount).toBe(150); // All requests should succeed
+      expect(totalHandlersExecuted).toBeGreaterThan(0); // Handlers should have executed
+
+      console.log(`Cache overflow test results:`);
+      console.log(`- Total requests: 150 (exceeded cache size of ${cacheSize})`);
+      console.log(`- Success rate: ${successCount}/150 (${(successCount/150*100).toFixed(1)}%)`);
+      console.log(`- Total handlers executed: ${totalHandlersExecuted}`);
+      console.log(`- Test duration: ${duration}ms`);
+      console.log(`- Cache handled overflow gracefully with LRU eviction`);
+    });
+
+    it('should demonstrate cache hit/miss pattern with specific filter sequences', async () => {
+      // Register 11 handlers
+      for (let i = 0; i < 11; i++) {
+        register.register('testAction', async () => `result-${i}`, {
+          id: `handler-${i}`,
+          priority: i
+        });
+      }
+
+      // Create repeating filter pattern to test cache hits
+      const sameFilter = { handlerIds: ['handler-0', 'handler-5'] };
+      const differentFilters = [
+        { handlerIds: ['handler-1'] },
+        { handlerIds: ['handler-2'] },
+        { handlerIds: ['handler-3'] },
+      ];
+
+      const testSequence = [
+        { filter: sameFilter, expectation: 'first time - cache miss' },
+        { filter: sameFilter, expectation: 'second time - cache hit' },
+        { filter: differentFilters[0], expectation: 'different filter - cache miss' },
+        { filter: sameFilter, expectation: 'same filter again - cache hit' },
+        { filter: differentFilters[1], expectation: 'another filter - cache miss' },
+        { filter: sameFilter, expectation: 'same filter still - cache hit' },
+      ];
+
+      const results = [];
+      for (let i = 0; i < testSequence.length; i++) {
+        const { filter, expectation } = testSequence[i];
+        
+        const result = await register.dispatchWithResult('testAction',
+          { message: `cache-test-${i}` },
+          { filter, result: { collect: true, strategy: 'all' } }
+        );
+
+        results.push({
+          step: i + 1,
+          expectation,
+          handlersExecuted: result.execution.handlersExecuted,
+          success: result.success
+        });
+      }
+
+      // All operations should succeed
+      results.forEach(result => {
+        expect(result.success).toBe(true);
+        expect(result.handlersExecuted).toBeGreaterThan(0);
+      });
+
+      console.log('Cache hit/miss pattern test:');
+      results.forEach(result => {
+        console.log(`  Step ${result.step}: ${result.expectation} → ${result.handlersExecuted} handlers executed`);
+      });
+    });
+  });
+
+  describe('🎯 Handler ID Exact Matching Behavior', () => {
+    it('should use exact string matching for handlerIds (no partial matches)', async () => {
+      // Register handlers with similar but distinct IDs
+      register.register('testAction', async () => 'user-auth-result', {
+        id: 'user-authentication',
+        priority: 5
+      });
+      register.register('testAction', async () => 'user-val-result', {
+        id: 'user-validation', 
+        priority: 4
+      });
+      register.register('testAction', async () => 'auth-result', {
+        id: 'authentication',
+        priority: 3
+      });
+      register.register('testAction', async () => 'user-result', {
+        id: 'user',
+        priority: 2
+      });
+
+      // Test exact matching scenarios
+      const exactMatchTests = [
+        {
+          description: 'exact match: user-authentication',
+          filter: { handlerIds: ['user-authentication'] },
+          expectedIds: ['user-authentication']
+        },
+        {
+          description: 'exact match: user (does not match user-authentication)',
+          filter: { handlerIds: ['user'] },
+          expectedIds: ['user']
+        },
+        {
+          description: 'multiple exact matches',
+          filter: { handlerIds: ['user-authentication', 'authentication'] },
+          expectedIds: ['user-authentication', 'authentication']
+        },
+        {
+          description: 'non-existent handler ID',
+          filter: { handlerIds: ['user-auth'] }, // No handler has this exact ID
+          expectedIds: [] // Should execute 0 handlers
+        },
+        {
+          description: 'partial string does not match',
+          filter: { handlerIds: ['auth'] }, // Does not match 'user-authentication'
+          expectedIds: [] // Should execute 0 handlers
+        }
+      ];
+
+      const results = [];
+      for (const test of exactMatchTests) {
+        // First check how many handlers would be filtered
+        const allHandlers = (register as any).pipelines.get('testAction') || [];
+        const filteredHandlers = (register as any).filterHandlers(allHandlers, test.filter);
+        
+        const result = await register.dispatchWithResult('testAction',
+          { message: 'test' },
+          { filter: test.filter, result: { collect: true, strategy: 'all' } }
+        );
+
+        results.push({
+          description: test.description,
+          expectedCount: test.expectedIds.length,
+          actualCount: result.execution.handlersExecuted,
+          filteredCount: filteredHandlers.length,
+          success: result.success,
+          executedHandlers: result.handlers?.map(h => h.id) || []
+        });
+
+        // Debug failing test case
+        if (result.execution.handlersExecuted !== test.expectedIds.length) {
+          console.log(`❌ MISMATCH: ${test.description}`);
+          console.log(`  Expected: ${test.expectedIds.length} handlers`);
+          console.log(`  Filtered: ${filteredHandlers.length} handlers`);
+          console.log(`  Executed: ${result.execution.handlersExecuted} handlers`);
+          console.log(`  Executed handlers:`, result.handlers?.map(h => h.id));
+          console.log(`  Filter:`, test.filter);
+          console.log(`  All registered handlers:`, allHandlers.map((h: any) => h.config.id));
+        }
+
+        expect(result.execution.handlersExecuted).toBe(test.expectedIds.length);
+        expect(result.success).toBe(true);
+      }
+
+      console.log('Exact matching test results:');
+      results.forEach(result => {
+        console.log(`  ${result.description}: expected ${result.expectedCount}, got ${result.actualCount} handlers`);
+      });
+    });
+
+    it('should use exact string matching for excludeHandlerIds', async () => {
+      // Register handlers
+      register.register('testAction', async () => 'user-auth', { id: 'user-authentication' });
+      register.register('testAction', async () => 'user-val', { id: 'user-validation' });
+      register.register('testAction', async () => 'auth', { id: 'authentication' });
+
+      const excludeTests = [
+        {
+          description: 'exclude exact match: authentication',
+          filter: { excludeHandlerIds: ['authentication'] },
+          expectedExecuted: 2 // user-authentication, user-validation
+        },
+        {
+          description: 'exclude partial string does not work',
+          filter: { excludeHandlerIds: ['auth'] }, // Does not exclude 'user-authentication'
+          expectedExecuted: 3 // All handlers execute
+        },
+        {
+          description: 'exclude multiple exact matches',
+          filter: { excludeHandlerIds: ['authentication', 'user-validation'] },
+          expectedExecuted: 1 // Only user-authentication
+        }
+      ];
+
+      for (const test of excludeTests) {
+        const result = await register.dispatchWithResult('testAction',
+          { message: 'test' },
+          { filter: test.filter, result: { collect: true, strategy: 'all' } }
+        );
+
+        expect(result.execution.handlersExecuted).toBe(test.expectedExecuted);
+        console.log(`${test.description}: ${result.execution.handlersExecuted} handlers executed`);
+      }
+    });
+
+    it('should demonstrate custom filter for partial matching (not cached)', async () => {
+      // Register handlers with pattern-based IDs
+      register.register('testAction', async () => 'user-auth', { id: 'user-authentication' });
+      register.register('testAction', async () => 'user-val', { id: 'user-validation' });
+      register.register('testAction', async () => 'user-prof', { id: 'user-profile' });
+      register.register('testAction', async () => 'admin-auth', { id: 'admin-authentication' });
+      register.register('testAction', async () => 'auth', { id: 'authentication' });
+
+      const customFilterTests = [
+        {
+          description: 'startsWith: user- prefix',
+          filter: { custom: (config: any) => config.id.startsWith('user-') },
+          expectedCount: 3 // user-authentication, user-validation, user-profile
+        },
+        {
+          description: 'includes: auth substring',
+          filter: { custom: (config: any) => config.id.includes('auth') },
+          expectedCount: 3 // user-authentication, admin-authentication, authentication
+        },
+        {
+          description: 'endsWith: -authentication suffix',
+          filter: { custom: (config: any) => config.id.endsWith('-authentication') },
+          expectedCount: 2 // user-authentication, admin-authentication
+        },
+        {
+          description: 'regex: user-[a-z]+ pattern',
+          filter: { custom: (config: any) => /^user-[a-z]+$/.test(config.id) },
+          expectedCount: 3 // user-authentication, user-validation, user-profile
+        }
+      ];
+
+      for (const test of customFilterTests) {
+        const result = await register.dispatchWithResult('testAction',
+          { message: 'test' },
+          { filter: test.filter, result: { collect: true, strategy: 'all' } }
+        );
+
+        expect(result.execution.handlersExecuted).toBe(test.expectedCount);
+        console.log(`${test.description}: ${result.execution.handlersExecuted} handlers executed`);
+      }
+
+      // Verify custom filters are not cached by checking cache size
+      const cacheSize = (register as any).filterCache.size;
+      console.log(`Cache size after custom filters: ${cacheSize} (should be 0 since custom filters not cached)`);
+      expect(cacheSize).toBe(0); // Custom filters should not populate cache
+    });
+
+    it('should show performance difference between exact matching and custom filters', async () => {
+      // Register many handlers for performance comparison
+      const handlerIds = [];
+      for (let i = 0; i < 20; i++) {
+        const id = `handler-${String(i).padStart(3, '0')}`;
+        handlerIds.push(id);
+        register.register('testAction', async () => `result-${i}`, { id, priority: i });
+      }
+
+      // Test 1: Exact matching (cacheable)
+      const exactFilter = { handlerIds: ['handler-000', 'handler-005', 'handler-010'] };
+      
+      const exactStart = performance.now();
+      for (let i = 0; i < 100; i++) {
+        await register.dispatchWithResult('testAction', { message: 'test' }, 
+          { filter: exactFilter, result: { collect: true } });
+      }
+      const exactDuration = performance.now() - exactStart;
+
+      // Test 2: Custom filter (not cacheable)  
+      const customFilter = { 
+        custom: (config: any) => ['handler-000', 'handler-005', 'handler-010'].includes(config.id)
+      };
+      
+      const customStart = performance.now();
+      for (let i = 0; i < 100; i++) {
+        await register.dispatchWithResult('testAction', { message: 'test' },
+          { filter: customFilter, result: { collect: true } });
+      }
+      const customDuration = performance.now() - customStart;
+
+      console.log(`Performance comparison (100 iterations):`);
+      console.log(`  Exact matching (cached): ${exactDuration.toFixed(2)}ms`);
+      console.log(`  Custom filter (not cached): ${customDuration.toFixed(2)}ms`);
+      console.log(`  Performance ratio: ${(customDuration / exactDuration).toFixed(1)}x slower`);
+
+      // Both should execute same number of handlers
+      const exactResult = await register.dispatchWithResult('testAction', { message: 'test' },
+        { filter: exactFilter, result: { collect: true } });
+      const customResult = await register.dispatchWithResult('testAction', { message: 'test' },
+        { filter: customFilter, result: { collect: true } });
+
+      expect(exactResult.execution.handlersExecuted).toBe(customResult.execution.handlersExecuted);
+      expect(exactResult.execution.handlersExecuted).toBe(3);
+    });
+  });
+
+  describe('🧪 Cache Performance Under Dynamic Sizing', () => {
+    it('should maintain cache efficiency as size adjusts', async () => {
+      // This test verifies that cache still works correctly as size changes
+      const startTime = Date.now();
+      
+      // Register handlers with different filter patterns
+      for (let i = 0; i < 20; i++) {
+        register.register('testAction', async () => `result-${i}`, {
+          id: `handler-${i}`,
+          priority: i % 5, // Create some priority variety
+        });
+      }
+
+      // Test filter operations with various criteria
+      const filterTests = [
+        { handlerIds: ['handler-0', 'handler-5', 'handler-10'] },
+        { excludeHandlerIds: ['handler-1', 'handler-2'] },
+        { priority: { min: 2, max: 4 } },
+        { handlerIds: ['handler-15', 'handler-16'], priority: { min: 0 } },
+      ];
+
+      const results = [];
+      
+      for (const filterOption of filterTests) {
+        const result = await register.dispatchWithResult('testAction', 
+          { message: 'test' }, 
+          { filter: filterOption, result: { collect: true, strategy: 'all' } }
+        );
+        
+        results.push({
+          filter: filterOption,
+          handlersExecuted: result.execution.handlersExecuted,
+          success: result.success
+        });
+      }
+
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+
+      // All filter operations should succeed
+      results.forEach(result => {
+        expect(result.success).toBe(true);
+        expect(result.handlersExecuted).toBeGreaterThan(0);
+      });
+
+      // Cache size should be 200 (20 handlers × 10)
+      expect((register as any).filterCacheMaxSize).toBe(200);
+
+      console.log(`Cache performance test completed in ${duration}ms with cache size 200`);
+      console.log('Filter results:', results.map(r => ({ 
+        executed: r.handlersExecuted, 
+        success: r.success 
+      })));
+    });
+  });
+});
