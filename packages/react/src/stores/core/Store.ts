@@ -1,6 +1,6 @@
 import type { IStore, Listener, Snapshot, Unsubscribe, StoreSetValueOptions } from './types';
 import type { StoreRegistry } from './StoreRegistry';
-import { safeGet, safeSet } from '../utils/immutable';
+import { safeGet, safeSet, produce } from '../utils/immutable';
 import { 
   compareValues, 
   fastCompare, 
@@ -289,13 +289,13 @@ export class Store<T = unknown> implements IStore<T> {
   }
 
   /**
-   * Update value using updater function
+   * Update value using updater function with Immer integration
    * 핵심 로직: 
-   * 1. 현재 값의 안전한 복사본을 updater에 전달
-   * 2. updater 결과를 setValue로 안전하게 설정
+   * 1. Immer produce를 사용하여 draft 객체 제공
+   * 2. updater 결과를 불변성을 보장하며 설정
    * 
    * @implements store-immutability
-   * 보안 강화: updater 함수가 내부 상태를 직접 수정할 수 없도록 복사본 전달
+   * 보안 강화: Immer draft를 통한 안전한 상태 수정
    */
   update(updater: (current: T) => T): void {
     // 동시성 보호: update 진행 중이면 큐에 추가
@@ -306,10 +306,26 @@ export class Store<T = unknown> implements IStore<T> {
 
     try {
       this.isUpdating = true;
-      // 최적화된 안전한 현재 값 제공
-      const safeCurrentValue = safeGet(this._value, this.cloningEnabled);
       
-      const updatedValue = updater(safeCurrentValue);
+      // Immer 기반 업데이트 우선 시도
+      let updatedValue: T;
+      
+      try {
+        // Immer produce로 불변성 보장된 업데이트
+        updatedValue = produce(this._value, (draft: T) => {
+          // updater 함수 실행 - draft를 수정하거나 새 값을 반환할 수 있음
+          const result = updater(draft);
+          // 반환값이 있으면 그것을 사용, 없으면 draft의 수정을 사용
+          return result !== undefined ? result : draft;
+        });
+      } catch (immerError) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[Store] Immer update failed, falling back to safe copy method', immerError);
+        }
+        // 폴백: 기존 방식
+        const safeCurrentValue = safeGet(this._value, this.cloningEnabled);
+        updatedValue = updater(safeCurrentValue);
+      }
       
       // 이벤트 객체 감지 및 기본 처리 (update 메소드는 block 모드만 지원)
       if (TypeGuards.isObject(updatedValue)) {
