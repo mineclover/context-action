@@ -38,6 +38,10 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   private readonly actionGuard: ActionGuard;
   private executionMode: ExecutionMode = 'sequential';
   private actionExecutionModes = new Map<keyof T, ExecutionMode>();
+  
+  // 🆕 Advanced unregister function management system
+  private unregisterFunctions = new Map<string, UnregisterFunction>();
+  
   public readonly name: string;
   private readonly registryConfig: ActionRegisterConfig['registry'];
 
@@ -245,14 +249,21 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
 
     // 🆕 Enhanced duplicate ID handling with replaceExisting support and cleanup
     if (existingIndex !== -1) {
+      const existing = pipeline[existingIndex];
+      const existingUnregister = this.unregisterFunctions.get(handlerId);
+      
       if (config.replaceExisting) {
-        // 🔧 Memory leak fix: Clean up existing handler before replacement
-        const oldRegistration = pipeline[existingIndex];
+        // Clean up existing handler before replacement
+        if (existingUnregister) {
+          // Execute existing unregister function first
+          existingUnregister();
+          this.unregisterFunctions.delete(handlerId);
+        }
         
         // Call cleanup if available on the old handler
-        if (oldRegistration && typeof (oldRegistration as any).cleanup === 'function') {
+        if (existing && typeof (existing as any).cleanup === 'function') {
           try {
-            (oldRegistration as any).cleanup();
+            (existing as any).cleanup();
           } catch (cleanupError) {
             this.log(`Cleanup error for replaced handler: ${String(action)}`, cleanupError, 'warn');
           }
@@ -260,58 +271,56 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         
         // Replace existing handler
         pipeline[existingIndex] = registration;
-        
-        // Re-sort pipeline since priority might have changed
         pipeline.sort((a, b) => b.config.priority - a.config.priority);
-        
-        // 🔧 Invalidate filter cache when pipeline changes
         this.invalidateFilterCache();
+        
+        // Create new unregister function and store it
+        const newUnregister = this.createUnregisterFunction(action, handlerId, registration);
+        this.unregisterFunctions.set(handlerId, newUnregister);
         
         this.log(`Handler replaced: ${String(action)}`, {
           handlerId,
           priority: config.priority,
           totalHandlers: pipeline.length,
-          oldHandlerCleaned: Boolean((oldRegistration as any).cleanup)
+          hadExistingUnregister: Boolean(existingUnregister)
         });
-
-        // Return unregister function for the replaced registration
-        return () => {
-          const index = pipeline.findIndex(reg => reg.id === handlerId && reg === registration);
-          if (index !== -1) {
-            pipeline.splice(index, 1);
-            // 🔧 Invalidate filter cache when pipeline changes
-            this.invalidateFilterCache();
-            this.log(`Replaced handler unregistered: ${String(action)}`, { handlerId });
-          }
-        };
+        
+        return newUnregister;
       } else {
-        // Default mode: reject duplicate, but return proper unregister for existing handler
-        const existing = pipeline[existingIndex];
+        // Return existing unregister function or create a new one
+        // At this point, existing is guaranteed to be defined because we're in the duplicate handler block
+        if (!existing) {
+          throw new Error('Internal error: existing handler should be defined in duplicate handler block');
+        }
+        
         this.log(`Handler duplicate ignored, returning existing unregister: ${String(action)}`, {
           handlerId,
+          existingPriority: existing.config.priority,
+          newPriority: config.priority,
+          existingBlocking: existing.config.blocking,
+          newBlocking: config.blocking,
           note: 'Use replaceExisting:true to replace'
         }, 'warn');
         
-        // Return unregister function for the existing handler
-        return () => {
-          const idx = pipeline.findIndex(reg => reg.id === handlerId);
-          if (idx !== -1) {
-            pipeline.splice(idx, 1);
-            this.invalidateFilterCache();
-            this.log(`Existing handler unregistered: ${String(action)}`, { handlerId });
-          }
-        };
+        if (existingUnregister) {
+          return existingUnregister;
+        } else {
+          // Create new unregister function if somehow missing
+          const newUnregister = this.createUnregisterFunction(action, handlerId, existing);
+          this.unregisterFunctions.set(handlerId, newUnregister);
+          return newUnregister;
+        }
       }
     }
     
     // Add handler to pipeline
     pipeline.push(registration);
-    
-    // 🆕 즉시 정렬 (동시성 보호)
     pipeline.sort((a, b) => b.config.priority - a.config.priority);
-    
-    // 🔧 Invalidate filter cache when pipeline changes
     this.invalidateFilterCache();
+    
+    // Create and store unregister function
+    const unregister = this.createUnregisterFunction(action, handlerId, registration);
+    this.unregisterFunctions.set(handlerId, unregister);
     
     this.log(`Handler registered: ${String(action)}`, {
       handlerId,
@@ -319,27 +328,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       totalHandlers: pipeline.length
     });
     
-    // 🔍 추가 디버그: 등록 즉시 파이프라인 상태 출력
-    this.log(`Action '${String(action)}' pipeline after registration`, {
-      totalHandlers: pipeline.length,
-      handlers: pipeline.map(h => ({ id: h.config.id, priority: h.config.priority })),
-      pipelineExists: this.pipelines.has(action),
-      canDispatch: this.hasHandlers(action)
-    });
-
-    // Return unregister function that removes this specific registration
-    return () => {
-      const index = pipeline.findIndex((reg) => reg.id === handlerId && reg === registration);
-      if (index !== -1) {
-        pipeline.splice(index, 1);
-        // 🔧 Invalidate filter cache when pipeline changes
-        this.invalidateFilterCache();
-        this.log(`Handler unregistered: ${String(action)}`, {
-          handlerId,
-          remainingHandlers: pipeline.length
-        });
-      }
-    };
+    return unregister;
   }
 
 
@@ -1279,6 +1268,68 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   }
 
   /**
+   * Creates a consistent unregister function for a handler
+   * 
+   * @param action - Action key
+   * @param handlerId - Handler identifier
+   * @param registration - Handler registration object
+   * @returns Unregister function
+   * @private
+   */
+  private createUnregisterFunction<K extends keyof T>(
+    action: K,
+    handlerId: string,
+    registration: HandlerRegistration<any, any>
+  ): UnregisterFunction {
+    return () => {
+      const pipeline = this.pipelines.get(action);
+      if (!pipeline) return;
+      
+      const index = pipeline.findIndex(reg => reg.id === handlerId && reg === registration);
+      if (index !== -1) {
+        pipeline.splice(index, 1);
+        this.invalidateFilterCache();
+        this.unregisterFunctions.delete(handlerId);
+        
+        // Execute cleanup function if available
+        if (typeof (registration as any).cleanup === 'function') {
+          try {
+            (registration as any).cleanup();
+          } catch (cleanupError) {
+            this.log(`Cleanup error during unregister: ${String(action)}`, cleanupError, 'warn');
+          }
+        }
+        
+        this.log(`Handler unregistered: ${String(action)}`, {
+          handlerId,
+          remainingHandlers: pipeline.length
+        });
+      }
+    };
+  }
+
+  /**
+   * Gets the total count of registered unregister functions
+   * 
+   * @returns Number of unregister functions
+   * @public
+   */
+  getUnregisterFunctionCount(): number {
+    return this.unregisterFunctions.size;
+  }
+  
+  /**
+   * Checks if an unregister function exists for the given handler ID
+   * 
+   * @param handlerId - Handler identifier to check
+   * @returns True if unregister function exists
+   * @public
+   */
+  hasUnregisterFunction(handlerId: string): boolean {
+    return this.unregisterFunctions.has(handlerId);
+  }
+
+  /**
    * 🆕 Destroy method for comprehensive cleanup
    * 
    * Cleans up all internal resources including pipelines, guards, queues, and statistics.
@@ -1287,6 +1338,17 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * @public
    */
   destroy(): void {
+    // Execute all unregister functions to properly clean up handlers
+    this.unregisterFunctions.forEach(unregister => {
+      try {
+        unregister();
+      } catch (error) {
+        this.log('Error during unregister in destroy', error, 'error');
+      }
+    });
+    
+    this.unregisterFunctions.clear();
+    
     // Clean up all pipelines
     this.pipelines.clear();
     
