@@ -13,6 +13,8 @@ import {
   Container,
   DemoCard,
 } from '@/components/ui';
+import { useSourceLinkRegistration } from '@/hooks/useSourceLinkRegistration';
+import { SourceLink } from '@/components/ui/SourceLink';
 
 // 1. Define Actions following EventActions pattern
 interface CoreBasicsActions {
@@ -261,6 +263,16 @@ function AdvancedFeaturesDemo() {
 
 // 3. Provider Setup
 function CoreBasicsPage() {
+  // 🎯 소스 링크 등록
+  useSourceLinkRegistration({
+    id: 'core-basics-page',
+    name: 'Core Basics Page',
+    filePath: 'pages/foundations/core/BasicsPage.tsx',
+    category: 'core',
+    description: 'Fundamentals of Action Context pattern with handlers and dispatching',
+    tags: ['core', 'basics', 'action-context', 'handlers', 'dispatching']
+  });
+
   return (
     <LogMonitorProvider
       pageId="core-basics"
@@ -269,13 +281,20 @@ function CoreBasicsPage() {
       <CoreActionProvider>
         <Container>
           <header className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              Core Action Context Basics
-            </h1>
-            <p className="text-lg text-gray-600 leading-relaxed">
-              Learn the fundamentals of the Action Context pattern - creating context with renaming patterns,
-              registering handlers, and dispatching type-safe actions using the recommended approach.
-            </p>
+            <div className="flex justify-between items-start">
+              <div className="flex-1">
+                <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                  Core Action Context Basics
+                </h1>
+                <p className="text-lg text-gray-600 leading-relaxed">
+                  Learn the fundamentals of the Action Context pattern - creating context with renaming patterns,
+                  registering handlers, and dispatching type-safe actions using the recommended approach.
+                </p>
+              </div>
+              <div className="flex-shrink-0 ml-4">
+                <SourceLink id="core-basics-page" variant="badge" />
+              </div>
+            </div>
           </header>
 
           <CoreBasicsDemo />

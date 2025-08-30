@@ -1,8 +1,18 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui';
 import { PageLayout } from '@/components/layout/PageLayout';
+import { useSourceLinkRegistration } from '@/hooks/useSourceLinkRegistration';
 
 function HomePage() {
+  // 🎯 소스 링크 등록
+  useSourceLinkRegistration({
+    id: 'home-page',
+    name: 'Home Page',
+    filePath: 'pages/HomePage.tsx',
+    category: 'core',
+    description: 'Main landing page showcasing Context-Action framework examples',
+    tags: ['homepage', 'overview', 'examples']
+  });
   return (
     <PageLayout
       title="Context-Action Framework Examples"

@@ -5,6 +5,8 @@ import { useActionLoggerWithToast } from '@/components/LogMonitor';
 import { storeActionRegister } from '../actions';
 import { StoreScenarios } from '../stores';
 import type { TodoItem } from '../types';
+import { useSourceLinkRegistration } from '@/hooks/useSourceLinkRegistration';
+import { SourceLink } from '@/components/ui/SourceLink';
 
 // UI State Management with Context-Action
 const {
@@ -483,10 +485,26 @@ function TodoListDemoInner() {
 
 // Main component with providers
 export function TodoListDemo() {
+  // 🎯 소스 링크 등록
+  useSourceLinkRegistration({
+    id: 'todo-list-demo',
+    name: 'Todo List Demo',
+    filePath: 'pages/integrations/business/store-scenarios/components/TodoListDemo.tsx',
+    category: 'demos',
+    description: 'Complete CRUD operations with filtering and sorting using Declarative Store Pattern',
+    tags: ['crud', 'filtering', 'sorting', 'todo', 'declarative-store', 'actions']
+  });
+
   return (
     <TodoUIActionProvider>
       <TodoUIStoreProvider>
-        <TodoListDemoInner />
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold">Todo List Demo</h3>
+            <SourceLink id="todo-list-demo" variant="badge" />
+          </div>
+          <TodoListDemoInner />
+        </div>
       </TodoUIStoreProvider>
     </TodoUIActionProvider>
   );
