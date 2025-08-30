@@ -163,7 +163,7 @@ export class LLMSOutputPathManager {
         const docDirName = pathParts[1];
         
         // Parse document directory name (e.g., "guide--getting-started")
-        const docParts = docDirName.split('--');
+        const docParts = docDirName?.split('--') || [];
         if (docParts.length >= 2) {
           const category = docParts[0];
           const pathName = docParts.slice(1).join('-');

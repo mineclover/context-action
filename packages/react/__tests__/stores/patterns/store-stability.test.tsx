@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { render, act } from '@testing-library/react';
-import { createStoreContext } from '../declarative-store-pattern-v2';
+import { createStoreContext } from '../../../src/stores/patterns/declarative-store-pattern-v2';
 
 interface TestStores {
   counter: number;

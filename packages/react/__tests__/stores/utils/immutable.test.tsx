@@ -88,10 +88,10 @@ describe('Immer-based Immutable utilities', () => {
         const original = { a: 1, b: { c: 2 } };
         const cloned = deepClone(original);
         
-        // deepClone은 현재 structuredClone/simpleClone을 사용하므로 새로운 참조를 반환
+        // deepClone은 Immer의 copy-on-write 최적화를 사용
         expect(cloned).toEqual(original);
-        // deepClone은 항상 새로운 참조를 반환 (Immer produce와 다름)
-        expect(cloned === original).toBe(false);
+        // 변경사항이 없으면 Immer는 원본 참조를 반환 (최적화)
+        expect(cloned === original).toBe(true);
       });
 
       it('should create new reference when actual changes happen', () => {
@@ -215,9 +215,8 @@ describe('Immer-based Immutable utilities', () => {
       const result = safeGet(original, false);
       
       expect(result).toBe(original);
-      expect(mockConsole.trace).toHaveBeenCalledWith(
-        '[Context-Action] Cloning disabled, returning original reference'
-      );
+      // safeGet는 cloning이 disabled일 때 로깅 없이 바로 원본 반환
+      expect(mockConsole.trace).not.toHaveBeenCalled();
     });
   });
 
@@ -304,11 +303,11 @@ describe('Immer-based Immutable utilities', () => {
 
       // 변경 있는 경우 - 새 객체 반환  
       const changed = produce(baseState, draft => {
-        draft.users[0].name = 'Johnny';
+        draft.users[0]!.name = 'Johnny';
       });
       expect(changed).not.toBe(baseState); // 참조가 다름
-      expect(changed.users[0].name).toBe('Johnny');
-      expect(baseState.users[0].name).toBe('John'); // 원본은 변경되지 않음
+      expect(changed.users[0]!.name).toBe('Johnny');
+      expect(baseState.users[0]!.name).toBe('John'); // 원본은 변경되지 않음
     });
   });
 

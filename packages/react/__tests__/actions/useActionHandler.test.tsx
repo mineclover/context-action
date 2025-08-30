@@ -216,7 +216,7 @@ describe('useActionHandler', () => {
     // Handler should have executed, and error should be thrown to caller
     expect(handlerExecuted).toBe(true);
     expect(errorThrown).toBe(true);
-    expect((caughtError as Error)?.message).toBe('Blocking handler error');
+    expect((caughtError as unknown as Error)?.message).toBe('Blocking handler error');
   });
 
   it('should support conditional handler registration', async () => {

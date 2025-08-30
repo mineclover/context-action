@@ -20,11 +20,13 @@ describe('Timeout Options', () => {
   });
   describe('disableTimeout Option', () => {
     it('should disable timeout when disableTimeout is true', async () => {
-      interface TestRefs {
-        element: HTMLElement;
+      interface TestRefs extends Record<string, RefInitConfig<any>> {
+        element: RefInitConfig<HTMLElement>;
       }
 
-      const { Provider, useRefHandler } = createRefContext<TestRefs>('TimeoutTest', {
+      const { Provider, useRefHandler } = createRefContext('TimeoutTest', {
+        element: { name: 'element' }
+      }, {
         disableTimeout: true
       });
       
@@ -35,22 +37,21 @@ describe('Timeout Options', () => {
           // 타임아웃 없이 waitForMount 호출 - 무한 대기해야 함
           const testTimeout = async () => {
             try {
-              // 이 호출은 타임아웃되지 않고 계속 대기해야 함
-              const startTime = Date.now();
-              
-              // 100ms 후에 ref 설정 (타임아웃보다 빠름)
+              // 100ms 후에 ref 설정
               setTimeout(() => {
                 const element = document.createElement('div');
                 element.textContent = 'test';
                 handler.setRef(element);
               }, 100);
               
-              const element = await handler.waitForMount();
-              const endTime = Date.now();
+              // waitForMount 호출과 동시에 타이머 진행
+              const waitPromise = handler.waitForMount();
               
+              // 100ms 후에 element가 설정되도록 타이머 진행
+              jest.advanceTimersByTime(100);
+              
+              const element = await waitPromise;
               expect(element.textContent).toBe('test');
-              expect(endTime - startTime).toBeGreaterThan(90); // 최소 100ms 대기
-              expect(endTime - startTime).toBeLessThan(200); // 합리적인 시간 내 완료
             } catch (error) {
               // 타임아웃이 비활성화되어야 하므로 에러가 발생하면 안 됨
               throw new Error(`Unexpected timeout error: ${error}`);
@@ -85,11 +86,13 @@ describe('Timeout Options', () => {
 
   describe('defaultMountTimeout Option', () => {
     it('should use defaultMountTimeout when specified', async () => {
-      interface TestRefs {
-        element: HTMLElement;
+      interface TestRefs extends Record<string, RefInitConfig<any>> {
+        element: RefInitConfig<HTMLElement>;
       }
 
-      const { Provider, useRefHandler } = createRefContext<TestRefs>('DefaultTimeoutTest', {
+      const { Provider, useRefHandler } = createRefContext('DefaultTimeoutTest', {
+        element: { name: 'element' }
+      }, {
         defaultMountTimeout: 50 // 50ms 타임아웃
       });
       
@@ -190,7 +193,7 @@ describe('Timeout Options', () => {
                 
                 const element = await slowHandler.waitForMount();
                 expect(element.textContent).toBe('slow success');
-                results.slow = element;
+                results.slow = element as HTMLElement;
               } catch (error) {
                 throw new Error(`Slow element should not timeout: ${error}`);
               }

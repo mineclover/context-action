@@ -7,7 +7,7 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { createRefContext } from '../../src/refs/createRefContext';
-import type { RefInitConfig } from '../../src/refs/types';
+import type { RefInitConfig, RefTarget } from '../../src/refs/types';
 
 // 테스트용 DOM 타입들
 interface TestElement extends HTMLElement {
@@ -21,12 +21,15 @@ interface TestButton extends HTMLButtonElement {
 describe('Enhanced Type Inference', () => {
   describe('Basic Record Type Inference', () => {
     it('should infer types correctly for simple Record<string, RefTarget>', () => {
-      interface TestRefs {
+      interface TestRefs extends Record<string, any> {
         element1: TestElement;
         element2: TestButton;
       }
 
-      const { useRefHandler } = createRefContext<TestRefs>('TypeInferenceTest');
+      const { useRefHandler } = createRefContext('TypeInferenceTest', {
+        element1: { name: 'element1' },
+        element2: { name: 'element2' }
+      });
       
       // TypeScript 컴파일 타임 테스트 - 실제 실행하지 않음
       const TestComponent: React.FC = () => {
@@ -145,19 +148,22 @@ describe('Enhanced Type Inference', () => {
         customMethod: () => string;
       }
 
-      interface CustomRefs {
+      interface CustomRefs extends Record<string, any> {
         customEl: CustomElement;
       }
 
-      const { useRefHandler } = createRefContext<CustomRefs>('OperationTest');
+      const { useRefHandler } = createRefContext('OperationTest', {
+        customEl: { name: 'customEl' }
+      });
       
       const TestComponent: React.FC = () => {
         const handler = useRefHandler('customEl');
         
-        // 타입 안전한 operation 함수들
-        const validOperation = async (target: CustomElement & import('../types').RefTarget) => {
-          // target은 CustomElement & RefTarget 타입
-          return target.customMethod();
+        // 타입 안전한 operation 함수들 - RefTarget으로 타입 캐스팅
+        const validOperation = async (target: RefTarget) => {
+          // target을 CustomElement로 타입 단언
+          const customTarget = target as CustomElement;
+          return customTarget.customMethod();
         };
         
         const executeOperation = async () => {
@@ -193,11 +199,13 @@ describe('Enhanced Type Inference', () => {
         typedValue: number;
       }
 
-      interface TypedRefs {
+      interface TypedRefs extends Record<string, any> {
         typedEl: TypedElement;
       }
 
-      const { Provider, useRefHandler } = createRefContext<TypedRefs>('PromiseTest');
+      const { Provider, useRefHandler } = createRefContext('PromiseTest', {
+        typedEl: { name: 'typedEl' }
+      });
       
       const TestComponent: React.FC = () => {
         const handler = useRefHandler('typedEl');

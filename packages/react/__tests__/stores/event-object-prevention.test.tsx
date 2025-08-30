@@ -13,7 +13,7 @@ describe('Event Object Prevention', () => {
   let mockConsoleError: jest.SpyInstance;
   
   beforeEach(() => {
-    store = createStore('test-event-prevention', { data: null });
+    store = createStore<any>('test-event-prevention', { data: null });
     
     // Configure error handling for testing
     setErrorHandlingConfig({
@@ -174,7 +174,7 @@ describe('Event Object Prevention', () => {
       store.setValue({ eventData: safeEventData });
       
       const storedValue = store.getValue();
-      expect(storedValue.eventData).toEqual(safeEventData);
+      expect((storedValue as any).eventData).toEqual(safeEventData);
       
       // Should not have triggered any errors
       const stats = getErrorStatistics();
@@ -199,7 +199,7 @@ describe('Event Object Prevention', () => {
       store.setValue({ formData });
       
       const storedValue = store.getValue();
-      expect(storedValue.formData).toEqual(formData);
+      expect((storedValue as any).formData).toEqual(formData);
     });
   });
   
@@ -219,7 +219,7 @@ describe('Event Object Prevention', () => {
       store.setValue({ refState });
       
       const storedValue = store.getValue();
-      expect(storedValue.refState).toEqual(refState);
+      expect((storedValue as any).refState).toEqual(refState);
       
       // Should not have triggered errors
       const stats = getErrorStatistics();
@@ -242,10 +242,10 @@ describe('Event Object Prevention', () => {
       const recentError = stats.recentErrors[0];
       
       expect(recentError).toBeDefined();
-      expect(recentError.context).toBeDefined();
-      expect(recentError.context?.storeName).toBe('test-event-prevention');
-      expect(recentError.context?.valueType).toBe('object');
-      expect(recentError.context?.constructorName).toBe('Object');
+      expect(recentError?.context).toBeDefined();
+      expect(recentError?.context?.storeName).toBe('test-event-prevention');
+      expect(recentError?.context?.valueType).toBe('object');
+      expect(recentError?.context?.constructorName).toBe('Object');
     });
   });
   
