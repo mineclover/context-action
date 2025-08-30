@@ -1,7 +1,7 @@
 # Context-Action React Package - Complete Code
 
-Total Files: 45
-Total Lines: 5167
+Total Files: 48
+Total Lines: 6014
 
 ## Type Definitions
 
@@ -130,12 +130,39 @@ export type RefEventListener<T extends RefTarget = RefTarget> = (
 
 ```typescript
 export type Listener = () => void;
+export type EnhancedListener = {
+  listener: Listener;
+  errorCount: number;
+  lastError?: number;
+  componentName?: string;
+};
 export type Unsubscribe = () => void;
 export type Subscribe = (listener: Listener) => Unsubscribe;
+export type EnhancedSubscribe = (
+  listener: Listener,
+  options?: {
+    enableRetry?: boolean;
+    maxRetries?: number;
+    componentName?: string;
+  }
+) => Unsubscribe;
 export interface Snapshot<T = unknown> {
   value: T;
   name: string;
   lastUpdate: number;
+  version?: number;
+  isValid?: boolean;
+  validationError?: string;
+  metrics?: {
+    creationTime: number;
+    sizeEstimate?: number;
+    notificationCount?: number;
+  };
+  security?: {
+    validated: boolean;
+    sanitized?: boolean;
+    trustLevel?: number;
+  };
 }
 export interface IStore<T = unknown> {
   readonly name: string;
@@ -146,6 +173,12 @@ export interface IStore<T = unknown> {
   getValue: () => T;
   getListenerCount?: () => number;
   dispose?: () => void;
+  registerCleanup?: (task: () => void) => () => void;
+  isStoreDisposed?: () => boolean;
+  getMetrics?: () => StoreMetrics;
+  resetMetrics?: () => void;
+  setSecurityOptions?: (options: SecurityOptions) => void;
+  getSecurityOptions?: () => SecurityOptions | undefined;
 }
 export interface IStoreRegistry {
   readonly name: string;
@@ -160,38 +193,121 @@ export interface IStoreRegistry {
   getStoreNames: () => string[];
   clear: () => void;
   forEach: (callback: (store: IStore, name: string) => void) => void;
+  dispose?: () => void;
+  isDisposed?: () => boolean;
+  registerCleanup?: (task: () => void) => () => void;
+  getHealthStatus?: () => {
+    totalStores: number;
+    healthyStores: number;
+    errorStores: number;
+    disposedStores: number;
+    memoryUsage?: number;
+  };
+  performHealthCheck?: () => Promise<Map<string, boolean>>;
+  setSecurityOptions?: (options: SecurityOptions) => void;
+  setAutoCleanup?: (enabled: boolean) => void;
 }
 export interface EventHandler<T = unknown> {
   (data: T): void;  
 }
 export interface IEventBus {
-  on: <T = unknown>(event: string, handler: EventHandler<T>) => Unsubscribe;  
-  emit: <T = unknown>(event: string, data?: T) => void;                       
-  off: (event: string, handler?: EventHandler) => void;                   
-  clear: () => void;                                                      
+  on: <T = unknown>(event: string, handler: EventHandler<T>) => Unsubscribe;
+  emit: <T = unknown>(event: string, data?: T) => void;
+  off: (event: string, handler?: EventHandler) => void;
+  clear: () => void;
+  getStats?: () => {
+    totalEvents: number;
+    activeHandlers: number;
+    errorCount: number;
+  };
+  setSecurityOptions?: (options: SecurityOptions) => void;
 }
 export interface StoreSyncConfig<T, R = Snapshot<T>> {
-  defaultValue?: T;                           
-  selector?: (snapshot: Snapshot<T>) => R;    
+  defaultValue?: T;
+  selector?: (snapshot: Snapshot<T>) => R;
+  isEqual?: (prev: R, next: R) => boolean;
+  errorBoundary?: boolean;
+  suspense?: boolean;
 }
 export interface HookOptions<T> {
-  defaultValue?: T;                     
-  onError?: (error: Error) => void;     
-  dependencies?: React.DependencyList;  
+  defaultValue?: T;
+  onError?: (error: Error, retryCount?: number) => void | boolean;
+  dependencies?: React.DependencyList;
+  enableRetry?: boolean;
+  maxRetries?: number;
+  retryDelay?: number;
+  enableMetrics?: boolean;
+  throttle?: number;
+  debounce?: number;
 }
 export interface StoreSetValueOptions<T> {
   skipClone?: boolean;
   skipComparison?: boolean;
   eventHandling?: 'block' | 'transform' | 'allow';
   eventTransform?: (event: any) => T;
+  sanitizer?: (value: T) => T;
+  validator?: (value: T) => boolean | string;
+}
+export interface SubscriptionMetadata {
+  subscribedAt: number;
+  errorCount: number;
+  enhancedListener: () => void;
+  componentName?: string;
+}
+export interface ResourceMonitor {
+  memoryUsage: number;
+  activeSubscriptions: number;
+  pendingOperations: number;
+  lastActivity: number;
+  dispose(): void;
+}
+export interface StoreMetrics {
+  totalSets: number;
+  totalGets: number;
+  totalUpdates: number;
+  totalNotifications: number;
+  averageOperationTime: number;
+  peakListenerCount: number;
+  totalErrors: number;
+}
+export interface CleanupTask {
+  task: () => void;
+  id?: string;
+  priority?: number;
+  timeout?: number;
+}
+export interface SecurityOptions {
+  preventPrototypePollution?: boolean;
+  preventXSS?: boolean;
+  maxDepth?: number;
+  maxStringLength?: number;
+  allowedProperties?: RegExp;
+  blockedProperties?: RegExp;
 }
 export interface RegistryStoreMap {
   [key: string]: unknown;  
 }
+export type StrictStoreDefinitions<T extends Record<string, unknown>> = {
+  [K in keyof T]: {
+    initialValue: T[K];
+  } | T[K];
+};
+export interface StrictStoreContextReturn<T extends Record<string, unknown>> {
+  Provider: React.ComponentType<{ children: React.ReactNode }>;
+  useStore: <K extends keyof T>(name: K) => IStore<T[K]>;
+  useStoreManager?: () => {
+    getStore: <K extends keyof T>(name: K) => IStore<T[K]> | undefined;
+    getAllStores: () => Map<string, IStore>;
+    hasStore: (name: string) => boolean;
+  };
+}
 export interface DynamicStoreOptions<T> {
-  defaultValue?: T;                              
-  createIfNotExists?: boolean;                   
-  onNotFound?: (storeName: string) => void;      
+  defaultValue?: T;
+  createIfNotExists?: boolean;
+  onNotFound?: (storeName: string) => void;
+  securityOptions?: SecurityOptions;
+  autoCleanup?: boolean;
+  enableMetrics?: boolean;
 }
 ```
 
@@ -253,6 +369,13 @@ export function createActionContext<T extends {}>(
       payload?: T[K],
       options?: DispatchOptions
     ): Promise<void> => {
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`React dispatch called for '${String(action)}':`, {
+        hasPayload: payload !== undefined,
+        hasOptions: options !== undefined,
+        timestamp: new Date().toISOString()
+      });
+      }
       const register = actionRegisterRef.current;
       if (!register) {
         throw new Error(
@@ -262,13 +385,15 @@ export function createActionContext<T extends {}>(
       }
       const dispatchOptions: DispatchOptions = {
         ...options,
-        autoAbort: options?.signal ? undefined : {
-          enabled: true,
-          allowHandlerAbort: true
-        }
+        ...(options?.signal ? {} : {
+          autoAbort: {
+            enabled: true,
+            allowHandlerAbort: true
+          }
+        })
       };
       return register.dispatch(action, payload, dispatchOptions);
-    }, []); 
+    }, [actionRegisterRef]); 
     const dispatchWithResult = useCallback(<K extends keyof T, R = void>(
       action: K,
       payload?: T[K],
@@ -280,13 +405,15 @@ export function createActionContext<T extends {}>(
       }
       const dispatchOptions: DispatchOptions = {
         ...options,
-        autoAbort: options?.signal ? undefined : {
-          enabled: true,
-          allowHandlerAbort: true
-        }
+        ...(options?.signal ? {} : {
+          autoAbort: {
+            enabled: true,
+            allowHandlerAbort: true
+          }
+        })
       };
       return register.dispatchWithResult<K, R>(action, payload, dispatchOptions);
-    }, []);
+    }, [actionRegisterRef]);
     return { dispatch, dispatchWithResult };
   };
   const useAction = (): ActionRegister<T>['dispatch'] => {
@@ -299,42 +426,57 @@ export function createActionContext<T extends {}>(
     config?: HandlerConfig
   ): void => {
     const { actionRegisterRef } = useFactoryActionContext();
-    const unregisterRef = useRef<() => void | null>(null);
+    const unregisterRef = useRef<(() => void) | null>(null);
     const handlerRef = useRef(handler);
     const actionId = useId();
+    const stableConfig = useMemo((): HandlerConfig => {
+      const baseConfig: HandlerConfig = {
+        priority: config?.priority ?? 0,
+        id: config?.id || `react_${String(action)}_${actionId}`,
+        blocking: config?.blocking ?? false,
+        once: config?.once ?? false,
+        replaceExisting: true
+      };
+      if (config?.debounce !== undefined) {
+        baseConfig.debounce = config.debounce;
+      }
+      if (config?.throttle !== undefined) {
+        baseConfig.throttle = config.throttle;
+      }
+      return baseConfig;
+    }, [
+      config?.priority,
+      config?.id,
+      config?.blocking,
+      config?.once,
+      config?.debounce,
+      config?.throttle,
+      action,
+      actionId
+    ]);
     useEffect(() => {
       handlerRef.current = handler;
     }, [handler]);
     const stableHandler = useCallback<ActionHandler<T[K]>>(
-      (payload, controller) => {
-        return handlerRef.current(payload, controller);
-      },
-      [] 
+      (payload, controller) => handlerRef.current(payload, controller),
+      []
     );
     useEffect(() => {
       const register = actionRegisterRef.current;
-      if (!register) {
-        return;
-      }
+      if (!register) return;
       if (unregisterRef.current) {
         unregisterRef.current();
       }
-      unregisterRef.current = register.register(
-        action,
-        stableHandler,
-        {
-          ...config,
-          replaceExisting: true,
-          id: config?.id || `react_${String(action)}_${actionId}`
-        }
-      );
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Registering handler for '${String(action)}'`);
+      }
+      const unregister = register.register(action, stableHandler, stableConfig);
+      unregisterRef.current = unregister;
       return () => {
-        if (unregisterRef.current) {
-          unregisterRef.current();
-          unregisterRef.current = null;
-        }
+        unregister();
+        unregisterRef.current = null;
       };
-    }, [action, actionId, stableHandler, config]);
+    }, [action, stableHandler, stableConfig, actionRegisterRef]);
   };
   const useFactoryActionRegister = (): ActionRegister<T> | null => {
     const context = useFactoryActionContext();
@@ -354,13 +496,15 @@ export function createActionContext<T extends {}>(
       }
       const dispatchOptions: DispatchOptions = {
         ...options,
-        autoAbort: options?.signal ? undefined : {
-          enabled: true,
-          allowHandlerAbort: true,
-          onControllerCreated: (controller) => {
-            activeControllersRef.current.add(controller);
+        ...(options?.signal ? {} : {
+          autoAbort: {
+            enabled: true,
+            allowHandlerAbort: true,
+            onControllerCreated: (controller) => {
+              activeControllersRef.current.add(controller);
+            }
           }
-        }
+        })
       };
       return register.dispatch(action, payload, dispatchOptions);
     }, [context.actionRegisterRef]);
@@ -375,13 +519,15 @@ export function createActionContext<T extends {}>(
       }
       const dispatchOptions: DispatchOptions = {
         ...options,
-        autoAbort: options?.signal ? undefined : {
-          enabled: true,
-          allowHandlerAbort: true,
-          onControllerCreated: (controller) => {
-            activeControllersRef.current.add(controller);
+        ...(options?.signal ? {} : {
+          autoAbort: {
+            enabled: true,
+            allowHandlerAbort: true,
+            onControllerCreated: (controller) => {
+              activeControllersRef.current.add(controller);
+            }
           }
-        }
+        })
       };
       return register.dispatchWithResult<K, R>(action, payload, dispatchOptions);
     }, [context.actionRegisterRef]);
@@ -753,16 +899,20 @@ export function useReact18Compatibility() {
 export { createActionContext } from './actions/ActionContext';
 export type { 
   ActionContextConfig,
-  ActionContextReturn
+  ActionContextReturn,
+  ActionContextType
 } from './actions/ActionContext.types';
 export { createStore, Store } from './stores/core/Store';
 export { useStoreValue } from './stores/hooks/useStoreValue';
+export { useStoreSelector } from './stores/hooks/useStoreSelector';
 export type { IStore, Snapshot } from './stores/core/types';
 export { StoreErrorBoundary } from './stores/components/StoreErrorBoundary';
 export type { StoreErrorBoundaryProps } from './stores/components/StoreErrorBoundary';
 export { createStoreContext } from './stores/patterns/declarative-store-pattern-v2';
+export type { InitialStores, StoreConfig } from './stores/patterns/declarative-store-pattern-v2';
 export { createRefContext } from './refs/createRefContext';
 export type { RefContextReturn, CreateRefContextOptions } from './refs/createRefContext';
+export type { RefTarget, RefOperationOptions, RefOperationResult } from './refs/types';
 export type {
   ActionPayloadMap,
   ActionHandler,
@@ -798,14 +948,14 @@ import type {
   RefOperationOptions, 
   RefOperationResult,
   RefDefinitions,
-  RefInitConfig,
   InferRefTypes
 } from './types';
-import { useRefMount, useRefOperation, useRefPolling as useRefPollingHook, type InternalRefState, type RefPollingOptions } from './hooks';
+import { useRefMount, useRefOperation, useRefPolling as useRefPollingHook, useRefMountState, useOnMountStateChange, useRefMountChecker, type InternalRefState, type RefPollingOptions } from './hooks';
+import { ErrorHandlers } from '../stores/utils/error-handling';
 export interface RefContextReturn<T> {
   Provider: React.FC<{ children: ReactNode }>;
   useRefHandler: <K extends keyof T>(refName: K) => {
-    setRef: (target: T[K]) => void;
+    setRef: (target: T[K] | null) => void;
     target: T[K] | null;
     waitForMount: () => Promise<T[K]>;
     withTarget: <Result>(
@@ -831,6 +981,20 @@ export interface RefContextReturn<T> {
     promise: Promise<T[K]>;
     cancel: () => void;
     isMounted: () => boolean;
+  };
+  useRefMountState: <K extends keyof T>(refName: K) => {
+    isMounted: boolean;
+    isWaitingForMount: boolean;
+    mountedTarget: T[K] | null;
+  };
+  useOnMountStateChange: <K extends keyof T>(
+    refName: K,
+    callback: (mounted: boolean, target: T[K] | null) => void
+  ) => void;
+  useRefMountChecker: <K extends keyof T>(refName: K) => () => {
+    isMounted: boolean;
+    isWaitingForMount: boolean;
+    target: T[K] | null;
   };
   contextName: string;
   refDefinitions?: T extends RefDefinitions ? T : undefined;
@@ -934,20 +1098,14 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
           try {
             callback(target);
           } catch (error) {
-            import('../stores/utils/error-handling')
-              .then(({ ErrorHandlers }) => {
-                ErrorHandlers.ref(
-                  'Error in mount callback',
-                  { 
-                    refName: String(refName),
-                    targetType: typeof target
-                  },
-                  error instanceof Error ? error : undefined
-                );
-              })
-              .catch(() => {
-                console.error('Error in mount callback:', error);
-              });
+            ErrorHandlers.ref(
+              'Error in mount callback',
+              { 
+                refName: String(refName),
+                targetType: typeof target
+              },
+              error instanceof Error ? error : undefined
+            );
           }
         });
         refState.listeners.forEach(listener => listener());
@@ -970,7 +1128,10 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
   const useRefContext = () => {
     const context = useContext(RefContext);
     if (!context) {
-      throw new Error(`useRefHandler must be used within ${contextName}.Provider`);
+      throw new Error(
+        `useRefHandler must be used within ${contextName}.Provider. ` +
+        `Wrap your component with <${contextName}.Provider>`
+      );
     }
     return context;
   };
@@ -993,7 +1154,7 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
     );
     const { withTarget, executeIfMounted } = useRefOperation(refState);
     return useMemo(() => ({
-      setRef: (target: T[K]) => {
+      setRef: (target: T[K] | null) => {
         setRefTarget(refNameStr, target);
       },
       get target(): T[K] | null {
@@ -1076,12 +1237,41 @@ export function createRefContext<T extends Record<string, any> | RefDefinitions>
       };
     }, [getRefState, createPolling]);
   };
+  const useRefMountStateHook = <K extends keyof T>(refName: K) => {
+    const { getRefState } = useRefContext();
+    const refState = getRefState(String(refName));
+    return useRefMountState(refState) as {
+      isMounted: boolean;
+      isWaitingForMount: boolean;
+      mountedTarget: T[K] | null;
+    };
+  };
+  const useOnMountStateChangeHook = <K extends keyof T>(
+    refName: K,
+    callback: (mounted: boolean, target: T[K] | null) => void
+  ) => {
+    const { getRefState } = useRefContext();
+    const refState = getRefState(String(refName));
+    useOnMountStateChange(refState, callback);
+  };
+  const useRefMountCheckerHook = <K extends keyof T>(refName: K) => {
+    const { getRefState } = useRefContext();
+    const refState = getRefState(String(refName));
+    return useRefMountChecker(refState) as () => {
+      isMounted: boolean;
+      isWaitingForMount: boolean;
+      target: T[K] | null;
+    };
+  };
   return {
     Provider,
     useRefHandler,
     useWaitForRefs,
     useGetAllRefs,
     useRefPolling,
+    useRefMountState: useRefMountStateHook,
+    useOnMountStateChange: useOnMountStateChangeHook,
+    useRefMountChecker: useRefMountCheckerHook,
     contextName,
     refDefinitions
   } as T extends RefDefinitions 
@@ -1137,6 +1327,7 @@ export function customRef<T extends RefTarget>(
 export { useRefMount, type InternalRefState } from './useRefMount';
 export { useRefOperation } from './useRefOperation';
 export { useRefPolling, type RefPollingOptions, type RefPollingReturn } from './useRefPolling';
+export { useRefMountState, useOnMountStateChange, useRefMountChecker } from './useRefMountState';
 ```
 
 ### refs/hooks/useRefMount.ts
@@ -1222,6 +1413,84 @@ export function useRefMount<T>(
     isMounted: refState.isMounted,
     isWaitingForMount: !refState.isMounted && refState.mountPromise !== null
   };
+}
+```
+
+### refs/hooks/useRefMountState.ts
+
+```typescript
+import { useEffect, useSyncExternalStore, useCallback, useRef } from 'react';
+import type { InternalRefState } from './useRefMount';
+export function useRefMountState<T>(refState: InternalRefState<T>): {
+  isMounted: boolean;
+  isWaitingForMount: boolean;
+  mountedTarget: T | null;
+} {
+  const subscribe = useCallback((callback: () => void) => {
+    if (!refState) return () => {};
+    refState.listeners.add(callback);
+    return () => {
+      refState.listeners.delete(callback);
+    };
+  }, [refState]);
+  const cachedSnapshotRef = useRef<{
+    isMounted: boolean;
+    isWaitingForMount: boolean;
+    mountedTarget: T | null;
+  }>();
+  const getSnapshot = useCallback(() => {
+    if (!refState) {
+      const snapshot = {
+        isMounted: false,
+        isWaitingForMount: false,
+        mountedTarget: null as T | null
+      };
+      cachedSnapshotRef.current = snapshot;
+      return snapshot;
+    }
+    const isWaitingForMount = !refState.isMounted && refState.mountPromise !== null;
+    const newSnapshot = {
+      isMounted: refState.isMounted,
+      isWaitingForMount,
+      mountedTarget: refState.isMounted ? refState.target : null as T | null
+    };
+    if (cachedSnapshotRef.current &&
+        cachedSnapshotRef.current.isMounted === newSnapshot.isMounted &&
+        cachedSnapshotRef.current.isWaitingForMount === newSnapshot.isWaitingForMount &&
+        cachedSnapshotRef.current.mountedTarget === newSnapshot.mountedTarget) {
+      return cachedSnapshotRef.current;
+    }
+    cachedSnapshotRef.current = newSnapshot;
+    return newSnapshot;
+  }, [refState]);
+  const serverSnapshotRef = useRef({
+    isMounted: false,
+    isWaitingForMount: false,
+    mountedTarget: null as T | null
+  });
+  const getServerSnapshot = useCallback(() => {
+    return serverSnapshotRef.current;
+  }, []);
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
+export function useOnMountStateChange<T>(
+  refState: InternalRefState<T>,
+  callback: (mounted: boolean, target: T | null) => void
+): void {
+  const { isMounted, mountedTarget } = useRefMountState(refState);
+  const stableCallback = useCallback(callback, [callback]);
+  useEffect(() => {
+    stableCallback(isMounted, mountedTarget);
+  }, [isMounted, mountedTarget, stableCallback]);
+}
+export function useRefMountChecker<T>(refState: InternalRefState<T>) {
+  return useCallback(() => {
+    return {
+      isMounted: refState.isMounted,
+      isWaitingForMount: !refState.isMounted && refState.mountPromise !== null,
+      target: refState.target
+    };
+  }, [refState]);
 }
 ```
 
@@ -1688,7 +1957,9 @@ export function withStoreErrorBoundary<P extends object>(
   errorBoundaryProps?: Omit<StoreErrorBoundaryProps, 'children'>
 ): React.ComponentType<P> {
   const WithStoreErrorBoundaryComponent = (props: P) => (
-    <StoreErrorBoundary {...errorBoundaryProps}>
+    <StoreErrorBoundary 
+      {...errorBoundaryProps}
+    >
       <WrappedComponent {...props} />
     </StoreErrorBoundary>
   );
@@ -1721,6 +1992,7 @@ export function createStoreErrorBoundary(
 
 ```typescript
 import type { EventHandler, IEventBus, Unsubscribe } from './types';
+import { ErrorHandlers } from '../utils/error-handling';
 export class EventBus implements IEventBus {
   private events = new Map<string, Set<EventHandler>>();
   private eventHistory: Array<{ event: string; data: any; timestamp: number }> = [];
@@ -1757,20 +2029,14 @@ export class EventBus implements IEventBus {
         try {
           handler(data);
         } catch (error) {
-          import('../utils/error-handling')
-            .then(({ ErrorHandlers }) => {
-              ErrorHandlers.store(
-                `Error in event handler for "${event}"`,
-                { 
-                  event,
-                  handlerCount: handlers.size
-                },
-                error instanceof Error ? error : undefined
-              );
-            })
-            .catch(() => {
-              console.error(`Error in event handler for "${event}":`, error);
-            });
+          ErrorHandlers.store(
+            `Error in event handler for "${event}"`,
+            { 
+              event,
+              handlerCount: handlers.size
+            },
+            error instanceof Error ? error : undefined
+          );
         }
       });
     }
@@ -1896,6 +2162,7 @@ export type {
 
 ```typescript
 import type { IStore, Listener, Snapshot, Unsubscribe, StoreSetValueOptions } from './types';
+import type { StoreRegistry } from './StoreRegistry';
 import { safeGet, safeSet } from '../utils/immutable';
 import { 
   compareValues, 
@@ -1908,16 +2175,29 @@ export class Store<T = unknown> implements IStore<T> {
   private listeners = new Set<Listener>();
   protected _value: T;
   protected _snapshot: Snapshot<T>;
+  private _lastClonedValue: T | null = null;
+  private _lastClonedVersion = 0;
+  private _version = 0;
   private isUpdating = false;
   private updateQueue: Array<() => void> = [];
   private notificationMode: 'batched' | 'immediate' = 'batched';
   private pendingNotification = false;
-  private batchedUpdates = new Set<() => void>();
-  private batchTimeoutId: ReturnType<typeof setTimeout> | null = null;
-  private readonly BATCH_DELAY_MS = 16; 
+  private animationFrameId: number | null = null;
+  private pendingUpdatesCount = 0; 
+  private cleanupTasks = new Set<() => void>();
+  private isDisposed = false;
+  private errorCount = 0;
+  private lastErrorTime = 0;
+  private readonly MAX_ERROR_COUNT = 5;
+  private readonly ERROR_RESET_TIME = 60000; 
+  private subscriptionRegistry = new WeakMap<Listener, {
+    subscribedAt: number;
+    errorCount: number;
+    enhancedListener: () => void;
+  }>();
   public readonly name: string;
-  private customComparator?: (oldValue: T, newValue: T) => boolean;
-  private comparisonOptions?: Partial<ComparisonOptions<T>>;
+  private customComparator: ((oldValue: T, newValue: T) => boolean) | undefined;
+  private comparisonOptions: Partial<ComparisonOptions<T>> | undefined;
   private cloningEnabled: boolean = true;
   constructor(name: string, initialValue: T) {
     this.name = name;
@@ -1925,16 +2205,45 @@ export class Store<T = unknown> implements IStore<T> {
     this._snapshot = this._createSnapshot();
   }
   subscribe = (listener: Listener): Unsubscribe => {
-    this.listeners.add(listener);
+    if (this.isDisposed) {
+      console.warn(`Cannot subscribe to disposed store "${this.name}"`);
+      return () => {};
+    }
+    const enhancedListener = () => {
+      if (this.isDisposed) return;
+      try {
+        listener();
+        if (this.errorCount > 0) {
+          this.errorCount = 0;
+        }
+      } catch (error) {
+        this._handleListenerError(error, listener);
+      }
+    };
+    this.subscriptionRegistry.set(listener, {
+      subscribedAt: Date.now(),
+      errorCount: 0,
+      enhancedListener
+    });
+    this.listeners.add(enhancedListener);
     return () => {
-      this.listeners.delete(listener);
+      this.listeners.delete(enhancedListener);
+      this.subscriptionRegistry.delete(listener);
     };
   };
   getSnapshot = (): Snapshot<T> => {
     return this._snapshot;
   };
   getValue(): T {
-    return safeGet(this._value, this.cloningEnabled);
+    if (this.cloningEnabled) {
+      if (this._lastClonedVersion === this._version && this._lastClonedValue !== null) {
+        return this._lastClonedValue;
+      }
+      this._lastClonedValue = safeGet(this._value, this.cloningEnabled);
+      this._lastClonedVersion = this._version;
+      return this._lastClonedValue;
+    }
+    return this._value;
   }
   setValue(value: T, options?: StoreSetValueOptions<T>): void {
     if (TypeGuards.isObject(value)) {
@@ -1993,11 +2302,10 @@ export class Store<T = unknown> implements IStore<T> {
       hasChanged = this._compareValues(this._value, safeValue);
     }
     if (hasChanged) {
-      if (!this._structuralCompare(this._value, safeValue)) {
-        this._value = safeValue;
-        this._snapshot = this._createSnapshot();
-        this._scheduleNotification();
-      }
+      this._value = safeValue;
+      this._version++;
+      this._snapshot = this._createSnapshot();
+      this._scheduleNotification();
     }
   }
   update(updater: (current: T) => T): void {
@@ -2046,14 +2354,50 @@ export class Store<T = unknown> implements IStore<T> {
   clearListeners(): void {
     this.listeners.clear();
   }
-  dispose(): void {
-    this.clearListeners();
-    if (this.batchTimeoutId !== null) {
-      clearTimeout(this.batchTimeoutId);
-      this.batchTimeoutId = null;
+  registerCleanup(task: () => void): () => void {
+    if (this.isDisposed) {
+      console.warn(`Store "${this.name}" is already disposed, cleanup task ignored`);
+      return () => {};
     }
-    this.batchedUpdates.clear();
-    this.updateQueue.length = 0;
+    this.cleanupTasks.add(task);
+    return () => this.cleanupTasks.delete(task);
+  }
+  dispose(): void {
+    if (this.isDisposed) {
+      return; 
+    }
+    this.isDisposed = true;
+    try {
+      this.cleanupTasks.forEach(task => {
+        try {
+          task();
+        } catch (error) {
+          ErrorHandlers.store(
+            'Error during cleanup task execution',
+            { storeName: this.name },
+            error instanceof Error ? error : undefined
+          );
+        }
+      });
+      this.cleanupTasks.clear();
+      this.subscriptionRegistry = new WeakMap();
+      this.clearListeners();
+      if (this.animationFrameId !== null) {
+        cancelAnimationFrame(this.animationFrameId);
+        this.animationFrameId = null;
+      }
+      this.pendingNotification = false;
+      this.updateQueue.length = 0;
+    } catch (error) {
+      ErrorHandlers.store(
+        'Critical error during store disposal',
+        { storeName: this.name },
+        error instanceof Error ? error : undefined
+      );
+    }
+  }
+  isStoreDisposed(): boolean {
+    return this.isDisposed;
   }
   setCustomComparator(comparator: (oldValue: T, newValue: T) => boolean): void {
     this.customComparator = comparator;
@@ -2078,36 +2422,6 @@ export class Store<T = unknown> implements IStore<T> {
   }
   getValueUnsafe(): T {
     return this._value;
-  }
-  private _structuralCompare(oldValue: T, newValue: T): boolean {
-    if (Object.is(oldValue, newValue)) {
-      return true;
-    }
-    if (typeof oldValue !== 'object' || typeof newValue !== 'object') {
-      return false;
-    }
-    if (oldValue === null || newValue === null) {
-      return oldValue === newValue;
-    }
-    if (Array.isArray(oldValue) && Array.isArray(newValue)) {
-      if (oldValue.length !== newValue.length) return false;
-      for (let i = 0; i < oldValue.length; i++) {
-        if (!Object.is(oldValue[i], newValue[i])) return false;
-      }
-      return true;
-    }
-    const oldKeys = Object.keys(oldValue);
-    const newKeys = Object.keys(newValue);
-    if (oldKeys.length !== newKeys.length) return false;
-    for (const key of oldKeys) {
-      if (!newKeys.includes(key) || !Object.is(
-        (oldValue as Record<string, unknown>)[key], 
-        (newValue as Record<string, unknown>)[key]
-      )) {
-        return false;
-      }
-    }
-    return true;
   }
   protected _compareValues(oldValue: T, newValue: T): boolean {
     let result: boolean;
@@ -2152,52 +2466,68 @@ export class Store<T = unknown> implements IStore<T> {
     if (this.notificationMode === 'immediate') {
       this._notifyListeners();
     } else {
-      this._addToBatch(() => this._notifyListeners());
+      this._scheduleWithRAF();
     }
   }
-  private _addToBatch(updateFn: () => void): void {
-    this.batchedUpdates.add(updateFn);
-    if (this.batchTimeoutId === null) {
-      this.batchTimeoutId = setTimeout(() => {
-        this._flushBatchedUpdates();
-      }, this.BATCH_DELAY_MS);
-    }
-  }
-  private _flushBatchedUpdates(): void {
-    this.batchTimeoutId = null;
-    if (this.batchedUpdates.size > 0) {
-      const updates = Array.from(this.batchedUpdates);
-      this.batchedUpdates.clear();
-      updates.forEach(updateFn => {
-        try {
-          updateFn();
-        } catch (error) {
-          ErrorHandlers.store(
-            'Error during batched update execution',
-            { 
-              storeName: this.name,
-              batchSize: updates.length
-            },
-            error instanceof Error ? error : undefined
-          );
-        }
+  private _scheduleWithRAF(): void {
+    this.pendingUpdatesCount++;
+    if (!this.pendingNotification) {
+      this.pendingNotification = true;
+      this.animationFrameId = requestAnimationFrame(() => {
+        this._executeNotification();
       });
     }
   }
+  private _executeNotification(): void {
+    this.pendingNotification = false;
+    this.animationFrameId = null;
+    const batchedUpdates = this.pendingUpdatesCount;
+    this.pendingUpdatesCount = 0;
+    this._notifyListeners();
+    if (process.env.NODE_ENV === 'development' && batchedUpdates > 1) {
+      console.debug(`[Store:${this.name}] Batched ${batchedUpdates} updates in single frame`);
+    }
+  }
+  private _handleListenerError(error: unknown, listener: Listener): void {
+    const now = Date.now();
+    if (now - this.lastErrorTime > this.ERROR_RESET_TIME) {
+      this.errorCount = 0;
+    }
+    this.errorCount++;
+    this.lastErrorTime = now;
+    const metadata = this.subscriptionRegistry.get(listener);
+    if (metadata) {
+      metadata.errorCount++;
+    }
+    ErrorHandlers.store(
+      'Error in store listener execution',
+      { 
+        storeName: this.name,
+        listenerCount: this.listeners.size,
+        errorCount: this.errorCount,
+        subscriptionAge: metadata ? now - metadata.subscribedAt : 'unknown'
+      },
+      error instanceof Error ? error : undefined
+    );
+    if (metadata && metadata.errorCount >= 3) {
+      console.warn(
+        `Removing problematic listener from store "${this.name}" after ${metadata.errorCount} errors`
+      );
+      this.listeners.delete(metadata.enhancedListener);
+      this.subscriptionRegistry.delete(listener);
+    }
+    if (this.errorCount >= this.MAX_ERROR_COUNT) {
+      console.error(
+        `Store "${this.name}" disabled due to excessive errors (${this.errorCount})`
+      );
+      this.clearListeners();
+    }
+  }
   private _notifyListeners(): void {
+    if (this.isDisposed) return;
     this.listeners.forEach(listener => {
-      try {
-        listener();
-      } catch (error) {
-        ErrorHandlers.store(
-          'Error in store listener execution',
-          { 
-            storeName: this.name,
-            listenerCount: this.listeners.size
-          },
-          error instanceof Error ? error : undefined
-        );
-      }
+      if (this.isDisposed) return; 
+      listener(); 
     });
   }
 }
@@ -2208,15 +2538,15 @@ export function createStore<T>(name: string, initialValue: T): Store<T> {
 export interface StoreConfig<T = unknown> {
   name: string;
   initialValue: T;
-  registry?: import('./StoreRegistry').StoreRegistry;
+  registry?: StoreRegistry;
   autoRegister?: boolean;
 }
 export class ManagedStore<T> extends Store<T> {
-  private registry?: import('./StoreRegistry').StoreRegistry;
+  private registry: StoreRegistry | undefined;
   private autoRegister: boolean;
   constructor(config: StoreConfig<T>) {
     super(config.name, config.initialValue);
-    this.registry = config.registry;
+    this.registry = config.registry ?? undefined;
     this.autoRegister = config.autoRegister ?? true;
     if (this.autoRegister && this.registry) {
       this.registry.register(this.name, this);
@@ -2424,6 +2754,13 @@ export const globalStoreRegistry = new StoreRegistry('global');
 ```typescript
 export { useStoreSelector as useStore } from '../utils/store-selector';
 export { useStoreValue, useStoreValues, assertStoreValue } from './useStoreValue';
+export { 
+  useSafeStoreSubscription,
+  useConditionalStoreSubscription,
+  useMultiStoreSubscription,
+  equalityFunctions,
+  type EnhancedSubscriptionOptions
+} from '../utils/sync-external-store-utils';
 export { useLocalStore } from './useLocalStore';
 export { usePersistedStore } from './usePersistedStore';
 export { 
@@ -2440,6 +2777,16 @@ export {
   useComputedStoreInstance,
   useAsyncComputedStore 
 } from './useComputedStore';
+export {
+  useOptimizedStoreValue,
+  useBulkStoreValues,
+  useConditionalStoreValue,
+  useStoreValuePath,
+  useLazyStoreValue,
+  useStoreMetrics,
+  type OptimizedStoreOptions,
+  type SubscriptionMetrics
+} from './useOptimizedStoreValue';
 ```
 
 ### stores/hooks/useComputedStore.ts
@@ -2831,6 +3178,288 @@ export function useLocalStore<T>(
 }
 ```
 
+### stores/hooks/useOptimizedStoreValue.ts
+
+```typescript
+import { useSyncExternalStore, useCallback, useMemo, useRef, useEffect } from 'react';
+import type { Store } from '../core/Store';
+import { useSafeStoreSubscription } from '../utils/sync-external-store-utils';
+export interface OptimizedStoreOptions<T, R = T> {
+  selector?: (value: T) => R;
+  isEqual?: (prev: R, next: R) => boolean;
+  throttle?: number;
+  debounce?: number;
+  enableMemoization?: boolean;
+  maxCacheSize?: number;
+  enableMetrics?: boolean;
+  defaultValue?: R;
+  enableRetry?: boolean;
+  maxRetries?: number;
+}
+export interface SubscriptionMetrics {
+  totalUpdates: number;
+  throttledUpdates: number;
+  debouncedUpdates: number;
+  cacheHits: number;
+  cacheMisses: number;
+  averageSelectorTime: number;
+  lastUpdate: number;
+}
+interface CacheEntry<T, R> {
+  readonly input: T;
+  readonly output: R;
+  timestamp: number;
+  hitCount: number;
+}
+function isPositiveNumber(value: unknown): value is number {
+  return typeof value === 'number' && value > 0 && Number.isFinite(value);
+}
+function isValidSelector<T, R>(selector: unknown): selector is (value: T) => R {
+  return typeof selector === 'function';
+}
+function isValidEqualityFunction<R>(isEqual: unknown): isEqual is (prev: R, next: R) => boolean {
+  return typeof isEqual === 'function';
+}
+export function useOptimizedStoreValue<T, R = T>(
+  store: Store<T>,
+  options: OptimizedStoreOptions<T, R> = {}
+): R {
+  const {
+    selector,
+    isEqual = Object.is,
+    throttle,
+    debounce,
+    enableMemoization = false,
+    maxCacheSize = 10,
+    defaultValue,
+    enableRetry = true,
+    maxRetries = 3,
+    enableMetrics = false
+  } = options;
+  if (throttle !== undefined && !isPositiveNumber(throttle)) {
+    throw new TypeError('throttle must be a positive number');
+  }
+  if (debounce !== undefined && !isPositiveNumber(debounce)) {
+    throw new TypeError('debounce must be a positive number');
+  }
+  if (!isPositiveNumber(maxCacheSize)) {
+    throw new TypeError('maxCacheSize must be a positive number');
+  }
+  if (!isPositiveNumber(maxRetries)) {
+    throw new TypeError('maxRetries must be a positive number');
+  }
+  if (selector !== undefined && !isValidSelector(selector)) {
+    throw new TypeError('selector must be a function');
+  }
+  if (isEqual !== Object.is && !isValidEqualityFunction(isEqual)) {
+    throw new TypeError('isEqual must be a function');
+  }
+  const metricsRef = useRef<SubscriptionMetrics>({
+    totalUpdates: 0,
+    throttledUpdates: 0,
+    debouncedUpdates: 0,
+    cacheHits: 0,
+    cacheMisses: 0,
+    averageSelectorTime: 0,
+    lastUpdate: 0
+  });
+  const cacheRef = useRef<CacheEntry<T, R>[]>([]);
+  const lastValueRef = useRef<R | undefined>();
+  const errorCountRef = useRef(0);
+  const optimizedSelector = useCallback((value: T): R => {
+    const startTime = performance.now();
+    try {
+      let result: R;
+      if (selector) {
+        if (enableMemoization) {
+          const cached = cacheRef.current.find(entry => 
+            Object.is(entry.input, value)
+          );
+          if (cached) {
+            metricsRef.current.cacheHits++;
+            cached.hitCount++;
+            cached.timestamp = Date.now();
+            result = cached.output;
+          } else {
+            metricsRef.current.cacheMisses++;
+            result = selector(value);
+            const entry: CacheEntry<T, R> = {
+              input: value,
+              output: result,
+              timestamp: Date.now(),
+              hitCount: 1
+            };
+            cacheRef.current.push(entry);
+            if (cacheRef.current.length > maxCacheSize) {
+              cacheRef.current.sort((a, b) => a.timestamp - b.timestamp);
+              cacheRef.current.shift();
+            }
+          }
+        } else {
+          result = selector(value);
+        }
+      } else {
+        result = value as unknown as R;
+      }
+      errorCountRef.current = 0;
+      return result;
+    } catch (error) {
+      errorCountRef.current++;
+      console.warn(
+        `Selector error (attempt ${errorCountRef.current}/${maxRetries}):`,
+        error
+      );
+      if (enableRetry && errorCountRef.current < maxRetries) {
+        return lastValueRef.current ?? (defaultValue as R);
+      }
+      throw error; 
+    } finally {
+      if (enableMetrics) {
+        const duration = performance.now() - startTime;
+        const metrics = metricsRef.current;
+        metrics.averageSelectorTime = 
+          (metrics.averageSelectorTime * metrics.totalUpdates + duration) / 
+          (metrics.totalUpdates + 1);
+        metrics.totalUpdates++;
+        metrics.lastUpdate = Date.now();
+      }
+    }
+  }, [selector, enableMemoization, maxCacheSize, defaultValue, enableRetry, maxRetries, enableMetrics]);
+  const subscriptionOptions = {
+    debug: enableMetrics,
+    name: `optimized-${store.name}`,
+    equalityFn: isEqual as (a: R, b: R) => boolean,
+    initialValue: defaultValue as R,
+    ...(throttle !== undefined && { throttle }),
+    ...(debounce !== undefined && { debounce })
+  };
+  const currentValue = useSafeStoreSubscription(
+    store,
+    optimizedSelector,
+    subscriptionOptions
+  ) as R;
+  useEffect(() => {
+    lastValueRef.current = currentValue;
+    if (enableMetrics && currentValue !== undefined) {
+      const metrics = metricsRef.current;
+      metrics.totalUpdates++;
+    }
+  }, [currentValue, enableMetrics]);
+  useEffect(() => {
+    return () => {
+      cacheRef.current = [];
+    };
+  }, []);
+  return currentValue;
+}
+export function useStoreMetrics(): SubscriptionMetrics | null {
+  return null;
+}
+export function useBulkStoreValues<T extends Record<string, unknown>>(
+  stores: { readonly [K in keyof T]: Store<T[K]> },
+  options: OptimizedStoreOptions<unknown> = {}
+): T {
+  if (!stores || typeof stores !== 'object') {
+    throw new TypeError('stores must be an object');
+  }
+  if (Object.keys(stores).length === 0) {
+    throw new Error('stores object cannot be empty');
+  }
+  const storeArray = useMemo(() => Object.values(stores) as Store<unknown>[], [stores]);
+  const storeKeys = useMemo(() => Object.keys(stores), [stores]);
+  return useSyncExternalStore(
+    useCallback((callback: () => void) => {
+      const unsubscribes = storeArray.map(store => store.subscribe(callback));
+      return () => unsubscribes.forEach(unsub => unsub());
+    }, [storeArray]),
+    useCallback((): T => {
+      const result = {} as T;
+      storeKeys.forEach((key, index) => {
+        const store = storeArray[index];
+        if (store) {
+          (result as Record<string, unknown>)[key] = store.getValue();
+        }
+      });
+      return result;
+    }, [storeArray, storeKeys]),
+    useCallback((): T => {
+      const result = {} as T;
+      storeKeys.forEach(key => {
+        (result as Record<string, unknown>)[key] = options.defaultValue;
+      });
+      return result;
+    }, [storeKeys, options.defaultValue])
+  );
+}
+export function useConditionalStoreValue<T>(
+  store: Store<T>,
+  condition: boolean,
+  options: OptimizedStoreOptions<T> = {}
+): T | undefined {
+  if (typeof condition !== 'boolean') {
+    throw new TypeError('condition must be a boolean');
+  }
+  return useSafeStoreSubscription(
+    condition ? store : null,
+    undefined,
+    {
+      initialValue: options.defaultValue as T,
+      name: `conditional-${store.name}`
+    }
+  );
+}
+export function useStoreValuePath<
+  T extends Record<string, unknown>, 
+  K extends string
+>(
+  store: Store<T>,
+  path: K,
+  options: OptimizedStoreOptions<T> = {}
+): unknown {
+  if (typeof path !== 'string' || path.length === 0) {
+    throw new TypeError('path must be a non-empty string');
+  }
+  if (path.includes('..') || path.startsWith('.') || path.endsWith('.')) {
+    throw new Error('path cannot contain relative path components or start/end with dots');
+  }
+  const pathSelector = useCallback((value: T) => {
+    const pathParts = path.split('.');
+    let result: unknown = value;
+    for (const part of pathParts) {
+      if (result && typeof result === 'object' && part in result) {
+        result = (result as Record<string, unknown>)[part];
+      } else {
+        return undefined;
+      }
+    }
+    return result;
+  }, [path]);
+  return useSafeStoreSubscription(
+    store,
+    pathSelector,
+    {
+      equalityFn: options.isEqual as (a: unknown, b: unknown) => boolean,
+      initialValue: options.defaultValue,
+      name: `path-${store.name}-${path}`
+    }
+  );
+}
+export function useLazyStoreValue<T>(
+  store: Store<T>,
+  options: OptimizedStoreOptions<T> & {
+    suspense?: boolean;
+    loader?: () => Promise<T>;
+  } = {}
+): T {
+  const { suspense = false, loader, ...restOptions } = options;
+  const value = useOptimizedStoreValue(store, restOptions);
+  if (suspense && loader && value === undefined) {
+    throw loader(); 
+  }
+  return value as T;
+}
+```
+
 ### stores/hooks/usePersistedStore.ts
 
 ```typescript
@@ -2899,53 +3528,23 @@ export function usePersistedStore<T>(
 ### stores/hooks/useStoreSelector.ts
 
 ```typescript
-import { useEffect, useRef, useState, useMemo, useId } from 'react';
+import { useSyncExternalStore, useCallback, useRef } from 'react';
 import type { Store } from '../core/Store';
-function defaultEqualityFn<T>(a: T, b: T): boolean {
-  return Object.is(a, b);
-}
-export function shallowEqual<T>(a: T, b: T): boolean {
-  if (Object.is(a, b)) return true;
-  if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
-    return false;
-  }
-  const keysA = Object.keys(a) as Array<keyof T>;
-  const keysB = Object.keys(b) as Array<keyof T>;
-  if (keysA.length !== keysB.length) return false;
-  for (const key of keysA) {
-    if (!Object.prototype.hasOwnProperty.call(b, key) || !Object.is(a[key], b[key])) {
-      return false;
-    }
-  }
-  return true;
-}
-export function deepEqual<T>(a: T, b: T): boolean {
-  if (Object.is(a, b)) return true;
-  if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
-    return false;
-  }
-  if (Array.isArray(a) !== Array.isArray(b)) return false;
-  const keysA = Object.keys(a) as Array<keyof T>;
-  const keysB = Object.keys(b) as Array<keyof T>;
-  if (keysA.length !== keysB.length) return false;
-  for (const key of keysA) {
-    if (!Object.prototype.hasOwnProperty.call(b, key)) return false;
-    if (!deepEqual(a[key], b[key])) return false;
-  }
-  return true;
-}
+import { equalityFunctions } from '../utils/sync-external-store-utils';
+export const defaultEqualityFn = equalityFunctions.smart; 
+export const shallowEqual = equalityFunctions.shallow;
+export const deepEqual = equalityFunctions.deep;
+export const smartEqual = equalityFunctions.smart;
 export function useStoreSelector<T, R>(
   store: Store<T>,
   selector: (value: T) => R,
   equalityFn: (a: R, b: R) => boolean = defaultEqualityFn
 ): R {
-  const selectorId = useId();
-  const selectorRef = useRef(selector);
-  const equalityFnRef = useRef(equalityFn);
+  const stableSelector = useCallback(selector, [selector]);
+  const stableEqualityFn = useCallback(equalityFn, [equalityFn]);
   const selectorWarningShownRef = useRef(false);
-  const equalityWarningShownRef = useRef(false);
   if (process.env.NODE_ENV === 'development') {
-    if (selectorRef.current !== selector && !selectorWarningShownRef.current) {
+    if (selector !== stableSelector && !selectorWarningShownRef.current) {
       console.warn(
         'useStoreSelector: selector function changed. ' +
         'Consider wrapping it with useCallback to avoid unnecessary recalculations.',
@@ -2953,150 +3552,86 @@ export function useStoreSelector<T, R>(
       );
       selectorWarningShownRef.current = true;
     }
-    if (equalityFnRef.current !== equalityFn && !equalityWarningShownRef.current) {
-      console.warn(
-        'useStoreSelector: equalityFn changed. ' +
-        'Consider using a stable reference or defining it outside the component.',
-        'Store:', store.name
-      );
-      equalityWarningShownRef.current = true;
-    }
   }
-  selectorRef.current = selector;
-  equalityFnRef.current = equalityFn;
-  const initialSelectedValue = useMemo(() => {
+  const previousValueRef = useRef<R>();
+  const subscribe = useCallback((callback: () => void) => {
+    return store.subscribe(callback);
+  }, [store]);
+  const getSnapshot = useCallback((): R => {
     try {
-      return selector(store.getValue());
+      const storeValue = store.getValue();
+      const selectedValue = stableSelector(storeValue);
+      if (previousValueRef.current !== undefined && stableEqualityFn(previousValueRef.current, selectedValue)) {
+        return previousValueRef.current;
+      }
+      previousValueRef.current = selectedValue;
+      return selectedValue;
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
         console.error('useStoreSelector: Error in selector function:', error);
       }
       throw error;
     }
-  }, [store, selector]);
-  const [selectedValue, setSelectedValue] = useState<R>(initialSelectedValue);
-  const selectedValueRef = useRef<R>(initialSelectedValue);
-  selectedValueRef.current = selectedValue;
-  useEffect(() => {
-    const unsubscribe = store.subscribe(() => {
-      const newStoreValue = store.getValue();
-      try {
-        const newSelectedValue = selectorRef.current(newStoreValue);
-        if (!equalityFnRef.current(selectedValueRef.current, newSelectedValue)) {
-          if (process.env.NODE_ENV === 'development') {
-            console.debug('useStoreSelector: Value updated', {
-              selectorId: selectorId,
-              storeName: store.name,
-              previousValue: selectedValueRef.current,
-              newValue: newSelectedValue
-            });
-          }
-          setSelectedValue(newSelectedValue);
-          selectedValueRef.current = newSelectedValue;
-        }
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('useStoreSelector: Error in selector during subscription:', error);
-        }
-        throw error;
-      }
-    });
-    try {
-      const currentStoreValue = store.getValue();
-      const currentSelectedValue = selectorRef.current(currentStoreValue);
-      if (!equalityFnRef.current(selectedValueRef.current, currentSelectedValue)) {
-        setSelectedValue(currentSelectedValue);
-        selectedValueRef.current = currentSelectedValue;
-      }
-    } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('useStoreSelector: Error checking current value:', error);
-      }
-    }
-    return unsubscribe;
-  }, [store, selectorId]);
-  return selectedValue;
+  }, [store, stableSelector, stableEqualityFn]);
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 export function useMultiStoreSelector<R>(
   stores: Store<any>[],
   selector: (values: any[]) => R,
-  equalityFn?: (a: R, b: R) => boolean
+  equalityFn: (a: R, b: R) => boolean = defaultEqualityFn
 ): R {
-  const finalEqualityFn = equalityFn || defaultEqualityFn;
-  const selectorRef = useRef(selector);
-  const equalityFnRef = useRef(finalEqualityFn);
-  selectorRef.current = selector;
-  equalityFnRef.current = finalEqualityFn;
-  const initialSelectedValue = useMemo(() => {
-    const storeValues = stores.map(store => store.getValue());
-    return selector(storeValues);
-  }, [stores, selector]);
-  const [selectedValue, setSelectedValue] = useState<R>(initialSelectedValue);
-  const selectedValueRef = useRef<R>(initialSelectedValue);
-  selectedValueRef.current = selectedValue;
-  useEffect(() => {
-    const unsubscribes = stores.map((store) => 
-      store.subscribe(() => {
-        try {
-          const storeValues = stores.map(s => s.getValue());
-          const newSelectedValue = selectorRef.current(storeValues);
-          if (!equalityFnRef.current(selectedValueRef.current, newSelectedValue)) {
-            setSelectedValue(newSelectedValue);
-            selectedValueRef.current = newSelectedValue;
-          }
-        } catch (error) {
-          if (process.env.NODE_ENV === 'development') {
-            console.error('useMultiStoreSelector: Error in selector:', error);
-          }
-          throw error;
-        }
-      })
-    );
+  const stableSelector = useCallback(selector, [selector]);
+  const stableEqualityFn = useCallback(equalityFn, [equalityFn]);
+  const previousValueRef = useRef<R>();
+  const subscribe = useCallback((callback: () => void) => {
+    const unsubscribes = stores.map(store => store.subscribe(callback));
+    return () => unsubscribes.forEach(unsub => unsub());
+  }, [stores]);
+  const getSnapshot = useCallback((): R => {
     try {
-      const currentStoreValues = stores.map(store => store.getValue());
-      const currentSelectedValue = selectorRef.current(currentStoreValues);
-      if (!equalityFnRef.current(selectedValueRef.current, currentSelectedValue)) {
-        setSelectedValue(currentSelectedValue);
-        selectedValueRef.current = currentSelectedValue;
+      const storeValues = stores.map(store => store.getValue());
+      const selectedValue = stableSelector(storeValues);
+      if (previousValueRef.current !== undefined && stableEqualityFn(previousValueRef.current, selectedValue)) {
+        return previousValueRef.current;
       }
+      previousValueRef.current = selectedValue;
+      return selectedValue;
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
-        console.error('useMultiStoreSelector: Error checking current values:', error);
+        console.error('useMultiStoreSelector: Error in selector:', error);
       }
+      throw error;
     }
-    return () => {
-      unsubscribes.forEach(unsubscribe => unsubscribe());
-    };
-  }, [stores]);
-  return selectedValue;
+  }, [stores, stableSelector, stableEqualityFn]);
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 export function useStorePathSelector<T>(
   store: Store<T>,
   path: (string | number)[],
   equalityFn: (a: any, b: any) => boolean = defaultEqualityFn
 ): any {
-  const selector = useMemo(() => {
-    return (value: T) => {
-      let current: any = value;
-      for (const key of path) {
-        if (current == null) return undefined;
-        current = current[key];
-      }
-      return current;
-    };
+  const pathSelector = useCallback((value: T) => {
+    let current: any = value;
+    for (const key of path) {
+      if (current == null) return undefined;
+      current = current[key];
+    }
+    return current;
   }, [path]);
-  return useStoreSelector(store, selector, equalityFn);
+  return useStoreSelector(store, pathSelector, equalityFn);
 }
-export { defaultEqualityFn };
 ```
 
 ### stores/hooks/useStoreValue.ts
 
 ```typescript
-import { useEffect, useRef, useState, useMemo, useDeferredValue } from 'react';
-import { useStoreSelector, shallowEqual, defaultEqualityFn } from './useStoreSelector';
+import { useMemo, useDeferredValue } from 'react';
+import { shallowEqual, defaultEqualityFn } from './useStoreSelector';
 import type { Store } from '../core/Store';
 import type { React18Options } from '../../hooks/react18-hooks';
+import { 
+  useSafeStoreSubscription
+} from '../utils/sync-external-store-utils';
 export function assertStoreValue<T>(value: T | undefined, storeName: string): T {
   if (value === undefined) {
     throw new Error(
@@ -3155,105 +3690,27 @@ export function useStoreValue<T, R>(
     name = store?.name || 'unknown',
     react18 = {}
   } = finalOptions;
-  const [isActive, setIsActive] = useState(() => store && !lazy && (!condition || condition()));
-  const conditionRef = useRef(condition);
-  conditionRef.current = condition;
-  useEffect(() => {
-    if (!condition) return;
-    const checkCondition = () => {
-      const shouldBeActive = condition();
-      setIsActive(current => {
-        if (current !== shouldBeActive) {
-          if (debug) {
-            console.debug(`useStoreValue [${name}]: Subscription ${shouldBeActive ? 'activated' : 'suspended'}`);
-          }
-          return shouldBeActive;
-        }
-        return current;
-      });
-    };
-    checkCondition();
-    const interval = setInterval(checkCondition, 100);
-    return () => clearInterval(interval);
-  }, [condition, debug, name]);
-  useEffect(() => {
-    if (lazy && !isActive && (!condition || condition())) {
-      setIsActive(true);
-    }
-  }, [lazy, isActive, condition]);
-  const [debouncedValue, setDebouncedValue] = useState<T | R | undefined>(initialValue);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const throttleLastExecRef = useRef<number>(0);
-  const latestValueRef = useRef<T | R | undefined>(initialValue);
-  const selectorFunction = useMemo(() => {
-    if (selector) {
-      return selector;
-    }
-    return (value: T) => value as unknown as R;
-  }, [selector]);
-  const dummyStore = useMemo(() => {
-    if (store) return store;
-    const nullStore: Store<T> = {
-      name: 'null-store',
-      subscribe: () => () => {},
-      getSnapshot: () => ({
-        value: initialValue as T,
-        name: 'null-store',
-        lastUpdate: 0
-      }),
-      setValue: () => {},
-      update: () => {},
-      getValue: () => initialValue as T,
-      getListenerCount: () => 0,
-      clearListeners: () => {},
-      dispose: () => {},
-      setCustomComparator: () => {},
-      setComparisonOptions: () => {},
-      getComparisonOptions: () => undefined,
-      clearCustomComparator: () => {},
-      clearComparisonOptions: () => {},
-      setNotificationMode: () => {},
-      getNotificationMode: () => 'batched' as const
-    } as Store<T>;
-    return nullStore;
-  }, [store, initialValue]);
-  const rawStoreValue = useStoreSelector(dummyStore, selectorFunction, equalityFn as (a: R, b: R) => boolean);
-  const currentStoreValue = useMemo(() => {
-    if (!isActive) {
-      return suspendedValue !== undefined ? suspendedValue : initialValue;
-    }
-    return rawStoreValue;
-  }, [rawStoreValue, isActive, suspendedValue, initialValue]);
+  const subscriptionOptions = {
+    debug,
+    name,
+    equalityFn: equalityFn as (a: R, b: R) => boolean,
+    initialValue: initialValue as R,
+    ...(debounce !== undefined && { debounce }),
+    ...(throttle !== undefined && { throttle }),
+    ...(condition && { condition }),
+    ...(lazy && !condition && { condition: () => false })
+  };
+  const rawValue = useSafeStoreSubscription(
+    store,
+    selector,
+    subscriptionOptions
+  );
   const processedValue = useMemo(() => {
-    if (!isActive) {
+    if (lazy && condition && !condition()) {
       return suspendedValue !== undefined ? suspendedValue : initialValue;
     }
-    latestValueRef.current = currentStoreValue as T | R | undefined;
-    if (debounce && debounce > 0) {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-      debounceTimerRef.current = setTimeout(() => {
-        setDebouncedValue(latestValueRef.current);
-        if (debug) {
-          console.debug(`useStoreValue [${name}]: Debounced value updated after ${debounce}ms`);
-        }
-      }, debounce);
-      return debouncedValue;
-    }
-    if (throttle && throttle > 0) {
-      const now = Date.now();
-      if (now - throttleLastExecRef.current >= throttle) {
-        throttleLastExecRef.current = now;
-        if (debug) {
-          console.debug(`useStoreValue [${name}]: Throttled value updated`);
-        }
-        return currentStoreValue;
-      }
-      return debouncedValue; 
-    }
-    return currentStoreValue;
-  }, [currentStoreValue, isActive, debounce, throttle, debouncedValue, suspendedValue, initialValue, debug, name]);
+    return rawValue;
+  }, [rawValue, lazy, condition, suspendedValue, initialValue]);
   const {
     enableDeferred = false,
     priorityThreshold = 1000
@@ -3277,13 +3734,6 @@ export function useStoreValue<T, R>(
     }
     return shouldDefer ? deferredProcessedValue : processedValue;
   }, [processedValue, deferredProcessedValue, enableDeferred, priorityThreshold, debug, name]);
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, []);
   return finalValue;
 }
 export function useStoreValues<T, S extends Record<string, (value: T) => any>>(
@@ -3299,33 +3749,14 @@ export function useStoreValues<T, S extends Record<string, (value: T) => any>>(
       return result;
     };
   }, [selectors]);
-  const dummyStoreForValues = useMemo(() => {
-    if (store) return store;
-    const nullStore: Store<T> = {
-      name: 'null-store-values',
-      subscribe: () => () => {},
-      getSnapshot: () => ({
-        value: undefined as any,
-        name: 'null-store-values',
-        lastUpdate: 0
-      }),
-      setValue: () => {},
-      update: () => {},
-      getValue: () => undefined as any,
-      getListenerCount: () => 0,
-      clearListeners: () => {},
-      dispose: () => {},
-      setCustomComparator: () => {},
-      setComparisonOptions: () => {},
-      getComparisonOptions: () => undefined,
-      clearCustomComparator: () => {},
-      clearComparisonOptions: () => {},
-      setNotificationMode: () => {},
-      getNotificationMode: () => 'batched' as const
-    } as Store<T>;
-    return nullStore;
-  }, [store]);
-  const storeValue = useStoreSelector(dummyStoreForValues, selectorFunction, shallowEqual);
+  const storeValue = useSafeStoreSubscription(
+    store,
+    selectorFunction,
+    {
+      equalityFn: shallowEqual,
+      name: `${store?.name || 'unknown'}-values`
+    }
+  ) as { [K in keyof S]: ReturnType<S[K]> } | undefined;
   return store ? storeValue : undefined;
 }
 ```
@@ -3437,13 +3868,14 @@ class StoreManager<T extends Record<string, any>> {
       ...comparisonOptions
     };
     store.setComparisonOptions(finalComparisonOptions);
-    this.registry.register(String(storeName), store, {
+    const metadata = {
       name: String(storeName),
       tags,
       description: description || `Store: ${String(storeName)}`,
-      version,
-      debug
-    });
+      debug,
+      ...(version !== undefined && { version })
+    };
+    this.registry.register(String(storeName), store, metadata);
     if (debug && process.env.NODE_ENV === 'development') {
       console.log(`🏪 Store context store created: ${String(storeName)}`, {
         strategy,
@@ -3573,6 +4005,8 @@ export type InferInitialStores<T> = T extends InitialStores<infer U> ? U : never
 export interface WithProviderConfig {
   displayName?: string;
   registryId?: string;
+  autoCleanup?: boolean;
+  errorBoundary?: boolean;
 }
 export type StoreValues<T extends Record<string, any>> = {
   [K in keyof T]: T[K] extends StoreConfig<infer V> ? V : T[K];
@@ -3774,13 +4208,15 @@ export function compareValues<T>(
       case 'shallow':
         result = shallowEquals(oldValue, newValue, ignoreKeys);
         break;
-      case 'deep':
-        result = deepEquals(oldValue, newValue, { 
-          maxDepth, 
-          ignoreKeys, 
-          enableCircularCheck 
-        });
+      case 'deep': {
+        const deepOptions = {
+          ...(maxDepth !== undefined && { maxDepth }),
+          ...(ignoreKeys !== undefined && { ignoreKeys }),
+          ...(enableCircularCheck !== undefined && { enableCircularCheck })
+        };
+        result = deepEquals(oldValue, newValue, deepOptions);
         break;
+      }
       case 'custom':
         if (!customComparator) {
           result = referenceEquals(oldValue, newValue);
@@ -3900,6 +4336,134 @@ export function measureComparison<T>(
   };
   return metrics;
 }
+function isDOMElement(value: unknown): boolean {
+  if (typeof value !== 'object' || value === null) return false;
+  const obj = value as Record<string, unknown>;
+  if (typeof Element !== 'undefined' && value instanceof Element) return true;
+  if (typeof Node !== 'undefined' && value instanceof Node) return true;
+  if (typeof HTMLElement !== 'undefined' && value instanceof HTMLElement) return true;
+  return (
+    typeof obj.nodeType === 'number' ||
+    typeof obj.nodeName === 'string' ||
+    obj._owner !== undefined ||  
+    obj.stateNode !== undefined  
+  );
+}
+function isUnsafeObject(value: unknown): boolean {
+  if (typeof value !== 'object' || value === null) return false;
+  const obj = value as Record<string, unknown>;
+  const dangerousKeys = ['__proto__', 'constructor', 'prototype'];
+  if (dangerousKeys.some(key => Object.prototype.hasOwnProperty.call(obj, key))) {
+    const protoValue = obj.__proto__;
+    const constructorValue = obj.constructor;
+    if (protoValue === Object.prototype || protoValue === Array.prototype) {
+    } else if (constructorValue === Object || constructorValue === Array) {
+    } else {
+      return true; 
+    }
+  }
+  const stringValues = Object.values(obj).filter((v): v is string => typeof v === 'string');
+  const hasScriptTags = stringValues.some(str => 
+    /<script[^>]*>|javascript:|data:text\/html|eval\(|Function\(/i.test(str)
+  );
+  if (hasScriptTags) {
+    console.warn('Potentially unsafe string content detected in object comparison');
+    return true;
+  }
+  try {
+    const serialized = JSON.stringify(obj);
+    if (serialized.length > 100000) { 
+      console.warn('Extremely large object detected in comparison');
+      return true;
+    }
+  } catch {
+  }
+  return false;
+}
+export function sanitizeValue<T>(value: T): T {
+  if (typeof value === 'string') {
+    const sanitizedString = value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;');
+    return sanitizedString as T;
+  }
+  if (typeof value !== 'object' || value === null) {
+    return value;
+  }
+  try {
+    const sanitized = JSON.parse(JSON.stringify(value));
+    function cleanObject(obj: Record<string, unknown>): Record<string, unknown> {
+      const dangerousKeys = ['__proto__', 'constructor', 'prototype'];
+      const clean = { ...obj };
+      dangerousKeys.forEach(key => {
+        delete clean[key];
+      });
+      Object.keys(clean).forEach(key => {
+        if (typeof clean[key] === 'object' && clean[key] !== null) {
+          clean[key] = cleanObject(clean[key] as Record<string, unknown>);
+        }
+      });
+      return clean;
+    }
+    return cleanObject(sanitized as Record<string, unknown>) as T;
+  } catch (error) {
+    console.warn('Failed to sanitize value, returning original:', error);
+    return value;
+  }
+}
+export function validateSecurity<T>(value: T, options: SecurityOptions = {}): boolean {
+  const {
+    preventPrototypePollution = true,
+    preventXSS = true,
+    maxDepth = 10,
+    maxStringLength = 10000
+  } = options;
+  if (typeof value !== 'object' || value === null) {
+    if (typeof value === 'string' && value.length > maxStringLength) {
+      return false;
+    }
+    return true;
+  }
+  let currentDepth = 0;
+  function checkDepth(obj: unknown): boolean {
+    if (currentDepth > maxDepth) return false;
+    if (typeof obj === 'object' && obj !== null) {
+      currentDepth++;
+      if (Array.isArray(obj)) {
+        return obj.every(item => checkDepth(item));
+      } else {
+        return Object.values(obj as Record<string, unknown>).every(val => checkDepth(val));
+      }
+    }
+    return true;
+  }
+  if (!checkDepth(value)) {
+    console.warn('Object depth exceeds security limit');
+    return false;
+  }
+  if (preventPrototypePollution && isUnsafeObject(value)) {
+    return false;
+  }
+  if (preventXSS) {
+    const stringValues = JSON.stringify(value);
+    if (/<script|javascript:|data:text\/html|eval\(|Function\(/i.test(stringValues)) {
+      console.warn('Potentially unsafe content detected');
+      return false;
+    }
+  }
+  return true;
+}
+export interface SecurityOptions {
+  preventPrototypePollution?: boolean;
+  preventXSS?: boolean;
+  maxDepth?: number;
+  maxStringLength?: number;
+  allowedProperties?: RegExp;
+  blockedProperties?: RegExp;
+}
 ```
 
 ### stores/utils/error-handling.ts
@@ -3916,7 +4480,7 @@ export enum ContextActionErrorType {
 }
 export class ContextActionError extends Error {
   public readonly type: ContextActionErrorType;
-  public readonly context?: Record<string, unknown>;
+  public readonly context: Record<string, unknown> | undefined;
   public readonly timestamp: number;
   constructor(
     type: ContextActionErrorType,
@@ -3927,13 +4491,13 @@ export class ContextActionError extends Error {
     super(message);
     this.name = 'ContextActionError';
     this.type = type;
-    this.context = context;
+    this.context = context ?? undefined;
     this.timestamp = Date.now();
-    if (originalError) {
-      this.stack = `${this.stack}\nCaused by: ${originalError.stack}`;
-    }
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, ContextActionError);
+    }
+    if (originalError) {
+      this.stack = `${this.stack}\nCaused by: ${originalError.stack}`;
     }
   }
 }
@@ -4028,6 +4592,9 @@ function logError(error: ContextActionError): void {
       errorSignatures.delete(removedSignature);
     }
   }
+  if (typeof globalThis !== 'undefined' && (globalThis as any).globalErrorBoundary) {
+    (globalThis as any).globalErrorBoundary.reportError(error);
+  }
   switch (currentErrorConfig.logLevel) {
     case ErrorLogLevel.DEBUG:
       console.debug('[Context-Action] Debug:', error);
@@ -4089,18 +4656,30 @@ export function safeSync<T>(
   }
 }
 export const ErrorHandlers = {
-  store: (message: string, context?: Record<string, unknown>, originalError?: Error) =>
-    handleError(ContextActionErrorType.STORE_ERROR, message, context, originalError),
-  action: (message: string, context?: Record<string, unknown>, originalError?: Error) =>
-    handleError(ContextActionErrorType.ACTION_ERROR, message, context, originalError),
-  ref: (message: string, context?: Record<string, unknown>, originalError?: Error) =>
-    handleError(ContextActionErrorType.REF_ERROR, message, context, originalError),
-  validation: (message: string, context?: Record<string, unknown>, originalError?: Error) =>
-    handleError(ContextActionErrorType.VALIDATION_ERROR, message, context, originalError),
-  initialization: (message: string, context?: Record<string, unknown>, originalError?: Error) =>
-    handleError(ContextActionErrorType.INITIALIZATION_ERROR, message, context, originalError),
-  timeout: (message: string, context?: Record<string, unknown>, originalError?: Error) =>
-    handleError(ContextActionErrorType.TIMEOUT_ERROR, message, context, originalError),
+  store: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
+    const enhancedMessage = `[Store Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
+    return handleError(ContextActionErrorType.STORE_ERROR, enhancedMessage, context, originalError);
+  },
+  action: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
+    const enhancedMessage = `[Action Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
+    return handleError(ContextActionErrorType.ACTION_ERROR, enhancedMessage, context, originalError);
+  },
+  ref: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
+    const enhancedMessage = `[Ref Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
+    return handleError(ContextActionErrorType.REF_ERROR, enhancedMessage, context, originalError);
+  },
+  validation: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
+    const enhancedMessage = `[Validation Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
+    return handleError(ContextActionErrorType.VALIDATION_ERROR, enhancedMessage, context, originalError);
+  },
+  initialization: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
+    const enhancedMessage = `[Initialization Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
+    return handleError(ContextActionErrorType.INITIALIZATION_ERROR, enhancedMessage, context, originalError);
+  },
+  timeout: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
+    const enhancedMessage = `[Timeout Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
+    return handleError(ContextActionErrorType.TIMEOUT_ERROR, enhancedMessage, context, originalError);
+  },
   circularReference: (message: string, context?: Record<string, unknown>, originalError?: Error) =>
     handleError(ContextActionErrorType.CIRCULAR_REFERENCE_ERROR, message, context, originalError)
 } as const;
@@ -4230,7 +4809,7 @@ function isNonCloneableType(value: unknown): boolean {
   if (value instanceof WeakMap || value instanceof WeakSet) return true;
   return false;
 }
-export function deepClone<T>(value: T, options?: { skipProducer?: boolean }): T {
+export function deepClone<T>(value: T, _options?: { skipProducer?: boolean }): T {
   if (isPrimitive(value)) {
     return value;
   }
@@ -4243,10 +4822,14 @@ export function deepClone<T>(value: T, options?: { skipProducer?: boolean }): T 
   if (isNonCloneableType(value)) {
     return value;
   }
+  if (typeof value === 'object' && value !== null && 
+      '__contextActionRefState' in value && value.__contextActionRefState === true) {
+    return value;
+  }
   if (typeof structuredClone !== 'undefined') {
     try {
       return structuredClone(value);
-    } catch (error) {
+    } catch {
     }
   }
   if (!isComplexObject(value)) {
@@ -4280,16 +4863,37 @@ function isSimpleObject(value: unknown): value is Record<string, unknown> {
     Object.getPrototypeOf(value) === Object.prototype
   );
 }
-function simpleClone<T>(value: T): T {
+function simpleClone<T>(value: T, visited = new WeakSet()): T {
+  if (typeof value === 'object' && value !== null && visited.has(value)) {
+    return '[Circular]' as any;
+  }
   if (Array.isArray(value)) {
-    return value.map(item => 
-      typeof item === 'object' && item !== null ? simpleClone(item) : item
-    ) as T;
+    visited.add(value);
+    const result = value.map(item => {
+      if (typeof item === 'object' && item !== null) {
+        if ('__contextActionRefState' in item && item.__contextActionRefState === true) {
+          return item;
+        } else {
+          return simpleClone(item, visited);
+        }
+      }
+      return item;
+    }) as T;
+    return result;
   }
   if (isSimpleObject(value)) {
+    visited.add(value);
     const cloned = {} as Record<string, unknown>;
     for (const [key, val] of Object.entries(value)) {
-      cloned[key] = typeof val === 'object' && val !== null ? simpleClone(val) : val;
+      if (typeof val === 'object' && val !== null) {
+        if ('__contextActionRefState' in val && val.__contextActionRefState === true) {
+          cloned[key] = val;
+        } else {
+          cloned[key] = simpleClone(val, visited);
+        }
+      } else {
+        cloned[key] = val;
+      }
     }
     return cloned as T;
   }
@@ -4298,19 +4902,66 @@ function simpleClone<T>(value: T): T {
 function fallbackClone<T>(value: T): T {
   try {
     const visited = new WeakSet();
+    const refStateObjects = new Map<string, object>();
+    let refStateId = 0;
+    const collectRefStates = (obj: any) => {
+      if (typeof obj !== 'object' || obj === null || visited.has(obj)) return;
+      visited.add(obj);
+      if ('__contextActionRefState' in obj && obj.__contextActionRefState === true) {
+        const id = `refstate_${refStateId++}`;
+        refStateObjects.set(id, obj);
+      }
+      try {
+        if (Array.isArray(obj)) {
+          obj.forEach(collectRefStates);
+        } else {
+          for (const val of Object.values(obj)) {
+            collectRefStates(val);
+          }
+        }
+      } catch {
+      }
+    };
+    try {
+      collectRefStates(value);
+    } catch {
+    }
     const circularSafeStringify = (obj: unknown): string => {
+      const jsonVisited = new WeakSet(); 
       return JSON.stringify(obj, function(key, val) {
         if (val !== null && typeof val === 'object') {
-          if (visited.has(val)) {
+          if (jsonVisited.has(val)) {
             return '[Circular]';
           }
-          visited.add(val);
+          jsonVisited.add(val);
+          if ('__contextActionRefState' in val && val.__contextActionRefState === true) {
+            for (const [id, refStateObj] of refStateObjects) {
+              if (refStateObj === val) {
+                return { __REFSTATE_PLACEHOLDER__: id };
+              }
+            }
+          }
         }
         return val;
       });
     };
     const jsonString = circularSafeStringify(value);
-    return JSON.parse(jsonString);
+    const parsed = JSON.parse(jsonString);
+    const restoreRefStates = (obj: any): any => {
+      if (typeof obj !== 'object' || obj === null) return obj;
+      if (obj.__REFSTATE_PLACEHOLDER__ && refStateObjects.has(obj.__REFSTATE_PLACEHOLDER__)) {
+        return refStateObjects.get(obj.__REFSTATE_PLACEHOLDER__);
+      }
+      if (Array.isArray(obj)) {
+        return obj.map(restoreRefStates);
+      }
+      const result = {} as any;
+      for (const [key, val] of Object.entries(obj)) {
+        result[key] = restoreRefStates(val);
+      }
+      return result;
+    };
+    return restoreRefStates(parsed);
   } catch (jsonError) {
     if (process.env.NODE_ENV === 'development') {
       logger.error('All cloning methods failed, returning original reference', jsonError);
@@ -4342,10 +4993,11 @@ export function verifyImmutability<T>(original: T, cloned: T): boolean {
   return false;
 }
 export function safeGet<T>(value: T, enableCloning: boolean = true): T {
-  if (!enableCloning) {
-    if (process.env.NODE_ENV === 'development') {
-      logger.trace('Cloning disabled, returning original reference');
-    }
+  if (!enableCloning) return value;
+  if (isPrimitive(value)) return value;
+  if (isNonCloneableType(value)) return value;
+  if (typeof value === 'object' && value !== null && 
+      '__contextActionRefState' in value && value.__contextActionRefState === true) {
     return value;
   }
   const cloned = deepClone(value);
@@ -4559,6 +5211,7 @@ export interface StorePerformanceMetrics {
     valueSize?: number;
     listenerCount?: number;
     batchSize?: number;
+    hasError?: boolean;
   };
 }
 export interface PerformanceStats {
@@ -4624,13 +5277,14 @@ class PerformanceMonitor {
     try {
       const result = operation();
       const duration = performance.now() - startTime;
-      this.record({
+      const metrics = {
         operationType,
         storeName,
         duration,
         timestamp: Date.now(),
-        payload
-      });
+        ...(payload && { payload })
+      };
+      this.record(metrics);
       return result;
     } catch (error) {
       const duration = performance.now() - startTime;
@@ -4639,7 +5293,7 @@ class PerformanceMonitor {
         storeName,
         duration,
         timestamp: Date.now(),
-        payload: { ...payload, error: true }
+        payload: { ...payload, hasError: true }
       });
       throw error;
     }
@@ -4696,13 +5350,13 @@ export function measurePerformance<T extends (...args: any[]) => any>(
 ) {
   return function (target: any, propertyName: string, descriptor: TypedPropertyDescriptor<T>) {
     const method = descriptor.value!;
-    descriptor.value = function (...args: any[]) {
+    descriptor.value = function (this: any, ...args: any[]) {
       return performanceMonitor.measure(
         operationType,
         storeName,
         () => method.apply(this, args),
         {
-          listenerCount: (this as any).getListenerCount?.(),
+          listenerCount: this.getListenerCount?.(),
         }
       );
     } as T;
@@ -4962,7 +5616,7 @@ export class SubscriptionManager {
 }
 export function useSubscriptionManager(): SubscriptionManager {
   const { useRef, useEffect } = require('react');
-  const managerRef = useRef<SubscriptionManager | null>(null);
+  const managerRef = useRef(null as SubscriptionManager | null);
   if (!managerRef.current) {
     managerRef.current = new SubscriptionManager();
   }
@@ -5016,6 +5670,214 @@ export const globalSubscriptionTracker = new GlobalSubscriptionTracker();
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
   (window as any).__contextActionSubscriptions = globalSubscriptionTracker;
 }
+```
+
+### stores/utils/sync-external-store-utils.ts
+
+```typescript
+import { useSyncExternalStore, useCallback, useMemo, useRef } from 'react';
+import type { Store } from '../core/Store';
+export interface EnhancedSubscriptionOptions {
+  debounce?: number;
+  throttle?: number;
+  condition?: () => boolean;
+  debug?: boolean;
+  name?: string;
+}
+export function createEnhancedSubscriber<T>(
+  store: Store<T>,
+  options: EnhancedSubscriptionOptions = {}
+) {
+  const { debounce, throttle, condition, debug, name = 'unknown' } = options;
+  return (callback: () => void) => {
+    if (!store) return () => {};
+    let debounceTimer: NodeJS.Timeout | null = null;
+    let throttleTimer: NodeJS.Timeout | null = null;
+    let lastThrottleTime = 0;
+    const enhancedCallback = () => {
+      if (condition && !condition()) {
+        if (debug) {
+          console.debug(`[${name}] Subscription suspended due to condition`);
+        }
+        return;
+      }
+      const now = performance.now();
+      if (throttle && throttle > 0) {
+        if (now - lastThrottleTime < throttle) {
+          if (throttleTimer) clearTimeout(throttleTimer);
+          throttleTimer = setTimeout(() => {
+            lastThrottleTime = performance.now();
+            callback();
+          }, throttle - (now - lastThrottleTime));
+          return;
+        }
+        lastThrottleTime = now;
+      }
+      if (debounce && debounce > 0) {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          callback();
+          if (debug) {
+            console.debug(`[${name}] Debounced callback executed after ${debounce}ms`);
+          }
+        }, debounce);
+        return;
+      }
+      callback();
+    };
+    const unsubscribe = store.subscribe(enhancedCallback);
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      if (throttleTimer) clearTimeout(throttleTimer);
+      unsubscribe();
+    };
+  };
+}
+export function createSnapshotSelector<T, R>(
+  selector?: (value: T) => R
+) {
+  return (store: Store<T> | undefined | null): R | T | undefined => {
+    if (!store) return undefined;
+    const snapshot = store.getSnapshot();
+    return selector ? selector(snapshot.value) : snapshot.value;
+  };
+}
+export function useSafeStoreSubscription<T, R = T>(
+  store: Store<T> | undefined | null,
+  selector?: (value: T) => R,
+  options: EnhancedSubscriptionOptions & {
+    equalityFn?: (a: R, b: R) => boolean;
+    initialValue?: R;
+  } = {}
+): R | T | undefined {
+  const { initialValue, equalityFn, ...subscriptionOptions } = options;
+  const subscribe = useCallback((callback: () => void) => {
+    if (!store) return () => {};
+    if (subscriptionOptions.debounce || subscriptionOptions.throttle || subscriptionOptions.condition) {
+      return createEnhancedSubscriber(store, subscriptionOptions)(callback);
+    }
+    return store.subscribe(callback);
+  }, [store, subscriptionOptions]);
+  const getSnapshot = useCallback((): R | T | undefined => {
+    if (!store) return initialValue;
+    const snapshot = store.getSnapshot();
+    const value = selector ? selector(snapshot.value) : snapshot.value;
+    return value as R | T;
+  }, [store, selector, initialValue]);
+  const cachedSnapshotRef = useRef<R | T | undefined>();
+  const stableGetSnapshot = useCallback((): R | T | undefined => {
+    const currentSnapshot = getSnapshot();
+    if (equalityFn && cachedSnapshotRef.current !== undefined) {
+      if (equalityFn(cachedSnapshotRef.current as R, currentSnapshot as R)) {
+        return cachedSnapshotRef.current;
+      }
+    }
+    cachedSnapshotRef.current = currentSnapshot;
+    return currentSnapshot;
+  }, [getSnapshot, equalityFn]);
+  const getServerSnapshot = useCallback((): R | T | undefined => {
+    return initialValue;
+  }, [initialValue]);
+  const currentValue = useSyncExternalStore(
+    subscribe,
+    equalityFn ? stableGetSnapshot : getSnapshot,
+    getServerSnapshot
+  );
+  return currentValue;
+}
+export function useConditionalStoreSubscription<T>(
+  store: Store<T> | undefined | null,
+  condition: boolean,
+  initialValue?: T
+): T | undefined {
+  const subscribe = useCallback((callback: () => void) => {
+    if (!store || !condition) return () => {};
+    return store.subscribe(callback);
+  }, [store, condition]);
+  const getSnapshot = useCallback((): T | undefined => {
+    if (!store || !condition) return initialValue;
+    return store.getSnapshot().value;
+  }, [store, condition, initialValue]);
+  const getServerSnapshot = useCallback((): T | undefined => {
+    return initialValue;
+  }, [initialValue]);
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
+export function useMultiStoreSubscription<T extends readonly Store<any>[], R>(
+  stores: T,
+  selector: (values: { [K in keyof T]: T[K] extends Store<infer U> ? U : never }) => R,
+  equalityFn?: (a: R, b: R) => boolean
+): R {
+  const subscribe = useCallback((callback: () => void) => {
+    const unsubscribes = stores.map(store => store.subscribe(callback));
+    return () => unsubscribes.forEach(unsub => unsub());
+  }, [stores]);
+  const getSnapshot = useCallback((): R => {
+    const values = stores.map(store => store.getSnapshot().value) as any;
+    return selector(values);
+  }, [stores, selector]);
+  const previousValueRef = useRef<R>();
+  const currentValue = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  return useMemo(() => {
+    if (equalityFn && previousValueRef.current !== undefined) {
+      if (equalityFn(previousValueRef.current, currentValue)) {
+        return previousValueRef.current;
+      }
+    }
+    previousValueRef.current = currentValue;
+    return currentValue;
+  }, [currentValue, equalityFn]);
+}
+export const equalityFunctions = {
+  reference: <T>(a: T, b: T): boolean => Object.is(a, b),
+  shallow: <T>(a: T, b: T): boolean => {
+    if (Object.is(a, b)) return true;
+    if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
+      return false;
+    }
+    const keysA = Object.keys(a) as Array<keyof T>;
+    const keysB = Object.keys(b) as Array<keyof T>;
+    if (keysA.length !== keysB.length) return false;
+    for (const key of keysA) {
+      if (!Object.prototype.hasOwnProperty.call(b, key) || !Object.is(a[key], b[key])) {
+        return false;
+      }
+    }
+    return true;
+  },
+  deep: <T>(a: T, b: T): boolean => {
+    if (Object.is(a, b)) return true;
+    if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
+      return false;
+    }
+    if (Array.isArray(a) !== Array.isArray(b)) return false;
+    const keysA = Object.keys(a) as Array<keyof T>;
+    const keysB = Object.keys(b) as Array<keyof T>;
+    if (keysA.length !== keysB.length) return false;
+    for (const key of keysA) {
+      if (!Object.prototype.hasOwnProperty.call(b, key)) return false;
+      if (!equalityFunctions.deep(a[key], b[key])) return false;
+    }
+    return true;
+  },
+  smart: <T>(a: T, b: T): boolean => {
+    if (Object.is(a, b)) return true;
+    if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) {
+      return false;
+    }
+    if (Array.isArray(a) && Array.isArray(b)) {
+      if (a.length !== b.length) return false;
+      return a.every((item, index) => {
+        const bItem = b[index];
+        if (typeof item === 'object' && item !== null && typeof bItem === 'object' && bItem !== null) {
+          return equalityFunctions.shallow(item, bItem);
+        }
+        return Object.is(item, bItem);
+      });
+    }
+    return equalityFunctions.shallow(a, b);
+  }
+};
 ```
 
 ### stores/utils/type-guards.ts

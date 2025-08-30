@@ -285,12 +285,22 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
           }
         };
       } else {
-        // Default mode: reject duplicate (backward compatibility)
-        this.log(`Handler duplicate ignored: ${String(action)}`, {
+        // Default mode: reject duplicate, but return proper unregister for existing handler
+        const existing = pipeline[existingIndex];
+        this.log(`Handler duplicate ignored, returning existing unregister: ${String(action)}`, {
           handlerId,
           note: 'Use replaceExisting:true to replace'
         }, 'warn');
-        return () => {}; // No-op unregister
+        
+        // Return unregister function for the existing handler
+        return () => {
+          const idx = pipeline.findIndex(reg => reg.id === handlerId);
+          if (idx !== -1) {
+            pipeline.splice(idx, 1);
+            this.invalidateFilterCache();
+            this.log(`Existing handler unregistered: ${String(action)}`, { handlerId });
+          }
+        };
       }
     }
     
@@ -310,7 +320,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     });
     
     // 🔍 추가 디버그: 등록 즉시 파이프라인 상태 출력
-    console.log(`🔍 [DEBUG] Action '${String(action)}' pipeline after registration:`, {
+    this.log(`Action '${String(action)}' pipeline after registration`, {
       totalHandlers: pipeline.length,
       handlers: pipeline.map(h => ({ id: h.config.id, priority: h.config.priority })),
       pipelineExists: this.pipelines.has(action),
@@ -374,7 +384,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     options?: DispatchOptions
   ): Promise<void> {
     // 🔍 디스패치 시작 디버그
-    console.log(`🚀 [DEBUG] Starting dispatch for action '${String(action)}':`, {
+    this.log(`Starting dispatch for action '${String(action)}'`, {
       hasPayload: payload !== undefined,
       payloadType: payload?.constructor?.name || typeof payload,
       options: options ? Object.keys(options) : 'none',
@@ -395,14 +405,14 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     
     // Check if dispatch is aborted before starting
     if (effectiveSignal?.aborted) {
-      console.log(`🚫 [DEBUG] Dispatch aborted before execution for '${String(action)}'`);
+      this.log(`Dispatch aborted before execution for '${String(action)}'`);
       return;
     }
     
     const pipeline = this.pipelines.get(action);
     
     // 🔍 파이프라인 존재 여부 디버그
-    console.log(`🔍 [DEBUG] Pipeline lookup for '${String(action)}':`, {
+    this.log(`Pipeline lookup for '${String(action)}'`, {
       pipelineExists: Boolean(pipeline),
       handlersCount: pipeline?.length || 0,
       allRegisteredActions: Array.from(this.pipelines.keys()),
@@ -410,7 +420,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     });
     
     if (!pipeline || pipeline.length === 0) {
-      console.log(`⚠️ [DEBUG] No handlers found for action '${String(action)}', dispatch cancelled`);
+      this.log(`No handlers found for action '${String(action)}', dispatch cancelled`, {}, 'warn');
       return;
     }
 

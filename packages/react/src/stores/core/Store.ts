@@ -48,6 +48,11 @@ export class Store<T = unknown> implements IStore<T> {
   protected _value: T;
   // Immutable snapshot - Compatible with React's useSyncExternalStore
   protected _snapshot: Snapshot<T>;
+  
+  // Copy-on-Write optimization
+  private _lastClonedValue: T | null = null;
+  private _lastClonedVersion = 0;
+  private _version = 0;
 
   // State for concurrency protection
   private isUpdating = false;
@@ -172,8 +177,20 @@ export class Store<T = unknown> implements IStore<T> {
    * 보안 강화: 외부에서 반환된 값을 수정해도 Store 내부 상태는 보호됨
    */
   getValue(): T {
-    // 최적화된 불변성 보장 with optional cloning
-    return safeGet(this._value, this.cloningEnabled);
+    // Copy-on-Write optimization: reuse cloned value if version hasn't changed
+    if (this.cloningEnabled) {
+      if (this._lastClonedVersion === this._version && this._lastClonedValue !== null) {
+        return this._lastClonedValue;
+      }
+      
+      // Clone and cache for future reads
+      this._lastClonedValue = safeGet(this._value, this.cloningEnabled);
+      this._lastClonedVersion = this._version;
+      return this._lastClonedValue;
+    }
+    
+    // Direct return when cloning disabled
+    return this._value;
   }
 
   /**
@@ -260,15 +277,14 @@ export class Store<T = unknown> implements IStore<T> {
     }
     
     if (hasChanged) {
-      // Structural sharing 최적화: 실제로 변경된 경우에만 새 값 할당
-      if (!this._structuralCompare(this._value, safeValue)) {
-        this._value = safeValue;
-        // 새 스냅샷 생성 - 불변성 보장
-        this._snapshot = this._createSnapshot();
-        
-        // 듀얼 모드 알림 시스템
-        this._scheduleNotification();
-      }
+      this._value = safeValue;
+      // Increment version for Copy-on-Write cache invalidation
+      this._version++;
+      // 새 스냅샷 생성 - 불변성 보장
+      this._snapshot = this._createSnapshot();
+      
+      // 듀얼 모드 알림 시스템
+      this._scheduleNotification();
     }
   }
 
@@ -517,57 +533,6 @@ export class Store<T = unknown> implements IStore<T> {
     return this._value;
   }
 
-  /**
-   * Structural sharing을 위한 shallow 비교
-   * 객체의 참조가 동일한지 빠르게 확인하여 성능 최적화
-   * 
-   * @param oldValue - 이전 값
-   * @param newValue - 새로운 값  
-   * @returns true if structurally same, false if different
-   * @private
-   */
-  private _structuralCompare(oldValue: T, newValue: T): boolean {
-    // 참조가 동일하면 structural sharing 가능
-    if (Object.is(oldValue, newValue)) {
-      return true;
-    }
-    
-    // 원시값이면 이미 위에서 비교됨
-    if (typeof oldValue !== 'object' || typeof newValue !== 'object') {
-      return false;
-    }
-    
-    // null 체크
-    if (oldValue === null || newValue === null) {
-      return oldValue === newValue;
-    }
-    
-    // 배열의 경우 간단한 shallow 비교
-    if (Array.isArray(oldValue) && Array.isArray(newValue)) {
-      if (oldValue.length !== newValue.length) return false;
-      for (let i = 0; i < oldValue.length; i++) {
-        if (!Object.is(oldValue[i], newValue[i])) return false;
-      }
-      return true;
-    }
-    
-    // 객체의 경우 간단한 shallow 비교
-    const oldKeys = Object.keys(oldValue);
-    const newKeys = Object.keys(newValue);
-    
-    if (oldKeys.length !== newKeys.length) return false;
-    
-    for (const key of oldKeys) {
-      if (!newKeys.includes(key) || !Object.is(
-        (oldValue as Record<string, unknown>)[key], 
-        (newValue as Record<string, unknown>)[key]
-      )) {
-        return false;
-      }
-    }
-    
-    return true;
-  }
 
   /**
    * 강화된 값 비교 시스템

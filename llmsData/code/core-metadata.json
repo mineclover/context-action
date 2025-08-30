@@ -1,13 +1,13 @@
 {
   "package": "core",
-  "generatedAt": "2025-08-28T02:00:18.838Z",
+  "generatedAt": "2025-08-30T00:00:19.301Z",
   "statistics": {
     "totalFiles": 8,
     "typeFiles": 1,
     "codeFiles": 7,
-    "totalLines": 1651,
+    "totalLines": 1717,
     "typeLines": 189,
-    "codeLines": 1462
+    "codeLines": 1528
   },
   "files": [
     {
@@ -18,12 +18,12 @@
     {
       "path": "action-guard.ts",
       "isType": false,
-      "lines": 148
+      "lines": 156
     },
     {
       "path": "ActionRegister.ts",
       "isType": false,
-      "lines": 799
+      "lines": 853
     },
     {
       "path": "concurrency/index.ts",
@@ -33,12 +33,12 @@
     {
       "path": "concurrency/OperationQueue.ts",
       "isType": false,
-      "lines": 116
+      "lines": 117
     },
     {
       "path": "execution-modes.ts",
       "isType": false,
-      "lines": 198
+      "lines": 201
     },
     {
       "path": "index.ts",

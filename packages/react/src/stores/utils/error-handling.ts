@@ -292,38 +292,50 @@ export const ErrorHandlers = {
   /**
    * Store 관련 에러 처리
    */
-  store: (message: string, context?: Record<string, unknown>, originalError?: Error) =>
-    handleError(ContextActionErrorType.STORE_ERROR, message, context, originalError),
+  store: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
+    const enhancedMessage = `[Store Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
+    return handleError(ContextActionErrorType.STORE_ERROR, enhancedMessage, context, originalError);
+  },
   
   /**
    * Action 관련 에러 처리
    */
-  action: (message: string, context?: Record<string, unknown>, originalError?: Error) =>
-    handleError(ContextActionErrorType.ACTION_ERROR, message, context, originalError),
+  action: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
+    const enhancedMessage = `[Action Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
+    return handleError(ContextActionErrorType.ACTION_ERROR, enhancedMessage, context, originalError);
+  },
   
   /**
    * Ref 관련 에러 처리
    */
-  ref: (message: string, context?: Record<string, unknown>, originalError?: Error) =>
-    handleError(ContextActionErrorType.REF_ERROR, message, context, originalError),
+  ref: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
+    const enhancedMessage = `[Ref Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
+    return handleError(ContextActionErrorType.REF_ERROR, enhancedMessage, context, originalError);
+  },
   
   /**
    * 검증 관련 에러 처리
    */
-  validation: (message: string, context?: Record<string, unknown>, originalError?: Error) =>
-    handleError(ContextActionErrorType.VALIDATION_ERROR, message, context, originalError),
+  validation: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
+    const enhancedMessage = `[Validation Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
+    return handleError(ContextActionErrorType.VALIDATION_ERROR, enhancedMessage, context, originalError);
+  },
   
   /**
    * 초기화 관련 에러 처리
    */
-  initialization: (message: string, context?: Record<string, unknown>, originalError?: Error) =>
-    handleError(ContextActionErrorType.INITIALIZATION_ERROR, message, context, originalError),
+  initialization: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
+    const enhancedMessage = `[Initialization Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
+    return handleError(ContextActionErrorType.INITIALIZATION_ERROR, enhancedMessage, context, originalError);
+  },
   
   /**
    * 타임아웃 관련 에러 처리
    */
-  timeout: (message: string, context?: Record<string, unknown>, originalError?: Error) =>
-    handleError(ContextActionErrorType.TIMEOUT_ERROR, message, context, originalError),
+  timeout: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
+    const enhancedMessage = `[Timeout Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
+    return handleError(ContextActionErrorType.TIMEOUT_ERROR, enhancedMessage, context, originalError);
+  },
   
   /**
    * 순환 참조 관련 에러 처리

@@ -402,10 +402,17 @@ export function verifyImmutability<T>(original: T, cloned: T): boolean {
  * @returns 불변성이 보장된 값
  */
 export function safeGet<T>(value: T, enableCloning: boolean = true): T {
-  if (!enableCloning) {
-    if (process.env.NODE_ENV === 'development') {
-      logger.trace('Cloning disabled, returning original reference');
-    }
+  if (!enableCloning) return value;
+  
+  // Fast path: primitive types don't need cloning
+  if (isPrimitive(value)) return value;
+  
+  // Fast path: non-cloneable types
+  if (isNonCloneableType(value)) return value;
+  
+  // Fast path: RefState objects
+  if (typeof value === 'object' && value !== null && 
+      '__contextActionRefState' in value && value.__contextActionRefState === true) {
     return value;
   }
 

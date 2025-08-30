@@ -261,27 +261,27 @@ export class ActionGuard {
    * @internal
    */
   clearGuards(actionKey: string): void {
-    
     const state = this.guards.get(actionKey);
     if (state) {
-      /** Clear debounce timer if active to prevent memory leaks */
+      // Clear debounce timer and cancel pending promises to prevent memory leaks
       if (state.debounceTimer) {
         clearTimeout(state.debounceTimer);
-        // Cancel waiting debounce calls
         if (state.debounceResolve) {
           state.debounceResolve(false);
-          state.debounceResolve = undefined as ((value: boolean) => void) | undefined;
+          state.debounceResolve = undefined;
         }
         state.debounceTimer = undefined;
       }
-      /** Clear throttle timer if active to prevent memory leaks */
+      
+      // Clear throttle timer to prevent memory leaks
       if (state.throttleTimer) {
         clearTimeout(state.throttleTimer);
-        state.throttleTimer = undefined as NodeJS.Timeout | undefined;
+        state.throttleTimer = undefined;
       }
-      /** Remove guard state from memory */
-      this.guards.delete(actionKey);
       
+      
+      // Remove guard state from memory
+      this.guards.delete(actionKey);
     }
   }
 

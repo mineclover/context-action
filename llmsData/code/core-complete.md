@@ -1,7 +1,7 @@
 # Context-Action Core Package - Complete Code
 
 Total Files: 8
-Total Lines: 1651
+Total Lines: 1717
 
 ## Type Definitions
 
@@ -47,13 +47,13 @@ export interface PipelineContext<T = any, R = void> {
   payload: T;
   handlers: HandlerRegistration<T, R>[];
   aborted: boolean;
-  abortReason?: string;
+  abortReason: string | undefined;
   currentIndex: number;
-  jumpToPriority?: number;
+  jumpToPriority: number | undefined;
   executionMode: ExecutionMode;
   results: R[];
   terminated: boolean;
-  terminationResult?: R;
+  terminationResult: R | undefined;
 }
 export interface ActionRegisterConfig {
   name?: string;
@@ -103,9 +103,9 @@ export interface DispatchOptions {
 export interface ExecutionResult<R = void> {
   success: boolean;
   aborted: boolean;
-  abortReason?: string;
+  abortReason: string | undefined;
   terminated: boolean;
-  result?: R;
+  result: R | undefined;
   successResults: R[];
   results: Array<R | undefined>;
   failedResults: Array<{
@@ -124,10 +124,10 @@ export interface ExecutionResult<R = void> {
   handlers: Array<{
     id: string;
     executed: boolean;
-    duration?: number;
-    result?: R;
-    error?: Error;
-    metadata?: Record<string, any>;
+    duration: number | undefined;
+    result: R | undefined;
+    error: Error | undefined;
+    metadata: Record<string, any> | undefined;
   }>;
   errors: HandlerError[];
 }
@@ -206,15 +206,15 @@ export interface ActionHandlerStats<T extends ActionPayloadMap> {
 ```typescript
 interface GuardState {
   lastExecuted: number;
-  debounceTimer?: NodeJS.Timeout;
-  throttleTimer?: NodeJS.Timeout;
+  debounceTimer: NodeJS.Timeout | undefined;
+  throttleTimer: NodeJS.Timeout | undefined;
   isThrottled: boolean;
-  debouncePromise?: Promise<boolean>;
-  debounceResolve?: (value: boolean) => void;
+  debouncePromise: Promise<boolean> | undefined;
+  debounceResolve: ((value: boolean) => void) | undefined;
 }
 export class ActionGuard {
   private guards = new Map<string, GuardState>();
-  private cleanupInterval?: NodeJS.Timeout;
+  private cleanupInterval: NodeJS.Timeout | undefined;
   private readonly maxIdleTime: number = 60000; 
   private readonly cleanupIntervalMs: number = 30000; 
   constructor(autoCleanup: boolean = true) {
@@ -246,7 +246,11 @@ export class ActionGuard {
     if (!state) {
       state = {
         lastExecuted: 0,
-        isThrottled: false
+        isThrottled: false,
+        debounceTimer: undefined as NodeJS.Timeout | undefined,
+        throttleTimer: undefined as NodeJS.Timeout | undefined,
+        debouncePromise: undefined as Promise<boolean> | undefined,
+        debounceResolve: undefined as ((value: boolean) => void) | undefined,
       };
       this.guards.set(actionKey, state);
     }
@@ -254,14 +258,14 @@ export class ActionGuard {
       clearTimeout(state.debounceTimer);
       if (state.debounceResolve) {
         state.debounceResolve(false);
-        state.debounceResolve = undefined;
+        state.debounceResolve = undefined as ((value: boolean) => void) | undefined;
       }
     }
     return new Promise<boolean>((resolve) => {
       state!.debounceResolve = resolve;
       state!.debounceTimer = setTimeout(() => {
-        state!.debounceTimer = undefined;
-        state!.debounceResolve = undefined;
+        state!.debounceTimer = undefined as NodeJS.Timeout | undefined;
+        state!.debounceResolve = undefined as ((value: boolean) => void) | undefined;
         state!.lastExecuted = Date.now();
         resolve(true);
       }, debounceMs);
@@ -272,7 +276,11 @@ export class ActionGuard {
     if (!state) {
       state = {
         lastExecuted: 0,
-        isThrottled: false
+        isThrottled: false,
+        debounceTimer: undefined as NodeJS.Timeout | undefined,
+        throttleTimer: undefined as NodeJS.Timeout | undefined,
+        debouncePromise: undefined as Promise<boolean> | undefined,
+        debounceResolve: undefined as ((value: boolean) => void) | undefined,
       };
       this.guards.set(actionKey, state);
     }
@@ -290,7 +298,7 @@ export class ActionGuard {
     const remainingTime = throttleMs - timeSinceLastExecution;
     state.throttleTimer = setTimeout(() => {
       state!.isThrottled = false;
-      state!.throttleTimer = undefined;
+      state!.throttleTimer = undefined as NodeJS.Timeout | undefined;
     }, remainingTime);
     return false;
   }
@@ -335,7 +343,7 @@ export class ActionGuard {
   destroy(): void {
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
-      this.cleanupInterval = undefined;
+      this.cleanupInterval = undefined as NodeJS.Timeout | undefined;
     }
     this.clearAll();
   }
@@ -370,6 +378,7 @@ import {
   ExecutionResult,
   ActionRegistryInfo,
   ActionHandlerStats,
+  DispatchOptions,
 } from './types.js';
 import { executeSequential, executeParallel, executeRace } from './execution-modes.js';
 import { ActionGuard } from './action-guard.js';
@@ -427,7 +436,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     const uuid = crypto.randomUUID();
     return `${String(action)}_${uuid.slice(0, 8)}`;
   }
-  private createAbortSignal(options?: import('./types.js').DispatchOptions): [
+  private createAbortSignal(options?: DispatchOptions): [
     AbortSignal | undefined, 
     AbortController | undefined, 
     () => void
@@ -531,11 +540,19 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
           }
         };
       } else {
-        this.log(`Handler duplicate ignored: ${String(action)}`, {
+        const existing = pipeline[existingIndex];
+        this.log(`Handler duplicate ignored, returning existing unregister: ${String(action)}`, {
           handlerId,
           note: 'Use replaceExisting:true to replace'
         }, 'warn');
-        return () => {}; 
+        return () => {
+          const idx = pipeline.findIndex(reg => reg.id === handlerId);
+          if (idx !== -1) {
+            pipeline.splice(idx, 1);
+            this.invalidateFilterCache();
+            this.log(`Existing handler unregistered: ${String(action)}`, { handlerId });
+          }
+        };
       }
     }
     pipeline.push(registration);
@@ -545,6 +562,12 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       handlerId,
       priority: config.priority,
       totalHandlers: pipeline.length
+    });
+    this.log(`Action '${String(action)}' pipeline after registration`, {
+      totalHandlers: pipeline.length,
+      handlers: pipeline.map(h => ({ id: h.config.id, priority: h.config.priority })),
+      pipelineExists: this.pipelines.has(action),
+      canDispatch: this.hasHandlers(action)
     });
     return () => {
       const index = pipeline.findIndex((reg) => reg.id === handlerId && reg === registration);
@@ -561,7 +584,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   async dispatch<K extends keyof T>(
     action: K,
     payload?: T[K],
-    options?: import('./types.js').DispatchOptions
+    options?: DispatchOptions
   ): Promise<void> {
     if (options?.immediate || !this.dispatchQueue) {
       return this._performDispatch(action, payload, options);
@@ -574,8 +597,14 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   private async _performDispatch<K extends keyof T>(
     action: K,
     payload?: T[K],
-    options?: import('./types.js').DispatchOptions
+    options?: DispatchOptions
   ): Promise<void> {
+    this.log(`Starting dispatch for action '${String(action)}'`, {
+      hasPayload: payload !== undefined,
+      payloadType: payload?.constructor?.name || typeof payload,
+      options: options ? Object.keys(options) : 'none',
+      timestamp: new Date().toISOString()
+    });
     if (payload instanceof Event && process.env.NODE_ENV === 'development') {
       console.warn(`Event object passed to action "${String(action)}"`, payload.type);
     }
@@ -584,10 +613,18 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       options.autoAbort.onControllerCreated(autoAbortController);
     }
     if (effectiveSignal?.aborted) {
+      this.log(`Dispatch aborted before execution for '${String(action)}'`);
       return;
     }
     const pipeline = this.pipelines.get(action);
+    this.log(`Pipeline lookup for '${String(action)}'`, {
+      pipelineExists: Boolean(pipeline),
+      handlersCount: pipeline?.length || 0,
+      allRegisteredActions: Array.from(this.pipelines.keys()),
+      pipelineMap: Object.fromEntries(Array.from(this.pipelines.entries()).map(([k, v]) => [k, v.length]))
+    });
     if (!pipeline || pipeline.length === 0) {
+      this.log(`No handlers found for action '${String(action)}', dispatch cancelled`, {}, 'warn');
       return;
     }
     const filteredHandlers = options?.filter 
@@ -636,16 +673,14 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       payload: payload as T[K],
       handlers: filteredHandlers, 
       aborted: false,
-      abortReason: undefined,
+      abortReason: undefined as string | undefined,
       currentIndex: 0,
-      jumpToPriority: undefined,
+      jumpToPriority: undefined as number | undefined,
       executionMode: currentExecutionMode,
       results: [],
       terminated: false,
-      terminationResult: undefined,
+      terminationResult: undefined as any,
     };
-    const startTime = Date.now();
-    let executionSuccess = true;
     const abortHandler = effectiveSignal ? () => {
       context.aborted = true;
       context.abortReason = 'Action dispatch aborted by signal';
@@ -658,7 +693,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       this.log(`Pipeline execution succeeded for ${String(action)}`);
     } catch (error) {
       this.log(`Pipeline execution failed for ${String(action)}`, error, 'error');
-      executionSuccess = false;
       throw error;
     } finally {
       cleanup();
@@ -667,9 +701,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   async dispatchWithResult<K extends keyof T, R = void>(
     action: K,
     payload?: T[K],
-    options?: import('./types.js').DispatchOptions
+    options?: DispatchOptions
   ): Promise<ExecutionResult<R>> {
-    const startTime = Date.now();
+    const _startTime = Date.now();
     const [effectiveSignal, autoAbortController, cleanup] = this.createAbortSignal(options);
     if (options?.autoAbort?.onControllerCreated && autoAbortController) {
       options.autoAbort.onControllerCreated(autoAbortController);
@@ -689,8 +723,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
           handlersExecuted: 0,
           handlersSkipped: 0,
           handlersFailed: 0,
-          startTime,
-          endTime: startTime,
+          startTime: _startTime,
+          endTime: _startTime,
         },
         handlers: [],
         errors: [],
@@ -701,6 +735,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       return {
         success: true,
         aborted: false,
+        abortReason: undefined as string | undefined,
         terminated: false,
         result: undefined as any,
         successResults: [] as any,
@@ -711,8 +746,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
           handlersExecuted: 0,
           handlersSkipped: 0,
           handlersFailed: 0,
-          startTime,
-          endTime: startTime,
+          startTime: _startTime,
+          endTime: _startTime,
         },
         handlers: [],
         errors: [],
@@ -757,11 +792,11 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
           results: [],
           failedResults: [],
           execution: {
-            duration: Date.now() - startTime,
+            duration: Date.now() - _startTime,
             handlersExecuted: 0,
             handlersSkipped: pipeline.length,
             handlersFailed: 0,
-            startTime,
+            startTime: _startTime,
             endTime: Date.now(),
           },
           handlers: [],
@@ -782,11 +817,11 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
           results: [],
           failedResults: [],
           execution: {
-            duration: Date.now() - startTime,
+            duration: Date.now() - _startTime,
             handlersExecuted: 0,
             handlersSkipped: pipeline.length,
             handlersFailed: 0,
-            startTime,
+            startTime: _startTime,
             endTime: Date.now(),
           },
           handlers: [],
@@ -802,28 +837,38 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       payload: payload as T[K],
       handlers: filteredHandlers,
       aborted: false,
-      abortReason: undefined,
+      abortReason: undefined as string | undefined,
       currentIndex: 0,
-      jumpToPriority: undefined,
+      jumpToPriority: undefined as number | undefined,
       executionMode: currentExecutionMode,
       results: [],
       terminated: false,
-      terminationResult: undefined,
+      terminationResult: undefined as R | undefined,
     };
     let executionError: Error | undefined;
     const handlerResults: Array<{
       id: string;
       executed: boolean;
-      duration?: number;
-      result?: R;
-      error?: Error;
-      metadata?: Record<string, any>;
+      duration: number | undefined;
+      result: R | undefined;
+      error: Error | undefined;
+      metadata: Record<string, any> | undefined;
     }> = [];
     const errors: Array<{
       handlerId: string;
       error: Error;
       timestamp: number;
     }> = [];
+    filteredHandlers.forEach(handler => {
+      handlerResults.push({
+        id: handler.config.id,
+        executed: false,
+        duration: undefined as number | undefined,
+        result: undefined as R | undefined,
+        error: undefined as Error | undefined,
+        metadata: undefined as Record<string, any> | undefined,
+      });
+    });
     const abortHandler = effectiveSignal ? () => {
       context.aborted = true;
       context.abortReason = 'Action dispatch aborted by signal';
@@ -833,6 +878,15 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     }
     try {
       await this.executePipeline(context, autoAbortController, options?.autoAbort);
+      const executedCount = Math.min(context.currentIndex + (context.aborted ? 0 : 1), filteredHandlers.length);
+      for (let i = 0; i < executedCount; i++) {
+        const handler = filteredHandlers[i];
+        if (!handler) continue;
+        const handlerResult = handlerResults.find(hr => hr.id === handler.config.id);
+        if (handlerResult) {
+          handlerResult.executed = true;
+        }
+      }
     } catch (error) {
       executionError = error instanceof Error ? error : new Error(String(error));
       errors.push({
@@ -840,17 +894,25 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         error: executionError,
         timestamp: Date.now(),
       });
+      const executedCount = Math.min(context.currentIndex + 1, filteredHandlers.length);
+      for (let i = 0; i < executedCount; i++) {
+        const handler = filteredHandlers[i];
+        if (!handler) continue;
+        const handlerResult = handlerResults.find(hr => hr.id === handler.config.id);
+        if (handlerResult) {
+          handlerResult.executed = true;
+        }
+      }
     } finally {
       cleanup();
     }
     const endTime = Date.now();
-    const executionSuccess = !executionError && !context.aborted;
     const processedResult = this.processResults(context, options?.result);
     const successResults = context.results.filter((result): result is R => result !== undefined);
     const failedResults = errors.map(err => ({
       handlerId: err.handlerId,
       error: err.error,
-      expectedType: typeof processedResult || 'unknown'
+      expectedType: typeof processedResult
     }));
     const executionResult: ExecutionResult<R> = {
       success: !executionError && !context.aborted,
@@ -862,14 +924,14 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       results: context.results,
       failedResults,
       execution: {
-        duration: endTime - startTime,
+        duration: endTime - _startTime,
         handlersExecuted: context.currentIndex + (context.aborted ? 0 : 1),
         handlersSkipped: Math.max(0, filteredHandlers.length - (context.currentIndex + 1)),
         handlersFailed: errors.length,
-        startTime,
+        startTime: _startTime,
         endTime,
       },
-      handlers: handlerResults as any, 
+      handlers: handlerResults,
       errors: errors.map(err => ({
         handlerId: err.handlerId,
         error: err.error,
@@ -880,7 +942,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     this.cleanupOneTimeHandlers(action, context.handlers);
     return executionResult;
   }
-  private generateFilterCacheKey(filterOptions?: import('./types.js').DispatchOptions['filter']): string {
+  private generateFilterCacheKey(filterOptions?: DispatchOptions['filter']): string {
     if (!filterOptions) {
       return 'no-filter';
     }
@@ -896,9 +958,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   private invalidateFilterCache(): void {
     this.filterCache.clear();
   }
-  private filterHandlers<K extends keyof T>(
+  private filterHandlers(
     handlers: HandlerRegistration<any, any>[],
-    filterOptions?: import('./types.js').DispatchOptions['filter']
+    filterOptions?: DispatchOptions['filter']
   ): HandlerRegistration<any, any>[] {
     if (!filterOptions) {
       return handlers;
@@ -948,7 +1010,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   }
   private processResults<R>(
     context: PipelineContext<any, R>,
-    resultOptions?: import('./types.js').DispatchOptions['result']
+    resultOptions?: DispatchOptions['result']
   ): R | undefined {
     if (!resultOptions || !resultOptions.collect) {
       return undefined;
@@ -1201,7 +1263,8 @@ export class OperationQueue {
       };
       let insertIndex = this.queue.length;
       for (let i = 0; i < this.queue.length; i++) {
-        if ((this.queue[i].priority || 0) < priority) {
+        const item = this.queue[i];
+        if (item && (item.priority || 0) < priority) {
           insertIndex = i;
           break;
         }
@@ -1319,6 +1382,9 @@ export async function executeSequential<T, R = void>(
       break;
     }
     const registration = context.handlers[i];
+    if (!registration) {
+      continue; 
+    }
     context.currentIndex = i;
     const controller = createController(registration, i);
     try {
@@ -1427,7 +1493,7 @@ export async function executeParallel<T, R = void>(
   const failures = results.filter((result, index) => {
     if (result.status === 'rejected') {
       const registration = runnableHandlers[index];
-      return registration.config.blocking;
+      return registration?.config.blocking ?? false;
     }
     return false;
   });
@@ -1659,13 +1725,13 @@ export const ReactDevUtils = {
 export class ReactActionError extends Error {
   public readonly action: string;
   public readonly payload?: any;
-  public readonly handlerId?: string;
+  public readonly handlerId: string | undefined;
   public readonly timestamp: number;
   constructor(
     message: string,
     action: string,
     payload?: any,
-    handlerId?: string,
+    handlerId: string | undefined = undefined,
     originalError?: Error
   ) {
     super(message);

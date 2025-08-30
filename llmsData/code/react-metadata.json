@@ -1,13 +1,13 @@
 {
   "package": "react",
-  "generatedAt": "2025-08-28T02:00:18.865Z",
+  "generatedAt": "2025-08-30T00:00:19.307Z",
   "statistics": {
-    "totalFiles": 45,
+    "totalFiles": 48,
     "typeFiles": 3,
-    "codeFiles": 42,
-    "totalLines": 5167,
-    "typeLines": 175,
-    "codeLines": 4992
+    "codeFiles": 45,
+    "totalLines": 6014,
+    "typeLines": 291,
+    "codeLines": 5723
   },
   "files": [
     {
@@ -23,12 +23,12 @@
     {
       "path": "stores/core/types.ts",
       "isType": true,
-      "lines": 64
+      "lines": 180
     },
     {
       "path": "actions/ActionContext.tsx",
       "isType": false,
-      "lines": 224
+      "lines": 254
     },
     {
       "path": "actions/index.ts",
@@ -53,7 +53,7 @@
     {
       "path": "index.ts",
       "isType": false,
-      "lines": 23
+      "lines": 27
     },
     {
       "path": "patterns/index.ts",
@@ -68,7 +68,7 @@
     {
       "path": "refs/createRefContext.ts",
       "isType": false,
-      "lines": 318
+      "lines": 358
     },
     {
       "path": "refs/helpers.ts",
@@ -78,12 +78,17 @@
     {
       "path": "refs/hooks/index.ts",
       "isType": false,
-      "lines": 3
+      "lines": 4
     },
     {
       "path": "refs/hooks/useRefMount.ts",
       "isType": false,
       "lines": 81
+    },
+    {
+      "path": "refs/hooks/useRefMountState.ts",
+      "isType": false,
+      "lines": 73
     },
     {
       "path": "refs/hooks/useRefOperation.ts",
@@ -108,12 +113,12 @@
     {
       "path": "stores/components/StoreErrorBoundary.tsx",
       "isType": false,
-      "lines": 256
+      "lines": 258
     },
     {
       "path": "stores/core/EventBus.ts",
       "isType": false,
-      "lines": 153
+      "lines": 148
     },
     {
       "path": "stores/core/index.ts",
@@ -123,7 +128,7 @@
     {
       "path": "stores/core/Store.ts",
       "isType": false,
-      "lines": 395
+      "lines": 459
     },
     {
       "path": "stores/core/StoreRegistry.ts",
@@ -133,7 +138,7 @@
     {
       "path": "stores/hooks/index.ts",
       "isType": false,
-      "lines": 18
+      "lines": 35
     },
     {
       "path": "stores/hooks/useComputedStore.ts",
@@ -146,6 +151,11 @@
       "lines": 19
     },
     {
+      "path": "stores/hooks/useOptimizedStoreValue.ts",
+      "isType": false,
+      "lines": 277
+    },
+    {
       "path": "stores/hooks/usePersistedStore.ts",
       "isType": false,
       "lines": 60
@@ -153,12 +163,12 @@
     {
       "path": "stores/hooks/useStoreSelector.ts",
       "isType": false,
-      "lines": 189
+      "lines": 92
     },
     {
       "path": "stores/hooks/useStoreValue.ts",
       "isType": false,
-      "lines": 235
+      "lines": 134
     },
     {
       "path": "stores/index.ts",
@@ -168,7 +178,7 @@
     {
       "path": "stores/patterns/declarative-store-pattern-v2.tsx",
       "isType": false,
-      "lines": 215
+      "lines": 218
     },
     {
       "path": "stores/patterns/index.ts",
@@ -178,17 +188,17 @@
     {
       "path": "stores/utils/comparison.ts",
       "isType": false,
-      "lines": 300
+      "lines": 430
     },
     {
       "path": "stores/utils/error-handling.ts",
       "isType": false,
-      "lines": 258
+      "lines": 273
     },
     {
       "path": "stores/utils/immutable.ts",
       "isType": false,
-      "lines": 318
+      "lines": 391
     },
     {
       "path": "stores/utils/index.ts",
@@ -198,7 +208,7 @@
     {
       "path": "stores/utils/performance-monitor.ts",
       "isType": false,
-      "lines": 161
+      "lines": 163
     },
     {
       "path": "stores/utils/provider-composition.ts",
@@ -219,6 +229,11 @@
       "path": "stores/utils/subscription-manager.ts",
       "isType": false,
       "lines": 202
+    },
+    {
+      "path": "stores/utils/sync-external-store-utils.ts",
+      "isType": false,
+      "lines": 203
     },
     {
       "path": "stores/utils/type-guards.ts",
