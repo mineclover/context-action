@@ -37,5 +37,10 @@
     "description": "Proposed type definitions and store patterns for advanced debugging capabilities in the Context-Action framework.",
     "language": "en",
     "created_at": "2025-08-26T00:34:27.214Z"
+  },
+  "lastUpdated": "2025-08-30T10:41:52.772Z",
+  "source": {
+    "file": "docs/en/guide/patterns/proposals/debug-store-types.md",
+    "lastModified": "2025-08-28T08:44:08.645Z"
   }
 }

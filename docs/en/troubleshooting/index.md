@@ -4,11 +4,18 @@ Comprehensive troubleshooting resources for the Context-Action framework.
 
 ## 🚨 Critical Issues
 
-### [Performance & Infinite Loops](./performance-issues.md)
+### [Infinite Loop Issues](./infinite-loop-issues.md) 🆕
+- ActionLogger + onDataChanged infinite loops
 - Toast system infinite loops
-- Action handler re-registration 
-- Timer cascade problems
-- Memory leak prevention
+- Action handler re-registration loops
+- Timer cascade loops
+- Store update loops
+
+### [Performance Issues](./performance-issues.md)
+- Memory management and optimization
+- Excessive re-renders prevention
+- Bundle size optimization
+- Selective subscription patterns
 
 ### [Action System Issues](./action-issues.md)  
 - Handler state access problems
@@ -32,7 +39,11 @@ Comprehensive troubleshooting resources for the Context-Action framework.
 
 #### App Freezing After Consecutive Actions
 **Symptoms**: App becomes unresponsive after 4-5 rapid actions, continuous HMR updates
-**Quick Fix**: Check `docs/en/troubleshooting/performance-issues.md#toast-infinite-loops`
+**Quick Fix**: Check [infinite-loop-issues.md](./infinite-loop-issues.md) for all infinite loop patterns
+
+#### Circular Logging Dependencies 🆕
+**Symptoms**: Infinite loop when using `actionLogger` in data change handlers
+**Quick Fix**: See [ActionLogger + onDataChanged section](./infinite-loop-issues.md#actionlogger--ondatachanged-infinite-loops) for detailed solution
 
 #### Handlers Using Stale State
 **Symptoms**: Action handlers using outdated component state
@@ -54,6 +65,8 @@ Comprehensive troubleshooting resources for the Context-Action framework.
 2. Never store event objects in stores
 3. Access fresh state with `store.getValue()` in handlers
 4. Clean up resources in useEffect cleanup functions
+5. **Prevent infinite loops** - see [infinite-loop-issues.md](./infinite-loop-issues.md) for complete patterns
+6. Use direct LogMonitor integration over generic `onDataChanged` patterns
 
 ## 📞 Getting Help
 
@@ -66,4 +79,4 @@ For issues not covered in these guides:
 
 ---
 
-*Last updated: August 28, 2025*
+*Last updated: August 30, 2025*

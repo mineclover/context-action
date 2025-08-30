@@ -1,0 +1,15 @@
+{
+  "documentId": "en_guide_memoization-patterns",
+  "title": "Memoization Patterns",
+  "category": "guide",
+  "language": "en",
+  "priority": 0.5,
+  "tags": [
+    "tsx"
+  ],
+  "lastUpdated": "2025-08-30T10:42:01.355Z",
+  "source": {
+    "file": "docs/en/guide/patterns/store/memoization-patterns.md",
+    "lastModified": "2025-08-28T08:44:08.657Z"
+  }
+}

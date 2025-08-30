@@ -31,6 +31,8 @@
 - [IStoreRegistry](interfaces/IStoreRegistry.md)
 - [StoreEventHandler](interfaces/StoreEventHandler.md)
 - [IEventBus](interfaces/IEventBus.md)
+- [StoreContextType](interfaces/StoreContextType.md)
+- [StoreContextReturn](interfaces/StoreContextReturn.md)
 - [StoreConfig](interfaces/StoreConfig.md)
 - [WithProviderConfig](interfaces/WithProviderConfig.md)
 - [ComparisonOptions](interfaces/ComparisonOptions.md)
@@ -85,6 +87,8 @@
 ## Variables
 
 - [globalOperationQueue](variables/globalOperationQueue.md)
+- [useStoreContext](variables/useStoreContext.md)
+- [useStoreRegistry](variables/useStoreRegistry.md)
 
 ## References
 

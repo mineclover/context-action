@@ -1,0 +1,15 @@
+{
+  "documentId": "en_troubleshooting_action-issues",
+  "title": "Action System Issues",
+  "category": "troubleshooting",
+  "language": "en",
+  "priority": 0.5,
+  "tags": [
+    "tsx"
+  ],
+  "lastUpdated": "2025-08-30T10:42:12.252Z",
+  "source": {
+    "file": "docs/en/troubleshooting/action-issues.md",
+    "lastModified": "2025-08-28T08:44:08.666Z"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "documentId": "en_guide_batching-patterns",
+  "title": "Batched Updates",
+  "category": "guide",
+  "language": "en",
+  "priority": 0.5,
+  "tags": [
+    "tsx"
+  ],
+  "lastUpdated": "2025-08-30T10:41:54.617Z",
+  "source": {
+    "file": "docs/en/guide/patterns/store/batching-patterns.md",
+    "lastModified": "2025-08-28T08:44:08.655Z"
+  }
+}

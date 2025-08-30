@@ -41,5 +41,10 @@
     "description": "This document categorizes all available React hooks in the Context-Action framework into **Essential Hooks** (core functionality) and **Utility Hooks** (convenience and optimization).",
     "language": "en",
     "created_at": "2025-08-21T02:13:42.316Z"
+  },
+  "lastUpdated": "2025-08-30T10:42:20.773Z",
+  "source": {
+    "file": "docs/en/concept/hooks-reference.md",
+    "lastModified": "2025-08-28T13:23:34.227Z"
   }
 }

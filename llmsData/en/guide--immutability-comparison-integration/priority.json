@@ -1,0 +1,15 @@
+{
+  "documentId": "en_guide_immutability-comparison-integration",
+  "title": "Immutability and Comparison Integration",
+  "category": "guide",
+  "language": "en",
+  "priority": 0.5,
+  "tags": [
+    "typescript"
+  ],
+  "lastUpdated": "2025-08-30T10:41:58.017Z",
+  "source": {
+    "file": "docs/en/guide/patterns/store/immutability-comparison-integration.md",
+    "lastModified": "2025-08-28T08:44:08.656Z"
+  }
+}

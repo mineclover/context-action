@@ -1,7 +1,7 @@
 # Context-Action Core Package - Complete Code
 
 Total Files: 8
-Total Lines: 1803
+Total Lines: 1805
 
 ## Type Definitions
 
@@ -829,6 +829,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         handlerId: 'pipeline',
         error: executionError,
         timestamp: Date.now(),
+        severity: 'blocking'
       });
       const executedCount = Math.min(context.currentIndex + 1, filteredHandlers.length);
       for (let i = 0; i < executedCount; i++) {
@@ -1462,7 +1463,7 @@ export async function executeSequential<T, R = void>(
 ): Promise<void> {
   let i = 0;
   const nonBlockingPromises: Array<Promise<any>> = [];
-  const errors: Array<{ handlerId: string; error: Error; timestamp: number }> = [];
+  const errors: HandlerError[] = [];
   while (i < context.handlers.length) {
     if (context.aborted || context.terminated) {
       break;
@@ -1497,7 +1498,8 @@ export async function executeSequential<T, R = void>(
               errors.push({
                 handlerId: handlerError.handlerId,
                 error: handlerError.error,
-                timestamp: handlerError.timestamp
+                timestamp: handlerError.timestamp,
+                severity: 'non-blocking'
               });
               return undefined; 
             });

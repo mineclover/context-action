@@ -1,0 +1,15 @@
+{
+  "documentId": "en_troubleshooting_infinite-loop-issues",
+  "title": "Infinite Loop Issues",
+  "category": "troubleshooting",
+  "language": "en",
+  "priority": 0.5,
+  "tags": [
+    "tsx"
+  ],
+  "lastUpdated": "2025-08-30T10:42:12.718Z",
+  "source": {
+    "file": "docs/en/troubleshooting/infinite-loop-issues.md",
+    "lastModified": "2025-08-30T09:37:38.380Z"
+  }
+}

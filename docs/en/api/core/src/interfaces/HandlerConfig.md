@@ -19,10 +19,8 @@ like retries and dependencies.
 ```typescript
 register.register('searchUsers', searchHandler, {
   priority: 100,                    // Execute before lower priority handlers
-  id: 'search-handler',            // Unique identifier
   debounce: 300,                   // Wait 300ms after last call
   throttle: 1000,                  // Limit to once per second
-  replaceExisting: true,           // Replace handler with same ID (great for React HMR)
   tags: ['search', 'user'],        // Categorization tags
   category: 'query',               // Logical grouping
   description: 'Search users by query',
@@ -95,16 +93,6 @@ Whether to wait for async handlers to complete. Default: false
 Defined in: [packages/core/src/types.ts:259](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/types.ts#L259)
 
 Whether this handler should run once and then be removed. Default: false
-
-***
-
-### replaceExisting?
-
-> `optional` **replaceExisting**: `boolean`
-
-Defined in: [packages/core/src/types.ts:262](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/types.ts#L262)
-
-Whether to replace an existing handler with the same ID. Great for React HMR support. Default: false
 
 ***
 

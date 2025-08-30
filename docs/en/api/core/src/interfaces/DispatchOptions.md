@@ -24,25 +24,11 @@ await register.dispatch('searchUsers', { query: 'john' }, {
 ```
 
 ```typescript
-// Filter by specific handler IDs
 await register.dispatch('updateUser', userData, {
   filter: {
-    handlerIds: ['validation', 'business-logic'],  // Only these handlers
-    excludeHandlerIds: ['analytics']                // Skip analytics handler
-  }
-})
-
-// Filter by priority range
-await register.dispatch('secureAction', data, {
-  filter: {
-    priority: { min: 10, max: 50 }  // Only handlers with priority 10-50
-  }
-})
-
-// Custom filtering logic
-await register.dispatch('processData', data, {
-  filter: {
-    custom: (config) => config.blocking === true  // Only blocking handlers
+    tags: ['validation', 'business-logic'],  // Only these tags
+    excludeCategory: 'analytics',            // Skip analytics handlers
+    environment: 'production'                // Production handlers only
   }
 })
 ```
@@ -125,45 +111,13 @@ Timeout for this dispatch in milliseconds
 
 ***
 
-### immediate?
+### retries?
 
-> `optional` **immediate**: `boolean`
+> `optional` **retries**: `number`
 
 Defined in: [packages/core/src/types.ts:553](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/types.ts#L553)
 
-Bypass queue for immediate execution
-
-***
-
-### queuePriority?
-
-> `optional` **queuePriority**: `number`
-
-Defined in: [packages/core/src/types.ts:556](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/types.ts#L556)
-
-Queue priority for this dispatch (higher = executed first)
-
-***
-
-### retryOnError?
-
-> `optional` **retryOnError**: `object`
-
-Defined in: [packages/core/src/types.ts:559](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/types.ts#L559)
-
-Retry configuration for error handling
-
-#### maxAttempts
-
-> **maxAttempts**: `number`
-
-Maximum number of retry attempts
-
-#### delay
-
-> **delay**: `number`
-
-Delay between retries in milliseconds
+Number of retries for this dispatch
 
 ***
 
@@ -211,43 +165,61 @@ Enable pipeline abort trigger from handlers
 
 Defined in: [packages/core/src/types.ts:568](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/types.ts#L568)
 
-Handler filtering options for fine-grained control over which handlers execute
+Handler filtering options
+
+#### tags?
+
+> `optional` **tags**: `string`[]
+
+Only execute handlers with these tags
+
+#### category?
+
+> `optional` **category**: `string`
+
+Only execute handlers in this category
 
 #### handlerIds?
 
 > `optional` **handlerIds**: `string`[]
 
-Only execute handlers with these specific IDs
+Only execute handlers with these IDs
+
+#### excludeTags?
+
+> `optional` **excludeTags**: `string`[]
+
+Exclude handlers with these tags
+
+#### excludeCategory?
+
+> `optional` **excludeCategory**: `string`
+
+Exclude handlers in this category
 
 #### excludeHandlerIds?
 
 > `optional` **excludeHandlerIds**: `string`[]
 
-Exclude handlers with these specific IDs
+Exclude handlers with these IDs
 
-#### priority?
+#### environment?
 
-> `optional` **priority**: `object`
+> `optional` **environment**: `"development"` \| `"production"` \| `"test"`
 
-Filter handlers by priority range
+Only execute handlers matching this environment
 
-##### min?
+#### feature?
 
-> `optional` **min**: `number`
+> `optional` **feature**: `string`
 
-Minimum priority (inclusive)
-
-##### max?
-
-> `optional` **max**: `number`
-
-Maximum priority (inclusive)
+Only execute handlers with this feature flag enabled
 
 #### custom()?
 
 > `optional` **custom**: (`config`) => `boolean`
 
-Custom filter function for complex filtering logic
+Custom filter function
 
 ##### Parameters
 
@@ -255,13 +227,9 @@ Custom filter function for complex filtering logic
 
 `Required`\<[`HandlerConfig`](HandlerConfig.md)\>
 
-Handler configuration object
-
 ##### Returns
 
 `boolean`
-
-`true` if handler should be included, `false` otherwise
 
 ***
 
@@ -271,18 +239,13 @@ Handler configuration object
 
 Defined in: [packages/core/src/types.ts:598](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/types.ts#L598)
 
-Result collection and processing options for aggregating handler results
+Result collection and processing options
 
 #### strategy?
 
 > `optional` **strategy**: `"first"` \| `"last"` \| `"all"` \| `"merge"` \| `"custom"`
 
-How to handle multiple results from handlers:
-- `first`: Return only the first handler result  
-- `last`: Return only the last handler result
-- `all`: Return all handler results in execution order
-- `merge`: Merge results using the `merger` function
-- `custom`: Use custom `merger` function for processing
+How to handle multiple results
 
 #### merger()?
 
@@ -294,7 +257,7 @@ Custom result merger function (used with 'merge' or 'custom' strategy)
 
 ###### R
 
-Result type
+Type parameter **R**
 
 ##### Parameters
 
@@ -302,28 +265,24 @@ Result type
 
 (`undefined` \| `R`)[]
 
-Array of results from handlers (may include undefined)
-
 ##### Returns
 
 Type parameter **R**
-
-Merged result
 
 #### collect?
 
 > `optional` **collect**: `boolean`
 
-Whether to collect results from all handlers (default: false)
+Whether to collect results from all handlers
+
+#### timeout?
+
+> `optional` **timeout**: `number`
+
+Timeout for result collection
 
 #### maxResults?
 
 > `optional` **maxResults**: `number`
 
-Maximum number of results to collect (for performance optimization)
-
-#### includeErrors?
-
-> `optional` **includeErrors**: `boolean`
-
-Whether to include error information in results (default: false)
+Maximum number of results to collect

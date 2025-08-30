@@ -1,7 +1,7 @@
 # Context-Action React Package - Complete Code
 
 Total Files: 48
-Total Lines: 6018
+Total Lines: 6001
 
 ## Type Definitions
 
@@ -426,57 +426,40 @@ export function createActionContext<T extends {}>(
     config?: HandlerConfig
   ): void => {
     const { actionRegisterRef } = useFactoryActionContext();
-    const unregisterRef = useRef<(() => void) | null>(null);
-    const handlerRef = useRef(handler);
     const actionId = useId();
-    const stableConfig = useMemo((): HandlerConfig => {
-      const baseConfig: HandlerConfig = {
-        priority: config?.priority ?? 0,
-        id: config?.id || `react_${String(action)}_${actionId}`,
-        blocking: config?.blocking ?? false,
-        once: config?.once ?? false,
-        replaceExisting: true
-      };
-      if (config?.debounce !== undefined) {
-        baseConfig.debounce = config.debounce;
-      }
-      if (config?.throttle !== undefined) {
-        baseConfig.throttle = config.throttle;
-      }
-      return baseConfig;
-    }, [
-      config?.priority,
-      config?.id,
-      config?.blocking,
-      config?.once,
-      config?.debounce,
-      config?.throttle,
-      action,
-      actionId
-    ]);
-    useEffect(() => {
-      handlerRef.current = handler;
-    }, [handler]);
-    const stableHandler = useCallback<ActionHandler<T[K]>>(
-      (payload, controller) => handlerRef.current(payload, controller),
-      []
-    );
+    const handlerRef = useRef(handler);
+    handlerRef.current = handler;
+    const priority = config?.priority ?? 0;
+    const id = config?.id || `react_${String(action)}_${actionId}`;
+    const blocking = config?.blocking ?? false;
+    const once = config?.once ?? false;
+    const debounce = config?.debounce;
+    const throttle = config?.throttle;
+    const stableConfig = useMemo((): HandlerConfig => ({
+      priority,
+      id,
+      blocking,
+      once,
+      replaceExisting: true,
+      ...(debounce !== undefined && { debounce }),
+      ...(throttle !== undefined && { throttle })
+    }), [priority, id, blocking, once, debounce, throttle]);
     useEffect(() => {
       const register = actionRegisterRef.current;
       if (!register) return;
-      if (unregisterRef.current) {
-        unregisterRef.current();
-      }
+      const wrapperHandler: ActionHandler<T[K]> = (payload, controller) => {
+        return handlerRef.current(payload, controller);
+      };
       if (process.env.NODE_ENV === 'development') {
         console.log(`Registering handler for '${String(action)}'`);
       }
-      const unregister = register.register(action, stableHandler, stableConfig);
-      unregisterRef.current = unregister;
-      return () => {
-        unregister();
-        unregisterRef.current = null;
-      };
-    }, [action, stableHandler, stableConfig, actionRegisterRef]);
+      const unregister = register.register(action, wrapperHandler, stableConfig);
+      return unregister;
+    }, [
+      action,
+      actionRegisterRef,
+      stableConfig 
+    ]);
   };
   const useFactoryActionRegister = (): ActionRegister<T> | null => {
     const context = useFactoryActionContext();
@@ -908,7 +891,7 @@ export { useStoreSelector } from './stores/hooks/useStoreSelector';
 export type { IStore, Snapshot } from './stores/core/types';
 export { StoreErrorBoundary } from './stores/components/StoreErrorBoundary';
 export type { StoreErrorBoundaryProps } from './stores/components/StoreErrorBoundary';
-export { createStoreContext } from './stores/patterns/declarative-store-pattern-v2';
+export { createStoreContext, StoreManager } from './stores/patterns/declarative-store-pattern-v2';
 export type { InitialStores, StoreConfig } from './stores/patterns/declarative-store-pattern-v2';
 export { createRefContext } from './refs/createRefContext';
 export type { RefContextReturn, CreateRefContextOptions } from './refs/createRefContext';
@@ -3836,7 +3819,7 @@ export type InferStoreTypes<T extends StoreDefinitions> = {
         : T[K];  
 };
 export type StoreSchema<T extends Record<string, any>> = InitialStores<T>;
-class StoreManager<T extends Record<string, any>> {
+export class StoreManager<T extends Record<string, any>> {
   public readonly registry: StoreRegistry;
   public readonly initialStores: InitialStores<T>;
   public readonly stores = new Map<keyof T, Store<any>>();

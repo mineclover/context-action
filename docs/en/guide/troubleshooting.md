@@ -88,7 +88,11 @@ ErrorHandlers.store('Error in event handler', {
 
 ## 🚨 Critical Performance Issues
 
-### Infinite Loop Prevention
+For detailed troubleshooting guides, see:
+- [Infinite Loop Issues](/troubleshooting/infinite-loop-issues.md) - Comprehensive guide for all infinite loop patterns (NEW)
+- [Performance Issues](/troubleshooting/performance-issues.md) - Memory management, re-renders, and optimization
+
+### Quick Reference: Infinite Loop Prevention
 
 #### Toast System Infinite Loops
 **Issue**: Application freezes when toast limit is reached, causing infinite HMR updates.
@@ -378,6 +382,8 @@ console.log('Recent events:', eventBus.getHistory());
 3. **Access fresh state** with `store.getValue()` in handlers
 4. **Handle async errors** with try-catch blocks
 5. **Clean up resources** in useEffect cleanup functions
+6. **Avoid circular logging dependencies** - Don't use `actionLogger` in data change handlers that could trigger more actions
+7. **Use direct LogMonitor integration** instead of generic `onDataChanged` patterns
 
 ### Testing Recommendations
 1. **Test unmounted scenarios** to catch memory leaks

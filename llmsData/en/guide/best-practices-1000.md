@@ -1,0 +1,20 @@
+---
+document_id: en_guide_best-practices
+category: guide
+source_path: en/guide/best-practices.md
+character_limit: 1000
+last_update: '2025-08-30T10:42:04.682Z'
+update_status: auto_generated
+priority_score: 85
+priority_tier: high
+completion_status: completed
+workflow_stage: content_generated
+---
+Best Practices
+
+Best Practices Essential best practices for Context-Action framework development. This document provides quick references and links to comprehensive pattern guides. <!-- Updated for sync-docs testing --> 📚 Comprehensive Pattern Documentation This guide has been reorganized for better maintainability. For detailed implementations, see the Pattern Collection: 🎯 Core Framework Patterns - Action Patterns - Pur
+
+Key points:
+• **[Action Patterns](./patterns/action/)** - Pure action dispatching without state management
+• **[Store Patterns](./patterns/store/)** - Type-safe state management (Recommended)
+• **[RefContext Patterns](./patterns/ref/)** - Direct DOM...

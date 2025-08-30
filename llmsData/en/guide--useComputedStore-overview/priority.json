@@ -1,0 +1,15 @@
+{
+  "documentId": "en_guide_useComputedStore-overview",
+  "title": "useComputedStore Pattern Overview",
+  "category": "guide",
+  "language": "en",
+  "priority": 0.5,
+  "tags": [
+    "tsx"
+  ],
+  "lastUpdated": "2025-08-30T10:42:02.792Z",
+  "source": {
+    "file": "docs/en/guide/patterns/store/useComputedStore-overview.md",
+    "lastModified": "2025-08-28T08:44:08.658Z"
+  }
+}

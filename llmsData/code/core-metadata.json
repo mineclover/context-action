@@ -1,13 +1,13 @@
 {
   "package": "core",
-  "generatedAt": "2025-08-30T06:46:06.265Z",
+  "generatedAt": "2025-08-30T10:41:30.454Z",
   "statistics": {
     "totalFiles": 8,
     "typeFiles": 1,
     "codeFiles": 7,
-    "totalLines": 1803,
+    "totalLines": 1805,
     "typeLines": 190,
-    "codeLines": 1613
+    "codeLines": 1615
   },
   "files": [
     {
@@ -23,7 +23,7 @@
     {
       "path": "ActionRegister.ts",
       "isType": false,
-      "lines": 938
+      "lines": 939
     },
     {
       "path": "concurrency/index.ts",
@@ -38,7 +38,7 @@
     {
       "path": "execution-modes.ts",
       "isType": false,
-      "lines": 201
+      "lines": 202
     },
     {
       "path": "index.ts",

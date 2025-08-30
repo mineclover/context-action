@@ -1,0 +1,15 @@
+---
+document_id: en_guide_withProvider-pattern
+category: guide
+source_path: en/guide/patterns/store/withProvider-pattern.md
+character_limit: 500
+last_update: '2025-08-30T10:41:56.482Z'
+update_status: auto_generated
+priority_score: 85
+priority_tier: high
+completion_status: completed
+workflow_stage: content_generated
+---
+withProvider Pattern
+
+withProvider Pattern Higher-Order Component pattern using withProvider for automatic Provider wrapping in Store Only pattern....

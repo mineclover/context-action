@@ -42,5 +42,10 @@
     "description": "Fundamental Action Only pattern with type-safe dispatching and handler registration.",
     "language": "en",
     "created_at": "2025-08-26T00:34:27.205Z"
+  },
+  "lastUpdated": "2025-08-30T10:41:53.705Z",
+  "source": {
+    "file": "docs/en/guide/patterns/store/basic-usage.md",
+    "lastModified": "2025-08-28T08:44:08.655Z"
   }
 }
