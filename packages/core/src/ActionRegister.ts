@@ -236,6 +236,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         debounce: config.debounce ?? undefined,
         throttle: config.throttle ?? undefined,
         replaceExisting: config.replaceExisting ?? false,
+        cleanup: config.cleanup, // 🔧 Preserve cleanup function from config
       } as Required<HandlerConfig>,
       id: handlerId,
     };
@@ -1383,9 +1384,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         this.unregisterFunctions.delete(handlerId);
         
         // Execute cleanup function if available
-        if (typeof (registration as any).cleanup === 'function') {
+        if (registration.config.cleanup && typeof registration.config.cleanup === 'function') {
           try {
-            (registration as any).cleanup();
+            registration.config.cleanup();
           } catch (cleanupError) {
             this.log(`Cleanup error during unregister: ${String(action)}`, cleanupError, 'warn');
           }
