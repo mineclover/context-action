@@ -322,9 +322,22 @@ export class Store<T = unknown> implements IStore<T> {
         if (process.env.NODE_ENV === 'development') {
           console.warn('[Store] Immer update failed, falling back to safe copy method', immerError);
         }
-        // 폴백: 기존 방식
+        // 폴백: 안전한 복사본 생성 후 updater 실행
         const safeCurrentValue = safeGet(this._value, this.cloningEnabled);
-        updatedValue = updater(safeCurrentValue);
+        
+        try {
+          // 폴백에서도 Immer의 동작을 시뮬레이션
+          updatedValue = produce(safeCurrentValue, (draft: T) => {
+            const result = updater(draft);
+            return result !== undefined ? result : draft;
+          });
+        } catch (secondImmerError) {
+          // Immer가 완전히 실패한 경우에만 일반 객체 사용
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('[Store] Immer completely failed, using direct update (immutability not guaranteed)', secondImmerError);
+          }
+          updatedValue = updater(safeCurrentValue);
+        }
       }
       
       // 이벤트 객체 감지 및 기본 처리 (update 메소드는 block 모드만 지원)

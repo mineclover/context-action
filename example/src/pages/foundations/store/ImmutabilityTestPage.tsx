@@ -246,7 +246,24 @@ function StoreImmutabilityTestPage() {
         addResult('❌ 실패: 중첩 객체나 배열이 수정되었습니다!');
       }
     } catch (error) {
-      addResult(`에러 발생: ${error}`);
+      addResult(`⚠️ Immer 보호 동작: ${error}`);
+      addResult('ℹ️ 이는 Immer가 깊은 객체까지 완벽하게 보호하는 정상적인 동작입니다.');
+      
+      // Store 값이 여전히 원본과 같은지 확인
+      const finalValue = userStore.getValue();
+      const isAddressProtected =
+        finalValue.profile.address.city === 'Tokyo' &&
+        finalValue.profile.address.country === 'Japan';
+      const isHobbiesProtected =
+        finalValue.profile.hobbies.length === 3 &&
+        finalValue.profile.hobbies[0] === 'swimming' &&
+        !finalValue.profile.hobbies.includes('hacking');
+
+      if (isAddressProtected && isHobbiesProtected) {
+        addResult('✅ 성공: Immer가 중첩 객체와 배열을 완벽하게 보호합니다!');
+      } else {
+        addResult('❌ 예상치 못한 결과가 발생했습니다.');
+      }
     }
 
     updateCurrentValue();
