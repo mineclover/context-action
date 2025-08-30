@@ -174,75 +174,56 @@ export function createActionContext<T extends {}>(
     config?: HandlerConfig
   ): void => {
     const { actionRegisterRef } = useFactoryActionContext();
-    const unregisterRef = useRef<(() => void) | null>(null);
-    const handlerRef = useRef(handler);
     const actionId = useId();
-
+    
+    // Store the latest handler in a ref to avoid re-registrations
+    const handlerRef = useRef(handler);
+    handlerRef.current = handler;
+    
+    // Extract config properties to stable variables
+    const priority = config?.priority ?? 0;
+    const id = config?.id || `react_${String(action)}_${actionId}`;
+    const blocking = config?.blocking ?? false;
+    const once = config?.once ?? false;
+    const debounce = config?.debounce;
+    const throttle = config?.throttle;
+    
     // Memoize config to prevent unnecessary re-registrations
-    const stableConfig = useMemo((): HandlerConfig => {
-      const baseConfig: HandlerConfig = {
-        priority: config?.priority ?? 0,
-        id: config?.id || `react_${String(action)}_${actionId}`,
-        blocking: config?.blocking ?? false,
-        once: config?.once ?? false,
-        replaceExisting: true
-      };
-      
-      if (config?.debounce !== undefined) {
-        baseConfig.debounce = config.debounce;
-      }
-      
-      if (config?.throttle !== undefined) {
-        baseConfig.throttle = config.throttle;
-      }
-      
-      return baseConfig;
-    }, [
-      config?.priority,
-      config?.id,
-      config?.blocking,
-      config?.once,
-      config?.debounce,
-      config?.throttle,
-      action,
-      actionId
-    ]);
-
-    // Update handler ref to prevent stale closures
-    useEffect(() => {
-      handlerRef.current = handler;
-    }, [handler]);
-
-    // Create stable handler wrapper that always uses current handler
-    const stableHandler = useCallback<ActionHandler<T[K]>>(
-      (payload, controller) => handlerRef.current(payload, controller),
-      []
-    );
+    const stableConfig = useMemo((): HandlerConfig => ({
+      priority,
+      id,
+      blocking,
+      once,
+      replaceExisting: true,
+      ...(debounce !== undefined && { debounce }),
+      ...(throttle !== undefined && { throttle })
+    }), [priority, id, blocking, once, debounce, throttle]);
 
     useEffect(() => {
       const register = actionRegisterRef.current;
       if (!register) return;
 
-      // Clean up previous handler
-      if (unregisterRef.current) {
-        unregisterRef.current();
-      }
+      // Create a wrapper handler that always calls the latest handler
+      const wrapperHandler: ActionHandler<T[K]> = (payload, controller) => {
+        return handlerRef.current(payload, controller);
+      };
 
       // Conditional logging only in development
       if (process.env.NODE_ENV === 'development') {
         console.log(`Registering handler for '${String(action)}'`);
       }
 
-      // Register new handler with stable wrapper
-      const unregister = register.register(action, stableHandler, stableConfig);
-      unregisterRef.current = unregister;
+      // Register the wrapper handler (not the actual handler)
+      const unregister = register.register(action, wrapperHandler, stableConfig);
 
-      // Cleanup on unmount or dependencies change
-      return () => {
-        unregister();
-        unregisterRef.current = null;
-      };
-    }, [action, stableHandler, stableConfig, actionRegisterRef]);
+      // Cleanup on unmount or config change only
+      return unregister;
+    }, [
+      action,
+      actionRegisterRef,
+      stableConfig // Only re-register if config actually changes
+      // Note: handler is NOT in dependencies - it's accessed via ref
+    ]);
   };
 
   /**

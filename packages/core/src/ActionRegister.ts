@@ -13,6 +13,7 @@ import {
   ActionRegistryInfo,
   ActionHandlerStats,
   DispatchOptions,
+  HandlerError,
 } from './types.js';
 import { executeSequential, executeParallel, executeRace } from './execution-modes.js';
 import { ActionGuard } from './action-guard.js';
@@ -507,6 +508,10 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       effectiveSignal.addEventListener('abort', abortHandler);
     }
     
+    // 🔧 Collect errors from execution context if available
+    const contextWithErrors = context as PipelineContext<any, any> & { collectedErrors?: HandlerError[] };
+    const errors: HandlerError[] = contextWithErrors.collectedErrors || [];
+    
     try {
       await this.executePipeline(context, autoAbortController, options?.autoAbort);
       this.log(`Pipeline execution succeeded for ${String(action)}`);
@@ -668,8 +673,15 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       effectiveSignal.addEventListener('abort', abortHandler);
     }
     
+    // 🔧 Initialize errors array (will be updated after pipeline execution)
+    let errors: HandlerError[] = [];
+    
     try {
       await this.executePipeline(context, autoAbortController, options?.autoAbort);
+      
+      // 🔧 Collect errors from execution context after pipeline execution
+      const contextWithErrors = context as PipelineContext<any, any> & { collectedErrors?: HandlerError[] };
+      errors = contextWithErrors.collectedErrors || [];
       
       // Mark executed handlers based on context.currentIndex
       // In sequential mode, handlers 0 to currentIndex were executed
@@ -684,11 +696,16 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         }
       }
     } catch (error) {
+      // 🔧 Collect errors from execution context before adding pipeline error
+      const contextWithErrors = context as PipelineContext<any, any> & { collectedErrors?: HandlerError[] };
+      errors = contextWithErrors.collectedErrors || [];
+      
       executionError = error instanceof Error ? error : new Error(String(error));
       errors.push({
         handlerId: 'pipeline',
         error: executionError,
         timestamp: Date.now(),
+        severity: 'blocking'
       });
       
       // Mark executed handlers even when there's an error
@@ -710,10 +727,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     
     // Process results based on options
     const processedResult = this.processResults(context, options?.result);
-
-    // 🔧 Collect errors from execution context if available
-    const contextWithErrors = context as PipelineContext<any, any> & { collectedErrors?: HandlerError[] };
-    const errors: HandlerError[] = contextWithErrors.collectedErrors || [];
 
     // 🔧 Type safety: Separate successful results from failed ones
     const successResults = context.results.filter((result): result is R => result !== undefined);
@@ -1296,7 +1309,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * @param mode Execution mode to set
    */
   setExecutionMode(mode: ExecutionMode): void {
-    this.globalExecutionMode = mode;
+    this.executionMode = mode;
     
     if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
       console.log(`🎯 Global execution mode set to: ${mode}`);

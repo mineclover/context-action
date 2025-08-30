@@ -63,7 +63,7 @@ export async function executeSequential<T, R = void>(
 
   let i = 0;
   const nonBlockingPromises: Array<Promise<any>> = [];
-  const errors: Array<{ handlerId: string; error: Error; timestamp: number }> = [];
+  const errors: HandlerError[] = [];
   
   while (i < context.handlers.length) {
     // Check for abort or termination
@@ -109,7 +109,8 @@ export async function executeSequential<T, R = void>(
               errors.push({
                 handlerId: handlerError.handlerId,
                 error: handlerError.error,
-                timestamp: handlerError.timestamp
+                timestamp: handlerError.timestamp,
+                severity: 'non-blocking'
               });
               return undefined; // Return undefined for failed non-blocking handlers
             });
