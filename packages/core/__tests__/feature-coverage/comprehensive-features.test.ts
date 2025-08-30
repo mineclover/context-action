@@ -190,73 +190,129 @@ describe('ActionRegister Comprehensive Feature Tests', () => {
 
   describe('⚡ Execution Modes', () => {
     it('should execute handlers sequentially by default', async () => {
-      const executionTimes: number[] = [];
+      const executionOrder: string[] = [];
       
       register.register('testAction', async () => {
-        executionTimes.push(Date.now());
-        await new Promise(resolve => setTimeout(resolve, 10));
+        executionOrder.push('first-start');
+        // Use fake timers compatible delay
+        await new Promise(resolve => {
+          setTimeout(() => {
+            executionOrder.push('first-end');
+            resolve(undefined);
+          }, 10);
+        });
         return 'first';
       }, { priority: 2, id: 'first' });
 
       register.register('testAction', async () => {
-        executionTimes.push(Date.now());
-        await new Promise(resolve => setTimeout(resolve, 10));
+        executionOrder.push('second-start');
+        await new Promise(resolve => {
+          setTimeout(() => {
+            executionOrder.push('second-end');
+            resolve(undefined);
+          }, 10);
+        });
         return 'second';
       }, { priority: 1, id: 'second' });
 
-      await register.dispatch('testAction', { message: 'test' });
+      const dispatchPromise = register.dispatch('testAction', { message: 'test' });
+      
+      // Advance timers step by step for sequential execution
+      jest.advanceTimersByTime(10); // First handler completes
+      await Promise.resolve(); // Allow microtasks
+      jest.advanceTimersByTime(10); // Second handler completes
+      await Promise.resolve(); // Allow microtasks
+      
+      await dispatchPromise;
 
-      // Sequential execution should have time gaps
-      expect(executionTimes.length).toBe(2);
-      expect(executionTimes[1] - executionTimes[0]).toBeGreaterThanOrEqual(8); // Allow for timing variance
+      // Sequential execution: handlers execute in priority order
+      // Note: Due to async nature, second may start before first ends, but first must start before second
+      expect(executionOrder[0]).toBe('first-start');
+      expect(executionOrder[2]).toBe('second-start'); // Second starts after first
+      expect(executionOrder.includes('first-end')).toBe(true);
+      expect(executionOrder.includes('second-end')).toBe(true);
+      expect(executionOrder.length).toBe(4);
     }, 10000);
 
     it('should execute handlers in parallel when specified', async () => {
-      const executionTimes: number[] = [];
+      const executionOrder: string[] = [];
       
       register.register('testAction', async () => {
-        executionTimes.push(Date.now());
-        await new Promise(resolve => setTimeout(resolve, 20));
+        executionOrder.push('first-start');
+        await new Promise(resolve => {
+          setTimeout(() => {
+            executionOrder.push('first-end');
+            resolve(undefined);
+          }, 20);
+        });
         return 'first';
       }, { priority: 2, id: 'first' });
 
       register.register('testAction', async () => {
-        executionTimes.push(Date.now());
-        await new Promise(resolve => setTimeout(resolve, 20));
+        executionOrder.push('second-start');
+        await new Promise(resolve => {
+          setTimeout(() => {
+            executionOrder.push('second-end');
+            resolve(undefined);
+          }, 20);
+        });
         return 'second';
       }, { priority: 1, id: 'second' });
 
-      await register.dispatch('testAction', { message: 'test' }, {
+      const dispatchPromise = register.dispatch('testAction', { message: 'test' }, {
         executionMode: 'parallel'
       });
+      
+      // In parallel mode, both handlers start together
+      await Promise.resolve(); // Allow microtasks for both to start
+      jest.advanceTimersByTime(20); // Both complete at same time
+      await Promise.resolve(); // Allow microtasks
+      
+      await dispatchPromise;
 
-      // Parallel execution should start at nearly the same time
-      expect(executionTimes.length).toBe(2);
-      expect(Math.abs(executionTimes[1] - executionTimes[0])).toBeLessThan(10);
+      // Parallel execution: both start together, then both end
+      expect(executionOrder).toEqual([
+        'first-start', 'second-start',
+        'first-end', 'second-end'
+      ]);
     }, 10000);
 
     it('should execute handlers in race mode (first wins)', async () => {
       let winner: string | null = null;
       
       register.register('testAction', async () => {
-        await new Promise(resolve => setTimeout(resolve, 30));
-        if (!winner) winner = 'slow';
+        await new Promise(resolve => {
+          setTimeout(() => {
+            if (!winner) winner = 'slow';
+            resolve(undefined);
+          }, 30);
+        });
         return 'slow';
       }, { priority: 2, id: 'slow' });
 
       register.register('testAction', async () => {
-        await new Promise(resolve => setTimeout(resolve, 5));
-        if (!winner) winner = 'fast';
+        await new Promise(resolve => {
+          setTimeout(() => {
+            if (!winner) winner = 'fast';
+            resolve(undefined);
+          }, 5);
+        });
         return 'fast';
       }, { priority: 1, id: 'fast' });
 
-      const result = await register.dispatchWithResult('testAction', 
+      const resultPromise = register.dispatchWithResult('testAction', 
         { message: 'test' }, 
         { 
           executionMode: 'race',
           result: { collect: true, strategy: 'first' }
         }
       );
+      
+      // Fast handler wins at 5ms
+      jest.advanceTimersByTime(5);
+      await Promise.resolve(); // Allow microtasks
+      
+      const result = await resultPromise;
 
       expect(winner).toBe('fast');
       expect(result.result).toBe('fast');
@@ -270,24 +326,45 @@ describe('ActionRegister Comprehensive Feature Tests', () => {
       // Set specific action to parallel
       register.setActionExecutionMode('testAction', 'parallel');
 
-      const executionTimes: number[] = [];
+      const executionOrder: string[] = [];
       
       register.register('testAction', async () => {
-        executionTimes.push(Date.now());
-        await new Promise(resolve => setTimeout(resolve, 15));
+        executionOrder.push('first-start');
+        await new Promise(resolve => {
+          setTimeout(() => {
+            executionOrder.push('first-end');
+            resolve(undefined);
+          }, 15);
+        });
         return 'first';
       }, { id: 'first' });
 
       register.register('testAction', async () => {
-        executionTimes.push(Date.now());
-        await new Promise(resolve => setTimeout(resolve, 15));
+        executionOrder.push('second-start');
+        await new Promise(resolve => {
+          setTimeout(() => {
+            executionOrder.push('second-end');
+            resolve(undefined);
+          }, 15);
+        });
         return 'second';
       }, { id: 'second' });
 
-      await register.dispatch('testAction', { message: 'test' });
+      const dispatchPromise = register.dispatch('testAction', { message: 'test' });
+      
+      // Both should start together (parallel mode)
+      await Promise.resolve();
+      expect(executionOrder).toEqual(['first-start', 'second-start']);
+      
+      jest.advanceTimersByTime(15);
+      await Promise.resolve();
+      await dispatchPromise;
 
       // Should execute in parallel despite global sequential setting
-      expect(Math.abs(executionTimes[1] - executionTimes[0])).toBeLessThan(10);
+      expect(executionOrder).toEqual([
+        'first-start', 'second-start',
+        'first-end', 'second-end'
+      ]);
     });
   });
 
@@ -397,9 +474,16 @@ describe('ActionRegister Comprehensive Feature Tests', () => {
       register.register('testAction', async (payload, controller) => {
         executionCount++;
         
-        // Simulate long-running operation
+        // Simulate long-running operation with fake timers
         return new Promise((resolve, reject) => {
           const timeout = setTimeout(() => resolve('completed'), 100);
+          
+          // AbortSignal listener should work with fake timers
+          if (controller.signal?.aborted) {
+            clearTimeout(timeout);
+            reject(new Error('Aborted'));
+            return;
+          }
           
           controller.signal?.addEventListener('abort', () => {
             clearTimeout(timeout);
@@ -413,8 +497,10 @@ describe('ActionRegister Comprehensive Feature Tests', () => {
         signal: abortController.signal
       });
 
-      // Abort after short delay
+      // Abort after short delay using fake timers
       setTimeout(() => abortController.abort(), 10);
+      jest.advanceTimersByTime(10); // Trigger the abort
+      await Promise.resolve(); // Allow microtasks
 
       await expect(dispatchPromise).rejects.toThrow('Aborted');
       expect(executionCount).toBe(1); // Handler started but was aborted
@@ -469,13 +555,11 @@ describe('ActionRegister Comprehensive Feature Tests', () => {
     it('should call cleanup functions when handlers are removed', async () => {
       let cleanupCalled = false;
       
-      const handler = async () => 'test';
-      (handler as any).cleanup = () => {
-        cleanupCalled = true;
-      };
-
-      const unregister = register.register('testAction', handler, {
-        id: 'with-cleanup'
+      const unregister = register.register('testAction', async () => 'test', {
+        id: 'with-cleanup',
+        cleanup: () => {
+          cleanupCalled = true;
+        }
       });
 
       expect(cleanupCalled).toBe(false);

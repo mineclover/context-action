@@ -644,11 +644,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       metadata: Record<string, any> | undefined;
     }> = [];
 
-    const errors: Array<{
-      handlerId: string;
-      error: Error;
-      timestamp: number;
-    }> = [];
 
     // Initialize handler tracking - all handlers start as not executed
     filteredHandlers.forEach(handler => {
@@ -715,6 +710,10 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     // Process results based on options
     const processedResult = this.processResults(context, options?.result);
 
+    // 🔧 Collect errors from execution context if available
+    const contextWithErrors = context as PipelineContext<any, any> & { collectedErrors?: HandlerError[] };
+    const errors: HandlerError[] = contextWithErrors.collectedErrors || [];
+
     // 🔧 Type safety: Separate successful results from failed ones
     const successResults = context.results.filter((result): result is R => result !== undefined);
     const failedResults = errors.map(err => ({
@@ -737,7 +736,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         duration: endTime - _startTime,
         handlersExecuted: filteredHandlers.length === 0 ? 0 : context.currentIndex + (context.aborted ? 0 : 1),
         handlersSkipped: Math.max(0, filteredHandlers.length - (context.currentIndex + 1)),
-        handlersFailed: errors.length,
+        handlersFailed: errors.length + failedResults.length,
         startTime: _startTime,
         endTime,
       },

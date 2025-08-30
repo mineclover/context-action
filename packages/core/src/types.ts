@@ -243,6 +243,9 @@ export interface HandlerConfig {
   
   /** Replace existing handler with same ID. Default: false for backward compatibility */
   replaceExisting?: boolean;
+  
+  /** Cleanup function to call when handler is unregistered */
+  cleanup?: () => void;
 }
 
 
