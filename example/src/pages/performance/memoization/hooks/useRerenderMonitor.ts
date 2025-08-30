@@ -128,8 +128,8 @@ export function useComparativeMonitor() {
     const entries = Array.from(metricsMap.current.entries());
     if (entries.length < 2) return null;
     
-    const [name1, metrics1] = entries[0];
-    const [name2, metrics2] = entries[1];
+    const [name1, metrics1] = entries[0]!;
+    const [name2, metrics2] = entries[1]!;
     
     return {
       [name1]: metrics1,

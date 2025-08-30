@@ -122,7 +122,7 @@ export function computeAverageVelocity(validPath: MousePosition[]): number {
   for (let i = 1; i < Math.min(validPath.length, 10); i++) {
     const prev = validPath[i - 1];
     const curr = validPath[i];
-    const distance = Math.sqrt((curr.x - prev.x) ** 2 + (curr.y - prev.y) ** 2);
+    const distance = Math.sqrt((curr!.x - prev!.x) ** 2 + (curr!.y - prev!.y) ** 2);
     totalDistance += distance;
   }
 

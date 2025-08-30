@@ -337,7 +337,7 @@ function ThrottleDemoInterface() {
     
     // Update metrics
     const currentMetrics = metricsStore.getValue();
-    const newEventCount = currentMetrics.eventCounts[payload.type] + 1;
+    const newEventCount = (currentMetrics.eventCounts[payload.type] || 0) + 1;
     const currentAvg = currentMetrics.avgResponseTimes[payload.type] || 0;
     const newAvg = ((currentAvg * (newEventCount - 1)) + executionTime) / newEventCount;
     
@@ -353,7 +353,7 @@ function ThrottleDemoInterface() {
       },
       totalExecutions: {
         ...currentMetrics.totalExecutions,
-        [payload.type]: currentMetrics.totalExecutions[payload.type] + 1
+        [payload.type]: (currentMetrics.totalExecutions[payload.type] || 0) + 1
       },
       efficiency: {
         ...currentMetrics.efficiency,

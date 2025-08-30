@@ -150,7 +150,7 @@ function ExecutionFlowVisualization() {
               {index < handlers.length - 1 && (
                 <div className={`
                   transition-all duration-300 text-2xl
-                  ${isExecuted && executedHandlers.includes(handlers[index + 1].id) 
+                  ${isExecuted && executedHandlers.includes(handlers[index + 1]?.id || '') 
                     ? 'text-green-500 animate-pulse' 
                     : isExecuted 
                       ? 'text-yellow-500' 
@@ -480,7 +480,7 @@ function FilteringDemo() {
     if (!acc[demo.category]) {
       acc[demo.category] = [];
     }
-    acc[demo.category].push(demo);
+    acc[demo.category]!.push(demo);
     return acc;
   }, {} as Record<string, typeof demos>);
 

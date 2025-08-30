@@ -51,15 +51,15 @@ const priorityColors = [
 const generateScrollContent = (page: number, itemsPerPage: number = 20): ScrollItem[] => {
   return Array.from({ length: itemsPerPage }, (_, i) => {
     const id = ++globalItemCounter;
-    const category = categories[Math.floor(Math.random() * categories.length)];
+    const category = categories[Math.floor(Math.random() * categories.length)]!;
     const priority = Math.floor(Math.random() * 5);
     
     return {
       id: `scroll-item-${id}`,
       title: `${category} Item #${id}`,
       content: `이것은 ${id}번째 스크롤 아이템입니다. Context-Action 프레임워크의 무한 스크롤 기능을 테스트하기 위한 샘플 컨텐츠로, 가상화된 렌더링과 성능 최적화를 보여줍니다. 카테고리: ${category}, 우선순위: ${priority + 1}`,
-      color: priorityColors[priority],
-      timestamp: new Date(Date.now() - Math.random() * 86400000 * 30).toISOString().split('T')[0],
+      color: priorityColors[priority]!,
+      timestamp: new Date(Date.now() - Math.random() * 86400000 * 30).toISOString().split('T')[0]!,
       numericId: id,
       category,
       priority

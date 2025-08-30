@@ -98,9 +98,9 @@ function ReactivePageContent() {
         const prev = recentPath[i - 1];
         const curr = recentPath[i];
         const distance = Math.sqrt(
-          (curr.x - prev.x) ** 2 + (curr.y - prev.y) ** 2
+          (curr!.x - prev!.x) ** 2 + (curr!.y - prev!.y) ** 2
         );
-        const timeDiff = (curr.timestamp - prev.timestamp) || 16;
+        const timeDiff = (curr!.timestamp - prev!.timestamp) || 16;
         totalVelocity += (distance / timeDiff) * 1000;
       }
     }
@@ -111,7 +111,7 @@ function ReactivePageContent() {
     if (recentPath.length >= 2) {
       const recent = recentPath[recentPath.length - 1];
       const previous = recentPath[recentPath.length - 2];
-      direction = Math.atan2(recent.y - previous.y, recent.x - previous.x) * 180 / Math.PI;
+      direction = Math.atan2(recent!.y - previous!.y, recent!.x - previous!.x) * 180 / Math.PI;
       if (direction < 0) direction += 360;
     }
     
