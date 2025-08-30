@@ -1,6 +1,8 @@
-# MVVM Architecture
+# MVVM Architecture (Legacy)
 
-The Context-Action framework implements a modern MVVM (Model-View-ViewModel) architecture using the three core patterns. This is the **recommended approach** for complex applications requiring perfect separation of concerns.
+The Context-Action framework implements a modern MVVM (Model-View-ViewModel) architecture using the three core patterns. This document covers the **traditional MVVM approach** for understanding architectural concepts.
+
+> **💡 For Production Applications**: Consider using the advanced [**Context-Layered Architecture**](../../context-layered/context-layered-guide.md) which provides more practical, maintainable patterns for real-world React applications. See the [migration guide](../../context-layered/migration-guide.md) for transitioning from MVVM to Context-Layered.
 
 **Key Difference from Domain Architecture**: 
 - **MVVM**: Focuses on **architectural layers** (Model, View, ViewModel, Performance)

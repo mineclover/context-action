@@ -14,7 +14,6 @@ export interface ParentStores {
 export interface ParentActions extends ActionPayloadMap {
   // 하위 컴포넌트들이 등록할 수 있는 인터페이스만 정의
   onChildRegistered: { childId: string; childType: string };
-  onUserInteraction: { action: string; payload: any };
   // 상위 자체 액션
   incrementParentCounter: void;
   resetParentCounter: void;
