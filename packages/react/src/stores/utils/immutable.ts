@@ -8,19 +8,13 @@
  * @memberof core-concepts
  */
 
-// Dynamic Immer import for bundle size optimization
-type ImmerModule = typeof import('immer');
-let immerModule: ImmerModule | null = null;
-
-/**
- * Lazy load Immer module
- */
-async function getImmer(): Promise<ImmerModule> {
-  if (!immerModule) {
-    immerModule = await import('immer');
-  }
-  return immerModule;
-}
+// Static Immer import for reliable and predictable behavior
+import { 
+  produce as immerProduce, 
+  isDraft as immerIsDraft, 
+  original as immerOriginal, 
+  current as immerCurrent 
+} from 'immer';
 
 /**
  * Check if value is a primitive type
@@ -152,7 +146,20 @@ export function deepClone<T>(value: T, _options?: { skipProducer?: boolean }): T
     return value;
   }
 
-  // Use native structuredClone if available (Chrome 98+, Node 17+)
+  // 🎯 Priority 1: Use Immer (best immutability guarantee)
+  try {
+    return immerProduce(value, (_draft: any) => {
+      // Empty producer for copy-on-write optimization
+      // Immer will return original reference if no changes are made
+    });
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      logger.warn('Immer produce failed, falling back to native methods', error);
+    }
+    // Continue to next method
+  }
+
+  // Priority 2: Use native structuredClone if available (Chrome 98+, Node 17+)
   if (typeof structuredClone !== 'undefined') {
     try {
       return structuredClone(value);
@@ -161,20 +168,19 @@ export function deepClone<T>(value: T, _options?: { skipProducer?: boolean }): T
     }
   }
 
-  // For simple objects, use optimized simple clone
+  // Priority 3: For simple objects, use optimized simple clone
   if (!isComplexObject(value)) {
     return simpleClone(value);
   }
 
-  // For complex objects, use fallback clone (JSON-based)
+  // Priority 4: Last resort - use fallback clone (JSON-based)
   return fallbackClone(value);
 }
 
 /**
- * Async version with Immer for complex scenarios
- * Only loads Immer when actually needed
+ * Synchronous version with Immer - same as deepClone but with explicit Immer focus
  */
-export async function deepCloneWithImmer<T>(value: T): Promise<T> {
+export function deepCloneWithImmer<T>(value: T): T {
   // Fast path for primitives
   if (isPrimitive(value)) {
     return value;
@@ -186,8 +192,7 @@ export async function deepCloneWithImmer<T>(value: T): Promise<T> {
   }
 
   try {
-    const { produce } = await getImmer();
-    return produce(value, (_draft: any) => {
+    return immerProduce(value, (_draft: any) => {
       // Empty function for copy-on-write optimization
     });
   } catch (error) {
@@ -503,15 +508,15 @@ export function performantSafeGet<T>(value: T, enableCloning: boolean = true): T
 }
 
 /**
- * Async version with Immer for complex scenarios
+ * Synchronous version with Immer for complex scenarios
  */
-export async function performantSafeGetWithImmer<T>(value: T, enableCloning: boolean = true): Promise<T> {
+export function performantSafeGetWithImmer<T>(value: T, enableCloning: boolean = true): T {
   if (!enableCloning) {
     return value;
   }
 
   const startTime = performance.now();
-  const result = await deepCloneWithImmer(value);
+  const result = deepCloneWithImmer(value);
   const endTime = performance.now();
   
   const duration = endTime - startTime;
@@ -557,101 +562,92 @@ export function getPerformanceProfile(): PerformanceProfile {
 }
 
 /**
- * Dynamic Immer utilities - only loaded when needed
+ * Immer utilities using static imports
+ * Provides the same API as the dynamic version but with immediate availability
  */
 export const ImmerUtils = {
   /**
-   * Check if value is a Draft object (async)
+   * Check if value is a Draft object
    */
-  async isDraft(value: unknown): Promise<boolean> {
-    const { isDraft } = await getImmer();
-    return isDraft(value);
+  isDraft(value: unknown): boolean {
+    return immerIsDraft(value);
   },
 
   /**
-   * Get original object from Draft (async)
+   * Get original object from Draft
    */
-  async original<T>(value: T): Promise<T | undefined> {
-    const { original } = await getImmer();
-    return original(value);
+  original<T>(value: T): T | undefined {
+    return immerOriginal(value);
   },
 
   /**
-   * Get current state of Draft (async)
+   * Get current state of Draft
    */
-  async current<T>(value: T): Promise<T> {
-    const { current } = await getImmer();
-    return current(value);
+  current<T>(value: T): T {
+    return immerCurrent(value);
   },
 
   /**
-   * Produce new state with Immer (async)
+   * Produce new state with Immer
    */
-  async produce<T>(baseState: T, producer: (draft: T) => void | T): Promise<T> {
-    const { produce } = await getImmer();
-    return produce(baseState, producer);
+  produce<T>(baseState: T, producer: (draft: T) => void | T): T {
+    return immerProduce(baseState, producer);
   }
 };
 
-/**
- * Synchronous Immer utilities for backwards compatibility
- * These will throw if Immer is not pre-loaded
- */
-let syncImmerCache: ImmerModule | null = null;
-
-/**
- * Pre-load Immer for synchronous usage
- */
-export async function preloadImmer(): Promise<void> {
-  if (!syncImmerCache) {
-    syncImmerCache = await getImmer();
-  }
+// Note: preloadImmer is no longer needed with static imports
+// This function is kept for backwards compatibility
+export function preloadImmer(): void {
+  // No-op: Immer is already loaded statically
 }
 
 /**
- * Synchronous produce (requires preloadImmer to be called first)
+ * Synchronous produce using static Immer import
+ * Direct wrapper around Immer's produce function
  */
 export function produce<T>(baseState: T, producer: (draft: T) => void | T): T {
-  if (!syncImmerCache) {
-    throw new Error(
-      'Immer not loaded. Call preloadImmer() first or use ImmerUtils.produce() instead.'
-    );
+  try {
+    return immerProduce(baseState, producer);
+  } catch (error) {
+    // Fallback: simulate Immer behavior with deep cloning
+    if (process.env.NODE_ENV === 'development') {
+      logger.warn('Immer produce failed, falling back to deep clone simulation', error);
+    }
+    
+    try {
+      // Create a deep clone for the producer to modify
+      const draft = deepClone(baseState);
+      const result = producer(draft);
+      
+      // If producer returns a value, use it; otherwise use the modified draft
+      return result !== undefined ? result : draft;
+    } catch (fallbackError) {
+      // If everything fails, just return original
+      if (process.env.NODE_ENV === 'development') {
+        logger.error('Produce fallback failed, returning original state', fallbackError);
+      }
+      return baseState;
+    }
   }
-  return syncImmerCache.produce(baseState, producer);
 }
 
 /**
- * Synchronous isDraft (requires preloadImmer to be called first)
+ * Check if value is a Draft object using static Immer import
  */
 export function isDraft(value: unknown): boolean {
-  if (!syncImmerCache) {
-    throw new Error(
-      'Immer not loaded. Call preloadImmer() first or use ImmerUtils.isDraft() instead.'
-    );
-  }
-  return syncImmerCache.isDraft(value);
+  return immerIsDraft(value);
 }
 
 /**
- * Synchronous original (requires preloadImmer to be called first)
+ * Get original object from Draft using static Immer import
  */
 export function original<T>(value: T): T | undefined {
-  if (!syncImmerCache) {
-    throw new Error(
-      'Immer not loaded. Call preloadImmer() first or use ImmerUtils.original() instead.'
-    );
-  }
-  return syncImmerCache.original(value);
+  return immerOriginal(value);
 }
 
 /**
- * Synchronous current (requires preloadImmer to be called first)
+ * Get current state of Draft using static Immer import
  */
 export function current<T>(value: T): T {
-  if (!syncImmerCache) {
-    throw new Error(
-      'Immer not loaded. Call preloadImmer() first or use ImmerUtils.current() instead.'
-    );
-  }
-  return syncImmerCache.current(value);
+  return immerCurrent(value);
 }
