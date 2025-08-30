@@ -736,7 +736,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         duration: endTime - _startTime,
         handlersExecuted: filteredHandlers.length === 0 ? 0 : context.currentIndex + (context.aborted ? 0 : 1),
         handlersSkipped: Math.max(0, filteredHandlers.length - (context.currentIndex + 1)),
-        handlersFailed: errors.length + failedResults.length,
+        handlersFailed: errors.length,
         startTime: _startTime,
         endTime,
       },
@@ -1288,6 +1288,19 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       .filter((stats): stats is ActionHandlerStats<T> => stats !== null);
   }
 
+
+  /**
+   * Set global execution mode for all actions
+   * 
+   * @param mode Execution mode to set
+   */
+  setExecutionMode(mode: ExecutionMode): void {
+    this.globalExecutionMode = mode;
+    
+    if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
+      console.log(`🎯 Global execution mode set to: ${mode}`);
+    }
+  }
 
   /**
    * Set execution mode for a specific action
