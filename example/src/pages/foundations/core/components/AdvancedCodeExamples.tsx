@@ -6,7 +6,7 @@ export function AdvancedCodeExamples() {
     <div className="grid gap-6">
       {/* 기본 ActionRegister 사용법 */}
       <CodeExample title="기본 ActionRegister 사용법">
-        <CodeBlock language="typescript" code={`import { ActionRegister, ActionPayloadMap } from '@context-action/core';
+        <CodeBlock>{`import { ActionRegister, ActionPayloadMap } from '@context-action/core';
 
 // 액션 맵 타입 정의
 interface MyActionMap extends ActionPayloadMap {
@@ -31,12 +31,12 @@ const unsubscribe = actionRegister.register(
 actionRegister.dispatch('increment');
 
 // 핸들러 해제
-unsubscribe();`} />
+unsubscribe();`}</CodeBlock>
       </CodeExample>
 
       {/* 우선순위 시스템 */}
       <CodeExample title="우선순위 시스템">
-        <CodeBlock language="typescript" code={`// 높은 우선순위 핸들러 (먼저 실행)
+        <CodeBlock>{`// 높은 우선순위 핸들러 (먼저 실행)
 actionRegister.register('myAction', handler1, { priority: 3 });
 
 // 중간 우선순위 핸들러 (두 번째 실행)  
@@ -46,12 +46,12 @@ actionRegister.register('myAction', handler2, { priority: 2 });
 actionRegister.register('myAction', handler3, { priority: 1 });
 
 // 실행 순서: handler1 → handler2 → handler3
-actionRegister.dispatch('myAction', payload);`} />
+actionRegister.dispatch('myAction', payload);`}</CodeBlock>
       </CodeExample>
 
       {/* 비동기 핸들러 */}
       <CodeExample title="비동기 핸들러">
-        <CodeBlock language="typescript" code={`// 비동기 핸들러 등록
+        <CodeBlock>{`// 비동기 핸들러 등록
 actionRegister.register(
   'fetchData',
   async (payload, controller) => {
@@ -71,12 +71,12 @@ actionRegister.register(
 );
 
 // 비동기 액션 실행
-actionRegister.dispatch('fetchData', { url: '/api/users' });`} />
+actionRegister.dispatch('fetchData', { url: '/api/users' });`}</CodeBlock>
       </CodeExample>
 
       {/* 에러 처리 및 Abort */}
       <CodeExample title="에러 처리 및 Abort">
-        <CodeBlock language="typescript" code={`actionRegister.register(
+        <CodeBlock>{`actionRegister.register(
   'validateAndSave',
   (data, controller) => {
     // 데이터 검증
@@ -98,12 +98,12 @@ actionRegister.dispatch('fetchData', { url: '/api/users' });`} />
 
 // 잘못된 데이터로 테스트
 actionRegister.dispatch('validateAndSave', { name: 'John' }); 
-// 결과: "Email is required" 메시지와 함께 중단`} />
+// 결과: "Email is required" 메시지와 함께 중단`}</CodeBlock>
       </CodeExample>
 
       {/* 복합 핸들러 패턴 */}
       <CodeExample title="복합 핸들러 패턴">
-        <CodeBlock language="typescript" code={`interface UserActionMap extends ActionPayloadMap {
+        <CodeBlock>{`interface UserActionMap extends ActionPayloadMap {
   saveUser: { user: { id: string; name: string; email: string } };
 }
 
@@ -146,12 +146,12 @@ userActionRegister.register(
     console.log('✅ 후처리 완료');
   },
   { priority: 1 }
-);`} />
+);`}</CodeBlock>
       </CodeExample>
 
       {/* 조건부 실행 패턴 */}
       <CodeExample title="조건부 실행 패턴">
-        <CodeBlock language="typescript" code={`interface ConditionalActionMap extends ActionPayloadMap {
+        <CodeBlock>{`interface ConditionalActionMap extends ActionPayloadMap {
   processOrder: { 
     orderId: string; 
     amount: number; 
@@ -188,12 +188,12 @@ orderRegister.register(
     }
   },
   { priority: 2 }
-);`} />
+);`}</CodeBlock>
       </CodeExample>
 
       {/* 결과 수집 패턴 */}
       <CodeExample title="결과 수집 패턴">
-        <CodeBlock language="typescript" code={`interface ResultActionMap extends ActionPayloadMap {
+        <CodeBlock>{`interface ResultActionMap extends ActionPayloadMap {
   calculateScore: { 
     userId: string; 
     answers: number[] 
@@ -238,12 +238,12 @@ scoreRegister.register(
     calculationResults = [];
   },
   { priority: 1 }
-);`} />
+);`}</CodeBlock>
       </CodeExample>
 
       {/* 실시간 처리 패턴 */}
       <CodeExample title="실시간 처리 패턴">
-        <CodeBlock language="typescript" code={`interface RealtimeActionMap extends ActionPayloadMap {
+        <CodeBlock>{`interface RealtimeActionMap extends ActionPayloadMap {
   updatePosition: { x: number; y: number; timestamp: number };
 }
 
@@ -286,12 +286,12 @@ realtimeRegister.register(
     console.log(\`위치 업데이트: (\${x}, \${y})\`);
   },
   { priority: 1 }
-);`} />
+);`}</CodeBlock>
       </CodeExample>
 
       {/* React 통합 패턴 */}
       <CodeExample title="React 통합 패턴">
-        <CodeBlock language="typescript" code={`import { ActionRegister } from '@context-action/core';
+        <CodeBlock>{`import { ActionRegister } from '@context-action/core';
 import { useEffect, useCallback } from 'react';
 
 interface ComponentActionMap extends ActionPayloadMap {
@@ -355,7 +355,7 @@ function MyComponent() {
       데이터 로드
     </button>
   );
-}`} />
+}`}</CodeBlock>
       </CodeExample>
     </div>
   );
