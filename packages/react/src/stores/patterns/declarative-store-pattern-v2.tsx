@@ -110,9 +110,9 @@ export type StoreSchema<T extends Record<string, any>> = InitialStores<T>;
  * 
  * @template T - Record of store names to their value types
  * 
- * @internal
+ * @public
  */
-class StoreManager<T extends Record<string, any>> {
+export class StoreManager<T extends Record<string, any>> {
   public readonly registry: StoreRegistry;
   public readonly initialStores: InitialStores<T>;
   public readonly stores = new Map<keyof T, Store<any>>();

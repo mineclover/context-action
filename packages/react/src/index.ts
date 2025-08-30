@@ -21,7 +21,7 @@ export { StoreErrorBoundary } from './stores/components/StoreErrorBoundary';
 export type { StoreErrorBoundaryProps } from './stores/components/StoreErrorBoundary';
 
 // Declarative Store Pattern (Most commonly used)
-export { createStoreContext } from './stores/patterns/declarative-store-pattern-v2';
+export { createStoreContext, StoreManager } from './stores/patterns/declarative-store-pattern-v2';
 export type { InitialStores, StoreConfig } from './stores/patterns/declarative-store-pattern-v2';
 
 // Ref System (Core functionality)
