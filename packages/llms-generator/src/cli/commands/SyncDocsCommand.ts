@@ -126,7 +126,7 @@ export class SyncDocsCommand {
 
       // docs/(en|ko)/**/*.md 패턴만 처리
       const docMatch = filePath.match(/^docs\/(en|ko)\/.*\.md$/);
-      if (!docMatch) {
+      if (!docMatch || !docMatch[1]) {
         continue;
       }
 
@@ -209,6 +209,11 @@ export class SyncDocsCommand {
 
     const language = pathParts[1]; // en 또는 ko
     const category = pathParts[2]; // guide, concept, api 등
+    
+    if (!language || !category) {
+      return null;
+    }
+    
     const fileName = path.basename(filePath, '.md');
     
     // documentId 생성: language_category_filename
@@ -416,7 +421,7 @@ export class SyncDocsCommand {
     const lines = content.split('\n');
     for (const line of lines) {
       const match = line.match(/^#\s+(.+)$/);
-      if (match) {
+      if (match && match[1]) {
         return match[1].trim();
       }
     }
@@ -428,7 +433,7 @@ export class SyncDocsCommand {
     
     // Extract from keywords in headers
     const keywordMatch = content.match(/##\s*(?:Keywords?|Tags?|Topics?)[:\s]*([^\n]+)/i);
-    if (keywordMatch) {
+    if (keywordMatch && keywordMatch[1]) {
       const keywords = keywordMatch[1].split(/[,;]/).map(k => k.trim().toLowerCase());
       tags.push(...keywords.filter(k => k.length > 0));
     }
@@ -455,7 +460,7 @@ export class SyncDocsCommand {
   private generateSummary(content: string, characterLimit: number, change: DocumentChange): string {
     // Extract title
     const titleMatch = content.match(/^#\s+(.+)$/m);
-    const title = titleMatch ? titleMatch[1].trim() : 'Document';
+    const title = titleMatch && titleMatch[1] ? titleMatch[1].trim() : 'Document';
     
     // Generate YAML frontmatter
     const frontmatter = `---

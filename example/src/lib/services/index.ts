@@ -31,7 +31,7 @@ export class LoggerService {
       level,
       message,
       data,
-      source
+      ...(source !== undefined && { source })
     };
 
     this.logs.push(entry);
@@ -134,9 +134,10 @@ export class PerformanceService {
     const totalOperations = metrics.reduce((sum, m) => sum + m.operations, 0);
     const totalErrors = metrics.reduce((sum, m) => sum + m.errors, 0);
 
+    const lastMetric = metrics[metrics.length - 1];
     return {
-      startTime: metrics[0].startTime,
-      endTime: metrics[metrics.length - 1].endTime,
+      startTime: metrics[0]?.startTime || 0,
+      ...(lastMetric?.endTime !== undefined && { endTime: lastMetric.endTime }),
       duration: totalDuration,
       operations: totalOperations,
       errors: totalErrors,

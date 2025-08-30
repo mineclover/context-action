@@ -607,15 +607,17 @@ function ChatComponent() {
         const randomResponse =
           responses[Math.floor(Math.random() * responses.length)];
 
-        simulateTyping();
+        if (randomResponse && randomUser) {
+          simulateTyping();
 
-        autoResponseTimeoutRef.current = setTimeout(() => {
-          storeActionRegister.dispatch('sendMessage', {
-            message: randomResponse,
-            sender: randomUser,
-            type: 'text',
-          });
-        }, 1500);
+          autoResponseTimeoutRef.current = setTimeout(() => {
+            storeActionRegister.dispatch('sendMessage', {
+              message: randomResponse,
+              sender: randomUser,
+              type: 'text',
+            });
+          }, 1500);
+        }
       }
     }
   }, [newMessage, currentUser, messageType, messages?.length, logger, simulateTyping]);

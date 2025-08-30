@@ -167,6 +167,10 @@ export class InitCommand {
     const language = pathParts[0];
     const category = pathParts[1];
     
+    if (!language || !category) {
+      return false;
+    }
+    
     // Create output directory
     const outputDir = path.join(llmsDataDir, language, documentId);
     if (!options.dryRun) {
@@ -260,8 +264,8 @@ export class InitCommand {
           const createdMatch = output.match(/✅ Templates Created: (\d+)/);
           const skippedMatch = output.match(/⏭️ {2}Templates Skipped: (\d+)/);
           
-          if (createdMatch) totalCreated += parseInt(createdMatch[1]);
-          if (skippedMatch) totalSkipped += parseInt(skippedMatch[1]);
+          if (createdMatch && createdMatch[1]) totalCreated += parseInt(createdMatch[1]);
+          if (skippedMatch && skippedMatch[1]) totalSkipped += parseInt(skippedMatch[1]);
         }
         
       } finally {
@@ -308,7 +312,7 @@ export class InitCommand {
       
       for (const line of lines) {
         const match = line.match(/^#\s+(.+)$/);
-        if (match) {
+        if (match && match[1]) {
           return match[1].trim();
         }
       }

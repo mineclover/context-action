@@ -194,8 +194,8 @@ export class ObjectContextManager<T extends ManagedObject> {
     this.emitEvent({
       type: 'unregistered',
       objectId: id,
-      object,
-      metadata,
+      ...(object !== undefined && { object }),
+      ...(metadata !== undefined && { metadata }),
       timestamp: new Date(),
       context: this.config.contextName
     });
@@ -233,10 +233,11 @@ export class ObjectContextManager<T extends ManagedObject> {
     this.metadata.set(id, updatedMetadata);
 
     // 이벤트 발생
+    const currentObject = this.objects.get(id);
     this.emitEvent({
       type: 'updated',
       objectId: id,
-      object: this.objects.get(id),
+      ...(currentObject !== undefined && { object: currentObject }),
       metadata: updatedMetadata,
       timestamp: new Date(),
       context: this.config.contextName
@@ -282,10 +283,11 @@ export class ObjectContextManager<T extends ManagedObject> {
     this.metadata.set(id, updatedMetadata);
 
     // 이벤트 발생
+    const currentObject = this.objects.get(id);
     this.emitEvent({
       type: 'lifecycle_changed',
       objectId: id,
-      object: this.objects.get(id),
+      ...(currentObject !== undefined && { object: currentObject }),
       metadata: updatedMetadata,
       timestamp: new Date(),
       context: this.config.contextName
@@ -377,10 +379,11 @@ export class ObjectContextManager<T extends ManagedObject> {
     }
 
     // 이벤트 발생
+    const currentObject = this.objects.get(id);
     this.emitEvent({
       type: 'focused',
       objectId: id,
-      object: this.objects.get(id),
+      ...(currentObject !== undefined && { object: currentObject }),
       timestamp: new Date(),
       context: this.config.contextName
     });
@@ -435,7 +438,9 @@ export class ObjectContextManager<T extends ManagedObject> {
     this.cleanupInterval = setInterval(() => {
       this.actionRegister.dispatch('cleanup', {
         olderThan: this.config.autoCleanup!.olderThanMs,
-        lifecycleStates: this.config.autoCleanup!.lifecycleStates
+        ...(this.config.autoCleanup!.lifecycleStates !== undefined && { 
+          lifecycleStates: this.config.autoCleanup!.lifecycleStates 
+        })
       });
     }, this.config.autoCleanup.intervalMs);
   }
@@ -486,7 +491,12 @@ export class ObjectContextManager<T extends ManagedObject> {
    * 객체 등록
    */
   public async register(id: string, object: T, metadata?: Record<string, unknown>, contextMetadata?: Record<string, unknown>): Promise<void> {
-    return this.actionRegister.dispatch('register', { id, object, metadata, contextMetadata });
+    return this.actionRegister.dispatch('register', { 
+      id, 
+      object,
+      ...(metadata !== undefined && { metadata }),
+      ...(contextMetadata !== undefined && { contextMetadata })
+    });
   }
 
   /**
@@ -500,7 +510,12 @@ export class ObjectContextManager<T extends ManagedObject> {
    * 객체 업데이트
    */
   public async update(id: string, object?: Partial<T>, metadata?: Record<string, unknown>, contextMetadata?: Record<string, unknown>): Promise<void> {
-    return this.actionRegister.dispatch('update', { id, object, metadata, contextMetadata });
+    return this.actionRegister.dispatch('update', { 
+      id,
+      ...(object !== undefined && { object }),
+      ...(metadata !== undefined && { metadata }),
+      ...(contextMetadata !== undefined && { contextMetadata })
+    });
   }
 
   /**

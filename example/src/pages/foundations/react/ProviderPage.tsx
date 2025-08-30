@@ -194,9 +194,13 @@ function ActivityLogger() {
     };
 
     const randomActivity = generateRandomActivity();
-    dispatch('logActivity', { activity: randomActivity });
+    if (randomActivity) {
+      dispatch('logActivity', { activity: randomActivity });
+    }
     // 자동 계산: 실행시간, 타임스탬프, 액션타입이 자동으로 주입됨
-    logAction('logActivity', { activity: randomActivity }, { toast: true });
+    if (randomActivity) {
+      logAction('logActivity', { activity: randomActivity }, { toast: true });
+    }
   }, [dispatch, logAction]);
 
   const clearActivities = useCallback(() => {

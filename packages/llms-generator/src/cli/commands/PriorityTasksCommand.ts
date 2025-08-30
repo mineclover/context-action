@@ -369,16 +369,16 @@ export class PriorityTasksCommand {
     });
 
     console.log('\n🔧 Recommended Actions:');
-    if (taskCounts.missing > 0) {
+    if ((taskCounts.missing ?? 0) > 0) {
       console.log(`   • Generate missing priority.json files: pnpm llms:sync-docs`);
     }
-    if (taskCounts.invalid > 0) {
+    if ((taskCounts.invalid ?? 0) > 0) {
       console.log(`   • Fix invalid JSON files manually or regenerate`);
     }
-    if (taskCounts.outdated > 0) {
+    if ((taskCounts.outdated ?? 0) > 0) {
       console.log(`   • Update outdated files: pnpm llms:priority-auto --force`);
     }
-    if (taskCounts.needs_review > 0 || taskCounts.needs_update > 0) {
+    if ((taskCounts.needs_review ?? 0) > 0 || (taskCounts.needs_update ?? 0) > 0) {
       console.log(`   • Review and update metadata: pnpm llms:priority-suggest`);
     }
     console.log(`   • Auto-fix issues: add --fix flag`);
@@ -559,7 +559,10 @@ export class PriorityTasksCommand {
   private generateTitle(documentId: string): string {
     // Convert document-id to Title Case
     const parts = documentId.split('--');
-    const title = parts[parts.length - 1]
+    const lastPart = parts[parts.length - 1];
+    if (!lastPart) return documentId;
+    
+    const title = lastPart
       .split('-')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
@@ -588,6 +591,7 @@ export class PriorityTasksCommand {
     const parts = documentId.split('--');
     if (parts.length >= 2) {
       const [category, ...nameParts] = parts;
+      if (!category) return '';
       const fileName = nameParts.join('-') + '.md';
       return path.join(this.config.paths.docsDir, language, category, fileName);
     }

@@ -57,7 +57,9 @@ export class WorkNextCommand {
 
     // Default behavior: show single next item
     const nextItem = filteredItems[0];
-    this.displayNextWorkItem(nextItem);
+    if (nextItem) {
+      this.displayNextWorkItem(nextItem);
+    }
     this.displaySummaryStats(workItems);
   }
 
@@ -193,6 +195,7 @@ export class WorkNextCommand {
     const parts = documentId.split('--');
     if (parts.length >= 2) {
       const [category, ...nameParts] = parts;
+      if (!category) return '';
       const fileName = nameParts.join('-') + '.md';
       return path.join(this.config.paths.docsDir, language, category, fileName);
     }
@@ -405,7 +408,10 @@ export class WorkNextCommand {
     documentGroups.forEach(group => {
       // Sort by character limit to get the smallest one that needs work
       group.sort((a, b) => a.characterLimit - b.characterLimit);
-      uniqueItems.push(group[0]);
+      const firstItem = group[0];
+      if (firstItem) {
+        uniqueItems.push(firstItem);
+      }
     });
 
     // Sort unique items by priority

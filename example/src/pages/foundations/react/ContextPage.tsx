@@ -4,7 +4,7 @@ import {
   createStoreContext,
   useStoreValue,
 } from '@context-action/react';
-import { useEffect } from 'react';
+import { useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   PageWithLogMonitor,
   useActionLoggerWithToast,
@@ -62,6 +62,7 @@ const ChildBActionContext = createActionContext<ChildBActions>({
 const ChildBStores = createStoreContext('ChildBContext-stores', {
   'text': { initialValue: 'Hello World' }
 });
+
 
 // 상위 컨텍스트 UI - 하위 컴포넌트들을 모름
 function ParentContextUI() {
@@ -225,7 +226,7 @@ function IndependentChildA() {
 function ChildALogicRegistration() {
   const counter = ChildAStores.useStore('counter');
   const actionLogger = useActionLoggerWithToast();
-  const parentDispatch = ParentActionContext.useActionDispatch(); // 상위 컨텍스트에 접근
+  const parentDispatch = ParentActionContext.useActionDispatch();
 
   const childId = 'child-a-counter';
 
@@ -238,9 +239,8 @@ function ChildALogicRegistration() {
   }, []); // parentDispatch 의존성 제거로 무한 리렌더링 방지
 
   // 🎯 핵심: 상위의 제어 명령을 구독하여 자율적으로 반응
-  ParentActionContext.useActionHandler(
-    'controlChild',
-    ({ childId: targetId, action, amount }) => {
+  const controlChildHandler = useMemo(() => 
+    ({ childId: targetId, action, amount }: { childId: string; action: 'increment' | 'reset'; amount?: number }) => {
       // 자신에게 향한 명령인지 확인
       if (targetId !== childId) return;
 
@@ -289,48 +289,58 @@ function ChildALogicRegistration() {
           }
         );
       }
-    }
+    }, [] // 빈 의존성으로 한 번만 생성
   );
 
-  // Child A의 자체 액션 핸들러
-  ChildAActionContext.useActionHandler('incrementCounter', ({ amount }) => {
-    const newValue = counter.getValue() + amount;
-    counter.setValue(newValue);
+  // Child A의 incrementCounter 핸들러 - useMemo로 안정화
+  const incrementCounterHandler = useMemo(() => 
+    ({ amount }: { amount: number }) => {
+      const newValue = counter.getValue() + amount;
+      counter.setValue(newValue);
 
-    // 상위에게 데이터 변경 알림
-    parentDispatch('onDataChanged', {
-      source: childId,
-      data: { counter: newValue, action: 'increment', amount },
-    });
+      // 상위에게 데이터 변경 알림
+      parentDispatch('onDataChanged', {
+        source: childId,
+        data: { counter: newValue, action: 'increment', amount },
+      });
 
-    actionLogger.logAction(
-      'incrementCounter',
-      { amount, newValue },
-      {
-        context: 'Child A Component',
-        toast: { type: 'success', message: `카운터 증가: ${newValue}` },
-      }
-    );
-  });
+      actionLogger.logAction(
+        'incrementCounter',
+        { amount, newValue },
+        {
+          context: 'Child A Component',
+          toast: { type: 'success', message: `카운터 증가: ${newValue}` },
+        }
+      );
+    }, [] // 빈 의존성으로 한 번만 생성
+  );
 
-  ChildAActionContext.useActionHandler('resetCounter', () => {
-    counter.setValue(0);
+  // Child A의 resetCounter 핸들러 - useMemo로 안정화
+  const resetCounterHandler = useMemo(() => 
+    () => {
+      counter.setValue(0);
 
-    // 상위에게 데이터 변경 알림
-    parentDispatch('onDataChanged', {
-      source: childId,
-      data: { counter: 0, action: 'reset' },
-    });
+      // 상위에게 데이터 변경 알림
+      parentDispatch('onDataChanged', {
+        source: childId,
+        data: { counter: 0, action: 'reset' },
+      });
 
-    actionLogger.logAction(
-      'resetCounter',
-      {},
-      {
-        context: 'Child A Component',
-        toast: { type: 'info', message: '카운터 리셋됨' },
-      }
-    );
-  });
+      actionLogger.logAction(
+        'resetCounter',
+        {},
+        {
+          context: 'Child A Component',
+          toast: { type: 'info', message: '카운터 리셋됨' },
+        }
+      );
+    }, [] // 빈 의존성으로 한 번만 생성
+  );
+
+  // 🛡️ 액션 핸들러 등록
+  ParentActionContext.useActionHandler('controlChild', controlChildHandler);
+  ChildAActionContext.useActionHandler('incrementCounter', incrementCounterHandler);
+  ChildAActionContext.useActionHandler('resetCounter', resetCounterHandler);
 
   return null;
 }
@@ -435,8 +445,8 @@ function ChildBLogicRegistration() {
     });
   }, []); // parentDispatch 의존성 제거로 무한 리렌더링 방지
 
-  // Child B의 자체 액션 핸들러
-  ChildBActionContext.useActionHandler('updateText', ({ newText }) => {
+  // Child B의 updateText 핸들러 - useCallback으로 안정화
+  const updateTextHandler = useCallback(({ newText }: { newText: string }) => {
     textStore.setValue(newText);
 
     // 상위에게 데이터 변경 알림
@@ -453,9 +463,10 @@ function ChildBLogicRegistration() {
         toast: { type: 'success', message: '텍스트 업데이트됨' },
       }
     );
-  });
+  }, [textStore, parentDispatch, actionLogger, childId]);
 
-  ChildBActionContext.useActionHandler('clearText', () => {
+  // Child B의 clearText 핸들러 - useCallback으로 안정화
+  const clearTextHandler = useCallback(() => {
     textStore.setValue('');
 
     // 상위에게 데이터 변경 알림
@@ -472,7 +483,11 @@ function ChildBLogicRegistration() {
         toast: { type: 'info', message: '텍스트 클리어됨' },
       }
     );
-  });
+  }, [textStore, parentDispatch, actionLogger, childId]);
+
+  // Child B의 자체 액션 핸들러 - 안정화된 핸들러 사용
+  ChildBActionContext.useActionHandler('updateText', updateTextHandler);
+  ChildBActionContext.useActionHandler('clearText', clearTextHandler);
 
   return null;
 }

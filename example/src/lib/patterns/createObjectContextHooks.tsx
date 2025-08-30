@@ -230,7 +230,12 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
         metadata?: Record<string, unknown>, 
         contextMetadata?: Record<string, unknown>
       ) => {
-        dispatch('register', { id, object, metadata, contextMetadata });
+        dispatch('register', { 
+          id, 
+          object, 
+          ...(metadata !== undefined && { metadata }),
+          ...(contextMetadata !== undefined && { contextMetadata })
+        });
       }, [dispatch]),
 
       unregister: useCallback((id: string, force = false) => {
@@ -243,7 +248,12 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
         metadata?: Record<string, unknown>,
         contextMetadata?: Record<string, unknown>
       ) => {
-        dispatch('update', { id, object, metadata, contextMetadata });
+        dispatch('update', { 
+          id, 
+          ...(object !== undefined && { object }),
+          ...(metadata !== undefined && { metadata }),
+          ...(contextMetadata !== undefined && { contextMetadata })
+        });
       }, [dispatch]),
 
       // 생명주기 관리
@@ -291,7 +301,11 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
         lifecycleStates?: ObjectLifecycleState[], 
         force = false
       ) => {
-        dispatch('cleanup', { olderThan, lifecycleStates, force });
+        dispatch('cleanup', { 
+          ...(olderThan !== undefined && { olderThan }),
+          ...(lifecycleStates !== undefined && { lifecycleStates }),
+          force 
+        });
       }, [dispatch])
     };
   };

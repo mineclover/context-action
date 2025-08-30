@@ -1,13 +1,13 @@
 {
   "package": "react",
-  "generatedAt": "2025-08-30T00:00:19.307Z",
+  "generatedAt": "2025-08-30T06:46:06.274Z",
   "statistics": {
     "totalFiles": 48,
     "typeFiles": 3,
     "codeFiles": 45,
-    "totalLines": 6014,
+    "totalLines": 6018,
     "typeLines": 291,
-    "codeLines": 5723
+    "codeLines": 5727
   },
   "files": [
     {
@@ -128,7 +128,7 @@
     {
       "path": "stores/core/Store.ts",
       "isType": false,
-      "lines": 459
+      "lines": 470
     },
     {
       "path": "stores/core/StoreRegistry.ts",
@@ -198,7 +198,7 @@
     {
       "path": "stores/utils/immutable.ts",
       "isType": false,
-      "lines": 391
+      "lines": 384
     },
     {
       "path": "stores/utils/index.ts",

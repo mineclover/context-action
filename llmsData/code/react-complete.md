@@ -1,7 +1,7 @@
 # Context-Action React Package - Complete Code
 
 Total Files: 48
-Total Lines: 6014
+Total Lines: 6018
 
 ## Type Definitions
 
@@ -2163,7 +2163,7 @@ export type {
 ```typescript
 import type { IStore, Listener, Snapshot, Unsubscribe, StoreSetValueOptions } from './types';
 import type { StoreRegistry } from './StoreRegistry';
-import { safeGet, safeSet } from '../utils/immutable';
+import { safeGet, safeSet, produce } from '../utils/immutable';
 import { 
   compareValues, 
   fastCompare, 
@@ -2315,8 +2315,19 @@ export class Store<T = unknown> implements IStore<T> {
     }
     try {
       this.isUpdating = true;
-      const safeCurrentValue = safeGet(this._value, this.cloningEnabled);
-      const updatedValue = updater(safeCurrentValue);
+      let updatedValue: T;
+      try {
+        updatedValue = produce(this._value, (draft: T) => {
+          const result = updater(draft);
+          return result !== undefined ? result : draft;
+        });
+      } catch (immerError) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[Store] Immer update failed, falling back to safe copy method', immerError);
+        }
+        const safeCurrentValue = safeGet(this._value, this.cloningEnabled);
+        updatedValue = updater(safeCurrentValue);
+      }
       if (TypeGuards.isObject(updatedValue)) {
         if (!TypeGuards.isRefState(updatedValue) && TypeGuards.isSuspiciousEventObject(updatedValue)) {
           const hasEventTarget = TypeGuards.hasTargetProperty(updatedValue);
@@ -4747,14 +4758,12 @@ export function getFilteredErrors(
 ### stores/utils/immutable.ts
 
 ```typescript
-type ImmerModule = typeof import('immer');
-let immerModule: ImmerModule | null = null;
-async function getImmer(): Promise<ImmerModule> {
-  if (!immerModule) {
-    immerModule = await import('immer');
-  }
-  return immerModule;
-}
+import { 
+  produce as immerProduce, 
+  isDraft as immerIsDraft, 
+  original as immerOriginal, 
+  current as immerCurrent 
+} from 'immer';
 function isPrimitive(value: unknown): boolean {
   return (
     value === null ||
@@ -4826,6 +4835,14 @@ export function deepClone<T>(value: T, _options?: { skipProducer?: boolean }): T
       '__contextActionRefState' in value && value.__contextActionRefState === true) {
     return value;
   }
+  try {
+    return immerProduce(value, (_draft: any) => {
+    });
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      logger.warn('Immer produce failed, falling back to native methods', error);
+    }
+  }
   if (typeof structuredClone !== 'undefined') {
     try {
       return structuredClone(value);
@@ -4837,7 +4854,7 @@ export function deepClone<T>(value: T, _options?: { skipProducer?: boolean }): T
   }
   return fallbackClone(value);
 }
-export async function deepCloneWithImmer<T>(value: T): Promise<T> {
+export function deepCloneWithImmer<T>(value: T): T {
   if (isPrimitive(value)) {
     return value;
   }
@@ -4845,8 +4862,7 @@ export async function deepCloneWithImmer<T>(value: T): Promise<T> {
     return value;
   }
   try {
-    const { produce } = await getImmer();
-    return produce(value, (_draft: any) => {
+    return immerProduce(value, (_draft: any) => {
     });
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
@@ -5048,12 +5064,12 @@ export function performantSafeGet<T>(value: T, enableCloning: boolean = true): T
   }
   return result;
 }
-export async function performantSafeGetWithImmer<T>(value: T, enableCloning: boolean = true): Promise<T> {
+export function performantSafeGetWithImmer<T>(value: T, enableCloning: boolean = true): T {
   if (!enableCloning) {
     return value;
   }
   const startTime = performance.now();
-  const result = await deepCloneWithImmer(value);
+  const result = deepCloneWithImmer(value);
   const endTime = performance.now();
   const duration = endTime - startTime;
   performanceData.times.push(duration);
@@ -5083,60 +5099,48 @@ export function getPerformanceProfile(): PerformanceProfile {
   };
 }
 export const ImmerUtils = {
-  async isDraft(value: unknown): Promise<boolean> {
-    const { isDraft } = await getImmer();
-    return isDraft(value);
+  isDraft(value: unknown): boolean {
+    return immerIsDraft(value);
   },
-  async original<T>(value: T): Promise<T | undefined> {
-    const { original } = await getImmer();
-    return original(value);
+  original<T>(value: T): T | undefined {
+    return immerOriginal(value);
   },
-  async current<T>(value: T): Promise<T> {
-    const { current } = await getImmer();
-    return current(value);
+  current<T>(value: T): T {
+    return immerCurrent(value);
   },
-  async produce<T>(baseState: T, producer: (draft: T) => void | T): Promise<T> {
-    const { produce } = await getImmer();
-    return produce(baseState, producer);
+  produce<T>(baseState: T, producer: (draft: T) => void | T): T {
+    return immerProduce(baseState, producer);
   }
 };
-let syncImmerCache: ImmerModule | null = null;
-export async function preloadImmer(): Promise<void> {
-  if (!syncImmerCache) {
-    syncImmerCache = await getImmer();
-  }
+export function preloadImmer(): void {
 }
 export function produce<T>(baseState: T, producer: (draft: T) => void | T): T {
-  if (!syncImmerCache) {
-    throw new Error(
-      'Immer not loaded. Call preloadImmer() first or use ImmerUtils.produce() instead.'
-    );
+  try {
+    return immerProduce(baseState, producer);
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      logger.warn('Immer produce failed, falling back to deep clone simulation', error);
+    }
+    try {
+      const draft = deepClone(baseState);
+      const result = producer(draft);
+      return result !== undefined ? result : draft;
+    } catch (fallbackError) {
+      if (process.env.NODE_ENV === 'development') {
+        logger.error('Produce fallback failed, returning original state', fallbackError);
+      }
+      return baseState;
+    }
   }
-  return syncImmerCache.produce(baseState, producer);
 }
 export function isDraft(value: unknown): boolean {
-  if (!syncImmerCache) {
-    throw new Error(
-      'Immer not loaded. Call preloadImmer() first or use ImmerUtils.isDraft() instead.'
-    );
-  }
-  return syncImmerCache.isDraft(value);
+  return immerIsDraft(value);
 }
 export function original<T>(value: T): T | undefined {
-  if (!syncImmerCache) {
-    throw new Error(
-      'Immer not loaded. Call preloadImmer() first or use ImmerUtils.original() instead.'
-    );
-  }
-  return syncImmerCache.original(value);
+  return immerOriginal(value);
 }
 export function current<T>(value: T): T {
-  if (!syncImmerCache) {
-    throw new Error(
-      'Immer not loaded. Call preloadImmer() first or use ImmerUtils.current() instead.'
-    );
-  }
-  return syncImmerCache.current(value);
+  return immerCurrent(value);
 }
 ```
 

@@ -158,10 +158,10 @@ export class FillTemplatesCommand {
     // Try different path combinations
     const possiblePaths = [
       path.join(docsDir, ...parts) + '.md',
-      path.join(docsDir, parts[0], parts.slice(1).join('/')) + '.md',
+      parts[0] ? path.join(docsDir, parts[0], parts.slice(1).join('/')) + '.md' : null,
       path.join(docsDir, parts.join('/')) + '.md',
       path.join(docsDir, parts.join('-')) + '.md'
-    ];
+    ].filter((p): p is string => p !== null);
     
     for (const possiblePath of possiblePaths) {
       try {
@@ -250,7 +250,7 @@ export class FillTemplatesCommand {
 
   private extractCharacterLimit(filePath: string): number | null {
     const match = path.basename(filePath).match(/-(\d+)\.md$/);
-    return match ? parseInt(match[1]) : null;
+    return match && match[1] ? parseInt(match[1]) : null;
   }
 
   private generateSummary(

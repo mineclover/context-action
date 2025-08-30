@@ -202,17 +202,20 @@ export function ToastControlPanel() {
                 onClick={() => {
                   for (let i = 0; i < 8; i++) {
                     setTimeout(() => {
-                      const types = [
+                      const types: ('info' | 'success' | 'error' | 'system')[] = [
                         'info',
                         'success',
                         'error',
                         'system',
-                      ] as const;
-                      showToast(
-                        types[i % types.length],
-                        `🔄 Overflow Test ${i + 1}`,
-                        `이 메시지로 최대 개수 제한을 테스트해보세요! (${i + 1}/8)`
-                      );
+                      ];
+                      const selectedType = types[i % types.length];
+                      if (selectedType) {
+                        showToast(
+                          selectedType,
+                          `🔄 Overflow Test ${i + 1}`,
+                          `이 메시지로 최대 개수 제한을 테스트해보세요! (${i + 1}/8)`
+                        );
+                      }
                     }, i * 300);
                   }
                 }}

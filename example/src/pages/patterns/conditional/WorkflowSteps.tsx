@@ -157,7 +157,9 @@ function WorkflowStepsContent() {
       
       if (nextStepIndex < WORKFLOW_STEPS.length) {
         const nextStep = WORKFLOW_STEPS[nextStepIndex];
-        await dispatch('executeStep', { step: nextStep.id });
+        if (nextStep) {
+          await dispatch('executeStep', { step: nextStep.id });
+        }
       }
     }
     

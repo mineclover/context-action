@@ -175,7 +175,7 @@ export class SimpleLLMSCommand {
 
       // Extract category from folder name (e.g., "guide--action-handlers" -> "guide")
       const docCategory = folder.split('--')[0];
-      if (category && docCategory !== category) continue;
+      if (!docCategory || (category && docCategory !== category)) continue;
 
       // Find template files
       const files = await fs.readdir(folderPath);
@@ -185,7 +185,7 @@ export class SimpleLLMSCommand {
         
         // Extract character limit from filename
         const charMatch = file.match(/-(\d+)\.md$/);
-        if (!charMatch) continue;
+        if (!charMatch || !charMatch[1]) continue;
         
         const fileCharLimit = parseInt(charMatch[1]);
         if (characterLimit && fileCharLimit !== characterLimit) continue;
@@ -229,7 +229,7 @@ export class SimpleLLMSCommand {
       // Get language from file path structure
       const pathParts = filePath.split(path.sep);
       const languageIndex = pathParts.findIndex(part => ['en', 'ko'].includes(part));
-      const language = languageIndex >= 0 ? pathParts[languageIndex] : 'en';
+      const language = languageIndex >= 0 && pathParts[languageIndex] ? pathParts[languageIndex] : 'en';
 
       const document: CleanDocument = {
         title: title.replace(/\s*\(\d+자\)/, ''), // Remove character limit from title
@@ -293,7 +293,7 @@ export class SimpleLLMSCommand {
 
   private extractTitle(content: string): string | null {
     const titleMatch = content.match(/^# (.+)/m);
-    return titleMatch ? titleMatch[1] : null;
+    return titleMatch && titleMatch[1] ? titleMatch[1] : null;
   }
 
   private isCompleted(document: CleanDocument): boolean {
@@ -551,6 +551,10 @@ export class SimpleLLMSCommand {
     if (title.includes('--')) {
       const parts = title.split('--');
       const mainPart = parts[parts.length - 1]; // Get the last part after --
+      
+      if (!mainPart) {
+        return title; // Fallback to original title if no main part found
+      }
       
       // Convert kebab-case to Title Case
       return mainPart

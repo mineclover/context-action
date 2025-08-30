@@ -226,7 +226,7 @@ toastActionRegister.register(
       type,
       title,
       message,
-      actionType,
+      ...(actionType !== undefined && { actionType }),
       payload,
       timestamp: new Date(),
       duration: duration || config.defaultDuration,

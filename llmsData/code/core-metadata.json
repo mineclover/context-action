@@ -1,19 +1,19 @@
 {
   "package": "core",
-  "generatedAt": "2025-08-30T00:00:19.301Z",
+  "generatedAt": "2025-08-30T06:46:06.265Z",
   "statistics": {
     "totalFiles": 8,
     "typeFiles": 1,
     "codeFiles": 7,
-    "totalLines": 1717,
-    "typeLines": 189,
-    "codeLines": 1528
+    "totalLines": 1803,
+    "typeLines": 190,
+    "codeLines": 1613
   },
   "files": [
     {
       "path": "types.ts",
       "isType": true,
-      "lines": 189
+      "lines": 190
     },
     {
       "path": "action-guard.ts",
@@ -23,7 +23,7 @@
     {
       "path": "ActionRegister.ts",
       "isType": false,
-      "lines": 853
+      "lines": 938
     },
     {
       "path": "concurrency/index.ts",

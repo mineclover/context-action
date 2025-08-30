@@ -230,13 +230,13 @@ export function PageWithLogMonitor({
   return (
     <LogMonitorProvider
       pageId={pageId}
-      initialLogLevel={initialLogLevel}
-      initialConfig={initialConfig}
+      {...(initialLogLevel !== undefined && { initialLogLevel })}
+      {...(initialConfig !== undefined && { initialConfig })}
     >
       <div className="page-with-log-monitor">
         {children}
         <LogMonitor
-          title={title ? `${title} - Log Monitor` : undefined}
+          {...(title && { title: `${title} - Log Monitor` })}
           {...logMonitorProps}
         />
       </div>

@@ -58,7 +58,7 @@ const createUser = (
   role,
   createdAt: new Date(),
   metadata: {
-    department,
+    ...(department !== undefined && { department }),
     preferences: {}
   }
 });

@@ -212,6 +212,11 @@ export class CombineReferencesCommand {
     while ((match = markdownLinkRegex.exec(content)) !== null) {
       const [, text, url] = match;
       
+      // Skip if url or text is undefined
+      if (!url || !text) {
+        continue;
+      }
+      
       // Skip external URLs, anchors, and email links
       if (url.startsWith('http') || url.startsWith('#') || url.startsWith('mailto:')) {
         continue;
@@ -239,6 +244,11 @@ export class CombineReferencesCommand {
     const patternRegex = /\*\*\[([^\]]+)\]\(([^)]+)\)\*\*\s*-\s*([^.\n]*)/g;
     while ((match = patternRegex.exec(content)) !== null) {
       const [, text, url] = match;
+      
+      // Skip if url or text is undefined
+      if (!url || !text) {
+        continue;
+      }
       
       if (!url.startsWith('http') && !url.startsWith('#') && !url.startsWith('mailto:')) {
         let type: 'local' | 'relative' | 'absolute' = 'relative';

@@ -308,7 +308,7 @@ const PriorityTestInstance = memo(function PriorityTestInstance({
       for (let priority = 1; priority <= 100; priority++) {
         if (existingPriorities.has(priority)) continue;
 
-        const color = colors[priority % colors.length];
+        const color = colors[priority % colors.length] || '#000000';
         bulkConfigs.push({
           id: `bulk-${priority}`,
           priority,

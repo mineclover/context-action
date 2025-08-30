@@ -67,7 +67,7 @@ const heavyComputation = (
   let result = 0;
   for (let i = 0; i < numbers.length; i++) {
     for (let j = 0; j < 1000; j++) {
-      result += Math.sqrt(numbers[i] * j);
+      result += Math.sqrt((numbers[i] ?? 0) * j);
     }
   }
 

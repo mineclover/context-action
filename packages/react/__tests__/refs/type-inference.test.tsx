@@ -6,8 +6,8 @@
 
 import React from 'react';
 import { render } from '@testing-library/react';
-import { createRefContext } from '../createRefContext';
-import type { RefInitConfig } from '../types';
+import { createRefContext } from '../../src/refs/createRefContext';
+import type { RefInitConfig } from '../../src/refs/types';
 
 // 테스트용 DOM 타입들
 interface TestElement extends HTMLElement {

@@ -169,6 +169,11 @@ export class LLMSGenerateCommand {
 
       const documentId = docDir.name;
       const category = this.extractCategory(documentId);
+      
+      if (!category) {
+        continue; // Skip documents without valid category
+      }
+      
       const documentPath = this.pathManager.getDocumentDir(language, documentId);
 
       try {
@@ -201,12 +206,14 @@ export class LLMSGenerateCommand {
             // Fallback to first template file if priority.json doesn't exist
             if (templateFiles.length > 0) {
               const templateFile = templateFiles[0];
-              const characterLimit = this.extractCharacterLimit(templateFile);
-              if (characterLimit !== null) {
-                const filePath = path.join(documentPath, templateFile);
-                const document = await this.parseDocument(filePath, documentId, category, language, characterLimit, options);
-                if (document) {
-                  documents.push(document);
+              if (templateFile) {
+                const characterLimit = this.extractCharacterLimit(templateFile);
+                if (characterLimit !== null) {
+                  const filePath = path.join(documentPath, templateFile);
+                  const document = await this.parseDocument(filePath, documentId, category, language, characterLimit, options);
+                  if (document) {
+                    documents.push(document);
+                  }
                 }
               }
             }
@@ -560,7 +567,7 @@ export class LLMSGenerateCommand {
 
   private extractTitle(content: string): string | null {
     const titleMatch = content.match(/^# (.+)/m);
-    return titleMatch ? titleMatch[1].replace(/\s*\(\d+자\)/, '') : null;
+    return titleMatch && titleMatch[1] ? titleMatch[1].replace(/\s*\(\d+자\)/, '') : null;
   }
 
   private extractCategory(documentId: string): string {
@@ -570,7 +577,7 @@ export class LLMSGenerateCommand {
 
   private extractCharacterLimit(fileName: string): number | null {
     const match = fileName.match(/-(\d+)\.md$/);
-    return match ? parseInt(match[1]) : null;
+    return match && match[1] ? parseInt(match[1]) : null;
   }
 
   private isDocumentComplete(document: DocumentContent): boolean {
@@ -815,6 +822,10 @@ export class LLMSGenerateCommand {
       const parts = title.split('--');
       const mainPart = parts[parts.length - 1]; // Get the last part after --
       
+      if (!mainPart) {
+        return title; // Fallback to original title if no main part found
+      }
+      
       // Convert kebab-case to Title Case
       return mainPart
         .split('-')
@@ -880,6 +891,10 @@ export class LLMSGenerateCommand {
     for (const [sourcePath, docs] of documentsBySource) {
       // Take the highest priority document for this source
       const bestDoc = docs.sort((a, b) => b.priority - a.priority)[0];
+      
+      if (!bestDoc) {
+        continue; // Skip if no document found
+      }
       
       try {
         // Try to read the original source file

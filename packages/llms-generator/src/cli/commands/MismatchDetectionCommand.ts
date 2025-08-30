@@ -105,6 +105,9 @@ export class MismatchDetectionCommand {
 
       const language = pathParts[1];
       const category = pathParts[2];
+      
+      if (!language || !category) continue;
+      
       const fileName = path.basename(filePath, '.md');
       const documentId = this.generateDocumentId(language, category, fileName);
 
@@ -150,7 +153,7 @@ export class MismatchDetectionCommand {
           if (entry.isDirectory()) {
             // category--filename 형태의 디렉토리
             const match = entry.name.match(/^(.+?)--(.+)$/);
-            if (match) {
+            if (match && match[1] && match[2]) {
               const [, category, fileName] = match;
               const documentId = this.generateDocumentId(language, category, fileName);
 
@@ -290,7 +293,7 @@ export class MismatchDetectionCommand {
         const presentLimits = templateFiles
           .map(name => {
             const match = name.match(/-(\d+)\.md$/);
-            return match ? parseInt(match[1]) : null;
+            return match && match[1] ? parseInt(match[1]) : null;
           })
           .filter(limit => limit !== null) as number[];
 

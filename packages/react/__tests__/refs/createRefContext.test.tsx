@@ -8,7 +8,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
-import { createRefContext } from '../createRefContext';
+import { createRefContext } from '../../src/refs/createRefContext';
 
 describe('createRefContext', () => {
   describe('Simple type usage (Legacy)', () => {

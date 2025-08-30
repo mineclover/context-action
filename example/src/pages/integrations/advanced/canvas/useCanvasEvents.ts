@@ -137,9 +137,11 @@ export function useCanvasEvents(
             mainCtx.lineJoin = 'round';
             
             const lastPoint = freehandPoints[freehandPoints.length - 1];
-            mainCtx.beginPath();
-            mainCtx.moveTo(lastPoint.x, lastPoint.y);
-            mainCtx.lineTo(pos.x, pos.y);
+            if (lastPoint) {
+              mainCtx.beginPath();
+              mainCtx.moveTo(lastPoint.x, lastPoint.y);
+              mainCtx.lineTo(pos.x, pos.y);
+            }
             mainCtx.stroke();
           }
         }

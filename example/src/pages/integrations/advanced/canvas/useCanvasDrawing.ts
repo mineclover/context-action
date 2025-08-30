@@ -99,9 +99,15 @@ export function useCanvasDrawing() {
       case 'freehand':
         if (shape.points && shape.points.length > 1) {
           ctx.beginPath();
-          ctx.moveTo(shape.points[0].x, shape.points[0].y);
-          for (let i = 1; i < shape.points.length; i++) {
-            ctx.lineTo(shape.points[i].x, shape.points[i].y);
+          const firstPoint = shape.points[0];
+          if (firstPoint) {
+            ctx.moveTo(firstPoint.x, firstPoint.y);
+            for (let i = 1; i < shape.points.length; i++) {
+              const point = shape.points[i];
+              if (point) {
+                ctx.lineTo(point.x, point.y);
+              }
+            }
           }
           ctx.stroke();
         }
@@ -204,8 +210,15 @@ export function useCanvasDrawing() {
     ctx.strokeStyle = color;
     ctx.lineWidth = strokeWidth;
     ctx.beginPath();
-    ctx.moveTo(points[0].x, points[0].y);
-    points.forEach(point => ctx.lineTo(point.x, point.y));
+    const firstPoint = points[0];
+    if (firstPoint) {
+      ctx.moveTo(firstPoint.x, firstPoint.y);
+      points.forEach(point => {
+        if (point) {
+          ctx.lineTo(point.x, point.y);
+        }
+      });
+    }
     ctx.lineTo(currentPoint.x, currentPoint.y);
     ctx.stroke();
     ctx.restore();
@@ -217,25 +230,29 @@ export function useCanvasDrawing() {
     for (let i = shapesRef.current.length - 1; i >= 0; i--) {
       const shape = shapesRef.current[i];
       
+      if (!shape) continue;
+      
       if (shape.type === 'freehand') {
         // Freehand는 점들과의 거리로 판단
         if (shape.points) {
           for (const shapePoint of shape.points) {
-            const distance = Math.sqrt(
-              (point.x - shapePoint.x) ** 2 + (point.y - shapePoint.y) ** 2
-            );
-            if (distance <= shape.strokeWidth + 5) {
-              return shape;
+            if (shapePoint) {
+              const distance = Math.sqrt(
+                (point.x - shapePoint.x) ** 2 + (point.y - shapePoint.y) ** 2
+              );
+              if (distance <= (shape.strokeWidth || 1) + 5) {
+                return shape;
+              }
             }
           }
         }
       } else {
         // 사각형, 원형, 선은 경계 박스로 판단
         if (
-          point.x >= shape.x &&
-          point.x <= shape.x + shape.width &&
-          point.y >= shape.y &&
-          point.y <= shape.y + shape.height
+          point.x >= (shape.x || 0) &&
+          point.x <= (shape.x || 0) + (shape.width || 0) &&
+          point.y >= (shape.y || 0) &&
+          point.y <= (shape.y || 0) + (shape.height || 0)
         ) {
           return shape;
         }

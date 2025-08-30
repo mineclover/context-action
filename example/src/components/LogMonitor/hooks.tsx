@@ -181,10 +181,10 @@ export function useActionLogger(
           level: LogLevel.INFO,
           type: 'action',
           message: `액션 실행: ${actionType}`,
-          priority: options.priority,
+          ...(options.priority !== undefined && { priority: options.priority }),
           details: {
             payload,
-            context: options.context,
+            ...(options.context !== undefined && { context: options.context }),
             executionTime,
             timestamp,
           },
@@ -450,7 +450,7 @@ export function useActionLoggerWithToast(): StableLoggerAPI {
       return undefined;
     }
   }, []);
-  return useActionLogger({ toastSystem });
+  return useActionLogger(toastSystem ? { toastSystem } : {});
 }
 
 /**
@@ -472,5 +472,5 @@ export function useActionLoggerWithCustomToast(
  * @returns 로거 API
  */
 export function usePureActionLogger(logger?: Logger): StableLoggerAPI {
-  return useActionLogger({ logger });
+  return useActionLogger(logger ? { logger } : {});
 }

@@ -302,7 +302,10 @@ export function useCanvas() {
     setStrokeWidth: (width: number) => dispatch('setStrokeWidth', { width }),
     
     // 드래그 상태 관리
-    startDrag: (point: Point, shape?: CanvasShape) => dispatch('startDrag', { point, shape }),
+    startDrag: (point: Point, shape?: CanvasShape) => dispatch('startDrag', { 
+      point, 
+      ...(shape !== undefined && { shape }) 
+    }),
     updateDrag: (point: Point) => dispatch('updateDrag', { point }),
     endDrag: () => dispatch('endDrag'),
     

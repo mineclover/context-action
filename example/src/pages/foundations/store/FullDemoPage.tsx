@@ -212,7 +212,7 @@ function StoreFullDemoPage() {
                           currentIndex > 0
                             ? currentIndex - 1
                             : demos.length - 1;
-                        setActiveDemo(demos[prevIndex].id);
+                        setActiveDemo(demos[prevIndex]?.id || demos[0]?.id || '');
                       }}
                       variant="secondary"
                       size="sm"
@@ -233,7 +233,7 @@ function StoreFullDemoPage() {
                           currentIndex < demos.length - 1
                             ? currentIndex + 1
                             : 0;
-                        setActiveDemo(demos[nextIndex].id);
+                        setActiveDemo(demos[nextIndex]?.id || demos[0]?.id || '');
                       }}
                       variant="primary"
                       size="sm"

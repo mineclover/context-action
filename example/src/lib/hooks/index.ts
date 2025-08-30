@@ -21,7 +21,7 @@ export function useLogger(source?: string) {
       level,
       message,
       data,
-      source
+      ...(source !== undefined && { source })
     };
     
     console.log(`[${source || 'App'}] ${getLogLevelName(level)}: ${message}`, data || '');

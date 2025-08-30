@@ -33,7 +33,10 @@ export class ArgumentParser {
     for (const flag of flags) {
       let index = args.indexOf(flag);
       while (index !== -1 && index + 1 < args.length) {
-        results.push(args[index + 1]);
+        const nextArg = args[index + 1];
+        if (nextArg !== undefined) {
+          results.push(nextArg);
+        }
         index = args.indexOf(flag, index + 2);
       }
     }

@@ -217,7 +217,7 @@ export class PriorityManagerCommand {
 
     const averageScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
     const sortedScores = [...scores].sort((a, b) => a - b);
-    const median = sortedScores[Math.floor(sortedScores.length / 2)];
+    const median = sortedScores[Math.floor(sortedScores.length / 2)] ?? 0;
     const variance = scores.reduce((sum, score) => sum + Math.pow(score - averageScore, 2), 0) / scores.length;
     const stdDev = Math.sqrt(variance);
 

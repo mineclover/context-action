@@ -120,6 +120,7 @@ export class LLMSOutputPathManager {
     const parts = documentId.split('--');
     if (parts.length >= 2) {
       const category = parts[0];
+      if (!category) return '';
       const fileName = parts.slice(1).join('-');
       return this.getSourceDocPath(language, category, fileName);
     }

@@ -1,7 +1,7 @@
 # Context-Action Core Package - Complete Code
 
 Total Files: 8
-Total Lines: 1717
+Total Lines: 1803
 
 ## Type Definitions
 
@@ -35,6 +35,7 @@ export interface HandlerConfig {
   debounce?: number;
   throttle?: number;
   replaceExisting?: boolean;
+  cleanup?: () => void;
 }
 export interface HandlerRegistration<T = any, R = void> {
   handler: ActionHandler<T, R>;
@@ -379,6 +380,7 @@ import {
   ActionRegistryInfo,
   ActionHandlerStats,
   DispatchOptions,
+  HandlerError,
 } from './types.js';
 import { executeSequential, executeParallel, executeRace } from './execution-modes.js';
 import { ActionGuard } from './action-guard.js';
@@ -388,13 +390,16 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   private readonly actionGuard: ActionGuard;
   private executionMode: ExecutionMode = 'sequential';
   private actionExecutionModes = new Map<keyof T, ExecutionMode>();
+  private unregisterFunctions = new Map<string, UnregisterFunction>();
   public readonly name: string;
   private readonly registryConfig: ActionRegisterConfig['registry'];
   private readonly isDebugMode: boolean;
   private readonly maxHandlersPerAction: number;
   private dispatchQueue?: OperationQueue;
   private filterCache = new Map<string, HandlerRegistration<any, any>[]>();
-  private filterCacheMaxSize = 100; 
+  private handlerIdCounter = 0;
+  private controllerPool: PipelineController<any, any>[] = [];
+  private readonly maxControllerPoolSize = 10;
   constructor(config: ActionRegisterConfig = {}) {
     this.name = config.name || 'ActionRegister';
     this.registryConfig = config.registry;
@@ -433,8 +438,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     }
   }
   private generateHandlerId<K extends keyof T>(action: K): string {
-    const uuid = crypto.randomUUID();
-    return `${String(action)}_${uuid.slice(0, 8)}`;
+    return `${String(action)}_${this.name}_${++this.handlerIdCounter}`;
   }
   private createAbortSignal(options?: DispatchOptions): [
     AbortSignal | undefined, 
@@ -500,6 +504,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         debounce: config.debounce ?? undefined,
         throttle: config.throttle ?? undefined,
         replaceExisting: config.replaceExisting ?? false,
+        cleanup: config.cleanup, 
       } as Required<HandlerConfig>,
       id: handlerId,
     };
@@ -513,11 +518,16 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     }
     const existingIndex = pipeline.findIndex(reg => reg.id === handlerId);
     if (existingIndex !== -1) {
+      const existing = pipeline[existingIndex];
+      const existingUnregister = this.unregisterFunctions.get(handlerId);
       if (config.replaceExisting) {
-        const oldRegistration = pipeline[existingIndex];
-        if (oldRegistration && typeof (oldRegistration as any).cleanup === 'function') {
+        if (existingUnregister) {
+          existingUnregister();
+          this.unregisterFunctions.delete(handlerId);
+        }
+        if (existing && typeof (existing as any).cleanup === 'function') {
           try {
-            (oldRegistration as any).cleanup();
+            (existing as any).cleanup();
           } catch (cleanupError) {
             this.log(`Cleanup error for replaced handler: ${String(action)}`, cleanupError, 'warn');
           }
@@ -525,61 +535,47 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         pipeline[existingIndex] = registration;
         pipeline.sort((a, b) => b.config.priority - a.config.priority);
         this.invalidateFilterCache();
+        const newUnregister = this.createUnregisterFunction(action, handlerId, registration);
+        this.unregisterFunctions.set(handlerId, newUnregister);
         this.log(`Handler replaced: ${String(action)}`, {
           handlerId,
           priority: config.priority,
           totalHandlers: pipeline.length,
-          oldHandlerCleaned: Boolean((oldRegistration as any).cleanup)
+          hadExistingUnregister: Boolean(existingUnregister)
         });
-        return () => {
-          const index = pipeline.findIndex(reg => reg.id === handlerId && reg === registration);
-          if (index !== -1) {
-            pipeline.splice(index, 1);
-            this.invalidateFilterCache();
-            this.log(`Replaced handler unregistered: ${String(action)}`, { handlerId });
-          }
-        };
+        return newUnregister;
       } else {
-        const existing = pipeline[existingIndex];
+        if (!existing) {
+          throw new Error('Internal error: existing handler should be defined in duplicate handler block');
+        }
         this.log(`Handler duplicate ignored, returning existing unregister: ${String(action)}`, {
           handlerId,
+          existingPriority: existing.config.priority,
+          newPriority: config.priority,
+          existingBlocking: existing.config.blocking,
+          newBlocking: config.blocking,
           note: 'Use replaceExisting:true to replace'
         }, 'warn');
-        return () => {
-          const idx = pipeline.findIndex(reg => reg.id === handlerId);
-          if (idx !== -1) {
-            pipeline.splice(idx, 1);
-            this.invalidateFilterCache();
-            this.log(`Existing handler unregistered: ${String(action)}`, { handlerId });
-          }
-        };
+        if (existingUnregister) {
+          return existingUnregister;
+        } else {
+          const newUnregister = this.createUnregisterFunction(action, handlerId, existing);
+          this.unregisterFunctions.set(handlerId, newUnregister);
+          return newUnregister;
+        }
       }
     }
     pipeline.push(registration);
     pipeline.sort((a, b) => b.config.priority - a.config.priority);
     this.invalidateFilterCache();
+    const unregister = this.createUnregisterFunction(action, handlerId, registration);
+    this.unregisterFunctions.set(handlerId, unregister);
     this.log(`Handler registered: ${String(action)}`, {
       handlerId,
       priority: config.priority,
       totalHandlers: pipeline.length
     });
-    this.log(`Action '${String(action)}' pipeline after registration`, {
-      totalHandlers: pipeline.length,
-      handlers: pipeline.map(h => ({ id: h.config.id, priority: h.config.priority })),
-      pipelineExists: this.pipelines.has(action),
-      canDispatch: this.hasHandlers(action)
-    });
-    return () => {
-      const index = pipeline.findIndex((reg) => reg.id === handlerId && reg === registration);
-      if (index !== -1) {
-        pipeline.splice(index, 1);
-        this.invalidateFilterCache();
-        this.log(`Handler unregistered: ${String(action)}`, {
-          handlerId,
-          remainingHandlers: pipeline.length
-        });
-      }
-    };
+    return unregister;
   }
   async dispatch<K extends keyof T>(
     action: K,
@@ -688,6 +684,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     if (effectiveSignal && abortHandler) {
       effectiveSignal.addEventListener('abort', abortHandler);
     }
+    const contextWithErrors = context as PipelineContext<any, any> & { collectedErrors?: HandlerError[] };
+    const errors: HandlerError[] = contextWithErrors.collectedErrors || [];
     try {
       await this.executePipeline(context, autoAbortController, options?.autoAbort);
       this.log(`Pipeline execution succeeded for ${String(action)}`);
@@ -757,77 +755,15 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       ? this.filterHandlers(pipeline, options.filter)
       : pipeline;
     const actionKey = String(action);
-    let throttleMs: number | undefined;
-    let debounceMs: number | undefined;
-    if (options?.throttle !== undefined) {
-      throttleMs = options.throttle;
-    } else if (filteredHandlers.length > 0) {
-      for (const handler of filteredHandlers) {
-        if (handler.config.throttle !== undefined) {
-          throttleMs = handler.config.throttle;
-          break;
-        }
-      }
-    }
-    if (options?.debounce !== undefined) {
-      debounceMs = options.debounce;
-    } else if (filteredHandlers.length > 0) {
-      for (const handler of filteredHandlers) {
-        if (handler.config.debounce !== undefined) {
-          debounceMs = handler.config.debounce;
-          break;
-        }
-      }
-    }
-    if (debounceMs !== undefined) {
-      const shouldProceed = await this.actionGuard.debounce(actionKey, debounceMs);
-      if (!shouldProceed) {
-        return {
-          success: false,
-          aborted: true,
-          abortReason: 'Debounced execution',
-          terminated: false,
-          result: undefined as any,
-          successResults: [] as any,
-          results: [],
-          failedResults: [],
-          execution: {
-            duration: Date.now() - _startTime,
-            handlersExecuted: 0,
-            handlersSkipped: pipeline.length,
-            handlersFailed: 0,
-            startTime: _startTime,
-            endTime: Date.now(),
-          },
-          handlers: [],
-          errors: [],
-        };
-      }
-    }
-    if (throttleMs !== undefined) {
-      const shouldProceed = this.actionGuard.throttle(actionKey, throttleMs);
-      if (!shouldProceed) {
-        return {
-          success: false,
-          aborted: true,
-          abortReason: 'Throttled execution',
-          terminated: false,
-          result: undefined as any,
-          successResults: [] as any,
-          results: [],
-          failedResults: [],
-          execution: {
-            duration: Date.now() - _startTime,
-            handlersExecuted: 0,
-            handlersSkipped: pipeline.length,
-            handlersFailed: 0,
-            startTime: _startTime,
-            endTime: Date.now(),
-          },
-          handlers: [],
-          errors: [],
-        };
-      }
+    const guardResult = await this.applyActionGuardControlsWithResult<R>(
+      actionKey, 
+      filteredHandlers, 
+      options, 
+      _startTime, 
+      pipeline.length
+    );
+    if (guardResult) {
+      return guardResult; 
     }
     const currentExecutionMode = options?.executionMode || 
                                 this.actionExecutionModes.get(action) || 
@@ -854,11 +790,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       error: Error | undefined;
       metadata: Record<string, any> | undefined;
     }> = [];
-    const errors: Array<{
-      handlerId: string;
-      error: Error;
-      timestamp: number;
-    }> = [];
     filteredHandlers.forEach(handler => {
       handlerResults.push({
         id: handler.config.id,
@@ -876,8 +807,11 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     if (effectiveSignal && abortHandler) {
       effectiveSignal.addEventListener('abort', abortHandler);
     }
+    let errors: HandlerError[] = [];
     try {
       await this.executePipeline(context, autoAbortController, options?.autoAbort);
+      const contextWithErrors = context as PipelineContext<any, any> & { collectedErrors?: HandlerError[] };
+      errors = contextWithErrors.collectedErrors || [];
       const executedCount = Math.min(context.currentIndex + (context.aborted ? 0 : 1), filteredHandlers.length);
       for (let i = 0; i < executedCount; i++) {
         const handler = filteredHandlers[i];
@@ -888,6 +822,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         }
       }
     } catch (error) {
+      const contextWithErrors = context as PipelineContext<any, any> & { collectedErrors?: HandlerError[] };
+      errors = contextWithErrors.collectedErrors || [];
       executionError = error instanceof Error ? error : new Error(String(error));
       errors.push({
         handlerId: 'pipeline',
@@ -925,7 +861,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       failedResults,
       execution: {
         duration: endTime - _startTime,
-        handlersExecuted: context.currentIndex + (context.aborted ? 0 : 1),
+        handlersExecuted: filteredHandlers.length === 0 ? 0 : context.currentIndex + (context.aborted ? 0 : 1),
         handlersSkipped: Math.max(0, filteredHandlers.length - (context.currentIndex + 1)),
         handlersFailed: errors.length,
         startTime: _startTime,
@@ -942,6 +878,92 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     this.cleanupOneTimeHandlers(action, context.handlers);
     return executionResult;
   }
+  private async applyActionGuardControlsWithResult<R>(
+    actionKey: string,
+    filteredHandlers: HandlerRegistration<any, any>[],
+    options: DispatchOptions | undefined,
+    startTime: number,
+    pipelineLength: number
+  ): Promise<ExecutionResult<R> | null> {
+    let throttleMs: number | undefined;
+    let debounceMs: number | undefined;
+    if (options?.throttle !== undefined) {
+      throttleMs = options.throttle;
+    } else if (filteredHandlers.length > 0) {
+      for (const handler of filteredHandlers) {
+        if (handler.config.throttle !== undefined) {
+          throttleMs = handler.config.throttle;
+          break;
+        }
+      }
+    }
+    if (options?.debounce !== undefined) {
+      debounceMs = options.debounce;
+    } else if (filteredHandlers.length > 0) {
+      for (const handler of filteredHandlers) {
+        if (handler.config.debounce !== undefined) {
+          debounceMs = handler.config.debounce;
+          break;
+        }
+      }
+    }
+    if (debounceMs !== undefined) {
+      const shouldProceed = await this.actionGuard.debounce(actionKey, debounceMs);
+      if (!shouldProceed) {
+        return {
+          success: false,
+          aborted: true,
+          abortReason: 'Debounced execution',
+          terminated: false,
+          result: undefined as any,
+          successResults: [] as any,
+          results: [],
+          failedResults: [],
+          execution: {
+            duration: Date.now() - startTime,
+            handlersExecuted: 0,
+            handlersSkipped: pipelineLength,
+            handlersFailed: 0,
+            startTime: startTime,
+            endTime: Date.now(),
+          },
+          handlers: [],
+          errors: [],
+        };
+      }
+    }
+    if (throttleMs !== undefined) {
+      const shouldProceed = this.actionGuard.throttle(actionKey, throttleMs);
+      if (!shouldProceed) {
+        return {
+          success: false,
+          aborted: true,
+          abortReason: 'Throttled execution',
+          terminated: false,
+          result: undefined as any,
+          successResults: [] as any,
+          results: [],
+          failedResults: [],
+          execution: {
+            duration: Date.now() - startTime,
+            handlersExecuted: 0,
+            handlersSkipped: pipelineLength,
+            handlersFailed: 0,
+            startTime: startTime,
+            endTime: Date.now(),
+          },
+          handlers: [],
+          errors: [],
+        };
+      }
+    }
+    return null; 
+  }
+  private get filterCacheMaxSize(): number {
+    const totalHandlers = Array.from(this.pipelines.values())
+      .reduce((sum, pipeline) => sum + pipeline.length, 0);
+    return totalHandlers * 10 || 100; 
+  }
   private generateFilterCacheKey(filterOptions?: DispatchOptions['filter']): string {
     if (!filterOptions) {
       return 'no-filter';
@@ -957,6 +979,52 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   }
   private invalidateFilterCache(): void {
     this.filterCache.clear();
+  }
+  private getControllerFromPool<K extends keyof T>(
+    context: PipelineContext<T[K], any>, 
+    autoAbortController?: AbortController,
+    autoAbortOptions?: { allowHandlerAbort?: boolean }
+  ): PipelineController<T[K], any> {
+    let controller = this.controllerPool.pop();
+    if (!controller) {
+      controller = {} as PipelineController<T[K], any>;
+    }
+    controller.abort = (reason?: string) => {
+      context.aborted = true;
+      context.abortReason = reason;
+      if (autoAbortController && autoAbortOptions?.allowHandlerAbort) {
+        autoAbortController.abort(reason);
+      }
+    };
+    controller.modifyPayload = (modifier: (payload: T[K]) => T[K]) => {
+      context.payload = modifier(context.payload);
+    };
+    controller.getPayload = () => context.payload;
+    controller.jumpToPriority = (priority: number) => {
+      context.jumpToPriority = priority;
+    };
+    controller.return = (result: any) => {
+      context.terminated = true;
+      context.terminationResult = result;
+    };
+    controller.setResult = (result: any) => {
+      context.results.push(result);
+    };
+    controller.getResults = () => {
+      return [...context.results];
+    };
+    controller.mergeResult = (merger: (previousResults: any[], currentResult: any) => any) => {
+      const currentResult = context.results[context.results.length - 1];
+      const previousResults = context.results.slice(0, -1);
+      const mergedResult = merger(previousResults, currentResult);
+      context.results[context.results.length - 1] = mergedResult;
+    };
+    return controller;
+  }
+  private returnControllerToPool(controller: PipelineController<any, any>): void {
+    if (this.controllerPool.length < this.maxControllerPoolSize) {
+      this.controllerPool.push(controller);
+    }
   }
   private filterHandlers(
     handlers: HandlerRegistration<any, any>[],
@@ -998,10 +1066,11 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       return true;
     });
     if (!filterOptions.custom) {
-      if (this.filterCache.size >= this.filterCacheMaxSize) {
-        const firstKey = this.filterCache.keys().next().value;
-        if (firstKey) {
-          this.filterCache.delete(firstKey);
+      const currentMaxSize = this.filterCacheMaxSize;
+      if (this.filterCache.size >= currentMaxSize) {
+        const oldestKey = this.filterCache.keys().next().value;
+        if (oldestKey !== undefined) {
+          this.filterCache.delete(oldestKey);
         }
       }
       this.filterCache.set(cacheKey, filtered);
@@ -1052,38 +1121,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     autoAbortOptions?: { allowHandlerAbort?: boolean }
   ): Promise<void> {
     const createController = (_registration: HandlerRegistration<T[K], any>, _index: number): PipelineController<T[K], any> => {
-      return {
-        abort: (reason?: string) => {
-          context.aborted = true;
-          context.abortReason = reason;
-          if (autoAbortController && autoAbortOptions?.allowHandlerAbort) {
-            autoAbortController.abort(reason);
-          }
-        },
-        modifyPayload: (modifier: (payload: T[K]) => T[K]) => {
-          context.payload = modifier(context.payload);
-        },
-        getPayload: () => context.payload,
-        jumpToPriority: (priority: number) => {
-          context.jumpToPriority = priority;
-        },
-        return: (result: any) => {
-          context.terminated = true;
-          context.terminationResult = result;
-        },
-        setResult: (result: any) => {
-          context.results.push(result);
-        },
-        getResults: () => {
-          return [...context.results];
-        },
-        mergeResult: (merger: (previousResults: any[], currentResult: any) => any) => {
-          const currentResult = context.results[context.results.length - 1];
-          const previousResults = context.results.slice(0, -1);
-          const mergedResult = merger(previousResults, currentResult);
-          context.results[context.results.length - 1] = mergedResult;
-        },
-      };
+      return this.getControllerFromPool(context, autoAbortController, autoAbortOptions);
     };
     switch (context.executionMode) {
       case 'sequential':
@@ -1188,6 +1226,12 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       .map(action => this.getActionStats(action))
       .filter((stats): stats is ActionHandlerStats<T> => stats !== null);
   }
+  setExecutionMode(mode: ExecutionMode): void {
+    this.executionMode = mode;
+    if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
+      console.log(`🎯 Global execution mode set to: ${mode}`);
+    }
+  }
   setActionExecutionMode<K extends keyof T>(action: K, mode: ExecutionMode): void {
     this.actionExecutionModes.set(action, mode);
     if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
@@ -1209,12 +1253,54 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   isDebugEnabled(): boolean {
     return this.isDebugMode;
   }
+  private createUnregisterFunction<K extends keyof T>(
+    action: K,
+    handlerId: string,
+    registration: HandlerRegistration<any, any>
+  ): UnregisterFunction {
+    return () => {
+      const pipeline = this.pipelines.get(action);
+      if (!pipeline) return;
+      const index = pipeline.findIndex(reg => reg.id === handlerId && reg === registration);
+      if (index !== -1) {
+        pipeline.splice(index, 1);
+        this.invalidateFilterCache();
+        this.unregisterFunctions.delete(handlerId);
+        if (registration.config.cleanup && typeof registration.config.cleanup === 'function') {
+          try {
+            registration.config.cleanup();
+          } catch (cleanupError) {
+            this.log(`Cleanup error during unregister: ${String(action)}`, cleanupError, 'warn');
+          }
+        }
+        this.log(`Handler unregistered: ${String(action)}`, {
+          handlerId,
+          remainingHandlers: pipeline.length
+        });
+      }
+    };
+  }
+  getUnregisterFunctionCount(): number {
+    return this.unregisterFunctions.size;
+  }
+  hasUnregisterFunction(handlerId: string): boolean {
+    return this.unregisterFunctions.has(handlerId);
+  }
   destroy(): void {
+    this.unregisterFunctions.forEach(unregister => {
+      try {
+        unregister();
+      } catch (error) {
+        this.log('Error during unregister in destroy', error, 'error');
+      }
+    });
+    this.unregisterFunctions.clear();
     this.pipelines.clear();
     this.actionGuard.destroy();
     this.dispatchQueue?.clear?.();
     this.actionExecutionModes.clear();
     this.filterCache.clear();
+    this.controllerPool.length = 0;
     this.log('ActionRegister destroyed');
   }
 }

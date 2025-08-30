@@ -191,7 +191,7 @@ export class EnhancedConfigManager {
       generation: {
         supportedLanguages: preset.languages,
         characterLimits: preset.characterLimits,
-        defaultLanguage: preset.languages[0],
+        defaultLanguage: preset.languages[0] || 'en',
         outputFormat: 'txt' as const
       },
       
