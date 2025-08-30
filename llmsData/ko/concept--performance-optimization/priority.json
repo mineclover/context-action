@@ -1,0 +1,15 @@
+{
+  "documentId": "ko_concept_performance-optimization",
+  "title": "성능 최적화 가이드",
+  "category": "concept",
+  "language": "ko",
+  "priority": 0.5,
+  "tags": [
+    "typescript"
+  ],
+  "lastUpdated": "2025-08-30T10:56:59.888Z",
+  "source": {
+    "file": "docs/ko/concept/performance-optimization.md",
+    "lastModified": "2025-08-30T10:52:56.639Z"
+  }
+}
