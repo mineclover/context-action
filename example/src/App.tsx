@@ -10,6 +10,7 @@ import { useVitePressRedirect } from './hooks/useVitePressRedirect';
 // Core components - keep as regular imports
 import Layout from './components/Layout';
 import { ToastContainer, ToastControlPanel } from './components/ToastSystem';
+import { SourceLinkRegistryProvider } from './stores/SourceLinkRegistry';
 
 // Lazy load large page components - Updated for catalog structure
 
@@ -70,6 +71,7 @@ const ConcurrentActionTestPage = lazy(() => import('./pages/integrations/advance
 const LoggerDemoPage = lazy(() => import('./pages/utilities/dev-tools/LoggerPage'));
 const ToastConfigPage = lazy(() => import('./pages/utilities/dev-tools/ToastConfigPage'));
 const StoreScenariosPage = lazy(() => import('./pages/utilities/dev-tools/StoreScenariosPage').then(m => ({ default: m.StoreScenariosPage })));
+const SourceLinkDirectory = lazy(() => import('./pages/utilities/SourceLinkDirectory').then(m => ({ default: m.SourceLinkDirectory })));
 
 // Overview Pages (keep in root)
 const ActionGuardOverview = lazy(() => import('./pages/catalog/performance/ActionGuardOverview'));
@@ -189,6 +191,7 @@ function AppContent() {
             <Route path="/utilities/dev-tools/logger" element={<LoggerDemoPage />} />
             <Route path="/utilities/dev-tools/toast-config" element={<ToastConfigPage />} />
             <Route path="/utilities/dev-tools/store-scenarios" element={<StoreScenariosPage />} />
+            <Route path="/utilities/source-directory" element={<SourceLinkDirectory />} />
             <Route path="/utilities/testing/enhanced-search" element={<EnhancedAbortableSearchExample />} />
             
             {/* Legacy Routes - Redirects for backward compatibility */}
@@ -252,9 +255,11 @@ function App() {
   const basename = process.env.NODE_ENV === 'production' ? '/context-action/example' : '/';
   
   return (
-    <Router basename={basename}>
-      <AppContent />
-    </Router>
+    <SourceLinkRegistryProvider>
+      <Router basename={basename}>
+        <AppContent />
+      </Router>
+    </SourceLinkRegistryProvider>
   );
 }
 
