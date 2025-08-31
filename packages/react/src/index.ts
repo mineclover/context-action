@@ -22,7 +22,7 @@ export type { StoreErrorBoundaryProps } from './stores/components/StoreErrorBoun
 
 // Declarative Store Pattern (Most commonly used)
 export { createStoreContext, StoreManager } from './stores/patterns/declarative-store-pattern-v2';
-export type { InitialStores, StoreConfig } from './stores/patterns/declarative-store-pattern-v2';
+export type { InitialStores, StoreConfig, WithProviderConfig } from './stores/patterns/declarative-store-pattern-v2';
 
 // Ref System (Core functionality)
 export { createRefContext } from './refs/createRefContext';

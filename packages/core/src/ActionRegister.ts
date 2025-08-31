@@ -508,9 +508,6 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       effectiveSignal.addEventListener('abort', abortHandler);
     }
     
-    // 🔧 Collect errors from execution context if available
-    const contextWithErrors = context as PipelineContext<any, any> & { collectedErrors?: HandlerError[] };
-    const errors: HandlerError[] = contextWithErrors.collectedErrors || [];
     
     try {
       await this.executePipeline(context, autoAbortController, options?.autoAbort);
