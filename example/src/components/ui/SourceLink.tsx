@@ -4,15 +4,13 @@ import { GITHUB_CONFIG } from '../../constants/github';
 import { cn } from '../../lib/utils';
 
 interface SourceLinkProps {
-  id?: string;                  // 등록된 ID로 링크
-  filePath?: string;           // 직접 파일 경로 지정
+  filePath: string;           // 파일 경로로 직접 접근
   variant?: 'button' | 'text' | 'icon' | 'badge';
   showDescription?: boolean;
   className?: string;
 }
 
 export function SourceLink({ 
-  id, 
   filePath, 
   variant = 'button',
   showDescription = false,
@@ -21,15 +19,11 @@ export function SourceLink({
   const entriesStore = useSourceLinkRegistry('entries');
   const entries = useStoreValue(entriesStore);
   
-  // ID로 등록된 항목 찾기
-  const entry = id ? entries[id] : null;
+  // filePath로 등록된 항목 찾기
+  const entry = entries[filePath];
   
-  // 직접 경로 또는 등록된 항목 사용
-  const sourceUrl = entry 
-    ? entry.githubPath 
-    : filePath 
-    ? GITHUB_CONFIG.getExampleUrl(filePath)
-    : null;
+  // 등록된 항목이나 직접 경로 사용
+  const sourceUrl = entry?.githubPath || GITHUB_CONFIG.getExampleUrl(filePath);
     
   const displayName = entry?.name || 'View Source';
   const description = entry?.description;

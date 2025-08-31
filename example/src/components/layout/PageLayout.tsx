@@ -1,6 +1,7 @@
 import type React from 'react';
 import { cn } from '../../lib/utils';
 import { Card, CardContent, Container } from '../ui';
+import { PageSourceHeader } from '../ui/PageSourceHeader';
 
 interface PageLayoutProps {
   title: string;
@@ -9,6 +10,17 @@ interface PageLayoutProps {
   className?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   category?: 'core' | 'store' | 'react' | 'logger' | 'actionguard' | 'debug';
+  /** 소스 링크 설정 */
+  sourceConfig?: {
+    /** 등록된 소스 ID 사용 */
+    sourceId?: string;
+    /** 직접 파일 경로 지정 */
+    filePaths?: string[];
+    /** 소스 헤더 표시 형태 */
+    variant?: 'minimal' | 'standard' | 'detailed';
+    /** 소스 헤더 숨기기 */
+    hideSource?: boolean;
+  };
 }
 
 export function PageLayout({
@@ -18,10 +30,22 @@ export function PageLayout({
   className,
   size = 'lg',
   category,
+  sourceConfig,
 }: PageLayoutProps) {
+  const showSourceHeader = sourceConfig && !sourceConfig.hideSource;
+  
   return (
     <Container size={size} className={className}>
       <header className="mb-8">
+        {/* Source Header - 상단에 위치 */}
+        {showSourceHeader && (
+          <PageSourceHeader
+            sourceId={sourceConfig.sourceId}
+            filePaths={sourceConfig.filePaths}
+            variant={sourceConfig.variant || 'standard'}
+          />
+        )}
+        
         <h1 className="text-3xl font-bold text-gray-900 mb-4">{title}</h1>
         {description && (
           <p className="text-lg text-gray-600 leading-relaxed max-w-3xl">

@@ -216,12 +216,44 @@ function AdvancedFeaturesDemo() {
     abortAll 
   } = useCoreActionWithResult();
   const { logAction } = useActionLoggerWithToast();
+  const [isRunning, setIsRunning] = useState(false);
+  const [runningCount, setRunningCount] = useState(0);
 
   // Advanced async handler
   const asyncOperationHandler = useCallback<ActionHandler<string>>(async (payload, controller) => {
-    // Simulate async operation
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    logAction('asyncOperation', 'Async operation completed successfully');
+    try {
+      setIsRunning(true);
+      setRunningCount(prev => prev + 1);
+      logAction('asyncOperation', '🔄 Async operation started... (3초 소요)');
+      
+      // Simulate async operation with abort support (force reload)
+      await new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(resolve, 3000);
+        
+        // Handle abort signal
+        controller.signal.addEventListener('abort', () => {
+          clearTimeout(timeoutId);
+          reject(new Error('Operation aborted by user'));
+        });
+      });
+      
+      // Check if still not aborted
+      if (!controller.signal.aborted) {
+        logAction('asyncOperation', '✅ Async operation completed successfully');
+        setIsRunning(false);
+        setRunningCount(prev => Math.max(0, prev - 1));
+      }
+    } catch (error) {
+      setIsRunning(false);
+      setRunningCount(prev => Math.max(0, prev - 1));
+      
+      if (controller.signal.aborted) {
+        logAction('asyncOperation', '❌ Async operation was aborted');
+      } else {
+        logAction('asyncOperation', `❌ Async operation failed: ${error.message}`);
+      }
+      throw error;
+    }
   }, [logAction]);
 
   useCoreActionHandler('asyncOperation', asyncOperationHandler);
@@ -236,8 +268,11 @@ function AdvancedFeaturesDemo() {
   }, [dispatchWithResult]);
 
   const handleAbortAll = useCallback(() => {
-    abortAll(); // Abort all pending actions
-  }, [abortAll]);
+    const abortedCount = abortAll(); // Abort all pending actions
+    logAction('abortAll', `🛑 Aborted ${abortedCount} pending actions`);
+    setIsRunning(false);
+    setRunningCount(0);
+  }, [abortAll, logAction]);
 
   return (
     <DemoCard variant="info">
@@ -248,12 +283,36 @@ function AdvancedFeaturesDemo() {
         <p className="text-gray-600">
           Demonstrate advanced action features like result handling and abort functionality.
         </p>
+        
+        {/* Status Display */}
+        {(isRunning || runningCount > 0) && (
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              <span className="text-sm font-medium text-blue-800">
+                {runningCount > 1 
+                  ? `${runningCount}개의 비동기 액션이 실행 중입니다...`
+                  : '비동기 액션이 실행 중입니다... (3초 소요)'
+                }
+              </span>
+            </div>
+          </div>
+        )}
+        
         <div className="flex flex-wrap gap-2">
-          <Button onClick={handleAsyncAction} variant="secondary">
-            Async Action with Result
+          <Button 
+            onClick={handleAsyncAction} 
+            variant="secondary"
+            disabled={false} // 여러 비동기 액션 동시 실행 허용
+          >
+            {isRunning ? '🔄 ' : ''}Async Action with Result
           </Button>
-          <Button onClick={handleAbortAll} variant="danger">
-            Abort All Actions
+          <Button 
+            onClick={handleAbortAll} 
+            variant="danger"
+            disabled={runningCount === 0}
+          >
+            🛑 Abort All Actions {runningCount > 0 && `(${runningCount})`}
           </Button>
         </div>
       </div>

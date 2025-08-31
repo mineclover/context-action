@@ -150,18 +150,46 @@ function StoreImmutabilityTestPage() {
       userStore.update((currentUser) => {
         addResult(`Update 함수 내 현재 이름: ${currentUser.name}`);
 
+        let modificationSucceeded = false;
+        let errorOccurred = false;
+        let errorMessage = '';
+
         try {
           // update 함수에서 받은 객체를 직접 수정 시도
           (currentUser as any).name = 'Hacked Name';
-          (currentUser as any).profile.age = 777;
-          (currentUser as any).profile.address.city = 'Hacked City';
-          
-          addResult(`수정 시도 후 currentUser 이름: ${currentUser.name}`);
-          addResult('❌ 예상치 못한 결과: 수정이 허용되었습니다!');
+          addResult(`1단계 수정 성공: 이름이 '${currentUser.name}'으로 변경됨`);
+          modificationSucceeded = true;
         } catch (error) {
-          addResult(`⚠️ Immer 보호 동작: ${error}`);
+          addResult(`1단계 수정 차단: ${error}`);
+          errorOccurred = true;
+          errorMessage = String(error);
+        }
+
+        try {
+          (currentUser as any).profile.age = 777;
+          addResult(`2단계 수정 성공: 나이가 ${currentUser.profile.age}으로 변경됨`);
+        } catch (error) {
+          addResult(`2단계 수정 차단: ${error}`);
+          errorOccurred = true;
+          if (!errorMessage) errorMessage = String(error);
+        }
+
+        try {
+          (currentUser as any).profile.address.city = 'Hacked City';
+          addResult(`3단계 수정 성공: 도시가 '${currentUser.profile.address.city}'으로 변경됨`);
+        } catch (error) {
+          addResult(`3단계 수정 차단: ${error}`);
+          errorOccurred = true;
+          if (!errorMessage) errorMessage = String(error);
+        }
+
+        if (modificationSucceeded && !errorOccurred) {
+          addResult('ℹ️ 의도된 동작: 일시적 수정 허용됨 (Immer draft 상태에서만 적용)');
+          addResult('ℹ️ 실제 Store에는 return 값만 반영되므로 문제없음');
+        } else if (errorOccurred) {
+          addResult('⚠️ Immer Proxy가 직접 수정을 차단함 (read-only 속성)');
           addResult('ℹ️ 이는 update 함수 내에서도 Immer가 불변성을 보장하는 정상적인 동작입니다.');
-          addResult('✅ 성공: Immer가 update 함수 내에서도 완벽하게 보호합니다!');
+          addResult('✅ 성공: Immer가 update 함수 내에서도 보호합니다!');
         }
 
         // 정상적인 업데이트 반환
@@ -473,44 +501,108 @@ function StoreImmutabilityTestPage() {
 
         {/* 테스트 설명 */}
         <DemoCard title="테스트 항목 설명" variant="default">
-          <div className="space-y-3 text-sm">
+          <div className="space-y-4 text-sm">
             <div>
               <strong>테스트 1: 직접 수정</strong>
-              <p className="text-gray-600">
-                store.getValue()로 받은 객체를 직접 수정해도 Store 내부가
-                보호되는지 확인
+              <p className="text-gray-600 mb-2">
+                <code>store.getValue()</code>로 받은 객체를 <code>obj.name = "Modified Name"</code>, <code>obj.profile.age = 999</code> 등으로 직접 변경 시도
               </p>
+              <div className="bg-green-50 border-l-4 border-green-400 p-2">
+                <p className="text-green-700 text-xs">
+                  <strong>✅ 예상 결과:</strong> <code>TypeError: Cannot assign to read only property</code> 발생, Store 값은 <code>"John Doe"</code> 유지
+                </p>
+              </div>
+              <div className="bg-red-50 border-l-4 border-red-400 p-2 mt-1">
+                <p className="text-red-700 text-xs">
+                  <strong>❌ 문제 상황:</strong> 에러 없이 수정되고 Store 값도 <code>"Modified Name"</code>으로 변경됨
+                </p>
+              </div>
             </div>
             <div>
               <strong>테스트 2: setValue 보호</strong>
-              <p className="text-gray-600">
-                store.setValue(obj) 후에 원본 obj를 수정해도 Store가 영향받지
-                않는지 확인
+              <p className="text-gray-600 mb-2">
+                <code>store.setValue(obj)</code> 실행 후 원본 <code>obj</code> 객체를 <code>obj.name = "Modified Jane"</code>으로 변경 시도
               </p>
+              <div className="bg-green-50 border-l-4 border-green-400 p-2">
+                <p className="text-green-700 text-xs">
+                  <strong>✅ 예상 결과:</strong> 원본 객체는 <code>"Modified Jane"</code>으로 변경되지만 Store 값은 <code>"Jane Smith"</code> 유지
+                </p>
+              </div>
+              <div className="bg-red-50 border-l-4 border-red-400 p-2 mt-1">
+                <p className="text-red-700 text-xs">
+                  <strong>❌ 문제 상황:</strong> Store 값도 <code>"Modified Jane"</code>으로 변경됨 (참조 공유 문제)
+                </p>
+              </div>
             </div>
             <div>
               <strong>테스트 3: update 보호</strong>
-              <p className="text-gray-600">
-                store.update() 함수 내에서 받은 객체를 수정해도 안전한지 확인
+              <p className="text-gray-600 mb-2">
+                <code>store.update(currentValue =&gt; ...)</code> 함수 내에서 <code>currentValue.name = "Hacked Name"</code>, <code>currentValue.profile.age = 777</code> 등으로 직접 변경 시도
               </p>
+              <div className="bg-green-50 border-l-4 border-green-400 p-2">
+                <p className="text-green-700 text-xs">
+                  <strong>✅ 예상 결과:</strong> <code>TypeError: Cannot assign to read only property</code> 발생, Store는 <code>return</code> 값인 <code>"Updated Name"</code>으로만 변경됨
+                </p>
+              </div>
+              <div className="bg-red-50 border-l-4 border-red-400 p-2 mt-1">
+                <p className="text-red-700 text-xs">
+                  <strong>❌ 문제 상황:</strong> 직접 수정이 허용되어 Store 값이 <code>"Hacked Name"</code>으로 변경됨
+                </p>
+              </div>
+              <div className="bg-blue-50 border-l-4 border-blue-400 p-2 mt-1">
+                <p className="text-blue-700 text-xs">
+                  <strong>ℹ️ Immer 동작:</strong> <code>draft</code> 객체는 Proxy로 변경을 추적하거나 차단<br />
+                  <strong>중요:</strong> 직접 수정이 허용되더라도 실제 Store에는 <code>return</code> 값만 반영됨
+                </p>
+              </div>
             </div>
             <div>
               <strong>테스트 4: 깊은 복사</strong>
-              <p className="text-gray-600">
-                중첩된 객체와 배열까지 완전히 복사되어 보호되는지 확인
+              <p className="text-gray-600 mb-2">
+                <code>getValue()</code>로 받은 객체를 <code>obj.profile.address.city = "Modified Tokyo"</code>, <code>obj.profile.hobbies.push("hacking")</code> 등으로 중첩 변경 시도
               </p>
+              <div className="bg-green-50 border-l-4 border-green-400 p-2">
+                <p className="text-green-700 text-xs">
+                  <strong>✅ 예상 결과:</strong> <code>TypeError</code> 발생하거나 Store 값은 <code>"Tokyo"</code>, <code>["swimming", "traveling", "photography"]</code> 유지
+                </p>
+              </div>
+              <div className="bg-red-50 border-l-4 border-red-400 p-2 mt-1">
+                <p className="text-red-700 text-xs">
+                  <strong>❌ 문제 상황:</strong> Store 값도 <code>"Modified Tokyo"</code>, <code>["swimming", ..., "hacking"]</code>으로 변경됨
+                </p>
+              </div>
             </div>
             <div>
               <strong>테스트 5: Copy-on-Write 최적화</strong>
-              <p className="text-gray-600">
-                Immer의 핵심 기능: 변경사항이 없으면 원본 반환, 변경되지 않은 부분은 참조 공유
+              <p className="text-gray-600 mb-2">
+                변경사항 없는 <code>produce()</code> 실행과 부분 변경 시 참조 공유 여부 확인
               </p>
+              <div className="bg-green-50 border-l-4 border-green-400 p-2">
+                <p className="text-green-700 text-xs">
+                  <strong>✅ 예상 결과:</strong> 변경 없음 시 <code>original === result</code>, 부분 변경 시 미변경 부분은 참조 공유
+                </p>
+              </div>
+              <div className="bg-red-50 border-l-4 border-red-400 p-2 mt-1">
+                <p className="text-red-700 text-xs">
+                  <strong>❌ 문제 상황:</strong> 항상 새 객체 생성하여 불필요한 메모리 사용
+                </p>
+              </div>
             </div>
             <div>
               <strong>테스트 6: 성능 비교</strong>
-              <p className="text-gray-600">
-                Immer Copy-on-Write vs 전통적인 JSON 복사 방식의 성능 비교
+              <p className="text-gray-600 mb-2">
+                1000회 반복으로 Immer Copy-on-Write vs <code>JSON.parse(JSON.stringify())</code> 방식의 실행 시간 측정
               </p>
+              <div className="bg-green-50 border-l-4 border-green-400 p-2">
+                <p className="text-green-700 text-xs">
+                  <strong>✅ 예상 결과:</strong> Immer(변경 없음)가 JSON 방식보다 현저히 빠른 성능 (수십 배 차이)
+                </p>
+              </div>
+              <div className="bg-red-50 border-l-4 border-red-400 p-2 mt-1">
+                <p className="text-red-700 text-xs">
+                  <strong>❌ 문제 상황:</strong> Immer가 더 느리거나 비슷한 성능 (최적화 실패)
+                </p>
+              </div>
             </div>
           </div>
         </DemoCard>

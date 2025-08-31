@@ -445,6 +445,17 @@ const CONCEPT_STRUCTURE = {
         { text: 'Hooks Reference', link: '/en/concept/hooks-reference' },
         { text: 'Conventions', link: '/en/concept/conventions' }
       ]
+    },
+    architecture: {
+      text: '🏗️ Context-Layered Architecture',
+      collapsed: false,
+      items: [
+        { text: 'Overview', link: '/en/context-layered/context-layered-guide' },
+        { text: 'Folder Structure', link: '/en/context-layered/architecture/folder-structure' },
+        { text: 'Handler Registry', link: '/en/context-layered/architecture/handler-registry' },
+        { text: 'Props-based Handlers', link: '/en/context-layered/patterns/props-based-handlers' },
+        { text: 'Migration Guide', link: '/en/context-layered/migration-guide' }
+      ]
     }
   },
   ko: {
@@ -457,6 +468,17 @@ const CONCEPT_STRUCTURE = {
         { text: '액션 파이프라인 가이드', link: '/ko/concept/action-pipeline-guide' },
         { text: '훅 참조', link: '/ko/concept/hooks-reference' },
         { text: '컨벤션', link: '/ko/concept/conventions' }
+      ]
+    },
+    architecture: {
+      text: '🏗️ Context-Layered Architecture',
+      collapsed: false,
+      items: [
+        { text: '개요', link: '/en/context-layered/context-layered-guide' },
+        { text: '폴더 구조', link: '/en/context-layered/architecture/folder-structure' },
+        { text: '핸들러 레지스트리', link: '/en/context-layered/architecture/handler-registry' },
+        { text: 'Props 기반 핸들러', link: '/en/context-layered/patterns/props-based-handlers' },
+        { text: '마이그레이션 가이드', link: '/en/context-layered/migration-guide' }
       ]
     }
   }
@@ -510,6 +532,11 @@ export function createSidebars(locale: SidebarLocale): DefaultTheme.Config['side
     // Concept 섹션 - CLAUDE.md에서 중요하게 언급된 핵심 문서들
     [`/${locale}/concept/`]: [
       concept.concepts
+    ],
+    
+    // Context-Layered Architecture 섹션
+    [`/${locale}/context-layered/`]: [
+      concept.architecture
     ],
     
     // API 섹션 - 실제 파일 구조에 맞춤

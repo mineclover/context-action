@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { cardVariants, gridVariants } from '@/components/ui/variants';
+import { useRegisterSourceFile } from '@/hooks/useRegisterSourceFile';
 
 interface CoreConcept {
   id: string;
@@ -106,6 +107,14 @@ const coreConcepts: CoreConcept[] = [
 ];
 
 function CoreConceptsOverview() {
+  // 이 컴포넌트의 소스 파일 등록
+  useRegisterSourceFile('pages/catalog/foundations/CoreConceptsOverview.tsx', {
+    name: 'Core Concepts Overview',
+    description: 'Main overview page for Context-Action framework core concepts',
+    tags: ['overview', 'core', 'learning-path'],
+    priority: 10  // 높은 우선순위
+  });
+  
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'Basic': return 'bg-green-100 text-green-800';
@@ -157,33 +166,48 @@ function CoreConceptsOverview() {
           Fundamental concepts and integration patterns of the Context-Action framework
         </p>
         
+        {/* Context-Layered Architecture Link */}
+        <div className="mb-6">
+          <a 
+            href="https://mineclover.github.io/context-action/en/context-layered/context-layered-guide.html" 
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            📐 Context-Layered Architecture Guide
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+        </div>
+        
         {/* Framework Overview */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold text-blue-900 mb-3">🏗️ Context-Action Framework Overview</h2>
+          <h2 className="text-xl font-semibold text-blue-900 mb-3">🏗️ Context-Layered Architecture Overview</h2>
           <p className="text-blue-800 mb-4">
-            Context-Action은 React 애플리케이션을 위한 혁신적인 상태 관리 프레임워크로, 
-            <strong> 문서 중심의 컨텍스트 분리</strong>와 <strong>효과적인 아티팩트 관리</strong>를 통해 
-            기존 라이브러리의 한계를 극복합니다.
+            Context-Layered는 Context-Action 프레임워크 기반의 특화된 아키텍처 패턴으로, 
+            <strong> 계층별 관심사 분리</strong>와 <strong>Props 기반 의존성 주입</strong>을 통해 
+            확장 가능하고 유지보수가 용이한 애플리케이션 구조를 제공합니다.
           </p>
           
           <div className="grid md:grid-cols-2 gap-4">
             <div className="bg-white/50 p-4 rounded-lg">
-              <h3 className="font-medium text-blue-900 mb-2">🎯 핵심 철학</h3>
+              <h3 className="font-medium text-blue-900 mb-2">🎯 핵심 원칙</h3>
               <ul className="text-sm text-blue-700 space-y-1">
-                <li>• <strong>문서-아티팩트 중심 설계:</strong> 문서 테마별 컨텍스트 분리</li>
-                <li>• <strong>완벽한 관심사 분리:</strong> View, ViewModel, Model의 명확한 경계</li>
-                <li>• <strong>타입 안전성:</strong> 전체 시스템에 걸친 엄격한 타입 검사</li>
-                <li>• <strong>MVVM 아키텍처:</strong> 비즈니스 로직의 체계적 관리</li>
+                <li>• <strong>계층 분리:</strong> 서로 다른 관심사 간의 명확한 경계</li>
+                <li>• <strong>Context 통합:</strong> React Context 생명주기 기반 구조</li>
+                <li>• <strong>Props 기반 DI:</strong> 컴포넌트 Props를 통한 의존성 주입</li>
+                <li>• <strong>핸들러 격리:</strong> 전용 핸들러에서 비즈니스 로직 분리</li>
               </ul>
             </div>
             
             <div className="bg-white/50 p-4 rounded-lg">
-              <h3 className="font-medium text-blue-900 mb-2">🔧 해결하는 문제</h3>
+              <h3 className="font-medium text-blue-900 mb-2">🏗️ 4계층 구조</h3>
               <ul className="text-sm text-blue-700 space-y-1">
-                <li>• <strong>높은 React 결합도:</strong> 컴포넌트 모듈화 및 props 처리 어려움</li>
-                <li>• <strong>이진 상태 접근:</strong> 단순 전역/로컬 상태 구분의 한계</li>
-                <li>• <strong>핸들러/트리거 관리:</strong> 복잡한 상호작용 및 비즈니스 로직 처리</li>
-                <li>• <strong>스케일링 문제:</strong> 대규모 애플리케이션에서의 상태 관리</li>
+                <li>• <strong>contexts/:</strong> 컨텍스트 정의 및 타입 선언</li>
+                <li>• <strong>handlers/:</strong> Props 기반 핸들러 로직</li>
+                <li>• <strong>actions/:</strong> 디스패치 및 콜백 관리</li>
+                <li>• <strong>views/:</strong> 순수 UI 컴포넌트</li>
               </ul>
             </div>
           </div>

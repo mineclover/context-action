@@ -42,6 +42,10 @@ export function createNavigation(locale: NavigationLocale) {
             link: '/en/concept/architecture-guide'
           },
           {
+            text: 'Context-Layered Architecture',
+            link: '/en/context-layered/context-layered-guide'
+          },
+          {
             text: 'Hooks Reference',
             link: '/en/concept/hooks-reference'
           },
@@ -134,6 +138,10 @@ export function createNavigation(locale: NavigationLocale) {
           {
             text: '아키텍처 가이드',
             link: '/ko/concept/architecture-guide'
+          },
+          {
+            text: 'Context-Layered Architecture',
+            link: '/en/context-layered/context-layered-guide'
           },
           {
             text: '훅 참조',
