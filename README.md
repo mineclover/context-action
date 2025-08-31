@@ -230,6 +230,12 @@ interface UserActions extends ActionPayloadMap {
 }
 ```
 
+### 🔍 **New in v0.7.0: Enhanced LogMonitor Documentation**
+- **[📊 Logger System Demo](https://mineclover.github.io/context-action/example/#/logger-demo)** - Interactive LogMonitor showcase
+- **Real-time log collection** - Live demo with practical examples
+- **Integration patterns** - Parent/Child handler implementations
+- **Dependency warnings** - Avoid infinite loops with best practices
+
 ---
 
 ## 📚 Documentation
