@@ -28,7 +28,7 @@
     "diff": "lerna diff",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
-    "docs:api": "typedoc",
+    "docs:api": "typedoc --options ./typedoc.json",
     "docs:sync": "npx @context-action/typedoc-vitepress-sync sync --config ./typedoc-vitepress-sync.config.js",
     "docs:full": "pnpm docs:api && pnpm docs:sync && pnpm docs:build",
     "llms:priority-stats": "node packages/llms-generator/dist/cli/index.js priority-stats",
