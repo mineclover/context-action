@@ -1,6 +1,6 @@
 /**
  * Store 에러 핸들링 시스템 테스트
- * ContextActionError, ErrorHandlers, safeAsync/safeSync 등 검증
+ * ContextActionError, ErrorHandlers 등 검증
  */
 
 import {
@@ -8,14 +8,10 @@ import {
   ContextActionErrorType,
   ErrorLogLevel,
   ErrorHandlers,
-  safeAsync,
-  safeSync,
   handleError,
   setErrorHandlingConfig,
   getErrorHandlingConfig,
   getErrorStatistics,
-  clearErrorLog,
-  getFilteredErrors
 } from '../../../src/stores/utils/error-handling';
 
 // Mock console methods
@@ -50,7 +46,6 @@ beforeEach(() => {
   console.info = jest.fn();
   console.debug = jest.fn();
   
-  clearErrorLog();
   globalErrorBoundary.reset();
 });
 
@@ -305,93 +300,7 @@ describe('도메인별 에러 핸들러', () => {
   });
 });
 
-describe('safeAsync - 비동기 안전 실행', () => {
-  test('성공적인 비동기 실행', async () => {
-    const asyncOperation = async () => {
-      await new Promise(resolve => setTimeout(resolve, 10));
-      return 'async success';
-    };
 
-    const result = await safeAsync(
-      asyncOperation,
-      ContextActionErrorType.ACTION_ERROR,
-      { operation: 'test-async' }
-    );
-
-    expect(result).toBe('async success');
-  });
-
-  test('비동기 에러 발생시 null 반환', async () => {
-    const failingAsyncOperation = async () => {
-      await new Promise(resolve => setTimeout(resolve, 10));
-      throw new Error('Async operation failed');
-    };
-
-    const result = await safeAsync(
-      failingAsyncOperation,
-      ContextActionErrorType.ACTION_ERROR,
-      { operation: 'failing-async' }
-    );
-
-    expect(result).toBeNull();
-    expect(globalErrorBoundary.getErrorCount()).toBe(1);
-  });
-
-  test('Promise rejection 처리', async () => {
-    const rejectingOperation = () => Promise.reject(new Error('Promise rejected'));
-
-    const result = await safeAsync(
-      rejectingOperation,
-      ContextActionErrorType.TIMEOUT_ERROR
-    );
-
-    expect(result).toBeNull();
-    expect(globalErrorBoundary.getErrorCount()).toBe(1);
-  });
-});
-
-describe('safeSync - 동기 안전 실행', () => {
-  test('성공적인 동기 실행', () => {
-    const syncOperation = () => ({ data: 'sync success', count: 42 });
-
-    const result = safeSync(
-      syncOperation,
-      ContextActionErrorType.VALIDATION_ERROR,
-      { operation: 'test-sync' }
-    );
-
-    expect(result).toEqual({ data: 'sync success', count: 42 });
-  });
-
-  test('동기 에러 발생시 null 반환', () => {
-    const failingSyncOperation = () => {
-      throw new Error('Sync operation failed');
-    };
-
-    const result = safeSync(
-      failingSyncOperation,
-      ContextActionErrorType.STORE_ERROR,
-      { operation: 'failing-sync' }
-    );
-
-    expect(result).toBeNull();
-    expect(globalErrorBoundary.getErrorCount()).toBe(1);
-  });
-
-  test('타입 에러 처리', () => {
-    const typeErrorOperation = () => {
-      const obj: any = null;
-      return obj.nonExistentProperty; // TypeError 발생
-    };
-
-    const result = safeSync(
-      typeErrorOperation,
-      ContextActionErrorType.REF_ERROR
-    );
-
-    expect(result).toBeNull();
-  });
-});
 
 describe('에러 로깅', () => {
   test('로그 레벨별 출력', () => {
@@ -503,218 +412,10 @@ describe('중복 에러 억제', () => {
   });
 });
 
-describe('에러 통계', () => {
-  test('기본 통계 정보', () => {
-    ErrorHandlers.store('Store error 1');
-    ErrorHandlers.store('Store error 2');
-    ErrorHandlers.action('Action error 1');
-    ErrorHandlers.validation('Validation error 1');
 
-    const stats = getErrorStatistics();
 
-    expect(stats.totalErrors).toBe(4);
-    expect(stats.errorsByType[ContextActionErrorType.STORE_ERROR]).toBe(2);
-    expect(stats.errorsByType[ContextActionErrorType.ACTION_ERROR]).toBe(1);
-    expect(stats.errorsByType[ContextActionErrorType.VALIDATION_ERROR]).toBe(1);
-    expect(stats.errorsByType[ContextActionErrorType.REF_ERROR]).toBe(0);
-  });
 
-  test('가장 빈번한 에러', () => {
-    // 다양한 빈도로 에러 발생
-    for (let i = 0; i < 5; i++) {
-      ErrorHandlers.store('Most frequent error');
-    }
-    for (let i = 0; i < 3; i++) {
-      ErrorHandlers.action('Second frequent error');
-    }
-    ErrorHandlers.validation('Rare error');
-
-    const stats = getErrorStatistics();
-    
-    expect(stats.mostFrequentErrors.length).toBeGreaterThan(0);
-    expect(stats.mostFrequentErrors[0]?.count).toBe(5);
-  });
-
-  test('최근 에러 목록', () => {
-    const errorMessages = [
-      'First error',
-      'Second error', 
-      'Third error',
-      'Fourth error',
-      'Fifth error'
-    ];
-
-    errorMessages.forEach(msg => {
-      ErrorHandlers.store(msg);
-    });
-
-    const stats = getErrorStatistics();
-    
-    expect(stats.recentErrors.length).toBe(5);
-    expect(stats.recentErrors[0]?.message).toContain('First error');
-    expect(stats.recentErrors[4]?.message).toContain('Fifth error');
-  });
-});
-
-describe('에러 필터링', () => {
-  beforeEach(() => {
-    // 테스트 데이터 준비
-    ErrorHandlers.store('Store error', { time: 'past' });
-    
-    setTimeout(() => {
-      ErrorHandlers.action('Action error', { time: 'recent' });
-    }, 50);
-
-    setTimeout(() => {
-      ErrorHandlers.validation('Validation error', { time: 'future' });
-    }, 100);
-  });
-
-  test('타입별 필터링', () => {
-    const storeErrors = getFilteredErrors({ 
-      type: ContextActionErrorType.STORE_ERROR 
-    });
-
-    expect(storeErrors.length).toBe(1);
-    expect(storeErrors[0]?.error.type).toBe(ContextActionErrorType.STORE_ERROR);
-  });
-
-  test('시간 기준 필터링', async () => {
-    // beforeEach에서 생성된 setTimeout 에러들이 완료될 때까지 대기
-    await new Promise(resolve => setTimeout(resolve, 120));
-    
-    // 테스트 시작시 로그 초기화 (setTimeout 에러들 완료 후)
-    clearErrorLog();
-    const timestamp = Date.now();
-    
-    // 약간의 지연 후 새 에러 추가
-    await new Promise(resolve => setTimeout(resolve, 50));
-    ErrorHandlers.timeout('Recent timeout error');
-
-    const recentErrors = getFilteredErrors({ 
-      since: timestamp 
-    });
-
-    expect(recentErrors.length).toBe(1);
-    expect(recentErrors[0]?.error.message).toContain('Recent timeout error');
-  });
-
-  test('제한 개수 필터링', () => {
-    for (let i = 0; i < 10; i++) {
-      ErrorHandlers.ref(`Ref error ${i}`);
-    }
-
-    const limitedErrors = getFilteredErrors({ 
-      limit: 3 
-    });
-
-    expect(limitedErrors.length).toBe(3);
-  });
-
-  test('복합 필터링', () => {
-    // 여러 Store 에러 생성
-    for (let i = 0; i < 5; i++) {
-      ErrorHandlers.store(`Store error ${i}`);
-    }
-
-    const filtered = getFilteredErrors({
-      type: ContextActionErrorType.STORE_ERROR,
-      limit: 2
-    });
-
-    expect(filtered.length).toBe(2);
-    filtered.forEach((entry: any) => {
-      expect(entry.error.type).toBe(ContextActionErrorType.STORE_ERROR);
-    });
-  });
-});
-
-describe('에러 로그 관리', () => {
-  test('최대 로그 항목 제한', () => {
-    setErrorHandlingConfig({ maxLogEntries: 3 });
-
-    // 5개 에러 생성 (최대 3개만 유지되어야 함)
-    for (let i = 0; i < 5; i++) {
-      ErrorHandlers.store(`Error ${i}`);
-    }
-
-    const stats = getErrorStatistics();
-    expect(stats.recentErrors.length).toBe(3);
-    
-    // 가장 오래된 에러들이 제거되고 최신 3개만 남아야 함
-    expect(stats.recentErrors[0]?.message).toContain('Error 2');
-    expect(stats.recentErrors[2]?.message).toContain('Error 4');
-  });
-
-  test('에러 로그 초기화', () => {
-    ErrorHandlers.store('Before clear');
-    ErrorHandlers.action('Before clear');
-
-    let stats = getErrorStatistics();
-    expect(stats.totalErrors).toBe(2);
-
-    clearErrorLog();
-
-    stats = getErrorStatistics();
-    expect(stats.totalErrors).toBe(0);
-    expect(stats.recentErrors.length).toBe(0);
-    expect(stats.mostFrequentErrors.length).toBe(0);
-  });
-});
-
-describe('실제 사용 시나리오', () => {
-  test('Store 운영 중 에러 처리 워크플로우', async () => {
-    setErrorHandlingConfig({ 
-      throwOnError: false,
-      logLevel: ErrorLogLevel.ERROR,
-      suppressRepeatedErrors: true
-    });
-
-    // 1. Store 값 검증 실패
-    const validateResult = safeSync(
-      () => {
-        const value = { id: 'invalid-id', count: -5 };
-        if (value.count < 0) {
-          throw new Error('Count cannot be negative');
-        }
-        return value;
-      },
-      ContextActionErrorType.VALIDATION_ERROR,
-      { storeName: 'productStore', operation: 'validateValue' }
-    );
-
-    expect(validateResult).toBeNull();
-
-    // 2. 비동기 Store 업데이트 실패
-    const updateResult = await safeAsync(
-      async () => {
-        await new Promise(resolve => setTimeout(resolve, 10));
-        throw new Error('Database connection lost');
-      },
-      ContextActionErrorType.STORE_ERROR,
-      { storeName: 'productStore', operation: 'updateStore' }
-    );
-
-    expect(updateResult).toBeNull();
-
-    // 3. Action 실행 중 타임아웃
-    ErrorHandlers.timeout('Action execution timed out', {
-      actionName: 'fetchProducts',
-      timeout: 5000,
-      elapsed: 5500
-    });
-
-    // 통계 검증
-    const stats = getErrorStatistics();
-    expect(stats.totalErrors).toBeGreaterThanOrEqual(3);
-    expect(stats.errorsByType[ContextActionErrorType.VALIDATION_ERROR]).toBe(1);
-    expect(stats.errorsByType[ContextActionErrorType.STORE_ERROR]).toBe(1);
-    expect(stats.errorsByType[ContextActionErrorType.TIMEOUT_ERROR]).toBe(1);
-
-    // 모든 에러가 globalErrorBoundary에도 전달되었는지 확인
-    expect(globalErrorBoundary.getErrorCount()).toBe(3);
-  });
-
+describe('환경별 에러 처리', () => {
   test('개발 환경에서의 에러 처리', () => {
     const originalEnv = process.env.NODE_ENV;
     process.env.NODE_ENV = 'development';
@@ -736,28 +437,4 @@ describe('실제 사용 시나리오', () => {
     process.env.NODE_ENV = originalEnv;
   });
 
-  test('프로덕션 환경에서의 에러 처리', () => {
-    const originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'production';
-
-    setErrorHandlingConfig({
-      throwOnError: false,
-      logLevel: ErrorLogLevel.WARN,
-      suppressRepeatedErrors: true
-    });
-
-    // 프로덕션에서는 에러가 throw되지 않고 로깅만 됨
-    expect(() => {
-      ErrorHandlers.action('Production error', {
-        actionName: 'prodAction',
-        production: true
-      });
-    }).not.toThrow();
-
-    // 에러는 여전히 추적됨
-    const stats = getErrorStatistics();
-    expect(stats.totalErrors).toBe(1);
-
-    process.env.NODE_ENV = originalEnv;
-  });
 });

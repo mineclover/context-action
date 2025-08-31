@@ -8,12 +8,6 @@ export interface StoreMetadata {
   registeredAt: number;
   /** Store name identifier */
   name: string;
-  /** Categorization tags for filtering and organization */
-  tags?: string[];
-  /** Human-readable description of the store's purpose */
-  description?: string;
-  /** Version identifier for the store */
-  version?: string;
   /** Enable debug logging for this specific store */
   debug?: boolean;
 }

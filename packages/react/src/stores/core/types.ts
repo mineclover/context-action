@@ -272,33 +272,6 @@ export interface IStoreRegistry {
   setAutoCleanup?: (enabled: boolean) => void;
 }
 
-// === Enhanced Event System Types ===
-// Enhanced Pub-Sub pattern with security and error recovery
-export interface EventHandler<T = unknown> {
-  (data: T): void;  // Event handler signature
-}
-
-/**
- * Enhanced event bus interface with security and monitoring
- */
-export interface IEventBus {
-  /** Subscribe to events with enhanced error handling */
-  on: <T = unknown>(event: string, handler: EventHandler<T>) => Unsubscribe;
-  /** Emit events with optional validation */
-  emit: <T = unknown>(event: string, data?: T) => void;
-  /** Unsubscribe from events */
-  off: (event: string, handler?: EventHandler) => void;
-  /** Clear all event handlers */
-  clear: () => void;
-  /** Get event statistics */
-  getStats?: () => {
-    totalEvents: number;
-    activeHandlers: number;
-    errorCount: number;
-  };
-  /** Set security options for event validation */
-  setSecurityOptions?: (options: SecurityOptions) => void;
-}
 
 // === Enhanced Hook Configuration Types ===
 // Advanced React Hook optimization and error handling

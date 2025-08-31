@@ -4,7 +4,6 @@
 
 // Store Registry and Advanced Store Features
 export { StoreRegistry } from './stores/core/StoreRegistry';
-export { EventBus } from './stores/core/EventBus';
 export type { 
   DynamicStoreOptions,
   HookOptions,
@@ -35,17 +34,13 @@ export {
   ImmerUtils,
   safeGet,
   safeSet,
-  performantSafeGet,
-  performantSafeGetWithImmer
 } from './stores/utils/immutable';
 
 // Error Handling System
 export {
   ContextActionError,
   ContextActionErrorType,
-  handleError as handleContextActionError,
-  safeAsync,
-  safeSync
+  handleError as handleContextActionError
 } from './stores/utils/error-handling';
 
 // Error Boundary Components

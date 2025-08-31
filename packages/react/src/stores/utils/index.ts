@@ -27,7 +27,7 @@ export {
   safeSet, 
   deepClone,
   getGlobalImmutabilityOptions,
-  performantSafeGet 
+ 
 } from './immutable';
 
 // === STORE SELECTORS ===
@@ -60,15 +60,6 @@ export {
   type SubscriptionStats
 } from './subscription-manager';
 
-// === PERFORMANCE MONITORING ===
-// Centralized performance tracking and optimization
-export {
-  performanceMonitor,
-  measurePerformance,
-  type StorePerformanceMetrics,
-  type PerformanceStats,
-  type PerformanceThresholds
-} from './performance-monitor';
 
 // === TYPE HELPERS ===
 // Enhanced type utilities and helpers

@@ -5,22 +5,18 @@
  */
 
 import { Store, createStore } from '../../src/stores/core/Store';
-import { EventBus } from '../../src/stores/core/EventBus';
 
 describe('Store 동시성 문제 재현 테스트', () => {
   let store: Store<{ counter: number; data: string[] }>;
-  let eventBus: EventBus;
   let testResults: any[];
 
   beforeEach(() => {
     store = createStore('test-store', { counter: 0, data: [] as string[] });
-    eventBus = new EventBus();
     testResults = [];
   });
 
   afterEach(() => {
-    store.clearListeners();
-    eventBus.clear();
+    // Cleanup handled by store dispose if needed
   });
 
   describe('🚨 Problem 1: Store Notification Race Condition', () => {
@@ -28,8 +24,7 @@ describe('Store 동시성 문제 재현 테스트', () => {
       let notificationCount = 0;
       let receivedValues: number[] = [];
 
-      // 즉시 알림 모드로 설정 (테스트가 요구하는 스펙)
-      store.setNotificationMode('immediate');
+      // Note: Store now handles notifications immediately by default
 
       // 리스너 등록
       store.subscribe(() => {
@@ -122,103 +117,6 @@ describe('Store 동시성 문제 재현 테스트', () => {
       // 동시성 보호가 작동하면 올바른 최종값을 가져야 함
       expect(finalValue).toBe(expectedValue);
       expect(duplicates.length).toBe(0); // 중복값 없어야 함
-    });
-  });
-
-  describe('🚨 Problem 2: EventBus Subscription Race Condition', () => {
-    test('이벤트 발행 중 구독 해제', async () => {
-      let executionOrder: string[] = [];
-      let handlerErrors: string[] = [];
-
-      // 핸들러들 등록
-      const unsubscribers = Array.from({ length: 10 }, (_, i) => {
-        return eventBus.on('test-event', (data: string) => {
-          executionOrder.push(`handler-${i}-${data}`);
-          
-          // 핸들러 실행 중 다른 핸들러들 구독 해제
-          if (i === 5) {
-            setTimeout(() => {
-              unsubscribers.forEach((unsub, index) => {
-                if (index !== i) {
-                  try {
-                    unsub();
-                  } catch (error) {
-                    handlerErrors.push(`Unsubscribe error ${index}: ${error}`);
-                  }
-                }
-              });
-            }, 0);
-          }
-        });
-      });
-
-      // 이벤트 발행
-      eventBus.emit('test-event', 'data1');
-      
-      // 약간의 지연 후 다시 발행
-      await new Promise(resolve => setTimeout(resolve, 10));
-      eventBus.emit('test-event', 'data2');
-
-      const firstEmissionHandlers = executionOrder.filter(entry => entry.includes('data1')).length;
-      const secondEmissionHandlers = executionOrder.filter(entry => entry.includes('data2')).length;
-
-      testResults.push({
-        test: 'EventBus Subscription Race',
-        issue: '이벤트 발행 중 구독 해제로 인한 문제',
-        severity: 'MEDIUM',
-        firstEmissionHandlers,
-        secondEmissionHandlers,
-        reproduced: secondEmissionHandlers > 1, // 구독 해제 후에도 실행되면 문제
-        handlerErrors,
-        executionOrder: executionOrder.slice(0, 20)
-      });
-    });
-
-    test('동시 이벤트 발행 및 구독', async () => {
-      let eventResults: string[] = [];
-      let subscriptionErrors: string[] = [];
-
-      // 동시에 구독과 발행 실행
-      const operations = Array.from({ length: 50 }, (_, i) => {
-        if (i % 2 === 0) {
-          // 구독
-          return Promise.resolve().then(() => {
-            try {
-              return eventBus.on(`event-${i}`, (data: any) => {
-                eventResults.push(`received-${i}-${data}`);
-              });
-            } catch (error) {
-              subscriptionErrors.push(`Subscribe error ${i}: ${error}`);
-              return undefined;
-            }
-          });
-        } else {
-          // 발행
-          return Promise.resolve().then(() => {
-            try {
-              eventBus.emit(`event-${i - 1}`, `data-${i}`);
-              return undefined;
-            } catch (error) {
-              subscriptionErrors.push(`Emit error ${i}: ${error}`);
-              return undefined;
-            }
-          });
-        }
-      });
-
-      await Promise.all(operations);
-
-      // 약간의 지연 후 결과 확인
-      await new Promise(resolve => setTimeout(resolve, 10));
-
-      testResults.push({
-        test: 'Concurrent Subscribe/Emit',
-        issue: '동시 구독/발행으로 인한 경쟁 상태',
-        severity: 'MEDIUM',
-        eventResults: eventResults.length,
-        subscriptionErrors,
-        reproduced: subscriptionErrors.length > 0
-      });
     });
   });
 

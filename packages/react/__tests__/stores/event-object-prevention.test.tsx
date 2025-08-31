@@ -6,7 +6,7 @@
  */
 
 import { createStore } from '../../src/stores/core/Store';
-import { setErrorHandlingConfig, clearErrorLog, getErrorStatistics } from '../../src/stores/utils/error-handling';
+import { setErrorHandlingConfig, getErrorStatistics } from '../../src/stores/utils/error-handling';
 
 describe('Event Object Prevention', () => {
   let store: ReturnType<typeof createStore>;
@@ -20,8 +20,6 @@ describe('Event Object Prevention', () => {
       throwOnError: false,
       logLevel: 1, // ERROR level
     });
-    
-    clearErrorLog();
     
     // Mock console.error to capture error calls
     mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});

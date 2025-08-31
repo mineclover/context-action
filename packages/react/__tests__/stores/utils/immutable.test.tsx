@@ -12,8 +12,6 @@ import {
   safeSet,
   setGlobalImmutabilityOptions,
   getGlobalImmutabilityOptions,
-  performantSafeGet,
-  getPerformanceProfile,
   produce,
   preloadImmer
 } from '../../../src/stores/utils/immutable';
@@ -265,21 +263,6 @@ describe('Immer-based Immutable utilities', () => {
     });
   });
 
-  describe('Performance monitoring', () => {
-    it('should track performance data', () => {
-      const testObj = { a: 1, b: { c: 2 } };
-      
-      performantSafeGet(testObj);
-      performantSafeGet(testObj);
-      performantSafeGet(testObj);
-
-      const profile = getPerformanceProfile();
-      expect(profile.totalOperations).toBeGreaterThan(0);
-      expect(profile.averageCloneTime).toBeGreaterThanOrEqual(0);
-      expect(Array.isArray(profile.recommendations)).toBe(true);
-      expect(profile.recommendations).toContain('Immer를 사용하여 최적화된 불변성 보장');
-    });
-  });
 
   describe('Immer integration', () => {
     it('should export Immer utilities correctly', () => {

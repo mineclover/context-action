@@ -233,57 +233,7 @@ function logError(error: ContextActionError): void {
   }
 }
 
-/**
- * 비동기 작업의 안전한 실행 래퍼
- */
-export async function safeAsync<T>(
-  operation: () => Promise<T>,
-  errorType: ContextActionErrorType,
-  context?: Record<string, unknown>
-): Promise<T | null> {
-  try {
-    return await operation();
-  } catch (error) {
-    const contextError = handleContextActionError(
-      errorType,
-      error instanceof Error ? error.message : 'Unknown async error',
-      context,
-      error instanceof Error ? error : undefined
-    );
-    
-    if (currentErrorConfig.logErrors) {
-      console.error(`[${errorType}] Async operation failed:`, contextError);
-    }
-    
-    return null;
-  }
-}
 
-/**
- * 동기 작업의 안전한 실행 래퍼
- */
-export function safeSync<T>(
-  operation: () => T,
-  errorType: ContextActionErrorType,
-  context?: Record<string, unknown>
-): T | null {
-  try {
-    return operation();
-  } catch (error) {
-    const contextError = handleContextActionError(
-      errorType,
-      error instanceof Error ? error.message : 'Unknown sync error',
-      context,
-      error instanceof Error ? error : undefined
-    );
-    
-    if (currentErrorConfig.logErrors) {
-      console.error(`[${errorType}] Sync operation failed:`, contextError);
-    }
-    
-    return null;
-  }
-}
 
 /**
  * 특정 에러 타입에 대한 전용 핸들러들
@@ -395,40 +345,4 @@ export function getErrorStatistics(): ErrorStatistics {
   };
 }
 
-/**
- * 에러 로그 초기화
- */
-export function clearErrorLog(): void {
-  errorLog = [];
-  errorSignatures.clear();
-}
 
-/**
- * 특정 조건에 따른 에러 필터링
- */
-export function getFilteredErrors(
-  filter: {
-    type?: ContextActionErrorType;
-    since?: number;
-    limit?: number;
-  } = {}
-): ErrorLogEntry[] {
-  let filtered = [...errorLog];
-  
-  // 타입 필터
-  if (filter.type) {
-    filtered = filtered.filter(entry => entry.error.type === filter.type);
-  }
-  
-  // 시간 필터
-  if (filter.since !== undefined) {
-    filtered = filtered.filter(entry => entry.lastOccurred >= filter.since!);
-  }
-  
-  // 제한
-  if (filter.limit) {
-    filtered = filtered.slice(-filter.limit);
-  }
-  
-  return filtered;
-}

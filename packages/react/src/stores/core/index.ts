@@ -15,8 +15,6 @@ export { Store, createStore } from './Store';
 // Store Registry for managing multiple stores
 export { StoreRegistry } from './StoreRegistry';
 
-// Event system for store communication
-export { EventBus } from './EventBus';
 
 
 // Core type definitions
@@ -26,6 +24,4 @@ export type {
   Listener,
   Unsubscribe,
   Snapshot,
-  IEventBus,
-  EventHandler as StoreEventHandler
 } from './types';

@@ -120,46 +120,7 @@ export class SubscriptionManager {
     return true;
   }
 
-  /**
-   * Remove all subscriptions for a specific store
-   * 
-   * @param storeName - Name of the store
-   * @returns Number of subscriptions removed
-   */
-  removeByStore(storeName: string): number {
-    let removed = 0;
-    
-    for (const [id, entry] of this.subscriptions.entries()) {
-      if (entry.storeName === storeName) {
-        if (this.remove(id)) {
-          removed++;
-        }
-      }
-    }
-    
-    return removed;
-  }
 
-  /**
-   * Remove subscriptions older than specified age
-   * 
-   * @param maxAge - Maximum age in milliseconds
-   * @returns Number of subscriptions removed
-   */
-  removeOlderThan(maxAge: number): number {
-    const cutoffTime = Date.now() - maxAge;
-    let removed = 0;
-    
-    for (const [id, entry] of this.subscriptions.entries()) {
-      if (entry.createdAt < cutoffTime) {
-        if (this.remove(id)) {
-          removed++;
-        }
-      }
-    }
-    
-    return removed;
-  }
 
   /**
    * Clean up all subscriptions
@@ -202,34 +163,6 @@ export class SubscriptionManager {
     };
   }
 
-  /**
-   * Check for potential memory leaks
-   * 
-   * @returns Array of warnings about potential issues
-   */
-  checkForLeaks(): string[] {
-    const warnings: string[] = [];
-    const stats = this.getStats();
-    
-    // Check for excessive subscriptions
-    if (stats.activeSubscriptions > 50) {
-      warnings.push(`High subscription count: ${stats.activeSubscriptions}`);
-    }
-    
-    // Check for old subscriptions
-    if (stats.oldestSubscription > 5 * 60 * 1000) { // 5 minutes
-      warnings.push(`Old subscriptions detected: oldest is ${Math.round(stats.oldestSubscription / 1000)}s old`);
-    }
-    
-    // Check for stores with many subscriptions
-    for (const [storeName, count] of Object.entries(stats.subscriptionsByStore)) {
-      if (count > 10) {
-        warnings.push(`Store "${storeName}" has ${count} subscriptions`);
-      }
-    }
-    
-    return warnings;
-  }
 
   /**
    * Dispose the manager and cleanup all subscriptions
@@ -300,25 +233,19 @@ class GlobalSubscriptionTracker {
   getGlobalStats(): {
     totalManagers: number;
     totalSubscriptions: number;
-    warnings: string[];
   } {
     let totalSubscriptions = 0;
-    const allWarnings: string[] = [];
     
     for (const manager of this.managers) {
       if (!manager.isManagerDisposed()) {
         const stats = manager.getStats();
         totalSubscriptions += stats.activeSubscriptions;
-        
-        const warnings = manager.checkForLeaks();
-        allWarnings.push(...warnings);
       }
     }
     
     return {
       totalManagers: this.managers.size,
-      totalSubscriptions,
-      warnings: allWarnings
+      totalSubscriptions
     };
   }
   

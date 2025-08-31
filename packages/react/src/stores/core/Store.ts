@@ -516,26 +516,8 @@ export class Store<T = unknown> implements IStore<T> {
     this.comparisonOptions = options;
   }
 
-  /**
-   * 현재 비교 설정 조회
-   */
-  getComparisonOptions(): Partial<ComparisonOptions<T>> | undefined {
-    return this.comparisonOptions ? { ...this.comparisonOptions } : undefined;
-  }
 
-  /**
-   * 커스텀 비교 함수 해제
-   */
-  clearCustomComparator(): void {
-    this.customComparator = undefined;
-  }
 
-  /**
-   * 비교 옵션 해제 (전역 설정 사용)
-   */
-  clearComparisonOptions(): void {
-    this.comparisonOptions = undefined;
-  }
 
   /**
    * 성능 최적화: Store별 복사 동작 제어
@@ -554,13 +536,6 @@ export class Store<T = unknown> implements IStore<T> {
     return this.cloningEnabled;
   }
 
-  /**
-   * 성능 최적화된 getValue (복사 없음)
-   * ⚠️ 주의: 반환된 값을 수정하면 Store 내부 상태가 변경될 수 있음
-   */
-  getValueUnsafe(): T {
-    return this._value;
-  }
 
 
   /**
@@ -623,19 +598,7 @@ export class Store<T = unknown> implements IStore<T> {
     };
   }
 
-  /**
-   * 알림 모드 설정 - 테스트/디버그용
-   */
-  setNotificationMode(mode: 'batched' | 'immediate'): void {
-    this.notificationMode = mode;
-  }
 
-  /**
-   * 현재 알림 모드 조회
-   */
-  getNotificationMode(): 'batched' | 'immediate' {
-    return this.notificationMode;
-  }
 
   /**
    * requestAnimationFrame 기반 알림 스케줄링
@@ -844,92 +807,3 @@ export interface AdvancedStoreConfig<T> extends StoreConfig<T> {
   enableCloning?: boolean;
 }
 
-/**
- * Enhanced Store Factory for advanced configurations
- * 
- * Provides a unified factory pattern for creating stores with advanced features
- * including custom comparison strategies, persistence, and performance monitoring.
- * 
- * @template T - The type of values stored
- */
-export class StoreFactory {
-  /**
-   * Create a store with advanced configuration
-   */
-  static create<T>(config: AdvancedStoreConfig<T>): Store<T> {
-    const store = new Store(config.name, config.initialValue);
-    
-    // Apply comparison strategy
-    if (config.comparisonStrategy && config.comparisonStrategy !== 'reference') {
-      store.setComparisonOptions({ strategy: config.comparisonStrategy });
-    }
-    
-    // Apply custom comparator
-    if (config.customComparator) {
-      store.setCustomComparator(config.customComparator);
-    }
-    
-    // Set notification mode
-    if (config.notificationMode) {
-      store.setNotificationMode(config.notificationMode);
-    }
-    
-    // Set cloning behavior
-    if (config.enableCloning !== undefined) {
-      store.setCloningEnabled(config.enableCloning);
-    }
-    
-    // TODO: Implement persistence when enabled
-    if (config.enablePersistence && config.persistenceKey) {
-      // Future enhancement: localStorage/sessionStorage integration
-    }
-    
-    return store;
-  }
-  
-  /**
-   * Create a managed store with advanced configuration and auto-registration
-   */
-  static createManaged<T>(config: AdvancedStoreConfig<T>): ManagedStore<T> {
-    const managedStore = new ManagedStore<T>(config);
-    
-    // Apply advanced configurations
-    if (config.comparisonStrategy && config.comparisonStrategy !== 'reference') {
-      managedStore.setComparisonOptions({ strategy: config.comparisonStrategy });
-    }
-    
-    if (config.customComparator) {
-      managedStore.setCustomComparator(config.customComparator);
-    }
-    
-    if (config.notificationMode) {
-      managedStore.setNotificationMode(config.notificationMode);
-    }
-    
-    if (config.enableCloning !== undefined) {
-      managedStore.setCloningEnabled(config.enableCloning);
-    }
-    
-    return managedStore;
-  }
-  
-  /**
-   * Create multiple stores with shared configuration
-   */
-  static createBatch<T extends Record<string, any>>(
-    stores: { [K in keyof T]: { initialValue: T[K] } & Partial<AdvancedStoreConfig<T[K]>> }
-  ): { [K in keyof T]: Store<T[K]> } {
-    const result = {} as { [K in keyof T]: Store<T[K]> };
-    
-    for (const [storeName, storeConfig] of Object.entries(stores)) {
-      const fullConfig: AdvancedStoreConfig<T[keyof T]> = {
-        name: storeName,
-        ...storeConfig
-      };
-      
-      result[storeName as keyof T] = StoreFactory.create(fullConfig);
-    }
-    
-    return result;
-  }
-}

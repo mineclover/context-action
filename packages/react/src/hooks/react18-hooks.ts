@@ -7,7 +7,6 @@ import {
   useDeferredValue, 
   useTransition, 
   useCallback, 
-  useState, 
   useMemo,
   startTransition,
   useSyncExternalStore
@@ -279,31 +278,6 @@ export function useBatchUpdate() {
   return [batchUpdate, isPending] as const;
 }
 
-/**
- * React 18+ 성능 통계
- */
-export interface React18Stats {
-  transitionCount: number;
-  deferredUpdates: number;
-  averageTransitionTime: number;
-  pendingOperations: number;
-}
-
-/**
- * React 18+ 기능 사용 통계 추적 훅
- */
-export function useReact18Stats(): React18Stats {
-  const [stats] = useState<React18Stats>({
-    transitionCount: 0,
-    deferredUpdates: 0,
-    averageTransitionTime: 0,
-    pendingOperations: 0
-  });
-
-  // 실제 구현에서는 성능 측정 로직 추가
-  // 현재는 기본값 반환
-  return stats;
-}
 
 /**
  * React 18+ 최적화 유틸리티
