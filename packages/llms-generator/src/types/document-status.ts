@@ -78,7 +78,7 @@ export interface StatusContext {
   commitHash?: string;
   userId?: string;
   timestamp: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -126,7 +126,7 @@ export interface ValidationResult {
  */
 export interface NotificationTarget {
   type: 'console' | 'webhook' | 'file';
-  config: Record<string, any>;
+  config: Record<string, unknown>;
 }
 
 /**
@@ -138,7 +138,7 @@ export interface StatusHistoryEntry {
   newStatus: DocumentUpdateStatus;
   trigger: StatusTrigger;
   context: StatusContext;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**

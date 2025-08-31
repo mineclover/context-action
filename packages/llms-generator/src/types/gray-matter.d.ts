@@ -1,7 +1,7 @@
 declare module 'gray-matter' {
   interface GrayMatterFile<I extends string = string> {
     content: string;
-    data: any;
+    data: Record<string, unknown>;
     orig: Buffer | I;
     language: string;
     matter: string;
@@ -9,7 +9,7 @@ declare module 'gray-matter' {
   }
 
   interface GrayMatterOption<I extends string = string, O = GrayMatterFile<I>> {
-    parser?: any;
+    parser?: (str: string) => Record<string, unknown>;
     eval?: boolean;
     excerpt?: boolean | ((file: GrayMatterFile<I>, options: GrayMatterOption<I, O>) => string);
     excerpt_separator?: string;
@@ -26,7 +26,7 @@ declare module 'gray-matter' {
   ): GrayMatterFile<I>;
 
   namespace matter {
-    function stringify<T = any>(str: string | GrayMatterFile, data?: T, options?: GrayMatterOption): string;
+    function stringify<T = Record<string, unknown>>(str: string | GrayMatterFile, data?: T, options?: GrayMatterOption): string;
     function read<T = GrayMatterFile>(filepath: string, options?: GrayMatterOption): T;
   }
 
