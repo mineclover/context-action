@@ -106,10 +106,10 @@ export function createActionContext<T extends {}>(
     ): Promise<void> => {
       if (process.env.NODE_ENV === 'development') {
         console.log(`React dispatch called for '${String(action)}':`, {
-        hasPayload: payload !== undefined,
-        hasOptions: options !== undefined,
-        timestamp: new Date().toISOString()
-      });
+          hasPayload: payload !== undefined,
+          hasOptions: options !== undefined,
+          timestamp: new Date().toISOString()
+        });
       }
       
       const register = actionRegisterRef.current;
@@ -208,7 +208,6 @@ export function createActionContext<T extends {}>(
         return handlerRef.current(payload, controller);
       };
 
-      // Conditional logging only in development
       if (process.env.NODE_ENV === 'development') {
         console.log(`Registering handler for '${String(action)}'`);
       }

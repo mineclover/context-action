@@ -47,6 +47,8 @@
   ],
   "scripts": {
     "build": "tsdown",
+    "build:prod": "NODE_ENV=production tsdown",
+    "build:dev": "NODE_ENV=development tsdown",
     "build:watch": "tsdown --watch",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -57,7 +59,7 @@
     "security:audit": "pnpm audit --audit-level high",
     "security:outdated": "pnpm outdated",
     "security:check": "pnpm security:audit && pnpm security:outdated",
-    "prepublishOnly": "pnpm run build"
+    "prepublishOnly": "pnpm run build:prod"
   },
   "keywords": [
     "typescript",
