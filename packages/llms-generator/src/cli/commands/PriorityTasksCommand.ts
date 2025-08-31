@@ -1,6 +1,9 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { EnhancedLLMSConfig } from '../../types/config.js';
+import { PriorityData } from '../../types/frontmatter.js';
+
+type TaskType = 'missing' | 'outdated' | 'invalid' | 'needs_review' | 'needs_update';
 
 export interface PriorityTask {
   documentId: string;
@@ -309,9 +312,7 @@ export class PriorityTasksCommand {
     return false;
   }
 
-  private needsMetadataUpdate(priorityData: { 
-    metadata?: { description?: string; tags?: string[] } 
-  }): boolean {
+  private needsMetadataUpdate(priorityData: PriorityData): boolean {
     const metadata = priorityData.metadata || {};
     
     // Check for essential metadata fields
@@ -319,7 +320,7 @@ export class PriorityTasksCommand {
       return true;
     }
     
-    const keywords = (priorityData.metadata as any)?.keywords || {};
+    const keywords = priorityData.metadata?.keywords || {};
     if (!keywords.technical || keywords.technical.length < 2) {
       return true;
     }
@@ -367,7 +368,7 @@ export class PriorityTasksCommand {
     console.log('\n📊 Summary by Task Type:');
     const taskCounts = this.countByTaskType(tasks);
     Object.entries(taskCounts).forEach(([type, count]) => {
-      console.log(`  ${this.getTaskEmoji(type as any)} ${this.getTaskTypeLabel(type as any)}: ${count}`);
+      console.log(`  ${this.getTaskEmoji(type as TaskType)} ${this.getTaskTypeLabel(type as TaskType)}: ${count}`);
     });
 
     console.log('\n🔧 Recommended Actions:');

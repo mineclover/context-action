@@ -11,6 +11,7 @@ import matter from 'gray-matter';
 import { CLIConfig } from '../types/CLITypes.js';
 import { EnhancedLLMSConfig } from '../../types/config.js';
 import { LLMSOutputPathManager } from '../../core/LLMSOutputPathManager.js';
+import { LLMSFrontmatter, ConfigCategories } from '../../types/frontmatter.js';
 
 export interface SimpleLLMSOptions {
   characterLimit?: number;
@@ -210,17 +211,17 @@ export class SimpleLLMSCommand {
     try {
       const content = await fs.readFile(filePath, 'utf-8');
       const parsed = matter(content);
-      const frontmatter = parsed.data;
+      const frontmatter = parsed.data as LLMSFrontmatter;
 
       // Extract clean content from template
       const cleanContent = this.extractCleanContent(parsed.content);
       if (!cleanContent) return null;
 
       // Extract title
-      const title = this.extractTitle(parsed.content) || (frontmatter.document_id as string) || 'Untitled';
+      const title = this.extractTitle(parsed.content) || frontmatter.document_id || 'Untitled';
       
       // Get priority
-      const priority = (frontmatter.priority_score as number) || (this.config.categories as any)?.[category]?.priority || 50;
+      const priority = frontmatter.priority_score || (this.config.categories as unknown as ConfigCategories)?.[category]?.priority || 50;
 
       // Extract document ID from file path
       const fileName = path.basename(filePath, '.md');
@@ -241,9 +242,9 @@ export class SimpleLLMSCommand {
         language,
         filePath,
         metadata: {
-          completion_status: (frontmatter.completion_status as string) || (frontmatter.update_status as string) || 'template_based',
-          workflow_stage: (frontmatter.workflow_stage as string) || 'template_content',
-          quality_score: (frontmatter.quality_score as number),
+          completion_status: frontmatter.completion_status || frontmatter.update_status || 'template_based',
+          workflow_stage: frontmatter.workflow_stage || 'template_content',
+          quality_score: frontmatter.quality_score,
           content_length: cleanContent.length
         }
       };

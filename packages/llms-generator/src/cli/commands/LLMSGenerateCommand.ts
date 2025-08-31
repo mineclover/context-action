@@ -10,6 +10,7 @@ import path from 'path';
 import matter from 'gray-matter';
 import { CLIConfig } from '../types/CLITypes.js';
 import { LLMSOutputPathManager } from '../../core/LLMSOutputPathManager.js';
+import { LLMSFrontmatter, PriorityData, ConfigCategories, CleanedPriorityData } from '../../types/frontmatter.js';
 
 export interface LLMSGenerateOptions {
   characterLimit?: number;
@@ -260,11 +261,7 @@ export class LLMSGenerateCommand {
       const documentDir = path.dirname(filePath);
       const priorityPath = path.join(documentDir, 'priority.json');
       
-      let priorityData: { 
-        document?: { category?: string; source_path?: string; title?: string }; 
-        priority?: { score?: number; tier?: string }; 
-        purpose?: { primary_goal?: string };
-      } | null = null;
+      let priorityData: PriorityData | null = null;
       try {
         const priorityContent = await fs.readFile(priorityPath, 'utf-8');
         priorityData = JSON.parse(priorityContent);
@@ -289,14 +286,14 @@ export class LLMSGenerateCommand {
             category,
             language,
             characterLimit,
-            title: (cleanedPriorityData.document as any)?.title || documentId,
+            title: cleanedPriorityData.document?.title || documentId,
             content: sourceContent,
-            priority: (cleanedPriorityData.priority as any)?.score || 50,
+            priority: cleanedPriorityData.priority?.score || 50,
             filePath,
             metadata: {
               completion_status: 'generated_from_source',
               workflow_stage: 'auto_generated',
-              quality_score: (cleanedPriorityData.quality as any)?.completeness_threshold || 0.8,
+              quality_score: cleanedPriorityData.quality?.completeness_threshold || 0.8,
               content_length: sourceContent.length
             }
           };
@@ -306,7 +303,7 @@ export class LLMSGenerateCommand {
       // 3. Fallback to template file parsing (legacy mode)
       const content = await fs.readFile(filePath, 'utf-8');
       const parsed = matter(content);
-      const frontmatter = parsed.data;
+      const frontmatter = parsed.data as LLMSFrontmatter;
 
       const templateContent = this.extractTemplateContent(parsed.content);
       if (!templateContent) return null;
@@ -314,12 +311,12 @@ export class LLMSGenerateCommand {
       const priority = frontmatter.priority_score || 
                       frontmatter.priority || 
                       priorityData?.priority?.score ||
-                      (this.config.categories as any)?.[category]?.priority || 
+                      (this.config.categories as ConfigCategories)?.[category]?.priority || 
                       50;
 
-      const title = (frontmatter.title as string) || 
-                   (frontmatter.document_id as string) || 
-                   (priorityData?.document?.title as string) ||
+      const title = frontmatter.title || 
+                   frontmatter.document_id || 
+                   priorityData?.document?.title ||
                    this.extractTitle(parsed.content) || 
                    documentId;
 
@@ -333,9 +330,9 @@ export class LLMSGenerateCommand {
         priority,
         filePath,
         metadata: {
-          completion_status: (frontmatter.completion_status as string) || (frontmatter.update_status as string) || 'template_based',
-          workflow_stage: (frontmatter.workflow_stage as string) || 'template_content',
-          quality_score: (frontmatter.quality_score as number) || (priorityData as any)?.quality?.completeness_threshold,
+          completion_status: frontmatter.completion_status || frontmatter.update_status || 'template_based',
+          workflow_stage: frontmatter.workflow_stage || 'template_content',
+          quality_score: frontmatter.quality_score || priorityData?.quality?.completeness_threshold,
           content_length: templateContent.length
         }
       };
@@ -350,10 +347,7 @@ export class LLMSGenerateCommand {
   private async extractFromSourceDocument(
     sourcePath: string, 
     characterLimit: number, 
-    priorityData: { 
-      document?: { title?: string }; 
-      purpose?: { primary_goal?: string }; 
-    } | null
+    priorityData: PriorityData | null
   ): Promise<string | null> {
     try {
       // Build full path to source document
@@ -368,7 +362,7 @@ export class LLMSGenerateCommand {
       const parsed = matter(sourceContent);
       
       // Use priority.json extraction strategy to generate appropriate content
-      const strategy = (priorityData as any)?.extraction?.character_limits?.[characterLimit];
+      const strategy = priorityData?.extraction?.character_limits?.[characterLimit];
       if (strategy) {
         return this.generateContentFromStrategy(parsed.content, strategy, characterLimit);
       }
@@ -441,12 +435,9 @@ export class LLMSGenerateCommand {
       : truncated + '...';
   }
 
-  private isPriorityDataValid(priorityData: { 
-    document?: { source_path?: string }; 
-    purpose?: { primary_goal?: string }; 
-  } | null): boolean {
+  private isPriorityDataValid(priorityData: PriorityData | null): boolean {
     // Check if priority.json contains actual data or just template placeholders
-    if (!(priorityData as any)?.document?.source_path) return false;
+    if (!priorityData?.document?.source_path) return false;
     
     // Filter out common template/placeholder values
     const templateIndicators = [
@@ -465,9 +456,9 @@ export class LLMSGenerateCommand {
       '<!-- What to focus on'
     ];
     
-    const rationale = (priorityData as any)?.priority?.rationale || '';
-    const primaryGoal = (priorityData as any)?.purpose?.primary_goal || '';
-    const score = String((priorityData as any)?.priority?.score || '');
+    const rationale = priorityData?.priority?.rationale || '';
+    const primaryGoal = priorityData?.purpose?.primary_goal || '';
+    const score = String(priorityData?.priority?.score || '');
     
     // Check if contains template indicators
     const hasTemplateContent = templateIndicators.some(indicator => 
@@ -477,17 +468,17 @@ export class LLMSGenerateCommand {
     );
     
     // Check if purpose is empty object (cleaned template)
-    const isPurposeEmpty = Object.keys((priorityData as any)?.purpose || {}).length === 0;
+    const isPurposeEmpty = Object.keys(priorityData?.purpose || {}).length === 0;
     
     if (hasTemplateContent || isPurposeEmpty) {
-      console.log(`📋 Skipping template priority.json for ${(priorityData as any)?.document?.id || 'unknown'}`);
+      console.log(`📋 Skipping template priority.json for ${priorityData?.document?.id || 'unknown'}`);
       return false;
     }
     
     return true;
   }
 
-  private cleanPriorityData(priorityData: Record<string, unknown>): Record<string, unknown> {
+  private cleanPriorityData(priorityData: PriorityData): CleanedPriorityData {
     // Create a cleaned copy of priority data, removing template values
     const cleaned = JSON.parse(JSON.stringify(priorityData));
     

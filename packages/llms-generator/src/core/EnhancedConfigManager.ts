@@ -11,8 +11,14 @@ import type {
   TagConfig,
   CompositionStrategyConfig,
   ExtractStrategy,
+  DependencyConfig,
+  CompositionConfig,
+  ExtractionConfig,
+  ValidationConfig,
+  UIConfig,
   // DocumentCategory - temporarily commented out
 } from '../types/config.js';
+
 
 export interface ConfigPreset {
   name: string;
@@ -319,16 +325,16 @@ export class EnhancedConfigManager {
     const standardTags = this.getStandardTags();
     
     const enhanced: EnhancedLLMSConfig = {
-      ...(baseConfig as any),
+      ...(baseConfig as unknown as EnhancedLLMSConfig),
       categories: {
         ...standardCategories,
-        ...(baseConfig.categories as any) // User categories override defaults
+        ...(baseConfig.categories as unknown as Record<string, CategoryConfig>) // User categories override defaults
       },
       tags: {
         ...standardTags,
-        ...(baseConfig.tags as any) // User tags override defaults
+        ...(baseConfig.tags as unknown as Record<string, TagConfig>) // User tags override defaults
       },
-      dependencies: (baseConfig.dependencies as any) || {
+      dependencies: (baseConfig.dependencies as unknown as DependencyConfig) || {
         rules: {
           prerequisite: {
             description: '선행 학습이 필요한 문서',
@@ -359,7 +365,7 @@ export class EnhancedConfigManager {
           allowPartialConflicts: false
         }
       },
-      composition: (baseConfig.composition as any) || {
+      composition: (baseConfig.composition as unknown as CompositionConfig) || {
         strategies: this.getCompositionStrategies(),
         defaultStrategy: 'balanced',
         optimization: {
@@ -369,7 +375,7 @@ export class EnhancedConfigManager {
           redundancyPenalty: 0.2
         }
       },
-      extraction: (baseConfig.extraction as any) || {
+      extraction: (baseConfig.extraction as unknown as ExtractionConfig) || {
         defaultQualityThreshold: 0.8,
         autoTagExtraction: true,
         autoDependencyDetection: true,
@@ -381,7 +387,7 @@ export class EnhancedConfigManager {
           'reference-first': { focusOrder: ['complete-info', 'details', 'examples', 'context'] }
         }
       },
-      validation: (baseConfig.validation as any) || {
+      validation: (baseConfig.validation as unknown as ValidationConfig) || {
         schema: {
           enforceTagConsistency: true,
           validateDependencies: true,
@@ -393,7 +399,7 @@ export class EnhancedConfigManager {
           requireMinimumContent: true
         }
       },
-      ui: (baseConfig.ui as any) || {
+      ui: (baseConfig.ui as unknown as UIConfig) || {
         dashboard: {
           enableTagCloud: true,
           showCategoryStats: true,
