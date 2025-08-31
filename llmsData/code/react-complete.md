@@ -1,7 +1,7 @@
 # Context-Action React Package - Complete Code
 
-Total Files: 48
-Total Lines: 6001
+Total Files: 45
+Total Lines: 5270
 
 ## Type Definitions
 
@@ -54,25 +54,7 @@ export interface ActionContextReturn<T extends {}> {
 ### refs/types.ts
 
 ```typescript
-export interface RefTarget {
-  readonly [key: string]: any;
-}
-export interface DOMRefTarget extends RefTarget, Element {}
-export interface ThreeRefTarget extends RefTarget {
-  uuid: string;
-  name?: string;
-  type: string;
-  parent?: ThreeRefTarget | null;
-  children?: ThreeRefTarget[];
-  position?: { x: number; y: number; z: number };
-  rotation?: { x: number; y: number; z: number };
-  scale?: { x: number; y: number; z: number };
-  visible?: boolean;
-  add?(object: ThreeRefTarget): void;
-  remove?(object: ThreeRefTarget): void;
-  traverse?(callback: (object: ThreeRefTarget) => void): void;
-  dispose?(): void;
-}
+export type RefTarget = any;
 export interface RefState<T extends RefTarget = RefTarget> {
   target: T | null;
   isReady: boolean;
@@ -206,21 +188,6 @@ export interface IStoreRegistry {
   performHealthCheck?: () => Promise<Map<string, boolean>>;
   setSecurityOptions?: (options: SecurityOptions) => void;
   setAutoCleanup?: (enabled: boolean) => void;
-}
-export interface EventHandler<T = unknown> {
-  (data: T): void;  
-}
-export interface IEventBus {
-  on: <T = unknown>(event: string, handler: EventHandler<T>) => Unsubscribe;
-  emit: <T = unknown>(event: string, data?: T) => void;
-  off: (event: string, handler?: EventHandler) => void;
-  clear: () => void;
-  getStats?: () => {
-    totalEvents: number;
-    activeHandlers: number;
-    errorCount: number;
-  };
-  setSecurityOptions?: (options: SecurityOptions) => void;
 }
 export interface StoreSyncConfig<T, R = Snapshot<T>> {
   defaultValue?: T;
@@ -579,7 +546,6 @@ export type {
 
 ```typescript
 export { StoreRegistry } from './stores/core/StoreRegistry';
-export { EventBus } from './stores/core/EventBus';
 export type { 
   DynamicStoreOptions,
   HookOptions,
@@ -602,15 +568,11 @@ export {
   ImmerUtils,
   safeGet,
   safeSet,
-  performantSafeGet,
-  performantSafeGetWithImmer
 } from './stores/utils/immutable';
 export {
   ContextActionError,
   ContextActionErrorType,
-  handleError as handleContextActionError,
-  safeAsync,
-  safeSync
+  handleError as handleContextActionError
 } from './stores/utils/error-handling';
 export {
   StoreErrorBoundary,
@@ -641,7 +603,6 @@ import {
   useDeferredValue, 
   useTransition, 
   useCallback, 
-  useState, 
   useMemo,
   startTransition,
   useSyncExternalStore
@@ -817,21 +778,6 @@ export function useBatchUpdate() {
   }, []);
   return [batchUpdate, isPending] as const;
 }
-export interface React18Stats {
-  transitionCount: number;
-  deferredUpdates: number;
-  averageTransitionTime: number;
-  pendingOperations: number;
-}
-export function useReact18Stats(): React18Stats {
-  const [stats] = useState<React18Stats>({
-    transitionCount: 0,
-    deferredUpdates: 0,
-    averageTransitionTime: 0,
-    pendingOperations: 0
-  });
-  return stats;
-}
 export const React18Utils = {
   startTransition: (callback: () => void) => {
     startTransition(callback);
@@ -986,7 +932,7 @@ export interface CreateRefContextOptions {
   defaultMountTimeout?: number;
   disableTimeout?: boolean;
 }
-export function createRefContext<T extends Record<string, RefTarget>>(
+export function createRefContext<T extends Record<string, any>>(
   contextName: string,
   options?: CreateRefContextOptions
 ): RefContextReturn<T>;
@@ -1971,173 +1917,17 @@ export function createStoreErrorBoundary(
 }
 ```
 
-### stores/core/EventBus.ts
-
-```typescript
-import type { EventHandler, IEventBus, Unsubscribe } from './types';
-import { ErrorHandlers } from '../utils/error-handling';
-export class EventBus implements IEventBus {
-  private events = new Map<string, Set<EventHandler>>();
-  private eventHistory: Array<{ event: string; data: any; timestamp: number }> = [];
-  private maxHistorySize: number;
-  constructor(maxHistorySize: number = 100) {
-    this.maxHistorySize = maxHistorySize;
-  }
-  on<T = any>(event: string, handler: EventHandler<T>): Unsubscribe {
-    if (!this.events.has(event)) {
-      this.events.set(event, new Set());
-    }
-    const handlers = this.events.get(event)!;
-    handlers.add(handler as EventHandler);
-    return () => {
-      handlers.delete(handler as EventHandler);
-      if (handlers.size === 0) {
-        this.events.delete(event);
-      }
-    };
-  }
-  once<T = any>(event: string, handler: EventHandler<T>): Unsubscribe {
-    const wrappedHandler = (data: T) => {
-      handler(data);
-      unsubscribe();
-    };
-    const unsubscribe = this.on(event, wrappedHandler);
-    return unsubscribe;
-  }
-  emit<T = any>(event: string, data?: T): void {
-    this._addToHistory(event, data);
-    const handlers = this.events.get(event);
-    if (handlers) {
-      handlers.forEach(handler => {
-        try {
-          handler(data);
-        } catch (error) {
-          ErrorHandlers.store(
-            `Error in event handler for "${event}"`,
-            { 
-              event,
-              handlerCount: handlers.size
-            },
-            error instanceof Error ? error : undefined
-          );
-        }
-      });
-    }
-  }
-  off(event: string, handler?: EventHandler): void {
-    if (!handler) {
-      this.events.delete(event);
-    } else {
-      const handlers = this.events.get(event);
-      if (handlers) {
-        handlers.delete(handler);
-        if (handlers.size === 0) {
-          this.events.delete(event);
-        }
-      }
-    }
-  }
-  clear(): void {
-    this.events.clear();
-  }
-  getEventNames(): string[] {
-    return Array.from(this.events.keys());
-  }
-  getHandlerCount(event: string): number {
-    const handlers = this.events.get(event);
-    return handlers ? handlers.size : 0;
-  }
-  getTotalHandlerCount(): number {
-    let total = 0;
-    this.events.forEach(handlers => {
-      total += handlers.size;
-    });
-    return total;
-  }
-  getHistory(): ReadonlyArray<{ event: string; data: any; timestamp: number }> {
-    return this.eventHistory;
-  }
-  clearHistory(): void {
-    this.eventHistory = [];
-  }
-  scope(prefix: string): ScopedEventBus {
-    return new ScopedEventBus(this, prefix);
-  }
-  private _addToHistory(event: string, data: any): void {
-    let safeData = data;
-    if (data && typeof data === 'object') {
-      if (
-        (typeof Element !== 'undefined' && data instanceof Element) ||
-        (typeof Node !== 'undefined' && data instanceof Node) ||
-        data?.nodeType !== undefined ||
-        data?._reactInternalFiber !== undefined ||
-        data?._owner !== undefined ||
-        data?.$$typeof !== undefined
-      ) {
-        safeData = {
-          __eventBusDataType: 'DOMElement',
-          tagName: data.tagName || data.constructor?.name,
-          id: data.id,
-          className: data.className,
-          timestamp: Date.now()
-        };
-      } else if (data.constructor && data.constructor.name !== 'Object' && data.constructor.name !== 'Array') {
-        safeData = {
-          __eventBusDataType: data.constructor.name,
-          summary: typeof data.toString === 'function' ? data.toString().slice(0, 100) : '[Object]',
-          timestamp: Date.now()
-        };
-      }
-    }
-    this.eventHistory.push({
-      event,
-      data: safeData,
-      timestamp: Date.now()
-    });
-    if (this.eventHistory.length > this.maxHistorySize) {
-      this.eventHistory.shift();
-    }
-  }
-}
-export class ScopedEventBus implements IEventBus {
-  constructor(
-    private parent: EventBus,
-    private prefix: string
-  ) {}
-  on<T = any>(event: string, handler: EventHandler<T>): Unsubscribe {
-    return this.parent.on(this._scopedEvent(event), handler);
-  }
-  emit<T = any>(event: string, data?: T): void {
-    this.parent.emit(this._scopedEvent(event), data);
-  }
-  off(event: string, handler?: EventHandler): void {
-    this.parent.off(this._scopedEvent(event), handler);
-  }
-  clear(): void {
-    this.parent.getEventNames()
-      .filter(name => name.startsWith(this.prefix + ':'))
-      .forEach(name => this.parent.off(name));
-  }
-  private _scopedEvent(event: string): string {
-    return `${this.prefix}:${event}`;
-  }
-}
-```
-
 ### stores/core/index.ts
 
 ```typescript
 export { Store, createStore } from './Store';
 export { StoreRegistry } from './StoreRegistry';
-export { EventBus } from './EventBus';
 export type {
   IStore,
   IStoreRegistry,
   Listener,
   Unsubscribe,
   Snapshot,
-  IEventBus,
-  EventHandler as StoreEventHandler
 } from './types';
 ```
 
@@ -2309,7 +2099,17 @@ export class Store<T = unknown> implements IStore<T> {
           console.warn('[Store] Immer update failed, falling back to safe copy method', immerError);
         }
         const safeCurrentValue = safeGet(this._value, this.cloningEnabled);
-        updatedValue = updater(safeCurrentValue);
+        try {
+          updatedValue = produce(safeCurrentValue, (draft: T) => {
+            const result = updater(draft);
+            return result !== undefined ? result : draft;
+          });
+        } catch (secondImmerError) {
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('[Store] Immer completely failed, using direct update (immutability not guaranteed)', secondImmerError);
+          }
+          updatedValue = updater(safeCurrentValue);
+        }
       }
       if (TypeGuards.isObject(updatedValue)) {
         if (!TypeGuards.isRefState(updatedValue) && TypeGuards.isSuspiciousEventObject(updatedValue)) {
@@ -2399,23 +2199,11 @@ export class Store<T = unknown> implements IStore<T> {
   setComparisonOptions(options: Partial<ComparisonOptions<T>>): void {
     this.comparisonOptions = options;
   }
-  getComparisonOptions(): Partial<ComparisonOptions<T>> | undefined {
-    return this.comparisonOptions ? { ...this.comparisonOptions } : undefined;
-  }
-  clearCustomComparator(): void {
-    this.customComparator = undefined;
-  }
-  clearComparisonOptions(): void {
-    this.comparisonOptions = undefined;
-  }
   setCloningEnabled(enabled: boolean): void {
     this.cloningEnabled = enabled;
   }
   isCloningEnabled(): boolean {
     return this.cloningEnabled;
-  }
-  getValueUnsafe(): T {
-    return this._value;
   }
   protected _compareValues(oldValue: T, newValue: T): boolean {
     let result: boolean;
@@ -2449,12 +2237,6 @@ export class Store<T = unknown> implements IStore<T> {
       name: this.name,
       lastUpdate: Date.now()
     };
-  }
-  setNotificationMode(mode: 'batched' | 'immediate'): void {
-    this.notificationMode = mode;
-  }
-  getNotificationMode(): 'batched' | 'immediate' {
-    return this.notificationMode;
   }
   protected _scheduleNotification(): void {
     if (this.notificationMode === 'immediate') {
@@ -2565,55 +2347,6 @@ export interface AdvancedStoreConfig<T> extends StoreConfig<T> {
   notificationMode?: 'batched' | 'immediate';
   enableCloning?: boolean;
 }
-export class StoreFactory {
-  static create<T>(config: AdvancedStoreConfig<T>): Store<T> {
-    const store = new Store(config.name, config.initialValue);
-    if (config.comparisonStrategy && config.comparisonStrategy !== 'reference') {
-      store.setComparisonOptions({ strategy: config.comparisonStrategy });
-    }
-    if (config.customComparator) {
-      store.setCustomComparator(config.customComparator);
-    }
-    if (config.notificationMode) {
-      store.setNotificationMode(config.notificationMode);
-    }
-    if (config.enableCloning !== undefined) {
-      store.setCloningEnabled(config.enableCloning);
-    }
-    if (config.enablePersistence && config.persistenceKey) {
-    }
-    return store;
-  }
-  static createManaged<T>(config: AdvancedStoreConfig<T>): ManagedStore<T> {
-    const managedStore = new ManagedStore<T>(config);
-    if (config.comparisonStrategy && config.comparisonStrategy !== 'reference') {
-      managedStore.setComparisonOptions({ strategy: config.comparisonStrategy });
-    }
-    if (config.customComparator) {
-      managedStore.setCustomComparator(config.customComparator);
-    }
-    if (config.notificationMode) {
-      managedStore.setNotificationMode(config.notificationMode);
-    }
-    if (config.enableCloning !== undefined) {
-      managedStore.setCloningEnabled(config.enableCloning);
-    }
-    return managedStore;
-  }
-  static createBatch<T extends Record<string, any>>(
-    stores: { [K in keyof T]: { initialValue: T[K] } & Partial<AdvancedStoreConfig<T[K]>> }
-  ): { [K in keyof T]: Store<T[K]> } {
-    const result = {} as { [K in keyof T]: Store<T[K]> };
-    for (const [storeName, storeConfig] of Object.entries(stores)) {
-      const fullConfig: AdvancedStoreConfig<T[keyof T]> = {
-        name: storeName,
-        ...storeConfig
-      };
-      result[storeName as keyof T] = StoreFactory.create(fullConfig);
-    }
-    return result;
-  }
-}
 ```
 
 ### stores/core/StoreRegistry.ts
@@ -2623,9 +2356,6 @@ import type { IStore, IStoreRegistry, Listener, Unsubscribe } from './types';
 export interface StoreMetadata {
   registeredAt: number;
   name: string;
-  tags?: string[];
-  description?: string;
-  version?: string;
   debug?: boolean;
 }
 export class StoreRegistry implements IStoreRegistry {
@@ -4609,46 +4339,6 @@ function logError(error: ContextActionError): void {
       break;
   }
 }
-export async function safeAsync<T>(
-  operation: () => Promise<T>,
-  errorType: ContextActionErrorType,
-  context?: Record<string, unknown>
-): Promise<T | null> {
-  try {
-    return await operation();
-  } catch (error) {
-    const contextError = handleContextActionError(
-      errorType,
-      error instanceof Error ? error.message : 'Unknown async error',
-      context,
-      error instanceof Error ? error : undefined
-    );
-    if (currentErrorConfig.logErrors) {
-      console.error(`[${errorType}] Async operation failed:`, contextError);
-    }
-    return null;
-  }
-}
-export function safeSync<T>(
-  operation: () => T,
-  errorType: ContextActionErrorType,
-  context?: Record<string, unknown>
-): T | null {
-  try {
-    return operation();
-  } catch (error) {
-    const contextError = handleContextActionError(
-      errorType,
-      error instanceof Error ? error.message : 'Unknown sync error',
-      context,
-      error instanceof Error ? error : undefined
-    );
-    if (currentErrorConfig.logErrors) {
-      console.error(`[${errorType}] Sync operation failed:`, contextError);
-    }
-    return null;
-  }
-}
 export const ErrorHandlers = {
   store: (message: string, context?: Record<string, unknown>, originalError?: Error) => {
     const enhancedMessage = `[Store Error] ${message}\nContext: ${JSON.stringify(context, null, 2)}`;
@@ -4712,29 +4402,6 @@ export function getErrorStatistics(): ErrorStatistics {
     mostFrequentErrors,
     recentErrors
   };
-}
-export function clearErrorLog(): void {
-  errorLog = [];
-  errorSignatures.clear();
-}
-export function getFilteredErrors(
-  filter: {
-    type?: ContextActionErrorType;
-    since?: number;
-    limit?: number;
-  } = {}
-): ErrorLogEntry[] {
-  let filtered = [...errorLog];
-  if (filter.type) {
-    filtered = filtered.filter(entry => entry.error.type === filter.type);
-  }
-  if (filter.since !== undefined) {
-    filtered = filtered.filter(entry => entry.lastOccurred >= filter.since!);
-  }
-  if (filter.limit) {
-    filtered = filtered.slice(-filter.limit);
-  }
-  return filtered;
 }
 ```
 
@@ -5032,55 +4699,6 @@ export function setGlobalImmutabilityOptions(options: Partial<ImmutabilityOption
 export function getGlobalImmutabilityOptions(): ImmutabilityOptions {
   return { ...globalImmutabilityOptions };
 }
-export function performantSafeGet<T>(value: T, enableCloning: boolean = true): T {
-  if (!enableCloning) {
-    return value;
-  }
-  const startTime = performance.now();
-  const result = deepClone(value); 
-  const endTime = performance.now();
-  const duration = endTime - startTime;
-  performanceData.times.push(duration);
-  performanceData.operations++;
-  if (performanceData.times.length > 100) {
-    performanceData.times.shift();
-  }
-  return result;
-}
-export function performantSafeGetWithImmer<T>(value: T, enableCloning: boolean = true): T {
-  if (!enableCloning) {
-    return value;
-  }
-  const startTime = performance.now();
-  const result = deepCloneWithImmer(value);
-  const endTime = performance.now();
-  const duration = endTime - startTime;
-  performanceData.times.push(duration);
-  performanceData.operations++;
-  if (performanceData.times.length > 100) {
-    performanceData.times.shift();
-  }
-  return result;
-}
-export interface PerformanceProfile {
-  averageCloneTime: number;
-  totalOperations: number;
-  recommendations: string[];
-}
-let performanceData: { times: number[]; operations: number } = {
-  times: [],
-  operations: 0
-};
-export function getPerformanceProfile(): PerformanceProfile {
-  const { times, operations } = performanceData;
-  const averageTime = times.length > 0 ? times.reduce((a, b) => a + b, 0) / times.length : 0;
-  const recommendations: string[] = ['Immer를 사용하여 최적화된 불변성 보장'];
-  return {
-    averageCloneTime: averageTime,
-    totalOperations: operations,
-    recommendations
-  };
-}
 export const ImmerUtils = {
   isDraft(value: unknown): boolean {
     return immerIsDraft(value);
@@ -5143,7 +4761,6 @@ export {
   safeSet, 
   deepClone,
   getGlobalImmutabilityOptions,
-  performantSafeGet 
 } from './immutable';
 export { createRegistrySync, RegistryUtils } from './registry-sync';
 export { 
@@ -5157,13 +4774,6 @@ export {
   type SubscriptionEntry,
   type SubscriptionStats
 } from './subscription-manager';
-export {
-  performanceMonitor,
-  measurePerformance,
-  type StorePerformanceMetrics,
-  type PerformanceStats,
-  type PerformanceThresholds
-} from './performance-monitor';
 export {
   isStore,
   isValidStoreValue,
@@ -5184,174 +4794,6 @@ export {
   type PartialBy,
   type RequiredBy
 } from './type-helpers';
-```
-
-### stores/utils/performance-monitor.ts
-
-```typescript
-export interface StorePerformanceMetrics {
-  operationType: 'setValue' | 'update' | 'subscribe' | 'getSnapshot';
-  storeName: string;
-  duration: number;
-  timestamp: number;
-  payload?: {
-    valueSize?: number;
-    listenerCount?: number;
-    batchSize?: number;
-    hasError?: boolean;
-  };
-}
-export interface PerformanceStats {
-  totalOperations: number;
-  averageDuration: number;
-  slowestOperation: StorePerformanceMetrics | null;
-  operationsByType: Record<string, number>;
-  operationsByStore: Record<string, number>;
-  recentOperations: StorePerformanceMetrics[];
-}
-export interface PerformanceThresholds {
-  setValue: number;
-  update: number;
-  subscribe: number;
-  getSnapshot: number;
-  batchUpdate: number;
-}
-const DEFAULT_THRESHOLDS: PerformanceThresholds = {
-  setValue: 10,
-  update: 15,
-  subscribe: 5,
-  getSnapshot: 2,
-  batchUpdate: 20
-};
-class PerformanceMonitor {
-  private metrics: StorePerformanceMetrics[] = [];
-  private thresholds: PerformanceThresholds = { ...DEFAULT_THRESHOLDS };
-  private maxMetrics = 1000;
-  private isEnabled = process.env.NODE_ENV === 'development';
-  setEnabled(enabled: boolean): void {
-    this.isEnabled = enabled;
-    if (!enabled) {
-      this.clear();
-    }
-  }
-  setThresholds(thresholds: Partial<PerformanceThresholds>): void {
-    this.thresholds = { ...this.thresholds, ...thresholds };
-  }
-  record(metric: StorePerformanceMetrics): void {
-    if (!this.isEnabled) return;
-    this.metrics.push(metric);
-    if (this.metrics.length > this.maxMetrics) {
-      this.metrics.shift();
-    }
-    const threshold = this.thresholds[metric.operationType];
-    if (metric.duration > threshold) {
-      console.warn(
-        `[Context-Action] Performance warning: ${metric.operationType} on "${metric.storeName}" took ${metric.duration}ms (threshold: ${threshold}ms)`,
-        metric
-      );
-    }
-  }
-  measure<T>(
-    operationType: StorePerformanceMetrics['operationType'],
-    storeName: string,
-    operation: () => T,
-    payload?: StorePerformanceMetrics['payload']
-  ): T {
-    if (!this.isEnabled) {
-      return operation();
-    }
-    const startTime = performance.now();
-    try {
-      const result = operation();
-      const duration = performance.now() - startTime;
-      const metrics = {
-        operationType,
-        storeName,
-        duration,
-        timestamp: Date.now(),
-        ...(payload && { payload })
-      };
-      this.record(metrics);
-      return result;
-    } catch (error) {
-      const duration = performance.now() - startTime;
-      this.record({
-        operationType,
-        storeName,
-        duration,
-        timestamp: Date.now(),
-        payload: { ...payload, hasError: true }
-      });
-      throw error;
-    }
-  }
-  getStats(): PerformanceStats {
-    const recentOperations = this.metrics.slice(-50); 
-    const operationsByType: Record<string, number> = {};
-    const operationsByStore: Record<string, number> = {};
-    let totalDuration = 0;
-    let slowestOperation: StorePerformanceMetrics | null = null;
-    this.metrics.forEach(metric => {
-      operationsByType[metric.operationType] = (operationsByType[metric.operationType] || 0) + 1;
-      operationsByStore[metric.storeName] = (operationsByStore[metric.storeName] || 0) + 1;
-      totalDuration += metric.duration;
-      if (!slowestOperation || metric.duration > slowestOperation.duration) {
-        slowestOperation = metric;
-      }
-    });
-    return {
-      totalOperations: this.metrics.length,
-      averageDuration: this.metrics.length > 0 ? totalDuration / this.metrics.length : 0,
-      slowestOperation,
-      operationsByType,
-      operationsByStore,
-      recentOperations
-    };
-  }
-  getWarnings(): string[] {
-    const warnings: string[] = [];
-    const stats = this.getStats();
-    if (stats.averageDuration > 5) {
-      warnings.push(`Average operation duration is high: ${stats.averageDuration.toFixed(2)}ms`);
-    }
-    for (const [storeName] of Object.entries(stats.operationsByStore)) {
-      const storeMetrics = this.metrics.filter(m => m.storeName === storeName);
-      const averageDuration = storeMetrics.reduce((sum, m) => sum + m.duration, 0) / storeMetrics.length;
-      if (averageDuration > 10) {
-        warnings.push(`Store "${storeName}" has slow operations: ${averageDuration.toFixed(2)}ms average`);
-      }
-    }
-    return warnings;
-  }
-  clear(): void {
-    this.metrics = [];
-  }
-  exportMetrics(): StorePerformanceMetrics[] {
-    return [...this.metrics];
-  }
-}
-export const performanceMonitor = new PerformanceMonitor();
-export function measurePerformance<T extends (...args: any[]) => any>(
-  operationType: StorePerformanceMetrics['operationType'],
-  storeName: string
-) {
-  return function (target: any, propertyName: string, descriptor: TypedPropertyDescriptor<T>) {
-    const method = descriptor.value!;
-    descriptor.value = function (this: any, ...args: any[]) {
-      return performanceMonitor.measure(
-        operationType,
-        storeName,
-        () => method.apply(this, args),
-        {
-          listenerCount: this.getListenerCount?.(),
-        }
-      );
-    } as T;
-  };
-}
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-  (window as any).__contextActionPerformance = performanceMonitor;
-}
 ```
 
 ### stores/utils/provider-composition.ts
@@ -5524,29 +4966,6 @@ export class SubscriptionManager {
     this.subscriptions.delete(subscriptionId);
     return true;
   }
-  removeByStore(storeName: string): number {
-    let removed = 0;
-    for (const [id, entry] of this.subscriptions.entries()) {
-      if (entry.storeName === storeName) {
-        if (this.remove(id)) {
-          removed++;
-        }
-      }
-    }
-    return removed;
-  }
-  removeOlderThan(maxAge: number): number {
-    const cutoffTime = Date.now() - maxAge;
-    let removed = 0;
-    for (const [id, entry] of this.subscriptions.entries()) {
-      if (entry.createdAt < cutoffTime) {
-        if (this.remove(id)) {
-          removed++;
-        }
-      }
-    }
-    return removed;
-  }
   cleanupAll(): void {
     const subscriptionIds = Array.from(this.subscriptions.keys());
     subscriptionIds.forEach(id => {
@@ -5572,22 +4991,6 @@ export class SubscriptionManager {
       oldestSubscription: activeSubscriptions.length > 0 ? now - oldestTime : 0,
       subscriptionsByStore
     };
-  }
-  checkForLeaks(): string[] {
-    const warnings: string[] = [];
-    const stats = this.getStats();
-    if (stats.activeSubscriptions > 50) {
-      warnings.push(`High subscription count: ${stats.activeSubscriptions}`);
-    }
-    if (stats.oldestSubscription > 5 * 60 * 1000) { 
-      warnings.push(`Old subscriptions detected: oldest is ${Math.round(stats.oldestSubscription / 1000)}s old`);
-    }
-    for (const [storeName, count] of Object.entries(stats.subscriptionsByStore)) {
-      if (count > 10) {
-        warnings.push(`Store "${storeName}" has ${count} subscriptions`);
-      }
-    }
-    return warnings;
   }
   dispose(): void {
     if (this.isDisposed) {
@@ -5628,22 +5031,17 @@ class GlobalSubscriptionTracker {
   getGlobalStats(): {
     totalManagers: number;
     totalSubscriptions: number;
-    warnings: string[];
   } {
     let totalSubscriptions = 0;
-    const allWarnings: string[] = [];
     for (const manager of this.managers) {
       if (!manager.isManagerDisposed()) {
         const stats = manager.getStats();
         totalSubscriptions += stats.activeSubscriptions;
-        const warnings = manager.checkForLeaks();
-        allWarnings.push(...warnings);
       }
     }
     return {
       totalManagers: this.managers.size,
-      totalSubscriptions,
-      warnings: allWarnings
+      totalSubscriptions
     };
   }
   dispose(): void {
@@ -6102,148 +5500,4 @@ export const TypeUtils = {
     return value !== undefined && value !== null ? value as T : fallback;
   }
 } as const;
-```
-
-### stores/utils/utils.ts
-
-```typescript
-import type { IStore, IStoreRegistry } from "../core/types";
-import { Store } from "../core/Store";
-export function createStore<T>(initialValue: T, name?: string): Store<T> {
-  const storeName = name || `store_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  return new Store(storeName, initialValue);
-}
-export class StoreUtils {
-	static copyStore(sourceStore: IStore, targetStore: IStore): void {
-		const { value } = sourceStore.getSnapshot();
-		targetStore.setValue(value);
-	}
-	static syncRegistries(
-		sourceRegistry: IStoreRegistry,
-		targetRegistry: IStoreRegistry,
-		options?: {
-			filter?: (name: string, store: IStore) => boolean;
-			createMissing?: boolean;
-		},
-	): void {
-		const sourceStores = sourceRegistry.getAllStores();
-		sourceStores.forEach((store, name) => {
-			if (options?.filter && !options.filter(name, store)) {
-				return;
-			}
-			const targetStore = targetRegistry.getStore(name);
-			if (targetStore) {
-				this.copyStore(store, targetStore);
-			} else if (options?.createMissing) {
-				const clonedStore = this.cloneStore(store);
-				targetRegistry.register(name, clonedStore);
-			}
-		});
-	}
-	static cloneStore<T = any>(store: IStore<T>): Store<T> {
-		const { value, name } = store.getSnapshot();
-		return new Store(name, value);
-	}
-	static createAutoSync(
-		sourceStore: IStore,
-		targetStore: IStore,
-		options?: {
-			immediate?: boolean;
-			transform?: (value: any) => any;
-		},
-	): () => void {
-		if (options?.immediate) {
-			const { value } = sourceStore.getSnapshot();
-			const transformedValue = options.transform
-				? options.transform(value)
-				: value;
-			targetStore.setValue(transformedValue);
-		}
-		const unsubscribe = sourceStore.subscribe(() => {
-			const { value } = sourceStore.getSnapshot();
-			const transformedValue = options?.transform
-				? options.transform(value)
-				: value;
-			targetStore.setValue(transformedValue);
-		});
-		return unsubscribe;
-	}
-	static createBidirectionalSync(
-		storeA: IStore,
-		storeB: IStore,
-		options?: {
-			immediate?: boolean;
-			transformAtoB?: (value: any) => any;
-			transformBtoA?: (value: any) => any;
-		},
-	): () => void {
-		let syncing = false;
-		const syncAtoB = () => {
-			if (syncing) return;
-			syncing = true;
-			const { value } = storeA.getSnapshot();
-			const transformedValue = options?.transformAtoB
-				? options.transformAtoB(value)
-				: value;
-			storeB.setValue(transformedValue);
-			syncing = false;
-		};
-		const syncBtoA = () => {
-			if (syncing) return;
-			syncing = true;
-			const { value } = storeB.getSnapshot();
-			const transformedValue = options?.transformBtoA
-				? options.transformBtoA(value)
-				: value;
-			storeA.setValue(transformedValue);
-			syncing = false;
-		};
-		if (options?.immediate) {
-			syncAtoB();
-		}
-		const unsubscribeA = storeA.subscribe(syncAtoB);
-		const unsubscribeB = storeB.subscribe(syncBtoA);
-		return () => {
-			unsubscribeA();
-			unsubscribeB();
-		};
-	}
-	static mergeRegistries(
-		targetRegistry: IStoreRegistry,
-		...sourceRegistries: IStoreRegistry[]
-	): void {
-		sourceRegistries.forEach((sourceRegistry) => {
-			sourceRegistry.getAllStores().forEach((store, name) => {
-				if (!targetRegistry.hasStore(name)) {
-					targetRegistry.register(name, this.cloneStore(store));
-				}
-			});
-		});
-	}
-	static createDebouncedStore<T>(
-		name: string,
-		sourceStore: IStore<T>,
-		delay: number,
-	): Store<T> & { cleanup: () => void } {
-		const debouncedStore = new Store(name, sourceStore.getSnapshot().value);
-		let timeoutId: NodeJS.Timeout | null = null;
-		const unsubscribe = sourceStore.subscribe(() => {
-			if (timeoutId) clearTimeout(timeoutId);
-			timeoutId = setTimeout(() => {
-				const { value } = sourceStore.getSnapshot();
-				debouncedStore.setValue(value);
-				timeoutId = null;
-			}, delay);
-		});
-		return Object.assign(debouncedStore, {
-			cleanup: () => {
-				unsubscribe();
-				if (timeoutId) {
-					clearTimeout(timeoutId);
-					timeoutId = null;
-				}
-			}
-		});
-	}
-}
 ```

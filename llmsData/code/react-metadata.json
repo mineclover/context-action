@@ -1,13 +1,13 @@
 {
   "package": "react",
-  "generatedAt": "2025-08-30T10:41:30.462Z",
+  "generatedAt": "2025-08-31T09:46:55.145Z",
   "statistics": {
-    "totalFiles": 48,
+    "totalFiles": 45,
     "typeFiles": 3,
-    "codeFiles": 45,
-    "totalLines": 6001,
-    "typeLines": 291,
-    "codeLines": 5710
+    "codeFiles": 42,
+    "totalLines": 5270,
+    "typeLines": 258,
+    "codeLines": 5012
   },
   "files": [
     {
@@ -18,12 +18,12 @@
     {
       "path": "refs/types.ts",
       "isType": true,
-      "lines": 70
+      "lines": 52
     },
     {
       "path": "stores/core/types.ts",
       "isType": true,
-      "lines": 180
+      "lines": 165
     },
     {
       "path": "actions/ActionContext.tsx",
@@ -38,7 +38,7 @@
     {
       "path": "advanced.ts",
       "isType": false,
-      "lines": 45
+      "lines": 40
     },
     {
       "path": "hooks/index.ts",
@@ -48,7 +48,7 @@
     {
       "path": "hooks/react18-hooks.ts",
       "isType": false,
-      "lines": 237
+      "lines": 221
     },
     {
       "path": "index.ts",
@@ -116,24 +116,19 @@
       "lines": 258
     },
     {
-      "path": "stores/core/EventBus.ts",
-      "isType": false,
-      "lines": 148
-    },
-    {
       "path": "stores/core/index.ts",
       "isType": false,
-      "lines": 12
+      "lines": 9
     },
     {
       "path": "stores/core/Store.ts",
       "isType": false,
-      "lines": 470
+      "lines": 413
     },
     {
       "path": "stores/core/StoreRegistry.ts",
       "isType": false,
-      "lines": 122
+      "lines": 119
     },
     {
       "path": "stores/hooks/index.ts",
@@ -193,22 +188,17 @@
     {
       "path": "stores/utils/error-handling.ts",
       "isType": false,
-      "lines": 273
+      "lines": 210
     },
     {
       "path": "stores/utils/immutable.ts",
       "isType": false,
-      "lines": 384
+      "lines": 335
     },
     {
       "path": "stores/utils/index.ts",
       "isType": false,
-      "lines": 54
-    },
-    {
-      "path": "stores/utils/performance-monitor.ts",
-      "isType": false,
-      "lines": 163
+      "lines": 46
     },
     {
       "path": "stores/utils/provider-composition.ts",
@@ -228,7 +218,7 @@
     {
       "path": "stores/utils/subscription-manager.ts",
       "isType": false,
-      "lines": 202
+      "lines": 158
     },
     {
       "path": "stores/utils/sync-external-store-utils.ts",
@@ -244,11 +234,6 @@
       "path": "stores/utils/type-helpers.ts",
       "isType": false,
       "lines": 103
-    },
-    {
-      "path": "stores/utils/utils.ts",
-      "isType": false,
-      "lines": 139
     }
   ]
 }

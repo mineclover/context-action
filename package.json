@@ -43,7 +43,7 @@
     "llms:init": "node packages/llms-generator/dist/cli/index.js init",
     "llms:work-next": "node packages/llms-generator/dist/cli/index.js work-next",
     "llms:detect-mismatches": "node packages/llms-generator/dist/cli/index.js detect-mismatches",
-    "llms:code-mode": "node packages/llms-generator/dist/cli/index.js code-mode",
+    "llms:code-mode": "node packages/llms-generator/dist/cli/index.js code-mode --force",
     "security:audit": "pnpm audit --audit-level high",
     "security:audit:all": "lerna run security:audit",
     "prepare": "husky"

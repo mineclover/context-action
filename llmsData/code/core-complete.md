@@ -1,7 +1,7 @@
 # Context-Action Core Package - Complete Code
 
 Total Files: 8
-Total Lines: 1805
+Total Lines: 1772
 
 ## Type Definitions
 
@@ -1665,8 +1665,6 @@ export { ActionGuard } from './action-guard.js';
 export { executeSequential, executeParallel, executeRace } from './execution-modes.js';
 export {
   createActionHandler,
-  createReactHandlerConfig,
-  createReactDispatcher,
   ReactDevUtils,
   ReactActionError,
   isReactActionError
@@ -1694,7 +1692,17 @@ export function createActionHandler<T extends ActionPayloadMap, K extends keyof 
   registerWithCleanup: () => () => void;
   config: Required<HandlerConfig>;
 } {
-  const finalConfig = createReactHandlerConfig(String(action), undefined, config);
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substr(2, 5);
+  const finalConfig: Required<HandlerConfig> = {
+    priority: config?.priority ?? 0,
+    id: config?.id || `react_${String(action)}_${timestamp}_${random}`,
+    blocking: config?.blocking ?? false,
+    once: config?.once ?? false,
+    debounce: config?.debounce ?? undefined,
+    throttle: config?.throttle ?? undefined,
+    replaceExisting: true, 
+  } as Required<HandlerConfig>;
   let currentUnregister: UnregisterFunction | undefined;
   let isRegistered = false;
   return {
@@ -1721,47 +1729,6 @@ export function createActionHandler<T extends ActionPayloadMap, K extends keyof 
       };
     },
     config: finalConfig
-  };
-}
-export function createReactHandlerConfig(
-  action: string,
-  componentId?: string,
-  config: HandlerConfig = {}
-): Required<HandlerConfig> {
-  const timestamp = Date.now();
-  const random = Math.random().toString(36).substr(2, 5);
-  return {
-    priority: config.priority ?? 0,
-    id: config.id || `${componentId || 'react'}_${action}_${timestamp}_${random}`,
-    blocking: config.blocking ?? false,
-    once: config.once ?? false,
-    debounce: config.debounce ?? undefined,
-    throttle: config.throttle ?? undefined,
-    replaceExisting: true, 
-  } as Required<HandlerConfig>;
-}
-export function createReactDispatcher<T extends ActionPayloadMap>(
-  registry: ActionRegister<T>,
-  errorHandler?: (error: Error, action: keyof T, payload?: any) => void
-) {
-  return async <K extends keyof T>(
-    action: K,
-    payload?: T[K],
-    options?: Parameters<ActionRegister<T>['dispatch']>[2]
-  ): Promise<void> => {
-    try {
-      await registry.dispatch(action, payload, {
-        immediate: false, 
-        ...options
-      });
-    } catch (error) {
-      const errorObj = error instanceof Error ? error : new Error(String(error));
-      if (errorHandler) {
-        errorHandler(errorObj, action, payload);
-      } else {
-        console.error(`[ActionRegister] Dispatch failed for action '${String(action)}':`, errorObj);
-      }
-    }
   };
 }
 export const ReactDevUtils = {

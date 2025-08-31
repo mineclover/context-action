@@ -1,13 +1,13 @@
 {
   "package": "core",
-  "generatedAt": "2025-08-30T10:41:30.454Z",
+  "generatedAt": "2025-08-31T09:46:55.138Z",
   "statistics": {
     "totalFiles": 8,
     "typeFiles": 1,
     "codeFiles": 7,
-    "totalLines": 1805,
+    "totalLines": 1772,
     "typeLines": 190,
-    "codeLines": 1615
+    "codeLines": 1582
   },
   "files": [
     {
@@ -43,12 +43,12 @@
     {
       "path": "index.ts",
       "isType": false,
-      "lines": 25
+      "lines": 23
     },
     {
       "path": "react-helpers.ts",
       "isType": false,
-      "lines": 174
+      "lines": 143
     }
   ]
 }
