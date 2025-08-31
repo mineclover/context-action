@@ -52,7 +52,7 @@ const PermissionBasedExecution = lazy(() => import('./pages/patterns/conditional
 const FormValidation = lazy(() => import('./pages/patterns/conditional/FormValidation').then(m => ({ default: m.FormValidation })));
 const WorkflowSteps = lazy(() => import('./pages/patterns/conditional/WorkflowSteps').then(m => ({ default: m.WorkflowSteps })));
 const FeatureToggle = lazy(() => import('./pages/patterns/conditional/FeatureToggle').then(m => ({ default: m.FeatureToggle })));
-const FlowControlPlaygroundPage = lazy(() => import('./pages/patterns/pipeline/FlowControlPlaygroundPage').then(m => ({ default: m.FlowControlPlaygroundPage })));
+const FlowControlPlaygroundPage = lazy(() => import('./pages/patterns/pipeline/FlowControlPlaygroundPageV2').then(m => ({ default: m.FlowControlPlaygroundPageV2 })));
 const RefsIndexPage = lazy(() => import('./pages/patterns/refs/RefsIndexPage').then(m => ({ default: m.RefsIndexPage })));
 const FormBuilderRefDemoPage = lazy(() => import('./pages/patterns/refs/FormBuilderRefDemoPage').then(m => ({ default: m.FormBuilderRefDemoPage })));
 const WaitForRefsPerformancePage = lazy(() => import('./pages/patterns/refs/WaitForRefsPerformancePage').then(m => ({ default: m.WaitForRefsPerformancePage })));

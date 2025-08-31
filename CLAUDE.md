@@ -35,7 +35,7 @@ The Context-Action framework addresses critical issues in modern state managemen
 - **Clear Boundaries**: Implementation results maintain distinct, well-defined domain boundaries
 - **Effective Document-Artifact Management**: State management library that actively supports the relationship between documentation and deliverables
 
-The framework implements an MVVM-inspired architecture with clear separation between View (React components), ViewModel (Action pipeline), and Model (Store system) layers, all organized around **context-driven domain isolation**.
+The framework implements a **Context-Layered Architecture** (see [Context-Layered Architecture Guide](docs/en/context-layered/context-layered-guide.md)) with clear separation between View (React components), Action/Handler layers (business logic), and Store system (state management) layers, all organized around **context-driven domain isolation**.
 
 ## Architecture
 
@@ -45,7 +45,7 @@ The Context-Action framework follows these principles:
 - **Type Safety**: Full TypeScript support with strict type checking throughout
 - **Action Pipeline**: Centralized action processing with priority-based handler execution
 - **Store Integration**: Decoupled state management with reactive store subscriptions
-- **MVVM Pattern**: Clear separation of concerns with business logic in action handlers
+- **Context-Layered Architecture**: Clear separation of concerns with business logic in action handlers following [4-layer structure](docs/en/context-layered/architecture/folder-structure.md)
 
 ### Context Separation Strategy
 
@@ -177,7 +177,7 @@ function UserProfile() {
   );
 }
 
-// 6. App Structure (MVVM Pattern)
+// 6. App Structure (Context-Layered Architecture)
 function App() {
   return (
     <UserActionProvider>      {/* ViewModel Layer */}
@@ -196,7 +196,7 @@ function App() {
 - **Type Safety**: Full TypeScript support throughout the pipeline
 - **Testability**: Business logic in handlers can be tested independently
 - **Scalability**: Easy to add new actions and stores without touching UI
-- **Clean Architecture**: Clear MVVM pattern with distinct responsibilities
+- **Clean Architecture**: Clear Context-Layered pattern with distinct responsibilities
 
 ## Development Commands
 
@@ -649,7 +649,8 @@ function EventComponent() {
 - `packages/react/src/actions/ActionContext.tsx` - React action context integration
 - `packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx` - Declarative Store Pattern implementation
 - `docs/en/concept/pattern-guide.md` - Complete pattern guide with two main approaches
-- `docs/en/concept/architecture-guide.md` - Complete MVVM architecture guide with Context Store Pattern
+- `docs/en/concept/architecture-guide.md` - Complete architecture guide with Context Store Pattern
+- `docs/en/context-layered/context-layered-guide.md` - Context-Layered Architecture guide with 4-layer structure
 - `docs/en/concept/conventions.md` - Comprehensive coding conventions and best practices
 - `docs/en/concept/hooks-reference.md` - Complete hooks reference documentation
 - `example/src/` - Comprehensive example application
@@ -670,15 +671,32 @@ function EventComponent() {
 - **Use Case**: Pure state management without action dispatching (data layers, simple state)
 - **Features**: Excellent type inference without manual type annotations, simplified API focused on store management, direct value or configuration object support
 
-### MVVM Architecture Integration
+### Context-Layered Architecture Integration
 
-#### Declarative Store Pattern (Primary)
-**Type-safe state management** with domain isolation:
-- **Actions** handle business logic (ViewModel layer) via `createActionContext`
-- **Declarative Store Pattern** manages state with type safety (Model layer)
-- **Components** render UI (View layer)
+#### Context-Layered 4-Layer Structure
+**Systematic layer separation** with clear responsibilities (see [Folder Structure Guide](docs/en/context-layered/architecture/folder-structure.md)):
+
+```
+├── contexts/     # 🗄️ Context Definitions (Type definitions & context creation)
+├── handlers/     # ⚙️ Handler Logic (Business logic with props-based DI)  
+├── actions/      # 🚀 Dispatch + Callbacks (Action dispatching & callbacks)
+├── hooks/        # 🔗 Store Subscriptions (Store value subscriptions)
+├── views/        # 🖼️ Pure UI Components (Event handling & rendering)
+└── MainPage.tsx  # 🎯 Integration Point (Handler registration & composition)
+```
+
+**Layer Integration Benefits:**
+- **Actions** handle business logic via [props-based dependency injection](docs/en/context-layered/patterns/props-based-handlers.md)
+- **Declarative Store Pattern** manages state with type safety
+- **Components** render UI with clear data flow
 - **Pattern Composition** allows flexible architecture
 - **Type-Safe Integration** through pattern-specific hooks
+
+**Key Resources:**
+- [Context-Layered Architecture Guide](docs/en/context-layered/context-layered-guide.md) - Complete architectural overview
+- [Props-based Handler Patterns](docs/en/context-layered/patterns/props-based-handlers.md) - Handler implementation guides  
+- [Handler Registry Management](docs/en/context-layered/architecture/handler-registry.md) - ID and priority management
+- [Migration Guide](docs/en/context-layered/migration-guide.md) - Migrate from traditional patterns
 
 #### Store Integration 3-Step Process
 1. **Read current state** from stores using `store.getValue()`

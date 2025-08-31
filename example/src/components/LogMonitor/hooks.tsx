@@ -307,6 +307,82 @@ export function useActionLogger(
       }
     );
 
+    // Info 로그 핸들러
+    register.register(
+      '_internal.log.info',
+      ({ message, data, options = {} }, _controller) => {
+        addLog({
+          level: LogLevel.INFO,
+          type: 'system',
+          message,
+          ...(options.priority !== undefined && { priority: options.priority }),
+          details: {
+            data,
+            ...(options.context !== undefined && { context: options.context }),
+          },
+        });
+
+        logger.info(message, data);
+
+        // Info Toast (명시적 요청시만)
+        if (
+          config.enableToast &&
+          toastSystem &&
+          (options.toast === true || typeof options.toast === 'object')
+        ) {
+          if (typeof options.toast === 'object') {
+            toastSystem.showToast(
+              options.toast.type || 'info',
+              options.toast.title || 'Info',
+              options.toast.message || message
+            );
+          } else {
+            toastSystem.showToast('info', 'Info', message);
+          }
+        }
+
+        
+      }
+    );
+
+    // Warn 로그 핸들러
+    register.register(
+      '_internal.log.warn',
+      ({ message, data, options = {} }, _controller) => {
+        addLog({
+          level: LogLevel.WARN,
+          type: 'system',
+          message,
+          ...(options.priority !== undefined && { priority: options.priority }),
+          details: {
+            data,
+            ...(options.context !== undefined && { context: options.context }),
+          },
+        });
+
+        logger.warn(message, data);
+
+        // Warn Toast (명시적 요청시만)
+        if (
+          config.enableToast &&
+          toastSystem &&
+          (options.toast === true || typeof options.toast === 'object')
+        ) {
+          if (typeof options.toast === 'object') {
+            toastSystem.showToast(
+              'error',
+              options.toast.title || 'Warning',
+              options.toast.message || message
+            );
+          } else {
+            toastSystem.showToast('error', 'Warning', message);
+          }
+        }
+
+        
+      }
+    );
+
     return register;
   }, [addLog, logger, config.enableToast, toastSystem]);
 

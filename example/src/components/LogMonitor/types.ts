@@ -87,6 +87,16 @@ export interface InternalLogActionMap extends ActionPayloadMap {
     message: string;
     options?: ActionLogOptions;
   };
+  '_internal.log.info': {
+    message: string;
+    data?: unknown;
+    options?: ActionLogOptions;
+  };
+  '_internal.log.warn': {
+    message: string;
+    data?: unknown;
+    options?: ActionLogOptions;
+  };
 }
 
 /**

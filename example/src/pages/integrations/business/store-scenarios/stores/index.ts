@@ -164,7 +164,7 @@ export const initialNotifications: NotificationItem[] = [
 ];
 
 // Simplified store configuration using the new v2 pattern
-export const StoreScenarios = createStoreContext('StoreScenarios', {
+const storeConfig = {
   // Simple direct values
   cart: [] as CartItem[],
 
@@ -197,7 +197,10 @@ export const StoreScenarios = createStoreContext('StoreScenarios', {
     initialValue: initialNotifications,
     strategy: 'shallow',
   },
-});
+} as const;
+
+// Create the store context with proper type inference
+export const StoreScenarios = createStoreContext('StoreScenarios', storeConfig);
 
 // Declarative Store 패턴을 사용하여 타입 안전한 스토어 접근을 제공합니다.
 // 예시:

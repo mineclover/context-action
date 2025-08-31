@@ -10,9 +10,10 @@ This document defines coding conventions and best practices when using the Conte
 4. [Pattern Usage](#pattern-usage)
 5. [Type Definitions](#type-definitions)
 6. [Code Style](#code-style)
-7. [Performance Guidelines](#performance-guidelines)
-8. [Error Handling](#error-handling)
-9. [RefContext Conventions](#refcontext-conventions)
+7. [Store Update Conventions](#store-update-conventions)
+8. [Performance Guidelines](#performance-guidelines)
+9. [Error Handling](#error-handling)
+10. [RefContext Conventions](#refcontext-conventions)
 
 ---
 
@@ -1118,6 +1119,156 @@ import { InteractiveMouseTracker } from './InteractiveMouseTracker';
 import type { UserProfile } from '@/types/user.types';
 import type { MouseRefs } from '@/types/interaction.types';
 ```
+
+---
+
+## Store Update Conventions
+
+### 🔄 **Store Immutability Rules**
+
+Context-Action Framework uses **Immer** internally for store state management, which enforces immutability rules. All store updates must follow proper conventions to avoid runtime errors.
+
+#### ✅ **Correct Store Update Methods**
+
+```typescript
+// ✅ MUST: Use store.setValue() for complete value replacement
+const userStore = useUserStore('profile');
+
+// Simple value replacement
+userStore.setValue({ name: 'John', email: 'john@example.com' });
+
+// ✅ MUST: Use store.update() for partial updates with Immer
+userStore.update(draft => {
+  draft.name = 'John Doe';
+  draft.preferences.theme = 'dark';
+  return draft; // Optional: Immer handles this automatically
+});
+
+// ✅ MUST: Use store.update() for Map/Set operations
+const cacheStore = useAppStore('cache');
+cacheStore.update(draft => {
+  draft.memoryCache.set('key', value);
+  draft.redisCache.delete('oldKey');
+  return draft;
+});
+
+// ✅ MUST: Use store.update() for Array operations
+const itemsStore = useAppStore('items');
+itemsStore.update(draft => {
+  draft.push(newItem);
+  draft.splice(index, 1);
+  return draft;
+});
+```
+
+#### ❌ **Forbidden Store Update Patterns**
+
+```typescript
+// ❌ NEVER: Direct mutation of store values
+const cache = useStoreValue(cacheStore);
+cache.memoryCache.set('key', value); // Throws: Immer frozen object error
+cache.items.push(newItem); // Throws: Immer frozen object error
+
+// ❌ NEVER: Direct property assignment on store values
+const user = useStoreValue(userStore);
+user.name = 'John'; // Throws: Immer frozen object error
+user.preferences.theme = 'dark'; // Throws: Immer frozen object error
+
+// ❌ NEVER: Attempting to mutate returned store values
+const profile = userStore.getValue();
+profile.email = 'new@email.com'; // Throws: Immer frozen object error
+```
+
+### 🎯 **Store Integration 3-Step Process**
+
+All action handlers must follow this standardized pattern:
+
+```typescript
+// ✅ Standard 3-step process for action handlers
+useActionHandler('updateUserProfile', useCallback(async (payload, controller) => {
+  // Step 1: Read current state
+  const currentProfile = profileStore.getValue();
+  const currentPrefs = preferencesStore.getValue();
+  
+  // Step 2: Execute business logic
+  const updatedProfile = {
+    ...currentProfile,
+    ...payload,
+    updatedAt: new Date().toISOString()
+  };
+  
+  // Validate business rules
+  if (!updatedProfile.email.includes('@')) {
+    controller.abort('Invalid email format');
+    return;
+  }
+  
+  // Step 3: Update stores using proper methods
+  profileStore.setValue(updatedProfile);
+  
+  // For partial updates, use store.update()
+  preferencesStore.update(draft => {
+    draft.lastProfileUpdate = Date.now();
+    return draft;
+  });
+  
+  // Side effects (API calls, notifications, etc.)
+  await syncProfileToAPI(updatedProfile);
+  
+}, [profileStore, preferencesStore]));
+```
+
+### ⚠️ **Common Immer Errors and Solutions**
+
+#### Error: "This object has been frozen and should not be mutated"
+
+```typescript
+// ❌ Problem: Direct mutation in action handler
+const handleCacheUpdate = useCallback(async (payload) => {
+  const cache = useStoreValue(cacheStore);
+  cache.memoryCache.set(payload.key, payload.value); // ❌ Throws error
+}, [cacheStore]);
+
+// ✅ Solution: Use store.update()
+const handleCacheUpdate = useCallback(async (payload) => {
+  cacheStore.update(draft => {
+    draft.memoryCache.set(payload.key, payload.value);
+    return draft;
+  });
+}, [cacheStore]);
+```
+
+#### Error: "Cannot assign to read only property"
+
+```typescript
+// ❌ Problem: Property assignment on frozen object
+const handleUserUpdate = useCallback(async (payload) => {
+  const user = useStoreValue(userStore);
+  user.name = payload.name; // ❌ Throws error
+}, [userStore]);
+
+// ✅ Solution: Use store.setValue() or store.update()
+const handleUserUpdate = useCallback(async (payload) => {
+  // Option 1: Complete replacement
+  const currentUser = userStore.getValue();
+  userStore.setValue({ ...currentUser, name: payload.name });
+  
+  // Option 2: Partial update with Immer
+  userStore.update(draft => {
+    draft.name = payload.name;
+    return draft;
+  });
+}, [userStore]);
+```
+
+### 📚 **Best Practices Summary**
+
+1. **Always use store methods**: `setValue()`, `update()`, never direct mutation
+2. **Follow 3-step process**: Read → Business Logic → Update
+3. **Use Immer drafts**: For complex objects, arrays, Maps, and Sets
+4. **Lazy evaluation**: Use `store.getValue()` inside handlers for current state
+5. **Proper dependencies**: Include stores in `useCallback` dependency arrays
+6. **Error handling**: Use controller methods for validation and error reporting
 
 ---
 

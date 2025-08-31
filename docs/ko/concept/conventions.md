@@ -9,9 +9,10 @@
 3. [패턴 사용법](#패턴-사용법)
 4. [타입 정의](#타입-정의)
 5. [코드 스타일](#코드-스타일)
-6. [성능 가이드라인](#성능-가이드라인)
-7. [에러 핸들링](#에러-핸들링)
-8. [RefContext 컨벤션](#refcontext-컨벤션)
+6. [Store 업데이트 컨벤션](#store-업데이트-컨벤션)
+7. [성능 가이드라인](#성능-가이드라인)
+8. [에러 핸들링](#에러-핸들링)
+9. [RefContext 컨벤션](#refcontext-컨벤션)
 
 ---
 
@@ -549,6 +550,156 @@ import { ProfileForm } from './ProfileForm';
 // 6. 타입
 import type { UserProfile } from '@/types/user.types';
 ```
+
+---
+
+## Store 업데이트 컨벤션
+
+### 🔄 **Store 불변성 규칙**
+
+Context-Action 프레임워크는 내부적으로 **Immer**를 사용하여 스토어 상태 관리를 하며, 이는 불변성 규칙을 강제합니다. 모든 스토어 업데이트는 적절한 컨벤션을 따라야 런타임 에러를 피할 수 있습니다.
+
+#### ✅ **올바른 Store 업데이트 방법**
+
+```typescript
+// ✅ 필수: 완전한 값 교체는 store.setValue() 사용
+const userStore = useUserStore('profile');
+
+// 단순 값 교체
+userStore.setValue({ name: '홍길동', email: 'hong@example.com' });
+
+// ✅ 필수: 부분 업데이트는 store.update()와 Immer 사용
+userStore.update(draft => {
+  draft.name = '홍길동';
+  draft.preferences.theme = 'dark';
+  return draft; // 선택사항: Immer가 자동으로 처리
+});
+
+// ✅ 필수: Map/Set 연산은 store.update() 사용
+const cacheStore = useAppStore('cache');
+cacheStore.update(draft => {
+  draft.memoryCache.set('key', value);
+  draft.redisCache.delete('oldKey');
+  return draft;
+});
+
+// ✅ 필수: 배열 연산은 store.update() 사용
+const itemsStore = useAppStore('items');
+itemsStore.update(draft => {
+  draft.push(newItem);
+  draft.splice(index, 1);
+  return draft;
+});
+```
+
+#### ❌ **금지된 Store 업데이트 패턴**
+
+```typescript
+// ❌ 절대 금지: 스토어 값의 직접 변경
+const cache = useStoreValue(cacheStore);
+cache.memoryCache.set('key', value); // 에러 발생: Immer frozen object error
+cache.items.push(newItem); // 에러 발생: Immer frozen object error
+
+// ❌ 절대 금지: 스토어 값의 직접 프로퍼티 할당
+const user = useStoreValue(userStore);
+user.name = '홍길동'; // 에러 발생: Immer frozen object error
+user.preferences.theme = 'dark'; // 에러 발생: Immer frozen object error
+
+// ❌ 절대 금지: 반환된 스토어 값 변경 시도
+const profile = userStore.getValue();
+profile.email = 'new@email.com'; // 에러 발생: Immer frozen object error
+```
+
+### 🎯 **Store 통합 3단계 프로세스**
+
+모든 액션 핸들러는 이 표준화된 패턴을 따라야 합니다:
+
+```typescript
+// ✅ 액션 핸들러의 표준 3단계 프로세스
+useActionHandler('updateUserProfile', useCallback(async (payload, controller) => {
+  // 1단계: 현재 상태 읽기
+  const currentProfile = profileStore.getValue();
+  const currentPrefs = preferencesStore.getValue();
+  
+  // 2단계: 비즈니스 로직 실행
+  const updatedProfile = {
+    ...currentProfile,
+    ...payload,
+    updatedAt: new Date().toISOString()
+  };
+  
+  // 비즈니스 규칙 검증
+  if (!updatedProfile.email.includes('@')) {
+    controller.abort('잘못된 이메일 형식');
+    return;
+  }
+  
+  // 3단계: 적절한 메서드로 스토어 업데이트
+  profileStore.setValue(updatedProfile);
+  
+  // 부분 업데이트의 경우 store.update() 사용
+  preferencesStore.update(draft => {
+    draft.lastProfileUpdate = Date.now();
+    return draft;
+  });
+  
+  // 부수 효과 (API 호출, 알림 등)
+  await syncProfileToAPI(updatedProfile);
+  
+}, [profileStore, preferencesStore]));
+```
+
+### ⚠️ **일반적인 Immer 에러와 해결책**
+
+#### 에러: "This object has been frozen and should not be mutated"
+
+```typescript
+// ❌ 문제: 액션 핸들러에서 직접 변경
+const handleCacheUpdate = useCallback(async (payload) => {
+  const cache = useStoreValue(cacheStore);
+  cache.memoryCache.set(payload.key, payload.value); // ❌ 에러 발생
+}, [cacheStore]);
+
+// ✅ 해결책: store.update() 사용
+const handleCacheUpdate = useCallback(async (payload) => {
+  cacheStore.update(draft => {
+    draft.memoryCache.set(payload.key, payload.value);
+    return draft;
+  });
+}, [cacheStore]);
+```
+
+#### 에러: "Cannot assign to read only property"
+
+```typescript
+// ❌ 문제: 고정된 객체의 프로퍼티 할당
+const handleUserUpdate = useCallback(async (payload) => {
+  const user = useStoreValue(userStore);
+  user.name = payload.name; // ❌ 에러 발생
+}, [userStore]);
+
+// ✅ 해결책: store.setValue() 또는 store.update() 사용
+const handleUserUpdate = useCallback(async (payload) => {
+  // 옵션 1: 완전 교체
+  const currentUser = userStore.getValue();
+  userStore.setValue({ ...currentUser, name: payload.name });
+  
+  // 옵션 2: Immer를 사용한 부분 업데이트
+  userStore.update(draft => {
+    draft.name = payload.name;
+    return draft;
+  });
+}, [userStore]);
+```
+
+### 📚 **베스트 프랙티스 요약**
+
+1. **항상 스토어 메서드 사용**: `setValue()`, `update()` 사용, 직접 변경 금지
+2. **3단계 프로세스 준수**: 읽기 → 비즈니스 로직 → 업데이트
+3. **Immer draft 사용**: 복잡한 객체, 배열, Map, Set에 대해
+4. **지연 평가**: 현재 상태를 위해 핸들러 내에서 `store.getValue()` 사용
+5. **적절한 의존성**: `useCallback` 의존성 배열에 스토어 포함
+6. **에러 처리**: 검증 및 에러 보고를 위해 controller 메서드 사용
 
 ---
 

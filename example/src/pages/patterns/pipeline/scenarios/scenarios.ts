@@ -39,14 +39,36 @@ export const scenarios: ScenarioRegistry = {
   },
   
   cacheOptimization: {
-    title: "Cache Optimization",
-    description: "Data fetching with multi-level cache hierarchy and early returns",
+    title: "Cache Optimization (Memory Hit)",
+    description: "Data fetching with memory cache hit demonstrating early return",
     payload: { 
-      key: "user-profile-456", 
-      fallbackUrl: "/api/users/456", 
+      key: "cached-user-profile", 
+      fallbackUrl: "/api/users/cached", 
       bustCache: false 
     },
-    expectedFlow: "Memory Cache (P:100) → Redis Cache (P:80) → Database (P:60) → Early Return on Cache Hit"
+    expectedFlow: "Memory Cache (P:100) → Cache HIT → Early Return (Skip Redis & Database)"
+  },
+
+  cacheRedisHit: {
+    title: "Cache Redis Hit (Memory Miss)",
+    description: "Memory cache miss, Redis cache hit with population back to memory",
+    payload: { 
+      key: "redis-cached-profile", 
+      fallbackUrl: "/api/users/redis", 
+      bustCache: false 
+    },
+    expectedFlow: "Memory Cache (P:100) → MISS → Redis Cache (P:80) → HIT → Populate Memory → Early Return"
+  },
+
+  cacheMissAll: {
+    title: "Cache Miss All (Database Fetch)",
+    description: "All cache levels miss, fetch from database and populate caches",
+    payload: { 
+      key: "new-user-profile", 
+      fallbackUrl: "/api/users/new", 
+      bustCache: false 
+    },
+    expectedFlow: "Memory Cache (P:100) → MISS → Redis Cache (P:80) → MISS → Database (P:60) → Populate All Caches"
   },
   
   businessHourRouting: {
