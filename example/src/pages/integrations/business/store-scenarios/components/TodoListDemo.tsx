@@ -501,7 +501,7 @@ export function TodoListDemo() {
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold">Todo List Demo</h3>
-            <SourceLink id="todo-list-demo" variant="badge" />
+            <SourceLink filePath="pages/integrations/business/store-scenarios/components/TodoListDemo.tsx" variant="badge" />
           </div>
           <TodoListDemoInner />
         </div>

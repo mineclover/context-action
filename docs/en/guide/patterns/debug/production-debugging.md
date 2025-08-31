@@ -22,6 +22,80 @@ Suggestion-migration process for implementing advanced debugging patterns in Con
 
 ---
 
+## ⚠️ Critical: LogMonitor Dependency Warning
+
+### Infinite Loop Prevention with LogMonitor
+
+**CRITICAL ISSUE**: Adding `actionLogger` or `logMonitor` to React dependency arrays can cause infinite rendering loops.
+
+#### ❌ Dangerous Pattern (Causes Infinite Loop)
+
+```tsx
+// DON'T: Including actionLogger/logMonitor in dependencies
+function MyComponent() {
+  const actionLogger = useActionLogger();
+  const logMonitor = useLogMonitor();
+  
+  const handleClick = useCallback(() => {
+    actionLogger.logAction('buttonClick', { data: 'test' });
+  }, [actionLogger]); // ❌ INFINITE LOOP!
+  
+  useEffect(() => {
+    logMonitor.addLog({
+      level: LogLevel.INFO,
+      type: 'system',
+      message: 'Component mounted'
+    });
+  }, [logMonitor]); // ❌ INFINITE LOOP!
+}
+```
+
+#### ✅ Safe Pattern (Recommended)
+
+```tsx
+// DO: Exclude from dependencies to prevent infinite loops
+function MyComponent() {
+  const actionLogger = useActionLogger();
+  const logMonitor = useLogMonitor();
+  
+  const handleClick = useCallback(() => {
+    actionLogger.logAction('buttonClick', { data: 'test' });
+  }, []); // ✅ Safe - ignore ESLint warning
+  
+  // Or use direct function (no useCallback needed)
+  const handleClickDirect = () => {
+    actionLogger.logAction('buttonClick', { data: 'test' });
+  };
+  
+  useEffect(() => {
+    logMonitor.addLog({
+      level: LogLevel.INFO,
+      type: 'system',
+      message: 'Component mounted'
+    });
+  }, []); // ✅ Safe - runs once on mount
+}
+```
+
+#### 🔍 Why This Happens
+
+The infinite loop occurs because:
+
+1. **actionLogger call** → LogMonitor state changes
+2. **LogMonitor Context re-renders** → useActionLogger re-executes  
+3. **New actionLogger object created** → Reference changes
+4. **useCallback re-executes** → Dependency change detected
+5. **Calls actionLogger again** → Infinite cycle...
+
+#### 💡 Key Principles
+
+- **Never include `actionLogger` or `logMonitor` in dependency arrays**
+- **ESLint warnings are safe to ignore for these specific hooks**
+- **Despite being named "Stable API", references actually change**
+- **Use console.log or direct calls as alternatives for debugging**
+
+---
+
 ## Core Issues Migration
 
 ### Migration from Ad-hoc to Systematic Debugging

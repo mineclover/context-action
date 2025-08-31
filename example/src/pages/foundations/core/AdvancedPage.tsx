@@ -34,7 +34,7 @@ function CoreAdvancedDemo() {
           </p>
         </div>
         <div className="flex-shrink-0 ml-4">
-          <SourceLink id="core-advanced-page" variant="badge" />
+          <SourceLink filePath="pages/foundations/core/AdvancedPage.tsx" variant="badge" />
         </div>
       </div>
 

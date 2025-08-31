@@ -221,6 +221,8 @@ function AdvancedFeaturesDemo() {
 
   // Advanced async handler
   const asyncOperationHandler = useCallback<ActionHandler<string>>(async (payload, controller) => {
+    let aborted = false; // Move aborted to function scope
+    
     try {
       setIsRunning(true);
       setRunningCount(prev => prev + 1);
@@ -230,15 +232,19 @@ function AdvancedFeaturesDemo() {
       await new Promise((resolve, reject) => {
         const timeoutId = setTimeout(resolve, 3000);
         
-        // Handle abort signal
-        controller.signal.addEventListener('abort', () => {
+        // Handle abort through controller
+        // Note: PipelineController doesn't have signal, we simulate abort handling
+        const originalAbort = controller.abort;
+        controller.abort = (reason) => {
+          aborted = true;
           clearTimeout(timeoutId);
+          originalAbort.call(controller, reason);
           reject(new Error('Operation aborted by user'));
-        });
+        };
       });
       
       // Check if still not aborted
-      if (!controller.signal.aborted) {
+      if (!aborted) {
         logAction('asyncOperation', '✅ Async operation completed successfully');
         setIsRunning(false);
         setRunningCount(prev => Math.max(0, prev - 1));
@@ -247,10 +253,10 @@ function AdvancedFeaturesDemo() {
       setIsRunning(false);
       setRunningCount(prev => Math.max(0, prev - 1));
       
-      if (controller.signal.aborted) {
+      if (aborted) {
         logAction('asyncOperation', '❌ Async operation was aborted');
       } else {
-        logAction('asyncOperation', `❌ Async operation failed: ${error.message}`);
+        logAction('asyncOperation', `❌ Async operation failed: ${(error as Error).message}`);
       }
       throw error;
     }
@@ -351,7 +357,7 @@ function CoreBasicsPage() {
                 </p>
               </div>
               <div className="flex-shrink-0 ml-4">
-                <SourceLink id="core-basics-page" variant="badge" />
+                <SourceLink filePath="pages/foundations/core/BasicsPage.tsx" variant="badge" />
               </div>
             </div>
           </header>

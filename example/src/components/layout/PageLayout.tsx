@@ -3,7 +3,7 @@ import { cn } from '../../lib/utils';
 import { Card, CardContent, Container } from '../ui';
 import { PageSourceHeader } from '../ui/PageSourceHeader';
 
-interface PageLayoutProps {
+export interface PageLayoutProps {
   title: string;
   description?: string;
   children: React.ReactNode;

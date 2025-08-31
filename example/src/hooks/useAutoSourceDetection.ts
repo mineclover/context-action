@@ -33,7 +33,7 @@ export function useAutoSourceDetection(): AutoDetectedSource | null {
       // Core patterns
       {
         pattern: /^\/core\/(.*)/,
-        mainFile: (matches) => `pages/foundations/core/${matches[1]?.charAt(0).toUpperCase() + matches[1]?.slice(1)}Page.tsx`,
+        mainFile: (matches) => `pages/foundations/core/${matches[1] ? matches[1].charAt(0).toUpperCase() + matches[1].slice(1) : 'Default'}Page.tsx`,
         relatedFiles: () => ['components/core/', 'hooks/use*.ts'],
         category: 'core'
       },
@@ -41,7 +41,7 @@ export function useAutoSourceDetection(): AutoDetectedSource | null {
       // Store patterns  
       {
         pattern: /^\/store\/(.*)/,
-        mainFile: (matches) => `pages/foundations/store/${matches[1]?.charAt(0).toUpperCase() + matches[1]?.slice(1)}Page.tsx`,
+        mainFile: (matches) => `pages/foundations/store/${matches[1] ? matches[1].charAt(0).toUpperCase() + matches[1].slice(1) : 'Default'}Page.tsx`,
         relatedFiles: () => ['stores/', 'hooks/use*Store*.ts'],
         category: 'store'
       },
@@ -49,7 +49,7 @@ export function useAutoSourceDetection(): AutoDetectedSource | null {
       // React patterns
       {
         pattern: /^\/react\/(.*)/,
-        mainFile: (matches) => `pages/integrations/react/${matches[1]?.charAt(0).toUpperCase() + matches[1]?.slice(1)}Page.tsx`,
+        mainFile: (matches) => `pages/integrations/react/${matches[1] ? matches[1].charAt(0).toUpperCase() + matches[1].slice(1) : 'Default'}Page.tsx`,
         relatedFiles: () => ['components/react/', 'hooks/use*.ts'],
         category: 'react'
       },
@@ -57,11 +57,11 @@ export function useAutoSourceDetection(): AutoDetectedSource | null {
       // Demo patterns
       {
         pattern: /^\/demos\/(.*)/,
-        mainFile: (matches) => `pages/demos/${matches[1]?.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('')}Demo.tsx`,
+        mainFile: (matches) => `pages/demos/${matches[1] ? matches[1].split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('') : 'Default'}Demo.tsx`,
         relatedFiles: (matches) => [
           `components/demos/${matches[1]}/`,
           `stores/${matches[1]}Store.ts`,
-          `hooks/use${matches[1]?.charAt(0).toUpperCase() + matches[1]?.slice(1)}*.ts`
+          `hooks/use${matches[1] ? matches[1].charAt(0).toUpperCase() + matches[1].slice(1) : 'Default'}*.ts`
         ],
         category: 'demos'
       },
@@ -69,7 +69,7 @@ export function useAutoSourceDetection(): AutoDetectedSource | null {
       // ActionGuard patterns
       {
         pattern: /^\/actionguard\/(.*)/,
-        mainFile: (matches) => `pages/actionguard/${matches[1]?.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('')}Page.tsx`,
+        mainFile: (matches) => `pages/actionguard/${matches[1] ? matches[1].split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('') : 'Default'}Page.tsx`,
         relatedFiles: () => ['components/actionguard/', 'hooks/useActionGuard*.ts'],
         category: 'actionguard'
       },
@@ -77,7 +77,7 @@ export function useAutoSourceDetection(): AutoDetectedSource | null {
       // Performance patterns
       {
         pattern: /^\/performance\/(.*)/,
-        mainFile: (matches) => `pages/performance/${matches[1]?.charAt(0).toUpperCase() + matches[1]?.slice(1)}Page.tsx`,
+        mainFile: (matches) => `pages/performance/${matches[1] ? matches[1].charAt(0).toUpperCase() + matches[1].slice(1) : 'Default'}Page.tsx`,
         relatedFiles: () => ['components/performance/', 'hooks/usePerformance*.ts'],
         category: 'performance'
       },
@@ -85,7 +85,7 @@ export function useAutoSourceDetection(): AutoDetectedSource | null {
       // Utilities patterns
       {
         pattern: /^\/utilities\/(.*)/,
-        mainFile: (matches) => `pages/utilities/${matches[1]?.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('')}.tsx`,
+        mainFile: (matches) => `pages/utilities/${matches[1] ? matches[1].split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join('') : 'Default'}.tsx`,
         relatedFiles: () => ['components/ui/', 'utils/', 'hooks/use*.ts'],
         category: 'utilities'
       },
@@ -93,7 +93,7 @@ export function useAutoSourceDetection(): AutoDetectedSource | null {
       // Refs patterns
       {
         pattern: /^\/refs\/(.*)/,
-        mainFile: (matches) => `pages/refs/${matches[1]?.charAt(0).toUpperCase() + matches[1]?.slice(1)}Page.tsx`,
+        mainFile: (matches) => `pages/refs/${matches[1] ? matches[1].charAt(0).toUpperCase() + matches[1].slice(1) : 'Default'}Page.tsx`,
         relatedFiles: () => ['components/refs/', 'hooks/useRef*.ts'],
         category: 'refs'
       }
@@ -115,7 +115,7 @@ export function useAutoSourceDetection(): AutoDetectedSource | null {
     // 기본 패턴 (단순 경로 기반)
     if (pathSegments.length >= 1) {
       const pageName = pathSegments[pathSegments.length - 1];
-      const capitalizedName = pageName.charAt(0).toUpperCase() + pageName.slice(1);
+      const capitalizedName = pageName ? pageName.charAt(0).toUpperCase() + pageName.slice(1) : 'Default';
       
       return {
         mainFile: `pages/${pathSegments.join('/')}/${capitalizedName}Page.tsx`,

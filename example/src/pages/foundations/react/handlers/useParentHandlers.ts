@@ -1,6 +1,8 @@
 import { useCallback, useEffect } from 'react';
 import { useParentActionHandler, useParentStoreManager } from '../contexts/ParentContext';
 import { PARENT_HANDLERS } from './handler-registry';
+import { useLogMonitor } from '@/components/LogMonitor/context';
+import { LogLevel } from '@/utils/logger';
 
 // ==============================================
 // PARENT HANDLERS - Context-Layered Architecture
@@ -22,6 +24,7 @@ export interface ParentHandlerProps {
 export function useParentCounterHandlers(props: ParentHandlerProps) {
   const { moduleId, enableLogging = true, onCounterChange } = props;
   const storeManager = useParentStoreManager();
+  const { addLog } = useLogMonitor();
 
   // Increment Counter Handler
   const incrementCounterHandler = useCallback(async (payload: void, controller: any) => {
@@ -36,8 +39,16 @@ export function useParentCounterHandlers(props: ParentHandlerProps) {
     
     if (enableLogging) {
       console.log(`🔄 [${moduleId}] Parent Counter 증가:`, { previousValue: currentValue, newValue });
+      
+      // LogMonitor에 로그 추가
+      addLog({
+        level: LogLevel.INFO,
+        type: 'action',
+        message: `Parent Counter 증가: ${currentValue} → ${newValue}`,
+        details: { action: 'incrementParentCounter', previousValue: currentValue, newValue, moduleId }
+      });
     }
-  }, [storeManager, moduleId, enableLogging, onCounterChange]);
+  }, [storeManager, moduleId, enableLogging, onCounterChange, addLog]);
 
   // Reset Counter Handler
   const resetCounterHandler = useCallback(async (payload: void, controller: any) => {
@@ -51,8 +62,16 @@ export function useParentCounterHandlers(props: ParentHandlerProps) {
     
     if (enableLogging) {
       console.log(`🔄 [${moduleId}] Parent Counter 리셋:`, { previousValue });
+      
+      // LogMonitor에 로그 추가
+      addLog({
+        level: LogLevel.INFO,
+        type: 'action',
+        message: `Parent Counter 리셋: ${previousValue} → 0`,
+        details: { action: 'resetParentCounter', previousValue, newValue: 0, moduleId }
+      });
     }
-  }, [storeManager, moduleId, enableLogging, onCounterChange]);
+  }, [storeManager, moduleId, enableLogging, onCounterChange, addLog]);
 
   // Register handlers with centralized IDs and priorities
   useParentActionHandler(
@@ -86,6 +105,7 @@ export function useParentCounterHandlers(props: ParentHandlerProps) {
  */
 export function useParentControlHandlers(props: ParentHandlerProps) {
   const { moduleId, enableLogging = true } = props;
+  const { addLog } = useLogMonitor();
 
   // Request Child Control Handler
   const requestChildControlHandler = useCallback(async (
@@ -96,11 +116,19 @@ export function useParentControlHandlers(props: ParentHandlerProps) {
     
     if (enableLogging) {
       console.log(`🔄 [${moduleId}] 하위 컴포넌트 제어 요청:`, { childId, action, amount });
+      
+      // LogMonitor에 로그 추가
+      addLog({
+        level: LogLevel.INFO,
+        type: 'action',
+        message: `하위 컴포넌트 제어: ${childId} ${action}${amount ? ` +${amount}` : ''}`,
+        details: { action: 'requestChildControl', childId, actionType: action, amount, moduleId }
+      });
     }
     
     // This handler coordinates with child components
     // Child components should register their own control handlers
-  }, [moduleId, enableLogging]);
+  }, [moduleId, enableLogging, addLog]);
 
   // Register handler
   useParentActionHandler(
@@ -125,6 +153,7 @@ export function useParentControlHandlers(props: ParentHandlerProps) {
 export function useParentDataHandlers(props: ParentHandlerProps) {
   const { moduleId, enableLogging = true, onChildRegistered } = props;
   const storeManager = useParentStoreManager();
+  const { addLog } = useLogMonitor();
 
   // Child Registration Handler
   const childRegisteredHandler = useCallback(async (
@@ -138,8 +167,16 @@ export function useParentDataHandlers(props: ParentHandlerProps) {
     
     if (enableLogging) {
       console.log(`🔄 [${moduleId}] 하위 컴포넌트 등록:`, { childId, childType });
+      
+      // LogMonitor에 로그 추가
+      addLog({
+        level: LogLevel.DEBUG,
+        type: 'system',
+        message: `하위 컴포넌트 등록: ${childId} (${childType})`,
+        details: { action: 'onChildRegistered', childId, childType, moduleId }
+      });
     }
-  }, [moduleId, enableLogging, onChildRegistered]);
+  }, [moduleId, enableLogging, onChildRegistered, addLog]);
 
 
   // Register handlers

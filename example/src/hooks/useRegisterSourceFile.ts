@@ -39,7 +39,7 @@ export function useRegisterSourceFile(
     // 파일 경로에서 정보 추출
     const pathParts = filePath.split('/');
     const fileName = pathParts[pathParts.length - 1];
-    const fileNameWithoutExt = fileName.replace(/\.(tsx?|jsx?|ts|js)$/, '');
+    const fileNameWithoutExt = fileName ? fileName.replace(/\.(tsx?|jsx?|ts|js)$/, '') : 'unknown';
     
     // 카테고리 자동 감지
     const category = pathParts[0] || 'general';
@@ -136,41 +136,6 @@ export function useRegisterSourceFile(
   }, [filePath, instanceId]); // instanceId는 변하지 않으므로 안전
 }
 
-/**
- * 여러 파일을 한번에 등록하는 Hook
- * 
- * @example
- * ```tsx
- * useRegisterSourceFiles([
- *   { path: 'components/MyComponent.tsx', priority: 10 },
- *   { path: 'hooks/useMyHook.ts', priority: 5 },
- *   'stores/myStore.ts'  // 간단한 형태
- * ]);
- * ```
- */
-export function useRegisterSourceFiles(
-  files: Array<string | { 
-    path: string; 
-    name?: string; 
-    description?: string; 
-    tags?: string[];
-    priority?: number;
-  }>
-) {
-  // 각 파일에 대해 개별적으로 useRegisterSourceFile 호출
-  files.forEach(file => {
-    const filePath = typeof file === 'string' ? file : file.path;
-    const options = typeof file === 'string' ? undefined : {
-      name: file.name,
-      description: file.description,
-      tags: file.tags,
-      priority: file.priority
-    };
-    
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    useRegisterSourceFile(filePath, options);
-  });
-}
 
 /**
  * 파일이 현재 등록되어 있는지 확인하는 Hook

@@ -27,14 +27,15 @@ export function useSourceLinkRegistration({
   useEffect(() => {
     // 등록 로직
     const entry: SourceLinkEntry = {
-      id,
       name,
       filePath,
       githubPath: GITHUB_CONFIG.getExampleUrl(filePath),
       category,
       description,
       tags,
-      registeredAt: new Date()
+      instances: new Set<string>(),
+      firstRegisteredAt: new Date(),
+      lastUpdatedAt: new Date()
     };
     
     // Store 업데이트

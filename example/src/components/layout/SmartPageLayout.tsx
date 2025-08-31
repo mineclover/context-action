@@ -1,4 +1,4 @@
-import type React from 'react';
+import React from 'react';
 import { PageLayout, type PageLayoutProps } from './PageLayout';
 import { useSmartSourceLinks } from '../../hooks/useAutoSourceDetection';
 
