@@ -29,7 +29,7 @@ export class ConfigValidator {
     const requiredPaths = ['docsDir', 'llmContentDir', 'outputDir', 'templatesDir', 'instructionsDir'];
 
     for (const pathKey of requiredPaths) {
-      const path = (paths as any)[pathKey];
+      const path = (paths as Record<string, unknown>)[pathKey];
       if (!path || typeof path !== 'string' || path.trim() === '') {
         errors.push({
           field: `paths.${pathKey}`,

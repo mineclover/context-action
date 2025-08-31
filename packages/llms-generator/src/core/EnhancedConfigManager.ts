@@ -308,7 +308,7 @@ export class EnhancedConfigManager {
   /**
    * Enhance basic configuration with defaults
    */
-  private enhanceBasicConfig(baseConfig: any): EnhancedLLMSConfig {
+  private enhanceBasicConfig(baseConfig: Record<string, unknown>): EnhancedLLMSConfig {
     // If it's already fully enhanced, return as-is
     if (baseConfig.categories && baseConfig.tags && baseConfig.composition && baseConfig.dependencies) {
       return baseConfig as EnhancedLLMSConfig;
