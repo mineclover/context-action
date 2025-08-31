@@ -7,40 +7,10 @@
 
 
 /**
- * 참조 가능한 객체의 기본 인터페이스
- * DOM Element, Three.js Object3D, 또는 기타 참조 객체
+ * 참조 가능한 객체의 기본 제약 조건
+ * 사용자는 구체적인 타입 (HTMLElement, THREE.Object3D 등)을 직접 정의하세요
  */
-export interface RefTarget {
-  // 최소한의 공통 인터페이스 - 모든 참조 객체가 구현해야 함
-  readonly [key: string]: any;
-}
-
-/**
- * DOM Element 확장 - HTML 요소들
- */
-export interface DOMRefTarget extends RefTarget, Element {}
-
-/**
- * Three.js Object 확장 - Object3D 기반 객체들
- */
-export interface ThreeRefTarget extends RefTarget {
-  // Three.js Object3D의 핵심 속성들
-  uuid: string;
-  name?: string;
-  type: string;
-  parent?: ThreeRefTarget | null;
-  children?: ThreeRefTarget[];
-  position?: { x: number; y: number; z: number };
-  rotation?: { x: number; y: number; z: number };
-  scale?: { x: number; y: number; z: number };
-  visible?: boolean;
-  
-  // 메서드들 (선택적)
-  add?(object: ThreeRefTarget): void;
-  remove?(object: ThreeRefTarget): void;
-  traverse?(callback: (object: ThreeRefTarget) => void): void;
-  dispose?(): void;
-}
+export type RefTarget = any;
 
 
 /**

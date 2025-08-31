@@ -20,13 +20,11 @@ describe('Timeout Options', () => {
   });
   describe('disableTimeout Option', () => {
     it('should disable timeout when disableTimeout is true', async () => {
-      interface TestRefs extends Record<string, RefInitConfig<any>> {
-        element: RefInitConfig<HTMLElement>;
-      }
+      type TestRefs = {
+        element: HTMLElement;
+      };
 
-      const { Provider, useRefHandler } = createRefContext('TimeoutTest', {
-        element: { name: 'element' }
-      }, {
+      const { Provider, useRefHandler } = createRefContext<TestRefs>('TimeoutTest', {
         disableTimeout: true
       });
       
@@ -192,7 +190,7 @@ describe('Timeout Options', () => {
                 }, 50);
                 
                 const element = await slowHandler.waitForMount();
-                expect(element.textContent).toBe('slow success');
+                expect((element as HTMLElement).textContent).toBe('slow success');
                 results.slow = element as HTMLElement;
               } catch (error) {
                 throw new Error(`Slow element should not timeout: ${error}`);
@@ -275,7 +273,7 @@ describe('Timeout Options', () => {
               }, 50);
               
               const element = await handler.waitForMount();
-              expect(element.textContent).toBe('disable priority test');
+              expect((element as HTMLElement).textContent).toBe('disable priority test');
             } catch (error) {
               throw new Error(`Should not timeout when disabled: ${error}`);
             }

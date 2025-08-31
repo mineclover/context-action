@@ -90,7 +90,7 @@ export interface CreateRefContextOptions {
 /**
  * 간소화된 참조 컨텍스트 생성 함수 - 향상된 타입 추론
  */
-export function createRefContext<T extends Record<string, RefTarget>>(
+export function createRefContext<T extends Record<string, any>>(
   contextName: string,
   options?: CreateRefContextOptions
 ): RefContextReturn<T>;

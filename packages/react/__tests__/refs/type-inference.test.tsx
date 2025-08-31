@@ -199,13 +199,11 @@ describe('Enhanced Type Inference', () => {
         typedValue: number;
       }
 
-      interface TypedRefs extends Record<string, any> {
+      type TypedRefs = {
         typedEl: TypedElement;
-      }
+      };
 
-      const { Provider, useRefHandler } = createRefContext('PromiseTest', {
-        typedEl: { name: 'typedEl' }
-      });
+      const { Provider, useRefHandler } = createRefContext<TypedRefs>('PromiseTest');
       
       const TestComponent: React.FC = () => {
         const handler = useRefHandler('typedEl');
