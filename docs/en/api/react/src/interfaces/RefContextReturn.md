@@ -6,15 +6,15 @@
 
 # Interface: RefContextReturn\<T\>
 
-Defined in: [packages/react/src/refs/createRefContext.ts:21](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/createRefContext.ts#L21)
+Defined in: [packages/react/src/refs/createRefContext.ts:25](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/createRefContext.ts#L25)
 
-RefContext 반환 타입 - 심플하고 명확한 API
+RefContext 반환 타입 - 향상된 타입 추론 지원
 
 ## Type Parameters
 
-### Generic type T
+### T
 
-Type parameter **T**
+`T`
 
 ## Properties
 
@@ -22,15 +22,15 @@ Type parameter **T**
 
 > **Provider**: `FC`\<\{ `children`: `ReactNode`; \}\>
 
-Defined in: [packages/react/src/refs/createRefContext.ts:23](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/createRefContext.ts#L23)
+Defined in: [packages/react/src/refs/createRefContext.ts:26](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/createRefContext.ts#L26)
 
 ***
 
 ### useRefHandler()
 
-> **useRefHandler**: &lt;`K`&gt;(`refName`) => `object`
+> **useRefHandler**: \<`K`\>(`refName`) => `object`
 
-Defined in: [packages/react/src/refs/createRefContext.ts:26](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/createRefContext.ts#L26)
+Defined in: [packages/react/src/refs/createRefContext.ts:28](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/createRefContext.ts#L28)
 
 #### Type Parameters
 
@@ -42,21 +42,21 @@ Defined in: [packages/react/src/refs/createRefContext.ts:26](https://github.com/
 
 ##### refName
 
-Type parameter **K**
+`K`
 
 #### Returns
+
+`object`
 
 ##### setRef()
 
 > **setRef**: (`target`) => `void`
 
-ref 값 설정
-
 ###### Parameters
 
 ###### target
 
-`any`
+`null` | `T`\[`K`\]
 
 ###### Returns
 
@@ -64,37 +64,31 @@ ref 값 설정
 
 ##### target
 
-> **target**: `any`
-
-현재 ref 값
+> **target**: `null` \| `T`\[`K`\]
 
 ##### waitForMount()
 
-> **waitForMount**: () => `Promise`&lt;`any`&gt;
-
-ref가 마운트될 때까지 대기
+> **waitForMount**: () => `Promise`\<`T`\[`K`\]\>
 
 ###### Returns
 
-`Promise`&lt;`any`&gt;
+`Promise`\<`T`\[`K`\]\>
 
 ##### withTarget()
 
-> **withTarget**: &lt;`Result`&gt;(`operation`, `options?`) => `Promise`\<[`RefOperationResult`](RefOperationResult.md)&lt;`Result`&gt;\>
-
-ref와 함께 안전한 작업 수행
+> **withTarget**: \<`Result`\>(`operation`, `options?`) => `Promise`\<[`RefOperationResult`](RefOperationResult.md)\<`Result`\>\>
 
 ###### Type Parameters
 
 ###### Result
 
-Type parameter **Result**
+`Result`
 
 ###### Parameters
 
 ###### operation
 
-[`RefOperation`](../type-aliases/RefOperation.md)\<`any`, `Result`\>
+`RefOperation`\<`T`\[`K`\] & [`RefTarget`](RefTarget.md), `Result`\>
 
 ###### options?
 
@@ -102,25 +96,65 @@ Type parameter **Result**
 
 ###### Returns
 
-`Promise`\<[`RefOperationResult`](RefOperationResult.md)&lt;`Result`&gt;\>
+`Promise`\<[`RefOperationResult`](RefOperationResult.md)\<`Result`\>\>
 
 ##### isMounted
 
 > **isMounted**: `boolean`
 
-ref가 마운트되어 있는지 확인
+##### isWaitingForMount
+
+> **isWaitingForMount**: `boolean`
+
+##### onMount()
+
+> **onMount**: (`callback`) => () => `void`
+
+###### Parameters
+
+###### callback
+
+(`target`) => `void`
+
+###### Returns
+
+> (): `void`
+
+###### Returns
+
+`void`
+
+##### executeIfMounted()
+
+> **executeIfMounted**: \<`Result`\>(`operation`) => `null` \| `Result`
+
+###### Type Parameters
+
+###### Result
+
+`Result`
+
+###### Parameters
+
+###### operation
+
+(`target`) => `Result`
+
+###### Returns
+
+`null` \| `Result`
 
 ***
 
 ### useWaitForRefs()
 
-> **useWaitForRefs**: () => &lt;`K`&gt;(...`refNames`) => `Promise`\<`Partial`&lt;`T`&gt;\>
+> **useWaitForRefs**: () => \{\<`K`\>(...`refNames`): `Promise`\<`Pick`\<`T`, `K`\>\>; \<`K`\>(`timeout`, ...`refNames`): `Promise`\<`Pick`\<`T`, `K`\>\>; \}
 
-Defined in: [packages/react/src/refs/createRefContext.ts:43](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/createRefContext.ts#L43)
+Defined in: [packages/react/src/refs/createRefContext.ts:44](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/createRefContext.ts#L44)
 
 #### Returns
 
-> &lt;`K`&gt;(...`refNames`): `Promise`\<`Partial`&lt;`T`&gt;\>
+> \<`K`\>(...`refNames`): `Promise`\<`Pick`\<`T`, `K`\>\>
 
 ##### Type Parameters
 
@@ -136,23 +170,201 @@ Defined in: [packages/react/src/refs/createRefContext.ts:43](https://github.com/
 
 ##### Returns
 
-`Promise`\<`Partial`&lt;`T`&gt;\>
+`Promise`\<`Pick`\<`T`, `K`\>\>
+
+> \<`K`\>(`timeout`, ...`refNames`): `Promise`\<`Pick`\<`T`, `K`\>\>
+
+##### Type Parameters
+
+###### K
+
+`K` *extends* `string` \| `number` \| `symbol`
+
+##### Parameters
+
+###### timeout
+
+`number`
+
+###### refNames
+
+...`K`[]
+
+##### Returns
+
+`Promise`\<`Pick`\<`T`, `K`\>\>
 
 ***
 
 ### useGetAllRefs()
 
-> **useGetAllRefs**: () => () => `Partial`&lt;`T`&gt;
+> **useGetAllRefs**: () => () => `Partial`\<`T`\>
 
-Defined in: [packages/react/src/refs/createRefContext.ts:46](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/createRefContext.ts#L46)
+Defined in: [packages/react/src/refs/createRefContext.ts:48](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/createRefContext.ts#L48)
 
 #### Returns
 
-> (): `Partial`&lt;`T`&gt;
+> (): `Partial`\<`T`\>
 
 ##### Returns
 
-`Partial`&lt;`T`&gt;
+`Partial`\<`T`\>
+
+***
+
+### useRefPolling()
+
+> **useRefPolling**: () => \<`K`\>(`refName`, `options?`) => `object`
+
+Defined in: [packages/react/src/refs/createRefContext.ts:49](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/createRefContext.ts#L49)
+
+#### Returns
+
+> \<`K`\>(`refName`, `options?`): `object`
+
+##### Type Parameters
+
+###### K
+
+`K` *extends* `string` \| `number` \| `symbol`
+
+##### Parameters
+
+###### refName
+
+`K`
+
+###### options?
+
+`RefPollingOptions`
+
+##### Returns
+
+`object`
+
+###### promise
+
+> **promise**: `Promise`\<`T`\[`K`\]\>
+
+###### cancel()
+
+> **cancel**: () => `void`
+
+###### Returns
+
+`void`
+
+###### isMounted()
+
+> **isMounted**: () => `boolean`
+
+###### Returns
+
+`boolean`
+
+***
+
+### useRefMountState()
+
+> **useRefMountState**: \<`K`\>(`refName`) => `object`
+
+Defined in: [packages/react/src/refs/createRefContext.ts:58](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/createRefContext.ts#L58)
+
+#### Type Parameters
+
+##### K
+
+`K` *extends* `string` \| `number` \| `symbol`
+
+#### Parameters
+
+##### refName
+
+`K`
+
+#### Returns
+
+`object`
+
+##### isMounted
+
+> **isMounted**: `boolean`
+
+##### isWaitingForMount
+
+> **isWaitingForMount**: `boolean`
+
+##### mountedTarget
+
+> **mountedTarget**: `null` \| `T`\[`K`\]
+
+***
+
+### useOnMountStateChange()
+
+> **useOnMountStateChange**: \<`K`\>(`refName`, `callback`) => `void`
+
+Defined in: [packages/react/src/refs/createRefContext.ts:64](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/createRefContext.ts#L64)
+
+#### Type Parameters
+
+##### K
+
+`K` *extends* `string` \| `number` \| `symbol`
+
+#### Parameters
+
+##### refName
+
+`K`
+
+##### callback
+
+(`mounted`, `target`) => `void`
+
+#### Returns
+
+`void`
+
+***
+
+### useRefMountChecker()
+
+> **useRefMountChecker**: \<`K`\>(`refName`) => () => `object`
+
+Defined in: [packages/react/src/refs/createRefContext.ts:69](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/createRefContext.ts#L69)
+
+#### Type Parameters
+
+##### K
+
+`K` *extends* `string` \| `number` \| `symbol`
+
+#### Parameters
+
+##### refName
+
+`K`
+
+#### Returns
+
+> (): `object`
+
+##### Returns
+
+`object`
+
+###### isMounted
+
+> **isMounted**: `boolean`
+
+###### isWaitingForMount
+
+> **isWaitingForMount**: `boolean`
+
+###### target
+
+> **target**: `null` \| `T`\[`K`\]
 
 ***
 
@@ -160,12 +372,12 @@ Defined in: [packages/react/src/refs/createRefContext.ts:46](https://github.com/
 
 > **contextName**: `string`
 
-Defined in: [packages/react/src/refs/createRefContext.ts:49](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/createRefContext.ts#L49)
+Defined in: [packages/react/src/refs/createRefContext.ts:75](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/createRefContext.ts#L75)
 
 ***
 
 ### refDefinitions?
 
-> `optional` **refDefinitions**: `T` *extends* `RefDefinitions` ? `T`&lt;`T`&gt; : `undefined`
+> `optional` **refDefinitions**: `T` *extends* `RefDefinitions` ? `T`\<`T`\> : `undefined`
 
-Defined in: [packages/react/src/refs/createRefContext.ts:52](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/createRefContext.ts#L52)
+Defined in: [packages/react/src/refs/createRefContext.ts:76](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/createRefContext.ts#L76)

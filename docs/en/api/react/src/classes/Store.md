@@ -6,39 +6,58 @@
 
 # Class: Store\<T\>
 
-Defined in: [packages/react/src/stores/core/Store.ts:26](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L26)
+Defined in: [packages/react/src/stores/core/Store.ts:44](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/Store.ts#L44)
 
-Core Store class for centralized state management
+Core Store class for centralized state management with memory leak prevention
 
 Provides reactive state management with subscription capabilities, optimized for
-React integration through useSyncExternalStore. Supports batched updates, custom
-comparison functions, and immutable snapshots for performance optimization.
+React integration through useSyncExternalStore. Features advanced cleanup mechanisms,
+automatic resource management, and comprehensive memory leak prevention.
+
+Key Features:
+- Automatic cleanup task registration and execution
+- Memory leak prevention with disposal patterns  
+- Race condition protection for async operations
+- Advanced error recovery with exponential backoff
+- Resource monitoring and threshold management
+
+## Example
+
+```typescript
+const userStore = createStore('user', { name: '', age: 0 });
+
+// Register cleanup tasks
+const unregister = userStore.registerCleanup(() => {
+  console.log('Cleaning up user store resources');
+});
+
+// Automatic cleanup on disposal
+userStore.dispose();
+```
 
 ## See
 
- - https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
- - https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
- - https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
+https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
 
 ## Type Parameters
 
-### Generic type T
+### T
 
-`T` = `any`
+`T` = `unknown`
 
 The type of value stored in this store
 
 ## Implements
 
-- [`IStore`](../interfaces/IStore.md)&lt;`T`&gt;
+- [`IStore`](../interfaces/IStore.md)\<`T`\>
 
 ## Constructors
 
 ### Constructor
 
-> **new Store**&lt;`T`&gt;(`name`, `initialValue`): `Store`&lt;`T`&gt;
+> **new Store**\<`T`\>(`name`, `initialValue`): `Store`\<`T`\>
 
-Defined in: [packages/react/src/stores/core/Store.ts:48](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L48)
+Defined in: [packages/react/src/stores/core/Store.ts:94](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/Store.ts#L94)
 
 #### Parameters
 
@@ -48,34 +67,36 @@ Defined in: [packages/react/src/stores/core/Store.ts:48](https://github.com/mine
 
 ##### initialValue
 
-Type parameter **T**
+`T`
 
 #### Returns
 
-`Store`&lt;`T`&gt;
+`Store`\<`T`\>
 
 ## Methods
 
 ### subscribe()
 
-> **subscribe**(`listener`): [`Unsubscribe`](../type-aliases/Unsubscribe.md)
+> **subscribe**(`listener`): `Unsubscribe`
 
-Defined in: [packages/react/src/stores/core/Store.ts:64](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L64)
+Defined in: [packages/react/src/stores/core/Store.ts:122](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/Store.ts#L122)
 
-Store 변경사항 구독
-핵심 로직: React 컴포넌트가 Store 변경을 감지할 수 있도록 리스너 등록
+Enhanced store subscription with metadata tracking and error recovery
+
+Subscribes to store changes with advanced features including subscription
+metadata tracking, automatic error recovery, and disposal safety.
 
 #### Parameters
 
 ##### listener
 
-[`Listener`](../type-aliases/Listener.md)
+`Listener`
 
 상태 변경 시 호출될 콜백 함수
 
 #### Returns
 
-[`Unsubscribe`](../type-aliases/Unsubscribe.md)
+`Unsubscribe`
 
 unsubscribe 함수 - 구독 해제용
 
@@ -87,6 +108,17 @@ store-hooks
 
 api-terms
 
+#### Example
+
+```typescript
+const unsubscribe = store.subscribe(() => {
+  console.log('Store value changed:', store.getValue());
+});
+
+// Cleanup
+unsubscribe();
+```
+
 #### Implementation of
 
 `IStore.subscribe`
@@ -95,16 +127,16 @@ api-terms
 
 ### getSnapshot()
 
-> **getSnapshot**(): [`Snapshot`](../interfaces/Snapshot.md)&lt;`T`&gt;
+> **getSnapshot**(): [`Snapshot`](../interfaces/Snapshot.md)\<`T`\>
 
-Defined in: [packages/react/src/stores/core/Store.ts:78](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L78)
+Defined in: [packages/react/src/stores/core/Store.ts:164](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/Store.ts#L164)
 
 현재 Store 스냅샷 가져오기
 핵심 로직: React의 useSyncExternalStore가 사용하는 불변 스냅샷 제공
 
 #### Returns
 
-[`Snapshot`](../interfaces/Snapshot.md)&lt;`T`&gt;
+[`Snapshot`](../interfaces/Snapshot.md)\<`T`\>
 
 #### Implementation of
 
@@ -116,14 +148,14 @@ Defined in: [packages/react/src/stores/core/Store.ts:78](https://github.com/mine
 
 > **getValue**(): `T`
 
-Defined in: [packages/react/src/stores/core/Store.ts:93](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L93)
+Defined in: [packages/react/src/stores/core/Store.ts:179](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/Store.ts#L179)
 
 현재 값 직접 가져오기 (액션 핸들러용)
 핵심 로직: 불변성을 보장하는 깊은 복사본 반환
 
 #### Returns
 
-Type parameter **T**
+`T`
 
 #### Implements
 
@@ -148,21 +180,26 @@ architecture-terms
 
 ### setValue()
 
-> **setValue**(`value`): `void`
+> **setValue**(`value`, `options?`): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:115](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L115)
+Defined in: [packages/react/src/stores/core/Store.ts:211](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/Store.ts#L211)
 
 Store 값 설정 및 구독자 알림
 핵심 로직: 
-1. 입력값의 불변성 보장을 위한 깊은 복사
+1. 입력값의 불변성 보장을 위한 깊은 복사 (선택적 skip 가능)
 2. 강화된 값 비교 시스템으로 불필요한 리렌더링 방지
-3. 값 변경 시에만 스냅샷 재생성 및 알림
+3. Structural sharing을 통한 성능 최적화
+4. 값 변경 시에만 스냅샷 재생성 및 알림
 
 #### Parameters
 
 ##### value
 
-Type parameter **T**
+`T`
+
+##### options?
+
+`StoreSetValueOptions`\<`T`\>
 
 #### Returns
 
@@ -193,12 +230,12 @@ architecture-terms
 
 > **update**(`updater`): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:187](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L187)
+Defined in: [packages/react/src/stores/core/Store.ts:300](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/Store.ts#L300)
 
-Update value using updater function
+Update value using updater function with Immer integration
 핵심 로직: 
-1. 현재 값의 안전한 복사본을 updater에 전달
-2. updater 결과를 setValue로 안전하게 설정
+1. Immer produce를 사용하여 draft 객체 제공
+2. updater 결과를 불변성을 보장하며 설정
 
 #### Parameters
 
@@ -213,7 +250,11 @@ Update value using updater function
 #### Implements
 
 store-immutability
-보안 강화: updater 함수가 내부 상태를 직접 수정할 수 없도록 복사본 전달
+보안 강화: Immer draft를 통한 안전한 상태 수정
+
+#### Implementation of
+
+[`IStore`](../interfaces/IStore.md).[`update`](../interfaces/IStore.md#update)
 
 ***
 
@@ -221,7 +262,7 @@ store-immutability
 
 > **getListenerCount**(): `number`
 
-Defined in: [packages/react/src/stores/core/Store.ts:249](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L249)
+Defined in: [packages/react/src/stores/core/Store.ts:385](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/Store.ts#L385)
 
 Get number of active listeners
 
@@ -239,7 +280,7 @@ Get number of active listeners
 
 > **clearListeners**(): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:256](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L256)
+Defined in: [packages/react/src/stores/core/Store.ts:392](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/Store.ts#L392)
 
 Clear all listeners
 
@@ -249,11 +290,110 @@ Clear all listeners
 
 ***
 
+### registerCleanup()
+
+> **registerCleanup**(`task`): () => `void`
+
+Defined in: [packages/react/src/stores/core/Store.ts:414](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/Store.ts#L414)
+
+Register cleanup task for automatic execution on disposal
+
+Registers a cleanup function that will be automatically called when the store
+is disposed. This prevents memory leaks and ensures proper resource cleanup.
+
+#### Parameters
+
+##### task
+
+() => `void`
+
+Cleanup function to register
+
+#### Returns
+
+Unregister function to remove the cleanup task
+
+> (): `void`
+
+##### Returns
+
+`void`
+
+#### Example
+
+```typescript
+const timer = setInterval(() => {}, 1000);
+const unregister = store.registerCleanup(() => clearInterval(timer));
+
+// Later, remove the cleanup task if needed
+unregister();
+```
+
+#### Implementation of
+
+[`IStore`](../interfaces/IStore.md).[`registerCleanup`](../interfaces/IStore.md#registercleanup)
+
+***
+
+### dispose()
+
+> **dispose**(): `void`
+
+Defined in: [packages/react/src/stores/core/Store.ts:442](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/Store.ts#L442)
+
+Enhanced Store disposal with comprehensive cleanup
+
+Performs complete cleanup of all store resources including listeners,
+timers, cleanup tasks, and internal state. Prevents memory leaks and
+ensures proper resource disposal.
+
+#### Returns
+
+`void`
+
+#### Example
+
+```typescript
+// Manual disposal
+store.dispose();
+
+// Auto-disposal with useEffect
+useEffect(() => {
+  return () => store.dispose();
+}, [store]);
+```
+
+#### Implementation of
+
+[`IStore`](../interfaces/IStore.md).[`dispose`](../interfaces/IStore.md#dispose)
+
+***
+
+### isStoreDisposed()
+
+> **isStoreDisposed**(): `boolean`
+
+Defined in: [packages/react/src/stores/core/Store.ts:493](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/Store.ts#L493)
+
+Check if store is disposed
+
+#### Returns
+
+`boolean`
+
+true if store has been disposed
+
+#### Implementation of
+
+[`IStore`](../interfaces/IStore.md).[`isStoreDisposed`](../interfaces/IStore.md#isstoredisposed)
+
+***
+
 ### setCustomComparator()
 
 > **setCustomComparator**(`comparator`): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:267](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L267)
+Defined in: [packages/react/src/stores/core/Store.ts:504](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/Store.ts#L504)
 
 Store별 커스텀 비교 함수 설정
 이 Store에만 적용되는 특별한 비교 로직 설정
@@ -280,7 +420,7 @@ https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-con
 
 > **setComparisonOptions**(`options`): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:278](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L278)
+Defined in: [packages/react/src/stores/core/Store.ts:515](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/Store.ts#L515)
 
 Store별 비교 옵션 설정
 이 Store에만 적용되는 비교 전략 설정
@@ -289,7 +429,7 @@ Store별 비교 옵션 설정
 
 ##### options
 
-`Partial`\<[`ComparisonOptions`](../interfaces/ComparisonOptions.md)&lt;`T`&gt;\>
+`Partial`\<`ComparisonOptions`\<`T`\>\>
 
 비교 옵션
 
@@ -305,15 +445,15 @@ https://mineclover.github.io/context-action/en/guide/patterns/store/advanced-con
 
 ### getComparisonOptions()
 
-> **getComparisonOptions**(): `undefined` \| `Partial`\<[`ComparisonOptions`](../interfaces/ComparisonOptions.md)&lt;`T`&gt;\>
+> **getComparisonOptions**(): `undefined` \| `Partial`\<`ComparisonOptions`\<`T`\>\>
 
-Defined in: [packages/react/src/stores/core/Store.ts:285](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L285)
+Defined in: [packages/react/src/stores/core/Store.ts:522](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/Store.ts#L522)
 
 현재 비교 설정 조회
 
 #### Returns
 
-`undefined` \| `Partial`\<[`ComparisonOptions`](../interfaces/ComparisonOptions.md)&lt;`T`&gt;\>
+`undefined` \| `Partial`\<`ComparisonOptions`\<`T`\>\>
 
 ***
 
@@ -321,7 +461,7 @@ Defined in: [packages/react/src/stores/core/Store.ts:285](https://github.com/min
 
 > **clearCustomComparator**(): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:292](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L292)
+Defined in: [packages/react/src/stores/core/Store.ts:529](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/Store.ts#L529)
 
 커스텀 비교 함수 해제
 
@@ -335,7 +475,7 @@ Defined in: [packages/react/src/stores/core/Store.ts:292](https://github.com/min
 
 > **clearComparisonOptions**(): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:299](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L299)
+Defined in: [packages/react/src/stores/core/Store.ts:536](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/Store.ts#L536)
 
 비교 옵션 해제 (전역 설정 사용)
 
@@ -345,11 +485,66 @@ Defined in: [packages/react/src/stores/core/Store.ts:299](https://github.com/min
 
 ***
 
+### setCloningEnabled()
+
+> **setCloningEnabled**(`enabled`): `void`
+
+Defined in: [packages/react/src/stores/core/Store.ts:546](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/Store.ts#L546)
+
+성능 최적화: Store별 복사 동작 제어
+
+#### Parameters
+
+##### enabled
+
+`boolean`
+
+true: 복사 활성화 (안전), false: 복사 비활성화 (성능 우선)
+
+#### Returns
+
+`void`
+
+#### See
+
+https://mineclover.github.io/context-action/en/guide/patterns/store/performance
+
+***
+
+### isCloningEnabled()
+
+> **isCloningEnabled**(): `boolean`
+
+Defined in: [packages/react/src/stores/core/Store.ts:553](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/Store.ts#L553)
+
+현재 복사 설정 조회
+
+#### Returns
+
+`boolean`
+
+***
+
+### getValueUnsafe()
+
+> **getValueUnsafe**(): `T`
+
+Defined in: [packages/react/src/stores/core/Store.ts:561](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/Store.ts#L561)
+
+성능 최적화된 getValue (복사 없음)
+⚠️ 주의: 반환된 값을 수정하면 Store 내부 상태가 변경될 수 있음
+
+#### Returns
+
+`T`
+
+***
+
 ### setNotificationMode()
 
 > **setNotificationMode**(`mode`): `void`
 
-Defined in: [packages/react/src/stores/core/Store.ts:361](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L361)
+Defined in: [packages/react/src/stores/core/Store.ts:629](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/Store.ts#L629)
 
 알림 모드 설정 - 테스트/디버그용
 
@@ -369,7 +564,7 @@ Defined in: [packages/react/src/stores/core/Store.ts:361](https://github.com/min
 
 > **getNotificationMode**(): `"batched"` \| `"immediate"`
 
-Defined in: [packages/react/src/stores/core/Store.ts:368](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L368)
+Defined in: [packages/react/src/stores/core/Store.ts:636](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/Store.ts#L636)
 
 현재 알림 모드 조회
 
@@ -383,7 +578,7 @@ Defined in: [packages/react/src/stores/core/Store.ts:368](https://github.com/min
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/react/src/stores/core/Store.ts:42](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L42)
+Defined in: [packages/react/src/stores/core/Store.ts:86](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/Store.ts#L86)
 
 Unique identifier for the store
 

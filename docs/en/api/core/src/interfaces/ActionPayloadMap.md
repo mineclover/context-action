@@ -6,7 +6,7 @@
 
 # Interface: ActionPayloadMap
 
-Defined in: [packages/core/src/types.ts:13](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/types.ts#L13)
+Defined in: [packages/core/src/types.ts:13](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/types.ts#L13)
 
 Action payload mapping interface for type-safe action dispatching
 

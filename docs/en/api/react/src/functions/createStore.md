@@ -6,9 +6,9 @@
 
 # Function: createStore()
 
-> **createStore**&lt;`T`&gt;(`name`, `initialValue`): [`Store`](../classes/Store.md)&lt;`T`&gt;
+> **createStore**\<`T`\>(`name`, `initialValue`): [`Store`](../classes/Store.md)\<`T`\>
 
-Defined in: [packages/react/src/stores/core/Store.ts:425](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/Store.ts#L425)
+Defined in: [packages/react/src/stores/core/Store.ts:778](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/Store.ts#L778)
 
 Factory function for creating type-safe Store instances
 
@@ -18,9 +18,9 @@ the Context-Action framework patterns.
 
 ## Type Parameters
 
-### Generic type T
+### T
 
-Type parameter **T**
+`T`
 
 The type of values stored in this store
 
@@ -34,13 +34,13 @@ Unique identifier for the store (used for debugging)
 
 ### initialValue
 
-Type parameter **T**
+`T`
 
 Initial value to store
 
 ## Returns
 
-[`Store`](../classes/Store.md)&lt;`T`&gt;
+[`Store`](../classes/Store.md)\<`T`\>
 
 Configured Store instance ready for use
 

@@ -6,12 +6,12 @@
 
 # Interface: ExecutionResult\<R\>
 
-Defined in: [packages/core/src/types.ts:657](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/types.ts#L657)
+Defined in: [packages/core/src/types.ts:581](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/types.ts#L581)
 
 Comprehensive result of pipeline execution with detailed execution information
 
 Contains complete information about the pipeline execution including success status,
-results, timing metrics, handler details, and any errors that occurred.
+results, handler details, and any errors that occurred.
 
 ## Examples
 
@@ -31,8 +31,8 @@ const result = await register.dispatchWithResult('processOrder', order, {
   result: { collect: true, strategy: 'all' }
 })
 
-// Access all handler results
-result.results.forEach((handlerResult, index) => {
+// Access all handler results - now properly typed
+result.successResults.forEach((handlerResult, index) => {
   console.log(`Handler ${index} result:`, handlerResult)
 })
 
@@ -46,7 +46,7 @@ result.handlers.forEach(handler => {
 
 ## Type Parameters
 
-### Generic type R
+### R
 
 `R` = `void`
 
@@ -58,7 +58,7 @@ The result type for this execution
 
 > **success**: `boolean`
 
-Defined in: [packages/core/src/types.ts:659](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/types.ts#L659)
+Defined in: [packages/core/src/types.ts:583](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/types.ts#L583)
 
 Whether the execution completed successfully
 
@@ -68,17 +68,17 @@ Whether the execution completed successfully
 
 > **aborted**: `boolean`
 
-Defined in: [packages/core/src/types.ts:662](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/types.ts#L662)
+Defined in: [packages/core/src/types.ts:586](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/types.ts#L586)
 
 Whether the execution was aborted
 
 ***
 
-### abortReason?
+### abortReason
 
-> `optional` **abortReason**: `string`
+> **abortReason**: `undefined` \| `string`
 
-Defined in: [packages/core/src/types.ts:665](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/types.ts#L665)
+Defined in: [packages/core/src/types.ts:589](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/types.ts#L589)
 
 Reason for abortion if aborted
 
@@ -88,19 +88,29 @@ Reason for abortion if aborted
 
 > **terminated**: `boolean`
 
-Defined in: [packages/core/src/types.ts:668](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/types.ts#L668)
+Defined in: [packages/core/src/types.ts:592](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/types.ts#L592)
 
 Whether the execution was terminated early via controller.return()
 
 ***
 
-### result?
+### result
 
-> `optional` **result**: `R`
+> **result**: `undefined` \| `R`
 
-Defined in: [packages/core/src/types.ts:671](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/types.ts#L671)
+Defined in: [packages/core/src/types.ts:595](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/types.ts#L595)
 
-Final result based on result strategy
+Final result based on result strategy - only present for non-void results
+
+***
+
+### successResults
+
+> **successResults**: `R`[]
+
+Defined in: [packages/core/src/types.ts:599](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/types.ts#L599)
+
+All successful handler results (guaranteed non-undefined)
 
 ***
 
@@ -108,9 +118,31 @@ Final result based on result strategy
 
 > **results**: (`undefined` \| `R`)[]
 
-Defined in: [packages/core/src/types.ts:674](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/types.ts#L674)
+Defined in: [packages/core/src/types.ts:602](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/types.ts#L602)
 
-All individual handler results (properly typed as potentially undefined)
+All handler results including undefined from failed handlers (legacy compatibility)
+
+***
+
+### failedResults
+
+> **failedResults**: `object`[]
+
+Defined in: [packages/core/src/types.ts:605](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/types.ts#L605)
+
+Failed handler results with error context
+
+#### handlerId
+
+> **handlerId**: `string`
+
+#### error
+
+> **error**: `Error`
+
+#### expectedType
+
+> **expectedType**: `string`
 
 ***
 
@@ -118,7 +150,7 @@ All individual handler results (properly typed as potentially undefined)
 
 > **execution**: `object`
 
-Defined in: [packages/core/src/types.ts:677](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/types.ts#L677)
+Defined in: [packages/core/src/types.ts:612](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/types.ts#L612)
 
 Execution metadata
 
@@ -164,7 +196,7 @@ Execution end timestamp
 
 > **handlers**: `object`[]
 
-Defined in: [packages/core/src/types.ts:698](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/types.ts#L698)
+Defined in: [packages/core/src/types.ts:633](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/types.ts#L633)
 
 Detailed information about each handler
 
@@ -180,27 +212,27 @@ Handler unique identifier
 
 Whether this handler was executed
 
-#### duration?
+#### duration
 
-> `optional` **duration**: `number`
+> **duration**: `undefined` \| `number`
 
 Handler execution duration in milliseconds (only present if executed)
 
-#### result?
+#### result
 
-> `optional` **result**: `R`
+> **result**: `undefined` \| `R`
 
-Result returned by this handler (properly typed as potentially undefined)
+Result returned by this handler - properly typed for success/failure
 
-#### error?
+#### error
 
-> `optional` **error**: `Error`
+> **error**: `undefined` \| `Error`
 
 Error thrown by this handler if any
 
-#### metadata?
+#### metadata
 
-> `optional` **metadata**: `Record`\<`string`, `any`\>
+> **metadata**: `undefined` \| `Record`\<`string`, `any`\>
 
 Custom metadata for this handler
 
@@ -208,26 +240,8 @@ Custom metadata for this handler
 
 ### errors
 
-> **errors**: `object`[]
+> **errors**: `HandlerError`[]
 
-Defined in: [packages/core/src/types.ts:719](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/types.ts#L719)
+Defined in: [packages/core/src/types.ts:654](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/types.ts#L654)
 
 Errors that occurred during execution
-
-#### handlerId
-
-> **handlerId**: `string`
-
-ID of the handler that caused the error
-
-#### error
-
-> **error**: `Error`
-
-The error that occurred
-
-#### timestamp
-
-> **timestamp**: `number`
-
-Timestamp when the error occurred

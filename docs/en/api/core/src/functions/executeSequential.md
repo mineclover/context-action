@@ -6,9 +6,9 @@
 
 # Function: executeSequential()
 
-> **executeSequential**\<`T`, `R`\>(`context`, `createController`): `Promise`&lt;`void`&gt;
+> **executeSequential**\<`T`, `R`\>(`context`, `createController`): `Promise`\<`void`\>
 
-Defined in: [packages/core/src/execution-modes.ts:36](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/execution-modes.ts#L36)
+Defined in: [packages/core/src/execution-modes.ts:59](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/execution-modes.ts#L59)
 
 Execute handlers in sequential mode (one after another)
 
@@ -19,13 +19,13 @@ and jump to different priority levels.
 
 ## Type Parameters
 
-### Generic type T
+### T
 
-Type parameter **T**
+`T`
 
 The payload type for the action
 
-### Generic type R
+### R
 
 `R` = `void`
 
@@ -47,11 +47,11 @@ Factory function for creating pipeline controllers
 
 ## Returns
 
-`Promise`&lt;`void`&gt;
+`Promise`\<`void`\>
 
 ## Throws
 
-When a blocking handler fails or validation errors occur
+When a blocking handler fails
 
 ## See
 

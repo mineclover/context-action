@@ -6,9 +6,9 @@
 
 # Function: executeParallel()
 
-> **executeParallel**\<`T`, `R`\>(`context`, `createController`): `Promise`&lt;`void`&gt;
+> **executeParallel**\<`T`, `R`\>(`context`, `createController`): `Promise`\<`void`\>
 
-Defined in: [packages/core/src/execution-modes.ts:163](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/execution-modes.ts#L163)
+Defined in: [packages/core/src/execution-modes.ts:196](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/execution-modes.ts#L196)
 
 Execute handlers in parallel mode (all at once)
 
@@ -18,13 +18,13 @@ fail the entire pipeline if they throw errors.
 
 ## Type Parameters
 
-### Generic type T
+### T
 
-Type parameter **T**
+`T`
 
 The payload type for the action
 
-### Generic type R
+### R
 
 `R` = `void`
 
@@ -46,7 +46,7 @@ Factory function for creating pipeline controllers
 
 ## Returns
 
-`Promise`&lt;`void`&gt;
+`Promise`\<`void`\>
 
 ## Throws
 

@@ -6,26 +6,13 @@
 
 # Function: createRefContext()
 
-참조 컨텍스트 생성 함수 (구현)
-
-## Param
-
-컨텍스트 이름
-
-## Param
-
-참조 정의 (선언적 사용 시)
-
-## See
-
- - https://mineclover.github.io/context-action/en/guide/patterns/ref/
- - https://mineclover.github.io/context-action/en/guide/patterns/ref/basic-usage
-
 ## Call Signature
 
-> **createRefContext**&lt;`T`&gt;(`contextName`): [`RefContextReturn`](../interfaces/RefContextReturn.md)&lt;`T`&gt;
+> **createRefContext**\<`T`\>(`contextName`, `options?`): [`RefContextReturn`](../interfaces/RefContextReturn.md)\<`T`\>
 
-Defined in: [packages/react/src/refs/createRefContext.ts:56](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/createRefContext.ts#L56)
+Defined in: [packages/react/src/refs/createRefContext.ts:93](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/createRefContext.ts#L93)
+
+간소화된 참조 컨텍스트 생성 함수 - 향상된 타입 추론
 
 ### Type Parameters
 
@@ -39,15 +26,21 @@ Defined in: [packages/react/src/refs/createRefContext.ts:56](https://github.com/
 
 `string`
 
+#### options?
+
+[`CreateRefContextOptions`](../interfaces/CreateRefContextOptions.md)
+
 ### Returns
 
-[`RefContextReturn`](../interfaces/RefContextReturn.md)&lt;`T`&gt;
+[`RefContextReturn`](../interfaces/RefContextReturn.md)\<`T`\>
 
 ## Call Signature
 
-> **createRefContext**&lt;`T`&gt;(`contextName`, `refDefinitions`): [`RefContextReturn`](../interfaces/RefContextReturn.md)&lt;`T`&gt;
+> **createRefContext**\<`T`\>(`contextName`, `refDefinitions`, `options?`): [`RefContextReturn`](../interfaces/RefContextReturn.md)\<`InferRefTypes`\<`T`\>\>
 
-Defined in: [packages/react/src/refs/createRefContext.ts:61](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/refs/createRefContext.ts#L61)
+Defined in: [packages/react/src/refs/createRefContext.ts:98](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/createRefContext.ts#L98)
+
+간소화된 참조 컨텍스트 생성 함수 - 향상된 타입 추론
 
 ### Type Parameters
 
@@ -63,8 +56,12 @@ Defined in: [packages/react/src/refs/createRefContext.ts:61](https://github.com/
 
 #### refDefinitions
 
-Type parameter **T**
+`T`
+
+#### options?
+
+[`CreateRefContextOptions`](../interfaces/CreateRefContextOptions.md)
 
 ### Returns
 
-[`RefContextReturn`](../interfaces/RefContextReturn.md)&lt;`T`&gt;
+[`RefContextReturn`](../interfaces/RefContextReturn.md)\<`InferRefTypes`\<`T`\>\>

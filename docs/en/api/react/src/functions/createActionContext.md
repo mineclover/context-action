@@ -6,35 +6,11 @@
 
 # Function: createActionContext()
 
-## Fileoverview
-
-Action system exports - comprehensive action management
-
-## Implements
-
-actioncontext
-
-## Implements
-
-viewmodel-layer
-
-## Implements
-
-mvvm-pattern
-
-## Memberof
-
-api-terms
-
-Comprehensive action system including context providers, enhanced type-safe contexts,
-utilities for business logic coordination, and various patterns for managing user 
-interactions and business logic flow.
-
 ## Call Signature
 
-> **createActionContext**&lt;`T`&gt;(`contextName`, `config?`): [`ActionContextReturn`](../interfaces/ActionContextReturn.md)&lt;`T`&gt;
+> **createActionContext**\<`T`\>(`contextName`, `config?`): [`ActionContextReturn`](../interfaces/ActionContextReturn.md)\<`T`\>
 
-Defined in: [packages/react/src/actions/ActionContext.tsx:30](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/actions/ActionContext.tsx#L30)
+Defined in: [packages/react/src/actions/ActionContext.tsx:30](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/actions/ActionContext.tsx#L30)
 
 Enhanced action context factory with automatic type inference
 
@@ -60,7 +36,7 @@ Configuration options for the ActionRegister
 
 ### Returns
 
-[`ActionContextReturn`](../interfaces/ActionContextReturn.md)&lt;`T`&gt;
+[`ActionContextReturn`](../interfaces/ActionContextReturn.md)\<`T`\>
 
 Object containing Provider, hooks, and utility functions
 
@@ -72,9 +48,9 @@ Object containing Provider, hooks, and utility functions
 
 ## Call Signature
 
-> **createActionContext**&lt;`T`&gt;(`config`): [`ActionContextReturn`](../interfaces/ActionContextReturn.md)&lt;`T`&gt;
+> **createActionContext**\<`T`\>(`config`): [`ActionContextReturn`](../interfaces/ActionContextReturn.md)\<`T`\>
 
-Defined in: [packages/react/src/actions/ActionContext.tsx:36](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/actions/ActionContext.tsx#L36)
+Defined in: [packages/react/src/actions/ActionContext.tsx:36](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/actions/ActionContext.tsx#L36)
 
 Enhanced action context factory with automatic type inference
 
@@ -96,7 +72,7 @@ Configuration options for the ActionRegister
 
 ### Returns
 
-[`ActionContextReturn`](../interfaces/ActionContextReturn.md)&lt;`T`&gt;
+[`ActionContextReturn`](../interfaces/ActionContextReturn.md)\<`T`\>
 
 Object containing Provider, hooks, and utility functions
 

@@ -6,7 +6,7 @@
 
 # Class: ActionRegister\<T\>
 
-Defined in: [packages/core/src/ActionRegister.ts:35](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/ActionRegister.ts#L35)
+Defined in: [packages/core/src/ActionRegister.ts:37](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/ActionRegister.ts#L37)
 
 Action Register for managing action handlers with priority-based execution
 
@@ -26,7 +26,7 @@ Action payload mapping interface extending ActionPayloadMap
 
 ## Type Parameters
 
-### Generic type T
+### T
 
 `T` *extends* [`ActionPayloadMap`](../interfaces/ActionPayloadMap.md) = [`ActionPayloadMap`](../interfaces/ActionPayloadMap.md)
 
@@ -34,9 +34,9 @@ Action payload mapping interface extending ActionPayloadMap
 
 ### Constructor
 
-> **new ActionRegister**&lt;`T`&gt;(`config`): `ActionRegister`&lt;`T`&gt;
+> **new ActionRegister**\<`T`\>(`config`): `ActionRegister`\<`T`\>
 
-Defined in: [packages/core/src/ActionRegister.ts:54](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/ActionRegister.ts#L54)
+Defined in: [packages/core/src/ActionRegister.ts:67](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/ActionRegister.ts#L67)
 
 #### Parameters
 
@@ -46,7 +46,7 @@ Defined in: [packages/core/src/ActionRegister.ts:54](https://github.com/mineclov
 
 #### Returns
 
-`ActionRegister`&lt;`T`&gt;
+`ActionRegister`\<`T`\>
 
 ## Methods
 
@@ -54,7 +54,7 @@ Defined in: [packages/core/src/ActionRegister.ts:54](https://github.com/mineclov
 
 > **register**\<`K`, `R`\>(`action`, `handler`, `config`): [`UnregisterFunction`](../type-aliases/UnregisterFunction.md)
 
-Defined in: [packages/core/src/ActionRegister.ts:92](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/ActionRegister.ts#L92)
+Defined in: [packages/core/src/ActionRegister.ts:113](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/ActionRegister.ts#L113)
 
 Register an action handler with optional configuration
 
@@ -72,7 +72,7 @@ Register an action handler with optional configuration
 
 ##### action
 
-Type parameter **K**
+`K`
 
 The action type to register handler for
 
@@ -106,9 +106,9 @@ https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
 
 ### dispatch()
 
-> **dispatch**&lt;`K`&gt;(`action`, `payload?`, `options?`): `Promise`&lt;`void`&gt;
+> **dispatch**\<`K`\>(`action`, `payload?`, `options?`): `Promise`\<`void`\>
 
-Defined in: [packages/core/src/ActionRegister.ts:226](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/ActionRegister.ts#L226)
+Defined in: [packages/core/src/ActionRegister.ts:359](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/ActionRegister.ts#L359)
 
 Dispatch an action with optional execution options
 
@@ -122,7 +122,7 @@ Dispatch an action with optional execution options
 
 ##### action
 
-Type parameter **K**
+`K`
 
 The action type to dispatch
 
@@ -140,7 +140,7 @@ Optional dispatch options (execution mode, filters, etc.)
 
 #### Returns
 
-`Promise`&lt;`void`&gt;
+`Promise`\<`void`\>
 
 Promise that resolves when all handlers complete
 
@@ -156,9 +156,9 @@ https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
 
 ### dispatchWithResult()
 
-> **dispatchWithResult**\<`K`, `R`\>(`action`, `payload?`, `options?`): `Promise`\<[`ExecutionResult`](../interfaces/ExecutionResult.md)&lt;`R`&gt;\>
+> **dispatchWithResult**\<`K`, `R`\>(`action`, `payload?`, `options?`): `Promise`\<[`ExecutionResult`](../interfaces/ExecutionResult.md)\<`R`\>\>
 
-Defined in: [packages/core/src/ActionRegister.ts:459](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/ActionRegister.ts#L459)
+Defined in: [packages/core/src/ActionRegister.ts:540](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/ActionRegister.ts#L540)
 
 Dispatch an action and return detailed execution results
 
@@ -176,7 +176,7 @@ Dispatch an action and return detailed execution results
 
 ##### action
 
-Type parameter **K**
+`K`
 
 The action type to dispatch
 
@@ -194,7 +194,7 @@ Optional dispatch options including result collection strategy
 
 #### Returns
 
-`Promise`\<[`ExecutionResult`](../interfaces/ExecutionResult.md)&lt;`R`&gt;\>
+`Promise`\<[`ExecutionResult`](../interfaces/ExecutionResult.md)\<`R`\>\>
 
 Promise resolving to comprehensive execution results
 
@@ -206,9 +206,9 @@ https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
 
 ### getHandlerCount()
 
-> **getHandlerCount**&lt;`K`&gt;(`action`): `number`
+> **getHandlerCount**\<`K`\>(`action`): `number`
 
-Defined in: [packages/core/src/ActionRegister.ts:949](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/ActionRegister.ts#L949)
+Defined in: [packages/core/src/ActionRegister.ts:1157](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/ActionRegister.ts#L1157)
 
 Get the number of registered handlers for an action
 
@@ -222,7 +222,7 @@ Get the number of registered handlers for an action
 
 ##### action
 
-Type parameter **K**
+`K`
 
 The action type to count handlers for
 
@@ -240,9 +240,9 @@ https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
 
 ### hasHandlers()
 
-> **hasHandlers**&lt;`K`&gt;(`action`): `boolean`
+> **hasHandlers**\<`K`\>(`action`): `boolean`
 
-Defined in: [packages/core/src/ActionRegister.ts:965](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/ActionRegister.ts#L965)
+Defined in: [packages/core/src/ActionRegister.ts:1173](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/ActionRegister.ts#L1173)
 
 Check if an action has any registered handlers
 
@@ -256,7 +256,7 @@ Check if an action has any registered handlers
 
 ##### action
 
-Type parameter **K**
+`K`
 
 The action type to check
 
@@ -276,7 +276,7 @@ https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
 
 > **getRegisteredActions**(): keyof `T`[]
 
-Defined in: [packages/core/src/ActionRegister.ts:978](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/ActionRegister.ts#L978)
+Defined in: [packages/core/src/ActionRegister.ts:1186](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/ActionRegister.ts#L1186)
 
 Get all registered action types
 
@@ -294,9 +294,9 @@ https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
 
 ### clearAction()
 
-> **clearAction**&lt;`K`&gt;(`action`): `void`
+> **clearAction**\<`K`\>(`action`): `void`
 
-Defined in: [packages/core/src/ActionRegister.ts:991](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/ActionRegister.ts#L991)
+Defined in: [packages/core/src/ActionRegister.ts:1199](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/ActionRegister.ts#L1199)
 
 Remove all handlers for a specific action
 
@@ -310,7 +310,7 @@ Remove all handlers for a specific action
 
 ##### action
 
-Type parameter **K**
+`K`
 
 The action type to clear handlers for
 
@@ -328,7 +328,7 @@ https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
 
 > **clearAll**(): `void`
 
-Defined in: [packages/core/src/ActionRegister.ts:1002](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/ActionRegister.ts#L1002)
+Defined in: [packages/core/src/ActionRegister.ts:1212](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/ActionRegister.ts#L1212)
 
 Remove all handlers for all actions
 
@@ -346,7 +346,7 @@ https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
 
 > **getName**(): `string`
 
-Defined in: [packages/core/src/ActionRegister.ts:1015](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/ActionRegister.ts#L1015)
+Defined in: [packages/core/src/ActionRegister.ts:1227](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/ActionRegister.ts#L1227)
 
 Get the name of this action register
 
@@ -364,15 +364,15 @@ https://mineclover.github.io/context-action/en/guide/patterns/action/basic-usage
 
 ### getRegistryInfo()
 
-> **getRegistryInfo**(): `ActionRegistryInfo`&lt;`T`&gt;
+> **getRegistryInfo**(): `ActionRegistryInfo`\<`T`\>
 
-Defined in: [packages/core/src/ActionRegister.ts:1024](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/ActionRegister.ts#L1024)
+Defined in: [packages/core/src/ActionRegister.ts:1236](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/ActionRegister.ts#L1236)
 
 Get comprehensive registry information (similar to DeclarativeStoreRegistry pattern)
 
 #### Returns
 
-`ActionRegistryInfo`&lt;`T`&gt;
+`ActionRegistryInfo`\<`T`\>
 
 Registry information including actions, handlers, and execution modes
 
@@ -380,9 +380,9 @@ Registry information including actions, handlers, and execution modes
 
 ### getActionStats()
 
-> **getActionStats**&lt;`K`&gt;(`action`): `null` \| `ActionHandlerStats`&lt;`T`&gt;
+> **getActionStats**\<`K`\>(`action`): `null` \| `ActionHandlerStats`\<`T`\>
 
-Defined in: [packages/core/src/ActionRegister.ts:1046](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/ActionRegister.ts#L1046)
+Defined in: [packages/core/src/ActionRegister.ts:1258](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/ActionRegister.ts#L1258)
 
 Get detailed statistics for a specific action
 
@@ -396,13 +396,13 @@ Get detailed statistics for a specific action
 
 ##### action
 
-Type parameter **K**
+`K`
 
 Action name to get statistics for
 
 #### Returns
 
-`null` \| `ActionHandlerStats`&lt;`T`&gt;
+`null` \| `ActionHandlerStats`\<`T`\>
 
 Detailed handler statistics
 
@@ -410,73 +410,47 @@ Detailed handler statistics
 
 ### getAllActionStats()
 
-> **getAllActionStats**(): `ActionHandlerStats`&lt;`T`&gt;[]
+> **getAllActionStats**(): `ActionHandlerStats`\<`T`\>[]
 
-Defined in: [packages/core/src/ActionRegister.ts:1097](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/ActionRegister.ts#L1097)
+Defined in: [packages/core/src/ActionRegister.ts:1299](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/ActionRegister.ts#L1299)
 
 Get statistics for all registered actions
 
 #### Returns
 
-`ActionHandlerStats`&lt;`T`&gt;[]
+`ActionHandlerStats`\<`T`\>[]
 
 Array of statistics for all actions
 
 ***
 
-### getHandlersByTag()
+### setExecutionMode()
 
-> **getHandlersByTag**(`tag`): `Map`\<keyof `T`, `HandlerRegistration`\<`any`, `any`\>[]\>
+> **setExecutionMode**(`mode`): `void`
 
-Defined in: [packages/core/src/ActionRegister.ts:1109](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/ActionRegister.ts#L1109)
+Defined in: [packages/core/src/ActionRegister.ts:1311](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/ActionRegister.ts#L1311)
 
-Get handlers by tag across all actions
-
-#### Parameters
-
-##### tag
-
-`string`
-
-Tag to filter handlers by
-
-#### Returns
-
-`Map`\<keyof `T`, `HandlerRegistration`\<`any`, `any`\>[]\>
-
-Map of actions to handlers with the specified tag
-
-***
-
-### getHandlersByCategory()
-
-> **getHandlersByCategory**(`category`): `Map`\<keyof `T`, `HandlerRegistration`\<`any`, `any`\>[]\>
-
-Defined in: [packages/core/src/ActionRegister.ts:1131](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/ActionRegister.ts#L1131)
-
-Get handlers by category across all actions
+Set global execution mode for all actions
 
 #### Parameters
 
-##### category
+##### mode
 
-`string`
+[`ExecutionMode`](../type-aliases/ExecutionMode.md)
 
-Category to filter handlers by
+Execution mode to set
 
 #### Returns
 
-`Map`\<keyof `T`, `HandlerRegistration`\<`any`, `any`\>[]\>
-
-Map of actions to handlers with the specified category
+`void`
 
 ***
 
 ### setActionExecutionMode()
 
-> **setActionExecutionMode**&lt;`K`&gt;(`action`, `mode`): `void`
+> **setActionExecutionMode**\<`K`\>(`action`, `mode`): `void`
 
-Defined in: [packages/core/src/ActionRegister.ts:1153](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/ActionRegister.ts#L1153)
+Defined in: [packages/core/src/ActionRegister.ts:1325](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/ActionRegister.ts#L1325)
 
 Set execution mode for a specific action
 
@@ -490,7 +464,7 @@ Set execution mode for a specific action
 
 ##### action
 
-Type parameter **K**
+`K`
 
 Action name
 
@@ -508,9 +482,9 @@ Execution mode to set
 
 ### getActionExecutionMode()
 
-> **getActionExecutionMode**&lt;`K`&gt;(`action`): [`ExecutionMode`](../type-aliases/ExecutionMode.md)
+> **getActionExecutionMode**\<`K`\>(`action`): [`ExecutionMode`](../type-aliases/ExecutionMode.md)
 
-Defined in: [packages/core/src/ActionRegister.ts:1167](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/ActionRegister.ts#L1167)
+Defined in: [packages/core/src/ActionRegister.ts:1339](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/ActionRegister.ts#L1339)
 
 Get execution mode for a specific action
 
@@ -524,7 +498,7 @@ Get execution mode for a specific action
 
 ##### action
 
-Type parameter **K**
+`K`
 
 Action name
 
@@ -538,9 +512,9 @@ Execution mode for the action, or default if not set
 
 ### removeActionExecutionMode()
 
-> **removeActionExecutionMode**&lt;`K`&gt;(`action`): `void`
+> **removeActionExecutionMode**\<`K`\>(`action`): `void`
 
-Defined in: [packages/core/src/ActionRegister.ts:1176](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/ActionRegister.ts#L1176)
+Defined in: [packages/core/src/ActionRegister.ts:1348](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/ActionRegister.ts#L1348)
 
 Remove execution mode override for a specific action
 
@@ -554,49 +528,7 @@ Remove execution mode override for a specific action
 
 ##### action
 
-Type parameter **K**
-
-Action name
-
-#### Returns
-
-`void`
-
-***
-
-### clearExecutionStats()
-
-> **clearExecutionStats**(): `void`
-
-Defined in: [packages/core/src/ActionRegister.ts:1187](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/ActionRegister.ts#L1187)
-
-Clear execution statistics for all actions
-
-#### Returns
-
-`void`
-
-***
-
-### clearActionExecutionStats()
-
-> **clearActionExecutionStats**&lt;`K`&gt;(`action`): `void`
-
-Defined in: [packages/core/src/ActionRegister.ts:1200](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/ActionRegister.ts#L1200)
-
-Clear execution statistics for a specific action
-
-#### Type Parameters
-
-##### K
-
-`K` *extends* `string` \| `number` \| `symbol`
-
-#### Parameters
-
-##### action
-
-Type parameter **K**
+`K`
 
 Action name
 
@@ -608,9 +540,9 @@ Action name
 
 ### getRegistryConfig()
 
-> **getRegistryConfig**(): `undefined` \| \{ `debug?`: `boolean`; `autoCleanup?`: `boolean`; `maxHandlers?`: `number`; `maxRetries?`: `number`; `retryDelay?`: `number`; `defaultExecutionMode?`: [`ExecutionMode`](../type-aliases/ExecutionMode.md); \}
+> **getRegistryConfig**(): `undefined` \| \{ `debug?`: `boolean`; `autoCleanup?`: `boolean`; `defaultExecutionMode?`: [`ExecutionMode`](../type-aliases/ExecutionMode.md); `useConcurrencyQueue?`: `boolean`; `maxHandlersPerAction?`: `number`; `errorHandler?`: (`error`, `context`) => `void`; \}
 
-Defined in: [packages/core/src/ActionRegister.ts:1213](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/ActionRegister.ts#L1213)
+Defined in: [packages/core/src/ActionRegister.ts:1362](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/ActionRegister.ts#L1362)
 
 Get registry configuration (for debugging and inspection)
 
@@ -618,7 +550,7 @@ Get registry configuration (for debugging and inspection)
 
 `undefined`
 
-\{ `debug?`: `boolean`; `autoCleanup?`: `boolean`; `maxHandlers?`: `number`; `maxRetries?`: `number`; `retryDelay?`: `number`; `defaultExecutionMode?`: [`ExecutionMode`](../type-aliases/ExecutionMode.md); \}
+\{ `debug?`: `boolean`; `autoCleanup?`: `boolean`; `defaultExecutionMode?`: [`ExecutionMode`](../type-aliases/ExecutionMode.md); `useConcurrencyQueue?`: `boolean`; `maxHandlersPerAction?`: `number`; `errorHandler?`: (`error`, `context`) => `void`; \}
 
 ##### debug?
 
@@ -632,29 +564,43 @@ Debug mode for registry operations - enables detailed logging
 
 Auto-cleanup configuration for one-time handlers
 
-##### maxHandlers?
-
-> `optional` **maxHandlers**: `number`
-
-Maximum number of handlers per action (prevents memory leaks)
-
-##### maxRetries?
-
-> `optional` **maxRetries**: `number`
-
-Maximum number of retries for failed operations
-
-##### retryDelay?
-
-> `optional` **retryDelay**: `number`
-
-Delay between retries in milliseconds
-
 ##### defaultExecutionMode?
 
 > `optional` **defaultExecutionMode**: [`ExecutionMode`](../type-aliases/ExecutionMode.md)
 
 Default execution mode for actions
+
+##### useConcurrencyQueue?
+
+> `optional` **useConcurrencyQueue**: `boolean`
+
+Use concurrency queue for thread safety. Default: true
+
+##### maxHandlersPerAction?
+
+> `optional` **maxHandlersPerAction**: `number`
+
+Maximum number of handlers per action. Default: 1000. Use Infinity to disable limit (not recommended)
+
+##### errorHandler()?
+
+> `optional` **errorHandler**: (`error`, `context`) => `void`
+
+Global error handler for unhandled errors
+
+###### Parameters
+
+###### error
+
+`Error`
+
+###### context
+
+`unknown`
+
+###### Returns
+
+`void`
 
 Current registry configuration
 
@@ -664,7 +610,7 @@ Current registry configuration
 
 > **isDebugEnabled**(): `boolean`
 
-Defined in: [packages/core/src/ActionRegister.ts:1222](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/ActionRegister.ts#L1222)
+Defined in: [packages/core/src/ActionRegister.ts:1371](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/ActionRegister.ts#L1371)
 
 Check if registry has debug mode enabled
 
@@ -674,10 +620,67 @@ Check if registry has debug mode enabled
 
 Whether debug mode is enabled
 
+***
+
+### getUnregisterFunctionCount()
+
+> **getUnregisterFunctionCount**(): `number`
+
+Defined in: [packages/core/src/ActionRegister.ts:1422](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/ActionRegister.ts#L1422)
+
+Gets the total count of registered unregister functions
+
+#### Returns
+
+`number`
+
+Number of unregister functions
+
+***
+
+### hasUnregisterFunction()
+
+> **hasUnregisterFunction**(`handlerId`): `boolean`
+
+Defined in: [packages/core/src/ActionRegister.ts:1433](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/ActionRegister.ts#L1433)
+
+Checks if an unregister function exists for the given handler ID
+
+#### Parameters
+
+##### handlerId
+
+`string`
+
+Handler identifier to check
+
+#### Returns
+
+`boolean`
+
+True if unregister function exists
+
+***
+
+### destroy()
+
+> **destroy**(): `void`
+
+Defined in: [packages/core/src/ActionRegister.ts:1445](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/ActionRegister.ts#L1445)
+
+🆕 Destroy method for comprehensive cleanup
+
+Cleans up all internal resources including pipelines, guards, queues, and statistics.
+Should be called when the ActionRegister is no longer needed to prevent memory leaks.
+
+#### Returns
+
+`void`
+
 ## Properties
 
 ### name
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/core/src/ActionRegister.ts:41](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/ActionRegister.ts#L41)
+Defined in: [packages/core/src/ActionRegister.ts:46](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/ActionRegister.ts#L46)

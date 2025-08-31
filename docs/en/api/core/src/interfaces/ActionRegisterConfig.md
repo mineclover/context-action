@@ -6,12 +6,12 @@
 
 # Interface: ActionRegisterConfig
 
-Defined in: [packages/core/src/types.ts:454](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/types.ts#L454)
+Defined in: [packages/core/src/types.ts:377](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/types.ts#L377)
 
 Configuration options for ActionRegister initialization
 
 Provides comprehensive configuration options for customizing ActionRegister
-behavior including debugging, handler limits, execution modes, and cleanup policies.
+behavior including debugging, execution modes, and cleanup policies.
 
 ## Examples
 
@@ -20,7 +20,6 @@ const register = new ActionRegister<AppActions>({
   name: 'UserActionRegister',
   registry: {
     debug: true,
-    maxHandlers: 20,
     defaultExecutionMode: 'sequential'
   }
 })
@@ -32,7 +31,6 @@ const devRegister = new ActionRegister<AppActions>({
   registry: {
     debug: process.env.NODE_ENV === 'development',
     autoCleanup: true,
-    maxHandlers: 50,
     defaultExecutionMode: 'parallel'
   }
 })
@@ -44,7 +42,7 @@ const devRegister = new ActionRegister<AppActions>({
 
 > `optional` **name**: `string`
 
-Defined in: [packages/core/src/types.ts:456](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/types.ts#L456)
+Defined in: [packages/core/src/types.ts:379](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/types.ts#L379)
 
 Name identifier for this ActionRegister instance
 
@@ -54,7 +52,7 @@ Name identifier for this ActionRegister instance
 
 > `optional` **registry**: `object`
 
-Defined in: [packages/core/src/types.ts:459](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/types.ts#L459)
+Defined in: [packages/core/src/types.ts:382](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/types.ts#L382)
 
 Registry-specific configuration options
 
@@ -70,26 +68,40 @@ Debug mode for registry operations - enables detailed logging
 
 Auto-cleanup configuration for one-time handlers
 
-#### maxHandlers?
-
-> `optional` **maxHandlers**: `number`
-
-Maximum number of handlers per action (prevents memory leaks)
-
-#### maxRetries?
-
-> `optional` **maxRetries**: `number`
-
-Maximum number of retries for failed operations
-
-#### retryDelay?
-
-> `optional` **retryDelay**: `number`
-
-Delay between retries in milliseconds
-
 #### defaultExecutionMode?
 
 > `optional` **defaultExecutionMode**: [`ExecutionMode`](../type-aliases/ExecutionMode.md)
 
 Default execution mode for actions
+
+#### useConcurrencyQueue?
+
+> `optional` **useConcurrencyQueue**: `boolean`
+
+Use concurrency queue for thread safety. Default: true
+
+#### maxHandlersPerAction?
+
+> `optional` **maxHandlersPerAction**: `number`
+
+Maximum number of handlers per action. Default: 1000. Use Infinity to disable limit (not recommended)
+
+#### errorHandler()?
+
+> `optional` **errorHandler**: (`error`, `context`) => `void`
+
+Global error handler for unhandled errors
+
+##### Parameters
+
+###### error
+
+`Error`
+
+###### context
+
+`unknown`
+
+##### Returns
+
+`void`

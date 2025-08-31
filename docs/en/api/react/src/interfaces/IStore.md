@@ -6,9 +6,9 @@
 
 # Interface: IStore\<T\>
 
-Defined in: [packages/react/src/stores/core/types.ts:76](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L76)
+Defined in: [packages/react/src/stores/core/types.ts:149](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L149)
 
-Core Store interface for reactive state management
+Enhanced Store interface with advanced memory management and error recovery
 
 ## Implements
 
@@ -26,8 +26,8 @@ observer-pattern
 
 core-concepts
 
-Primary interface for Store instances, compatible with React's useSyncExternalStore
-and implementing the Observer pattern for reactive state management.
+Enhanced Store interface with comprehensive resource management, automatic cleanup,
+error recovery strategies, and advanced security features.
 
 ## See
 
@@ -35,9 +35,9 @@ https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
 
 ## Type Parameters
 
-### Generic type T
+### T
 
-`T` = `any`
+`T` = `unknown`
 
 The type of the stored value
 
@@ -47,7 +47,7 @@ The type of the stored value
 
 > `readonly` **name**: `string`
 
-Defined in: [packages/react/src/stores/core/types.ts:78](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L78)
+Defined in: [packages/react/src/stores/core/types.ts:151](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L151)
 
 Unique identifier for the store
 
@@ -57,7 +57,7 @@ Unique identifier for the store
 
 > **subscribe**: `Subscribe`
 
-Defined in: [packages/react/src/stores/core/types.ts:81](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L81)
+Defined in: [packages/react/src/stores/core/types.ts:154](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L154)
 
 Subscribe to store changes (React useSyncExternalStore compatible)
 
@@ -65,31 +65,55 @@ Subscribe to store changes (React useSyncExternalStore compatible)
 
 ### getSnapshot()
 
-> **getSnapshot**: () => [`Snapshot`](Snapshot.md)&lt;`T`&gt;
+> **getSnapshot**: () => [`Snapshot`](Snapshot.md)\<`T`\>
 
-Defined in: [packages/react/src/stores/core/types.ts:84](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L84)
+Defined in: [packages/react/src/stores/core/types.ts:157](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L157)
 
 Get immutable snapshot (React useSyncExternalStore compatible)
 
 #### Returns
 
-[`Snapshot`](Snapshot.md)&lt;`T`&gt;
+[`Snapshot`](Snapshot.md)\<`T`\>
 
 ***
 
 ### setValue()
 
-> **setValue**: (`value`) => `void`
+> **setValue**: (`value`, `options?`) => `void`
 
-Defined in: [packages/react/src/stores/core/types.ts:87](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L87)
+Defined in: [packages/react/src/stores/core/types.ts:160](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L160)
 
-Set store value with change notification
+Set store value with enhanced options and validation
 
 #### Parameters
 
 ##### value
 
-Type parameter **T**
+`T`
+
+##### options?
+
+`StoreSetValueOptions`\<`T`\>
+
+#### Returns
+
+`void`
+
+***
+
+### update()
+
+> **update**: (`updater`) => `void`
+
+Defined in: [packages/react/src/stores/core/types.ts:163](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L163)
+
+Update store value with function (for functional updates)
+
+#### Parameters
+
+##### updater
+
+(`current`) => `T`
 
 #### Returns
 
@@ -101,13 +125,13 @@ Type parameter **T**
 
 > **getValue**: () => `T`
 
-Defined in: [packages/react/src/stores/core/types.ts:90](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L90)
+Defined in: [packages/react/src/stores/core/types.ts:166](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L166)
 
 Get current value directly (for action handlers)
 
 #### Returns
 
-Type parameter **T**
+`T`
 
 ***
 
@@ -115,10 +139,124 @@ Type parameter **T**
 
 > `optional` **getListenerCount**: () => `number`
 
-Defined in: [packages/react/src/stores/core/types.ts:93](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L93)
+Defined in: [packages/react/src/stores/core/types.ts:169](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L169)
 
 Get number of active listeners (debugging/monitoring)
 
 #### Returns
 
 `number`
+
+***
+
+### dispose()?
+
+> `optional` **dispose**: () => `void`
+
+Defined in: [packages/react/src/stores/core/types.ts:172](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L172)
+
+Enhanced disposal with comprehensive cleanup
+
+#### Returns
+
+`void`
+
+***
+
+### registerCleanup()?
+
+> `optional` **registerCleanup**: (`task`) => () => `void`
+
+Defined in: [packages/react/src/stores/core/types.ts:176](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L176)
+
+Register cleanup task for automatic execution on disposal
+
+#### Parameters
+
+##### task
+
+() => `void`
+
+#### Returns
+
+> (): `void`
+
+##### Returns
+
+`void`
+
+***
+
+### isStoreDisposed()?
+
+> `optional` **isStoreDisposed**: () => `boolean`
+
+Defined in: [packages/react/src/stores/core/types.ts:179](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L179)
+
+Check if store is disposed
+
+#### Returns
+
+`boolean`
+
+***
+
+### getMetrics()?
+
+> `optional` **getMetrics**: () => `StoreMetrics`
+
+Defined in: [packages/react/src/stores/core/types.ts:183](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L183)
+
+Get store performance metrics
+
+#### Returns
+
+`StoreMetrics`
+
+***
+
+### resetMetrics()?
+
+> `optional` **resetMetrics**: () => `void`
+
+Defined in: [packages/react/src/stores/core/types.ts:186](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L186)
+
+Reset performance metrics
+
+#### Returns
+
+`void`
+
+***
+
+### setSecurityOptions()?
+
+> `optional` **setSecurityOptions**: (`options`) => `void`
+
+Defined in: [packages/react/src/stores/core/types.ts:190](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L190)
+
+Set security options
+
+#### Parameters
+
+##### options
+
+`SecurityOptions`
+
+#### Returns
+
+`void`
+
+***
+
+### getSecurityOptions()?
+
+> `optional` **getSecurityOptions**: () => `undefined` \| `SecurityOptions`
+
+Defined in: [packages/react/src/stores/core/types.ts:193](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L193)
+
+Get current security options
+
+#### Returns
+
+`undefined` \| `SecurityOptions`

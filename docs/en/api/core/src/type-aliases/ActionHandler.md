@@ -6,9 +6,9 @@
 
 # Type Alias: ActionHandler()\<T, R\>
 
-> **ActionHandler**\<`T`, `R`\> = (`payload`, `controller`) => `R` \| `Promise`&lt;`R`&gt; \| `void` \| `Promise`&lt;`void`&gt;
+> **ActionHandler**\<`T`, `R`\> = (`payload`, `controller`) => `R` \| `Promise`\<`R`\> \| `void` \| `Promise`\<`void`\>
 
-Defined in: [packages/core/src/types.ts:193](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/core/src/types.ts#L193)
+Defined in: [packages/core/src/types.ts:193](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/types.ts#L193)
 
 Action handler function type for processing actions within the pipeline
 
@@ -20,13 +20,13 @@ for processing specific actions. Handlers follow the Store Integration Pattern:
 
 ## Type Parameters
 
-### Generic type T
+### T
 
 `T` = `any`
 
 The payload type for this action
 
-### Generic type R
+### R
 
 `R` = `void`
 
@@ -36,7 +36,7 @@ The return type for this handler
 
 ### payload
 
-Type parameter **T**
+`T`
 
 The action payload data
 
@@ -48,7 +48,7 @@ Pipeline controller for managing execution flow
 
 ## Returns
 
-`R` \| `Promise`&lt;`R`&gt; \| `void` \| `Promise`&lt;`void`&gt;
+`R` \| `Promise`\<`R`\> \| `void` \| `Promise`\<`void`\>
 
 The result value or Promise resolving to result
 

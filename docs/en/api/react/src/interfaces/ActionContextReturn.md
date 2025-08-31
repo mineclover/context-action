@@ -6,13 +6,13 @@
 
 # Interface: ActionContextReturn\<T\>
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:36](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/actions/ActionContext.types.ts#L36)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:36](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/actions/ActionContext.types.ts#L36)
 
 Return type for createActionContext with abort support
 
 ## Type Parameters
 
-### Generic type T
+### T
 
 `T` *extends* `object`
 
@@ -22,31 +22,31 @@ Return type for createActionContext with abort support
 
 > **Provider**: `FC`\<\{ `children`: `ReactNode`; \}\>
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:37](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/actions/ActionContext.types.ts#L37)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:37](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/actions/ActionContext.types.ts#L37)
 
 ***
 
 ### useActionContext()
 
-> **useActionContext**: () => [`ActionContextType`](ActionContextType.md)&lt;`T`&gt;
+> **useActionContext**: () => [`ActionContextType`](ActionContextType.md)\<`T`\>
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:38](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/actions/ActionContext.types.ts#L38)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:38](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/actions/ActionContext.types.ts#L38)
 
 #### Returns
 
-[`ActionContextType`](ActionContextType.md)&lt;`T`&gt;
+[`ActionContextType`](ActionContextType.md)\<`T`\>
 
 ***
 
 ### useActionDispatch()
 
-> **useActionDispatch**: () => &lt;`K`&gt;(`action`, `payload?`, `options?`) => `Promise`&lt;`void`&gt;
+> **useActionDispatch**: () => \<`K`\>(`action`, `payload?`, `options?`) => `Promise`\<`void`\>
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:39](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/actions/ActionContext.types.ts#L39)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:39](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/actions/ActionContext.types.ts#L39)
 
 #### Returns
 
-> &lt;`K`&gt;(`action`, `payload?`, `options?`): `Promise`&lt;`void`&gt;
+> \<`K`\>(`action`, `payload?`, `options?`): `Promise`\<`void`\>
 
 ##### Type Parameters
 
@@ -58,7 +58,7 @@ Defined in: [packages/react/src/actions/ActionContext.types.ts:39](https://githu
 
 ###### action
 
-Type parameter **K**
+`K`
 
 ###### payload?
 
@@ -66,19 +66,19 @@ Type parameter **K**
 
 ###### options?
 
-Type parameter **DispatchOptions**
+`DispatchOptions`
 
 ##### Returns
 
-`Promise`&lt;`void`&gt;
+`Promise`\<`void`\>
 
 ***
 
 ### useActionHandler()
 
-> **useActionHandler**: &lt;`K`&gt;(`action`, `handler`, `config?`) => `void`
+> **useActionHandler**: \<`K`\>(`action`, `handler`, `config?`) => `void`
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:40](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/actions/ActionContext.types.ts#L40)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:40](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/actions/ActionContext.types.ts#L40)
 
 #### Type Parameters
 
@@ -90,7 +90,7 @@ Defined in: [packages/react/src/actions/ActionContext.types.ts:40](https://githu
 
 ##### action
 
-Type parameter **K**
+`K`
 
 ##### handler
 
@@ -98,7 +98,7 @@ Type parameter **K**
 
 ##### config?
 
-Type parameter **HandlerConfig**
+`HandlerConfig`
 
 #### Returns
 
@@ -108,13 +108,13 @@ Type parameter **HandlerConfig**
 
 ### useActionRegister()
 
-> **useActionRegister**: () => `null` \| `ActionRegister`&lt;`T`&gt;
+> **useActionRegister**: () => `null` \| `ActionRegister`\<`T`\>
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:45](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/actions/ActionContext.types.ts#L45)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:45](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/actions/ActionContext.types.ts#L45)
 
 #### Returns
 
-`null` \| `ActionRegister`&lt;`T`&gt;
+`null` \| `ActionRegister`\<`T`\>
 
 ***
 
@@ -122,7 +122,7 @@ Defined in: [packages/react/src/actions/ActionContext.types.ts:45](https://githu
 
 > **useActionDispatchWithResult**: () => `object`
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:46](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/actions/ActionContext.types.ts#L46)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:46](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/actions/ActionContext.types.ts#L46)
 
 #### Returns
 
@@ -130,7 +130,7 @@ Defined in: [packages/react/src/actions/ActionContext.types.ts:46](https://githu
 
 ##### dispatch()
 
-> **dispatch**: &lt;`K`&gt;(`action`, `payload?`, `options?`) => `Promise`&lt;`void`&gt;
+> **dispatch**: \<`K`\>(`action`, `payload?`, `options?`) => `Promise`\<`void`\>
 
 ###### Type Parameters
 
@@ -142,7 +142,7 @@ Defined in: [packages/react/src/actions/ActionContext.types.ts:46](https://githu
 
 ###### action
 
-Type parameter **K**
+`K`
 
 ###### payload?
 
@@ -150,15 +150,15 @@ Type parameter **K**
 
 ###### options?
 
-Type parameter **DispatchOptions**
+`DispatchOptions`
 
 ###### Returns
 
-`Promise`&lt;`void`&gt;
+`Promise`\<`void`\>
 
 ##### dispatchWithResult()
 
-> **dispatchWithResult**: \<`K`, `R`\>(`action`, `payload?`, `options?`) => `Promise`\<`ExecutionResult`&lt;`R`&gt;\>
+> **dispatchWithResult**: \<`K`, `R`\>(`action`, `payload?`, `options?`) => `Promise`\<`ExecutionResult`\<`R`\>\>
 
 ###### Type Parameters
 
@@ -174,7 +174,7 @@ Type parameter **DispatchOptions**
 
 ###### action
 
-Type parameter **K**
+`K`
 
 ###### payload?
 
@@ -182,11 +182,11 @@ Type parameter **K**
 
 ###### options?
 
-Type parameter **DispatchOptions**
+`DispatchOptions`
 
 ###### Returns
 
-`Promise`\<`ExecutionResult`&lt;`R`&gt;\>
+`Promise`\<`ExecutionResult`\<`R`\>\>
 
 ##### abortAll()
 
@@ -208,6 +208,6 @@ Type parameter **DispatchOptions**
 
 ### context
 
-> **context**: `Context`\<`null` \| [`ActionContextType`](ActionContextType.md)&lt;`T`&gt;\>
+> **context**: `Context`\<`null` \| [`ActionContextType`](ActionContextType.md)\<`T`\>\>
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:60](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/actions/ActionContext.types.ts#L60)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:60](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/actions/ActionContext.types.ts#L60)

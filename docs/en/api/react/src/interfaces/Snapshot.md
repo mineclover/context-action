@@ -6,9 +6,9 @@
 
 # Interface: Snapshot\<T\>
 
-Defined in: [packages/react/src/stores/core/types.ts:51](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L51)
+Defined in: [packages/react/src/stores/core/types.ts:95](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L95)
 
-Store snapshot interface for immutable state representation
+Enhanced store snapshot with metadata and validation
 
 ## Implements
 
@@ -22,14 +22,14 @@ immutable-state
 
 api-terms
 
-Immutable snapshot of Store state used for optimization and debugging.
-Compatible with React's useSyncExternalStore pattern.
+Enhanced immutable snapshot with comprehensive metadata, validation status,
+and performance metrics for advanced debugging and monitoring.
 
 ## Type Parameters
 
-### Generic type T
+### T
 
-`T` = `any`
+`T` = `unknown`
 
 The type of the stored value
 
@@ -39,7 +39,7 @@ The type of the stored value
 
 > **value**: `T`
 
-Defined in: [packages/react/src/stores/core/types.ts:53](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L53)
+Defined in: [packages/react/src/stores/core/types.ts:97](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L97)
 
 The current value of the store
 
@@ -49,7 +49,7 @@ The current value of the store
 
 > **name**: `string`
 
-Defined in: [packages/react/src/stores/core/types.ts:56](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L56)
+Defined in: [packages/react/src/stores/core/types.ts:100](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L100)
 
 Unique identifier for the store
 
@@ -59,6 +59,92 @@ Unique identifier for the store
 
 > **lastUpdate**: `number`
 
-Defined in: [packages/react/src/stores/core/types.ts:59](https://github.com/mineclover/context-action/blob/b621f50f568fd1a322ff6c6aa551ddc1f6dc3a65/packages/react/src/stores/core/types.ts#L59)
+Defined in: [packages/react/src/stores/core/types.ts:103](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L103)
 
 Timestamp of the last update
+
+***
+
+### version?
+
+> `optional` **version**: `number`
+
+Defined in: [packages/react/src/stores/core/types.ts:106](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L106)
+
+Snapshot version for optimistic updates
+
+***
+
+### isValid?
+
+> `optional` **isValid**: `boolean`
+
+Defined in: [packages/react/src/stores/core/types.ts:109](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L109)
+
+Validation status of the current value
+
+***
+
+### validationError?
+
+> `optional` **validationError**: `string`
+
+Defined in: [packages/react/src/stores/core/types.ts:112](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L112)
+
+Error message if validation failed
+
+***
+
+### metrics?
+
+> `optional` **metrics**: `object`
+
+Defined in: [packages/react/src/stores/core/types.ts:115](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L115)
+
+Performance metrics for this snapshot
+
+#### creationTime
+
+> **creationTime**: `number`
+
+Time taken to create this snapshot (ms)
+
+#### sizeEstimate?
+
+> `optional` **sizeEstimate**: `number`
+
+Memory size estimate (bytes)
+
+#### notificationCount?
+
+> `optional` **notificationCount**: `number`
+
+Number of listeners notified
+
+***
+
+### security?
+
+> `optional` **security**: `object`
+
+Defined in: [packages/react/src/stores/core/types.ts:125](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L125)
+
+Security metadata
+
+#### validated
+
+> **validated**: `boolean`
+
+Whether value passed security validation
+
+#### sanitized?
+
+> `optional` **sanitized**: `boolean`
+
+Sanitization applied
+
+#### trustLevel?
+
+> `optional` **trustLevel**: `number`
+
+Trust level (0-100)
