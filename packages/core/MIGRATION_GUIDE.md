@@ -298,7 +298,6 @@ New React integration helpers for better development experience:
 // 🆕 React helper imports
 import { 
   useActionHandler, 
-  createReactDispatcher,
   ReactDevUtils 
 } from '@context-action/core';
 
@@ -320,13 +319,17 @@ function MyComponent() {
     [] // dependencies
   );
   
-  // 🆕 React-optimized dispatcher
-  const dispatch = createReactDispatcher(registry, (error, action) => {
-    console.error(`Failed to dispatch ${action}:`, error);
-  });
+  // 🆕 Direct registry dispatch with error handling
+  const handleDispatch = useCallback(async (action, payload) => {
+    try {
+      await registry.dispatch(action, payload);
+    } catch (error) {
+      console.error(`Failed to dispatch ${action}:`, error);
+    }
+  }, [registry]);
   
   return (
-    <button onClick={() => dispatch('userAction', { id: '123' })}>
+    <button onClick={() => handleDispatch('userAction', { id: '123' })}>
       Update User
     </button>
   );

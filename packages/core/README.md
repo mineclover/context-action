@@ -154,7 +154,6 @@ console.log('Success:', result.success);
 ```typescript
 import { 
   useActionHandler, 
-  createReactDispatcher,
   ReactDevUtils 
 } from '@context-action/core';
 
@@ -173,10 +172,14 @@ function MyComponent() {
     [] // dependencies
   );
   
-  // React-optimized dispatcher
-  const dispatch = createReactDispatcher(registry, (error, action) => {
-    console.error(`Failed to dispatch ${action}:`, error);
-  });
+  // Direct registry dispatch with error handling
+  const handleDispatch = useCallback(async (action, payload) => {
+    try {
+      await registry.dispatch(action, payload);
+    } catch (error) {
+      console.error(`Failed to dispatch ${action}:`, error);
+    }
+  }, [registry]);
 }
 
 // Development utilities

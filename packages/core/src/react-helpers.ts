@@ -96,7 +96,20 @@ export function createActionHandler<T extends ActionPayloadMap, K extends keyof 
   registerWithCleanup: () => () => void;
   config: Required<HandlerConfig>;
 } {
-  const finalConfig = createReactHandlerConfig(String(action), undefined, config);
+  // Inline React-optimized handler configuration
+  const timestamp = Date.now();
+  const random = Math.random().toString(36).substr(2, 5);
+  
+  const finalConfig: Required<HandlerConfig> = {
+    priority: config?.priority ?? 0,
+    id: config?.id || `react_${String(action)}_${timestamp}_${random}`,
+    blocking: config?.blocking ?? false,
+    once: config?.once ?? false,
+    debounce: config?.debounce ?? undefined,
+    throttle: config?.throttle ?? undefined,
+    // React-optimized defaults
+    replaceExisting: true, // Always replace in React (handles HMR/remounting)
+  } as Required<HandlerConfig>;
   let currentUnregister: UnregisterFunction | undefined;
   let isRegistered = false;
   
@@ -143,116 +156,6 @@ export function createActionHandler<T extends ActionPayloadMap, K extends keyof 
   };
 }
 
-/**
- * 🆕 React handler configuration factory
- * 
- * Creates optimized handler configurations for React environments with
- * proper cleanup and unique ID generation.
- * 
- * @template T - ActionPayloadMap type
- * @template K - Action key type
- * 
- * @param action - Action name
- * @param componentId - Optional component identifier for debugging
- * @param config - Base handler configuration
- * 
- * @returns Optimized configuration for React environments
- * 
- * @example
- * ```tsx
- * function MyComponent({ userId }: { userId: string }) {
- *   const registry = useActionRegister();
- *   
- *   useEffect(() => {
- *     const config = createReactHandlerConfig('updateUser', 'MyComponent', {
- *       priority: 10
- *     });
- *     
- *     const unregister = registry.register('updateUser', handler, config);
- *     return unregister;
- *   }, [registry, handler]);
- * }
- * ```
- * 
- * @public
- */
-export function createReactHandlerConfig(
-  action: string,
-  componentId?: string,
-  config: HandlerConfig = {}
-): Required<HandlerConfig> {
-  const timestamp = Date.now();
-  const random = Math.random().toString(36).substr(2, 5);
-  
-  return {
-    priority: config.priority ?? 0,
-    id: config.id || `${componentId || 'react'}_${action}_${timestamp}_${random}`,
-    blocking: config.blocking ?? false,
-    once: config.once ?? false,
-    debounce: config.debounce ?? undefined,
-    throttle: config.throttle ?? undefined,
-    // 🆕 React-optimized defaults
-    replaceExisting: true, // Always replace in React (handles HMR/remounting)
-  } as Required<HandlerConfig>;
-}
-
-/**
- * 🆕 React action dispatcher factory
- * 
- * Creates a dispatcher function optimized for React component usage
- * with proper error boundaries and async handling.
- * 
- * @template T - ActionPayloadMap type
- * 
- * @param registry - ActionRegister instance
- * @param errorHandler - Optional error handler for unhandled dispatch errors
- * 
- * @returns Optimized dispatch function for React components
- * 
- * @example
- * ```tsx
- * function MyComponent() {
- *   const registry = useActionRegister();
- *   
- *   const dispatch = createReactDispatcher(registry, (error, action, payload) => {
- *     console.error(`Failed to dispatch ${action}:`, error);
- *   });
- *   
- *   const handleClick = useCallback(() => {
- *     dispatch('userClick', { buttonId: 'submit' });
- *   }, [dispatch]);
- * }
- * ```
- * 
- * @public
- */
-export function createReactDispatcher<T extends ActionPayloadMap>(
-  registry: ActionRegister<T>,
-  errorHandler?: (error: Error, action: keyof T, payload?: any) => void
-) {
-  return async <K extends keyof T>(
-    action: K,
-    payload?: T[K],
-    options?: Parameters<ActionRegister<T>['dispatch']>[2]
-  ): Promise<void> => {
-    try {
-      await registry.dispatch(action, payload, {
-        // 🆕 React-optimized dispatch options
-        immediate: false, // Use queues by default for React consistency
-        ...options
-      });
-    } catch (error) {
-      const errorObj = error instanceof Error ? error : new Error(String(error));
-      
-      if (errorHandler) {
-        errorHandler(errorObj, action, payload);
-      } else {
-        // Default: Log error but don't throw (React-friendly)
-        console.error(`[ActionRegister] Dispatch failed for action '${String(action)}':`, errorObj);
-      }
-    }
-  };
-}
 
 /**
  * 🆕 React development utilities

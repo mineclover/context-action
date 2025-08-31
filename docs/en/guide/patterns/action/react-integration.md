@@ -40,36 +40,32 @@ function MyComponent() {
 - **Dependency Management**: Re-registers handlers when dependencies change
 - **Error Handling**: Built-in error boundaries integration
 
-### createReactDispatcher
+### Direct Registry Usage
 
-React-optimized action dispatcher with error handling:
+For custom dispatch patterns, use the ActionRegister directly:
 
 ```typescript
-import { createReactDispatcher } from '@context-action/core';
-
 function UserProfile() {
   const registry = useActionRegister();
   
-  // React-optimized dispatcher with error handling
-  const dispatch = createReactDispatcher(registry, (error, action, payload) => {
-    console.error(`Failed to dispatch ${action}:`, error);
-    
-    // Optional: Show user-friendly error
-    toast.error(`Failed to ${action}. Please try again.`);
-    
-    // Optional: Send to error tracking
-    errorTracking.captureException(error, {
-      action,
-      payload,
-      component: 'UserProfile'
-    });
-  });
-  
-  const handleUpdate = () => {
-    dispatch('updateUser', { 
-      id: '123', 
-      name: 'John Doe' 
-    });
+  const handleUpdate = async () => {
+    try {
+      await registry.dispatch('updateUser', { 
+        id: '123', 
+        name: 'John Doe' 
+      });
+    } catch (error) {
+      console.error('Failed to update user:', error);
+      
+      // Optional: Show user-friendly error
+      toast.error('Failed to update user. Please try again.');
+      
+      // Optional: Send to error tracking
+      errorTracking.captureException(error, {
+        action: 'updateUser',
+        component: 'UserProfile'
+      });
+    }
   };
   
   return (
@@ -160,23 +156,28 @@ function UserComponent() {
     []
   );
   
-  // React-optimized dispatcher
-  const dispatch = createReactDispatcher(registry, (error, action) => {
-    toast.error(`Action ${action} failed: ${error.message}`);
-  });
+  // Error handling wrapper for dispatch
+  const safeDispatch = useCallback(async (action, payload) => {
+    try {
+      await registry.dispatch(action, payload);
+    } catch (error) {
+      console.error(`Action ${action} failed:`, error);
+      toast.error(`Action ${action} failed: ${error.message}`);
+    }
+  }, [registry]);
   
   const user = useStoreValue(userStore);
   
   return (
     <div>
       <h1>{user?.name || 'No User'}</h1>
-      <button onClick={() => dispatch('updateProfile', {
+      <button onClick={() => safeDispatch('updateProfile', {
         name: 'Updated Name',
         email: 'updated@example.com'
       })}>
         Update Profile
       </button>
-      <button onClick={() => dispatch('deleteProfile', { id: user?.id || '' })}>
+      <button onClick={() => safeDispatch('deleteProfile', { id: user?.id || '' })}>
         Delete Profile
       </button>
     </div>
@@ -304,7 +305,6 @@ function ConditionalComponent({ enableAdvancedFeatures }) {
 // Test utility for mocking React helpers
 const mockReactHelpers = {
   useActionHandler: jest.fn(),
-  createReactDispatcher: jest.fn(),
   ReactDevUtils: {
     enableDebugMode: jest.fn(),
     getStats: jest.fn(() => ({
@@ -316,12 +316,13 @@ const mockReactHelpers = {
   }
 };
 
-// Test component with mocked helpers
+// Test component with mocked registry
 test('UserComponent handles actions correctly', async () => {
   const mockRegistry = new ActionRegister<UserActions>();
   const mockDispatch = jest.fn();
   
-  mockReactHelpers.createReactDispatcher.mockReturnValue(mockDispatch);
+  // Mock registry dispatch method
+  mockRegistry.dispatch = mockDispatch;
   
   render(<UserComponent />);
   
