@@ -3,6 +3,28 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.7.0](https://github.com/mineclover/context-action/compare/v0.6.0...v0.7.0) (2025-08-31)
+
+
+### Bug Fixes
+
+* **ActionRegister:** enhance error handling and execution context management ([d32a1f6](https://github.com/mineclover/context-action/commit/d32a1f60858141db6dc7ff9bc72fa3056638c97f))
+* **core:** resolve test failures and improve ActionRegister reliability ([82925b9](https://github.com/mineclover/context-action/commit/82925b92f15f2f737d12885512521bc9cc41dff4))
+
+
+### Features
+
+* Complete ActionRegister comprehensive test suite improvements ([fda402f](https://github.com/mineclover/context-action/commit/fda402fcc1f611ceed011363df2d1c26c20d8478))
+* Context-Action 라이브러리 핵심 성능 및 안정성 개선 ([f13fe47](https://github.com/mineclover/context-action/commit/f13fe4756c7f1e39872aca7a45fec09f37da3c2c))
+* **core:** enhance ActionRegister performance with optimized caching and pooling ([96fb72a](https://github.com/mineclover/context-action/commit/96fb72a61230cfd38963dc28b853d9ec6323175a))
+* implement advanced unregister function management system ([1086a8a](https://github.com/mineclover/context-action/commit/1086a8abb3a8887df58fe80c1bb02854f0eed7b7))
+* major test improvements and ActionRegister enhancements ([670e426](https://github.com/mineclover/context-action/commit/670e4267d6509b1cd9c6dd048960245251af844f))
+* modernize TypeScript configuration and fix dynamic imports ([725eef5](https://github.com/mineclover/context-action/commit/725eef5e02388e67103d94814935965e066f3e85))
+
+
+
+
+
 # [0.6.0](https://github.com/mineclover/context-action/compare/v0.5.1...v0.6.0) (2025-08-29)
 
 
