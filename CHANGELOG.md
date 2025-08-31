@@ -3,6 +3,47 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.1](https://github.com/mineclover/context-action/compare/v0.6.0...v0.7.1) (2025-08-31)
+
+
+### Bug Fixes
+
+* **ActionRegister:** enhance error handling and execution context management ([d32a1f6](https://github.com/mineclover/context-action/commit/d32a1f60858141db6dc7ff9bc72fa3056638c97f))
+* convert Immer from dynamic to static imports for improved stability ([dde606f](https://github.com/mineclover/context-action/commit/dde606feee79f942d953a60b32164f11fc10b374))
+* **core:** resolve test failures and improve ActionRegister reliability ([82925b9](https://github.com/mineclover/context-action/commit/82925b92f15f2f737d12885512521bc9cc41dff4))
+* correct CodeBlock component usage in AdvancedCodeExamples ([ecfdc35](https://github.com/mineclover/context-action/commit/ecfdc352c8d076f32fcffcdde926587a2a24ad64))
+* improve Store update method with Immer integration ([c9754d7](https://github.com/mineclover/context-action/commit/c9754d7c750c1abf70a3eef99504033ce089b439))
+* improve Store update method with Immer integration ([0bce495](https://github.com/mineclover/context-action/commit/0bce49562ed323e52985917306e87385e9b64205))
+* improve TypeDoc configuration clarity and prevent wrong location generation ([3afca1c](https://github.com/mineclover/context-action/commit/3afca1ce25511e29636e1448f061acc822a59e67))
+* **react:** adjust test expectations after refactoring ([78a4808](https://github.com/mineclover/context-action/commit/78a48084b254f59688e71f90419783cb30ecad1d))
+* **react:** export StoreManager for proper type inference in createStoreContext ([3433632](https://github.com/mineclover/context-action/commit/343363292beb920d13beda336cc5fade8d7684df))
+* resolve all TypeScript errors and improve LogMonitor dependency handling ([06b3a6e](https://github.com/mineclover/context-action/commit/06b3a6e3bf3050b408a01dbfdaf63eae39cbac7f))
+* resolve TypeScript strict mode compliance issues ([e4ef015](https://github.com/mineclover/context-action/commit/e4ef015c4c63835c790c8f181448197f8e595bab))
+* update TypeScript configuration and enhance LogMonitor component ([c280d4f](https://github.com/mineclover/context-action/commit/c280d4ff4cedf44f28b91e612159bdca7c3a014e))
+
+
+### Features
+
+* add Context-Layered Architecture section to documentation and navigation ([d655322](https://github.com/mineclover/context-action/commit/d655322b4fd8ff7c6a0f6d9642c4b879f85e319c))
+* add SourceLink integration to core example pages ([7cc16b6](https://github.com/mineclover/context-action/commit/7cc16b6ee23a498e8ccd9f5b867b6529f3fb875d))
+* Complete ActionRegister comprehensive test suite improvements ([fda402f](https://github.com/mineclover/context-action/commit/fda402fcc1f611ceed011363df2d1c26c20d8478))
+* Context-Action 라이브러리 핵심 성능 및 안정성 개선 ([f13fe47](https://github.com/mineclover/context-action/commit/f13fe4756c7f1e39872aca7a45fec09f37da3c2c))
+* **core:** enhance ActionRegister performance with optimized caching and pooling ([96fb72a](https://github.com/mineclover/context-action/commit/96fb72a61230cfd38963dc28b853d9ec6323175a))
+* enhance Core Advanced page with comprehensive usage examples ([0878151](https://github.com/mineclover/context-action/commit/0878151730af4768907857a0fdec6116534080f1))
+* implement advanced unregister function management system ([1086a8a](https://github.com/mineclover/context-action/commit/1086a8abb3a8887df58fe80c1bb02854f0eed7b7))
+* implement comprehensive SourceLink Registry system ([3d0dc69](https://github.com/mineclover/context-action/commit/3d0dc6983dfb778dd599e0e5c04df4b8a0fd83a7))
+* implement Context-Layered Architecture with complete refactoring ([801fcfd](https://github.com/mineclover/context-action/commit/801fcfdd65f36cda7c3537d7cc49a9385c0c41bf))
+* integrate SourceLink Registry into app navigation ([ed1d283](https://github.com/mineclover/context-action/commit/ed1d2837e8378b4a35510f07c5416f37b05d5796))
+* **LogMonitor:** implement MVVM architecture and enhance context management ([8e81732](https://github.com/mineclover/context-action/commit/8e817328cbdb1ec8741e0f50432c0e4d7421306d))
+* major test improvements and ActionRegister enhancements ([670e426](https://github.com/mineclover/context-action/commit/670e4267d6509b1cd9c6dd048960245251af844f))
+* modernize TypeScript configuration and fix dynamic imports ([725eef5](https://github.com/mineclover/context-action/commit/725eef5e02388e67103d94814935965e066f3e85))
+* **performance-optimization:** add comprehensive performance optimization guides with varying character limits ([950dee2](https://github.com/mineclover/context-action/commit/950dee2d6d88b362898b803222ab5a7786d0ad00))
+* **react:** consolidate test structure and fix TypeScript errors ([618ec8c](https://github.com/mineclover/context-action/commit/618ec8cbb2474964b249c0320cff69be373246f1))
+
+
+
+
+
 # [0.7.0](https://github.com/mineclover/context-action/compare/v0.6.0...v0.7.0) (2025-08-31)
 
 
