@@ -317,13 +317,6 @@ export const React18Utils = {
       }
     }
     return 1; // 단순 값
-  },
-
-  /**
-   * 성능 임계값 추천
-   */
-  getRecommendedThreshold: (deviceType: 'mobile' | 'desktop' = 'desktop'): number => {
-    return deviceType === 'mobile' ? 500 : 1000;
   }
 };
 

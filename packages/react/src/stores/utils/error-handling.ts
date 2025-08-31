@@ -149,17 +149,6 @@ export function handleError(
   return error;
 }
 
-/**
- * 표준화된 Context-Action 에러 처리 (개선된 버전)
- */
-export function handleContextActionError(
-  type: ContextActionErrorType,
-  message: string,
-  context?: Record<string, unknown>,
-  originalError?: Error
-): ContextActionError {
-  return handleError(type, message, context, originalError);
-}
 
 /**
  * 에러 로깅 함수

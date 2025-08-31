@@ -315,9 +315,11 @@ function fallbackClone<T>(value: T): T {
           
           // RefState 객체는 ID 마커로 교체
           if ('__contextActionRefState' in val && val.__contextActionRefState === true) {
-            for (const [id, refStateObj] of refStateObjects) {
-              if (refStateObj === val) {
-                return { __REFSTATE_PLACEHOLDER__: id };
+            const entries = Array.from(refStateObjects.entries());
+            for (let i = 0; i < entries.length; i++) {
+              const entry = entries[i];
+              if (entry && entry[1] === val) {
+                return { __REFSTATE_PLACEHOLDER__: entry[0] };
               }
             }
           }
@@ -542,7 +544,7 @@ export function produce<T>(baseState: T, producer: (draft: T) => void | T): T {
       const result = producer(draft);
       
       // If producer returns a value, use it; otherwise use the modified draft
-      return result !== undefined ? result : draft;
+      return (result !== undefined ? result : draft) as T;
     } catch (fallbackError) {
       // If everything fails, just return original
       if (process.env.NODE_ENV === 'development') {
@@ -553,23 +555,3 @@ export function produce<T>(baseState: T, producer: (draft: T) => void | T): T {
   }
 }
 
-/**
- * Check if value is a Draft object using static Immer import
- */
-export function isDraft(value: unknown): boolean {
-  return immerIsDraft(value);
-}
-
-/**
- * Get original object from Draft using static Immer import
- */
-export function original<T>(value: T): T | undefined {
-  return immerOriginal(value);
-}
-
-/**
- * Get current state of Draft using static Immer import
- */
-export function current<T>(value: T): T {
-  return immerCurrent(value);
-}

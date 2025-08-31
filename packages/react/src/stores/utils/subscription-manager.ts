@@ -216,50 +216,7 @@ export function useSubscriptionManager(): SubscriptionManager {
   return managerRef.current;
 }
 
-/**
- * Global subscription manager for debugging and monitoring
- */
-class GlobalSubscriptionTracker {
-  private managers = new Set<SubscriptionManager>();
-  
-  register(manager: SubscriptionManager): void {
-    this.managers.add(manager);
-  }
-  
-  unregister(manager: SubscriptionManager): void {
-    this.managers.delete(manager);
-  }
-  
-  getGlobalStats(): {
-    totalManagers: number;
-    totalSubscriptions: number;
-  } {
-    let totalSubscriptions = 0;
-    
-    for (const manager of this.managers) {
-      if (!manager.isManagerDisposed()) {
-        const stats = manager.getStats();
-        totalSubscriptions += stats.activeSubscriptions;
-      }
-    }
-    
-    return {
-      totalManagers: this.managers.size,
-      totalSubscriptions
-    };
-  }
-  
-  dispose(): void {
-    for (const manager of this.managers) {
-      manager.dispose();
-    }
-    this.managers.clear();
-  }
-}
-
-export const globalSubscriptionTracker = new GlobalSubscriptionTracker();
-
-// Development-only global leak detection
+// Development-only debugging support
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-  (window as any).__contextActionSubscriptions = globalSubscriptionTracker;
+  (window as any).__contextActionDebug = { SubscriptionManager };
 }

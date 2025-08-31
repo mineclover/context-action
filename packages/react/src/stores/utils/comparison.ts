@@ -526,7 +526,7 @@ export function sanitizeValue<T>(value: T): T {
     const sanitized = JSON.parse(JSON.stringify(value));
     
     // Remove dangerous properties recursively
-    function cleanObject(obj: Record<string, unknown>): Record<string, unknown> {
+    const cleanObject = (obj: Record<string, unknown>): Record<string, unknown> => {
       const dangerousKeys = ['__proto__', 'constructor', 'prototype'];
       const clean = { ...obj };
       
@@ -542,7 +542,7 @@ export function sanitizeValue<T>(value: T): T {
       });
       
       return clean;
-    }
+    };
     
     return cleanObject(sanitized as Record<string, unknown>) as T;
   } catch (error) {

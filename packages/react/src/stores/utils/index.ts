@@ -55,7 +55,6 @@ export {
 export {
   SubscriptionManager,
   useSubscriptionManager,
-  globalSubscriptionTracker,
   type SubscriptionEntry,
   type SubscriptionStats
 } from './subscription-manager';

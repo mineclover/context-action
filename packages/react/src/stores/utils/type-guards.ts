@@ -65,36 +65,10 @@ export function isDOMElement(value: unknown): value is Element {
 }
 
 /**
- * Promise 객체인지 확인하는 타입 가드
- */
-export function isPromise<T = unknown>(value: unknown): value is Promise<T> {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    typeof (value as any).then === 'function' &&
-    typeof (value as any).catch === 'function'
-  );
-}
-
-/**
- * Function인지 확인하는 타입 가드
- */
-export function isFunction(value: unknown): value is Function {
-  return typeof value === 'function';
-}
-
-/**
  * 객체인지 확인하는 타입 가드 (null 제외)
  */
 export function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-/**
- * 배열인지 확인하는 타입 가드
- */
-export function isArray(value: unknown): value is unknown[] {
-  return Array.isArray(value);
 }
 
 /**
@@ -192,10 +166,7 @@ export const TypeGuards = {
   isEventLike,
   hasTargetProperty,
   isDOMElement,
-  isPromise,
-  isFunction,
   isObject,
-  isArray,
   isSuspiciousEventObject,
   findProblematicProperties
 } as const;

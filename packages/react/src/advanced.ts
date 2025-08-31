@@ -12,29 +12,13 @@ export type {
 
 // Advanced Store Hooks
 export { useComputedStore } from './stores/hooks/useComputedStore';
-export { useStoreSelector } from './stores/hooks/useStoreSelector';
 export { usePersistedStore } from './stores/hooks/usePersistedStore';
 export { useLocalStore } from './stores/hooks/useLocalStore';
 
 
 
-// Provider Composition Utilities
-export { 
-  composeProviders
-} from './stores/utils/provider-composition';
-export type {
-  ProviderComponent
-} from './stores/utils/provider-composition';
-
-// Immutability Utils (with dynamic Immer loading)
-export { 
-  deepClone,
-  deepCloneWithImmer,
-  preloadImmer,
-  ImmerUtils,
-  safeGet,
-  safeSet,
-} from './stores/utils/immutable';
+// Utilities (for convenience - prefer importing from utils.ts)
+export * from './utils';
 
 // Error Handling System
 export {
@@ -54,8 +38,10 @@ export type {
   StoreErrorBoundaryState
 } from './stores/components/StoreErrorBoundary';
 
-// All patterns from patterns index
-export * from './patterns';
+// Additional patterns and hooks (for convenience)
+// Note: For better tree shaking, import specific items from their respective modules
+export { createActionContext } from './actions/ActionContext';
+export type { ActionContextConfig, ActionContextReturn } from './actions/ActionContext.types';
 
-// All available hooks
-export * from './hooks';
+// React 18+ optimizations
+export * from './react18';

@@ -5,7 +5,8 @@ export default defineConfig({
   entry: [
     'src/index.ts',      // Main entry point
     'src/advanced.ts',   // Advanced features
-    'src/react18.ts'     // React 18+ features
+    'src/react18.ts',    // React 18+ features
+    'src/utils.ts'       // Utility functions
   ],
   format: ['esm', 'cjs'],
   dts: true,
