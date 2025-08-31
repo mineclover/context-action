@@ -222,8 +222,12 @@ export class GenerateTemplatesCommand {
     characterLimit: number,
     documentId: string
   ): string {
-    // Generate summary based on character limit
-    const summary = this.generateSummary(sourceContent, characterLimit, priorityData);
+    // Generate summary based on character limit - convert priority data structure
+    const summaryPriorityData = {
+      document: { title: priorityData.document?.category || documentId },
+      purpose: { primary_goal: `Summary for ${documentId}` }
+    };
+    const summary = this.generateSummary(sourceContent, characterLimit, summaryPriorityData);
     
     // Create frontmatter
     const frontmatter = {
@@ -240,7 +244,7 @@ export class GenerateTemplatesCommand {
     };
 
     // Create the template content
-    const content = summary || `${priorityData.document?.title || documentId} - ${characterLimit} character summary`;
+    const content = summary || `${priorityData.document?.category || documentId} - ${characterLimit} character summary`;
     
     return matter.stringify(content, frontmatter);
   }

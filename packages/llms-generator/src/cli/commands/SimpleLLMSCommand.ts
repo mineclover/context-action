@@ -217,10 +217,10 @@ export class SimpleLLMSCommand {
       if (!cleanContent) return null;
 
       // Extract title
-      const title = this.extractTitle(parsed.content) || frontmatter.document_id || 'Untitled';
+      const title = this.extractTitle(parsed.content) || (frontmatter.document_id as string) || 'Untitled';
       
       // Get priority
-      const priority = frontmatter.priority_score || this.config.categories?.[category]?.priority || 50;
+      const priority = (frontmatter.priority_score as number) || (this.config.categories as any)?.[category]?.priority || 50;
 
       // Extract document ID from file path
       const fileName = path.basename(filePath, '.md');
@@ -232,7 +232,7 @@ export class SimpleLLMSCommand {
       const language = languageIndex >= 0 && pathParts[languageIndex] ? pathParts[languageIndex] : 'en';
 
       const document: CleanDocument = {
-        title: title.replace(/\s*\(\d+자\)/, ''), // Remove character limit from title
+        title: (title as string).replace(/\s*\(\d+자\)/, ''), // Remove character limit from title
         content: cleanContent,
         priority,
         characterLimit,
@@ -241,9 +241,9 @@ export class SimpleLLMSCommand {
         language,
         filePath,
         metadata: {
-          completion_status: frontmatter.completion_status || frontmatter.update_status || 'template_based',
-          workflow_stage: frontmatter.workflow_stage || 'template_content',
-          quality_score: frontmatter.quality_score,
+          completion_status: (frontmatter.completion_status as string) || (frontmatter.update_status as string) || 'template_based',
+          workflow_stage: (frontmatter.workflow_stage as string) || 'template_content',
+          quality_score: (frontmatter.quality_score as number),
           content_length: cleanContent.length
         }
       };

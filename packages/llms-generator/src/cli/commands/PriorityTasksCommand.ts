@@ -319,7 +319,7 @@ export class PriorityTasksCommand {
       return true;
     }
     
-    const keywords = priorityData.keywords || {};
+    const keywords = (priorityData.metadata as any)?.keywords || {};
     if (!keywords.technical || keywords.technical.length < 2) {
       return true;
     }
@@ -367,7 +367,7 @@ export class PriorityTasksCommand {
     console.log('\n📊 Summary by Task Type:');
     const taskCounts = this.countByTaskType(tasks);
     Object.entries(taskCounts).forEach(([type, count]) => {
-      console.log(`  ${this.getTaskEmoji(type)} ${this.getTaskTypeLabel(type)}: ${count}`);
+      console.log(`  ${this.getTaskEmoji(type as any)} ${this.getTaskTypeLabel(type as any)}: ${count}`);
     });
 
     console.log('\n🔧 Recommended Actions:');
