@@ -380,9 +380,9 @@ export class CodeModeCommand {
   }
 
   private async generateMultipleFiles(
-    packageName: string,
-    files: CodeFile[],
-    options: {
+    _packageName: string,
+    _files: CodeFile[],
+    _options: {
       dryRun?: boolean;
       quiet?: boolean;
       force?: boolean;

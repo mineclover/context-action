@@ -30,7 +30,7 @@ export interface CLIConfig {
     enableValidation: boolean;
     strictMode: boolean;
   };
-  categories?: Record<string, any>;
+  categories?: Record<string, unknown>;
 }
 
 export interface WorkNextOptions {

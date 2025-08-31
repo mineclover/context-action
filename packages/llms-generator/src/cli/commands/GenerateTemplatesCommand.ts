@@ -187,7 +187,7 @@ export class GenerateTemplatesCommand {
     return result;
   }
 
-  private async extractSourceContent(priorityData: any, _language: string): Promise<string> {
+  private async extractSourceContent(priorityData: { document?: { source_path?: string } }, _language: string): Promise<string> {
     if (!priorityData.document?.source_path) {
       return '';
     }
@@ -214,7 +214,10 @@ export class GenerateTemplatesCommand {
   }
 
   private generateTemplateContent(
-    priorityData: any,
+    priorityData: {
+      document?: { category?: string; source_path?: string };
+      priority?: { score?: number; tier?: string };
+    },
     sourceContent: string,
     characterLimit: number,
     documentId: string
@@ -242,7 +245,14 @@ export class GenerateTemplatesCommand {
     return matter.stringify(content, frontmatter);
   }
 
-  private generateSummary(sourceContent: string, characterLimit: number, priorityData: any): string {
+  private generateSummary(
+    sourceContent: string, 
+    characterLimit: number, 
+    priorityData: { 
+      document?: { title?: string }; 
+      purpose?: { primary_goal?: string }; 
+    }
+  ): string {
     if (!sourceContent) {
       // Fallback to priority data if no source content
       const title = priorityData.document?.title || '';

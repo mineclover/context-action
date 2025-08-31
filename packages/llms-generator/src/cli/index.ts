@@ -162,8 +162,8 @@ async function handleCleanLLMSGenerate(args: string[]): Promise<void> {
   
   try {
     await cleanLLMSGenerateCommand.parseAsync(['node', 'clean-llms-generate', ...args]);
-  } catch (error: any) {
-    if (error.code === 'commander.helpDisplayed') {
+  } catch (error: unknown) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'commander.helpDisplayed') {
       return;
     }
     throw error;

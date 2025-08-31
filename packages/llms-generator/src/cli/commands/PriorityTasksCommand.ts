@@ -12,7 +12,7 @@ export interface PriorityTask {
   recommendation: string;
   sourceDocument?: string;
   lastModified?: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface PriorityTasksOptions {
@@ -213,14 +213,14 @@ export class PriorityTasksCommand {
       }
 
       return null; // No issues found
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         documentId,
         language,
         category,
         taskType: 'invalid',
         priority: 95,
-        issue: `Error reading priority.json: ${error.message}`,
+        issue: `Error reading priority.json: ${error instanceof Error ? error.message : 'Unknown error'}`,
         recommendation: 'Fix JSON syntax or regenerate file',
         sourceDocument: sourceDocPath
       };
@@ -289,7 +289,7 @@ export class PriorityTasksCommand {
     }
   }
 
-  private needsPriorityReview(priorityData: any, category: string): boolean {
+  private needsPriorityReview(priorityData: { priority?: { score?: number } }, category: string): boolean {
     const score = priorityData.priority?.score || 0;
     
     // Category-based priority expectations
@@ -309,7 +309,9 @@ export class PriorityTasksCommand {
     return false;
   }
 
-  private needsMetadataUpdate(priorityData: any): boolean {
+  private needsMetadataUpdate(priorityData: { 
+    metadata?: { description?: string; tags?: string[] } 
+  }): boolean {
     const metadata = priorityData.metadata || {};
     
     // Check for essential metadata fields
@@ -365,7 +367,7 @@ export class PriorityTasksCommand {
     console.log('\n📊 Summary by Task Type:');
     const taskCounts = this.countByTaskType(tasks);
     Object.entries(taskCounts).forEach(([type, count]) => {
-      console.log(`  ${this.getTaskEmoji(type as any)} ${this.getTaskTypeLabel(type as any)}: ${count}`);
+      console.log(`  ${this.getTaskEmoji(type)} ${this.getTaskTypeLabel(type)}: ${count}`);
     });
 
     console.log('\n🔧 Recommended Actions:');
@@ -416,8 +418,8 @@ export class PriorityTasksCommand {
             console.log(`⚠️  Cannot auto-fix ${task.taskType} for ${task.documentId}`);
             console.log(`   Please fix manually: ${task.recommendation}`);
         }
-      } catch (error: any) {
-        console.error(`❌ Failed to fix ${task.documentId}: ${error.message}`);
+      } catch (error: unknown) {
+        console.error(`❌ Failed to fix ${task.documentId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
         failed++;
       }
     }

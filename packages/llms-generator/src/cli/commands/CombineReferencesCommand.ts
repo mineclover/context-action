@@ -197,12 +197,12 @@ export class CombineReferencesCommand {
 
       const content = await fs.readFile(fullPath, 'utf-8');
       return content;
-    } catch (error) {
+    } catch {
       return null;
     }
   }
 
-  private parseReferences(content: string, sourcePath: string): ParsedReference[] {
+  private parseReferences(content: string, _sourcePath: string): ParsedReference[] {
     const references: ParsedReference[] = [];
     
     // Parse markdown links: [text](url)
@@ -312,7 +312,7 @@ export class CombineReferencesCommand {
         } catch {
           resolvedRef.exists = false;
         }
-      } catch (error) {
+      } catch {
         resolvedRef.exists = false;
       }
 
@@ -354,7 +354,7 @@ export class CombineReferencesCommand {
               loadedNested.push(...deeperRefs);
             }
           }
-        } catch (error) {
+        } catch {
           // Skip errors in nested processing
         }
       }
@@ -389,8 +389,6 @@ export class CombineReferencesCommand {
     
     references.forEach((ref, index) => {
       if (ref.content) {
-        const filename = ref.resolvedPath ? path.basename(ref.resolvedPath, '.md') : ref.url;
-        
         combinedContent += `### ${index + 1}. ${ref.text}\n\n`;
         if (options.pattern !== 'minimal') {
           combinedContent += `**Source**: \`${ref.url}\`\n\n`;

@@ -387,7 +387,7 @@ export class PriorityManagerCommand {
             files.push(fullPath);
           }
         }
-      } catch (error) {
+      } catch {
         // Directory doesn't exist or can't be read
       }
     }
@@ -608,9 +608,9 @@ export class PriorityManagerCommand {
     // 1. Has priority as a number (not an object)
     // 2. Has category at root level (not in metadata object)  
     // 3. Missing metadata structure or has old document structure
-    const hasNumericPriority = typeof (priority as any).priority === 'number';
-    const hasOldStructure = !!(priority as any).category && !(priority as any).metadata;
-    const hasDocumentField = 'document' in priority && !!(priority as any).document;
+    const hasNumericPriority = priority && typeof (priority as Record<string, unknown>).priority === 'number';
+    const hasOldStructure = priority && !!(priority as Record<string, unknown>).category && !(priority as Record<string, unknown>).metadata;
+    const hasDocumentField = priority && 'document' in priority && !!(priority as Record<string, unknown>).document;
     
     return hasNumericPriority || hasOldStructure || hasDocumentField;
   }

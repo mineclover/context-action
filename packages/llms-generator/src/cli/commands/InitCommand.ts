@@ -144,7 +144,7 @@ export class InitCommand {
           files.push(fullPath);
         }
       }
-    } catch (error) {
+    } catch {
       // Ignore directories we can't read
     }
     

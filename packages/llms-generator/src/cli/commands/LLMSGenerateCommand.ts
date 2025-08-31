@@ -202,7 +202,7 @@ export class LLMSGenerateCommand {
               }
             };
             documents.push(document);
-          } catch (priorityError) {
+          } catch {
             // Fallback to first template file if priority.json doesn't exist
             if (templateFiles.length > 0) {
               const templateFile = templateFiles[0];
@@ -260,7 +260,11 @@ export class LLMSGenerateCommand {
       const documentDir = path.dirname(filePath);
       const priorityPath = path.join(documentDir, 'priority.json');
       
-      let priorityData: any = null;
+      let priorityData: { 
+        document?: { category?: string; source_path?: string; title?: string }; 
+        priority?: { score?: number; tier?: string }; 
+        purpose?: { primary_goal?: string };
+      } | null = null;
       try {
         const priorityContent = await fs.readFile(priorityPath, 'utf-8');
         priorityData = JSON.parse(priorityContent);
@@ -346,7 +350,10 @@ export class LLMSGenerateCommand {
   private async extractFromSourceDocument(
     sourcePath: string, 
     characterLimit: number, 
-    priorityData: any
+    priorityData: { 
+      document?: { title?: string }; 
+      purpose?: { primary_goal?: string }; 
+    } | null
   ): Promise<string | null> {
     try {
       // Build full path to source document
@@ -384,7 +391,7 @@ export class LLMSGenerateCommand {
     }
   }
 
-  private generateContentFromStrategy(content: string, strategy: any, characterLimit: number): string {
+  private generateContentFromStrategy(content: string, _strategy: unknown, characterLimit: number): string {
     // Remove frontmatter and basic cleanup
     const cleanContent = content
       .replace(/^---[\s\S]*?---\n/, '') // Remove frontmatter
@@ -434,7 +441,10 @@ export class LLMSGenerateCommand {
       : truncated + '...';
   }
 
-  private isPriorityDataValid(priorityData: any): boolean {
+  private isPriorityDataValid(priorityData: { 
+    document?: { source_path?: string }; 
+    purpose?: { primary_goal?: string }; 
+  } | null): boolean {
     // Check if priority.json contains actual data or just template placeholders
     if (!priorityData.document?.source_path) return false;
     
@@ -477,7 +487,7 @@ export class LLMSGenerateCommand {
     return true;
   }
 
-  private cleanPriorityData(priorityData: any): any {
+  private cleanPriorityData(priorityData: Record<string, unknown>): Record<string, unknown> {
     // Create a cleaned copy of priority data, removing template values
     const cleaned = JSON.parse(JSON.stringify(priorityData));
     
@@ -622,7 +632,7 @@ export class LLMSGenerateCommand {
               return priority.tags.secondary.includes(options.category);
             }
           }
-        } catch (error) {
+        } catch {
           // Fallback to primary category only
         }
 
@@ -872,7 +882,7 @@ export class LLMSGenerateCommand {
     return content;
   }
 
-  private generateOriginContent(documents: DocumentContent[], options: LLMSGenerateOptions): string {
+  private generateOriginContent(documents: DocumentContent[], _options: LLMSGenerateOptions): string {
     let content = '';
     
     // Group documents by their original source path
@@ -883,7 +893,10 @@ export class LLMSGenerateCommand {
       if (!documentsBySource.has(sourcePath)) {
         documentsBySource.set(sourcePath, []);
       }
-      documentsBySource.get(sourcePath)!.push(doc);
+      const sourceDocuments = documentsBySource.get(sourcePath);
+      if (sourceDocuments) {
+        sourceDocuments.push(doc);
+      }
     });
 
     // Process each unique source document once
@@ -905,7 +918,7 @@ export class LLMSGenerateCommand {
           // Fallback to processed content without metadata
           content += bestDoc.content;
         }
-      } catch (error) {
+      } catch {
         // Fallback to processed content without metadata
         content += bestDoc.content;
       }
@@ -940,7 +953,7 @@ export class LLMSGenerateCommand {
       // Remove frontmatter if present
       const { content } = matter(fileContent);
       return content;
-    } catch (error) {
+    } catch {
       return null;
     }
   }
