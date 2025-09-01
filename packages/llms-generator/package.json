@@ -97,7 +97,7 @@
     "data/config-schema.json",
     "README.md",
     "CHANGELOG.md",
-    "USAGE_EXAMPLES.md",
-    "CONFIG_EXAMPLES.md"
+    "CONFIG.md",
+    "CLI_SETUP_GUIDE.md"
   ]
 }

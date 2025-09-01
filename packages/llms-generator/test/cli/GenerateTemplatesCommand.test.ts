@@ -573,11 +573,11 @@ character_limit: 100
         'utf-8'
       );
 
-      // Should have different content hints
-      expect(template100).toContain('100 character');
-      expect(template1000).toContain('1000 character');
-      expect(template100).toContain('summary');
-      expect(template1000).toContain('summary');
+      // Should have proper frontmatter with character limits
+      expect(template100).toContain('character_limit: 100');
+      expect(template1000).toContain('character_limit: 1000');
+      expect(template100).toContain('document_id: guide--getting-started');
+      expect(template1000).toContain('document_id: guide--getting-started');
     });
   });
 });
