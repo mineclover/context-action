@@ -1,480 +1,277 @@
-# Interface-Specific Documentation Todo List
+# Interface Documentation Guide
 
-Comprehensive todo list for creating interface-specific documentation based on TypeDoc generated API references.
+Core functionality documentation for TypeDoc generated API references.
 
-## 📋 Overview
+## 📋 Essential Structure
 
-This todo list provides a systematic approach to documenting each interface with appropriate sections and cross-references to the TypeDoc generated API documentation.
+Streamlined documentation focusing on functionality, usage patterns, and TypeDoc links.
 
 ## 🎯 @context-action/core Interface Documentation
 
-### 📚 Classes Documentation
+### 📚 Classes
 
-#### ✅ ActionRegister Class Documentation
-- [ ] **Overview Section**: Core pipeline management capabilities
-- [ ] **Constructor Documentation**: Configuration options and setup
-- [ ] **Method Documentation**: 
-  - [ ] `registerHandler()` - Handler registration patterns
-  - [ ] `unregisterHandler()` - Cleanup patterns
-  - [ ] `dispatch()` - Action dispatching
-  - [ ] `getAllHandlers()` - Handler introspection
-- [ ] **Usage Patterns**: Basic and advanced pipeline setup
-- [ ] **Performance Considerations**: Handler optimization strategies
-- [ ] **Error Handling**: Pipeline error management
-- [ ] **Integration Examples**: Framework integration patterns
-- [ ] **Reference Links**: Link to [`ActionRegister.md`](./core/src/classes/ActionRegister.md)
+#### ActionRegister
+- [ ] **Core Methods**: `registerHandler()`, `dispatch()`, `unregisterHandler()`
+- [ ] **Usage**: Pipeline setup, handler priority, execution modes
+- [ ] **Link**: [`ActionRegister.md`](./core/src/classes/ActionRegister.md)
 
-#### ✅ ReactActionError Class Documentation  
-- [ ] **Overview Section**: Action-specific error handling
-- [ ] **Constructor Documentation**: Error creation patterns
-- [ ] **Property Documentation**:
-  - [ ] `actionType` - Action identification
-  - [ ] `context` - Error context data
-  - [ ] `originalError` - Source error preservation
-- [ ] **Method Documentation**: Error handling utilities
-- [ ] **Usage Patterns**: Error creation and handling
-- [ ] **Integration Examples**: Pipeline error integration
-- [ ] **Reference Links**: Link to [`ReactActionError.md`](./core/src/classes/ReactActionError.md)
+#### ReactActionError  
+- [ ] **Properties**: `actionType`, `context`, `originalError`
+- [ ] **Usage**: Error handling, type checking with `isReactActionError()`
+- [ ] **Link**: [`ReactActionError.md`](./core/src/classes/ReactActionError.md)
 
-### 🔌 Interfaces Documentation
+### 🔌 Interfaces
 
-#### ✅ ActionPayloadMap Interface Documentation
-- [ ] **Overview Section**: Type-safe action definitions
-- [ ] **Interface Structure**: Payload map patterns
-- [ ] **Usage Patterns**: 
-  - [ ] Basic action definitions
-  - [ ] Complex payload structures
-  - [ ] Void actions
-  - [ ] Generic payload patterns
-- [ ] **Type Safety Benefits**: TypeScript strict mode compliance
-- [ ] **Extension Patterns**: Interface inheritance
-- [ ] **Best Practices**: Naming and organization
-- [ ] **Reference Links**: Link to [`ActionPayloadMap.md`](./core/src/interfaces/ActionPayloadMap.md)
+#### ActionPayloadMap
+- [ ] **Structure**: `{ actionType: PayloadType }` type mapping
+- [ ] **Usage**: Action type definitions, extends pattern
+- [ ] **Link**: [`ActionPayloadMap.md`](./core/src/interfaces/ActionPayloadMap.md)
 
-#### ✅ PipelineController Interface Documentation
-- [ ] **Overview Section**: Action execution control
-- [ ] **Method Documentation**:
-  - [ ] `abort()` - Execution cancellation
-  - [ ] `getContext()` - Execution context access
-  - [ ] `setResult()` - Result setting
-- [ ] **Usage Patterns**: 
-  - [ ] Handler control patterns
-  - [ ] Error handling with controllers
-  - [ ] Result collection strategies
-- [ ] **Integration Examples**: Handler implementation patterns
-- [ ] **Reference Links**: Link to [`PipelineController.md`](./core/src/interfaces/PipelineController.md)
+#### PipelineController  
+- [ ] **Methods**: `abort()`, `getContext()`, `setResult()`
+- [ ] **Usage**: Handler execution control, error handling
+- [ ] **Link**: [`PipelineController.md`](./core/src/interfaces/PipelineController.md)
 
-#### ✅ HandlerConfig Interface Documentation
-- [ ] **Overview Section**: Handler registration configuration
-- [ ] **Property Documentation**:
-  - [ ] `priority` - Priority-based ordering
-  - [ ] `id` - Handler identification
-  - [ ] `metadata` - Handler metadata
-- [ ] **Usage Patterns**:
-  - [ ] Priority management
-  - [ ] Handler organization
-  - [ ] Metadata utilization
-- [ ] **Best Practices**: Configuration strategies
-- [ ] **Reference Links**: Link to [`HandlerConfig.md`](./core/src/interfaces/HandlerConfig.md)
+#### HandlerConfig
+- [ ] **Properties**: `priority`, `id`, `metadata`
+- [ ] **Usage**: Handler registration, priority ordering
+- [ ] **Link**: [`HandlerConfig.md`](./core/src/interfaces/HandlerConfig.md)
 
-#### ✅ ActionRegisterConfig Interface Documentation
-- [ ] **Overview Section**: ActionRegister configuration
-- [ ] **Property Documentation**: Configuration options
-- [ ] **Usage Patterns**: Register initialization
-- [ ] **Performance Tuning**: Configuration optimization
-- [ ] **Reference Links**: Link to [`ActionRegisterConfig.md`](./core/src/interfaces/ActionRegisterConfig.md)
+#### ActionRegisterConfig
+- [ ] **Properties**: Register initialization options
+- [ ] **Usage**: ActionRegister configuration, performance tuning
+- [ ] **Link**: [`ActionRegisterConfig.md`](./core/src/interfaces/ActionRegisterConfig.md)
 
-#### ✅ DispatchOptions Interface Documentation
-- [ ] **Overview Section**: Dynamic dispatch configuration
-- [ ] **Property Documentation**: Dispatch options
-- [ ] **Usage Patterns**: Per-action configuration
-- [ ] **Integration Examples**: Dynamic behavior patterns
-- [ ] **Reference Links**: Link to [`DispatchOptions.md`](./core/src/interfaces/DispatchOptions.md)
+#### DispatchOptions
+- [ ] **Properties**: Dynamic dispatch configuration
+- [ ] **Usage**: Per-action behavior overrides
+- [ ] **Link**: [`DispatchOptions.md`](./core/src/interfaces/DispatchOptions.md)
 
-#### ✅ ExecutionResult Interface Documentation
-- [ ] **Overview Section**: Action execution results
-- [ ] **Property Documentation**: Result structure
-- [ ] **Usage Patterns**: Result processing
-- [ ] **Error Handling**: Result error management
-- [ ] **Reference Links**: Link to [`ExecutionResult.md`](./core/src/interfaces/ExecutionResult.md)
+#### ExecutionResult
+- [ ] **Structure**: Success/error status, results collection
+- [ ] **Usage**: Action execution outcomes, error handling
+- [ ] **Link**: [`ExecutionResult.md`](./core/src/interfaces/ExecutionResult.md)
 
-#### ✅ ActionDispatcher Interface Documentation
-- [ ] **Overview Section**: Action dispatching interface
-- [ ] **Method Documentation**: Dispatcher methods
-- [ ] **Usage Patterns**: Dispatcher implementation
-- [ ] **Type Safety**: Type-safe dispatching
-- [ ] **Reference Links**: Link to [`ActionDispatcher.md`](./core/src/interfaces/ActionDispatcher.md)
+#### ActionDispatcher
+- [ ] **Methods**: Type-safe action dispatching interface
+- [ ] **Usage**: Dispatcher implementation contracts
+- [ ] **Link**: [`ActionDispatcher.md`](./core/src/interfaces/ActionDispatcher.md)
 
-### 🏷️ Type Aliases Documentation
+### 🏷️ Type Aliases
 
-#### ✅ ActionHandler Type Documentation
-- [ ] **Overview Section**: Handler function type
-- [ ] **Function Signature**: Parameter and return types
-- [ ] **Usage Patterns**:
-  - [ ] Synchronous handlers
-  - [ ] Asynchronous handlers
-  - [ ] Error handling in handlers
-- [ ] **Implementation Examples**: Common handler patterns
-- [ ] **Reference Links**: Link to [`ActionHandler.md`](./core/src/type-aliases/ActionHandler.md)
+#### ActionHandler
+- [ ] **Type**: `(payload, controller) => Promise<any> | any`
+- [ ] **Usage**: Handler implementation, async/sync patterns
+- [ ] **Link**: [`ActionHandler.md`](./core/src/type-aliases/ActionHandler.md)
 
-#### ✅ ExecutionMode Type Documentation
-- [ ] **Overview Section**: Execution mode types
-- [ ] **Mode Documentation**:
-  - [ ] `sequential` - Sequential execution
-  - [ ] `parallel` - Parallel execution
-  - [ ] `race` - Race execution
-- [ ] **Usage Patterns**: Mode selection strategies
-- [ ] **Performance Implications**: Mode comparison
-- [ ] **Reference Links**: Link to [`ExecutionMode.md`](./core/src/type-aliases/ExecutionMode.md)
+#### ExecutionMode
+- [ ] **Values**: `'sequential' | 'parallel' | 'race'`
+- [ ] **Usage**: Handler execution strategy selection
+- [ ] **Link**: [`ExecutionMode.md`](./core/src/type-aliases/ExecutionMode.md)
 
-#### ✅ UnregisterFunction Type Documentation
-- [ ] **Overview Section**: Handler cleanup function
-- [ ] **Function Signature**: Cleanup function type
-- [ ] **Usage Patterns**: Handler lifecycle management
-- [ ] **Memory Management**: Cleanup strategies
-- [ ] **Reference Links**: Link to [`UnregisterFunction.md`](./core/src/type-aliases/UnregisterFunction.md)
+#### UnregisterFunction  
+- [ ] **Type**: `() => void`
+- [ ] **Usage**: Handler cleanup, memory management
+- [ ] **Link**: [`UnregisterFunction.md`](./core/src/type-aliases/UnregisterFunction.md)
 
-### ⚙️ Functions Documentation
+### ⚙️ Functions
 
-#### ✅ Execution Functions Documentation
+#### Execution Functions
+##### executeSequential
+- [ ] **Signature**: `(handlers, payload, options) => Promise<ExecutionResult>`
+- [ ] **Usage**: Priority-based handler execution
+- [ ] **Link**: [`executeSequential.md`](./core/src/functions/executeSequential.md)
 
-##### executeSequential Function Documentation
-- [ ] **Overview Section**: Sequential handler execution
-- [ ] **Function Signature**: Parameters and return type
-- [ ] **Usage Patterns**: Sequential execution scenarios
-- [ ] **Performance Considerations**: When to use sequential
-- [ ] **Integration Examples**: Pipeline integration
-- [ ] **Reference Links**: Link to [`executeSequential.md`](./core/src/functions/executeSequential.md)
+##### executeParallel  
+- [ ] **Signature**: `(handlers, payload, options) => Promise<ExecutionResult>`
+- [ ] **Usage**: Concurrent handler execution, performance optimization
+- [ ] **Link**: [`executeParallel.md`](./core/src/functions/executeParallel.md)
 
-##### executeParallel Function Documentation
-- [ ] **Overview Section**: Parallel handler execution
-- [ ] **Function Signature**: Parameters and return type
-- [ ] **Usage Patterns**: Parallel execution scenarios
-- [ ] **Performance Benefits**: Parallel execution advantages
-- [ ] **Error Handling**: Parallel error management
-- [ ] **Reference Links**: Link to [`executeParallel.md`](./core/src/functions/executeParallel.md)
+##### executeRace
+- [ ] **Signature**: `(handlers, payload, options) => Promise<ExecutionResult>`
+- [ ] **Usage**: First successful result, fallback patterns
+- [ ] **Link**: [`executeRace.md`](./core/src/functions/executeRace.md)
 
-##### executeRace Function Documentation
-- [ ] **Overview Section**: Race-based execution
-- [ ] **Function Signature**: Parameters and return type
-- [ ] **Usage Patterns**: Race execution scenarios
-- [ ] **Use Cases**: Alternative strategy execution
-- [ ] **Reference Links**: Link to [`executeRace.md`](./core/src/functions/executeRace.md)
+#### Factory Functions  
+##### createActionHandler
+- [ ] **Signature**: `(handler, config?) => HandlerConfig`
+- [ ] **Usage**: Type-safe handler creation
+- [ ] **Link**: [`createActionHandler.md`](./core/src/functions/createActionHandler.md)
 
-#### ✅ Factory Functions Documentation
+##### createReactHandlerConfig
+- [ ] **Signature**: `(component, config) => HandlerConfig`
+- [ ] **Usage**: React integration, component lifecycle
+- [ ] **Link**: [`createReactHandlerConfig.md`](./core/src/functions/createReactHandlerConfig.md)
 
-##### createActionHandler Function Documentation
-- [ ] **Overview Section**: Action handler creation
-- [ ] **Function Signature**: Parameters and return type
-- [ ] **Usage Patterns**: Handler factory patterns
-- [ ] **Type Safety**: Handler type enforcement
-- [ ] **Reference Links**: Link to [`createActionHandler.md`](./core/src/functions/createActionHandler.md)
+##### createReactDispatcher
+- [ ] **Signature**: `(register, options?) => ActionDispatcher`
+- [ ] **Usage**: React-optimized dispatchers
+- [ ] **Link**: [`createReactDispatcher.md`](./core/src/functions/createReactDispatcher.md)
 
-##### createReactHandlerConfig Function Documentation
-- [ ] **Overview Section**: React handler configuration
-- [ ] **Function Signature**: Parameters and return type
-- [ ] **Usage Patterns**: React integration patterns
-- [ ] **Component Integration**: React lifecycle integration
-- [ ] **Reference Links**: Link to [`createReactHandlerConfig.md`](./core/src/functions/createReactHandlerConfig.md)
+#### Utilities
+##### isReactActionError
+- [ ] **Signature**: `(error: any) => error is ReactActionError`
+- [ ] **Usage**: Type guard for error handling
+- [ ] **Link**: [`isReactActionError.md`](./core/src/functions/isReactActionError.md)
 
-##### createReactDispatcher Function Documentation
-- [ ] **Overview Section**: React dispatcher creation
-- [ ] **Function Signature**: Parameters and return type
-- [ ] **Usage Patterns**: React dispatcher patterns
-- [ ] **Hook Integration**: React hook patterns
-- [ ] **Reference Links**: Link to [`createReactDispatcher.md`](./core/src/functions/createReactDispatcher.md)
+### 🛠️ Variables
 
-#### ✅ Utility Functions Documentation
+#### ReactDevUtils
+- [ ] **Type**: Development utilities object
+- [ ] **Usage**: Debug tools, React development patterns
+- [ ] **Link**: [`ReactDevUtils.md`](./core/src/variables/ReactDevUtils.md)
 
-##### isReactActionError Function Documentation
-- [ ] **Overview Section**: Error type checking
-- [ ] **Function Signature**: Parameters and return type
-- [ ] **Usage Patterns**: Error handling branching
-- [ ] **Type Safety**: Type guard patterns
-- [ ] **Reference Links**: Link to [`isReactActionError.md`](./core/src/functions/isReactActionError.md)
+## ⚛️ @context-action/react
 
-### 🛠️ Variables Documentation
+### 📚 Classes
 
-#### ✅ ReactDevUtils Variable Documentation
-- [ ] **Overview Section**: Development utilities
-- [ ] **Utility Documentation**: Available development tools
-- [ ] **Usage Patterns**: Development debugging
-- [ ] **Integration Examples**: React development patterns
-- [ ] **Reference Links**: Link to [`ReactDevUtils.md`](./core/src/variables/ReactDevUtils.md)
+#### Store
+- [ ] **Methods**: `getValue()`, `setValue()`, `update()`, `subscribe()`, `snapshot()`
+- [ ] **Usage**: Reactive state, subscriptions, validation
+- [ ] **Link**: [`Store.md`](./react/src/classes/Store.md)
 
-## ⚛️ @context-action/react Interface Documentation
+#### StoreManager
+- [ ] **Methods**: `registerStore()`, `getStore()`, `getAllStores()`, `clearStores()`
+- [ ] **Usage**: Store registry, lifecycle management
+- [ ] **Link**: [`StoreManager.md`](./react/src/classes/StoreManager.md)
 
-### 📚 Classes Documentation
+#### StoreErrorBoundary
+- [ ] **Props**: Error boundary configuration
+- [ ] **Usage**: Store error isolation, recovery strategies
+- [ ] **Link**: [`StoreErrorBoundary.md`](./react/src/classes/StoreErrorBoundary.md)
 
-#### ✅ Store Class Documentation
-- [ ] **Overview Section**: Reactive store implementation
-- [ ] **Constructor Documentation**: Store creation patterns
-- [ ] **Method Documentation**:
-  - [ ] `getValue()` - Value retrieval
-  - [ ] `setValue()` - Value setting
-  - [ ] `update()` - Value updates
-  - [ ] `subscribe()` - Subscription management
-  - [ ] `snapshot()` - State snapshots
-- [ ] **Usage Patterns**: Store operation patterns
-- [ ] **Performance Optimization**: Store strategies
-- [ ] **Validation Patterns**: Store validation
-- [ ] **Reference Links**: Link to [`Store.md`](./react/src/classes/Store.md)
+### 🔌 Interfaces
 
-#### ✅ StoreManager Class Documentation
-- [ ] **Overview Section**: Store registry management
-- [ ] **Method Documentation**:
-  - [ ] `registerStore()` - Store registration
-  - [ ] `getStore()` - Store retrieval
-  - [ ] `getAllStores()` - Store enumeration
-  - [ ] `clearStores()` - Store cleanup
-- [ ] **Usage Patterns**: Registry management
-- [ ] **Isolation Patterns**: Registry isolation
-- [ ] **Reference Links**: Link to [`StoreManager.md`](./react/src/classes/StoreManager.md)
+#### Action Context
+##### ActionContextConfig
+- [ ] **Properties**: Action context configuration options
+- [ ] **Usage**: Context customization, pipeline configuration
+- [ ] **Link**: [`ActionContextConfig.md`](./react/src/interfaces/ActionContextConfig.md)
 
-#### ✅ StoreErrorBoundary Class Documentation
-- [ ] **Overview Section**: React error boundary for stores
-- [ ] **Component Usage**: Error boundary implementation
-- [ ] **Props Documentation**: Configuration options
-- [ ] **Error Handling**: Error recovery strategies
-- [ ] **Integration Patterns**: Store safety patterns
-- [ ] **Reference Links**: Link to [`StoreErrorBoundary.md`](./react/src/classes/StoreErrorBoundary.md)
+##### ActionContextType
+- [ ] **Structure**: Action context type definition
+- [ ] **Usage**: Type-safe context validation
+- [ ] **Link**: [`ActionContextType.md`](./react/src/interfaces/ActionContextType.md)
 
-### 🔌 Interfaces Documentation
+##### ActionContextReturn
+- [ ] **Properties**: `Provider`, `useActionDispatch`, `useActionHandler`
+- [ ] **Usage**: Hook implementation, context patterns
+- [ ] **Link**: [`ActionContextReturn.md`](./react/src/interfaces/ActionContextReturn.md)
 
-#### ✅ Action Context Interfaces
+#### Ref Context
+##### RefContextReturn
+- [ ] **Properties**: Provider, ref handler hooks
+- [ ] **Usage**: Direct DOM manipulation, zero rerenders
+- [ ] **Link**: [`RefContextReturn.md`](./react/src/interfaces/RefContextReturn.md)
 
-##### ActionContextConfig Interface Documentation
-- [ ] **Overview Section**: Action context configuration
-- [ ] **Property Documentation**: Configuration options
-- [ ] **Usage Patterns**: Context customization
-- [ ] **Integration Examples**: Pipeline configuration
-- [ ] **Reference Links**: Link to [`ActionContextConfig.md`](./react/src/interfaces/ActionContextConfig.md)
+##### CreateRefContextOptions
+- [ ] **Properties**: Ref context configuration
+- [ ] **Usage**: Performance tuning, context customization
+- [ ] **Link**: [`CreateRefContextOptions.md`](./react/src/interfaces/CreateRefContextOptions.md)
 
-##### ActionContextType Interface Documentation  
-- [ ] **Overview Section**: Action context type definition
-- [ ] **Type Structure**: Context type validation
-- [ ] **Usage Patterns**: Type-safe context usage
-- [ ] **Reference Links**: Link to [`ActionContextType.md`](./react/src/interfaces/ActionContextType.md)
+##### RefTarget
+- [ ] **Properties**: `target`, `isMounted`, `setRef`
+- [ ] **Usage**: Ref management, type-safe element operations
+- [ ] **Link**: [`RefTarget.md`](./react/src/interfaces/RefTarget.md)
 
-##### ActionContextReturn Interface Documentation
-- [ ] **Overview Section**: Action context return type
-- [ ] **Property Documentation**:
-  - [ ] `Provider` - Context provider component
-  - [ ] `useActionDispatch` - Dispatch hook
-  - [ ] `useActionHandler` - Handler registration hook
-- [ ] **Usage Patterns**: Hook implementation patterns
-- [ ] **Integration Examples**: Context usage patterns
-- [ ] **Reference Links**: Link to [`ActionContextReturn.md`](./react/src/interfaces/ActionContextReturn.md)
+##### RefOperationResult
+- [ ] **Structure**: Operation result status and data
+- [ ] **Usage**: Operation result handling, error management
+- [ ] **Link**: [`RefOperationResult.md`](./react/src/interfaces/RefOperationResult.md)
 
-#### ✅ Ref Context Interfaces
+##### RefOperationOptions
+- [ ] **Properties**: Operation configuration options
+- [ ] **Usage**: Operation customization
+- [ ] **Link**: [`RefOperationOptions.md`](./react/src/interfaces/RefOperationOptions.md)
 
-##### RefContextReturn Interface Documentation
-- [ ] **Overview Section**: Ref context return type
-- [ ] **Property Documentation**: Available hooks and utilities
-- [ ] **Usage Patterns**: Direct DOM manipulation
-- [ ] **Performance Benefits**: Zero-rerender patterns
-- [ ] **Reference Links**: Link to [`RefContextReturn.md`](./react/src/interfaces/RefContextReturn.md)
+#### Store Interfaces
+##### StoreErrorBoundaryProps
+- [ ] **Properties**: Error boundary configuration
+- [ ] **Usage**: Error boundary setup, store error handling
+- [ ] **Link**: [`StoreErrorBoundaryProps.md`](./react/src/interfaces/StoreErrorBoundaryProps.md)
 
-##### CreateRefContextOptions Interface Documentation
-- [ ] **Overview Section**: Ref context creation options
-- [ ] **Property Documentation**: Configuration options
-- [ ] **Usage Patterns**: Context customization
-- [ ] **Performance Tuning**: Configuration optimization
-- [ ] **Reference Links**: Link to [`CreateRefContextOptions.md`](./react/src/interfaces/CreateRefContextOptions.md)
+##### Snapshot
+- [ ] **Structure**: Store snapshot data structure
+- [ ] **Usage**: State debugging, rollback functionality
+- [ ] **Link**: [`Snapshot.md`](./react/src/interfaces/Snapshot.md)
 
-##### RefTarget Interface Documentation
-- [ ] **Overview Section**: Ref target interface
-- [ ] **Property Documentation**:
-  - [ ] `target` - Element access
-  - [ ] `isMounted` - Mount status
-  - [ ] `setRef` - Ref callback
-- [ ] **Usage Patterns**: Ref management patterns
-- [ ] **Type Safety**: Type-safe element operations
-- [ ] **Reference Links**: Link to [`RefTarget.md`](./react/src/interfaces/RefTarget.md)
+##### IStore
+- [ ] **Methods**: Store interface contract methods
+- [ ] **Usage**: Store implementation contracts, custom stores
+- [ ] **Link**: [`IStore.md`](./react/src/interfaces/IStore.md)
 
-##### RefOperationResult Interface Documentation
-- [ ] **Overview Section**: Ref operation results
-- [ ] **Property Documentation**: Result structure
-- [ ] **Usage Patterns**: Operation result handling
-- [ ] **Error Handling**: Operation error management
-- [ ] **Reference Links**: Link to [`RefOperationResult.md`](./react/src/interfaces/RefOperationResult.md)
+##### StoreConfig
+- [ ] **Properties**: `initialValue`, `validator`, `strategy`
+- [ ] **Usage**: Store initialization, validation, performance tuning
+- [ ] **Link**: [`StoreConfig.md`](./react/src/interfaces/StoreConfig.md)
 
-##### RefOperationOptions Interface Documentation
-- [ ] **Overview Section**: Ref operation configuration
-- [ ] **Property Documentation**: Operation options
-- [ ] **Usage Patterns**: Operation customization
-- [ ] **Reference Links**: Link to [`RefOperationOptions.md`](./react/src/interfaces/RefOperationOptions.md)
+### 🏷️ Type Aliases
 
-#### ✅ Store Interfaces
+#### InitialStores
+- [ ] **Structure**: Store definition mapping types
+- [ ] **Usage**: Store context creation, type inference
+- [ ] **Link**: [`InitialStores.md`](./react/src/type-aliases/InitialStores.md)
 
-##### StoreErrorBoundaryProps Interface Documentation
-- [ ] **Overview Section**: Error boundary props
-- [ ] **Property Documentation**: Props configuration
-- [ ] **Usage Patterns**: Error boundary setup
-- [ ] **Integration Examples**: Store error handling
-- [ ] **Reference Links**: Link to [`StoreErrorBoundaryProps.md`](./react/src/interfaces/StoreErrorBoundaryProps.md)
+### ⚙️ Functions
 
-##### Snapshot Interface Documentation
-- [ ] **Overview Section**: Store snapshot interface
-- [ ] **Property Documentation**: Snapshot structure
-- [ ] **Usage Patterns**: State debugging and rollback
-- [ ] **Development Tools**: Debug utilities
-- [ ] **Reference Links**: Link to [`Snapshot.md`](./react/src/interfaces/Snapshot.md)
+#### Context Creation (Main Patterns)
+##### createActionContext
+- [ ] **Signature**: `<T>(name: string, config?) => ActionContextReturn<T>`
+- [ ] **Usage**: Action-Only pattern, business logic separation
+- [ ] **Link**: [`createActionContext.md`](./react/src/functions/createActionContext.md)
 
-##### IStore Interface Documentation
-- [ ] **Overview Section**: Store interface contract
-- [ ] **Method Documentation**: Store interface methods
-- [ ] **Usage Patterns**: Store implementation contracts
-- [ ] **Custom Implementations**: Store interface compliance
-- [ ] **Reference Links**: Link to [`IStore.md`](./react/src/interfaces/IStore.md)
+##### createStoreContext
+- [ ] **Signature**: `(name, stores) => StoreContextReturn` (2 overloads)
+- [ ] **Usage**: Store-Only pattern, type inference, HOC patterns
+- [ ] **Link**: [`createStoreContext.md`](./react/src/functions/createStoreContext.md)
 
-##### StoreConfig Interface Documentation
-- [ ] **Overview Section**: Store configuration options
-- [ ] **Property Documentation**:
-  - [ ] `initialValue` - Initial state
-  - [ ] `validator` - Validation functions
-  - [ ] `strategy` - Update strategies
-- [ ] **Usage Patterns**: Store initialization
-- [ ] **Validation Patterns**: Store validation setup
-- [ ] **Performance Tuning**: Configuration optimization
-- [ ] **Reference Links**: Link to [`StoreConfig.md`](./react/src/interfaces/StoreConfig.md)
+##### createRefContext
+- [ ] **Signature**: `<T>(name: string, options?) => RefContextReturn<T>`
+- [ ] **Usage**: RefContext pattern, zero rerenders, DOM manipulation
+- [ ] **Link**: [`createRefContext.md`](./react/src/functions/createRefContext.md)
 
-### 🏷️ Type Aliases Documentation
+#### Store Functions
+##### createStore
+- [ ] **Signature**: `<T>(config: StoreConfig<T>) => Store<T>`
+- [ ] **Usage**: Manual store creation, custom implementations
+- [ ] **Link**: [`createStore.md`](./react/src/functions/createStore.md)
 
-#### ✅ InitialStores Type Documentation
-- [ ] **Overview Section**: Initial store type definitions
-- [ ] **Type Structure**: Store definition patterns
-- [ ] **Usage Patterns**: Store context creation
-- [ ] **Type Inference**: Type inference patterns
-- [ ] **Reference Links**: Link to [`InitialStores.md`](./react/src/type-aliases/InitialStores.md)
+##### useStoreValue
+- [ ] **Signature**: `<T>(store: Store<T>) => T`
+- [ ] **Usage**: Reactive subscription, component data binding
+- [ ] **Link**: [`useStoreValue.md`](./react/src/functions/useStoreValue.md)
 
-### ⚙️ Functions Documentation
+##### useStoreSelector
+- [ ] **Signature**: `<T, R>(store: Store<T>, selector: (value: T) => R) => R`
+- [ ] **Usage**: Selective subscription, performance optimization
+- [ ] **Link**: [`useStoreSelector.md`](./react/src/functions/useStoreSelector.md)
 
-#### ✅ Context Creation Functions
+## 📝 Documentation Template
 
-##### createActionContext Function Documentation
-- [ ] **Overview Section**: Action-only pattern creation
-- [ ] **Function Signature**: Parameters and return type
-- [ ] **Usage Patterns**: Action-only implementation
-- [ ] **Pattern Benefits**: Action pattern advantages
-- [ ] **Integration Examples**: Business logic separation
-- [ ] **Memory Management**: Action pattern optimization
-- [ ] **Reference Links**: Link to [`createActionContext.md`](./react/src/functions/createActionContext.md)
-
-##### createStoreContext Function Documentation  
-- [ ] **Overview Section**: Store-only pattern creation
-- [ ] **Function Signature**: Overload documentation
-- [ ] **Usage Patterns**:
-  - [ ] Type inference patterns
-  - [ ] Direct value support
-  - [ ] Configuration object support
-- [ ] **Pattern Benefits**: Store pattern advantages
-- [ ] **HOC Patterns**: withProvider implementation
-- [ ] **Type Safety**: Type inference optimization
-- [ ] **Reference Links**: Link to [`createStoreContext.md`](./react/src/functions/createStoreContext.md)
-
-##### createRefContext Function Documentation
-- [ ] **Overview Section**: RefContext pattern creation
-- [ ] **Function Signature**: Parameters and return type
-- [ ] **Usage Patterns**: Direct DOM manipulation
-- [ ] **Performance Benefits**: Zero-rerender advantages
-- [ ] **Animation Patterns**: Hardware acceleration
-- [ ] **Type Safety**: Type-safe ref management
-- [ ] **Reference Links**: Link to [`createRefContext.md`](./react/src/functions/createRefContext.md)
-
-#### ✅ Store Functions
-
-##### createStore Function Documentation
-- [ ] **Overview Section**: Individual store creation
-- [ ] **Function Signature**: Parameters and return type
-- [ ] **Usage Patterns**: Manual store creation
-- [ ] **Configuration Options**: Store setup
-- [ ] **Integration Examples**: Custom store implementations
-- [ ] **Reference Links**: Link to [`createStore.md`](./react/src/functions/createStore.md)
-
-##### useStoreValue Function Documentation
-- [ ] **Overview Section**: Reactive store subscription
-- [ ] **Hook Signature**: Parameters and return type
-- [ ] **Usage Patterns**:
-  - [ ] Basic subscription
-  - [ ] Component integration
-  - [ ] Performance optimization
-- [ ] **Rerender Management**: Subscription optimization
-- [ ] **Integration Examples**: Component data binding
-- [ ] **Reference Links**: Link to [`useStoreValue.md`](./react/src/functions/useStoreValue.md)
-
-##### useStoreSelector Function Documentation
-- [ ] **Overview Section**: Selective store subscription
-- [ ] **Hook Signature**: Parameters and return type
-- [ ] **Usage Patterns**:
-  - [ ] Memoized selectors
-  - [ ] Performance optimization
-  - [ ] Derived state computation
-- [ ] **Selector Optimization**: Memoization strategies
-- [ ] **Integration Examples**: Complex state selection
-- [ ] **Reference Links**: Link to [`useStoreSelector.md`](./react/src/functions/useStoreSelector.md)
-
-## 📝 Documentation Structure Template
-
-Each interface documentation should follow this structure:
-
-### Standard Sections
-1. **Overview Section** - Purpose and capabilities
-2. **API Documentation** - Properties, methods, signatures
+### Core Structure
+1. **Function/Interface Purpose** - Single line description
+2. **Signature/Structure** - Type signature or interface structure  
 3. **Usage Patterns** - Common implementation patterns
-4. **Integration Examples** - Real-world usage examples
-5. **Best Practices** - Recommended approaches
-6. **Performance Considerations** - Optimization strategies
-7. **Error Handling** - Error patterns and recovery
-8. **Reference Links** - Links to TypeDoc generated docs
+4. **TypeDoc Link** - Direct link to generated documentation
 
-### Cross-Reference Requirements
-- Link to relevant TypeDoc generated documentation
-- Reference related interfaces and functions
-- Include pattern integration examples
-- Connect to architecture documentation
+### Priority Levels
+- **High**: Core patterns (ActionRegister, createStoreContext, useStoreValue)
+- **Medium**: Advanced features (execution modes, configurations)
+- **Low**: Utilities and debug tools
 
-## 🎯 Priority Guidelines
+## 📊 Progress Tracking
 
-### High Priority (90% of usage)
-- Core pattern creation functions
-- Main classes (ActionRegister, Store, StoreManager)  
-- Essential hooks (useStoreValue, useActionDispatch)
-- Primary interfaces (ActionPayloadMap, PipelineController)
+### Core Package: 20 items
+- [ ] Classes: 2 items
+- [ ] Interfaces: 7 items  
+- [ ] Types: 3 items
+- [ ] Functions: 7 items
+- [ ] Variables: 1 item
 
-### Medium Priority (advanced features)
-- Execution mode functions
-- Configuration interfaces
-- Error handling classes
-- Performance optimization hooks
+### React Package: 24 items
+- [ ] Classes: 3 items
+- [ ] Interfaces: 12 items
+- [ ] Types: 1 item
+- [ ] Functions: 6 items
 
-### Low Priority (edge cases)
-- Development utilities
-- Advanced configuration options
-- Specialized operation interfaces
-- Debug and testing utilities
-
-## 📋 Completion Tracking
-
-### Core Package Progress
-- [ ] Classes: 0/2 completed
-- [ ] Interfaces: 0/7 completed  
-- [ ] Type Aliases: 0/3 completed
-- [ ] Functions: 0/7 completed
-- [ ] Variables: 0/1 completed
-
-### React Package Progress  
-- [ ] Classes: 0/3 completed
-- [ ] Interfaces: 0/12 completed
-- [ ] Type Aliases: 0/1 completed
-- [ ] Functions: 0/6 completed
-
-### Overall Progress
-- [ ] **Total Documentation Items**: 0/44 completed (0%)
-- [ ] **High Priority Items**: 0/15 completed (0%)
-- [ ] **Medium Priority Items**: 0/20 completed (0%)
-- [ ] **Low Priority Items**: 0/9 completed (0%)
-
----
-
-*This todo list provides a comprehensive roadmap for creating interface-specific documentation with proper TypeDoc API references and cross-linking.*
+### Total: 0/44 completed (0%)
