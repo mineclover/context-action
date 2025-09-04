@@ -92,6 +92,6 @@ export const scenarios: ScenarioRegistry = {
       retryCount: 0, 
       fallbackEnabled: true 
     },
-    expectedFlow: "Primary API (P:100) → Error → jumpToPriority(500) → Retry (P:500) → jumpToPriority(1000) → Fallback (P:1000)"
+    expectedFlow: "Primary API (P:1000) → Error → jumpToPriority(500) → Retry (P:500) → jumpToPriority(100) → Fallback (P:100)"
   }
 };

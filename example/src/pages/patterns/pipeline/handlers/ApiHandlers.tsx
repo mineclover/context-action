@@ -9,9 +9,9 @@ interface ApiHandlerProps {
 
 export function ApiHandlers({ onExecutionStep, onHandlerExecution }: ApiHandlerProps) {
   
-  // Primary API Handler (P:100) - First attempt
+  // Primary API Handler (P:1000) - First attempt
   const primaryApiHandler = useCallback(async (payload: any, controller: any): Promise<void> => {
-    onExecutionStep('🌐 Primary API Call (P:100)');
+    onExecutionStep('🌐 Primary API Call (P:1000)');
     onHandlerExecution();
     
     console.log('🌐 Primary API attempt:', payload.endpoint);
@@ -58,8 +58,8 @@ export function ApiHandlers({ onExecutionStep, onHandlerExecution }: ApiHandlerP
     
     if (payload.fallbackEnabled) {
       console.log('📋 Fallback enabled - Jump to fallback handler');
-      onExecutionStep('📋 Route to Fallback Handler (P:1000)');
-      controller.jumpToPriority(1000);
+      onExecutionStep('📋 Route to Fallback Handler (P:100)');
+      controller.jumpToPriority(100);
       return;
     } else {
       // No fallback available - abort
@@ -74,9 +74,9 @@ export function ApiHandlers({ onExecutionStep, onHandlerExecution }: ApiHandlerP
     }
   }, [onExecutionStep, onHandlerExecution]);
   
-  // Circuit Breaker Handler (P:900) - Prevent cascading failures  
+  // Circuit Breaker Handler (P:1100) - Prevent cascading failures  
   const circuitBreakerHandler = useCallback(async (payload: any, controller: any): Promise<void> => {
-    onExecutionStep('⚡ Circuit Breaker Check (P:900)');
+    onExecutionStep('⚡ Circuit Breaker Check (P:1100)');
     onHandlerExecution();
     
     console.log('⚡ Circuit breaker evaluation for:', payload.endpoint);
@@ -90,9 +90,9 @@ export function ApiHandlers({ onExecutionStep, onHandlerExecution }: ApiHandlerP
     return; // Continue to next handler
   }, [onExecutionStep, onHandlerExecution]);
   
-  // Fallback Handler (P:1000) - Last resort
+  // Fallback Handler (P:100) - Last resort
   const fallbackHandler = useCallback(async (payload: any, controller: any): Promise<void> => {
-    onExecutionStep('🆘 Fallback Handler (P:1000)');
+    onExecutionStep('🆘 Fallback Handler (P:100)');
     onHandlerExecution();
     
     console.log('🆘 Fallback processing for:', payload.endpoint);
@@ -114,10 +114,12 @@ export function ApiHandlers({ onExecutionStep, onHandlerExecution }: ApiHandlerP
   
   // Register handlers with priorities
   // Use blocking: true to enable proper pipeline flow control
-  useApiActionHandler('apiCall', circuitBreakerHandler, { priority: 900, blocking: true });
-  useApiActionHandler('apiCall', primaryApiHandler, { priority: 100, blocking: true });
+  // Priority order: Higher numbers execute first
+  // Flow: Circuit Breaker (P:1100) → Primary API (P:1000) → Retry (P:500) → Fallback (P:100)
+  useApiActionHandler('apiCall', circuitBreakerHandler, { priority: 1100, blocking: true });
+  useApiActionHandler('apiCall', primaryApiHandler, { priority: 1000, blocking: true });
   useApiActionHandler('apiCall', retryHandler, { priority: 500, blocking: true });
-  useApiActionHandler('apiCall', fallbackHandler, { priority: 1000, blocking: true });
+  useApiActionHandler('apiCall', fallbackHandler, { priority: 100, blocking: true });
   
   return null;
 }

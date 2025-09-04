@@ -2,6 +2,11 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  // Memory optimization
+  maxWorkers: 1,
+  workerIdleMemoryLimit: '512MB',
+  detectOpenHandles: true,
+  forceExit: true,
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@context-action/core$': '<rootDir>/src/index',
@@ -9,6 +14,7 @@ module.exports = {
   },
   testMatch: [
     '**/__tests__/simple-working.test.ts',
+    '**/__tests__/unit/*.test.ts',
     '**/__tests__/production/*.test.ts',
     '**/__tests__/feature-coverage/*.test.ts',
     '**/__tests__/concurrency/*.test.ts',
