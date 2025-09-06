@@ -19,16 +19,17 @@
 - [ActionContextReturn](interfaces/ActionContextReturn.md)
 - [RefContextReturn](interfaces/RefContextReturn.md)
 - [CreateRefContextOptions](interfaces/CreateRefContextOptions.md)
-- [RefTarget](interfaces/RefTarget.md)
 - [RefOperationResult](interfaces/RefOperationResult.md)
 - [RefOperationOptions](interfaces/RefOperationOptions.md)
 - [StoreErrorBoundaryProps](interfaces/StoreErrorBoundaryProps.md)
 - [Snapshot](interfaces/Snapshot.md)
 - [IStore](interfaces/IStore.md)
 - [StoreConfig](interfaces/StoreConfig.md)
+- [WithProviderConfig](interfaces/WithProviderConfig.md)
 
 ## Type Aliases
 
+- [RefTarget](type-aliases/RefTarget.md)
 - [InitialStores](type-aliases/InitialStores.md)
 
 ## Functions

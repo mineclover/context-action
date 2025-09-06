@@ -8,7 +8,7 @@
 
 > **useStoreSelector**\<`T`, `R`\>(`store`, `selector`, `equalityFn`): `R`
 
-Defined in: [packages/react/src/stores/hooks/useStoreSelector.ts:41](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/hooks/useStoreSelector.ts#L41)
+Defined in: [packages/react/src/stores/hooks/useStoreSelector.ts:41](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/stores/hooks/useStoreSelector.ts#L41)
 
 Hook for selective store subscription with performance optimization
 
@@ -18,15 +18,15 @@ Essential for preventing unnecessary re-renders in complex applications.
 
 ## Type Parameters
 
-### T
+### Generic type T
 
-`T`
+Type parameter **T**
 
 Type of the store value
 
-### R
+### Generic type R
 
-`R`
+Type parameter **R**
 
 Type of the value returned by the selector
 
@@ -34,7 +34,7 @@ Type of the value returned by the selector
 
 ### store
 
-[`Store`](../classes/Store.md)\<`T`\>
+[`Store`](../classes/Store.md)&lt;`T`&gt;
 
 Store instance to subscribe to
 
@@ -52,7 +52,7 @@ Function to compare previous and new values (default: Object.is)
 
 ## Returns
 
-`R`
+Type parameter **R**
 
 The value returned by the selector function
 

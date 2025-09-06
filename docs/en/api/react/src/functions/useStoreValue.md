@@ -8,51 +8,51 @@
 
 ## Call Signature
 
-> **useStoreValue**\<`T`\>(`store`, `options?`): `T`
+> **useStoreValue**&lt;`T`&gt;(`store`, `options?`): `T`
 
-Defined in: [packages/react/src/stores/hooks/useStoreValue.ts:81](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/hooks/useStoreValue.ts#L81)
+Defined in: [packages/react/src/stores/hooks/useStoreValue.ts:81](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/stores/hooks/useStoreValue.ts#L81)
 
 ### Type Parameters
 
 #### T
 
-`T`
+Type parameter **T**
 
 ### Parameters
 
 #### store
 
-[`Store`](../classes/Store.md)\<`T`\>
+[`Store`](../classes/Store.md)&lt;`T`&gt;
 
 #### options?
 
-`StoreValueOptions`\<`T`\>
+`StoreValueOptions`&lt;`T`&gt;
 
 ### Returns
 
-`T`
+Type parameter **T**
 
 ## Call Signature
 
-> **useStoreValue**\<`T`\>(`store`, `options?`): `undefined` \| `T`
+> **useStoreValue**&lt;`T`&gt;(`store`, `options?`): `undefined` \| `T`
 
-Defined in: [packages/react/src/stores/hooks/useStoreValue.ts:87](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/hooks/useStoreValue.ts#L87)
+Defined in: [packages/react/src/stores/hooks/useStoreValue.ts:87](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/stores/hooks/useStoreValue.ts#L87)
 
 ### Type Parameters
 
 #### T
 
-`T`
+Type parameter **T**
 
 ### Parameters
 
 #### store
 
-`undefined` | `null` | [`Store`](../classes/Store.md)\<`T`\>
+`undefined` | `null` | [`Store`](../classes/Store.md)&lt;`T`&gt;
 
 #### options?
 
-`StoreValueOptions`\<`T`\>
+`StoreValueOptions`&lt;`T`&gt;
 
 ### Returns
 
@@ -62,23 +62,23 @@ Defined in: [packages/react/src/stores/hooks/useStoreValue.ts:87](https://github
 
 > **useStoreValue**\<`T`, `R`\>(`store`, `selector`, `options?`): `R`
 
-Defined in: [packages/react/src/stores/hooks/useStoreValue.ts:93](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/hooks/useStoreValue.ts#L93)
+Defined in: [packages/react/src/stores/hooks/useStoreValue.ts:93](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/stores/hooks/useStoreValue.ts#L93)
 
 ### Type Parameters
 
 #### T
 
-`T`
+Type parameter **T**
 
 #### R
 
-`R`
+Type parameter **R**
 
 ### Parameters
 
 #### store
 
-[`Store`](../classes/Store.md)\<`T`\>
+[`Store`](../classes/Store.md)&lt;`T`&gt;
 
 #### selector
 
@@ -86,33 +86,33 @@ Defined in: [packages/react/src/stores/hooks/useStoreValue.ts:93](https://github
 
 #### options?
 
-`StoreValueOptions`\<`R`\>
+`StoreValueOptions`&lt;`R`&gt;
 
 ### Returns
 
-`R`
+Type parameter **R**
 
 ## Call Signature
 
 > **useStoreValue**\<`T`, `R`\>(`store`, `selector`, `options?`): `undefined` \| `R`
 
-Defined in: [packages/react/src/stores/hooks/useStoreValue.ts:100](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/hooks/useStoreValue.ts#L100)
+Defined in: [packages/react/src/stores/hooks/useStoreValue.ts:100](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/stores/hooks/useStoreValue.ts#L100)
 
 ### Type Parameters
 
 #### T
 
-`T`
+Type parameter **T**
 
 #### R
 
-`R`
+Type parameter **R**
 
 ### Parameters
 
 #### store
 
-`undefined` | `null` | [`Store`](../classes/Store.md)\<`T`\>
+`undefined` | `null` | [`Store`](../classes/Store.md)&lt;`T`&gt;
 
 #### selector
 
@@ -120,7 +120,7 @@ Defined in: [packages/react/src/stores/hooks/useStoreValue.ts:100](https://githu
 
 #### options?
 
-`StoreValueOptions`\<`R`\>
+`StoreValueOptions`&lt;`R`&gt;
 
 ### Returns
 

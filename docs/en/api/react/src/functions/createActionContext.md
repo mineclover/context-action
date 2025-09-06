@@ -8,9 +8,9 @@
 
 ## Call Signature
 
-> **createActionContext**\<`T`\>(`contextName`, `config?`): [`ActionContextReturn`](../interfaces/ActionContextReturn.md)\<`T`\>
+> **createActionContext**&lt;`T`&gt;(`contextName`, `config?`): [`ActionContextReturn`](../interfaces/ActionContextReturn.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/actions/ActionContext.tsx:30](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/actions/ActionContext.tsx#L30)
+Defined in: [packages/react/src/actions/ActionContext.tsx:30](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/actions/ActionContext.tsx#L30)
 
 Enhanced action context factory with automatic type inference
 
@@ -36,7 +36,7 @@ Configuration options for the ActionRegister
 
 ### Returns
 
-[`ActionContextReturn`](../interfaces/ActionContextReturn.md)\<`T`\>
+[`ActionContextReturn`](../interfaces/ActionContextReturn.md)&lt;`T`&gt;
 
 Object containing Provider, hooks, and utility functions
 
@@ -48,9 +48,9 @@ Object containing Provider, hooks, and utility functions
 
 ## Call Signature
 
-> **createActionContext**\<`T`\>(`config`): [`ActionContextReturn`](../interfaces/ActionContextReturn.md)\<`T`\>
+> **createActionContext**&lt;`T`&gt;(`config`): [`ActionContextReturn`](../interfaces/ActionContextReturn.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/actions/ActionContext.tsx:36](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/actions/ActionContext.tsx#L36)
+Defined in: [packages/react/src/actions/ActionContext.tsx:36](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/actions/ActionContext.tsx#L36)
 
 Enhanced action context factory with automatic type inference
 
@@ -72,7 +72,7 @@ Configuration options for the ActionRegister
 
 ### Returns
 
-[`ActionContextReturn`](../interfaces/ActionContextReturn.md)\<`T`\>
+[`ActionContextReturn`](../interfaces/ActionContextReturn.md)&lt;`T`&gt;
 
 Object containing Provider, hooks, and utility functions
 

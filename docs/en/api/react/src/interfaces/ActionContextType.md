@@ -6,13 +6,13 @@
 
 # Interface: ActionContextType\<T\>
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:29](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/actions/ActionContext.types.ts#L29)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:29](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/actions/ActionContext.types.ts#L29)
 
 Context type for ActionRegister with enhanced type safety and abort support
 
 ## Type Parameters
 
-### T
+### Generic type T
 
 `T` *extends* `object`
 
@@ -20,6 +20,6 @@ Context type for ActionRegister with enhanced type safety and abort support
 
 ### actionRegisterRef
 
-> **actionRegisterRef**: `RefObject`\<`ActionRegister`\<`T`\>\>
+> **actionRegisterRef**: `RefObject`\<`ActionRegister`&lt;`T`&gt;\>
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:30](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/actions/ActionContext.types.ts#L30)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:30](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/actions/ActionContext.types.ts#L30)

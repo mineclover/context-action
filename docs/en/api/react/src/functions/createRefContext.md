@@ -8,9 +8,9 @@
 
 ## Call Signature
 
-> **createRefContext**\<`T`\>(`contextName`, `options?`): [`RefContextReturn`](../interfaces/RefContextReturn.md)\<`T`\>
+> **createRefContext**&lt;`T`&gt;(`contextName`, `options?`): [`RefContextReturn`](../interfaces/RefContextReturn.md)&lt;`T`&gt;
 
-Defined in: [packages/react/src/refs/createRefContext.ts:93](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/createRefContext.ts#L93)
+Defined in: [packages/react/src/refs/createRefContext.ts:93](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/refs/createRefContext.ts#L93)
 
 간소화된 참조 컨텍스트 생성 함수 - 향상된 타입 추론
 
@@ -18,7 +18,7 @@ Defined in: [packages/react/src/refs/createRefContext.ts:93](https://github.com/
 
 #### T
 
-`T` *extends* `Record`\<`string`, [`RefTarget`](../interfaces/RefTarget.md)\>
+`T` *extends* `Record`\<`string`, `any`\>
 
 ### Parameters
 
@@ -32,13 +32,13 @@ Defined in: [packages/react/src/refs/createRefContext.ts:93](https://github.com/
 
 ### Returns
 
-[`RefContextReturn`](../interfaces/RefContextReturn.md)\<`T`\>
+[`RefContextReturn`](../interfaces/RefContextReturn.md)&lt;`T`&gt;
 
 ## Call Signature
 
-> **createRefContext**\<`T`\>(`contextName`, `refDefinitions`, `options?`): [`RefContextReturn`](../interfaces/RefContextReturn.md)\<`InferRefTypes`\<`T`\>\>
+> **createRefContext**&lt;`T`&gt;(`contextName`, `refDefinitions`, `options?`): [`RefContextReturn`](../interfaces/RefContextReturn.md)\<`InferRefTypes`&lt;`T`&gt;\>
 
-Defined in: [packages/react/src/refs/createRefContext.ts:98](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/createRefContext.ts#L98)
+Defined in: [packages/react/src/refs/createRefContext.ts:98](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/refs/createRefContext.ts#L98)
 
 간소화된 참조 컨텍스트 생성 함수 - 향상된 타입 추론
 
@@ -56,7 +56,7 @@ Defined in: [packages/react/src/refs/createRefContext.ts:98](https://github.com/
 
 #### refDefinitions
 
-`T`
+Type parameter **T**
 
 #### options?
 
@@ -64,4 +64,4 @@ Defined in: [packages/react/src/refs/createRefContext.ts:98](https://github.com/
 
 ### Returns
 
-[`RefContextReturn`](../interfaces/RefContextReturn.md)\<`InferRefTypes`\<`T`\>\>
+[`RefContextReturn`](../interfaces/RefContextReturn.md)\<`InferRefTypes`&lt;`T`&gt;\>

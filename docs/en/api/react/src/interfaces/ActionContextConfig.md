@@ -6,7 +6,7 @@
 
 # Interface: ActionContextConfig
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:21](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/actions/ActionContext.types.ts#L21)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:21](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/actions/ActionContext.types.ts#L21)
 
 Configuration options for createActionContext
 
@@ -20,7 +20,7 @@ Configuration options for createActionContext
 
 > `optional` **name**: `string`
 
-Defined in: [packages/react/src/actions/ActionContext.types.ts:23](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/actions/ActionContext.types.ts#L23)
+Defined in: [packages/react/src/actions/ActionContext.types.ts:23](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/actions/ActionContext.types.ts#L23)
 
 Name identifier for this ActionRegister instance
 

@@ -8,6 +8,8 @@ export type NavigationLocale = 'root' | 'en' | 'ko'
 /**
  * Create navigation based on locale - 상단 탭바 확장 대비 단순화
  */
+import { sidebarApiEn, sidebarApiKo } from './api-spec'
+
 export function createNavigation(locale: NavigationLocale) {
   // Root locale shows language selector
   if (locale === 'root') {
@@ -177,58 +179,9 @@ export function createNavigation(locale: NavigationLocale) {
       {
         text: 'API',
         items: [
-          {
-            text: '@context-action/core',
-            items: [
-              { text: 'ActionRegister', link: '/ko/api/actionregister-guide' },
-              { text: 'ReactActionError', link: '/ko/api/reactactionerror-guide' },
-              { text: 'ActionPayloadMap', link: '/ko/api/actionpayloadmap-guide' },
-              { text: 'PipelineController', link: '/ko/api/pipelinecontroller-guide' },
-              { text: 'HandlerConfig', link: '/ko/api/handlerconfig-guide' },
-              { text: 'ActionRegisterConfig', link: '/ko/api/actionregisterconfig-guide' },
-              { text: 'DispatchOptions', link: '/ko/api/dispatchoptions-guide' },
-              { text: 'ExecutionResult', link: '/ko/api/executionresult-guide' },
-              { text: 'ActionDispatcher', link: '/ko/api/actiondispatcher-guide' },
-              { text: 'ActionHandler', link: '/ko/api/actionhandler-guide' },
-              { text: 'ExecutionMode', link: '/ko/api/executionmode-guide' },
-              { text: 'UnregisterFunction', link: '/ko/api/unregisterfunction-guide' },
-              { text: 'executeSequential', link: '/ko/api/executesequential-guide' },
-              { text: 'executeParallel', link: '/ko/api/executeparallel-guide' },
-              { text: 'executeRace', link: '/ko/api/executerace-guide' },
-              { text: 'createActionHandler', link: '/ko/api/createactionhandler-guide' },
-              { text: 'createReactHandlerConfig', link: '/ko/api/createreacthandlerconfig-guide' },
-              { text: 'createReactDispatcher', link: '/ko/api/createreactdispatcher-guide' },
-              { text: 'isReactActionError', link: '/ko/api/isreactactionerror-guide' },
-              { text: 'ReactDevUtils', link: '/ko/api/reactdevutils-guide' },
-            ]
-          },
-          {
-            text: '@context-action/react',
-            items: [
-              { text: 'Store', link: '/ko/api/store-guide' },
-              { text: 'StoreManager', link: '/ko/api/storemanager-guide' },
-              { text: 'StoreErrorBoundary', link: '/ko/api/storeerrorboundary-guide' },
-              { text: 'ActionContextConfig', link: '/ko/api/actioncontextconfig-guide' },
-              { text: 'ActionContextType', link: '/ko/api/actioncontexttype-guide' },
-              { text: 'ActionContextReturn', link: '/ko/api/actioncontextreturn-guide' },
-              { text: 'RefContextReturn', link: '/ko/api/refcontextreturn-guide' },
-              { text: 'CreateRefContextOptions', link: '/ko/api/createrefcontextoptions-guide' },
-              { text: 'RefTarget', link: '/ko/api/reftarget-guide' },
-              { text: 'RefOperationResult', link: '/ko/api/refoperationresult-guide' },
-              { text: 'RefOperationOptions', link: '/ko/api/refoperationoptions-guide' },
-              { text: 'StoreErrorBoundaryProps', link: '/ko/api/storeerrorboundaryprops-guide' },
-              { text: 'Snapshot', link: '/ko/api/snapshot-guide' },
-              { text: 'IStore', link: '/ko/api/istore-guide' },
-              { text: 'StoreConfig', link: '/ko/api/storeconfig-guide' },
-              { text: 'InitialStores', link: '/ko/api/initialstores-guide' },
-              { text: 'createActionContext', link: '/ko/api/createactioncontext-guide' },
-              { text: 'createStoreContext', link: '/ko/api/createstorecontext-guide' },
-              { text: 'createRefContext', link: '/ko/api/createrefcontext-guide' },
-              { text: 'createStore', link: '/ko/api/createstore-guide' },
-              { text: 'useStoreValue', link: '/ko/api/usestorevalue-guide' },
-              { text: 'useStoreSelector', link: '/ko/api/usestoreselector-guide' },
-            ]
-          }
+          sidebarApiKo.core,
+          sidebarApiKo.react,
+          sidebarApiKo.patterns
         ]
       },
       {

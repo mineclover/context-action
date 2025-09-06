@@ -6,7 +6,7 @@
 
 # Interface: CreateRefContextOptions
 
-Defined in: [packages/react/src/refs/createRefContext.ts:82](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/createRefContext.ts#L82)
+Defined in: [packages/react/src/refs/createRefContext.ts:82](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/refs/createRefContext.ts#L82)
 
 createRefContext 옵션
 
@@ -16,7 +16,7 @@ createRefContext 옵션
 
 > `optional` **defaultMountTimeout**: `number`
 
-Defined in: [packages/react/src/refs/createRefContext.ts:84](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/createRefContext.ts#L84)
+Defined in: [packages/react/src/refs/createRefContext.ts:84](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/refs/createRefContext.ts#L84)
 
 글로벌 마운트 타임아웃 (ms). undefined면 타임아웃 없음
 
@@ -26,6 +26,6 @@ Defined in: [packages/react/src/refs/createRefContext.ts:84](https://github.com/
 
 > `optional` **disableTimeout**: `boolean`
 
-Defined in: [packages/react/src/refs/createRefContext.ts:87](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/createRefContext.ts#L87)
+Defined in: [packages/react/src/refs/createRefContext.ts:87](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/refs/createRefContext.ts#L87)
 
 개별 ref의 타임아웃 설정을 무시하고 타임아웃을 비활성화

@@ -8,7 +8,7 @@
 
 > **createActionHandler**\<`T`, `K`\>(`registry`, `action`, `handler`, `config?`): `object`
 
-Defined in: [packages/core/src/react-helpers.ts:88](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/react-helpers.ts#L88)
+Defined in: [packages/core/src/react-helpers.ts:88](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/core/src/react-helpers.ts#L88)
 
 🔧 Create action handler registration configuration for React components
 
@@ -18,13 +18,13 @@ This is NOT a hook - it's a factory function for React hook integration.
 
 ## Type Parameters
 
-### T
+### Generic type T
 
 `T` *extends* [`ActionPayloadMap`](../interfaces/ActionPayloadMap.md)
 
 ActionPayloadMap type
 
-### K
+### Generic type K
 
 `K` *extends* `string` \| `number` \| `symbol`
 
@@ -34,13 +34,13 @@ Action key type
 
 ### registry
 
-[`ActionRegister`](../classes/ActionRegister.md)\<`T`\>
+[`ActionRegister`](../classes/ActionRegister.md)&lt;`T`&gt;
 
 ActionRegister instance
 
 ### action
 
-`K`
+Type parameter **K**
 
 Action name to register handler for
 

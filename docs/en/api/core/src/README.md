@@ -33,8 +33,6 @@
 - [executeParallel](functions/executeParallel.md)
 - [executeRace](functions/executeRace.md)
 - [createActionHandler](functions/createActionHandler.md)
-- [createReactHandlerConfig](functions/createReactHandlerConfig.md)
-- [createReactDispatcher](functions/createReactDispatcher.md)
 - [isReactActionError](functions/isReactActionError.md)
 
 ## Variables

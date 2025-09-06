@@ -6,7 +6,7 @@
 
 # Interface: RefOperationOptions
 
-Defined in: [packages/react/src/refs/types.ts:86](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/types.ts#L86)
+Defined in: [packages/react/src/refs/types.ts:56](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/refs/types.ts#L56)
 
 참조 작업 옵션
 
@@ -16,7 +16,7 @@ Defined in: [packages/react/src/refs/types.ts:86](https://github.com/mineclover/
 
 > `optional` **timeout**: `number`
 
-Defined in: [packages/react/src/refs/types.ts:88](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/types.ts#L88)
+Defined in: [packages/react/src/refs/types.ts:58](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/refs/types.ts#L58)
 
 작업 타임아웃 (ms)
 
@@ -26,7 +26,7 @@ Defined in: [packages/react/src/refs/types.ts:88](https://github.com/mineclover/
 
 > `optional` **retries**: `number`
 
-Defined in: [packages/react/src/refs/types.ts:91](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/types.ts#L91)
+Defined in: [packages/react/src/refs/types.ts:61](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/refs/types.ts#L61)
 
 재시도 횟수
 
@@ -36,7 +36,7 @@ Defined in: [packages/react/src/refs/types.ts:91](https://github.com/mineclover/
 
 > `optional` **signal**: `AbortSignal`
 
-Defined in: [packages/react/src/refs/types.ts:94](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/types.ts#L94)
+Defined in: [packages/react/src/refs/types.ts:64](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/refs/types.ts#L64)
 
 AbortSignal for cancellation
 
@@ -46,7 +46,7 @@ AbortSignal for cancellation
 
 > `optional` **priority**: `number`
 
-Defined in: [packages/react/src/refs/types.ts:97](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/types.ts#L97)
+Defined in: [packages/react/src/refs/types.ts:67](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/refs/types.ts#L67)
 
 작업 우선순위
 
@@ -56,7 +56,7 @@ Defined in: [packages/react/src/refs/types.ts:97](https://github.com/mineclover/
 
 > `optional` **operationId**: `string`
 
-Defined in: [packages/react/src/refs/types.ts:100](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/types.ts#L100)
+Defined in: [packages/react/src/refs/types.ts:70](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/refs/types.ts#L70)
 
 작업 식별자
 
@@ -66,6 +66,6 @@ Defined in: [packages/react/src/refs/types.ts:100](https://github.com/mineclover
 
 > `optional` **metadata**: `Record`\<`string`, `any`\>
 
-Defined in: [packages/react/src/refs/types.ts:103](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/refs/types.ts#L103)
+Defined in: [packages/react/src/refs/types.ts:73](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/refs/types.ts#L73)
 
 추가 메타데이터

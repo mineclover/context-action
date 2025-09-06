@@ -8,7 +8,7 @@
 
 > `const` **ReactDevUtils**: `object`
 
-Defined in: [packages/core/src/react-helpers.ts:262](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/core/src/react-helpers.ts#L262)
+Defined in: [packages/core/src/react-helpers.ts:165](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/core/src/react-helpers.ts#L165)
 
 🆕 React development utilities
 
@@ -84,7 +84,7 @@ Get React integration statistics
 
 ##### registry
 
-[`ActionRegister`](../classes/ActionRegister.md)\<`any`\>
+[`ActionRegister`](../classes/ActionRegister.md)&lt;`any`&gt;
 
 #### Returns
 
@@ -100,4 +100,4 @@ Get React integration statistics
 
 ##### registryInfo
 
-> **registryInfo**: `ActionRegistryInfo`\<`any`\>
+> **registryInfo**: `ActionRegistryInfo`&lt;`any`&gt;

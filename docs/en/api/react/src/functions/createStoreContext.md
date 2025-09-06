@@ -10,9 +10,9 @@ Implementation function that handles both overloads
 
 ## Call Signature
 
-> **createStoreContext**\<`T`\>(`contextName`, `initialStores`): `object`
+> **createStoreContext**&lt;`T`&gt;(`contextName`, `initialStores`): `object`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:247](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L247)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:247](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L247)
 
 Overload 1: Explicit generic types - User provides explicit type interface
 
@@ -30,7 +30,7 @@ Overload 1: Explicit generic types - User provides explicit type interface
 
 #### initialStores
 
-[`InitialStores`](../type-aliases/InitialStores.md)\<`T`\>
+[`InitialStores`](../type-aliases/InitialStores.md)&lt;`T`&gt;
 
 ### Returns
 
@@ -46,7 +46,7 @@ Provider component with optional registry isolation
 
 ###### children
 
-`ReactNode`
+Type parameter **ReactNode**
 
 ###### registryId?
 
@@ -54,11 +54,11 @@ Provider component with optional registry isolation
 
 ##### Returns
 
-`Element`
+Type parameter **Element**
 
 #### useStore()
 
-> **useStore**: \<`K`\>(`storeName`) => [`Store`](../classes/Store.md)\<`T`\[`K`\]\>
+> **useStore**: &lt;`K`&gt;(`storeName`) => [`Store`](../classes/Store.md)\<`T`\[`K`\]\>
 
 Core hook - Get typed store by name
 This is the primary API for accessing stores
@@ -73,7 +73,7 @@ This is the primary API for accessing stores
 
 ###### storeName
 
-`K`
+Type parameter **K**
 
 ##### Returns
 
@@ -81,13 +81,13 @@ This is the primary API for accessing stores
 
 #### useStoreManager()
 
-> **useStoreManager**: () => [`StoreManager`](../classes/StoreManager.md)\<`T`\>
+> **useStoreManager**: () => [`StoreManager`](../classes/StoreManager.md)&lt;`T`&gt;
 
 Get the store manager (for advanced use cases)
 
 ##### Returns
 
-[`StoreManager`](../classes/StoreManager.md)\<`T`\>
+[`StoreManager`](../classes/StoreManager.md)&lt;`T`&gt;
 
 #### useStoreInfo()
 
@@ -125,7 +125,7 @@ Utility hooks
 
 #### withProvider()
 
-> **withProvider**: \<`P`\>(`Component`, `config?`) => `FC`\<`P`\>
+> **withProvider**: &lt;`P`&gt;(`Component`, `config?`) => `FC`&lt;`P`&gt;
 
 HOC for automatic provider wrapping with optional configuration
 
@@ -139,15 +139,15 @@ HOC for automatic provider wrapping with optional configuration
 
 ###### Component
 
-`ComponentType`\<`P`\>
+`ComponentType`&lt;`P`&gt;
 
 ###### config?
 
-`WithProviderConfig`
+[`WithProviderConfig`](../interfaces/WithProviderConfig.md)
 
 ##### Returns
 
-`FC`\<`P`\>
+`FC`&lt;`P`&gt;
 
 #### contextName
 
@@ -155,7 +155,7 @@ HOC for automatic provider wrapping with optional configuration
 
 #### initialStores
 
-> **initialStores**: [`InitialStores`](../type-aliases/InitialStores.md)\<`T`\>
+> **initialStores**: [`InitialStores`](../type-aliases/InitialStores.md)&lt;`T`&gt;
 
 ### See
 
@@ -163,9 +163,9 @@ https://mineclover.github.io/context-action/en/guide/patterns/store/basic-usage
 
 ## Call Signature
 
-> **createStoreContext**\<`T`\>(`contextName`, `storeDefinitions`): `object`
+> **createStoreContext**&lt;`T`&gt;(`contextName`, `storeDefinitions`): `object`
 
-Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:257](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L257)
+Defined in: [packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx:257](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx#L257)
 
 Overload 2: Type inference - Types inferred from store definitions
 
@@ -183,7 +183,7 @@ Overload 2: Type inference - Types inferred from store definitions
 
 #### storeDefinitions
 
-`T`
+Type parameter **T**
 
 ### Returns
 
@@ -199,7 +199,7 @@ Provider component with optional registry isolation
 
 ###### children
 
-`ReactNode`
+Type parameter **ReactNode**
 
 ###### registryId?
 
@@ -207,11 +207,11 @@ Provider component with optional registry isolation
 
 ##### Returns
 
-`Element`
+Type parameter **Element**
 
 #### useStore()
 
-> **useStore**: \<`K`\>(`storeName`) => [`Store`](../classes/Store.md)\<`InferStoreTypes`\<`T`\>\[`K`\]\>
+> **useStore**: &lt;`K`&gt;(`storeName`) => [`Store`](../classes/Store.md)\<`InferStoreTypes`&lt;`T`&gt;\[`K`\]\>
 
 Core hook - Get typed store by name
 This is the primary API for accessing stores
@@ -226,21 +226,21 @@ This is the primary API for accessing stores
 
 ###### storeName
 
-`K`
+Type parameter **K**
 
 ##### Returns
 
-[`Store`](../classes/Store.md)\<`InferStoreTypes`\<`T`\>\[`K`\]\>
+[`Store`](../classes/Store.md)\<`InferStoreTypes`&lt;`T`&gt;\[`K`\]\>
 
 #### useStoreManager()
 
-> **useStoreManager**: () => [`StoreManager`](../classes/StoreManager.md)\<`InferStoreTypes`\<`T`\>\>
+> **useStoreManager**: () => [`StoreManager`](../classes/StoreManager.md)\<`InferStoreTypes`&lt;`T`&gt;\>
 
 Get the store manager (for advanced use cases)
 
 ##### Returns
 
-[`StoreManager`](../classes/StoreManager.md)\<`InferStoreTypes`\<`T`\>\>
+[`StoreManager`](../classes/StoreManager.md)\<`InferStoreTypes`&lt;`T`&gt;\>
 
 #### useStoreInfo()
 
@@ -278,7 +278,7 @@ Utility hooks
 
 #### withProvider()
 
-> **withProvider**: \<`P`\>(`Component`, `config?`) => `FC`\<`P`\>
+> **withProvider**: &lt;`P`&gt;(`Component`, `config?`) => `FC`&lt;`P`&gt;
 
 HOC for automatic provider wrapping with optional configuration
 
@@ -292,15 +292,15 @@ HOC for automatic provider wrapping with optional configuration
 
 ###### Component
 
-`ComponentType`\<`P`\>
+`ComponentType`&lt;`P`&gt;
 
 ###### config?
 
-`WithProviderConfig`
+[`WithProviderConfig`](../interfaces/WithProviderConfig.md)
 
 ##### Returns
 
-`FC`\<`P`\>
+`FC`&lt;`P`&gt;
 
 #### contextName
 
@@ -308,7 +308,7 @@ HOC for automatic provider wrapping with optional configuration
 
 #### initialStores
 
-> **initialStores**: [`InitialStores`](../type-aliases/InitialStores.md)\<`InferStoreTypes`\<`T`\>\>
+> **initialStores**: [`InitialStores`](../type-aliases/InitialStores.md)\<`InferStoreTypes`&lt;`T`&gt;\>
 
 ### See
 

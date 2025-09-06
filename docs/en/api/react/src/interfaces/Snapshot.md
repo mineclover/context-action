@@ -6,7 +6,7 @@
 
 # Interface: Snapshot\<T\>
 
-Defined in: [packages/react/src/stores/core/types.ts:95](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L95)
+Defined in: [packages/react/src/stores/core/types.ts:95](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/stores/core/types.ts#L95)
 
 Enhanced store snapshot with metadata and validation
 
@@ -27,7 +27,7 @@ and performance metrics for advanced debugging and monitoring.
 
 ## Type Parameters
 
-### T
+### Generic type T
 
 `T` = `unknown`
 
@@ -39,7 +39,7 @@ The type of the stored value
 
 > **value**: `T`
 
-Defined in: [packages/react/src/stores/core/types.ts:97](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L97)
+Defined in: [packages/react/src/stores/core/types.ts:97](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/stores/core/types.ts#L97)
 
 The current value of the store
 
@@ -49,7 +49,7 @@ The current value of the store
 
 > **name**: `string`
 
-Defined in: [packages/react/src/stores/core/types.ts:100](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L100)
+Defined in: [packages/react/src/stores/core/types.ts:100](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/stores/core/types.ts#L100)
 
 Unique identifier for the store
 
@@ -59,7 +59,7 @@ Unique identifier for the store
 
 > **lastUpdate**: `number`
 
-Defined in: [packages/react/src/stores/core/types.ts:103](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L103)
+Defined in: [packages/react/src/stores/core/types.ts:103](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/stores/core/types.ts#L103)
 
 Timestamp of the last update
 
@@ -69,7 +69,7 @@ Timestamp of the last update
 
 > `optional` **version**: `number`
 
-Defined in: [packages/react/src/stores/core/types.ts:106](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L106)
+Defined in: [packages/react/src/stores/core/types.ts:106](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/stores/core/types.ts#L106)
 
 Snapshot version for optimistic updates
 
@@ -79,7 +79,7 @@ Snapshot version for optimistic updates
 
 > `optional` **isValid**: `boolean`
 
-Defined in: [packages/react/src/stores/core/types.ts:109](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L109)
+Defined in: [packages/react/src/stores/core/types.ts:109](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/stores/core/types.ts#L109)
 
 Validation status of the current value
 
@@ -89,7 +89,7 @@ Validation status of the current value
 
 > `optional` **validationError**: `string`
 
-Defined in: [packages/react/src/stores/core/types.ts:112](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L112)
+Defined in: [packages/react/src/stores/core/types.ts:112](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/stores/core/types.ts#L112)
 
 Error message if validation failed
 
@@ -99,7 +99,7 @@ Error message if validation failed
 
 > `optional` **metrics**: `object`
 
-Defined in: [packages/react/src/stores/core/types.ts:115](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L115)
+Defined in: [packages/react/src/stores/core/types.ts:115](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/stores/core/types.ts#L115)
 
 Performance metrics for this snapshot
 
@@ -127,7 +127,7 @@ Number of listeners notified
 
 > `optional` **security**: `object`
 
-Defined in: [packages/react/src/stores/core/types.ts:125](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/core/types.ts#L125)
+Defined in: [packages/react/src/stores/core/types.ts:125](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/stores/core/types.ts#L125)
 
 Security metadata
 

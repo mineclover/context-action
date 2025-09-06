@@ -6,7 +6,7 @@
 
 # Interface: StoreErrorBoundaryProps
 
-Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:14](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/components/StoreErrorBoundary.tsx#L14)
+Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:14](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/stores/components/StoreErrorBoundary.tsx#L14)
 
 Store Error Boundary Props
 
@@ -16,7 +16,7 @@ Store Error Boundary Props
 
 > **children**: `ReactNode`
 
-Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:15](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/components/StoreErrorBoundary.tsx#L15)
+Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:15](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/stores/components/StoreErrorBoundary.tsx#L15)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:15](htt
 
 > `optional` **fallback**: `ReactNode` \| (`error`, `errorInfo`) => `ReactNode`
 
-Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:16](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/components/StoreErrorBoundary.tsx#L16)
+Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:16](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/stores/components/StoreErrorBoundary.tsx#L16)
 
 ***
 
@@ -32,17 +32,17 @@ Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:16](htt
 
 > `optional` **onError**: (`error`, `errorInfo`) => `void`
 
-Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:17](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/components/StoreErrorBoundary.tsx#L17)
+Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:17](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/stores/components/StoreErrorBoundary.tsx#L17)
 
 #### Parameters
 
 ##### error
 
-`ContextActionError`
+Type parameter **ContextActionError**
 
 ##### errorInfo
 
-`ErrorInfo`
+Type parameter **ErrorInfo**
 
 #### Returns
 
@@ -54,7 +54,7 @@ Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:17](htt
 
 > `optional` **resetOnPropsChange**: `boolean`
 
-Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:18](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/components/StoreErrorBoundary.tsx#L18)
+Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:18](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/stores/components/StoreErrorBoundary.tsx#L18)
 
 ***
 
@@ -62,4 +62,4 @@ Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:18](htt
 
 > `optional` **resetKeys**: (`string` \| `number`)[]
 
-Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:19](https://github.com/mineclover/context-action/blob/b6ae71bed12be1901b81bb42abea6d55eaa5e7bc/packages/react/src/stores/components/StoreErrorBoundary.tsx#L19)
+Defined in: [packages/react/src/stores/components/StoreErrorBoundary.tsx:19](https://github.com/mineclover/context-action/blob/9ef553971e551d0c040b094ff64383ff10f16722/packages/react/src/stores/components/StoreErrorBoundary.tsx#L19)
