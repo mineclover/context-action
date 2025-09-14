@@ -81,36 +81,9 @@ export function createNavigation(locale: NavigationLocale) {
       {
         text: 'API',
         items: [
-          {
-            text: '@context-action/core',
-            items: [
-              {
-                text: 'ActionRegister',
-                link: '/en/api/core/action-register'
-              },
-              {
-                text: 'PipelineController',
-                link: '/en/api/core/pipeline-controller'
-              }
-            ]
-          },
-          {
-            text: '@context-action/react',
-            items: [
-              {
-                text: 'Action Context',
-                link: '/en/api/react/action-context'
-              },
-              {
-                text: 'Store Pattern',
-                link: '/en/api/react/store-pattern'
-              },
-              {
-                text: 'Store Manager',
-                link: '/en/api/react/store-manager'
-              }
-            ]
-          }
+          sidebarApiEn.core,
+          sidebarApiEn.react,
+          sidebarApiEn.patterns
         ]
       },
       {
@@ -144,6 +117,10 @@ export function createNavigation(locale: NavigationLocale) {
           {
             text: 'Context-Layered Architecture',
             link: '/en/context-layered/context-layered-guide'
+          },
+          {
+            text: 'Context-Driven Architecture',
+            link: '/ko/architecture/context-driven-architecture'
           },
           {
             text: '훅 참조',
