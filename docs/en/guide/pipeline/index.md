@@ -60,6 +60,7 @@ const validationResult = results.find(r => r.step === 'validation');
 |---------|---------|---------------|
 | **[Priority System](./priority.md)** | Control execution order | Priority-based handler execution |
 | **[Blocking Operations](./blocking.md)** | Control execution flow | Blocking vs non-blocking handlers |
+| **[Concurrency Control](./concurrency.md)** | Thread safety & queuing | Pipeline concurrency and race condition prevention |
 | **[Dispatch Methods](./dispatch.md)** | Trigger pipelines | Basic dispatch vs result collection |
 | **[Abort Mechanisms](./abort.md)** | Stop execution | Graceful pipeline termination |
 | **[Result Handling](./result-handling.md)** | Collect results | Inter-handler communication |
@@ -454,13 +455,19 @@ actionRegister.register('updateUserData', async (payload, controller) => {
 - Include meaningful step names and timing
 - Leverage results for handler coordination
 
+### 5. Concurrency Guidelines
+- **Keep default** queue system for thread safety
+- **Consider disabling** only for pure analytics or read-only operations
+- **Use debounce/throttle** for high-frequency user interactions
+
 ## Advanced Patterns
 
 Explore specific pipeline patterns:
 
 - **[Priority System](./priority.md)** - Priority-based execution order and best practices
 - **[Blocking Operations](./blocking.md)** - Controlling execution flow and performance
-- **[Dispatch Methods](./dispatch.md)** - Different ways to trigger pipelines  
+- **[Concurrency Control](./concurrency.md)** - Thread safety, queuing, and race condition prevention
+- **[Dispatch Methods](./dispatch.md)** - Different ways to trigger pipelines
 - **[Abort Mechanisms](./abort.md)** - Graceful pipeline termination
 - **[Result Handling](./result-handling.md)** - Comprehensive result collection and usage
 
