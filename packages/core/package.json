@@ -27,7 +27,7 @@
   "scripts": {
     "build": "tsdown",
     "build:watch": "tsdown --watch",
-    "test": "jest",
+    "test": "NODE_OPTIONS=--max-old-space-size=8192 jest --runInBand --logHeapUsage",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:ci": "jest --ci --coverage --maxWorkers=2",
