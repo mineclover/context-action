@@ -53,9 +53,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   // 🆕 동시성 문제 해결을 위한 큐 시스템 (conditional)
   private dispatchQueue?: OperationQueue;
 
-  // 🔧 Performance optimization: Cache for handler SELECTION logic only (not execution results)
-  // Safe to cache: filters only determine WHICH handlers to run, not their side effects
-  private filterCache = new Map<string, HandlerRegistration<any, any>[]>();
+  // 🧠 Filter cache disabled to prevent memory issues - direct filtering only
+  private filterCacheDisabled = true;
 
   // 🔧 Performance optimization: Fast handler ID generation counter
   private handlerIdCounter = 0;
@@ -281,7 +280,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         // Replace existing handler
         pipeline[existingIndex] = registration;
         pipeline.sort((a, b) => b.config.priority - a.config.priority);
-        this.invalidateFilterCache();
+        // Cache disabled
         
         // Create new unregister function and store it
         const newUnregister = this.createUnregisterFunction(action, handlerId, registration);
@@ -325,7 +324,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     // Add handler to pipeline
     pipeline.push(registration);
     pipeline.sort((a, b) => b.config.priority - a.config.priority);
-    this.invalidateFilterCache();
+    // Cache disabled
     
     // Create and store unregister function
     const unregister = this.createUnregisterFunction(action, handlerId, registration);
@@ -859,44 +858,43 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     return null; // No guard intervention, proceed with execution
   }
 
-  /**
-   * 🔧 Calculate optimal cache size based on current handler count
-   * Note: This caches handler SELECTION metadata only, never execution results
-   */
-  private get filterCacheMaxSize(): number {
-    const totalHandlers = Array.from(this.pipelines.values())
-      .reduce((sum, pipeline) => sum + pipeline.length, 0);
-    
-    // Handler count × 10 filter combinations per handler (cache explosion prevention)
-    return totalHandlers * 10 || 100; // Fallback to 100 if no handlers
-  }
+  // Cache methods removed for memory stability
 
   /**
-   * 🔧 Generate cache key for filter options
+   * 🔧 Generate optimized cache key for filter options
    */
   private generateFilterCacheKey(filterOptions?: DispatchOptions['filter']): string {
     if (!filterOptions) {
       return 'no-filter';
     }
-    
-    // Create deterministic cache key from filter options
-    const key = [
-      filterOptions.handlerIds?.sort().join(',') || 'none',
-      filterOptions.excludeHandlerIds?.sort().join(',') || 'none',
-      filterOptions.priority?.min?.toString() || 'none',
-      filterOptions.priority?.max?.toString() || 'none',
-      filterOptions.custom ? 'custom' : 'none'
-    ].join('|');
-    
-    return key;
+
+    // Use pre-sorted arrays to avoid repeated sorting
+    const parts: string[] = [];
+
+    if (filterOptions.handlerIds?.length) {
+      parts.push(`h:${filterOptions.handlerIds.slice().sort().join(',')}`);
+    }
+
+    if (filterOptions.excludeHandlerIds?.length) {
+      parts.push(`e:${filterOptions.excludeHandlerIds.slice().sort().join(',')}`);
+    }
+
+    if (filterOptions.priority) {
+      const { min, max } = filterOptions.priority;
+      if (min !== undefined || max !== undefined) {
+        parts.push(`p:${min ?? '*'}-${max ?? '*'}`);
+      }
+    }
+
+    // Custom filters cannot be cached
+    if (filterOptions.custom) {
+      return 'custom-' + Date.now() + Math.random(); // Unique non-cacheable key
+    }
+
+    return parts.length > 0 ? parts.join('|') : 'no-filter';
   }
 
-  /**
-   * 🔧 Clear filter cache when pipelines change
-   */
-  private invalidateFilterCache(): void {
-    this.filterCache.clear();
-  }
+  // Cache invalidation removed for memory stability
 
   /**
    * 🔧 Create or reuse PipelineController from pool for better performance
@@ -978,42 +976,39 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
 
     // 🔧 Performance optimization: Use cache for filter results
     const cacheKey = this.generateFilterCacheKey(filterOptions);
-    
-    // Skip cache for custom filter functions (can't be cached safely)
-    if (!filterOptions.custom) {
-      const cached = this.filterCache.get(cacheKey);
-      if (cached) {
-        return cached;
-      }
-    }
 
-    // 🆕 Use filter method directly (already returns new array)
+    // Cache disabled - using direct filtering for memory stability
+
+    // Create Sets for fast lookup if arrays are provided
+    const handlerIdSet = filterOptions.handlerIds ? new Set(filterOptions.handlerIds) : null;
+    const excludeIdSet = filterOptions.excludeHandlerIds ? new Set(filterOptions.excludeHandlerIds) : null;
+
+    // Filter handlers with optimized checks
     const filtered = handlers.filter(registration => {
       const config = registration.config;
 
-      // 🆕 Short-circuit evaluation for performance
-      if (filterOptions.handlerIds?.length && 
-          !filterOptions.handlerIds.includes(config.id)) {
+      // Fast Set-based inclusion check
+      if (handlerIdSet && !handlerIdSet.has(config.id)) {
         return false;
       }
 
-      if (filterOptions.excludeHandlerIds?.length && 
-          filterOptions.excludeHandlerIds.includes(config.id)) {
+      // Fast Set-based exclusion check
+      if (excludeIdSet && excludeIdSet.has(config.id)) {
         return false;
       }
 
-      // 🆕 Enhanced priority filtering
+      // Priority range check
       if (filterOptions.priority) {
-        if (filterOptions.priority.min !== undefined && 
-            config.priority < filterOptions.priority.min) {
+        const priority = config.priority;
+        if (filterOptions.priority.min !== undefined && priority < filterOptions.priority.min) {
           return false;
         }
-        if (filterOptions.priority.max !== undefined && 
-            config.priority > filterOptions.priority.max) {
+        if (filterOptions.priority.max !== undefined && priority > filterOptions.priority.max) {
           return false;
         }
       }
 
+      // Custom filter (not cached)
       if (filterOptions.custom && !filterOptions.custom(config)) {
         return false;
       }
@@ -1021,22 +1016,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       return true;
     });
 
-    // 🔧 Cache the result if no custom filter with dynamic size management
-    if (!filterOptions.custom) {
-      // 🔧 Dynamic cache size prevents explosion while allowing growth
-      const currentMaxSize = this.filterCacheMaxSize;
-      
-      // Only evict if we exceed the current dynamic limit
-      if (this.filterCache.size >= currentMaxSize) {
-        // Remove oldest entries (LRU eviction)
-        const oldestKey = this.filterCache.keys().next().value;
-        if (oldestKey !== undefined) {
-          this.filterCache.delete(oldestKey);
-        }
-      }
-      
-      this.filterCache.set(cacheKey, filtered);
-    }
+    // Cache disabled for memory stability
 
     return filtered;
   }
@@ -1196,7 +1176,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   clearAction<K extends keyof T>(action: K): void {
     this.pipelines.delete(action);
     // 🔧 Invalidate filter cache when pipeline changes
-    this.invalidateFilterCache();
+    // Cache disabled
   }
 
   /**
@@ -1209,7 +1189,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   clearAll(): void {
     this.pipelines.clear();
     // 🔧 Invalidate filter cache when pipeline changes
-    this.invalidateFilterCache();
+    // Cache disabled
   }
 
   /**
@@ -1390,7 +1370,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       const index = pipeline.findIndex(reg => reg.id === handlerId && reg === registration);
       if (index !== -1) {
         pipeline.splice(index, 1);
-        this.invalidateFilterCache();
+        // Cache disabled
         this.unregisterFunctions.delete(handlerId);
         
         // Execute cleanup function if available
@@ -1462,8 +1442,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     
     this.actionExecutionModes.clear();
     
-    // 🔧 Clean up performance caches
-    this.filterCache.clear();
+    // Cache disabled
     
     // 🔧 Clean up controller pool
     this.controllerPool.length = 0;
