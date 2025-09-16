@@ -86,7 +86,7 @@ describe('Filter Cache Dynamic Sizing Tests', () => {
       expect(handlerCount).toBe(9);
       expect(cacheMaxSize).toBe(90); // 9 × 10
       
-      console.log(`9 handlers: cache size = ${cacheMaxSize}`);
+      // Reduced logging for memory efficiency
     });
 
     it('should handle 10 handlers (cache size: 100)', () => {
@@ -104,7 +104,7 @@ describe('Filter Cache Dynamic Sizing Tests', () => {
       expect(handlerCount).toBe(10);
       expect(cacheMaxSize).toBe(100); // 10 × 10
       
-      console.log(`10 handlers: cache size = ${cacheMaxSize}`);
+      // console.log(`10 handlers: cache size = ${cacheMaxSize}`);
     });
 
     it('should handle 11 handlers (cache size: 110)', () => {
@@ -122,7 +122,7 @@ describe('Filter Cache Dynamic Sizing Tests', () => {
       expect(handlerCount).toBe(11);
       expect(cacheMaxSize).toBe(110); // 11 × 10
       
-      console.log(`11 handlers: cache size = ${cacheMaxSize}`);
+      // console.log(`11 handlers: cache size = ${cacheMaxSize}`);
     });
 
     it('should show progression from 9 → 10 → 11 handlers', () => {
@@ -166,7 +166,7 @@ describe('Filter Cache Dynamic Sizing Tests', () => {
         { handlers: 11, cacheSize: 110 }
       ]);
 
-      console.log('Cache size progression:', progression);
+      // console.log('Cache size progression:', progression);
     });
   });
 
@@ -188,7 +188,7 @@ describe('Filter Cache Dynamic Sizing Tests', () => {
         expect(currentSize).toBe(expectedSize);
       }
 
-      console.log('Progressive cache size changes:', cacheSizes.slice(0, 5), '...', cacheSizes.slice(-3));
+      // console.log('Progressive cache size changes:', cacheSizes.slice(0, 5), '...', cacheSizes.slice(-3));
     });
 
     it('should adjust cache size when handlers are removed', () => {
@@ -223,7 +223,7 @@ describe('Filter Cache Dynamic Sizing Tests', () => {
         expect(currentCacheSize).toBe(expectedSize);
       }
 
-      console.log('Handler removal effects:', removalSteps.slice(-3));
+      // console.log('Handler removal effects:', removalSteps.slice(-3));
     });
 
     it('should return to minimum cache size when all handlers removed', () => {
@@ -245,7 +245,7 @@ describe('Filter Cache Dynamic Sizing Tests', () => {
       expect(register.getHandlerCount('testAction')).toBe(0);
       expect((register as any).filterCacheMaxSize).toBe(100); // Fallback minimum
 
-      console.log('After removing all handlers: cache size =', (register as any).filterCacheMaxSize);
+      // console.log('After removing all handlers: cache size =', (register as any).filterCacheMaxSize);
     });
   });
 
@@ -288,7 +288,7 @@ describe('Filter Cache Dynamic Sizing Tests', () => {
         expect(totalHandlers).toBe(9);
         expect(cacheSize).toBe(expectedSize);
 
-        console.log(`Multi-action test: ${totalHandlers} total handlers, cache size = ${cacheSize}`);
+        // console.log(`Multi-action test: ${totalHandlers} total handlers, cache size = ${cacheSize}`);
 
       } finally {
         multiRegister.destroy();
@@ -310,7 +310,7 @@ describe('Filter Cache Dynamic Sizing Tests', () => {
       expect(cacheSize).toBe(110); // 11 × 10
       expect(register.getHandlerCount('testAction')).toBe(11);
 
-      console.log(`Starting cache overflow test: ${register.getHandlerCount('testAction')} handlers, cache size = ${cacheSize}`);
+      // console.log(`Starting cache overflow test: ${register.getHandlerCount('testAction')} handlers, cache size = ${cacheSize}`);
 
       // Generate 150 different filter requests to exceed cache size (110)
       const filterRequests = [];
@@ -341,7 +341,7 @@ describe('Filter Cache Dynamic Sizing Tests', () => {
 
         // Log progress every 25 requests
         if ((i + 1) % 25 === 0) {
-          console.log(`Processed ${i + 1}/150 requests, last result: ${result.execution.handlersExecuted} handlers executed`);
+          // console.log(`Processed ${i + 1}/150 requests, last result: ${result.execution.handlersExecuted} handlers executed`);
         }
       }
 
@@ -355,12 +355,12 @@ describe('Filter Cache Dynamic Sizing Tests', () => {
       expect(successCount).toBe(150); // All requests should succeed
       expect(totalHandlersExecuted).toBeGreaterThan(0); // Handlers should have executed
 
-      console.log(`Cache overflow test results:`);
-      console.log(`- Total requests: 150 (exceeded cache size of ${cacheSize})`);
-      console.log(`- Success rate: ${successCount}/150 (${(successCount/150*100).toFixed(1)}%)`);
-      console.log(`- Total handlers executed: ${totalHandlersExecuted}`);
-      console.log(`- Test duration: ${duration}ms`);
-      console.log(`- Cache handled overflow gracefully with LRU eviction`);
+      // console.log(`Cache overflow test results:`);
+      // console.log(`- Total requests: 150 (exceeded cache size of ${cacheSize})`);
+      // console.log(`- Success rate: ${successCount}/150 (${(successCount/150*100).toFixed(1)}%)`);
+      // console.log(`- Total handlers executed: ${totalHandlersExecuted}`);
+      // console.log(`- Test duration: ${duration}ms`);
+      // console.log(`- Cache handled overflow gracefully with LRU eviction`);
     });
 
     it('should demonstrate cache hit/miss pattern with specific filter sequences', async () => {
@@ -412,9 +412,9 @@ describe('Filter Cache Dynamic Sizing Tests', () => {
         expect(result.handlersExecuted).toBeGreaterThan(0);
       });
 
-      console.log('Cache hit/miss pattern test:');
+      // console.log('Cache hit/miss pattern test:');
       results.forEach(result => {
-        console.log(`  Step ${result.step}: ${result.expectation} → ${result.handlersExecuted} handlers executed`);
+        // console.log(`  Step ${result.step}: ${result.expectation} → ${result.handlersExecuted} handlers executed`);
       });
     });
   });
@@ -490,22 +490,22 @@ describe('Filter Cache Dynamic Sizing Tests', () => {
 
         // Debug failing test case
         if (result.execution.handlersExecuted !== test.expectedIds.length) {
-          console.log(`❌ MISMATCH: ${test.description}`);
-          console.log(`  Expected: ${test.expectedIds.length} handlers`);
-          console.log(`  Filtered: ${filteredHandlers.length} handlers`);
-          console.log(`  Executed: ${result.execution.handlersExecuted} handlers`);
-          console.log(`  Executed handlers:`, result.handlers?.map(h => h.id));
-          console.log(`  Filter:`, test.filter);
-          console.log(`  All registered handlers:`, allHandlers.map((h: any) => h.config.id));
+          // console.log(`❌ MISMATCH: ${test.description}`);
+          // console.log(`  Expected: ${test.expectedIds.length} handlers`);
+          // console.log(`  Filtered: ${filteredHandlers.length} handlers`);
+          // console.log(`  Executed: ${result.execution.handlersExecuted} handlers`);
+          // console.log(`  Executed handlers:`, result.handlers?.map(h => h.id));
+          // console.log(`  Filter:`, test.filter);
+          // console.log(`  All registered handlers:`, allHandlers.map((h: any) => h.config.id));
         }
 
         expect(result.execution.handlersExecuted).toBe(test.expectedIds.length);
         expect(result.success).toBe(true);
       }
 
-      console.log('Exact matching test results:');
+      // console.log('Exact matching test results:');
       results.forEach(result => {
-        console.log(`  ${result.description}: expected ${result.expectedCount}, got ${result.actualCount} handlers`);
+        // console.log(`  ${result.description}: expected ${result.expectedCount}, got ${result.actualCount} handlers`);
       });
     });
 
@@ -540,7 +540,7 @@ describe('Filter Cache Dynamic Sizing Tests', () => {
         );
 
         expect(result.execution.handlersExecuted).toBe(test.expectedExecuted);
-        console.log(`${test.description}: ${result.execution.handlersExecuted} handlers executed`);
+        // console.log(`${test.description}: ${result.execution.handlersExecuted} handlers executed`);
       }
     });
 
@@ -582,12 +582,12 @@ describe('Filter Cache Dynamic Sizing Tests', () => {
         );
 
         expect(result.execution.handlersExecuted).toBe(test.expectedCount);
-        console.log(`${test.description}: ${result.execution.handlersExecuted} handlers executed`);
+        // console.log(`${test.description}: ${result.execution.handlersExecuted} handlers executed`);
       }
 
       // Verify custom filters are not cached by checking cache size
       const cacheSize = (register as any).filterCache.size;
-      console.log(`Cache size after custom filters: ${cacheSize} (should be 0 since custom filters not cached)`);
+      // console.log(`Cache size after custom filters: ${cacheSize} (should be 0 since custom filters not cached)`);
       expect(cacheSize).toBe(0); // Custom filters should not populate cache
     });
 
@@ -622,10 +622,10 @@ describe('Filter Cache Dynamic Sizing Tests', () => {
       }
       const customDuration = performance.now() - customStart;
 
-      console.log(`Performance comparison (100 iterations):`);
-      console.log(`  Exact matching (cached): ${exactDuration.toFixed(2)}ms`);
-      console.log(`  Custom filter (not cached): ${customDuration.toFixed(2)}ms`);
-      console.log(`  Performance ratio: ${(customDuration / exactDuration).toFixed(1)}x slower`);
+      // console.log(`Performance comparison (100 iterations):`);
+      // console.log(`  Exact matching (cached): ${exactDuration.toFixed(2)}ms`);
+      // console.log(`  Custom filter (not cached): ${customDuration.toFixed(2)}ms`);
+      // console.log(`  Performance ratio: ${(customDuration / exactDuration).toFixed(1)}x slower`);
 
       // Both should execute same number of handlers
       const exactResult = await register.dispatchWithResult('testAction', { message: 'test' },
@@ -686,11 +686,11 @@ describe('Filter Cache Dynamic Sizing Tests', () => {
       // Cache size should be 200 (20 handlers × 10)
       expect((register as any).filterCacheMaxSize).toBe(200);
 
-      console.log(`Cache performance test completed in ${duration}ms with cache size 200`);
-      console.log('Filter results:', results.map(r => ({ 
-        executed: r.handlersExecuted, 
-        success: r.success 
-      })));
+      // console.log(`Cache performance test completed in ${duration}ms with cache size 200`);
+      // console.log('Filter results:', results.map(r => ({
+      //   executed: r.handlersExecuted,
+      //   success: r.success
+      // })));
     });
   });
 });

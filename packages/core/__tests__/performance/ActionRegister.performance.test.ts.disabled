@@ -328,7 +328,7 @@ describe('ActionRegister - Performance and Stress Tests', () => {
       const duration = endTime - startTime;
       const opsPerSecond = (iterations / duration) * 1000;
 
-      console.log(`Single handler benchmark: ${opsPerSecond.toFixed(0)} ops/sec`);
+      // console.log(`Single handler benchmark: ${opsPerSecond.toFixed(0)} ops/sec`);
       expect(opsPerSecond).toBeGreaterThan(1000); // Should handle > 1000 ops/sec
     });
 
@@ -351,7 +351,7 @@ describe('ActionRegister - Performance and Stress Tests', () => {
       const duration = endTime - startTime;
       const opsPerSecond = (iterations / duration) * 1000;
 
-      console.log(`Multiple handler benchmark: ${opsPerSecond.toFixed(0)} ops/sec`);
+      // console.log(`Multiple handler benchmark: ${opsPerSecond.toFixed(0)} ops/sec`);
       expect(opsPerSecond).toBeGreaterThan(100); // Should handle > 100 ops/sec with multiple handlers
     });
 
@@ -388,7 +388,7 @@ describe('ActionRegister - Performance and Stress Tests', () => {
 
       const overhead = ((durationWithCollection - durationWithoutCollection) / durationWithoutCollection) * 100;
 
-      console.log(`Result collection overhead: ${overhead.toFixed(1)}%`);
+      // console.log(`Result collection overhead: ${overhead.toFixed(1)}%`);
       expect(overhead).toBeLessThan(100); // Overhead should be less than 100%
     });
   });
@@ -430,7 +430,7 @@ describe('ActionRegister - Performance and Stress Tests', () => {
       const parallelEnd = performance.now();
       const parallelDuration = parallelEnd - parallelStart;
 
-      console.log(`Sequential: ${sequentialDuration.toFixed(1)}ms, Parallel: ${parallelDuration.toFixed(1)}ms`);
+      // console.log(`Sequential: ${sequentialDuration.toFixed(1)}ms, Parallel: ${parallelDuration.toFixed(1)}ms`);
 
       // Both should execute all handlers
       expect(sequentialResult.results).toHaveLength(handlerCount);
@@ -488,7 +488,7 @@ describe('ActionRegister - Performance and Stress Tests', () => {
         total + result.results[0].processed, 0
       );
 
-      console.log(`Batch processing: ${totalItemsProcessed} items in ${duration.toFixed(1)}ms`);
+      // console.log(`Batch processing: ${totalItemsProcessed} items in ${duration.toFixed(1)}ms`);
       
       expect(totalItemsProcessed).toBe(batchSize * batchCount);
       expect(duration).toBeLessThan(5000); // Should process 10k items in under 5 seconds
