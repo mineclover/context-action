@@ -9,12 +9,16 @@
  */
 
 // Static Immer import for reliable and predictable behavior
-import { 
-  produce as immerProduce, 
-  isDraft as immerIsDraft, 
-  original as immerOriginal, 
-  current as immerCurrent 
+import {
+  produce as immerProduce,
+  isDraft as immerIsDraft,
+  original as immerOriginal,
+  current as immerCurrent,
+  enableMapSet
 } from 'immer';
+
+// Enable Map and Set support in Immer
+enableMapSet();
 
 /**
  * Check if value is a primitive type
