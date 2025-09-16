@@ -19,7 +19,9 @@ Context-Driven Architecture is an innovative architectural approach that overcom
 
 #### Context-Action's Solution
 - **Document-Artifact Centered Design**: Context separation based on document themes and deliverable management
-- **Perfect Separation of Concerns**: Each context manages its own domain documentation and implementation
+- **Perfect Separation of Concerns**: 5-layer hook architecture with specialized responsibilities
+- **Delayed Evaluation Pattern**: Handlers access latest state through `store.getValue()` for optimal performance
+- **Selective Subscription Model**: UI-focused selective state subscriptions
 - **Effective Document-Artifact Management**: State management library that actively supports the relationship between documentation and deliverables
 
 ## Context Definition and Separation Principles
@@ -82,22 +84,36 @@ Page ↔ Page (Forbidden - Complete Isolation)
 - **Forbidden**: Parent domain accessing child domain data, domains accessing page data, pages accessing other pages
 - **Evolution**: When domain features become complex, they evolve into independent child domains that depend on their parent
 
-#### 3. Event-Based Delegation Pattern
+#### 3. Hook-Based Delegation Pattern
+
+**5-Layer Hook Architecture** enables sophisticated delegation patterns:
 
 ```typescript
-// Parent Context: Defines the event
+// Parent Context: Defines dispatcher and subscriptions
 const {
   Provider: ParentActionProvider,
   useActionDispatch: useParentAction
 } = createActionContext<ParentActions>('ParentContext');
 
-// Child Context: Executes the parent event
-function ChildComponent() {
-  const parentDispatch = useParentAction();
+// Child Context: Uses parent hooks with selective access
+function useChildDispatchers() {
+  const parentDispatch = useParentAction(); // Use parent dispatcher
 
-  const handleChildAction = () => {
-    // After performing child tasks, trigger the parent event
-    parentDispatch('parentEvent', childData);
+  return {
+    onChildAction: useCallback((data, options) => {
+      // Child can trigger parent events with execution options
+      parentDispatch('parentEvent', data, options);
+    }, [parentDispatch])
+  };
+}
+
+// Child subscription accessing parent state
+function useChildSubscriptions() {
+  const { parentData } = useParentSubscriptions(); // Access parent subscriptions
+
+  return {
+    parentData,
+    derivedChildData: parentData?.map(item => ({ ...item, childProperty: true }))
   };
 }
 ```
@@ -174,24 +190,33 @@ Context-Action's `createStoreContext` provides type-safe and declarative store m
 
 > **Detailed Store Patterns**: See [Context-Action Complete Guide](context-action-complete-guide.md) for complete store implementation patterns, update conventions, and performance optimization.
 
-### 3. Context-Layered Architecture Philosophy
+### 3. 5-Layer Hook Architecture Philosophy
 
-Context-Driven Architecture integrates with the Context-Action Framework's layered approach to maintain clear separation of concerns:
+Context-Driven Architecture integrates with the Context-Action Framework's **5-Layer Hook Architecture** to maintain clear separation of concerns:
 
-**Core Layers**:
-- **Context Definitions**: Pure atomic context declarations
-- **Action Dispatch**: Business action triggering interface
-- **Store Subscriptions**: State observation and computed values
-- **Business Logic**: Domain rules, workflows, and handler registration
-- **View Interfaces**: Presentation layer contracts and composition
-- **UI Components**: Visual presentation and user interaction
+**Core Hook Layers**:
+- **contexts/**: Context resource type definitions and provider creation
+- **handlers/**: Internal function definitions for pipe registration with delayed evaluation
+- **subscriptions/**: Selective state subscriptions and parent context access
+- **registries/**: Handler registration with context lifecycle management
+- **dispatchers/**: on~ function generation with execution options for views
+- **views/**: UI components consuming dispatchers and subscriptions
 
-**Layer Responsibilities**:
-- Each layer has a single, clear responsibility
-- Dependencies flow in one direction (views → viewmodels → hooks/actions → handlers → contexts)
-- Business logic stays in handlers, presentation logic in components
+**Hook Layer Responsibilities**:
+- Each hook layer has a single, specialized responsibility
+- **Delayed Evaluation**: Handlers use `store.getValue()` for latest state access
+- **Selective Access**: Child contexts can access parent subscription hooks
+- **Execution Options**: Dispatchers provide configurable execution parameters
+- **Observable State**: Advanced patterns with useRef + useState + currying
 
-> **Complete Implementation Guide**: See [Context-Action Complete Guide](context-action-complete-guide.md) for detailed 5-layer architecture implementation, atomic folder structures, and coding patterns.
+**Data Flow Pattern**:
+```
+Views → Dispatchers (on~) → Contexts → Registries → Handlers (delayed eval)
+  ↑                                                        ↓
+Subscriptions ←──────────── Store Updates ←──────────────┘
+```
+
+> **Complete Implementation Guide**: See [Context-Action Complete Guide](context-action-complete-guide.md) for detailed 5-layer hook architecture implementation, atomic folder structures, and coding patterns.
 
 ## Design System Integration
 
@@ -220,35 +245,42 @@ const handleBusinessLogic = () => {
 
 ## Architectural Advantages
 
-### 1. Design Component Observability
-- **Clear State Flow**: All state changes flow through action pipeline
-- **Predictable Updates**: Handler priority system ensures consistent execution order
-- **Debugging Support**: Action pipeline provides clear audit trail
+### 1. Hook-Based Component Observability
+- **Clear State Flow**: All state changes flow through specialized hook layers
+- **Delayed Evaluation**: Handlers always access latest state via `store.getValue()`
+- **Selective Subscriptions**: Components subscribe only to needed state changes
+- **Observable Execution**: Advanced patterns track handler execution state
+- **Debugging Support**: Hook layer separation provides clear audit trail
 
-### 2. Clear Event-Driven Architecture
-- **Action-Centric Design**: All business logic triggered through actions
-- **Decoupled Components**: UI components only dispatch actions and observe state
-- **Testable Logic**: Business logic in handlers can be tested independently
+### 2. Clear Hook-Driven Architecture
+- **Hook-Centric Design**: All business logic triggered through specialized hook layers
+- **Decoupled Components**: UI components use dispatchers and subscriptions only
+- **Testable Logic**: Handler definitions can be tested independently from UI
+- **Execution Options**: Dispatcher hooks provide configurable execution parameters
 
-### 3. Update Isolation and Control
+### 3. Update Isolation and Performance Control
 - **Context Boundaries**: Changes within one context don't affect others
-- **Controlled Dependencies**: Explicit dependency declarations prevent unintended coupling
-- **Atomic Updates**: Each context manages its own state atomically
+- **Controlled Dependencies**: Hook-level access patterns prevent unintended coupling
+- **Atomic Updates**: Each context manages its own state atomically with delayed evaluation
+- **Performance Optimization**: Selective subscriptions reduce unnecessary re-renders
 
-### 4. Logic Transparency
-- **Handler Registration**: All business logic explicitly registered and visible
+### 4. Logic Transparency and Observability
+- **Handler Registration**: All business logic explicitly registered through registry hooks
 - **Priority System**: Clear execution order for complex workflows
-- **State Management**: Transparent state updates through action pipeline
+- **State Management**: Transparent state updates through hook pipeline
+- **Execution State**: Observable handler execution with useRef + useState patterns
 
 ### 5. Implementation Simplification
-- **Pattern Consistency**: Same patterns apply across all contexts
-- **Type Safety**: Full TypeScript support reduces runtime errors
-- **Boilerplate Reduction**: Framework handles common patterns automatically
+- **Hook Pattern Consistency**: Same hook patterns apply across all contexts
+- **Type Safety**: Full TypeScript support with hook-specific type definitions
+- **Delayed Evaluation**: Automatic latest state access in handlers
+- **Boilerplate Reduction**: Specialized hooks handle common patterns automatically
 
-### 6. Potential for Incremental Development
-- **Context Evolution**: Start simple, grow complex features into independent contexts
-- **Independent Development**: Different contexts can be developed independently
-- **Gradual Migration**: Existing code can be migrated context by context
+### 6. Scalable Hook Development
+- **Context Evolution**: Start simple, grow complex hook definitions into independent contexts
+- **Independent Development**: Different contexts with their hook layers can be developed independently
+- **Hook Complexity Management**: Use features/ namespace when hook definitions exceed 10+ per layer
+- **Gradual Migration**: Existing code can be migrated to hook architecture context by context
 
 ## Implementation Guidelines
 
@@ -258,23 +290,26 @@ const handleBusinessLogic = () => {
 - Use page contexts for UI-specific state, domain contexts for business logic
 - Document context specifications and dependencies
 
-### 2. Handler Registration Pattern
-- Register all business logic through action handlers
-- Use priority system for complex workflows
-- Implement 3-step store integration pattern (read → logic → update)
-- Handle errors appropriately and provide meaningful feedback
+### 2. Hook-Based Handler Pattern
+- Define handler functions in handlers/ layer with delayed evaluation
+- Register handlers through registries/ layer hooks
+- Implement 3-step store integration pattern (read latest → logic → update)
+- Use `useCallback` for proper memoization of handler definitions
+- Handle errors appropriately with observable execution state
 
-### 3. Store Usage Pattern
-- Use store subscriptions for reactive UI updates
+### 3. Selective Subscription Pattern
+- Use subscriptions/ layer for selective state observation
+- Access parent context subscriptions when needed in child contexts
 - Implement proper comparison strategies (reference/shallow/deep)
-- Follow immutability rules for state updates
-- Optimize store structure for performance
+- Follow immutability rules with delayed evaluation for latest state
+- Optimize subscription granularity for performance
 
-### 4. Error Handling Pattern
-- Implement proper error boundaries for each context
-- Use action pipeline controller for error handling
-- Provide meaningful error messages and recovery options
-- Log errors appropriately for debugging
+### 4. Dispatcher and Execution Pattern
+- Generate on~ functions in dispatchers/ layer with execution options
+- Provide configurable execution parameters for different use cases
+- Use observable execution state for advanced debugging
+- Implement proper error boundaries for each hook layer
+- Log errors appropriately with execution state context
 
 > **Complete Implementation Examples**: See [Context-Action Complete Guide](context-action-complete-guide.md) for detailed implementation patterns, code examples, and best practices.
 
@@ -282,12 +317,15 @@ const handleBusinessLogic = () => {
 
 Context-Driven Architecture provides a comprehensive approach to building maintainable, scalable applications through:
 
-1. **Document-Centric Design**: Architecture follows documentation structure
-2. **Atomic Context Isolation**: Each context is completely independent
-3. **Clear Separation of Concerns**: Layered architecture with single responsibilities
-4. **Type-Safe Implementation**: Full TypeScript support throughout
-5. **Incremental Development**: Start simple, evolve complexity naturally
+1. **Document-Centric Design**: Architecture follows documentation structure with atomic context units
+2. **5-Layer Hook Architecture**: Specialized hook layers with single responsibilities and delayed evaluation
+3. **Atomic Context Isolation**: Each context is completely independent with its own hook layers
+4. **Delayed Evaluation Pattern**: Handlers always access latest state for optimal performance
+5. **Selective Subscription Model**: UI-focused selective state subscriptions for performance
+6. **Observable Execution State**: Advanced debugging patterns with execution state tracking
+7. **Hook-Based Scalability**: Start simple, evolve hook complexity naturally with features/ namespace
+8. **Type-Safe Hook Implementation**: Full TypeScript support throughout hook architecture
 
-This architectural approach enables teams to build applications that remain maintainable as they scale, with clear boundaries, predictable behavior, and excellent developer experience.
+This architectural approach enables teams to build applications that remain maintainable as they scale, with clear hook boundaries, predictable state flow, optimal performance characteristics, and excellent developer experience.
 
-**Next Steps**: Explore the [Context-Action Complete Guide](context-action-complete-guide.md) for hands-on implementation patterns, detailed folder structures, and comprehensive coding examples.
+**Next Steps**: Explore the [Context-Action Complete Guide](context-action-complete-guide.md) for hands-on hook implementation patterns, detailed 5-layer folder structures, and comprehensive coding examples with delayed evaluation and selective subscription patterns.

@@ -18,19 +18,31 @@ A comprehensive implementation guide with practical patterns, folder structures,
 
 ## Implementation Overview
 
-This guide provides concrete implementation patterns for the Context-Action Framework:
+This guide provides concrete implementation patterns for the Context-Action Framework with the new **5-Layer Hook Architecture**:
 
 ### ✅ **Core Implementation Concepts**
 - **Atomic Context Structure** - Each context as independent top-level folder
-- **5-Layer Architecture** - Clear layer responsibilities and separation
-- **Single-Layer Default** - Most contexts use flat structure
+- **5-Layer Hook Architecture** - Specialized hook layers with single responsibilities
+- **Delayed Evaluation Pattern** - Handlers get latest values through `store.getValue()`
+- **Selective Subscription Model** - UI-focused selective state subscriptions
+- **Execution State Observability** - Advanced patterns with useRef + useState + currying
+- **Single-Layer Default** - Most contexts use flat structure within each layer
 - **Hierarchical Organization** - Use `features/` only for large-scale contexts (10+ components)
-- **Type-Safe Patterns** - Full TypeScript support with strict conventions
 
 ### 🎯 **Key Benefits**
-- **Independent Development** - Each context can be developed and tested separately
-- **Clear Organization** - Predictable structure and file naming
+- **Independent Development** - Each atomic context can be developed and tested separately
+- **Clear Hook Separation** - Each layer has specific hook responsibilities
+- **Delayed Evaluation** - Always access latest state values in handlers
+- **Selective Performance** - Subscribe only to needed state changes
+- **Observable Execution** - Track handler execution state for debugging
 - **Scalable Growth** - Start simple, add complexity only when needed
+
+### 🔄 **New Data Flow Pattern**
+```
+Views → Dispatchers (on~) → Contexts → Registries → Handlers (delayed eval)
+  ↑                                                        ↓
+Subscriptions ←───────── Store Updates ←──────────────────┘
+```
 
 > **Architectural Philosophy**: For theoretical foundation and principles, see [Context-Driven Architecture](context-driven-architecture.md)
 
@@ -44,15 +56,15 @@ This guide provides concrete implementation patterns for the Context-Action Fram
 - **Purpose**: Core business domain entities and their logic
 - **Characteristics**: Reusable across multiple pages, contains business rules
 - **Examples**: `user/`, `product/`, `authentication/`, `shopping-cart/`
-- **Standard Structure**: Single-layer organization (actions/, hooks/, handlers/, viewmodels/, views/)
-- **Large-Scale**: Use `features/` namespace when components exceed ~10 items per layer
+- **Standard Structure**: 5-layer hook architecture (contexts/, handlers/, subscriptions/, registries/, dispatchers/, views/)
+- **Large-Scale**: Use `features/` namespace when hooks exceed ~10 items per layer
 
 #### 2. **Page Context** - UI-Specific State
 - **Purpose**: UI state and logic specific to a particular page
 - **Characteristics**: Used only within specific pages, isolated from other pages
 - **Examples**: `user-dashboard-page/`, `product-list-page/`, `checkout-flow-page/`
-- **Standard Structure**: Single-layer organization
-- **Large-Scale**: Use `features/` namespace for complex pages with many widgets
+- **Standard Structure**: 5-layer hook architecture
+- **Large-Scale**: Use `features/` namespace for complex pages with many hook definitions
 
 ### Truly Atomic Context Folder Structure
 
@@ -61,20 +73,20 @@ Each context is a completely independent, top-level atomic unit:
 ```
 src/
 ├── user/                           # 🔍 User Domain (Standard Size)
-│   ├── contexts/                   # Context definitions
+│   ├── contexts/                   # Context resource type definitions
 │   │   ├── UserContext.ts
 │   │   └── index.ts
-│   ├── actions/                    # Action dispatch (single-layer)
-│   │   ├── useUserActions.ts
+│   ├── handlers/                   # Internal function definitions (single-layer)
+│   │   ├── useUserHandlerDefinitions.ts
 │   │   └── index.ts
-│   ├── hooks/                      # Store subscriptions (single-layer)
-│   │   ├── useUserState.ts
+│   ├── subscriptions/              # Selective state subscriptions (single-layer)
+│   │   ├── useUserSubscriptions.ts
 │   │   └── index.ts
-│   ├── handlers/                   # Business logic (single-layer)
-│   │   ├── UserHandlers.tsx
+│   ├── registries/                 # Handler registration (single-layer)
+│   │   ├── useUserHandlerRegistry.ts
 │   │   └── index.ts
-│   ├── viewmodels/                 # View interfaces (single-layer)
-│   │   ├── useUserViewModel.ts
+│   ├── dispatchers/                # on~ function generation (single-layer)
+│   │   ├── useUserDispatchers.ts
 │   │   └── index.ts
 │   ├── views/                      # UI components (single-layer)
 │   │   ├── UserProfile.tsx
@@ -108,10 +120,10 @@ src/
 │
 ├── user-dashboard-page/            # 🔍 Dashboard Page (Standard Size)
 │   ├── contexts/
-│   ├── actions/                    # Single-layer (< 10 components)
-│   ├── hooks/
-│   ├── handlers/
-│   ├── viewmodels/
+│   ├── handlers/                   # Single-layer (< 10 hook definitions)
+│   ├── subscriptions/
+│   ├── registries/
+│   ├── dispatchers/
 │   ├── views/                      # DashboardWidget1.tsx, DashboardWidget2.tsx, etc.
 │   ├── spec.md                     # Depends on domain contexts
 │   ├── dependencies.md
@@ -119,29 +131,29 @@ src/
 │
 ├── large-ecommerce/                # 🔍 Large Domain (Hierarchical Example)
 │   ├── contexts/
-│   ├── actions/                    # Core actions
-│   ├── hooks/                      # Core hooks
-│   ├── handlers/                   # Core handlers
-│   ├── viewmodels/                 # Core viewmodels
+│   ├── handlers/                   # Core internal function definitions
+│   ├── subscriptions/              # Core state subscriptions
+│   ├── registries/                 # Core handler registrations
+│   ├── dispatchers/                # Core on~ functions
 │   ├── views/                      # Core views
 │   ├── features/                   # Hierarchical (10+ components)
 │   │   ├── product-catalog/
-│   │   │   ├── actions/
-│   │   │   ├── hooks/
 │   │   │   ├── handlers/
-│   │   │   ├── viewmodels/
+│   │   │   ├── subscriptions/
+│   │   │   ├── registries/
+│   │   │   ├── dispatchers/
 │   │   │   └── views/
 │   │   ├── shopping-cart/
-│   │   │   ├── actions/
-│   │   │   ├── hooks/
 │   │   │   ├── handlers/
-│   │   │   ├── viewmodels/
+│   │   │   ├── subscriptions/
+│   │   │   ├── registries/
+│   │   │   ├── dispatchers/
 │   │   │   └── views/
 │   │   └── payment-processing/
-│   │       ├── actions/
-│   │       ├── hooks/
 │   │       ├── handlers/
-│   │       ├── viewmodels/
+│   │       ├── subscriptions/
+│   │       ├── registries/
+│   │       ├── dispatchers/
 │   │       └── views/
 │   ├── spec.md
 │   ├── dependencies.md
@@ -173,11 +185,51 @@ user/ → user-dashboard-page/             # Domain cannot depend on page
 user-dashboard-page/ → checkout-flow-page/  # Page cannot depend on other pages
 ```
 
+#### Hook-Level Dependency Patterns
+```typescript
+// ✅ Child domain accessing parent context hooks
+// user-profile/subscriptions/useProfileSubscriptions.ts
+export function useProfileSubscriptions() {
+  const { users, currentUser } = useUserSubscriptions(); // Access parent subscriptions
+  const profileStore = useUserStore('profile'); // Access parent stores
+
+  return {
+    users,
+    currentUser,
+    profile: useStoreValue(profileStore),
+    isProfileComplete: useStoreValue(profileStore)?.completeness === 100
+  };
+}
+
+// ✅ Child domain using parent dispatcher
+// user-profile/dispatchers/useProfileDispatchers.ts
+export function useProfileDispatchers() {
+  const dispatch = useUserAction(); // Use parent context dispatcher
+
+  return {
+    onUpdateProfile: useCallback((updates, options) => {
+      dispatch('updateProfile', { updates }, options);
+    }, [dispatch])
+  };
+}
+
+// ❌ Forbidden: Parent accessing child hooks
+// user/subscriptions/useUserSubscriptions.ts
+export function useUserSubscriptions() {
+  // ❌ Cannot use useProfileSubscriptions() - parent cannot depend on child
+  return {
+    users: useStoreValue(useUserStore('users')),
+    currentUser: useStoreValue(useUserStore('currentUser'))
+  };
+}
+```
+
 #### Context Scale Pattern
-- **Default: Single-Layer Organization** - Most contexts use flat structure
-- **Large-Scale: Hierarchical Organization** - When components exceed ~10 items, use `features/`
+- **Default: Single-Layer Organization** - Most contexts use flat structure within each hook layer
+- **Large-Scale: Hierarchical Organization** - When hook definitions exceed ~10 items per layer, use `features/`
 - **Domain Evolution** - Large hierarchical sub-features can become independent atomic contexts
 - **Page Constraint** - Page hierarchical sub-features remain within page context
+- **Hook Complexity Threshold** - Use `features/` when handler definitions, dispatchers, or subscriptions become numerous
 
 ---
 
@@ -187,11 +239,11 @@ Each atomic context implements a **Context-Layered Architecture** with clear res
 
 ```
 [context-name]/           # Each atomic context has complete structure
-├── contexts/         # 📋 Context Definitions (providers, hooks, types)
-├── actions/          # 🚀 Action Dispatching Layer
-├── hooks/            # 🔗 Store Subscription Layer
-├── handlers/         # ⚙️ Business Logic Layer
-├── viewmodels/       # 🎯 View Isolation Layer
+├── contexts/         # 🏗️ Context Resource Type Definitions
+├── handlers/         # 🔧 Pipe Registration Internal Function Definition Hooks
+├── subscriptions/    # 🔗 Selective State Subscription Hooks
+├── registries/       # ⚙️ Handler Registration with Context Hooks
+├── dispatchers/      # 🚀 on~ Function Generation Hooks (View Interface)
 ├── views/            # 🖼️ View Components Layer
 ├── features/         # 🌐 Sub-features namespace (optional)
 ├── spec.md           # Atomic context specification
@@ -201,135 +253,169 @@ Each atomic context implements a **Context-Layered Architecture** with clear res
 
 ### Layer Responsibilities
 
-#### Layer 1: Context Definitions (`contexts/`)
-- Pure context declarations and type definitions
-- Store and action context creation
-- Provider component exports
+#### Layer 1: Context Resource Type Definitions (`contexts/`)
+- Define types for available resources through context
+- Store and action context creation with type definitions
+- Pure context declarations only, no business logic
 
-#### Layer 2: Action Dispatching (`actions/`)
-- Action dispatch functions as custom hooks
-- No store subscriptions, dispatch only
-- Returns action dispatcher interfaces
+#### Layer 2: Internal Function Definition Hooks (`handlers/`)
+- Define internal functions to be registered in pipe at appropriate timing
+- Pre-define handler functions with delayed evaluation
+- Implement 3-Step Store Integration: read → logic → update
+- Use `useCallback` for memoization, access latest values via `store.getValue()`
 
-#### Layer 3: Store Subscription (`hooks/`)
-- Store subscriptions and computed values
-- No action dispatching, state observation only
-- Returns store values and derived state
+#### Layer 3: Selective State Subscription Hooks (`subscriptions/`)
+- Selective state subscription or get subscribed state from parent context hooks
+- UI update-focused selective subscriptions
+- Computed values and derived state
+- Access parent context subscriptions when needed
 
-#### Layer 4: Business Logic (`handlers/`)
-- Action handler registration and business logic
-- Implements 3-Step Store Integration: read → logic → update
-- No JSX rendering, pure logic only
+#### Layer 4: Handler Registration Hooks (`registries/`)
+- Bring context and register handlers with delayed evaluation
+- Register handlers to execute with latest values obtained through delayed evaluation
+- Manage handler registration lifecycle
+- Observable registration state for debugging
 
-#### Layer 5: View Isolation (`viewmodels/`)
-- Composes actions + hooks into view-ready interfaces
-- View-specific logic and data transformation
-- No direct context access, uses actions and hooks layers
+#### Layer 5: on~ Function Generation Hooks (`dispatchers/`)
+- Generate on~ functions to execute subscribed actions with appropriate execution options
+- View interface layer for action dispatching
+- Provide execution options and configuration
+- Used by views for user interactions
 
 #### Layer 6: View Components (`views/`)
 - UI rendering and user interaction
-- Consumes ViewModels only
+- Use dispatchers and subscriptions layers only
 - No direct context access
 
 ---
 
 ## Implementation Patterns
 
-### Basic Atomic Context Implementation
+### New 5-Layer Implementation Pattern
 
 ```typescript
-// contexts/UserContext.ts
+// contexts/UserContext.ts - Resource Type Definitions
+interface UserActions {
+  createUser: { userData: UserData };
+  updateUser: { id: string; updates: Partial<User> };
+}
+
+interface UserStores {
+  users: User[];
+  currentUser: User | null;
+}
+
 export const {
   Provider: UserActionProvider,
   useActionDispatch: useUserAction,
   useActionHandler: useUserActionHandler
-} = createActionContext<UserActions>('UserDomain');
+} = createActionContext<UserActions>('User');
 
 export const {
   Provider: UserStoreProvider,
   useStore: useUserStore
-} = createStoreContext<UserStores>('UserDomain', {
+} = createStoreContext<UserStores>('User', {
   users: { initialValue: [] },
   currentUser: { initialValue: null }
 });
 ```
 
 ```typescript
-// actions/useUserActions.ts
-export function useUserActions() {
-  const dispatch = useUserAction();
+// handlers/useUserHandlerDefinitions.ts - Internal Function Definitions
+export function useUserHandlerDefinitions() {
+  const usersStore = useUserStore('users');
+
+  const createUserHandler = useCallback(async (payload) => {
+    // Step 1: Get latest values (delayed evaluation)
+    const currentUsers = usersStore.getValue();
+
+    // Step 2: Business logic
+    const processedUser = await processUserData(payload.userData);
+
+    // Step 3: Update stores
+    usersStore.setValue([...currentUsers, processedUser]);
+  }, [usersStore]);
+
+  const updateUserHandler = useCallback(async (payload) => {
+    const users = usersStore.getValue();
+    const updatedUsers = users.map(user =>
+      user.id === payload.id ? { ...user, ...payload.updates } : user
+    );
+    usersStore.setValue(updatedUsers);
+  }, [usersStore]);
+
   return {
-    createUser: useCallback((userData) => {
-      dispatch('createUser', { userData });
-    }, [dispatch]),
-    updateUser: useCallback((id, updates) => {
-      dispatch('updateUser', { id, updates });
-    }, [dispatch])
+    createUserHandler,
+    updateUserHandler
   };
 }
 ```
 
 ```typescript
-// hooks/useUserState.ts
-export function useUserState() {
+// subscriptions/useUserSubscriptions.ts - Selective State Subscription
+export function useUserSubscriptions() {
   const usersStore = useUserStore('users');
   const currentUserStore = useUserStore('currentUser');
 
   return {
     users: useStoreValue(usersStore),
     currentUser: useStoreValue(currentUserStore),
-    hasUsers: useStoreValue(usersStore).length > 0
+    hasUsers: useStoreValue(usersStore).length > 0,
+    // Access parent context subscriptions if needed
+    authStatus: useAuthSubscriptions?.().status
   };
 }
 ```
 
 ```typescript
-// handlers/UserHandlers.tsx
-export function UserHandlers({ children }) {
-  const usersStore = useUserStore('users');
+// registries/useUserHandlerRegistry.ts - Handler Registration
+export function useUserHandlerRegistry() {
+  const { createUserHandler, updateUserHandler } = useUserHandlerDefinitions();
 
-  useUserActionHandler('createUser', useCallback(async (payload) => {
-    // Step 1: Read current state
-    const currentUsers = usersStore.getValue();
-
-    // Step 2: Execute business logic
-    const processedData = await processUserData(payload.userData);
-
-    // Step 3: Update stores
-    usersStore.setValue([...currentUsers, processedData]);
-  }, [usersStore]));
-
-  return children;
-}
-```
-
-```typescript
-// viewmodels/useUserViewModel.ts
-export function useUserViewModel() {
-  const { users, currentUser, hasUsers } = useUserState();
-  const { createUser, updateUser } = useUserActions();
+  // Register handlers at appropriate timing
+  useUserActionHandler('createUser', createUserHandler);
+  useUserActionHandler('updateUser', updateUserHandler);
 
   return {
-    users,
-    currentUser,
-    hasUsers,
-    createUser,
-    updateUser,
-    displayName: currentUser?.name || 'Guest'
+    isRegistered: true,
+    handlers: ['createUser', 'updateUser']
   };
 }
 ```
 
 ```typescript
-// views/UserComponent.tsx
+// dispatchers/useUserDispatchers.ts - on~ Function Generation
+export function useUserDispatchers() {
+  const dispatch = useUserAction();
+
+  return {
+    onCreateUser: useCallback((userData: UserData, options?: ExecutionOptions) => {
+      dispatch('createUser', { userData }, options);
+    }, [dispatch]),
+
+    onUpdateUser: useCallback((id: string, updates: Partial<User>, options?: ExecutionOptions) => {
+      dispatch('updateUser', { id, updates }, options);
+    }, [dispatch])
+  };
+}
+```
+
+```typescript
+// views/UserComponent.tsx - View Component
 export function UserComponent() {
-  const { currentUser, displayName, updateUser } = useUserViewModel();
+  const { users, currentUser, hasUsers } = useUserSubscriptions();
+  const { onCreateUser, onUpdateUser } = useUserDispatchers();
 
   return (
     <div>
-      <h1>{displayName}</h1>
-      <button onClick={() => updateUser(currentUser.id, { name: 'Updated' })}>
-        Update
+      <h1>Users: {users.length}</h1>
+      {hasUsers && (
+        <button onClick={() => onUpdateUser(currentUser.id, { name: 'Updated' })}>
+          Update Current User
+        </button>
+      )}
+      <button onClick={() => onCreateUser({ name: 'New User', email: 'new@example.com' })}>
+        Create User
       </button>
     </div>
   );
@@ -344,12 +430,18 @@ export function UserProvider({ children }) {
   return (
     <UserActionProvider>
       <UserStoreProvider>
-        <UserHandlers>
+        <UserHandlerRegistry>  {/* Handler registration component */}
           {children}
-        </UserHandlers>
+        </UserHandlerRegistry>
       </UserStoreProvider>
     </UserActionProvider>
   );
+}
+
+// user/registries/UserHandlerRegistry.tsx
+function UserHandlerRegistry({ children }) {
+  useUserHandlerRegistry(); // Register handlers
+  return children;
 }
 
 // App composition
@@ -373,33 +465,102 @@ function App() {
 **Sub-features** are used only when a single atomic context becomes very large and complex. Most contexts should use **single-layer approach**.
 
 ### When to Use Sub-features
-- **General Case**: Keep everything in single layers (`actions/`, `hooks/`, `handlers/`, `viewmodels/`, `views/`)
-- **Large Scale Only**: Use `features/` namespace when components exceed ~10 items per layer
+- **General Case**: Keep everything in single layers (`handlers/`, `subscriptions/`, `registries/`, `dispatchers/`, `views/`)
+- **Large Scale Only**: Use `features/` namespace when hook definitions exceed ~10 items per layer
 - **Hierarchical Organization**: Break down complex domains into manageable sub-features
+- **Hook Complexity**: Consider hierarchical when handler definitions, dispatchers, or subscriptions become numerous
 
 ### Large Domain Example (Hierarchical)
 
 ```typescript
-// user/features/profile/actions/useProfileActions.ts
-export function useProfileActions() {
+// user/features/profile/handlers/useProfileHandlerDefinitions.ts
+export function useProfileHandlerDefinitions() {
+  const dispatch = useUserAction(); // Use parent context's dispatcher
+  const profileStore = useUserStore('profile'); // Access parent context store
+
+  const updateProfileHandler = useCallback(async (payload) => {
+    const currentProfile = profileStore.getValue();
+    const updatedProfile = { ...currentProfile, ...payload.updates };
+    profileStore.setValue(updatedProfile);
+  }, [profileStore]);
+
+  return { updateProfileHandler };
+}
+
+// user/features/profile/dispatchers/useProfileDispatchers.ts
+export function useProfileDispatchers() {
   const dispatch = useUserAction(); // Use parent context's dispatcher
 
   return {
-    updateProfile: useCallback((updates) => {
-      dispatch('updateProfile', { updates });
+    onUpdateProfile: useCallback((updates, options) => {
+      dispatch('updateProfile', { updates }, options);
     }, [dispatch])
   };
 }
 
-// user/features/profile/viewmodels/useProfileViewModel.ts
-export function useProfileViewModel() {
-  const { profile } = useUserState(); // Access parent context state
-  const { updateProfile } = useProfileActions();
+// user/features/profile/subscriptions/useProfileSubscriptions.ts
+export function useProfileSubscriptions() {
+  const { profile, users } = useUserSubscriptions(); // Access parent subscriptions
 
   return {
     profile,
-    updateProfile,
-    isComplete: profile?.status === 'complete'
+    users,
+    isComplete: profile?.completeness === 100
+  };
+}
+```
+
+### Special Case: Observable Execution State Hook
+
+```typescript
+// handlers/useObservableUserHandlers.ts - Advanced Pattern
+export function useObservableUserHandlers() {
+  const [executionState, setExecutionState] = useState({
+    createUser: { isRunning: false, lastResult: null },
+    updateUser: { isRunning: false, lastResult: null }
+  });
+
+  const stateRef = useRef(executionState);
+  stateRef.current = executionState;
+
+  // Currying for observable handler generation
+  const createObservableHandler = useCallback((actionName: string) => {
+    return useCallback(async (payload) => {
+      // Update execution start state
+      setExecutionState(prev => ({
+        ...prev,
+        [actionName]: { ...prev[actionName], isRunning: true }
+      }));
+
+      try {
+        // Execute business logic with latest values
+        const result = await executeBusinessLogic(payload);
+
+        // Update success state
+        setExecutionState(prev => ({
+          ...prev,
+          [actionName]: { isRunning: false, lastResult: result }
+        }));
+
+        return result;
+      } catch (error) {
+        // Update error state
+        setExecutionState(prev => ({
+          ...prev,
+          [actionName]: { isRunning: false, lastResult: { error } }
+        }));
+        throw error;
+      }
+    }, [actionName]);
+  }, []);
+
+  return {
+    handlers: {
+      createUser: createObservableHandler('createUser'),
+      updateUser: createObservableHandler('updateUser')
+    },
+    executionState: stateRef.current,
+    isAnyRunning: Object.values(stateRef.current).some(state => state.isRunning)
   };
 }
 ```
@@ -410,11 +571,11 @@ export function useProfileViewModel() {
 ```
 user/                           # Large-scale user domain
 ├── features/                   # Hierarchical organization needed
-│   └── profile/                # Profile sub-feature (10+ components)
-│       ├── actions/
-│       ├── hooks/
+│   └── profile/                # Profile sub-feature (10+ hook definitions)
 │       ├── handlers/
-│       ├── viewmodels/
+│       ├── subscriptions/
+│       ├── registries/
+│       ├── dispatchers/
 │       └── views/
 └── spec.md
 ```
@@ -422,19 +583,19 @@ user/                           # Large-scale user domain
 **After (Independent Atomic Context):**
 ```
 user/                           # Simplified original context
-├── actions/                    # Back to single-layer
-├── hooks/
-├── handlers/
-├── viewmodels/
+├── handlers/                   # Back to single-layer
+├── subscriptions/
+├── registries/
+├── dispatchers/
 ├── views/
 └── spec.md
 
 user-profile/                   # New independent atomic context
 ├── contexts/                   # Own context definitions
-├── actions/
-├── hooks/
 ├── handlers/
-├── viewmodels/
+├── subscriptions/
+├── registries/
+├── dispatchers/
 ├── views/
 ├── spec.md                     # Documents dependency on user/
 ├── dependencies.md
@@ -455,41 +616,45 @@ user-profile/                   # New independent atomic context
 ### File Naming Standards
 ```typescript
 // Context files
-contexts/[Context]Context.ts    # Context implementation
-spec.md                        # Context specification
-dependencies.md               # Dependencies documentation
+contexts/[Context]Context.ts                    # Context resource type definitions
+spec.md                                        # Context specification
+dependencies.md                               # Dependencies documentation
 
 // Layer files
-actions/use[Context]Actions.ts     # Action layer hooks
-hooks/use[Context]State.ts         # Hook layer hooks
-handlers/[Context]Handlers.tsx     # Handler layer components
-viewmodels/use[Context]ViewModel.ts # ViewModel layer hooks
-views/[Component].tsx              # View layer components
+handlers/use[Context]HandlerDefinitions.ts    # Internal function definition hooks
+subscriptions/use[Context]Subscriptions.ts    # Selective state subscription hooks
+registries/use[Context]HandlerRegistry.ts     # Handler registration hooks
+dispatchers/use[Context]Dispatchers.ts        # on~ function generation hooks
+views/[Component].tsx                          # View layer components
+
+// Registry components (optional)
+registries/[Context]HandlerRegistry.tsx       # Handler registration components
 ```
 
 ### Context Structure Pattern
 ```
 [atomic-context]/
-├── contexts/               # Context definitions
-│   ├── [Context].ts        # Context implementation
+├── contexts/               # Context resource type definitions
+│   ├── [Context]Context.ts # Context implementation with types
 │   └── index.ts           # Context exports
-├── actions/                # Action dispatch layer
-│   ├── use[Context]Actions.ts
+├── handlers/               # Internal function definition layer
+│   ├── use[Context]HandlerDefinitions.ts
 │   └── index.ts
-├── hooks/                  # Store subscription layer
-│   ├── use[Context]State.ts
+├── subscriptions/          # Selective state subscription layer
+│   ├── use[Context]Subscriptions.ts
 │   └── index.ts
-├── handlers/               # Business logic layer
-│   ├── [Context]Handlers.tsx
+├── registries/             # Handler registration layer
+│   ├── use[Context]HandlerRegistry.ts
+│   ├── [Context]HandlerRegistry.tsx  # Optional component
 │   └── index.ts
-├── viewmodels/             # View isolation layer
-│   ├── use[Context]ViewModel.ts
+├── dispatchers/            # on~ function generation layer
+│   ├── use[Context]Dispatchers.ts
 │   └── index.ts
 ├── views/                  # UI components
 │   ├── [Component].tsx
 │   └── index.ts
 ├── features/               # Sub-features namespace (optional)
-│   └── [feature-name]/     # Sub-feature with own layer structure
+│   └── [feature-name]/     # Sub-feature with own 5-layer structure
 ├── spec.md                 # Atomic context specification
 ├── dependencies.md         # Dependencies documentation
 └── index.ts               # Main context exports
@@ -498,14 +663,14 @@ views/[Component].tsx              # View layer components
 ### Layer Separation Rules
 
 **Layer Responsibilities**:
-- **contexts/**: Pure context declarations, no business logic
-- **actions/**: Action dispatch only, no store subscriptions
-- **hooks/**: Store subscriptions only, no action dispatching
-- **handlers/**: Business logic with 3-step process, no JSX
-- **viewmodels/**: Compose actions + hooks, no direct context access
-- **views/**: ViewModel consumption only, no direct context access
+- **contexts/**: Context resource type definitions only, no business logic
+- **handlers/**: Internal function definitions for pipe registration, delayed evaluation
+- **subscriptions/**: Selective state subscriptions, parent context access allowed
+- **registries/**: Handler registration with context, observable registration state
+- **dispatchers/**: on~ function generation with execution options
+- **views/**: Use dispatchers and subscriptions layers only, no direct context access
 
-**Key Pattern**: Each layer has single responsibility with clear boundaries
+**Key Pattern**: Each layer has single responsibility with delayed evaluation and selective access
 
 ---
 
@@ -569,17 +734,31 @@ const { Provider, useStore } = createStoreContext('Data', {
 
 #### Memoization Patterns
 ```typescript
-// Handler memoization
-const createUserHandler = useCallback(async (payload) => {
-  const currentUsers = userStore.getValue();
-  // Handler logic...
-}, [userStore]);
+// Handler definition memoization
+export function useUserHandlerDefinitions() {
+  const userStore = useUserStore('users');
 
-useUserActionHandler('createUser', createUserHandler);
+  const createUserHandler = useCallback(async (payload) => {
+    const currentUsers = userStore.getValue(); // Delayed evaluation
+    // Handler logic...
+  }, [userStore]);
 
-// ViewModel memoization
-export function useUserViewModel() {
-  const { users } = useUserState();
+  return { createUserHandler };
+}
+
+// Registry memoization
+export function useUserHandlerRegistry() {
+  const { createUserHandler } = useUserHandlerDefinitions();
+
+  useUserActionHandler('createUser', createUserHandler); // Auto-memoized
+
+  return { isRegistered: true };
+}
+
+// Subscription memoization
+export function useUserSubscriptions() {
+  const usersStore = useUserStore('users');
+  const users = useStoreValue(usersStore);
 
   const userStats = useMemo(() => ({
     total: users.length,
@@ -594,39 +773,58 @@ export function useUserViewModel() {
 
 #### Context Specification Requirements
 - Each atomic context must have complete `spec.md` and `dependencies.md`
-- Layer compliance must follow strict separation rules
-- TypeScript strict mode compliance across all files
+- Hook layer compliance must follow strict separation rules
+- TypeScript strict mode compliance across all hook definitions
 - Dependencies must follow hierarchy rules
+- Delayed evaluation pattern must be used in handlers
 
 #### Validation Checklist
 - ✅ Each context is truly atomic and independent
-- ✅ Layer separation rules are followed strictly
-- ✅ Store update patterns use proper immutability
-- ✅ Handler registration uses proper memoization
-- ✅ Dependencies are explicitly documented
+- ✅ Hook layer separation rules are followed strictly
+- ✅ Store update patterns use proper immutability with delayed evaluation
+- ✅ Handler definitions use proper memoization with `useCallback`
+- ✅ Dispatcher functions provide execution options
+- ✅ Subscription hooks are selective and performance-optimized
+- ✅ Registry hooks manage handler lifecycle properly
+- ✅ Dependencies are explicitly documented with hook-level access patterns
 
 ---
 
 ## Implementation Summary
 
 ### ✅ **Key Implementation Patterns**
-1. **Atomic Context Structure** - Each context as independent top-level folder with complete 5-layer architecture
-2. **Single-Layer Default** - Most contexts use flat organization in each layer
-3. **Hierarchical Organization** - Use `features/` namespace only for large-scale contexts (10+ components)
-4. **Clear Layer Separation** - Each layer with single responsibility and proper dependencies
-5. **Type-Safe Implementation** - Full TypeScript support with strict mode compliance
+1. **Atomic Context Structure** - Each context as independent top-level folder with complete 5-layer hook architecture
+2. **5-Layer Hook Architecture** - Specialized hook layers with single responsibilities and delayed evaluation
+3. **Single-Layer Default** - Most contexts use flat organization within each hook layer
+4. **Hierarchical Organization** - Use `features/` namespace only for large-scale contexts (10+ hook definitions per layer)
+5. **Delayed Evaluation Pattern** - Handlers access latest state through `store.getValue()`
+6. **Selective Subscription Model** - UI-focused selective state subscriptions for performance
+7. **Observable Execution State** - Advanced patterns with useRef + useState + currying for debugging
+8. **Type-Safe Hook Implementation** - Full TypeScript support with strict mode compliance
 
 ### 🚀 **Development Benefits**
 - **Independent Development** - Each atomic context can be developed and tested independently
-- **Clear Code Organization** - Predictable folder structure and file naming conventions
-- **Scalable Architecture** - Start simple, add complexity only when needed
+- **Clear Hook Separation** - Each layer has specific hook responsibilities with delayed evaluation
+- **Performance Optimization** - Selective subscriptions and latest state access patterns
+- **Observable Execution** - Track handler execution state for advanced debugging
+- **Scalable Architecture** - Start simple, add hook complexity only when needed
 - **Quality Assurance** - Built-in validation, error handling, and performance guidelines
+
+### 🔄 **Data Flow Pattern**
+```
+Views → Dispatchers (on~) → Contexts → Registries → Handlers (delayed eval)
+  ↑                                                        ↓
+Subscriptions ←───────── Store Updates ←──────────────────┘
+```
 
 ### 📈 **Next Steps**
 1. **Review [Context-Driven Architecture](context-driven-architecture.md)** for architectural principles
-2. **Start with simple atomic contexts** using single-layer organization
-3. **Apply hierarchical organization** only when contexts become large (10+ components)
-4. **Follow development conventions** for consistent codebase quality
-5. **Implement quality gates** for production-ready applications
+2. **Start with simple atomic contexts** using single-layer hook organization
+3. **Implement delayed evaluation pattern** in all handler definitions
+4. **Use selective subscriptions** for optimal performance
+5. **Apply hierarchical organization** only when hook definitions become numerous (10+ per layer)
+6. **Follow hook separation rules** for consistent codebase quality
+7. **Implement observable execution patterns** for advanced debugging needs
+8. **Apply quality gates** for production-ready applications
 
-This guide enables teams to implement Context-Action patterns effectively, creating maintainable and scalable applications with clear architectural boundaries.
+This guide enables teams to implement Context-Action hook patterns effectively, creating maintainable and scalable applications with clear architectural boundaries and optimal performance characteristics.
