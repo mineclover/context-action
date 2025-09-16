@@ -32,7 +32,7 @@ describe('ActionRegister - Individual Method Tests', () => {
   });
 
   afterEach(() => {
-    actionRegister.clearAll();
+    actionRegister.destroy();
     jest.clearAllMocks();
   });
 
@@ -182,14 +182,14 @@ describe('ActionRegister - Individual Method Tests', () => {
 
         expect(actionRegister.getRegisteredActions()).toHaveLength(3);
 
-        actionRegister.clearAll();
+        actionRegister.destroy();
 
         expect(actionRegister.getRegisteredActions()).toHaveLength(0);
         expect(actionRegister.hasHandlers('testAction')).toBe(false);
       });
 
       it('should work when no handlers registered', () => {
-        expect(() => actionRegister.clearAll()).not.toThrow();
+        expect(() => actionRegister.destroy()).not.toThrow();
       });
     });
 

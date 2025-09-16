@@ -18,7 +18,7 @@ describe('Simple Working Test', () => {
   });
 
   afterEach(() => {
-    actionRegister.clearAll();
+    actionRegister.destroy();
   });
 
   it('should create ActionRegister instance', () => {

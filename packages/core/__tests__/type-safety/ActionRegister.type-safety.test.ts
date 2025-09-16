@@ -36,7 +36,7 @@ describe('ActionRegister - Type Safety Tests', () => {
   });
 
   afterEach(() => {
-    actionRegister.clearAll();
+    actionRegister.destroy();
   });
 
   describe('🔒 Compile-time Type Safety', () => {
@@ -484,7 +484,7 @@ describe('ActionRegister - Type Safety Tests', () => {
         originalMetadata: { type: 'custom', timestamp: expect.any(Number) }
       });
 
-      customActionRegister.clearAll();
+      customActionRegister.destroy();
     });
   });
 });

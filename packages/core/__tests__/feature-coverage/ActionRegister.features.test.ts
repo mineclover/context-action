@@ -24,7 +24,7 @@ describe('ActionRegister - Feature Coverage Tests ✅', () => {
   });
 
   afterEach(() => {
-    actionRegister.clearAll();
+    actionRegister.destroy();
     jest.clearAllMocks();
   });
 
@@ -87,7 +87,7 @@ describe('ActionRegister - Feature Coverage Tests ✅', () => {
 
       expect(actionRegister.getRegisteredActions()).toHaveLength(3);
 
-      actionRegister.clearAll();
+      actionRegister.destroy();
 
       expect(actionRegister.getRegisteredActions()).toHaveLength(0);
       expect(actionRegister.hasHandlers('basicAction')).toBe(false);

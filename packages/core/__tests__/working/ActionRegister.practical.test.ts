@@ -22,7 +22,7 @@ describe('ActionRegister - Practical Tests', () => {
   });
 
   afterEach(() => {
-    actionRegister.clearAll();
+    actionRegister.destroy();
   });
 
   describe('Basic Functionality', () => {
@@ -317,7 +317,7 @@ describe('ActionRegister - Practical Tests', () => {
 
       expect(actionRegister.getRegisteredActions()).toHaveLength(3);
 
-      actionRegister.clearAll();
+      actionRegister.destroy();
 
       expect(actionRegister.getRegisteredActions()).toHaveLength(0);
     });

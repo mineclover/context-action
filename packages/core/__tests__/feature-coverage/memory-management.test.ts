@@ -269,7 +269,7 @@ describe('Memory Management Tests - v0.4.1', () => {
       expect(actionRegister.getHandlerCount('bulkAction')).toBe(100);
       
       const startTime = Date.now();
-      actionRegister.clearAll();
+      actionRegister.destroy();
       const clearTime = Date.now() - startTime;
       
       expect(clearTime).toBeLessThan(50); // Should be fast

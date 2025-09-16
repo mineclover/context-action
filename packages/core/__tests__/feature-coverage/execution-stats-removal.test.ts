@@ -27,32 +27,40 @@ describe('ExecutionStats Removal Tests - v0.4.1', () => {
   describe('🗑️ Removed APIs', () => {
     it('should not have clearExecutionStats method', () => {
       const actionRegister = new ActionRegister<StatsTestActions>();
-      
+
       // 메서드가 존재하지 않음
       expect((actionRegister as any).clearExecutionStats).toBeUndefined();
       expect((actionRegister as any).clearActionExecutionStats).toBeUndefined();
+
+      actionRegister.destroy();
     });
 
     it('should not have updateExecutionStats method', () => {
       const actionRegister = new ActionRegister<StatsTestActions>();
-      
+
       // 내부 메서드도 존재하지 않아야 함
       expect((actionRegister as any).updateExecutionStats).toBeUndefined();
+
+      actionRegister.destroy();
     });
 
     it('should not have executionStats property', () => {
       const actionRegister = new ActionRegister<StatsTestActions>();
-      
+
       // 내부 executionStats Map이 존재하지 않아야 함
       expect((actionRegister as any).executionStats).toBeUndefined();
+
+      actionRegister.destroy();
     });
 
     it('should return undefined for executionStats in getActionStats', () => {
       const actionRegister = new ActionRegister<StatsTestActions>();
       actionRegister.register('testAction', jest.fn());
-      
+
       const stats = actionRegister.getActionStats('testAction');
       expect(stats?.executionStats).toBeUndefined();
+
+      actionRegister.destroy();
     });
   });
 
@@ -219,7 +227,7 @@ describe('ExecutionStats Removal Tests - v0.4.1', () => {
   describe('🔄 Backward Compatibility', () => {
     it('should maintain existing API surface without stats methods', () => {
       const actionRegister = new ActionRegister<StatsTestActions>();
-      
+
       // 존재해야 하는 메서드들
       expect(typeof actionRegister.register).toBe('function');
       expect(typeof actionRegister.dispatch).toBe('function');
@@ -228,11 +236,13 @@ describe('ExecutionStats Removal Tests - v0.4.1', () => {
       expect(typeof actionRegister.getRegistryInfo).toBe('function');
       expect(typeof actionRegister.clearAll).toBe('function');
       expect(typeof actionRegister.destroy).toBe('function');
-      
+
       // 제거된 메서드들
       expect((actionRegister as any).clearExecutionStats).toBeUndefined();
       expect((actionRegister as any).clearActionExecutionStats).toBeUndefined();
       expect((actionRegister as any).updateExecutionStats).toBeUndefined();
+
+      actionRegister.destroy();
     });
 
     it('should handle getActionStats calls without breaking', () => {

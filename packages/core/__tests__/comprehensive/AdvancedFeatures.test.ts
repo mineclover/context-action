@@ -508,7 +508,7 @@ describe('ActionRegister - Advanced Features', () => {
       expect(actionRegister.getRegisteredActions()).toHaveLength(1);
       expect(actionRegister.getHandlerCount('complexWorkflow')).toBe(20);
 
-      actionRegister.clearAll();
+      actionRegister.destroy();
 
       expect(actionRegister.getRegisteredActions()).toHaveLength(0);
       expect(actionRegister.getHandlerCount('complexWorkflow')).toBe(0);

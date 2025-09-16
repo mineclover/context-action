@@ -28,7 +28,7 @@ describe('ActionRegister - Production Test Suite ✅', () => {
   });
 
   afterEach(() => {
-    actionRegister.clearAll();
+    actionRegister.destroy();
     jest.clearAllMocks();
   });
 
@@ -102,7 +102,7 @@ describe('ActionRegister - Production Test Suite ✅', () => {
 
       expect(actionRegister.getRegisteredActions()).toHaveLength(3);
 
-      actionRegister.clearAll();
+      actionRegister.destroy();
 
       expect(actionRegister.getRegisteredActions()).toHaveLength(0);
     });

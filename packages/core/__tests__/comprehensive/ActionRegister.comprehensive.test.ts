@@ -241,7 +241,7 @@ describe('ActionRegister - Comprehensive Individual Feature Tests', () => {
 
         expect(actionRegister.getRegisteredActions()).toHaveLength(3);
 
-        actionRegister.clearAll();
+        actionRegister.destroy();
 
         expect(actionRegister.getRegisteredActions()).toHaveLength(0);
         expect(actionRegister.hasHandlers('testAction')).toBe(false);
@@ -250,7 +250,7 @@ describe('ActionRegister - Comprehensive Individual Feature Tests', () => {
       });
 
       it('should work when no handlers are registered', () => {
-        expect(() => actionRegister.clearAll()).not.toThrow();
+        expect(() => actionRegister.destroy()).not.toThrow();
         expect(actionRegister.getRegisteredActions()).toEqual([]);
       });
     });

@@ -34,7 +34,7 @@ describe('Concurrency Documentation Features - Simplified', () => {
   });
 
   afterEach(() => {
-    register.clearAll();
+    register.destroy();
   });
 
   describe('Core Problem Examples from Documentation', () => {
@@ -128,7 +128,7 @@ describe('Concurrency Documentation Features - Simplified', () => {
       expect(results).toEqual([1, 2, 3]);
       expect(counter).toBe(3);
 
-      safeRegister.clearAll();
+      safeRegister.destroy();
     });
 
     test('useConcurrencyQueue: false shows potential for issues', async () => {
@@ -154,7 +154,7 @@ describe('Concurrency Documentation Features - Simplified', () => {
       expect(results).toEqual([1, 2, 3]);
       expect(counter).toBe(3);
 
-      unsafeRegister.clearAll();
+      unsafeRegister.destroy();
     });
 
     test('high-performance configuration for analytics', async () => {
@@ -178,7 +178,7 @@ describe('Concurrency Documentation Features - Simplified', () => {
 
       expect(executions).toEqual(['click-1', 'view-2']);
 
-      performanceRegister.clearAll();
+      performanceRegister.destroy();
     });
   });
 
@@ -274,7 +274,7 @@ describe('Concurrency Documentation Features - Simplified', () => {
       expect(userState.isAuthenticated).toBe(true);
       expect(userState.email).toBe('john@example.com');
 
-      userManager.clearAll();
+      userManager.destroy();
     });
 
     test('analytics tracking pattern (performance optimized)', async () => {
@@ -306,7 +306,7 @@ describe('Concurrency Documentation Features - Simplified', () => {
       expect(trackedEvents).toHaveLength(3);
       expect(trackedEvents.map(e => e.properties.action_id)).toEqual([1, 2, 3]);
 
-      analytics.clearAll();
+      analytics.destroy();
     });
   });
 
@@ -332,7 +332,7 @@ describe('Concurrency Documentation Features - Simplified', () => {
       // Should still be at limit
       expect(memoryRegister.getHandlerCount('test')).toBeLessThanOrEqual(3);
 
-      memoryRegister.clearAll();
+      memoryRegister.destroy();
     });
 
     test('one-time handler cleanup after execution', async () => {
@@ -458,8 +458,8 @@ describe('Concurrency Documentation Features - Simplified', () => {
       expect(sequentialTime).toBeGreaterThanOrEqual(0);
       expect(parallelTime).toBeGreaterThanOrEqual(0);
 
-      sequentialRegister.clearAll();
-      parallelRegister.clearAll();
+      sequentialRegister.destroy();
+      parallelRegister.destroy();
     });
   });
 

@@ -24,7 +24,7 @@ describe('Result Collection - dispatchWithResult Tests', () => {
   });
 
   afterEach(() => {
-    actionRegister.clearAll();
+    actionRegister.destroy();
     jest.clearAllMocks();
   });
 
@@ -118,7 +118,7 @@ describe('Result Collection - dispatchWithResult Tests', () => {
     });
 
     it('should use "merge" strategy correctly', async () => {
-      actionRegister.clearAll();
+      actionRegister.destroy();
       actionRegister.register('mixedAction', () => ({ name: 'John', age: 25 }), { priority: 20 });
       actionRegister.register('mixedAction', () => ({ email: 'john@example.com' }), { priority: 10 });
 

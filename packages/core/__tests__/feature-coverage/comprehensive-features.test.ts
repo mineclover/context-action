@@ -699,7 +699,7 @@ describe('ActionRegister Comprehensive Feature Tests', () => {
     });
 
     it('should merge results using custom merger', async () => {
-      register.clearAll();
+      register.destroy();
       register.register('testAction', async () => ({ a: 1, b: 2 }), { priority: 2, id: 'first' });
       register.register('testAction', async () => ({ b: 3, c: 4 }), { priority: 1, id: 'second' });
 
@@ -718,7 +718,7 @@ describe('ActionRegister Comprehensive Feature Tests', () => {
     });
 
     it('should limit result collection with maxResults', async () => {
-      register.clearAll();
+      register.destroy();
       for (let i = 1; i <= 5; i++) {
         register.register('testAction', async () => `result-${i}`, { 
           priority: 10 - i, 

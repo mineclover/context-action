@@ -36,7 +36,7 @@ describe('ActionRegister - Edge Cases and Boundary Conditions', () => {
   });
 
   afterEach(() => {
-    actionRegister.clearAll();
+    actionRegister.destroy();
     jest.clearAllMocks();
   });
 
@@ -553,7 +553,7 @@ describe('ActionRegister - Edge Cases and Boundary Conditions', () => {
       expect(actionRegister.getRegisteredActions()).toHaveLength(4);
       expect(actionRegister.getHandlerCount('normalAction')).toBe(100);
 
-      actionRegister.clearAll();
+      actionRegister.destroy();
 
       expect(actionRegister.getRegisteredActions()).toHaveLength(0);
       expect(actionRegister.getHandlerCount('normalAction')).toBe(0);
@@ -562,9 +562,9 @@ describe('ActionRegister - Edge Cases and Boundary Conditions', () => {
     it('should handle repeated clearAll calls', () => {
       actionRegister.register('normalAction', jest.fn());
 
-      actionRegister.clearAll();
-      actionRegister.clearAll();
-      actionRegister.clearAll();
+      actionRegister.destroy();
+      actionRegister.destroy();
+      actionRegister.destroy();
 
       expect(actionRegister.getRegisteredActions()).toHaveLength(0);
     });

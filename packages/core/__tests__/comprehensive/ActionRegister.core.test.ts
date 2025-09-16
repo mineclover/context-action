@@ -440,7 +440,7 @@ describe('ActionRegister - Core Functionality', () => {
 
       expect(actionRegister.getRegisteredActions()).toHaveLength(3);
 
-      actionRegister.clearAll();
+      actionRegister.destroy();
 
       expect(actionRegister.getRegisteredActions()).toHaveLength(0);
     });

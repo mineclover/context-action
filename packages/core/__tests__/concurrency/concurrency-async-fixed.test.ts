@@ -26,7 +26,7 @@ describe('Fixed Async Concurrency Control', () => {
   });
 
   afterEach(() => {
-    register.clearAll();
+    register.destroy();
   });
 
   describe('Core Async Handler Support', () => {
