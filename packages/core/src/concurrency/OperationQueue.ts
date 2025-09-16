@@ -122,11 +122,27 @@ export class OperationQueue {
    * 🆕 개별 작업 실행 로직
    */
   private async executeOperation<T>(operation: QueuedOperation<T>): Promise<void> {
+    const startTime = Date.now();
+
     try {
+      // Debug logging
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[${this.name}] Starting operation ${operation.id}`);
+      }
+
       // 작업 실행 (동기/비동기 모두 지원)
       const result = await Promise.resolve(operation.operation());
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[${this.name}] Completed operation ${operation.id} in ${Date.now() - startTime}ms`);
+      }
+
       operation.resolve(result);
     } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[${this.name}] Failed operation ${operation.id} in ${Date.now() - startTime}ms:`, error);
+      }
+
       // 개별 작업 실패는 전체 큐에 영향 주지 않음
       operation.reject(error);
     }
