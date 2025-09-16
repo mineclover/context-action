@@ -1,6 +1,6 @@
 # @context-action/react Pattern Guide
 
-Complete guide to the three main patterns available in @context-action/react framework.
+Complete guide to the core patterns available in @context-action/react framework.
 
 **Note**: This guide has been moved to the [Patterns section](../guide/patterns/index.md) for better organization.
 
@@ -12,8 +12,8 @@ Choose the right pattern for your use case:
 |---------|----------|--------|----------|
 | **🎯 Action Only** | Action dispatching without stores | `createActionContext` | Event systems, command patterns |
 | **🏪 Store Only** | State management without actions | `createStoreContext` | Pure state management, data layers |
-| **🔧 Ref Context** | Direct DOM manipulation with zero re-renders | `createRefContext` | High-performance UI, animations, real-time interactions |
-| **⚡ Selective Subscription** | Performance optimization through strategic subscription management | Pattern combination | High-frequency updates, performance-critical apps |
+| **🔧 Ref Context** *(Advanced)* | Direct DOM manipulation with zero re-renders | `createRefContext` | High-performance UI, animations, real-time interactions |
+| **⚡ Selective Subscription** *(Advanced)* | Performance optimization through strategic subscription management | Pattern combination | High-frequency updates, performance-critical apps |
 
 **For complex applications, compose patterns together for maximum flexibility and separation of concerns.**
 
@@ -22,10 +22,10 @@ Choose the right pattern for your use case:
 ### Core Framework Patterns
 - **[🎯 Action Only Pattern](../guide/patterns/action-only-pattern.md)** - Pure action dispatching without state management
 - **[🏪 Store Only Pattern](../guide/patterns/store-only-pattern.md)** - Type-safe state management without actions (Recommended)
-- **[🔧 Ref Context Pattern](../guide/patterns/ref-context-pattern.md)** - Direct DOM manipulation with zero re-renders
 
 ### Advanced Patterns
-- **[Pattern Composition](../guide/patterns/pattern-composition.md)** - Combining all three patterns for complex applications
+- **[🔧 Ref Context Pattern](../guide/patterns/ref-context-pattern.md)** - Direct DOM manipulation with zero re-renders
+- **[Pattern Composition](../guide/patterns/pattern-composition.md)** - Combining patterns for complex applications
 - **[Selective Subscription Patterns](./selective-subscription-patterns.md)** - Pre-memoization optimization through strategic subscription management
 - **[Domain Context Architecture](../guide/patterns/domain-context-architecture.md)** - Document-centric context separation
 - **[MVVM Architecture](../guide/patterns/mvvm-architecture.md)** - Modern Model-View-ViewModel implementation
@@ -39,41 +39,9 @@ Choose the right pattern for your use case:
 
 ## Migration Guide
 
-### From Legacy Action Context Pattern
+### From Legacy Patterns
 
-If you were using the removed `createActionContextPattern`, migrate to pattern composition:
-
-```tsx
-// ❌ Old (removed)
-// const UserContext = createActionContextPattern<UserActions>('User');
-
-// ✅ New (compose patterns with renaming)
-const { 
-  Provider: UserActionProvider, 
-  useActionDispatch: useUserAction,
-  useActionHandler: useUserActionHandler
-} = createActionContext<UserActions>('UserActions');
-
-const {
-  Provider: UserStoreProvider,
-  useStore: useUserStore,
-  useStoreManager: useUserStoreManager
-} = createStoreContext('UserStores', {
-  profile: { id: '', name: '', email: '' },
-  preferences: { theme: 'light' as const }
-});
-
-// Compose providers
-function App() {
-  return (
-    <UserActionProvider>
-      <UserStoreProvider>
-        <UserComponent />
-      </UserStoreProvider>
-    </UserActionProvider>
-  );
-}
-```
+For users upgrading from earlier versions, see the [Migration Guide](../guide/patterns/index.md) for comprehensive upgrade instructions.
 
 ## 🔍 Examples
 

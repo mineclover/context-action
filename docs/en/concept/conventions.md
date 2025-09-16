@@ -1,6 +1,6 @@
 # Context-Action Framework Conventions
 
-This document defines coding conventions and best practices when using the Context-Action framework with its three core patterns: Actions, Stores, and RefContext.
+This document defines coding conventions and best practices when using the Context-Action framework with its core patterns: Actions and Stores, plus advanced patterns like RefContext.
 
 ## 📋 Table of Contents
 
