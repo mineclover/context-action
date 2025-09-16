@@ -974,8 +974,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       return handlers;
     }
 
-    // 🔧 Performance optimization: Use cache for filter results
-    const cacheKey = this.generateFilterCacheKey(filterOptions);
+    // Cache disabled for memory stability
 
     // Cache disabled - using direct filtering for memory stability
 
