@@ -21,8 +21,11 @@ export function PriorityPerformanceView() {
     removeInstance,
     resetInstances,
     canOperate,
+    canModifyInstances,
     instanceCount,
     canRemove,
+    isAnyInstanceRunning,
+    runningInstanceIds,
   } = usePriorityPerformanceLogic();
 
   return (
@@ -48,15 +51,29 @@ export function PriorityPerformanceView() {
           <div className="text-sm text-gray-500">
             Active Instances: <strong>{instanceCount}</strong>
           </div>
+          {isAnyInstanceRunning && (
+            <div className="text-sm text-orange-600 font-medium">
+              🚀 Running: <strong>{runningInstanceIds.size}</strong> instances
+            </div>
+          )}
         </div>
       </header>
 
       {/* 인스턴스 관리 컨트롤 */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border">
+      <div className={`bg-white p-6 rounded-lg shadow-sm border transition-all duration-200 ${
+        isAnyInstanceRunning ? 'border-orange-200 bg-orange-50' : 'border-gray-200'
+      }`}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">
-            테스트 인스턴스 관리
-          </h2>
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">
+              테스트 인스턴스 관리
+            </h2>
+            {isAnyInstanceRunning && (
+              <p className="text-sm text-orange-600 mt-1">
+                ⚠️ {runningInstanceIds.size}개 인스턴스가 성능 테스트 실행 중입니다
+              </p>
+            )}
+          </div>
           <div className="flex gap-2">
             <Button onClick={addInstance} disabled={!canOperate} size="sm">
               ➕ 인스턴스 추가
@@ -64,7 +81,7 @@ export function PriorityPerformanceView() {
             <Button
               onClick={resetInstances}
               variant="secondary"
-              disabled={!canOperate}
+              disabled={!canModifyInstances}
               size="sm"
             >
               🔄 기본값으로 리셋
@@ -75,23 +92,38 @@ export function PriorityPerformanceView() {
 
       {/* 성능 테스트 인스턴스들 */}
       <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-        {performanceState.instances.map((instance) => (
-          <div key={instance.id} className="relative">
-            {canRemove && (
-              <button
-                onClick={() => removeInstance(instance.id)}
-                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs hover:bg-red-600 z-10 transition-colors"
-                title="인스턴스 제거"
-              >
-                ×
-              </button>
-            )}
-            <PriorityTestInstance
-              title={instance.title}
-              instanceId={instance.id}
-            />
-          </div>
-        ))}
+        {performanceState.instances.map((instance) => {
+          const isInstanceRunning = runningInstanceIds.has(instance.id);
+          return (
+            <div key={instance.id} className={`relative transition-all duration-200 ${
+              isInstanceRunning ? 'ring-2 ring-orange-300 ring-opacity-50' : ''
+            }`}>
+              {canRemove && (
+                <button
+                  onClick={() => removeInstance(instance.id)}
+                  disabled={!canRemove}
+                  className={`absolute -top-2 -right-2 w-6 h-6 rounded-full text-xs z-10 transition-all duration-200 ${
+                    !canRemove
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50'
+                      : 'bg-red-500 text-white hover:bg-red-600'
+                  }`}
+                  title={!canRemove ? "성능 테스트 실행 중" : "인스턴스 제거"}
+                >
+                  ×
+                </button>
+              )}
+              {isInstanceRunning && (
+                <div className="absolute -top-2 -left-2 w-6 h-6 bg-orange-500 text-white rounded-full text-xs flex items-center justify-center z-10 animate-pulse">
+                  🚀
+                </div>
+              )}
+              <PriorityTestInstance
+                title={instance.title}
+                instanceId={instance.id}
+              />
+            </div>
+          );
+        })}
       </div>
 
       {/* 우선순위 실행 시스템 설명 */}

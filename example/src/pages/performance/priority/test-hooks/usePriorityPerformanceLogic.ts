@@ -85,9 +85,40 @@ export function usePriorityPerformanceLogic() {
         performanceStore.update((state) => ({
           ...state,
           instances: defaultInstances,
+          runningInstances: new Set<string>(),
         }));
 
-        
+
+      }
+    );
+
+    // 인스턴스 실행 시작 핸들러
+    const unregisterStartExecution = register.register(
+      'startInstanceExecution',
+      ({ instanceId }, controller) => {
+        performanceStore.update((state) => {
+          const newRunningInstances = new Set(state.runningInstances);
+          newRunningInstances.add(instanceId);
+          return {
+            ...state,
+            runningInstances: newRunningInstances,
+          };
+        });
+      }
+    );
+
+    // 인스턴스 실행 종료 핸들러
+    const unregisterStopExecution = register.register(
+      'stopInstanceExecution',
+      ({ instanceId }, controller) => {
+        performanceStore.update((state) => {
+          const newRunningInstances = new Set(state.runningInstances);
+          newRunningInstances.delete(instanceId);
+          return {
+            ...state,
+            runningInstances: newRunningInstances,
+          };
+        });
       }
     );
 
@@ -95,6 +126,8 @@ export function usePriorityPerformanceLogic() {
       unregisterAdd();
       unregisterRemove();
       unregisterReset();
+      unregisterStartExecution();
+      unregisterStopExecution();
     };
   }, [register, performanceStore, generateNewInstance]);
 
@@ -116,9 +149,20 @@ export function usePriorityPerformanceLogic() {
       dispatch('resetInstances');
     },
 
+    startInstanceExecution: (instanceId: string) => {
+      dispatch('startInstanceExecution', { instanceId });
+    },
+
+    stopInstanceExecution: (instanceId: string) => {
+      dispatch('stopInstanceExecution', { instanceId });
+    },
+
     // Computed values
     canOperate: !!register && !!dispatch,
+    canModifyInstances: !!register && !!dispatch && performanceState.runningInstances.size === 0,
     instanceCount: performanceState.instances.length,
-    canRemove: performanceState.instances.length > 1,
+    canRemove: performanceState.instances.length > 1 && performanceState.runningInstances.size === 0,
+    isAnyInstanceRunning: performanceState.runningInstances.size > 0,
+    runningInstanceIds: performanceState.runningInstances,
   };
 }

@@ -16,6 +16,11 @@ import {
   useTestExecution,
   useTestHandlerRegistration,
 } from '../test-hooks';
+import {
+  usePriorityPerformanceActionDispatch,
+  usePriorityPerformanceStore
+} from '../test-context/PriorityPerformanceContext';
+import { useStoreValue } from '@context-action/react';
 
 // 기본 핸들러 설정 (점프 패턴이 잘 보이도록 조정)
 const DEFAULT_HANDLER_CONFIGS: HandlerConfig[] = [
@@ -104,6 +109,8 @@ const PerformanceTestControls = memo<{
   onDelayChange: (delay: 0 | 1 | 50) => void;
   onBulkAdd: () => void;
   onClear: () => void;
+  canStartTest: boolean;
+  isAnyInstanceRunning: boolean;
 }>(function PerformanceTestControls({
   isRunning,
   selectedDelay,
@@ -114,6 +121,8 @@ const PerformanceTestControls = memo<{
   onDelayChange,
   onBulkAdd,
   onClear,
+  canStartTest,
+  isAnyInstanceRunning,
 }) {
   return (
     <div className="mb-4">
@@ -121,7 +130,12 @@ const PerformanceTestControls = memo<{
         <button
           onClick={onStart}
           disabled={isRunning}
-          className="btn btn-primary text-sm px-3 py-2 flex-1"
+          className={`btn text-sm px-3 py-2 flex-1 transition-all duration-200 ${
+            isRunning
+              ? 'btn-secondary opacity-50 cursor-not-allowed'
+              : 'btn-primary'
+          }`}
+          title={isRunning ? '현재 실행 중...' : '성능 테스트 시작'}
         >
           {isRunning ? '⏳ 실행 중...' : '🚀 성능 테스트'}
         </button>
@@ -136,8 +150,10 @@ const PerformanceTestControls = memo<{
         <button
           onClick={onReset}
           disabled={isRunning}
-          className="btn btn-secondary text-sm px-3 py-2"
-          title="전체 초기화"
+          className={`btn btn-secondary text-sm px-3 py-2 transition-all duration-200 ${
+            isRunning ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+          title={isRunning ? '현재 실행 중...' : '전체 초기화'}
         >
           🔄 리셋
         </button>
@@ -148,7 +164,10 @@ const PerformanceTestControls = memo<{
         <button
           onClick={onBulkAdd}
           disabled={isRunning}
-          className="btn btn-warning text-xs px-3 py-2 flex-1 whitespace-nowrap"
+          className={`btn btn-warning text-xs px-3 py-2 flex-1 whitespace-nowrap transition-all duration-200 ${
+            isRunning ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+          title={isRunning ? '현재 실행 중...' : '1-100번 핸들러 일괄 추가'}
         >
           📦 일괄 추가 (1-100)
         </button>
@@ -166,11 +185,14 @@ const PerformanceTestControls = memo<{
               key={delay}
               onClick={() => onDelayChange(delay as 0 | 1 | 50)}
               disabled={isRunning}
-              className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
+              className={`px-2 py-1 rounded text-xs font-medium transition-all duration-200 ${
                 selectedDelay === delay
                   ? 'bg-purple-600 text-white'
+                  : isRunning
+                  ? 'bg-gray-200 text-gray-400 border border-gray-300 cursor-not-allowed opacity-50'
                   : 'bg-white text-purple-600 border border-purple-300 hover:bg-purple-100'
               }`}
+              title={isRunning ? '현재 실행 중...' : `딜레이를 ${delay}ms로 설정`}
             >
               {delay}ms
             </button>
@@ -188,8 +210,10 @@ const PerformanceTestControls = memo<{
         <button
           onClick={onClear}
           disabled={isRunning}
-          className="ml-auto btn btn-warning text-xs px-2 py-1"
-          title="데이터 클리어"
+          className={`ml-auto btn btn-warning text-xs px-2 py-1 transition-all duration-200 ${
+            isRunning ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
+          title={isRunning ? '현재 실행 중...' : '데이터 클리어'}
         >
           🗑️ 클리어
         </button>
@@ -240,6 +264,9 @@ const PriorityTestInstance = memo(function PriorityTestInstance({
     DEFAULT_HANDLER_CONFIGS
   );
   const [selectedDelay, setSelectedDelay] = useState<0 | 1 | 50>(0);
+  const dispatch = usePriorityPerformanceActionDispatch();
+  const performanceStore = usePriorityPerformanceStore('performanceState');
+  const performanceState = useStoreValue(performanceStore);
 
   // 선택된 딜레이가 적용된 configs를 memoized로 계산
   const configsWithDelay = useMemo(() => {
@@ -267,6 +294,9 @@ const PriorityTestInstance = memo(function PriorityTestInstance({
   const { isRunning, executeTest, abortTest, resetTest } = useTestExecution({
     onTestStart: () => {
       console.log('🚀 Performance test started');
+      if (instanceId && dispatch) {
+        dispatch('startInstanceExecution', { instanceId });
+      }
     },
     onTestComplete: (result) => {
       if (result.success) {
@@ -274,9 +304,15 @@ const PriorityTestInstance = memo(function PriorityTestInstance({
       } else {
         console.error(`❌ Performance test failed: ${result.errorMessage}`);
       }
+      if (instanceId && dispatch) {
+        dispatch('stopInstanceExecution', { instanceId });
+      }
     },
     onTestError: (error) => {
       console.error('❌ Performance test error:', error);
+      if (instanceId && dispatch) {
+        dispatch('stopInstanceExecution', { instanceId });
+      }
     },
   });
 
@@ -329,6 +365,18 @@ const PriorityTestInstance = memo(function PriorityTestInstance({
     resetTest();
   }, [resetTest]);
 
+  // 글로벌 상태 기반 계산값들
+  const isAnyInstanceRunning = performanceState.runningInstances.size > 0;
+  const canStartTest = !isRunning; // 본인만 실행 중이 아니면 시작 가능
+
+  // Abort 액션에 실행 상태 정리 추가
+  const handleAbort = useCallback(() => {
+    abortTest();
+    if (instanceId && dispatch) {
+      dispatch('stopInstanceExecution', { instanceId });
+    }
+  }, [abortTest, instanceId, dispatch]);
+
   return (
     <div className="flex-1 p-4 border border-gray-200 rounded-lg bg-white">
       {/* 헤더 */}
@@ -348,11 +396,13 @@ const PriorityTestInstance = memo(function PriorityTestInstance({
         selectedDelay={selectedDelay}
         configs={configsWithDelay}
         onStart={executeTest}
-        onAbort={abortTest}
+        onAbort={handleAbort}
         onReset={resetTest}
         onDelayChange={setSelectedDelay}
         onBulkAdd={addBulkHandlers}
         onClear={clearAllData}
+        canStartTest={canStartTest}
+        isAnyInstanceRunning={isAnyInstanceRunning}
       />
 
       {/* 성능 메트릭 */}
