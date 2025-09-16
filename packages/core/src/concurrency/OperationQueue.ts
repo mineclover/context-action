@@ -60,10 +60,11 @@ export class OperationQueue {
       };
 
 
-      // 우선순위에 따라 삽입 위치 결정
+      // 우선순위에 따라 삽입 위치 결정 (높은 우선순위가 앞쪽)
       let insertIndex = this.queue.length;
       for (let i = 0; i < this.queue.length; i++) {
         const item = this.queue[i];
+        // 현재 아이템의 우선순위가 새 아이템보다 낮으면, 새 아이템을 앞에 삽입
         if (item && (item.priority || 0) < priority) {
           insertIndex = i;
           break;

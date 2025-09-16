@@ -100,20 +100,23 @@ describe('OperationQueue Unit Tests', () => {
 
     it('should respect priority ordering', async () => {
       const executionOrder: string[] = [];
-      
+
+      // Create a queue with maxConcurrency = 1 to ensure sequential execution
+      const priorityQueue = new OperationQueue('priority-test', 1);
+
       const lowPriority = () => { executionOrder.push('low'); return 'low'; };
       const highPriority = () => { executionOrder.push('high'); return 'high'; };
       const mediumPriority = () => { executionOrder.push('medium'); return 'medium'; };
 
       // Enqueue with priorities
       const promises = [
-        queue.enqueue(lowPriority, 1),     // Low priority
-        queue.enqueue(highPriority, 10),   // High priority (should execute first)
-        queue.enqueue(mediumPriority, 5)   // Medium priority
+        priorityQueue.enqueue(lowPriority, 1),     // Low priority
+        priorityQueue.enqueue(highPriority, 10),   // High priority (should execute first)
+        priorityQueue.enqueue(mediumPriority, 5)   // Medium priority
       ];
-      
+
       await Promise.all(promises);
-      
+
       expect(executionOrder).toEqual(['high', 'medium', 'low']);
     });
 
@@ -136,17 +139,20 @@ describe('OperationQueue Unit Tests', () => {
 
     it('should handle mixed priority and insertion order', async () => {
       const executionOrder: string[] = [];
-      
+
+      // Create a queue with maxConcurrency = 1 to ensure sequential execution
+      const mixedQueue = new OperationQueue('mixed-test', 1);
+
       // Insert with mixed priorities
       const promises = [
-        queue.enqueue(() => { executionOrder.push('normal1'); return 'normal1'; }, 0),
-        queue.enqueue(() => { executionOrder.push('high1'); return 'high1'; }, 10),
-        queue.enqueue(() => { executionOrder.push('normal2'); return 'normal2'; }, 0),
-        queue.enqueue(() => { executionOrder.push('high2'); return 'high2'; }, 10)
+        mixedQueue.enqueue(() => { executionOrder.push('normal1'); return 'normal1'; }, 0),
+        mixedQueue.enqueue(() => { executionOrder.push('high1'); return 'high1'; }, 10),
+        mixedQueue.enqueue(() => { executionOrder.push('normal2'); return 'normal2'; }, 0),
+        mixedQueue.enqueue(() => { executionOrder.push('high2'); return 'high2'; }, 10)
       ];
-      
+
       await Promise.all(promises);
-      
+
       // High priority items should execute before normal priority
       expect(executionOrder).toEqual(['high1', 'high2', 'normal1', 'normal2']);
     });

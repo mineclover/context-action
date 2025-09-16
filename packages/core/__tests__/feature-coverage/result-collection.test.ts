@@ -219,7 +219,7 @@ describe('Result Collection - dispatchWithResult Tests', () => {
           throw new Error(payload.message || 'Test error');
         }
         return { success: true };
-      });
+      }, { blocking: true }); // Blocking handler to fail the pipeline on error
 
       const result = await actionRegister.dispatchWithResult('errorAction', 
         { shouldFail: true, message: 'Test error message' },
@@ -237,9 +237,9 @@ describe('Result Collection - dispatchWithResult Tests', () => {
           throw new Error(payload.message || 'Test error');
         }
         return { success: true };
-      }, { priority: 20 });
+      }, { priority: 20, blocking: true }); // Blocking handler to fail the pipeline
 
-      actionRegister.register('errorAction', () => ({ handler: 'success' }), { priority: 10 });
+      actionRegister.register('errorAction', () => ({ handler: 'success' }), { priority: 10, blocking: true });
 
       const result = await actionRegister.dispatchWithResult('errorAction', 
         { shouldFail: true, message: 'Test error message' },
@@ -258,17 +258,17 @@ describe('Result Collection - dispatchWithResult Tests', () => {
       actionRegister.register('errorAction', (payload) => {
         executionOrder.push('success1');
         return { handler: 'success1' };
-      }, { priority: 30 });
+      }, { priority: 30, blocking: true });
 
       actionRegister.register('errorAction', (payload) => {
         executionOrder.push('error');
         throw new Error('Middle error');
-      }, { priority: 20 });
+      }, { priority: 20, blocking: true }); // Blocking handler to fail the pipeline
 
       actionRegister.register('errorAction', () => {
         executionOrder.push('success2');
         return { handler: 'success2' };
-      }, { priority: 10 });
+      }, { priority: 10, blocking: true });
 
       const result = await actionRegister.dispatchWithResult('errorAction', 
         { shouldFail: false },
@@ -512,7 +512,7 @@ describe('Result Collection - dispatchWithResult Tests', () => {
       expect(withResultResult).toBeDefined();
       expect(withResultResult.success).toBe(true);
       expect(withResultResult.results).toEqual([{ result: 'test-data' }]); // Always collects in results array
-      expect(withResultResult.result).toBeUndefined(); // No processed result without collect: true
+      expect(withResultResult.result).toEqual({ result: 'test-data' }); // Returns last result by default when no options
       expect(withResultResult.execution).toBeDefined();
     });
 
