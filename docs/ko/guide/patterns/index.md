@@ -50,7 +50,7 @@
 |---------|----------|--------|----------|
 | **🎯 Action Only** | 스토어 없는 액션 디스패칭 | `createActionContext` | 이벤트 시스템, 명령 패턴 |
 | **🏪 Store Only** | 액션 없는 상태 관리 | `createStoreContext` | 순수 상태 관리, 데이터 레이어 |
-| **🔧 Ref Context** | 직접 DOM 조작 및 싱글톤 객체 관리 | `createRefContext` | 고성능 UI, 애니메이션, 외부 서비스 |
+| **🔧 Ref Context** *(고급)* | 직접 DOM 조작 및 싱글톤 객체 관리 | `createRefContext` | 고성능 UI, 애니메이션, 외부 서비스 |
 
 **참고**: 복잡한 애플리케이션의 경우 최대 유연성과 관심사 분리를 위해 패턴들을 조합하여 사용하세요.
 
@@ -67,18 +67,18 @@
 ### 단일 도메인 애플리케이션
 1. **간단한 앱**: **Store Only Pattern**으로 시작
 2. **인터랙티브 앱**: 비즈니스 로직을 위해 **Action Only Pattern** 추가
-3. **고성능 앱**: 애니메이션을 위해 **RefContext Pattern** 추가
+3. **고성능 앱**: 애니메이션을 위해 **RefContext Pattern** *(고급)* 추가
 4. **복잡한 앱**: 완벽한 레이어 분리를 위해 **MVVM Architecture** 사용
 
 ### 다중 도메인 애플리케이션
 1. **팀 경계**: 비즈니스 분리를 위해 **Domain Context Architecture** 사용
 2. **결합된 접근**: 각 비즈니스 도메인 내에서 **MVVM Architecture** 적용
-3. **엔터프라이즈 규모**: 적절한 도메인 격리와 함께 모든 패턴 결합
+3. **엔터프라이즈 규모**: 적절한 도메인 격리와 함께 핵심 및 고급 패턴 결합
 
 ## 패턴 통합
 
 이러한 패턴들은 복잡한 시나리오를 위해 결합될 수 있습니다:
 - **Action Only** + **Store Only** 완전한 비즈니스 로직 분리용
 - **RefContext** + **Store Only** 고성능 상태 기반 애니메이션용
-- **세 패턴 모두** + **Domain Architecture** 엔터프라이즈 애플리케이션용
+- **핵심 + 고급 패턴** + **Domain Architecture** 엔터프라이즈 애플리케이션용
 - **MVVM Architecture** 완벽한 아키텍처 레이어 분리용

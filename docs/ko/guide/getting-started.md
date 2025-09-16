@@ -1,6 +1,6 @@
 # 시작하기
 
-Context-Action은 완벽한 관심사 분리를 통한 확장 가능한 React 애플리케이션 구축을 위한 세 가지 주요 패턴을 제공합니다.
+Context-Action은 완벽한 관심사 분리를 통한 확장 가능한 React 애플리케이션 구축을 위한 핵심 패턴들을 제공합니다.
 
 ## 빠른 시작
 
@@ -10,7 +10,7 @@ Context-Action은 완벽한 관심사 분리를 통한 확장 가능한 React �
 |---------|----------|--------|----------|
 | **🎯 Action Only** | 스토어 없이 액션 디스패칭 | `createActionContext` | 이벤트 시스템, 커맨드 패턴 |
 | **🏪 Store Only** | 액션 없이 상태 관리 | `createStoreContext` | 순수 상태 관리, 데이터 레이어 |
-| **🔧 Ref Context** | 제로 리렌더링 직접 DOM 조작 | `createRefContext` | 고성능 UI, 애니메이션, 실시간 인터랙션 |
+| **🔧 Ref Context** *(고급)* | 제로 리렌더링 직접 DOM 조작 | `createRefContext` | 고성능 UI, 애니메이션, 실시간 인터랙션 |
 
 ## 🎯 Action Only 패턴
 
@@ -228,7 +228,7 @@ function useMousePositionUpdater() {
 
 ## 패턴 조합
 
-복잡한 애플리케이션의 경우, 세 패턴을 모두 조합하여 사용:
+복잡한 애플리케이션의 경우, 핵심 패턴과 고급 패턴을 조합하여 사용:
 
 ```tsx
 function ComplexApp() {
