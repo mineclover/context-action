@@ -368,35 +368,219 @@ export function useUserSubscriptions() {
 ```
 
 ```typescript
-// registries/useUserHandlerRegistry.ts - Handler Registration
-export function useUserHandlerRegistry() {
-  const { createUserHandler, updateUserHandler } = useUserHandlerDefinitions();
+// registries/useUserHandlerRegistry.ts - Advanced Handler Registration
+export function useUserHandlerRegistry(options?: {
+  trackingId?: string;
+  pipelineMode?: boolean;
+  mode?: 'standard' | 'trackable' | 'pipeline' | 'typed-pipeline';
+}) {
+  const { trackingId, pipelineMode, mode = 'standard' } = options || {};
 
-  // Register handlers at appropriate timing
-  useUserActionHandler('createUser', createUserHandler);
-  useUserActionHandler('updateUser', updateUserHandler);
+  // Get different handler implementations
+  const standardHandlers = useUserHandlerDefinitions();
+  const trackableHandlers = useTrackableUserHandlers({ trackingId });
+  const pipelineHandlers = usePipelineUserHandlers();
+  const typedPipelineHandlers = useTypedPipelineUserHandlers();
+
+  // Select handlers based on mode
+  const selectedHandlers = useMemo(() => {
+    switch (mode) {
+      case 'trackable':
+        return trackableHandlers.handlers;
+      case 'pipeline':
+        return pipelineHandlers.handlers;
+      case 'typed-pipeline':
+        return typedPipelineHandlers.handlers;
+      default:
+        return standardHandlers;
+    }
+  }, [mode, standardHandlers, trackableHandlers.handlers, pipelineHandlers.handlers, typedPipelineHandlers.handlers]);
+
+  // Register selected handlers with unique registration IDs
+  const registrationIds = useRef(new Map<string, string>());
+  const unregisterFunctions = useRef(new Map<string, () => void>());
+
+  useEffect(() => {
+    Object.entries(selectedHandlers).forEach(([actionName, handler]) => {
+      const registrationId = `${trackingId || 'default'}-${actionName}-${Date.now()}`;
+
+      // Store registration ID
+      registrationIds.current.set(actionName, registrationId);
+
+      // Register handler with tracking
+      const unregister = useUserActionHandler(actionName as keyof UserActions, handler, {
+        priority: 100,
+        id: registrationId,
+        metadata: {
+          mode,
+          trackingId,
+          registeredAt: Date.now()
+        }
+      });
+
+      // Store unregister function
+      if (unregister) {
+        unregisterFunctions.current.set(actionName, unregister);
+      }
+    });
+
+    // Cleanup on unmount or mode change
+    return () => {
+      unregisterFunctions.current.forEach(unregister => unregister());
+      unregisterFunctions.current.clear();
+      registrationIds.current.clear();
+    };
+  }, [selectedHandlers, mode, trackingId]);
+
+  // Registry management functions
+  const reregisterHandler = useCallback((actionName: string) => {
+    const currentUnregister = unregisterFunctions.current.get(actionName);
+    if (currentUnregister) {
+      currentUnregister();
+    }
+
+    const handler = selectedHandlers[actionName];
+    if (handler) {
+      const newRegistrationId = `${trackingId || 'default'}-${actionName}-${Date.now()}`;
+      registrationIds.current.set(actionName, newRegistrationId);
+
+      const unregister = useUserActionHandler(actionName as keyof UserActions, handler, {
+        priority: 100,
+        id: newRegistrationId,
+        metadata: {
+          mode,
+          trackingId,
+          reregisteredAt: Date.now()
+        }
+      });
+
+      if (unregister) {
+        unregisterFunctions.current.set(actionName, unregister);
+      }
+    }
+  }, [selectedHandlers, mode, trackingId]);
 
   return {
+    mode,
+    trackingId,
     isRegistered: true,
-    handlers: ['createUser', 'updateUser']
+    registeredHandlers: Object.keys(selectedHandlers),
+    registrationIds: Object.fromEntries(registrationIds.current),
+    reregisterHandler,
+    getRegistrationInfo: (actionName: string) => ({
+      id: registrationIds.current.get(actionName),
+      isRegistered: unregisterFunctions.current.has(actionName),
+      mode,
+      trackingId
+    })
   };
 }
 ```
 
 ```typescript
-// dispatchers/useUserDispatchers.ts - on~ Function Generation
-export function useUserDispatchers() {
+// dispatchers/useUserDispatchers.ts - Advanced on~ Function Generation
+export function useUserDispatchers(options?: {
+  trackingId?: string;
+  mode?: 'standard' | 'tracked' | 'pipeline';
+}) {
   const dispatch = useUserAction();
+  const tracking = useTracking();
+  const { trackingId, mode = 'standard' } = options || {};
+
+  // Generate tracking-aware dispatchers
+  const createTrackedDispatcher = useCallback(<T extends keyof UserActions>(
+    actionName: T,
+    payloadBuilder?: (args: any[]) => UserActions[T]
+  ) => {
+    return useCallback((...args: any[]) => {
+      const executionId = `${trackingId || tracking.trackingId || 'default'}-${String(actionName)}-${Date.now()}`;
+
+      const payload = payloadBuilder ? payloadBuilder(args) : args[0];
+      const executionOptions = args[args.length - 1] as ExecutionOptions | undefined;
+
+      const enhancedOptions: ExecutionOptions = {
+        ...executionOptions,
+        metadata: {
+          ...executionOptions?.metadata,
+          trackingId: trackingId || tracking.trackingId,
+          executionId,
+          mode,
+          dispatchedAt: Date.now()
+        }
+      };
+
+      return dispatch(actionName, payload, enhancedOptions);
+    }, [actionName, payloadBuilder, trackingId]);
+  }, [dispatch, trackingId, tracking.trackingId, mode]);
 
   return {
-    onCreateUser: useCallback((userData: UserData, options?: ExecutionOptions) => {
-      dispatch('createUser', { userData }, options);
-    }, [dispatch]),
+    // Standard dispatchers
+    onCreateUser: createTrackedDispatcher(
+      'createUser',
+      ([userData, options]) => ({ userData })
+    ),
 
-    onUpdateUser: useCallback((id: string, updates: Partial<User>, options?: ExecutionOptions) => {
-      dispatch('updateUser', { id, updates }, options);
-    }, [dispatch])
+    onUpdateUser: createTrackedDispatcher(
+      'updateUser',
+      ([id, updates, options]) => ({ id, updates })
+    ),
+
+    onDeleteUser: createTrackedDispatcher(
+      'deleteUser',
+      ([id, options]) => ({ id })
+    ),
+
+    // Pipeline-specific dispatchers (for typed pipelines)
+    onCreateUserPipeline: mode === 'pipeline'
+      ? useCallback((userData: UserData, options?: ExecutionOptions) => {
+          const pipelinePayload: CreateUserPayload = { userData };
+          return dispatch('createUser', pipelinePayload, {
+            ...options,
+            metadata: {
+              ...options?.metadata,
+              isPipeline: true,
+              trackingId: trackingId || tracking.trackingId
+            }
+          });
+        }, [dispatch, trackingId, tracking.trackingId])
+      : undefined,
+
+    // Batch dispatcher for multiple actions
+    onBatchActions: useCallback(async (actions: Array<{
+      actionName: keyof UserActions;
+      payload: any;
+      options?: ExecutionOptions;
+    }>) => {
+      const batchId = `${trackingId || tracking.trackingId || 'default'}-batch-${Date.now()}`;
+      const results = [];
+
+      for (const action of actions) {
+        try {
+          const result = await dispatch(action.actionName, action.payload, {
+            ...action.options,
+            metadata: {
+              ...action.options?.metadata,
+              batchId,
+              trackingId: trackingId || tracking.trackingId
+            }
+          });
+          results.push({ success: true, result });
+        } catch (error) {
+          results.push({ success: false, error: error.message });
+        }
+      }
+
+      return results;
+    }, [dispatch, trackingId, tracking.trackingId])
   };
+}
+
+// Execution options interface
+interface ExecutionOptions {
+  priority?: number;
+  timeout?: number;
+  retries?: number;
+  metadata?: Record<string, any>;
 }
 ```
 
@@ -422,15 +606,23 @@ export function UserComponent() {
 }
 ```
 
-### Provider Integration Pattern
+### Provider Integration Pattern with Advanced Tracking
 
 ```typescript
-// user/index.ts - Complete Atomic Context Provider
-export function UserProvider({ children }) {
+// user/index.ts - Complete Atomic Context Provider with Tracking
+export function UserProvider({
+  children,
+  trackingId,
+  pipelineMode = false
+}: {
+  children: React.ReactNode;
+  trackingId?: string;
+  pipelineMode?: boolean;
+}) {
   return (
     <UserActionProvider>
       <UserStoreProvider>
-        <UserHandlerRegistry>  {/* Handler registration component */}
+        <UserHandlerRegistry trackingId={trackingId} pipelineMode={pipelineMode}>
           {children}
         </UserHandlerRegistry>
       </UserStoreProvider>
@@ -438,17 +630,53 @@ export function UserProvider({ children }) {
   );
 }
 
-// user/registries/UserHandlerRegistry.tsx
-function UserHandlerRegistry({ children }) {
-  useUserHandlerRegistry(); // Register handlers
-  return children;
+// user/registries/UserHandlerRegistry.tsx - Advanced Registry
+function UserHandlerRegistry({
+  children,
+  trackingId,
+  pipelineMode = false
+}: {
+  children: React.ReactNode;
+  trackingId?: string;
+  pipelineMode?: boolean;
+}) {
+  // Choose handler pattern based on mode
+  const trackableHandlers = useTrackableUserHandlers({ trackingId });
+  const pipelineHandlers = usePipelineUserHandlers();
+  const standardHandlers = useUserHandlerDefinitions();
+
+  const selectedHandlers = pipelineMode
+    ? pipelineHandlers.handlers
+    : trackingId
+      ? trackableHandlers.handlers
+      : standardHandlers;
+
+  // Register selected handlers
+  Object.entries(selectedHandlers).forEach(([actionName, handler]) => {
+    useUserActionHandler(actionName as keyof UserActions, handler);
+  });
+
+  // Provide tracking context to children
+  return (
+    <TrackingContext.Provider value={{
+      trackingId: trackableHandlers.trackingId,
+      executionState: trackableHandlers.executionState,
+      getRunningExecutions: trackableHandlers.getRunningExecutions,
+      cleanup: trackableHandlers.cleanup,
+      pipelineMode
+    }}>
+      {children}
+    </TrackingContext.Provider>
+  );
 }
 
-// App composition
+// App composition with tracking
 function App() {
+  const appTrackingId = useId();
+
   return (
-    <UserProvider>                          {/* Base domain */}
-      <AuthProvider>                        {/* Auth depends on user */}
+    <UserProvider trackingId={appTrackingId} pipelineMode={true}>
+      <AuthProvider trackingId={`${appTrackingId}-auth`}>
         <DashboardPageProvider>
           <DashboardPage />
         </DashboardPageProvider>
@@ -456,6 +684,17 @@ function App() {
     </UserProvider>
   );
 }
+
+// Tracking context for debugging
+const TrackingContext = createContext<{
+  trackingId?: string;
+  executionState?: Map<string, any>;
+  getRunningExecutions?: () => any[];
+  cleanup?: () => void;
+  pipelineMode?: boolean;
+}>({});
+
+export const useTracking = () => useContext(TrackingContext);
 ```
 
 ---
@@ -510,58 +749,448 @@ export function useProfileSubscriptions() {
 }
 ```
 
-### Special Case: Observable Execution State Hook
+### Advanced Pattern: Currying-Based Tracking with Unique IDs
 
 ```typescript
-// handlers/useObservableUserHandlers.ts - Advanced Pattern
-export function useObservableUserHandlers() {
-  const [executionState, setExecutionState] = useState({
-    createUser: { isRunning: false, lastResult: null },
-    updateUser: { isRunning: false, lastResult: null }
-  });
+// handlers/useTrackableUserHandlers.ts - Advanced Currying Pattern
+export function useTrackableUserHandlers(props?: { trackingId?: string }) {
+  const uniqueId = useId();
+  const trackingId = props?.trackingId || uniqueId;
 
+  const [executionState, setExecutionState] = useState(new Map());
   const stateRef = useRef(executionState);
   stateRef.current = executionState;
 
-  // Currying for observable handler generation
-  const createObservableHandler = useCallback((actionName: string) => {
-    return useCallback(async (payload) => {
-      // Update execution start state
-      setExecutionState(prev => ({
-        ...prev,
-        [actionName]: { ...prev[actionName], isRunning: true }
-      }));
+  // Currying for trackable handler generation with unique IDs
+  const createTrackableHandler = useCallback((actionName: string) => {
+    return useCallback(async (payload, context = {}) => {
+      const executionId = `${trackingId}-${actionName}-${Date.now()}`;
+
+      // Update execution start state with tracking
+      setExecutionState(prev => {
+        const newState = new Map(prev);
+        newState.set(executionId, {
+          actionName,
+          trackingId,
+          executionId,
+          isRunning: true,
+          startTime: Date.now(),
+          payload,
+          context,
+          previousResult: context.previousResult || null
+        });
+        return newState;
+      });
 
       try {
-        // Execute business logic with latest values
-        const result = await executeBusinessLogic(payload);
+        // Execute business logic with tracking context
+        const result = await executeBusinessLogic({
+          payload,
+          context: { ...context, trackingId, executionId },
+          previousResult: context.previousResult
+        });
 
         // Update success state
-        setExecutionState(prev => ({
-          ...prev,
-          [actionName]: { isRunning: false, lastResult: result }
-        }));
+        setExecutionState(prev => {
+          const newState = new Map(prev);
+          const currentExecution = newState.get(executionId);
+          newState.set(executionId, {
+            ...currentExecution,
+            isRunning: false,
+            endTime: Date.now(),
+            duration: Date.now() - currentExecution.startTime,
+            result,
+            status: 'success'
+          });
+          return newState;
+        });
 
         return result;
       } catch (error) {
         // Update error state
-        setExecutionState(prev => ({
-          ...prev,
-          [actionName]: { isRunning: false, lastResult: { error } }
-        }));
+        setExecutionState(prev => {
+          const newState = new Map(prev);
+          const currentExecution = newState.get(executionId);
+          newState.set(executionId, {
+            ...currentExecution,
+            isRunning: false,
+            endTime: Date.now(),
+            duration: Date.now() - currentExecution.startTime,
+            error,
+            status: 'error'
+          });
+          return newState;
+        });
         throw error;
       }
-    }, [actionName]);
+    }, [actionName, trackingId]);
+  }, [trackingId]);
+
+  // Cleanup old executions
+  const cleanup = useCallback((olderThanMs = 300000) => { // 5 minutes
+    const cutoff = Date.now() - olderThanMs;
+    setExecutionState(prev => {
+      const newState = new Map();
+      for (const [id, execution] of prev) {
+        if (!execution.endTime || execution.endTime > cutoff) {
+          newState.set(id, execution);
+        }
+      }
+      return newState;
+    });
   }, []);
 
   return {
+    trackingId,
     handlers: {
-      createUser: createObservableHandler('createUser'),
-      updateUser: createObservableHandler('updateUser')
+      createUser: createTrackableHandler('createUser'),
+      updateUser: createTrackableHandler('updateUser'),
+      deleteUser: createTrackableHandler('deleteUser')
     },
     executionState: stateRef.current,
-    isAnyRunning: Object.values(stateRef.current).some(state => state.isRunning)
+    getExecutionsByAction: (actionName: string) =>
+      Array.from(stateRef.current.values()).filter(exec => exec.actionName === actionName),
+    getRunningExecutions: () =>
+      Array.from(stateRef.current.values()).filter(exec => exec.isRunning),
+    cleanup
   };
+}
+```
+
+### Advanced Pattern: Pipe Chaining with Previous Results
+
+```typescript
+// handlers/usePipelineUserHandlers.ts - Pipe Chain Pattern
+export function usePipelineUserHandlers() {
+  const userStore = useUserStore('users');
+  const profileStore = useUserStore('profile');
+
+  // Pipeline handler with context and previous result chaining
+  const createPipelineHandler = useCallback((actionName: string, steps: PipelineStep[]) => {
+    return useCallback(async (initialPayload, initialContext = {}) => {
+      let currentPayload = { ...initialPayload };
+      let currentContext = { ...initialContext, actionName, pipeline: [] };
+      let previousResult = null;
+
+      for (let i = 0; i < steps.length; i++) {
+        const step = steps[i];
+        const stepContext = {
+          ...currentContext,
+          stepIndex: i,
+          stepName: step.name,
+          previousResult,
+          // Access to latest store values via delayed evaluation
+          getLatestUsers: () => userStore.getValue(),
+          getLatestProfile: () => profileStore.getValue()
+        };
+
+        try {
+          // Execute step with modified payload and context
+          const stepResult = await step.execute(currentPayload, stepContext);
+
+          // Update pipeline tracking
+          currentContext.pipeline.push({
+            stepName: step.name,
+            stepIndex: i,
+            input: currentPayload,
+            output: stepResult.payload || currentPayload,
+            result: stepResult.result,
+            duration: stepResult.duration,
+            timestamp: Date.now()
+          });
+
+          // Prepare for next step
+          currentPayload = stepResult.payload || currentPayload;
+          previousResult = stepResult.result;
+
+          // Handle step-specific store updates
+          if (stepResult.storeUpdates) {
+            for (const update of stepResult.storeUpdates) {
+              const store = update.storeName === 'users' ? userStore : profileStore;
+              if (update.type === 'setValue') {
+                store.setValue(update.value);
+              } else if (update.type === 'update') {
+                store.update(update.updater);
+              }
+            }
+          }
+
+        } catch (error) {
+          // Add error to pipeline tracking
+          currentContext.pipeline.push({
+            stepName: step.name,
+            stepIndex: i,
+            input: currentPayload,
+            error: error.message,
+            timestamp: Date.now()
+          });
+          throw new Error(`Pipeline failed at step ${i} (${step.name}): ${error.message}`);
+        }
+      }
+
+      return {
+        finalPayload: currentPayload,
+        finalResult: previousResult,
+        context: currentContext
+      };
+    }, [actionName, steps, userStore, profileStore]);
+  }, [userStore, profileStore]);
+
+  // Define pipeline steps
+  const userCreationSteps: PipelineStep[] = [
+    {
+      name: 'validation',
+      execute: async (payload, context) => {
+        const validationResult = await validateUser(payload.userData);
+        return {
+          payload: { ...payload, validatedData: validationResult.data },
+          result: { isValid: validationResult.isValid, errors: validationResult.errors },
+          duration: 50
+        };
+      }
+    },
+    {
+      name: 'enrichment',
+      execute: async (payload, context) => {
+        const enrichedData = {
+          ...payload.validatedData,
+          id: generateId(),
+          createdAt: Date.now(),
+          // Use previous validation result
+          validationScore: context.previousResult?.isValid ? 100 : 0
+        };
+        return {
+          payload: { ...payload, enrichedData },
+          result: { enrichedUser: enrichedData },
+          duration: 30
+        };
+      }
+    },
+    {
+      name: 'persistence',
+      execute: async (payload, context) => {
+        // Get latest users from store (delayed evaluation)
+        const currentUsers = context.getLatestUsers();
+        const newUser = payload.enrichedData;
+
+        return {
+          payload,
+          result: { savedUser: newUser, totalUsers: currentUsers.length + 1 },
+          storeUpdates: [{
+            storeName: 'users',
+            type: 'setValue',
+            value: [...currentUsers, newUser]
+          }],
+          duration: 100
+        };
+      }
+    }
+  ];
+
+  return {
+    handlers: {
+      createUser: createPipelineHandler('createUser', userCreationSteps),
+      updateUser: createPipelineHandler('updateUser', userUpdateSteps),
+      deleteUser: createPipelineHandler('deleteUser', userDeletionSteps)
+    }
+  };
+}
+
+### Type-Safe Empty Payload Pattern
+
+```typescript
+// Define empty payload type that gets filled step by step
+interface CreateUserPayload {
+  // Initial input (always present)
+  userData: {
+    name: string;
+    email: string;
+  };
+
+  // Step-by-step filled properties (optional initially)
+  validatedData?: {
+    name: string;
+    email: string;
+    isValid: boolean;
+    validationErrors?: string[];
+  };
+
+  enrichedData?: {
+    id: string;
+    name: string;
+    email: string;
+    isValid: boolean;
+    validationErrors?: string[];
+    createdAt: number;
+    validationScore: number;
+  };
+
+  persistedData?: {
+    id: string;
+    name: string;
+    email: string;
+    isValid: boolean;
+    validationErrors?: string[];
+    createdAt: number;
+    validationScore: number;
+    savedAt: number;
+    version: number;
+  };
+}
+
+// Type-safe pipeline steps with progressive payload filling
+const createUserPipeline: TypedPipelineStep<CreateUserPayload>[] = [
+  {
+    name: 'validation',
+    execute: async (payload) => {
+      const validatedData = await validateUser(payload.userData);
+
+      return {
+        // Fill validation step data
+        payload: {
+          ...payload,
+          validatedData: {
+            ...payload.userData,
+            isValid: validatedData.isValid,
+            validationErrors: validatedData.errors
+          }
+        } as CreateUserPayload & { validatedData: NonNullable<CreateUserPayload['validatedData']> },
+        result: { validationComplete: true }
+      };
+    }
+  },
+  {
+    name: 'enrichment',
+    execute: async (payload) => {
+      // TypeScript knows validatedData exists from previous step
+      if (!payload.validatedData?.isValid) {
+        throw new Error('Cannot enrich invalid user data');
+      }
+
+      return {
+        // Fill enrichment step data
+        payload: {
+          ...payload,
+          enrichedData: {
+            ...payload.validatedData,
+            id: generateId(),
+            createdAt: Date.now(),
+            validationScore: payload.validatedData.isValid ? 100 : 0
+          }
+        } as CreateUserPayload & {
+          validatedData: NonNullable<CreateUserPayload['validatedData']>;
+          enrichedData: NonNullable<CreateUserPayload['enrichedData']>;
+        },
+        result: { enrichmentComplete: true }
+      };
+    }
+  },
+  {
+    name: 'persistence',
+    execute: async (payload, context) => {
+      // TypeScript knows enrichedData exists from previous step
+      const userToSave = payload.enrichedData!;
+
+      const currentUsers = context.getLatestUsers();
+
+      return {
+        // Fill persistence step data
+        payload: {
+          ...payload,
+          persistedData: {
+            ...userToSave,
+            savedAt: Date.now(),
+            version: 1
+          }
+        } as CreateUserPayload & {
+          validatedData: NonNullable<CreateUserPayload['validatedData']>;
+          enrichedData: NonNullable<CreateUserPayload['enrichedData']>;
+          persistedData: NonNullable<CreateUserPayload['persistedData']>;
+        },
+        result: { persistenceComplete: true, totalUsers: currentUsers.length + 1 },
+        storeUpdates: [{
+          storeName: 'users',
+          type: 'setValue',
+          value: [...currentUsers, userToSave]
+        }]
+      };
+    }
+  }
+];
+
+// Usage with type safety
+export function useTypedPipelineUserHandlers() {
+  const createTypedPipelineHandler = <T extends Record<string, any>>(
+    actionName: string,
+    steps: TypedPipelineStep<T>[]
+  ) => {
+    return useCallback(async (initialPayload: T, initialContext = {}) => {
+      let currentPayload = { ...initialPayload };
+      let currentContext = { ...initialContext, actionName };
+
+      for (const step of steps) {
+        const stepResult = await step.execute(currentPayload, currentContext);
+        currentPayload = stepResult.payload || currentPayload;
+
+        // Handle store updates
+        if (stepResult.storeUpdates) {
+          for (const update of stepResult.storeUpdates) {
+            // Apply store updates...
+          }
+        }
+      }
+
+      return currentPayload;
+    }, [actionName, steps]);
+  };
+
+  return {
+    handlers: {
+      createUser: createTypedPipelineHandler('createUser', createUserPipeline)
+    }
+  };
+}
+```
+
+// Pipeline interfaces
+interface TypedPipelineStep<T> {
+  name: string;
+  execute: (payload: T, context: PipelineContext) => Promise<TypedPipelineStepResult<T>>;
+}
+
+interface PipelineContext {
+  actionName: string;
+  stepIndex?: number;
+  stepName?: string;
+  previousResult?: any;
+  pipeline?: PipelineStepInfo[];
+  getLatestUsers: () => any[];
+  getLatestProfile: () => any;
+}
+
+interface TypedPipelineStepResult<T> {
+  payload?: T;
+  result?: any;
+  storeUpdates?: StoreUpdate[];
+  duration?: number;
+}
+
+interface StoreUpdate {
+  storeName: string;
+  type: 'setValue' | 'update';
+  value?: any;
+  updater?: (draft: any) => void;
+}
+
+interface PipelineStepInfo {
+  stepName: string;
+  stepIndex: number;
+  input: any;
+  output?: any;
+  result?: any;
+  error?: string;
+  duration?: number;
+  timestamp: number;
 }
 ```
 
