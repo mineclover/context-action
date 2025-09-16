@@ -16,23 +16,40 @@ A context signifies a **unit for defining concepts**. Based on this standard, th
 
 ### Unit of Context Definition
 
-#### Basic Structure
-- **Topic Context**: Manages large units of functionality, plans, or pages.
-- **Composition Context**: The implementation unit for individual features.
-- **Nested Structure**: One composition can become the topic for other compositions.
+#### Atomic Context Types
 
-#### Context Hierarchy
+The Context-Action Framework defines two primary types of atomic contexts:
+
+**1. Domain Context** - Business Domain Entities
+- **Purpose**: Core business domain entities and their essential logic
+- **Characteristics**: Contains fundamental business rules, can have sub-features that may evolve into independent domains
+- **Examples**: User, Product, Order, Payment, Authentication, Search
+- **Evolution**: Domain features can grow into independent domains (`domains/user/profile` → `domains/user-profile`)
+
+**2. Page Context** - Page-specific State
+- **Purpose**: UI state and logic specific to a particular page
+- **Characteristics**: Used only within specific pages, can depend on domain contexts, isolated from other pages
+- **Examples**: User Dashboard Page, Product List Page, Checkout Flow Page
+- **Features**: Page features remain within the page context and don't become independent domains
+
+#### Context Hierarchy and Evolution
 
 ```
-📁 Domain Context     - Prioritizes reusability
-  ├── 📄 Business Model Design
-  ├── 🔄 Meta-functional Implementation
-  └── 🌐 Reused across multiple places
+📁 Domain Contexts    - Independent Business Logic
+  ├── 📦 Core domains (User, Product, Order)
+  ├── 🔄 Evolved domains (User-Profile, Shopping-Cart, Authentication)
+  ├── 🔗 Domain dependencies allowed (child → parent)
+  └── 🌐 Reusable across multiple pages
 
-📁 Page Context      - Focuses on current accessibility
-  ├── 🎯 Tailored to specific interfaces
-  ├── 👤 Optimized for the current user experience
-  └── 📱 Specialized features per page
+📁 Page Contexts     - Isolated Page Logic
+  ├── 🎯 Page-specific UI state and logic
+  ├── 👤 Can depend on domains but isolated from other pages
+  ├── 📱 Page features stay within page boundaries
+  └── ❌ No dependencies on other pages
+
+🔄 Evolution Pattern:
+Domain Feature → Independent Domain (when complex enough)
+Page Feature → Stays in Page (never becomes independent domain)
 ```
 
 ### Context Separation Principles
@@ -43,14 +60,27 @@ A context signifies a **unit for defining concepts**. Based on this standard, th
 - Each context has a clear, single responsibility.
 
 #### 2. Dependency Direction
+
+**Domain to Domain Dependencies:**
 ```
-Parent Context → Child Context (Allowed)
-Child Context ← Parent Context (Forbidden)
+Domain (Child) → Domain (Parent) (Allowed)
+Domain (Parent) → Domain (Child) (Forbidden)
 ```
 
-- **Allowed**: A child context using the data or styles of a parent context.
-- **Forbidden**: A parent context directly accessing the data of a child context.
-- **Solution**: Adopt a pattern of delegating the definition itself to the parent context.
+**Page to Domain Dependencies:**
+```
+Page → Domain (Allowed)
+Domain → Page (Forbidden)
+```
+
+**Page to Page Dependencies:**
+```
+Page ↔ Page (Forbidden - Complete Isolation)
+```
+
+- **Allowed**: Child domain using parent domain data, pages using any domain data
+- **Forbidden**: Parent domain accessing child domain data, domains accessing page data, pages accessing other pages
+- **Evolution**: When domain features become complex, they evolve into independent child domains that depend on their parent
 
 #### 3. Event-Based Delegation Pattern
 
@@ -199,99 +229,204 @@ function DataLayer({ children }) {
 
 ### 3. Context-Layered Architecture Integration
 
-#### 4-Layer Structure
+#### Context-Layered Architecture with Atomic Contexts
 
 ```
-📁 contexts/     # 🗄️ Context Definition (Type definitions and context creation)
-├── UserActionContext.ts    # Action context definition
-└── UserStoreContext.ts     # Store context definition
+📁 contexts/     # 🗄️ Atomic Context Definitions
+├── domains/
+│   ├── user/
+│   │   ├── context.ts          # User domain context
+│   │   ├── spec.md             # Context specification
+│   │   └── dependencies.md     # Dependency documentation
+│   ├── user-profile/           # Evolved from user domain feature
+│   │   ├── context.ts          # User profile as independent domain
+│   │   ├── spec.md
+│   │   └── dependencies.md
+│   └── authentication/         # Core domain for auth functionality
+│       ├── context.ts
+│       ├── spec.md
+│       └── dependencies.md
+└── pages/
+    ├── user-dashboard/         # Page-specific context
+    │   ├── context.ts          # Dashboard page context
+    │   ├── spec.md
+    │   └── dependencies.md
+    └── user-profile-page/      # Profile page context
+        ├── context.ts
+        ├── spec.md
+        └── dependencies.md
 
-📁 handlers/     # ⚙️ Handler Logic (Business logic via props-based DI)
-├── UserProfileHandlers.tsx # Profile-related business logic
-└── UserAuthHandlers.tsx    # Authentication-related business logic
+📁 actions/      # 🚀 Action Dispatch Layer
+├── domains/
+│   ├── user/useUserActions.ts
+│   ├── user-profile/useUserProfileActions.ts
+│   └── authentication/useAuthActions.ts
+└── pages/
+    └── user-dashboard/useUserDashboardActions.ts
 
-📁 actions/      # 🚀 Action Dispatch (Dispatching actions and callbacks)
-├── useUserProfileActions.ts # Profile action hooks
-└── useUserAuthActions.ts    # Authentication action hooks
+📁 hooks/        # 🔗 Store Subscription Layer
+├── domains/
+│   ├── user/useUserState.ts
+│   ├── user-profile/useUserProfileState.ts
+│   └── authentication/useAuthState.ts
+└── pages/
+    └── user-dashboard/useUserDashboardState.ts
 
-📁 hooks/        # 🔗 Store Subscription (Subscribing to store values)
-├── useUserProfile.ts       # Profile state hooks
-└── useUserPreferences.ts   # Settings state hooks
+📁 handlers/     # ⚙️ Business Logic Layer
+├── domains/
+│   ├── user/UserHandlers.tsx
+│   ├── user-profile/UserProfileHandlers.tsx
+│   └── authentication/AuthHandlers.tsx
+└── pages/
+    └── user-dashboard/UserDashboardHandlers.tsx
 
-📁 views/        # 🖼️ Pure UI (Event handling and rendering)
-├── UserProfile.tsx         # Profile UI component
-└── UserSettings.tsx        # Settings UI component
+📁 viewmodels/   # 🎯 View Isolation Layer
+├── domains/
+│   ├── user/UserViewModel.ts
+│   ├── user-profile/UserProfileViewModel.ts
+│   └── authentication/AuthViewModel.ts
+└── pages/
+    └── user-dashboard/UserDashboardViewModel.ts
 
-📄 UserPage.tsx  # 🎯 Integration Point (Handler registration and composition)
+📁 views/        # 🖼️ View Components Layer
+├── pages/
+│   ├── UserDashboardPage.tsx
+│   └── UserProfilePage.tsx
+├── components/
+│   ├── domains/
+│   │   ├── user/UserProfile.tsx
+│   │   ├── user-profile/UserProfileForm.tsx
+│   │   └── authentication/LoginForm.tsx
+│   └── pages/
+│       └── user-dashboard/DashboardWidget.tsx
+└── shared/
+    ├── Button.tsx
+    └── Card.tsx
 ```
 
-#### Integration Example
+#### Integration Example with Atomic Contexts
 
 ```typescript
-// contexts/UserContexts.ts
+// contexts/domains/user/context.ts - User Domain Context
 export const {
   Provider: UserActionProvider,
   useActionDispatch: useUserAction,
   useActionHandler: useUserActionHandler
-} = createActionContext<UserActions>('UserActions');
+} = createActionContext<UserActions>('UserDomain');
 
 export const {
   Provider: UserStoreProvider,
   useStore: useUserStore
-} = createStoreContext('UserStores', {
-  profile: { name: '', email: '', isLoggedIn: false },
-  preferences: { theme: 'light' as const }
+} = createStoreContext('UserDomain', {
+  basicInfo: { name: '', email: '' },
+  settings: { theme: 'light' as const }
 });
 
-// handlers/UserProfileHandlers.tsx - Props-based DI pattern
-interface UserProfileHandlersProps {
-  profileStore: Store<UserProfile>;
-  preferencesStore: Store<UserPreferences>;
+// contexts/domains/user-profile/context.ts - User Profile Domain Context (Evolved from User)
+import { useUserStore } from '../user'; // ✅ Child domain depends on parent
+
+export const {
+  Provider: UserProfileActionProvider,
+  useActionDispatch: useUserProfileAction,
+  useActionHandler: useUserProfileActionHandler
+} = createActionContext<UserProfileActions>('UserProfile');
+
+export const {
+  Provider: UserProfileStoreProvider,
+  useStore: useUserProfileStore
+} = createStoreContext('UserProfile', {
+  profile: { bio: '', avatar: '', isComplete: false }
+});
+
+// contexts/pages/user-dashboard/context.ts - Dashboard Page Context
+import { useUserStore } from '../../domains/user'; // ✅ Page depends on domains
+import { useUserProfileStore } from '../../domains/user-profile';
+
+export const {
+  Provider: UserDashboardActionProvider,
+  useActionDispatch: useUserDashboardAction,
+  useActionHandler: useUserDashboardActionHandler
+} = createActionContext<UserDashboardActions>('UserDashboard');
+
+export const {
+  Provider: UserDashboardStoreProvider,
+  useStore: useUserDashboardStore
+} = createStoreContext('UserDashboard', {
+  layout: { widgets: [], isCustomizing: false }
+});
+
+// viewmodels/domains/user-profile/UserProfileViewModel.ts - View Isolation
+import { useUserState } from '../../../hooks/domains/user';
+import { useUserProfileState } from '../../../hooks/domains/user-profile';
+import { useUserProfileActions } from '../../../actions/domains/user-profile';
+
+export function useUserProfileViewModel() {
+  const { basicInfo } = useUserState(); // Parent domain state
+  const { profile } = useUserProfileState(); // Own domain state
+  const { updateProfile } = useUserProfileActions(); // Own domain actions
+
+  return {
+    user: basicInfo,
+    profile,
+    displayName: basicInfo.name || 'Anonymous',
+    isProfileComplete: profile.isComplete,
+    updateProfile
+  };
 }
 
-export function UserProfileHandlers({
-  profileStore,
-  preferencesStore,
-  children
-}: UserProfileHandlersProps & { children: ReactNode }) {
-
-  useUserActionHandler('updateProfile', useCallback(async (payload) => {
-    const currentProfile = profileStore.getValue();
-    const preferences = preferencesStore.getValue();
-
-    // Apply business rules
-    const updatedProfile = applyBusinessRules(payload, preferences);
-
-    profileStore.setValue(updatedProfile);
-    await syncWithServer(updatedProfile);
-  }, [profileStore, preferencesStore]));
-
-  return children;
-}
-
-// UserPage.tsx - Integration Point
-export function UserPage() {
+// views/pages/UserDashboardPage.tsx - Page Integration Point
+export function UserDashboardPage() {
   return (
+    {/* Domain Contexts - Independent domains with dependencies */}
     <UserActionProvider>
       <UserStoreProvider>
-        <UserPageContent />
+        <UserProfileActionProvider>       {/* Child domain */}
+          <UserProfileStoreProvider>
+
+            {/* Page Context - Isolated page logic */}
+            <UserDashboardActionProvider>
+              <UserDashboardStoreProvider>
+                <UserDashboardPageContent />
+              </UserDashboardStoreProvider>
+            </UserDashboardActionProvider>
+
+          </UserProfileStoreProvider>
+        </UserProfileActionProvider>
       </UserStoreProvider>
     </UserActionProvider>
   );
 }
 
-function UserPageContent() {
-  const profileStore = useUserStore('profile');
-  const preferencesStore = useUserStore('preferences');
+function UserDashboardPageContent() {
+  return (
+    {/* Handler Registration */}
+    <UserHandlers>
+      <UserProfileHandlers>            {/* Business logic for user profile domain */}
+        <UserDashboardHandlers>         {/* Business logic for dashboard page */}
+
+          {/* UI Components using ViewModels */}
+          <UserDashboardView />
+
+        </UserDashboardHandlers>
+      </UserProfileHandlers>
+    </UserHandlers>
+  );
+}
+
+// views/components/pages/user-dashboard/UserDashboardView.tsx - ViewModel Consumption
+import { useUserDashboardViewModel } from '../../../../viewmodels/pages/user-dashboard';
+import { useUserProfileViewModel } from '../../../../viewmodels/domains/user-profile';
+
+export function UserDashboardView() {
+  const { layout, updateLayout } = useUserDashboardViewModel(); // Page ViewModel
+  const { displayName, profile } = useUserProfileViewModel();   // Domain ViewModel
 
   return (
-    <UserProfileHandlers
-      profileStore={profileStore}
-      preferencesStore={preferencesStore}
-    >
-      <UserProfileView />
-      <UserSettingsView />
-    </UserProfileHandlers>
+    <div>
+      <h1>Welcome, {displayName}!</h1>
+      <UserProfileSummary profile={profile} />
+      <DashboardWidgets layout={layout} onUpdateLayout={updateLayout} />
+    </div>
   );
 }
 ```
@@ -665,13 +800,14 @@ useUserActionHandler('riskyOperation', useCallback(async (payload) => {
 
 ## Conclusion
 
-Context-Driven Architecture, based on the powerful features of the Context-Action framework, enables:
+Context-Driven Architecture with atomic context isolation, based on the powerful features of the Context-Action framework, enables:
 
-1. **Clear domain separation** through document-centric design.
-2. **Predictable business logic processing** with the Action Pipeline.
-3. **Safe state management** using the declarative store pattern.
-4. **Improved maintainability** via context isolation.
+1. **Clear domain separation** through document-centric design and atomic context specifications
+2. **Predictable business logic processing** with the Context-Layered architecture (contexts → actions → hooks → handlers → viewmodels → views)
+3. **Safe state management** using Immer-based store patterns with immutability enforcement
+4. **Improved maintainability** via atomic context isolation with independent domain and page contexts
+5. **Context evolution patterns** where domain features can grow into independent domains while maintaining clear dependency hierarchies
 
-This allows for the implementation of an architecture that is **observable**, **maintainable**, and **incrementally developable**, even in large-scale applications.
+This allows for the implementation of an architecture that is **observable**, **maintainable**, **scalable**, and **incrementally developable**, even in large-scale applications with complex domain requirements.
 
-This architecture is not just a technical solution but creates a **living architecture where documentation and code align**, supporting team collaboration and the sustainable development of the project.
+This architecture creates a **living system where documentation and code align** through atomic context specifications (spec.md, dependencies.md), supporting team collaboration and sustainable development of projects that evolve gracefully over time.
