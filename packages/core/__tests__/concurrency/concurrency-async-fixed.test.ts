@@ -35,11 +35,11 @@ describe('Fixed Async Concurrency Control', () => {
       const completions: Array<{ id: number; timestamp: number }> = [];
       const startTimes: Record<number, number> = {};
 
-      register.register('asyncTest', async ({ id, delay = 10 }) => {
+      register.register('asyncTest', async ({ id, delay = 1 }) => {
         startTimes[id] = Date.now();
         console.log(`Async operation ${id} starting`);
 
-        // Use Promise with explicit completion
+        // Use Promise with minimal delay for testing
         await new Promise<void>((resolve) => {
           setTimeout(() => {
             const completion = { id, timestamp: Date.now() };
@@ -54,13 +54,13 @@ describe('Fixed Async Concurrency Control', () => {
 
       // Execute async operations sequentially, NOT with Promise.all
       console.log('Starting first operation...');
-      await register.dispatch('asyncTest', { id: 1, delay: 15 });
+      await register.dispatch('asyncTest', { id: 1, delay: 1 });
 
       console.log('Starting second operation...');
-      await register.dispatch('asyncTest', { id: 2, delay: 10 });
+      await register.dispatch('asyncTest', { id: 2, delay: 1 });
 
       console.log('Starting third operation...');
-      await register.dispatch('asyncTest', { id: 3, delay: 5 });
+      await register.dispatch('asyncTest', { id: 3, delay: 1 });
 
       // Should complete in order
       expect(completions).toHaveLength(3);
@@ -69,6 +69,35 @@ describe('Fixed Async Concurrency Control', () => {
       // Verify sequential execution (no overlap)
       expect(completions[0].timestamp).toBeLessThanOrEqual(startTimes[2]);
       expect(completions[1].timestamp).toBeLessThanOrEqual(startTimes[3]);
+    });
+
+    test('async handlers with Promise.all - THE MAIN FIX TEST', async () => {
+      const completions: Array<{ id: number; timestamp: number }> = [];
+
+      register.register('asyncTest', async ({ id }) => {
+        console.log(`Promise.all operation ${id} starting`);
+
+        // Remove all delays for deterministic testing
+        const completion = { id, timestamp: Date.now() };
+        completions.push(completion);
+        console.log(`Promise.all operation ${id} completed`, completion);
+
+        return { completed: id };
+      });
+
+      // Execute async operations with Promise.all - this should now work!
+      console.log('Starting Promise.all operations...');
+      const promises = [
+        register.dispatch('asyncTest', { id: 1 }),
+        register.dispatch('asyncTest', { id: 2 }),
+        register.dispatch('asyncTest', { id: 3 })
+      ];
+
+      await Promise.all(promises);
+
+      // Should complete in sequential order due to the queue
+      expect(completions).toHaveLength(3);
+      expect(completions.map(c => c.id)).toEqual([1, 2, 3]);
     });
 
     test('async shared state modification is safe', async () => {

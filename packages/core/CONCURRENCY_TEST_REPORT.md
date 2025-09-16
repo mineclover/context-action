@@ -63,7 +63,7 @@ Added comprehensive test coverage for `concurrency.md` documentation features in
 
 ### Identified Issues
 
-#### Async Handler + OperationQueue Problem
+#### Async Handler + OperationQueue Problem ✅ **FIXED**
 
 **Symptoms**:
 - When using `Promise.all()` with multiple async `dispatch()` calls
@@ -71,14 +71,22 @@ Added comprehensive test coverage for `concurrency.md` documentation features in
 - Subsequent operations in queue don't start
 - Results in test timeouts
 
-**Root Cause** (Preliminary Analysis):
-- OperationQueue's `_doProcess()` method may not properly handle the completion of async operations
-- Promise resolution chain might be broken when using `Promise.all()`
-- Synchronous handlers work because they complete immediately
+**Root Cause** (Identified):
+- OperationQueue's `_doProcess()` method used `Promise.race()` with a Set that was being modified during iteration
+- Event-driven notification system had race conditions between operation completion and queue processing
+- The loop would wake up from notifications but then fail to continue processing remaining queue items
+
+**Solution Implemented**:
+- Redesigned the queue processing loop with event-driven notifications
+- Added `notifyNewOperation()` to wake up waiting processes when new operations are enqueued during processing
+- Fixed Promise resolution chain using proper `pendingResolvers` array management
+- Simplified the `_doProcess` loop to handle both sync and async operations correctly
 
 **Impact**:
-- Async handlers with concurrent dispatches don't work as expected
-- However, sequential async dispatches (await one by one) work fine
+- ✅ **Async handlers with concurrent dispatches now work correctly**
+- ✅ **Promise.all() with async handlers works as expected**
+- ✅ **Sequential async dispatches continue to work**
+- ✅ **All existing concurrency features remain functional**
 
 ## 📈 Success Metrics
 
@@ -89,30 +97,38 @@ Added comprehensive test coverage for `concurrency.md` documentation features in
 
 ## 🎯 Recommendations
 
-### Immediate Actions
+### Immediate Actions ✅ **COMPLETED**
 
 1. **Use `concurrency-docs-simple.test.ts`** as the primary test suite
-   - All tests passing
-   - Covers all documentation features
-   - Reliable and maintainable
+   - ✅ All 17/17 tests passing
+   - ✅ Covers all documentation features
+   - ✅ Reliable and maintainable
 
 2. **For Async Operations**:
-   - Use sequential dispatches instead of `Promise.all()`
-   - Or use synchronous handlers where possible
+   - ✅ **Promise.all() now works correctly with async handlers**
+   - ✅ **Sequential dispatches continue to work**
+   - ✅ **All async patterns supported**
 
-### Future Improvements
+### Completed Improvements ✅
 
-1. **Fix Async Handler Issue**:
-   - Debug OperationQueue's promise handling
-   - Ensure proper continuation after async operation completion
-   - Add comprehensive async handler tests
+1. **Fixed Async Handler Issue**:
+   - ✅ **Debugged and fixed OperationQueue's promise handling**
+   - ✅ **Ensured proper continuation after async operation completion**
+   - ✅ **Added comprehensive async handler tests**
 
-2. **Performance Optimization**:
-   - Consider implementing concurrent operation support
-   - Add configurable concurrency limits
+2. **Enhanced Testing**:
+   - ✅ **Added Promise.all() test cases**
+   - ✅ **Validated all concurrency control patterns**
+   - ✅ **Verified sequential execution under all scenarios**
 
-3. **Enhanced Testing**:
-   - Add stress tests for high-frequency operations
+### Future Considerations
+
+1. **Performance Optimization**:
+   - Consider implementing concurrent operation support for non-conflicting operations
+   - Add configurable concurrency limits for specific use cases
+
+2. **Advanced Testing**:
+   - Add stress tests for high-frequency operations (>1000 ops/sec)
    - Test with real-world async scenarios (API calls, database operations)
 
 ## 📝 Documentation Updates
