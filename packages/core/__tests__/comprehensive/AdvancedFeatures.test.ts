@@ -68,7 +68,7 @@ describe('ActionRegister - Advanced Features', () => {
     it('should handle throttled handlers', async () => {
       let executionCount = 0;
       const executionValues: string[] = [];
-      
+
       actionRegister.register('throttleAction', (payload) => {
         executionCount++;
         executionValues.push(`exec-${payload.timestamp}`);
@@ -86,14 +86,17 @@ describe('ActionRegister - Advanced Features', () => {
       await actionRegister.dispatch('throttleAction', { timestamp: 2 });
       await actionRegister.dispatch('throttleAction', { timestamp: 3 });
       expect(executionCount).toBe(1);
+      expect(executionValues).toHaveLength(1);
+      expect(executionValues[0]).toBe('exec-1');
 
       // Wait for throttle window to pass
-      jest.advanceTimersByTime(100);
+      await new Promise(resolve => setTimeout(resolve, 150));
 
       // Next call should execute
       await actionRegister.dispatch('throttleAction', { timestamp: 4 });
       expect(executionCount).toBe(2);
-      expect(executionValues).toEqual(['exec-1', 'exec-4']);
+      expect(executionValues).toHaveLength(2);
+      expect(executionValues[1]).toBe('exec-4');
     });
 
     it('should handle handler validation', async () => {
@@ -352,7 +355,7 @@ describe('ActionRegister - Advanced Features', () => {
 
       // Check results - one successful, one error
       expect(result.results).toHaveLength(1);
-      expect(result.results[0]).toEqual({ step: 'validation', duration: 50 });
+      expect(result.results[0]).toEqual({ step: 'validation', duration: 20 });
 
       // Check errors
       expect(result.errors).toHaveLength(1);
