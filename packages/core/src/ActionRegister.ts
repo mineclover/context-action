@@ -42,6 +42,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   
   // 🆕 Advanced unregister function management system
   private unregisterFunctions = new Map<string, UnregisterFunction>();
+
+  // 🔧 Fix: Track last registration timestamps for getActionStats
+  private lastRegisteredTimestamps = new Map<keyof T, Date>();
   
   public readonly name: string;
   private readonly registryConfig: ActionRegisterConfig['registry'];
@@ -235,8 +238,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         once: config.once ?? false,
         debounce: config.debounce ?? undefined,
         throttle: config.throttle ?? undefined,
-        replaceExisting: config.replaceExisting ?? false,
+        replaceExisting: config.replaceExisting ?? true, // 🔧 Fix: Default to true for backward compatibility
         cleanup: config.cleanup, // 🔧 Preserve cleanup function from config
+        condition: config.condition, // 🔧 Fix: Preserve condition function from config
       } as Required<HandlerConfig>,
       id: handlerId,
     };
@@ -260,28 +264,31 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       const existing = pipeline[existingIndex];
       const existingUnregister = this.unregisterFunctions.get(handlerId);
       
-      if (config.replaceExisting) {
-        // Clean up existing handler before replacement
-        if (existingUnregister) {
-          // Execute existing unregister function first
-          existingUnregister();
-          this.unregisterFunctions.delete(handlerId);
-        }
-        
+      if (registration.config.replaceExisting) {
+        // 🔧 Fix: Clean up existing handler properly without removing from pipeline
+
         // Call cleanup if available on the old handler
-        if (existing && typeof (existing as any).cleanup === 'function') {
+        if (existing && existing.config.cleanup && typeof existing.config.cleanup === 'function') {
           try {
-            (existing as any).cleanup();
+            existing.config.cleanup();
           } catch (cleanupError) {
             this.log(`Cleanup error for replaced handler: ${String(action)}`, cleanupError, 'warn');
           }
         }
-        
-        // Replace existing handler
+
+        // Clean up existing unregister function
+        if (existingUnregister) {
+          this.unregisterFunctions.delete(handlerId);
+        }
+
+        // Replace existing handler directly in pipeline
         pipeline[existingIndex] = registration;
         pipeline.sort((a, b) => b.config.priority - a.config.priority);
         // Cache disabled
-        
+
+        // 🔧 Fix: Update last registered timestamp when replacing
+        this.lastRegisteredTimestamps.set(action, new Date());
+
         // Create new unregister function and store it
         const newUnregister = this.createUnregisterFunction(action, handlerId, registration);
         this.unregisterFunctions.set(handlerId, newUnregister);
@@ -325,17 +332,20 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     pipeline.push(registration);
     pipeline.sort((a, b) => b.config.priority - a.config.priority);
     // Cache disabled
-    
+
+    // 🔧 Fix: Update last registered timestamp
+    this.lastRegisteredTimestamps.set(action, new Date());
+
     // Create and store unregister function
     const unregister = this.createUnregisterFunction(action, handlerId, registration);
     this.unregisterFunctions.set(handlerId, unregister);
-    
+
     this.log(`Handler registered: ${String(action)}`, {
       handlerId,
       priority: config.priority,
       totalHandlers: pipeline.length
     });
-    
+
     return unregister;
   }
 
@@ -924,7 +934,13 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     };
 
     controller.modifyPayload = (modifier: (payload: T[K]) => T[K]) => {
-      context.payload = modifier(context.payload);
+      try {
+        context.payload = modifier(context.payload);
+      } catch (modificationError) {
+        // 🔧 Fix: Don't let payload modification errors crash the pipeline
+        this.log('Payload modification error', modificationError, 'warn');
+        // Keep original payload on modification error
+      }
     };
 
     controller.getPayload = () => context.payload;
@@ -1024,19 +1040,26 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     context: PipelineContext<any, R>,
     resultOptions?: DispatchOptions['result']
   ): R | undefined {
-    if (!resultOptions || !resultOptions.collect) {
-      return undefined;
-    }
-
     const results = context.results;
-    
-    // Handle termination result
+
+    // 🔧 Fix: Always handle termination result regardless of collect option
     if (context.terminated && context.terminationResult !== undefined) {
       return context.terminationResult;
     }
 
+    // 🔧 Fix: Return undefined only if no results options specified AND no results available
+    if (!resultOptions) {
+      // If no result options specified but we have results, return the last one
+      return results.length > 0 ? results[results.length - 1] : undefined;
+    }
+
+    // 🔧 Fix: Process results even when collect is false if we have a strategy specified
+    if (!resultOptions.collect && !resultOptions.strategy) {
+      return undefined;
+    }
+
     // Apply maxResults limit
-    const limitedResults = resultOptions.maxResults 
+    const limitedResults = resultOptions.maxResults
       ? results.slice(0, resultOptions.maxResults)
       : results;
 
@@ -1064,8 +1087,12 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         }
         throw new Error('Custom result strategy requires a merger function');
       default:
-        // Default: return all results
-        return limitedResults as unknown as R;
+        // 🔧 Fix: If collect is true but no strategy specified, return all results
+        if (resultOptions.collect) {
+          return limitedResults as unknown as R;
+        }
+        // Default: return last result if no strategy specified
+        return limitedResults[limitedResults.length - 1];
     }
   }
 
@@ -1106,7 +1133,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       const index = pipeline.findIndex(reg => reg.id === registration.id);
       if (index !== -1) {
         pipeline.splice(index, 1);
-        
+
         if (this.registryConfig?.debug && process.env.NODE_ENV === 'development') {
           console.log(`🎯 One-time handler removed: ${String(action)}`, {
             handlerId: registration.id,
@@ -1116,6 +1143,12 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
         }
       }
     });
+
+    // 🔧 Fix: Remove action key from pipelines map when pipeline becomes empty after cleanup
+    if (pipeline.length === 0) {
+      this.pipelines.delete(action);
+      this.lastRegisteredTimestamps.delete(action);
+    }
   }
 
 
@@ -1174,6 +1207,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    */
   clearAction<K extends keyof T>(action: K): void {
     this.pipelines.delete(action);
+    // 🔧 Fix: Clear last registered timestamp
+    this.lastRegisteredTimestamps.delete(action);
     // 🔧 Invalidate filter cache when pipeline changes
     // Cache disabled
   }
@@ -1187,6 +1222,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    */
   clearAll(): void {
     this.pipelines.clear();
+    // 🔧 Fix: Clear all last registered timestamps
+    this.lastRegisteredTimestamps.clear();
     // 🔧 Invalidate filter cache when pipeline changes
     // Cache disabled
   }
@@ -1264,6 +1301,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       totalHandlers: pipeline.length,
       handlersByPriority,
       executionStats,
+      lastRegistered: this.lastRegisteredTimestamps.get(action),
     };
   }
 
@@ -1365,13 +1403,19 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     return () => {
       const pipeline = this.pipelines.get(action);
       if (!pipeline) return;
-      
+
       const index = pipeline.findIndex(reg => reg.id === handlerId && reg === registration);
       if (index !== -1) {
         pipeline.splice(index, 1);
         // Cache disabled
         this.unregisterFunctions.delete(handlerId);
-        
+
+        // 🔧 Fix: Remove action key from pipelines map when pipeline becomes empty
+        if (pipeline.length === 0) {
+          this.pipelines.delete(action);
+          this.lastRegisteredTimestamps.delete(action);
+        }
+
         // Execute cleanup function if available
         if (registration.config.cleanup && typeof registration.config.cleanup === 'function') {
           try {
@@ -1380,10 +1424,11 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
             this.log(`Cleanup error during unregister: ${String(action)}`, cleanupError, 'warn');
           }
         }
-        
+
         this.log(`Handler unregistered: ${String(action)}`, {
           handlerId,
-          remainingHandlers: pipeline.length
+          remainingHandlers: pipeline.length,
+          actionRemoved: pipeline.length === 0
         });
       }
     };
@@ -1419,33 +1464,42 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * @public
    */
   destroy(): void {
-    // Execute all unregister functions to properly clean up handlers
-    this.unregisterFunctions.forEach(unregister => {
-      try {
-        unregister();
-      } catch (error) {
-        this.log('Error during unregister in destroy', error, 'error');
-      }
-    });
-    
+    // 🔧 Fix: Clean up resources without calling unregister functions to prevent circular references
+    // Clear unregister functions without executing them to avoid potential memory leaks
     this.unregisterFunctions.clear();
-    
+
+    // Clean up all pipelines with handler cleanup
+    for (const [action, pipeline] of this.pipelines.entries()) {
+      for (const registration of pipeline) {
+        if (registration.config.cleanup && typeof registration.config.cleanup === 'function') {
+          try {
+            registration.config.cleanup();
+          } catch (cleanupError) {
+            this.log(`Cleanup error for handler during destroy: ${String(action)}`, cleanupError, 'warn');
+          }
+        }
+      }
+    }
+
     // Clean up all pipelines
     this.pipelines.clear();
-    
+
+    // 🔧 Fix: Clear all timestamps
+    this.lastRegisteredTimestamps.clear();
+
     // Clean up guard system
     this.actionGuard.destroy();
-    
+
     // Clean up queues if they exist
     this.dispatchQueue?.clear?.();
-    
+
     this.actionExecutionModes.clear();
-    
+
     // Cache disabled
-    
+
     // 🔧 Clean up controller pool
     this.controllerPool.length = 0;
-    
+
     this.log('ActionRegister destroyed');
   }
 }

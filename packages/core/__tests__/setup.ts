@@ -17,17 +17,22 @@ global.performance = {
   now: jest.fn(() => Date.now()),
 };
 
-// Mock setTimeout and clearTimeout for debounce/throttle tests
-jest.useFakeTimers();
+// 🔧 Fix: Use real timers by default to prevent hanging tests
+// Individual tests can opt into fake timers when needed
 
 // Setup test utilities
 beforeEach(() => {
   jest.clearAllMocks();
-  jest.clearAllTimers();
+  // 🔧 Fix: Only clear timers if we're using fake timers
+  if (jest.isMockFunction(setTimeout)) {
+    jest.clearAllTimers();
+  }
 });
 
 afterEach(() => {
-  jest.runOnlyPendingTimers();
-  jest.useRealTimers();
-  jest.useFakeTimers();
+  // 🔧 Fix: Clean up any pending operations and restore real timers
+  if (jest.isMockFunction(setTimeout)) {
+    jest.runAllTimers();
+    jest.useRealTimers();
+  }
 });

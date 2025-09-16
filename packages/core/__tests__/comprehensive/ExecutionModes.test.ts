@@ -23,7 +23,8 @@ describe('Execution Modes - Comprehensive', () => {
   });
 
   afterEach(() => {
-    actionRegister.clearAll();
+    // Properly clean up to prevent memory leaks
+    actionRegister.destroy();
     jest.useRealTimers();
     jest.clearAllMocks();
   });

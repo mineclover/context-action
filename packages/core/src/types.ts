@@ -246,6 +246,9 @@ export interface HandlerConfig {
   
   /** Cleanup function to call when handler is unregistered */
   cleanup?: () => void;
+
+  /** Condition function to determine if handler should execute. Default: always execute */
+  condition?: (payload: any) => boolean;
 }
 
 

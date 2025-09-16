@@ -27,7 +27,8 @@ describe('ActionRegister - Core Functionality', () => {
   });
 
   afterEach(() => {
-    actionRegister.clearAll();
+    // Properly clean up to prevent memory leaks
+    actionRegister.destroy();
     jest.clearAllMocks();
   });
 
@@ -136,12 +137,12 @@ describe('ActionRegister - Core Functionality', () => {
       actionRegister.register('sendNotification', async (payload) => {
         await new Promise(resolve => setTimeout(resolve, 50));
         results.push('handler1');
-      }, { priority: 20 });
+      }, { priority: 20, blocking: true });
 
       actionRegister.register('sendNotification', async () => {
         await new Promise(resolve => setTimeout(resolve, 30));
         results.push('handler2');
-      }, { priority: 10 });
+      }, { priority: 10, blocking: true });
 
       await actionRegister.dispatch('sendNotification', { message: 'Test', type: 'info' });
 
@@ -376,6 +377,9 @@ describe('ActionRegister - Core Functionality', () => {
 
       expect(debugRegister.name).toBe('DebugRegister');
       expect(debugRegister.getActionExecutionMode('userLogin')).toBe('parallel');
+
+      // Clean up to prevent memory leaks
+      debugRegister.destroy();
     });
   });
 

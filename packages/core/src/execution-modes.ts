@@ -83,7 +83,22 @@ export async function executeSequential<T, R = void>(
       if (context.aborted) {
         break;
       }
-      
+
+      // 🔧 Fix: Check handler condition before execution
+      if (registration.config.condition) {
+        try {
+          const shouldExecute = registration.config.condition(context.payload);
+          if (!shouldExecute) {
+            i++; // Skip this handler
+            continue;
+          }
+        } catch {
+          // If condition function throws, skip the handler
+          i++;
+          continue;
+        }
+      }
+
       const result = registration.handler(context.payload, controller);
 
       if (registration.config.blocking) {
@@ -129,15 +144,18 @@ export async function executeSequential<T, R = void>(
 
       /** Handle jump to priority AFTER handler execution */
       if (context.jumpToPriority !== undefined) {
+        // Find first handler with priority <= jumpToPriority
         const jumpIndex = context.handlers.findIndex(
-          handler => handler.config.priority === context.jumpToPriority
+          handler => (handler.config.priority || 0) <= context.jumpToPriority!
         );
-        
-        if (jumpIndex !== -1) {
+
+        if (jumpIndex !== -1 && jumpIndex > i) {
+          // Only jump forward, not backward
           i = jumpIndex;
           context.jumpToPriority = undefined;
           continue;
         } else {
+          // No valid jump target found, or would jump backward
           context.jumpToPriority = undefined;
           i++;
         }
@@ -146,11 +164,17 @@ export async function executeSequential<T, R = void>(
       }
 
     } catch (error: any) {
-      // 🆕 Maintain backward compatibility: any sync error fails pipeline
+      // 🔧 Fix: Handle errors gracefully and continue pipeline execution
       const handlerError = handleExecutionError(error, registration);
-      
-      // For backward compatibility: all synchronous errors fail the pipeline
-      throw handlerError.error;
+      errors.push(handlerError);
+
+      // 🔧 Fix: Only fail pipeline for blocking handlers, let non-blocking continue
+      if (registration.config.blocking) {
+        throw handlerError.error;
+      }
+
+      // For non-blocking handlers, continue to next handler
+      i++;
     }
   }
   
@@ -204,8 +228,34 @@ export async function executeParallel<T, R = void>(
   /** Create promises for all handlers */
   const handlerPromises = runnableHandlers.map(async (registration, _index) => {
     const controller = createController(registration, _index);
-    
+
     try {
+      // 🔧 Fix: Check handler condition before execution
+      if (registration.config.condition) {
+        try {
+          const shouldExecute = registration.config.condition(context.payload);
+          if (!shouldExecute) {
+            // Return a skipped result for conditions that don't pass
+            return {
+              success: true,
+              handlerId: registration.id,
+              result: undefined,
+              terminated: false,
+              skipped: true
+            };
+          }
+        } catch {
+          // If condition function throws, skip the handler
+          return {
+            success: true,
+            handlerId: registration.id,
+            result: undefined,
+            terminated: false,
+            skipped: true
+          };
+        }
+      }
+
       const result = registration.handler(context.payload, controller);
       
       let handlerResult: R | undefined;
@@ -306,8 +356,36 @@ export async function executeRace<T, R = void>(
   /** Create promises for all handlers */
   const handlerPromises = runnableHandlers.map(async (registration, _index) => {
     const controller = createController(registration, _index);
-    
+
     try {
+      // 🔧 Fix: Check handler condition before execution
+      if (registration.config.condition) {
+        try {
+          const shouldExecute = registration.config.condition(context.payload);
+          if (!shouldExecute) {
+            // Return a skipped result for conditions that don't pass
+            return {
+              success: true,
+              handlerId: registration.id,
+              registration,
+              result: undefined,
+              terminated: false,
+              skipped: true
+            };
+          }
+        } catch {
+          // If condition function throws, skip the handler
+          return {
+            success: true,
+            handlerId: registration.id,
+            registration,
+            result: undefined,
+            terminated: false,
+            skipped: true
+          };
+        }
+      }
+
       const result = registration.handler(context.payload, controller);
       
       let handlerResult: R | undefined;

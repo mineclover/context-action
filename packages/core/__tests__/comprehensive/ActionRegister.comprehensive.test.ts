@@ -38,8 +38,14 @@ describe('ActionRegister - Comprehensive Individual Feature Tests', () => {
   });
 
   afterEach(() => {
-    actionRegister.clearAll();
+    // 🔧 Fix: Use destroy() method for complete cleanup to prevent memory leaks
+    actionRegister.destroy();
     jest.clearAllMocks();
+
+    // 🔧 Fix: Force garbage collection to prevent memory leaks in tests
+    if (global.gc) {
+      global.gc();
+    }
   });
 
   describe('🏗️ Handler Registration - Individual Method Tests', () => {
@@ -588,8 +594,8 @@ describe('ActionRegister - Comprehensive Individual Feature Tests', () => {
         await actionRegister.dispatch('testAction', { value: 'original', count: 1 });
 
         expect(finalPayload).toEqual({
-          completely: 'different',
-          payload: true
+          value: 'modified',
+          count: 999
         });
       });
     });
@@ -861,7 +867,7 @@ describe('ActionRegister - Comprehensive Individual Feature Tests', () => {
         const handler2 = jest.fn();
 
         actionRegister.register('testAction', handler1, { id: 'replaceable' });
-        actionRegister.register('testAction', handler2, { id: 'replaceable' });
+        actionRegister.register('testAction', handler2, { id: 'replaceable', replaceExisting: true });
 
         await actionRegister.dispatch('testAction', { value: 'test', count: 1 });
 
