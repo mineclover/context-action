@@ -144,18 +144,44 @@ export async function executeSequential<T, R = void>(
 
       /** Handle jump to priority AFTER handler execution */
       if (context.jumpToPriority !== undefined) {
+        // Check if we've exceeded maximum jumps to prevent infinite loops
+        context.jumpCount = (context.jumpCount || 0) + 1;
+        if (context.jumpCount > (context.maxJumps || 10)) {
+          console.error(
+            `[ActionRegister] ERROR: Maximum jump limit (${context.maxJumps || 10}) exceeded. ` +
+            `Aborting to prevent infinite loop. Check your jumpToPriority logic and conditions.`
+          );
+          context.aborted = true;
+          context.abortReason = `Maximum jump limit exceeded (${context.jumpCount} jumps)`;
+          context.jumpToPriority = undefined;
+          break;
+        }
+
         // Find first handler with priority <= jumpToPriority
         const jumpIndex = context.handlers.findIndex(
           handler => (handler.config.priority || 0) <= context.jumpToPriority!
         );
 
-        if (jumpIndex !== -1 && jumpIndex > i) {
-          // Only jump forward, not backward
+        if (jumpIndex !== -1 && jumpIndex !== i) {
+          if (jumpIndex < i) {
+            // ⚠️ WARNING: Backward jump detected - risk of infinite loop!
+            // Only allow backward jumps if handler has condition to prevent infinite loops
+            const targetHandler = context.handlers[jumpIndex];
+            if (!targetHandler.config.condition) {
+              console.warn(
+                `[ActionRegister] WARNING: Backward jumpToPriority to handler '${targetHandler.config.id || 'unnamed'}' without condition. ` +
+                `This may cause infinite loops! Consider adding a condition to prevent re-execution. ` +
+                `Jump count: ${context.jumpCount}/${context.maxJumps || 10}`
+              );
+            }
+          }
+
+          // Allow both forward and backward jumps
           i = jumpIndex;
           context.jumpToPriority = undefined;
           continue;
         } else {
-          // No valid jump target found, or would jump backward
+          // No valid jump target found, or jumping to same handler
           context.jumpToPriority = undefined;
           i++;
         }

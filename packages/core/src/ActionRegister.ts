@@ -498,6 +498,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       abortReason: undefined as string | undefined,
       currentIndex: 0,
       jumpToPriority: undefined as number | undefined,
+      jumpCount: 0,
+      maxJumps: 10, // Default max jumps to prevent infinite loops
       executionMode: currentExecutionMode,
       
       // New result collection fields
@@ -638,6 +640,8 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       abortReason: undefined as string | undefined,
       currentIndex: 0,
       jumpToPriority: undefined as number | undefined,
+      jumpCount: 0,
+      maxJumps: 10, // Default max jumps to prevent infinite loops
       executionMode: currentExecutionMode,
       
       // Result collection fields

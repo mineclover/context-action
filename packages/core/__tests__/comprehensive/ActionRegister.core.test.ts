@@ -223,6 +223,86 @@ describe('ActionRegister - Core Functionality', () => {
 
       expect(executionOrder).toEqual(['start', 'executed']);
     });
+
+    it('should handle backward jump with condition to prevent infinite loop', async () => {
+      const executionOrder: string[] = [];
+      let retryCount = 0;
+
+      // Validation handler - should only run on first attempt
+      actionRegister.register('retryWorkflow', () => {
+        executionOrder.push('validate');
+        return { validated: true };
+      }, {
+        priority: 100,
+        id: 'validator',
+        condition: () => retryCount === 0 // Prevent re-execution on retry
+      });
+
+      // Process handler - may fail and retry
+      actionRegister.register('retryWorkflow', (payload, controller) => {
+        retryCount++;
+        executionOrder.push(`process-attempt-${retryCount}`);
+
+        if (retryCount < 3) {
+          // Retry by jumping back to higher priority
+          controller.jumpToPriority(100);
+        }
+      }, {
+        priority: 50,
+        id: 'processor'
+      });
+
+      // Completion handler
+      actionRegister.register('retryWorkflow', () => {
+        executionOrder.push('complete');
+      }, {
+        priority: 10,
+        id: 'completer'
+      });
+
+      await actionRegister.dispatch('retryWorkflow', { data: 'test' });
+
+      // Should validate once, process 3 times (with retries), then complete
+      expect(executionOrder).toEqual([
+        'validate',
+        'process-attempt-1',
+        'process-attempt-2',
+        'process-attempt-3',
+        'complete'
+      ]);
+      expect(retryCount).toBe(3);
+    });
+
+    it('should abort on too many jumps to prevent infinite loop', async () => {
+      const executionOrder: string[] = [];
+      let jumpCount = 0;
+
+      // Handler that always jumps backward (infinite loop)
+      actionRegister.register('infiniteLoop', (payload, controller) => {
+        jumpCount++;
+        executionOrder.push(`jump-${jumpCount}`);
+        controller.jumpToPriority(100); // Always jump back
+      }, {
+        priority: 50,
+        id: 'infinite-jumper'
+      });
+
+      // Target handler without condition (will re-execute infinitely)
+      actionRegister.register('infiniteLoop', () => {
+        executionOrder.push('target');
+      }, {
+        priority: 100,
+        id: 'target'
+      });
+
+      const result = await actionRegister.dispatchWithResult('infiniteLoop', { test: true });
+
+      // Should abort after max jumps (10 by default)
+      expect(result.aborted).toBe(true);
+      expect(result.abortReason).toContain('Maximum jump limit exceeded');
+      expect(jumpCount).toBe(11); // 11th jump triggers the abort
+      expect(executionOrder.filter(x => x === 'target').length).toBe(11); // Target executed 11 times (initial + 10 jumps)
+    });
   });
 
   describe('Result Collection & Handling', () => {

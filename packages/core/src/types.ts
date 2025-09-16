@@ -107,8 +107,36 @@ export interface PipelineController<T = any, R = void> {
   
   /** Get the current payload */
   getPayload(): T;
-  
-  /** Jump to a specific priority level in the pipeline */
+
+  /**
+   * Jump to a specific priority level in the pipeline
+   *
+   * ⚠️ **WARNING**: Backward jumps (to higher priority handlers) can cause infinite loops!
+   * Always use with a `condition` in the target handler to prevent re-execution.
+   *
+   * The system will automatically abort after 10 jumps (configurable) to prevent infinite loops.
+   *
+   * @param priority - The priority level to jump to (finds first handler with priority <= this value)
+   *
+   * @example Safe retry pattern with condition
+   * ```typescript
+   * let retryCount = 0;
+   *
+   * register.register('process', (payload, controller) => {
+   *   retryCount++;
+   *   if (shouldRetry() && retryCount < 3) {
+   *     controller.jumpToPriority(100); // Jump back to validation
+   *   }
+   * }, { priority: 50 });
+   *
+   * register.register('validate', (payload) => {
+   *   // Validation logic
+   * }, {
+   *   priority: 100,
+   *   condition: () => retryCount === 0 // Only run on first attempt
+   * });
+   * ```
+   */
   jumpToPriority(priority: number): void;
   
   // New result handling methods
@@ -332,7 +360,13 @@ export interface PipelineContext<T = any, R = void> {
   
   /** Priority level to jump to (if requested) */
   jumpToPriority: number | undefined;
-  
+
+  /** Counter for jump operations to detect potential infinite loops */
+  jumpCount?: number;
+
+  /** Maximum allowed jumps before aborting (to prevent infinite loops) */
+  maxJumps?: number;
+
   /** Execution mode for this pipeline */
   executionMode: ExecutionMode;
   
