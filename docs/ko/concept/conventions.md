@@ -9,10 +9,11 @@
 3. [패턴 사용법](#패턴-사용법)
 4. [타입 정의](#타입-정의)
 5. [코드 스타일](#코드-스타일)
-6. [Store 업데이트 컨벤션](#store-업데이트-컨벤션)
-7. [성능 가이드라인](#성능-가이드라인)
-8. [에러 핸들링](#에러-핸들링)
-9. [RefContext 컨벤션](#refcontext-컨벤션)
+6. [핵심 프레임워크 원칙](#핵심-프레임워크-원칙)
+7. [Store 업데이트 컨벤션](#store-업데이트-컨벤션)
+8. [성능 가이드라인](#성능-가이드라인)
+9. [에러 핸들링](#에러-핸들링)
+10. [RefContext 컨벤션](#refcontext-컨벤션)
 
 ---
 
@@ -549,6 +550,147 @@ import { ProfileForm } from './ProfileForm';
 
 // 6. 타입
 import type { UserProfile } from '@/types/user.types';
+```
+
+---
+
+## 핵심 프레임워크 원칙
+
+### 🎯 **아키텍처 철학**
+
+#### **1. 비즈니스 로직의 완전한 분리**
+- **모든 로직을 Context-Action 시스템으로 위임**
+- 컴포넌트는 순수하게 UI 렌더링에만 집중
+- Props 의존성을 극단적으로 최소화
+
+#### **2. 단방향 의존성 원칙**
+- **상위 컨텍스트는 하위 컨텍스트를 모른다**
+- **하위 컨텍스트가 상위 컨텍스트 데이터를 활용**
+- 느슨한 결합과 높은 재사용성 확보
+
+### 📋 **Props 사용 원칙**
+
+#### ✅ **Props를 써도 되는 경우**
+
+##### **1. 디자인 시스템과 컴포넌트 조합**
+```typescript
+// UI 컴포넌트의 시각적 속성
+<Button variant="primary" size="large">Submit</Button>
+<Card className="shadow-lg">...</Card>
+<Modal isOpen={true} onClose={handleClose} />
+```
+
+##### **2. 컴포넌트의 고유 식별자**
+```typescript
+// 컴포넌트를 구분하기 위한 식별자
+<UserProfile userId="user-123" />
+<ProductCard productId="prod-456" />
+<OrderSummary orderId="order-789" />
+
+// 실제 사용 예시
+function UserProfile({ userId }: { userId: string }) {
+  // Context-Action으로 해당 사용자 데이터 처리
+  const userStore = useUserStore('profiles');
+  const currentUser = useStoreValue(userStore);
+
+  useEffect(() => {
+    if (currentUser?.id !== userId) {
+      dispatch('loadUser', { userId }); // Props로 받은 ID로 데이터 로드
+    }
+  }, [userId, currentUser?.id, dispatch]);
+
+  return <div>User: {currentUser?.name}</div>;
+}
+```
+
+##### **3. 외부 라이브러리와의 인터페이스**
+```typescript
+// 외부 라이브러리가 요구하는 Props
+<ReactMarkdown content={markdownText} />
+<DatePicker value={selectedDate} onChange={handleDateChange} />
+```
+
+#### ❌ **Props를 쓰면 안 되는 경우**
+
+##### **1. Context-Action 로직에 props 개입**
+```typescript
+// ❌ 비즈니스 로직을 props로 주입
+<UserHandlers
+  userStore={userStore}
+  onUserUpdate={handleUpdate}
+  config={businessConfig}
+/>
+
+// ✅ Context-Action이 모든 로직 처리
+<UserHandlers />  // 필요한 데이터는 context/store에서
+```
+
+##### **2. 상태나 액션을 props로 전달**
+```typescript
+// ❌ 상태를 props로 내려보내기
+<UserProfile user={user} onUpdate={handleUpdate} />
+
+// ✅ Context-Action으로 상태 관리
+<UserProfile userId="user-123" />  // 식별자만 props로
+```
+
+##### **3. 컴포넌트 간 데이터 통신을 props로 처리**
+```typescript
+// ❌ Props로 데이터 전달
+<ParentComponent>
+  <ChildA onDataChange={handleDataFromA} />
+  <ChildB data={dataFromA} />
+</ParentComponent>
+
+// ✅ Context-Action으로 데이터 공유
+<ParentComponent>
+  <ChildA />  // Context-Action으로 데이터 공유
+  <ChildB />  // Context-Action으로 데이터 접근
+</ParentComponent>
+```
+
+### 🏗️ **컨텍스트 의존성 흐름**
+
+#### **Provider 계층 구조**
+```tsx
+// 상위 → 하위 순서로 Provider 배치
+<UserContextProvider>          {/* 상위: 사용자 정보 */}
+  <AuthContextProvider>        {/* 중간: 인증 상태 */}
+    <PaymentContextProvider>   {/* 하위: 결제 (User + Auth 데이터 활용) */}
+      <App />
+    </PaymentContextProvider>
+  </AuthContextProvider>
+</UserContextProvider>
+```
+
+#### **하위 컨텍스트에서 상위 데이터 활용**
+```typescript
+function PaymentHandlers() {
+  // 상위 컨텍스트들의 데이터 가져오기
+  const userStore = useUserStore('profile');    // 상위 User 데이터
+  const authStore = useAuthStore('session');    // 상위 Auth 데이터
+  const paymentStore = usePaymentStore('card'); // 현재 Payment 데이터
+
+  const processPaymentHandler = useCallback(async (payload) => {
+    const user = userStore.getValue();
+    const session = authStore.getValue();
+    const card = paymentStore.getValue();
+
+    // 모든 데이터를 조합해서 처리
+    await processPayment({
+      userId: user.id,
+      sessionToken: session.token,
+      cardInfo: card,
+      ...payload
+    });
+  }, [userStore, authStore, paymentStore]);
+
+  usePaymentActionHandler('processPayment', processPaymentHandler, {
+    priority: 100,
+    id: 'payment-process-handler',
+    blocking: true
+  });
+}
 ```
 
 ---

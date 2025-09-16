@@ -10,10 +10,11 @@ This document defines coding conventions and best practices when using the Conte
 4. [Pattern Usage](#pattern-usage)
 5. [Type Definitions](#type-definitions)
 6. [Code Style](#code-style)
-7. [Store Update Conventions](#store-update-conventions)
-8. [Performance Guidelines](#performance-guidelines)
-9. [Error Handling](#error-handling)
-10. [RefContext Conventions](#refcontext-conventions)
+7. [Core Framework Principles](#core-framework-principles)
+8. [Store Update Conventions](#store-update-conventions)
+9. [Performance Guidelines](#performance-guidelines)
+10. [Error Handling](#error-handling)
+11. [RefContext Conventions](#refcontext-conventions)
 
 ---
 
@@ -1118,6 +1119,147 @@ import { InteractiveMouseTracker } from './InteractiveMouseTracker';
 // 6. Types
 import type { UserProfile } from '@/types/user.types';
 import type { MouseRefs } from '@/types/interaction.types';
+```
+
+---
+
+## Core Framework Principles
+
+### 🎯 **Architecture Philosophy**
+
+#### **1. Complete Business Logic Separation**
+- **All logic must be delegated to Context-Action system**
+- Components focus purely on UI rendering
+- Minimize Props dependencies to extreme levels
+
+#### **2. Single-Direction Dependency Principle**
+- **Upper contexts MUST NOT know about lower contexts**
+- **Lower contexts CAN consume upper context data**
+- Ensures loose coupling and high reusability
+
+### 📋 **Props Usage Guidelines**
+
+#### ✅ **When Props are Acceptable**
+
+##### **1. Design System and Component Composition**
+```typescript
+// UI component visual properties
+<Button variant="primary" size="large">Submit</Button>
+<Card className="shadow-lg">...</Card>
+<Modal isOpen={true} onClose={handleClose} />
+```
+
+##### **2. Component Unique Identifiers**
+```typescript
+// Component identification for data loading
+<UserProfile userId="user-123" />
+<ProductCard productId="prod-456" />
+<OrderSummary orderId="order-789" />
+
+// Actual usage example
+function UserProfile({ userId }: { userId: string }) {
+  // Context-Action handles user data processing
+  const userStore = useUserStore('profiles');
+  const currentUser = useStoreValue(userStore);
+
+  useEffect(() => {
+    if (currentUser?.id !== userId) {
+      dispatch('loadUser', { userId }); // Props ID used for data loading
+    }
+  }, [userId, currentUser?.id, dispatch]);
+
+  return <div>User: {currentUser?.name}</div>;
+}
+```
+
+##### **3. External Library Interfaces**
+```typescript
+// External library required Props
+<ReactMarkdown content={markdownText} />
+<DatePicker value={selectedDate} onChange={handleDateChange} />
+```
+
+#### ❌ **When Props Should be Avoided**
+
+##### **1. Context-Action Logic Interference**
+```typescript
+// ❌ Injecting business logic through props
+<UserHandlers
+  userStore={userStore}
+  onUserUpdate={handleUpdate}
+  config={businessConfig}
+/>
+
+// ✅ Context-Action handles all logic
+<UserHandlers />  // Required data comes from context/store
+```
+
+##### **2. State or Action Passing through Props**
+```typescript
+// ❌ Passing state through props
+<UserProfile user={user} onUpdate={handleUpdate} />
+
+// ✅ Context-Action manages state
+<UserProfile userId="user-123" />  // Only identifier as props
+```
+
+##### **3. Inter-Component Communication via Props**
+```typescript
+// ❌ Data transfer through Props
+<ParentComponent>
+  <ChildA onDataChange={handleDataFromA} />
+  <ChildB data={dataFromA} />
+</ParentComponent>
+
+// ✅ Context-Action data sharing
+<ParentComponent>
+  <ChildA />  // Context-Action data sharing
+  <ChildB />  // Context-Action data access
+</ParentComponent>
+```
+
+### 🏗️ **Context Dependency Flow**
+
+#### **Provider Layer Hierarchy**
+```tsx
+// Upper → Lower order for Provider placement
+<UserContextProvider>          {/* Upper: User information */}
+  <AuthContextProvider>        {/* Middle: Authentication state */}
+    <PaymentContextProvider>   {/* Lower: Payment (uses User + Auth data) */}
+      <App />
+    </PaymentContextProvider>
+  </AuthContextProvider>
+</UserContextProvider>
+```
+
+#### **Lower Context Consuming Upper Data**
+```typescript
+function PaymentHandlers() {
+  // Get data from upper contexts
+  const userStore = useUserStore('profile');    // Upper User data
+  const authStore = useAuthStore('session');    // Upper Auth data
+  const paymentStore = usePaymentStore('card'); // Current Payment data
+
+  const processPaymentHandler = useCallback(async (payload) => {
+    const user = userStore.getValue();
+    const session = authStore.getValue();
+    const card = paymentStore.getValue();
+
+    // Process with combined data
+    await processPayment({
+      userId: user.id,
+      sessionToken: session.token,
+      cardInfo: card,
+      ...payload
+    });
+  }, [userStore, authStore, paymentStore]);
+
+  usePaymentActionHandler('processPayment', processPaymentHandler, {
+    priority: 100,
+    id: 'payment-process-handler',
+    blocking: true
+  });
+}
 ```
 
 ---
