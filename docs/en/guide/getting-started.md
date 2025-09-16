@@ -1,6 +1,6 @@
 # Getting Started
 
-Context-Action provides three main patterns for building scalable React applications with perfect separation of concerns.
+Context-Action provides core patterns for building scalable React applications with perfect separation of concerns.
 
 ## Quick Start
 
@@ -10,7 +10,7 @@ Choose the right pattern for your use case:
 |---------|----------|--------|----------|
 | **🎯 Action Only** | Action dispatching without stores | `createActionContext` | Event systems, command patterns |
 | **🏪 Store Only** | State management without actions | `createStoreContext` | Pure state management, data layers |
-| **🔧 Ref Context** | Direct DOM manipulation with zero re-renders | `createRefContext` | High-performance UI, animations, real-time interactions |
+| **🔧 Ref Context** *(Advanced)* | Direct DOM manipulation with zero re-renders | `createRefContext` | High-performance UI, animations, real-time interactions |
 
 ## 🎯 Action Only Pattern
 
@@ -228,7 +228,7 @@ function useMousePositionUpdater() {
 
 ## Pattern Composition
 
-For complex applications, combine all three patterns:
+For complex applications, combine core and advanced patterns:
 
 ```tsx
 function ComplexApp() {
@@ -247,7 +247,7 @@ function ComplexApp() {
 ## Next Steps
 
 - [React Refs Guide](../concept/react-refs-guide.md) - Deep dive into RefContext patterns
-- [Pattern Guide](../concept/pattern-guide.md) - Compare all three patterns with examples
+- [Pattern Guide](../concept/pattern-guide.md) - Compare core and advanced patterns with examples
 - [Pipeline System](./pipeline/) - Learn about action processing
 - [MVVM Architecture](./patterns/architecture/mvvm.md) - Understand the overall architecture
 - [Hook Lifecycle](./lifecycle/) - Explore available React hooks

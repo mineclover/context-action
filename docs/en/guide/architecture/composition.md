@@ -1,13 +1,16 @@
 # Pattern Composition
 
-For complex applications, compose all three patterns for maximum flexibility and separation of concerns.
+For complex applications, compose core and advanced patterns for maximum flexibility and separation of concerns.
 
 ## Overview
 
-The Context-Action framework provides three core patterns that can be composed together:
+The Context-Action framework provides core and advanced patterns that can be composed together:
 
+**Core Patterns:**
 - **🎯 Action Only Pattern**: Pure action dispatching without stores
-- **🏪 Store Only Pattern**: State management without actions  
+- **🏪 Store Only Pattern**: State management without actions
+
+**Advanced Patterns:**
 - **🔧 Ref Context Pattern**: Direct DOM manipulation with zero re-renders
 
 ## Complete Composition Example
@@ -38,7 +41,7 @@ const {
   modal: HTMLDivElement;
 }>('UIRefs');
 
-// 2. Compose all three patterns
+// 2. Compose core and advanced patterns
 function App() {
   return (
     <EventActionProvider>
@@ -51,7 +54,7 @@ function App() {
   );
 }
 
-// 3. Use all three patterns in components
+// 3. Use core and advanced patterns in components
 function ComplexComponent() {
   // Actions from Action Only pattern
   const dispatch = useEventAction();
@@ -356,38 +359,6 @@ function PerformanceOptimizedComponent() {
 
 ## Migration Guide
 
-### From Legacy Action Context Pattern
-
-```tsx
-// ❌ Old (removed)
-// const UserContext = createActionContextPattern<UserActions>('User');
-
-// ✅ New (compose patterns with renaming)
-const { 
-  Provider: UserActionProvider, 
-  useActionDispatch: useUserAction,
-  useActionHandler: useUserActionHandler
-} = createActionContext<UserActions>('UserActions');
-
-const {
-  Provider: UserStoreProvider,
-  useStore: useUserStore,
-  useStoreManager: useUserStoreManager
-} = createStoreContext('UserStores', {
-  profile: { id: '', name: '', email: '' },
-  preferences: { theme: 'light' as const }
-});
-
-// Compose providers
-function App() {
-  return (
-    <UserActionProvider>
-      <UserStoreProvider>
-        <UserComponent />
-      </UserStoreProvider>
-    </UserActionProvider>
-  );
-}
-```
+For users upgrading from earlier versions, see the main [Migration Guide](../patterns/index.md) for comprehensive upgrade instructions.
 
 Pattern composition provides the ultimate flexibility while maintaining clear separation of concerns and optimal performance characteristics.

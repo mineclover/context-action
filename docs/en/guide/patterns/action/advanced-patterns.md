@@ -20,7 +20,7 @@ All advanced patterns in this guide require the multi-context setup including:
 
 ## Pattern Categories
 
-The Context-Action framework provides three main categories of action patterns leveraging multi-context setup:
+The Context-Action framework provides core action pattern categories leveraging multi-context setup:
 
 ### 🚀 Dispatch Patterns
 Cross-domain action dispatching using multi-context setup with MVVM architecture separation.

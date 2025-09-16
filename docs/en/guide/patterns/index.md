@@ -52,7 +52,7 @@ This section contains comprehensive code patterns and implementation guides for 
 |---------|----------|--------|----------|
 | **🎯 Action Only** | Action dispatching with memory management | `createActionContext` | Event systems, command patterns, large applications |
 | **🏪 Store Only** | State management without actions | `createStoreContext` | Pure state management, data layers |
-| **🔧 Ref Context** | Direct DOM manipulation and singleton object management | `createRefContext` | High-performance UI, animations, external services |
+| **🔧 Ref Context** *(Advanced)* | Direct DOM manipulation and singleton object management | `createRefContext` | High-performance UI, animations, external services |
 
 **Note**: For complex applications, compose patterns together for maximum flexibility and separation of concerns.
 
@@ -69,7 +69,7 @@ Each pattern includes:
 ### Single Domain Applications
 1. **Simple Apps**: Start with **Store Only Pattern**
 2. **Interactive Apps**: Add **Action Only Pattern** for business logic
-3. **High-Performance Apps**: Add **RefContext Pattern** for animations
+3. **High-Performance Apps**: Add **RefContext Pattern** *(Advanced)* for animations
 4. **Complex Apps**: Use **MVVM Architecture** for perfect layer separation
 
 ### Multi-Domain Applications
@@ -82,5 +82,5 @@ Each pattern includes:
 These patterns can be combined for complex scenarios:
 - **Action Only** + **Store Only** for complete business logic separation
 - **RefContext** + **Store Only** for high-performance state-driven animations
-- **All Three Patterns** + **Domain Architecture** for enterprise applications
+- **Core + Advanced Patterns** + **Domain Architecture** for enterprise applications
 - **MVVM Architecture** for perfect architectural layer separation

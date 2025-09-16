@@ -26,7 +26,7 @@ Pattern composition allows you to combine different architectural approaches bas
 
 ### Strategy 1: Single Domain Composition
 
-Perfect for complex single-domain applications requiring all three core patterns.
+Perfect for complex single-domain applications requiring core and advanced patterns.
 
 ```typescript
 // Complete single domain setup using Multi-Context Setup patterns
