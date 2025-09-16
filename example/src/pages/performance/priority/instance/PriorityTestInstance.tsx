@@ -414,7 +414,7 @@ const PriorityTestInstance = memo(function PriorityTestInstance({
           🎯 우선순위별 실행 횟수 (높은 순위 → 낮은 순위)
         </h4>
         <div className="bg-gray-50 rounded p-1">
-          <PriorityGrid configs={configsWithDelay} className="" />
+          <PriorityGrid configs={configsWithDelay} className="" allowManualClick={true} />
         </div>
         <div className="text-xs text-gray-500 mt-1 space-y-1">
           <div className="flex items-center gap-4">
@@ -436,9 +436,12 @@ const PriorityTestInstance = memo(function PriorityTestInstance({
               실행 횟수에 따라 색상 농도 변화
             </div>
           </div>
-          <div className="text-xs text-gray-400">
-            💡 P30은 점프만 하고 직접 실행되지 않음 | 지연 평가로 실시간 조건
-            확인
+          <div className="text-xs text-gray-400 space-y-1">
+            <div>💡 P30은 점프만 하고 직접 실행되지 않음 | 지연 평가로 실시간 조건 확인</div>
+            <div>🖱️ 블럭 클릭: 좌클릭 +1, 우클릭 -1 (수동 카운트 조작 가능)</div>
+            <div className="text-amber-600 font-medium">
+              ⚡ 점프 패턴 테스트: 성능 테스트 버튼을 누르고 점프가 등록된 P90, P70, P55, P45, P30을 각각 4 이상으로 높이면 모든 우선순위 영역을 채울 수 있습니다
+            </div>
           </div>
         </div>
       </div>

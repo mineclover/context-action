@@ -14,6 +14,7 @@ import type { HandlerConfig } from '../test-hooks/types';
 interface PriorityGridProps {
   configs: HandlerConfig[];
   className?: string;
+  allowManualClick?: boolean;
 }
 
 /**
@@ -25,7 +26,7 @@ interface PriorityGridProps {
  * - 실행되지 않은 핸들러는 회색으로 표시
  */
 export const PriorityGrid = memo<PriorityGridProps>(
-  ({ configs, className = '' }) => {
+  ({ configs, className = '', allowManualClick = false }) => {
     const priorityCountsStore = usePriorityTestStore('priorityCounts');
     const priorityCounts = useStoreValue(priorityCountsStore);
 
@@ -85,20 +86,70 @@ export const PriorityGrid = memo<PriorityGridProps>(
       };
     }, []);
 
+    // 수동 클릭 핸들러
+    const handleBlockClick = (priority: number, event: React.MouseEvent) => {
+      if (!allowManualClick) return;
+
+      event.preventDefault();
+
+      if (event.button === 0) {
+        // 좌클릭: +1
+        priorityCountsStore.update((counts) => ({
+          ...counts,
+          [priority]: (counts[priority] || 0) + 1,
+        }));
+      }
+    };
+
+    const handleBlockContextMenu = (priority: number, event: React.MouseEvent) => {
+      if (!allowManualClick) return;
+
+      event.preventDefault();
+
+      // 우클릭: -1 (최소값 0)
+      priorityCountsStore.update((counts) => ({
+        ...counts,
+        [priority]: Math.max(0, (counts[priority] || 0) - 1),
+      }));
+    };
+
     // 색상 계산 함수 - 우선순위에 따라 일관된 색상 생성 (고대비 버전)
-    const getPriorityColor = (priority: number) => {
+    const getPriorityColor = (priority: number, count: number) => {
+      // 실행되지 않은 경우 무채색
+      if (count === 0) {
+        return {
+          bg: '#f3f4f6', // gray-100
+          text: '#6b7280' // gray-500
+        };
+      }
+
       // 우선순위를 0-100 범위에서 0-1 사이로 정규화
       const normalized = priority / 100;
 
-      if (normalized >= 0.9) return { bg: '#b91c1c', text: '#ffffff' }; // red-700 (더 진한 빨강)
-      if (normalized >= 0.8) return { bg: '#c2410c', text: '#ffffff' }; // orange-700
-      if (normalized >= 0.7) return { bg: '#a16207', text: '#ffffff' }; // amber-700
-      if (normalized >= 0.6) return { bg: '#047857', text: '#ffffff' }; // emerald-700
-      if (normalized >= 0.5) return { bg: '#0f766e', text: '#ffffff' }; // teal-700
-      if (normalized >= 0.4) return { bg: '#0e7490', text: '#ffffff' }; // cyan-700
-      if (normalized >= 0.3) return { bg: '#1d4ed8', text: '#ffffff' }; // blue-700
-      if (normalized >= 0.2) return { bg: '#6d28d9', text: '#ffffff' }; // violet-700
-      return { bg: '#7c3aed', text: '#ffffff' }; // purple-600
+      // 카운트에 따른 투명도 계산 (5를 100%로, 1을 20%로)
+      const opacity = Math.min(count / 5, 1.0);
+
+      let baseColor: string;
+      if (normalized >= 0.9) baseColor = '#b91c1c'; // red-700 (더 진한 빨강)
+      else if (normalized >= 0.8) baseColor = '#c2410c'; // orange-700
+      else if (normalized >= 0.7) baseColor = '#a16207'; // amber-700
+      else if (normalized >= 0.6) baseColor = '#047857'; // emerald-700
+      else if (normalized >= 0.5) baseColor = '#0f766e'; // teal-700
+      else if (normalized >= 0.4) baseColor = '#0e7490'; // cyan-700
+      else if (normalized >= 0.3) baseColor = '#1d4ed8'; // blue-700
+      else if (normalized >= 0.2) baseColor = '#6d28d9'; // violet-700
+      else baseColor = '#7c3aed'; // purple-600
+
+      // RGB 값으로 변환하여 투명도 적용
+      const hex = baseColor.slice(1);
+      const r = parseInt(hex.slice(0, 2), 16);
+      const g = parseInt(hex.slice(2, 4), 16);
+      const b = parseInt(hex.slice(4, 6), 16);
+
+      return {
+        bg: `rgba(${r}, ${g}, ${b}, ${opacity})`,
+        text: opacity > 0.5 ? '#ffffff' : '#374151' // 투명도가 높으면 흰색, 낮으면 회색
+      };
     };
 
     return (
@@ -114,7 +165,7 @@ export const PriorityGrid = memo<PriorityGridProps>(
           {sortedConfigs.map((config) => {
             const count = priorityCounts[config.priority] || 0;
             const hasExecuted = count > 0;
-            const colors = getPriorityColor(config.priority);
+            const colors = getPriorityColor(config.priority, count);
             const isAnimating = animatingPriorities.has(config.priority);
 
             return (
@@ -122,18 +173,19 @@ export const PriorityGrid = memo<PriorityGridProps>(
                 key={config.id}
                 className={`
                 relative flex flex-col items-center justify-center
-                rounded shadow-sm border text-center cursor-default
-                transition-all duration-300 hover:scale-105
+                rounded shadow-sm border text-center transition-all duration-300 hover:scale-105
+                ${allowManualClick ? 'cursor-pointer select-none' : 'cursor-default'}
                 ${hasExecuted ? 'border-indigo-400 shadow-md' : 'border-gray-300'}
                 ${isAnimating ? styles['animate-priority-update'] : ''}
+                ${allowManualClick ? 'hover:ring-2 hover:ring-blue-300 hover:ring-opacity-50' : ''}
               `}
                 style={{
                   width: '36px',
                   height: '36px',
                   minWidth: '36px',
                   minHeight: '36px',
-                  backgroundColor: hasExecuted ? colors.bg : '#f3f4f6',
-                  color: hasExecuted ? colors.text : '#6b7280',
+                  backgroundColor: colors.bg,
+                  color: colors.text,
                   transform: isAnimating ? 'scale(1.15)' : 'scale(1)',
                   boxShadow: isAnimating
                     ? `0 0 15px ${colors.bg}80, 0 4px 10px rgba(0,0,0,0.2)`
@@ -142,7 +194,11 @@ export const PriorityGrid = memo<PriorityGridProps>(
                       : '0 1px 2px rgba(0,0,0,0.05)',
                   zIndex: isAnimating ? 10 : 1,
                 }}
-                title={`${config.label} - ${count}회 실행`}
+                title={`${config.label} - ${count}회 실행${
+                  allowManualClick ? ' (좌클릭: +1, 우클릭: -1)' : ''
+                }`}
+                onMouseDown={allowManualClick ? (e) => handleBlockClick(config.priority, e) : undefined}
+                onContextMenu={allowManualClick ? (e) => handleBlockContextMenu(config.priority, e) : undefined}
               >
                 {/* 우선순위 번호 */}
                 <div
@@ -223,18 +279,35 @@ export const PriorityList = memo<PriorityListProps>(
     }, [configs]);
 
     // 색상 계산 함수 (PriorityGrid와 동일한 고대비 버전)
-    const getPriorityColor = (priority: number) => {
+    const getPriorityColor = (priority: number, count: number) => {
+      // 실행되지 않은 경우 무채색
+      if (count === 0) {
+        return '#f3f4f6'; // gray-100
+      }
+
       const normalized = priority / 100;
 
-      if (normalized >= 0.9) return '#b91c1c'; // red-700
-      if (normalized >= 0.8) return '#c2410c'; // orange-700
-      if (normalized >= 0.7) return '#a16207'; // amber-700
-      if (normalized >= 0.6) return '#047857'; // emerald-700
-      if (normalized >= 0.5) return '#0f766e'; // teal-700
-      if (normalized >= 0.4) return '#0e7490'; // cyan-700
-      if (normalized >= 0.3) return '#1d4ed8'; // blue-700
-      if (normalized >= 0.2) return '#6d28d9'; // violet-700
-      return '#7c3aed'; // purple-600
+      // 카운트에 따른 투명도 계산 (5를 100%로, 1을 20%로)
+      const opacity = Math.min(count / 5, 1.0);
+
+      let baseColor: string;
+      if (normalized >= 0.9) baseColor = '#b91c1c'; // red-700
+      else if (normalized >= 0.8) baseColor = '#c2410c'; // orange-700
+      else if (normalized >= 0.7) baseColor = '#a16207'; // amber-700
+      else if (normalized >= 0.6) baseColor = '#047857'; // emerald-700
+      else if (normalized >= 0.5) baseColor = '#0f766e'; // teal-700
+      else if (normalized >= 0.4) baseColor = '#0e7490'; // cyan-700
+      else if (normalized >= 0.3) baseColor = '#1d4ed8'; // blue-700
+      else if (normalized >= 0.2) baseColor = '#6d28d9'; // violet-700
+      else baseColor = '#7c3aed'; // purple-600
+
+      // RGB 값으로 변환하여 투명도 적용
+      const hex = baseColor.slice(1);
+      const r = parseInt(hex.slice(0, 2), 16);
+      const g = parseInt(hex.slice(2, 4), 16);
+      const b = parseInt(hex.slice(4, 6), 16);
+
+      return `rgba(${r}, ${g}, ${b}, ${opacity})`;
     };
 
     return (
@@ -242,7 +315,7 @@ export const PriorityList = memo<PriorityListProps>(
         <div className="space-y-2">
           {sortedConfigs.map((config) => {
             const count = priorityCounts[config.priority] || 0;
-            const color = getPriorityColor(config.priority);
+            const color = getPriorityColor(config.priority, count);
 
             return (
               <div

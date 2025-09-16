@@ -49,6 +49,7 @@ export function useTestExecution(options: TestExecutionOptions = {}) {
 
   const actionRegister = usePriorityActionRegister();
   const executionStateStore = usePriorityTestStore('executionState');
+  const priorityCountsStore = usePriorityTestStore('priorityCounts');
 
   const [isRunning, setIsRunning] = useState(false);
   const currentAbortControllerRef = useRef<AbortController | null>(null);
@@ -173,8 +174,11 @@ export function useTestExecution(options: TestExecutionOptions = {}) {
       executionTimes: [] as number[],
     });
 
+    // 우선순위 카운트도 초기화
+    priorityCountsStore.setValue({});
+
     console.log('🔄 Test state reset');
-  }, [isRunning, abortTest, executionStateStore]);
+  }, [isRunning, abortTest, executionStateStore, priorityCountsStore]);
 
   /**
    * 현재 실행 중인 AbortController를 반환합니다

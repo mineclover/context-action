@@ -65,13 +65,10 @@ export function useTestHandlerRegistration(
         'priorityTest',
         async (payload, controller) => {
           console.log(
-            '🚀 Priority Test Started - Initializing all stores and metrics...'
+            '🚀 Priority Test Started - Initializing execution state...'
           );
 
-          // Priority Counts Store 초기화
-          priorityCountsStore.setValue({});
-
-          // Execution State Store 완전 초기화
+          // Execution State Store 완전 초기화 (Priority Counts는 유지)
           executionStateStore.setValue({
             isRunning: true,
             testResults: [],
@@ -88,7 +85,7 @@ export function useTestHandlerRegistration(
             executionTimes: [] as number[],
           });
 
-          console.log('✅ All stores initialized');
+          console.log('✅ Execution state initialized (priority counts preserved)');
         },
         {
           priority: 200,
