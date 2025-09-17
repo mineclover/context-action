@@ -3,6 +3,42 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.7](https://github.com/mineclover/context-action/compare/v0.6.0...v0.7.7) (2025-09-17)
+
+
+### Bug Fixes
+
+* **ActionRegister:** enhance error handling and execution context management ([d32a1f6](https://github.com/mineclover/context-action/commit/d32a1f60858141db6dc7ff9bc72fa3056638c97f))
+* **core:** resolve test failures and improve ActionRegister reliability ([82925b9](https://github.com/mineclover/context-action/commit/82925b92f15f2f737d12885512521bc9cc41dff4))
+* lint 경고 수정 - 사용하지 않는 cacheKey 변수 제거 ([a507727](https://github.com/mineclover/context-action/commit/a507727ec177f49d58106779953283723013929a))
+* Resolve ActionRegister execution modes and improve error handling ([71d06bd](https://github.com/mineclover/context-action/commit/71d06bded76cd3ee197002e97d7bb5cc3ccb96ee))
+* resolve core and react package linting warnings ([fc0df76](https://github.com/mineclover/context-action/commit/fc0df76116c6f3de6acc9fc0845743e9e24f2aa2))
+* resolve memory leaks in test files by replacing clearAll() with destroy() ([097a010](https://github.com/mineclover/context-action/commit/097a010ae0572c64643e744c4a529a44f7cbbcb5))
+* resolve Node.js protocol browser compatibility issues ([854a2fa](https://github.com/mineclover/context-action/commit/854a2fa0c8bf87addb0e555f8555def584a04a33))
+* Resolve test memory issues and finalize async handler support ([b4a1666](https://github.com/mineclover/context-action/commit/b4a1666990e2e653e8791b960addff20b8fc3abe))
+* TypeScript 타입 안전성 개선 - targetHandler undefined 체크 추가 ([5aa2691](https://github.com/mineclover/context-action/commit/5aa26916647c0ba659b3e432191e1b590b2ef3f4))
+
+
+### Features
+
+* Add backward jump support with infinite loop protection ([a0d133f](https://github.com/mineclover/context-action/commit/a0d133f28cf75c69ed70f92fdfbb48654e5b091b))
+* Add comprehensive concurrency test coverage for concurrency.md ([79344e5](https://github.com/mineclover/context-action/commit/79344e57b15ee9e0a882cb65395bf419ecce2b0f))
+* Complete ActionRegister comprehensive test suite improvements ([fda402f](https://github.com/mineclover/context-action/commit/fda402fcc1f611ceed011363df2d1c26c20d8478))
+* Context-Action 라이브러리 핵심 성능 및 안정성 개선 ([f13fe47](https://github.com/mineclover/context-action/commit/f13fe4756c7f1e39872aca7a45fec09f37da3c2c))
+* **core:** enhance ActionRegister performance with optimized caching and pooling ([96fb72a](https://github.com/mineclover/context-action/commit/96fb72a61230cfd38963dc28b853d9ec6323175a))
+* implement advanced unregister function management system ([1086a8a](https://github.com/mineclover/context-action/commit/1086a8abb3a8887df58fe80c1bb02854f0eed7b7))
+* major test improvements and ActionRegister enhancements ([670e426](https://github.com/mineclover/context-action/commit/670e4267d6509b1cd9c6dd048960245251af844f))
+* modernize TypeScript configuration and fix dynamic imports ([725eef5](https://github.com/mineclover/context-action/commit/725eef5e02388e67103d94814935965e066f3e85))
+
+
+### Performance Improvements
+
+* 메모리 효율성을 위한 필터 캐시 시스템 비활성화 ([1c16221](https://github.com/mineclover/context-action/commit/1c1622100be5f52b37a6f8dfb45bb88766528f80))
+
+
+
+
+
 ## [0.7.6](https://github.com/mineclover/context-action/compare/v0.6.0...v0.7.6) (2025-09-17)
 
 
