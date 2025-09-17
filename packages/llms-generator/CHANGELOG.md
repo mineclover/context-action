@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.5](https://github.com/mineclover/context-action/compare/v0.6.0...v0.7.5) (2025-09-17)
+
+
+### Bug Fixes
+
+* **llms-generator:** resolve TypeScript compilation errors ([6414ff3](https://github.com/mineclover/context-action/commit/6414ff3fec2a57b25ff9897fb8c7f4cdd23e78b4))
+* resolve memory leaks in test files by replacing clearAll() with destroy() ([097a010](https://github.com/mineclover/context-action/commit/097a010ae0572c64643e744c4a529a44f7cbbcb5))
+* update TypeScript configuration and enhance LogMonitor component ([c280d4f](https://github.com/mineclover/context-action/commit/c280d4ff4cedf44f28b91e612159bdca7c3a014e))
+
+
+### Features
+
+* Context-Action 라이브러리 핵심 성능 및 안정성 개선 ([f13fe47](https://github.com/mineclover/context-action/commit/f13fe4756c7f1e39872aca7a45fec09f37da3c2c))
+* implement advanced unregister function management system ([1086a8a](https://github.com/mineclover/context-action/commit/1086a8abb3a8887df58fe80c1bb02854f0eed7b7))
+* modernize TypeScript configuration and fix dynamic imports ([725eef5](https://github.com/mineclover/context-action/commit/725eef5e02388e67103d94814935965e066f3e85))
+* **react:** consolidate test structure and fix TypeScript errors ([618ec8c](https://github.com/mineclover/context-action/commit/618ec8cbb2474964b249c0320cff69be373246f1))
+
+
+
+
+
 ## [0.7.4](https://github.com/mineclover/context-action/compare/v0.6.0...v0.7.4) (2025-09-17)
 
 
