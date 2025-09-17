@@ -94,7 +94,7 @@
     "eslint": "^9.34.0",
     "jest": "^30.0.5",
     "ts-jest": "^29.4.1",
-    "tsdown": "^0.14.2",
+    "tsdown": "^0.15.2",
     "typedoc": "^0.28.11",
     "typescript": "^5.9.2",
     "vitepress": "^1.6.4"
