@@ -3,6 +3,68 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.4](https://github.com/mineclover/context-action/compare/v0.6.0...v0.7.4) (2025-09-17)
+
+
+### Bug Fixes
+
+* **ActionRegister:** enhance error handling and execution context management ([d32a1f6](https://github.com/mineclover/context-action/commit/d32a1f60858141db6dc7ff9bc72fa3056638c97f))
+* convert Immer from dynamic to static imports for improved stability ([dde606f](https://github.com/mineclover/context-action/commit/dde606feee79f942d953a60b32164f11fc10b374))
+* **core:** resolve test failures and improve ActionRegister reliability ([82925b9](https://github.com/mineclover/context-action/commit/82925b92f15f2f737d12885512521bc9cc41dff4))
+* correct CodeBlock component usage in AdvancedCodeExamples ([ecfdc35](https://github.com/mineclover/context-action/commit/ecfdc352c8d076f32fcffcdde926587a2a24ad64))
+* improve Store update method with Immer integration ([c9754d7](https://github.com/mineclover/context-action/commit/c9754d7c750c1abf70a3eef99504033ce089b439))
+* improve Store update method with Immer integration ([0bce495](https://github.com/mineclover/context-action/commit/0bce49562ed323e52985917306e87385e9b64205))
+* improve TypeDoc configuration clarity and prevent wrong location generation ([3afca1c](https://github.com/mineclover/context-action/commit/3afca1ce25511e29636e1448f061acc822a59e67))
+* lint 경고 수정 - 사용하지 않는 cacheKey 변수 제거 ([a507727](https://github.com/mineclover/context-action/commit/a507727ec177f49d58106779953283723013929a))
+* **llms-generator:** resolve TypeScript compilation errors ([6414ff3](https://github.com/mineclover/context-action/commit/6414ff3fec2a57b25ff9897fb8c7f4cdd23e78b4))
+* React hooks 규칙 준수를 위한 PriorityTestHandlers 수정 ([12a9038](https://github.com/mineclover/context-action/commit/12a90388ba6a0d49a88d9cd9759bcb7939ad688a))
+* **react:** adjust test expectations after refactoring ([78a4808](https://github.com/mineclover/context-action/commit/78a48084b254f59688e71f90419783cb30ecad1d))
+* **react:** Enable Immer MapSet plugin for Set and Map support ([18d98e6](https://github.com/mineclover/context-action/commit/18d98e6e1cf9b7b9eeb3a1778c4a5ba61270c89d))
+* **react:** export StoreManager for proper type inference in createStoreContext ([3433632](https://github.com/mineclover/context-action/commit/343363292beb920d13beda336cc5fade8d7684df))
+* Resolve ActionRegister execution modes and improve error handling ([71d06bd](https://github.com/mineclover/context-action/commit/71d06bded76cd3ee197002e97d7bb5cc3ccb96ee))
+* resolve all TypeScript errors and improve LogMonitor dependency handling ([06b3a6e](https://github.com/mineclover/context-action/commit/06b3a6e3bf3050b408a01dbfdaf63eae39cbac7f))
+* resolve core and react package linting warnings ([fc0df76](https://github.com/mineclover/context-action/commit/fc0df76116c6f3de6acc9fc0845743e9e24f2aa2))
+* Resolve failing test suites and improve test stability ([926510c](https://github.com/mineclover/context-action/commit/926510cad2fc5562a8c4d81156035282d44252fe))
+* resolve memory leaks in test files by replacing clearAll() with destroy() ([097a010](https://github.com/mineclover/context-action/commit/097a010ae0572c64643e744c4a529a44f7cbbcb5))
+* Resolve test memory issues and finalize async handler support ([b4a1666](https://github.com/mineclover/context-action/commit/b4a1666990e2e653e8791b960addff20b8fc3abe))
+* resolve TypeScript strict mode compliance issues ([e4ef015](https://github.com/mineclover/context-action/commit/e4ef015c4c63835c790c8f181448197f8e595bab))
+* TypeScript 타입 안전성 개선 - targetHandler undefined 체크 추가 ([5aa2691](https://github.com/mineclover/context-action/commit/5aa26916647c0ba659b3e432191e1b590b2ef3f4))
+* update TypeScript configuration and enhance LogMonitor component ([c280d4f](https://github.com/mineclover/context-action/commit/c280d4ff4cedf44f28b91e612159bdca7c3a014e))
+
+
+### Features
+
+* 성능 테스트 중 버튼 비활성화 시각적 피드백 개선 ([b05002d](https://github.com/mineclover/context-action/commit/b05002d230e0ed18eb442ee129226cceedb848c0))
+* Add backward jump support with infinite loop protection ([a0d133f](https://github.com/mineclover/context-action/commit/a0d133f28cf75c69ed70f92fdfbb48654e5b091b))
+* Add comprehensive concurrency test coverage for concurrency.md ([79344e5](https://github.com/mineclover/context-action/commit/79344e57b15ee9e0a882cb65395bf419ecce2b0f))
+* add Context-Layered Architecture section to documentation and navigation ([d655322](https://github.com/mineclover/context-action/commit/d655322b4fd8ff7c6a0f6d9642c4b879f85e319c))
+* add SourceLink integration to core example pages ([7cc16b6](https://github.com/mineclover/context-action/commit/7cc16b6ee23a498e8ccd9f5b867b6529f3fb875d))
+* Complete ActionRegister comprehensive test suite improvements ([fda402f](https://github.com/mineclover/context-action/commit/fda402fcc1f611ceed011363df2d1c26c20d8478))
+* Context-Action 라이브러리 핵심 성능 및 안정성 개선 ([f13fe47](https://github.com/mineclover/context-action/commit/f13fe4756c7f1e39872aca7a45fec09f37da3c2c))
+* **core:** enhance ActionRegister performance with optimized caching and pooling ([96fb72a](https://github.com/mineclover/context-action/commit/96fb72a61230cfd38963dc28b853d9ec6323175a))
+* enhance Core Advanced page with comprehensive usage examples ([0878151](https://github.com/mineclover/context-action/commit/0878151730af4768907857a0fdec6116534080f1))
+* Enhanced priority test interface with manual controls and Set support ([61957de](https://github.com/mineclover/context-action/commit/61957ded7320d737aca30e16dbeb722d5a0d2846))
+* implement advanced unregister function management system ([1086a8a](https://github.com/mineclover/context-action/commit/1086a8abb3a8887df58fe80c1bb02854f0eed7b7))
+* implement comprehensive SourceLink Registry system ([3d0dc69](https://github.com/mineclover/context-action/commit/3d0dc6983dfb778dd599e0e5c04df4b8a0fd83a7))
+* implement Context-Layered Architecture with complete refactoring ([801fcfd](https://github.com/mineclover/context-action/commit/801fcfdd65f36cda7c3537d7cc49a9385c0c41bf))
+* integrate LogMonitor with Flow Control and enhance Store conventions ([3086fef](https://github.com/mineclover/context-action/commit/3086fef8a74a9d92d5fdc89b50f98df628eb0a9e))
+* integrate SourceLink Registry into app navigation ([ed1d283](https://github.com/mineclover/context-action/commit/ed1d2837e8378b4a35510f07c5416f37b05d5796))
+* **LogMonitor:** implement MVVM architecture and enhance context management ([8e81732](https://github.com/mineclover/context-action/commit/8e817328cbdb1ec8741e0f50432c0e4d7421306d))
+* major test improvements and ActionRegister enhancements ([670e426](https://github.com/mineclover/context-action/commit/670e4267d6509b1cd9c6dd048960245251af844f))
+* modernize TypeScript configuration and fix dynamic imports ([725eef5](https://github.com/mineclover/context-action/commit/725eef5e02388e67103d94814935965e066f3e85))
+* **performance-optimization:** add comprehensive performance optimization guides with varying character limits ([950dee2](https://github.com/mineclover/context-action/commit/950dee2d6d88b362898b803222ab5a7786d0ad00))
+* **react:** consolidate test structure and fix TypeScript errors ([618ec8c](https://github.com/mineclover/context-action/commit/618ec8cbb2474964b249c0320cff69be373246f1))
+
+
+### Performance Improvements
+
+* 메모리 효율성을 위한 필터 캐시 시스템 비활성화 ([1c16221](https://github.com/mineclover/context-action/commit/1c1622100be5f52b37a6f8dfb45bb88766528f80))
+* Optimize useComputedStore with useSyncExternalStore ([bbef3c6](https://github.com/mineclover/context-action/commit/bbef3c6b960ba9637cf7afb5cbdcda9f47dc7ae9))
+
+
+
+
+
 ## [0.7.3](https://github.com/mineclover/context-action/compare/v0.6.0...v0.7.3) (2025-09-16)
 
 
