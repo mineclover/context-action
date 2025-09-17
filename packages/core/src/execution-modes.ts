@@ -167,7 +167,7 @@ export async function executeSequential<T, R = void>(
             // ⚠️ WARNING: Backward jump detected - risk of infinite loop!
             // Only allow backward jumps if handler has condition to prevent infinite loops
             const targetHandler = context.handlers[jumpIndex];
-            if (!targetHandler.config.condition) {
+            if (targetHandler && !targetHandler.config.condition) {
               console.warn(
                 `[ActionRegister] WARNING: Backward jumpToPriority to handler '${targetHandler.config.id || 'unnamed'}' without condition. ` +
                 `This may cause infinite loops! Consider adding a condition to prevent re-execution. ` +
