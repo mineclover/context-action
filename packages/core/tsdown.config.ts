@@ -5,7 +5,13 @@ export default defineConfig({
   format: ['esm', 'cjs'],
   dts: true,
   clean: true,
-  external: ['react', 'react-dom'],
+  nodeProtocol: 'strip', // Strip node: protocol for browser compatibility
+  external: [
+    'react',
+    'react-dom'
+  ],
   target: 'es2020',
   minify: false,
+  platform: 'browser', // Explicitly target browser platform
+
 })

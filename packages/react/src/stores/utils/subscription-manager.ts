@@ -1,10 +1,11 @@
 /**
  * @fileoverview Subscription Management System
- * 
+ *
  * Centralized subscription management for automatic cleanup and memory leak prevention.
  * Provides utilities for managing multiple store subscriptions with lifecycle management.
  */
 
+import { useRef, useEffect } from 'react';
 import type { Store } from '../core/Store';
 import { ErrorHandlers } from './error-handling';
 
@@ -194,15 +195,12 @@ export class SubscriptionManager {
  * @returns SubscriptionManager instance
  */
 export function useSubscriptionManager(): SubscriptionManager {
-  // Import React here to avoid module-level import
-  const { useRef, useEffect } = require('react');
-  
-  const managerRef = useRef(null as SubscriptionManager | null);
-  
+  const managerRef = useRef<SubscriptionManager | null>(null);
+
   if (!managerRef.current) {
     managerRef.current = new SubscriptionManager();
   }
-  
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -212,7 +210,7 @@ export function useSubscriptionManager(): SubscriptionManager {
       }
     };
   }, []);
-  
+
   return managerRef.current;
 }
 

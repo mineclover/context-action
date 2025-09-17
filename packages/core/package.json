@@ -74,5 +74,19 @@
   },
   "engines": {
     "node": ">=18.0.0"
-  }
+  },
+  "browser": {
+    "node:module": false,
+    "node:path": false,
+    "node:fs": false,
+    "node:url": false,
+    "node:crypto": false,
+    "node:buffer": false
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ]
 }

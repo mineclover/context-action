@@ -13,17 +13,25 @@ export default defineConfig({
   format: ['esm', 'cjs'],
   dts: true,
   clean: true,
-  external: ['react', 'react-dom', 'immer'],
+  nodeProtocol: 'strip', // Strip node: protocol for browser compatibility
+  external: [
+    'react',
+    'react-dom',
+    'react/jsx-runtime',
+    'react/jsx-dev-runtime',
+    'immer'
+  ],
   target: 'es2020',
   minify: isProduction,
-  
+  platform: 'browser', // Explicitly target browser platform
+
   // Define constants that will be replaced at build time
   define: {
     // In production, replace process.env.NODE_ENV with 'production'
     // This allows dead code elimination to remove debug code
     'process.env.NODE_ENV': JSON.stringify(isProduction ? 'production' : 'development')
   },
-  
+
   // Rollup input options (plugins, treeshake 등)
   inputOptions: {
     plugins: [
@@ -35,7 +43,7 @@ export default defineConfig({
         template: 'treemap'
       })
     ],
-    
+
     // Tree-shaking options for production
     treeshake: isProduction
   }
