@@ -8,7 +8,6 @@ describe('advanced module exports', () => {
 
   it('should export advanced store hooks', () => {
     expect(advanced.useComputedStore).toBeDefined();
-    expect(advanced.usePersistedStore).toBeDefined();
     expect(advanced.useLocalStore).toBeDefined();
   });
 

@@ -25,10 +25,10 @@ export interface EnhancedSubscriptionOptions {
 }
 
 /**
- * 향상된 구독 함수 생성
+ * 향상된 구독 함수 생성 (내부 사용)
  * 디바운싱, 스로틀링, 조건부 구독 기능 제공
  */
-export function createEnhancedSubscriber<T>(
+function createEnhancedSubscriber<T>(
   store: Store<T>,
   options: EnhancedSubscriptionOptions = {}
 ) {
@@ -89,20 +89,6 @@ export function createEnhancedSubscriber<T>(
       if (throttleTimer) clearTimeout(throttleTimer);
       unsubscribe();
     };
-  };
-}
-
-/**
- * Store 스냅샷 선택자 생성
- */
-export function createSnapshotSelector<T, R>(
-  selector?: (value: T) => R
-) {
-  return (store: Store<T> | undefined | null): R | T | undefined => {
-    if (!store) return undefined;
-    
-    const snapshot = store.getSnapshot();
-    return selector ? selector(snapshot.value) : snapshot.value;
   };
 }
 

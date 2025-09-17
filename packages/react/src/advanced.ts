@@ -12,7 +12,6 @@ export type {
 
 // Advanced Store Hooks
 export { useComputedStore } from './stores/hooks/useComputedStore';
-export { usePersistedStore } from './stores/hooks/usePersistedStore';
 export { useLocalStore } from './stores/hooks/useLocalStore';
 
 

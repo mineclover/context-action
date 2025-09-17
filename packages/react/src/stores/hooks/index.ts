@@ -29,17 +29,14 @@ export {
 // === SPECIALIZED HOOKS ===
 // Optional but useful patterns
 export { useLocalStore } from './useLocalStore';
-export { usePersistedStore } from './usePersistedStore';
 
 // === PERFORMANCE OPTIMIZATION HOOKS ===
 // 성능 최적화를 위한 새로운 Hook들 (v2.1.0+)
-export { 
-  useStoreSelector, 
-  useMultiStoreSelector, 
-  useStorePathSelector,
+export {
+  useStoreSelector,
   shallowEqual,
   deepEqual,
-  defaultEqualityFn 
+  defaultEqualityFn
 } from './useStoreSelector';
 
 export { 
@@ -49,15 +46,3 @@ export {
   useAsyncComputedStore 
 } from './useComputedStore';
 
-// === ADVANCED PERFORMANCE HOOKS ===
-// Enhanced performance optimization features (v2.2.0+)
-export {
-  useOptimizedStoreValue,
-  useBulkStoreValues,
-  useConditionalStoreValue,
-  useStoreValuePath,
-  useLazyStoreValue,
-  useStoreMetrics,
-  type OptimizedStoreOptions,
-  type SubscriptionMetrics
-} from './useOptimizedStoreValue';

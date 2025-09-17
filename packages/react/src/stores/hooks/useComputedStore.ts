@@ -8,7 +8,7 @@
  * @module stores/hooks/useComputedStore
  */
 
-import { useMemo, useRef, useCallback, useEffect, useState, useSyncExternalStore } from 'react';
+import { useMemo, useRef, useCallback, useEffect, useState } from 'react';
 import { createStore } from '../core/Store';
 import type { Store } from '../core/Store';
 import { defaultEqualityFn } from './useStoreSelector';

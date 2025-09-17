@@ -1,10 +1,7 @@
-import { useMemo, useDeferredValue } from 'react';
+import { useMemo } from 'react';
 import { shallowEqual, defaultEqualityFn } from './useStoreSelector';
 import type { Store } from '../core/Store';
-import type { React18Options } from '../../hooks/react18-hooks';
-import { 
-  useSafeStoreSubscription
-} from '../utils/sync-external-store-utils';
+import { useSafeStoreSubscription } from '../utils/sync-external-store-utils';
 
 /**
  * Create a type assertion helper for stores created with initial values
@@ -48,33 +45,24 @@ export function assertStoreValue<T>(value: T | undefined, storeName: string): T 
 export interface StoreValueOptions<R> {
   /** Custom equality comparison function to determine when to trigger re-renders */
   equalityFn?: (a: R, b: R) => boolean;
-  
-  /** Lazy subscription - only start subscribing when condition is met */
-  lazy?: boolean;
-  
+
   /** Subscription condition - pause subscription when false */
   condition?: () => boolean;
-  
+
   /** Debounce delay in milliseconds - groups rapid changes together */
   debounce?: number;
-  
+
   /** Throttle interval in milliseconds - limits update frequency */
   throttle?: number;
-  
+
   /** Initial value to use before first subscription */
   initialValue?: R;
-  
-  /** Default value when subscription is suspended */
-  suspendedValue?: R;
-  
+
   /** Enable debug logging for subscription behavior */
   debug?: boolean;
-  
+
   /** Hook name for debugging purposes */
   name?: string;
-
-  /** React 18+ optimizations */
-  react18?: React18Options;
 }
 
 // Store가 확정된 경우 - 기본 구독
@@ -111,21 +99,17 @@ export function useStoreValue<T, R>(
   // 파라미터 정규화
   const selector = typeof selectorOrOptions === 'function' ? selectorOrOptions : undefined;
   const finalOptions = (typeof selectorOrOptions === 'function' ? options : selectorOrOptions) || {};
-  
+
   const {
     equalityFn = defaultEqualityFn,
-    lazy = false,
     condition,
     debounce,
     throttle,
     initialValue,
-    suspendedValue,
     debug = false,
-    name = store?.name || 'unknown',
-    react18 = {}
+    name = store?.name || 'unknown'
   } = finalOptions;
-  
-  
+
   // useSyncExternalStore 기반 구독
   const subscriptionOptions = {
     debug,
@@ -134,58 +118,16 @@ export function useStoreValue<T, R>(
     initialValue: initialValue as R,
     ...(debounce !== undefined && { debounce }),
     ...(throttle !== undefined && { throttle }),
-    ...(condition && { condition }),
-    ...(lazy && !condition && { condition: () => false })
+    ...(condition && { condition })
   };
-  
-  const rawValue = useSafeStoreSubscription(
+
+  const value = useSafeStoreSubscription(
     store,
     selector,
     subscriptionOptions
   );
-  
-  // 구독이 비활성화된 경우 처리
-  const processedValue = useMemo(() => {
-    if (lazy && condition && !condition()) {
-      return suspendedValue !== undefined ? suspendedValue : initialValue;
-    }
-    return rawValue;
-  }, [rawValue, lazy, condition, suspendedValue, initialValue]);
 
-  // React 18+ 최적화 적용
-  const {
-    enableDeferred = false,
-    priorityThreshold = 1000
-  } = react18;
-
-  // Deferred value 적용 (대용량 객체나 복잡한 상태에 대해)
-  const deferredProcessedValue = useDeferredValue(processedValue);
-
-  // 복잡도에 따른 지연 처리 결정
-  const finalValue = useMemo(() => {
-    if (!enableDeferred) return processedValue;
-    
-    // 복잡도 계산 - 객체 크기나 배열 길이로 판단
-    const shouldDefer = (() => {
-      if (typeof processedValue === 'object' && processedValue !== null) {
-        try {
-          const size = JSON.stringify(processedValue).length;
-          return size > priorityThreshold;
-        } catch {
-          return true; // JSON 변환 불가능한 복잡한 객체
-        }
-      }
-      return false;
-    })();
-
-    if (shouldDefer && debug) {
-      console.debug(`useStoreValue [${name}]: Using deferred value for complex state`);
-    }
-
-    return shouldDefer ? deferredProcessedValue : processedValue;
-  }, [processedValue, deferredProcessedValue, enableDeferred, priorityThreshold, debug, name]);
-  
-  return finalValue;
+  return value;
 }
 
 /**

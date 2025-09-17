@@ -1,9 +1,8 @@
 import type { IStore, Listener, Snapshot, Unsubscribe, StoreSetValueOptions } from './types';
 import type { StoreRegistry } from './StoreRegistry';
 import { safeGet, safeSet, produce } from '../utils/immutable';
-import { 
-  compareValues, 
-  fastCompare, 
+import {
+  compareValues,
   ComparisonOptions
 } from '../utils/comparison';
 import { TypeGuards } from '../utils/type-guards';
@@ -568,7 +567,8 @@ export class Store<T = unknown> implements IStore<T> {
       }
       // 3. 성능 최적화된 빠른 비교 (대부분의 일반적인 케이스)
       else {
-        const areEqual = fastCompare(oldValue, newValue);
+        // Use compareValues for fast comparison with optimized defaults
+        const areEqual = compareValues(oldValue, newValue, { strategy: 'reference' });
         result = !areEqual;
         
       }
