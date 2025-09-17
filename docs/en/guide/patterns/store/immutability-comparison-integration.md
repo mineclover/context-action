@@ -343,7 +343,7 @@ const debugStore = useStoreValue(store, undefined, {
 
 // Console output shows:
 // [MyStore] Immer: Created safe copy
-// [MyStore] Comparison: fastCompare returned false (changed)
+// [MyStore] Comparison: deepEquals returned false (changed)
 // [MyStore] Store value changed: { previous: {...}, current: {...} }
 ```
 

@@ -1,13 +1,13 @@
 {
   "package": "react",
-  "generatedAt": "2025-08-31T09:46:55.145Z",
+  "generatedAt": "2025-09-17T18:47:15.924Z",
   "statistics": {
-    "totalFiles": 45,
+    "totalFiles": 43,
     "typeFiles": 3,
-    "codeFiles": 42,
-    "totalLines": 5270,
-    "typeLines": 258,
-    "codeLines": 5012
+    "codeFiles": 40,
+    "totalLines": 4418,
+    "typeLines": 264,
+    "codeLines": 4154
   },
   "files": [
     {
@@ -23,7 +23,7 @@
     {
       "path": "stores/core/types.ts",
       "isType": true,
-      "lines": 165
+      "lines": 171
     },
     {
       "path": "actions/ActionContext.tsx",
@@ -38,17 +38,17 @@
     {
       "path": "advanced.ts",
       "isType": false,
-      "lines": 40
+      "lines": 26
+    },
+    {
+      "path": "config/debug-config.ts",
+      "isType": false,
+      "lines": 129
     },
     {
       "path": "hooks/index.ts",
       "isType": false,
       "lines": 4
-    },
-    {
-      "path": "hooks/react18-hooks.ts",
-      "isType": false,
-      "lines": 221
     },
     {
       "path": "index.ts",
@@ -59,11 +59,6 @@
       "path": "patterns/index.ts",
       "isType": false,
       "lines": 2
-    },
-    {
-      "path": "react18.ts",
-      "isType": false,
-      "lines": 1
     },
     {
       "path": "refs/createRefContext.ts",
@@ -123,7 +118,7 @@
     {
       "path": "stores/core/Store.ts",
       "isType": false,
-      "lines": 413
+      "lines": 412
     },
     {
       "path": "stores/core/StoreRegistry.ts",
@@ -133,37 +128,27 @@
     {
       "path": "stores/hooks/index.ts",
       "isType": false,
-      "lines": 35
+      "lines": 22
     },
     {
       "path": "stores/hooks/useComputedStore.ts",
       "isType": false,
-      "lines": 360
+      "lines": 304
     },
     {
       "path": "stores/hooks/useLocalStore.ts",
       "isType": false,
-      "lines": 19
-    },
-    {
-      "path": "stores/hooks/useOptimizedStoreValue.ts",
-      "isType": false,
-      "lines": 277
-    },
-    {
-      "path": "stores/hooks/usePersistedStore.ts",
-      "isType": false,
-      "lines": 60
+      "lines": 20
     },
     {
       "path": "stores/hooks/useStoreSelector.ts",
       "isType": false,
-      "lines": 92
+      "lines": 47
     },
     {
       "path": "stores/hooks/useStoreValue.ts",
       "isType": false,
-      "lines": 134
+      "lines": 95
     },
     {
       "path": "stores/index.ts",
@@ -183,22 +168,22 @@
     {
       "path": "stores/utils/comparison.ts",
       "isType": false,
-      "lines": 430
+      "lines": 201
     },
     {
       "path": "stores/utils/error-handling.ts",
       "isType": false,
-      "lines": 210
+      "lines": 202
     },
     {
       "path": "stores/utils/immutable.ts",
       "isType": false,
-      "lines": 335
+      "lines": 330
     },
     {
       "path": "stores/utils/index.ts",
       "isType": false,
-      "lines": 46
+      "lines": 45
     },
     {
       "path": "stores/utils/provider-composition.ts",
@@ -213,27 +198,32 @@
     {
       "path": "stores/utils/store-selector.ts",
       "isType": false,
-      "lines": 42
+      "lines": 27
     },
     {
       "path": "stores/utils/subscription-manager.ts",
       "isType": false,
-      "lines": 158
+      "lines": 126
     },
     {
       "path": "stores/utils/sync-external-store-utils.ts",
       "isType": false,
-      "lines": 203
+      "lines": 194
     },
     {
       "path": "stores/utils/type-guards.ts",
       "isType": false,
-      "lines": 124
+      "lines": 107
     },
     {
       "path": "stores/utils/type-helpers.ts",
       "isType": false,
       "lines": 103
+    },
+    {
+      "path": "utils.ts",
+      "isType": false,
+      "lines": 55
     }
   ]
 }

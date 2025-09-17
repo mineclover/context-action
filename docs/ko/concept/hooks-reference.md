@@ -220,18 +220,6 @@ const fullName = useComputedStore(
 const { value, setValue, store } = useLocalStore({ count: 0 });
 ```
 
-#### `usePersistedStore<T>(key, initialValue, options?)`
-브라우저 저장소를 위한 **지속성 훅**.
-- **목적**: localStorage/sessionStorage와 스토어 자동 동기화
-- **사용 사례**: 설정, 사용자 기본 설정, 임시 데이터
-- **기능**: 탭 간 동기화
-
-```tsx
-const themeStore = usePersistedStore('theme', 'light', {
-  storage: localStorage
-});
-```
-
 #### `assertStoreValue<T>(value, storeName)`
 스토어 값을 위한 **타입 어설션 유틸리티**.
 - **목적**: undefined가 아닌 값에 대한 런타임 어설션
@@ -282,9 +270,6 @@ const safeUser = assertStoreValue(user, 'userStore'); // 절대 undefined 아님
 - **필수**: `useRefHandler` (RefContext에서)
 - **유틸리티**: `useWaitForRefs`, `useGetAllRefs`
 
-#### 지속성
-- **유틸리티**: `usePersistedStore`
-
 #### 고급/메타
 - **유틸리티**: `useActionRegister`
 
@@ -302,7 +287,6 @@ const safeUser = assertStoreValue(user, 'userStore'); // 절대 undefined 아님
 
 #### 낮은 빈도 (컴포넌트의 20% 미만)
 - `useComputedStore`
-- `usePersistedStore`
 - `useActionDispatchWithResult`
 
 ---
@@ -320,7 +304,7 @@ const safeUser = assertStoreValue(user, 'userStore'); // 절대 undefined 아님
 
 1. **성능 문제**: 최적화를 위한 선택자 훅 사용
 2. **복잡한 상태 파생**: `useComputedStore` 사용
-3. **브라우저 저장소 필요**: `usePersistedStore` 사용
+3. **브라우저 저장소 필요**: 커스텀 localStorage/sessionStorage 통합 구현
 4. **컴포넌트 로컬 복잡 상태**: `useLocalStore` 사용
 5. **고급 워크플로우**: 결과 수집 훅 사용
 6. **메타 프로그래밍**: 레지스트리 훅 사용
@@ -360,7 +344,7 @@ function OptimizedUserProfile() {
   );
   
   // 유틸리티: 지속된 설정
-  const settings = usePersistedStore('userSettings', {
+  const { store: settings } = useLocalStore({
     theme: 'light',
     notifications: true
   });
@@ -639,7 +623,7 @@ function CriticalComponent() {
 
 ### 유틸리티 훅 (필요에 따라 학습)
 - **성능**: `useStoreSelector`, `useComputedStore`
-- **편의성**: `useLocalStore`, `usePersistedStore`
+- **편의성**: `useLocalStore`
 - **고급**: `useActionDispatchWithResult`
 
 ### 전문 훅 (특정 경우용)

@@ -228,18 +228,6 @@ const fullName = useComputedStore(
 const { value, setValue, store } = useLocalStore({ count: 0 });
 ```
 
-#### `usePersistedStore<T>(key, initialValue, options?)`
-**Persistence hook** for browser storage.
-- **Purpose**: Auto-sync store with localStorage/sessionStorage
-- **Use Case**: Settings, user preferences, draft data
-- **Feature**: Cross-tab synchronization
-
-```tsx
-const themeStore = usePersistedStore('theme', 'light', {
-  storage: localStorage
-});
-```
-
 
 #### `assertStoreValue<T>(value, storeName)`
 **Type assertion utility** for store values.
@@ -291,9 +279,6 @@ const safeUser = assertStoreValue(user, 'userStore'); // never undefined
 - **Essential**: `useRefHandler` (from RefContext)
 - **Utility**: `useWaitForRefs`, `useGetAllRefs`
 
-#### Persistence
-- **Utility**: `usePersistedStore`
-
 #### Advanced/Meta
 - **Utility**: `useActionRegister`
 
@@ -311,7 +296,6 @@ const safeUser = assertStoreValue(user, 'userStore'); // never undefined
 
 #### Low Frequency (<20% of components)
 - `useComputedStore`
-- `usePersistedStore`
 - `useActionDispatchWithResult`
 
 ---
@@ -329,7 +313,7 @@ const safeUser = assertStoreValue(user, 'userStore'); // never undefined
 
 1. **Performance issues**: Use selector hooks for optimization
 2. **Complex state derivation**: Use `useComputedStore`
-3. **Browser storage needs**: Use `usePersistedStore`
+3. **Browser storage needs**: Implement custom localStorage/sessionStorage integration
 4. **Component-local complex state**: Use `useLocalStore`
 5. **Advanced workflows**: Use result collection hooks
 6. **Meta-programming**: Use registry hooks
@@ -369,7 +353,7 @@ function OptimizedUserProfile() {
   );
   
   // Utility: Persisted settings
-  const settings = usePersistedStore('userSettings', {
+  const { store: settings } = useLocalStore({
     theme: 'light',
     notifications: true
   });
@@ -648,7 +632,7 @@ These hooks are created by factory functions:
 
 ### Utility Hooks (Learn As Needed)
 - **Performance**: `useStoreSelector`, `useComputedStore`
-- **Convenience**: `useLocalStore`, `usePersistedStore`
+- **Convenience**: `useLocalStore`
 - **Advanced**: `useActionDispatchWithResult`
 
 ### Specialized Hooks (For Specific Cases)

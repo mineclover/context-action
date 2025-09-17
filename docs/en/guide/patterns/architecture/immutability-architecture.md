@@ -197,31 +197,19 @@ Note: This optimization happens independently within each store instance
 
 ### 2. Comparison Optimizations
 
-#### Fast Comparison Algorithm
+#### Deep Comparison Algorithm
 ```typescript
-// Optimized for common patterns
-export function fastCompare<T>(oldValue: T, newValue: T): boolean {
-  // Step 1: Reference check (covers Immer no-change optimization)
-  if (Object.is(oldValue, newValue)) return true;
-  
-  // Step 2: Null/primitive fast path
-  if (oldValue == null || newValue == null) return oldValue === newValue;
-  if (typeof oldValue !== 'object' || typeof newValue !== 'object') return false;
-  
-  // Step 3: Array optimization
-  if (Array.isArray(oldValue) && Array.isArray(newValue)) {
-    if (oldValue.length !== newValue.length) return false;
-    return oldValue.every((item, index) => fastCompare(item, newValue[index]));
-  }
-  
-  // Step 4: Object optimization with JSON serialization
-  try {
-    // Handles most object cases efficiently
-    return JSON.stringify(oldValue) === JSON.stringify(newValue);
-  } catch (error) {
-    // Step 5: Fallback for complex objects
-    return performStructuralComparison(oldValue, newValue);
-  }
+// Comprehensive comparison with circular reference support
+export function deepEquals<T>(oldValue: T, newValue: T, options?: {
+  maxDepth?: number;
+  ignoreKeys?: string[];\n  enableCircularCheck?: boolean;
+}): boolean {
+  // Handles all data types including:
+  // - Circular references
+  // - Date, RegExp objects
+  // - Nested arrays and objects
+  // - Maximum depth limiting for performance
+  // - Selective property comparison
 }
 ```
 

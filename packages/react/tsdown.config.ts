@@ -8,7 +8,6 @@ export default defineConfig({
   entry: [
     'src/index.ts',      // Main entry point
     'src/advanced.ts',   // Advanced features
-    'src/react18.ts',    // React 18+ features
     'src/utils.ts'       // Utility functions
   ],
   format: ['esm', 'cjs'],
@@ -25,7 +24,8 @@ export default defineConfig({
     'process.env.NODE_ENV': JSON.stringify(isProduction ? 'production' : 'development')
   },
   
-  rollupOptions: {
+  // Rollup input options (plugins, treeshake 등)
+  inputOptions: {
     plugins: [
       visualizer({
         filename: 'reports/bundle-analysis.html',
@@ -37,27 +37,6 @@ export default defineConfig({
     ],
     
     // Tree-shaking options for production
-    treeshake: isProduction ? {
-      preset: 'recommended',
-      // Remove all console.* calls in production
-      moduleSideEffects: false,
-      propertyReadSideEffects: false,
-      tryCatchDeoptimization: false,
-      unknownGlobalSideEffects: false
-    } : false
-  },
-  
-  // ESBuild options for additional optimization
-  esbuildOptions: isProduction ? {
-    // Remove console.* and debugger statements in production
-    drop: ['console', 'debugger'],
-    // Additional minification
-    minifyWhitespace: true,
-    minifyIdentifiers: true,
-    minifySyntax: true,
-    // Remove unused code
-    treeShaking: true,
-    // Pure function annotations help with dead code elimination
-    pure: ['console.log', 'console.debug', 'console.info', 'console.trace']
-  } : undefined
+    treeshake: isProduction
+  }
 })

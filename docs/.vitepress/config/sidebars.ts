@@ -362,9 +362,6 @@ const API_STRUCTURE = {
     react: sidebarApiKo.react,
     patterns: sidebarApiKo.patterns
   }
-      ]
-    }
-  }
 }
 
 // 예제 문서 구조 추가
@@ -490,7 +487,7 @@ const LLMS_STRUCTURE = {
 /**
  * Create sidebar based on locale and section - 섹션별 사이드바 구조
  */
-import { sidebarApiEn, sidebarApiKo } from '../api-spec'
+import { sidebarApiEn, sidebarApiKo } from './api-spec'
 
 export function createSidebars(locale: SidebarLocale): DefaultTheme.Config['sidebar'] {
   const guide = GUIDE_STRUCTURE[locale]

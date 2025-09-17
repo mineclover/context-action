@@ -207,7 +207,6 @@ function OptimizedComponent() {
 
 ### Convenience
 - `useLocalStore(initialValue)` - Component-local store
-- `usePersistedStore(key, initialValue)` - Browser storage sync
 
 ### Advanced
 - `useActionDispatchWithResult()` - Collect handler results

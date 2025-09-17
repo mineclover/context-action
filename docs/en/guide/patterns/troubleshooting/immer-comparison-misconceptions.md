@@ -274,15 +274,14 @@ const userData = useStoreValue(userStore, undefined, {
 
 **Diagnosis:**
 ```typescript
-// Profile comparison performance
-import { measureComparison } from '@context-action/react';
+// Profile comparison performance manually
+import { deepEquals } from '@context-action/react';
 
-const metrics = measureComparison(oldValue, newValue, {
-  strategy: 'deep' // Test different strategies
-});
+const startTime = performance.now();
+const result = deepEquals(oldValue, newValue);
+const executionTime = performance.now() - startTime;
 
-console.log('Comparison took:', metrics.executionTime, 'ms');
-console.log('Strategy used:', metrics.strategy);
+console.log('Comparison took:', executionTime, 'ms');
 ```
 
 **Solutions:**
@@ -404,16 +403,17 @@ const strategyGuide = {
 ```typescript
 // Always measure before changing strategy
 const profileStorePerformance = () => {
-  const metrics = measureComparison(oldValue, newValue, {
-    strategy: 'current-strategy'
-  });
-  
-  console.log('Current performance:', metrics);
-  
-  // Test alternative strategies
-  ['reference', 'shallow', 'deep'].forEach(strategy => {
-    const testMetrics = measureComparison(oldValue, newValue, { strategy });
-    console.log(`${strategy}:`, testMetrics.executionTime, 'ms');
+  const strategies = {
+    reference: (a, b) => Object.is(a, b),
+    shallow: (a, b) => shallowEquals(a, b),
+    deep: (a, b) => deepEquals(a, b)
+  };
+
+  Object.entries(strategies).forEach(([name, fn]) => {
+    const start = performance.now();
+    const result = fn(oldValue, newValue);
+    const time = performance.now() - start;
+    console.log(`${name}:`, time.toFixed(2), 'ms, result:',  result);
   });
 };
 ```

@@ -1,7 +1,7 @@
 # Context-Action React Package - Complete Code
 
-Total Files: 45
-Total Lines: 5270
+Total Files: 43
+Total Lines: 4418
 
 ## Type Definitions
 
@@ -276,6 +276,12 @@ export interface DynamicStoreOptions<T> {
   autoCleanup?: boolean;
   enableMetrics?: boolean;
 }
+export interface React18Options {
+  enableDeferred?: boolean;
+  enableTransition?: boolean;
+  priorityThreshold?: number;
+  enableConcurrent?: boolean;
+}
 ```
 
 ## Implementation Code
@@ -338,10 +344,10 @@ export function createActionContext<T extends {}>(
     ): Promise<void> => {
       if (process.env.NODE_ENV === 'development') {
         console.log(`React dispatch called for '${String(action)}':`, {
-        hasPayload: payload !== undefined,
-        hasOptions: options !== undefined,
-        timestamp: new Date().toISOString()
-      });
+          hasPayload: payload !== undefined,
+          hasOptions: options !== undefined,
+          timestamp: new Date().toISOString()
+        });
       }
       const register = actionRegisterRef.current;
       if (!register) {
@@ -552,23 +558,8 @@ export type {
   StoreSyncConfig
 } from './stores/core/types';
 export { useComputedStore } from './stores/hooks/useComputedStore';
-export { useStoreSelector } from './stores/hooks/useStoreSelector';
-export { usePersistedStore } from './stores/hooks/usePersistedStore';
 export { useLocalStore } from './stores/hooks/useLocalStore';
-export { 
-  composeProviders
-} from './stores/utils/provider-composition';
-export type {
-  ProviderComponent
-} from './stores/utils/provider-composition';
-export { 
-  deepClone,
-  deepCloneWithImmer,
-  preloadImmer,
-  ImmerUtils,
-  safeGet,
-  safeSet,
-} from './stores/utils/immutable';
+export * from './utils';
 export {
   ContextActionError,
   ContextActionErrorType,
@@ -583,8 +574,143 @@ export type {
   StoreErrorBoundaryProps,
   StoreErrorBoundaryState
 } from './stores/components/StoreErrorBoundary';
-export * from './patterns';
-export * from './hooks';
+export { createActionContext } from './actions/ActionContext';
+export type { ActionContextConfig, ActionContextReturn } from './actions/ActionContext.types';
+export type { React18Options } from './stores/core/types';
+```
+
+### config/debug-config.ts
+
+```typescript
+export interface DebugConfig {
+  enabled: boolean;
+  features: {
+    actions: boolean;
+    stores: boolean;
+    computed: boolean;
+    performance: boolean;
+    errors: boolean;
+    refs: boolean;
+    immutability: boolean;
+  };
+  logLevel: 'error' | 'warn' | 'info' | 'debug' | 'trace';
+  logger?: {
+    error: (...args: any[]) => void;
+    warn: (...args: any[]) => void;
+    info: (...args: any[]) => void;
+    debug: (...args: any[]) => void;
+    trace: (...args: any[]) => void;
+  };
+}
+const defaultConfig: DebugConfig = {
+  enabled: process.env.NODE_ENV === 'development',
+  features: {
+    actions: process.env.NODE_ENV === 'development',
+    stores: false,
+    computed: false,
+    performance: false,
+    errors: process.env.NODE_ENV === 'development',
+    refs: false,
+    immutability: false
+  },
+  logLevel: process.env.NODE_ENV === 'development' ? 'debug' : 'error',
+  logger: undefined
+};
+let currentConfig: DebugConfig = { ...defaultConfig };
+export function setDebugConfig(config: Partial<DebugConfig>): void {
+  if (config.features) {
+    currentConfig.features = {
+      ...currentConfig.features,
+      ...config.features
+    };
+  }
+  if (config.logger) {
+    currentConfig.logger = config.logger;
+  }
+  if (config.enabled !== undefined) {
+    currentConfig.enabled = config.enabled;
+  }
+  if (config.logLevel) {
+    currentConfig.logLevel = config.logLevel;
+  }
+}
+export function getDebugConfig(): Readonly<DebugConfig> {
+  return { ...currentConfig };
+}
+export function resetDebugConfig(): void {
+  currentConfig = { ...defaultConfig };
+}
+const logLevelPriority: Record<string, number> = {
+  error: 0,
+  warn: 1,
+  info: 2,
+  debug: 3,
+  trace: 4
+};
+export function isDebugEnabled(feature: keyof DebugConfig['features']): boolean {
+  return currentConfig.enabled && currentConfig.features[feature];
+}
+export function isLogLevelEnabled(level: keyof typeof logLevelPriority): boolean {
+  const currentLevel = logLevelPriority[currentConfig.logLevel];
+  const targetLevel = logLevelPriority[level];
+  return currentLevel !== undefined && targetLevel !== undefined && targetLevel <= currentLevel;
+}
+export const debugLog = {
+  error: (feature: keyof DebugConfig['features'], message: string, ...args: any[]) => {
+    if (isDebugEnabled(feature) && isLogLevelEnabled('error')) {
+      const logger = currentConfig.logger?.error || console.error;
+      logger(`[Context-Action:${feature}] ${message}`, ...args);
+    }
+  },
+  warn: (feature: keyof DebugConfig['features'], message: string, ...args: any[]) => {
+    if (isDebugEnabled(feature) && isLogLevelEnabled('warn')) {
+      const logger = currentConfig.logger?.warn || console.warn;
+      logger(`[Context-Action:${feature}] ${message}`, ...args);
+    }
+  },
+  info: (feature: keyof DebugConfig['features'], message: string, ...args: any[]) => {
+    if (isDebugEnabled(feature) && isLogLevelEnabled('info')) {
+      const logger = currentConfig.logger?.info || console.info;
+      logger(`[Context-Action:${feature}] ${message}`, ...args);
+    }
+  },
+  debug: (feature: keyof DebugConfig['features'], message: string, ...args: any[]) => {
+    if (isDebugEnabled(feature) && isLogLevelEnabled('debug')) {
+      const logger = currentConfig.logger?.debug || console.debug;
+      logger(`[Context-Action:${feature}] ${message}`, ...args);
+    }
+  },
+  trace: (feature: keyof DebugConfig['features'], message: string, ...args: any[]) => {
+    if (isDebugEnabled(feature) && isLogLevelEnabled('trace')) {
+      const logger = currentConfig.logger?.trace || console.trace;
+      logger(`[Context-Action:${feature}] ${message}`, ...args);
+    }
+  }
+};
+export function configureDebugForEnvironment(): void {
+  const debugEnabled = process.env.REACT_APP_DEBUG === 'true' || 
+                       process.env.NEXT_PUBLIC_DEBUG === 'true' ||
+                       process.env.VITE_DEBUG === 'true';
+  const debugFeatures = process.env.REACT_APP_DEBUG_FEATURES || 
+                        process.env.NEXT_PUBLIC_DEBUG_FEATURES ||
+                        process.env.VITE_DEBUG_FEATURES;
+  if (debugEnabled !== undefined) {
+    setDebugConfig({ enabled: debugEnabled });
+  }
+  if (debugFeatures) {
+    const features = debugFeatures.split(',').reduce((acc, feature) => {
+      const trimmed = feature.trim() as keyof DebugConfig['features'];
+      if (trimmed in defaultConfig.features) {
+        acc[trimmed] = true;
+      }
+      return acc;
+    }, {} as Record<keyof DebugConfig['features'], boolean>);
+    setDebugConfig({ features });
+  }
+}
+if (typeof window !== 'undefined') {
+  configureDebugForEnvironment();
+}
 ```
 
 ### hooks/index.ts
@@ -594,232 +720,6 @@ export { createActionContext, type ActionContextConfig, type ActionContextReturn
 export * from '../stores/hooks';
 export { useStoreValue, useStoreValues } from '../stores/hooks/useStoreValue';
 export { useLocalStore } from '../stores/hooks/useLocalStore';
-```
-
-### hooks/react18-hooks.ts
-
-```typescript
-import { 
-  useDeferredValue, 
-  useTransition, 
-  useCallback, 
-  useMemo,
-  startTransition,
-  useSyncExternalStore
-} from 'react';
-import type { IStore } from '../stores/core/types';
-export interface React18Options {
-  enableDeferred?: boolean;
-  enableTransition?: boolean;
-  priorityThreshold?: number;
-  enableConcurrent?: boolean;
-}
-export function useStoreValueOptimized<T>(
-  store: IStore<T>,
-  options: React18Options = {}
-): T {
-  const {
-    enableDeferred = true
-  } = options;
-  const storeValue = useSyncExternalStore(
-    store.subscribe,
-    store.getSnapshot,
-    store.getSnapshot 
-  );
-  const currentValue = storeValue.value;
-  const deferredValue = useDeferredValue(currentValue);
-  const shouldUseDeferred = useMemo(() => {
-    if (!enableDeferred) return false;
-    if (typeof currentValue === 'object' && currentValue !== null) {
-      try {
-        const keys = Object.keys(currentValue);
-        const estimatedSize = keys.length * 50; 
-        if (Array.isArray(currentValue)) {
-          return currentValue.length > 100; 
-        }
-        if (keys.length > 10 || estimatedSize > 1000) {
-          const objectSize = JSON.stringify(currentValue).length;
-          return objectSize > 1000; 
-        }
-        return false;
-      } catch {
-        return true;
-      }
-    }
-    return false;
-  }, [currentValue, enableDeferred]);
-  return shouldUseDeferred ? deferredValue : currentValue;
-}
-export function useStoreTransition<T>(
-  store: IStore<T>
-): [
-  (newValue: T | ((prev: T) => T)) => void,
-  boolean
-] {
-  const [isPending, startTransition] = useTransition();
-  const updateWithTransition = useCallback((
-    newValue: T | ((prev: T) => T)
-  ) => {
-    startTransition(() => {
-      if (typeof newValue === 'function') {
-        const updater = newValue as (prev: T) => T;
-        store.update(updater);
-      } else {
-        store.setValue(newValue);
-      }
-    });
-  }, [store]);
-  return [updateWithTransition, isPending];
-}
-export function useStoreUpdateSmart<T>(
-  store: IStore<T>,
-  options: React18Options = {}
-): [
-  (newValue: T | ((prev: T) => T)) => void,
-  boolean,
-  (newValue: T | ((prev: T) => T)) => void
-] {
-  const {
-    enableTransition = true,
-    priorityThreshold = 1000
-  } = options;
-  const [isPending, startTransition] = useTransition();
-  const smartUpdate = useCallback((
-    newValue: T | ((prev: T) => T)
-  ) => {
-    let isComplex = false;
-    if (typeof newValue === 'function') {
-      isComplex = true; 
-    } else if (typeof newValue === 'object' && newValue !== null) {
-      try {
-        if (Array.isArray(newValue)) {
-          isComplex = newValue.length > (priorityThreshold / 10); 
-        } else {
-          const keys = Object.keys(newValue);
-          if (keys.length > 10) {
-            const size = JSON.stringify(newValue).length;
-            isComplex = size > priorityThreshold;
-          } else {
-            isComplex = false;
-          }
-        }
-      } catch {
-        isComplex = true;
-      }
-    }
-    if (enableTransition && isComplex) {
-      startTransition(() => {
-        if (typeof newValue === 'function') {
-          const updater = newValue as (prev: T) => T;
-          store.update(updater);
-        } else {
-          store.setValue(newValue);
-        }
-      });
-    } else {
-      if (typeof newValue === 'function') {
-        const updater = newValue as (prev: T) => T;
-        store.update(updater);
-      } else {
-        store.setValue(newValue);
-      }
-    }
-  }, [store, enableTransition, priorityThreshold]);
-  const immediateUpdate = useCallback((
-    newValue: T | ((prev: T) => T)
-  ) => {
-    if (typeof newValue === 'function') {
-      const updater = newValue as (prev: T) => T;
-      store.update(updater);
-    } else {
-      store.setValue(newValue);
-    }
-  }, [store]);
-  return [smartUpdate, isPending, immediateUpdate];
-}
-export function useStoreSelector<T, K>(
-  store: IStore<T>,
-  selector: (value: T) => K,
-  options: React18Options = {}
-): K {
-  const {
-    enableDeferred = true
-  } = options;
-  const storeValue = useSyncExternalStore(
-    store.subscribe,
-    store.getSnapshot,
-    store.getSnapshot
-  );
-  const selectedValue = useMemo(() => {
-    return selector(storeValue.value);
-  }, [selector, storeValue.value]);
-  const deferredValue = useDeferredValue(selectedValue);
-  const shouldUseDeferred = useMemo(() => {
-    if (!enableDeferred) return false;
-    if (typeof selectedValue === 'object' && selectedValue !== null) {
-      return true;
-    }
-    return false;
-  }, [selectedValue, enableDeferred]);
-  return shouldUseDeferred ? deferredValue : selectedValue;
-}
-export function useBatchUpdate() {
-  const [isPending, startTransition] = useTransition();
-  const batchUpdate = useCallback((updates: (() => void)[]) => {
-    startTransition(() => {
-      updates.forEach(update => {
-        try {
-          update();
-        } catch (error) {
-          console.error('Error in batch update:', error);
-        }
-      });
-    });
-  }, []);
-  return [batchUpdate, isPending] as const;
-}
-export const React18Utils = {
-  startTransition: (callback: () => void) => {
-    startTransition(callback);
-  },
-  conditionalTransition: (
-    condition: boolean, 
-    callback: () => void
-  ) => {
-    if (condition) {
-      startTransition(callback);
-    } else {
-      callback();
-    }
-  },
-  calculateUpdateComplexity: <T>(value: T): number => {
-    if (typeof value === 'object' && value !== null) {
-      try {
-        const size = JSON.stringify(value).length;
-        return Math.min(size / 100, 10); 
-      } catch {
-        return 5; 
-      }
-    }
-    return 1; 
-  },
-  getRecommendedThreshold: (deviceType: 'mobile' | 'desktop' = 'desktop'): number => {
-    return deviceType === 'mobile' ? 500 : 1000;
-  }
-};
-export function useReact18Compatibility() {
-  const hasUseDeferredValue = typeof useDeferredValue === 'function';
-  const hasUseTransition = typeof useTransition === 'function';
-  const hasUseSyncExternalStore = typeof useSyncExternalStore === 'function';
-  return {
-    isReact18Compatible: hasUseDeferredValue && hasUseTransition,
-    features: {
-      deferredValue: hasUseDeferredValue,
-      transition: hasUseTransition,
-      syncExternalStore: hasUseSyncExternalStore
-    }
-  };
-}
 ```
 
 ### index.ts
@@ -838,7 +738,7 @@ export type { IStore, Snapshot } from './stores/core/types';
 export { StoreErrorBoundary } from './stores/components/StoreErrorBoundary';
 export type { StoreErrorBoundaryProps } from './stores/components/StoreErrorBoundary';
 export { createStoreContext, StoreManager } from './stores/patterns/declarative-store-pattern-v2';
-export type { InitialStores, StoreConfig } from './stores/patterns/declarative-store-pattern-v2';
+export type { InitialStores, StoreConfig, WithProviderConfig } from './stores/patterns/declarative-store-pattern-v2';
 export { createRefContext } from './refs/createRefContext';
 export type { RefContextReturn, CreateRefContextOptions } from './refs/createRefContext';
 export type { RefTarget, RefOperationOptions, RefOperationResult } from './refs/types';
@@ -859,12 +759,6 @@ export { ActionRegister } from '@context-action/core';
 ```typescript
 export * from '../stores/patterns';
 export * from '../actions/ActionContext';
-```
-
-### react18.ts
-
-```typescript
-export * from './hooks/react18-hooks';
 ```
 
 ### refs/createRefContext.ts
@@ -1937,9 +1831,8 @@ export type {
 import type { IStore, Listener, Snapshot, Unsubscribe, StoreSetValueOptions } from './types';
 import type { StoreRegistry } from './StoreRegistry';
 import { safeGet, safeSet, produce } from '../utils/immutable';
-import { 
-  compareValues, 
-  fastCompare, 
+import {
+  compareValues,
   ComparisonOptions
 } from '../utils/comparison';
 import { TypeGuards } from '../utils/type-guards';
@@ -2217,7 +2110,7 @@ export class Store<T = unknown> implements IStore<T> {
         result = !areEqual;
       }
       else {
-        const areEqual = fastCompare(oldValue, newValue);
+        const areEqual = compareValues(oldValue, newValue, { strategy: 'reference' });
         result = !areEqual;
       }
     } catch (error) {
@@ -2486,14 +2379,11 @@ export {
   type EnhancedSubscriptionOptions
 } from '../utils/sync-external-store-utils';
 export { useLocalStore } from './useLocalStore';
-export { usePersistedStore } from './usePersistedStore';
-export { 
-  useStoreSelector, 
-  useMultiStoreSelector, 
-  useStorePathSelector,
+export {
+  useStoreSelector,
   shallowEqual,
   deepEqual,
-  defaultEqualityFn 
+  defaultEqualityFn
 } from './useStoreSelector';
 export { 
   useComputedStore, 
@@ -2501,16 +2391,6 @@ export {
   useComputedStoreInstance,
   useAsyncComputedStore 
 } from './useComputedStore';
-export {
-  useOptimizedStoreValue,
-  useBulkStoreValues,
-  useConditionalStoreValue,
-  useStoreValuePath,
-  useLazyStoreValue,
-  useStoreMetrics,
-  type OptimizedStoreOptions,
-  type SubscriptionMetrics
-} from './useOptimizedStoreValue';
 ```
 
 ### stores/hooks/useComputedStore.ts
@@ -2519,8 +2399,8 @@ export {
 import { useMemo, useRef, useCallback, useEffect, useState } from 'react';
 import { createStore } from '../core/Store';
 import type { Store } from '../core/Store';
-import { useStoreValue } from './useStoreValue';
 import { defaultEqualityFn } from './useStoreSelector';
+import { useSafeStoreSubscription, useMultiStoreSubscription } from '../utils/sync-external-store-utils';
 export interface ComputedStoreConfig<R> {
   equalityFn?: (a: R, b: R) => boolean;
   debug?: boolean;
@@ -2543,111 +2423,92 @@ export function useComputedStore<T, R>(
     onError,
     debounceMs,
     enableCache = false,
-    cacheSize = 10
+    cacheSize = 10,
+    initialValue
   } = config;
   const computeRef = useRef(compute);
-  const equalityFnRef = useRef(equalityFn);
-  const cacheRef = useRef<Array<{ input: T; output: R }>>([]);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const cacheRef = useRef<Map<T, R>>(new Map());
+  const lastComputedRef = useRef<R>();
+  const lastInputRef = useRef<T>();
   computeRef.current = compute;
-  equalityFnRef.current = equalityFn;
-  const currentValue = useStoreValue(store);
-  const [computedValue, setComputedValue] = useState<R>(() => {
-    try {
-      return config.initialValue !== undefined 
-        ? config.initialValue 
-        : compute(currentValue);
-    } catch (error) {
-      if (onError) {
-        onError(error as Error);
-      } else if (debug) {
-        console.error(`useComputedStore [${name}]: Error in initial computation:`, error);
-      }
-      throw error;
-    }
-  });
-  const findCachedValue = useCallback((input: T): R | undefined => {
+  const getCachedValue = useCallback((input: T): R | undefined => {
     if (!enableCache) return undefined;
-    const cached = cacheRef.current.find(entry => 
-      defaultEqualityFn(entry.input, input)
-    );
-    return cached?.output;
-  }, [enableCache]);
+    if (lastInputRef.current === input && lastComputedRef.current !== undefined) {
+      return lastComputedRef.current;
+    }
+    for (const [cachedInput, cachedOutput] of cacheRef.current) {
+      if (defaultEqualityFn(cachedInput, input)) {
+        if (debug) {
+          console.debug(`useComputedStore [${name}]: Using cached value`);
+        }
+        return cachedOutput;
+      }
+    }
+    return undefined;
+  }, [enableCache, debug, name]);
   const setCachedValue = useCallback((input: T, output: R) => {
     if (!enableCache) return;
-    const existingIndex = cacheRef.current.findIndex(entry => 
-      defaultEqualityFn(entry.input, input)
-    );
-    if (existingIndex !== -1) {
-      cacheRef.current[existingIndex] = { input, output };
-    } else {
-      cacheRef.current.push({ input, output });
-      if (cacheRef.current.length > cacheSize) {
-        cacheRef.current.shift(); 
+    lastInputRef.current = input;
+    lastComputedRef.current = output;
+    cacheRef.current.set(input, output);
+    if (cacheRef.current.size > cacheSize) {
+      const firstKey = cacheRef.current.keys().next().value;
+      if (firstKey !== undefined) {
+        cacheRef.current.delete(firstKey);
       }
     }
     if (debug) {
       console.debug(`useComputedStore [${name}]: Cache updated`, {
-        cacheSize: cacheRef.current.length,
+        cacheSize: cacheRef.current.size,
         input,
         output
       });
     }
   }, [enableCache, cacheSize, debug, name]);
-  const performComputation = useCallback((input: T) => {
+  const computeSelector = useCallback((value: T): R => {
     try {
-      const cachedValue = findCachedValue(input);
-      if (cachedValue !== undefined) {
-        if (debug) {
-          console.debug(`useComputedStore [${name}]: Using cached value`);
-        }
-        return cachedValue;
+      const cached = getCachedValue(value);
+      if (cached !== undefined) {
+        return cached;
       }
-      const startTime = debug ? Date.now() : 0;
-      const result = computeRef.current(input);
+      const startTime = debug ? performance.now() : 0;
+      const result = computeRef.current(value);
       if (debug) {
-        const duration = Date.now() - startTime;
-        console.debug(`useComputedStore [${name}]: Computed in ${duration}ms`, {
-          input,
+        const duration = performance.now() - startTime;
+        console.debug(`useComputedStore [${name}]: Computed in ${duration.toFixed(2)}ms`, {
+          input: value,
           result
         });
       }
-      setCachedValue(input, result);
+      setCachedValue(value, result);
+      lastComputedRef.current = result;
       return result;
     } catch (error) {
       if (onError) {
         onError(error as Error);
-      } else if (debug) {
+        const fallbackValue = lastComputedRef.current !== undefined
+          ? lastComputedRef.current
+          : initialValue as R;
+        return fallbackValue;
+      }
+      if (debug) {
         console.error(`useComputedStore [${name}]: Error in computation:`, error);
       }
       throw error;
     }
-  }, [findCachedValue, setCachedValue, debug, name, onError]);
-  const updateComputedValue = useCallback((newInput: T) => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
+  }, [getCachedValue, setCachedValue, debug, name, onError, initialValue]);
+  const computedValue = useSafeStoreSubscription(
+    store,
+    computeSelector,
+    {
+      equalityFn,
+      debounce: debounceMs,
+      debug,
+      name: `computed-${name}`,
+      initialValue
     }
-    const doUpdate = () => {
-      const newComputedValue = performComputation(newInput);
-      if (!equalityFnRef.current(computedValue, newComputedValue)) {
-        setComputedValue(newComputedValue);
-      }
-    };
-    if (debounceMs && debounceMs > 0) {
-      debounceTimerRef.current = setTimeout(doUpdate, debounceMs);
-    } else {
-      doUpdate();
-    }
-  }, [computedValue, performComputation, debounceMs]);
-  useEffect(() => {
-    updateComputedValue(currentValue);
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, [currentValue, updateComputedValue]);
-  return computedValue;
+  );
+  return computedValue as R;
 }
 export function useMultiComputedStore<R>(
   stores: Store<any>[],
@@ -2660,133 +2521,96 @@ export function useMultiComputedStore<R>(
     debug = false,
     name = 'multiComputed',
     onError,
-    debounceMs,
     enableCache = false,
-    cacheSize = 10
+    cacheSize = 10,
+    initialValue
   } = finalConfig;
   const computeRef = useRef(compute);
-  const equalityFnRef = useRef(equalityFn);
-  const cacheRef = useRef<Array<{ inputs: any[]; output: R }>>([]);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const cacheRef = useRef<Map<string, R>>(new Map());
+  const lastComputedRef = useRef<R>();
+  const lastInputsRef = useRef<any[]>();
   computeRef.current = compute;
-  equalityFnRef.current = equalityFn;
-  const currentValues = useMemo(() => {
-    return stores.map(store => store.getValue());
-  }, [stores]);
-  useEffect(() => {
-    const unsubscribeFunctions: Array<() => void> = [];
-    stores.forEach(store => {
-      const unsubscribe = store.subscribe(() => {
-        setComputedValue(prev => {
-          const newValues = stores.map(s => s.getValue());
-          try {
-            const newComputed = computeRef.current(newValues);
-            return equalityFnRef.current(prev, newComputed) ? prev : newComputed;
-          } catch (error) {
-            if (onError) {
-              onError(error as Error);
-            } else if (debug) {
-              console.error(`useMultiComputedStore [${name}]: Error in computation:`, error);
-            }
-            return prev;
-          }
-        });
-      });
-      unsubscribeFunctions.push(unsubscribe);
-    });
-    return () => {
-      unsubscribeFunctions.forEach(unsubscribe => unsubscribe());
-    };
-  }, [stores, name, debug, onError]);
-  const [computedValue, setComputedValue] = useState<R>(() => {
+  const getCacheKey = useCallback((inputs: any[]): string => {
     try {
-      return finalConfig.initialValue !== undefined 
-        ? finalConfig.initialValue 
-        : compute(currentValues);
-    } catch (error) {
-      if (onError) {
-        onError(error as Error);
-      } else if (debug) {
-        console.error(`useMultiComputedStore [${name}]: Error in initial computation:`, error);
-      }
-      throw error;
+      return JSON.stringify(inputs);
+    } catch {
+      return inputs.map((v, i) => `${i}:${typeof v}`).join(',');
     }
-  });
-  const findCachedValue = useCallback((inputs: any[]): R | undefined => {
+  }, []);
+  const getCachedValue = useCallback((inputs: any[]): R | undefined => {
     if (!enableCache) return undefined;
-    const cached = cacheRef.current.find(entry => 
-      entry.inputs.length === inputs.length &&
-      entry.inputs.every((input, index) => defaultEqualityFn(input, inputs[index]))
-    );
-    return cached?.output;
-  }, [enableCache]);
+    if (lastInputsRef.current === inputs && lastComputedRef.current !== undefined) {
+      return lastComputedRef.current;
+    }
+    if (lastInputsRef.current &&
+        lastInputsRef.current.length === inputs.length &&
+        lastInputsRef.current.every((v, i) => defaultEqualityFn(v, inputs[i]))) {
+      return lastComputedRef.current;
+    }
+    const key = getCacheKey(inputs);
+    const cached = cacheRef.current.get(key);
+    if (cached !== undefined && debug) {
+      console.debug(`useMultiComputedStore [${name}]: Using cached value`);
+    }
+    return cached;
+  }, [enableCache, debug, name, getCacheKey]);
   const setCachedValue = useCallback((inputs: any[], output: R) => {
     if (!enableCache) return;
-    cacheRef.current.push({ inputs: [...inputs], output });
-    if (cacheRef.current.length > cacheSize) {
-      cacheRef.current.shift(); 
+    lastInputsRef.current = inputs;
+    lastComputedRef.current = output;
+    const key = getCacheKey(inputs);
+    cacheRef.current.set(key, output);
+    if (cacheRef.current.size > cacheSize) {
+      const firstKey = cacheRef.current.keys().next().value;
+      if (firstKey !== undefined) {
+        cacheRef.current.delete(firstKey);
+      }
     }
     if (debug) {
       console.debug(`useMultiComputedStore [${name}]: Cache updated`, {
-        cacheSize: cacheRef.current.length,
+        cacheSize: cacheRef.current.size,
         inputs,
         output
       });
     }
-  }, [enableCache, cacheSize, debug, name]);
-  const performComputation = useCallback((inputs: any[]) => {
+  }, [enableCache, cacheSize, debug, name, getCacheKey]);
+  const computeSelector = useCallback((values: any[]): R => {
     try {
-      const cachedValue = findCachedValue(inputs);
-      if (cachedValue !== undefined) {
-        if (debug) {
-          console.debug(`useMultiComputedStore [${name}]: Using cached value`);
-        }
-        return cachedValue;
+      const cached = getCachedValue(values);
+      if (cached !== undefined) {
+        return cached;
       }
-      const startTime = debug ? Date.now() : 0;
-      const result = computeRef.current(inputs);
+      const startTime = debug ? performance.now() : 0;
+      const result = computeRef.current(values);
       if (debug) {
-        const duration = Date.now() - startTime;
-        console.debug(`useMultiComputedStore [${name}]: Computed in ${duration}ms`, {
-          inputs,
+        const duration = performance.now() - startTime;
+        console.debug(`useMultiComputedStore [${name}]: Computed in ${duration.toFixed(2)}ms`, {
+          inputs: values,
           result
         });
       }
-      setCachedValue(inputs, result);
+      setCachedValue(values, result);
+      lastComputedRef.current = result;
       return result;
     } catch (error) {
       if (onError) {
         onError(error as Error);
-      } else if (debug) {
+        const fallbackValue = lastComputedRef.current !== undefined
+          ? lastComputedRef.current
+          : initialValue as R;
+        return fallbackValue;
+      }
+      if (debug) {
         console.error(`useMultiComputedStore [${name}]: Error in computation:`, error);
       }
       throw error;
     }
-  }, [findCachedValue, setCachedValue, debug, name, onError]);
-  const updateComputedValue = useCallback((newInputs: any[]) => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-    const doUpdate = () => {
-      const newComputedValue = performComputation(newInputs);
-      if (!equalityFnRef.current(computedValue, newComputedValue)) {
-        setComputedValue(newComputedValue);
-      }
-    };
-    if (debounceMs && debounceMs > 0) {
-      debounceTimerRef.current = setTimeout(doUpdate, debounceMs);
-    } else {
-      doUpdate();
-    }
-  }, [computedValue, performComputation, debounceMs]);
-  useEffect(() => {
-    updateComputedValue(currentValues);
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, [currentValues, updateComputedValue]);
+  }, [getCachedValue, setCachedValue, debug, name, onError, initialValue]);
+  const computedValue = useMultiStoreSubscription(
+    stores as any,
+    computeSelector,
+    equalityFn
+  );
   return computedValue;
 }
 export function useComputedStoreInstance<R>(
@@ -2885,13 +2709,14 @@ import { useRef } from 'react';
 import { Store, createStore } from '../core/Store';
 import { useStoreSelector } from '../utils/store-selector';
 import type { Snapshot } from '../core/types';
+let localStoreCounter = 0;
 export function useLocalStore<T>(
-  initialValue: T, 
+  initialValue: T,
   name?: string
 ): Snapshot<T> & { store: Store<T> } {
   const storeRef = useRef<Store<T> | null>(null);
   if (!storeRef.current) {
-    const storeName = name || `localStore_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const storeName = name || `localStore_${++localStoreCounter}`;
     storeRef.current = createStore(storeName, initialValue);
   }
   const snapshot = useStoreSelector(storeRef.current);
@@ -2899,353 +2724,6 @@ export function useLocalStore<T>(
     ...snapshot,
     store: storeRef.current
   };
-}
-```
-
-### stores/hooks/useOptimizedStoreValue.ts
-
-```typescript
-import { useSyncExternalStore, useCallback, useMemo, useRef, useEffect } from 'react';
-import type { Store } from '../core/Store';
-import { useSafeStoreSubscription } from '../utils/sync-external-store-utils';
-export interface OptimizedStoreOptions<T, R = T> {
-  selector?: (value: T) => R;
-  isEqual?: (prev: R, next: R) => boolean;
-  throttle?: number;
-  debounce?: number;
-  enableMemoization?: boolean;
-  maxCacheSize?: number;
-  enableMetrics?: boolean;
-  defaultValue?: R;
-  enableRetry?: boolean;
-  maxRetries?: number;
-}
-export interface SubscriptionMetrics {
-  totalUpdates: number;
-  throttledUpdates: number;
-  debouncedUpdates: number;
-  cacheHits: number;
-  cacheMisses: number;
-  averageSelectorTime: number;
-  lastUpdate: number;
-}
-interface CacheEntry<T, R> {
-  readonly input: T;
-  readonly output: R;
-  timestamp: number;
-  hitCount: number;
-}
-function isPositiveNumber(value: unknown): value is number {
-  return typeof value === 'number' && value > 0 && Number.isFinite(value);
-}
-function isValidSelector<T, R>(selector: unknown): selector is (value: T) => R {
-  return typeof selector === 'function';
-}
-function isValidEqualityFunction<R>(isEqual: unknown): isEqual is (prev: R, next: R) => boolean {
-  return typeof isEqual === 'function';
-}
-export function useOptimizedStoreValue<T, R = T>(
-  store: Store<T>,
-  options: OptimizedStoreOptions<T, R> = {}
-): R {
-  const {
-    selector,
-    isEqual = Object.is,
-    throttle,
-    debounce,
-    enableMemoization = false,
-    maxCacheSize = 10,
-    defaultValue,
-    enableRetry = true,
-    maxRetries = 3,
-    enableMetrics = false
-  } = options;
-  if (throttle !== undefined && !isPositiveNumber(throttle)) {
-    throw new TypeError('throttle must be a positive number');
-  }
-  if (debounce !== undefined && !isPositiveNumber(debounce)) {
-    throw new TypeError('debounce must be a positive number');
-  }
-  if (!isPositiveNumber(maxCacheSize)) {
-    throw new TypeError('maxCacheSize must be a positive number');
-  }
-  if (!isPositiveNumber(maxRetries)) {
-    throw new TypeError('maxRetries must be a positive number');
-  }
-  if (selector !== undefined && !isValidSelector(selector)) {
-    throw new TypeError('selector must be a function');
-  }
-  if (isEqual !== Object.is && !isValidEqualityFunction(isEqual)) {
-    throw new TypeError('isEqual must be a function');
-  }
-  const metricsRef = useRef<SubscriptionMetrics>({
-    totalUpdates: 0,
-    throttledUpdates: 0,
-    debouncedUpdates: 0,
-    cacheHits: 0,
-    cacheMisses: 0,
-    averageSelectorTime: 0,
-    lastUpdate: 0
-  });
-  const cacheRef = useRef<CacheEntry<T, R>[]>([]);
-  const lastValueRef = useRef<R | undefined>();
-  const errorCountRef = useRef(0);
-  const optimizedSelector = useCallback((value: T): R => {
-    const startTime = performance.now();
-    try {
-      let result: R;
-      if (selector) {
-        if (enableMemoization) {
-          const cached = cacheRef.current.find(entry => 
-            Object.is(entry.input, value)
-          );
-          if (cached) {
-            metricsRef.current.cacheHits++;
-            cached.hitCount++;
-            cached.timestamp = Date.now();
-            result = cached.output;
-          } else {
-            metricsRef.current.cacheMisses++;
-            result = selector(value);
-            const entry: CacheEntry<T, R> = {
-              input: value,
-              output: result,
-              timestamp: Date.now(),
-              hitCount: 1
-            };
-            cacheRef.current.push(entry);
-            if (cacheRef.current.length > maxCacheSize) {
-              cacheRef.current.sort((a, b) => a.timestamp - b.timestamp);
-              cacheRef.current.shift();
-            }
-          }
-        } else {
-          result = selector(value);
-        }
-      } else {
-        result = value as unknown as R;
-      }
-      errorCountRef.current = 0;
-      return result;
-    } catch (error) {
-      errorCountRef.current++;
-      console.warn(
-        `Selector error (attempt ${errorCountRef.current}/${maxRetries}):`,
-        error
-      );
-      if (enableRetry && errorCountRef.current < maxRetries) {
-        return lastValueRef.current ?? (defaultValue as R);
-      }
-      throw error; 
-    } finally {
-      if (enableMetrics) {
-        const duration = performance.now() - startTime;
-        const metrics = metricsRef.current;
-        metrics.averageSelectorTime = 
-          (metrics.averageSelectorTime * metrics.totalUpdates + duration) / 
-          (metrics.totalUpdates + 1);
-        metrics.totalUpdates++;
-        metrics.lastUpdate = Date.now();
-      }
-    }
-  }, [selector, enableMemoization, maxCacheSize, defaultValue, enableRetry, maxRetries, enableMetrics]);
-  const subscriptionOptions = {
-    debug: enableMetrics,
-    name: `optimized-${store.name}`,
-    equalityFn: isEqual as (a: R, b: R) => boolean,
-    initialValue: defaultValue as R,
-    ...(throttle !== undefined && { throttle }),
-    ...(debounce !== undefined && { debounce })
-  };
-  const currentValue = useSafeStoreSubscription(
-    store,
-    optimizedSelector,
-    subscriptionOptions
-  ) as R;
-  useEffect(() => {
-    lastValueRef.current = currentValue;
-    if (enableMetrics && currentValue !== undefined) {
-      const metrics = metricsRef.current;
-      metrics.totalUpdates++;
-    }
-  }, [currentValue, enableMetrics]);
-  useEffect(() => {
-    return () => {
-      cacheRef.current = [];
-    };
-  }, []);
-  return currentValue;
-}
-export function useStoreMetrics(): SubscriptionMetrics | null {
-  return null;
-}
-export function useBulkStoreValues<T extends Record<string, unknown>>(
-  stores: { readonly [K in keyof T]: Store<T[K]> },
-  options: OptimizedStoreOptions<unknown> = {}
-): T {
-  if (!stores || typeof stores !== 'object') {
-    throw new TypeError('stores must be an object');
-  }
-  if (Object.keys(stores).length === 0) {
-    throw new Error('stores object cannot be empty');
-  }
-  const storeArray = useMemo(() => Object.values(stores) as Store<unknown>[], [stores]);
-  const storeKeys = useMemo(() => Object.keys(stores), [stores]);
-  return useSyncExternalStore(
-    useCallback((callback: () => void) => {
-      const unsubscribes = storeArray.map(store => store.subscribe(callback));
-      return () => unsubscribes.forEach(unsub => unsub());
-    }, [storeArray]),
-    useCallback((): T => {
-      const result = {} as T;
-      storeKeys.forEach((key, index) => {
-        const store = storeArray[index];
-        if (store) {
-          (result as Record<string, unknown>)[key] = store.getValue();
-        }
-      });
-      return result;
-    }, [storeArray, storeKeys]),
-    useCallback((): T => {
-      const result = {} as T;
-      storeKeys.forEach(key => {
-        (result as Record<string, unknown>)[key] = options.defaultValue;
-      });
-      return result;
-    }, [storeKeys, options.defaultValue])
-  );
-}
-export function useConditionalStoreValue<T>(
-  store: Store<T>,
-  condition: boolean,
-  options: OptimizedStoreOptions<T> = {}
-): T | undefined {
-  if (typeof condition !== 'boolean') {
-    throw new TypeError('condition must be a boolean');
-  }
-  return useSafeStoreSubscription(
-    condition ? store : null,
-    undefined,
-    {
-      initialValue: options.defaultValue as T,
-      name: `conditional-${store.name}`
-    }
-  );
-}
-export function useStoreValuePath<
-  T extends Record<string, unknown>, 
-  K extends string
->(
-  store: Store<T>,
-  path: K,
-  options: OptimizedStoreOptions<T> = {}
-): unknown {
-  if (typeof path !== 'string' || path.length === 0) {
-    throw new TypeError('path must be a non-empty string');
-  }
-  if (path.includes('..') || path.startsWith('.') || path.endsWith('.')) {
-    throw new Error('path cannot contain relative path components or start/end with dots');
-  }
-  const pathSelector = useCallback((value: T) => {
-    const pathParts = path.split('.');
-    let result: unknown = value;
-    for (const part of pathParts) {
-      if (result && typeof result === 'object' && part in result) {
-        result = (result as Record<string, unknown>)[part];
-      } else {
-        return undefined;
-      }
-    }
-    return result;
-  }, [path]);
-  return useSafeStoreSubscription(
-    store,
-    pathSelector,
-    {
-      equalityFn: options.isEqual as (a: unknown, b: unknown) => boolean,
-      initialValue: options.defaultValue,
-      name: `path-${store.name}-${path}`
-    }
-  );
-}
-export function useLazyStoreValue<T>(
-  store: Store<T>,
-  options: OptimizedStoreOptions<T> & {
-    suspense?: boolean;
-    loader?: () => Promise<T>;
-  } = {}
-): T {
-  const { suspense = false, loader, ...restOptions } = options;
-  const value = useOptimizedStoreValue(store, restOptions);
-  if (suspense && loader && value === undefined) {
-    throw loader(); 
-  }
-  return value as T;
-}
-```
-
-### stores/hooks/usePersistedStore.ts
-
-```typescript
-import { useRef, useEffect } from 'react';
-import { Store } from '../core/Store';
-import { useStoreSelector } from '../utils/store-selector';
-interface PersistOptions {
-  storage?: Storage;                        
-  serialize?: (value: any) => string;       
-  deserialize?: (value: string) => any;     
-}
-export function usePersistedStore<T>(
-  key: string,
-  initialValue: T,
-  options: PersistOptions = {}
-) {
-  const {
-    storage = localStorage,           
-    serialize = JSON.stringify,       
-    deserialize = JSON.parse          
-  } = options;
-  const storeRef = useRef<Store<T> | null>(null);
-  if (!storeRef.current) {
-    let value = initialValue;
-    try {
-      const stored = storage.getItem(key);
-      if (stored !== null) {
-        value = deserialize(stored);
-      }
-    } catch (error) {
-      console.warn(`Failed to load persisted value for "${key}":`, error);
-    }
-    storeRef.current = new Store(key, value);
-  }
-  const store = storeRef.current;
-  useStoreSelector(store);
-  useEffect(() => {
-    const unsubscribe = store.subscribe(() => {
-      try {
-        const value = store.getValue();
-        storage.setItem(key, serialize(value));
-      } catch (error) {
-        console.warn(`Failed to persist value for "${key}":`, error);
-      }
-    });
-    return unsubscribe;
-  }, [store, key, storage, serialize]);
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === key && e.newValue !== null) {
-        try {
-          const value = deserialize(e.newValue);
-          store.setValue(value);
-        } catch (error) {
-          console.warn(`Failed to sync value for "${key}":`, error);
-        }
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [store, key, deserialize]);
-  return store;
 }
 ```
 
@@ -3299,63 +2777,15 @@ export function useStoreSelector<T, R>(
   }, [store, stableSelector, stableEqualityFn]);
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
-export function useMultiStoreSelector<R>(
-  stores: Store<any>[],
-  selector: (values: any[]) => R,
-  equalityFn: (a: R, b: R) => boolean = defaultEqualityFn
-): R {
-  const stableSelector = useCallback(selector, [selector]);
-  const stableEqualityFn = useCallback(equalityFn, [equalityFn]);
-  const previousValueRef = useRef<R>();
-  const subscribe = useCallback((callback: () => void) => {
-    const unsubscribes = stores.map(store => store.subscribe(callback));
-    return () => unsubscribes.forEach(unsub => unsub());
-  }, [stores]);
-  const getSnapshot = useCallback((): R => {
-    try {
-      const storeValues = stores.map(store => store.getValue());
-      const selectedValue = stableSelector(storeValues);
-      if (previousValueRef.current !== undefined && stableEqualityFn(previousValueRef.current, selectedValue)) {
-        return previousValueRef.current;
-      }
-      previousValueRef.current = selectedValue;
-      return selectedValue;
-    } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('useMultiStoreSelector: Error in selector:', error);
-      }
-      throw error;
-    }
-  }, [stores, stableSelector, stableEqualityFn]);
-  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
-}
-export function useStorePathSelector<T>(
-  store: Store<T>,
-  path: (string | number)[],
-  equalityFn: (a: any, b: any) => boolean = defaultEqualityFn
-): any {
-  const pathSelector = useCallback((value: T) => {
-    let current: any = value;
-    for (const key of path) {
-      if (current == null) return undefined;
-      current = current[key];
-    }
-    return current;
-  }, [path]);
-  return useStoreSelector(store, pathSelector, equalityFn);
-}
 ```
 
 ### stores/hooks/useStoreValue.ts
 
 ```typescript
-import { useMemo, useDeferredValue } from 'react';
+import { useMemo } from 'react';
 import { shallowEqual, defaultEqualityFn } from './useStoreSelector';
 import type { Store } from '../core/Store';
-import type { React18Options } from '../../hooks/react18-hooks';
-import { 
-  useSafeStoreSubscription
-} from '../utils/sync-external-store-utils';
+import { useSafeStoreSubscription } from '../utils/sync-external-store-utils';
 export function assertStoreValue<T>(value: T | undefined, storeName: string): T {
   if (value === undefined) {
     throw new Error(
@@ -3367,15 +2797,12 @@ export function assertStoreValue<T>(value: T | undefined, storeName: string): T 
 }
 export interface StoreValueOptions<R> {
   equalityFn?: (a: R, b: R) => boolean;
-  lazy?: boolean;
   condition?: () => boolean;
   debounce?: number;
   throttle?: number;
   initialValue?: R;
-  suspendedValue?: R;
   debug?: boolean;
   name?: string;
-  react18?: React18Options;
 }
 export function useStoreValue<T>(
   store: Store<T>, 
@@ -3404,15 +2831,12 @@ export function useStoreValue<T, R>(
   const finalOptions = (typeof selectorOrOptions === 'function' ? options : selectorOrOptions) || {};
   const {
     equalityFn = defaultEqualityFn,
-    lazy = false,
     condition,
     debounce,
     throttle,
     initialValue,
-    suspendedValue,
     debug = false,
-    name = store?.name || 'unknown',
-    react18 = {}
+    name = store?.name || 'unknown'
   } = finalOptions;
   const subscriptionOptions = {
     debug,
@@ -3421,44 +2845,14 @@ export function useStoreValue<T, R>(
     initialValue: initialValue as R,
     ...(debounce !== undefined && { debounce }),
     ...(throttle !== undefined && { throttle }),
-    ...(condition && { condition }),
-    ...(lazy && !condition && { condition: () => false })
+    ...(condition && { condition })
   };
-  const rawValue = useSafeStoreSubscription(
+  const value = useSafeStoreSubscription(
     store,
     selector,
     subscriptionOptions
   );
-  const processedValue = useMemo(() => {
-    if (lazy && condition && !condition()) {
-      return suspendedValue !== undefined ? suspendedValue : initialValue;
-    }
-    return rawValue;
-  }, [rawValue, lazy, condition, suspendedValue, initialValue]);
-  const {
-    enableDeferred = false,
-    priorityThreshold = 1000
-  } = react18;
-  const deferredProcessedValue = useDeferredValue(processedValue);
-  const finalValue = useMemo(() => {
-    if (!enableDeferred) return processedValue;
-    const shouldDefer = (() => {
-      if (typeof processedValue === 'object' && processedValue !== null) {
-        try {
-          const size = JSON.stringify(processedValue).length;
-          return size > priorityThreshold;
-        } catch {
-          return true; 
-        }
-      }
-      return false;
-    })();
-    if (shouldDefer && debug) {
-      console.debug(`useStoreValue [${name}]: Using deferred value for complex state`);
-    }
-    return shouldDefer ? deferredProcessedValue : processedValue;
-  }, [processedValue, deferredProcessedValue, enableDeferred, priorityThreshold, debug, name]);
-  return finalValue;
+  return value;
 }
 export function useStoreValues<T, S extends Record<string, (value: T) => any>>(
   store: Store<T> | undefined | null,
@@ -3959,235 +3353,6 @@ export function compareValues<T>(
   }
   return result;
 }
-export function fastCompare<T>(oldValue: T, newValue: T): boolean {
-  if (Object.is(oldValue, newValue)) {
-    return true;
-  }
-  if (oldValue == null || newValue == null) {
-    return oldValue === newValue;
-  }
-  if (typeof oldValue !== 'object' || typeof newValue !== 'object') {
-    return oldValue === newValue;
-  }
-  if (typeof oldValue === 'object' && oldValue !== null) {
-    const isDOMElement = (
-      (typeof Element !== 'undefined' && oldValue instanceof Element) ||
-      (typeof Node !== 'undefined' && oldValue instanceof Node) ||
-      (typeof HTMLElement !== 'undefined' && oldValue instanceof HTMLElement) ||
-      (oldValue as any).nodeType !== undefined ||
-      (oldValue as any)._owner !== undefined ||
-      (oldValue as any).stateNode !== undefined
-    );
-    if (isDOMElement) {
-      return Object.is(oldValue, newValue);
-    }
-  }
-  try {
-    const oldStr = JSON.stringify(oldValue);
-    const newStr = JSON.stringify(newValue);
-    if (oldStr.length <= 1000 && newStr.length <= 1000) { 
-      return oldStr === newStr;
-    }
-  } catch (error) {
-    const errorMessage = error?.toString() || '';
-    if (
-      errorMessage.includes('circular') ||
-      errorMessage.includes('HTMLDivElement') ||
-      errorMessage.includes('HTMLElement') ||
-      errorMessage.includes('Converting circular structure')
-    ) {
-      return Object.is(oldValue, newValue);
-    }
-    if (process.env.NODE_ENV === 'development') {
-      console.debug('[FastCompare] JSON serialization failed, using fallback comparison:', error);
-    }
-  }
-  if (Array.isArray(oldValue) && Array.isArray(newValue)) {
-    if (oldValue.length !== newValue.length) {
-      return false;
-    }
-    if (oldValue.length <= 10) { 
-      return oldValue.every((item, index) => Object.is(item, newValue[index]));
-    }
-  }
-  const oldKeys = Object.keys(oldValue as Record<string, unknown>);
-  if (oldKeys.length <= 5) { 
-    const newKeys = Object.keys(newValue as Record<string, unknown>);
-    if (oldKeys.length === newKeys.length) {
-      return oldKeys.every(key => 
-        newKeys.includes(key) && 
-        Object.is((oldValue as Record<string, unknown>)[key], (newValue as Record<string, unknown>)[key])
-      );
-    }
-  }
-  return compareValues(oldValue, newValue);
-}
-export function createStoreComparator<T>(
-  options: Partial<ComparisonOptions<T>> = {}
-): (oldValue: T, newValue: T) => boolean {
-  const finalOptions = { ...globalComparisonOptions, ...options };
-  return (oldValue: T, newValue: T) => {
-    return compareValues(oldValue, newValue, finalOptions);
-  };
-}
-export interface ComparisonMetrics {
-  strategy: ComparisonStrategy;
-  duration: number;
-  result: boolean;
-  complexity: 'simple' | 'medium' | 'complex';
-  timestamp: number;
-}
-export function measureComparison<T>(
-  oldValue: T,
-  newValue: T,
-  options: Partial<ComparisonOptions<T>> = {}
-): ComparisonMetrics {
-  const startTime = performance.now();
-  const result = compareValues(oldValue, newValue, options);
-  const duration = performance.now() - startTime;
-  let complexity: 'simple' | 'medium' | 'complex' = 'simple';
-  if (typeof oldValue === 'object' && oldValue !== null) {
-    const size = JSON.stringify(oldValue).length;
-    if (size > 1000) complexity = 'complex';
-    else if (size > 100) complexity = 'medium';
-  }
-  const metrics: ComparisonMetrics = {
-    strategy: options.strategy || globalComparisonOptions.strategy,
-    duration,
-    result,
-    complexity,
-    timestamp: Date.now()
-  };
-  return metrics;
-}
-function isDOMElement(value: unknown): boolean {
-  if (typeof value !== 'object' || value === null) return false;
-  const obj = value as Record<string, unknown>;
-  if (typeof Element !== 'undefined' && value instanceof Element) return true;
-  if (typeof Node !== 'undefined' && value instanceof Node) return true;
-  if (typeof HTMLElement !== 'undefined' && value instanceof HTMLElement) return true;
-  return (
-    typeof obj.nodeType === 'number' ||
-    typeof obj.nodeName === 'string' ||
-    obj._owner !== undefined ||  
-    obj.stateNode !== undefined  
-  );
-}
-function isUnsafeObject(value: unknown): boolean {
-  if (typeof value !== 'object' || value === null) return false;
-  const obj = value as Record<string, unknown>;
-  const dangerousKeys = ['__proto__', 'constructor', 'prototype'];
-  if (dangerousKeys.some(key => Object.prototype.hasOwnProperty.call(obj, key))) {
-    const protoValue = obj.__proto__;
-    const constructorValue = obj.constructor;
-    if (protoValue === Object.prototype || protoValue === Array.prototype) {
-    } else if (constructorValue === Object || constructorValue === Array) {
-    } else {
-      return true; 
-    }
-  }
-  const stringValues = Object.values(obj).filter((v): v is string => typeof v === 'string');
-  const hasScriptTags = stringValues.some(str => 
-    /<script[^>]*>|javascript:|data:text\/html|eval\(|Function\(/i.test(str)
-  );
-  if (hasScriptTags) {
-    console.warn('Potentially unsafe string content detected in object comparison');
-    return true;
-  }
-  try {
-    const serialized = JSON.stringify(obj);
-    if (serialized.length > 100000) { 
-      console.warn('Extremely large object detected in comparison');
-      return true;
-    }
-  } catch {
-  }
-  return false;
-}
-export function sanitizeValue<T>(value: T): T {
-  if (typeof value === 'string') {
-    const sanitizedString = value
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#x27;');
-    return sanitizedString as T;
-  }
-  if (typeof value !== 'object' || value === null) {
-    return value;
-  }
-  try {
-    const sanitized = JSON.parse(JSON.stringify(value));
-    function cleanObject(obj: Record<string, unknown>): Record<string, unknown> {
-      const dangerousKeys = ['__proto__', 'constructor', 'prototype'];
-      const clean = { ...obj };
-      dangerousKeys.forEach(key => {
-        delete clean[key];
-      });
-      Object.keys(clean).forEach(key => {
-        if (typeof clean[key] === 'object' && clean[key] !== null) {
-          clean[key] = cleanObject(clean[key] as Record<string, unknown>);
-        }
-      });
-      return clean;
-    }
-    return cleanObject(sanitized as Record<string, unknown>) as T;
-  } catch (error) {
-    console.warn('Failed to sanitize value, returning original:', error);
-    return value;
-  }
-}
-export function validateSecurity<T>(value: T, options: SecurityOptions = {}): boolean {
-  const {
-    preventPrototypePollution = true,
-    preventXSS = true,
-    maxDepth = 10,
-    maxStringLength = 10000
-  } = options;
-  if (typeof value !== 'object' || value === null) {
-    if (typeof value === 'string' && value.length > maxStringLength) {
-      return false;
-    }
-    return true;
-  }
-  let currentDepth = 0;
-  function checkDepth(obj: unknown): boolean {
-    if (currentDepth > maxDepth) return false;
-    if (typeof obj === 'object' && obj !== null) {
-      currentDepth++;
-      if (Array.isArray(obj)) {
-        return obj.every(item => checkDepth(item));
-      } else {
-        return Object.values(obj as Record<string, unknown>).every(val => checkDepth(val));
-      }
-    }
-    return true;
-  }
-  if (!checkDepth(value)) {
-    console.warn('Object depth exceeds security limit');
-    return false;
-  }
-  if (preventPrototypePollution && isUnsafeObject(value)) {
-    return false;
-  }
-  if (preventXSS) {
-    const stringValues = JSON.stringify(value);
-    if (/<script|javascript:|data:text\/html|eval\(|Function\(/i.test(stringValues)) {
-      console.warn('Potentially unsafe content detected');
-      return false;
-    }
-  }
-  return true;
-}
-export interface SecurityOptions {
-  preventPrototypePollution?: boolean;
-  preventXSS?: boolean;
-  maxDepth?: number;
-  maxStringLength?: number;
-  allowedProperties?: RegExp;
-  blockedProperties?: RegExp;
-}
 ```
 
 ### stores/utils/error-handling.ts
@@ -4277,14 +3442,6 @@ export function handleError(
     throw error;
   }
   return error;
-}
-export function handleContextActionError(
-  type: ContextActionErrorType,
-  message: string,
-  context?: Record<string, unknown>,
-  originalError?: Error
-): ContextActionError {
-  return handleError(type, message, context, originalError);
 }
 function logError(error: ContextActionError): void {
   const signature = createErrorSignature(error);
@@ -4408,12 +3565,14 @@ export function getErrorStatistics(): ErrorStatistics {
 ### stores/utils/immutable.ts
 
 ```typescript
-import { 
-  produce as immerProduce, 
-  isDraft as immerIsDraft, 
-  original as immerOriginal, 
-  current as immerCurrent 
+import {
+  produce as immerProduce,
+  isDraft as immerIsDraft,
+  original as immerOriginal,
+  current as immerCurrent,
+  enableMapSet
 } from 'immer';
+enableMapSet();
 function isPrimitive(value: unknown): boolean {
   return (
     value === null ||
@@ -4601,9 +3760,11 @@ function fallbackClone<T>(value: T): T {
           }
           jsonVisited.add(val);
           if ('__contextActionRefState' in val && val.__contextActionRefState === true) {
-            for (const [id, refStateObj] of refStateObjects) {
-              if (refStateObj === val) {
-                return { __REFSTATE_PLACEHOLDER__: id };
+            const entries = Array.from(refStateObjects.entries());
+            for (let i = 0; i < entries.length; i++) {
+              const entry = entries[i];
+              if (entry && entry[1] === val) {
+                return { __REFSTATE_PLACEHOLDER__: entry[0] };
               }
             }
           }
@@ -4725,7 +3886,7 @@ export function produce<T>(baseState: T, producer: (draft: T) => void | T): T {
     try {
       const draft = deepClone(baseState);
       const result = producer(draft);
-      return result !== undefined ? result : draft;
+      return (result !== undefined ? result : draft) as T;
     } catch (fallbackError) {
       if (process.env.NODE_ENV === 'development') {
         logger.error('Produce fallback failed, returning original state', fallbackError);
@@ -4733,15 +3894,6 @@ export function produce<T>(baseState: T, producer: (draft: T) => void | T): T {
       return baseState;
     }
   }
-}
-export function isDraft(value: unknown): boolean {
-  return immerIsDraft(value);
-}
-export function original<T>(value: T): T | undefined {
-  return immerOriginal(value);
-}
-export function current<T>(value: T): T {
-  return immerCurrent(value);
 }
 ```
 
@@ -4770,7 +3922,6 @@ export {
 export {
   SubscriptionManager,
   useSubscriptionManager,
-  globalSubscriptionTracker,
   type SubscriptionEntry,
   type SubscriptionStats
 } from './subscription-manager';
@@ -4876,21 +4027,6 @@ export function useStoreSelector<T, R = Snapshot<T>>(
     store?.subscribe ?? CONSTANTS.EMPTY_SUBSCRIBE,
     selectedGetSnapshot as () => R
   );
-}
-export function useStore<T>(store: IStore<T> | undefined | null): Snapshot<T> {
-  return useStoreSelector(store);
-}
-export function createTypedStoreHooks<T>() {
-  return {
-    useStoreValue(store: IStore<T> | undefined | null): T | undefined {
-      return useStoreSelector(store, {
-        selector: (snapshot: any) => snapshot.value
-      });
-    },
-    useStoreSnapshot(store: IStore<T> | undefined | null): Snapshot<T> {
-      return useStoreSelector(store);
-    }
-  };
 }
 ```
 
@@ -5020,40 +4156,8 @@ export function useSubscriptionManager(): SubscriptionManager {
   }, []);
   return managerRef.current;
 }
-class GlobalSubscriptionTracker {
-  private managers = new Set<SubscriptionManager>();
-  register(manager: SubscriptionManager): void {
-    this.managers.add(manager);
-  }
-  unregister(manager: SubscriptionManager): void {
-    this.managers.delete(manager);
-  }
-  getGlobalStats(): {
-    totalManagers: number;
-    totalSubscriptions: number;
-  } {
-    let totalSubscriptions = 0;
-    for (const manager of this.managers) {
-      if (!manager.isManagerDisposed()) {
-        const stats = manager.getStats();
-        totalSubscriptions += stats.activeSubscriptions;
-      }
-    }
-    return {
-      totalManagers: this.managers.size,
-      totalSubscriptions
-    };
-  }
-  dispose(): void {
-    for (const manager of this.managers) {
-      manager.dispose();
-    }
-    this.managers.clear();
-  }
-}
-export const globalSubscriptionTracker = new GlobalSubscriptionTracker();
 if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-  (window as any).__contextActionSubscriptions = globalSubscriptionTracker;
+  (window as any).__contextActionDebug = { SubscriptionManager };
 }
 ```
 
@@ -5069,7 +4173,7 @@ export interface EnhancedSubscriptionOptions {
   debug?: boolean;
   name?: string;
 }
-export function createEnhancedSubscriber<T>(
+function createEnhancedSubscriber<T>(
   store: Store<T>,
   options: EnhancedSubscriptionOptions = {}
 ) {
@@ -5116,15 +4220,6 @@ export function createEnhancedSubscriber<T>(
       if (throttleTimer) clearTimeout(throttleTimer);
       unsubscribe();
     };
-  };
-}
-export function createSnapshotSelector<T, R>(
-  selector?: (value: T) => R
-) {
-  return (store: Store<T> | undefined | null): R | T | undefined => {
-    if (!store) return undefined;
-    const snapshot = store.getSnapshot();
-    return selector ? selector(snapshot.value) : snapshot.value;
   };
 }
 export function useSafeStoreSubscription<T, R = T>(
@@ -5306,22 +4401,8 @@ export function hasTargetProperty(value: unknown): value is { target: unknown } 
 export function isDOMElement(value: unknown): value is Element {
   return value instanceof Element;
 }
-export function isPromise<T = unknown>(value: unknown): value is Promise<T> {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    typeof (value as any).then === 'function' &&
-    typeof (value as any).catch === 'function'
-  );
-}
-export function isFunction(value: unknown): value is Function {
-  return typeof value === 'function';
-}
 export function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-export function isArray(value: unknown): value is unknown[] {
-  return Array.isArray(value);
 }
 export function isSuspiciousEventObject(value: unknown, checkNested = true): boolean {
   if (!isObject(value) || isRefState(value)) {
@@ -5385,10 +4466,7 @@ export const TypeGuards = {
   isEventLike,
   hasTargetProperty,
   isDOMElement,
-  isPromise,
-  isFunction,
   isObject,
-  isArray,
   isSuspiciousEventObject,
   findProblematicProperties
 } as const;
@@ -5500,4 +4578,64 @@ export const TypeUtils = {
     return value !== undefined && value !== null ? value as T : fallback;
   }
 } as const;
+```
+
+### utils.ts
+
+```typescript
+export { 
+  deepClone,
+  deepCloneWithImmer,
+  safeGet,
+  safeSet,
+  ImmerUtils,
+  preloadImmer,
+  produce
+} from './stores/utils/immutable';
+export { 
+  compareValues,
+  setGlobalComparisonOptions,
+  getGlobalComparisonOptions
+} from './stores/utils/comparison';
+export type {
+  ComparisonOptions,
+  ComparisonStrategy,
+  CustomComparator
+} from './stores/utils/comparison';
+export {
+  isStore,
+  isValidStoreValue,
+  extractStoreValue,
+  extractStoreValues,
+  createSafeEqualityFn,
+  createStoreConfig,
+  TypeUtils
+} from './stores/utils/type-helpers';
+export type {
+  StoreValue,
+  StoresValues,
+  StoreRecordValues,
+  StoreSelector,
+  EqualityFunction,
+  StoreListener,
+  StoreUpdater,
+  DeepReadonly,
+  StoreInitConfig,
+  PartialBy,
+  RequiredBy
+} from './stores/utils/type-helpers';
+export { 
+  composeProviders
+} from './stores/utils/provider-composition';
+export type {
+  ProviderComponent
+} from './stores/utils/provider-composition';
+export {
+  SubscriptionManager,
+  useSubscriptionManager
+} from './stores/utils/subscription-manager';
+export type {
+  SubscriptionEntry,
+  SubscriptionStats
+} from './stores/utils/subscription-manager';
 ```

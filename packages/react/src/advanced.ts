@@ -42,5 +42,5 @@ export type {
 export { createActionContext } from './actions/ActionContext';
 export type { ActionContextConfig, ActionContextReturn } from './actions/ActionContext.types';
 
-// React 18+ optimizations
-export * from './react18';
+// React 18+ types (for backward compatibility)
+export type { React18Options } from './stores/core/types';

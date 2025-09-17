@@ -30,7 +30,6 @@ examples/
 ### Utility Hooks (Learn As Needed)
 - **`useStoreSelector`**: Performance optimization through selective subscriptions
 - **`useComputedStore`**: Derived state computation from store values
-- **`usePersistedStore`**: Browser storage synchronization
 
 ### Pattern Hooks (For Larger Apps)
 - **`createStoreContext`**: Type-safe store pattern factory
@@ -89,7 +88,6 @@ For larger applications:
 
 ### 4. Add Specialized Features
 As needed:
-- `usePersistedStore` - Browser storage
 - `useAsyncComputedStore` - Async operations
 - `useStoreActions` - Memoized methods
 
@@ -125,7 +123,6 @@ __tests__/
 │       ├── useLocalStore.test.tsx
 │       ├── useStoreSelector.test.tsx
 │       ├── useComputedStore.test.tsx
-│       └── usePersistedStore.test.tsx
 ```
 
 Run tests with:
