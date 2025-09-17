@@ -1,8 +1,4 @@
 import { defineConfig } from 'tsdown'
-import { visualizer } from 'rollup-plugin-visualizer'
-
-// Determine if this is a production build
-const isProduction = process.env.NODE_ENV === 'production'
 
 export default defineConfig({
   entry: [
@@ -22,29 +18,5 @@ export default defineConfig({
     'immer'
   ],
   target: 'es2020',
-  minify: isProduction,
-  platform: 'browser', // Explicitly target browser platform
-
-  // Define constants that will be replaced at build time
-  define: {
-    // In production, replace process.env.NODE_ENV with 'production'
-    // This allows dead code elimination to remove debug code
-    'process.env.NODE_ENV': JSON.stringify(isProduction ? 'production' : 'development')
-  },
-
-  // Rollup input options (plugins, treeshake 등)
-  inputOptions: {
-    plugins: [
-      visualizer({
-        filename: 'reports/bundle-analysis.html',
-        open: false,
-        gzipSize: true,
-        brotliSize: true,
-        template: 'treemap'
-      })
-    ],
-
-    // Tree-shaking options for production
-    treeshake: isProduction
-  }
+  platform: 'browser' // Explicitly target browser platform
 })
