@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { createStore } from '../../../src/stores/core/Store';
 import { useComputedStore } from '../../../src/stores/hooks/useComputedStore';
 
@@ -33,9 +33,9 @@ describe('useComputedStore', () => {
     expect(result.current).toBe(10);
   });
 
-  it('should only recompute when store changes (not compute function)', () => {
-    // DESIGN PRINCIPLE: Store-Centric Recomputation
-    // The hook is designed to recompute only when the store value changes
+  it('should recompute when compute function changes', async () => {
+    // NEW BEHAVIOR: With useSyncExternalStore optimization,
+    // compute function changes will immediately affect the result
     const sourceStore = createStore('test', { count: 10 });
 
     const { result, rerender } = renderHook(
@@ -48,18 +48,19 @@ describe('useComputedStore', () => {
 
     expect(result.current).toBe(20);
 
-    // Changing only the compute function does NOT trigger recomputation
+    // Changing the compute function now triggers recomputation
     rerender({ multiplier: 3 });
-    expect(result.current).toBe(20); // Still 20, not 30
+    expect(result.current).toBe(30); // New behavior: immediately recomputes
 
-    // Recomputation happens when the store value changes
+    // Store value change also triggers recomputation
     act(() => {
-      sourceStore.setValue({ count: 11 }); // Trigger store change
+      sourceStore.setValue({ count: 11 });
     });
-    rerender({ multiplier: 3 });
 
-    // Now it uses the new multiplier because store changed
-    expect(result.current).toBe(33); // 11 * 3
+    // Wait for the store update to propagate
+    await waitFor(() => {
+      expect(result.current).toBe(33); // 11 * 3
+    });
   });
 
   it('should use custom equality function', () => {
@@ -96,50 +97,32 @@ describe('useComputedStore', () => {
     expect(computeCount).toBeGreaterThan(initialComputeCount);
   });
 
-  it('should handle errors in compute function via useEffect', () => {
+  it('should handle errors in compute function gracefully', async () => {
     /**
-     * ACTUAL BEHAVIOR:
+     * NEW BEHAVIOR with useSyncExternalStore:
      * When compute function throws an error:
      * 1. onError callback is called for monitoring
-     * 2. Error is thrown from performComputation
-     * 3. Error propagates through useEffect
-     * 4. React catches it and would send to error boundary
-     *
-     * In tests, useEffect errors are harder to catch directly
+     * 2. Returns last valid value or initialValue
+     * 3. No error is re-thrown to React (graceful degradation)
      */
     const sourceStore = createStore('test', { value: 10 });
     const onError = jest.fn();
-    const consoleError = jest.fn();
 
-    // Suppress console errors
-    const originalError = console.error;
-    console.error = consoleError;
-
-    // Create hook with error-throwing compute function
-    const { result, rerender } = renderHook(() => {
-      // Wrap in try-catch to simulate error boundary behavior
-      try {
-        return {
-          value: useComputedStore(
-            sourceStore,
-            (value) => {
-              if (value.value < 0) {
-                throw new Error('Negative value');
-              }
-              return value.value * 2;
-            },
-            { onError }
-          ),
-          hasError: false
-        };
-      } catch (error) {
-        // This won't catch useEffect errors directly
-        return { value: null, hasError: true };
-      }
-    });
+    const { result } = renderHook(() =>
+      useComputedStore(
+        sourceStore,
+        (value) => {
+          if (value.value < 0) {
+            throw new Error('Negative value');
+          }
+          return value.value * 2;
+        },
+        { onError, initialValue: -999 }
+      )
+    );
 
     // Initially computes successfully
-    expect(result.current.value).toBe(20);
+    expect(result.current).toBe(20);
     expect(onError).not.toHaveBeenCalled();
 
     // Trigger error condition
@@ -147,39 +130,38 @@ describe('useComputedStore', () => {
       sourceStore.setValue({ value: -5 });
     });
 
-    // Try to force the effect to run
-    try {
-      rerender();
-    } catch (error) {
-      // useEffect errors might be caught here
-    }
+    // Wait for error handler to be called
+    await waitFor(() => {
+      expect(onError).toHaveBeenCalled();
+    });
 
-    // Verify error handling occurred
-    // onError should be called when compute function fails
-    expect(onError).toHaveBeenCalled();
     expect(onError.mock.calls[0][0].message).toBe('Negative value');
 
-    // Console.error should also be called due to React's error handling
-    expect(consoleError).toHaveBeenCalled();
+    // The value should remain the last valid value (graceful degradation)
+    expect(result.current).toBe(20);
 
-    // The value should remain the last valid value
-    // because setState is not called when error occurs
-    expect(result.current.value).toBe(20);
+    // Reset and test with no prior valid value
+    onError.mockClear();
+    const { result: result2 } = renderHook(() =>
+      useComputedStore(
+        createStore('test2', { value: -10 }),
+        (value) => {
+          if (value.value < 0) {
+            throw new Error('Negative value');
+          }
+          return value.value * 2;
+        },
+        { onError, initialValue: -999 }
+      )
+    );
 
-    console.error = originalError;
-
-    /**
-     * Key insight: Error handling in useComputedStore works but is complex:
-     * - Errors are caught, logged via onError, then re-thrown
-     * - In production, error boundaries would catch these
-     * - In tests, useEffect errors are difficult to assert directly
-     * - The hook maintains last valid value when errors occur
-     */
+    // Should use initialValue when initial computation fails
+    expect(result2.current).toBe(-999);
+    expect(onError).toHaveBeenCalled();
   });
 
-  it('should use initialValue only for initial computation failure', () => {
-    // DESIGN PRINCIPLE: Synchronous Initialization
-    // initialValue is used when initial computation would fail
+  it('should use initialValue for initial computation failure', () => {
+    // NEW BEHAVIOR: Graceful error handling with initialValue fallback
 
     // Case 1: Successful initial computation ignores initialValue
     const successStore = createStore('success', { value: 10 });
@@ -193,16 +175,29 @@ describe('useComputedStore', () => {
     // Uses computed value, not initialValue
     expect(successResult.current).toBe(20);
 
-    // Case 2: Initial computation failure should use initialValue
-    // BUT current implementation throws instead
+    // Case 2: Initial computation failure with onError returns initialValue
     const failStore = createStore('fail', { value: null });
+    const onError = jest.fn();
 
-    // Suppress error output for this test
-    const originalError = console.error;
-    console.error = jest.fn();
+    const { result: failResult } = renderHook(() =>
+      useComputedStore(
+        failStore,
+        (value) => {
+          if (!value.value) throw new Error('No value');
+          return value.value * 2;
+        },
+        {
+          initialValue: -999,
+          onError // With onError, uses graceful degradation
+        }
+      )
+    );
 
-    // The current implementation throws on initial failure
-    // even when initialValue is provided
+    // Should use initialValue when initial computation fails with onError
+    expect(failResult.current).toBe(-999);
+    expect(onError).toHaveBeenCalled();
+
+    // Case 3: Without onError, error is re-thrown
     expect(() => {
       renderHook(() =>
         useComputedStore(
@@ -212,17 +207,12 @@ describe('useComputedStore', () => {
             return value.value * 2;
           },
           {
-            initialValue: -999,
-            onError: () => {} // onError doesn't prevent throw
+            initialValue: -888
+            // No onError - will throw
           }
         )
       );
     }).toThrow('No value');
-
-    console.error = originalError;
-
-    // This shows that initialValue is only used when compute
-    // doesn't throw on mount, contradicting the intended design
   });
 
   it('should demonstrate async state management complexity', () => {

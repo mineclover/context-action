@@ -8,11 +8,11 @@
  * @module stores/hooks/useComputedStore
  */
 
-import { useMemo, useRef, useCallback, useEffect, useState } from 'react';
+import { useMemo, useRef, useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import { createStore } from '../core/Store';
 import type { Store } from '../core/Store';
-import { useStoreValue } from './useStoreValue';
 import { defaultEqualityFn } from './useStoreSelector';
+import { useSafeStoreSubscription, useMultiStoreSubscription } from '../utils/sync-external-store-utils';
 
 /**
  * Configuration options for computed store hooks
@@ -84,148 +84,127 @@ export function useComputedStore<T, R>(
     onError,
     debounceMs,
     enableCache = false,
-    cacheSize = 10
+    cacheSize = 10,
+    initialValue
   } = config;
-  
+
+  // Refs for stable references
   const computeRef = useRef(compute);
-  const equalityFnRef = useRef(equalityFn);
-  const cacheRef = useRef<Array<{ input: T; output: R }>>([]);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  
+  const cacheRef = useRef<Map<T, R>>(new Map());
+  const lastComputedRef = useRef<R>();
+  const lastInputRef = useRef<T>();
+
+  // Update compute function ref on every render
   computeRef.current = compute;
-  equalityFnRef.current = equalityFn;
-  
-  // 현재 Store 값 구독
-  const currentValue = useStoreValue(store);
-  
-  // 계산된 값 상태
-  const [computedValue, setComputedValue] = useState<R>(() => {
-    try {
-      return config.initialValue !== undefined 
-        ? config.initialValue 
-        : compute(currentValue);
-    } catch (error) {
-      if (onError) {
-        onError(error as Error);
-      } else if (debug) {
-        console.error(`useComputedStore [${name}]: Error in initial computation:`, error);
-      }
-      throw error;
-    }
-  });
-  
-  // 캐시에서 값 찾기
-  const findCachedValue = useCallback((input: T): R | undefined => {
+
+  // Cache management functions
+  const getCachedValue = useCallback((input: T): R | undefined => {
     if (!enableCache) return undefined;
-    
-    const cached = cacheRef.current.find(entry => 
-      defaultEqualityFn(entry.input, input)
-    );
-    
-    return cached?.output;
-  }, [enableCache]);
-  
-  // 캐시에 값 저장
+
+    // Check if we have exact same input reference
+    if (lastInputRef.current === input && lastComputedRef.current !== undefined) {
+      return lastComputedRef.current;
+    }
+
+    // Check cache map
+    for (const [cachedInput, cachedOutput] of cacheRef.current) {
+      if (defaultEqualityFn(cachedInput, input)) {
+        if (debug) {
+          console.debug(`useComputedStore [${name}]: Using cached value`);
+        }
+        return cachedOutput;
+      }
+    }
+
+    return undefined;
+  }, [enableCache, debug, name]);
+
   const setCachedValue = useCallback((input: T, output: R) => {
     if (!enableCache) return;
-    
-    // 동일한 입력이 이미 있다면 업데이트
-    const existingIndex = cacheRef.current.findIndex(entry => 
-      defaultEqualityFn(entry.input, input)
-    );
-    
-    if (existingIndex !== -1) {
-      cacheRef.current[existingIndex] = { input, output };
-    } else {
-      // 새 엔트리 추가
-      cacheRef.current.push({ input, output });
-      
-      // 캐시 크기 제한
-      if (cacheRef.current.length > cacheSize) {
-        cacheRef.current.shift(); // 가장 오래된 것 제거
+
+    // Update last computed values
+    lastInputRef.current = input;
+    lastComputedRef.current = output;
+
+    // Update cache map
+    cacheRef.current.set(input, output);
+
+    // Limit cache size
+    if (cacheRef.current.size > cacheSize) {
+      const firstKey = cacheRef.current.keys().next().value;
+      if (firstKey !== undefined) {
+        cacheRef.current.delete(firstKey);
       }
     }
-    
+
     if (debug) {
       console.debug(`useComputedStore [${name}]: Cache updated`, {
-        cacheSize: cacheRef.current.length,
+        cacheSize: cacheRef.current.size,
         input,
         output
       });
     }
   }, [enableCache, cacheSize, debug, name]);
-  
-  // 실제 계산 수행
-  const performComputation = useCallback((input: T) => {
+
+  // Computation selector function for useSyncExternalStore
+  const computeSelector = useCallback((value: T): R => {
     try {
-      // 캐시 확인
-      const cachedValue = findCachedValue(input);
-      if (cachedValue !== undefined) {
-        if (debug) {
-          console.debug(`useComputedStore [${name}]: Using cached value`);
-        }
-        return cachedValue;
+      // Check cache first
+      const cached = getCachedValue(value);
+      if (cached !== undefined) {
+        return cached;
       }
-      
-      // 계산 수행
-      const startTime = debug ? Date.now() : 0;
-      const result = computeRef.current(input);
-      
+
+      // Perform computation
+      const startTime = debug ? performance.now() : 0;
+      const result = computeRef.current(value);
+
       if (debug) {
-        const duration = Date.now() - startTime;
-        console.debug(`useComputedStore [${name}]: Computed in ${duration}ms`, {
-          input,
+        const duration = performance.now() - startTime;
+        console.debug(`useComputedStore [${name}]: Computed in ${duration.toFixed(2)}ms`, {
+          input: value,
           result
         });
       }
-      
-      // 캐시 저장
-      setCachedValue(input, result);
-      
+
+      // Cache the result and update last computed
+      setCachedValue(value, result);
+      lastComputedRef.current = result;
+
       return result;
     } catch (error) {
       if (onError) {
         onError(error as Error);
-      } else if (debug) {
+        // Return last valid value or initial value on error
+        const fallbackValue = lastComputedRef.current !== undefined
+          ? lastComputedRef.current
+          : initialValue as R;
+        return fallbackValue;
+      }
+
+      if (debug) {
         console.error(`useComputedStore [${name}]: Error in computation:`, error);
       }
+
+      // Re-throw if no error handler
       throw error;
     }
-  }, [findCachedValue, setCachedValue, debug, name, onError]);
-  
-  // 디바운스된 계산 업데이트
-  const updateComputedValue = useCallback((newInput: T) => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
+  }, [getCachedValue, setCachedValue, debug, name, onError, initialValue]);
+
+  // Use optimized subscription with selector
+  const computedValue = useSafeStoreSubscription(
+    store,
+    computeSelector,
+    {
+      equalityFn,
+      debounce: debounceMs,
+      debug,
+      name: `computed-${name}`,
+      initialValue
     }
-    
-    const doUpdate = () => {
-      const newComputedValue = performComputation(newInput);
-      
-      if (!equalityFnRef.current(computedValue, newComputedValue)) {
-        setComputedValue(newComputedValue);
-      }
-    };
-    
-    if (debounceMs && debounceMs > 0) {
-      debounceTimerRef.current = setTimeout(doUpdate, debounceMs);
-    } else {
-      doUpdate();
-    }
-  }, [computedValue, performComputation, debounceMs]);
-  
-  // Store 값 변경 시 재계산
-  useEffect(() => {
-    updateComputedValue(currentValue);
-    
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, [currentValue, updateComputedValue]);
-  
-  return computedValue;
+  );
+
+  return computedValue as R;
 }
 
 /**
@@ -250,173 +229,136 @@ export function useMultiComputedStore<R>(
     debug = false,
     name = 'multiComputed',
     onError,
-    debounceMs,
     enableCache = false,
-    cacheSize = 10
+    cacheSize = 10,
+    initialValue
   } = finalConfig;
-  
+
+  // Refs for stable references
   const computeRef = useRef(compute);
-  const equalityFnRef = useRef(equalityFn);
-  const cacheRef = useRef<Array<{ inputs: any[]; output: R }>>([]);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  
+  const cacheRef = useRef<Map<string, R>>(new Map());
+  const lastComputedRef = useRef<R>();
+  const lastInputsRef = useRef<any[]>();
+
+  // Update compute function ref
   computeRef.current = compute;
-  equalityFnRef.current = equalityFn;
-  
-  // 모든 Store 값 구독 - Hook 규칙을 지키기 위해 개별적으로 호출
-  const currentValues = useMemo(() => {
-    return stores.map(store => store.getValue());
-  }, [stores]);
-  
-  // 각 store 변경을 감지하기 위한 effect
-  useEffect(() => {
-    const unsubscribeFunctions: Array<() => void> = [];
-    
-    stores.forEach(store => {
-      const unsubscribe = store.subscribe(() => {
-        // Store가 변경되면 강제 리렌더링을 위해 forceUpdate 트리거
-        setComputedValue(prev => {
-          const newValues = stores.map(s => s.getValue());
-          try {
-            const newComputed = computeRef.current(newValues);
-            return equalityFnRef.current(prev, newComputed) ? prev : newComputed;
-          } catch (error) {
-            if (onError) {
-              onError(error as Error);
-            } else if (debug) {
-              console.error(`useMultiComputedStore [${name}]: Error in computation:`, error);
-            }
-            return prev;
-          }
-        });
-      });
-      unsubscribeFunctions.push(unsubscribe);
-    });
-    
-    return () => {
-      unsubscribeFunctions.forEach(unsubscribe => unsubscribe());
-    };
-  }, [stores, name, debug, onError]);
-  
-  // 계산된 값 상태
-  const [computedValue, setComputedValue] = useState<R>(() => {
+
+  // Create cache key from inputs
+  const getCacheKey = useCallback((inputs: any[]): string => {
     try {
-      return finalConfig.initialValue !== undefined 
-        ? finalConfig.initialValue 
-        : compute(currentValues);
-    } catch (error) {
-      if (onError) {
-        onError(error as Error);
-      } else if (debug) {
-        console.error(`useMultiComputedStore [${name}]: Error in initial computation:`, error);
-      }
-      throw error;
+      return JSON.stringify(inputs);
+    } catch {
+      // Fallback for non-serializable inputs
+      return inputs.map((v, i) => `${i}:${typeof v}`).join(',');
     }
-  });
-  
-  // 캐시에서 값 찾기
-  const findCachedValue = useCallback((inputs: any[]): R | undefined => {
+  }, []);
+
+  // Cache management
+  const getCachedValue = useCallback((inputs: any[]): R | undefined => {
     if (!enableCache) return undefined;
-    
-    const cached = cacheRef.current.find(entry => 
-      entry.inputs.length === inputs.length &&
-      entry.inputs.every((input, index) => defaultEqualityFn(input, inputs[index]))
-    );
-    
-    return cached?.output;
-  }, [enableCache]);
-  
-  // 캐시에 값 저장
+
+    // Check if inputs are exactly the same reference
+    if (lastInputsRef.current === inputs && lastComputedRef.current !== undefined) {
+      return lastComputedRef.current;
+    }
+
+    // Check if inputs are equal to last inputs
+    if (lastInputsRef.current &&
+        lastInputsRef.current.length === inputs.length &&
+        lastInputsRef.current.every((v, i) => defaultEqualityFn(v, inputs[i]))) {
+      return lastComputedRef.current;
+    }
+
+    // Check cache map
+    const key = getCacheKey(inputs);
+    const cached = cacheRef.current.get(key);
+
+    if (cached !== undefined && debug) {
+      console.debug(`useMultiComputedStore [${name}]: Using cached value`);
+    }
+
+    return cached;
+  }, [enableCache, debug, name, getCacheKey]);
+
   const setCachedValue = useCallback((inputs: any[], output: R) => {
     if (!enableCache) return;
-    
-    // 새 엔트리 추가
-    cacheRef.current.push({ inputs: [...inputs], output });
-    
-    // 캐시 크기 제한
-    if (cacheRef.current.length > cacheSize) {
-      cacheRef.current.shift(); // 가장 오래된 것 제거
+
+    // Update last computed values
+    lastInputsRef.current = inputs;
+    lastComputedRef.current = output;
+
+    // Update cache map
+    const key = getCacheKey(inputs);
+    cacheRef.current.set(key, output);
+
+    // Limit cache size
+    if (cacheRef.current.size > cacheSize) {
+      const firstKey = cacheRef.current.keys().next().value;
+      if (firstKey !== undefined) {
+        cacheRef.current.delete(firstKey);
+      }
     }
-    
+
     if (debug) {
       console.debug(`useMultiComputedStore [${name}]: Cache updated`, {
-        cacheSize: cacheRef.current.length,
+        cacheSize: cacheRef.current.size,
         inputs,
         output
       });
     }
-  }, [enableCache, cacheSize, debug, name]);
-  
-  // 실제 계산 수행
-  const performComputation = useCallback((inputs: any[]) => {
+  }, [enableCache, cacheSize, debug, name, getCacheKey]);
+
+  // Computation selector for multi-store subscription
+  const computeSelector = useCallback((values: any[]): R => {
     try {
-      // 캐시 확인
-      const cachedValue = findCachedValue(inputs);
-      if (cachedValue !== undefined) {
-        if (debug) {
-          console.debug(`useMultiComputedStore [${name}]: Using cached value`);
-        }
-        return cachedValue;
+      // Check cache first
+      const cached = getCachedValue(values);
+      if (cached !== undefined) {
+        return cached;
       }
-      
-      // 계산 수행
-      const startTime = debug ? Date.now() : 0;
-      const result = computeRef.current(inputs);
-      
+
+      // Perform computation
+      const startTime = debug ? performance.now() : 0;
+      const result = computeRef.current(values);
+
       if (debug) {
-        const duration = Date.now() - startTime;
-        console.debug(`useMultiComputedStore [${name}]: Computed in ${duration}ms`, {
-          inputs,
+        const duration = performance.now() - startTime;
+        console.debug(`useMultiComputedStore [${name}]: Computed in ${duration.toFixed(2)}ms`, {
+          inputs: values,
           result
         });
       }
-      
-      // 캐시 저장
-      setCachedValue(inputs, result);
-      
+
+      // Cache the result and update last computed
+      setCachedValue(values, result);
+      lastComputedRef.current = result;
+
       return result;
     } catch (error) {
       if (onError) {
         onError(error as Error);
-      } else if (debug) {
+        // Return last valid value or initial value on error
+        const fallbackValue = lastComputedRef.current !== undefined
+          ? lastComputedRef.current
+          : initialValue as R;
+        return fallbackValue;
+      }
+
+      if (debug) {
         console.error(`useMultiComputedStore [${name}]: Error in computation:`, error);
       }
+
       throw error;
     }
-  }, [findCachedValue, setCachedValue, debug, name, onError]);
-  
-  // 디바운스된 계산 업데이트
-  const updateComputedValue = useCallback((newInputs: any[]) => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-    
-    const doUpdate = () => {
-      const newComputedValue = performComputation(newInputs);
-      
-      if (!equalityFnRef.current(computedValue, newComputedValue)) {
-        setComputedValue(newComputedValue);
-      }
-    };
-    
-    if (debounceMs && debounceMs > 0) {
-      debounceTimerRef.current = setTimeout(doUpdate, debounceMs);
-    } else {
-      doUpdate();
-    }
-  }, [computedValue, performComputation, debounceMs]);
-  
-  // Store 값들 변경 시 재계산
-  useEffect(() => {
-    updateComputedValue(currentValues);
-    
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, [currentValues, updateComputedValue]);
-  
+  }, [getCachedValue, setCachedValue, debug, name, onError, initialValue]);
+
+  // Use optimized multi-store subscription
+  const computedValue = useMultiStoreSubscription(
+    stores as any,
+    computeSelector,
+    equalityFn
+  );
+
   return computedValue;
 }
 
