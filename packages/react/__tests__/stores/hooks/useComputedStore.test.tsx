@@ -1,7 +1,7 @@
 import React from 'react';
 import { renderHook, act } from '@testing-library/react';
 import { createStore } from '../../../src/stores/core/Store';
-import { useComputedStore, useComputedStores, useAsyncComputedStore } from '../../../src/stores/hooks/useComputedStore';
+import { useComputedStore, useMultiComputedStore as useComputedStores, useAsyncComputedStore } from '../../../src/stores/hooks/useComputedStore';
 
 describe('useComputedStore', () => {
   it('should compute derived value from store', () => {
@@ -372,8 +372,8 @@ describe('useAsyncComputedStore', () => {
 
     const { result } = renderHook(() =>
       useAsyncComputedStore(
-        sourceStore,
-        async (value) => {
+        [sourceStore],
+        async ([value]) => {
           await new Promise(resolve => setTimeout(resolve, 10));
           return `Item ${value.id}`;
         },
@@ -401,8 +401,8 @@ describe('useAsyncComputedStore', () => {
 
     const { result } = renderHook(() =>
       useAsyncComputedStore(
-        sourceStore,
-        async (value) => {
+        [sourceStore],
+        async ([value]) => {
           if (value.fail) {
             throw new Error('Computation failed');
           }
@@ -430,8 +430,8 @@ describe('useAsyncComputedStore', () => {
 
     const { result } = renderHook(() =>
       useAsyncComputedStore(
-        sourceStore,
-        async (value) => {
+        [sourceStore],
+        async ([value]) => {
           computeCount++;
           if (value.attempt < 2) {
             throw new Error('Retry needed');
@@ -478,8 +478,8 @@ describe('useAsyncComputedStore', () => {
 
     renderHook(() =>
       useAsyncComputedStore(
-        sourceStore,
-        async (value, controller) => {
+        [sourceStore],
+        async ([value]: any[], controller?: AbortController) => {
           await new Promise((resolve, reject) => {
             const timeout = setTimeout(resolve, 50);
             controller?.signal.addEventListener('abort', () => {
@@ -518,8 +518,8 @@ describe('useAsyncComputedStore', () => {
 
     const { result } = renderHook(() =>
       useAsyncComputedStore(
-        sourceStore,
-        async (value) => {
+        [sourceStore],
+        async ([value]) => {
           computeCount++;
           await new Promise(resolve => setTimeout(resolve, 10));
           return `Result for ${value.query}`;
@@ -562,8 +562,8 @@ describe('useAsyncComputedStore', () => {
 
     renderHook(() =>
       useAsyncComputedStore(
-        sourceStore,
-        async (value) => {
+        [sourceStore],
+        async ([value]) => {
           computeCount++;
           return value.id * 10;
         },
