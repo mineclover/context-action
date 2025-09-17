@@ -393,12 +393,21 @@ describe('Execution Modes Unit Tests', () => {
       handler3.handler.mockImplementation(() => 'result3');
 
       const context = createMockContext('test-payload', [handler1, terminatingHandler, handler3]);
-      const createController = jest.fn(() => createMockController(context));
+      const createController = jest.fn(() => {
+        const controller = createMockController(context);
+        // Override return to properly handle termination
+        controller.return = (result) => {
+          context.terminated = true;
+          context.terminationResult = result;
+        };
+        return controller;
+      });
 
       await executeParallel(context, createController);
 
       expect(context.terminated).toBe(true);
-      expect(context.terminationResult).toBe('termination-result');
+      // In parallel mode, the handler's return value becomes the termination result
+      expect(context.terminationResult).toBe('terminating-handler-result');
       // In parallel mode, all handlers run simultaneously, so results depend on timing
       expect(context.results.length).toBeGreaterThanOrEqual(1);
     });

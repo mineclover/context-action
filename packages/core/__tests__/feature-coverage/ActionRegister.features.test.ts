@@ -348,18 +348,18 @@ describe('ActionRegister - Feature Coverage Tests ✅', () => {
       actionRegister.register('errorAction', () => {
         executedHandlers.push('sync-error');
         throw new Error('Synchronous error');
-      }, { priority: 30 });
+      }, { priority: 30, blocking: true });
 
       actionRegister.register('errorAction', async () => {
         executedHandlers.push('async-error');
         await new Promise(resolve => setTimeout(resolve, 1));
         throw new Error('Async error');
-      }, { priority: 20 });
+      }, { priority: 20, blocking: true });
 
       actionRegister.register('errorAction', () => {
         executedHandlers.push('success');
         return { recovered: true };
-      }, { priority: 10 });
+      }, { priority: 10, blocking: true });
 
       const result = await actionRegister.dispatchWithResult('errorAction',
         { shouldFail: true },
@@ -380,11 +380,11 @@ describe('ActionRegister - Feature Coverage Tests ✅', () => {
     it('should provide execution statistics with fail-fast error behavior', async () => {
       actionRegister.register('errorAction', () => {
         throw new Error('Handler error');
-      });
+      }, { blocking: true }); // Blocking to fail the pipeline
 
       actionRegister.register('errorAction', () => {
         return { success: true };
-      });
+      }, { blocking: true });
 
       const result = await actionRegister.dispatchWithResult('errorAction', { shouldFail: true });
 

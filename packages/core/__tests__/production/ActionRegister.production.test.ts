@@ -303,11 +303,11 @@ describe('ActionRegister - Production Test Suite ✅', () => {
     it('should handle handler errors with fail-fast behavior', async () => {
       actionRegister.register('sendEmail', () => {
         throw new Error('SMTP server unavailable');
-      }, { priority: 20, id: 'primary-mailer' });
+      }, { priority: 20, id: 'primary-mailer', blocking: true }); // Blocking to fail the pipeline
 
       actionRegister.register('sendEmail', () => {
         return { success: true, provider: 'fallback-service', messageId: 'fallback-123' };
-      }, { priority: 10, id: 'fallback-mailer' });
+      }, { priority: 10, id: 'fallback-mailer', blocking: true });
 
       const result = await actionRegister.dispatchWithResult('sendEmail', 
         { to: 'user@test.com', subject: 'Important', body: 'Hello World' }, 
@@ -328,9 +328,9 @@ describe('ActionRegister - Production Test Suite ✅', () => {
     it('should provide detailed execution statistics with fail-fast behavior', async () => {
       const startTime = Date.now();
 
-      actionRegister.register('processData', () => ({ step: 1, result: 'success' }));
-      actionRegister.register('processData', () => { throw new Error('Step 2 failed'); });
-      actionRegister.register('processData', () => ({ step: 3, result: 'recovered' }));
+      actionRegister.register('processData', () => ({ step: 1, result: 'success' }), { blocking: true });
+      actionRegister.register('processData', () => { throw new Error('Step 2 failed'); }, { blocking: true });
+      actionRegister.register('processData', () => ({ step: 3, result: 'recovered' }), { blocking: true });
 
       const result = await actionRegister.dispatchWithResult('processData', 
         { data: 'test-data' }

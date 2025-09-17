@@ -242,7 +242,7 @@ describe('ActionRegister - Edge Cases and Boundary Conditions', () => {
       expect(result.success).toBe(true);
     });
 
-    it.skip('should handle handler that takes very long to execute', async () => {
+    it('should handle handler that takes very long to execute', async () => {
       const handler = jest.fn(async (_payload, controller) => {
         await new Promise(resolve => setTimeout(resolve, 100));
         const result = 'long-running-result';
@@ -271,11 +271,11 @@ describe('ActionRegister - Edge Cases and Boundary Conditions', () => {
 
       actionRegister.register('normalAction', () => {
         throw 12345;
-      }, { priority: 10 });
+      }, { priority: 10, blocking: true }); // Make it blocking to fail the pipeline
 
       actionRegister.register('normalAction', () => {
         return 'success';
-      }, { priority: 5 });
+      }, { priority: 5, blocking: true });
 
       const result = await actionRegister.dispatchWithResult('normalAction', 
         { value: 'test' }, 
@@ -492,7 +492,7 @@ describe('ActionRegister - Edge Cases and Boundary Conditions', () => {
   });
 
   describe('🔄 Concurrent Execution Edge Cases', () => {
-    it.skip('should handle concurrent dispatches to same action', async () => {
+    it('should handle concurrent dispatches to same action', async () => {
       let executionCount = 0;
       actionRegister.register('normalAction', async (_payload) => {
         executionCount++;
@@ -513,7 +513,7 @@ describe('ActionRegister - Edge Cases and Boundary Conditions', () => {
       expect(executionCount).toBe(3);
     }, 10000);
 
-    it.skip('should handle concurrent dispatches to different actions', async () => {
+    it('should handle concurrent dispatches to different actions', async () => {
       actionRegister.register('normalAction', async (_payload) => {
         await new Promise(resolve => setTimeout(resolve, 10));
         return 'normal-result';

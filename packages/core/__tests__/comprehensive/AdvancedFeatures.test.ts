@@ -33,7 +33,9 @@ describe('ActionRegister - Advanced Features', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    // Wait for any pending operations before cleanup
+    await new Promise(resolve => setTimeout(resolve, 100));
     // Properly clean up to prevent memory leaks
     actionRegister.destroy();
     jest.clearAllMocks();
@@ -97,6 +99,9 @@ describe('ActionRegister - Advanced Features', () => {
       expect(executionCount).toBe(2);
       expect(executionValues).toHaveLength(2);
       expect(executionValues[1]).toBe('exec-4');
+
+      // Wait a bit more to ensure all async operations complete before cleanup
+      await new Promise(resolve => setTimeout(resolve, 50));
     });
 
     it('should handle handler validation', async () => {
