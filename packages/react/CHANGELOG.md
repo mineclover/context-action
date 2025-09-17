@@ -3,6 +3,40 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.7.6](https://github.com/mineclover/context-action/compare/v0.6.0...v0.7.6) (2025-09-17)
+
+
+### Bug Fixes
+
+* **ActionRegister:** enhance error handling and execution context management ([d32a1f6](https://github.com/mineclover/context-action/commit/d32a1f60858141db6dc7ff9bc72fa3056638c97f))
+* convert Immer from dynamic to static imports for improved stability ([dde606f](https://github.com/mineclover/context-action/commit/dde606feee79f942d953a60b32164f11fc10b374))
+* improve Store update method with Immer integration ([c9754d7](https://github.com/mineclover/context-action/commit/c9754d7c750c1abf70a3eef99504033ce089b439))
+* improve Store update method with Immer integration ([0bce495](https://github.com/mineclover/context-action/commit/0bce49562ed323e52985917306e87385e9b64205))
+* **react:** adjust test expectations after refactoring ([78a4808](https://github.com/mineclover/context-action/commit/78a48084b254f59688e71f90419783cb30ecad1d))
+* **react:** Enable Immer MapSet plugin for Set and Map support ([18d98e6](https://github.com/mineclover/context-action/commit/18d98e6e1cf9b7b9eeb3a1778c4a5ba61270c89d))
+* **react:** export StoreManager for proper type inference in createStoreContext ([3433632](https://github.com/mineclover/context-action/commit/343363292beb920d13beda336cc5fade8d7684df))
+* resolve core and react package linting warnings ([fc0df76](https://github.com/mineclover/context-action/commit/fc0df76116c6f3de6acc9fc0845743e9e24f2aa2))
+* Resolve failing test suites and improve test stability ([926510c](https://github.com/mineclover/context-action/commit/926510cad2fc5562a8c4d81156035282d44252fe))
+* resolve Node.js protocol browser compatibility issues ([854a2fa](https://github.com/mineclover/context-action/commit/854a2fa0c8bf87addb0e555f8555def584a04a33))
+* Resolve test error handling and update dependencies ([54bca84](https://github.com/mineclover/context-action/commit/54bca847b5a6f4e08b95266a9839ae4483fd2cd0))
+* update TypeScript configuration and enhance LogMonitor component ([c280d4f](https://github.com/mineclover/context-action/commit/c280d4ff4cedf44f28b91e612159bdca7c3a014e))
+
+
+### Features
+
+* Context-Action 라이브러리 핵심 성능 및 안정성 개선 ([f13fe47](https://github.com/mineclover/context-action/commit/f13fe4756c7f1e39872aca7a45fec09f37da3c2c))
+* modernize TypeScript configuration and fix dynamic imports ([725eef5](https://github.com/mineclover/context-action/commit/725eef5e02388e67103d94814935965e066f3e85))
+* **react:** consolidate test structure and fix TypeScript errors ([618ec8c](https://github.com/mineclover/context-action/commit/618ec8cbb2474964b249c0320cff69be373246f1))
+
+
+### Performance Improvements
+
+* Optimize useComputedStore with useSyncExternalStore ([bbef3c6](https://github.com/mineclover/context-action/commit/bbef3c6b960ba9637cf7afb5cbdcda9f47dc7ae9))
+
+
+
+
+
 ## [0.7.5](https://github.com/mineclover/context-action/compare/v0.6.0...v0.7.5) (2025-09-17)
 
 
