@@ -10,9 +10,23 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { TestParser } from './extract/test-parser.js';
-import { CodeCleaner } from './extract/code-cleaner.js';
-import { generateEnhancedApiDoc } from './templates/enhanced-api-doc.template.js';
+
+// Try to use the new library, fallback to original implementation
+let useLibrary = false;
+let createDocumentationGenerator;
+
+try {
+  const libModule = await import('../packages/test-driven-docs/dist/index.js');
+  createDocumentationGenerator = libModule.createDocumentationGenerator;
+  useLibrary = true;
+  console.log('🚀 Using @context-action/test-driven-docs library');
+} catch (error) {
+  console.log('📝 Using original implementation (library not available)');
+  // Fallback to original imports
+  const { TestParser } = await import('./extract/test-parser.js');
+  const { CodeCleaner } = await import('./extract/code-cleaner.js');
+  const { generateEnhancedApiDoc } = await import('./templates/enhanced-api-doc.template.js');
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const packagesDir = path.join(__dirname, '../packages');
@@ -169,7 +183,69 @@ function groupTestDataByApi(testResults) {
  * Generate enhanced API documentation
  */
 async function generateApiDocs() {
-  console.log('🔍 Enhanced test-based API documentation generation starting...');
+  if (useLibrary) {
+    return await generateWithLibrary();
+  } else {
+    return await generateWithOriginal();
+  }
+}
+
+/**
+ * Generate documentation using the new library
+ */
+async function generateWithLibrary() {
+  console.log('🔍 Enhanced test-based API documentation generation starting with library...');
+
+  try {
+    const generator = createDocumentationGenerator({
+      packagesDir,
+      packages: ['core', 'react'],
+      outputDir: docsDir,
+      languages: ['en', 'ko'],
+      cleanMocks: true,
+      extractTypes: true,
+      categorizeExamples: true,
+      includeComments: false,
+      realistic: true,
+      template: {
+        type: 'enhanced',
+        includeSections: {
+          overview: true,
+          quickStart: true,
+          examples: true,
+          advanced: true,
+          errorHandling: true,
+          performance: true,
+          testCoverage: true,
+          relatedAPIs: true
+        }
+      }
+    });
+
+    const result = await generator.generate();
+
+    if (result.success) {
+      console.log('\\n🎉 Library-based documentation generation completed successfully!');
+      console.log(`📚 Generated documentation for ${result.apisGenerated.length} APIs`);
+      console.log(`📊 Processed ${result.filesProcessed} test files`);
+      console.log(`🎯 Covered ${result.categoriesCovered} categories`);
+    } else {
+      console.error('❌ Library-based generation failed');
+      result.errors.forEach(error => console.error(`  ${error.type}: ${error.message}`));
+    }
+
+    return result;
+  } catch (error) {
+    console.error('💥 Library generation error:', error.message);
+    throw error;
+  }
+}
+
+/**
+ * Generate documentation using original implementation
+ */
+async function generateWithOriginal() {
+  console.log('🔍 Enhanced test-based API documentation generation starting with original...');
 
   // Scan packages with enhanced parsing
   console.log('📋 Scanning Core package...');
