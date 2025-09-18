@@ -79,11 +79,12 @@ export function createNavigation(locale: NavigationLocale) {
         ]
       },
       {
-        text: 'API',
+        text: 'API Reference',
         items: [
-          sidebarApiEn.core,
-          sidebarApiEn.react,
-          sidebarApiEn.patterns
+          { text: 'ActionRegister', link: '/en/api/actionregister' },
+          { text: 'createActionContext', link: '/en/api/createactioncontext' },
+          { text: 'createStoreContext', link: '/en/api/createstorecontext' },
+          { text: 'useStoreValue', link: '/en/api/usestorevalue' }
         ]
       },
       {
@@ -154,11 +155,12 @@ export function createNavigation(locale: NavigationLocale) {
         ]
       },
       {
-        text: 'API',
+        text: 'API 참조',
         items: [
-          sidebarApiKo.core,
-          sidebarApiKo.react,
-          sidebarApiKo.patterns
+          { text: 'ActionRegister', link: '/ko/api/actionregister' },
+          { text: 'createActionContext', link: '/ko/api/createactioncontext' },
+          { text: 'createStoreContext', link: '/ko/api/createstorecontext' },
+          { text: 'useStoreValue', link: '/ko/api/usestorevalue' }
         ]
       },
       {

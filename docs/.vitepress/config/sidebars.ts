@@ -515,13 +515,20 @@ export function createSidebars(locale: SidebarLocale): DefaultTheme.Config['side
       concept.architecture
     ],
     
-    // API 섹션 - 실제 파일 구조에 맞춤
+    // API 섹션 - 테스트 기반 생성된 문서
     [`/${locale}/api/`]: [
-      api.core,
-      api.react,
-      api.patterns
+      {
+        text: locale === 'en' ? '🔧 Core APIs' : '🔧 핵심 APIs',
+        collapsed: false,
+        items: [
+          { text: 'ActionRegister', link: `/${locale}/api/actionregister` },
+          { text: 'createActionContext', link: `/${locale}/api/createactioncontext` },
+          { text: 'createStoreContext', link: `/${locale}/api/createstorecontext` },
+          { text: 'useStoreValue', link: `/${locale}/api/usestorevalue` }
+        ]
+      }
     ],
-    
+
     // Examples 섹션
     [`/${locale}/examples/`]: [
       examples.patterns,

@@ -22,8 +22,15 @@ export default defineConfig({
   // 죽은 링크 무시
   ignoreDeadLinks: true,
   
-  // TypeDoc 생성 디렉토리 제외
-  srcExclude: ['**/api/generated/**'],
+  // TypeDoc 생성 디렉토리 제외 및 LLM 데이터 제외
+  srcExclude: [
+    'api/generated/**',
+    '**/llmsData/**',
+    'llms-*.md',
+    'task-*.md',
+    'dead-code-*.md',
+    'specifications/**'
+  ],
   
   // Markdown 설정
   markdown: {
@@ -136,6 +143,13 @@ export default defineConfig({
   cleanUrls: true,
   lastUpdated: true,
   metaChunk: true,
+
+  // Vite 빌드 설정 - 청크 크기 경고 임계값 조정
+  vite: {
+    build: {
+      chunkSizeWarningLimit: 3000 // 3MB로 임계값 상향 조정 (로컬 검색 인덱스 때문)
+    }
+  },
 
   // 전역 head 설정
   head: [
