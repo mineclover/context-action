@@ -1,12 +1,12 @@
 {
   "name": "@context-action/test-driven-docs",
   "version": "0.1.0",
-  "description": "Test-driven documentation generator that extracts examples from test code to create comprehensive API documentation",
+  "description": "Stable and repeatable test metadata extraction library that outputs structured JSON data from test files",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "test-driven-docs": "dist/cli/index.js"
+    "test-metadata-extractor": "dist/cli/extract.js"
   },
   "exports": {
     ".": {
@@ -14,8 +14,8 @@
       "default": "./dist/index.js"
     },
     "./cli": {
-      "types": "./dist/cli/index.d.ts",
-      "default": "./dist/cli/index.js"
+      "types": "./dist/cli/extract.d.ts",
+      "default": "./dist/cli/extract.js"
     }
   },
   "files": [
@@ -33,12 +33,13 @@
     "prepublishOnly": "pnpm build"
   },
   "keywords": [
-    "documentation",
-    "test-driven",
-    "api-docs",
+    "test-metadata",
+    "data-extraction",
+    "ast-parsing",
+    "json-output",
     "typescript",
     "testing",
-    "code-generation",
+    "metadata-extraction",
     "developer-tools"
   ],
   "author": "Context-Action Team",

@@ -1,77 +1,74 @@
 /**
  * @context-action/test-driven-docs
  *
- * A powerful test-driven documentation generator that extracts examples from test code
- * to create comprehensive, always-up-to-date API documentation.
+ * A stable and repeatable test metadata extraction library that outputs structured JSON data from test files.
+ * Focuses on reliable syntax analysis without complex processing for maximum versatility.
  */
 
-export * from './types/index.js';
-export * from './core/DocumentationGenerator.js';
-export * from './parsers/TestParser.js';
-export * from './cleaners/CodeCleaner.js';
+// Core extractor
+export { TestMetadataExtractor } from './core/TestMetadataExtractor.js';
 
-// Utils
-export * from './utils/index.js';
+// Type definitions
+export type {
+  TestFileMetadata,
+  ProjectTestMetadata,
+  ImportInfo,
+  TypeDefinition,
+  TestSuite,
+  TestCase,
+  ApiUsage,
+  FileMetrics,
+  ProjectSummary
+} from './types/index.js';
 
-// Main factory function for easy usage
-import { DocumentationGenerator } from './core/DocumentationGenerator.js';
-import { GeneratorConfig } from './types/index.js';
+// JSON Schema and validation
+export {
+  MetadataValidator,
+  MetadataJsonSchemas,
+  isTestFileMetadata,
+  isProjectTestMetadata,
+  TestFileMetadataSchema,
+  ProjectTestMetadataSchema
+} from './schemas/metadata-schema.js';
 
-/**
- * Create a documentation generator with the given configuration
- */
-export function createDocumentationGenerator(config: Partial<GeneratorConfig>): DocumentationGenerator {
-  const defaultConfig: GeneratorConfig = {
-    packagesDir: './packages',
-    packages: ['core', 'react'],
-    testPatterns: ['**/*.test.ts', '**/*.spec.ts'],
-    outputDir: './docs',
-    languages: ['en'],
-    cleanMocks: true,
-    extractTypes: true,
-    categorizeExamples: true,
-    includeComments: false,
-    realistic: true,
-    template: {
-      type: 'enhanced',
-      includeSections: {
-        overview: true,
-        quickStart: true,
-        examples: true,
-        advanced: true,
-        errorHandling: true,
-        performance: true,
-        testCoverage: true,
-        relatedAPIs: true
-      }
-    }
-  };
-
-  const mergedConfig = {
-    ...defaultConfig,
-    ...config,
-    template: {
-      ...defaultConfig.template,
-      ...config.template,
-      includeSections: {
-        ...defaultConfig.template.includeSections,
-        ...config.template?.includeSections
-      }
-    }
-  };
-
-  return new DocumentationGenerator(mergedConfig);
+// Convenience functions
+export async function extractFileMetadata(filePath: string) {
+  const extractor = new TestMetadataExtractor();
+  return extractor.extractFromFile(filePath);
 }
 
-/**
- * Quick start function for simple use cases
- */
-export async function generateDocs(options: {
-  packagesDir?: string;
-  packages?: string[];
-  outputDir?: string;
-  languages?: string[];
-}) {
-  const generator = createDocumentationGenerator(options);
-  return await generator.generate();
+export async function extractDirectoryMetadata(
+  dirPath: string,
+  pattern: RegExp = /\.test\.(ts|js)$/
+) {
+  const extractor = new TestMetadataExtractor();
+  return extractor.extractFromDirectory(dirPath, pattern);
 }
+
+// Common patterns
+export const COMMON_TEST_PATTERNS = {
+  typescript: /\.test\.ts$/,
+  javascript: /\.test\.js$/,
+  typescriptAndJs: /\.test\.(ts|js)$/,
+  spec: /\.spec\.(ts|js)$/,
+  allTests: /\.(test|spec)\.(ts|js)$/,
+  jest: /\.(test|spec)\.(ts|js)$/,
+  vitest: /\.(test|spec)\.(ts|js)$/
+} as const;
+
+// API detection patterns for Context-Action framework
+export const CONTEXT_ACTION_API_PATTERNS = {
+  core: [
+    'ActionRegister',
+    'createStore',
+    'ActionPipelineController'
+  ],
+  react: [
+    'createActionContext',
+    'createStoreContext',
+    'useStoreValue',
+    'useStoreSelector',
+    'useActionHandler',
+    'useActionDispatch'
+  ]
+} as const;

@@ -14,11 +14,13 @@ Context-Driven Architecture is an innovative architectural approach that overcom
 
 #### Problems with Existing Libraries
 - **High React Coupling**: Tight integration makes component modularization and props handling difficult
+- **Heavy Props Dependency**: Complex object props create tight coupling between components
 - **Binary State Approach**: Simple global/local state dichotomy fails to handle specific scope-based separation
 - **Inadequate Handler/Trigger Management**: Poor support for complex interactions and business logic processing
 
 #### Context-Action's Solution
 - **Document-Artifact Centered Design**: Context separation based on document themes and deliverable management
+- **Minimal Props Coupling**: Components use only ComponentId or string-level coupling for lightweight data flow
 - **Perfect Separation of Concerns**: 5-layer hook architecture with specialized responsibilities
 - **Delayed Evaluation Pattern**: Handlers access latest state through `store.getValue()` for optimal performance
 - **Selective Subscription Model**: UI-focused selective state subscriptions
@@ -218,65 +220,267 @@ Subscriptions ←──────────── Store Updates ←───
 
 > **Complete Implementation Guide**: See [Context-Action Complete Guide](context-action-complete-guide.md) for detailed 5-layer hook architecture implementation, atomic folder structures, and coding patterns.
 
+## Lightweight Props Architecture
+
+### Minimal Coupling Principles
+
+Context-Driven Architecture enforces **minimal props coupling** as a core architectural value for maintainable, scalable component systems.
+
+#### Props Coupling Restrictions
+
+**✅ Allowed Props (Lightweight Coupling):**
+- **ComponentId**: Unique string identifiers for component targeting
+- **String primitives**: Simple string values, enums, or basic configuration
+- **Primitive values**: Numbers, booleans, simple data types
+- **Event handlers**: Callback functions for interaction delegation
+
+**❌ Forbidden Props (Heavy Coupling):**
+- **Complex objects**: Rich data structures passed between components
+- **Store instances**: Direct store passing creates tight coupling
+- **Business logic functions**: Complex functions with business rules
+- **Nested object hierarchies**: Deep object structures
+
+#### Lightweight Data Flow Pattern
+
+```typescript
+// ✅ CORRECT: Minimal props with ComponentId coupling
+interface UserCardProps {
+  userId: string;           // Simple identifier
+  variant?: 'compact' | 'detailed'; // String enum
+  onSelect?: (id: string) => void;   // Simple callback
+}
+
+function UserCard({ userId, variant = 'compact', onSelect }: UserCardProps) {
+  // Component accesses data through hooks, not props
+  const { user } = useUserSubscriptions(userId);
+  const { onUserUpdate } = useUserDispatchers();
+
+  return (
+    <div onClick={() => onSelect?.(userId)}>
+      <h3>{user.name}</h3>
+      {variant === 'detailed' && <p>{user.email}</p>}
+    </div>
+  );
+}
+
+// ❌ WRONG: Heavy props coupling
+interface UserCardProps {
+  user: User;               // Complex object coupling
+  userActions: UserActions; // Business logic coupling
+  settings: UserSettings;   // Nested object hierarchy
+  onUpdate: (user: User) => Promise<void>; // Complex function
+}
+```
+
+#### Component ID-Based Architecture
+
+**Core Principle**: Components receive only identifiers and access data through hooks.
+
+```typescript
+// Parent Component: Passes only IDs
+function UserList({ userIds }: { userIds: string[] }) {
+  return (
+    <div>
+      {userIds.map(id => (
+        <UserCard key={id} userId={id} variant="compact" />
+      ))}
+    </div>
+  );
+}
+
+// Child Component: Accesses data via hooks
+function UserCard({ userId }: { userId: string }) {
+  const { user, loading } = useUserSubscriptions(userId);
+  const { onUserSelect, onUserEdit } = useUserDispatchers();
+
+  if (loading) return <Skeleton />;
+
+  return (
+    <Card>
+      <h3>{user.name}</h3>
+      <Button onClick={() => onUserSelect(userId)}>Select</Button>
+      <Button onClick={() => onUserEdit(userId)}>Edit</Button>
+    </Card>
+  );
+}
+```
+
+#### Benefits of Minimal Props Coupling
+
+**1. Component Independence**
+- Components can be moved, reused, and tested independently
+- No complex props drilling or dependency chains
+- Clear component boundaries and responsibilities
+
+**2. Type Safety with Simplicity**
+- Simple props are easier to type and validate
+- Reduced TypeScript complexity and compilation overhead
+- Clear interface contracts between components
+
+**3. Testing Simplification**
+- Components can be tested with simple mock props
+- No need to create complex object mocks
+- Isolated testing of component logic
+
+**4. Performance Optimization**
+- Reduced props comparison overhead
+- Simpler React reconciliation process
+- Cleaner dependency tracking
+
+### Component ID Strategy
+
+#### ID-Based Component Targeting
+
+```typescript
+// Component Registration with IDs
+function ProductGrid() {
+  const { productIds } = useProductSubscriptions();
+
+  return (
+    <Grid>
+      {productIds.map(id => (
+        <ProductCard
+          key={id}
+          productId={id}
+          layout="grid"
+        />
+      ))}
+    </Grid>
+  );
+}
+
+// Component accesses data via ID
+function ProductCard({ productId, layout }: {
+  productId: string;
+  layout: 'grid' | 'list';
+}) {
+  const { product, loading } = useProductSubscriptions(productId);
+  const { onProductSelect } = useProductDispatchers();
+
+  return (
+    <Card className={cn('product-card', `layout-${layout}`)}>
+      <Image src={product.image} alt={product.name} />
+      <h3>{product.name}</h3>
+      <Button onClick={() => onProductSelect(productId)}>
+        Select Product
+      </Button>
+    </Card>
+  );
+}
+```
+
+#### Dynamic Component Configuration
+
+```typescript
+// String-based configuration
+interface ComponentConfig {
+  componentId: string;
+  theme: 'light' | 'dark';
+  size: 'sm' | 'md' | 'lg';
+  variant: 'primary' | 'secondary';
+}
+
+function DynamicComponent({ componentId, theme, size, variant }: ComponentConfig) {
+  const { data } = useComponentSubscriptions(componentId);
+  const { onComponentAction } = useComponentDispatchers();
+
+  return (
+    <div className={cn('dynamic-component', `theme-${theme}`, `size-${size}`, `variant-${variant}`)}>
+      {/* Component renders based on simple string configurations */}
+    </div>
+  );
+}
+```
+
 ## Design System Integration
 
 ### CVA-Based Component Styling
 
-Context-Driven Architecture integrates with design systems through **Class Variance Authority (CVA)** for consistent, maintainable styling.
+Context-Driven Architecture integrates with design systems through **Class Variance Authority (CVA)** for consistent, maintainable styling while maintaining minimal props coupling.
 
 #### Implementation Principles
 
 **Separation of Style and Interaction:**
-- Style parameters are controlled through component props
+- Style parameters are controlled through simple string props
 - Interaction logic remains in the business logic layer
 - Style changes are triggered by business state changes
 
 ```typescript
-// Style parameters are controlled by business logic
-const [variant, setVariant] = useState<'primary' | 'secondary'>('primary');
+// Style parameters through simple string props
+const cardVariants = cva('card', {
+  variants: {
+    variant: {
+      primary: 'card-primary',
+      secondary: 'card-secondary',
+    },
+    size: {
+      sm: 'card-sm',
+      md: 'card-md',
+      lg: 'card-lg',
+    }
+  }
+});
 
-const handleBusinessLogic = () => {
-  // Business logic determines style change
-  setVariant(prev => prev === 'primary' ? 'secondary' : 'primary');
-};
+interface CardProps {
+  cardId: string;                    // Component ID
+  variant?: 'primary' | 'secondary'; // Simple string variant
+  size?: 'sm' | 'md' | 'lg';        // Simple string size
+}
+
+function Card({ cardId, variant = 'primary', size = 'md' }: CardProps) {
+  const { data } = useCardSubscriptions(cardId);
+
+  return (
+    <div className={cardVariants({ variant, size })}>
+      {/* Component content based on data from hooks */}
+    </div>
+  );
+}
 ```
 
 > **Design System Implementation**: See [Context-Action Complete Guide](context-action-complete-guide.md) for CVA integration patterns and design token systems.
 
 ## Architectural Advantages
 
-### 1. Hook-Based Component Observability
+### 1. Minimal Props Coupling Benefits
+- **Component Independence**: Components can be moved, reused, and tested independently
+- **Lightweight Data Flow**: Only ComponentId and string-level coupling for maximum flexibility
+- **Type Safety Simplification**: Simple props reduce TypeScript complexity and compilation overhead
+- **Testing Simplification**: Components tested with simple mock props, no complex object mocks
+- **Performance Optimization**: Reduced props comparison overhead and simpler React reconciliation
+
+### 2. Hook-Based Component Observability
 - **Clear State Flow**: All state changes flow through specialized hook layers
 - **Delayed Evaluation**: Handlers always access latest state via `store.getValue()`
 - **Selective Subscriptions**: Components subscribe only to needed state changes
 - **Observable Execution**: Advanced patterns track handler execution state
 - **Debugging Support**: Hook layer separation provides clear audit trail
 
-### 2. Clear Hook-Driven Architecture
+### 3. Clear Hook-Driven Architecture
 - **Hook-Centric Design**: All business logic triggered through specialized hook layers
 - **Decoupled Components**: UI components use dispatchers and subscriptions only
 - **Testable Logic**: Handler definitions can be tested independently from UI
 - **Execution Options**: Dispatcher hooks provide configurable execution parameters
 
-### 3. Update Isolation and Performance Control
+### 4. Update Isolation and Performance Control
 - **Context Boundaries**: Changes within one context don't affect others
 - **Controlled Dependencies**: Hook-level access patterns prevent unintended coupling
 - **Atomic Updates**: Each context manages its own state atomically with delayed evaluation
 - **Performance Optimization**: Selective subscriptions reduce unnecessary re-renders
 
-### 4. Logic Transparency and Observability
+### 5. Logic Transparency and Observability
 - **Handler Registration**: All business logic explicitly registered through registry hooks
 - **Priority System**: Clear execution order for complex workflows
 - **State Management**: Transparent state updates through hook pipeline
 - **Execution State**: Observable handler execution with useRef + useState patterns
 
-### 5. Implementation Simplification
+### 6. Implementation Simplification
 - **Hook Pattern Consistency**: Same hook patterns apply across all contexts
 - **Type Safety**: Full TypeScript support with hook-specific type definitions
 - **Delayed Evaluation**: Automatic latest state access in handlers
 - **Boilerplate Reduction**: Specialized hooks handle common patterns automatically
 
-### 6. Scalable Hook Development
+### 7. Scalable Hook Development
 - **Context Evolution**: Start simple, grow complex hook definitions into independent contexts
 - **Independent Development**: Different contexts with their hook layers can be developed independently
 - **Hook Complexity Management**: Use features/ namespace when hook definitions exceed 10+ per layer
@@ -284,27 +488,34 @@ const handleBusinessLogic = () => {
 
 ## Implementation Guidelines
 
-### 1. Context Design
+### 1. Minimal Props Design
+- **Enforce ComponentId pattern**: Components receive only string identifiers
+- **Restrict complex props**: Forbid complex objects, store instances, and business logic functions
+- **Use simple primitives**: Allow only strings, numbers, booleans, and simple callbacks
+- **Access data via hooks**: Components use subscription hooks instead of props for data
+- **Maintain type safety**: Simple props reduce TypeScript complexity while maintaining safety
+
+### 2. Context Design
 - Start with clear context boundaries based on business domains
 - Define atomic contexts that are completely independent
 - Use page contexts for UI-specific state, domain contexts for business logic
 - Document context specifications and dependencies
 
-### 2. Hook-Based Handler Pattern
+### 3. Hook-Based Handler Pattern
 - Define handler functions in handlers/ layer with delayed evaluation
 - Register handlers through registries/ layer hooks
 - Implement 3-step store integration pattern (read latest → logic → update)
 - Use `useCallback` for proper memoization of handler definitions
 - Handle errors appropriately with observable execution state
 
-### 3. Selective Subscription Pattern
+### 4. Selective Subscription Pattern
 - Use subscriptions/ layer for selective state observation
 - Access parent context subscriptions when needed in child contexts
 - Implement proper comparison strategies (reference/shallow/deep)
 - Follow immutability rules with delayed evaluation for latest state
 - Optimize subscription granularity for performance
 
-### 4. Dispatcher and Execution Pattern
+### 5. Dispatcher and Execution Pattern
 - Generate on~ functions in dispatchers/ layer with execution options
 - Provide configurable execution parameters for different use cases
 - Use observable execution state for advanced debugging
@@ -317,15 +528,16 @@ const handleBusinessLogic = () => {
 
 Context-Driven Architecture provides a comprehensive approach to building maintainable, scalable applications through:
 
-1. **Document-Centric Design**: Architecture follows documentation structure with atomic context units
-2. **5-Layer Hook Architecture**: Specialized hook layers with single responsibilities and delayed evaluation
-3. **Atomic Context Isolation**: Each context is completely independent with its own hook layers
-4. **Delayed Evaluation Pattern**: Handlers always access latest state for optimal performance
-5. **Selective Subscription Model**: UI-focused selective state subscriptions for performance
-6. **Observable Execution State**: Advanced debugging patterns with execution state tracking
-7. **Hook-Based Scalability**: Start simple, evolve hook complexity naturally with features/ namespace
-8. **Type-Safe Hook Implementation**: Full TypeScript support throughout hook architecture
+1. **Minimal Props Coupling**: ComponentId and string-level coupling only for lightweight, flexible components
+2. **Document-Centric Design**: Architecture follows documentation structure with atomic context units
+3. **5-Layer Hook Architecture**: Specialized hook layers with single responsibilities and delayed evaluation
+4. **Atomic Context Isolation**: Each context is completely independent with its own hook layers
+5. **Delayed Evaluation Pattern**: Handlers always access latest state for optimal performance
+6. **Selective Subscription Model**: UI-focused selective state subscriptions for performance
+7. **Observable Execution State**: Advanced debugging patterns with execution state tracking
+8. **Hook-Based Scalability**: Start simple, evolve hook complexity naturally with features/ namespace
+9. **Type-Safe Hook Implementation**: Full TypeScript support throughout hook architecture
 
-This architectural approach enables teams to build applications that remain maintainable as they scale, with clear hook boundaries, predictable state flow, optimal performance characteristics, and excellent developer experience.
+This architectural approach enables teams to build applications that remain maintainable as they scale, with **minimal component coupling**, clear hook boundaries, predictable state flow, optimal performance characteristics, and excellent developer experience.
 
 **Next Steps**: Explore the [Context-Action Complete Guide](context-action-complete-guide.md) for hands-on hook implementation patterns, detailed 5-layer folder structures, and comprehensive coding examples with delayed evaluation and selective subscription patterns.

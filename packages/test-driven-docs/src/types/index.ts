@@ -31,17 +31,16 @@ export interface TestMetadata {
 }
 
 export interface ImportInfo {
-  statement: string;
   module: string;
   isLocal: boolean;
-  isTestUtility: boolean;
+  isTestFramework: boolean;
+  statement: string;
 }
 
 export interface TypeDefinition {
   type: 'interface' | 'type';
   name: string;
-  body: string;
-  fullDefinition: string;
+  definition: string;
 }
 
 export interface SetupCode {
@@ -146,4 +145,65 @@ export interface MultiLanguageConfig {
   languages: string[];
   translations: Record<string, LanguageTranslation>;
   defaultLanguage: string;
+}
+
+// Types for TestMetadataExtractor (simplified extractor)
+export interface TestFileMetadata {
+  filePath: string;
+  fileName: string;
+  extractedAt: string;
+
+  imports: ImportInfo[];
+  interfaces: TypeDefinition[];
+  testSuites: TestSuite[];
+  testCases: TestCase[];
+  apiUsage: ApiUsage[];
+  metrics: FileMetrics;
+}
+
+export interface ProjectTestMetadata {
+  projectPath: string;
+  extractedAt: string;
+  totalFiles: number;
+  files: TestFileMetadata[];
+  summary: ProjectSummary;
+}
+
+export interface TestSuite {
+  name: string;
+  startIndex: number;
+}
+
+export interface TestCase {
+  description: string;
+  startIndex: number;
+  isAsync: boolean;
+  bodyLength: number;
+  apiCalls: string[];
+  hasAssertions: boolean;
+}
+
+export interface ApiUsage {
+  apiName: string;
+  occurrences: number;
+  pattern: string;
+}
+
+export interface FileMetrics {
+  totalLines: number;
+  nonEmptyLines: number;
+  testCount: number;
+  suiteCount: number;
+  importCount: number;
+  typeDefinitionCount: number;
+}
+
+export interface ProjectSummary {
+  totalTestFiles: number;
+  totalTestCases: number;
+  totalTestSuites: number;
+  totalLines: number;
+  uniqueApis: string[];
+  uniqueTypes: string[];
+  filesByFramework: Record<string, number>;
 }

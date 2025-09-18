@@ -2,89 +2,39 @@
 
 ## Overview
 
-createActionContext is a core API in the Context-Action framework that creates a React context for action dispatching and handler registration with type safety.
-
-### Key Features
-- ⚛️ **React integration** - Seamless Context API integration
-- 🎯 **Type safety** - Full TypeScript support for actions and payloads
-- 🔄 **Handler registration** - Easy handler setup with useActionHandler
-- 📦 **Isolated contexts** - Multiple independent action contexts
-
-### When to Use
-Use createActionContext for React applications when you need action dispatching without state management.
-
-
-## Quick Start
-
-*No basic examples available.*
-
+createActionContext is a core API in the framework.
 
 ## Usage Examples
 
-
-
-## Advanced Usage
-
 ### Advanced Patterns
 
-#### should export createActionContext
+#### Example 1: should export createActionContext
 
 ```typescript
 
 ```
 
-#### should export createActionContext
+#### Example 2: should export createActionContext
 
 ```typescript
 
 ```
 
+#### Example 3: should export all expected main APIs
 
-
-
-
-
+```typescript
+const expectedExports = [
+  'createActionContext',
+  'useStoreValue',
+  'createStoreContext',
+  expectedExports.forEach(exportName => {
+  });
+```
 
 ## Test Coverage
 
-This API is thoroughly tested with **15 test cases** covering:
-
-- ✅ Basic functionality and usage patterns
-- ✅ Error conditions and edge cases
-- ✅ Performance characteristics
-- ✅ Integration scenarios
-- ✅ Type safety validation
-
-### Test Files
-The following test files validate this API:
-
-- [Comprehensive Tests](../../packages/react/__tests__/)
-- [Type Safety Tests](../../packages/react/__tests__/type-safety/)
-- [Performance Tests](../../packages/react/__tests__/performance/)
-
-## Type Safety
-
-This API provides full TypeScript support with:
-- 🎯 **Strict type checking** - Compile-time error prevention
-- 🔍 **Intelligent IntelliSense** - Auto-completion and documentation
-- 🛡️ **Runtime validation** - Payload and parameter validation
-- 📝 **Self-documenting code** - Types serve as documentation
-
-
-## Related APIs
-
-- [ActionRegister](./actionregister.md) - Core action registration system
-- [createStoreContext](./createstorecontext.md) - Store management context
-
-## See Also
-
-- [Pattern Guide](../concept/pattern-guide.md) - Comprehensive usage patterns
-- [Architecture Guide](../concept/architecture-guide.md) - System architecture overview
-- [Troubleshooting](../troubleshooting/) - Common issues and solutions
-
+This API is tested with **15 test cases** across 2 test files.
 
 ---
 
-*This documentation is automatically generated from test code to ensure accuracy and completeness.*
-
-**Need help?** Check the [troubleshooting guide](../troubleshooting/) or [open an issue](https://github.com/mineclover/context-action/issues).
+*This documentation is automatically generated from test code.*
