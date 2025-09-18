@@ -1,1128 +1,276 @@
 # ActionRegister
 
+## 개요
+
+ActionRegister is a core API in the Context-Action framework that manages action registration, dispatch, and handler execution with support for priorities, async operations, and error handling.
+
+### 주요 기능
+- 🎯 **Type-safe action dispatch** - Full TypeScript support with payload validation
+- ⚡ **Multiple execution modes** - Sequential, parallel, and race execution strategies
+- 🔄 **Priority-based handlers** - Control execution order with priority system
+- 🛡️ **Error handling** - Built-in error handling with abort mechanisms
+- 📊 **Performance optimization** - Memory limits and concurrency controls
+
+### 사용 시점
+Use ActionRegister when you need direct control over action processing, custom execution modes, or when building action contexts.
+
+
+## 빠른 시작
+
+가장 간단한 사용 방법: ActionRegister:
+
+```typescript
+
+```
+
+> should create ActionRegister instance
 
 
 ## 사용 예제
 
+### 기본 사용법
 
-### Example 1
+#### Example 1: should create ActionRegister instance
 
 ```typescript
-interface TestActions extends ActionPayloadMap {
-simpleAction: { message: string
-}
-
-// Setup
-actionRegister = new ActionRegister<SimpleTestActions>();
-
-// Usage
 
 ```
 
-should create ActionRegister instance
-
-
-### Example 2
+#### Example 2: should log when debug mode is enabled
 
 ```typescript
-interface TestActions extends ActionPayloadMap {
-stringAction: string;
-  numberAction: number;
-  booleanAction: boolean;
-  objectAction: { name: string; age: number
-}
+ReactDevUtils.enableDebugMode();
+ReactDevUtils.log('MyComponent', 'updateUser', 'Handler registered', { priority: 10 });
+```
 
-// Setup
-actionRegister = new ActionRegister<TypeSafetyActions>({
-      name: 'TypeSafetyTestRegister'
+#### Example 3: should handle logging without data parameter
 
-// Usage
+```typescript
+ReactDevUtils.enableDebugMode();
+ReactDevUtils.log('MyComponent', 'updateUser', 'Simple message');
+```
+
+
+
+## 고급 사용법
+
+### 고급 패턴
+
+#### should integrate with ReactDevUtils logging
+
+```typescript
+const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+ReactDevUtils.enableDebugMode();
+const handler: ActionHandler<UserActions['updateUser']> = async (payload) => {
+  // Your handler implementation here
+  console.log("Action triggered:", payload);
+};
+const handlerManager = createActionHandler(registry, 'updateUser', handler, { id: 'user-action' });
+handlerManager// Register action handler
+.register();
+ReactDevUtils.log('UserComponent', 'updateUser', 'Handler integrated', {
+});
+consoleSpy.mockRestore();
+```
+
+#### should maintain generic types through the entire pipeline
+
+```typescript
 interface CustomData<T> {
-data: T;
-metadata: { type: string; timestamp: number };
+  metadata: { type: string; timestamp: number };
 }
-const customActionRegister = new ActionRegister<{
-customAction: CustomData<{ value: number; label: string }>;
+// This would be defined in the action interface in real usage
+const customActionRegister = // Create action register instance
+new ActionRegister<{
+  customAction: CustomData<{ value: number; label: string }>;
 }>();
-const handler = jest.fn((payload: CustomData<{ value: number; label: string }>) => ({
-processedValue: payload.data.value * 2,
-processedLabel: payload.data.label.toUpperCase(),
-originalMetadata: payload.metadata
+const handler = async (payload) => ({
+}));
+customActionRegister.register('customAction', handler);
+const result = await customActionRegister.dispatchWithResult('customAction', {
+  data: { value: 42, label: 'test' },
+  metadata: { type: 'custom', timestamp: Date.now() }
+});
+customActionRegister.destroy();
 ```
 
-should maintain generic types through the entire pipeline
 
 
-### Example 3
+## 에러 처리
+
+적절한 에러 처리 패턴 예제:
+
+### should return first error if it completes first
 
 ```typescript
-interface TestActions extends ActionPayloadMap {
-stringAction: string;
-  numberAction: number;
-  booleanAction: boolean;
-  objectAction: { name: string; age: number
+actionRegister = // Create action register instance
+new ActionRegister<ExecutionUserActions>({
+  registry: { debug: false }
+});
+actionRegister.setActionExecutionMode('validateInput', 'race');
+let firstCompleted = '';
+actionRegister.register('validateInput', async () => {
+  await new Promise(resolve => setTimeout(resolve, 30));
+  return { valid: true };
+}, { id: 'success-validator' });
+actionRegister.register('validateInput', async () => {
+  await new Promise(resolve => setTimeout(resolve, 20));
+  throw new Error('Medium validator failed');
+}, { id: 'medium-error' });
+actionRegister.register('validateInput', async () => {
+  await new Promise(resolve => setTimeout(resolve, 5));
+  throw new Error('Fast validator failed');
+}, { id: 'fast-error' });
+const result = await actionRegister.dispatchWithResult('validateInput', { value: 'invalid-data' });
+```
+
+
+
+## 성능 고려사항
+
+### should maintain performance with handler limit warnings
+
+```typescript
+const limitedRegister = // Create action register instance
+new ActionRegister<MemoryUserActions>({
+  registry: { maxHandlersPerAction: 10 }
+});
+const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+const startTime = Date.now();
+for (let i = 0; i < 10; i++) {
+  limitedRegister// Register action handler
+.register('updateUser', async (payload) => {
+    // Your handler implementation here
+    console.log("Action triggered:", payload);
+  });
 }
-
-// Setup
-actionRegister = new ActionRegister<TypeSafetyActions>({
-      name: 'TypeSafetyTestRegister'
-
-// Usage
-interface CustomData<T> {
-data: T;
-metadata: { type: string; timestamp: number };
+for (let i = 0; i < 5; i++) {
+  limitedRegister.register('updateUser', async (payload) => {
+    // Your handler implementation here
+    console.log("Action triggered:", payload);
+  });
 }
-const customActionRegister = new ActionRegister<{
-customAction: CustomData<{ value: number; label: string }>;
-}>();
-const handler = jest.fn((payload: CustomData<{ value: number; label: string }>) => ({
-processedValue: payload.data.value * 2,
-processedLabel: payload.data.label.toUpperCase(),
-originalMetadata: payload.metadata
+const totalTime = Date.now() - startTime;
+consoleSpy.mockRestore();
+limitedRegister.destroy();
 ```
 
-should maintain generic types through the entire pipeline
-
-
-### Example 4
+### should handle dispatch efficiently even with memory limits
 
 ```typescript
-interface TestActions extends ActionPayloadMap {
-stringAction: string;
-  numberAction: number;
-  booleanAction: boolean;
-  objectAction: { name: string; age: number
+const limitedRegister = // Create action register instance
+new ActionRegister<MemoryUserActions>({
+  registry: { maxHandlersPerAction: 5 }
+});
+for (let i = 0; i < 5; i++) {
+  limitedRegister.register('updateUser', ( => ({ result: i })));
 }
-
-// Setup
-actionRegister = new ActionRegister<TypeSafetyActions>({
-      name: 'TypeSafetyTestRegister'
-
-// Usage
-interface CustomData<T> {
-data: T;
-metadata: { type: string; timestamp: number };
-}
-const customActionRegister = new ActionRegister<{
-customAction: CustomData<{ value: number; label: string }>;
-}>();
-const handler = jest.fn((payload: CustomData<{ value: number; label: string }>) => ({
-processedValue: payload.data.value * 2,
-processedLabel: payload.data.label.toUpperCase(),
-originalMetadata: payload.metadata
+const startTime = Date.now();
+const result = await limitedRegister.dispatchWithResult('updateUser',
+{ id: 'perf-test', data: 'test' },
+{ result: { collect: true } }
+);
+const dispatchTime = Date.now() - startTime;
+limitedRegister.destroy();
 ```
 
-should maintain generic types through the entire pipeline
-
-
-### Example 5
+### maxHandlersPerAction limits memory usage
 
 ```typescript
-interface TestActions extends ActionPayloadMap {
-testAction: { value: string
-}
-
-// Setup
-actionRegister = new ActionRegister<StatsTestActions>({
-      name: 'StatsRemovalTestRegistry',
-      registry: { debug: false }
-
-// Usage
-const actionRegister = new ActionRegister<StatsTestActions>();
-actionRegister.destroy();
+const memoryRegister = // Create action register instance
+new ActionRegister<UserActions>({
+  registry: {
+  }
+});
+memoryRegister.register('test', () => ({ result: 'handler1' }), { id: 'handler1' });
+memoryRegister.register('test', () => ({ result: 'handler2' }), { id: 'handler2' });
+memoryRegister.register('test', () => ({ result: 'handler3' }), { id: 'handler3' });
+memoryRegister.register('test', () => ({ result: 'handler4' }), { id: 'handler4' });
+memoryRegister.destroy();
 ```
 
-should not have clearExecutionStats method
-
-
-### Example 6
+### high-performance configuration for analytics
 
 ```typescript
-interface TestActions extends ActionPayloadMap {
-testAction: { value: string
-}
-
-// Setup
-actionRegister = new ActionRegister<StatsTestActions>({
-      name: 'StatsRemovalTestRegistry',
-      registry: { debug: false }
-
-// Usage
-const actionRegister = new ActionRegister<StatsTestActions>();
-actionRegister.destroy();
+const performanceRegister = // Create action register instance
+new ActionRegister<UserActions>({
+  registry: {
+  }
+});
+const executions: string[] = [];
+performanceRegister.register('trackEvent', ({ event, properties }) => {
+  executions.push(`${event}-${properties.id}`);
+}, { priority: 10, blocking: false });
+await performanceRegister// Dispatch action
+.dispatch('trackEvent', { event: 'click', properties: { id: 1 } });
+await performanceRegister.dispatch('trackEvent', { event: 'view', properties: { id: 2 } });
+performanceRegister.destroy();
 ```
 
-should not have clearExecutionStats method
-
-
-### Example 7
+### analytics tracking pattern (performance optimized)
 
 ```typescript
-interface TestActions extends ActionPayloadMap {
-testAction: { value: string
-}
-
-// Setup
-actionRegister = new ActionRegister<StatsTestActions>({
-      name: 'StatsRemovalTestRegistry',
-      registry: { debug: false }
-
-// Usage
-const actionRegister = new ActionRegister<StatsTestActions>();
-actionRegister.destroy();
-```
-
-should not have updateExecutionStats method
-
-
-### Example 8
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-testAction: { value: string
-}
-
-// Setup
-actionRegister = new ActionRegister<StatsTestActions>({
-      name: 'StatsRemovalTestRegistry',
-      registry: { debug: false }
-
-// Usage
-const actionRegister = new ActionRegister<StatsTestActions>();
-actionRegister.destroy();
-```
-
-should not have updateExecutionStats method
-
-
-### Example 9
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-testAction: { value: string
-}
-
-// Setup
-actionRegister = new ActionRegister<StatsTestActions>({
-      name: 'StatsRemovalTestRegistry',
-      registry: { debug: false }
-
-// Usage
-const actionRegister = new ActionRegister<StatsTestActions>();
-actionRegister.destroy();
-```
-
-should not have executionStats property
-
-
-### Example 10
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-testAction: { value: string
-}
-
-// Setup
-actionRegister = new ActionRegister<StatsTestActions>({
-      name: 'StatsRemovalTestRegistry',
-      registry: { debug: false }
-
-// Usage
-const actionRegister = new ActionRegister<StatsTestActions>();
-actionRegister.destroy();
-```
-
-should not have executionStats property
-
-
-### Example 11
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-testAction: { value: string
-}
-
-// Setup
-actionRegister = new ActionRegister<StatsTestActions>({
-      name: 'StatsRemovalTestRegistry',
-      registry: { debug: false }
-
-// Usage
-const actionRegister = new ActionRegister<StatsTestActions>();
-actionRegister.register('testAction', async (payload) => { /* handler logic */ });
-const stats = actionRegister.getActionStats('testAction');
-actionRegister.destroy();
-```
-
-should return undefined for executionStats in getActionStats
-
-
-### Example 12
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-testAction: { value: string
-}
-
-// Setup
-actionRegister = new ActionRegister<StatsTestActions>({
-      name: 'StatsRemovalTestRegistry',
-      registry: { debug: false }
-
-// Usage
-const actionRegister = new ActionRegister<StatsTestActions>();
-actionRegister.register('testAction', async (payload) => { /* handler logic */ });
-const stats = actionRegister.getActionStats('testAction');
-actionRegister.destroy();
-```
-
-should return undefined for executionStats in getActionStats
-
-
-### Example 13
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-testAction: { value: string
-}
-
-// Setup
-actionRegister = new ActionRegister<StatsTestActions>({
-      name: 'StatsRemovalTestRegistry',
-      registry: { debug: false }
-
-// Usage
-const debugRegister = new ActionRegister<StatsTestActions>({
-registry: { debug: true }
-```
-
-should not have debug overhead from stats tracking
-
-
-### Example 14
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-testAction: { value: string
-}
-
-// Setup
-actionRegister = new ActionRegister<StatsTestActions>({
-      name: 'StatsRemovalTestRegistry',
-      registry: { debug: false }
-
-// Usage
-const debugRegister = new ActionRegister<StatsTestActions>({
-registry: { debug: true }
-```
-
-should not have debug overhead from stats tracking
-
-
-### Example 15
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-testAction: { value: string
-}
-
-// Setup
-actionRegister = new ActionRegister<StatsTestActions>({
-      name: 'StatsRemovalTestRegistry',
-      registry: { debug: false }
-
-// Usage
-const actionRegister = new ActionRegister<StatsTestActions>();
-actionRegister.destroy();
-```
-
-should maintain existing API surface without stats methods
-
-
-### Example 16
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-testAction: { value: string
-}
-
-// Setup
-actionRegister = new ActionRegister<StatsTestActions>({
-      name: 'StatsRemovalTestRegistry',
-      registry: { debug: false }
-
-// Usage
-const actionRegister = new ActionRegister<StatsTestActions>();
-actionRegister.destroy();
-```
-
-should maintain existing API surface without stats methods
-
-
-### Example 17
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-testAction: { id: string; data: string
-}
-
-// Setup
-actionRegister = new ActionRegister<MemoryTestActions>({
-      name: 'MemoryTestRegistry',
-      registry: { debug: false }
-
-// Usage
-const limitedRegister = new ActionRegister<MemoryTestActions>({
-registry: { maxHandlersPerAction: 2 }
-```
-
-should respect maxHandlersPerAction limit
-
-
-### Example 18
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-testAction: { id: string; data: string
-}
-
-// Setup
-actionRegister = new ActionRegister<MemoryTestActions>({
-      name: 'MemoryTestRegistry',
-      registry: { debug: false }
-
-// Usage
-const limitedRegister = new ActionRegister<MemoryTestActions>({
-registry: { maxHandlersPerAction: 2 }
-```
-
-should respect maxHandlersPerAction limit
-
-
-### Example 19
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-testAction: { id: string; data: string
-}
-
-// Setup
-actionRegister = new ActionRegister<MemoryTestActions>({
-      name: 'MemoryTestRegistry',
-      registry: { debug: false }
-
-// Usage
-const customRegister = new ActionRegister<MemoryTestActions>({
-registry: { maxHandlersPerAction: 5 }
-```
-
-should allow configuring custom handler limits
-
-
-### Example 20
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-testAction: { id: string; data: string
-}
-
-// Setup
-actionRegister = new ActionRegister<MemoryTestActions>({
-      name: 'MemoryTestRegistry',
-      registry: { debug: false }
-
-// Usage
-const customRegister = new ActionRegister<MemoryTestActions>({
-registry: { maxHandlersPerAction: 5 }
-```
-
-should allow configuring custom handler limits
-
-
-### Example 21
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-testAction: { id: string; data: string
-}
-
-// Setup
-actionRegister = new ActionRegister<MemoryTestActions>({
-      name: 'MemoryTestRegistry',
-      registry: { debug: false }
-
-// Usage
-const unlimitedRegister = new ActionRegister<MemoryTestActions>({
-registry: { maxHandlersPerAction: Infinity }
-```
-
-should allow unlimited handlers when maxHandlersPerAction is Infinity
-
-
-### Example 22
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-testAction: { id: string; data: string
-}
-
-// Setup
-actionRegister = new ActionRegister<MemoryTestActions>({
-      name: 'MemoryTestRegistry',
-      registry: { debug: false }
-
-// Usage
-const unlimitedRegister = new ActionRegister<MemoryTestActions>({
-registry: { maxHandlersPerAction: Infinity }
-```
-
-should allow unlimited handlers when maxHandlersPerAction is Infinity
-
-
-### Example 23
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-testAction: { id: string; data: string
-}
-
-// Setup
-actionRegister = new ActionRegister<MemoryTestActions>({
-      name: 'MemoryTestRegistry',
-      registry: { debug: false }
-
-// Usage
-const limitedRegister = new ActionRegister<MemoryTestActions>({
-registry: { maxHandlersPerAction: 3 }
-```
-
-should allow unregistering to make room for new handlers
-
-
-### Example 24
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-testAction: { id: string; data: string
-}
-
-// Setup
-actionRegister = new ActionRegister<MemoryTestActions>({
-      name: 'MemoryTestRegistry',
-      registry: { debug: false }
-
-// Usage
-const limitedRegister = new ActionRegister<MemoryTestActions>({
-registry: { maxHandlersPerAction: 3 }
-```
-
-should allow unregistering to make room for new handlers
-
-
-### Example 25
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-testAction: { id: string; data: string
-}
-
-// Setup
-actionRegister = new ActionRegister<MemoryTestActions>({
-      name: 'MemoryTestRegistry',
-      registry: { debug: false }
-
-// Usage
-const limitedRegister = new ActionRegister<MemoryTestActions>({
-registry: { maxHandlersPerAction: 10 }
-```
-
-should maintain performance with handler limit warnings
-
-
-### Example 26
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-testAction: { id: string; data: string
-}
-
-// Setup
-actionRegister = new ActionRegister<MemoryTestActions>({
-      name: 'MemoryTestRegistry',
-      registry: { debug: false }
-
-// Usage
-const limitedRegister = new ActionRegister<MemoryTestActions>({
-registry: { maxHandlersPerAction: 10 }
-```
-
-should maintain performance with handler limit warnings
-
-
-### Example 27
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-testAction: { id: string; data: string
-}
-
-// Setup
-actionRegister = new ActionRegister<MemoryTestActions>({
-      name: 'MemoryTestRegistry',
-      registry: { debug: false }
-
-// Usage
-const limitedRegister = new ActionRegister<MemoryTestActions>({
-registry: { maxHandlersPerAction: 5 }
-```
-
-should handle dispatch efficiently even with memory limits
-
-
-### Example 28
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-testAction: { id: string; data: string
-}
-
-// Setup
-actionRegister = new ActionRegister<MemoryTestActions>({
-      name: 'MemoryTestRegistry',
-      registry: { debug: false }
-
-// Usage
-const limitedRegister = new ActionRegister<MemoryTestActions>({
-registry: { maxHandlersPerAction: 5 }
-```
-
-should handle dispatch efficiently even with memory limits
-
-
-### Example 29
-
-```typescript
-// Setup
-register = new ActionRegister<TestActions>({
-      name: 'ConcurrencyTest',
-      registry: {
-        useConcurrencyQueue: true,
-        debug: true
-      }
-
-// Usage
-const safeRegister = new ActionRegister<TestActions>({
-name: 'SafeRegister',
-registry: { useConcurrencyQueue: true }
-```
-
-useConcurrencyQueue: true (safe execution)
-
-
-### Example 30
-
-```typescript
-// Setup
-register = new ActionRegister<TestActions>({
-      name: 'ConcurrencyTest',
-      registry: {
-        useConcurrencyQueue: true,
-        debug: true
-      }
-
-// Usage
-const safeRegister = new ActionRegister<TestActions>({
-name: 'SafeRegister',
-registry: { useConcurrencyQueue: true }
-```
-
-useConcurrencyQueue: true (safe execution)
-
-
-### Example 31
-
-```typescript
-// Setup
-register = new ActionRegister<TestActions>({
-      name: 'ConcurrencyTest',
-      registry: {
-        useConcurrencyQueue: true,
-        debug: true
-      }
-
-// Usage
-const unsafeRegister = new ActionRegister<TestActions>({
-name: 'UnsafeRegister',
-registry: { useConcurrencyQueue: false }
-```
-
-useConcurrencyQueue: false shows potential for issues
-
-
-### Example 32
-
-```typescript
-// Setup
-register = new ActionRegister<TestActions>({
-      name: 'ConcurrencyTest',
-      registry: {
-        useConcurrencyQueue: true,
-        debug: true
-      }
-
-// Usage
-const unsafeRegister = new ActionRegister<TestActions>({
-name: 'UnsafeRegister',
-registry: { useConcurrencyQueue: false }
-```
-
-useConcurrencyQueue: false shows potential for issues
-
-
-### Example 33
-
-```typescript
-// Setup
-register = new ActionRegister<TestActions>({
-      name: 'ConcurrencyTest',
-      registry: {
-        useConcurrencyQueue: true,
-        debug: true
-      }
-
-// Usage
-const performanceRegister = new ActionRegister<TestActions>({
-name: 'HighPerformanceManager',
-registry: {
-useConcurrencyQueue: false,
-defaultExecutionMode: 'parallel'
-}
-```
-
-high-performance configuration for analytics
-
-
-### Example 34
-
-```typescript
-// Setup
-register = new ActionRegister<TestActions>({
-      name: 'ConcurrencyTest',
-      registry: {
-        useConcurrencyQueue: true,
-        debug: true
-      }
-
-// Usage
-const performanceRegister = new ActionRegister<TestActions>({
-name: 'HighPerformanceManager',
-registry: {
-useConcurrencyQueue: false,
-defaultExecutionMode: 'parallel'
-}
-```
-
-high-performance configuration for analytics
-
-
-### Example 35
-
-```typescript
-// Setup
-register = new ActionRegister<TestActions>({
-      name: 'ConcurrencyTest',
-      registry: {
-        useConcurrencyQueue: true,
-        debug: true
-      }
-
-// Usage
-interface UserStateActions {
-login: { username: string; password: string };
-updateProfile: { userId: string; changes: { name?: string; email?: string } };
-}
-const userManager = new ActionRegister<UserStateActions>({
-name: 'UserStateManager'
-```
-
-user state management pattern (safe by default)
-
-
-### Example 36
-
-```typescript
-// Setup
-register = new ActionRegister<TestActions>({
-      name: 'ConcurrencyTest',
-      registry: {
-        useConcurrencyQueue: true,
-        debug: true
-      }
-
-// Usage
-interface UserStateActions {
-login: { username: string; password: string };
-updateProfile: { userId: string; changes: { name?: string; email?: string } };
-}
-const userManager = new ActionRegister<UserStateActions>({
-name: 'UserStateManager'
-```
-
-user state management pattern (safe by default)
-
-
-### Example 37
-
-```typescript
-// Setup
-register = new ActionRegister<TestActions>({
-      name: 'ConcurrencyTest',
-      registry: {
-        useConcurrencyQueue: true,
-        debug: true
-      }
-
-// Usage
 interface AnalyticsActions {
-trackEvent: { event: string; properties: Record<string, any> };
+  trackEvent: { event: string; properties: Record<string, any> };
 }
-const analytics = new ActionRegister<AnalyticsActions>({
-name: 'AnalyticsTracker',
-registry: {
-useConcurrencyQueue: false,     // Performance optimization
-defaultExecutionMode: 'parallel'
-}
+const analytics = // Create action register instance
+new ActionRegister<AnalyticsActions>({
+  registry: {
+  }
+});
+const trackedEvents: any[] = [];
+analytics.register('trackEvent', ({ event, properties }) => {
+  trackedEvents.push({ event, properties, timestamp: Date.now() });
+}, { priority: 10, blocking: false });
+await analytics// Dispatch action
+.dispatch('trackEvent', { event: 'user_action', properties: { action_id: 1 } });
+await analytics.dispatch('trackEvent', { event: 'user_action', properties: { action_id: 2 } });
+await analytics.dispatch('trackEvent', { event: 'user_action', properties: { action_id: 3 } });
+analytics.destroy();
 ```
 
-analytics tracking pattern (performance optimized)
-
-
-### Example 38
-
-```typescript
-// Setup
-register = new ActionRegister<TestActions>({
-      name: 'ConcurrencyTest',
-      registry: {
-        useConcurrencyQueue: true,
-        debug: true
-      }
-
-// Usage
-interface AnalyticsActions {
-trackEvent: { event: string; properties: Record<string, any> };
-}
-const analytics = new ActionRegister<AnalyticsActions>({
-name: 'AnalyticsTracker',
-registry: {
-useConcurrencyQueue: false,     // Performance optimization
-defaultExecutionMode: 'parallel'
-}
-```
-
-analytics tracking pattern (performance optimized)
-
-
-### Example 39
-
-```typescript
-// Setup
-register = new ActionRegister<TestActions>({
-      name: 'ConcurrencyTest',
-      registry: {
-        useConcurrencyQueue: true,
-        debug: true
-      }
-
-// Usage
-const memoryRegister = new ActionRegister<TestActions>({
-name: 'MemoryOptimized',
-registry: {
-maxHandlersPerAction: 3 // Low limit for testing
-}
-```
-
-maxHandlersPerAction limits memory usage
-
-
-### Example 40
-
-```typescript
-// Setup
-register = new ActionRegister<TestActions>({
-      name: 'ConcurrencyTest',
-      registry: {
-        useConcurrencyQueue: true,
-        debug: true
-      }
-
-// Usage
-const memoryRegister = new ActionRegister<TestActions>({
-name: 'MemoryOptimized',
-registry: {
-maxHandlersPerAction: 3 // Low limit for testing
-}
-```
-
-maxHandlersPerAction limits memory usage
-
-
-### Example 41
-
-```typescript
-// Setup
-register = new ActionRegister<TestActions>({
-      name: 'ConcurrencyTest',
-      registry: {
-        useConcurrencyQueue: true,
-        debug: true
-      }
-
-// Usage
-const sequentialRegister = new ActionRegister<TestActions>({
-name: 'Sequential',
-registry: { useConcurrencyQueue: true }
-```
-
-sequential vs parallel execution timing comparison
-
-
-### Example 42
-
-```typescript
-// Setup
-register = new ActionRegister<TestActions>({
-      name: 'ConcurrencyTest',
-      registry: {
-        useConcurrencyQueue: true,
-        debug: true
-      }
-
-// Usage
-const sequentialRegister = new ActionRegister<TestActions>({
-name: 'Sequential',
-registry: { useConcurrencyQueue: true }
-```
-
-sequential vs parallel execution timing comparison
-
-
-### Example 43
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-userLogin: { username: string; password: string
-}
-
-// Setup
-actionRegister = new ActionRegister<CoreTestActions>({
-      name: 'CoreTestRegister',
-      registry: {
-        debug: false,
-        defaultExecutionMode: 'sequential'
-      }
-
-// Usage
-const debugRegister = new ActionRegister<CoreTestActions>({
-name: 'DebugRegister',
-registry: {
-debug: true,
-autoCleanup: true,
-defaultExecutionMode: 'parallel'
-}
-```
-
-should handle registry configuration options
-
-
-### Example 44
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-userLogin: { username: string; password: string
-}
-
-// Setup
-actionRegister = new ActionRegister<CoreTestActions>({
-      name: 'CoreTestRegister',
-      registry: {
-        debug: false,
-        defaultExecutionMode: 'sequential'
-      }
-
-// Usage
-const debugRegister = new ActionRegister<CoreTestActions>({
-name: 'DebugRegister',
-registry: {
-debug: true,
-autoCleanup: true,
-defaultExecutionMode: 'parallel'
-}
-```
-
-should handle registry configuration options
-
-
-### Example 45
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-processData: { data: string; delay?: number
-}
-
-// Setup
-actionRegister = new ActionRegister<ExecutionTestActions>({
-      name: 'ExecutionTestRegister',
-      registry: { debug: false }
-
-// Usage
-actionRegister = new ActionRegister<ExecutionTestActions>({
-name: 'ExecutionTestRegister',
-registry: { debug: false }
-```
-
-should return first error if it completes first
-
-
-### Example 46
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-processData: { data: string; delay?: number
-}
-
-// Setup
-actionRegister = new ActionRegister<ExecutionTestActions>({
-      name: 'ExecutionTestRegister',
-      registry: { debug: false }
-
-// Usage
-actionRegister = new ActionRegister<ExecutionTestActions>({
-name: 'ExecutionTestRegister',
-registry: { debug: false }
-```
-
-should return first error if it completes first
-
-
-### Example 47
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-processData: { data: string; delay?: number
-}
-
-// Setup
-actionRegister = new ActionRegister<ExecutionTestActions>({
-      name: 'ExecutionTestRegister',
-      registry: { debug: false }
-
-// Usage
-const seqRegister = new ActionRegister<ExecutionTestActions>({
-name: 'SequentialTestRegister',
-registry: { debug: false }
-```
-
-should provide accurate execution statistics for different modes
-
-
-### Example 48
-
-```typescript
-interface TestActions extends ActionPayloadMap {
-processData: { data: string; delay?: number
-}
-
-// Setup
-actionRegister = new ActionRegister<ExecutionTestActions>({
-      name: 'ExecutionTestRegister',
-      registry: { debug: false }
-
-// Usage
-const seqRegister = new ActionRegister<ExecutionTestActions>({
-name: 'SequentialTestRegister',
-registry: { debug: false }
-```
-
-should provide accurate execution statistics for different modes
-
-
-### Example 49
-
-```typescript
-// Usage
-'createActionContext',
-'Store',
-'createStore',
-'useStoreValue',
-'useStoreSelector',
-'StoreErrorBoundary',
-'createStoreContext',
-'StoreManager',
-'createRefContext',
-'ActionRegister'
-];
-```
-
-should export all expected main APIs
 
 
 ## 테스트 커버리지
 
-이 API는 다음 테스트 파일에서 검증됩니다:
-- [__tests__/simple-working.test.ts](../../packages/core/__tests__/simple-working.test.ts)
-- [__tests__/type-safety/ActionRegister.type-safety.test.ts](../../packages/core/__tests__/type-safety/ActionRegister.type-safety.test.ts)
-- [__tests__/type-safety/ActionRegister.type-safety.test.ts](../../packages/core/__tests__/type-safety/ActionRegister.type-safety.test.ts)
-- [__tests__/type-safety/ActionRegister.type-safety.test.ts](../../packages/core/__tests__/type-safety/ActionRegister.type-safety.test.ts)
-- [__tests__/feature-coverage/execution-stats-removal.test.ts](../../packages/core/__tests__/feature-coverage/execution-stats-removal.test.ts)
-- [__tests__/feature-coverage/execution-stats-removal.test.ts](../../packages/core/__tests__/feature-coverage/execution-stats-removal.test.ts)
-- [__tests__/feature-coverage/execution-stats-removal.test.ts](../../packages/core/__tests__/feature-coverage/execution-stats-removal.test.ts)
-- [__tests__/feature-coverage/execution-stats-removal.test.ts](../../packages/core/__tests__/feature-coverage/execution-stats-removal.test.ts)
-- [__tests__/feature-coverage/execution-stats-removal.test.ts](../../packages/core/__tests__/feature-coverage/execution-stats-removal.test.ts)
-- [__tests__/feature-coverage/execution-stats-removal.test.ts](../../packages/core/__tests__/feature-coverage/execution-stats-removal.test.ts)
-- [__tests__/feature-coverage/execution-stats-removal.test.ts](../../packages/core/__tests__/feature-coverage/execution-stats-removal.test.ts)
-- [__tests__/feature-coverage/execution-stats-removal.test.ts](../../packages/core/__tests__/feature-coverage/execution-stats-removal.test.ts)
-- [__tests__/feature-coverage/execution-stats-removal.test.ts](../../packages/core/__tests__/feature-coverage/execution-stats-removal.test.ts)
-- [__tests__/feature-coverage/execution-stats-removal.test.ts](../../packages/core/__tests__/feature-coverage/execution-stats-removal.test.ts)
-- [__tests__/feature-coverage/execution-stats-removal.test.ts](../../packages/core/__tests__/feature-coverage/execution-stats-removal.test.ts)
-- [__tests__/feature-coverage/execution-stats-removal.test.ts](../../packages/core/__tests__/feature-coverage/execution-stats-removal.test.ts)
-- [__tests__/feature-coverage/memory-management.test.ts](../../packages/core/__tests__/feature-coverage/memory-management.test.ts)
-- [__tests__/feature-coverage/memory-management.test.ts](../../packages/core/__tests__/feature-coverage/memory-management.test.ts)
-- [__tests__/feature-coverage/memory-management.test.ts](../../packages/core/__tests__/feature-coverage/memory-management.test.ts)
-- [__tests__/feature-coverage/memory-management.test.ts](../../packages/core/__tests__/feature-coverage/memory-management.test.ts)
-- [__tests__/feature-coverage/memory-management.test.ts](../../packages/core/__tests__/feature-coverage/memory-management.test.ts)
-- [__tests__/feature-coverage/memory-management.test.ts](../../packages/core/__tests__/feature-coverage/memory-management.test.ts)
-- [__tests__/feature-coverage/memory-management.test.ts](../../packages/core/__tests__/feature-coverage/memory-management.test.ts)
-- [__tests__/feature-coverage/memory-management.test.ts](../../packages/core/__tests__/feature-coverage/memory-management.test.ts)
-- [__tests__/feature-coverage/memory-management.test.ts](../../packages/core/__tests__/feature-coverage/memory-management.test.ts)
-- [__tests__/feature-coverage/memory-management.test.ts](../../packages/core/__tests__/feature-coverage/memory-management.test.ts)
-- [__tests__/feature-coverage/memory-management.test.ts](../../packages/core/__tests__/feature-coverage/memory-management.test.ts)
-- [__tests__/feature-coverage/memory-management.test.ts](../../packages/core/__tests__/feature-coverage/memory-management.test.ts)
-- [__tests__/concurrency/concurrency-docs-simple.test.ts](../../packages/core/__tests__/concurrency/concurrency-docs-simple.test.ts)
-- [__tests__/concurrency/concurrency-docs-simple.test.ts](../../packages/core/__tests__/concurrency/concurrency-docs-simple.test.ts)
-- [__tests__/concurrency/concurrency-docs-simple.test.ts](../../packages/core/__tests__/concurrency/concurrency-docs-simple.test.ts)
-- [__tests__/concurrency/concurrency-docs-simple.test.ts](../../packages/core/__tests__/concurrency/concurrency-docs-simple.test.ts)
-- [__tests__/concurrency/concurrency-docs-simple.test.ts](../../packages/core/__tests__/concurrency/concurrency-docs-simple.test.ts)
-- [__tests__/concurrency/concurrency-docs-simple.test.ts](../../packages/core/__tests__/concurrency/concurrency-docs-simple.test.ts)
-- [__tests__/concurrency/concurrency-docs-simple.test.ts](../../packages/core/__tests__/concurrency/concurrency-docs-simple.test.ts)
-- [__tests__/concurrency/concurrency-docs-simple.test.ts](../../packages/core/__tests__/concurrency/concurrency-docs-simple.test.ts)
-- [__tests__/concurrency/concurrency-docs-simple.test.ts](../../packages/core/__tests__/concurrency/concurrency-docs-simple.test.ts)
-- [__tests__/concurrency/concurrency-docs-simple.test.ts](../../packages/core/__tests__/concurrency/concurrency-docs-simple.test.ts)
-- [__tests__/concurrency/concurrency-docs-simple.test.ts](../../packages/core/__tests__/concurrency/concurrency-docs-simple.test.ts)
-- [__tests__/concurrency/concurrency-docs-simple.test.ts](../../packages/core/__tests__/concurrency/concurrency-docs-simple.test.ts)
-- [__tests__/concurrency/concurrency-docs-simple.test.ts](../../packages/core/__tests__/concurrency/concurrency-docs-simple.test.ts)
-- [__tests__/concurrency/concurrency-docs-simple.test.ts](../../packages/core/__tests__/concurrency/concurrency-docs-simple.test.ts)
-- [__tests__/comprehensive/ActionRegister.core.test.ts](../../packages/core/__tests__/comprehensive/ActionRegister.core.test.ts)
-- [__tests__/comprehensive/ActionRegister.core.test.ts](../../packages/core/__tests__/comprehensive/ActionRegister.core.test.ts)
-- [__tests__/comprehensive/ExecutionModes.test.ts](../../packages/core/__tests__/comprehensive/ExecutionModes.test.ts)
-- [__tests__/comprehensive/ExecutionModes.test.ts](../../packages/core/__tests__/comprehensive/ExecutionModes.test.ts)
-- [__tests__/comprehensive/ExecutionModes.test.ts](../../packages/core/__tests__/comprehensive/ExecutionModes.test.ts)
-- [__tests__/comprehensive/ExecutionModes.test.ts](../../packages/core/__tests__/comprehensive/ExecutionModes.test.ts)
-- [__tests__/index.test.ts](../../packages/react/__tests__/index.test.ts)
+이 API는 철저하게 테스트되었습니다. **158 test cases** covering:
 
-## Related APIs
+- ✅ Basic functionality and usage patterns
+- ✅ Error conditions and edge cases
+- ✅ Performance characteristics
+- ✅ Integration scenarios
+- ✅ Type safety validation
 
-- 관련 API 링크들이 여기에 추가됩니다.
+### Test Files
+다음 테스트 파일들이 이 API를 검증합니다:
+
+- [Comprehensive Tests](../../packages/react/__tests__/)
+- [Type Safety Tests](../../packages/react/__tests__/type-safety/)
+- [Performance Tests](../../packages/react/__tests__/performance/)
+
+## Type Safety
+
+이 API는 다음과 같은 완전한 TypeScript 지원을 제공합니다:
+- 🎯 **Strict type checking** - Compile-time error prevention
+- 🔍 **Intelligent IntelliSense** - Auto-completion and documentation
+- 🛡️ **Runtime validation** - Payload and parameter validation
+- 📝 **Self-documenting code** - Types serve as documentation
+
+
+## 관련 API
+
+- [createActionContext](./createactioncontext.md) - React integration for actions
+- [useActionHandler](./useactionhandler.md) - Register handlers in React components
+
+## See Also
+
+- [Pattern Guide](../concept/pattern-guide.md) - Comprehensive usage patterns
+- [Architecture Guide](../concept/architecture-guide.md) - System architecture overview
+- [Troubleshooting](../troubleshooting/) - Common issues and solutions
+
 
 ---
-*이 문서는 테스트 코드를 기반으로 자동 생성되었습니다.*
+
+*이 문서는 테스트 코드를 기반으로 자동 생성되어 정확성과 완성도를 보장합니다.*
+
+**Need help?** Check the [troubleshooting guide](../troubleshooting/) or [open an issue](https://github.com/mineclover/context-action/issues).

@@ -1,15 +1,18 @@
 #!/usr/bin/env node
 
 /**
- * 테스트 기반 API 문서 생성기
+ * Enhanced Test-Based API Documentation Generator - Phase 2
  *
- * 이 스크립트는 테스트 파일을 분석하여 실제 사용 예제를 기반으로
- * API 문서를 자동 생성합니다.
+ * Intelligent extraction and generation of API documentation from test code
+ * with categorization, quality improvements, and multiple example formats.
  */
 
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { TestParser } from './extract/test-parser.js';
+import { CodeCleaner } from './extract/code-cleaner.js';
+import { generateEnhancedApiDoc } from './templates/enhanced-api-doc.template.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const packagesDir = path.join(__dirname, '../packages');
@@ -50,152 +53,229 @@ ${examples.map(ex => `- [${ex.testFile}](../../packages/${ex.packageName}/${ex.t
 }
 
 /**
- * 테스트 파일에서 API 사용 예제 추출
+ * Extract examples from test file using enhanced parser
  */
 async function extractExamplesFromTest(testFilePath, packageName) {
-  const content = await fs.readFile(testFilePath, 'utf-8');
-  const examples = [];
+  const parser = new TestParser({
+    cleanMocks: true,
+    extractTypes: true,
+    categorizeExamples: true,
+    includeComments: false
+  });
 
-  // 인터페이스 및 설정 코드 추출
-  const interfaceMatch = content.match(/interface\s+\w+Actions?\s+extends\s+ActionPayloadMap\s*\{([\s\S]*?)\}/);
-  const setupMatch = content.match(/beforeEach\s*\(\s*\(\s*\)\s*=>\s*\{([\s\S]*?)\}\s*\);/);
+  const cleaner = new CodeCleaner({
+    removeComments: true,
+    removeTestArtifacts: true,
+    formatCode: true,
+    realistic: true
+  });
 
-  // 테스트 케이스별로 코드 추출
-  const testMatches = content.matchAll(/(?:it|test)\s*\(\s*['"`]([^'"`]+)['"`]\s*,\s*(?:async\s+)?\([^)]*\)\s*=>\s*\{([\s\S]*?)\}\s*\)/g);
+  try {
+    const parsed = await parser.parseTestFile(testFilePath, packageName);
 
-  for (const match of testMatches) {
-    const [, description, testCode] = match;
-
-    // ActionRegister 관련 코드만 추출
-    if (testCode.includes('ActionRegister') || testCode.includes('createActionContext') || testCode.includes('createStoreContext')) {
-
-      // 완전한 예제 구성
-      let completeExample = '';
-
-      // 1. 타입 정의 포함
-      if (interfaceMatch) {
-        completeExample += `interface TestActions extends ActionPayloadMap {\n${interfaceMatch[1].trim()}\n}\n\n`;
-      }
-
-      // 2. 설정 코드 포함
-      if (setupMatch) {
-        completeExample += `// Setup\n${setupMatch[1].trim()}\n\n`;
-      }
-
-      // 3. 실제 테스트 코드 (정리된 버전)
-      const cleanedCode = testCode
-        .replace(/expect\([^)]*\)[^;]*;/g, '') // expect 문 제거
-        .replace(/jest\.fn\(\)/g, 'async (payload) => { /* handler logic */ }') // mock을 실제 핸들러로
-        .split('\n')
-        .map(line => line.trim())
-        .filter(line => line && !line.startsWith('//') && !line.includes('expect'))
-        .join('\n');
-
-      completeExample += `// Usage\n${cleanedCode}`;
-
-      examples.push({
-        description: description.trim(),
-        code: completeExample,
-        testFile: path.relative(path.join(packagesDir, packageName), testFilePath),
-        packageName
+    // Clean and enhance examples
+    if (parsed.categorizedExamples) {
+      Object.keys(parsed.categorizedExamples).forEach(category => {
+        parsed.categorizedExamples[category] = parsed.categorizedExamples[category].map(example => ({
+          ...example,
+          cleanedCode: cleaner.cleanCode(example.cleanedCode, { category }),
+          testFile: path.relative(path.join(packagesDir, packageName), testFilePath)
+        }));
       });
     }
-  }
 
-  return examples;
+    return parsed;
+  } catch (error) {
+    console.warn(`⚠️  Failed to parse ${testFilePath}:`, error.message);
+    return { categorizedExamples: {}, examples: [], metadata: { testCount: 0 } };
+  }
 }
 
 /**
- * 패키지의 모든 테스트 파일 스캔
+ * Scan all test files in a package
  */
 async function scanPackageTests(packageName) {
   const packagePath = path.join(packagesDir, packageName);
   const testDir = path.join(packagePath, '__tests__');
 
   try {
-    const examples = [];
+    const testResults = [];
     const files = await fs.readdir(testDir, { recursive: true });
 
     for (const file of files) {
       if (file.endsWith('.test.ts') || file.endsWith('.spec.ts')) {
         const testFilePath = path.join(testDir, file);
-        const fileExamples = await extractExamplesFromTest(testFilePath, packageName);
-        examples.push(...fileExamples);
+        console.log(`  📁 Scanning ${file}...`);
+
+        const testData = await extractExamplesFromTest(testFilePath, packageName);
+        if (testData.examples && testData.examples.length > 0) {
+          testResults.push(testData);
+        }
       }
     }
 
-    return examples;
+    return testResults;
   } catch (error) {
-    console.log(`No test directory found for ${packageName}`);
+    console.log(`⚠️  No test directory found for ${packageName}`);
     return [];
   }
 }
 
 /**
- * API별로 예제 그룹화
+ * Group test results by API
  */
-function groupExamplesByApi(examples) {
+function groupTestDataByApi(testResults) {
   const grouped = {};
 
-  examples.forEach(example => {
-    // API 이름 추출 (ActionRegister, createActionContext 등)
-    const apiMatches = example.code.match(/(ActionRegister|createActionContext|createStoreContext|useActionHandler|useStoreValue)/g);
+  testResults.forEach(testData => {
+    if (!testData.categorizedExamples) return;
 
-    if (apiMatches) {
-      apiMatches.forEach(api => {
-        if (!grouped[api]) {
-          grouped[api] = [];
-        }
-        grouped[api].push(example);
-      });
-    }
+    // Check all examples across all categories for API usage
+    Object.values(testData.categorizedExamples).flat().forEach(example => {
+      if (example.apis && example.apis.length > 0) {
+        example.apis.forEach(api => {
+          if (!grouped[api]) {
+            grouped[api] = {
+              categorizedExamples: {},
+              allTestData: [],
+              metadata: { testCount: 0 }
+            };
+          }
+
+          // Add to categorized examples
+          const category = example.category || 'basic-usage';
+          if (!grouped[api].categorizedExamples[category]) {
+            grouped[api].categorizedExamples[category] = [];
+          }
+          grouped[api].categorizedExamples[category].push(example);
+
+          // Track test data
+          if (!grouped[api].allTestData.find(td => td.filePath === testData.filePath)) {
+            grouped[api].allTestData.push(testData);
+            grouped[api].metadata.testCount += testData.metadata.testCount || 0;
+          }
+
+          // Set package name
+          grouped[api].packageName = testData.packageName;
+        });
+      }
+    });
   });
 
   return grouped;
 }
 
 /**
- * API 문서 생성
+ * Generate enhanced API documentation
  */
 async function generateApiDocs() {
-  console.log('🔍 테스트 파일에서 API 사용 예제 추출 중...');
+  console.log('🔍 Enhanced test-based API documentation generation starting...');
 
-  // Core 패키지 예제 추출
-  const coreExamples = await scanPackageTests('core');
-  console.log(`📋 Core 패키지에서 ${coreExamples.length}개 예제 발견`);
+  // Scan packages with enhanced parsing
+  console.log('📋 Scanning Core package...');
+  const coreTestData = await scanPackageTests('core');
+  console.log(`  Found ${coreTestData.length} test files with examples`);
 
-  // React 패키지 예제 추출
-  const reactExamples = await scanPackageTests('react');
-  console.log(`⚛️ React 패키지에서 ${reactExamples.length}개 예제 발견`);
+  console.log('⚛️ Scanning React package...');
+  const reactTestData = await scanPackageTests('react');
+  console.log(`  Found ${reactTestData.length} test files with examples`);
 
-  // 모든 예제 합치기
-  const allExamples = [...coreExamples, ...reactExamples];
+  // Combine all test data
+  const allTestData = [...coreTestData, ...reactTestData];
 
-  // API별로 그룹화
-  const groupedExamples = groupExamplesByApi(allExamples);
+  // Group by API
+  const groupedData = groupTestDataByApi(allTestData);
+  const discoveredAPIs = Object.keys(groupedData);
 
-  console.log(`📚 발견된 API: ${Object.keys(groupedExamples).join(', ')}`);
+  console.log(`📚 Discovered APIs: ${discoveredAPIs.join(', ')}`);
 
-  // 각 API에 대한 문서 생성
-  for (const [apiName, examples] of Object.entries(groupedExamples)) {
-    if (examples.length > 0) {
-      const docContent = createApiDocTemplate(apiName, examples);
+  // Generate documentation for each API
+  let generatedCount = 0;
+  for (const [apiName, apiData] of Object.entries(groupedData)) {
+    try {
+      console.log(`📝 Generating documentation for ${apiName}...`);
 
-      // 영어 문서 생성
+      // Generate enhanced documentation
+      const enhancedDoc = generateEnhancedApiDoc(apiName, apiData);
+
+      // Write English documentation
       const enDocPath = path.join(docsDir, 'en', 'api', `${apiName.toLowerCase()}.md`);
       await fs.mkdir(path.dirname(enDocPath), { recursive: true });
-      await fs.writeFile(enDocPath, docContent);
+      await fs.writeFile(enDocPath, enhancedDoc);
 
-      // 한국어 문서 생성 (기본 구조만)
+      // Generate Korean version with translations
+      const koreanDoc = generateKoreanDoc(enhancedDoc, apiName, apiData);
       const koDocPath = path.join(docsDir, 'ko', 'api', `${apiName.toLowerCase()}.md`);
       await fs.mkdir(path.dirname(koDocPath), { recursive: true });
-      await fs.writeFile(koDocPath, docContent.replace('Usage Examples', '사용 예제').replace('Test Coverage', '테스트 커버리지'));
+      await fs.writeFile(koDocPath, koreanDoc);
 
-      console.log(`✅ ${apiName} 문서 생성 완료`);
+      console.log(`  ✅ ${apiName} documentation generated`);
+      generatedCount++;
+    } catch (error) {
+      console.error(`  ❌ Failed to generate ${apiName} documentation:`, error.message);
     }
   }
 
-  console.log('🎉 테스트 기반 API 문서 생성 완료!');
+  // Generate summary report
+  console.log('\n📊 Generation Summary:');
+  console.log(`  📝 Total APIs documented: ${generatedCount}`);
+  console.log(`  📁 Test files processed: ${allTestData.length}`);
+  console.log(`  🎯 Categories covered: ${getUniqueCategoriesCount(groupedData)}`);
+
+  if (generatedCount > 0) {
+    console.log('\n🎉 Enhanced API documentation generation completed successfully!');
+    console.log('📍 Next steps: Review generated docs and update navigation if needed');
+  } else {
+    console.log('\n⚠️  No API documentation was generated. Check test files and API patterns.');
+  }
+}
+
+/**
+ * Generate Korean version of documentation
+ */
+function generateKoreanDoc(englishDoc, apiName, apiData) {
+  // More comprehensive Korean translation
+  let koreanDoc = englishDoc
+    .replace(/# (.+)/, `# $1`)
+    .replace(/## Overview/, '## 개요')
+    .replace(/## Quick Start/, '## 빠른 시작')
+    .replace(/## Usage Examples/, '## 사용 예제')
+    .replace(/## Advanced Usage/, '## 고급 사용법')
+    .replace(/## Error Handling/, '## 에러 처리')
+    .replace(/## Performance Considerations/, '## 성능 고려사항')
+    .replace(/## Test Coverage/, '## 테스트 커버리지')
+    .replace(/## Related APIs/, '## 관련 API')
+    .replace(/### Basic Usage/, '### 기본 사용법')
+    .replace(/### Advanced Patterns/, '### 고급 패턴')
+    .replace(/### Integration Examples/, '### 통합 예제')
+    .replace(/### Key Features/, '### 주요 기능')
+    .replace(/### When to Use/, '### 사용 시점')
+    .replace(/Here's the simplest way to use/, '가장 간단한 사용 방법:')
+    .replace(/Here are examples of proper error handling patterns:/, '적절한 에러 처리 패턴 예제:')
+    .replace(/This API is thoroughly tested with/, '이 API는 철저하게 테스트되었습니다.')
+    .replace(/test cases covering:/, '개의 테스트 케이스로 다음을 검증합니다:')
+    .replace(/The following test files validate this API:/, '다음 테스트 파일들이 이 API를 검증합니다:')
+    .replace(/This API provides full TypeScript support with:/, '이 API는 다음과 같은 완전한 TypeScript 지원을 제공합니다:')
+    .replace(/This documentation is automatically generated from test code to ensure accuracy and completeness\./, '이 문서는 테스트 코드를 기반으로 자동 생성되어 정확성과 완성도를 보장합니다.')
+    .replace(/\*This documentation is automatically generated\* from test code to ensure accuracy and completeness\./, '*이 문서는 테스트 코드를 기반으로 자동 생성되어* 정확성과 완성도를 보장합니다.')
+    // Fix specific mixed language phrases
+    .replace(/이 API는 철저하게 테스트되었습니다 with/, '이 API는')
+    .replace(/이 문서는 테스트 코드를 기반으로 자동 생성되었습니다 from test code to ensure accuracy and completeness\./, '이 문서는 테스트 코드를 기반으로 자동 생성되어 정확성과 완성도를 보장합니다.');
+
+  return koreanDoc;
+}
+
+/**
+ * Get count of unique categories across all APIs
+ */
+function getUniqueCategoriesCount(groupedData) {
+  const categories = new Set();
+  Object.values(groupedData).forEach(apiData => {
+    Object.keys(apiData.categorizedExamples).forEach(category => {
+      categories.add(category);
+    });
+  });
+  return categories.size;
 }
 
 // 스크립트 실행

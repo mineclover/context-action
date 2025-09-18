@@ -1,17 +1,14 @@
-# useStoreValue
+# StoreManager
 
 ## 개요
 
-useStoreValue is a core API in the Context-Action framework that provides reactive subscription to store values with automatic re-rendering on changes.
+StoreManager is a core API in the Context-Action framework that provides essential functionality for the Context-Action framework.
 
 ### 주요 기능
-- ⚛️ **Reactive subscriptions** - Automatic re-rendering on value changes
-- 🎯 **Type safety** - Full TypeScript support with store type inference
-- 🚀 **Performance** - Optimized subscription management
-- 🔄 **Automatic cleanup** - Memory leak prevention with automatic unsubscription
+- ✨ Core framework functionality
 
 ### 사용 시점
-Use useStoreValue inside React components to subscribe to store values and trigger re-renders on changes.
+Use this API as part of the Context-Action framework integration.
 
 
 ## 빠른 시작
@@ -27,7 +24,7 @@ Use useStoreValue inside React components to subscribe to store values and trigg
 
 ### 고급 패턴
 
-#### should export store hooks
+#### should export createStoreContext and StoreManager
 
 ```typescript
 
@@ -76,16 +73,6 @@ const expectedExports = [
 - 📝 **Self-documenting code** - Types serve as documentation
 
 
-## 관련 API
-
-- [createStoreContext](./createstorecontext.md) - Store context creation
-- [useStoreSelector](./usestoreselector.md) - Selective store subscriptions
-
-## See Also
-
-- [Pattern Guide](../concept/pattern-guide.md) - Comprehensive usage patterns
-- [Architecture Guide](../concept/architecture-guide.md) - System architecture overview
-- [Troubleshooting](../troubleshooting/) - Common issues and solutions
 
 
 ---

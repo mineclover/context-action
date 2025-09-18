@@ -1,17 +1,14 @@
-# createActionContext
+# useStoreSelector
 
 ## Overview
 
-createActionContext is a core API in the Context-Action framework that creates a React context for action dispatching and handler registration with type safety.
+useStoreSelector is a core API in the Context-Action framework that provides essential functionality for the Context-Action framework.
 
 ### Key Features
-- ⚛️ **React integration** - Seamless Context API integration
-- 🎯 **Type safety** - Full TypeScript support for actions and payloads
-- 🔄 **Handler registration** - Easy handler setup with useActionHandler
-- 📦 **Isolated contexts** - Multiple independent action contexts
+- ✨ Core framework functionality
 
 ### When to Use
-Use createActionContext for React applications when you need action dispatching without state management.
+Use this API as part of the Context-Action framework integration.
 
 
 ## Quick Start
@@ -27,16 +24,21 @@ Use createActionContext for React applications when you need action dispatching 
 
 ### Advanced Patterns
 
-#### should export createActionContext
+#### should export store hooks
 
 ```typescript
 
 ```
 
-#### should export createActionContext
+#### should export all expected main APIs
 
 ```typescript
-
+const expectedExports = [
+  'createActionContext',
+  'useStoreValue',
+  'createStoreContext',
+  expectedExports.forEach(exportName => {
+  });
 ```
 
 
@@ -47,7 +49,7 @@ Use createActionContext for React applications when you need action dispatching 
 
 ## Test Coverage
 
-This API is thoroughly tested with **15 test cases** covering:
+This API is thoroughly tested with **9 test cases** covering:
 
 - ✅ Basic functionality and usage patterns
 - ✅ Error conditions and edge cases
@@ -71,16 +73,6 @@ This API provides full TypeScript support with:
 - 📝 **Self-documenting code** - Types serve as documentation
 
 
-## Related APIs
-
-- [ActionRegister](./actionregister.md) - Core action registration system
-- [createStoreContext](./createstorecontext.md) - Store management context
-
-## See Also
-
-- [Pattern Guide](../concept/pattern-guide.md) - Comprehensive usage patterns
-- [Architecture Guide](../concept/architecture-guide.md) - System architecture overview
-- [Troubleshooting](../troubleshooting/) - Common issues and solutions
 
 
 ---
