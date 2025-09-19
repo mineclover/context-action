@@ -35,11 +35,11 @@ export interface DebugConfig {
   
   /** Custom logger function */
   logger?: {
-    error: (...args: any[]) => void;
-    warn: (...args: any[]) => void;
-    info: (...args: any[]) => void;
-    debug: (...args: any[]) => void;
-    trace: (...args: any[]) => void;
+    error: (message: string, ...args: unknown[]) => void;
+    warn: (message: string, ...args: unknown[]) => void;
+    info: (message: string, ...args: unknown[]) => void;
+    debug: (message: string, ...args: unknown[]) => void;
+    trace: (message: string, ...args: unknown[]) => void;
   };
 }
 
@@ -165,35 +165,35 @@ export function isLogLevelEnabled(level: keyof typeof logLevelPriority): boolean
  * Debug logger with conditional output
  */
 export const debugLog = {
-  error: (feature: keyof DebugConfig['features'], message: string, ...args: any[]) => {
+  error: (feature: keyof DebugConfig['features'], message: string, ...args: unknown[]) => {
     if (isDebugEnabled(feature) && isLogLevelEnabled('error')) {
       const logger = currentConfig.logger?.error || console.error;
       logger(`[Context-Action:${feature}] ${message}`, ...args);
     }
   },
-  
-  warn: (feature: keyof DebugConfig['features'], message: string, ...args: any[]) => {
+
+  warn: (feature: keyof DebugConfig['features'], message: string, ...args: unknown[]) => {
     if (isDebugEnabled(feature) && isLogLevelEnabled('warn')) {
       const logger = currentConfig.logger?.warn || console.warn;
       logger(`[Context-Action:${feature}] ${message}`, ...args);
     }
   },
-  
-  info: (feature: keyof DebugConfig['features'], message: string, ...args: any[]) => {
+
+  info: (feature: keyof DebugConfig['features'], message: string, ...args: unknown[]) => {
     if (isDebugEnabled(feature) && isLogLevelEnabled('info')) {
       const logger = currentConfig.logger?.info || console.info;
       logger(`[Context-Action:${feature}] ${message}`, ...args);
     }
   },
-  
-  debug: (feature: keyof DebugConfig['features'], message: string, ...args: any[]) => {
+
+  debug: (feature: keyof DebugConfig['features'], message: string, ...args: unknown[]) => {
     if (isDebugEnabled(feature) && isLogLevelEnabled('debug')) {
       const logger = currentConfig.logger?.debug || console.debug;
       logger(`[Context-Action:${feature}] ${message}`, ...args);
     }
   },
-  
-  trace: (feature: keyof DebugConfig['features'], message: string, ...args: any[]) => {
+
+  trace: (feature: keyof DebugConfig['features'], message: string, ...args: unknown[]) => {
     if (isDebugEnabled(feature) && isLogLevelEnabled('trace')) {
       const logger = currentConfig.logger?.trace || console.trace;
       logger(`[Context-Action:${feature}] ${message}`, ...args);

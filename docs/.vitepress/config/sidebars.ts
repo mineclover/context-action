@@ -20,6 +20,20 @@ const GUIDE_STRUCTURE = {
         { text: 'Best Practices', link: '/en/guide/best-practices' }
       ]
     },
+    // 1.5. Type Inference Guide - TypeScript 타입 추론 가이드
+    typeInference: {
+      text: '🎯 Type Inference',
+      collapsed: false,
+      items: [
+        { text: 'Overview', link: '/en/guide/type-inference' },
+        { text: 'Store Type Inference', link: '/en/guide/type-inference/stores' },
+        { text: 'Action Type Inference', link: '/en/guide/type-inference/actions' },
+        { text: 'Advanced Type Features', link: '/en/guide/type-inference/advanced' },
+        { text: 'Best Practices', link: '/en/guide/type-inference/best-practices' },
+        { text: 'IDE Setup and Tips', link: '/en/guide/type-inference/ide-setup' },
+        { text: 'Practical Examples', link: '/en/guide/type-inference/examples' }
+      ]
+    },
     // 2. Hook Lifecycle - 새로운 lifecycle 폴더
     lifecycle: {
       text: '🔄 Hook Lifecycle',
@@ -175,6 +189,20 @@ const GUIDE_STRUCTURE = {
         { text: '시작하기', link: '/ko/guide/getting-started' },
         { text: '코드 패턴', link: '/ko/guide/code-patterns' },
         { text: '모범 사례', link: '/ko/guide/best-practices' }
+      ]
+    },
+    // 1.5. 타입 추론 가이드
+    typeInference: {
+      text: '🎯 타입 추론',
+      collapsed: false,
+      items: [
+        { text: '개요', link: '/ko/guide/type-inference' },
+        { text: '스토어 타입 추론', link: '/ko/guide/type-inference/stores' },
+        { text: '액션 타입 추론', link: '/ko/guide/type-inference/actions' },
+        { text: '고급 타입 기능', link: '/ko/guide/type-inference/advanced' },
+        { text: '모범 사례', link: '/ko/guide/type-inference/best-practices' },
+        { text: 'IDE 설정 및 팁', link: '/ko/guide/type-inference/ide-setup' },
+        { text: '실용적인 예제', link: '/ko/guide/type-inference/examples' }
       ]
     },
     // 2. 훅 라이프사이클 - 새로운 lifecycle 폴더
@@ -500,6 +528,7 @@ export function createSidebars(locale: SidebarLocale): DefaultTheme.Config['side
     // Guide 섹션 - concept 기반으로 간소화
     [`/${locale}/guide/`]: [
       guide.essentials,
+      guide.typeInference,
       guide.lifecycle,
       guide.pipeline,
       guide.patterns

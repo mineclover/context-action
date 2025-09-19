@@ -10,8 +10,162 @@
  * 
  * @public
  */
+/**
+ * Ensures action names are string literals and payloads are serializable
+ */
 export interface ActionPayloadMap {
   [actionName: string]: unknown;
+}
+
+/**
+ * Strict action payload map that prevents certain problematic types
+ */
+export type StrictActionPayloadMap = {
+  readonly [K in string]: Exclude<unknown, Function | symbol>;
+};
+
+/**
+ * Brand type utilities for enhanced type safety
+ */
+declare const __brand: unique symbol;
+
+/**
+ * Creates a branded type for nominal typing
+ */
+export type Brand<T, B extends string> = T & { readonly [__brand]: B };
+
+/**
+ * Branded action key for type safety
+ */
+export type ActionKey<T extends string = string> = Brand<T, 'ActionKey'>;
+
+/**
+ * Branded store identifier for type safety
+ */
+export type StoreId<T extends string = string> = Brand<T, 'StoreId'>;
+
+/**
+ * Branded handler identifier for type safety
+ */
+export type HandlerId<T extends string = string> = Brand<T, 'HandlerId'>;
+
+/**
+ * Creates an action key with type branding
+ */
+export function createActionKey<T extends string>(key: T): ActionKey<T> {
+  return key as ActionKey<T>;
+}
+
+/**
+ * Creates a store ID with type branding
+ */
+export function createStoreId<T extends string>(id: T): StoreId<T> {
+  return id as StoreId<T>;
+}
+
+/**
+ * Creates a handler ID with type branding
+ */
+export function createHandlerId<T extends string>(id: T): HandlerId<T> {
+  return id as HandlerId<T>;
+}
+
+/**
+ * Valid result strategies for type safety
+ */
+export type ValidResultStrategy = 'first' | 'last' | 'all' | 'merge' | 'custom';
+
+/**
+ * Advanced type utilities for result processing with strict constraints
+ */
+export type ResultStrategyType<Strategy extends ValidResultStrategy, R> =
+  Strategy extends 'all'
+    ? readonly R[]
+    : Strategy extends 'first' | 'last'
+      ? R | undefined
+      : Strategy extends 'merge' | 'custom'
+        ? R
+        : never;
+
+/**
+ * Infer result type based on strategy and collect options
+ */
+export type InferResultType<
+  R,
+  Options extends { strategy?: string; collect?: boolean } | undefined
+> = Options extends { strategy: infer Strategy }
+  ? Strategy extends ValidResultStrategy
+    ? ResultStrategyType<Strategy, R>
+    : R
+  : Options extends { collect: true }
+    ? readonly R[]
+    : R;
+
+/**
+ * Advanced type-level utilities for Context-Action framework
+ */
+export namespace TypeUtils {
+  /**
+   * Extracts payload type for a specific action
+   */
+  export type ExtractPayload<T extends ActionPayloadMap, K extends keyof T> = T[K];
+
+  /**
+   * Ensures all values in an object are of the same type
+   */
+  export type Homogeneous<T, U> = {
+    readonly [K in keyof T]: U;
+  };
+
+  /**
+   * Makes specific properties required
+   */
+  export type RequireFields<T, K extends keyof T> = T & Required<Pick<T, K>>;
+
+  /**
+   * Makes specific properties optional
+   */
+  export type PartialFields<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
+  /**
+   * Deep readonly type for immutable structures
+   */
+  export type DeepReadonly<T> = {
+    readonly [P in keyof T]: T[P] extends (infer U)[]
+      ? readonly DeepReadonly<U>[]
+      : T[P] extends readonly (infer U)[]
+        ? readonly DeepReadonly<U>[]
+        : T[P] extends Record<string, unknown>
+          ? DeepReadonly<T[P]>
+          : T[P];
+  };
+
+  /**
+   * Strict non-nullable type
+   */
+  export type NonNullable<T> = T extends null | undefined ? never : T;
+
+  /**
+   * Type-safe key extraction
+   */
+  export type KeysOfType<T, U> = {
+    [K in keyof T]: T[K] extends U ? K : never;
+  }[keyof T];
+
+  /**
+   * Function parameter extraction
+   */
+  export type Parameters<T> = T extends (...args: infer P) => unknown ? P : never;
+
+  /**
+   * Function return type extraction
+   */
+  export type ReturnType<T> = T extends (...args: unknown[]) => infer R ? R : never;
+
+  /**
+   * Promise unwrapping
+   */
+  export type Awaited<T> = T extends Promise<infer U> ? U : T;
 }
 
 /**
@@ -276,7 +430,7 @@ export interface HandlerConfig {
   cleanup?: () => void;
 
   /** Condition function to determine if handler should execute. Default: always execute */
-  condition?: (payload: any) => boolean;
+  condition?: <P>(payload: P) => boolean;
 }
 
 
@@ -629,7 +783,7 @@ export interface ExecutionResult<R = void> {
   terminated: boolean;
   
   /** Final result based on result strategy - only present for non-void results */
-  result: R | undefined;
+  result: R | R[] | undefined;
   
   /** 🔧 Type safety fix: Separate successful results from failed ones */
   /** All successful handler results (guaranteed non-undefined) */

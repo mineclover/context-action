@@ -215,7 +215,7 @@ export interface IStoreRegistry {
   getSnapshot: () => Array<[string, IStore]>;
   
   /** Register a store with optional metadata and validation */
-  register: (name: string, store: IStore, metadata?: any) => void;
+  register: (name: string, store: IStore, metadata?: StoreMetadata) => void;
   
   /** Unregister a store by name with cleanup */
   unregister: (name: string) => boolean;
@@ -324,7 +324,7 @@ export interface StoreSetValueOptions<T> {
   /** 이벤트 객체 처리 방식 */
   eventHandling?: 'block' | 'transform' | 'allow';
   /** 이벤트 객체 변환 함수 */
-  eventTransform?: (event: any) => T;
+  eventTransform?: (event: unknown) => T;
   /** Value sanitization function */
   sanitizer?: (value: T) => T;
   /** Validation function */
@@ -421,6 +421,18 @@ export interface SecurityOptions {
  */
 export interface RegistryStoreMap {
   [key: string]: unknown;  // 타입 유연성을 위한 맵 타입
+}
+
+/**
+ * Store metadata interface for registry
+ */
+export interface StoreMetadata {
+  /** Registration timestamp */
+  registeredAt?: number;
+  /** Store name */
+  name?: string;
+  /** Custom metadata fields */
+  [key: string]: unknown;
 }
 
 /**

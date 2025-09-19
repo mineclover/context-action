@@ -77,18 +77,23 @@ export type StoreDefinitions = Record<string, StoreConfig<any> | any>;
  * 
  * @public
  */
+/**
+ * Enhanced type inference for store definitions with better error handling
+ */
 export type InferStoreTypes<T extends StoreDefinitions> = {
-  [K in keyof T]: T[K] extends StoreConfig<infer V> 
-    ? V 
-    : T[K] extends (...args: any[]) => any
-      ? never  // Exclude functions
-      : T[K] extends object
-        ? T[K] extends { length: number }
-          ? T[K]  // Arrays
-          : T[K] extends Date
-            ? T[K]  // Dates
-            : T[K]  // Objects
-        : T[K];  // Primitives
+  readonly [K in keyof T]: T[K] extends StoreConfig<infer V>
+    ? V
+    : T[K] extends (...args: unknown[]) => unknown
+      ? never  // Exclude functions completely
+      : T[K] extends readonly unknown[]
+        ? T[K]  // Handle readonly arrays
+        : T[K] extends unknown[]
+          ? T[K]  // Handle mutable arrays
+          : T[K] extends Date | RegExp | Error
+            ? T[K]  // Built-in object types
+            : T[K] extends Record<string, unknown>
+              ? T[K]  // Plain objects
+              : T[K];  // Primitives and other types
 };
 
 /**
@@ -262,11 +267,13 @@ export function createStoreContext<T extends StoreDefinitions>(
 /**
  * Implementation function that handles both overloads
  */
-export function createStoreContext(
+export function createStoreContext<T extends Record<string, any> | StoreDefinitions>(
   contextName: string,
-  initialStores: any
-): any {
-  return createStoreContextImpl(contextName, initialStores);
+  initialStores: T extends StoreDefinitions ? T : InitialStores<T>
+): T extends StoreDefinitions
+  ? ReturnType<typeof createStoreContextImpl<InferStoreTypes<T>>>
+  : ReturnType<typeof createStoreContextImpl<T>> {
+  return createStoreContextImpl(contextName, initialStores as any) as any;
 }
 
 /**

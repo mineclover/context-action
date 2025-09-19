@@ -49,7 +49,7 @@ export type StoreUpdater<T> = (current: T) => T;
 /**
  * Type guard for checking if a value is a Store
  */
-export function isStore<T = any>(value: any): value is Store<T> {
+export function isStore<T = unknown>(value: unknown): value is Store<T> {
   return (
     value != null &&
     typeof value === 'object' &&
@@ -173,12 +173,13 @@ export const TypeUtils = {
   /**
    * Validate store configuration at runtime
    */
-  validateStoreConfig<T>(config: any): config is StoreInitConfig<T> {
+  validateStoreConfig<T>(config: unknown): config is StoreInitConfig<T> {
     return (
       config != null &&
       typeof config === 'object' &&
-      typeof config.name === 'string' &&
-      config.name.length > 0 &&
+      'name' in config &&
+      typeof (config as Record<string, unknown>).name === 'string' &&
+      (config as Record<string, unknown>).name !== '' &&
       'initialValue' in config
     );
   },
@@ -186,7 +187,7 @@ export const TypeUtils = {
   /**
    * Validate store instance
    */
-  validateStore<T>(store: any): store is Store<T> {
+  validateStore<T>(store: unknown): store is Store<T> {
     return isStore(store);
   },
 

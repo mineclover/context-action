@@ -13,6 +13,7 @@ import {
   ActionRegistryInfo,
   ActionHandlerStats,
   DispatchOptions,
+  InferResultType,
   HandlerError,
 } from './types.js';
 import { executeSequential, executeParallel, executeRace } from './execution-modes.js';
@@ -1043,7 +1044,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   private processResults<R>(
     context: PipelineContext<any, R>,
     resultOptions?: DispatchOptions['result']
-  ): R | undefined {
+  ): R | R[] | undefined {
     const results = context.results;
 
     // 🔧 Fix: Always handle termination result regardless of collect option
@@ -1071,14 +1072,14 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       return undefined;
     }
 
-    // Process results based on strategy
+    // Process results based on strategy with improved type handling
     switch (resultOptions.strategy) {
       case 'first':
         return limitedResults[0];
       case 'last':
         return limitedResults[limitedResults.length - 1];
       case 'all':
-        return limitedResults as unknown as R;
+        return limitedResults;
       case 'merge':
         if (resultOptions.merger) {
           return resultOptions.merger(limitedResults);
@@ -1093,7 +1094,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
       default:
         // 🔧 Fix: If collect is true but no strategy specified, return all results
         if (resultOptions.collect) {
-          return limitedResults as unknown as R;
+          return limitedResults;
         }
         // Default: return last result if no strategy specified
         return limitedResults[limitedResults.length - 1];
