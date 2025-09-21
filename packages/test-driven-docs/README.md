@@ -6,7 +6,9 @@ A powerful test-driven documentation generator that extracts examples from test 
 
 🚀 **Test-Driven**: Extracts real examples from your test code
 📚 **Always Current**: Documentation stays synchronized with implementation
-🎯 **Smart Categorization**: Automatically categorizes examples by usage patterns
+🎯 **Annotation-Based**: Use `@doc-extract` annotations for intentional documentation
+✨ **Enhanced Markdown**: Generates executable examples with GitHub links
+🔍 **Consistency Validation**: Real-time test-documentation synchronization checking
 🧹 **Clean Examples**: Transforms test artifacts into production-ready code
 🌍 **Multi-Language**: Supports multiple documentation languages
 ⚡ **Fast**: Optimized parsing and generation pipeline
@@ -33,7 +35,17 @@ npx test-driven-docs init
 
 2. **Generate documentation:**
 ```bash
+# Basic generation
 npx test-driven-docs generate
+
+# Enhanced generation with annotations
+npx test-driven-docs generate --enhanced --github-repo https://github.com/your-org/your-repo
+
+# Generate with validation
+npx test-driven-docs generate --with-validation
+
+# Validate existing documentation
+npx test-driven-docs validate --consistency
 ```
 
 ### Programmatic Usage
@@ -68,7 +80,17 @@ Options:
   --realistic                Generate realistic examples (default: true)
   --extract-types            Extract TypeScript interfaces (default: true)
   --categorize               Categorize examples by usage pattern (default: true)
+  --enhanced                 Generate enhanced documentation with annotations
+  --with-validation          Include consistency validation with generation
+  --github-repo <url>        GitHub repository URL for enhanced links
   --config <file>            Path to configuration file
+
+test-driven-docs validate [options]
+
+Options:
+  --consistency              Validate test-documentation consistency
+  --packages <packages>      Comma-separated list of package names to validate
+  -p, --packages-dir <dir>   Directory containing packages (default: "./packages")
 ```
 
 ### Configuration File
@@ -109,6 +131,38 @@ export default {
   }
 };
 ```
+
+## Annotation-Based Documentation
+
+### Using @doc-extract Annotations
+
+Add annotations to your tests to control documentation generation:
+
+```typescript
+// @doc-extract: basic-usage
+// @doc-category: getting-started
+// @doc-priority: high
+// @doc-description: Basic action context creation
+it('should create action context with type safety', () => {
+  const { Provider, useActionDispatch } = createActionContext<UserActions>('User');
+  // Your test code becomes documentation
+});
+
+// @doc-extract: advanced-patterns
+// @doc-category: advanced
+// @doc-priority: medium
+// @doc-description: Complex async operations with multiple handlers
+it('should handle complex scenarios', () => {
+  // Advanced example code
+});
+```
+
+### Annotation Options
+
+- `@doc-extract: {id}` - Unique identifier for the example
+- `@doc-category: {category}` - Groups examples (getting-started, advanced, patterns, etc.)
+- `@doc-priority: {level}` - Priority level (high, medium, low) for documentation ordering
+- `@doc-description: {text}` - Human-readable description of the example
 
 ## How It Works
 

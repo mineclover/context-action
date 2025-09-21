@@ -8,6 +8,15 @@
 // Core extractor
 export { TestMetadataExtractor } from './core/TestMetadataExtractor.js';
 
+// Enhanced documentation generation
+export { DocumentationGenerator } from './core/DocumentationGenerator.js';
+export { AnnotationExtractor, type AnnotatedTest, type DocAnnotation } from './extractors/AnnotationExtractor.js';
+export { EnhancedMarkdownGenerator, type EnhancedDocConfig } from './generators/EnhancedMarkdownGenerator.js';
+export { ConsistencyValidator, type ProjectValidationReport, type ApiValidationResult } from './validators/ConsistencyValidator.js';
+
+// Import for internal use
+import { DocumentationGenerator } from './core/DocumentationGenerator.js';
+
 // Type definitions
 export type {
   TestFileMetadata,
@@ -18,7 +27,12 @@ export type {
   TestCase,
   ApiUsage,
   FileMetrics,
-  ProjectSummary
+  ProjectSummary,
+  GeneratorConfig,
+  GenerationResult,
+  GenerationError,
+  TestExample,
+  ExampleCategory
 } from './types/index.js';
 
 // JSON Schema and validation
@@ -43,6 +57,39 @@ export async function extractDirectoryMetadata(
 ) {
   const extractor = new TestMetadataExtractor();
   return extractor.extractFromDirectory(dirPath, pattern);
+}
+
+// Enhanced documentation generation convenience function
+export function createDocumentationGenerator(config: Partial<GeneratorConfig>) {
+  // Apply defaults
+  const fullConfig: GeneratorConfig = {
+    packagesDir: './packages',
+    packages: ['core', 'react'],
+    testPatterns: ['**/*.test.ts', '**/*.spec.ts'],
+    outputDir: './docs',
+    languages: ['en'],
+    cleanMocks: true,
+    extractTypes: true,
+    categorizeExamples: true,
+    includeComments: false,
+    realistic: true,
+    template: {
+      type: 'enhanced',
+      includeSections: {
+        overview: true,
+        quickStart: true,
+        examples: true,
+        advanced: true,
+        errorHandling: true,
+        performance: true,
+        testCoverage: true,
+        relatedAPIs: true
+      }
+    },
+    ...config
+  };
+
+  return new DocumentationGenerator(fullConfig);
 }
 
 // Common patterns

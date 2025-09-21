@@ -1,14 +1,14 @@
-# ActionRegister
+# useStoreSelector
 
 ## Overview
 
-ActionRegister is a core API in the framework.
+useStoreSelector is a core API in the framework.
 
 ## Usage Examples
 
 ### Advanced Patterns
 
-#### Example 1: should export ActionRegister
+#### Example 1: should export store hooks
 
 ```typescript
 

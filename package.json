@@ -31,7 +31,11 @@
     "docs:api": "typedoc --options ./typedoc.json",
     "docs:sync": "npx @context-action/typedoc-vitepress-sync sync --config ./typedoc-vitepress-sync.config.js",
     "docs:api-generate": "node scripts/generate-api-docs.js",
-    "docs:full": "pnpm docs:api && pnpm docs:sync && pnpm docs:api-generate && pnpm docs:build",
+    "docs:extract-from-tests": "node packages/test-driven-docs/dist/cli/index.js generate --enhanced --packages react",
+    "docs:validate-docs": "node packages/test-driven-docs/dist/cli/index.js validate --consistency",
+    "docs:enhanced": "node packages/test-driven-docs/dist/cli/index.js generate --enhanced --github-repo https://github.com/mineclover/context-action",
+    "docs:enhanced-with-validation": "node packages/test-driven-docs/dist/cli/index.js generate --with-validation --github-repo https://github.com/mineclover/context-action",
+    "docs:full": "pnpm docs:api && pnpm docs:sync && pnpm docs:enhanced --packages react && pnpm docs:api-generate && pnpm docs:build",
     "llms:priority-stats": "node packages/llms-generator/dist/cli/index.js priority-stats",
     "llms:priority-health": "node packages/llms-generator/dist/cli/index.js priority-health",
     "llms:priority-suggest": "node packages/llms-generator/dist/cli/index.js priority-suggest",
@@ -91,5 +95,10 @@
     ]
   },
   "author": "mineclover",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^5.6.0",
+    "commander": "^14.0.0",
+    "ora": "^8.2.0"
+  }
 }

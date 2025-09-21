@@ -70,6 +70,10 @@ export interface GeneratorConfig {
   outputDir: string;
   languages: string[];
 
+  // Enhanced documentation configuration
+  githubRepoUrl?: string;
+  docsBaseUrl?: string;
+
   // Processing options
   cleanMocks: boolean;
   extractTypes: boolean;

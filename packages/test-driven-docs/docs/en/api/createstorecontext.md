@@ -1,14 +1,14 @@
-# ActionRegister
+# createStoreContext
 
 ## Overview
 
-ActionRegister is a core API in the framework.
+createStoreContext is a core API in the framework.
 
 ## Usage Examples
 
 ### Advanced Patterns
 
-#### Example 1: should export ActionRegister
+#### Example 1: should export createStoreContext and StoreManager
 
 ```typescript
 

@@ -2,6 +2,9 @@ import fs from 'fs/promises';
 import path from 'path';
 import { TestParser } from '../parsers/TestParser.js';
 import { CodeCleaner } from '../cleaners/CodeCleaner.js';
+import { AnnotationExtractor, AnnotatedTest } from '../extractors/AnnotationExtractor.js';
+import { EnhancedMarkdownGenerator } from '../generators/EnhancedMarkdownGenerator.js';
+import { ConsistencyValidator, ProjectValidationReport } from '../validators/ConsistencyValidator.js';
 import {
   GeneratorConfig,
   ParsedTestData,
@@ -18,6 +21,9 @@ export class DocumentationGenerator {
   private config: GeneratorConfig;
   private parser: TestParser;
   private cleaner: CodeCleaner;
+  private annotationExtractor: AnnotationExtractor;
+  private enhancedGenerator: EnhancedMarkdownGenerator;
+  private validator: ConsistencyValidator;
 
   constructor(config: GeneratorConfig) {
     this.config = config;
@@ -33,6 +39,18 @@ export class DocumentationGenerator {
       formatCode: true,
       realistic: config.realistic
     });
+    this.annotationExtractor = new AnnotationExtractor();
+    this.enhancedGenerator = new EnhancedMarkdownGenerator({
+      includeOverview: true,
+      includeValidationSection: true,
+      includeMetadata: true,
+      githubRepoUrl: config.githubRepoUrl
+    });
+
+    // Initialize validator with test and docs directories
+    const testDir = path.join(this.config.packagesDir, 'react/__tests__');
+    const docsDir = path.join(this.config.outputDir, 'enhanced');
+    this.validator = new ConsistencyValidator(testDir, docsDir);
   }
 
   /**
@@ -127,6 +145,189 @@ export class DocumentationGenerator {
     }
 
     return result;
+  }
+
+  /**
+   * Generate enhanced documentation with annotation support
+   */
+  async generateEnhanced(): Promise<GenerationResult> {
+    const result: GenerationResult = {
+      success: false,
+      apisGenerated: [],
+      filesProcessed: 0,
+      categoriesCovered: 0,
+      errors: []
+    };
+
+    try {
+      console.log('🚀 Starting enhanced documentation generation...');
+
+      // Create enhanced output directory
+      const enhancedDir = path.join(this.config.outputDir, 'enhanced');
+      await fs.mkdir(enhancedDir, { recursive: true });
+
+      // Find all usage test files
+      const testFiles = await this.findUsageTestFiles();
+      console.log(`📋 Found ${testFiles.length} usage test files`);
+
+      const apiDocumentations = new Map<string, AnnotatedTest[]>();
+
+      // Process each test file
+      for (const testFile of testFiles) {
+        try {
+          const content = await fs.readFile(testFile, 'utf8');
+          const apiName = this.extractApiName(testFile);
+
+          // Extract annotated tests
+          const annotatedTests = this.annotationExtractor.extractAnnotatedTests(content, testFile);
+
+          if (annotatedTests.length > 0) {
+            console.log(`  📝 ${apiName}: Found ${annotatedTests.length} annotated tests`);
+            apiDocumentations.set(apiName, annotatedTests);
+
+            // Generate enhanced markdown for this API
+            const markdownContent = this.enhancedGenerator.generateApiDocumentation(
+              apiName,
+              annotatedTests
+            );
+
+            // Write enhanced documentation
+            const outputPath = path.join(enhancedDir, `${apiName}.enhanced.md`);
+            await fs.writeFile(outputPath, markdownContent);
+
+            result.apisGenerated.push(apiName);
+          } else {
+            console.log(`  ⚠️  ${apiName}: No annotated tests found`);
+          }
+
+          result.filesProcessed++;
+
+        } catch (error) {
+          const generationError: GenerationError = {
+            type: 'file-io',
+            message: error instanceof Error ? error.message : 'Unknown error',
+            file: testFile
+          };
+          result.errors.push(generationError);
+          console.error(`  ❌ Failed to process ${testFile}:`, generationError.message);
+        }
+      }
+
+      // Generate index documentation
+      if (apiDocumentations.size > 0) {
+        const indexContent = this.enhancedGenerator.generateIndexDocumentation(apiDocumentations);
+        const indexPath = path.join(enhancedDir, 'README.md');
+        await fs.writeFile(indexPath, indexContent);
+        console.log('  📄 Generated index documentation');
+      }
+
+      // Calculate categories covered
+      const allCategories = new Set<string>();
+      for (const tests of apiDocumentations.values()) {
+        tests.forEach(test => allCategories.add(test.annotation.category));
+      }
+      result.categoriesCovered = allCategories.size;
+
+      // Summary
+      console.log('\n📊 Enhanced Generation Summary:');
+      console.log(`  📝 APIs documented: ${result.apisGenerated.length}`);
+      console.log(`  📁 Test files processed: ${result.filesProcessed}`);
+      console.log(`  🎯 Categories covered: ${result.categoriesCovered}`);
+
+      if (result.apisGenerated.length > 0) {
+        console.log('\n🎉 Enhanced documentation generation completed successfully!');
+        result.success = true;
+      } else {
+        console.log('\n⚠️  No enhanced documentation was generated. Add @doc-extract annotations to test files.');
+      }
+
+    } catch (error) {
+      const generationError: GenerationError = {
+        type: 'file-io',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      };
+      result.errors.push(generationError);
+      console.error('❌ Enhanced documentation generation failed:', generationError.message);
+    }
+
+    return result;
+  }
+
+  /**
+   * Generate enhanced documentation with validation
+   */
+  async generateWithValidation(): Promise<{ generation: GenerationResult; validation: ProjectValidationReport }> {
+    console.log('🔧 Starting enhanced generation with validation...');
+
+    // First generate enhanced documentation
+    const generation = await this.generateEnhanced();
+
+    // Then validate consistency
+    console.log('\n🔍 Validating documentation consistency...');
+    const validation = await this.validator.validateProject();
+
+    // Print validation summary
+    console.log('\n📊 Validation Summary:');
+    console.log(`  📋 APIs validated: ${validation.summary.totalApis}`);
+    console.log(`  ✅ Synced: ${validation.summary.syncedApis}`);
+    console.log(`  ⚠️  Outdated: ${validation.summary.outdatedApis}`);
+    console.log(`  ❌ Missing: ${validation.summary.missingApis}`);
+    console.log(`  📈 Average quality score: ${validation.summary.averageScore}%`);
+
+    if (validation.recommendations.length > 0) {
+      console.log('\n💡 Recommendations:');
+      validation.recommendations.forEach(rec => console.log(`  ${rec}`));
+    }
+
+    return { generation, validation };
+  }
+
+  /**
+   * Validate documentation consistency
+   */
+  async validateConsistency(): Promise<ProjectValidationReport> {
+    console.log('🔍 Validating documentation consistency...');
+    return await this.validator.validateProject();
+  }
+
+  /**
+   * Find usage test files across all packages
+   */
+  private async findUsageTestFiles(): Promise<string[]> {
+    const files: string[] = [];
+
+    const walkDir = async (dir: string): Promise<void> => {
+      try {
+        const entries = await fs.readdir(dir, { withFileTypes: true });
+
+        for (const entry of entries) {
+          const fullPath = path.join(dir, entry.name);
+
+          if (entry.isDirectory()) {
+            await walkDir(fullPath);
+          } else if (entry.name.endsWith('.usage.test.tsx')) {
+            files.push(fullPath);
+          }
+        }
+      } catch (error) {
+        // Directory doesn't exist or can't be read
+      }
+    };
+
+    // Walk through all package test directories
+    for (const packageName of this.config.packages) {
+      const packageTestDir = path.join(this.config.packagesDir, packageName, '__tests__');
+      await walkDir(packageTestDir);
+    }
+
+    return files;
+  }
+
+  /**
+   * Extract API name from test file path
+   */
+  private extractApiName(testFile: string): string {
+    return path.basename(testFile, '.usage.test.tsx');
   }
 
   /**

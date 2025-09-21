@@ -1,20 +1,26 @@
-# ActionRegister
+# createActionContext
 
 ## Overview
 
-ActionRegister is a core API in the framework.
+createActionContext is a core API in the framework.
 
 ## Usage Examples
 
 ### Advanced Patterns
 
-#### Example 1: should export ActionRegister
+#### Example 1: should export createActionContext
 
 ```typescript
 
 ```
 
-#### Example 2: should export all expected main APIs
+#### Example 2: should export createActionContext
+
+```typescript
+
+```
+
+#### Example 3: should export all expected main APIs
 
 ```typescript
 const expectedExports = [
@@ -27,7 +33,7 @@ const expectedExports = [
 
 ## Test Coverage
 
-This API is tested with **9 test cases** across 1 test files.
+This API is tested with **15 test cases** across 2 test files.
 
 ---
 

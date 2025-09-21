@@ -1,25 +1,48 @@
 {
   "name": "@context-action/test-driven-docs",
   "version": "0.1.0",
-  "description": "Stable and repeatable test metadata extraction library that outputs structured JSON data from test files",
+  "description": "Complete test-driven documentation system with annotation-based extraction, enhanced markdown generation, and consistency validation",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "test-metadata-extractor": "dist/cli/extract.js"
+    "test-driven-docs": "dist/cli/index.js"
   },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
     "./cli": {
-      "types": "./dist/cli/extract.d.ts",
-      "default": "./dist/cli/extract.js"
+      "types": "./dist/cli/index.d.ts",
+      "import": "./dist/cli/index.js",
+      "default": "./dist/cli/index.js"
+    },
+    "./extractors": {
+      "types": "./dist/extractors/index.d.ts",
+      "import": "./dist/extractors/index.js",
+      "default": "./dist/extractors/index.js"
+    },
+    "./generators": {
+      "types": "./dist/generators/index.d.ts",
+      "import": "./dist/generators/index.js",
+      "default": "./dist/generators/index.js"
+    },
+    "./validators": {
+      "types": "./dist/validators/index.d.ts",
+      "import": "./dist/validators/index.js",
+      "default": "./dist/validators/index.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/types/index.js",
+      "default": "./dist/types/index.js"
     }
   },
   "files": [
     "dist/**",
+    "examples/**",
     "README.md",
     "LICENSE"
   ],
@@ -33,14 +56,18 @@
     "prepublishOnly": "pnpm build"
   },
   "keywords": [
+    "test-driven-documentation",
+    "annotation-extraction",
+    "enhanced-markdown",
+    "documentation-generation",
+    "consistency-validation",
     "test-metadata",
-    "data-extraction",
     "ast-parsing",
-    "json-output",
     "typescript",
     "testing",
-    "metadata-extraction",
-    "developer-tools"
+    "developer-tools",
+    "single-source-of-truth",
+    "automated-docs"
   ],
   "author": "Context-Action Team",
   "license": "MIT",
