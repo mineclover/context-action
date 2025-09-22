@@ -1,0 +1,15 @@
+{
+  "documentId": "en_api_actionregister",
+  "title": "ActionRegister",
+  "category": "api",
+  "language": "en",
+  "priority": 0.5,
+  "tags": [
+    "typescript"
+  ],
+  "lastUpdated": "2025-09-21T08:34:34.978Z",
+  "source": {
+    "file": "docs/en/api/actionregister.md",
+    "lastModified": "2025-09-20T05:40:36.430Z"
+  }
+}

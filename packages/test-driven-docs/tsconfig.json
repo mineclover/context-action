@@ -7,6 +7,8 @@
     "declarationMap": true,
     "sourceMap": true,
     "strict": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "moduleResolution": "bundler",
     "target": "ES2022",
     "module": "ESNext"

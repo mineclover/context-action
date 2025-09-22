@@ -33,8 +33,8 @@ export class AnnotationExtractor {
       const line = lines[i];
 
       // Find @doc-extract annotation
-      if (line.includes('// @doc-extract:')) {
-        const extractId = line.split('// @doc-extract:')[1].trim();
+      if (line && line.includes('// @doc-extract:')) {
+        const extractId = line.split('// @doc-extract:')[1]?.trim() || '';
 
         // Parse related annotations
         const annotation = this.parseAnnotationBlock(lines, i, extractId);
@@ -73,17 +73,18 @@ export class AnnotationExtractor {
 
     // Parse additional annotations
     let currentLine = startLine + 1;
-    while (currentLine < lines.length && lines[currentLine].trim().startsWith('//')) {
+    while (currentLine < lines.length && lines[currentLine]?.trim().startsWith('//')) {
       const line = lines[currentLine];
 
-      if (line.includes('@doc-category:')) {
-        const category = line.split('@doc-category:')[1].trim();
+      if (line && line.includes('@doc-category:')) {
+        const category = line.split('@doc-category:')[1]?.trim() || '';
         annotation.category = this.mapToValidCategory(category);
-      } else if (line.includes('@doc-priority:')) {
-        const priority = line.split('@doc-priority:')[1].trim() as 'high' | 'medium' | 'low';
-        annotation.priority = priority;
-      } else if (line.includes('@doc-description:')) {
-        annotation.description = line.split('@doc-description:')[1].trim();
+      } else if (line && line.includes('@doc-priority:')) {
+        const priority = line.split('@doc-priority:')[1]?.trim() as 'high' | 'medium' | 'low';
+        if (priority) annotation.priority = priority;
+      } else if (line && line.includes('@doc-description:')) {
+        const description = line.split('@doc-description:')[1]?.trim();
+        if (description) annotation.description = description;
       }
 
       currentLine++;
@@ -113,9 +114,9 @@ export class AnnotationExtractor {
       currentLine++;
     }
 
-    if (currentLine < lines.length) {
+    if (currentLine < lines.length && lines[currentLine]) {
       const testNameMatch = lines[currentLine].match(/it\('([^']+)'/);
-      if (testNameMatch) {
+      if (testNameMatch && testNameMatch[1]) {
         return {
           testName: testNameMatch[1],
           startLine: currentLine
@@ -160,12 +161,68 @@ export class AnnotationExtractor {
   }
 
   /**
+   * Map category to valid category type
+   */
+  private mapToValidCategory(category: string): ExampleCategory {
+    const categoryMap: Record<string, ExampleCategory> = {
+      'getting-started': 'basic-usage',
+      'basic': 'basic-usage',
+      'advanced': 'advanced-patterns',
+      'patterns': 'advanced-patterns',
+      'performance': 'performance',
+      'errors': 'error-handling',
+      'integration': 'integration',
+      'async': 'async-patterns'
+    };
+
+    return categoryMap[category] || 'basic-usage';
+  }
+
+  // New method for the updated API
+  extractAnnotations(content: string): { annotations: DocAnnotation[]; errors: string[] } {
+    const annotations: DocAnnotation[] = [];
+    const errors: string[] = [];
+    const lines = content.split('\n');
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (line && line.includes('// @doc-extract:')) {
+        try {
+          const extractId = line.split('// @doc-extract:')[1]?.trim() || '';
+          if (extractId) {
+            const annotation = this.parseAnnotationBlock(lines, i, extractId);
+            annotations.push(annotation);
+          }
+        } catch (error) {
+          errors.push(`Failed to parse annotation at line ${i + 1}: ${error}`);
+        }
+      }
+    }
+
+    return { annotations, errors };
+  }
+
+  extractTestsWithAnnotations(content: string): { tests: AnnotatedTest[]; errors: string[] } {
+    const tests: AnnotatedTest[] = [];
+    const errors: string[] = [];
+
+    try {
+      const extractedTests = this.extractAnnotatedTests(content, 'test-file');
+      tests.push(...extractedTests);
+    } catch (error) {
+      errors.push(`Failed to extract tests: ${error}`);
+    }
+
+    return { tests, errors };
+  }
+
+  /**
    * Clean test code for documentation
    */
   private cleanTestCode(testCode: string): string {
     // Extract the test function body
     const match = testCode.match(/it\([^,]+,\s*(?:async\s+)?\(\)\s*=>\s*\{([\s\S]*)\}\);?$/);
-    if (!match) return testCode;
+    if (!match || !match[1]) return testCode;
 
     let code = match[1];
 
@@ -187,22 +244,6 @@ export class AnnotationExtractor {
     return cleanLines.join('\n');
   }
 
-  /**
-   * Map category string to valid ExampleCategory
-   */
-  private mapToValidCategory(category: string): ExampleCategory {
-    const categoryMap: Record<string, ExampleCategory> = {
-      'getting-started': 'basic-usage',
-      'basic': 'basic-usage',
-      'advanced': 'advanced-patterns',
-      'error': 'error-handling',
-      'performance': 'performance',
-      'integration': 'integration',
-      'async': 'async-patterns'
-    };
-
-    return categoryMap[category] || 'basic-usage';
-  }
 
   /**
    * Convert AnnotatedTest to TestExample format
