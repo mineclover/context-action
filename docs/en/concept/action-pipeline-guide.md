@@ -1362,4 +1362,4 @@ The ActionPayloadMap and ActionRegister system provides a powerful, type-safe fo
 - **Registry Management APIs** for monitoring and statistics
 - **Performance Metrics** with timing and error collection
 
-For more advanced patterns and integration examples, see the [Context-Action Framework Documentation](../README.md) and other concept guides in this directory.
+For more advanced patterns and integration examples, see the [Context-Action Framework Documentation](../../../README.en.md) and other concept guides in this directory.
