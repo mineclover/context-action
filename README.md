@@ -87,15 +87,15 @@ const { profile, updateProfile } = useUserPage(); // All logic in hook
 **Pure state management with reactive subscriptions**
 
 ```typescript
-const UserStores = createStoreContext('User', {
+const { Provider: UserStoreProvider, useStore: useUserStore } = createStoreContext('User', {
   profile: { name: '', email: '' },
   settings: { theme: 'light' }
 });
 
 function UserComponent() {
-  const profileStore = UserStores.useStore('profile');
+  const profileStore = useUserStore('profile');
   const profile = useStoreValue(profileStore);
-  
+
   return <div>{profile.name}</div>;
 }
 ```
@@ -105,20 +105,20 @@ function UserComponent() {
 
 ```typescript
 interface UserActions extends ActionPayloadMap {
-  updateUser: { name: string; email: string };
+  updateProfile: { name: string; email: string };
   logout: void;
 }
 
-const { Provider, useActionDispatch, useActionHandler } = 
+const { Provider, useActionDispatch, useActionHandler } =
   createActionContext<UserActions>('UserActions');
 
 function UserLogic() {
-  const updateUserHandler = useCallback(async (payload) => {
+  const updateProfileHandler = useCallback(async (payload) => {
     // Business logic here
-    await updateAPI(payload);
+    await updateUserAPI(payload);
   }, []);
-  
-  useActionHandler('updateUser', updateUserHandler);
+
+  useActionHandler('updateProfile', updateProfileHandler);
   
   return null; // Logic component
 }
@@ -141,6 +141,328 @@ function App() {
   );
 }
 ```
+
+### 🏗️ 5-Layer Hooks Architecture
+
+**Context-Action implements a sophisticated 5-layer hooks architecture that provides perfect separation of concerns and optimal performance through delayed evaluation.**
+
+```mermaid
+graph TD
+    %% Context Share 계층
+    subgraph ContextShare["Context Share 계층 Provider"]
+        Store[Store]
+        subgraph ActionsContainer["Actions"]
+            Actions[Actions]
+            Pipeline[Pipeline<br/>- 비즈니스 로직 등록<br/>- 실행 순서 관리<br/>- 미들웨어 처리]
+        end
+        Ref[Ref<br/>- 싱글톤 인스턴스 관리]
+    end
+
+    %% 5-Layer Hooks 구조
+    subgraph Hooks["5-Layer Hooks Consumer"]
+        ContextDef[contexts<br/>자원 타입 정의]
+        Handlers[handlers<br/>Pipe 등록용<br/>내부 함수 정의]
+        Subscriptions[subscriptions<br/>선택적 상태 구독]
+        Registries[registries<br/>핸들러 등록<br/>지연 평가]
+        Dispatchers[dispatchers<br/>on~ 함수 생성<br/>View용]
+    end
+
+    %% UI 계층
+    subgraph UI["UI 계층 - views"]
+        Page[Page - route]
+        Layout[Layout - device Layer]
+        Widget[Widget - design system]
+    end
+
+    %% 데이터 흐름
+    Store -->|상태 관리| ContextDef
+    ContextDef -->|타입 정의| Handlers
+    Handlers -->|함수 정의| Registries
+    Registries -->|등록| Pipeline
+    Pipeline -->|실행| Actions
+    Actions -->|업데이트| Store
+    Store -->|구독| Subscriptions
+    Subscriptions -->|UI 업데이트| UI
+    Dispatchers -->|액션 발송| Actions
+    UI -->|사용| Dispatchers
+
+    %% UI 마운트 순서
+    Page -->|마운트| Layout
+    Layout -->|마운트| Widget
+```
+
+#### 🔄 Data Flow Principles
+
+1. **Context Share 계층 (Provider)**
+   - **Store**: Centralized state management with reactive subscriptions
+   - **Actions/Pipeline**: Business logic registration and execution order management
+   - **Ref**: Singleton instance management for performance optimization
+
+2. **5-Layer Hooks 구조 (Consumer)**
+   - **contexts**: Resource type definitions and context access
+   - **handlers**: Internal function definitions for pipeline registration
+   - **subscriptions**: Selective state subscriptions for UI updates
+   - **registries**: Handler registration with delayed evaluation
+   - **dispatchers**: View-oriented action dispatchers (`on~` functions)
+
+3. **UI 계층 (Views)**
+   - **Page**: Route-level components
+   - **Layout**: Device-specific layout components
+   - **Widget**: Design system components
+
+#### ⚡ Performance Benefits
+
+- **Delayed Evaluation**: Handlers access latest state via `store.getValue()`
+- **Selective Subscriptions**: Components subscribe only to needed state slices
+- **Minimal Re-renders**: Optimized dependency tracking prevents unnecessary updates
+- **Singleton Management**: Ref layer ensures efficient resource sharing
+
+```typescript
+// 5-Layer Implementation Example
+function UserPage() {
+  // Layer 1: contexts - Resource type definitions
+  const userStore = useUserStore('profile');
+
+  // Layer 2: handlers - Internal function definitions
+  const updateUserHandler = useCallback(async (payload) => {
+    const currentUser = userStore.getValue(); // Delayed evaluation
+    const updatedUser = { ...currentUser, ...payload };
+    userStore.setValue(updatedUser);
+  }, [userStore]);
+
+  // Layer 3: subscriptions - Selective state subscriptions
+  const user = useStoreValue(userStore);
+
+  // Layer 4: registries - Handler registration
+  useActionHandler('updateUser', updateUserHandler);
+
+  // Layer 5: dispatchers - View-oriented action dispatchers
+  const onUpdateUser = useActionDispatch('updateUser');
+
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      <button onClick={() => onUpdateUser({ name: 'New Name' })}>
+        Update User
+      </button>
+    </div>
+  );
+}
+```
+
+---
+
+## 🔗 Type System Guidelines
+
+**Context-Action implements a sophisticated type system that provides full TypeScript safety across Action, Store, and Ref connections with zero runtime overhead.**
+
+### 🎯 Type Declaration Architecture
+
+```mermaid
+graph TB
+    %% Type Declaration Layer
+    subgraph TypeDeclarations["🔤 Type Declaration Layer"]
+        PayloadMap[ActionPayloadMap<br/>액션 페이로드 타입 맵]
+        StoreTypes[StoreDefinitions<br/>스토어 타입 정의]
+        RefTypes[Ref Types<br/>싱글톤 참조 타입]
+    end
+
+    %% Context Creation Layer
+    subgraph ContextCreation["⚙️ Context Creation Layer"]
+        ActionContext[createActionContext&lt;T&gt;<br/>액션 컨텍스트 생성]
+        StoreContext[createStoreContext&lt;T&gt;<br/>스토어 컨텍스트 생성]
+        RefManager[RefManager&lt;T&gt;<br/>참조 관리자]
+    end
+
+    %% Hook Layer
+    subgraph HookLayer["🪝 Hook Layer"]
+        ActionHooks[useActionDispatch<br/>useActionHandler]
+        StoreHooks[useStore<br/>useStoreValue]
+        RefHooks[useRef<br/>useCallback]
+    end
+
+    %% Type Flow Connections
+    PayloadMap -->|extends| ActionContext
+    StoreTypes -->|initialStores| StoreContext
+    RefTypes -->|singleton| RefManager
+
+    ActionContext -->|typed hooks| ActionHooks
+    StoreContext -->|typed hooks| StoreHooks
+    RefManager -->|stable refs| RefHooks
+
+    %% Type Safety Flow
+    ActionHooks -->|type-safe dispatch| PayloadMap
+    StoreHooks -->|reactive types| StoreTypes
+    RefHooks -->|stable references| RefTypes
+```
+
+### ⚡ Type Connection Patterns
+
+#### 1. **Action Type Declaration & Connection**
+```typescript
+// 1️⃣ Define Action Payload Types
+interface UserActions extends ActionPayloadMap {
+  updateProfile: { name: string; email: string; avatar?: File };
+  deleteAccount: { confirmPassword: string };
+  logout: void; // No payload
+}
+
+// 2️⃣ Create Typed Action Context
+const {
+  Provider: UserActionProvider,
+  useActionDispatch: useUserAction,
+  useActionHandler: useUserActionHandler
+} = createActionContext<UserActions>('UserActions');
+
+// 3️⃣ Type-Safe Handler Registration
+function UserLogic() {
+  // ✅ Payload automatically typed as { name: string; email: string; avatar?: File }
+  useUserActionHandler('updateProfile', useCallback(async (payload) => {
+    // payload.name ✅ string
+    // payload.email ✅ string
+    // payload.avatar ✅ File | undefined
+    await updateUserAPI(payload);
+  }, []));
+
+  // ✅ Payload automatically typed as void
+  useUserActionHandler('logout', useCallback(async () => {
+    await clearSession();
+  }, []));
+}
+
+// 4️⃣ Type-Safe Action Dispatching
+function UserComponent() {
+  const dispatch = useUserAction();
+
+  return (
+    <button onClick={() =>
+      dispatch('updateProfile', {
+        name: 'John',
+        email: 'john@example.com'
+        // ✅ TypeScript enforces correct payload shape
+      })
+    }>
+      Update Profile
+    </button>
+  );
+}
+```
+
+#### 2. **Store Type Declaration & Connection**
+```typescript
+// 1️⃣ Define Store Types (Two Approaches)
+
+// Approach A: Simple Object Types
+const { Provider, useStore } = createStoreContext('User', {
+  profile: { name: '', email: '', isOnline: false }, // ✅ Type inferred
+  settings: { theme: 'light' as const, notifications: true }, // ✅ const assertions
+  preferences: { language: 'en', timezone: 'UTC' }
+});
+
+// Approach B: Explicit Store Configuration
+interface UserStoreConfig {
+  profile: StoreConfig<UserProfile>;
+  settings: StoreConfig<UserSettings>;
+  cache: StoreConfig<CacheData>; // ✅ With strategy configuration
+}
+
+const { Provider, useStore } = createStoreContext('User', {
+  profile: { initialValue: { name: '', email: '' } },
+  settings: { initialValue: { theme: 'light' }, strategy: 'shallow' },
+  cache: { initialValue: new Map(), strategy: 'reference' }
+} satisfies UserStoreConfig);
+
+// 2️⃣ Type-Safe Store Access & Subscription
+function UserProfile() {
+  const profileStore = useStore('profile'); // ✅ Store<UserProfile>
+  const profile = useStoreValue(profileStore); // ✅ UserProfile type
+
+  // ✅ Type-safe store operations
+  profileStore.setValue({ name: 'John', email: 'john@example.com', isOnline: true });
+  profileStore.update(prev => ({ ...prev, isOnline: !prev.isOnline }));
+
+  return <div>{profile.name}</div>; // ✅ profile.name is string
+}
+```
+
+#### 3. **Ref Type Declaration & Singleton Management**
+```typescript
+// 1️⃣ Ref Type Declarations for Singleton Resources
+interface AppRefs {
+  apiClient: ApiClient;
+  eventBus: EventBus;
+  cache: LRUCache<string, any>;
+}
+
+// 2️⃣ Context with Ref Management
+const {
+  Provider: AppProvider,
+  useStore,
+  useRef: useAppRef
+} = createStoreContext('App', {
+  user: { name: '', email: '' },
+  // ✅ Ref types managed alongside stores
+}, {
+  refs: {
+    apiClient: () => new ApiClient(),
+    eventBus: () => new EventBus(),
+    cache: () => new LRUCache(1000)
+  } as AppRefs
+});
+
+// 3️⃣ Type-Safe Ref Access
+function ApiComponent() {
+  const apiClient = useAppRef('apiClient'); // ✅ ApiClient type
+  const userStore = useStore('user');
+
+  const fetchUser = useCallback(async (id: string) => {
+    // ✅ apiClient.get is typed method
+    const userData = await apiClient.get(`/users/${id}`);
+    userStore.setValue(userData);
+  }, [apiClient, userStore]);
+
+  return <button onClick={() => fetchUser('123')}>Fetch User</button>;
+}
+```
+
+### 🛡️ Type Safety Benefits
+
+#### **Compile-Time Validation**
+- ✅ **Action Payload Validation**: Incorrect payload shapes caught at compile time
+- ✅ **Store Type Consistency**: Store value types enforced across components
+- ✅ **Ref Type Stability**: Singleton reference types maintained across re-renders
+- ✅ **Hook Return Types**: All hooks return properly typed values and functions
+
+#### **IntelliSense & Developer Experience**
+- 🔍 **Auto-completion**: Full IntelliSense for action names, payload properties, store keys
+- 🏷️ **Type Hints**: Hover information shows exact payload and store types
+- ⚠️ **Error Prevention**: TypeScript prevents runtime errors before they happen
+- 🔄 **Refactoring Safety**: Type-safe refactoring across the entire codebase
+
+#### **Zero Runtime Overhead**
+- ⚡ **Compile-Time Only**: All type information removed in production builds
+- 📦 **No Type Libraries**: No runtime type checking dependencies
+- 🎯 **Direct Performance**: Types guide optimization without runtime cost
+
+### 📚 **Detailed Type System Documentation**
+
+For comprehensive type system coverage, see our dedicated guides:
+
+#### **English Documentation**
+- **[📖 TypeScript Type Inference Guide](https://mineclover.github.io/context-action/en/guide/type-inference)** - Complete type inference overview
+- **[🎯 Action Type System](https://mineclover.github.io/context-action/en/guide/patterns/action/type-system)** - ActionPayloadMap, pipeline controllers, and handler types
+- **[🔧 Advanced Type Features](https://mineclover.github.io/context-action/en/guide/type-inference/advanced)** - Branded types, conditional processing, and utilities
+- **[🛡️ Type Safety Best Practices](https://mineclover.github.io/context-action/en/guide/type-inference/best-practices)** - Essential recommendations and patterns
+
+#### **Korean Documentation**
+- **[🎯 액션 타입 시스템](https://mineclover.github.io/context-action/ko/guide/patterns/action/type-system)** - ActionPayloadMap, 타입 안전성, TypeScript 통합
+
+#### **Core Type System Features**
+- **Action Type Safety**: Complete `ActionPayloadMap` interface with pipeline controller types
+- **Store Type Inference**: Automatic type inference from initial values with strategy support
+- **Handler Configuration**: Type-safe handler registration with comprehensive options
+- **Integration Patterns**: Store integration, async handling, and error management
+- **Advanced Features**: Conditional types, branded types, and generic utilities
 
 ---
 
@@ -176,20 +498,20 @@ const user = useStoreValue(userStore); // Reactive subscription
 ```
 
 #### `useActionHandler(action, handler)`
-Register business logic handlers for actions.  
+Register business logic handlers for actions.
 ```typescript
-const updateUserHandler = useCallback(async (payload) => {
+const updateProfileHandler = useCallback(async (payload) => {
   // Business logic here
 }, []);
 
-useActionHandler('updateUser', updateUserHandler);
+useActionHandler('updateProfile', updateProfileHandler);
 ```
 
 #### `useActionDispatch()`
 Dispatch actions to the pipeline.
 ```typescript
 const dispatch = useActionDispatch();
-dispatch('updateUser', { name: 'John' });
+dispatch('updateProfile', { name: 'John', email: 'john@example.com' });
 ```
 
 ---
@@ -242,7 +564,7 @@ interface UserActions extends ActionPayloadMap {
 
 ### 📖 Complete Guides
 - **[📚 Official Documentation](https://mineclover.github.io/context-action/)** - Complete API reference
-- **[🚀 Quick Start Guide](https://mineclover.github.io/context-action/en/guide/quick-start)** - 5-minute setup
+- **[🚀 Getting Started Guide](https://mineclover.github.io/context-action/en/guide/getting-started)** - 5-minute setup
 - **[🏗️ MVVM Core Architecture](https://mineclover.github.io/context-action/en/concept/mvvm-core-architecture)** - Practical MVVM implementation guide
 - **[📋 Architecture Overview](https://mineclover.github.io/context-action/en/concept/architecture-guide)** - Framework concepts
 - **[⚡ Best Practices](https://mineclover.github.io/context-action/en/guide/best-practices)** - Production patterns

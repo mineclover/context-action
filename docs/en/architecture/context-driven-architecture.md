@@ -10,6 +10,150 @@ Architectural principles and philosophy for document-centric state management ba
 
 Context-Driven Architecture is an innovative architectural approach that overcomes the fundamental limitations of complex state management through **document-centric context separation** and **effective artifact management**.
 
+## 🏗️ 5-Layer Hooks Architecture
+
+**Context-Action implements a sophisticated 5-layer hooks architecture that provides perfect separation of concerns and optimal performance through delayed evaluation.**
+
+```mermaid
+graph TD
+    %% Context Share 계층
+    subgraph ContextShare["Context Share 계층 Provider"]
+        Store[Store]
+        subgraph ActionsContainer["Actions"]
+            Actions[Actions]
+            Pipeline[Pipeline<br/>- 비즈니스 로직 등록<br/>- 실행 순서 관리<br/>- 미들웨어 처리]
+        end
+        Ref[Ref<br/>- 싱글톤 인스턴스 관리]
+    end
+
+    %% 5-Layer Hooks 구조
+    subgraph Hooks["5-Layer Hooks Consumer"]
+        ContextDef[contexts<br/>자원 타입 정의]
+        Handlers[handlers<br/>Pipe 등록용<br/>내부 함수 정의]
+        Subscriptions[subscriptions<br/>선택적 상태 구독]
+        Registries[registries<br/>핸들러 등록<br/>지연 평가]
+        Dispatchers[dispatchers<br/>on~ 함수 생성<br/>View용]
+    end
+
+    %% UI 계층
+    subgraph UI["UI 계층 - views"]
+        Page[Page - route]
+        Layout[Layout - device Layer]
+        Widget[Widget - design system]
+    end
+
+    %% 데이터 흐름
+    Store -->|상태 관리| ContextDef
+    ContextDef -->|타입 정의| Handlers
+    Handlers -->|함수 정의| Registries
+    Registries -->|등록| Pipeline
+    Pipeline -->|실행| Actions
+    Actions -->|업데이트| Store
+    Store -->|구독| Subscriptions
+    Subscriptions -->|UI 업데이트| UI
+    Dispatchers -->|액션 발송| Actions
+    UI -->|사용| Dispatchers
+
+    %% UI 마운트 순서
+    Page -->|마운트| Layout
+    Layout -->|마운트| Widget
+```
+
+### 🔄 Architectural Layers Explained
+
+#### **Layer 1: Context Share (Provider)**
+The foundation layer that provides shared resources across the application:
+
+- **Store**: Centralized state management with reactive subscriptions
+- **Actions/Pipeline**: Business logic registration and execution order management
+- **Ref**: Singleton instance management for performance optimization
+
+#### **Layer 2: 5-Layer Hooks (Consumer)**
+The consumption layer implementing the sophisticated hooks architecture:
+
+1. **contexts** - Resource type definitions and context access
+2. **handlers** - Internal function definitions for pipeline registration
+3. **subscriptions** - Selective state subscriptions for UI updates
+4. **registries** - Handler registration with delayed evaluation
+5. **dispatchers** - View-oriented action dispatchers (`on~` functions)
+
+#### **Layer 3: UI (Views)**
+The presentation layer with clear hierarchical structure:
+
+- **Page** - Route-level components handling navigation concerns
+- **Layout** - Device-specific layout components for responsive design
+- **Widget** - Design system components for consistent UI patterns
+
+### ⚡ Architectural Benefits
+
+#### **Performance Optimization**
+- **Delayed Evaluation**: Handlers access latest state via `store.getValue()` preventing stale closures
+- **Selective Subscriptions**: Components subscribe only to needed state slices reducing unnecessary re-renders
+- **Singleton Management**: Ref layer ensures efficient resource sharing across components
+- **Minimal Re-renders**: Optimized dependency tracking prevents unnecessary updates
+
+#### **Developer Experience**
+- **Perfect Separation of Concerns**: Each layer has a single, well-defined responsibility
+- **Type Safety**: Full TypeScript support across all architectural layers
+- **Predictable Data Flow**: Unidirectional data flow with clear update patterns
+- **Scalable Structure**: Easy to add new features without architectural changes
+
+#### **Architectural Integrity**
+- **Document-Centric Design**: Each context represents a document domain boundary
+- **Clear Boundaries**: No coupling between different architectural layers
+- **Testable Structure**: Each layer can be tested independently
+- **Maintainable Code**: Clear separation makes refactoring safe and predictable
+
+### 💡 Implementation Pattern
+
+```typescript
+// 5-Layer Architecture Implementation
+function UserPage() {
+  // Layer 1: contexts - Resource type definitions
+  const userStore = useUserStore('profile');
+  const settingsStore = useUserStore('settings');
+
+  // Layer 2: handlers - Internal function definitions
+  const updateUserHandler = useCallback(async (payload) => {
+    // Delayed evaluation - always gets latest state
+    const currentUser = userStore.getValue();
+    const updatedUser = { ...currentUser, ...payload };
+    userStore.setValue(updatedUser);
+  }, [userStore]);
+
+  const updateSettingsHandler = useCallback(async (payload) => {
+    const currentSettings = settingsStore.getValue();
+    settingsStore.setValue({ ...currentSettings, ...payload });
+  }, [settingsStore]);
+
+  // Layer 3: subscriptions - Selective state subscriptions
+  const user = useStoreValue(userStore);
+  const settings = useStoreValue(settingsStore);
+
+  // Layer 4: registries - Handler registration
+  useActionHandler('updateUser', updateUserHandler);
+  useActionHandler('updateSettings', updateSettingsHandler);
+
+  // Layer 5: dispatchers - View-oriented action dispatchers
+  const onUpdateUser = useActionDispatch('updateUser');
+  const onUpdateSettings = useActionDispatch('updateSettings');
+
+  // UI Layer - Pure presentation logic
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      <p>Theme: {settings.theme}</p>
+      <button onClick={() => onUpdateUser({ name: 'New Name' })}>
+        Update User
+      </button>
+      <button onClick={() => onUpdateSettings({ theme: 'dark' })}>
+        Toggle Theme
+      </button>
+    </div>
+  );
+}
+```
+
 ### Fundamental Problems Addressed
 
 #### Problems with Existing Libraries

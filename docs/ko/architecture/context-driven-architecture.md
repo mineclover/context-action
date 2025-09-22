@@ -12,6 +12,150 @@
 
 컨텍스트는 **개념에 대한 정의 단위**를 의미하며, 이 기준을 바탕으로 시각적 UI는 스토리북 컴포넌트로, 비즈니스 로직은 액션 파이프라인으로 구성됩니다.
 
+## 🏗️ 5계층 훅 아키텍처
+
+**Context-Action은 관심사의 완벽한 분리와 지연 평가를 통한 최적의 성능을 제공하는 정교한 5계층 훅 아키텍처를 구현합니다.**
+
+```mermaid
+graph TD
+    %% Context Share 계층
+    subgraph ContextShare["Context Share 계층 Provider"]
+        Store[Store]
+        subgraph ActionsContainer["Actions"]
+            Actions[Actions]
+            Pipeline[Pipeline<br/>- 비즈니스 로직 등록<br/>- 실행 순서 관리<br/>- 미들웨어 처리]
+        end
+        Ref[Ref<br/>- 싱글톤 인스턴스 관리]
+    end
+
+    %% 5-Layer Hooks 구조
+    subgraph Hooks["5-Layer Hooks Consumer"]
+        ContextDef[contexts<br/>자원 타입 정의]
+        Handlers[handlers<br/>Pipe 등록용<br/>내부 함수 정의]
+        Subscriptions[subscriptions<br/>선택적 상태 구독]
+        Registries[registries<br/>핸들러 등록<br/>지연 평가]
+        Dispatchers[dispatchers<br/>on~ 함수 생성<br/>View용]
+    end
+
+    %% UI 계층
+    subgraph UI["UI 계층 - views"]
+        Page[Page - route]
+        Layout[Layout - device Layer]
+        Widget[Widget - design system]
+    end
+
+    %% 데이터 흐름
+    Store -->|상태 관리| ContextDef
+    ContextDef -->|타입 정의| Handlers
+    Handlers -->|함수 정의| Registries
+    Registries -->|등록| Pipeline
+    Pipeline -->|실행| Actions
+    Actions -->|업데이트| Store
+    Store -->|구독| Subscriptions
+    Subscriptions -->|UI 업데이트| UI
+    Dispatchers -->|액션 발송| Actions
+    UI -->|사용| Dispatchers
+
+    %% UI 마운트 순서
+    Page -->|마운트| Layout
+    Layout -->|마운트| Widget
+```
+
+### 🔄 아키텍처 계층 설명
+
+#### **1계층: Context Share (Provider)**
+애플리케이션 전반에 걸쳐 공유 리소스를 제공하는 기반 계층:
+
+- **Store**: 반응적 구독이 가능한 중앙 집중식 상태 관리
+- **Actions/Pipeline**: 비즈니스 로직 등록 및 실행 순서 관리
+- **Ref**: 성능 최적화를 위한 싱글톤 인스턴스 관리
+
+#### **2계층: 5-Layer Hooks (Consumer)**
+정교한 훅 아키텍처를 구현하는 소비 계층:
+
+1. **contexts** - 리소스 타입 정의 및 컨텍스트 접근
+2. **handlers** - 파이프라인 등록을 위한 내부 함수 정의
+3. **subscriptions** - UI 업데이트를 위한 선택적 상태 구독
+4. **registries** - 지연 평가를 통한 핸들러 등록
+5. **dispatchers** - View 지향적 액션 디스패처 (`on~` 함수)
+
+#### **3계층: UI (Views)**
+명확한 계층 구조를 가진 프레젠테이션 계층:
+
+- **Page** - 네비게이션 관리를 담당하는 라우트 레벨 컴포넌트
+- **Layout** - 반응형 디자인을 위한 디바이스별 레이아웃 컴포넌트
+- **Widget** - 일관된 UI 패턴을 위한 디자인 시스템 컴포넌트
+
+### ⚡ 아키텍처 이점
+
+#### **성능 최적화**
+- **지연 평가**: 핸들러가 `store.getValue()`를 통해 최신 상태에 접근하여 stale closure 방지
+- **선택적 구독**: 컴포넌트가 필요한 상태 슬라이스만 구독하여 불필요한 리렌더링 감소
+- **싱글톤 관리**: Ref 계층이 컴포넌트 간 효율적인 리소스 공유 보장
+- **최소 리렌더링**: 최적화된 의존성 추적으로 불필요한 업데이트 방지
+
+#### **개발자 경험**
+- **완벽한 관심사 분리**: 각 계층이 단일하고 명확한 책임을 가짐
+- **타입 안전성**: 모든 아키텍처 계층에서 완전한 TypeScript 지원
+- **예측 가능한 데이터 플로우**: 명확한 업데이트 패턴을 가진 단방향 데이터 흐름
+- **확장 가능한 구조**: 아키텍처 변경 없이 새로운 기능 추가 용이
+
+#### **아키텍처 무결성**
+- **문서 중심 설계**: 각 컨텍스트가 문서 도메인 경계를 나타냄
+- **명확한 경계**: 서로 다른 아키텍처 계층 간 결합 없음
+- **테스트 가능한 구조**: 각 계층을 독립적으로 테스트 가능
+- **유지보수 가능한 코드**: 명확한 분리로 안전하고 예측 가능한 리팩토링
+
+### 💡 구현 패턴
+
+```typescript
+// 5계층 아키텍처 구현
+function UserPage() {
+  // 1계층: contexts - 리소스 타입 정의
+  const userStore = useUserStore('profile');
+  const settingsStore = useUserStore('settings');
+
+  // 2계층: handlers - 내부 함수 정의
+  const updateUserHandler = useCallback(async (payload) => {
+    // 지연 평가 - 항상 최신 상태를 가져옴
+    const currentUser = userStore.getValue();
+    const updatedUser = { ...currentUser, ...payload };
+    userStore.setValue(updatedUser);
+  }, [userStore]);
+
+  const updateSettingsHandler = useCallback(async (payload) => {
+    const currentSettings = settingsStore.getValue();
+    settingsStore.setValue({ ...currentSettings, ...payload });
+  }, [settingsStore]);
+
+  // 3계층: subscriptions - 선택적 상태 구독
+  const user = useStoreValue(userStore);
+  const settings = useStoreValue(settingsStore);
+
+  // 4계층: registries - 핸들러 등록
+  useActionHandler('updateUser', updateUserHandler);
+  useActionHandler('updateSettings', updateSettingsHandler);
+
+  // 5계층: dispatchers - View 지향적 액션 디스패처
+  const onUpdateUser = useActionDispatch('updateUser');
+  const onUpdateSettings = useActionDispatch('updateSettings');
+
+  // UI 계층 - 순수 프레젠테이션 로직
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      <p>테마: {settings.theme}</p>
+      <button onClick={() => onUpdateUser({ name: '새 이름' })}>
+        사용자 업데이트
+      </button>
+      <button onClick={() => onUpdateSettings({ theme: 'dark' })}>
+        테마 변경
+      </button>
+    </div>
+  );
+}
+```
+
 ## 컨텍스트의 정의와 분리 원칙
 
 ### 컨텍스트의 정의 단위
