@@ -61,8 +61,9 @@ function Layout({
     { path: '/react/context', label: '6. 🏗️ React Context', category: 'react' },
     { path: '/react/hooks', label: '7. React Hooks', category: 'react' },
     { path: '/react/useActionWithResult', label: '8. ✨ useActionWithResult', category: 'react' },
-    
-    
+    { path: '/react/imperativeRef', label: '9. 🎯 useImperativeHandle + Ref Context', category: 'react' },
+
+
     // === Practical Examples (실용 예제) ===
     { path: '/demos', label: '🎭 Context-Action Demos', category: 'demos', isIndex: true },
     { path: '/demos/store-scenarios', label: '🏪 Complete Store Collection (4 Core Demos)', category: 'demos', description: 'Essential store patterns for real-world applications' },

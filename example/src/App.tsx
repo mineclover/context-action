@@ -23,6 +23,7 @@ const ReactProviderPage = lazy(() => import('./pages/foundations/react/ProviderP
 const ReactContextPage = lazy(() => import('./pages/foundations/react/ContextPage'));
 const ReactHooksPage = lazy(() => import('./pages/foundations/react/HooksPage'));
 const UseActionWithResultPage = lazy(() => import('./pages/foundations/react/UseActionWithResultPage'));
+const ImperativeRefPage = lazy(() => import('./pages/foundations/react/ImperativeRefPage'));
 
 // Performance
 const ActionGuardIndexPage = lazy(() => import('./pages/performance/action-guard/ActionGuardIndexPage'));
@@ -143,6 +144,7 @@ function AppContent() {
             <Route path="/foundations/react/context" element={<ReactContextPage />} />
             <Route path="/foundations/react/hooks" element={<ReactHooksPage />} />
             <Route path="/foundations/react/useActionWithResult" element={<UseActionWithResultPage />} />
+            <Route path="/foundations/react/imperativeRef" element={<ImperativeRefPage />} />
             
             {/* ⚡ PERFORMANCE - Optimization, Action Guard, Priority */}
             <Route path="/performance/action-guard" element={<ActionGuardIndexPage />} />
@@ -205,6 +207,7 @@ function AppContent() {
             <Route path="/react/context" element={<ReactContextPage />} />
             <Route path="/react/hooks" element={<ReactHooksPage />} />
             <Route path="/react/useActionWithResult" element={<UseActionWithResultPage />} />
+            <Route path="/react/imperativeRef" element={<ImperativeRefPage />} />
             <Route path="/actionguard" element={<ActionGuardIndexPage />} />
             <Route path="/actionguard/search" element={<SearchPage />} />
             <Route path="/actionguard/scroll" element={<ScrollPage />} />
