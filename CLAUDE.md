@@ -45,7 +45,7 @@ The Context-Action framework follows these principles:
 - **Type Safety**: Full TypeScript support with strict type checking throughout
 - **Action Pipeline**: Centralized action processing with priority-based handler execution
 - **Store Integration**: Decoupled state management with reactive store subscriptions
-- **Context-Layered Architecture**: Clear separation of concerns with business logic in action handlers following [4-layer structure](docs/en/context-layered/architecture/folder-structure.md)
+- **Context-Layered Architecture**: Clear separation of concerns with pure business logic functions and orchestration handlers following [6-layer structure](docs/en/context-layered/architecture/folder-structure.md)
 
 ### Context Separation Strategy
 
@@ -650,7 +650,7 @@ function EventComponent() {
 - `packages/react/src/stores/patterns/declarative-store-pattern-v2.tsx` - Declarative Store Pattern implementation
 - `docs/en/concept/pattern-guide.md` - Complete pattern guide with two main approaches
 - `docs/en/concept/architecture-guide.md` - Complete architecture guide with Context Store Pattern
-- `docs/en/context-layered/context-layered-guide.md` - Context-Layered Architecture guide with 4-layer structure
+- `docs/en/context-layered/context-layered-guide.md` - Context-Layered Architecture guide with 6-layer structure
 - `docs/en/concept/conventions.md` - Comprehensive coding conventions and best practices
 - `docs/en/concept/hooks-reference.md` - Complete hooks reference documentation
 - `example/src/` - Comprehensive example application
@@ -673,12 +673,13 @@ function EventComponent() {
 
 ### Context-Layered Architecture Integration
 
-#### Context-Layered 4-Layer Structure
+#### Context-Layered 6-Layer Structure
 **Systematic layer separation** with clear responsibilities (see [Folder Structure Guide](docs/en/context-layered/architecture/folder-structure.md)):
 
 ```
 ├── contexts/     # 🗄️ Context Definitions (Type definitions & context creation)
-├── handlers/     # ⚙️ Handler Logic (Business logic with props-based DI)  
+├── business/     # 🏢 Pure Business Logic (Side-effect-free functions)
+├── handlers/     # ⚙️ Handler Logic (Orchestration with props-based DI)
 ├── actions/      # 🚀 Dispatch + Callbacks (Action dispatching & callbacks)
 ├── hooks/        # 🔗 Store Subscriptions (Store value subscriptions)
 ├── views/        # 🖼️ Pure UI Components (Event handling & rendering)
@@ -686,7 +687,8 @@ function EventComponent() {
 ```
 
 **Layer Integration Benefits:**
-- **Actions** handle business logic via [props-based dependency injection](docs/en/context-layered/patterns/props-based-handlers.md)
+- **Business Logic** isolated in pure functions for maximum testability
+- **Handlers** orchestrate business logic via [props-based dependency injection](docs/en/context-layered/patterns/props-based-handlers.md)
 - **Declarative Store Pattern** manages state with type safety
 - **Components** render UI with clear data flow
 - **Pattern Composition** allows flexible architecture
