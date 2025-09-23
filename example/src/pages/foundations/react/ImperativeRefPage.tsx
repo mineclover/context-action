@@ -17,6 +17,9 @@ import {
   ImperativeCounter,
   ImperativeTimer,
 } from './imperativeRef/components/ImperativeComponents';
+import { useRegisterSourceFile } from '../../../hooks/useRegisterSourceFile';
+import { useStoreValue } from '@context-action/react';
+import { useSourceLinkRegistry } from '../../../stores/SourceLinkRegistry';
 
 // 🎯 Control Panel Component
 function ControlPanel() {
@@ -405,6 +408,274 @@ function ModalDemo() {
   );
 }
 
+// 🎯 Code Examples Section
+function CodeExamplesSection() {
+  return (
+    <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+      <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 border-b">
+        <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+          <span>💻</span>
+          Code Examples
+        </h3>
+        <p className="text-sm text-gray-600 mt-1">
+          Basic useImperativeHandle patterns and usage examples
+        </p>
+      </div>
+
+      <div className="p-6 space-y-6">
+        {/* Basic useImperativeHandle Example */}
+        <div>
+          <h4 className="font-semibold text-gray-800 mb-3">1. 기본 useImperativeHandle 사용법</h4>
+          <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+            <pre className="text-sm text-green-400">
+{`// 📝 Custom ref interface 정의
+interface InputRefHandle {
+  focus: () => void;
+  getValue: () => string;
+  setValue: (value: string) => void;
+  reset: () => void;
+}
+
+// 🎯 forwardRef + useImperativeHandle 패턴
+const CustomInput = forwardRef<InputRefHandle, InputProps>((props, ref) => {
+  const [value, setValue] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // 🔑 KEY: useImperativeHandle로 커스텀 API 노출
+  useImperativeHandle(ref, () => ({
+    focus: () => inputRef.current?.focus(),
+    getValue: () => value,
+    setValue: (newValue: string) => setValue(newValue),
+    reset: () => setValue(''),
+  }), [value]);
+
+  return <input ref={inputRef} value={value} onChange={e => setValue(e.target.value)} />;
+});`}
+            </pre>
+          </div>
+        </div>
+
+        {/* Ref Context Pattern */}
+        <div>
+          <h4 className="font-semibold text-gray-800 mb-3">2. Ref Context로 중앙화된 ref 관리</h4>
+          <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+            <pre className="text-sm text-green-400">
+{`// 🏗️ Ref Registry 인터페이스 정의
+interface RefRegistry {
+  inputRef: RefObject<InputRefHandle>;
+  modalRef: RefObject<ModalRefHandle>;
+  validateAllInputs: () => boolean;
+  resetAll: () => void;
+}
+
+// 🎯 Ref Context Provider
+export function RefContextProvider({ children }: { children: ReactNode }) {
+  const inputRef = useRef<InputRefHandle>(null);
+  const modalRef = useRef<ModalRefHandle>(null);
+
+  const validateAllInputs = useCallback(() => {
+    return inputRef.current?.validate() ?? false;
+  }, []);
+
+  const resetAll = useCallback(() => {
+    inputRef.current?.reset();
+    modalRef.current?.close();
+  }, []);
+
+  const registry: RefRegistry = {
+    inputRef, modalRef, validateAllInputs, resetAll
+  };
+
+  return <RefContext.Provider value={registry}>{children}</RefContext.Provider>;
+}`}
+            </pre>
+          </div>
+        </div>
+
+        {/* Usage Example */}
+        <div>
+          <h4 className="font-semibold text-gray-800 mb-3">3. 실제 사용 예시</h4>
+          <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+            <pre className="text-sm text-green-400">
+{`// 🎮 Control Panel에서 모든 컴포넌트 제어
+function ControlPanel() {
+  const { inputRef, modalRef, validateAllInputs, resetAll } = useRefRegistry();
+
+  const handleSubmit = () => {
+    if (validateAllInputs()) {
+      const value = inputRef.current?.getValue();
+      console.log('Form value:', value);
+      modalRef.current?.open();
+    }
+  };
+
+  return (
+    <div>
+      <button onClick={handleSubmit}>Submit Form</button>
+      <button onClick={resetAll}>Reset All</button>
+      <button onClick={() => inputRef.current?.focus()}>Focus Input</button>
+    </div>
+  );
+}`}
+            </pre>
+          </div>
+        </div>
+
+        {/* Benefits */}
+        <div className="bg-blue-50 rounded-lg p-4">
+          <h4 className="font-semibold text-blue-800 mb-2">💡 주요 장점</h4>
+          <ul className="text-sm text-blue-700 space-y-1">
+            <li>• <strong>Imperative Escape Hatch</strong>: 선언적 패러다임의 한계를 극복</li>
+            <li>• <strong>Complex Interactions</strong>: 복잡한 UI 상호작용을 체계적으로 관리</li>
+            <li>• <strong>Centralized Control</strong>: 여러 컴포넌트를 중앙에서 제어</li>
+            <li>• <strong>Type Safety</strong>: 완전한 TypeScript 타입 안전성</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 🎯 Source Directory Section
+function SourceDirectorySection() {
+  const sourceLinkRegistryStore = useSourceLinkRegistry('entries');
+  const registeredFiles = useStoreValue(sourceLinkRegistryStore);
+
+  // Register source files for this demo
+  useRegisterSourceFile('pages/foundations/react/ImperativeRefPage.tsx', {
+    name: 'ImperativeRefPage',
+    description: 'Main demo page showcasing useImperativeHandle + Ref Context patterns',
+    tags: ['useImperativeHandle', 'ref-context', 'imperative-api', 'demo'],
+    priority: 50
+  });
+
+  useRegisterSourceFile('pages/foundations/react/imperativeRef/contexts/RefContexts.tsx', {
+    name: 'RefContexts',
+    description: 'Centralized ref management with context pattern and helper methods',
+    tags: ['ref-context', 'context-provider', 'centralized-management'],
+    priority: 40
+  });
+
+  useRegisterSourceFile('pages/foundations/react/imperativeRef/components/ImperativeComponents.tsx', {
+    name: 'ImperativeComponents',
+    description: 'Components with useImperativeHandle: Input, Modal, Counter, Timer',
+    tags: ['useImperativeHandle', 'forwardRef', 'custom-api', 'components'],
+    priority: 45
+  });
+
+  // Filter files related to this demo - with proper typing
+  const demoFiles = Object.entries(registeredFiles as Record<string, any>).filter(([path]) =>
+    path.includes('ImperativeRef') || path.includes('imperativeRef')
+  );
+
+  return (
+    <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+      <div className="bg-gradient-to-r from-orange-50 to-red-100 p-4 border-b">
+        <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+          <span>📁</span>
+          Source File Directory
+        </h3>
+        <p className="text-sm text-gray-600 mt-1">
+          Live source file registry for this demo - powered by useRegisterSourceFile hook
+        </p>
+      </div>
+
+      <div className="p-6">
+        {demoFiles.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <div className="text-4xl mb-2">📄</div>
+            <p>Source files are being registered...</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {demoFiles.map(([path, info]: [string, any]) => (
+              <div key={path} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-800">{info.name}</h4>
+                    <p className="text-sm text-gray-600 mt-1">{info.description}</p>
+                  </div>
+                  <div className="ml-4 text-right">
+                    <div className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
+                      Priority: {info.priority}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      Instances: {info.instances?.size || 0}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-xs text-gray-500 mb-2 font-mono bg-gray-100 px-2 py-1 rounded">
+                  {path}
+                </div>
+
+                {info.tags && info.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {info.tags.map((tag: string, index: number) => (
+                      <span
+                        key={index}
+                        className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Live Registry Stats */}
+        <div className="mt-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4">
+          <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+            <span>📊</span>
+            Live Registry Statistics
+          </h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{Object.keys(registeredFiles as Record<string, any>).length}</div>
+              <div className="text-gray-600">Total Files</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">{demoFiles.length}</div>
+              <div className="text-gray-600">Demo Files</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">
+                {demoFiles.reduce((sum, [, info]: [string, any]) => sum + (info.instances?.size || 0), 0)}
+              </div>
+              <div className="text-gray-600">Active Instances</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-600">
+                {Math.round(demoFiles.reduce((sum, [, info]: [string, any]) => sum + (info.priority || 0), 0) / demoFiles.length) || 0}
+              </div>
+              <div className="text-gray-600">Avg Priority</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Link to Source Directory */}
+        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+          <p className="text-sm text-blue-700">
+            💡 <strong>Tip:</strong> Visit{' '}
+            <a
+              href="/utilities/source-directory"
+              className="underline hover:text-blue-900 font-medium"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              /utilities/source-directory
+            </a>
+            {' '}to see all registered source files across the entire application
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // 🎯 Main Page Component
 export default function ImperativeRefPage() {
   return (
@@ -431,6 +702,12 @@ export default function ImperativeRefPage() {
 
         {/* Modal Demo (invisible until triggered) */}
         <ModalDemo />
+
+        {/* Code Examples */}
+        <CodeExamplesSection />
+
+        {/* Source Directory */}
+        <SourceDirectorySection />
 
         {/* Feature Explanation */}
         <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-200 p-6">

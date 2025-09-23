@@ -51,7 +51,7 @@ export const ImperativeInput = forwardRef<FormRefHandle, ImperativeInputProps>((
   const [errorMessage, setErrorMessage] = useState('');
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
-  // Validation logic
+  // Validation logic - memoized to prevent infinite loops
   const validateValue = useCallback((val: string): boolean => {
     if (required && !val.trim()) {
       setErrorMessage(`${label} is required`);
@@ -83,12 +83,17 @@ export const ImperativeInput = forwardRef<FormRefHandle, ImperativeInputProps>((
     return true;
   }, [label, required, minLength, type, pattern]);
 
-  // Update validation when value changes
+  // Update validation when value changes - but avoid calling onValidationChange in effect
   useEffect(() => {
     const valid = validateValue(value);
     setIsValid(valid);
-    onValidationChange?.(valid);
-  }, [value, validateValue, onValidationChange]);
+    // Move onValidationChange outside of useEffect to prevent infinite loops
+  }, [value, validateValue]);
+
+  // Call onValidationChange when isValid changes, not in the validation effect
+  useEffect(() => {
+    onValidationChange?.(isValid);
+  }, [isValid, onValidationChange]);
 
   // 🔑 KEY: useImperativeHandle to expose custom API
   useImperativeHandle(ref, () => ({
