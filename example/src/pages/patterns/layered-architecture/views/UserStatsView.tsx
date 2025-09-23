@@ -26,144 +26,101 @@ export const UserStatsView = memo<UserStatsViewProps>(({
   const { totalUsers, roleDistribution, newestUser } = statistics;
 
   return (
-    <div className="space-y-6">
-      {/* Enhanced Overview Stats */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 mb-3">
+    <div className="bg-white p-4 rounded-xl border shadow-sm">
+      {/* Compact Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
           <span className="text-lg">📊</span>
           <h3 className="text-lg font-semibold text-gray-800">Statistics Overview</h3>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <StatCard
-            title="Total Users"
-            value={totalUsers}
-            color="blue"
-            icon="👥"
-          />
-          <StatCard
-            title="Admins"
-            value={roleDistribution.admin || 0}
-            color="red"
-            icon="🛡️"
-          />
-          <StatCard
-            title="Users"
-            value={roleDistribution.user || 0}
-            color="green"
-            icon="👤"
-          />
-          <StatCard
-            title="Guests"
-            value={roleDistribution.guest || 0}
-            color="gray"
-            icon="👋"
-          />
-        </div>
-      </div>
-
-      {/* Enhanced Role Distribution Chart */}
-      <div className="bg-white p-6 rounded-xl border shadow-sm hover:shadow-md transition-shadow duration-300">
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-lg">📈</span>
-          <h3 className="text-lg font-semibold text-gray-800">Role Distribution</h3>
-        </div>
-        <div className="space-y-4">
-          {Object.entries(roleDistribution).map(([role, count]) => (
-            <div key={role} className="group">
-              <div className="flex items-center justify-between text-sm mb-1">
-                <span className="font-medium capitalize text-gray-700">{role}</span>
-                <span className="text-gray-600">
-                  {count} ({totalUsers > 0 ? Math.round((count / totalUsers) * 100) : 0}%)
-                </span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="flex-1 bg-gray-200 rounded-full h-3 overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ease-out group-hover:opacity-80 ${getRoleBarColor(role as User['role'])}`}
-                    style={{
-                      width: totalUsers > 0 ? `${(count / totalUsers) * 100}%` : '0%',
-                    }}
-                  ></div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Enhanced Recent Users */}
-      <div className="bg-white p-6 rounded-xl border shadow-sm hover:shadow-md transition-shadow duration-300">
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-lg">⏰</span>
-          <h3 className="text-lg font-semibold text-gray-800">Recent Activity</h3>
-        </div>
-        {recentUsers.length > 0 ? (
-          <div className="space-y-3">
-            {recentUsers.map((user, index) => (
-              <div
-                key={user.id}
-                className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
-                      {user.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></div>
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-800">{user.name}</div>
-                    <div className="text-sm text-gray-500">{user.email}</div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className={`text-xs px-3 py-1 rounded-full font-medium ${getRoleBadgeColor(user.role)}`}>
-                    {user.role}
-                  </div>
-                  <div className="text-xs text-gray-400 mt-1">
-                    {user.createdAt.toLocaleDateString()}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8">
-            <div className="text-4xl mb-3">👤</div>
-            <p className="text-gray-500">No users created yet</p>
-            <p className="text-sm text-gray-400 mt-1">Create your first user to see activity</p>
+        {newestUser && (
+          <div className="flex items-center gap-2 text-sm text-blue-600">
+            <span>🎉</span>
+            <span>Latest: {newestUser.name}</span>
           </div>
         )}
       </div>
 
-      {/* Enhanced Newest User Highlight */}
-      {newestUser && (
-        <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border border-blue-200 p-5 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-lg">🎉</span>
-            <h4 className="font-semibold text-blue-900">Newest Member</h4>
+      {/* Compact Stats in a Single Row */}
+      <div className="grid grid-cols-4 gap-3 mb-4">
+        <CompactStatCard
+          title="Total"
+          value={totalUsers}
+          color="blue"
+          icon="👥"
+        />
+        <CompactStatCard
+          title="Admins"
+          value={roleDistribution.admin || 0}
+          color="red"
+          icon="🛡️"
+        />
+        <CompactStatCard
+          title="Users"
+          value={roleDistribution.user || 0}
+          color="green"
+          icon="👤"
+        />
+        <CompactStatCard
+          title="Guests"
+          value={roleDistribution.guest || 0}
+          color="gray"
+          icon="👋"
+        />
+      </div>
+
+      {/* Compact Role Distribution Bar */}
+      <div className="mb-4">
+        <div className="text-sm font-medium text-gray-700 mb-2">Role Distribution</div>
+        <div className="flex rounded-lg overflow-hidden h-3 bg-gray-200">
+          {Object.entries(roleDistribution).map(([role, count]) => {
+            const percentage = totalUsers > 0 ? (count / totalUsers) * 100 : 0;
+            return (
+              <div
+                key={role}
+                className={`h-full ${getRoleBarColor(role as User['role'])}`}
+                style={{ width: `${percentage}%` }}
+                title={`${role}: ${count} (${Math.round(percentage)}%)`}
+              />
+            );
+          })}
+        </div>
+        <div className="flex justify-between text-xs text-gray-500 mt-1">
+          {Object.entries(roleDistribution).map(([role, count]) => (
+            <span key={role} className="capitalize">
+              {role}: {count}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Recent Activity Summary */}
+      {recentUsers.length > 0 && (
+        <div>
+          <div className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+            <span>⏰</span>
+            Recent Activity ({recentUsers.length})
           </div>
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                {newestUser.name.charAt(0).toUpperCase()}
+          <div className="flex gap-2 overflow-x-auto">
+            {recentUsers.slice(0, 5).map((user) => (
+              <div
+                key={user.id}
+                className="flex-shrink-0 flex items-center gap-2 bg-gray-50 rounded-lg p-2 min-w-0"
+                title={`${user.name} (${user.email}) - ${user.role}`}
+              >
+                <div className="w-6 h-6 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold text-xs">
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-medium text-gray-800 truncate max-w-20">
+                    {user.name}
+                  </div>
+                  <div className={`text-xs px-1 py-0.5 rounded text-center ${getRoleBadgeColor(user.role)}`}>
+                    {user.role}
+                  </div>
+                </div>
               </div>
-              <div className="absolute -top-1 -right-1">
-                <span className="text-lg animate-bounce">✨</span>
-              </div>
-            </div>
-            <div className="flex-1">
-              <div className="font-semibold text-blue-900">{newestUser.name}</div>
-              <div className="text-sm text-blue-700">{newestUser.email}</div>
-              <div className="text-xs text-blue-600 mt-1 flex items-center gap-1">
-                <span>🗓️</span>
-                Joined {newestUser.createdAt.toLocaleDateString()}
-              </div>
-            </div>
-            <div className={`px-3 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(newestUser.role)}`}>
-              {newestUser.role}
-            </div>
+            ))}
           </div>
         </div>
       )}
@@ -173,7 +130,37 @@ export const UserStatsView = memo<UserStatsViewProps>(({
 
 UserStatsView.displayName = 'UserStatsView';
 
-// 🎯 Stat Card Component
+// 🎯 Compact Stat Card Component
+interface CompactStatCardProps {
+  title: string;
+  value: number;
+  color: 'blue' | 'red' | 'green' | 'gray';
+  icon: string;
+}
+
+const CompactStatCard = memo<CompactStatCardProps>(({ title, value, color, icon }) => {
+  const colorClasses = {
+    blue: 'bg-blue-50 border-blue-200 text-blue-900',
+    red: 'bg-red-50 border-red-200 text-red-900',
+    green: 'bg-green-50 border-green-200 text-green-900',
+    gray: 'bg-gray-50 border-gray-200 text-gray-900',
+  };
+
+  return (
+    <div className={`
+      p-3 rounded-lg border text-center transition-all duration-200 hover:shadow-md
+      ${colorClasses[color]}
+    `}>
+      <div className="text-lg mb-1">{icon}</div>
+      <div className="text-2xl font-bold leading-none mb-1">{value}</div>
+      <div className="text-xs font-medium opacity-75">{title}</div>
+    </div>
+  );
+});
+
+CompactStatCard.displayName = 'CompactStatCard';
+
+// 🎯 Stat Card Component (keeping for backward compatibility)
 interface StatCardProps {
   title: string;
   value: number;

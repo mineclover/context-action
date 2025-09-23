@@ -306,24 +306,20 @@ function UserManagementUI() {
         </div>
       )}
 
-      {/* Enhanced Main Content Area with Better Layout */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
-        {/* Left Column - Enhanced Statistics Panel */}
-        <div className="xl:col-span-1 order-2 xl:order-1">
-          <div className="sticky top-6">
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-1 rounded-xl">
-              <div className="bg-white rounded-lg p-1">
-                <UserStatsView
-                  statistics={userStatistics}
-                  recentUsers={recentUsers}
-                />
-              </div>
-            </div>
+      {/* Statistics Overview - Top Section */}
+      <div className="mb-8">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-1 rounded-xl">
+          <div className="bg-white rounded-lg p-1">
+            <UserStatsView
+              statistics={userStatistics}
+              recentUsers={recentUsers}
+            />
           </div>
         </div>
+      </div>
 
-        {/* Right Column - Enhanced Main Content */}
-        <div className="xl:col-span-3 order-1 xl:order-2">
+      {/* Main Content Area - User Directory */}
+      <div>
           <div className="min-h-[500px]">
             {/* Enhanced Loading State */}
             {isLoading && (
@@ -395,7 +391,6 @@ function UserManagementUI() {
               </div>
             )}
           </div>
-        </div>
       </div>
 
       {/* Enhanced Debug Panel */}
