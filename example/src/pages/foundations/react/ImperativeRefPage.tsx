@@ -188,6 +188,19 @@ function FormDemo() {
     message: false,
   });
 
+  // Memoize validation change handlers to prevent infinite loops
+  const handleNameValidationChange = useCallback((isValid: boolean) => {
+    setValidationStates(prev => ({ ...prev, name: isValid }));
+  }, []);
+
+  const handleEmailValidationChange = useCallback((isValid: boolean) => {
+    setValidationStates(prev => ({ ...prev, email: isValid }));
+  }, []);
+
+  const handleMessageValidationChange = useCallback((isValid: boolean) => {
+    setValidationStates(prev => ({ ...prev, message: isValid }));
+  }, []);
+
   return (
     <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
       <div className="bg-gradient-to-r from-green-50 to-emerald-100 p-4 border-b">
@@ -207,9 +220,7 @@ function FormDemo() {
           placeholder="Enter your full name"
           required
           minLength={2}
-          onValidationChange={(isValid) =>
-            setValidationStates(prev => ({ ...prev, name: isValid }))
-          }
+          onValidationChange={handleNameValidationChange}
         />
 
         <ImperativeInput
@@ -218,9 +229,7 @@ function FormDemo() {
           type="email"
           placeholder="Enter your email"
           required
-          onValidationChange={(isValid) =>
-            setValidationStates(prev => ({ ...prev, email: isValid }))
-          }
+          onValidationChange={handleEmailValidationChange}
         />
 
         <ImperativeInput
@@ -230,9 +239,7 @@ function FormDemo() {
           placeholder="Enter your message"
           required
           minLength={10}
-          onValidationChange={(isValid) =>
-            setValidationStates(prev => ({ ...prev, message: isValid }))
-          }
+          onValidationChange={handleMessageValidationChange}
         />
 
         {/* Validation Status */}
@@ -541,28 +548,6 @@ function SourceDirectorySection() {
   const sourceLinkRegistryStore = useSourceLinkRegistry('entries');
   const registeredFiles = useStoreValue(sourceLinkRegistryStore);
 
-  // Register source files for this demo
-  useRegisterSourceFile('pages/foundations/react/ImperativeRefPage.tsx', {
-    name: 'ImperativeRefPage',
-    description: 'Main demo page showcasing useImperativeHandle + Ref Context patterns',
-    tags: ['useImperativeHandle', 'ref-context', 'imperative-api', 'demo'],
-    priority: 50
-  });
-
-  useRegisterSourceFile('pages/foundations/react/imperativeRef/contexts/RefContexts.tsx', {
-    name: 'RefContexts',
-    description: 'Centralized ref management with context pattern and helper methods',
-    tags: ['ref-context', 'context-provider', 'centralized-management'],
-    priority: 40
-  });
-
-  useRegisterSourceFile('pages/foundations/react/imperativeRef/components/ImperativeComponents.tsx', {
-    name: 'ImperativeComponents',
-    description: 'Components with useImperativeHandle: Input, Modal, Counter, Timer',
-    tags: ['useImperativeHandle', 'forwardRef', 'custom-api', 'components'],
-    priority: 45
-  });
-
   // Filter files related to this demo - with proper typing
   const demoFiles = Object.entries(registeredFiles as Record<string, any>).filter(([path]) =>
     path.includes('ImperativeRef') || path.includes('imperativeRef')
@@ -678,6 +663,33 @@ function SourceDirectorySection() {
 
 // 🎯 Main Page Component
 export default function ImperativeRefPage() {
+  // Memoize source file registration options to prevent infinite loops
+  const imperativeRefPageOptions = React.useMemo(() => ({
+    name: 'ImperativeRefPage',
+    description: 'Main demo page showcasing useImperativeHandle + Ref Context patterns',
+    tags: ['useImperativeHandle', 'ref-context', 'imperative-api', 'demo'],
+    priority: 50
+  }), []);
+
+  const refContextsOptions = React.useMemo(() => ({
+    name: 'RefContexts',
+    description: 'Centralized ref management with context pattern and helper methods',
+    tags: ['ref-context', 'context-provider', 'centralized-management'],
+    priority: 40
+  }), []);
+
+  const imperativeComponentsOptions = React.useMemo(() => ({
+    name: 'ImperativeComponents',
+    description: 'Components with useImperativeHandle: Input, Modal, Counter, Timer',
+    tags: ['useImperativeHandle', 'forwardRef', 'custom-api', 'components'],
+    priority: 45
+  }), []);
+
+  // Register source files for this demo - options are memoized to prevent re-renders
+  useRegisterSourceFile('pages/foundations/react/ImperativeRefPage.tsx', imperativeRefPageOptions);
+  useRegisterSourceFile('pages/foundations/react/imperativeRef/contexts/RefContexts.tsx', refContextsOptions);
+  useRegisterSourceFile('pages/foundations/react/imperativeRef/components/ImperativeComponents.tsx', imperativeComponentsOptions);
+
   return (
     <RefContextProvider>
       <div className="p-6 max-w-7xl mx-auto space-y-8">

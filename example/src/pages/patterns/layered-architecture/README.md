@@ -1,17 +1,18 @@
-# 5-Layer Context Architecture Implementation
+# 6-Layer Context Architecture Implementation
 
-완성된 **5-Layer Context Architecture**는 순수 함수 비즈니스 로직과 핸들러 주입 패턴을 통해 사이드 이펙트를 해결하는 혁신적인 아키텍처 패턴입니다.
+완성된 **6-Layer Context Architecture**는 순수 함수 비즈니스 로직과 핸들러 주입 패턴을 통해 사이드 이펙트를 해결하는 혁신적인 아키텍처 패턴입니다.
 
 ## 🎯 핵심 개념
 
-### 기존 4-Layer vs 5-Layer 차이점
+### 기존 4-Layer vs 6-Layer 차이점
 
-| 특징 | 4-Layer | 5-Layer |
+| 특징 | 4-Layer | 6-Layer |
 |------|---------|---------|
 | **비즈니스 로직** | 핸들러에 포함 | 순수 함수로 분리 |
 | **사이드 이펙트** | 핸들러와 혼재 | 핸들러 주입으로 해결 |
 | **테스트 용이성** | 중간 수준 | 매우 높음 |
 | **최신 값 문제** | Context 의존 | Handler Injection으로 해결 |
+| **레이어 구조** | contexts, handlers, actions, hooks | contexts, business, handlers, actions, hooks, views |
 
 ### Handler Injection Pattern (핵심 혁신)
 
@@ -37,10 +38,10 @@ const createUserHandler = useCallback(async (payload) => {
 useUserManagementActionHandler('createUser', createUserHandler);
 ```
 
-## 🏗️ 5-Layer Architecture Structure
+## 🏗️ 6-Layer Architecture Structure
 
 ```
-📁 5-layer-architecture/
+📁 6-layer-architecture/
 ├── 📁 contexts/           # 🗄️ Context Definitions & Types
 │   └── UserManagementContexts.ts    # 타입 정의와 컨텍스트 생성
 ├── 📁 business/           # 🧠 Pure Business Logic Functions
@@ -220,7 +221,7 @@ describe('createUserHandler', () => {
 
 ## ✨ 실제 동작 확인
 
-브라우저에서 `/patterns/5-layer-architecture`에 접속하여 다음을 확인할 수 있습니다:
+브라우저에서 `/patterns/6-layer-architecture`에 접속하여 다음을 확인할 수 있습니다:
 
 1. **Real-time Statistics**: 사용자 생성 시 즉시 통계 업데이트
 2. **Role Distribution**: 역할별 분포 차트 자동 갱신
@@ -232,10 +233,10 @@ describe('createUserHandler', () => {
 
 ### 기본 사용법
 ```typescript
-import FiveLayerArchitecturePage from './5-layer-architecture/5LayerArchitecturePage';
+import SixLayerArchitecturePage from './6-layer-architecture/6LayerArchitecturePage';
 
 // 단순히 컴포넌트 렌더링
-<FiveLayerArchitecturePage />
+<SixLayerArchitecturePage />
 ```
 
 ### 개별 레이어 활용
@@ -244,7 +245,7 @@ import {
   useUserManagementActions,
   useUserManagementData,
   UserListView
-} from './5-layer-architecture';
+} from './6-layer-architecture';
 
 function CustomImplementation() {
   const { createUser } = useUserManagementActions();
@@ -286,4 +287,4 @@ function CustomImplementation() {
 - 프로토타이핑 단계
 - 비즈니스 로직이 거의 없는 UI 위주 앱
 
-이 5-Layer Context Architecture는 Context-Action 프레임워크의 가능성을 보여주는 혁신적인 패턴으로, 순수 함수 비즈니스 로직과 핸들러 주입을 통해 기존 아키텍처의 한계를 극복합니다.
+이 6-Layer Context Architecture는 Context-Action 프레임워크의 가능성을 보여주는 혁신적인 패턴으로, 순수 함수 비즈니스 로직과 핸들러 주입을 통해 기존 아키텍처의 한계를 극복합니다.

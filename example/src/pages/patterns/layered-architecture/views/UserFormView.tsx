@@ -11,6 +11,71 @@
 import React, { memo, useState, useEffect } from 'react';
 import type { User, UserValidationResult } from '../contexts/UserManagementContexts';
 
+// 🎯 Enhanced Fake Data Generator
+const FAKE_NAMES = [
+  // Tech Legends
+  'Ada Lovelace', 'Alan Turing', 'Grace Hopper', 'Tim Berners-Lee', 'Linus Torvalds',
+  'Margaret Hamilton', 'John von Neumann', 'Katherine Johnson', 'Dennis Ritchie',
+
+  // Modern Tech
+  'Satya Nadella', 'Sundar Pichai', 'Jensen Huang', 'Lisa Su', 'Ginni Rometty',
+  'Reid Hoffman', 'Brian Chesky', 'Susan Wojcicki', 'Sheryl Sandberg',
+
+  // Pop Culture & Fun
+  'Tony Stark', 'Hermione Granger', 'Tyrion Lannister', 'Princess Leia', 'Spock',
+  'Wonder Woman', 'Black Widow', 'Captain Marvel', 'Doctor Strange', 'Eleven',
+
+  // International Names
+  '김민수', '이영희', '박철수', '최지현', '정수민', '강호동', '유재석', '아이유',
+  'Akira Tanaka', 'Yuki Sato', 'Hiroshi Yamamoto', 'Marie Dubois', 'Hans Mueller',
+  'Giuseppe Rossi', 'Sofia Andersson', 'Raj Patel', 'Priya Sharma', 'Chen Wei',
+
+  // Classic & Fun
+  'Alice Wonderland', 'Bob Builder', 'Charlie Chocolate', 'Diana Adventure',
+  'Ethan Mission', 'Fiona Shrek', 'George Curious', 'Luna Moon', 'Neo Matrix'
+];
+
+const FAKE_DOMAINS = [
+  // Real domains
+  'gmail.com', 'naver.com', 'daum.net', 'yahoo.com', 'hotmail.com', 'outlook.com',
+
+  // Tech company domains
+  'apple.com', 'google.com', 'microsoft.com', 'amazon.com', 'meta.com',
+  'netflix.com', 'spotify.com', 'zoom.us', 'slack.com', 'github.com',
+
+  // Fun fictional domains
+  'starkindustries.com', 'wayneenterprises.com', 'umbrella.corp', 'oscorp.com',
+  'cyberdyne.tech', 'aperture.science', 'blackmesa.gov', 'vault-tec.com',
+
+  // Modern startup style
+  'nextgen.ai', 'quantum.dev', 'blockchain.io', 'startup.vc', 'unicorn.co',
+  'innovation.tech', 'future.app', 'digital.space', 'cloud.ninja', 'data.rocks'
+];
+
+const FAKE_ROLES: User['role'][] = ['guest', 'user', 'admin'];
+
+// Fun facts for generated users
+const FUN_FACTS = [
+  'loves coffee and debugging', 'speaks 5 programming languages', 'builds robots in spare time',
+  'writes poetry about algorithms', 'collects vintage keyboards', 'dreams in binary',
+  'can solve a Rubik\'s cube in 30 seconds', 'has read all of Stack Overflow',
+  'once found a bug by staring at code', 'types 120 WPM', 'prefers vim over emacs',
+  'thinks semicolons are optional', 'believes in 10x engineers', 'codes while sleeping'
+];
+
+function generateFakeUserData(): UserFormData {
+  const name = FAKE_NAMES[Math.floor(Math.random() * FAKE_NAMES.length)];
+  const emailPrefix = name.toLowerCase()
+    .replace(/\s+/g, '.')
+    .replace(/[^a-z0-9.]/g, '')
+    + Math.floor(Math.random() * 100);
+  const domain = FAKE_DOMAINS[Math.floor(Math.random() * FAKE_DOMAINS.length)];
+  const email = `${emailPrefix}@${domain}`;
+  const role = FAKE_ROLES[Math.floor(Math.random() * FAKE_ROLES.length)];
+
+  return { name, email, role };
+}
+
 interface UserFormViewProps {
   mode: 'create' | 'edit';
   initialData?: Partial<User>;
@@ -88,10 +153,71 @@ export const UserFormView = memo<UserFormViewProps>(({
     onSubmit(formData);
   };
 
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleFillFakeData = async () => {
+    setIsGenerating(true);
+
+    // Add a small delay for visual feedback
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    const fakeData = generateFakeUserData();
+    setFormData(fakeData);
+
+    // Trigger validation if available
+    if (onValidate) {
+      onValidate({
+        name: fakeData.name,
+        email: fakeData.email,
+      });
+    }
+
+    setIsGenerating(false);
+
+    // Fun console message
+    console.log(`🎉 Generated fake user: ${fakeData.name} (${fakeData.email}) - ${fakeData.role}`);
+  };
+
   const canSubmit = formData.name.trim() && formData.email.trim() && !isSubmitting;
 
   return (
     <div className="space-y-6">
+      {/* 🎯 Quick Fill Button for Development */}
+      {mode === 'create' && (
+        <div className="flex justify-between items-center p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-xl">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🎲</span>
+            <div>
+              <h3 className="text-sm font-semibold text-purple-800">Quick Development Helper</h3>
+              <p className="text-xs text-purple-600">Generate random user data for testing</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleFillFakeData}
+            disabled={isSubmitting || isGenerating}
+            className="
+              flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg font-medium
+              hover:bg-purple-700 transition-all duration-200 transform hover:scale-105
+              disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
+              shadow-md hover:shadow-lg
+            "
+          >
+            {isGenerating ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Generating...</span>
+              </>
+            ) : (
+              <>
+                <span className="text-base">🎯</span>
+                <span>Fill with Fake Data</span>
+              </>
+            )}
+          </button>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Enhanced Name Field */}
         <div className="space-y-2">
