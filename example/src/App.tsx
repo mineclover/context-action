@@ -48,6 +48,7 @@ const MemoizationDemoPage = lazy(() => import('./pages/performance/memoization/D
 
 // Patterns
 const ConditionalPatternsIndex = lazy(() => import('./pages/patterns/conditional/ConditionalPatternsIndex').then(m => ({ default: m.ConditionalPatternsIndex })));
+const LayeredArchitecturePage = lazy(() => import('./pages/patterns/layered-architecture/5LayerArchitecturePage'));
 const PermissionBasedExecution = lazy(() => import('./pages/patterns/conditional/PermissionBasedExecution').then(m => ({ default: m.PermissionBasedExecution })));
 const FormValidation = lazy(() => import('./pages/patterns/conditional/FormValidation').then(m => ({ default: m.FormValidation })));
 const WorkflowSteps = lazy(() => import('./pages/patterns/conditional/WorkflowSteps').then(m => ({ default: m.WorkflowSteps })));
@@ -171,6 +172,7 @@ function AppContent() {
             <Route path="/patterns/conditional/form-validation" element={<FormValidation />} />
             <Route path="/patterns/conditional/workflow-steps" element={<WorkflowSteps />} />
             <Route path="/patterns/conditional/feature-toggle" element={<FeatureToggle />} />
+            <Route path="/patterns/layered-architecture" element={<LayeredArchitecturePage />} />
             <Route path="/patterns/pipeline/flow-control" element={<FlowControlPlaygroundPage />} />
             <Route path="/patterns/refs" element={<RefsIndexPage />} />
             <Route path="/patterns/refs/form-builder" element={<FormBuilderRefDemoPage />} />

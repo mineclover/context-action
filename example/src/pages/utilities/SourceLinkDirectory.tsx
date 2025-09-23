@@ -288,6 +288,122 @@ function FileStatusComponent() {
           </CodeExample>
         </section>
 
+        {/* TypeScript Files Registration */}
+        <section>
+          <h2 className="text-lg font-semibold mb-3">TypeScript Files Registration</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            TypeScript 파일(`.ts`)은 React 훅을 직접 사용할 수 없으므로, Proxy Registration Pattern을 사용하여 등록합니다:
+          </p>
+
+          <CodeExample title="Proxy Registration Pattern">
+            <CodeBlock>
+{`// ❌ TypeScript 파일에서는 불가능
+// src/business/userLogic.ts
+export function validateUser(data) {
+  // useRegisterSourceFile(); // Error: Hooks can only be used in React components
+  return { isValid: true };
+}
+
+// ✅ React 컴포넌트에서 대신 등록
+// src/components/UserManagement.tsx
+import { useRegisterSourceFile } from '../hooks/useRegisterSourceFile';
+
+function UserManagement() {
+  // 자기 자신 등록
+  useRegisterSourceFile('components/UserManagement.tsx', {
+    name: 'UserManagement',
+    description: 'User management component',
+    tags: ['component', 'user'],
+    priority: 10
+  });
+
+  // TypeScript 파일들을 대신 등록 (Proxy Registration)
+  useRegisterSourceFile('business/userLogic.ts', {
+    name: 'userLogic',
+    description: 'Pure business logic functions for user operations',
+    tags: ['business', 'pure-functions', 'typescript'],
+    priority: 20
+  });
+
+  useRegisterSourceFile('types/UserTypes.ts', {
+    name: 'UserTypes',
+    description: 'TypeScript type definitions for user domain',
+    tags: ['types', 'definitions', 'typescript'],
+    priority: 25
+  });
+
+  return <div>User Management</div>;
+}`}
+            </CodeBlock>
+          </CodeExample>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+            <h3 className="text-base font-medium mb-2 text-blue-800">📋 Proxy Registration 가이드라인</h3>
+            <ul className="text-sm text-blue-700 space-y-2">
+              <li><strong>• 누가 등록하나?</strong> TypeScript 파일을 import하여 사용하는 React 컴포넌트</li>
+              <li><strong>• 언제 등록하나?</strong> 컴포넌트 마운트 시점에 함께 등록</li>
+              <li><strong>• 어떤 파일들?</strong> Business logic, Types, Utils, Constants 등 .ts 파일들</li>
+              <li><strong>• 태그 활용:</strong> 'typescript', 'pure-functions', 'types' 등으로 분류</li>
+              <li><strong>• 우선순위:</strong> 30-40 범위 권장 (컴포넌트보다 낮게)</li>
+            </ul>
+          </div>
+        </section>
+
+        {/* Layered Architecture Example */}
+        <section>
+          <h2 className="text-lg font-semibold mb-3">실제 사용 예시: Layered Architecture</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            <a href="/patterns/layered-architecture" className="text-blue-600 hover:underline">Layered Architecture 패턴</a>에서
+            6-Layer 구조의 TypeScript 파일들이 어떻게 등록되는지 확인할 수 있습니다:
+          </p>
+
+          <CodeExample title="6-Layer Architecture Registration">
+            <CodeBlock>
+{`// UserManagementExample.tsx (메인 컴포넌트)
+function UserManagementExample() {
+  // 자기 자신 등록
+  useRegisterSourceFile('pages/patterns/layered-architecture/UserManagementExample.tsx', {
+    name: 'UserManagementExample',
+    description: 'Main integration component for 6-layer architecture',
+    tags: ['integration', 'main', 'demo'],
+    priority: 5
+  });
+
+  // 📁 contexts 레이어 (TypeScript)
+  useRegisterSourceFile('pages/patterns/layered-architecture/contexts/UserManagementContexts.ts', {
+    name: 'UserManagementContexts',
+    description: 'Context definitions, types, and action payload maps',
+    tags: ['contexts', 'types', 'definitions'],
+    priority: 30
+  });
+
+  // 🧠 business 레이어 (TypeScript)
+  useRegisterSourceFile('pages/patterns/layered-architecture/business/userBusinessLogic.ts', {
+    name: 'userBusinessLogic',
+    description: 'Pure business logic functions for user validation',
+    tags: ['business', 'pure-functions', 'validation'],
+    priority: 35
+  });
+
+  return (
+    <UserManagementActionProvider>
+      <UserManagementStoreProvider>
+        {/* ... */}
+      </UserManagementStoreProvider>
+    </UserManagementActionProvider>
+  );
+}`}
+            </CodeBlock>
+          </CodeExample>
+
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
+            <p className="text-sm text-green-700">
+              <strong>✅ 결과:</strong> TypeScript 파일들이 Source Directory에 자동으로 등록되어
+              GitHub 링크와 함께 6-Layer 구조별로 분류되어 표시됩니다.
+            </p>
+          </div>
+        </section>
+
         {/* Store Structure */}
         <section>
           <h2 className="text-lg font-semibold mb-3">Store Structure</h2>

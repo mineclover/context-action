@@ -39,7 +39,10 @@ function Layout({
   const navItems: NavItem[] = [
     // === Main Navigation ===
     { path: '/', label: 'Home', category: 'main' },
-    
+
+    // === 5-Layer Architecture (최우선 표시) ===
+    { path: '/patterns/layered-architecture', label: '🏗️ Layered Architecture', category: 'architecture', isIndex: true, description: 'Revolutionary 6-layer pattern with Handler Injection and pure business logic' },
+
     // === Overview Pages (루트 개요) ===
     { path: '/overview/core', label: '🎯 Core Concepts Overview', category: 'main', isIndex: true, description: 'Complete guide to framework fundamentals' },
     { path: '/overview/actionguard', label: '🛡️ ActionGuard Overview', category: 'main', isIndex: true, description: 'Advanced demonstrations and patterns' },
@@ -153,7 +156,7 @@ function Layout({
                 <h4 className="text-xs font-medium text-blue-600 mb-2">📚 Core Concepts</h4>
               </div>
             )}
-            {navItems.filter(item => ['main', 'core', 'store', 'react'].includes(item.category)).map((item) => {
+            {navItems.filter(item => ['main', 'architecture', 'core', 'store', 'react'].includes(item.category)).map((item) => {
               return (
                 <Link
                   key={item.path}

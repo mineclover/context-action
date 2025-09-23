@@ -1,892 +1,560 @@
-import type { ActionHandler, ActionPayloadMap } from '@context-action/core';
-import { LogArtHelpers } from '@/utils/logger';
+/**
+ * Integration Point - UseActionWithResultPage (5-Layer Architecture)
+ *
+ * This demonstrates the complete 5-layer architecture implementation
+ * with useActionWithResult integration:
+ * 1. Sets up all Context Providers
+ * 2. Injects dependencies into Handlers via props (DI Pattern)
+ * 3. Coordinates between different layers
+ * 4. Showcases useActionWithResult with structured layers
+ */
+
+import React, { useState, useCallback, useMemo } from 'react';
 import {
-  createActionContext,
-  createStore,
-  useStoreValue,
-} from '@context-action/react';
-import { useCallback, useState, useEffect } from 'react';
+  CartActionProvider,
+  CartStoreProvider,
+  type CartItem,
+} from './useActionWithResult/contexts/CartContexts';
+import { CartHandlers } from './useActionWithResult/handlers/CartHandlers';
+import { useCartActions, useCartActionCallbacks } from './useActionWithResult/actions/useCartActions';
+import { useCartData, useCartFormData, useCartStatistics } from './useActionWithResult/hooks/useCartData';
+import {
+  CartListView,
+  AddItemForm,
+  ValidationView,
+  CalculationView,
+  OrderStatusView,
+  CheckoutForm,
+  CartStatisticsView,
+} from './useActionWithResult/views/CartView';
+import { addItemToCart, removeItemFromCart, updateItemQuantity } from './useActionWithResult/business/cartBusinessLogic';
 
-// 예시 데이터 타입
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
+// 🎯 Mock external dependencies for demonstration
+const mockApiClient = {
+  saveOrder: async (orderData: any) => {
+    console.log('🌐 API: Saving order', orderData);
+    await new Promise(resolve => setTimeout(resolve, 800));
+  },
+  updateInventory: async (items: CartItem[]) => {
+    console.log('🌐 API: Updating inventory', items);
+    await new Promise(resolve => setTimeout(resolve, 600));
+  },
+  applyDiscountCode: async (code: string) => {
+    console.log('🌐 API: Validating discount code', code);
+    await new Promise(resolve => setTimeout(resolve, 400));
+    return { valid: ['SAVE10', 'SAVE20', 'WELCOME'].includes(code.toUpperCase()), rate: 0.1 };
+  },
+};
+
+const mockLogger = {
+  info: (message: string, data?: any) => {
+    console.log(`📝 [Cart] ${message}`, data);
+  },
+  error: (message: string, error?: any) => {
+    console.error(`❌ [Cart] ${message}`, error);
+  },
+};
+
+/**
+ * Main UseActionWithResult Example Component
+ *
+ * Demonstrates the complete 5-layer architecture with useActionWithResult integration
+ */
+export default function UseActionWithResultPage() {
+  return (
+    <CartActionProvider>
+      <CartStoreProvider>
+        <UseActionWithResultWithHandlers />
+      </CartStoreProvider>
+    </CartActionProvider>
+  );
 }
 
-interface ValidationResult {
-  isValid: boolean;
-  errors: string[];
-  validatedBy: string;
-}
-
-interface CalculationResult {
-  subtotal: number;
-  tax: number;
-  total: number;
-  itemCount: number;
-  timestamp: number;
-  calculatedBy: string;
-}
-
-interface ProcessingResult {
-  orderId: string;
-  status: 'processing' | 'completed' | 'failed';
-  processedBy: string;
-  timestamp: number;
-}
-
-// 액션 정의
-interface CartActions extends ActionPayloadMap {
-  validateCart: { items: CartItem[] };
-  calculateTotal: { items: CartItem[]; discountCode?: string };
-  processOrder: { items: CartItem[]; paymentMethod: string };
-  clearCart: void;
-}
-
-// Context 생성
-const {
-  Provider: CartProvider,
-  useActionDispatch: useCartAction,
-  useActionHandler: useCartHandler,
-  useActionDispatchWithResult: useCartActionWithResult,
-} = createActionContext<CartActions>({ name: 'CartExample' });
-
-// 스토어 생성 - 초기값을 빈 객체 대신 구체적인 값으로 설정
-const cartStore = createStore<CartItem[]>('cart', []);
-const validationStore = createStore<ValidationResult | null>('validation', {
-  isValid: false,
-  errors: [],
-  validatedBy: 'initial',
-});
-const calculationStore = createStore<CalculationResult | null>('calculation', {
-  subtotal: 0,
-  tax: 0,
-  total: 0,
-  itemCount: 0,
-  timestamp: Date.now(),
-  calculatedBy: 'initial',
-});
-const orderStore = createStore<ProcessingResult | null>('order', {
-  orderId: '',
-  status: 'processing',
-  processedBy: 'initial',
-  timestamp: Date.now(),
-});
-
-// 핸들러 컴포넌트
-function CartHandlers() {
-  // 장바구니 검증 핸들러
-  const validateCartHandler: ActionHandler<{ items: CartItem[] }> = useCallback(
-    async (payload: { items: CartItem[] }, controller) => {
-      console.log(LogArtHelpers.react.info('🔍 장바구니 검증 시작'));
-
-      const { items } = payload;
-      const errors: string[] = [];
-
-      // 검증 로직
-      if (items.length === 0) {
-        errors.push('Cart is empty');
-      }
-
-      items.forEach((item) => {
-        if (item.quantity <= 0) {
-          errors.push(`Invalid quantity for ${item.name}`);
-        }
-        if (item.price <= 0) {
-          errors.push(`Invalid price for ${item.name}`);
-        }
-      });
-
-      const result: ValidationResult = {
-        isValid: errors.length === 0,
-        errors,
-        validatedBy: 'ValidationHandler',
-      };
-
-      // 스토어 업데이트
-      validationStore.setValue(result);
-
-      console.log(
-        LogArtHelpers.react.info(
-          `✅ 검증 완료: ${result.isValid ? '성공' : '실패'}`
-        )
-      );
-
-      // Note: For dispatchWithResult, handlers should still update stores
-      // The result collection is handled by the framework
-    },
-    []
-  );
-
-  // 총합 계산 핸들러
-  const calculateTotalHandler: ActionHandler<{
-    items: CartItem[];
-    discountCode?: string;
-  }> = useCallback(
-    async (
-      payload: { items: CartItem[]; discountCode?: string },
-      controller
-    ) => {
-      console.log(LogArtHelpers.react.info('💰 총합 계산 시작'));
-
-      const { items, discountCode } = payload;
-
-      // 계산 로직
-      const subtotal = items.reduce(
-        (sum, item) => sum + item.price * item.quantity,
-        0
-      );
-      let discount = 0;
-
-      if (discountCode === 'SAVE10') {
-        discount = subtotal * 0.1;
-        console.log(
-          LogArtHelpers.react.info(`🎟️ 할인 적용: 10% ($${discount.toFixed(2)})`)
-        );
-      }
-
-      const tax = (subtotal - discount) * 0.1;
-      const total = subtotal - discount + tax;
-
-      const result: CalculationResult = {
-        subtotal,
-        tax,
-        total,
-        itemCount: items.length,
-        timestamp: Date.now(),
-        calculatedBy: 'CalculationHandler',
-      };
-
-      // 스토어 업데이트
-      calculationStore.setValue(result);
-
-      console.log(
-        LogArtHelpers.react.info(`✅ 계산 완료: $${total.toFixed(2)}`)
-      );
-
-      // Note: For dispatchWithResult, handlers should still update stores
-      // The result collection is handled by the framework
-    },
-    []
-  );
-
-  // 주문 처리 핸들러
-  const processOrderHandler: ActionHandler<{
-    items: CartItem[];
-    paymentMethod: string;
-  }> = useCallback(
-    async (
-      payload: { items: CartItem[]; paymentMethod: string },
-      controller
-    ) => {
-      console.log(LogArtHelpers.react.info('🛒 주문 처리 시작'));
-
-      const { items, paymentMethod } = payload;
-
-      // 주문 처리 시뮬레이션
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      const result: ProcessingResult = {
-        orderId: `order_${Date.now()}`,
-        status: 'completed',
-        processedBy: 'ProcessingHandler',
-        timestamp: Date.now(),
-      };
-
-      // 스토어 업데이트
-      orderStore.setValue(result);
-
-      console.log(LogArtHelpers.react.info(`✅ 주문 완료: ${result.orderId}`));
-
-      // Note: For dispatchWithResult, handlers should still update stores
-      // The result collection is handled by the framework
-    },
-    []
-  );
-
-  // 장바구니 비우기 핸들러
-  const clearCartHandler: ActionHandler<void, void> = useCallback(
-    async (payload: void, controller) => {
-      console.log(LogArtHelpers.react.info('🗑️ 장바구니 비우기'));
-
-      cartStore.setValue([]);
-      validationStore.setValue(null);
-      calculationStore.setValue(null);
-      orderStore.setValue(null);
-
-      console.log(LogArtHelpers.react.info('✅ 장바구니 비우기 완료'));
-    },
-    []
-  );
-
-  // 핸들러 등록
-  useCartHandler(
-    'validateCart',
-    validateCartHandler as ActionHandler<{ items: CartItem[] }>,
-    {
-      priority: 100,
-    }
-  );
-
-  useCartHandler(
-    'calculateTotal',
-    calculateTotalHandler as ActionHandler<{
-      items: CartItem[];
-      discountCode?: string;
-    }>,
-    {
-      priority: 90,
-    }
-  );
-
-  useCartHandler(
-    'processOrder',
-    processOrderHandler as ActionHandler<{
-      items: CartItem[];
-      paymentMethod: string;
-    }>,
-    {
-      priority: 80,
-      blocking: true, // 완료까지 대기
-    }
-  );
-
-  useCartHandler('clearCart', clearCartHandler, {
-    priority: 70,
-  });
-
-  return null;
-}
-
-// 메인 컴포넌트 (내부)
-function UseActionWithResultContent() {
-  const [items, setItems] = useState<CartItem[]>([
-    { id: '1', name: 'MacBook Pro', price: 2000, quantity: 1 },
-    { id: '2', name: 'iPhone', price: 1000, quantity: 2 },
-  ]);
-
-  // Store와 컴포넌트 state 동기화
-  useEffect(() => {
-    cartStore.setValue(items);
-  }, [items]);
-  const [discountCode, setDiscountCode] = useState('');
-  const [results, setResults] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(false);
-
-  // 훅들 (이제 Provider 내부에서 호출됨)
-  const dispatch = useCartAction();
-  const { dispatchWithResult } = useCartActionWithResult();
-
-  // 스토어 구독
-  const cartItems = useStoreValue(cartStore);
-  const validation = useStoreValue(validationStore);
-  const calculation = useStoreValue(calculationStore);
-  const order = useStoreValue(orderStore);
-
-  // 개별 액션 실행 (결과 수집)
-  const handleValidateCart = async () => {
-    console.clear();
-    console.log(LogArtHelpers.react.separator('장바구니 검증 (개별 실행)'));
-    setIsLoading(true);
-
-    try {
-      const result = await dispatchWithResult('validateCart', { items }, {});
-
-      console.log(LogArtHelpers.react.info('실행 결과:'), result);
-      setResults(JSON.stringify(result, null, 2));
-    } catch (error) {
-      console.error(LogArtHelpers.react.error(`실행 실패: ${String(error)}`));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // 필터링된 액션 실행
-  const handleCalculateWithFiltering = async () => {
-    console.clear();
-    console.log(LogArtHelpers.react.separator('총합 계산 (태그 필터링)'));
-    setIsLoading(true);
-
-    try {
-      const result = await dispatchWithResult(
-        'calculateTotal',
-        { items, discountCode },
-        {}
-      );
-
-      console.log(LogArtHelpers.react.info('필터링된 실행 결과:'), result);
-      setResults(JSON.stringify(result, null, 2));
-    } catch (error) {
-      console.error(LogArtHelpers.react.error(`실행 실패: ${String(error)}`));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // 복합 워크플로우 실행
-  const handleCompleteWorkflow = async () => {
-    console.clear();
-    console.log(LogArtHelpers.react.separator('전체 워크플로우 (순차 실행)'));
-    setIsLoading(true);
-
-    try {
-      // 1단계: 장바구니 검증
-      console.log(LogArtHelpers.react.info('1단계: 장바구니 검증'));
-      const validationResult = await dispatchWithResult(
-        'validateCart',
-        { items },
-        {}
-      );
-
-      if (!validationResult.success) {
-        throw new Error('Cart validation failed');
-      }
-
-      // 2단계: 총합 계산
-      console.log(LogArtHelpers.react.info('2단계: 총합 계산'));
-      const calculationResult = await dispatchWithResult(
-        'calculateTotal',
-        { items, discountCode },
-        {}
-      );
-
-      // 3단계: 주문 처리
-      console.log(LogArtHelpers.react.info('3단계: 주문 처리'));
-      const processResult = await dispatchWithResult('processOrder', {
-        items,
-        paymentMethod: 'credit-card',
-      });
-
-      // 전체 결과 표시
-      const workflowResult = {
-        validation: validationResult.result,
-        calculation: calculationResult.result,
-        processing: processResult.result,
-        totalDuration:
-          validationResult.execution.duration +
-          calculationResult.execution.duration +
-          processResult.execution.duration,
-        summary: {
-          totalSteps: 3,
-          successfulSteps: 3,
-          totalHandlersExecuted:
-            validationResult.execution.handlersExecuted +
-            calculationResult.execution.handlersExecuted +
-            processResult.execution.handlersExecuted,
-        },
-      };
-
-      console.log(LogArtHelpers.react.info('✅ 전체 워크플로우 완료'));
-      setResults(JSON.stringify(workflowResult, null, 2));
-    } catch (error) {
-      console.error(
-        LogArtHelpers.react.error(`워크플로우 실패: ${String(error)}`)
-      );
-      setResults(`Error: ${error}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // 병렬 실행 예시
-  const handleParallelExecution = async () => {
-    console.clear();
-    console.log(LogArtHelpers.react.separator('병렬 실행'));
-    setIsLoading(true);
-
-    try {
-      const result = await dispatchWithResult(
-        'calculateTotal',
-        { items, discountCode },
-        {}
-      );
-
-      console.log(LogArtHelpers.react.info('병렬 실행 결과:'), result);
-      setResults(JSON.stringify(result, null, 2));
-    } catch (error) {
-      console.error(LogArtHelpers.react.error(`실행 실패: ${String(error)}`));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // 결과 병합 예시
-  const handleMergedResults = async () => {
-    console.clear();
-    console.log(LogArtHelpers.react.separator('결과 병합'));
-    setIsLoading(true);
-
-    try {
-      const result = await dispatchWithResult(
-        'calculateTotal',
-        { items, discountCode },
-        {}
-      );
-
-      console.log(LogArtHelpers.react.info('병합된 결과:'), result);
-      setResults(JSON.stringify(result, null, 2));
-    } catch (error) {
-      console.error(LogArtHelpers.react.error(`실행 실패: ${String(error)}`));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // 장바구니 아이템 추가
-  const addItem = () => {
-    const newItem: CartItem = {
-      id: Date.now().toString(),
-      name: `Item ${items.length + 1}`,
-      price: Math.floor(Math.random() * 1000) + 100,
-      quantity: 1,
-    };
-    setItems([...items, newItem]);
-    console.log(LogArtHelpers.react.info(`🛍️ 아이템 추가: ${newItem.name}`));
-  };
-
-  // 장바구니 비우기 (일반 dispatch)
-  const clearCart = () => {
-    dispatch('clearCart');
-    setItems([]);
-    setResults('');
-    console.log(LogArtHelpers.react.info('🗑️ 장바구니 비우기 (일반 dispatch)'));
-  };
+/**
+ * Component with Handler Registration
+ *
+ * This component demonstrates the key pattern:
+ * - Gets store references from context
+ * - Injects them into handlers via props (Handler Injection Pattern)
+ * - Handlers register themselves using useActionHandler within context boundaries
+ */
+function UseActionWithResultWithHandlers() {
+  // 🎯 Get store references for dependency injection
+  const { stores } = useCartData();
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'system-ui, sans-serif' }}>
-      <h1>useActionWithResult 사용 예시</h1>
-      <p>
-        <code>useActionWithResult</code> 훅을 사용하여 액션 실행 결과를 수집하고
-        처리하는 방법을 보여줍니다.
-      </p>
+    <CartHandlers
+      moduleId="use-action-with-result-demo"
+      cartStore={stores.cartStore}
+      validationStore={stores.validationStore}
+      calculationStore={stores.calculationStore}
+      orderStore={stores.orderStore}
+      apiClient={mockApiClient}
+      logger={mockLogger}
+      onCartValidated={(result) => console.log('🎉 Cart validated:', result)}
+      onOrderProcessed={(result) => console.log('📦 Order processed:', result)}
+      onCalculationCompleted={(result) => console.log('💰 Calculation completed:', result)}
+      onCartCleared={() => console.log('🗑️ Cart cleared')}
+    >
+      <UseActionWithResultUI />
+    </CartHandlers>
+  );
+}
 
-      {/* 현재 상태 */}
-      <div
-        style={{
-          marginBottom: '20px',
-          padding: '15px',
-          backgroundColor: '#f8f9fa',
-          border: '1px solid #dee2e6',
-          borderRadius: '8px',
-        }}
-      >
-        <h3>📊 현재 상태</h3>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '10px',
-          }}
-        >
+/**
+ * Main UI Component
+ *
+ * Demonstrates how the layers work together:
+ * - Uses hooks for data access (Hook Layer)
+ * - Uses actions for behavior (Action Layer)
+ * - Uses pure view components (View Layer)
+ * - Business logic is handled in handlers (Handler Layer)
+ * - Pure business functions are in business layer (Business Layer)
+ */
+function UseActionWithResultUI() {
+  // 🎯 State management
+  const [currentView, setCurrentView] = useState<'demo' | 'advanced'>('demo');
+  const [workflowStep, setWorkflowStep] = useState<string>('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [results, setResults] = useState<string>('');
+
+  // 🎯 Hook Layer - Data subscriptions
+  const {
+    cart,
+    validation,
+    calculation,
+    order,
+    cartSummary,
+    canCheckout,
+    isOrderProcessing,
+    stores,
+  } = useCartData();
+
+  const { formValidation } = useCartFormData();
+  const { statistics } = useCartStatistics();
+
+  // 🎯 Action Layer - Behavior with callbacks
+  const {
+    validateCartWithCallbacks,
+    calculateTotalWithCallbacks,
+    completeCheckoutWithCallbacks,
+    clearCart,
+  } = useCartActionCallbacks();
+
+  // 🎯 Event Handlers for Cart Management
+  const handleAddItem = useCallback((newItem: Omit<CartItem, 'id'>) => {
+    const updatedCart = addItemToCart(cart, newItem);
+    stores.cartStore.setValue(updatedCart);
+  }, [cart, stores.cartStore]);
+
+  const handleUpdateQuantity = useCallback((itemId: string, quantity: number) => {
+    const updatedCart = updateItemQuantity(cart, itemId, quantity);
+    stores.cartStore.setValue(updatedCart);
+  }, [cart, stores.cartStore]);
+
+  const handleRemoveItem = useCallback((itemId: string) => {
+    const updatedCart = removeItemFromCart(cart, itemId);
+    stores.cartStore.setValue(updatedCart);
+  }, [cart, stores.cartStore]);
+
+  // 🎯 useActionWithResult Demo Functions
+  const handleValidateCart = useCallback(async () => {
+    console.clear();
+    console.log('🔍 Validating Cart (Individual Execution)');
+    setIsProcessing(true);
+    setResults('');
+
+    try {
+      const result = await validateCartWithCallbacks(cart, {
+        onSuccess: () => console.log('✅ Validation succeeded'),
+        onError: (error) => console.error('❌ Validation failed:', error),
+      });
+
+      setResults(JSON.stringify({
+        success: result.success,
+        validation: validation,
+        timestamp: new Date().toISOString(),
+      }, null, 2));
+
+    } catch (error) {
+      console.error('Validation error:', error);
+      setResults(`Error: ${error}`);
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [cart, validateCartWithCallbacks, validation]);
+
+  const handleCalculateTotal = useCallback(async (discountCode?: string) => {
+    console.clear();
+    console.log('💰 Calculating Total with useActionWithResult');
+    setIsProcessing(true);
+
+    try {
+      const result = await calculateTotalWithCallbacks(cart, discountCode, {
+        onSuccess: () => console.log('✅ Calculation succeeded'),
+        onError: (error) => console.error('❌ Calculation failed:', error),
+      });
+
+      setResults(JSON.stringify({
+        success: result.success,
+        calculation: calculation,
+        discountApplied: !!discountCode,
+        timestamp: new Date().toISOString(),
+      }, null, 2));
+
+    } catch (error) {
+      console.error('Calculation error:', error);
+      setResults(`Error: ${error}`);
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [cart, calculateTotalWithCallbacks, calculation]);
+
+  const handleCompleteWorkflow = useCallback(async (paymentMethod: string, discountCode?: string) => {
+    console.clear();
+    console.log('🚀 Complete Workflow with Progress Tracking');
+    setIsProcessing(true);
+    setWorkflowStep('Starting...');
+
+    try {
+      const result = await completeCheckoutWithCallbacks(cart, paymentMethod, discountCode, {
+        onValidationStart: () => setWorkflowStep('🔍 Validating cart...'),
+        onValidationComplete: () => setWorkflowStep('✅ Validation complete'),
+        onCalculationStart: () => setWorkflowStep('💰 Calculating total...'),
+        onCalculationComplete: () => setWorkflowStep('✅ Calculation complete'),
+        onOrderStart: () => setWorkflowStep('📦 Processing order...'),
+        onOrderComplete: () => setWorkflowStep('✅ Order complete'),
+        onSuccess: () => {
+          setWorkflowStep('🎉 Workflow completed successfully!');
+          console.log('🎉 Complete workflow succeeded');
+        },
+        onError: (error, step) => {
+          setWorkflowStep(`❌ Failed at ${step}: ${error}`);
+          console.error(`❌ Workflow failed at ${step}:`, error);
+        },
+      });
+
+      setResults(JSON.stringify({
+        success: result.success,
+        step: 'step' in result ? result.step : 'unknown',
+        finalState: {
+          validation,
+          calculation,
+          order,
+        },
+        timestamp: new Date().toISOString(),
+      }, null, 2));
+
+    } catch (error) {
+      console.error('Workflow error:', error);
+      setResults(`Error: ${error}`);
+      setWorkflowStep(`❌ Workflow failed: ${error}`);
+    } finally {
+      setIsProcessing(false);
+      setTimeout(() => setWorkflowStep(''), 3000);
+    }
+  }, [cart, completeCheckoutWithCallbacks, validation, calculation, order]);
+
+  const handleClearCart = useCallback(async () => {
+    await clearCart();
+    setResults('');
+    setWorkflowStep('');
+    console.log('🗑️ Cart cleared');
+  }, [clearCart]);
+
+  // 🎯 Sample data for testing
+  const addSampleItems = useCallback(() => {
+    const sampleItems = [
+      { name: 'MacBook Pro', price: 2499, quantity: 1 },
+      { name: 'iPhone 15', price: 999, quantity: 2 },
+      { name: 'AirPods Pro', price: 249, quantity: 1 },
+    ];
+
+    let currentCart = cart;
+    sampleItems.forEach(item => {
+      currentCart = addItemToCart(currentCart, item);
+    });
+    stores.cartStore.setValue(currentCart);
+  }, [cart, stores.cartStore]);
+
+  return (
+    <div className="p-6 max-w-7xl mx-auto space-y-8">
+      {/* Enhanced Header */}
+      <div className="bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 p-6 rounded-xl border border-purple-100">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <strong>장바구니:</strong> {cartItems.length}개 아이템
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">useActionWithResult Demo</h1>
+            <p className="text-sm text-gray-600">
+              5-Layer Architecture with Action Result Collection & Handler Injection Pattern
+            </p>
           </div>
-          <div>
-            <strong>검증:</strong>{' '}
-            {validation && validation.validatedBy !== 'initial'
-              ? validation.isValid
-                ? '✅ 유효'
-                : '❌ 오류'
-              : '⏳ 미검증'}
-          </div>
-          <div>
-            <strong>계산:</strong>{' '}
-            {calculation && calculation.calculatedBy !== 'initial'
-              ? `💰 $${calculation.total.toFixed(2)}`
-              : '⏳ 미계산'}
-          </div>
-          <div>
-            <strong>주문:</strong>{' '}
-            {order && order.processedBy !== 'initial'
-              ? `📦 ${order.status}`
-              : '⏳ 미처리'}
+
+          {/* Enhanced Navigation */}
+          <div className="flex gap-3">
+            <button
+              onClick={() => setCurrentView('demo')}
+              className={`
+                flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 transform
+                ${currentView === 'demo'
+                  ? 'bg-purple-600 text-white shadow-lg scale-105'
+                  : 'bg-white text-purple-600 border border-purple-200 hover:bg-purple-50 hover:scale-105 hover:shadow-md'
+                }
+              `}
+            >
+              <span className="text-lg">🚀</span>
+              Demo Mode
+            </button>
+            <button
+              onClick={() => setCurrentView('advanced')}
+              className={`
+                flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 transform
+                ${currentView === 'advanced'
+                  ? 'bg-blue-600 text-white shadow-lg scale-105'
+                  : 'bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 hover:scale-105 hover:shadow-md'
+                }
+              `}
+            >
+              <span className="text-lg">⚙️</span>
+              Advanced
+            </button>
           </div>
         </div>
       </div>
 
-      {/* 장바구니 관리 */}
-      <div
-        style={{
-          marginBottom: '20px',
-          padding: '15px',
-          backgroundColor: '#fff3cd',
-          border: '1px solid #ffeaa7',
-          borderRadius: '8px',
-        }}
-      >
-        <h3>🛒 장바구니 관리</h3>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '15px',
-            flexWrap: 'wrap',
-          }}
-        >
-          <button
-            onClick={addItem}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#28a745',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
-          >
-            ➕ 아이템 추가
-          </button>
-          <button
-            onClick={clearCart}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#dc3545',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
-          >
-            🗑️ 장바구니 비우기
-          </button>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            🎟️ 할인코드:
-            <input
-              value={discountCode}
-              onChange={(e) => setDiscountCode(e.target.value)}
-              placeholder="SAVE10 입력해보세요"
-              style={{
-                padding: '6px 10px',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                minWidth: '150px',
-              }}
-            />
-          </label>
+      {/* Workflow Progress */}
+      {workflowStep && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+          <div className="flex items-center gap-3">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            <span className="font-medium text-blue-800">{workflowStep}</span>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* 아이템 목록 */}
-      {items.length > 0 && (
-        <div
-          style={{
-            marginBottom: '20px',
-            padding: '15px',
-            backgroundColor: '#e8f4f8',
-            border: '1px solid #bee5eb',
-            borderRadius: '8px',
-          }}
-        >
-          <h4>🛍️ 장바구니 아이템</h4>
-          <div style={{ display: 'grid', gap: '8px' }}>
-            {items.map((item) => (
-              <div
-                key={item.id}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  padding: '8px',
-                  backgroundColor: 'white',
-                  borderRadius: '4px',
-                }}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
+        {/* Left Column - Cart Management & Statistics */}
+        <div className="xl:col-span-1 space-y-6">
+          {/* Quick Actions */}
+          <div className="bg-white rounded-xl border shadow-sm p-4">
+            <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <span>⚡</span>
+              Quick Actions
+            </h3>
+            <div className="space-y-2">
+              <button
+                onClick={addSampleItems}
+                disabled={isProcessing}
+                className="w-full px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 text-sm"
               >
-                <span>{item.name}</span>
-                <span>
-                  ${item.price} × {item.quantity} = $
-                  {item.price * item.quantity}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* 액션 버튼들 */}
-      <div
-        style={{
-          marginBottom: '20px',
-          padding: '15px',
-          backgroundColor: '#d1ecf1',
-          border: '1px solid #bee5eb',
-          borderRadius: '8px',
-        }}
-      >
-        <h3>🚀 useActionWithResult 예시</h3>
-        <p>
-          각 버튼을 클릭하여 다양한 결과 수집 패턴을 확인해보세요. 콘솔도 함께
-          확인하세요!
-        </p>
-
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-            gap: '10px',
-          }}
-        >
-          <button
-            onClick={handleValidateCart}
-            disabled={isLoading}
-            style={{
-              padding: '12px',
-              backgroundColor: '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              opacity: isLoading ? 0.6 : 1,
-            }}
-          >
-            🔍 1. 장바구니 검증 (개별 실행)
-          </button>
-
-          <button
-            onClick={handleCalculateWithFiltering}
-            disabled={isLoading}
-            style={{
-              padding: '12px',
-              backgroundColor: '#28a745',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              opacity: isLoading ? 0.6 : 1,
-            }}
-          >
-            🏷️ 2. 총합 계산 (태그 필터링)
-          </button>
-
-          <button
-            onClick={handleCompleteWorkflow}
-            disabled={isLoading}
-            style={{
-              padding: '12px',
-              backgroundColor: '#fd7e14',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              opacity: isLoading ? 0.6 : 1,
-            }}
-          >
-            📋 3. 전체 워크플로우 (순차 실행)
-          </button>
-
-          <button
-            onClick={handleParallelExecution}
-            disabled={isLoading}
-            style={{
-              padding: '12px',
-              backgroundColor: '#6f42c1',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              opacity: isLoading ? 0.6 : 1,
-            }}
-          >
-            ⚡ 4. 병렬 실행
-          </button>
-
-          <button
-            onClick={handleMergedResults}
-            disabled={isLoading}
-            style={{
-              padding: '12px',
-              backgroundColor: '#e83e8c',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              opacity: isLoading ? 0.6 : 1,
-            }}
-          >
-            🔗 5. 결과 병합
-          </button>
-        </div>
-
-        {isLoading && (
-          <div
-            style={{
-              marginTop: '10px',
-              padding: '10px',
-              backgroundColor: '#fff3cd',
-              borderRadius: '4px',
-              textAlign: 'center',
-            }}
-          >
-            ⏳ 실행 중... 콘솔을 확인하세요!
-          </div>
-        )}
-      </div>
-
-      {/* 결과 표시 */}
-      {results && (
-        <div
-          style={{
-            marginTop: '20px',
-            padding: '15px',
-            backgroundColor: '#f8f9fa',
-            border: '1px solid #dee2e6',
-            borderRadius: '8px',
-          }}
-        >
-          <h3>📊 실행 결과</h3>
-          <pre
-            style={{
-              backgroundColor: '#2d3748',
-              color: '#e2e8f0',
-              padding: '15px',
-              overflow: 'auto',
-              maxHeight: '400px',
-              fontSize: '12px',
-              borderRadius: '6px',
-              margin: 0,
-            }}
-          >
-            {results}
-          </pre>
-        </div>
-      )}
-
-      {/* 기능 설명 */}
-      <div
-        style={{
-          marginTop: '20px',
-          padding: '20px',
-          backgroundColor: '#e8f4f8',
-          border: '1px solid #bee5eb',
-          borderRadius: '8px',
-        }}
-      >
-        <h3>✨ 주요 기능</h3>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-            gap: '15px',
-          }}
-        >
-          <div>
-            <h4>🎯 결과 수집</h4>
-            <ul>
-              <li>핸들러 실행 결과 자동 수집</li>
-              <li>실행 시간, 성공/실패 상태</li>
-              <li>상세한 메타데이터 제공</li>
-            </ul>
-          </div>
-          <div>
-            <h4>🔍 필터링</h4>
-            <ul>
-              <li>태그 기반 핸들러 선택</li>
-              <li>카테고리별 실행</li>
-              <li>환경별 조건부 실행</li>
-            </ul>
-          </div>
-          <div>
-            <h4>📈 결과 전략</h4>
-            <ul>
-              <li>first, last, all, merge 전략</li>
-              <li>커스텀 병합 로직</li>
-              <li>결과 개수 제한</li>
-            </ul>
-          </div>
-          <div>
-            <h4>⚡ 실행 모드</h4>
-            <ul>
-              <li>sequential, parallel, race</li>
-              <li>모드별 최적화된 결과 수집</li>
-              <li>실행 중단 및 조기 종료</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      {/* 비교 테이블 */}
-      <div
-        style={{
-          marginTop: '20px',
-          padding: '20px',
-          backgroundColor: '#fff3cd',
-          border: '1px solid #ffeaa7',
-          borderRadius: '8px',
-        }}
-      >
-        <h3>⚖️ 일반 dispatch vs dispatchWithResult</h3>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '20px',
-            marginTop: '15px',
-          }}
-        >
-          <div
-            style={{
-              padding: '15px',
-              backgroundColor: 'white',
-              borderRadius: '6px',
-              border: '1px solid #dee2e6',
-            }}
-          >
-            <h4 style={{ color: '#6c757d' }}>일반 dispatch (기존)</h4>
-            <pre
-              style={{
-                fontSize: '12px',
-                backgroundColor: '#f8f9fa',
-                padding: '10px',
-                borderRadius: '4px',
-                margin: '10px 0',
-              }}
-            >{`// 결과 없음, 단순 실행
-await dispatch('calculateTotal', { items });
-
-// 스토어에서 직접 확인 필요
-const result = cartStore.getValue();`}</pre>
-            <div style={{ fontSize: '14px', color: '#6c757d' }}>
-              ❌ 실행 결과 미제공
-              <br />❌ 실행 시간 정보 없음
-              <br />❌ 에러 추적 어려움
+                Add Sample Items
+              </button>
+              <button
+                onClick={handleClearCart}
+                disabled={isProcessing}
+                className="w-full px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 text-sm"
+              >
+                Clear Cart
+              </button>
             </div>
           </div>
 
-          <div
-            style={{
-              padding: '15px',
-              backgroundColor: 'white',
-              borderRadius: '6px',
-              border: '1px solid #28a745',
-            }}
-          >
-            <h4 style={{ color: '#28a745' }}>dispatchWithResult (신규)</h4>
-            <pre
-              style={{
-                fontSize: '12px',
-                backgroundColor: '#f8f9fa',
-                padding: '10px',
-                borderRadius: '4px',
-                margin: '10px 0',
-              }}
-            >{`// 상세한 실행 결과 반환
-const result = await dispatchWithResult(
-  'calculateTotal', 
-  { items }, 
-  {
-    result: { collect: true },
-    filter: { priority: 90 }
-  }
-);
+          {/* Cart Statistics */}
+          <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+            <CartStatisticsView statistics={statistics} />
+          </div>
 
-// 풍부한 정보 제공
-console.log(result.success);     // 성공 여부
-console.log(result.results);     // 핸들러 결과들
-console.log(result.execution);   // 실행 메타데이터`}</pre>
-            <div style={{ fontSize: '14px', color: '#28a745' }}>
-              ✅ 상세한 실행 결과
-              <br />✅ 성능 메트릭 제공
-              <br />✅ 완전한 에러 추적
+          {/* Validation Status */}
+          {validation && (
+            <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+              <ValidationView validation={validation} />
+            </div>
+          )}
+        </div>
+
+        {/* Right Column - Main Content */}
+        <div className="xl:col-span-3 space-y-6">
+          {currentView === 'demo' && (
+            <>
+              {/* Add Item Form */}
+              <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+                <div className="bg-gradient-to-r from-green-50 to-emerald-100 p-4 border-b">
+                  <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                    <span>🛒</span>
+                    Cart Management
+                  </h3>
+                </div>
+                <div className="p-6">
+                  <AddItemForm onAddItem={handleAddItem} disabled={isProcessing} />
+                </div>
+              </div>
+
+              {/* Cart Items */}
+              <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-100 p-4 border-b">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                      <span>📋</span>
+                      Shopping Cart
+                    </h3>
+                    <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                      {cartSummary.itemCount} items
+                    </div>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <CartListView
+                    items={cart}
+                    onUpdateQuantity={handleUpdateQuantity}
+                    onRemoveItem={handleRemoveItem}
+                    disabled={isProcessing}
+                  />
+                </div>
+              </div>
+
+              {/* useActionWithResult Demo Buttons */}
+              <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+                <div className="bg-gradient-to-r from-purple-50 to-blue-100 p-4 border-b">
+                  <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                    <span>🚀</span>
+                    useActionWithResult Demos
+                  </h3>
+                </div>
+                <div className="p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <button
+                      onClick={handleValidateCart}
+                      disabled={isProcessing || cart.length === 0}
+                      className="flex flex-col items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span className="text-2xl">🔍</span>
+                      <div className="text-center">
+                        <div className="font-medium text-blue-800">Validate Cart</div>
+                        <div className="text-xs text-blue-600">Individual execution</div>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => handleCalculateTotal('SAVE10')}
+                      disabled={isProcessing || cart.length === 0}
+                      className="flex flex-col items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span className="text-2xl">💰</span>
+                      <div className="text-center">
+                        <div className="font-medium text-green-800">Calculate Total</div>
+                        <div className="text-xs text-green-600">With discount code</div>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => handleCompleteWorkflow('credit_card', 'SAVE10')}
+                      disabled={isProcessing || cart.length === 0 || !canCheckout}
+                      className="flex flex-col items-center gap-3 p-4 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <span className="text-2xl">🎯</span>
+                      <div className="text-center">
+                        <div className="font-medium text-purple-800">Complete Workflow</div>
+                        <div className="text-xs text-purple-600">Full checkout process</div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {currentView === 'advanced' && (
+            <>
+              {/* Calculation Result */}
+              {calculation && (
+                <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+                  <CalculationView calculation={calculation} />
+                </div>
+              )}
+
+              {/* Order Status */}
+              {order?.orderId && (
+                <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+                  <OrderStatusView order={order} />
+                </div>
+              )}
+
+              {/* Checkout Form */}
+              <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+                <div className="bg-gradient-to-r from-yellow-50 to-orange-100 p-4 border-b">
+                  <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                    <span>💳</span>
+                    Advanced Checkout
+                  </h3>
+                </div>
+                <div className="p-6">
+                  <CheckoutForm
+                    onCheckout={(paymentMethod, discountCode) =>
+                      handleCompleteWorkflow(paymentMethod, discountCode)
+                    }
+                    disabled={!canCheckout}
+                    isProcessing={isOrderProcessing}
+                  />
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Results Panel */}
+          {results && (
+            <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 border-b">
+                <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                  <span>📊</span>
+                  Action Results
+                </h3>
+              </div>
+              <div className="p-6">
+                <pre className="bg-gray-900 text-green-400 p-4 rounded-lg overflow-auto max-h-96 text-sm font-mono">
+                  {results}
+                </pre>
+              </div>
+            </div>
+          )}
+
+          {/* Feature Explanation */}
+          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-200 p-6">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <span>✨</span>
+              5-Layer Architecture Features
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-indigo-800 mb-2">🎯 Action Result Collection</h4>
+                <ul className="text-sm text-gray-700 space-y-1">
+                  <li>• Automatic handler result collection</li>
+                  <li>• Execution time and success/failure tracking</li>
+                  <li>• Rich metadata and error information</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-indigo-800 mb-2">🏗️ Layer Separation</h4>
+                <ul className="text-sm text-gray-700 space-y-1">
+                  <li>• Business logic in pure functions</li>
+                  <li>• Handler injection with dependencies</li>
+                  <li>• Pure UI components with event handling</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-indigo-800 mb-2">🔄 State Management</h4>
+                <ul className="text-sm text-gray-700 space-y-1">
+                  <li>• Reactive store subscriptions</li>
+                  <li>• Computed values and derived state</li>
+                  <li>• Type-safe store integration</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-indigo-800 mb-2">⚡ Enhanced Workflow</h4>
+                <ul className="text-sm text-gray-700 space-y-1">
+                  <li>• Progress tracking with callbacks</li>
+                  <li>• Error handling at each step</li>
+                  <li>• Comprehensive result collection</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -894,15 +562,3 @@ console.log(result.execution);   // 실행 메타데이터`}</pre>
     </div>
   );
 }
-
-// 메인 컴포넌트 래퍼 (CartProvider로 감싸기)
-function UseActionWithResultPage() {
-  return (
-    <CartProvider>
-      <CartHandlers />
-      <UseActionWithResultContent />
-    </CartProvider>
-  );
-}
-
-export default UseActionWithResultPage;
