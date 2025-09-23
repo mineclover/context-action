@@ -20,10 +20,10 @@ export interface CartItemViewProps {
 }
 
 export function CartItemView({ item, onUpdateQuantity, onRemoveItem, disabled = false }: CartItemViewProps) {
-  const [quantity, setQuantity] = useState(item.quantity);
+  // Use item.quantity directly instead of local state to sync with store updates
+  const quantity = item.quantity;
 
   const handleQuantityChange = useCallback((newQuantity: number) => {
-    setQuantity(newQuantity);
     onUpdateQuantity(item.id, newQuantity);
   }, [item.id, onUpdateQuantity]);
 
