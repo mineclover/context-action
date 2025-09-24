@@ -46,11 +46,15 @@ import {
   ImperativeTimer
 } from './imperativeRef/views/ImperativeRefViews';
 
+// Import advanced patterns for integration
+import { PerformanceOptimizedDemo } from './imperativeRef/examples/PerformanceOptimizedExamples';
+import { TypeSafeErrorHandlingDemo } from './imperativeRef/examples/TypeSafeErrorHandlingExamples';
+
 // External dependencies
 import { useRegisterSourceFile } from '../../../hooks/useRegisterSourceFile';
 import { useStoreValue } from '@context-action/react';
 import { useSourceLinkRegistry } from '../../../stores/SourceLinkRegistry';
-import * as BusinessLogic from './imperativeRef/business/imperativeRefBusinessLogic';
+import { formatTimerDisplay } from './imperativeRef/business/imperativeRefBusinessLogic';
 
 // 🎯 Integration Layer Component
 function ImperativeRefIntegration({ children }: { children: React.ReactNode }) {
@@ -67,11 +71,11 @@ function ImperativeRefIntegration({ children }: { children: React.ReactNode }) {
 
   // 🎯 Action Handlers for Layer 4 (Actions Layer)
   const actionHandlers: ImperativeRefActionHandlers = {
-    onFieldValidation: useCallback((field, isValid) => {
+    onFieldValidation: useCallback((field: string, isValid: boolean) => {
       addLog(`📝 Field "${field}" validation: ${isValid ? '✅ Valid' : '❌ Invalid'}`);
     }, [addLog]),
 
-    onFormSubmit: useCallback((formData, isValid) => {
+    onFormSubmit: useCallback((formData: any, isValid: boolean) => {
       if (isValid) {
         addLog(`✅ Form submitted successfully: ${formData.name}, ${formData.email}`);
       } else {
@@ -79,17 +83,17 @@ function ImperativeRefIntegration({ children }: { children: React.ReactNode }) {
       }
     }, [addLog]),
 
-    onCounterChange: useCallback((value) => {
+    onCounterChange: useCallback((value: number) => {
       addLog(`🔢 Counter value changed: ${value}`);
     }, [addLog]),
 
-    onTimerTick: useCallback((time) => {
+    onTimerTick: useCallback((time: number) => {
       if (time % 5 === 0 && time > 0) { // Log every 5 seconds
-        addLog(`⏱️ Timer: ${BusinessLogic.formatTimerDisplay(time)}`);
+        addLog(`⏱️ Timer: ${formatTimerDisplay(time)}`);
       }
     }, [addLog]),
 
-    onModalToggle: useCallback((modalType, isOpen) => {
+    onModalToggle: useCallback((modalType: string, isOpen: boolean) => {
       addLog(`🪟 ${modalType} modal ${isOpen ? 'opened' : 'closed'}`);
     }, [addLog]),
 
@@ -97,7 +101,7 @@ function ImperativeRefIntegration({ children }: { children: React.ReactNode }) {
       addLog(`🔄 All components reset`);
     }, [addLog]),
 
-    onValidateAll: useCallback((isValid) => {
+    onValidateAll: useCallback((isValid: boolean) => {
       addLog(`🔍 Validation check: ${isValid ? 'All fields valid' : 'Some fields invalid'}`);
     }, [addLog])
   };
@@ -106,7 +110,8 @@ function ImperativeRefIntegration({ children }: { children: React.ReactNode }) {
   return React.cloneElement(children as React.ReactElement, {
     reactiveData,
     actionHandlers,
-    logs
+    logs,
+    handlerContext: {}
   });
 }
 
@@ -330,6 +335,105 @@ function ImperativeRefDemo({
             </button>
           </div>
         </ImperativeModal>
+
+        {/* 🎯 Advanced Patterns Integration */}
+        <div className="mt-8 space-y-6">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
+            <h2 className="text-xl font-bold text-blue-900 mb-4">
+              🚀 Advanced 6-Layer Architecture Patterns
+            </h2>
+            <p className="text-blue-700 mb-4">
+              6-Layer Architecture에 통합된 고급 패턴들: 성능 최적화, 에러 핸들링, 메모리 관리가 각 레이어와 어떻게 조화를 이루는지 확인할 수 있습니다.
+            </p>
+
+            <div className="grid md:grid-cols-2 gap-4 text-sm text-blue-700">
+              <div>
+                <h3 className="font-semibold mb-2">🎯 Layer Integration Benefits</h3>
+                <ul className="space-y-1">
+                  <li>• <strong>Contexts Layer</strong>: Type-safe ref registry</li>
+                  <li>• <strong>Business Layer</strong>: Pure validation functions</li>
+                  <li>• <strong>Handlers Layer</strong>: Error-resilient injection</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-semibold mb-2">⚡ Performance Integration</h3>
+                <ul className="space-y-1">
+                  <li>• <strong>Actions Layer</strong>: Memoized dispatch functions</li>
+                  <li>• <strong>Hooks Layer</strong>: Optimized subscriptions</li>
+                  <li>• <strong>Views Layer</strong>: Cleanup-aware components</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Performance Patterns with 6-Layer Context */}
+          <div className="bg-white p-6 rounded-lg border">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">
+              ⚡ Performance Patterns in 6-Layer Context
+            </h3>
+            <p className="text-gray-600 mb-4">
+              6-Layer Architecture와 통합된 성능 최적화 패턴들
+            </p>
+            <PerformanceOptimizedDemo />
+          </div>
+
+          {/* Error Handling with 6-Layer Context */}
+          <div className="bg-white p-6 rounded-lg border">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">
+              🛡️ Error Resilience in 6-Layer Context
+            </h3>
+            <p className="text-gray-600 mb-4">
+              6-Layer Architecture에서의 견고한 에러 처리 및 복구 전략
+            </p>
+            <TypeSafeErrorHandlingDemo />
+          </div>
+
+          {/* Architecture Comparison */}
+          <div className="bg-slate-50 p-6 rounded-lg border">
+            <h3 className="text-lg font-semibold text-slate-800 mb-3">
+              📊 Architecture Pattern Comparison
+            </h3>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-300">
+                    <th className="text-left p-2 font-semibold">Pattern</th>
+                    <th className="text-left p-2 font-semibold">Basic Implementation</th>
+                    <th className="text-left p-2 font-semibold">6-Layer Integration</th>
+                    <th className="text-left p-2 font-semibold">Benefits</th>
+                  </tr>
+                </thead>
+                <tbody className="text-slate-700">
+                  <tr className="border-b border-slate-200">
+                    <td className="p-2 font-medium">Handler Registration</td>
+                    <td className="p-2">Direct ref access</td>
+                    <td className="p-2">Layer-specific timing</td>
+                    <td className="p-2">Clear separation, better testing</td>
+                  </tr>
+                  <tr className="border-b border-slate-200">
+                    <td className="p-2 font-medium">Error Handling</td>
+                    <td className="p-2">Component-level try/catch</td>
+                    <td className="p-2">Handler injection with recovery</td>
+                    <td className="p-2">Centralized, reusable patterns</td>
+                  </tr>
+                  <tr className="border-b border-slate-200">
+                    <td className="p-2 font-medium">Performance</td>
+                    <td className="p-2">Manual optimization</td>
+                    <td className="p-2">Layer-optimized subscriptions</td>
+                    <td className="p-2">Systematic, scalable approach</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2 font-medium">Type Safety</td>
+                    <td className="p-2">Props-based typing</td>
+                    <td className="p-2">End-to-end type flow</td>
+                    <td className="p-2">Compile-time + runtime safety</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -375,18 +479,28 @@ export default function ImperativeRefPage() {
   );
 
   // 🎯 6-Layer Architecture Integration
+  //
+  // 🔑 Handler Registration Timing Example:
+  // - Mount Logic: ImperativeRefHandlers component mounts here (Integration Point)
+  // - Implementation Logic: Handlers inside ImperativeRefHandlers register based on dependencies
+  // - This separation allows flexible handler lifecycle management
   return (
     <RefContextProvider>        {/* Layer 1: Contexts */}
       <ImperativeRefIntegration>
-        <ImperativeRefHandlers    {/* Layer 3: Handlers */}
-          onValidationChange={(field, isValid) => {
+        <ImperativeRefHandlers    // Layer 3: Handlers - Mount Logic
+          onValidationChange={(field: string, isValid: boolean) => {
             console.log(`Handler: Field ${field} validation changed to ${isValid}`);
           }}
-          onFormSubmit={(formData, isValid) => {
+          onFormSubmit={(formData: any, isValid: boolean) => {
             console.log(`Handler: Form submission ${isValid ? 'successful' : 'failed'}`);
           }}
         >
-          <ImperativeRefDemo />    {/* Layers 4, 5, 6: Actions, Hooks, Views */}
+          <ImperativeRefDemo
+            reactiveData={{} as any}
+            actionHandlers={{} as any}
+            logs={[]}
+            handlerContext={{}}
+          />    {/* Layers 4, 5, 6: Actions, Hooks, Views */}
         </ImperativeRefHandlers>
       </ImperativeRefIntegration>
     </RefContextProvider>

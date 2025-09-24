@@ -8,13 +8,13 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRefRegistry } from '../contexts/RefContexts';
-import * as BusinessLogic from '../business/imperativeRefBusinessLogic';
+import { FormData, ValidationState, validateFormData, isFormComplete, formatTimerDisplay } from '../business/imperativeRefBusinessLogic';
 
 // 🎯 Reactive State Types
 export interface ImperativeRefReactiveState {
   // Form state
-  formValues: BusinessLogic.FormData;
-  validationStates: BusinessLogic.ValidationState;
+  formValues: FormData;
+  validationStates: ValidationState;
   isFormValid: boolean;
   isFormComplete: boolean;
 
@@ -53,13 +53,13 @@ export function useImperativeRefData(): ImperativeRefReactiveState {
   const refRegistry = useRefRegistry();
 
   // 🎯 Reactive State Management
-  const [formValues, setFormValues] = useState<BusinessLogic.FormData>({
+  const [formValues, setFormValues] = useState<FormData>({
     name: '',
     email: '',
     message: ''
   });
 
-  const [validationStates, setValidationStates] = useState<BusinessLogic.ValidationState>({
+  const [validationStates, setValidationStates] = useState<ValidationState>({
     name: false,
     email: false,
     message: false
@@ -78,7 +78,7 @@ export function useImperativeRefData(): ImperativeRefReactiveState {
   useEffect(() => {
     const pollInterval = setInterval(() => {
       // Poll form values
-      const currentFormValues: BusinessLogic.FormData = {
+      const currentFormValues: FormData = {
         name: refRegistry.nameInput.current?.getValue() || '',
         email: refRegistry.emailInput.current?.getValue() || '',
         message: refRegistry.messageInput.current?.getValue() || ''
@@ -131,7 +131,7 @@ export function useImperativeRefData(): ImperativeRefReactiveState {
   // 🎯 Reactive Validation State Updates
   useEffect(() => {
     // Update validation states based on current form values
-    const validationResult = BusinessLogic.validateFormData(formValues);
+    const validationResult = validateFormData(formValues);
 
     setValidationStates(prev => {
       if (
@@ -148,10 +148,10 @@ export function useImperativeRefData(): ImperativeRefReactiveState {
   // 🎯 Computed Values using Business Logic
   const computedState = useMemo(() => {
     // Form completion status
-    const isFormComplete = BusinessLogic.isFormComplete(validationStates);
+    const isFormCompleteValue = isFormComplete(validationStates);
 
     // Form validation status
-    const formValidationResult = BusinessLogic.validateFormData(formValues);
+    const formValidationResult = validateFormData(formValues);
     const isFormValid = formValidationResult.isValid;
 
     // Form progress calculation (0-100%)
@@ -176,10 +176,10 @@ export function useImperativeRefData(): ImperativeRefReactiveState {
     const counterAtMax = counterValue >= 100;
 
     // Timer display formatting
-    const timerDisplay = BusinessLogic.formatTimerDisplay(timerTime);
+    const timerDisplay = formatTimerDisplay(timerTime);
 
     return {
-      isFormComplete,
+      isFormComplete: isFormCompleteValue,
       isFormValid,
       formProgress,
       allFieldsEmpty,
@@ -280,8 +280,8 @@ export function useImperativeRefComputedData() {
  * Useful for side effects that need to respond to ref state changes
  */
 export function useImperativeRefStateCallbacks(callbacks: {
-  onFormValueChange?: (formValues: BusinessLogic.FormData) => void;
-  onValidationChange?: (validationStates: BusinessLogic.ValidationState) => void;
+  onFormValueChange?: (formValues: FormData) => void;
+  onValidationChange?: (validationStates: ValidationState) => void;
   onCounterChange?: (value: number) => void;
   onTimerChange?: (time: number, isRunning: boolean) => void;
   onModalChange?: (modalsOpen: { confirm: boolean; alert: boolean }) => void;

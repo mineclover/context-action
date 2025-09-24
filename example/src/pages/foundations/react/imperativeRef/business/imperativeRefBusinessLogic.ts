@@ -77,7 +77,7 @@ export function validateField(
 }
 
 /**
- * Validates all form fields and returns overall validation state
+ * Validates all form fields and returns overall validation state (Strict mode)
  */
 export function validateFormData(formData: FormData): {
   isValid: boolean;
@@ -97,6 +97,49 @@ export function validateFormData(formData: FormData): {
   const messageValidation = validateField(formData.message, 'Message', {
     required: true,
     minLength: 10
+  });
+
+  const fieldValidation: ValidationState = {
+    name: nameValidation.isValid,
+    email: emailValidation.isValid,
+    message: messageValidation.isValid
+  };
+
+  const errors: Record<keyof FormData, string> = {
+    name: nameValidation.errorMessage || '',
+    email: emailValidation.errorMessage || '',
+    message: messageValidation.errorMessage || ''
+  };
+
+  return {
+    isValid: nameValidation.isValid && emailValidation.isValid && messageValidation.isValid,
+    fieldValidation,
+    errors
+  };
+}
+
+/**
+ * Lenient validation for demonstration of Implementation Logic pattern
+ * Shows how business logic can vary based on different requirements
+ */
+export function validateFormDataLenient(formData: FormData): {
+  isValid: boolean;
+  fieldValidation: ValidationState;
+  errors: Record<keyof FormData, string>;
+} {
+  const nameValidation = validateField(formData.name, 'Name', {
+    required: true,
+    minLength: 1 // Lenient: only 1 character required
+  });
+
+  // Lenient email validation - just check for @ symbol
+  const emailValidation = formData.email.includes('@')
+    ? { isValid: true }
+    : { isValid: false, errorMessage: 'Email must contain @ symbol' };
+
+  const messageValidation = validateField(formData.message, 'Message', {
+    required: true,
+    minLength: 3 // Lenient: only 3 characters required
   });
 
   const fieldValidation: ValidationState = {

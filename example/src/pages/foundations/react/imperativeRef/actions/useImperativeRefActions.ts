@@ -7,13 +7,13 @@
  */
 
 import { useCallback } from 'react';
-import * as BusinessLogic from '../business/imperativeRefBusinessLogic';
+import { ValidationState, FormData, ValidationResult, TimerState } from '../business/imperativeRefBusinessLogic';
 
 // 🎯 Action Payload Types
 export interface ImperativeRefActions {
   // Form actions
   validateField: {
-    field: keyof BusinessLogic.ValidationState;
+    field: keyof ValidationState;
     isValid: boolean;
   };
   submitForm: void;
@@ -43,8 +43,8 @@ export interface ImperativeRefActions {
 
 // 🎯 Action Handler Interface
 export interface ImperativeRefActionHandlers {
-  onFieldValidation?: (field: keyof BusinessLogic.ValidationState, isValid: boolean) => void;
-  onFormSubmit?: (formData: BusinessLogic.FormData, isValid: boolean) => void;
+  onFieldValidation?: (field: keyof ValidationState, isValid: boolean) => void;
+  onFormSubmit?: (formData: FormData, isValid: boolean) => void;
   onCounterChange?: (value: number) => void;
   onTimerTick?: (time: number) => void;
   onModalToggle?: (modalType: 'confirm' | 'alert', isOpen: boolean) => void;
@@ -64,10 +64,10 @@ export interface ImperativeRefActionHandlers {
 export function useImperativeRefActions(
   handlers?: ImperativeRefActionHandlers,
   handlerMethods?: {
-    handleFieldValidation?: (field: keyof BusinessLogic.ValidationState, isValid: boolean) => BusinessLogic.ValidationResult | undefined;
-    handleFormSubmit?: () => BusinessLogic.ValidationResult | undefined;
+    handleFieldValidation?: (field: keyof ValidationState, isValid: boolean) => ValidationResult | undefined;
+    handleFormSubmit?: () => ValidationResult | undefined;
     handleCounterOperation?: (operation: 'increment' | 'decrement' | 'reset' | 'set', setValue?: number) => number;
-    handleTimerControl?: (action: 'start' | 'stop' | 'reset') => BusinessLogic.TimerState;
+    handleTimerControl?: (action: 'start' | 'stop' | 'reset') => TimerState;
     handleModalControl?: (modalType: 'confirm' | 'alert', action: 'open' | 'close' | 'toggle') => boolean;
     batchOperations?: {
       validateAllFields: () => boolean;
@@ -88,7 +88,7 @@ export function useImperativeRefActions(
   const submitForm = useCallback(() => {
     const result = handlerMethods?.handleFormSubmit?.();
     if (result) {
-      const currentFormData: BusinessLogic.FormData = {
+      const currentFormData: FormData = {
         name: '',
         email: '',
         message: ''

@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import * as BusinessLogic from '../business/imperativeRefBusinessLogic';
+import { validateFormData, ValidationState } from '../business/imperativeRefBusinessLogic';
 
 // 🎯 Demo Status Display Component
 interface DemoStatusViewProps {
@@ -351,7 +351,7 @@ const handleFormSubmit = useCallback(() => {
   };
 
   // 2️⃣ Layer 2: Pure Business Logic execution
-  const validationResult = BusinessLogic.validateFormData(currentFormData);
+  const validationResult = validateFormData(currentFormData);
 
   // 3️⃣ Side Effects: Handle validation results
   if (validationResult.isValid) {
@@ -391,7 +391,7 @@ const handleFormSubmit = useCallback(() => {
   };
 
   // Execute pure business logic
-  const result = BusinessLogic.validateFormData(formData);
+  const result = validateFormData(formData);
 
   // Handle side effects
   if (result.isValid) {
@@ -428,7 +428,7 @@ const { formProgress, isFormValid } = useImperativeRefData();
 
 // 🎯 Validation Display Component
 interface ValidationDisplayViewProps {
-  validationStates: BusinessLogic.ValidationState;
+  validationStates: ValidationState;
   hasValidationErrors: boolean;
   formProgress: number;
   className?: string;

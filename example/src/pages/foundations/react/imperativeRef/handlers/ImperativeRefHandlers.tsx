@@ -6,16 +6,33 @@
  * 2. Execute pure business logic functions
  * 3. Handle side effects (ref manipulation, state updates)
  * 4. Coordinate between different ref components
+ *
+ * 🔑 Handler Registration Timing:
+ *
+ * Mount Logic vs Implementation Logic:
+ * - **Mount Logic**: This component is instantiated when its parent mounts (Integration Point)
+ * - **Implementation Logic**: Handler functions are registered/re-registered when dependencies change
+ *
+ * Registration happens in multiple places:
+ * 1. Component Mount: When ImperativeRefHandlers component mounts
+ * 2. Dependency Change: When props or internal state changes (useCallback dependencies)
+ * 3. Conditional Logic: Based on runtime conditions or feature flags
+ * 4. Lazy Registration: When async initialization completes
+ *
+ * The distinction allows for:
+ * - Flexible handler lifecycle management
+ * - Dynamic handler registration based on business requirements
+ * - Separation of component lifecycle from business logic lifecycle
  */
 
 import React, { useCallback, useRef, ReactNode } from 'react';
 import { useRefRegistry } from '../contexts/RefContexts';
-import * as BusinessLogic from '../business/imperativeRefBusinessLogic';
+import { validateFormData, FormData, ValidationState, ValidationResult, calculateCounterValue, calculateTimerState, TimerState } from '../business/imperativeRefBusinessLogic';
 
 // 🎯 Handler Configuration Interface
 export interface ImperativeRefHandlerConfig {
-  onValidationChange?: (field: keyof BusinessLogic.ValidationState, isValid: boolean) => void;
-  onFormSubmit?: (formData: BusinessLogic.FormData, isValid: boolean) => void;
+  onValidationChange?: (field: keyof ValidationState, isValid: boolean) => void;
+  onFormSubmit?: (formData: FormData, isValid: boolean) => void;
   onCounterChange?: (value: number) => void;
   onTimerTick?: (time: number) => void;
   onModalToggle?: (modalType: 'confirm' | 'alert', isOpen: boolean) => void;
@@ -42,18 +59,18 @@ export function ImperativeRefHandlers({
 
   // 🔑 Form Validation Handler with Injection
   const handleFieldValidation = useCallback((
-    field: keyof BusinessLogic.ValidationState,
+    field: keyof ValidationState,
     isValid: boolean
   ) => {
     // 1️⃣ Handler Injection: Get current form state from refs
-    const currentFormData: BusinessLogic.FormData = {
+    const currentFormData: FormData = {
       name: refRegistry.nameInput.current?.getValue() || '',
       email: refRegistry.emailInput.current?.getValue() || '',
       message: refRegistry.messageInput.current?.getValue() || ''
     };
 
     // 2️⃣ Pure Business Logic: Validate form with current data
-    const validationResult = BusinessLogic.validateFormData(currentFormData);
+    const validationResult = validateFormData(currentFormData);
 
     // 3️⃣ Side Effects: Callback execution
     onValidationChange?.(field, isValid);
@@ -65,14 +82,14 @@ export function ImperativeRefHandlers({
   // 🔑 Form Submission Handler with Full Validation
   const handleFormSubmit = useCallback(() => {
     // 1️⃣ Handler Injection: Get current values from all form refs
-    const currentFormData: BusinessLogic.FormData = {
+    const currentFormData: FormData = {
       name: refRegistry.nameInput.current?.getValue() || '',
       email: refRegistry.emailInput.current?.getValue() || '',
       message: refRegistry.messageInput.current?.getValue() || ''
     };
 
     // 2️⃣ Pure Business Logic: Full form validation
-    const validationResult = BusinessLogic.validateFormData(currentFormData);
+    const validationResult = validateFormData(currentFormData);
 
     // 3️⃣ Side Effects: Handle validation failures
     if (!validationResult.isValid) {
@@ -104,11 +121,15 @@ export function ImperativeRefHandlers({
     const currentValue = refRegistry.counter.current?.getValue() || 0;
 
     // 2️⃣ Pure Business Logic: Calculate new counter value
-    const newValue = BusinessLogic.calculateCounterValue(currentValue, operation, {
+    // Convert 'reset' to 'set' with value 0 for business logic compatibility
+    const businessOperation = operation === 'reset' ? 'set' : operation;
+    const businessSetValue = operation === 'reset' ? 0 : setValue;
+
+    const newValue = calculateCounterValue(currentValue, businessOperation, {
       step: 1,
       min: 0,
       max: 100,
-      setValue
+      setValue: businessSetValue
     });
 
     // 3️⃣ Side Effects: Update counter ref
@@ -127,7 +148,7 @@ export function ImperativeRefHandlers({
     const isCurrentlyRunning = refRegistry.timer.current?.isRunning() || false;
 
     // 2️⃣ Pure Business Logic: Calculate new timer state
-    const newState = BusinessLogic.calculateTimerState(
+    const newState = calculateTimerState(
       { time: currentTime, isRunning: isCurrentlyRunning },
       action
     );
@@ -261,10 +282,10 @@ export function useImperativeRefHandlers() {
 
 // 🎯 Handler Types Export for TypeScript
 export type ImperativeRefHandlerMethods = {
-  handleFieldValidation: (field: keyof BusinessLogic.ValidationState, isValid: boolean) => BusinessLogic.ValidationResult | undefined;
-  handleFormSubmit: () => BusinessLogic.ValidationResult | undefined;
+  handleFieldValidation: (field: keyof ValidationState, isValid: boolean) => ValidationResult | undefined;
+  handleFormSubmit: () => ValidationResult | undefined;
   handleCounterOperation: (operation: 'increment' | 'decrement' | 'reset' | 'set', setValue?: number) => number;
-  handleTimerControl: (action: 'start' | 'stop' | 'reset') => BusinessLogic.TimerState;
+  handleTimerControl: (action: 'start' | 'stop' | 'reset') => TimerState;
   handleModalControl: (modalType: 'confirm' | 'alert', action: 'open' | 'close' | 'toggle') => boolean;
   batchOperations: {
     validateAllFields: () => boolean;
@@ -272,7 +293,7 @@ export type ImperativeRefHandlerMethods = {
     focusFirstField: () => void;
     closeAllModals: () => void;
     resetAllComponents: () => void;
-    submitForm: () => BusinessLogic.ValidationResult | undefined;
+    submitForm: () => ValidationResult | undefined;
     resetAndFocus: () => void;
   };
   refRegistry: ReturnType<typeof useRefRegistry>;

@@ -17,6 +17,9 @@ import {
   ImperativeCounter,
   ImperativeTimer,
 } from './imperativeRef/components/ImperativeComponents';
+import { HandlerRegistrationTimingDemo } from './imperativeRef/examples/HandlerRegistrationTimingExamples';
+import { PerformanceOptimizedDemo } from './imperativeRef/examples/PerformanceOptimizedExamples';
+import { TypeSafeErrorHandlingDemo } from './imperativeRef/examples/TypeSafeErrorHandlingExamples';
 import { useRegisterSourceFile } from '../../../hooks/useRegisterSourceFile';
 import { useStoreValue } from '@context-action/react';
 import { useSourceLinkRegistry } from '../../../stores/SourceLinkRegistry';
@@ -528,6 +531,125 @@ function ControlPanel() {
           </div>
         </div>
 
+        {/* Handler Registration Timing Patterns */}
+        <div>
+          <h4 className="font-semibold text-gray-800 mb-3">4. Handler Registration Timing 패턴</h4>
+          <div className="space-y-4">
+            {/* Mount Logic */}
+            <div>
+              <h5 className="font-medium text-blue-600 mb-2">🏗️ Mount Logic (마운트 시점 등록)</h5>
+              <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                <pre className="text-sm text-green-400">
+{`// Integration Point에서 마운트 시 즉시 등록
+function ImperativeRefPage() {
+  return (
+    <RefContextProvider>        {/* Layer 1: Contexts */}
+      <ImperativeRefHandlers    {/* Layer 3: Handlers - Mount Logic */}
+        onValidationChange={(field, isValid) => {
+          console.log(\`Handler: Field \${field} validation changed\`);
+        }}
+      >
+        <ImperativeRefDemo />
+      </ImperativeRefHandlers>
+    </RefContextProvider>
+  );
+}`}
+                </pre>
+              </div>
+            </div>
+
+            {/* Implementation Logic */}
+            <div>
+              <h5 className="font-medium text-green-600 mb-2">⚙️ Implementation Logic (구현 시점 등록)</h5>
+              <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                <pre className="text-sm text-green-400">
+{`// Handler Layer에서 의존성 변화에 따른 동적 등록
+function ImperativeRefHandlers({ validationMode, children }) {
+  const refRegistry = useRefRegistry();
+
+  // 🔑 validationMode 변화 시 핸들러 재등록
+  const handleValidation = useCallback(() => {
+    const formData = {
+      name: refRegistry.nameInput.current?.getValue() || '',
+      email: refRegistry.emailInput.current?.getValue() || ''
+    };
+
+    // 모드에 따른 다른 검증 로직
+    const result = validationMode === 'strict'
+      ? BusinessLogic.validateFormData(formData)
+      : BusinessLogic.validateFormDataLenient(formData);
+
+    return result;
+  }, [refRegistry, validationMode]); // 🔑 의존성에 validationMode 포함
+
+  return children;
+}`}
+                </pre>
+              </div>
+            </div>
+
+            {/* Conditional Registration */}
+            <div>
+              <h5 className="font-medium text-yellow-600 mb-2">🎛️ Conditional Logic (조건부 등록)</h5>
+              <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                <pre className="text-sm text-green-400">
+{`// 런타임 조건에 따른 핸들러 등록/해제
+function ConditionalHandlers({ isEnabled, children }) {
+  const refRegistry = useRefRegistry();
+
+  const handleOperation = useCallback(() => {
+    if (!isEnabled) {
+      console.log('Handler disabled');
+      return;
+    }
+
+    // 활성화된 경우에만 실행
+    const counterValue = refRegistry.counter.current?.getValue() || 0;
+    refRegistry.counter.current?.setValue(counterValue + 1);
+  }, [refRegistry, isEnabled]); // 🔑 isEnabled 조건 포함
+
+  return children;
+}`}
+                </pre>
+              </div>
+            </div>
+
+            {/* Lazy Registration */}
+            <div>
+              <h5 className="font-medium text-purple-600 mb-2">⏳ Lazy Logic (지연 등록)</h5>
+              <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                <pre className="text-sm text-green-400">
+{`// 비동기 초기화 후 핸들러 등록
+function LazyHandlers({ children }) {
+  const [isInitialized, setIsInitialized] = useState(false);
+  const refRegistry = useRefRegistry();
+
+  // 비동기 초기화
+  useEffect(() => {
+    initializeSystem().then(() => setIsInitialized(true));
+  }, []);
+
+  const handleOperation = useCallback(() => {
+    if (!isInitialized) {
+      console.log('System not initialized yet');
+      return;
+    }
+
+    // 초기화 완료 후에만 실행
+    const isRunning = refRegistry.timer.current?.isRunning();
+    if (!isRunning) {
+      refRegistry.timer.current?.start();
+    }
+  }, [refRegistry, isInitialized]); // 🔑 초기화 상태 의존성
+
+  return children;
+}`}
+                </pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Benefits */}
         <div className="bg-blue-50 rounded-lg p-4">
           <h4 className="font-semibold text-blue-800 mb-2">💡 주요 장점</h4>
@@ -536,6 +658,7 @@ function ControlPanel() {
             <li>• <strong>Complex Interactions</strong>: 복잡한 UI 상호작용을 체계적으로 관리</li>
             <li>• <strong>Centralized Control</strong>: 여러 컴포넌트를 중앙에서 제어</li>
             <li>• <strong>Type Safety</strong>: 완전한 TypeScript 타입 안전성</li>
+            <li>• <strong>Flexible Registration</strong>: Mount, Implementation, Conditional, Lazy 등록 패턴</li>
           </ul>
         </div>
       </div>
@@ -762,6 +885,125 @@ export default function ImperativeRefPage() {
                 <li>• Clean separation of concerns</li>
                 <li>• Reusable component APIs</li>
                 <li>• Framework for complex UI interactions</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* 🎯 New Section: Handler Registration Timing Examples */}
+        <div className="bg-white p-6 rounded-lg border">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
+              🔄 Handler Registration Timing Patterns
+            </h2>
+            <p className="text-gray-600">
+              이 섹션은 핸들러 등록 시점의 차이점을 보여줍니다. Mount Logic과 Implementation Logic의 구분을 통해
+              더 유연하고 강력한 핸들러 관리 패턴을 학습할 수 있습니다.
+            </p>
+          </div>
+
+          <HandlerRegistrationTimingDemo />
+
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+            <h3 className="font-semibold text-gray-800 mb-2">📚 학습 포인트</h3>
+            <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-700">
+              <div>
+                <h4 className="font-medium text-blue-600 mb-1">Mount Logic</h4>
+                <ul className="space-y-1">
+                  <li>• 컴포넌트 마운트 시 즉시 핸들러 등록</li>
+                  <li>• 일정한 동작 패턴 보장</li>
+                  <li>• Integration Point에서 주로 사용</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-medium text-green-600 mb-1">Implementation Logic</h4>
+                <ul className="space-y-1">
+                  <li>• 의존성 변화에 따른 동적 등록</li>
+                  <li>• 비즈니스 요구사항 반영</li>
+                  <li>• Handler Layer에서 구현</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 🎯 Performance Optimization Section */}
+        <div className="bg-white p-6 rounded-lg border">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
+              ⚡ Performance Optimization Patterns
+            </h2>
+            <p className="text-gray-600">
+              고급 성능 최적화 기법들: 메모리 누수 방지, 리소스 관리, 최적화된 재등록 전략을 통한
+              고성능 imperative ref 시스템 구축 방법을 학습할 수 있습니다.
+            </p>
+          </div>
+
+          <PerformanceOptimizedDemo />
+        </div>
+
+        {/* 🎯 Type Safety & Error Handling Section */}
+        <div className="bg-white p-6 rounded-lg border">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
+              🛡️ Type Safety & Error Handling
+            </h2>
+            <p className="text-gray-600">
+              타입 안전성과 에러 핸들링: 견고한 에러 복구 전략, 회로 차단기 패턴,
+              graceful degradation을 통한 안정적인 시스템 구축 패턴을 제공합니다.
+            </p>
+          </div>
+
+          <TypeSafeErrorHandlingDemo />
+        </div>
+
+        {/* 🎯 Architecture Summary */}
+        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-lg border border-indigo-200">
+          <h2 className="text-xl font-bold text-indigo-900 mb-4">
+            🏗️ Complete Architecture Overview
+          </h2>
+
+          <div className="grid md:grid-cols-3 gap-6 mb-6">
+            <div className="bg-white p-4 rounded-lg border border-indigo-100">
+              <h3 className="font-semibold text-indigo-800 mb-2">🔄 Handler Registration</h3>
+              <ul className="text-sm text-indigo-700 space-y-1">
+                <li>• Mount Logic vs Implementation Logic</li>
+                <li>• Conditional & Lazy Registration</li>
+                <li>• Dynamic Re-registration</li>
+              </ul>
+            </div>
+
+            <div className="bg-white p-4 rounded-lg border border-purple-100">
+              <h3 className="font-semibold text-purple-800 mb-2">⚡ Performance</h3>
+              <ul className="text-sm text-purple-700 space-y-1">
+                <li>• Memory Leak Prevention</li>
+                <li>• Optimized Re-registration</li>
+                <li>• WeakMap Cleanup Patterns</li>
+              </ul>
+            </div>
+
+            <div className="bg-white p-4 rounded-lg border border-pink-100">
+              <h3 className="font-semibold text-pink-800 mb-2">🛡️ Reliability</h3>
+              <ul className="text-sm text-pink-700 space-y-1">
+                <li>• Type-Safe Error Handling</li>
+                <li>• Circuit Breaker Pattern</li>
+                <li>• Graceful Degradation</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 rounded-lg border border-indigo-100">
+            <h3 className="font-semibold text-indigo-800 mb-2">🎯 Key Learning Outcomes</h3>
+            <div className="grid md:grid-cols-2 gap-4 text-sm text-indigo-700">
+              <ul className="space-y-1">
+                <li>• <strong>Advanced React Patterns</strong>: useImperativeHandle, forwardRef, Context patterns</li>
+                <li>• <strong>Performance Engineering</strong>: Memory management, cleanup strategies</li>
+                <li>• <strong>Error Resilience</strong>: Robust error handling and recovery mechanisms</li>
+              </ul>
+              <ul className="space-y-1">
+                <li>• <strong>Type Safety</strong>: Complete TypeScript integration with runtime safety</li>
+                <li>• <strong>Architectural Patterns</strong>: Handler registration timing variations</li>
+                <li>• <strong>Production Ready</strong>: Real-world applicable patterns and best practices</li>
               </ul>
             </div>
           </div>
