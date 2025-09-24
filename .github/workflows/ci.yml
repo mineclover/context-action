@@ -1,10 +1,11 @@
-name: CI
+name: CI (Disabled)
 
+# CI Workflow temporarily disabled
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+  # push:
+  #   branches: [ main, develop ]
+  # pull_request:
+  #   branches: [ main, develop ]
   workflow_dispatch:
     inputs:
       features:
