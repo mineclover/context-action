@@ -119,7 +119,7 @@ export function useUserManagementCallbacks() {
       await actions.createUser(data);
       callbacks?.onSuccess?.();
     } catch (error) {
-      callbacks?.onError?.(error as Error);
+      callbacks?.onError?.(error instanceof Error ? error : new Error(String(error)));
     } finally {
       callbacks?.onFinally?.();
     }
@@ -138,7 +138,7 @@ export function useUserManagementCallbacks() {
       await actions.updateUser(data);
       callbacks?.onSuccess?.();
     } catch (error) {
-      callbacks?.onError?.(error as Error);
+      callbacks?.onError?.(error instanceof Error ? error : new Error(String(error)));
     } finally {
       callbacks?.onFinally?.();
     }
@@ -157,7 +157,7 @@ export function useUserManagementCallbacks() {
       await actions.deleteUser(userId);
       callbacks?.onSuccess?.();
     } catch (error) {
-      callbacks?.onError?.(error as Error);
+      callbacks?.onError?.(error instanceof Error ? error : new Error(String(error)));
     } finally {
       callbacks?.onFinally?.();
     }

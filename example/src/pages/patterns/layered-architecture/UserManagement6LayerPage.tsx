@@ -1,15 +1,11 @@
 /**
- * Integration Point - UserManagementExample
+ * User Management 6-Layer Architecture Example
  *
- * Clean 6-Layer Architecture Implementation Following README.md Guide
- *
- * Architecture:
- * 1. contexts/     - Context Definitions & Types
- * 2. business/     - Pure Business Logic Functions
- * 3. handlers/     - Handler Logic with Injection
- * 4. actions/      - Action Dispatch & Callbacks
- * 5. hooks/        - Store Subscriptions
- * 6. views/        - Pure UI Components
+ * Demonstrates the Complete Guide implementation:
+ * - Atomic Context Structure
+ * - 6-Layer Hook Architecture
+ * - Delayed Evaluation Pattern
+ * - Selective Subscription Model
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
@@ -32,30 +28,14 @@ import { UserStatsView } from './views/UserStatsView';
 
 /**
  * Main User Management Example Component
- *
- * Demonstrates the complete 6-layer architecture implementation
+ * Demonstrates Complete Guide 6-Layer architecture implementation
  */
-export function UserManagementExample() {
-  useRegisterSourceFile('pages/patterns/layered-architecture/UserManagementExample.tsx', {
-    name: 'UserManagementExample',
-    description: 'Main integration component for 6-layer architecture demonstration',
-    tags: ['integration', 'main', 'demo'],
+export function UserManagement6LayerPage() {
+  useRegisterSourceFile('pages/patterns/layered-architecture/UserManagement6LayerPage.tsx', {
+    name: 'UserManagement6LayerPage',
+    description: '6-Layer architecture demonstration following Complete Guide',
+    tags: ['6-layer', 'atomic-context', 'complete-guide'],
     priority: 5
-  });
-
-  // Register other layer files
-  useRegisterSourceFile('pages/patterns/layered-architecture/contexts/UserManagementContexts.ts', {
-    name: 'UserManagementContexts',
-    description: 'Context definitions, types, and action payload maps for user management',
-    tags: ['contexts', 'types', 'definitions'],
-    priority: 30
-  });
-
-  useRegisterSourceFile('pages/patterns/layered-architecture/business/userBusinessLogic.ts', {
-    name: 'userBusinessLogic',
-    description: 'Pure business logic functions for user validation and operations',
-    tags: ['business', 'pure-functions', 'validation'],
-    priority: 35
   });
 
   return (
@@ -183,17 +163,17 @@ function UserManagementUI() {
 
   return (
     <div className="space-y-8">
-      {/* Header with Navigation */}
+      {/* Enhanced Header */}
       <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 p-6 rounded-xl border border-blue-100">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h2 className="text-3xl font-bold text-gray-800 mb-2">User Management System</h2>
             <p className="text-sm text-gray-600">
-              Experience the 6-Layer Architecture with Handler Injection Pattern
+              Experience the 6-Layer Architecture following Complete Guide
             </p>
           </div>
 
-          {/* Navigation Buttons */}
+          {/* Navigation */}
           <div className="flex gap-3">
             <button
               onClick={() => setCurrentView('list')}
@@ -262,12 +242,6 @@ function UserManagementUI() {
               </p>
             </div>
           </div>
-
-          {/* Animated background overlay */}
-          <div className={`
-            absolute inset-0 opacity-10 animate-pulse
-            ${operationStatus.result?.success ? 'bg-green-400' : 'bg-red-400'}
-          `}></div>
         </div>
       )}
 
@@ -287,17 +261,17 @@ function UserManagementUI() {
       <div>
         <div className="min-h-[500px]">
           {/* Loading State */}
-          {isLoading ? (
+          {isLoading && (
             <div className="bg-white rounded-xl border shadow-sm p-8">
               <div className="flex items-center justify-center space-x-3">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 <span className="text-gray-600 font-medium">Processing...</span>
               </div>
             </div>
-          ) : null}
+          )}
 
           {/* List View */}
-          {currentView === 'list' && !isLoading ? (
+          {currentView === 'list' && !isLoading && (
             <div className="bg-white rounded-xl border shadow-sm overflow-hidden transition-all duration-300 hover:shadow-lg">
               <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 border-b">
                 <div className="flex items-center gap-3">
@@ -318,10 +292,10 @@ function UserManagementUI() {
                 />
               </div>
             </div>
-          ) : null}
+          )}
 
           {/* Form View */}
-          {currentView === 'create' || currentView === 'edit' ? (
+          {(currentView === 'create' || currentView === 'edit') && (
             <div className="bg-white rounded-xl border shadow-sm overflow-hidden transition-all duration-300 hover:shadow-lg">
               <div className={`bg-gradient-to-r p-4 border-b ${
                 currentView === 'create'
@@ -354,9 +328,41 @@ function UserManagementUI() {
                 />
               </div>
             </div>
-          ) : null}
+          )}
         </div>
       </div>
+
+      {/* Debug Panel */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="bg-gray-900 rounded-xl overflow-hidden">
+          <details className="group">
+            <summary className="cursor-pointer p-4 bg-gray-800 text-white font-mono text-sm flex items-center gap-3 hover:bg-gray-700 transition-colors">
+              <span className="text-lg">🐛</span>
+              <span>6-Layer Architecture Debug</span>
+              <span className="ml-auto text-xs text-gray-400 group-open:hidden">Click to expand</span>
+              <span className="ml-auto text-xs text-gray-400 hidden group-open:inline">Click to collapse</span>
+            </summary>
+            <div className="p-4 bg-gray-900">
+              <pre className="text-green-400 font-mono text-xs overflow-auto leading-relaxed">
+                {JSON.stringify(
+                  {
+                    currentView,
+                    usersCount: users.length,
+                    validationResult,
+                    operationStatus,
+                    isLoading,
+                    hasErrors,
+                    isSubmitting,
+                    editingUser: editingUser ? { id: editingUser.id, name: editingUser.name } : null,
+                  },
+                  null,
+                  2
+                )}
+              </pre>
+            </div>
+          </details>
+        </div>
+      )}
     </div>
   );
 }

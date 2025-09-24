@@ -241,9 +241,9 @@ function LayeredArchitectureFiles() {
  * 2. Handler injection pattern resolves latest value dependencies
  * 3. Context API provides dependency injection for handlers
  */
-export default function FiveLayerArchitecturePage() {
+export default function LayeredArchitecturePage() {
   // 이 페이지 자체를 등록
-  useRegisterSourceFile('pages/patterns/layered-architecture/5LayerArchitecturePage.tsx', {
+  useRegisterSourceFile('pages/patterns/layered-architecture/LayeredArchitecturePage.tsx', {
     name: 'LayeredArchitecturePage',
     description: 'Main page demonstrating 6-layer architecture pattern',
     tags: ['patterns', 'architecture', 'layered'],

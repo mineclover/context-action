@@ -49,8 +49,8 @@ interface UserApiClient {
 }
 
 interface Logger {
-  info: (message: string, data?: any) => void;
-  error: (message: string, error?: any) => void;
+  info: (message: string, data?: unknown) => void;
+  error: (message: string, error?: unknown) => void;
 }
 
 /**

@@ -64,14 +64,14 @@ const FUN_FACTS = [
 ];
 
 function generateFakeUserData(): UserFormData {
-  const name = FAKE_NAMES[Math.floor(Math.random() * FAKE_NAMES.length)];
+  const name = FAKE_NAMES[Math.floor(Math.random() * FAKE_NAMES.length)] || 'Unknown User';
   const emailPrefix = name.toLowerCase()
     .replace(/\s+/g, '.')
     .replace(/[^a-z0-9.]/g, '')
     + Math.floor(Math.random() * 100);
-  const domain = FAKE_DOMAINS[Math.floor(Math.random() * FAKE_DOMAINS.length)];
+  const domain = FAKE_DOMAINS[Math.floor(Math.random() * FAKE_DOMAINS.length)] || 'example.com';
   const email = `${emailPrefix}@${domain}`;
-  const role = FAKE_ROLES[Math.floor(Math.random() * FAKE_ROLES.length)];
+  const role = FAKE_ROLES[Math.floor(Math.random() * FAKE_ROLES.length)] || 'user';
 
   return { name, email, role };
 }

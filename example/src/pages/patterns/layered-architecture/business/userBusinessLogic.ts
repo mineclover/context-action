@@ -200,7 +200,7 @@ export function calculateUserStatistics(users: User[]) {
   const roleDistribution = users.reduce((acc, user) => {
     acc[user.role] = (acc[user.role] || 0) + 1;
     return acc;
-  }, {} as Record<User['role'], number>);
+  }, { admin: 0, user: 0, guest: 0 } as Record<User['role'], number>);
 
   const newestUser = users.length > 0
     ? users.reduce((newest, user) =>

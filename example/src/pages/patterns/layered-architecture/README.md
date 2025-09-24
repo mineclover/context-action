@@ -59,6 +59,80 @@ useUserManagementActionHandler('createUser', createUserHandler);
 └── 📄 UserManagementExample.tsx     # 🎯 Integration Point
 ```
 
+## ⚙️ Handler Registration Timing
+
+**중요**: 핸들러의 등록 시점은 여러 곳에 존재할 수 있으며, **마운트 로직과 구현 로직은 다릅니다**.
+
+### 1. 마운트 시점 등록 (Mount Logic)
+```typescript
+// UserManagementExample.tsx - Integration Point
+function UserManagementExample() {
+  // 🎯 컴포넌트 마운트 시 즉시 등록
+  return (
+    <UserManagementHandlers
+      moduleId="user-management-demo"
+      // Props를 통한 의존성 주입으로 핸들러가 마운트 시 자동 등록
+    >
+      <UserManagementUI />
+    </UserManagementHandlers>
+  );
+}
+```
+
+### 2. 구현 시점 등록 (Implementation Logic)
+```typescript
+// handlers/UserManagementHandlers.tsx - Handler Layer
+function UserManagementHandlers({ children, ...dependencies }) {
+  // 🔄 Props 변경 시 핸들러 재등록
+  useUserManagementActionHandler('createUser', useCallback(async (payload) => {
+    // 핸들러 구현 로직은 의존성이 변경될 때마다 업데이트
+    const result = await handleUserCreation(payload, dependencies);
+    return result;
+  }, [dependencies])); // 의존성 변경 시 핸들러 재등록
+
+  return children;
+}
+```
+
+### 3. 조건부 등록 (Conditional Logic)
+```typescript
+// 특정 조건에서만 핸들러 등록
+function ConditionalHandlers({ isEnabled, children }) {
+  useUserManagementActionHandler(
+    'createUser',
+    isEnabled ? createUserHandler : undefined // 조건부 등록/해제
+  );
+
+  return children;
+}
+```
+
+### 4. 지연 등록 (Lazy Registration)
+```typescript
+// 필요한 시점에 동적으로 등록
+function LazyHandlers({ children }) {
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    // 비동기 초기화 후 핸들러 등록
+    initializeModule().then(() => setIsReady(true));
+  }, []);
+
+  useUserManagementActionHandler(
+    'createUser',
+    isReady ? createUserHandler : undefined
+  );
+
+  return children;
+}
+```
+
+**핵심 포인트:**
+- **마운트 로직**: 컴포넌트 생명주기와 연동된 등록 (Integration Point)
+- **구현 로직**: 비즈니스 요구사항에 따른 동적 등록 (Handler Layer)
+- **시점 분리**: 각각 다른 책임과 타이밍을 가짐
+- **유연성**: 요구사항에 따라 적절한 등록 시점 선택 가능
+
 ## 🔄 Complete Data Flow (6단계)
 
 ### 1. User Interaction → View Layer

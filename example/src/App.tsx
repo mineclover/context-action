@@ -49,7 +49,7 @@ const MemoizationDemoPage = lazy(() => import('./pages/performance/memoization/D
 
 // Patterns
 const ConditionalPatternsIndex = lazy(() => import('./pages/patterns/conditional/ConditionalPatternsIndex').then(m => ({ default: m.ConditionalPatternsIndex })));
-const LayeredArchitecturePage = lazy(() => import('./pages/patterns/layered-architecture/5LayerArchitecturePage'));
+const LayeredArchitecturePage = lazy(() => import('./pages/patterns/layered-architecture/LayeredArchitecturePage'));
 const PermissionBasedExecution = lazy(() => import('./pages/patterns/conditional/PermissionBasedExecution').then(m => ({ default: m.PermissionBasedExecution })));
 const FormValidation = lazy(() => import('./pages/patterns/conditional/FormValidation').then(m => ({ default: m.FormValidation })));
 const WorkflowSteps = lazy(() => import('./pages/patterns/conditional/WorkflowSteps').then(m => ({ default: m.WorkflowSteps })));
