@@ -148,64 +148,66 @@ function App() {
 
 ```mermaid
 graph TD
-    %% Context Share 계층
-    subgraph ContextShare["Context Share 계층 Provider"]
+    %% Context Share Layer
+    subgraph ContextShare["Context Share Layer Provider"]
         Store[Store]
         subgraph ActionsContainer["Actions"]
             Actions[Actions]
-            Pipeline[Pipeline<br/>- 비즈니스 로직 등록<br/>- 실행 순서 관리<br/>- 미들웨어 처리]
+            Pipeline[Pipeline<br/>- Business logic registration<br/>- Execution order management<br/>- Middleware processing]
         end
-        Ref[Ref<br/>- 싱글톤 인스턴스 관리]
+        Ref[Ref<br/>- Singleton instance management]
     end
 
-    %% 5-Layer Hooks 구조
-    subgraph Hooks["5-Layer Hooks Consumer"]
-        ContextDef[contexts<br/>자원 타입 정의]
-        Handlers[handlers<br/>Pipe 등록용<br/>내부 함수 정의]
-        Subscriptions[subscriptions<br/>선택적 상태 구독]
-        Registries[registries<br/>핸들러 등록<br/>지연 평가]
-        Dispatchers[dispatchers<br/>on~ 함수 생성<br/>View용]
+    %% 6-Layer Hooks Structure
+    subgraph Hooks["6-Layer Hooks Consumer"]
+        ContextDef[contexts<br/>Resource type definitions]
+        Business[business<br/>Pure business logic<br/>functions]
+        Handlers[handlers<br/>Handler injection pattern<br/>implementation]
+        Actions[actions<br/>Action dispatch<br/>callback functions]
+        Subscriptions[hooks<br/>Store subscriptions<br/>computed values]
+        Views[views<br/>Pure UI components]
     end
 
-    %% UI 계층
-    subgraph UI["UI 계층 - views"]
+    %% UI Layer
+    subgraph UI["UI Layer - views"]
         Page[Page - route]
         Layout[Layout - device Layer]
         Widget[Widget - design system]
     end
 
-    %% 데이터 흐름
-    Store -->|상태 관리| ContextDef
-    ContextDef -->|타입 정의| Handlers
-    Handlers -->|함수 정의| Registries
-    Registries -->|등록| Pipeline
-    Pipeline -->|실행| Actions
-    Actions -->|업데이트| Store
-    Store -->|구독| Subscriptions
-    Subscriptions -->|UI 업데이트| UI
-    Dispatchers -->|액션 발송| Actions
-    UI -->|사용| Dispatchers
+    %% Data Flow
+    Store -->|State management| ContextDef
+    ContextDef -->|Type definitions| Business
+    Business -->|Pure functions| Handlers
+    Handlers -->|Handler injection| Actions
+    Actions -->|Action execution| Pipeline
+    Pipeline -->|Pipeline execution| Store
+    Store -->|Subscription| Subscriptions
+    Subscriptions -->|Data transfer| Views
+    Views -->|UI rendering| UI
+    Actions -->|Action dispatch| Pipeline
 
-    %% UI 마운트 순서
-    Page -->|마운트| Layout
-    Layout -->|마운트| Widget
+    %% UI Mount Order
+    Page -->|Mount| Layout
+    Layout -->|Mount| Widget
 ```
 
 #### 🔄 Data Flow Principles
 
-1. **Context Share 계층 (Provider)**
+1. **Context Share Layer (Provider)**
    - **Store**: Centralized state management with reactive subscriptions
    - **Actions/Pipeline**: Business logic registration and execution order management
    - **Ref**: Singleton instance management for performance optimization
 
-2. **5-Layer Hooks 구조 (Consumer)**
+2. **6-Layer Hooks Structure (Consumer)**
    - **contexts**: Resource type definitions and context access
-   - **handlers**: Internal function definitions for pipeline registration
-   - **subscriptions**: Selective state subscriptions for UI updates
-   - **registries**: Handler registration with delayed evaluation
-   - **dispatchers**: View-oriented action dispatchers (`on~` functions)
+   - **business**: Pure business logic functions separated from side effects
+   - **handlers**: Handler injection pattern implementation with latest value access
+   - **actions**: Action dispatch functions and callback management
+   - **hooks**: Store subscriptions and computed values for reactive data
+   - **views**: Pure UI components with minimal coupling
 
-3. **UI 계층 (Views)**
+3. **UI Layer (Views)**
    - **Page**: Route-level components
    - **Layout**: Device-specific layout components
    - **Widget**: Design system components
@@ -218,7 +220,7 @@ graph TD
 - **Singleton Management**: Ref layer ensures efficient resource sharing
 
 ```typescript
-// 5-Layer Implementation Example
+// 6-Layer Implementation Example
 function UserPage() {
   // Layer 1: contexts - Resource type definitions
   const userStore = useUserStore('profile');
@@ -262,16 +264,16 @@ function UserPage() {
 graph TB
     %% Type Declaration Layer
     subgraph TypeDeclarations["🔤 Type Declaration Layer"]
-        PayloadMap[ActionPayloadMap<br/>액션 페이로드 타입 맵]
-        StoreTypes[StoreDefinitions<br/>스토어 타입 정의]
-        RefTypes[Ref Types<br/>싱글톤 참조 타입]
+        PayloadMap[ActionPayloadMap<br/>Action payload type map]
+        StoreTypes[StoreDefinitions<br/>Store type definitions]
+        RefTypes[Ref Types<br/>Singleton reference types]
     end
 
     %% Context Creation Layer
     subgraph ContextCreation["⚙️ Context Creation Layer"]
-        ActionContext[createActionContext&lt;T&gt;<br/>액션 컨텍스트 생성]
-        StoreContext[createStoreContext&lt;T&gt;<br/>스토어 컨텍스트 생성]
-        RefManager[RefManager&lt;T&gt;<br/>참조 관리자]
+        ActionContext[createActionContext&lt;T&gt;<br/>Action context creation]
+        StoreContext[createStoreContext&lt;T&gt;<br/>Store context creation]
+        RefManager[RefManager&lt;T&gt;<br/>Reference manager]
     end
 
     %% Hook Layer
@@ -455,7 +457,7 @@ For comprehensive type system coverage, see our dedicated guides:
 - **[🛡️ Type Safety Best Practices](https://mineclover.github.io/context-action/en/guide/type-inference/best-practices)** - Essential recommendations and patterns
 
 #### **Korean Documentation**
-- **[🎯 액션 타입 시스템](https://mineclover.github.io/context-action/ko/guide/patterns/action/type-system)** - ActionPayloadMap, 타입 안전성, TypeScript 통합
+- **[🎯 Action Type System](https://mineclover.github.io/context-action/en/guide/patterns/action/type-system)** - ActionPayloadMap, type safety, TypeScript integration
 
 #### **Core Type System Features**
 - **Action Type Safety**: Complete `ActionPayloadMap` interface with pipeline controller types
@@ -571,7 +573,7 @@ interface UserActions extends ActionPayloadMap {
 
 ### 🌏 Multi-Language Support
 - **[🇺🇸 English Documentation](https://mineclover.github.io/context-action/en/)** - Complete English guides
-- **[🇰🇷 한국어 문서](https://mineclover.github.io/context-action/ko/)** - 완전한 한국어 가이드
+- **[🇰🇷 Korean Documentation](https://mineclover.github.io/context-action/ko/)** - Complete Korean guide
 
 ---
 
