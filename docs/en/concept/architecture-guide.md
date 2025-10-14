@@ -231,6 +231,59 @@ For detailed implementation patterns, see [Selective Subscription Patterns](./se
 11. **Follow provider composition** patterns for proper nesting
 12. **Document domain boundaries** clearly for team collaboration
 
+### Code Quality & Module Organization
+13. **Prefer named imports over namespace imports** for better tree shaking and bundle optimization
+14. **Use utility functions instead of static-only classes** to improve tree shaking and avoid linting issues
+15. **Organize imports systematically**: React/external → framework → relative → types
+16. **Follow functional programming patterns** for utility functions and error factories
+
+### Code Examples
+
+#### ✅ Recommended Import Patterns
+```tsx
+// Named imports for better tree shaking
+import { validateFormData, FormData, ValidationState } from '../business/businessLogic';
+import { createValidationError, createRefError } from '../utils/errorFactory';
+
+// Clear import organization
+import React, { useState, useCallback } from 'react';
+import { useStoreValue } from '@context-action/react';
+import { useRefRegistry } from '../contexts/RefContexts';
+import type { ValidationResult } from '../types/validation';
+```
+
+#### ✅ Recommended Utility Functions
+```tsx
+// Utility functions instead of static-only classes
+export function createValidationError(message: string, context?: Record<string, any>): HandlerError {
+  return {
+    code: 'VALIDATION_ERROR',
+    message,
+    timestamp: Date.now(),
+    context,
+    recoverable: true
+  };
+}
+
+// Usage: Direct function calls
+import { createValidationError } from './errorUtils';
+throw createValidationError('Invalid input', { field: 'email' });
+```
+
+#### ❌ Patterns to Avoid
+```tsx
+// Namespace imports prevent tree shaking
+import * as BusinessLogic from '../business/businessLogic';
+import * as ErrorFactory from '../utils/errorFactory';
+
+// Static-only classes trigger linting warnings
+export class ErrorFactory {
+  static createValidationError(message: string): HandlerError {
+    // Implementation...
+  }
+}
+```
+
 ## Getting Started
 
 For detailed implementation examples and step-by-step guides, see:
@@ -240,5 +293,6 @@ For detailed implementation examples and step-by-step guides, see:
 - **[Store Only Pattern](../guide/patterns/store/basic-usage.md)** - Recommended starting point
 - **[Selective Subscription Patterns](./selective-subscription-patterns.md)** - Pre-memoization performance optimization
 - **[Pattern Composition](../guide/patterns/architecture/composition.md)** - Combining patterns
+- **[Coding Conventions](./conventions.md)** - Complete coding conventions and best practices including import patterns
 
 For more information and updates, visit the project repository.

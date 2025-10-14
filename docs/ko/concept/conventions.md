@@ -9,11 +9,12 @@
 3. [패턴 사용법](#패턴-사용법)
 4. [타입 정의](#타입-정의)
 5. [코드 스타일](#코드-스타일)
-6. [핵심 프레임워크 원칙](#핵심-프레임워크-원칙)
-7. [Store 업데이트 컨벤션](#store-업데이트-컨벤션)
-8. [성능 가이드라인](#성능-가이드라인)
-9. [에러 핸들링](#에러-핸들링)
-10. [RefContext 컨벤션](#refcontext-컨벤션)
+6. [Import와 모듈 패턴](#import와-모듈-패턴)
+7. [핵심 프레임워크 원칙](#핵심-프레임워크-원칙)
+8. [Store 업데이트 컨벤션](#store-업데이트-컨벤션)
+9. [성능 가이드라인](#성능-가이드라인)
+10. [에러 핸들링](#에러-핸들링)
+11. [RefContext 컨벤션](#refcontext-컨벤션)
 
 ---
 
@@ -550,6 +551,142 @@ import { ProfileForm } from './ProfileForm';
 
 // 6. 타입
 import type { UserProfile } from '@/types/user.types';
+```
+
+## Import와 모듈 패턴
+
+### 📦 Import 및 모듈 패턴
+
+#### Named Import vs Namespace Import
+
+**트리 쉐이킹과 번들 최적화를 위해 Named Import 선호**
+
+```tsx
+// ✅ 권장: 더 나은 트리 쉐이킹을 위한 명명된 import
+import { validateFormData, FormData, ValidationState } from '../business/businessLogic';
+import { createValidationError, createRefError } from '../utils/errorFactory';
+
+function FormComponent() {
+  const formData: FormData = { name: '', email: '' };
+  const result = validateFormData(formData);
+
+  if (!result.isValid) {
+    throw createValidationError('Form validation failed');
+  }
+}
+
+// ❌ 피해야 할 패턴: 네임스페이스 import는 효율적인 트리 쉐이킹을 방해
+import * as BusinessLogic from '../business/businessLogic';
+import * as ErrorFactory from '../utils/errorFactory';
+
+function FormComponent() {
+  const formData: BusinessLogic.FormData = { name: '', email: '' };
+  const result = BusinessLogic.validateFormData(formData);
+
+  if (!result.isValid) {
+    throw ErrorFactory.createValidationError('Form validation failed');
+  }
+}
+```
+
+**Named Import의 장점:**
+- **트리 쉐이킹**: 번들러가 사용되지 않는 내보내기를 더 효율적으로 제거
+- **번들 크기**: 사용되지 않는 코드를 제외하여 최종 번들 크기 감소
+- **정적 분석**: 사용되지 않는 import 감지를 위한 더 나은 IDE 지원
+- **성능**: 더 빠른 빌드 시간과 런타임 성능
+
+#### 함수 기반 유틸 vs Static-Only 클래스
+
+**Static-Only 클래스보다 유틸리티 함수 선호**
+
+```tsx
+// ✅ 권장: 순수 유틸리티 함수
+export function createValidationError(message: string, context?: Record<string, any>): HandlerError {
+  return {
+    code: 'VALIDATION_ERROR',
+    message,
+    timestamp: Date.now(),
+    context,
+    recoverable: true
+  };
+}
+
+export function createRefError(message: string, refName: string): HandlerError {
+  return {
+    code: 'REF_ERROR',
+    message,
+    timestamp: Date.now(),
+    context: { refName },
+    recoverable: true
+  };
+}
+
+export function createSystemError(message: string): HandlerError {
+  return {
+    code: 'SYSTEM_ERROR',
+    message,
+    timestamp: Date.now(),
+    recoverable: false
+  };
+}
+
+// 사용법: 직접 함수 호출
+import { createValidationError, createRefError } from './errorUtils';
+
+if (!isValid) {
+  throw createValidationError('Invalid input', { field: 'email' });
+}
+
+// ❌ 피해야 할 패턴: Static-only 클래스 (린팅 에러)
+export class ErrorFactory {
+  static createValidationError(message: string, context?: Record<string, any>): HandlerError {
+    return {
+      code: 'VALIDATION_ERROR',
+      message,
+      timestamp: Date.now(),
+      context,
+      recoverable: true
+    };
+  }
+
+  static createRefError(message: string, refName: string): HandlerError {
+    // ... 구현
+  }
+}
+
+// 사용법: 클래스 메서드 호출 (트리 쉐이킹이 어려움)
+import { ErrorFactory } from './errorUtils';
+
+if (!isValid) {
+  throw ErrorFactory.createValidationError('Invalid input', { field: 'email' });
+}
+```
+
+**유틸리티 함수의 장점:**
+- **트리 쉐이킹**: 개별 함수를 독립적으로 트리 쉐이킹 가능
+- **린팅 준수**: "static-only class" 린팅 경고 방지
+- **함수형 프로그래밍**: 함수형 프로그래밍 패턴 촉진
+- **단순성**: 더 깔끔한 import 문과 사용법
+- **테스팅**: 개별 함수를 모킹하고 테스트하기 쉬움
+
+#### Import 구조 정리
+
+```tsx
+// ✅ 권장: 정리된 import 구조
+// 1. React와 외부 라이브러리
+import React, { useState, useCallback, useEffect } from 'react';
+import { z } from 'zod';
+
+// 2. 내부 프레임워크 import
+import { useStoreValue } from '@context-action/react';
+
+// 3. 상대 경로 import (목적별로 그룹화)
+import { useRefRegistry } from '../contexts/RefContexts';
+import { validateFormData, FormData, ValidationState } from '../business/businessLogic';
+import { createValidationError, createRefError } from '../utils/errorFactory';
+
+// 4. 타입 전용 import (필요시)
+import type { ValidationResult } from '../types/validation';
 ```
 
 ---

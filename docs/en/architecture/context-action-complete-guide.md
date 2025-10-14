@@ -8,21 +8,22 @@ A comprehensive implementation guide with practical patterns, folder structures,
 
 1. [Implementation Overview](#implementation-overview)
 2. [Atomic Context Architecture](#atomic-context-architecture)
-3. [5-Layer Architecture](#5-layer-architecture-within-each-atomic-context)
+3. [6-Layer Architecture](#6-layer-architecture-within-each-atomic-context)
 4. [Implementation Patterns](#implementation-patterns)
 5. [Sub-features Organization](#sub-features-hierarchical-organization-for-large-scale-contexts)
 6. [Development Conventions](#development-conventions)
+   - [Import and Module Organization](#import-and-module-organization)
 7. [Quality & Performance](#quality-performance)
 
 ---
 
 ## Implementation Overview
 
-This guide provides concrete implementation patterns for the Context-Action Framework with the new **5-Layer Hook Architecture**:
+This guide provides concrete implementation patterns for the Context-Action Framework with the new **6-Layer Hook Architecture**:
 
 ### ✅ **Core Implementation Concepts**
 - **Atomic Context Structure** - Each context as independent top-level folder
-- **5-Layer Hook Architecture** - Specialized hook layers with single responsibilities
+- **6-Layer Hook Architecture** - Specialized hook layers with single responsibilities
 - **Delayed Evaluation Pattern** - Handlers get latest values through `store.getValue()`
 - **Selective Subscription Model** - UI-focused selective state subscriptions
 - **Execution State Observability** - Advanced patterns with useRef + useState + currying
@@ -56,14 +57,14 @@ Subscriptions ←───────── Store Updates ←──────
 - **Purpose**: Core business domain entities and their logic
 - **Characteristics**: Reusable across multiple pages, contains business rules
 - **Examples**: `user/`, `product/`, `authentication/`, `shopping-cart/`
-- **Standard Structure**: 5-layer hook architecture (contexts/, handlers/, subscriptions/, registries/, dispatchers/, views/)
+- **Standard Structure**: 6-layer hook architecture (contexts/, business/, handlers/, actions/, hooks/, views/)
 - **Large-Scale**: Use `features/` namespace when hooks exceed ~10 items per layer
 
 #### 2. **Page Context** - UI-Specific State
 - **Purpose**: UI state and logic specific to a particular page
 - **Characteristics**: Used only within specific pages, isolated from other pages
 - **Examples**: `user-dashboard-page/`, `product-list-page/`, `checkout-flow-page/`
-- **Standard Structure**: 5-layer hook architecture
+- **Standard Structure**: 6-layer hook architecture
 - **Large-Scale**: Use `features/` namespace for complex pages with many hook definitions
 
 ### Truly Atomic Context Folder Structure
@@ -233,7 +234,7 @@ export function useUserSubscriptions() {
 
 ---
 
-## 5-Layer Architecture (Within Each Atomic Context)
+## 6-Layer Architecture (Within Each Atomic Context)
 
 Each atomic context implements a **Context-Layered Architecture** with clear responsibilities:
 
@@ -291,7 +292,7 @@ Each atomic context implements a **Context-Layered Architecture** with clear res
 
 ## Implementation Patterns
 
-### New 5-Layer Implementation Pattern
+### New 6-Layer Implementation Pattern
 
 ```typescript
 // contexts/UserContext.ts - Resource Type Definitions
@@ -1283,7 +1284,7 @@ registries/[Context]HandlerRegistry.tsx       # Handler registration components
 │   ├── [Component].tsx
 │   └── index.ts
 ├── features/               # Sub-features namespace (optional)
-│   └── [feature-name]/     # Sub-feature with own 5-layer structure
+│   └── [feature-name]/     # Sub-feature with own 6-layer structure
 ├── spec.md                 # Atomic context specification
 ├── dependencies.md         # Dependencies documentation
 └── index.ts               # Main context exports
@@ -1300,6 +1301,117 @@ registries/[Context]HandlerRegistry.tsx       # Handler registration components
 - **views/**: Use dispatchers and subscriptions layers only, no direct context access
 
 **Key Pattern**: Each layer has single responsibility with delayed evaluation and selective access
+
+### Import and Module Organization
+
+#### Named Imports for Tree Shaking
+**Always prefer named imports over namespace imports for better bundle optimization:**
+
+```typescript
+// ✅ Recommended: Named imports for optimal tree shaking
+import { useUserStore, UserStoreData } from '../contexts/UserContext';
+import { createValidationError, validateUserData } from '../handlers/userValidationHandlers';
+import { formatUserDisplay, calculateUserStats } from '../utils/userUtils';
+
+// ❌ Avoid: Namespace imports prevent efficient tree shaking
+import * as UserContext from '../contexts/UserContext';
+import * as UserValidation from '../handlers/userValidationHandlers';
+import * as UserUtils from '../utils/userUtils';
+```
+
+#### Utility Functions Over Static Classes
+**Use utility functions instead of static-only classes to improve tree shaking:**
+
+```typescript
+// ✅ Recommended: Pure utility functions
+export function createUserValidationError(field: string, message: string): UserError {
+  return {
+    type: 'VALIDATION_ERROR',
+    field,
+    message,
+    timestamp: Date.now()
+  };
+}
+
+export function createUserNotFoundError(userId: string): UserError {
+  return {
+    type: 'NOT_FOUND_ERROR',
+    message: `User ${userId} not found`,
+    timestamp: Date.now()
+  };
+}
+
+// Usage with clean imports
+import { createUserValidationError, createUserNotFoundError } from './userErrorUtils';
+
+// ❌ Avoid: Static-only classes (linting warnings)
+export class UserErrorFactory {
+  static createValidationError(field: string, message: string): UserError {
+    // Implementation...
+  }
+  static createNotFoundError(userId: string): UserError {
+    // Implementation...
+  }
+}
+```
+
+#### Systematic Import Organization
+**Organize imports consistently across all hook layers:**
+
+```typescript
+// 1. React and external libraries
+import React, { useState, useCallback, useMemo } from 'react';
+import { z } from 'zod';
+
+// 2. Framework imports
+import { useStoreValue, useActionHandler } from '@context-action/react';
+
+// 3. Context layer imports
+import { useUserStore, useUserActionDispatch } from '../contexts/UserContext';
+
+// 4. Other layer imports (same level or cross-layer)
+import { useUserHandlerDefinitions } from '../handlers/useUserHandlerDefinitions';
+import { formatUserStats, validateUserInput } from '../utils/userUtils';
+
+// 5. Type-only imports
+import type { UserProfile, UserValidationResult } from '../types/user.types';
+```
+
+#### Hook Layer Import Patterns
+**Each layer should follow specific import patterns:**
+
+```typescript
+// contexts/ layer - Context resource definitions
+import { createStoreContext, createActionContext } from '@context-action/react';
+import type { UserActions, UserStoreData } from './types';
+
+// handlers/ layer - Internal function definitions
+import { useUserStore } from '../contexts/UserContext';
+import { validateUserData, transformUserInput } from '../utils/userValidation';
+
+// subscriptions/ layer - Selective state subscriptions
+import { useUserStore } from '../contexts/UserContext';
+import { useMemo } from 'react';
+
+// registries/ layer - Handler registration
+import { useUserActionHandler } from '../contexts/UserContext';
+import { useUserHandlerDefinitions } from '../handlers/useUserHandlerDefinitions';
+
+// dispatchers/ layer - on~ function generation
+import { useUserActionDispatch } from '../contexts/UserContext';
+import { useCallback } from 'react';
+
+// views/ layer - UI components
+import { useUserSubscriptions } from '../subscriptions/useUserSubscriptions';
+import { useUserDispatchers } from '../dispatchers/useUserDispatchers';
+```
+
+**Benefits of This Import Strategy:**
+- **Tree Shaking**: Eliminates unused code from bundles
+- **Bundle Size**: Reduces final application size
+- **Performance**: Faster build times and runtime performance
+- **Maintainability**: Clear dependency relationships
+- **Type Safety**: Better IDE support and error detection
 
 ---
 
@@ -1422,8 +1534,8 @@ export function useUserSubscriptions() {
 ## Implementation Summary
 
 ### ✅ **Key Implementation Patterns**
-1. **Atomic Context Structure** - Each context as independent top-level folder with complete 5-layer hook architecture
-2. **5-Layer Hook Architecture** - Specialized hook layers with single responsibilities and delayed evaluation
+1. **Atomic Context Structure** - Each context as independent top-level folder with complete 6-layer hook architecture
+2. **6-Layer Hook Architecture** - Specialized hook layers with single responsibilities and delayed evaluation
 3. **Single-Layer Default** - Most contexts use flat organization within each hook layer
 4. **Hierarchical Organization** - Use `features/` namespace only for large-scale contexts (10+ hook definitions per layer)
 5. **Delayed Evaluation Pattern** - Handlers access latest state through `store.getValue()`

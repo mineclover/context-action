@@ -12,9 +12,9 @@
 
 컨텍스트는 **개념에 대한 정의 단위**를 의미하며, 이 기준을 바탕으로 시각적 UI는 스토리북 컴포넌트로, 비즈니스 로직은 액션 파이프라인으로 구성됩니다.
 
-## 🏗️ 5계층 훅 아키텍처
+## 🏗️ 6계층 훅 아키텍처
 
-**Context-Action은 관심사의 완벽한 분리와 지연 평가를 통한 최적의 성능을 제공하는 정교한 5계층 훅 아키텍처를 구현합니다.**
+**Context-Action은 관심사의 완벽한 분리와 지연 평가를 통한 최적의 성능을 제공하는 정교한 6계층 훅 아키텍처를 구현합니다.**
 
 ```mermaid
 graph TD
@@ -28,13 +28,14 @@ graph TD
         Ref[Ref<br/>- 싱글톤 인스턴스 관리]
     end
 
-    %% 5-Layer Hooks 구조
-    subgraph Hooks["5-Layer Hooks Consumer"]
+    %% 6-Layer Hooks 구조
+    subgraph Hooks["6-Layer Hooks Consumer"]
         ContextDef[contexts<br/>자원 타입 정의]
-        Handlers[handlers<br/>Pipe 등록용<br/>내부 함수 정의]
-        Subscriptions[subscriptions<br/>선택적 상태 구독]
-        Registries[registries<br/>핸들러 등록<br/>지연 평가]
-        Dispatchers[dispatchers<br/>on~ 함수 생성<br/>View용]
+        Business[business<br/>순수 비즈니스 로직<br/>함수들]
+        Handlers[handlers<br/>핸들러 주입 패턴<br/>구현]
+        Actions[actions<br/>액션 디스패치<br/>콜백 함수]
+        Subscriptions[hooks<br/>스토어 구독<br/>계산된 값]
+        Views[views<br/>순수 UI 컴포넌트]
     end
 
     %% UI 계층
@@ -70,14 +71,15 @@ graph TD
 - **Actions/Pipeline**: 비즈니스 로직 등록 및 실행 순서 관리
 - **Ref**: 성능 최적화를 위한 싱글톤 인스턴스 관리
 
-#### **2계층: 5-Layer Hooks (Consumer)**
+#### **2계층: 6-Layer Hooks (Consumer)**
 정교한 훅 아키텍처를 구현하는 소비 계층:
 
 1. **contexts** - 리소스 타입 정의 및 컨텍스트 접근
-2. **handlers** - 파이프라인 등록을 위한 내부 함수 정의
-3. **subscriptions** - UI 업데이트를 위한 선택적 상태 구독
-4. **registries** - 지연 평가를 통한 핸들러 등록
-5. **dispatchers** - View 지향적 액션 디스패처 (`on~` 함수)
+2. **business** - 사이드 이펙트에서 분리된 순수 비즈니스 로직 함수
+3. **handlers** - 최신 값 접근을 통한 핸들러 주입 패턴 구현
+4. **actions** - 액션 디스패치 함수 및 콜백 관리
+5. **hooks** - 반응적 데이터를 위한 스토어 구독 및 계산된 값
+6. **views** - 최소한의 결합도를 가진 순수 UI 컴포넌트
 
 #### **3계층: UI (Views)**
 명확한 계층 구조를 가진 프레젠테이션 계층:
@@ -109,38 +111,53 @@ graph TD
 ### 💡 구현 패턴
 
 ```typescript
-// 5계층 아키텍처 구현
+// 6계층 아키텍처 구현
 function UserPage() {
   // 1계층: contexts - 리소스 타입 정의
   const userStore = useUserStore('profile');
   const settingsStore = useUserStore('settings');
 
-  // 2계층: handlers - 내부 함수 정의
+  // 2계층: business - 순수 비즈니스 로직 함수
+  const updateUserLogic = useCallback((currentUser, payload) => {
+    return UserBusinessLogic.updateUserProfile(currentUser, payload);
+  }, []);
+
+  const updateSettingsLogic = useCallback((currentSettings, payload) => {
+    return UserBusinessLogic.updateUserSettings(currentSettings, payload);
+  }, []);
+
+  // 3계층: handlers - 핸들러 주입 패턴
   const updateUserHandler = useCallback(async (payload) => {
-    // 지연 평가 - 항상 최신 상태를 가져옴
+    // 핸들러 주입: 최신 상태를 가져와서 순수 함수에 주입
     const currentUser = userStore.getValue();
-    const updatedUser = { ...currentUser, ...payload };
-    userStore.setValue(updatedUser);
-  }, [userStore]);
+    const result = updateUserLogic(currentUser, payload);
+
+    // 핸들러에서 사이드 이펙트 처리
+    if (result.success) {
+      userStore.setValue(result.updatedUser);
+      await apiClient.saveUser(result.updatedUser);
+    }
+  }, [userStore, updateUserLogic]);
 
   const updateSettingsHandler = useCallback(async (payload) => {
     const currentSettings = settingsStore.getValue();
-    settingsStore.setValue({ ...currentSettings, ...payload });
-  }, [settingsStore]);
+    const result = updateSettingsLogic(currentSettings, payload);
 
-  // 3계층: subscriptions - 선택적 상태 구독
-  const user = useStoreValue(userStore);
-  const settings = useStoreValue(settingsStore);
+    if (result.success) {
+      settingsStore.setValue(result.updatedSettings);
+    }
+  }, [settingsStore, updateSettingsLogic]);
 
-  // 4계층: registries - 핸들러 등록
+  // 4계층: actions - 액션 디스패치 및 콜백
   useActionHandler('updateUser', updateUserHandler);
   useActionHandler('updateSettings', updateSettingsHandler);
 
-  // 5계층: dispatchers - View 지향적 액션 디스패처
-  const onUpdateUser = useActionDispatch('updateUser');
-  const onUpdateSettings = useActionDispatch('updateSettings');
+  // 5계층: hooks - 스토어 구독 및 계산된 값
+  const user = useStoreValue(userStore);
+  const settings = useStoreValue(settingsStore);
+  const { onUpdateUser, onUpdateSettings } = useUserActions();
 
-  // UI 계층 - 순수 프레젠테이션 로직
+  // 6계층: views - 순수 UI 컴포넌트
   return (
     <div>
       <h1>{user.name}</h1>

@@ -562,6 +562,30 @@ interface UserActions extends ActionPayloadMap {
 
 ---
 
+## 🏗️ Architecture
+
+Context-Action Framework implements multiple architectural approaches for different application needs:
+
+### 📐 **Context-Driven Architecture**
+
+**[Context-Driven Architecture](https://mineclover.github.io/context-action/en/architecture/context-driven-architecture)** - Core frontend architecture for clear document-based separation
+
+**Philosophy**: *"The document is the architecture"* - Each context exists as a unit for managing documents and deliverables of its domain.
+
+**Key Features:**
+- **Document-Centric Context Separation**: Clear boundaries between domain contexts
+- **6-Layer Hooks Architecture**: Provider/Consumer pattern with delayed evaluation
+- **Domain Context Isolation**: Business, UI, Validation, Design, Architecture contexts
+- **Effective Artifact Management**: State management supporting document-deliverable relationships
+
+### 🔧 **Implementation Guides**
+
+- **[Context-Layered Architecture](https://mineclover.github.io/context-action/en/context-layered/context-layered-guide)** - Practical 6-layer implementation guide
+- **[Folder Structure Guide](https://mineclover.github.io/context-action/en/context-layered/architecture/folder-structure)** - Organized project structure
+- **[Handler Registry Management](https://mineclover.github.io/context-action/en/context-layered/architecture/handler-registry)** - ID and priority management
+
+---
+
 ## 📚 Documentation
 
 ### 📖 Complete Guides

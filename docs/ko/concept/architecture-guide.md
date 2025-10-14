@@ -167,6 +167,59 @@ RefContext는 직접 DOM 제어가 필요한 **고성능 시나리오**를 위�
 11. **적절한 중첩을 위해 provider 조합 패턴 따르기**
 12. **팀 협업을 위해 도메인 경계를 명확하게 문서화**
 
+### 코드 품질 및 모듈 조직
+13. **더 나은 트리 쉐이킹과 번들 최적화를 위해 네임스페이스 import보다 명명된 import 선호**
+14. **트리 쉐이킹 개선과 린팅 문제 방지를 위해 static-only 클래스 대신 유틸리티 함수 사용**
+15. **체계적인 import 구성**: React/외부 → 프레임워크 → 상대 경로 → 타입
+16. **유틸리티 함수와 에러 팩토리에 함수형 프로그래밍 패턴 따르기**
+
+### 코드 예시
+
+#### ✅ 권장하는 Import 패턴
+```tsx
+// 더 나은 트리 쉐이킹을 위한 명명된 import
+import { validateFormData, FormData, ValidationState } from '../business/businessLogic';
+import { createValidationError, createRefError } from '../utils/errorFactory';
+
+// 명확한 import 구성
+import React, { useState, useCallback } from 'react';
+import { useStoreValue } from '@context-action/react';
+import { useRefRegistry } from '../contexts/RefContexts';
+import type { ValidationResult } from '../types/validation';
+```
+
+#### ✅ 권장하는 유틸리티 함수
+```tsx
+// static-only 클래스 대신 유틸리티 함수
+export function createValidationError(message: string, context?: Record<string, any>): HandlerError {
+  return {
+    code: 'VALIDATION_ERROR',
+    message,
+    timestamp: Date.now(),
+    context,
+    recoverable: true
+  };
+}
+
+// 사용법: 직접 함수 호출
+import { createValidationError } from './errorUtils';
+throw createValidationError('Invalid input', { field: 'email' });
+```
+
+#### ❌ 피해야 할 패턴
+```tsx
+// 네임스페이스 import는 트리 쉐이킹을 방해
+import * as BusinessLogic from '../business/businessLogic';
+import * as ErrorFactory from '../utils/errorFactory';
+
+// Static-only 클래스는 린팅 경고 발생
+export class ErrorFactory {
+  static createValidationError(message: string): HandlerError {
+    // 구현...
+  }
+}
+```
+
 ## 시작하기
 
 자세한 구현 예제와 단계별 가이드는 다음을 참조하세요:
@@ -175,6 +228,7 @@ RefContext는 직접 DOM 제어가 필요한 **고성능 시나리오**를 위�
 - **[Action Only 패턴](../guide/patterns/action/basic-usage.md)** - 순수 액션으로 시작
 - **[Store Only 패턴](../guide/patterns/store/basic-usage.md)** - 권장 시작점
 - **[패턴 조합](../guide/patterns/architecture/composition.md)** - 패턴 결합
+- **[코딩 컨벤션](./conventions.md)** - import 패턴을 포함한 완전한 코딩 컨벤션과 베스트 프랙티스
 
 더 많은 정보와 업데이트는 프로젝트 저장소를 방문하세요.
 

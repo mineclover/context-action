@@ -10,9 +10,9 @@ Architectural principles and philosophy for document-centric state management ba
 
 Context-Driven Architecture is an innovative architectural approach that overcomes the fundamental limitations of complex state management through **document-centric context separation** and **effective artifact management**.
 
-## 🏗️ 5-Layer Hooks Architecture
+## 🏗️ 6-Layer Hooks Architecture
 
-**Context-Action implements a sophisticated 5-layer hooks architecture that provides perfect separation of concerns and optimal performance through delayed evaluation.**
+**Context-Action implements a sophisticated 6-layer hooks architecture that provides perfect separation of concerns and optimal performance through delayed evaluation.**
 
 ```mermaid
 graph TD
@@ -26,13 +26,14 @@ graph TD
         Ref[Ref<br/>- 싱글톤 인스턴스 관리]
     end
 
-    %% 5-Layer Hooks 구조
-    subgraph Hooks["5-Layer Hooks Consumer"]
+    %% 6-Layer Hooks 구조
+    subgraph Hooks["6-Layer Hooks Consumer"]
         ContextDef[contexts<br/>자원 타입 정의]
-        Handlers[handlers<br/>Pipe 등록용<br/>내부 함수 정의]
-        Subscriptions[subscriptions<br/>선택적 상태 구독]
-        Registries[registries<br/>핸들러 등록<br/>지연 평가]
-        Dispatchers[dispatchers<br/>on~ 함수 생성<br/>View용]
+        Business[business<br/>순수 비즈니스 로직<br/>함수들]
+        Handlers[handlers<br/>핸들러 주입 패턴<br/>구현]
+        Actions[actions<br/>액션 디스패치<br/>콜백 함수]
+        Subscriptions[hooks<br/>스토어 구독<br/>계산된 값]
+        Views[views<br/>순수 UI 컴포넌트]
     end
 
     %% UI 계층
@@ -44,15 +45,15 @@ graph TD
 
     %% 데이터 흐름
     Store -->|상태 관리| ContextDef
-    ContextDef -->|타입 정의| Handlers
-    Handlers -->|함수 정의| Registries
-    Registries -->|등록| Pipeline
-    Pipeline -->|실행| Actions
-    Actions -->|업데이트| Store
+    ContextDef -->|타입 정의| Business
+    Business -->|순수 함수| Handlers
+    Handlers -->|핸들러 주입| Actions
+    Actions -->|액션 실행| Pipeline
+    Pipeline -->|파이프라인 실행| Store
     Store -->|구독| Subscriptions
-    Subscriptions -->|UI 업데이트| UI
-    Dispatchers -->|액션 발송| Actions
-    UI -->|사용| Dispatchers
+    Subscriptions -->|데이터 전달| Views
+    Views -->|UI 렌더링| UI
+    Actions -->|액션 발송| Pipeline
 
     %% UI 마운트 순서
     Page -->|마운트| Layout
@@ -68,14 +69,15 @@ The foundation layer that provides shared resources across the application:
 - **Actions/Pipeline**: Business logic registration and execution order management
 - **Ref**: Singleton instance management for performance optimization
 
-#### **Layer 2: 5-Layer Hooks (Consumer)**
+#### **Layer 2: 6-Layer Hooks (Consumer)**
 The consumption layer implementing the sophisticated hooks architecture:
 
 1. **contexts** - Resource type definitions and context access
-2. **handlers** - Internal function definitions for pipeline registration
-3. **subscriptions** - Selective state subscriptions for UI updates
-4. **registries** - Handler registration with delayed evaluation
-5. **dispatchers** - View-oriented action dispatchers (`on~` functions)
+2. **business** - Pure business logic functions separated from side effects
+3. **handlers** - Handler injection pattern implementation with latest value access
+4. **actions** - Action dispatch functions and callback management
+5. **hooks** - Store subscriptions and computed values for reactive data
+6. **views** - Pure UI components with minimal coupling
 
 #### **Layer 3: UI (Views)**
 The presentation layer with clear hierarchical structure:
@@ -107,49 +109,60 @@ The presentation layer with clear hierarchical structure:
 ### 💡 Implementation Pattern
 
 ```typescript
-// 5-Layer Architecture Implementation
+// 6-Layer Architecture Implementation
 function UserPage() {
   // Layer 1: contexts - Resource type definitions
   const userStore = useUserStore('profile');
   const settingsStore = useUserStore('settings');
 
-  // Layer 2: handlers - Internal function definitions
+  // Layer 2: business - Pure business logic functions
+  const updateUserLogic = useCallback((currentUser, payload) => {
+    return UserBusinessLogic.updateUserProfile(currentUser, payload);
+  }, []);
+
+  const updateSettingsLogic = useCallback((currentSettings, payload) => {
+    return UserBusinessLogic.updateUserSettings(currentSettings, payload);
+  }, []);
+
+  // Layer 3: handlers - Handler injection pattern
   const updateUserHandler = useCallback(async (payload) => {
-    // Delayed evaluation - always gets latest state
+    // Handler injection: Get latest state and inject into pure function
     const currentUser = userStore.getValue();
-    const updatedUser = { ...currentUser, ...payload };
-    userStore.setValue(updatedUser);
-  }, [userStore]);
+    const result = updateUserLogic(currentUser, payload);
+
+    // Side effects in handler
+    if (result.success) {
+      userStore.setValue(result.updatedUser);
+      await apiClient.saveUser(result.updatedUser);
+    }
+  }, [userStore, updateUserLogic]);
 
   const updateSettingsHandler = useCallback(async (payload) => {
     const currentSettings = settingsStore.getValue();
-    settingsStore.setValue({ ...currentSettings, ...payload });
-  }, [settingsStore]);
+    const result = updateSettingsLogic(currentSettings, payload);
 
-  // Layer 3: subscriptions - Selective state subscriptions
-  const user = useStoreValue(userStore);
-  const settings = useStoreValue(settingsStore);
+    if (result.success) {
+      settingsStore.setValue(result.updatedSettings);
+    }
+  }, [settingsStore, updateSettingsLogic]);
 
-  // Layer 4: registries - Handler registration
+  // Layer 4: actions - Action dispatch and callbacks
   useActionHandler('updateUser', updateUserHandler);
   useActionHandler('updateSettings', updateSettingsHandler);
 
-  // Layer 5: dispatchers - View-oriented action dispatchers
-  const onUpdateUser = useActionDispatch('updateUser');
-  const onUpdateSettings = useActionDispatch('updateSettings');
+  // Layer 5: hooks - Store subscriptions and computed values
+  const user = useStoreValue(userStore);
+  const settings = useStoreValue(settingsStore);
+  const { onUpdateUser, onUpdateSettings } = useUserActions();
 
-  // UI Layer - Pure presentation logic
+  // Layer 6: views - Pure UI components
   return (
-    <div>
-      <h1>{user.name}</h1>
-      <p>Theme: {settings.theme}</p>
-      <button onClick={() => onUpdateUser({ name: 'New Name' })}>
-        Update User
-      </button>
-      <button onClick={() => onUpdateSettings({ theme: 'dark' })}>
-        Toggle Theme
-      </button>
-    </div>
+    <UserPageView
+      user={user}
+      settings={settings}
+      onUpdateUser={onUpdateUser}
+      onUpdateSettings={onUpdateSettings}
+    />
   );
 }
 ```
@@ -165,7 +178,7 @@ function UserPage() {
 #### Context-Action's Solution
 - **Document-Artifact Centered Design**: Context separation based on document themes and deliverable management
 - **Minimal Props Coupling**: Components use only ComponentId or string-level coupling for lightweight data flow
-- **Perfect Separation of Concerns**: 5-layer hook architecture with specialized responsibilities
+- **Perfect Separation of Concerns**: 6-layer hook architecture with specialized responsibilities
 - **Delayed Evaluation Pattern**: Handlers access latest state through `store.getValue()` for optimal performance
 - **Selective Subscription Model**: UI-focused selective state subscriptions
 - **Effective Document-Artifact Management**: State management library that actively supports the relationship between documentation and deliverables
@@ -232,7 +245,7 @@ Page ↔ Page (Forbidden - Complete Isolation)
 
 #### 3. Hook-Based Delegation Pattern
 
-**5-Layer Hook Architecture** enables sophisticated delegation patterns:
+**6-Layer Hook Architecture** enables sophisticated delegation patterns:
 
 ```typescript
 // Parent Context: Defines dispatcher and subscriptions
@@ -336,17 +349,17 @@ Context-Action's `createStoreContext` provides type-safe and declarative store m
 
 > **Detailed Store Patterns**: See [Context-Action Complete Guide](context-action-complete-guide.md) for complete store implementation patterns, update conventions, and performance optimization.
 
-### 3. 5-Layer Hook Architecture Philosophy
+### 3. 6-Layer Hook Architecture Philosophy
 
-Context-Driven Architecture integrates with the Context-Action Framework's **5-Layer Hook Architecture** to maintain clear separation of concerns:
+Context-Driven Architecture integrates with the Context-Action Framework's **6-Layer Hook Architecture** to maintain clear separation of concerns:
 
 **Core Hook Layers**:
 - **contexts/**: Context resource type definitions and provider creation
-- **handlers/**: Internal function definitions for pipe registration with delayed evaluation
-- **subscriptions/**: Selective state subscriptions and parent context access
-- **registries/**: Handler registration with context lifecycle management
-- **dispatchers/**: on~ function generation with execution options for views
-- **views/**: UI components consuming dispatchers and subscriptions
+- **business/**: Pure business logic functions separated from side effects
+- **handlers/**: Handler injection pattern with latest value access and side effect management
+- **actions/**: Action dispatch functions and callback management
+- **hooks/**: Store subscriptions and computed values for reactive data access
+- **views/**: Pure UI components with minimal coupling and clear data flow
 
 **Hook Layer Responsibilities**:
 - Each hook layer has a single, specialized responsibility
@@ -357,12 +370,12 @@ Context-Driven Architecture integrates with the Context-Action Framework's **5-L
 
 **Data Flow Pattern**:
 ```
-Views → Dispatchers (on~) → Contexts → Registries → Handlers (delayed eval)
+Views → Actions → Handlers (injection) → Business Logic → Store Updates
   ↑                                                        ↓
-Subscriptions ←──────────── Store Updates ←──────────────┘
+Hooks (subscriptions) ←──────────── Store Changes ←──────┘
 ```
 
-> **Complete Implementation Guide**: See [Context-Action Complete Guide](context-action-complete-guide.md) for detailed 5-layer hook architecture implementation, atomic folder structures, and coding patterns.
+> **Complete Implementation Guide**: See [Context-Action Complete Guide](context-action-complete-guide.md) for detailed 6-layer hook architecture implementation, atomic folder structures, and coding patterns.
 
 ## Lightweight Props Architecture
 
@@ -630,6 +643,80 @@ function Card({ cardId, variant = 'primary', size = 'md' }: CardProps) {
 - **Hook Complexity Management**: Use features/ namespace when hook definitions exceed 10+ per layer
 - **Gradual Migration**: Existing code can be migrated to hook architecture context by context
 
+## Import and Module Organization
+
+### Module Import Standards
+
+Following the Context-Action framework's commitment to optimal build performance and maintainable code, all imports should adhere to these patterns:
+
+#### ✅ Recommended: Named Imports for Tree Shaking
+```typescript
+// Hook layer imports with named imports
+import { useUserStore, UserStoreData } from '../contexts/UserContext';
+import { createValidationError, validateUserData } from '../handlers/userValidationHandlers';
+import { useActionDispatch, useStoreValue } from '@context-action/react';
+
+// Systematic import organization for hook layers
+import React, { useState, useCallback, useEffect } from 'react';
+import { useUserStore } from '../contexts/UserContext';
+import { useUserActionHandler } from '../registries/userActionRegistry';
+import type { UserActions, UserStoreData } from '../types/user';
+```
+
+#### ✅ Recommended: Utility Functions over Static Classes
+```typescript
+// Utility functions for better tree shaking and linting compliance
+export function createHandlerError(message: string, context?: Record<string, any>): HandlerError {
+  return {
+    code: 'HANDLER_ERROR',
+    message,
+    timestamp: Date.now(),
+    context,
+    recoverable: true
+  };
+}
+
+export function validateContextData(data: unknown): boolean {
+  return data != null && typeof data === 'object';
+}
+
+// Usage: Direct function imports
+import { createHandlerError, validateContextData } from './contextUtils';
+```
+
+#### ❌ Patterns to Avoid
+```typescript
+// Namespace imports prevent tree shaking optimization
+import * as UserContext from '../contexts/UserContext';
+import * as ValidationHandlers from '../handlers/userValidationHandlers';
+
+// Static-only classes trigger linting warnings
+export class HandlerErrorFactory {
+  static createError(message: string): HandlerError {
+    // Implementation...
+  }
+}
+```
+
+#### Hook Layer Import Organization
+For the 6-layer hook architecture, organize imports systematically:
+
+```typescript
+// Layer organization: External → Framework → Relative → Types
+import React, { useState, useCallback } from 'react';
+import { useStoreValue, useActionDispatch } from '@context-action/react';
+import { useUserStore } from '../contexts/UserContext';
+import { useUserActionHandler } from '../registries/userActionRegistry';
+import type { UserActions, HandlerResult } from '../types/user';
+```
+
+#### Benefits of This Import Strategy
+- **Improved Tree Shaking**: Named imports enable more efficient bundle optimization
+- **Better Performance**: Reduced bundle size through elimination of unused exports
+- **Enhanced Developer Experience**: Clearer dependencies and import relationships
+- **Linting Compliance**: Avoids static-only class and namespace import warnings
+- **Type Safety**: Maintains full TypeScript support with optimized imports
+
 ## Implementation Guidelines
 
 ### 1. Minimal Props Design
@@ -674,7 +761,7 @@ Context-Driven Architecture provides a comprehensive approach to building mainta
 
 1. **Minimal Props Coupling**: ComponentId and string-level coupling only for lightweight, flexible components
 2. **Document-Centric Design**: Architecture follows documentation structure with atomic context units
-3. **5-Layer Hook Architecture**: Specialized hook layers with single responsibilities and delayed evaluation
+3. **6-Layer Hook Architecture**: Specialized hook layers with single responsibilities and delayed evaluation
 4. **Atomic Context Isolation**: Each context is completely independent with its own hook layers
 5. **Delayed Evaluation Pattern**: Handlers always access latest state for optimal performance
 6. **Selective Subscription Model**: UI-focused selective state subscriptions for performance
@@ -684,4 +771,4 @@ Context-Driven Architecture provides a comprehensive approach to building mainta
 
 This architectural approach enables teams to build applications that remain maintainable as they scale, with **minimal component coupling**, clear hook boundaries, predictable state flow, optimal performance characteristics, and excellent developer experience.
 
-**Next Steps**: Explore the [Context-Action Complete Guide](context-action-complete-guide.md) for hands-on hook implementation patterns, detailed 5-layer folder structures, and comprehensive coding examples with delayed evaluation and selective subscription patterns.
+**Next Steps**: Explore the [Context-Action Complete Guide](context-action-complete-guide.md) for hands-on hook implementation patterns, detailed 6-layer folder structures, and comprehensive coding examples with delayed evaluation and selective subscription patterns.

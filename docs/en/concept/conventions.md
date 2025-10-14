@@ -10,11 +10,12 @@ This document defines coding conventions and best practices when using the Conte
 4. [Pattern Usage](#pattern-usage)
 5. [Type Definitions](#type-definitions)
 6. [Code Style](#code-style)
-7. [Core Framework Principles](#core-framework-principles)
-8. [Store Update Conventions](#store-update-conventions)
-9. [Performance Guidelines](#performance-guidelines)
-10. [Error Handling](#error-handling)
-11. [RefContext Conventions](#refcontext-conventions)
+7. [Import and Module Patterns](#import-and-module-patterns)
+8. [Core Framework Principles](#core-framework-principles)
+9. [Store Update Conventions](#store-update-conventions)
+10. [Performance Guidelines](#performance-guidelines)
+11. [Error Handling](#error-handling)
+12. [RefContext Conventions](#refcontext-conventions)
 
 ---
 
@@ -1119,6 +1120,140 @@ import { InteractiveMouseTracker } from './InteractiveMouseTracker';
 // 6. Types
 import type { UserProfile } from '@/types/user.types';
 import type { MouseRefs } from '@/types/interaction.types';
+```
+
+### 📦 Import and Module Patterns
+
+#### Named Imports vs Namespace Imports
+
+**Prefer Named Imports for Tree Shaking and Bundle Optimization**
+
+```tsx
+// ✅ Recommended: Named imports for better tree shaking
+import { validateFormData, FormData, ValidationState } from '../business/businessLogic';
+import { createValidationError, createRefError } from '../utils/errorFactory';
+
+function FormComponent() {
+  const formData: FormData = { name: '', email: '' };
+  const result = validateFormData(formData);
+
+  if (!result.isValid) {
+    throw createValidationError('Form validation failed');
+  }
+}
+
+// ❌ Avoid: Namespace imports prevent efficient tree shaking
+import * as BusinessLogic from '../business/businessLogic';
+import * as ErrorFactory from '../utils/errorFactory';
+
+function FormComponent() {
+  const formData: BusinessLogic.FormData = { name: '', email: '' };
+  const result = BusinessLogic.validateFormData(formData);
+
+  if (!result.isValid) {
+    throw ErrorFactory.createValidationError('Form validation failed');
+  }
+}
+```
+
+**Benefits of Named Imports:**
+- **Tree Shaking**: Bundlers can eliminate unused exports more efficiently
+- **Bundle Size**: Reduces final bundle size by excluding unused code
+- **Static Analysis**: Better IDE support for unused import detection
+- **Performance**: Faster build times and runtime performance
+
+#### Function-Based Utils vs Static-Only Classes
+
+**Prefer Utility Functions Over Static-Only Classes**
+
+```tsx
+// ✅ Recommended: Pure utility functions
+export function createValidationError(message: string, context?: Record<string, any>): HandlerError {
+  return {
+    code: 'VALIDATION_ERROR',
+    message,
+    timestamp: Date.now(),
+    context,
+    recoverable: true
+  };
+}
+
+export function createRefError(message: string, refName: string): HandlerError {
+  return {
+    code: 'REF_ERROR',
+    message,
+    timestamp: Date.now(),
+    context: { refName },
+    recoverable: true
+  };
+}
+
+export function createSystemError(message: string): HandlerError {
+  return {
+    code: 'SYSTEM_ERROR',
+    message,
+    timestamp: Date.now(),
+    recoverable: false
+  };
+}
+
+// Usage: Direct function calls
+import { createValidationError, createRefError } from './errorUtils';
+
+if (!isValid) {
+  throw createValidationError('Invalid input', { field: 'email' });
+}
+
+// ❌ Avoid: Static-only classes (linting error)
+export class ErrorFactory {
+  static createValidationError(message: string, context?: Record<string, any>): HandlerError {
+    return {
+      code: 'VALIDATION_ERROR',
+      message,
+      timestamp: Date.now(),
+      context,
+      recoverable: true
+    };
+  }
+
+  static createRefError(message: string, refName: string): HandlerError {
+    // ... implementation
+  }
+}
+
+// Usage: Class method calls (less tree-shakable)
+import { ErrorFactory } from './errorUtils';
+
+if (!isValid) {
+  throw ErrorFactory.createValidationError('Invalid input', { field: 'email' });
+}
+```
+
+**Benefits of Utility Functions:**
+- **Tree Shaking**: Individual functions can be tree-shaken independently
+- **Linting Compliance**: Avoids "static-only class" linting warnings
+- **Functional Programming**: Promotes functional programming patterns
+- **Simplicity**: Cleaner import statements and usage
+- **Testing**: Easier to mock and test individual functions
+
+#### Import Organization
+
+```tsx
+// ✅ Recommended: Organized import structure
+// 1. React and external libraries
+import React, { useState, useCallback, useEffect } from 'react';
+import { z } from 'zod';
+
+// 2. Internal framework imports
+import { useStoreValue } from '@context-action/react';
+
+// 3. Relative imports (grouped by purpose)
+import { useRefRegistry } from '../contexts/RefContexts';
+import { validateFormData, FormData, ValidationState } from '../business/businessLogic';
+import { createValidationError, createRefError } from '../utils/errorFactory';
+
+// 4. Type-only imports (when needed)
+import type { ValidationResult } from '../types/validation';
 ```
 
 ---

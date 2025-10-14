@@ -16,7 +16,7 @@ A comprehensive architecture pattern for Context-Action framework applications, 
 
 ## 🏗️ Architecture Layers
 
-### 4-Layer Structure
+### 6-Layer Structure
 
 ```
 ├── contexts/     # 🗄️ Context Definitions
@@ -105,7 +105,7 @@ useCheckoutValidateHandler({
 ```
 docs/en/context-layered/
 ├── architecture/
-│   ├── folder-structure.md      # 4-Layer structure guide
+│   ├── folder-structure.md      # 6-Layer structure guide
 │   ├── responsibility-separation.md  # Layer responsibilities
 │   └── handler-registry.md      # Handler ID/Priority management
 ├── patterns/
@@ -141,7 +141,7 @@ Register handlers with props and set up context providers.
 
 ## 🔗 Related Documentation
 
-- [Folder Structure Guide](./architecture/folder-structure.md) - Detailed 4-layer structure
+- [Folder Structure Guide](./architecture/folder-structure.md) - Detailed 6-layer structure
 - [Props-based Handler Patterns](./patterns/props-based-handlers.md) - Handler implementation guides
 - [Handler Registry](./architecture/handler-registry.md) - ID and priority management
 - [Migration Guide](./migration-guide.md) - Migrate from traditional MVVM to Context-Layered
