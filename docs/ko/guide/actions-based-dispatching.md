@@ -72,6 +72,29 @@ await registry.actions.userLogout();
 await registry.actions.resetApp();
 ```
 
+### 5. 결과 수집이 있는 액션
+
+상세한 실행 결과가 필요한 경우 `actionsWithResult`를 사용하세요:
+
+```typescript
+// 결과 수집이 있는 액션
+const loginResult = await registry.actionsWithResult.userLogin({ 
+  userId: '123', 
+  email: 'user@example.com' 
+});
+
+console.log('로그인 결과:', {
+  success: loginResult.success,
+  duration: loginResult.execution.duration,
+  handlersExecuted: loginResult.execution.handlersExecuted,
+  results: loginResult.results
+});
+
+// 페이로드가 없는 액션의 결과 수집
+const logoutResult = await registry.actionsWithResult.userLogout();
+console.log('로그아웃 결과:', logoutResult);
+```
+
 ## 고급 기능
 
 ### 옵션 지원

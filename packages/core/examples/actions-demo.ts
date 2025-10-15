@@ -99,6 +99,32 @@ async function demonstrateProtoc() {
   console.log('\\n🎉 Action-based dispatching demonstration completed!');
   console.log('='.repeat(60));
 
+  // Demo 4: 🆕 Actions with Result Collection
+  console.log('\\n📋 Demo 4: Actions with Result Collection');
+  console.log('-'.repeat(40));
+  console.log('Using registry.actionsWithResult for detailed execution results');
+  
+  // Actions with result collection
+  const loginResult = await registry.actionsWithResult.userLogin({ 
+    userId: '456', 
+    email: 'result@example.com' 
+  });
+  console.log('\\n🔍 Login Result:');
+  console.log(`  Success: ${loginResult.success}`);
+  console.log(`  Duration: ${loginResult.execution.duration}ms`);
+  console.log(`  Handlers Executed: ${loginResult.execution.handlersExecuted}`);
+  console.log(`  Results:`, loginResult.results);
+
+  const processResult = await registry.actionsWithResult.processData(
+    { data: { name: 'result-test' }, type: 'json' },
+    { executionMode: 'parallel' }
+  );
+  console.log('\\n🔍 Process Data Result:');
+  console.log(`  Success: ${processResult.success}`);
+  console.log(`  Duration: ${processResult.execution.duration}ms`);
+  console.log(`  Handlers Executed: ${processResult.execution.handlersExecuted}`);
+  console.log(`  Results:`, processResult.results);
+
   // Show registry stats
   const stats = registry.getRegistryInfo();
   console.log('\\n📊 Registry Statistics:');

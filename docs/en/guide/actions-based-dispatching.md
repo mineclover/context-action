@@ -72,6 +72,29 @@ await registry.actions.userLogout();
 await registry.actions.resetApp();
 ```
 
+### 5. Actions with Result Collection
+
+For detailed execution results, use `actionsWithResult`:
+
+```typescript
+// Actions with result collection
+const loginResult = await registry.actionsWithResult.userLogin({ 
+  userId: '123', 
+  email: 'user@example.com' 
+});
+
+console.log('Login Result:', {
+  success: loginResult.success,
+  duration: loginResult.execution.duration,
+  handlersExecuted: loginResult.execution.handlersExecuted,
+  results: loginResult.results
+});
+
+// Actions without payload with result collection
+const logoutResult = await registry.actionsWithResult.userLogout();
+console.log('Logout Result:', logoutResult);
+```
+
 ## Advanced Features
 
 ### Options Support

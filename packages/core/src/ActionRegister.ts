@@ -158,6 +158,67 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   }
 
   /**
+   * Actions-based dispatching with result collection
+   * 
+   * Provides a function-based interface for dispatching actions with detailed execution results.
+   * Each registered action becomes a callable function that returns ExecutionResult.
+   * 
+   * @example
+   * ```typescript
+   * // Actions with payload
+   * const result = await registry.actionsWithResult.userLogin({ userId: '123', email: 'user@example.com' });
+   * 
+   * // Actions without payload
+   * const result = await registry.actionsWithResult.userLogout();
+   * 
+   * // With options
+   * const result = await registry.actionsWithResult.processData(
+   *   { data: { name: 'test' }, type: 'json' },
+   *   { executionMode: 'parallel' }
+   * );
+   * ```
+   * 
+   * @returns Proxy object with action functions that return ExecutionResult
+   */
+  get actionsWithResult(): {
+    [K in keyof T]: T[K] extends void
+      ? (options?: DispatchOptions) => Promise<ExecutionResult<any>>
+      : (payload: T[K], options?: DispatchOptions) => Promise<ExecutionResult<any>>
+  } {
+    return new Proxy({} as any, {
+      get: (target, prop: string | symbol) => {
+        // Type guard to ensure prop is a valid action key
+        if (typeof prop === 'string' && prop in this.pipelines) {
+          const actionKey = prop as keyof T;
+          return (payloadOrOptions?: T[typeof actionKey] | DispatchOptions, options?: DispatchOptions) => {
+            // Type guard to determine if first parameter is DispatchOptions
+            const isDispatchOptions = (obj: any): obj is DispatchOptions => {
+              return obj && typeof obj === 'object' && (
+                'debounce' in obj || 
+                'throttle' in obj || 
+                'executionMode' in obj ||
+                'signal' in obj ||
+                'immediate' in obj ||
+                'filter' in obj ||
+                'result' in obj
+              );
+            };
+
+            if (payloadOrOptions && isDispatchOptions(payloadOrOptions)) {
+              // First parameter is options
+              return this.dispatchWithResult(actionKey, undefined, payloadOrOptions);
+            } else {
+              // First parameter is payload (or undefined for void actions)
+              return this.dispatchWithResult(actionKey, payloadOrOptions as T[typeof actionKey], options);
+            }
+          };
+        }
+        return undefined;
+      }
+    });
+  }
+
+  /**
    * Register an action handler with optional configuration
    * 
    * @param action - The action type to register handler for
