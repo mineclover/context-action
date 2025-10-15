@@ -7,7 +7,7 @@ import {
 } from '@/utils/logger';
 import { LogMonitorLiveDemo } from '@/components/demos/LogMonitorLiveDemo';
 import { type ActionPayloadMap, ActionRegister } from '@context-action/react';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   PageWithLogMonitor,
   useActionLoggerWithToast,
@@ -244,7 +244,7 @@ function ConsoleLoggerDemo() {
     };
   }, [actionRegister, logger, actionLogger]);
 
-  const testActions = useCallback(() => {
+  const testActions = () => {
     logger.trace('Testing trace level');
     logger.debug('Testing debug level');
     logger.info('Testing info level');
@@ -256,26 +256,26 @@ function ConsoleLoggerDemo() {
       context: 'ConsoleLogger Demo',
       toast: { type: 'info', message: '로그 레벨 테스트 완료' },
     });
-  }, [logger, actionLogger]);
+  };
 
-  const dispatchAction = useCallback(() => {
+  const dispatchAction = () => {
     actionRegister.dispatch('performAction', {
       type: 'TEST',
       data: { value: 42 },
     });
-  }, [actionRegister]);
+  };
 
-  const dispatchAsync = useCallback(() => {
+  const dispatchAsync = () => {
     actionRegister.dispatch('asyncAction', { delay: 1000 });
-  }, [actionRegister]);
+  };
 
-  const dispatchError = useCallback(() => {
+  const dispatchError = () => {
     try {
       actionRegister.dispatch('throwError', { message: 'Test error message' });
     } catch (_e) {
       // Error is logged automatically
     }
-  }, [actionRegister]);
+  };
 
   return (
     <div className="demo-card">

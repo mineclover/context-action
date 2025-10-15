@@ -282,13 +282,13 @@ function TodoList() {
   const filter = useStoreValue(filterStore);
   const dispatch = useTodoAction();
   
-  const filteredTodos = useMemo(() => {
+  const filteredTodos = (() => {
     switch (filter) {
       case 'active': return todos.filter(t => !t.completed);
       case 'completed': return todos.filter(t => t.completed);
       default: return todos;
     }
-  }, [todos, filter]);
+  })();
   
   return (
     <div>

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import {
   PageWithLogMonitor,
   useActionLoggerWithToast,
@@ -17,14 +17,14 @@ function BasicToastDemo() {
   const { logAction } = useActionLoggerWithToast();
   const [message, setMessage] = useState('');
 
-  const handleTestToast = useCallback(() => {
+  const handleTestToast = () => {
     logAction('testBasicToast', {
       message: '기본 Toast 테스트',
       timestamp: new Date().toISOString(),
     });
-  }, [logAction]);
+  };
 
-  const handleCustomMessage = useCallback(() => {
+  const handleCustomMessage = () => {
     if (message.trim()) {
       logAction('customMessage', {
         userMessage: message,
@@ -32,7 +32,7 @@ function BasicToastDemo() {
       });
       setMessage('');
     }
-  }, [logAction, message]);
+  };
 
   return (
     <DemoCard>
@@ -147,7 +147,7 @@ function RealTimeActionsDemo() {
   const [counter, setCounter] = useState(0);
   const [autoMode, setAutoMode] = useState(false);
 
-  const handleIncrement = useCallback(() => {
+  const handleIncrement = () => {
     const newValue = counter + 1;
     setCounter(newValue);
     logAction('incrementCounter', {
@@ -155,17 +155,17 @@ function RealTimeActionsDemo() {
       newValue,
       timestamp: Date.now(),
     });
-  }, [counter, logAction]);
+  };
 
-  const handleReset = useCallback(() => {
+  const handleReset = () => {
     setCounter(0);
     logAction('resetCounter', {
       previousValue: counter,
       resetTime: new Date().toISOString(),
     });
-  }, [counter, logAction]);
+  };
 
-  const toggleAutoMode = useCallback(() => {
+  const toggleAutoMode = () => {
     const newMode = !autoMode;
     setAutoMode(newMode);
     logAction('toggleAutoMode', {
@@ -196,7 +196,7 @@ function RealTimeActionsDemo() {
         });
       }, 10000);
     }
-  }, [autoMode, counter, logAction]);
+  };
 
   return (
     <DemoCard>

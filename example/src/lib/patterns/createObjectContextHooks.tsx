@@ -372,7 +372,7 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
       return () => {
         manager.removeEventListener(eventType, listener);
       };
-    }, [manager, eventType, listener, ...dependencies]);
+    }, []);
   };
 
   /**
@@ -421,9 +421,9 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
       if (focusedObjectStore.getValue() === id) {
         focusedObjectStore.setValue(null);
       }
-    }, [manager, storeManager]));
+    });
 
-    useObjectActionHandler('update', useCallback(async (payload) => {
+    useObjectActionHandler('update', async (payload) => {
       const { id, object, metadata, contextMetadata } = payload;
       await manager.update(id, object, metadata, contextMetadata);
       
@@ -436,7 +436,7 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
         updatedObjects.set(id, objectMetadata);
         objectsStore.setValue(updatedObjects);
       }
-    }, [manager, storeManager]));
+    });
 
     // 생명주기 상태 변경 핸들러들
     const handleLifecycleChange = async (actionType: string, payload: any) => {
@@ -452,7 +452,7 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
         updatedObjects.set(payload.id, objectMetadata);
         objectsStore.setValue(updatedObjects);
       }
-    });
+    };
 
     useObjectActionHandler('activate', async (payload) => {
       await handleLifecycleChange('activate', payload);
@@ -481,7 +481,7 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
       const selectedObjects = manager.getSelectedObjects();
       const selectedObjectsStore = storeManager.getStore('selectedObjects');
       selectedObjectsStore.setValue(selectedObjects);
-    }, [config.enableSelection, manager, storeManager]);
+    };
 
     const clearSelectionHandler = async () => {
       if (!config.enableSelection) return;
@@ -492,7 +492,7 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
       // Store 동기화
       const selectedObjectsStore = storeManager.getStore('selectedObjects');
       selectedObjectsStore.setValue([]);
-    }, [config.enableSelection, manager, storeManager]);
+    };
 
     useObjectActionHandler('select', selectHandler);
     useObjectActionHandler('clearSelection', clearSelectionHandler);
@@ -508,7 +508,7 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
       const focusedObject = manager.getFocusedObject();
       const focusedObjectStore = storeManager.getStore('focusedObject');
       focusedObjectStore.setValue(focusedObject);
-    }, [config.enableFocus, manager, storeManager]);
+    };
 
     const clearFocusHandler = async () => {
       if (!config.enableFocus) return;
@@ -519,7 +519,7 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
       // Store 동기화
       const focusedObjectStore = storeManager.getStore('focusedObject');
       focusedObjectStore.setValue(null);
-    }, [config.enableFocus, manager, storeManager]);
+    };
 
     useObjectActionHandler('focus', focusHandler);
     useObjectActionHandler('clearFocus', clearFocusHandler);
@@ -545,7 +545,7 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
       // 정리 시간 업데이트
       const lastCleanupStore = storeManager.getStore('lastCleanup');
       lastCleanupStore.setValue(new Date().toISOString());
-    }, [manager, storeManager]));
+    });
   };
 
   /**
@@ -568,7 +568,7 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
           managerStore.setValue(null);
         }
       };
-    }, [managerStore]);
+    }, []);
 
     return <>{children}</>;
   };

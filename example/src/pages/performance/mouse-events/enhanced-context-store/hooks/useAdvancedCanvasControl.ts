@@ -229,7 +229,7 @@ export function useAdvancedCanvasControl() {
     
     dispatch('leaveArea', { timestamp: Date.now() });
     pathPointsRef.current = [];
-  }, [cursorRef, coordinatesRef, pathSvgRef, dispatch]);
+  };
   
   // === 리셋 핸들러 (모든 마커 제거) ===
   const handleReset = () => {
@@ -261,43 +261,43 @@ export function useAdvancedCanvasControl() {
     
     // Store 리셋
     dispatch('reset');
-  }, [pathSvgRef, cursorRef, coordinatesRef, clickMarkersRef, dispatch]);
+  };
   
   // === Non-Reactive 데이터 조회 ===
-  const getActivityStatus = useCallback(() => {
+  const getActivityStatus = () => {
     const activity = storeData.stores.activity.getValue();
     return {
       isActive: activity.isInsideArea,
       statusText: activity.current.toUpperCase()
     };
-  }, [storeData]);
+  };
   
-  const refreshMetrics = useCallback(() => {
+  const refreshMetrics = () => {
     const allData = storeData.dumpAllStoreData();
     console.log('📊 Non-Reactive Metrics:', allData);
     return allData;
-  }, [storeData]);
+  };
   
   // === DOM 참조 설정 함수들 ===
-  const setContainerRef = useCallback((el: HTMLDivElement | null) => {
+  const setContainerRef = (el: HTMLDivElement | null) => {
     containerRef.setRef(el);
-  }, [containerRef]);
+  };
   
-  const setCursorRef = useCallback((el: HTMLDivElement | null) => {
+  const setCursorRef = (el: HTMLDivElement | null) => {
     cursorRef.setRef(el);
-  }, [cursorRef]);
+  };
   
-  const setPathSvgRef = useCallback((el: SVGPathElement | null) => {
+  const setPathSvgRef = (el: SVGPathElement | null) => {
     pathSvgRef.setRef(el);
-  }, [pathSvgRef]);
+  };
   
-  const setCoordinatesRef = useCallback((el: HTMLDivElement | null) => {
+  const setCoordinatesRef = (el: HTMLDivElement | null) => {
     coordinatesRef.setRef(el);
-  }, [coordinatesRef]);
+  };
   
-  const setClickMarkersRef = useCallback((el: HTMLDivElement | null) => {
+  const setClickMarkersRef = (el: HTMLDivElement | null) => {
     clickMarkersRef.setRef(el);
-  }, [clickMarkersRef]);
+  };
   
   return {
     // 이벤트 핸들러들
