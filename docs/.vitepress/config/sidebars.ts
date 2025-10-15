@@ -16,6 +16,7 @@ const GUIDE_STRUCTURE = {
       collapsed: false,
       items: [
         { text: 'Getting Started', link: '/en/guide/getting-started' },
+        { text: 'Actions-based Dispatching', link: '/en/guide/actions-based-dispatching' },
         { text: 'Code Patterns', link: '/en/guide/code-patterns' },
         { text: 'Best Practices', link: '/en/guide/best-practices' }
       ]
@@ -187,6 +188,7 @@ const GUIDE_STRUCTURE = {
       collapsed: false,
       items: [
         { text: '시작하기', link: '/ko/guide/getting-started' },
+        { text: 'Actions 기반 디스패칭', link: '/ko/guide/actions-based-dispatching' },
         { text: '코드 패턴', link: '/ko/guide/code-patterns' },
         { text: '모범 사례', link: '/ko/guide/best-practices' }
       ]
