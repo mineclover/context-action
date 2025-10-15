@@ -166,7 +166,7 @@ export function ShoppingCartPage() {
 {`// 1. 장바구니 추가 로직
 const addToCartHandler = useCallback(
   ({ productId, quantity }: { productId: string; quantity: number }) => {
-    cartStore.updateValue((prev) => {
+    cartStore.update((prev) => {
       const existingItem = prev.find(item => item.productId === productId);
       
       if (existingItem) {

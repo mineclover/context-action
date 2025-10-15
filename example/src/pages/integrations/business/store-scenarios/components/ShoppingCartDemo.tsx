@@ -32,7 +32,7 @@ export function ShoppingCartDemo() {
   // 액션 핸들러들을 useCallback으로 메모이제이션
   const addToCartHandler = useCallback(
     ({ productId, quantity }: { productId: string; quantity: number }) => {
-      cartStore.updateValue((prev) => {
+      cartStore.update((prev) => {
         const existingItem = prev.find(
           (item) => item.productId === productId
         );
@@ -51,7 +51,7 @@ export function ShoppingCartDemo() {
 
   const removeFromCartHandler = useCallback(
     ({ productId }: { productId: string }) => {
-      cartStore.updateValue((prev) =>
+      cartStore.update((prev) =>
         prev.filter((item) => item.productId !== productId)
       );
     },
@@ -60,7 +60,7 @@ export function ShoppingCartDemo() {
 
   const updateCartQuantityHandler = useCallback(
     ({ productId, quantity }: { productId: string; quantity: number }) => {
-      cartStore.updateValue((prev) =>
+      cartStore.update((prev) =>
         prev.map((item) =>
           item.productId === productId ? { ...item, quantity } : item
         )

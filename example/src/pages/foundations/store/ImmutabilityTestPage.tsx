@@ -147,7 +147,7 @@ function StoreImmutabilityTestPage() {
     addResult('🧪 테스트 3: update 함수 내 객체 수정');
 
     try {
-      userStore.updateValue((currentUser) => {
+      userStore.update((currentUser) => {
         addResult(`Update 함수 내 현재 이름: ${currentUser.name}`);
 
         let modificationSucceeded = false;
@@ -537,7 +537,7 @@ function StoreImmutabilityTestPage() {
             <div>
               <strong>테스트 3: update 보호</strong>
               <p className="text-gray-600 mb-2">
-                <code>store.updateValue(currentValue =&gt; ...)</code> 함수 내에서 <code>currentValue.name = "Hacked Name"</code>, <code>currentValue.profile.age = 777</code> 등으로 직접 변경 시도
+                <code>store.update(currentValue =&gt; ...)</code> 함수 내에서 <code>currentValue.name = "Hacked Name"</code>, <code>currentValue.profile.age = 777</code> 등으로 직접 변경 시도
               </p>
               <div className="bg-green-50 border-l-4 border-green-400 p-2">
                 <p className="text-green-700 text-xs">

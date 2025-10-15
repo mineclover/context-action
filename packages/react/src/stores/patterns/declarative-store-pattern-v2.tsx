@@ -178,12 +178,6 @@ export class StoreManager<T extends Record<string, any>> {
       tags = ['declarative', strategy];
     }
 
-    // Ensure initialValue is not undefined
-    if (initialValue === undefined) {
-      console.warn(`Store '${String(storeName)}' has undefined initial value. Using empty object as fallback.`);
-      initialValue = {} as T[K];
-    }
-
     // Create store
     const store = createStore(String(storeName), initialValue);
     

@@ -214,7 +214,7 @@ function useApiBlockingLogic() {
           responseTime,
         };
 
-        blockingStore.updateValue((state) => ({
+        blockingStore.update((state) => ({
           ...state,
           apiCalls: [newRecord, ...state.apiCalls].slice(0, 20),
           successCount: state.successCount + 1,
@@ -242,7 +242,7 @@ function useApiBlockingLogic() {
           status: 'blocked',
         };
 
-        blockingStore.updateValue((state) => ({
+        blockingStore.update((state) => ({
           ...state,
           apiCalls: [newRecord, ...state.apiCalls].slice(0, 20),
           blockedCount: state.blockedCount + 1,
@@ -263,7 +263,7 @@ function useApiBlockingLogic() {
       ({ action, duration, timestamp }, controller) => {
         logAction('startBlocking', { action, duration, timestamp });
 
-        blockingStore.updateValue((state) => ({
+        blockingStore.update((state) => ({
           ...state,
           isBlocked: true,
           blockedAction: action,
@@ -278,7 +278,7 @@ function useApiBlockingLogic() {
       ({ action, timestamp }, controller) => {
         logAction('endBlocking', { action, timestamp });
 
-        blockingStore.updateValue((state) => ({
+        blockingStore.update((state) => ({
           ...state,
           isBlocked: false,
           blockedAction: null,
@@ -292,7 +292,7 @@ function useApiBlockingLogic() {
       ({ duration }, controller) => {
         logAction('setBlockDuration', { duration });
 
-        blockingStore.updateValue((state) => ({
+        blockingStore.update((state) => ({
           ...state,
           blockDuration: duration,
         }));
@@ -304,7 +304,7 @@ function useApiBlockingLogic() {
       (_, controller) => {
         logAction('clearHistory', {});
 
-        blockingStore.updateValue((state) => ({
+        blockingStore.update((state) => ({
           ...state,
           apiCalls: [] as ApiCallRecord[],
           successCount: 0,

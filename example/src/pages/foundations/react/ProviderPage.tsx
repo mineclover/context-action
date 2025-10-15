@@ -368,7 +368,7 @@ function ActionHandlerSetup() {
   ProviderActions.useActionHandler('logActivity', ({ activity }) => {
     const timestamp = new Date().toLocaleTimeString();
     const logEntry = `${timestamp}: ${activity}`;
-    activitiesStore.updateValue((prev) => [...prev, logEntry]);
+    activitiesStore.update((prev) => [...prev, logEntry]);
   });
 
   return null; // 이 컴포넌트는 UI를 렌더링하지 않음

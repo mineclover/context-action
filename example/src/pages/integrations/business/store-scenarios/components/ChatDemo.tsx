@@ -444,10 +444,10 @@ function ChatComponent() {
         timestamp: new Date(),
         type,
       };
-      messagesStore.updateValue((prev) => [...prev, newMessage]);
+      messagesStore.update((prev) => [...prev, newMessage]);
     },
     deleteMessage: ({ messageId }: { messageId: string }) => {
-      messagesStore.updateValue((prev) =>
+      messagesStore.update((prev) =>
         prev.filter((msg) => msg.id !== messageId)
       );
     },
@@ -467,10 +467,10 @@ function ChatComponent() {
           timestamp: new Date(),
           type,
         };
-        messagesStore.updateValue((prev) => [...prev, newMessage]);
+        messagesStore.update((prev) => [...prev, newMessage]);
       },
       deleteMessage: ({ messageId }: { messageId: string }) => {
-        messagesStore.updateValue((prev) =>
+        messagesStore.update((prev) =>
           prev.filter((msg) => msg.id !== messageId)
         );
       },

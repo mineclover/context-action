@@ -50,7 +50,7 @@ export function usePriorityPerformanceLogic() {
         currentState.instances.length + 1
       );
 
-      performanceStore.updateValue((state) => ({
+      performanceStore.update((state) => ({
         ...state,
         instances: [...state.instances, newInstance],
       }));
@@ -62,7 +62,7 @@ export function usePriorityPerformanceLogic() {
     const unregisterRemove = register.register(
       'removeInstance',
       ({ instanceId }, controller) => {
-        performanceStore.updateValue((state) => ({
+        performanceStore.update((state) => ({
           ...state,
           instances: state.instances.filter(
             (instance) => instance.id !== instanceId
@@ -82,7 +82,7 @@ export function usePriorityPerformanceLogic() {
           { id: 'instance-b', title: '🔵 Priority Test Instance B' },
         ];
 
-        performanceStore.updateValue((state) => ({
+        performanceStore.update((state) => ({
           ...state,
           instances: defaultInstances,
           runningInstances: new Set<string>(),
@@ -96,7 +96,7 @@ export function usePriorityPerformanceLogic() {
     const unregisterStartExecution = register.register(
       'startInstanceExecution',
       ({ instanceId }, controller) => {
-        performanceStore.updateValue((state) => {
+        performanceStore.update((state) => {
           const newRunningInstances = new Set(state.runningInstances);
           newRunningInstances.add(instanceId);
           return {
@@ -111,7 +111,7 @@ export function usePriorityPerformanceLogic() {
     const unregisterStopExecution = register.register(
       'stopInstanceExecution',
       ({ instanceId }, controller) => {
-        performanceStore.updateValue((state) => {
+        performanceStore.update((state) => {
           const newRunningInstances = new Set(state.runningInstances);
           newRunningInstances.delete(instanceId);
           return {

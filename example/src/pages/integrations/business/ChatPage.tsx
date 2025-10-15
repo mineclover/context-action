@@ -173,7 +173,7 @@ const sendMessageHandler = useCallback(
       timestamp: new Date(),
       type,
     };
-    messagesStore.updateValue((prev) => [...prev, newMessage]);
+    messagesStore.update((prev) => [...prev, newMessage]);
   },
   [messagesStore]
 );

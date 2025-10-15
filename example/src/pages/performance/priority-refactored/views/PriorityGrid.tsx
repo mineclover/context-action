@@ -88,7 +88,7 @@ export const PriorityGrid = memo<PriorityGridProps>(
 
       if (event.button === 0) {
         // 좌클릭: +1
-        priorityCountsStore.updateValue((counts) => ({
+        priorityCountsStore.update((counts) => ({
           ...counts,
           [priority]: (counts[priority] || 0) + 1,
         }));
@@ -101,7 +101,7 @@ export const PriorityGrid = memo<PriorityGridProps>(
       event.preventDefault();
 
       // 우클릭: -1 (최소값 0)
-      priorityCountsStore.updateValue((counts) => ({
+      priorityCountsStore.update((counts) => ({
         ...counts,
         [priority]: Math.max(0, (counts[priority] || 0) - 1),
       }));

@@ -68,7 +68,7 @@ function UserProfileDemoInner() {
 
   const updateUserThemeHandler = useCallback(
     ({ theme }: { theme: User['preferences']['theme'] }) => {
-      userStore.updateValue((prev) => ({
+      userStore.update((prev) => ({
         ...prev,
         preferences: { ...prev.preferences, theme },
       }));
@@ -78,7 +78,7 @@ function UserProfileDemoInner() {
 
   const toggleNotificationsHandler = useCallback(
     ({ enabled }: { enabled: boolean }) => {
-      userStore.updateValue((prev) => ({
+      userStore.update((prev) => ({
         ...prev,
         preferences: { ...prev.preferences, notifications: enabled },
       }));

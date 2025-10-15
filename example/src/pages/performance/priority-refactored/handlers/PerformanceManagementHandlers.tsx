@@ -49,7 +49,7 @@ export function PerformanceManagementHandlers({
       const currentState = performanceStore.getValue();
       const newInstance = generateNewInstance(currentState.instances.length + 1);
 
-      performanceStore.updateValue((state) => ({
+      performanceStore.update((state) => ({
         ...state,
         instances: [...state.instances, newInstance],
       }));
@@ -77,7 +77,7 @@ export function PerformanceManagementHandlers({
         return;
       }
 
-      performanceStore.updateValue((state) => ({
+      performanceStore.update((state) => ({
         ...state,
         instances: state.instances.filter((instance) => instance.id !== instanceId),
       }));
@@ -96,7 +96,7 @@ export function PerformanceManagementHandlers({
         { id: 'instance-b', title: '🔵 Priority Test Instance B' },
       ];
 
-      performanceStore.updateValue((state) => ({
+      performanceStore.update((state) => ({
         ...state,
         instances: defaultInstances,
         runningInstances: new Set<string>(),
@@ -111,7 +111,7 @@ export function PerformanceManagementHandlers({
   usePerformanceManagementActionHandler(
     'startInstanceExecution',
     useCallback(async ({ instanceId }, controller) => {
-      performanceStore.updateValue((state) => {
+      performanceStore.update((state) => {
         const newRunningInstances = new Set(state.runningInstances);
         newRunningInstances.add(instanceId);
         return {
@@ -129,7 +129,7 @@ export function PerformanceManagementHandlers({
   usePerformanceManagementActionHandler(
     'stopInstanceExecution',
     useCallback(async ({ instanceId }, controller) => {
-      performanceStore.updateValue((state) => {
+      performanceStore.update((state) => {
         const newRunningInstances = new Set(state.runningInstances);
         newRunningInstances.delete(instanceId);
         return {

@@ -26,8 +26,8 @@ export function CacheHandlers({ onExecutionStep, onHandlerExecution }: CacheHand
     if (payload.bustCache) {
       console.log('💥 Cache bust requested, clearing memory cache');
       
-      // Use store.updateValue() to modify cache following Context-Action conventions
-      cacheStore.updateValue(currentCache => {
+      // Use store.update() to modify cache following Context-Action conventions
+      cacheStore.update(currentCache => {
         currentCache.memoryCache.delete(payload.key);
         return currentCache;
       });
@@ -71,8 +71,8 @@ export function CacheHandlers({ onExecutionStep, onHandlerExecution }: CacheHand
       console.log('🎯 Redis cache HIT - Populate memory cache and return');
       onExecutionStep('🎯 Redis Cache HIT - Early Return');
       
-      // Populate memory cache for next time using store.updateValue()
-      cacheStore.updateValue(currentCache => {
+      // Populate memory cache for next time using store.update()
+      cacheStore.update(currentCache => {
         currentCache.memoryCache.set(payload.key, cachedData);
         return currentCache;
       });
@@ -111,8 +111,8 @@ export function CacheHandlers({ onExecutionStep, onHandlerExecution }: CacheHand
     console.log('✅ Database fetch successful - Populating caches');
     onExecutionStep('✅ Database Fetch Complete - Populating Caches');
     
-    // Populate both cache levels using store.updateValue()
-    cacheStore.updateValue(currentCache => {
+    // Populate both cache levels using store.update()
+    cacheStore.update(currentCache => {
       currentCache.memoryCache.set(payload.key, freshData);
       currentCache.redisCache.set(payload.key, freshData);
       return currentCache;

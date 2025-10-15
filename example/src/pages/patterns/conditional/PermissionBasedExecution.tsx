@@ -24,7 +24,7 @@ function PermissionHandlers() {
     const userRole = userRoleStore.getValue();
     
     // Security Guard Pattern: Permission validation at entry
-    logsStore.updateValue(logs => addLog(logs, 'info', '🔒 Permission check started', { 
+    logsStore.update(logs => addLog(logs, 'info', '🔒 Permission check started', { 
       action: payload.action,
       userId: payload.userId,
       userRole,
@@ -69,19 +69,19 @@ function PermissionHandlers() {
         userAgent: 'Demo Browser'
       };
 
-      auditLogsStore.updateValue(logs => [...logs, auditEntry]);
+      auditLogsStore.update(logs => [...logs, auditEntry]);
 
       if (userLevel < requiredLevel) {
         // Fail-secure by default
         const errorMsg = `Access denied: ${userRole} (level ${userLevel}) insufficient for ${payload.action} (requires level ${requiredLevel})`;
-        logsStore.updateValue(logs => addLog(logs, 'error', '❌ Permission denied', { 
+        logsStore.update(logs => addLog(logs, 'error', '❌ Permission denied', { 
           error: errorMsg,
           userRole,
           requiredAction: payload.action
         }));
         
         const permissionResultsStore = stores.getStore('permissionResults');
-        permissionResultsStore.updateValue(results => [...results, {
+        permissionResultsStore.update(results => [...results, {
           action: payload.action,
           userId: payload.userId,
           userRole,
@@ -96,7 +96,7 @@ function PermissionHandlers() {
 
       // Permission granted
       const permissionResultsStore = stores.getStore('permissionResults');
-      permissionResultsStore.updateValue(results => [...results, {
+      permissionResultsStore.update(results => [...results, {
         action: payload.action,
         userId: payload.userId,
         userRole,
@@ -105,14 +105,14 @@ function PermissionHandlers() {
         timestamp: Date.now()
       }]);
 
-      logsStore.updateValue(logs => addLog(logs, 'success', '✅ Permission granted', { 
+      logsStore.update(logs => addLog(logs, 'success', '✅ Permission granted', { 
         action: payload.action,
         userRole
       }));
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logsStore.updateValue(logs => addLog(logs, 'error', '❌ Permission check failed', { error: errorMessage }));
+      logsStore.update(logs => addLog(logs, 'error', '❌ Permission check failed', { error: errorMessage }));
       controller.abort(`Permission check failed: ${errorMessage}`);
     }
   }, {
@@ -125,7 +125,7 @@ function PermissionHandlers() {
     const logsStore = stores.getStore('logs');
     
     // Security Guard Pattern: Execute permission check first
-    logsStore.updateValue(logs => addLog(logs, 'info', '🛡️ Secure action initiated', { 
+    logsStore.update(logs => addLog(logs, 'info', '🛡️ Secure action initiated', { 
       action: payload.action,
       userId: payload.userId
     }));
@@ -138,7 +138,7 @@ function PermissionHandlers() {
       const result = await mockServices.executeSecureOperation(payload.action, payload.payload);
       
       const permissionResultsStore = stores.getStore('permissionResults');
-      permissionResultsStore.updateValue(results => [...results, {
+      permissionResultsStore.update(results => [...results, {
         action: `secure-${payload.action}`,
         userId: payload.userId,
         granted: true,
@@ -147,14 +147,14 @@ function PermissionHandlers() {
         timestamp: Date.now()
       }]);
 
-      logsStore.updateValue(logs => addLog(logs, 'success', '✅ Secure action completed', { 
+      logsStore.update(logs => addLog(logs, 'success', '✅ Secure action completed', { 
         action: payload.action,
         result
       }));
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logsStore.updateValue(logs => addLog(logs, 'error', '❌ Secure action failed', { error: errorMessage }));
+      logsStore.update(logs => addLog(logs, 'error', '❌ Secure action failed', { error: errorMessage }));
       controller.abort(`Secure action failed: ${errorMessage}`);
     }
   }, {
