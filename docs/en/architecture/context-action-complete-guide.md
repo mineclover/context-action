@@ -2,7 +2,8 @@
 
 A comprehensive implementation guide with practical patterns, folder structures, and development conventions for the **Context-Action Framework**.
 
-> **For architectural principles and philosophy, see [Context-Driven Architecture](context-driven-architecture.md)**
+> **For architectural principles and philosophy, see [Context-Driven Architecture](context-driven-architecture.md)**  
+> **For React Compiler integration and performance optimization, see [React Compiler Integration](react-compiler-integration.md)**
 
 ## 📋 Table of Contents
 
@@ -1416,6 +1417,44 @@ import { useUserDispatchers } from '../dispatchers/useUserDispatchers';
 ---
 
 ## Quality & Performance
+
+### React Compiler Integration
+
+For optimal performance with the Context-Action Framework, integrate React Compiler for automatic memoization:
+
+```tsx
+// ✅ Optimized component with React Compiler
+export function UserManagement() {
+  "use memo";
+  
+  const [users, setUsers] = useState<User[]>([]);
+  
+  // Automatically memoized by React Compiler
+  const addUser = (user: User) => {
+    setUsers(prev => [...prev, user]);
+  };
+  
+  const updateUser = (id: string, updates: Partial<User>) => {
+    setUsers(prev => prev.map(user => 
+      user.id === id ? { ...user, ...updates } : user
+    ));
+  };
+  
+  return (
+    <div>
+      {/* Component JSX */}
+    </div>
+  );
+}
+```
+
+**Benefits:**
+- **Automatic Memoization** - No manual `useCallback` or `useMemo` needed
+- **Infinite Loop Prevention** - Prevents common React performance issues
+- **Cleaner Code** - Reduces boilerplate optimization code
+- **Better Performance** - Compile-time optimizations
+
+> **For detailed React Compiler integration guide, see [React Compiler Integration](react-compiler-integration.md)**
 
 ### Store Update Conventions
 
