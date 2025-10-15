@@ -131,7 +131,7 @@ export function createActionContext<T extends {}>(
         })
       };
       
-      return register.dispatch(action, payload, dispatchOptions);
+      return register.dispatch(action, payload as T[K], dispatchOptions);
     }, [actionRegisterRef]); // Include actionRegisterRef dependency
 
     // Stable dispatchWithResult function
@@ -285,7 +285,7 @@ export function createActionContext<T extends {}>(
           }
         })
       };
-      return register.dispatch(action, payload, dispatchOptions);
+      return register.dispatch(action, payload as T[K], dispatchOptions);
     }, [context.actionRegisterRef]);
     
     // Create wrapped dispatchWithResult using core's autoAbort
