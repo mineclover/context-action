@@ -9,6 +9,8 @@
     
     "isolatedModules": true,
     "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "allowSyntheticDefaultImports": true,
     "jsx": "react-jsx",
     "strict": true,
     "noUnusedLocals": false,

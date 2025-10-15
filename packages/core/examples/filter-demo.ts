@@ -3,9 +3,10 @@
  * Run: pnpm tsx filter-demo.ts
  */
 
-import { ActionRegister } from './src/ActionRegister.js';
+import { ActionRegister } from '../src/ActionRegister';
+import { ActionPayloadMap } from '../src/types';
 
-interface DemoActions {
+interface DemoActions extends ActionPayloadMap {
   processData: { userId: string; data: any };
 }
 
@@ -19,7 +20,7 @@ async function demonstrateFiltering() {
   console.log('='.repeat(50));
 
   // Register handlers with different priorities and configurations
-  registry.register('processData', (payload, controller) => {
+  registry.register('processData', (payload) => {
     console.log('🔐 Security validation executed for:', payload.userId);
     return { security: 'validated' };
   }, { 
@@ -28,7 +29,7 @@ async function demonstrateFiltering() {
     blocking: true 
   });
 
-  registry.register('processData', (payload, controller) => {
+  registry.register('processData', (payload) => {
     console.log('📊 Analytics tracking executed for:', payload.userId);
     return { analytics: 'tracked' };
   }, { 
@@ -37,7 +38,7 @@ async function demonstrateFiltering() {
     blocking: false 
   });
 
-  registry.register('processData', (payload, controller) => {
+  registry.register('processData', (payload) => {
     console.log('💾 Database save executed for:', payload.userId);
     return { database: 'saved' };
   }, { 
@@ -46,7 +47,7 @@ async function demonstrateFiltering() {
     blocking: true 
   });
 
-  registry.register('processData', (payload, controller) => {
+  registry.register('processData', (payload) => {
     console.log('🔔 Notification sent for:', payload.userId);
     return { notification: 'sent' };
   }, { 
@@ -55,7 +56,7 @@ async function demonstrateFiltering() {
     blocking: false 
   });
 
-  registry.register('processData', (payload, controller) => {
+  registry.register('processData', (payload) => {
     console.log('📝 Audit log created for:', payload.userId);
     return { audit: 'logged' };
   }, { 
@@ -132,6 +133,14 @@ async function demonstrateFiltering() {
   });
   console.log('Results:', result6.results);
 
+  // Demo 7: 🆕 Action-based dispatching (actions)
+  console.log('\\n📋 Demo 7: Action-based Dispatching (actions)');
+  console.log('-'.repeat(30));
+  console.log('Using registry.actions.processData() instead of registry.dispatch()');
+  
+  // Function-based dispatching
+  await registry.actions.processData(testPayload);
+  
   console.log('\\n🎉 All filtering demonstrations completed!');
   console.log('='.repeat(50));
 

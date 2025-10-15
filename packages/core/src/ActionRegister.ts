@@ -98,6 +98,66 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
   }
 
   /**
+   * 🆕 Action-based dispatcher
+   * 
+   * Provides function-based access to actions for more convenient dispatching.
+   * Each action becomes a callable function that can be invoked directly.
+   * 
+   * @example
+   * ```typescript
+   * interface MyActions extends ActionPayloadMap {
+   *   userLogin: { userId: string; email: string };
+   *   resetApp: void;
+   * }
+   * 
+   * const registry = new ActionRegister<MyActions>();
+   * 
+   * // Function-based dispatching
+   * await registry.actions.userLogin({ userId: '123', email: 'test@example.com' });
+   * await registry.actions.resetApp();
+   * ```
+   * 
+   * @public
+   */
+  get actions(): {
+    [K in keyof T]: T[K] extends void
+      ? (options?: DispatchOptions) => Promise<void>
+      : (payload: T[K], options?: DispatchOptions) => Promise<void>
+  } {
+    return new Proxy({} as any, {
+      get: (target, prop: string | symbol) => {
+        // Type guard to ensure prop is a valid action key
+        if (typeof prop === 'string' && prop in this.pipelines) {
+          const actionKey = prop as keyof T;
+          return (payloadOrOptions?: T[typeof actionKey] | DispatchOptions, options?: DispatchOptions) => {
+            // Type guard to determine if first parameter is DispatchOptions
+            const isDispatchOptions = (obj: any): obj is DispatchOptions => {
+              return obj && typeof obj === 'object' && (
+                'debounce' in obj || 
+                'throttle' in obj || 
+                'executionMode' in obj ||
+                'signal' in obj ||
+                'immediate' in obj ||
+                'filter' in obj ||
+                'result' in obj
+              );
+            };
+
+            if (payloadOrOptions && isDispatchOptions(payloadOrOptions)) {
+              // First parameter is options
+              return this.dispatch(actionKey, undefined, payloadOrOptions);
+            } else {
+              // First parameter is payload (or undefined for void actions)
+              return this.dispatch(actionKey, payloadOrOptions as T[typeof actionKey], options);
+            }
+          };
+        }
+        return undefined;
+      }
+    });
+  }
+
+  /**
    * Register an action handler with optional configuration
    * 
    * @param action - The action type to register handler for
@@ -187,9 +247,9 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     // Multiple signals - use AbortSignal.any() if available, fallback to manual merge
     let effectiveSignal: AbortSignal;
     
-    if (typeof AbortSignal.any === 'function') {
+    if (typeof (AbortSignal as any).any === 'function') {
       // Modern browsers with AbortSignal.any()
-      effectiveSignal = AbortSignal.any(signals);
+      effectiveSignal = (AbortSignal as any).any(signals);
     } else {
       // Fallback: Create controller and link all signals
       const mergedController = new AbortController();
@@ -365,6 +425,21 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
    * 
    * @public
    */
+  // Overload for actions with payload (more specific)
+  async dispatch<K extends keyof T>(
+    action: K,
+    payload: T[K],
+    options?: DispatchOptions
+  ): Promise<void>;
+  
+  // Overload for actions without payload
+  async dispatch<K extends keyof T>(
+    action: K,
+    payload?: undefined,
+    options?: DispatchOptions
+  ): Promise<void>;
+  
+  // Implementation (least specific)
   async dispatch<K extends keyof T>(
     action: K,
     payload?: T[K],
