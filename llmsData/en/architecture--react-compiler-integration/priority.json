@@ -1,0 +1,27 @@
+{
+  "documentId": "en_architecture_react-compiler-integration",
+  "title": "React Compiler Integration: Automatic Memoization & Performance Optimization",
+  "category": "architecture",
+  "language": "en",
+  "priority": 0.9,
+  "tags": [
+    "react-compiler",
+    "performance",
+    "memoization",
+    "optimization",
+    "babel",
+    "vite",
+    "typescript",
+    "tsx",
+    "infer-mode",
+    "annotation-mode",
+    "automatic-compilation",
+    "infinite-loop-prevention",
+    "context-action-framework"
+  ],
+  "lastUpdated": "2025-10-15T12:30:16.204Z",
+  "source": {
+    "file": "docs/en/architecture/react-compiler-integration.md",
+    "lastModified": "2025-10-15T12:29:55.125Z"
+  }
+}
