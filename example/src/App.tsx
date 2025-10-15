@@ -13,63 +13,76 @@ import { ToastContainer, ToastControlPanel } from './components/ToastSystem';
 import { SourceLinkRegistryProvider } from './stores/SourceLinkRegistry';
 
 // Lazy load large page components - Updated for catalog structure
+// 🚀 Enhanced code splitting for better performance
 
-// Foundations
+// Foundations - Core concepts (smaller chunks)
 const CoreBasicsPage = lazy(() => import('./pages/foundations/core/BasicsPage'));
 const CoreAdvancedPage = lazy(() => import('./pages/foundations/core/AdvancedPage'));
 const StoreBasicsPage = lazy(() => import('./pages/foundations/store/BasicsPage'));
 const StoreImmutabilityTestPage = lazy(() => import('./pages/foundations/store/ImmutabilityTestPage'));
+
+// React foundations - Separate chunk for React-specific features
 const ReactProviderPage = lazy(() => import('./pages/foundations/react/ProviderPage'));
 const ReactContextPage = lazy(() => import('./pages/foundations/react/ContextPage'));
 const ReactHooksPage = lazy(() => import('./pages/foundations/react/HooksPage'));
 const UseActionWithResultPage = lazy(() => import('./pages/foundations/react/UseActionWithResultPage'));
 const ImperativeRefPage = lazy(() => import('./pages/foundations/react/ImperativeRefPage'));
 
-// Performance
+// Performance - Action Guard (heavy performance components)
 const ActionGuardIndexPage = lazy(() => import('./pages/performance/action-guard/ActionGuardIndexPage'));
 const ActionGuardPage = lazy(() => import('./pages/performance/action-guard/ActionGuardPage'));
 const ApiBlockingPage = lazy(() => import('./pages/performance/action-guard/ApiBlockingPage'));
-const ContextStoreMouseEventsPage = lazy(() => import('./pages/performance/mouse-events/ActionGuardContextStoreMouseEventsPage').then(m => ({ default: m.ContextStoreMouseEventsPage })));
-const MouseEventsPage = lazy(() => import('./pages/performance/mouse-events/LegacyMouseEventsPage'));
 const ScrollPage = lazy(() => import('./pages/performance/action-guard/ScrollPage'));
 const SearchPage = lazy(() => import('./pages/performance/action-guard/SearchPage'));
 const ThrottleComparisonPage = lazy(() => import('./pages/performance/action-guard/ThrottleComparisonPage'));
 const AdvancedFilteringPage = lazy(() => import('./pages/performance/action-guard/AdvancedFilteringPage'));
-const PriorityPerformancePage = lazy(() => import('./pages/performance/priority/PriorityPerformancePage').then(m => ({ default: m.PriorityPerformancePage })));
-const ActionPriorityDemoPage = lazy(() => import('./pages/performance/priority/DemoPage'));
+
+// Performance - Mouse Events (separate chunk for mouse event handling)
+const ContextStoreMouseEventsPage = lazy(() => import('./pages/performance/mouse-events/ActionGuardContextStoreMouseEventsPage').then(m => ({ default: m.ContextStoreMouseEventsPage })));
+const MouseEventsPage = lazy(() => import('./pages/performance/mouse-events/LegacyMouseEventsPage'));
 const MouseEventsIndexPage = lazy(() => import('./pages/performance/mouse-events/MouseEventsIndexPage').then(m => ({ default: m.MouseEventsIndexPage })));
 const ContextStoreActionPage = lazy(() => import('./pages/performance/mouse-events/ContextStoreActionPage').then(m => ({ default: m.ContextStoreActionPage })));
 const EnhancedContextStorePage = lazy(() => import('./pages/performance/mouse-events/enhanced-context-store/EnhancedContextStorePage'));
 const NonReactiveContextStorePage = lazy(() => import('./pages/performance/mouse-events/enhanced-context-store/NonReactiveContextStorePage'));
 const CanvasRefDemoPage = lazy(() => import('./pages/performance/mouse-events/CanvasRefDemoPage').then(m => ({ default: m.CanvasRefDemoPage })));
 
-// Memoization Performance
+// Performance - Priority System (separate chunk for priority management)
+const PriorityPerformancePage = lazy(() => import('./pages/performance/priority/PriorityPerformancePage').then(m => ({ default: m.PriorityPerformancePage })));
+const ActionPriorityDemoPage = lazy(() => import('./pages/performance/priority/DemoPage'));
+
+// Performance - Memoization (separate chunk for memoization demos)
 const MemoizationPerformancePage = lazy(() => import('./pages/performance/memoization/MemoizationPerformancePage'));
 const MemoizationDemoPage = lazy(() => import('./pages/performance/memoization/DemoPage'));
 
-// Patterns
+// Patterns - Conditional (separate chunk for conditional patterns)
 const ConditionalPatternsIndex = lazy(() => import('./pages/patterns/conditional/ConditionalPatternsIndex').then(m => ({ default: m.ConditionalPatternsIndex })));
-const LayeredArchitecturePage = lazy(() => import('./pages/patterns/layered-architecture/LayeredArchitecturePage'));
 const PermissionBasedExecution = lazy(() => import('./pages/patterns/conditional/PermissionBasedExecution').then(m => ({ default: m.PermissionBasedExecution })));
 const FormValidation = lazy(() => import('./pages/patterns/conditional/FormValidation').then(m => ({ default: m.FormValidation })));
 const WorkflowSteps = lazy(() => import('./pages/patterns/conditional/WorkflowSteps').then(m => ({ default: m.WorkflowSteps })));
 const FeatureToggle = lazy(() => import('./pages/patterns/conditional/FeatureToggle').then(m => ({ default: m.FeatureToggle })));
+
+// Patterns - Architecture (separate chunk for architecture patterns)
+const LayeredArchitecturePage = lazy(() => import('./pages/patterns/layered-architecture/LayeredArchitecturePage'));
 const FlowControlPlaygroundPage = lazy(() => import('./pages/patterns/pipeline/FlowControlPlaygroundPageV2').then(m => ({ default: m.FlowControlPlaygroundPageV2 })));
+
+// Patterns - Refs (separate chunk for ref patterns)
 const RefsIndexPage = lazy(() => import('./pages/patterns/refs/RefsIndexPage').then(m => ({ default: m.RefsIndexPage })));
 const FormBuilderRefDemoPage = lazy(() => import('./pages/patterns/refs/FormBuilderRefDemoPage').then(m => ({ default: m.FormBuilderRefDemoPage })));
 const WaitForRefsPerformancePage = lazy(() => import('./pages/patterns/refs/WaitForRefsPerformancePage').then(m => ({ default: m.WaitForRefsPerformancePage })));
 const UseRefMountStateTestPage = lazy(() => import('./pages/patterns/refs/UseRefMountStateTestPage').then(m => ({ default: m.UseRefMountStateTestPage })));
 
-// Integrations
+// Integrations - Business (separate chunk for business use cases)
 const TodoListPage = lazy(() => import('./pages/integrations/business/TodoListPage').then(m => ({ default: m.TodoListPage })));
 const ShoppingCartPage = lazy(() => import('./pages/integrations/business/ShoppingCartPage').then(m => ({ default: m.ShoppingCartPage })));
 const ChatPage = lazy(() => import('./pages/integrations/business/ChatPage').then(m => ({ default: m.ChatPage })));
 const UserProfilePage = lazy(() => import('./pages/integrations/business/UserProfilePage').then(m => ({ default: m.UserProfilePage })));
+
+// Integrations - Advanced (separate chunk for advanced features)
 const FormBuilderDemoPage = lazy(() => import('./pages/integrations/advanced/FormBuilderPage').then(m => ({ default: m.FormBuilderDemoPage })));
 const AdvancedCanvasExample = lazy(() => import('./pages/integrations/advanced/CanvasPage').then(m => ({ default: m.AdvancedCanvasExample })));
 const ConcurrentActionTestPage = lazy(() => import('./pages/integrations/advanced/ConcurrentActionsPage'));
 
-// Utilities
+// Utilities - Dev Tools (separate chunk for development utilities)
 const LoggerDemoPage = lazy(() => import('./pages/utilities/dev-tools/LoggerPage'));
 const ToastConfigPage = lazy(() => import('./pages/utilities/dev-tools/ToastConfigPage'));
 const StoreScenariosPage = lazy(() => import('./pages/utilities/dev-tools/StoreScenariosPage').then(m => ({ default: m.StoreScenariosPage })));

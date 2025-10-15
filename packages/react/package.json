@@ -57,6 +57,8 @@
     "type-check": "tsc --noEmit",
     "clean": "rimraf dist",
     "security:audit": "pnpm audit --audit-level high",
+    "analyze": "NODE_ENV=production tsdown --analyze",
+    "bundle-report": "NODE_ENV=production tsdown --report",
     "security:outdated": "pnpm outdated",
     "security:check": "pnpm security:audit && pnpm security:outdated",
     "prepublishOnly": "pnpm run build:prod"
