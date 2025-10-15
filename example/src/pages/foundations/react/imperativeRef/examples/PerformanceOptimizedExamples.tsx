@@ -37,7 +37,6 @@ function usePerformanceMonitor(label: string) {
 
 // 🎯 Memory Leak Prevention Example
 export function MemoryLeakPreventionExample({ children }: { children: React.ReactNode }) {
-  "use memo";
   const refRegistry = useRefRegistry();
   const [logs, setLogs] = useState<string[]>([]);
   const [isActive, setIsActive] = useState(true);
@@ -141,7 +140,6 @@ export function OptimizedReregistrationExample({
   debounceMs?: number;
   children: React.ReactNode;
 }) {
-  "use memo";
   const refRegistry = useRefRegistry();
   const [logs, setLogs] = useState<string[]>([]);
   const [triggerCount, setTriggerCount] = useState(0);
@@ -224,7 +222,6 @@ export function OptimizedReregistrationExample({
 
 // 🎯 Resource Cleanup Example with WeakMap pattern
 export function WeakMapCleanupExample({ children }: { children: React.ReactNode }) {
-  "use memo";
   const refRegistry = useRefRegistry();
   const [logs, setLogs] = useState<string[]>([]);
 

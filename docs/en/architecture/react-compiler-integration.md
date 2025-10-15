@@ -291,13 +291,11 @@ export function MemoryLeakPreventionExample({ children }: { children: React.Reac
 
 **Result**: `Maximum update depth exceeded` error due to infinite re-renders.
 
-### The Solution: With React Compiler
+### The Solution: With React Compiler (Infer Mode)
 
 ```tsx
-// ✅ Solution: React Compiler automatic memoization
+// ✅ Solution: React Compiler automatic memoization (no "use memo" needed)
 export function MemoryLeakPreventionExample({ children }: { children: React.ReactNode }) {
-  "use memo";
-  
   const refRegistry = useRefRegistry();
   const [logs, setLogs] = useState<string[]>([]);
   const [isActive, setIsActive] = useState(true);
@@ -330,7 +328,7 @@ export function MemoryLeakPreventionExample({ children }: { children: React.Reac
 }
 ```
 
-**Result**: No infinite loops, optimal performance with automatic memoization.
+**Result**: No infinite loops, optimal performance with automatic memoization - **no "use memo" needed!**
 
 ### Manual Solution (Before React Compiler)
 
@@ -405,7 +403,7 @@ export function AnotherComponent() {
 }
 ```
 
-#### 2. Infer Mode (Automatic)
+#### 2. Infer Mode (Automatic) - **Recommended for Applications**
 
 ```javascript
 // babel.config.js
@@ -420,6 +418,12 @@ module.exports = {
 ```
 
 **Behavior**: All React components are automatically compiled without needing `"use memo"`.
+
+**Benefits of Infer Mode:**
+- **Zero Configuration** - No need to add `"use memo"` directives
+- **Automatic Optimization** - All components are optimized by default
+- **Cleaner Code** - No optimization boilerplate needed
+- **Maximum Convenience** - Just write normal React code
 
 ```tsx
 // ✅ This component will be automatically compiled
@@ -571,16 +575,14 @@ export function MyComponent({ data }: { data: any[] }) {
 }
 ```
 
-#### With React Compiler (Annotation Mode)
+#### With React Compiler (Infer Mode) - **Recommended**
 
 ```tsx
-// Explicit optimization
+// Automatic optimization - no "use memo" needed!
 export function MyComponent({ data }: { data: any[] }) {
-  "use memo";
-  
   const [filter, setFilter] = useState('');
   
-  // Automatic memoization
+  // Automatic memoization by React Compiler
   const filteredData = data.filter(item => item.name.includes(filter));
   
   const handleClick = () => {
@@ -599,33 +601,11 @@ export function MyComponent({ data }: { data: any[] }) {
 }
 ```
 
-#### With React Compiler (Infer Mode)
-
-```tsx
-// Automatic optimization
-export function MyComponent({ data }: { data: any[] }) {
-  // No "use memo" needed - automatically optimized
-  
-  const [filter, setFilter] = useState('');
-  
-  // Automatic memoization
-  const filteredData = data.filter(item => item.name.includes(filter));
-  
-  const handleClick = () => {
-    // ... handler logic
-  };
-  
-  return (
-    <div>
-      {filteredData.map(item => (
-        <div key={item.id} onClick={handleClick}>
-          {item.name}
-        </div>
-      ))}
-    </div>
-  );
-}
-```
+**Key Benefits of Infer Mode:**
+- **Zero Configuration** - No `"use memo"` directives needed
+- **Automatic Optimization** - All functions and values are memoized automatically
+- **Cleaner Code** - Write normal React code without optimization boilerplate
+- **Maximum Performance** - Compiler makes optimal decisions automatically
 
 ---
 

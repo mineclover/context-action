@@ -9,7 +9,7 @@ export default defineConfig({
         plugins: [
           ['babel-plugin-react-compiler', {
             target: '17', // 최소 지원 React 버전
-            compilationMode: 'annotation', // "use memo" 지시어 기반 컴파일
+            compilationMode: 'infer', // 모든 React 컴포넌트 자동 컴파일
           }],
         ],
       },
