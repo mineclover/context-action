@@ -127,7 +127,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     return new Proxy({} as any, {
       get: (target, prop: string | symbol) => {
         // Type guard to ensure prop is a valid action key
-        if (typeof prop === 'string' && prop in this.pipelines) {
+        if (typeof prop === 'string' && this.pipelines.has(prop)) {
           const actionKey = prop as keyof T;
           return (payloadOrOptions?: T[typeof actionKey] | DispatchOptions, options?: DispatchOptions) => {
             // Type guard to determine if first parameter is DispatchOptions
@@ -188,7 +188,7 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     return new Proxy({} as any, {
       get: (target, prop: string | symbol) => {
         // Type guard to ensure prop is a valid action key
-        if (typeof prop === 'string' && prop in this.pipelines) {
+        if (typeof prop === 'string' && this.pipelines.has(prop)) {
           const actionKey = prop as keyof T;
           return (payloadOrOptions?: T[typeof actionKey] | DispatchOptions, options?: DispatchOptions) => {
             // Type guard to determine if first parameter is DispatchOptions
