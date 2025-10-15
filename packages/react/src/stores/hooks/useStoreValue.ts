@@ -96,6 +96,7 @@ export function useStoreValue<T, R>(
   selectorOrOptions?: ((value: T) => R) | StoreValueOptions<T>,
   options?: StoreValueOptions<R>
 ): T | R | undefined {
+  "use memo";
   // 파라미터 정규화
   const selector = typeof selectorOrOptions === 'function' ? selectorOrOptions : undefined;
   const finalOptions = (typeof selectorOrOptions === 'function' ? options : selectorOrOptions) || {};
@@ -152,6 +153,7 @@ export function useStoreValues<T, S extends Record<string, (value: T) => any>>(
   store: Store<T> | undefined | null,
   selectors: S
 ): { [K in keyof S]: ReturnType<S[K]> } | undefined {
+  "use memo";
   // 통합 선택자 함수 생성
   const selectorFunction = useMemo(() => {
     return (value: T) => {

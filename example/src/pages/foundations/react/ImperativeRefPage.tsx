@@ -17,6 +17,12 @@ import {
   ImperativeCounter,
   ImperativeTimer,
 } from './imperativeRef/components/ImperativeComponents';
+import {
+  FormRefHandle,
+  ModalRefHandle,
+  CounterRefHandle,
+  TimerRefHandle
+} from './imperativeRef/contexts/RefContexts';
 import { HandlerRegistrationTimingDemo } from './imperativeRef/examples/HandlerRegistrationTimingExamples';
 import { PerformanceOptimizedDemo } from './imperativeRef/examples/PerformanceOptimizedExamples';
 import { TypeSafeErrorHandlingDemo } from './imperativeRef/examples/TypeSafeErrorHandlingExamples';
@@ -218,7 +224,7 @@ function FormDemo() {
 
       <div className="p-6 space-y-6">
         <ImperativeInput
-          ref={nameInput}
+          ref={nameInput as React.RefObject<FormRefHandle>}
           label="Full Name"
           placeholder="Enter your full name"
           required
@@ -227,7 +233,7 @@ function FormDemo() {
         />
 
         <ImperativeInput
-          ref={emailInput}
+          ref={emailInput as React.RefObject<FormRefHandle>}
           label="Email Address"
           type="email"
           placeholder="Enter your email"
@@ -236,7 +242,7 @@ function FormDemo() {
         />
 
         <ImperativeInput
-          ref={messageInput}
+          ref={messageInput as React.RefObject<FormRefHandle>}
           label="Message"
           type="textarea"
           placeholder="Enter your message"
@@ -294,7 +300,7 @@ function InteractiveDemo() {
         </div>
         <div className="p-6">
           <ImperativeCounter
-            ref={counter}
+            ref={counter as React.RefObject<CounterRefHandle>}
             initialValue={0}
             min={-10}
             max={100}
@@ -328,7 +334,7 @@ function InteractiveDemo() {
         </div>
         <div className="p-6">
           <ImperativeTimer
-            ref={timer}
+            ref={timer as React.RefObject<TimerRefHandle>}
             onStart={() => addTimerEvent('Timer started')}
             onStop={() => addTimerEvent('Timer stopped')}
             onReset={() => addTimerEvent('Timer reset')}
@@ -363,7 +369,7 @@ function ModalDemo() {
   return (
     <>
       <ImperativeModal
-        ref={confirmModal}
+        ref={confirmModal as React.RefObject<ModalRefHandle>}
         title="Confirmation Modal"
         onOpen={() => console.log('Confirm modal opened')}
         onClose={() => console.log('Confirm modal closed')}
@@ -394,7 +400,7 @@ function ModalDemo() {
       </ImperativeModal>
 
       <ImperativeModal
-        ref={alertModal}
+        ref={alertModal as React.RefObject<ModalRefHandle>}
         title="Alert Modal"
         onOpen={() => console.log('Alert modal opened')}
         onClose={() => console.log('Alert modal closed')}

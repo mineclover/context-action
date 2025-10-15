@@ -15,8 +15,18 @@ export default defineConfig({
     'react-dom',
     'react/jsx-runtime',
     'react/jsx-dev-runtime',
+    'react-compiler-runtime', // React Compiler runtime
     'immer'
   ],
   target: 'es2020',
-  platform: 'browser' // Explicitly target browser platform
+  platform: 'browser', // Explicitly target browser platform
+  // React Compiler 통합
+  babel: {
+    plugins: [
+      ['babel-plugin-react-compiler', {
+        target: '17', // 최소 지원 React 버전
+        compilationMode: 'annotation', // "use memo" 지시어 기반 컴파일
+      }],
+    ],
+  },
 })

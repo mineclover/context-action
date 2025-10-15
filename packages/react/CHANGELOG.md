@@ -3,6 +3,33 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.8.1](https://github.com/mineclover/context-action/compare/v0.8.0...v0.8.1) (2025-01-15)
+
+### Bug Fixes
+
+* **Backwards Compatibility:** Fixed React Compiler runtime dependency resolution
+* **Peer Dependencies:** Updated React peer dependency to support React 17+ properly
+* **Example Project:** Added missing `react-compiler-runtime` dependency to example project
+
+### Improvements
+
+* **Dependency Management:** Improved React Compiler runtime integration
+* **Vite Compatibility:** Fixed Vite development server dependency resolution issues
+
+## [0.8.0](https://github.com/mineclover/context-action/compare/v0.7.9...v0.8.0) (2025-01-15)
+
+### Features
+
+* **React Compiler Integration:** Add React Compiler support with automatic memoization optimization
+* **Performance:** Enhanced performance with "use memo" directives for hooks
+* **Build System:** Updated to use rolldown for faster bundling
+* **TypeScript:** Improved type definitions and exports
+
+### Breaking Changes
+
+* **Dependencies:** Added `react-compiler-runtime` as a peer dependency
+* **Build:** Updated build system to use tsdown with rolldown
+
 ## [0.7.7](https://github.com/mineclover/context-action/compare/v0.6.0...v0.7.7) (2025-09-17)
 
 

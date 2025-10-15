@@ -7,7 +7,7 @@ import {
 } from '@/utils/logger';
 import { LogMonitorLiveDemo } from '@/components/demos/LogMonitorLiveDemo';
 import { type ActionPayloadMap, ActionRegister } from '@context-action/react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   PageWithLogMonitor,
   useActionLoggerWithToast,

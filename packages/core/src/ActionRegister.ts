@@ -13,7 +13,6 @@ import {
   ActionRegistryInfo,
   ActionHandlerStats,
   DispatchOptions,
-  InferResultType,
   HandlerError,
 } from './types.js';
 import { executeSequential, executeParallel, executeRace } from './execution-modes.js';

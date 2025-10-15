@@ -43,6 +43,7 @@ export function useStoreSelector<T, R>(
   selector: (value: T) => R,
   equalityFn: (a: R, b: R) => boolean = defaultEqualityFn
 ): R {
+  "use memo";
   // Selector를 안정적으로 유지
   const stableSelector = useCallback(selector, [selector]);
   
