@@ -1,6 +1,6 @@
 {
   "name": "@context-action/react",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "type": "module",
   "description": "React integration for @context-action/core - Context and hooks for type-safe action management",
   "main": "dist/index.cjs",
@@ -87,7 +87,7 @@
     "react": "^17.0.0 || ^18.0.0 || ^19.0.0"
   },
   "dependencies": {
-    "@context-action/core": "latest",
+    "@context-action/core": "^0.8.0",
     "immer": "^10.1.3",
     "react-compiler-runtime": "1.0.0"
   },
