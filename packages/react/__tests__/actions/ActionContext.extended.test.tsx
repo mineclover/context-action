@@ -4,6 +4,15 @@ import { render, screen } from '@testing-library/react';
 import { createActionContext } from '../../src/actions/ActionContext';
 import type { ActionPayloadMap } from '@context-action/core';
 
+// React context 모킹
+jest.mock('react', () => ({
+  ...jest.requireActual('react'),
+  createContext: jest.fn(() => ({
+    Provider: ({ children }: { children: React.ReactNode }) => children,
+    Consumer: ({ children }: { children: (value: any) => React.ReactNode }) => children(null),
+  })),
+}));
+
 interface TestActions extends ActionPayloadMap {
   testAction: { value: string };
   asyncAction: { delay: number };
@@ -14,6 +23,21 @@ interface TestActions extends ActionPayloadMap {
 
 describe('ActionContext - Extended Coverage', () => {
   const TestActionContext = createActionContext<TestActions>('TestActions');
+  
+  // 테스트 래퍼 컴포넌트
+  const TestWrapper = ({ children }: { children: React.ReactNode }) => (
+    <TestActionContext.Provider>
+      {children}
+    </TestActionContext.Provider>
+  );
+
+  describe('basic functionality', () => {
+    it('should create ActionContext successfully', () => {
+      expect(TestActionContext).toBeDefined();
+      expect(TestActionContext.Provider).toBeDefined();
+      expect(TestActionContext.useActionContext).toBeDefined();
+    });
+  });
 
   describe('dispatchWithResult', () => {
     it('should dispatch action and return result', async () => {

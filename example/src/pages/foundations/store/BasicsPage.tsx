@@ -91,18 +91,18 @@ function useCounterDemo() {
 
   const increment = useCallback(() => {
     logAction('increment', { currentCount: count });
-    counterStore.update((prev) => prev + 1);
+    counterStore.updateValue((prev) => prev + 1);
   }, [logAction, count, counterStore]);
 
   const decrement = useCallback(() => {
     logAction('decrement', { currentCount: count });
-    counterStore.update((prev) => prev - 1);
+    counterStore.updateValue((prev) => prev - 1);
   }, [logAction, count, counterStore]);
 
   const addValue = useCallback(
     (value: number) => {
       logAction('addValue', { currentCount: count, addedValue: value });
-      counterStore.update((prev) => prev + value);
+      counterStore.updateValue((prev) => prev + value);
     },
     [logAction, count, counterStore]
   );
@@ -136,7 +136,7 @@ function useUserDemo() {
   const updateName = useCallback(
     (name: string) => {
       logAction('updateUserName', { oldName: user?.name, newName: name });
-      userStore.update((prev) => ({ ...prev, name }));
+      userStore.updateValue((prev) => ({ ...prev, name }));
     },
     [logAction, user, userStore]
   );
@@ -144,7 +144,7 @@ function useUserDemo() {
   const updateEmail = useCallback(
     (email: string) => {
       logAction('updateUserEmail', { oldEmail: user?.email, newEmail: email });
-      userStore.update((prev) => ({ ...prev, email }));
+      userStore.updateValue((prev) => ({ ...prev, email }));
     },
     [logAction, user, userStore]
   );
@@ -502,7 +502,7 @@ function MyComponent() {
   const count = useStoreValue(counterStore);
   
   const updateMessage = () => messageStore.setValue('Updated!');
-  const increment = () => counterStore.update(prev => prev + 1);
+  const increment = () => counterStore.updateValue(prev => prev + 1);
   
   return (
     <div>

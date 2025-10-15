@@ -143,15 +143,15 @@ function UseActionWithResultUI() {
 
   // 🎯 Event Handlers for Cart Management
   const handleAddItem = useCallback((newItem: Omit<CartItem, 'id'>) => {
-    stores.cartStore.update((currentCart) => addItemToCart(currentCart, newItem));
+    stores.cartStore.updateValue((currentCart) => addItemToCart(currentCart, newItem));
   }, [stores.cartStore]);
 
   const handleUpdateQuantity = useCallback((itemId: string, quantity: number) => {
-    stores.cartStore.update((currentCart) => updateItemQuantity(currentCart, itemId, quantity));
+    stores.cartStore.updateValue((currentCart) => updateItemQuantity(currentCart, itemId, quantity));
   }, [stores.cartStore]);
 
   const handleRemoveItem = useCallback((itemId: string) => {
-    stores.cartStore.update((currentCart) => removeItemFromCart(currentCart, itemId));
+    stores.cartStore.updateValue((currentCart) => removeItemFromCart(currentCart, itemId));
   }, [stores.cartStore]);
 
   // 🎯 useActionWithResult Demo Functions
@@ -267,8 +267,8 @@ function UseActionWithResultUI() {
       { name: 'AirPods Pro', price: 249, quantity: 1 },
     ];
 
-    // Use store.update() for safer state updates with current value
-    stores.cartStore.update((currentCart) => {
+    // Use store.updateValue() for safer state updates with current value
+    stores.cartStore.updateValue((currentCart) => {
       let updatedCart = currentCart;
       sampleItems.forEach(item => {
         updatedCart = addItemToCart(updatedCart, item);

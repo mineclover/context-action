@@ -166,7 +166,7 @@ export function UserProfilePage() {
 {`// 1. 중첩 객체 안전 업데이트
 const updateUserThemeHandler = useCallback(
   ({ theme }: { theme: User['preferences']['theme'] }) => {
-    userStore.update((prev) => ({
+    userStore.updateValue((prev) => ({
       ...prev,
       preferences: { 
         ...prev.preferences, 

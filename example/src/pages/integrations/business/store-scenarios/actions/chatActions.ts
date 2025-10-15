@@ -45,11 +45,11 @@ export function createChatHandlers(messagesStore: any) {
         timestamp: new Date(),
         type,
       };
-      messagesStore.update((prev: ChatMessage[]) => [...prev, newMessage]);
+      messagesStore.updateValue((prev: ChatMessage[]) => [...prev, newMessage]);
     },
 
     deleteMessage: ({ messageId }: { messageId: string }) => {
-      messagesStore.update((prev: ChatMessage[]) =>
+      messagesStore.updateValue((prev: ChatMessage[]) =>
         prev.filter((msg: ChatMessage) => msg.id !== messageId)
       );
     },

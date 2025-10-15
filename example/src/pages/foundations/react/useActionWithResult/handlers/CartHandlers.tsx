@@ -189,7 +189,7 @@ export function CartHandlers({
         } catch (error) {
           logger?.error(`[${moduleId}] Failed to save order to API`, error);
           // Update order status to reflect API failure
-          orderStore.update(current => ({
+          orderStore.updateValue(current => ({
             ...current!,
             status: 'failed' as const
           }));

@@ -138,7 +138,7 @@ useActionHandler('addTodo', useCallback(
       createdAt: new Date(),
       dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     };
-    todosStore.update((prev) => [...prev, newTodo]);
+    todosStore.updateValue((prev) => [...prev, newTodo]);
   },
   [todosStore]
 ));

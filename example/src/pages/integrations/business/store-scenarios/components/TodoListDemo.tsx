@@ -81,14 +81,14 @@ function TodoListDemoInner() {
         createdAt: new Date(),
         dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7일 후
       };
-      todosStore.update((prev) => [...prev, newTodo]);
+      todosStore.updateValue((prev) => [...prev, newTodo]);
     },
     [todosStore]
   );
 
   const toggleTodoHandler = useCallback(
     ({ todoId }: { todoId: string }) => {
-      todosStore.update((prev) =>
+      todosStore.updateValue((prev) =>
         prev.map((todo) =>
           todo.id === todoId ? { ...todo, completed: !todo.completed } : todo
         )
@@ -99,14 +99,14 @@ function TodoListDemoInner() {
 
   const deleteTodoHandler = useCallback(
     ({ todoId }: { todoId: string }) => {
-      todosStore.update((prev) => prev.filter((todo) => todo.id !== todoId));
+      todosStore.updateValue((prev) => prev.filter((todo) => todo.id !== todoId));
     },
     [todosStore]
   );
 
   const updateTodoPriorityHandler = useCallback(
     ({ todoId, priority }: { todoId: string; priority: TodoItem['priority'] }) => {
-      todosStore.update((prev) =>
+      todosStore.updateValue((prev) =>
         prev.map((todo) =>
           todo.id === todoId ? { ...todo, priority } : todo
         )
