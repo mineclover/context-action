@@ -45,17 +45,17 @@ export interface TimerRefHandle {
 // 🎯 Ref Registry Interface
 export interface RefRegistry {
   // Form refs
-  nameInput: RefObject<FormRefHandle>;
-  emailInput: RefObject<FormRefHandle>;
-  messageInput: RefObject<FormRefHandle>;
+  nameInput: RefObject<FormRefHandle | null>;
+  emailInput: RefObject<FormRefHandle | null>;
+  messageInput: RefObject<FormRefHandle | null>;
 
   // Modal refs
-  confirmModal: RefObject<ModalRefHandle>;
-  alertModal: RefObject<ModalRefHandle>;
+  confirmModal: RefObject<ModalRefHandle | null>;
+  alertModal: RefObject<ModalRefHandle | null>;
 
   // Interactive component refs
-  counter: RefObject<CounterRefHandle>;
-  timer: RefObject<TimerRefHandle>;
+  counter: RefObject<CounterRefHandle | null>;
+  timer: RefObject<TimerRefHandle | null>;
 
   // Helper methods
   focusFirstInput: () => void;

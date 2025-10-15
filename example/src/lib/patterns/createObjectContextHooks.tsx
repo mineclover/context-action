@@ -561,7 +561,7 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
    */
   const ObjectManagerInitializer: React.FC<{ children: ReactNode }> = ({ children }) => {
     const managerStore = useObjectManagerStore('manager');
-    const managerRef = useRef<ObjectContextManager<T>>();
+    const managerRef = useRef<ObjectContextManager<T> | null>(null);
     
     if (!managerRef.current) {
       managerRef.current = new ObjectContextManager<T>(config);

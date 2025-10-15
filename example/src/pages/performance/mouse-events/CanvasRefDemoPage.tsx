@@ -137,8 +137,8 @@ function CanvasRefDemoView() {
   const [animationSpeed, setAnimationSpeed] = useState(1);
   
   // Performance refs
-  const throttleTimeoutRef = useRef<number>();
-  const animationFrameRef = useRef<number>();
+  const throttleTimeoutRef = useRef<number | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
   const realtimePathPoints = useRef<Array<{ x: number; y: number }>>([]);
   const lastMoveTimeRef = useRef<number>(0);
   

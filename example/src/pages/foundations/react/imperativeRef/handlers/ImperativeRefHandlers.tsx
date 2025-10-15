@@ -265,7 +265,7 @@ export function ImperativeRefHandlers({
       {/* Store handler context in ref for access from child components */}
       {React.cloneElement(children as React.ReactElement, {
         handlerContext
-      })}
+      } as any)}
     </>
   );
 }

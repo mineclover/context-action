@@ -257,7 +257,7 @@ function DemoSection() {
 // ===== API Blocking Demo Interface =====
 function ApiBlockingDemoInterface() {
   const dispatch = useActionDispatch();
-  const blockingTimeoutRef = useRef<NodeJS.Timeout>();
+  const blockingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Store subscriptions
   const apiCallsStore = useApiBlockingStore('apiCalls');

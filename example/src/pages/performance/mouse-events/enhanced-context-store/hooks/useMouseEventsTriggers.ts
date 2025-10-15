@@ -29,7 +29,7 @@ export function useMouseEventsTriggers() {
   const coordinatesRef = useMouseRef('coordinates');
   
   // 성능 최적화용 refs
-  const throttleTimeoutRef = useRef<number>();
+  const throttleTimeoutRef = useRef<number | null>(null);
   const lastMoveTimeRef = useRef<number>(0);
   
   // Path 직접 그리기용 상태 (Store 우회)

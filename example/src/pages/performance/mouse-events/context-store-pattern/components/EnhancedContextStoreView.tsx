@@ -15,8 +15,8 @@ export function EnhancedContextStoreView() {
   const [animationSpeed, setAnimationSpeed] = useState(1);
   const [realTimePosition, setRealTimePosition] = useState({ x: -999, y: -999 });
   const [realTimePath, setRealTimePath] = useState<Array<{ x: number; y: number }>>([]);
-  const throttleTimeoutRef = useRef<number>();
-  const animationFrameRef = useRef<number>();
+  const throttleTimeoutRef = useRef<number | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
   const pathSvgRef = useRef<SVGPathElement>(null);
   const realtimePathPoints = useRef<Array<{ x: number; y: number }>>([]);
 

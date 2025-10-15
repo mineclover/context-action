@@ -14,7 +14,7 @@ import { validateFormData, FormData } from '../business/imperativeRefBusinessLog
 
 // 🎯 Performance Monitoring Hook
 function usePerformanceMonitor(label: string) {
-  const startTime = useRef<number>();
+  const startTime = useRef<number | null>(null);
   const renderCount = useRef(0);
 
   useEffect(() => {

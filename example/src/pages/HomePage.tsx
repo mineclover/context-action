@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { useSourceLinkRegistration } from '@/hooks/useSourceLinkRegistration';
+import { ReactCompilerDemo } from '@/components/ReactCompilerTest';
 
 function HomePage() {
   // 🎯 소스 링크 등록
@@ -180,6 +181,20 @@ function HomePage() {
             </Link>
             .
           </p>
+        </CardContent>
+      </Card>
+
+      {/* React 컴파일러 테스트 섹션 */}
+      <Card variant="elevated" className="mt-8">
+        <CardContent>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            🚀 React 컴파일러 테스트
+          </h2>
+          <p className="text-gray-600 mb-6">
+            React 컴파일러가 자동으로 메모이제이션을 적용하는지 확인해보세요. 
+            React DevTools에서 "Memo ✨" 배지를 확인할 수 있습니다.
+          </p>
+          <ReactCompilerDemo />
         </CardContent>
       </Card>
     </PageLayout>

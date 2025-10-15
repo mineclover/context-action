@@ -3,7 +3,15 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react({
+      babel: {
+        plugins: [
+          ['babel-plugin-react-compiler']
+        ],
+      },
+    })
+  ],
   // GitHub Pages 배포를 위한 base path 설정
   base: process.env.NODE_ENV === 'production' ? '/context-action/example/' : '/',
   server: {

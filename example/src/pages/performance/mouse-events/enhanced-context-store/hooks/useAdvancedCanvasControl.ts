@@ -48,7 +48,7 @@ export function useAdvancedCanvasControl() {
   // Canvas 직접 조작용 상태 (Store 완전 우회)
   const pathPointsRef = useRef<Array<{ x: number; y: number; timestamp: number }>>([]);
   const activeClickMarkersRef = useRef<HTMLDivElement[]>([]);
-  const throttleTimeoutRef = useRef<number>();
+  const throttleTimeoutRef = useRef<number | null>(null);
   const lastPositionRef = useRef<{ x: number; y: number }>({ x: -999, y: -999 });
   const clickCounterRef = useRef<number>(0);
   

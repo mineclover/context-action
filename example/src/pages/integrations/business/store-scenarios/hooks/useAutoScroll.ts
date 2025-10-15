@@ -36,7 +36,7 @@ export function useAutoScroll<T extends HTMLElement>(
     lastDependencyLength: 0
   });
   
-  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // 컨테이너가 바닥에 있는지 확인 - 의존성 없음
   const isAtBottom = useCallback(async (): Promise<boolean> => {

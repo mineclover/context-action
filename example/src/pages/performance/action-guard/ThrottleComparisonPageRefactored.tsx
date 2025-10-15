@@ -95,7 +95,7 @@ function useThrottle<T extends (...args: any[]) => void>(
 ): T {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastExecutedRef = useRef<number>(0);
-  const argsRef = useRef<Parameters<T>>();
+  const argsRef = useRef<Parameters<T> | null>(null);
   const { leading = true, trailing = true } = options || {};
 
   return useCallback(((...args: Parameters<T>) => {
@@ -296,7 +296,7 @@ function DemoSection() {
 function ThrottleDemoInterface() {
   const dispatch = useActionDispatch();
   const [inputValue, setInputValue] = useState('');
-  const autoTestInterval = useRef<NodeJS.Timeout>();
+  const autoTestInterval = useRef<NodeJS.Timeout | null>(null);
   
   // Store subscriptions
   const eventLogsStore = useThrottleStore('eventLogs');
@@ -951,7 +951,7 @@ function CodeSection() {
 ): T {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastExecutedRef = useRef<number>(0);
-  const argsRef = useRef<Parameters<T>>();
+  const argsRef = useRef<Parameters<T> | null>(null);
   const { leading = true, trailing = true } = options || {};
 
   return useCallback(((...args: Parameters<T>) => {

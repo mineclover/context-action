@@ -430,9 +430,9 @@ function ChatComponent() {
   const logger = useActionLoggerWithToast();
 
   // 🔧 Fix 1: Debouncing for automatic responses
-  const autoResponseTimeoutRef = useRef<NodeJS.Timeout>();
-  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const autoResponseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // 🔧 Fix 3: Stable action handlers - use refs to avoid re-registration
   const handlersRef = useRef({

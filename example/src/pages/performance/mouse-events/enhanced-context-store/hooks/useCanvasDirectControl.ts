@@ -34,7 +34,7 @@ export function useCanvasDirectControl() {
   // Canvas 직접 조작용 상태 (Store 우회)
   const pathPointsRef = useRef<Array<{ x: number; y: number; timestamp: number }>>([]);
   const clickPointsRef = useRef<Array<{ x: number; y: number; timestamp: number }>>([]);
-  const throttleTimeoutRef = useRef<number>();
+  const throttleTimeoutRef = useRef<number | null>(null);
   const lastPositionRef = useRef<{ x: number; y: number }>({ x: -999, y: -999 });
   
   // === 직접 Canvas Path 그리기 ===

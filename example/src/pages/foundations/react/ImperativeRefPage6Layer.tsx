@@ -112,7 +112,7 @@ function ImperativeRefIntegration({ children }: { children: React.ReactNode }) {
     actionHandlers,
     logs,
     handlerContext: {}
-  });
+  } as any);
 }
 
 // 🎯 Main Demo Components
