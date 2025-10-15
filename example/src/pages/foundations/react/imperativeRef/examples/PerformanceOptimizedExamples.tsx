@@ -8,7 +8,7 @@
  * - Optimized re-registration strategies
  */
 
-import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRefRegistry } from '../contexts/RefContexts';
 import { validateFormData, FormData } from '../business/imperativeRefBusinessLogic';
 
@@ -21,16 +21,16 @@ function usePerformanceMonitor(label: string) {
     renderCount.current++;
   });
 
-  const startMeasure = useCallback(() => {
+  const startMeasure = () => {
     startTime.current = performance.now();
-  }, []);
+  };
 
-  const endMeasure = useCallback(() => {
+  const endMeasure = () => {
     if (startTime.current) {
       const duration = performance.now() - startTime.current;
       console.log(`⚡ ${label}: ${duration.toFixed(2)}ms (render #${renderCount.current})`);
     }
-  }, [label]);
+  };
 
   return { startMeasure, endMeasure, renderCount: renderCount.current };
 }
@@ -42,10 +42,10 @@ export function MemoryLeakPreventionExample({ children }: { children: React.Reac
   const [isActive, setIsActive] = useState(true);
   const { startMeasure, endMeasure, renderCount } = usePerformanceMonitor('MemoryLeakPrevention');
 
-  const addLog = useCallback((message: string) => {
+  const addLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
     setLogs(prev => [`[${timestamp}] ${message}`, ...prev.slice(0, 4)]);
-  }, []);
+  };
 
   // 🔑 Cleanup Pattern: useEffect cleanup function
   useEffect(() => {
@@ -69,7 +69,7 @@ export function MemoryLeakPreventionExample({ children }: { children: React.Reac
   }, [refRegistry, addLog, isActive]);
 
   // 🔑 Handler with performance monitoring
-  const handleOptimizedOperation = useCallback(() => {
+  const handleOptimizedOperation = () => {
     startMeasure();
 
     addLog('🚀 Starting optimized operation');
@@ -87,7 +87,7 @@ export function MemoryLeakPreventionExample({ children }: { children: React.Reac
     endMeasure();
     addLog(`✅ Batch operation completed: ${results.join(', ')}`);
 
-  }, [refRegistry, addLog, startMeasure, endMeasure]);
+  };
 
   return (
     <div className="bg-red-50 p-4 rounded-lg border border-red-200">
@@ -156,30 +156,28 @@ export function OptimizedReregistrationExample({
     return () => clearTimeout(timer);
   }, [triggerCount, debounceMs]);
 
-  const addLog = useCallback((message: string) => {
+  const addLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
     setLogs(prev => [`[${timestamp}] ${message}`, ...prev.slice(0, 4)]);
-  }, []);
+  };
 
   // 🔑 Memoized handler - only re-creates when debouncedTriggerCount changes
-  const handleOptimizedValidation = useMemo(() => {
-    return () => {
-      startMeasure();
-      addLog(`🔄 Handler re-registered (trigger: ${debouncedTriggerCount})`);
+  const handleOptimizedValidation = () => {
+    startMeasure();
+    addLog(`🔄 Handler re-registered (trigger: ${debouncedTriggerCount})`);
 
-      const formData: FormData = {
-        name: refRegistry.nameInput.current?.getValue() || '',
-        email: refRegistry.emailInput.current?.getValue() || '',
-        message: refRegistry.messageInput.current?.getValue() || ''
-      };
-
-      const result = validateFormData(formData);
-      addLog(`📋 Validation result: ${result.isValid ? 'Valid' : 'Invalid'}`);
-
-      endMeasure();
-      return result;
+    const formData: FormData = {
+      name: refRegistry.nameInput.current?.getValue() || '',
+      email: refRegistry.emailInput.current?.getValue() || '',
+      message: refRegistry.messageInput.current?.getValue() || ''
     };
-  }, [refRegistry, addLog, debouncedTriggerCount, startMeasure, endMeasure]);
+
+    const result = validateFormData(formData);
+    addLog(`📋 Validation result: ${result.isValid ? 'Valid' : 'Invalid'}`);
+
+    endMeasure();
+    return result;
+  };
 
   return (
     <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
@@ -231,13 +229,13 @@ export function WeakMapCleanupExample({ children }: { children: React.ReactNode 
   const handlerMap = useRef(new WeakMap());
   const resourceMap = useRef(new Map<string, any>());
 
-  const addLog = useCallback((message: string) => {
+  const addLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
     setLogs(prev => [`[${timestamp}] ${message}`, ...prev.slice(0, 4)]);
-  }, []);
+  };
 
   // 🔑 Resource creation with automatic cleanup tracking
-  const createResource = useCallback((id: string) => {
+  const createResource = (id: string) => {
     // Simulate resource creation (e.g., event listener, subscription)
     const resource = {
       id,
@@ -252,10 +250,10 @@ export function WeakMapCleanupExample({ children }: { children: React.ReactNode 
     addLog(`🆕 Resource ${id} created`);
 
     return resource;
-  }, [addLog]);
+  };
 
   // 🔑 Handler with WeakMap pattern
-  const handleResourceOperation = useCallback(() => {
+  const handleResourceOperation = () => {
     const resourceId = `resource_${Date.now()}`;
     const resource = createResource(resourceId);
 
@@ -274,10 +272,10 @@ export function WeakMapCleanupExample({ children }: { children: React.ReactNode 
       resource.cleanup();
     }, 3000);
 
-  }, [createResource, addLog]);
+  };
 
   // 🔑 Manual cleanup all resources
-  const cleanupAllResources = useCallback(() => {
+  const cleanupAllResources = () => {
     const resourceCount = resourceMap.current.size;
 
     for (const [, resource] of resourceMap.current) {
@@ -285,14 +283,14 @@ export function WeakMapCleanupExample({ children }: { children: React.ReactNode 
     }
 
     addLog(`🧹 Cleaned up ${resourceCount} resources`);
-  }, [addLog]);
+  };
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       cleanupAllResources();
     };
-  }, [cleanupAllResources]);
+  }, []);
 
   return (
     <div className="bg-teal-50 p-4 rounded-lg border border-teal-200">

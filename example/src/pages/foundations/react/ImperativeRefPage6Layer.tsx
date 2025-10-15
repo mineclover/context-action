@@ -17,7 +17,7 @@
  * - Type-safe imperative APIs
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 
 // 🎯 Layer 1: Contexts
 import { RefContextProvider } from './imperativeRef/contexts/RefContexts';
@@ -61,49 +61,49 @@ function ImperativeRefIntegration({ children }: { children: React.ReactNode }) {
   // State for logging and activity tracking
   const [logs, setLogs] = useState<string[]>([]);
 
-  const addLog = useCallback((message: string) => {
+  const addLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
     setLogs(prev => [`[${timestamp}] ${message}`, ...prev.slice(0, 9)]);
-  }, []);
+  };
 
   // 🎯 Layer 5: Reactive Data (Hooks Layer)
   const reactiveData = useImperativeRefData();
 
   // 🎯 Action Handlers for Layer 4 (Actions Layer)
   const actionHandlers: ImperativeRefActionHandlers = {
-    onFieldValidation: useCallback((field: string, isValid: boolean) => {
+    onFieldValidation: (field: string, isValid: boolean) => {
       addLog(`📝 Field "${field}" validation: ${isValid ? '✅ Valid' : '❌ Invalid'}`);
-    }, [addLog]),
+    },
 
-    onFormSubmit: useCallback((formData: any, isValid: boolean) => {
+    onFormSubmit: (formData: any, isValid: boolean) => {
       if (isValid) {
         addLog(`✅ Form submitted successfully: ${formData.name}, ${formData.email}`);
       } else {
         addLog(`❌ Form submission failed - validation errors`);
       }
-    }, [addLog]),
+    },
 
-    onCounterChange: useCallback((value: number) => {
+    onCounterChange: (value: number) => {
       addLog(`🔢 Counter value changed: ${value}`);
-    }, [addLog]),
+    },
 
-    onTimerTick: useCallback((time: number) => {
+    onTimerTick: (time: number) => {
       if (time % 5 === 0 && time > 0) { // Log every 5 seconds
         addLog(`⏱️ Timer: ${formatTimerDisplay(time)}`);
       }
-    }, [addLog]),
+    },
 
-    onModalToggle: useCallback((modalType: string, isOpen: boolean) => {
+    onModalToggle: (modalType: string, isOpen: boolean) => {
       addLog(`🪟 ${modalType} modal ${isOpen ? 'opened' : 'closed'}`);
-    }, [addLog]),
+    },
 
-    onBatchReset: useCallback(() => {
+    onBatchReset: () => {
       addLog(`🔄 All components reset`);
-    }, [addLog]),
+    },
 
-    onValidateAll: useCallback((isValid: boolean) => {
+    onValidateAll: (isValid: boolean) => {
       addLog(`🔍 Validation check: ${isValid ? 'All fields valid' : 'Some fields invalid'}`);
-    }, [addLog])
+    }
   };
 
   // Pass integration context to children
@@ -130,18 +130,18 @@ function ImperativeRefDemo({
   // 🎯 Layer 4: Actions Layer
   const actions = useImperativeRefActions(actionHandlers, handlerContext);
 
-  // 🎯 Validation Change Handlers (memoized to prevent infinite loops)
-  const handleNameValidationChange = useCallback((isValid: boolean) => {
+  // 🎯 Validation Change Handlers (React 컴파일러가 자동으로 메모이제이션)
+  const handleNameValidationChange = (isValid: boolean) => {
     actions.validateField({ field: 'name', isValid });
-  }, [actions]);
+  };
 
-  const handleEmailValidationChange = useCallback((isValid: boolean) => {
+  const handleEmailValidationChange = (isValid: boolean) => {
     actions.validateField({ field: 'email', isValid });
-  }, [actions]);
+  };
 
-  const handleMessageValidationChange = useCallback((isValid: boolean) => {
+  const handleMessageValidationChange = (isValid: boolean) => {
     actions.validateField({ field: 'message', isValid });
-  }, [actions]);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -441,27 +441,27 @@ function ImperativeRefDemo({
 
 // 🎯 Main Page Component - Integration Point
 export default function ImperativeRefPage() {
-  // Source file registration
-  const imperativeRefPageOptions = React.useMemo(() => ({
+  // Source file registration (React 컴파일러가 자동으로 메모이제이션)
+  const imperativeRefPageOptions = {
     name: 'ImperativeRefPage (6-Layer Architecture)',
     description: '6-Layer Context Architecture with useImperativeHandle patterns',
     tags: ['6-layer-architecture', 'useImperativeHandle', 'ref-context', 'handler-injection'],
     priority: 60
-  }), []);
+  };
 
-  const refContextsOptions = React.useMemo(() => ({
+  const refContextsOptions = {
     name: 'RefContexts',
     description: 'Centralized ref management with Context pattern and TypeScript interfaces',
     tags: ['ref-context', 'typescript', 'centralized-management'],
     priority: 55
-  }), []);
+  };
 
-  const imperativeComponentsOptions = React.useMemo(() => ({
+  const imperativeComponentsOptions = {
     name: 'ImperativeComponents',
     description: 'Components implementing useImperativeHandle with custom ref interfaces',
     tags: ['useImperativeHandle', 'forwardRef', 'custom-ref-interface'],
     priority: 50
-  }), []);
+  };
 
   useRegisterSourceFile(
     '/Users/junwoobang/project/context-action/example/src/pages/foundations/react/ImperativeRefPage6Layer.tsx',

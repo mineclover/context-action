@@ -8,7 +8,7 @@
  * - 모든 시각적 업데이트는 DOM 직접 조작
  */
 
-import { useCallback, useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { useMouseRef, useMouseAction, useMouseRefMountState } from '../context/MouseEventsModel';
 import { useStoreDataAccess } from './useStoreDataAccess';
 
@@ -54,7 +54,7 @@ export function useAdvancedCanvasControl() {
   
   
   // === 클릭 마커 직접 생성 (React 없이) ===
-  const createClickMarkerDirect = useCallback((x: number, y: number, timestamp: number) => {
+  const createClickMarkerDirect = (x: number, y: number, timestamp: number) => {
     const markersContainer = clickMarkersRef.target;
     if (!markersContainer) return;
     
@@ -111,10 +111,10 @@ export function useAdvancedCanvasControl() {
         oldMarker.parentNode.removeChild(oldMarker);
       }
     }
-  }, [clickMarkersRef]);
+  };
   
   // === Path 직접 그리기 (Store 무관) ===
-  const updatePathDirect = useCallback((newPoint: { x: number; y: number; timestamp: number }) => {
+  const updatePathDirect = (newPoint: { x: number; y: number; timestamp: number }) => {
     const pathSvg = pathSvgRef.target;
     if (!pathSvg) return;
     
@@ -129,10 +129,10 @@ export function useAdvancedCanvasControl() {
       .join(' ');
     
     pathSvg.setAttribute('d', pathData);
-  }, [pathSvgRef]);
+  };
   
   // === 커서 직접 업데이트 ===
-  const updateCursorDirect = useCallback((x: number, y: number) => {
+  const updateCursorDirect = (x: number, y: number) => {
     const cursor = cursorRef.target;
     const coordinates = coordinatesRef.target;
     
@@ -146,10 +146,10 @@ export function useAdvancedCanvasControl() {
       coordinates.style.transform = `translate3d(${x + 16}px, ${y - 32}px, 0)`;
       coordinates.style.opacity = '1';
     }
-  }, [cursorRef, coordinatesRef]);
+  };
   
   // === 마우스 움직임 핸들러 ===
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const container = containerRef.target;
     if (!container) return;
     
@@ -172,10 +172,10 @@ export function useAdvancedCanvasControl() {
     }, 33);
     
     lastPositionRef.current = { x, y };
-  }, [containerRef, dispatch, updateCursorDirect, updatePathDirect]);
+  };
   
   // === 마우스 클릭 핸들러 (마커 직접 생성) ===
-  const handleMouseClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const container = containerRef.target;
     if (!container) return;
     
@@ -194,10 +194,10 @@ export function useAdvancedCanvasControl() {
       button: e.button,
       timestamp
     });
-  }, [containerRef, dispatch, createClickMarkerDirect]);
+  };
   
   // === 마우스 진입 핸들러 ===
-  const handleMouseEnter = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
     const container = containerRef.target;
     if (!container) return;
     
@@ -209,10 +209,10 @@ export function useAdvancedCanvasControl() {
     updateCursorDirect(x, y);
     dispatch('enterArea', { x, y, timestamp });
     lastPositionRef.current = { x, y };
-  }, [containerRef, dispatch, updateCursorDirect]);
+  };
   
   // === 마우스 이탈 핸들러 ===
-  const handleMouseLeave = useCallback(() => {
+  const handleMouseLeave = () => {
     const cursor = cursorRef.target;
     const coordinates = coordinatesRef.target;
     const pathSvg = pathSvgRef.target;
@@ -232,7 +232,7 @@ export function useAdvancedCanvasControl() {
   }, [cursorRef, coordinatesRef, pathSvgRef, dispatch]);
   
   // === 리셋 핸들러 (모든 마커 제거) ===
-  const handleReset = useCallback(() => {
+  const handleReset = () => {
     const pathSvg = pathSvgRef.target;
     const cursor = cursorRef.target;
     const coordinates = coordinatesRef.target;

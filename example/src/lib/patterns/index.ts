@@ -20,8 +20,8 @@ export type {
 export { ObjectContextManager } from './ObjectContextManager';
 
 // React Hooks Factory
-export { createObjectContextHooks } from './createObjectContextHooks';
+// export { createObjectContextHooks } from './createObjectContextHooks';
 
 // Examples
-export { default as UserManagementExample } from './examples/UserManagementExample';
+// export { default as UserManagementExample } from './examples/UserManagementExample';
 // export { default as ElementManagementMigration } from './examples/ElementManagementMigration'; // File not found

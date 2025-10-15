@@ -8,7 +8,7 @@
  * - Type-safe ref handling
  */
 
-import React, { createContext, useContext, useRef, useCallback, ReactNode, RefObject, MutableRefObject } from 'react';
+import React, { createContext, useContext, useRef, ReactNode, RefObject, MutableRefObject } from 'react';
 
 // 🎯 Ref Interface Definitions
 export interface FormRefHandle {
@@ -94,36 +94,36 @@ export function RefContextProvider({ children }: RefContextProviderProps) {
   const counterRef = useRef<CounterRefHandle>(null);
   const timerRef = useRef<TimerRefHandle>(null);
 
-  // 🎯 Helper Methods using refs
-  const focusFirstInput = useCallback(() => {
+  // 🎯 Helper Methods using refs (React 컴파일러가 자동으로 메모이제이션)
+  const focusFirstInput = () => {
     nameInputRef.current?.focus();
-  }, []);
+  };
 
-  const validateAllInputs = useCallback((): boolean => {
+  const validateAllInputs = (): boolean => {
     const nameValid = nameInputRef.current?.validate() ?? false;
     const emailValid = emailInputRef.current?.validate() ?? false;
     const messageValid = messageInputRef.current?.validate() ?? false;
 
     return nameValid && emailValid && messageValid;
-  }, []);
+  };
 
-  const resetAllInputs = useCallback(() => {
+  const resetAllInputs = () => {
     nameInputRef.current?.reset();
     emailInputRef.current?.reset();
     messageInputRef.current?.reset();
-  }, []);
+  };
 
-  const closeAllModals = useCallback(() => {
+  const closeAllModals = () => {
     confirmModalRef.current?.close();
     alertModalRef.current?.close();
-  }, []);
+  };
 
-  const resetAllComponents = useCallback(() => {
+  const resetAllComponents = () => {
     resetAllInputs();
     closeAllModals();
     counterRef.current?.reset();
     timerRef.current?.reset();
-  }, [resetAllInputs, closeAllModals]);
+  };
 
   const registry: RefRegistry = {
     // Refs

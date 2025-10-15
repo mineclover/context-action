@@ -25,7 +25,7 @@
  * - Separation of component lifecycle from business logic lifecycle
  */
 
-import React, { useCallback, useRef, ReactNode } from 'react';
+import React, { useRef, ReactNode } from 'react';
 import { useRefRegistry } from '../contexts/RefContexts';
 import { validateFormData, FormData, ValidationState, ValidationResult, calculateCounterValue, calculateTimerState, TimerState } from '../business/imperativeRefBusinessLogic';
 
@@ -58,7 +58,7 @@ export function ImperativeRefHandlers({
   const refRegistry = useRefRegistry();
 
   // 🔑 Form Validation Handler with Injection
-  const handleFieldValidation = useCallback((
+  const handleFieldValidation = (
     field: keyof ValidationState,
     isValid: boolean
   ) => {
@@ -77,10 +77,10 @@ export function ImperativeRefHandlers({
 
     // Return validation result for potential use
     return validationResult;
-  }, [refRegistry, onValidationChange]);
+  };
 
   // 🔑 Form Submission Handler with Full Validation
-  const handleFormSubmit = useCallback(() => {
+  const handleFormSubmit = () => {
     // 1️⃣ Handler Injection: Get current values from all form refs
     const currentFormData: FormData = {
       name: refRegistry.nameInput.current?.getValue() || '',
@@ -110,10 +110,10 @@ export function ImperativeRefHandlers({
     onFormSubmit?.(currentFormData, validationResult.isValid);
 
     return validationResult;
-  }, [refRegistry, onFormSubmit]);
+  };
 
   // 🔑 Counter Operation Handler with Bounds Checking
-  const handleCounterOperation = useCallback((
+  const handleCounterOperation = (
     operation: 'increment' | 'decrement' | 'reset' | 'set',
     setValue?: number
   ) => {
@@ -139,10 +139,10 @@ export function ImperativeRefHandlers({
     onCounterChange?.(newValue);
 
     return newValue;
-  }, [refRegistry, onCounterChange]);
+  };
 
   // 🔑 Timer Control Handler with State Management
-  const handleTimerControl = useCallback((action: 'start' | 'stop' | 'reset') => {
+  const handleTimerControl = (action: 'start' | 'stop' | 'reset') => {
     // 1️⃣ Handler Injection: Get current timer state
     const currentTime = refRegistry.timer.current?.getTime() || 0;
     const isCurrentlyRunning = refRegistry.timer.current?.isRunning() || false;
@@ -170,10 +170,10 @@ export function ImperativeRefHandlers({
     onTimerTick?.(newState.time);
 
     return newState;
-  }, [refRegistry, onTimerTick]);
+  };
 
   // 🔑 Modal Control Handler with State Coordination
-  const handleModalControl = useCallback((
+  const handleModalControl = (
     modalType: 'confirm' | 'alert',
     action: 'open' | 'close' | 'toggle'
   ) => {
@@ -209,10 +209,10 @@ export function ImperativeRefHandlers({
     onModalToggle?.(modalType, newState);
 
     return newState;
-  }, [refRegistry, onModalToggle]);
+  };
 
   // 🔑 Batch Operations Handler - Cross-Component Coordination
-  const handleBatchOperations = useCallback(() => {
+  const handleBatchOperations = () => {
     // Complex handler that coordinates multiple refs
     return {
       // Form operations
@@ -233,7 +233,7 @@ export function ImperativeRefHandlers({
         refRegistry.focusFirstInput();
       }
     };
-  }, [refRegistry, handleFormSubmit]);
+  };
 
   // 🎯 Provider Context Value with Handler Injection Methods
   const handlerContext = {

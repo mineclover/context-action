@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 
 // React 컴파일러 테스트를 위한 컴포넌트
 // 이 컴포넌트는 수동 메모이제이션 없이도 자동으로 최적화되어야 합니다
@@ -7,17 +7,17 @@ export function ReactCompilerTest() {
   const [name, setName] = useState('');
 
   // React 컴파일러가 자동으로 메모이제이션할 수 있는 함수들
-  const handleIncrement = useCallback(() => {
+  const handleIncrement = () => {
     setCount(prev => prev + 1);
-  }, []);
+  };
 
-  const handleDecrement = useCallback(() => {
+  const handleDecrement = () => {
     setCount(prev => prev - 1);
-  }, []);
+  };
 
-  const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setName(e.target.value);
-  }, []);
+  };
 
   // 비싼 계산 - React 컴파일러가 자동으로 메모이제이션해야 함
   const expensiveCalculation = () => {

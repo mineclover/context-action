@@ -4,7 +4,7 @@ import {
   createStoreContext,
   useStoreValue,
 } from '@context-action/react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 
 // React Hooks 최적화 액션 맵
@@ -86,11 +86,11 @@ function MemoizationDemo() {
   });
   const calculationResult = useStoreValue(calculationStore);
 
-  // useMemo를 사용한 무거운 계산 최적화
-  const expensiveNumbers = useMemo(() => {
+  // React 컴파일러가 자동으로 메모이제이션하는 무거운 계산
+  const expensiveNumbers = (() => {
     console.log('🔄 Generating expensive numbers array');
     return Array.from({ length: inputSize }, (_, i) => i + 1);
-  }, [inputSize]);
+  })();
 
   // 액션 핸들러 등록
   useEffect(() => {
@@ -121,7 +121,7 @@ function MemoizationDemo() {
   return (
     <div className="demo-card">
       <h3>React Memoization</h3>
-      <p>useMemo와 useCallback을 사용한 성능 최적화 데모</p>
+      <p>React 컴파일러가 자동으로 메모이제이션하는 성능 최적화 데모</p>
 
       <div className="optimization-controls">
         <div className="control-group">
@@ -528,11 +528,11 @@ function ReactHooksPage() {
               <h3>Performance Optimization Concepts</h3>
               <ul className="concept-list">
                 <li>
-                  <strong>useMemo:</strong> 비용이 많이 드는 계산 결과를
+                  <strong>React 컴파일러:</strong> 자동으로 비용이 많이 드는 계산 결과를
                   메모이제이션
                 </li>
                 <li>
-                  <strong>useCallback:</strong> 함수 참조를 안정화하여 불필요한
+                  <strong>React 컴파일러:</strong> 자동으로 함수 참조를 안정화하여 불필요한
                   리렌더 방지
                 </li>
                 <li>
@@ -558,8 +558,8 @@ function ReactHooksPage() {
                 <li>
                   ✓ 핸들러 등록/해제를 조건부로 수행하여 메모리 효율성 향상
                 </li>
-                <li>✓ 무거운 계산은 useMemo로 캐싱</li>
-                <li>✓ 이벤트 핸들러는 useCallback으로 최적화</li>
+                <li>✓ 무거운 계산은 React 컴파일러가 자동으로 캐싱</li>
+                <li>✓ 이벤트 핸들러는 React 컴파일러가 자동으로 최적화</li>
                 <li>✓ 메모리 정리 로직을 useEffect cleanup에서 수행</li>
                 <li>✓ 개발자 도구를 활용한 성능 모니터링</li>
               </ul>
@@ -570,13 +570,11 @@ function ReactHooksPage() {
           <div className="code-example">
             <h3>React Hooks Optimization Patterns</h3>
             <pre className="code-block">
-              {`// 1. useMemo로 무거운 계산 최적화
-const expensiveValue = useMemo(() => {
-  return heavyComputation(data);
-}, [data]); // data가 변경될 때만 재계산
+              {`// 1. React 컴파일러가 자동으로 무거운 계산 최적화
+const expensiveValue = heavyComputation(data); // 자동으로 메모이제이션됨
 
-// 2. useCallback으로 핸들러 최적화
-const optimizedHandler = useCallback((payload) => {
+// 2. React 컴파일러가 자동으로 핸들러 최적화
+const optimizedHandler = (payload) => {
   dispatch('action', payload);
 }, [dispatch]); // dispatch가 변경될 때만 함수 재생성
 

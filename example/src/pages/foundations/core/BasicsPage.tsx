@@ -1,6 +1,6 @@
 import { createActionContext } from '@context-action/react';
 import type { ActionHandler, PipelineController } from '@context-action/core';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import {
   LogMonitor,
   LogMonitorProvider,
@@ -41,27 +41,27 @@ function CoreBasicsDemo() {
   const { logAction, logSystem } = useActionLoggerWithToast();
 
   // Register action handlers with renamed hook (properly memoized)
-  const incrementHandler = useCallback<ActionHandler<void>>((payload, controller) => {
+  const incrementHandler: ActionHandler<void> = (payload, controller) => {
     setCount((prev) => prev + 1);
     logAction('increment', undefined);
-  }, [logAction]);
+  };
 
-  const decrementHandler = useCallback<ActionHandler<void>>((payload, controller) => {
+  const decrementHandler: ActionHandler<void> = (payload, controller) => {
     setCount((prev) => prev - 1);
     logAction('decrement', undefined);
-  }, [logAction]);
+  };
 
-  const setCountHandler = useCallback<ActionHandler<number>>((payload, controller) => {
+  const setCountHandler: ActionHandler<number> = (payload, controller) => {
     setCount(payload);
     logAction('setCount', payload);
-  }, [logAction]);
+  };
 
-  const resetHandler = useCallback<ActionHandler<void>>((payload, controller) => {
+  const resetHandler: ActionHandler<void> = (payload, controller) => {
     setCount(0);
     logAction('reset', undefined);
-  }, [logAction]);
+  };
 
-  const generateLogHandler = useCallback<ActionHandler<void>>((payload, controller) => {
+  const generateLogHandler: ActionHandler<void> = (payload, controller) => {
     // Generate random log message
     const adjectives = ['Amazing', 'Brilliant', 'Creative', 'Dynamic', 'Elegant'];
     const nouns = ['Action', 'Event', 'Process', 'Operation', 'Task'];
@@ -74,7 +74,7 @@ function CoreBasicsDemo() {
     
     const message = `${randomAdjective} ${randomColor} ${randomNoun} #${randomNumber}`;
     logAction('generateLog', message);
-  }, [logAction]);
+  };
 
   useCoreActionHandler('increment', incrementHandler);
   useCoreActionHandler('decrement', decrementHandler);
@@ -82,26 +82,26 @@ function CoreBasicsDemo() {
   useCoreActionHandler('reset', resetHandler);
   useCoreActionHandler('generateLog', generateLogHandler);
 
-  // Action dispatch functions using renamed hooks
-  const handleIncrement = useCallback(() => {
+  // Action dispatch functions using renamed hooks (React 컴파일러가 자동으로 메모이제이션)
+  const handleIncrement = () => {
     dispatch('increment');
-  }, [dispatch]);
+  };
 
-  const handleDecrement = useCallback(() => {
+  const handleDecrement = () => {
     dispatch('decrement');
-  }, [dispatch]);
+  };
 
-  const handleSetCount = useCallback(() => {
+  const handleSetCount = () => {
     dispatch('setCount', 10);
-  }, [dispatch]);
+  };
 
-  const handleReset = useCallback(() => {
+  const handleReset = () => {
     dispatch('reset');
-  }, [dispatch]);
+  };
 
-  const handleGenerateLog = useCallback(() => {
+  const handleGenerateLog = () => {
     dispatch('generateLog');
-  }, [dispatch]);
+  };
 
   return (
     <div className="space-y-6">
@@ -220,7 +220,7 @@ function AdvancedFeaturesDemo() {
   const [runningCount, setRunningCount] = useState(0);
 
   // Advanced async handler
-  const asyncOperationHandler = useCallback<ActionHandler<string>>(async (payload, controller) => {
+  const asyncOperationHandler: ActionHandler<string> = async (payload, controller) => {
     let aborted = false; // Move aborted to function scope
     
     try {
@@ -260,25 +260,25 @@ function AdvancedFeaturesDemo() {
       }
       throw error;
     }
-  }, [logAction]);
+  };
 
   useCoreActionHandler('asyncOperation', asyncOperationHandler);
 
-  const handleAsyncAction = useCallback(async () => {
+  const handleAsyncAction = async () => {
     try {
       const result = await dispatchWithResult('asyncOperation', 'test-payload');
       console.log('Action result:', result);
     } catch (error) {
       console.error('Action failed:', error);
     }
-  }, [dispatchWithResult]);
+  };
 
-  const handleAbortAll = useCallback(() => {
+  const handleAbortAll = () => {
     const abortedCount = abortAll(); // Abort all pending actions
     logAction('abortAll', `🛑 Aborted ${abortedCount} pending actions`);
     setIsRunning(false);
     setRunningCount(0);
-  }, [abortAll, logAction]);
+  };
 
   return (
     <DemoCard variant="info">

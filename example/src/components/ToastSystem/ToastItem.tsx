@@ -1,6 +1,5 @@
 // @ts-nocheck
-import type React from 'react';
-import { memo, useCallback, useMemo } from 'react';
+import React from 'react';
 import { cn } from '../../lib/utils';
 import { type ToastVariants, toastVariants } from '../ui/variants';
 import { toastActionRegister } from './actions';
@@ -21,11 +20,11 @@ const ToastItemComponent = ({
   // Ensure toast has proper types
   const safeToast = toast as Toast;
 
-  const handleClose = useCallback(() => {
+  const handleClose = () => {
     toastActionRegister.dispatch('removeToast', { toastId: safeToast.id });
-  }, [safeToast.id]);
+  };
 
-  const typeIcon = useMemo((): React.ReactNode => {
+  const typeIcon = (): React.ReactNode => {
     switch (safeToast.type) {
       case 'action':
         return '⚡';
@@ -40,10 +39,10 @@ const ToastItemComponent = ({
       default:
         return '📢';
     }
-  }, [safeToast.type]);
+  };
 
   // 스택 오프셋 계산 (뒤의 토스트들이 살짝 보이도록)
-  const styleValues = useMemo(() => {
+  const styleValues = () => {
     const stackOffset = Math.min(index * 4, 12); // 최대 12px까지
     const scaleOffset = Math.max(0.95, 1 - index * 0.02); // 최소 0.95배까지
 
@@ -59,10 +58,10 @@ const ToastItemComponent = ({
       actionPayload,
       executionStep,
     };
-  }, [index, safeToast.payload]);
+  };
 
   const { stackOffset, scaleOffset, actionPayload, executionStep } =
-    styleValues;
+    styleValues();
 
   return (
     <div
@@ -88,7 +87,7 @@ const ToastItemComponent = ({
     >
       {/* 컴팩트 헤더 */}
       <div className="flex items-center gap-2">
-        <div className="flex-shrink-0 text-sm">{typeIcon}</div>
+        <div className="flex-shrink-0 text-sm">{typeIcon()}</div>
         <div className="flex-1 min-w-0">
           <div className="text-xs font-medium break-words">
             {safeToast.message as string}
@@ -138,14 +137,5 @@ const ToastItemComponent = ({
   );
 };
 
-// React.memo로 최적화 - toast 객체의 깊은 비교를 위한 커스텀 비교 함수
-export const ToastItem = memo(ToastItemComponent, (prevProps, nextProps) => {
-  return (
-    prevProps.toast.id === nextProps.toast.id &&
-    prevProps.toast.phase === nextProps.toast.phase &&
-    prevProps.toast.type === nextProps.toast.type &&
-    prevProps.toast.message === nextProps.toast.message &&
-    prevProps.index === nextProps.index &&
-    prevProps.totalCount === nextProps.totalCount
-  );
-});
+// React 컴파일러가 자동으로 최적화
+export const ToastItem = ToastItemComponent;
