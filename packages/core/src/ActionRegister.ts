@@ -563,6 +563,15 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     });
     
     if (!pipeline || pipeline.length === 0) {
+      // 🚨 경고: 핸들러가 등록되지 않은 액션 실행
+      const warningMessage = `⚠️ Action '${String(action)}' has no registered handlers. This action will be ignored.`;
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(warningMessage);
+        console.warn('💡 Tip: Register a handler using registry.register() before dispatching this action.');
+        console.warn('📋 Available actions:', Array.from(this.pipelines.keys()));
+      }
+      
       this.log(`No handlers found for action '${String(action)}', dispatch cancelled`, {}, 'warn');
       return;
     }
@@ -722,6 +731,15 @@ export class ActionRegister<T extends ActionPayloadMap = ActionPayloadMap> {
     const pipeline = this.pipelines.get(action);
     
     if (!pipeline || pipeline.length === 0) {
+      // 🚨 경고: 핸들러가 등록되지 않은 액션 실행
+      const warningMessage = `⚠️ Action '${String(action)}' has no registered handlers. This action will be ignored.`;
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(warningMessage);
+        console.warn('💡 Tip: Register a handler using registry.register() before dispatching this action.');
+        console.warn('📋 Available actions:', Array.from(this.pipelines.keys()));
+      }
+      
       return {
         success: true,
         aborted: false,
