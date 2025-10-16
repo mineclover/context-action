@@ -18,6 +18,9 @@ import { LogArtHelpers } from './utils/logger';
 // Warning Demo - New feature demonstration
 const WarningDemoPage = lazy(() => import('./pages/WarningDemoPage'));
 
+// Demos Index - Interactive demonstrations hub
+const DemosIndexPage = lazy(() => import('./pages/DemosIndexPage'));
+
 // Foundations - Core concepts (smaller chunks)
 const CoreBasicsPage = lazy(
   () => import('./pages/foundations/core/BasicsPage')
@@ -603,6 +606,11 @@ function AppContent() {
               element={<UseRefMountStateTestPage />}
             />
             <Route path="/refs/canvas" element={<AdvancedCanvasExample />} />
+            {/* 🛡️ ACTION GUARD - Performance optimization demos */}
+            <Route path="/action-guard" element={<ActionGuardIndexPage />} />
+            
+            {/* 🎭 DEMOS - Interactive demonstrations */}
+            <Route path="/demos" element={<DemosIndexPage />} />
             <Route path="/demos/chat" element={<ChatPage />} />
             <Route
               path="/demos/action-priority"
