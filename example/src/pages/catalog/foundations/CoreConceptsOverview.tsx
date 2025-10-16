@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { cardVariants, gridVariants } from '@/components/ui/variants';
 import { useRegisterSourceFile } from '@/hooks/useRegisterSourceFile';

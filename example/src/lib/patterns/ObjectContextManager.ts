@@ -22,7 +22,7 @@ import {
 export class ObjectContextManager<T extends ManagedObject> {
   private actionRegister: ActionRegister<BaseObjectActions<T>>;
   private objects = new Map<string, T>();
-  private metadata = new Map<string, ObjectMetadata<T>>();
+  private metadata = new Map<string, ObjectMetadata>();
   private selectedObjects = new Set<string>();
   private focusedObject: string | null = null;
   private config: ObjectContextConfig;
@@ -139,7 +139,7 @@ export class ObjectContextManager<T extends ManagedObject> {
     // 객체 및 메타데이터 저장
     this.objects.set(id, object);
     
-    const objectMetadata: ObjectMetadata<T> = {
+    const objectMetadata: ObjectMetadata = {
       id,
       type: object.type,
       createdAt: object.createdAt.toISOString(),
@@ -223,7 +223,7 @@ export class ObjectContextManager<T extends ManagedObject> {
     }
 
     // 메타데이터 업데이트
-    const updatedMetadata: ObjectMetadata<T> = {
+    const updatedMetadata: ObjectMetadata = {
       ...existingMetadata,
       lastAccessed: new Date().toISOString(),
       ...(metadataUpdate && { metadata: { ...existingMetadata.metadata, ...metadataUpdate } }),
@@ -528,7 +528,7 @@ export class ObjectContextManager<T extends ManagedObject> {
   /**
    * 객체 메타데이터 조회
    */
-  public getMetadata(id: string): ObjectMetadata<T> | null {
+  public getMetadata(id: string): ObjectMetadata | null {
     return this.metadata.get(id) || null;
   }
 

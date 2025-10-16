@@ -10,7 +10,7 @@
 
 import { useMemo } from 'react';
 import { useStoreValue } from '@context-action/react';
-import { useCartStore, type CartItem, type ValidationResult, type CalculationResult, type ProcessingResult } from '../contexts/CartContexts';
+import { useCartStore } from '../contexts/CartContexts';
 import { getCartStatistics } from '../business/cartBusinessLogic';
 
 /**

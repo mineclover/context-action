@@ -25,7 +25,7 @@ export type ObjectLifecycleState = 'created' | 'active' | 'inactive' | 'archived
 /**
  * 객체 메타데이터 (Store에 저장되는 직렬화 가능한 데이터)
  */
-export interface ObjectMetadata<T extends ManagedObject = ManagedObject> {
+export interface ObjectMetadata {
   readonly id: string;
   readonly type: string;
   readonly createdAt: string; // ISO string for serialization
@@ -85,8 +85,8 @@ export interface QueryOptions {
 /**
  * 객체 컨텍스트의 상태 인터페이스
  */
-export interface ObjectContextState<T extends ManagedObject = ManagedObject> {
-  objects: Map<string, ObjectMetadata<T>>;
+export interface ObjectContextState<_T extends ManagedObject = ManagedObject> {
+  objects: Map<string, ObjectMetadata>;
   selectedObjects: string[];
   focusedObject: string | null;
   lastCleanup?: string; // ISO string
@@ -125,7 +125,7 @@ export interface ObjectManagementEvent<T extends ManagedObject = ManagedObject> 
   type: 'registered' | 'unregistered' | 'updated' | 'lifecycle_changed' | 'selected' | 'focused';
   objectId: string;
   object?: T;
-  metadata?: ObjectMetadata<T>;
+  metadata?: ObjectMetadata;
   timestamp: Date;
   context: string;
 }

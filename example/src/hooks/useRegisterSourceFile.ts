@@ -109,7 +109,7 @@ export function useRegisterSourceFile(
         
         if (updatedInstances.size === 0) {
           // 마지막 인스턴스가 언마운트되면 엔트리 제거
-          const { [filePath]: removed, ...remaining } = entries;
+          const { [filePath]: _, ...remaining } = entries;
           entriesStore.setValue(remaining);
           totalCountStore.setValue(Object.keys(remaining).length);
           

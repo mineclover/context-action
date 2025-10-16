@@ -8,16 +8,13 @@
  * - Uses props-based dependency injection for testability
  */
 
-import React, { useCallback, type ReactNode } from 'react';
+import { useCallback, type ReactNode } from 'react';
 import { useCartActionHandler, type CartItem } from '../contexts/CartContexts';
 import type { Store } from '@context-action/react';
 import {
   validateCartItems,
   calculateCartTotal,
   processOrderData,
-  addItemToCart,
-  removeItemFromCart,
-  updateItemQuantity,
   clearCart as clearCartItems,
 } from '../business/cartBusinessLogic';
 
@@ -77,7 +74,7 @@ export function CartHandlers({
       logger?.info(`[${moduleId}] Validating cart`, { itemCount: payload.items.length });
 
       // Step 1: Read current state (if needed)
-      const currentValidation = validationStore.getValue();
+      const _currentValidation = validationStore.getValue();
 
       // Step 2: Execute business logic
       const validationResult = validateCartItems(payload.items);
@@ -112,7 +109,7 @@ export function CartHandlers({
       });
 
       // Step 1: Read current state
-      const currentCalculation = calculationStore.getValue();
+      const _currentCalculation = calculationStore.getValue();
 
       // Step 2: Execute business logic
       let discountCode = payload.discountCode;
@@ -166,7 +163,7 @@ export function CartHandlers({
       });
 
       // Step 1: Read current state
-      const currentOrder = orderStore.getValue();
+      const _currentOrder = orderStore.getValue();
 
       // Step 2: Execute business logic
       const orderResult = processOrderData(payload.items, payload.paymentMethod);

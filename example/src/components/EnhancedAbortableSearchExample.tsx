@@ -107,7 +107,7 @@ function EnhancedAbortableSearchExampleContent() {
   });
 
   // Large dataset processing handler
-  useActionHandler('processLargeDataSet', async ({ dataSetId, chunkSize }, controller): Promise<void> => {
+  useActionHandler('processLargeDataSet', async ({ chunkSize }, controller): Promise<void> => {
     const totalChunks = Math.ceil(1000 / (chunkSize || 50));
     
     for (let i = 0; i < totalChunks; i++) {

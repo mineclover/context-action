@@ -3,7 +3,6 @@
  * 다양한 상태 관리 시나리오를 보여주는 실용적인 데모들
  */
 
-import React from 'react';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import {
   ChatDemo

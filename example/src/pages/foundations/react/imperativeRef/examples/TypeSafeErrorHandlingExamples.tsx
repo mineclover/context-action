@@ -8,7 +8,7 @@
  * - Error recovery strategies
  */
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useRefRegistry } from '../contexts/RefContexts';
 import { validateFormData, FormData } from '../business/imperativeRefBusinessLogic';
 
@@ -158,10 +158,10 @@ export function TypeSafeErrorHandlingExample({ children }: { children: React.Rea
         addLog('🔄 Recovered from previous error', 'success');
       }
 
-    } catch (error) {
-      const handlerError = error instanceof Error
-        ? createSystemError(error.message)
-        : error as HandlerError;
+    } catch (_error) {
+      const handlerError = _error instanceof Error
+        ? createSystemError(_error.message)
+        : _error as HandlerError;
 
       reportError(handlerError);
       addLog(`❌ Validation failed: ${handlerError.message}`, 'error');
@@ -186,7 +186,7 @@ export function TypeSafeErrorHandlingExample({ children }: { children: React.Rea
         addLog('⚠️ Counter ref not available, skipping operation');
       }
 
-    } catch (error) {
+    } catch (_error) {
       // Even if error occurs, provide meaningful feedback
       addLog('❌ Operation failed, but application continues', 'error');
     }
@@ -305,7 +305,7 @@ export function CircuitBreakerExample({ children }: { children: React.ReactNode 
         addLog('✅ Circuit breaker: recovery successful');
       }
 
-    } catch (error) {
+    } catch (_error) {
       const newFailureCount = failureCount + 1;
       setFailureCount(newFailureCount);
       setLastFailure(Date.now());

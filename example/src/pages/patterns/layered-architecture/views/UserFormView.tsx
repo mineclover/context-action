@@ -55,7 +55,7 @@ const FAKE_DOMAINS = [
 const FAKE_ROLES: User['role'][] = ['guest', 'user', 'admin'];
 
 // Fun facts for generated users
-const FUN_FACTS = [
+const _FUN_FACTS = [
   'loves coffee and debugging', 'speaks 5 programming languages', 'builds robots in spare time',
   'writes poetry about algorithms', 'collects vintage keyboards', 'dreams in binary',
   'can solve a Rubik\'s cube in 30 seconds', 'has read all of Stack Overflow',

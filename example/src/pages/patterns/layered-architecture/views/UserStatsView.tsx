@@ -7,7 +7,7 @@
  * - Pure presentation component
  */
 
-import React, { memo } from 'react';
+import { memo } from 'react';
 import type { User } from '../contexts/UserManagementContexts';
 
 interface UserStatsViewProps {

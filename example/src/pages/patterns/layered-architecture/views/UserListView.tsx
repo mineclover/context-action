@@ -8,7 +8,7 @@
  * - No direct business logic or side effects
  */
 
-import React, { memo } from 'react';
+import { memo } from 'react';
 import type { User } from '../contexts/UserManagementContexts';
 import { useRegisterSourceFile } from '../../../../hooks/useRegisterSourceFile';
 

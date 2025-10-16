@@ -5,7 +5,7 @@
  * 모든 레이어를 통합하고 핸들러 등록 및 컴포지션을 담당합니다.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { usePerformanceManagementActions } from './actions/usePerformanceManagementActions';
 import { usePriorityTestActions } from './actions/usePriorityTestActions';
 import {

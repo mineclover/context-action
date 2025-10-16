@@ -5,14 +5,13 @@
 
 import { LogLevel } from '@/utils/logger';
 import { useStoreValue, createActionContext, createStoreContext } from '@context-action/react';
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import type { ActionPayloadMap } from '@context-action/core';
 import { LogMonitor } from './LogMonitor';
 import type {
   LogEntry,
   LogMonitorConfig,
   LogMonitorContextValue,
-  LogMonitorProps,
 } from './types';
 import { createLogEntry, maintainMaxLogs } from './utils';
 
@@ -220,7 +219,7 @@ export function useLogMonitorActions() {
  * 기존 호환성을 위한 통합 훅 (점진적 마이그레이션용)
  */
 export function useLogMonitorContext(): LogMonitorContextValue {
-  const { logs, logCount } = useLogMonitorLogs();
+  const { logs } = useLogMonitorLogs();
   const { logLevel, config } = useLogMonitorConfig();
   const actions = useLogMonitorActions();
   

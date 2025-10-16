@@ -1,5 +1,5 @@
 import { storeActionRegister } from './index';
-import { StoreScenarios } from '../stores';
+// import { StoreScenarios } from '../stores';
 import type { ChatMessage } from '../types';
 
 // Chat action handlers - 한 번만 등록되도록 컴포넌트 외부에서 정의
@@ -9,7 +9,7 @@ export function registerChatHandlers() {
   if (handlersRegistered) return;
   
   // StoreScenarios.Provider는 컴포넌트이므로 조건문에서 제거
-  const messagesStore = null; // Provider 컨텍스트 내에서만 접근 가능
+  const _messagesStore = null; // Provider 컨텍스트 내에서만 접근 가능
   
   storeActionRegister.register(
     'sendMessage',

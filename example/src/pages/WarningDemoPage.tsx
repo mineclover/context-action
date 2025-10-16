@@ -3,7 +3,6 @@ import { ActionRegister, type ActionPayloadMap } from '@context-action/core';
 import { Container } from '../components/ui/Container';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { CodeExample } from '../components/ui/CodeExample';
 
 interface DemoActions extends ActionPayloadMap {
   userLogin: { userId: string; email: string };

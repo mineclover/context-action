@@ -4,10 +4,7 @@
  */
 
 import React, { 
-  createContext, 
-  useContext, 
   useEffect,
-  useState,
   ReactNode,
   useRef
 } from 'react';
@@ -18,7 +15,6 @@ import {
   ObjectMetadata,
   BaseObjectActions,
   ObjectContextConfig,
-  ObjectContextState,
   ObjectLifecycleState,
   QueryOptions,
   ObjectManagementEvent
@@ -39,7 +35,7 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
     useStoreManager: useObjectStoreManager
   } = createStoreContext(`ObjectContext_${config.contextName}`, {
     objects: { 
-      initialValue: new Map<string, ObjectMetadata<T>>()
+      initialValue: new Map<string, ObjectMetadata>()
     },
     selectedObjects: { 
       initialValue: [] as string[] 
@@ -85,15 +81,15 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
     const manager = useObjectContextManager();
 
     // Computed values (React 컴파일러가 자동으로 메모이제이션)
-    const objectsMap = objects instanceof Map ? objects as Map<string, ObjectMetadata<T>> : new Map(Object.entries(objects as Record<string, ObjectMetadata<T>>));
+    const objectsMap = objects instanceof Map ? objects as Map<string, ObjectMetadata> : new Map(Object.entries(objects as Record<string, ObjectMetadata>));
 
-    const selectedObjectsInfo = selectedObjects.map(id => objectsMap.get(id)).filter(Boolean) as ObjectMetadata<T>[];
+    const selectedObjectsInfo = selectedObjects.map(id => objectsMap.get(id)).filter(Boolean) as ObjectMetadata[];
 
     const focusedObjectInfo = focusedObject ? objectsMap.get(focusedObject) || null : null;
 
     // Query function
-    const queryObjects = (options: QueryOptions = {}): ObjectMetadata<T>[] => {
-      const results: ObjectMetadata<T>[] = [];
+    const queryObjects = (options: QueryOptions = {}): ObjectMetadata[] => {
+      const results: ObjectMetadata[] = [];
       
       for (const metadata of objectsMap.values()) {
         // 타입 필터
@@ -363,7 +359,6 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
   const useObjectContextEvents = (
     eventType: ObjectManagementEvent<T>['type'],
     listener: (event: ObjectManagementEvent<T>) => void,
-    dependencies: React.DependencyList = []
   ) => {
     const manager = useObjectContextManager();
 
@@ -392,7 +387,7 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
       const objectMetadata = manager.getMetadata(id);
       if (objectMetadata) {
         const objectsStore = storeManager.getStore('objects');
-        const currentObjects = objectsStore.getValue() as Map<string, ObjectMetadata<T>>;
+        const currentObjects = objectsStore.getValue() as Map<string, ObjectMetadata>;
         const updatedObjects = new Map(currentObjects);
         updatedObjects.set(id, objectMetadata);
         objectsStore.setValue(updatedObjects);
@@ -405,7 +400,7 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
       
       // Store 동기화
       const objectsStore = storeManager.getStore('objects');
-      const currentObjects = objectsStore.getValue() as Map<string, ObjectMetadata<T>>;
+      const currentObjects = objectsStore.getValue() as Map<string, ObjectMetadata>;
       const updatedObjects = new Map(currentObjects);
       updatedObjects.delete(id);
       objectsStore.setValue(updatedObjects);
@@ -431,7 +426,7 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
       const objectMetadata = manager.getMetadata(id);
       if (objectMetadata) {
         const objectsStore = storeManager.getStore('objects');
-        const currentObjects = objectsStore.getValue() as Map<string, ObjectMetadata<T>>;
+        const currentObjects = objectsStore.getValue() as Map<string, ObjectMetadata>;
         const updatedObjects = new Map(currentObjects);
         updatedObjects.set(id, objectMetadata);
         objectsStore.setValue(updatedObjects);
@@ -447,7 +442,7 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
       const objectMetadata = manager.getMetadata(payload.id);
       if (objectMetadata) {
         const objectsStore = storeManager.getStore('objects');
-        const currentObjects = objectsStore.getValue() as Map<string, ObjectMetadata<T>>;
+        const currentObjects = objectsStore.getValue() as Map<string, ObjectMetadata>;
         const updatedObjects = new Map(currentObjects);
         updatedObjects.set(payload.id, objectMetadata);
         objectsStore.setValue(updatedObjects);
@@ -531,7 +526,7 @@ export function createObjectContextHooks<T extends ManagedObject>(config: Object
       // Store 전체 동기화
       const allObjects = manager.getAllObjects();
       const objectsStore = storeManager.getStore('objects');
-      const objectsMetadata = new Map<string, ObjectMetadata<T>>();
+      const objectsMetadata = new Map<string, ObjectMetadata>();
       
       for (const [id, _] of allObjects) {
         const metadata = manager.getMetadata(id);

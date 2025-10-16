@@ -33,7 +33,6 @@ const ImperativeRefPage = lazy(() => import('./pages/foundations/react/Imperativ
 
 // Performance - Action Guard (heavy performance components)
 const ActionGuardIndexPage = lazy(() => import('./pages/performance/action-guard/ActionGuardIndexPage'));
-const ActionGuardPage = lazy(() => import('./pages/performance/action-guard/ActionGuardPage'));
 const ApiBlockingPage = lazy(() => import('./pages/performance/action-guard/ApiBlockingPage'));
 const ScrollPage = lazy(() => import('./pages/performance/action-guard/ScrollPage'));
 const SearchPage = lazy(() => import('./pages/performance/action-guard/SearchPage'));

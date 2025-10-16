@@ -15,7 +15,7 @@ import { Badge, Button, Card, CardContent } from '@/components/ui';
  * ```
  */
 export function FullDemoPage() {
-  const [activeDemo, setActiveDemo] = useState<string>('');
+  const [_activeDemo, _setActiveDemo] = useState<string>('');
 
   useEffect(() => {
     // Store actions 등록

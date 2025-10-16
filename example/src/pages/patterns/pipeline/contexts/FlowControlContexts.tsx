@@ -13,7 +13,7 @@ import type {
 } from '../scenarios/types';
 
 // Store type definitions for flow control demo
-interface FlowControlStores {
+interface _FlowControlStores {
   demoState: {
     selectedScenario: ScenarioKey;
     executionResults: Array<SecurityResult | CacheResult | OrderResult | ApiResult>;

@@ -1,5 +1,5 @@
 import { createActionContext } from '@context-action/react';
-import type { ActionHandler, PipelineController } from '@context-action/core';
+import type { ActionHandler } from '@context-action/core';
 import { useState } from 'react';
 import {
   LogMonitor,
@@ -38,7 +38,7 @@ const {
 function CoreBasicsDemo() {
   const [count, setCount] = useState(0);
   const dispatch = useCoreAction();
-  const { logAction, logSystem } = useActionLoggerWithToast();
+  const { logAction } = useActionLoggerWithToast();
 
   // Register action handlers with renamed hook (properly memoized)
   const incrementHandler: ActionHandler<void> = (payload, controller) => {
@@ -211,7 +211,6 @@ function CoreBasicsDemo() {
 // Advanced Features Component
 function AdvancedFeaturesDemo() {
   const { 
-    dispatch, 
     dispatchWithResult, 
     abortAll 
   } = useCoreActionWithResult();

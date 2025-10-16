@@ -149,7 +149,6 @@ const _getExecutionStepColor = (
 const getExecutionStepMessage = (
   actionType: string,
   step: ActionExecutionToast['executionStep'],
-  payload?: any,
   errorMessage?: string
 ): string => {
   const actionNames: Record<string, string> = {
@@ -293,7 +292,6 @@ toastActionRegister.register(
     const message = getExecutionStepMessage(
       actionType,
       executionStep,
-      payload,
       errorMessage
     );
     const title = `${icon} ${actionType}`;

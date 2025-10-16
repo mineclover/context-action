@@ -29,7 +29,6 @@ export function PageLayout({
   children,
   className,
   size = 'lg',
-  category,
   sourceConfig,
 }: PageLayoutProps) {
   const showSourceHeader = sourceConfig && !sourceConfig.hideSource;

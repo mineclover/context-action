@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { cardVariants, gridVariants } from '@/components/ui/variants';
 
@@ -148,7 +147,7 @@ function ExamplesUtilitiesOverview() {
     }
   };
 
-  const getCategoryIcon = (category: string) => {
+  const _getCategoryIcon = (category: string) => {
     switch (category) {
       case 'practical': return '🛠️';
       case 'utilities': return '🔧';

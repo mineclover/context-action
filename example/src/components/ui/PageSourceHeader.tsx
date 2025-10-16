@@ -1,4 +1,3 @@
-import React from 'react';
 import { useStoreValue } from '@context-action/react';
 import { useSourceLinkRegistry } from '../../stores/SourceLinkRegistry';
 import { GITHUB_CONFIG } from '../../constants/github';

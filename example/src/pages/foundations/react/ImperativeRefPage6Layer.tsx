@@ -52,8 +52,6 @@ import { TypeSafeErrorHandlingDemo } from './imperativeRef/examples/TypeSafeErro
 
 // External dependencies
 import { useRegisterSourceFile } from '../../../hooks/useRegisterSourceFile';
-import { useStoreValue } from '@context-action/react';
-import { useSourceLinkRegistry } from '../../../stores/SourceLinkRegistry';
 import { formatTimerDisplay } from './imperativeRef/business/imperativeRefBusinessLogic';
 
 // 🎯 Integration Layer Component
@@ -491,7 +489,7 @@ export default function ImperativeRefPage() {
           onValidationChange={(field: string, isValid: boolean) => {
             console.log(`Handler: Field ${field} validation changed to ${isValid}`);
           }}
-          onFormSubmit={(formData: any, isValid: boolean) => {
+          onFormSubmit={(_formData: any, isValid: boolean) => {
             console.log(`Handler: Form submission ${isValid ? 'successful' : 'failed'}`);
           }}
         >

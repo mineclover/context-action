@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useDemoRef, useWaitForDemoRefs } from '../../../hooks/useDemoRef';
 
 export function BlockingPatternDemo() {

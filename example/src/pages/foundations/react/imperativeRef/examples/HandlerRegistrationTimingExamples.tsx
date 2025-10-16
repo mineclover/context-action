@@ -8,7 +8,7 @@
  * - Lazy Registration: Handlers registered after async initialization
  */
 
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useRefRegistry } from '../contexts/RefContexts';
 import { validateFormData, validateFormDataLenient, FormData, calculateCounterValue } from '../business/imperativeRefBusinessLogic';
 

@@ -3,7 +3,7 @@
  * 실시간 메시징과 사용자 관리, 메시지 히스토리를 포함한 채팅 시스템
  */
 
-import React from 'react';
+// import React from 'react';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { ChatDemo } from './store-scenarios/components';
 import { StoreScenarios } from './store-scenarios/stores';

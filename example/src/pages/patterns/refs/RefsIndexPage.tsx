@@ -6,7 +6,7 @@
 // TODO: PageLayout component needs to be restored or created
 // import { PageLayout } from '../../components/layout/PageLayout';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
-import { Card, CardContent, Badge } from '@/components/ui';
+// import { Card, CardContent, Badge } from '@/components/ui';
 
 export function RefsIndexPage() {
   return (

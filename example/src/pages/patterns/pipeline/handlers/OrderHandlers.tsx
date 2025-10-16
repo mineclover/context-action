@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useOrderActionHandler } from '../contexts/FlowControlContexts';
-import type { OrderResult } from '../scenarios/types';
+// import type { OrderResult } from '../scenarios/types';
 
 interface OrderHandlerProps {
   onExecutionStep: (step: string) => void;

@@ -3,7 +3,6 @@
  * A simple status indicator component for showing various states
  */
 
-import type React from 'react';
 import { cn } from '../../lib/utils';
 
 export interface StatusIndicatorProps {

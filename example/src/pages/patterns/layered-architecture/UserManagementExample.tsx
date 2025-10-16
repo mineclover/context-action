@@ -12,7 +12,7 @@
  * 6. views/        - Pure UI Components
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   UserManagementActionProvider,
   UserManagementStoreProvider,
@@ -105,7 +105,7 @@ function UserManagementUI() {
     operationStatus,
   } = useUserManagementData();
 
-  const { validationResult, hasErrors, isSubmitting } = useUserFormData();
+  const { validationResult, isSubmitting } = useUserFormData();
 
   // 🎯 Layer 5: Action Dispatchers (View Interface)
   const {

@@ -6,7 +6,7 @@
  */
 
 import type { Store } from '@context-action/react';
-import React, { useCallback, useRef, type ReactNode } from 'react';
+import { useCallback, useRef, type ReactNode } from 'react';
 import {
   type ExecutionStateData,
   type HandlerConfig,

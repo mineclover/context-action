@@ -81,7 +81,7 @@ const benchmarks = [
   }
 ];
 
-const actionGuardFeatures = [
+const _actionGuardFeatures = [
   {
     name: 'Priority-Based Execution',
     description: 'Execute actions based on configurable priority levels with intelligent queuing',
@@ -188,7 +188,7 @@ const throttledHandler = useThrottledEventHandler(
   }
 ];
 
-const bestPractices = [
+const _bestPractices = [
   {
     category: 'Performance Optimization',
     icon: '⚡',

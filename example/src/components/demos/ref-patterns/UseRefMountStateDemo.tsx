@@ -4,8 +4,7 @@
  * useSyncExternalStore 기반 useRefMountState의 리액티브 구독을 테스트
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
-import { useDemoRef, useWaitForDemoRefs, DemoRefsProvider } from '../../../hooks/useDemoRef';
+import { useState, useCallback, useEffect } from 'react';
 import { createRefContext } from '@context-action/react';
 
 // 격리된 RefContext 생성

@@ -1,6 +1,5 @@
 import {
   createStoreContext,
-  type InitialStores,
 } from '@context-action/react';
 import type {
   AppSettings,

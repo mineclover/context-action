@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useCacheActionHandler, useFlowControlStore } from '../contexts/FlowControlContexts';
 import { useStoreValue } from '@context-action/react';
-import type { CacheResult } from '../scenarios/types';
+// import type { CacheResult } from '../scenarios/types';
 
 interface CacheHandlerProps {
   onExecutionStep: (step: string) => void;

@@ -22,7 +22,7 @@ export function CanvasToolbar({ onFocusCanvas, onTestAction }: CanvasToolbarProp
   const strokeWidth = useStoreValue(strokeWidthStore);
   // shapes 배열의 길이만 필요하므로 selector 사용
   const shapesCount = useStoreSelector(shapesStore, (shapes) => shapes.length);
-  const selectedShapeId = useStoreValue(selectedShapeIdStore);
+  const _selectedShapeId = useStoreValue(selectedShapeIdStore);
   
   // Action dispatch 함수
   const dispatch = useCanvasAction();

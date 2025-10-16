@@ -17,7 +17,7 @@ import {
  * 테스트 실행, 중단, 리셋 등의 액션을 관리합니다.
  */
 export function usePriorityTestActions() {
-  const dispatch = usePriorityTestAction();
+  const _dispatch = usePriorityTestAction();
   const actionRegister = usePriorityTestActionRegister();
 
   const [isRunning, setIsRunning] = useState(false);

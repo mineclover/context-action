@@ -198,7 +198,7 @@ export function combineValidators(...validators: Array<() => string | null>): st
 }
 
 // Form validation utilities
-export function validateForm(fields: Record<string, any>, rules: Record<string, Array<() => string | null>>): Record<string, string[]> {
+export function validateForm(rules: Record<string, Array<() => string | null>>): Record<string, string[]> {
   const errors: Record<string, string[]> = {};
   
   for (const [fieldName, validators] of Object.entries(rules)) {

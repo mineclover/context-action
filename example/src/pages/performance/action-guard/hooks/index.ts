@@ -35,7 +35,7 @@ export { PerformanceProvider };
 export function useActionPerformanceMonitor(): UsePerformanceMonitorReturn {
   const [metrics, setMetrics] = useState<PerformanceMetrics[]>([]);
   const [isMonitoring, setIsMonitoring] = useState(false);
-  const performanceMonitor = usePerformanceMonitor('actionGuard');
+  const performanceMonitor = usePerformanceMonitor();
 
   const recordAction = useCallback((
     actionType: string,

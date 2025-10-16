@@ -38,7 +38,7 @@ export function AsyncDemo() {
     // 비동기 액션 핸들러
     const unsubscribeAsync = actionRegister.register(
       'asyncAction',
-      async ({ delay, message }, controller) => {
+      async ({ delay, message }, _controller) => {
         const id = Math.random().toString(36).substr(2, 9);
         const timestamp = new Date().toLocaleTimeString();
         
@@ -81,7 +81,7 @@ export function AsyncDemo() {
     // 다중 비동기 액션 핸들러
     const unsubscribeMultiple = actionRegister.register(
       'multipleAsync',
-      async (message, controller) => {
+      async (message, _controller) => {
         const promises = [1000, 500, 1500].map(async (delay, index) => {
           const id = `multi-${index}-${Math.random().toString(36).substr(2, 6)}`;
           const timestamp = new Date().toLocaleTimeString();

@@ -8,7 +8,7 @@
  * - Selective Subscription Model
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   UserManagementActionProvider,
   UserManagementStoreProvider,

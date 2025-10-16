@@ -179,7 +179,7 @@ function ConsoleLoggerDemo() {
     // 액션 핸들러 등록 (LogMonitor와 통합)
     const unsubscribe1 = actionRegister.register(
       'performAction',
-      ({ type, data }, controller) => {
+      ({ type, data }, _controller) => {
         logger.info(`Performing action: ${type}`, data);
         // LogMonitor에 액션 로그 추가
         actionLogger.logAction(
@@ -196,7 +196,7 @@ function ConsoleLoggerDemo() {
 
     const unsubscribe2 = actionRegister.register(
       'throwError',
-      ({ message }, controller) => {
+      ({ message }, _controller) => {
         logger.error('Error occurred:', message);
         // LogMonitor에 에러 로그 추가
         actionLogger.logError(
@@ -213,7 +213,7 @@ function ConsoleLoggerDemo() {
 
     const unsubscribe3 = actionRegister.register(
       'asyncAction',
-      async ({ delay }, controller) => {
+      async ({ delay }, _controller) => {
         logger.debug(`Starting async action with ${delay}ms delay`);
         actionLogger.logSystem(`비동기 액션 시작 (${delay}ms 지연)`, {
           context: 'ConsoleLogger Demo',
@@ -335,7 +335,7 @@ function MemoryLoggerDemo() {
     // 액션 핸들러 등록 (LogMonitor와 통합)
     const unsubscribe = actionRegister.register(
       'batchLog',
-      ({ count }, controller) => {
+      ({ count }, _controller) => {
         for (let i = 0; i < count; i++) {
           memoryLogger.info(`Batch log entry ${i + 1} of ${count}`);
         }

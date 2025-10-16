@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { useStoreValue } from '@context-action/react';
 import { useSourceLinkRegistry, type SourceLinkEntry } from '../stores/SourceLinkRegistry';
 import { GITHUB_CONFIG } from '../constants/github';
 
@@ -61,7 +60,7 @@ export function useSourceLinkRegistration({
     // Cleanup - 컴포넌트 언마운트시 등록 해제
     return () => {
       const entries = entriesStore.getValue();
-      const { [id]: removed, ...remaining } = entries;
+      const { [id]: _, ...remaining } = entries;
       entriesStore.setValue(remaining);
       totalCountStore.setValue(Object.keys(remaining).length);
       

@@ -3,7 +3,6 @@
  * A component for displaying various metrics and performance data
  */
 
-import type React from 'react';
 import { cn } from '../../lib/utils';
 
 export interface Metric {

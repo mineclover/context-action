@@ -3,11 +3,11 @@ import { useCanvas, CanvasShape, Point } from './CanvasContext';
 import { useCanvasDrawing } from './useCanvasDrawing';
 
 // RefHandler 타입 정의 (실제 RefContext API에 맞춤)
-interface RefHandler<T> {
+interface RefHandler<_T> {
   setRef: (target: any) => void;
   target: any;
   waitForMount: () => Promise<any>;
-  withTarget: <Result>(operation: any, options?: any) => Promise<any>;
+  withTarget: <_Result>(operation: any, options?: any) => Promise<any>;
   isMounted: boolean;
 }
 

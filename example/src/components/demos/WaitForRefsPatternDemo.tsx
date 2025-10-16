@@ -1,4 +1,3 @@
-import React from 'react';
 import { DemoRefsProvider } from '../../hooks/useDemoRef';
 import { OnMountPatternDemo } from './ref-patterns/OnMountPatternDemo';
 import { ConditionalPatternDemo } from './ref-patterns/ConditionalPatternDemo';

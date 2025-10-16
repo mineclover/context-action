@@ -370,7 +370,7 @@ function StoreImmutabilityTestPage() {
     // Immer 성능 측정
     const immerStart = performance.now();
     for (let i = 0; i < iterations; i++) {
-      const result = produce(largeObject, draft => {
+      const _result = produce(largeObject, _draft => {
         // 변경 없음 - Copy-on-Write 최적화
       });
     }
@@ -379,7 +379,7 @@ function StoreImmutabilityTestPage() {
     // JSON 방식 성능 측정
     const jsonStart = performance.now();
     for (let i = 0; i < iterations; i++) {
-      const result = JSON.parse(JSON.stringify(largeObject));
+      const _result = JSON.parse(JSON.stringify(largeObject));
     }
     const jsonTime = performance.now() - jsonStart;
     
@@ -390,7 +390,7 @@ function StoreImmutabilityTestPage() {
     // 변경 있는 경우
     const immerChangeStart = performance.now();
     for (let i = 0; i < iterations; i++) {
-      const result = produce(largeObject, draft => {
+      const _result = produce(largeObject, draft => {
         draft.name = `Changed-${i}`;
       });
     }

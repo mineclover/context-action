@@ -29,7 +29,7 @@ export function PriorityDemo() {
     // 우선순위 3 - 가장 높음 (먼저 실행)
     const unsubscribeHigh = actionRegister.register(
       'priorityTest',
-      (message, controller) => {
+      (message, _controller) => {
         const result = `High Priority (3): ${message}`;
         setResults(prev => [...prev, result]);
         logActionRef.current('priorityTest', message, { priority: 3 });
@@ -40,7 +40,7 @@ export function PriorityDemo() {
     // 우선순위 1 - 낮음 (마지막에 실행)
     const unsubscribeLow = actionRegister.register(
       'priorityTest',
-      (message, controller) => {
+      (message, _controller) => {
         const result = `Low Priority (1): ${message}`;
         setResults(prev => [...prev, result]);
         logActionRef.current('priorityTest', message, { priority: 1 });
@@ -51,7 +51,7 @@ export function PriorityDemo() {
     // 우선순위 2 - 중간 (두 번째로 실행)
     const unsubscribeMid = actionRegister.register(
       'priorityTest',
-      (message, controller) => {
+      (message, _controller) => {
         const result = `Mid Priority (2): ${message}`;
         setResults(prev => [...prev, result]);
         logActionRef.current('priorityTest', message, { priority: 2 });

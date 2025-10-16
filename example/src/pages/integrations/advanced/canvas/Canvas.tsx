@@ -193,7 +193,7 @@ function CanvasContent({ width = 800, height = 600, onFocusChange, onEventLog }:
   }, [onFocusChange, logEvent]);
   
   // 포커스 강제 설정 함수 (테스트용)
-  const focusCanvas = useCallback(() => {
+  const _focusCanvas = useCallback(() => {
     if (container.target) {
       container.target.focus();
       logEvent('focus', 'Canvas 포커스가 강제로 설정되었습니다 (Focus 버튼 클릭)');

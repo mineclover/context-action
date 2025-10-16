@@ -25,7 +25,7 @@
  * - Separation of component lifecycle from business logic lifecycle
  */
 
-import React, { useRef, ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 import { useRefRegistry } from '../contexts/RefContexts';
 import { validateFormData, FormData, ValidationState, ValidationResult, calculateCounterValue, calculateTimerState, TimerState } from '../business/imperativeRefBusinessLogic';
 

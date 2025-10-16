@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useDemoRef } from '../../../hooks/useDemoRef';
 
 export function OnMountPatternDemo() {

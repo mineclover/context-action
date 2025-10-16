@@ -3,7 +3,7 @@ import { useSourceLinkRegistry } from '../../stores/SourceLinkRegistry';
 import { PageLayout } from '../../components/layout/PageLayout';
 import { useRegisterSourceFile, useIsSourceFileRegistered, useSourceFileInstanceCount } from '../../hooks/useRegisterSourceFile';
 import { CodeExample, CodeBlock } from '../../components/ui/CodeExample';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 // 실시간 등록 데모 컴포넌트
 function DynamicRegistrationDemo() {

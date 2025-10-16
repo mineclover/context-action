@@ -39,9 +39,9 @@ export function BasicActionsDemo() {
     logSystemRef.current('BasicActionsDemo - ActionRegister 초기화');
 
     // 1. 기본 액션 핸들러 - 낮은 우선순위
-    const unsubscribeIncrement = actionRegister.register(
-      ACTION_NAMES.INCREMENT,
-      (_, controller) => {
+      const unsubscribeIncrement = actionRegister.register(
+        ACTION_NAMES.INCREMENT,
+        (_) => {
         setCount((prev) => prev + 1);
         logActionRef.current(ACTION_NAMES.INCREMENT, undefined);
       },
@@ -49,9 +49,9 @@ export function BasicActionsDemo() {
     );
 
     // 2. 곱하기 액션 - 높은 우선순위로 먼저 실행
-    const unsubscribeMultiply = actionRegister.register(
-      ACTION_NAMES.MULTIPLY,
-      (factor, controller) => {
+      const unsubscribeMultiply = actionRegister.register(
+        ACTION_NAMES.MULTIPLY,
+        (factor) => {
         setCount((prev) => prev * factor);
         logActionRef.current(ACTION_NAMES.MULTIPLY, factor, { priority: 2 });
       },

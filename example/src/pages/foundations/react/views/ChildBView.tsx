@@ -13,7 +13,7 @@ import { useParentDataActions, useParentCounterActions } from '../actions/usePar
  */
 export function ChildBView() {
   // 🗄️ Model Layer - 데이터 구독
-  const { text, isEmpty, length, displayValue, status } = useChildBText();
+  const { isEmpty, length, displayValue, status } = useChildBText();
   
   // ⚙️ ViewModel Layer - 액션 함수들
   const { updateText, clearText } = useChildBTextActions();

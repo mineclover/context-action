@@ -1,5 +1,5 @@
-import React from 'react';
-import { Card, Badge } from '@/components/ui';
+// import React from 'react';
+import { Card } from '@/components/ui';
 import type { ScenarioKey, ScenarioRegistry } from '../scenarios/types';
 
 interface ScenarioSelectorProps {

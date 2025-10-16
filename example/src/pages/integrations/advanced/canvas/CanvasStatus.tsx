@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useCanvasStore, useCanvasAction } from './CanvasContext';
 import { useStoreValue } from '@context-action/react';
 import type { CanvasEvent } from './Canvas';

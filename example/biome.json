@@ -21,8 +21,8 @@
 			"correctness": {
 				"useExhaustiveDependencies": "off",
 				"useHookAtTopLevel": "error",
-				"noUnusedImports": "off",
-				"noUnusedVariables": "off",
+				"noUnusedImports": "error",
+				"noUnusedVariables": "error",
 				"noUnusedFunctionParameters": "off",
 				"noUnreachable": "warn",
 				"useParseIntRadix": "off",

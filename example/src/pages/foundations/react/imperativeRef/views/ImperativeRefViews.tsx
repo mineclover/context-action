@@ -6,8 +6,8 @@
  * business logic or direct ref manipulation.
  */
 
-import React from 'react';
-import { validateFormData, ValidationState } from '../business/imperativeRefBusinessLogic';
+// import React from 'react';
+// import { validateFormData, ValidationState } from '../business/imperativeRefBusinessLogic';
 
 // 🎯 Demo Status Display Component
 interface DemoStatusViewProps {
@@ -428,7 +428,7 @@ const { formProgress, isFormValid } = useImperativeRefData();
 
 // 🎯 Validation Display Component
 interface ValidationDisplayViewProps {
-  validationStates: ValidationState;
+  validationStates: any; // ValidationState 타입 사용하지 않음
   hasValidationErrors: boolean;
   formProgress: number;
   className?: string;

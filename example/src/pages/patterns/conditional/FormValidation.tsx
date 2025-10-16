@@ -80,7 +80,7 @@ function FormValidationContent() {
     await dispatch('validateField', { field: 'confirmPassword', value: formData.confirmPassword });
     
     const errors = fieldErrorsStore.getValue();
-    const isFormValid = !Object.values(errors).some(err => err !== '');
+      const _isFormValid = !Object.values(errors).some(err => err !== '');
     
   }, [dispatch, fieldErrorsStore]));
   
@@ -93,9 +93,9 @@ function FormValidationContent() {
     await dispatch('validateForm', { formData });
     
     const errors = fieldErrorsStore.getValue();
-    const isFormValid = !Object.values(errors).some(err => err !== '');
+      const _isFormValid = !Object.values(errors).some(err => err !== '');
     
-    if (!isFormValid) {
+    if (!_isFormValid) {
       controller.abort('Form validation failed');
       isSubmittingStore.setValue(false);
       return;

@@ -110,7 +110,7 @@ function useApiBlockingLogic() {
   const blockingStore = ApiBlockingStores.useStore('blockingState');
   const blockingState = useStoreValue(blockingStore);
   const { logAction, logSystem } = useActionLoggerWithToast();
-  const blockingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const blockingTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const isCurrentlyBlocked = useCallback(() => {
     const currentState = blockingStore.getValue();

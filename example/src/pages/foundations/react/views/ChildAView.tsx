@@ -13,7 +13,7 @@ import { useParentDataActions, useParentCounterActions } from '../actions/usePar
  */
 export function ChildAView() {
   // 🗄️ Model Layer - 데이터 구독
-  const { counter, isZero, isPositive, displayValue, status } = useChildACounter();
+  const { isZero, isPositive, displayValue, status } = useChildACounter();
   
   // ⚙️ ViewModel Layer - 액션 함수들
   const { incrementCounter, resetCounter } = useChildACounterActions();

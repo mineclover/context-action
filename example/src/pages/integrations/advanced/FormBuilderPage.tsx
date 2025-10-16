@@ -3,7 +3,7 @@
  * Context-Action framework를 활용한 동적 폼 빌더 데모
  */
 
-import React from 'react';
+// import React from 'react';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 // TODO: These components need to be restored or created
 // import { ElementManagementProvider } from './ReactElementHooks';

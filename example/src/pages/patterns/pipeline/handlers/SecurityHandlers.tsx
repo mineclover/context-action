@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useSecurityActionHandler } from '../contexts/FlowControlContexts';
-import type { SecurityResult } from '../scenarios/types';
+// import type { SecurityResult } from '../scenarios/types';
 
 interface SecurityHandlerProps {
   onExecutionStep: (step: string) => void;

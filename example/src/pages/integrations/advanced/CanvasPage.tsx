@@ -23,7 +23,7 @@ import { CanvasStatus } from './canvas/CanvasStatus';
 function AdvancedCanvasContent() {
   const [canvasFocused, setCanvasFocused] = useState(false);
   const [events, setEvents] = useState<CanvasEvent[]>([]);
-  const canvasRef = useRef<{ focusCanvas: () => void }>(null);
+  const _canvasRef = useRef<{ focusCanvas: () => void }>(null);
   
   // 이벤트 로깅
   const handleEventLog = useCallback((event: CanvasEvent) => {

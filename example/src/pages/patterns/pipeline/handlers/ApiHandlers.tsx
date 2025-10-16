@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useApiActionHandler } from '../contexts/FlowControlContexts';
-import type { ApiResult } from '../scenarios/types';
+// import type { ApiResult } from '../scenarios/types';
 
 interface ApiHandlerProps {
   onExecutionStep: (step: string) => void;

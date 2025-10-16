@@ -30,7 +30,7 @@ export function useLogger(source?: string) {
 }
 
 // Performance monitoring hook
-export function usePerformanceMonitor(operationName: string) {
+export function usePerformanceMonitor() {
   const metricsRef = useRef<PerformanceMetrics>({
     startTime: 0,
     operations: 0,

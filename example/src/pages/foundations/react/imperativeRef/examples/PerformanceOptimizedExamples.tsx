@@ -222,7 +222,7 @@ export function OptimizedReregistrationExample({
 
 // 🎯 Resource Cleanup Example with WeakMap pattern
 export function WeakMapCleanupExample({ children }: { children: React.ReactNode }) {
-  const refRegistry = useRefRegistry();
+  const _refRegistry = useRefRegistry();
   const [logs, setLogs] = useState<string[]>([]);
 
   // 🔑 WeakMap for automatic garbage collection

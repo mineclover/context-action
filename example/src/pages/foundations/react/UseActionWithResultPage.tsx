@@ -9,15 +9,15 @@
  * 4. Showcases useActionWithResult with structured layers
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import {
   CartActionProvider,
   CartStoreProvider,
   type CartItem,
 } from './useActionWithResult/contexts/CartContexts';
 import { CartHandlers } from './useActionWithResult/handlers/CartHandlers';
-import { useCartActions, useCartActionCallbacks } from './useActionWithResult/actions/useCartActions';
-import { useCartData, useCartFormData, useCartStatistics } from './useActionWithResult/hooks/useCartData';
+import { useCartActionCallbacks } from './useActionWithResult/actions/useCartActions';
+import { useCartData, useCartStatistics } from './useActionWithResult/hooks/useCartData';
 import {
   CartListView,
   AddItemForm,
@@ -130,7 +130,7 @@ function UseActionWithResultUI() {
     stores,
   } = useCartData();
 
-  const { formValidation } = useCartFormData();
+  // const { } = useCartFormData(); // 사용하지 않는 훅 호출 제거
   const { statistics } = useCartStatistics();
 
   // 🎯 Action Layer - Behavior with callbacks

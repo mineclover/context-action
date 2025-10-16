@@ -20,7 +20,7 @@ export function useChildACounterActions() {
   const childId = 'child-a-counter';
 
   // 카운터 증가 핸들러
-  const incrementCounterHandler = useCallback(async (payload: { amount: number }, controller: any) => {
+  const incrementCounterHandler = useCallback(async (payload: { amount: number }, _controller: any) => {
     const { amount } = payload;
     const counterStore = storeManager.getStore('counter');
     const currentValue = counterStore.getValue();
@@ -46,7 +46,7 @@ export function useChildACounterActions() {
   }, [storeManager, childDispatch, parentDispatch, childId]);
 
   // 카운터 리셋 핸들러
-  const resetCounterHandler = useCallback(async (payload: void, controller: any) => {
+  const resetCounterHandler = useCallback(async (_payload: void, _controller: any) => {
     const counterStore = storeManager.getStore('counter');
     const previousValue = counterStore.getValue();
     
@@ -98,7 +98,7 @@ export function useChildARemoteControlActions() {
   const childId = 'child-a-counter';
 
   // 상위에서 요청받은 제어 핸들러 (ChildA가 상위에 등록)
-  const handleRemoteControl = useCallback(async (payload: { childId: string; action: 'increment' | 'reset'; amount?: number }, controller: any) => {
+  const handleRemoteControl = useCallback(async (payload: { childId: string; action: 'increment' | 'reset'; amount?: number }, _controller: any) => {
     const { childId: targetId, action, amount } = payload;
     
     // 자신에게 향한 명령인지 확인

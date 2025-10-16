@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { ManagedObject, ObjectLifecycleState } from '../types';
+import { ManagedObject } from '../types';
 import { createObjectContextHooks } from '../createObjectContextHooks';
 
 // 사용자 객체 정의
@@ -27,8 +27,6 @@ interface User extends ManagedObject {
 const {
   ObjectContextProvider: UserContextProvider,
   useObjectManager: useUserManager,
-  useObjectContextStore: useUserStore,
-  useObjectContextActions: useUserActions,
   useObjectContextEvents: useUserEvents
 } = createObjectContextHooks<User>({
   contextName: 'UserManagement',

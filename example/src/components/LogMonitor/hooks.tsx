@@ -104,7 +104,7 @@ function sanitizeLogPayload(payload: unknown): unknown {
         }
       }
       return sanitized;
-    } catch (error) {
+    } catch {
       return '[Object - Could not sanitize]';
     }
   }

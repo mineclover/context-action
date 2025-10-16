@@ -20,7 +20,7 @@ export function useChildBTextActions() {
   const childId = 'child-b-text';
 
   // 텍스트 업데이트 핸들러
-  const updateTextHandler = useCallback(async (payload: { newText: string }, controller: any) => {
+  const updateTextHandler = useCallback(async (payload: { newText: string }, _controller: any) => {
     const { newText } = payload;
     const textStore = storeManager.getStore('text');
     const previousText = textStore.getValue();
@@ -45,7 +45,7 @@ export function useChildBTextActions() {
   }, [storeManager, parentDispatch, childId]);
 
   // 텍스트 클리어 핸들러
-  const clearTextHandler = useCallback(async (payload: void, controller: any) => {
+  const clearTextHandler = useCallback(async (_payload: void, _controller: any) => {
     const textStore = storeManager.getStore('text');
     const previousText = textStore.getValue();
     

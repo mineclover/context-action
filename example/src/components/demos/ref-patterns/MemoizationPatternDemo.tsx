@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState, useRef } from 'react';
+import { useCallback, useMemo, useState, useRef } from 'react';
 import { useDemoRef } from '../../../hooks/useDemoRef';
 
 export function MemoizationPatternDemo() {
