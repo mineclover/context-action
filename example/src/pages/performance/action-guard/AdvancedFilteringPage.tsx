@@ -3,13 +3,13 @@ import {
   createStoreContext,
   useStoreValue,
 } from '@context-action/react';
-import React, { Fragment, useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect } from 'react';
 
 // Types
-interface HandlerResult {
-  [key: string]: string;
-  handlerId: string;
-}
+// interface HandlerResult {
+//   [key: string]: string;
+//   handlerId: string;
+// }
 
 interface ProcessActions {
   processData: { userId: string; data: any; action?: string };
@@ -31,9 +31,9 @@ interface ExecutionResult {
 // Context setup
 const {
   Provider: ProcessActionProvider,
-  useActionDispatch: useProcessDispatch,
+  useActionDispatch: _useProcessDispatch,
   useActionDispatchWithResult: useProcessDispatchWithResult,
-  useActionHandler: useProcessHandler,
+  useActionHandler: _useProcessHandler,
   useActionRegister: useProcessRegister,
 } = createActionContext<ProcessActions>('DataProcess');
 

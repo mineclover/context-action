@@ -4,7 +4,7 @@
  */
 
 import { createActionContext } from '@context-action/react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePerformanceMonitor, useSafeTimeout } from '@/lib/hooks';
 import type {
   ActionPerformanceData,

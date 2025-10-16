@@ -3,7 +3,7 @@ import {
   createStoreContext,
   useStoreValue,
 } from '@context-action/react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRerenderMonitor } from '../hooks/useRerenderMonitor';
 import { SafeModeWrapper } from './SafeModeWrapper';
 
@@ -18,13 +18,13 @@ interface ComparisonActions {
 }
 
 // Store types
-interface ComparisonStore {
-  counter: number;
-  calcResult: number;
-  heavyData: number[];
-  processedResults: { id: number; value: number; timestamp: number }[];
-  memoryLeakData: any[];
-}
+// interface ComparisonStore {
+//   counter: number;
+//   calcResult: number;
+//   heavyData: number[];
+//   processedResults: { id: number; value: number; timestamp: number }[];
+//   memoryLeakData: any[];
+// }
 
 // Create contexts with comparison suffix
 const {
@@ -66,7 +66,7 @@ const { Provider: ComparisonStoreProvider, useStore: useComparisonStore } =
   });
 
 // 성능 문제를 위한 헬퍼 함수들 (브라우저 안전)
-const performHeavyCalculation = (size: number): number[] => {
+const _performHeavyCalculation = (size: number): number[] => {
   const safeSize = Math.min(size, 100); // 최대 100개로 제한
   const result: number[] = [];
   for (let i = 0; i < safeSize; i++) {
@@ -91,7 +91,7 @@ const createMemoryLeakData = () => {
   }));
 };
 
-const processLargeDataSet = (
+const _processLargeDataSet = (
   data: number[]
 ): { id: number; value: number; timestamp: number }[] => {
   return data.map((value, index) => ({
@@ -305,7 +305,7 @@ function NonMemoizedHandlerComponent() {
   };
 
   const handleReset = async () => {
-    const current = store.getValue();
+    const _current = store.getValue();
     store.setValue({
       counter: 0,
       calcResult: 0,

@@ -4,7 +4,6 @@
  * Context Store pattern with action-based state management
  */
 
-import React from 'react';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { ContextStoreMouseEventsWrapper } from './context-store-action-based/ContextStoreMouseEventsWrapper';
 

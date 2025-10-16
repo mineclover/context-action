@@ -14,7 +14,7 @@
  * - Performance optimizations with GPU acceleration
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { NonReactiveCanvas } from './components/NonReactiveCanvas';
 import { VisualizationDashboard } from './components/VisualizationDashboard';
 import { MouseEventsModelProvider } from './context/MouseEventsModel';
@@ -54,7 +54,7 @@ interface Activity {
  */
 function RefactoredPageContent() {
   const canvasControl = useAdvancedCanvasControl();
-  const metrics = useNonReactiveMetrics();
+  const _metrics = useNonReactiveMetrics();
 
   // Visualization data state
   const [visualizationData, setVisualizationData] = useState({
@@ -82,7 +82,7 @@ function RefactoredPageContent() {
     const currentPosition = canvasControl.getCurrentPosition();
     const pathPoints = canvasControl.getPathPoints();
     const clickCount = canvasControl.getClickCount();
-    const activeMarkers = canvasControl.getActiveMarkers();
+    const _activeMarkers = canvasControl.getActiveMarkers();
 
     // Calculate session duration
     const sessionDuration = Date.now() - sessionStartTime.current;

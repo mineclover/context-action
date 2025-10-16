@@ -8,7 +8,7 @@ import {
   createStoreContext,
   useStoreValue,
 } from '@context-action/react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { Badge, Card, CardContent } from '@/components/ui';
 
@@ -104,7 +104,7 @@ const sampleData: SearchItem[] = [
 const {
   Provider: SearchStoreProvider,
   useStore: useSearchStore,
-  useStoreManager: useSearchStoreManager,
+  useStoreManager: _useSearchStoreManager,
 } = createStoreContext('Search', {
   query: '',
   filters: {} as Record<string, string>,
@@ -255,7 +255,7 @@ function SearchDemo() {
     useCallback(
       async (payload, controller) => {
         const currentFilters = filtersStore.getValue();
-        const { [payload.key]: removed, ...newFilters } = currentFilters;
+        const { [payload.key]: _, ...newFilters } = currentFilters;
         filtersStore.setValue(newFilters);
 
         // 필터 제거 시 자동 검색

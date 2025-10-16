@@ -9,7 +9,7 @@ import {
   createStoreContext,
   useStoreValue,
 } from '@context-action/react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import {
   PageWithLogMonitor,
   useActionLoggerWithToast,

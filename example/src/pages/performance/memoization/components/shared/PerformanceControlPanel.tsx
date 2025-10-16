@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface PerformanceControlPanelProps {
   autoUpdate: boolean;
   updateInterval: number;

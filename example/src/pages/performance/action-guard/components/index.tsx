@@ -8,27 +8,14 @@ import { useCallback, useEffect, useState } from 'react';
 export { ContextActionDemo } from './ContextActionDemo';
 
 import { createActionContext } from '@context-action/react';
-import {
-  Container,
-  DemoCard,
-  MetricsDisplay,
-  StatusIndicator,
-} from '@/components/ui';
+import { DemoCard, MetricsDisplay, StatusIndicator } from '@/components/ui';
 import {
   useActionPerformanceMonitor,
   useApiManager,
   useSmartSearch,
   useThrottledEventHandler,
 } from '../hooks';
-import type {
-  ApiManagerProps,
-  ApiRequestConfig,
-  ApiResponse,
-  PerformanceMetrics,
-  PerformanceMonitorProps,
-  PriorityControlsProps,
-  SearchDemoProps,
-} from '../types';
+import type { ApiRequestConfig, ApiResponse } from '../types';
 
 // Type definitions for API responses
 interface JsonPlaceholderPost {
@@ -597,7 +584,7 @@ function PriorityExecutionDemoInternal({
     [dispatch]
   );
 
-  const isRegistered = useCallback(
+  const _isRegistered = useCallback(
     (priority: number) => {
       return registeredActions.some((item) => item.priority === priority);
     },

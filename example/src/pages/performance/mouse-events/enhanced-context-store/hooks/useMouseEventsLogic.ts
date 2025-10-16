@@ -39,7 +39,7 @@ export function useMouseEventsLogic() {
   const performanceStore = useMouseStore('performance');
 
   // Container 참조 (마운트 상태 확인용)
-  const containerRef = useMouseRef('container');
+  const _containerRef = useMouseRef('container');
 
   // 🎯 진짜 반응형 마운트 상태 - RefContext 기본 제공
   const containerMountState = useMouseRefMountState('container');
@@ -47,7 +47,7 @@ export function useMouseEventsLogic() {
     containerMountState;
 
   // 성능 추적용 refs
-  const lastUpdateTime = useRef<number>(Date.now());
+  const _lastUpdateTime = useRef<number>(Date.now());
   const renderStartTime = useRef<number>(0);
   const lastComputedUpdateTime = useRef<number>(0);
 

@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * Shared Component - Performance Impact Summary
  * 성능 영향 요약을 표시하는 순수 UI 컴포넌트

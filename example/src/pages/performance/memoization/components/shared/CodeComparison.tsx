@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * Shared Component - 코드 비교 표시
  * 메모이제이션 패턴 비교를 위한 순수 UI 컴포넌트

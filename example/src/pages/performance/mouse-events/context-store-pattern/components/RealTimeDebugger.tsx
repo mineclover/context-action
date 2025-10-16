@@ -53,7 +53,7 @@ const RealTimeDebuggerComponent = ({
   const [filterLevel, setFilterLevel] = useState<
     'all' | 'info' | 'warn' | 'error' | 'debug'
   >('all');
-  const [maxLogs, setMaxLogs] = useState(100);
+  const [maxLogs, _setMaxLogs] = useState(100);
   const [isPaused, setIsPaused] = useState(false);
 
   const logIdCounter = useRef(0);

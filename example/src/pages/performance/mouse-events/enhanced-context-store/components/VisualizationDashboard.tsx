@@ -8,7 +8,7 @@
  * - Performance metrics with frame rate monitoring
  */
 
-import React, { useCallback, useRef, useState } from 'react';
+import { useState } from 'react';
 
 interface Position {
   x: number;

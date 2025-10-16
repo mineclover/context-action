@@ -33,7 +33,7 @@ export function useMouseEventsTriggers() {
   const lastMoveTimeRef = useRef<number>(0);
 
   // Path 직접 그리기용 상태 (Store 우회)
-  const pathPointsRef = useRef<
+  const _pathPointsRef = useRef<
     Array<{ x: number; y: number; timestamp: number }>
   >([]);
 

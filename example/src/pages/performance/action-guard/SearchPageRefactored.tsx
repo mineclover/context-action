@@ -11,7 +11,7 @@ import {
   createStoreContext,
   useStoreValue,
 } from '@context-action/react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 
 // ===== 타입 정의 =====
 interface SearchItem {
@@ -589,7 +589,7 @@ function SearchDemoInterface() {
     useCallback(
       async (payload) => {
         const currentSearchs = filtersStore.getValue();
-        const { [payload.key]: removed, ...newSearchs } = currentSearchs;
+        const { [payload.key]: _, ...newSearchs } = currentSearchs;
         filtersStore.setValue(newSearchs);
 
         dispatch('performSearch', {

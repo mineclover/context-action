@@ -1,4 +1,3 @@
-import React from 'react';
 import { useMemoizedAutoUpdateEffect } from '../../hooks/useAutoUpdateEffect';
 import { useMemoizedActions } from '../../hooks/useComparisonActions';
 import { useMemoizedViewState } from '../../hooks/useComparisonViewState';

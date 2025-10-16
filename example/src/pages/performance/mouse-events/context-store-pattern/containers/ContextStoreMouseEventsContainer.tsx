@@ -10,9 +10,6 @@ import { ContextStoreMouseEventsView } from '../components/ContextStoreMouseEven
 import {
   aggregateMouseEventsState,
   MouseEventsProvider,
-  type MouseEventsStateData,
-  type MousePosition,
-  updateComputedValuesFromStores,
   useMouseEventsActionDispatch,
   useMouseEventsStore,
 } from '../context/MouseEventsContext';
@@ -62,7 +59,7 @@ const ContextStoreMouseEventsContainerInner = () => {
       );
 
       // DOM 요소들 생성 및 설정
-      const elements = setupDOMElements(container);
+      const _elements = setupDOMElements(container);
 
       // 이벤트 리스너 바인딩
       const cleanup = bindEventListeners(container);

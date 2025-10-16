@@ -4,7 +4,6 @@
  * 개별 stores를 최대한 활용하여 최적화된 Context Store 패턴을 구현
  */
 
-import React from 'react';
 import { EnhancedContextStoreView } from '../components/EnhancedContextStoreView';
 import { MouseEventsProvider } from '../context/MouseEventsContext';
 

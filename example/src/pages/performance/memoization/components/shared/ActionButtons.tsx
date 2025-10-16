@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface ActionButtonsProps {
   variant: 'memoized' | 'non-memoized';
   actions: {

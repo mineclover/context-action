@@ -11,7 +11,7 @@ import {
   createStoreContext,
   useStoreValue,
 } from '@context-action/react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 // ===== 타입 정의 =====
 interface ScrollItem {

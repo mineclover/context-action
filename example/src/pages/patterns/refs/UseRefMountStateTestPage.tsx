@@ -28,10 +28,10 @@ import { useRegisterSourceFile } from '../../../hooks/useRegisterSourceFile';
 // ============================================================================
 
 // 1. Store Context - 테스트 상태 관리 (LogMonitor 활용으로 logs 제거)
-interface TestState {
-  renderCounts: Record<string, number>;
-  activeTests: Record<string, boolean>;
-}
+// interface TestState {
+//   renderCounts: Record<string, number>;
+//   activeTests: Record<string, boolean>;
+// }
 
 const { Provider: TestStoreProvider, useStore: useTestStore } =
   createStoreContext('UseRefMountStateTest', {
@@ -261,8 +261,8 @@ function RefStateMonitor({
 function DynamicMountTest() {
   const dynamicRef = useTestRef('dynamicElement');
   const [isMounted, setIsMounted] = useState(false);
-  const actionLogger = useActionLoggerWithToast();
-  const logMonitor = useLogMonitor();
+  const _actionLogger = useActionLoggerWithToast();
+  const _logMonitor = useLogMonitor();
 
   const toggleMount = useCallback(() => {
     const newState = !isMounted;
@@ -351,8 +351,8 @@ function ToggleMountTest() {
   const toggleRef = useTestRef('toggleElement');
   const [isVisible, setIsVisible] = useState(true);
   const [toggleCount, setToggleCount] = useState(0);
-  const actionLogger = useActionLoggerWithToast();
-  const logMonitor = useLogMonitor();
+  const _actionLogger = useActionLoggerWithToast();
+  const _logMonitor = useLogMonitor();
 
   const toggleVisibility = useCallback(() => {
     const newVisible = !isVisible;
@@ -403,7 +403,7 @@ function ConditionalRenderTest() {
   );
   const actionLogger = useActionLoggerWithToast();
   const logMonitor = useLogMonitor();
-  const [startTime, setStartTime] = useState<number>(0);
+  const [_startTime, setStartTime] = useState<number>(0);
 
   const startConditionalFlow = useCallback(() => {
     const flowStartTime = performance.now();
@@ -763,7 +763,7 @@ function DelayedMountTest() {
  */
 function UseRefMountStateContent() {
   const renderCountsStore = useTestStore('renderCounts');
-  const renderCounts = useStoreValue(renderCountsStore);
+  const _renderCounts = useStoreValue(renderCountsStore);
   const { resetRenderCounts } = useTestActions();
 
   return (

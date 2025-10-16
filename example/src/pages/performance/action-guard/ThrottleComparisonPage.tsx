@@ -4,7 +4,7 @@
  */
 
 import { createActionContext } from '@context-action/react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { Badge, Card, CardContent } from '@/components/ui';
 
@@ -141,7 +141,7 @@ function ThrottleDemo() {
     debounce: 0,
   });
 
-  const [performanceData, setPerformanceData] = useState<
+  const [_performanceData, setPerformanceData] = useState<
     Array<{
       type: string;
       operations: number;

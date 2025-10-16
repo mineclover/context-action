@@ -482,7 +482,7 @@ const PriorityTestInstanceWithProvider = memo(
     instanceId?: string;
   }) {
     // registryId를 memoized로 계산하여 불필요한 리렌더링 방지
-    const registryId = useMemo(
+    const _registryId = useMemo(
       () => `priority-perf-${instanceId || 'default'}`,
       [instanceId]
     );

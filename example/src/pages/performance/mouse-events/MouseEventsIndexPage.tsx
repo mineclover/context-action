@@ -4,7 +4,6 @@
  * Navigation hub for all mouse events implementations
  */
 
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { Badge } from '@/components/ui';

@@ -57,7 +57,7 @@ const generateContent = (page: number, itemsPerPage: number = 20) => {
 const {
   Provider: ScrollStoreProvider,
   useStore: useScrollStore,
-  useStoreManager: useScrollStoreManager,
+  useStoreManager: _useScrollStoreManager,
 } = createStoreContext('Scroll', {
   scrollData: {
     scrollTop: 0,

@@ -14,7 +14,7 @@
  * - Performance comparison with Non-Reactive pattern
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { EnhancedContextStoreView } from './components/EnhancedContextStoreView';
 import { VisualizationDashboard } from './components/VisualizationDashboard';
 import { MouseEventsModelProvider } from './context/MouseEventsModel';
@@ -54,7 +54,7 @@ interface Activity {
  */
 function ReactivePageContent() {
   const canvasControl = useAdvancedCanvasControl();
-  const metrics = useNonReactiveMetrics();
+  const _metrics = useNonReactiveMetrics();
 
   // Reactive visualization data state - triggers re-renders
   const [visualizationData, setVisualizationData] = useState({

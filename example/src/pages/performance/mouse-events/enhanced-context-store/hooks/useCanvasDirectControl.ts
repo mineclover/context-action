@@ -23,7 +23,7 @@ export function useCanvasDirectControl() {
   const dispatch = useMouseAction();
 
   // Non-reactive Store 데이터 접근
-  const storeData = useStoreDataAccess();
+  const _storeData = useStoreDataAccess();
 
   // DOM 참조들 (RefContext)
   const containerRef = useMouseRef('container');

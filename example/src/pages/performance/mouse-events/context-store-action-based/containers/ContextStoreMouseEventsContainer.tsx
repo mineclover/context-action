@@ -17,7 +17,6 @@ import {
 import { ContextStoreMouseEventsView } from '../components/ContextStoreMouseEventsView';
 import type { MouseStateData } from '../stores/MouseStoreSchema';
 import {
-  initialMouseState,
   useMouseActionDispatch,
   useMouseActionHandler,
   useMouseStore,

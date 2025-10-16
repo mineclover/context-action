@@ -1,9 +1,5 @@
 import { createActionContext, createStoreContext } from '@context-action/react';
-import type {
-  ComparisonActions,
-  ComparisonStore,
-  MemoryLeakItem,
-} from '../types';
+import type { ComparisonActions, MemoryLeakItem } from '../types';
 
 // Model Layer - 선언적 Context 관리
 

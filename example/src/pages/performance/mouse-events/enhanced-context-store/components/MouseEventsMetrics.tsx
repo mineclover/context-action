@@ -7,8 +7,6 @@
  * - 비즈니스 로직 없는 순수 View
  */
 
-import React from 'react';
-
 // === 메트릭 카드 타입 정의 ===
 export interface MetricCardProps {
   title: string;

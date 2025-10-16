@@ -100,7 +100,7 @@ interface MouseState {
 function CanvasRefDemoView() {
   // Ref context hooks for DOM manipulation
   const container = useCanvasRef('container');
-  const canvas = useCanvasRef('canvas');
+  const _canvas = useCanvasRef('canvas');
   const cursor = useCanvasRef('cursor');
   const coordinates = useCanvasRef('coordinates');
   const pathSvg = useCanvasRef('pathSvg');
@@ -151,7 +151,7 @@ function CanvasRefDemoView() {
   const lastMoveTimeRef = useRef<number>(0);
 
   // 🎯 실시간 상태 추적을 위한 refs (쓰로틀링 없음)
-  const realTimeStateRef = useRef({
+  const _realTimeStateRef = useRef({
     isMoving: false,
     velocity: 0,
     lastPosition: { x: -999, y: -999 },
@@ -236,7 +236,7 @@ function CanvasRefDemoView() {
   }, [realTimeActivityStore, realTimeMovementStore, realTimeClicksStore]);
 
   // === 🎯 반응형 안전한 DOM 조작 ===
-  const safeWithContainer = useCallback(
+  const _safeWithContainer = useCallback(
     (callback: (container: HTMLDivElement) => void) => {
       if (isContainerMounted && containerElement) {
         callback(containerElement);
@@ -456,13 +456,13 @@ function CanvasRefDemoView() {
   const handleMouseLeave = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       // 🎯 안전한 컨테이너 접근 - 마운트 상태 확인 (leave는 필수 아님)
-      let x = -999,
-        y = -999;
+      let _x = -999,
+        _y = -999;
 
       if (isContainerMounted && containerElement) {
         const rect = containerElement.getBoundingClientRect();
-        x = Math.round(e.clientX - rect.left);
-        y = Math.round(e.clientY - rect.top);
+        _x = Math.round(e.clientX - rect.left);
+        _y = Math.round(e.clientY - rect.top);
       }
 
       // 🎯 Update stores for real-time reactivity

@@ -11,7 +11,7 @@ import {
   createStoreContext,
   useStoreValue,
 } from '@context-action/react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useRef } from 'react';
 
 // ===== 타입 정의 =====
 interface ApiCallRecord {
@@ -442,7 +442,7 @@ function ApiBlockingDemoInterface() {
               timestamp: Date.now(),
             });
           }
-        } catch (error) {
+        } catch (_error) {
           dispatch('apiCallError', {
             endpoint,
             error: 'Network error',
@@ -468,7 +468,7 @@ function ApiBlockingDemoInterface() {
     'apiCallSuccess',
     useCallback(
       async (payload) => {
-        const { callId, endpoint, responseTime, timestamp } = payload;
+        const { callId, responseTime, timestamp } = payload;
 
         // Update the pending record
         const updatedCalls = apiCalls.map((call) =>
@@ -916,7 +916,7 @@ function StatusSection() {
   const metrics = useStoreValue(metricsStore);
   const isBlocked = useStoreValue(isBlockedStore);
   const rateLimit = useStoreValue(rateLimitStore);
-  const apiCalls = useStoreValue(apiCallsStore) || [];
+  const _apiCalls = useStoreValue(apiCallsStore) || [];
 
   return (
     <section className="bg-white rounded-2xl shadow-xl p-8">

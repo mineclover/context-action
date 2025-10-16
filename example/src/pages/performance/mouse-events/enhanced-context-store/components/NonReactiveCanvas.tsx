@@ -72,7 +72,7 @@ export function NonReactiveCanvas({
   const updateStatusDisplay = () => {
     if (!statusIndicatorRef.current) return;
 
-    const { isActive, statusText } = getActivityStatus();
+    const { isActive } = getActivityStatus();
 
     statusIndicatorRef.current.textContent = isActive
       ? '🖱️ Tracking'

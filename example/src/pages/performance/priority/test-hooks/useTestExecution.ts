@@ -78,7 +78,7 @@ export function useTestExecution(options: TestExecutionOptions = {}) {
       console.log('🚀 Starting priority test...');
 
       // 테스트 실행 - autoAbort 사용
-      const result = await actionRegister.dispatchWithResult(
+      const _result = await actionRegister.dispatchWithResult(
         'priorityTest',
         { testId: `test-${testStartTime}`, delay: 0 },
         {

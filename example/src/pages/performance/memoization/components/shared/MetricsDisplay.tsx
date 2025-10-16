@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface MetricsDisplayProps {
   title: string;
   variant: 'memoized' | 'non-memoized';

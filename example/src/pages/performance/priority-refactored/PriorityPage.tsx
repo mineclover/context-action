@@ -39,7 +39,7 @@ function PriorityPageContent() {
   const { executionStateStore } = usePriorityTestState();
   const { priorityCountsStore } = usePriorityCountsState();
   const {
-    handlerConfigs,
+    handlerConfigs: _handlerConfigs,
     selectedDelay,
     selectedDelayStore,
     configsWithDelay,
@@ -53,7 +53,7 @@ function PriorityPageContent() {
   const [currentInstanceId] = useState('instance-main');
 
   // Instance management handlers
-  const handleAddInstance = useCallback(async () => {
+  const _handleAddInstance = useCallback(async () => {
     try {
       await performanceActions.addInstance();
     } catch (error) {
@@ -61,7 +61,7 @@ function PriorityPageContent() {
     }
   }, [performanceActions]);
 
-  const handleRemoveInstance = useCallback(
+  const _handleRemoveInstance = useCallback(
     async (instanceId: string) => {
       try {
         await performanceActions.removeInstance(instanceId);
@@ -72,7 +72,7 @@ function PriorityPageContent() {
     [performanceActions]
   );
 
-  const handleResetInstances = useCallback(async () => {
+  const _handleResetInstances = useCallback(async () => {
     try {
       await performanceActions.resetInstances();
     } catch (error) {

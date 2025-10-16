@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNonMemoizedAutoUpdateEffect } from '../../hooks/useAutoUpdateEffect';
 import { useNonMemoizedActions } from '../../hooks/useComparisonActions';
 import { useNonMemoizedViewState } from '../../hooks/useComparisonViewState';

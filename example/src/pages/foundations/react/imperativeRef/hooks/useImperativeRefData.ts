@@ -6,7 +6,7 @@
  * for the UI layer without directly accessing business logic.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   FormData,
   formatTimerDisplay,

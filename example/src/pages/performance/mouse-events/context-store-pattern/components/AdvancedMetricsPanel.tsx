@@ -79,7 +79,7 @@ const AdvancedMetricsPanelComponent = ({
     clicks: 0,
     computed: 0,
   });
-  const subscriptionTimesRef = useRef<number[]>([]);
+  const _subscriptionTimesRef = useRef<number[]>([]);
 
   // Store 값들 구독 (모니터링용)
   const position = useStoreValue(positionStore) as {
@@ -322,7 +322,7 @@ const AdvancedMetricsPanelComponent = ({
       .map((point, index) => {
         const x = (index / (performanceHistory.length - 1)) * 200;
         const renderY = 50 - (point.renderTime / maxRenderTime) * 40;
-        const eventY = 50 - (point.eventCount / maxEvents) * 40;
+        const _eventY = 50 - (point.eventCount / maxEvents) * 40;
 
         return `${x},${renderY} `;
       })

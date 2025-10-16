@@ -7,7 +7,7 @@
  * - 비즈니스 로직 없는 순수 View
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useCanvasDirectControl } from '../hooks/useCanvasDirectControl';
 import { useMetricsOnly } from '../hooks/useMetricsOnly';
 import { useMouseEventsLogic } from '../hooks/useMouseEventsLogic';
@@ -36,7 +36,7 @@ export function EnhancedContextStoreView() {
 
   // === Local UI State (비즈니스 로직과 무관한 View 상태) ===
   const [showDetails, setShowDetails] = useState(false);
-  const [animationSpeed, setAnimationSpeed] = useState(1);
+  const [animationSpeed, _setAnimationSpeed] = useState(1);
 
   // Hook 초기화 대기
   if (!initialized) {

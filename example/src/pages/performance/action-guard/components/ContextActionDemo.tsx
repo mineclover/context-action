@@ -3,7 +3,7 @@
  * Demonstrates ActionPerformanceData using Context-Action framework
  */
 
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { PerformanceProvider, usePriorityExecution } from '../hooks';
 import type { PerformanceTrackingActions } from '../types';
 
@@ -14,7 +14,7 @@ function ContextActionPerformanceDemo() {
     metrics,
     isExecuting,
     clearQueue,
-    getMetricsByType,
+    getMetricsByType: _getMetricsByType,
     getAverageExecutionTime,
   } = usePriorityExecution();
 

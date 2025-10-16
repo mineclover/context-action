@@ -4,7 +4,6 @@
  * Advanced Context Store pattern with real-time debugging and analytics
  */
 
-import React from 'react';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { EnhancedContextStoreContainer } from './context-store-pattern/containers/EnhancedContextStoreContainer';
 

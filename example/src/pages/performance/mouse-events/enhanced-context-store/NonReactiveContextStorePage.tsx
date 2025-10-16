@@ -7,7 +7,6 @@
  * - Zero React re-renders with RefContext pattern
  */
 
-import React from 'react';
 import { NonReactiveView } from './components/NonReactiveView';
 import { MouseEventsModelProvider } from './context/MouseEventsModel';
 

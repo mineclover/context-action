@@ -8,9 +8,7 @@
  * - Store는 순수 데이터 저장소 역할만
  */
 
-import React from 'react';
 import { useAdvancedCanvasControl } from '../hooks/useAdvancedCanvasControl';
-import { useMouseEventsLogic } from '../hooks/useMouseEventsLogic';
 import { useNonReactiveMetrics } from '../hooks/useNonReactiveMetrics';
 import { NonReactiveCanvas } from './NonReactiveCanvas';
 

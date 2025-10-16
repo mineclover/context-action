@@ -8,7 +8,7 @@ import {
   createStore,
   useStoreValue,
 } from '@context-action/react';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { PageWithLogMonitor } from '@/components/LogMonitor';
 import { Badge, Card, CardContent } from '@/components/ui';
 

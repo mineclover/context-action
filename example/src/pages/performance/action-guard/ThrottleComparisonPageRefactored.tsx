@@ -12,7 +12,7 @@ import {
   createStoreContext,
   useStoreValue,
 } from '@context-action/react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 // ===== 타입 정의 =====
 interface EventLog {
@@ -371,7 +371,7 @@ function ThrottleDemoInterface() {
   const isAutoTesting = useStoreValue(isAutoTestingStore);
   const config = useStoreValue(configStore);
   const metrics = useStoreValue(metricsStore);
-  const performanceHistory = useStoreValue(performanceHistoryStore) || [];
+  const _performanceHistory = useStoreValue(performanceHistoryStore) || [];
 
   // Action handlers
   useActionHandler(
@@ -956,7 +956,7 @@ function StatusSection() {
 
   const metrics = useStoreValue(metricsStore);
   const config = useStoreValue(configStore);
-  const performanceHistory = useStoreValue(performanceHistoryStore) || [];
+  const _performanceHistory = useStoreValue(performanceHistoryStore) || [];
   const isAutoTesting = useStoreValue(isAutoTestingStore);
 
   const totalEvents = useMemo(

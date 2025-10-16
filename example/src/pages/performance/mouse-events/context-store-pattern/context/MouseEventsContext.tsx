@@ -64,48 +64,48 @@ export interface MouseEventsStateData {
 /**
  * 개별 마우스 이벤트 스토어들 (분할된 상태 관리)
  */
-interface MouseEventsStores {
-  // 기본 위치 및 상태
-  position: {
-    current: MousePosition;
-    previous: MousePosition;
-    isInsideArea: boolean;
-  };
-
-  // 이동 관련 메트릭
-  movement: {
-    moveCount: number;
-    isMoving: boolean;
-    velocity: number;
-    lastMoveTime: number | null;
-    path: MousePosition[];
-  };
-
-  // 클릭 관련 데이터
-  clicks: {
-    count: number;
-    history: Array<MousePosition & { timestamp: number }>;
-  };
-
-  // 계산된 값들 (지연 평가)
-  computed: {
-    validPath: MousePosition[];
-    recentClickCount: number;
-    averageVelocity: number;
-    totalEvents: number;
-    activityStatus: 'idle' | 'moving' | 'clicking';
-    hasActivity: boolean;
-  };
-
-  // 성능 메트릭
-  performance: {
-    containerRenderCount: number;
-    totalRenderCount: number;
-    averageRenderTime: number;
-    lastRenderTime: number;
-    sessionStartTime: number;
-  };
-}
+// interface MouseEventsStores {
+//   // 기본 위치 및 상태
+//   position: {
+//     current: MousePosition;
+//     previous: MousePosition;
+//     isInsideArea: boolean;
+//   };
+//
+//   // 이동 관련 메트릭
+//   movement: {
+//     moveCount: number;
+//     isMoving: boolean;
+//     velocity: number;
+//     lastMoveTime: number | null;
+//     path: MousePosition[];
+//   };
+//
+//   // 클릭 관련 데이터
+//   clicks: {
+//     count: number;
+//     history: Array<MousePosition & { timestamp: number }>;
+//   };
+//
+//   // 계산된 값들 (지연 평가)
+//   computed: {
+//     validPath: MousePosition[];
+//     recentClickCount: number;
+//     averageVelocity: number;
+//     totalEvents: number;
+//     activityStatus: 'idle' | 'moving' | 'clicking';
+//     hasActivity: boolean;
+//   };
+//
+//   // 성능 메트릭
+//   performance: {
+//     containerRenderCount: number;
+//     totalRenderCount: number;
+//     averageRenderTime: number;
+//     lastRenderTime: number;
+//     sessionStartTime: number;
+//   };
+// }
 
 // 새로운 패턴으로 변경 - 자동 타입 추론 사용
 const MouseEventsStores = createStoreContext('MouseEventsStoreManager', {
@@ -537,7 +537,7 @@ const MouseEventsActionHandlers: React.FC<{ children: React.ReactNode }> = ({
 
     // Computed store 업데이트 - 전체적으로 다시 계산하여 정확성 확보
     const currentClicks = clicksStore.getValue();
-    const currentComputed = computedStore.getValue();
+    const _currentComputed = computedStore.getValue();
 
     // 모든 computed 값들을 정확히 다시 계산
     const validPath = computeValidPath(updatedMovement.path);
@@ -752,7 +752,7 @@ export const MouseEventsProvider: React.FC<{
 /**
  * ActionProvider와 StoreProvider를 결합하는 커스텀 래퍼
  */
-const MouseEventsProviderWrapper: React.FC<{ children: React.ReactNode }> = ({
+const _MouseEventsProviderWrapper: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   console.log(

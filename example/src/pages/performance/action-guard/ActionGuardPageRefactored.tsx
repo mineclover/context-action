@@ -14,7 +14,7 @@
  * - Performance metrics and benchmarking
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Badge } from '@/components/ui';
 import { ActionGuardDemos } from './components';
 
@@ -44,7 +44,7 @@ export function ActionGuardPageRefactored() {
     []
   );
 
-  const demoStartTime = useRef<number>(Date.now());
+  const _demoStartTime = useRef<number>(Date.now());
 
   // Performance metrics data
   const metrics: PerformanceMetric[] = [

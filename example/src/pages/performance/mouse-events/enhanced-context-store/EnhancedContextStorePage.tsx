@@ -7,7 +7,6 @@
  * - Traditional React rendering with Store-based state management
  */
 
-import React from 'react';
 import { EnhancedContextStoreView } from './components/EnhancedContextStoreView';
 import { MouseEventsModelProvider } from './context/MouseEventsModel';
 
