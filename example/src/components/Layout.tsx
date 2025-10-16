@@ -66,13 +66,9 @@ function Layout({
 
     // === Practical Examples (실용 예제) ===
     { path: '/demos', label: '🎭 Context-Action Demos', category: 'demos', isIndex: true },
-    { path: '/demos/store-scenarios', label: '🏪 Complete Store Collection (4 Core Demos)', category: 'demos', description: 'Essential store patterns for real-world applications' },
     
     // Individual Store Demos
-    { path: '/demos/todo-list', label: '✅ Todo List Demo', category: 'demos', description: 'Basic CRUD patterns with filtering and sorting' },
-    { path: '/demos/shopping-cart', label: '🛒 Shopping Cart Demo', category: 'demos', description: 'Complex calculations and real-time pricing' },
     { path: '/demos/chat', label: '💬 Chat Demo', category: 'demos', description: 'Real-time messaging and auto-scroll features' },
-    { path: '/demos/user-profile', label: '👤 User Profile Demo', category: 'demos', description: 'Form processing and validation patterns' },
     
     
     
@@ -98,7 +94,6 @@ function Layout({
     { path: '/refs', label: '🎯 Refs Management', category: 'refs', isIndex: true },
     { path: '/refs/canvas', label: '🎨 Canvas Ref Demo', category: 'refs' },
     { path: '/actionguard/mouse-events', label: '🖱️ Mouse Events Demo', category: 'refs' },
-    { path: '/refs/form-builder', label: '📝 Form Builder Ref Demo', category: 'refs' },
     { path: '/refs/waitforrefs-performance', label: '⚡ useWaitForRefs Performance', category: 'refs', description: 'Performance verification demo for useWaitForRefs optimization' },
     { path: '/refs/use-ref-mount-state-test', label: '🎯 useRefMountState Test', category: 'refs', description: 'Isolated test page for useRefMountState hook functionality' },
     

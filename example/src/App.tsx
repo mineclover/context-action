@@ -70,15 +70,11 @@ const FlowControlPlaygroundPage = lazy(() => import('./pages/patterns/pipeline/F
 
 // Patterns - Refs (separate chunk for ref patterns)
 const RefsIndexPage = lazy(() => import('./pages/patterns/refs/RefsIndexPage').then(m => ({ default: m.RefsIndexPage })));
-const FormBuilderRefDemoPage = lazy(() => import('./pages/patterns/refs/FormBuilderRefDemoPage').then(m => ({ default: m.FormBuilderRefDemoPage })));
 const WaitForRefsPerformancePage = lazy(() => import('./pages/patterns/refs/WaitForRefsPerformancePage').then(m => ({ default: m.WaitForRefsPerformancePage })));
 const UseRefMountStateTestPage = lazy(() => import('./pages/patterns/refs/UseRefMountStateTestPage').then(m => ({ default: m.UseRefMountStateTestPage })));
 
 // Integrations - Business (separate chunk for business use cases)
-const TodoListPage = lazy(() => import('./pages/integrations/business/TodoListPage').then(m => ({ default: m.TodoListPage })));
-const ShoppingCartPage = lazy(() => import('./pages/integrations/business/ShoppingCartPage').then(m => ({ default: m.ShoppingCartPage })));
 const ChatPage = lazy(() => import('./pages/integrations/business/ChatPage').then(m => ({ default: m.ChatPage })));
-const UserProfilePage = lazy(() => import('./pages/integrations/business/UserProfilePage').then(m => ({ default: m.UserProfilePage })));
 
 // Integrations - Advanced (separate chunk for advanced features)
 const FormBuilderDemoPage = lazy(() => import('./pages/integrations/advanced/FormBuilderPage').then(m => ({ default: m.FormBuilderDemoPage })));
@@ -88,7 +84,6 @@ const ConcurrentActionTestPage = lazy(() => import('./pages/integrations/advance
 // Utilities - Dev Tools (separate chunk for development utilities)
 const LoggerDemoPage = lazy(() => import('./pages/utilities/dev-tools/LoggerPage'));
 const ToastConfigPage = lazy(() => import('./pages/utilities/dev-tools/ToastConfigPage'));
-const StoreScenariosPage = lazy(() => import('./pages/utilities/dev-tools/StoreScenariosPage').then(m => ({ default: m.StoreScenariosPage })));
 const SourceLinkDirectory = lazy(() => import('./pages/utilities/SourceLinkDirectory').then(m => ({ default: m.SourceLinkDirectory })));
 
 // Overview Pages (keep in root)
@@ -106,7 +101,6 @@ const UtilitiesOverview = lazy(() => import('./pages/catalog/utilities/Utilities
 
 // Legacy components
 const EnhancedAbortableSearchExample = lazy(() => import('./components/EnhancedAbortableSearchExample'));
-const DemosIndexPage = lazy(() => import('./pages/utilities/dev-tools/StoreScenariosPage').then(m => ({ default: m.StoreScenariosPage })));
 
 // 라우트 변경 시 콘솔 클리어 (개발 환경에서만)
 function ConsoleClearer() {
@@ -193,16 +187,12 @@ function AppContent() {
             <Route path="/patterns/layered-architecture" element={<LayeredArchitecturePage />} />
             <Route path="/patterns/pipeline/flow-control" element={<FlowControlPlaygroundPage />} />
             <Route path="/patterns/refs" element={<RefsIndexPage />} />
-            <Route path="/patterns/refs/form-builder" element={<FormBuilderRefDemoPage />} />
             <Route path="/patterns/refs/waitforrefs-performance" element={<WaitForRefsPerformancePage />} />
             <Route path="/patterns/refs/use-ref-mount-state-test" element={<UseRefMountStateTestPage />} />
             <Route path="/patterns/refs/canvas" element={<AdvancedCanvasExample />} />
             
             {/* 🧩 INTEGRATIONS - Real-world use cases */}
-            <Route path="/integrations/business/todo-list" element={<TodoListPage />} />
-            <Route path="/integrations/business/shopping-cart" element={<ShoppingCartPage />} />
             <Route path="/integrations/business/chat" element={<ChatPage />} />
-            <Route path="/integrations/business/user-profile" element={<UserProfilePage />} />
             <Route path="/integrations/advanced/form-builder" element={<FormBuilderDemoPage />} />
             <Route path="/integrations/advanced/canvas" element={<AdvancedCanvasExample />} />
             <Route path="/integrations/advanced/concurrent-actions" element={<ConcurrentActionTestPage />} />
@@ -210,7 +200,6 @@ function AppContent() {
             {/* 🛠️ UTILITIES - Development tools, debugging */}
             <Route path="/utilities/dev-tools/logger" element={<LoggerDemoPage />} />
             <Route path="/utilities/dev-tools/toast-config" element={<ToastConfigPage />} />
-            <Route path="/utilities/dev-tools/store-scenarios" element={<StoreScenariosPage />} />
             <Route path="/utilities/dev-tools/warning-demo" element={<WarningDemoPage />} />
             <Route path="/utilities/source-directory" element={<SourceLinkDirectory />} />
             <Route path="/utilities/testing/enhanced-search" element={<EnhancedAbortableSearchExample />} />
@@ -246,16 +235,11 @@ function AppContent() {
             <Route path="/actionguard/conditional/feature-toggle" element={<FeatureToggle />} />
             <Route path="/pipeline/flow-control" element={<FlowControlPlaygroundPage />} />
             <Route path="/refs" element={<RefsIndexPage />} />
-            <Route path="/refs/form-builder" element={<FormBuilderRefDemoPage />} />
             <Route path="/refs/waitforrefs-performance" element={<WaitForRefsPerformancePage />} />
             <Route path="/refs/use-ref-mount-state-test" element={<UseRefMountStateTestPage />} />
             <Route path="/refs/canvas" element={<AdvancedCanvasExample />} />
-            <Route path="/demos/todo-list" element={<TodoListPage />} />
-            <Route path="/demos/shopping-cart" element={<ShoppingCartPage />} />
             <Route path="/demos/chat" element={<ChatPage />} />
-            <Route path="/demos/user-profile" element={<UserProfilePage />} />
             <Route path="/demos/action-priority" element={<ActionPriorityDemoPage />} />
-            <Route path="/demos/store-scenarios" element={<StoreScenariosPage />} />
             <Route path="/examples/concurrent-actions" element={<ConcurrentActionTestPage />} />
             <Route path="/examples/toast-config" element={<ToastConfigPage />} />
             <Route path="/examples/enhanced-search" element={<EnhancedAbortableSearchExample />} />
