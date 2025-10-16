@@ -110,6 +110,7 @@ function Layout({
     
     // === Utilities & Tools (유틸리티) ===
     { path: '/utilities/source-directory', label: '📝 Source Link Directory', category: 'utilities', description: 'View all registered source code links' },
+    { path: '/utilities/dev-tools/warning-demo', label: '⚠️ Warning Messages Demo', category: 'utilities', description: 'Test Context-Action warning message features' },
     { path: '/logger/demo', label: 'Logger System', category: 'utilities' },
     { path: '/examples/toast-config', label: '🍞 Toast Config Example', category: 'utilities' },
     { path: '/examples/concurrent-actions', label: '🔄 Concurrent Actions Test', category: 'utilities' },

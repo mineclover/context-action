@@ -15,6 +15,9 @@ import { SourceLinkRegistryProvider } from './stores/SourceLinkRegistry';
 // Lazy load large page components - Updated for catalog structure
 // 🚀 Enhanced code splitting for better performance
 
+// Warning Demo - New feature demonstration
+const WarningDemoPage = lazy(() => import('./pages/WarningDemoPage'));
+
 // Foundations - Core concepts (smaller chunks)
 const CoreBasicsPage = lazy(() => import('./pages/foundations/core/BasicsPage'));
 const CoreAdvancedPage = lazy(() => import('./pages/foundations/core/AdvancedPage'));
@@ -208,6 +211,7 @@ function AppContent() {
             <Route path="/utilities/dev-tools/logger" element={<LoggerDemoPage />} />
             <Route path="/utilities/dev-tools/toast-config" element={<ToastConfigPage />} />
             <Route path="/utilities/dev-tools/store-scenarios" element={<StoreScenariosPage />} />
+            <Route path="/utilities/dev-tools/warning-demo" element={<WarningDemoPage />} />
             <Route path="/utilities/source-directory" element={<SourceLinkDirectory />} />
             <Route path="/utilities/testing/enhanced-search" element={<EnhancedAbortableSearchExample />} />
             
